@@ -54,13 +54,13 @@
                 </nav>
                 <div class="header-images">
                     <figure class="left-tgv">
-                        <img src="{{ Vite::image('tgv - left.png') }}" alt="Queue du TGV">
+                        <img src="{{ Vite::image('tgv-left.png') }}" alt="Queue du TGV">
                     </figure>
                     <figure>
                         <img src="{{ Vite::image('vff.png') }}" alt="Logo de VFF">
                     </figure>
                     <figure class="right-tgv">
-                        <img src="{{ Vite::image('tgv - right.png') }}" alt="Tête du TGV">
+                        <img src="{{ Vite::image('tgv-right.png') }}" alt="Tête du TGV">
                     </figure>
                 </div>
                 <div class="bottom-container" style="position: relative;">
@@ -175,7 +175,7 @@
                             <a href="https://www.github.com/vff-project"><i class="bi bi-github"></i> GitHub</a>
                         </li>
                         <li class="unxwares">
-                            <a href="https://www.unxwares.studio/vff-project"><img src="{{ Vite::image('unxwares-black.png') }}"> UnxWares</a>
+                            <a href="https://www.unxwares.studio/vff-project"><img src="{{ Vite::image('unxwares.png') }}"> UnxWares</a>
                         </li>
                     </ul>
                     <ul class="legal-links">
@@ -195,7 +195,7 @@
             <hr>
             <div class="copyright">
                 <p>Voies Ferrées de France - VFF © 2023-2024 - Tous droits réservés</p>
-                <p>Propulsé par <a href="https://www.unxwares.studio/"><img src="{{ Vite::image('unxwares-black.png')}}"> UnxWares</a>. Développé par Baptiste Gosselin</p>
+                <p>Propulsé par <a href="https://www.unxwares.studio/"><img src="{{ Vite::image('unxwares.png')}}"> UnxWares</a>. Développé par Baptiste Gosselin</p>
             </div>
         </footer>
     </body>
