@@ -3,6 +3,8 @@
 /public/build
 /public/hot
 /public/storage
+# RTK / Next.js artifact créé par mégarde lors d'un build (filtre RTK qui se prend pour Next.js)
+/.next
 /storage/*.key
 /storage/pail
 /vendor
