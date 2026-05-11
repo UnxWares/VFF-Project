@@ -1,0 +1,5 @@
+{
+    "require": {
+        "clickbar/laravel-magellan": "^2.1"
+    }
+}

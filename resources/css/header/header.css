@@ -103,3 +103,45 @@ header .header-background .bottom-container .scroll-button i{
 .hidden-button{
     display: none;
 }
+
+/* ─── Reset additif des boutons icônes de la navbar ─────────────────────────
+   Le markup d'origine utilisait <button class="theme-change"> et de simples <i>
+   pour lang/account. Avec Svelte + LanguageSwitcher en sous-composant, les
+   éléments interactifs sont désormais des <button> et héritent du style natif
+   du navigateur (bordure grise). On les remet en boutons-icônes neutres.
+   Ces règles n'altèrent rien de l'existant — elles ajoutent juste des resets
+   pour des sélecteurs qui n'étaient pas couverts. */
+header .header-background nav .user button,
+header .header-background nav .user .theme-change {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+header .header-background nav .user button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+header .header-background nav .user button i {
+    font-size: 20px;
+}
+
+/* `.nav-title` est maintenant un <a> (Link Inertia) cliquable vers l'accueil.
+   On neutralise le style natif de lien (underline, couleur bleue) et on ajoute
+   un léger hover pour signaler l'interactivité. */
+header .header-background nav a.nav-title,
+header .header-background nav .nav-title {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+header .header-background nav .nav-title h2 {
+    transition: color 200ms ease;
+}
+header .header-background nav .nav-title:hover h2 {
+    color: var(--vff-accent);
+}

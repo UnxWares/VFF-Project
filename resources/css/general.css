@@ -82,3 +82,304 @@ li{
 hr{
     margin: 0;
 }
+
+/* ─── Tokens exposés pour les nouvelles pages internes uniquement ─────────
+   Ces variables ne modifient AUCUNE règle CSS existante (home, header,
+   footer) — elles servent juste à `PageHero`, `IconCard`, `SectionBlock`,
+   `LanguageSwitcher`, et aux pages /whoarewe, /maps, /contribute, /donate,
+   /legal, /privacy, /use-conditions, /api. */
+:root {
+    --vff-accent: #ff6500;
+    --vff-accent-hover: #e85a00;
+    --vff-accent-soft: rgba(255, 101, 0, 0.12);
+    --vff-bg: #ffffff;
+    --vff-bg-elevated: #fcfcfd;
+    --vff-bg-muted: #e8ecec;
+    --vff-text: #000000;
+    --vff-text-muted: #555a64;
+    --vff-text-inverse: #ffffff;
+    --vff-border: #e2e6ea;
+    --vff-border-strong: #c8ced4;
+    --vff-shadow: rgba(0, 0, 0, 0.08);
+    --vff-shadow-strong: rgba(0, 0, 0, 0.18);
+    --vff-font-display: Gabarito, cursive;
+    --vff-font-heading: Inter, sans-serif;
+    --vff-font-body: Lato, sans-serif;
+    --vff-font-secondary: Montserrat, sans-serif;
+    --vff-radius-sm: 6px;
+    --vff-radius-md: 10px;
+    --vff-radius-lg: 16px;
+    --vff-radius-pill: 999px;
+    --vff-transition: 200ms ease;
+    --vff-transition-slow: 500ms ease;
+    --vff-z-nav: 50;
+    --vff-z-overlay: 100;
+    --vff-z-modal: 1000;
+}
+.hidden-button{
+    display: none;
+}
+
+/* ─── Boutons CTA partagés (pages internes uniquement) ─────────────────────
+   Ces classes ne sont utilisées que sur les nouvelles pages internes (whoarewe,
+   donate, contribute, maps, api). Elles n'apparaissent nulle part sur la home. */
+
+.vff-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: var(--vff-radius-md);
+    text-decoration: none;
+    font-family: var(--vff-font-display);
+    font-size: 15px;
+    text-transform: uppercase;
+    transition: transform var(--vff-transition), background-color var(--vff-transition);
+    white-space: nowrap;
+    cursor: pointer;
+}
+.vff-btn:hover {
+    transform: scale(0.96);
+    text-decoration: none;
+}
+.vff-btn:focus-visible {
+    outline: 3px solid var(--vff-accent);
+    outline-offset: 2px;
+}
+
+/* Variante "primary" : utilisée sur fond clair (couleur orange) */
+.vff-btn.primary {
+    background-color: var(--vff-accent);
+    color: var(--vff-text-inverse);
+}
+.vff-btn.primary:hover {
+    background-color: var(--vff-accent-hover);
+}
+
+/* Variante "on-cta" : utilisée sur le fond orange dégradé (couleur blanche) */
+.vff-btn.on-cta {
+    background-color: #ffffff;
+    color: var(--vff-accent);
+}
+.vff-btn.on-cta:hover {
+    background-color: #f5f5f5;
+}
+
+/* Variante "ghost" : transparent avec bordure */
+.vff-btn.ghost {
+    background-color: transparent;
+    color: var(--vff-accent);
+    border: 2px solid var(--vff-accent);
+}
+.vff-btn.ghost:hover {
+    background-color: var(--vff-accent-soft);
+}
+
+/* Variante "ghost-on-cta" : transparent avec bordure blanche, sur fond orange */
+.vff-btn.ghost-on-cta {
+    background-color: transparent;
+    color: #ffffff;
+    border: 2px solid #ffffff;
+}
+.vff-btn.ghost-on-cta:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ─── Dark mode (overrides additifs) ─────────────────────────────────────
+   Activé via <html data-theme="dark"> posé par le store theme. Toutes les
+   règles ici sont ADDITIVES : aucune règle existante n'est modifiée, juste
+   surchargée quand l'attribut [data-theme="dark"] est présent. */
+
+:root[data-theme='dark'] {
+    --vff-bg: #0f1419;
+    --vff-bg-elevated: #181f29;
+    --vff-bg-muted: #232c39;
+    --vff-text: #e8ecec;
+    --vff-text-muted: #94a3b8;
+    --vff-border: #2a3441;
+    --vff-border-strong: #3a4655;
+    --vff-shadow: rgba(0, 0, 0, 0.45);
+    --vff-shadow-strong: rgba(0, 0, 0, 0.65);
+    color-scheme: dark;
+}
+
+[data-theme='dark'] body {
+    background-color: #0f1419;
+    color: #e8ecec;
+    transition: background-color 200ms ease, color 200ms ease;
+}
+
+/* Navbar sticky */
+[data-theme='dark'] header .header-background nav {
+    background-color: #181f29;
+    color: #e8ecec;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+}
+[data-theme='dark'] header .header-background nav ul li a {
+    color: #e8ecec;
+}
+
+/* Footer */
+[data-theme='dark'] footer {
+    background-color: #0f1419;
+    color: #e8ecec;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+}
+[data-theme='dark'] footer .footer-infos .footer-links ul li a {
+    color: #94a3b8;
+}
+[data-theme='dark'] footer .footer-infos .footer-links ul li a:hover {
+    color: #ff6500;
+}
+[data-theme='dark'] footer .footer-infos .footer-links .general-links hr,
+[data-theme='dark'] footer hr {
+    border-top-color: #2a3441;
+}
+[data-theme='dark'] footer .copyright p {
+    color: #94a3b8;
+}
+[data-theme='dark'] footer .copyright p a {
+    color: #e8ecec;
+}
+[data-theme='dark'] footer .copyright p a:hover {
+    color: #ff6500;
+}
+[data-theme='dark'] footer .footer-infos .banner p {
+    color: #94a3b8;
+}
+
+/* Section WhoAreWe (home) */
+[data-theme='dark'] main #whoarewe p {
+    color: #e8ecec;
+}
+[data-theme='dark'] main #whoarewe h1 {
+    color: #ffffff;
+}
+[data-theme='dark'] main #whoarewe h1:after {
+    background-color: #3a4655;
+}
+
+/* Section Maps (home — 3 boîtes) */
+[data-theme='dark'] main #maps .maps-container .maps-box > div {
+    background-color: #181f29;
+    box-shadow: -1px 8px 18px rgba(0, 0, 0, 0.4);
+}
+[data-theme='dark'] main #maps .maps-container .maps-box > div h2 {
+    color: #ffffff;
+    background-color: #232c39;
+}
+[data-theme='dark'] main #maps .maps-container .maps-box > div p {
+    color: #94a3b8;
+}
+[data-theme='dark'] main #maps .maps-container .maps-box > div figure {
+    background-color: #181f29;
+}
+
+/* Sections nouvelles (Features, ContributeTeaser) — identifiées par ID */
+[data-theme='dark'] #features,
+[data-theme='dark'] #contribute-teaser {
+    background-color: #0f1419;
+}
+[data-theme='dark'] #features h2,
+[data-theme='dark'] #features h3,
+[data-theme='dark'] #contribute-teaser h2,
+[data-theme='dark'] #contribute-teaser h3 {
+    color: #ffffff;
+}
+[data-theme='dark'] #features p,
+[data-theme='dark'] #contribute-teaser p {
+    color: #94a3b8;
+}
+[data-theme='dark'] #features .feature {
+    background-color: #181f29;
+    border-color: #2a3441;
+}
+[data-theme='dark'] #features .feature:hover {
+    border-color: #ff6500;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+}
+
+/* Pages internes (whoarewe, donate, contribute, maps, api, légales) */
+[data-theme='dark'] .page-hero {
+    background: linear-gradient(180deg, rgba(255, 101, 0, 0.15) 0%, transparent 100%);
+}
+[data-theme='dark'] .section-block.alt {
+    background-color: #181f29;
+}
+[data-theme='dark'] .icon-card,
+[data-theme='dark'] .endpoints li,
+[data-theme='dark'] .format,
+[data-theme='dark'] .methods li,
+[data-theme='dark'] .tier,
+[data-theme='dark'] .progress-card,
+[data-theme='dark'] .toc {
+    background-color: #181f29;
+    border-color: #2a3441;
+}
+[data-theme='dark'] .icon-card h3,
+[data-theme='dark'] .tier .label {
+    color: #ffffff;
+}
+[data-theme='dark'] .icon-card p,
+[data-theme='dark'] .tier p,
+[data-theme='dark'] .toc a {
+    color: #94a3b8;
+}
+
+/* LanguageSwitcher dropdown */
+[data-theme='dark'] .lang-menu {
+    background-color: #181f29;
+    border-color: #2a3441;
+}
+[data-theme='dark'] .lang-menu button {
+    color: #e8ecec;
+}
+[data-theme='dark'] .lang-menu button:hover {
+    background-color: #232c39;
+}
+
+/* Scrollbar */
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+    background-color: #4a5565;
+}
+
+/* ─── Perf : override additif du background hero en WebP ────────────────
+   header.css charge la PNG 2.6 MB. On override avec image-set() pour servir
+   WebP (179 KB desktop, 117 KB tablet, 64 KB mobile) aux browsers compatibles
+   (>97% global). PNG conservée en fallback automatique via type().
+   N'altère AUCUNE règle existante — surcharge en cascade uniquement. */
+
+header .header-background {
+    background-image: image-set(
+        url("../images/background.webp") type("image/webp"),
+        url("../images/background.png") type("image/png")
+    );
+}
+@media (max-width: 1280px) {
+    header .header-background {
+        background-image: image-set(
+            url("../images/background-tablet.webp") type("image/webp"),
+            url("../images/background.png") type("image/png")
+        );
+    }
+}
+@media (max-width: 768px) {
+    header .header-background {
+        background-image: image-set(
+            url("../images/background-mobile.webp") type("image/webp"),
+            url("../images/background.png") type("image/png")
+        );
+    }
+}
+
+/* ─── Accessibilité : respect du prefers-reduced-motion ─────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
