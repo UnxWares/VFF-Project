@@ -3,24 +3,59 @@
     import Layout from '$components/Layout.svelte';
     import PageHero from '$components/PageHero.svelte';
     import Pagination from '$components/Directory/Pagination.svelte';
+    import DirectoryFilters from '$components/Directory/DirectoryFilters.svelte';
+    import DirectoryTable from '$components/Directory/DirectoryTable.svelte';
+    import EmptyState from '$components/ui/EmptyState.svelte';
     import { STATION_STATUS_COLOR } from '$components/Stations/stationStatus.js';
     import { i18n } from '$lib/i18n.js';
 
-    let { stations, filters, counts = {}, eras = [], departments = [] } = $props();
+    let { stations, filters, counts = {}, eras = [], departments = [], overall = 0 } = $props();
 
+    // Les champs partent des filtres reçus puis évoluent avec la saisie : valeur initiale voulue.
+    // svelte-ignore state_referenced_locally
     let q = $state(filters.q ?? '');
+    // svelte-ignore state_referenced_locally
     let status = $state(filters.status ?? '');
+    // svelte-ignore state_referenced_locally
     let era = $state(filters.era ? String(filters.era) : '');
+    // svelte-ignore state_referenced_locally
     let dept = $state(filters.dept ?? '');
+    // svelte-ignore state_referenced_locally
     let flagged = $state(!!filters.flagged);
+    // svelte-ignore state_referenced_locally
+    let sort = $state(filters.sort ?? 'name');
 
     const STATUSES = ['active', 'tourist', 'no_commercial', 'declassified', 'gone', 'planned'];
-    const total = $derived(Object.values(counts).reduce((a, b) => a + b, 0));
+    const SORTS = [
+        ['name', 'sort_name'],
+        ['name-desc', 'sort_name_desc'],
+        ['city', 'sort_city'],
+        ['opened', 'sort_opened'],
+        ['closed', 'sort_closed'],
+    ];
     const hasFilters = $derived(!!(q || status || era || dept || flagged));
     const fmt = (n) => (n ?? 0).toLocaleString($i18n.language ?? 'fr');
+    const showInferredNote = $derived(
+        stations.data.some(
+            (s) =>
+                s.opened_source?.startsWith('inferred') || s.closed_source?.startsWith('inferred'),
+        ),
+    );
+    const showUndatedNote = $derived(stations.data.some((s) => s.closed_source === 'vff:eras'));
+    const showStatusNote = $derived(
+        stations.data.some((s) => s.status === 'declassified' || s.status === 'gone'),
+    );
 
     function params(extra = {}) {
-        const p = { q, status, era, dept, flagged: flagged ? 1 : '', ...extra };
+        const p = {
+            q,
+            status,
+            era,
+            dept,
+            flagged: flagged ? 1 : '',
+            sort: sort === 'name' ? '' : sort,
+            ...extra,
+        };
         Object.keys(p).forEach(
             (k) => (p[k] === '' || p[k] === null || p[k] === undefined) && delete p[k],
         );
@@ -29,30 +64,50 @@
     }
 
     let debounceTimer;
-    function applyFilters() {
+    function applyFilters(now = false) {
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            router.get('/stations', params(), {
-                preserveState: true,
-                preserveScroll: true,
-                replace: true,
-            });
-        }, 250);
-    }
-
-    function pickStatus(s) {
-        status = status === s ? '' : s;
-        applyFilters();
+        debounceTimer = setTimeout(
+            () => {
+                router.get('/stations', params(), {
+                    preserveState: true,
+                    preserveScroll: true,
+                    replace: true,
+                });
+            },
+            now ? 0 : 250,
+        );
     }
 
     function clearFilters() {
+        clearTimeout(debounceTimer);
         q = status = era = dept = '';
         flagged = false;
+        sort = 'name';
         router.get('/stations', {}, { preserveState: true, replace: true });
     }
 
     function goToPage(page) {
         router.get('/stations', params({ page }), { preserveScroll: false });
+    }
+
+    /** Commune (département) puis type : « Vire Normandie (14), Gare ». */
+    function whereText(s) {
+        const place = s.city
+            ? `${s.city}${s.department_code ? ` (${s.department_code})` : ''}`
+            : '';
+        const type = $i18n.t(`stations.types.${s.type}`);
+        return place ? `${place}, ${type}` : type;
+    }
+
+    /** Fermeture : date, « non datée » (seulement encadrée par l'état des lignes) ou rien. */
+    function closedText(s) {
+        if (s.closed_source === 'vff:eras') {
+            const base = $i18n.t('stations.closed_undated');
+            return s.closed_after
+                ? `${base} (${$i18n.t('stations.closed_after', { year: s.closed_after })})`
+                : base;
+        }
+        return s.closed_year ? String(s.closed_year) : '';
     }
 </script>
 
@@ -66,145 +121,236 @@
         <PageHero
             eyebrow={$i18n.t('stations.list_eyebrow')}
             title={$i18n.t('stations.list_title')}
-            subtitle={$i18n.t('stations.list_subtitle', { total: fmt(total) })}
+            subtitle={$i18n.t('stations.list_subtitle', { total: fmt(overall) })}
         />
 
-        <section class="filters">
-            <div class="filter-row">
-                <div class="search-input">
-                    <i class="bi bi-search"></i>
+        <div class="vff-container directory">
+            <DirectoryFilters
+                label={$i18n.t('stations.filters_title')}
+                results={$i18n.t('stations.results', { count: fmt(stations.total) })}
+                canReset={hasFilters}
+                resetLabel={$i18n.t('stations.clear')}
+                onreset={clearFilters}
+                onsubmit={() => applyFilters(true)}
+            >
+                <div class="vff-field wide">
+                    <label class="vff-label" for="stations-q"
+                        >{$i18n.t('stations.search_label')}</label
+                    >
                     <input
-                        type="text"
-                        placeholder={$i18n.t('stations.search_placeholder')}
-                        aria-label={$i18n.t('stations.search_placeholder')}
+                        id="stations-q"
+                        class="vff-input"
+                        type="search"
+                        name="q"
+                        autocomplete="off"
+                        enterkeyhint="search"
+                        placeholder={$i18n.t('stations.search_hint')}
                         bind:value={q}
-                        oninput={applyFilters}
+                        oninput={() => applyFilters()}
                     />
                 </div>
-                <select
-                    bind:value={era}
-                    onchange={applyFilters}
-                    aria-label={$i18n.t('stations.all_eras')}
-                >
-                    <option value="">{$i18n.t('stations.all_eras')}</option>
-                    {#each eras as y (y)}
-                        <option value={String(y)}
-                            >{$i18n.t('stations.era_option', { year: y })}</option
-                        >
-                    {/each}
-                </select>
-                <select
-                    bind:value={dept}
-                    onchange={applyFilters}
-                    aria-label={$i18n.t('stations.all_departments')}
-                >
-                    <option value="">{$i18n.t('stations.all_departments')}</option>
-                    {#each departments as d (d)}
-                        <option value={d}>{d}</option>
-                    {/each}
-                </select>
-                <label class="checkbox">
-                    <input type="checkbox" bind:checked={flagged} onchange={applyFilters} />
-                    <span>{$i18n.t('stations.flagged_only')}</span>
+                <div class="vff-field">
+                    <label class="vff-label" for="stations-status"
+                        >{$i18n.t('stations.filter_status')}</label
+                    >
+                    <select
+                        id="stations-status"
+                        class="vff-select"
+                        bind:value={status}
+                        onchange={() => applyFilters(true)}
+                    >
+                        <option value="">{$i18n.t('stations.all_statuses')}</option>
+                        {#each STATUSES as s (s)}
+                            {#if counts[s] || status === s}
+                                <option value={s}
+                                    >{$i18n.t(`stations.statuses.${s}`)} ({fmt(counts[s])})</option
+                                >
+                            {/if}
+                        {/each}
+                    </select>
+                </div>
+                <div class="vff-field">
+                    <label class="vff-label" for="stations-era"
+                        >{$i18n.t('stations.filter_era')}</label
+                    >
+                    <select
+                        id="stations-era"
+                        class="vff-select"
+                        bind:value={era}
+                        onchange={() => applyFilters(true)}
+                    >
+                        <option value="">{$i18n.t('stations.all_eras')}</option>
+                        {#each eras as y (y)}
+                            <option value={String(y)}
+                                >{$i18n.t('stations.era_option', { year: y })}</option
+                            >
+                        {/each}
+                    </select>
+                </div>
+                <div class="vff-field">
+                    <label class="vff-label" for="stations-dept"
+                        >{$i18n.t('stations.filter_department')}</label
+                    >
+                    <select
+                        id="stations-dept"
+                        class="vff-select"
+                        bind:value={dept}
+                        onchange={() => applyFilters(true)}
+                    >
+                        <option value="">{$i18n.t('stations.all_departments')}</option>
+                        {#each departments as d (d)}
+                            <option value={d}>{d}</option>
+                        {/each}
+                    </select>
+                </div>
+                <div class="vff-field">
+                    <label class="vff-label" for="stations-sort"
+                        >{$i18n.t('stations.sort_label')}</label
+                    >
+                    <select
+                        id="stations-sort"
+                        class="vff-select"
+                        bind:value={sort}
+                        onchange={() => applyFilters(true)}
+                    >
+                        {#each SORTS as [value, key] (value)}
+                            <option {value}>{$i18n.t(`stations.${key}`)}</option>
+                        {/each}
+                    </select>
+                </div>
+                <label class="vff-check wide">
+                    <input
+                        type="checkbox"
+                        bind:checked={flagged}
+                        onchange={() => applyFilters(true)}
+                    />
+                    {$i18n.t('stations.flagged_only')}
                 </label>
-                {#if hasFilters}
-                    <button class="vff-btn ghost" onclick={clearFilters}>
-                        <i class="bi bi-x-circle"></i>
-                        {$i18n.t('stations.clear')}
-                    </button>
-                {/if}
-            </div>
-            <div class="chips" role="group" aria-label={$i18n.t('stations.all_statuses')}>
-                {#each STATUSES as s (s)}
-                    {#if counts[s] || status === s}
-                        <button
-                            type="button"
-                            class="chip"
-                            class:active={status === s}
-                            aria-pressed={status === s}
-                            style="--dot: {STATION_STATUS_COLOR[s]}"
-                            onclick={() => pickStatus(s)}
-                        >
-                            <i class="dot"></i>
-                            {$i18n.t(`stations.statuses.${s}`)} <span>{fmt(counts[s])}</span>
-                        </button>
-                    {/if}
-                {/each}
-            </div>
-        </section>
+            </DirectoryFilters>
 
-        <section class="list">
             {#if stations.data.length}
-                <div class="grid">
-                    {#each stations.data as s (s.slug)}
-                        <a class="card" href="/stations/{s.slug}">
-                            <i
-                                class="dot big"
-                                style="--dot: {STATION_STATUS_COLOR[s.status] ??
-                                    STATION_STATUS_COLOR.declassified}"
-                            ></i>
-                            <div class="info">
-                                <strong>{s.name}</strong>
-                                <div class="meta">
-                                    {#if s.city}<span
-                                            >{s.city}{s.department_code
-                                                ? ` (${s.department_code})`
-                                                : ''}</span
-                                        >{/if}
-                                    <span>{$i18n.t(`stations.types.${s.type}`)}</span>
-                                </div>
-                                <div class="meta">
-                                    <span class="status"
-                                        >{$i18n.t(`stations.statuses.${s.status}`)}</span
-                                    >
-                                    {#if s.opened_year}
-                                        <small>
-                                            {$i18n.t('stations.opened_in', {
-                                                year: s.opened_year,
-                                            })}{#if s.opened_source?.startsWith('inferred')}&nbsp;<abbr
-                                                    title={$i18n.t('stations.events.inferred_hint')}
-                                                    >({$i18n.t('stations.inferred_short')})</abbr
-                                                >{/if}
-                                        </small>
+                <DirectoryTable
+                    label={$i18n.t('stations.table_label')}
+                    caption={$i18n.t('stations.table_caption')}
+                >
+                    <thead>
+                        <tr>
+                            <th scope="col">{$i18n.t('stations.col_station')}</th>
+                            <th scope="col">{$i18n.t('stations.col_lines')}</th>
+                            <th scope="col">{$i18n.t('stations.col_status')}</th>
+                            <th scope="col" class="num">{$i18n.t('stations.col_opened')}</th>
+                            <th scope="col" class="num">{$i18n.t('stations.col_closed')}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each stations.data as s (s.slug)}
+                            {@const closed = closedText(s)}
+                            <tr>
+                                <td class="name">
+                                    <a class="station-link" href="/stations/{s.slug}">{s.name}</a>
+                                    <span class="where">{whereText(s)}</span>
+                                    {#if s.position_flagged}
+                                        <span class="vff-badge warning flag">
+                                            <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                                            {$i18n.t('stations.position_flag')}
+                                        </span>
                                     {/if}
-                                    {#if s.closed_year}
-                                        <small
-                                            >{$i18n.t('stations.closed_in', {
-                                                year: s.closed_year,
-                                            })}</small
+                                </td>
+                                <td
+                                    class={['lines', { blank: !s.lines.items.length }]}
+                                    data-label={$i18n.t('stations.col_lines')}
+                                >
+                                    {#each s.lines.items as l (l.slug)}
+                                        {#if l.code}
+                                            <a class="line-plate vff-plate" href="/lines/{l.slug}"
+                                                >{l.code}<span class="vff-sr-only">
+                                                    : {l.name}</span
+                                                ></a
+                                            >
+                                        {:else}
+                                            <a class="line-name" href="/lines/{l.slug}">{l.name}</a>
+                                        {/if}
+                                    {/each}
+                                    {#if s.lines.more}
+                                        <span class="more"
+                                            >{$i18n.t('stations.more_lines', {
+                                                count: s.lines.more,
+                                            })}</span
                                         >
                                     {/if}
-                                    {#if s.position_flagged}
+                                </td>
+                                <td data-label={$i18n.t('stations.col_status')}>
+                                    <span class="status">
                                         <i
-                                            class="bi bi-exclamation-triangle flag"
-                                            title={$i18n.t('stations.flagged_only')}
-                                            aria-label={$i18n.t('stations.flagged_only')}
-                                            role="img"
-                                        ></i>
+                                            class={['dot', { gone: s.status === 'gone' }]}
+                                            style:--dot={STATION_STATUS_COLOR[s.status] ??
+                                                STATION_STATUS_COLOR.declassified}
+                                            aria-hidden="true"
+                                        ></i>{$i18n.t(`stations.statuses.${s.status}`)}
+                                    </span>
+                                </td>
+                                <td
+                                    class={['num', { blank: !s.opened_year }]}
+                                    data-label={$i18n.t('stations.col_opened')}
+                                >
+                                    {#if s.opened_year}
+                                        {s.opened_year}{#if s.opened_source?.startsWith('inferred')}<span
+                                                class="inferred"
+                                                >({$i18n.t('stations.date_inferred')})</span
+                                            >{/if}
+                                    {:else}
+                                        <span aria-hidden="true">-</span><span class="vff-sr-only"
+                                            >{$i18n.t('stations.date_none')}</span
+                                        >
                                     {/if}
-                                </div>
-                            </div>
-                        </a>
-                    {/each}
-                </div>
+                                </td>
+                                <td
+                                    class={['num', 'closed', { blank: !closed }]}
+                                    data-label={$i18n.t('stations.col_closed')}
+                                >
+                                    {#if closed}
+                                        <span class={{ undated: s.closed_source === 'vff:eras' }}
+                                            >{closed}</span
+                                        >{#if s.closed_source?.startsWith('inferred')}<span
+                                                class="inferred"
+                                                >({$i18n.t('stations.date_inferred')})</span
+                                            >{/if}
+                                    {:else}
+                                        <span aria-hidden="true">-</span><span class="vff-sr-only"
+                                            >{$i18n.t('stations.date_none')}</span
+                                        >
+                                    {/if}
+                                </td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </DirectoryTable>
+                {#if showInferredNote || showUndatedNote || showStatusNote}
+                    <aside class="notes" aria-label={$i18n.t('stations.notes_title')}>
+                        <ul>
+                            {#if showInferredNote}<li>{$i18n.t('stations.note_inferred')}</li>{/if}
+                            {#if showUndatedNote}<li>{$i18n.t('stations.note_undated')}</li>{/if}
+                            {#if showStatusNote}<li>{$i18n.t('stations.note_statuses')}</li>{/if}
+                        </ul>
+                    </aside>
+                {/if}
             {:else}
-                <p class="empty">{$i18n.t('stations.no_results')}</p>
+                <EmptyState
+                    icon="bi-search"
+                    title={$i18n.t('stations.no_results')}
+                    text={$i18n.t('stations.no_results_text')}
+                />
             {/if}
-        </section>
+        </div>
 
         {#if stations.last_page > 1}
             <Pagination
                 current={stations.current_page}
                 last={stations.last_page}
                 onpage={goToPage}
-                label={$i18n.t('stations.pagination')}
-                prev={$i18n.t('stations.previous')}
-                next={$i18n.t('stations.next')}
-                status={$i18n.t('stations.page', {
-                    current: stations.current_page,
-                    last: stations.last_page,
-                })}
             />
+        {:else}
+            <div class="end"></div>
         {/if}
     </main>
 </Layout>
@@ -213,213 +359,132 @@
     main {
         background-color: var(--vff-bg);
     }
-
-    .filters {
-        max-width: 1100px;
-        margin: -30px auto 0;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-lg);
-        box-shadow: 0 12px 32px var(--vff-shadow);
-        padding: 20px 24px;
-        position: relative;
-        z-index: 2;
-    }
-    .filter-row {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-    .search-input {
-        flex: 1;
-        min-width: 220px;
-        position: relative;
-    }
-    .search-input i {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--vff-text-muted);
-        font-size: 16px;
-    }
-    .search-input input,
-    .filters select {
-        box-sizing: border-box;
-        padding: 10px 12px;
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        background-color: var(--vff-bg);
-        color: var(--vff-text);
-        font-family: var(--vff-font-body);
-        font-size: 14px;
-    }
-    .search-input input {
-        width: 100%;
-        padding-left: 36px;
-    }
-    .search-input input:focus,
-    .filters select:focus {
-        outline: none;
-        border-color: var(--vff-accent);
-    }
-    .checkbox {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 14px;
-        cursor: pointer;
-        color: var(--vff-text);
-    }
-
-    .chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 14px;
-    }
-    .chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 12px;
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-pill);
-        background-color: var(--vff-bg);
-        color: var(--vff-text);
-        font-family: var(--vff-font-display);
-        font-size: 12px;
-        cursor: pointer;
-        transition: all var(--vff-transition);
-    }
-    .chip span {
-        color: var(--vff-text-muted);
-        font-size: 11px;
-    }
-    .chip:hover,
-    .chip.active {
-        border-color: var(--vff-accent);
-        color: var(--vff-accent);
-    }
-    .chip.active {
-        background-color: color-mix(in srgb, var(--vff-accent) 10%, transparent);
-    }
-
-    .dot {
-        display: inline-block;
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background-color: var(--vff-bg-elevated);
-        border: 2px solid var(--dot);
-        flex-shrink: 0;
-    }
-    .dot.big {
-        width: 14px;
-        height: 14px;
-        border-width: 3px;
-    }
-
-    .list {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 30px 24px;
-    }
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
-        gap: 10px 14px;
-    }
-    /* Une entrée : le point de la gare (couleur de son statut, comme sur la carte), le nom en
-       entier, la commune et le type, puis le statut en clair et les dates. */
-    .card {
-        display: grid;
-        grid-template-columns: 18px minmax(0, 1fr);
-        align-items: start;
-        gap: 12px;
-        padding: 14px 16px;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        text-decoration: none;
-        color: var(--vff-text);
-        transition: border-color var(--vff-transition);
-    }
-    .card:hover {
-        border-color: var(--vff-accent);
-    }
-    .card:hover strong {
-        text-decoration: underline;
-        text-decoration-color: var(--vff-accent);
-        text-underline-offset: 3px;
-    }
-    .card:focus-visible {
-        outline: 2px solid var(--vff-accent);
-        outline-offset: 2px;
-    }
-    .card .dot.big {
-        margin-top: 3px;
-    }
-    .info {
+    .directory {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: var(--vff-block-space);
+        padding-top: var(--vff-block-space);
+        padding-bottom: var(--vff-space-5);
+    }
+    .end {
+        height: var(--vff-section-space);
+    }
+    .name {
         min-width: 0;
+        overflow-wrap: anywhere;
     }
-    .info strong {
+    .station-link {
+        /* Zone cliquable de 24 px au moins sans changer l'espacement des lignes. */
+        padding-block: 4px;
+        margin-block: -4px;
+        display: inline-block;
         font-family: var(--vff-font-display);
-        font-size: 16px;
+        font-size: var(--vff-fs-md);
         line-height: 1.3;
-    }
-    .meta {
-        display: flex;
-        gap: 4px 12px;
-        align-items: center;
-        flex-wrap: wrap;
-        font-family: var(--vff-font-heading);
-        font-size: 13px;
-        color: var(--vff-text-muted);
-    }
-    .meta small {
-        font-size: 13px;
-    }
-    .status {
         color: var(--vff-text);
-        font-weight: 600;
-    }
-    abbr {
         text-decoration: none;
-        cursor: help;
+        text-underline-offset: 3px;
+        text-decoration-thickness: 2px;
+        hyphens: none;
+    }
+    .station-link:hover {
+        color: var(--vff-accent-ink);
+        text-decoration: underline;
+        text-decoration-color: var(--vff-accent);
+    }
+    .where {
+        display: block;
+        margin-top: 2px;
+        font-size: var(--vff-fs-xs);
+        color: var(--vff-text-muted);
     }
     .flag {
-        color: #b45309;
+        margin-top: 6px;
     }
-
-    .empty {
-        text-align: center;
-        font-style: italic;
+    .lines {
+        min-width: 200px;
+    }
+    .lines :global(a),
+    .more {
+        margin: 0 6px 6px 0;
+    }
+    .line-plate {
+        text-decoration: none;
+        font-size: var(--vff-fs-xs);
+    }
+    .line-plate:hover {
+        border-color: var(--vff-accent-ink);
+        background-color: var(--vff-bg-accent);
+    }
+    .line-name {
+        display: block;
+        max-width: 30ch;
+        overflow: hidden;
+        font-size: var(--vff-fs-xs);
+        color: var(--vff-text);
+        text-decoration: none;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding-block: 3px;
+    }
+    .line-name:hover {
+        color: var(--vff-accent-ink);
+        text-decoration: underline;
+    }
+    .more {
+        display: inline-block;
+        font-size: var(--vff-fs-xs);
         color: var(--vff-text-muted);
-        padding: 40px;
     }
 
-    @media (max-width: 600px) {
-        .filters {
-            margin: -30px 16px 0;
-            padding: 16px;
-        }
-        .list {
-            padding: 24px 16px;
-        }
-        .grid {
-            grid-template-columns: 1fr;
-        }
+    /* Anneau de la couleur du statut sur la carte ; la gare « disparue » a un anneau en pointillés,
+       la différence avec « fermée » ne repose pas sur la couleur seule (le texte dit le statut). */
+    .dot {
+        display: inline-block;
+        flex-shrink: 0;
+        width: 12px;
+        height: 12px;
+        border: 3px solid var(--dot);
+        border-radius: 50%;
+        background-color: var(--vff-bg);
+        box-sizing: border-box;
+        margin-right: 8px;
+        vertical-align: middle;
     }
-    /* Case à cocher à 18 px (cible tactile), couleur de la charte. */
-    .checkbox input {
-        width: 18px;
-        height: 18px;
+    .dot.gone {
+        border-style: dotted;
+        border-color: var(--vff-text-muted);
+    }
+    td.closed {
+        white-space: normal;
+    }
+    .inferred {
+        margin-left: 4px;
+        font-size: var(--vff-fs-xs);
+        color: var(--vff-text-muted);
+    }
+    .undated {
+        color: var(--vff-text-muted);
+    }
+    .notes {
+        max-width: var(--vff-measure);
+        margin-top: calc(-1 * var(--vff-space-3));
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-body);
+        color: var(--vff-text-muted);
+    }
+    .notes ul {
         margin: 0;
-        accent-color: var(--vff-accent);
+        padding-left: 1.2em;
+    }
+    @media (max-width: 600px) {
+        .lines {
+            min-width: 0;
+        }
+        .line-name {
+            max-width: none;
+            white-space: normal;
+        }
     }
 </style>
