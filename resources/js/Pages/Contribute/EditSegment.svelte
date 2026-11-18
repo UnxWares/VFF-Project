@@ -1,389 +1,626 @@
 <script>
-    import { useForm } from '@inertiajs/svelte';
+    import { Link, useForm } from '@inertiajs/svelte';
+    import { tick, untrack } from 'svelte';
     import Layout from '$components/Layout.svelte';
+    import PageHero from '$components/PageHero.svelte';
     import EditMap from '$components/Contribute/EditMap.svelte';
+    import Field from '$components/ui/Field.svelte';
+    import Notice from '$components/ui/Notice.svelte';
     import { i18n } from '$lib/i18n.js';
+    import { eraLabel } from '$components/Contribute/segmentChanges.js';
 
-    let { preselectedLine, eras = [], statuses = [], trafficTypes = [] } = $props();
+    let { preselectedLine = null, eras = [], statuses = [], trafficTypes = [] } = $props();
 
-    // Saisie PK en "km+m" pour l'utilisateur, conversion en mètres pour la DB.
+    /** Traduction passée aux fonctions de segmentChanges.js. */
+    const tr = (key, opts) => $i18n.t(key, opts);
+
+    // Saisie du PK en « kilomètre + mètres », convertie en mètres à l'envoi.
     let pkStartKm = $state(0);
     let pkStartM = $state(0);
     let pkEndKm = $state(1);
     let pkEndM = $state(0);
     let sourcesRaw = $state('');
+    let heritage = $state(''); // '' (inchangé) | 'yes' | 'no'
+    // Après une première tentative d'envoi, les erreurs se mettent à jour pendant la saisie.
+    let attempted = $state(false);
+    let summaryEl = $state();
 
-    function setPkStart(m) {
-        pkStartKm = Math.floor(m / 1000);
-        pkStartM = m % 1000;
-    }
-    function setPkEnd(m) {
-        pkEndKm = Math.floor(m / 1000);
-        pkEndM = m % 1000;
-    }
+    // Ligne : présélectionnée depuis une fiche, ou retrouvée à partir du code saisi. Valeurs
+    // initiales voulues : la page est rechargée pour une autre ligne.
+    // svelte-ignore state_referenced_locally
+    let line = $state(preselectedLine);
+    // svelte-ignore state_referenced_locally
+    let lookup = $state(preselectedLine ? 'found' : 'idle'); // idle | searching | found | notfound
+    let lookupTimer = null;
+    let lookupSeq = 0;
 
-    const currentLineSlug = $derived(preselectedLine?.slug ?? null);
-
-    const currentEra = $derived(eras.find((e) => e.is_current));
-
+    // Valeurs initiales du formulaire (lues une fois, voulu).
+    const initialCode = untrack(() => preselectedLine?.code ?? '');
+    const initialEra = untrack(() => eras.find((e) => e.is_current)?.year ?? 2030);
     const form = useForm({
-        line_code: preselectedLine?.code ?? '',
-        era_year: currentEra?.year ?? 2030,
+        line_code: initialCode,
+        era_year: initialEra,
         pk_start_m: 0,
         pk_end_m: 1000,
         changes: {
             status: '',
             traffic_type: '',
-            electrified: null,
             voltage_v: null,
             max_speed_kmh: null,
-            is_heritage: false,
         },
         sources: [],
         notes: '',
     });
 
-    function submit(e) {
-        e.preventDefault();
-        // Conversion km+m → mètres
-        form.pk_start_m = pkStartKm * 1000 + pkStartM;
-        form.pk_end_m = pkEndKm * 1000 + pkEndM;
-        // Sources : split par ligne / virgule
-        form.sources = sourcesRaw
-            .split(/[\n,]/)
+    function setPkStart(m) {
+        pkStartKm = m === null ? 0 : Math.floor(m / 1000);
+        pkStartM = m === null ? 0 : m % 1000;
+    }
+    function setPkEnd(m) {
+        pkEndKm = m === null ? 1 : Math.floor(m / 1000);
+        pkEndM = m === null ? 0 : m % 1000;
+    }
+
+    const normalizeCode = (s) => String(s ?? '').replace(/\s+/g, '');
+
+    function onLineCodeInput() {
+        clearTimeout(lookupTimer);
+        const code = normalizeCode(form.line_code);
+        if (line && normalizeCode(line.code) === code) return;
+        line = null;
+        if (code.length < 3) {
+            lookup = 'idle';
+            return;
+        }
+        lookup = 'searching';
+        const seq = ++lookupSeq;
+        lookupTimer = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/v1/search?q=${encodeURIComponent(code)}`, {
+                    headers: { Accept: 'application/json' },
+                });
+                const data = res.ok ? await res.json() : {};
+                if (seq !== lookupSeq) return;
+                const found = (data.lines ?? []).find((l) => normalizeCode(l.code) === code);
+                line = found ? { slug: found.slug, code: found.code, name: found.name } : null;
+                lookup = found ? 'found' : 'notfound';
+            } catch (_) {
+                if (seq === lookupSeq) lookup = 'notfound';
+            }
+        }, 350);
+    }
+
+    function changesPayload() {
+        const c = {};
+        if (form.changes.status) c.status = form.changes.status;
+        if (form.changes.traffic_type) c.traffic_type = form.changes.traffic_type;
+        if (heritage) c.is_heritage = heritage === 'yes';
+        for (const k of ['max_speed_kmh', 'voltage_v']) {
+            const v = form.changes[k];
+            if (v !== null && v !== undefined && v !== '') c[k] = Number(v);
+        }
+        return c;
+    }
+
+    function sourcesList() {
+        return sourcesRaw
+            .split(/\n/)
             .map((s) => s.trim())
             .filter(Boolean);
-        // Vide les changes non remplis
-        Object.keys(form.changes).forEach((k) => {
-            if (form.changes[k] === '' || form.changes[k] === null) {
-                delete form.changes[k];
-            }
-        });
-        form.post('/contribute/edit-segment');
+    }
+
+    const pkStart = $derived(Number(pkStartKm || 0) * 1000 + Number(pkStartM || 0));
+    const pkEnd = $derived(Number(pkEndKm || 0) * 1000 + Number(pkEndM || 0));
+
+    function validate() {
+        const e = {};
+        if (!normalizeCode(form.line_code))
+            e.line_code = $i18n.t('editor.segment.errors.line_required');
+        else if (lookup === 'notfound') e.line_code = $i18n.t('editor.segment.line_not_found');
+        if (!(pkEnd > pkStart)) e.pk_end_m = $i18n.t('editor.segment.errors.pk_order');
+        if (!Object.keys(changesPayload()).length)
+            e.changes = $i18n.t('editor.segment.errors.no_change');
+        if (!sourcesList().length) e.sources = $i18n.t('editor.segment.errors.source_required');
+        return e;
+    }
+
+    const clientErrors = $derived(attempted ? validate() : {});
+    // Erreurs affichées : celles du navigateur, sinon celles renvoyées par le serveur.
+    const errors = $derived({ ...form.errors, ...clientErrors });
+    const errorCount = $derived(Object.keys(errors).length);
+
+    // Ordre des champs pour le récapitulatif et le focus.
+    const FIELD_IDS = {
+        line_code: 'line-code',
+        era_year: 'era',
+        pk_start_m: 'pk-start-km',
+        pk_end_m: 'pk-end-km',
+        changes: 'change-status',
+        sources: 'sources',
+        notes: 'notes',
+    };
+
+    async function showErrors() {
+        await tick();
+        summaryEl?.focus();
+    }
+
+    function submit(e) {
+        e.preventDefault();
+        attempted = true;
+        if (Object.keys(validate()).length) {
+            showErrors();
+            return;
+        }
+        form.transform((data) => ({
+            ...data,
+            line_code: normalizeCode(data.line_code),
+            pk_start_m: pkStart,
+            pk_end_m: pkEnd,
+            changes: changesPayload(),
+            sources: sourcesList(),
+            notes: data.notes?.trim() || null,
+        })).post('/contribute/edit-segment', { onError: () => showErrors() });
+    }
+
+    function errorFor(key) {
+        return errors[key] ?? errors[`${key}.0`] ?? null;
     }
 </script>
 
 <svelte:head>
-    <title>{$i18n.t('maps.editor.edit.meta_title')}</title>
+    <title>{$i18n.t('editor.segment.meta_title')} - VFF</title>
 </svelte:head>
 
 <Layout compactHeader>
-    <main class="contribute-page">
-        <div class="page-head">
-            <a href="/maps" class="back-link">
-                <i class="bi bi-arrow-left"></i>
-                {$i18n.t('maps.editor.edit.back_to_map')}
-            </a>
-            <h1>{$i18n.t('maps.editor.edit.title')}</h1>
-            <p class="subtitle">
-                {$i18n.t('maps.editor.edit.subtitle')}
+    <main class="segment-page">
+        <PageHero
+            eyebrow={$i18n.t('editor.segment.eyebrow')}
+            title={$i18n.t('editor.segment.title')}
+            subtitle={$i18n.t('editor.segment.subtitle')}
+        >
+            <p class="back">
+                <Link href="/maps" class="vff-link"
+                    ><i class="bi bi-arrow-left" aria-hidden="true"></i>
+                    {$i18n.t('editor.segment.back_to_map')}</Link
+                >
             </p>
-        </div>
+        </PageHero>
 
-        <form onsubmit={submit} class="contrib-form" novalidate>
-            <div class="field">
-                <label for="line-code">{$i18n.t('maps.editor.edit.line_code')}</label>
-                <input
-                    id="line-code"
-                    type="text"
-                    bind:value={form.line_code}
-                    placeholder={$i18n.t('maps.editor.edit.line_code_placeholder')}
-                    required
-                />
-                {#if preselectedLine}
-                    <small class="hint">→ {preselectedLine.name}</small>
-                {/if}
-                {#if form.errors.line_code}<span class="error">{form.errors.line_code}</span>{/if}
-            </div>
-
-            <div class="field">
-                <label for="era">{$i18n.t('maps.editor.edit.era')}</label>
-                <select id="era" bind:value={form.era_year}>
-                    {#each eras as e}
-                        <option value={e.year}
-                            >{e.year}{e.is_current
-                                ? ` ${$i18n.t('maps.editor.edit.era_current')}`
-                                : ''}</option
+        <div class="vff-container body">
+            <form onsubmit={submit} class="segment-form" novalidate>
+                <div class="summary" tabindex="-1" bind:this={summaryEl}>
+                    {#if errorCount}
+                        <Notice
+                            tone="danger"
+                            live="assertive"
+                            title={$i18n.t('editor.segment.errors.summary', { count: errorCount })}
                         >
-                    {/each}
-                </select>
-            </div>
+                            <ul>
+                                {#each Object.entries(errors) as [key, msg] (key)}
+                                    <li>
+                                        <a href="#{FIELD_IDS[key.split('.')[0]] ?? 'line-code'}"
+                                            >{Array.isArray(msg) ? msg.join(' ') : msg}</a
+                                        >
+                                    </li>
+                                {/each}
+                            </ul>
+                        </Notice>
+                    {/if}
+                </div>
 
-            <fieldset class="pk-fieldset">
-                <legend>{$i18n.t('maps.editor.edit.pk_legend')}</legend>
-                {#if currentLineSlug}
-                    <EditMap
-                        lineSlug={currentLineSlug}
-                        eraYear={form.era_year}
-                        onPkStart={setPkStart}
-                        onPkEnd={setPkEnd}
-                        height="320px"
-                    />
-                {/if}
-                <div class="pk-row">
-                    <div class="pk-block">
-                        <span class="pk-label">{$i18n.t('maps.editor.edit.pk_start')}</span>
-                        <div class="pk-inputs">
-                            <input type="number" bind:value={pkStartKm} min="0" max="999" />
-                            {$i18n.t('maps.editor.edit.pk_unit_km')}
-                            <input type="number" bind:value={pkStartM} min="0" max="999" />
-                            {$i18n.t('maps.editor.edit.pk_unit_m')}
+                <fieldset class="vff-panel group">
+                    <legend>{$i18n.t('editor.segment.line_legend')}</legend>
+                    <div class="grid-2">
+                        <Field
+                            id="line-code"
+                            label={$i18n.t('editor.segment.line_code')}
+                            hint={$i18n.t('editor.segment.line_code_hint')}
+                            error={errorFor('line_code')}
+                        >
+                            {#snippet children(attrs)}
+                                <input
+                                    {...attrs}
+                                    class="vff-input"
+                                    type="text"
+                                    inputmode="numeric"
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                    placeholder={$i18n.t('editor.segment.line_code_placeholder')}
+                                    bind:value={form.line_code}
+                                    oninput={onLineCodeInput}
+                                    required
+                                />
+                            {/snippet}
+                        </Field>
+                        <Field
+                            id="era"
+                            label={$i18n.t('editor.segment.era')}
+                            error={errorFor('era_year')}
+                        >
+                            {#snippet children(attrs)}
+                                <select {...attrs} class="vff-select" bind:value={form.era_year}>
+                                    {#each eras as e (e.year)}
+                                        <option value={e.year}>{eraLabel(e.year, tr)}</option>
+                                    {/each}
+                                </select>
+                            {/snippet}
+                        </Field>
+                    </div>
+                    <p class="lookup" aria-live="polite">
+                        {#if lookup === 'found' && line}
+                            <i class="bi bi-check2" aria-hidden="true"></i>
+                            {$i18n.t('editor.segment.line_found', { name: line.name })}
+                        {:else if lookup === 'searching'}
+                            {$i18n.t('editor.segment.line_searching')}
+                        {/if}
+                    </p>
+                </fieldset>
+
+                <fieldset class="vff-panel group">
+                    <legend>{$i18n.t('editor.segment.pk_legend')}</legend>
+                    <p class="intro">{$i18n.t('editor.segment.pk_hint')}</p>
+                    {#if line?.slug}
+                        {#key `${line.slug}-${form.era_year}`}
+                            <EditMap
+                                lineSlug={line.slug}
+                                lineName={line.name}
+                                eraYear={form.era_year}
+                                onPkStart={setPkStart}
+                                onPkEnd={setPkEnd}
+                            />
+                        {/key}
+                    {:else}
+                        <Notice tone="info" live="off"
+                            >{$i18n.t('editor.segment.hint_need_line')}</Notice
+                        >
+                    {/if}
+                    <div class="pk-row">
+                        <div class="pk-block" role="group" aria-labelledby="pk-start-label">
+                            <p class="vff-label" id="pk-start-label">
+                                {$i18n.t('editor.segment.pk_start')}
+                            </p>
+                            <div class="pk-inputs">
+                                <label class="pk-part">
+                                    <span>{$i18n.t('editor.segment.pk_km')}</span>
+                                    <input
+                                        id="pk-start-km"
+                                        class="vff-input"
+                                        type="number"
+                                        inputmode="numeric"
+                                        min="0"
+                                        max="9999"
+                                        bind:value={pkStartKm}
+                                    />
+                                </label>
+                                <span class="plus" aria-hidden="true">+</span>
+                                <label class="pk-part">
+                                    <span>{$i18n.t('editor.segment.pk_m')}</span>
+                                    <input
+                                        class="vff-input"
+                                        type="number"
+                                        inputmode="numeric"
+                                        min="0"
+                                        max="999"
+                                        bind:value={pkStartM}
+                                    />
+                                </label>
+                            </div>
+                        </div>
+                        <div class="pk-block" role="group" aria-labelledby="pk-end-label">
+                            <p class="vff-label" id="pk-end-label">
+                                {$i18n.t('editor.segment.pk_end')}
+                            </p>
+                            <div class="pk-inputs">
+                                <label class="pk-part">
+                                    <span>{$i18n.t('editor.segment.pk_km')}</span>
+                                    <input
+                                        id="pk-end-km"
+                                        class="vff-input"
+                                        type="number"
+                                        inputmode="numeric"
+                                        min="0"
+                                        max="9999"
+                                        bind:value={pkEndKm}
+                                        aria-invalid={errorFor('pk_end_m') ? 'true' : undefined}
+                                        aria-describedby="pk-error"
+                                    />
+                                </label>
+                                <span class="plus" aria-hidden="true">+</span>
+                                <label class="pk-part">
+                                    <span>{$i18n.t('editor.segment.pk_m')}</span>
+                                    <input
+                                        class="vff-input"
+                                        type="number"
+                                        inputmode="numeric"
+                                        min="0"
+                                        max="999"
+                                        bind:value={pkEndM}
+                                        aria-invalid={errorFor('pk_end_m') ? 'true' : undefined}
+                                        aria-describedby="pk-error"
+                                    />
+                                </label>
+                            </div>
                         </div>
                     </div>
-                    <div class="pk-block">
-                        <span class="pk-label">{$i18n.t('maps.editor.edit.pk_end')}</span>
-                        <div class="pk-inputs">
-                            <input type="number" bind:value={pkEndKm} min="0" max="999" />
-                            {$i18n.t('maps.editor.edit.pk_unit_km')}
-                            <input type="number" bind:value={pkEndM} min="0" max="999" />
-                            {$i18n.t('maps.editor.edit.pk_unit_m')}
-                        </div>
+                    <p class="vff-error" id="pk-error" aria-live="polite">
+                        {#if errorFor('pk_end_m') || errorFor('pk_start_m')}<i
+                                class="bi bi-exclamation-circle"
+                                aria-hidden="true"
+                            ></i><span>{errorFor('pk_end_m') ?? errorFor('pk_start_m')}</span>{/if}
+                    </p>
+                </fieldset>
+
+                <fieldset class="vff-panel group" aria-describedby="changes-hint changes-error">
+                    <legend>{$i18n.t('editor.segment.changes_legend')}</legend>
+                    <p class="intro" id="changes-hint">{$i18n.t('editor.segment.changes_hint')}</p>
+                    <div class="grid-2">
+                        <Field id="change-status" label={$i18n.t('editor.segment.status')}>
+                            {#snippet children(attrs)}
+                                <select
+                                    {...attrs}
+                                    class="vff-select"
+                                    bind:value={form.changes.status}
+                                >
+                                    <option value="">{$i18n.t('editor.segment.unchanged')}</option>
+                                    {#each statuses as s (s)}
+                                        <option value={s}
+                                            >{$i18n.t(`editor.segment.statuses.${s}`)}</option
+                                        >
+                                    {/each}
+                                </select>
+                            {/snippet}
+                        </Field>
+                        <Field id="change-traffic" label={$i18n.t('editor.segment.traffic')}>
+                            {#snippet children(attrs)}
+                                <select
+                                    {...attrs}
+                                    class="vff-select"
+                                    bind:value={form.changes.traffic_type}
+                                >
+                                    <option value="">{$i18n.t('editor.segment.unchanged')}</option>
+                                    {#each trafficTypes as t (t)}
+                                        <option value={t}
+                                            >{$i18n.t(`editor.segment.traffics.${t}`)}</option
+                                        >
+                                    {/each}
+                                </select>
+                            {/snippet}
+                        </Field>
+                        <Field id="change-heritage" label={$i18n.t('editor.segment.heritage')}>
+                            {#snippet children(attrs)}
+                                <select {...attrs} class="vff-select" bind:value={heritage}>
+                                    <option value="">{$i18n.t('editor.segment.unchanged')}</option>
+                                    <option value="yes"
+                                        >{$i18n.t('editor.segment.values.yes')}</option
+                                    >
+                                    <option value="no">{$i18n.t('editor.segment.values.no')}</option
+                                    >
+                                </select>
+                            {/snippet}
+                        </Field>
+                        <Field
+                            id="change-speed"
+                            label={$i18n.t('editor.segment.max_speed')}
+                            error={errorFor('changes.max_speed_kmh')}
+                        >
+                            {#snippet children(attrs)}
+                                <input
+                                    {...attrs}
+                                    class="vff-input"
+                                    type="number"
+                                    inputmode="numeric"
+                                    min="0"
+                                    max="600"
+                                    bind:value={form.changes.max_speed_kmh}
+                                />
+                            {/snippet}
+                        </Field>
+                        <Field
+                            id="change-voltage"
+                            label={$i18n.t('editor.segment.voltage')}
+                            error={errorFor('changes.voltage_v')}
+                        >
+                            {#snippet children(attrs)}
+                                <input
+                                    {...attrs}
+                                    class="vff-input"
+                                    type="number"
+                                    inputmode="numeric"
+                                    min="0"
+                                    max="50000"
+                                    bind:value={form.changes.voltage_v}
+                                />
+                            {/snippet}
+                        </Field>
                     </div>
+                    <p class="vff-error" id="changes-error" aria-live="polite">
+                        {#if errorFor('changes')}<i
+                                class="bi bi-exclamation-circle"
+                                aria-hidden="true"
+                            ></i><span>{errorFor('changes')}</span>{/if}
+                    </p>
+                </fieldset>
+
+                <div class="vff-panel group">
+                    <Field
+                        id="sources"
+                        label={$i18n.t('editor.segment.sources_label')}
+                        hint={$i18n.t('editor.segment.sources_hint')}
+                        error={errorFor('sources')}
+                    >
+                        {#snippet children(attrs)}
+                            <textarea
+                                {...attrs}
+                                class="vff-textarea"
+                                rows="3"
+                                bind:value={sourcesRaw}
+                                placeholder={$i18n.t('editor.segment.sources_placeholder')}
+                                required
+                            ></textarea>
+                        {/snippet}
+                    </Field>
+                    <Field
+                        id="notes"
+                        label={$i18n.t('editor.segment.notes_label')}
+                        error={errorFor('notes')}
+                    >
+                        {#snippet children(attrs)}
+                            <textarea
+                                {...attrs}
+                                class="vff-textarea"
+                                rows="4"
+                                maxlength="2000"
+                                bind:value={form.notes}
+                                placeholder={$i18n.t('editor.segment.notes_placeholder')}
+                            ></textarea>
+                        {/snippet}
+                    </Field>
                 </div>
-                <p class="pk-hint">
-                    {$i18n.t('maps.editor.edit.pk_hint', { function: 'ST_LineSubstring' })}
-                </p>
-            </fieldset>
 
-            <fieldset class="changes-fieldset">
-                <legend>{$i18n.t('maps.editor.edit.changes_legend')}</legend>
-
-                <div class="grid-2">
-                    <label class="field">
-                        <span>{$i18n.t('maps.editor.edit.status')}</span>
-                        <select bind:value={form.changes.status}>
-                            <option value="">{$i18n.t('maps.editor.edit.unchanged')}</option>
-                            {#each statuses as s}<option value={s}>{s}</option>{/each}
-                        </select>
-                    </label>
-                    <label class="field">
-                        <span>{$i18n.t('maps.editor.edit.traffic')}</span>
-                        <select bind:value={form.changes.traffic_type}>
-                            <option value="">{$i18n.t('maps.editor.edit.unchanged')}</option>
-                            {#each trafficTypes as t}<option value={t}>{t}</option>{/each}
-                        </select>
-                    </label>
+                <div class="actions">
+                    <button type="submit" class="vff-btn primary" disabled={form.processing}>
+                        <i class="bi bi-send" aria-hidden="true"></i>
+                        {$i18n.t('editor.segment.submit')}
+                    </button>
+                    <p class="moderation">
+                        <i class="bi bi-shield-check" aria-hidden="true"></i>
+                        {$i18n.t('editor.form.moderation')}
+                    </p>
                 </div>
-
-                <label class="field">
-                    <input type="checkbox" bind:checked={form.changes.is_heritage} />
-                    {$i18n.t('maps.editor.edit.heritage_checkbox')}
-                </label>
-
-                <div class="grid-2">
-                    <label class="field">
-                        <span>{$i18n.t('maps.editor.edit.max_speed')}</span>
-                        <input
-                            type="number"
-                            bind:value={form.changes.max_speed_kmh}
-                            min="0"
-                            max="600"
-                        />
-                    </label>
-                    <label class="field">
-                        <span>{$i18n.t('maps.editor.edit.voltage')}</span>
-                        <input
-                            type="number"
-                            bind:value={form.changes.voltage_v}
-                            min="0"
-                            max="50000"
-                        />
-                    </label>
-                </div>
-            </fieldset>
-
-            <div class="field">
-                <label for="sources">{$i18n.t('maps.editor.edit.sources_label')}</label>
-                <textarea
-                    id="sources"
-                    rows="3"
-                    bind:value={sourcesRaw}
-                    placeholder={$i18n.t('maps.editor.edit.sources_placeholder')}
-                ></textarea>
-            </div>
-
-            <div class="field">
-                <label for="notes">{$i18n.t('maps.editor.edit.notes_label')}</label>
-                <textarea
-                    id="notes"
-                    rows="4"
-                    bind:value={form.notes}
-                    placeholder={$i18n.t('maps.editor.edit.notes_placeholder')}
-                ></textarea>
-            </div>
-
-            <div class="actions">
-                <button type="submit" class="vff-btn primary" disabled={form.processing}>
-                    <i class="bi bi-send-fill"></i>
-                    {$i18n.t('maps.editor.edit.submit')}
-                </button>
-            </div>
-        </form>
+            </form>
+        </div>
     </main>
 </Layout>
 
 <style>
-    .contribute-page {
-        max-width: 780px;
-        margin: 0 auto;
-        padding: 48px 20px;
+    .back {
+        margin: var(--vff-space-4) 0 0;
     }
-    .page-head {
-        margin-bottom: 36px;
+    .body {
+        padding-block: var(--vff-section-space);
     }
-    .back-link {
-        color: var(--vff-text-muted);
-        font-family: var(--vff-font-display);
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        text-decoration: none;
-        display: inline-flex;
-        gap: 6px;
-        align-items: center;
+    .segment-form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--vff-block-space);
+        max-width: 760px;
     }
-    .back-link:hover {
-        color: var(--vff-accent);
-    }
-    h1 {
-        font-family: var(--vff-font-display);
-        font-size: 32px;
-        margin: 14px 0 6px;
-    }
-    h1:after {
+    .summary:empty {
         display: none;
     }
-    .subtitle {
-        color: var(--vff-text-muted);
-        font-size: 15px;
-        line-height: 1.5;
-    }
-
-    .contrib-form {
-        display: flex;
-        flex-direction: column;
-        gap: 22px;
-    }
-    .field {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-    .field label,
-    .field > span {
-        font-family: var(--vff-font-display);
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--vff-text-muted);
-    }
-    .field input,
-    .field select,
-    .field textarea {
-        padding: 10px 12px;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-sm);
-        color: var(--vff-text);
-        font-family: var(--vff-font-body);
-        font-size: 15px;
-    }
-    .field input:focus,
-    .field select:focus,
-    .field textarea:focus {
+    .summary:focus {
         outline: none;
-        border-color: var(--vff-accent);
-        box-shadow: 0 0 0 3px var(--vff-accent-soft);
     }
-    .hint {
-        color: var(--vff-accent);
-        font-size: 13px;
+    .summary:focus-visible {
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: var(--vff-focus-offset);
     }
-    .error {
-        color: #c53030;
-        font-size: 13px;
+    .summary ul {
+        margin: var(--vff-space-2) 0 0;
+        padding-left: 1.2em;
+    }
+    .summary li a {
+        display: inline-block;
+        padding-block: 3px;
+    }
+    .group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--vff-space-4);
+        min-width: 0;
+        margin: 0;
+    }
+    legend {
+        float: left;
+        width: 100%;
+        margin: 0 0 var(--vff-space-1);
+        padding: 0;
+        font-family: var(--vff-font-display);
+        font-size: var(--vff-fs-h3);
+        font-weight: 700;
+        line-height: 1.3;
+        color: var(--vff-text);
+    }
+    legend + * {
+        clear: both;
+    }
+    .intro {
+        margin: 0;
+        max-width: var(--vff-measure);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
+        color: var(--vff-text-muted);
     }
     .grid-2 {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--vff-space-4) var(--vff-space-5);
     }
-
-    fieldset {
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        padding: 18px;
-        margin: 0;
+    .lookup {
+        margin: calc(-1 * var(--vff-space-2)) 0 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        color: var(--vff-text-muted);
     }
-    fieldset legend {
-        font-family: var(--vff-font-display);
-        font-size: 13px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--vff-accent);
-        padding: 0 8px;
+    .lookup:empty {
+        display: none;
+    }
+    .lookup .bi {
+        color: var(--vff-success);
     }
     .pk-row {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 18px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--vff-space-4) var(--vff-space-5);
     }
     .pk-block {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
+        min-width: 0;
     }
-    .pk-label {
-        font-family: var(--vff-font-display);
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--vff-text-muted);
+    .pk-block .vff-label {
+        margin: 0 0 var(--vff-space-2);
     }
     .pk-inputs {
         display: flex;
-        align-items: center;
-        gap: 8px;
-        font-family: var(--vff-font-secondary, monospace);
-        font-size: 14px;
-        color: var(--vff-text-muted);
+        align-items: flex-end;
+        gap: var(--vff-space-2);
     }
-    .pk-inputs input {
-        width: 80px;
-        padding: 8px 10px;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-sm);
-        color: var(--vff-text);
-        font-family: var(--vff-font-secondary, monospace);
-        font-size: 15px;
-    }
-    .pk-hint {
-        margin: 14px 0 0;
-        font-size: 13px;
-        color: var(--vff-text-muted);
-    }
-    .pk-hint code {
-        background-color: var(--vff-bg-elevated);
-        padding: 1px 6px;
-        border-radius: 3px;
-        font-family: var(--vff-font-secondary, monospace);
-    }
-    .changes-fieldset {
+    .pk-part {
         display: flex;
         flex-direction: column;
-        gap: 14px;
+        gap: 4px;
+        flex: 1 1 0;
+        min-width: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        color: var(--vff-text-muted);
+    }
+    .pk-part input {
+        font-variant-numeric: tabular-nums;
+    }
+    .plus {
+        padding-bottom: 10px;
+        font-family: var(--vff-font-heading);
+        font-weight: 600;
+        color: var(--vff-text-muted);
     }
     .actions {
         display: flex;
-        justify-content: flex-end;
-        margin-top: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--vff-space-3) var(--vff-space-5);
     }
-    .actions .vff-btn {
-        border: 0;
-        cursor: pointer;
+    .moderation {
+        margin: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        color: var(--vff-text-muted);
+    }
+    @media (max-width: 600px) {
+        .grid-2,
+        .pk-row {
+            grid-template-columns: minmax(0, 1fr);
+        }
     }
 </style>

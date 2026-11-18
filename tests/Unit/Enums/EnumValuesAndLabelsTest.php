@@ -85,7 +85,7 @@ class EnumValuesAndLabelsTest extends TestCase
             'statut de gare' => [StationStatus::class, 'stations.statuses'],
             'type de média' => [MediaType::class, 'media.types'],
             'rôle' => [UserRole::class, 'auth.roles'],
-            'statut de contribution' => [ContributionStatus::class, 'maps.editor.mine.status_labels'],
+            'statut de contribution' => [ContributionStatus::class, 'editor.mine.status_labels'],
         ];
     }
 

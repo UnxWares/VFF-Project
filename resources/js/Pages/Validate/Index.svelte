@@ -1,20 +1,33 @@
 <script>
-    import { router, page } from '@inertiajs/svelte';
+    import { Link, router, page } from '@inertiajs/svelte';
+    import { tick } from 'svelte';
     import Layout from '$components/Layout.svelte';
+    import PageHero from '$components/PageHero.svelte';
     import TraceDiffMap from '$components/Contribute/TraceDiffMap.svelte';
+    import EmptyState from '$components/ui/EmptyState.svelte';
+    import Notice from '$components/ui/Notice.svelte';
     import { i18n } from '$lib/i18n.js';
     import { findHistoricBasemap, historicTitle } from '$lib/historicBasemaps.js';
     import { formatKm, portionColor } from '$lib/traceGeometry.js';
+    import { colon } from '$lib/typo.js';
+    import {
+        changeEntries,
+        eraLabel,
+        formatPk,
+        isHttpUrl,
+        readableUrl,
+    } from '$components/Contribute/segmentChanges.js';
 
     let { contributions = [], threshold = 2 } = $props();
 
     const flash = $derived(page.props.flash ?? {});
+    /** Traduction passée aux fonctions de segmentChanges.js. */
+    const tr = (key, opts) => $i18n.t(key, opts);
 
-    function formatPk(m) {
-        const km = Math.floor(m / 1000);
-        const r = m % 1000;
-        return `${km}+${r.toString().padStart(3, '0')}`;
-    }
+    // Refus : un seul formulaire ouvert à la fois (motif facultatif), au lieu d'une boîte du navigateur.
+    let rejecting = $state(null);
+    let rejectNotes = $state('');
+    let processing = $state(false);
 
     function approve(c) {
         const key =
@@ -22,13 +35,41 @@
                 ? 'editor.validate.confirm_apply'
                 : 'editor.validate.confirm_approve';
         if (!confirm($i18n.t(key))) return;
-        router.post(`/validate/${c.id}/approve`, {}, { preserveScroll: true });
+        router.post(
+            `/validate/${c.id}/approve`,
+            {},
+            {
+                preserveScroll: true,
+                onStart: () => (processing = true),
+                onFinish: () => (processing = false),
+            },
+        );
     }
 
-    function reject(c) {
-        const notes = prompt($i18n.t('editor.validate.reject_prompt'));
-        if (notes === null) return;
-        router.post(`/validate/${c.id}/reject`, { notes }, { preserveScroll: true });
+    async function openReject(c) {
+        rejecting = c.id;
+        rejectNotes = '';
+        await tick();
+        document.getElementById(`reject-notes-${c.id}`)?.focus();
+    }
+
+    function cancelReject(c) {
+        rejecting = null;
+        document.getElementById(`reject-btn-${c.id}`)?.focus();
+    }
+
+    function submitReject(e, c) {
+        e.preventDefault();
+        router.post(
+            `/validate/${c.id}/reject`,
+            { notes: rejectNotes.trim() },
+            {
+                preserveScroll: true,
+                onStart: () => (processing = true),
+                onFinish: () => (processing = false),
+                onSuccess: () => (rejecting = null),
+            },
+        );
     }
 
     function typeLabel(t) {
@@ -58,623 +99,702 @@
 
 <Layout compactHeader>
     <main class="validate-page">
-        <div class="page-head">
-            <h1>{$i18n.t('editor.validate.title')}</h1>
-            <p class="subtitle">
-                {$i18n.t('editor.validate.subtitle', { count: contributions.length, threshold })}
-            </p>
-        </div>
+        <PageHero
+            eyebrow={$i18n.t('editor.validate.eyebrow')}
+            title={$i18n.t('editor.validate.title')}
+            subtitle={$i18n.t('editor.validate.subtitle', {
+                count: contributions.length,
+                threshold,
+            })}
+        />
 
-        {#if flash.success}<p class="flash ok">
-                <i class="bi bi-check-circle"></i>
-                {flash.success}
-            </p>{/if}
-        {#if flash.error}<p class="flash ko">
-                <i class="bi bi-exclamation-octagon"></i>
-                {flash.error}
-            </p>{/if}
-
-        {#if contributions.length === 0}
-            <div class="empty">
-                <i class="bi bi-inbox"></i>
-                <p>{$i18n.t('editor.validate.empty')}</p>
+        <div class="vff-container body">
+            <div class="flash">
+                {#if flash.success}<Notice tone="success">{flash.success}</Notice>{/if}
+                {#if flash.error}<Notice tone="danger">{flash.error}</Notice>{/if}
             </div>
-        {:else}
-            <div class="list">
-                {#each contributions as c (c.id)}
-                    <article class="contrib-card">
-                        <div class="card-head">
-                            <div>
-                                <p class="kind">
-                                    {#if c.type === 'line_trace'}
-                                        <i class="bi bi-bezier2"></i>
-                                        {$i18n.t(
-                                            c.payload.kind === 'new_line'
-                                                ? 'editor.validate.kind_new'
-                                                : 'editor.validate.kind_correction',
-                                        )}
-                                    {:else}
-                                        <i class="bi bi-rulers"></i>
-                                        {$i18n.t('editor.validate.kind_segment')}
-                                    {/if}
-                                </p>
-                                <h2>
-                                    {c.target?.name ?? c.payload.line_name}
-                                    {#if c.target?.code ?? c.payload.line_code}<span class="code"
-                                            >{c.target?.code ?? c.payload.line_code}</span
-                                        >{/if}
-                                </h2>
-                                <p class="meta">
-                                    {$i18n.t('editor.validate.by', {
-                                        name: c.user.name,
-                                        reputation: c.user.reputation,
-                                    })}
-                                    · {c.created_at}
-                                    ·
-                                    <span class="approvals"
-                                        >{$i18n.t('editor.validate.approvals', {
-                                            count: c.approval_count,
-                                            threshold,
-                                        })}</span
-                                    >
-                                </p>
-                            </div>
-                            {#if c.type === 'line_trace'}
-                                <span class="badge"
-                                    >{$i18n.t(`editor.networks.${c.payload.network}`)}</span
-                                >
-                            {:else}
-                                <span class="badge">{c.payload.era_year}</span>
-                            {/if}
-                        </div>
 
-                        <div class="card-body">
-                            {#if c.type === 'line_trace'}
-                                <TraceDiffMap
-                                    portions={c.payload.portions ?? []}
-                                    before={c.payload.before}
-                                    current={c.current}
-                                    basemap={c.payload.basemap}
-                                />
-
-                                <dl class="facts">
-                                    <div>
-                                        <dt>{$i18n.t('editor.validate.length')}</dt>
-                                        <dd>
-                                            {formatKm(c.payload.length_m ?? 0, $i18n.language)} · {$i18n.t(
-                                                'editor.validate.portions_count',
-                                                { count: c.payload.portions?.length ?? 0 },
+            {#if contributions.length === 0}
+                <EmptyState
+                    icon="bi-inbox"
+                    title={$i18n.t('editor.validate.empty')}
+                    text={$i18n.t('editor.validate.empty_text')}
+                    headingLevel={2}
+                />
+            {:else}
+                <div class="list">
+                    {#each contributions as c (c.id)}
+                        {@const lineName =
+                            c.target?.name ?? c.payload.line_name ?? c.payload.new_line_name}
+                        {@const lineCode = c.target?.code ?? c.payload.line_code}
+                        {@const lineSlug = c.target?.slug ?? c.payload.line_slug}
+                        <article class="contrib" aria-labelledby="contrib-{c.id}-title">
+                            <div class="contrib-head">
+                                <div class="head-text">
+                                    <p class="kind">
+                                        {#if c.type === 'line_trace'}
+                                            <i class="bi bi-bezier2" aria-hidden="true"></i>
+                                            {$i18n.t(
+                                                c.payload.kind === 'new_line'
+                                                    ? 'editor.validate.kind_new'
+                                                    : 'editor.validate.kind_correction',
                                             )}
-                                        </dd>
-                                    </div>
-                                    {#if c.payload.kind === 'correction' && c.payload.line_network_before && c.payload.line_network_before !== c.payload.network}
+                                        {:else}
+                                            <i class="bi bi-rulers" aria-hidden="true"></i>
+                                            {$i18n.t('editor.validate.kind_segment')}
+                                        {/if}
+                                    </p>
+                                    <h2 id="contrib-{c.id}-title">
+                                        {lineName}
+                                        {#if lineCode}<span class="vff-plate">{lineCode}</span>{/if}
+                                    </h2>
+                                    <p class="meta">
+                                        <span
+                                            >{$i18n.t('editor.validate.by', {
+                                                name: c.user.name,
+                                                reputation: c.user.reputation,
+                                            })}</span
+                                        >
+                                        <span
+                                            >{$i18n.t('editor.validate.submitted', {
+                                                date: c.created_at,
+                                            })}</span
+                                        >
+                                        <strong
+                                            >{$i18n.t('editor.validate.approvals', {
+                                                count: c.approval_count,
+                                                threshold,
+                                            })}</strong
+                                        >
+                                    </p>
+                                </div>
+                                <span class="vff-badge accent">
+                                    {#if c.type === 'line_trace'}
+                                        {$i18n.t(`editor.networks.${c.payload.network}`)}
+                                    {:else}
+                                        {eraLabel(c.payload.era_year, tr)}
+                                    {/if}
+                                </span>
+                            </div>
+
+                            <div class="contrib-body">
+                                {#if c.type === 'line_trace'}
+                                    <TraceDiffMap
+                                        portions={c.payload.portions ?? []}
+                                        before={c.payload.before}
+                                        current={c.current}
+                                        basemap={c.payload.basemap}
+                                    />
+
+                                    <dl class="facts">
                                         <div>
-                                            <dt>{$i18n.t('editor.validate.network')}</dt>
-                                            <dd class="changed">
-                                                {$i18n.t(
-                                                    `editor.networks.${c.payload.line_network_before}`,
-                                                )} → {$i18n.t(
-                                                    `editor.networks.${c.payload.network}`,
-                                                )}
+                                            <dt>{$i18n.t('editor.validate.length')}</dt>
+                                            <dd>
+                                                {formatKm(c.payload.length_m ?? 0, $i18n.language)},
+                                                {$i18n.t('editor.validate.portions_count', {
+                                                    count: c.payload.portions?.length ?? 0,
+                                                })}
                                             </dd>
                                         </div>
-                                    {/if}
-                                    <div>
-                                        <dt>{$i18n.t('editor.validate.trace_source')}</dt>
-                                        <dd>{c.payload.trace_source}</dd>
-                                    </div>
-                                    {#if basemapLabel(c.payload.basemap)}
+                                        {#if c.payload.kind === 'correction' && c.payload.line_network_before && c.payload.line_network_before !== c.payload.network}
+                                            <div>
+                                                <dt>{$i18n.t('editor.validate.network')}</dt>
+                                                <dd class="changed">
+                                                    {$i18n.t(
+                                                        `editor.networks.${c.payload.line_network_before}`,
+                                                    )} → {$i18n.t(
+                                                        `editor.networks.${c.payload.network}`,
+                                                    )}
+                                                </dd>
+                                            </div>
+                                        {/if}
                                         <div>
-                                            <dt>{$i18n.t('editor.validate.basemap')}</dt>
-                                            <dd>{basemapLabel(c.payload.basemap)}</dd>
+                                            <dt>{$i18n.t('editor.validate.trace_source')}</dt>
+                                            <dd class="wrap">{c.payload.trace_source}</dd>
+                                        </div>
+                                        {#if basemapLabel(c.payload.basemap)}
+                                            <div>
+                                                <dt>{$i18n.t('editor.validate.basemap')}</dt>
+                                                <dd>{basemapLabel(c.payload.basemap)}</dd>
+                                            </div>
+                                        {/if}
+                                    </dl>
+
+                                    {#if (c.payload.warnings ?? []).length}
+                                        <Notice tone="warning" live="off">
+                                            <ul class="warnings">
+                                                {#each c.payload.warnings as w, wi (wi)}
+                                                    <li>
+                                                        {$i18n.t(`editor.warnings.${w.code}`, {
+                                                            portion: portionName(
+                                                                c.payload.portions,
+                                                                w.portion,
+                                                            ),
+                                                        })}
+                                                    </li>
+                                                {/each}
+                                            </ul>
+                                        </Notice>
+                                    {/if}
+
+                                    <!-- Cadre défilant : focalisable pour défiler au clavier (GUIDE 5.8). -->
+                                    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+                                    <div
+                                        class="vff-table-wrap"
+                                        role="region"
+                                        aria-label={$i18n.t('editor.portions.events_title')}
+                                        tabindex="0"
+                                    >
+                                        <table class="vff-table events">
+                                            <caption class="vff-sr-only"
+                                                >{$i18n.t('editor.portions.events_title')}</caption
+                                            >
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col"
+                                                        >{$i18n.t('editor.validate.portion')}</th
+                                                    >
+                                                    <th scope="col"
+                                                        >{$i18n.t('editor.events.type')}</th
+                                                    >
+                                                    <th scope="col"
+                                                        >{$i18n.t('editor.events.date')}</th
+                                                    >
+                                                    <th scope="col"
+                                                        >{$i18n.t('editor.events.source')}</th
+                                                    >
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {#each c.payload.portions ?? [] as p, i (p.key)}
+                                                    {#if p.events.length === 0}
+                                                        <tr>
+                                                            <th scope="row">
+                                                                <span
+                                                                    class="pdot"
+                                                                    style:--c={portionColor(i)}
+                                                                    aria-hidden="true"
+                                                                ></span>{p.label || `#${i + 1}`}
+                                                                <small
+                                                                    >{formatKm(
+                                                                        p.length_m,
+                                                                        $i18n.language,
+                                                                    )}</small
+                                                                >
+                                                            </th>
+                                                            <td colspan="3" class="muted"
+                                                                >{$i18n.t(
+                                                                    'editor.validate.no_event',
+                                                                )}</td
+                                                            >
+                                                        </tr>
+                                                    {/if}
+                                                    {#each p.events as ev, j (j)}
+                                                        <tr>
+                                                            {#if j === 0}
+                                                                <th
+                                                                    scope="rowgroup"
+                                                                    rowspan={p.events.length}
+                                                                >
+                                                                    <span
+                                                                        class="pdot"
+                                                                        style:--c={portionColor(i)}
+                                                                        aria-hidden="true"
+                                                                    ></span>{p.label || `#${i + 1}`}
+                                                                    <small
+                                                                        >{formatKm(
+                                                                            p.length_m,
+                                                                            $i18n.language,
+                                                                        )}{#if p.from || p.to}, {p.from ??
+                                                                                '?'} → {p.to ??
+                                                                                '?'}{/if}</small
+                                                                    >
+                                                                </th>
+                                                            {/if}
+                                                            <td>{typeLabel(ev.type)}</td>
+                                                            <td class="date"
+                                                                >{formatDate(ev)}
+                                                                <small
+                                                                    >{$i18n.t(
+                                                                        `editor.precisions.${ev.precision}`,
+                                                                    )}</small
+                                                                ></td
+                                                            >
+                                                            <td class="wrap">
+                                                                {ev.source}
+                                                                {#if ev.source_url}<a
+                                                                        href={ev.source_url}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer nofollow"
+                                                                        class="ext-link"
+                                                                        ><i
+                                                                            class="bi bi-box-arrow-up-right"
+                                                                            aria-hidden="true"
+                                                                        ></i><span
+                                                                            class="vff-sr-only"
+                                                                            >{$i18n.t(
+                                                                                'editor.validate.event_link',
+                                                                            )}
+                                                                            ({$i18n.t(
+                                                                                'common.new_tab',
+                                                                            )})</span
+                                                                        ></a
+                                                                    >{/if}
+                                                                {#if ev.description}<small
+                                                                        >{ev.description}</small
+                                                                    >{/if}
+                                                            </td>
+                                                        </tr>
+                                                    {/each}
+                                                {/each}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {#if (c.nearby ?? []).length}
+                                        <div class="nearby">
+                                            <p class="sub">{$i18n.t('editor.validate.nearby')}</p>
+                                            <ul>
+                                                {#each c.nearby as n, ni (ni)}
+                                                    <li>
+                                                        {#if n.slug}<Link href="/lines/{n.slug}"
+                                                                >{n.name}</Link
+                                                            >{:else}{n.name}{/if}
+                                                        <small>{n.code ?? ''} · {n.via}</small>
+                                                    </li>
+                                                {/each}
+                                            </ul>
                                         </div>
                                     {/if}
-                                </dl>
 
-                                {#if (c.payload.warnings ?? []).length}
-                                    <ul class="warnings">
-                                        {#each c.payload.warnings as w, wi (wi)}
-                                            <li>
-                                                <i class="bi bi-exclamation-triangle"></i>
-                                                {$i18n.t(`editor.warnings.${w.code}`, {
-                                                    portion: portionName(
-                                                        c.payload.portions,
-                                                        w.portion,
-                                                    ),
-                                                })}
-                                            </li>
-                                        {/each}
-                                    </ul>
-                                {/if}
-
-                                <table class="events">
-                                    <thead>
-                                        <tr>
-                                            <th>{$i18n.t('editor.validate.portion')}</th>
-                                            <th>{$i18n.t('editor.events.type')}</th>
-                                            <th>{$i18n.t('editor.events.date')}</th>
-                                            <th>{$i18n.t('editor.events.source')}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {#each c.payload.portions ?? [] as p, i (p.key)}
-                                            {#if p.events.length === 0}
-                                                <tr>
-                                                    <td
-                                                        ><span
-                                                            class="pdot"
-                                                            style="--c:{portionColor(i)}"
-                                                        ></span>{p.label || `#${i + 1}`}
-                                                        <small
-                                                            >{formatKm(
-                                                                p.length_m,
-                                                                $i18n.language,
-                                                            )}</small
-                                                        ></td
-                                                    >
-                                                    <td colspan="3" class="muted"
-                                                        >{$i18n.t('editor.validate.no_event')}</td
-                                                    >
-                                                </tr>
-                                            {/if}
-                                            {#each p.events as ev, j (j)}
-                                                <tr>
-                                                    {#if j === 0}
-                                                        <td rowspan={p.events.length}>
-                                                            <span
-                                                                class="pdot"
-                                                                style="--c:{portionColor(i)}"
-                                                            ></span>{p.label || `#${i + 1}`}
-                                                            <small
-                                                                >{formatKm(
-                                                                    p.length_m,
-                                                                    $i18n.language,
-                                                                )}{#if p.from || p.to}
-                                                                    · {p.from ?? '?'} → {p.to ??
-                                                                        '?'}{/if}</small
-                                                            >
-                                                        </td>
-                                                    {/if}
-                                                    <td>{typeLabel(ev.type)}</td>
-                                                    <td class="mono"
-                                                        >{formatDate(ev)}
-                                                        <small
-                                                            >({$i18n.t(
-                                                                `editor.precisions.${ev.precision}`,
-                                                            )})</small
-                                                        ></td
-                                                    >
-                                                    <td>
-                                                        {ev.source}
-                                                        {#if ev.source_url}<a
-                                                                href={ev.source_url}
-                                                                target="_blank"
-                                                                rel="noopener nofollow"
-                                                                title={ev.source_url}
-                                                                aria-label={ev.source_url}
-                                                                ><i class="bi bi-box-arrow-up-right"
-                                                                ></i></a
-                                                            >{/if}
-                                                        {#if ev.description}<br /><small
-                                                                >{ev.description}</small
-                                                            >{/if}
-                                                    </td>
-                                                </tr>
-                                            {/each}
-                                        {/each}
-                                    </tbody>
-                                </table>
-
-                                {#if (c.nearby ?? []).length}
-                                    <div class="nearby">
-                                        <strong>{$i18n.t('editor.validate.nearby')}</strong>
-                                        <ul>
-                                            {#each c.nearby as n, ni (ni)}
-                                                <li>
-                                                    {#if n.slug}<a
-                                                            href="/lines/{n.slug}"
-                                                            target="_blank"
-                                                            rel="noopener">{n.name}</a
-                                                        >{:else}{n.name}{/if}
-                                                    <small>{n.code ?? ''} · {n.via}</small>
-                                                </li>
-                                            {/each}
-                                        </ul>
-                                    </div>
-                                {/if}
-
-                                {#if c.payload.notes}<blockquote>{c.payload.notes}</blockquote>{/if}
-                            {:else}
-                                <p class="pk-line">
-                                    <i class="bi bi-rulers"></i>
-                                    {$i18n.t('editor.validate.pk_portion')}
-                                    <code
-                                        >PK {formatPk(c.payload.pk_start_m)} → PK {formatPk(
-                                            c.payload.pk_end_m,
-                                        )}</code
-                                    >
-                                    <small
-                                        >({(
-                                            Math.round(
-                                                (c.payload.pk_end_m - c.payload.pk_start_m) / 100,
-                                            ) / 10
-                                        ).toLocaleString($i18n.language)} km)</small
-                                    >
-                                </p>
-                                <ul class="changes">
-                                    {#each Object.entries(c.payload.changes ?? {}) as [k, v] (k)}
-                                        <li>
-                                            <strong>{k}</strong> → <code>{JSON.stringify(v)}</code>
-                                        </li>
-                                    {/each}
-                                </ul>
-                                {#if c.payload.notes}<blockquote>{c.payload.notes}</blockquote>{/if}
-                                {#if (c.payload.sources ?? []).length}
-                                    <p class="sources">
-                                        <strong>{$i18n.t('editor.validate.sources')}</strong>
-                                        {#each c.payload.sources as src, i (i)}
-                                            <a href={src} target="_blank" rel="noopener nofollow"
-                                                >[{i + 1}]</a
-                                            >
-                                        {/each}
-                                    </p>
-                                {/if}
-                            {/if}
-                        </div>
-
-                        <div class="card-actions">
-                            {#if c.target?.slug ?? c.payload.line_slug}
-                                <a
-                                    href="/lines/{c.target?.slug ?? c.payload.line_slug}"
-                                    target="_blank"
-                                    rel="noopener"
-                                    class="vff-btn ghost"
-                                >
-                                    <i class="bi bi-eye"></i>
-                                    {$i18n.t('editor.validate.view_sheet')}
-                                </a>
-                            {/if}
-                            {#if c.is_mine}
-                                <span class="own"
-                                    ><i class="bi bi-person-check"></i>
-                                    {$i18n.t('editor.validate.own')}</span
-                                >
-                            {:else if c.approved_by_me}
-                                <span class="own"
-                                    ><i class="bi bi-check2-all"></i>
-                                    {$i18n.t('editor.validate.already')}</span
-                                >
-                            {:else}
-                                <button
-                                    type="button"
-                                    class="vff-btn primary approve"
-                                    onclick={() => approve(c)}
-                                >
-                                    <i class="bi bi-check-circle-fill"></i>
-                                    {$i18n.t(
-                                        c.approval_count + 1 >= threshold
-                                            ? 'editor.validate.approve_apply'
-                                            : 'editor.validate.approve',
+                                    {#if c.payload.notes}<blockquote class="notes">
+                                            {c.payload.notes}
+                                        </blockquote>{/if}
+                                {:else}
+                                    {@const changes = changeEntries(
+                                        c.payload.changes,
+                                        tr,
+                                        $i18n.language,
                                     )}
-                                </button>
+                                    <p class="pk-line">
+                                        <span
+                                            >{$i18n.t('editor.validate.pk_portion')}{colon(
+                                                $i18n.language,
+                                            )}<strong class="nowrap"
+                                                >PK {formatPk(c.payload.pk_start_m)} → PK {formatPk(
+                                                    c.payload.pk_end_m,
+                                                )}</strong
+                                            ></span
+                                        >
+                                        <span
+                                            >{$i18n.t('editor.validate.pk_length')}{colon(
+                                                $i18n.language,
+                                            )}<strong class="nowrap"
+                                                >{formatKm(
+                                                    Math.abs(
+                                                        c.payload.pk_end_m - c.payload.pk_start_m,
+                                                    ),
+                                                    $i18n.language,
+                                                )}</strong
+                                            ></span
+                                        >
+                                    </p>
+                                    {#if changes.length}
+                                        <div>
+                                            <p class="sub">{$i18n.t('editor.validate.changes')}</p>
+                                            <dl class="changes">
+                                                {#each changes as ch (ch.field)}
+                                                    <div>
+                                                        <dt>{ch.label}</dt>
+                                                        <dd>{ch.value}</dd>
+                                                    </div>
+                                                {/each}
+                                            </dl>
+                                        </div>
+                                    {/if}
+                                    {#if c.payload.notes}<blockquote class="notes">
+                                            {c.payload.notes}
+                                        </blockquote>{/if}
+                                    {#if (c.payload.sources ?? []).length}
+                                        <div>
+                                            <p class="sub">{$i18n.t('editor.validate.sources')}</p>
+                                            <ol class="sources">
+                                                {#each c.payload.sources as src, i (i)}
+                                                    <li class="wrap">
+                                                        {#if isHttpUrl(src)}
+                                                            <a
+                                                                href={src}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer nofollow"
+                                                                >{readableUrl(src)}<i
+                                                                    class="bi bi-box-arrow-up-right vff-ext"
+                                                                    aria-hidden="true"
+                                                                ></i><span class="vff-sr-only">
+                                                                    ({$i18n.t(
+                                                                        'common.new_tab',
+                                                                    )})</span
+                                                                ></a
+                                                            >
+                                                        {:else}
+                                                            {src}
+                                                        {/if}
+                                                    </li>
+                                                {/each}
+                                            </ol>
+                                        </div>
+                                    {/if}
+                                {/if}
+                            </div>
+
+                            <div class="contrib-actions">
+                                {#if c.is_mine}
+                                    <p class="own">
+                                        <i class="bi bi-person-check" aria-hidden="true"></i>
+                                        {$i18n.t('editor.validate.own')}
+                                    </p>
+                                {:else if c.approved_by_me}
+                                    <p class="own">
+                                        <i class="bi bi-check2-all" aria-hidden="true"></i>
+                                        {$i18n.t('editor.validate.already')}
+                                    </p>
+                                {:else}
+                                    <button
+                                        type="button"
+                                        class="vff-btn primary"
+                                        onclick={() => approve(c)}
+                                        disabled={processing}
+                                    >
+                                        <i class="bi bi-check2" aria-hidden="true"></i>
+                                        {$i18n.t(
+                                            c.approval_count + 1 >= threshold
+                                                ? 'editor.validate.approve_apply'
+                                                : 'editor.validate.approve',
+                                        )}<span class="vff-sr-only"
+                                            >{colon($i18n.language)}{lineName}</span
+                                        >
+                                    </button>
+                                {/if}
+                                {#if !c.is_mine && rejecting !== c.id}
+                                    <button
+                                        type="button"
+                                        id="reject-btn-{c.id}"
+                                        class="vff-btn secondary reject"
+                                        onclick={() => openReject(c)}
+                                    >
+                                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                                        {$i18n.t('editor.validate.reject')}<span class="vff-sr-only"
+                                            >{colon($i18n.language)}{lineName}</span
+                                        >
+                                    </button>
+                                {/if}
+                                {#if lineSlug}
+                                    <Link href="/lines/{lineSlug}" class="vff-link sheet-link">
+                                        {$i18n.t('editor.validate.view_sheet')}<span
+                                            class="vff-sr-only"
+                                            >{colon($i18n.language)}{lineName}</span
+                                        >
+                                    </Link>
+                                {/if}
+                            </div>
+
+                            {#if rejecting === c.id}
+                                <form class="reject-form" onsubmit={(e) => submitReject(e, c)}>
+                                    <label class="vff-label" for="reject-notes-{c.id}"
+                                        >{$i18n.t('editor.validate.reject_reason')}</label
+                                    >
+                                    <textarea
+                                        id="reject-notes-{c.id}"
+                                        class="vff-textarea"
+                                        rows="3"
+                                        maxlength="2000"
+                                        bind:value={rejectNotes}
+                                        onkeydown={(e) => e.key === 'Escape' && cancelReject(c)}
+                                    ></textarea>
+                                    <div class="reject-actions">
+                                        <button
+                                            type="submit"
+                                            class="vff-btn secondary reject"
+                                            disabled={processing}
+                                        >
+                                            <i class="bi bi-x-lg" aria-hidden="true"></i>
+                                            {$i18n.t('editor.validate.reject_confirm')}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="vff-btn quiet"
+                                            onclick={() => cancelReject(c)}
+                                        >
+                                            {$i18n.t('editor.validate.cancel')}
+                                        </button>
+                                    </div>
+                                </form>
                             {/if}
-                            {#if !c.is_mine}
-                                <button
-                                    type="button"
-                                    class="vff-btn ghost reject"
-                                    onclick={() => reject(c)}
-                                >
-                                    <i class="bi bi-x-circle"></i>
-                                    {$i18n.t('editor.validate.reject')}
-                                </button>
-                            {/if}
-                        </div>
-                    </article>
-                {/each}
-            </div>
-        {/if}
+                        </article>
+                    {/each}
+                </div>
+            {/if}
+        </div>
     </main>
 </Layout>
 
 <style>
-    .validate-page {
-        max-width: 1080px;
-        margin: 0 auto;
-        padding: 48px 20px;
+    .body {
+        display: flex;
+        flex-direction: column;
+        gap: var(--vff-block-space);
+        padding-block: var(--vff-section-space);
     }
-    .page-head h1 {
-        font-family: var(--vff-font-display);
-        font-size: 32px;
-        margin: 0 0 6px;
-    }
-    .page-head h1:after {
+    .flash:empty {
         display: none;
     }
-    .subtitle {
-        color: var(--vff-text-muted);
-        margin: 0 0 28px;
-    }
     .flash {
-        padding: 10px 14px;
-        border-radius: var(--vff-radius-sm);
-        margin: 0 0 18px;
-        font-size: 14px;
-    }
-    .flash.ok {
-        background: rgba(22, 163, 74, 0.1);
-        border: 1px solid #16a34a;
-    }
-    .flash.ko {
-        background: rgba(197, 48, 48, 0.08);
-        border: 1px solid #c53030;
-    }
-    .empty {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--vff-text-muted);
-    }
-    .empty i {
-        font-size: 56px;
-        display: block;
-        margin-bottom: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: var(--vff-space-3);
+        max-width: 760px;
     }
     .list {
         display: flex;
         flex-direction: column;
-        gap: 22px;
+        gap: var(--vff-block-space);
     }
-    .contrib-card {
-        background-color: var(--vff-bg-elevated);
+    .contrib {
+        min-width: 0;
         border: 1px solid var(--vff-border);
         border-radius: var(--vff-radius-md);
-        overflow: hidden;
+        background-color: var(--vff-bg);
     }
-    .card-head {
+    .contrib-head {
         display: flex;
-        justify-content: space-between;
+        flex-wrap: wrap;
         align-items: flex-start;
-        padding: 18px 22px 14px;
+        justify-content: space-between;
+        gap: var(--vff-space-3) var(--vff-space-5);
+        padding: var(--vff-space-5);
         border-bottom: 1px solid var(--vff-border);
-        gap: 16px;
+    }
+    .head-text {
+        min-width: 0;
     }
     .kind {
-        margin: 0 0 4px;
-        font-family: var(--vff-font-display);
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--vff-accent);
+        display: flex;
+        align-items: center;
+        gap: var(--vff-space-2);
+        margin: 0 0 var(--vff-space-1);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        font-weight: 600;
+        color: var(--vff-accent-ink);
     }
-    .card-head h2 {
-        font-family: var(--vff-font-display);
-        font-size: 18px;
+    .contrib-head h2 {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--vff-space-2) var(--vff-space-3);
         margin: 0;
+        font-size: var(--vff-fs-h3);
+        line-height: 1.35;
+        text-wrap: balance;
     }
-    .card-head h2:after {
-        display: none;
-    }
-    .code {
-        color: var(--vff-accent);
-        font-family: var(--vff-font-secondary, monospace);
-        font-size: 14px;
-        margin-left: 6px;
+    .contrib-head h2 :global(.vff-plate) {
+        font-size: var(--vff-fs-xs);
     }
     .meta {
-        margin: 6px 0 0;
-        font-size: 13px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--vff-space-1) var(--vff-space-4);
+        margin: var(--vff-space-2) 0 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
-    .approvals {
+    .meta strong {
         font-weight: 600;
         color: var(--vff-text);
     }
-    .badge {
-        background-color: var(--vff-accent);
-        color: var(--vff-text-inverse);
-        font-family: var(--vff-font-display);
-        font-size: 13px;
-        font-weight: 700;
-        padding: 4px 12px;
-        border-radius: var(--vff-radius-pill);
-        flex-shrink: 0;
-    }
-    .card-body {
-        padding: 18px 22px;
+    .contrib-body {
         display: flex;
         flex-direction: column;
-        gap: 14px;
+        gap: var(--vff-space-5);
+        padding: var(--vff-space-5);
     }
-    .facts {
+    .sub {
+        margin: 0 0 var(--vff-space-2);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        font-weight: 600;
+        color: var(--vff-text);
+    }
+    .facts,
+    .changes {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 8px 18px;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: var(--vff-space-3) var(--vff-space-6);
         margin: 0;
-        font-size: 14px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
     }
-    .facts dt {
-        font-family: var(--vff-font-display);
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+    .changes {
+        padding: var(--vff-space-3) var(--vff-space-4);
+        background-color: var(--vff-bg-subtle);
+        border-radius: var(--vff-radius-sm);
+    }
+    .facts dt,
+    .changes dt {
         color: var(--vff-text-muted);
     }
-    .facts dd {
+    .facts dd,
+    .changes dd {
         margin: 2px 0 0;
+        color: var(--vff-text);
     }
+    .changes dd,
     .facts dd.changed {
-        color: #b45309;
         font-weight: 600;
     }
     .warnings {
-        list-style: none;
         margin: 0;
-        padding: 10px 12px;
-        background: rgba(180, 83, 9, 0.08);
-        border: 1px solid #b45309;
-        border-radius: var(--vff-radius-sm);
-        font-size: 13px;
-        color: #92400e;
+        padding-left: 1.2em;
     }
-    .warnings li {
-        font-size: 13px;
-        line-height: 1.5;
-    }
-    .events {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13px;
-    }
-    .events th {
-        text-align: left;
-        font-family: var(--vff-font-display);
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--vff-text-muted);
-        border-bottom: 1px solid var(--vff-border);
-        padding: 6px 8px;
-    }
-    .events td {
-        vertical-align: top;
-        border-bottom: 1px solid var(--vff-border);
-        padding: 6px 8px;
+    .events th[scope='row'],
+    .events th[scope='rowgroup'] {
+        font-weight: 600;
+        min-width: 160px;
     }
     .events small {
         display: block;
+        font-weight: 400;
         color: var(--vff-text-muted);
     }
-    .events .mono small {
-        display: inline;
+    .events .date {
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
     }
-    .events a {
-        color: var(--vff-accent);
-        margin-left: 4px;
+    .ext-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+        min-height: 24px;
+        margin-left: 2px;
     }
     .pdot {
         display: inline-block;
         width: 10px;
         height: 10px;
+        margin-right: var(--vff-space-2);
         border-radius: 50%;
         background: var(--c);
-        margin-right: 6px;
-    }
-    .mono {
-        font-family: var(--vff-font-secondary, monospace);
-        white-space: nowrap;
     }
     .muted {
         color: var(--vff-text-muted);
-        font-style: italic;
     }
     .nearby {
-        font-size: 13px;
+        font-size: var(--vff-fs-sm);
     }
-    .nearby ul {
-        margin: 4px 0 0;
-        padding-left: 18px;
-    }
-    .nearby a {
-        color: var(--vff-accent);
+    .nearby ul,
+    .sources {
+        margin: 0;
+        padding-left: 1.2em;
+        display: flex;
+        flex-direction: column;
+        gap: var(--vff-space-1);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
     }
     .nearby small {
+        margin-left: var(--vff-space-1);
         color: var(--vff-text-muted);
-        margin-left: 4px;
     }
     .pk-line {
         display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
+        flex-wrap: wrap;
+        gap: var(--vff-space-1) var(--vff-space-5);
         margin: 0;
-    }
-    .pk-line i {
-        color: var(--vff-accent);
-    }
-    .pk-line code {
-        background-color: var(--vff-bg-muted);
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-family: var(--vff-font-secondary, monospace);
-    }
-    .pk-line small {
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-md);
         color: var(--vff-text-muted);
     }
-    .changes {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px 14px;
-    }
-    .changes li {
-        background-color: var(--vff-accent-soft);
-        color: var(--vff-accent);
-        padding: 4px 10px;
-        border-radius: var(--vff-radius-sm);
-        font-family: var(--vff-font-display);
-        font-size: 13px;
-    }
-    .changes code {
-        background-color: transparent;
+    .pk-line strong {
         color: var(--vff-text);
-        font-family: var(--vff-font-secondary, monospace);
-        font-size: 12px;
+        font-weight: 600;
     }
-    blockquote {
+    .nowrap {
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+    .wrap {
+        overflow-wrap: anywhere;
+    }
+    .notes {
         margin: 0;
-        padding: 10px 14px;
-        background-color: var(--vff-bg);
-        border-left: 3px solid var(--vff-accent);
-        border-radius: var(--vff-radius-sm);
-        font-style: italic;
-        font-size: 14px;
+        max-width: var(--vff-measure);
+        padding: var(--vff-space-3) var(--vff-space-4);
+        border-left: 3px solid var(--vff-border-strong);
+        background-color: var(--vff-bg-subtle);
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-md);
+        line-height: 1.6;
+        overflow-wrap: anywhere;
     }
-    .sources {
-        font-size: 13px;
-        color: var(--vff-text-muted);
-        margin: 0;
-    }
-    .sources a {
-        color: var(--vff-accent);
-        text-decoration: none;
-        margin-right: 4px;
-        font-family: var(--vff-font-display);
-        font-weight: 700;
-    }
-    .card-actions {
+    .contrib-actions {
         display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 14px 22px;
-        background-color: var(--vff-bg-muted);
-        border-top: 1px solid var(--vff-border);
         flex-wrap: wrap;
-    }
-    .card-actions .vff-btn {
-        border: 0;
-        cursor: pointer;
-        font-size: 13px;
-        padding: 8px 14px;
-    }
-    .card-actions .reject {
-        color: #c53030;
-    }
-    .card-actions .reject:hover {
-        background-color: #fee2e2;
+        align-items: center;
+        gap: var(--vff-space-3);
+        padding: var(--vff-space-4) var(--vff-space-5);
+        border-top: 1px solid var(--vff-border);
+        background-color: var(--vff-bg-subtle);
+        border-radius: 0 0 var(--vff-radius-md) var(--vff-radius-md);
     }
     .own {
-        font-size: 13px;
+        margin: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
-    @media (max-width: 640px) {
-        .events thead {
-            display: none;
+    .contrib-actions :global(.sheet-link) {
+        margin-left: auto;
+    }
+    /* Refus : action destructive, texte et contour en couleur d'erreur (contrastes des deux thèmes).
+       À remonter dans general.css : variante .vff-btn.danger. */
+    .reject {
+        color: var(--vff-danger);
+        border-color: var(--vff-danger);
+    }
+    .reject:hover:not(:disabled) {
+        background-color: var(--vff-danger-bg);
+        color: var(--vff-danger);
+    }
+    .reject-form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--vff-space-2);
+        max-width: 640px;
+        padding: var(--vff-space-4) var(--vff-space-5) var(--vff-space-5);
+        border-top: 1px solid var(--vff-border);
+    }
+    .reject-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--vff-space-3);
+        margin-top: var(--vff-space-2);
+    }
+    @media (max-width: 600px) {
+        .contrib-head,
+        .contrib-body {
+            padding: var(--vff-space-4);
         }
-        .events td {
-            display: block;
+        .contrib-actions {
+            padding: var(--vff-space-4);
+        }
+        .contrib-actions :global(.sheet-link) {
+            margin-left: 0;
+        }
+        .facts,
+        .changes {
+            grid-template-columns: minmax(0, 1fr);
         }
     }
 </style>

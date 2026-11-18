@@ -65,7 +65,12 @@
 
 <div class="events">
     {#each events as ev, i (i)}
-        <div class="event">
+        {@const id = `${prefix || 'ev'}-${i}`.replaceAll('.', '-')}
+        <div
+            class="event"
+            role="group"
+            aria-label={`${typeLabel(ev.type)} ${ev.date || ''}`.trim()}
+        >
             <div class="row">
                 <label class="f type">
                     <span>{$i18n.t('editor.events.type')}</span>
@@ -80,8 +85,9 @@
                     class="remove"
                     onclick={() => remove(i)}
                     title={$i18n.t('editor.events.remove')}
+                    aria-label={$i18n.t('editor.events.remove')}
                 >
-                    <i class="bi bi-trash3"></i>
+                    <i class="bi bi-trash3" aria-hidden="true"></i>
                 </button>
             </div>
             <div class="row">
@@ -97,9 +103,19 @@
                     </select>
                 </label>
                 <label class="f date">
-                    <span>{$i18n.t('editor.events.date')}</span>
+                    <span
+                        >{$i18n.t('editor.events.date')}
+                        <b class="req" aria-hidden="true">*</b></span
+                    >
                     {#if ev.precision === 'day'}
-                        <input type="date" bind:value={ev.date} min="1750-01-01" required />
+                        <input
+                            type="date"
+                            bind:value={ev.date}
+                            min="1750-01-01"
+                            required
+                            aria-invalid={err(i, 'date') ? 'true' : undefined}
+                            aria-describedby={err(i, 'date') ? `${id}-date-err` : undefined}
+                        />
                     {:else if ev.precision === 'month'}
                         <input
                             type="month"
@@ -107,6 +123,8 @@
                             min="1750-01"
                             placeholder={$i18n.t('editor.events.month_placeholder')}
                             required
+                            aria-invalid={err(i, 'date') ? 'true' : undefined}
+                            aria-describedby={err(i, 'date') ? `${id}-date-err` : undefined}
                         />
                     {:else}
                         <input
@@ -117,21 +135,33 @@
                             bind:value={ev.date}
                             placeholder={$i18n.t('editor.events.year_placeholder')}
                             required
+                            aria-invalid={err(i, 'date') ? 'true' : undefined}
+                            aria-describedby={err(i, 'date') ? `${id}-date-err` : undefined}
                         />
                     {/if}
-                    {#if err(i, 'date')}<em class="error">{err(i, 'date')}</em>{/if}
+                    {#if err(i, 'date')}<em class="error" id="{id}-date-err"
+                            ><i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                            {err(i, 'date')}</em
+                        >{/if}
                 </label>
             </div>
             <label class="f">
-                <span>{$i18n.t('editor.events.source')} <b class="req">*</b></span>
+                <span
+                    >{$i18n.t('editor.events.source')} <b class="req" aria-hidden="true">*</b></span
+                >
                 <input
                     type="text"
                     bind:value={ev.source}
                     maxlength="500"
                     placeholder={$i18n.t('editor.events.source_placeholder')}
                     required
+                    aria-invalid={err(i, 'source') ? 'true' : undefined}
+                    aria-describedby={err(i, 'source') ? `${id}-source-err` : undefined}
                 />
-                {#if err(i, 'source')}<em class="error">{err(i, 'source')}</em>{/if}
+                {#if err(i, 'source')}<em class="error" id="{id}-source-err"
+                        ><i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                        {err(i, 'source')}</em
+                    >{/if}
             </label>
             <div class="row two">
                 <label class="f">
@@ -141,8 +171,13 @@
                         bind:value={ev.source_url}
                         maxlength="500"
                         placeholder="https://"
+                        aria-invalid={err(i, 'source_url') ? 'true' : undefined}
+                        aria-describedby={err(i, 'source_url') ? `${id}-url-err` : undefined}
                     />
-                    {#if err(i, 'source_url')}<em class="error">{err(i, 'source_url')}</em>{/if}
+                    {#if err(i, 'source_url')}<em class="error" id="{id}-url-err"
+                            ><i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                            {err(i, 'source_url')}</em
+                        >{/if}
                 </label>
                 <label class="f">
                     <span>{$i18n.t('editor.events.description')}</span>
@@ -151,8 +186,8 @@
             </div>
         </div>
     {/each}
-    <button type="button" class="add" onclick={add}>
-        <i class="bi bi-calendar-plus"></i>
+    <button type="button" class="vff-btn secondary small add" onclick={add}>
+        <i class="bi bi-calendar-plus" aria-hidden="true"></i>
         {$i18n.t('editor.events.add')}
     </button>
 </div>
@@ -161,20 +196,20 @@
     .events {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: var(--vff-space-3);
     }
     .event {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        padding: 10px;
-        background: var(--vff-bg);
+        gap: var(--vff-space-3);
+        padding: var(--vff-space-3);
+        background: var(--vff-bg-subtle);
         border: 1px solid var(--vff-border);
         border-radius: var(--vff-radius-sm);
     }
     .row {
         display: flex;
-        gap: 8px;
+        gap: var(--vff-space-2);
         align-items: flex-end;
     }
     .row.two > * {
@@ -183,22 +218,21 @@
     .f {
         display: flex;
         flex-direction: column;
-        gap: 3px;
+        gap: 4px;
         min-width: 0;
     }
     .f > span {
-        font-family: var(--vff-font-display);
-        font-size: 11px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
         font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+        line-height: var(--vff-lh-ui);
         color: var(--vff-text-muted);
     }
     .f.type {
         flex: 1 1 auto;
     }
     .f.precision {
-        flex: 0 0 110px;
+        flex: 0 0 120px;
     }
     .f.date {
         flex: 1 1 auto;
@@ -206,57 +240,63 @@
     input,
     select {
         width: 100%;
+        min-height: 36px;
         padding: 6px 8px;
-        background: var(--vff-bg-elevated);
+        background: var(--vff-bg);
         color: var(--vff-text);
-        border: 1px solid var(--vff-border);
+        border: 1px solid var(--vff-border-control);
         border-radius: var(--vff-radius-sm);
-        font-size: 13px;
-        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-sm);
+        font-family: var(--vff-font-heading);
     }
-    input:focus,
-    select:focus {
-        outline: none;
-        border-color: var(--vff-accent);
-        box-shadow: 0 0 0 2px var(--vff-accent-soft);
+    input:focus-visible,
+    select:focus-visible {
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: 0;
+        border-color: var(--vff-focus);
+    }
+    input[aria-invalid='true'] {
+        border-color: var(--vff-danger);
+        box-shadow: inset 3px 0 0 var(--vff-danger);
     }
     .req {
-        color: #c53030;
+        color: var(--vff-danger);
     }
     .error {
-        color: #c53030;
-        font-size: 12px;
+        display: flex;
+        gap: 4px;
+        align-items: baseline;
+        color: var(--vff-danger);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        font-weight: 600;
         font-style: normal;
     }
     .remove {
         flex: 0 0 auto;
-        padding: 6px 8px;
-        background: transparent;
-        border: 1px solid var(--vff-border);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        background: var(--vff-bg);
+        border: 1px solid var(--vff-border-control);
         border-radius: var(--vff-radius-sm);
         color: var(--vff-text-muted);
         cursor: pointer;
+        transition:
+            color var(--vff-transition),
+            border-color var(--vff-transition);
     }
     .remove:hover {
-        color: #c53030;
-        border-color: #c53030;
+        color: var(--vff-danger);
+        border-color: var(--vff-danger);
     }
     .add {
         align-self: flex-start;
-        display: inline-flex;
-        gap: 6px;
-        align-items: center;
-        padding: 6px 12px;
-        background: transparent;
-        border: 1px dashed var(--vff-accent);
-        border-radius: var(--vff-radius-pill);
-        color: var(--vff-accent);
-        font-family: var(--vff-font-display);
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
     }
-    @media (max-width: 520px) {
+    @media (max-width: 600px) {
         .row {
             flex-wrap: wrap;
         }

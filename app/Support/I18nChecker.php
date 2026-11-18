@@ -136,8 +136,9 @@ class I18nChecker
             preg_match_all('/\b[a-z][A-Za-z]*Key\s*:\s*[\'"]([a-z][a-z0-9_]*(?:\.[A-Za-z0-9_]+)+)[\'"]/', $source, $tables);
 
             foreach (array_unique([...$calls[1], ...$tables[1]]) as $fullKey) {
-                // Préfixe de clé dynamique (`t('lines.types.' + x)`) : ignoré.
-                if (isset($known[$fullKey]) || isset($seen[$fullKey]) || str_ends_with($fullKey, '.')) {
+                // Préfixe de clé dynamique (`t('lines.types.' + x)`) : ignoré. Pluriel i18next
+                // (`t('editor.x', { count })` lit `editor.x_one` / `editor.x_other`) : clé connue.
+                if (isset($known[$fullKey]) || isset($known["{$fullKey}_other"]) || isset($seen[$fullKey]) || str_ends_with($fullKey, '.')) {
                     continue;
                 }
                 $seen[$fullKey] = true;
