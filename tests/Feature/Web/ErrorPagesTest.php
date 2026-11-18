@@ -39,7 +39,7 @@ class ErrorPagesTest extends TestCase
         });
     }
 
-    /** @return array<string, array{0: string, 1: int}> */
+    /** @return array<int|string, array{0: string, 1: int}> */
     public static function errorRoutes(): array
     {
         return [

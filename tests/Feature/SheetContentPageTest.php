@@ -10,6 +10,7 @@ use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Support\ReadsInertiaProps;
 use Tests\TestCase;
 
 /**
@@ -23,6 +24,7 @@ use Tests\TestCase;
  */
 class SheetContentPageTest extends TestCase
 {
+    use ReadsInertiaProps;
     use RefreshDatabase;
 
     private Line $line;
@@ -146,7 +148,7 @@ class SheetContentPageTest extends TestCase
     {
         $this->get('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('sources', function ($sources) {
-                $byType = collect($sources)->keyBy('type');
+                $byType = $this->rows($sources)->keyBy('type');
                 $this->assertSame('https://ressources.data.sncf.com/', $byType['sncf-classification']['url']);
                 $this->assertSame(['liste-des-gares', 'lignes-par-type', 'lignes-lgv'], $byType['sncf-classification']['datasets']);
                 foreach (['osm', 'bdtopo', 'sncf-speed', 'sncf-electrification', 'sncf-signalling'] as $type) {
@@ -160,14 +162,14 @@ class SheetContentPageTest extends TestCase
         // Aucun signal SNCF (ligne hors réseau ferré national) : pas de « classement SNCF » cité.
         DB::table('line_sources')->update(['fields_provided' => json_encode(['signal' => 'aucun'])]);
         $this->get('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->where('sources', fn ($s) => ! collect($s)->pluck('type')->contains('sncf-classification')));
+            ->where('sources', fn ($s) => ! $this->rows($s)->pluck('type')->contains('sncf-classification')));
     }
 
     public function test_chronicle_is_written_for_readers(): void
     {
         $this->get('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('chronicle', function ($c) {
-                $events = collect($c['events'])->keyBy('type');
+                $events = $this->rows($c['events'])->keyBy('type');
                 $closure = $events['closure'];
                 $this->assertSame('Saillat-Chassenon', $closure['section_from'], 'nom de la gare de la ligne');
                 $this->assertSame('de Saillat-Chassenon à Angoulême', $closure['section_text']);
@@ -179,7 +181,7 @@ class SheetContentPageTest extends TestCase
                 $this->assertSame('Exploitation sans concession : Administration des chemins de fer de l’État (infobox Wikipédia)', $concession['description']);
                 $this->assertSame(['Infobox de l’article Wikipédia (concessionnaire : État (Non concédée) ; début de la concession : 1878)', 'data'],
                     [$concession['quote'], $concession['quote_kind']]);
-                $groups = collect($c['groups'])->keyBy('key');
+                $groups = $this->rows($c['groups'])->keyBy('key');
                 $this->assertSame('Toute la ligne', $groups['whole']['title']);
                 $this->assertSame('De Saillat-Chassenon à Angoulême', $groups['angouleme|saillat chassenon']['title']);
                 $this->assertSame(15000, $groups['angouleme|saillat chassenon']['length_m'], 'écart des PK des deux gares');
@@ -189,8 +191,8 @@ class SheetContentPageTest extends TestCase
             })
         );
         $this->withHeader('Accept-Language', 'en')->get('/lines/ligne-test-610000')->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->where('chronicle.events', fn ($e) => collect($e)->firstWhere('type', 'closure')['correction_lang'] === 'fr'
-                && collect($e)->firstWhere('type', 'closure')['description'] === 'Closure (all traffic) from Saillat-Chassenon to Angoulême'));
+            ->where('chronicle.events', fn ($e) => $this->rows($e)->firstWhere('type', 'closure')['correction_lang'] === 'fr'
+                && $this->rows($e)->firstWhere('type', 'closure')['description'] === 'Closure (all traffic) from Saillat-Chassenon to Angoulême'));
     }
 
     public function test_closures_per_decade_match_the_counts(): void
@@ -206,7 +208,7 @@ class SheetContentPageTest extends TestCase
     {
         Station::factory()->create(['slug' => 'st-junien', 'name' => 'St-Junien', 'geom' => Point::makeGeodetic(45.80, 1.12)]);
         $this->get('/stations/saillat-chassenon')->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->where('neighbors', fn ($n) => collect($n)->pluck('slug')->all() === ['st-junien'])
+            ->where('neighbors', fn ($n) => $this->rows($n)->pluck('slug')->all() === ['st-junien'])
             ->where('station.description_lang', null));
         // Description en français sur la page anglaise : signalée pour l'attribut lang.
         $this->withHeader('Accept-Language', 'en')->get('/stations/saillat-chassenon')->assertOk()

@@ -1249,18 +1249,6 @@ parameters:
 			path: tests/Feature/LineFactsTest.php
 
 		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 21
-			path: tests/Feature/LineSheetPageTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 21
-			path: tests/Feature/LineSheetPageTest.php
-
-		-
 			message: '#^Access to an undefined property App\\Models\\LineGeometry\:\:\$geom\.$#'
 			identifier: property.notFound
 			count: 1

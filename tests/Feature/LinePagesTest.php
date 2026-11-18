@@ -6,11 +6,13 @@ use App\Models\Line;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Support\BuildsRailNetwork;
+use Tests\Support\ReadsInertiaProps;
 use Tests\TestCase;
 
 class LinePagesTest extends TestCase
 {
     use BuildsRailNetwork;
+    use ReadsInertiaProps;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -130,8 +132,8 @@ class LinePagesTest extends TestCase
                 ->has('sections', 0)
                 // Pas de source de la ligne (line_sources) ; les sources des tronçons affichés sont citées
                 // (signalisation SNCF : une plage de cantonnement).
-                ->where('sources', fn ($s) => collect($s)->pluck('type')->contains('sncf-signalling')
-                    && ! collect($s)->pluck('type')->contains('sncf-classification'))
+                ->where('sources', fn ($s) => $this->rows($s)->pluck('type')->contains('sncf-signalling')
+                    && ! $this->rows($s)->pluck('type')->contains('sncf-classification'))
             );
     }
 

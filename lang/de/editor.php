@@ -276,6 +276,8 @@ return [
         'no_event' => 'Kein datiertes Ereignis',
         'nearby' => 'Bestehende Strecken und Trassen im Umkreis von 150 m (mögliches Duplikat?)',
         'pk_portion' => 'Abschnitt',
+        'current_value' => 'Aktueller Wert',
+        'proposed_value' => 'Vorgeschlagener Wert',
         'sources' => 'Quellen:',
         'view_sheet' => 'Streckenseite ansehen',
         'own' => 'Ihr Beitrag (ein anderer Prüfer muss ihn sichten)',

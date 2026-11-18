@@ -50,6 +50,12 @@ class SegmentContributionTest extends TestCase
         ], $overrides);
     }
 
+    /** Envoi dont les changements sont EXACTEMENT ceux donnés (`payload()` fusionne avec ses changements par défaut). */
+    private function payloadWithChanges(array $changes): array
+    {
+        return array_replace($this->payload(), ['changes' => $changes]);
+    }
+
     private function contribution(int $userId, string $status = 'pending', array $attributes = []): Contribution
     {
         return Contribution::factory()->create([
@@ -284,11 +290,154 @@ class SegmentContributionTest extends TestCase
                 ->where('contributions.0.id', $recent->id)
                 ->where('contributions.0.status', 'approved')
                 ->where('contributions.0.approval_count', 1)
-                ->where('contributions.0.created_at', $recent->created_at->format('Y-m-d H:i'))
+                ->where('contributions.0.created_at', $recent->created_at->toIso8601String())
                 ->where('contributions.1.id', $old->id)
                 ->where('contributions.1.status', 'rejected')
                 ->where('contributions.1.review_notes', 'Source insuffisante')
                 ->where('contributions.1.approval_count', 0));
+    }
+
+    public function test_mine_dates_are_iso_8601_with_the_offset(): void
+    {
+        $me = $this->member('contributor');
+        $this->contribution($me->id, 'rejected', [
+            'created_at' => '2026-11-18 10:21:00',
+            'reviewed_at' => '2026-11-19 08:05:00',
+        ]);
+        $this->contribution($me->id, 'pending', ['created_at' => '2026-11-17 23:30:00']);
+
+        $this->actingAs($me)->get('/contribute/mine')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                // Fuseau de l'application (Europe/Paris) : décalage explicite, lu par le navigateur.
+                ->where('contributions.0.created_at', '2026-11-18T10:21:00+01:00')
+                ->where('contributions.0.reviewed_at', '2026-11-19T08:05:00+01:00')
+                ->where('contributions.1.created_at', '2026-11-17T23:30:00+01:00')
+                ->where('contributions.1.reviewed_at', null));
+    }
+
+    /** @return array<string, array{0: array<string, mixed>}> */
+    public static function emptyChanges(): array
+    {
+        return [
+            'tous les champs vides' => [['status' => null, 'traffic_type' => null, 'electrified' => null, 'voltage_v' => null, 'max_speed_kmh' => null, 'is_heritage' => null]],
+            'chaînes vides (« Inchangé »)' => [['status' => '', 'traffic_type' => '', 'max_speed_kmh' => '']],
+            'clé inconnue seule' => [['unknown_column' => 'x']],
+            'clé inconnue et champs vides' => [['unknown_column' => 'x', 'status' => null]],
+        ];
+    }
+
+    /** @param  array<string, mixed>  $changes */
+    #[DataProvider('emptyChanges')]
+    public function test_submission_without_any_change_is_refused_by_the_server(array $changes): void
+    {
+        $this->actingAs($this->member())
+            ->post('/contribute/edit-segment', $this->payloadWithChanges($changes))
+            ->assertSessionHasErrors(['changes' => 'Indiquez au moins un changement.']);
+
+        $this->assertSame(0, Contribution::count());
+    }
+
+    public function test_the_no_change_message_is_translated(): void
+    {
+        $user = $this->member();
+        $empty = $this->payloadWithChanges(['status' => null]);
+
+        $this->withCookie('locale', 'en')->actingAs($user)->post('/contribute/edit-segment', $empty)
+            ->assertSessionHasErrors(['changes' => 'Enter at least one change.']);
+        $this->withCookie('locale', 'de')->actingAs($user)->post('/contribute/edit-segment', $empty)
+            ->assertSessionHasErrors(['changes' => 'Geben Sie mindestens eine Änderung an.']);
+    }
+
+    public function test_a_false_or_zero_value_is_a_real_change(): void
+    {
+        $this->actingAs($this->member())
+            ->post('/contribute/edit-segment', $this->payloadWithChanges(['electrified' => false, 'max_speed_kmh' => 0]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(['electrified' => false, 'max_speed_kmh' => 0], Contribution::sole()->payload['changes']);
+    }
+
+    public function test_unknown_change_keys_are_not_stored(): void
+    {
+        $this->actingAs($this->member())
+            ->post('/contribute/edit-segment', $this->payloadWithChanges(['status' => 'abandoned', 'unknown_column' => 'x']))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(['status' => 'abandoned'], Contribution::sole()->payload['changes']);
+    }
+
+    public function test_validation_shows_the_current_values_of_the_targeted_portion(): void
+    {
+        $this->contribution($this->member('contributor')->id, 'pending', ['payload' => [
+            'line_code' => '999 000', 'line_name' => $this->line->name, 'era_year' => 2030,
+            'pk_start_m' => 0, 'pk_end_m' => 5000,
+            'changes' => ['status' => 'abandoned', 'max_speed_kmh' => 60, 'electrified' => false, 'is_heritage' => true],
+            'sources' => [], 'notes' => null,
+        ]]);
+
+        $this->actingAs($this->member('validator'))->get('/validate')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('contributions.0.current_values', [
+                    'status' => ['in_service'],
+                    'max_speed_kmh' => [120],
+                    'electrified' => [true],
+                    'is_heritage' => [false],
+                ]));
+    }
+
+    public function test_current_values_follow_the_pk_range_and_list_each_distinct_value_once(): void
+    {
+        $western = $this->addWesternSegment();
+        $western->update(['status' => 'abandoned', 'max_speed_kmh' => 40]);
+        $payload = fn (int $start, int $end) => [
+            'line_code' => '999 000', 'line_name' => $this->line->name, 'era_year' => 2030,
+            'pk_start_m' => $start, 'pk_end_m' => $end,
+            'changes' => ['status' => 'dismantled', 'max_speed_kmh' => 30],
+            'sources' => [], 'notes' => null,
+        ];
+        $author = $this->member('contributor');
+        $east = $this->contribution($author->id, 'pending', ['payload' => $payload(0, 5000), 'created_at' => now()->subHours(3)]);
+        $both = $this->contribution($author->id, 'pending', ['payload' => $payload(15000, 25000), 'created_at' => now()->subHours(2)]);
+        $west = $this->contribution($author->id, 'pending', ['payload' => $payload(25000, 30000), 'created_at' => now()->subHour()]);
+
+        $this->actingAs($this->member('validator'))->get('/validate')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('contributions.0.id', $east->id)
+                ->where('contributions.0.current_values', ['status' => ['in_service'], 'max_speed_kmh' => [120]])
+                ->where('contributions.1.id', $both->id)
+                ->where('contributions.1.current_values', ['status' => ['in_service', 'abandoned'], 'max_speed_kmh' => [120, 40]])
+                ->where('contributions.2.id', $west->id)
+                ->where('contributions.2.current_values', ['status' => ['abandoned'], 'max_speed_kmh' => [40]]));
+    }
+
+    public function test_current_values_are_null_when_the_era_has_no_geometry(): void
+    {
+        Era::factory()->create(['year' => 1900]);
+        $this->contribution($this->member('contributor')->id, 'pending', ['payload' => [
+            'line_code' => '999 000', 'line_name' => $this->line->name, 'era_year' => 1900,
+            'pk_start_m' => 0, 'pk_end_m' => 5000, 'changes' => ['status' => 'abandoned'], 'sources' => [], 'notes' => null,
+        ]]);
+
+        $this->actingAs($this->member('validator'))->get('/validate')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('contributions.0.current_values', null));
+    }
+
+    public function test_current_values_are_not_computed_for_trace_contributions(): void
+    {
+        Contribution::factory()->create([
+            'user_id' => $this->member('contributor')->id,
+            'type' => 'line_trace',
+            'status' => 'pending',
+            'payload' => ['kind' => 'new_line', 'portions' => []],
+        ]);
+
+        $this->actingAs($this->member('validator'))->get('/validate')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->missing('contributions.0.current_values'));
     }
 
     #[DataProvider('nonValidatorRoles')]

@@ -276,6 +276,8 @@ return [
         'no_event' => 'No dated event',
         'nearby' => 'Existing lines and routes within 150 m (possible duplicate?)',
         'pk_portion' => 'Section',
+        'current_value' => 'Current value',
+        'proposed_value' => 'Proposed value',
         'sources' => 'Sources:',
         'view_sheet' => 'View the line page',
         'own' => 'Your contribution (another validator must review it)',

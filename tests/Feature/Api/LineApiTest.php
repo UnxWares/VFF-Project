@@ -105,6 +105,25 @@ class LineApiTest extends TestCase
             ->assertJsonCount(0, 'stations');
     }
 
+    public function test_search_returns_the_department_code_of_stations(): void
+    {
+        $this->origin->forceFill(['department_code' => '75'])->save();
+        $this->destination->forceFill(['department_code' => null])->save();
+
+        $this->getJson('/api/v1/search?q=paris')
+            ->assertOk()
+            ->assertJsonPath('stations.0.slug', 'paris-saint-lazare')
+            ->assertJsonPath('stations.0.city', 'Paris')
+            ->assertJsonPath('stations.0.department_code', '75');
+
+        // Département inconnu : la clé est présente et vide (l'affichage ne met alors pas de parenthèses).
+        $this->getJson('/api/v1/search?q=versailles')
+            ->assertOk()
+            ->assertJsonPath('stations.0.slug', 'versailles-rive-droite')
+            ->assertJsonPath('stations.0.department_code', null)
+            ->assertJsonStructure(['stations' => [['type', 'slug', 'name', 'city', 'department_code', 'lat', 'lng']]]);
+    }
+
     public function test_route_requires_from_and_to(): void
     {
         $this->getJson('/api/v1/route')->assertUnprocessable()->assertJsonValidationErrors(['from', 'to']);

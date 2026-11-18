@@ -276,6 +276,8 @@ return [
         'no_event' => 'Aucun événement daté',
         'nearby' => 'Lignes et tracés existants à moins de 150 m (doublon possible ?)',
         'pk_portion' => 'Portion',
+        'current_value' => 'Valeur actuelle',
+        'proposed_value' => 'Valeur proposée',
         'sources' => 'Sources',
         'view_sheet' => 'Voir la fiche',
         'own' => 'Votre contribution (un autre validateur doit la relire)',

@@ -72,13 +72,17 @@ export function changeValue(field, value, t, lang) {
 }
 
 /**
- * Changements proposés, triés, avec libellé du champ et valeur lisible.
+ * Changements proposés, triés, avec libellé du champ et valeur lisible. Avec `current` (valeurs actuelles
+ * de la portion, fournies par le serveur : une liste de valeurs distinctes par champ), `before` donne la
+ * valeur actuelle lisible (« En service, Fermée (voie en place) » si la portion en mêle plusieurs), ou ''
+ * quand elle n'est pas connue.
  * @param {Record<string, unknown>|null|undefined} changes
  * @param {(key: string, opts?: object) => any} t
  * @param {string} lang
- * @returns {{ field: string, label: string, value: string }[]}
+ * @param {Record<string, unknown[]>|null|undefined} [current]
+ * @returns {{ field: string, label: string, value: string, before: string }[]}
  */
-export function changeEntries(changes, t, lang) {
+export function changeEntries(changes, t, lang, current = null) {
     const keys = Object.keys(changes ?? {}).filter((k) => {
         const v = changes[k];
         return v !== null && v !== undefined && v !== '';
@@ -95,11 +99,16 @@ export function changeEntries(changes, t, lang) {
         field,
         label: translated(t, `editor.segment.fields.${field}`, field),
         value: changeValue(field, changes[field], t, lang),
+        before: (Array.isArray(current?.[field]) ? current[field] : [])
+            .map((v) => changeValue(field, v, t, lang))
+            .filter((v) => v !== '')
+            .join(', '),
     }));
 }
 
 /**
- * Date « 2026-10-20 11:21 » (format du serveur) → « 20 octobre 2026 » dans la langue de la page.
+ * Date ISO 8601 (« 2026-11-18T10:21:00+01:00 ») ou « 2026-10-20 11:21 » → « 20 octobre 2026 » dans la langue
+ * de la page.
  * Une valeur non reconnue est rendue telle quelle.
  * @param {string|null|undefined} value
  * @param {string} lang

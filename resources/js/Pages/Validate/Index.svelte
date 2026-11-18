@@ -375,6 +375,7 @@
                                         c.payload.changes,
                                         tr,
                                         $i18n.language,
+                                        c.current_values,
                                     )}
                                     <p class="pk-line">
                                         <span
@@ -406,7 +407,25 @@
                                                 {#each changes as ch (ch.field)}
                                                     <div>
                                                         <dt>{ch.label}</dt>
-                                                        <dd>{ch.value}</dd>
+                                                        <dd>
+                                                            {#if ch.before}
+                                                                <span class="was"
+                                                                    ><span class="vff-sr-only"
+                                                                        >{$i18n.t(
+                                                                            'editor.validate.current_value',
+                                                                        )}{colon(
+                                                                            $i18n.language,
+                                                                        )}</span
+                                                                    >{ch.before}</span
+                                                                ><span aria-hidden="true">
+                                                                    →
+                                                                </span><span class="vff-sr-only"
+                                                                    >{$i18n.t(
+                                                                        'editor.validate.proposed_value',
+                                                                    )}{colon($i18n.language)}</span
+                                                                >
+                                                            {/if}{ch.value}
+                                                        </dd>
                                                     </div>
                                                 {/each}
                                             </dl>
@@ -652,6 +671,11 @@
     .changes dd,
     .facts dd.changed {
         font-weight: 600;
+    }
+    /* Valeur actuelle de la portion, avant la flèche et la valeur proposée. */
+    .changes .was {
+        font-weight: 400;
+        color: var(--vff-text-muted);
     }
     .warnings {
         margin: 0;

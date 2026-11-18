@@ -11,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\Support\ReadsInertiaProps;
 use Tests\TestCase;
 
 /**
@@ -24,6 +25,7 @@ use Tests\TestCase;
  */
 class LineSheetPageTest extends TestCase
 {
+    use ReadsInertiaProps;
     use RefreshDatabase;
 
     private Line $line;
@@ -122,7 +124,7 @@ class LineSheetPageTest extends TestCase
             ->has('portions', 2)
             ->where('portions.0.geometry.type', 'LineString')
             ->where('phases', function ($phases) {
-                $dates = collect($phases)->map(fn ($p) => [$p['date'], $p['precision']])->all();
+                $dates = $this->rows($phases)->map(fn ($p) => [$p['date'], $p['precision']])->all();
                 $this->assertSame([
                     ['1869-12-06', 'day'], ['1881-03-15', 'day'], ['1940-01-01', 'year'],
                     ['1950-12-31', 'range'], ['1991-05-26', 'day'],
@@ -133,13 +135,13 @@ class LineSheetPageTest extends TestCase
                 $this->assertSame(['freight', 'dismantled'], $phases[4]['state']);
                 $this->assertSame(['from' => 'mixed', 'to' => 'closed'], array_intersect_key($phases[2]['changes'][0], ['from' => 1, 'to' => 1]));
                 $this->assertSame([1941, 1950], [$phases[3]['from_year'], $phases[3]['to_year']]);
-                $this->assertSame(['growth', 'growth', 'decline', 'removal', 'traffic'], collect($phases)->pluck('kind')->all());
+                $this->assertSame(['growth', 'growth', 'decline', 'removal', 'traffic'], $this->rows($phases)->pluck('kind')->all());
 
                 return true;
             })
             ->where('best_phase', 1)
             ->where('decades', function ($decades) {
-                $byYear = collect($decades)->keyBy('year');
+                $byYear = $this->rows($decades)->keyBy('year');
                 $this->assertSame([1870, 1880, 1890, 1940, 1950, 2030], $byYear->keys()->all());
                 $this->assertSame(['dismantled' => 7300, 'freight' => 7300], $byYear[2030]['length_by_category'], 'la voie déposée reste comptée');
                 // Gares : mêmes règles que App\Services\LineStations::byEra (agent « gares »).
@@ -149,7 +151,7 @@ class LineSheetPageTest extends TestCase
                 // (pas d'état connu en 1940) : listées en 1950, comme le compteur (jamais plus de noms que
                 // de fermetures comptées).
                 $this->assertSame([0, []], [$byYear[1940]['stations']['closed'], $byYear[1940]['stations']['closures']]);
-                $this->assertEqualsCanonicalizing(['couterne', 'la-ferte-mace'], collect($byYear[1950]['stations']['closures'])->pluck('slug')->all(), 'fermées à l’ère 1950');
+                $this->assertEqualsCanonicalizing(['couterne', 'la-ferte-mace'], $this->rows($byYear[1950]['stations']['closures'])->pluck('slug')->all(), 'fermées à l’ère 1950');
 
                 return true;
             })
@@ -161,14 +163,14 @@ class LineSheetPageTest extends TestCase
         $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->has('chronicle.events', 6)
             ->where('chronicle', function ($c) {
-                $events = collect($c['events'])->groupBy('type')->map->first();
+                $events = $this->rows($c['events'])->groupBy('type')->map->first();
                 $this->assertSame('retained', $events['opening']['status']);
                 $this->assertSame('context', $events['concession']['status']);
                 $this->assertSame('opening - 1869-12-06', $events['opening']['description'], 'pas de tiret long');
-                $this->assertContains('closure_order', collect($c['conflicts'])->pluck('family')->all(), '1940 contre 17/02/1941');
-                $this->assertSame([1, 2], collect($c['notes'])->pluck('n')->all());
+                $this->assertContains('closure_order', $this->rows($c['conflicts'])->pluck('family')->all(), '1940 contre 17/02/1941');
+                $this->assertSame([1, 2], $this->rows($c['notes'])->pluck('n')->all());
                 $this->assertSame('whole', $c['groups'][0]['key']);
-                $this->assertContains('bagnoles de l orne|couterne', collect($c['groups'])->pluck('key')->all());
+                $this->assertContains('bagnoles de l orne|couterne', $this->rows($c['groups'])->pluck('key')->all());
 
                 return true;
             })
@@ -186,7 +188,7 @@ class LineSheetPageTest extends TestCase
             ->where('stations.1.status_today', null) // n'existe plus à l'ère courante, mais reste sur la fiche
             ->where('stations.2.pk_label', '14+600')
             ->where('stations.2.closed_at', '1940-01-01')
-            ->where('stations.1.eras', fn ($eras) => collect($eras)->all() === [1890 => 'active', 1950 => 'declassified'])
+            ->where('stations.1.eras', fn ($eras) => $this->rows($eras)->all() === [1890 => 'active', 1950 => 'declassified'])
             ->where('stats.station_count', 3)
         );
     }
@@ -231,17 +233,17 @@ class LineSheetPageTest extends TestCase
 
         $this->get('/lines/ligne-fermee')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->has('stations', 3)
-            ->where('stations', fn ($s) => collect($s)->pluck('slug')->all() === ['origine', 'milieu', 'terminus'])
-            ->where('stations', fn ($s) => collect($s)->pluck('closed_at')->all() === ['1946-03-02', '1946-03-02', '1944-09-30'])
-            ->where('stations', fn ($s) => collect($s)->pluck('status_today')->unique()->values()->all() === ['declassified'])
+            ->where('stations', fn ($s) => $this->rows($s)->pluck('slug')->all() === ['origine', 'milieu', 'terminus'])
+            ->where('stations', fn ($s) => $this->rows($s)->pluck('closed_at')->all() === ['1946-03-02', '1946-03-02', '1944-09-30'])
+            ->where('stations', fn ($s) => $this->rows($s)->pluck('status_today')->unique()->values()->all() === ['declassified'])
             ->where('stats.station_count', 3)
             ->where('stats.station_open_count', 0)
             ->where('decades', function ($decades) {
-                $byYear = collect($decades)->keyBy('year');
+                $byYear = $this->rows($decades)->keyBy('year');
                 $this->assertSame([3, 0], [$byYear[1940]['stations']['open'], $byYear[1940]['stations']['closed']]);
                 $this->assertSame([0, 3], [$byYear[1950]['stations']['open'], $byYear[1950]['stations']['closed']]);
-                $this->assertSame(['origine', 'milieu', 'terminus'], collect($byYear[1950]['stations']['closures'])->pluck('slug')->all());
-                $this->assertSame('1944-09-30', collect($byYear[1950]['stations']['closures'])->firstWhere('slug', 'terminus')['closed_at']);
+                $this->assertSame(['origine', 'milieu', 'terminus'], $this->rows($byYear[1950]['stations']['closures'])->pluck('slug')->all());
+                $this->assertSame('1944-09-30', $this->rows($byYear[1950]['stations']['closures'])->firstWhere('slug', 'terminus')['closed_at']);
 
                 return true;
             })
@@ -258,7 +260,7 @@ class LineSheetPageTest extends TestCase
             ->where('stats.length_km', 14.6)
             ->where('stats.active_length_km', 7.3)
             ->where('stats.length_definition', 'trace')
-            ->where('decades', fn ($d) => array_sum(collect($d)->firstWhere('is_current', true)['length_by_category']) === 14600)
+            ->where('decades', fn ($d) => array_sum($this->rows($d)->firstWhere('is_current', true)['length_by_category']) === 14600)
             ->where('chronicle.groups.0.key', 'whole')
             ->where('chronicle.groups.0.length_m', 14600)
             ->where('line.current_state', 'open')
@@ -303,7 +305,7 @@ class LineSheetPageTest extends TestCase
             ->where('stats.length_greatest_km', null)
             ->where('stats.length_km', 14.6)
             ->where('stats.active_length_km', 0)
-            ->where('translations', fn ($t) => is_string($label = collect($t)->get("lines.stats.today_{$state}")) && $label !== '')
+            ->where('translations', fn ($t) => is_string($label = $this->rows($t)->get("lines.stats.today_{$state}")) && $label !== '')
         );
     }
 
@@ -314,8 +316,8 @@ class LineSheetPageTest extends TestCase
         $expected = collect($service->forLine($this->line->id)['stations']);
         $byEra = collect($service->byEra($this->line->id))->keyBy('year');
         $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->where('stations', fn ($s) => collect($s)->pluck('slug')->all() === $expected->pluck('slug')->all())
-            ->where('stations', fn ($s) => collect($s)->pluck('closed_at')->all() === $expected->pluck('closed_at')->all())
+            ->where('stations', fn ($s) => $this->rows($s)->pluck('slug')->all() === $expected->pluck('slug')->all())
+            ->where('stations', fn ($s) => $this->rows($s)->pluck('closed_at')->all() === $expected->pluck('closed_at')->all())
             ->where('stats.station_count', $expected->count())
             ->where('decades', function ($decades) use ($byEra) {
                 foreach ($decades as $d) {
@@ -341,7 +343,7 @@ class LineSheetPageTest extends TestCase
     {
         $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('line.names', function ($names) {
-                $byName = collect($names)->keyBy('name');
+                $byName = $this->rows($names)->keyBy('name');
                 $this->assertSame('wikidata', $byName['Ligne de Couterne à Briouze']['source']);
                 $this->assertSame(['section', 1869], [$byName['Section de Briouze']['kind'], $byName['Section de Briouze']['from']]);
                 $this->assertSame('section', $byName['Tronçon nord']['kind']);
@@ -353,7 +355,7 @@ class LineSheetPageTest extends TestCase
 
                 return true;
             })
-            ->where('line.alt_names', fn ($n) => collect($n)->contains('Ligne de Couterne à Briouze'))
+            ->where('line.alt_names', fn ($n) => $this->rows($n)->contains('Ligne de Couterne à Briouze'))
             ->where('line.wikidata', 'Q106368432')
             ->where('line.description', 'La ligne de Briouze à Couterne - ancienne ligne normande.')
             ->where('line.description_source.type', 'wikipedia')
@@ -388,7 +390,7 @@ class LineSheetPageTest extends TestCase
     {
         $this->withCookie('locale', $locale)->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('translations', function ($t) use ($title, $mixed) {
-                $t = collect($t);
+                $t = $this->rows($t);
                 $this->assertSame($title, $t['lines.phases.title']);
                 $this->assertSame($mixed, $t['lines.categories.mixed']);
                 foreach (['lines.chronicle.status.conflict', 'lines.changes.passenger_end', 'lines.decades.col_stations', 'lines.signalling.codes.BAPR-VB', 'lines.facts.roles.exploitant'] as $key) {

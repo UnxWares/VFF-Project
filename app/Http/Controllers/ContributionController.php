@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,6 +24,9 @@ class ContributionController extends Controller
 {
     /** Nombre d'approbations indépendantes requises avant application. */
     private const APPROVAL_THRESHOLD = 2;
+
+    /** Attributs d'une portion qu'une modification par PK peut changer (les autres clés sont ignorées). */
+    private const SEGMENT_FIELDS = ['status', 'traffic_type', 'electrified', 'voltage_v', 'max_speed_kmh', 'is_heritage'];
 
     /**
      * Formulaire d'édition d'un segment de ligne par PK.
@@ -71,6 +75,16 @@ class ContributionController extends Controller
             'notes' => 'nullable|string|max:2000',
         ]);
 
+        // Le navigateur bloque déjà un envoi vide ; ici le serveur le refuse aussi (champs laissés
+        // sur « Inchangé » ou vides, ou clés inconnues seules) : rien à relire pour les validateurs.
+        $changes = array_filter(
+            array_intersect_key($data['changes'] ?? [], array_flip(self::SEGMENT_FIELDS)),
+            fn ($v) => $v !== null,
+        );
+        if ($changes === []) {
+            throw ValidationException::withMessages(['changes' => __('editor.segment.errors.no_change')]);
+        }
+
         $line = Line::query()
             ->whereRaw("REGEXP_REPLACE(code, '\\s+', '', 'g') = ?", [preg_replace('/\s+/', '', $data['line_code'])])
             ->firstOrFail();
@@ -89,7 +103,7 @@ class ContributionController extends Controller
                 'era_year' => $era->year,
                 'pk_start_m' => (int) $data['pk_start_m'],
                 'pk_end_m' => (int) $data['pk_end_m'],
-                'changes' => array_filter($data['changes'], fn ($v) => $v !== null),
+                'changes' => $changes,
                 'sources' => $data['sources'] ?? [],
                 'notes' => $data['notes'] ?? null,
             ],
@@ -135,8 +149,9 @@ class ContributionController extends Controller
                 'type' => $c->type,
                 'status' => $c->status->value,
                 'payload' => $c->payload,
-                'created_at' => $c->created_at->format('Y-m-d H:i'),
-                'reviewed_at' => $c->reviewed_at?->format('Y-m-d H:i'),
+                // ISO 8601 (« 2026-11-18T10:21:00+01:00 ») : le navigateur formate selon la langue de la page.
+                'created_at' => $c->created_at->toIso8601String(),
+                'reviewed_at' => $c->reviewed_at?->toIso8601String(),
                 'review_notes' => $c->review_notes,
                 'approval_count' => (int) ($approvalCounts[$c->id] ?? 0),
             ]),
@@ -190,6 +205,10 @@ class ContributionController extends Controller
                         'network' => $c->target->network,
                     ] : null,
                 ];
+                if ($c->type === 'line_segment') {
+                    // « Avant » vivant : valeurs actuelles de la portion visée (peuvent avoir changé depuis la proposition).
+                    $item['current_values'] = $this->currentPortionValues($c);
+                }
                 if ($c->type === TraceContributionService::TYPE) {
                     $portions = $c->payload['portions'] ?? [];
                     $lineId = $c->payload['line_id'] ?? null;
@@ -201,6 +220,71 @@ class ContributionController extends Controller
                 return $item;
             }),
         ]);
+    }
+
+    /**
+     * Valeurs actuelles de la portion visée par une modification par PK : pour chaque attribut proposé,
+     * les valeurs distinctes des tronçons que l'application modifierait (mêmes tronçons que
+     * applyContribution : ceux qui rencontrent la sous-ligne entre les deux PK, à l'ère visée).
+     * Null si la portion n'a pas de géométrie exploitable (ère sans tronçon, ligne en plusieurs
+     * morceaux non jointifs) : le front n'affiche alors que la valeur proposée.
+     *
+     * @return array<string, list<bool|int|string>>|null
+     */
+    private function currentPortionValues(Contribution $contribution): ?array
+    {
+        $p = $contribution->payload;
+        $fields = array_values(array_intersect(array_keys($p['changes'] ?? []), self::SEGMENT_FIELDS));
+        $era = Era::where('year', $p['era_year'] ?? null)->first();
+        if ($fields === [] || ! $era || ! $contribution->target_id || ! isset($p['pk_start_m'], $p['pk_end_m'])) {
+            return null;
+        }
+
+        // Fractions bornées à [0, 1] sur la longueur de la ligne fusionnée ; une ligne non fusionnable
+        // en un seul tracé ou de longueur nulle donne une sous-ligne vide (donc aucun tronçon).
+        $rows = DB::select(
+            'WITH merged AS (
+                SELECT ST_LineMerge(ST_Collect(geom)) AS g
+                FROM line_segments WHERE line_id = ? AND era_id = ?
+             ),
+             slice AS (
+                SELECT CASE WHEN GeometryType(g) = \'LINESTRING\' AND ST_Length(g::geography) > 0
+                    THEN ST_LineSubstring(
+                        g,
+                        LEAST(1, GREATEST(0, ?::float8 / ST_Length(g::geography))),
+                        LEAST(1, GREATEST(0, ?::float8 / ST_Length(g::geography)))
+                    ) END AS g
+                FROM merged
+             )
+             SELECT ls.status, ls.traffic_type, ls.electrified, ls.voltage_v, ls.max_speed_kmh, ls.is_heritage
+             FROM line_segments ls, slice s
+             WHERE ls.line_id = ? AND ls.era_id = ?
+               AND ST_Intersects(ls.geom, s.g)
+             ORDER BY ls.id',
+            [$contribution->target_id, $era->id, $p['pk_start_m'], $p['pk_end_m'], $contribution->target_id, $era->id],
+        );
+        if ($rows === []) {
+            return null;
+        }
+
+        $current = [];
+        foreach ($fields as $field) {
+            $values = [];
+            foreach ($rows as $row) {
+                $v = $row->{$field};
+                if ($v === null) {
+                    continue;
+                }
+                $values[] = match ($field) {
+                    'electrified', 'is_heritage' => (bool) $v,
+                    'voltage_v', 'max_speed_kmh' => (int) $v,
+                    default => (string) $v,
+                };
+            }
+            $current[$field] = array_values(array_unique($values, SORT_REGULAR));
+        }
+
+        return $current;
     }
 
     public function approve(int $id, TraceContributionService $traces): RedirectResponse
