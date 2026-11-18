@@ -1,63 +1,62 @@
 <script>
-    let { icon = 'bi-circle', title, text, status = null } = $props();
+    /**
+     * Élément d'une liste de points (valeurs, raisons, règles, étapes) : titre précédé d'une petite
+     * icône, phrase, état facultatif. Dessin de document, pas de carte : un filet au-dessus, pas de
+     * fond, pas de pastille d'icône, rien qui bouge au survol (l'élément n'est pas cliquable).
+     * Se range dans une grille de la page (ex. repeat(auto-fit, minmax(240px, 1fr)), gap 24px 32px).
+     *
+     * `headingLevel` : 3 par défaut (sous le h2 d'une SectionBlock) ; 2 si la section n'a pas de titre.
+     */
+    /** @type {{ icon?: string, title: string, text: string, status?: string|null, headingLevel?: 2|3|4 }} */
+    let { icon = 'bi-circle', title, text, status = null, headingLevel = 3 } = $props();
 </script>
 
-<article class="icon-card">
-    <div class="icon">
-        <i class="bi {icon}"></i>
-    </div>
-    <h3>{title}</h3>
-    <p>{text}</p>
+<div class="icon-card">
+    <svelte:element this={`h${headingLevel}`} class="title">
+        <i class="bi {icon}" aria-hidden="true"></i>
+        <span>{title}</span>
+    </svelte:element>
+    <p class="text">{text}</p>
     {#if status}
-        <span class="status">{status}</span>
+        <p class="status"><span class="vff-badge muted">{status}</span></p>
     {/if}
-</article>
+</div>
 
 <style>
     .icon-card {
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        padding: 28px 24px;
-        text-align: left;
-        height: 100%;
         display: flex;
         flex-direction: column;
+        gap: 8px;
+        padding-top: 14px;
+        border-top: 1px solid var(--vff-border-strong);
+        text-align: left;
     }
-    .icon {
-        width: 48px;
-        height: 48px;
-        border-radius: var(--vff-radius-md);
-        background-color: var(--vff-accent-soft);
+    .title {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 16px;
-    }
-    .icon i {
-        font-size: 24px;
-        color: var(--vff-accent);
-    }
-    h3 {
-        margin: 0 0 8px;
+        align-items: baseline;
+        gap: 10px;
+        margin: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-h3);
+        font-weight: 600;
+        line-height: 1.35;
         color: var(--vff-text);
     }
-    p {
+    .title i {
+        flex-shrink: 0;
+        font-size: 18px;
+        line-height: 1;
+        color: var(--vff-accent-ink);
+        transform: translateY(2px);
+    }
+    .text {
         margin: 0;
-        flex: 1;
-        font-size: 16px;
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-md);
+        line-height: 1.6;
         color: var(--vff-text-muted);
-        line-height: 1.55;
     }
     .status {
-        display: inline-block;
-        margin-top: 16px;
-        padding: 4px 10px;
-        font-size: 12px;
-        font-family: var(--vff-font-display);
-        background-color: var(--vff-bg-muted);
-        color: var(--vff-text-muted);
-        border-radius: var(--vff-radius-pill);
-        align-self: flex-start;
+        margin: 4px 0 0;
     }
 </style>

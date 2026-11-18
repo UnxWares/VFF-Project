@@ -1,15 +1,20 @@
 <script>
-    // Carte centrée utilisée par Login / Register / ForgotPassword / ResetPassword.
-    // Contenu via `children`. Le titre et le sous-titre sont des props i18n
-    // déjà résolues côté appelant pour rester découpées par page.
-    let { title, subtitle = '', icon = 'bi-person-circle', children } = $props();
+    /**
+     * Cadre des formulaires de compte (connexion, inscription, mot de passe oublié, nouveau mot de
+     * passe) : titre (le h1 de la page), chapeau, puis le formulaire (`children`).
+     * Le formulaire peut utiliser Components/ui/Field.svelte (libellé, aide et erreur reliés) ; les
+     * anciennes classes .auth-form, .auth-field (label, input, .error), .auth-checkbox, .auth-actions,
+     * .auth-links, .auth-terms et .auth-flash restent stylées ici.
+     * `icon` : accepté pour compatibilité, plus affiché (pas de grande icône décorative).
+     */
+    /** @type {{ title: string, subtitle?: string, icon?: string|null, children?: import('svelte').Snippet }} */
+    let { title, subtitle = '', children } = $props();
 </script>
 
-<section class="auth-shell">
+<section class="auth-shell" aria-labelledby="auth-card-title">
     <div class="auth-card">
         <div class="auth-card-header">
-            <i class="bi {icon}"></i>
-            <h1>{title}</h1>
+            <h1 id="auth-card-title">{title}</h1>
             {#if subtitle}
                 <p class="subtitle">{subtitle}</p>
             {/if}
@@ -22,50 +27,43 @@
 
 <style>
     .auth-shell {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: calc(100vh - 380px);
-        padding: 60px 20px;
-        background-color: var(--vff-bg-muted);
+        padding: 48px var(--vff-gutter) 64px;
         font-family: var(--vff-font-body);
         color: var(--vff-text);
     }
     .auth-card {
-        background-color: var(--vff-bg);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-lg);
-        box-shadow: 0 12px 32px var(--vff-shadow);
-        padding: 40px 36px;
         width: 100%;
-        max-width: 460px;
+        max-width: 440px;
+        margin: 0 auto;
+        padding: 32px;
+        background-color: var(--vff-bg-elevated);
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-lg);
     }
     .auth-card-header {
-        text-align: center;
-        margin-bottom: 28px;
-    }
-    .auth-card-header :global(i.bi) {
-        font-size: 44px;
-        color: var(--vff-accent);
-        display: block;
-        margin-bottom: 8px;
+        margin-bottom: 24px;
     }
     .auth-card-header h1 {
         margin: 0;
         font-family: var(--vff-font-display);
-        font-size: 28px;
+        font-size: 1.75rem;
+        line-height: var(--vff-lh-heading);
         color: var(--vff-text);
+        text-wrap: balance;
     }
     .auth-card-header .subtitle {
         margin: 8px 0 0;
-        color: var(--vff-text-muted);
-        font-size: 15px;
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-md);
         line-height: 1.5;
+        color: var(--vff-text-muted);
     }
+
+    /* Formulaires écrits par les pages (anciennes classes). */
     .auth-card-body :global(.auth-form) {
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 20px;
     }
     .auth-card-body :global(.auth-field) {
         display: flex;
@@ -73,91 +71,120 @@
         gap: 6px;
     }
     .auth-card-body :global(.auth-field label) {
-        font-family: var(--vff-font-display);
-        font-size: 13px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--vff-text-muted);
+        line-height: var(--vff-lh-ui);
+        color: var(--vff-text);
     }
     .auth-card-body :global(.auth-field input),
     .auth-card-body :global(.auth-field textarea),
     .auth-card-body :global(.auth-field select) {
         width: 100%;
-        box-sizing: border-box;
-        padding: 10px 12px;
-        border: 1px solid var(--vff-border);
+        min-height: 44px;
+        padding: 9px 12px;
+        border: 1px solid var(--vff-border-control);
         border-radius: var(--vff-radius-sm);
         background-color: var(--vff-bg);
         color: var(--vff-text);
-        font-family: var(--vff-font-body);
-        font-size: 15px;
-        transition:
-            border-color var(--vff-transition),
-            box-shadow var(--vff-transition);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-md);
     }
-    .auth-card-body :global(.auth-field input:focus),
-    .auth-card-body :global(.auth-field textarea:focus),
-    .auth-card-body :global(.auth-field select:focus) {
-        outline: none;
-        border-color: var(--vff-accent);
-        box-shadow: 0 0 0 3px var(--vff-accent-soft);
+    .auth-card-body :global(.auth-field input:focus-visible),
+    .auth-card-body :global(.auth-field textarea:focus-visible),
+    .auth-card-body :global(.auth-field select:focus-visible) {
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: 0;
+        border-color: var(--vff-focus);
+    }
+    .auth-card-body :global(.auth-field [aria-invalid='true']),
+    .auth-card-body :global(.auth-field:has(.error) input) {
+        border-color: var(--vff-danger);
+        box-shadow: inset 4px 0 0 var(--vff-danger);
     }
     .auth-card-body :global(.auth-field .error) {
-        color: #c53030;
-        font-size: 13px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        font-weight: 600;
+        line-height: var(--vff-lh-ui);
+        color: var(--vff-danger);
+    }
+    .auth-card-body :global(.auth-field .hint) {
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        color: var(--vff-text-muted);
     }
     .auth-card-body :global(.auth-checkbox) {
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        color: var(--vff-text-muted);
+        gap: 10px;
+        min-height: 24px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        color: var(--vff-text);
+        cursor: pointer;
+    }
+    .auth-card-body :global(.auth-checkbox input) {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: var(--vff-accent-ink);
     }
     .auth-card-body :global(.auth-terms) {
         margin: 0;
-        font-size: 13px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         line-height: 1.5;
         color: var(--vff-text-muted);
     }
-    .auth-card-body :global(.auth-terms a) {
-        color: var(--vff-accent-ink);
+    .auth-card-body :global(.auth-terms a),
+    .auth-card-body :global(.auth-links a) {
+        color: var(--vff-link);
+        text-decoration: underline;
+        text-underline-offset: 0.18em;
     }
     .auth-card-body :global(.auth-actions) {
         display: flex;
         flex-direction: column;
         gap: 10px;
-        margin-top: 6px;
+        margin-top: 4px;
+    }
+    .auth-card-body :global(.auth-actions .vff-btn) {
+        width: 100%;
+        justify-content: center;
     }
     .auth-card-body :global(.auth-links) {
         display: flex;
         flex-direction: column;
+        align-items: flex-start;
         gap: 8px;
-        margin-top: 18px;
-        font-size: 14px;
-        text-align: center;
+        margin-top: 4px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
     .auth-card-body :global(.auth-links a) {
         display: inline-block;
         padding: 4px 0;
-        color: var(--vff-accent-ink);
-        text-decoration: none;
         font-weight: 600;
     }
-    .auth-card-body :global(.auth-links a:hover) {
-        text-decoration: underline;
-    }
     .auth-card-body :global(.auth-flash) {
-        background-color: var(--vff-accent-soft);
-        color: var(--vff-accent-ink);
-        padding: 10px 12px;
+        padding: 12px 14px;
+        border: 1px solid currentColor;
+        border-left-width: 4px;
         border-radius: var(--vff-radius-sm);
-        font-size: 14px;
+        background-color: var(--vff-success-bg);
+        color: var(--vff-success);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
     }
     @media (max-width: 480px) {
+        .auth-shell {
+            padding-top: 28px;
+        }
         .auth-card {
-            padding: 28px 22px;
+            padding: 24px 18px;
         }
     }
 </style>

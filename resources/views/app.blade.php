@@ -3,8 +3,26 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="color-scheme" content="light dark" />
+        {{--
+            Thème posé avant le premier rendu (pas de flash) : cookie `theme` (dark | light) s'il
+            existe, sinon préférence du système. Repris ensuite par lib/stores/theme.svelte.js.
+            Même règle que resources/views/docs/_head.blade.php.
+        --}}
+        <script data-theme-init>
+            (function () {
+                var root = document.documentElement;
+                var saved = document.cookie.match(/(?:^|; )theme=(dark|light)(?:;|$)/);
+                var dark = saved
+                    ? saved[1] === 'dark'
+                    : !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                root.setAttribute('data-theme', dark ? 'dark' : 'light');
+                var meta = document.querySelector('meta[name="color-scheme"]');
+                if (meta) meta.setAttribute('content', dark ? 'dark' : 'light');
+            })();
+        </script>
         <meta name="theme-color" content="#ff6500" />
-        <meta name="description" content="VFF - La plus grande encyclopédie collaborative du rail français." />
+        <meta name="description" content="{{ __('common.app_description') }}" />
 
         <title inertia>{{ config('app.name', 'VFF') }}</title>
 

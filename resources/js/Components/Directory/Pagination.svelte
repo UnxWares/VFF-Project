@@ -5,11 +5,25 @@
 
     /**
      * Pagination des annuaires (lignes, gares) : précédent, numéros de page autour de la
-     * page courante (première et dernière toujours visibles), suivant.
+     * page courante (première et dernière toujours visibles), suivant, puis l'état (« Page 3 sur 68 »),
+     * annoncé aux lecteurs d'écran quand il change.
      * `onpage(n)` charge la page n (Inertia, côté page).
+     * `label`, `prev`, `next`, `status` : facultatifs, textes communs (common.pagination, common.previous, common.next, common.page_of) par
+     * défaut ; les pages n'ont plus à les fournir.
      */
-    /** @type {{ current: number, last: number, onpage: (n: number) => void, label: string, prev: string, next: string, status: string }} */
+    /** @type {{ current: number, last: number, onpage: (n: number) => void, label?: string, prev?: string, next?: string, status?: string }} */
     let { current, last, onpage, label, prev, next, status } = $props();
+
+    const labelText = $derived(label ?? $i18n.t('common.pagination'));
+    const prevText = $derived(prev ?? $i18n.t('common.previous'));
+    const nextText = $derived(next ?? $i18n.t('common.next'));
+    const statusText = $derived(
+        status ??
+            $i18n.t('common.page_of', {
+                current: current.toLocaleString($i18n.language),
+                last: last.toLocaleString($i18n.language),
+            }),
+    );
 
     // Téléphone : une page de chaque côté de la page courante (deux sur ordinateur).
     let narrow = $state(false);
@@ -24,10 +38,10 @@
     const pages = $derived(pageWindow(current, last, narrow ? 1 : 2));
 </script>
 
-<nav class="pagination" aria-label={label}>
+<nav class="pagination" aria-label={labelText}>
     <button type="button" class="step" disabled={current <= 1} onclick={() => onpage(current - 1)}>
         <i class="bi bi-chevron-left" aria-hidden="true"></i>
-        <span>{prev}</span>
+        <span>{prevText}</span>
     </button>
     <ol class="pages">
         {#each pages as p (p)}
@@ -35,8 +49,7 @@
                 <li>
                     <button
                         type="button"
-                        class="page"
-                        class:current={p === current}
+                        class={['page', { current: p === current }]}
                         aria-current={p === current ? 'page' : undefined}
                         onclick={() => p !== current && onpage(p)}
                         >{p.toLocaleString($i18n.language)}</button
@@ -53,10 +66,10 @@
         disabled={current >= last}
         onclick={() => onpage(current + 1)}
     >
-        <span>{next}</span>
+        <span>{nextText}</span>
         <i class="bi bi-chevron-right" aria-hidden="true"></i>
     </button>
-    <p class="status">{status}</p>
+    <p class="status" aria-live="polite">{statusText}</p>
 </nav>
 
 <style>
@@ -66,9 +79,9 @@
         justify-content: center;
         align-items: center;
         gap: 8px 6px;
-        max-width: 1180px;
+        max-width: calc(var(--vff-container) + 2 * var(--vff-gutter));
         margin: 0 auto;
-        padding: 12px 24px 64px;
+        padding: 12px var(--vff-gutter) 64px;
     }
     .pages {
         display: flex;
@@ -89,7 +102,7 @@
         min-width: 40px;
         height: 40px;
         padding: 0 12px;
-        border: 1px solid var(--vff-border);
+        border: 1px solid var(--vff-border-control);
         border-radius: var(--vff-radius-sm);
         background: var(--vff-bg);
         color: var(--vff-text);
@@ -99,12 +112,13 @@
         cursor: pointer;
     }
     button:hover:not(:disabled):not(.current) {
-        border-color: var(--vff-accent);
+        border-color: var(--vff-accent-ink);
         color: var(--vff-accent-ink);
+        background: var(--vff-accent-soft);
     }
     button:focus-visible {
-        outline: 2px solid var(--vff-accent);
-        outline-offset: 2px;
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: var(--vff-focus-offset);
     }
     button:disabled {
         opacity: 0.45;
@@ -131,7 +145,7 @@
     }
     @media (max-width: 600px) {
         .pagination {
-            padding: 8px 16px 48px;
+            padding-bottom: 48px;
         }
         .step span {
             position: absolute;
@@ -142,8 +156,8 @@
             white-space: nowrap;
         }
         button {
-            min-width: 36px;
-            height: 36px;
+            min-width: 40px;
+            height: 40px;
             padding: 0 8px;
         }
     }
