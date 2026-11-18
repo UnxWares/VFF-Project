@@ -1,97 +1,107 @@
-main #maps > * {
-    opacity: 0;
-    transform: translateX(100%);
+/* Bande orange oblique et trois encadrés de l'accueil : dessin d'origine (bande inclinée, encadrés
+   clairs coiffés du logo, titre sur pastille grise), corrigé le 18/11/2026 :
+   - hauteur selon le contenu (80vh laissait un grand vide avant la bande) ;
+   - encadrés de même hauteur, alignés en haut (le troisième, plus long, montait de 9 px) ;
+   - texte aligné à gauche (le texte justifié se creusait), titres en casse de phrase ;
+   - couleurs par variables (thème sombre), filet au lieu de l'ombre, plus d'animation d'entrée ;
+   - un lien vers la rubrique au pied de chaque encadré. */
+main #maps,
+main #maps *,
+main #maps *::before,
+main #maps *::after {
+    box-sizing: border-box;
 }
-main #maps.animate > * {
-    opacity: 1;
-    transform: initial;
-    transition:
-        opacity 1.5s ease,
-        transform 1.5s ease;
+main #maps {
+    position: relative;
+    isolation: isolate;
+    padding: var(--vff-block-space) var(--vff-gutter) var(--vff-section-space);
 }
 main #maps .maps-background {
-    background-color: #ff6500;
     position: absolute;
+    top: 10%;
+    left: 0;
     width: 100%;
     height: 80%;
-    left: 0;
+    background-color: var(--vff-accent);
     transform: skewY(-10deg) scaleY(0.4);
     transform-origin: center center;
     z-index: -1;
 }
 main #maps .maps-container {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 360px));
     justify-content: space-evenly;
-    align-items: center;
-    height: 80vh;
+    gap: 64px var(--vff-space-6);
+    max-width: var(--vff-container);
+    margin: 0 auto;
 }
-main #maps .maps-container .maps-box {
+main #maps .maps-box {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+    margin-top: 44px;
+    padding: 64px 28px 24px;
     text-align: center;
-    margin-top: 80px;
-    margin-bottom: 20px;
-    padding-left: 10px;
-    padding-right: 10px;
-    max-width: 340px;
-    display: inline-block;
+    background-color: var(--vff-bg-elevated);
+    border: 1px solid var(--vff-border);
+    border-radius: var(--vff-radius-lg);
 }
-main #maps .maps-container .maps-box div {
-    background-color: #fcfcfd;
-    border-radius: 10px;
-    padding: 65px 27px 27px;
-    box-shadow: -1px 8px 18px rgba(0, 0, 0, 0.08);
-}
-main #maps .maps-container .maps-box div figure {
+main #maps .maps-logo {
     position: absolute;
+    top: -44px;
+    left: 50%;
     width: 88px;
     height: 88px;
-    left: 50%;
     margin-left: -44px;
-    top: -44px;
-    border-radius: 200px;
+    border-radius: 50%;
     overflow: hidden;
-    z-index: 1;
-    background-color: transparent;
+    background-color: var(--vff-bg-elevated);
+    z-index: var(--vff-z-raised);
 }
-main #maps .maps-container .maps-box div figure img {
+main #maps .maps-logo img {
+    display: block;
     width: 100%;
     height: 100%;
 }
-main #maps .maps-container .maps-box div h2 {
-    font-size: 18px;
-    color: #000000;
-    background-color: #e8ecec;
-    border-radius: 10px;
-    padding: 3px 15px;
-    text-transform: uppercase;
-    position: relative;
+main #maps .maps-box h2 {
     display: inline-block;
+    margin: 0 0 16px;
+    padding: 3px 15px;
+    font-family: var(--vff-font-heading);
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--vff-text);
+    background-color: var(--vff-bg-muted);
+    border-radius: var(--vff-radius-lg);
 }
-main #maps .maps-container .maps-box div p {
-    font-size: 16px;
-    font-family: Montserrat, sans-serif;
-    text-align: justify;
+main #maps .maps-box p {
+    margin: 0 0 20px;
+    font-family: Montserrat, var(--vff-font-body);
+    font-size: 1rem;
+    line-height: 1.6;
+    text-align: left;
+    color: var(--vff-text);
+}
+main #maps .maps-box .maps-link {
+    margin-top: auto;
 }
 
-/* ─── Responsive (correctifs du 2026-10-20) ─────────────────────────────────
-   Au-dessus de 900 px, rien ne change. En dessous, les trois boîtes côte à côte
-   sortaient de l'écran : elles passent l'une sous l'autre. */
+/* Tablette et téléphone : les encadrés passent l'un sous l'autre. */
 @media (max-width: 900px) {
     main #maps {
-        position: relative;
         overflow: hidden;
     }
     main #maps .maps-container {
-        flex-direction: column;
-        height: auto;
-        padding: 10px 16px 40px;
+        grid-template-columns: minmax(0, 440px);
+        justify-content: center;
+        gap: 56px;
     }
-    main #maps .maps-container .maps-box {
-        margin-top: 70px;
-        margin-bottom: 0;
-        max-width: 420px;
-    }
-    main #maps .maps-container .maps-box div p {
-        text-align: left;
+}
+@media (max-width: 600px) {
+    main #maps .maps-box {
+        padding: 60px 20px 20px;
     }
 }

@@ -1,22 +1,25 @@
 <script>
     import { Link } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
-    import { scrollReveal } from '$lib/actions/scrollReveal.js';
     import vffLogo from '$images/vff.png';
 </script>
 
-<section id="whoarewe" class="noTranslate" use:scrollReveal>
+<!-- Présentation de l'accueil (dessin d'origine, styles dans css/index/main/whoarewe.css). Le logo
+     précède le titre qui nomme déjà le site : image décorative. -->
+<section id="whoarewe" aria-labelledby="whoarewe-title">
     <div class="vff-title">
-        <img src={vffLogo} alt={$i18n.t('common.app_full')} />
-        <h1>{$i18n.t('home.whoarewe.title')}</h1>
+        <img src={vffLogo} alt="" width="70" height="70" />
+        <h1 id="whoarewe-title">{$i18n.t('home.whoarewe.title')}</h1>
     </div>
     <p>{$i18n.t('home.whoarewe.paragraph')}</p>
     <div class="whoarewe-buttons">
-        <Link href="/whoarewe"
-            ><i class="bi bi-people"></i> {$i18n.t('home.whoarewe.cta_history')}</Link
+        <Link href="/whoarewe" class="vff-btn primary"
+            ><i class="bi bi-people" aria-hidden="true"></i>
+            {$i18n.t('home.whoarewe.cta_history')}</Link
         >
-        <Link href="/donate"
-            ><i class="bi bi-balloon-heart"></i> {$i18n.t('home.whoarewe.cta_donate')}</Link
+        <Link href="/donate" class="vff-btn secondary"
+            ><i class="bi bi-balloon-heart" aria-hidden="true"></i>
+            {$i18n.t('home.whoarewe.cta_donate')}</Link
         >
     </div>
 </section>

@@ -1,134 +1,132 @@
 <script>
+    /**
+     * Sommaire de l'encyclopédie, comme celui d'un livret : chaque rubrique, sa description et son
+     * compte réel (props `stats` et `mediaCount` de HomeController), reliés par des points de
+     * conduite. Une rubrique sans fiche (matériel roulant vide) n'est pas listée ; sans statistiques,
+     * les comptes sont omis.
+     */
+    import { Link } from '@inertiajs/svelte';
+    import SectionBlock from '$components/SectionBlock.svelte';
     import { i18n } from '$lib/i18n.js';
-    import { scrollReveal } from '$lib/actions/scrollReveal.js';
 
-    const features = [
-        { icon: 'bi-clock-history', tKey: 'f1' },
-        { icon: 'bi-bezier', tKey: 'f2' },
-        { icon: 'bi-train-front', tKey: 'f3' },
-        { icon: 'bi-images', tKey: 'f4' },
-        { icon: 'bi-people-fill', tKey: 'f5' },
-        { icon: 'bi-cloud-arrow-down', tKey: 'f6' },
-    ];
+    /** @type {{ stats?: { lines_count?: number, stations_count?: number, materials_count?: number, eras_count?: number } | null, mediaCount?: number | null }} */
+    let { stats = null, mediaCount = null } = $props();
+
+    const nf = $derived(new Intl.NumberFormat($i18n.language));
+
+    const entries = $derived(
+        [
+            { key: 'lines', href: '/lines', count: stats?.lines_count },
+            { key: 'stations', href: '/stations', count: stats?.stations_count },
+            {
+                key: 'materials',
+                href: '/materials',
+                count: stats?.materials_count,
+                hideEmpty: true,
+            },
+            { key: 'map', href: '/maps', count: stats?.eras_count },
+            { key: 'media', href: '/credits/media', count: mediaCount },
+            { key: 'api', href: '/api', count: null },
+        ].filter((e) => !(e.hideEmpty && !e.count)),
+    );
+
+    // Nombre, pas chaîne : i18next n'applique le pluriel (_one, _other) qu'à un `count` numérique.
+    function countLabel(e) {
+        const n = Number(e.count);
+        return n
+            ? $i18n.t(`home.contents.${e.key}_count`, { count: n, value: nf.format(n) })
+            : null;
+    }
 </script>
 
-<section id="features" class="features-section" use:scrollReveal={{ threshold: 0.15 }}>
-    <div class="features-inner">
-        <div class="features-head">
-            <span class="eyebrow">{$i18n.t('home.features.eyebrow')}</span>
-            <h2>{$i18n.t('home.features.title')}</h2>
-            <p class="lead">{$i18n.t('home.features.subtitle')}</p>
-        </div>
-        <ul class="features-grid">
-            {#each features as f}
-                <li class="feature">
-                    <div class="ico"><i class="bi {f.icon}"></i></div>
-                    <h3>{$i18n.t(`home.features.${f.tKey}_title`)}</h3>
-                    <p>{$i18n.t(`home.features.${f.tKey}_text`)}</p>
-                </li>
-            {/each}
-        </ul>
-    </div>
-</section>
+<SectionBlock id="sommaire" title={$i18n.t('home.contents.title')} maxWidth="900px">
+    <ul class="contents">
+        {#each entries as e (e.key)}
+            {@const count = countLabel(e)}
+            <li>
+                <Link href={e.href} class="entry">
+                    <span class="entry-title">{$i18n.t(`home.contents.${e.key}_title`)}</span>
+                    {#if count}
+                        <span class="leader" aria-hidden="true"></span>
+                        <span class="count">{count}</span>
+                    {/if}
+                    <span class="entry-text">{$i18n.t(`home.contents.${e.key}_text`)}</span>
+                </Link>
+            </li>
+        {/each}
+    </ul>
+</SectionBlock>
 
 <style>
-    .features-section {
-        padding: 40px 16px 80px;
-        background-color: var(--vff-bg);
-    }
-    .features-inner {
-        max-width: 1180px;
-        margin: 0 auto;
-    }
-    .features-head {
-        text-align: center;
-        max-width: 720px;
-        margin: 0 auto 56px;
-    }
-    .eyebrow {
-        display: inline-block;
-        font-family: var(--vff-font-display);
-        font-size: 14px;
-        font-weight: 600;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--vff-accent);
-        margin-bottom: 12px;
-    }
-    .features-head h2 {
-        margin: 0 0 16px;
-        font-family: var(--vff-font-heading);
-        font-size: clamp(28px, 3.5vw, 36px);
-        color: var(--vff-text);
-    }
-    .lead {
-        font-family: var(--vff-font-body);
-        font-size: 19px;
-        line-height: 1.55;
-        color: var(--vff-text-muted);
-        margin: 0;
-    }
-    .features-grid {
-        list-style: none;
+    .contents {
         margin: 0;
         padding: 0;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 28px;
+        list-style: none;
+        border-top: 1px solid var(--vff-border);
     }
-    .feature {
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: 14px;
-        padding: 32px 28px;
-        transition:
-            transform 200ms ease,
-            box-shadow 200ms ease,
-            border-color 200ms ease;
-    }
-    .feature:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 16px 36px var(--vff-shadow);
-        border-color: var(--vff-accent);
-    }
-    .ico {
-        width: 52px;
-        height: 52px;
-        border-radius: 12px;
-        background-color: var(--vff-accent-soft);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 18px;
-    }
-    .ico i {
-        font-size: 26px;
-        color: var(--vff-accent);
-    }
-    .feature h3 {
-        font-family: var(--vff-font-display);
-        font-size: 20px;
-        margin: 0 0 8px;
-        color: var(--vff-text);
-    }
-    .feature p {
-        font-family: var(--vff-font-body);
-        font-size: 16px;
-        line-height: 1.6;
+    .contents li {
         margin: 0;
+        border-bottom: 1px solid var(--vff-border);
+    }
+    /* Titre .... compte sur la première ligne, description dessous. */
+    .contents :global(.entry) {
+        display: grid;
+        grid-template-columns: auto minmax(24px, 1fr) auto;
+        grid-template-areas:
+            'title leader count'
+            'text text text';
+        align-items: baseline;
+        column-gap: var(--vff-space-3);
+        padding: var(--vff-space-4) var(--vff-space-3);
+        color: var(--vff-text);
+        text-decoration: none;
+        transition: background-color var(--vff-transition);
+    }
+    .contents :global(.entry:hover) {
+        background-color: var(--vff-bg-subtle);
+    }
+    .entry-title {
+        grid-area: title;
+        font-family: var(--vff-font-display);
+        font-size: 1.375rem;
+        font-weight: 700;
+        line-height: 1.3;
+    }
+    .contents li:hover .entry-title {
+        color: var(--vff-link);
+        text-decoration: underline;
+        text-decoration-thickness: 2px;
+        text-underline-offset: 0.18em;
+    }
+    .leader {
+        grid-area: leader;
+        align-self: end;
+        margin-bottom: 0.45em;
+        border-bottom: 2px dotted var(--vff-border-control);
+    }
+    .count {
+        grid-area: count;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-md);
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+    .entry-text {
+        grid-area: text;
+        max-width: var(--vff-measure);
+        margin-top: 4px;
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-md);
+        line-height: 1.55;
         color: var(--vff-text-muted);
     }
-    @media (max-width: 960px) {
-        .features-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+    @media (max-width: 600px) {
+        .contents :global(.entry) {
+            padding-inline: var(--vff-space-1);
         }
-    }
-    @media (max-width: 560px) {
-        .features-grid {
-            grid-template-columns: 1fr;
-        }
-        .features-section {
-            padding: 56px 16px;
+        .entry-title {
+            font-size: 1.1875rem;
         }
     }
 </style>
