@@ -1,152 +1,216 @@
 <script>
-    import { router } from '@inertiajs/svelte';
+    import { Link } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
+    import { formatNumber } from '$lib/typo.js';
+    import { swatchStyle } from '$lib/railStyle.js';
+    import {
+        electrificationInfo,
+        isTrue,
+        statusLabel,
+        statusStroke,
+        trafficInfo,
+    } from './lineInfo.js';
 
     /**
-     * Drawer latéral qui s'affiche au clic sur une ligne dans RailMap.
-     * Remplace la popup MapLibre par une vraie fiche UX (slide-in droit).
+     * Fiche d'une ligne ouverte au clic sur un tracé (RailMap → onLineClick), posée sur la
+     * carte : à droite, à côté des boutons de zoom (sans les couvrir) sur ordinateur, en bas
+     * de la carte sur téléphone. Mêmes mots et mêmes couleurs que la légende.
      *
      * Props :
-     *   line : objet { slug, name, status, max_speed_kmh, electrified, voltage_v }
-     *          ou null pour fermer
+     *   line       : { slug, name, code, status, traffic_type, is_lgv, heritage_kind, network,
+     *                  era, max_speed_kmh, electrified, voltage_v } ou null (fermée)
+     *   currentEra : décennie « actuelle » (affichée « aujourd'hui », jamais comme une année)
      */
+    let { line = $bindable(null), currentEra = 2030 } = $props();
 
-    let { line = $bindable(null) } = $props();
+    const uid = $props.id();
+    const titleId = `${uid}-title`;
+    let panelEl = $state();
 
-    // Libellé de statut traduit, avec fallback sur le code brut si la clé manque.
-    function statusLabel(status) {
-        const key = `maps.drawer.status_labels.${status}`;
-        const label = $i18n.t(key);
-        return label === key ? status : label;
+    /** Traduction (toujours une chaîne : i18next la type aussi en objet). */
+    const t = (/** @type {string} */ key, /** @type {Record<string, unknown>} */ params = {}) =>
+        String($i18n.t(key, params));
+    const lang = $derived($i18n.language);
+
+    const traffic = $derived(line ? trafficInfo(line, t) : null);
+    const stroke = $derived(line ? statusStroke(line.status) : null);
+    const electrification = $derived(
+        line && isTrue(line.electrified) ? electrificationInfo(line.voltage_v, t, lang) : null,
+    );
+    const statusTitle = $derived(
+        !line || line.era == null
+            ? t('maps.drawer.status')
+            : line.era === currentEra
+              ? t('maps.drawer.status_today')
+              : t('maps.drawer.status_at', { year: line.era }),
+    );
+
+    // À chaque ouverture (et à chaque nouvelle ligne cliquée), le focus va à la fiche : un
+    // lecteur d'écran l'annonce et la touche Tab mène à ses liens.
+    function focusOnOpen(node) {
+        void line?.slug;
+        void line?.era;
+        node.focus({ preventScroll: true });
     }
 
+    // Fermeture : le focus revient à la carte s'il était dans la fiche.
     function close() {
+        const hadFocus = panelEl?.contains(document.activeElement);
+        const canvas = panelEl?.closest('.rail-map-wrapper')?.querySelector('.maplibregl-canvas');
         line = null;
+        if (hadFocus) canvas?.focus({ preventScroll: true });
     }
 
-    function navigateToFiche() {
-        if (!line?.slug) return;
-        router.visit(`/lines/${line.slug}`);
-    }
-
+    // Échap ferme la fiche quand le focus est dedans.
     function onKeydown(e) {
-        if (e.key === 'Escape' && line) close();
+        if (e.key === 'Escape' && line && panelEl?.contains(document.activeElement)) close();
     }
 </script>
 
 <svelte:window onkeydown={onKeydown} />
 
 {#if line}
-    <aside class="drawer" role="dialog" aria-modal="false" aria-label={line.name}>
+    <section
+        class="drawer"
+        aria-labelledby={titleId}
+        tabindex="-1"
+        bind:this={panelEl}
+        {@attach focusOnOpen}
+    >
         <div class="drawer-head">
-            <div class="head-inner">
-                <p class="eyebrow">
-                    <i class="bi bi-bezier"></i>
-                    {line.code ?? $i18n.t('lines.section.route')}
-                </p>
-                {#if line.slug}
-                    <button type="button" class="title-link" onclick={navigateToFiche}>
-                        <h2>{line.name ?? $i18n.t('maps.drawer.fallback_line_name')}</h2>
-                    </button>
-                {:else}
-                    <h2>{line.name ?? $i18n.t('maps.drawer.fallback_line_name')}</h2>
+            <div class="head-text">
+                {#if line.code}
+                    <span class="vff-plate">{line.code}</span>
                 {/if}
+                <h3 id={titleId}>
+                    {#if line.slug}
+                        <Link href={`/lines/${line.slug}`}
+                            >{line.name ?? t('maps.drawer.fallback_line_name')}</Link
+                        >
+                    {:else}
+                        {line.name ?? t('maps.drawer.fallback_line_name')}
+                    {/if}
+                </h3>
             </div>
             <button
                 type="button"
                 class="close-btn"
                 onclick={close}
-                aria-label={$i18n.t('common.close')}
+                aria-label={t('maps.drawer.close')}
+                title={t('maps.drawer.close')}
             >
-                <i class="bi bi-x-lg"></i>
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
             </button>
         </div>
 
         <div class="drawer-body">
             <dl class="props">
                 <div class="prop">
-                    <dt>{$i18n.t('maps.drawer.status')}</dt>
+                    <dt>{statusTitle}</dt>
                     <dd>
-                        <span class="status-pill status-{line.status}">
-                            {statusLabel(line.status)}
-                        </span>
+                        {#if stroke}
+                            <i
+                                class="swatch"
+                                style={swatchStyle(stroke.color, stroke.dash)}
+                                aria-hidden="true"
+                            ></i>
+                        {/if}
+                        {statusLabel(line.status, t)}
                     </dd>
                 </div>
-                {#if line.max_speed_kmh}
+                {#if traffic}
                     <div class="prop">
-                        <dt>{$i18n.t('maps.drawer.max_speed')}</dt>
-                        <dd><strong>{line.max_speed_kmh}</strong> km/h</dd>
+                        <dt>
+                            {line.heritage_kind
+                                ? t('maps.drawer.heritage')
+                                : t('maps.drawer.traffic')}
+                        </dt>
+                        <dd>
+                            <i class="swatch" style={swatchStyle(traffic.color)} aria-hidden="true"
+                            ></i>
+                            {traffic.label}
+                        </dd>
                     </div>
                 {/if}
-                {#if line.electrified === true || line.electrified === 'true'}
+                {#if line.network}
                     <div class="prop">
-                        <dt>{$i18n.t('maps.drawer.electrification')}</dt>
+                        <dt>{t('maps.drawer.network')}</dt>
+                        <dd>{t(`maps.networks.${line.network}`)}</dd>
+                    </div>
+                {/if}
+                {#if line.max_speed_kmh}
+                    <div class="prop">
+                        <dt>{t('maps.drawer.max_speed')}</dt>
+                        <dd class="num">{formatNumber(line.max_speed_kmh, lang)}&nbsp;km/h</dd>
+                    </div>
+                {/if}
+                {#if electrification}
+                    <div class="prop">
+                        <dt>{t('maps.drawer.electrification')}</dt>
                         <dd>
-                            <i class="bi bi-lightning-charge-fill accent"></i>
-                            {#if line.voltage_v}
-                                <strong
-                                    >{(line.voltage_v / 1000).toLocaleString($i18n.language, {
-                                        minimumFractionDigits: 1,
-                                        maximumFractionDigits: 1,
-                                    })}</strong
-                                > kV
-                            {:else}
-                                {$i18n.t('maps.drawer.electrified_yes')}
-                            {/if}
+                            <i
+                                class="swatch"
+                                style={swatchStyle(electrification.color)}
+                                aria-hidden="true"
+                            ></i>
+                            {electrification.label}
                         </dd>
                     </div>
                 {/if}
             </dl>
 
             {#if line.slug}
-                <button type="button" class="vff-btn primary cta" onclick={navigateToFiche}>
-                    <i class="bi bi-arrow-right-circle-fill"></i>
-                    {$i18n.t('maps.drawer.view_full_sheet')}
-                </button>
-                <a
-                    href={`/contribute/edit-segment?line=${encodeURIComponent(line.code ?? line.slug)}`}
-                    class="suggest-link"
-                >
-                    <i class="bi bi-pencil-square"></i>
-                    {$i18n.t('maps.drawer.suggest_edit')}
-                </a>
-                <a
-                    href={`/contribute/trace?line=${encodeURIComponent(line.slug)}`}
-                    class="suggest-link"
-                >
-                    <i class="bi bi-bezier2"></i>
-                    {$i18n.t('editor.drawer_link')}
-                </a>
+                <Link href={`/lines/${line.slug}`} class="vff-btn primary block">
+                    {t('maps.drawer.view_full_sheet')}
+                </Link>
+                <ul class="drawer-links">
+                    <li>
+                        <Link
+                            href={`/contribute/edit-segment?line=${encodeURIComponent(line.code ?? line.slug)}`}
+                            class="vff-link"
+                        >
+                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                            {t('maps.drawer.suggest_edit')}
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            href={`/contribute/trace?line=${encodeURIComponent(line.slug)}`}
+                            class="vff-link"
+                        >
+                            <i class="bi bi-bezier2" aria-hidden="true"></i>
+                            {t('editor.drawer_link')}
+                        </Link>
+                    </li>
+                </ul>
             {/if}
         </div>
-    </aside>
+    </section>
 {/if}
 
 <style>
+    /* Ordinateur : à droite de la carte, à gauche de la colonne des boutons de zoom (52 px). */
     .drawer {
         position: absolute;
-        top: 14px;
-        right: 14px;
-        z-index: 50;
-        width: 340px;
-        max-width: calc(100% - 28px);
-        max-height: calc(100% - 28px);
-        background-color: var(--vff-bg);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        box-shadow: 0 16px 48px var(--vff-shadow-strong);
+        top: 12px;
+        right: 52px;
+        z-index: 3;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
-        animation: drawer-slide-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        width: min(320px, calc(100% - 64px));
+        max-height: calc(100% - 24px);
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-lg);
+        background-color: var(--vff-bg-elevated);
+        box-shadow: var(--vff-shadow-popover);
+        color: var(--vff-text);
+        animation: drawer-in 150ms ease-out;
     }
-    @keyframes drawer-slide-in {
+    @keyframes drawer-in {
         from {
-            transform: translateX(20px);
             opacity: 0;
         }
         to {
-            transform: translateX(0);
             opacity: 1;
         }
     }
@@ -154,57 +218,51 @@
     .drawer-head {
         display: flex;
         align-items: flex-start;
-        gap: 12px;
-        padding: 16px 18px 14px;
+        gap: 8px;
+        padding: 14px 8px 12px 16px;
         border-bottom: 1px solid var(--vff-border);
-        background: linear-gradient(135deg, var(--vff-accent-soft) 0%, transparent 100%);
     }
-    .head-inner {
+    .head-text {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
         flex: 1;
+        min-width: 0;
     }
-    .eyebrow {
+    h3 {
         margin: 0;
         font-family: var(--vff-font-display);
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--vff-accent);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    h2 {
-        margin: 4px 0 0;
-        font-family: var(--vff-font-display);
-        font-size: 18px;
+        font-size: 1.125rem;
         font-weight: 700;
-        line-height: 1.3;
+        line-height: var(--vff-lh-heading);
+        text-wrap: balance;
+        overflow-wrap: anywhere;
+    }
+    h3 :global(a) {
         color: var(--vff-text);
+        text-decoration: none;
     }
-    h2:after {
-        display: none;
+    h3 :global(a:hover) {
+        color: var(--vff-link);
+        text-decoration: underline;
     }
-    .title-link {
-        background: transparent;
-        border: 0;
-        padding: 0;
-        text-align: left;
-        cursor: pointer;
-        transition: color var(--vff-transition);
-    }
-    .title-link:hover h2 {
-        color: var(--vff-accent);
-    }
-
     .close-btn {
-        background: transparent;
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
         border: 0;
-        padding: 6px 8px;
         border-radius: var(--vff-radius-sm);
+        background: transparent;
         color: var(--vff-text-muted);
         font-size: 16px;
         cursor: pointer;
-        transition: all var(--vff-transition);
+        transition:
+            background-color var(--vff-transition),
+            color var(--vff-transition);
     }
     .close-btn:hover {
         background-color: var(--vff-bg-muted);
@@ -212,123 +270,72 @@
     }
 
     .drawer-body {
-        padding: 16px 18px 18px;
-        overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 14px;
+        gap: 16px;
+        min-height: 0;
+        padding: 4px 16px 16px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
     }
+    /* Caractéristiques en tableau à filets, comme un livret de ligne. */
     .props {
         margin: 0;
-        display: grid;
-        gap: 12px;
     }
     .prop {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        padding: 10px 14px;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-sm);
+        display: grid;
+        grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr);
+        gap: 4px 12px;
+        align-items: baseline;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--vff-border);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
     }
     .prop dt {
-        font-family: var(--vff-font-display);
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
         color: var(--vff-text-muted);
-        margin: 0;
     }
     .prop dd {
         margin: 0;
-        font-size: 14px;
-        color: var(--vff-text);
-        text-align: right;
-    }
-    .prop dd strong {
-        color: var(--vff-accent);
-        font-family: var(--vff-font-display);
-        font-size: 16px;
-    }
-    .prop dd .accent {
-        color: var(--vff-accent);
-        margin-right: 4px;
-    }
-
-    .status-pill {
-        font-family: var(--vff-font-display);
-        font-size: 12px;
-        font-weight: 600;
-        padding: 4px 10px;
-        border-radius: var(--vff-radius-pill);
-        background-color: var(--vff-bg-muted);
         color: var(--vff-text);
     }
-    .status-pill.status-in_service {
-        background-color: rgba(255, 101, 0, 0.15);
-        color: var(--vff-accent);
+    .prop dd.num {
+        font-variant-numeric: tabular-nums;
     }
-    .status-pill.status-single_track {
-        background-color: rgba(255, 139, 53, 0.18);
-        color: #b54a00;
+    .swatch {
+        display: inline-block;
+        width: 18px;
+        margin-right: 6px;
+        border-radius: 2px;
+        vertical-align: 0.2em;
     }
-    .status-pill.status-abandoned,
-    .status-pill.status-dismantled,
-    .status-pill.status-razed {
-        background-color: rgba(138, 138, 138, 0.18);
-        color: #555;
-    }
-
-    .cta {
-        border: 0;
-        cursor: pointer;
-        justify-content: center;
-        width: 100%;
-    }
-    .suggest-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        margin-top: 8px;
-        font-family: var(--vff-font-display);
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--vff-text-muted);
-        text-decoration: none;
-        text-align: center;
-        justify-content: center;
-        padding: 8px 4px;
-        border-radius: var(--vff-radius-sm);
-        transition: color var(--vff-transition);
-    }
-    .suggest-link:hover {
-        color: var(--vff-accent);
+    .drawer-links {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin: -4px 0 0;
+        padding: 0;
+        list-style: none;
     }
 
+    /* Téléphone : fiche en bas de la carte, sur la moitié de sa hauteur au plus. */
     @media (max-width: 600px) {
         .drawer {
             top: auto;
+            right: 0;
             bottom: 0;
             left: 0;
-            right: 0;
-            width: 100%;
-            max-width: 100%;
-            border-radius: var(--vff-radius-md) var(--vff-radius-md) 0 0;
-            max-height: 70%;
-            animation: drawer-slide-up 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+            width: auto;
+            max-height: 55%;
+            border-width: 1px 0 0;
+            border-radius: var(--vff-radius-lg) var(--vff-radius-lg) 0 0;
         }
-        @keyframes drawer-slide-up {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        .drawer-head {
+            padding: 10px 6px 10px 16px;
+        }
+        .prop {
+            padding: 8px 0;
         }
     }
 </style>

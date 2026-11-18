@@ -3,90 +3,155 @@
     import { i18n } from '$lib/i18n.js';
 
     /**
-     * Slider temporel VFF - sélection d'une époque par décennie.
+     * Frise des époques : choix de la décennie affichée par la carte, dessinée comme un schéma
+     * de ligne (les décennies sont les gares, la partie parcourue est le rail orange).
      *
-     * Pour l'instant : snap sur les époques seedées (1990 → 2030).
-     * À terme : slider continu année par année quand on aura des données fines.
+     * Clavier : la frise est un curseur (role="slider") ; flèches = décennie précédente ou
+     * suivante, Début / Fin = première ou dernière, Page haut / bas = cinq décennies. Les points
+     * de la frise sont des raccourcis à la souris et au doigt. La décennie « actuelle » montre
+     * le réseau d'aujourd'hui : elle est affichée « Aujourd'hui », jamais comme l'année 2030.
      *
      * Props :
-     *   eras : tableau des années disponibles (ex: [1900, 1910, …, 2030])
-     *   emptyYears : décennies sans tracé reconstitué (marqueur estompé, restent sélectionnables)
-     *   value : époque sélectionnée (bindable)
-     *   playIntervalMs : durée d'une étape en lecture auto (default 2500ms)
+     *   eras       : années disponibles (ex. [1830, 1840, …, 2030])
+     *   emptyYears : décennies sans tracé reconstitué (point en pointillé, restent sélectionnables)
+     *   value      : décennie sélectionnée (bindable)
+     *   currentEra : décennie actuelle (défaut : la dernière)
+     *   labels     : { [année]: nom de l'époque } (noms en français, affichés sur le site français)
+     *   playIntervalMs : durée d'une étape en lecture automatique
      */
-
+    /** @type {{ eras?: number[], emptyYears?: number[], value?: number, currentEra?: number|null, labels?: Record<number, string>, playIntervalMs?: number }} */
     let {
         eras = [1990, 2000, 2010, 2020, 2030],
         emptyYears = [],
         value = $bindable(2030),
+        currentEra = null,
+        labels = {},
         playIntervalMs = 2500,
     } = $props();
 
+    /** Traduction (toujours une chaîne : i18next la type aussi en objet). */
+    const t = (/** @type {string} */ key, /** @type {Record<string, unknown>} */ params = {}) =>
+        String($i18n.t(key, params));
+    const todayEra = $derived(currentEra ?? eras[eras.length - 1]);
+    const thisYear = new Date().getFullYear();
+
     let isPlaying = $state(false);
     let timer = null;
+    // Annonce des changements qui ne viennent pas du curseur (lecture, période, point cliqué) :
+    // le curseur annonce déjà sa valeur quand on le manipule au clavier.
+    let announcement = $state('');
+    let trackEl = $state();
 
-    // Groupe les ères par "siècle décennal" : 1800's = 1800-1899, 1900's = 1900-1999, 2000's = 2000-2099.
-    // L'utilisateur sélectionne une box, puis voit les marqueurs décennaux de ce groupe.
+    // Périodes par siècle : 1830-1890, 1900-1990, « Depuis 2000 ».
     const groups = $derived.by(() => {
-        const map = new Map();
+        const byCentury = {};
         for (const year of eras) {
-            const groupStart = Math.floor(year / 100) * 100;
-            if (!map.has(groupStart)) map.set(groupStart, []);
-            map.get(groupStart).push(year);
+            const start = Math.floor(year / 100) * 100;
+            (byCentury[start] ??= []).push(year);
         }
-        // Libellé = plage réelle des décennies du groupe (« 1900-1990 »), neutre
-        // quelle que soit la langue (avant : « 1900's » codé en dur).
-        return Array.from(map.entries())
+        return Object.entries(byCentury)
+            .map(([start, years]) => [Number(start), years])
+            .sort((a, b) => a[0] - b[0])
             .map(([start, years]) => ({
                 start,
-                label: years.length > 1 ? `${years[0]}-${years[years.length - 1]}` : `${years[0]}`,
                 years,
-            }))
-            .sort((a, b) => a.start - b.start);
+                label:
+                    years.length === 1
+                        ? String(years[0])
+                        : years.includes(todayEra)
+                          ? t('maps.timeline.since', { year: years[0] })
+                          : `${years[0]}-${years[years.length - 1]}`,
+            }));
     });
 
-    let selectedGroupStart = $state(Math.floor(2030 / 100) * 100);
+    const groupStart = $derived(Math.floor(value / 100) * 100);
+    const currentYears = $derived(groups.find((g) => g.start === groupStart)?.years ?? eras);
+    const span = $derived(currentYears[currentYears.length - 1] - currentYears[0] || 1);
+    const percentFor = (year) => ((year - currentYears[0]) / span) * 100;
+    const fillPercent = $derived(percentFor(value));
+    // Plus de six décennies sur un téléphone : une étiquette sur deux (les points restent).
+    const dense = $derived(currentYears.length > 6);
 
-    // Quand value change (ex. via clic sur un marqueur), aligne le group
-    $effect(() => {
-        const g = Math.floor(value / 100) * 100;
-        if (g !== selectedGroupStart) selectedGroupStart = g;
-    });
-
-    const currentYears = $derived(
-        groups.find((g) => g.start === selectedGroupStart)?.years ?? eras,
+    const isToday = $derived(value === todayEra);
+    const isEmpty = $derived(emptyYears.includes(value));
+    const displayYear = $derived(isToday ? thisYear : value);
+    // Nom de l'époque (base, en français) sur le site français ; mention générique sinon.
+    const caption = $derived(
+        isEmpty
+            ? t('maps.era.no_data_short')
+            : $i18n.language === 'fr' && labels[value]
+              ? labels[value]
+              : isToday
+                ? t('maps.timeline.today_caption')
+                : t('maps.timeline.era'),
     );
-    const minYear = $derived(currentYears[0]);
-    const maxYear = $derived(currentYears[currentYears.length - 1]);
-    const span = $derived(maxYear - minYear || 1);
 
-    function percentFor(year) {
-        return ((year - minYear) / span) * 100;
+    function stopLabel(year) {
+        return year === todayEra ? t('maps.timeline.today') : String(year);
     }
 
-    function selectIndex(i) {
-        const list = currentYears;
-        const clamped = Math.max(0, Math.min(list.length - 1, i));
-        value = list[clamped];
+    function valueText(year) {
+        if (year === todayEra) return t('maps.timeline.value_today');
+        if (emptyYears.includes(year)) return t('maps.timeline.value_empty', { year });
+        return String(year);
+    }
+
+    function select(year, announce = true) {
+        if (!eras.includes(year)) return;
+        value = year;
+        announcement = announce ? valueText(year) : '';
     }
 
     function step(delta) {
-        // Parcourt toutes les décennies (pas seulement le groupe affiché) :
-        // l'effet ci-dessus bascule le groupe automatiquement.
-        const list = eras;
-        const idx = list.indexOf(value);
-        const next = idx + delta;
-        if (next < 0 || next >= list.length) {
-            stopPlay();
-            return;
-        }
-        value = list[next];
+        const idx = eras.indexOf(value);
+        const next = Math.max(0, Math.min(eras.length - 1, idx + delta));
+        return eras[next];
     }
 
-    function pickGroup(start) {
-        selectedGroupStart = start;
-        const years = groups.find((g) => g.start === start)?.years ?? [];
-        if (years.length) value = years[years.length - 1]; // saut au plus récent du groupe
+    function onSliderKeydown(e) {
+        const keys = {
+            ArrowLeft: () => step(-1),
+            ArrowDown: () => step(-1),
+            ArrowRight: () => step(1),
+            ArrowUp: () => step(1),
+            PageDown: () => step(-5),
+            PageUp: () => step(5),
+            Home: () => eras[0],
+            End: () => eras[eras.length - 1],
+        };
+        if (!keys[e.key]) return;
+        e.preventDefault();
+        stopPlay();
+        select(keys[e.key](), false);
+    }
+
+    // Clic ou glissé sur le rail : décennie la plus proche de la position du pointeur.
+    function nearestYear(clientX) {
+        const rect = trackEl.getBoundingClientRect();
+        const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / (rect.width || 1)));
+        const target = currentYears[0] + ratio * span;
+        return currentYears.reduce((best, y) =>
+            Math.abs(y - target) < Math.abs(best - target) ? y : best,
+        );
+    }
+
+    function onPointerDown(e) {
+        if (e.button !== 0) return;
+        stopPlay();
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+        select(nearestYear(e.clientX), false);
+    }
+
+    function onPointerMove(e) {
+        if (!e.currentTarget.hasPointerCapture?.(e.pointerId)) return;
+        const year = nearestYear(e.clientX);
+        if (year !== value) select(year, false);
+    }
+
+    function pickGroup(g) {
+        stopPlay();
+        // Saut à la décennie la plus récente de la période.
+        select(g.years[g.years.length - 1]);
     }
 
     function togglePlay() {
@@ -94,10 +159,17 @@
             stopPlay();
             return;
         }
-        // Si on est au bout, repartir du début
-        if (value === eras[eras.length - 1]) value = eras[0];
+        // Au bout de la frise : repartir du début.
+        if (value === eras[eras.length - 1]) select(eras[0]);
         isPlaying = true;
-        timer = setInterval(() => step(1), playIntervalMs);
+        timer = setInterval(() => {
+            const next = step(1);
+            if (next === value) {
+                stopPlay();
+                return;
+            }
+            select(next);
+        }, playIntervalMs);
     }
 
     function stopPlay() {
@@ -108,308 +180,327 @@
         }
     }
 
-    function onKeydown(e) {
-        if (e.key === 'ArrowLeft') {
-            e.preventDefault();
-            step(-1);
-        } else if (e.key === 'ArrowRight') {
-            e.preventDefault();
-            step(1);
-        } else if (e.key === ' ' || e.key === 'Enter') {
-            e.preventDefault();
-            togglePlay();
-        }
-    }
-
     onDestroy(stopPlay);
-
-    const fillPercent = $derived(percentFor(value));
 </script>
 
-<div class="timeline" role="group" aria-label={$i18n.t('maps.timeline.aria_label')}>
-    <button
-        type="button"
-        class="play-btn"
-        class:playing={isPlaying}
-        onclick={togglePlay}
-        aria-label={isPlaying ? $i18n.t('maps.timeline.pause') : $i18n.t('maps.timeline.play')}
-        title={isPlaying ? $i18n.t('maps.timeline.pause') : $i18n.t('maps.timeline.play_title')}
-    >
-        <i class="bi {isPlaying ? 'bi-pause-fill' : 'bi-play-fill'}"></i>
-    </button>
-
-    <div class="year-display" aria-live="polite">
-        <span class="year-value">{value}</span>
-        <span class="year-label"
-            >{emptyYears.includes(value)
-                ? $i18n.t('maps.era.no_data_short')
-                : $i18n.t('maps.timeline.era')}</span
+<div class="timeline" role="group" aria-label={t('maps.timeline.aria_label')}>
+    <div class="timeline-head">
+        <button
+            type="button"
+            class="play-btn"
+            onclick={togglePlay}
+            aria-label={isPlaying ? t('maps.timeline.pause') : t('maps.timeline.play')}
+            title={isPlaying ? t('maps.timeline.pause') : t('maps.timeline.play')}
         >
+            <i class="bi {isPlaying ? 'bi-pause-fill' : 'bi-play-fill'}" aria-hidden="true"></i>
+        </button>
+
+        <p class="year-display">
+            <span class="year-value">{displayYear}</span>
+            <span class="year-caption">{caption}</span>
+        </p>
     </div>
 
     {#if groups.length > 1}
-        <div class="group-tabs" role="tablist" aria-label={$i18n.t('maps.timeline.group_aria')}>
-            {#each groups as g}
+        <div class="periods" role="group" aria-label={t('maps.timeline.group_aria')}>
+            {#each groups as g (g.start)}
                 <button
                     type="button"
-                    role="tab"
-                    aria-selected={selectedGroupStart === g.start}
-                    class="group-tab"
-                    class:active={selectedGroupStart === g.start}
-                    onclick={() => pickGroup(g.start)}
+                    class="period"
+                    aria-pressed={groupStart === g.start}
+                    onclick={() => pickGroup(g)}
                 >
                     {g.label}
-                    <span class="group-count">{g.years.length}</span>
                 </button>
             {/each}
         </div>
     {/if}
 
-    <div
-        class="track-wrapper"
-        role="slider"
-        tabindex="0"
-        aria-valuemin={minYear}
-        aria-valuemax={maxYear}
-        aria-valuenow={value}
-        onkeydown={onKeydown}
-    >
-        <div class="track">
-            <div class="track-fill" style="width: {fillPercent}%"></div>
-            {#each currentYears as year, i}
+    <div class="track-area" class:dense>
+        <div
+            class="slider"
+            role="slider"
+            tabindex="0"
+            aria-label={t('maps.timeline.slider')}
+            aria-valuemin={eras[0]}
+            aria-valuemax={eras[eras.length - 1]}
+            aria-valuenow={value}
+            aria-valuetext={valueText(value)}
+            onkeydown={onSliderKeydown}
+            onpointerdown={onPointerDown}
+            onpointermove={onPointerMove}
+        >
+            <div class="rail" bind:this={trackEl}>
+                <div class="rail-fill" style:width="{fillPercent}%"></div>
+            </div>
+        </div>
+        <div class="stops">
+            {#each currentYears as year, i (year)}
                 <button
                     type="button"
-                    class="marker"
+                    tabindex="-1"
+                    aria-hidden="true"
+                    class="stop"
                     class:active={value === year}
                     class:past={value > year}
                     class:empty={emptyYears.includes(year)}
-                    style="left: {percentFor(year)}%"
-                    onclick={() => selectIndex(i)}
-                    aria-label={emptyYears.includes(year)
-                        ? $i18n.t('maps.timeline.year_empty_aria', { year })
-                        : $i18n.t('maps.timeline.year_aria', { year })}
-                    title={emptyYears.includes(year) ? $i18n.t('maps.era.no_data_short') : null}
+                    class:first={i === 0}
+                    class:last={i === currentYears.length - 1}
+                    class:odd={i % 2 === 1}
+                    style:left="{percentFor(year)}%"
+                    onclick={() => {
+                        stopPlay();
+                        select(year);
+                    }}
                 >
-                    <span class="marker-dot"></span>
-                    <span class="marker-label">{year}</span>
+                    <span class="stop-dot"></span>
+                    <span class="stop-label">{stopLabel(year)}</span>
                 </button>
             {/each}
         </div>
     </div>
+
+    <p class="vff-sr-only" aria-live="polite">{announcement}</p>
 </div>
 
 <style>
     .timeline {
         display: flex;
         align-items: center;
-        gap: 20px;
-        padding: 18px 22px 24px;
-        background-color: var(--vff-bg-elevated);
+        gap: 16px 24px;
+        padding: 16px 24px 18px;
         border-top: 1px solid var(--vff-border);
+        background-color: var(--vff-bg-elevated);
+        color: var(--vff-text);
+    }
+    .timeline-head {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        gap: 14px;
     }
 
     .play-btn {
         flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         width: 44px;
         height: 44px;
         border: 0;
         border-radius: 50%;
         background-color: var(--vff-accent);
-        color: var(--vff-text-inverse);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
+        color: var(--vff-on-accent);
+        font-size: 22px;
         cursor: pointer;
-        transition: all var(--vff-transition);
-        box-shadow: 0 4px 12px rgba(255, 101, 0, 0.3);
+        transition: background-color var(--vff-transition);
     }
     .play-btn:hover {
-        transform: scale(1.06);
-        box-shadow: 0 6px 16px rgba(255, 101, 0, 0.4);
-    }
-    .play-btn.playing {
-        background-color: var(--vff-text);
-        box-shadow: 0 4px 12px var(--vff-shadow);
+        background-color: var(--vff-accent-hover);
     }
 
+    /* Largeur fixe : le nom de l'époque change pendant la lecture sans décaler la frise. */
     .year-display {
-        flex-shrink: 0;
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
-        min-width: 80px;
+        gap: 2px;
+        width: 11.5rem;
+        margin: 0;
     }
     .year-value {
         font-family: var(--vff-font-display);
-        font-size: 32px;
+        font-size: var(--vff-fs-figure);
         font-weight: 700;
-        color: var(--vff-accent);
         line-height: 1;
+        font-variant-numeric: tabular-nums;
+        color: var(--vff-accent-strong);
     }
-    .year-label {
-        font-family: var(--vff-font-display);
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
+    .year-caption {
+        display: -webkit-box;
+        min-height: 2.6em;
+        overflow: hidden;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        line-height: 1.3;
         color: var(--vff-text-muted);
-        margin-top: 2px;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
     }
 
-    .group-tabs {
+    /* Périodes : boutons à bascule (aria-pressed), même dessin que le choix de couleur de la
+       légende. */
+    .periods {
         display: flex;
-        gap: 6px;
         flex-shrink: 0;
-        padding: 6px;
-        background-color: var(--vff-bg-muted);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-    }
-    .group-tab {
-        background: transparent;
-        border: 0;
-        padding: 6px 12px;
-        border-radius: var(--vff-radius-sm);
-        font-family: var(--vff-font-display);
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--vff-text-muted);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
         gap: 6px;
-        transition: all var(--vff-transition);
     }
-    .group-tab:hover:not(.active) {
-        background-color: var(--vff-bg);
+    .period {
+        min-height: 36px;
+        padding: 6px 12px;
+        border: 1px solid var(--vff-border-control);
+        border-radius: var(--vff-radius-sm);
+        background-color: transparent;
         color: var(--vff-text);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        cursor: pointer;
+        transition:
+            background-color var(--vff-transition),
+            border-color var(--vff-transition);
     }
-    .group-tab.active {
-        background-color: var(--vff-accent);
-        color: var(--vff-text-inverse);
-        box-shadow: 0 2px 8px rgba(255, 101, 0, 0.3);
-    }
-    .group-tab .group-count {
-        font-size: 11px;
-        font-weight: 600;
-        opacity: 0.7;
-        padding: 1px 6px;
-        background-color: rgba(255, 255, 255, 0.18);
-        border-radius: var(--vff-radius-pill);
-    }
-    :global([data-theme='dark']) .group-tab:not(.active) .group-count {
-        opacity: 1;
-        color: #cbd5e1;
-        background-color: rgba(255, 255, 255, 0.08);
-    }
-    .group-tab.active .group-count {
-        background-color: rgba(255, 255, 255, 0.25);
-        opacity: 0.95;
-    }
-
-    .track-wrapper {
-        flex: 1;
-        position: relative;
-        padding: 18px 0 28px;
-        outline: none;
-    }
-    .track-wrapper:focus-visible .track {
-        box-shadow: 0 0 0 3px var(--vff-accent-soft);
-    }
-
-    .track {
-        position: relative;
-        height: 6px;
+    .period:hover {
         background-color: var(--vff-bg-muted);
-        border-radius: 3px;
-        border: 1px solid var(--vff-border);
     }
-    .track-fill {
+    .period[aria-pressed='true'] {
+        border-color: var(--vff-accent);
+        background-color: var(--vff-bg-accent);
+        color: var(--vff-accent-ink);
+        font-weight: 600;
+    }
+
+    /* Rail et décennies. Les points sont posés entre 18 px des bords : l'étiquette du premier
+       et du dernier ne touche jamais le cadre. */
+    .track-area {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+        height: 56px;
+    }
+    .slider {
+        position: absolute;
+        inset: 0;
+        padding: 14px 18px 0;
+        border-radius: var(--vff-radius-sm);
+        cursor: pointer;
+        touch-action: none;
+    }
+    .slider:focus-visible {
+        outline-offset: 0;
+    }
+    .rail {
+        position: relative;
+        height: 4px;
+        margin-top: 6px;
+        border-radius: 2px;
+        background-color: var(--vff-border-strong);
+    }
+    .rail-fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        border-radius: 2px;
+        background-color: var(--vff-accent);
+        transition: width 300ms ease;
+    }
+    .stops {
         position: absolute;
         top: 0;
-        left: 0;
-        height: 100%;
-        background: linear-gradient(90deg, var(--vff-accent-soft), var(--vff-accent));
-        border-radius: 3px;
-        transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
+        right: 18px;
+        bottom: 0;
+        left: 18px;
+        pointer-events: none;
     }
-
-    .marker {
+    .stop {
         position: absolute;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        background: transparent;
+        top: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        padding: 0;
         border: 0;
-        /* Zone de clic de 24 px autour de la pastille de 14 px (cible tactile). */
-        padding: 5px;
+        background: transparent;
+        transform: translateX(-50%);
         cursor: pointer;
+        pointer-events: auto;
     }
-    .marker-dot {
-        display: block;
-        width: 14px;
-        height: 14px;
+    .stop-dot {
+        width: 12px;
+        height: 12px;
+        border: 2px solid var(--vff-border-control);
         border-radius: 50%;
-        background-color: var(--vff-bg);
-        border: 2px solid var(--vff-border-strong);
-        transition: all var(--vff-transition);
+        background-color: var(--vff-bg-elevated);
+        transition:
+            background-color var(--vff-transition),
+            border-color var(--vff-transition);
     }
-    .marker:hover .marker-dot {
+    .stop:hover .stop-dot {
         border-color: var(--vff-accent);
-        transform: scale(1.15);
     }
-    .marker.past .marker-dot {
+    .stop.past .stop-dot {
+        border-color: var(--vff-accent);
         background-color: var(--vff-accent);
-        border-color: var(--vff-accent);
     }
-    .marker.active .marker-dot {
-        background-color: var(--vff-accent);
+    /* Décennie choisie : gare du schéma de ligne, cercle blanc à gros contour orange. */
+    .stop.active .stop-dot {
+        width: 18px;
+        height: 18px;
+        border-width: 4px;
         border-color: var(--vff-accent);
-        transform: scale(1.4);
-        box-shadow: 0 0 0 4px var(--vff-accent-soft);
+        background-color: var(--vff-bg-elevated);
     }
-    /* Décennie pas encore reconstituée : sélectionnable mais estompée. */
-    .marker.empty:not(.active) .marker-dot {
-        background-color: transparent;
+    .stop.empty:not(.active) .stop-dot {
         border-style: dashed;
+        background-color: var(--vff-bg-elevated);
     }
-    .marker.empty:not(.active) .marker-label {
-        opacity: 0.55;
-    }
-    .marker-label {
+    .stop-label {
         position: absolute;
-        top: 23px;
+        top: 30px;
         left: 50%;
         transform: translateX(-50%);
-        font-family: var(--vff-font-display);
-        font-size: 12px;
-        font-weight: 600;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        font-variant-numeric: tabular-nums;
+        line-height: 1.2;
         color: var(--vff-text-muted);
         white-space: nowrap;
-        transition: color var(--vff-transition);
     }
-    .marker.active .marker-label {
-        color: var(--vff-accent);
+    .stop.first .stop-label {
+        left: 4px;
+        transform: none;
+    }
+    .stop.last .stop-label {
+        right: 4px;
+        left: auto;
+        transform: none;
+    }
+    .stop.active .stop-label {
+        color: var(--vff-text);
+        font-weight: 600;
     }
 
-    @media (max-width: 640px) {
+    /* Tablette : la frise passe sous le titre et les périodes. */
+    @media (max-width: 900px) {
         .timeline {
             flex-wrap: wrap;
-            gap: 14px;
-            padding: 16px;
+            padding: 14px 16px 16px;
+        }
+        .track-area {
+            flex-basis: 100%;
+        }
+    }
+    /* Téléphone : bouton et année, puis périodes, puis frise ; une étiquette sur deux si la
+       période compte plus de six décennies. */
+    @media (max-width: 600px) {
+        .timeline-head {
+            flex-basis: 100%;
         }
         .year-display {
-            min-width: auto;
+            flex: 1;
+            width: auto;
         }
-        .year-value {
-            font-size: 26px;
-        }
-        .group-tabs {
+        .periods {
             flex-basis: 100%;
-            justify-content: center;
         }
-        .track-wrapper {
-            flex-basis: 100%;
-            padding-top: 22px;
+        .period {
+            flex: 1;
+            padding-inline: 6px;
+        }
+        .track-area.dense .stop.odd:not(.active, .last) .stop-label {
+            display: none;
         }
     }
 </style>

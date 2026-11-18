@@ -5,7 +5,14 @@
     import { get } from 'svelte/store';
     import { router } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
-    import { colon } from '$lib/typo.js';
+    import { colon, formatNumber } from '$lib/typo.js';
+    import {
+        electrificationInfo,
+        escapeHtml,
+        isTrue,
+        statusLabel,
+        trafficInfo,
+    } from './lineInfo.js';
     // Fonds de carte historiques IGN (Licence Ouverte 2.0) : overlays + contrôle avec opacité.
     import {
         HISTORIC_OVERLAY_DEFS,
@@ -87,6 +94,16 @@
         // Emprise [[ouest, sud], [est, nord]] cadrée à l'ouverture quand la carte fait moins
         // de 700 px de large (téléphone) ; au-dessus, centre et zoom ci-dessus. null : jamais.
         narrowBounds = null,
+        // Emprise cadrée à l'ouverture à toutes les largeurs (prioritaire sur center / zoom et
+        // narrowBounds) : la France entière, Corse comprise, quelle que soit la hauteur de la carte.
+        fitBounds = null,
+        // Marges du cadrage (px) : objet MapLibre, ou fonction (largeur, hauteur) => objet, pour
+        // laisser la place de la légende ouverte sur ordinateur.
+        fitPadding = null,
+        // Ligne mise en évidence (slug) : celle dont la fiche latérale est ouverte.
+        selectedLine = null,
+        // Liens des bulles ouverts dans un nouvel onglet (carte intégrée dans un autre site).
+        popupLinksNewTab = false,
     } = $props();
 
     /**
@@ -113,19 +130,16 @@
 
     /** Ensemble effectif des catégories masquées (légende + anciens booléens). */
     function hiddenSet() {
-        const set = new Set(hidden ?? []);
-        if (showFreight === false) set.add('freight');
-        if (showHeritage === false) {
-            set.add('heritage');
-            set.add('velorail');
-        }
+        const keys = [...(hidden ?? [])];
+        if (showFreight === false) keys.push('freight');
+        if (showHeritage === false) keys.push('heritage', 'velorail');
         // Anciens toggles : fermées/déposées masquées seulement si le parent
         // ne pilote pas la légende (`hidden` = null) et ne demande pas les disparues.
         if (hidden == null && !showVanished) {
-            if (!showAbandoned) set.add('abandoned');
-            if (!showDismantled) set.add('dismantled');
+            if (!showAbandoned) keys.push('abandoned');
+            if (!showDismantled) keys.push('dismantled');
         }
-        return set;
+        return new Set(keys);
     }
 
     // Filtre « rien » valide (['==', 1, 0] est lu comme un filtre legacy invalide).
@@ -213,6 +227,12 @@
         return year === currentEra
             ? ['all', NOT_COVERED, ['==', ['get', 'advocacy_kind'], 'reopening']]
             : NEVER;
+    }
+
+    const SELECTED_LAYER_ID = 'vff-lines-selected';
+
+    function selectedFilter(slug) {
+        return slug ? ['==', ['get', 'line_slug'], slug] : NEVER;
     }
 
     const LINE_FILTERS = {
@@ -376,6 +396,22 @@
                 'line-width': ['interpolate', ['linear'], ['zoom'], 5, 6, 10, 12, 14, 20],
                 'line-blur': 3,
                 'line-opacity': 0.55,
+            },
+        });
+
+        // ── Ligne sélectionnée (fiche latérale ouverte) : liseré sombre sous ses tracés, y
+        //    compris les tronçons partagés avec une autre ligne. Filtre seul : rien à recalculer.
+        map.addLayer({
+            id: SELECTED_LAYER_ID,
+            type: 'line',
+            source: 'vff-lines',
+            'source-layer': 'vff-lines',
+            filter: selectedFilter(selectedLine),
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: {
+                'line-color': '#111827',
+                'line-width': ['interpolate', ['linear'], ['zoom'], 4, 5, 8, 7, 12, 10, 16, 14],
+                'line-opacity': 0.9,
             },
         });
 
@@ -578,68 +614,106 @@
         }, FADE_MS);
     }
 
+    // Lien d'une bulle vers la fiche : même onglet (navigation Inertia) sur le site, nouvel
+    // onglet signalé dans la carte intégrée (sinon la fiche s'ouvrirait dans le cadre du site hôte).
+    function popupLink(href, labelKey = 'maps.drawer.view_full_sheet') {
+        if (!href) return '';
+        const t = get(i18n).t;
+        const label = escapeHtml(t(labelKey));
+        if (!popupLinksNewTab) return `<a class="rail-popup-cta" href="${href}">${label}</a>`;
+        return `<a class="rail-popup-cta" href="${href}" target="_blank" rel="noopener">${label}<i class="bi bi-box-arrow-up-right vff-ext" aria-hidden="true"></i><span class="vff-sr-only"> (${escapeHtml(t('common.new_tab'))})</span></a>`;
+    }
+
+    function openPopup(lngLat, html, href) {
+        popup?.remove();
+        popup = new maplibregl.Popup({ closeButton: true, closeOnClick: true, maxWidth: '300px' })
+            .setLngLat(lngLat)
+            .setHTML(html)
+            .addTo(map);
+        const cta = popup.getElement()?.querySelector('.rail-popup-cta');
+        if (cta && href && !popupLinksNewTab) {
+            cta.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                router.visit(href);
+            });
+        }
+    }
+
     function setupInteractions() {
         // Click sur un tracé → soit callback parent (drawer), soit popup fallback.
         map.on('click', LINE_LAYERS, (e) => {
             if (!e.features?.length) return;
             const props = e.features[0].properties;
 
-            // Si le parent a fourni onLineClick, on lui délègue (drawer)
+            const line = {
+                slug: props.line_slug,
+                name: props.line_name,
+                code: props.line_code,
+                status: props.status,
+                traffic_type: props.traffic_type,
+                is_lgv: isTrue(props.is_lgv),
+                network: props.network,
+                // Exploitation associative : tourist_train | velorail | museum
+                heritage_kind: isTrue(props.is_heritage)
+                    ? (props.heritage_kind ?? 'tourist_train')
+                    : null,
+                era,
+                // Valeurs au niveau LIGNE → cohérentes quel que soit le trait/voie cliqué
+                max_speed_kmh: props.line_max_speed ?? props.max_speed_kmh,
+                electrified: props.line_electrified ?? props.electrified,
+                voltage_v: props.line_voltage_v ?? props.voltage_v,
+            };
+
+            // Si le parent a fourni onLineClick, on lui délègue (fiche latérale)
             if (typeof onLineClick === 'function') {
-                onLineClick({
-                    slug: props.line_slug,
-                    name: props.line_name,
-                    code: props.line_code,
-                    status: props.status,
-                    traffic_type: props.traffic_type,
-                    network: props.network,
-                    // Exploitation associative : tourist_train | velorail | museum
-                    heritage_kind:
-                        props.is_heritage === true || props.is_heritage === 'true'
-                            ? (props.heritage_kind ?? null)
-                            : null,
-                    era,
-                    // Valeurs au niveau LIGNE → cohérentes quel que soit le trait/voie cliqué
-                    max_speed_kmh: props.line_max_speed ?? props.max_speed_kmh,
-                    electrified: props.line_electrified ?? props.electrified,
-                    voltage_v: props.line_voltage_v ?? props.voltage_v,
-                });
+                onLineClick(line);
+                // Téléphone : la fiche s'ouvre en bas de la carte ; le point cliqué remonte
+                // dans la partie visible au lieu de rester caché dessous.
+                if (mapContainer.clientWidth <= 600) {
+                    map.easeTo({
+                        center: e.lngLat,
+                        offset: [0, -mapContainer.clientHeight * 0.25],
+                        duration: 300,
+                    });
+                }
                 return;
             }
 
-            // Fallback popup MapLibre (utilisé dans Embed minimaliste)
+            // Bulle MapLibre (carte intégrée) : mêmes mots que la fiche latérale et la légende.
             const t = get(i18n).t;
-            const sep = colon(get(i18n).language);
-            const slug = props.line_slug;
-            const ctaHtml = slug
-                ? `<a class="rail-popup-cta" href="/lines/${slug}" data-line-slug="${slug}">${t('maps.drawer.view_full_sheet')} <i class="bi bi-arrow-right"></i></a>`
-                : '';
-            const html = `
-                <div class="rail-popup">
-                    <strong>${props.line_name ?? t('maps.drawer.fallback_line_name')}</strong>
-                    <ul>
-                        <li>${t('maps.drawer.status')}${sep}${props.status ? t(`maps.status.${props.status}`) : '-'} (${era})</li>
-                        ${props.is_heritage === true || props.is_heritage === 'true' ? `<li>${t('maps.drawer.heritage')}${sep}${t(`maps.heritage_kind.${props.heritage_kind ?? 'tourist_train'}`)}</li>` : ACTIVE_STATUSES.includes(props.status) ? `<li>${t('maps.drawer.traffic')}${sep}${t(`maps.traffic.${props.traffic_type ?? 'unknown'}`)}</li>` : ''}
-                        ${props.network ? `<li>${t('maps.drawer.network')}${sep}${t(`maps.networks.${props.network}`)}</li>` : ''}
-                        ${(props.line_max_speed ?? props.max_speed_kmh) ? `<li>${t('maps.drawer.max_speed')}${sep}${props.line_max_speed ?? props.max_speed_kmh} km/h</li>` : ''}
-                        ${(props.line_electrified ?? props.electrified) === true || (props.line_electrified ?? props.electrified) === 'true' ? `<li>${t('maps.drawer.electrified')}${(props.line_voltage_v ?? props.voltage_v) ? ` (${props.line_voltage_v ?? props.voltage_v} V)` : ''}</li>` : ''}
-                    </ul>
-                    ${ctaHtml}
-                </div>
-            `;
-            popup?.remove();
-            popup = new maplibregl.Popup({ closeButton: true, closeOnClick: true })
-                .setLngLat(e.lngLat)
-                .setHTML(html)
-                .addTo(map);
-
-            const cta = popup.getElement()?.querySelector('.rail-popup-cta');
-            if (cta && slug) {
-                cta.addEventListener('click', (ev) => {
-                    ev.preventDefault();
-                    router.visit(`/lines/${slug}`);
-                });
-            }
+            const lang = get(i18n).language;
+            const sep = colon(lang);
+            const row = (label, value) =>
+                `<li><span class="rail-popup-label">${escapeHtml(label)}${sep}</span>${escapeHtml(value)}</li>`;
+            const when = era === currentEra ? t('maps.drawer.today') : String(era);
+            const traffic = trafficInfo(line, t);
+            const rows = [
+                row(t('maps.drawer.status'), `${statusLabel(line.status, t)} (${when})`),
+                traffic
+                    ? row(
+                          t(line.heritage_kind ? 'maps.drawer.heritage' : 'maps.drawer.traffic'),
+                          traffic.label,
+                      )
+                    : '',
+                line.network
+                    ? row(t('maps.drawer.network'), t(`maps.networks.${line.network}`))
+                    : '',
+                line.max_speed_kmh
+                    ? row(
+                          t('maps.drawer.max_speed'),
+                          `${formatNumber(line.max_speed_kmh, lang)}\u00a0km/h`,
+                      )
+                    : '',
+                isTrue(line.electrified)
+                    ? row(
+                          t('maps.drawer.electrification'),
+                          electrificationInfo(line.voltage_v, t, lang).label,
+                      )
+                    : '',
+            ].join('');
+            const href = line.slug ? `/lines/${encodeURIComponent(line.slug)}` : null;
+            const html = `<div class="rail-popup"><p class="rail-popup-title">${escapeHtml(line.name ?? t('maps.drawer.fallback_line_name'))}</p><ul>${rows}</ul>${popupLink(href)}</div>`;
+            openPopup(e.lngLat, html, href);
         });
         map.on('mouseenter', LINE_LAYERS, () => (map.getCanvas().style.cursor = 'pointer'));
         map.on('mouseleave', LINE_LAYERS, () => (map.getCanvas().style.cursor = ''));
@@ -648,25 +722,12 @@
         map.on('click', 'vff-stations-points', (e) => {
             if (!e.features?.length) return;
             const props = e.features[0].properties;
-            const slug = props.slug;
-            const ctaHtml = slug
-                ? `<a class="rail-popup-cta" href="/stations/${slug}" data-station-slug="${slug}">${get(i18n).t('maps.drawer.view_full_sheet')} <i class="bi bi-arrow-right"></i></a>`
-                : '';
-            popup?.remove();
-            popup = new maplibregl.Popup({ closeButton: true })
-                .setLngLat(e.lngLat)
-                .setHTML(
-                    `<div class="rail-popup"><strong>${props.name}</strong>${props.city ? `<br/>${props.city} (${props.department_code ?? ''})` : ''}${ctaHtml}</div>`,
-                )
-                .addTo(map);
-
-            const cta = popup.getElement()?.querySelector('.rail-popup-cta');
-            if (cta && slug) {
-                cta.addEventListener('click', (ev) => {
-                    ev.preventDefault();
-                    router.visit(`/stations/${slug}`);
-                });
-            }
+            const href = props.slug ? `/stations/${encodeURIComponent(props.slug)}` : null;
+            const place = [props.city, props.department_code ? `(${props.department_code})` : '']
+                .filter(Boolean)
+                .join(' ');
+            const html = `<div class="rail-popup"><p class="rail-popup-title">${escapeHtml(props.name)}</p>${place && props.city !== props.name ? `<p class="rail-popup-place">${escapeHtml(place)}</p>` : ''}${popupLink(href, 'maps.drawer.view_station')}</div>`;
+            openPopup(e.lngLat, html, href);
         });
         map.on(
             'mouseenter',
@@ -683,20 +744,49 @@
     const viewKey = (c, z) => `${c?.[0]},${c?.[1]},${z}`;
     let appliedView = null;
 
+    // Libellés des boutons de MapLibre dans la langue de la page (sinon « Zoom in »…).
+    function controlsLocale() {
+        const t = get(i18n).t;
+        return {
+            'Map.Title': t('maps.controls.map'),
+            'NavigationControl.ZoomIn': t('maps.controls.zoom_in'),
+            'NavigationControl.ZoomOut': t('maps.controls.zoom_out'),
+            'NavigationControl.ResetBearing': t('maps.controls.reset_bearing'),
+            'FullscreenControl.Enter': t('maps.controls.fullscreen_enter'),
+            'FullscreenControl.Exit': t('maps.controls.fullscreen_exit'),
+            'AttributionControl.ToggleAttribution': t('maps.controls.attribution'),
+            'AttributionControl.MapFeedback': t('maps.controls.map_feedback'),
+            'Popup.Close': t('maps.controls.popup_close'),
+        };
+    }
+
+    // Cadrage d'ouverture : emprise complète (fitBounds), sinon emprise téléphone, sinon centre / zoom.
+    function initialView() {
+        const w = mapContainer.clientWidth;
+        const h = mapContainer.clientHeight;
+        if (fitBounds) {
+            const padding =
+                typeof fitPadding === 'function' ? fitPadding(w, h) : (fitPadding ?? 24);
+            return { bounds: fitBounds, fitBoundsOptions: { padding } };
+        }
+        if (narrowBounds && w < 700) {
+            return {
+                bounds: narrowBounds,
+                fitBoundsOptions: { padding: { top: 100, right: 44, bottom: 24, left: 12 } },
+            };
+        }
+        return {};
+    }
+
     onMount(() => {
         appliedView = viewKey(center, zoom);
-        const narrow = narrowBounds && mapContainer.clientWidth < 700;
         map = new maplibregl.Map({
             container: mapContainer,
             style: buildStyle(),
             center,
             zoom,
-            ...(narrow
-                ? {
-                      bounds: narrowBounds,
-                      fitBoundsOptions: { padding: { top: 100, right: 44, bottom: 24, left: 12 } },
-                  }
-                : {}),
+            ...initialView(),
+            locale: controlsLocale(),
             attributionControl: { compact: true },
         });
 
@@ -737,14 +827,12 @@
     // Réactif : changement d'époque OU de dataVersion → fade + swap des sources
     $effect(() => {
         // Touche les deux props pour que Svelte tracke leur dépendance.
-        // eslint-disable-next-line no-unused-expressions
         dataVersion;
         fadeAndSwap(era);
     });
 
     // Réactif : toggles / légende → met à jour les filtres des couches de tracés
     $effect(() => {
-        // eslint-disable-next-line no-unused-expressions
         showVanished;
         showHeritage;
         showFreight;
@@ -769,15 +857,22 @@
         map.jumpTo({ center, zoom });
     });
 
-    // Réactif : flyTarget changé → animation vers la cible
+    // Réactif : flyTarget changé → animation vers la cible (saut direct si le visiteur a
+    // demandé moins d'animations : MapLibre le respecte pour un déplacement non « essentiel »).
     $effect(() => {
         if (!flyTarget || !map) return;
         map.flyTo({
             center: [flyTarget.lng, flyTarget.lat],
             zoom: flyTarget.zoom ?? 12,
             duration: 1400,
-            essential: true,
         });
+    });
+
+    // Réactif : ligne sélectionnée → liseré sous ses tracés.
+    $effect(() => {
+        const slug = selectedLine;
+        if (!map || !layersReady || !map.getLayer(SELECTED_LAYER_ID)) return;
+        map.setFilter(SELECTED_LAYER_ID, selectedFilter(slug));
     });
 
     // ── Itinéraire historique (RoutePlanner) : tracé + gares, au-dessus du réseau ──
@@ -846,11 +941,18 @@
                 source: ROUTE_SOURCE_ID,
                 filter: ['!=', ['get', 'kind'], 'path'],
                 paint: {
+                    // Le zoom doit être l'entrée d'un « interpolate » de premier niveau (sinon
+                    // MapLibre refuse la couche, et les noms des terminus ne s'affichaient pas).
                     'circle-radius': [
-                        'case',
-                        ['==', ['get', 'kind'], 'end'],
-                        7,
-                        ['interpolate', ['linear'], ['zoom'], 5, 1.5, 9, 3.5, 13, 5],
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        5,
+                        ['case', ['==', ['get', 'kind'], 'end'], 7, 1.5],
+                        9,
+                        ['case', ['==', ['get', 'kind'], 'end'], 7, 3.5],
+                        13,
+                        ['case', ['==', ['get', 'kind'], 'end'], 7, 5],
                     ],
                     'circle-color': ['case', ['==', ['get', 'kind'], 'end'], '#ff6500', '#ffffff'],
                     'circle-stroke-color': '#111827',
@@ -889,9 +991,17 @@
                     [Math.min(...lngs), Math.min(...lats)],
                     [Math.max(...lngs), Math.max(...lats)],
                 ],
-                { padding: 70, maxZoom: 11, duration: 1200 },
+                { padding: routePadding(), maxZoom: 11, duration: 1200 },
             );
         }
+    }
+
+    // Cadrage d'un itinéraire : mêmes marges que l'ouverture (place de la légende), plus 40 px
+    // pour que les terminus et leur nom ne touchent pas les bords.
+    function routePadding() {
+        if (typeof fitPadding !== 'function') return 70;
+        const p = fitPadding(mapContainer.clientWidth, mapContainer.clientHeight);
+        return { top: p.top + 40, right: p.right + 40, bottom: p.bottom + 40, left: p.left + 40 };
     }
 
     $effect(() => applyRoute(route));
@@ -909,67 +1019,137 @@
 </div>
 
 <style>
+    /* Le cadre (bordure, coins) est posé par la page : la carte remplit simplement sa place. */
     .rail-map-wrapper {
         position: relative;
-        border-radius: 14px;
         overflow: hidden;
-        border: 1px solid var(--vff-border);
-        box-shadow: 0 12px 32px var(--vff-shadow);
     }
     .rail-map {
         width: 100%;
+        /* Place réservée pendant le chargement des tuiles (pas de saut, pas de flash blanc). */
+        background-color: var(--vff-bg-muted);
+    }
+    /* Focus clavier sur la carte (déplacement aux flèches) : contour dans le cadre, pas rogné. */
+    .rail-map :global(.maplibregl-canvas:focus-visible) {
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: calc(-1 * var(--vff-focus-width));
     }
 
-    /* Style des popups MapLibre - accordé à l'identité VFF */
+    /* Bulles (carte intégrée, gares) : fond et texte du thème, croix de 32 px. */
     :global(.maplibregl-popup-content) {
-        font-family: var(--vff-font-body);
+        padding: 14px 40px 14px 16px;
+        border: 1px solid var(--vff-border-strong);
         border-radius: var(--vff-radius-md);
-        padding: 14px 16px;
-        box-shadow: 0 8px 24px var(--vff-shadow-strong);
+        background-color: var(--vff-bg-elevated);
+        box-shadow: var(--vff-shadow-popover);
         color: var(--vff-text);
-        background: var(--vff-bg);
-    }
-    :global(.maplibregl-popup-content strong) {
-        font-family: var(--vff-font-display);
-        color: var(--vff-accent);
-        font-size: 16px;
-        display: block;
-        margin-bottom: 6px;
-    }
-    :global(.maplibregl-popup-content ul) {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        font-size: 14px;
-        color: var(--vff-text-muted);
-    }
-    :global(.maplibregl-popup-content li) {
-        font-size: 14px;
-        padding: 2px 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
     }
     :global(.maplibregl-popup-tip) {
         display: none;
     }
+    :global(.maplibregl-popup-close-button) {
+        top: 6px;
+        right: 6px;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--vff-radius-sm);
+        color: var(--vff-text-muted);
+        font-size: 22px;
+        line-height: 1;
+    }
+    :global(.maplibregl-popup-close-button:hover) {
+        background-color: var(--vff-bg-muted);
+        color: var(--vff-text);
+    }
+    :global(.rail-popup-title) {
+        margin: 0 0 6px;
+        font-family: var(--vff-font-display);
+        font-size: var(--vff-fs-md);
+        font-weight: 700;
+        line-height: var(--vff-lh-heading);
+        color: var(--vff-text);
+    }
+    :global(.rail-popup-place) {
+        margin: 0;
+        color: var(--vff-text-muted);
+    }
+    :global(.rail-popup ul) {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    :global(.rail-popup li) {
+        padding: 2px 0;
+        font-family: inherit;
+    }
+    :global(.rail-popup-label) {
+        color: var(--vff-text-muted);
+    }
     :global(.rail-popup-cta) {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        margin-top: 10px;
-        padding: 8px 12px;
-        background-color: var(--vff-accent);
-        color: var(--vff-text-inverse) !important;
-        font-family: var(--vff-font-display);
-        font-size: 13px;
+        min-height: 24px;
+        margin-top: 8px;
+        color: var(--vff-link);
         font-weight: 600;
-        border-radius: var(--vff-radius-pill);
-        text-decoration: none !important;
-        transition: all var(--vff-transition);
+        text-decoration: underline;
+        text-underline-offset: 0.18em;
     }
     :global(.rail-popup-cta:hover) {
-        transform: scale(0.97);
-        text-decoration: none;
+        text-decoration-thickness: 2px;
+    }
+
+    /* Boutons de la carte : focus du site (le halo bleu de MapLibre ne suit pas la charte). */
+    :global(.maplibregl-ctrl button:focus) {
+        box-shadow: none;
+    }
+    :global(.maplibregl-ctrl button:focus-visible) {
+        position: relative;
+        z-index: 1;
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: 1px;
     }
     :global(.maplibregl-ctrl-attrib-inner) {
-        font-size: 11px;
+        font-size: 12px;
+    }
+    /* Écran tactile : boutons de 36 px (29 px par défaut). */
+    @media (pointer: coarse) {
+        :global(.maplibregl-ctrl-group button) {
+            width: 36px;
+            height: 36px;
+        }
+    }
+
+    /* Thème sombre : boutons, échelle et crédits de la carte sur les fonds du thème (le fond
+       OpenStreetMap lui-même n'est pas modifié). Les icônes de MapLibre sont gris foncé : inversées. */
+    :global([data-theme='dark'] .maplibregl-ctrl-group) {
+        background-color: var(--vff-bg-elevated);
+        box-shadow: 0 0 0 1px var(--vff-border-strong);
+    }
+    :global([data-theme='dark'] .maplibregl-ctrl-group button + button) {
+        border-top-color: var(--vff-border-strong);
+    }
+    :global([data-theme='dark'] .maplibregl-ctrl-group button:not(:disabled):hover) {
+        background-color: var(--vff-bg-muted);
+    }
+    :global([data-theme='dark'] .maplibregl-ctrl button .maplibregl-ctrl-icon),
+    :global([data-theme='dark'] .maplibregl-ctrl-attrib-button) {
+        filter: invert(1);
+    }
+    :global([data-theme='dark'] .maplibregl-ctrl.maplibregl-ctrl-attrib),
+    :global([data-theme='dark'] .maplibregl-ctrl-attrib.maplibregl-compact) {
+        background-color: var(--vff-bg-elevated);
+        color: var(--vff-text-muted);
+    }
+    :global([data-theme='dark'] .maplibregl-ctrl-attrib a) {
+        color: var(--vff-text);
+    }
+    :global([data-theme='dark'] .maplibregl-ctrl-scale) {
+        border-color: var(--vff-text-muted);
+        background-color: var(--vff-bg-elevated);
+        color: var(--vff-text);
     }
 </style>

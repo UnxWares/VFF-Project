@@ -1,7 +1,10 @@
 <script>
-    // NB : pas d'élément <header> ici : header.css impose header { height: 200vh } à tous.
-    import { onMount, untrack } from 'svelte';
+    import { Link } from '@inertiajs/svelte';
+    import { onMount, tick, untrack } from 'svelte';
+    import Field from '$components/ui/Field.svelte';
+    import StationInput from './StationInput.svelte';
     import { i18n } from '$lib/i18n.js';
+    import { formatLocale } from '$lib/typo.js';
 
     /**
      * Itinéraire historique : « de A à B en <année> » sur le réseau en service
@@ -10,33 +13,46 @@
      * décennie alors qu'un itinéraire est affiché, il est recalculé pour cette
      * décennie : on voit le trajet évoluer avec le réseau. Lien partageable :
      * /maps?from=paris&to=brest&year=1930 calcule l'itinéraire à l'ouverture.
+     *
+     * La décennie « actuelle » (currentEra, 2030) est le réseau d'aujourd'hui : le champ
+     * « Année » affiche alors l'année en cours, que l'API ramène au réseau actuel.
      */
     let {
         year = 2030,
         minYear = 1830,
         maxYear = 2030,
+        currentEra = null,
+        mapAnchor = null,
         onRoute = () => {},
         onClear = () => {},
     } = $props();
+
+    const uid = $props.id();
+    const thisYear = new Date().getFullYear();
+    const todayEra = $derived(currentEra ?? maxYear);
+    // Année affichée pour une décennie de la carte : l'année en cours pour la décennie actuelle.
+    const asInputYear = (y) => (y === todayEra ? thisYear : y);
+    const maxInput = $derived(maxYear === todayEra ? Math.max(thisYear, minYear) : maxYear);
 
     let fromText = $state('');
     let fromSlug = $state(null);
     let toText = $state('');
     let toSlug = $state(null);
-    let routeYear = $state(year);
+    let routeYear = $state(untrack(() => asInputYear(year)));
     let heritage = $state(false);
     let loading = $state(false);
     let error = $state(null);
+    let fieldErrors = $state({ from: null, to: null, year: null });
     let result = $state(null);
     let showStations = $state(false);
-    let suggest = $state({ side: null, items: [] });
-    let lastPropYear = year;
-    let searchTimer = null;
+    let lastPropYear = untrack(() => year);
     let controller = null;
 
-    const t = (key, params) => $i18n.t(key, params);
+    /** Traduction (toujours une chaîne : i18next la type aussi en objet). */
+    const t = (/** @type {string} */ key, /** @type {Record<string, unknown>} */ params = {}) =>
+        String($i18n.t(key, params));
     const km = (m) =>
-        (m / 1000).toLocaleString($i18n.language || 'fr', {
+        (m / 1000).toLocaleString(formatLocale($i18n.language), {
             maximumFractionDigits: m < 10000 ? 1 : 0,
         });
 
@@ -56,46 +72,9 @@
         if (year === lastPropYear) return;
         lastPropYear = year;
         if (result && result.era_year === year) return;
-        routeYear = year;
+        routeYear = asInputYear(year);
         if (result) untrack(() => submit());
     });
-
-    function onInput(side, value) {
-        if (side === 'from') {
-            fromText = value;
-            fromSlug = null;
-        } else {
-            toText = value;
-            toSlug = null;
-        }
-        clearTimeout(searchTimer);
-        if (value.trim().length < 2) {
-            suggest = { side: null, items: [] };
-            return;
-        }
-        searchTimer = setTimeout(async () => {
-            try {
-                const res = await fetch(`/api/v1/search?q=${encodeURIComponent(value.trim())}`, {
-                    headers: { Accept: 'application/json' },
-                });
-                const json = await res.json();
-                suggest = { side, items: (json.stations ?? []).slice(0, 8) };
-            } catch {
-                suggest = { side: null, items: [] };
-            }
-        }, 200);
-    }
-
-    function pick(side, station) {
-        if (side === 'from') {
-            fromText = station.name;
-            fromSlug = station.slug;
-        } else {
-            toText = station.name;
-            toSlug = station.slug;
-        }
-        suggest = { side: null, items: [] };
-    }
 
     function swap() {
         [fromText, toText] = [toText, fromText];
@@ -114,18 +93,41 @@
             : t('itinerary.errors.generic');
     }
 
+    const yearValid = (value) => {
+        const y = Number(value);
+        return Number.isInteger(y) && y >= minYear && y <= maxInput;
+    };
+
+    // Vérification avant l'envoi, avec nos messages (pas la bulle du navigateur) ; le focus
+    // va au premier champ en erreur.
+    function validate() {
+        fieldErrors = {
+            from: fromText.trim() ? null : t('itinerary.errors.from_required'),
+            to: toText.trim() ? null : t('itinerary.errors.to_required'),
+            year: yearValid(routeYear)
+                ? null
+                : t('itinerary.errors.year_invalid', { min: minYear, max: maxInput }),
+        };
+        const first = ['from', 'to', 'year'].find((k) => fieldErrors[k]);
+        if (first) tick().then(() => document.getElementById(`${uid}-${first}`)?.focus());
+        return !first;
+    }
+
     async function submit(event) {
         event?.preventDefault();
+        if (!validate()) return;
         const from = fromSlug ?? fromText.trim();
         const to = toSlug ?? toText.trim();
-        if (!from || !to) return;
-        suggest = { side: null, items: [] };
         controller?.abort();
         controller = new AbortController();
         loading = true;
         error = null;
-        const params = new URLSearchParams({ from, to, era: String(routeYear) });
-        if (heritage) params.set('heritage', '1');
+        const params = new URLSearchParams({
+            from,
+            to,
+            era: String(routeYear),
+            ...(heritage && { heritage: '1' }),
+        });
         try {
             const res = await fetch(`/api/v1/route?${params}`, {
                 headers: { Accept: 'application/json' },
@@ -154,7 +156,13 @@
     }
 
     function chooseCandidate(candidate) {
-        pick(error?.side === 'to' ? 'to' : 'from', candidate);
+        if (error?.side === 'to') {
+            toText = candidate.name;
+            toSlug = candidate.slug;
+        } else {
+            fromText = candidate.name;
+            fromSlug = candidate.slug;
+        }
         submit();
     }
 
@@ -162,8 +170,16 @@
         controller?.abort();
         result = null;
         error = null;
+        loading = false;
         onClear();
     }
+
+    // Un message d'erreur disparaît dès que le champ est corrigé.
+    const shownErrors = $derived({
+        from: fromText.trim() ? null : fieldErrors.from,
+        to: toText.trim() ? null : fieldErrors.to,
+        year: yearValid(routeYear) ? null : fieldErrors.year,
+    });
 
     const warnings = $derived.by(() => {
         if (!result) return [];
@@ -196,349 +212,288 @@
     });
 </script>
 
-<section class="route-planner" aria-labelledby="route-planner-title">
-    <div class="planner-head">
-        <h2 id="route-planner-title">
-            <i class="bi bi-signpost-split"></i>
-            {t('itinerary.title')}
-        </h2>
-        <p>{t('itinerary.subtitle')}</p>
-    </div>
+<section class="route-planner" aria-labelledby={`${uid}-title`}>
+    <h2 class="vff-section-title" id={`${uid}-title`}>{t('itinerary.title')}</h2>
+    <p class="planner-intro">{t('itinerary.subtitle')}</p>
 
-    <form class="route-form" onsubmit={submit}>
-        {#each [['from', fromText, 'itinerary.placeholder_from'], ['to', toText, 'itinerary.placeholder_to']] as [side, value, placeholder] (side)}
-            <label class="field station-field">
-                <span>{t(`itinerary.${side}`)}</span>
-                <input
-                    type="text"
-                    {value}
-                    placeholder={t(placeholder)}
-                    autocomplete="off"
-                    oninput={(e) => onInput(side, e.currentTarget.value)}
-                    onkeydown={(e) => e.key === 'Escape' && (suggest = { side: null, items: [] })}
-                    required
+    <div class="vff-panel planner-panel">
+        <form class="route-form" novalidate onsubmit={submit}>
+            <div class="route-from">
+                <StationInput
+                    id={`${uid}-from`}
+                    label={t('itinerary.from')}
+                    placeholder={t('itinerary.placeholder_from')}
+                    bind:text={fromText}
+                    bind:slug={fromSlug}
+                    error={shownErrors.from}
                 />
-                {#if suggest.side === side && suggest.items.length}
-                    <ul class="suggestions" role="listbox">
-                        {#each suggest.items as s (s.slug)}
-                            <li>
-                                <button type="button" onclick={() => pick(side, s)}>
-                                    <strong>{s.name}</strong>{#if s.city}<small>{s.city}</small
-                                        >{/if}
-                                </button>
-                            </li>
+            </div>
+            <button
+                type="button"
+                class="swap"
+                onclick={swap}
+                title={t('itinerary.swap')}
+                aria-label={t('itinerary.swap')}
+            >
+                <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
+            </button>
+            <div class="route-to">
+                <StationInput
+                    id={`${uid}-to`}
+                    label={t('itinerary.to')}
+                    placeholder={t('itinerary.placeholder_to')}
+                    bind:text={toText}
+                    bind:slug={toSlug}
+                    error={shownErrors.to}
+                />
+            </div>
+            <div class="route-year">
+                <Field
+                    id={`${uid}-year`}
+                    label={t('itinerary.year')}
+                    hint={t('itinerary.year_hint', { min: minYear })}
+                    error={shownErrors.year}
+                >
+                    {#snippet children(attrs)}
+                        <input
+                            {...attrs}
+                            class="vff-input"
+                            type="number"
+                            inputmode="numeric"
+                            min={minYear}
+                            max={maxInput}
+                            step="1"
+                            bind:value={routeYear}
+                        />
+                    {/snippet}
+                </Field>
+            </div>
+            <div class="route-submit">
+                <button type="submit" class="vff-btn primary" aria-disabled={loading}>
+                    <i class="bi {loading ? 'bi-hourglass-split' : 'bi-bezier2'}" aria-hidden="true"
+                    ></i>
+                    {t('itinerary.submit')}
+                </button>
+            </div>
+            <label class="vff-check route-heritage">
+                <input type="checkbox" bind:checked={heritage} />
+                {t('itinerary.heritage')}
+            </label>
+        </form>
+
+        <p class="planner-status" role="status">{loading ? t('itinerary.loading') : ''}</p>
+
+        <div class="planner-error" role="alert">
+            {#if error}
+                <div class="vff-notice danger">
+                    <i class="bi bi-exclamation-octagon" aria-hidden="true"></i>
+                    <div class="vff-notice-body">
+                        <p>{error.message}</p>
+                        {#if error.candidates?.length}
+                            <div class="candidates">
+                                {#each error.candidates as c (c.slug)}
+                                    <button
+                                        type="button"
+                                        class="vff-btn secondary small"
+                                        onclick={() => chooseCandidate(c)}>{c.name}</button
+                                    >
+                                {/each}
+                            </div>
+                        {/if}
+                    </div>
+                </div>
+            {/if}
+        </div>
+
+        {#if result}
+            <div class="result">
+                <div class="summary">
+                    <p class="trip">
+                        <strong>{result.from.name}</strong>
+                        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                        <span class="vff-sr-only">-</span>
+                        <strong>{result.to.name}</strong>
+                    </p>
+                    <p class="figures">
+                        <span class="km"
+                            >{t('itinerary.distance', { km: km(result.distance_m) })}</span
+                        >
+                        <span
+                            >{t('itinerary.stations_count', {
+                                count: result.stations.length,
+                            })}</span
+                        >
+                        <span class="vff-badge accent">
+                            {result.era_is_current
+                                ? t('itinerary.era_current')
+                                : t('itinerary.era_network', { era: result.era_year })}
+                        </span>
+                    </p>
+                    {#if result.requested_year && result.requested_year !== result.era_year && !result.era_is_current}
+                        <p class="note">
+                            {t('itinerary.era_note', {
+                                era: result.era_year,
+                                year: result.requested_year,
+                            })}
+                        </p>
+                    {/if}
+                    {#if mapAnchor}
+                        <a class="vff-link map-link" href={`#${mapAnchor}`}>
+                            <i class="bi bi-map" aria-hidden="true"></i>
+                            {t('itinerary.see_on_map')}
+                        </a>
+                    {/if}
+                </div>
+
+                <h3>{t('itinerary.lines_title')}</h3>
+                <ol class="legs">
+                    {#each result.lines as leg, i (i)}
+                        <li>
+                            <span class="leg-km"
+                                >{t('itinerary.distance', { km: km(leg.length_m) })}</span
+                            >
+                            <span class="leg-body">
+                                {#if leg.line_slug}
+                                    <Link href={`/lines/${leg.line_slug}`}>{leg.line_name}</Link>
+                                {:else}
+                                    <span>{leg.line_name ?? '-'}</span>
+                                {/if}
+                                <small
+                                    >{leg.from_name ?? t('itinerary.junction')}
+                                    <i class="bi bi-arrow-right-short" aria-hidden="true"></i>
+                                    <span class="vff-sr-only">-</span>
+                                    {leg.to_name ?? t('itinerary.junction')}</small
+                                >
+                            </span>
+                        </li>
+                    {/each}
+                </ol>
+
+                {#if warnings.length}
+                    <ul class="warnings">
+                        {#each warnings as w, i (i)}
+                            <li><i class="bi bi-info-circle" aria-hidden="true"></i> {w}</li>
                         {/each}
                     </ul>
                 {/if}
-            </label>
-            {#if side === 'from'}
-                <button
-                    type="button"
-                    class="swap"
-                    onclick={swap}
-                    title={t('itinerary.swap')}
-                    aria-label={t('itinerary.swap')}
-                >
-                    <i class="bi bi-arrow-left-right"></i>
-                </button>
-            {/if}
-        {/each}
-        <label class="field year-field">
-            <span>{t('itinerary.year')}</span>
-            <input
-                type="number"
-                min={minYear}
-                max={maxYear}
-                step="1"
-                bind:value={routeYear}
-                required
-            />
-        </label>
-        <div class="actions">
-            <button type="submit" class="vff-btn primary" disabled={loading}>
-                {#if loading}<i class="bi bi-hourglass-split"></i>{:else}<i class="bi bi-bezier2"
-                    ></i>{/if}
-                {t('itinerary.submit')}
-            </button>
-            {#if result || error}
-                <button type="button" class="link-btn" onclick={clear}
-                    >{t('itinerary.clear')}</button
-                >
-            {/if}
-        </div>
-        <label class="heritage">
-            <input type="checkbox" bind:checked={heritage} />
-            {t('itinerary.heritage')}
-        </label>
-    </form>
 
-    {#if loading}
-        <p class="status" role="status">{t('itinerary.loading')}</p>
-    {/if}
-
-    {#if error}
-        <div class="error" role="alert">
-            <i class="bi bi-exclamation-triangle"></i>
-            <div>
-                <p>{error.message}</p>
-                {#if error.candidates?.length}
-                    <div class="candidates">
-                        {#each error.candidates as c (c.slug)}
-                            <button type="button" onclick={() => chooseCandidate(c)}
-                                >{c.name}</button
-                            >
-                        {/each}
-                    </div>
-                {/if}
-            </div>
-        </div>
-    {/if}
-
-    {#if result}
-        <div class="result">
-            <div class="summary">
-                <p class="trip">
-                    <strong>{result.from.name}</strong>
-                    <i class="bi bi-arrow-right"></i>
-                    <strong>{result.to.name}</strong>
-                </p>
-                <p class="figures">
-                    <span class="km">{t('itinerary.distance', { km: km(result.distance_m) })}</span>
-                    <span>{t('itinerary.stations_count', { count: result.stations.length })}</span>
-                    <span class="era-pill">
-                        {result.era_is_current
-                            ? t('itinerary.era_current')
-                            : t('itinerary.era_network', { era: result.era_year })}
-                    </span>
-                </p>
-                {#if result.requested_year && result.requested_year !== result.era_year && !result.era_is_current}
-                    <p class="note">
-                        {t('itinerary.era_note', {
-                            era: result.era_year,
-                            year: result.requested_year,
-                        })}
-                    </p>
-                {/if}
-            </div>
-
-            <h3>{t('itinerary.lines_title')}</h3>
-            <ol class="legs">
-                {#each result.lines as leg, i (i)}
-                    <li>
-                        <span class="leg-km"
-                            >{t('itinerary.distance', { km: km(leg.length_m) })}</span
-                        >
-                        <span class="leg-body">
-                            {#if leg.line_slug}
-                                <a href={`/lines/${leg.line_slug}`} title={t('itinerary.line_link')}
-                                    >{leg.line_name}</a
-                                >
-                            {:else}
-                                {leg.line_name ?? '-'}
-                            {/if}
-                            <small
-                                >{leg.from_name ?? t('itinerary.junction')}
-                                <i class="bi bi-arrow-right-short"></i>
-                                {leg.to_name ?? t('itinerary.junction')}</small
-                            >
-                        </span>
-                    </li>
-                {/each}
-            </ol>
-
-            {#if warnings.length}
-                <ul class="warnings">
-                    {#each warnings as w, i (i)}
-                        <li><i class="bi bi-info-circle"></i> {w}</li>
-                    {/each}
-                </ul>
-            {/if}
-
-            <button type="button" class="link-btn" onclick={() => (showStations = !showStations)}>
-                {showStations
-                    ? t('itinerary.hide_stations')
-                    : t('itinerary.show_stations', { count: result.stations.length })}
-            </button>
-            {#if showStations}
-                <ol class="stations">
+                <div class="result-actions">
+                    <button
+                        type="button"
+                        class="vff-btn quiet"
+                        aria-expanded={showStations}
+                        aria-controls={`${uid}-stations`}
+                        onclick={() => (showStations = !showStations)}
+                    >
+                        {showStations
+                            ? t('itinerary.hide_stations')
+                            : t('itinerary.show_stations', { count: result.stations.length })}
+                    </button>
+                    <button type="button" class="vff-btn quiet" onclick={clear}>
+                        {t('itinerary.clear')}
+                    </button>
+                </div>
+                <ol class="stations" id={`${uid}-stations`} hidden={!showStations}>
                     {#each result.stations as s (s.slug)}
-                        <li><a href={`/stations/${s.slug}`}>{s.name}</a></li>
+                        <li><Link href={`/stations/${s.slug}`}>{s.name}</Link></li>
                     {/each}
                 </ol>
-            {/if}
-        </div>
-    {/if}
+            </div>
+        {/if}
+    </div>
 </section>
 
 <style>
-    .route-planner {
-        margin-top: 20px;
-        padding: 20px 22px;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-lg);
-        box-shadow: 0 12px 32px var(--vff-shadow);
+    .planner-intro {
+        max-width: var(--vff-measure);
+        margin: 0 0 var(--vff-space-5);
         font-family: var(--vff-font-body);
-        color: var(--vff-text);
-    }
-    .planner-head h2 {
-        margin: 0 0 4px;
-        font-family: var(--vff-font-display);
-        font-size: 20px;
-    }
-    .planner-head h2 i {
-        color: var(--vff-accent);
-    }
-    .planner-head p {
-        margin: 0 0 14px;
+        font-size: var(--vff-fs-body);
+        line-height: var(--vff-lh-body);
         color: var(--vff-text-muted);
-        font-size: 14px;
     }
+
+    /* Ordinateur : départ, inversion, arrivée, année, bouton sur une ligne ; les libellés au
+       même niveau, les champs alignés. */
     .route-form {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) 110px auto;
-        gap: 10px 12px;
-        align-items: end;
+        grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr) 9.5rem auto;
+        grid-template-areas:
+            'from swap to year submit'
+            'heritage heritage heritage heritage heritage';
+        gap: 12px 16px;
+        align-items: start;
     }
-    .field {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        position: relative;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--vff-text-muted);
+    .route-from {
+        grid-area: from;
     }
-    .field input {
-        width: 100%;
-        box-sizing: border-box;
-        padding: 9px 12px;
-        border: 1px solid var(--vff-border-strong);
-        border-radius: var(--vff-radius-sm);
-        background-color: var(--vff-bg);
-        color: var(--vff-text);
-        font: inherit;
-        font-weight: 400;
-        font-size: 15px;
+    .route-to {
+        grid-area: to;
     }
-    .field input:focus {
-        outline: 2px solid var(--vff-accent);
-        outline-offset: 1px;
+    .route-year {
+        grid-area: year;
+    }
+    .route-submit {
+        grid-area: submit;
+    }
+    .route-heritage {
+        grid-area: heritage;
+        justify-self: start;
+    }
+    /* Bouton d'inversion et bouton d'envoi au niveau des champs (sous la ligne des libellés). */
+    .swap,
+    .route-submit {
+        margin-top: calc(var(--vff-fs-sm) * 1.4 + 6px);
     }
     .swap {
-        height: 40px;
-        width: 40px;
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-pill);
-        background-color: var(--vff-bg);
-        color: var(--vff-text-muted);
-        cursor: pointer;
-    }
-    .swap:hover {
-        color: var(--vff-accent);
-        border-color: var(--vff-accent);
-    }
-    .actions {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-    .actions .vff-btn {
-        border: 0;
+        grid-area: swap;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 10px 18px;
-        white-space: nowrap;
-    }
-    .actions .vff-btn:disabled {
-        opacity: 0.7;
-        cursor: wait;
-    }
-    .heritage {
-        grid-column: 1 / -1;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 13px;
-        color: var(--vff-text-muted);
-    }
-    .suggestions {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        z-index: 20;
-        margin: 4px 0 0;
-        padding: 4px;
-        list-style: none;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border: 1px solid var(--vff-border-control);
+        border-radius: var(--vff-radius-sm);
         background-color: var(--vff-bg);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-sm);
-        box-shadow: 0 8px 24px var(--vff-shadow-strong);
-    }
-    .suggestions button {
-        display: flex;
-        width: 100%;
-        justify-content: space-between;
-        gap: 8px;
-        padding: 7px 9px;
-        border: 0;
-        background: transparent;
         color: var(--vff-text);
-        font: inherit;
-        text-align: left;
         cursor: pointer;
-        border-radius: var(--vff-radius-sm);
+        transition:
+            background-color var(--vff-transition),
+            border-color var(--vff-transition);
     }
-    .suggestions button:hover,
-    .suggestions button:focus {
-        background-color: var(--vff-accent-soft);
+    .swap:hover {
+        border-color: var(--vff-accent-ink);
+        background-color: var(--vff-bg-accent);
     }
-    .suggestions small {
+    .route-year :global(.vff-hint) {
+        order: 3;
+    }
+
+    .planner-status {
+        margin: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
-    .status {
-        margin: 14px 0 0;
-        color: var(--vff-text-muted);
-        font-size: 14px;
+    .planner-status:not(:empty) {
+        margin-top: 16px;
     }
-    .error {
-        display: flex;
-        gap: 10px;
-        margin-top: 14px;
-        padding: 10px 14px;
-        border-left: 3px solid var(--vff-accent);
-        background-color: var(--vff-accent-soft);
-        border-radius: var(--vff-radius-sm);
-        font-size: 14px;
+    .planner-error:not(:empty) {
+        margin-top: 16px;
     }
-    .error p {
+    .planner-error p {
         margin: 0;
     }
     .candidates {
         display: flex;
         flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 8px;
+        gap: 8px;
+        margin-top: 10px;
     }
-    .candidates button {
-        padding: 4px 10px;
-        border: 1px solid var(--vff-border-strong);
-        border-radius: var(--vff-radius-pill);
-        background-color: var(--vff-bg);
-        color: var(--vff-text);
-        font: inherit;
-        font-size: 13px;
-        cursor: pointer;
-    }
-    .candidates button:hover {
-        border-color: var(--vff-accent);
-        color: var(--vff-accent);
-    }
+
     .result {
-        margin-top: 18px;
-        padding-top: 16px;
+        margin-top: 24px;
+        padding-top: 20px;
         border-top: 1px solid var(--vff-border);
     }
     .trip {
@@ -547,42 +502,40 @@
         align-items: center;
         gap: 8px;
         margin: 0;
-        font-family: var(--vff-font-heading);
-        font-size: 18px;
+        font-family: var(--vff-font-display);
+        font-size: 1.25rem;
+        line-height: var(--vff-lh-heading);
     }
-    .trip i {
-        color: var(--vff-accent);
+    .trip .bi {
+        color: var(--vff-text-muted);
     }
     .figures {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         gap: 6px 16px;
-        margin: 6px 0 0;
+        margin: 8px 0 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
-        font-size: 14px;
     }
     .figures .km {
-        color: var(--vff-text);
+        font-size: var(--vff-fs-md);
         font-weight: 700;
-        font-size: 16px;
-    }
-    .era-pill {
-        padding: 2px 10px;
-        border-radius: var(--vff-radius-pill);
-        background-color: var(--vff-accent-soft);
-        color: var(--vff-accent);
-        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: var(--vff-text);
     }
     .note {
-        margin: 6px 0 0;
-        font-size: 13px;
+        margin: 8px 0 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
+    .map-link {
+        margin-top: 8px;
+    }
     h3 {
-        margin: 16px 0 8px;
-        font-family: var(--vff-font-heading);
-        font-size: 15px;
+        margin: 24px 0 8px;
     }
     .legs,
     .stations {
@@ -592,14 +545,16 @@
     }
     .legs li {
         display: grid;
-        grid-template-columns: 72px minmax(0, 1fr);
-        gap: 10px;
-        padding: 6px 0;
-        border-bottom: 1px dashed var(--vff-border);
-        font-size: 14px;
+        grid-template-columns: 5.5rem minmax(0, 1fr);
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--vff-border);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
     }
     .leg-km {
-        font-weight: 700;
+        font-weight: 600;
         text-align: right;
         font-variant-numeric: tabular-nums;
     }
@@ -607,75 +562,89 @@
         display: flex;
         flex-direction: column;
         min-width: 0;
-    }
-    .leg-body a {
-        color: var(--vff-text);
-        text-decoration: none;
         overflow-wrap: anywhere;
     }
-    .leg-body a:hover {
-        color: var(--vff-accent);
-        text-decoration: underline;
+    .leg-body :global(a) {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
     }
     .leg-body small {
+        font-size: var(--vff-fs-xs);
         color: var(--vff-text-muted);
     }
     .warnings {
-        margin: 12px 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin: 16px 0 0;
         padding: 0;
         list-style: none;
-        font-size: 13px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
     .warnings li {
-        padding: 2px 0;
+        font-family: inherit;
     }
-    .warnings i {
-        color: var(--vff-accent);
-    }
-    .link-btn {
-        margin-top: 10px;
-        padding: 0;
-        border: 0;
-        background: none;
-        color: var(--vff-accent);
-        font: inherit;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-    }
-    .actions .link-btn {
-        margin-top: 0;
+    .result-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 16px;
+        margin-top: 12px;
+        margin-left: -8px;
     }
     .stations {
-        columns: 3 200px;
+        columns: 3 14rem;
+        column-gap: 32px;
         margin-top: 8px;
-        font-size: 13px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.8;
     }
-    .stations a {
-        color: var(--vff-text);
-        text-decoration: none;
+    .stations[hidden] {
+        display: none;
     }
-    .stations a:hover {
-        color: var(--vff-accent);
-    }
-    @media (max-width: 760px) {
+
+    /* Tablette et téléphone : départ, inversion, arrivée l'un sous l'autre ; année et bouton
+       côte à côte. */
+    @media (max-width: 900px) {
         .route-form {
             grid-template-columns: minmax(0, 1fr) auto;
-        }
-        .station-field {
-            grid-column: 1 / -1;
+            grid-template-areas:
+                'from from'
+                'swap swap'
+                'to to'
+                'year submit'
+                'heritage heritage';
         }
         .swap {
-            grid-column: 1 / -1;
             justify-self: center;
+            margin-top: 0;
+        }
+        .swap .bi {
             transform: rotate(90deg);
         }
-        .year-field {
-            grid-column: 1;
+    }
+    @media (max-width: 600px) {
+        .route-form {
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-areas:
+                'from'
+                'swap'
+                'to'
+                'year'
+                'submit'
+                'heritage';
         }
-        .actions {
-            grid-column: 2;
+        .route-submit {
+            margin-top: 0;
+        }
+        .route-submit .vff-btn {
+            width: 100%;
+        }
+        .legs li {
+            grid-template-columns: 4.5rem minmax(0, 1fr);
         }
     }
 </style>

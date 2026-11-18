@@ -1,47 +1,84 @@
 <script>
-    import { onDestroy } from 'svelte';
+    import Field from '$components/ui/Field.svelte';
     import { i18n } from '$lib/i18n.js';
+    import { MAP_MODES } from '$lib/railStyle.js';
 
-    // `eras` : toutes les décennies proposées par la carte (1900 → 2030).
+    /**
+     * Fenêtre « Intégrer la carte » : réglages de la carte intégrable (/embed/maps) et code
+     * <iframe> à copier. Vrai dialogue modal (<dialog> + showModal()) : le navigateur piège le
+     * focus, ferme à Échap et rend le focus au bouton « Intégrer » ; un clic hors de la fenêtre
+     * la ferme aussi (closedby="any", avec repli pour les navigateurs qui l'ignorent).
+     *
+     * Props : open (bindable), defaultEra (décennie affichée par la carte), eras, currentEra.
+     */
     let {
         open = $bindable(false),
         defaultEra = 2030,
         eras = [1990, 2000, 2010, 2020, 2030],
+        currentEra = null,
     } = $props();
 
-    // Verrouille le scroll du body pendant que la modale est ouverte pour
-    // que la molette agisse sur le contenu de la modale (pas sur la page).
-    $effect(() => {
-        if (typeof document === 'undefined') return;
-        if (open) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-    });
-
-    onDestroy(() => {
-        if (typeof document !== 'undefined') document.body.style.overflow = '';
-    });
+    const uid = $props.id();
+    const titleId = `${uid}-title`;
+    let dialogEl = $state();
+    let snippetEl = $state();
 
     let width = $state('100%');
     let height = $state(500);
-    let era = $state(defaultEra);
+    let era = $state(2030);
     let theme = $state('auto');
+    let mode = $state('traffic');
     let showTimeline = $state(true);
     let showLegend = $state(true);
     let showVanished = $state(false);
     let showAttribution = $state(true);
-    let copyState = $state('idle'); // 'idle' | 'copied'
+    // '' | 'copied' | 'failed'
+    let copyState = $state('');
+    let previewOpen = $state(false);
 
+    /** Traduction (toujours une chaîne : i18next la type aussi en objet). */
+    const t = (/** @type {string} */ key, /** @type {Record<string, unknown>} */ params = {}) =>
+        String($i18n.t(key, params));
     const ERAS = $derived(eras?.length ? eras : [1990, 2000, 2010, 2020, 2030]);
     const LATEST_ERA = $derived(ERAS[ERAS.length - 1]);
+    const todayEra = $derived(currentEra ?? LATEST_ERA);
 
-    // À chaque ouverture : repartir de l'ère affichée sur la carte (avant, la
-    // valeur initiale restait figée sur 2030 quel que soit le choix du visiteur).
+    // Ouverture et fermeture pilotées par `open` : showModal() / close() du navigateur.
     $effect(() => {
-        if (open) era = defaultEra;
+        if (!dialogEl) return;
+        if (open && !dialogEl.open) {
+            // Repartir de l'époque affichée par la carte.
+            era = defaultEra;
+            copyState = '';
+            dialogEl.showModal();
+        } else if (!open && dialogEl.open) {
+            dialogEl.close();
+        }
     });
+
+    // Fermeture par Échap, par le bouton ou par un clic dehors : `open` suit.
+    function onClose() {
+        open = false;
+        previewOpen = false;
+    }
+
+    // Repli de closedby="any" (Safari) : clic pressé ET relâché hors du cadre de la fenêtre.
+    const lightDismissNative =
+        typeof HTMLDialogElement !== 'undefined' && 'closedBy' in HTMLDialogElement.prototype;
+    let pressedOutside = false;
+    function outside(e) {
+        const r = dialogEl.getBoundingClientRect();
+        return (
+            e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom
+        );
+    }
+    function onPointerDown(e) {
+        if (!lightDismissNative) pressedOutside = outside(e);
+    }
+    function onPointerUp(e) {
+        if (!lightDismissNative && pressedOutside && outside(e)) dialogEl.close();
+        pressedOutside = false;
+    }
 
     const baseUrl = $derived(
         typeof window !== 'undefined'
@@ -50,25 +87,30 @@
     );
 
     const queryString = $derived.by(() => {
-        const params = new URLSearchParams();
-        if (era !== LATEST_ERA) params.set('era', String(era));
-        if (theme !== 'auto') params.set('theme', theme);
-        if (!showTimeline) params.set('timeline', '0');
-        if (!showLegend) params.set('legend', '0');
-        if (showVanished) params.set('showVanished', '1');
-        if (!showAttribution) params.set('attribution', '0');
-        const s = params.toString();
+        // Seuls les réglages différents du défaut figurent dans l'adresse.
+        const params = {
+            ...(era !== LATEST_ERA && { era: String(era) }),
+            ...(theme !== 'auto' && { theme }),
+            ...(mode !== 'traffic' && { mode }),
+            ...(!showTimeline && { timeline: '0' }),
+            ...(!showLegend && { legend: '0' }),
+            ...(showVanished && { showVanished: '1' }),
+            ...(!showAttribution && { attribution: '0' }),
+        };
+        const s = new URLSearchParams(params).toString();
         return s ? `?${s}` : '';
     });
 
     const embedUrl = $derived(`${baseUrl}${queryString}`);
+    const safeHeight = $derived(Math.min(2000, Math.max(200, Number(height) || 500)));
+    const safeWidth = $derived(String(width).trim().replace(/["<>]/g, '') || '100%');
 
     const snippet = $derived(`<iframe
   src="${embedUrl}"
-  width="${width}"
-  height="${height}"
-  style="border: 1px solid #e2e2e2; border-radius: 12px;"
-  title="${$i18n.t('maps.embed.iframe_title')}"
+  width="${safeWidth}"
+  height="${safeHeight}"
+  style="border: 1px solid #c8ced4; border-radius: 6px;"
+  title="${t('maps.embed.iframe_title')}"
   allowfullscreen
   loading="lazy"
 ></iframe>`);
@@ -77,316 +119,313 @@
         try {
             await navigator.clipboard.writeText(snippet);
             copyState = 'copied';
-            setTimeout(() => (copyState = 'idle'), 2000);
-        } catch (_) {
-            // Fallback : sélectionne le texte si clipboard indispo (iframe locked-down).
-            const textarea = document.querySelector('.embed-snippet');
-            textarea?.select();
+        } catch {
+            // Presse-papiers indisponible (page sans HTTPS, cadre verrouillé) : on sélectionne.
+            snippetEl?.focus();
+            snippetEl?.select();
+            copyState = 'failed';
         }
     }
 
-    function close() {
-        open = false;
-    }
-
-    function onBackdropClick(e) {
-        if (e.target === e.currentTarget) close();
+    function eraLabel(y) {
+        return y === todayEra ? t('maps.timeline.today') : String(y);
     }
 </script>
 
-{#if open}
-    <div class="modal-backdrop" role="presentation" onclick={onBackdropClick}>
-        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="embed-modal-title">
-            <div class="modal-head">
-                <h2 id="embed-modal-title">
-                    <i class="bi bi-code-slash"></i>
-                    {$i18n.t('maps.embed.title')}
-                </h2>
-                <button
-                    type="button"
-                    class="close-btn"
-                    onclick={close}
-                    aria-label={$i18n.t('common.close')}
-                >
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-
-            <p class="modal-intro">{$i18n.t('maps.embed.intro')}</p>
-
-            <div class="modal-body">
-                <div class="form-grid">
-                    <label class="field">
-                        <span>{$i18n.t('maps.embed.width')}</span>
-                        <input type="text" bind:value={width} placeholder="100%" />
-                    </label>
-                    <label class="field">
-                        <span>{$i18n.t('maps.embed.height')} (px)</span>
-                        <input type="number" bind:value={height} min="200" max="2000" />
-                    </label>
-                    <label class="field">
-                        <span>{$i18n.t('maps.era_selector')}</span>
-                        <select bind:value={era}>
-                            {#each ERAS as y}
-                                <option value={y}>{y}</option>
-                            {/each}
-                        </select>
-                    </label>
-                    <label class="field">
-                        <span>{$i18n.t('maps.embed.theme')}</span>
-                        <select bind:value={theme}>
-                            <option value="auto">{$i18n.t('maps.embed.theme_auto')}</option>
-                            <option value="light">{$i18n.t('maps.embed.theme_light')}</option>
-                            <option value="dark">{$i18n.t('maps.embed.theme_dark')}</option>
-                        </select>
-                    </label>
-                </div>
-
-                <div class="toggles">
-                    <label class="toggle">
-                        <input type="checkbox" bind:checked={showTimeline} />
-                        <span>{$i18n.t('maps.embed.show_timeline')}</span>
-                    </label>
-                    <label class="toggle">
-                        <input type="checkbox" bind:checked={showLegend} />
-                        <span>{$i18n.t('maps.embed.show_legend')}</span>
-                    </label>
-                    <label class="toggle">
-                        <input type="checkbox" bind:checked={showVanished} />
-                        <span>{$i18n.t('maps.embed.show_vanished')}</span>
-                    </label>
-                    <label class="toggle">
-                        <input type="checkbox" bind:checked={showAttribution} />
-                        <span>{$i18n.t('maps.embed.show_attribution')}</span>
-                    </label>
-                </div>
-
-                <div class="snippet-block">
-                    <label for="embed-snippet">{$i18n.t('maps.embed.snippet_label')}</label>
-                    <textarea
-                        id="embed-snippet"
-                        class="embed-snippet"
-                        readonly
-                        rows="7"
-                        value={snippet}
-                    ></textarea>
-                    <button type="button" class="vff-btn primary copy-btn" onclick={copy}>
-                        <i class="bi {copyState === 'copied' ? 'bi-check-lg' : 'bi-clipboard'}"></i>
-                        {copyState === 'copied'
-                            ? $i18n.t('maps.embed.copied')
-                            : $i18n.t('maps.embed.copy')}
-                    </button>
-                </div>
-
-                <details class="preview-details">
-                    <summary>{$i18n.t('maps.embed.preview')}</summary>
-                    <div class="preview-wrapper">
-                        <iframe
-                            src={embedUrl}
-                            width="100%"
-                            height="400"
-                            style="border: 1px solid var(--vff-border); border-radius: 8px;"
-                            title={$i18n.t('maps.embed.preview_title')}
-                            allowfullscreen
-                            loading="lazy"
-                        ></iframe>
-                    </div>
-                </details>
-            </div>
-        </div>
+<dialog
+    bind:this={dialogEl}
+    class="embed-dialog"
+    aria-labelledby={titleId}
+    closedby="any"
+    onclose={onClose}
+    onpointerdown={onPointerDown}
+    onpointerup={onPointerUp}
+>
+    <div class="dialog-head">
+        <h2 id={titleId}>{t('maps.embed.title')}</h2>
+        <button
+            type="button"
+            class="close-btn"
+            onclick={() => dialogEl.close()}
+            aria-label={t('common.close')}
+            title={t('common.close')}
+        >
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
     </div>
-{/if}
+
+    <div class="dialog-body">
+        <p class="intro">{t('maps.embed.intro')}</p>
+
+        <div class="form-grid">
+            <Field
+                id={`${uid}-width`}
+                label={t('maps.embed.width')}
+                hint={t('maps.embed.width_hint')}
+            >
+                {#snippet children(attrs)}
+                    <input {...attrs} class="vff-input" type="text" bind:value={width} />
+                {/snippet}
+            </Field>
+            <Field id={`${uid}-height`} label={t('maps.embed.height')}>
+                {#snippet children(attrs)}
+                    <input
+                        {...attrs}
+                        class="vff-input"
+                        type="number"
+                        inputmode="numeric"
+                        min="200"
+                        max="2000"
+                        step="10"
+                        bind:value={height}
+                    />
+                {/snippet}
+            </Field>
+            <Field id={`${uid}-era`} label={t('maps.era_selector')}>
+                {#snippet children(attrs)}
+                    <select {...attrs} class="vff-select" bind:value={era}>
+                        {#each ERAS as y (y)}
+                            <option value={y}>{eraLabel(y)}</option>
+                        {/each}
+                    </select>
+                {/snippet}
+            </Field>
+            <Field id={`${uid}-mode`} label={t('maps.embed.mode')}>
+                {#snippet children(attrs)}
+                    <select {...attrs} class="vff-select" bind:value={mode}>
+                        {#each MAP_MODES as m (m)}
+                            <option value={m}>{t(`maps.mode.${m}`)}</option>
+                        {/each}
+                    </select>
+                {/snippet}
+            </Field>
+            <Field id={`${uid}-theme`} label={t('maps.embed.theme')}>
+                {#snippet children(attrs)}
+                    <select {...attrs} class="vff-select" bind:value={theme}>
+                        <option value="auto">{t('maps.embed.theme_auto')}</option>
+                        <option value="light">{t('maps.embed.theme_light')}</option>
+                        <option value="dark">{t('maps.embed.theme_dark')}</option>
+                    </select>
+                {/snippet}
+            </Field>
+        </div>
+
+        <fieldset class="options">
+            <legend class="vff-label">{t('maps.embed.options')}</legend>
+            <label class="vff-check">
+                <input type="checkbox" bind:checked={showTimeline} />
+                {t('maps.embed.show_timeline')}
+            </label>
+            <label class="vff-check">
+                <input type="checkbox" bind:checked={showLegend} />
+                {t('maps.embed.show_legend')}
+            </label>
+            <label class="vff-check">
+                <input type="checkbox" bind:checked={showVanished} />
+                {t('maps.embed.show_vanished')}
+            </label>
+            <label class="vff-check">
+                <input type="checkbox" bind:checked={showAttribution} />
+                {t('maps.embed.show_attribution')}
+            </label>
+        </fieldset>
+
+        <Field id={`${uid}-snippet`} label={t('maps.embed.snippet_label')}>
+            {#snippet children(attrs)}
+                <textarea
+                    {...attrs}
+                    bind:this={snippetEl}
+                    class="vff-textarea snippet"
+                    readonly
+                    rows="9"
+                    spellcheck="false"
+                    value={snippet}
+                ></textarea>
+            {/snippet}
+        </Field>
+        <div class="copy-row">
+            <button type="button" class="vff-btn primary" onclick={copy}>
+                <i class="bi bi-clipboard" aria-hidden="true"></i>
+                {t('maps.embed.copy')}
+            </button>
+            <p class="copy-status" class:failed={copyState === 'failed'} role="status">
+                {#if copyState === 'copied'}<i class="bi bi-check2" aria-hidden="true"></i>
+                    {t('maps.embed.copied')}{:else if copyState === 'failed'}{t(
+                        'maps.embed.copy_failed',
+                    )}{/if}
+            </p>
+        </div>
+
+        <details class="preview" ontoggle={(e) => (previewOpen = e.currentTarget.open)}>
+            <summary>{t('maps.embed.preview')}</summary>
+            {#if previewOpen}
+                <iframe
+                    src={embedUrl}
+                    width="100%"
+                    height="400"
+                    title={t('maps.embed.preview_title')}
+                    allowfullscreen
+                ></iframe>
+            {/if}
+        </details>
+    </div>
+</dialog>
 
 <style>
-    .modal-backdrop {
-        position: fixed;
-        inset: 0;
-        background-color: rgba(0, 0, 0, 0.55);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        backdrop-filter: blur(4px);
-        animation: fade-in 200ms ease;
-    }
-    @keyframes fade-in {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-    }
-    .modal {
-        background-color: var(--vff-bg);
+    .embed-dialog {
+        width: min(720px, calc(100vw - 32px));
+        max-width: none;
+        max-height: calc(100dvh - 32px);
+        padding: 0;
+        border: 1px solid var(--vff-border-strong);
         border-radius: var(--vff-radius-lg);
-        max-width: 720px;
-        width: 100%;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 24px 64px var(--vff-shadow-strong);
-        border: 1px solid var(--vff-border);
+        background-color: var(--vff-bg-elevated);
+        box-shadow: var(--vff-shadow-popover);
+        color: var(--vff-text);
     }
-    .modal-head {
+    /* Le défilement reste dans la fenêtre (pas de la page derrière). */
+    .embed-dialog:modal {
+        overscroll-behavior: contain;
+    }
+    .embed-dialog::backdrop {
+        overflow: hidden;
+        overscroll-behavior: contain;
+        background-color: rgb(0 0 0 / 0.55);
+    }
+
+    .dialog-head {
+        position: sticky;
+        top: 0;
+        z-index: 1;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 18px 22px;
+        gap: 16px;
+        padding: 16px 16px 16px 24px;
         border-bottom: 1px solid var(--vff-border);
+        background-color: var(--vff-bg-elevated);
     }
-    .modal-head h2 {
-        font-family: var(--vff-font-display);
-        font-size: 20px;
+    h2 {
         margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: var(--vff-text);
-    }
-    .modal-head h2 i {
-        color: var(--vff-accent);
+        font-size: 1.375rem;
+        text-wrap: balance;
     }
     .close-btn {
-        background: transparent;
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
         border: 0;
-        font-size: 18px;
-        color: var(--vff-text-muted);
-        padding: 6px 10px;
         border-radius: var(--vff-radius-sm);
+        background: transparent;
+        color: var(--vff-text-muted);
+        font-size: 18px;
         cursor: pointer;
-        transition: all var(--vff-transition);
+        transition:
+            background-color var(--vff-transition),
+            color var(--vff-transition);
     }
     .close-btn:hover {
         background-color: var(--vff-bg-muted);
         color: var(--vff-text);
     }
-    .modal-intro {
-        margin: 18px 22px 0;
-        color: var(--vff-text-muted);
-        font-size: 14px;
-        line-height: 1.5;
-    }
-    .modal-body {
-        padding: 18px 22px 24px;
-    }
 
-    .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-        margin-bottom: 18px;
-    }
-    .field {
+    .dialog-body {
         display: flex;
         flex-direction: column;
-        gap: 4px;
-        font-size: 13px;
+        gap: 24px;
+        padding: 20px 24px 24px;
     }
-    .field span {
-        font-family: var(--vff-font-display);
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+    .intro {
+        margin: 0;
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-md);
+        line-height: 1.5;
         color: var(--vff-text-muted);
     }
-    .field input,
-    .field select {
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-sm);
-        padding: 8px 12px;
-        font-family: var(--vff-font-body);
-        color: var(--vff-text);
-        font-size: 14px;
-    }
-    .field input:focus,
-    .field select:focus {
-        outline: none;
-        border-color: var(--vff-accent);
-        box-shadow: 0 0 0 3px var(--vff-accent-soft);
-    }
-
-    .toggles {
+    .form-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        padding: 14px;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        margin-bottom: 18px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px 24px;
+        align-items: start;
     }
-    .toggle {
+    /* L'aide passe sous le champ : les champs de la grille restent alignés. */
+    .form-grid :global(.vff-hint) {
+        order: 3;
+    }
+    .options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 24px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        min-width: 0;
+    }
+    .options legend {
+        margin-bottom: 8px;
+        padding: 0;
+    }
+    .snippet {
+        min-height: 0;
+        font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
+        white-space: pre;
+        overflow-x: auto;
+        resize: vertical;
+    }
+    .copy-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 16px;
+        margin-top: -12px;
+    }
+    .copy-status {
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 14px;
+        gap: 6px;
+        margin: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        color: var(--vff-success);
+    }
+    .copy-status.failed {
         color: var(--vff-text);
-        cursor: pointer;
     }
-    .toggle input {
-        accent-color: var(--vff-accent);
-        width: 16px;
-        height: 16px;
+    .preview {
+        padding-top: 16px;
+        border-top: 1px solid var(--vff-border);
     }
-
-    .snippet-block {
-        position: relative;
-    }
-    .snippet-block label {
-        display: block;
-        font-family: var(--vff-font-display);
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--vff-text-muted);
-        margin-bottom: 6px;
-    }
-    .embed-snippet {
-        width: 100%;
-        font-family: var(--vff-font-secondary, ui-monospace, monospace);
-        font-size: 13px;
-        line-height: 1.5;
-        padding: 12px 14px;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        color: var(--vff-text);
-        resize: vertical;
-        min-height: 130px;
-    }
-    .copy-btn {
-        margin-top: 10px;
+    .preview summary {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        border: 0;
-    }
-
-    .preview-details {
-        margin-top: 20px;
-        border-top: 1px solid var(--vff-border);
-        padding-top: 18px;
-    }
-    .preview-details summary {
-        font-family: var(--vff-font-display);
-        font-size: 14px;
+        min-height: 32px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-md);
         font-weight: 600;
         cursor: pointer;
-        color: var(--vff-text);
-        padding: 4px 0;
     }
-    .preview-wrapper {
+    .preview iframe {
+        display: block;
         margin-top: 12px;
+        border: 1px solid var(--vff-border);
+        border-radius: var(--vff-radius-md);
     }
 
     @media (max-width: 600px) {
+        .dialog-head {
+            padding-left: 16px;
+        }
+        .dialog-body {
+            padding: 16px;
+        }
         .form-grid,
-        .toggles {
-            grid-template-columns: 1fr;
+        .options {
+            grid-template-columns: minmax(0, 1fr);
         }
     }
 </style>

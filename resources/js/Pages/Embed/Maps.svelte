@@ -1,26 +1,26 @@
 <script>
-    import { onMount } from 'svelte';
+    import { onMount, untrack } from 'svelte';
     import RailMap from '$components/Map/RailMap.svelte';
     import TimelineSlider from '$components/Map/TimelineSlider.svelte';
     import MapLegend from '$components/Map/MapLegend.svelte';
     import { i18n } from '$lib/i18n.js';
 
     /**
-     * Page d'intégration iframe - pleine fenêtre, sans header/footer.
+     * Page d'intégration iframe - pleine fenêtre, sans en-tête ni pied de page.
      *
-     * Query params supportés :
-     *   ?era=2000             (défaut 2030)
+     * Paramètres d'URL :
+     *   ?era=2000             (défaut : décennie actuelle)
      *   ?showVanished=1       (défaut 0)
-     *   ?center=2.5,47.0      (lng,lat ; défaut "2.5,47.0")
-     *   ?zoom=5.5             (défaut 5.5)
-     *   ?theme=dark|light     (défaut : valeur courante / système)
+     *   ?center=2.5,47.0      (lng,lat ; défaut : France entière, Corse comprise)
+     *   ?zoom=5.5             (défaut : France entière)
+     *   ?theme=dark|light     (défaut : réglage du visiteur)
      *   ?timeline=0           (défaut 1 = visible)
      *   ?legend=0             (défaut 1 = visible)
-     *   ?attribution=0        (défaut 1 = badge "Propulsé par VFF")
+     *   ?attribution=0        (défaut 1 = lien « Carte : VFF »)
      *   ?mode=electrification (couleur des tracés : traffic | electrification | gauge ; défaut traffic)
      */
 
-    // Ères servies par MapController::embed (toutes les décennies 1900 → 2030).
+    // Ères servies par MapController::embed (toutes les décennies 1830 → 2030).
     let { eras: erasProp = null, currentEraYear = 2030, dataVersion = null } = $props();
     const ERAS = $derived(
         erasProp?.length ? erasProp.map((e) => e.year) : [1990, 2000, 2010, 2020, 2030],
@@ -28,9 +28,22 @@
     const emptyYears = $derived(
         erasProp?.length ? erasProp.filter((e) => e.has_data === false).map((e) => e.year) : [],
     );
+    const eraLabels = $derived(
+        Object.fromEntries((erasProp ?? []).filter((e) => e.label).map((e) => [e.year, e.label])),
+    );
 
-    let selectedEra = $state(currentEraYear);
-    let showVanished = $state(false);
+    const FRANCE_BOUNDS = [
+        [-5.2, 41.3],
+        [9.6, 51.1],
+    ];
+    // Légende ouverte sur un cadre large : la France est cadrée à droite de la légende.
+    const fitPadding = (w) =>
+        w > 900 && parseBool(readParam('legend'), true)
+            ? { top: 24, right: 56, bottom: 32, left: 300 }
+            : { top: 60, right: 52, bottom: 28, left: 16 };
+
+    // Décennie affichée : la décennie actuelle à l'ouverture (ou celle de l'URL, lue au montage).
+    let selectedEra = $state(untrack(() => currentEraYear));
     // Catégories masquées : sans ?showVanished=1, les portions fermées /
     // déposées sont masquées (comportement historique de l'embed).
     let hidden = $state(['abandoned', 'dismantled']);
@@ -38,6 +51,9 @@
     let colorMode = $state('traffic');
     let center = $state([2.5, 47.0]);
     let zoom = $state(5.5);
+    // Sans ?center ni ?zoom : la France entière, quel que soit le format du cadre (lu avant la
+    // création de la carte, qui se fait au montage de RailMap, avant celui de cette page).
+    const fitFrance = readParam('center') === null && readParam('zoom') === null;
     let showTimeline = $state(true);
     let showLegend = $state(true);
     let showAttribution = $state(true);
@@ -57,8 +73,7 @@
         const era = Number.parseInt(readParam('era'), 10);
         if (Number.isFinite(era) && ERAS.includes(era)) selectedEra = era;
 
-        showVanished = parseBool(readParam('showVanished'), false);
-        hidden = showVanished ? [] : ['abandoned', 'dismantled'];
+        hidden = parseBool(readParam('showVanished'), false) ? [] : ['abandoned', 'dismantled'];
         showTimeline = parseBool(readParam('timeline'), true);
         showLegend = parseBool(readParam('legend'), true);
         showAttribution = parseBool(readParam('attribution'), true);
@@ -90,49 +105,62 @@
 </script>
 
 <svelte:head>
-    <title>VFF - {$i18n.t('maps.meta_title')}</title>
+    <title>{$i18n.t('maps.embed.iframe_title')}</title>
     <meta name="robots" content="noindex,nofollow" />
 </svelte:head>
 
-<div class="embed-root" bind:this={frameEl}>
+<main class="embed-root" bind:this={frameEl}>
+    <h1 class="vff-sr-only">{$i18n.t('maps.embed.iframe_title')}</h1>
     <RailMap
         era={selectedEra}
+        currentEra={currentEraYear}
         {hidden}
         mode={colorMode}
         {dataVersion}
         {center}
         {zoom}
         height="100%"
-        narrowBounds={[
-            [-5.2, 41.3],
-            [9.6, 51.1],
-        ]}
+        fitBounds={fitFrance ? FRANCE_BOUNDS : null}
+        {fitPadding}
+        popupLinksNewTab
         fullscreenContainer={frameEl}
-    />
+    >
+        {#if showLegend}
+            <div class="legend-slot">
+                <MapLegend
+                    era={selectedEra}
+                    currentEra={currentEraYear}
+                    bind:hidden
+                    bind:mode={colorMode}
+                />
+            </div>
+        {/if}
 
-    {#if showLegend}
-        <div class="embed-legend">
-            <MapLegend era={selectedEra} bind:hidden bind:mode={colorMode} />
-        </div>
-    {/if}
-
-    {#if showAttribution}
-        <a
-            class="embed-credit"
-            href="https://vff-project.org"
-            target="_blank"
-            rel="noopener"
-            title={$i18n.t('common.brand')}
-        >
-            <span class="logo-dot"></span>
-            {$i18n.t('maps.embed.powered_by')} <strong>VFF</strong>
-        </a>
-    {/if}
+        {#if showAttribution}
+            <a
+                class="embed-credit"
+                href="https://vff-project.org/maps"
+                target="_blank"
+                rel="noopener"
+            >
+                {$i18n.t('maps.embed.credit')}<i
+                    class="bi bi-box-arrow-up-right vff-ext"
+                    aria-hidden="true"
+                ></i><span class="vff-sr-only"> ({$i18n.t('common.new_tab')})</span>
+            </a>
+        {/if}
+    </RailMap>
 
     {#if showTimeline}
-        <TimelineSlider eras={ERAS} {emptyYears} bind:value={selectedEra} />
+        <TimelineSlider
+            eras={ERAS}
+            {emptyYears}
+            currentEra={currentEraYear}
+            labels={eraLabels}
+            bind:value={selectedEra}
+        />
     {/if}
-</div>
+</main>
 
 <style>
     .embed-root {
@@ -140,64 +168,58 @@
         display: flex;
         flex-direction: column;
         height: 100vh;
-        width: 100vw;
+        height: 100dvh;
+        width: 100%;
         background-color: var(--vff-bg);
     }
     .embed-root :global(.rail-map-wrapper) {
         flex: 1;
-        border-radius: 0;
-        border: none;
-        box-shadow: none;
+        min-height: 0;
     }
     .embed-root :global(.rail-map) {
         height: 100% !important;
     }
-
-    .embed-legend {
-        position: absolute;
-        top: 14px;
-        left: 14px;
-        z-index: 10;
-    }
-
-    /* En haut à droite, à côté des boutons de la carte : en bas, il recouvrait la fin
-       de la frise (« 2030 ») et l'attribution OpenStreetMap. */
-    .embed-credit {
-        position: absolute;
-        top: 12px;
-        right: 54px;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        background-color: var(--vff-bg);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-pill);
-        padding: 6px 12px;
-        font-family: var(--vff-font-display);
-        font-size: 12px;
-        color: var(--vff-text-muted);
-        text-decoration: none;
-        box-shadow: 0 4px 12px var(--vff-shadow);
-        transition: all var(--vff-transition);
-    }
-    .embed-credit:hover {
-        color: var(--vff-accent);
-        border-color: var(--vff-accent);
-    }
-    .embed-credit strong {
-        color: var(--vff-accent);
-        font-weight: 700;
-    }
-    .embed-credit .logo-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background-color: var(--vff-accent);
-    }
-
-    /* Quand la timeline n'est pas affichée, on enlève sa zone occupée. */
     .embed-root :global(.timeline) {
         flex-shrink: 0;
+    }
+
+    .legend-slot {
+        position: absolute;
+        top: 12px;
+        bottom: 40px;
+        left: 12px;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        pointer-events: none;
+    }
+    .legend-slot > :global(*) {
+        pointer-events: auto;
+    }
+
+    /* Lien vers VFF : en haut à droite, à gauche des boutons de la carte. */
+    .embed-credit {
+        position: absolute;
+        top: 10px;
+        right: 52px;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        padding: 4px 10px;
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-sm);
+        background-color: var(--vff-bg-elevated);
+        color: var(--vff-text);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        font-weight: 600;
+        text-decoration: none;
+        transition: border-color var(--vff-transition);
+    }
+    .embed-credit:hover {
+        border-color: var(--vff-accent-ink);
+        text-decoration: underline;
     }
 </style>

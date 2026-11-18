@@ -1,8 +1,8 @@
 <script>
-    import { onMount } from 'svelte';
+    import { onMount, untrack } from 'svelte';
+    import { Link, router } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
     import PageHero from '$components/PageHero.svelte';
-    import IconCard from '$components/IconCard.svelte';
     import SectionBlock from '$components/SectionBlock.svelte';
     import RailMap from '$components/Map/RailMap.svelte';
     import TimelineSlider from '$components/Map/TimelineSlider.svelte';
@@ -11,43 +11,27 @@
     import SearchBox from '$components/Map/SearchBox.svelte';
     import MapLegend from '$components/Map/MapLegend.svelte';
     import RoutePlanner from '$components/Map/RoutePlanner.svelte';
-    import { router } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
 
-    const features = [
-        {
-            icon: 'bi-sliders',
-            titleKey: 'maps.features.time_title',
-            textKey: 'maps.features.time_text',
-        },
-        {
-            icon: 'bi-bezier',
-            titleKey: 'maps.features.lines_title',
-            textKey: 'maps.features.lines_text',
-        },
-        {
-            icon: 'bi-train-freight-front',
-            titleKey: 'maps.features.materials_title',
-            textKey: 'maps.features.materials_text',
-        },
-        {
-            icon: 'bi-images',
-            titleKey: 'maps.features.archives_title',
-            textKey: 'maps.features.archives_text',
-        },
-    ];
+    // « Lire la carte » : ce que montre la carte, au présent (vocabulaire de la légende).
+    const READING = ['era', 'color', 'line', 'sheet', 'route', 'layers'];
 
     let { eras: erasProp = null, currentEraYear = 2030, dataVersion = 'v0' } = $props();
-    // TOUTES les décennies sont sélectionnables (1900 → 2030) ; celles sans
-    // tracé reconstitué sont signalées (marqueur estompé + bandeau) au lieu
-    // d'être masquées. Fallback aux 5 ères historiques si pas de prop.
+    // TOUTES les décennies sont sélectionnables (1830 → 2030) ; celles sans
+    // tracé reconstitué sont signalées (marqueur en pointillé + bandeau) au lieu
+    // d'être masquées. Repli sur 5 ères si pas de prop.
     const eras = $derived(
         erasProp?.length ? erasProp.map((e) => e.year) : [1990, 2000, 2010, 2020, 2030],
     );
     const emptyYears = $derived(
         erasProp?.length ? erasProp.filter((e) => e.has_data === false).map((e) => e.year) : [],
     );
-    let selectedEra = $state(currentEraYear);
+    // Noms des époques (base, en français) affichés sous l'année de la frise.
+    const eraLabels = $derived(
+        Object.fromEntries((erasProp ?? []).filter((e) => e.label).map((e) => [e.year, e.label])),
+    );
+    // Décennie affichée : la décennie actuelle à l'ouverture (ou celle de l'URL, lue au montage).
+    let selectedEra = $state(untrack(() => currentEraYear));
     const selectedIsEmpty = $derived(emptyYears.includes(selectedEra));
     // Catégories masquées via la légende interactive (tout visible par défaut :
     // réseau vivant ET disparu - fermées en tirets, déposées en pointillés).
@@ -77,11 +61,16 @@
         }
     }
 
-    // France métropolitaine et Corse, cadrée à l'ouverture sur téléphone (cf. RailMap).
+    // France métropolitaine et Corse, cadrée à l'ouverture à toutes les largeurs.
     const FRANCE_BOUNDS = [
         [-5.2, 41.3],
         [9.6, 51.1],
     ];
+    // Ordinateur : la légende ouverte occupe la gauche (272 px), les boutons de zoom la droite.
+    const fitPadding = (w) =>
+        w > 900
+            ? { top: 24, right: 56, bottom: 32, left: 300 }
+            : { top: 60, right: 52, bottom: 28, left: 16 };
 
     const OVERLAY_OPTIONS = [
         { value: 'none', labelKey: 'maps.overlay.none' },
@@ -125,338 +114,324 @@
 
 <Layout compactHeader>
     <main>
-        <PageHero
-            eyebrow={$i18n.t('maps.hero.eyebrow')}
-            title={$i18n.t('maps.hero.title')}
-            subtitle={$i18n.t('maps.hero.subtitle')}
-            status={$i18n.t('maps.hero.status')}
-        />
+        <PageHero title={$i18n.t('maps.hero.title')} subtitle={$i18n.t('maps.hero.subtitle')} />
 
-        <section class="map-stage">
-            <div class="map-frame" bind:this={mapFrameEl}>
-                <RailMap
-                    era={selectedEra}
-                    currentEra={currentEraYear}
-                    {hidden}
-                    mode={colorMode}
-                    {overlay}
-                    {dataVersion}
-                    {flyTarget}
-                    {route}
-                    height="560px"
-                    narrowBounds={FRANCE_BOUNDS}
-                    fullscreenContainer={mapFrameEl}
-                    onLineClick={(props) => (drawerLine = props)}
-                >
-                    <LineDrawer bind:line={drawerLine} />
-                </RailMap>
-                <div class="map-legend-slot">
-                    <MapLegend
+        <section class="map-stage" id="carte" aria-labelledby="map-title">
+            <div class="vff-container">
+                <h2 class="vff-sr-only" id="map-title">{$i18n.t('maps.map_title')}</h2>
+                <div class="map-frame" bind:this={mapFrameEl}>
+                    <div class="map-toolbar">
+                        <div class="toolbar-search">
+                            <SearchBox onPick={onSearchPick} />
+                        </div>
+                        <div class="toolbar-tools">
+                            <label class="overlay-label" for="map-overlay">
+                                <i class="bi bi-layers" aria-hidden="true"></i>
+                                <span class="overlay-label-text"
+                                    >{$i18n.t('maps.overlay.label')}</span
+                                >
+                            </label>
+                            <select
+                                id="map-overlay"
+                                class="vff-select overlay-select"
+                                bind:value={overlay}
+                            >
+                                {#each OVERLAY_OPTIONS as opt (opt.value)}
+                                    <option value={opt.value}>{$i18n.t(opt.labelKey)}</option>
+                                {/each}
+                            </select>
+                            <button
+                                type="button"
+                                class="vff-btn secondary"
+                                aria-haspopup="dialog"
+                                onclick={() => (embedModalOpen = true)}
+                            >
+                                <i class="bi bi-code-slash" aria-hidden="true"></i>
+                                {$i18n.t('maps.embed.button')}
+                            </button>
+                        </div>
+                    </div>
+
+                    <RailMap
                         era={selectedEra}
                         currentEra={currentEraYear}
-                        bind:hidden
-                        bind:mode={colorMode}
+                        {hidden}
+                        mode={colorMode}
+                        {overlay}
+                        {dataVersion}
+                        {flyTarget}
+                        {route}
+                        height="clamp(400px, 64vh, 720px)"
+                        fitBounds={FRANCE_BOUNDS}
+                        {fitPadding}
+                        selectedLine={drawerLine?.slug ?? null}
+                        fullscreenContainer={mapFrameEl}
+                        onLineClick={(props) => (drawerLine = props)}
+                    >
+                        <div class="legend-slot">
+                            <MapLegend
+                                era={selectedEra}
+                                currentEra={currentEraYear}
+                                bind:hidden
+                                bind:mode={colorMode}
+                            />
+                        </div>
+                        {#if selectedIsEmpty}
+                            <p class="era-empty">
+                                <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                                {$i18n.t('maps.era.no_data', { year: selectedEra })}
+                            </p>
+                        {/if}
+                        <LineDrawer bind:line={drawerLine} currentEra={currentEraYear} />
+                    </RailMap>
+
+                    <TimelineSlider
+                        {eras}
+                        {emptyYears}
+                        currentEra={currentEraYear}
+                        labels={eraLabels}
+                        bind:value={selectedEra}
                     />
                 </div>
-                {#if selectedIsEmpty}
-                    <div class="era-empty" role="status">
-                        <i class="bi bi-hourglass-split"></i>
-                        {$i18n.t('maps.era.no_data', { year: selectedEra })}
-                    </div>
-                {/if}
-                <div class="map-search">
-                    <SearchBox onPick={onSearchPick} />
-                </div>
-                <div class="map-actions">
-                    <label class="overlay-select">
-                        <i class="bi bi-layers"></i>
-                        <select bind:value={overlay} aria-label={$i18n.t('maps.overlay.label')}>
-                            {#each OVERLAY_OPTIONS as opt}
-                                <option value={opt.value}>{$i18n.t(opt.labelKey)}</option>
-                            {/each}
-                        </select>
-                    </label>
-                    <button
-                        type="button"
-                        class="map-action-btn"
-                        onclick={() => (embedModalOpen = true)}
-                    >
-                        <i class="bi bi-code-slash"></i>
-                        <span>{$i18n.t('maps.embed.button')}</span>
-                    </button>
-                </div>
-                <TimelineSlider {eras} {emptyYears} bind:value={selectedEra} />
             </div>
+        </section>
+
+        <div class="vff-container route-section">
             <RoutePlanner
                 year={selectedEra}
                 minYear={eras[0]}
                 maxYear={eras[eras.length - 1]}
+                currentEra={currentEraYear}
+                mapAnchor="carte"
                 {onRoute}
                 onClear={() => (route = null)}
             />
-        </section>
+        </div>
 
-        <EmbedCodeModal bind:open={embedModalOpen} defaultEra={selectedEra} {eras} />
+        <EmbedCodeModal
+            bind:open={embedModalOpen}
+            defaultEra={selectedEra}
+            {eras}
+            currentEra={currentEraYear}
+        />
 
-        <SectionBlock title={$i18n.t('maps.features.title')} maxWidth="1100px">
-            <div class="features-grid">
-                {#each features as f}
-                    <IconCard icon={f.icon} title={$i18n.t(f.titleKey)} text={$i18n.t(f.textKey)} />
+        <SectionBlock kind="alt" title={$i18n.t('maps.read.title')} maxWidth="1100px">
+            <dl class="reading">
+                {#each READING as key (key)}
+                    <div class="reading-item">
+                        <dt>{$i18n.t(`maps.read.${key}_term`)}</dt>
+                        <dd>{$i18n.t(`maps.read.${key}_text`)}</dd>
+                    </div>
                 {/each}
+            </dl>
+        </SectionBlock>
+
+        <SectionBlock title={$i18n.t('maps.tech.title')} maxWidth="720px">
+            <div class="vff-prose">
+                <p>{$i18n.t('maps.tech.paragraph')}</p>
             </div>
+            <Link href="/credits/tech" class="vff-link">{$i18n.t('maps.tech.credits')}</Link>
         </SectionBlock>
 
-        <SectionBlock kind="alt" title={$i18n.t('maps.tech.title')} maxWidth="780px">
-            <p class="tech-paragraph">{$i18n.t('maps.tech.paragraph')}</p>
-        </SectionBlock>
-
-        <SectionBlock title={$i18n.t('maps.progress.title')} maxWidth="700px">
-            <div class="progress-card">
-                <i class="bi bi-flag-fill"></i>
-                <div>
-                    <h3>{$i18n.t('maps.progress.phase')}</h3>
-                    <p>
-                        {@html $i18n.t('maps.progress.description', {
-                            roadmap_url:
-                                'https://github.com/UnxWares/VFF-Project/blob/main/ROADMAP.md',
-                        })}
-                    </p>
-                </div>
-            </div>
-        </SectionBlock>
-
-        <SectionBlock kind="cta" maxWidth="640px">
-            <h2>{$i18n.t('maps.cta.title')}</h2>
-            <p>{$i18n.t('maps.cta.text')}</p>
-            <a
-                href="https://discord.com/invite/6SwTfXBx4h"
-                target="_blank"
-                rel="noopener"
-                class="vff-btn on-cta"
-            >
-                <i class="bi bi-discord"></i>
-                {$i18n.t('maps.cta.discord')}
-            </a>
+        <SectionBlock kind="cta" title={$i18n.t('maps.cta.title')} intro={$i18n.t('maps.cta.text')}>
+            {#snippet actions()}
+                <Link href="/contribute" class="vff-btn primary">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                    {$i18n.t('maps.cta.contribute')}
+                </Link>
+                <a
+                    href="https://discord.com/invite/6SwTfXBx4h"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="vff-btn secondary"
+                >
+                    <i class="bi bi-discord" aria-hidden="true"></i>
+                    {$i18n.t('maps.cta.discord')}<span class="vff-sr-only">
+                        ({$i18n.t('common.new_tab')})</span
+                    >
+                </a>
+            {/snippet}
         </SectionBlock>
     </main>
 </Layout>
 
 <style>
+    /* La carte, élément principal de la page, sur la grille commune (même bord gauche que le
+       bandeau de titre), sans chevaucher le bandeau. */
     .map-stage {
-        max-width: 1180px;
-        margin: -20px auto 0;
-        padding: 0 16px 40px;
-        position: relative;
-        z-index: 2;
+        padding-top: var(--vff-block-space);
+        scroll-margin-top: 80px;
     }
     .map-frame {
         position: relative;
         display: flex;
         flex-direction: column;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-lg);
-        box-shadow: 0 24px 64px var(--vff-shadow-strong);
         overflow: hidden;
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-lg);
+        background-color: var(--vff-bg-elevated);
     }
-    /* En plein écran (natif ou pseudo), on remplit l'écran et la carte prend tout l'espace dispo. */
+    /* Plein écran (natif ou pseudo) : la carte prend toute la hauteur entre la barre et la frise. */
     .map-frame:fullscreen,
     .map-frame:global(.maplibregl-pseudo-fullscreen) {
+        border: 0;
         border-radius: 0;
-        border: none;
-        box-shadow: none;
     }
     .map-frame:fullscreen :global(.rail-map-wrapper),
     .map-frame:global(.maplibregl-pseudo-fullscreen) :global(.rail-map-wrapper) {
         flex: 1;
-        border-radius: 0;
-        border: none;
-        box-shadow: none;
     }
     .map-frame:fullscreen :global(.rail-map),
     .map-frame:global(.maplibregl-pseudo-fullscreen) :global(.rail-map) {
         height: 100% !important;
     }
-    .map-legend-slot {
+
+    /* Barre d'outils au-dessus de la carte : la recherche, le calque et « Intégrer » ne se
+       superposent plus à la carte ni entre eux, à aucune largeur. */
+    .map-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px 16px;
+        padding: 12px;
+        border-bottom: 1px solid var(--vff-border);
+        background-color: var(--vff-bg-elevated);
+    }
+    .toolbar-search {
+        flex: 1 1 320px;
+        max-width: 480px;
+        min-width: 0;
+    }
+    .toolbar-tools {
+        display: flex;
+        align-items: center;
+        gap: 8px 12px;
+        margin-left: auto;
+        min-width: 0;
+    }
+    .overlay-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        font-weight: 600;
+        color: var(--vff-text);
+        white-space: nowrap;
+    }
+    .overlay-label .bi {
+        color: var(--vff-text-muted);
+    }
+    .overlay-select {
+        width: auto;
+        max-width: 20rem;
+        min-width: 0;
+    }
+
+    /* Calques posés sur la carte (dans son cadre, sous les boutons de MapLibre). La légende a un
+       haut et un bas : elle défile au lieu de dépasser, et laisse voir l'échelle. */
+    .legend-slot {
         position: absolute;
-        top: 16px;
-        left: 16px;
-        z-index: 10;
+        top: 12px;
+        bottom: 40px;
+        left: 12px;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        pointer-events: none;
+    }
+    .legend-slot > :global(*) {
+        pointer-events: auto;
     }
     .era-empty {
         position: absolute;
-        top: 64px;
+        top: 12px;
         left: 50%;
+        z-index: 2;
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        max-width: min(420px, calc(100% - 340px));
+        margin: 0;
+        padding: 8px 12px;
         transform: translateX(-50%);
-        z-index: 9;
-        max-width: min(460px, calc(100% - 32px));
-        padding: 8px 14px;
-        background-color: var(--vff-bg);
-        border: 1px solid var(--vff-border);
+        border: 1px solid var(--vff-border-strong);
         border-left: 3px solid var(--vff-accent);
         border-radius: var(--vff-radius-sm);
-        box-shadow: 0 4px 12px var(--vff-shadow);
+        background-color: var(--vff-bg-elevated);
+        box-shadow: var(--vff-shadow-popover);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
+        color: var(--vff-text);
+    }
+
+    .route-section {
+        padding-block: var(--vff-section-space);
+    }
+
+    /* « Lire la carte » : définitions courtes, deux ou trois colonnes à filets. */
+    .reading {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px 32px;
+        margin: 0;
+    }
+    .reading-item {
+        padding-top: 16px;
+        border-top: 1px solid var(--vff-border-strong);
+    }
+    .reading dt {
+        margin: 0 0 6px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-h3);
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--vff-text);
+    }
+    .reading dd {
+        margin: 0;
         font-family: var(--vff-font-body);
-        font-size: 13px;
-        color: var(--vff-text);
-        text-align: center;
-    }
-    .era-empty i {
-        color: var(--vff-accent);
-        margin-right: 4px;
+        font-size: var(--vff-fs-body);
+        line-height: var(--vff-lh-body);
+        color: var(--vff-text-muted);
     }
 
-    .map-search {
-        position: absolute;
-        top: 16px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 11;
-    }
-    .map-actions {
-        position: absolute;
-        top: 16px;
-        right: 64px;
-        z-index: 10;
-        display: flex;
-        gap: 8px;
-    }
-    .map-action-btn {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 14px;
-        background-color: var(--vff-bg);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-pill);
-        font-family: var(--vff-font-display);
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--vff-text-muted);
-        box-shadow: 0 4px 12px var(--vff-shadow);
-        transition: all var(--vff-transition);
-    }
-    .map-action-btn:hover {
-        color: var(--vff-accent);
-        border-color: var(--vff-accent);
-    }
-    .map-action-btn i {
-        font-size: 14px;
-    }
-    .overlay-select {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 10px 6px 12px;
-        background-color: var(--vff-bg);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-pill);
-        font-family: var(--vff-font-display);
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--vff-text-muted);
-        box-shadow: 0 4px 12px var(--vff-shadow);
-    }
-    .overlay-select i {
-        font-size: 14px;
-        color: var(--vff-accent);
-    }
-    .overlay-select select {
-        background: transparent;
-        border: 0;
-        font-family: inherit;
-        font-size: inherit;
-        font-weight: inherit;
-        color: var(--vff-text);
-        cursor: pointer;
-        padding: 4px 0;
-    }
-    .overlay-select select:focus {
-        outline: none;
-    }
-
-    /* Téléphone (≤ 700 px, seuil où la légende se replie) : la recherche, la légende,
-       le sélecteur de calque et « Intégrer » se superposaient en haut de la carte (calque
-       coupé, légende cachée sous la recherche). Recherche sur toute la largeur, légende
-       repliée dessous, calque et intégration dans une barre entre la carte et la frise. */
-    @media (max-width: 700px) {
-        .map-search {
-            top: 10px;
-            left: 10px;
-            right: 52px;
-            transform: none;
-        }
-        .map-search :global(.search-box) {
-            min-width: 0;
+    /* Tablette et téléphone : la recherche sur toute la largeur, puis le calque et « Intégrer »
+       côte à côte ; la légende est repliée, le bandeau « pas encore de données » descend sous elle. */
+    @media (max-width: 900px) {
+        .toolbar-search {
+            flex-basis: 100%;
             max-width: none;
         }
-        .map-legend-slot {
-            top: 58px;
-            left: 10px;
+        .toolbar-tools {
+            width: 100%;
+            margin-left: 0;
+        }
+        .overlay-select {
+            flex: 1;
+            max-width: none;
         }
         .era-empty {
-            top: 104px;
-        }
-        .map-actions {
-            position: static;
-            order: 1;
-            flex-wrap: wrap;
-            padding: 12px 16px 0;
-            background-color: var(--vff-bg-elevated);
-            border-top: 1px solid var(--vff-border);
-        }
-        .map-frame :global(.timeline) {
-            order: 2;
-            border-top: 0;
+            top: 60px;
+            max-width: calc(100% - 24px);
         }
     }
-
-    .features-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 20px;
-    }
-    .tech-paragraph {
-        font-size: 17px;
-        line-height: 1.65;
-        text-align: justify;
-        color: var(--vff-text);
-    }
-    .progress-card {
-        display: flex;
-        gap: 20px;
-        align-items: flex-start;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        padding: 24px;
-    }
-    .progress-card i {
-        font-size: 32px;
-        color: var(--vff-accent);
-    }
-    .progress-card h3 {
-        margin: 0 0 4px;
-    }
-    .progress-card p {
-        margin: 0;
-        color: var(--vff-text-muted);
-        line-height: 1.5;
-    }
-    .progress-card :global(p a) {
-        color: var(--vff-accent);
-        text-decoration: none;
-    }
-    .progress-card :global(p a:hover) {
-        text-decoration: underline;
-    }
-    /* `.vff-btn` est défini globalement dans general.css. */
     @media (max-width: 600px) {
-        .tech-paragraph {
-            text-align: left;
+        .reading {
+            grid-template-columns: minmax(0, 1fr);
         }
-        .progress-card {
-            flex-direction: column;
+    }
+    /* Très petit écran : « Calque » reste lu mais seule l'icône est affichée. */
+    @media (max-width: 400px) {
+        .overlay-label-text {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
         }
     }
 </style>
