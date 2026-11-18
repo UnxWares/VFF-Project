@@ -1,29 +1,164 @@
 /* Référence GraphQL (Magidoc, gabarit carbon-multi-page) aux couleurs de VFF.
    Copié tel quel dans public/docs/graphql/ par `bin/pnpm docs:graphql`.
-   Le gabarit suit le thème clair ou sombre du système (prefers-color-scheme).
-   Les polices du site remplacent IBM Plex : aucune police n'est chargée chez un tiers. */
+   Le thème est celui du site : cookie `theme` (dark | light) s'il existe, sinon réglage du système
+   (script de public/docs/graphql/*.html corrigé par resources/docs/graphql/postbuild.mjs ; le gabarit
+   pose l'attribut theme="white" ou theme="g100" sur <html>).
+   Les polices du site (WOFF2 copiées de @fontsource, OFL) remplacent IBM Plex : aucune police n'est chargée chez un tiers. */
 
 @font-face {
     font-family: Lato;
-    src: url('Lato-Light.ttf');
+    font-style: normal;
+    font-weight: 400;
     font-display: swap;
+    src: url('lato-latin-400-normal.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+        U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: Lato;
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('lato-latin-ext-400-normal.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: Lato;
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('lato-latin-700-normal.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+        U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: Lato;
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('lato-latin-ext-700-normal.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
     font-family: Inter;
-    src: url('Inter-Regular.ttf');
+    font-style: normal;
+    font-weight: 400;
     font-display: swap;
+    src: url('inter-latin-400-normal.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+        U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: Inter;
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('inter-latin-ext-400-normal.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: Inter;
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('inter-latin-600-normal.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+        U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: Inter;
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('inter-latin-ext-600-normal.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: Inter;
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('inter-latin-700-normal.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+        U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: Inter;
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('inter-latin-ext-700-normal.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
     font-family: Gabarito;
-    src: url('Gabarito-Regular.ttf');
+    font-style: normal;
+    font-weight: 400;
     font-display: swap;
+    src: url('gabarito-latin-400-normal.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+        U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: Gabarito;
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('gabarito-latin-ext-400-normal.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: Gabarito;
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('gabarito-latin-700-normal.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+        U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: Gabarito;
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('gabarito-latin-ext-700-normal.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
 }
 
 :root {
     --vff-font-body: Lato, 'Helvetica Neue', Arial, sans-serif;
     --vff-font-heading: Inter, 'Helvetica Neue', Arial, sans-serif;
     --vff-font-display: Gabarito, 'Helvetica Neue', Arial, sans-serif;
-    --vff-font-mono: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Liberation Mono', monospace;
+    --vff-font-mono:
+        'SF Mono', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Liberation Mono', monospace;
 }
 
 /* ─── Polices ─────────────────────────────────────────────────────────── */
@@ -55,7 +190,6 @@ html body pre * {
 /* ─── Couleurs : orange VFF à la place du bleu Carbon ─────────────────── */
 
 :root,
-:root[theme],
 [theme='white'],
 [theme='g10'] {
     --cds-interactive: #b84800 !important;
@@ -81,9 +215,9 @@ html body pre * {
     --code-span-light: #f1f3f5;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root,
-    :root[theme],
+@media all {
+    :root[theme='g90'],
+    :root[theme='g100'],
     [theme='g90'],
     [theme='g100'] {
         --cds-interactive: #ff8a3d !important;
@@ -120,6 +254,45 @@ html body pre * {
     }
 }
 
+/* Menu latéral et code en ligne : le gabarit les colore d'après prefers-color-scheme (le système), pas
+   d'après l'attribut theme ; on les fixe selon le thème du site. */
+:root[theme='white'] {
+    --sidenav-bg: #fcfcfd;
+    --sidenav-text: #000000;
+    --sidenav-l: #161616;
+    --code-span: #e8ecec;
+}
+:root[theme='g100'] {
+    --sidenav-bg: #121820;
+    --sidenav-text: #e8ecec;
+    --sidenav-l: #cbd5e1;
+    --code-span: #232c39;
+}
+html body .code-span {
+    color: inherit;
+}
+
+/* Icônes de l'en-tête : orange du site, pas le bleu Carbon. */
+html body .bx--header__action,
+html body .bx--header__action svg,
+html body .bx--header .bx--btn--primary {
+    color: var(--cds-link-primary) !important;
+    fill: currentColor !important;
+}
+html body .bx--header .bx--btn--primary {
+    background-color: transparent !important;
+}
+
+/* Blocs de code (fond #282c34) : noms de champs et symboles en rose clair, 6,5:1 (le #e06c75 d'origine
+   n'atteint que 4,4:1). */
+html body .token.property,
+html body .token.tag,
+html body .token.symbol,
+html body .token.deleted,
+html body .token.important {
+    color: #f19aa1 !important;
+}
+
 /* Bandeau supérieur : filet orange comme sur le site. */
 html body .bx--header {
     border-bottom: 3px solid #ff6500 !important;
@@ -133,6 +306,13 @@ html body .bx--side-nav__link--current {
 html body .bx--side-nav__link[aria-current='page']::before,
 html body .bx--side-nav__link--current::before {
     background-color: #ff6500 !important;
+}
+
+/* Entrée courante du menu latéral : texte du menu (noir ou clair), lisible sur le fond orange pâle. */
+html body .bx--side-nav__link[aria-current='page'] .bx--side-nav__link-text,
+html body .bx--side-nav__link--current .bx--side-nav__link-text {
+    color: var(--sidenav-text) !important;
+    font-weight: 600;
 }
 
 /* Liens du contenu. */

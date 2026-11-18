@@ -8,14 +8,22 @@ export default defineConfig({
             input: [
                 'resources/css/general.css',
                 'resources/js/app.js',
-                // Documentation de l'API REST (/docs/api Scalar, /docs/swagger Swagger UI).
+                // Documentation de l'API (/docs/api Scalar, /docs/swagger Swagger UI, /graphiql GraphiQL).
                 'resources/js/docs/scalar.js',
                 'resources/js/docs/swagger.js',
+                'resources/js/docs/graphiql.js',
             ],
             refresh: ['resources/views/**', 'routes/**'],
         }),
         svelte(),
     ],
+    // Scalar (/docs/api) embarque Vue : indicateurs de compilation que le paquet attend (sans eux, un
+    // avertissement apparaît dans la console de la page de documentation).
+    define: {
+        __VUE_OPTIONS_API__: 'true',
+        __VUE_PROD_DEVTOOLS__: 'false',
+        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
+    },
     server: {
         watch: {
             // Données volumineuses hors front (tuiles IGN, caches, rapports, ML) : sans

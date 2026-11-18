@@ -8,6 +8,9 @@ import { isDark, setupThemeToggle } from './theme.js';
 
 const root = document.getElementById('vff-docs-app');
 const locale = root.dataset.locale;
+// Le message « Chargement… » du HTML est retiré avant le montage : Vue ne doit pas tenter de réutiliser
+// ce contenu (avertissement d'hydratation dans la console).
+root.replaceChildren();
 
 const reference = createApiReference(root, {
     url: root.dataset.specUrl,

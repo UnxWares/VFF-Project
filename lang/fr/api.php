@@ -1,76 +1,78 @@
 <?php
 
+// Page « Accès à l'API » (/api). Vocabulaire : « point d'accès » (pas « endpoint »), « ère »,
+// « référence » pour les documentations générées.
 return [
     'meta_title' => "Accès à l'API",
-    'meta_description' => 'Documentation API publique de VFF (à venir).',
+    'meta_description' => "Accès à l'API de VFF : points d'accès REST, API GraphQL, spécification OpenAPI et exemples de requêtes. Lecture seule, sans clé ni compte.",
 
     'hero' => [
         'eyebrow' => 'API publique',
-        'title' => 'Construisez vos propres outils sur nos données',
-        'subtitle' => 'Une API REST + GeoJSON ouverte, documentée, gratuite, pour bâtir applications, visualisations et recherches autour du rail français.',
-        'status' => 'Phase 6 - Spécifications en cours',
+        'title' => 'Les données de VFF pour vos propres outils',
+        'subtitle' => "Lignes, gares, chronologies et tracés du réseau ferré, de 1830 à aujourd'hui, en JSON, GeoJSON, tuiles vectorielles et GTFS. Lecture seule, sans clé ni compte.",
     ],
 
-    'endpoints' => [
-        'title' => 'Endpoints prévus',
-        'lines' => 'Liste et détails des lignes, par époque, statut, région.',
-        'segments' => 'Tronçons en GeoJSON ou MVT, pour intégrer dans une carte tierce.',
-        'stations' => 'Gares actuelles et historiques, avec dates ouverture/fermeture.',
-        'materials' => 'Matériel roulant : fiches, périodes d\'exploitation, lignes parcourues.',
-        'events' => 'Événements historiques : inaugurations, fermetures, démantèlements.',
-        'media' => 'Médias : photos d\'archive géolocalisées et datées.',
+    'docs' => [
+        'title' => 'Documentations',
+        'intro' => 'Toutes décrivent les mêmes données : choisissez l’interface qui vous convient.',
         'items' => [
-            'lines_geojson' => "FeatureCollection GeoJSON de tous les tronçons d'une ère donnée.",
-            'stations_geojson' => 'FeatureCollection des gares actives à cette ère (filtrées par statut).',
-            'tiles' => 'Tuile vectorielle Mapbox (binaire) pour un rendu MapLibre. Propriétés : status, traffic_type, electrified, is_heritage, voltage_v, max_speed_kmh, line_slug, line_name, line_code.',
-            'search' => 'Recherche avec autocomplétion dans les lignes, les gares et les matériels. 2 caractères au minimum.',
-            'history' => 'Historique complet : tous les événements chronologiques et le statut à chaque ère.',
-            'pk' => 'Convertit (lat, lng) en point kilométrique sur la ligne avec PostGIS ST_LineLocatePoint. Précision inférieure au mètre.',
-            'stops' => 'Séquence ordonnée des gares de la ligne (équivalent GTFS stop_times) : position, PK, statut effectif à l’ère, is_terminal.',
-            'route' => 'Itinéraire ferroviaire entre 2 gares (Dijkstra sur le graphe matérialisé) : distance, durée estimée, étapes, polyligne.',
-            'gtfs' => 'Export GTFS complet du réseau d’une ère (agency, routes, stops, trips, stop_times, shapes, calendar), compatible avec tout outil GTFS standard.',
+            'scalar' => ['title' => 'Référence REST (Scalar)', 'text' => 'La référence principale, avec essais en direct et exemples de code.'],
+            'swagger' => ['title' => 'Référence REST (Swagger UI)', 'text' => 'La même spécification dans une interface plus classique.'],
+            'openapi' => ['title' => 'Spécification OpenAPI 3.1', 'text' => 'Fichier JSON à importer dans Postman, Insomnia ou un générateur de client.'],
+            'graphql' => ['title' => 'Référence GraphQL', 'text' => 'Types, requêtes et exemples du schéma.'],
+            'graphiql' => ['title' => 'GraphiQL', 'text' => 'Console pour écrire et exécuter des requêtes GraphQL.'],
+            'schema' => ['title' => 'Schéma GraphQL (SDL)', 'text' => 'Le schéma complet, au format texte.'],
         ],
     ],
 
-    'format' => [
-        'title' => 'Formats supportés',
-        'json' => 'JSON (REST classique)',
-        'geojson' => 'GeoJSON (couches cartographiques)',
-        'mvt' => 'MVT : Mapbox Vector Tiles (pour MapLibre / Leaflet)',
+    'access' => [
+        'title' => 'Accès et limites',
+        'readonly' => ['title' => 'Lecture seule', 'text' => 'Les requêtes REST sont toutes des GET ; GraphQL ne propose que des requêtes de lecture.'],
+        'no_key' => ['title' => 'Sans clé ni compte', 'text' => 'Aucune inscription : appelez directement les adresses.'],
+        'limit' => ['title' => '300 requêtes par minute', 'text' => 'Limite par adresse IP, pour REST comme pour GraphQL. Au-delà, le serveur répond HTTP 429.'],
+        'licence' => ['title' => 'Licences des données', 'text' => 'Citez « VFF - Voies Ferrées de France » avec un lien vers vff-project.org. Chaque source garde sa licence : le détail figure dans les références.'],
+    ],
+
+    'endpoints' => [
+        'title' => 'Points d’accès REST',
+        'intro' => 'Toutes les adresses commencent par /api/v1 et répondent en GET. Dans les chemins, {year} désigne une ère décennale (de 1830 à 2030) et {line} l’identifiant d’une ligne, par exemple rfn-420000.',
+        'label' => 'Points d’accès REST de l’API VFF',
+        'items' => [
+            'lines_geojson' => 'Tracés du réseau à une ère, en GeoJSON (FeatureCollection de tronçons).',
+            'stations_geojson' => 'Gares à une ère, en GeoJSON. Les gares fermées y figurent tant qu’une voie existe à proximité, avec leur statut.',
+            'tiles' => 'Tuile vectorielle (MVT) d’une ère, pour une source MapLibre ou OpenLayers.',
+            'gtfs' => 'Réseau d’une ère au format GTFS Static (archive ZIP).',
+            'search' => 'Recherche par nom dans les lignes, les gares et le matériel. 2 caractères au minimum.',
+            'history' => 'Chronologie d’une ligne : événements datés et état à chaque ère.',
+            'pk' => 'Point kilométrique d’un lieu sur une ligne, à partir de sa latitude et de sa longitude.',
+            'stops' => 'Gares d’une ligne dans l’ordre des points kilométriques, à une ère.',
+            'signalling' => 'Tranches de points kilométriques homogènes en signalisation.',
+            'media' => 'Photos, cartes postales et plans liés à une ligne, avec leurs droits.',
+            'route' => 'Itinéraire ferroviaire entre deux gares sur le réseau d’une ère : distance, étapes et tracé.',
+        ],
     ],
 
     'example' => [
-        'title' => 'Exemple anticipé',
-        'description' => 'Récupérer toutes les lignes en service en 2000 (pour avoir une idée du format) :',
-        'response' => 'Réponse attendue :',
-        'curl_lines' => 'Récupérer toutes les lignes en service en 2030 (GeoJSON)',
-        'curl_pk' => 'Trouver le PK d’un point sur la ligne Paris - Brest',
-        'curl_search' => 'Recherche avec autocomplétion (lignes, gares et matériels)',
+        'title' => 'Exemples REST',
+        'intro' => 'Trois requêtes à copier dans un terminal, puis la réponse de la deuxième, telle que le serveur la renvoie.',
+        'curl_lines' => 'Tracés du réseau d’aujourd’hui (ère 2030), en GeoJSON',
+        'curl_pk' => 'Point kilométrique d’un lieu sur la ligne Paris-Montparnasse - Brest',
+        'curl_search' => 'Recherche par nom',
+        'response' => 'Réponse à la deuxième requête : le point est ramené sur le tracé le plus proche (snap), à 395 m ici.',
+        'code_label' => 'Exemple de code',
     ],
 
     'graphql' => [
-        'title' => 'API GraphQL (Lighthouse)',
-        'text' => 'En plus de l’API REST, VFF expose un point d’accès GraphQL unique pour les requêtes complexes : une ligne avec ses tronçons, ses événements, ses matériels et ses gares en une seule requête.',
-        'explorer_desc' => 'Explorer le schéma, autocomplétion, exécution de requêtes',
-        'endpoint_desc' => 'Point d’accès unique pour toutes les requêtes',
-        'example_comment' => 'Exemple : ligne Argentan - Granville avec ses gares et ses événements',
-    ],
-
-    'openapi' => [
-        'title' => 'Documentation interactive OpenAPI 3',
-        'text_before' => 'La spécification OpenAPI 3.1 est générée automatiquement à partir des contrôleurs Laravel (avec',
-        'text_middle' => ') et affichée avec',
-        'text_after' => '.',
-        'docs' => 'Documentation interactive',
-        'docs_desc' => 'Interface Scalar avec essai en direct',
-        'spec' => 'Spécification OpenAPI 3.1 (JSON)',
-        'spec_desc' => 'À importer dans Postman, Insomnia…',
+        'title' => 'API GraphQL',
+        'text' => 'Pour les requêtes plus riches, un seul point d’accès GraphQL, POST /graphql, renvoie en une fois une ligne avec ses tronçons et ses événements. Lisez le schéma dans la référence, ou essayez vos requêtes dans GraphiQL.',
+        'links' => 'Documentations GraphQL',
+        'example_comment' => 'Une ligne avec ses tronçons et ses événements',
     ],
 
     'cta' => [
-        'title' => 'Tenez-vous au courant',
-        'text' => "L'API arrive en phase 6 de la roadmap. Suivez l'avancée sur Discord ou GitHub.",
-        'discord' => 'Discord',
-        'github' => 'Voir le code',
+        'title' => 'Une question, une idée ?',
+        'text' => 'Dites-nous ce que vous construisez ou ce qui manque, sur Discord, ou signalez un problème sur GitHub.',
+        'discord' => 'Discuter sur Discord',
+        'github' => 'Voir le code sur GitHub',
     ],
 ];

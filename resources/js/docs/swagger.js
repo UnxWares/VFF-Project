@@ -4,10 +4,14 @@ import SwaggerUI from 'swagger-ui-dist/swagger-ui-es-bundle.js';
 import 'swagger-ui-dist/swagger-ui.css';
 import '../../css/docs/docs.css';
 import '../../css/docs/swagger.css';
-import { setupThemeToggle } from './theme.js';
+import { isDark, setupThemeToggle } from './theme.js';
 
 const root = document.getElementById('vff-docs-app');
 root.replaceChildren();
+
+// Thème sombre natif de Swagger UI : classe `dark-mode` sur <html>, alignée sur <html data-theme>.
+const syncTheme = (dark) => document.documentElement.classList.toggle('dark-mode', dark);
+syncTheme(isDark());
 
 SwaggerUI({
     url: root.dataset.specUrl,
@@ -23,4 +27,4 @@ SwaggerUI({
     syntaxHighlight: { activate: true, theme: 'monokai' },
 });
 
-setupThemeToggle();
+setupThemeToggle(syncTheme);

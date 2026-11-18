@@ -57,6 +57,39 @@ class ApiDocsTest extends TestCase
         $this->assertStringNotContainsStringIgnoringCase('stoplight', $html);
     }
 
+    public function test_graphiql_is_served_without_third_party_hosts_and_with_the_documentation_bar(): void
+    {
+        $html = $this->get('/graphiql')->assertOk()->getContent();
+
+        $this->assertStringContainsString('class="vff-docs-bar"', $html);
+        $this->assertStringContainsString('href="/docs/graphql"', $html);
+        $this->assertStringContainsString('href="/docs/swagger"', $html);
+        $this->assertStringContainsString('/vendor/graphiql/graphiql.js', $html);
+        $this->assertStringContainsString('id="graphiql-config"', $html);
+        foreach (['jsdelivr', 'githubusercontent', 'unpkg', 'cdnjs'] as $host) {
+            $this->assertStringNotContainsString($host, $html);
+        }
+        foreach (['graphiql.js', 'graphiql.css', 'react.production.min.js', 'react-dom.production.min.js', 'graphiql-plugin-explorer.js', 'graphiql-plugin-explorer.css'] as $file) {
+            $this->assertFileExists(public_path("vendor/graphiql/{$file}"));
+        }
+    }
+
+    public function test_documentation_bar_links_to_the_site_and_the_languages(): void
+    {
+        foreach (['/docs/api', '/docs/swagger', '/graphiql'] as $uri) {
+            $html = $this->withCookie('locale', 'en')->get($uri)->assertOk()->getContent();
+
+            $this->assertStringContainsString('<html lang="en">', $html, $uri);
+            $this->assertStringContainsString('href="/"', $html, $uri);
+            $this->assertStringContainsString('href="'.route('api.docs').'"', $html, $uri);
+            foreach (['fr', 'en', 'de'] as $code) {
+                $this->assertStringContainsString('href="/locale/'.$code.'"', $html, $uri);
+            }
+            $this->assertStringContainsString('data-theme-toggle', $html, $uri);
+            $this->assertStringContainsString('href="#vff-docs-app"', $html, $uri);
+        }
+    }
+
     public function test_swagger_ui_reads_the_same_specification(): void
     {
         $html = $this->get('/docs/swagger')->assertOk()->getContent();
@@ -79,9 +112,9 @@ class ApiDocsTest extends TestCase
     public static function locales(): array
     {
         return [
-            'fr' => ['fr', 'Retour à la page API'],
-            'en' => ['en', 'Back to the API page'],
-            'de' => ['de', 'Zurück zur API-Seite'],
+            'fr' => ['fr', 'Accès à l\'API'],
+            'en' => ['en', 'API access'],
+            'de' => ['de', 'API-Zugang'],
         ];
     }
 
@@ -94,6 +127,25 @@ class ApiDocsTest extends TestCase
         foreach (['fr', 'en', 'de'] as $locale) {
             $this->assertStringNotContainsStringIgnoringCase('stoplight', (string) file_get_contents(lang_path("{$locale}/api.php")));
         }
+    }
+
+    public function test_api_page_lists_every_documented_endpoint_and_presents_nothing_as_upcoming(): void
+    {
+        $page = (string) file_get_contents(resource_path('js/Pages/ApiDocs.svelte'));
+        foreach (self::V1_PATHS as $path) {
+            $this->assertStringContainsString('/api/v1'.$path, $page, "{$path} absent de la page /api");
+        }
+        foreach (['/docs/api', '/docs/swagger', '/docs/api.json', '/docs/graphql', '/graphiql'] as $link) {
+            $this->assertStringContainsString("'{$link}'", $page, "{$link} : lien absent de la page /api");
+        }
+
+        foreach (['fr', 'en', 'de'] as $locale) {
+            $texts = (string) file_get_contents(lang_path("{$locale}/api.php"));
+            foreach (['Phase 6', 'phase 6', 'prévu', 'planned', 'geplant', 'anticipé', 'Endpoints'] as $stale) {
+                $this->assertStringNotContainsString($stale, $texts, "{$locale}/api.php : « {$stale} »");
+            }
+        }
+        $this->get('/api')->assertOk();
     }
 
     public function test_graphql_reference_is_served(): void
@@ -113,6 +165,26 @@ class ApiDocsTest extends TestCase
         $this->assertStringEndsWith('types/LineSegment.html', $served('/docs/graphql/types/LineSegment'));
         $this->get('/docs/graphql/inexistant')->assertNotFound();
         $this->get('/docs/graphql/..%2F..%2F.env')->assertNotFound();
+    }
+
+    public function test_graphql_reference_follows_the_site_theme_and_loads_no_remote_font(): void
+    {
+        $page = public_path('docs/graphql/guide/introduction.html');
+        if (! is_file($page)) {
+            $this->markTestSkipped('Référence GraphQL non générée (make docs-graphql).');
+        }
+
+        $html = (string) file_get_contents($page);
+        $this->assertStringContainsString('<html lang="fr">', $html);
+        $this->assertStringContainsString('theme=(dark|light)', $html, 'le thème du cookie du site doit être lu');
+        $this->assertStringContainsString('<title>Guide - Introduction - VFF API GraphQL</title>', $html);
+
+        $css = (string) file_get_contents(public_path('docs/graphql/vff.css'));
+        $this->assertStringContainsString('lato-latin-400-normal.woff2', $css);
+        $this->assertStringNotContainsString('.ttf', $css);
+        foreach (glob(public_path('docs/graphql/_app/immutable/assets/*.css')) ?: [] as $file) {
+            $this->assertStringNotContainsString('s81c.com', (string) file_get_contents($file));
+        }
     }
 
     public function test_openapi_spec_documents_every_public_v1_endpoint(): void
@@ -152,7 +224,9 @@ class ApiDocsTest extends TestCase
         $this->assertStringNotContainsString('\\u2014', $spec);
 
         foreach (['fr', 'en', 'de'] as $locale) {
-            $this->assertStringNotContainsString('—', (string) file_get_contents(lang_path("{$locale}/docs.php")));
+            foreach (['docs', 'api', 'errors'] as $file) {
+                $this->assertStringNotContainsString('—', (string) file_get_contents(lang_path("{$locale}/{$file}.php")));
+            }
         }
         $this->assertStringNotContainsString('—', (string) file_get_contents(base_path('graphql/schema.graphql')));
     }

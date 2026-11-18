@@ -6,14 +6,13 @@
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    @include('docs._head')
-    <title>{{ __('docs.title_swagger') }}</title>
+    @include('docs._head', ['title' => __('docs.title_swagger'), 'description' => __('docs.desc_swagger')])
     @vite(['resources/js/docs/swagger.js'])
 </head>
 <body class="vff-docs vff-docs--swagger">
     @include('docs._bar', ['current' => 'swagger'])
     <noscript><p class="vff-docs-noscript">{{ __('docs.noscript') }} <a href="/docs/api.json">/docs/api.json</a></p></noscript>
-    <main id="vff-docs-app" data-spec-url="/docs/api.json">
+    <main id="vff-docs-app" tabindex="-1" data-spec-url="/docs/api.json">
         <p class="vff-docs-loading">{{ __('docs.loading') }}</p>
     </main>
 </body>
