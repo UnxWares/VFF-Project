@@ -4,7 +4,7 @@ return [
     'tagline' => 'An der Kreuzung der Schienen.',
     'app_short' => 'VFF',
     'app_full' => 'Französische Bahnstrecken',
-    'app_description' => 'Die größte kollaborative Enzyklopädie des französischen Schienennetzes.',
+    'app_description' => 'Gemeinschaftliche Enzyklopädie der französischen Eisenbahn von 1830 bis heute: Strecken, Bahnhöfe, Karten und Quellen.',
     'brand' => 'VFF - Voies Ferrées de France (Französische Bahnstrecken)',
 
     'read_more' => 'Mehr erfahren',
@@ -21,4 +21,11 @@ return [
     'wip_subtitle' => 'Dieser Bereich befindet sich im Aufbau und wird in einer späteren Projektphase verfügbar sein.',
     'toc' => 'Inhaltsverzeichnis',
     'osm_attribution' => '© :link-Mitwirkende',
+
+    // Gemeinsame Texte der Komponenten (Seitennavigation, externe Links).
+    'new_tab' => 'öffnet in einem neuen Tab',
+    'pagination' => 'Seitennavigation',
+    'previous' => 'Zurück',
+    'next' => 'Weiter',
+    'page_of' => 'Seite :current von :last',
 ];

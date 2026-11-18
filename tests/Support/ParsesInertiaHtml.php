@@ -28,8 +28,10 @@ trait ParsesInertiaHtml
         $page = json_decode($script->textContent, true);
         $this->assertIsArray($page, 'JSON de la page illisible après analyse HTML5 : '.substr($script->textContent, 0, 200));
 
-        // withoutVite() : la seule balise <script> légitime est celle des données.
-        $this->assertSame(1, $doc->querySelectorAll('script')->length, 'balise <script> injectée');
+        // withoutVite() : les seules balises <script> légitimes sont celle des données et, dans <head>,
+        // le script fixe qui pose le thème avant le premier rendu (resources/views/app.blade.php).
+        $this->assertSame(1, $doc->querySelectorAll('head > script[data-theme-init]')->length, 'script du thème absent ou dupliqué');
+        $this->assertSame(1, $doc->querySelectorAll('script:not([data-theme-init])')->length, 'balise <script> injectée');
         foreach (['img', 'iframe', 'svg', 'object', 'embed', 'style'] as $tag) {
             $this->assertSame(0, $doc->querySelectorAll($tag)->length, "balise <{$tag}> injectée");
         }

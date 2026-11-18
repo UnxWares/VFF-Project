@@ -1,8 +1,9 @@
 <script>
     /**
-     * Section d'une fiche (ligne, gare) : titre de niveau 2, compteur facultatif,
-     * chapeau (`intro`), puis le contenu. Même largeur, mêmes marges et même échelle
-     * typographique sur toutes les fiches.
+     * Section d'une fiche (ligne, gare, matériel) : titre de niveau 2, compteur facultatif,
+     * chapeau (`intro`), puis le contenu. Même largeur, mêmes marges et même échelle typographique
+     * sur toutes les fiches (grille de 1 180 px, bord gauche commun avec SheetHero).
+     * Le compteur est lu « Titre (19) » par les lecteurs d'écran.
      */
     /** @type {{ id?: string, title?: string, count?: number|string|null, intro?: string|null, label?: string, children?: import('svelte').Snippet, actions?: import('svelte').Snippet, sectionEl?: HTMLElement }} */
     let {
@@ -28,7 +29,11 @@
     {#if title}
         <div class="head">
             <h2 id={headingId}>
-                {title}{#if count != null}<span class="count">{count}</span>{/if}
+                {title}{#if count != null}<span class="count"
+                        ><span class="vff-sr-only">&nbsp;(</span>{count}<span class="vff-sr-only"
+                            >)</span
+                        ></span
+                    >{/if}
             </h2>
             {@render actions?.()}
         </div>
@@ -39,9 +44,9 @@
 
 <style>
     .sheet-section {
-        max-width: 1180px;
+        max-width: calc(var(--vff-container) + 2 * var(--vff-gutter));
         margin: 0 auto;
-        padding: 52px 24px 0;
+        padding: var(--vff-section-space) var(--vff-gutter) 0;
         scroll-margin-top: 80px;
     }
     .head {
@@ -50,7 +55,22 @@
         align-items: baseline;
         justify-content: space-between;
         gap: 8px 16px;
-        margin: 0 0 12px;
+        margin: 0 0 var(--vff-space-4);
+    }
+    /* Repère de début de section : petit filet orange au-dessus du titre (même dessin que SectionBlock). */
+    .head {
+        position: relative;
+        padding-top: 17px;
+    }
+    .head::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 28px;
+        height: 3px;
+        border-radius: 2px;
+        background-color: var(--vff-accent);
     }
     h2 {
         display: flex;
@@ -58,12 +78,10 @@
         gap: 10px;
         margin: 0;
         font-family: var(--vff-font-display);
-        font-size: 28px;
-        line-height: 1.2;
+        font-size: var(--vff-fs-h2);
+        line-height: var(--vff-lh-heading);
         color: var(--vff-text);
-    }
-    h2:after {
-        display: none;
+        text-wrap: balance;
     }
     .count {
         font-family: var(--vff-font-heading);
@@ -73,19 +91,11 @@
         font-variant-numeric: tabular-nums;
     }
     .intro {
-        max-width: 72ch;
-        margin: 0 0 20px;
+        max-width: var(--vff-measure);
+        margin: 0 0 var(--vff-space-5);
         font-family: var(--vff-font-body);
-        font-size: 15px;
+        font-size: var(--vff-fs-md);
         line-height: 1.6;
         color: var(--vff-text-muted);
-    }
-    @media (max-width: 700px) {
-        .sheet-section {
-            padding: 40px 16px 0;
-        }
-        h2 {
-            font-size: 24px;
-        }
     }
 </style>

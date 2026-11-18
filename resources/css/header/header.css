@@ -1,66 +1,244 @@
-/* En-tête du site seulement (Header.svelte) : 200vh sur l'accueil, 130 px en mode compact (sous-pages).
-   :where() garde la spécificité d'origine ; les autres <header> (galerie, fiches) ne sont pas touchés. */
+/* En-tête du site (Header.svelte). Accueil : 200 vh avec le héros TGV, barre fixe qui apparaît
+   en quittant le héros. Pages internes (classe compact) : barre de 130 px. Sous 1 180 px : barre
+   de 72 px et liens dans un panneau ouvert par le bouton « Menu ».
+   Les sélecteurs commencent par header:where(.site-header) : les autres <header> (galerie, fiches)
+   ne sont pas touchés, et la spécificité reste celle d'origine. */
 header:where(.site-header) {
     height: 200vh;
 }
-header .header-background {
+header:where(.site-header) .header-background {
     position: sticky;
+    top: 0;
+    /* Contexte d'empilement au-dessus du contenu : les menus de langue et de compte ne passent
+       plus sous les bandeaux des pages. */
+    z-index: var(--vff-z-nav);
     height: 100vh;
     background-image: url('../../images/background.png');
     background-repeat: no-repeat;
     background-size: cover;
     background-position-x: center;
-    top: 0;
 }
-header .header-background nav {
+
+/* Pages internes : barre seule, sans héros. navbarFade observe aussi cet en-tête et pose une
+   opacité 0 en ligne : d'où les !important. */
+header:where(.site-header).compact {
+    height: 130px;
+}
+header:where(.site-header).compact .header-background {
+    height: 130px;
+    background-image: none;
+    background-color: var(--vff-bg);
+}
+header:where(.site-header).compact .header-background nav {
+    opacity: 1 !important;
+    position: relative !important;
+}
+
+/* ─── Barre ───────────────────────────────────────────────────────────────── */
+header:where(.site-header) .header-background nav {
     opacity: 0;
     position: fixed;
+    top: 0;
     z-index: 2;
-    height: 130px;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    top: 0;
-    transition: opacity 1s ease;
-    background-color: white;
-    color: black;
+    height: 130px;
+    background-color: var(--vff-bg);
+    color: var(--vff-text);
     box-shadow: 0 2px 8px #d3d3d3;
+    transition: opacity 250ms ease;
 }
-header .header-background nav .nav-title {
+/* Accueil : la barre est invisible (opacité 0) tant que le héros est à l'écran. Invisible, elle ne
+   capte pas les clics ; au clavier, elle réapparaît dès qu'un de ses éléments a le focus. */
+header:where(.site-header):not(.compact) .header-background nav.nav-hidden:not(:focus-within) {
+    pointer-events: none;
+}
+header:where(.site-header):not(.compact) .header-background nav.nav-hidden:focus-within {
+    opacity: 1 !important;
+}
+
+/* Titre du site : logo et nom (un <span>, pas un titre : le seul h1 est celui de la page). */
+header:where(.site-header) nav .nav-title {
     display: flex;
     flex-direction: row;
     align-items: center;
     margin-left: 10px;
+    color: inherit;
+    text-decoration: none;
+    border-radius: var(--vff-radius-sm);
 }
-header .header-background nav .nav-title h2 {
-    margin-left: 15px;
+header:where(.site-header) nav .nav-logo {
+    display: block;
+    flex-shrink: 0;
 }
-header .header-background nav .nav-title figure img {
+header:where(.site-header) nav .nav-logo img {
+    display: block;
     width: 100px;
     height: 100px;
 }
-header .header-background nav .links li,
-header .header-background nav .links .user {
+header:where(.site-header) nav .nav-title-text {
+    margin-left: 15px;
+    font-family: var(--vff-font-heading);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    transition: color var(--vff-transition);
+}
+header:where(.site-header) nav .nav-title:hover .nav-title-text {
+    color: var(--vff-accent-ink);
+}
+
+/* Liens de navigation et outils (thème, langue, compte). */
+header:where(.site-header) nav .links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    row-gap: 4px;
+    padding-left: 40px;
+}
+header:where(.site-header) nav .nav-links,
+header:where(.site-header) nav .user {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+header:where(.site-header) nav .nav-links > li {
     display: inline-flex;
     margin: 0 10px;
+    font-family: var(--vff-font-body);
+    font-size: 20px;
 }
-header .header-background nav ul li a {
+header:where(.site-header) nav .nav-links > li > a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    color: inherit;
     text-decoration: none;
-    color: black;
+    text-underline-offset: 8px;
+    transition: color var(--vff-transition);
 }
-header .header-background .header-images {
+header:where(.site-header) nav .nav-links > li > a:hover {
+    color: var(--vff-accent-ink);
+}
+/* Page courante : soulignée (pas seulement colorée). */
+header:where(.site-header) nav .nav-links > li > a[aria-current='page'] {
+    color: var(--vff-accent-ink);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+}
+header:where(.site-header) nav .user {
+    margin: 0 10px 0 30px;
+    gap: 0 12px;
+}
+header:where(.site-header) nav .user > li {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-sm);
+}
+/* Boutons icônes de la barre (thème, langue, compte) : cible de 40 px. */
+header:where(.site-header) nav .user > li > button,
+header:where(.site-header) nav .user .lang-trigger,
+header:where(.site-header) nav .user .account-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: var(--vff-radius-md);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    transition:
+        color var(--vff-transition),
+        background-color var(--vff-transition);
+}
+header:where(.site-header) nav .user > li > button:hover,
+header:where(.site-header) nav .user .lang-trigger:hover,
+header:where(.site-header) nav .user .account-trigger:hover,
+header:where(.site-header) nav .user [aria-expanded='true'] {
+    background-color: var(--vff-accent-soft);
+    color: var(--vff-accent-ink);
+}
+header:where(.site-header) nav .user .theme-change i {
+    font-size: 20px;
+}
+header:where(.site-header) nav .user button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+/* Bouton « Menu » : seulement sous 1 180 px. */
+header:where(.site-header) nav .nav-toggle {
+    display: none;
+}
+
+/* Petits ordinateurs (1 181 à 1 500 px) : la barre tient sur UNE ligne (avant : liens et outils sur deux
+   lignes à 1 280 px). Nom du site et liens un peu plus petits ; sous 1 320 px, les icônes décoratives des
+   liens s'effacent pour laisser le nom du site sur deux lignes au plus, en français comme en allemand. */
+@media (min-width: 1181px) and (max-width: 1500px) {
+    header:where(.site-header) nav .nav-title-text {
+        margin-left: 12px;
+        font-size: 28px;
+    }
+    header:where(.site-header) nav .links,
+    header:where(.site-header) nav .nav-links,
+    header:where(.site-header) nav .user {
+        flex-wrap: nowrap;
+    }
+    header:where(.site-header) nav .links {
+        padding-left: 20px;
+    }
+    header:where(.site-header) nav .nav-links > li {
+        margin: 0 8px;
+        font-size: 18px;
+    }
+    header:where(.site-header) nav .nav-links > li > a {
+        gap: 5px;
+        white-space: nowrap;
+    }
+    header:where(.site-header) nav .user {
+        margin: 0 8px 0 14px;
+        gap: 0 4px;
+    }
+}
+@media (min-width: 1181px) and (max-width: 1320px) {
+    header:where(.site-header) nav .nav-title-text {
+        font-size: 26px;
+    }
+    header:where(.site-header) nav .links {
+        padding-left: 12px;
+    }
+    header:where(.site-header) nav .nav-links > li > a > .bi {
+        display: none;
+    }
+}
+
+/* ─── Héros de l'accueil ──────────────────────────────────────────────────── */
+header:where(.site-header) .header-background .header-images {
     height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     backdrop-filter: blur(9px);
 }
-header .header-background .header-images figure {
+header:where(.site-header) .header-background .header-images figure {
     width: 20vw;
 }
-header .header-background .header-images figure img {
+header:where(.site-header) .header-background .header-images figure img {
     width: 100%;
 }
 .left-tgv {
@@ -69,28 +247,35 @@ header .header-background .header-images figure img {
 .right-tgv {
     transform: translateX(1vw);
 }
-header .header-background .bottom-container .scroll-button {
+header:where(.site-header) .header-background .bottom-container {
+    position: relative;
+}
+header:where(.site-header) .header-background .scroll-button {
     position: absolute;
     z-index: 3;
     bottom: 25px;
     left: 50%;
-    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 72px;
+    padding: 0 15px;
+    border: 3px solid #ffffff;
+    border-radius: 16px;
+    color: #ffffff;
     animation-name: go-to-bottom-anim;
     animation-duration: 3.5s;
     animation-iteration-count: infinite;
-    padding: 0 15px;
-    border-radius: 16px;
-    border: 3px solid #ffffff;
+    transform: translateX(-50%);
 }
-header .header-background .bottom-container .scroll-button i {
-    color: #ffffff;
+header:where(.site-header) .header-background .scroll-button i {
     font-size: 30px;
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    height: 66px;
-    align-items: center;
-    transition: all 0.3s ease-in-out;
+    line-height: 1;
+}
+header:where(.site-header) .header-background .scroll-button:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px #000000;
 }
 @keyframes go-to-bottom-anim {
     0% {
@@ -103,95 +288,46 @@ header .header-background .bottom-container .scroll-button i {
         transform: scale(1) translateX(-50%);
     }
 }
-.hidden-button {
-    display: none;
+
+/* ─── Thème sombre ────────────────────────────────────────────────────────── */
+[data-theme='dark'] header:where(.site-header) .header-background nav {
+    background-color: var(--vff-bg-elevated);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
 }
 
-/* ─── Reset additif des boutons icônes de la navbar ─────────────────────────
-   Le markup d'origine utilisait <button class="theme-change"> et de simples <i>
-   pour lang/account. Avec Svelte + LanguageSwitcher en sous-composant, les
-   éléments interactifs sont désormais des <button> et héritent du style natif
-   du navigateur (bordure grise). On les remet en boutons-icônes neutres.
-   Ces règles n'altèrent rien de l'existant - elles ajoutent juste des resets
-   pour des sélecteurs qui n'étaient pas couverts. */
-header .header-background nav .user button,
-header .header-background nav .user .theme-change {
-    background: transparent;
-    border: 0;
-    padding: 0;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-}
-header .header-background nav .user button:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
-}
-header .header-background nav .user button i {
-    font-size: 20px;
-}
-
-/* `.nav-title` est maintenant un <a> (Link Inertia) cliquable vers l'accueil.
-   On neutralise le style natif de lien (underline, couleur bleue) et on ajoute
-   un léger hover pour signaler l'interactivité. */
-header .header-background nav a.nav-title,
-header .header-background nav .nav-title {
-    text-decoration: none;
-    color: inherit;
-    cursor: pointer;
-}
-header .header-background nav .nav-title h2 {
-    transition: color 200ms ease;
-}
-header .header-background nav .nav-title:hover h2 {
-    color: var(--vff-accent);
-}
-
-/* ─── Responsive (correctifs du 2026-10-20) ─────────────────────────────────
-   Au-dessus de 1180 px, rien ne change. En dessous, le titre passait sur 3 ou
-   4 lignes et débordait de la barre, et les liens sortaient de l'écran : barre
-   réduite (logo 56 px, titre sur une ligne) et liens dans un menu déroulant
-   ouvert par le bouton « menu » (Header.svelte). */
-header .header-background nav .nav-toggle {
-    display: none;
-}
-/* Accueil : la barre est invisible (opacity 0) tant que le héros est à l'écran.
-   Invisible, elle ne doit pas capter les clics (le haut du héros ouvrait « Notre
-   histoire ») ; au clavier, elle réapparaît dès qu'un de ses liens a le focus. */
-header:not(.compact) .header-background nav.nav-hidden:not(:focus-within) {
-    pointer-events: none;
-}
-header:not(.compact) .header-background nav.nav-hidden:focus-within {
-    opacity: 1 !important;
-}
+/* ─── Sous 1 180 px : barre de 72 px, liens dans un panneau ───────────────── */
 @media (max-width: 1180px) {
-    header .header-background nav {
+    header:where(.site-header) .header-background nav {
         height: 72px;
-        z-index: 50;
     }
-    header .header-background nav .nav-title {
+    header:where(.site-header).compact,
+    header:where(.site-header).compact .header-background {
+        height: 72px;
+    }
+    /* Accueil : la barre reste visible dès le chargement (sinon aucun menu pendant deux écrans). */
+    header:where(.site-header):not(.compact) .header-background nav,
+    header:where(.site-header):not(.compact) .header-background nav.nav-hidden {
+        opacity: 1 !important;
+        pointer-events: auto;
+    }
+    header:where(.site-header) nav .nav-title {
         flex: 1 1 auto;
         min-width: 0;
         margin-left: 8px;
     }
-    header .header-background nav .nav-title figure {
-        flex-shrink: 0;
-    }
-    header .header-background nav .nav-title figure img {
+    header:where(.site-header) nav .nav-logo img {
         width: 56px;
         height: 56px;
     }
-    header .header-background nav .nav-title h2 {
-        margin: 0 0 0 10px;
+    header:where(.site-header) nav .nav-title-text {
         min-width: 0;
+        margin: 0 0 0 10px;
         font-size: clamp(16px, 4.6vw, 26px);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    header .header-background nav .nav-toggle {
+    header:where(.site-header) nav .nav-toggle {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -201,87 +337,101 @@ header:not(.compact) .header-background nav.nav-hidden:focus-within {
         margin: 0 10px 0 6px;
         padding: 0;
         border: 0;
-        border-radius: 10px;
+        border-radius: var(--vff-radius-md);
         background: transparent;
         color: inherit;
         font-size: 30px;
         cursor: pointer;
     }
-    header .header-background nav .nav-toggle:hover {
-        color: #ff6500;
+    header:where(.site-header) nav .nav-toggle:hover,
+    header:where(.site-header) nav .nav-toggle[aria-expanded='true'] {
+        color: var(--vff-accent-ink);
     }
-    header .header-background nav .nav-toggle:focus-visible {
-        outline: 3px solid #ff6500;
-        outline-offset: 2px;
-    }
-    header .header-background nav .links {
+    header:where(.site-header) nav .links {
         display: none;
         position: absolute;
         top: 100%;
         left: 0;
         right: 0;
         flex-direction: column;
+        flex-wrap: nowrap;
+        align-items: stretch;
         margin: 0;
-        padding: 6px 16px 14px;
+        padding: 6px 16px 16px;
         max-height: calc(100vh - 72px);
+        max-height: calc(100dvh - 72px);
         overflow-y: auto;
-        box-sizing: border-box;
-        background-color: white;
+        overscroll-behavior: contain;
+        background-color: var(--vff-bg);
+        border-top: 1px solid var(--vff-border);
         box-shadow: 0 10px 18px rgba(0, 0, 0, 0.14);
     }
-    header .header-background nav .links.open {
+    header:where(.site-header) nav .links.open {
         display: flex;
+    }
+    header:where(.site-header) nav .nav-links {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    header:where(.site-header) nav .nav-links > li {
+        display: flex;
+        margin: 0;
+        border-bottom: 1px solid var(--vff-border);
+        font-size: 18px;
+    }
+    header:where(.site-header) nav .nav-links > li > a {
+        width: 100%;
+        min-height: 48px;
+        gap: 10px;
+        padding: 0 6px;
+    }
+    header:where(.site-header) nav .user {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        margin: 0;
+        padding: 12px 0 0;
+    }
+    header:where(.site-header) nav .user > li {
+        display: block;
+        font-size: var(--vff-fs-md);
+    }
+    header:where(.site-header) nav .user > li > button,
+    header:where(.site-header) nav .user .lang-trigger,
+    header:where(.site-header) nav .user .account-trigger {
+        width: 100%;
+        min-height: 44px;
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 0 6px;
+    }
+    [data-theme='dark'] header:where(.site-header) nav .links {
+        background-color: var(--vff-bg-elevated);
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.55);
     }
 }
 @media (min-width: 701px) and (max-width: 1180px) {
-    header .header-background nav .links {
+    header:where(.site-header) nav .links {
         left: auto;
         width: 380px;
-        border-radius: 0 0 0 12px;
+        border-left: 1px solid var(--vff-border);
+        border-radius: 0 0 0 var(--vff-radius-lg);
     }
 }
-@media (max-width: 1180px) {
-    header .header-background nav .links > li {
-        display: flex;
-        margin: 0;
-        border-bottom: 1px solid #e8ecec;
+/* Petits téléphones : héros sur un seul écran (deux écrans presque vides sinon). */
+@media (max-width: 700px) {
+    header:where(.site-header):not(.compact) {
+        height: 100vh;
+        height: 100svh;
     }
-    header .header-background nav .links > li > a {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        width: 100%;
-        min-height: 48px;
-        padding: 0 6px;
-        font-size: 18px;
+    header:where(.site-header):not(.compact) .header-background {
+        height: 100vh;
+        height: 100svh;
     }
-    header .header-background nav .links .user {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px 22px;
-        margin: 0;
-        padding: 12px 6px 0;
+    header:where(.site-header) .header-background .header-images {
+        height: 100%;
     }
-    header .header-background nav .links .user li {
-        margin: 0;
-        min-height: 44px;
-        align-items: center;
-    }
-    header .header-background nav .user .theme-change {
-        min-width: 44px;
-        min-height: 44px;
-        justify-content: center;
-    }
-    header .header-background nav .user .lang-trigger {
-        min-height: 44px;
-        padding: 0 8px;
-    }
-    [data-theme='dark'] header .header-background nav .links {
-        background-color: #181f29;
-        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.55);
-    }
-    [data-theme='dark'] header .header-background nav .links > li {
-        border-bottom-color: #2a3441;
+    header:where(.site-header) .header-background .header-images figure {
+        width: 26vw;
     }
 }

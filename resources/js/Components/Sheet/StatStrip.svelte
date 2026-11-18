@@ -13,30 +13,37 @@
     let { items = [], label = undefined, size = 'md' } = $props();
 </script>
 
-<dl class="stat-strip {size}" aria-label={label}>
-    {#each items as it, i (i)}
-        <div
-            class="stat"
-            class:accent={it.tone === 'accent'}
-            class:muted={it.tone === 'muted'}
-            title={it.hint}
-        >
-            <dt>{it.label}</dt>
-            <dd>
-                {#if it.icon}<i class="bi {it.icon}" aria-hidden="true"></i>{/if}
-                {#if it.value != null}<span class="value">{it.value}</span>{/if}
-                {#if it.text}<span class="text">{it.text}</span>{/if}
-                {#if it.note}<abbr class="note" title={it.noteHint}>{it.note}</abbr>{/if}
-            </dd>
-        </div>
-    {/each}
-</dl>
+<div class="stat-strip-wrap" role={label ? 'group' : undefined} aria-label={label}>
+    <dl class="stat-strip {size}">
+        {#each items as it, i (i)}
+            <div
+                class={['stat', { accent: it.tone === 'accent', muted: it.tone === 'muted' }]}
+                title={it.hint}
+            >
+                <dt>{it.label}</dt>
+                <dd>
+                    {#if it.icon}<i class="bi {it.icon}" aria-hidden="true"></i>{/if}
+                    {#if it.value != null}<span class="value">{it.value}</span>{/if}
+                    {#if it.text}<span class="text">{it.text}</span>{/if}
+                    {#if it.note}<abbr class="note" title={it.noteHint}>{it.note}</abbr>{/if}
+                </dd>
+            </div>
+        {/each}
+    </dl>
+</div>
 
 <style>
+    /* Séparateurs : filet à gauche de chaque chiffre ; la marge négative de la liste et le
+       débordement masqué du cadre cachent le filet du premier chiffre de chaque rangée (plus de
+       trait orphelin en bout de ligne quand la rangée passe à la ligne). */
+    .stat-strip-wrap {
+        overflow: hidden;
+    }
     .stat-strip {
         display: flex;
         flex-wrap: wrap;
-        margin: 0;
+        row-gap: 16px;
+        margin: 0 0 0 -29px;
         padding: 18px 0 20px;
     }
     .stat {
@@ -45,15 +52,9 @@
         flex-direction: column-reverse;
         justify-content: flex-end;
         gap: 4px;
-        padding: 2px 28px 2px 0;
-        margin: 0 28px 0 0;
-        border-right: 1px solid var(--vff-border);
         min-width: 0;
-    }
-    .stat:last-child {
-        border-right: 0;
-        margin-right: 0;
-        padding-right: 0;
+        padding: 2px 28px;
+        border-left: 1px solid var(--vff-border-strong);
     }
     dt {
         font-family: var(--vff-font-heading);
@@ -115,13 +116,12 @@
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 16px 20px;
+            margin: 0;
             padding: 16px 0 18px;
         }
         .stat {
-            border-right: 0;
-            margin: 0;
             padding: 0 0 0 12px;
-            border-left: 2px solid var(--vff-border);
+            border-left: 2px solid var(--vff-border-strong);
         }
         .value {
             font-size: 24px;

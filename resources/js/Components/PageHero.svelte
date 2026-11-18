@@ -1,89 +1,90 @@
 <script>
-    let { eyebrow, title, subtitle, status = null } = $props();
+    /**
+     * Bandeau de titre des pages de contenu (rubriques, annuaires, pages légales) : rubrique
+     * facultative, titre (le seul h1 de la page), chapeau, état facultatif, compléments (`children`).
+     * Aligné à gauche sur la grille de 1 180 px, comme SheetHero et les sections : un seul bord
+     * gauche pour toute la page. Fond plat, filet en bas ; pas de dégradé.
+     *
+     * Props : `eyebrow` (rubrique, texte court, à omettre s'il répète le titre), `title`,
+     * `subtitle` (chapeau), `status` (état du contenu, ex. « En construction »), `titleLang`
+     * (langue du titre s'il diffère de la page), `children`.
+     */
+    /** @type {{ eyebrow?: string|null, title: string, subtitle?: string|null, status?: string|null, titleLang?: string, children?: import('svelte').Snippet }} */
+    let {
+        eyebrow = null,
+        title,
+        subtitle = null,
+        status = null,
+        titleLang = undefined,
+        children,
+    } = $props();
 </script>
 
-<section class="page-hero">
-    <div class="page-hero-inner">
+<header class="page-hero">
+    <div class="inner">
         {#if eyebrow}
-            <span class="eyebrow">{eyebrow}</span>
+            <p class="eyebrow">{eyebrow}</p>
         {/if}
-        <h1>{title}</h1>
+        <h1 lang={titleLang}>{title}</h1>
         {#if subtitle}
             <p class="subtitle">{subtitle}</p>
         {/if}
         {#if status}
-            <span class="status-pill">
-                <i class="bi bi-tools"></i>
-                {status}
-            </span>
+            <p class="status">
+                <span class="vff-badge muted">
+                    <i class="bi bi-info-circle" aria-hidden="true"></i>
+                    {status}
+                </span>
+            </p>
         {/if}
+        {@render children?.()}
     </div>
-</section>
+</header>
 
 <style>
     .page-hero {
-        position: relative;
-        padding: 60px 16px 96px;
-        text-align: center;
-        /* Le dégradé se termine bien avant le bord bas (70 %) pour que les
-           30 % inférieurs soient totalement transparents — la transition vers
-           la section suivante (blanche) est ainsi invisible, sans liseré. */
-        background: linear-gradient(180deg, var(--vff-accent-soft) 0%, transparent 70%);
-        overflow: hidden;
+        padding: 44px 0;
+        background-color: var(--vff-bg-subtle);
+        border-bottom: 1px solid var(--vff-border);
     }
-    .page-hero::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background-image: radial-gradient(
-            circle at 50% 0%,
-            var(--vff-accent-soft) 0%,
-            transparent 50%
-        );
-        z-index: 0;
-    }
-    .page-hero-inner {
-        position: relative;
-        z-index: 1;
-        max-width: 800px;
+    .inner {
+        max-width: calc(var(--vff-container) + 2 * var(--vff-gutter));
         margin: 0 auto;
+        padding: 0 var(--vff-gutter);
     }
     .eyebrow {
-        display: inline-block;
+        margin: 0 0 10px;
         font-family: var(--vff-font-heading);
         font-size: 15px;
         font-weight: 600;
-        color: var(--vff-accent-ink);
-        margin-bottom: 16px;
+        line-height: var(--vff-lh-ui);
+        color: var(--vff-text-muted);
     }
     h1 {
-        margin: 0 0 16px;
-        font-size: clamp(32px, 5vw, 48px);
-    }
-    h1::after {
-        margin-top: 16px;
+        max-width: 24ch;
+        margin: 0;
+        font-family: var(--vff-font-display);
+        font-size: var(--vff-fs-h1);
+        line-height: var(--vff-lh-tight);
+        letter-spacing: -0.01em;
+        color: var(--vff-text);
+        text-wrap: balance;
     }
     .subtitle {
-        font-size: clamp(18px, 2.2vw, 22px);
-        color: var(--vff-text-muted);
-        max-width: 680px;
-        margin: 16px auto 0;
+        max-width: 60ch;
+        margin: 14px 0 0;
+        font-family: var(--vff-font-body);
+        font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.25rem);
         line-height: 1.5;
-    }
-    .status-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        margin-top: 24px;
-        padding: 6px 14px;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-pill);
-        font-size: 13px;
-        font-family: var(--vff-font-display);
         color: var(--vff-text-muted);
+        text-wrap: pretty;
     }
-    .status-pill i {
-        color: var(--vff-accent);
+    .status {
+        margin: 18px 0 0;
+    }
+    @media (max-width: 600px) {
+        .page-hero {
+            padding: 28px 0;
+        }
     }
 </style>
