@@ -355,4 +355,18 @@ class LinePhasesTest extends TestCase
         $out = LinePhases::mergeMinor([['date' => '1900-01-01', 'precision' => 'day', 'changes' => [['length_m' => 50, 'mode' => 'localized']]]]);
         $this->assertCount(1, $out);
     }
+
+    public function test_best_phase_is_the_first_reaching_the_full_extent_not_a_late_short_link(): void
+    {
+        // Paris - Brest (420000) : ligne complète en 1865, raccord de 400 m en 1989. Le plus grand
+        // développement est 1865, pas « 1989, mise en service de 0,4 km ».
+        $r = self::compute(self::eras(1860, 1870, 1990, 2030), [
+            ['key' => 'a', 'length_m' => 300000, 'states' => [1860 => 'mixed', 1870 => 'mixed', 1990 => 'mixed', 2030 => 'mixed']],
+            ['key' => 'b', 'length_m' => 326000, 'states' => [1870 => 'mixed', 1990 => 'mixed', 2030 => 'mixed']],
+            ['key' => 'c', 'length_m' => 400, 'states' => [1990 => 'mixed', 2030 => 'mixed']],
+        ], [self::ev(1, 'opening', '1855-01-01', 'localized'), self::ev(2, 'opening', '1865-04-26', 'localized'), self::ev(3, 'opening', '1989-09-24', 'localized')],
+            [1 => ['a'], 2 => ['b'], 3 => ['c']]);
+        $this->assertSame(['1855-01-01', '1865-04-26', '1989-09-24'], array_column($r['phases'], 'date'));
+        $this->assertSame(1, $r['best']);
+    }
 }

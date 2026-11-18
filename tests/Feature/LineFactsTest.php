@@ -47,7 +47,10 @@ class LineFactsTest extends TestCase
         ]), ['length_km' => 711.3, 'max_speed_kmh' => 320, 'gauge_mm' => 1435], 2030, true));
 
         $this->assertSame(['km' => 409.0, 'source' => 'wikidata', 'scope' => 'item', 'item' => 'LGV Sud-Est'],
-            array_diff_key($facts['length:item'], ['key' => 1]));
+            array_diff_key($facts['length:item'], ['key' => 1, 'label' => 1, 'note' => 1]));
+        // Libellé et précision rédigés : la valeur d'une partie de la ligne porte son nom dans le libellé.
+        $this->assertSame(['Longueur officielle (LGV Sud-Est)', 'd’après Wikidata, pour cette partie de la ligne seulement'],
+            [$facts['length:item']['label'], $facts['length:item']['note']]);
         // Vitesse de l'en-tête (SNCF, aujourd'hui) pour la ligne ; celle de Wikidata, différente, pour son élément.
         $this->assertSame([320, 'sncf', 'today'], [$facts['max_speed:line']['kmh'], $facts['max_speed:line']['source'], $facts['max_speed:line']['as_of']]);
         $this->assertSame([300, 'LGV Sud-Est'], [$facts['max_speed:item']['kmh'], $facts['max_speed:item']['item']]);

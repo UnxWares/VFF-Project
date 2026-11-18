@@ -128,7 +128,10 @@ class LinePagesTest extends TestCase
                 ->where('materials.0.slug', $this->material->slug)
                 ->missing('media')
                 ->has('sections', 0)
-                ->has('sources', 0)
+                // Pas de source de la ligne (line_sources) ; les sources des tronçons affichés sont citées
+                // (signalisation SNCF : une plage de cantonnement).
+                ->where('sources', fn ($s) => collect($s)->pluck('type')->contains('sncf-signalling')
+                    && ! collect($s)->pluck('type')->contains('sncf-classification'))
             );
     }
 

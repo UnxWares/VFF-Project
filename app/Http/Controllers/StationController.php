@@ -31,6 +31,8 @@ class StationController extends Controller
         $status = $this->filterString($request, 'status');
         $dept = $this->filterString($request, 'dept', trim: true);
         $flagged = $request->boolean('flagged');
+        $sort = $this->filterString($request, 'sort');
+        $sort = in_array($sort, ['name', 'name-desc', 'city', 'opened', 'closed'], true) ? $sort : 'name';
         $eras = Era::orderBy('year')->get(['id', 'year', 'is_current']);
         $era = $request->integer('era') ? $eras->firstWhere('year', $request->integer('era')) : null;
 
@@ -52,27 +54,97 @@ class StationController extends Controller
         $list = (clone $base)
             ->when(in_array($status, self::STATUSES, true), fn ($b) => $b->whereRaw("{$statusExpr} = ?", [$status]))
             ->selectRaw(<<<SQL
-                s.slug, s.name, s.type, s.city, s.department_code, s.uic_code, s.sources_count, s.position_flagged,
+                s.id, s.slug, s.name, s.type, s.city, s.department_code, s.uic_code, s.sources_count, s.position_flagged,
                 {$statusExpr} AS status,
                 EXTRACT(YEAR FROM s.opened_at)::int AS opened_year, EXTRACT(YEAR FROM s.closed_at)::int AS closed_year,
-                s.provenance->>'opened_at' AS opened_source
+                s.provenance->>'opened_at' AS opened_source, s.provenance->>'closed_at' AS closed_source,
+                (s.provenance->>'closed_after')::int AS closed_after
             SQL)
-            ->orderBy('s.name')
+            ->tap(fn ($b) => $this->orderIndex($b, $sort, $q))
             ->paginate(50)
             ->appends($request->query());
+        $linesByStation = $this->indexLines(collect($list->items())->pluck('id')->all());
+        $overall = DB::table('stations as s')
+            ->whereRaw("COALESCE(s.provenance->>'kind', '') NOT IN ('technical', 'excluded')")
+            ->count();
 
         return Inertia::render('Stations/Index', [
             'stations' => [
-                'data' => $list->items(),
+                'data' => collect($list->items())->map(function ($row) use ($linesByStation) {
+                    $row = (array) $row;
+                    $row['lines'] = $linesByStation[$row['id']] ?? ['items' => [], 'more' => 0];
+                    unset($row['id']);
+
+                    return $row;
+                })->all(),
                 'current_page' => $list->currentPage(),
                 'last_page' => $list->lastPage(),
                 'total' => $list->total(),
             ],
-            'filters' => ['q' => $q, 'status' => $status, 'dept' => $dept, 'era' => $era?->year, 'flagged' => $flagged],
+            'filters' => ['q' => $q, 'status' => $status, 'dept' => $dept, 'era' => $era?->year, 'flagged' => $flagged, 'sort' => $sort],
+            'overall' => $overall,
             'counts' => array_map('intval', $counts->all()),
             'eras' => $eras->pluck('year'),
             'departments' => DB::table('stations')->whereNotNull('department_code')->distinct()->orderBy('department_code')->pluck('department_code'),
         ]);
+    }
+
+    /**
+     * Ordre de l'annuaire : alphabétique FRANÇAIS (collation ICU : accents et capitales sans effet sur le rang).
+     * Tri par nom avec une recherche : nom exact, puis noms qui commencent par le terme, puis le reste.
+     * Les dates absentes viennent toujours en dernier.
+     */
+    private function orderIndex($builder, string $sort, string $q): void
+    {
+        $name = 's.name COLLATE "fr-x-icu"';
+
+        match ($sort) {
+            'name-desc' => $builder->orderByRaw("{$name} DESC, s.id"),
+            'city' => $builder->orderByRaw("s.city IS NULL, s.city COLLATE \"fr-x-icu\", {$name}, s.id"),
+            'opened' => $builder->orderByRaw("s.opened_at IS NULL, s.opened_at, {$name}, s.id"),
+            'closed' => $builder->orderByRaw("s.closed_at IS NULL, s.closed_at, {$name}, s.id"),
+            default => $this->orderByName($builder, $q, $name),
+        };
+    }
+
+    private function orderByName($builder, string $q, string $name): void
+    {
+        if ($q !== '') {
+            $builder->orderByRaw(
+                'CASE WHEN lower(s.name) = lower(?) THEN 0 WHEN s.name ILIKE ? THEN 1 ELSE 2 END',
+                [$q, $this->prefixPattern($q)],
+            );
+        }
+        $builder->orderByRaw("{$name}, s.id");
+    }
+
+    /**
+     * Lignes desservant chaque gare de la page (trois au plus, codes en priorité) : de quoi distinguer deux
+     * fiches de même nom dans la même commune.
+     *
+     * @param  array<int>  $ids
+     * @return array<int, array{items: list<array{slug: string, code: ?string, name: string}>, more: int}>
+     */
+    private function indexLines(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+        $rows = DB::table('station_lines as sl')
+            ->join('lines as l', 'l.id', '=', 'sl.line_id')
+            ->whereIn('sl.station_id', $ids)
+            ->orderByRaw('l.code IS NULL, l.code, l.name')
+            ->get(['sl.station_id', 'l.slug', 'l.code', 'l.name']);
+
+        $out = [];
+        foreach ($rows->groupBy('station_id') as $stationId => $group) {
+            $out[(int) $stationId] = [
+                'items' => $group->take(3)->map(fn ($r) => ['slug' => $r->slug, 'code' => $r->code, 'name' => $r->name])->values()->all(),
+                'more' => max(0, $group->count() - 3),
+            ];
+        }
+
+        return $out;
     }
 
     public function show(Station $station): Response
@@ -140,12 +212,15 @@ class StationController extends Controller
             ORDER BY CASE ss.source WHEN 'sncf' THEN 0 WHEN 'sncf_voyageurs' THEN 1 WHEN 'osm' THEN 2 WHEN 'wikidata' THEN 3 WHEN 'ohm' THEN 4 ELSE 5 END, ss.id
         SQL, [$sid]);
 
+        // Gares voisines, comme l'annuaire : ni point technique ni fiche exclue du réseau ferré par une
+        // correction sourcée (« Safari Train », petit train d'un zoo, apparaissait près de Lisieux).
         $neighbors = DB::select(<<<'SQL'
             SELECT s.slug, s.name, s.type, s.city, CASE WHEN s.source_status = 'gone' THEN 'gone' ELSE s.status END AS status,
                    ST_X(s.geom) AS lng, ST_Y(s.geom) AS lat,
                    ST_Distance(s.geom::geography, ref.geom::geography) AS distance_m
             FROM stations s CROSS JOIN (SELECT geom FROM stations WHERE id = ?) ref
             WHERE s.id <> ? AND s.geom && ST_Expand(ref.geom, 0.15) AND ST_DWithin(s.geom::geography, ref.geom::geography, 10000)
+              AND COALESCE(s.provenance->>'kind', '') NOT IN ('technical', 'excluded')
             ORDER BY distance_m ASC
             LIMIT 12
         SQL, [$sid, $sid]);
@@ -179,6 +254,8 @@ class StationController extends Controller
                 'uic_code' => $station->uic_code,
                 'wikidata_id' => $station->wikidata_id,
                 'description' => $station->description,
+                // Description tirée des sources, en français : lang="fr" sur une page EN ou DE.
+                'description_lang' => $station->description !== null && trim((string) $station->description) !== '' && $locale !== 'fr' ? 'fr' : null,
                 'provenance' => $station->provenance ?? [],
                 'position_source' => $station->position_source,
                 'position_spread_m' => $station->position_spread_m,

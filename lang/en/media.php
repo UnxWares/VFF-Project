@@ -65,6 +65,7 @@ return [
     'no_commercial' => 'Non-commercial',
     'hosted_notice' => 'Images hosted by :provider and hotlinked: VFF does not copy them. Each image keeps its own licence; reuse is possible provided you credit the author, licence and link shown.',
     'open' => 'Enlarge: :title',
+    'file_name' => 'File: :name',
 
     'lightbox' => [
         'close' => 'Close',

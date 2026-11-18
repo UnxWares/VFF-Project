@@ -242,22 +242,49 @@ final class LineStations
     /**
      * Résumé par ère pour la vue « décennie par décennie » : gares ouvertes
      * (voyageurs, touristiques, fret seul), incertaines, fermées, et gares
-     * dont la fermeture retenue tombe dans la décennie (après l'ère
-     * précédente, au plus tard à cette ère ; l'ère courante couvre jusqu'à
-     * aujourd'hui), avec la même date que la fiche gare.
+     * qui passent à « fermée » à cette ère (fermées à cette ère, pas à la
+     * précédente : les mêmes statuts que les compteurs, donc jamais plus de
+     * noms que de fermetures comptées), avec la date de la fiche gare.
      *
      * @return list<array{year: int, is_current: bool, open: int, uncertain: int, closed: int, closures: list<array<string, mixed>>}>
      */
     public function byEra(int $lineId): array
     {
         $data = $this->forLine($lineId);
+        // Ère où chaque gare fermée aujourd'hui apparaît dans « fermées dans la décennie » : la dernière
+        // où son fil passe à « fermée » (fermée à cette ère, pas à la précédente), c'est-à-dire la même
+        // ère que les compteurs. Une date retenue antérieure (13 mars 2018) dont la frise ne montre la
+        // fermeture qu'à l'ère suivante ne crée plus une gare « fermée » de plus que le compteur. Sans
+        // passage à « fermée » dans le fil (données contradictoires) : la décennie de la date retenue.
+        $years = array_column($data['eras'], 'year');
+        $listedAt = [];
+        foreach ($data['stations'] as $i => $s) {
+            if ($s['closed_year'] === null) {
+                continue;
+            }
+            $before = null;
+            foreach ($years as $y) {
+                $status = $s['eras'][$y]['status'] ?? null;
+                if ($status === StationTimeline::CLOSED && $before !== StationTimeline::CLOSED) {
+                    $listedAt[$i] = $y;
+                }
+                $before = $status;
+            }
+            if (! isset($listedAt[$i])) {
+                foreach ($years as $y) {
+                    if ($s['closed_year'] <= $y) {
+                        $listedAt[$i] = $y;
+                        break;
+                    }
+                }
+            }
+        }
         $out = [];
-        $previous = null;
         foreach ($data['eras'] as $era) {
             $y = $era['year'];
             $counts = ['open' => 0, 'uncertain' => 0, 'closed' => 0];
             $closures = [];
-            foreach ($data['stations'] as $s) {
+            foreach ($data['stations'] as $i => $s) {
                 $status = $s['eras'][$y]['status'] ?? null;
                 if (in_array($status, StationTimeline::OPEN_STATUSES, true)) {
                     $counts['open']++;
@@ -266,15 +293,13 @@ final class LineStations
                 } elseif ($status === StationTimeline::CLOSED) {
                     $counts['closed']++;
                 }
-                $cy = $s['closed_year'];
-                if ($cy !== null && $cy <= $y && ($previous === null || $cy > $previous)) {
+                if (($listedAt[$i] ?? null) === $y) {
                     $closures[] = ['slug' => $s['slug'], 'name' => $s['name'], 'pk_label' => $s['pk_label'],
                         'closed_at' => $s['closed_at'], 'closed_precision' => $s['closed_precision'], 'closed_after' => $s['closed_after'],
                         'label' => StationTimeline::closureLabel($s['closed_at'], $s['closed_precision'], $s['closed_after'])];
                 }
             }
             $out[] = ['year' => $y, 'is_current' => $era['is_current']] + $counts + ['closures' => $closures];
-            $previous = $y;
         }
 
         return $out;

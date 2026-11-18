@@ -23,7 +23,8 @@ use Illuminate\Support\Facades\DB;
  *      une ouverture). Sans événement : changement « entre AAAA et AAAA » (non daté).
  *   3. Une phase = une date (ou un intervalle non daté) et tous les changements qui
  *      s'y produisent. L'état de la ligne après chaque phase est complet.
- *   4. Phase « au meilleur » = la plus grande longueur en service (la première atteinte).
+ *   4. Phase « au meilleur » = la première où la ligne atteint sa plus grande longueur en service
+ *      (à BEST_TOLERANCE près : un raccord de quelques centaines de mètres posé plus tard n'en est pas une).
  *
  * Une phase ne naît que d'un vrai changement (2026-10-20, contrôle qualité : « Depuis 2021,
  * disparition de la voie sur 1,3 km » sur Paris - Bordeaux en pleine exploitation) :
@@ -516,12 +517,18 @@ final class LinePhases
             $ph['active_m'] = array_sum(array_intersect_key($byCat, array_flip(self::ACTIVE)));
             $ph['index'] = $n;
             $ph['kind'] = self::kind($ph['changes']);
-            if ($ph['active_m'] > $bestLen) {
-                $bestLen = $ph['active_m'];
-                $bestIndex = $n;
-            }
+            $bestLen = max($bestLen, $ph['active_m']);
         }
         unset($ph);
+        // Plus grand développement : la PREMIÈRE phase où la ligne atteint sa longueur maximale en service,
+        // à BEST_TOLERANCE près. Avant : la phase du maximum exact, qui pouvait être un raccord de 400 m
+        // posé un siècle plus tard (Paris - Brest : « 1989, mise en service de 0,4 km » au lieu de 1865).
+        foreach ($phases as $n => $ph) {
+            if ($ph['active_m'] >= $bestLen * (1 - self::BEST_TOLERANCE)) {
+                $bestIndex = $n;
+                break;
+            }
+        }
 
         // Décennie par décennie : état de la ligne à chaque ère, avec les mêmes règles (une voie
         // déposée reste comptée « déposée » ensuite, au lieu de disparaître de la synthèse).
@@ -549,6 +556,9 @@ final class LinePhases
         return ['phases' => $phases, 'best' => $bestIndex, 'used_events' => array_map('intval', array_keys($used)), 'decades' => $decades,
             'unexplained' => $unexplained];
     }
+
+    /** Écart relatif à la longueur maximale en service toléré pour la phase « plus grand développement ». */
+    public const BEST_TOLERANCE = 0.01;
 
     /** Longueur (m) sous laquelle une phase datée n'est qu'un ajustement de tracé, fondue dans une phase voisine. */
     public const MINOR_M = 200;
