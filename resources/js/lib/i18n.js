@@ -20,9 +20,9 @@ export const SUPPORTED = ['fr', 'en', 'de'];
 export const CANONICAL = 'fr';
 
 export const LOCALES = [
-    { code: 'fr', name: 'Français', flag: '🇫🇷' },
-    { code: 'en', name: 'English', flag: '🇬🇧' },
-    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+    { code: 'fr', name: 'Français' },
+    { code: 'en', name: 'English' },
+    { code: 'de', name: 'Deutsch' },
 ];
 
 /**
