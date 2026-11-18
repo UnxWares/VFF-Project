@@ -2,34 +2,34 @@
 
 return [
     'meta_title' => 'Unsere Geschichte',
-    'meta_description' => 'Die Geschichte von VFF, einem kollaborativen Projekt, das aus der Leidenschaft für das französische Schienennetz entstanden ist.',
+    'meta_description' => 'Die Geschichte von VFF, einem Gemeinschaftsprojekt aus Begeisterung für die französische Eisenbahn.',
 
     'hero' => [
         'eyebrow' => 'Unsere Geschichte',
-        'title' => 'Eine Enzyklopädie, geboren aus geteilter Leidenschaft',
-        'subtitle' => 'Wie zwei Eisenbahnbegeisterte davon träumen, jeden Meter des französischen Eisenbahnerbes zu kartieren, das lebendige wie das verschwundene.',
+        'title' => 'Eine Enzyklopädie aus gemeinsamer Leidenschaft',
+        'subtitle' => 'Warum und wie wir das französische Eisenbahnerbe dokumentieren, von Strecken im Betrieb bis zu verschwundenen Strecken.',
     ],
 
     'genesis' => [
-        'title' => 'Ursprung',
-        'paragraph' => 'Alles begann mit einer einfachen Feststellung: Für das französische Eisenbahnerbe im Amateurbereich existiert keine zentrale Ressource. Die alten Bahnstrecken, ihre genauen Streckenführungen, die verschwundenen Bahnhöfe, die Fahrzeuge, die sie befuhren: All diese Informationen existieren, verstreut in Archivbeständen, Fachforen, Stadtbibliotheken oder im Gedächtnis von Zeitzeugen, die mitunter in ihren Neunzigern sind. Wir wollten den Ort schaffen, an dem all dies zusammen lebt, für jeden zugänglich.',
+        'title' => 'Entstehung',
+        'paragraph' => 'Am Anfang stand eine einfache Beobachtung: Wir haben keine zentrale Quelle zum französischen Eisenbahnerbe gefunden. Die alten Strecken, ihre genauen Verläufe, die verschwundenen Bahnhöfe, die Fahrzeuge, die dort fuhren: All diese Informationen gibt es, verstreut in Archiven, Fachforen, Stadtbibliotheken oder im Gedächtnis von Zeitzeugen, die manchmal über neunzig sind. Wir wollten den Ort schaffen, an dem alles zusammenkommt und für alle zugänglich ist.',
     ],
 
     'vision' => [
-        'title' => 'Vision',
-        'paragraph' => 'Die größte kollaborative Enzyklopädie des französischen Schienennetzes werden. Nicht nur eine Website, sondern eine lebendige Plattform, auf der jede Bahnstrecke ihre Geschichte erzählt (von ihrer Eröffnung bis heute oder bis zu ihrem Rückbau), illustriert mit Archivfotografien, Plänen, Zeitzeugenberichten und bald KI-gestützten 3D-Rekonstruktionen verschwundener Orte.',
+        'title' => 'Unser Ziel',
+        'paragraph' => 'An einem Ort zusammenzutragen, was über die französische Eisenbahn bekannt ist. Jede Strecke hat ihre eigene Seite, von der Eröffnung bis heute oder bis zur Stilllegung, mit ihren Bahnhöfen, ihren Quellen und, wenn wir sie haben, historischen Fotografien und Plänen. Es ist eine gemeinschaftliche Enzyklopädie: Was darin steht, ist belegt und wird vor der Veröffentlichung geprüft.',
     ],
 
     'values' => [
-        'title' => 'Unsere Werte',
+        'title' => 'Unsere Grundsätze',
         'open_title' => 'Offen',
-        'open_text' => 'Open-Source-Code, offene Daten, öffentliche API. Unsere gesamte Infrastruktur ist darauf ausgelegt, weiterverwendet zu werden.',
+        'open_text' => 'Der Code steht unter der MIT-Lizenz, die API ist öffentlich, und jede Angabe behält ihre Quelle und ihre Lizenz.',
         'rigorous_title' => 'Sorgfältig',
-        'rigorous_text' => 'Belegte Quellen, präzise Daten, Begutachtung durch Fachkundige. Jeder Beitrag wird vor der Veröffentlichung überprüft.',
+        'rigorous_text' => 'Quellenangaben, genaue Daten, Sichtung durch zwei Prüfer. Jeder Beitrag wird vor der Veröffentlichung geprüft.',
         'collective_title' => 'Gemeinschaftlich',
         'collective_text' => 'Niemand kann das gesamte Netz allein dokumentieren. VFF existiert nur durch seine Mitwirkenden.',
-        'durable_title' => 'Beständig',
-        'durable_text' => 'Das Projekt ist darauf ausgelegt, Jahrzehnte zu überdauern: der Zeithorizont, den eine auf Vollständigkeit zielende Enzyklopädie erfordert.',
+        'durable_title' => 'Auf Dauer angelegt',
+        'durable_text' => 'Eine Enzyklopädie entsteht über Jahre. Wir wählen Quellen und Werkzeuge, die lange Bestand haben.',
     ],
 
     'milestones' => [
@@ -39,17 +39,15 @@ return [
         'item2_date' => '2024',
         'item2_text' => 'Erste Online-Version, visuelle Identität festgelegt.',
         'item3_date' => '2026',
-        'item3_text' => 'Vollständige technische Überarbeitung: Laravel 13, Inertia 3, Svelte 5, PostgreSQL 18 + PostGIS 3.6 (Apache AGE für den Graphen), MapLibre GL JS. Vollständiges Eisenbahn-Datenmodell.',
-        'item4_date' => '2027',
-        'item4_text' => 'Öffentliche Veröffentlichung des MVP der interaktiven Karte + Zeitregler.',
-        'item5_date' => '2030',
-        'item5_text' => 'Lebendiger Snapshot 2030 eingefroren. Angestrebt wird eine vollständige Abdeckung.',
+        'item3_text' => 'Vollständige Überarbeitung der Website und des Datenmodells. Start der historischen Karte von 1830 bis heute, der Strecken- und Bahnhofsseiten, der öffentlichen API und der Beiträge.',
+        'item4_date' => '2030',
+        'item4_text' => 'Ziel: das gesamte französische Eisenbahnnetz Strecke für Strecke mit seinen Quellen abzudecken.',
     ],
 
     'cta' => [
-        'title' => 'Werden Sie Teil des Abenteuers',
-        'text' => 'Das Projekt besteht nur durch seine Gemeinschaft. Drei Möglichkeiten zu helfen: dokumentieren, teilen, spenden.',
+        'title' => 'Machen Sie mit',
+        'text' => 'Das Projekt lebt von seiner Gemeinschaft. Sie können Strecken dokumentieren, Archive oder Code beisteuern oder das Projekt unterstützen.',
         'contribute' => 'So können Sie mitwirken',
-        'donate' => 'Das Projekt unterstützen',
+        'donate' => 'Projekt unterstützen',
     ],
 ];

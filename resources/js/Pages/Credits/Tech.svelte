@@ -3,6 +3,7 @@
     import PageHero from '$components/PageHero.svelte';
     import SectionBlock from '$components/SectionBlock.svelte';
     import { i18n } from '$lib/i18n.js';
+    import { Link } from '@inertiajs/svelte';
 
     const groups = [
         {
@@ -206,7 +207,7 @@
                 {
                     name: 'OpenRailwayMap',
                     url: 'https://www.openrailwaymap.org',
-                    license: 'CC-BY-SA',
+                    license: 'CC BY-SA',
                     note: 'orm',
                 },
                 {
@@ -260,24 +261,56 @@
                 {
                     name: 'Wikipédia',
                     url: 'https://fr.wikipedia.org',
-                    license: 'CC-BY-SA',
+                    license: 'CC BY-SA 4.0',
                     note: 'wikipedia',
                 },
                 {
-                    name: 'BNF Gallica',
+                    name: 'BnF Gallica',
                     url: 'https://gallica.bnf.fr',
-                    licenseKey: 'public_domain',
+                    licenseKey: 'bnf',
                     note: 'gallica',
                 },
             ],
         },
     ];
+
+    const byKey = Object.fromEntries(groups.map((g) => [g.key, g]));
+    const softwareGroups = ['backend', 'frontend', 'infra', 'quality', 'fonts'].map(
+        (k) => byKey[k],
+    );
+    const sourceItems = byKey.sources.items;
+    const mlItems = byKey.ai.items;
 </script>
 
 <svelte:head>
     <title>{$i18n.t('credits.tech.meta_title')} - VFF</title>
     <meta name="description" content={$i18n.t('credits.tech.meta_description')} />
 </svelte:head>
+
+{#snippet techList(items, columns = false)}
+    <ul class="tech-list" class:columns>
+        {#each items as i (i.name)}
+            <li>
+                <div class="head">
+                    <a href={i.url} target="_blank" rel="noopener noreferrer" class="name"
+                        >{i.name}<i class="bi bi-box-arrow-up-right vff-ext" aria-hidden="true"
+                        ></i><span class="vff-sr-only"> ({$i18n.t('common.new_tab')})</span></a
+                    >
+                    <span class="vff-badge"
+                        ><span class="vff-sr-only"
+                            >{$i18n.t('credits.tech.name_license')} :
+                        </span>{i.licenseKey
+                            ? $i18n.t(`credits.tech.licenses.${i.licenseKey}`)
+                            : i.license}</span
+                    >
+                </div>
+                {#if i.note}
+                    <p class="note">{$i18n.t(`credits.tech.notes.${i.note}`)}</p>
+                {/if}
+            </li>
+        {/each}
+    </ul>
+{/snippet}
 
 <Layout compactHeader>
     <main>
@@ -287,134 +320,162 @@
             subtitle={$i18n.t('credits.tech.subtitle')}
         />
 
-        {#each groups as g (g.key)}
-            <SectionBlock title={$i18n.t(`credits.tech.groups.${g.key}`)} maxWidth="900px">
-                <ul class="tech-list">
-                    {#each g.items as i (i.name)}
-                        <li>
-                            <a href={i.url} target="_blank" rel="noopener">
-                                <strong>{i.name}</strong>
-                                <span class="license"
-                                    >{i.licenseKey
-                                        ? $i18n.t(`credits.tech.licenses.${i.licenseKey}`)
-                                        : i.license}</span
-                                >
-                            </a>
-                            {#if i.note}<p class="note">
-                                    {$i18n.t(`credits.tech.notes.${i.note}`)}
-                                </p>{/if}
-                        </li>
-                    {/each}
-                </ul>
-            </SectionBlock>
-        {/each}
+        <SectionBlock title={$i18n.t('credits.tech.software_title')} maxWidth="1180px">
+            <div class="groups">
+                {#each softwareGroups as g (g.key)}
+                    <div class="group">
+                        <h3>{$i18n.t(`credits.tech.groups.${g.key}`)}</h3>
+                        {@render techList(g.items)}
+                    </div>
+                {/each}
+            </div>
+        </SectionBlock>
 
-        <SectionBlock title={$i18n.t('credits.tech.ai.title')} maxWidth="780px">
-            <!-- eslint-disable svelte/no-at-html-tags -->
-            <p class="paragraph">{@html $i18n.t('credits.tech.ai.p1')}</p>
-            <p class="paragraph">{@html $i18n.t('credits.tech.ai.p2')}</p>
-            <p class="paragraph">{@html $i18n.t('credits.tech.ai.p3')}</p>
-            <p class="paragraph">
-                {$i18n.t('credits.tech.ai.repo')}
-                <a
-                    href="https://github.com/UnxWares/VFF-Rail-Extraction"
-                    target="_blank"
-                    rel="noopener">VFF-Rail-Extraction</a
-                >.
-            </p>
+        <SectionBlock kind="alt" title={$i18n.t('credits.tech.sources_title')} maxWidth="1180px">
+            {@render techList(sourceItems, true)}
+        </SectionBlock>
+
+        <SectionBlock title={$i18n.t('credits.tech.ai.title')} maxWidth="1180px">
+            <div class="ml">
+                <div class="vff-prose">
+                    <!-- eslint-disable svelte/no-at-html-tags -->
+                    <p>{@html $i18n.t('credits.tech.ai.p1')}</p>
+                    <p>{@html $i18n.t('credits.tech.ai.p2')}</p>
+                    <p>{@html $i18n.t('credits.tech.ai.p3')}</p>
+                    <!-- eslint-enable svelte/no-at-html-tags -->
+                    <p>
+                        {$i18n.t('credits.tech.ai.repo')}
+                        <a
+                            href="https://github.com/UnxWares/VFF-Rail-Extraction"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            >VFF-Rail-Extraction<i
+                                class="bi bi-box-arrow-up-right vff-ext"
+                                aria-hidden="true"
+                            ></i><span class="vff-sr-only"> ({$i18n.t('common.new_tab')})</span></a
+                        >.
+                    </p>
+                </div>
+                <div class="group">
+                    <h3>{$i18n.t('credits.tech.groups.ai')}</h3>
+                    {@render techList(mlItems)}
+                </div>
+            </div>
         </SectionBlock>
 
         <SectionBlock kind="alt" title={$i18n.t('credits.tech.commitment.title')} maxWidth="780px">
-            <p class="paragraph">{@html $i18n.t('credits.tech.commitment.p1')}</p>
-            <!-- eslint-enable svelte/no-at-html-tags -->
-            <p class="paragraph">
-                {$i18n.t('credits.tech.commitment.p2')}
-                <a href="https://github.com/UnxWares/VFF-Project" target="_blank" rel="noopener"
-                    >{$i18n.t('credits.tech.commitment.repo_link')}</a
-                >.
-            </p>
+            <div class="vff-prose">
+                <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+                <p>{@html $i18n.t('credits.tech.commitment.p1')}</p>
+                <p>
+                    {$i18n.t('credits.tech.commitment.p2')}
+                    <a
+                        href="https://github.com/UnxWares/VFF-Project"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >{$i18n.t('credits.tech.commitment.repo_link')}<i
+                            class="bi bi-box-arrow-up-right vff-ext"
+                            aria-hidden="true"
+                        ></i><span class="vff-sr-only"> ({$i18n.t('common.new_tab')})</span></a
+                    >.
+                </p>
+            </div>
         </SectionBlock>
 
-        <SectionBlock kind="cta" maxWidth="640px">
-            <h2>{$i18n.t('credits.tech.cta.title')}</h2>
-            <p>{$i18n.t('credits.tech.cta.text')}</p>
-            <a href="/donate" class="vff-btn on-cta ink">
-                <i class="bi bi-heart-fill"></i>
-                {$i18n.t('credits.tech.cta.button')}
-            </a>
+        <SectionBlock
+            kind="cta"
+            title={$i18n.t('credits.tech.cta.title')}
+            intro={$i18n.t('credits.tech.cta.text')}
+        >
+            {#snippet actions()}
+                <Link href="/contribute" class="vff-btn primary">
+                    <i class="bi bi-geo" aria-hidden="true"></i>
+                    {$i18n.t('credits.tech.cta.button')}
+                </Link>
+            {/snippet}
         </SectionBlock>
     </main>
 </Layout>
 
 <style>
-    .tech-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
+    /* Les groupes se placent côte à côte sur grand écran : la page ne s'allonge pas d'une liste à l'autre. */
+    .groups {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--vff-section-space) 64px;
+        align-items: start;
+    }
+    .group h3 {
+        margin: 0 0 var(--vff-space-3);
+    }
+    .ml {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: var(--vff-block-space) 64px;
+        align-items: start;
+    }
+
+    /* Liste de crédits : une ligne par outil, filet entre deux lignes. Seul le nom est un lien. */
+    .tech-list {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        margin: 0;
+        padding: 0;
+        list-style: none;
     }
     .tech-list li {
-        padding: 14px 16px;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        transition: border-color var(--vff-transition);
+        padding: 12px 0;
+        border-top: 1px solid var(--vff-border);
     }
-    .tech-list li:hover {
-        border-color: var(--vff-accent);
+    .group .tech-list li:last-child {
+        border-bottom: 1px solid var(--vff-border);
     }
-    .tech-list a:hover strong {
-        text-decoration: underline;
-        text-decoration-color: var(--vff-accent);
-        text-underline-offset: 3px;
-    }
-    .tech-list a:focus-visible {
-        outline: 2px solid var(--vff-accent);
-        outline-offset: 3px;
-        border-radius: 2px;
-    }
-    .tech-list a {
+    .head {
         display: flex;
+        flex-wrap: wrap;
         align-items: baseline;
         justify-content: space-between;
-        gap: 10px;
-        text-decoration: none;
-        color: var(--vff-text);
+        gap: var(--vff-space-1) var(--vff-space-3);
     }
-    @media (max-width: 768px) {
-        .tech-list a {
-            padding: 4px 0;
-        }
-    }
-    .tech-list strong {
+    .name {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        min-width: 0;
         font-family: var(--vff-font-display);
-        font-size: 15px;
-    }
-    .tech-list .license {
-        font-family: var(--vff-font-heading);
-        font-size: 12px;
+        font-size: var(--vff-fs-md);
         font-weight: 600;
+        line-height: 1.35;
         color: var(--vff-text);
-        background-color: var(--vff-bg-muted);
-        padding: 2px 8px;
-        border-radius: var(--vff-radius-pill);
-        flex-shrink: 0;
+        text-decoration-color: var(--vff-border-control);
+        text-underline-offset: 0.2em;
     }
-    .tech-list .note {
-        margin: 6px 0 0;
-        font-size: 13.5px;
+    .name:hover {
+        color: var(--vff-accent-ink);
+        text-decoration-color: currentColor;
+    }
+    .note {
+        margin: 4px 0 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         line-height: 1.45;
         color: var(--vff-text-muted);
     }
-    .paragraph {
-        font-size: 16px;
-        line-height: 1.65;
-        color: var(--vff-text);
-        margin: 0 0 14px;
+    /* Liste des sources : deux colonnes sur grand écran. */
+    @media (min-width: 901px) {
+        .tech-list.columns {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            column-gap: 64px;
+        }
+        .tech-list.columns li:nth-last-child(-n + 2) {
+            border-bottom: 1px solid var(--vff-border);
+        }
     }
-    .paragraph a {
-        color: var(--vff-accent-ink);
+
+    @media (max-width: 900px) {
+        .groups,
+        .ml {
+            grid-template-columns: minmax(0, 1fr);
+        }
     }
 </style>

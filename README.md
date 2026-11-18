@@ -246,7 +246,7 @@ VFF-Project/
 │   └── de/
 ├── resources/
 │   ├── css/                  # general (tokens + dark mode), header, footer, sections (intouchables hors additif)
-│   ├── fonts/                # TTF auto-hébergées (Lato, Gabarito, Inter, Montserrat)
+│   ├── fonts/                # licences OFL des polices (WOFF2 servies par @fontsource, auto-hébergées)
 │   ├── images/               # Logo VFF, TGV, UnxWares, backgrounds WebP (3 tailles)
 │   ├── js/
 │   │   ├── app.js            # Entrée Inertia + Svelte + i18next bootstrap
@@ -420,7 +420,7 @@ Le **code** est distribué sous licence [MIT](LICENCE).
 
 Les **données ferroviaires** importées depuis OpenStreetMap sont sous licence [ODbL](https://opendatacommons.org/licenses/odbl/) - toute redistribution doit respecter l'attribution OSM.
 
-Les **polices** (Inter, Lato, Gabarito, Montserrat) sont sous [SIL Open Font License 1.1](https://openfontlicense.org) : textes dans `resources/fonts/OFL-*.txt`.
+Les **polices** (Inter, Lato, Gabarito, Montserrat), servies en WOFF2 par les paquets `@fontsource/*` 5.3.0 (auto-hébergées, aucun CDN), sont sous [SIL Open Font License 1.1](https://openfontlicense.org) : textes dans `resources/fonts/OFL-*.txt`.
 
 Les **tuiles OpenRailwayMap** utilisées en overlay sont sous [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/).
 

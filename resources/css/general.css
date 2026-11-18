@@ -1,3 +1,31 @@
+@import url('@fontsource/lato/latin-300.css');
+@import url('@fontsource/lato/latin-ext-300.css');
+@import url('@fontsource/lato/latin-300-italic.css');
+@import url('@fontsource/lato/latin-ext-300-italic.css');
+@import url('@fontsource/lato/latin-400.css');
+@import url('@fontsource/lato/latin-ext-400.css');
+@import url('@fontsource/lato/latin-700.css');
+@import url('@fontsource/lato/latin-ext-700.css');
+@import url('@fontsource/gabarito/latin-400.css');
+@import url('@fontsource/gabarito/latin-ext-400.css');
+@import url('@fontsource/gabarito/latin-600.css');
+@import url('@fontsource/gabarito/latin-ext-600.css');
+@import url('@fontsource/gabarito/latin-700.css');
+@import url('@fontsource/gabarito/latin-ext-700.css');
+@import url('@fontsource/inter/latin-400.css');
+@import url('@fontsource/inter/latin-ext-400.css');
+@import url('@fontsource/inter/latin-500.css');
+@import url('@fontsource/inter/latin-ext-500.css');
+@import url('@fontsource/inter/latin-600.css');
+@import url('@fontsource/inter/latin-ext-600.css');
+@import url('@fontsource/inter/latin-700.css');
+@import url('@fontsource/inter/latin-ext-700.css');
+@import url('@fontsource/montserrat/latin-400.css');
+@import url('@fontsource/montserrat/latin-ext-400.css');
+@import url('@fontsource/montserrat/latin-600.css');
+@import url('@fontsource/montserrat/latin-ext-600.css');
+@import url('@fontsource/montserrat/latin-700.css');
+@import url('@fontsource/montserrat/latin-ext-700.css');
 @import url('bootstrap-icons/font/bootstrap-icons.min.css');
 @import url('./header/header.css');
 @import url('./footer/footer.css');
@@ -7,28 +35,7 @@
    6. Classes communes (boutons, liens, champs, tableaux, badges, plaques, messages, état vide)
    7. Compatibilité (règles anciennes, à retirer quand les pages sont migrées)  8. Accueil */
 
-/* ─── 1. Polices (fichiers locaux, une seule graisse chacune) ─────────────── */
-@font-face {
-    font-family: Lato;
-    src: url('../fonts/Lato-Light.ttf');
-    font-display: swap;
-}
-@font-face {
-    font-family: Gabarito;
-    src: url('../fonts/Gabarito-Regular.ttf');
-    font-display: swap;
-}
-@font-face {
-    font-family: Inter;
-    src: url('../fonts/Inter-Regular.ttf');
-    font-display: swap;
-}
-@font-face {
-    font-family: Montserrat;
-    src: url('../fonts/Montserrat-Regular.ttf');
-    font-display: swap;
-}
-
+/* ─── 1. Polices (WOFF2 auto-hébergées via @fontsource, OFL ; graisses réellement utilisées, latin et latin-ext) ─── */
 /* ─── 2. Variables ──────────────────────────────────────────────────────────
    Contrastes calculés (WCAG 2.1) sur --vff-bg sauf mention : texte >= 4,5:1, grand texte et
    composants >= 3:1. L'orange de la charte (#ff6500) ne sert jamais au petit texte sur fond clair

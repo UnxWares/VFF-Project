@@ -161,11 +161,18 @@ return [
     'ulid' => 'The :attribute field must be a valid ULID.',
     'uuid' => 'The :attribute field must be a valid UUID.',
 
-    'custom' => [],
+    'custom' => [
+        'email' => [
+            'unique' => 'This email address is already linked to an account.',
+        ],
+        'password' => [
+            'confirmed' => 'The two passwords do not match.',
+        ],
+    ],
 
     // Noms d'attributs lisibles
     'attributes' => [
-        'name' => 'name',
+        'name' => 'display name',
         'email' => 'email address',
         'password' => 'password',
         'password_confirmation' => 'password confirmation',

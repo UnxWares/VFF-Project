@@ -8,6 +8,18 @@ importers:
 
   .:
     dependencies:
+      '@fontsource/gabarito':
+        specifier: 5.3.0
+        version: 5.3.0
+      '@fontsource/inter':
+        specifier: 5.3.0
+        version: 5.3.0
+      '@fontsource/lato':
+        specifier: 5.3.0
+        version: 5.3.0
+      '@fontsource/montserrat':
+        specifier: 5.3.0
+        version: 5.3.0
       bootstrap-icons:
         specifier: ^1.11
         version: 1.13.1
@@ -386,6 +398,18 @@ packages:
 
   '@floating-ui/vue@1.1.9':
     resolution: {integrity: sha512-BfNqNW6KA83Nexspgb9DZuz578R7HT8MZw1CfK9I6Ah4QReNWEJsXWHN+SdmOVLNGmTPDi+fDT535Df5PzMLbQ==}
+
+  '@fontsource/gabarito@5.3.0':
+    resolution: {integrity: sha512-hpFHOvTBQx8OjPWcGMsTUVMNGhXjATebG1QLIYxxawKDkeskXjgwPD4v3LRsGBU4/8Za+odJiX/FmjCJ3mymcA==}
+
+  '@fontsource/inter@5.3.0':
+    resolution: {integrity: sha512-RofMylZmjlJEfELXeNHFWBRcSs75rGU/6bV2S2jfnvv/3rPXPGe0LgUJTklcHZ9lM4OZmAVFhcJPnACfb91A3g==}
+
+  '@fontsource/lato@5.3.0':
+    resolution: {integrity: sha512-0WhF/4rhrw+ErIyneKvhHn2YAl+xf8GDtllgOgOzDmeaSlLQtjpChXaQOpWhG2BchQW0WJy2zLV12Hdg0ndOMw==}
+
+  '@fontsource/montserrat@5.3.0':
+    resolution: {integrity: sha512-iQPDtZOnmM5ih4JBGaMSXisRap0ixb9bAUw2hDtY7EjVfaqiiNlKtVuJl9XclxUwtwMMHNcWXfQR6zI9x05+Tg==}
 
   '@headlessui/tailwindcss@0.2.2':
     resolution: {integrity: sha512-xNe42KjdyA4kfUKLLPGzME9zkH7Q3rOZ5huFihWNWOQFxnItxPB3/67yBI8/qBfY8nwBRx5GHn4VprsoluVMGw==}
@@ -3007,6 +3031,14 @@ snapshots:
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
+
+  '@fontsource/gabarito@5.3.0': {}
+
+  '@fontsource/inter@5.3.0': {}
+
+  '@fontsource/lato@5.3.0': {}
+
+  '@fontsource/montserrat@5.3.0': {}
 
   '@headlessui/tailwindcss@0.2.2(tailwindcss@4.3.5)':
     dependencies:
