@@ -6,37 +6,39 @@
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
+    import Notice from '$components/ui/Notice.svelte';
+    import EmptyState from '$components/ui/EmptyState.svelte';
     import {
         STATION_STATUS_COLOR,
         STATION_STATUS_ICON,
     } from '$components/Stations/stationStatus.js';
     import { i18n } from '$lib/i18n.js';
 
+    /** Props de StationController::show. */
     let { station, eras = [], events = [], lines = [], sources = [], neighbors = [] } = $props();
 
-    const EVENT_ICON = {
-        opening: 'bi-door-open-fill',
-        reopening: 'bi-arrow-repeat',
-        closure_passenger: 'bi-person-x-fill',
-        closure_freight: 'bi-box-seam',
-        closure: 'bi-door-closed-fill',
-        demolition: 'bi-bricks',
-    };
+    const lang = $derived($i18n.language ?? 'fr');
+    const t = (key, opts) => String($i18n.t(key, opts));
+    /** Espace insécable entre un nombre et son unité (« 5,2 km », « à 74 m ») et après « PK ». */
+    const nb = (s) => s.replace(/(\d) (?=(?:km|m)(?![\p{L}]))/gu, '$1 ').replace(/^PK /, 'PK ');
 
     /** Date selon sa précision (jour, mois, année, décennie, après / avant, intervalle « entre 1951 et 1960 »). */
     function formatDate(iso, precision = 'day', after = null) {
-        return formatStationDate(
-            iso,
-            precision,
-            after,
-            (key, opts) => String($i18n.t(key, opts)),
-            $i18n.language ?? 'fr',
-        );
+        return formatStationDate(iso, precision, after, t, lang);
     }
 
-    /** [1900, 1910, 1920, 1980] → « 1900-1920, 1980 ». */
+    /** PK en kilomètres, décimales selon la langue : « 402,659 » (fr), « 402.659 » (en). */
+    const formatPk = (m, digits = 3) =>
+        (m / 1000).toLocaleString(lang, {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+        });
+
+    const currentYear = $derived(eras.find((e) => e.is_current)?.year ?? null);
+
+    /** [1900, 1910, 1920, 1980, 2030] → « de 1900 à 1920 et de 1980 à aujourd'hui » (2030 = aujourd'hui). */
     function eraRanges(years) {
-        const out = [];
+        const ranges = [];
         let start = null;
         let prev = null;
         for (const y of years) {
@@ -45,52 +47,79 @@
             } else if (y === prev + 10) {
                 prev = y;
             } else {
-                out.push(start === prev ? `${start}` : `${start}-${prev}`);
+                ranges.push([start, prev]);
                 start = prev = y;
             }
         }
-        if (start !== null) out.push(start === prev ? `${start}` : `${start}-${prev}`);
+        if (start !== null) ranges.push([start, prev]);
 
-        return out.join(', ');
+        const parts = ranges.map(([from, to]) => {
+            const today = to === currentYear;
+            if (from === to) {
+                return today
+                    ? t('stations.lines.era.today')
+                    : t('stations.lines.era.single', { year: from });
+            }
+            return today
+                ? t('stations.lines.era.to_today', { from })
+                : t('stations.lines.era.range', { from, to });
+        });
+
+        return new Intl.ListFormat(lang, { style: 'long', type: 'conjunction' }).format(parts);
     }
 
-    const sourceName = (s) => $i18n.t(`stations.sources.names.${s}`, { defaultValue: s });
+    const sourceName = (s) => t(`stations.sources.names.${s}`, { defaultValue: s });
+    /** Lien d'une source : l'identifiant s'il est court et lisible (code UIC, Q123, n456), sinon « Voir ». */
+    const refLabel = (ref) =>
+        ref && /^[A-Za-z0-9]{1,14}$/.test(ref) ? ref : t('stations.sources.open_link');
+
     const openedInferred = $derived((station.provenance?.opened_at ?? '').startsWith('inferred'));
     const statusColor = $derived(
         STATION_STATUS_COLOR[station.status] ?? STATION_STATUS_COLOR.declassified,
     );
-    const lang = $derived($i18n.language ?? 'fr');
+
+    /** Chiffres clés : des quantités et des dates, ni identifiant (code UIC) ni métadonnée (nombre de sources). */
     const statItems = $derived.by(() => {
-        const t = (k, o) => String($i18n.t(k, o));
+        /** @type {Array<{ value?: string, text?: string, label: string, note?: string, noteHint?: string }>} */
         const items = [
             { value: lines.length.toLocaleString(lang), label: t('stations.stats.lines') },
-            { value: sources.length.toLocaleString(lang), label: t('stations.stats.sources') },
         ];
+        // Une année seule se lit en grand chiffre ; une date longue ou un intervalle, en phrase courte.
+        const entry = (formatted, label, extra = {}) =>
+            /^\d{4}$/.test(formatted)
+                ? { value: formatted, label, ...extra }
+                : { text: formatted, label, ...extra };
         if (station.opened_at)
-            items.push({
-                value: formatDate(station.opened_at, station.opened_precision),
-                label: t('stations.stats.opened'),
-                note: openedInferred ? `(${t('stations.inferred_short')})` : undefined,
-                noteHint: openedInferred ? t('stations.events.inferred_hint') : undefined,
-            });
-        if (station.closed_at)
-            items.push({
-                value: formatDate(
-                    station.closed_at,
-                    station.closed_precision,
-                    station.closed_after,
+            items.push(
+                entry(
+                    formatDate(station.opened_at, station.opened_precision),
+                    t('stations.stats.opened'),
+                    {
+                        note: openedInferred ? `(${t('stations.inferred_short')})` : undefined,
+                        noteHint: openedInferred ? t('stations.events.inferred_hint') : undefined,
+                    },
                 ),
-                label: t('stations.stats.closed'),
-            });
-        if (station.uic_code)
-            items.push({ value: station.uic_code, label: t('stations.stats.uic') });
+            );
+        if (station.closed_at)
+            items.push(
+                entry(
+                    formatDate(station.closed_at, station.closed_precision, station.closed_after),
+                    t('stations.stats.closed'),
+                ),
+            );
         return items;
     });
+
     /** « Bagnoles-de-l'Orne (61) » : commune et département. */
     const place = $derived(
         station.city
             ? `${station.city}${station.department_code ? ` (${station.department_code})` : ''}`
             : null,
+    );
+    const heroEyebrow = $derived(
+        [place, station.uic_code ? `${t('stations.stats.uic')} ${station.uic_code}` : null].filter(
+            Boolean,
+        ),
     );
 
     const provenanceRows = $derived(
@@ -107,12 +136,35 @@
             ].includes(k),
         ),
     );
+    const hasInferredEvent = $derived(events.some((e) => e.inferred));
+
+    /** Coordonnées lisibles (la mini-carte n'est pas lisible sans la vue) : « 45,8344° N », « 1,2630° E ». */
+    const deg = (v, pos, neg) =>
+        `${Math.abs(v).toLocaleString(lang, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}° ${v >= 0 ? pos : neg}`;
+    const latText = $derived(deg(station.lat, 'N', 'S'));
+    const lngText = $derived(deg(station.lng, 'E', 'W'));
+    const osmUrl = $derived(
+        `https://www.openstreetmap.org/?mlat=${station.lat}&mlon=${station.lng}#map=15/${station.lat}/${station.lng}`,
+    );
+
+    /** Commune d'une gare voisine : omise quand son nom la contient déjà. */
+    const showCity = (n) => n.city && !n.name.toLowerCase().includes(n.city.toLowerCase());
 </script>
 
 <svelte:head>
     <title>{station.name} - VFF</title>
     <meta name="description" content={$i18n.t('stations.meta_show', { name: station.name })} />
 </svelte:head>
+
+{#snippet statusMark(status)}
+    <span
+        class="mark"
+        style:--status={STATION_STATUS_COLOR[status] ?? STATION_STATUS_COLOR.declassified}
+        aria-hidden="true"
+    >
+        <i class="bi {STATION_STATUS_ICON[status] ?? 'bi-circle'}"></i>
+    </span>
+{/snippet}
 
 <Layout compactHeader>
     <main>
@@ -128,22 +180,19 @@
             crumbsLabel={$i18n.t('stations.breadcrumbs')}
             plate={$i18n.t(`stations.types.${station.type}`)}
             plateIcon="bi-pin-map-fill"
-            eyebrow={place ? [place] : []}
+            eyebrow={heroEyebrow}
             title={station.name}
             stats={heroStats}
         >
-            <p class="status" style="--status: {statusColor}">
-                <i
-                    class="bi {STATION_STATUS_ICON[station.status] ?? 'bi-circle'}"
-                    aria-hidden="true"
-                ></i>
+            <p class="status" style:--status={statusColor}>
+                {@render statusMark(station.status)}
                 {$i18n.t(`stations.statuses.${station.status}`)}
             </p>
             {#if station.alt_names?.length}
                 <p class="alt-names">
                     {$i18n.t('stations.also_known_as_label')}
                     {#each station.alt_names as a, i (i)}
-                        <span
+                        <span class="alt"
                             >{a.name}{#if a.from || a.to}&nbsp;({a.from ?? '…'}-{a.to ??
                                     '…'}){/if}</span
                         >{i < station.alt_names.length - 1 ? ', ' : ''}
@@ -156,6 +205,14 @@
             <StatStrip items={statItems} label={$i18n.t('stations.stats.title')} />
         {/snippet}
 
+        {#if station.description}
+            <SheetSection id="about" title={$i18n.t('stations.sections.about')}>
+                <div class="vff-prose">
+                    <p lang={station.description_lang ?? undefined}>{station.description}</p>
+                </div>
+            </SheetSection>
+        {/if}
+
         <SheetSection
             id="eras"
             title={$i18n.t('stations.sections.eras')}
@@ -164,539 +221,644 @@
             <StationEraStrip {eras} />
         </SheetSection>
 
-        <SheetSection>
-            <div class="two-col">
-                <div>
-                    <h2>{$i18n.t('stations.sections.history')}</h2>
-                    {#if events.length}
-                        <ol class="timeline">
-                            {#each events as e, i (i)}
-                                <li class:inferred={e.inferred}>
-                                    <i class="bi {EVENT_ICON[e.type] ?? 'bi-dot'}"></i>
-                                    <div>
-                                        <strong>{formatDate(e.date, e.precision)}</strong>
-                                        <span class="ev-type"
-                                            >{$i18n.t(`stations.events.${e.type}`)}</span
+        <SheetSection id="history" title={$i18n.t('stations.sections.history')}>
+            {#if events.length}
+                <ol class="timeline">
+                    {#each events as e, i (i)}
+                        <li class:inferred={e.inferred}>
+                            <p class="when">
+                                {#if e.date}
+                                    <time datetime={e.date}>{formatDate(e.date, e.precision)}</time>
+                                {/if}
+                            </p>
+                            <div class="what">
+                                <p class="ev-type">
+                                    {$i18n.t(`stations.events.${e.type}`)}
+                                    {#if e.inferred}<span class="vff-badge muted"
+                                            >{$i18n.t('stations.events.inferred')}</span
+                                        >{/if}
+                                </p>
+                                {#if e.note}<p class="ev-note" lang={e.note_lang}>{e.note}</p>{/if}
+                                <p class="ev-source">
+                                    {#if e.source_url}
+                                        <a
+                                            href={e.source_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            >{sourceName(e.source)}<i
+                                                class="bi bi-box-arrow-up-right vff-ext"
+                                                aria-hidden="true"
+                                            ></i><span class="vff-sr-only">
+                                                ({$i18n.t('common.new_tab')})</span
+                                            ></a
                                         >
-                                        {#if e.note}<p class="ev-note" lang={e.note_lang}>
-                                                {e.note}
-                                            </p>{/if}
-                                        <small class="ev-source">
-                                            {#if e.inferred}
-                                                <abbr
-                                                    title={$i18n.t('stations.events.inferred_hint')}
-                                                    >{$i18n.t('stations.events.inferred')}</abbr
-                                                > ·
-                                            {/if}
-                                            {#if e.source_url}
-                                                <a
-                                                    href={e.source_url}
-                                                    target="_blank"
-                                                    rel="noopener">{sourceName(e.source)}</a
-                                                >
-                                            {:else}
-                                                {sourceName(e.source)}
-                                            {/if}
-                                        </small>
-                                    </div>
-                                </li>
-                            {/each}
-                        </ol>
-                    {:else}
-                        <p class="empty">{$i18n.t('stations.events.none')}</p>
-                    {/if}
-                </div>
-                <div>
-                    <h2>{$i18n.t('stations.sections.map')}</h2>
-                    <StationMiniMap {station} {neighbors} height="360px" />
-                </div>
-            </div>
+                                    {:else}
+                                        {sourceName(e.source)}
+                                    {/if}
+                                </p>
+                            </div>
+                        </li>
+                    {/each}
+                </ol>
+                {#if hasInferredEvent}
+                    <p class="footnote">{$i18n.t('stations.events.inferred_hint')}</p>
+                {/if}
+            {:else}
+                <EmptyState icon="bi-calendar-x" title={$i18n.t('stations.events.none')} />
+            {/if}
         </SheetSection>
 
         <SheetSection title={$i18n.t('stations.sections.lines')} id="lines" count={lines.length}>
             {#if lines.length}
                 <ul class="lines-list">
                     {#each lines as l (l.slug)}
-                        <li>
-                            <a
-                                class="line-card"
-                                href="/lines/{l.slug}"
-                                class:historical={l.last_year}
-                            >
-                                <i class="bi bi-bezier"></i>
-                                <div>
-                                    <strong>{l.name}</strong>
-                                    <div class="line-meta">
-                                        {#if l.code}<span class="code">{l.code}</span>{/if}
-                                        {#if l.pk_m !== null}
-                                            <span
-                                                title={$i18n.t(
-                                                    `stations.lines.pk_sources.${l.pk_source}`,
-                                                    { defaultValue: l.pk_source ?? '' },
-                                                )}
-                                            >
-                                                {$i18n.t('stations.lines.pk', {
-                                                    pk: (l.pk_m / 1000)
-                                                        .toFixed(3)
-                                                        .replace('.', ','),
-                                                })}
-                                            </span>
-                                        {/if}
-                                        {#if l.first_year && l.last_year}
-                                            <span class="badge"
-                                                >{$i18n.t('stations.lines.period_from_to', {
-                                                    from: l.first_year,
-                                                    to: l.last_year,
-                                                })}</span
-                                            >
-                                        {:else if l.first_year}
-                                            <span class="badge"
-                                                >{$i18n.t('stations.lines.period_from', {
-                                                    from: l.first_year,
-                                                })}</span
-                                            >
-                                        {:else if l.last_year}
-                                            <span class="badge"
-                                                >{$i18n.t('stations.lines.period_to', {
-                                                    to: l.last_year,
-                                                })}</span
-                                            >
-                                        {/if}
-                                    </div>
-                                    {#if l.era_years.length}
-                                        <small class="eras-served"
-                                            >{$i18n.t('stations.lines.stop_in_eras', {
-                                                list: eraRanges(l.era_years),
-                                            })}</small
+                        <li class="line-row">
+                            <div class="line-id">
+                                <a class="line-name" href="/lines/{l.slug}">{l.name}</a>
+                                <p class="line-meta">
+                                    {#if l.code}<span class="vff-plate">{l.code}</span>{/if}
+                                    {#if l.pk_m !== null}
+                                        <span class="pk"
+                                            >{nb(
+                                                t('stations.lines.pk', { pk: formatPk(l.pk_m) }),
+                                            )}{#if l.pk_source && l.pk_source !== 'sncf' && $i18n.exists(`stations.lines.pk_flag.${l.pk_source}`)}
+                                                &nbsp;({$i18n.t(
+                                                    `stations.lines.pk_flag.${l.pk_source}`,
+                                                )}){/if}</span
                                         >
                                     {/if}
-                                    <small class="method"
-                                        >{$i18n.t(`stations.lines.methods.${l.method}`, {
-                                            defaultValue: l.method,
-                                        })}</small
-                                    >
-                                </div>
-                                <i class="bi bi-arrow-right end"></i>
-                            </a>
+                                </p>
+                            </div>
+                            <p class="line-period">
+                                {#if l.never_served}
+                                    {$i18n.t(`stations.lines.never_served.${l.never_served}`, {
+                                        from: l.first_year,
+                                        to: l.last_year,
+                                    })}
+                                {:else if l.first_year && l.last_year}
+                                    {$i18n.t('stations.lines.period_from_to', {
+                                        from: l.first_year,
+                                        to: l.last_year,
+                                    })}
+                                {:else if l.first_year}
+                                    {$i18n.t('stations.lines.period_from', { from: l.first_year })}
+                                {:else if l.last_year}
+                                    {$i18n.t('stations.lines.period_to', { to: l.last_year })}
+                                {/if}
+                            </p>
+                            {#if l.era_years.length && !l.never_served}
+                                <p class="line-eras">
+                                    {$i18n.t('stations.lines.stop_in_eras', {
+                                        list: eraRanges(l.era_years),
+                                    })}
+                                </p>
+                            {/if}
                         </li>
                     {/each}
                 </ul>
             {:else}
-                <p class="empty">{$i18n.t('stations.lines.none')}</p>
+                <EmptyState icon="bi-bezier2" title={$i18n.t('stations.lines.none')} />
             {/if}
         </SheetSection>
 
-        <SheetSection title={$i18n.t('stations.sections.sources')} id="sources">
+        <SheetSection id="location" title={$i18n.t('stations.sections.map')}>
+            <div class="location" class:solo={!neighbors.length}>
+                <div class="map-col">
+                    <div class="map-frame">
+                        <StationMiniMap {station} {neighbors} height="100%" />
+                    </div>
+                    <p class="map-note">
+                        {$i18n.t('stations.map.summary', { lat: latText, lng: lngText })}
+                        <a href={osmUrl} target="_blank" rel="noopener noreferrer"
+                            >{$i18n.t('stations.map.open_osm')}<i
+                                class="bi bi-box-arrow-up-right vff-ext"
+                                aria-hidden="true"
+                            ></i><span class="vff-sr-only"> ({$i18n.t('common.new_tab')})</span></a
+                        >
+                    </p>
+                </div>
+                {#if neighbors.length}
+                    <div class="near">
+                        <h3 id="neighbors">{$i18n.t('stations.sections.neighbors')}</h3>
+                        <ul class="near-list" aria-labelledby="neighbors">
+                            {#each neighbors as n (n.slug)}
+                                <li>
+                                    <a class="near-link" href="/stations/{n.slug}">
+                                        {@render statusMark(n.status)}
+                                        <span class="near-name">
+                                            <span class="vff-sr-only"
+                                                >{$i18n.t(`stations.statuses.${n.status}`, {
+                                                    defaultValue: '',
+                                                })}.
+                                            </span>{n.name}{#if showCity(n)}<span class="near-city">
+                                                    {n.city}</span
+                                                >{/if}
+                                        </span>
+                                        <span class="near-dist"
+                                            >{nb(
+                                                t('stations.neighbors_distance', {
+                                                    km: formatPk(n.distance_m, 1),
+                                                }),
+                                            )}</span
+                                        >
+                                    </a>
+                                </li>
+                            {/each}
+                        </ul>
+                    </div>
+                {/if}
+            </div>
+        </SheetSection>
+
+        <SheetSection
+            title={$i18n.t('stations.sections.sources')}
+            id="sources"
+            count={sources.length}
+        >
             {#if station.position_flagged}
-                <p class="warning">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    {$i18n.t('stations.sources.position_flag', { m: station.position_spread_m })}
-                    {$i18n.t('stations.sources.position_from', {
-                        source: sourceName(station.position_source),
-                    })}
-                </p>
+                <div class="flag">
+                    <Notice tone="warning" live="off">
+                        {nb(t('stations.sources.position_flag', { m: station.position_spread_m }))}
+                        {$i18n.t('stations.sources.position_from', {
+                            source: sourceName(station.position_source),
+                        })}
+                    </Notice>
+                </div>
             {/if}
             <ul class="sources">
                 {#each sources as s, i (i)}
-                    <li>
-                        <div class="src-head">
-                            <strong>{sourceName(s.source)}</strong>
-                            {#if $i18n.exists(`stations.sources.licences.${s.source}`)}
-                                <span class="licence"
-                                    >{$i18n.t(`stations.sources.licences.${s.source}`)}</span
+                    <li class="source">
+                        <div class="src-id">
+                            <p class="src-name">
+                                <strong>{sourceName(s.source)}</strong>
+                                {#if $i18n.exists(`stations.sources.licences.${s.source}`)}
+                                    <span class="vff-badge"
+                                        >{$i18n.t(`stations.sources.licences.${s.source}`)}</span
+                                    >
+                                {/if}
+                            </p>
+                            {#if s.url}
+                                <p class="src-link">
+                                    <a href={s.url} target="_blank" rel="noopener noreferrer"
+                                        >{refLabel(s.ref)}<i
+                                            class="bi bi-box-arrow-up-right vff-ext"
+                                            aria-hidden="true"
+                                        ></i><span class="vff-sr-only">
+                                            ({$i18n.t('common.new_tab')})</span
+                                        ></a
+                                    >
+                                </p>
+                            {/if}
+                        </div>
+                        <ul class="facts">
+                            <li class="fact-name">{s.name}</li>
+                            {#if s.lifecycle && s.lifecycle !== 'unknown'}
+                                <li>
+                                    {$i18n.t('stations.sources.status_in_source', {
+                                        state: $i18n.t(`stations.sources.lifecycle.${s.lifecycle}`),
+                                    })}
+                                </li>
+                            {/if}
+                            {#if s.opened_on}
+                                <li>
+                                    {$i18n.t('stations.opened_in', {
+                                        year: s.opened_on.slice(0, 4),
+                                    })}
+                                </li>
+                            {/if}
+                            {#if s.closed_on}
+                                <li>
+                                    {$i18n.t('stations.closed_in', {
+                                        year: s.closed_on.slice(0, 4),
+                                    })}
+                                </li>
+                            {/if}
+                            {#if s.geocoding === 'commune' && s.precision_m}
+                                <li>
+                                    {nb(
+                                        t('stations.sources.geocoded_by_commune', {
+                                            m: s.precision_m,
+                                        }),
+                                    )}
+                                </li>
+                            {:else if s.geocoding && s.geocoding !== 'station' && s.geocoding !== 'name_match' && s.pk_m}
+                                <li>
+                                    {nb(
+                                        s.precision_m
+                                            ? t('stations.sources.geocoded_by_pk_precision', {
+                                                  pk: formatPk(Number(s.pk_m), 1),
+                                                  m: s.precision_m,
+                                              })
+                                            : t('stations.sources.geocoded_by_pk', {
+                                                  pk: formatPk(Number(s.pk_m), 1),
+                                              }),
+                                    )}
+                                </li>
+                            {/if}
+                        </ul>
+                        <p class="match">
+                            {$i18n.t(`stations.sources.match.${s.match_method}`, {
+                                defaultValue: s.match_method ?? '',
+                            })}
+                            {#if s.distance_m > 0}
+                                <span class="dist" class:far={s.distance_m > 100}
+                                    >{#if s.distance_m > 100}<i
+                                            class="bi bi-exclamation-triangle"
+                                            aria-hidden="true"
+                                        ></i>{/if}{nb(
+                                        t('stations.sources.distance', { m: s.distance_m }),
+                                    )}{#if s.distance_m > 100}
+                                        &nbsp;({$i18n.t('stations.sources.far_hint')}){/if}</span
                                 >
                             {/if}
-                            {#if s.url}<a
-                                    href={s.url}
-                                    target="_blank"
-                                    rel="noopener"
-                                    class="src-link"
-                                    >{s.ref} <i class="bi bi-box-arrow-up-right"></i></a
-                                >{/if}
-                        </div>
-                        <div class="src-meta">
-                            <span class="src-name">{s.name}</span>
-                            {#if s.lifecycle && s.lifecycle !== 'unknown'}<span
-                                    >· {$i18n.t(`stations.sources.lifecycle.${s.lifecycle}`)}</span
-                                >{/if}
-                            {#if s.opened_on}<span
-                                    >· {$i18n.t('stations.opened_in', {
-                                        year: s.opened_on.slice(0, 4),
-                                    })}</span
-                                >{/if}
-                            {#if s.closed_on}<span
-                                    >· {$i18n.t('stations.closed_in', {
-                                        year: s.closed_on.slice(0, 4),
-                                    })}</span
-                                >{/if}
-                            {#if s.geocoding === 'commune' && s.precision_m}<span
-                                    >· {$i18n.t('stations.sources.geocoded_by_commune', {
-                                        m: s.precision_m,
-                                    })}</span
-                                >
-                            {:else if s.geocoding && s.geocoding !== 'station' && s.geocoding !== 'name_match' && s.pk_m}<span
-                                    >· {s.precision_m
-                                        ? $i18n.t('stations.sources.geocoded_by_pk_precision', {
-                                              pk: (s.pk_m / 1000).toFixed(1).replace('.', ','),
-                                              m: s.precision_m,
-                                          })
-                                        : $i18n.t('stations.sources.geocoded_by_pk', {
-                                              pk: (s.pk_m / 1000).toFixed(1).replace('.', ','),
-                                          })}</span
-                                >{/if}
-                        </div>
-                        <div class="src-meta">
-                            <span
-                                >{$i18n.t(`stations.sources.match.${s.match_method}`, {
-                                    defaultValue: s.match_method ?? '',
-                                })}</span
-                            >
-                            {#if s.distance_m > 0}<span class:far={s.distance_m > 100}
-                                    >· {$i18n.t('stations.sources.distance', {
-                                        m: s.distance_m,
-                                    })}</span
-                                >{/if}
-                        </div>
+                        </p>
                     </li>
                 {/each}
             </ul>
+
             {#if provenanceRows.length}
                 <h3 class="sub">{$i18n.t('stations.sources.provenance')}</h3>
                 <dl class="provenance">
                     {#each provenanceRows as [attr, src] (attr)}
-                        <dt>{$i18n.t(`stations.sources.attributes.${attr}`)}</dt>
-                        <dd>
-                            {sourceName(src)}
-                            {#if attr === 'geom' && station.provenance?.geom_precision_m && $i18n.exists(`stations.sources.geom_precision.${station.provenance?.geom_method}`)}
-                                <span class="precision"
-                                    >({$i18n.t(
-                                        `stations.sources.geom_precision.${station.provenance.geom_method}`,
-                                        { m: station.provenance.geom_precision_m },
-                                    )})</span
-                                >
-                            {/if}
-                        </dd>
+                        <div class="prov-row">
+                            <dt>{$i18n.t(`stations.sources.attributes.${attr}`)}</dt>
+                            <dd>
+                                {sourceName(src)}
+                                {#if attr === 'geom' && station.provenance?.geom_precision_m && $i18n.exists(`stations.sources.geom_precision.${station.provenance?.geom_method}`)}
+                                    <span class="precision"
+                                        >({nb(
+                                            t(
+                                                `stations.sources.geom_precision.${station.provenance.geom_method}`,
+                                                { m: station.provenance.geom_precision_m },
+                                            ),
+                                        )})</span
+                                    >
+                                {/if}
+                            </dd>
+                        </div>
                     {/each}
                 </dl>
             {/if}
         </SheetSection>
-
-        {#if station.description}
-            <SheetSection title={$i18n.t('stations.sections.about')} id="about">
-                <p class="description">{station.description}</p>
-            </SheetSection>
-        {/if}
-
-        {#if neighbors.length}
-            <SheetSection title={$i18n.t('stations.sections.neighbors')} id="neighbors">
-                <div class="neighbor-grid">
-                    {#each neighbors as n (n.slug)}
-                        <a class="neighbor-card" href="/stations/{n.slug}">
-                            <i
-                                class="dot"
-                                style="--dot: {STATION_STATUS_COLOR[n.status] ??
-                                    STATION_STATUS_COLOR.declassified}"
-                            ></i>
-                            <div>
-                                <strong>{n.name}</strong>
-                                {#if n.city}<span>{n.city}</span>{/if}
-                                <small
-                                    >{$i18n.t('stations.neighbors_distance', {
-                                        km: (n.distance_m / 1000).toFixed(1),
-                                    })}</small
-                                >
-                            </div>
-                        </a>
-                    {/each}
-                </div>
-            </SheetSection>
-        {/if}
     </main>
 </Layout>
 
 <style>
     main {
         background-color: var(--vff-bg);
+        padding-bottom: var(--vff-section-space);
     }
 
     /* En-tête (SheetHero) : statut et autres noms */
     .status {
-        display: inline-flex;
+        display: flex;
         align-items: center;
-        gap: 8px;
-        margin: 6px 0 0;
+        gap: 10px;
+        margin: 4px 0 0;
         font-family: var(--vff-font-heading);
-        font-size: 15px;
+        font-size: var(--vff-fs-md);
         font-weight: 600;
+        line-height: 1.3;
         color: var(--vff-text);
     }
-    .status i {
-        display: grid;
+    /* Pastille de statut : icône (la forme dit l'état) dans un anneau de la couleur de la carte. */
+    .mark {
+        display: inline-grid;
+        flex-shrink: 0;
         place-items: center;
         width: 26px;
         height: 26px;
-        border-radius: 50%;
         border: 2px solid var(--status);
-        color: var(--status);
-        font-size: 13px;
-        background: var(--vff-bg);
+        border-radius: 50%;
+        background-color: var(--vff-bg-elevated);
+        color: var(--vff-text);
+        font-size: 12px;
+        line-height: 1;
     }
     .alt-names {
+        max-width: var(--vff-measure);
         margin: 10px 0 0;
-        font-size: 15px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         line-height: 1.5;
         color: var(--vff-text-muted);
     }
-    .alt-names span {
+    .alt {
         color: var(--vff-text);
     }
-    abbr {
-        text-decoration: none;
-        cursor: help;
-        font-weight: 400;
-        color: var(--vff-text-muted);
-        font-size: 12px;
-    }
-    .two-col h2 {
-        margin: 0 0 16px;
-        font-family: var(--vff-font-display);
-        font-size: 28px;
-        line-height: 1.2;
-        color: var(--vff-text);
-    }
-    .two-col h2:after {
-        display: none;
-    }
-    .sub {
-        margin: 28px 0 10px;
-        font-family: var(--vff-font-heading);
-        font-size: 18px;
-        font-weight: 600;
-    }
 
-    .two-col {
-        display: grid;
-        grid-template-columns: 1fr 1.1fr;
-        gap: 28px;
-    }
-
+    /* Chronologie : date à gauche, fait à droite, filet vertical orange discret dans la gouttière. */
     .timeline {
-        list-style: none;
         margin: 0;
-        padding: 0 0 0 4px;
-        border-left: 2px solid var(--vff-border);
+        padding: 0;
+        list-style: none;
     }
     .timeline li {
         position: relative;
-        display: flex;
-        gap: 12px;
-        padding: 0 0 18px 18px;
+        display: grid;
+        grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
+        gap: 4px 32px;
+        padding: 0 0 var(--vff-space-5) 28px;
     }
-    .timeline li > i {
+    .timeline li::before {
+        content: '';
         position: absolute;
-        left: -13px;
-        top: 0;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        background-color: var(--vff-bg-elevated);
+        top: 7px;
+        left: 0;
+        width: 12px;
+        height: 12px;
+        box-sizing: border-box;
         border: 2px solid var(--vff-accent);
-        color: var(--vff-accent);
-        font-size: 12px;
+        border-radius: 50%;
+        background-color: var(--vff-accent);
     }
-    .timeline li.inferred > i {
-        border-style: dashed;
-        color: var(--vff-text-muted);
+    .timeline li.inferred::before {
         border-color: var(--vff-text-muted);
+        border-style: dashed;
+        background-color: var(--vff-bg);
     }
-    .timeline strong {
+    .timeline li:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 24px;
+        bottom: 2px;
+        left: 5px;
+        width: 2px;
+        background-color: var(--vff-border-strong);
+    }
+    .timeline p {
+        margin: 0;
+    }
+    .when {
         font-family: var(--vff-font-display);
-        font-size: 15px;
-        margin-right: 8px;
+        font-size: var(--vff-fs-h3);
+        font-weight: 700;
+        line-height: 1.35;
+        font-variant-numeric: tabular-nums;
+        color: var(--vff-text);
     }
     .ev-type {
-        font-size: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px 12px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-md);
+        font-weight: 600;
+        line-height: 1.5;
+        color: var(--vff-text);
     }
     .ev-note {
-        margin: 4px 0 0;
-        font-size: 13px;
+        margin-top: 4px;
+        font-size: var(--vff-fs-sm);
+        line-height: 1.55;
         color: var(--vff-text);
+    }
+    .ev-source a,
+    .src-link a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
     }
     .ev-source {
-        display: block;
-        margin-top: 2px;
-        font-size: 12px;
+        margin-top: 4px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
-    @media (max-width: 768px) {
-        .ev-source a {
-            display: inline-block;
-            padding: 5px 0;
-            margin: -5px 0;
-        }
-    }
-    .ev-source a {
-        color: var(--vff-accent);
+    .footnote {
+        max-width: var(--vff-measure);
+        margin: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
+        color: var(--vff-text-muted);
     }
 
-    .lines-list li,
-    .sources li {
-        text-align: left;
-        font-size: 14px;
-    }
+    /* Lignes desservies : lignes de tableau à filets (comme un livret), tout le bloc cliquable. */
     .lines-list {
-        list-style: none;
-        padding: 0;
         margin: 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--vff-border-strong);
+    }
+    .line-row {
+        position: relative;
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 10px;
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1.2fr);
+        gap: 6px 32px;
+        align-items: start;
+        padding: var(--vff-space-4) 0;
+        border-bottom: 1px solid var(--vff-border);
     }
-    .line-card {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 14px;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        text-decoration: none;
-        color: var(--vff-text);
-        transition: all var(--vff-transition);
-        height: 100%;
-        box-sizing: border-box;
+    .line-row p {
+        margin: 0;
     }
-    .line-card:hover {
-        border-color: var(--vff-accent);
-        transform: translateX(2px);
-    }
-    .line-card.historical {
-        border-style: dashed;
-    }
-    .line-card > i:first-child {
-        font-size: 18px;
-        color: var(--vff-accent);
-        flex-shrink: 0;
-    }
-    .line-card div {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 3px;
+    .line-id {
+        display: grid;
+        gap: 6px;
         min-width: 0;
-        text-align: left;
     }
-    .line-card strong {
+    .line-name {
+        justify-self: start;
         font-family: var(--vff-font-display);
-        font-size: 15px;
+        font-size: var(--vff-fs-h3);
+        font-weight: 700;
+        line-height: 1.4;
+        color: var(--vff-text);
+        text-decoration: none;
+        text-wrap: balance;
+    }
+    /* Le lien couvre toute la ligne : la cible est la ligne entière. */
+    .line-name::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+    }
+    .line-row:hover .line-name {
+        color: var(--vff-accent-ink);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+    }
+    .line-name:focus-visible {
+        outline-offset: 0;
     }
     .line-meta {
         display: flex;
-        align-items: center;
-        gap: 8px;
         flex-wrap: wrap;
-        font-size: 12px;
+        align-items: center;
+        gap: 4px 12px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
-    .code {
-        font-family: var(--vff-font-secondary, monospace);
-        color: var(--vff-accent);
+    .pk {
+        font-variant-numeric: tabular-nums;
     }
-    .badge {
-        font-family: var(--vff-font-display);
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        padding: 2px 8px;
-        border-radius: var(--vff-radius-pill);
-        background-color: rgba(0, 0, 0, 0.07);
+    .line-period,
+    .line-eras {
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
+        color: var(--vff-text);
     }
-    .eras-served,
-    .method {
-        font-size: 12px;
+    .line-eras {
         color: var(--vff-text-muted);
     }
-    .line-card .end {
-        color: var(--vff-text-muted);
+    /* Sans colonne « décennies », la période reste à sa place. */
+    .line-period {
+        grid-column: 2;
     }
 
-    .warning {
-        display: flex;
-        gap: 8px;
-        align-items: flex-start;
-        padding: 10px 14px;
-        border-radius: var(--vff-radius-md);
-        background-color: color-mix(in srgb, #f0a500 14%, transparent);
-        color: var(--vff-text);
-        font-size: 14px;
+    /* Situation : carte (7/12) et gares voisines (5/12) ; la liste donne sa hauteur à la carte. */
+    .location {
+        display: grid;
+        grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+        gap: var(--vff-space-5) var(--vff-space-6);
+        align-items: start;
     }
-    .warning i {
-        color: #d98a00;
-        margin-top: 2px;
+    .location.solo {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .map-frame {
+        --map-h: 460px;
+        height: var(--map-h);
+    }
+    .map-note {
+        max-width: var(--vff-measure);
+        margin: var(--vff-space-3) 0 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
+        color: var(--vff-text-muted);
+    }
+    .near h3 {
+        margin: 0 0 var(--vff-space-3);
+    }
+    .near-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--vff-border-strong);
+    }
+    .near-list li {
+        border-bottom: 1px solid var(--vff-border);
+    }
+    .near-link {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        min-height: 44px;
+        padding: 8px 0;
+        color: var(--vff-text);
+        text-decoration: none;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.35;
+    }
+    .near-name {
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+    .near-city {
+        margin-left: 8px;
+        font-weight: 400;
+        color: var(--vff-text-muted);
+    }
+    .near-dist {
+        font-variant-numeric: tabular-nums;
+        color: var(--vff-text-muted);
+    }
+    .near-link:hover .near-name {
+        color: var(--vff-accent-ink);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    /* Sources : une rangée par source (identité, ce qu'elle dit, comment elle a été rapprochée). */
+    .flag {
+        max-width: 780px;
+        margin-bottom: var(--vff-space-5);
     }
     .sources {
-        list-style: none;
-        padding: 0;
         margin: 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--vff-border-strong);
+    }
+    .source {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 10px;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1.1fr);
+        gap: 8px 32px;
+        align-items: start;
+        padding: var(--vff-space-4) 0;
+        border-bottom: 1px solid var(--vff-border);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
     }
-    .sources li {
-        padding: 12px 14px;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-    .src-head {
-        display: flex;
-        gap: 8px;
-        align-items: baseline;
-        flex-wrap: wrap;
-    }
-    .src-head strong {
-        font-family: var(--vff-font-display);
-        font-size: 14px;
-    }
-    .licence {
-        font-size: 11px;
-        color: var(--vff-text-muted);
-    }
-    .src-link {
-        margin-left: auto;
-        font-size: 12px;
-        color: var(--vff-accent);
-        font-family: var(--vff-font-secondary, monospace);
-    }
-    .src-meta {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-        font-size: 12px;
-        color: var(--vff-text-muted);
+    .source p {
+        margin: 0;
     }
     .src-name {
-        font-style: italic;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 10px;
+    }
+    .src-name strong {
+        font-size: var(--vff-fs-md);
+    }
+    .src-link {
+        margin-top: 4px;
+        overflow-wrap: anywhere;
+        font-variant-numeric: tabular-nums;
+    }
+    .facts {
+        display: grid;
+        gap: 2px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        color: var(--vff-text-muted);
+    }
+    .facts .fact-name {
+        font-weight: 600;
         color: var(--vff-text);
     }
-    .src-meta .far {
-        color: #c06a00;
+    .match {
+        color: var(--vff-text-muted);
+    }
+    .dist {
+        display: block;
+        font-variant-numeric: tabular-nums;
+    }
+    .dist.far {
         font-weight: 600;
+        color: var(--vff-warning);
+    }
+    .dist i {
+        margin-right: 6px;
+    }
+    .sub {
+        margin: var(--vff-block-space) 0 var(--vff-space-3);
     }
     .provenance {
         display: grid;
-        grid-template-columns: max-content 1fr;
-        gap: 4px 16px;
+        max-width: 780px;
         margin: 0;
-        font-size: 14px;
+        border-top: 1px solid var(--vff-border-strong);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
+    }
+    .prov-row {
+        display: grid;
+        grid-template-columns: minmax(120px, 200px) minmax(0, 1fr);
+        gap: 4px 24px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--vff-border);
     }
     .provenance dt {
         color: var(--vff-text-muted);
@@ -704,83 +866,46 @@
     .provenance dd {
         margin: 0;
     }
-    .provenance .precision {
+    .precision {
         color: var(--vff-text-muted);
     }
 
-    .empty {
-        font-style: italic;
-        color: var(--vff-text-muted);
-    }
-    .description {
-        font-size: 16px;
-        line-height: 1.65;
-    }
-
-    .neighbor-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 12px;
-    }
-    .neighbor-card {
-        display: flex;
-        gap: 12px;
-        align-items: flex-start;
-        padding: 12px 14px;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        text-decoration: none;
-        color: var(--vff-text);
-        transition: all var(--vff-transition);
-    }
-    .neighbor-card:hover {
-        border-color: var(--vff-accent);
-        transform: translateY(-2px);
-    }
-    .neighbor-card div {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-    .neighbor-card strong {
-        font-family: var(--vff-font-display);
-        font-size: 14px;
-    }
-    .neighbor-card span {
-        color: var(--vff-text-muted);
-        font-size: 12px;
-    }
-    .neighbor-card small {
-        color: var(--vff-accent);
-        font-family: var(--vff-font-display);
-        font-size: 11px;
-    }
-    .dot {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        margin-top: 3px;
-        border-radius: 50%;
-        border: 3px solid var(--dot);
-        background-color: var(--vff-bg-elevated);
-        flex-shrink: 0;
-    }
-
-    @media (max-width: 800px) {
-        .two-col {
-            grid-template-columns: 1fr;
+    @media (max-width: 900px) {
+        .location {
+            grid-template-columns: minmax(0, 1fr);
         }
-        section {
-            padding: 32px 16px;
+        .map-frame {
+            --map-h: 380px;
         }
-        .stats-row {
-            margin: -30px 16px 0;
-            gap: 18px;
+        .line-row {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         }
-        .lines-list,
-        .sources {
-            grid-template-columns: 1fr;
+        .line-eras {
+            grid-column: 1 / -1;
+        }
+        .source {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+        }
+        .match {
+            grid-column: 1 / -1;
+        }
+    }
+    @media (max-width: 600px) {
+        .map-frame {
+            --map-h: 320px;
+        }
+        .timeline li {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .line-row,
+        .source {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .line-period {
+            grid-column: auto;
+        }
+        .prov-row {
+            grid-template-columns: minmax(0, 1fr);
         }
     }
 </style>

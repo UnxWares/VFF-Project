@@ -36,5 +36,12 @@ export function formatStationDate(
             ? { month: 'long', year: 'numeric' }
             : { day: 'numeric', month: 'long', year: 'numeric' };
 
-    return date.toLocaleDateString(lang || 'fr', { ...opts, timeZone: 'UTC' });
+    const locale = lang || 'fr';
+    const text = date.toLocaleDateString(locale, { ...opts, timeZone: 'UTC' });
+    // Français : « 1er janvier 1867 » (le premier du mois prend l'ordinal).
+    if (precision === 'day' && d === 1 && locale.startsWith('fr')) {
+        return text.replace(/^1(?=\s)/, '1er');
+    }
+
+    return text;
 }
