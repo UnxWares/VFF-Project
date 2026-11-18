@@ -11,6 +11,8 @@ return [
 
     // Heading (read aloud, not shown) of the map area.
     'map_title' => 'Network map',
+    // Shortcuts next to the title, to the sections below the map.
+    'jumps_label' => 'On this page',
     'era_selector' => 'Era',
 
     'search' => [

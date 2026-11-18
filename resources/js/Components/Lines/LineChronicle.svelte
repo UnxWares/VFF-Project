@@ -314,7 +314,7 @@
     .desc {
         display: block;
         color: var(--vff-text-muted);
-        font-size: var(--vff-fs-xs);
+        font-size: var(--vff-fs-sm);
     }
     .quote {
         display: block;
@@ -322,7 +322,7 @@
         padding-left: 10px;
         border-left: 2px solid var(--vff-border-strong);
         font-family: var(--vff-font-body);
-        font-size: var(--vff-fs-xs);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
     /* Guillemets français avec leurs espaces insécables. */
@@ -332,7 +332,7 @@
     .correction {
         display: block;
         margin-top: 4px;
-        font-size: var(--vff-fs-xs);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
     .vs {

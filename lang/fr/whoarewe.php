@@ -2,17 +2,35 @@
 
 return [
     'meta_title' => 'Notre histoire',
-    'meta_description' => "L'histoire de VFF, projet collaboratif né de la passion du rail français.",
+    'meta_description' => 'Qui fait VFF et pourquoi : une encyclopédie collaborative du rail français, éditée par UnxWares.',
 
     'hero' => [
-        'eyebrow' => 'Notre histoire',
         'title' => "Une encyclopédie née d'une passion partagée",
         'subtitle' => 'Pourquoi et comment nous documentons le patrimoine ferroviaire français, des lignes en service aux lignes disparues.',
     ],
 
-    'genesis' => [
-        'title' => 'Genèse',
-        'paragraph' => "Tout commence par une observation simple : nous n'avons pas trouvé de ressource centralisée sur le patrimoine ferroviaire français. Les anciennes lignes, leurs tracés exacts, les gares disparues, le matériel roulant qui les parcourait : toutes ces informations existent, dispersées dans les fonds d'archives, les forums spécialisés, les bibliothèques municipales, ou dans la mémoire de témoins parfois nonagénaires. Nous avons voulu créer le lieu où tout cela se rejoint, accessible à tous.",
+    'team' => [
+        'title' => 'Qui fait VFF',
+        'intro' => 'VFF est un projet d’UnxWares, mené par ses deux associés et par les contributeurs qui enrichissent l’encyclopédie.',
+        'baptiste' => [
+            'name' => 'Baptiste Gosselin',
+            'role' => 'président d’UnxWares',
+            'quote' => '« Le ferroviaire est au cœur de qui je suis. Depuis des années, j’écume internet pour me renseigner sur les lignes qui reliaient autrefois les villes, notamment en Normandie, et je partage ce que je trouve avec mes amis. L’idée de VFF m’est venue après le décès de ma grand-mère : en vidant sa maison, nous avons retrouvé de vieilles cartes postales, dont plusieurs montraient des trains et des gares. Je les ai gardées. Il y a plein de projets à faire dans une vie : il faut les réaliser quand on le peut. »',
+        ],
+        'david' => [
+            'name' => 'David',
+            'role' => 'associé d’UnxWares',
+            'text' => 'Il travaille lui aussi en lien avec Traktion, un projet d’assistant de conduite ferroviaire avec lequel UnxWares collabore.',
+        ],
+        'unxwares' => [
+            'name' => 'UnxWares',
+            'role' => 'le studio qui édite VFF',
+            'text' => 'Nous estimons que c’est notre devoir de mettre nos compétences et nos services au service de l’éducation, quelle qu’elle soit et dans n’importe quel domaine. Les informations sur les lignes d’autrefois sont souvent très difficiles à trouver, parfois presque introuvables : UnxWares a créé VFF pour réunir en un seul endroit ce que l’on sait de chaque ligne, avec ses sources. Avec nos amis de Traktion, nous espérons créer encore plus de liens avec le monde du rail.',
+        ],
+        'contributors' => [
+            'name' => 'Les contributeurs',
+            'text' => 'Passionnés, chercheurs, habitants des régions traversées : ils proposent des corrections, des sources et des archives. Chaque contribution est relue par deux validateurs avant publication.',
+        ],
     ],
 
     'vision' => [

@@ -57,21 +57,6 @@
         gap: 8px 16px;
         margin: 0 0 var(--vff-space-4);
     }
-    /* Repère de début de section : petit filet orange au-dessus du titre (même dessin que SectionBlock). */
-    .head {
-        position: relative;
-        padding-top: 17px;
-    }
-    .head::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 28px;
-        height: 3px;
-        border-radius: 2px;
-        background-color: var(--vff-accent);
-    }
     h2 {
         display: flex;
         align-items: baseline;

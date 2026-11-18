@@ -90,7 +90,7 @@
 .vff-docs--swagger .swagger-ui .renderedMarkdown code,
 .vff-docs--swagger .swagger-ui .info code {
     padding: 1px 5px;
-    border-radius: var(--vff-radius-sm);
+    border-radius: var(--vff-radius-xs);
     background: var(--vff-bg-muted);
     color: var(--vff-text);
     font-family: var(--vff-font-mono);

@@ -239,4 +239,15 @@ return [
         'attribution' => 'Afficher ou masquer les crédits de la carte',
         'this_station' => 'Cette gare',
     ],
+
+    // Sommaire collant de la fiche (libellés courts des sections).
+    'toc' => [
+        'label' => 'Sommaire de la fiche',
+        'about' => 'À propos',
+        'eras' => 'Décennies',
+        'history' => 'Chronologie',
+        'lines' => 'Lignes',
+        'location' => 'Situation',
+        'sources' => 'Sources',
+    ],
 ];

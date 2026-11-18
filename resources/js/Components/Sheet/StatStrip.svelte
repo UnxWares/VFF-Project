@@ -58,7 +58,7 @@
     }
     dt {
         font-family: var(--vff-font-heading);
-        font-size: 13px;
+        font-size: var(--vff-fs-xs);
         line-height: 1.35;
         color: var(--vff-text-muted);
     }
@@ -79,13 +79,13 @@
     }
     .text {
         font-family: var(--vff-font-heading);
-        font-size: 15px;
+        font-size: var(--vff-fs-sm);
         font-weight: 600;
         line-height: 1.3;
     }
     .note {
         font-family: var(--vff-font-heading);
-        font-size: 12.5px;
+        font-size: var(--vff-fs-xs);
         color: var(--vff-text-muted);
         text-decoration: underline dotted;
         text-underline-offset: 3px;

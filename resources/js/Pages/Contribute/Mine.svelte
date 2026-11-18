@@ -56,11 +56,7 @@
 
 <Layout compactHeader>
     <main class="mine-page">
-        <PageHero
-            eyebrow={$i18n.t('editor.mine.eyebrow')}
-            title={$i18n.t('editor.mine.title')}
-            subtitle={$i18n.t('editor.mine.subtitle')}
-        >
+        <PageHero title={$i18n.t('editor.mine.title')} subtitle={$i18n.t('editor.mine.subtitle')}>
             <div class="hero-actions">
                 <Link href="/contribute/trace" class="vff-btn primary">
                     <i class="bi bi-bezier2" aria-hidden="true"></i>
@@ -268,7 +264,7 @@
         margin: 0;
         padding: var(--vff-space-3) var(--vff-space-4);
         background-color: var(--vff-bg-subtle);
-        border-radius: var(--vff-radius-sm);
+        border-radius: var(--vff-radius-md);
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-sm);
         line-height: var(--vff-lh-ui);
@@ -283,9 +279,9 @@
     }
     .reject {
         padding: var(--vff-space-3) var(--vff-space-4);
-        border-left: 3px solid var(--vff-danger);
+        border: 1px solid color-mix(in srgb, var(--vff-danger) 28%, transparent);
         background-color: var(--vff-danger-bg);
-        border-radius: 0 var(--vff-radius-sm) var(--vff-radius-sm) 0;
+        border-radius: var(--vff-radius-md);
         font-size: var(--vff-fs-sm);
     }
     .reject p {
@@ -303,7 +299,7 @@
         gap: var(--vff-space-1) var(--vff-space-4);
         margin: 0;
         font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-xs);
+        font-size: var(--vff-fs-sm);
         line-height: var(--vff-lh-ui);
         color: var(--vff-text-muted);
     }

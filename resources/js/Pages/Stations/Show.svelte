@@ -6,6 +6,7 @@
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
+    import SheetToc from '$components/Sheet/SheetToc.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import {
@@ -19,6 +20,10 @@
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (key, opts) => String($i18n.t(key, opts));
+
+    // Sommaire collant : SheetToc n'affiche que les sections présentes.
+    const TOC = ['about', 'eras', 'history', 'lines', 'location', 'sources'];
+    const tocItems = $derived(TOC.map((id) => ({ id, label: t(`stations.toc.${id}`) })));
     /** Espace insécable entre un nombre et son unité (« 5,2 km », « à 74 m ») et après « PK ». */
     const nb = (s) => s.replace(/(\d) (?=(?:km|m)(?![\p{L}]))/gu, '$1 ').replace(/^PK /, 'PK ');
 
@@ -204,6 +209,8 @@
         {#snippet heroStats()}
             <StatStrip items={statItems} label={$i18n.t('stations.stats.title')} />
         {/snippet}
+
+        <SheetToc items={tocItems} label={$i18n.t('stations.toc.label')} />
 
         {#if station.description}
             <SheetSection id="about" title={$i18n.t('stations.sections.about')}>

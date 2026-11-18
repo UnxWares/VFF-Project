@@ -100,7 +100,6 @@
 <Layout compactHeader>
     <main class="validate-page">
         <PageHero
-            eyebrow={$i18n.t('editor.validate.eyebrow')}
             title={$i18n.t('editor.validate.title')}
             subtitle={$i18n.t('editor.validate.subtitle', {
                 count: contributions.length,
@@ -375,6 +374,7 @@
                                         c.payload.changes,
                                         tr,
                                         $i18n.language,
+                                        c.current_values,
                                     )}
                                     <p class="pk-line">
                                         <span
@@ -406,7 +406,25 @@
                                                 {#each changes as ch (ch.field)}
                                                     <div>
                                                         <dt>{ch.label}</dt>
-                                                        <dd>{ch.value}</dd>
+                                                        <dd>
+                                                            {#if ch.before}
+                                                                <span class="was"
+                                                                    ><span class="vff-sr-only"
+                                                                        >{$i18n.t(
+                                                                            'editor.validate.current_value',
+                                                                        )}{colon(
+                                                                            $i18n.language,
+                                                                        )}</span
+                                                                    >{ch.before}</span
+                                                                ><span aria-hidden="true">
+                                                                    →
+                                                                </span><span class="vff-sr-only"
+                                                                    >{$i18n.t(
+                                                                        'editor.validate.proposed_value',
+                                                                    )}{colon($i18n.language)}</span
+                                                                >
+                                                            {/if}{ch.value}
+                                                        </dd>
                                                     </div>
                                                 {/each}
                                             </dl>
@@ -478,7 +496,7 @@
                                     <button
                                         type="button"
                                         id="reject-btn-{c.id}"
-                                        class="vff-btn secondary reject"
+                                        class="vff-btn danger"
                                         onclick={() => openReject(c)}
                                     >
                                         <i class="bi bi-x-lg" aria-hidden="true"></i>
@@ -513,7 +531,7 @@
                                     <div class="reject-actions">
                                         <button
                                             type="submit"
-                                            class="vff-btn secondary reject"
+                                            class="vff-btn danger"
                                             disabled={processing}
                                         >
                                             <i class="bi bi-x-lg" aria-hidden="true"></i>
@@ -638,7 +656,7 @@
     .changes {
         padding: var(--vff-space-3) var(--vff-space-4);
         background-color: var(--vff-bg-subtle);
-        border-radius: var(--vff-radius-sm);
+        border-radius: var(--vff-radius-md);
     }
     .facts dt,
     .changes dt {
@@ -652,6 +670,11 @@
     .changes dd,
     .facts dd.changed {
         font-weight: 600;
+    }
+    /* Valeur actuelle de la portion, avant la flèche et la valeur proposée. */
+    .changes .was {
+        font-weight: 400;
+        color: var(--vff-text-muted);
     }
     .warnings {
         margin: 0;
@@ -731,7 +754,7 @@
         margin: 0;
         max-width: var(--vff-measure);
         padding: var(--vff-space-3) var(--vff-space-4);
-        border-left: 3px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-md);
         background-color: var(--vff-bg-subtle);
         font-family: var(--vff-font-body);
         font-size: var(--vff-fs-md);
@@ -756,16 +779,6 @@
     }
     .contrib-actions :global(.sheet-link) {
         margin-left: auto;
-    }
-    /* Refus : action destructive, texte et contour en couleur d'erreur (contrastes des deux thèmes).
-       À remonter dans general.css : variante .vff-btn.danger. */
-    .reject {
-        color: var(--vff-danger);
-        border-color: var(--vff-danger);
-    }
-    .reject:hover:not(:disabled) {
-        background-color: var(--vff-danger-bg);
-        color: var(--vff-danger);
     }
     .reject-form {
         display: flex;

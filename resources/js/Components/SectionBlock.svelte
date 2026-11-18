@@ -7,9 +7,8 @@
      *
      * `kind` : 'default' (fond de page), 'alt' (bande grise pour alterner), 'cta' (invitation à agir
      * en fin de page, une seule : bande orange très pâle ouverte par un filet orange ; boutons .vff-btn
-     * primary / secondary). Le titre porte un petit filet orange (repère de début de section).
-     * Anciens contenus de 'cta' (h2, p et .cta-buttons écrits par la page, boutons on-cta et
-     * ghost-on-cta pensés pour l'ancien aplat orange) : remis au dessin commun ici.
+     * primary / secondary). Pas de repère décoratif au-dessus des titres : le titre et l'espace suffisent.
+     * Dans la bande 'cta', les paragraphes du contenu (hors chapeau) prennent le dessin commun.
      */
     /** @type {{ title?: string|null, intro?: string|null, kind?: 'default'|'alt'|'cta', maxWidth?: string, id?: string, children?: import('svelte').Snippet, actions?: import('svelte').Snippet }} */
     let {
@@ -77,17 +76,6 @@
         color: var(--vff-text);
         text-wrap: balance;
     }
-    /* Repère de début de section : petit filet orange au-dessus du titre (pas dans le bandeau d'invitation,
-       déjà ouvert par son filet). */
-    .section-block:not(.cta) .block-title::before {
-        content: '';
-        display: block;
-        width: 28px;
-        height: 3px;
-        margin-bottom: 14px;
-        border-radius: 2px;
-        background-color: var(--vff-accent);
-    }
     .intro {
         max-width: var(--vff-measure);
         margin: calc(-1 * var(--vff-space-2)) 0 var(--vff-block-space);
@@ -96,8 +84,15 @@
         line-height: var(--vff-lh-body);
         color: var(--vff-text-muted);
     }
-    .section-actions,
-    .section-block.cta :global(.cta-buttons) {
+    .section-block.cta .intro {
+        color: var(--vff-text);
+    }
+    /* Chapeau seul avant les boutons : l'écart vient des boutons. */
+    .section-block.cta .intro:last-child,
+    .intro:has(+ .section-actions) {
+        margin-bottom: 0;
+    }
+    .section-actions {
         display: flex;
         flex-wrap: wrap;
         justify-content: flex-start;
@@ -115,7 +110,8 @@
         text-align: left;
         color: var(--vff-text);
     }
-    .section-block.cta :global(p) {
+    /* Le chapeau (.intro) garde sa marge basse : le contenu suivant ne s'y colle pas. */
+    .section-block.cta :global(p:not(.intro)) {
         max-width: var(--vff-measure);
         margin: 0;
         font-family: var(--vff-font-body);
@@ -123,22 +119,5 @@
         line-height: var(--vff-lh-body);
         text-align: left;
         color: var(--vff-text);
-    }
-    .section-block.cta :global(.vff-btn.on-cta) {
-        background-color: var(--vff-accent);
-        border-color: var(--vff-accent);
-        color: var(--vff-on-accent);
-    }
-    .section-block.cta :global(.vff-btn.on-cta:hover) {
-        background-color: var(--vff-accent-hover);
-        border-color: var(--vff-accent-hover);
-    }
-    .section-block.cta :global(.vff-btn.ghost-on-cta) {
-        background-color: transparent;
-        border-color: var(--vff-accent-ink);
-        color: var(--vff-accent-ink);
-    }
-    .section-block.cta :global(.vff-btn.ghost-on-cta:hover) {
-        background-color: var(--vff-accent-soft);
     }
 </style>

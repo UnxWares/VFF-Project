@@ -1,6 +1,7 @@
 /* Pied de page du site (Footer.svelte). Ordinateur : bandeau (logo + texte) à gauche, trois colonnes
-   de liens à droite, mentions dessous ; 80 % de large, centré. Sous 1 180 px, le bandeau passe
-   au-dessus des liens ; sous 600 px, tout s'empile.
+   de liens à droite, mentions dessous ; sur la grille commune (1 180 px et gouttières du site : même
+   bord gauche que le logo de l'en-tête et le contenu). Sous 1 180 px, le bandeau passe au-dessus des
+   liens ; sous 600 px, tout s'empile.
    Sélecteurs en footer:where(.site-footer) : les autres <footer> (fiches, galerie) ne sont pas
    touchés, la spécificité reste celle d'origine. */
 footer:where(.site-footer) {
@@ -8,19 +9,22 @@ footer:where(.site-footer) {
     flex-direction: column;
     align-items: center;
     margin-top: 30px;
-    background-color: var(--vff-bg);
+    /* Fond « papier » un ton plus soutenu que la page, filet fin au-dessus (plus d'ombre grise). */
+    background-color: var(--vff-bg-subtle);
     color: var(--vff-text);
-    box-shadow: 0 0 8px #d3d3d3;
+    border-top: 1px solid var(--vff-border);
 }
 footer:where(.site-footer) > * {
-    width: 80%;
+    width: 100%;
+    max-width: calc(var(--vff-container) + 2 * var(--vff-gutter));
+    padding-inline: var(--vff-gutter);
 }
 footer:where(.site-footer) .footer-infos {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 24px 48px;
-    margin: 30px 0;
+    gap: 24px 64px;
+    margin: var(--vff-space-7) 0 var(--vff-space-6);
 }
 
 /* Bandeau : logo VFF et présentation. */
@@ -91,7 +95,7 @@ footer:where(.site-footer) .footer-links a:hover {
 footer:where(.site-footer) .footer-links li.api {
     margin-top: 3px;
     padding-top: 3px;
-    border-top: 1px solid #333333;
+    border-top: 1px solid var(--vff-border-strong);
 }
 footer:where(.site-footer) .unx-insigne {
     width: 24px;
@@ -113,11 +117,14 @@ footer:where(.site-footer) .theme-dark {
 }
 
 /* Filet et mentions. */
+/* Le filet n'a pas de marge intérieure : largeur du contenu de la grille, gouttières déduites. */
 footer:where(.site-footer) hr {
-    width: 80%;
+    width: calc(100% - 2 * var(--vff-gutter));
+    max-width: var(--vff-container);
+    padding: 0;
     margin: 3px 0;
     border: none;
-    border-top: 1px solid #333333;
+    border-top: 1px solid var(--vff-border-strong);
 }
 footer:where(.site-footer) .copyright {
     display: flex;
@@ -162,9 +169,6 @@ footer:where(.site-footer) .copyright .made-by::before {
 }
 
 /* ─── Thème sombre ────────────────────────────────────────────────────────── */
-[data-theme='dark'] footer:where(.site-footer) {
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
-}
 [data-theme='dark'] footer:where(.site-footer) .banner p,
 [data-theme='dark'] footer:where(.site-footer) .copyright p,
 [data-theme='dark'] footer:where(.site-footer) .footer-links a {
@@ -172,10 +176,6 @@ footer:where(.site-footer) .copyright .made-by::before {
 }
 [data-theme='dark'] footer:where(.site-footer) .footer-links a:hover {
     color: var(--vff-accent-ink);
-}
-[data-theme='dark'] footer:where(.site-footer) hr,
-[data-theme='dark'] footer:where(.site-footer) .footer-links li.api {
-    border-top-color: var(--vff-border-strong);
 }
 
 /* ─── Sous 1 180 px : bandeau au-dessus des liens ─────────────────────────── */
@@ -197,10 +197,6 @@ footer:where(.site-footer) .copyright .made-by::before {
     }
 }
 @media (max-width: 600px) {
-    footer:where(.site-footer) > *,
-    footer:where(.site-footer) hr {
-        width: calc(100% - 32px);
-    }
     footer:where(.site-footer) .banner {
         flex-direction: column;
         align-items: flex-start;

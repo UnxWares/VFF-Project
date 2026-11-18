@@ -389,11 +389,7 @@
 
 <Layout compactHeader>
     <main class="trace-page">
-        <PageHero
-            eyebrow={$i18n.t('editor.mine.eyebrow')}
-            title={$i18n.t('editor.title')}
-            subtitle={$i18n.t('editor.subtitle')}
-        >
+        <PageHero title={$i18n.t('editor.title')} subtitle={$i18n.t('editor.subtitle')}>
             <p class="back">
                 <Link href="/maps" class="vff-link"
                     ><i class="bi bi-arrow-left" aria-hidden="true"></i>
@@ -959,7 +955,7 @@
         padding: 1px 6px;
         border: 1px solid var(--vff-border-strong);
         border-bottom-width: 2px;
-        border-radius: var(--vff-radius-sm);
+        border-radius: var(--vff-radius-xs);
         background: var(--vff-bg-elevated);
         color: var(--vff-text);
         font-family: var(--vff-font-heading);
@@ -1101,7 +1097,7 @@
         align-items: center;
         gap: var(--vff-space-2);
         padding: var(--vff-space-2) var(--vff-space-3);
-        border-left: 3px solid var(--vff-accent);
+        border-radius: var(--vff-radius-sm);
         background: var(--vff-bg-accent);
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-sm);
@@ -1130,7 +1126,7 @@
         padding: 0;
         list-style: none;
         border: 1px solid var(--vff-border-strong);
-        border-radius: var(--vff-radius-sm);
+        border-radius: var(--vff-radius-md);
         max-height: 260px;
         overflow: auto;
     }
@@ -1188,16 +1184,16 @@
     }
     .portion {
         border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-sm);
+        border-radius: var(--vff-radius-md);
         background: var(--vff-bg);
     }
     .portion.selected {
         border-color: var(--vff-accent);
-        box-shadow: inset 3px 0 0 var(--vff-accent);
+        box-shadow: 0 0 0 1px var(--vff-accent);
     }
     .portion.has-error {
         border-color: var(--vff-danger);
-        box-shadow: inset 3px 0 0 var(--vff-danger);
+        box-shadow: 0 0 0 1px var(--vff-danger);
     }
     .portion-head {
         display: flex;
@@ -1316,7 +1312,7 @@
         flex-wrap: wrap;
         gap: 4px 12px;
         font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-xs);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
     .replaced ul {

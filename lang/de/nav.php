@@ -2,8 +2,10 @@
 
 return [
     'whoarewe' => 'Über uns',
-    'maps' => 'Unsere Karten',
+    'maps' => 'Karte',
     'lines' => 'Strecken',
+    'stations' => 'Bahnhöfe',
+    'materials' => 'Fahrzeuge',
     'contribute' => 'Mitmachen',
     'donate' => 'Spenden',
     'api' => 'API-Zugang',
@@ -30,4 +32,31 @@ return [
     'menu' => 'Menü',
     // Kontomenü (Prüfende): derselbe Begriff wie der Titel der Prüfseite.
     'review_contributions' => 'Beiträge prüfen',
+    // Gruppen der Leiste: die Enzyklopädie, dann das Projekt.
+    'group_encyclopedia' => 'Enzyklopädie',
+    'group_project' => 'Das Projekt',
+
+    // Suche auf der ganzen Website (Kopfzeile, Strg K; Startseite): Rubriken, Strecken, Bahnhöfe, Fahrzeuge.
+    'search' => [
+        'button' => 'Suchen',
+        'button_label' => 'Nach einer Strecke, einem Bahnhof oder einer Rubrik suchen',
+        'shortcut' => 'Tastenkürzel: :keys',
+        'title' => 'In der Enzyklopädie suchen',
+        'label' => 'Strecke, Bahnhof, Fahrzeug oder Rubrik',
+        'placeholder' => 'Strecken- oder Bahnhofsname, Streckennummer…',
+        'sections' => 'Rubriken',
+        'lines' => 'Strecken',
+        'stations' => 'Bahnhöfe',
+        'materials' => 'Fahrzeuge',
+        'more' => 'Alle Ergebnisse',
+        'all_lines' => 'Alle Strecken mit „:query“',
+        'all_stations' => 'Alle Bahnhöfe mit „:query“',
+        'loading' => 'Suche läuft…',
+        'results_one' => ':count Ergebnis',
+        'results_other' => ':count Ergebnisse',
+        'no_results' => 'Keine Strecke und kein Bahnhof entspricht „:query“.',
+        'error' => 'Die Suche ist derzeit nicht verfügbar. Bitte versuchen Sie es gleich noch einmal.',
+        'clear' => 'Suche löschen',
+        'keys_hint' => 'Pfeiltasten zum Blättern, Eingabe zum Öffnen, Escape zum Schließen.',
+    ],
 ];

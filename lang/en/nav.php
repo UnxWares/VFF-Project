@@ -2,8 +2,10 @@
 
 return [
     'whoarewe' => 'About us',
-    'maps' => 'Our maps',
+    'maps' => 'Map',
     'lines' => 'Lines',
+    'stations' => 'Stations',
+    'materials' => 'Rolling stock',
     'contribute' => 'Contribute',
     'donate' => 'Donate',
     'api' => 'API access',
@@ -30,4 +32,31 @@ return [
     'menu' => 'Menu',
     // Account menu (validators): same term as the validation page title.
     'review_contributions' => 'Review contributions',
+    // Groups of the bar: the encyclopaedia, then the project.
+    'group_encyclopedia' => 'Encyclopaedia',
+    'group_project' => 'The project',
+
+    // Site-wide search (header, Ctrl K; home page): sections, lines, stations, rolling stock.
+    'search' => [
+        'button' => 'Search',
+        'button_label' => 'Search for a line, a station or a section',
+        'shortcut' => 'Keyboard shortcut: :keys',
+        'title' => 'Search the encyclopaedia',
+        'label' => 'Line, station, rolling stock or section',
+        'placeholder' => 'Line or station name, line code…',
+        'sections' => 'Sections',
+        'lines' => 'Lines',
+        'stations' => 'Stations',
+        'materials' => 'Rolling stock',
+        'more' => 'All results',
+        'all_lines' => 'All lines containing “:query”',
+        'all_stations' => 'All stations containing “:query”',
+        'loading' => 'Searching…',
+        'results_one' => ':count result',
+        'results_other' => ':count results',
+        'no_results' => 'No line or station matches “:query”.',
+        'error' => 'Search is unavailable at the moment. Please try again shortly.',
+        'clear' => 'Clear the search',
+        'keys_hint' => 'Up and down arrows to browse, Enter to open, Escape to close.',
+    ],
 ];

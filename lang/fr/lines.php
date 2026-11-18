@@ -421,6 +421,7 @@ return [
         'departements' => 'Départements',
         'operators' => 'Exploitants',
         'merged' => 'Fiches fusionnées',
+        'show_more' => 'Afficher les :count autres',
         'elsewhere' => 'Ailleurs',
         'roles' => [
             'exploitant' => 'exploitant',
@@ -469,6 +470,9 @@ return [
             'best_badge' => 'Longueur maximale',
             'show_best' => 'Longueur maximale',
             'show_best_label' => 'Afficher la ligne à sa longueur maximale',
+            // Liste plus haute que l'écran : bouton qui la fait défiler.
+            'more_below_one' => ':count date plus bas',
+            'more_below_other' => ':count dates plus bas',
         ],
         'map' => [
             'title' => 'Carte de la ligne :name',
@@ -520,5 +524,22 @@ return [
         'notes' => [
             'objects_show' => 'Afficher les identifiants (:count)',
         ],
+    ],
+
+    // Sommaire collant de la fiche (libellés courts des sections).
+    'toc' => [
+        'label' => 'Sommaire de la fiche',
+        'trace' => 'Tracé',
+        'about' => 'À propos',
+        'history' => 'Histoire',
+        'decades' => 'Décennies',
+        'stations' => 'Gares',
+        'sections' => 'Sections',
+        'heritage' => 'Train touristique',
+        'tech' => 'Technique',
+        'chronicle' => 'Chronologie',
+        'materials' => 'Matériel',
+        'gallery' => 'Photos',
+        'notes' => 'Sources',
     ],
 ];

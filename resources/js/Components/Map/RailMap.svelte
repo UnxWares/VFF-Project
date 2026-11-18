@@ -534,7 +534,7 @@
             minzoom: 10,
             layout: {
                 'text-field': ['get', 'name'],
-                'text-size': 12,
+                'text-size': 13,
                 'text-offset': [0, 1.2],
                 'text-anchor': 'top',
                 'text-font': ['Noto Sans Bold'],
@@ -970,7 +970,7 @@
                 ],
                 layout: {
                     'text-field': ['get', 'name'],
-                    'text-size': ['case', ['==', ['get', 'kind'], 'end'], 14, 11],
+                    'text-size': ['case', ['==', ['get', 'kind'], 'end'], 14, 13],
                     'text-offset': [0, 1.2],
                     'text-anchor': 'top',
                     'text-font': ['Noto Sans Bold'],
@@ -1113,7 +1113,7 @@
         outline-offset: 1px;
     }
     :global(.maplibregl-ctrl-attrib-inner) {
-        font-size: 12px;
+        font-size: var(--vff-fs-xs);
     }
     /* Écran tactile : boutons de 36 px (29 px par défaut). */
     @media (pointer: coarse) {

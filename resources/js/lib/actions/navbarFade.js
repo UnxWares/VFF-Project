@@ -12,14 +12,16 @@ export function navbarFade(node, params) {
             entries.forEach((entry) => {
                 if (!nav || !background) return;
 
+                // Opacité portée par des classes (header.css), plus par un style en ligne : la feuille
+                // garde la main (pages internes, téléphone) sans !important.
                 if (entry.isIntersecting) {
-                    nav.style.opacity = '0';
                     // Invisible : ne capte plus les clics (cf. header.css), sauf au clavier.
                     nav.classList.add('nav-hidden');
+                    nav.classList.remove('nav-shown');
                     background.style.position = 'sticky';
                     isOut = false;
                 } else {
-                    nav.style.opacity = '1';
+                    nav.classList.add('nav-shown');
                     nav.classList.remove('nav-hidden');
                     isOut = true;
                     setTimeout(() => {

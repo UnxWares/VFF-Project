@@ -76,12 +76,40 @@ describe('changeEntries', () => {
 
     it('ignore les champs vides et garde un champ inconnu lisible', () => {
         const rows = changeEntries({ status: '', voltage_v: null, other: 'x' }, t, 'fr');
-        expect(rows).toEqual([{ field: 'other', label: 'other', value: 'x' }]);
+        expect(rows).toEqual([{ field: 'other', label: 'other', value: 'x', before: '' }]);
         expect(changeEntries(null, t, 'fr')).toEqual([]);
     });
 
     it('garde « Non » pour un booléen faux (changement réel)', () => {
         expect(changeEntries({ is_heritage: false }, t, 'fr')[0].value).toBe('Non');
+    });
+
+    it('donne la valeur actuelle de la portion à côté de la valeur proposée', () => {
+        const rows = changeEntries(
+            { status: 'abandoned', max_speed_kmh: 60, is_heritage: true },
+            t,
+            'fr',
+            { status: ['in_service'], max_speed_kmh: [120], is_heritage: [false] },
+        );
+        expect(rows.map((r) => [r.field, r.before, r.value])).toEqual([
+            ['status', 'in_service', 'Fermée (voie en place)'],
+            ['max_speed_kmh', '120 km/h', '60 km/h'],
+            ['is_heritage', 'Non', 'Oui'],
+        ]);
+    });
+
+    it('réunit les valeurs actuelles distinctes quand la portion en mêle plusieurs', () => {
+        const [row] = changeEntries({ max_speed_kmh: 60 }, t, 'fr', { max_speed_kmh: [120, 40] });
+        expect(row.before).toBe('120 km/h, 40 km/h');
+    });
+
+    it('laisse la valeur actuelle vide quand le serveur ne la connaît pas', () => {
+        expect(changeEntries({ status: 'abandoned' }, t, 'fr')[0].before).toBe('');
+        expect(changeEntries({ status: 'abandoned' }, t, 'fr', null)[0].before).toBe('');
+        expect(changeEntries({ status: 'abandoned' }, t, 'fr', { status: [] })[0].before).toBe('');
+        expect(
+            changeEntries({ status: 'abandoned' }, t, 'fr', { max_speed_kmh: [80] })[0].before,
+        ).toBe('');
     });
 });
 
@@ -90,6 +118,9 @@ describe('formatDay', () => {
         expect(formatDay('2026-10-20 11:21', 'fr')).toBe('20 octobre 2026');
         expect(formatDay('2026-10-20 11:21', 'en')).toBe('20 October 2026');
         expect(formatDay('2026-10-20 11:21', 'de')).toBe('20. Oktober 2026');
+        // Date ISO 8601 avec décalage (Mes contributions) : le jour affiché est celui du serveur.
+        expect(formatDay('2026-11-18T23:30:00+01:00', 'fr')).toBe('18 novembre 2026');
+        expect(formatDay('2026-11-18T10:21:00+01:00', 'en')).toBe('18 November 2026');
         expect(formatDay('il y a 3 jours', 'fr')).toBe('il y a 3 jours');
         expect(formatDay(null, 'fr')).toBe('');
     });

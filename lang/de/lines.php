@@ -420,6 +420,7 @@ return [
         'departements' => 'Départements',
         'operators' => 'Betreiber',
         'merged' => 'Zusammengeführte Seiten',
+        'show_more' => 'Die übrigen :count anzeigen',
         'elsewhere' => 'Anderswo',
         'roles' => [
             'exploitant' => 'Betreiber',
@@ -468,6 +469,9 @@ return [
             'best_badge' => 'Größte Länge',
             'show_best' => 'Größte Länge',
             'show_best_label' => 'Die Strecke in ihrer größten Länge zeigen',
+            // Liste höher als der Bildschirm: Schaltfläche, die sie weiterrollt.
+            'more_below_one' => ':count weiteres Datum weiter unten',
+            'more_below_other' => ':count weitere Daten weiter unten',
         ],
         'map' => [
             'title' => 'Karte der Strecke :name',
@@ -519,5 +523,22 @@ return [
         'notes' => [
             'objects_show' => 'Kennungen anzeigen (:count)',
         ],
+    ],
+
+    // Mitlaufendes Inhaltsverzeichnis des Steckbriefs (kurze Abschnittsnamen).
+    'toc' => [
+        'label' => 'Inhalt des Steckbriefs',
+        'trace' => 'Verlauf',
+        'about' => 'Überblick',
+        'history' => 'Geschichte',
+        'decades' => 'Jahrzehnte',
+        'stations' => 'Bahnhöfe',
+        'sections' => 'Abschnitte',
+        'heritage' => 'Museumsbahn',
+        'tech' => 'Technik',
+        'chronicle' => 'Chronik',
+        'materials' => 'Fahrzeuge',
+        'gallery' => 'Fotos',
+        'notes' => 'Quellen',
     ],
 ];

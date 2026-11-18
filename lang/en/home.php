@@ -1,13 +1,20 @@
 <?php
 
 return [
-    'meta_title' => 'VFF - Railways of France',
+    'meta_title' => 'VFF - French Railway Lines',
     'meta_description' => 'A collaborative encyclopaedia of French railways from 1830 to the present day: lines, stations, a map of the network for every decade and sourced archives.',
+
+    // Hero (VFF disc between two TGVs): line under the disc and two actions.
+    'hero' => [
+        'tagline' => 'The encyclopaedia of French railway lines, from 1830 to the present day',
+        'open_map' => 'Open the map',
+        'search' => 'Search for a line or station',
+    ],
 
     // Introduction (original design: logo, title, text, two buttons).
     'whoarewe' => [
         'title' => 'VFF - Where rails meet',
-        'paragraph' => 'Created by two railway enthusiasts, VFF is a collaborative encyclopaedia of French railways from 1830 to the present day. It describes every line, open or closed: its route, its stations, its dates and the source of each piece of information. You can browse it, suggest corrections and reuse its data through its public API.',
+        'paragraph' => 'An UnxWares project run by its two partners and its contributors, VFF is a collaborative encyclopaedia of French railways from 1830 to the present day. It describes every line, open or closed: its route, its stations, its dates and the source of each piece of information. You can browse it, suggest corrections and reuse its data through its public API.',
         'cta_history' => 'Our story',
         'cta_donate' => 'Donate',
     ],
@@ -82,6 +89,16 @@ return [
         'author_unknown' => 'Unknown author',
         'source' => 'Wikimedia Commons',
         'cta' => 'Browse the lines',
+    ],
+
+    // Quick access, right after the large header: search and direct entries (names: nav.*).
+    'quick' => [
+        'label' => 'Quick access',
+        'shortcut_hint' => 'On every page, :keys opens the search.',
+        'map_detail' => '1830 to today',
+        'materials_detail' => 'Locomotives, multiple units, coaches',
+        'api_detail' => 'REST, GraphQL, GeoJSON',
+        'contribute_detail' => 'Correct a line, cite a source',
     ],
 
     // Contents of the encyclopaedia, with the real counts from the database.

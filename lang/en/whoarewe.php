@@ -2,17 +2,35 @@
 
 return [
     'meta_title' => 'Our story',
-    'meta_description' => 'The story of VFF, a collaborative project born from a passion for the French rail network.',
+    'meta_description' => 'Who makes VFF and why: a collaborative encyclopaedia of the French rail network, published by UnxWares.',
 
     'hero' => [
-        'eyebrow' => 'Our story',
         'title' => 'An encyclopedia born of shared passion',
         'subtitle' => 'Why and how we document French railway heritage, from lines in service to vanished ones.',
     ],
 
-    'genesis' => [
-        'title' => 'Origins',
-        'paragraph' => 'It all started with a simple observation: we could not find a central resource on French railway heritage. The old lines, their exact routes, the vanished stations, the rolling stock that ran on them: all this information exists, scattered across archive collections, specialist forums, town libraries, or in the memory of witnesses who are sometimes in their nineties. We wanted to create the place where it all comes together, open to everyone.',
+    'team' => [
+        'title' => 'Who makes VFF',
+        'intro' => 'VFF is an UnxWares project, run by its two partners and by the contributors who build up the encyclopaedia.',
+        'baptiste' => [
+            'name' => 'Baptiste Gosselin',
+            'role' => 'President of UnxWares',
+            'quote' => '“Railways are at the heart of who I am. For years I have been scouring the internet to learn about the lines that once linked towns together, particularly in Normandy, and sharing what I find with my friends. The idea for VFF came to me after my grandmother died: while clearing her house, we found some old postcards, several of them showing trains and stations. I kept them. There are many projects to take on in a lifetime: we should carry them out while we can.”',
+        ],
+        'david' => [
+            'name' => 'David',
+            'role' => 'partner at UnxWares',
+            'text' => 'He also works with Traktion, a train driver assistance project that UnxWares works with.',
+        ],
+        'unxwares' => [
+            'name' => 'UnxWares',
+            'role' => 'the studio that publishes VFF',
+            'text' => 'We believe it is our duty to put our skills and services at the service of education, in whatever form and in any field. Information about the lines of the past is often very hard to find, sometimes almost impossible: UnxWares created VFF to bring together in one place what is known about each line, with its sources. With our friends at Traktion, we hope to build even more links with the railway world.',
+        ],
+        'contributors' => [
+            'name' => 'The contributors',
+            'text' => 'Enthusiasts, researchers, people living along the lines: they suggest corrections, sources and archives. Every contribution is reviewed by two validators before publication.',
+        ],
     ],
 
     'vision' => [

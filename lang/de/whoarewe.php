@@ -2,17 +2,35 @@
 
 return [
     'meta_title' => 'Unsere Geschichte',
-    'meta_description' => 'Die Geschichte von VFF, einem Gemeinschaftsprojekt aus Begeisterung für die französische Eisenbahn.',
+    'meta_description' => 'Wer hinter VFF steht und warum: eine gemeinschaftliche Enzyklopädie der französischen Eisenbahn, herausgegeben von UnxWares.',
 
     'hero' => [
-        'eyebrow' => 'Unsere Geschichte',
         'title' => 'Eine Enzyklopädie aus gemeinsamer Leidenschaft',
         'subtitle' => 'Warum und wie wir das französische Eisenbahnerbe dokumentieren, von Strecken im Betrieb bis zu verschwundenen Strecken.',
     ],
 
-    'genesis' => [
-        'title' => 'Entstehung',
-        'paragraph' => 'Am Anfang stand eine einfache Beobachtung: Wir haben keine zentrale Quelle zum französischen Eisenbahnerbe gefunden. Die alten Strecken, ihre genauen Verläufe, die verschwundenen Bahnhöfe, die Fahrzeuge, die dort fuhren: All diese Informationen gibt es, verstreut in Archiven, Fachforen, Stadtbibliotheken oder im Gedächtnis von Zeitzeugen, die manchmal über neunzig sind. Wir wollten den Ort schaffen, an dem alles zusammenkommt und für alle zugänglich ist.',
+    'team' => [
+        'title' => 'Wer hinter VFF steht',
+        'intro' => 'VFF ist ein Projekt von UnxWares, getragen von seinen beiden Gesellschaftern und von den Mitwirkenden, die die Enzyklopädie erweitern.',
+        'baptiste' => [
+            'name' => 'Baptiste Gosselin',
+            'role' => 'Präsident von UnxWares',
+            'quote' => '„Die Eisenbahn ist ein Teil von mir. Seit Jahren durchforste ich das Internet nach den Strecken, die früher die Städte miteinander verbanden, vor allem in der Normandie, und teile meine Funde mit Freunden. Die Idee zu VFF kam mir nach dem Tod meiner Großmutter: Beim Ausräumen ihres Hauses fanden wir alte Postkarten, von denen mehrere Züge und Bahnhöfe zeigten. Ich habe sie behalten. Es gibt im Leben viele Projekte: Man sollte sie verwirklichen, solange man kann.“',
+        ],
+        'david' => [
+            'name' => 'David',
+            'role' => 'Gesellschafter von UnxWares',
+            'text' => 'Auch er arbeitet mit Traktion zusammen, einem Projekt für einen Fahrassistenten für Triebfahrzeugführer, mit dem UnxWares kooperiert.',
+        ],
+        'unxwares' => [
+            'name' => 'UnxWares',
+            'role' => 'das Studio, das VFF herausgibt',
+            'text' => 'Wir sehen es als unsere Pflicht, unsere Fähigkeiten und Dienste in den Dienst der Bildung zu stellen, in welcher Form auch immer und in jedem Bereich. Informationen über die Strecken von früher sind oft sehr schwer zu finden, manchmal fast gar nicht: UnxWares hat VFF geschaffen, um an einem Ort zusammenzutragen, was über jede Strecke bekannt ist, mit ihren Quellen. Gemeinsam mit unseren Freunden von Traktion hoffen wir, noch mehr Verbindungen zur Welt der Eisenbahn zu knüpfen.',
+        ],
+        'contributors' => [
+            'name' => 'Die Mitwirkenden',
+            'text' => 'Eisenbahnfreunde, Forschende, Menschen, die entlang der Strecken leben: Sie schlagen Korrekturen, Quellen und Archivmaterial vor. Jeder Beitrag wird vor der Veröffentlichung von zwei Prüfern gesichtet.',
+        ],
     ],
 
     'vision' => [

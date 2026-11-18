@@ -144,7 +144,7 @@
         background: var(--vff-bg-elevated);
         color: var(--vff-text);
         border: 1px solid var(--vff-border-strong);
-        border-radius: var(--vff-radius-lg);
+        border-radius: var(--vff-radius-md);
         box-shadow: var(--vff-shadow-popover);
         display: flex;
         flex-direction: column;

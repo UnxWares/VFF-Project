@@ -1,0 +1,5 @@
+route_id,route_short_name,route_long_name,route_type
+R1,TER1,Alpha - Bravo,2
+B1,CAR1,Car Alpha - Charlie,3
+T1,T4,Tram-train,0
+T2,T2,Tram urbain,0

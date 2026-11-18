@@ -11,6 +11,8 @@ return [
 
     // Titre (lu, non affiché) de la zone de la carte.
     'map_title' => 'Carte du réseau',
+    // Raccourcis à côté du titre, vers les sections sous la carte.
+    'jumps_label' => 'Sur cette page',
     'era_selector' => 'Époque',
 
     'search' => [

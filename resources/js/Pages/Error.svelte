@@ -2,7 +2,6 @@
     import { Link, page } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
     import PageHero from '$components/PageHero.svelte';
-    import SectionBlock from '$components/SectionBlock.svelte';
     import { i18n } from '$lib/i18n.js';
 
     /**
@@ -28,10 +27,11 @@
     /** Historique de navigation : lu une fois (la page est rendue côté navigateur seulement). */
     const canGoBack = typeof window !== 'undefined' && window.history.length > 1;
 
+    // Pistes de reprise : de simples liens sous les boutons (pas une grille de tuiles à icône).
     const explore = [
-        { href: '/maps', icon: 'bi-map', label: 'errors.map' },
-        { href: '/lines', icon: 'bi-bezier2', label: 'errors.lines' },
-        { href: '/stations', icon: 'bi-geo-alt', label: 'errors.stations' },
+        { href: '/maps', label: 'errors.map' },
+        { href: '/lines', label: 'errors.lines' },
+        { href: '/stations', label: 'errors.stations' },
     ];
 </script>
 
@@ -90,28 +90,37 @@
                     {/if}
                 {/if}
             </div>
+            {#if lost}
+                <nav class="explore" aria-labelledby="explore-title">
+                    <h2 id="explore-title">{$i18n.t('errors.explore')}</h2>
+                    <ul>
+                        {#each explore as e (e.href)}
+                            <li><Link href={e.href} class="vff-link">{$i18n.t(e.label)}</Link></li>
+                        {/each}
+                    </ul>
+                </nav>
+            {/if}
         </PageHero>
-
-        {#if lost}
-            <SectionBlock title={$i18n.t('errors.explore')} maxWidth="720px">
-                <ul class="explore">
-                    {#each explore as e (e.href)}
-                        <li>
-                            <Link href={e.href} class="vff-tile">
-                                <i class="bi {e.icon}" aria-hidden="true"></i>
-                                {$i18n.t(e.label)}
-                            </Link>
-                        </li>
-                    {/each}
-                </ul>
-            </SectionBlock>
-        {/if}
     </main>
 </Layout>
 
 <style>
+    /* Page courte : le bandeau occupe la hauteur disponible et centre son contenu (pas de grand vide
+       blanc avant le pied de page). */
     .error-main {
+        display: flex;
+        flex-direction: column;
         min-height: 60vh;
+    }
+    .error-main > :global(.page-hero) {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        justify-content: center;
+    }
+    /* Marges automatiques dans une colonne flexible : le bloc se rétrécirait ; il garde la grille. */
+    .error-main > :global(.page-hero > .inner) {
+        width: 100%;
     }
     .detail {
         max-width: var(--vff-measure);
@@ -127,23 +136,29 @@
         margin-top: var(--vff-space-5);
     }
     .explore {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: var(--vff-space-4);
+        max-width: 720px;
+        margin-top: var(--vff-block-space);
+        padding-top: var(--vff-space-5);
+        border-top: 1px solid var(--vff-border);
+    }
+    .explore h2 {
+        margin: 0 0 var(--vff-space-2);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-md);
+        font-weight: 600;
+        line-height: var(--vff-lh-ui);
+        color: var(--vff-text);
+    }
+    .explore ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--vff-space-2) var(--vff-space-5);
         margin: 0;
         padding: 0;
         list-style: none;
     }
-    .explore :global(.vff-tile) {
-        display: flex;
-        align-items: center;
-        gap: var(--vff-space-3);
-        min-height: 56px;
-        font-family: var(--vff-font-heading);
-        font-weight: 600;
-    }
-    .explore :global(.vff-tile i) {
-        font-size: 20px;
-        color: var(--vff-accent-ink);
+    .explore :global(.vff-link) {
+        min-height: 44px;
+        font-size: var(--vff-fs-md);
     }
 </style>

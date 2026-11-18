@@ -7,6 +7,7 @@ use App\Models\Station;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Support\ReadsInertiaProps;
 use Tests\TestCase;
 
 /**
@@ -16,6 +17,7 @@ use Tests\TestCase;
  */
 class DirectoryIndexTest extends TestCase
 {
+    use ReadsInertiaProps;
     use RefreshDatabase;
 
     public function test_lines_are_sorted_in_french_alphabetical_order(): void
@@ -25,7 +27,7 @@ class DirectoryIndexTest extends TestCase
         }
 
         $this->get('/lines')->assertInertia(fn (Assert $page) => $page
-            ->where('lines.data', fn ($data) => collect($data)->pluck('name')->all() === [
+            ->where('lines.data', fn ($data) => $this->rows($data)->pluck('name')->all() === [
                 'aérodrome', 'ardoisières', 'Dépôt de Longwy', 'DESSERTE d\'Aix', 'Desserte du port', 'Déviation', 'Zone',
             ]));
 
@@ -41,7 +43,7 @@ class DirectoryIndexTest extends TestCase
         Line::factory()->create(['name' => 'A', 'code' => '001000', 'historical_operator' => null]);
 
         $this->get('/lines?sort=code')->assertInertia(fn (Assert $page) => $page
-            ->where('lines.data', fn ($data) => collect($data)->pluck('name')->all() === ['A', 'B', 'Sans code']));
+            ->where('lines.data', fn ($data) => $this->rows($data)->pluck('name')->all() === ['A', 'B', 'Sans code']));
     }
 
     public function test_unknown_sort_falls_back_to_name(): void
@@ -57,7 +59,7 @@ class DirectoryIndexTest extends TestCase
         }
 
         $this->get('/lines?q=vire')->assertInertia(fn (Assert $page) => $page
-            ->where('lines.data', fn ($data) => collect($data)->pluck('name')->all() === [
+            ->where('lines.data', fn ($data) => $this->rows($data)->pluck('name')->all() === [
                 'Vire', 'Embranchement de Vire', 'Ligne de Vire à Romagny', 'Zone de Vire',
             ]));
     }
@@ -80,14 +82,14 @@ class DirectoryIndexTest extends TestCase
         }
 
         $this->get('/stations')->assertInertia(fn (Assert $page) => $page
-            ->where('stations.data', fn ($data) => collect($data)->pluck('name')->all() === [
+            ->where('stations.data', fn ($data) => $this->rows($data)->pluck('name')->all() === [
                 'Condé-sur-Vire', 'Évires', 'Vire', 'Vireux-Molhain', 'Zone',
             ])
             ->where('overall', 5));
 
         $this->get('/stations?q=vire')->assertInertia(fn (Assert $page) => $page
             ->where('stations.data.0.name', 'Vire')
-            ->where('stations.data', fn ($data) => collect($data)->pluck('name')->last() === 'Évires'));
+            ->where('stations.data', fn ($data) => $this->rows($data)->pluck('name')->last() === 'Évires'));
     }
 
     public function test_station_dates_expose_their_source_and_undated_closure(): void

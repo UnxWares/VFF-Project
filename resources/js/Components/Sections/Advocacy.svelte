@@ -80,36 +80,31 @@
     .advocacy-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: var(--vff-space-5) var(--vff-space-6);
-        /* Chaque encart à sa hauteur : pas de vide sous un message plus court que son voisin. */
-        align-items: start;
+        gap: var(--vff-block-space);
+        /* Encarts côte à côte de même hauteur ; les liens se rangent au pied de chacun. */
+        align-items: stretch;
     }
     .advocacy-grid.single {
         grid-template-columns: minmax(0, 760px);
     }
 
-    /* Couleurs de campagne (railStyle.js : THREATENED_COLOR, REOPENING_COLOR), assombries pour le
-       texte sur fond clair (>= 4,5:1) et éclaircies en thème sombre. */
+    /* Couleur de campagne (railStyle.js : THREATENED_COLOR, REOPENING_COLOR) sur l'icône et le type de
+       campagne seulement, assombrie pour le texte sur fond clair (>= 4,5:1) et éclaircie en thème
+       sombre. L'encart lui-même est neutre : fond teinté, filet fin, coins arrondis. */
     .plea {
-        --plea-rule: #dc2626;
         --plea-ink: var(--vff-danger);
         display: flex;
         flex-direction: column;
         min-width: 0;
-        padding: var(--vff-space-5) var(--vff-space-5) var(--vff-space-5) 20px;
-        border-left: 4px solid var(--plea-rule);
-        border-radius: 0 var(--vff-radius-md) var(--vff-radius-md) 0;
+        padding: var(--vff-pad-box);
+        border: 1px solid var(--vff-border);
+        border-radius: var(--vff-radius-md);
         background-color: var(--vff-bg-subtle);
     }
     .plea.reopening {
-        --plea-rule: #0d9488;
         --plea-ink: #0f766e;
     }
-    :global([data-theme='dark']) .plea {
-        --plea-rule: #f87171;
-    }
     :global([data-theme='dark']) .plea.reopening {
-        --plea-rule: #2dd4bf;
         --plea-ink: #5eead4;
     }
 
@@ -137,7 +132,7 @@
         max-width: var(--vff-measure);
         margin: var(--vff-space-2) 0 0;
         font-family: var(--vff-font-body);
-        font-size: var(--vff-fs-md);
+        font-size: var(--vff-fs-body);
         line-height: 1.6;
         color: var(--vff-text);
     }
@@ -146,7 +141,8 @@
         flex-wrap: wrap;
         align-items: center;
         gap: var(--vff-space-3) var(--vff-space-5);
-        padding-top: var(--vff-space-4);
+        margin-top: auto;
+        padding-top: var(--vff-space-5);
     }
 
     @media (max-width: 900px) {
@@ -155,14 +151,8 @@
         }
     }
     @media (max-width: 600px) {
-        .plea {
-            padding: var(--vff-space-4) var(--vff-space-4) var(--vff-space-4) 16px;
-        }
         .title {
             font-size: 1.125rem;
-        }
-        .message {
-            font-size: 0.9375rem;
         }
     }
 </style>

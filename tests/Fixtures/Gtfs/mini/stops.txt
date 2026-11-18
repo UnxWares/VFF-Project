@@ -1,0 +1,10 @@
+stop_id,stop_name,stop_lat,stop_lon,location_type,parent_station
+StopPoint:OCETrain TER-87000018,Alpha quai,48.0002,2.0002,0,StopArea:OCE87000018
+StopArea:OCE87000018,Alpha,48.0,2.0,1,
+StopPoint:OCECar TER-87000018,Alpha car,48.0001,2.0001,0,StopArea:OCE87000018
+StopArea:OCE87000026,Bravo,48.1,2.1,1,
+StopPoint:OCETrain TER-87000026,Bravo,48.1,2.1,0,StopArea:OCE87000026
+S3,Charlie,48.2,2.2,0,
+S4,Delta,0,0,0,
+StopArea:OCE87000034,Echo,48.3,2.3,1,
+StopPoint:OCECar TER-87000034,Echo,48.3,2.3,0,StopArea:OCE87000034

@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\ReadsListFilters;
 use App\Models\Era;
 use App\Models\Station;
 use App\Support\GeneratedText;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -94,7 +95,7 @@ class StationController extends Controller
      * Tri par nom avec une recherche : nom exact, puis noms qui commencent par le terme, puis le reste.
      * Les dates absentes viennent toujours en dernier.
      */
-    private function orderIndex($builder, string $sort, string $q): void
+    private function orderIndex(Builder $builder, string $sort, string $q): void
     {
         $name = 's.name COLLATE "fr-x-icu"';
 
@@ -107,7 +108,7 @@ class StationController extends Controller
         };
     }
 
-    private function orderByName($builder, string $q, string $name): void
+    private function orderByName(Builder $builder, string $q, string $name): void
     {
         if ($q !== '') {
             $builder->orderByRaw(

@@ -19,7 +19,9 @@
      * de composition de TOUTE la ligne (longueur proportionnelle à la plus grande
      * longueur connue : on voit la ligne grandir puis décliner). Flèches haut/bas pour
      * passer d'une phase à l'autre. La liste prend la hauteur de ses phases (pas de fil vide
-     * sous deux phases) et ne défile qu'au-delà d'une hauteur de carte.
+     * sous deux phases) ; elle ne défile qu'au-delà de la hauteur de la carte (variable
+     * --phases-max posée par la fiche, proche de la hauteur de l'écran), et dit alors combien de
+     * dates restent plus bas (bouton qui fait défiler). Sur téléphone : liste complète.
      */
     let { phases = [], selected = $bindable(null), best = null } = $props();
 
@@ -27,6 +29,38 @@
     const lang = $derived($i18n.language ?? 'fr');
     const dateLabel = (p) => firstOfMonth(phaseDateLabel(p, $i18n.t, formatLocale(lang)), lang);
     let buttons = $state([]);
+    let listEl = $state();
+    // Dates sous le bas visible de la liste (0 : tout est visible, ou la liste est au bout).
+    let below = $state(0);
+    let overflowing = $state(false);
+
+    function measureBelow() {
+        if (!listEl) return;
+        overflowing = listEl.scrollHeight > listEl.clientHeight + 2;
+        const limit = listEl.scrollTop + listEl.clientHeight - 24;
+        below = overflowing ? buttons.filter((b) => b && b.offsetTop > limit).length : 0;
+    }
+
+    function scrollDown() {
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        listEl?.scrollBy({ top: listEl.clientHeight * 0.8, behavior: reduce ? 'auto' : 'smooth' });
+    }
+
+    // La phase choisie (à l'ouverture : la longueur maximale ; ou depuis l'histoire) est rendue
+    // visible dans la liste, sans faire défiler la page.
+    $effect(() => {
+        const btn = buttons[selected];
+        if (!listEl || !btn) return;
+        const top = btn.offsetTop;
+        const bottom = top + btn.offsetHeight;
+        if (top < listEl.scrollTop || bottom > listEl.scrollTop + listEl.clientHeight) {
+            // Au tiers haut de la liste, calée sur le haut d'une phase (pas de phase coupée en haut).
+            const target = top - listEl.clientHeight / 3;
+            const first = buttons.filter((b) => b && b.offsetTop <= target).at(-1);
+            listEl.scrollTop = first ? first.offsetTop : 0;
+        }
+        measureBelow();
+    });
 
     function select(i) {
         if (i == null) return;
@@ -98,7 +132,9 @@
         role="listbox"
         aria-label={$i18n.t('lines.phases.title')}
         tabindex="-1"
+        bind:this={listEl}
         onkeydown={onKeydown}
+        onscroll={measureBelow}
     >
         {#each phases as p, i (i)}
             {@const strip = phaseStrip(p, scale)}
@@ -108,8 +144,7 @@
                     role="option"
                     aria-selected={selected === i}
                     tabindex={selected === i ? 0 : -1}
-                    class="phase kind-{p.kind}"
-                    class:active={selected === i}
+                    class={['phase', `kind-${p.kind}`, { active: selected === i }]}
                     bind:this={buttons[i]}
                     onclick={() => select(i)}
                 >
@@ -123,7 +158,7 @@
                         ></i>
                     </span>
                     <span class="body">
-                        <span class="date" class:undated={p.precision === 'range'}
+                        <span class={['date', { undated: p.precision === 'range' }]}
                             >{dateLabel(p)}</span
                         >
                         <span class="what">{headline(p)}</span>
@@ -143,7 +178,21 @@
             </li>
         {/each}
     </ol>
+    {#if overflowing}
+        <button
+            type="button"
+            class={['more-below', { hidden: below === 0 }]}
+            aria-hidden={below === 0 ? 'true' : undefined}
+            tabindex={below === 0 ? -1 : undefined}
+            onclick={scrollDown}
+        >
+            <i class="bi bi-chevron-double-down" aria-hidden="true"></i>
+            {$i18n.t('lines.sheet.phases.more_below', { count: below || 1 })}
+        </button>
+    {/if}
 </div>
+
+<svelte:window onresize={measureBelow} />
 
 <style>
     .selector {
@@ -161,14 +210,16 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        min-height: 32px;
+        min-height: 36px;
+        min-width: 36px;
+        justify-content: center;
         padding: 4px 10px;
         border: 1px solid var(--vff-border-control);
         border-radius: var(--vff-radius-sm);
         background: var(--vff-bg);
         color: var(--vff-text);
         font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-xs);
+        font-size: var(--vff-fs-sm);
         cursor: pointer;
     }
     .tool:hover:not(:disabled) {
@@ -187,10 +238,11 @@
         background: var(--vff-bg-accent);
         color: var(--vff-accent-ink);
     }
-    /* Hauteur de la liste : celle de ses phases, plafonnée à la hauteur de la carte. */
+    /* Hauteur de la liste : celle de ses phases, plafonnée à la hauteur de la carte (posée par la
+       fiche ; aucune limite sur téléphone, où la liste est sous la carte). */
     .phases {
         position: relative;
-        max-height: 440px;
+        max-height: var(--phases-max, none);
         margin: 0;
         padding: 0 4px 0 0;
         overflow-y: auto;
@@ -264,7 +316,7 @@
     }
     .what {
         font-family: var(--vff-font-body);
-        font-size: var(--vff-fs-sm);
+        font-size: 0.9375rem;
         line-height: 1.4;
         color: var(--vff-text-muted);
     }
@@ -296,14 +348,33 @@
         align-self: flex-start;
         margin-top: 4px;
         font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-xs);
+        font-size: var(--vff-fs-sm);
         font-weight: 600;
         color: var(--vff-accent-ink);
     }
-    @media (max-width: 900px) {
-        .phases {
-            max-height: 360px;
-        }
+    /* Indice de suite : « 9 dates plus bas », sous la liste ; il garde sa place quand on arrive
+       au bout (pas de saut). */
+    .more-below {
+        display: inline-flex;
+        align-self: flex-start;
+        align-items: center;
+        gap: 8px;
+        min-height: 36px;
+        margin-top: 8px;
+        padding: 4px 12px;
+        border: 1px solid var(--vff-border-control);
+        border-radius: var(--vff-radius-pill);
+        background: var(--vff-bg);
+        color: var(--vff-text);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        cursor: pointer;
+    }
+    .more-below:hover {
+        background: var(--vff-bg-muted);
+    }
+    .more-below.hidden {
+        visibility: hidden;
     }
     @media (prefers-reduced-motion: no-preference) {
         .phase,

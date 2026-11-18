@@ -278,6 +278,8 @@
             });
             if (!res.ok) throw new Error(String(res.status));
             const data = await res.json();
+            // Index local d'une fonction, jamais lu par le rendu : pas de réactivité.
+            // eslint-disable-next-line svelte/prefer-svelte-reactivity
             const idx = new Map();
             for (const f of data.features ?? [])
                 idx.set(`${f.properties.kind}:${f.properties.id}`, linesOf(f.geometry));
@@ -311,6 +313,8 @@
                     line_slug: data.line.slug,
                 },
             }));
+            // Index local d'une fonction, jamais lu par le rendu : pas de réactivité.
+            // eslint-disable-next-line svelte/prefer-svelte-reactivity
             const idx = new Map();
             for (const f of features)
                 idx.set(`${f.properties.kind}:${f.properties.id}`, linesOf(f.geometry));
@@ -367,6 +371,8 @@
             { layers },
         );
         let best = null;
+        // Index local d'une fonction, jamais lu par le rendu : pas de réactivité.
+        // eslint-disable-next-line svelte/prefer-svelte-reactivity
         const seen = new Set();
         for (const f of feats) {
             if (f.layer.id === 'draft-line' && f.properties.key === excludeKey) continue;
@@ -559,6 +565,8 @@
 
     function openRefPopup(features, lngLat) {
         const t = $i18n.t.bind($i18n);
+        // Index local d'une fonction, jamais lu par le rendu : pas de réactivité.
+        // eslint-disable-next-line svelte/prefer-svelte-reactivity
         const seen = new Set();
         const items = [];
         for (const f of features) {
@@ -1082,7 +1090,7 @@
         background: var(--vff-bg);
         color: var(--vff-text);
         border: 1px solid var(--vff-border-control);
-        border-radius: var(--vff-radius-md);
+        border-radius: var(--vff-radius-sm);
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-sm);
         font-weight: 600;
@@ -1245,7 +1253,7 @@
         background: var(--vff-bg-elevated);
         color: var(--vff-text);
         border: 1px solid var(--vff-border-strong);
-        border-radius: var(--vff-radius-lg);
+        border-radius: var(--vff-radius-md);
         box-shadow: var(--vff-shadow-popover);
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-sm);
@@ -1286,7 +1294,7 @@
         border: 1px solid var(--vff-accent);
         background: var(--vff-accent);
         color: var(--vff-on-accent);
-        border-radius: var(--vff-radius-md);
+        border-radius: var(--vff-radius-sm);
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-sm);
         font-weight: 600;

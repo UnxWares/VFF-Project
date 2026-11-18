@@ -26,6 +26,7 @@
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
+    import SheetToc from '$components/Sheet/SheetToc.svelte';
     import {
         bestPhaseIndex,
         categoryColor,
@@ -66,6 +67,24 @@
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (k, o) => String($i18n.t(k, o));
+
+    // Sommaire collant : toutes les sections possibles, dans l'ordre de la page ; SheetToc n'affiche
+    // que celles qui sont présentes.
+    const TOC = [
+        'trace',
+        'about',
+        'history',
+        'decades',
+        'stations',
+        'sections',
+        'heritage',
+        'tech',
+        'chronicle',
+        'materials',
+        'gallery',
+        'notes',
+    ];
+    const tocItems = $derived(TOC.map((id) => ({ id, label: t(`lines.toc.${id}`) })));
     // Noms, textes de Wikipédia et descriptions des sources : en français, quelle que soit la page.
     const srcLang = $derived(line.name_lang ?? (lang === 'fr' ? undefined : 'fr'));
     const descLang = $derived(line.description_lang ?? srcLang);
@@ -172,6 +191,15 @@
             : null,
     );
     const HERO_NAMES = 5;
+    /** Fiche : une liste longue (noms, exploitants) montre ses quatre premières entrées et replie les
+     *  autres (« Afficher les 4 autres ») ; la fiche ne dépasse plus le texte de beaucoup (pas de grand
+     *  vide sous le texte, à gauche). Jamais replié pour une seule entrée de plus. */
+    const FICHE_LIST = 4;
+    /** @template T @param {T[]} list @returns {[T[], T[]]} */
+    const foldList = (list) =>
+        list.length > FICHE_LIST + 1
+            ? [list.slice(0, FICHE_LIST), list.slice(FICHE_LIST)]
+            : [list, []];
 
     const heroEyebrow = $derived(
         [
@@ -473,6 +501,8 @@
             <StatStrip items={statItems} label={t('lines.stats.title')} />
         {/snippet}
 
+        <SheetToc items={tocItems} label={t('lines.toc.label')} />
+
         <!-- Le tracé dans le temps : la ligne entière, phase par phase (vraies dates). -->
         <SheetSection
             id="trace"
@@ -490,7 +520,7 @@
                             name={line.name}
                             eraYear={phaseEraYear(phase)}
                             isCurrent={!!phase?.is_current}
-                            height="480px"
+                            height="var(--phase-map-h)"
                         />
                         {#if phase}
                             <div class="phase-detail" aria-live="polite">
@@ -519,12 +549,12 @@
             {/if}
         </SheetSection>
 
-        <SheetSection label={t('lines.section.about')}>
+        <SheetSection id="about" label={t('lines.section.about')}>
             <div class="about-grid">
                 <div class="about">
                     <h2 class="vff-section-title">{t('lines.section.about')}</h2>
                     {#if line.description}
-                        <div class="description" lang={descLang}>
+                        <div class="description vff-hyphenate" lang={descLang}>
                             {#each line.description.split(/\n{2,}/) as para, i (i)}<p>
                                     {para}
                                 </p>{/each}
@@ -575,36 +605,52 @@
                     <h2 id="fiche-title">{t('lines.facts.title')}</h2>
                     <dl>
                         {#if names.length}
+                            {@const [namesShown, namesMore] = foldList(names)}
                             <div class="row names">
                                 <dt>{t('lines.facts.names')}</dt>
                                 <dd>
+                                    {#snippet nameItem(n)}
+                                        <li>
+                                            <span class="nm" lang={srcLang}>{n.name}</span>
+                                            {#if n.from || n.to}<span class="meta"
+                                                    >{n.from ?? '?'}{n.to && n.to !== n.from
+                                                        ? `-${n.to}`
+                                                        : ''}</span
+                                                >{/if}
+                                            {#if n.kind === 'section'}<span class="meta"
+                                                    >{t('lines.facts.name_section')}</span
+                                                >{/if}
+                                            {#if n.source && !namesSource}
+                                                <span class="meta">
+                                                    {#if n.url}<a
+                                                            href={n.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            >{sourceLabel(
+                                                                n.source,
+                                                            )}{@render ext()}</a
+                                                        >{:else}{sourceLabel(n.source)}{/if}
+                                                </span>
+                                            {/if}
+                                        </li>
+                                    {/snippet}
                                     <ul>
-                                        {#each names as n (n.name)}
-                                            <li>
-                                                <span class="nm" lang={srcLang}>{n.name}</span>
-                                                {#if n.from || n.to}<span class="meta"
-                                                        >{n.from ?? '?'}{n.to && n.to !== n.from
-                                                            ? `-${n.to}`
-                                                            : ''}</span
-                                                    >{/if}
-                                                {#if n.kind === 'section'}<span class="meta"
-                                                        >{t('lines.facts.name_section')}</span
-                                                    >{/if}
-                                                {#if n.source && !namesSource}
-                                                    <span class="meta">
-                                                        {#if n.url}<a
-                                                                href={n.url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                >{sourceLabel(
-                                                                    n.source,
-                                                                )}{@render ext()}</a
-                                                            >{:else}{sourceLabel(n.source)}{/if}
-                                                    </span>
-                                                {/if}
-                                            </li>
-                                        {/each}
+                                        {#each namesShown as n (n.name)}{@render nameItem(n)}{/each}
                                     </ul>
+                                    {#if namesMore.length}
+                                        <details class="fold">
+                                            <summary
+                                                >{t('lines.facts.show_more', {
+                                                    count: namesMore.length,
+                                                })}</summary
+                                            >
+                                            <ul>
+                                                {#each namesMore as n (n.name)}{@render nameItem(
+                                                        n,
+                                                    )}{/each}
+                                            </ul>
+                                        </details>
+                                    {/if}
                                     {#if namesSource}
                                         <p class="meta names-src">
                                             {t('lines.sheet.names_source')}{colon(
@@ -641,30 +687,46 @@
                             </div>
                         {/each}
                         {#if line.historical_operators?.length}
+                            {@const [opsShown, opsMore] = foldList(line.historical_operators)}
                             <div class="row">
                                 <dt>{t('lines.facts.operators')}</dt>
                                 <dd>
+                                    {#snippet operatorItem(o)}
+                                        <li>
+                                            <span lang={srcLang}>{o.operator ?? ''}</span
+                                            >{#if o.role}<span class="meta"
+                                                    >{roleLabel(o.role)}</span
+                                                >{/if}{#if o.ongoing && o.from_year}<span
+                                                    class="meta"
+                                                    >{t('lines.sheet.stats.since_year', {
+                                                        year: o.from_year,
+                                                    })}</span
+                                                >{:else if o.from_year || o.to_year}<span
+                                                    class="meta"
+                                                    >{o.from_year ?? '?'}{o.to_year &&
+                                                    o.to_year !== o.from_year
+                                                        ? `-${o.to_year}`
+                                                        : ''}</span
+                                                >{/if}
+                                        </li>
+                                    {/snippet}
                                     <ul>
-                                        {#each line.historical_operators as o, i (i)}
-                                            <li>
-                                                <span lang={srcLang}>{o.operator ?? ''}</span
-                                                >{#if o.role}<span class="meta"
-                                                        >{roleLabel(o.role)}</span
-                                                    >{/if}{#if o.ongoing && o.from_year}<span
-                                                        class="meta"
-                                                        >{t('lines.sheet.stats.since_year', {
-                                                            year: o.from_year,
-                                                        })}</span
-                                                    >{:else if o.from_year || o.to_year}<span
-                                                        class="meta"
-                                                        >{o.from_year ?? '?'}{o.to_year &&
-                                                        o.to_year !== o.from_year
-                                                            ? `-${o.to_year}`
-                                                            : ''}</span
-                                                    >{/if}
-                                            </li>
-                                        {/each}
+                                        {#each opsShown as o, i (i)}{@render operatorItem(o)}{/each}
                                     </ul>
+                                    {#if opsMore.length}
+                                        <details class="fold">
+                                            <summary
+                                                >{t('lines.facts.show_more', {
+                                                    count: opsMore.length,
+                                                })}</summary
+                                            >
+                                            <ul>
+                                                {#each opsMore as o, i (i)}{@render operatorItem(
+                                                        o,
+                                                    )}{/each}
+                                            </ul>
+                                        </details>
+                                    {/if}
                                 </dd>
                             </div>
                         {/if}
@@ -747,7 +809,7 @@
             <SheetSection title={t('lines.section.history')} id="history">
                 <ol class="history">
                     {#each phases as p, i (i)}
-                        <li class:selected={i === selected}>
+                        <li class={{ selected: i === selected }}>
                             <div class="h-date">
                                 <span class="h-day">{phaseDate(p)}</span>
                                 <button
@@ -1063,7 +1125,7 @@
     }
     .meta {
         font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-xs);
+        font-size: var(--vff-fs-sm);
         line-height: var(--vff-lh-ui);
         color: var(--vff-text-muted);
     }
@@ -1171,14 +1233,32 @@
         white-space: nowrap;
     }
 
-    /* Le tracé dans le temps : carte et détail à gauche, phases à droite, sans hauteur imposée. */
+    /* Le tracé dans le temps : carte et détail à gauche, phases à droite. La carte est haute de
+       presque tout l'écran (sous le sommaire collant), la liste des phases a la même hauteur au
+       plus (moins sa barre de boutons) : toute la chronologie se voit d'un coup d'œil tant qu'elle
+       tient ; au-delà, la liste défile et dit combien de dates restent plus bas. */
     .phases-grid {
+        --phase-map-h: clamp(520px, calc(100dvh - 200px), 820px);
+        --phases-max: calc(var(--phase-map-h) - 46px);
         display: grid;
-        grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr);
+        grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr);
+        grid-template-areas:
+            'map list'
+            'map detail';
+        grid-template-rows: auto 1fr;
         gap: var(--vff-space-5) var(--vff-space-6);
         align-items: start;
     }
+    /* Sur ordinateur, le détail de la phase choisie passe sous la liste, à côté de la carte (il
+       restait sous la carte, hors de l'écran une fois la carte agrandie). */
+    .map-col {
+        display: contents;
+    }
+    .map-col > :global(.phase-map-wrap) {
+        grid-area: map;
+    }
     .selector-col {
+        grid-area: list;
         display: flex;
         flex-direction: column;
         gap: var(--vff-space-4);
@@ -1196,11 +1276,12 @@
     .unexplained strong {
         color: var(--vff-text);
     }
+    /* Détail de la phase : encart à fond teinté (plus de barre épaisse sur le bord gauche). */
     .phase-detail {
-        margin-top: var(--vff-space-4);
-        padding: 14px 20px 16px;
-        border-left: 4px solid var(--vff-accent);
-        border-radius: 0 var(--vff-radius-md) var(--vff-radius-md) 0;
+        grid-area: detail;
+        padding: var(--vff-pad-box);
+        border: 1px solid var(--vff-border);
+        border-radius: var(--vff-radius-md);
         background: var(--vff-bg-subtle);
     }
     .phase-detail h3 {
@@ -1213,9 +1294,11 @@
     /* À propos + fiche */
     /* Texte à gauche, fiche à droite ; la campagne remplit le bas de la colonne de texte
        (sur téléphone : texte, fiche, puis campagne). */
+    /* Colonne de texte à sa largeur de lecture (60ch, comme .description) : tout le reste va à la
+       fiche, plus large, donc moins haute (moins de vide sous le texte quand la fiche est longue). */
     .about-grid {
         display: grid;
-        grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr);
+        grid-template-columns: minmax(0, var(--vff-measure)) minmax(320px, 1fr);
         grid-template-areas:
             'about fiche'
             'adv fiche';
@@ -1243,17 +1326,17 @@
         max-width: var(--vff-measure);
         margin: var(--vff-space-3) 0 0;
         font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-xs);
+        font-size: var(--vff-fs-sm);
         line-height: 1.55;
         color: var(--vff-text-muted);
     }
     .attribution .ref {
         margin-left: 0.4em;
     }
+    /* Rembourrage du site ; en bas, la dernière rangée apporte déjà ses 10 px. */
     .infobox {
-        padding: 18px 20px 8px;
+        padding: var(--vff-pad-box) var(--vff-pad-box) calc(var(--vff-pad-box) - 10px);
         border: 1px solid var(--vff-border);
-        border-top: 3px solid var(--vff-accent);
         border-radius: var(--vff-radius-md);
         background: var(--vff-bg-elevated);
     }
@@ -1278,7 +1361,6 @@
         font-weight: 600;
         color: var(--vff-text-muted);
         overflow-wrap: break-word;
-        hyphens: auto;
     }
     .infobox dd {
         min-width: 0;
@@ -1304,6 +1386,22 @@
     .infobox .names .nm {
         flex-basis: 100%;
         font-weight: 600;
+    }
+    /* Liste longue repliée : bouton texte, la suite s'ouvre dessous. */
+    .fold summary {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        margin-top: 6px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        color: var(--vff-link);
+        text-decoration: underline;
+        text-underline-offset: 0.18em;
+        cursor: pointer;
+    }
+    .fold[open] summary {
+        margin-bottom: 6px;
     }
     .names-src {
         margin: 8px 0 0;
@@ -1332,14 +1430,10 @@
         grid-template-columns: auto minmax(0, 1fr);
         align-items: start;
         gap: var(--vff-space-3) var(--vff-space-5);
-        padding: 20px 24px;
+        padding: var(--vff-pad-box);
         border: 1px solid var(--vff-border);
-        border-left: 4px solid var(--vff-success);
         border-radius: var(--vff-radius-md);
         background: var(--vff-bg-subtle);
-    }
-    .advocacy.alert {
-        border-left-color: var(--vff-danger);
     }
     .advocacy-icon {
         align-self: start;
@@ -1593,8 +1687,14 @@
     }
 
     @media (max-width: 900px) {
+        /* Téléphone et tablette : la carte et le détail de la phase, puis la liste complète des
+           phases dessous. */
         .phases-grid {
+            --phase-map-h: clamp(340px, 62dvh, 540px);
+            --phases-max: none;
             grid-template-columns: minmax(0, 1fr);
+            grid-template-areas: 'map' 'detail' 'list';
+            grid-template-rows: auto;
         }
         .about-grid {
             grid-template-columns: minmax(0, 1fr);
@@ -1629,9 +1729,6 @@
         .sig-range,
         .infobox .row {
             grid-template-columns: minmax(0, 1fr);
-        }
-        .infobox {
-            padding: 16px 16px 6px;
         }
         .history li {
             padding-left: 18px;

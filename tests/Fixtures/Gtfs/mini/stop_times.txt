@@ -1,0 +1,12 @@
+trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type
+t1,08:00:00,08:00:00,StopPoint:OCETrain TER-87000018,1,0,1
+t1,08:10:00,08:10:00,S3,2,1,1
+t1,08:20:00,08:20:00,StopPoint:OCETrain TER-87000026,3,1,0
+t2,09:00:00,09:00:00,StopPoint:OCETrain TER-87000026,1,0,1
+t2,09:20:00,09:20:00,StopPoint:OCETrain TER-87000018,2,1,0
+t3,10:00:00,10:00:00,StopPoint:OCECar TER-87000018,1,0,1
+t3,10:30:00,10:30:00,S3,2,1,0
+t4,11:00:00,11:00:00,S4,1,0,0
+t5,12:00:00,12:00:00,S3,1,0,0
+t6,13:00:00,13:00:00,StopPoint:OCETrain TER-87000026,1,0,0
+t3,10:50:00,10:50:00,StopPoint:OCECar TER-87000034,3,1,0

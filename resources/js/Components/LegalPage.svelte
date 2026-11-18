@@ -65,7 +65,6 @@
 <Layout compactHeader>
     <main>
         <PageHero
-            eyebrow={$i18n.t(`${namespace}.hero.eyebrow`)}
             title={$i18n.t(`${namespace}.hero.title`)}
             subtitle={$i18n.t(`${namespace}.hero.updated`, { date: updatedLabel })}
         />
@@ -104,12 +103,12 @@
                         {#if s.subSlugs}
                             {#each s.subSlugs as sub (sub)}
                                 <h3>{$i18n.t(`${namespace}.${s.slug}.${sub}_title`)}</h3>
-                                <div class="legal-text">
+                                <div class="legal-text vff-hyphenate">
                                     {@html block($i18n.t(`${namespace}.${s.slug}.${sub}_text`))}
                                 </div>
                             {/each}
                         {:else}
-                            <div class="legal-text">
+                            <div class="legal-text vff-hyphenate">
                                 {@html block($i18n.t(`${namespace}.${s.slug}.paragraph`))}
                             </div>
                         {/if}
@@ -225,7 +224,7 @@
     }
     .legal-text :global(code) {
         padding: 1px 5px;
-        border-radius: var(--vff-radius-sm);
+        border-radius: var(--vff-radius-xs);
         background-color: var(--vff-bg-muted);
         font-size: 0.9em;
         overflow-wrap: anywhere;

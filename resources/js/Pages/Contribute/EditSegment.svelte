@@ -175,7 +175,6 @@
 <Layout compactHeader>
     <main class="segment-page">
         <PageHero
-            eyebrow={$i18n.t('editor.segment.eyebrow')}
             title={$i18n.t('editor.segment.title')}
             subtitle={$i18n.t('editor.segment.subtitle')}
         >

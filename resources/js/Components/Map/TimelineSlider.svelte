@@ -216,7 +216,7 @@
         </div>
     {/if}
 
-    <div class="track-area" class:dense>
+    <div class={['track-area', { dense }]}>
         <div
             class="slider"
             role="slider"
@@ -240,13 +240,17 @@
                     type="button"
                     tabindex="-1"
                     aria-hidden="true"
-                    class="stop"
-                    class:active={value === year}
-                    class:past={value > year}
-                    class:empty={emptyYears.includes(year)}
-                    class:first={i === 0}
-                    class:last={i === currentYears.length - 1}
-                    class:odd={i % 2 === 1}
+                    class={[
+                        'stop',
+                        {
+                            active: value === year,
+                            past: value > year,
+                            empty: emptyYears.includes(year),
+                            first: i === 0,
+                            last: i === currentYears.length - 1,
+                            odd: i % 2 === 1,
+                        },
+                    ]}
                     style:left="{percentFor(year)}%"
                     onclick={() => {
                         stopPlay();
@@ -337,9 +341,9 @@
     }
     .period {
         min-height: 36px;
-        padding: 6px 12px;
+        padding: 6px 14px;
         border: 1px solid var(--vff-border-control);
-        border-radius: var(--vff-radius-sm);
+        border-radius: var(--vff-radius-pill);
         background-color: transparent;
         color: var(--vff-text);
         font-family: var(--vff-font-heading);
@@ -472,14 +476,38 @@
         font-weight: 600;
     }
 
-    /* Tablette : la frise passe sous le titre et les périodes. */
-    @media (max-width: 900px) {
+    /* Jusqu'à 1 180 px : la frise passe sous le titre et les périodes, sur toute la largeur (à côté,
+       elle était trop courte : « 2020 » et « Aujourd'hui » se chevauchaient vers 1 024 px). */
+    @media (max-width: 1180px) {
         .timeline {
             flex-wrap: wrap;
-            padding: 14px 16px 16px;
         }
         .track-area {
             flex-basis: 100%;
+        }
+    }
+    @media (max-width: 900px) {
+        .timeline {
+            padding: 14px 16px 16px;
+        }
+    }
+    /* Cadre bas (carte intégrée dans une autre page, téléphone à l'horizontale) : frise compacte (la
+       légende de l'année s'efface, les périodes restent : seul moyen de changer de siècle) ; la carte
+       garde la place. */
+    @media (max-height: 520px) {
+        .timeline {
+            gap: 8px 16px;
+            padding: 8px 16px 10px;
+        }
+        .year-caption {
+            display: none;
+        }
+        .period {
+            min-height: 32px;
+            padding-block: 4px;
+        }
+        .track-area {
+            height: 48px;
         }
     }
     /* Téléphone : bouton et année, puis périodes, puis frise ; une étiquette sur deux si la

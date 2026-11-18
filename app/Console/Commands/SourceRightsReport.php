@@ -45,6 +45,7 @@ class SourceRightsReport extends Command
         'station_events' => 'SELECT DISTINCT source AS v FROM station_events',
         'line_sources' => 'SELECT DISTINCT source_type AS v FROM line_sources',
         'media' => 'SELECT DISTINCT provider AS v FROM media',
+        'station_services' => "SELECT DISTINCT e->>'feed' AS v FROM station_services, jsonb_array_elements(evidence) AS e",
         'lines.name_source' => "SELECT DISTINCT alt_names->>'name_source' AS v FROM lines WHERE alt_names->>'name_source' IS NOT NULL",
     ];
 

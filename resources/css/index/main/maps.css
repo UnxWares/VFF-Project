@@ -1,5 +1,8 @@
 /* Bande orange oblique et trois encadrés de l'accueil : dessin d'origine (bande inclinée, encadrés
-   clairs coiffés du logo, titre sur pastille grise), corrigé le 18/11/2026 :
+   clairs, titre sur pastille grise), corrigé le 18/11/2026 :
+   - le cercle à cheval sur le haut de chaque encadré porte le pictogramme de son sujet (carte, fiches,
+     données ouvertes) au lieu du logo VFF (demande de l'utilisateur) : disque plein, anneau orange fin,
+     pictogramme orange à 40 % du diamètre, sans ombre ; rembourrage intérieur du site ;
    - hauteur selon le contenu (80vh laissait un grand vide avant la bande) ;
    - encadrés de même hauteur, alignés en haut (le troisième, plus long, montait de 9 px) ;
    - texte aligné à gauche (le texte justifié se creusait), titres en casse de phrase ;
@@ -12,6 +15,8 @@ main #maps *::after {
     box-sizing: border-box;
 }
 main #maps {
+    --maps-badge: 80px; /* diamètre du cercle à pictogramme */
+    --maps-icon: 44px; /* boîte du pictogramme ; tracé visible : 40 % du diamètre */
     position: relative;
     isolation: isolate;
     padding: var(--vff-block-space) var(--vff-gutter) var(--vff-section-space);
@@ -41,29 +46,44 @@ main #maps .maps-box {
     flex-direction: column;
     align-items: center;
     min-width: 0;
-    margin-top: 44px;
-    padding: 64px 28px 24px;
-    text-align: center;
+    margin-top: calc(var(--maps-badge) / 2);
+    padding: calc(var(--maps-badge) / 2 + var(--vff-space-5)) var(--vff-pad-box) var(--vff-pad-box);
     background-color: var(--vff-bg-elevated);
     border: 1px solid var(--vff-border);
-    border-radius: var(--vff-radius-lg);
+    border-radius: var(--vff-radius-md);
 }
-main #maps .maps-logo {
+main #maps .maps-badge {
     position: absolute;
-    top: -44px;
+    top: calc(var(--maps-badge) / -2);
     left: 50%;
-    width: 88px;
-    height: 88px;
-    margin-left: -44px;
+    translate: -50% 0;
+    display: grid;
+    place-items: center;
+    width: var(--maps-badge);
+    height: var(--maps-badge);
+    border: 2px solid var(--vff-accent);
     border-radius: 50%;
-    overflow: hidden;
-    background-color: var(--vff-bg-elevated);
-    z-index: var(--vff-z-raised);
+    background-color: var(--vff-bg);
+    color: var(--vff-accent);
 }
-main #maps .maps-logo img {
+/* Pictogramme vectoriel (Maps.svelte) : boîte de taille entière et paire (centrage au pixel près dans
+   le disque), tracé visible d'environ 40 % du diamètre, trait arrondi identique pour les trois. */
+main #maps .maps-badge svg {
     display: block;
-    width: 100%;
-    height: 100%;
+    width: var(--maps-icon);
+    height: var(--maps-icon);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+main #maps .maps-badge .dot {
+    fill: currentColor;
+    stroke: none;
+}
+:root[data-theme='dark'] main #maps .maps-badge {
+    background-color: var(--vff-bg-elevated);
 }
 main #maps .maps-box h2 {
     display: inline-block;
@@ -75,14 +95,13 @@ main #maps .maps-box h2 {
     line-height: 1.4;
     color: var(--vff-text);
     background-color: var(--vff-bg-muted);
-    border-radius: var(--vff-radius-lg);
+    border-radius: var(--vff-radius-pill);
 }
 main #maps .maps-box p {
-    margin: 0 0 20px;
+    margin: 0 0 var(--vff-space-5);
     font-family: Montserrat, var(--vff-font-body);
-    font-size: 1rem;
+    font-size: var(--vff-fs-md);
     line-height: 1.6;
-    text-align: left;
     color: var(--vff-text);
 }
 main #maps .maps-box .maps-link {
@@ -97,11 +116,13 @@ main #maps .maps-box .maps-link {
     main #maps .maps-container {
         grid-template-columns: minmax(0, 440px);
         justify-content: center;
-        gap: 56px;
+        /* Le cercle déborde de 40 px au-dessus de chaque encadré : écart augmenté d'autant. */
+        gap: calc(var(--vff-block-space) + var(--maps-badge) / 2);
     }
 }
 @media (max-width: 600px) {
-    main #maps .maps-box {
-        padding: 60px 20px 20px;
+    main #maps {
+        --maps-badge: 68px;
+        --maps-icon: 38px;
     }
 }

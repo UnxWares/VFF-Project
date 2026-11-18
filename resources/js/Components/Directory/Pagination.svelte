@@ -92,7 +92,7 @@
         padding: 0;
     }
     .pages li {
-        font-size: 14px;
+        font-size: var(--vff-fs-sm);
     }
     button {
         display: inline-flex;
@@ -107,7 +107,7 @@
         background: var(--vff-bg);
         color: var(--vff-text);
         font-family: var(--vff-font-heading);
-        font-size: 14px;
+        font-size: var(--vff-fs-sm);
         font-variant-numeric: tabular-nums;
         cursor: pointer;
     }
@@ -125,9 +125,9 @@
         cursor: default;
     }
     .page.current {
-        border-color: var(--vff-text);
-        background: var(--vff-text);
-        color: var(--vff-bg);
+        border-color: var(--vff-accent-ink);
+        background: var(--vff-bg-accent);
+        color: var(--vff-accent-ink);
         font-weight: 600;
         cursor: default;
     }
@@ -140,7 +140,7 @@
         margin: 6px 0 0;
         text-align: center;
         font-family: var(--vff-font-heading);
-        font-size: 13px;
+        font-size: var(--vff-fs-xs);
         color: var(--vff-text-muted);
     }
     @media (max-width: 600px) {

@@ -90,7 +90,7 @@
     }
     .objects p {
         margin: 4px 0 0;
-        font-size: var(--vff-fs-xs);
+        font-size: var(--vff-fs-sm);
         font-variant-numeric: tabular-nums;
     }
 </style>

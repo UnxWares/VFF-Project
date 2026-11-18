@@ -123,17 +123,3 @@
         </AuthCard>
     </main>
 </Layout>
-
-<style>
-    /* Case de 24 px : cible tactile conforme ; 44 px de haut pour le libellé cliquable sur téléphone.
-       À remonter dans general.css : .vff-check input à 24 px. */
-    .remember input {
-        width: 24px;
-        height: 24px;
-    }
-    @media (max-width: 600px) {
-        .remember {
-            min-height: 44px;
-        }
-    }
-</style>

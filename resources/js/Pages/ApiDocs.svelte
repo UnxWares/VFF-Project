@@ -13,20 +13,15 @@
      */
 
     const docs = [
-        { key: 'scalar', href: '/docs/api', icon: 'bi-book' },
-        { key: 'swagger', href: '/docs/swagger', icon: 'bi-book-half' },
-        { key: 'openapi', href: '/docs/api.json', icon: 'bi-filetype-json' },
-        { key: 'graphql', href: '/docs/graphql', icon: 'bi-diagram-3' },
-        { key: 'graphiql', href: '/graphiql', icon: 'bi-terminal' },
-        { key: 'schema', href: '/docs/schema.graphql', icon: 'bi-file-earmark-code' },
+        { key: 'scalar', href: '/docs/api' },
+        { key: 'swagger', href: '/docs/swagger' },
+        { key: 'openapi', href: '/docs/api.json' },
+        { key: 'graphql', href: '/docs/graphql' },
+        { key: 'graphiql', href: '/graphiql' },
+        { key: 'schema', href: '/docs/schema.graphql' },
     ];
 
-    const access = [
-        { key: 'readonly', icon: 'bi-eye' },
-        { key: 'no_key', icon: 'bi-unlock' },
-        { key: 'limit', icon: 'bi-speedometer2' },
-        { key: 'licence', icon: 'bi-journal-text' },
-    ];
+    const access = [{ key: 'readonly' }, { key: 'no_key' }, { key: 'limit' }, { key: 'licence' }];
 
     const endpoints = [
         { path: '/api/v1/eras/{year}/lines.geojson', key: 'lines_geojson' },
@@ -95,11 +90,7 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
 
 <Layout compactHeader>
     <main>
-        <PageHero
-            eyebrow={$i18n.t('api.hero.eyebrow')}
-            title={$i18n.t('api.hero.title')}
-            subtitle={$i18n.t('api.hero.subtitle')}
-        />
+        <PageHero title={$i18n.t('api.hero.title')} subtitle={$i18n.t('api.hero.subtitle')} />
 
         <SectionBlock
             title={$i18n.t('api.docs.title')}
@@ -110,7 +101,6 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
                 {#each docs as d (d.key)}
                     <li>
                         <a class="vff-tile doc" href={d.href}>
-                            <i class="bi {d.icon}" aria-hidden="true"></i>
                             <span class="doc-text">
                                 <strong>{$i18n.t(`api.docs.items.${d.key}.title`)}</strong>
                                 <span>{$i18n.t(`api.docs.items.${d.key}.text`)}</span>
@@ -123,15 +113,16 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
         </SectionBlock>
 
         <SectionBlock kind="alt" title={$i18n.t('api.access.title')} maxWidth="1180px">
-            <div class="points">
+            <ul class="vff-points">
                 {#each access as a (a.key)}
-                    <IconCard
-                        icon={a.icon}
-                        title={$i18n.t(`api.access.${a.key}.title`)}
-                        text={$i18n.t(`api.access.${a.key}.text`)}
-                    />
+                    <li>
+                        <IconCard
+                            title={$i18n.t(`api.access.${a.key}.title`)}
+                            text={$i18n.t(`api.access.${a.key}.text`)}
+                        />
+                    </li>
                 {/each}
-            </div>
+            </ul>
         </SectionBlock>
 
         <SectionBlock
@@ -253,12 +244,6 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
         align-items: flex-start;
         padding: 18px 20px;
     }
-    .doc > i {
-        flex: none;
-        margin-top: 2px;
-        font-size: 20px;
-        color: var(--vff-accent-ink);
-    }
     .doc-text {
         display: flex;
         flex-direction: column;
@@ -280,12 +265,6 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
         font-size: var(--vff-fs-xs);
         color: var(--vff-text-muted);
         overflow-wrap: anywhere;
-    }
-
-    .points {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 24px 32px;
     }
 
     /* Points d'accès : chemin à gauche, description alignée sur une même colonne, filets entre les lignes. */

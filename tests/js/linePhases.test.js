@@ -158,8 +158,9 @@ describe('libellés', () => {
     it('kilomètres lisibles selon la langue', () => {
         expect(formatKm(13800, 'fr')).toBe('13,8 km');
         expect(formatKm(13800, 'en')).toBe('13.8 km');
-        expect(formatKm(715100, 'fr')).toMatch(/^715 km$/);
-        expect(formatKm(null)).toBe('0,0 km');
+        expect(formatKm(715100, 'fr')).toBe('715,1 km'); // même précision que l'en-tête de la fiche
+        expect(formatKm(125000, 'fr')).toBe('125 km');
+        expect(formatKm(null)).toBe('0 km');
     });
 
     it('date à sa précision, sans décalage de fuseau', () => {
@@ -275,10 +276,10 @@ describe('LinePhaseSelector (rendu serveur)', async () => {
         expect((body.match(/aria-selected="true"/g) ?? []).length).toBe(1);
         expect(body).toContain('Longueur maximale');
         expect(body).toContain('6 décembre 1869');
-        expect(body).toContain('Mise en service de 15,0\u00a0km');
+        expect(body).toContain('Mise en service de 15\u00a0km'); // pas de « ,0 » : même précision que l'en-tête
         expect(body).toContain('Entre 1941 et 1950');
         expect(body).toContain('Depuis 2021');
-        expect(body).toContain('Fin du trafic voyageurs sur 5,0\u00a0km (+ 1)');
+        expect(body).toContain('Fin du trafic voyageurs sur 5\u00a0km (+ 1)');
         // Ruban : segments colorés aux couleurs de la carte.
         expect(body).toContain('--c: #ff6500');
         expect(body).toContain('--c: #0284c7');

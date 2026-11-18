@@ -4,10 +4,17 @@ return [
     'meta_title' => 'VFF - Französische Bahnstrecken',
     'meta_description' => 'Eine gemeinschaftliche Enzyklopädie der französischen Eisenbahn von 1830 bis heute: Strecken, Bahnhöfe, eine Karte des Netzes für jedes Jahrzehnt und belegte Archivbilder.',
 
+    // Großes Titelbild (VFF-Scheibe zwischen zwei TGV): Zeile unter der Scheibe und zwei Aktionen.
+    'hero' => [
+        'tagline' => 'Die Enzyklopädie der französischen Bahnstrecken, von 1830 bis heute',
+        'open_map' => 'Karte öffnen',
+        'search' => 'Strecke oder Bahnhof suchen',
+    ],
+
     // Vorstellung (ursprüngliches Design: Logo, Titel, Text, zwei Schaltflächen).
     'whoarewe' => [
         'title' => 'VFF - Wo sich die Schienen kreuzen',
-        'paragraph' => 'VFF wurde von zwei Eisenbahnbegeisterten gegründet und ist eine gemeinschaftliche Enzyklopädie der französischen Eisenbahn von 1830 bis heute. Sie beschreibt jede Strecke, ob in Betrieb oder stillgelegt: ihren Verlauf, ihre Bahnhöfe, ihre Daten und die Quelle jeder Angabe. Sie können sie lesen, Korrekturen vorschlagen und ihre Daten über die öffentliche API weiterverwenden.',
+        'paragraph' => 'Als Projekt von UnxWares, getragen von seinen beiden Gesellschaftern und den Mitwirkenden, ist VFF eine gemeinschaftliche Enzyklopädie der französischen Eisenbahn von 1830 bis heute. Sie beschreibt jede Strecke, ob in Betrieb oder stillgelegt: ihren Verlauf, ihre Bahnhöfe, ihre Daten und die Quelle jeder Angabe. Sie können sie lesen, Korrekturen vorschlagen und ihre Daten über die öffentliche API weiterverwenden.',
         'cta_history' => 'Unsere Geschichte',
         'cta_donate' => 'Spenden',
     ],
@@ -82,6 +89,16 @@ return [
         'author_unknown' => 'Unbekannter Urheber',
         'source' => 'Wikimedia Commons',
         'cta' => 'Strecken durchsuchen',
+    ],
+
+    // Schnellzugriff direkt nach der großen Kopfzeile: Suche und direkte Einträge (Namen: nav.*).
+    'quick' => [
+        'label' => 'Schnellzugriff',
+        'shortcut_hint' => 'Auf jeder Seite öffnet :keys die Suche.',
+        'map_detail' => '1830 bis heute',
+        'materials_detail' => 'Lokomotiven, Triebwagen, Wagen',
+        'api_detail' => 'REST, GraphQL, GeoJSON',
+        'contribute_detail' => 'Eine Strecke korrigieren, eine Quelle angeben',
     ],
 
     // Inhalt der Enzyklopädie mit den tatsächlichen Zahlen aus der Datenbank.

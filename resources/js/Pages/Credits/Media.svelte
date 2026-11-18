@@ -116,7 +116,6 @@
 <Layout compactHeader>
     <main>
         <PageHero
-            eyebrow={$i18n.t('credits.eyebrow')}
             title={$i18n.t('credits.media.title')}
             subtitle={$i18n.t('credits.media.subtitle')}
         />
@@ -249,7 +248,6 @@
         >
             {#snippet actions()}
                 <Link href="/contribute" class="vff-btn primary">
-                    <i class="bi bi-images" aria-hidden="true"></i>
                     {$i18n.t('credits.media.cta.button')}
                 </Link>
             {/snippet}

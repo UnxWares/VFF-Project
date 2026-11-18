@@ -6,24 +6,27 @@
     import { i18n } from '$lib/i18n.js';
     import { Link } from '@inertiajs/svelte';
 
+    // Rangées de l'équipe après celle de Baptiste (citation) : `role` absent pour le collectif.
+    const people = [
+        { key: 'david', role: true },
+        { key: 'unxwares', role: true },
+        { key: 'contributors', role: false },
+    ];
+
     const values = [
         {
-            icon: 'bi-unlock',
             titleKey: 'whoarewe.values.open_title',
             textKey: 'whoarewe.values.open_text',
         },
         {
-            icon: 'bi-shield-check',
             titleKey: 'whoarewe.values.rigorous_title',
             textKey: 'whoarewe.values.rigorous_text',
         },
         {
-            icon: 'bi-people',
             titleKey: 'whoarewe.values.collective_title',
             textKey: 'whoarewe.values.collective_text',
         },
         {
-            icon: 'bi-hourglass-split',
             titleKey: 'whoarewe.values.durable_title',
             textKey: 'whoarewe.values.durable_text',
         },
@@ -54,44 +57,68 @@
 <Layout compactHeader>
     <main>
         <PageHero
-            eyebrow={$i18n.t('whoarewe.hero.eyebrow')}
             title={$i18n.t('whoarewe.hero.title')}
             subtitle={$i18n.t('whoarewe.hero.subtitle')}
         />
 
-        <div class="vff-section">
-            <div class="vff-container story">
-                <div>
-                    <h2 class="vff-section-title">
-                        {$i18n.t('whoarewe.genesis.title')}
-                    </h2>
-                    <div class="vff-prose">
-                        <p>{$i18n.t('whoarewe.genesis.paragraph')}</p>
-                    </div>
-                </div>
-                <div>
-                    <h2 class="vff-section-title">
-                        {$i18n.t('whoarewe.vision.title')}
-                    </h2>
-                    <div class="vff-prose">
-                        <p>{$i18n.t('whoarewe.vision.paragraph')}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <SectionBlock kind="alt" title={$i18n.t('whoarewe.values.title')} maxWidth="1180px">
-            <div class="values-grid">
-                {#each values as v (v.titleKey)}
-                    <IconCard icon={v.icon} title={$i18n.t(v.titleKey)} text={$i18n.t(v.textKey)} />
+        <SectionBlock
+            title={$i18n.t('whoarewe.team.title')}
+            intro={$i18n.t('whoarewe.team.intro')}
+            maxWidth="760px"
+        >
+            <ul class="team">
+                <li>
+                    <h3 class="who">
+                        <span class="name">{$i18n.t('whoarewe.team.baptiste.name')}</span>
+                        <span class="vff-sr-only">, </span>
+                        <span class="role">{$i18n.t('whoarewe.team.baptiste.role')}</span>
+                    </h3>
+                    <figure class="quote">
+                        <blockquote>
+                            <p>{$i18n.t('whoarewe.team.baptiste.quote')}</p>
+                        </blockquote>
+                        <figcaption class="vff-sr-only">
+                            {$i18n.t('whoarewe.team.baptiste.name')}, {$i18n.t(
+                                'whoarewe.team.baptiste.role',
+                            )}
+                        </figcaption>
+                    </figure>
+                </li>
+                {#each people as person (person.key)}
+                    <li>
+                        <h3 class="who">
+                            <span class="name">{$i18n.t(`whoarewe.team.${person.key}.name`)}</span>
+                            {#if person.role}
+                                <span class="vff-sr-only">, </span>
+                                <span class="role"
+                                    >{$i18n.t(`whoarewe.team.${person.key}.role`)}</span
+                                >
+                            {/if}
+                        </h3>
+                        <p class="text">{$i18n.t(`whoarewe.team.${person.key}.text`)}</p>
+                    </li>
                 {/each}
+            </ul>
+        </SectionBlock>
+
+        <SectionBlock kind="alt" title={$i18n.t('whoarewe.vision.title')} maxWidth="760px">
+            <div class="vff-prose">
+                <p>{$i18n.t('whoarewe.vision.paragraph')}</p>
             </div>
         </SectionBlock>
 
-        <SectionBlock title={$i18n.t('whoarewe.milestones.title')} maxWidth="760px">
+        <SectionBlock title={$i18n.t('whoarewe.values.title')} maxWidth="1180px">
+            <ul class="vff-points">
+                {#each values as v (v.titleKey)}
+                    <li><IconCard title={$i18n.t(v.titleKey)} text={$i18n.t(v.textKey)} /></li>
+                {/each}
+            </ul>
+        </SectionBlock>
+
+        <SectionBlock kind="alt" title={$i18n.t('whoarewe.milestones.title')} maxWidth="760px">
             <ol class="timeline">
                 {#each milestones as m (m.dateKey)}
-                    <li class:now={m.now} class:goal={m.goal}>
+                    <li class={{ now: m.now, goal: m.goal }}>
                         <span class="date">{$i18n.t(m.dateKey)}</span>
                         <span class="rail" aria-hidden="true"></span>
                         <span class="text">{$i18n.t(m.textKey)}</span>
@@ -107,11 +134,9 @@
         >
             {#snippet actions()}
                 <Link href="/contribute" class="vff-btn primary">
-                    <i class="bi bi-geo" aria-hidden="true"></i>
                     {$i18n.t('whoarewe.cta.contribute')}
                 </Link>
                 <Link href="/donate" class="vff-btn secondary">
-                    <i class="bi bi-heart" aria-hidden="true"></i>
                     {$i18n.t('whoarewe.cta.donate')}
                 </Link>
             {/snippet}
@@ -120,16 +145,61 @@
 </Layout>
 
 <style>
-    /* Deux colonnes de texte (genèse, objectif) : chacune à la largeur de lecture, bord gauche commun. */
-    .story {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: var(--vff-block-space) 64px;
+    /* Équipe : une rangée par personne ou groupe, filet au-dessus, nom et rôle sur une ligne,
+       texte dessous à la largeur de lecture. Pas de carte. */
+    .team {
+        list-style: none;
+        margin: 0;
+        padding: 0;
     }
-    .values-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 24px 32px;
+    .team li {
+        padding: var(--vff-space-5) 0;
+        border-top: 1px solid var(--vff-border);
+    }
+    .team li:last-child {
+        padding-bottom: 0;
+    }
+    .who {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        column-gap: var(--vff-space-3);
+        margin: 0 0 var(--vff-space-3);
+        font-size: var(--vff-fs-h3);
+        line-height: 1.35;
+    }
+    .name {
+        font-family: var(--vff-font-heading);
+        font-weight: 700;
+        color: var(--vff-text);
+    }
+    .role {
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-md);
+        font-weight: 400;
+        color: var(--vff-text-muted);
+    }
+    .text,
+    .quote blockquote {
+        max-width: var(--vff-measure);
+        margin: 0;
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-body);
+        line-height: 1.65;
+        color: var(--vff-text);
+    }
+    .quote {
+        margin: 0;
+    }
+    /* Citation : même corps que le texte courant, un cran de plus, sans ornement. */
+    .quote blockquote {
+        max-width: 62ch;
+        font-size: var(--vff-fs-lead);
+        line-height: 1.6;
+        text-wrap: pretty;
+    }
+    .quote p {
+        margin: 0;
     }
 
     /* Frise des jalons : date, rail, texte. Le trait relie chaque point au suivant et s'arrête au dernier. */
@@ -198,11 +268,6 @@
         color: var(--vff-text);
     }
 
-    @media (max-width: 900px) {
-        .story {
-            grid-template-columns: minmax(0, 1fr);
-        }
-    }
     @media (max-width: 600px) {
         .timeline li {
             grid-template-columns: 3.25rem 20px minmax(0, 1fr);
