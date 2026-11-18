@@ -38,6 +38,10 @@
         "vitest": "^5.0.5"
     },
     "dependencies": {
+        "@fontsource/gabarito": "5.3.0",
+        "@fontsource/inter": "5.3.0",
+        "@fontsource/lato": "5.3.0",
+        "@fontsource/montserrat": "5.3.0",
         "bootstrap-icons": "^1.11",
         "i18next": "^26.0",
         "maplibre-gl": "^5.0",
