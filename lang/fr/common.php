@@ -5,6 +5,7 @@ return [
     'app_short' => 'VFF',
     'app_full' => 'Voies Ferrées de France',
     'app_description' => 'La plus grande encyclopédie collaborative du rail français.',
+    'brand' => 'VFF - Voies Ferrées de France',
 
     'read_more' => 'En savoir plus',
     'discover' => 'Découvrir',
@@ -17,5 +18,7 @@ return [
     'close' => 'Fermer',
     'soon' => 'Bientôt',
     'in_progress' => 'En construction',
-    'wip_subtitle' => "Cette section est en cours de construction et arrivera dans une prochaine phase du projet.",
+    'wip_subtitle' => 'Cette section est en cours de construction et arrivera dans une prochaine phase du projet.',
+    'toc' => 'Sommaire',
+    'osm_attribution' => '© contributeurs :link',
 ];

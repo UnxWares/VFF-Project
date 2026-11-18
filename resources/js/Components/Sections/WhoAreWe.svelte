@@ -12,7 +12,11 @@
     </div>
     <p>{$i18n.t('home.whoarewe.paragraph')}</p>
     <div class="whoarewe-buttons">
-        <Link href="/whoarewe"><i class="bi bi-people"></i> {$i18n.t('home.whoarewe.cta_history')}</Link>
-        <Link href="/donate"><i class="bi bi-balloon-heart"></i> {$i18n.t('home.whoarewe.cta_donate')}</Link>
+        <Link href="/whoarewe"
+            ><i class="bi bi-people"></i> {$i18n.t('home.whoarewe.cta_history')}</Link
+        >
+        <Link href="/donate"
+            ><i class="bi bi-balloon-heart"></i> {$i18n.t('home.whoarewe.cta_donate')}</Link
+        >
     </div>
 </section>

@@ -13,7 +13,8 @@
         {/if}
         {#if status}
             <span class="status-pill">
-                <i class="bi bi-tools"></i> {status}
+                <i class="bi bi-tools"></i>
+                {status}
             </span>
         {/if}
     </div>
@@ -22,16 +23,12 @@
 <style>
     .page-hero {
         position: relative;
-        padding: 60px 16px 120px;
+        padding: 60px 16px 96px;
         text-align: center;
         /* Le dégradé se termine bien avant le bord bas (70 %) pour que les
            30 % inférieurs soient totalement transparents — la transition vers
            la section suivante (blanche) est ainsi invisible, sans liseré. */
-        background: linear-gradient(
-            180deg,
-            var(--vff-accent-soft) 0%,
-            transparent 70%
-        );
+        background: linear-gradient(180deg, var(--vff-accent-soft) 0%, transparent 70%);
         overflow: hidden;
     }
     .page-hero::before {
@@ -53,12 +50,10 @@
     }
     .eyebrow {
         display: inline-block;
-        font-family: var(--vff-font-display);
-        font-size: 14px;
+        font-family: var(--vff-font-heading);
+        font-size: 15px;
         font-weight: 600;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--vff-accent);
+        color: var(--vff-accent-ink);
         margin-bottom: 16px;
     }
     h1 {

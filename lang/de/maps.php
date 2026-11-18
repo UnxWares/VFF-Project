@@ -1,0 +1,297 @@
+<?php
+
+return [
+    'meta_title' => 'Unsere Karten',
+    'meta_description' => 'Interaktive Karte des französischen Schienennetzes, in Betrieb und verschwunden, Epoche für Epoche.',
+
+    'hero' => [
+        'eyebrow' => 'Kartografie',
+        'title' => 'Das französische Schienennetz, wie Sie es noch nie gesehen haben',
+        'subtitle' => 'Eine interaktive Karte des französischen Schienennetzes, lebendig oder verschwunden, über die Jahrzehnte von 1830 bis heute.',
+        'status' => 'MVP in Entwicklung',
+    ],
+
+    'era_selector' => 'Epoche',
+    'layers' => 'Ebenen',
+    'layers_title' => 'Anzeigen / Ausblenden',
+    'toggle_vanished' => 'Verschwundene Bahnstrecken',
+    'toggle_heritage' => 'Kulturerbe ausblenden',
+    'toggle_heritage_hint' => 'Touristik- / Kulturerbe- / Draisinen-Strecken ausblenden (grün)',
+
+    'search' => [
+        'placeholder' => 'Bahnstrecke oder Bahnhof suchen…',
+        'lines' => 'Bahnstrecken',
+        'stations' => 'Bahnhöfe',
+        'materials' => 'Fahrzeuge',
+    ],
+
+    'overlay' => [
+        'label' => 'Überlagerungsebene',
+        'none' => 'Keine Überlagerung',
+        'orm_standard' => 'OpenRailwayMap - Infrastruktur',
+        'orm_maxspeed' => 'OpenRailwayMap - Höchstgeschwindigkeiten',
+        'orm_signals' => 'OpenRailwayMap - Signale',
+        'orm_electrification' => 'OpenRailwayMap - Elektrifizierung',
+        'orm_gauge' => 'OpenRailwayMap - Spurweite',
+    ],
+
+    'legend' => [
+        'in_service' => 'In Betrieb',
+        'service_track' => 'Betriebs- / Hafengleis',
+        'construction' => 'Im Bau',
+        'single_track' => 'Eingleisig',
+        'abandoned' => 'Stillgelegt',
+        'dismantled' => 'Gleis abgebaut',
+        'razed' => 'Abgetragen / verschwunden',
+        'heritage' => 'Kulturerbe / Touristik',
+        'heritage_train' => 'Von einem Verein betrieben: Museumsbahn',
+        'heritage_velorail' => 'Von einem Verein betrieben: Draisinenbahn',
+        'freight' => 'Nur Güterverkehr',
+        'title' => 'Netz im Jahr :year',
+        'lgv' => 'Schnellfahrstrecke (dicker Strich)',
+        'threatened' => 'Bedrohte Strecke (roter Schein)',
+        'reopening' => 'Kampagne zur Wiedereröffnung (türkiser Schein)',
+        'hint' => 'Klicken Sie auf einen Eintrag, um ihn ein- oder auszublenden.',
+        'show' => 'Einblenden: :label',
+        'hide' => 'Ausblenden: :label',
+        'collapse' => 'Legende einklappen',
+        'expand' => 'Legende',
+        // Bahnhöfe (Farbe = Status im gewählten Jahrzehnt, siehe railStyle.js STATION_STYLES).
+        'stations' => 'Bahnhöfe in dieser Zeit',
+        'station_active' => 'Für den Personenverkehr geöffnet (und Güterverkehr)',
+        'station_tourist' => 'Touristisch / Museumsbahn',
+        'station_freight' => 'Nur Güterverkehr',
+        'station_uncertain' => 'Unsicher (keine bekannte Strecke in dieser Zeit)',
+        'station_closed' => 'Geschlossen',
+    ],
+
+    // Art des Vereinsbetriebs (line_segments.heritage_kind).
+    'heritage_kind' => [
+        'tourist_train' => 'Museumsbahn',
+        'velorail' => 'Draisinenbahn',
+        'museum' => 'Fahrendes Eisenbahnmuseum',
+    ],
+
+    // Farbe der Abschnitte IN BETRIEB = Verkehrsart im gewählten Jahrzehnt.
+    'traffic' => [
+        'title' => 'Netz in Betrieb',
+        'lgv' => 'Schnellfahrstrecke (LGV)',
+        'passenger' => 'Hochgeschwindigkeit (Personenverkehr)',
+        'mixed' => 'Konventionelles Netz: Personen- und Güterverkehr',
+        'freight' => 'Konventionelles Netz: nur Güterverkehr',
+        'unknown' => 'Konventionelles Netz: Verkehr unbekannt',
+    ],
+
+    // Strichart der Abschnitte nach ihrem Status im gewählten Jahrzehnt.
+    'status' => [
+        'title' => 'Status des Abschnitts',
+        'in_service' => 'In Betrieb',
+        'single_track' => 'In Betrieb (eingleisig)',
+        'service_track' => 'Betriebs- / Hafengleis',
+        'construction' => 'Im Bau',
+        'abandoned' => 'Stillgelegt (Gleis vorhanden)',
+        'dismantled' => 'Gleis abgebaut',
+        'razed' => 'Verschwunden (Trasse beseitigt)',
+        'gone' => 'Abgebaut / verschwunden',
+    ],
+
+    // Anzeigemodus der Karte (Legende): Linienfarbe nach Verkehr, Elektrifizierung
+    // oder Spurweite im gewählten Jahrzehnt (vff:enrich-era-segments).
+    'mode' => [
+        'label' => 'Strecken einfärben nach',
+        'traffic' => 'Verkehr',
+        'electrification' => 'Elektrifizierung',
+        'gauge' => 'Spurweite',
+    ],
+
+    'electrification' => [
+        'title' => 'Elektrifizierung zu dieser Zeit',
+        'ac25' => '25 kV 50 Hz (Wechselstrom)',
+        'dc1500' => '1,5 kV Gleichstrom',
+        'dc3000' => '3 kV Gleichstrom',
+        'ac15' => '15 kV 16,7 Hz (Wechselstrom)',
+        'low' => '1.000 V und weniger (Stromschiene)',
+        'other' => 'Andere Spannung (12 kV der Midi…)',
+        'unknown_voltage' => 'Elektrifiziert, Spannung unbekannt',
+        'unknown_date' => 'Heute elektrifiziert, Datum unbekannt',
+        'none' => 'Nicht elektrifiziert',
+        'since' => 'elektrifiziert seit :year',
+    ],
+
+    'gauge' => [
+        'title' => 'Spurweite',
+        'standard' => 'Normalspur (1.435 mm)',
+        'metre' => 'Meterspur (1.000 mm)',
+        'narrow' => 'Schmalspur (600, 700, 750 mm…)',
+        'broad' => 'Breitspur',
+        'unknown' => 'Spurweite unbekannt',
+    ],
+
+    'networks' => [
+        'principal' => 'Hauptnetz',
+        'secondaire' => 'Nebennetz (Lokalbahnen)',
+        'militaire' => 'Militärbahnen',
+        'particulier' => 'Privat- und Werksbahnen',
+    ],
+
+    'era' => [
+        'no_data' => 'Für :year wurde noch kein Streckenverlauf rekonstruiert: Dieses Jahrzehnt wird gerade kartiert.',
+        'no_data_short' => 'noch keine Daten',
+    ],
+
+    'timeline' => [
+        'aria_label' => 'Epochenauswahl',
+        'group_aria' => 'Gruppe von Jahrzehnten',
+        'era' => 'Epoche',
+        'play' => 'Automatische Wiedergabe',
+        'play_title' => 'Die Entwicklung im Zeitverlauf ansehen',
+        'pause' => 'Pause',
+        'year_aria' => 'Jahr :year',
+        'year_empty_aria' => 'Jahr :year (noch keine Daten)',
+    ],
+
+    // Beschriftungen der Streckeninfo beim Klick (LineDrawer + MapLibre-Popup-Fallback).
+    'drawer' => [
+        'fallback_line_name' => 'Segment',
+        'view_full_sheet' => 'Vollständige Seite anzeigen',
+        'suggest_edit' => 'Änderung vorschlagen',
+        'status' => 'Status',
+        'max_speed' => 'Höchstgeschwindigkeit',
+        'electrification' => 'Elektrifizierung',
+        'electrified' => 'Elektrifiziert',
+        'electrified_yes' => 'Ja',
+        'traffic' => 'Verkehr',
+        'network' => 'Netz',
+        'heritage' => 'Vereinsbetrieb',
+        'status_labels' => [
+            'in_service' => 'In Betrieb',
+            'single_track' => 'Eingleisig',
+            'abandoned' => 'Stillgelegt',
+            'dismantled' => 'Abgebaut',
+            'razed' => 'Abgetragen',
+            'service_track' => 'Betriebsgleis',
+            'construction' => 'Im Bau',
+        ],
+    ],
+
+    // Kollaborative Bearbeitungsoberfläche (Pages/Contribute/*).
+    'editor' => [
+        'edit' => [
+            'meta_title' => 'Beitragen - Abschnittsbearbeitung - VFF',
+            'back_to_map' => 'Zurück zur Karte',
+            'title' => 'Einen Streckenabschnitt bearbeiten',
+            'subtitle' => 'Geben Sie die Strecke, den Abschnitt (in PK) und die vorgeschlagenen Korrekturen ein. Ihre Einreichung wird vor der Anwendung von zwei Prüfern geprüft.',
+            'line_code' => 'RFN-Code der Strecke',
+            'line_code_placeholder' => 'z. B. 420 000 oder 420000',
+            'era' => 'Epochenkarte',
+            'era_current' => '(aktuell)',
+            'pk_legend' => 'Betroffener Abschnitt - Streckenkilometer (PK)',
+            'pk_start' => 'PK Anfang',
+            'pk_end' => 'PK Ende',
+            'pk_unit_km' => 'km',
+            'pk_unit_m' => 'm',
+            'pk_hint' => 'Klicken Sie zweimal auf die Strecke, um die Streckenkilometer (PK) automatisch einzugeben, oder geben Sie sie manuell ein. Genauigkeit im Submeterbereich über PostGIS :function.',
+            'hint_need_line' => 'Geben Sie zuerst den Streckencode ein, um die Karte zu aktivieren.',
+            'hint_start' => 'Klicken Sie auf die Strecke, um den <strong>PK Anfang</strong> festzulegen',
+            'hint_end' => 'Klicken Sie auf die Strecke, um den <strong>PK Ende</strong> festzulegen',
+            'reset' => 'Zurücksetzen',
+            'changes_legend' => 'Vorgeschlagene Änderungen',
+            'status' => 'Status',
+            'traffic' => 'Verkehr',
+            'unchanged' => '(unverändert)',
+            'heritage_checkbox' => 'Touristik- / Kulturerbeabschnitt',
+            'max_speed' => 'Höchstgeschwindigkeit (km/h)',
+            'voltage' => 'Fahrleitungsspannung (V)',
+            'sources_label' => 'Quellen (Wikipedia-URL, Foto, Archiv, eine pro Zeile)',
+            'sources_placeholder' => 'https://de.wikipedia.org/wiki/...',
+            'notes_label' => 'Hinweise für den Prüfer',
+            'notes_placeholder' => 'Erläutern Sie kurz Ihren Vorschlag…',
+            'submit' => 'Zur Prüfung einreichen',
+        ],
+        'mine' => [
+            'meta_title' => 'Meine Beiträge - VFF',
+            'title' => 'Meine Beiträge',
+            'subtitle' => 'Verlauf Ihrer vorgeschlagenen Korrekturen.',
+            'new' => 'Neuer Beitrag',
+            'empty' => 'Noch keine Beiträge.',
+            'empty_hint' => 'Klicken Sie bei einer Strecke auf „Änderung vorschlagen“, um zu beginnen.',
+            'portion' => 'Abschnitt',
+            'era' => 'Epoche',
+            'reject_reason' => 'Grund:',
+            'submitted' => 'Eingereicht :date',
+            'approvals' => ':count/2 Freigaben',
+            'reviewed' => 'Geprüft :date',
+            'status_labels' => [
+                'pending' => 'Ausstehend',
+                'approved' => 'Freigegeben (1/2)',
+                'applied' => 'Angewendet',
+                'rejected' => 'Abgelehnt',
+            ],
+        ],
+        'thanks' => [
+            'meta_title' => 'Danke - VFF',
+            'title' => 'Beitrag eingereicht',
+            'subtitle' => 'Danke! Ihr Vorschlag wartet auf die Prüfung durch zwei Prüfer.',
+            'line' => 'Strecke',
+            'era' => 'Epochenkarte',
+            'portion' => 'Abschnitt',
+            'changes' => 'Änderungen',
+            'notes' => 'Hinweise',
+            'sources' => 'Quellen',
+            'back_to_map' => 'Zurück zur Karte',
+            'new' => 'Neuer Beitrag',
+        ],
+    ],
+
+    'embed' => [
+        'powered_by' => 'Bereitgestellt von',
+        'button' => 'Einbetten',
+        'title' => 'Die VFF-Karte einbetten',
+        'intro' => 'Kopieren Sie den nachstehenden Code, um die interaktive Karte auf Ihrer Website anzuzeigen. Sie können Größe, Design und sichtbare Optionen anpassen.',
+        'width' => 'Breite',
+        'height' => 'Höhe',
+        'theme' => 'Design',
+        'theme_auto' => 'Automatisch (nach Besuchereinstellung)',
+        'theme_light' => 'Hell',
+        'theme_dark' => 'Dunkel',
+        'show_timeline' => 'Epochenauswahl anzeigen',
+        'show_legend' => 'Legende anzeigen',
+        'show_vanished' => 'Verschwundene Bahnstrecken anzeigen',
+        'show_attribution' => 'VFF-Quellenangabe anzeigen (empfohlen)',
+        'snippet_label' => 'In Ihre Seite einzufügender Code',
+        'copy' => 'Kopieren',
+        'copied' => 'Kopiert!',
+        'preview' => 'Live-Vorschau',
+        'iframe_title' => 'Interaktive Karte des französischen Schienennetzes - VFF',
+        'preview_title' => 'Vorschau der eingebetteten VFF-Karte',
+    ],
+
+    'features' => [
+        'title' => 'Was die Karte bieten wird',
+        'time_title' => 'Zeitauswahl',
+        'time_text' => 'Ein Schieberegler, um jedes Jahrzehnt von 1830 bis heute zu durchlaufen. Strecken entstehen, werden stillgelegt und verschwinden im Lauf der Zeit.',
+        'lines_title' => 'Detaillierte Streckenverläufe',
+        'lines_text' => 'In Betrieb, eingleisig, stillgelegt, abgebaut, abgetragen: Jeder Status hat seinen Stil, jede Bahnstrecke ihre Seite.',
+        'materials_title' => 'Fahrzeuge',
+        'materials_text' => 'Klicken Sie auf eine Bahnstrecke und entdecken Sie die Lokomotiven, Elektrotriebzüge und TGV-Triebzüge, die sie befuhren, samt Archivfotos.',
+        'archives_title' => 'Georeferenzierte Archive',
+        'archives_text' => 'Fotos, Pläne und Dokumente, datiert und auf der Karte verortet. Eine raumzeitliche Reise durch das Kulturerbe.',
+    ],
+
+    'tech' => [
+        'title' => 'Hinter den Kulissen',
+        'paragraph' => 'Die Karte ist mit MapLibre GL JS auf einem OpenStreetMap-Hintergrund aufgebaut. Unsere Bahndaten werden als LINESTRING in PostgreSQL+PostGIS gespeichert und als MVT-Vektorkacheln ausgeliefert, um eine optimale Leistung zu gewährleisten, selbst bei Tausenden von über mehrere Epochen gestapelten Polylinien. Eine optionale OpenRailwayMap-Überlagerung zeigt die detaillierte Infrastruktur (Signale, Elektrifizierung, Geschwindigkeiten).',
+    ],
+
+    'progress' => [
+        'title' => 'Fortschritt',
+        'phase' => 'Phase 2 - Interaktive Karte (MVP)',
+        'description' => 'Siehe die <a href=":roadmap_url" target="_blank" rel="noopener">vollständige Roadmap</a> für die Einzelheiten der kommenden Funktionen.',
+    ],
+
+    'cta' => [
+        'title' => 'Werden Sie beim Start benachrichtigt',
+        'text' => 'Treten Sie unserem Discord bei, um informiert zu werden, sobald die interaktive Karte öffnet.',
+        'discord' => 'Discord beitreten',
+    ],
+];

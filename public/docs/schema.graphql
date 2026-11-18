@@ -1,0 +1,709 @@
+"""
+Requêtes publiques de l'API GraphQL de VFF : lecture seule, anonyme, limitée à 300 requêtes
+par minute et par adresse IP. Point d'accès : `POST /graphql`.
+
+Données ouvertes : citez « VFF - Voies Ferrées de France » (https://vff-project.org) et
+respectez les licences des sources (SNCF Open Data et OpenStreetMap : ODbL ; IGN BD TOPO :
+Licence Ouverte 2.0 ; OpenHistoricalMap et Wikidata : CC0 ; Wikipédia : CC BY-SA).
+"""
+type Query {
+  "Toutes les ères disponibles, de 1830 à 2030 (ordre non garanti : triez sur `year`)."
+  eras: [Era!]!
+
+  "Une ère, par son année."
+  era(
+    "Année de l'ère : une décennie de 1830 à 2030."
+    year: Int!
+  ): Era
+
+  "Une ligne, par son slug (ex. `rfn-420000`)."
+  line(
+    "Slug de la ligne : `rfn-` suivi du code à 6 chiffres pour le réseau ferré national."
+    slug: String!
+  ): Line
+
+  "Une gare, par son slug (ex. `rennes`)."
+  station(
+    "Slug de la gare."
+    slug: String!
+  ): Station
+
+  "Un matériel roulant, par son slug."
+  material(
+    "Slug du matériel."
+    slug: String!
+  ): Material
+
+  """
+  Itinéraire historique entre deux gares, sur le réseau en service à l'époque demandée
+  (ex. Rennes - Brest en 1930). Renvoie `null` si une gare est inconnue ou ambiguë, ou si
+  aucun chemin n'existe à cette époque : l'API REST `GET /api/v1/route` en donne le motif
+  (code `error`) et les gares candidates.
+  """
+  route(
+    "Gare de départ : slug (ex. `rennes`), nom exact ou nom de ville (« Paris » = toutes les gares parisiennes ouvertes à l'époque)."
+    from: String!
+
+    "Gare d'arrivée, mêmes formes que `from`."
+    to: String!
+
+    """
+    Année quelconque : on retient l'ère de cette année, sinon la décennie précédente
+    (1937 donne l'ère 1930). À partir de l'année en cours, et par défaut : réseau actuel.
+    """
+    era: Int
+  ): Route
+
+  """
+  Lignes, page par page (20 par défaut, 100 au plus), filtrables par nom, code et trafic.
+  Les filtres `name` et `code` ignorent la casse et acceptent le joker `%` :
+  `name: "%brest%"` trouve toutes les lignes dont le nom contient « brest ».
+  """
+  lines(
+    "Nom de la ligne, joker `%` accepté, casse ignorée (ex. `%brest%`)."
+    name: String
+
+    "Code SNCF Réseau à 6 chiffres, joker `%` accepté (ex. `420000` ou `42%`)."
+    code: String
+
+    "Trafic déclaré de la ligne : `passenger`, `freight` ou `mixed`."
+    type: String
+
+    "Limits number of fetched items. Maximum allowed value: 100."
+    first: Int! = 20
+
+    "The offset from which items are returned."
+    page: Int
+  ): LinePaginator!
+
+  """
+  Gares, page par page (20 par défaut, 100 au plus), filtrables par nom, nature et état
+  actuel. Le filtre `name` ignore la casse et accepte le joker `%` (ex. `"saint-%"`).
+  """
+  stations(
+    "Nom de la gare, joker `%` accepté, casse ignorée (ex. `%brest%`)."
+    name: String
+
+    "Nature : `gare`, `halte`, `point_arret`, `passage_niveau` ou `embranchement`."
+    type: String
+
+    "État actuel : `active`, `tourist`, `no_commercial` ou `declassified`."
+    status: String
+
+    "Limits number of fetched items. Maximum allowed value: 100."
+    first: Int! = 20
+
+    "The offset from which items are returned."
+    page: Int
+  ): StationPaginator!
+
+  "Matériels roulants, page par page (20 par défaut, 100 au plus), filtrables par catégorie et constructeur."
+  materials(
+    "Catégorie : `locomotive_electrique`, `locomotive_diesel`, `locomotive_vapeur`, `automotrice`, `autorail`, `rame_tgv`, `voiture` ou `wagon`."
+    type: String
+
+    "Constructeur, joker `%` accepté, casse ignorée (ex. `%alstom%`)."
+    builder: String
+
+    "Limits number of fetched items. Maximum allowed value: 100."
+    first: Int! = 20
+
+    "The offset from which items are returned."
+    page: Int
+  ): MaterialPaginator!
+}
+
+"Date et heure au format `AAAA-MM-JJ HH:MM:SS` (heure de Paris), par exemple `2026-10-20 14:05:00`."
+scalar DateTime
+
+"""
+Date au format ISO `AAAA-MM-JJ`, par exemple `1981-09-27`. Quand la date n'est connue
+qu'au mois ou à l'année, le jour (et le mois) valent `01` : voir le champ de précision
+associé quand il existe (`LineEvent.date_precision`).
+"""
+scalar Date
+
+"""
+Une ère : un instantané du réseau au **31/12** d'une année ronde.
+
+VFF décrit le réseau par décennies, de 1830 à 2030 : l'ère 1930 montre le réseau tel qu'il
+était le 31/12/1930. L'ère **2030** désigne le réseau **d'aujourd'hui**, recalculé au jour
+même ; c'est l'ère courante (`is_current`). Les dates d'événements, elles, restent exactes
+au jour près (voir `LineEvent`).
+"""
+type Era {
+  "Identifiant interne de l'ère."
+  id: ID!
+
+  "Année de l'instantané (1830, 1840… 2030). C'est cette valeur qu'attendent les arguments `era` et `year`."
+  year: Int!
+
+  "Titre court de la période, en français (ex. « Les débuts du TGV »)."
+  label: String
+
+  "Vrai pour l'ère qui représente le réseau actuel (2030)."
+  is_current: Boolean!
+
+  "Présentation de la période, en français : faits marquants du réseau à cette époque."
+  description: String
+}
+
+"""
+Une ligne ferroviaire : un itinéraire nommé, décrit ère par ère par ses tronçons.
+
+Les lignes du réseau ferré national portent un code SNCF Réseau à 6 chiffres
+(ex. `420000`, Paris-Montparnasse à Brest) et un slug `rfn-<code>`. Les lignes disparues,
+secondaires ou particulières ont d'autres slugs (ex. `archeo-…` pour les relevés
+d'archeoferroviaire).
+"""
+type Line {
+  "Identifiant interne de la ligne."
+  id: ID!
+
+  "Identifiant stable et lisible, utilisé dans les URL du site et de l'API REST (ex. `rfn-420000`)."
+  slug: String!
+
+  "Code de ligne SNCF Réseau à 6 chiffres, sans espace (ex. `420000`). Nul pour une ligne sans code officiel."
+  code: String
+
+  "Nom usuel de la ligne (ex. « Ligne de Paris-Montparnasse à Brest »)."
+  name: String!
+
+  """
+  Trafic déclaré pour la ligne entière : `passenger` (voyageurs), `freight` (fret seul) ou
+  `mixed` (voyageurs et fret). Souvent nul : le trafic fiable est celui des tronçons, ère par
+  ère (`LineSegment.traffic_type`).
+  """
+  type: String
+
+  """
+  Catégorie de réseau : `principal` (grandes compagnies puis SNCF), `secondaire` (réseaux
+  secondaires d'intérêt local, souvent à voie étroite, tramways), `militaire`,
+  `particulier` (réseaux particuliers, industriels).
+  """
+  network: String
+
+  "Compagnie qui a construit ou exploité la ligne à l'origine (ex. « Cie de l'Ouest », « État »)."
+  historical_operator: String
+
+  "Présentation de la ligne, en français."
+  description: String
+
+  "Autres noms de la ligne, anciens ou usuels."
+  alt_names: [String!]
+
+  """
+  Tous les tronçons de la ligne, **toutes ères confondues** (filtrez sur `era.year`). Liste
+  longue pour les grandes lignes : une ligne compte des dizaines de tronçons par ère.
+  """
+  segments: [LineSegment!]!
+
+  "Chronologie de la ligne : ouvertures, fermetures, électrifications, déposes… (ordre non garanti : triez sur `event_date`)."
+  events: [LineEvent!]!
+
+  "Matériels roulants associés à la ligne (ayant circulé ou circulant dessus)."
+  materials: [Material!]!
+
+  """
+  Gares de la ligne à une ère, dans l'ordre des points kilométriques, sur le modèle de
+  GTFS `stop_times.txt` (sans horaires). Les gares fermées à cette ère sont incluses, avec
+  `effective_status` = `declassified`.
+  """
+  stops(
+    "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante, 2030, c'est-à-dire aujourd'hui."
+    era: Int
+  ): [LineStop!]!
+
+  """
+  Signalisation de la ligne, par tranches de points kilométriques homogènes. Données
+  SNCF Réseau Open Data (ODbL) ; aujourd'hui seule l'ère courante (2030) est
+  renseignée.
+  """
+  signalling(
+    "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante, 2030."
+    era: Int
+  ): [LineSignallingRange!]!
+
+  "Date de création de la fiche dans VFF (pas une date historique)."
+  created_at: DateTime!
+
+  "Date de dernière modification de la fiche dans VFF."
+  updated_at: DateTime!
+}
+
+"""
+Une gare sur une ligne, à une ère : sa position, son point kilométrique et son état à cette
+époque.
+"""
+type LineStop {
+  "Rang de la gare sur la ligne, à partir de 0, dans l'ordre des points kilométriques."
+  position: Int!
+
+  """
+  Point kilométrique de la gare, en **mètres** (ex. `373450` = PK 373+450). PK officiel de
+  SNCF Réseau quand il est connu, sinon estimé sur le tracé et calé sur les PK voisins.
+  Équivaut au `shape_dist_traveled` de GTFS.
+  """
+  pk_m: Int!
+
+  """
+  État de la gare à l'ère demandée : `active` (desservie par des trains de voyageurs),
+  `tourist` (desservie par un train touristique), `no_commercial` (plus de voyageurs, fret
+  seul), `declassified` (fermée). Une gare est fermée si toutes ses lignes sont fermées à
+  cette ère, ou si elle n'est plus desservie.
+  """
+  effective_status: String!
+
+  "Vrai pour une gare d'extrémité de la ligne."
+  is_terminal: Boolean!
+
+  "La gare elle-même."
+  station: Station!
+}
+
+"""
+Une tranche de ligne homogène en signalisation, entre deux points kilométriques.
+
+Deux notions distinctes : le **cantonnement** (`signalling`), qui espace les trains, et le
+**contrôle de vitesse** (`train_protection`), qui surveille le conducteur. Le KVB est un
+contrôle de vitesse, pas un mode de cantonnement.
+"""
+type LineSignallingRange {
+  "Point kilométrique de début de la tranche, en mètres (numérotation SNCF Réseau)."
+  pk_start_m: Int!
+
+  "Point kilométrique de fin de la tranche, en mètres."
+  pk_end_m: Int!
+
+  "Longueur de la tranche, en mètres (`pk_end_m - pk_start_m`)."
+  length_m: Int!
+
+  """
+  Mode de cantonnement : `BAL` (block automatique lumineux), `BAPR` (block automatique à
+  permissivité restreinte), `BM` (block manuel), `BMVU` (block manuel de voie unique),
+  `CAPI` (cantonnement assuré par un poste informatique), `CT` (cantonnement téléphonique),
+  `TVM-300` / `TVM-430` (signalisation en cabine des LGV, sans signaux latéraux),
+  `ETCS_L1` / `ETCS_L2`. Suffixes : `-VB` voie banalisée (circulation dans les deux sens
+  sur chaque voie), `-VU` voie unique, `-Tram` section tram-train.
+  """
+  signalling: String!
+
+  """
+  Systèmes de contrôle de vitesse installés sur la tranche : `KVB`, `KVBP`, `TVM-300`,
+  `TVM-430`, `ERTMS_L1`, `ERTMS_L2`. Liste vide si aucun n'est connu.
+  """
+  train_protection: [String!]!
+
+  "Raccourci : vrai si la tranche est équipée du KVB ou du KVBP."
+  kvb_equipped: Boolean!
+
+  "Remarque sur la tranche, en général la source (ex. « Source : SNCF Open Data, mode-de-cantonnement-des-lignes »)."
+  note: String
+}
+
+"""
+Un tronçon de ligne à une ère : une portion de voie géolocalisée, avec son état et ses
+caractéristiques à cette époque. Une ligne compte en général plusieurs tronçons par ère.
+"""
+type LineSegment {
+  "Identifiant interne du tronçon."
+  id: ID!
+
+  "Ère décrite par ce tronçon (instantané au 31/12 de l'année ; 2030 = aujourd'hui)."
+  era: Era!
+
+  """
+  État de la voie à cette ère :
+  `in_service` (exploitée), `single_track` (exploitée, à voie unique), `service_track`
+  (voie de service ou portuaire, hors ligne du réseau ferré national), `construction`
+  (en travaux), `abandoned` (fermée ou neutralisée, voie encore en place), `dismantled`
+  (voie déposée, emprise encore visible), `razed` (emprise disparue). Un déclassement
+  juridique seul ne vaut pas dépose : il donne `abandoned`.
+  """
+  status: String!
+
+  """
+  Trafic à cette ère : `passenger` (voyageurs seuls), `freight` (fret seul), `mixed`
+  (voyageurs et fret ; une portion ouverte aux voyageurs est réputée mixte, sauf sur LGV),
+  `unknown` (non renseigné).
+  """
+  traffic_type: String
+
+  """
+  Provenance du tracé : `sncf` (SNCF Réseau Open Data, ODbL), `bdtopo` (IGN BD TOPO,
+  Licence Ouverte 2.0), `osm` (OpenStreetMap, ODbL), `ohm` (OpenHistoricalMap, CC0),
+  `archeoferroviaire` (relevés tiers hors ODbL : usage non commercial uniquement, crédit et
+  lien vers la source obligatoires).
+  """
+  source: String
+
+  "Vrai si la portion est électrifiée à cette ère."
+  electrified: Boolean!
+
+  "Tension d'alimentation en volts (ex. `1500` en continu, `25000` en alternatif 50 Hz). Nul si non électrifiée ou inconnue."
+  voltage_v: Int
+
+  "Vitesse maximale autorisée, en km/h. Nul si inconnue."
+  max_speed_kmh: Int
+
+  "Écartement des rails en millimètres : `1435` voie normale, `1000` voie métrique, `600` voie étroite… Nul si inconnu."
+  gauge_mm: Int
+
+  "Vrai si la portion est exploitée par une association à cette ère (train touristique, vélorail, musée)."
+  is_heritage: Boolean!
+
+  "Cantonnement du tronçon, quand il est connu à ce niveau (voir plutôt `Line.signalling`)."
+  signalling: String
+
+  "Contrôle de vitesse du tronçon, quand il est connu à ce niveau (voir plutôt `Line.signalling`)."
+  train_protection: String
+
+  "Exploitant de la portion à cette ère, s'il diffère de l'exploitant habituel (ex. une association)."
+  operator: String
+
+  "Point kilométrique de début du tronçon, en mètres, quand il est connu."
+  pk_start_m: Int
+
+  "Point kilométrique de fin du tronçon, en mètres, quand il est connu."
+  pk_end_m: Int
+
+  "Date de dépose de la voie, si elle est connue."
+  dismantled_at: Date
+
+  """
+  Géométrie du tronçon : une chaîne JSON contenant une géométrie GeoJSON (`LineString` ou
+  `MultiLineString`, coordonnées WGS 84 dans l'ordre longitude, latitude). À décoder côté
+  client avec `JSON.parse`.
+  """
+  geojson: String
+}
+
+"""
+Un événement daté de la vie d'une ligne : ouverture, fermeture, électrification, dépose…
+
+La date est exacte au jour près quand on la connaît : lisez `event_date` avec
+`date_precision` pour n'afficher que la partie connue (jj/mm/aaaa, mm/aaaa ou aaaa).
+"""
+type LineEvent {
+  "Identifiant interne de l'événement."
+  id: ID!
+
+  """
+  Nature de l'événement.
+  - Trafic, tous services : `opening` (ouverture), `closure` (fermeture), `reopening` (réouverture).
+  - Un seul service : `opening_passenger`, `closure_passenger`, `reopening_passenger`
+    (voyageurs) ; `opening_freight`, `closure_freight`, `reopening_freight` (fret). Une ligne
+    fermée aux voyageurs mais ouverte au fret devient une ligne fret.
+  - Infrastructure : `electrification`, `modernization` (modernisation), `dismantling`
+    (dépose de la voie), `conversion` (reconversion de l'emprise en voie verte, route… ;
+    voie déposée).
+  - Administration : `concession`, `concession_end` (fin de concession), `declassification`
+    (retrait juridique du réseau, qui ne prouve pas la dépose).
+  - Associations : `heritage_start`, `heritage_end` (train touristique, vélorail, musée).
+  - Autres : `accident`, `other`.
+  """
+  type: String!
+
+  "Date de l'événement (`AAAA-MM-JJ`), à lire avec `date_precision`."
+  event_date: Date!
+
+  """
+  Précision de `event_date` : `day` (date exacte, à afficher jj/mm/aaaa), `month` (mois et
+  année connus, jour fixé à 01), `year` (année seule, mois et jour fixés à 01). Nul : `day`.
+  """
+  date_precision: String
+
+  "Début de la portion concernée (gare ou lieu), si l'événement ne touche qu'une section de la ligne."
+  section_from: String
+
+  "Fin de la portion concernée (gare ou lieu)."
+  section_to: String
+
+  "Description de l'événement, en français."
+  description: String
+
+  """
+  Provenance de l'information : `wikipedia`, `wikipedia-reseaux`, `wikidata`, `ohm`
+  (OpenHistoricalMap), `lignes-oubliees`, `archeoferroviaire`, `osm`, `heritage`,
+  `estimation-reseau` (date déduite du réseau voisin), `manual` (saisie VFF)…
+  """
+  source: String
+
+  "Lien vers le document source consulté. Citez-le en réutilisant la donnée."
+  source_url: String
+
+  "La ligne concernée."
+  line: Line!
+}
+
+"""
+Une gare, une halte ou un point d'arrêt ferroviaire. Les champs décrivent la gare
+**aujourd'hui** ; son état à une époque donnée se lit sur une ligne (`Line.stops`) ou dans
+l'API REST (`/api/v1/eras/{year}/stations.geojson`).
+"""
+type Station {
+  "Identifiant interne de la gare."
+  id: ID!
+
+  "Identifiant stable et lisible (ex. `rennes`), utilisé dans les URL et par `route(from, to)`."
+  slug: String!
+
+  "Nom de la gare (ex. « Paris-Montparnasse-Pasteur »)."
+  name: String!
+
+  "Nature : `gare`, `halte`, `point_arret` (point d'arrêt non géré), `passage_niveau`, `embranchement`."
+  type: String!
+
+  """
+  État actuel : `active` (desservie par des trains de voyageurs), `tourist` (desservie par
+  un train touristique), `no_commercial` (plus de voyageurs, fret seul), `declassified`
+  (fermée).
+  """
+  status: String!
+
+  "Commune où se trouve la gare."
+  city: String
+
+  "Code du département (INSEE, ex. `35`, `2A`)."
+  department_code: String
+
+  "Date d'ouverture (`AAAA-MM-JJ`) ; quand seule l'année est connue, jour et mois valent 01."
+  opened_at: Date
+
+  "Date de fermeture (`AAAA-MM-JJ`), nulle si la gare est ouverte ou la date inconnue ; quand seule l'année est connue, jour et mois valent 01."
+  closed_at: Date
+
+  "Présentation de la gare, en français."
+  description: String
+
+  "Latitude WGS 84, en degrés décimaux."
+  lat: Float
+
+  "Longitude WGS 84, en degrés décimaux."
+  lng: Float
+}
+
+"Un matériel roulant : une série de locomotives, d'automotrices, de rames TGV, de voitures ou de wagons."
+type Material {
+  "Identifiant interne du matériel."
+  id: ID!
+
+  "Identifiant stable et lisible, dérivé du nom."
+  slug: String!
+
+  "Nom de la série (ex. « BB 15000 »)."
+  name: String!
+
+  """
+  Catégorie : `locomotive_electrique`, `locomotive_diesel`, `locomotive_vapeur`,
+  `automotrice` (rame électrique automotrice), `autorail` (rame thermique), `rame_tgv`,
+  `voiture` (voiture voyageurs), `wagon` (wagon de marchandises).
+  """
+  type: String!
+
+  "Constructeur (ex. Alstom, ANF, Siemens)."
+  builder: String
+
+  "Année de mise en service de la série."
+  in_service_from: Int
+
+  "Année de retrait du service ; nulle si la série circule encore."
+  in_service_to: Int
+
+  "Présentation du matériel, en français."
+  description: String
+
+  "Lignes sur lesquelles ce matériel a circulé ou circule."
+  lines: [Line!]!
+}
+
+"Une section d'itinéraire entre deux gares consécutives du trajet."
+type RouteEdge {
+  "Slug de la gare de départ de la section."
+  from_slug: String!
+
+  "Slug de la gare d'arrivée de la section."
+  to_slug: String!
+
+  "Identifiant interne de la ligne principalement empruntée sur la section."
+  line_id: Int!
+
+  "Longueur de la section, en mètres."
+  length_m: Int!
+
+  "Nombre de gares fermées (à l'ère de calcul) traversées sans arrêt entre `from` et `to`."
+  skipped_count: Int!
+}
+
+"Une gare traversée par l'itinéraire, dans l'ordre du trajet."
+type RouteStop {
+  "Slug de la gare."
+  slug: String!
+
+  "Nom de la gare."
+  name: String!
+
+  "Latitude WGS 84, en degrés décimaux."
+  lat: Float!
+
+  "Longitude WGS 84, en degrés décimaux."
+  lng: Float!
+}
+
+"Une ligne empruntée par l'itinéraire, dans l'ordre du trajet."
+type RouteLine {
+  "Slug de la ligne (nul pour un raccordement sans fiche)."
+  line_slug: String
+
+  "Nom de la ligne."
+  line_name: String
+
+  "Code SNCF Réseau de la ligne, à 6 chiffres."
+  line_code: String
+
+  "Longueur parcourue sur cette ligne, en mètres."
+  length_m: Int!
+
+  "Gare où le trajet prend cette ligne (nul : à un raccordement, hors gare)."
+  from_slug: String
+
+  "Gare où le trajet quitte cette ligne (nul : à un raccordement, hors gare)."
+  to_slug: String
+}
+
+"""
+Itinéraire ferroviaire entre deux gares, calculé sur le réseau **en service à l'ère retenue**
+(gares ouvertes et voies exploitées au 31/12 de son année) : le plus court chemin, les voies
+sans service voyageurs étant pénalisées.
+"""
+type Route {
+  "Année de l'ère dont le réseau a servi au calcul (2030 = réseau actuel)."
+  era_year: Int
+
+  "Longueur totale du trajet, en mètres."
+  distance_m: Int!
+
+  "Durée **indicative** en heures, calculée à 100 km/h de moyenne : ce n'est pas un horaire."
+  duration_h: Float!
+
+  "Nombre de sections gare à gare."
+  hops: Int!
+
+  "Gares traversées, dans l'ordre, de la gare de départ à la gare d'arrivée."
+  stations: [RouteStop!]!
+
+  "Lignes empruntées, dans l'ordre du trajet."
+  lines: [RouteLine!]!
+
+  "Détail de chaque section gare à gare."
+  edges: [RouteEdge!]!
+}
+
+"Information about pagination using a fully featured paginator."
+type PaginatorInfo {
+  "Number of items in the current page."
+  count: Int!
+
+  "Index of the current page."
+  currentPage: Int!
+
+  "Index of the first item in the current page."
+  firstItem: Int
+
+  "Are there more pages after this one?"
+  hasMorePages: Boolean!
+
+  "Index of the last item in the current page."
+  lastItem: Int
+
+  "Index of the last available page."
+  lastPage: Int!
+
+  "Number of items per page."
+  perPage: Int!
+
+  "Number of total available items."
+  total: Int!
+}
+
+"A paginated list of Line items."
+type LinePaginator {
+  "Pagination information about the list of items."
+  paginatorInfo: PaginatorInfo!
+
+  "A list of Line items."
+  data: [Line!]!
+}
+
+"A paginated list of Station items."
+type StationPaginator {
+  "Pagination information about the list of items."
+  paginatorInfo: PaginatorInfo!
+
+  "A list of Station items."
+  data: [Station!]!
+}
+
+"A paginated list of Material items."
+type MaterialPaginator {
+  "Pagination information about the list of items."
+  paginatorInfo: PaginatorInfo!
+
+  "A list of Material items."
+  data: [Material!]!
+}
+
+"Directions for ordering a list of records."
+enum SortOrder {
+  "Sort records in ascending order."
+  ASC
+
+  "Sort records in descending order."
+  DESC
+}
+
+"Aggregate functions when ordering by a relation without specifying a column."
+enum OrderByRelationAggregateFunction {
+  "Amount of items."
+  COUNT
+}
+
+"Aggregate functions when ordering by a relation that may specify a column."
+enum OrderByRelationWithColumnAggregateFunction {
+  "Average."
+  AVG
+
+  "Minimum."
+  MIN
+
+  "Maximum."
+  MAX
+
+  "Sum."
+  SUM
+
+  "Amount of items."
+  COUNT
+}
+
+"Allows ordering a list of records."
+input OrderByClause {
+  "The column that is used for ordering."
+  column: String!
+
+  "The direction that is used for ordering."
+  order: SortOrder!
+}
+
+"Specify if you want to include or exclude trashed results from a query."
+enum Trashed {
+  "Only return trashed results."
+  ONLY
+
+  "Return both trashed and non-trashed results."
+  WITH
+
+  "Only return non-trashed results."
+  WITHOUT
+}
+

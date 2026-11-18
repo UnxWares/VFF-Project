@@ -10,7 +10,7 @@
         <article>
             <p class="lead">{$i18n.t('home.genesis.p1')}</p>
             <p>{$i18n.t('home.genesis.p2')}</p>
-            <p class="signature">— {$i18n.t('home.genesis.signature')}</p>
+            <p class="signature">- {$i18n.t('home.genesis.signature')}</p>
         </article>
     </div>
 </section>

@@ -9,14 +9,27 @@
         <h2>{$i18n.t('home.final_cta.title')}</h2>
         <p>{$i18n.t('home.final_cta.subtitle')}</p>
         <div class="cta-buttons">
-            <a href="https://discord.com/invite/6SwTfXBx4h" target="_blank" rel="noopener" class="vff-btn primary">
-                <i class="bi bi-discord"></i> {$i18n.t('home.final_cta.discord')}
+            <a
+                href="https://discord.com/invite/6SwTfXBx4h"
+                target="_blank"
+                rel="noopener"
+                class="vff-btn primary"
+            >
+                <i class="bi bi-discord"></i>
+                {$i18n.t('home.final_cta.discord')}
             </a>
-            <a href="https://github.com/vff-project" target="_blank" rel="noopener" class="vff-btn ghost-on-cta">
-                <i class="bi bi-github"></i> {$i18n.t('home.final_cta.github')}
+            <a
+                href="https://github.com/UnxWares/VFF-Project"
+                target="_blank"
+                rel="noopener"
+                class="vff-btn ghost-on-cta"
+            >
+                <i class="bi bi-github"></i>
+                {$i18n.t('home.final_cta.github')}
             </a>
             <Link href="/donate" class="vff-btn ghost-on-cta">
-                <i class="bi bi-balloon-heart"></i> {$i18n.t('home.final_cta.donate')}
+                <i class="bi bi-balloon-heart"></i>
+                {$i18n.t('home.final_cta.donate')}
             </Link>
         </div>
     </div>

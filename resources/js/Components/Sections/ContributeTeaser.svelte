@@ -28,7 +28,8 @@
         </ul>
         <div class="contrib-cta">
             <Link href="/contribute" class="vff-btn primary">
-                <i class="bi bi-geo"></i> {$i18n.t('home.contribute.cta')}
+                <i class="bi bi-geo"></i>
+                {$i18n.t('home.contribute.cta')}
             </Link>
         </div>
     </div>

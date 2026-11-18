@@ -43,7 +43,7 @@ Voir [Workflow Git](#workflow-git) et [Conventions de code](#conventions-de-code
 
 ### 📝 Documentation
 
-Améliorations du README, ROADMAP, traductions, tutoriels — toutes les PR sur les `.md` sont les bienvenues.
+Améliorations du README, ROADMAP, traductions, tutoriels - toutes les PR sur les `.md` sont les bienvenues.
 
 ### 🐛 Bugs & idées
 
@@ -69,11 +69,11 @@ git switch -c feat/timeline-slider
 ```
 
 **Convention de nommage des branches** :
-- `feat/<short-slug>` — nouvelle fonctionnalité
-- `fix/<short-slug>` — correction de bug
-- `refactor/<short-slug>` — refactoring sans changement de comportement
-- `docs/<short-slug>` — documentation uniquement
-- `chore/<short-slug>` — outillage, deps, CI
+- `feat/<short-slug>` - nouvelle fonctionnalité
+- `fix/<short-slug>` - correction de bug
+- `refactor/<short-slug>` - refactoring sans changement de comportement
+- `docs/<short-slug>` - documentation uniquement
+- `chore/<short-slug>` - outillage, deps, CI
 
 ### 3. Commits
 
@@ -142,23 +142,23 @@ gh pr create --base main
 
 - **ESLint** + **Prettier** (config dans `.eslintrc.cjs` et `.prettierrc`)
 - Composants Svelte : **PascalCase** (`TimelineSlider.svelte`)
-- Pas de jQuery, pas de Vue, pas de React — uniquement Svelte 5
+- Pas de jQuery, pas de Vue, pas de React - uniquement Svelte 5
 - Préférer les **runes** Svelte 5 (`$state`, `$derived`, `$effect`) à l'ancienne syntaxe
 - Stores partagés dans `resources/js/lib/stores/`
 
 #### ⚠ Pièges Svelte 5 spécifiques à VFF
 
-1. **`bind:this` doit utiliser `$state()`** — sinon Svelte 5 émet un warning « not reactive ». Exemple :
+1. **`bind:this` doit utiliser `$state()`** - sinon Svelte 5 émet un warning « not reactive ». Exemple :
    ```svelte
    let headerEl = $state();  // ✅ correct
    let headerEl;             // ❌ warning
    ```
 
-2. **Pas de `<header>` dans les sections internes** — le CSS d'origine a un sélecteur bare `header { height: 200vh }` pour le hero parallax. Toute balise `<header>` ailleurs hérite des 200vh et casse le layout. Utiliser `<div>` ou `<hgroup>`.
+2. **Pas de `<header>` dans les sections internes** - le CSS d'origine a un sélecteur bare `header { height: 200vh }` pour le hero parallax. Toute balise `<header>` ailleurs hérite des 200vh et casse le layout. Utiliser `<div>` ou `<hgroup>`.
 
-3. **Classes globales pour les boutons** — les `<Link>` Inertia rendent leur `<a>` dans le scope d'un sous-composant. Les rules `.vff-btn` scopées dans une page ne s'y appliquent pas. Toujours utiliser les classes globales `.vff-btn` / `.vff-btn.primary` / `.vff-btn.on-cta` / `.vff-btn.ghost-on-cta` définies dans `general.css`.
+3. **Classes globales pour les boutons** - les `<Link>` Inertia rendent leur `<a>` dans le scope d'un sous-composant. Les rules `.vff-btn` scopées dans une page ne s'y appliquent pas. Toujours utiliser les classes globales `.vff-btn` / `.vff-btn.primary` / `.vff-btn.on-cta` / `.vff-btn.ghost-on-cta` définies dans `general.css`.
 
-4. **`all: unset` pour les `<button>` icônes** — sinon ils héritent du style natif du navigateur (bordure grise). Voir `LanguageSwitcher.svelte` pour le pattern.
+4. **`all: unset` pour les `<button>` icônes** - sinon ils héritent du style natif du navigateur (bordure grise). Voir `LanguageSwitcher.svelte` pour le pattern.
 
 ### CSS
 
@@ -166,12 +166,12 @@ gh pr create --base main
 - Préférer les **CSS custom properties** (`--vff-accent`, `--vff-font-display`, `--vff-bg`, `--vff-text`…) pour que le dark mode bascule automatiquement
 - Scoped CSS dans les composants Svelte par défaut, CSS global uniquement pour ce qui s'applique vraiment globalement (`general.css`, `header.css`, `footer.css`)
 - BEM facultatif mais cohérent : `.maps-container > .maps-box > .maps-box__title`
-- **Ne pas modifier** `header.css`, `footer.css`, `whoarewe.css`, `maps.css` (CSS historique du site — uniquement écrit du CSS additif dans `general.css` ou scoped Svelte)
+- **Ne pas modifier** `header.css`, `footer.css`, `whoarewe.css`, `maps.css` (CSS historique du site - uniquement écrit du CSS additif dans `general.css` ou scoped Svelte)
 - Dark mode : ajouter les overrides dans `general.css` sous `[data-theme="dark"]` (cascade additive, pas de `!important` sauf cas extrême)
 
 ### Nommage
 
-- **Anglais** pour les identifiants (variables, fonctions, classes, tables) — convention universelle
+- **Anglais** pour les identifiants (variables, fonctions, classes, tables) - convention universelle
 - **Français** pour les libellés UI et les commentaires inline expliquant un *pourquoi*
 - Slugs URL en kebab-case anglais : `/lines/paris-brest` (mais on peut accepter des alias français)
 
@@ -195,7 +195,7 @@ php artisan test --parallel         # exécution parallèle
 **Règles** :
 - Toute action métier nouvelle → test feature
 - Tout bug fix → test de non-régression d'abord
-- Les tests géo utilisent une vraie base Postgres+PostGIS (pas de mock) — voir `tests/TestCase.php`
+- Les tests géo utilisent une vraie base Postgres+PostGIS (pas de mock) - voir `tests/TestCase.php`
 - Garder les tests rapides : factories légères, pas de seed massif
 
 ---
@@ -207,7 +207,7 @@ Les photos et documents apportés à VFF doivent respecter :
 1. **Licence claire** : domaine public, CC, ou droits cédés explicitement par l'auteur
 2. **Métadonnées** : date de prise de vue (au moins année), lieu (au moins commune), auteur si connu
 3. **Format** : JPEG / PNG pour photos, PDF pour documents, max 10 Mo par fichier
-4. **Pas de filigrane intrusif** — un crédit discret en coin est OK
+4. **Pas de filigrane intrusif** - un crédit discret en coin est OK
 
 Si tu apportes un fonds important (>50 documents), contacte-nous d'abord sur Discord pour qu'on organise l'import.
 
@@ -217,7 +217,7 @@ Si tu apportes un fonds important (>50 documents), contacte-nous d'abord sur Dis
 
 ### Bug
 
-Ouvre une [issue](https://github.com/vff-project/vff/issues/new) avec le template `bug` :
+Ouvre une [issue](https://github.com/UnxWares/VFF-Project/issues/new) avec le template `bug` :
 - Comportement attendu
 - Comportement observé
 - Étapes de reproduction
@@ -230,7 +230,7 @@ Issue avec le template `idea`. Avant de coder, **discute-la d'abord** : c'est pl
 
 ### Question / aide
 
-Plutôt sur [Discord](https://discord.com/invite/6SwTfXBx4h) — réponse plus rapide que sur GitHub.
+Plutôt sur [Discord](https://discord.com/invite/6SwTfXBx4h) - réponse plus rapide que sur GitHub.
 
 ---
 

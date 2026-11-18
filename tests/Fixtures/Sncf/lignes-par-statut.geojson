@@ -1,0 +1,12 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {"type": "Feature", "properties": {"code_ligne": "070000", "lib_ligne": "Ligne de Alpha à Bravo", "statut": "Exploitée Voyageurs", "electrifiee": "Oui", "tension": "25 kV", "vitesse_max": "160", "pkd": "000+000", "pkf": "017+250"},
+         "geometry": {"type": "LineString", "coordinates": [[2.30, 48.80], [2.40, 48.90]]}},
+        {"type": "Feature", "properties": {"code_ligne": "200000", "lib_ligne": "200000", "statut": "Exploitée Fret seul", "electrifiee": "Non"},
+         "geometry": {"type": "MultiLineString", "coordinates": [[[3.0, 47.0], [3.1, 47.1]], [[3.1, 47.1], [3.2, 47.2]]]}},
+        {"type": "Feature", "properties": {"code_ligne": "300000", "lib_ligne": "Ligne de Fermée", "statut": "Fermée"},
+         "geometry": {"type": "LineString", "coordinates": [[4.0, 45.0], [4.1, 45.1]]}},
+        {"type": "Feature", "properties": {"lib_ligne": null, "statut": "Exploitée"}, "geometry": null}
+    ]
+}

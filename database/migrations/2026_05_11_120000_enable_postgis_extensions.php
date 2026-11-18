@@ -14,7 +14,7 @@ return new class extends Migration
         DB::statement('CREATE EXTENSION IF NOT EXISTS pg_trgm');
         DB::statement('CREATE EXTENSION IF NOT EXISTS unaccent');
 
-        // Apache AGE (graphe) — activé en Phase 8 quand on en aura besoin
+        // Apache AGE (graphe) - activé en Phase 8 quand on en aura besoin
         // DB::statement('CREATE EXTENSION IF NOT EXISTS age');
     }
 

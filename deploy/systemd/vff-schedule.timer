@@ -1,0 +1,15 @@
+# Déclenche vff-schedule.service à la minute 30 de chaque heure, de 4 h 30 à 23 h 30
+# (tâches actuelles de routes/console.php : vff:refresh-current-era, « 30 4-23 * * * »).
+# Si une tâche planifiée à une autre minute est ajoutée, passer à OnCalendar=*:*:00
+# (un conteneur par minute).
+# NON ACTIVÉ par défaut : procédure dans docs/PLANIFICATION.md.
+[Unit]
+Description=VFF - déclenchement du planificateur Laravel
+
+[Timer]
+OnCalendar=*-*-* 04..23:30:00
+AccuracySec=1s
+Unit=vff-schedule.service
+
+[Install]
+WantedBy=timers.target

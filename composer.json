@@ -1,24 +1,30 @@
 {
     "name": "vff/vff",
     "type": "project",
-    "description": "VFF — Voies Ferrées de France. Encyclopédie collaborative du rail français.",
+    "description": "VFF - Voies Ferrées de France. Encyclopédie collaborative du rail français.",
     "keywords": ["laravel", "railway", "encyclopedia", "france", "openstreetmap", "postgis"],
     "license": "MIT",
     "require": {
         "php": "^8.2",
         "ext-pdo": "*",
         "clickbar/laravel-magellan": "^2.1",
+        "dedoc/scramble": "^0.13.22",
         "guzzlehttp/guzzle": "^7.9",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
+        "nuwave/lighthouse": "^6.66",
         "predis/predis": "^3.0"
     },
     "require-dev": {
+        "brianium/paratest": "^7.22",
         "fakerphp/faker": "^1.23",
+        "infection/infection": "^0.35",
+        "larastan/larastan": "^3.13",
         "laravel/pail": "^1.2",
         "laravel/pint": "^1.18",
+        "mll-lab/laravel-graphiql": "^4.1",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.5",
         "phpunit/phpunit": "^13.0"
@@ -52,7 +58,42 @@
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "pnpm exec concurrently -c '#93c5fd,#c4b5fd,#fb923c,#fb7185' 'php artisan serve' 'php artisan queue:listen --tries=1' 'php artisan pail --timeout=0' 'pnpm dev' --names=server,queue,logs,vite --kill-others-on-fail"
+        ],
+        "analyse": [
+            "Composer\\Config::disableProcessTimeout",
+            "phpstan analyse --memory-limit=2G --ansi"
+        ],
+        "analyse:baseline": [
+            "Composer\\Config::disableProcessTimeout",
+            "phpstan analyse --memory-limit=2G --generate-baseline --allow-empty-baseline"
+        ],
+        "test": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan test"
+        ],
+        "test:static": "@php artisan test tests/Unit/Static",
+        "test:parallel": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan test --parallel --processes=4"
+        ],
+        "test:coverage": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php -d pcov.enabled=1 vendor/bin/phpunit --colors=never --no-progress --coverage-text --only-summary-for-coverage-text --coverage-clover=storage/app/reports/coverage/clover.xml --coverage-html=storage/app/reports/coverage/html",
+            "@php scripts/coverage-summary.php storage/app/reports/coverage/clover.xml"
+        ],
+        "test:mutation": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php vendor/bin/infection --threads=4 --only-covering-test-cases --show-mutations=20 --no-progress"
         ]
+    },
+    "scripts-descriptions": {
+        "analyse": "Analyse statique PHPStan + Larastan (niveau 6, baseline phpstan-baseline.neon)",
+        "analyse:baseline": "Régénère phpstan-baseline.neon (dette existante, après revue)",
+        "test": "PHPUnit (base de test *_test, jamais la base de dev)",
+        "test:static": "Contrôles statiques du projet (tirets, clés i18n, palette, routes), sans base",
+        "test:parallel": "PHPUnit en 4 processus (bases <base>_test_1 à _4, créées par Laravel)",
+        "test:coverage": "Couverture (pcov activé à la demande) : résumé texte + Clover + HTML dans storage/app/reports/coverage",
+        "test:mutation": "Tests de mutation Infection (4 threads) sur les services purs critiques (infection.json5), long"
     },
     "extra": {
         "laravel": {
@@ -64,7 +105,8 @@
         "preferred-install": "dist",
         "sort-packages": true,
         "allow-plugins": {
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "infection/extension-installer": true
         }
     },
     "minimum-stability": "stable",

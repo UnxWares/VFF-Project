@@ -28,20 +28,44 @@
     ];
 
     const steps = [
-        { num: '1', titleKey: 'contribute.process.step1_title', textKey: 'contribute.process.step1_text' },
-        { num: '2', titleKey: 'contribute.process.step2_title', textKey: 'contribute.process.step2_text' },
-        { num: '3', titleKey: 'contribute.process.step3_title', textKey: 'contribute.process.step3_text' },
+        {
+            num: '1',
+            titleKey: 'contribute.process.step1_title',
+            textKey: 'contribute.process.step1_text',
+        },
+        {
+            num: '2',
+            titleKey: 'contribute.process.step2_title',
+            textKey: 'contribute.process.step2_text',
+        },
+        {
+            num: '3',
+            titleKey: 'contribute.process.step3_title',
+            textKey: 'contribute.process.step3_text',
+        },
     ];
 
     const rules = [
-        { icon: 'bi-bookmark', titleKey: 'contribute.rules.sources_title', textKey: 'contribute.rules.sources_text' },
-        { icon: 'bi-file-earmark-check', titleKey: 'contribute.rules.license_title', textKey: 'contribute.rules.license_text' },
-        { icon: 'bi-heart', titleKey: 'contribute.rules.respect_title', textKey: 'contribute.rules.respect_text' },
+        {
+            icon: 'bi-bookmark',
+            titleKey: 'contribute.rules.sources_title',
+            textKey: 'contribute.rules.sources_text',
+        },
+        {
+            icon: 'bi-file-earmark-check',
+            titleKey: 'contribute.rules.license_title',
+            textKey: 'contribute.rules.license_text',
+        },
+        {
+            icon: 'bi-heart',
+            titleKey: 'contribute.rules.respect_title',
+            textKey: 'contribute.rules.respect_text',
+        },
     ];
 </script>
 
 <svelte:head>
-    <title>{$i18n.t('contribute.meta_title')} — VFF</title>
+    <title>{$i18n.t('contribute.meta_title')} - VFF</title>
     <meta name="description" content={$i18n.t('contribute.meta_description')} />
 </svelte:head>
 
@@ -83,11 +107,7 @@
         <SectionBlock title={$i18n.t('contribute.rules.title')} maxWidth="900px">
             <div class="rules-grid">
                 {#each rules as r}
-                    <IconCard
-                        icon={r.icon}
-                        title={$i18n.t(r.titleKey)}
-                        text={$i18n.t(r.textKey)}
-                    />
+                    <IconCard icon={r.icon} title={$i18n.t(r.titleKey)} text={$i18n.t(r.textKey)} />
                 {/each}
             </div>
         </SectionBlock>
@@ -96,11 +116,27 @@
             <h2>{$i18n.t('contribute.cta.title')}</h2>
             <p>{$i18n.t('contribute.cta.text')}</p>
             <div class="cta-buttons">
-                <a href="https://discord.com/invite/6SwTfXBx4h" target="_blank" rel="noopener" class="vff-btn on-cta">
-                    <i class="bi bi-discord"></i> {$i18n.t('contribute.cta.discord')}
+                <a href="/contribute/edit-segment" class="vff-btn on-cta">
+                    <i class="bi bi-pencil-square"></i>
+                    {$i18n.t('contribute.cta.edit_segment')}
                 </a>
-                <a href="https://github.com/vff-project" target="_blank" rel="noopener" class="vff-btn ghost-on-cta">
-                    <i class="bi bi-github"></i> {$i18n.t('contribute.cta.github')}
+                <a
+                    href="https://discord.com/invite/6SwTfXBx4h"
+                    target="_blank"
+                    rel="noopener"
+                    class="vff-btn ghost-on-cta"
+                >
+                    <i class="bi bi-discord"></i>
+                    {$i18n.t('contribute.cta.discord')}
+                </a>
+                <a
+                    href="https://github.com/UnxWares/VFF-Project"
+                    target="_blank"
+                    rel="noopener"
+                    class="vff-btn ghost-on-cta"
+                >
+                    <i class="bi bi-github"></i>
+                    {$i18n.t('contribute.cta.github')}
                 </a>
             </div>
         </SectionBlock>
@@ -135,7 +171,7 @@
         flex: 0 0 56px;
         width: 56px;
         height: 56px;
-        background-color: var(--vff-accent);
+        background-color: var(--vff-accent-strong);
         color: var(--vff-text-inverse);
         border-radius: 50%;
         display: flex;

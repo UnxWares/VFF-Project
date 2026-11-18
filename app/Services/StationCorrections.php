@@ -1,0 +1,201 @@
+<?php
+
+namespace App\Services;
+
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Corrections SOURCÉES des gares (database/data/gares_corrections.php), réappliquées
+ * par vff:build-station-eras à chaque passage (avant la nature des points et les dates
+ * déduites) : les imports (Wikidata, OSM, Wikipédia) réécrivent leurs données, la
+ * correction survit aux reconstructions.
+ *
+ * Une correction ne remplace pas une règle : elle sert quand les sources structurées se
+ * contredisent ou se trompent (jeu SNCF périmé, date Wikidata tirée d'un référentiel,
+ * phrase mal lue) et qu'aucune règle générale ne permet de trancher. Toujours une source
+ * vérifiable (permalien Wikipédia oldid, fiche Wikidata…).
+ *
+ * Gare visée (clé « station ») : « name » (obligatoire, contrôle) et une clé stable parmi
+ * « uic » (stations.uic_code), « wikidata », « osm » (station_sources osm, ex. « w37889707 ») ;
+ * « near » [lng, lat, rayon en km] départage deux fiches homonymes. Une correction dont la
+ * gare est introuvable ou ambiguë n'est pas appliquée (signalée).
+ *
+ * Actions :
+ *   - add        : événement (type, date AAAA-MM-JJ, precision day | month | year | before), source
+ *                  « correction » (la plus sûre : StationTimeline::SOURCE_RANK) ;
+ *   - neutralize : l'événement d'une source (match : source, type, date) n'est pas ce qu'il
+ *                  dit (déclassement d'un tronçon lu comme fermeture de la gare, date d'un
+ *                  référentiel) : retiré de la chronologie, à chaque passage ;
+ *   - kind       : « excluded » (hors du réseau ferré : tramway, métro, funiculaire, fiche
+ *                  erronée) ou « projected » (gare annoncée, jamais ouverte) ;
+ *   - tourist    : train d'attraction ou touristique sans ligne VFF : statut « touristique » ;
+ *   - position   : lng, lat (WGS 84) d'une meilleure source.
+ *
+ * Champs communs : source_url, quote (citation courte), reason. Pas de tiret long.
+ */
+final class StationCorrections
+{
+    public const ACTIONS = ['add', 'neutralize', 'kind', 'tourist', 'position'];
+
+    public const EVENT_TYPES = ['opening', 'reopening', 'closure', 'closure_passenger', 'closure_freight', 'demolition'];
+
+    /** @var list<array<string, mixed>> */
+    private array $corrections;
+
+    /** @param  list<array<string, mixed>>|null  $corrections  défaut : database/data/gares_corrections.php */
+    public function __construct(?array $corrections = null)
+    {
+        $this->corrections = $corrections ?? (is_file($f = database_path('data/gares_corrections.php')) ? require $f : []);
+    }
+
+    /**
+     * Erreurs de forme d'une correction (vide si valide).
+     *
+     * @param  array<string, mixed>  $c
+     * @return list<string>
+     */
+    public static function validate(array $c): array
+    {
+        $errors = [];
+        $action = $c['action'] ?? null;
+        if (! in_array($action, self::ACTIONS, true)) {
+            $errors[] = 'action inconnue';
+        }
+        $st = $c['station'] ?? [];
+        if (! is_array($st) || ! isset($st['name']) || ! array_intersect_key($st, array_flip(['uic', 'wikidata', 'osm']))) {
+            $errors[] = 'gare : name + uic, wikidata ou osm';
+        }
+        if (! isset($c['source_url']) || ! str_starts_with((string) $c['source_url'], 'http')) {
+            $errors[] = 'source_url manquante';
+        }
+        if (! isset($c['reason']) || trim((string) $c['reason']) === '') {
+            $errors[] = 'reason manquante';
+        }
+        $date = fn ($d) => is_string($d) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) === 1;
+        if ($action === 'add' && (! in_array($c['type'] ?? null, self::EVENT_TYPES, true) || ! $date($c['date'] ?? null)
+            || ! in_array($c['precision'] ?? 'day', ['day', 'month', 'year', StationTimeline::BEFORE], true))) {
+            $errors[] = 'add : type, date, precision';
+        }
+        if ($action === 'neutralize' && (! isset($c['match']['source'], $c['match']['type']) || ! $date($c['match']['date'] ?? null))) {
+            $errors[] = 'neutralize : match source, type, date';
+        }
+        if ($action === 'kind' && ! in_array($c['kind'] ?? null, [StationTimeline::KIND_EXCLUDED, StationTimeline::KIND_PROJECTED], true)) {
+            $errors[] = 'kind : excluded ou projected';
+        }
+        if ($action === 'position' && (! is_numeric($c['lng'] ?? null) || ! is_numeric($c['lat'] ?? null))) {
+            $errors[] = 'position : lng, lat';
+        }
+        foreach (['reason', 'quote'] as $k) {
+            if (isset($c[$k]) && (str_contains((string) $c[$k], "\u{2014}") || str_contains((string) $c[$k], '--'))) {
+                $errors[] = "{$k} : tiret long";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Fiche(s) visée(s) par une correction.
+     *
+     * @param  array<string, mixed>  $st
+     * @return list<int>
+     */
+    public static function resolveStation(array $st): array
+    {
+        $q = DB::table('stations as s')->where('s.name', $st['name']);
+        $q->where(function ($w) use ($st) {
+            if (isset($st['uic'])) {
+                $w->orWhere('s.uic_code', $st['uic']);
+            }
+            if (isset($st['wikidata'])) {
+                $w->orWhere('s.wikidata_id', $st['wikidata'])
+                    ->orWhereExists(fn ($x) => $x->from('station_sources as ss')->whereColumn('ss.station_id', 's.id')
+                        ->where('ss.source', 'wikidata')->where('ss.source_ref', $st['wikidata']));
+            }
+            if (isset($st['osm'])) {
+                $w->orWhereExists(fn ($x) => $x->from('station_sources as ss')->whereColumn('ss.station_id', 's.id')
+                    ->where('ss.source', 'osm')->where('ss.source_ref', $st['osm']));
+            }
+        });
+        if (isset($st['near'])) {
+            [$lng, $lat, $km] = $st['near'];
+            $q->whereRaw('ST_DWithin(s.geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)', [$lng, $lat, $km * 1000]);
+        }
+
+        return $q->pluck('s.id')->map(fn ($id) => (int) $id)->all();
+    }
+
+    /**
+     * Gares déclarées touristiques (action « tourist ») : [id => true].
+     *
+     * @return array<int, true>
+     */
+    public function touristStations(): array
+    {
+        $out = [];
+        foreach ($this->corrections as $c) {
+            if (($c['action'] ?? null) === 'tourist' && self::validate($c) === [] && count($ids = self::resolveStation($c['station'])) === 1) {
+                $out[$ids[0]] = true;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Applique les corrections en base : événements (add, neutralize) et positions.
+     * Renvoie les gares de nature imposée (kind) et les gares touristiques (tourist),
+     * appliquées par vff:build-station-eras.
+     *
+     * @return array{kinds: array<int, string>, tourist: array<int, true>, applied: int, skipped: list<string>}
+     */
+    public function apply(): array
+    {
+        $out = ['kinds' => [], 'tourist' => [], 'applied' => 0, 'skipped' => []];
+        DB::transaction(function () use (&$out) {
+            DB::table('station_events')->where('source', StationTimeline::CORRECTION)->delete();
+            foreach ($this->corrections as $i => $c) {
+                $label = ($c['station']['name'] ?? '?').' ('.($c['action'] ?? '?').')';
+                if (($errors = self::validate($c)) !== []) {
+                    $out['skipped'][] = "#{$i} {$label} : ".implode(', ', $errors);
+
+                    continue;
+                }
+                $ids = self::resolveStation($c['station']);
+                if (count($ids) !== 1) {
+                    $out['skipped'][] = "#{$i} {$label} : ".(count($ids) === 0 ? 'gare introuvable' : count($ids).' fiches');
+
+                    continue;
+                }
+                $sid = $ids[0];
+                $note = mb_strimwidth(trim(($c['reason'] ?? '').(isset($c['quote']) ? ' : « '.$c['quote'].' »' : '')), 0, 1000, '…');
+                $done = match ($c['action']) {
+                    'add' => DB::table('station_events')->insertOrIgnore([
+                        'station_id' => $sid, 'type' => $c['type'], 'event_date' => $c['date'], 'date_precision' => $c['precision'] ?? 'day',
+                        'source' => StationTimeline::CORRECTION, 'source_ref' => 'gares_corrections:'.substr(sha1(json_encode($c) ?: ''), 0, 12),
+                        'source_url' => mb_substr((string) $c['source_url'], 0, 500), 'is_inferred' => false, 'note' => $note,
+                        'created_at' => now(), 'updated_at' => now(),
+                    ]) > 0,
+                    'neutralize' => DB::table('station_events')->where('station_id', $sid)->where('is_inferred', false)
+                        ->where('source', $c['match']['source'])->where('type', $c['match']['type'])->where('event_date', $c['match']['date'])->delete() >= 0,
+                    'position' => DB::update(<<<'SQL'
+                        UPDATE stations SET geom = ST_SetSRID(ST_MakePoint(?, ?), 4326), position_source = 'correction',
+                               position_spread_m = 0, position_flagged = FALSE,
+                               provenance = COALESCE(provenance, '{}'::jsonb) || jsonb_build_object('position', ?::text)
+                        WHERE id = ? AND NOT (ST_X(geom) = ? AND ST_Y(geom) = ?)
+                    SQL, [(float) $c['lng'], (float) $c['lat'], (string) $c['source_url'], $sid, (float) $c['lng'], (float) $c['lat']]) >= 0,
+                    'kind' => (bool) ($out['kinds'][$sid] = $c['kind']),
+                    'tourist' => $out['tourist'][$sid] = true,
+                    default => false,
+                };
+                if ($done) {
+                    $out['applied']++;
+                } else {
+                    $out['skipped'][] = "#{$i} {$label} : sans effet (événement visé absent ?)";
+                }
+            }
+        });
+
+        return $out;
+    }
+}

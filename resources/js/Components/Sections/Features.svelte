@@ -81,7 +81,10 @@
         border: 1px solid var(--vff-border);
         border-radius: 14px;
         padding: 32px 28px;
-        transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+        transition:
+            transform 200ms ease,
+            box-shadow 200ms ease,
+            border-color 200ms ease;
     }
     .feature:hover {
         transform: translateY(-4px);

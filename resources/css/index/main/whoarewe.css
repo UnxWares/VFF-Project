@@ -3,40 +3,42 @@ main #whoarewe {
     margin: 30px auto;
     max-width: 864px;
 }
-main #whoarewe > *{
+main #whoarewe > * {
     opacity: 0;
     transform: translateX(100%);
 }
-main #whoarewe.animate > *{
+main #whoarewe.animate > * {
     opacity: 1;
     transform: initial;
-    transition: opacity 1.5s ease, transform 1.5s ease;
+    transition:
+        opacity 1.5s ease,
+        transform 1.5s ease;
 }
-main #whoarewe.animate p{
+main #whoarewe.animate p {
     transition-delay: 0.075s;
 }
-main #whoarewe.animate .whoarewe-buttons{
+main #whoarewe.animate .whoarewe-buttons {
     transition-delay: 0.15s;
 }
-main #whoarewe .vff-title img{
+main #whoarewe .vff-title img {
     width: 70px;
     height: 70px;
 }
-main #whoarewe .vff-title{
+main #whoarewe .vff-title {
     display: flex;
     align-items: center;
     justify-content: center;
 }
-main #whoarewe .vff-title h1{
+main #whoarewe .vff-title h1 {
     margin: 0 0 0 10px;
 }
-main #whoarewe p{
+main #whoarewe p {
     text-align: justify;
 }
-main #whoarewe .whoarewe-buttons{
+main #whoarewe .whoarewe-buttons {
     text-align: center;
 }
-main #whoarewe .whoarewe-buttons a{
+main #whoarewe .whoarewe-buttons a {
     text-decoration: none;
     border: 0;
     border-radius: 10px;
@@ -47,16 +49,43 @@ main #whoarewe .whoarewe-buttons a{
     display: inline-block;
     white-space: nowrap;
     outline: none;
-    transition: transform .3s ease 0s;
+    transition: transform 0.3s ease 0s;
     transform: initial;
     color: #fff;
     background-color: #ff6500;
     font-family: Gabarito, cursive;
 }
-main #whoarewe .whoarewe-buttons a:hover{
+main #whoarewe .whoarewe-buttons a:hover {
     text-decoration: none;
-    transform: scale(.95);
+    transform: scale(0.95);
 }
-main #whoarewe .whoarewe-buttons a:focus{
+main #whoarewe .whoarewe-buttons a:focus {
     outline: solid #ff6500;
+}
+
+/* ─── Responsive (correctifs du 2026-10-20) ─────────────────────────────────
+   Au-dessus de 1100 px, rien ne change. En dessous, la colonne de 45 % devenait
+   très étroite (160 px sur téléphone, texte justifié en escalier). */
+@media (max-width: 1100px) {
+    main #whoarewe {
+        width: 70%;
+    }
+}
+@media (max-width: 768px) {
+    main #whoarewe {
+        width: auto;
+        margin: 30px 16px;
+    }
+    main #whoarewe .vff-title h1 {
+        font-size: 28px;
+    }
+    main #whoarewe p {
+        font-size: 18px;
+        line-height: 1.55;
+        text-align: left;
+    }
+    main #whoarewe .whoarewe-buttons a {
+        margin: 6px 6px 12px;
+        padding: 12px 22px;
+    }
 }

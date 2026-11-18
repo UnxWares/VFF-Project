@@ -2,7 +2,7 @@
 
 <img src="resources/images/vff.png" alt="Logo VFF" width="180"/>
 
-# VFF — Voies Ferrées de France
+# VFF - Voies Ferrées de France
 
 **La plus grande encyclopédie collaborative du rail français.**
 
@@ -34,9 +34,9 @@
 
 ## 📖 Présentation
 
-**VFF (Voies Ferrées de France)** est une plateforme en ligne créée par des passionnés du rail. Notre mission : **documenter, cartographier et partager** l'intégralité du patrimoine ferroviaire français — qu'il s'agisse des lignes en service aujourd'hui ou de celles qui ont disparu il y a plus d'un siècle.
+**VFF (Voies Ferrées de France)** est une plateforme en ligne créée par des passionnés du rail. Notre mission : **documenter, cartographier et partager** l'intégralité du patrimoine ferroviaire français - qu'il s'agisse des lignes en service aujourd'hui ou de celles qui ont disparu il y a plus d'un siècle.
 
-Au cœur du projet : une **carte interactive temporelle** qui permet de remonter le temps et de visualiser le réseau ferré tel qu'il existait en **1990, 2000, 2010, 2020** — et tel qu'il se dessine aujourd'hui, dans un snapshot vivant **2030** qui évoluera jusqu'à cette date avant d'être figé à son tour.
+Au cœur du projet : une **carte interactive temporelle** qui permet de remonter le temps et de visualiser le réseau ferré tel qu'il existait en **1990, 2000, 2010, 2020** - et tel qu'il se dessine aujourd'hui, dans un snapshot vivant **2030** qui évoluera jusqu'à cette date avant d'être figé à son tour.
 
 Chaque ligne est documentée par :
 
@@ -58,10 +58,11 @@ Le projet est **100 % collaboratif** : passionnés, archivistes, photographes, h
 - [x] **Internationalisation FR / EN / DE** (i18next + svelte-i18next) avec détection auto via `Accept-Language` + cookie persistant 1 an + endpoint `GET /locale/{code}`
 - [x] **Dark mode** complet (cookie 1 an) avec design tokens CSS custom properties
 - [x] **Modèle de données ferroviaire** complet (PostgreSQL 18 + PostGIS 3.6 via Magellan) : eras, lignes, segments `LINESTRING`, gares `POINT`, matériels, événements, médias polymorphes, contributions
-- [x] **Service d'import OSM** (Overpass API) — squelette : `php artisan vff:import-osm --region=FR`
+- [x] **Service d'import OSM** (Overpass API) - squelette : `php artisan vff:import-osm --region=FR`
 - [x] Footer riche avec liens communauté, légal et partenaires
 - [x] Performance hero : `background.png` 2.7 MB → WebP 179 KB desktop / 117 KB tablet / 63 KB mobile
 - [x] Accessibilité : `prefers-reduced-motion`, focus-visible, `all: unset` sur les buttons icônes
+- [x] **Tracés des lignes disparues recalés par un réseau de neurones** : modèle de détection des voies ferrées entraîné par VFF (U-Net, encodeur ResNet-34 pré-entraîné sur ImageNet, spécialisé sur 1 653 vignettes de photos aériennes IGN 1950-1965 étiquetées automatiquement à partir de lignes au tracé connu), exécuté sur carte graphique (PyTorch, CUDA) le long d'environ 12 000 km de tracés approximatifs. Écart médian de 2,2 m au tracé réel sur des lignes de contrôle ; résultat versé comme source `ign-historique` dans la fusion des tracés. Détails : [ml/rail-extraction/README.md](ml/rail-extraction/README.md)
 
 ### En développement (voir [ROADMAP.md](ROADMAP.md))
 - [ ] Carte interactive MVP (MapLibre GL JS + tuiles OSM)
@@ -70,9 +71,9 @@ Le projet est **100 % collaboratif** : passionnés, archivistes, photographes, h
 - [ ] Fiche détaillée par ligne (matériel, dates, médias)
 - [ ] Système de contribution communautaire avec validation par les pairs
 - [ ] Encyclopédie du matériel roulant
-- [ ] API publique REST + GeoJSON + MVT (documentée via Scramble + Stoplight Elements)
+- [ ] API publique REST + GeoJSON + MVT (spécification OpenAPI par Scramble, documentée avec Scalar sur `/docs/api` et Swagger UI sur `/docs/swagger`)
 - [ ] API GraphQL pour l'admin (Lighthouse, Phase 7)
-- [ ] [Apache AGE](https://age.apache.org/) — extension graphe pour pathfinding historique (Phase 8)
+- [ ] [Apache AGE](https://age.apache.org/) - extension graphe pour pathfinding historique (Phase 8)
 - [ ] Reconstitutions 3D IA de lieux ferroviaires disparus (Phase 9)
 - [ ] Mode hors-ligne (PWA)
 - [ ] Extension historique 1900 → 1980 (Phase 10)
@@ -84,7 +85,7 @@ Le projet est **100 % collaboratif** : passionnés, archivistes, photographes, h
 | Couche | Techno | Pourquoi |
 |---|---|---|
 | **Framework backend** | [Laravel 13](https://laravel.com) | Dernière stable, structure minimaliste `bootstrap/app.php`, support long terme |
-| **Langage backend** | PHP 8.2+ | Types stricts, enums backés, performance |
+| **Langage backend** | PHP 8.5 | Types stricts, enums backés, performance |
 | **Base de données** | [PostgreSQL 18](https://www.postgresql.org) + [PostGIS 3.6](https://postgis.net) + [Apache AGE](https://age.apache.org/) (Phase 8) | Stockage natif `LINESTRING` / `POINT` (SRID 4326), requêtes spatiales (`ST_Intersects`, `ST_Within`, `ST_Length`, `ST_AsMVT`…) **et requêtes graphe** via Cypher pour pathfinding historique |
 | **PostGIS ↔ Laravel** | [Clickbar Magellan 2.1](https://github.com/Clickbar/laravel-magellan) | Casts Eloquent (`Point`, `LineString`…), Blueprint Schema (`$table->magellanLineString()`), query builder spatial |
 | **Cache & queue** | [Valkey 8](https://valkey.io) | Fork BSD de Redis (souveraineté, éthique), 100 % compatible RESP |
@@ -98,9 +99,14 @@ Le projet est **100 % collaboratif** : passionnés, archivistes, photographes, h
 | **Build front** | [Vite 8](https://vitejs.dev) | HMR rapide, intégration Laravel via `laravel-vite-plugin` 3 |
 | **Iconographie** | [Bootstrap Icons](https://icons.getbootstrap.com) | Déjà en place, cohérent avec l'existant |
 | **Typographie** | Lato · Gabarito · Inter · Montserrat | Auto-hébergées, identité visuelle déjà posée |
-| **Tests** | [PHPUnit 13](https://phpunit.de) + [Pest](https://pestphp.com) (à venir) | Tests unitaires & feature |
-| **Qualité** | [Laravel Pint](https://github.com/laravel/pint), Prettier, ESLint | Formatage automatique |
+| **Tests** | [PHPUnit 13](https://phpunit.de) + [ParaTest](https://github.com/paratestphp/paratest), [Vitest](https://vitest.dev), [Infection](https://infection.github.io) + pcov | Plus de 2 200 tests unitaires et feature (en parallèle), tests JS, tests de mutation et mesure de couverture |
+| **Qualité** | [Laravel Pint](https://github.com/laravel/pint), Prettier ; [PHPStan](https://phpstan.org) + [Larastan](https://github.com/larastan/larastan), [ESLint](https://eslint.org) + eslint-plugin-svelte, [svelte-check](https://github.com/sveltejs/language-tools) | Formatage automatique ; analyse statique (bugs, types, code mort) |
 | **Auth** | [Laravel Sanctum](https://laravel.com/docs/sanctum) | Sessions + tokens API |
+| **Conteneurs** | [Podman](https://podman.io) (sans root) + podman-compose ; compatible [Docker](https://www.docker.com) / Compose | Tout tourne en conteneurs, rien à installer sur l'hôte : PHP, Composer et Node via `bin/php`, `bin/composer`, `bin/pnpm` ; base et cache via `docker-compose.yml` |
+| **Gestionnaires de paquets** | [Composer](https://getcomposer.org), [pnpm](https://pnpm.io) | Dépendances PHP et JS reproductibles |
+| **Calcul sur carte graphique** | [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-container-toolkit) (CDI) + Podman | Accès au GPU depuis un conteneur sans root (`--device nvidia.com/gpu=all`), plafonné à 80 % |
+| **Intelligence artificielle** | [PyTorch](https://pytorch.org) + [Segmentation Models PyTorch](https://github.com/qubvel-org/segmentation_models.pytorch) (U-Net, encodeur ResNet-34 pré-entraîné ImageNet), Python | Modèle de détection des voies ferrées entraîné par VFF sur photos aériennes IGN 1950-1965, pour recaler les tracés des lignes disparues (voir [ml/rail-extraction](ml/rail-extraction/README.md)) |
+| **Sources géographiques et historiques** | [IGN](https://geoservices.ign.fr) (BD TOPO, BD ORTHO historique, cartes anciennes ; Licence Ouverte 2.0), [SNCF Open Data](https://ressources.data.sncf.com) (ODbL), [OpenHistoricalMap](https://www.openhistoricalmap.org), [Wikidata](https://www.wikidata.org), [Wikipédia](https://fr.wikipedia.org), [Wikimedia Commons](https://commons.wikimedia.org), [lignes-oubliees](https://www.lignes-oubliees.com) | Tracés croisés entre sources au mètre près, dates par portion, photos |
 
 ---
 
@@ -122,7 +128,7 @@ Le projet est **100 % collaboratif** : passionnés, archivistes, photographes, h
 git clone https://github.com/UnxWares/VFF-Project.git
 cd VFF-Project
 
-# 2. Tout-en-un (recommandé) — env + services Docker + deps + key + migrations
+# 2. Tout-en-un (recommandé) - env + services Docker + deps + key + migrations
 make setup
 
 # 3. Lancer le dev (serve + queue + pail + vite en parallèle)
@@ -152,6 +158,48 @@ php artisan migrate
 # Dev (orchestre serve + queue + pail + vite via concurrently)
 composer run dev
 ```
+
+### Environnement de dev sans PHP/Node sur l'hôte
+
+Pas de PHP, Composer ni Node installés ? Tout passe par **Podman** (ou Docker) grâce à trois
+wrappers versionnés dans `bin/`. Ils lancent un conteneur jetable (`--rm`) qui monte le dépôt
+sur `/app`, tourne avec **votre UID** (`--userns=keep-id` sous Podman → pas de fichiers
+`root` dans le dépôt) et partage le **réseau de l'hôte** (la base reste joignable sur
+`127.0.0.1:5432`, Vite sert sur `localhost:5173`).
+
+| Wrapper | Image | Remplace |
+|---|---|---|
+| `bin/php` | `localhost/vff-php:8.5` (construite depuis `docker/php/Containerfile` : PHP 8.5 CLI + `pdo_pgsql`, `intl`, `zip`, `bcmath`, `pcntl`, Composer 2) | `php …` |
+| `bin/composer` | même image (lien vers `bin/php`, appelle `composer`) | `composer …` |
+| `bin/pnpm` | `docker.io/library/node:24-slim` + corepack (version de pnpm figée par `packageManager`) | `pnpm …` |
+
+```bash
+# 1. Image PHP (une fois, puis après chaque modif de docker/php/Containerfile)
+make php-image                       # = podman build -t localhost/vff-php:8.5 docker/php
+
+# 2. Services de données - Podman : podman-compose (ou `podman compose`)
+podman-compose up -d                 # postgres+postgis, valkey, adminer
+make up                              # idem : le Makefile choisit podman-compose/docker compose
+
+# 3. Dépendances et application
+bin/composer install
+bin/pnpm install
+bin/php artisan key:generate
+bin/php artisan migrate
+
+# 4. Dev : serve (:8000) + queue + Vite (:5173), Ctrl+C arrête tout
+make dev
+```
+
+- **Le Makefile s'adapte tout seul** : chaque cible utilise `php`/`composer`/`pnpm` s'ils
+  existent sur l'hôte, sinon `bin/php`/`bin/composer`/`bin/pnpm`. `make tools` affiche ce qui
+  a été détecté (outils, moteur de conteneurs, outil compose).
+- Variables utiles : `CONTAINER_ENGINE=docker` (forcer Docker), `VFF_PHP_IMAGE=…`,
+  `VFF_NODE_IMAGE=…` (autres images), `make up DC="docker compose"` (autre outil compose).
+- Les variables d'environnement de l'hôte **ne sont pas transmises** au conteneur : la
+  configuration passe par `.env` (et `phpunit.xml` pour les tests).
+- Fedora/SELinux : les wrappers désactivent l'étiquetage (`label=disable`) pour le montage du
+  dépôt ; le volume d'init Postgres utilise `:z`.
 
 ### (Optionnel) Importer le réseau ferré depuis OSM
 
@@ -191,8 +239,8 @@ VFF-Project/
 ├── database/
 │   ├── factories/
 │   ├── migrations/           # 11 migrations métier : extensions PostGIS, eras, lignes, segments, gares, matériels…
-│   └── seeders/              # EraSeeder (5 époques 1990–2030)
-├── lang/                     # i18n FR canonique + EN complet + DE partiel
+│   └── seeders/              # EraSeeder (5 époques 1990-2030)
+├── lang/                     # i18n FR canonique + EN + DE (complétude : php artisan vff:i18n-check)
 │   ├── fr/                   # nav, footer, home, whoarewe, maps, contribute, donate, api, légales, common…
 │   ├── en/
 │   └── de/
@@ -215,8 +263,12 @@ VFF-Project/
 │   ├── api.php               # API publique (à venir Phase 6)
 │   └── console.php
 ├── tests/
-│   ├── Feature/
+│   ├── Feature/              # Pages publiques, API GeoJSON/MVT, doc OpenAPI, vff:i18n-check (base vff_test)
+│   ├── Support/              # BuildsRailNetwork : mini-réseau déterministe pour les tests
 │   └── Unit/
+├── .github/workflows/ci.yml  # CI : Pint, i18n, PHPUnit (PostGIS), Prettier, build Vite
+├── bin/                      # php, composer, pnpm conteneurisés (Podman/Docker)
+├── docker/php/Containerfile  # image PHP 8.5 CLI pour bin/php et bin/composer
 ├── docker/postgres/init/     # 01-postgis.sql (extension PostGIS auto-créée)
 ├── docker-compose.yml        # postgres-postgis-18 + valkey-8 + adminer-5
 ├── Makefile                  # raccourcis dev (make setup, make dev, make psql, …)
@@ -250,15 +302,80 @@ php artisan vff:import-osm --region=france
 php artisan vff:import-photos /chemin/vers/dossier
 
 # Qualité
-make pint                    # formater PHP
+make check                   # mini-CI locale : Pint (fichiers modifiés) + i18n + analyse + front + tests
+make analyse                 # PHPStan + Larastan (ou : composer analyse)
+make check-front             # ESLint + svelte-check (ou : pnpm lint:js && pnpm check)
+make test-static             # contrôles statiques du projet, sans base (ou : composer test:static)
+make test                    # PHPUnit (base vff_test, jamais la base de dev)
+make test-db                 # crée la base vff_test + PostGIS si absente
+make i18n                    # php artisan vff:i18n-check (clés FR manquantes en EN/DE)
+make pint-dirty              # formater les fichiers PHP modifiés
+make pint                    # formater TOUT le PHP (éviter pendant des chantiers parallèles)
 make format                  # formater JS/Svelte/CSS (Prettier)
 make lint                    # vérifier le formatage
-make test                    # PHPUnit
+make tools                   # outils détectés (hôte ou bin/*)
+
+# Documentation de l'API
+#   REST : /docs/api (Scalar), /docs/swagger (Swagger UI), /docs/api.json (OpenAPI, Scramble),
+#          à jour automatiquement (docblocks et attributs Scramble des contrôleurs Api).
+#   GraphQL : /docs/graphql (Magidoc, statique) et /graphiql ; descriptions dans graphql/schema.graphql.
+make docs-graphql            # après une modification du schéma GraphQL : schéma imprimé + site Magidoc
 
 # Production
 pnpm build
 php artisan optimize
 ```
+
+### Tests
+
+Les tests Feature utilisent `RefreshDatabase` : la base est **vidée et re-migrée** à chaque
+run. Ils tournent donc sur une base dédiée **`vff_test`** (PostgreSQL + PostGIS, même
+conteneur `vff-db`), forcée par `phpunit.xml`. Un garde-fou (`tests/CreatesApplication.php`)
+refuse de démarrer si la base visée ne se termine pas par `_test` : la base `vff` et ses
+imports ne peuvent pas être effacés par un test.
+
+```bash
+make test-db                 # une fois : CREATE DATABASE vff_test + extensions
+make test                    # ou : bin/php artisan test --filter=LinePagesTest
+```
+
+Le mini-réseau de test (`tests/Support/BuildsRailNetwork.php` : 2 ères, une ligne Paris - 
+Versailles, 2 gares, arrêts, signalisation) sert aux tests des pages publiques et de l'API
+GeoJSON / MVT.
+
+### Qualité
+
+Analyse statique, sans base de données ; seules les erreurs **nouvelles** bloquent, la dette
+existante est gelée dans une liste d'exceptions à faire maigrir en corrigeant.
+
+| Outil | Commande | Ce qu'il vérifie | Exceptions |
+|---|---|---|---|
+| PHPStan + Larastan, niveau 6 | `make analyse` · `composer analyse` | `app/`, `database/`, `routes/`, `tests/` : méthodes et propriétés inexistantes, types et PHPDoc faux, colonnes inconnues des modèles, conditions toujours vraies, code mort | `phpstan-baseline.neon` |
+| ESLint + eslint-plugin-svelte | `pnpm lint:js` | variables non définies ou inutilisées, erreurs Svelte 5 (le style reste à Prettier) | avertissements non bloquants |
+| svelte-check (JS + JSDoc) | `pnpm check` | types du front d'après `jsconfig.json`, avertissements du compilateur Svelte (a11y, CSS inutilisé) | `svelte-check-baseline.json` |
+| Contrôles du projet | `make test-static` · `composer test:static` | pas de tiret long « - », « - » ni « - » dans les textes affichés ; clés `t('…')` et `labelKey` du front présentes dans `lang/fr` ; palette de la carte (`railStyle.js`) et légende ; routes nommées, pages Inertia et URL internes du front | aucune |
+
+Les contrôles du projet sont des tests PHPUnit (`tests/Unit/Static`) : ils tournent aussi avec
+`make test`. Après correction d'erreurs existantes, régénérer les listes d'exceptions :
+`make analyse-baseline` (ou `composer analyse:baseline`) et `pnpm check --update-baseline`.
+Ne jamais régénérer pour faire taire une erreur nouvelle sans l'avoir comprise.
+
+### Traductions
+
+Le FR (`lang/fr`) est la source. `php artisan vff:i18n-check` échoue si une clé FR manque en
+EN ou DE, si un fichier manque ou si les placeholders (`:name`) diffèrent ; il signale aussi
+les clés orphelines et les clés `t('…')` du front absentes du FR. Les fichiers des chantiers
+en cours (`contribute`, `editor`, `lines`, `maps`, `media`, `stations`) ne sont que
+signalés ; `--strict` les rend bloquants.
+
+### Intégration continue
+
+`.github/workflows/ci.yml` : PHP 8.5 (Pint, `vff:i18n-check`, PHPStan, contrôles statiques,
+PHPUnit sur un service `postgis/postgis:18-3.6`) et front (pnpm, Prettier, ESLint, svelte-check,
+build Vite). Sur une pull request, Pint et
+Prettier ne bloquent que sur les **fichiers modifiés** ; sur `main`, le contrôle complet est
+informatif tant que le dépôt n'a pas été reformaté d'un bloc (`make pint` + `make format`, à
+faire quand aucun chantier parallèle n'est en cours).
 
 ---
 
@@ -266,9 +383,9 @@ php artisan optimize
 
 VFF est **collaboratif par essence**. Trois façons d'aider :
 
-1. **Documenter des lignes** — directement depuis l'interface web une fois inscrit, ou en ouvrant une PR sur les seeders.
-2. **Apporter des médias** — photos d'archives, plans, documents (voir [CONTRIBUTING.md](CONTRIBUTING.md) section *Médias*).
-3. **Contribuer au code** — fork, branche, PR. Voir [CONTRIBUTING.md](CONTRIBUTING.md) pour les conventions (commits conventionnels, style, tests).
+1. **Documenter des lignes** - directement depuis l'interface web une fois inscrit, ou en ouvrant une PR sur les seeders.
+2. **Apporter des médias** - photos d'archives, plans, documents (voir [CONTRIBUTING.md](CONTRIBUTING.md) section *Médias*).
+3. **Contribuer au code** - fork, branche, PR. Voir [CONTRIBUTING.md](CONTRIBUTING.md) pour les conventions (commits conventionnels, style, tests).
 
 Toutes les contributions sont validées par les pairs avant publication.
 
@@ -286,12 +403,12 @@ Toutes les contributions sont validées par les pairs avant publication.
 
 ## 💸 Soutenir le projet
 
-Le projet sera juridiquement porté par une **association ESS** en cours de constitution (« UnxWares Opensource ») qui gérera les dons et les actifs des projets open-source d'UnxWares — dont VFF.
+Le projet sera juridiquement porté par une **association ESS** en cours de constitution (« UnxWares Opensource ») qui gérera les dons et les actifs des projets open-source d'UnxWares - dont VFF.
 
 Plateforme de dons à arbitrer :
 
-- **[Patreon](https://www.patreon.com)** — soutien récurrent mensuel, populaire dans la communauté tech open-source
-- **[HelloAsso](https://www.helloasso.com)** — don ponctuel ou récurrent, déductible fiscalement une fois l'asso reconnue d'intérêt général
+- **[Patreon](https://www.patreon.com)** - soutien récurrent mensuel, populaire dans la communauté tech open-source
+- **[HelloAsso](https://www.helloasso.com)** - don ponctuel ou récurrent, déductible fiscalement une fois l'asso reconnue d'intérêt général
 
 → Choix définitif en cours.
 
@@ -301,7 +418,9 @@ Plateforme de dons à arbitrer :
 
 Le **code** est distribué sous licence [MIT](LICENCE).
 
-Les **données ferroviaires** importées depuis OpenStreetMap sont sous licence [ODbL](https://opendatacommons.org/licenses/odbl/) — toute redistribution doit respecter l'attribution OSM.
+Les **données ferroviaires** importées depuis OpenStreetMap sont sous licence [ODbL](https://opendatacommons.org/licenses/odbl/) - toute redistribution doit respecter l'attribution OSM.
+
+Les **polices** (Inter, Lato, Gabarito, Montserrat) sont sous [SIL Open Font License 1.1](https://openfontlicense.org) : textes dans `resources/fonts/OFL-*.txt`.
 
 Les **tuiles OpenRailwayMap** utilisées en overlay sont sous [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/).
 
@@ -311,4 +430,4 @@ Les **médias contribués** (photos, documents) restent la propriété de leurs 
 
 ## 🙏 Crédits
 
-Développé par **Baptiste Gosselin** · Hébergement [UnxWares — Division Cloud](https://www.unxwares.com) · Fond cartographique © contributeurs [OpenStreetMap](https://www.openstreetmap.org/copyright) · Overlay rail © contributeurs [OpenRailwayMap](https://www.openrailwaymap.org/)
+Développé par **Baptiste Gosselin** · Hébergement [UnxWares - Division Cloud](https://www.unxwares.com) · Fond cartographique © contributeurs [OpenStreetMap](https://www.openstreetmap.org/copyright) · Overlay rail © contributeurs [OpenRailwayMap](https://www.openrailwaymap.org/)

@@ -1,0 +1,42 @@
+<?php
+
+// Pages /materials and /materials/{slug} (Pages/Materials/*.svelte).
+return [
+    'meta_title' => 'Rolling stock',
+    'meta_description' => 'French railway rolling stock: locomotives, multiple units, railcars, TGV, coaches and wagons.',
+    'eyebrow' => 'Rolling stock',
+    'title' => 'French railway rolling stock',
+    'subtitle' => 'Steam, diesel and electric locomotives, multiple units, railcars, TGV, coaches and wagons: :total types of rolling stock listed.',
+    'subtitle_empty' => 'Steam, diesel and electric locomotives, multiple units, railcars, TGV, coaches and wagons.',
+    'empty_title' => 'Rolling stock pages are on their way',
+    'empty_text' => 'No rolling stock is described in the encyclopedia yet. Do you know a class, its years in service and the lines it ran on? You can help us write these pages.',
+    'empty_cta' => 'Contribute',
+    'all' => 'All rolling stock',
+    'breadcrumbs' => 'Breadcrumbs',
+    'present' => 'today',
+    'period' => 'In service',
+    'builder' => 'Builder',
+    'lines' => 'Lines served',
+    'no_lines' => 'No line references this rolling stock yet.',
+    'contribute' => 'Contribute',
+    'types' => [
+        'locomotive_vapeur' => 'Steam locomotives',
+        'locomotive_diesel' => 'Diesel locomotives',
+        'locomotive_electrique' => 'Electric locomotives',
+        'automotrice' => 'Electric multiple units',
+        'autorail' => 'Railcars',
+        'rame_tgv' => 'TGV and high speed',
+        'voiture' => 'Coaches',
+        'wagon' => 'Wagons',
+    ],
+    'type' => [
+        'locomotive_vapeur' => 'Steam locomotive',
+        'locomotive_diesel' => 'Diesel locomotive',
+        'locomotive_electrique' => 'Electric locomotive',
+        'automotrice' => 'Electric multiple unit',
+        'autorail' => 'Railcar',
+        'rame_tgv' => 'TGV trainset',
+        'voiture' => 'Coach',
+        'wagon' => 'Wagon',
+    ],
+];

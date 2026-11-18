@@ -13,7 +13,7 @@ return [
     'github' => 'GitHub',
     'unxwares' => 'UnxWares',
 
-    'copyright' => 'Voies Ferrées de France — VFF © :start–:end — All rights reserved',
+    'copyright' => 'Voies Ferrées de France - VFF © :start-:end - All rights reserved',
     'powered_by' => 'Powered by',
     'made_by' => 'Built by :name',
 ];

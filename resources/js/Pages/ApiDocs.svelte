@@ -5,12 +5,51 @@
     import { i18n } from '$lib/i18n.js';
 
     const endpoints = [
-        { key: 'lines', method: 'GET', path: '/api/v1/lines' },
-        { key: 'segments', method: 'GET', path: '/api/v1/segments.geojson?era=2030' },
-        { key: 'stations', method: 'GET', path: '/api/v1/stations' },
-        { key: 'materials', method: 'GET', path: '/api/v1/materials' },
-        { key: 'events', method: 'GET', path: '/api/v1/lines/{id}/events' },
-        { key: 'media', method: 'GET', path: '/api/v1/media?line={id}' },
+        {
+            method: 'GET',
+            path: '/api/v1/eras/{year}/lines.geojson',
+            key: 'lines_geojson',
+        },
+        {
+            method: 'GET',
+            path: '/api/v1/eras/{year}/stations.geojson',
+            key: 'stations_geojson',
+        },
+        {
+            method: 'GET',
+            path: '/api/v1/eras/{year}/tiles/{z}/{x}/{y}.mvt',
+            key: 'tiles',
+        },
+        {
+            method: 'GET',
+            path: '/api/v1/search?q={query}',
+            key: 'search',
+        },
+        {
+            method: 'GET',
+            path: '/api/v1/lines/{slug}/history',
+            key: 'history',
+        },
+        {
+            method: 'GET',
+            path: '/api/v1/lines/{slug}/pk?lat={lat}&lng={lng}',
+            key: 'pk',
+        },
+        {
+            method: 'GET',
+            path: '/api/v1/lines/{slug}/stops?era={year}',
+            key: 'stops',
+        },
+        {
+            method: 'GET',
+            path: '/api/v1/route?from={slug}&to={slug}&era={year}',
+            key: 'route',
+        },
+        {
+            method: 'GET',
+            path: '/api/v1/eras/{year}/gtfs.zip',
+            key: 'gtfs',
+        },
     ];
 
     const formats = [
@@ -19,27 +58,34 @@
         { key: 'mvt', icon: 'bi-grid-3x3' },
     ];
 
-    const curlExample = `curl https://vff.fr/api/v1/lines?era=2000 \\
-  -H "Accept: application/json"`;
+    const curlExample = $derived(`# ${$i18n.t('api.example.curl_lines')}
+curl https://vff-project.org/api/v1/eras/2030/lines.geojson
+
+# ${$i18n.t('api.example.curl_pk')}
+curl "https://vff-project.org/api/v1/lines/paris-brest/pk?lat=48.10&lng=-1.67"
+
+# ${$i18n.t('api.example.curl_search')}
+curl "https://vff-project.org/api/v1/search?q=paris-brest"`);
 
     const responseExample = `{
-  "data": [
-    {
-      "id": "ligne-paris-brest",
-      "name": "Paris–Brest",
-      "era": 2000,
-      "status": "in_service",
-      "length_km": 622,
-      "operator": "SNCF",
-      "stations_count": 24
-    }
-  ],
-  "meta": { "total": 1, "page": 1 }
+  "line": {
+    "slug": "paris-brest",
+    "code": "420 000",
+    "name": "Paris - Brest"
+  },
+  "pk_m": 365280,
+  "pk_label": "365+280",
+  "total_m": 622408,
+  "snap": {
+    "lat": 48.10342,
+    "lng": -1.67215,
+    "distance_from_input_m": 0.83
+  }
 }`;
 </script>
 
 <svelte:head>
-    <title>{$i18n.t('api.meta_title')} — VFF</title>
+    <title>{$i18n.t('api.meta_title')} - VFF</title>
     <meta name="description" content={$i18n.t('api.meta_description')} />
 </svelte:head>
 
@@ -58,7 +104,7 @@
                     <li>
                         <span class="method">{e.method}</span>
                         <code>{e.path}</code>
-                        <span class="desc">{$i18n.t(`api.endpoints.${e.key}`)}</span>
+                        <span class="desc">{$i18n.t(`api.endpoints.items.${e.key}`)}</span>
                     </li>
                 {/each}
             </ul>
@@ -78,19 +124,98 @@
         <SectionBlock title={$i18n.t('api.example.title')} maxWidth="900px">
             <p class="example-desc">{$i18n.t('api.example.description')}</p>
             <pre class="code"><code>{curlExample}</code></pre>
-            <p class="example-desc">Réponse attendue :</p>
+            <p class="example-desc">{$i18n.t('api.example.response')}</p>
             <pre class="code"><code>{responseExample}</code></pre>
+        </SectionBlock>
+
+        <SectionBlock kind="alt" title={$i18n.t('api.graphql.title')} maxWidth="900px">
+            <p class="example-desc">{$i18n.t('api.graphql.text')}</p>
+            <div class="docs-links">
+                <a href="/graphiql" target="_blank" rel="noopener" class="docs-card">
+                    <i class="bi bi-diagram-3"></i>
+                    <div>
+                        <strong>GraphiQL Explorer</strong>
+                        <span>{$i18n.t('api.graphql.explorer_desc')}</span>
+                    </div>
+                    <i class="bi bi-box-arrow-up-right end"></i>
+                </a>
+                <a href="/graphql" class="docs-card">
+                    <i class="bi bi-braces-asterisk"></i>
+                    <div>
+                        <strong>POST /graphql</strong>
+                        <span>{$i18n.t('api.graphql.endpoint_desc')}</span>
+                    </div>
+                    <i class="bi bi-arrow-right end"></i>
+                </a>
+            </div>
+            <pre class="code"><code
+                    >{`# ${$i18n.t('api.graphql.example_comment')}
+{
+  line(slug: "rfn-405000") {
+    name code type historical_operator
+    segments {
+      status traffic_type electrified
+      signalling train_protection
+      era { year }
+    }
+    events { type event_date description }
+  }
+}`}</code
+                ></pre>
+        </SectionBlock>
+
+        <SectionBlock title={$i18n.t('api.openapi.title')} maxWidth="900px">
+            <p class="example-desc">
+                {$i18n.t('api.openapi.text_before')}
+                <a href="https://scramble.dedoc.co" target="_blank" rel="noopener">Scramble</a
+                >{$i18n.t('api.openapi.text_middle')}
+                <a href="https://scalar.com" target="_blank" rel="noopener">Scalar</a>{$i18n.t(
+                    'api.openapi.text_after',
+                ) === '.'
+                    ? '.'
+                    : ` ${$i18n.t('api.openapi.text_after')}`}
+            </p>
+            <div class="docs-links">
+                <a href="/docs/api" target="_blank" rel="noopener" class="docs-card">
+                    <i class="bi bi-book"></i>
+                    <div>
+                        <strong>{$i18n.t('api.openapi.docs')}</strong>
+                        <span>{$i18n.t('api.openapi.docs_desc')}</span>
+                    </div>
+                    <i class="bi bi-box-arrow-up-right end"></i>
+                </a>
+                <a href="/docs/api.json" target="_blank" rel="noopener" class="docs-card">
+                    <i class="bi bi-filetype-json"></i>
+                    <div>
+                        <strong>{$i18n.t('api.openapi.spec')}</strong>
+                        <span>{$i18n.t('api.openapi.spec_desc')}</span>
+                    </div>
+                    <i class="bi bi-box-arrow-up-right end"></i>
+                </a>
+            </div>
         </SectionBlock>
 
         <SectionBlock kind="cta" maxWidth="640px">
             <h2>{$i18n.t('api.cta.title')}</h2>
             <p>{$i18n.t('api.cta.text')}</p>
             <div class="cta-buttons">
-                <a href="https://discord.com/invite/6SwTfXBx4h" target="_blank" rel="noopener" class="vff-btn on-cta">
-                    <i class="bi bi-discord"></i> {$i18n.t('api.cta.discord')}
+                <a
+                    href="https://discord.com/invite/6SwTfXBx4h"
+                    target="_blank"
+                    rel="noopener"
+                    class="vff-btn on-cta"
+                >
+                    <i class="bi bi-discord"></i>
+                    {$i18n.t('api.cta.discord')}
                 </a>
-                <a href="https://github.com/vff-project" target="_blank" rel="noopener" class="vff-btn ghost-on-cta">
-                    <i class="bi bi-github"></i> {$i18n.t('api.cta.github')}
+                <a
+                    href="https://github.com/UnxWares/VFF-Project"
+                    target="_blank"
+                    rel="noopener"
+                    class="vff-btn ghost-on-cta"
+                >
+                    <i class="bi bi-github"></i>
+                    {$i18n.t('api.cta.github')}
                 </a>
             </div>
         </SectionBlock>
@@ -194,5 +319,54 @@
             flex-direction: column;
             align-items: flex-start;
         }
+        .endpoints code {
+            flex: 0 1 auto;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow-wrap: anywhere;
+        }
+    }
+    .docs-links {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 14px;
+        margin-top: 20px;
+    }
+    .docs-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 18px;
+        background-color: var(--vff-bg-elevated);
+        border: 1px solid var(--vff-border);
+        border-radius: var(--vff-radius-md);
+        text-decoration: none;
+        color: var(--vff-text);
+        transition: all var(--vff-transition);
+    }
+    .docs-card:hover {
+        border-color: var(--vff-accent);
+        transform: translateY(-2px);
+    }
+    .docs-card > i:first-child {
+        font-size: 22px;
+        color: var(--vff-accent);
+    }
+    .docs-card div {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .docs-card strong {
+        font-family: var(--vff-font-display);
+        font-size: 15px;
+    }
+    .docs-card span {
+        color: var(--vff-text-muted);
+        font-size: 12px;
+    }
+    .docs-card .end {
+        color: var(--vff-text-muted);
     }
 </style>

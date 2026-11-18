@@ -12,38 +12,39 @@ class EraSeeder extends Seeder
         $eras = [
             [
                 'year' => 1990,
-                'label' => "L'apogée du maillage rural",
-                'description' => "Le réseau secondaire est encore largement vivant. De nombreuses lignes métriques et étroites résistent.",
+                'label' => 'Les débuts du TGV',
+                'description' => "La LGV Sud-Est (1981-1983) puis la LGV Atlantique (1989-1990) ouvrent l'ère de la grande vitesse, pendant que les fermetures de petites lignes continuent.",
                 'is_current' => false,
                 'editable_until' => null,
             ],
             [
                 'year' => 2000,
-                'label' => "L'âge d'or du TGV",
-                'description' => "Les LGV s'étendent. Le réseau régional connaît ses premières fermetures massives. Voies vertes en projet.",
+                'label' => "L'extension de la grande vitesse",
+                'description' => 'LGV Nord, Rhône-Alpes et Interconnexion, tunnel sous la Manche (1994). Réseau ferré de France est créé en 1997 et les régions commencent à organiser leurs TER.',
                 'is_current' => false,
                 'editable_until' => null,
             ],
             [
                 'year' => 2010,
-                'label' => 'Régionalisation et fragilité',
-                'description' => "Les TER prennent le relais sur les lignes secondaires. Beaucoup ferment faute d'entretien. RER étendus.",
+                'label' => 'Les régions et le TER',
+                'description' => "Les régions deviennent autorités organisatrices des TER (2002). LGV Méditerranée (2001) et LGV Est (2007), premiers tram-trains, mais des petites lignes se dégradent faute d'entretien.",
                 'is_current' => false,
                 'editable_until' => null,
             ],
             [
                 'year' => 2020,
-                'label' => 'Le retour du fret et des trains de nuit',
-                'description' => 'Réouvertures emblématiques. Plan ferroviaire national. Trains de nuit relancés. Renouveau des petites lignes.',
+                'label' => 'Petites lignes en sursis',
+                'description' => "LGV Rhin-Rhône (2011), Bretagne - Pays de la Loire et Sud Europe Atlantique (2017). Plusieurs petites lignes sont suspendues pour cause de voie dégradée, d'autres sont sauvées par les régions.",
                 'is_current' => false,
                 'editable_until' => null,
             ],
             [
                 'year' => 2030,
-                'label' => "L'horizon en construction",
-                'description' => "Snapshot vivant — toutes les contributions actuelles s'y ajoutent jusqu'au gel de 2030. Votre présent fait l'archive de demain.",
+                'label' => 'Le réseau aujourd\'hui',
+                'description' => "État actuel du réseau, tenu à jour jusqu'à fin 2030 : réouvertures, retour des trains de nuit, régénération ou fermeture de petites lignes. Vos contributions d'aujourd'hui font l'archive de demain.",
                 'is_current' => true,
-                'editable_until' => '2029-12-31',
+                // Carte de l'état ACTUEL, tenue à jour jusqu'à fin 2030 ; ensuite : ère 2040.
+                'editable_until' => '2030-12-31',
             ],
         ];
 

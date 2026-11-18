@@ -1,0 +1,42 @@
+<?php
+
+// Seiten /materials und /materials/{slug} (Pages/Materials/*.svelte).
+return [
+    'meta_title' => 'Fahrzeuge',
+    'meta_description' => 'Französische Eisenbahnfahrzeuge: Lokomotiven, Triebzüge, Triebwagen, TGV, Reisezug- und Güterwagen.',
+    'eyebrow' => 'Fahrzeuge',
+    'title' => 'Französische Eisenbahnfahrzeuge',
+    'subtitle' => 'Dampf-, Diesel- und Elektrolokomotiven, Triebzüge, Triebwagen, TGV, Reisezug- und Güterwagen: :total Baureihen erfasst.',
+    'subtitle_empty' => 'Dampf-, Diesel- und Elektrolokomotiven, Triebzüge, Triebwagen, TGV, Reisezug- und Güterwagen.',
+    'empty_title' => 'Die Fahrzeugartikel folgen',
+    'empty_text' => 'In der Enzyklopädie ist noch kein Fahrzeug beschrieben. Kennen Sie eine Baureihe, ihre Einsatzzeit und die Strecken, auf denen sie fuhr? Helfen Sie uns, diese Artikel zu schreiben.',
+    'empty_cta' => 'Mitwirken',
+    'all' => 'Alle Fahrzeuge',
+    'breadcrumbs' => 'Brotkrümelnavigation',
+    'present' => 'heute',
+    'period' => 'Im Einsatz',
+    'builder' => 'Hersteller',
+    'lines' => 'Befahrene Strecken',
+    'no_lines' => 'Noch keine Strecke verweist auf dieses Fahrzeug.',
+    'contribute' => 'Mitwirken',
+    'types' => [
+        'locomotive_vapeur' => 'Dampflokomotiven',
+        'locomotive_diesel' => 'Diesellokomotiven',
+        'locomotive_electrique' => 'Elektrolokomotiven',
+        'automotrice' => 'Elektrotriebzüge',
+        'autorail' => 'Triebwagen',
+        'rame_tgv' => 'TGV und Hochgeschwindigkeit',
+        'voiture' => 'Reisezugwagen',
+        'wagon' => 'Güterwagen',
+    ],
+    'type' => [
+        'locomotive_vapeur' => 'Dampflokomotive',
+        'locomotive_diesel' => 'Diesellokomotive',
+        'locomotive_electrique' => 'Elektrolokomotive',
+        'automotrice' => 'Elektrotriebzug',
+        'autorail' => 'Triebwagen',
+        'rame_tgv' => 'TGV-Triebzug',
+        'voiture' => 'Reisezugwagen',
+        'wagon' => 'Güterwagen',
+    ],
+];

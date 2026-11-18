@@ -19,16 +19,19 @@ class LineMaterial extends Model
         'to_date' => 'date',
     ];
 
+    /** @return BelongsTo<Line, $this> */
     public function line(): BelongsTo
     {
         return $this->belongsTo(Line::class);
     }
 
+    /** @return BelongsTo<Material, $this> */
     public function material(): BelongsTo
     {
         return $this->belongsTo(Material::class);
     }
 
+    /** @return BelongsTo<Era, $this> */
     public function era(): BelongsTo
     {
         return $this->belongsTo(Era::class);

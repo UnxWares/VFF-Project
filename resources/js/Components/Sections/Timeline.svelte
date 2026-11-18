@@ -24,7 +24,7 @@
             </div>
         </div>
 
-        <ul class="era-list" role="tablist" aria-label="Sélecteur d'époque">
+        <ul class="era-list" role="tablist" aria-label={$i18n.t('home.timeline.selector_label')}>
             {#each eras as era}
                 <li>
                     <button
@@ -54,7 +54,8 @@
                         </div>
                         <p>{$i18n.t(`home.timeline.era${era}_text`)}</p>
                         <Link href="/maps" class="vff-btn primary">
-                            <i class="bi bi-map"></i> {$i18n.t('home.timeline.cta')}
+                            <i class="bi bi-map"></i>
+                            {$i18n.t('home.timeline.cta')}
                         </Link>
                     </div>
                 {/if}
@@ -180,7 +181,10 @@
         border-radius: 50%;
         background-color: var(--vff-bg);
         border: 3px solid var(--vff-border-strong);
-        transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+        transition:
+            background-color 200ms ease,
+            border-color 200ms ease,
+            box-shadow 200ms ease;
     }
     .era-list button.active .dot {
         background-color: var(--vff-accent);

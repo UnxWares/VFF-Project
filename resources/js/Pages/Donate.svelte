@@ -7,7 +7,11 @@
     import { Link } from '@inertiajs/svelte';
 
     const why = [
-        { icon: 'bi-shield-slash', titleKey: 'donate.why.item1_title', textKey: 'donate.why.item1_text' },
+        {
+            icon: 'bi-shield-slash',
+            titleKey: 'donate.why.item1_title',
+            textKey: 'donate.why.item1_text',
+        },
         { icon: 'bi-server', titleKey: 'donate.why.item2_title', textKey: 'donate.why.item2_text' },
         { icon: 'bi-clock', titleKey: 'donate.why.item3_title', textKey: 'donate.why.item3_text' },
     ];
@@ -40,7 +44,7 @@
 </script>
 
 <svelte:head>
-    <title>{$i18n.t('donate.meta_title')} — VFF</title>
+    <title>{$i18n.t('donate.meta_title')} - VFF</title>
     <meta name="description" content={$i18n.t('donate.meta_description')} />
 </svelte:head>
 
@@ -55,11 +59,7 @@
         <SectionBlock title={$i18n.t('donate.why.title')} maxWidth="1100px">
             <div class="why-grid">
                 {#each why as w}
-                    <IconCard
-                        icon={w.icon}
-                        title={$i18n.t(w.titleKey)}
-                        text={$i18n.t(w.textKey)}
-                    />
+                    <IconCard icon={w.icon} title={$i18n.t(w.titleKey)} text={$i18n.t(w.textKey)} />
                 {/each}
             </div>
         </SectionBlock>
@@ -72,8 +72,14 @@
                         <span class="amount">{$i18n.t(t.amountKey)}</span>
                         <span class="label">{$i18n.t(t.labelKey)}</span>
                         <p>{$i18n.t(t.textKey)}</p>
-                        <button type="button" class="tier-cta" disabled aria-label={$i18n.t('common.soon')}>
-                            <i class="bi bi-hourglass-split"></i> {$i18n.t('common.soon')}
+                        <button
+                            type="button"
+                            class="tier-cta"
+                            disabled
+                            aria-label={$i18n.t('common.soon')}
+                        >
+                            <i class="bi bi-hourglass-split"></i>
+                            {$i18n.t('common.soon')}
                         </button>
                     </div>
                 {/each}
@@ -82,7 +88,8 @@
                     <span class="label">{$i18n.t('donate.tiers.tier_custom_label')}</span>
                     <p>{$i18n.t('donate.tiers.tier_custom_text')}</p>
                     <button type="button" class="tier-cta" disabled>
-                        <i class="bi bi-hourglass-split"></i> {$i18n.t('common.soon')}
+                        <i class="bi bi-hourglass-split"></i>
+                        {$i18n.t('common.soon')}
                     </button>
                 </div>
             </div>
@@ -108,7 +115,8 @@
             <h2>{$i18n.t('donate.cta.title')}</h2>
             <p>{$i18n.t('donate.cta.text')}</p>
             <Link href="/contribute" class="vff-btn on-cta">
-                <i class="bi bi-geo"></i> {$i18n.t('donate.cta.contribute')}
+                <i class="bi bi-geo"></i>
+                {$i18n.t('donate.cta.contribute')}
             </Link>
         </SectionBlock>
     </main>
@@ -135,11 +143,9 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
-        transition: transform var(--vff-transition), border-color var(--vff-transition);
-    }
-    .tier:hover {
-        transform: translateY(-4px);
-        border-color: var(--vff-accent);
+        transition:
+            transform var(--vff-transition),
+            border-color var(--vff-transition);
     }
     .tier.highlight {
         border-color: var(--vff-accent);
@@ -164,14 +170,13 @@
         font-family: var(--vff-font-display);
         font-size: 40px;
         font-weight: 600;
-        color: var(--vff-accent);
+        color: var(--vff-accent-strong);
         line-height: 1;
+        font-variant-numeric: tabular-nums;
     }
     .tier .label {
         font-family: var(--vff-font-display);
-        font-size: 18px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        font-size: 19px;
         color: var(--vff-text);
     }
     .tier p {
@@ -219,10 +224,10 @@
     }
     .methods li .soon {
         font-size: 12px;
-        font-family: var(--vff-font-display);
-        text-transform: uppercase;
+        font-family: var(--vff-font-heading);
+        font-weight: 600;
         background-color: var(--vff-accent-soft);
-        color: var(--vff-accent);
+        color: var(--vff-accent-ink);
         padding: 4px 10px;
         border-radius: var(--vff-radius-pill);
         flex: 0 0 auto;
@@ -232,16 +237,28 @@
         font-size: 17px;
         line-height: 1.6;
         color: var(--vff-text);
-        text-align: justify;
+        max-width: 72ch;
     }
     .org-text :global(strong) {
-        color: var(--vff-accent);
+        color: var(--vff-accent-ink);
         font-weight: 600;
     }
     /* `.vff-btn` est défini globalement dans general.css. */
     @media (max-width: 600px) {
-        .transparency-text {
+        .transparency-text,
+        .org-text {
             text-align: left;
+        }
+        .methods li {
+            flex-wrap: wrap;
+            gap: 10px 14px;
+            font-size: 17px;
+        }
+        .methods li span:not(.soon) {
+            flex: 1 1 calc(100% - 40px);
+        }
+        .methods li .soon {
+            margin-left: 36px;
         }
     }
 </style>

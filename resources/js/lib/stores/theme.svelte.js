@@ -2,7 +2,7 @@
 // Pose `data-theme="dark|light"` sur <html> pour que les overrides CSS
 // `[data-theme="dark"]` de general.css s'activent. Persiste via cookie 1 an.
 // Par défaut clair, seul un clic explicite passe en sombre (pas d'auto-détection
-// prefers-color-scheme — comportement aligné sur l'origine).
+// prefers-color-scheme - comportement aligné sur l'origine).
 
 const COOKIE = 'theme';
 const DAYS = 365;

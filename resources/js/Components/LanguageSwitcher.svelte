@@ -30,9 +30,7 @@
         return () => document.removeEventListener('click', onClickOutside);
     });
 
-    let current = $derived(
-        LOCALES.find((l) => l.code === $i18n.language) ?? LOCALES[0],
-    );
+    let current = $derived(LOCALES.find((l) => l.code === $i18n.language) ?? LOCALES[0]);
 </script>
 
 <div class="lang-switcher" bind:this={wrapperEl}>
@@ -85,7 +83,9 @@
         border-radius: var(--vff-radius-sm);
         font-family: inherit;
         color: inherit;
-        transition: color var(--vff-transition), background-color var(--vff-transition);
+        transition:
+            color var(--vff-transition),
+            background-color var(--vff-transition);
         line-height: 1;
     }
     .lang-trigger:hover {

@@ -8,23 +8,43 @@
     import { Link } from '@inertiajs/svelte';
 
     const values = [
-        { icon: 'bi-unlock', titleKey: 'whoarewe.values.open_title', textKey: 'whoarewe.values.open_text' },
-        { icon: 'bi-shield-check', titleKey: 'whoarewe.values.rigorous_title', textKey: 'whoarewe.values.rigorous_text' },
-        { icon: 'bi-people', titleKey: 'whoarewe.values.collective_title', textKey: 'whoarewe.values.collective_text' },
-        { icon: 'bi-hourglass-split', titleKey: 'whoarewe.values.durable_title', textKey: 'whoarewe.values.durable_text' },
+        {
+            icon: 'bi-unlock',
+            titleKey: 'whoarewe.values.open_title',
+            textKey: 'whoarewe.values.open_text',
+        },
+        {
+            icon: 'bi-shield-check',
+            titleKey: 'whoarewe.values.rigorous_title',
+            textKey: 'whoarewe.values.rigorous_text',
+        },
+        {
+            icon: 'bi-people',
+            titleKey: 'whoarewe.values.collective_title',
+            textKey: 'whoarewe.values.collective_text',
+        },
+        {
+            icon: 'bi-hourglass-split',
+            titleKey: 'whoarewe.values.durable_title',
+            textKey: 'whoarewe.values.durable_text',
+        },
     ];
 
     const milestones = [
         { dateKey: 'whoarewe.milestones.item1_date', textKey: 'whoarewe.milestones.item1_text' },
         { dateKey: 'whoarewe.milestones.item2_date', textKey: 'whoarewe.milestones.item2_text' },
-        { dateKey: 'whoarewe.milestones.item3_date', textKey: 'whoarewe.milestones.item3_text', current: true },
+        {
+            dateKey: 'whoarewe.milestones.item3_date',
+            textKey: 'whoarewe.milestones.item3_text',
+            current: true,
+        },
         { dateKey: 'whoarewe.milestones.item4_date', textKey: 'whoarewe.milestones.item4_text' },
         { dateKey: 'whoarewe.milestones.item5_date', textKey: 'whoarewe.milestones.item5_text' },
     ];
 </script>
 
 <svelte:head>
-    <title>{$i18n.t('whoarewe.meta_title')} — VFF</title>
+    <title>{$i18n.t('whoarewe.meta_title')} - VFF</title>
     <meta name="description" content={$i18n.t('whoarewe.meta_description')} />
 </svelte:head>
 
@@ -47,11 +67,7 @@
         <SectionBlock title={$i18n.t('whoarewe.values.title')} maxWidth="1100px">
             <div class="values-grid" use:scrollReveal={{ threshold: 0.2 }}>
                 {#each values as v}
-                    <IconCard
-                        icon={v.icon}
-                        title={$i18n.t(v.titleKey)}
-                        text={$i18n.t(v.textKey)}
-                    />
+                    <IconCard icon={v.icon} title={$i18n.t(v.titleKey)} text={$i18n.t(v.textKey)} />
                 {/each}
             </div>
         </SectionBlock>
@@ -72,10 +88,12 @@
             <p>{$i18n.t('whoarewe.cta.text')}</p>
             <div class="cta-buttons">
                 <Link href="/contribute" class="vff-btn on-cta">
-                    <i class="bi bi-geo"></i> {$i18n.t('whoarewe.cta.contribute')}
+                    <i class="bi bi-geo"></i>
+                    {$i18n.t('whoarewe.cta.contribute')}
                 </Link>
                 <Link href="/donate" class="vff-btn ghost-on-cta">
-                    <i class="bi bi-balloon-heart"></i> {$i18n.t('whoarewe.cta.donate')}
+                    <i class="bi bi-balloon-heart"></i>
+                    {$i18n.t('whoarewe.cta.donate')}
                 </Link>
             </div>
         </SectionBlock>
@@ -144,8 +162,9 @@
         font-family: var(--vff-font-display);
         font-size: 18px;
         font-weight: 600;
-        color: var(--vff-accent);
+        color: var(--vff-accent-ink);
         text-align: right;
+        font-variant-numeric: tabular-nums;
     }
     .timeline .text {
         flex: 1;
@@ -161,7 +180,7 @@
         flex-wrap: wrap;
         margin-top: 24px;
     }
-    /* `.vff-btn` est défini globalement dans general.css — on n'ajoute rien ici
+    /* `.vff-btn` est défini globalement dans general.css - on n'ajoute rien ici
        pour éviter les conflits de scope avec les <Link> Inertia. */
 
     @media (max-width: 600px) {

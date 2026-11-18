@@ -6,7 +6,7 @@
     /**
      * Vignettes placeholder en attendant les vraies archives.
      * Chaque carte rend un SVG abstrait (couleur sourde, motif rail) avec date
-     * et légende — donne le ton "fonds d'archive" sans dépendre d'images réelles.
+     * et légende - donne le ton "fonds d'archive" sans dépendre d'images réelles.
      */
     const cards = [
         { key: 'card1', icon: 'bi-building', tone: 1 },
@@ -30,7 +30,9 @@
                 <li class="card tone-{card.tone}">
                     <figure class="thumb">
                         <span class="placeholder-icon"><i class="bi {card.icon}"></i></span>
-                        <span class="placeholder-label">{$i18n.t('home.archives.placeholder_label')}</span>
+                        <span class="placeholder-label"
+                            >{$i18n.t('home.archives.placeholder_label')}</span
+                        >
                     </figure>
                     <figcaption>
                         <span class="date">{$i18n.t(`home.archives.${card.key}_date`)}</span>
@@ -41,7 +43,8 @@
         </ul>
         <div class="archives-cta">
             <Link href="/maps" class="vff-btn ghost">
-                <i class="bi bi-images"></i> {$i18n.t('home.archives.cta')}
+                <i class="bi bi-images"></i>
+                {$i18n.t('home.archives.cta')}
             </Link>
         </div>
     </div>
@@ -100,7 +103,9 @@
         overflow: hidden;
         background-color: var(--vff-bg);
         border: 1px solid var(--vff-border);
-        transition: transform 250ms ease, box-shadow 250ms ease;
+        transition:
+            transform 250ms ease,
+            box-shadow 250ms ease;
     }
     .card:hover {
         transform: translateY(-4px);
@@ -125,12 +130,26 @@
         color: #4a4640;
         overflow: hidden;
     }
-    .tone-1 .thumb { background: linear-gradient(135deg, #d8d4cc, #a39c91); }
-    .tone-2 .thumb { background: linear-gradient(135deg, #c4b89c, #8a7d65); }
-    .tone-3 .thumb { background: linear-gradient(135deg, #bdb6a8, #978f80); }
-    .tone-4 .thumb { background: linear-gradient(135deg, #d2c4a8, #a89878); }
-    .tone-5 .thumb { background: linear-gradient(135deg, #404952, #1f242a); color: #d8d4cc; }
-    .tone-6 .thumb { background: linear-gradient(135deg, #a8b89a, #6f8060); color: #2a3a1f; }
+    .tone-1 .thumb {
+        background: linear-gradient(135deg, #d8d4cc, #a39c91);
+    }
+    .tone-2 .thumb {
+        background: linear-gradient(135deg, #c4b89c, #8a7d65);
+    }
+    .tone-3 .thumb {
+        background: linear-gradient(135deg, #bdb6a8, #978f80);
+    }
+    .tone-4 .thumb {
+        background: linear-gradient(135deg, #d2c4a8, #a89878);
+    }
+    .tone-5 .thumb {
+        background: linear-gradient(135deg, #404952, #1f242a);
+        color: #d8d4cc;
+    }
+    .tone-6 .thumb {
+        background: linear-gradient(135deg, #a8b89a, #6f8060);
+        color: #2a3a1f;
+    }
     .placeholder-icon {
         font-size: 48px;
         opacity: 0.85;

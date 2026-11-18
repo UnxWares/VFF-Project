@@ -1,0 +1,154 @@
+/* Référence GraphQL (Magidoc, gabarit carbon-multi-page) aux couleurs de VFF.
+   Copié tel quel dans public/docs/graphql/ par `bin/pnpm docs:graphql`.
+   Le gabarit suit le thème clair ou sombre du système (prefers-color-scheme).
+   Les polices du site remplacent IBM Plex : aucune police n'est chargée chez un tiers. */
+
+@font-face {
+    font-family: Lato;
+    src: url('Lato-Light.ttf');
+    font-display: swap;
+}
+@font-face {
+    font-family: Inter;
+    src: url('Inter-Regular.ttf');
+    font-display: swap;
+}
+@font-face {
+    font-family: Gabarito;
+    src: url('Gabarito-Regular.ttf');
+    font-display: swap;
+}
+
+:root {
+    --vff-font-body: Lato, 'Helvetica Neue', Arial, sans-serif;
+    --vff-font-heading: Inter, 'Helvetica Neue', Arial, sans-serif;
+    --vff-font-display: Gabarito, 'Helvetica Neue', Arial, sans-serif;
+    --vff-font-mono: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Liberation Mono', monospace;
+}
+
+/* ─── Polices ─────────────────────────────────────────────────────────── */
+
+html body,
+html body *:not(code):not(pre):not(kbd):not(samp):not(code *):not(pre *) {
+    font-family: var(--vff-font-body) !important;
+}
+html body h1,
+html body h2,
+html body h3,
+html body h4,
+html body .bx--side-nav__submenu-title,
+html body .bx--side-nav__link-text {
+    font-family: var(--vff-font-heading) !important;
+}
+html body h1 {
+    font-family: var(--vff-font-display) !important;
+}
+html body code,
+html body pre,
+html body kbd,
+html body samp,
+html body code *,
+html body pre * {
+    font-family: var(--vff-font-mono) !important;
+}
+
+/* ─── Couleurs : orange VFF à la place du bleu Carbon ─────────────────── */
+
+:root,
+:root[theme],
+[theme='white'],
+[theme='g10'] {
+    --cds-interactive: #b84800 !important;
+    --cds-interactive-01: #b84800 !important;
+    --cds-interactive-03: #b84800 !important;
+    --cds-interactive-04: #b84800 !important;
+    --cds-brand-01: #b84800 !important;
+    --cds-brand-03: #b84800 !important;
+    --cds-background-brand: #ff6500 !important;
+    --cds-button-primary: #b84800 !important;
+    --cds-button-primary-active: #8f3800 !important;
+    --cds-button-tertiary: #b84800 !important;
+    --cds-active-primary: #8f3800 !important;
+    --cds-border-interactive: #ff6500 !important;
+    --cds-focus: #ff6500 !important;
+    --cds-highlight: #ffe3cf !important;
+    --cds-link-01: #b84800 !important;
+    --cds-link-02: #8f3800 !important;
+    --cds-link-primary: #b84800 !important;
+    --cds-link-primary-hover: #8f3800 !important;
+    --cds-hover-primary-text: #8f3800 !important;
+    --sidenav-bg-light: #fcfcfd;
+    --code-span-light: #f1f3f5;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root,
+    :root[theme],
+    [theme='g90'],
+    [theme='g100'] {
+        --cds-interactive: #ff8a3d !important;
+        --cds-interactive-01: #ff6500 !important;
+        --cds-interactive-03: #ff8a3d !important;
+        --cds-interactive-04: #ff8a3d !important;
+        --cds-brand-01: #ff6500 !important;
+        --cds-brand-03: #ff8a3d !important;
+        --cds-background-brand: #ff6500 !important;
+        --cds-button-primary: #ff6500 !important;
+        --cds-button-primary-active: #b84800 !important;
+        --cds-button-tertiary: #ff8a3d !important;
+        --cds-active-primary: #b84800 !important;
+        --cds-border-interactive: #ff8a3d !important;
+        --cds-focus: #ff8a3d !important;
+        --cds-highlight: #4a2a14 !important;
+        --cds-link-01: #ff8a3d !important;
+        --cds-link-02: #ffae75 !important;
+        --cds-link-primary: #ff8a3d !important;
+        --cds-link-primary-hover: #ffae75 !important;
+        --cds-hover-primary-text: #ffae75 !important;
+        --cds-ui-background: #0f1419 !important;
+        --cds-background: #0f1419 !important;
+        --cds-ui-01: #181f29 !important;
+        --cds-layer: #181f29 !important;
+        --cds-layer-01: #181f29 !important;
+        --cds-field: #181f29 !important;
+        --cds-field-01: #181f29 !important;
+        --cds-ui-03: #2a3441 !important;
+        --cds-border-subtle: #2a3441 !important;
+        --cds-border-subtle-01: #2a3441 !important;
+        --sidenav-bg-dark: #121820;
+        --code-span-dark: #232c39;
+    }
+}
+
+/* Bandeau supérieur : filet orange comme sur le site. */
+html body .bx--header {
+    border-bottom: 3px solid #ff6500 !important;
+}
+
+/* Élément sélectionné du menu latéral. */
+html body .bx--side-nav__link[aria-current='page'],
+html body .bx--side-nav__link--current {
+    background-color: var(--cds-highlight) !important;
+}
+html body .bx--side-nav__link[aria-current='page']::before,
+html body .bx--side-nav__link--current::before {
+    background-color: #ff6500 !important;
+}
+
+/* Liens du contenu. */
+html body main a:not(.bx--btn) {
+    color: var(--cds-link-primary);
+}
+
+/* Titres : pas de coupure au milieu d'un mot ; taille réduite sur téléphone. */
+html body h1.header,
+html body h2.header {
+    overflow-wrap: normal;
+    word-break: normal;
+}
+@media (max-width: 640px) {
+    html body h1.header {
+        font-size: 2.25rem;
+        line-height: 1.2;
+    }
+}

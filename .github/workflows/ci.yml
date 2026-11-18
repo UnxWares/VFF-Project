@@ -1,0 +1,154 @@
+# VFF - Intégration continue
+#
+#   php   : Pint, contrôle i18n (vff:i18n-check), PHPStan + Larastan (niveau 6, baseline),
+#           contrôles statiques (tests/Unit/Static), PHPUnit sur PostgreSQL 18 + PostGIS 3.6
+#   front : pnpm install, Prettier, ESLint, svelte-check (baseline), build Vite
+#
+# Analyse statique (PHPStan, svelte-check) : la dette existante est gelée dans
+# phpstan-baseline.neon et svelte-check-baseline.json ; toute NOUVELLE erreur bloque.
+#
+# Style (Pint / Prettier) : sur une pull request, seuls les fichiers modifiés
+# sont BLOQUANTS (cliquet). Sur main, le contrôle complet est informatif tant
+# que le reformatage global du dépôt n'a pas été fait (cf. README › Qualité).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    name: PHP 8.5 - Pint, i18n, PHPStan, PHPUnit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgis/postgis:18-3.6
+        env:
+          POSTGRES_USER: vff
+          POSTGRES_PASSWORD: vff
+          # Les tests visent obligatoirement une base suffixée _test (cf. phpunit.xml).
+          POSTGRES_DB: vff_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vff -d vff_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_USERNAME: vff
+      DB_PASSWORD: vff
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # nécessaire à `pint --diff` (comparaison avec la branche de base)
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql, pgsql, intl, zip, bcmath, pcntl, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: composer install
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Préparer .env
+        run: |
+          cp .env.example .env
+          php artisan key:generate --ansi
+
+      - name: Pint (fichiers modifiés par la PR)
+        if: github.event_name == 'pull_request'
+        run: vendor/bin/pint --test --diff=origin/${{ github.base_ref }}
+
+      - name: Pint (dépôt complet, informatif)
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: vendor/bin/pint --test
+
+      - name: Traductions (FR → EN, DE)
+        run: php artisan vff:i18n-check --ansi
+
+      - name: Cache PHPStan
+        uses: actions/cache@v4
+        with:
+          path: storage/framework/cache/phpstan
+          key: phpstan-${{ runner.os }}-${{ hashFiles('composer.lock', 'phpstan.neon', 'phpstan-baseline.neon') }}-${{ github.sha }}
+          restore-keys: phpstan-${{ runner.os }}-${{ hashFiles('composer.lock', 'phpstan.neon', 'phpstan-baseline.neon') }}-
+
+      - name: PHPStan + Larastan (nouvelles erreurs bloquantes)
+        run: vendor/bin/phpstan analyse --memory-limit=2G --no-progress --error-format=github
+
+      - name: Contrôles statiques (tirets, clés i18n, palette carte, routes)
+        run: php artisan test tests/Unit/Static --ansi
+
+      - name: PHPUnit
+        run: php artisan test --ansi
+
+  front:
+    name: Front - Prettier, ESLint, svelte-check, build Vite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # Version de pnpm lue dans package.json (`packageManager`).
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: pnpm install
+        run: pnpm install --frozen-lockfile
+
+      - name: Prettier (fichiers modifiés par la PR)
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --name-only --diff-filter=AMR "origin/${{ github.base_ref }}...HEAD" -- resources/js resources/css \
+            | grep -E '\.(js|svelte|css)$' \
+            | xargs -r pnpm exec prettier --check
+
+      - name: Prettier (dépôt complet, informatif)
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: pnpm lint
+
+      - name: ESLint (bugs JS / Svelte)
+        run: pnpm lint:js
+
+      - name: svelte-check (JSDoc, nouvelles erreurs bloquantes)
+        run: pnpm check
+
+      - name: Build Vite
+        run: pnpm build

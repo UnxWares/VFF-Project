@@ -1,88 +1,153 @@
-footer{
+/* Pied de page du site seulement (Footer.svelte) ; :where() garde la spécificité d'origine. */
+footer:where(.site-footer) {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin-top: 30px;
-    box-shadow: 0 0 8px #D3D3D3;
+    box-shadow: 0 0 8px #d3d3d3;
 }
-footer > *{
+footer:where(.site-footer) > * {
     width: 80%;
 }
-footer .footer-infos{
+footer .footer-infos {
     display: flex;
     justify-content: space-between;
     margin: 30px 0;
     align-items: center;
 }
-footer .footer-infos .banner{
+footer .footer-infos .banner {
     display: flex;
     align-items: center;
     width: 35%;
 }
-footer .footer-infos .banner p{
+footer .footer-infos .banner p {
     text-align: justify;
     font-size: 18px;
     margin-left: 15px;
 }
-footer .footer-infos .banner figure img{
+footer .footer-infos .banner figure img {
     height: 100px;
 }
-footer .footer-infos .footer-links{
+footer .footer-infos .footer-links {
     display: flex;
     width: 50%;
     justify-content: space-between;
 }
-footer .footer-infos .footer-links ul{
+footer .footer-infos .footer-links ul {
     padding: 0;
 }
 footer .footer-infos .footer-links ul h3 {
     margin: 0 0 10px 0;
 }
-footer .footer-infos .footer-links ul li{
+footer .footer-infos .footer-links ul li {
     display: block;
 }
-footer .footer-infos .footer-links ul li a{
+footer .footer-infos .footer-links ul li a {
     text-decoration: none;
     color: black;
 }
-footer .footer-infos .footer-links .general-links hr{
+footer .footer-infos .footer-links .general-links hr {
     width: 100%;
 }
-footer .footer-infos .footer-links .contact-links .unxwares a{
+footer .footer-infos .footer-links .contact-links .unxwares a {
     display: flex;
     align-items: center;
 }
 
-footer .footer-infos .footer-links .contact-links .unxwares a img{
+footer .footer-infos .footer-links .contact-links .unxwares a img {
     width: 20px;
     height: 20px;
     margin-right: 5px;
 }
-footer hr{
+footer hr {
     margin: 3px 0;
     width: 80%;
     border: none;
     border-top: 1px double #333;
     color: #333;
 }
-footer .copyright{
+footer .copyright {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-footer .copyright p{
+footer .copyright p {
     display: flex;
     align-items: center;
     font-size: 16px;
 }
-footer .copyright p a{
+footer .copyright p a {
     text-decoration: none;
     display: flex;
     align-items: center;
     color: black;
 }
-footer .copyright p a img{
+footer .copyright p a img {
     width: 25px;
     height: 25px;
     margin: 0 4px;
+}
+
+/* ─── Responsive (correctifs du 2026-10-20) ─────────────────────────────────
+   Au-dessus de 1100 px, rien ne change (80 % de large, centré). En dessous, le
+   bandeau et les trois listes de liens se chevauchaient et sortaient de l'écran :
+   le bandeau passe au-dessus des liens, les listes vont à la ligne. */
+@media (max-width: 1100px) {
+    footer .footer-infos {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    footer .footer-infos .banner {
+        width: 100%;
+    }
+    footer .footer-infos .footer-links {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 8px 32px;
+    }
+    footer .copyright {
+        flex-wrap: wrap;
+        column-gap: 24px;
+    }
+    footer .copyright p {
+        flex-wrap: wrap;
+    }
+}
+@media (max-width: 600px) {
+    footer:where(.site-footer) > *,
+    footer:where(.site-footer) hr {
+        width: calc(100% - 32px);
+    }
+    footer .footer-infos .banner {
+        flex-direction: column;
+    }
+    footer .footer-infos .banner figure img {
+        height: 80px;
+    }
+    footer .footer-infos .banner p {
+        margin: 12px 0 0;
+        font-size: 16px;
+        text-align: left;
+    }
+    footer .footer-infos .footer-links ul {
+        flex: 1 1 135px;
+    }
+    footer .footer-infos .footer-links ul li {
+        font-size: 17px;
+    }
+    footer .footer-infos .footer-links ul li a {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        min-height: 36px;
+    }
+    footer .copyright {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    footer .copyright p {
+        margin: 8px 0;
+        font-size: 15px;
+    }
 }

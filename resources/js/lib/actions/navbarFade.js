@@ -14,10 +14,13 @@ export function navbarFade(node, params) {
 
                 if (entry.isIntersecting) {
                     nav.style.opacity = '0';
+                    // Invisible : ne capte plus les clics (cf. header.css), sauf au clavier.
+                    nav.classList.add('nav-hidden');
                     background.style.position = 'sticky';
                     isOut = false;
                 } else {
                     nav.style.opacity = '1';
+                    nav.classList.remove('nav-hidden');
                     isOut = true;
                     setTimeout(() => {
                         if (isOut) background.style.position = 'relative';

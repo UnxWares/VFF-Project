@@ -2,13 +2,36 @@
     import { i18n } from '$lib/i18n.js';
     import { scrollReveal } from '$lib/actions/scrollReveal.js';
 
-    // Objectifs — placeholders jusqu'à l'import OSM réel
-    const stats = [
-        { value: '30k+', labelKey: 'home.stats.km_label' },
-        { value: '5', labelKey: 'home.stats.eras_label' },
-        { value: '8k+', labelKey: 'home.stats.lines_label' },
-        { value: '12k+', labelKey: 'home.stats.stations_label' },
-    ];
+    let { stats: liveStats = null } = $props();
+
+    // Si on a des stats live depuis le backend on les utilise, sinon fallback
+    // sur des objectifs estimés (avant import OSM/SNCF).
+    function fmt(n) {
+        if (n == null) return '-';
+        if (n >= 1000)
+            return (
+                (n / 1000).toLocaleString($i18n.language, {
+                    maximumFractionDigits: n >= 10000 ? 0 : 1,
+                }) + 'k'
+            );
+        return n.toString();
+    }
+
+    const stats = $derived(
+        liveStats
+            ? [
+                  { value: fmt(liveStats.total_km), labelKey: 'home.stats.km_label' },
+                  { value: String(liveStats.eras_count ?? 0), labelKey: 'home.stats.eras_label' },
+                  { value: fmt(liveStats.lines_count), labelKey: 'home.stats.lines_label' },
+                  { value: fmt(liveStats.stations_count), labelKey: 'home.stats.stations_label' },
+              ]
+            : [
+                  { value: '30k+', labelKey: 'home.stats.km_label' },
+                  { value: '5', labelKey: 'home.stats.eras_label' },
+                  { value: '8k+', labelKey: 'home.stats.lines_label' },
+                  { value: '12k+', labelKey: 'home.stats.stations_label' },
+              ],
+    );
 </script>
 
 <section id="stats" class="stats-section" use:scrollReveal={{ threshold: 0.2 }}>
@@ -16,14 +39,18 @@
         <div class="stats-head">
             <span class="eyebrow">{$i18n.t('home.stats.eyebrow')}</span>
             <h2>{$i18n.t('home.stats.title')}</h2>
-            <p class="lead">{$i18n.t('home.stats.subtitle')}</p>
+            <p class="lead">
+                {$i18n.t(liveStats ? 'home.stats.subtitle_live' : 'home.stats.subtitle')}
+            </p>
         </div>
         <div class="stats-grid">
             {#each stats as s}
                 <div class="stat">
                     <span class="num">{s.value}</span>
                     <span class="label">{$i18n.t(s.labelKey)}</span>
-                    <span class="goal">{$i18n.t('home.stats.goal_suffix')}</span>
+                    {#if !liveStats}
+                        <span class="goal">{$i18n.t('home.stats.goal_suffix')}</span>
+                    {/if}
                 </div>
             {/each}
         </div>

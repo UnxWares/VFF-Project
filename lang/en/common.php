@@ -3,8 +3,9 @@
 return [
     'tagline' => 'Where rails meet.',
     'app_short' => 'VFF',
-    'app_full' => 'French Railways',
+    'app_full' => 'Railways of France',
     'app_description' => 'The largest collaborative encyclopedia of the French rail network.',
+    'brand' => 'VFF - Voies Ferrées de France (Railways of France)',
 
     'read_more' => 'Read more',
     'discover' => 'Discover',
@@ -17,5 +18,7 @@ return [
     'close' => 'Close',
     'soon' => 'Soon',
     'in_progress' => 'Under construction',
-    'wip_subtitle' => 'This section is under construction and will arrive in an upcoming phase of the project.',
+    'wip_subtitle' => 'This section is under construction and will arrive in a later phase of the project.',
+    'toc' => 'Contents',
+    'osm_attribution' => '© :link contributors',
 ];

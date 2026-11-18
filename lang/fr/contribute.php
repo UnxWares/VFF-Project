@@ -13,14 +13,14 @@ return [
     'ways' => [
         'data_title' => 'Documenter des lignes',
         'data_text' => "Dès l'ouverture de l'interface d'édition, vous pourrez documenter directement les lignes que vous connaissez : tracé exact, dates clés, matériel roulant. Toute contribution est validée par deux pairs avant publication.",
-        'data_status' => 'Phase 5 — Inscriptions à venir',
+        'data_status' => 'Phase 5 - Inscriptions à venir',
 
         'media_title' => "Apporter des médias d'archives",
         'media_text' => "Vous détenez des photos anciennes, des plans, des documents datés ? Avec votre accord et une licence claire, ils peuvent enrichir les fiches des lignes correspondantes. Pour les fonds importants (>50 documents), contactez-nous d'abord.",
         'media_status' => 'Discord ouvert',
 
         'code_title' => 'Contribuer au code',
-        'code_text' => "VFF est open-source. Bugs, idées de fonctionnalités, traductions, performances cartographiques — toutes les PRs sont les bienvenues. Consultez CONTRIBUTING.md pour les conventions.",
+        'code_text' => 'VFF est open-source. Bugs, idées de fonctionnalités, traductions, performances cartographiques : toutes les PRs sont les bienvenues. Consultez CONTRIBUTING.md pour les conventions.',
         'code_status' => 'GitHub ouvert',
     ],
 
@@ -29,9 +29,9 @@ return [
         'step1_title' => 'Vous proposez',
         'step1_text' => "Via l'interface d'édition ou une PR sur GitHub, vous soumettez une contribution (donnée, média, code).",
         'step2_title' => 'Deux pairs valident',
-        'step2_text' => "Au moins deux validateurs reconnus relisent votre apport, vérifient sources et cohérence.",
+        'step2_text' => 'Au moins deux validateurs reconnus relisent votre apport, vérifient sources et cohérence.',
         'step3_title' => 'Publication',
-        'step3_text' => "Une fois validée, votre contribution est publiée et créditée à votre profil. Votre badge / réputation grandit.",
+        'step3_text' => 'Une fois validée, votre contribution est publiée et créditée à votre profil. Votre badge / réputation grandit.',
     ],
 
     'rules' => [
@@ -50,5 +50,6 @@ return [
         'discord' => 'Discord',
         'github' => 'GitHub',
         'newsletter' => 'Être prévenu·e',
+        'edit_segment' => 'Éditer une portion de ligne',
     ],
 ];

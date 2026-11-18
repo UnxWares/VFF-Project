@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Configuration PHPUnit des tests de mutation (Infection, cf. infection.json5).
+    Seulement les tests qui exercent les classes mutées : la suite initiale reste
+    courte et un chantier en cours ailleurs ne bloque pas Infection.
+
+    Bases : chaque thread Infection reçoit TEST_TOKEN=<n> ; avec
+    LARAVEL_PARALLEL_TESTING, Laravel crée et migre « <base>_test_<n> » (garde-fou
+    de tests/CreatesApplication.php : suffixe _test ou _test_<n> seulement).
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../../../vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="../../../vendor/autoload.php"
+         colors="false"
+>
+    <testsuites>
+        <testsuite name="Cible">
+            <file>../../../tests/Feature/Commands/MergeSplitLinesCommandTest.php</file>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <file>../../../app/Console/Commands/MergeSplitLines.php</file>
+        </include>
+    </source>
+    <php>
+        <server name="LARAVEL_PARALLEL_TESTING" value="1"/>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="DB_DATABASE" value="vff_test" force="true"/>
+        <env name="INERTIA_SSR_ENABLED" value="false"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+    </php>
+</phpunit>

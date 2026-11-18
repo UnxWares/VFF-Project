@@ -1,0 +1,74 @@
+/* Scalar (/docs/api) aux couleurs de VFF. Surcharge du thème `default` de Scalar :
+   Scalar pose .light-mode ou .dark-mode sur <body>. */
+
+body.light-mode,
+body.dark-mode {
+    --scalar-custom-header-height: var(--vff-docs-bar-height);
+    --scalar-font: var(--vff-font-body);
+    --scalar-font-code: var(--vff-font-mono);
+    --scalar-radius: 6px;
+    --scalar-radius-lg: 10px;
+    --scalar-radius-xl: 16px;
+    --scalar-focus-color: var(--vff-accent);
+    --scalar-button-1: var(--vff-accent);
+    --scalar-button-1-color: #ffffff;
+    --scalar-button-1-hover: #e85a00;
+}
+
+body.light-mode {
+    --scalar-color-1: #11151a;
+    --scalar-color-2: #4a505a;
+    --scalar-color-3: #6b717b;
+    --scalar-color-accent: var(--vff-accent-text);
+    --scalar-background-1: #ffffff;
+    --scalar-background-2: #f6f7f9;
+    --scalar-background-3: #eceef1;
+    --scalar-background-accent: rgba(255, 101, 0, 0.1);
+    --scalar-border-color: #e2e6ea;
+    /* Méthode GET (seule méthode de l'API) à la couleur de VFF. */
+    --scalar-color-blue: var(--vff-accent-text);
+    --scalar-link-color: var(--vff-accent-text);
+    --scalar-link-color-hover: #8f3800;
+    --scalar-sidebar-background-1: #fcfcfd;
+    --scalar-sidebar-color-1: #11151a;
+    --scalar-sidebar-color-2: #4a505a;
+    --scalar-sidebar-color-active: var(--vff-accent-text);
+    --scalar-sidebar-item-active-background: rgba(255, 101, 0, 0.1);
+    --scalar-sidebar-border-color: #e2e6ea;
+    --scalar-sidebar-search-background: #ffffff;
+    --scalar-sidebar-search-border-color: #e2e6ea;
+}
+
+body.dark-mode {
+    --scalar-color-1: #e8ecec;
+    --scalar-color-2: #b4bfcc;
+    --scalar-color-3: #8a96a6;
+    --scalar-color-accent: #ff8a3d;
+    --scalar-background-1: #0f1419;
+    --scalar-background-2: #181f29;
+    --scalar-background-3: #232c39;
+    --scalar-background-accent: rgba(255, 101, 0, 0.16);
+    --scalar-border-color: #2a3441;
+    --scalar-color-blue: #ff8a3d;
+    --scalar-link-color: #ff8a3d;
+    --scalar-link-color-hover: #ffae75;
+    --scalar-sidebar-background-1: #121820;
+    --scalar-sidebar-color-1: #e8ecec;
+    --scalar-sidebar-color-2: #b4bfcc;
+    --scalar-sidebar-color-active: #ff8a3d;
+    --scalar-sidebar-item-active-background: rgba(255, 101, 0, 0.16);
+    --scalar-sidebar-border-color: #2a3441;
+    --scalar-sidebar-search-background: #181f29;
+    --scalar-sidebar-search-border-color: #2a3441;
+}
+
+/* Titres : polices d'affichage du site. */
+.vff-docs--scalar .scalar-app h1,
+.vff-docs--scalar .scalar-app h2,
+.vff-docs--scalar .scalar-app h3 {
+    font-family: var(--vff-font-heading);
+}
+.vff-docs--scalar .scalar-app .section-header-label,
+.vff-docs--scalar .scalar-app h1 {
+    font-family: var(--vff-font-display);
+}

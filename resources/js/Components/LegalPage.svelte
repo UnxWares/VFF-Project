@@ -4,17 +4,31 @@
     import { i18n } from '$lib/i18n.js';
 
     /**
-     * Wrapper pour les pages légales (Mentions, Confidentialité, CGU).
-     * Reçoit `namespace` (ex. 'legal', 'privacy', 'use_conditions') et `sections`
-     * (liste de slugs `[ 'editor', 'hosting', 'ip', ... ]`) — chaque slug correspond
-     * à une clé `:namespace.:slug.title` et `:namespace.:slug.paragraph` dans les
-     * traductions.
+     * Pages légales (Mentions, Confidentialité, CGU).
+     * `namespace` (ex. 'legal', 'privacy', 'use_conditions', 'accessibility') et `sections` : un slug
+     * (clés `:namespace.:slug.title` et `:namespace.:slug.paragraph`) ou
+     * `{ slug, subSlugs }` (clés `:namespace.:slug.:sub_title` et `:sub_text`).
+     * Le texte est du HTML de confiance (fichiers lang/) : paragraphes <p>, listes, tableaux
+     * dans un <div class="table-wrap"> ; un texte sans balise de bloc est enveloppé dans un <p>.
+     * `updated` : date ISO (AAAA-MM-JJ), écrite dans la langue de la page.
      */
-    let { namespace, sections, updated = '11 mai 2026' } = $props();
+    let { namespace, sections, updated = '2026-05-11' } = $props();
+
+    /** Texte sans balise de bloc : un seul paragraphe. */
+    const block = (html) => (/^\s*<(p|ul|ol|div|table|h3)\b/i.test(html) ? html : `<p>${html}</p>`);
+
+    const items = $derived(sections.map((s) => (typeof s === 'string' ? { slug: s } : s)));
+    const updatedLabel = $derived(
+        new Date(`${updated}T12:00:00`).toLocaleDateString($i18n.language ?? 'fr', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+        }),
+    );
 </script>
 
 <svelte:head>
-    <title>{$i18n.t(`${namespace}.meta_title`)} — VFF</title>
+    <title>{$i18n.t(`${namespace}.meta_title`)} - VFF</title>
     <meta name="description" content={$i18n.t(`${namespace}.meta_description`)} />
 </svelte:head>
 
@@ -23,25 +37,40 @@
         <PageHero
             eyebrow={$i18n.t(`${namespace}.hero.eyebrow`)}
             title={$i18n.t(`${namespace}.hero.title`)}
-            subtitle={$i18n.t(`${namespace}.hero.updated`, { date: updated })}
+            subtitle={$i18n.t(`${namespace}.hero.updated`, { date: updatedLabel })}
         />
 
         <div class="legal-content">
-            <nav class="toc" aria-label="Sommaire">
-                <h2>Sommaire</h2>
-                <ul>
-                    {#each sections as slug}
-                        <li><a href={`#${slug}`}>{$i18n.t(`${namespace}.${slug}.title`)}</a></li>
+            <nav class="toc" aria-labelledby="legal-toc-title">
+                <h2 id="legal-toc-title">{$i18n.t('common.toc')}</h2>
+                <ol>
+                    {#each items as s (s.slug)}
+                        <li>
+                            <a href={`#${s.slug}`}>{$i18n.t(`${namespace}.${s.slug}.title`)}</a>
+                        </li>
                     {/each}
-                </ul>
+                </ol>
             </nav>
             <article>
-                {#each sections as slug}
-                    <section id={slug}>
-                        <h2>{$i18n.t(`${namespace}.${slug}.title`)}</h2>
-                        <p>{@html $i18n.t(`${namespace}.${slug}.paragraph`)}</p>
+                <!-- eslint-disable svelte/no-at-html-tags -->
+                {#each items as s (s.slug)}
+                    <section id={s.slug}>
+                        <h2>{$i18n.t(`${namespace}.${s.slug}.title`)}</h2>
+                        {#if s.subSlugs}
+                            {#each s.subSlugs as sub (sub)}
+                                <h3>{$i18n.t(`${namespace}.${s.slug}.${sub}_title`)}</h3>
+                                <div class="legal-text">
+                                    {@html block($i18n.t(`${namespace}.${s.slug}.${sub}_text`))}
+                                </div>
+                            {/each}
+                        {:else}
+                            <div class="legal-text">
+                                {@html block($i18n.t(`${namespace}.${s.slug}.paragraph`))}
+                            </div>
+                        {/if}
                     </section>
                 {/each}
+                <!-- eslint-enable svelte/no-at-html-tags -->
             </article>
         </div>
     </main>
@@ -66,14 +95,16 @@
         padding: 20px;
     }
     .toc h2 {
-        font-size: 14px;
-        font-family: var(--vff-font-display);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--vff-text-muted);
-        margin: 0 0 12px;
+        font-size: 15px;
+        font-family: var(--vff-font-heading);
+        font-weight: 600;
+        color: var(--vff-text);
+        margin: 0 0 8px;
     }
-    .toc ul {
+    .toc h2:after {
+        display: none;
+    }
+    .toc ol {
         list-style: none;
         padding: 0;
         margin: 0;
@@ -88,11 +119,13 @@
         color: var(--vff-text);
         font-size: 14px;
         border-radius: var(--vff-radius-sm);
-        transition: background-color var(--vff-transition), color var(--vff-transition);
+        transition:
+            background-color var(--vff-transition),
+            color var(--vff-transition);
     }
     .toc a:hover {
         background-color: var(--vff-accent-soft);
-        color: var(--vff-accent);
+        color: var(--vff-text);
     }
     article section {
         margin-bottom: 40px;
@@ -103,15 +136,62 @@
         margin: 0 0 12px;
         color: var(--vff-text);
     }
-    article p {
-        font-size: 17px;
-        line-height: 1.65;
-        text-align: justify;
+    article h3 {
+        font-size: 18px;
+        margin: 16px 0 8px;
         color: var(--vff-text);
     }
+    .legal-text {
+        display: grid;
+        gap: 12px;
+        font-size: 17px;
+        line-height: 1.65;
+        max-width: 72ch;
+        color: var(--vff-text);
+    }
+    .legal-text :global(p),
+    .legal-text :global(ul) {
+        margin: 0;
+    }
+    .legal-text :global(ul) {
+        padding-left: 1.25em;
+        display: grid;
+        gap: 6px;
+    }
+    .legal-text :global(code) {
+        font-size: 0.9em;
+        padding: 1px 5px;
+        border-radius: 4px;
+        background-color: var(--vff-accent-soft);
+        overflow-wrap: anywhere;
+    }
+    .legal-text :global(.table-wrap) {
+        overflow-x: auto;
+    }
+    .legal-text :global(table) {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 15px;
+        line-height: 1.5;
+    }
+    .legal-text :global(th),
+    .legal-text :global(td) {
+        text-align: left;
+        vertical-align: top;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--vff-border, rgba(0, 0, 0, 0.12));
+    }
+    .legal-text :global(th) {
+        font-weight: 700;
+    }
     article :global(a) {
-        color: var(--vff-accent);
-        text-decoration: none;
+        color: var(--vff-accent-ink);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+    .toc a:focus-visible {
+        outline: 2px solid var(--vff-accent);
+        outline-offset: 1px;
     }
     article :global(a:hover) {
         text-decoration: underline;
@@ -123,9 +203,6 @@
         .toc {
             position: relative;
             top: 0;
-        }
-        article p {
-            text-align: left;
         }
     }
 </style>

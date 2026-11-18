@@ -26,8 +26,30 @@ class LocaleController extends Controller
         }
 
         $minutes = 60 * 24 * 365; // 1 an
-        $target = $request->headers->get('referer') ?: '/';
 
-        return redirect($target)->withCookie(cookie('locale', $code, $minutes));
+        return redirect($this->safeTarget($request))->withCookie(cookie('locale', $code, $minutes));
+    }
+
+    /**
+     * Page d'origine, uniquement si elle est sur notre propre site : un Referer
+     * externe ferait de cette route une redirection ouverte (phishing).
+     */
+    private function safeTarget(Request $request): string
+    {
+        $referer = (string) $request->headers->get('referer', '');
+        $parts = parse_url($referer);
+
+        if (! $referer || ! $parts || ($parts['host'] ?? null) !== $request->getHost()) {
+            return '/';
+        }
+
+        // Chemin local seulement : « //evil.example » (protocole-relatif) ou « /\evil.example »
+        // (lu « // » par les navigateurs) renverraient vers un autre site.
+        $path = $parts['path'] ?? '/';
+        if (! str_starts_with($path, '/') || str_starts_with($path, '//') || str_contains($path, '\\')) {
+            return '/';
+        }
+
+        return $path.(isset($parts['query']) ? '?'.$parts['query'] : '');
     }
 }

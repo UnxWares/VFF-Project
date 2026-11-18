@@ -28,7 +28,17 @@ class HandleInertiaRequests extends Middleware
             'available_locales' => SetLocale::SUPPORTED,
             'translations' => fn () => Translations::load($locale),
             'auth' => [
-                'user' => $request->user(),
+                // Whitelist explicite : on n'expose JAMAIS le hash password ni
+                // remember_token au front. role est sérialisé en string (enum).
+                'user' => fn () => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    'role' => $request->user()->role->value,
+                    'reputation' => $request->user()->reputation,
+                    'avatar_path' => $request->user()->avatar_path,
+                    'locale_preference' => $request->user()->locale_preference,
+                ] : null,
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

@@ -1,0 +1,217 @@
+/* Swagger UI (/docs/swagger) aux couleurs de VFF, thème clair et sombre.
+   Swagger UI n'a pas de thème sombre natif : les surcharges ci-dessous
+   s'appliquent sous :root[data-theme='dark']. */
+
+.vff-docs--swagger .swagger-ui {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px 48px;
+    box-sizing: border-box;
+    font-family: var(--vff-font-body);
+    color: var(--vff-text);
+}
+.vff-docs--swagger .swagger-ui .wrapper {
+    padding: 0;
+}
+.vff-docs--swagger .swagger-ui .info .title,
+.vff-docs--swagger .swagger-ui .opblock-tag {
+    font-family: var(--vff-font-display);
+}
+.vff-docs--swagger .swagger-ui .info,
+.vff-docs--swagger .swagger-ui .opblock-summary-description,
+.vff-docs--swagger .swagger-ui .markdown p,
+.vff-docs--swagger .swagger-ui .renderedMarkdown p,
+.vff-docs--swagger .swagger-ui table thead tr th,
+.vff-docs--swagger .swagger-ui .parameter__name,
+.vff-docs--swagger .swagger-ui .response-col_status {
+    font-family: var(--vff-font-body);
+}
+.vff-docs--swagger .swagger-ui .info .title small.version-stamp {
+    background-color: var(--vff-accent);
+}
+.vff-docs--swagger .swagger-ui a,
+.vff-docs--swagger .swagger-ui .info a {
+    color: var(--vff-accent-text);
+}
+.vff-docs--swagger .swagger-ui .btn.execute {
+    background-color: var(--vff-accent);
+    border-color: var(--vff-accent);
+    color: #ffffff;
+}
+.vff-docs--swagger .swagger-ui .btn.authorize,
+.vff-docs--swagger .swagger-ui .btn.try-out__btn {
+    border-color: var(--vff-accent);
+    color: var(--vff-accent-text);
+}
+.vff-docs--swagger .swagger-ui .opblock.opblock-get {
+    border-color: var(--vff-accent);
+    background: rgba(255, 101, 0, 0.06);
+}
+.vff-docs--swagger .swagger-ui .opblock.opblock-get .opblock-summary-method {
+    background: var(--vff-accent);
+}
+.vff-docs--swagger .swagger-ui .opblock.opblock-get .opblock-summary {
+    border-color: var(--vff-accent);
+}
+.vff-docs--swagger .swagger-ui .opblock.opblock-get .tab-header .tab-item.active h4 span::after {
+    background: var(--vff-accent);
+}
+.vff-docs--swagger .swagger-ui .operation-filter-input {
+    border-color: var(--vff-border-strong);
+}
+.vff-docs--swagger .swagger-ui .scheme-container {
+    background: transparent;
+    box-shadow: none;
+    padding: 12px 0;
+}
+
+/* Téléphone : pas de débordement horizontal de la page. */
+@media (max-width: 640px) {
+    .vff-docs--swagger .swagger-ui {
+        padding: 0 8px 32px;
+    }
+    .vff-docs--swagger .swagger-ui .opblock .opblock-summary {
+        flex-wrap: wrap;
+    }
+    .vff-docs--swagger .swagger-ui .opblock .opblock-summary-path {
+        max-width: 100%;
+        word-break: break-all;
+    }
+    .vff-docs--swagger .swagger-ui .opblock-body pre,
+    .vff-docs--swagger .swagger-ui .highlight-code,
+    .vff-docs--swagger .swagger-ui .model-box,
+    .vff-docs--swagger .swagger-ui table {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+    .vff-docs--swagger .swagger-ui .info .title {
+        font-size: 26px;
+    }
+}
+
+/* ─── Thème sombre ─────────────────────────────────────────────────────── */
+
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .info .title,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .info li,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .info p,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .info table,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .markdown p,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .markdown li,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .renderedMarkdown p,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .renderedMarkdown li,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock-tag,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock-tag small,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock .opblock-summary-path,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock .opblock-summary-description,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock .opblock-section-header h4,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock-description-wrapper p,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock-external-docs-wrapper p,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock-title_normal p,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .tab li,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .tab li button.tablinks,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui table thead tr td,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui table thead tr th,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .parameter__name,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .parameter__type,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .parameter__in,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .parameter__extension,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .response-col_status,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .response-col_links,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .responses-inner h4,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .responses-inner h5,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .model-title,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .model,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui section.models h4,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .servers-title,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .servers > label,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui label,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .prop-format,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .prop-type,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .dialog-ux .modal-ux-header h3,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .dialog-ux .modal-ux-content p,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .dialog-ux .modal-ux-content h4,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .loading-container .loading::after {
+    color: var(--vff-text);
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .parameter__in,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .parameter__type,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .prop-format,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .model .property.primitive,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .info .base-url {
+    color: var(--vff-text-muted);
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .prop-type {
+    color: #c4a7ff;
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .parameter__name.required::after,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .parameter__name.required span {
+    color: #ff7b72;
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock-tag,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock .opblock-section-header,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui section.models,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui section.models.is-open h4,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui table thead tr td,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui table thead tr th,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .responses-inner,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock .opblock-summary {
+    border-color: var(--vff-border);
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock.opblock-get .opblock-summary {
+    border-color: var(--vff-accent);
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock .opblock-section-header,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui section.models .model-container,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .model-box,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .dialog-ux .modal-ux {
+    background: var(--vff-bg-elevated);
+    box-shadow: none;
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock.opblock-get {
+    background: rgba(255, 101, 0, 0.08);
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui section.models .model-container:hover {
+    background: var(--vff-bg-muted);
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui input[type='text'],
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui input[type='search'],
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui input[type='number'],
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui textarea,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui select {
+    background-color: var(--vff-bg-muted);
+    color: var(--vff-text);
+    border-color: var(--vff-border-strong);
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .btn {
+    color: var(--vff-text);
+    border-color: var(--vff-border-strong);
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .btn.execute {
+    color: #ffffff;
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .btn.try-out__btn {
+    color: #ff8a3d;
+    border-color: var(--vff-accent);
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui svg:not(:root) {
+    fill: var(--vff-text);
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .opblock-summary-method {
+    color: #ffffff;
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .markdown code,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .renderedMarkdown code,
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .info code {
+    background: var(--vff-bg-muted);
+    color: #ffb07a;
+}
+:root[data-theme='dark'] .vff-docs--swagger .swagger-ui .model-toggle::after {
+    filter: invert(1);
+}
+:root[data-theme='dark']
+    .vff-docs--swagger
+    .swagger-ui
+    .response-control-media-type__accept-message {
+    color: #7ee787;
+}

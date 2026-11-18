@@ -1,0 +1,11 @@
+{
+    "head": {"vars": ["code", "label"]},
+    "results": {
+        "bindings": [
+            {"code": {"type": "literal", "value": "200 000"}, "label": {"xml:lang": "fr", "type": "literal", "value": "viaduc de Charlie"}},
+            {"code": {"type": "literal", "value": "200 000"}, "label": {"xml:lang": "fr", "type": "literal", "value": "ligne de Charlie à Delta"}},
+            {"code": {"type": "literal", "value": "200000"}, "label": {"xml:lang": "fr", "type": "literal", "value": "tunnel de Delta"}},
+            {"code": {"type": "literal", "value": "100000"}, "label": {"xml:lang": "fr", "type": "literal", "value": "ligne Wikidata de 100000"}}
+        ]
+    }
+}

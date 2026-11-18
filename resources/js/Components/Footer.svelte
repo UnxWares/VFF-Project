@@ -7,11 +7,11 @@
     const currentYear = new Date().getFullYear();
 </script>
 
-<footer>
+<footer class="site-footer">
     <div class="footer-infos">
         <div class="banner">
             <figure>
-                <img src={vffLogo} alt="Logo de VFF" />
+                <img src={vffLogo} alt={$i18n.t('nav.logo_alt')} />
             </figure>
             <p>{$i18n.t('footer.banner')}</p>
         </div>
@@ -19,16 +19,22 @@
             <ul class="general-links">
                 <h3>{$i18n.t('footer.quick_links')}</h3>
                 <li class="whoarewe">
-                    <Link href="/whoarewe"><i class="bi bi-people"></i> {$i18n.t('nav.whoarewe')}</Link>
+                    <Link href="/whoarewe"
+                        ><i class="bi bi-people"></i> {$i18n.t('nav.whoarewe')}</Link
+                    >
                 </li>
                 <li class="maps">
                     <Link href="/maps"><i class="bi bi-map"></i> {$i18n.t('nav.maps')}</Link>
                 </li>
                 <li class="contribute">
-                    <Link href="/contribute"><i class="bi bi-geo"></i> {$i18n.t('nav.contribute')}</Link>
+                    <Link href="/contribute"
+                        ><i class="bi bi-geo"></i> {$i18n.t('nav.contribute')}</Link
+                    >
                 </li>
                 <li class="donate">
-                    <Link href="/donate"><i class="bi bi-balloon-heart"></i> {$i18n.t('nav.donate')}</Link>
+                    <Link href="/donate"
+                        ><i class="bi bi-balloon-heart"></i> {$i18n.t('nav.donate')}</Link
+                    >
                 </li>
                 <hr />
                 <li class="api">
@@ -38,28 +44,53 @@
             <ul class="contact-links">
                 <h3>{$i18n.t('footer.contact_us')}</h3>
                 <li class="discord">
-                    <a href="https://discord.com/invite/6SwTfXBx4h" rel="noopener noreferrer" target="_blank">
-                        <i class="bi bi-discord"></i> {$i18n.t('footer.discord')}
+                    <a
+                        href="https://discord.com/invite/6SwTfXBx4h"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <i class="bi bi-discord"></i>
+                        {$i18n.t('footer.discord')}
                     </a>
                 </li>
                 <li class="instagram">
-                    <a href="https://www.instagram.com/vff_project" rel="noopener noreferrer" target="_blank">
-                        <i class="bi bi-instagram"></i> {$i18n.t('footer.instagram')}
+                    <a
+                        href="https://www.instagram.com/vff_project"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <i class="bi bi-instagram"></i>
+                        {$i18n.t('footer.instagram')}
                     </a>
                 </li>
                 <li class="twitter-x">
-                    <a href="https://www.x.com/vff-project" rel="noopener noreferrer" target="_blank">
-                        <i class="bi bi-twitter-x"></i> {$i18n.t('footer.twitter')}
+                    <a
+                        href="https://www.x.com/vff-project"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <i class="bi bi-twitter-x"></i>
+                        {$i18n.t('footer.twitter')}
                     </a>
                 </li>
                 <li class="github">
-                    <a href="https://www.github.com/vff-project" rel="noopener noreferrer" target="_blank">
-                        <i class="bi bi-github"></i> {$i18n.t('footer.github')}
+                    <a
+                        href="https://github.com/UnxWares/VFF-Project"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <i class="bi bi-github"></i>
+                        {$i18n.t('footer.github')}
                     </a>
                 </li>
                 <li class="unxwares">
-                    <a href="https://www.unxwares.studio/vff-project" rel="noopener noreferrer" target="_blank">
-                        <img src={unxwares} alt="" /> {$i18n.t('footer.unxwares')}
+                    <a
+                        href="https://www.unxwares.studio/vff-project"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <img src={unxwares} alt="" />
+                        {$i18n.t('footer.unxwares')}
                     </a>
                 </li>
             </ul>
@@ -69,10 +100,24 @@
                     <Link href="/legal"><i class="bi bi-folder"></i> {$i18n.t('nav.legal')}</Link>
                 </li>
                 <li class="privacy">
-                    <Link href="/privacy"><i class="bi bi-bell-slash"></i> {$i18n.t('nav.privacy')}</Link>
+                    <Link href="/privacy"
+                        ><i class="bi bi-bell-slash"></i> {$i18n.t('nav.privacy')}</Link
+                    >
                 </li>
                 <li class="use-conditions">
-                    <Link href="/use-conditions"><i class="bi bi-check2-circle"></i> {$i18n.t('nav.use_conditions')}</Link>
+                    <Link href="/use-conditions"
+                        ><i class="bi bi-check2-circle"></i> {$i18n.t('nav.use_conditions')}</Link
+                    >
+                </li>
+                <li class="credits-tech">
+                    <Link href="/credits/tech"
+                        ><i class="bi bi-code-square"></i> {$i18n.t('nav.credits_tech')}</Link
+                    >
+                </li>
+                <li class="credits-media">
+                    <Link href="/credits/media"
+                        ><i class="bi bi-camera"></i> {$i18n.t('nav.credits_media')}</Link
+                    >
                 </li>
             </ul>
         </div>

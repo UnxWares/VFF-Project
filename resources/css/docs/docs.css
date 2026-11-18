@@ -1,0 +1,189 @@
+/* Pages de documentation de l'API (/docs/api Scalar, /docs/swagger Swagger UI).
+   Identité VFF : orange #ff6500, polices du site, thème clair et sombre piloté
+   par <html data-theme> (cookie `theme` partagé avec le site). */
+
+@font-face {
+    font-family: Lato;
+    src: url('../../fonts/Lato-Light.ttf');
+    font-display: swap;
+}
+@font-face {
+    font-family: Gabarito;
+    src: url('../../fonts/Gabarito-Regular.ttf');
+    font-display: swap;
+}
+@font-face {
+    font-family: Inter;
+    src: url('../../fonts/Inter-Regular.ttf');
+    font-display: swap;
+}
+@font-face {
+    font-family: Montserrat;
+    src: url('../../fonts/Montserrat-Regular.ttf');
+    font-display: swap;
+}
+
+:root {
+    color-scheme: light;
+    --vff-accent: #ff6500;
+    /* Orange assombri pour le texte sur fond clair (contraste AA). */
+    --vff-accent-text: #b84800;
+    --vff-accent-soft: rgba(255, 101, 0, 0.12);
+    --vff-bg: #ffffff;
+    --vff-bg-elevated: #fcfcfd;
+    --vff-bg-muted: #f1f3f5;
+    --vff-text: #11151a;
+    --vff-text-muted: #555a64;
+    --vff-border: #e2e6ea;
+    --vff-border-strong: #c8ced4;
+    --vff-font-display: Gabarito, 'Helvetica Neue', Arial, sans-serif;
+    --vff-font-heading: Inter, 'Helvetica Neue', Arial, sans-serif;
+    --vff-font-body: Lato, 'Helvetica Neue', Arial, sans-serif;
+    --vff-font-mono: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+    --vff-docs-bar-height: 56px;
+}
+
+:root[data-theme='dark'] {
+    color-scheme: dark;
+    --vff-accent-text: #ff8a3d;
+    --vff-accent-soft: rgba(255, 101, 0, 0.18);
+    --vff-bg: #0f1419;
+    --vff-bg-elevated: #181f29;
+    --vff-bg-muted: #232c39;
+    --vff-text: #e8ecec;
+    --vff-text-muted: #94a3b8;
+    --vff-border: #2a3441;
+    --vff-border-strong: #3a4655;
+}
+
+html,
+body {
+    margin: 0;
+    background-color: var(--vff-bg);
+    color: var(--vff-text);
+    font-family: var(--vff-font-body);
+}
+
+/* ─── Barre de navigation ─────────────────────────────────────────────── */
+
+.vff-docs-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: var(--vff-docs-bar-height);
+    padding: 0 16px;
+    box-sizing: border-box;
+    background-color: var(--vff-bg);
+    border-bottom: 3px solid var(--vff-accent);
+}
+
+.vff-docs-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+    color: var(--vff-text);
+    text-decoration: none;
+    font-family: var(--vff-font-display);
+    font-size: 18px;
+}
+.vff-docs-brand img {
+    display: block;
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.vff-docs-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.vff-docs-nav::-webkit-scrollbar {
+    display: none;
+}
+.vff-docs-nav a {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: var(--vff-text-muted);
+    text-decoration: none;
+    font-family: var(--vff-font-heading);
+    font-size: 14px;
+    white-space: nowrap;
+    transition:
+        color 150ms ease,
+        background-color 150ms ease;
+}
+.vff-docs-nav a:hover {
+    color: var(--vff-text);
+    background-color: var(--vff-bg-muted);
+}
+.vff-docs-nav a[aria-current='page'] {
+    color: var(--vff-accent-text);
+    background-color: var(--vff-accent-soft);
+}
+
+.vff-docs-theme {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--vff-border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--vff-text);
+    cursor: pointer;
+}
+.vff-docs-theme:hover {
+    border-color: var(--vff-accent);
+    color: var(--vff-accent-text);
+}
+.vff-docs-theme .sun,
+:root[data-theme='dark'] .vff-docs-theme .moon {
+    display: none;
+}
+:root[data-theme='dark'] .vff-docs-theme .sun {
+    display: block;
+}
+
+.vff-docs a:focus-visible,
+.vff-docs button:focus-visible {
+    outline: 3px solid var(--vff-accent);
+    outline-offset: 2px;
+}
+
+.vff-docs-loading,
+.vff-docs-noscript {
+    max-width: 720px;
+    margin: 48px auto;
+    padding: 0 16px;
+    color: var(--vff-text-muted);
+    font-size: 16px;
+}
+.vff-docs-noscript a {
+    color: var(--vff-accent-text);
+}
+
+@media (max-width: 640px) {
+    .vff-docs-bar {
+        gap: 8px;
+        padding: 0 12px;
+    }
+    .vff-docs-brand span {
+        display: none;
+    }
+    .vff-docs-nav a {
+        padding: 6px 8px;
+        font-size: 13px;
+    }
+}

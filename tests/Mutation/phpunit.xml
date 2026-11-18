@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Configuration PHPUnit des tests de mutation (Infection, cf. infection.json5).
+    Seulement les tests qui exercent les classes mutées : la suite initiale reste
+    courte et un chantier en cours ailleurs ne bloque pas Infection.
+
+    Bases : chaque thread Infection reçoit TEST_TOKEN=<n> ; avec
+    LARAVEL_PARALLEL_TESTING, Laravel crée et migre « <base>_test_<n> » (garde-fou
+    de tests/CreatesApplication.php : suffixe _test ou _test_<n> seulement).
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../../vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="../../vendor/autoload.php"
+         colors="false"
+>
+    <testsuites>
+        <testsuite name="Mutation">
+            <directory>../Unit</directory>
+            <exclude>../Unit/Static</exclude>
+            <directory>../Feature/Services</directory>
+            <file>../Feature/GeoExporterTest.php</file>
+            <file>../Feature/Api/EraGeoApiTest.php</file>
+            <file>../Feature/Api/EraGeoContractTest.php</file>
+        </testsuite>
+    </testsuites>
+    <groups>
+        <exclude>
+            <group>known-bug</group>
+        </exclude>
+    </groups>
+    <source>
+        <include>
+            <file>../../app/Services/GeoJsonXDecoder.php</file>
+            <file>../../app/Services/GeoExporter.php</file>
+            <file>../../app/Services/PlaceNames.php</file>
+            <file>../../app/Services/HeritageText.php</file>
+            <file>../../app/Services/StationTimeline.php</file>
+            <file>../../app/Services/OhmDate.php</file>
+            <file>../../app/Services/EraContinuity.php</file>
+            <file>../../app/Support/StationNames.php</file>
+            <file>../../app/Support/Lgv.php</file>
+            <file>../../app/Support/I18nChecker.php</file>
+            <file>../../app/Support/TrackPriority.php</file>
+            <file>../../app/Services/SecondaryNetworkParser.php</file>
+            <file>../../app/Services/LineMerger.php</file>
+            <file>../../app/Services/Traction/Gauge.php</file>
+            <file>../../app/Services/Traction/ElectrificationTimeline.php</file>
+            <file>../../app/Services/Traction/ElectrificationText.php</file>
+        </include>
+    </source>
+    <php>
+        <server name="LARAVEL_PARALLEL_TESTING" value="1"/>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="DB_DATABASE" value="vff_test" force="true"/>
+        <env name="INERTIA_SSR_ENABLED" value="false"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+    </php>
+</phpunit>

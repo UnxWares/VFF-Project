@@ -15,7 +15,11 @@ return [
     |
     */
 
-    'default' => env('CACHE_DRIVER', 'file'),
+    // CACHE_STORE (nom Laravel 11+, utilisé par .env et phpunit.xml) prime ;
+    // CACHE_DRIVER reste lu pour compatibilité. Avant : seul CACHE_DRIVER était
+    // lu → l'app tournait sur le cache fichier au lieu de Valkey, et les tests
+    // partageaient ce cache fichier avec le serveur de dev.
+    'default' => env('CACHE_STORE', env('CACHE_DRIVER', 'file')),
 
     /*
     |--------------------------------------------------------------------------

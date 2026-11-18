@@ -5,6 +5,7 @@ return [
     'app_short' => 'VFF',
     'app_full' => 'Französische Bahnstrecken',
     'app_description' => 'Die größte kollaborative Enzyklopädie des französischen Schienennetzes.',
+    'brand' => 'VFF - Voies Ferrées de France (Französische Bahnstrecken)',
 
     'read_more' => 'Mehr erfahren',
     'discover' => 'Entdecken',
@@ -15,7 +16,9 @@ return [
     'save' => 'Speichern',
     'cancel' => 'Abbrechen',
     'close' => 'Schließen',
-    'soon' => 'Bald',
-    'in_progress' => 'In Bearbeitung',
-    'wip_subtitle' => 'Dieser Bereich befindet sich im Aufbau und kommt in einer späteren Projektphase.',
+    'soon' => 'Demnächst',
+    'in_progress' => 'Im Aufbau',
+    'wip_subtitle' => 'Dieser Bereich befindet sich im Aufbau und wird in einer späteren Projektphase verfügbar sein.',
+    'toc' => 'Inhaltsverzeichnis',
+    'osm_attribution' => '© :link-Mitwirkende',
 ];

@@ -20,14 +20,9 @@
         border-radius: var(--vff-radius-md);
         padding: 28px 24px;
         text-align: left;
-        transition: transform var(--vff-transition), box-shadow var(--vff-transition);
         height: 100%;
         display: flex;
         flex-direction: column;
-    }
-    .icon-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 32px var(--vff-shadow);
     }
     .icon {
         width: 48px;

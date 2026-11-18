@@ -1,0 +1,42 @@
+<?php
+
+// Pages /materials et /materials/{slug} (Pages/Materials/*.svelte).
+return [
+    'meta_title' => 'Matériels roulants',
+    'meta_description' => 'Le matériel roulant ferroviaire français : locomotives, automotrices, autorails, TGV, voitures et wagons.',
+    'eyebrow' => 'Matériel roulant',
+    'title' => 'Le matériel ferroviaire français',
+    'subtitle' => 'Locomotives à vapeur, diesel et électriques, automotrices, autorails, TGV, voitures et wagons : :total matériels recensés.',
+    'subtitle_empty' => 'Locomotives à vapeur, diesel et électriques, automotrices, autorails, TGV, voitures et wagons.',
+    'empty_title' => 'Les fiches du matériel roulant arrivent',
+    'empty_text' => 'Aucun matériel n’est encore décrit dans l’encyclopédie. Vous connaissez une série, ses dates de service et les lignes qu’elle a parcourues ? Vous pouvez nous aider à rédiger ces fiches.',
+    'empty_cta' => 'Contribuer',
+    'all' => 'Tous les matériels',
+    'breadcrumbs' => 'Fil d’Ariane',
+    'present' => 'aujourd’hui',
+    'period' => 'En service',
+    'builder' => 'Constructeur',
+    'lines' => 'Lignes parcourues',
+    'no_lines' => 'Aucune ligne ne référence encore ce matériel.',
+    'contribute' => 'Contribuer',
+    'types' => [
+        'locomotive_vapeur' => 'Locomotives à vapeur',
+        'locomotive_diesel' => 'Locomotives diesel',
+        'locomotive_electrique' => 'Locomotives électriques',
+        'automotrice' => 'Automotrices',
+        'autorail' => 'Autorails',
+        'rame_tgv' => 'TGV et grande vitesse',
+        'voiture' => 'Voitures',
+        'wagon' => 'Wagons',
+    ],
+    'type' => [
+        'locomotive_vapeur' => 'Locomotive à vapeur',
+        'locomotive_diesel' => 'Locomotive diesel',
+        'locomotive_electrique' => 'Locomotive électrique',
+        'automotrice' => 'Automotrice',
+        'autorail' => 'Autorail',
+        'rame_tgv' => 'Rame TGV',
+        'voiture' => 'Voiture',
+        'wagon' => 'Wagon',
+    ],
+];

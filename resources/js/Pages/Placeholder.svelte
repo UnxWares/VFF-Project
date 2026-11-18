@@ -7,7 +7,7 @@
 </script>
 
 <svelte:head>
-    <title>{page} — VFF</title>
+    <title>{page} - VFF</title>
 </svelte:head>
 
 <Layout compactHeader>
@@ -17,7 +17,9 @@
             <h1>{page}</h1>
             <p>{$i18n.t('common.wip_subtitle')}</p>
             <p class="back">
-                <Link href="/"><i class="bi bi-arrow-left-circle"></i> {$i18n.t('common.back_home')}</Link>
+                <Link href="/"
+                    ><i class="bi bi-arrow-left-circle"></i> {$i18n.t('common.back_home')}</Link
+                >
             </p>
         </div>
     </main>
