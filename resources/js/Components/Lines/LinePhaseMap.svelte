@@ -4,7 +4,14 @@
     import { onDestroy, onMount } from 'svelte';
     import { router } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
-    import { stationColorExpr, stationFillExpr, VELORAIL_DASH } from '$lib/railStyle.js';
+    import { theme } from '$lib/stores/theme.svelte.js';
+    import { formatLocale, tieUnits } from '$lib/typo.js';
+    import {
+        STATION_STYLES,
+        stationColorExpr,
+        stationFillExpr,
+        VELORAIL_DASH,
+    } from '$lib/railStyle.js';
     import {
         CATEGORY_STYLES,
         STRIP_ORDER,
@@ -19,11 +26,13 @@
      * les portions sont chargées une fois ; changer de phase ne fait que recolorer.
      * Les portions modifiées par la phase sont soulignées d'un halo. Gares : leur état à
      * la décennie de la phase (station_eras), absentes si elles n'existaient pas encore.
+     * La légende explique les traits ET les gares affichés.
      */
     let {
         portions = [],
         phase = null,
         stations = [],
+        name = '',
         eraYear = null,
         isCurrent = false,
         height = '460px',
@@ -32,6 +41,9 @@
     let mapContainer = $state();
     let map = null;
     let loaded = $state(false);
+
+    const lang = $derived($i18n.language ?? 'fr');
+    const t = (k, o) => String($i18n.t(k, o));
 
     /** @returns {string | import('maplibre-gl').StyleSpecification} */
     function buildStyle() {
@@ -54,18 +66,27 @@
                     id: 'osm',
                     type: 'raster',
                     source: 'osm-raster',
-                    paint: { 'raster-saturation': -0.6, 'raster-opacity': 0.85 },
+                    paint: {
+                        'raster-saturation': -0.6,
+                        'raster-opacity': 0.85,
+                        // Thème sombre : fond atténué (moins éblouissant), tracé et gares inchangés.
+                        'raster-brightness-max': theme.isDark ? 0.78 : 1,
+                    },
                 },
             ],
             glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
         };
     }
 
-    /** Gares à la décennie de la phase (état de station_eras ; aujourd'hui pour l'ère courante). */
+    /** Statut d'une gare à la phase (état de station_eras ; aujourd'hui pour l'ère courante). */
+    function statusOf(s) {
+        return isCurrent ? (s.status_today ?? s.eras?.[eraYear]) : s.eras?.[eraYear];
+    }
+
     function stationFeatures() {
         const features = [];
         for (const s of stations ?? []) {
-            const status = isCurrent ? (s.status_today ?? s.eras?.[eraYear]) : s.eras?.[eraYear];
+            const status = statusOf(s);
             if (!status || s.lng == null) continue;
             features.push({
                 type: 'Feature',
@@ -82,6 +103,16 @@
             m: phase.length_by_category[cat],
         })),
     );
+    // Gares visibles à cette phase, par statut (ordre de la légende de la carte principale).
+    const stationLegend = $derived.by(() => {
+        const present = new Set(
+            (stations ?? [])
+                .filter((s) => s.lng != null)
+                .map(statusOf)
+                .filter(Boolean),
+        );
+        return STATION_STYLES.filter((s) => present.has(s.key));
+    });
 
     const width = (base) => [
         'interpolate',
@@ -104,11 +135,15 @@
             attributionControl: { compact: true },
             cooperativeGestures: true,
             locale: {
-                'CooperativeGesturesHandler.WindowsHelpText': $i18n.t(
-                    'lines.phases.gesture_windows',
-                ),
-                'CooperativeGesturesHandler.MacHelpText': $i18n.t('lines.phases.gesture_mac'),
-                'CooperativeGesturesHandler.MobileHelpText': $i18n.t('lines.phases.gesture_mobile'),
+                'Map.Title': t('lines.sheet.map.title', { name }),
+                'NavigationControl.ZoomIn': t('lines.sheet.map.zoom_in'),
+                'NavigationControl.ZoomOut': t('lines.sheet.map.zoom_out'),
+                'FullscreenControl.Enter': t('lines.sheet.map.fullscreen_enter'),
+                'FullscreenControl.Exit': t('lines.sheet.map.fullscreen_exit'),
+                'AttributionControl.ToggleAttribution': t('lines.sheet.map.attribution'),
+                'CooperativeGesturesHandler.WindowsHelpText': t('lines.phases.gesture_windows'),
+                'CooperativeGesturesHandler.MacHelpText': t('lines.phases.gesture_mac'),
+                'CooperativeGesturesHandler.MobileHelpText': t('lines.phases.gesture_mobile'),
             },
         });
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
@@ -196,8 +231,10 @@
                 layout: {
                     'text-field': ['get', 'name'],
                     'text-size': 12,
-                    'text-offset': [0, 1.1],
-                    'text-anchor': 'top',
+                    // Le nom se place là où il tient (sous, au-dessus ou à côté du point).
+                    'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
+                    'text-radial-offset': 0.9,
+                    'text-justify': 'auto',
                     // OpenFreeMap sert Noto Sans (Open Sans → 404 sur les glyphes).
                     'text-font': ['Noto Sans Bold'],
                 },
@@ -214,8 +251,18 @@
             map.on('mouseenter', 'vff-stations', () => (map.getCanvas().style.cursor = 'pointer'));
             map.on('mouseleave', 'vff-stations', () => (map.getCanvas().style.cursor = ''));
 
+            // Marges : place pour les noms des terminus, les boutons (à droite) et la légende (en bas).
             const bounds = portionsBounds(portions);
-            if (bounds) map.fitBounds(bounds, { padding: 36, maxZoom: 11, duration: 0 });
+            if (bounds) {
+                const narrow = mapContainer.clientWidth < 600;
+                map.fitBounds(bounds, {
+                    padding: narrow
+                        ? { top: 40, right: 56, bottom: 40, left: 40 }
+                        : { top: 48, right: 110, bottom: 96, left: 90 },
+                    maxZoom: 11,
+                    duration: 0,
+                });
+            }
             loaded = true;
         });
     });
@@ -229,79 +276,187 @@
         map.getSource('vff-stations')?.setData(st);
     });
 
+    // Bascule de thème pendant la visite : fond de carte atténué ou non.
+    $effect(() => {
+        const dark = theme.isDark;
+        if (!loaded || !map?.getLayer('osm')) return;
+        map.setPaintProperty('osm', 'raster-brightness-max', dark ? 0.78 : 1);
+    });
+
     onDestroy(() => {
         map?.remove();
         map = null;
     });
 </script>
 
-<div class="phase-map" style="height: {height};">
-    <div class="map" bind:this={mapContainer}></div>
-    {#if legend.length}
-        <ul class="legend" aria-label={$i18n.t('lines.phases.legend')}>
-            {#each legend as item (item.cat)}
-                <li>
-                    <i style={categorySwatch(item.cat)}></i>
-                    {$i18n.t(CATEGORY_STYLES[item.cat]?.labelKey ?? 'lines.categories.unknown')}
-                    <span class="km">{formatKm(item.m, $i18n.language ?? 'fr')}</span>
-                </li>
-            {/each}
-        </ul>
+<div class="phase-map-wrap">
+    <div class="phase-map" style:height>
+        <div class="map" bind:this={mapContainer}></div>
+        {#if !loaded}
+            <p class="loading" aria-hidden="true">{t('lines.sheet.map.loading')}</p>
+        {/if}
+    </div>
+    {#if legend.length || stationLegend.length}
+        <div class="legend" role="group" aria-label={t('lines.phases.legend')}>
+            {#if legend.length}
+                <ul aria-label={t('lines.sheet.map.legend_line')}>
+                    {#each legend as item (item.cat)}
+                        <li>
+                            <i class="line" style={categorySwatch(item.cat)}></i>
+                            <span
+                                >{t(
+                                    CATEGORY_STYLES[item.cat]?.labelKey ??
+                                        'lines.categories.unknown',
+                                )}</span
+                            >
+                            <span class="km">{tieUnits(formatKm(item.m, formatLocale(lang)))}</span>
+                        </li>
+                    {/each}
+                </ul>
+            {/if}
+            {#if stationLegend.length}
+                <ul class="st" aria-label={t('lines.sheet.map.legend_stations')}>
+                    {#each stationLegend as s (s.key)}
+                        <li>
+                            <i
+                                class="dot"
+                                style:--stroke={s.color}
+                                style:--fill={s.fill ?? '#ffffff'}
+                            ></i>
+                            <span>{t(s.labelKey)}</span>
+                        </li>
+                    {/each}
+                </ul>
+            {/if}
+        </div>
     {/if}
 </div>
 
 <style>
+    .phase-map-wrap {
+        position: relative;
+    }
     .phase-map {
         position: relative;
-        border-radius: var(--vff-radius-md);
         overflow: hidden;
         border: 1px solid var(--vff-border);
-        background: var(--vff-bg-muted);
+        border-radius: var(--vff-radius-md);
+        background: var(--vff-bg-subtle);
     }
     .map {
         width: 100%;
         height: 100%;
     }
+    .loading {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        margin: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        color: var(--vff-text-muted);
+        pointer-events: none;
+    }
     .legend {
         position: absolute;
         left: 10px;
         bottom: 10px;
-        z-index: 2;
-        margin: 0;
-        padding: 0.5rem 0.7rem;
-        list-style: none;
+        z-index: var(--vff-z-raised);
         display: flex;
         flex-direction: column;
-        gap: 0.25rem;
+        gap: 6px;
         max-width: calc(100% - 20px);
-        background: rgba(255, 255, 255, 0.94);
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
-        font-family: var(--vff-font-body);
-        font-size: 0.78rem;
-        color: #1f2328;
+        padding: 8px 12px;
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-md);
+        background: var(--vff-bg-elevated);
+        box-shadow: var(--vff-shadow-popover);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        line-height: 1.35;
+        color: var(--vff-text);
     }
-    @media (max-width: 600px) {
-        .legend {
-            top: 10px;
-            bottom: auto;
-            max-width: calc(100% - 64px);
-        }
+    .legend ul {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .legend ul.st {
+        flex-flow: row wrap;
+        gap: 4px 12px;
+        padding-top: 6px;
+        border-top: 1px solid var(--vff-border);
     }
     .legend li {
-        font-size: 12.5px;
-        display: grid;
-        grid-template-columns: 20px 1fr auto;
+        display: flex;
         align-items: center;
-        gap: 0.45rem;
+        gap: 8px;
+        font-size: var(--vff-fs-xs);
     }
-    .legend i {
+    .legend .line {
+        flex-shrink: 0;
         width: 20px;
         border-radius: 2px;
     }
+    .legend .dot {
+        flex-shrink: 0;
+        width: 10px;
+        height: 10px;
+        border: 2.5px solid var(--stroke);
+        border-radius: 50%;
+        background: var(--fill);
+    }
     .legend .km {
+        margin-left: auto;
+        padding-left: 12px;
+        color: var(--vff-text-muted);
         font-variant-numeric: tabular-nums;
-        color: #555a64;
-        padding-left: 0.6rem;
+        white-space: nowrap;
+    }
+    /* Contrôles MapLibre : mêmes fonds, contours et focus que le site, dans les deux thèmes. */
+    .phase-map :global(.maplibregl-ctrl-group),
+    .phase-map :global(.maplibregl-ctrl-attrib) {
+        background: var(--vff-bg-elevated);
+        color: var(--vff-text);
+    }
+    .phase-map :global(.maplibregl-ctrl-group) {
+        border: 1px solid var(--vff-border-strong);
+        box-shadow: none;
+    }
+    .phase-map :global(.maplibregl-ctrl-group button + button) {
+        border-top-color: var(--vff-border);
+    }
+    .phase-map :global(.maplibregl-ctrl-attrib a) {
+        color: var(--vff-link);
+    }
+    .phase-map :global(.maplibregl-ctrl button:focus-visible) {
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: var(--vff-focus-offset);
+        box-shadow: none;
+    }
+    :global([data-theme='dark']) .phase-map :global(.maplibregl-ctrl-icon) {
+        filter: invert(1);
+    }
+    /* Téléphone : la légende passe sous la carte (elle masquait le tracé et le crédit). */
+    @media (max-width: 600px) {
+        .legend {
+            position: static;
+            max-width: none;
+            margin-top: 8px;
+            padding: 8px 12px;
+            box-shadow: none;
+        }
+        .legend ul:not(.st) {
+            flex-flow: row wrap;
+            gap: 4px 12px;
+        }
+        .legend .km {
+            margin-left: 0;
+            padding-left: 0;
+        }
     }
 </style>

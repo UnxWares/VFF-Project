@@ -257,8 +257,8 @@ describe('LinePhaseSelector (rendu serveur)', async () => {
         locale: 'fr',
         translations: {
             'lines.phases.title': 'Phases de la ligne',
-            'lines.phases.best_badge': 'Plus grand développement',
-            'lines.phases.show_best': 'Plus grand développement',
+            'lines.sheet.phases.best_badge': 'Longueur maximale',
+            'lines.sheet.phases.show_best': 'Longueur maximale',
             'lines.phases.between': 'Entre :from et :to',
             'lines.phases.between_today': 'Depuis :from',
             'lines.phases.and_more': '(+ :count)',
@@ -273,12 +273,12 @@ describe('LinePhaseSelector (rendu serveur)', async () => {
         const { body } = render(LinePhaseSelector, { props: { phases: PHASES, selected: 1, best: 1 } });
         expect((body.match(/role="option"/g) ?? []).length).toBe(4);
         expect((body.match(/aria-selected="true"/g) ?? []).length).toBe(1);
-        expect(body).toContain('Plus grand développement');
+        expect(body).toContain('Longueur maximale');
         expect(body).toContain('6 décembre 1869');
-        expect(body).toContain('Mise en service de 15,0 km');
+        expect(body).toContain('Mise en service de 15,0\u00a0km');
         expect(body).toContain('Entre 1941 et 1950');
         expect(body).toContain('Depuis 2021');
-        expect(body).toContain('Fin du trafic voyageurs sur 5,0 km (+ 1)');
+        expect(body).toContain('Fin du trafic voyageurs sur 5,0\u00a0km (+ 1)');
         // Ruban : segments colorés aux couleurs de la carte.
         expect(body).toContain('--c: #ff6500');
         expect(body).toContain('--c: #0284c7');
