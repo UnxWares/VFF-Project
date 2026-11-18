@@ -54,7 +54,10 @@
      * (6 au plus), les portions sans nom regroupées par source (« 12 portions tracées »).
      */
     function whereItems(evs) {
+        // Index locaux de la fonction, jamais lus par le rendu : pas de réactivité.
+        // eslint-disable-next-line svelte/prefer-svelte-reactivity
         const named = new Map();
+        // eslint-disable-next-line svelte/prefer-svelte-reactivity
         const unnamed = new Map();
         for (const e of evs) {
             const text = sectionText(e);
@@ -98,6 +101,8 @@
     /** Événements de la phase contredits par d'autres sources (même fait, autre date) : une ligne par événement. */
     const conflicts = $derived.by(() => {
         const out = [];
+        // Index local du calcul, jamais lu par le rendu : pas de réactivité.
+        // eslint-disable-next-line svelte/prefer-svelte-reactivity
         const seen = new Set();
         for (const c of summary.changes) {
             for (const id of c.event_ids) {
@@ -112,11 +117,11 @@
     });
 </script>
 
-<div class="phase-text" class:compact>
+<div class={['phase-text', { compact }]}>
     <ul class="changes">
         {#each summary.changes as c (`${c.from}>${c.to}`)}
             {@const evs = c.event_ids.map((id) => eventsById[id]).filter(Boolean)}
-            <li class:inconsistent={c.inconsistent}>
+            <li class={{ inconsistent: c.inconsistent }}>
                 <span class="verb"
                     >{$i18n.t(changeVerbKey(c.from, c.to), {
                         km: km(c.length_m),
@@ -237,10 +242,10 @@
         grid-template-columns: 18px 1fr;
         gap: 8px;
         margin-top: 10px;
-        padding: 10px 12px;
-        border-left: 3px solid var(--vff-warning);
+        padding: 12px 16px;
+        border: 1px solid color-mix(in srgb, var(--vff-warning) 28%, transparent);
         background: var(--vff-warning-bg);
-        border-radius: 0 var(--vff-radius-sm) var(--vff-radius-sm) 0;
+        border-radius: var(--vff-radius-md);
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-sm);
     }

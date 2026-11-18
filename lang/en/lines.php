@@ -420,6 +420,7 @@ return [
         'departements' => 'Departments',
         'operators' => 'Operators',
         'merged' => 'Merged pages',
+        'show_more' => 'Show the other :count',
         'elsewhere' => 'Elsewhere',
         'roles' => [
             'exploitant' => 'operator',
@@ -468,6 +469,9 @@ return [
             'best_badge' => 'Greatest length',
             'show_best' => 'Greatest length',
             'show_best_label' => 'Show the line at its greatest length',
+            // List taller than the screen: button that scrolls it.
+            'more_below_one' => ':count more date below',
+            'more_below_other' => ':count more dates below',
         ],
         'map' => [
             'title' => 'Map of the line :name',
@@ -519,5 +523,22 @@ return [
         'notes' => [
             'objects_show' => 'Show the identifiers (:count)',
         ],
+    ],
+
+    // Sticky contents of the sheet (short section labels).
+    'toc' => [
+        'label' => 'Contents of this sheet',
+        'trace' => 'Route',
+        'about' => 'About',
+        'history' => 'History',
+        'decades' => 'Decades',
+        'stations' => 'Stations',
+        'sections' => 'Sections',
+        'heritage' => 'Heritage railway',
+        'tech' => 'Technical',
+        'chronicle' => 'Chronology',
+        'materials' => 'Rolling stock',
+        'gallery' => 'Photos',
+        'notes' => 'Sources',
     ],
 ];

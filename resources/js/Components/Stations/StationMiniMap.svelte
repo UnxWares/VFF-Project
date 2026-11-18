@@ -96,7 +96,7 @@
                     minzoom: 11,
                     layout: {
                         'text-field': ['get', 'name'],
-                        'text-size': 11,
+                        'text-size': 13,
                         'text-offset': [0, 1.2],
                         'text-anchor': 'top',
                         'text-font': ['Noto Sans Regular'],

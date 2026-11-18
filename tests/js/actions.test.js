@@ -1,7 +1,6 @@
 // Actions Svelte de la page d'accueil, avec window / IntersectionObserver simulés.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { navbarFade } from '$lib/actions/navbarFade.js';
-import { parallaxTGV } from '$lib/actions/parallaxTGV.js';
 import { scrollReveal } from '$lib/actions/scrollReveal.js';
 import { scrollToContent } from '$lib/actions/smoothScrollTo.js';
 
@@ -61,49 +60,10 @@ afterEach(() => {
     vi.useRealTimers();
 });
 
-describe('parallaxTGV', () => {
-    it('écarte les deux rames avec le défilement, puis les bloque après 1000 px', () => {
-        const win = fakeWindow(0);
-        vi.stubGlobal('window', win);
-        const left = el();
-        const right = el();
-
-        const action = parallaxTGV(null, { left, right });
-        expect(left.style.transform).toBe('translateX(-1vw)');
-        expect(right.style.transform).toBe('translateX(1vw)');
-
-        win.scrollY = 500;
-        win.listeners.scroll();
-        expect(left.style.transform).toBe(`translateX(${-(50 * 0.185) - 1}vw)`);
-        expect(right.style.transform).toBe(`translateX(${50 * 0.185 + 1}vw)`);
-
-        win.scrollY = 5000;
-        win.listeners.scroll();
-        expect(left.style.transform).toBe('translateX(-19.5vw)');
-        expect(right.style.transform).toBe('translateX(19.5vw)');
-
-        // Continuité à la limite : 1000 px donne déjà la position bloquée.
-        win.scrollY = 1000;
-        win.listeners.scroll();
-        expect(left.style.transform).toBe('translateX(-19.5vw)');
-
-        action.destroy();
-        expect(win.removeEventListener).toHaveBeenCalledWith('scroll', expect.any(Function));
-    });
-
-    it('sans éléments : ne plante pas, et update() les fournit plus tard', () => {
-        vi.stubGlobal('window', fakeWindow(0));
-        const action = parallaxTGV(null, undefined);
-        const left = el();
-        const right = el();
-
-        action.update({ left, right });
-        expect(left.style.transform).toBe('translateX(-1vw)');
-    });
-});
+// parallaxTGV : tests/js/parallaxTGV.test.js.
 
 describe('scrollReveal', () => {
-    it('retire .noTranslate puis ajoute .animate à l\'entrée dans le viewport', () => {
+    it("retire .noTranslate puis ajoute .animate à l'entrée dans le viewport", () => {
         vi.useFakeTimers();
         const observers = stubObserver();
         const node = { classList: { remove: vi.fn(), add: vi.fn() } };
@@ -133,7 +93,7 @@ describe('scrollReveal', () => {
 });
 
 describe('navbarFade', () => {
-    it('nav cachée tant que l\'en-tête est visible, affichée (puis fond relatif) quand il sort', () => {
+    it("nav cachée tant que l'en-tête est visible, affichée (puis fond relatif) quand il sort", () => {
         vi.useFakeTimers();
         const observers = stubObserver();
         const nav = el();
@@ -141,12 +101,13 @@ describe('navbarFade', () => {
 
         navbarFade({}, { nav, background });
         observers[0].fire(true);
-        expect(nav.style.opacity).toBe('0');
+        expect(nav.classList.contains('nav-shown')).toBe(false);
         expect(nav.classList.contains('nav-hidden')).toBe(true); // invisible : ne capte plus les clics
+        expect(nav.style.opacity).toBeUndefined(); // plus de style en ligne : les classes suffisent
         expect(background.style.position).toBe('sticky');
 
         observers[0].fire(false);
-        expect(nav.style.opacity).toBe('1');
+        expect(nav.classList.contains('nav-shown')).toBe(true);
         expect(nav.classList.contains('nav-hidden')).toBe(false);
         expect(background.style.position).toBe('sticky');
         vi.advanceTimersByTime(1000);
@@ -175,7 +136,7 @@ describe('navbarFade', () => {
         observers[0].fire(true); // sans éléments : rien
         action.update({ nav, background });
         observers[0].fire(true);
-        expect(nav.style.opacity).toBe('0');
+        expect(nav.classList.contains('nav-hidden')).toBe(true);
 
         action.destroy();
         expect(observers[0].disconnect).toHaveBeenCalled();
@@ -183,7 +144,7 @@ describe('navbarFade', () => {
 });
 
 describe('scrollToContent', () => {
-    it('défile en douceur sous l\'en-tête (2 hauteurs d\'écran - 130 px)', () => {
+    it("défile en douceur sous l'en-tête (2 hauteurs d'écran - 130 px)", () => {
         const win = fakeWindow();
         vi.stubGlobal('window', win);
 

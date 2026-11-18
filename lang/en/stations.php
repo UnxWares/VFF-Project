@@ -239,4 +239,15 @@ return [
         'attribution' => 'Show or hide the map credits',
         'this_station' => 'This station',
     ],
+
+    // Sticky contents of the sheet (short section labels).
+    'toc' => [
+        'label' => 'Contents of this sheet',
+        'about' => 'About',
+        'eras' => 'Decades',
+        'history' => 'Chronology',
+        'lines' => 'Lines',
+        'location' => 'Location',
+        'sources' => 'Sources',
+    ],
 ];

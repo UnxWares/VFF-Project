@@ -354,7 +354,7 @@
     }
     .results {
         max-height: min(380px, 60vh);
-        padding: 4px 0;
+        padding: 4px;
         overflow-y: auto;
         overscroll-behavior: contain;
     }
@@ -363,7 +363,7 @@
     }
     .group-label {
         margin: 0;
-        padding: 10px 14px 4px;
+        padding: 10px 10px 4px;
         font-size: var(--vff-fs-xs);
         font-weight: 600;
         color: var(--vff-text-muted);
@@ -373,7 +373,8 @@
         align-items: baseline;
         gap: 10px;
         min-height: 40px;
-        padding: 9px 14px;
+        padding: 9px 10px;
+        border-radius: var(--vff-radius-sm);
         font-size: var(--vff-fs-sm);
         line-height: var(--vff-lh-ui);
         cursor: pointer;
@@ -382,8 +383,10 @@
     .result.active {
         background-color: var(--vff-bg-accent);
     }
+    /* Option active au clavier : contour de focus à l'intérieur de la ligne (pas de barre latérale). */
     .result.active {
-        box-shadow: inset 3px 0 0 var(--vff-accent);
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: calc(-1 * var(--vff-focus-width));
     }
     .result .bi {
         flex-shrink: 0;

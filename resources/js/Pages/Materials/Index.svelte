@@ -85,11 +85,9 @@
                     text={$i18n.t('materials.empty_text')}
                 >
                     <a href="/lines" class="vff-btn primary">
-                        <i class="bi bi-signpost-split" aria-hidden="true"></i>
                         {$i18n.t('materials.empty_browse')}
                     </a>
                     <a href="/contribute" class="vff-btn secondary">
-                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
                         {$i18n.t('materials.empty_cta')}
                     </a>
                 </EmptyState>

@@ -175,7 +175,7 @@
         z-index: 20;
         max-height: 320px;
         margin: 0;
-        padding: 4px 0;
+        padding: 4px;
         overflow-y: auto;
         overscroll-behavior: contain;
         list-style: none;
@@ -194,7 +194,8 @@
         justify-content: space-between;
         gap: 12px;
         min-height: 40px;
-        padding: 9px 12px;
+        padding: 9px 10px;
+        border-radius: var(--vff-radius-sm);
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-sm);
         line-height: var(--vff-lh-ui);
@@ -205,8 +206,10 @@
     li.active {
         background-color: var(--vff-bg-accent);
     }
+    /* Option active au clavier : contour de focus à l'intérieur de la ligne (pas de barre latérale). */
     li.active {
-        box-shadow: inset 3px 0 0 var(--vff-accent);
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: calc(-1 * var(--vff-focus-width));
     }
     .name {
         min-width: 0;

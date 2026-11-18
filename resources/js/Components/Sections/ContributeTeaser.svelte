@@ -9,11 +9,7 @@
     import IconCard from '$components/IconCard.svelte';
     import { i18n } from '$lib/i18n.js';
 
-    const ways = [
-        { icon: 'bi-pencil-square', key: 'data' },
-        { icon: 'bi-images', key: 'media' },
-        { icon: 'bi-code-slash', key: 'code' },
-    ];
+    const ways = ['data', 'media', 'code'];
 </script>
 
 <SectionBlock
@@ -23,23 +19,22 @@
     intro={$i18n.t('home.contribute.subtitle')}
     maxWidth="1180px"
 >
-    <div class="ways">
-        {#each ways as w (w.key)}
-            <IconCard
-                icon={w.icon}
-                title={$i18n.t(`home.contribute.${w.key}_title`)}
-                text={$i18n.t(`home.contribute.${w.key}_text`)}
-            />
+    <ul class="vff-points ways">
+        {#each ways as key (key)}
+            <li>
+                <IconCard
+                    title={$i18n.t(`home.contribute.${key}_title`)}
+                    text={$i18n.t(`home.contribute.${key}_text`)}
+                />
+            </li>
         {/each}
-    </div>
+    </ul>
 
     {#snippet actions()}
         <Link href="/contribute" class="vff-btn primary">
-            <i class="bi bi-pencil-square" aria-hidden="true"></i>
             {$i18n.t('home.contribute.cta')}
         </Link>
         <Link href="/donate" class="vff-btn secondary">
-            <i class="bi bi-balloon-heart" aria-hidden="true"></i>
             {$i18n.t('home.contribute.donate')}
         </Link>
         <a
@@ -66,26 +61,3 @@
         </a>
     {/snippet}
 </SectionBlock>
-
-<style>
-    .ways {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: var(--vff-space-5) var(--vff-space-6);
-        /* À remonter dans SectionBlock : en bande cta, la règle `.cta p { margin: 0 }` annule la marge
-           basse du chapeau (.intro), le contenu suivant s'y colle. */
-        margin-top: var(--vff-block-space);
-    }
-    /* Les textes de la bande cta passent en couleur de texte (SectionBlock) : les phrases des points
-       restent en gris secondaire, comme partout ailleurs. */
-    :global(.section-block.cta) .ways :global(.icon-card p.text) {
-        max-width: none;
-        font-size: var(--vff-fs-md);
-        color: var(--vff-text-muted);
-    }
-    @media (max-width: 600px) {
-        .ways {
-            grid-template-columns: minmax(0, 1fr);
-        }
-    }
-</style>

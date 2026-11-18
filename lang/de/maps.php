@@ -11,6 +11,8 @@ return [
 
     // Überschrift (vorgelesen, nicht angezeigt) des Kartenbereichs.
     'map_title' => 'Netzkarte',
+    // Kurzlinks neben dem Titel, zu den Abschnitten unter der Karte.
+    'jumps_label' => 'Auf dieser Seite',
     'era_selector' => 'Epoche',
 
     'search' => [

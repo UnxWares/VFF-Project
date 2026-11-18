@@ -315,7 +315,6 @@
 <Layout compactHeader>
     <main>
         <PageHero
-            eyebrow={$i18n.t('credits.eyebrow')}
             title={$i18n.t('credits.tech.title')}
             subtitle={$i18n.t('credits.tech.subtitle')}
         />
@@ -389,7 +388,6 @@
         >
             {#snippet actions()}
                 <Link href="/contribute" class="vff-btn primary">
-                    <i class="bi bi-geo" aria-hidden="true"></i>
                     {$i18n.t('credits.tech.cta.button')}
                 </Link>
             {/snippet}

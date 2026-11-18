@@ -1,8 +1,8 @@
-/* Présentation de l'accueil : dessin d'origine (logo et titre centrés, trait gris sous le titre posé
-   par general.css, texte, deux boutons), corrigé le 18/11/2026 : texte aligné à gauche (le texte
-   justifié se creusait de lézardes, surtout en allemand), largeur de lecture, boutons communs
-   (.vff-btn : texte noir sur l'orange, casse de phrase, focus visible, pas de zoom au survol),
-   plus d'animation d'entrée. */
+/* Présentation de l'accueil : dessin d'origine (logo et titre centrés, texte, deux boutons), corrigé
+   le 18/11/2026 : texte aligné à gauche (le texte justifié se creusait de lézardes, surtout en
+   allemand), largeur de lecture, boutons communs (.vff-btn : texte noir sur l'orange, casse de
+   phrase, focus visible, pas de zoom au survol), plus d'animation d'entrée ; plus de trait gris sous
+   le titre, logo détaché du titre, une séparation de section avant les encarts de campagne. */
 main #whoarewe,
 main #whoarewe *,
 main #whoarewe *::before,
@@ -11,13 +11,13 @@ main #whoarewe *::after {
 }
 main #whoarewe {
     width: min(100% - 2 * var(--vff-gutter), 680px);
-    margin: var(--vff-section-space) auto var(--vff-block-space);
+    margin: var(--vff-section-space) auto;
 }
 main #whoarewe .vff-title {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 20px;
 }
 main #whoarewe .vff-title img {
     flex: none;

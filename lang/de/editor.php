@@ -250,7 +250,7 @@ return [
         'title' => 'Zu prüfende Beiträge',
         'subtitle_one' => ':count Beitrag zu prüfen. Ein Beitrag wird nach :threshold Freigaben verschiedener Prüfer veröffentlicht.',
         'subtitle_other' => ':count Beiträge zu prüfen. Ein Beitrag wird nach :threshold Freigaben verschiedener Prüfer veröffentlicht.',
-        'empty_text' => 'Neue Vorschläge erscheinen hier, sobald sie gesendet wurden.',
+        'empty_text' => 'Kein Vorschlag wartet auf Prüfung.',
         'submitted' => 'Eingereicht :date',
         'changes' => 'Vorgeschlagene Änderungen',
         'reject_reason' => 'Grund der Ablehnung (optional, wird an die beitragende Person gesendet)',

@@ -250,7 +250,7 @@ return [
         'eyebrow' => 'Review',
         'subtitle_one' => ':count contribution to review. A contribution is published after :threshold approvals from different validators.',
         'subtitle_other' => ':count contributions to review. A contribution is published after :threshold approvals from different validators.',
-        'empty_text' => 'New proposals will appear here as soon as they are submitted.',
+        'empty_text' => 'No proposal is waiting for review.',
         'submitted' => 'Submitted :date',
         'changes' => 'Proposed changes',
         'reject_reason' => 'Reason for rejection (optional, sent to the contributor)',

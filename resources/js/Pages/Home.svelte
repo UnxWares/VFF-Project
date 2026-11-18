@@ -1,5 +1,6 @@
 <script>
     import Layout from '$components/Layout.svelte';
+    import QuickAccess from '$components/Sections/QuickAccess.svelte';
     import WhoAreWe from '$components/Sections/WhoAreWe.svelte';
     import Advocacy from '$components/Sections/Advocacy.svelte';
     import Maps from '$components/Sections/Maps.svelte';
@@ -31,10 +32,12 @@
     <meta name="description" content={$i18n.t('home.meta_description')} />
 </svelte:head>
 
-<!-- Ordre : présentation, lignes soutenues, trois portes d'entrée (bande orange), genèse, profil du
-     réseau par décennie (l'élément marquant de la page), images d'archives, sommaire, invitation. -->
+<!-- Ordre : accès rapide (recherche et rubriques, juste après le grand en-tête), présentation, lignes
+     soutenues, trois portes d'entrée (bande orange), genèse, profil du réseau par décennie (l'élément
+     marquant de la page), images d'archives, sommaire, invitation. -->
 <Layout>
     <main class="home">
+        <QuickAccess {stats} />
         <WhoAreWe />
         <Advocacy lines={threatened} />
         <Maps />

@@ -8,19 +8,16 @@
 
     const ways = [
         {
-            icon: 'bi-pencil-square',
             titleKey: 'contribute.ways.data_title',
             textKey: 'contribute.ways.data_text',
             statusKey: 'contribute.ways.data_status',
         },
         {
-            icon: 'bi-images',
             titleKey: 'contribute.ways.media_title',
             textKey: 'contribute.ways.media_text',
             statusKey: 'contribute.ways.media_status',
         },
         {
-            icon: 'bi-code-slash',
             titleKey: 'contribute.ways.code_title',
             textKey: 'contribute.ways.code_text',
             statusKey: 'contribute.ways.code_status',
@@ -35,18 +32,15 @@
 
     const rules = [
         {
-            icon: 'bi-bookmark',
             titleKey: 'contribute.rules.sources_title',
             textKey: 'contribute.rules.sources_text',
         },
         {
-            icon: 'bi-file-earmark-check',
             titleKey: 'contribute.rules.license_title',
             textKey: 'contribute.rules.license_text',
             link: true,
         },
         {
-            icon: 'bi-heart',
             titleKey: 'contribute.rules.respect_title',
             textKey: 'contribute.rules.respect_text',
         },
@@ -63,22 +57,22 @@
 <Layout compactHeader>
     <main>
         <PageHero
-            eyebrow={$i18n.t('contribute.hero.eyebrow')}
             title={$i18n.t('contribute.hero.title')}
             subtitle={$i18n.t('contribute.hero.subtitle')}
         />
 
         <SectionBlock title={$i18n.t('contribute.ways.title')} maxWidth="1180px">
-            <div class="ways-grid">
+            <ul class="vff-points">
                 {#each ways as w (w.titleKey)}
-                    <IconCard
-                        icon={w.icon}
-                        title={$i18n.t(w.titleKey)}
-                        text={$i18n.t(w.textKey)}
-                        status={$i18n.t(w.statusKey)}
-                    />
+                    <li>
+                        <IconCard
+                            title={$i18n.t(w.titleKey)}
+                            text={$i18n.t(w.textKey)}
+                            status={$i18n.t(w.statusKey)}
+                        />
+                    </li>
                 {/each}
-            </div>
+            </ul>
         </SectionBlock>
 
         <SectionBlock kind="alt" title={$i18n.t('contribute.process.title')} maxWidth="760px">
@@ -96,22 +90,19 @@
         </SectionBlock>
 
         <SectionBlock title={$i18n.t('contribute.rules.title')} maxWidth="1180px">
-            <div class="rules-grid">
+            <ul class="vff-points">
                 {#each rules as r (r.titleKey)}
-                    <div class="rule">
-                        <IconCard
-                            icon={r.icon}
-                            title={$i18n.t(r.titleKey)}
-                            text={$i18n.t(r.textKey)}
-                        />
-                        {#if r.link}
-                            <Link href="/use-conditions" class="vff-link">
-                                {$i18n.t('contribute.rules.license_link')}
-                            </Link>
-                        {/if}
-                    </div>
+                    <li>
+                        <IconCard title={$i18n.t(r.titleKey)} text={$i18n.t(r.textKey)}>
+                            {#if r.link}
+                                <Link href="/use-conditions" class="vff-link">
+                                    {$i18n.t('contribute.rules.license_link')}
+                                </Link>
+                            {/if}
+                        </IconCard>
+                    </li>
                 {/each}
-            </div>
+            </ul>
         </SectionBlock>
 
         <SectionBlock
@@ -159,19 +150,6 @@
 </Layout>
 
 <style>
-    .ways-grid,
-    .rules-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 24px 32px;
-    }
-    .rule {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--vff-space-2);
-    }
-
     /* Étapes : une vraie suite, donc numérotée. Même filet que les points ci-dessus. */
     .steps {
         display: grid;

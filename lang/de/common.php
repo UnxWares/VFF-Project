@@ -28,4 +28,8 @@ return [
     'previous' => 'Zurück',
     'next' => 'Weiter',
     'page_of' => 'Seite :current von :last',
+    // Verzeichnisse auf dem Telefon: Schaltfläche, die die Filter aufklappt (aktive Einstellungen).
+    'filters' => 'Filter',
+    'filters_active_one' => ':count aktiv',
+    'filters_active_other' => ':count aktiv',
 ];

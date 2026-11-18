@@ -27,7 +27,6 @@
 <Layout compactHeader>
     <main class="thanks-page">
         <PageHero
-            eyebrow={$i18n.t('editor.thanks.eyebrow')}
             title={$i18n.t('editor.thanks.title')}
             subtitle={$i18n.t('editor.thanks.subtitle')}
         />

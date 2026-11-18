@@ -239,4 +239,15 @@ return [
         'attribution' => 'Kartenquellen ein- oder ausblenden',
         'this_station' => 'Dieser Bahnhof',
     ],
+
+    // Mitlaufendes Inhaltsverzeichnis des Steckbriefs (kurze Abschnittsnamen).
+    'toc' => [
+        'label' => 'Inhalt des Steckbriefs',
+        'about' => 'Überblick',
+        'eras' => 'Jahrzehnte',
+        'history' => 'Chronik',
+        'lines' => 'Strecken',
+        'location' => 'Lage',
+        'sources' => 'Quellen',
+    ],
 ];

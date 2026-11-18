@@ -4,10 +4,17 @@ return [
     'meta_title' => 'VFF - Voies Ferrées de France',
     'meta_description' => "Encyclopédie collaborative du chemin de fer français, de 1830 à aujourd'hui : lignes, gares, carte du réseau à chaque décennie et archives sourcées.",
 
+    // Grand visuel (disque VFF entre deux TGV) : phrase sous le disque et deux actions.
+    'hero' => [
+        'tagline' => 'L’encyclopédie des voies ferrées de France, de 1830 à aujourd’hui',
+        'open_map' => 'Ouvrir la carte',
+        'search' => 'Rechercher une ligne ou une gare',
+    ],
+
     // Présentation (dessin d'origine : logo, titre, texte, deux boutons).
     'whoarewe' => [
         'title' => 'VFF - À la croisée des rails',
-        'paragraph' => "Créée par deux passionnés du rail, VFF est une encyclopédie collaborative du chemin de fer français, de 1830 à aujourd'hui. Elle décrit chaque ligne, en service ou disparue : son tracé, ses gares, ses dates et la source de chaque information. Vous pouvez la consulter, proposer des corrections et réutiliser ses données grâce à son API publique.",
+        'paragraph' => "Projet d’UnxWares, mené par ses deux associés et ses contributeurs, VFF est une encyclopédie collaborative du chemin de fer français, de 1830 à aujourd'hui. Elle décrit chaque ligne, en service ou disparue : son tracé, ses gares, ses dates et la source de chaque information. Vous pouvez la consulter, proposer des corrections et réutiliser ses données grâce à son API publique.",
         'cta_history' => 'Notre histoire',
         'cta_donate' => 'Faites un don',
     ],
@@ -82,6 +89,16 @@ return [
         'author_unknown' => 'Auteur inconnu',
         'source' => 'Wikimedia Commons',
         'cta' => 'Parcourir les lignes',
+    ],
+
+    // Accès rapide, juste après le grand en-tête : recherche et entrées directes (noms : nav.*).
+    'quick' => [
+        'label' => 'Accès rapide',
+        'shortcut_hint' => 'Sur toutes les pages, :keys ouvre la recherche.',
+        'map_detail' => "De 1830 à aujourd'hui",
+        'materials_detail' => 'Locomotives, automotrices, voitures',
+        'api_detail' => 'REST, GraphQL, GeoJSON',
+        'contribute_detail' => 'Corriger une ligne, citer une source',
     ],
 
     // Sommaire de l'encyclopédie, avec les comptes réels de la base.

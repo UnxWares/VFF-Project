@@ -19,15 +19,17 @@
 /* Feuille commune du site. Mode d'emploi : storage/app/reports/agents/ui-unifiee/GUIDE.md.
    1. Polices  2. Variables (clair, sombre)  3. Base  4. Accessibilité  5. Mise en page
    6. Classes communes (boutons, liens, champs, tableaux, badges, plaques, messages, état vide)
-   7. Compatibilité (règles anciennes, à retirer quand les pages sont migrées)  8. Accueil */
+   7. Thème sombre de la page, cartes MapLibre (fond du grand visuel de l'accueil : header.css) */
 
 /* ─── 1. Polices (WOFF2 auto-hébergées via @fontsource, OFL ; graisses réellement utilisées ; chaque
    fichier NNN.css déclare ses sous-ensembles avec unicode-range : seul celui dont la page a besoin est chargé) ─── */
 /* ─── 2. Variables ──────────────────────────────────────────────────────────
    Contrastes calculés (WCAG 2.1) sur --vff-bg sauf mention : texte >= 4,5:1, grand texte et
    composants >= 3:1. L'orange de la charte (#ff6500) ne sert jamais au petit texte sur fond clair
-   (2,95:1) : texte orange = --vff-accent-ink. Points de rupture (les variables CSS ne marchent pas
-   dans @media, valeurs à recopier) : 600 px téléphone, 900 px tablette, 1180 px en-tête replié. */
+   (2,7:1) : texte orange = --vff-accent-ink. Points de rupture (les variables CSS ne marchent pas
+   dans @media, valeurs à recopier) : 600 px téléphone, 900 px tablette, 1180 px en-tête replié.
+   Thème clair « papier » (« le white mode fait mal aux yeux », utilisateur, 19/11) : fond blanc
+   cassé chaud, texte gris très foncé chaud, filets doux ; plus de blanc pur ni de noir pur. */
 :root {
     color-scheme: light;
 
@@ -35,38 +37,38 @@
     --vff-accent: #ff6500; /* aplats, rail, sélection ; jamais en texte < 24 px sur clair */
     --vff-accent-hover: #e85a00;
     --vff-accent-soft: rgba(255, 101, 0, 0.12); /* fond teinté (survol, sélection) */
-    --vff-accent-ink: #b84800; /* texte orange : 5,3:1 sur blanc, 4,8:1 sur --vff-bg-subtle */
-    --vff-accent-strong: #e05500; /* grand texte orange >= 24 px : 3,8:1 */
-    --vff-on-accent: #000000; /* texte posé sur l'aplat orange : 7,1:1 (le blanc fait 2,95:1) */
+    --vff-accent-ink: #a94300; /* texte orange : 5,6:1 ; 5,2:1 sur -subtle ; 4,7:1 sur -muted */
+    --vff-accent-strong: #d65000; /* grand texte orange >= 24 px : 3,9:1 */
+    --vff-on-accent: #1c1a17; /* texte posé sur l'aplat orange : 5,9:1 (4,9:1 au survol) */
 
     /* Fonds */
-    --vff-bg: #ffffff;
-    --vff-bg-elevated: #fcfcfd; /* panneaux, menus */
-    --vff-bg-subtle: #f3f5f6; /* bandeaux de page, sections alternées, en-têtes de tableau */
-    --vff-bg-muted: #e8ecec; /* survol, pastilles neutres */
-    --vff-bg-accent: #fff1e6; /* ligne ou filtre sélectionné (orange très pâle) */
+    --vff-bg: #f8f6f1; /* papier : blanc cassé chaud */
+    --vff-bg-elevated: #fcfbf8; /* panneaux, menus, tableaux : à peine plus clair que la page */
+    --vff-bg-subtle: #f0ede6; /* bandeaux de page, sections alternées, en-têtes de tableau */
+    --vff-bg-muted: #e7e3da; /* survol, pastilles neutres */
+    --vff-bg-accent: #fbe9da; /* ligne ou filtre sélectionné (orange très pâle) */
 
     /* Texte */
-    --vff-text: #000000; /* 21:1 */
-    --vff-text-muted: #555a64; /* 6,9:1 ; 5,8:1 sur --vff-bg-muted */
-    --vff-text-inverse: #ffffff;
+    --vff-text: #25221e; /* gris très foncé chaud : 14,7:1 (au lieu de 21:1, moins dur) */
+    --vff-text-muted: #57524a; /* 7,2:1 ; 6,0:1 sur --vff-bg-muted */
+    --vff-text-inverse: #fcfbf8;
     --vff-link: var(--vff-accent-ink);
 
     /* Filets et contours */
-    --vff-border: #e2e6ea; /* filet de séparation (décor : pas de seuil) */
-    --vff-border-strong: #c8ced4; /* filet appuyé (décor) */
-    --vff-border-control: #7c838c; /* contour des champs et cases : 3,8:1 (seuil 3:1) */
+    --vff-border: #e3ded4; /* filet de séparation (décor : pas de seuil) */
+    --vff-border-strong: #cfc8bb; /* filet appuyé (décor) */
+    --vff-border-control: #80796e; /* contour des champs et cases : 4,0:1 ; 3,4:1 sur -muted */
 
     /* États (texte >= 4,5:1 sur leur fond -bg et sur --vff-bg) */
-    --vff-focus: #b84800; /* contour de focus : 5,3:1 */
-    --vff-danger: #b42318; /* 6,6:1 */
-    --vff-danger-bg: #fdeceb;
-    --vff-success: #166534; /* 7,1:1 */
-    --vff-success-bg: #e9f6ee;
-    --vff-warning: #8a3c00; /* 7,7:1 */
-    --vff-warning-bg: #fff4e5;
-    --vff-info: #1f4e79; /* 8,6:1 */
-    --vff-info-bg: #eaf1f8;
+    --vff-focus: #a94300; /* contour de focus : 5,6:1 */
+    --vff-danger: #b42318; /* 6,1:1 ; 5,6:1 sur -bg */
+    --vff-danger-bg: #fbe9e6;
+    --vff-success: #166534; /* 6,6:1 ; 6,1:1 sur -bg */
+    --vff-success-bg: #e6f1e6;
+    --vff-warning: #8a3c00; /* 7,1:1 ; 6,8:1 sur -bg */
+    --vff-warning-bg: #fbefdc;
+    --vff-info: #1f4e79; /* 8,0:1 ; 7,3:1 sur -bg */
+    --vff-info-bg: #e6edf3;
 
     /* Ombres (rares : menus et fenêtres seulement) */
     --vff-shadow: rgba(0, 0, 0, 0.08);
@@ -81,20 +83,30 @@
     --vff-font-body: Lato, 'Helvetica Neue', Arial, sans-serif; /* texte courant */
     --vff-font-secondary: Montserrat, 'Helvetica Neue', Arial, sans-serif;
 
-    /* Échelle typographique (rem : suit le réglage de taille du navigateur) */
-    --vff-fs-xs: 0.8125rem; /* 13 px : mentions, compteurs (minimum) */
-    --vff-fs-sm: 0.875rem; /* 14 px : libellés, métadonnées, tableaux denses */
-    --vff-fs-md: 1rem; /* 16 px : interface, boutons, champs */
-    --vff-fs-body: 1.0625rem; /* 17 px : texte courant */
-    --vff-fs-lead: 1.25rem; /* 20 px : chapeau, sous-titre de bandeau */
-    --vff-fs-h3: 1.125rem; /* 18 px, Inter */
-    --vff-fs-h2: 1.75rem; /* 28 px, Gabarito (24 px sous 600 px) */
-    --vff-fs-h1: clamp(1.875rem, 1.2rem + 2.4vw, 3rem); /* 30 à 48 px, Gabarito */
-    --vff-fs-figure: 1.875rem; /* 30 px : chiffres clés */
+    /* Échelle typographique fluide : rem (suit le réglage de taille du navigateur) + un peu de vw
+       (grandit légèrement sur grand écran), bornée par clamp(). Seuils de lisibilité : texte courant
+       >= 17 px ; textes secondaires (chapeaux, notes, métadonnées) >= 15 px ; libellés, légendes,
+       badges, cellules >= 14 px ; rien en dessous. Valeurs à 375 / 1 280 / 1 920 px. */
+    /* xs 14 / 14,4 / 14,7 : badges, légendes, codes, cellules denses (minimum) */
+    --vff-fs-xs: clamp(0.875rem, 0.86rem + 0.05vw, 0.9375rem);
+    /* sm 15 / 15,4 / 15,7 : libellés, notes, métadonnées, sources, tableaux */
+    --vff-fs-sm: clamp(0.9375rem, 0.92rem + 0.05vw, 1rem);
+    /* md 16 / 16,5 / 16,8 : interface, boutons, champs */
+    --vff-fs-md: clamp(1rem, 0.98rem + 0.06vw, 1.0625rem);
+    /* body 17 / 17,9 / 18,6 : texte courant (Lato 400) */
+    --vff-fs-body: clamp(1.0625rem, 1.04rem + 0.1vw, 1.1875rem);
+    /* lead 18 / 21,3 / 22 : chapeau */
+    --vff-fs-lead: clamp(1.125rem, 1.05rem + 0.35vw, 1.375rem);
+    /* h3 18 / 18,8 / 19,6 (Inter 600), h2 24 / 29,3 / 32 et h1 30 / 46,7 / 52 (Gabarito) */
+    --vff-fs-h3: clamp(1.125rem, 1.08rem + 0.12vw, 1.25rem);
+    --vff-fs-h2: clamp(1.5rem, 1.35rem + 0.6vw, 2rem);
+    --vff-fs-h1: clamp(1.875rem, 1.4rem + 1.9vw, 3.25rem);
+    /* chiffres clés 28 / 31,7 / 35,5 */
+    --vff-fs-figure: clamp(1.75rem, 1.5rem + 0.6vw, 2.25rem);
     --vff-lh-tight: 1.1;
     --vff-lh-heading: 1.2;
     --vff-lh-ui: 1.4;
-    --vff-lh-body: 1.65;
+    --vff-lh-body: 1.6;
     --vff-measure: 60ch; /* texte courant : 60ch = 590 px à 17 px, environ 70 à 75 caractères par ligne */
 
     /* Espacements */
@@ -106,21 +118,26 @@
     --vff-space-6: 32px;
     --vff-space-7: 52px;
     --vff-space-8: 72px;
-    /* Rythme vertical : entre deux sections (64 / 52 / 40 px) > entre deux blocs d'une section
-       (--vff-block-space, 32 / 28 / 24 px) > entre un titre et son contenu (16 px). */
-    --vff-section-space: 64px;
-    --vff-block-space: 32px;
+    /* Rythme vertical, fluide (« trop peu de marge », utilisateur, 18/11) : entre deux sections
+       64 / 80 / 96 px (375 / 1 280 / 1 920) > entre deux blocs d'une section 32 / 36 / 40 px > entre
+       un titre et son contenu (16 à 24 px). Rembourrage intérieur des encarts, panneaux et cadres :
+       20 px sur téléphone, 24 px sur tablette, 32 px sur ordinateur ; jamais un texte ni un bouton à
+       moins de 20 px du bord d'un cadre. */
+    --vff-section-space: clamp(64px, 48px + 2.5vw, 96px);
+    --vff-block-space: clamp(32px, 28px + 0.6vw, 40px);
+    --vff-pad-box: clamp(20px, 12px + 1.6vw, 32px);
 
     /* Largeurs : contenu de 1 180 px au plus ; gouttières latérales identiques sur toutes les pages
        (32 px au-dessus de 1 180 px, 24 px jusqu'à 1 180 px, 16 px sur téléphone). */
     --vff-container: 1180px;
     --vff-gutter: 32px;
 
-    /* Rayons (sobres) */
-    --vff-radius-sm: 4px; /* champs, plaques, badges */
-    --vff-radius-md: 6px; /* boutons, panneaux */
-    --vff-radius-lg: 8px; /* fenêtres, menus */
-    --vff-radius-pill: 999px; /* pastilles de statut seulement */
+    /* Rayons : un rayon par type d'objet, partout (guide, section 2). Arrondis nets, jamais « bulle ». */
+    --vff-radius-xs: 4px; /* petits repères : touches, code en ligne, barres de défilement */
+    --vff-radius-sm: 8px; /* boutons, champs, badges, plaques, onglets, entrées de menu */
+    --vff-radius-md: 12px; /* panneaux, encarts, messages, tableaux, images, tuiles, menus, cartes */
+    --vff-radius-lg: 16px; /* fenêtres, tiroirs, panneau de connexion */
+    --vff-radius-pill: 999px; /* petites étiquettes, filtres, périodes, pastilles de statut */
 
     /* Mouvement */
     --vff-transition: 150ms ease;
@@ -147,19 +164,18 @@
         --vff-gutter: 24px;
     }
 }
-@media (max-width: 900px) {
-    :root {
-        --vff-section-space: 52px;
-        --vff-block-space: 28px;
-    }
-}
 @media (max-width: 600px) {
     :root {
         --vff-gutter: 16px;
-        --vff-fs-h2: 1.5rem;
         --vff-space-7: 40px;
-        --vff-section-space: 40px;
-        --vff-block-space: 24px;
+    }
+}
+/* Très grand écran : contenu un peu plus large, toujours centré (pas de lignes de 200 caractères :
+   le texte garde sa mesure de 60ch) ; le rythme vertical grandit seul (clamp ci-dessus). */
+@media (min-width: 1800px) {
+    :root {
+        --vff-container: 1280px;
+        --vff-gutter: 40px;
     }
 }
 
@@ -258,6 +274,25 @@ p {
 li {
     font-family: var(--vff-font-body);
 }
+/* Bords de texte soignés : texte aligné à gauche partout, JAMAIS justifié (décision de l'utilisateur,
+   19/11). Paragraphes et listes : pas de mot seul en dernière ligne ; titres : lignes équilibrées,
+   jamais de césure. Navigateur sans text-wrap : retour à la coupure ordinaire. */
+:where(p, li, dd, figcaption, blockquote) {
+    text-wrap: pretty;
+}
+:where(h1, h2, h3, h4, h5, h6) {
+    text-wrap: balance;
+    hyphens: manual;
+}
+/* Césure automatique du texte courant long (paragraphes et listes de .vff-prose, des pages légales,
+   des descriptions de fiche : classe .vff-hyphenate), dans la langue de l'élément (attribut lang de
+   la page ou du passage). Jamais dans les titres, boutons, libellés, tableaux ni noms de lieux ; pour
+   une URL ou un code long : overflow-wrap: anywhere, sur cet élément seulement. */
+.vff-prose :is(p, li),
+.vff-hyphenate :is(p, li),
+p.vff-hyphenate {
+    hyphens: auto;
+}
 /* Liens : orange lisible et soulignés par défaut ; :where() laisse la main aux composants. */
 :where(a) {
     color: var(--vff-link);
@@ -288,11 +323,8 @@ li {
     color: var(--vff-on-accent);
 }
 :root {
-    /* Barres de défilement : pouce à 3,8:1 sur le fond. */
-    scrollbar-color: #7c838c transparent;
-}
-:root[data-theme='dark'] {
-    scrollbar-color: #66727f transparent;
+    /* Barres de défilement : pouce de la couleur des contours de champ (>= 3:1, suit le thème). */
+    scrollbar-color: var(--vff-border-control) transparent;
 }
 @supports not (scrollbar-color: auto) {
     ::-webkit-scrollbar {
@@ -300,11 +332,8 @@ li {
         height: 8px;
     }
     ::-webkit-scrollbar-thumb {
-        background-color: #7c838c;
-        border-radius: 4px;
-    }
-    [data-theme='dark'] ::-webkit-scrollbar-thumb {
-        background-color: #66727f;
+        background-color: var(--vff-border-control);
+        border-radius: var(--vff-radius-xs);
     }
 }
 
@@ -317,7 +346,7 @@ li {
     z-index: var(--vff-z-skip);
     padding: 12px 18px;
     border: 2px solid var(--vff-focus);
-    border-radius: var(--vff-radius-md);
+    border-radius: var(--vff-radius-sm);
     background-color: var(--vff-bg);
     color: var(--vff-text);
     font-family: var(--vff-font-heading);
@@ -362,16 +391,8 @@ li {
 }
 
 /* ─── 5. Mise en page ─────────────────────────────────────────────────────── */
-/* Zone de contenu (Layout.svelte) : cible du lien d'évitement, sous la barre fixe de l'accueil. */
-.vff-content {
-    scroll-margin-top: 130px;
-}
-@media (max-width: 1180px) {
-    .vff-content {
-        scroll-margin-top: 72px;
-    }
-}
-/* Conteneur : 1 180 px, gouttières de 24 px (16 px sur téléphone). */
+/* Conteneur : 1 180 px, gouttières du site (--vff-gutter). Décalage sous la barre fixe : section
+   « Accès rapide » (.vff-content, --vff-header-h). */
 .vff-container {
     width: 100%;
     max-width: calc(var(--vff-container) + 2 * var(--vff-gutter));
@@ -423,8 +444,8 @@ li {
 .vff-stack > * + * {
     margin-top: var(--vff-block-space);
 }
-/* Titre de section hors SectionBlock / SheetSection. Le petit filet orange au-dessus marque le début
-   d'une section, comme un repère kilométrique (même dessin que SectionBlock et SheetSection). */
+/* Titre de section hors SectionBlock / SheetSection : même dessin qu'eux, sans repère décoratif
+   au-dessus (le titre, l'espace et le rythme suffisent à ouvrir une section). */
 .vff-section-title {
     margin: 0 0 var(--vff-space-4);
     font-family: var(--vff-font-display);
@@ -433,16 +454,6 @@ li {
     line-height: var(--vff-lh-heading);
     color: var(--vff-text);
     text-wrap: balance;
-}
-.vff-section-title::before,
-.vff-marker::before {
-    content: '';
-    display: block;
-    width: 28px;
-    height: 3px;
-    margin-bottom: 14px;
-    border-radius: 2px;
-    background-color: var(--vff-accent);
 }
 /* Photo (Wikimedia Commons) : cadrage fixe, jamais déformée, crédit lisible dessous. */
 .vff-figure {
@@ -471,7 +482,7 @@ li {
    filet orange et fond teinté, sans mouvement. */
 .vff-tile {
     display: block;
-    padding: 16px 20px;
+    padding: 20px 24px;
     border: 1px solid var(--vff-border);
     border-radius: var(--vff-radius-md);
     background-color: var(--vff-bg-elevated);
@@ -494,9 +505,19 @@ a.vff-tile:hover,
     line-height: 1.5;
     color: var(--vff-text-muted);
 }
+/* Liste de points (IconCard) : une rangée par point, filets entre les rangées, titre à gauche et
+   phrase à droite quand la colonne est assez large. Remplace les grilles de trois blocs identiques. */
+.vff-points {
+    display: grid;
+    max-width: 960px;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--vff-border);
+    list-style: none;
+}
 /* Panneau à filet (filtres, formulaires) : pas d'ombre. */
 .vff-panel {
-    padding: var(--vff-space-5);
+    padding: var(--vff-pad-box);
     border: 1px solid var(--vff-border);
     border-radius: var(--vff-radius-md);
     background-color: var(--vff-bg-elevated);
@@ -535,7 +556,7 @@ a.vff-tile:hover,
     min-height: 44px;
     padding: 10px 20px;
     border: 2px solid transparent;
-    border-radius: var(--vff-radius-md);
+    border-radius: var(--vff-radius-sm);
     background-color: var(--vff-bg);
     color: var(--vff-text);
     font-family: var(--vff-font-display);
@@ -610,27 +631,14 @@ a.vff-tile:hover,
     display: flex;
     width: 100%;
 }
-/* Bouton blanc posé sur un aplat orange (accueil) : texte orange foncé, 5,3:1. */
-.vff-btn.on-cta {
-    background-color: #ffffff;
-    border-color: #ffffff;
-    color: #b84800;
-}
-.vff-btn.on-cta:hover:not(:disabled) {
-    background-color: #f5f5f5;
-}
-/* Ancienne variante (pages internes), équivalente à on-cta. */
-.vff-btn.on-cta.ink {
-    color: #b84800;
-}
-/* Contour blanc sur fond sombre ou photo (bandeau final de l'accueil). */
-.vff-btn.ghost-on-cta {
+/* Action destructive (refuser, supprimer) : contour et texte en couleur d'erreur, jamais en aplat. */
+.vff-btn.danger {
     background-color: transparent;
-    border-color: #ffffff;
-    color: #ffffff;
+    border-color: var(--vff-danger);
+    color: var(--vff-danger);
 }
-.vff-btn.ghost-on-cta:hover:not(:disabled) {
-    background-color: rgba(255, 255, 255, 0.15);
+.vff-btn.danger:hover:not(:disabled) {
+    background-color: var(--vff-danger-bg);
 }
 
 /* Lien d'action isolé (« Voir sur la carte ») : cible de 24 px, flèche ou icône facultative. */
@@ -725,7 +733,7 @@ a.vff-tile:hover,
 .vff-select[aria-invalid='true'],
 .vff-textarea[aria-invalid='true'] {
     border-color: var(--vff-danger);
-    box-shadow: inset 4px 0 0 var(--vff-danger);
+    box-shadow: 0 0 0 1px var(--vff-danger);
 }
 .vff-input:disabled,
 .vff-select:disabled,
@@ -747,10 +755,15 @@ a.vff-tile:hover,
 }
 .vff-check input {
     flex-shrink: 0;
-    width: 18px;
-    height: 18px;
+    width: 24px;
+    height: 24px;
     margin: 0;
     accent-color: var(--vff-accent-ink);
+}
+@media (max-width: 600px) {
+    .vff-check {
+        min-height: 44px;
+    }
 }
 
 /* Tableaux. Envelopper dans .vff-table-wrap (défilement horizontal), avec tabindex="0",
@@ -777,10 +790,17 @@ a.vff-tile:hover,
 }
 .vff-table th,
 .vff-table td {
-    padding: 10px 12px;
+    padding: 12px 14px;
     border-bottom: 1px solid var(--vff-border);
     text-align: left;
     vertical-align: top;
+}
+/* Première et dernière colonnes : 20 px au moins entre le texte et le cadre arrondi. */
+.vff-table-wrap .vff-table :is(th, td):first-child {
+    padding-left: 20px;
+}
+.vff-table-wrap .vff-table :is(th, td):last-child {
+    padding-right: 20px;
 }
 .vff-table thead th {
     background-color: var(--vff-bg-subtle);
@@ -871,15 +891,15 @@ a.vff-tile:hover,
     white-space: nowrap;
 }
 
-/* Messages (Components/ui/Notice.svelte). */
+/* Messages (Components/ui/Notice.svelte) : fond teinté du ton, filet fin de la même teinte, icône et
+   texte. Pas de barre épaisse sur le bord gauche. */
 .vff-notice {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    padding: 12px 14px;
-    border: 1px solid currentColor;
-    border-left-width: 4px;
-    border-radius: var(--vff-radius-sm);
+    gap: 12px;
+    padding: 20px 24px;
+    border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+    border-radius: var(--vff-radius-md);
     font-family: var(--vff-font-heading);
     font-size: var(--vff-fs-sm);
     line-height: var(--vff-lh-ui);
@@ -920,17 +940,21 @@ a.vff-tile:hover,
 }
 
 /* État vide (Components/ui/EmptyState.svelte). */
+/* Encart sur fond teinté et coins arrondis (pas de barre sur le bord gauche). */
 .vff-empty {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: var(--vff-space-2);
-    max-width: 60ch;
-    padding: var(--vff-space-5) 0 var(--vff-space-5) var(--vff-space-5);
-    border-left: 3px solid var(--vff-border-strong);
+    max-width: 68ch;
+    padding: var(--vff-pad-box);
+    border: 1px solid var(--vff-border);
+    border-radius: var(--vff-radius-md);
+    background-color: var(--vff-bg-subtle);
 }
 .vff-empty > .bi {
-    font-size: 24px;
+    margin-bottom: var(--vff-space-1);
+    font-size: 28px;
     line-height: 1;
     color: var(--vff-text-muted);
 }
@@ -983,195 +1007,35 @@ a.vff-tile:hover,
     }
 }
 
-/* ─── 7. Compatibilité (à retirer au fil de la migration des pages) ─────────
-   Règles anciennes gardées pour ne rien casser : chaque page migrée cesse d'en dépendre. */
-.noTranslate > * {
-    transform: translateX(0) !important;
-}
-.hidden-button {
-    display: none;
-}
-/* Accueil : sections dessinées avant le box-sizing global (largeurs calculées sans le padding) ;
-   elles gardent l'ancien modèle de boîte jusqu'à leur migration. Spécificité nulle : une règle
-   box-sizing écrite dans une section l'emporte toujours. */
-:where(
-    #whoarewe,
-    #genesis,
-    #maps,
-    #features,
-    #timeline,
-    #archives,
-    #stats,
-    #contribute-teaser,
-    #final-cta,
-    .home-advocacy
-),
-:where(
-        #whoarewe,
-        #genesis,
-        #maps,
-        #features,
-        #timeline,
-        #archives,
-        #stats,
-        #contribute-teaser,
-        #final-cta,
-        .home-advocacy
-    )
-    *,
-:where(
-        #whoarewe,
-        #genesis,
-        #maps,
-        #features,
-        #timeline,
-        #archives,
-        #stats,
-        #contribute-teaser,
-        #final-cta,
-        .home-advocacy
-    )
-    *::before,
-:where(
-        #whoarewe,
-        #genesis,
-        #maps,
-        #features,
-        #timeline,
-        #archives,
-        #stats,
-        #contribute-teaser,
-        #final-cta,
-        .home-advocacy
-    )
-    *::after {
-    box-sizing: content-box;
-}
-/* Accueil : éléments qui s'appuyaient sur les anciennes tailles globales (p 22 px, li 20 px, h1 36 px,
-   h2 en Inter). :where() garde la spécificité d'une simple balise : les règles des sections gagnent. */
-:where(#whoarewe, #genesis) p {
-    font-size: 22px;
-}
-:where(#features, #timeline, #archives, #contribute-teaser) li {
-    font-size: 20px;
-}
-:where(#whoarewe) h1 {
-    font-size: 36px;
-    line-height: normal;
-}
-:where(#maps) h2 {
-    font-family: var(--vff-font-heading);
-}
-/* Trait décoratif sous le titre « Nous sommes VFF » de l'accueil (dessin d'origine). Ailleurs,
-   le titre n'a plus de trait : ne plus écrire « h1:after { display: none } » dans les pages. */
-#whoarewe h1::after {
-    display: table;
-    width: 40px;
-    height: 5px;
-    border-radius: 2px;
-    background-color: #dddddd;
-    content: '';
-    margin: 4px auto 0 auto;
-}
-
+/* ─── 7. Thème sombre de la page et cartes MapLibre ─────────────────────────
+   (Les anciennes règles de compatibilité de l'accueil ont été retirées le 18/11 : les sections
+   définissent elles-mêmes leur modèle de boîte, leurs tailles et leurs couleurs.) */
 [data-theme='dark'] body {
     transition:
         background-color 200ms ease,
         color 200ms ease;
 }
-/* Accueil : sections d'origine (couleurs écrites en dur dans index.css). */
-[data-theme='dark'] main #whoarewe p {
-    color: #e8ecec;
+/* Contrôles des cartes MapLibre (toutes les cartes du site) : coins des boutons et des bulles au
+   rayon du site. */
+:root .maplibregl-ctrl.maplibregl-ctrl-group {
+    border-radius: var(--vff-radius-sm);
 }
-[data-theme='dark'] main #whoarewe h1 {
-    color: #ffffff;
+:root .maplibregl-ctrl-group button:first-child {
+    border-radius: var(--vff-radius-sm) var(--vff-radius-sm) 0 0;
 }
-[data-theme='dark'] main #whoarewe h1::after {
-    background-color: #3a4655;
+:root .maplibregl-ctrl-group button:last-child {
+    border-radius: 0 0 var(--vff-radius-sm) var(--vff-radius-sm);
 }
-[data-theme='dark'] main #maps .maps-container .maps-box > div {
-    background-color: #181f29;
-    box-shadow: -1px 8px 18px rgba(0, 0, 0, 0.4);
+:root .maplibregl-ctrl-group button:only-child {
+    border-radius: var(--vff-radius-sm);
 }
-[data-theme='dark'] main #maps .maps-container .maps-box > div h2 {
-    color: #ffffff;
-    background-color: #232c39;
-}
-[data-theme='dark'] main #maps .maps-container .maps-box > div p {
-    color: #94a3b8;
-}
-[data-theme='dark'] main #maps .maps-container .maps-box > div figure {
-    background-color: #181f29;
-}
-[data-theme='dark'] #features,
-[data-theme='dark'] #contribute-teaser {
-    background-color: #0f1419;
-}
-[data-theme='dark'] #features h2,
-[data-theme='dark'] #features h3,
-[data-theme='dark'] #contribute-teaser h2,
-[data-theme='dark'] #contribute-teaser h3 {
-    color: #ffffff;
-}
-[data-theme='dark'] #features p,
-[data-theme='dark'] #contribute-teaser p {
-    color: #94a3b8;
-}
-[data-theme='dark'] #features .feature {
-    background-color: #181f29;
-    border-color: #2a3441;
-}
-[data-theme='dark'] #features .feature:hover {
-    border-color: #ff6500;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
-}
-/* Pages internes : blocs propres à certaines pages (ApiDocs, Donate, Maps), à passer sur les
-   variables lors de leur migration. */
-[data-theme='dark'] .endpoints li,
-[data-theme='dark'] .format,
-[data-theme='dark'] .methods li,
-[data-theme='dark'] .tier,
-[data-theme='dark'] .progress-card {
-    background-color: #181f29;
-    border-color: #2a3441;
-}
-[data-theme='dark'] .tier .label {
-    color: #ffffff;
-}
-[data-theme='dark'] .tier p {
-    color: #94a3b8;
-}
-/* Sommaire des pages légales (LegalPage.svelte). */
-[data-theme='dark'] .toc {
-    background-color: #181f29;
-    border-color: #2a3441;
-}
-[data-theme='dark'] .toc a {
-    color: #94a3b8;
+:root .maplibregl-popup-content {
+    border-radius: var(--vff-radius-md);
 }
 
-/* ─── 8. Accueil : fond du héros en WebP ────────────────────────────────────
-   header.css charge la PNG de 2,6 Mo ; image-set() sert le WebP (179 Ko ordinateur, 117 Ko tablette,
-   64 Ko téléphone), la PNG restant en secours. */
-header .header-background {
-    background-image: image-set(
-        url('../images/background.webp') type('image/webp'),
-        url('../images/background.png') type('image/png')
-    );
-}
-@media (max-width: 1280px) {
-    header .header-background {
-        background-image: image-set(
-            url('../images/background-tablet.webp') type('image/webp'),
-            url('../images/background.png') type('image/png')
-        );
-    }
-}
-@media (max-width: 768px) {
-    header .header-background {
-        background-image: image-set(
-            url('../images/background-mobile.webp') type('image/webp'),
-            url('../images/background.png') type('image/png')
-        );
-    }
+/* ─── Accès rapide (agent acces, vague 3) ────────────────────────────────────
+   La barre de l'en-tête a désormais la hauteur --vff-header-h (header.css : 88, 72, 64 px) : la
+   zone de contenu s'arrête juste sous la barre fixe de l'accueil (lien d'évitement, bouton du héros). */
+.vff-content {
+    scroll-margin-top: var(--vff-header-h);
 }

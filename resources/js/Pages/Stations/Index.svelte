@@ -119,7 +119,6 @@
 <Layout compactHeader>
     <main>
         <PageHero
-            eyebrow={$i18n.t('stations.list_eyebrow')}
             title={$i18n.t('stations.list_title')}
             subtitle={$i18n.t('stations.list_subtitle', { total: fmt(overall) })}
         />

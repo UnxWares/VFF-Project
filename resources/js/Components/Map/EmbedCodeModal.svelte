@@ -109,7 +109,7 @@
   src="${embedUrl}"
   width="${safeWidth}"
   height="${safeHeight}"
-  style="border: 1px solid #c8ced4; border-radius: 6px;"
+  style="border: 1px solid #c8ced4; border-radius: 12px;"
   title="${t('maps.embed.iframe_title')}"
   allowfullscreen
   loading="lazy"

@@ -2,7 +2,6 @@
     import { onMount, untrack } from 'svelte';
     import { Link, router } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
-    import PageHero from '$components/PageHero.svelte';
     import SectionBlock from '$components/SectionBlock.svelte';
     import RailMap from '$components/Map/RailMap.svelte';
     import TimelineSlider from '$components/Map/TimelineSlider.svelte';
@@ -114,10 +113,30 @@
 
 <Layout compactHeader>
     <main>
-        <PageHero title={$i18n.t('maps.hero.title')} subtitle={$i18n.t('maps.hero.subtitle')} />
+        <!-- La carte d'abord : titre sur une ligne, puis la carte haute de tout l'espace restant
+             (100dvh moins l'en-tête et le titre). Le chapeau passe sous la carte. -->
+        <div class="map-screen vff-container">
+            <div class="map-head">
+                <h1>{$i18n.t('maps.hero.title')}</h1>
+                <nav class="map-jumps" aria-label={$i18n.t('maps.jumps_label')}>
+                    <ul>
+                        <li>
+                            <a href="#itineraire"
+                                ><i class="bi bi-signpost-split" aria-hidden="true"></i>
+                                {$i18n.t('itinerary.title')}</a
+                            >
+                        </li>
+                        <li>
+                            <a href="#lire-la-carte"
+                                ><i class="bi bi-book" aria-hidden="true"></i>
+                                {$i18n.t('maps.read.title')}</a
+                            >
+                        </li>
+                    </ul>
+                </nav>
+            </div>
 
-        <section class="map-stage" id="carte" aria-labelledby="map-title">
-            <div class="vff-container">
+            <section class="map-stage" id="carte" aria-labelledby="map-title">
                 <h2 class="vff-sr-only" id="map-title">{$i18n.t('maps.map_title')}</h2>
                 <div class="map-frame" bind:this={mapFrameEl}>
                     <div class="map-toolbar">
@@ -142,7 +161,7 @@
                             </select>
                             <button
                                 type="button"
-                                class="vff-btn secondary"
+                                class="vff-btn secondary embed-btn"
                                 aria-haspopup="dialog"
                                 onclick={() => (embedModalOpen = true)}
                             >
@@ -161,7 +180,7 @@
                         {dataVersion}
                         {flyTarget}
                         {route}
-                        height="clamp(400px, 64vh, 720px)"
+                        height="100%"
                         fitBounds={FRANCE_BOUNDS}
                         {fitPadding}
                         selectedLine={drawerLine?.slug ?? null}
@@ -193,10 +212,23 @@
                         bind:value={selectedEra}
                     />
                 </div>
-            </div>
-        </section>
+            </section>
+        </div>
 
-        <div class="vff-container route-section">
+        <div class="vff-container map-after">
+            <p class="map-lead">{$i18n.t('maps.hero.subtitle')}</p>
+            <button
+                type="button"
+                class="vff-btn secondary small embed-btn"
+                aria-haspopup="dialog"
+                onclick={() => (embedModalOpen = true)}
+            >
+                <i class="bi bi-code-slash" aria-hidden="true"></i>
+                {$i18n.t('maps.embed.button')}
+            </button>
+        </div>
+
+        <div class="vff-container route-section" id="itineraire">
             <RoutePlanner
                 year={selectedEra}
                 minYear={eras[0]}
@@ -215,7 +247,12 @@
             currentEra={currentEraYear}
         />
 
-        <SectionBlock kind="alt" title={$i18n.t('maps.read.title')} maxWidth="1100px">
+        <SectionBlock
+            kind="alt"
+            id="lire-la-carte"
+            title={$i18n.t('maps.read.title')}
+            maxWidth="1100px"
+        >
             <dl class="reading">
                 {#each READING as key (key)}
                     <div class="reading-item">
@@ -256,34 +293,103 @@
 </Layout>
 
 <style>
-    /* La carte, élément principal de la page, sur la grille commune (même bord gauche que le
-       bandeau de titre), sans chevaucher le bandeau. */
+    /* La carte d'abord : le titre et la carte remplissent le premier écran (100dvh moins l'en-tête),
+       sur la grille commune. Hauteur minimale : sur un écran très bas (téléphone en paysage), la
+       page défile normalement au lieu d'écraser la carte. Une marge reste sous le cadre : on peut
+       toujours faire défiler la page au doigt sans passer par la carte. */
+    .map-screen {
+        display: flex;
+        flex-direction: column;
+        height: max(600px, calc(100dvh - var(--vff-header-h)));
+        padding-bottom: var(--vff-space-5);
+    }
+    .map-head {
+        display: flex;
+        flex: none;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 4px var(--vff-space-6);
+        padding-block: var(--vff-space-5) var(--vff-space-4);
+    }
+    .map-head h1 {
+        margin: 0;
+        font-size: clamp(1.375rem, 1rem + 1.1vw, 2rem);
+        line-height: var(--vff-lh-heading);
+        text-wrap: balance;
+    }
+    .map-jumps ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px var(--vff-space-5);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .map-jumps a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 32px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-md);
+        font-weight: 600;
+        color: var(--vff-link);
+        text-underline-offset: 0.2em;
+    }
+    .map-jumps a:hover {
+        text-decoration-thickness: 2px;
+    }
+    .map-jumps .bi {
+        font-size: 17px;
+    }
     .map-stage {
-        padding-top: var(--vff-block-space);
-        scroll-margin-top: 80px;
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-height: 0;
+        scroll-margin-top: var(--vff-space-4);
     }
     .map-frame {
         position: relative;
         display: flex;
+        flex: 1 1 auto;
         flex-direction: column;
+        min-height: 0;
         overflow: hidden;
         border: 1px solid var(--vff-border-strong);
-        border-radius: var(--vff-radius-lg);
+        border-radius: var(--vff-radius-md);
         background-color: var(--vff-bg-elevated);
     }
-    /* Plein écran (natif ou pseudo) : la carte prend toute la hauteur entre la barre et la frise. */
+    /* La carte prend la hauteur laissée par la barre d'outils et la frise. */
+    .map-frame :global(.rail-map-wrapper) {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+    .map-frame :global(.rail-map) {
+        height: 100% !important;
+    }
+    .map-frame :global(.timeline),
+    .map-toolbar {
+        flex: none;
+    }
+    /* Plein écran (natif ou pseudo) : sans cadre. */
     .map-frame:fullscreen,
     .map-frame:global(.maplibregl-pseudo-fullscreen) {
         border: 0;
         border-radius: 0;
     }
-    .map-frame:fullscreen :global(.rail-map-wrapper),
-    .map-frame:global(.maplibregl-pseudo-fullscreen) :global(.rail-map-wrapper) {
-        flex: 1;
+    /* Sous la carte : le chapeau (ce que montre la carte, comment l'utiliser). */
+    .map-lead {
+        max-width: var(--vff-measure);
+        margin: 0;
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-lead);
+        line-height: 1.5;
+        color: var(--vff-text-muted);
     }
-    .map-frame:fullscreen :global(.rail-map),
-    .map-frame:global(.maplibregl-pseudo-fullscreen) :global(.rail-map) {
-        height: 100% !important;
+    .route-section {
+        scroll-margin-top: var(--vff-space-4);
     }
 
     /* Barre d'outils au-dessus de la carte : la recherche, le calque et « Intégrer » ne se
@@ -357,8 +463,7 @@
         padding: 8px 12px;
         transform: translateX(-50%);
         border: 1px solid var(--vff-border-strong);
-        border-left: 3px solid var(--vff-accent);
-        border-radius: var(--vff-radius-sm);
+        border-radius: var(--vff-radius-md);
         background-color: var(--vff-bg-elevated);
         box-shadow: var(--vff-shadow-popover);
         font-family: var(--vff-font-heading);
@@ -398,33 +503,32 @@
         color: var(--vff-text-muted);
     }
 
-    /* Tablette et téléphone : la recherche sur toute la largeur, puis le calque et « Intégrer »
-       côte à côte ; la légende est repliée, le bandeau « pas encore de données » descend sous elle. */
+    /* Sous la carte : chapeau, et « Intégrer » sur téléphone. */
+    .map-after {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--vff-space-4) var(--vff-space-6);
+        padding-top: var(--vff-space-3);
+    }
+    .map-after .embed-btn {
+        display: none;
+    }
+
+    /* Tablette : une seule rangée d'outils (plus de hauteur pour la carte) ; « Calque » est lu,
+       l'icône reste ; la légende est repliée, le bandeau « pas encore de données » descend. */
     @media (max-width: 900px) {
+        .map-head {
+            padding-block: var(--vff-space-4) var(--vff-space-3);
+        }
         .toolbar-search {
-            flex-basis: 100%;
+            flex-basis: 240px;
             max-width: none;
         }
         .toolbar-tools {
-            width: 100%;
             margin-left: 0;
         }
-        .overlay-select {
-            flex: 1;
-            max-width: none;
-        }
-        .era-empty {
-            top: 60px;
-            max-width: calc(100% - 24px);
-        }
-    }
-    @media (max-width: 600px) {
-        .reading {
-            grid-template-columns: minmax(0, 1fr);
-        }
-    }
-    /* Très petit écran : « Calque » reste lu mais seule l'icône est affichée. */
-    @media (max-width: 400px) {
         .overlay-label-text {
             position: absolute;
             width: 1px;
@@ -432,6 +536,48 @@
             overflow: hidden;
             clip-path: inset(50%);
             white-space: nowrap;
+        }
+        .overlay-select {
+            max-width: 13rem;
+        }
+        .era-empty {
+            top: 60px;
+            max-width: calc(100% - 24px);
+        }
+    }
+    /* Téléphone : recherche et calque sur une rangée ; « Intégrer » (tâche d'ordinateur) passe sous
+       la carte ; les raccourcis du titre aussi (la page continue juste en dessous). */
+    @media (max-width: 600px) {
+        .map-screen {
+            height: max(560px, calc(100dvh - var(--vff-header-h)));
+            padding-bottom: var(--vff-space-4);
+        }
+        .map-jumps {
+            display: none;
+        }
+        .map-toolbar {
+            flex-wrap: nowrap;
+            gap: 8px;
+            padding: 8px;
+        }
+        .toolbar-search {
+            flex: 1 1 auto;
+        }
+        .toolbar-tools {
+            flex: none;
+            gap: 6px;
+        }
+        .overlay-select {
+            width: 7.5rem;
+        }
+        .toolbar-tools .embed-btn {
+            display: none;
+        }
+        .map-after .embed-btn {
+            display: inline-flex;
+        }
+        .reading {
+            grid-template-columns: minmax(0, 1fr);
         }
     }
 </style>

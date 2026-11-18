@@ -7,9 +7,9 @@
     import { Link } from '@inertiajs/svelte';
 
     const why = [
-        { icon: 'bi-server', titleKey: 'donate.why.item1_title', textKey: 'donate.why.item1_text' },
-        { icon: 'bi-map', titleKey: 'donate.why.item2_title', textKey: 'donate.why.item2_text' },
-        { icon: 'bi-clock', titleKey: 'donate.why.item3_title', textKey: 'donate.why.item3_text' },
+        { titleKey: 'donate.why.item1_title', textKey: 'donate.why.item1_text' },
+        { titleKey: 'donate.why.item2_title', textKey: 'donate.why.item2_text' },
+        { titleKey: 'donate.why.item3_title', textKey: 'donate.why.item3_text' },
     ];
 </script>
 
@@ -20,18 +20,20 @@
 
 <Layout compactHeader>
     <main>
-        <PageHero
-            eyebrow={$i18n.t('donate.hero.eyebrow')}
-            title={$i18n.t('donate.hero.title')}
-            subtitle={$i18n.t('donate.hero.subtitle')}
-        />
+        <PageHero title={$i18n.t('donate.hero.title')} subtitle={$i18n.t('donate.hero.subtitle')} />
 
-        <SectionBlock title={$i18n.t('donate.status.title')} maxWidth="720px">
-            <div class="vff-prose">
-                <p>{$i18n.t('donate.status.text')}</p>
-                <h3>{$i18n.t('donate.org.title')}</h3>
-                <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-                <p>{@html $i18n.t('donate.org.paragraph')}</p>
+        <!-- Deux colonnes sur grand écran : l'état des dons à gauche, l'organisme à droite (pas de
+             moitié de page vide). -->
+        <SectionBlock title={$i18n.t('donate.status.title')} maxWidth="1180px">
+            <div class="split">
+                <div class="vff-prose">
+                    <p>{$i18n.t('donate.status.text')}</p>
+                </div>
+                <div class="vff-prose aside">
+                    <h3>{$i18n.t('donate.org.title')}</h3>
+                    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+                    <p>{@html $i18n.t('donate.org.paragraph')}</p>
+                </div>
             </div>
         </SectionBlock>
 
@@ -41,16 +43,18 @@
             intro={$i18n.t('donate.why.intro')}
             maxWidth="1180px"
         >
-            <div class="why-grid">
-                {#each why as w (w.titleKey)}
-                    <IconCard icon={w.icon} title={$i18n.t(w.titleKey)} text={$i18n.t(w.textKey)} />
-                {/each}
-            </div>
-        </SectionBlock>
-
-        <SectionBlock title={$i18n.t('donate.transparency.title')} maxWidth="720px">
-            <div class="vff-prose">
-                <p>{$i18n.t('donate.transparency.paragraph')}</p>
+            <div class="split wide-start">
+                <ul class="vff-points">
+                    {#each why as w (w.titleKey)}
+                        <li>
+                            <IconCard title={$i18n.t(w.titleKey)} text={$i18n.t(w.textKey)} />
+                        </li>
+                    {/each}
+                </ul>
+                <section class="vff-prose aside" aria-labelledby="transparency-title">
+                    <h3 id="transparency-title">{$i18n.t('donate.transparency.title')}</h3>
+                    <p>{$i18n.t('donate.transparency.paragraph')}</p>
+                </section>
             </div>
         </SectionBlock>
 
@@ -61,7 +65,6 @@
         >
             {#snippet actions()}
                 <Link href="/contribute" class="vff-btn primary">
-                    <i class="bi bi-geo" aria-hidden="true"></i>
                     {$i18n.t('donate.cta.contribute')}
                 </Link>
             {/snippet}
@@ -70,9 +73,25 @@
 </Layout>
 
 <style>
-    .why-grid {
+    .split {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 24px 32px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--vff-block-space) 64px;
+        align-items: start;
+    }
+    .split.wide-start {
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    }
+    .aside h3 {
+        margin: 0 0 var(--vff-space-3);
+    }
+    .aside p:last-child {
+        margin-bottom: 0;
+    }
+    @media (max-width: 900px) {
+        .split,
+        .split.wide-start {
+            grid-template-columns: minmax(0, 1fr);
+        }
     }
 </style>

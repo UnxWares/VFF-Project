@@ -28,4 +28,8 @@ return [
     'previous' => 'Précédent',
     'next' => 'Suivant',
     'page_of' => 'Page :current sur :last',
+    // Annuaires sur téléphone : bouton qui déplie les filtres (nombre de réglages actifs).
+    'filters' => 'Filtres',
+    'filters_active_one' => ':count actif',
+    'filters_active_other' => ':count actifs',
 ];

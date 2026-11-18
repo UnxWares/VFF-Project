@@ -359,9 +359,9 @@
         display: inline-flex;
         align-items: center;
         min-height: 30px;
-        padding: 4px 10px;
+        padding: 4px 12px;
         border: 1px solid var(--vff-border-control);
-        border-radius: var(--vff-radius-sm);
+        border-radius: var(--vff-radius-pill);
         color: var(--vff-text);
         white-space: nowrap;
         flex: 1;

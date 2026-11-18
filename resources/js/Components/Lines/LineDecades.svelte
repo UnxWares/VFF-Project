@@ -243,7 +243,7 @@
         display: flex;
         height: 8px;
         overflow: hidden;
-        border-radius: 4px;
+        border-radius: var(--vff-radius-xs);
     }
     .seg {
         min-width: 1px;
@@ -293,14 +293,14 @@
         display: none;
         margin: 8px 0 0;
         font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-xs);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
     .foot {
         max-width: var(--vff-measure);
         margin: 10px 0 0;
         font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-xs);
+        font-size: var(--vff-fs-sm);
         line-height: 1.5;
         color: var(--vff-text-muted);
     }

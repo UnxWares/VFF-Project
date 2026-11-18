@@ -59,9 +59,10 @@
         loading = true;
         error = false;
         const next = reset ? 1 : page + 1;
-        const params = new URLSearchParams({ page: String(next), per_page: String(perPage), sort });
-        if (type) params.set('type', type);
-        if (period) params.set('period', period);
+        const query = { page: String(next), per_page: String(perPage), sort };
+        if (type) query.type = type;
+        if (period) query.period = period;
+        const params = new URLSearchParams(query);
         try {
             const res = await fetch(`/api/v1/lines/${encodeURIComponent(slug)}/media?${params}`, {
                 headers: { Accept: 'application/json' },
@@ -543,7 +544,7 @@
         padding: 0;
         overflow: hidden;
         border: 0;
-        border-radius: var(--vff-radius-sm);
+        border-radius: var(--vff-radius-md);
         background: var(--vff-bg-muted);
         cursor: zoom-in;
     }
@@ -559,7 +560,7 @@
     .tag {
         position: absolute;
         padding: 2px 8px;
-        border-radius: var(--vff-radius-sm);
+        border-radius: var(--vff-radius-pill);
         background: rgba(0, 0, 0, 0.72);
         color: #fff;
         font-family: var(--vff-font-heading);
@@ -647,7 +648,7 @@
         max-width: var(--vff-measure);
         margin: var(--vff-space-5) 0 0;
         font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-xs);
+        font-size: var(--vff-fs-sm);
         line-height: 1.5;
         color: var(--vff-text-muted);
     }

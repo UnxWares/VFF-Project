@@ -35,7 +35,7 @@
         width: 100%;
         max-width: 440px;
         margin: 0 auto;
-        padding: 32px;
+        padding: var(--vff-pad-box);
         background-color: var(--vff-bg-elevated);
         border: 1px solid var(--vff-border-strong);
         border-radius: var(--vff-radius-lg);
@@ -100,7 +100,7 @@
     .auth-card-body :global(.auth-field [aria-invalid='true']),
     .auth-card-body :global(.auth-field:has(.error) input) {
         border-color: var(--vff-danger);
-        box-shadow: inset 4px 0 0 var(--vff-danger);
+        box-shadow: 0 0 0 1px var(--vff-danger);
     }
     .auth-card-body :global(.auth-field .error) {
         font-family: var(--vff-font-heading);
@@ -169,22 +169,18 @@
         font-weight: 600;
     }
     .auth-card-body :global(.auth-flash) {
-        padding: 12px 14px;
-        border: 1px solid currentColor;
-        border-left-width: 4px;
-        border-radius: var(--vff-radius-sm);
+        padding: 14px 16px;
+        border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+        border-radius: var(--vff-radius-md);
         background-color: var(--vff-success-bg);
         color: var(--vff-success);
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-sm);
         line-height: var(--vff-lh-ui);
     }
-    @media (max-width: 480px) {
+    @media (max-width: 600px) {
         .auth-shell {
             padding-top: 28px;
-        }
-        .auth-card {
-            padding: 24px 18px;
         }
     }
 </style>

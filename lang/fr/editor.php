@@ -250,7 +250,7 @@ return [
         'title' => 'Contributions à valider',
         'subtitle_one' => ':count contribution à relire. Une contribution est publiée après :threshold approbations de validateurs différents.',
         'subtitle_other' => ':count contributions à relire. Une contribution est publiée après :threshold approbations de validateurs différents.',
-        'empty_text' => 'Les nouvelles propositions apparaîtront ici dès leur envoi.',
+        'empty_text' => "Aucune proposition n'attend de relecture.",
         'submitted' => 'Proposée :date',
         'changes' => 'Changements proposés',
         'reject_reason' => 'Motif du refus (facultatif, transmis au contributeur)',

@@ -231,11 +231,14 @@ export function bestPhaseIndex(phases, serverBest = null) {
     return best;
 }
 
-/** Kilomètres lisibles : « 13,8 km » (une décimale sous 100 km, entier au-delà). */
+/**
+ * Kilomètres lisibles, à la même précision que le reste de la fiche (en-tête, histoire, tableaux) :
+ * une décimale au plus, sans zéro inutile (« 13,8 km », « 124,7 km », « 125 km »). Avant : entier
+ * au-delà de 100 km, d'où « 125 km » dans les phases contre « 124,7 » dans l'en-tête.
+ */
 export function formatKm(m, locale = 'fr') {
     const km = (m ?? 0) / 1000;
-    const digits = km >= 100 ? 0 : 1;
-    return `${km.toLocaleString(locale, { minimumFractionDigits: digits, maximumFractionDigits: digits })} km`;
+    return `${km.toLocaleString(locale, { maximumFractionDigits: 1 })} km`;
 }
 
 /**

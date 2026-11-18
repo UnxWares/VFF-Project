@@ -154,7 +154,10 @@
                 type: 'geojson',
                 data: phaseFeatureCollection(portions, phase),
             });
-            // Halo des portions qui changent à cette phase.
+            // Halo des portions qui changent à cette phase. Il dépend du zoom : absent quand toute
+            // la ligne est à l'écran (zoom 7 et moins, un halo de 11 px y empâtait le tracé), fin
+            // et pâle ensuite, puis exactement le rendu d'origine à partir du zoom 11 (largeur
+            // width(11), opacité 0,28, flou 2).
             map.addLayer({
                 id: 'vff-line-changed',
                 type: 'line',
@@ -163,9 +166,21 @@
                 layout: { 'line-cap': 'round', 'line-join': 'round' },
                 paint: {
                     'line-color': ['get', 'color'],
-                    'line-width': width(11),
-                    'line-opacity': 0.28,
-                    'line-blur': 2,
+                    'line-width': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        7,
+                        0,
+                        9,
+                        7,
+                        11,
+                        23.925,
+                        12,
+                        26.4,
+                    ],
+                    'line-opacity': ['interpolate', ['linear'], ['zoom'], 7, 0, 9, 0.14, 11, 0.28],
+                    'line-blur': ['interpolate', ['linear'], ['zoom'], 9, 0.5, 11, 2],
                 },
             });
             const dashed = [
@@ -230,7 +245,7 @@
                 minzoom: 8,
                 layout: {
                     'text-field': ['get', 'name'],
-                    'text-size': 12,
+                    'text-size': 13,
                     // Le nom se place là où il tient (sous, au-dessus ou à côté du point).
                     'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
                     'text-radial-offset': 0.9,

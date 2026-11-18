@@ -205,7 +205,7 @@
         padding: var(--vff-space-3);
         background: var(--vff-bg-subtle);
         border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-sm);
+        border-radius: var(--vff-radius-md);
     }
     .row {
         display: flex;
@@ -257,7 +257,7 @@
     }
     input[aria-invalid='true'] {
         border-color: var(--vff-danger);
-        box-shadow: inset 3px 0 0 var(--vff-danger);
+        box-shadow: 0 0 0 1px var(--vff-danger);
     }
     .req {
         color: var(--vff-danger);

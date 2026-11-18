@@ -89,7 +89,7 @@
         min-height: 40px;
         padding: 0 8px;
         border: 0;
-        border-radius: var(--vff-radius-md);
+        border-radius: var(--vff-radius-sm);
         background: transparent;
         color: inherit;
         font: inherit;
@@ -124,7 +124,7 @@
         list-style: none;
         background-color: var(--vff-bg-elevated);
         border: 1px solid var(--vff-border-strong);
-        border-radius: var(--vff-radius-lg);
+        border-radius: var(--vff-radius-md);
         box-shadow: var(--vff-shadow-popover);
     }
     .lang-menu[hidden] {

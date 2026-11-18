@@ -121,7 +121,6 @@
 <Layout compactHeader>
     <main>
         <PageHero
-            eyebrow={$i18n.t('lines.index.eyebrow')}
             title={$i18n.t('lines.index.title')}
             subtitle={$i18n.t('lines.index.subtitle', {
                 total: fmt(overview.total),

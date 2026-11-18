@@ -13,13 +13,7 @@
     </div>
     <p>{$i18n.t('home.whoarewe.paragraph')}</p>
     <div class="whoarewe-buttons">
-        <Link href="/whoarewe" class="vff-btn primary"
-            ><i class="bi bi-people" aria-hidden="true"></i>
-            {$i18n.t('home.whoarewe.cta_history')}</Link
-        >
-        <Link href="/donate" class="vff-btn secondary"
-            ><i class="bi bi-balloon-heart" aria-hidden="true"></i>
-            {$i18n.t('home.whoarewe.cta_donate')}</Link
-        >
+        <Link href="/whoarewe" class="vff-btn primary">{$i18n.t('home.whoarewe.cta_history')}</Link>
+        <Link href="/donate" class="vff-btn secondary">{$i18n.t('home.whoarewe.cta_donate')}</Link>
     </div>
 </section>
