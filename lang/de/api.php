@@ -1,76 +1,77 @@
 <?php
 
+// Seite „API-Zugang“ (/api). Begriffe: „Endpunkt“, „Epoche“, „Referenz“ für die erzeugte Dokumentation.
 return [
     'meta_title' => 'API-Zugang',
-    'meta_description' => 'Öffentliche API-Dokumentation von VFF (in Vorbereitung).',
+    'meta_description' => 'Zugang zur VFF-API: REST-Endpunkte, GraphQL-API, OpenAPI-Spezifikation und Beispielabfragen. Nur lesend, ohne Schlüssel und ohne Konto.',
 
     'hero' => [
         'eyebrow' => 'Öffentliche API',
-        'title' => 'Erstellen Sie eigene Werkzeuge auf Grundlage unserer Daten',
-        'subtitle' => 'Eine offene, dokumentierte und kostenfreie REST- und GeoJSON-API zur Entwicklung von Anwendungen, Visualisierungen und Forschungsarbeiten rund um das französische Schienennetz.',
-        'status' => 'Phase 6 - Spezifikation in Arbeit',
+        'title' => 'Die Daten von VFF für Ihre eigenen Werkzeuge',
+        'subtitle' => 'Strecken, Bahnhöfe, Chroniken und Streckenverläufe des Schienennetzes von 1830 bis heute, als JSON, GeoJSON, Vektorkacheln und GTFS. Nur lesend, ohne Schlüssel und ohne Konto.',
     ],
 
-    'endpoints' => [
-        'title' => 'Geplante Endpunkte',
-        'lines' => 'Übersicht und Detailinformationen zu Bahnstrecken, nach Epoche, Status und Region.',
-        'segments' => 'Streckensegmente als GeoJSON oder MVT zur Einbindung in eine Karte von Drittanbietern.',
-        'stations' => 'Gegenwärtige und historische Bahnhöfe, mit Eröffnungs- und Schließungsdaten.',
-        'materials' => 'Fahrzeuge: Datenblätter, Betriebszeiträume und befahrene Strecken.',
-        'events' => 'Historische Ereignisse: Einweihungen, Stilllegungen und Rückbauten.',
-        'media' => 'Medien: geolokalisierte und datierte Archivfotografien.',
+    'docs' => [
+        'title' => 'Dokumentation',
+        'intro' => 'Alle beschreiben dieselben Daten: Wählen Sie die Oberfläche, die Ihnen besser gefällt.',
         'items' => [
-            'lines_geojson' => 'GeoJSON-FeatureCollection aller Streckensegmente einer Epoche.',
-            'stations_geojson' => 'FeatureCollection der in dieser Epoche offenen Bahnhöfe (nach Status gefiltert).',
-            'tiles' => 'Mapbox-Vektorkachel (binär) für die Darstellung mit MapLibre. Eigenschaften: status, traffic_type, electrified, is_heritage, voltage_v, max_speed_kmh, line_slug, line_name, line_code.',
-            'search' => 'Suche mit Autovervollständigung in Strecken, Bahnhöfen und Fahrzeugen. Mindestens 2 Zeichen.',
-            'history' => 'Vollständige Geschichte: alle Ereignisse in zeitlicher Reihenfolge und der Status in jeder Epoche.',
-            'pk' => 'Wandelt (lat, lng) mit PostGIS ST_LineLocatePoint in einen Streckenkilometer (PK) um. Genauigkeit unter einem Meter.',
-            'stops' => 'Geordnete Folge der Bahnhöfe der Strecke (entspricht GTFS stop_times): Position, PK, Status in der Epoche, is_terminal.',
-            'route' => 'Bahnverbindung zwischen 2 Bahnhöfen (Dijkstra auf dem materialisierten Graphen): Entfernung, geschätzte Dauer, Abschnitte, Polylinie.',
-            'gtfs' => 'Vollständiger GTFS-Export des Netzes einer Epoche (agency, routes, stops, trips, stop_times, shapes, calendar), mit jedem GTFS-Standardwerkzeug kompatibel.',
+            'scalar' => ['title' => 'REST-Referenz (Scalar)', 'text' => 'Die Hauptreferenz, mit Live-Anfragen und Codebeispielen.'],
+            'swagger' => ['title' => 'REST-Referenz (Swagger UI)', 'text' => 'Dieselbe Spezifikation in einer klassischeren Oberfläche.'],
+            'openapi' => ['title' => 'OpenAPI-3.1-Spezifikation', 'text' => 'JSON-Datei zum Import in Postman, Insomnia oder einen Client-Generator.'],
+            'graphql' => ['title' => 'GraphQL-Referenz', 'text' => 'Typen, Abfragen und Beispiele des Schemas.'],
+            'graphiql' => ['title' => 'GraphiQL', 'text' => 'Konsole zum Schreiben und Ausführen von GraphQL-Abfragen.'],
+            'schema' => ['title' => 'GraphQL-Schema (SDL)', 'text' => 'Das vollständige Schema als Text.'],
         ],
     ],
 
-    'format' => [
-        'title' => 'Unterstützte Formate',
-        'json' => 'JSON (klassisches REST)',
-        'geojson' => 'GeoJSON (Kartenebenen)',
-        'mvt' => 'MVT: Mapbox Vector Tiles (für MapLibre / Leaflet)',
+    'access' => [
+        'title' => 'Zugang und Grenzen',
+        'readonly' => ['title' => 'Nur lesend', 'text' => 'Alle REST-Anfragen sind GET-Anfragen; GraphQL bietet nur Leseabfragen.'],
+        'no_key' => ['title' => 'Ohne Schlüssel und Konto', 'text' => 'Keine Registrierung: Rufen Sie die Adressen direkt auf.'],
+        'limit' => ['title' => '300 Anfragen pro Minute', 'text' => 'Grenze pro IP-Adresse, für REST wie für GraphQL. Darüber antwortet der Server mit HTTP 429.'],
+        'licence' => ['title' => 'Lizenzen der Daten', 'text' => 'Nennen Sie „VFF - Voies Ferrées de France“ mit einem Link auf vff-project.org. Jede Quelle behält ihre eigene Lizenz: Einzelheiten stehen in den Referenzen.'],
+    ],
+
+    'endpoints' => [
+        'title' => 'REST-Endpunkte',
+        'intro' => 'Alle Adressen beginnen mit /api/v1 und antworten auf GET. In den Pfaden steht {year} für eine Zehnjahresepoche (1830 bis 2030) und {line} für die Kennung einer Strecke, zum Beispiel rfn-420000.',
+        'label' => 'REST-Endpunkte der VFF-API',
+        'items' => [
+            'lines_geojson' => 'Streckenverläufe des Netzes in einer Epoche als GeoJSON (FeatureCollection von Segmenten).',
+            'stations_geojson' => 'Bahnhöfe einer Epoche als GeoJSON. Geschlossene Bahnhöfe sind enthalten, solange in der Nähe ein Gleis besteht, mit ihrem Status.',
+            'tiles' => 'Vektorkachel (MVT) einer Epoche, für eine MapLibre- oder OpenLayers-Quelle.',
+            'gtfs' => 'Das Netz einer Epoche im Format GTFS Static (ZIP-Archiv).',
+            'search' => 'Suche nach Namen in Strecken, Bahnhöfen und Fahrzeugen. Mindestens 2 Zeichen.',
+            'history' => 'Chronik einer Strecke: datierte Ereignisse und ihr Zustand in jeder Epoche.',
+            'pk' => 'Streckenkilometer eines Ortes auf einer Strecke, aus Breiten- und Längengrad.',
+            'stops' => 'Bahnhöfe einer Strecke in der Reihenfolge der Streckenkilometer, in einer Epoche.',
+            'signalling' => 'Kilometerabschnitte mit einheitlicher Signalisierung.',
+            'media' => 'Fotos, Postkarten und Pläne zu einer Strecke, mit ihren Rechten.',
+            'route' => 'Bahnverbindung zwischen zwei Bahnhöfen im Netz einer Epoche: Entfernung, Halte und Streckenverlauf.',
+        ],
     ],
 
     'example' => [
-        'title' => 'Vorschau-Beispiel',
-        'description' => 'Alle im Jahr 2000 in Betrieb befindlichen Strecken abrufen (um einen Eindruck vom Format zu gewinnen):',
-        'response' => 'Erwartete Antwort:',
-        'curl_lines' => 'Alle im Jahr 2030 in Betrieb befindlichen Strecken abrufen (GeoJSON)',
-        'curl_pk' => 'Den Streckenkilometer eines Punktes auf der Strecke Paris - Brest finden',
-        'curl_search' => 'Suche mit Autovervollständigung (Strecken, Bahnhöfe und Fahrzeuge)',
+        'title' => 'REST-Beispiele',
+        'intro' => 'Drei Anfragen zum Kopieren in ein Terminal, danach die Antwort auf die zweite, so wie der Server sie liefert.',
+        'curl_lines' => 'Streckenverläufe des heutigen Netzes (Epoche 2030) als GeoJSON',
+        'curl_pk' => 'Streckenkilometer eines Ortes auf der Strecke Paris-Montparnasse - Brest',
+        'curl_search' => 'Suche nach Namen',
+        'response' => 'Antwort auf die zweite Anfrage: Der Punkt wird auf den nächsten Streckenverlauf gelegt (snap), hier 395 m entfernt.',
+        'code_label' => 'Codebeispiel',
     ],
 
     'graphql' => [
-        'title' => 'GraphQL-API (Lighthouse)',
-        'text' => 'Neben der REST-API bietet VFF einen einzigen GraphQL-Endpunkt für komplexe Abfragen: eine Strecke mit ihren Segmenten, Ereignissen, Fahrzeugen und Bahnhöfen in einer einzigen Anfrage.',
-        'explorer_desc' => 'Schema erkunden, Autovervollständigung, Abfragen ausführen',
-        'endpoint_desc' => 'Ein einziger Endpunkt für alle Abfragen',
-        'example_comment' => 'Beispiel: die Strecke Argentan - Granville mit ihren Bahnhöfen und Ereignissen',
-    ],
-
-    'openapi' => [
-        'title' => 'Interaktive OpenAPI-3-Dokumentation',
-        'text_before' => 'Die OpenAPI-3.1-Spezifikation wird automatisch aus den Laravel-Controllern erzeugt (mit',
-        'text_middle' => ') und mit',
-        'text_after' => 'dargestellt.',
-        'docs' => 'Interaktive Dokumentation',
-        'docs_desc' => 'Scalar-Oberfläche mit Live-Test',
-        'spec' => 'OpenAPI-3.1-Spezifikation (JSON)',
-        'spec_desc' => 'Zum Import in Postman, Insomnia…',
+        'title' => 'GraphQL-API',
+        'text' => 'Für umfangreichere Abfragen liefert ein einziger GraphQL-Endpunkt, POST /graphql, eine Strecke mit ihren Segmenten und Ereignissen auf einmal. Das Schema steht in der Referenz; Ihre Abfragen können Sie in GraphiQL ausprobieren.',
+        'links' => 'GraphQL-Dokumentation',
+        'example_comment' => 'Eine Strecke mit ihren Ereignissen',
     ],
 
     'cta' => [
-        'title' => 'Bleiben Sie auf dem Laufenden',
-        'text' => 'Die API erscheint in Phase 6 der Roadmap. Verfolgen Sie den Fortschritt auf Discord oder GitHub.',
-        'discord' => 'Discord',
-        'github' => 'Den Code ansehen',
+        'title' => 'Eine Frage, eine Idee?',
+        'text' => 'Erzählen Sie uns auf Discord, was Sie bauen oder was fehlt, oder melden Sie ein Problem auf GitHub.',
+        'discord' => 'Auf Discord austauschen',
+        'github' => 'Code auf GitHub ansehen',
     ],
 ];

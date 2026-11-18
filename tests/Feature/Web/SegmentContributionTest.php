@@ -352,7 +352,7 @@ class SegmentContributionTest extends TestCase
 
         $this->actingAs($v1)->from('/validate')->post("/validate/{$c->id}/approve")
             ->assertRedirect('/validate')
-            ->assertSessionHas('success', '1/2 approbation(s) : en attente d’un second validateur.');
+            ->assertSessionHas('success', __('editor.validate.flash.partial', ['count' => 1, 'threshold' => 2]));
         $this->assertSame('approved', $c->fresh()->status->value);
         $this->assertSame('in_service', $eastern->fresh()->status->value);
 
@@ -361,7 +361,7 @@ class SegmentContributionTest extends TestCase
         $this->assertSame(1, DB::table('contribution_approvals')->count());
 
         $this->actingAs($v2)->post("/validate/{$c->id}/approve")
-            ->assertSessionHas('success', '2/2 approbations : contribution publiée.');
+            ->assertSessionHas('success', __('editor.validate.flash.applied', ['count' => 2, 'threshold' => 2]));
 
         $c->refresh();
         $this->assertSame('applied', $c->status->value);

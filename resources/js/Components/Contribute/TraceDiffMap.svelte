@@ -175,7 +175,7 @@
 
 <div class="diff">
     <div class="diff-bar">
-        <div class="views" role="radiogroup" aria-label={$i18n.t('editor.diff.label')}>
+        <div class="views" role="group" aria-label={$i18n.t('editor.diff.label')}>
             {#each ['overlay', 'before', 'after'] as v (v)}
                 <button
                     type="button"
@@ -189,23 +189,28 @@
         </div>
         <div class="legend">
             <span
-                ><i class="sw" style="--c:#38bdf8; opacity:.6; border-top-width:6px"></i>{$i18n.t(
+                ><i class="sw thick" style:--c="#38bdf8" aria-hidden="true"></i>{$i18n.t(
                     'editor.diff.current',
                 )}</span
             >
             {#if before}<span
-                    ><i class="sw dashed" style="--c:#dc2626"></i>{$i18n.t(
+                    ><i class="sw dashed" style:--c="#dc2626" aria-hidden="true"></i>{$i18n.t(
                         'editor.diff.replaced',
                     )}</span
                 >{/if}
-            <span><i class="sw" style="--c:#ff6500"></i>{$i18n.t('editor.diff.proposed')}</span>
+            <span
+                ><i class="sw" style:--c="#ff6500" aria-hidden="true"></i>{$i18n.t(
+                    'editor.diff.proposed',
+                )}</span
+            >
         </div>
     </div>
-    <div class="map" bind:this={container} style="height: {height};"></div>
+    <div class="map" bind:this={container} style:height></div>
 </div>
 
 <style>
     .diff {
+        min-width: 0;
         border: 1px solid var(--vff-border);
         border-radius: var(--vff-radius-md);
         overflow: hidden;
@@ -216,35 +221,48 @@
         align-items: center;
         justify-content: space-between;
         gap: 8px 14px;
-        padding: 8px 10px;
-        background: var(--vff-bg);
+        padding: var(--vff-space-2) var(--vff-space-3);
+        background: var(--vff-bg-subtle);
         border-bottom: 1px solid var(--vff-border);
     }
     .views {
         display: inline-flex;
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-pill);
+        border: 1px solid var(--vff-border-control);
+        border-radius: var(--vff-radius-md);
         overflow: hidden;
     }
     .views button {
-        padding: 5px 12px;
-        background: transparent;
+        min-height: 32px;
+        padding: 4px 14px;
+        background: var(--vff-bg);
         border: 0;
-        color: var(--vff-text-muted);
-        font-family: var(--vff-font-display);
-        font-size: 12px;
+        color: var(--vff-text);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         font-weight: 600;
         cursor: pointer;
+        transition: background-color var(--vff-transition);
+    }
+    .views button + button {
+        border-left: 1px solid var(--vff-border-control);
+    }
+    .views button:hover:not(.active) {
+        background: var(--vff-bg-muted);
     }
     .views button.active {
         background: var(--vff-accent);
-        color: var(--vff-text-inverse, #fff);
+        color: var(--vff-on-accent);
+    }
+    .views button:focus-visible {
+        outline-offset: -3px;
+        outline-color: var(--vff-text);
     }
     .legend {
         display: flex;
         flex-wrap: wrap;
         gap: 4px 14px;
-        font-size: 12px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
         color: var(--vff-text-muted);
     }
     .legend span {
@@ -260,7 +278,25 @@
     .sw.dashed {
         border-top-style: dashed;
     }
+    .sw.thick {
+        border-top-width: 6px;
+        opacity: 0.6;
+    }
     .map {
         width: 100%;
+    }
+    /* Contrôles MapLibre aux couleurs du thème (clair et sombre). */
+    .diff :global(.maplibregl-ctrl-attrib),
+    .diff :global(.maplibregl-ctrl-group) {
+        background-color: var(--vff-bg-elevated);
+        color: var(--vff-text);
+        font-family: var(--vff-font-heading);
+    }
+    .diff :global(.maplibregl-ctrl-attrib a) {
+        color: var(--vff-link);
+    }
+    :global([data-theme='dark']) .diff :global(.maplibregl-ctrl-group button .maplibregl-ctrl-icon),
+    :global([data-theme='dark']) .diff :global(.maplibregl-ctrl-attrib-button) {
+        filter: invert(1);
     }
 </style>

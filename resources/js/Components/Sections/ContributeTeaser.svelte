@@ -1,123 +1,91 @@
 <script>
+    /**
+     * Invitation de fin d'accueil (la seule bande « cta » de la page) : trois façons de participer,
+     * puis les actions (contribuer, don, Discord, GitHub). Remplace l'ancien couple « Rejoignez le
+     * mouvement » + bandeau sombre « Embarquons ensemble ».
+     */
     import { Link } from '@inertiajs/svelte';
+    import SectionBlock from '$components/SectionBlock.svelte';
+    import IconCard from '$components/IconCard.svelte';
     import { i18n } from '$lib/i18n.js';
-    import { scrollReveal } from '$lib/actions/scrollReveal.js';
 
     const ways = [
-        { icon: 'bi-pencil-square', tKey: 'data' },
-        { icon: 'bi-images', tKey: 'media' },
-        { icon: 'bi-code-slash', tKey: 'code' },
+        { icon: 'bi-pencil-square', key: 'data' },
+        { icon: 'bi-images', key: 'media' },
+        { icon: 'bi-code-slash', key: 'code' },
     ];
 </script>
 
-<section id="contribute-teaser" class="contrib-section" use:scrollReveal={{ threshold: 0.2 }}>
-    <div class="contrib-inner">
-        <div class="contrib-head">
-            <span class="eyebrow">{$i18n.t('home.contribute.eyebrow')}</span>
-            <h2>{$i18n.t('home.contribute.title')}</h2>
-            <p class="lead">{$i18n.t('home.contribute.subtitle')}</p>
-        </div>
-        <ul class="contrib-grid">
-            {#each ways as w}
-                <li class="way">
-                    <div class="ico"><i class="bi {w.icon}"></i></div>
-                    <h3>{$i18n.t(`home.contribute.${w.tKey}_title`)}</h3>
-                    <p>{$i18n.t(`home.contribute.${w.tKey}_text`)}</p>
-                </li>
-            {/each}
-        </ul>
-        <div class="contrib-cta">
-            <Link href="/contribute" class="vff-btn primary">
-                <i class="bi bi-geo"></i>
-                {$i18n.t('home.contribute.cta')}
-            </Link>
-        </div>
+<SectionBlock
+    id="participer"
+    kind="cta"
+    title={$i18n.t('home.contribute.title')}
+    intro={$i18n.t('home.contribute.subtitle')}
+    maxWidth="1180px"
+>
+    <div class="ways">
+        {#each ways as w (w.key)}
+            <IconCard
+                icon={w.icon}
+                title={$i18n.t(`home.contribute.${w.key}_title`)}
+                text={$i18n.t(`home.contribute.${w.key}_text`)}
+            />
+        {/each}
     </div>
-</section>
+
+    {#snippet actions()}
+        <Link href="/contribute" class="vff-btn primary">
+            <i class="bi bi-pencil-square" aria-hidden="true"></i>
+            {$i18n.t('home.contribute.cta')}
+        </Link>
+        <Link href="/donate" class="vff-btn secondary">
+            <i class="bi bi-balloon-heart" aria-hidden="true"></i>
+            {$i18n.t('home.contribute.donate')}
+        </Link>
+        <a
+            href="https://discord.com/invite/6SwTfXBx4h"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="vff-btn quiet"
+        >
+            <i class="bi bi-discord" aria-hidden="true"></i>
+            {$i18n.t('home.contribute.discord')}<span class="vff-sr-only">
+                ({$i18n.t('common.new_tab')})</span
+            >
+        </a>
+        <a
+            href="https://github.com/UnxWares/VFF-Project"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="vff-btn quiet"
+        >
+            <i class="bi bi-github" aria-hidden="true"></i>
+            {$i18n.t('home.contribute.github')}<span class="vff-sr-only">
+                ({$i18n.t('common.new_tab')})</span
+            >
+        </a>
+    {/snippet}
+</SectionBlock>
 
 <style>
-    .contrib-section {
-        padding: 80px 16px;
-        background-color: var(--vff-bg);
-    }
-    .contrib-inner {
-        max-width: 1100px;
-        margin: 0 auto;
-    }
-    .contrib-head {
-        text-align: center;
-        max-width: 720px;
-        margin: 0 auto 56px;
-    }
-    .eyebrow {
-        display: inline-block;
-        font-family: var(--vff-font-display);
-        font-size: 14px;
-        font-weight: 600;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--vff-accent);
-        margin-bottom: 12px;
-    }
-    .contrib-head h2 {
-        margin: 0 0 16px;
-        font-family: var(--vff-font-heading);
-        font-size: clamp(28px, 3.5vw, 36px);
-        color: var(--vff-text);
-    }
-    .lead {
-        font-family: var(--vff-font-body);
-        font-size: 19px;
-        line-height: 1.55;
-        color: var(--vff-text-muted);
-        margin: 0;
-    }
-    .contrib-grid {
-        list-style: none;
-        margin: 0 0 36px;
-        padding: 0;
+    .ways {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 28px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: var(--vff-space-5) var(--vff-space-6);
+        /* À remonter dans SectionBlock : en bande cta, la règle `.cta p { margin: 0 }` annule la marge
+           basse du chapeau (.intro), le contenu suivant s'y colle. */
+        margin-top: var(--vff-block-space);
     }
-    .way {
-        text-align: center;
-        padding: 28px 20px;
-    }
-    .ico {
-        width: 64px;
-        height: 64px;
-        border-radius: 50%;
-        background-color: var(--vff-accent-soft);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 18px;
-    }
-    .ico i {
-        font-size: 28px;
-        color: var(--vff-accent);
-    }
-    .way h3 {
-        font-family: var(--vff-font-display);
-        font-size: 22px;
-        margin: 0 0 10px;
-        color: var(--vff-text);
-    }
-    .way p {
-        font-family: var(--vff-font-body);
-        font-size: 16px;
-        line-height: 1.6;
-        margin: 0;
+    /* Les textes de la bande cta passent en couleur de texte (SectionBlock) : les phrases des points
+       restent en gris secondaire, comme partout ailleurs. */
+    :global(.section-block.cta) .ways :global(.icon-card p.text) {
+        max-width: none;
+        font-size: var(--vff-fs-md);
         color: var(--vff-text-muted);
     }
-    .contrib-cta {
-        text-align: center;
-    }
-    @media (max-width: 800px) {
-        .contrib-grid {
-            grid-template-columns: 1fr;
-            gap: 8px;
+    @media (max-width: 600px) {
+        .ways {
+            grid-template-columns: minmax(0, 1fr);
         }
     }
 </style>

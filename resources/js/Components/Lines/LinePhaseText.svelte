@@ -1,6 +1,13 @@
 <script>
     import { i18n } from '$lib/i18n.js';
     import { changeVerbKey, formatEventDate, formatKm, summarizeChanges } from '$lib/linePhases.js';
+    import {
+        colon as colonOf,
+        firstOfMonth,
+        formatLocale,
+        semicolon,
+        tieUnits,
+    } from '$lib/typo.js';
 
     /**
      * Texte d'une phase, rédigé : ce qui change (longueur, portion, état avant et après),
@@ -11,13 +18,18 @@
     let { phase, eventsById = {}, compact = false } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
-    // Typographie : espace avant « : » et « ; » en français seulement.
-    const colon = $derived(lang === 'fr' ? ' : ' : ': ');
-    const semi = $derived(lang === 'fr' ? ' ; ' : '; ');
+    // Typographie : espace insécable avant « : » et « ; » en français seulement.
+    const colon = $derived(colonOf(lang));
+    const semi = $derived(semicolon(lang));
+    const km = (m) => tieUnits(formatKm(m, formatLocale(lang)));
+    const dateOf = (iso, precision) =>
+        firstOfMonth(formatEventDate(iso, precision, formatLocale(lang)), lang);
     const summary = $derived(summarizeChanges(phase));
 
     function sectionText(e) {
         if (!e) return null;
+        // Portion rédigée côté serveur, avec élisions (« d'Ambert à Arlanc »).
+        if (e.section_text) return e.section_text;
         if (e.section_from && e.section_to && e.section_from !== e.section_to) {
             return $i18n.t('lines.event_section.between_inline', {
                 from: e.section_from,
@@ -107,7 +119,7 @@
             <li class:inconsistent={c.inconsistent}>
                 <span class="verb"
                     >{$i18n.t(changeVerbKey(c.from, c.to), {
-                        km: formatKm(c.length_m, lang),
+                        km: km(c.length_m),
                         to: $i18n.t(`lines.categories.${c.to}`),
                         from: $i18n.t(`lines.categories.${c.from}`),
                     })}</span
@@ -140,7 +152,7 @@
         {/each}
         {#if summary.minor_m > 0}
             <li class="minor">
-                {$i18n.t('lines.phases.minor', { km: formatKm(summary.minor_m, lang) })}
+                {$i18n.t('lines.phases.minor', { km: km(summary.minor_m) })}
             </li>
         {/if}
     </ul>
@@ -152,10 +164,9 @@
                 <strong>{$i18n.t('lines.chronicle.conflict_title')}</strong>
                 {#each conflicts as group (group[0].id)}
                     <p>
-                        {#each group as e, n (e.id)}{eventLabel(e.type)}{colon}{formatEventDate(
+                        {#each group as e, n (e.id)}{eventLabel(e.type)}{colon}{dateOf(
                                 e.date,
                                 e.precision,
-                                lang,
                             )}<sup><a href="#note-{e.note}">[{e.note}]</a></sup>{n <
                             group.length - 1
                                 ? semi
@@ -177,37 +188,46 @@
         gap: 6px;
     }
     .changes li {
+        max-width: var(--vff-measure);
         font-family: var(--vff-font-body);
-        font-size: 15px;
+        font-size: var(--vff-fs-md);
         line-height: 1.55;
         color: var(--vff-text);
     }
     .compact .changes li {
-        font-size: 14px;
+        font-size: var(--vff-fs-sm);
     }
     .verb {
         font-weight: 700;
     }
     .how {
         display: block;
-        font-size: 13px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
         color: var(--vff-text-muted);
-        font-style: italic;
     }
-    .minor {
-        font-size: 13px !important;
-        color: var(--vff-text-muted) !important;
+    .changes li.minor {
+        font-size: var(--vff-fs-sm);
+        color: var(--vff-text-muted);
     }
     .warn {
         display: block;
-        font-size: 13px;
-        color: #b45309;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        color: var(--vff-warning);
     }
+    /* Appel de note : 13 px (minimum lisible), cible élargie sans décaler la ligne. */
+    sup {
+        line-height: 0;
+    }
+    /* Appel de note : cible de 24 px (le texte reste en exposant). */
     sup a {
-        color: var(--vff-accent-ink);
+        /* Remplissage en ligne : la zone cliquable grandit sans écarter les lignes du texte. */
+        padding: 5px 4px;
+        color: var(--vff-link);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
         text-decoration: none;
-        font-size: 11px;
-        padding-left: 1px;
     }
     sup a:hover {
         text-decoration: underline;
@@ -218,21 +238,21 @@
         gap: 8px;
         margin-top: 10px;
         padding: 10px 12px;
-        border-left: 3px solid #d97706;
-        background: rgba(217, 119, 6, 0.08);
+        border-left: 3px solid var(--vff-warning);
+        background: var(--vff-warning-bg);
         border-radius: 0 var(--vff-radius-sm) var(--vff-radius-sm) 0;
-        font-size: 13.5px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
     }
     .conflicts i {
-        color: #d97706;
+        color: var(--vff-warning);
         margin-top: 2px;
     }
     .conflicts strong {
-        font-family: var(--vff-font-heading);
-        font-size: 13.5px;
+        font-size: var(--vff-fs-sm);
     }
     .conflicts p {
-        font-size: 13.5px;
+        font-size: var(--vff-fs-sm);
         margin: 2px 0 0;
         color: var(--vff-text);
     }

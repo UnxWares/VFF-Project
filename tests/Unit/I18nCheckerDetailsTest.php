@@ -130,4 +130,13 @@ class I18nCheckerDetailsTest extends TestCase
         $this->assertSame(['unknown'], array_column($issues, 'key'));
         $this->assertSame([], $this->checker()->checkUsage($this->root.'/absent'));
     }
+
+    public function test_i18next_plural_keys_are_known_usages(): void
+    {
+        // `t('home.portions', { count })` lit `home.portions_one` / `home.portions_other`.
+        $this->writeLang('fr', 'home', ['portions_one' => ':count portion', 'portions_other' => ':count portions']);
+        $this->writeJs('P.svelte', "<p>{\$i18n.t('home.portions', { count: 2 })} {\$i18n.t('home.lonely')}</p>");
+
+        $this->assertSame(['lonely'], array_column($this->checker(true)->checkUsage($this->root.'/js'), 'key'));
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Http\Controllers\LineController;
 use App\Support\FrenchDepartments;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -43,11 +44,18 @@ final class LineFacts
         $lineKm = (float) ($stats['length_greatest_km'] ?? $stats['length_km'] ?? 0);
         $wdKm = $encyclopedia->length_official_m ? $encyclopedia->length_official_m / 1000 : null;
         $partial = $wdKm !== null && $lineKm > 0 && abs($wdKm - $lineKm) / $lineKm > self::PART_RATIO;
+        // L'élément Wikidata porte le nom de la ligne elle-même (« Ligne de Saint-Germain-des-Fossés à
+        // Darsac » pour la ligne de St-Germain-des-Fossés à Darsac) : il la décrit, sa longueur diffère
+        // seulement de celle du tracé (« 160 km d'après Wikidata ; tracé de VFF : 145,6 km »), au lieu de
+        // la phrase contradictoire « Ligne de … seulement, pas toute la ligne ».
+        $sameLine = $item !== null && LineController::nameKey($item) === LineController::nameKey((string) ($line->name ?? ''));
+        $differs = $partial && $sameLine;
+        $partial = $partial && ! $sameLine;
         $wd = fn (array $f) => $f + ['source' => 'wikidata', 'scope' => $partial ? 'item' : 'line', 'item' => $partial ? $item : null];
 
         $facts = [];
         if ($wdKm !== null) {
-            $facts[] = $wd(['key' => 'length', 'km' => round($wdKm, 1)]);
+            $facts[] = $wd(['key' => 'length', 'km' => round($wdKm, 1)] + ($differs ? ['line_km' => round($lineKm, 1)] : []));
         }
         // Écartement : celui des tronçons de la ligne (le plus fréquent), sinon celui de l'élément.
         if (! empty($stats['gauge_mm'])) {
@@ -61,7 +69,11 @@ final class LineFacts
         $speed = $stats['max_speed_kmh'] ?? null;
         if ($speed) {
             $facts[] = ['key' => 'max_speed', 'kmh' => (int) $speed, 'source' => 'sncf', 'scope' => 'line', 'item' => null,
-                'as_of' => $eraIsCurrent ? 'today' : $eraYear];
+                'as_of' => $eraIsCurrent ? 'today' : $eraYear,
+                // Vitesse atteinte sur une petite part de la ligne seulement (moins de la moitié de ce qui est
+                // en service) : la longueur concernée est dite (« 160 km/h sur 0,6 km »).
+                'km' => isset($stats['max_speed_km'], $stats['active_length_km']) && (float) $stats['active_length_km'] > 0
+                    && (float) $stats['max_speed_km'] < (float) $stats['active_length_km'] / 2 ? (float) $stats['max_speed_km'] : null];
         }
         if ($encyclopedia->max_speed_kmh_official && (int) $encyclopedia->max_speed_kmh_official !== (int) $speed) {
             $facts[] = $wd(['key' => 'max_speed', 'kmh' => (int) $encyclopedia->max_speed_kmh_official]);
@@ -88,7 +100,40 @@ final class LineFacts
             }
         }
 
-        return $facts;
+        return array_map(fn (array $f) => self::localized($f, app()->getLocale()), $facts);
+    }
+
+    /** Clés des libellés (lang/{fr,en,de}/lines.php, facts.*). */
+    private const LABELS = ['length' => 'length_official', 'gauge' => 'gauge', 'tracks' => 'tracks', 'max_speed' => 'max_speed',
+        'concession' => 'concession', 'regions' => 'regions', 'departements' => 'departements'];
+
+    /**
+     * Fait avec son libellé et sa précision rédigés dans la langue de la page (`label`, `note`) :
+     * une valeur d'un élément Wikidata qui ne décrit qu'une partie de la ligne porte son nom dans le
+     * libellé (« Longueur officielle (LGV Sud-Est) »), jamais seulement dans une note en petit.
+     *
+     * @param  array<string, mixed>  $f
+     * @return array<string, mixed>
+     */
+    public static function localized(array $f, string $locale): array
+    {
+        $num = fn (float $n) => (new \NumberFormatter($locale === 'en' ? 'en_GB' : $locale, \NumberFormatter::DECIMAL))->format($n);
+        $g = fn (string $key, array $p = []) => (string) trans('generated.facts.'.$key, $p, $locale);
+        $label = (string) trans('lines.facts.'.(self::LABELS[$f['key']] ?? $f['key']), [], $locale);
+        if ($f['scope'] === 'item' && $f['item'] !== null) {
+            $label = $g('label_item', ['label' => $label, 'item' => $f['item']]);
+        }
+        $note = match (true) {
+            $f['scope'] === 'item' => $g('note_item'),
+            $f['source'] === 'sncf' && ($f['km'] ?? null) !== null => $g($f['as_of'] === 'today' ? 'note_sncf_today_part' : 'note_sncf_era_part',
+                ['km' => $num((float) $f['km']), 'year' => (string) $f['as_of']]),
+            $f['source'] === 'sncf' => $g($f['as_of'] === 'today' ? 'note_sncf_today' : 'note_sncf_era', ['year' => (string) $f['as_of']]),
+            $f['source'] === 'vff' => $g('note_vff_line'),
+            isset($f['line_km']) => $g('note_wikidata_differs', ['km' => $num((float) $f['line_km'])]),
+            default => $g('note_wikidata_line'),
+        };
+
+        return $f + ['label' => $label, 'note' => $note];
     }
 
     /**

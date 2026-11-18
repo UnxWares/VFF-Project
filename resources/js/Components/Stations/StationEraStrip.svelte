@@ -1,54 +1,124 @@
 <script>
     import { i18n } from '$lib/i18n.js';
-    import { STATION_STATUS_COLOR } from './stationStatus.js';
+    import { STATION_STATUS_COLOR, STATION_STATUS_ICON } from './stationStatus.js';
 
     /**
-     * Frise des décennies : statut de la gare sur la carte de chaque ère
-     * (station_eras). Case vide = la gare n'existe pas à cette date.
-     * Chaque case ouvre la carte à l'ère correspondante.
+     * Frise des décennies : statut de la gare sur la carte de chaque ère (station_eras).
+     * Chaque case porte la couleur ET une icône du statut (la couleur ne porte jamais seule
+     * l'information) ; case en tirets = la gare n'existe pas à cette date. Chaque case ouvre la
+     * carte à l'ère correspondante. Les notes de chaque décennie sont aussi listées sous la frise
+     * (le survol n'existe pas au toucher).
      */
     let { eras = [] } = $props();
 
+    const STATUS_ORDER = [
+        'active',
+        'tourist',
+        'no_commercial',
+        'uncertain',
+        'declassified',
+        'gone',
+    ];
+
     const label = (e) =>
         e.status ? $i18n.t(`stations.statuses.${e.status}`) : $i18n.t('stations.statuses.absent');
-    // Typographie : espace avant les deux-points en français seulement.
-    const colon = $derived(($i18n.language ?? 'fr') === 'fr' ? ' : ' : ': ');
-    /** Infobulle : année, statut et note (déjà dans la langue de la page, cf. GeneratedText). */
+    // Typographie : espace insécable avant les deux-points en français seulement.
+    const colon = $derived(($i18n.language ?? 'fr') === 'fr' ? ' : ' : ': ');
+    /** Nom accessible d'une case : année, statut et note (déjà dans la langue de la page). */
     const tip = (e) => `${e.year}${colon}${label(e)}${e.note ? ` (${e.note})` : ''}`;
+
+    /** Encre lisible (noire ou blanche) sur une couleur de statut : le meilleur contraste des deux. */
+    function inkFor(hex) {
+        const m = /^#([0-9a-f]{6})$/i.exec(hex ?? '');
+        if (!m) return 'var(--vff-text)';
+        const lin = [0, 2, 4].map((i) => {
+            const v = parseInt(m[1].slice(i, i + 2), 16) / 255;
+            return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+        });
+        const lum = 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+        return (lum + 0.05) / 0.05 >= 1.05 / (lum + 0.05) ? '#000' : '#fff';
+    }
+
+    const inkOf = (status) => inkFor(STATION_STATUS_COLOR[status]);
+
+    // Rangées équilibrées sur tablette (11 cases au plus) et téléphone (7 au plus) : 21 décennies
+    // donnent 11 + 10, puis 7 + 7 + 7, jamais une dernière rangée presque vide.
+    const columns = (max) => Math.ceil(eras.length / Math.ceil(eras.length / max)) || 1;
+
+    // Légende : seulement les statuts réellement présents dans la frise.
+    const legend = $derived(STATUS_ORDER.filter((s) => eras.some((e) => e.status === s)));
+    const hasAbsent = $derived(eras.some((e) => !e.status));
     // Décennies « incertaines » faute de date de fermeture : explication sous la frise.
     const hasUndated = $derived(eras.some((e) => e.undated));
+    const noted = $derived(eras.filter((e) => e.note));
 </script>
 
-<ol class="strip">
+<ol
+    class="strip"
+    style:--n={eras.length || 1}
+    style:--cols-tablet={columns(11)}
+    style:--cols-phone={columns(7)}
+>
     {#each eras as e (e.year)}
         <li>
             <a
                 href="/maps?era={e.year}"
                 class="cell"
-                class:empty={!e.status}
                 class:current={e.is_current}
-                style="--c: {STATION_STATUS_COLOR[e.status] ?? 'transparent'}"
-                title={tip(e)}
+                style:--c={STATION_STATUS_COLOR[e.status] ?? 'transparent'}
+                style:--ink={inkOf(e.status)}
                 aria-label={tip(e)}
+                aria-current={e.is_current ? 'date' : undefined}
             >
-                <span class="bar"></span>
-                <span class="year">{e.is_current ? $i18n.t('stations.era_today') : e.year}</span>
+                <span class="bar" class:empty={!e.status} aria-hidden="true">
+                    {#if e.status}<i class="bi {STATION_STATUS_ICON[e.status] ?? 'bi-circle'}"
+                        ></i>{/if}
+                </span>
+                <span class="year" aria-hidden="true"
+                    >{e.is_current ? $i18n.t('stations.era_today') : e.year}</span
+                >
             </a>
         </li>
     {/each}
 </ol>
 
 <ul class="legend">
-    {#each ['active', 'no_commercial', 'uncertain', 'declassified'] as s}
-        <li><i style="--c: {STATION_STATUS_COLOR[s]}"></i>{$i18n.t(`stations.statuses.${s}`)}</li>
+    {#each legend as s (s)}
+        <li>
+            <span class="bar sample" style:--c={STATION_STATUS_COLOR[s]} style:--ink={inkOf(s)}
+                ><i class="bi {STATION_STATUS_ICON[s] ?? 'bi-circle'}" aria-hidden="true"></i></span
+            >{$i18n.t(`stations.statuses.${s}`)}
+        </li>
     {/each}
-    <li><i class="none"></i>{$i18n.t('stations.statuses.absent')}</li>
-    {#if hasUndated}
-        <li class="undated">
-            <i class="bi bi-question-circle"></i>{$i18n.t('stations.sections.eras_undated')}
+    {#if hasAbsent}
+        <li>
+            <span class="bar sample empty" aria-hidden="true"></span>{$i18n.t(
+                'stations.statuses.absent',
+            )}
         </li>
     {/if}
 </ul>
+
+{#if hasUndated}
+    <p class="undated">
+        <i class="bi bi-question-circle" aria-hidden="true"></i>
+        {$i18n.t('stations.sections.eras_undated')}
+    </p>
+{/if}
+
+{#if noted.length}
+    <details class="notes">
+        <summary>{$i18n.t('stations.sections.eras_notes')}</summary>
+        <ul>
+            {#each noted as e (e.year)}
+                <li>
+                    <strong>{e.is_current ? $i18n.t('stations.era_today') : e.year}</strong>
+                    <span lang={e.note_lang}>{label(e)} ({e.note})</span>
+                </li>
+            {/each}
+        </ul>
+    </details>
+{/if}
 
 <style>
     .strip {
@@ -56,89 +126,131 @@
         margin: 0;
         padding: 0;
         display: grid;
-        /* Ordinateur : toutes les décennies sur une ligne (22 cases). */
-        grid-auto-flow: column;
-        grid-auto-columns: minmax(0, 1fr);
+        /* Ordinateur : toutes les décennies sur une ligne. */
+        grid-template-columns: repeat(var(--n, 21), minmax(0, 1fr));
         gap: 4px;
     }
-    /* Tablette et téléphone : plusieurs rangées de cases de même largeur. */
+    /* Tablette et téléphone : rangées de cases de même largeur. */
     @media (max-width: 900px) {
         .strip {
-            grid-auto-flow: row;
-            grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+            grid-template-columns: repeat(var(--cols-tablet, 11), minmax(0, 1fr));
+            gap: 8px 4px;
+        }
+    }
+    @media (max-width: 600px) {
+        .strip {
+            grid-template-columns: repeat(var(--cols-phone, 7), minmax(0, 1fr));
         }
     }
     .cell {
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
         gap: 6px;
-        text-decoration: none;
-        color: var(--vff-text-muted);
         padding: 4px 0;
-        border-radius: var(--vff-radius-md);
+        border-radius: var(--vff-radius-sm);
+        color: var(--vff-text-muted);
+        text-decoration: none;
         transition: background-color var(--vff-transition);
     }
     .cell:hover {
-        background-color: color-mix(in srgb, var(--vff-accent) 8%, transparent);
+        background-color: var(--vff-accent-soft);
     }
     .bar {
-        width: 100%;
-        height: 26px;
-        border-radius: 6px;
+        display: grid;
+        place-items: center;
+        height: 28px;
+        border-radius: var(--vff-radius-sm);
         background-color: var(--c);
+        color: var(--ink, var(--vff-text));
+        font-size: 14px;
     }
-    .cell.empty .bar {
-        background: repeating-linear-gradient(135deg, var(--vff-border) 0 4px, transparent 4px 8px);
-        opacity: 0.7;
+    .bar.empty {
+        background: none;
+        border: 1.5px dashed var(--vff-border-control);
     }
     .year {
-        font-family: var(--vff-font-display);
-        font-size: 11px;
-        letter-spacing: 0.03em;
+        text-align: center;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        font-variant-numeric: tabular-nums;
     }
     .cell.current .year {
         color: var(--vff-accent-ink);
         font-weight: 700;
-    }
-    .cell:focus-visible {
-        outline: 2px solid var(--vff-accent);
-        outline-offset: 2px;
+        text-decoration: underline;
+        text-underline-offset: 3px;
     }
 
     .legend {
-        list-style: none;
         display: flex;
         flex-wrap: wrap;
-        gap: 14px;
+        gap: 8px 24px;
+        margin: var(--vff-space-4) 0 0;
         padding: 0;
-        margin: 12px 0 0;
-        font-size: 12px;
+        list-style: none;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.4;
         color: var(--vff-text-muted);
     }
     .legend li {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
+    }
+    .sample {
+        flex-shrink: 0;
+        width: 28px;
+        height: 20px;
         font-size: 12px;
-        line-height: 1.4;
     }
-    .legend i {
-        width: 12px;
-        height: 12px;
-        border-radius: 3px;
-        background-color: var(--c);
-        display: inline-block;
+    .undated {
+        display: flex;
+        gap: 8px;
+        max-width: var(--vff-measure);
+        margin: var(--vff-space-3) 0 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
+        color: var(--vff-text-muted);
     }
-    .legend i.none {
-        background: repeating-linear-gradient(135deg, var(--vff-border) 0 3px, transparent 3px 6px);
+    .undated i {
+        flex-shrink: 0;
+        margin-top: 2px;
     }
-    .legend li.undated {
-        flex-basis: 100%;
+
+    .notes {
+        margin-top: var(--vff-space-4);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
     }
-    .legend li.undated i {
-        width: auto;
-        height: auto;
-        background: none;
+    .notes summary {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        cursor: pointer;
+        color: var(--vff-accent-ink);
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+    .notes ul {
+        margin: var(--vff-space-2) 0 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--vff-border);
+    }
+    .notes li {
+        display: grid;
+        grid-template-columns: 56px minmax(0, 1fr);
+        gap: 4px 16px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--vff-border);
+        line-height: 1.5;
+        color: var(--vff-text);
+    }
+    .notes strong {
+        font-variant-numeric: tabular-nums;
     }
 </style>

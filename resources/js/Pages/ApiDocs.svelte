@@ -2,86 +2,90 @@
     import Layout from '$components/Layout.svelte';
     import PageHero from '$components/PageHero.svelte';
     import SectionBlock from '$components/SectionBlock.svelte';
+    import IconCard from '$components/IconCard.svelte';
     import { i18n } from '$lib/i18n.js';
 
-    const endpoints = [
-        {
-            method: 'GET',
-            path: '/api/v1/eras/{year}/lines.geojson',
-            key: 'lines_geojson',
-        },
-        {
-            method: 'GET',
-            path: '/api/v1/eras/{year}/stations.geojson',
-            key: 'stations_geojson',
-        },
-        {
-            method: 'GET',
-            path: '/api/v1/eras/{year}/tiles/{z}/{x}/{y}.mvt',
-            key: 'tiles',
-        },
-        {
-            method: 'GET',
-            path: '/api/v1/search?q={query}',
-            key: 'search',
-        },
-        {
-            method: 'GET',
-            path: '/api/v1/lines/{slug}/history',
-            key: 'history',
-        },
-        {
-            method: 'GET',
-            path: '/api/v1/lines/{slug}/pk?lat={lat}&lng={lng}',
-            key: 'pk',
-        },
-        {
-            method: 'GET',
-            path: '/api/v1/lines/{slug}/stops?era={year}',
-            key: 'stops',
-        },
-        {
-            method: 'GET',
-            path: '/api/v1/route?from={slug}&to={slug}&era={year}',
-            key: 'route',
-        },
-        {
-            method: 'GET',
-            path: '/api/v1/eras/{year}/gtfs.zip',
-            key: 'gtfs',
-        },
+    /**
+     * Page « Accès à l'API » : renvoie vers les six documentations (Scalar, Swagger UI, OpenAPI, référence
+     * GraphQL, GraphiQL, schéma), rappelle les conditions d'accès, liste les points d'accès REST (les 11 de
+     * routes/api.php, avec les noms de paramètres de la spécification) et donne des exemples dont la
+     * réponse est celle du serveur. Les documentations sont des pages hors Inertia : liens simples.
+     */
+
+    const docs = [
+        { key: 'scalar', href: '/docs/api', icon: 'bi-book' },
+        { key: 'swagger', href: '/docs/swagger', icon: 'bi-book-half' },
+        { key: 'openapi', href: '/docs/api.json', icon: 'bi-filetype-json' },
+        { key: 'graphql', href: '/docs/graphql', icon: 'bi-diagram-3' },
+        { key: 'graphiql', href: '/graphiql', icon: 'bi-terminal' },
+        { key: 'schema', href: '/docs/schema.graphql', icon: 'bi-file-earmark-code' },
     ];
 
-    const formats = [
-        { key: 'json', icon: 'bi-braces' },
-        { key: 'geojson', icon: 'bi-globe-europe-africa' },
-        { key: 'mvt', icon: 'bi-grid-3x3' },
+    const access = [
+        { key: 'readonly', icon: 'bi-eye' },
+        { key: 'no_key', icon: 'bi-unlock' },
+        { key: 'limit', icon: 'bi-speedometer2' },
+        { key: 'licence', icon: 'bi-journal-text' },
     ];
+
+    const endpoints = [
+        { path: '/api/v1/eras/{year}/lines.geojson', key: 'lines_geojson' },
+        { path: '/api/v1/eras/{year}/stations.geojson', key: 'stations_geojson' },
+        { path: '/api/v1/eras/{year}/tiles/{z}/{x}/{y}.mvt', key: 'tiles' },
+        { path: '/api/v1/eras/{year}/gtfs.zip', key: 'gtfs' },
+        { path: '/api/v1/search?q={query}', key: 'search' },
+        { path: '/api/v1/lines/{line}/history', key: 'history' },
+        { path: '/api/v1/lines/{line}/pk?lat={lat}&lng={lng}', key: 'pk' },
+        { path: '/api/v1/lines/{line}/stops?era={year}', key: 'stops' },
+        { path: '/api/v1/lines/{line}/signalling', key: 'signalling' },
+        { path: '/api/v1/lines/{line}/media', key: 'media' },
+        { path: '/api/v1/route?from={station}&to={station}&era={year}', key: 'route' },
+    ];
+
+    /** Coupe un chemin après chaque barre oblique : une longue adresse passe à la ligne entre deux segments. */
+    const segments = (path) => path.split(/(?<=[/?&])/);
 
     const curlExample = $derived(`# ${$i18n.t('api.example.curl_lines')}
 curl https://vff-project.org/api/v1/eras/2030/lines.geojson
 
 # ${$i18n.t('api.example.curl_pk')}
-curl "https://vff-project.org/api/v1/lines/paris-brest/pk?lat=48.10&lng=-1.67"
+curl "https://vff-project.org/api/v1/lines/rfn-420000/pk?lat=48.10&lng=-1.67"
 
 # ${$i18n.t('api.example.curl_search')}
-curl "https://vff-project.org/api/v1/search?q=paris-brest"`);
+curl "https://vff-project.org/api/v1/search?q=rennes"`);
 
+    // Réponse réelle du serveur à la deuxième requête (nom de ligne : celui de la base).
     const responseExample = `{
   "line": {
-    "slug": "paris-brest",
-    "code": "420 000",
-    "name": "Paris - Brest"
+    "slug": "rfn-420000",
+    "code": "420000",
+    "name": "Ligne de Paris-Montparnasse à Brest"
   },
-  "pk_m": 365280,
-  "pk_label": "365+280",
-  "total_m": 622408,
+  "pk_m": 249204,
+  "pk_label": "249+204",
+  "total_m": 626972,
   "snap": {
-    "lat": 48.10342,
-    "lng": -1.67215,
-    "distance_from_input_m": 0.83
+    "lat": 48.10357643870743,
+    "lng": -1.6702395515287747,
+    "distance_from_input_m": 395.12002852
   }
 }`;
+
+    const graphqlExample = $derived(`# ${$i18n.t('api.graphql.example_comment')}
+{
+  line(slug: "rfn-405000") {
+    name
+    code
+    events {
+      type
+      event_date
+    }
+  }
+}`);
+
+    const graphqlCurl = `curl -X POST https://vff-project.org/graphql \\
+  -H "Content-Type: application/json" \\
+  -d '{"query": "{ line(slug: \\"rfn-405000\\") { name code } }"}'`;
 </script>
 
 <svelte:head>
@@ -95,278 +99,266 @@ curl "https://vff-project.org/api/v1/search?q=paris-brest"`);
             eyebrow={$i18n.t('api.hero.eyebrow')}
             title={$i18n.t('api.hero.title')}
             subtitle={$i18n.t('api.hero.subtitle')}
-            status={$i18n.t('api.hero.status')}
         />
 
-        <SectionBlock title={$i18n.t('api.endpoints.title')} maxWidth="900px">
-            <ul class="endpoints">
-                {#each endpoints as e}
+        <SectionBlock
+            title={$i18n.t('api.docs.title')}
+            intro={$i18n.t('api.docs.intro')}
+            maxWidth="1180px"
+        >
+            <ul class="docs-grid">
+                {#each docs as d (d.key)}
                     <li>
-                        <span class="method">{e.method}</span>
-                        <code>{e.path}</code>
+                        <a class="vff-tile doc" href={d.href}>
+                            <i class="bi {d.icon}" aria-hidden="true"></i>
+                            <span class="doc-text">
+                                <strong>{$i18n.t(`api.docs.items.${d.key}.title`)}</strong>
+                                <span>{$i18n.t(`api.docs.items.${d.key}.text`)}</span>
+                                <code class="doc-path">{d.href}</code>
+                            </span>
+                        </a>
+                    </li>
+                {/each}
+            </ul>
+        </SectionBlock>
+
+        <SectionBlock kind="alt" title={$i18n.t('api.access.title')} maxWidth="1180px">
+            <div class="points">
+                {#each access as a (a.key)}
+                    <IconCard
+                        icon={a.icon}
+                        title={$i18n.t(`api.access.${a.key}.title`)}
+                        text={$i18n.t(`api.access.${a.key}.text`)}
+                    />
+                {/each}
+            </div>
+        </SectionBlock>
+
+        <SectionBlock
+            title={$i18n.t('api.endpoints.title')}
+            intro={$i18n.t('api.endpoints.intro')}
+            maxWidth="1180px"
+        >
+            <ul class="endpoints" aria-label={$i18n.t('api.endpoints.label')}>
+                {#each endpoints as e (e.key)}
+                    <li>
+                        <code class="path"
+                            >{#each segments(e.path) as s (s)}{s}<wbr />{/each}</code
+                        >
                         <span class="desc">{$i18n.t(`api.endpoints.items.${e.key}`)}</span>
                     </li>
                 {/each}
             </ul>
         </SectionBlock>
 
-        <SectionBlock kind="alt" title={$i18n.t('api.format.title')} maxWidth="900px">
-            <div class="formats">
-                {#each formats as f}
-                    <div class="format">
-                        <i class="bi {f.icon}"></i>
-                        <span>{$i18n.t(`api.format.${f.key}`)}</span>
-                    </div>
-                {/each}
-            </div>
+        <SectionBlock
+            kind="alt"
+            title={$i18n.t('api.example.title')}
+            intro={$i18n.t('api.example.intro')}
+            maxWidth="900px"
+        >
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{curlExample}</code></pre>
+            <p class="caption">{$i18n.t('api.example.response')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{responseExample}</code></pre>
         </SectionBlock>
 
-        <SectionBlock title={$i18n.t('api.example.title')} maxWidth="900px">
-            <p class="example-desc">{$i18n.t('api.example.description')}</p>
-            <pre class="code"><code>{curlExample}</code></pre>
-            <p class="example-desc">{$i18n.t('api.example.response')}</p>
-            <pre class="code"><code>{responseExample}</code></pre>
-        </SectionBlock>
-
-        <SectionBlock kind="alt" title={$i18n.t('api.graphql.title')} maxWidth="900px">
-            <p class="example-desc">{$i18n.t('api.graphql.text')}</p>
-            <div class="docs-links">
-                <a href="/graphiql" target="_blank" rel="noopener" class="docs-card">
-                    <i class="bi bi-diagram-3"></i>
-                    <div>
-                        <strong>GraphiQL Explorer</strong>
-                        <span>{$i18n.t('api.graphql.explorer_desc')}</span>
-                    </div>
-                    <i class="bi bi-box-arrow-up-right end"></i>
-                </a>
-                <a href="/graphql" class="docs-card">
-                    <i class="bi bi-braces-asterisk"></i>
-                    <div>
-                        <strong>POST /graphql</strong>
-                        <span>{$i18n.t('api.graphql.endpoint_desc')}</span>
-                    </div>
-                    <i class="bi bi-arrow-right end"></i>
-                </a>
-            </div>
-            <pre class="code"><code
-                    >{`# ${$i18n.t('api.graphql.example_comment')}
-{
-  line(slug: "rfn-405000") {
-    name code type historical_operator
-    segments {
-      status traffic_type electrified
-      signalling train_protection
-      era { year }
-    }
-    events { type event_date description }
-  }
-}`}</code
-                ></pre>
-        </SectionBlock>
-
-        <SectionBlock title={$i18n.t('api.openapi.title')} maxWidth="900px">
-            <p class="example-desc">
-                {$i18n.t('api.openapi.text_before')}
-                <a href="https://scramble.dedoc.co" target="_blank" rel="noopener">Scramble</a
-                >{$i18n.t('api.openapi.text_middle')}
-                <a href="https://scalar.com" target="_blank" rel="noopener">Scalar</a>{$i18n.t(
-                    'api.openapi.text_after',
-                ) === '.'
-                    ? '.'
-                    : ` ${$i18n.t('api.openapi.text_after')}`}
+        <SectionBlock
+            title={$i18n.t('api.graphql.title')}
+            intro={$i18n.t('api.graphql.text')}
+            maxWidth="900px"
+        >
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{graphqlExample}</code></pre>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{graphqlCurl}</code></pre>
+            <p class="links">
+                <a class="vff-link" href="/docs/graphql"
+                    >{$i18n.t('api.docs.items.graphql.title')}</a
+                >
+                <a class="vff-link" href="/graphiql">{$i18n.t('api.docs.items.graphiql.title')}</a>
             </p>
-            <div class="docs-links">
-                <a href="/docs/api" target="_blank" rel="noopener" class="docs-card">
-                    <i class="bi bi-book"></i>
-                    <div>
-                        <strong>{$i18n.t('api.openapi.docs')}</strong>
-                        <span>{$i18n.t('api.openapi.docs_desc')}</span>
-                    </div>
-                    <i class="bi bi-box-arrow-up-right end"></i>
-                </a>
-                <a href="/docs/api.json" target="_blank" rel="noopener" class="docs-card">
-                    <i class="bi bi-filetype-json"></i>
-                    <div>
-                        <strong>{$i18n.t('api.openapi.spec')}</strong>
-                        <span>{$i18n.t('api.openapi.spec_desc')}</span>
-                    </div>
-                    <i class="bi bi-box-arrow-up-right end"></i>
-                </a>
-            </div>
         </SectionBlock>
 
-        <SectionBlock kind="cta" maxWidth="640px">
-            <h2>{$i18n.t('api.cta.title')}</h2>
-            <p>{$i18n.t('api.cta.text')}</p>
-            <div class="cta-buttons">
+        <SectionBlock
+            kind="cta"
+            title={$i18n.t('api.cta.title')}
+            intro={$i18n.t('api.cta.text')}
+            maxWidth="640px"
+        >
+            {#snippet actions()}
                 <a
                     href="https://discord.com/invite/6SwTfXBx4h"
                     target="_blank"
-                    rel="noopener"
-                    class="vff-btn on-cta"
+                    rel="noopener noreferrer"
+                    class="vff-btn primary"
                 >
-                    <i class="bi bi-discord"></i>
-                    {$i18n.t('api.cta.discord')}
+                    <i class="bi bi-discord" aria-hidden="true"></i>
+                    {$i18n.t('api.cta.discord')}<i
+                        class="bi bi-box-arrow-up-right vff-ext"
+                        aria-hidden="true"
+                    ></i><span class="vff-sr-only"> ({$i18n.t('common.new_tab')})</span>
                 </a>
                 <a
                     href="https://github.com/UnxWares/VFF-Project"
                     target="_blank"
-                    rel="noopener"
-                    class="vff-btn ghost-on-cta"
+                    rel="noopener noreferrer"
+                    class="vff-btn secondary"
                 >
-                    <i class="bi bi-github"></i>
-                    {$i18n.t('api.cta.github')}
+                    <i class="bi bi-github" aria-hidden="true"></i>
+                    {$i18n.t('api.cta.github')}<i
+                        class="bi bi-box-arrow-up-right vff-ext"
+                        aria-hidden="true"
+                    ></i><span class="vff-sr-only"> ({$i18n.t('common.new_tab')})</span>
                 </a>
-            </div>
+            {/snippet}
         </SectionBlock>
     </main>
 </Layout>
 
 <style>
-    .endpoints {
-        list-style: none;
-        padding: 0;
+    /* Documentations : entrées cliquables en tuiles, trois colonnes sur ordinateur. */
+    .docs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+        gap: 16px 24px;
         margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .docs-grid li {
+        display: flex;
+    }
+    .doc {
+        display: flex;
+        flex: 1;
+        gap: 14px;
+        align-items: flex-start;
+        padding: 18px 20px;
+    }
+    .doc > i {
+        flex: none;
+        margin-top: 2px;
+        font-size: 20px;
+        color: var(--vff-accent-ink);
+    }
+    .doc-text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
+        color: var(--vff-text-muted);
+    }
+    .doc-text strong {
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-md);
+        font-weight: 600;
+        color: var(--vff-text);
+    }
+    .doc-path {
+        margin-top: 2px;
+        font-family: var(--api-mono);
+        font-size: var(--vff-fs-xs);
+        color: var(--vff-text-muted);
+        overflow-wrap: anywhere;
+    }
+
+    .points {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px 32px;
+    }
+
+    /* Points d'accès : chemin à gauche, description alignée sur une même colonne, filets entre les lignes. */
+    .endpoints {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--vff-border-strong);
     }
     .endpoints li {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 14px 18px;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        margin-bottom: 10px;
-        font-family: var(--vff-font-secondary);
-        font-size: 15px;
+        display: grid;
+        grid-template-columns: minmax(0, 30rem) minmax(0, 1fr);
+        gap: 8px 32px;
+        align-items: baseline;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--vff-border);
     }
-    .method {
-        flex: 0 0 auto;
-        font-family: var(--vff-font-display);
-        font-size: 12px;
-        font-weight: 600;
-        padding: 4px 8px;
-        background-color: var(--vff-accent);
-        color: var(--vff-text-inverse);
-        border-radius: var(--vff-radius-sm);
-        letter-spacing: 0.05em;
-    }
-    code {
-        font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
-        color: var(--vff-accent);
-        font-size: 14px;
-        background-color: var(--vff-bg-muted);
-        padding: 2px 8px;
-        border-radius: var(--vff-radius-sm);
-        flex: 0 0 auto;
+    .path {
+        font-family: var(--api-mono);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
+        color: var(--vff-text);
     }
     .desc {
-        flex: 1;
+        font-size: var(--vff-fs-md);
+        line-height: 1.5;
         color: var(--vff-text-muted);
-        font-family: var(--vff-font-body);
     }
-    .formats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 16px;
-    }
-    .format {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 16px 20px;
-        background-color: var(--vff-bg);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-    }
-    .format i {
-        font-size: 22px;
-        color: var(--vff-accent);
-    }
-    .example-desc {
-        margin: 16px 0 8px;
-        font-size: 16px;
+
+    .caption {
+        max-width: var(--vff-measure);
+        margin: var(--vff-space-5) 0 var(--vff-space-3);
+        font-size: var(--vff-fs-md);
+        line-height: 1.5;
         color: var(--vff-text-muted);
     }
     .code {
-        background-color: #1a1f29;
-        color: #e8ecec;
+        margin: 0 0 var(--vff-space-4);
         padding: 16px 20px;
-        border-radius: var(--vff-radius-md);
         overflow-x: auto;
-        margin: 0 0 24px;
-        font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
-        font-size: 13px;
-        line-height: 1.55;
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-md);
+        background-color: var(--vff-bg-elevated);
+        color: var(--vff-text);
+        font-family: var(--api-mono);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.6;
     }
     .code code {
-        background: transparent;
-        color: inherit;
-        padding: 0;
-        font-size: inherit;
         display: block;
+        font: inherit;
         white-space: pre;
     }
-    .cta-buttons {
+    .links {
         display: flex;
-        justify-content: center;
-        gap: 16px;
         flex-wrap: wrap;
-        margin-top: 24px;
+        gap: 8px 24px;
+        margin: var(--vff-space-5) 0 0;
+    }
+
+    main {
+        --api-mono:
+            'SF Mono', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Liberation Mono', monospace;
+    }
+
+    @media (max-width: 900px) {
+        .endpoints li {
+            grid-template-columns: minmax(0, 1fr);
+        }
     }
     @media (max-width: 600px) {
-        .endpoints li {
-            flex-direction: column;
-            align-items: flex-start;
+        .code {
+            padding: 14px 16px;
         }
-        .endpoints code {
-            flex: 0 1 auto;
-            max-width: 100%;
-            box-sizing: border-box;
-            overflow-wrap: anywhere;
-        }
-    }
-    .docs-links {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 14px;
-        margin-top: 20px;
-    }
-    .docs-card {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 16px 18px;
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        text-decoration: none;
-        color: var(--vff-text);
-        transition: all var(--vff-transition);
-    }
-    .docs-card:hover {
-        border-color: var(--vff-accent);
-        transform: translateY(-2px);
-    }
-    .docs-card > i:first-child {
-        font-size: 22px;
-        color: var(--vff-accent);
-    }
-    .docs-card div {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-    .docs-card strong {
-        font-family: var(--vff-font-display);
-        font-size: 15px;
-    }
-    .docs-card span {
-        color: var(--vff-text-muted);
-        font-size: 12px;
-    }
-    .docs-card .end {
-        color: var(--vff-text-muted);
     }
 </style>

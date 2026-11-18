@@ -245,21 +245,21 @@ class GeneratedTextsTest extends TestCase
                 'Entwidmung von Arlanc nach Sembadel (PK 467,580 bis 493,960) (Wikipedia, Liste, Abschnitt „Chronologie“)'],
             'wikipedia toute la ligne' => ['wikipedia', 'Ouverture de toute la ligne (Wikipédia, texte, introduction)', null, null,
                 'Opening of the whole line (Wikipedia, text, introduction)', 'Eröffnung der gesamten Strecke (Wikipedia, Text, Einleitung)'],
-            'infobox concession' => ['wikipedia', 'Concession à SNCF Réseau (infobox Wikipédia)', null, null,
-                'Concession granted to SNCF Réseau (Wikipedia infobox)', 'Konzession an SNCF Réseau (Wikipedia-Infobox)'],
+            'infobox concession' => ['wikipedia', 'Concession : SNCF Réseau (infobox Wikipédia)', null, null,
+                'Concession: SNCF Réseau (Wikipedia infobox)', 'Konzession: SNCF Réseau (Wikipedia-Infobox)', 'Concession à SNCF Réseau (infobox Wikipédia)'],
             'wikidata section' => ['wikidata', 'Électrification de la section Firminy - Saint-Étienne-Châteaucreux en 1500 V continu', null, null,
                 'Electrification of the section Firminy - Saint-Étienne-Châteaucreux with 1500 V DC', 'Elektrifizierung des Abschnitts Firminy - Saint-Étienne-Châteaucreux mit 1500 V Gleichstrom'],
             'wikidata ligne' => ['wikidata', 'Fermeture de la ligne (trafic non précisé par Wikidata)', null, null,
-                'Closure of the line (traffic not specified by Wikidata)', 'Schließung der Strecke (Verkehr von Wikidata nicht angegeben)'],
+                'Closure of the line (traffic not specified by Wikidata)', 'Stilllegung der Strecke (Verkehr von Wikidata nicht angegeben)'],
             'ohm portion' => ['ohm', 'Ouverture de la portion Montbrison - Andrézieux (19,0 km), d\'après OpenHistoricalMap.', null, null,
                 'Opening of the section Montbrison - Andrézieux (19.0 km), according to OpenHistoricalMap.', 'Eröffnung des Abschnitts Montbrison - Andrézieux (19,0 km), laut OpenHistoricalMap.'],
             'ohm près de' => ['ohm', 'Fermeture (tout trafic) d\'une portion de 16,2 km près de Bliesbrück, d\'après OpenHistoricalMap.', null, null,
-                'Closure (all traffic) of a 16.2 km section near Bliesbrück, according to OpenHistoricalMap.', 'Schließung (gesamter Verkehr) eines 16,2 km langen Abschnitts bei Bliesbrück, laut OpenHistoricalMap.'],
+                'Closure (all traffic) of a 16.2 km section near Bliesbrück, according to OpenHistoricalMap.', 'Stilllegung (gesamter Verkehr) eines 16,2 km langen Abschnitts bei Bliesbrück, laut OpenHistoricalMap.'],
             'archeoferroviaire' => ['archeoferroviaire', 'Fermeture (1940) d\'après le nom du tracé archeoferroviaire', null, null,
-                'Closure (1940) according to the name of the archeoferroviaire route', 'Schließung (1940) laut dem Namen des archeoferroviaire-Streckenverlaufs'],
+                'Closure (1940) according to the name of the archeoferroviaire route', 'Stilllegung (1940) laut dem Namen des archeoferroviaire-Streckenverlaufs'],
             'réseau secondaire' => ['wikipedia-reseaux', 'Fermeture (tout trafic) au plus tard à la fin de l\'exploitation du réseau, sur toute la ligne (article Wikipédia « Chemins de fer départementaux de la Somme »)', null, null,
                 'Closure (all traffic) at the latest when the network ceased operating, on the whole line (Wikipedia article “Chemins de fer départementaux de la Somme”)',
-                'Schließung (gesamter Verkehr) spätestens mit dem Betriebsende des Netzes, auf der gesamten Strecke (Wikipedia-Artikel „Chemins de fer départementaux de la Somme“)'],
+                'Stilllegung (gesamter Verkehr) spätestens mit dem Betriebsende des Netzes, auf der gesamten Strecke (Wikipedia-Artikel „Chemins de fer départementaux de la Somme“)'],
             'voie verte' => ['osm', 'Reconversion en voie verte (Trans\'Oise), ouverte en 2020 d\'après OpenStreetMap', null, null,
                 'Conversion into a greenway (Trans\'Oise), opened in 2020 according to OpenStreetMap', 'Umbau zum Radweg (Trans\'Oise), eröffnet 2020 laut OpenStreetMap'],
             'patrimoine' => ['heritage', 'Exploitation associative : Chemin de fer du Haut Forez, train touristique entre Sembadel et Chaise-Dieu, depuis 1986 (d\'après article Wikipédia de l\'exploitation) ; aussi nommé « Chemin de Fer du Haut Forez (CFHF) ». Sources : Wikipédia (liste), IGN BD TOPO.', null, null,
@@ -268,30 +268,35 @@ class GeneratedTextsTest extends TestCase
         ];
     }
 
+    /** $stored : texte en base quand il diffère du français affiché (compagnie développée, élisions). */
     #[DataProvider('eventDescriptions')]
-    public function test_generated_event_descriptions_are_translated(?string $source, string $fr, ?string $from, ?string $to, string $en, string $de): void
+    public function test_generated_event_descriptions_are_translated(?string $source, string $fr, ?string $from, ?string $to, string $en, string $de, ?string $stored = null): void
     {
-        $this->assertSame(['text' => $fr, 'lang' => null], EventText::describe($source, $fr, 'fr', $from, $to));
-        $this->assertSame(['text' => $en, 'lang' => null], EventText::describe($source, $fr, 'en', $from, $to));
-        $this->assertSame(['text' => $de, 'lang' => null], EventText::describe($source, $fr, 'de', $from, $to));
+        $stored ??= $fr;
+        $this->assertSame(['text' => $fr, 'lang' => null], EventText::describe($source, $stored, 'fr', $from, $to));
+        $this->assertSame(['text' => $en, 'lang' => null], EventText::describe($source, $stored, 'en', $from, $to));
+        $this->assertSame(['text' => $de, 'lang' => null], EventText::describe($source, $stored, 'de', $from, $to));
     }
 
     public function test_citations_and_hand_written_reasons_stay_french_and_are_flagged(): void
     {
         $lo = 'Déclassement (Totalité de la ligne) : 10/11/1989 - PK déduits de la liste des gares de la fiche';
-        $this->assertSame(['text' => 'lignes-oubliees record: “Déclassement (Totalité de la ligne) : 10/11/1989” - kilometre points derived from the record\'s list of stations', 'lang' => 'fr'],
+        // La méthode de localisation de VFF (« PK déduits… ») n'est pas un fait de la ligne : retirée.
+        $this->assertSame(['text' => 'lignes-oubliees record: “Déclassement (Totalité de la ligne) : 10/11/1989”', 'lang' => 'fr'],
             EventText::describe('lignes-oubliees', $lo, 'en'));
+        $this->assertSame('Déclassement (Totalité de la ligne) : 10/11/1989', EventText::describe('lignes-oubliees', $lo, 'fr')['text']);
         $manual = 'Ouverture de Souillac à Cazoulès (correction sourcée : liste « Mises en service » de l\'article)';
         $this->assertSame(['text' => 'Opening from Souillac to Cazoulès (sourced correction: liste « Mises en service » de l\'article)', 'lang' => 'fr'],
             EventText::describe('manual', $manual, 'en', 'Souillac', 'Cazoulès'));
         $free = 'Texte libre sans gabarit';
         $this->assertSame(['text' => $free, 'lang' => 'fr'], EventText::describe('manual', $free, 'de'));
 
-        // Citations générées : traduites ; vraie citation : française, signalée ; nom de tracé : nom propre.
-        $this->assertSame('Infobox: concessionnaire5 = RFF; dateconc5 = 1997', EventText::quote('wikipedia', 'Infobox : concessionnaire5 = RFF ; dateconc5 = 1997', 'en')['text']);
+        // Relevés générés : rédigés en phrases (sans « = », identifiant de propriété ni date impossible) ;
+        // vraie citation : française, signalée ; nom de tracé : nom propre.
+        $this->assertSame('Wikipedia article infobox (concession holder: RFF; start of concession: 1997)', EventText::quote('wikipedia', 'Infobox : concessionnaire5 = RFF ; dateconc5 = 1997', 'en')['text']);
         $wd = EventText::quote('wikidata', 'Wikidata Q3239643 · P1619 (date d\'ouverture officielle) = 1875-00-00 - date retenue 1875-01-01 (précision : année)', 'de');
-        $this->assertSame(['text' => 'Wikidata Q3239643 · P1619 (offizielles Eröffnungsdatum) = 1875-00-00 - verwendetes Datum 1875-01-01 (Genauigkeit: Jahr)', 'lang' => null], $wd);
-        $this->assertSame(['text' => 'way w42: railway=abandoned (+2 other OHM way(s))', 'lang' => null], EventText::quote('ohm', 'way w42 : railway=abandoned (+2 autre(s) way(s) OHM)', 'en'));
+        $this->assertSame(['text' => 'Wikidata, offizielles Eröffnungsdatum: 1875', 'lang' => null], $wd);
+        $this->assertSame(['text' => 'OpenHistoricalMap route: abandoned track (and 2 other routes)', 'lang' => null], EventText::quote('ohm', 'way w42 : railway=abandoned (+2 autre(s) way(s) OHM)', 'en'));
         $this->assertSame('fr', EventText::quote('wikipedia', 'Depuis le 13 mars 2018, la portion est fermée.', 'en')['lang']);
         $this->assertNull(EventText::quote('archeoferroviaire', 'Ligne de Raon-l\'Étape à Raon-sur-Plaine (1914-1918)', 'en')['lang']);
     }

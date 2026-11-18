@@ -145,8 +145,11 @@ class LineSheetPageTest extends TestCase
                 // Gares : mêmes règles que App\Services\LineStations::byEra (agent « gares »).
                 $this->assertSame([3, 0, 0], [$byYear[1890]['stations']['open'], $byYear[1890]['stations']['closed'], $byYear[1890]['stations']['uncertain']]);
                 $this->assertSame(2, $byYear[1950]['stations']['closed']);
-                $this->assertEqualsCanonicalizing(['couterne', 'la-ferte-mace'], collect($byYear[1940]['stations']['closures'])->pluck('slug')->all(), 'fermées en 1940');
-                $this->assertSame([], $byYear[1950]['stations']['closures']);
+                // Fermées en 1940 (date retenue) mais le fil des gares ne passe à « fermée » qu'à l'ère 1950
+                // (pas d'état connu en 1940) : listées en 1950, comme le compteur (jamais plus de noms que
+                // de fermetures comptées).
+                $this->assertSame([0, []], [$byYear[1940]['stations']['closed'], $byYear[1940]['stations']['closures']]);
+                $this->assertEqualsCanonicalizing(['couterne', 'la-ferte-mace'], collect($byYear[1950]['stations']['closures'])->pluck('slug')->all(), 'fermées à l’ère 1950');
 
                 return true;
             })
@@ -245,13 +248,19 @@ class LineSheetPageTest extends TestCase
         );
     }
 
-    public function test_header_shows_the_length_at_its_peak_and_today(): void
+    public function test_header_shows_one_line_length_and_what_is_in_service_today(): void
     {
-        // Aujourd'hui seule la portion A existe (7,4 km) ; A et B en 1890 (14,7 km) :
-        // « 14,7 km à son apogée, 7,4 km aujourd'hui ».
+        // Une seule longueur par fiche : le tracé de VFF, toutes portions (A en service, B déposée),
+        // la même que le rail, les phases et les décennies (14,6 km) ; la part en service (A, 7,3 km)
+        // dans active_length_km ; plus de second chiffre « à son apogée ».
         $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->where('stats.length_greatest_km', fn ($km) => abs($km - 14.7) < 0.2)
-            ->where('stats.length_km', fn ($km) => abs($km - 7.4) < 0.2)
+            ->where('stats.length_greatest_km', null)
+            ->where('stats.length_km', 14.6)
+            ->where('stats.active_length_km', 7.3)
+            ->where('stats.length_definition', 'trace')
+            ->where('decades', fn ($d) => array_sum(collect($d)->firstWhere('is_current', true)['length_by_category']) === 14600)
+            ->where('chronicle.groups.0.key', 'whole')
+            ->where('chronicle.groups.0.length_m', 14600)
             ->where('line.current_state', 'open')
             ->missing('stats.length_source')
         );
@@ -259,14 +268,15 @@ class LineSheetPageTest extends TestCase
 
     public function test_header_shows_a_single_length_when_the_line_is_whole_today(): void
     {
-        // B rouverte en 2030 : la ligne d'aujourd'hui a la longueur de son apogée.
+        // B rouverte en 2030 : toute la ligne est en service.
         DB::table('line_segments')->insert(['line_id' => $this->line->id, 'era_id' => $this->eras[2030]->id,
             'geom' => DB::raw("ST_GeomFromText('".self::B."', 4326)"), 'status' => 'in_service',
             'traffic_type' => 'freight', 'length_meters' => 7300, 'created_at' => now(), 'updated_at' => now()]);
 
         $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('stats.length_greatest_km', null)
-            ->where('stats.length_km', fn ($km) => abs($km - 14.7) < 0.2)
+            ->where('stats.length_km', fn ($km) => abs($km - 14.6) < 0.2)
+            ->where('stats.active_length_km', fn ($km) => abs($km - 14.6) < 0.2)
             ->where('line.current_state', 'open')
         );
     }
@@ -290,7 +300,9 @@ class LineSheetPageTest extends TestCase
 
         $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('line.current_state', $state)
-            ->where('stats.length_greatest_km', fn ($km) => abs($km - 14.7) < 0.2)
+            ->where('stats.length_greatest_km', null)
+            ->where('stats.length_km', 14.6)
+            ->where('stats.active_length_km', 0)
             ->where('translations', fn ($t) => is_string($label = collect($t)->get("lines.stats.today_{$state}")) && $label !== '')
         );
     }
@@ -333,7 +345,9 @@ class LineSheetPageTest extends TestCase
                 $this->assertSame('wikidata', $byName['Ligne de Couterne à Briouze']['source']);
                 $this->assertSame(['section', 1869], [$byName['Section de Briouze']['kind'], $byName['Section de Briouze']['from']]);
                 $this->assertSame('section', $byName['Tronçon nord']['kind']);
-                $this->assertSame('wikipedia', $byName['Ligne de Briouze à Couterne']['source']);
+                // « Ligne de Briouze à Couterne » (titre Wikipédia) = « Ligne de Couterne à Briouze » à l'ordre
+                // près : un seul des deux.
+                $this->assertFalse($byName->has('Ligne de Briouze à Couterne'), 'même nom, lieux inversés');
                 $this->assertSame('merged', $byName['Ancienne fiche fusionnée']['kind']);
                 $this->assertFalse($byName->has('Ligne de Briouze à La Ferté-Macé'), 'jamais le nom principal');
 

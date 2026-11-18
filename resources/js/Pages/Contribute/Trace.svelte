@@ -1,12 +1,15 @@
 <script>
-    import { onMount } from 'svelte';
-    import { router } from '@inertiajs/svelte';
+    import { onMount, tick } from 'svelte';
+    import { Link, router } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
+    import PageHero from '$components/PageHero.svelte';
+    import Notice from '$components/ui/Notice.svelte';
     import TraceEditorMap from '$components/Contribute/TraceEditorMap.svelte';
     import PortionEvents from '$components/Contribute/PortionEvents.svelte';
     import { i18n } from '$lib/i18n.js';
     import { findHistoricBasemap, historicTitle } from '$lib/historicBasemaps.js';
     import { formatKm, lengthM, portionColor } from '$lib/traceGeometry.js';
+    import { colon } from '$lib/typo.js';
 
     /**
      * Éditeur de tracé : retracer une ligne disparue ou corriger une portion
@@ -24,9 +27,13 @@
 
     const DRAFT_KEY = 'vff:trace-draft:v1';
 
+    // Valeurs initiales tirées de la ligne passée par l'URL (lues une fois, voulu).
+    // svelte-ignore state_referenced_locally
     let kind = $state(line ? 'correction' : 'new_line');
+    // svelte-ignore state_referenced_locally
     let attached = $state(line);
     let newLineName = $state('');
+    // svelte-ignore state_referenced_locally
     let network = $state(line?.network ?? 'secondaire');
     let networkTouched = $state(false);
     let portions = $state([]);
@@ -40,12 +47,14 @@
     let notes = $state('');
     let replaces = $state({ source_trace_ids: [], line_segment_ids: [], line_ids: [] });
     let undoStack = $state([]);
+    /** @type {Record<string, any>} */
     let errors = $state({});
     let processing = $state(false);
     let restored = $state(false);
     let suggestLine = $state(null);
     let importing = $state(false);
     let mapCmp = $state();
+    let summaryEl = $state();
 
     // Recherche de ligne (correction)
     let query = $state('');
@@ -65,10 +74,7 @@
     $effect(() => {
         if (traceSourceTouched) return;
         traceSource = basemapDef
-            ? $i18n.t('editor.form.trace_source_auto', {
-                  source: `${basemapDef.provider} - ${historicTitle(basemapDef)}`,
-                  layer: basemapDef.layer,
-              })
+            ? $i18n.t('editor.form.trace_source_auto', { source: historicTitle(basemapDef) })
             : '';
     });
 
@@ -277,6 +283,7 @@
 
     // ── Envoi ──────────────────────────────────────────────────────────────
     function clientErrors() {
+        /** @type {Record<string, any>} */
         const e = {};
         if (kind === 'new_line' && newLineName.trim().length < 3)
             e.new_line_name = $i18n.t('editor.errors.name_required');
@@ -302,7 +309,10 @@
         e.preventDefault();
         mode = 'view';
         errors = clientErrors();
-        if (Object.keys(errors).length) return;
+        if (Object.keys(errors).length) {
+            focusSummary();
+            return;
+        }
         const snap = $state.snapshot(portions);
         const data = {
             kind,
@@ -333,13 +343,42 @@
             preserveScroll: true,
             onStart: () => (processing = true),
             onFinish: () => (processing = false),
-            onError: (errs) => (errors = errs),
+            onError: (errs) => {
+                errors = errs;
+                focusSummary();
+            },
             onSuccess: () => clearDraft(),
         });
     }
 
     const errorList = $derived(Object.entries(errors));
     const portionHasError = (i) => errorList.some(([k]) => k.startsWith(`portions.${i}.`));
+
+    async function focusSummary() {
+        await tick();
+        summaryEl?.focus();
+    }
+
+    // Récapitulatif des erreurs : nom du champ lisible (pas la clé technique) et lien vers le champ.
+    function errorField(key) {
+        const m = /^portions\.(\d+)\./.exec(key);
+        if (m)
+            return {
+                label: $i18n.t('editor.errors.field_portion', { n: Number(m[1]) + 1 }),
+                target: 'trace-portions',
+            };
+        const map = {
+            new_line_name: 'trace-new-line-name',
+            line_slug: 'trace-line-search',
+            portions: 'trace-portions',
+            trace_source: 'trace-source',
+        };
+        const k = `editor.errors.field_${key}`;
+        const label = $i18n.t(k);
+        return { label: label === k ? '' : label, target: map[key] ?? 'trace-portions' };
+    }
+
+    const errMsg = (v) => (Array.isArray(v) ? v.join(' ') : v);
 </script>
 
 <svelte:window onkeydown={onKeydown} />
@@ -350,514 +389,674 @@
 
 <Layout compactHeader>
     <main class="trace-page">
-        <div class="page-head">
-            <a href="/maps" class="back-link"
-                ><i class="bi bi-arrow-left"></i> {$i18n.t('editor.back_to_map')}</a
-            >
-            <h1>{$i18n.t('editor.title')}</h1>
-            <p class="subtitle">{$i18n.t('editor.subtitle')}</p>
-        </div>
-
-        {#if restored}
-            <div class="banner">
-                <i class="bi bi-cloud-check"></i>
-                <span>{$i18n.t('editor.draft.restored')}</span>
-                <button type="button" class="link-btn" onclick={restartFromScratch}
-                    >{$i18n.t('editor.draft.discard')}</button
+        <PageHero
+            eyebrow={$i18n.t('editor.mine.eyebrow')}
+            title={$i18n.t('editor.title')}
+            subtitle={$i18n.t('editor.subtitle')}
+        >
+            <p class="back">
+                <Link href="/maps" class="vff-link"
+                    ><i class="bi bi-arrow-left" aria-hidden="true"></i>
+                    {$i18n.t('editor.back_to_map')}</Link
                 >
-            </div>
-        {/if}
+            </p>
+        </PageHero>
 
-        <form class="layout" onsubmit={submit} novalidate>
-            <section class="map-col">
-                <TraceEditorMap
-                    bind:this={mapCmp}
-                    bind:portions
-                    bind:selectedKey
-                    bind:mode
-                    bind:snapEnabled
-                    bind:basemap
-                    bind:opacity
-                    line={kind === 'correction' ? attached : null}
-                    era={currentEra}
-                    height="min(72vh, 760px)"
-                    canUndo={undoStack.length > 0}
-                    onUndo={undo}
-                    onBeforeChange={pushUndo}
-                    onImport={importFeature}
-                    {onLineLoaded}
-                    {newKey}
-                />
-                {#if importing}<p class="importing">
-                        <i class="bi bi-hourglass-split"></i>
-                        {$i18n.t('editor.portions.importing')}
-                    </p>{/if}
-                <details class="help">
-                    <summary
-                        ><i class="bi bi-question-circle"></i>
-                        {$i18n.t('editor.help.title')}</summary
-                    >
-                    <ol>
-                        <li>{$i18n.t('editor.help.step_basemap')}</li>
-                        <li>{$i18n.t('editor.help.step_draw')}</li>
-                        <li>{$i18n.t('editor.help.step_take')}</li>
-                        <li>{$i18n.t('editor.help.step_edit')}</li>
-                        <li>{$i18n.t('editor.help.step_cut')}</li>
-                        <li>{$i18n.t('editor.help.step_events')}</li>
-                    </ol>
-                </details>
-            </section>
+        <div class="vff-container body">
+            {#if restored}
+                <div class="restored">
+                    <Notice tone="info" live="off" icon="bi-cloud-check">
+                        <span>{$i18n.t('editor.draft.restored')}</span>
+                        <button
+                            type="button"
+                            class="vff-btn quiet small"
+                            onclick={restartFromScratch}>{$i18n.t('editor.draft.discard')}</button
+                        >
+                    </Notice>
+                </div>
+            {/if}
 
-            <aside class="panel">
-                <!-- 1. Ligne -->
-                <fieldset>
-                    <legend>{$i18n.t('editor.form.line_legend')}</legend>
-                    <div class="segmented" role="radiogroup">
-                        <label class:active={kind === 'new_line'}>
-                            <input type="radio" bind:group={kind} value="new_line" />
-                            <i class="bi bi-plus-circle"></i>
-                            {$i18n.t('editor.form.kind_new')}
-                        </label>
-                        <label class:active={kind === 'correction'}>
-                            <input type="radio" bind:group={kind} value="correction" />
-                            <i class="bi bi-pencil-square"></i>
-                            {$i18n.t('editor.form.kind_correction')}
-                        </label>
-                    </div>
-
-                    {#if kind === 'new_line'}
-                        <label class="field">
-                            <span>{$i18n.t('editor.form.new_line_name')} <b class="req">*</b></span>
-                            <input
-                                type="text"
-                                bind:value={newLineName}
-                                maxlength="250"
-                                placeholder={$i18n.t('editor.form.new_line_placeholder')}
-                            />
-                            {#if errors.new_line_name}<em class="error">{errors.new_line_name}</em
-                                >{/if}
-                        </label>
-                        {#if suggestLine}
-                            <div class="suggest">
-                                <i class="bi bi-link-45deg"></i>
-                                <span
-                                    >{$i18n.t('editor.form.suggest_line', {
-                                        name: suggestLine.name,
-                                    })}</span
-                                >
-                                <button
-                                    type="button"
-                                    class="link-btn"
-                                    onclick={() => attach(suggestLine)}
-                                >
-                                    {$i18n.t('editor.form.suggest_attach')}
-                                </button>
-                            </div>
-                        {/if}
-                    {:else if attached}
-                        <div class="attached">
-                            <div>
-                                <strong>{attached.name}</strong>
-                                {#if attached.code}<span class="code">{attached.code}</span>{/if}
-                            </div>
-                            <div class="attached-actions">
-                                <a href="/lines/{attached.slug}" target="_blank" rel="noopener"
-                                    >{$i18n.t('editor.form.view_sheet')}</a
-                                >
-                                <button type="button" class="link-btn" onclick={detach}
-                                    >{$i18n.t('editor.form.change_line')}</button
-                                >
+            <form class="layout" onsubmit={submit} novalidate>
+                <section class="map-col" aria-label={$i18n.t('editor.toolbar.label')}>
+                    <TraceEditorMap
+                        bind:this={mapCmp}
+                        bind:portions
+                        bind:selectedKey
+                        bind:mode
+                        bind:snapEnabled
+                        bind:basemap
+                        bind:opacity
+                        line={kind === 'correction' ? attached : null}
+                        era={currentEra}
+                        height="min(70vh, 720px)"
+                        canUndo={undoStack.length > 0}
+                        onUndo={undo}
+                        onBeforeChange={pushUndo}
+                        onImport={importFeature}
+                        {onLineLoaded}
+                        {newKey}
+                    />
+                    <p class="importing" aria-live="polite">
+                        {#if importing}<i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                            {$i18n.t('editor.portions.importing')}{/if}
+                    </p>
+                    <details class="help" open>
+                        <summary>{$i18n.t('editor.help.title')}</summary>
+                        <div class="help-body">
+                            <ol class="steps">
+                                <li>{$i18n.t('editor.help.step_basemap')}</li>
+                                <li>{$i18n.t('editor.help.step_draw')}</li>
+                                <li>{$i18n.t('editor.help.step_take')}</li>
+                                <li>{$i18n.t('editor.help.step_edit')}</li>
+                                <li>{$i18n.t('editor.help.step_cut')}</li>
+                                <li>{$i18n.t('editor.help.step_events')}</li>
+                            </ol>
+                            <div class="shortcuts">
+                                <p class="sub">{$i18n.t('editor.help.shortcuts_title')}</p>
+                                <dl>
+                                    {#each ['enter', 'escape', 'backspace', 'undo', 'shift', 'alt'] as k (k)}
+                                        <div>
+                                            <dt><kbd>{$i18n.t(`editor.help.key_${k}`)}</kbd></dt>
+                                            <dd>{$i18n.t(`editor.help.shortcut_${k}`)}</dd>
+                                        </div>
+                                    {/each}
+                                </dl>
                             </div>
                         </div>
-                    {:else}
-                        <label class="field">
-                            <span>{$i18n.t('editor.form.search_line')} <b class="req">*</b></span>
-                            <input
-                                type="search"
-                                bind:value={query}
-                                oninput={onQuery}
-                                placeholder={$i18n.t('editor.form.search_placeholder')}
-                                autocomplete="off"
-                            />
-                        </label>
-                        {#if results.length}
-                            <ul class="results">
-                                {#each results as r (r.slug)}
-                                    <li>
-                                        <button type="button" onclick={() => attach(r)}>
-                                            <strong>{r.name}</strong>{#if r.code}<span class="code"
-                                                    >{r.code}</span
-                                                >{/if}
-                                        </button>
-                                    </li>
-                                {/each}
-                            </ul>
-                        {/if}
-                        {#if errors.line_slug}<em class="error">{errors.line_slug}</em>{/if}
-                    {/if}
-                </fieldset>
+                    </details>
+                </section>
 
-                <!-- 2. Catégorie -->
-                <fieldset>
-                    <legend>{$i18n.t('editor.form.network_legend')}</legend>
-                    <div class="networks">
-                        {#each networks as n (n)}
-                            <label class="network" class:active={network === n}>
-                                <input
-                                    type="radio"
-                                    bind:group={network}
-                                    value={n}
-                                    onchange={() => (networkTouched = true)}
-                                />
-                                <strong>{$i18n.t(`editor.networks.${n}`)}</strong>
-                                <small>{$i18n.t(`editor.networks.${n}_hint`)}</small>
-                            </label>
-                        {/each}
-                    </div>
-                    {#if kind === 'correction' && attached?.network && attached.network !== network}
-                        <p class="note warn">
-                            <i class="bi bi-exclamation-triangle"></i>
-                            {$i18n.t('editor.form.network_change', {
-                                from: $i18n.t(`editor.networks.${attached.network}`),
-                                to: $i18n.t(`editor.networks.${network}`),
-                            })}
-                        </p>
-                    {/if}
-                </fieldset>
-
-                <!-- 3. Portions -->
-                <fieldset>
-                    <legend>
-                        {$i18n.t('editor.portions.legend')}
-                        <span class="count"
-                            >{portions.length} · {formatKm(totalLength, $i18n.language)} · {$i18n.t(
-                                'editor.portions.events_count',
-                                { count: eventsCount },
-                            )}</span
-                        >
-                    </legend>
-                    {#if !portions.length}
-                        <p class="empty">{$i18n.t('editor.portions.empty')}</p>
-                        {#if errors.portions}<em class="error">{errors.portions}</em>{/if}
-                    {/if}
-                    <ol class="portions">
-                        {#each portions as p, i (p.key)}
-                            <li
-                                class="portion"
-                                class:selected={p.key === selectedKey}
-                                class:has-error={portionHasError(i)}
+                <div class="panel">
+                    <div class="summary" tabindex="-1" bind:this={summaryEl}>
+                        {#if errorList.length}
+                            <Notice
+                                tone="danger"
+                                live="assertive"
+                                title={$i18n.t('editor.errors.summary', {
+                                    count: errorList.length,
+                                })}
                             >
-                                <div class="portion-head">
-                                    <button
-                                        type="button"
-                                        class="dot"
-                                        style="--c: {portionColor(i)}"
-                                        onclick={() => selectPortion(p.key)}
-                                        title={$i18n.t('editor.portions.zoom')}
-                                        aria-label={$i18n.t('editor.portions.zoom')}
-                                    ></button>
-                                    <input
-                                        class="label-input"
-                                        type="text"
-                                        bind:value={p.label}
-                                        maxlength="250"
-                                        placeholder={$i18n.t('editor.portions.label_placeholder', {
-                                            n: i + 1,
-                                        })}
-                                        onfocus={() => (selectedKey = p.key)}
-                                    />
-                                    <span class="len"
-                                        >{formatKm(lengthM(p.coordinates), $i18n.language)}</span
+                                <ul>
+                                    {#each errorList.slice(0, 8) as [k, msg] (k)}
+                                        {@const f = errorField(k)}
+                                        <li>
+                                            <a href="#{f.target}"
+                                                >{#if f.label}{f.label}{colon(
+                                                        $i18n.language,
+                                                    )}{/if}{errMsg(msg)}</a
+                                            >
+                                        </li>
+                                    {/each}
+                                </ul>
+                            </Notice>
+                        {/if}
+                    </div>
+
+                    <!-- 1. Ligne -->
+                    <fieldset class="group">
+                        <legend>{$i18n.t('editor.form.line_legend')}</legend>
+                        <div
+                            class="segmented"
+                            role="radiogroup"
+                            aria-label={$i18n.t('editor.form.kind_label')}
+                        >
+                            <label class:active={kind === 'new_line'}>
+                                <input type="radio" bind:group={kind} value="new_line" />
+                                <i class="bi bi-plus-circle" aria-hidden="true"></i>
+                                {$i18n.t('editor.form.kind_new')}
+                            </label>
+                            <label class:active={kind === 'correction'}>
+                                <input type="radio" bind:group={kind} value="correction" />
+                                <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                                {$i18n.t('editor.form.kind_correction')}
+                            </label>
+                        </div>
+
+                        {#if kind === 'new_line'}
+                            <div class="vff-field">
+                                <label class="vff-label" for="trace-new-line-name"
+                                    >{$i18n.t('editor.form.new_line_name')}
+                                    <span class="req" aria-hidden="true">*</span></label
+                                >
+                                <input
+                                    id="trace-new-line-name"
+                                    class="vff-input"
+                                    type="text"
+                                    bind:value={newLineName}
+                                    maxlength="250"
+                                    required
+                                    placeholder={$i18n.t('editor.form.new_line_placeholder')}
+                                    aria-invalid={errors.new_line_name ? 'true' : undefined}
+                                    aria-describedby={errors.new_line_name
+                                        ? 'err-new-line-name'
+                                        : undefined}
+                                />
+                                {#if errors.new_line_name}<p
+                                        class="vff-error"
+                                        id="err-new-line-name"
+                                    >
+                                        <i class="bi bi-exclamation-circle" aria-hidden="true"
+                                        ></i><span>{errMsg(errors.new_line_name)}</span>
+                                    </p>{/if}
+                            </div>
+                            {#if suggestLine}
+                                <div class="suggest">
+                                    <i class="bi bi-link-45deg" aria-hidden="true"></i>
+                                    <span
+                                        >{$i18n.t('editor.form.suggest_line', {
+                                            name: suggestLine.name,
+                                        })}</span
                                     >
                                     <button
                                         type="button"
-                                        class="icon-btn"
-                                        onclick={() => removePortion(p.key)}
-                                        title={$i18n.t('editor.portions.delete')}
+                                        class="vff-btn quiet small"
+                                        onclick={() => attach(suggestLine)}
                                     >
-                                        <i class="bi bi-trash3"></i>
+                                        {$i18n.t('editor.form.suggest_attach')}
                                     </button>
                                 </div>
-                                {#if p.key === selectedKey}
-                                    <div class="portion-body">
-                                        <div class="grid-2">
-                                            <label class="field">
-                                                <span>{$i18n.t('editor.portions.from')}</span>
-                                                <input
-                                                    type="text"
-                                                    bind:value={p.from}
-                                                    maxlength="250"
-                                                />
-                                            </label>
-                                            <label class="field">
-                                                <span>{$i18n.t('editor.portions.to')}</span>
-                                                <input
-                                                    type="text"
-                                                    bind:value={p.to}
-                                                    maxlength="250"
-                                                />
-                                            </label>
-                                        </div>
-                                        <p class="sub">{$i18n.t('editor.portions.events_title')}</p>
-                                        <PortionEvents
-                                            bind:events={p.events}
-                                            {eventTypes}
-                                            {precisions}
-                                            {errors}
-                                            prefix={`portions.${i}.events`}
-                                            defaultSource={traceSource}
-                                            onBeforeChange={pushUndo}
-                                        />
-                                        {#if errors[`portions.${i}.coordinates`]}<em class="error"
-                                                >{errors[`portions.${i}.coordinates`]}</em
-                                            >{/if}
-                                    </div>
-                                {:else if p.events?.length}
-                                    <p class="events-summary">
-                                        {#each p.events as ev, j (j)}
-                                            <span
-                                                >{$i18n.t(`editor.event_types.${ev.type}`)}
-                                                {ev.date || '?'}</span
-                                            >
-                                        {/each}
-                                    </p>
-                                {/if}
-                            </li>
-                        {/each}
-                    </ol>
-                    {#if replacedCount}
-                        <div class="replaced">
-                            <p class="sub">{$i18n.t('editor.portions.replaces')}</p>
-                            <ul>
-                                {#each replaces.source_trace_ids as id (id)}
-                                    <li>
-                                        {$i18n.t('editor.portions.replaced_trace', { id })}
-                                        <button
-                                            type="button"
-                                            class="link-btn"
-                                            onclick={() => removeReplaced('source_trace_ids', id)}
-                                            >×</button
-                                        >
-                                    </li>
-                                {/each}
-                                {#each replaces.line_segment_ids as id (id)}
-                                    <li>
-                                        {$i18n.t('editor.portions.replaced_segment', { id })}
-                                        <button
-                                            type="button"
-                                            class="link-btn"
-                                            onclick={() => removeReplaced('line_segment_ids', id)}
-                                            >×</button
-                                        >
-                                    </li>
-                                {/each}
-                                {#each replaces.line_ids as id (id)}
-                                    <li>
-                                        {$i18n.t('editor.portions.replaced_line', { id })}
-                                        <button
-                                            type="button"
-                                            class="link-btn"
-                                            onclick={() => removeReplaced('line_ids', id)}>×</button
-                                        >
-                                    </li>
-                                {/each}
-                            </ul>
-                        </div>
-                    {/if}
-                </fieldset>
+                            {/if}
+                        {:else if attached}
+                            <div class="attached">
+                                <p class="attached-name">
+                                    <span class="vff-sr-only"
+                                        >{$i18n.t('editor.form.line_from_sheet')}{colon(
+                                            $i18n.language,
+                                        )}</span
+                                    >
+                                    <strong>{attached.name}</strong>
+                                    {#if attached.code}<span class="vff-plate">{attached.code}</span
+                                        >{/if}
+                                </p>
+                                <div class="attached-actions">
+                                    <Link href="/lines/{attached.slug}" class="vff-link"
+                                        >{$i18n.t('editor.form.view_sheet')}</Link
+                                    >
+                                    <button
+                                        type="button"
+                                        class="vff-btn quiet small"
+                                        onclick={detach}
+                                        >{$i18n.t('editor.form.change_line')}</button
+                                    >
+                                </div>
+                            </div>
+                        {:else}
+                            <div class="vff-field">
+                                <label class="vff-label" for="trace-line-search"
+                                    >{$i18n.t('editor.form.search_line')}
+                                    <span class="req" aria-hidden="true">*</span></label
+                                >
+                                <input
+                                    id="trace-line-search"
+                                    class="vff-input"
+                                    type="search"
+                                    bind:value={query}
+                                    oninput={onQuery}
+                                    placeholder={$i18n.t('editor.form.search_placeholder')}
+                                    autocomplete="off"
+                                    aria-invalid={errors.line_slug ? 'true' : undefined}
+                                    aria-describedby={errors.line_slug
+                                        ? 'err-line-slug'
+                                        : undefined}
+                                />
+                                {#if errors.line_slug}<p class="vff-error" id="err-line-slug">
+                                        <i class="bi bi-exclamation-circle" aria-hidden="true"
+                                        ></i><span>{errMsg(errors.line_slug)}</span>
+                                    </p>{/if}
+                            </div>
+                            {#if results.length}
+                                <ul class="results">
+                                    {#each results as r (r.slug)}
+                                        <li>
+                                            <button type="button" onclick={() => attach(r)}>
+                                                <span>{r.name}</span>{#if r.code}<span
+                                                        class="vff-plate">{r.code}</span
+                                                    >{/if}
+                                            </button>
+                                        </li>
+                                    {/each}
+                                </ul>
+                            {/if}
+                        {/if}
+                    </fieldset>
 
-                <!-- 4. Sources -->
-                <fieldset>
-                    <legend>{$i18n.t('editor.form.sources_legend')}</legend>
-                    <label class="field">
-                        <span>{$i18n.t('editor.form.trace_source')} <b class="req">*</b></span>
-                        <textarea
-                            rows="2"
-                            bind:value={traceSource}
-                            oninput={() => (traceSourceTouched = true)}
-                            maxlength="500"
-                        ></textarea>
-                        <small class="hint">{$i18n.t('editor.form.trace_source_hint')}</small>
-                        {#if errors.trace_source}<em class="error">{errors.trace_source}</em>{/if}
-                    </label>
-                    <label class="field">
-                        <span>{$i18n.t('editor.form.notes')}</span>
-                        <textarea
-                            rows="3"
-                            bind:value={notes}
-                            maxlength="2000"
-                            placeholder={$i18n.t('editor.form.notes_placeholder')}
-                        ></textarea>
-                    </label>
-                </fieldset>
-
-                {#if errorList.length}
-                    <div class="errors" role="alert">
-                        <strong
-                            >{$i18n.t('editor.errors.summary', { count: errorList.length })}</strong
-                        >
-                        <ul>
-                            {#each errorList.slice(0, 6) as [k, msg] (k)}
-                                <li><code>{k}</code> {msg}</li>
+                    <!-- 2. Catégorie -->
+                    <fieldset class="group">
+                        <legend>{$i18n.t('editor.form.network_legend')}</legend>
+                        <div class="networks">
+                            {#each networks as n (n)}
+                                <label class="network" class:active={network === n}>
+                                    <input
+                                        type="radio"
+                                        bind:group={network}
+                                        value={n}
+                                        onchange={() => (networkTouched = true)}
+                                    />
+                                    <strong>{$i18n.t(`editor.networks.${n}`)}</strong>
+                                    <small>{$i18n.t(`editor.networks.${n}_hint`)}</small>
+                                </label>
                             {/each}
-                        </ul>
-                    </div>
-                {/if}
+                        </div>
+                        {#if kind === 'correction' && attached?.network && attached.network !== network}
+                            <p class="note warn">
+                                <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                                {$i18n.t('editor.form.network_change', {
+                                    from: $i18n.t(`editor.networks.${attached.network}`),
+                                    to: $i18n.t(`editor.networks.${network}`),
+                                })}
+                            </p>
+                        {/if}
+                    </fieldset>
 
-                <div class="actions">
-                    <p class="moderation">
-                        <i class="bi bi-shield-check"></i>
-                        {$i18n.t('editor.form.moderation')}
-                    </p>
-                    <button
-                        type="submit"
-                        class="vff-btn primary"
-                        disabled={processing || !portions.length}
-                    >
-                        <i class="bi bi-send-fill"></i>
-                        {$i18n.t('editor.form.submit')}
-                    </button>
+                    <!-- 3. Portions -->
+                    <fieldset class="group" id="trace-portions" tabindex="-1">
+                        <legend>
+                            {$i18n.t('editor.portions.legend')}
+                            <span class="count"
+                                >{$i18n.t('editor.portions.count', { count: portions.length })},
+                                {formatKm(totalLength, $i18n.language)}, {$i18n.t(
+                                    'editor.portions.events_count',
+                                    { count: eventsCount },
+                                )}</span
+                            >
+                        </legend>
+                        {#if !portions.length}
+                            <p class="empty">{$i18n.t('editor.portions.empty')}</p>
+                            {#if errors.portions}<p class="vff-error">
+                                    <i class="bi bi-exclamation-circle" aria-hidden="true"></i><span
+                                        >{errMsg(errors.portions)}</span
+                                    >
+                                </p>{/if}
+                        {/if}
+                        <ol class="portions">
+                            {#each portions as p, i (p.key)}
+                                <li
+                                    class="portion"
+                                    class:selected={p.key === selectedKey}
+                                    class:has-error={portionHasError(i)}
+                                >
+                                    <div class="portion-head">
+                                        <button
+                                            type="button"
+                                            class="dot"
+                                            style:--c={portionColor(i)}
+                                            onclick={() => selectPortion(p.key)}
+                                            title={$i18n.t('editor.portions.zoom')}
+                                            aria-label={$i18n.t('editor.portions.zoom')}
+                                            aria-pressed={p.key === selectedKey}
+                                        ></button>
+                                        <input
+                                            class="label-input"
+                                            type="text"
+                                            bind:value={p.label}
+                                            maxlength="250"
+                                            aria-label={$i18n.t('editor.errors.field_portion', {
+                                                n: i + 1,
+                                            })}
+                                            placeholder={$i18n.t(
+                                                'editor.portions.label_placeholder',
+                                                {
+                                                    n: i + 1,
+                                                },
+                                            )}
+                                            onfocus={() => (selectedKey = p.key)}
+                                        />
+                                        <span class="len"
+                                            >{formatKm(
+                                                lengthM(p.coordinates),
+                                                $i18n.language,
+                                            )}</span
+                                        >
+                                        <button
+                                            type="button"
+                                            class="icon-btn"
+                                            onclick={() => removePortion(p.key)}
+                                            title={$i18n.t('editor.portions.delete')}
+                                            aria-label={$i18n.t('editor.portions.delete')}
+                                        >
+                                            <i class="bi bi-trash3" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                    {#if p.key === selectedKey}
+                                        <div class="portion-body">
+                                            <div class="grid-2">
+                                                <label class="f">
+                                                    <span>{$i18n.t('editor.portions.from')}</span>
+                                                    <input
+                                                        class="vff-input"
+                                                        type="text"
+                                                        bind:value={p.from}
+                                                        maxlength="250"
+                                                    />
+                                                </label>
+                                                <label class="f">
+                                                    <span>{$i18n.t('editor.portions.to')}</span>
+                                                    <input
+                                                        class="vff-input"
+                                                        type="text"
+                                                        bind:value={p.to}
+                                                        maxlength="250"
+                                                    />
+                                                </label>
+                                            </div>
+                                            <p class="sub">
+                                                {$i18n.t('editor.portions.events_title')}
+                                            </p>
+                                            <PortionEvents
+                                                bind:events={p.events}
+                                                {eventTypes}
+                                                {precisions}
+                                                {errors}
+                                                prefix={`portions.${i}.events`}
+                                                defaultSource={traceSource}
+                                                onBeforeChange={pushUndo}
+                                            />
+                                            {#if errors[`portions.${i}.coordinates`]}<p
+                                                    class="vff-error"
+                                                >
+                                                    <i
+                                                        class="bi bi-exclamation-circle"
+                                                        aria-hidden="true"
+                                                    ></i><span
+                                                        >{errMsg(
+                                                            errors[`portions.${i}.coordinates`],
+                                                        )}</span
+                                                    >
+                                                </p>{/if}
+                                        </div>
+                                    {:else if p.events?.length}
+                                        <p class="events-summary">
+                                            {#each p.events as ev, j (j)}
+                                                <span
+                                                    >{$i18n.t(`editor.event_types.${ev.type}`)}
+                                                    {ev.date || '?'}</span
+                                                >
+                                            {/each}
+                                        </p>
+                                    {/if}
+                                </li>
+                            {/each}
+                        </ol>
+                        {#if replacedCount}
+                            <div class="replaced">
+                                <p class="sub">{$i18n.t('editor.portions.replaces')}</p>
+                                <ul>
+                                    {#each [['source_trace_ids', 'replaced_trace'], ['line_segment_ids', 'replaced_segment'], ['line_ids', 'replaced_line']] as [k, labelKey] (k)}
+                                        {#each replaces[k] as id (id)}
+                                            <li>
+                                                <span
+                                                    >{$i18n.t(`editor.portions.${labelKey}`, {
+                                                        id,
+                                                    })}</span
+                                                >
+                                                <button
+                                                    type="button"
+                                                    class="icon-btn"
+                                                    onclick={() => removeReplaced(k, id)}
+                                                    title={$i18n.t('editor.events.remove')}
+                                                    aria-label={`${$i18n.t('editor.events.remove')}${colon($i18n.language)}${$i18n.t(`editor.portions.${labelKey}`, { id })}`}
+                                                    ><i class="bi bi-x-lg" aria-hidden="true"
+                                                    ></i></button
+                                                >
+                                            </li>
+                                        {/each}
+                                    {/each}
+                                </ul>
+                            </div>
+                        {/if}
+                    </fieldset>
+
+                    <!-- 4. Sources -->
+                    <fieldset class="group">
+                        <legend>{$i18n.t('editor.form.sources_legend')}</legend>
+                        <div class="vff-field">
+                            <label class="vff-label" for="trace-source"
+                                >{$i18n.t('editor.form.trace_source')}
+                                <span class="req" aria-hidden="true">*</span></label
+                            >
+                            <p class="vff-hint" id="trace-source-hint">
+                                {$i18n.t('editor.form.trace_source_hint')}
+                            </p>
+                            <textarea
+                                id="trace-source"
+                                class="vff-textarea short"
+                                rows="3"
+                                bind:value={traceSource}
+                                oninput={() => (traceSourceTouched = true)}
+                                maxlength="500"
+                                required
+                                aria-invalid={errors.trace_source ? 'true' : undefined}
+                                aria-describedby={errors.trace_source
+                                    ? 'trace-source-hint err-trace-source'
+                                    : 'trace-source-hint'}
+                            ></textarea>
+                            {#if errors.trace_source}<p class="vff-error" id="err-trace-source">
+                                    <i class="bi bi-exclamation-circle" aria-hidden="true"></i><span
+                                        >{errMsg(errors.trace_source)}</span
+                                    >
+                                </p>{/if}
+                        </div>
+                        <div class="vff-field">
+                            <label class="vff-label" for="trace-notes"
+                                >{$i18n.t('editor.form.notes')}</label
+                            >
+                            <textarea
+                                id="trace-notes"
+                                class="vff-textarea"
+                                rows="3"
+                                bind:value={notes}
+                                maxlength="2000"
+                                placeholder={$i18n.t('editor.form.notes_placeholder')}
+                            ></textarea>
+                        </div>
+                    </fieldset>
+
+                    <div class="actions">
+                        <button
+                            type="submit"
+                            class="vff-btn primary block"
+                            disabled={processing}
+                            aria-describedby={portions.length
+                                ? 'trace-moderation'
+                                : 'trace-needs-portion trace-moderation'}
+                        >
+                            <i class="bi bi-send" aria-hidden="true"></i>
+                            {$i18n.t('editor.form.submit')}
+                        </button>
+                        {#if !portions.length}
+                            <p class="needs" id="trace-needs-portion">
+                                {$i18n.t('editor.form.submit_needs_portion')}
+                            </p>
+                        {/if}
+                        <p class="moderation" id="trace-moderation">
+                            <i class="bi bi-shield-check" aria-hidden="true"></i>
+                            {$i18n.t('editor.form.moderation')}
+                        </p>
+                    </div>
                 </div>
-            </aside>
-        </form>
+            </form>
+        </div>
     </main>
 </Layout>
 
 <style>
-    .trace-page {
-        max-width: 1560px;
-        margin: 0 auto;
-        padding: 32px 20px 56px;
+    .back {
+        margin: var(--vff-space-4) 0 0;
     }
-    .page-head {
-        margin-bottom: 20px;
+    .body {
+        padding-block: var(--vff-block-space) var(--vff-section-space);
     }
-    .back-link {
-        color: var(--vff-text-muted);
-        font-family: var(--vff-font-display);
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        text-decoration: none;
-        display: inline-flex;
-        gap: 6px;
-        align-items: center;
+    .restored {
+        margin-bottom: var(--vff-space-5);
     }
-    .back-link:hover {
-        color: var(--vff-accent);
-    }
-    h1 {
-        font-family: var(--vff-font-display);
-        font-size: 30px;
-        margin: 12px 0 6px;
-    }
-    h1:after {
-        display: none;
-    }
-    .subtitle {
-        color: var(--vff-text-muted);
-        font-size: 15px;
-        line-height: 1.5;
-        max-width: 900px;
-        margin: 0;
-    }
-    .banner,
-    .suggest {
+    .restored :global(.vff-notice-body) {
         display: flex;
-        align-items: center;
-        gap: 10px;
         flex-wrap: wrap;
-        padding: 10px 14px;
-        margin-bottom: 14px;
-        background: var(--vff-accent-soft);
-        border: 1px solid var(--vff-accent);
-        border-radius: var(--vff-radius-sm);
-        font-size: 14px;
-    }
-    .suggest {
-        margin: 10px 0 0;
-        font-size: 13px;
+        align-items: center;
+        gap: var(--vff-space-2) var(--vff-space-4);
     }
     .layout {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 430px;
-        gap: 20px;
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+        gap: var(--vff-space-6);
         align-items: start;
     }
     .map-col {
         position: sticky;
-        top: 12px;
+        top: var(--vff-space-3);
         min-width: 0;
     }
     .importing {
-        margin: 8px 0 0;
-        font-size: 13px;
+        min-height: 1.4em;
+        margin: var(--vff-space-2) 0 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
     .help {
-        margin-top: 12px;
-        font-size: 14px;
+        margin-top: var(--vff-space-2);
+        padding-top: var(--vff-space-3);
+        border-top: 1px solid var(--vff-border);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.55;
         color: var(--vff-text-muted);
     }
     .help summary {
+        min-height: 24px;
         cursor: pointer;
-        font-family: var(--vff-font-display);
         font-weight: 600;
         color: var(--vff-text);
     }
-    .help ol {
-        margin: 8px 0 0;
-        padding-left: 20px;
-        line-height: 1.6;
+    .help-body {
+        display: grid;
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+        gap: var(--vff-space-3) var(--vff-space-6);
+        margin-top: var(--vff-space-3);
+    }
+    .steps {
+        margin: 0;
+        padding-left: 1.3em;
+    }
+    .steps li + li {
+        margin-top: 4px;
+    }
+    .shortcuts dl {
+        display: grid;
+        grid-template-columns: max-content minmax(0, 1fr);
+        gap: 6px var(--vff-space-3);
+        align-items: baseline;
+        margin: 0;
+    }
+    .shortcuts dl > div {
+        display: contents;
+    }
+    .shortcuts dd {
+        margin: 0;
+    }
+    kbd {
+        display: inline-block;
+        padding: 1px 6px;
+        border: 1px solid var(--vff-border-strong);
+        border-bottom-width: 2px;
+        border-radius: var(--vff-radius-sm);
+        background: var(--vff-bg-elevated);
+        color: var(--vff-text);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        font-weight: 600;
+        white-space: nowrap;
     }
     .panel {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: var(--vff-space-4);
         min-width: 0;
     }
-    fieldset {
+    .summary:empty {
+        display: none;
+    }
+    .summary:focus {
+        outline: none;
+    }
+    .summary:focus-visible {
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: var(--vff-focus-offset);
+    }
+    .summary ul {
+        margin: var(--vff-space-2) 0 0;
+        padding-left: 1.2em;
+    }
+    .summary li a {
+        display: inline-block;
+        padding-block: 3px;
+    }
+    .group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--vff-space-3);
+        min-width: 0;
+        margin: 0;
+        padding: var(--vff-space-4);
         border: 1px solid var(--vff-border);
         border-radius: var(--vff-radius-md);
-        padding: 14px;
-        margin: 0;
-        min-width: 0;
         background: var(--vff-bg-elevated);
     }
+    .group:focus {
+        outline: none;
+    }
     legend {
+        float: left;
+        width: 100%;
+        margin: 0 0 var(--vff-space-1);
+        padding: 0;
         font-family: var(--vff-font-display);
-        font-size: 13px;
+        font-size: var(--vff-fs-h3);
         font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--vff-accent);
-        padding: 0 6px;
+        line-height: 1.3;
+        color: var(--vff-text);
+    }
+    legend + * {
+        clear: both;
     }
     legend .count {
+        display: block;
+        margin-top: 2px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        font-weight: 400;
         color: var(--vff-text-muted);
-        font-weight: 600;
-        text-transform: none;
-        letter-spacing: 0;
-        margin-left: 6px;
+    }
+    .req {
+        color: var(--vff-danger);
     }
     .segmented {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
-        margin-bottom: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--vff-space-2);
     }
     .segmented label,
     .network {
+        position: relative;
         display: flex;
         align-items: center;
         gap: 6px;
-        padding: 8px 10px;
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-sm);
+        min-height: 44px;
+        padding: 8px 12px;
+        border: 1px solid var(--vff-border-control);
+        border-radius: var(--vff-radius-md);
+        background: var(--vff-bg);
         cursor: pointer;
-        font-family: var(--vff-font-display);
-        font-size: 13px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         font-weight: 600;
+        transition:
+            background-color var(--vff-transition),
+            border-color var(--vff-transition);
+    }
+    .segmented label:hover,
+    .network:hover {
+        border-color: var(--vff-accent-ink);
     }
     .segmented input,
     .network input {
@@ -865,144 +1064,114 @@
         opacity: 0;
         pointer-events: none;
     }
+    .segmented label:has(input:focus-visible),
+    .network:has(input:focus-visible) {
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: var(--vff-focus-offset);
+    }
     .segmented label.active,
     .network.active {
         border-color: var(--vff-accent);
-        background: var(--vff-accent-soft);
-        color: var(--vff-accent);
+        background: var(--vff-bg-accent);
+        box-shadow: inset 0 0 0 1px var(--vff-accent);
+        color: var(--vff-text);
+    }
+    .segmented label.active .bi {
+        color: var(--vff-accent-ink);
     }
     .networks {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--vff-space-2);
     }
     .network {
         flex-direction: column;
         align-items: flex-start;
         gap: 2px;
-        position: relative;
     }
     .network small {
-        font-family: var(--vff-font-body);
         font-weight: 400;
-        font-size: 11.5px;
+        font-size: var(--vff-fs-xs);
         color: var(--vff-text-muted);
         line-height: 1.35;
     }
-    .field {
+    .suggest {
         display: flex;
-        flex-direction: column;
-        gap: 4px;
-        min-width: 0;
-    }
-    .field + .field {
-        margin-top: 10px;
-    }
-    .field > span {
-        font-family: var(--vff-font-display);
-        font-size: 11.5px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--vff-text-muted);
-    }
-    .field input,
-    .field textarea,
-    .label-input {
-        padding: 8px 10px;
-        background-color: var(--vff-bg);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-sm);
-        color: var(--vff-text);
-        font-family: var(--vff-font-body);
-        font-size: 14px;
-        min-width: 0;
-    }
-    .field input:focus,
-    .field textarea:focus,
-    .label-input:focus {
-        outline: none;
-        border-color: var(--vff-accent);
-        box-shadow: 0 0 0 3px var(--vff-accent-soft);
-    }
-    .hint {
-        color: var(--vff-text-muted);
-        font-size: 12px;
-    }
-    .req,
-    .error {
-        color: #c53030;
-    }
-    .error {
-        font-size: 12.5px;
-        font-style: normal;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--vff-space-2);
+        padding: var(--vff-space-2) var(--vff-space-3);
+        border-left: 3px solid var(--vff-accent);
+        background: var(--vff-bg-accent);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
     }
     .attached {
         display: flex;
         flex-direction: column;
-        gap: 6px;
-        padding: 10px 12px;
-        background: var(--vff-bg);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-sm);
+        gap: var(--vff-space-2);
+    }
+    .attached-name {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--vff-space-2);
+        margin: 0;
+        font-family: var(--vff-font-heading);
     }
     .attached-actions {
         display: flex;
-        gap: 14px;
-        font-size: 13px;
-    }
-    .attached-actions a {
-        color: var(--vff-accent);
-    }
-    .code {
-        margin-left: 6px;
-        font-family: var(--vff-font-secondary, monospace);
-        color: var(--vff-accent);
-        font-size: 13px;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--vff-space-2) var(--vff-space-4);
     }
     .results {
-        list-style: none;
-        margin: 6px 0 0;
+        margin: 0;
         padding: 0;
-        border: 1px solid var(--vff-border);
+        list-style: none;
+        border: 1px solid var(--vff-border-strong);
         border-radius: var(--vff-radius-sm);
-        max-height: 240px;
+        max-height: 260px;
         overflow: auto;
     }
+    .results li + li {
+        border-top: 1px solid var(--vff-border);
+    }
     .results button {
-        display: block;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--vff-space-2);
         width: 100%;
+        min-height: 40px;
+        padding: 8px 12px;
         text-align: left;
-        padding: 8px 10px;
         background: var(--vff-bg);
         color: var(--vff-text);
         border: 0;
-        border-bottom: 1px solid var(--vff-border);
         cursor: pointer;
-        font-size: 13px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
     }
     .results button:hover {
-        background: var(--vff-accent-soft);
+        background: var(--vff-bg-accent);
     }
-    .link-btn {
-        background: none;
-        border: 0;
-        padding: 0;
-        color: var(--vff-accent);
-        font-weight: 600;
-        cursor: pointer;
-        font-size: inherit;
+    .results button:focus-visible {
+        outline-offset: -2px;
     }
     .note {
-        margin: 10px 0 0;
-        font-size: 13px;
+        margin: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
     }
     .note.warn {
-        color: #b45309;
+        color: var(--vff-warning);
     }
     .empty {
         margin: 0;
-        font-size: 13.5px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
         line-height: 1.5;
     }
@@ -1012,7 +1181,10 @@
         padding: 0;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: var(--vff-space-2);
+    }
+    .portions:empty {
+        display: none;
     }
     .portion {
         border: 1px solid var(--vff-border);
@@ -1021,134 +1193,185 @@
     }
     .portion.selected {
         border-color: var(--vff-accent);
-        box-shadow: 0 0 0 2px var(--vff-accent-soft);
+        box-shadow: inset 3px 0 0 var(--vff-accent);
     }
     .portion.has-error {
-        border-color: #c53030;
+        border-color: var(--vff-danger);
+        box-shadow: inset 3px 0 0 var(--vff-danger);
     }
     .portion-head {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 8px;
+        gap: var(--vff-space-2);
+        padding: var(--vff-space-2);
     }
     .dot {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+    .dot::before {
+        content: '';
         width: 16px;
         height: 16px;
         border-radius: 50%;
         background: var(--c);
-        border: 2px solid #fff;
-        box-shadow: 0 0 0 1px var(--vff-border);
-        flex-shrink: 0;
-        cursor: pointer;
-        padding: 0;
+        box-shadow:
+            0 0 0 2px var(--vff-bg),
+            0 0 0 3px var(--vff-border-strong);
     }
     .label-input {
         flex: 1 1 auto;
-        padding: 5px 8px;
-        font-size: 13.5px;
+        min-width: 0;
+        min-height: 36px;
+        padding: 6px 8px;
+        border: 1px solid var(--vff-border-control);
+        border-radius: var(--vff-radius-sm);
+        background: var(--vff-bg);
+        color: var(--vff-text);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+    }
+    .label-input:focus-visible {
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: 0;
+        border-color: var(--vff-focus);
     }
     .len {
-        font-family: var(--vff-font-secondary, monospace);
-        font-size: 12px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        font-variant-numeric: tabular-nums;
         color: var(--vff-text-muted);
         white-space: nowrap;
     }
     .icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        padding: 0;
         background: transparent;
         border: 0;
+        border-radius: var(--vff-radius-sm);
         color: var(--vff-text-muted);
         cursor: pointer;
-        padding: 4px;
+        transition: color var(--vff-transition);
     }
     .icon-btn:hover {
-        color: #c53030;
+        color: var(--vff-danger);
+        background: var(--vff-danger-bg);
     }
     .portion-body {
-        padding: 0 10px 10px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: var(--vff-space-3);
+        padding: 0 var(--vff-space-3) var(--vff-space-3);
     }
     .grid-2 {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--vff-space-2) var(--vff-space-3);
     }
-    .grid-2 .field + .field {
-        margin-top: 0;
+    .f {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+    .f > span {
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        font-weight: 600;
+        color: var(--vff-text-muted);
+    }
+    .f :global(.vff-input) {
+        min-height: 36px;
+        padding: 6px 8px;
+        font-size: var(--vff-fs-sm);
     }
     .sub {
-        margin: 6px 0 0;
-        font-family: var(--vff-font-display);
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        margin: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        font-weight: 600;
         color: var(--vff-text);
+    }
+    .shortcuts .sub {
+        margin-bottom: var(--vff-space-2);
     }
     .events-summary {
         margin: 0;
-        padding: 0 10px 8px 32px;
+        padding: 0 var(--vff-space-3) var(--vff-space-2) 44px;
         display: flex;
         flex-wrap: wrap;
-        gap: 4px 10px;
-        font-size: 12px;
+        gap: 4px 12px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
         color: var(--vff-text-muted);
     }
     .replaced ul {
-        margin: 4px 0 0;
-        padding-left: 18px;
-        font-size: 12.5px;
+        margin: var(--vff-space-1) 0 0;
+        padding: 0;
+        list-style: none;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
-    .errors {
-        padding: 10px 14px;
-        border: 1px solid #c53030;
-        border-radius: var(--vff-radius-sm);
-        background: rgba(197, 48, 48, 0.07);
-        font-size: 13px;
+    .replaced li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--vff-space-2);
     }
-    .errors ul {
-        margin: 6px 0 0;
-        padding-left: 18px;
-    }
-    .errors code {
-        font-size: 11px;
-        color: var(--vff-text-muted);
+    .vff-textarea.short {
+        min-height: 88px;
     }
     .actions {
         display: flex;
         flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
+        gap: var(--vff-space-2);
     }
+    .needs,
     .moderation {
         margin: 0;
-        font-size: 13px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
         color: var(--vff-text-muted);
     }
-    .actions .vff-btn {
-        border: 0;
-        cursor: pointer;
-        justify-content: center;
+    .needs {
+        color: var(--vff-text);
     }
-    .actions .vff-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-    @media (max-width: 1100px) {
+    @media (max-width: 1180px) {
         .layout {
             grid-template-columns: minmax(0, 1fr);
         }
         .map-col {
             position: static;
         }
+        .panel {
+            max-width: 760px;
+        }
     }
-    @media (max-width: 520px) {
+    @media (max-width: 900px) {
+        .help-body {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+    @media (max-width: 600px) {
         .networks,
         .grid-2 {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
         }
     }
 </style>

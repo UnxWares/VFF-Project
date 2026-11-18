@@ -1,6 +1,8 @@
 <script>
     import { onMount, tick } from 'svelte';
     import { i18n } from '$lib/i18n.js';
+    import { firstOfMonth, formatLocale } from '$lib/typo.js';
+    import SheetSection from '$components/Sheet/SheetSection.svelte';
 
     /**
      * Galerie « Photos & archives » d'une ligne.
@@ -11,15 +13,17 @@
      * que déclarée par la source + lien, lien vers la page du fichier). Le
      * domaine public est aussi crédité (source citée).
      *
-     * Se masque entièrement si la ligne n'a aucun média.
+     * Titre affiché : la légende de la source quand elle existe (le titre de Commons est
+     * souvent un nom de fichier). Filtres et tri seulement quand ils servent (plusieurs
+     * images, plusieurs types ou époques). Se masque entièrement si la ligne n'a aucun média.
      */
     let { slug, perPage = 24 } = $props();
 
-    let items = $state([]);
+    let items = $state.raw([]);
     let total = $state(0);
     let page = $state(0);
     let lastPage = $state(1);
-    let facets = $state(null);
+    let facets = $state.raw(null);
     let loading = $state(false);
     let error = $state(false);
 
@@ -33,14 +37,22 @@
     const TYPES = ['photo', 'postcard', 'map', 'plan', 'document'];
     const PERIODS = ['pre1900', '1900_1944', '1945_1969', '1970_1999', 'since2000', 'undated'];
 
-    const t = (key, opts) => $i18n.t(key, opts);
+    const t = (key, opts) => String($i18n.t(key, opts));
+    const lang = $derived($i18n.language ?? 'fr');
 
     const grandTotal = $derived(
         facets ? Object.values(facets.types ?? {}).reduce((a, b) => a + b, 0) : 0,
     );
+    const typeKeys = $derived(TYPES.filter((k) => facets?.types?.[k]));
+    const periodKeys = $derived(PERIODS.filter((k) => facets?.periods?.[k]));
+    // Un filtre qui ne trie rien (un seul type, une seule époque, peu d'images) est masqué.
+    const showTypes = $derived(grandTotal > 6 && typeKeys.length > 1);
+    const showPeriods = $derived(grandTotal > 6 && periodKeys.length > 1);
+    const showSort = $derived(grandTotal > 1);
     const providers = $derived(Object.keys(facets?.providers ?? {}).filter((p) => p !== 'upload'));
     const hasMore = $derived(page < lastPage);
     const active = $derived(current !== null ? items[current] : null);
+    const single = $derived(total <= 1);
 
     async function load(reset = false) {
         if (loading) return;
@@ -61,7 +73,7 @@
             page = json.meta.current_page;
             lastPage = json.meta.last_page;
             facets = json.facets;
-        } catch (e) {
+        } catch {
             error = true;
         } finally {
             loading = false;
@@ -80,11 +92,14 @@
 
     function formatDay(iso) {
         try {
-            return new Date(iso).toLocaleDateString($i18n.language ?? 'fr', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-            });
+            return firstOfMonth(
+                new Date(iso).toLocaleDateString(formatLocale(lang), {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                }),
+                lang,
+            );
         } catch {
             return iso;
         }
@@ -116,6 +131,9 @@
         }
     }
 
+    /** Titre lisible : la légende de la source (phrase), sinon le titre du fichier. */
+    const heading = (m) => (m.caption && m.caption.length <= 160 ? m.caption : (m.title ?? ''));
+
     // Licence affichée TELLE QUE fournie par la source ; à défaut, statut de droits.
     const licenseLabel = (m) => m.license ?? t(`media.rights.${m.rights_status ?? 'unknown'}`);
     const licenseHref = (m) => m.license_url ?? m.source_url;
@@ -134,7 +152,7 @@
 
     async function step(delta) {
         if (current === null) return;
-        let next = current + delta;
+        const next = current + delta;
         if (next >= items.length && hasMore) {
             await load(false);
         }
@@ -143,7 +161,7 @@
     }
 
     function onKey(e) {
-        if (current === null) return;
+        if (current === null || single) return;
         if (e.key === 'ArrowRight') {
             e.preventDefault();
             step(1);
@@ -158,77 +176,93 @@
     }
 </script>
 
+{#snippet ext()}<i class="bi bi-box-arrow-up-right vff-ext" aria-hidden="true"></i><span
+        class="vff-sr-only"
+    >
+        ({t('common.new_tab')})</span
+    >{/snippet}
+
 {#if loading && !facets}
-    <section class="gallery-section" aria-busy="true">
-        <h2>{t('media.title')}</h2>
-        <p class="status">{t('media.loading')}</p>
+    <SheetSection id="gallery" title={t('media.title')}>
+        <p class="status" aria-busy="true">{t('media.loading')}</p>
         <div class="grid" aria-hidden="true">
-            {#each Array(6) as _, i (i)}
+            {#each [0, 1, 2, 3] as i (i)}
                 <div class="card skeleton"><div class="thumb"></div></div>
             {/each}
         </div>
-    </section>
+    </SheetSection>
 {:else if error && !facets}
-    <section class="gallery-section">
-        <h2>{t('media.title')}</h2>
+    <SheetSection id="gallery" title={t('media.title')}>
         <p class="status">
             {t('media.error')}
-            <button type="button" class="link-btn" onclick={() => load(true)}
+            <button type="button" class="vff-btn quiet small" onclick={() => load(true)}
                 >{t('media.retry')}</button
             >
         </p>
-    </section>
+    </SheetSection>
 {:else if grandTotal > 0}
-    <section class="gallery-section" aria-labelledby="gallery-title">
-        <!-- Pas de <header> : header.css impose header { height: 200vh } à tous les en-têtes. -->
-        <div class="gallery-head">
-            <div>
-                <h2 id="gallery-title">{t('media.title')}</h2>
-                <p class="subtitle">{t('media.subtitle')}</p>
-            </div>
-            <label class="sort">
-                <span>{t('media.sort.label')}</span>
-                <select value={sort} onchange={(e) => setFilter('sort', e.currentTarget.value)}>
-                    <option value="oldest">{t('media.sort.oldest')}</option>
-                    <option value="newest">{t('media.sort.newest')}</option>
-                </select>
-            </label>
-        </div>
+    <SheetSection id="gallery" title={t('media.title')} intro={t('media.subtitle')}>
+        {#snippet actions()}
+            {#if showSort}
+                <label class="sort">
+                    <span>{t('media.sort.label')}</span>
+                    <select
+                        class="vff-select"
+                        value={sort}
+                        onchange={(e) => setFilter('sort', e.currentTarget.value)}
+                    >
+                        <option value="oldest">{t('media.sort.oldest')}</option>
+                        <option value="newest">{t('media.sort.newest')}</option>
+                    </select>
+                </label>
+            {/if}
+        {/snippet}
 
-        <div class="filters">
-            <div class="chips" role="group" aria-label={t('media.filter.type')}>
-                <button
-                    type="button"
-                    class="chip"
-                    aria-pressed={type === ''}
-                    onclick={() => setFilter('type', '')}
-                >
-                    {t('media.filter.all')} <span class="n">{grandTotal}</span>
-                </button>
-                {#each TYPES.filter((k) => facets.types?.[k]) as k (k)}
-                    <button
-                        type="button"
-                        class="chip"
-                        aria-pressed={type === k}
-                        onclick={() => setFilter('type', k)}
-                    >
-                        {t(`media.types.${k}`)} <span class="n">{facets.types[k]}</span>
-                    </button>
-                {/each}
+        {#if showTypes || showPeriods}
+            <div class="filters">
+                {#if showTypes}
+                    <div class="chips" role="group" aria-labelledby="gallery-f-type">
+                        <span class="chips-label" id="gallery-f-type">{t('media.filter.type')}</span
+                        >
+                        <button
+                            type="button"
+                            class="chip"
+                            aria-pressed={type === ''}
+                            onclick={() => setFilter('type', '')}
+                        >
+                            {t('media.filter.all')} <span class="n">{grandTotal}</span>
+                        </button>
+                        {#each typeKeys as k (k)}
+                            <button
+                                type="button"
+                                class="chip"
+                                aria-pressed={type === k}
+                                onclick={() => setFilter('type', k)}
+                            >
+                                {t(`media.types.${k}`)} <span class="n">{facets.types[k]}</span>
+                            </button>
+                        {/each}
+                    </div>
+                {/if}
+                {#if showPeriods}
+                    <div class="chips" role="group" aria-labelledby="gallery-f-period">
+                        <span class="chips-label" id="gallery-f-period"
+                            >{t('media.filter.period')}</span
+                        >
+                        {#each periodKeys as k (k)}
+                            <button
+                                type="button"
+                                class="chip"
+                                aria-pressed={period === k}
+                                onclick={() => setFilter('period', k)}
+                            >
+                                {t(`media.periods.${k}`)} <span class="n">{facets.periods[k]}</span>
+                            </button>
+                        {/each}
+                    </div>
+                {/if}
             </div>
-            <div class="chips" role="group" aria-label={t('media.filter.period')}>
-                {#each PERIODS.filter((k) => facets.periods?.[k]) as k (k)}
-                    <button
-                        type="button"
-                        class="chip period"
-                        aria-pressed={period === k}
-                        onclick={() => setFilter('period', k)}
-                    >
-                        {t(`media.periods.${k}`)} <span class="n">{facets.periods[k]}</span>
-                    </button>
-                {/each}
-            </div>
-        </div>
+        {/if}
 
         {#if items.length === 0 && !loading}
             <p class="status">{t('media.empty_filtered')}</p>
@@ -240,11 +274,11 @@
                             type="button"
                             class="thumb"
                             onclick={() => open(i)}
-                            aria-label={t('media.open', { title: m.title ?? '' })}
+                            aria-label={t('media.open', { title: heading(m) })}
                         >
                             <img
                                 src={m.thumb_url}
-                                alt={m.title ?? ''}
+                                alt=""
                                 loading="lazy"
                                 decoding="async"
                                 width={m.width && m.width < 500 ? m.width : 500}
@@ -253,26 +287,27 @@
                                     : 375}
                             />
                             {#if m.type !== 'photo'}
-                                <span class="badge">{t(`media.types.${m.type}`)}</span>
+                                <span class="tag type">{t(`media.types.${m.type}`)}</span>
                             {/if}
                             {#if dateLabel(m)}
-                                <span class="year">{dateLabel(m)}</span>
+                                <span class="tag year">{dateLabel(m)}</span>
                             {/if}
                         </button>
                         <div class="meta">
-                            <p class="title" title={m.title}>{m.title}</p>
+                            <p class="title" title={heading(m)}>{heading(m)}</p>
                             <p class="credit">
-                                <span class="author">{m.author ?? t('media.author_unknown')}</span>
-                                ·
-                                <a href={licenseHref(m)} target="_blank" rel="noopener license"
-                                    >{licenseLabel(m)}</a
-                                >
-                                {#if m.source_url}
-                                    ·
-                                    <a href={m.source_url} target="_blank" rel="noopener">
-                                        {t('media.via', { provider: m.provider_label })}
-                                    </a>
-                                {/if}
+                                <span class="author">{m.author ?? t('media.author_unknown')}</span>,
+                                <a
+                                    href={licenseHref(m)}
+                                    target="_blank"
+                                    rel="noopener noreferrer license"
+                                    >{licenseLabel(m)}{@render ext()}</a
+                                >{#if m.source_url},
+                                    <a href={m.source_url} target="_blank" rel="noopener noreferrer"
+                                        >{t('media.via', {
+                                            provider: m.provider_label,
+                                        })}{@render ext()}</a
+                                    >{/if}
                             </p>
                         </div>
                     </li>
@@ -280,22 +315,29 @@
             </ul>
         {/if}
 
-        <!-- Pas de <footer> : footer.css stylise tous les pieds de page (ombre, largeur 80 %). -->
-        <div class="gallery-foot">
-            <span class="shown">{t('media.shown', { shown: items.length, total })}</span>
-            {#if hasMore}
-                <button type="button" class="more" onclick={() => load(false)} disabled={loading}>
-                    {loading ? t('media.loading') : t('media.load_more')}
-                </button>
-            {/if}
-            {#if error}
-                <span class="status">{t('media.error')}</span>
-            {/if}
-        </div>
+        {#if !single || hasMore || error}
+            <div class="gallery-foot">
+                <span class="shown" aria-live="polite"
+                    >{t('media.shown', { shown: items.length, total })}</span
+                >
+                {#if hasMore}
+                    <button
+                        type="button"
+                        class="vff-btn secondary small"
+                        onclick={() => load(false)}
+                        disabled={loading}
+                    >
+                        {loading ? t('media.loading') : t('media.load_more')}
+                    </button>
+                {/if}
+                {#if error}
+                    <span class="status">{t('media.error')}</span>
+                {/if}
+            </div>
+        {/if}
 
         {#if providers.length}
             <p class="notice">
-                <i class="bi bi-info-circle"></i>
                 {t('media.hosted_notice', {
                     provider: providers
                         .map((p) => (p === 'commons' ? 'Wikimedia Commons' : p))
@@ -303,7 +345,7 @@
                 })}
             </p>
         {/if}
-    </section>
+    </SheetSection>
 {/if}
 
 <svelte:window onkeydown={onKey} />
@@ -314,80 +356,98 @@
     class="lightbox"
     onclose={() => (current = null)}
     onclick={onBackdrop}
-    aria-label={active?.title ?? ''}
+    aria-labelledby="lb-title"
 >
     {#if active}
         <div class="lb-inner">
             <div class="lb-toolbar">
-                <span class="lb-counter"
-                    >{t('media.lightbox.counter', { current: current + 1, total })}</span
-                >
+                {#if !single}
+                    <span class="lb-counter"
+                        >{t('media.lightbox.counter', { current: current + 1, total })}</span
+                    >
+                {/if}
                 <button
                     type="button"
-                    class="lb-btn"
+                    class="lb-btn close"
                     onclick={close}
                     aria-label={t('media.lightbox.close')}
                 >
-                    <i class="bi bi-x-lg"></i>
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
                 </button>
             </div>
-            <div class="lb-stage">
-                <button
-                    type="button"
-                    class="lb-nav prev"
-                    onclick={() => step(-1)}
-                    disabled={current === 0}
-                    aria-label={t('media.lightbox.previous')}
-                >
-                    <i class="bi bi-chevron-left"></i>
-                </button>
+            <div class={['lb-stage', { single }]}>
+                {#if !single}
+                    <button
+                        type="button"
+                        class="lb-btn"
+                        onclick={() => step(-1)}
+                        disabled={current === 0}
+                        aria-label={t('media.lightbox.previous')}
+                    >
+                        <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                    </button>
+                {/if}
                 <a
                     href={active.display_url}
                     target="_blank"
-                    rel="noopener"
+                    rel="noopener noreferrer"
                     title={t('media.lightbox.open_original')}
                 >
-                    {#key active.id}
-                        <img src={active.display_url} alt={active.title ?? ''} />
-                    {/key}
+                    <img src={active.display_url} alt={heading(active)} />
+                    <span class="vff-sr-only">
+                        {t('media.lightbox.open_original')} ({t('common.new_tab')})</span
+                    >
                 </a>
-                <button
-                    type="button"
-                    class="lb-nav next"
-                    onclick={() => step(1)}
-                    disabled={current >= items.length - 1 && !hasMore}
-                    aria-label={t('media.lightbox.next')}
-                >
-                    <i class="bi bi-chevron-right"></i>
-                </button>
+                {#if !single}
+                    <button
+                        type="button"
+                        class="lb-btn"
+                        onclick={() => step(1)}
+                        disabled={current >= items.length - 1 && !hasMore}
+                        aria-label={t('media.lightbox.next')}
+                    >
+                        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                    </button>
+                {/if}
             </div>
             <div class="lb-caption">
-                <h3>{active.title}</h3>
+                <h3 id="lb-title">{heading(active)}</h3>
                 <p class="lb-date">
-                    {dateLabel(active) ?? t('media.date.unknown')}
-                    {#if active.type !== 'photo'}
-                        · {t(`media.types.${active.type}`)}{/if}
+                    {dateLabel(active) ?? t('media.date.unknown')}{#if active.type !== 'photo'},
+                        {t(`media.types.${active.type}`)}{/if}
                 </p>
-                {#if active.caption}<p class="lb-desc">{active.caption}</p>{/if}
+                {#if active.caption && heading(active) !== active.caption}<p class="lb-desc">
+                        {active.caption}
+                    </p>{/if}
                 <p class="lb-credit">
                     <strong>{active.author ?? t('media.author_unknown')}</strong>
-                    ·
-                    <a href={licenseHref(active)} target="_blank" rel="noopener license"
-                        >{licenseLabel(active)}</a
+                    <a href={licenseHref(active)} target="_blank" rel="noopener noreferrer license"
+                        >{licenseLabel(active)}{@render ext()}</a
                     >
                     {#if rightsLabel(active).toLowerCase() !== licenseLabel(active).toLowerCase()}
-                        <span class="rights {active.rights_status}">{rightsLabel(active)}</span>
+                        <span class="vff-badge muted">{rightsLabel(active)}</span>
                     {/if}
-                    {#if active.share_alike}<span class="flag">{t('media.share_alike')}</span>{/if}
-                    {#if active.commercial_ok === false}<span class="flag"
+                    {#if active.share_alike}<span class="vff-badge muted"
+                            >{t('media.share_alike')}</span
+                        >{/if}
+                    {#if active.commercial_ok === false}<span class="vff-badge warning"
                             >{t('media.no_commercial')}</span
                         >{/if}
                 </p>
+                {#if active.title && heading(active) !== active.title}
+                    <p class="lb-file">{t('media.file_name', { name: active.title })}</p>
+                {/if}
                 {#if active.source_url}
                     <p class="lb-source">
-                        <a href={active.source_url} target="_blank" rel="noopener">
-                            <i class="bi bi-box-arrow-up-right"></i>
-                            {t('media.view_source', { provider: active.provider_label })}
+                        <a
+                            class="vff-link"
+                            href={active.source_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {t('media.view_source', {
+                                provider: active.provider_label,
+                            })}{@render ext()}
                         </a>
                     </p>
                 {/if}
@@ -397,115 +457,82 @@
 </dialog>
 
 <style>
-    /* Même gabarit que les autres sections de la fiche ligne. */
-    .gallery-section {
-        max-width: 1180px;
-        margin: 0 auto;
-        padding: 52px 24px 0;
-    }
-    .gallery-section h2 {
-        font-family: var(--vff-font-display);
-        font-size: 28px;
-        line-height: 1.2;
-        margin: 0 0 14px;
-        color: var(--vff-text);
-    }
-    .gallery-section h2:after {
-        display: none;
-    }
-    .gallery-head {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 12px 24px;
-        margin-bottom: 14px;
-    }
-    .gallery-head h2 {
-        margin: 0 0 4px;
-    }
-    .gallery-section > .status {
-        margin: 0;
-    }
-    .subtitle {
-        margin: 0;
-        color: var(--vff-text-muted);
-        font-size: 14px;
-    }
     .sort {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        font-size: 14px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
     .sort select {
-        font: inherit;
-        color: var(--vff-text);
-        background: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        padding: 6px 10px;
+        width: auto;
     }
 
     .filters {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        margin-bottom: 18px;
+        gap: 10px;
+        margin-bottom: var(--vff-space-5);
     }
     .chips {
         display: flex;
         flex-wrap: wrap;
+        align-items: center;
         gap: 8px;
     }
+    .chips-label {
+        min-width: 10em;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        font-weight: 600;
+        color: var(--vff-text-muted);
+    }
     .chip {
-        font: inherit;
-        font-size: 13px;
-        color: var(--vff-text);
-        background: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
+        min-height: 32px;
+        padding: 4px 12px;
+        border: 1px solid var(--vff-border-control);
         border-radius: var(--vff-radius-pill);
-        padding: 5px 12px;
+        background: var(--vff-bg);
+        color: var(--vff-text);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
         cursor: pointer;
-        transition: var(--vff-transition);
     }
     .chip:hover {
-        border-color: var(--vff-accent);
+        background: var(--vff-bg-muted);
     }
-    /* Filtre actif : fond orange pâle, contour orange, texte en encre (le blanc sur l'orange
-       ne passe pas le contraste AA). */
+    /* Filtre actif : fond orange pâle, contour orange, texte en encre. */
     .chip[aria-pressed='true'] {
-        background: var(--vff-accent-soft);
         border-color: var(--vff-accent);
+        background: var(--vff-bg-accent);
         box-shadow: inset 0 0 0 1px var(--vff-accent);
-        color: var(--vff-text);
         font-weight: 600;
     }
     .chip .n {
-        opacity: 0.7;
         margin-left: 4px;
+        color: var(--vff-text-muted);
         font-variant-numeric: tabular-nums;
     }
-    .chip.period {
-        font-size: 12px;
+    @media (prefers-reduced-motion: no-preference) {
+        .chip {
+            transition:
+                background-color var(--vff-transition),
+                border-color var(--vff-transition);
+        }
     }
 
     .grid {
-        list-style: none;
-        margin: 0;
-        padding: 0;
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 16px;
+        gap: var(--vff-space-5);
+        margin: 0;
+        padding: 0;
+        list-style: none;
     }
     .card {
         display: flex;
         flex-direction: column;
-        background: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        overflow: hidden;
         min-width: 0;
     }
     .thumb {
@@ -514,49 +541,48 @@
         width: 100%;
         aspect-ratio: 4 / 3;
         padding: 0;
+        overflow: hidden;
         border: 0;
+        border-radius: var(--vff-radius-sm);
         background: var(--vff-bg-muted);
         cursor: zoom-in;
-        overflow: hidden;
     }
     .thumb img {
+        display: block;
         width: 100%;
         height: 100%;
         object-fit: cover;
-        display: block;
-        transition: transform 0.3s ease;
     }
-    .thumb:hover img,
-    .thumb:focus-visible img {
-        transform: scale(1.03);
+    .thumb:hover img {
+        filter: brightness(0.92);
     }
-    .thumb:focus-visible {
-        outline: 3px solid var(--vff-accent);
-        outline-offset: -3px;
-    }
-    .badge,
-    .year {
+    .tag {
         position: absolute;
-        font-size: 11px;
-        font-weight: 600;
         padding: 2px 8px;
-        border-radius: var(--vff-radius-pill);
-        background: rgba(0, 0, 0, 0.65);
+        border-radius: var(--vff-radius-sm);
+        background: rgba(0, 0, 0, 0.72);
         color: #fff;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        font-weight: 600;
         pointer-events: none;
     }
-    .badge {
+    .tag.type {
         top: 8px;
         left: 8px;
     }
-    .year {
-        bottom: 8px;
+    .tag.year {
         right: 8px;
+        bottom: 8px;
         font-variant-numeric: tabular-nums;
     }
     .skeleton .thumb {
-        animation: pulse 1.4s ease-in-out infinite;
         cursor: default;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+        .skeleton .thumb {
+            animation: pulse 1.4s ease-in-out infinite;
+        }
     }
     @keyframes pulse {
         50% {
@@ -564,29 +590,32 @@
         }
     }
     .meta {
-        padding: 10px 12px 12px;
         min-width: 0;
+        padding: 10px 0 0;
     }
     .meta .title {
+        display: -webkit-box;
         margin: 0 0 4px;
-        font-family: var(--vff-font-display);
-        font-size: 14px;
-        line-height: 1.3;
         overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        font-weight: 600;
+        line-height: 1.35;
     }
     .credit {
         margin: 0;
-        font-size: 11.5px;
-        line-height: 1.4;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        line-height: 1.45;
         color: var(--vff-text-muted);
         overflow-wrap: anywhere;
     }
     .credit a {
         color: inherit;
-        text-decoration: underline;
-        text-decoration-color: var(--vff-border-strong, currentColor);
+        text-decoration-color: var(--vff-border-strong);
     }
     .credit a:hover {
         color: var(--vff-accent-ink);
@@ -596,68 +625,47 @@
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        justify-content: center;
-        gap: 14px;
-        margin-top: 20px;
+        gap: 16px;
+        margin-top: var(--vff-space-5);
     }
     .shown {
-        font-size: 13px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
         color: var(--vff-text-muted);
-    }
-    .more {
-        font: inherit;
-        font-weight: 600;
-        padding: 9px 20px;
-        border-radius: var(--vff-radius-pill);
-        border: 1.5px solid var(--vff-accent);
-        background: transparent;
-        color: var(--vff-accent-ink);
-        cursor: pointer;
-    }
-    .more:hover:not(:disabled) {
-        background: var(--vff-accent-soft);
-    }
-    .more:focus-visible {
-        outline: 2px solid var(--vff-accent);
-        outline-offset: 2px;
-    }
-    .more:disabled {
-        opacity: 0.6;
-        cursor: progress;
     }
     .status {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 var(--vff-space-4);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
-        font-size: 14px;
-    }
-    .link-btn {
-        font: inherit;
-        background: none;
-        border: 0;
-        padding: 0;
-        color: var(--vff-accent-ink);
-        text-decoration: underline;
-        cursor: pointer;
     }
     .notice {
-        margin: 18px 0 0;
-        font-size: 12.5px;
+        max-width: var(--vff-measure);
+        margin: var(--vff-space-5) 0 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
         line-height: 1.5;
         color: var(--vff-text-muted);
     }
 
-    /* ── Visionneuse ─────────────────────────────────────────── */
+    /* Visionneuse : fenêtre aux couleurs du thème, image sur fond neutre. */
     .lightbox {
         width: min(1200px, 96vw);
         max-height: 94vh;
         padding: 0;
-        border: 0;
-        border-radius: var(--vff-radius-lg, 12px);
-        background: #111;
-        color: #eee;
         overflow: auto;
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-lg);
+        background: var(--vff-bg-elevated);
+        color: var(--vff-text);
+        box-shadow: var(--vff-shadow-popover);
     }
     .lightbox::backdrop {
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.75);
     }
     .lb-inner {
         display: flex;
@@ -665,33 +673,36 @@
     }
     .lb-toolbar {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
         padding: 8px 12px;
-        font-size: 13px;
-        color: #bbb;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        color: var(--vff-text-muted);
     }
-    .lb-btn,
-    .lb-nav {
-        background: rgba(255, 255, 255, 0.08);
-        border: 0;
-        color: #fff;
-        border-radius: 999px;
-        width: 40px;
-        height: 40px;
+    .lb-btn {
         display: inline-flex;
+        flex: none;
         align-items: center;
         justify-content: center;
-        cursor: pointer;
+        width: 44px;
+        height: 44px;
+        border: 1px solid var(--vff-border-control);
+        border-radius: 50%;
+        background: var(--vff-bg);
+        color: var(--vff-text);
         font-size: 18px;
-        flex: none;
+        cursor: pointer;
     }
-    .lb-btn:hover,
-    .lb-nav:hover:not(:disabled) {
-        background: rgba(255, 255, 255, 0.2);
+    .lb-btn.close {
+        margin-left: auto;
     }
-    .lb-nav:disabled {
-        opacity: 0.25;
+    .lb-btn:hover:not(:disabled) {
+        background: var(--vff-bg-muted);
+    }
+    .lb-btn:disabled {
+        border-color: var(--vff-border);
+        color: var(--vff-text-muted);
         cursor: default;
     }
     .lb-stage {
@@ -699,94 +710,79 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
-        padding: 0 8px;
         min-height: 200px;
+        padding: 0 8px;
     }
     .lb-stage a {
         display: flex;
+        flex: 1;
         justify-content: center;
         min-width: 0;
-        flex: 1;
     }
     .lb-stage img {
         max-width: 100%;
         max-height: 68vh;
         object-fit: contain;
-        background: #222;
+        background: var(--vff-bg-subtle);
     }
     .lb-caption {
-        padding: 14px 20px 20px;
+        max-width: 80ch;
+        padding: 16px 24px 24px;
     }
     .lb-caption h3 {
         margin: 0 0 4px;
         font-family: var(--vff-font-display);
-        font-size: 18px;
-        color: #fff;
+        font-size: 20px;
+        font-weight: 700;
+    }
+    .lb-caption p {
+        margin: 0 0 8px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
     }
     .lb-date {
-        margin: 0 0 8px;
-        color: #ff8a3d;
-        font-size: 14px;
         font-weight: 600;
+        color: var(--vff-accent-ink);
     }
-    .lb-desc {
-        margin: 0 0 10px;
-        font-size: 14px;
-        line-height: 1.5;
-        color: #ccc;
+    .lb-desc,
+    .lb-file {
+        color: var(--vff-text-muted);
     }
     .lb-credit {
-        margin: 0 0 6px;
-        font-size: 13px;
-        color: #ccc;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 6px;
-    }
-    .lb-credit a,
-    .lb-source a {
-        color: #ffb27a;
-    }
-    .rights,
-    .flag {
-        font-size: 11px;
-        padding: 1px 8px;
-        border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        color: #ddd;
-    }
-    .rights.public_domain {
-        border-color: #6fbf73;
-        color: #9be29e;
-    }
-    .rights.open_license {
-        border-color: #6fa8dc;
-        color: #a9cdf0;
-    }
-    .lb-source {
-        margin: 0;
-        font-size: 13px;
+        gap: 6px 10px;
     }
 
-    @media (max-width: 640px) {
-        .gallery-section {
-            padding: 40px 16px 0;
-        }
-        .gallery-section h2 {
-            font-size: 24px;
-        }
+    @media (max-width: 600px) {
         .grid {
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
+            gap: var(--vff-space-4);
         }
-        .lb-nav {
-            width: 34px;
-            height: 34px;
+        .chips-label {
+            flex-basis: 100%;
         }
+        /* Téléphone : flèches sous l'image, la photo garde toute la largeur. */
         .lb-stage {
-            padding: 0 2px;
-            gap: 2px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            padding: 0 8px;
+        }
+        .lb-stage a {
+            grid-column: 1 / -1;
+            grid-row: 1;
+        }
+        .lb-stage .lb-btn:last-child {
+            justify-self: end;
+        }
+        .lb-stage.single {
+            display: flex;
+        }
+        .lb-caption {
+            padding: 12px 16px 16px;
         }
     }
 </style>

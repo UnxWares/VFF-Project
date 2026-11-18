@@ -84,7 +84,10 @@
     let beforeIndex = new Map();
     let refAbort = null;
     let refTimer = null;
-    let legendOpen = $state(true);
+    // Légende repliée d'emblée sur téléphone (elle masquerait la moitié de la carte).
+    let legendOpen = $state(
+        typeof window === 'undefined' || !window.matchMedia?.('(max-width: 600px)').matches,
+    );
 
     const selected = $derived(portions.find((p) => p.key === selectedKey) ?? null);
     // Dépend uniquement du slug (pas de l'objet) : évite de recharger à chaque mise à jour du parent.
@@ -900,6 +903,13 @@
             setupInteractions();
             ready = true;
             scheduleReference();
+            // Sur téléphone, crédits repliés derrière leur bouton (i) : dépliés, ils couvraient
+            // le tiers de la carte.
+            if (window.matchMedia?.('(max-width: 600px)').matches) {
+                mapContainer
+                    ?.querySelector('.maplibregl-ctrl-attrib')
+                    ?.classList.remove('maplibregl-compact-show');
+            }
         });
         // Crochet de test bout-en-bout (serveur de dev Vite uniquement).
         if (import.meta.env.DEV) window.__vffTraceMap = map;
@@ -949,14 +959,19 @@
                     onclick={() => (mode = m.key)}
                     title={$i18n.t(`editor.toolbar.${m.key}_title`)}
                 >
-                    <i class="bi {m.icon}"></i>
-                    <span>{$i18n.t(`editor.toolbar.${m.key}`)}</span>
+                    <i class="bi {m.icon}" aria-hidden="true"></i>
+                    <span class="tool-label">{$i18n.t(`editor.toolbar.${m.key}`)}</span>
                 </button>
             {/each}
             {#if mode === 'draw' && drawing.length >= 2}
-                <button type="button" class="tool finish" onclick={finishDrawing}>
-                    <i class="bi bi-check2"></i>
-                    <span>{$i18n.t('editor.toolbar.finish')}</span>
+                <button
+                    type="button"
+                    class="tool finish"
+                    onclick={finishDrawing}
+                    aria-keyshortcuts="Enter"
+                >
+                    <i class="bi bi-check2" aria-hidden="true"></i>
+                    <span class="tool-label">{$i18n.t('editor.toolbar.finish')}</span>
                 </button>
             {/if}
             <button
@@ -965,13 +980,14 @@
                 onclick={() => onUndo?.()}
                 disabled={!canUndo}
                 title={$i18n.t('editor.toolbar.undo_title')}
+                aria-keyshortcuts="Control+Z"
             >
-                <i class="bi bi-arrow-counterclockwise"></i>
-                <span>{$i18n.t('editor.toolbar.undo')}</span>
+                <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                <span class="tool-label">{$i18n.t('editor.toolbar.undo')}</span>
             </button>
-            <label class="snap-toggle" title={$i18n.t('editor.toolbar.snap_title')}>
+            <label class="vff-check snap-toggle" title={$i18n.t('editor.toolbar.snap_title')}>
                 <input type="checkbox" bind:checked={snapEnabled} />
-                <i class="bi bi-magnet"></i>
+                <i class="bi bi-magnet" aria-hidden="true"></i>
                 {$i18n.t('editor.toolbar.snap')}
             </label>
         </div>
@@ -979,10 +995,13 @@
             <HistoricBasemapPicker map={ready ? map : null} bind:value={basemap} bind:opacity />
         </div>
     </div>
-    <p class="hint" aria-live="polite"><i class="bi bi-info-circle"></i> {hint}</p>
+    <p class="hint" aria-live="polite">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        <span>{hint}</span>
+    </p>
 
     <div class="map-wrap">
-        <div class="map" bind:this={mapContainer} style="height: {height};"></div>
+        <div class="map" bind:this={mapContainer} style:height></div>
 
         <div class="legend" class:collapsed={!legendOpen}>
             <button
@@ -990,28 +1009,32 @@
                 class="legend-toggle"
                 onclick={() => (legendOpen = !legendOpen)}
                 aria-expanded={legendOpen}
+                aria-controls="trace-legend-body"
             >
-                <i class="bi bi-stack"></i>
+                <i class="bi bi-stack" aria-hidden="true"></i>
                 {$i18n.t('editor.map.reference')}
-                <i class="bi {legendOpen ? 'bi-chevron-down' : 'bi-chevron-up'}"></i>
+                <i class="bi {legendOpen ? 'bi-chevron-up' : 'bi-chevron-down'}" aria-hidden="true"
+                ></i>
             </button>
             {#if legendOpen}
-                <div class="legend-body">
+                <div class="legend-body" id="trace-legend-body">
                     {#each REF_SOURCES as s (s.key)}
-                        <label>
+                        <label class="vff-check">
                             <input type="checkbox" bind:checked={refEnabled[s.key]} />
-                            <span class="swatch dashed" style="--c: {s.color}"></span>
+                            <span class="swatch dashed" style:--c={s.color} aria-hidden="true"
+                            ></span>
                             {$i18n.t(`editor.sources.${s.key}`)}
                         </label>
                     {/each}
-                    <label>
+                    <label class="vff-check">
                         <input type="checkbox" bind:checked={showSegments} />
-                        <span class="swatch" style="--c: #475569"></span>
+                        <span class="swatch" style:--c="#475569" aria-hidden="true"></span>
                         {$i18n.t('editor.map.segments')}
                     </label>
                     {#if line}
                         <span class="legend-row"
-                            ><span class="swatch thick" style="--c: #38bdf8"></span>
+                            ><span class="swatch thick" style:--c="#38bdf8" aria-hidden="true"
+                            ></span>
                             {$i18n.t('editor.map.before')}</span
                         >
                     {/if}
@@ -1028,6 +1051,7 @@
     .editor-map {
         display: flex;
         flex-direction: column;
+        min-width: 0;
         border: 1px solid var(--vff-border);
         border-radius: var(--vff-radius-md);
         overflow: hidden;
@@ -1038,75 +1062,82 @@
         flex-wrap: wrap;
         align-items: flex-end;
         justify-content: space-between;
-        gap: 10px 18px;
-        padding: 10px 12px;
+        gap: var(--vff-space-3) var(--vff-space-5);
+        padding: var(--vff-space-3);
         background-color: var(--vff-bg);
         border-bottom: 1px solid var(--vff-border);
     }
     .modes {
         display: flex;
         flex-wrap: wrap;
-        gap: 6px;
+        gap: var(--vff-space-2);
         align-items: center;
     }
     .tool {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 7px 11px;
-        background: var(--vff-bg-elevated);
+        min-height: 36px;
+        padding: 6px 12px;
+        background: var(--vff-bg);
         color: var(--vff-text);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-sm);
-        font-family: var(--vff-font-display);
-        font-size: 13px;
+        border: 1px solid var(--vff-border-control);
+        border-radius: var(--vff-radius-md);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         font-weight: 600;
         cursor: pointer;
+        transition:
+            background-color var(--vff-transition),
+            border-color var(--vff-transition),
+            color var(--vff-transition);
     }
-    .tool:hover:not(:disabled) {
-        border-color: var(--vff-accent);
-        color: var(--vff-accent);
+    .tool:hover:not(:disabled):not(.active) {
+        border-color: var(--vff-accent-ink);
+        color: var(--vff-accent-ink);
     }
     .tool.active {
         background: var(--vff-accent);
         border-color: var(--vff-accent);
-        color: var(--vff-text-inverse, #fff);
+        color: var(--vff-on-accent);
+    }
+    .tool.active:focus-visible {
+        outline-color: var(--vff-text);
     }
     .tool.finish {
-        border-color: #16a34a;
-        color: #16a34a;
+        border-color: var(--vff-success);
+        color: var(--vff-success);
     }
     .tool:disabled {
-        opacity: 0.45;
+        opacity: 0.5;
         cursor: not-allowed;
     }
     .snap-toggle {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        margin-left: 6px;
-        font-family: var(--vff-font-display);
-        font-size: 13px;
-        color: var(--vff-text-muted);
-        cursor: pointer;
+        margin-left: var(--vff-space-2);
+        min-height: 36px;
     }
-    .snap-toggle input {
-        accent-color: var(--vff-accent);
+    .snap-toggle .bi {
+        color: var(--vff-text-muted);
     }
     .basemap {
         min-width: 0;
         flex: 0 1 460px;
     }
     .hint {
+        display: flex;
+        align-items: baseline;
+        gap: var(--vff-space-2);
         margin: 0;
-        padding: 7px 12px;
-        font-size: 13px;
-        color: var(--vff-text-muted);
-        background-color: var(--vff-bg-muted);
+        padding: var(--vff-space-2) var(--vff-space-3);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
+        color: var(--vff-text);
+        background-color: var(--vff-bg-subtle);
         border-bottom: 1px solid var(--vff-border);
     }
     .hint i {
-        color: var(--vff-accent);
+        color: var(--vff-accent-ink);
     }
     .map-wrap {
         position: relative;
@@ -1114,31 +1145,35 @@
     .map {
         width: 100%;
     }
+    /* Légende en haut à gauche : la barre d'attribution (bas) reste lisible en entier. */
     .legend {
         position: absolute;
-        left: 10px;
-        bottom: 28px;
-        z-index: 2;
-        max-width: 240px;
-        background: var(--vff-bg);
+        left: var(--vff-space-3);
+        top: var(--vff-space-3);
+        z-index: var(--vff-z-raised);
+        max-width: 250px;
+        background: var(--vff-bg-elevated);
         color: var(--vff-text);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-sm);
-        box-shadow: 0 6px 18px var(--vff-shadow);
-        font-size: 12px;
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-md);
+        box-shadow: var(--vff-shadow-popover);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
     }
     .legend-toggle {
         display: flex;
         align-items: center;
         gap: 6px;
         width: 100%;
-        padding: 7px 10px;
+        min-height: 36px;
+        padding: 6px 10px;
         background: transparent;
         border: 0;
+        border-radius: var(--vff-radius-md);
         color: var(--vff-text);
-        font-family: var(--vff-font-display);
-        font-weight: 700;
-        font-size: 12px;
+        font-family: var(--vff-font-heading);
+        font-weight: 600;
+        font-size: var(--vff-fs-sm);
         cursor: pointer;
     }
     .legend-toggle .bi:last-child {
@@ -1147,18 +1182,18 @@
     .legend-body {
         display: flex;
         flex-direction: column;
-        gap: 4px;
-        padding: 0 10px 8px;
+        gap: 2px;
+        padding: 0 10px 10px;
     }
-    .legend-body label,
+    .legend-body .vff-check {
+        gap: 8px;
+        font-size: var(--vff-fs-xs);
+    }
     .legend-row {
         display: flex;
         align-items: center;
-        gap: 6px;
-        cursor: pointer;
-    }
-    .legend-body input {
-        accent-color: var(--vff-accent);
+        gap: 8px;
+        min-height: 24px;
     }
     .swatch {
         width: 18px;
@@ -1174,26 +1209,70 @@
         opacity: 0.6;
     }
     .ref-state {
-        margin: 4px 0 0;
+        margin: 6px 0 0;
         color: var(--vff-text-muted);
-        font-size: 11px;
-        line-height: 1.35;
+        font-size: var(--vff-fs-xs);
+        line-height: 1.4;
     }
     .ref-state.ref-error {
-        color: #c53030;
+        color: var(--vff-danger);
     }
     .ref-state.ref-truncated {
-        color: #b45309;
+        color: var(--vff-warning);
+    }
+    /* Contrôles et fenêtres MapLibre aux couleurs du thème (clair et sombre). */
+    .editor-map :global(.maplibregl-ctrl-attrib),
+    .editor-map :global(.maplibregl-ctrl-group),
+    .editor-map :global(.maplibregl-ctrl-scale) {
+        background-color: var(--vff-bg-elevated);
+        color: var(--vff-text);
+        font-family: var(--vff-font-heading);
+    }
+    .editor-map :global(.maplibregl-ctrl-scale) {
+        border-color: var(--vff-text-muted);
+    }
+    .editor-map :global(.maplibregl-ctrl-attrib a) {
+        color: var(--vff-link);
+    }
+    :global([data-theme='dark'])
+        .editor-map
+        :global(.maplibregl-ctrl-group button .maplibregl-ctrl-icon),
+    :global([data-theme='dark']) .editor-map :global(.maplibregl-ctrl-attrib-button) {
+        filter: invert(1);
+    }
+    .editor-map :global(.maplibregl-popup-content) {
+        padding: 12px 14px;
+        background: var(--vff-bg-elevated);
+        color: var(--vff-text);
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-lg);
+        box-shadow: var(--vff-shadow-popover);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+    }
+    .editor-map :global(.maplibregl-popup-close-button) {
+        width: 28px;
+        height: 28px;
+        color: var(--vff-text-muted);
+        font-size: 18px;
+    }
+    :global([data-theme='dark']) .editor-map :global(.maplibregl-popup-tip) {
+        border-top-color: var(--vff-bg-elevated);
+        border-bottom-color: var(--vff-bg-elevated);
     }
     :global(.trace-popup) {
         display: flex;
         flex-direction: column;
         gap: 10px;
     }
+    :global(.trace-popup-item strong) {
+        display: block;
+        padding-right: 20px;
+    }
     :global(.trace-popup-item small) {
         display: block;
         color: var(--vff-text-muted);
-        font-size: 12px;
+        font-size: var(--vff-fs-xs);
         margin-bottom: 6px;
     }
     :global(.trace-popup-actions) {
@@ -1202,26 +1281,43 @@
         gap: 6px;
     }
     :global(.trace-popup-btn) {
-        padding: 6px 10px;
+        min-height: 32px;
+        padding: 4px 12px;
         border: 1px solid var(--vff-accent);
         background: var(--vff-accent);
-        color: var(--vff-text-inverse, #fff);
-        border-radius: var(--vff-radius-pill);
-        font-family: var(--vff-font-display);
-        font-size: 12px;
+        color: var(--vff-on-accent);
+        border-radius: var(--vff-radius-md);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         font-weight: 600;
         cursor: pointer;
     }
+    :global(.trace-popup-btn:focus-visible) {
+        outline: var(--vff-focus-width) solid var(--vff-text);
+        outline-offset: var(--vff-focus-offset);
+    }
     :global(.trace-popup-btn.ghost) {
         background: transparent;
-        color: var(--vff-accent);
+        border-color: var(--vff-accent-ink);
+        color: var(--vff-accent-ink);
     }
-    @media (max-width: 640px) {
-        .tool span {
-            display: none;
+    @media (max-width: 600px) {
+        /* Outils en icônes seules : le libellé reste lu (nom accessible). */
+        .tool-label {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
+        }
+        .tool {
+            min-width: 44px;
+            min-height: 44px;
+            justify-content: center;
         }
         .legend {
-            max-width: 180px;
+            max-width: 200px;
         }
     }
 </style>

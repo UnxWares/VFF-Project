@@ -1,0 +1,108 @@
+/* GraphiQL (/graphiql) aux couleurs de VFF. Les couleurs de GraphiQL sont des triplets HSL
+   (--color-*) : on remplace le magenta par l'orange du site (texte orange foncé en clair, orange clair en
+   sombre) et les fonds par ceux du site. Le thème (clair, sombre) est imposé par js/docs/graphiql.js
+   d'après <html data-theme> ; GraphiQL pose body.graphiql-light ou body.graphiql-dark en conséquence. */
+
+html:has(.vff-docs--graphiql),
+.vff-docs--graphiql {
+    height: 100%;
+}
+.vff-docs--graphiql {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+}
+.vff-docs--graphiql #vff-docs-app {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+.vff-docs--graphiql #graphiql {
+    height: 100%;
+}
+.vff-docs--graphiql .docExplorerWrap {
+    /* Le panneau de documentation défile (https://github.com/graphql/graphiql/issues/3098). */
+    overflow: auto !important;
+}
+
+/* Variables : clair. */
+html body.vff-docs--graphiql .graphiql-container,
+html body.vff-docs--graphiql .graphiql-dialog,
+html body.vff-docs--graphiql .graphiql-dialog-overlay,
+html body.vff-docs--graphiql .graphiql-tooltip,
+html body.vff-docs--graphiql [data-radix-popper-content-wrapper] {
+    --color-primary: 24, 100%, 36%; /* #b84800 : 5,3:1 sur blanc */
+    --color-secondary: 24, 40%, 30%;
+    --color-neutral: 210, 12%, 20%;
+    --color-base: 0, 0%, 100%;
+    /* Coloration du code : 4,5:1 au moins sur blanc (les valeurs d'origine font 3,2 à 4,1:1). */
+    --color-info: 208, 100%, 30%;
+    --color-tertiary: 188, 100%, 24%;
+    --color-warning: 30, 100%, 27%;
+    --font-family: Inter, 'Helvetica Neue', Arial, sans-serif;
+    --font-family-mono:
+        'SF Mono', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Liberation Mono', monospace;
+}
+/* Variables : sombre (#ff7a26 sur #0f1419 : 7,1:1). */
+html body.graphiql-dark.vff-docs--graphiql .graphiql-container,
+html body.graphiql-dark.vff-docs--graphiql .graphiql-dialog,
+html body.graphiql-dark.vff-docs--graphiql .graphiql-dialog-overlay,
+html body.graphiql-dark.vff-docs--graphiql .graphiql-tooltip,
+html body.graphiql-dark.vff-docs--graphiql [data-radix-popper-content-wrapper] {
+    --color-primary: 24, 100%, 57%;
+    --color-secondary: 24, 100%, 72%;
+    --color-neutral: 210, 14%, 88%;
+    --color-base: 210, 22%, 8%;
+    --color-info: 208, 100%, 72%;
+    --color-tertiary: 188, 100%, 44%;
+    --color-warning: 30, 100%, 80%;
+}
+
+/* Lien « GraphiQL » de l'onglet : cible de 24 px au moins. */
+.vff-docs--graphiql .graphiql-container .graphiql-logo-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+}
+
+/* Numéros de ligne : gris du site (les 50 % de transparence d'origine ne passent pas le contraste). */
+.vff-docs--graphiql .graphiql-container .CodeMirror-linenumber {
+    color: var(--vff-text-muted);
+}
+
+/* Fonds de la console : pas de teinte bleutée de GraphiQL. */
+.vff-docs--graphiql .graphiql-container .graphiql-sessions {
+    background-color: var(--vff-bg-subtle);
+}
+.vff-docs--graphiql .graphiql-container {
+    background-color: var(--vff-bg);
+}
+
+/* Focus visible (2 px), comme sur le site. */
+.vff-docs--graphiql .graphiql-container :is(button, a, [role='tab']):focus-visible {
+    outline: 2px solid var(--vff-focus);
+    outline-offset: 2px;
+}
+
+/* Tablette et téléphone : requête au-dessus, résultat en dessous (avant, une colonne de 120 px de
+   requête et un résultat invisible), barre latérale réduite. */
+@media (max-width: 900px) {
+    html body.vff-docs--graphiql .graphiql-container {
+        --sidebar-width: 44px;
+    }
+    .vff-docs--graphiql .graphiql-container .graphiql-sessions {
+        margin: 8px 8px 8px 0;
+    }
+    .vff-docs--graphiql .graphiql-container #graphiql-session {
+        flex-direction: column;
+    }
+    .vff-docs--graphiql .graphiql-container .graphiql-editors,
+    .vff-docs--graphiql .graphiql-container .graphiql-response {
+        flex: 1 1 50% !important;
+        width: auto !important;
+        min-height: 0;
+    }
+    .vff-docs--graphiql .graphiql-container .graphiql-horizontal-drag-bar {
+        display: none;
+    }
+}

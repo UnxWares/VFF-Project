@@ -1,5 +1,6 @@
 <script>
     import { i18n } from '$lib/i18n.js';
+    import { firstOfMonth, formatLocale, tieUnits } from '$lib/typo.js';
     import {
         PHASE_KIND_ICONS,
         categoryColor,
@@ -17,12 +18,14 @@
      * fer ou le trafic change. Chaque entrée montre sa date, ce qui change et le ruban
      * de composition de TOUTE la ligne (longueur proportionnelle à la plus grande
      * longueur connue : on voit la ligne grandir puis décliner). Flèches haut/bas pour
-     * passer d'une phase à l'autre.
+     * passer d'une phase à l'autre. La liste prend la hauteur de ses phases (pas de fil vide
+     * sous deux phases) et ne défile qu'au-delà d'une hauteur de carte.
      */
     let { phases = [], selected = $bindable(null), best = null } = $props();
 
     const scale = $derived(maxKnownLength(phases));
     const lang = $derived($i18n.language ?? 'fr');
+    const dateLabel = (p) => firstOfMonth(phaseDateLabel(p, $i18n.t, formatLocale(lang)), lang);
     let buttons = $state([]);
 
     function select(i) {
@@ -46,7 +49,7 @@
         const c = changes[0];
         if (!c) return $i18n.t('lines.phases.minor_only');
         const text = $i18n.t(changeVerbKey(c.from, c.to), {
-            km: formatKm(c.length_m, lang),
+            km: tieUnits(formatKm(c.length_m, formatLocale(lang))),
             to: $i18n.t(`lines.categories.${c.to}`),
             from: $i18n.t(`lines.categories.${c.from}`),
         });
@@ -65,7 +68,7 @@
             disabled={!selected}
         >
             <i class="bi bi-chevron-up" aria-hidden="true"></i>
-            <span class="sr-only">{$i18n.t('lines.phases.previous')}</span>
+            <span class="vff-sr-only">{$i18n.t('lines.phases.previous')}</span>
         </button>
         <button
             type="button"
@@ -74,7 +77,7 @@
             disabled={selected === phases.length - 1}
         >
             <i class="bi bi-chevron-down" aria-hidden="true"></i>
-            <span class="sr-only">{$i18n.t('lines.phases.next')}</span>
+            <span class="vff-sr-only">{$i18n.t('lines.phases.next')}</span>
         </button>
         {#if best != null}
             <button
@@ -82,9 +85,10 @@
                 class="tool best-jump"
                 onclick={() => select(best)}
                 aria-pressed={selected === best}
+                title={$i18n.t('lines.sheet.phases.show_best_label')}
             >
                 <i class="bi bi-arrows-angle-expand" aria-hidden="true"></i>
-                {$i18n.t('lines.phases.show_best')}
+                {$i18n.t('lines.sheet.phases.show_best')}
             </button>
         {/if}
     </div>
@@ -120,7 +124,7 @@
                     </span>
                     <span class="body">
                         <span class="date" class:undated={p.precision === 'range'}
-                            >{phaseDateLabel(p, $i18n.t, lang)}</span
+                            >{dateLabel(p)}</span
                         >
                         <span class="what">{headline(p)}</span>
                         <span class="strip" aria-hidden="true">
@@ -132,7 +136,7 @@
                             {/each}
                         </span>
                         {#if i === best}
-                            <span class="best">{$i18n.t('lines.phases.best_badge')}</span>
+                            <span class="best">{$i18n.t('lines.sheet.phases.best_badge')}</span>
                         {/if}
                     </span>
                 </button>
@@ -145,11 +149,11 @@
     .selector {
         display: flex;
         flex-direction: column;
-        min-height: 0;
-        height: 100%;
+        min-width: 0;
     }
     .toolbar {
         display: flex;
+        flex-wrap: wrap;
         gap: 6px;
         margin-bottom: 10px;
     }
@@ -157,17 +161,22 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 6px 10px;
-        border: 1px solid var(--vff-border-strong);
+        min-height: 32px;
+        padding: 4px 10px;
+        border: 1px solid var(--vff-border-control);
         border-radius: var(--vff-radius-sm);
-        background: var(--vff-bg-elevated);
+        background: var(--vff-bg);
         color: var(--vff-text);
         font-family: var(--vff-font-heading);
-        font-size: 13px;
+        font-size: var(--vff-fs-xs);
         cursor: pointer;
     }
+    .tool:hover:not(:disabled) {
+        background: var(--vff-bg-muted);
+    }
     .tool:disabled {
-        opacity: 0.4;
+        border-color: var(--vff-border);
+        color: var(--vff-text-muted);
         cursor: default;
     }
     .tool.best-jump {
@@ -175,39 +184,36 @@
     }
     .tool.best-jump[aria-pressed='true'] {
         border-color: var(--vff-accent);
+        background: var(--vff-bg-accent);
         color: var(--vff-accent-ink);
     }
-    .tool:focus-visible,
-    .phase:focus-visible {
-        outline: 2px solid var(--vff-accent);
-        outline-offset: 2px;
-    }
+    /* Hauteur de la liste : celle de ses phases, plafonnée à la hauteur de la carte. */
     .phases {
-        list-style: none;
+        position: relative;
+        max-height: 440px;
         margin: 0;
         padding: 0 4px 0 0;
         overflow-y: auto;
-        flex: 1;
-        min-height: 0;
-        position: relative;
+        list-style: none;
     }
     /* Fil de la chronologie, derrière les repères. */
     .phases::before {
         content: '';
         position: absolute;
+        top: 24px;
+        bottom: 24px;
         left: 15px;
-        top: 12px;
-        bottom: 12px;
         width: 2px;
         background: var(--vff-border);
     }
     .phases li {
-        font-size: 14px;
+        font-size: var(--vff-fs-sm);
     }
     .phase {
+        position: relative;
         display: grid;
-        grid-template-columns: 32px 1fr;
-        gap: 10px;
+        grid-template-columns: 32px minmax(0, 1fr);
+        gap: 12px;
         width: 100%;
         padding: 8px 10px 10px 0;
         border: 0;
@@ -216,29 +222,28 @@
         color: var(--vff-text);
         text-align: left;
         cursor: pointer;
-        position: relative;
     }
     .phase:hover {
         background: var(--vff-bg-muted);
     }
     .phase.active {
-        background: var(--vff-accent-soft);
+        background: var(--vff-bg-accent);
     }
     .marker {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
+        z-index: 1;
         display: grid;
         place-items: center;
-        background: var(--vff-bg);
+        width: 32px;
+        height: 32px;
         border: 2px solid var(--c);
+        border-radius: 50%;
+        background: var(--vff-bg);
         color: var(--c);
         font-size: 14px;
-        z-index: 1;
     }
     .phase.active .marker {
         background: var(--c);
-        color: #fff;
+        color: var(--vff-bg);
     }
     .body {
         display: flex;
@@ -254,14 +259,13 @@
         font-variant-numeric: tabular-nums;
     }
     .date.undated {
-        font-weight: 500;
-        font-style: italic;
+        font-weight: 600;
         color: var(--vff-text-muted);
     }
     .what {
         font-family: var(--vff-font-body);
-        font-size: 13.5px;
-        line-height: 1.35;
+        font-size: var(--vff-fs-sm);
+        line-height: 1.4;
         color: var(--vff-text-muted);
     }
     .phase.active .what {
@@ -271,13 +275,12 @@
         display: flex;
         height: 6px;
         margin-top: 4px;
-        border-radius: 3px;
         overflow: hidden;
-        background: transparent;
+        border-radius: 3px;
     }
     .seg {
-        background: var(--c);
         min-width: 1px;
+        background: var(--c);
     }
     .seg.cat-closed,
     .seg.cat-construction {
@@ -293,20 +296,18 @@
         align-self: flex-start;
         margin-top: 4px;
         font-family: var(--vff-font-heading);
-        font-size: 11.5px;
+        font-size: var(--vff-fs-xs);
         font-weight: 600;
         color: var(--vff-accent-ink);
     }
-    .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip: rect(0 0 0 0);
-        white-space: nowrap;
+    @media (max-width: 900px) {
+        .phases {
+            max-height: 360px;
+        }
     }
     @media (prefers-reduced-motion: no-preference) {
-        .phase {
+        .phase,
+        .tool {
             transition: background-color var(--vff-transition);
         }
     }

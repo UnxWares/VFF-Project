@@ -61,7 +61,7 @@ class StationPagesTest extends TestCase
                 ->where('counts', ['active' => 2, 'gone' => 1])
                 ->where('eras', [1960, 2030])
                 ->where('departments', ['75', '78'])
-                ->where('filters', ['q' => '', 'status' => '', 'dept' => '', 'era' => null, 'flagged' => false]));
+                ->where('filters', ['q' => '', 'status' => '', 'dept' => '', 'era' => null, 'flagged' => false, 'sort' => 'name']));
 
         $this->get('/stations?status=gone')->assertInertia(fn (Assert $page) => $page
             ->where('stations.total', 1)->where('stations.data.0.slug', $gone->slug)

@@ -5,11 +5,14 @@ use App\Http\Middleware\ApiLocale;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
+use App\Support\Translations;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -52,6 +55,77 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return null;
+        });
+
+        // Pages d'erreur du site (en-tête, pied de page, langue et thème du visiteur) à la place des
+        // pages brutes du framework. Le code HTTP est conservé tel quel. L'API, GraphQL et les clients
+        // qui attendent du JSON gardent la réponse JSON. Une erreur survenue pendant une navigation
+        // Inertia reçoit la page d'erreur comme une page ordinaire (plus de fenêtre modale brute).
+        $exceptions->respond(function (SymfonyResponse $response, Throwable $e, Request $request) {
+            $status = $response->getStatusCode();
+            if (! in_array($status, [403, 404, 405, 419, 429, 500, 503], true)) {
+                return $response;
+            }
+            $inertia = $request->header('X-Inertia') !== null;
+            if ($request->is('api/*', 'graphql', 'graphql/*') || ($request->expectsJson() && ! $inertia)) {
+                return $response;
+            }
+            // Mode debug : la page de débogage reste affichée pour les erreurs de code (pas pour les 404).
+            if (config('app.debug') && ! $e instanceof HttpExceptionInterface && $status >= 500) {
+                return $response;
+            }
+
+            // Langue : SetLocale n'a pas forcément tourné (419 levé avant lui, URL inconnue, maintenance).
+            // Même ordre que SetLocale : cookie, préférence du profil, Accept-Language.
+            $locale = SetLocale::forUnroutedRequest($request);
+            if ($request->route() !== null) {
+                $cookie = $request->cookie('locale');
+                try {
+                    $preference = $request->user()?->locale_preference;
+                } catch (Throwable) {
+                    $preference = null;
+                }
+                foreach ([$cookie, $preference] as $candidate) {
+                    if (is_string($candidate) && in_array($candidate, SetLocale::SUPPORTED, true)) {
+                        $locale = $candidate;
+                        break;
+                    }
+                }
+            }
+            app()->setLocale($locale);
+
+            // Message précis d'un refus (abort(403, '...')), sans le texte anglais par défaut du framework.
+            $detail = null;
+            if ($status === 403 && $e instanceof HttpExceptionInterface) {
+                $message = trim($e->getMessage());
+                $detail = in_array($message, ['', 'Forbidden', 'This action is unauthorized.'], true) ? null : $message;
+            }
+            $retryAfter = $response->headers->get('Retry-After');
+
+            try {
+                $page = Inertia::render('Error', [
+                    'status' => $status,
+                    'detail' => $detail,
+                    'retry_after' => is_numeric($retryAfter) ? (int) $retryAfter : null,
+                    // Propriétés partagées : le groupe web n'a pas tourné pour une URL inconnue ni en maintenance.
+                    'locale' => $locale,
+                    'available_locales' => SetLocale::SUPPORTED,
+                    'translations' => Translations::load($locale),
+                ])->toResponse($request);
+            } catch (Throwable) {
+                // Base de données ou session indisponibles : page simple, sans dépendance.
+                return response()->view('errors.fallback', ['status' => $status, 'detail' => $detail], $status)
+                    ->withHeaders(['Cache-Control' => 'no-store']);
+            }
+
+            $page->setStatusCode($status);
+            foreach (['Retry-After', 'Allow', 'X-RateLimit-Limit', 'X-RateLimit-Remaining'] as $name) {
+                if ($response->headers->has($name)) {
+                    $page->headers->set($name, $response->headers->get($name));
+                }
+            }
+
+            return $page;
         });
     })
     ->create();

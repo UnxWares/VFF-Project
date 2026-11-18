@@ -35,11 +35,13 @@ describe('pageWindow', () => {
 describe('linkLabel', () => {
     it('titre d’article Wikipédia entre guillemets', () => {
         expect(linkLabel('https://fr.wikipedia.org/wiki/Ligne_de_Briouze_%C3%A0_Couterne')).toBe(
-            '« Ligne de Briouze à Couterne »',
+            '«\u00a0Ligne de Briouze à Couterne\u00a0»',
         );
         expect(
-            linkLabel('https://fr.wikipedia.org/w/index.php?title=Ligne_de_Briouze_%C3%A0_Couterne&oldid=1'),
-        ).toBe('« Ligne de Briouze à Couterne »');
+            linkLabel(
+                'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Briouze_%C3%A0_Couterne&oldid=1',
+            ),
+        ).toBe('«\u00a0Ligne de Briouze à Couterne\u00a0»');
     });
     it('domaine et chemin raccourcis avec points de suspension', () => {
         const l = linkLabel(
@@ -49,7 +51,9 @@ describe('linkLabel', () => {
         expect(l).toBe('ressources.data.sncf.com/explore/dataset/lis…');
     });
     it('www retiré, chemin court gardé', () => {
-        expect(linkLabel('https://www.wikidata.org/wiki/Q585219')).toBe('wikidata.org/wiki/Q585219');
+        expect(linkLabel('https://www.wikidata.org/wiki/Q585219')).toBe(
+            'wikidata.org/wiki/Q585219',
+        );
     });
     it('adresse invalide rendue telle quelle', () => {
         expect(linkLabel('pas une adresse')).toBe('pas une adresse');

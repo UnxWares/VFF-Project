@@ -11,7 +11,9 @@ use App\Services\LinePhases;
 use App\Services\LineStations;
 use App\Services\StationTimeline;
 use App\Support\Advocacy;
+use App\Support\FrenchGrammar;
 use App\Support\Lgv;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +33,15 @@ class LineController extends Controller
 
     /** Statuts portant du trafic (cf. SegmentStatus::isActive / NetworkStats). */
     private const ACTIVE_STATUSES = "('in_service','single_track')";
+
+    /** Part électrifiée (%) sous laquelle une ligne n'est électrifiée qu'à la marge (voies d'une gare, raccordement). */
+    public const MARGINAL_ELECTRIFIED_PCT = 5;
+
+    /** Gestionnaires d'infrastructure (Wikidata) : jamais « exploitants » des trains, avec leurs années d'existence. */
+    public const INFRASTRUCTURE_MANAGERS = [
+        'Q1071978' => ['name' => 'Réseau ferré de France', 'from' => 1997, 'to' => 2014],
+        'Q21605526' => ['name' => 'SNCF Réseau', 'from' => 2015, 'to' => null],
+    ];
 
     /**
      * Liste paginée et filtrée des lignes.
@@ -102,8 +113,13 @@ class LineController extends Controller
             return $builder;
         };
 
-        $lines = $applyFilters(
-            Line::query()->select('id', 'slug', 'code', 'name', 'network', 'historical_operator')->orderBy('name'),
+        $sort = $this->filterString($request, 'sort');
+        $sort = in_array($sort, ['name', 'name-desc', 'code'], true) ? $sort : 'name';
+
+        $lines = $this->applyIndexOrder(
+            $applyFilters(Line::query()->select('id', 'slug', 'code', 'name', 'network', 'historical_operator')),
+            $sort,
+            $q,
         )->paginate(40)->appends($request->query());
 
         // Trafic dominant (au km) et état actuel des seules lignes de la page.
@@ -116,6 +132,7 @@ class LineController extends Controller
             'historical_operator' => $l->historical_operator,
             'traffic' => $summaries[$l->id]['traffic'] ?? null,
             'state' => $summaries[$l->id]['state'] ?? 'unknown',
+            'heritage' => $summaries[$l->id]['heritage'] ?? false,
         ])->values();
 
         // Compteurs : chaque facette est calculée sans son propre filtre pour
@@ -136,7 +153,18 @@ class LineController extends Controller
         $open = $applyFilters(Line::query())->whereExists($activeSegments)->count();
         $closedCount = $closed($applyFilters(Line::query()))->count();
 
+        // Aperçu de l'encyclopédie entière (sans filtre) : le chapeau de la page ne change pas avec la recherche.
+        $overallTotal = Line::query()->count();
+        $overallOpen = Line::query()->whereExists($activeSegments)->count();
+        $overallClosed = $closed(Line::query())->count();
+
         return Inertia::render('Lines/Index', [
+            'overview' => [
+                'total' => $overallTotal,
+                'open' => $overallOpen,
+                'closed' => $overallClosed,
+                'unknown' => max(0, $overallTotal - $overallOpen - $overallClosed),
+            ],
             'lines' => [
                 'data' => $items,
                 'current_page' => $lines->currentPage(),
@@ -149,6 +177,7 @@ class LineController extends Controller
                 'traffic' => $traffic,
                 'status' => $status,
                 'heritage' => $heritage,
+                'sort' => $sort,
             ],
             'stats' => [
                 'total' => $total,
@@ -166,12 +195,39 @@ class LineController extends Controller
     }
 
     /**
+     * Ordre de l'annuaire : alphabétique FRANÇAIS (accents et capitales sans effet sur le rang, collation ICU),
+     * et, pour le tri par nom avec une recherche, le nom exact puis les noms qui commencent par le terme.
+     *
+     * @param  Builder<Line>  $builder
+     * @return Builder<Line>
+     */
+    private function applyIndexOrder($builder, string $sort, string $q)
+    {
+        $name = 'name COLLATE "fr-x-icu"';
+
+        if ($sort === 'code') {
+            return $builder->orderByRaw("code IS NULL, code COLLATE \"fr-x-icu\", {$name}, id");
+        }
+        if ($sort === 'name-desc') {
+            return $builder->orderByRaw("{$name} DESC, id");
+        }
+        if ($q !== '') {
+            $builder->orderByRaw(
+                'CASE WHEN lower(name) = lower(?) THEN 0 WHEN name ILIKE ? THEN 1 ELSE 2 END',
+                [$q, $this->prefixPattern($q)],
+            );
+        }
+
+        return $builder->orderByRaw("{$name}, id");
+    }
+
+    /**
      * Pour un lot de lignes : état à l'ère courante (open = au moins une portion
      * en service, closed = tracé connu mais plus aucune portion en service) et
      * trafic dominant pondéré par la longueur des portions en service.
      *
      * @param  array<int>  $lineIds
-     * @return array<int, array{state: string, traffic: ?string}>
+     * @return array<int, array{state: string, traffic: ?string, heritage: bool}>
      */
     private function currentSummaries(array $lineIds, ?int $eraId): array
     {
@@ -183,6 +239,7 @@ class LineController extends Controller
         $rows = DB::select(
             "WITH s AS (
                 SELECT line_id, status, COALESCE(traffic_type, 'unknown') AS traffic_type,
+                       COALESCE(is_heritage, false) AS is_heritage,
                        COALESCE(length_meters, ST_Length(geom::geography)) AS len,
                        status IN ".self::ACTIVE_STATUSES." AS active
                 FROM line_segments
@@ -194,7 +251,7 @@ class LineController extends Controller
                       GROUP BY line_id, traffic_type) x
                 ORDER BY line_id, km DESC
             )
-            SELECT s.line_id, BOOL_OR(s.active) AS is_open, MAX(t.traffic_type) AS traffic
+            SELECT s.line_id, BOOL_OR(s.active) AS is_open, MAX(t.traffic_type) AS traffic, BOOL_OR(s.is_heritage) AS heritage
             FROM s LEFT JOIN t ON t.line_id = s.line_id
             GROUP BY s.line_id",
             [$eraId, ...$lineIds],
@@ -205,6 +262,7 @@ class LineController extends Controller
             $out[(int) $r->line_id] = [
                 'state' => $r->is_open ? 'open' : 'closed',
                 'traffic' => $r->traffic,
+                'heritage' => (bool) $r->heritage,
             ];
         }
 
@@ -236,6 +294,8 @@ class LineController extends Controller
         // Médias (envois locaux, Commons…) servis paginés par GET /api/v1/lines/{slug}/media (LineGallery).
         $line->load('materials');
 
+        // Trafic dominant d'une ère : un trafic connu passe avant « non renseigné », même plus court
+        // (Nice - Digne : « Trafic non renseigné » en tête d'une ligne desservie par des trains régionaux).
         $eraRows = DB::select(
             'SELECT e.id, e.year, e.is_current,
                     SUM(CASE WHEN ls.status IN '.self::ACTIVE_STATUSES." THEN COALESCE(ls.length_meters, ST_Length(ls.geom::geography)) ELSE 0 END) / 1000.0 AS active_km,
@@ -248,7 +308,7 @@ class LineController extends Controller
                       WHERE x.line_id = ls.line_id AND x.era_id = e.id AND x.status IN '.self::ACTIVE_STATUSES.'
                         AND NOT COALESCE(x.is_heritage, false)
                       GROUP BY x.traffic_type
-                      ORDER BY SUM(COALESCE(x.length_meters, ST_Length(x.geom::geography))) DESC LIMIT 1) AS traffic
+                      ORDER BY COALESCE(x.traffic_type, \'unknown\') = \'unknown\', SUM(COALESCE(x.length_meters, ST_Length(x.geom::geography))) DESC LIMIT 1) AS traffic
              FROM line_segments ls JOIN eras e ON e.id = ls.era_id
              WHERE ls.line_id = ?
              GROUP BY e.id, e.year, e.is_current, ls.line_id
@@ -310,21 +370,27 @@ class LineController extends Controller
         // Phases de la ligne (vraies dates de line_events, état de toute la ligne à chaque
         // phase) et chronique (événements par portion, notes de source, désaccords).
         $phases = LinePhases::forLine($line);
-        $chronicle = LineChronicle::forLine($line, $phases['used_events']);
         $decades = $this->decadesWithStations($phases['decades'], $lineStations->byEra($line->id));
 
-        // Longueurs de l'en-tête : length_km = la ligne aujourd'hui (SNCF, sinon l'ère
-        // courante) ; length_greatest_km = la ligne à son plus grand développement, seulement
-        // quand elle dépasse de plus de 5 % la longueur actuelle (sinon null : une seule
-        // valeur). La longueur actuelle ne couvre que ce qui existe encore : sur une ligne
-        // fermée ou déposée en partie, elle afficherait seule « 0,3 km » pour 16 km de ligne.
-        // La fiche affiche les deux (« 29,3 km à son apogée, 13,7 km aujourd'hui »), ou l'état
-        // (fermée, déposée) quand plus rien n'est en service (line.current_state).
-        $knownKm = 0.0;
-        foreach ($phases['phases'] as $ph) {
-            $knownKm = max($knownKm, array_sum($ph['length_by_category']) / 1000);
+        // UNE longueur par fiche (chantier « UI unifiée », constats « six longueurs pour la même
+        // ligne ») : celle du tracé que VFF dessine, toutes portions comprises (en service, fermées,
+        // déposées), à son plus grand développement. C'est la longueur du rail « Aujourd'hui », des
+        // phases, de la carte, du tableau des décennies et de la portion « Toute la ligne » de la
+        // chronique. Avant : longueur des formes SNCF (généralisées, 121 km sur 610000 pour un tracé
+        // de 124,7 km), sans rapport avec le reste de la page ; elle reste en `length_sncf_km`.
+        // `active_length_km` = la part en service aujourd'hui, de la même mesure ; plus de second
+        // chiffre « à son apogée » (`length_greatest_km` toujours null).
+        $lineLengthM = self::lineLengthM($phases);
+        if ($lineLengthM > 0) {
+            $stats['length_km'] = round($lineLengthM / 1000, 1);
+            $today = collect($phases['decades'])->firstWhere('is_current', true) ?? collect($phases['decades'])->last();
+            if ($today !== null) {
+                $stats['active_length_km'] = round(array_sum(array_intersect_key($today['length_by_category'], array_flip(LinePhases::ACTIVE))) / 1000, 1);
+            }
         }
-        $stats['length_greatest_km'] = $knownKm > ($stats['length_km'] ?? 0) * 1.05 ? round($knownKm, 1) : null;
+        $stats['length_greatest_km'] = null;
+        $stats['length_definition'] = $lineLengthM > 0 ? 'trace' : ($stats['length_sncf_km'] !== null ? 'sncf' : 'segments');
+        $chronicle = LineChronicle::forLine($line, $phases['used_events'], $stations->all(), $lineLengthM > 0 ? $lineLengthM : null);
 
         $segmentsGeoJson = [];
         if ($latestEraId) {
@@ -382,6 +448,8 @@ class LineController extends Controller
                 'opening_year_from' => $s->opening_year_from,
                 'opening_year_to' => $s->opening_year_to,
                 'description' => $s->description,
+                // Description tirée de Wikipédia, en français : lang="fr" sur une page EN ou DE.
+                'description_lang' => $s->description !== null && app()->getLocale() !== 'fr' ? 'fr' : null,
                 'source_url' => $s->source_url,
             ]);
 
@@ -418,8 +486,16 @@ class LineController extends Controller
                 // {kind, title, message, cta_label, cta_url, lang} dans la langue de la page, ou null.
                 'advocacy' => Advocacy::localized($line->advocacy, app()->getLocale()),
                 'historical_operator' => $line->historical_operator,
-                'description' => $line->description === null ? null : LineChronicle::dashes($line->description),
+                // Typographie adaptée (annoncée sous l'extrait) : « no 752 000 » de l'article → « n° 752 000 ».
+                'description' => $line->description === null ? null
+                    : (string) preg_replace('/(?<!\p{L})no (?=\d)/u', 'n° ', LineChronicle::dashes($line->description)),
                 'description_source' => $this->descriptionSource($line),
+                // Langue des textes de la ligne qui restent en français sur une page EN ou DE (extrait de
+                // Wikipédia, nom officiel et autres noms : noms propres français) : attribut lang.
+                'description_lang' => $line->description !== null && app()->getLocale() !== 'fr' ? 'fr' : null,
+                'name_lang' => app()->getLocale() !== 'fr' ? 'fr' : null,
+                // Ligne à grande vitesse (même règle que la carte) : signalisation en cabine, pas de BAL général.
+                'is_lgv' => (bool) ($line->is_lgv ?? false) || Lgv::nameIsLgv($line->name),
                 'length_official_m' => $encyclopedia->length_official_m ?? null,
                 'gauge_mm_default' => $encyclopedia->gauge_mm_default ?? null,
                 'nb_voies_default' => $encyclopedia->nb_voies_default ?? null,
@@ -429,21 +505,21 @@ class LineController extends Controller
                 'archeo_url' => $encyclopedia->archeo_url ?? null,
                 'regions' => $encyclopedia->regions ? json_decode($encyclopedia->regions, true) : [],
                 'departements' => $encyclopedia->departements ? json_decode($encyclopedia->departements, true) : [],
-                'historical_operators' => $encyclopedia->historical_operators
-                    ? json_decode($encyclopedia->historical_operators, true)
-                    : [],
+                // Rôles et années relus (cf. operators()) : gestionnaire d'infrastructure, jamais
+                // « exploitant » avant la mise en service ; `ongoing` = toujours en fonction.
+                'historical_operators' => self::operators(
+                    $encyclopedia->historical_operators ? (array) json_decode($encyclopedia->historical_operators, true) : [],
+                    self::firstOpeningYear($phases['phases']),
+                ),
                 'encyclopedia_updated_at' => $encyclopedia->encyclopedia_updated_at ?? null,
                 // Bloc « Fiche » : chaque valeur avec ce qu'elle décrit (ligne entière, ou élément
                 // Wikidata qui n'en décrit qu'une partie), sa source et sa date (cf. LineFacts).
                 'facts' => LineFacts::build($line, $encyclopedia, $stats, $displayEra ? (int) $displayEra->year : null,
                     (bool) ($displayEra->is_current ?? false)),
             ],
-            'sources' => $sources->map(fn ($s) => [
-                'type' => $s->source_type,
-                'url' => $s->source_url,
-                'fetched_at' => $s->fetched_at,
-                'fields' => $s->fields_provided ? json_decode($s->fields_provided, true) : [],
-            ]),
+            // Données de la fiche : sources de la ligne (line_sources, lien réparé) et sources des
+            // tronçons affichés (tracé, vitesses, électrification, signalisation), cf. dataSources().
+            'sources' => $this->dataSources($line, $sources, $latestEraId),
             'stats' => $stats,
             'segments' => $segmentsGeoJson,
             'era_summary' => $eraSummary,
@@ -499,7 +575,8 @@ class LineController extends Controller
             'pk_end_label' => $this->formatPkLabel((int) $r->pk_end_m),
             'length_m' => (int) ($r->pk_end_m - $r->pk_start_m),
             'signalling' => $r->signalling,
-            'train_protection' => $r->train_protection ? json_decode($r->train_protection, true) : [],
+            // Sans la signalisation en cabine déjà nommée (« TVM 300 » une fois, pas deux).
+            'train_protection' => array_values(array_diff($r->train_protection ? (array) json_decode($r->train_protection, true) : [], [$r->signalling])),
             'kvb_equipped' => (bool) $r->kvb_equipped,
             'note' => $r->note,
         ], $rows);
@@ -616,6 +693,23 @@ class LineController extends Controller
     }
 
     /**
+     * Longueur de la ligne (m) : le plus grand total, toutes catégories (en service, fermée, déposée),
+     * des phases et des décennies de LinePhases, c'est-à-dire l'échelle du rail de l'en-tête. 0 sans
+     * tracé.
+     *
+     * @param  array{phases: list<array<string, mixed>>, decades: list<array<string, mixed>>}  $phases
+     */
+    public static function lineLengthM(array $phases): int
+    {
+        $max = 0;
+        foreach ([...$phases['phases'], ...$phases['decades']] as $p) {
+            $max = max($max, (int) array_sum($p['length_by_category'] ?? []));
+        }
+
+        return $max;
+    }
+
+    /**
      * Décennie par décennie : km par catégorie (LinePhases) et, pour les gares, le résumé
      * App\Services\LineStations::byEra tel quel (ouvertes, incertaines, fermées, gares
      * fermées dans la décennie avec la date de la fiche gare).
@@ -658,16 +752,29 @@ class LineController extends Controller
     private function historicalNames(Line $line): array
     {
         $alt = is_array($line->alt_names) ? $line->alt_names : [];
-        $key = fn (string $n) => preg_replace('/[^a-z0-9]+/', '', Str::lower(Str::ascii($n)));
+        // Même nom à la forme près : « Ligne Limoges-Bénédictins - Angoulême », « ligne de St-Germain-des-Fossés
+        // à Darsac » ou « Voie ferrée Angoulême-Limoges » = mêmes lieux (ordre, articles, « St » / « Saint »,
+        // « (LGV) » ignorés) : un seul nom, et jamais le titre lui-même (cf. nameKey).
+        $key = fn (string $n) => self::nameKey($n);
         $seen = [$key($line->name) => true];
         $out = [];
         $add = function (?string $name, string $kind, ?string $source, ?string $url = null, ?int $from = null, ?int $to = null) use (&$out, &$seen, $key) {
             $name = $name === null ? '' : trim(LineChronicle::dashes($name));
-            if ($name === '' || isset($seen[$key($name)])) {
+            if ($name === '') {
                 return;
             }
-            $seen[$key($name)] = true;
-            $out[] = ['name' => $name, 'kind' => $kind, 'source' => $source, 'url' => $url, 'from' => $from, 'to' => $to];
+            $k = $key($name);
+            if (isset($seen[$k])) {
+                // Deux formes du même nom : celle qui commence par « Ligne » plutôt que « Voie ferrée ».
+                $i = $seen[$k];
+                if ($i !== true && ! preg_match('/^ligne\b/iu', $out[$i]['name']) && preg_match('/^ligne\b/iu', $name)) {
+                    $out[$i]['name'] = FrenchGrammar::ucfirst($name);
+                }
+
+                return;
+            }
+            $seen[$k] = count($out);
+            $out[] = ['name' => FrenchGrammar::ucfirst($name), 'kind' => $kind, 'source' => $source, 'url' => $url, 'from' => $from, 'to' => $to];
         };
 
         foreach (is_array($alt['names'] ?? null) ? $alt['names'] : [] as $n) {
@@ -702,7 +809,35 @@ class LineController extends Controller
             $add(is_string($m) ? $m : null, 'merged', 'vff', null);
         }
 
-        return $out;
+        // Nom d'une AUTRE ligne de VFF (Wikidata cite parfois un raccordement parmi les alias : 610000
+        // « Raccordement de Limoges-Puy-Imbert à Limoges-Montjovis », qui est la ligne 590306) : ce
+        // n'est pas un autre nom de celle-ci. Les fiches fusionnées (kind merged) restent.
+        $others = $out === [] ? [] : array_flip(array_map(fn ($n) => Str::lower($n), DB::table('lines')->where('id', '<>', $line->id)
+            ->whereIn(DB::raw('lower(name)'), array_map(fn ($n) => Str::lower($n['name']), $out))->pluck('name')->all()));
+
+        return array_values(array_filter($out, fn ($n) => $n['kind'] === 'merged' || ! isset($others[Str::lower($n['name'])])));
+    }
+
+    /** Mots qui ne distinguent pas deux noms de la même ligne (article, « ligne », « voie ferrée »…). */
+    private const NAME_STOPWORDS = ['ligne', 'lignes', 'voie', 'ferree', 'chemin', 'chemins', 'fer', 'de', 'd', 'du', 'des',
+        'a', 'au', 'aux', 'la', 'le', 'les', 'l', 'et'];
+
+    /**
+     * Clé d'un nom de ligne : ses lieux, sans ordre ni article, « St » = « Saint », sans la mention
+     * « (LGV) ». « Ligne de St-Germain-des-Fossés à Darsac » = « ligne Saint-Germain-des-Fossés - Darsac ».
+     */
+    public static function nameKey(string $name): string
+    {
+        $n = Str::lower(Str::ascii((string) preg_replace('/\s*\((?:lgv|ligne a grande vitesse)\)\s*$/iu', '', $name)));
+        $words = array_filter(preg_split('/[^a-z0-9]+/', $n) ?: [], fn ($w) => $w !== '' && ! in_array($w, self::NAME_STOPWORDS, true));
+        $words = array_map(fn ($w) => match ($w) {
+            'st' => 'saint',
+            'ste' => 'sainte',
+            default => $w,
+        }, $words);
+        sort($words);
+
+        return implode(' ', $words);
     }
 
     /**
@@ -736,11 +871,136 @@ class LineController extends Controller
         return $urls ? ['type' => 'curated', 'urls' => $urls] : ['type' => 'curated', 'urls' => []];
     }
 
+    /** Année de la première mise en service de la ligne (première phase d'ouverture datée), ou null. */
+    public static function firstOpeningYear(array $phases): ?int
+    {
+        foreach ($phases as $ph) {
+            if (($ph['kind'] ?? null) === 'growth' && ($ph['precision'] ?? null) !== 'range') {
+                return (int) substr((string) $ph['date'], 0, 4);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Exploitants de la ligne (Wikidata P137 / P127), relus pour la fiche :
+     *   - Réseau ferré de France et SNCF Réseau gèrent l'infrastructure, ils n'exploitent pas de
+     *     trains : rôle `gestionnaire`, années bornées par leur existence (RFF : 1997-2014) ;
+     *   - un exploitant ne l'est pas avant la mise en service : début ramené à l'année d'ouverture
+     *     (« Compagnie des Charentes 1868-1878 » sur une ligne ouverte en 1875 : 1875-1878 ; la date
+     *     de 1868 est celle de la concession) ;
+     *   - `ongoing` : toujours en fonction (début connu, pas de fin) : « depuis 2015 ».
+     *
+     * @param  array<mixed>  $operators  valeurs JSON de lines.historical_operators
+     * @return list<array<string, mixed>>
+     */
+    public static function operators(array $operators, ?int $openingYear): array
+    {
+        $out = [];
+        foreach ($operators as $o) {
+            if (! is_array($o)) {
+                continue;
+            }
+            $manager = self::INFRASTRUCTURE_MANAGERS[$o['wikidata'] ?? ''] ?? null;
+            foreach (self::INFRASTRUCTURE_MANAGERS as $m) {
+                $manager ??= ($o['operator'] ?? null) === $m['name'] ? $m : null;
+            }
+            $from = isset($o['from_year']) ? (int) $o['from_year'] : null;
+            $to = isset($o['to_year']) ? (int) $o['to_year'] : null;
+            if ($manager !== null) {
+                if (($o['role'] ?? null) === 'exploitant') {
+                    $o['role'] = 'gestionnaire';
+                }
+                $from = $from === null ? $manager['from'] : max($from, $manager['from']);
+                $to = $manager['to'] === null ? $to : ($to === null ? $manager['to'] : min($to, $manager['to']));
+            } elseif (($o['role'] ?? null) === 'exploitant' && $openingYear !== null && $from !== null && $from < $openingYear
+                && ($to === null || $to >= $openingYear)) {
+                $from = $openingYear;
+            }
+            $o['from_year'] = $from;
+            $o['to_year'] = $to;
+            $o['ongoing'] = $from !== null && $to === null;
+            $out[] = $o;
+        }
+
+        return $out;
+    }
+
+    /** Jeux de données SNCF Réseau (Open Data) cités par la fiche. */
+    private const SNCF_DATASETS = 'https://ressources.data.sncf.com/explore/dataset/';
+
+    /**
+     * Données de la fiche (« Notes et sources ») : les sources de la ligne (line_sources) et celles des
+     * tronçons affichés, chacune une fois (type unique), avec un lien valide :
+     *   - classement SNCF : lien vers le portail (l'adresse stockée porte la liste des jeux entre
+     *     parenthèses, `datasets`) ; omis quand aucun signal SNCF n'a servi (ligne hors réseau ferré
+     *     national, comme le train des Pignes) ;
+     *   - tracé : OpenStreetMap, IGN BD TOPO, OpenHistoricalMap, archeoferroviaire, formes SNCF selon
+     *     les tronçons ; vitesses, électrification et signalisation SNCF quand elles sont affichées.
+     *
+     * @param  Collection<int, \stdClass>  $sources
+     * @return list<array<string, mixed>>
+     */
+    private function dataSources(Line $line, Collection $sources, ?int $eraId): array
+    {
+        /** @var array<string, array<string, mixed>> $out */
+        $out = [];
+        foreach ($sources as $s) {
+            $fields = $s->fields_provided ? (array) json_decode($s->fields_provided, true) : [];
+            $entry = ['type' => $s->source_type, 'url' => $s->source_url, 'fetched_at' => $s->fetched_at, 'fields' => $fields];
+            if ($s->source_type === 'sncf-classification') {
+                if (($fields['signal'] ?? null) === 'aucun') {
+                    continue;
+                }
+                if (preg_match('#^(https?://\S+?)/?\s*\((.+)\)\s*$#u', (string) $s->source_url, $m)) {
+                    $entry['url'] = $m[1].'/';
+                    $entry['datasets'] = array_values(array_filter(array_map('trim', explode(',', str_replace('…', '', $m[2])))));
+                }
+            }
+            $out[$s->source_type] = $entry;
+        }
+        if ($eraId !== null) {
+            $seg = DB::selectOne(<<<'SQL'
+                SELECT ARRAY_TO_JSON(ARRAY_AGG(DISTINCT source) FILTER (WHERE source IS NOT NULL)) AS traces,
+                       BOOL_OR(max_speed_source = 'sncf') AS sncf_speed,
+                       BOOL_OR(electrification_source = 'sncf') AS sncf_elec,
+                       EXISTS (SELECT 1 FROM line_signalling WHERE line_id = ? AND era_id = ?) AS sncf_sig
+                FROM line_segments WHERE line_id = ? AND era_id = ?
+            SQL, [$line->id, $eraId, $line->id, $eraId]);
+            $traces = [
+                'osm' => 'https://www.openstreetmap.org/',
+                'bdtopo' => 'https://geoservices.ign.fr/bdtopo',
+                'ohm' => 'https://www.openhistoricalmap.org/',
+                'archeoferroviaire' => $line->archeo_url ?: 'http://archeoferroviaire.free.fr/',
+                'sncf' => self::SNCF_DATASETS.'formes-des-lignes-du-rfn/',
+            ];
+            foreach ((array) json_decode((string) ($seg->traces ?? '[]'), true) as $src) {
+                $type = $src === 'sncf' ? 'sncf-shapes' : $src;
+                if (array_key_exists($src, $traces) && ! isset($out[$type])) {
+                    $out[$type] = ['type' => $type, 'url' => $traces[$src], 'fetched_at' => null, 'fields' => ['geometry']];
+                }
+            }
+            foreach ([
+                'sncf-speed' => [(bool) ($seg->sncf_speed ?? false), 'vitesse-maximale-nominale-sur-ligne', 'max_speed_kmh'],
+                'sncf-electrification' => [(bool) ($seg->sncf_elec ?? false), 'liste-des-lignes-electrifiees', 'electrified'],
+                'sncf-signalling' => [(bool) ($seg->sncf_sig ?? false), 'mode-de-cantonnement-des-lignes', 'signalling'],
+            ] as $type => [$used, $dataset, $field]) {
+                if ($used) {
+                    $out[$type] = ['type' => $type, 'url' => self::SNCF_DATASETS.$dataset.'/', 'fetched_at' => null, 'fields' => [$field]];
+                }
+            }
+        }
+
+        return array_values($out);
+    }
+
     private function computeStats(Line $line, array $segmentIds, ?int $eraId, int $eventCount = 0): array
     {
         if (! $segmentIds || ! $eraId) {
             return [
                 'length_km' => 0.0,
+                'length_sncf_km' => null,
                 'segment_count' => 0,
                 'event_count' => $eventCount,
                 'max_speed_kmh' => null,
@@ -789,23 +1049,64 @@ class LineController extends Controller
 
         // Signalisation : agrégation depuis line_signalling (vérité officielle
         // SNCF Réseau Open Data), pas depuis line_segments.signalling qui
-        // n'est qu'une vue de l'ancien fallback approximatif.
+        // n'est qu'une vue de l'ancien fallback approximatif. Chaque mode avec la
+        // longueur qu'il couvre, du plus étendu au moins étendu (sur une LGV, la TVM
+        // avant le BAL des raccordements) ; contrôle de vitesse sans la signalisation
+        // en cabine déjà citée (la TVM est les deux : une seule mention).
         $sigAgg = DB::selectOne(
-            "SELECT STRING_AGG(DISTINCT signalling, ', ' ORDER BY signalling) AS sigs,
-                    BOOL_OR(kvb_equipped) AS any_kvb
-             FROM line_signalling WHERE line_id = ? AND era_id = ?",
+            'SELECT BOOL_OR(kvb_equipped) AS any_kvb FROM line_signalling WHERE line_id = ? AND era_id = ?',
             [$line->id, $eraId],
         );
-        $protAgg = DB::select(
-            'SELECT DISTINCT jsonb_array_elements_text(train_protection::jsonb) AS p
-             FROM line_signalling WHERE line_id = ? AND era_id = ? AND train_protection IS NOT NULL',
+        $signallingCoverage = array_map(fn ($r) => ['code' => $r->code, 'km' => round((float) $r->m / 1000, 1)], DB::select(
+            'SELECT signalling AS code, SUM(GREATEST(pk_end_m - pk_start_m, 0)) AS m
+             FROM line_signalling WHERE line_id = ? AND era_id = ? AND signalling IS NOT NULL
+             GROUP BY signalling ORDER BY m DESC, signalling',
             [$line->id, $eraId],
-        );
-        $trainProtection = array_map(fn ($r) => $r->p, $protAgg);
-        sort($trainProtection);
+        ));
+        $cabCodes = array_values(array_filter(array_column($signallingCoverage, 'code'), fn ($c) => (bool) preg_match('/^(TVM-|ETCS_|ERTMS_)/', (string) $c)));
+        $protectionCoverage = array_values(array_filter(array_map(fn ($r) => ['code' => $r->code, 'km' => round((float) $r->m / 1000, 1)], DB::select(
+            'SELECT p.code, SUM(GREATEST(ls.pk_end_m - ls.pk_start_m, 0)) AS m
+             FROM line_signalling ls, jsonb_array_elements_text(ls.train_protection::jsonb) AS p(code)
+             WHERE ls.line_id = ? AND ls.era_id = ? AND ls.train_protection IS NOT NULL
+             GROUP BY p.code ORDER BY m DESC, p.code',
+            [$line->id, $eraId],
+        )), fn ($p) => ! in_array($p['code'], $cabCodes, true)));
+        $trainProtection = array_column($protectionCoverage, 'code');
+
+        // Électrification : part du tracé de l'ère et tensions, chacune avec sa longueur (Paris - Brest :
+        // 1,5 kV jusqu'au Mans, 25 kV au-delà ; une seule tension « dominante » cachait l'autre).
+        // state : none, marginal (moins de MARGINAL_ELECTRIFIED_PCT % : voies d'une gare, raccordement),
+        // partial, full (95 % et plus).
+        $voltages = array_map(fn ($r) => ['voltage_v' => (int) $r->v, 'km' => round((float) $r->m / 1000, 1)], DB::select(
+            'SELECT voltage_v AS v, SUM(ST_Length(geom::geography)) AS m FROM line_segments
+             WHERE line_id = ? AND era_id = ? AND electrified AND voltage_v IS NOT NULL
+             GROUP BY voltage_v ORDER BY m DESC',
+            [$line->id, $eraId],
+        ));
+        $elecKm = round((float) $stats->elec_len_m / 1000, 1);
+        $speedKm = $stats->max_speed ? round((float) (DB::selectOne(
+            'SELECT SUM(ST_Length(geom::geography)) AS m FROM line_segments WHERE line_id = ? AND era_id = ? AND max_speed_kmh = ?',
+            [$line->id, $eraId, $stats->max_speed],
+        )->m ?? 0) / 1000, 1) : null;
 
         return [
-            'length_km' => round($routeKm, 1),                              // route-km (SNCF officiel)
+            'signalling_coverage' => $signallingCoverage,
+            'train_protection_coverage' => $protectionCoverage,
+            'electrification' => [
+                'state' => match (true) {
+                    $elecKm <= 0 => 'none',
+                    $electrifiedPct < self::MARGINAL_ELECTRIFIED_PCT => 'marginal',
+                    $electrifiedPct >= 95 => 'full',
+                    default => 'partial',
+                },
+                'km' => $elecKm,
+                'pct' => $electrifiedPct,
+                'voltages' => $voltages,
+            ],
+            // Longueur (km) des tronçons à la vitesse maximale : « 160 km/h » sur 9 km d'une ligne de 145 km.
+            'max_speed_km' => $speedKm,
+            'length_km' => round($routeKm, 1),                              // remplacée dans show() par la longueur du tracé
+            'length_sncf_km' => $sncfKm > 0 ? round($sncfKm, 1) : null,     // formes des lignes SNCF (généralisées)
             'length_track_km' => round($totalLenM / 1000.0, 1),             // track-km (voies OSM cumulées)
             'active_length_km' => round((float) $stats->active_len_m / 1000.0, 1),
             'segment_count' => count($segmentIds),
@@ -815,7 +1116,7 @@ class LineController extends Controller
             'electrified_pct' => $electrifiedPct,
             'voltage_v' => $voltageV,
             'gauge_mm' => $stats->gauge_mm,
-            'signalling' => $sigAgg?->sigs,
+            'signalling' => $signallingCoverage ? implode(', ', array_column($signallingCoverage, 'code')) : null,
             'train_protection' => $trainProtection ? implode(', ', $trainProtection) : null,
             'kvb_equipped' => (bool) ($sigAgg?->any_kvb ?? false),
             'dismantled_at_min' => $stats->dismantled_at_min,

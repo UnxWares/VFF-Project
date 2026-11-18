@@ -1,91 +1,61 @@
+/* Présentation de l'accueil : dessin d'origine (logo et titre centrés, trait gris sous le titre posé
+   par general.css, texte, deux boutons), corrigé le 18/11/2026 : texte aligné à gauche (le texte
+   justifié se creusait de lézardes, surtout en allemand), largeur de lecture, boutons communs
+   (.vff-btn : texte noir sur l'orange, casse de phrase, focus visible, pas de zoom au survol),
+   plus d'animation d'entrée. */
+main #whoarewe,
+main #whoarewe *,
+main #whoarewe *::before,
+main #whoarewe *::after {
+    box-sizing: border-box;
+}
 main #whoarewe {
-    width: 45%;
-    margin: 30px auto;
-    max-width: 864px;
-}
-main #whoarewe > * {
-    opacity: 0;
-    transform: translateX(100%);
-}
-main #whoarewe.animate > * {
-    opacity: 1;
-    transform: initial;
-    transition:
-        opacity 1.5s ease,
-        transform 1.5s ease;
-}
-main #whoarewe.animate p {
-    transition-delay: 0.075s;
-}
-main #whoarewe.animate .whoarewe-buttons {
-    transition-delay: 0.15s;
-}
-main #whoarewe .vff-title img {
-    width: 70px;
-    height: 70px;
+    width: min(100% - 2 * var(--vff-gutter), 680px);
+    margin: var(--vff-section-space) auto var(--vff-block-space);
 }
 main #whoarewe .vff-title {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 12px;
+}
+main #whoarewe .vff-title img {
+    flex: none;
+    width: 70px;
+    height: 70px;
 }
 main #whoarewe .vff-title h1 {
-    margin: 0 0 0 10px;
+    margin: 0;
+    font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.25rem);
+    line-height: 1.15;
+    color: var(--vff-text);
+    text-wrap: balance;
 }
 main #whoarewe p {
-    text-align: justify;
+    margin: 28px 0 0;
+    font-size: var(--vff-fs-lead);
+    line-height: 1.65;
+    text-align: left;
+    color: var(--vff-text);
 }
 main #whoarewe .whoarewe-buttons {
-    text-align: center;
-}
-main #whoarewe .whoarewe-buttons a {
-    text-decoration: none;
-    border: 0;
-    border-radius: 10px;
-    font-size: 15px;
-    text-transform: uppercase;
-    padding: 9px 26px;
-    margin: 5px 15px 18px;
-    display: inline-block;
-    white-space: nowrap;
-    outline: none;
-    transition: transform 0.3s ease 0s;
-    transform: initial;
-    color: #fff;
-    background-color: #ff6500;
-    font-family: Gabarito, cursive;
-}
-main #whoarewe .whoarewe-buttons a:hover {
-    text-decoration: none;
-    transform: scale(0.95);
-}
-main #whoarewe .whoarewe-buttons a:focus {
-    outline: solid #ff6500;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 16px;
+    margin-top: 32px;
 }
 
-/* ─── Responsive (correctifs du 2026-10-20) ─────────────────────────────────
-   Au-dessus de 1100 px, rien ne change. En dessous, la colonne de 45 % devenait
-   très étroite (160 px sur téléphone, texte justifié en escalier). */
-@media (max-width: 1100px) {
-    main #whoarewe {
-        width: 70%;
-    }
-}
-@media (max-width: 768px) {
-    main #whoarewe {
-        width: auto;
-        margin: 30px 16px;
-    }
-    main #whoarewe .vff-title h1 {
-        font-size: 28px;
+@media (max-width: 600px) {
+    main #whoarewe .vff-title img {
+        width: 56px;
+        height: 56px;
     }
     main #whoarewe p {
-        font-size: 18px;
-        line-height: 1.55;
-        text-align: left;
+        margin-top: 20px;
+        font-size: 1.125rem;
     }
-    main #whoarewe .whoarewe-buttons a {
-        margin: 6px 6px 12px;
-        padding: 12px 22px;
+    main #whoarewe .whoarewe-buttons {
+        margin-top: 24px;
     }
 }

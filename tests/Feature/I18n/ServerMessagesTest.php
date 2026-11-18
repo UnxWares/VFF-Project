@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Support\Translations;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Lang;
+use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -22,9 +23,9 @@ class ServerMessagesTest extends TestCase
     public static function requiredName(): array
     {
         return [
-            'fr' => ['fr', 'Le champ nom est obligatoire.'],
-            'en' => ['en', 'The name field is required.'],
-            'de' => ['de', 'Das Feld Name ist erforderlich.'],
+            'fr' => ['fr', 'Le champ nom d\'affichage est obligatoire.'],
+            'en' => ['en', 'The display name field is required.'],
+            'de' => ['de', 'Das Feld Anzeigename ist erforderlich.'],
         ];
     }
 
@@ -40,7 +41,7 @@ class ServerMessagesTest extends TestCase
     public static function invalidEmail(): array
     {
         return [
-            'fr' => ['fr', 'Le champ adresse électronique doit être une adresse électronique valide.'],
+            'fr' => ['fr', 'Le champ adresse e-mail doit être une adresse e-mail valide.'],
             'en' => ['en', 'The email address field must be a valid email address.'],
             'de' => ['de', 'Das Feld E-Mail-Adresse muss eine gültige E-Mail-Adresse sein.'],
         ];
@@ -58,7 +59,7 @@ class ServerMessagesTest extends TestCase
     {
         $this->withCookie('locale', 'fr')
             ->post('/register', ['name' => 'Paul', 'email' => 'p@example.org', 'password' => 'motdepasse1', 'password_confirmation' => 'autre'])
-            ->assertSessionHasErrors(['password' => 'La confirmation du champ mot de passe ne correspond pas.']);
+            ->assertSessionHasErrors(['password' => 'Les deux mots de passe ne sont pas identiques.']);
     }
 
     public function test_email_already_taken_is_translated(): void
@@ -67,7 +68,7 @@ class ServerMessagesTest extends TestCase
 
         $this->withCookie('locale', 'de')
             ->post('/register', ['name' => 'Paul', 'email' => 'pris@example.org', 'password' => 'motdepasse1', 'password_confirmation' => 'motdepasse1'])
-            ->assertSessionHasErrors(['email' => 'Der Wert für E-Mail-Adresse ist bereits vergeben.']);
+            ->assertSessionHasErrors(['email' => 'Diese E-Mail-Adresse ist bereits mit einem Konto verknüpft.']);
     }
 
     public function test_auth_failed_is_translated_in_three_languages(): void
@@ -95,7 +96,7 @@ class ServerMessagesTest extends TestCase
     {
         return [
             'fr' => ['fr', 'Page introuvable'],
-            'en' => ['en', 'Not Found'],
+            'en' => ['en', 'Page not found'],
             'de' => ['de', 'Seite nicht gefunden'],
         ];
     }
@@ -103,11 +104,17 @@ class ServerMessagesTest extends TestCase
     #[DataProvider('notFoundTitles')]
     public function test_unknown_url_renders_a_translated_404(string $locale, string $title): void
     {
+        // La page d'erreur est une page Inertia (en-tête et pied de page du site) : le titre est posé par
+        // le front à partir des traductions envoyées avec la page, dans la langue du visiteur.
         $this->withCookie('locale', $locale)
             ->get('/cette-page-nexiste-pas')
             ->assertNotFound()
-            ->assertSee('<title>'.$title.'</title>', false)
-            ->assertSee('<html lang="'.$locale.'"', false);
+            ->assertSee('<html lang="'.$locale.'"', false)
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Error')
+                ->where('status', 404)
+                ->where('locale', $locale)
+                ->where('translations', fn ($translations) => $translations['errors.404.title'] === $title));
     }
 
     public function test_http_error_titles_exist_in_french_and_german(): void

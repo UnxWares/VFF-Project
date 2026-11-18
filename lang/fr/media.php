@@ -67,6 +67,7 @@ return [
     'no_commercial' => 'Pas d’usage commercial',
     'hosted_notice' => 'Images hébergées par :provider et affichées par lien direct : VFF ne les copie pas. Chaque image conserve sa propre licence ; réutilisation possible en respectant l’auteur, la licence et le lien indiqués.',
     'open' => 'Agrandir : :title',
+    'file_name' => 'Fichier : :name',
 
     'lightbox' => [
         'close' => 'Fermer',

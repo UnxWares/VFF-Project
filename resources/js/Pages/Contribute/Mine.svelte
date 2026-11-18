@@ -1,326 +1,315 @@
 <script>
+    import { Link } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
+    import PageHero from '$components/PageHero.svelte';
+    import EmptyState from '$components/ui/EmptyState.svelte';
     import { i18n } from '$lib/i18n.js';
+    import { colon } from '$lib/typo.js';
     import { formatKm } from '$lib/traceGeometry.js';
+    import {
+        changeEntries,
+        eraLabel,
+        formatDay,
+        formatPk,
+    } from '$components/Contribute/segmentChanges.js';
 
     let { contributions = [] } = $props();
 
-    // Classes CSS par statut (les libellés sont traduits via maps.editor.mine.status_labels).
-    const STATUS_CLS = {
-        pending: 'pending',
-        approved: 'partial',
-        applied: 'applied',
-        rejected: 'rejected',
+    // Nombre d'approbations qui publient une contribution (ContributionController::APPROVAL_THRESHOLD).
+    const THRESHOLD = 2;
+
+    // Ton du badge par statut : le texte dit l'état, la couleur le souligne.
+    const STATUS_TONE = {
+        pending: 'warning',
+        approved: 'info',
+        applied: 'success',
+        rejected: 'danger',
+    };
+    const STATUS_ICON = {
+        pending: 'bi-hourglass-split',
+        approved: 'bi-check2',
+        applied: 'bi-check2-all',
+        rejected: 'bi-x-lg',
     };
 
+    /** Traduction passée aux fonctions de segmentChanges.js. */
+    const tr = (key, opts) => $i18n.t(key, opts);
+
     function statusLabel(status) {
-        const key = `maps.editor.mine.status_labels.${status}`;
+        const key = `editor.mine.status_labels.${status}`;
         const label = $i18n.t(key);
         return label === key ? status : label;
     }
 
-    function formatPk(m) {
-        const km = Math.floor(m / 1000);
-        const r = m % 1000;
-        return `${km}+${r.toString().padStart(3, '0')}`;
+    function title(c) {
+        if (c.payload?.line_name) return c.payload.line_name;
+        if (c.payload?.new_line_name) return c.payload.new_line_name;
+        return $i18n.t(
+            c.payload?.kind === 'new_line'
+                ? 'editor.validate.kind_new'
+                : 'editor.validate.kind_segment',
+        );
     }
 </script>
 
-<svelte:head><title>{$i18n.t('maps.editor.mine.meta_title')}</title></svelte:head>
+<svelte:head><title>{$i18n.t('editor.mine.meta_title')} - VFF</title></svelte:head>
 
 <Layout compactHeader>
-    <main class="page">
-        <div class="mine-head">
-            <h1>{$i18n.t('maps.editor.mine.title')}</h1>
-            <p class="subtitle">{$i18n.t('maps.editor.mine.subtitle')}</p>
-            <div class="new">
-                <a href="/contribute/trace" class="vff-btn primary">
-                    <i class="bi bi-bezier2"></i>
+    <main class="mine-page">
+        <PageHero
+            eyebrow={$i18n.t('editor.mine.eyebrow')}
+            title={$i18n.t('editor.mine.title')}
+            subtitle={$i18n.t('editor.mine.subtitle')}
+        >
+            <div class="hero-actions">
+                <Link href="/contribute/trace" class="vff-btn primary">
+                    <i class="bi bi-bezier2" aria-hidden="true"></i>
                     {$i18n.t('editor.mine.new_trace')}
-                </a>
-                <a href="/contribute/edit-segment" class="vff-btn ghost">
-                    <i class="bi bi-plus-circle-fill"></i>
-                    {$i18n.t('maps.editor.mine.new')}
-                </a>
+                </Link>
+                <Link href="/contribute/edit-segment" class="vff-btn secondary">
+                    <i class="bi bi-rulers" aria-hidden="true"></i>
+                    {$i18n.t('editor.mine.new_segment')}
+                </Link>
             </div>
+        </PageHero>
+
+        <div class="vff-container body">
+            {#if contributions.length === 0}
+                <EmptyState
+                    icon="bi-pencil-square"
+                    title={$i18n.t('editor.mine.empty_title')}
+                    text={$i18n.t('editor.mine.empty_text')}
+                    headingLevel={2}
+                />
+            {:else}
+                <ol class="list" aria-label={$i18n.t('editor.mine.list_label')}>
+                    {#each contributions as c (c.id)}
+                        {@const changes = changeEntries(c.payload?.changes, tr, $i18n.language)}
+                        <li class="item">
+                            <div class="head">
+                                <h2>
+                                    {title(c)}
+                                    {#if c.payload?.line_code}
+                                        <span class="vff-plate">{c.payload.line_code}</span>
+                                    {/if}
+                                </h2>
+                                <span class="vff-badge {STATUS_TONE[c.status] ?? 'muted'}">
+                                    <i
+                                        class="bi {STATUS_ICON[c.status] ?? 'bi-dot'}"
+                                        aria-hidden="true"
+                                    ></i>
+                                    {statusLabel(c.status)}
+                                </span>
+                            </div>
+
+                            {#if c.type === 'line_trace'}
+                                <p class="facts">
+                                    <span>
+                                        {$i18n.t(
+                                            c.payload.kind === 'new_line'
+                                                ? 'editor.validate.kind_new'
+                                                : 'editor.validate.kind_correction',
+                                        )}
+                                    </span>
+                                    <span>
+                                        {$i18n.t('editor.validate.portions_count', {
+                                            count: c.payload.portions?.length ?? 0,
+                                        })}
+                                    </span>
+                                    <span class="nowrap"
+                                        >{formatKm(c.payload.length_m ?? 0, $i18n.language)}</span
+                                    >
+                                    <span>
+                                        {$i18n.t('editor.portions.events_count', {
+                                            count: c.payload.events_count ?? 0,
+                                        })}
+                                    </span>
+                                    {#if c.payload.applied?.line_slug}
+                                        <Link
+                                            href="/lines/{c.payload.applied.line_slug}"
+                                            class="vff-link"
+                                            >{$i18n.t('editor.mine.view_line')}</Link
+                                        >
+                                    {/if}
+                                </p>
+                            {:else if c.payload?.pk_start_m != null}
+                                <p class="facts">
+                                    <span>
+                                        {$i18n.t('editor.mine.portion')}{colon($i18n.language)}<span
+                                            class="pk"
+                                            >PK {formatPk(c.payload.pk_start_m)} → PK {formatPk(
+                                                c.payload.pk_end_m,
+                                            )}</span
+                                        >
+                                    </span>
+                                    <span>
+                                        {$i18n.t('editor.mine.era')}{colon($i18n.language)}<span
+                                            class="nowrap">{eraLabel(c.payload.era_year, tr)}</span
+                                        >
+                                    </span>
+                                </p>
+                            {/if}
+
+                            {#if changes.length}
+                                <dl class="changes">
+                                    {#each changes as ch (ch.field)}
+                                        <div>
+                                            <dt>{ch.label}</dt>
+                                            <dd>{ch.value}</dd>
+                                        </div>
+                                    {/each}
+                                </dl>
+                            {/if}
+
+                            {#if c.status === 'rejected' && c.review_notes}
+                                <div class="reject">
+                                    <p class="reject-title">
+                                        {$i18n.t('editor.mine.reject_reason')}
+                                    </p>
+                                    <p>{c.review_notes}</p>
+                                </div>
+                            {/if}
+
+                            <p class="meta">
+                                <span
+                                    >{$i18n.t('editor.mine.submitted', {
+                                        date: formatDay(c.created_at, $i18n.language),
+                                    })}</span
+                                >
+                                {#if c.status === 'pending' || c.status === 'approved'}
+                                    <span
+                                        >{$i18n.t('editor.mine.approvals', {
+                                            count: c.approval_count ?? 0,
+                                            threshold: THRESHOLD,
+                                        })}</span
+                                    >
+                                {/if}
+                                {#if c.reviewed_at}
+                                    <span
+                                        >{$i18n.t('editor.mine.reviewed', {
+                                            date: formatDay(c.reviewed_at, $i18n.language),
+                                        })}</span
+                                    >
+                                {/if}
+                            </p>
+                        </li>
+                    {/each}
+                </ol>
+            {/if}
         </div>
-
-        {#if contributions.length === 0}
-            <div class="empty">
-                <i class="bi bi-pencil-square"></i>
-                <p>{$i18n.t('maps.editor.mine.empty')}</p>
-                <p class="hint">{$i18n.t('maps.editor.mine.empty_hint')}</p>
-            </div>
-        {:else}
-            <div class="list">
-                {#each contributions as c}
-                    <article class="card">
-                        <div class="head">
-                            <h2>
-                                {c.payload.line_name ?? c.type}
-                                <span class="code">{c.payload.line_code ?? ''}</span>
-                            </h2>
-                            <span class="status status-{STATUS_CLS[c.status]}">
-                                {statusLabel(c.status)}
-                            </span>
-                        </div>
-
-                        {#if c.type === 'line_trace'}
-                            <p class="pk">
-                                <i class="bi bi-bezier2"></i>
-                                {$i18n.t(
-                                    c.payload.kind === 'new_line'
-                                        ? 'editor.validate.kind_new'
-                                        : 'editor.validate.kind_correction',
-                                )}
-                                · {$i18n.t('editor.validate.portions_count', {
-                                    count: c.payload.portions?.length ?? 0,
-                                })}
-                                · {formatKm(c.payload.length_m ?? 0, $i18n.language)}
-                                · {$i18n.t('editor.portions.events_count', {
-                                    count: c.payload.events_count ?? 0,
-                                })}
-                                {#if c.payload.applied?.line_slug}
-                                    · <a href="/lines/{c.payload.applied.line_slug}"
-                                        >{$i18n.t('editor.mine.view_line')}</a
-                                    >
-                                {/if}
-                            </p>
-                        {:else}
-                            <p class="pk">
-                                <i class="bi bi-rulers"></i>
-                                {#if c.payload.pk_start_m != null}
-                                    {$i18n.t('maps.editor.mine.portion')}
-                                    <code
-                                        >PK {formatPk(c.payload.pk_start_m)} → PK {formatPk(
-                                            c.payload.pk_end_m,
-                                        )}</code
-                                    >
-                                    · {$i18n.t('maps.editor.mine.era')}
-                                    <strong>{c.payload.era_year}</strong>
-                                {/if}
-                            </p>
-                        {/if}
-
-                        <ul class="changes">
-                            {#each Object.entries(c.payload.changes ?? {}) as [k, v]}
-                                <li><strong>{k}</strong> → <code>{JSON.stringify(v)}</code></li>
-                            {/each}
-                        </ul>
-
-                        {#if c.status === 'rejected' && c.review_notes}
-                            <blockquote class="reject">
-                                <strong>{$i18n.t('maps.editor.mine.reject_reason')}</strong>
-                                {c.review_notes}
-                            </blockquote>
-                        {/if}
-
-                        <div class="meta">
-                            <span
-                                >{$i18n.t('maps.editor.mine.submitted', {
-                                    date: c.created_at,
-                                })}</span
-                            >
-                            {#if c.status === 'pending' || c.status === 'approved'}
-                                <span
-                                    >{$i18n.t('maps.editor.mine.approvals', {
-                                        count: c.approval_count,
-                                    })}</span
-                                >
-                            {/if}
-                            {#if c.reviewed_at}
-                                <span
-                                    >{$i18n.t('maps.editor.mine.reviewed', {
-                                        date: c.reviewed_at,
-                                    })}</span
-                                >
-                            {/if}
-                        </div>
-                    </article>
-                {/each}
-            </div>
-        {/if}
     </main>
 </Layout>
 
 <style>
-    .page {
-        max-width: 920px;
-        margin: 0 auto;
-        padding: 48px 20px;
-    }
-    .mine-head {
-        position: relative;
-        margin-bottom: 32px;
-    }
-    h1 {
-        font-family: var(--vff-font-display);
-        font-size: 32px;
-        margin: 0 0 6px;
-    }
-    h1:after {
-        display: none;
-    }
-    .subtitle {
-        color: var(--vff-text-muted);
-        margin: 0 0 18px;
-    }
-    .new {
-        position: absolute;
-        top: 0;
-        right: 0;
+    .hero-actions {
         display: flex;
-        gap: 8px;
         flex-wrap: wrap;
-        justify-content: flex-end;
+        gap: var(--vff-space-3);
+        margin-top: var(--vff-space-5);
     }
-    .new :global(.vff-btn) {
-        border: 0;
-        cursor: pointer;
+    .body {
+        padding-block: var(--vff-section-space);
     }
-    @media (max-width: 720px) {
-        .new {
-            position: static;
-            justify-content: flex-start;
-        }
-    }
-    .empty {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--vff-text-muted);
-    }
-    .empty i {
-        font-size: 56px;
-        display: block;
-        margin-bottom: 14px;
-        color: var(--vff-accent);
-    }
-    .empty .hint {
-        font-size: 14px;
-    }
-
     .list {
+        max-width: 880px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--vff-border);
+    }
+    .item {
         display: flex;
         flex-direction: column;
-        gap: 14px;
-    }
-    .card {
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        padding: 18px 20px;
+        gap: var(--vff-space-3);
+        padding-block: var(--vff-space-5);
+        border-bottom: 1px solid var(--vff-border);
     }
     .head {
         display: flex;
-        justify-content: space-between;
+        flex-wrap: wrap;
         align-items: flex-start;
-        gap: 12px;
+        justify-content: space-between;
+        gap: var(--vff-space-2) var(--vff-space-4);
     }
     .head h2 {
-        font-family: var(--vff-font-display);
-        font-size: 17px;
-        margin: 0;
-    }
-    .head h2:after {
-        display: none;
-    }
-    .head .code {
-        color: var(--vff-accent);
-        font-family: var(--vff-font-secondary, monospace);
-        font-size: 13px;
-    }
-    .status {
-        font-family: var(--vff-font-display);
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        padding: 4px 10px;
-        border-radius: var(--vff-radius-pill);
-        flex-shrink: 0;
-    }
-    .status-pending {
-        background-color: rgba(255, 139, 53, 0.18);
-        color: #b54a00;
-    }
-    .status-partial {
-        background-color: rgba(43, 123, 229, 0.15);
-        color: #2c7be5;
-    }
-    .status-applied {
-        background-color: rgba(34, 197, 94, 0.15);
-        color: #16a34a;
-    }
-    .status-rejected {
-        background-color: rgba(197, 48, 48, 0.15);
-        color: #c53030;
-    }
-
-    .pk {
-        margin: 12px 0 6px;
-        font-size: 14px;
-        color: var(--vff-text-muted);
-        display: flex;
-        gap: 6px;
-        align-items: center;
-    }
-    .pk i {
-        color: var(--vff-accent);
-    }
-    .pk code {
-        background-color: var(--vff-bg-muted);
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-family: var(--vff-font-secondary, monospace);
-        color: var(--vff-text);
-    }
-    .pk strong {
-        color: var(--vff-text);
-    }
-    .pk a {
-        color: var(--vff-accent);
-    }
-
-    .changes {
-        list-style: none;
-        padding: 0;
-        margin: 10px 0;
         display: flex;
         flex-wrap: wrap;
-        gap: 6px;
-        font-size: 13px;
+        align-items: center;
+        gap: var(--vff-space-2) var(--vff-space-3);
+        min-width: 0;
+        margin: 0;
+        font-size: var(--vff-fs-h3);
+        line-height: 1.35;
+        text-wrap: balance;
     }
-    .changes li {
-        background-color: var(--vff-accent-soft);
-        color: var(--vff-accent);
-        padding: 3px 10px;
+    .head h2 :global(.vff-plate) {
+        font-size: var(--vff-fs-xs);
+    }
+    .facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--vff-space-1) var(--vff-space-4);
+        margin: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
+        color: var(--vff-text-muted);
+    }
+    .pk,
+    .nowrap {
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+        color: var(--vff-text);
+    }
+    .changes {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: var(--vff-space-3) var(--vff-space-6);
+        margin: 0;
+        padding: var(--vff-space-3) var(--vff-space-4);
+        background-color: var(--vff-bg-subtle);
         border-radius: var(--vff-radius-sm);
-        font-family: var(--vff-font-display);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
     }
-    .changes code {
-        background-color: transparent;
-        color: var(--vff-text);
-        font-family: var(--vff-font-secondary, monospace);
-        font-size: 12px;
+    .changes dt {
+        color: var(--vff-text-muted);
     }
-
-    blockquote.reject {
-        margin: 12px 0 6px;
-        padding: 8px 12px;
-        background-color: rgba(197, 48, 48, 0.08);
-        border-left: 3px solid #c53030;
-        font-size: 13px;
-        font-style: italic;
+    .changes dd {
+        margin: 2px 0 0;
+        font-weight: 600;
         color: var(--vff-text);
     }
-
+    .reject {
+        padding: var(--vff-space-3) var(--vff-space-4);
+        border-left: 3px solid var(--vff-danger);
+        background-color: var(--vff-danger-bg);
+        border-radius: 0 var(--vff-radius-sm) var(--vff-radius-sm) 0;
+        font-size: var(--vff-fs-sm);
+    }
+    .reject p {
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+    .reject-title {
+        font-family: var(--vff-font-heading);
+        font-weight: 600;
+        color: var(--vff-danger);
+    }
     .meta {
         display: flex;
-        gap: 14px;
-        font-size: 12px;
+        flex-wrap: wrap;
+        gap: var(--vff-space-1) var(--vff-space-4);
+        margin: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        line-height: var(--vff-lh-ui);
         color: var(--vff-text-muted);
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid var(--vff-border);
+    }
+    @media (max-width: 600px) {
+        .changes {
+            grid-template-columns: 1fr;
+        }
     }
 </style>

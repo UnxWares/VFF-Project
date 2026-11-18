@@ -21,6 +21,13 @@ describe('formatStationDate', () => {
         expect(formatStationDate('1992-01-01', 'year', null, t, 'fr')).toBe('1992');
     });
 
+    it('le premier du mois prend « 1er » en français seulement', () => {
+        expect(formatStationDate('1867-01-01', 'day', null, t, 'fr')).toBe('1er janvier 1867');
+        expect(formatStationDate('1867-11-01', 'day', null, t, 'fr')).toBe('1er novembre 1867');
+        expect(formatStationDate('1867-11-11', 'day', null, t, 'fr')).toBe('11 novembre 1867');
+        expect(formatStationDate('1867-11-01', 'day', null, t, 'en')).not.toContain('1er');
+    });
+
     it('intervalle borné par la frise', () => {
         expect(formatStationDate('1960-12-31', 'range', 1950, t)).toBe('entre 1951 et 1960');
         expect(formatStationDate('2026-10-19', 'range', 1890, t)).toBe('entre 1891 et 2026');
