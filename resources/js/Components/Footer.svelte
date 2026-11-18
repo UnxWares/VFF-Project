@@ -16,12 +16,11 @@
      */
     const currentYear = new Date().getFullYear();
 
-    // Liens internes : sans icône (décorative) ; les réseaux gardent leur logo, qui les identifie.
     const QUICK = [
-        { href: '/whoarewe', key: 'nav.whoarewe' },
-        { href: '/maps', key: 'nav.maps' },
-        { href: '/contribute', key: 'nav.contribute' },
-        { href: '/donate', key: 'nav.donate' },
+        { href: '/whoarewe', icon: 'bi-people', key: 'nav.whoarewe' },
+        { href: '/maps', icon: 'bi-map', key: 'nav.maps' },
+        { href: '/contribute', icon: 'bi-geo', key: 'nav.contribute' },
+        { href: '/donate', icon: 'bi-balloon-heart', key: 'nav.donate' },
     ];
     const SOCIAL = [
         {
@@ -42,11 +41,11 @@
         },
     ];
     const LEGAL = [
-        { href: '/legal', key: 'nav.legal' },
-        { href: '/privacy', key: 'nav.privacy' },
-        { href: '/use-conditions', key: 'nav.use_conditions' },
-        { href: '/credits/tech', key: 'nav.credits_tech' },
-        { href: '/credits/media', key: 'nav.credits_media' },
+        { href: '/legal', icon: 'bi-folder', key: 'nav.legal' },
+        { href: '/privacy', icon: 'bi-bell-slash', key: 'nav.privacy' },
+        { href: '/use-conditions', icon: 'bi-check2-circle', key: 'nav.use_conditions' },
+        { href: '/credits/tech', icon: 'bi-code-square', key: 'nav.credits_tech' },
+        { href: '/credits/media', icon: 'bi-camera', key: 'nav.credits_media' },
     ];
 </script>
 
@@ -75,9 +74,19 @@
                 </h2>
                 <ul>
                     {#each QUICK as item (item.href)}
-                        <li><Link href={item.href}>{$i18n.t(item.key)}</Link></li>
+                        <li>
+                            <Link href={item.href}
+                                ><i class="bi {item.icon}" aria-hidden="true"></i>
+                                {$i18n.t(item.key)}</Link
+                            >
+                        </li>
                     {/each}
-                    <li class="api"><Link href="/api">{$i18n.t('nav.api')}</Link></li>
+                    <li class="api">
+                        <Link href="/api"
+                            ><i class="bi bi-cursor" aria-hidden="true"></i>
+                            {$i18n.t('nav.api')}</Link
+                        >
+                    </li>
                 </ul>
             </div>
             <div class="footer-col contact-links">
@@ -122,7 +131,12 @@
                 <h2 class="footer-title">{$i18n.t('footer.legal')}</h2>
                 <ul>
                     {#each LEGAL as item (item.href)}
-                        <li><Link href={item.href}>{$i18n.t(item.key)}</Link></li>
+                        <li>
+                            <Link href={item.href}
+                                ><i class="bi {item.icon}" aria-hidden="true"></i>
+                                {$i18n.t(item.key)}</Link
+                            >
+                        </li>
                     {/each}
                 </ul>
             </div>
@@ -156,7 +170,6 @@
                     />{@render newTab()}
                 </a>
             </span>
-            <span class="made-by">{$i18n.t('footer.made_by', { name: 'Baptiste Gosselin' })}</span>
         </p>
     </div>
 </footer>

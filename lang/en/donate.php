@@ -5,7 +5,6 @@ return [
     'meta_description' => 'Support VFF, the open project documenting France\'s railway heritage: where donations stand and what they will be used for.',
 
     'hero' => [
-        'eyebrow' => 'Support',
         'title' => 'Keep the project going',
         'subtitle' => 'VFF is free, ad-free and has no third-party trackers, and its code is open. Donations will cover hosting, map backgrounds and the time spent on the project.',
     ],
@@ -17,7 +16,7 @@ return [
 
     'org' => [
         'title' => 'Who will collect the donations?',
-        'paragraph' => 'An <strong>association in the French social and solidarity economy</strong>, working name “UnxWares Opensource”, is being set up. It will legally and financially support UnxWares’ open projects, including VFF. Until it is registered, no donation can be received. The payment platforms have not been chosen yet.',
+        'paragraph' => 'An <strong>association in the French social and solidarity economy</strong>, working name “UnxWares Opensource”, is being set up. It will legally and financially support UnxWares\' open projects, including VFF. Until it is registered, no donation can be received. The payment platforms have not been chosen yet.',
     ],
 
     'why' => [

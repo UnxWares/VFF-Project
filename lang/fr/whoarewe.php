@@ -5,7 +5,7 @@ return [
     'meta_description' => 'Qui fait VFF et pourquoi : une encyclopédie collaborative du rail français, éditée par UnxWares.',
 
     'hero' => [
-        'title' => "Une encyclopédie née d'une passion partagée",
+        'title' => 'Une encyclopédie née d’une passion partagée',
         'subtitle' => 'Pourquoi et comment nous documentons le patrimoine ferroviaire français, des lignes en service aux lignes disparues.',
     ],
 
@@ -35,17 +35,17 @@ return [
 
     'vision' => [
         'title' => 'Notre objectif',
-        'paragraph' => "Réunir en un seul endroit ce que l'on sait du rail français. Chaque ligne a sa fiche, de son inauguration à aujourd'hui ou jusqu'à sa fermeture, avec ses gares, ses sources et, quand nous en disposons, des photographies d'archives et des plans. C'est une encyclopédie collaborative : ce qui y figure est sourcé et relu avant publication.",
+        'paragraph' => 'Réunir en un seul endroit ce que l’on sait du rail français. Chaque ligne a sa fiche, de son inauguration à aujourd’hui ou jusqu’à sa fermeture, avec ses gares, ses sources et, quand nous en disposons, des photographies d’archives et des plans. C’est une encyclopédie collaborative : ce qui y figure est sourcé et relu avant publication.',
     ],
 
     'values' => [
         'title' => 'Nos principes',
         'open_title' => 'Ouvert',
-        'open_text' => "Le code est publié sous licence MIT, l'API est publique et chaque donnée garde sa source et sa licence.",
+        'open_text' => 'Le code est publié sous licence MIT, l’API est publique et chaque donnée garde sa source et sa licence.',
         'rigorous_title' => 'Rigoureux',
         'rigorous_text' => 'Sources citées, dates précises, relecture par deux validateurs. Chaque contribution est vérifiée avant publication.',
         'collective_title' => 'Collectif',
-        'collective_text' => "Personne ne peut documenter seul l'ensemble du réseau. VFF n'existe qu'à travers ses contributeurs.",
+        'collective_text' => 'Personne ne peut documenter seul l’ensemble du réseau. VFF n’existe qu’à travers ses contributeurs.',
         'durable_title' => 'Dans la durée',
         'durable_text' => 'Une encyclopédie se construit sur des années. Nous choisissons des sources et des outils qui tiennent dans le temps.',
     ],
@@ -57,14 +57,14 @@ return [
         'item2_date' => '2024',
         'item2_text' => 'Première version en ligne, identité visuelle posée.',
         'item3_date' => '2026',
-        'item3_text' => "Refonte complète du site et du modèle de données. Ouverture de la carte historique de 1830 à aujourd'hui, des fiches de lignes et de gares, de l'API publique et des contributions.",
+        'item3_text' => 'Refonte complète du site et du modèle de données. Ouverture de la carte historique de 1830 à aujourd’hui, des fiches de lignes et de gares, de l’API publique et des contributions.',
         'item4_date' => '2030',
-        'item4_text' => "Objectif : couvrir l'ensemble du réseau ferré français, ligne par ligne, avec ses sources.",
+        'item4_text' => 'Objectif : couvrir l’ensemble du réseau ferré français, ligne par ligne, avec ses sources.',
     ],
 
     'cta' => [
         'title' => 'Rejoignez le projet',
-        'text' => "Le projet ne tient qu'à travers sa communauté. Vous pouvez documenter des lignes, proposer des archives ou du code, ou soutenir le projet.",
+        'text' => 'Le projet ne tient qu’à travers sa communauté. Vous pouvez documenter des lignes, proposer des archives ou du code, ou soutenir le projet.',
         'contribute' => 'Comment contribuer',
         'donate' => 'Soutenir le projet',
     ],

@@ -8,7 +8,7 @@ return [
     'subtitle' => "Lokomotiven, Triebzüge, Triebwagen, TGV-Garnituren, Reisezug- und Güterwagen: :total\u{a0}Baureihen erfasst, mit Hersteller und Einsatzzeit.",
     'subtitle_empty' => 'Lokomotiven, Triebzüge, Triebwagen, TGV-Garnituren, Reisezug- und Güterwagen, mit Hersteller, Einsatzzeit und den Strecken, auf denen sie fuhren.',
     'empty_title' => 'Noch keine Fahrzeugseiten',
-    'empty_text' => 'Die Enzyklopädie beschreibt noch keine Fahrzeuge. Jede Seite stellt eine Baureihe vor, mit Hersteller, Einsatzzeit und den Strecken, auf denen sie fuhr. Bis dahin sind die Seiten zu Strecken und Bahnhöfen abrufbar.',
+    'empty_text' => 'Die Enzyklopädie beschreibt noch keine Fahrzeuge. Jede Seite stellt eine Baureihe vor, mit Hersteller, Einsatzzeit und den Strecken, auf denen sie fuhr. Bis dahin sind die Seiten zu Strecken und Bahnhöfen bereits abrufbar.',
     'empty_cta' => 'So können Sie mitwirken',
     'empty_browse' => 'Strecken durchsuchen',
     'filters_title' => 'Fahrzeuge suchen und filtern',

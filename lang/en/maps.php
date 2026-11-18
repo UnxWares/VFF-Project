@@ -40,7 +40,7 @@ return [
     ],
 
     'legend' => [
-        'heritage_train' => 'Run by an association: tourist train',
+        'heritage_train' => 'Run by an association: heritage railway',
         'heritage_velorail' => 'Run by an association: rail bikes',
         'title' => 'Network in :year',
         'title_current' => 'Current network',
@@ -54,7 +54,7 @@ return [
         'stations' => 'Stations at that time',
         'stations_hint' => 'Shown when you zoom in.',
         'station_active' => 'Open to passengers (and freight)',
-        'station_tourist' => 'Heritage / tourist',
+        'station_tourist' => 'Heritage railway',
         'station_freight' => 'Freight only',
         'station_uncertain' => 'Uncertain (no known track at that time)',
         'station_closed' => 'Closed',
@@ -62,7 +62,7 @@ return [
 
     // Type of volunteer-run operation (line_segments.heritage_kind).
     'heritage_kind' => [
-        'tourist_train' => 'Tourist train',
+        'tourist_train' => 'Heritage railway',
         'velorail' => 'Rail bikes (vélorail)',
         'museum' => 'Operating railway museum',
     ],
@@ -93,7 +93,7 @@ return [
     // Map display mode (legend): line colour by traffic, electrification or
     // gauge in the selected decade (vff:enrich-era-segments).
     'mode' => [
-        'label' => 'Colour lines by',
+        'label' => 'Colour routes by',
         'traffic' => 'Traffic',
         'electrification' => 'Electrification',
         'gauge' => 'Gauge',
@@ -152,11 +152,11 @@ return [
 
     // Line sheet on click (LineDrawer) and popup of the embedded map.
     'drawer' => [
-        'fallback_line_name' => 'Section',
+        'fallback_line_name' => 'Segment',
         'view_full_sheet' => 'View the line page',
         'view_station' => 'View the station page',
         'suggest_edit' => 'Suggest an edit',
-        'close' => 'Close the line sheet',
+        'close' => 'Close the panel',
         'status' => 'Status',
         'status_at' => 'Status in :year',
         'status_today' => 'Current status',
@@ -188,7 +188,7 @@ return [
         'snippet_label' => 'Code to paste into your page',
         'copy' => 'Copy the code',
         'copied' => 'Code copied',
-        'copy_failed' => 'Automatic copy is not available: the code is selected, copy it with Ctrl+C (Cmd+C on a Mac).',
+        'copy_failed' => 'Automatic copying is not possible: the code is selected, so copy it with Ctrl+C (Cmd+C on a Mac).',
         'preview' => 'Preview',
         'iframe_title' => 'Interactive map of the French railway network - VFF',
         'preview_title' => 'Preview of the embedded map',
@@ -209,7 +209,7 @@ return [
         'route_term' => 'Journey',
         'route_text' => 'Enter two stations and a year: the map draws the journey on the network in service at that time and lists the lines used.',
         'layers_term' => 'Overlays',
-        'layers_text' => 'The OpenRailwayMap overlay adds today’s infrastructure: signals, speeds, electrification. The clock button, at the top right of the map, shows old IGN maps.',
+        'layers_text' => 'The OpenRailwayMap overlay adds today\'s infrastructure: signals, speeds, electrification. The clock button, at the top right of the map, shows old IGN maps.',
     ],
 
     'tech' => [
@@ -219,7 +219,7 @@ return [
     ],
 
     'cta' => [
-        'title' => 'A line is missing or a route is wrong?',
+        'title' => 'Is a line missing or a route wrong?',
         'text' => 'Suggest a correction from the line page, or retrace it on the map. Every proposal is reviewed before it is applied.',
         'contribute' => 'Suggest a correction',
         'discord' => 'Join the Discord',
@@ -230,7 +230,7 @@ return [
         'map' => 'Interactive railway network map',
         'zoom_in' => 'Zoom in',
         'zoom_out' => 'Zoom out',
-        'reset_bearing' => 'Drag to rotate the map, click to reset north',
+        'reset_bearing' => 'Drag to rotate the map, click to reset to north',
         'fullscreen_enter' => 'Show full screen',
         'fullscreen_exit' => 'Exit full screen',
         'attribution' => 'Show or hide map credits',

@@ -6,7 +6,6 @@ return [
     'meta_description' => 'Access to the VFF API: REST endpoints, GraphQL API, OpenAPI specification and example requests. Read-only, no key or account needed.',
 
     'hero' => [
-        'eyebrow' => 'Public API',
         'title' => 'VFF data for your own tools',
         'subtitle' => 'Lines, stations, timelines and routes of the rail network, from 1830 to today, as JSON, GeoJSON, vector tiles and GTFS. Read-only, no key or account needed.',
     ],
@@ -29,7 +28,7 @@ return [
         'readonly' => ['title' => 'Read-only', 'text' => 'Every REST request is a GET; GraphQL only offers read queries.'],
         'no_key' => ['title' => 'No key or account', 'text' => 'No sign-up: call the addresses directly.'],
         'limit' => ['title' => '300 requests per minute', 'text' => 'Limit per IP address, for REST and GraphQL alike. Beyond it, the server answers HTTP 429.'],
-        'licence' => ['title' => 'Data licences', 'text' => 'Credit "VFF - Voies Ferrées de France" with a link to vff-project.org. Each source keeps its own licence: the details are in the references.'],
+        'licence' => ['title' => 'Data licences', 'text' => 'Credit “VFF - Voies Ferrées de France” with a link to vff-project.org. Each source keeps its own licence: the details are in the references.'],
     ],
 
     'endpoints' => [
@@ -54,7 +53,7 @@ return [
     'example' => [
         'title' => 'REST examples',
         'intro' => 'Three requests to copy into a terminal, then the answer to the second one, as the server returns it.',
-        'curl_lines' => 'Routes of today’s network (era 2030), as GeoJSON',
+        'curl_lines' => 'Routes of today\'s network (era 2030), as GeoJSON',
         'curl_pk' => 'Kilometre point of a location on the Paris-Montparnasse - Brest line',
         'curl_search' => 'Search by name',
         'response' => 'Answer to the second request: the point is moved onto the nearest route (snap), 395 m away here.',
@@ -70,7 +69,7 @@ return [
 
     'cta' => [
         'title' => 'A question, an idea?',
-        'text' => 'Tell us what you are building or what is missing on Discord, or report a problem on GitHub.',
+        'text' => 'Tell us what you are building or what is missing, on Discord, or report a problem on GitHub.',
         'discord' => 'Chat on Discord',
         'github' => 'View the code on GitHub',
     ],

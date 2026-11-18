@@ -7,7 +7,7 @@ return [
     'home' => 'Zurück zur Startseite',
     'reload' => 'Seite neu laden',
     'login' => 'Anmelden',
-    'explore' => 'Um weiterzustöbern',
+    'explore' => 'So setzen Sie Ihren Besuch fort',
     'map' => 'Karte öffnen',
     'lines' => 'Strecken durchsuchen',
     'stations' => 'Bahnhöfe durchsuchen',
@@ -35,7 +35,7 @@ return [
     ],
     '500' => [
         'title' => 'Serverfehler',
-        'text' => 'Auf unserer Seite ist ein Problem aufgetreten, es wurde protokolliert. Versuchen Sie es in einigen Augenblicken erneut; besteht es weiter, melden Sie es uns auf Discord oder GitHub.',
+        'text' => 'Bei uns ist ein Problem aufgetreten; es wurde protokolliert. Versuchen Sie es in einigen Augenblicken erneut; besteht es weiter, melden Sie es uns auf Discord oder GitHub.',
     ],
     '503' => [
         'title' => 'Dienst vorübergehend nicht verfügbar',
@@ -43,6 +43,6 @@ return [
     ],
     'default' => [
         'title' => 'Etwas ist schiefgelaufen',
-        'text' => 'Die Seite konnte nicht angezeigt werden. Versuchen Sie es erneut oder beginnen Sie erneut auf der Startseite.',
+        'text' => 'Die Seite konnte nicht angezeigt werden. Versuchen Sie es erneut oder kehren Sie zur Startseite zurück.',
     ],
 ];

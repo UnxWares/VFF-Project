@@ -2,7 +2,6 @@
 
 // Pages /credits/tech et /credits/media (Pages/Credits/*.svelte).
 return [
-    'eyebrow' => 'Crédits',
 
     'tech' => [
         'meta_title' => 'Crédits techniques',
@@ -117,6 +116,9 @@ return [
         'anonymous' => 'Anonyme',
         'partners_title' => 'Sources d’archives',
         'partners' => [
+            // Fond du grand visuel de l'accueil (HomeHero.svelte, home.hero.credit).
+            'home_map_title' => 'Fond de la page d’accueil',
+            'home_map_text' => "Détail recadré et teinté en sépia de la «\u{00A0}Carte spéciale des chemins de fer de la France et de l’Allemagne à l’usage des voyageurs\u{00A0}», dressée par Alexandre Vuillemin et publiée par A. Logerot (Paris, 1865). Exemplaire de la Bibliothèque du Congrès (Washington), domaine public.",
             'gallica_title' => 'BnF Gallica',
             'gallica_text' => 'Cartes IGN historiques, plans Cassini, État-Major, horaires anciens. Chaque document se réutilise selon les conditions de la BnF, à consulter sur Gallica.',
             'commons_title' => 'Wikipédia et Wikimedia Commons',

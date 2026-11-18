@@ -2,7 +2,6 @@
 
 // Seiten /credits/tech und /credits/media (Pages/Credits/*.svelte).
 return [
-    'eyebrow' => 'Danksagung',
 
     'tech' => [
         'meta_title' => 'Technische Danksagung',
@@ -65,8 +64,8 @@ return [
         ],
         'ai' => [
             'title' => 'Von einem neuronalen Netz ausgerichtete Streckenverläufe',
-            'p1' => 'Für viele verschwundene Strecken hatten wir nur einen ungefähren Verlauf, manchmal um mehrere Dutzend Meter verschoben. Um sie metergenau zu platzieren, haben wir ein eigenes <strong>Modell zur Erkennung von Gleisen</strong> trainiert: ein neuronales Netz vom Typ U-Net auf Grundlage eines ResNet-34-Encoders, der auf allgemeinen Bildern (ImageNet) vortrainiert und von uns auf historische Luftbilder des IGN spezialisiert wurde.',
-            'p2' => 'Das Training stützt sich auf Strecken, deren genauer Verlauf bekannt ist: ihre Lage dient als Beispiel, ohne manuelle Annotation. Das Modell läuft dann auf der <strong>Grafikkarte</strong>, wertet die IGN-Luftbilder von 1950-1965 entlang von rund 12.000 km ungefährer Verläufe aus, und jede Strecke wird entlang des erkannten Gleises neu gezeichnet.',
+            'p1' => 'Für viele verschwundene Strecken hatten wir nur einen ungefähren Verlauf, manchmal um mehrere Dutzend Meter verschoben. Um sie metergenau zu platzieren, haben wir ein eigenes <strong>Modell zur Erkennung von Gleisen</strong> trainiert: ein neuronales Netz vom Typ U-Net auf Grundlage eines ResNet-34-Encoders, der auf allgemeinen Bildern (ImageNet) vortrainiert und von uns an historischen Luftbildern des IGN nachtrainiert wurde.',
+            'p2' => 'Das Training stützt sich auf Strecken, deren genauer Verlauf bekannt ist: Die Lage dieser Strecken dient als Beispiel, ohne manuelle Annotation. Das Modell läuft dann auf der <strong>Grafikkarte</strong>, wertet die IGN-Luftbilder von 1950 bis 1965 entlang von rund 12.000 km ungefährer Verläufe aus, und jede Strecke wird entlang des erkannten Gleises neu gezeichnet.',
             'p3' => 'Auf Kontrollstrecken weicht der ermittelte Verlauf im Median um <strong>2,2 Meter</strong> vom tatsächlichen ab, und ein Filter verwirft Fehlerkennungen (Straßen, Hecken). Diese Verläufe bleiben eine Quelle unter anderen: Sie werden mit IGN, OpenStreetMap und den übrigen Quellen abgeglichen, und ihre Herkunft bleibt erhalten.',
             'repo' => 'Das Modell und sein Code haben ein eigenes Repository:',
         ],
@@ -104,7 +103,7 @@ return [
             'no_restrictions' => 'Keine Einschränkungen',
             'attribution' => 'Namensnennung erforderlich',
             'licence_ouverte' => 'Licence Ouverte (französische offene Lizenz)',
-            'fal' => 'Lizenz für freie Kunst',
+            'fal' => 'Lizenz Freie Kunst',
         ],
         'sort_label' => 'Sortieren nach',
         'sort_count' => 'Anzahl der Medien',
@@ -113,10 +112,13 @@ return [
         'col_author' => 'Urheber',
         'col_media' => 'Medien',
         'top_authors' => 'Am häufigsten vertretene Urheber',
-        'top_authors_intro' => 'Die Urheber mit den meisten Medien auf VFF. Die meisten sind Fotografen von Wikimedia Commons: Ihre Bilder werden mit der Lizenz der jeweiligen Datei gezeigt.',
+        'top_authors_intro' => 'Die Urheber mit den meisten Medien auf VFF. Die meisten sind Fotografen von Wikimedia Commons, deren Bilder mit der Lizenz der jeweiligen Datei gezeigt werden.',
         'anonymous' => 'Anonym',
         'partners_title' => 'Archivquellen',
         'partners' => [
+            // Hintergrund des großen Titelbilds der Startseite (HomeHero.svelte, home.hero.credit).
+            'home_map_title' => 'Hintergrund der Startseite',
+            'home_map_text' => 'Zugeschnittener, sepiagetönter Ausschnitt der „Carte spéciale des chemins de fer de la France et de l’Allemagne à l’usage des voyageurs“ (Eisenbahnkarte Frankreichs und Deutschlands für Reisende), gezeichnet von Alexandre Vuillemin und herausgegeben von A. Logerot (Paris, 1865). Exemplar der Library of Congress (Washington), gemeinfrei.',
             'gallica_title' => 'BnF Gallica',
             'gallica_text' => 'Historische IGN-Karten, Cassini- und État-Major-Karten, alte Fahrpläne. Jedes Dokument ist nach den Bedingungen der BnF nutzbar, die auf Gallica nachzulesen sind.',
             'commons_title' => 'Wikipedia und Wikimedia Commons',

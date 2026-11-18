@@ -11,7 +11,6 @@ return [
     'meta_description' => 'Von Voies Ferrées de France verarbeitete personenbezogene Daten, Cookies, Drittdienste und Ihre Rechte.',
 
     'hero' => [
-        'eyebrow' => 'Personenbezogene Daten',
         'title' => 'Datenschutzerklärung',
         'updated' => 'Zuletzt aktualisiert: :date',
     ],

@@ -8,7 +8,6 @@ return [
     'loading' => 'Chargement des images…',
     'error' => 'Impossible de charger les images pour le moment.',
     'retry' => 'Réessayer',
-    'empty' => 'Aucune image pour cette ligne pour l’instant.',
     'empty_filtered' => 'Aucune image ne correspond à ces filtres.',
     'load_more' => 'Afficher plus d’images',
     'shown' => ':shown sur :total',
@@ -60,14 +59,13 @@ return [
     ],
 
     'author_unknown' => 'Auteur inconnu',
-    'source' => 'Source',
     'view_source' => 'Voir le fichier sur :provider',
     'via' => 'via :provider',
     'share_alike' => 'Partage dans les mêmes conditions',
     'no_commercial' => 'Pas d’usage commercial',
-    'hosted_notice' => 'Images hébergées par :provider et affichées par lien direct : VFF ne les copie pas. Chaque image conserve sa propre licence ; réutilisation possible en respectant l’auteur, la licence et le lien indiqués.',
-    'open' => 'Agrandir : :title',
-    'file_name' => 'Fichier : :name',
+    'hosted_notice' => 'Images hébergées par :provider et affichées par lien direct : VFF ne les copie pas. Chaque image conserve sa propre licence ; réutilisation possible en respectant l’auteur, la licence et le lien indiqués.',
+    'open' => 'Agrandir : :title',
+    'file_name' => 'Fichier : :name',
 
     'lightbox' => [
         'close' => 'Fermer',

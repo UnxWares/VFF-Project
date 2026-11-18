@@ -3,7 +3,9 @@
      * Accès rapide, juste après le grand en-tête de l'accueil : la recherche de tout le site, puis
      * les entrées directes (Carte, Lignes, Gares, Matériel roulant, API, Contribuer), chacune avec
      * son vrai compte quand il existe (props `stats` de HomeController). Une rangée sobre à filets,
-     * lisible sans lire de texte : le nom de la rubrique, puis son compte.
+     * lisible sans lire de texte : le nom de la rubrique, puis son compte. Même respiration et même
+     * grille que le reste de la page : marges de section, recherche et rangée de la même largeur,
+     * cases de même hauteur et de même retrait, sans icône décorative.
      */
     import { Link } from '@inertiajs/svelte';
     import SearchCombobox from '$components/Search/SearchCombobox.svelte';
@@ -26,38 +28,32 @@
     const entries = $derived([
         {
             href: '/maps',
-            icon: 'bi-map',
             title: t('nav.maps'),
             detail: counted('map', stats?.eras_count) ?? t('home.quick.map_detail'),
         },
         {
             href: '/lines',
-            icon: 'bi-bezier',
             title: t('nav.lines'),
             detail: counted('lines', stats?.lines_count),
         },
         {
             href: '/stations',
-            icon: 'bi-pin-map',
             title: t('nav.stations'),
             detail: counted('stations', stats?.stations_count),
         },
         {
             href: '/materials',
-            icon: 'bi-train-front',
             title: t('nav.materials'),
             detail:
                 counted('materials', stats?.materials_count) ?? t('home.quick.materials_detail'),
         },
         {
             href: '/api',
-            icon: 'bi-code-slash',
             title: t('home.contents.api_title'),
             detail: t('home.quick.api_detail'),
         },
         {
             href: '/contribute',
-            icon: 'bi-pencil-square',
             title: t('nav.contribute'),
             detail: t('home.quick.contribute_detail'),
         },
@@ -76,9 +72,7 @@
             {#each entries as e (e.href)}
                 <li>
                     <Link href={e.href} class="entry">
-                        <span class="entry-title"
-                            ><i class="bi {e.icon}" aria-hidden="true"></i>{e.title}</span
-                        >
+                        <span class="entry-title">{e.title}</span>
                         {#if e.detail}<span class="entry-detail">{e.detail}</span>{/if}
                     </Link>
                 </li>
@@ -89,20 +83,17 @@
 
 <style>
     .quick-access {
-        padding-block: var(--vff-space-6);
+        padding-block: var(--vff-section-space);
         background-color: var(--vff-bg-subtle);
         border-bottom: 1px solid var(--vff-border);
     }
     .inner {
         display: flex;
         flex-direction: column;
-        gap: var(--vff-space-5);
+        gap: var(--vff-block-space);
         max-width: calc(var(--vff-container) + 2 * var(--vff-gutter));
         margin: 0 auto;
         padding-inline: var(--vff-gutter);
-    }
-    .search {
-        max-width: 760px;
     }
     .search :global(.field) {
         background-color: var(--vff-bg);
@@ -114,14 +105,18 @@
         color: var(--vff-text-muted);
     }
 
-    /* Six entrées sur une rangée, séparées par des filets ; deux colonnes sur téléphone. */
+    /* Six entrées dans un même cadre arrondi, séparées par des filets ; même retrait pour toutes,
+       même hauteur sur une rangée. Trois colonnes sous 1 180 px, deux sur téléphone. */
     .entries {
         display: grid;
         grid-template-columns: repeat(6, minmax(0, 1fr));
         margin: 0;
         padding: 0;
         list-style: none;
-        border-block: 1px solid var(--vff-border-strong);
+        overflow: hidden;
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-md);
+        background-color: var(--vff-bg-elevated);
     }
     .entries li {
         display: flex;
@@ -134,33 +129,22 @@
         display: flex;
         flex: 1;
         flex-direction: column;
-        gap: 4px;
-        min-height: 88px;
-        padding: var(--vff-space-4) var(--vff-space-4) var(--vff-space-4);
+        gap: 6px;
+        min-height: 104px;
+        padding: 20px;
         color: var(--vff-text);
         text-decoration: none;
         transition: background-color var(--vff-transition);
     }
     .entries :global(.entry:hover) {
-        background-color: var(--vff-bg);
-    }
-    /* Première colonne : texte sur le bord gauche commun (celui du champ de recherche). */
-    .entries li:first-child :global(.entry) {
-        padding-left: 0;
+        background-color: var(--vff-bg-accent);
     }
     .entry-title {
-        display: inline-flex;
-        align-items: baseline;
-        gap: 8px;
         font-family: var(--vff-font-display);
-        font-size: 1.25rem;
+        font-size: 1.125rem;
         font-weight: 700;
         line-height: 1.25;
-    }
-    .entry-title .bi {
-        flex-shrink: 0;
-        font-size: 17px;
-        color: var(--vff-accent-ink);
+        text-wrap: balance;
     }
     .entries li:hover .entry-title {
         color: var(--vff-link);
@@ -170,7 +154,7 @@
     }
     .entry-detail {
         font-family: var(--vff-font-heading);
-        font-size: 0.9375rem;
+        font-size: var(--vff-fs-sm);
         line-height: 1.4;
         color: var(--vff-text-muted);
         font-variant-numeric: tabular-nums;
@@ -186,9 +170,6 @@
         .entries li:nth-child(n + 4) {
             border-top: 1px solid var(--vff-border);
         }
-        .entries li:nth-child(3n + 1) :global(.entry) {
-            padding-left: 0;
-        }
     }
     @media (max-width: 900px) {
         .shortcut {
@@ -196,12 +177,6 @@
         }
     }
     @media (max-width: 600px) {
-        .quick-access {
-            padding-block: var(--vff-space-5);
-        }
-        .inner {
-            gap: var(--vff-space-4);
-        }
         .entries {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
@@ -215,17 +190,8 @@
             border-top: 1px solid var(--vff-border);
         }
         .entries :global(.entry) {
-            min-height: 76px;
-            padding: var(--vff-space-3);
-        }
-        .entries li:nth-child(3n + 1) :global(.entry) {
-            padding-left: var(--vff-space-3);
-        }
-        .entries li:nth-child(2n + 1) :global(.entry) {
-            padding-left: 0;
-        }
-        .entry-title {
-            font-size: 1.125rem;
+            min-height: 88px;
+            padding: 16px;
         }
     }
 </style>

@@ -23,7 +23,7 @@ class ServerMessagesTest extends TestCase
     public static function requiredName(): array
     {
         return [
-            'fr' => ['fr', 'Le champ nom d\'affichage est obligatoire.'],
+            'fr' => ['fr', 'Le champ nom d’affichage est obligatoire.'],
             'en' => ['en', 'The display name field is required.'],
             'de' => ['de', 'Das Feld Anzeigename ist erforderlich.'],
         ];

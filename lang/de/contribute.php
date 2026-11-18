@@ -5,9 +5,8 @@ return [
     'meta_description' => 'Wie Sie zu VFF beitragen können: Streckenverläufe und Daten, Archivmedien, Code.',
 
     'hero' => [
-        'eyebrow' => 'Mitwirken',
         'title' => 'Wirken Sie an der Enzyklopädie mit',
-        'subtitle' => 'VFF lebt von seinen Mitwirkenden. Hier sind die drei Möglichkeiten mitzumachen und die Prüfung Ihrer Beiträge vor der Veröffentlichung.',
+        'subtitle' => 'VFF lebt von seinen Mitwirkenden. Hier sind die drei Möglichkeiten mitzuwirken, und so werden Ihre Beiträge vor der Veröffentlichung geprüft.',
     ],
 
     'ways' => [
@@ -28,7 +27,7 @@ return [
     'process' => [
         'title' => 'So wird ein Beitrag geprüft',
         'step1_title' => 'Sie reichen ein',
-        'step1_text' => 'Von Ihrem Konto aus reichen Sie einen Streckenverlauf oder eine Änderung an einer Strecke ein. Für Code eröffnen Sie einen Pull Request auf GitHub.',
+        'step1_text' => 'Von Ihrem Konto aus reichen Sie einen Streckenverlauf oder eine Änderung an einer Strecke ein. Für Code erstellen Sie einen Pull Request auf GitHub.',
         'step2_title' => 'Zwei Prüfer sichten',
         'step2_text' => 'Zwei Prüfer untersuchen Ihren Vorschlag und kontrollieren die Quellen und die Stimmigkeit mit den vorhandenen Daten.',
         'step3_title' => 'Veröffentlichung',

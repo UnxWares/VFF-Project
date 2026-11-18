@@ -10,7 +10,6 @@ return [
     'meta_description' => 'Stand der Konformität von Voies Ferrées de France mit dem RGAA, nicht barrierefreie Inhalte und Rechtsbehelfe.',
 
     'hero' => [
-        'eyebrow' => 'Barrierefreiheit',
         'title' => 'Erklärung zur Barrierefreiheit',
         'updated' => 'Erstellt am :date',
     ],

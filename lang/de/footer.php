@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'banner' => 'VFF dokumentiert das französische Eisenbahnnetz von 1830 bis heute: die Strecken in Betrieb und die verschwundenen, ihre Bahnhöfe, ihre Daten und ihre Quellen. Eine gemeinschaftliche Enzyklopädie, gepflegt von Freunden des Eisenbahnerbes, die jeder lesen und ergänzen kann.',
+    'banner' => 'VFF dokumentiert das französische Eisenbahnnetz von 1830 bis heute: die betriebenen und die verschwundenen Strecken, ihre Bahnhöfe, ihre Daten und ihre Quellen. Eine gemeinschaftliche Enzyklopädie, die jeder lesen und ergänzen kann, gepflegt von Liebhabern des Eisenbahnerbes.',
 
     'quick_links' => 'Schnellzugriff',
     'contact_us' => 'Kontakt',
@@ -15,7 +15,6 @@ return [
 
     'copyright' => 'Voies Ferrées de France - VFF © :start-:end',
     'powered_by' => 'Bereitgestellt von',
-    'made_by' => 'Entwickelt von :name',
 
     // Name der Fußzeilen-Navigation (Bildschirmleser).
     'nav_label' => 'Links der Fußzeile',

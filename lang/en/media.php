@@ -2,11 +2,10 @@
 
 return [
     'title' => 'Photos & archives',
-    'subtitle' => 'Photographs, postcards, maps and archive documents of the line.',
+    'subtitle' => 'Photographs, postcards, plans and archive documents of the line.',
     'loading' => 'Loading images…',
     'error' => 'Images could not be loaded right now.',
     'retry' => 'Try again',
-    'empty' => 'No images for this line yet.',
     'empty_filtered' => 'No image matches these filters.',
     'load_more' => 'Show more images',
     'shown' => ':shown of :total',
@@ -58,7 +57,6 @@ return [
     ],
 
     'author_unknown' => 'Unknown author',
-    'source' => 'Source',
     'view_source' => 'View file on :provider',
     'via' => 'via :provider',
     'share_alike' => 'Share-alike',

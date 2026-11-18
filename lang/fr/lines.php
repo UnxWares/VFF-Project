@@ -7,8 +7,6 @@ return [
     'also_known_as' => 'Aussi connue sous',
     'no_description' => 'Aucune description renseignée pour cette ligne.',
     'still_running' => 'toujours en service',
-    'source' => 'Source',
-    'source_link' => 'Voir la source',
     'act' => 'Agir',
 
     'types' => [
@@ -49,7 +47,7 @@ return [
         'electrified' => 'Électrifiée',
         'electrification' => 'Électrification',
         'km_line' => 'km de ligne',
-        'km_line_extent_hint' => 'Longueur de la ligne à son plus grand développement, portions fermées ou déposées comprises',
+        'km_line_extent_hint' => 'Longueur maximale de la ligne, portions fermées ou déposées comprises',
         'km_line_hint' => ':km km de voies cumulées (toutes voies)',
         'km_active' => 'km en service',
         'km_greatest' => 'km à son apogée',
@@ -57,7 +55,7 @@ return [
         'today_closed' => 'Aujourd’hui fermée',
         'today_gone' => 'Aujourd’hui déposée',
         'speed_max' => 'km/h max',
-        'partially_electrified' => 'Partiellement électrifiée (:pct %)',
+        'partially_electrified' => 'Partiellement électrifiée (:pct %)',
         'not_electrified' => 'Non électrifiée',
         'title' => 'Chiffres clés',
         'phases' => 'Phases',
@@ -91,14 +89,6 @@ return [
         'notes' => 'Notes et sources',
     ],
 
-    'evolution' => [
-        'intro' => 'État de la ligne à chaque décennie cartographiée (longueurs en service / fermées / déposées).',
-        'active' => ':km km en service',
-        'closed' => ':km km fermés',
-        'gone' => ':km km déposés',
-        'heritage' => 'dont :km km associatifs',
-    ],
-
     'stops' => [
         'terminus' => 'Terminus',
         'declassified' => 'Déclassée',
@@ -116,21 +106,21 @@ return [
         'since' => 'Depuis :date',
         'period' => 'De :from à :to',
         'attested' => 'En activité en :date (début non daté)',
-        'operator' => 'Exploitant : :name',
+        'operator' => 'Exploitant : :name',
         'source' => 'Source',
     ],
 
     'sections' => [
         'intro' => 'Cette ligne SNCF regroupe plusieurs sections aux appellations commerciales distinctes.',
-        'opening' => 'Mise en service : :years',
+        'opening' => 'Mise en service : :years',
         'source' => 'Source Wikipédia',
     ],
 
     'signalling' => [
-        'intro' => 'Cantonnement (espacement des trains : BAL, BAPR, BM…) et contrôle de vitesse (KVB, TVM, ETCS) le long du tracé, état actuel. Source : SNCF Réseau Open Data (modes de cantonnement, lignes équipées du KVB). Sur une LGV, la signalisation est en cabine.',
-        'protection' => 'Contrôle de vitesse :',
-        'cabin' => 'Signalisation en cabine :',
-        'block' => 'Cantonnement :',
+        'intro' => 'Cantonnement (espacement des trains : BAL, BAPR, BM…) et contrôle de vitesse (KVB, TVM, ETCS) le long du tracé, état actuel. Source : SNCF Réseau Open Data (modes de cantonnement, lignes équipées du KVB). Sur une LGV, la signalisation est en cabine.',
+        'protection' => 'Contrôle de vitesse :',
+        'cabin' => 'Signalisation en cabine :',
+        'block' => 'Cantonnement :',
         'codes' => [
             'BAL' => 'BAL, block automatique lumineux',
             'BAL-VB' => 'BAL de voie banalisée',
@@ -195,10 +185,9 @@ return [
     // Annuaire /lines.
     'index' => [
         'meta_title' => 'Lignes ferroviaires',
-        'meta_description' => 'Annuaire des lignes ferroviaires françaises : :total lignes recensées avec historique, tracé et matériels.',
-        'eyebrow' => 'Réseau ferroviaire',
+        'meta_description' => 'Annuaire des lignes ferroviaires françaises : :total lignes recensées avec historique, tracé et matériels.',
         'title' => 'Lignes ferroviaires',
-        'subtitle' => ":total\u{a0}lignes recensées : :open\u{a0}en service, :closed\u{a0}fermées, :unknown\u{a0}au tracé encore inconnu.",
+        'subtitle' => ":total\u{a0}lignes recensées : :open\u{a0}en service, :closed\u{a0}fermées, :unknown\u{a0}au tracé encore inconnu.",
         'filters_title' => 'Rechercher et filtrer les lignes',
         'search_label' => 'Rechercher',
         'search_hint' => 'Nom, code de ligne ou exploitant',
@@ -211,27 +200,27 @@ return [
         'sort_name_desc' => 'Nom, de Z à A',
         'sort_code' => 'Code de ligne',
         'reset' => 'Réinitialiser les filtres',
-        'results' => 'Résultats : :count',
+        'results' => 'Résultats : :count',
         'empty_title' => 'Aucune ligne ne correspond',
         'empty_text' => 'Retirez un filtre ou essayez un autre nom, un autre code ou un autre exploitant.',
-        'table_caption' => 'Lignes ferroviaires : code, nom, catégorie de réseau et trafic ou état actuel',
+        'table_caption' => 'Lignes ferroviaires : code, nom, catégorie de réseau et trafic ou état actuel',
         'table_label' => 'Liste des lignes',
         'col_code' => 'Code',
         'col_name' => 'Ligne',
         'col_network' => 'Réseau',
         'col_traffic' => 'Trafic ou état',
-        'unknown_note' => 'Une ligne au tracé inconnu est recensée, mais son tracé n’est pas encore cartographié : on ne peut pas dire si elle est en service ou fermée.',
+        'unknown_note' => 'Une ligne au tracé inconnu est recensée, mais son tracé n’est pas encore cartographié : on ne peut pas dire si elle est en service ou fermée.',
         'filter_network' => 'Catégorie de réseau',
         'filter_traffic' => 'Trafic actuel',
         'filter_state' => 'État actuel',
     ],
 
-    'meta_description' => 'Fiche encyclopédique de la ligne :name : tracé, phases datées, gares, sources.',
+    'meta_description' => 'Fiche encyclopédique de la ligne :name : tracé, phases datées, gares, sources.',
 
     // Phases de la ligne (App\Services\LinePhases) : sélecteur à côté de la carte.
     'phases' => [
         'title' => 'Phases de la ligne',
-        'intro' => 'La ligne entière à chaque date où la voie ou le trafic change, d’après les dates des sources. La carte s’ouvre sur la ligne à son plus grand développement ; choisissez une phase pour voir son état complet à cette date.',
+        'intro' => 'La ligne entière à chaque date où la voie ou le trafic change, d’après les dates des sources. La carte s’ouvre sur la ligne à sa longueur maximale ; choisissez une phase pour voir son état complet à cette date.',
         'empty' => 'Le tracé de cette ligne n’est pas encore connu.',
         'legend' => 'Légende de la carte',
         'gesture_windows' => 'Utilisez Ctrl + molette pour zoomer sur la carte',
@@ -239,8 +228,8 @@ return [
         'gesture_mobile' => 'Utilisez deux doigts pour déplacer la carte',
         'previous' => 'Phase précédente',
         'next' => 'Phase suivante',
-        'show_best' => 'Plus grand développement',
-        'best_badge' => 'Plus grand développement',
+        'show_best' => 'Longueur maximale',
+        'best_badge' => 'Longueur maximale',
         'minor_only' => 'Ajustements du tracé',
         'and_more' => '(+ :count)',
         'between' => 'Entre :from et :to',
@@ -248,18 +237,18 @@ return [
         'before' => 'Avant :year',
         'mode_neighbor' => 'Date de la portion voisine, ouverte ou fermée en même temps selon les sources.',
         'mode_whole_line' => 'Date donnée par la source pour toute la ligne, sans précision de portion.',
-        'mode_undated' => 'Aucune source ne date ce changement : seule la décennie est connue.',
-        'inconsistent' => 'Voie disparue qui réapparaît sans réouverture connue : données à vérifier.',
+        'mode_undated' => 'Aucune source ne date ce changement : seule la décennie est connue.',
+        'inconsistent' => 'Voie disparue qui réapparaît sans réouverture connue : données à vérifier.',
         'minor' => 'Et des ajustements du tracé (:km).',
         'more_portions' => 'autres portions (:count)',
         'whole_line_source' => 'pour toute la ligne',
         'unnamed_portions' => 'portions tracées (:count)',
         'see_on_map' => 'Voir sur la carte',
-        'see_on_map_for' => 'Voir la ligne sur la carte à la date : :date',
+        'see_on_map_for' => 'Voir la ligne sur la carte à la date : :date',
         // Ère courante : changements qu’aucun événement ne date (LinePhases, `unexplained`), hors phases.
         'unexplained_title' => 'Aujourd’hui, d’après les sources actuelles',
-        'unexplained_item' => ':to sur :km (:from dans l’état reconstitué au 31 décembre :year) ; aucune source ne date ce changement.',
-        'unexplained_item_noyear' => ':to sur :km (:from dans l’état reconstitué précédent) ; aucune source ne date ce changement.',
+        'unexplained_item' => ':to sur :km (:from dans l’état reconstitué au 31 décembre :year) ; aucune source ne date ce changement.',
+        'unexplained_item_noyear' => ':to sur :km (:from dans l’état reconstitué précédent) ; aucune source ne date ce changement.',
     ],
 
     // Ce qui change à une phase (de l’état « from » à l’état « to »).
@@ -268,7 +257,7 @@ return [
         'reopening' => 'Réouverture de :km',
         'passenger_end' => 'Fin du trafic voyageurs sur :km, qui restent ouverts au fret',
         'passenger_start' => 'Retour des voyageurs sur :km',
-        'traffic' => 'Changement de trafic sur :km : :from, puis :to',
+        'traffic' => 'Changement de trafic sur :km : :from, puis :to',
         'closure' => 'Fermeture de :km, voie laissée en place',
         'closure_removal' => 'Fin de l’exploitation et disparition de la voie sur :km',
         'removal' => 'Dépose de la voie sur :km',
@@ -300,11 +289,11 @@ return [
         'traced' => 'Portions localisées sur le tracé, sans nom de lieu',
         'near_groups' => 'Portions désignées par un seul lieu',
         'unspecified' => 'Portion non précisée par la source',
-        'event_count' => 'Événements : :count',
+        'event_count' => 'Événements : :count',
         'col_date' => 'Date',
         'col_fact' => 'Fait et source',
         'col_status' => 'Usage sur la fiche',
-        'differs_from' => 'Autre date pour le même fait :',
+        'differs_from' => 'Autre date pour le même fait :',
         'conflict_title' => 'Les sources divergent',
         'status' => [
             'retained' => 'Retenu',
@@ -355,7 +344,7 @@ return [
     ],
 
     'decades' => [
-        'intro' => 'État de la ligne au 31 décembre de chaque décennie, et au jour même pour la décennie en cours. Une voie déposée reste comptée comme déposée. Gares : celles de la ligne, avec leur état à la même date.',
+        'intro' => 'État de la ligne au 31 décembre de chaque décennie, et au jour même pour la décennie en cours. Une voie déposée reste comptée comme déposée. Gares : celles de la ligne, avec leur état à la même date.',
         'col_decade' => 'Décennie',
         'col_state' => 'Composition de la ligne',
         'col_active' => 'En service',
@@ -371,14 +360,14 @@ return [
         'stations_freight_hint' => 'Gares ouvertes au fret seul',
         'stations_closed_hint' => 'Gares fermées',
         'stations_uncertain_hint' => 'Gares dont l’état n’est pas confirmé',
-        'stations_legend' => 'Gares : ouvertes / fermées, ? état non confirmé (même source que la carte et les fiches gares).',
+        'stations_legend' => 'Gares : ouvertes / fermées, ? état non confirmé (même source que la carte et les fiches gares).',
     ],
 
     'stations' => [
-        'empty' => 'Aucune gare n’est encore rattachée à cette ligne. Les gares sont rattachées par leur point kilométrique ou leur position sur le tracé ; si vous connaissez les gares de cette ligne, vous pouvez contribuer.',
+        'empty' => 'Aucune gare n’est encore rattachée à cette ligne. Les gares sont rattachées par leur point kilométrique ou leur position sur le tracé ; si vous connaissez les gares de cette ligne, vous pouvez contribuer.',
         'intro' => 'Toutes les gares et haltes de la ligne, dans l’ordre du tracé, y compris celles qui ont fermé ou se trouvent sur une portion déposée. Le fil de cases montre l’état de chaque gare décennie par décennie.',
-        'opened' => 'ouverte : :date',
-        'closed' => 'fermée : :date',
+        'opened' => 'ouverte : :date',
+        'closed' => 'fermée : :date',
         'life' => 'État de la gare à chaque décennie',
         'status' => [
             'active' => 'Ouverte',
@@ -395,7 +384,7 @@ return [
         'version' => 'version du :date',
         'license' => 'sous licence',
         'adapted' => 'Typographie adaptée.',
-        'curated' => 'Texte rédigé par VFF d’après ses sources :',
+        'curated' => 'Texte rédigé par VFF d’après ses sources :',
     ],
 
     'facts' => [
@@ -403,9 +392,9 @@ return [
         // Ce que décrit chaque valeur du bloc « Fiche » (App\Services\LineFacts).
         'note' => [
             'item' => '{{item}} seulement (Wikidata), pas toute la ligne',
-            'sncf_today' => 'aujourd\'hui, SNCF Réseau (vitesse nominale)',
+            'sncf_today' => 'aujourd’hui, SNCF Réseau (vitesse nominale)',
             'sncf_era' => 'en {{year}}, SNCF Réseau (vitesse nominale)',
-            'vff_line' => 'ligne entière, d\'après son tracé (VFF)',
+            'vff_line' => 'ligne entière, d’après son tracé (VFF)',
             'wikidata_line' => 'Wikidata',
         ],
         'names' => 'Autres noms',
@@ -494,15 +483,15 @@ return [
             'span' => ':from à :to',
             'see' => 'Carte',
             'see_label' => 'Voir sur la carte l’état de :year (phase du :date)',
-            'uncertain_note' => 'Gares non confirmées : citées ouvertes par leurs sources, sans voie connue à cette date pour le confirmer. Les années identiques qui se suivent sont regroupées.',
+            'uncertain_note' => 'Gares non confirmées : citées ouvertes par leurs sources, sans voie connue à cette date pour le confirmer. Les années identiques qui se suivent sont regroupées.',
             'scroll_hint' => 'Faites défiler le tableau vers la droite pour voir toutes les colonnes.',
         ],
         'stations' => [
             'legend_title' => 'Lire le fil des décennies',
             'legend_text' => 'Sous chaque gare, une case par décennie, de :from à aujourd’hui.',
-            'life_label' => 'État par décennie : :text',
-            'run' => ':from à :to : :state',
-            'single' => ':year : :state',
+            'life_label' => 'État par décennie : :text',
+            'run' => ':from à :to : :state',
+            'single' => ':year : :state',
             'today' => 'aujourd’hui',
             'show_all' => 'Afficher les :count gares',
             'show_less' => 'Réduire la liste',
@@ -518,7 +507,7 @@ return [
         'tech' => [
             'pk' => 'PK',
             'pk_title' => 'point kilométrique',
-            'signalling_intro' => 'Cantonnement (espacement des trains : BAL, BAPR, BM…) et contrôle de vitesse (KVB, TVM, ETCS) le long du tracé, état actuel. Source : SNCF Réseau Open Data (modes de cantonnement, lignes équipées du KVB).',
+            'signalling_intro' => 'Cantonnement (espacement des trains : BAL, BAPR, BM…) et contrôle de vitesse (KVB, TVM, ETCS) le long du tracé, état actuel. Source : SNCF Réseau Open Data (modes de cantonnement, lignes équipées du KVB).',
             'signalling_intro_cab' => 'Sur les plages en grande vitesse, la signalisation est en cabine.',
         ],
         'notes' => [

@@ -1,24 +1,11 @@
 <?php
 
 return [
-    'tagline' => 'Where rails meet.',
-    'app_short' => 'VFF',
     'app_full' => 'French Railway Lines',
-    'app_description' => 'Collaborative encyclopedia of the French railway, from 1830 to the present day: lines, stations, maps and sources.',
-    'brand' => 'VFF - Voies Ferrées de France (French Railway Lines)',
+    'app_description' => 'Collaborative encyclopaedia of French railways, from 1830 to the present day: lines, stations, maps and sources.',
 
-    'read_more' => 'Read more',
-    'discover' => 'Discover',
-    'back' => 'Back',
-    'back_home' => 'Back to home',
-    'learn_more' => 'Learn more',
-    'submit' => 'Submit',
     'save' => 'Save',
-    'cancel' => 'Cancel',
     'close' => 'Close',
-    'soon' => 'Soon',
-    'in_progress' => 'Under construction',
-    'wip_subtitle' => 'This section is under construction and will arrive in a later phase of the project.',
     'toc' => 'Contents',
     'osm_attribution' => '© :link contributors',
 

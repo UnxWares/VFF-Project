@@ -2,12 +2,11 @@
 
 return [
     'meta_title' => 'Votre contribution',
-    'meta_description' => "Comment contribuer à VFF : tracés et dates des lignes, médias d'archives, code.",
+    'meta_description' => 'Comment contribuer à VFF : tracés et dates des lignes, médias d’archives, code.',
 
     'hero' => [
-        'eyebrow' => 'Contribuer',
-        'title' => "Participez à l'encyclopédie",
-        'subtitle' => "VFF repose sur ses contributeurs. Voici les trois façons de participer, et comment vos apports sont vérifiés avant d'être publiés.",
+        'title' => 'Participez à l’encyclopédie',
+        'subtitle' => 'VFF repose sur ses contributeurs. Voici les trois façons de participer, et comment vos apports sont vérifiés avant d’être publiés.',
     ],
 
     'ways' => [
@@ -16,8 +15,8 @@ return [
         'data_text' => 'Après inscription, vous pouvez retracer une ligne ou une portion de ligne et dater chaque événement (ouverture, fermeture, dépose) en citant vos sources. Deux validateurs relisent chaque proposition avant publication.',
         'data_status' => 'Un compte est nécessaire',
 
-        'media_title' => "Apporter des médias d'archives",
-        'media_text' => "Vous détenez des photos anciennes, des plans, des documents datés ? Avec votre accord et une licence claire, ils peuvent enrichir les fiches des lignes concernées. Pour un fonds de plus de 50 documents, contactez-nous d'abord.",
+        'media_title' => 'Apporter des médias d’archives',
+        'media_text' => 'Vous détenez des photos anciennes, des plans, des documents datés ? Avec votre accord et une licence claire, ils peuvent enrichir les fiches des lignes concernées. Pour un fonds de plus de 50 documents, contactez-nous d’abord.',
         'media_status' => 'Par le Discord du projet',
 
         'code_title' => 'Contribuer au code',
@@ -38,9 +37,9 @@ return [
     'rules' => [
         'title' => 'Quelques règles',
         'sources_title' => 'Citez vos sources',
-        'sources_text' => "Dates, lieux, faits historiques : indiquez toujours où vous avez trouvé l'information.",
+        'sources_text' => 'Dates, lieux, faits historiques : indiquez toujours où vous avez trouvé l’information.',
         'license_title' => 'Licences claires',
-        'license_text' => "Vos contributions sont publiées sous ODbL (données) et CC BY-SA 4.0 (textes, photos, documents). N'envoyez que ce que vous avez le droit de partager.",
+        'license_text' => 'Vos contributions sont publiées sous ODbL (données) et CC BY-SA 4.0 (textes, photos, documents). N’envoyez que ce que vous avez le droit de partager.',
         'license_link' => 'Conditions d’utilisation',
         'respect_title' => 'Respect',
         'respect_text' => 'Bienveillance entre contributeurs, échanges factuels, pas de débat politique.',

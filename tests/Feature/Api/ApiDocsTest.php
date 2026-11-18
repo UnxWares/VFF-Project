@@ -112,7 +112,7 @@ class ApiDocsTest extends TestCase
     public static function locales(): array
     {
         return [
-            'fr' => ['fr', 'Accès à l\'API'],
+            'fr' => ['fr', 'Accès à l’API'],
             'en' => ['en', 'API access'],
             'de' => ['de', 'API-Zugang'],
         ];

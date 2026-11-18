@@ -5,7 +5,7 @@ return [
     'meta_description' => 'Who makes VFF and why: a collaborative encyclopaedia of the French rail network, published by UnxWares.',
 
     'hero' => [
-        'title' => 'An encyclopedia born of shared passion',
+        'title' => 'An encyclopaedia born of a shared passion',
         'subtitle' => 'Why and how we document French railway heritage, from lines in service to vanished ones.',
     ],
 
@@ -14,13 +14,13 @@ return [
         'intro' => 'VFF is an UnxWares project, run by its two partners and by the contributors who build up the encyclopaedia.',
         'baptiste' => [
             'name' => 'Baptiste Gosselin',
-            'role' => 'President of UnxWares',
+            'role' => 'president of UnxWares',
             'quote' => '“Railways are at the heart of who I am. For years I have been scouring the internet to learn about the lines that once linked towns together, particularly in Normandy, and sharing what I find with my friends. The idea for VFF came to me after my grandmother died: while clearing her house, we found some old postcards, several of them showing trains and stations. I kept them. There are many projects to take on in a lifetime: we should carry them out while we can.”',
         ],
         'david' => [
             'name' => 'David',
             'role' => 'partner at UnxWares',
-            'text' => 'He also works with Traktion, a train driver assistance project that UnxWares works with.',
+            'text' => 'He too works with Traktion, a train driver assistance project with which UnxWares collaborates.',
         ],
         'unxwares' => [
             'name' => 'UnxWares',
@@ -35,7 +35,7 @@ return [
 
     'vision' => [
         'title' => 'Our aim',
-        'paragraph' => 'To bring together in one place what is known about the French rail network. Each line has its own page, from its opening to today or to its closure, with its stations, its sources and, when we have them, archive photographs and plans. It is a collaborative encyclopedia: what appears in it is sourced and reviewed before publication.',
+        'paragraph' => 'To bring together in one place what is known about the French rail network. Each line has its own page, from its opening to today or to its closure, with its stations, its sources and, when we have them, archive photographs and plans. It is a collaborative encyclopaedia: what appears in it is sourced and reviewed before publication.',
     ],
 
     'values' => [
@@ -47,7 +47,7 @@ return [
         'collective_title' => 'Collective',
         'collective_text' => 'No one can document the whole network alone. VFF only exists through its contributors.',
         'durable_title' => 'Built to last',
-        'durable_text' => 'An encyclopedia takes years to build. We choose sources and tools that stand the test of time.',
+        'durable_text' => 'An encyclopaedia takes years to build. We choose sources and tools that stand the test of time.',
     ],
 
     'milestones' => [
@@ -64,7 +64,7 @@ return [
 
     'cta' => [
         'title' => 'Join the project',
-        'text' => 'The project only stands thanks to its community. You can document lines, offer archives or code, or support the project.',
+        'text' => 'The project depends on its community. You can document lines, offer archives or code, or support the project.',
         'contribute' => 'How to contribute',
         'donate' => 'Support the project',
     ],

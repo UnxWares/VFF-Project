@@ -9,6 +9,8 @@ return [
         'tagline' => 'The encyclopaedia of French railway lines, from 1830 to the present day',
         'open_map' => 'Open the map',
         'search' => 'Search for a line or station',
+        // Background: detail of Vuillemin's map (1865), see credits.media.partners.home_map_*.
+        'credit' => 'Background: railway map by Alexandre Vuillemin (1865), public domain',
     ],
 
     // Introduction (original design: logo, title, text, two buttons).
@@ -25,7 +27,7 @@ return [
         'kind_threatened' => 'Threatened line',
         'kind_reopening' => 'Reopening campaign',
         'threatened' => 'Threatened line',
-        'reopening' => 'Reopen the line',
+        'reopening' => 'For the reopening of the line',
         'see_line' => 'See the line page',
         'act' => 'Take action',
         'default_title_threatened' => 'Line threatened with closure',
@@ -85,7 +87,7 @@ return [
     'archives' => [
         'title' => 'The railway in pictures',
         'intro' => 'Photographs and postcards published on Wikimedia Commons and linked to the line pages, with their author and licence.',
-        'decade' => 'Around :year',
+        'decade' => 'The :year decade',
         'author_unknown' => 'Unknown author',
         'source' => 'Wikimedia Commons',
         'cta' => 'Browse the lines',
@@ -95,7 +97,7 @@ return [
     'quick' => [
         'label' => 'Quick access',
         'shortcut_hint' => 'On every page, :keys opens the search.',
-        'map_detail' => '1830 to today',
+        'map_detail' => 'From 1830 to today',
         'materials_detail' => 'Locomotives, multiple units, coaches',
         'api_detail' => 'REST, GraphQL, GeoJSON',
         'contribute_detail' => 'Correct a line, cite a source',
@@ -113,7 +115,7 @@ return [
         'stations_count_one' => ":value\u{00A0}page",
         'stations_count_other' => ":value\u{00A0}pages",
         'materials_title' => 'Rolling stock',
-        'materials_text' => 'Locomotives, multiple units and carriages, with the lines they ran on.',
+        'materials_text' => 'Locomotives, multiple units and coaches, with the lines they ran on.',
         'materials_count_one' => ":value\u{00A0}page",
         'materials_count_other' => ":value\u{00A0}pages",
         'map_title' => 'Historical map',

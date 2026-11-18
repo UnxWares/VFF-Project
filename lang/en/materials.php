@@ -29,7 +29,7 @@ return [
     'period' => 'In service',
     'builder' => 'Builder',
     'key_figures' => 'Key figures',
-    'lines' => 'Lines served',
+    'lines' => 'Lines run on',
     'no_lines' => 'No line references this rolling stock yet.',
     'contribute' => 'Contribute',
     'types' => [

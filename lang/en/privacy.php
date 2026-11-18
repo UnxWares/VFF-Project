@@ -11,7 +11,6 @@ return [
     'meta_description' => 'Personal data processed by Voies Ferrées de France, cookies, third-party services and your rights.',
 
     'hero' => [
-        'eyebrow' => 'Personal data',
         'title' => 'Privacy policy',
         'updated' => 'Last updated: :date',
     ],
@@ -78,8 +77,8 @@ return [
 
     'contributions' => [
         'title' => 'Contributions',
-        'paragraph' => '<p>Each contribution (route, dated event, correction, document) is recorded with your identifier and its date, then, once reviewed, with the identifier of the person who approved or rejected it and their remarks. Validators see the author\'s display name. A validated contribution enters the encyclopedia under the licence provided for in the terms of use.</p>'
-            .'<p>If you delete your account, your validated contributions remain published, because they are part of the encyclopedia and its licence, but they are no longer linked to your name. Your pending contributions are deleted.</p>',
+        'paragraph' => '<p>Each contribution (route, dated event, correction, document) is recorded with your identifier and its date, then, once reviewed, with the identifier of the person who approved or rejected it and their remarks. Validators see the author\'s display name. A validated contribution enters the encyclopaedia under the licence provided for in the terms of use.</p>'
+            .'<p>If you delete your account, your validated contributions remain published, because they are part of the encyclopaedia and its licence, but they are no longer linked to your name. Your pending contributions are deleted.</p>',
     ],
 
     'emails' => [
