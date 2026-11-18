@@ -44,7 +44,7 @@ return [
     'doesnt_contain' => 'Le champ :attribute ne doit contenir aucune des valeurs suivantes : :values.',
     'doesnt_end_with' => 'Le champ :attribute ne doit pas se terminer par l\'une des valeurs suivantes : :values.',
     'doesnt_start_with' => 'Le champ :attribute ne doit pas commencer par l\'une des valeurs suivantes : :values.',
-    'email' => 'Le champ :attribute doit être une adresse électronique valide.',
+    'email' => 'Le champ :attribute doit être une adresse e-mail valide.',
     'encoding' => 'Le champ :attribute doit être encodé en :encoding.',
     'ends_with' => 'Le champ :attribute doit se terminer par l\'une des valeurs suivantes : :values.',
     'enum' => 'La valeur sélectionnée pour :attribute n\'est pas valide.',
@@ -160,12 +160,19 @@ return [
     'ulid' => 'Le champ :attribute doit être un ULID valide.',
     'uuid' => 'Le champ :attribute doit être un UUID valide.',
 
-    'custom' => [],
+    'custom' => [
+        'email' => [
+            'unique' => 'Cette adresse e-mail est déjà associée à un compte.',
+        ],
+        'password' => [
+            'confirmed' => 'Les deux mots de passe ne sont pas identiques.',
+        ],
+    ],
 
     // Noms d'attributs lisibles
     'attributes' => [
-        'name' => 'nom',
-        'email' => 'adresse électronique',
+        'name' => 'nom d\'affichage',
+        'email' => 'adresse e-mail',
         'password' => 'mot de passe',
         'password_confirmation' => 'confirmation du mot de passe',
         'current_password' => 'mot de passe actuel',

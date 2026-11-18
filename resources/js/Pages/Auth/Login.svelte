@@ -2,6 +2,10 @@
     import { Link, useForm, page } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
     import AuthCard from '$components/AuthCard.svelte';
+    import Field from '$components/ui/Field.svelte';
+    import Notice from '$components/ui/Notice.svelte';
+    import PasswordField from './PasswordField.svelte';
+    import { focusFirstError, isEmail } from './authForm.js';
     import { i18n } from '$lib/i18n.js';
 
     // useForm gère la soumission Inertia (CSRF, errors, processing).
@@ -13,10 +17,40 @@
     });
 
     let flash = $derived(page.props.flash?.success ?? null);
+    /** Refus du serveur (identifiants faux, trop de tentatives) : message du formulaire, pas d'un champ. */
+    let failure = $state('');
+
+    /** Contrôle dans le navigateur avant l'envoi : champs vides, adresse mal formée. */
+    function check() {
+        /** @type {Record<string, string>} */
+        const errors = {};
+        if (!form.email.trim()) {
+            errors.email = $i18n.t('auth.errors.email_required');
+        } else if (!isEmail(form.email)) {
+            errors.email = $i18n.t('auth.errors.email_invalid');
+        }
+        if (!form.password) {
+            errors.password = $i18n.t('auth.errors.password_required');
+        }
+        return errors;
+    }
 
     function submit(e) {
         e.preventDefault();
+        failure = '';
+        form.clearErrors();
+        const errors = check();
+        if (Object.keys(errors).length > 0) {
+            form.setError(errors);
+            focusFirstError(['email', 'password']);
+            return;
+        }
         form.post('/login', {
+            onError: (errs) => {
+                failure = errs.email ?? errs.password ?? '';
+                form.clearErrors();
+                document.getElementById('password')?.focus();
+            },
             onFinish: () => form.reset('password'),
         });
     }
@@ -28,52 +62,52 @@
 
 <Layout compactHeader>
     <main>
-        <AuthCard
-            title={$i18n.t('auth.login_title')}
-            subtitle={$i18n.t('auth.login_subtitle')}
-            icon="bi-box-arrow-in-right"
-        >
+        <AuthCard title={$i18n.t('auth.login_title')} subtitle={$i18n.t('auth.login_subtitle')}>
             {#if flash}
-                <div class="auth-flash">{flash}</div>
+                <Notice tone="success">{flash}</Notice>
             {/if}
 
             <form class="auth-form" onsubmit={submit} novalidate>
-                <div class="auth-field">
-                    <label for="email">{$i18n.t('auth.email_label')}</label>
-                    <input
-                        id="email"
-                        type="email"
-                        autocomplete="email"
-                        required
-                        bind:value={form.email}
-                    />
-                    {#if form.errors.email}
-                        <span class="error">{form.errors.email}</span>
-                    {/if}
-                </div>
+                {#if failure}
+                    <Notice
+                        tone="danger"
+                        live="assertive"
+                        title={$i18n.t('auth.errors.login_failed_title')}>{failure}</Notice
+                    >
+                {/if}
 
-                <div class="auth-field">
-                    <label for="password">{$i18n.t('auth.password_label')}</label>
-                    <input
-                        id="password"
-                        type="password"
-                        autocomplete="current-password"
-                        required
-                        bind:value={form.password}
-                    />
-                    {#if form.errors.password}
-                        <span class="error">{form.errors.password}</span>
-                    {/if}
-                </div>
+                <Field id="email" label={$i18n.t('auth.email_label')} error={form.errors.email}>
+                    {#snippet children(attrs)}
+                        <input
+                            {...attrs}
+                            name="email"
+                            class="vff-input"
+                            type="email"
+                            autocomplete="username"
+                            spellcheck="false"
+                            autocapitalize="none"
+                            required
+                            bind:value={form.email}
+                        />
+                    {/snippet}
+                </Field>
 
-                <label class="auth-checkbox">
-                    <input type="checkbox" bind:checked={form.remember} />
+                <PasswordField
+                    id="password"
+                    label={$i18n.t('auth.password_label')}
+                    autocomplete="current-password"
+                    error={form.errors.password}
+                    bind:value={form.password}
+                />
+
+                <label class="vff-check remember">
+                    <input type="checkbox" name="remember" bind:checked={form.remember} />
                     {$i18n.t('auth.remember_label')}
                 </label>
 
                 <div class="auth-actions">
-                    <button type="submit" class="vff-btn primary" disabled={form.processing}>
-                        <i class="bi bi-box-arrow-in-right"></i>
+                    <button type="submit" class="vff-btn primary block" disabled={form.processing}>
+                        <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
                         {$i18n.t('auth.login_cta')}
                     </button>
                 </div>
@@ -89,3 +123,17 @@
         </AuthCard>
     </main>
 </Layout>
+
+<style>
+    /* Case de 24 px : cible tactile conforme ; 44 px de haut pour le libellé cliquable sur téléphone.
+       À remonter dans general.css : .vff-check input à 24 px. */
+    .remember input {
+        width: 24px;
+        height: 24px;
+    }
+    @media (max-width: 600px) {
+        .remember {
+            min-height: 44px;
+        }
+    }
+</style>

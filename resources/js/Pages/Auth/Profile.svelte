@@ -1,27 +1,55 @@
 <script>
-    import { useForm, page } from '@inertiajs/svelte';
+    import { Link, useForm, page } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
+    import PageHero from '$components/PageHero.svelte';
+    import Field from '$components/ui/Field.svelte';
+    import Notice from '$components/ui/Notice.svelte';
+    import { focusFirstError } from './authForm.js';
     import { LOCALES, i18n } from '$lib/i18n.js';
 
     let { profile } = $props();
 
     // PUT pour matcher la route REST `Route::put('/profile', ...)`.
-    // Inertia transmet automatiquement _method=PUT en POST + CSRF.
+    // Inertia transmet automatiquement _method=PUT en POST + CSRF. Valeurs de départ du formulaire.
+    // svelte-ignore state_referenced_locally
     const form = useForm({
         name: profile.name ?? '',
         bio: profile.bio ?? '',
         locale_preference: profile.locale_preference ?? 'fr',
     });
 
+    const FIELDS = ['name', 'bio', 'locale'];
+    const ROLE_TONES = {
+        visitor: 'muted',
+        contributor: 'info',
+        validator: 'success',
+        admin: 'accent',
+    };
+
     let flash = $derived(page.props.flash?.success ?? null);
     let roleLabel = $derived($i18n.t(`auth.roles.${profile.role}`));
     let memberSince = $derived(
-        profile.created_at ? new Date(profile.created_at).toLocaleDateString($i18n.language) : '-',
+        profile.created_at
+            ? new Date(profile.created_at).toLocaleDateString($i18n.language, {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+              })
+            : null,
     );
 
     function submit(e) {
         e.preventDefault();
-        form.put('/profile', { preserveScroll: true });
+        form.clearErrors();
+        if (!form.name.trim()) {
+            form.setError('name', $i18n.t('auth.errors.name_required'));
+            focusFirstError(FIELDS);
+            return;
+        }
+        form.put('/profile', {
+            preserveScroll: true,
+            onError: () => focusFirstError(FIELDS),
+        });
     }
 </script>
 
@@ -30,231 +58,240 @@
 </svelte:head>
 
 <Layout compactHeader>
-    <main class="profile-page">
-        <div class="profile-grid">
-            <aside class="profile-sidebar">
-                <div class="avatar">
+    <main>
+        <PageHero
+            title={$i18n.t('auth.profile_title')}
+            subtitle={$i18n.t('auth.profile_subtitle')}
+        />
+
+        <div class="vff-container profile-page">
+            <div class="profile-grid">
+                <aside class="identity" aria-labelledby="identity-name">
                     {#if profile.avatar_path}
-                        <img src={profile.avatar_path} alt={profile.name} />
+                        <img
+                            class="avatar"
+                            src={profile.avatar_path}
+                            alt=""
+                            width="96"
+                            height="96"
+                        />
                     {:else}
-                        <i class="bi bi-person-circle"></i>
+                        <i class="bi bi-person-circle avatar-icon" aria-hidden="true"></i>
                     {/if}
-                </div>
-                <h2>{profile.name}</h2>
-                <p class="email">{profile.email}</p>
+                    <h2 id="identity-name">{profile.name}</h2>
+                    <p class="email">{profile.email}</p>
 
-                <dl class="meta">
-                    <dt>{$i18n.t('auth.role_label')}</dt>
-                    <dd><span class="badge role-{profile.role}">{roleLabel}</span></dd>
+                    <dl class="meta">
+                        <div>
+                            <dt>{$i18n.t('auth.role_label')}</dt>
+                            <dd>
+                                <span class="vff-badge {ROLE_TONES[profile.role] ?? 'muted'}"
+                                    >{roleLabel}</span
+                                >
+                            </dd>
+                        </div>
+                        <div>
+                            <dt>{$i18n.t('auth.reputation_label')}</dt>
+                            <dd>{profile.reputation.toLocaleString($i18n.language)}</dd>
+                        </div>
+                        {#if memberSince}
+                            <div>
+                                <dt>{$i18n.t('auth.member_since')}</dt>
+                                <dd><time datetime={profile.created_at}>{memberSince}</time></dd>
+                            </div>
+                        {/if}
+                    </dl>
 
-                    <dt>{$i18n.t('auth.reputation_label')}</dt>
-                    <dd><i class="bi bi-star-fill"></i> {profile.reputation}</dd>
+                    <Link class="vff-link" href="/contribute/mine"
+                        >{$i18n.t('auth.my_contributions')}</Link
+                    >
+                </aside>
 
-                    <dt>{$i18n.t('auth.member_since')}</dt>
-                    <dd>{memberSince}</dd>
-                </dl>
-            </aside>
+                <section class="edit" aria-labelledby="edit-title">
+                    <h2 id="edit-title" class="vff-section-title">{$i18n.t('auth.edit_title')}</h2>
 
-            <section class="profile-form-wrap">
-                <div class="page-header">
-                    <h1>{$i18n.t('auth.profile_title')}</h1>
-                    <p class="subtitle">{$i18n.t('auth.profile_subtitle')}</p>
-                </div>
-
-                {#if flash}
-                    <div class="flash"><i class="bi bi-check2-circle"></i> {flash}</div>
-                {/if}
-
-                <form onsubmit={submit} novalidate>
-                    <div class="field">
-                        <label for="name">{$i18n.t('auth.name_label')}</label>
-                        <input id="name" type="text" required bind:value={form.name} />
-                        {#if form.errors.name}<span class="error">{form.errors.name}</span>{/if}
+                    <div aria-live="polite">
+                        {#if flash}
+                            <Notice tone="success" live="off">{flash}</Notice>
+                        {/if}
                     </div>
 
-                    <div class="field">
-                        <label for="bio">{$i18n.t('auth.bio_label')}</label>
-                        <textarea
+                    <form class="vff-panel" onsubmit={submit} novalidate>
+                        <Field
+                            id="name"
+                            label={$i18n.t('auth.name_label')}
+                            hint={$i18n.t('auth.name_hint')}
+                            error={form.errors.name}
+                        >
+                            {#snippet children(attrs)}
+                                <input
+                                    {...attrs}
+                                    name="name"
+                                    class="vff-input"
+                                    type="text"
+                                    autocomplete="name"
+                                    maxlength="255"
+                                    required
+                                    bind:value={form.name}
+                                />
+                            {/snippet}
+                        </Field>
+
+                        <Field
                             id="bio"
-                            rows="5"
-                            placeholder={$i18n.t('auth.bio_placeholder')}
-                            bind:value={form.bio}
-                        ></textarea>
-                        {#if form.errors.bio}<span class="error">{form.errors.bio}</span>{/if}
-                    </div>
+                            label={$i18n.t('auth.bio_label')}
+                            hint={$i18n.t('auth.bio_hint')}
+                            error={form.errors.bio}
+                        >
+                            {#snippet children(attrs)}
+                                <textarea
+                                    {...attrs}
+                                    name="bio"
+                                    class="vff-textarea"
+                                    rows="5"
+                                    maxlength="2000"
+                                    bind:value={form.bio}
+                                ></textarea>
+                            {/snippet}
+                        </Field>
 
-                    <div class="field">
-                        <label for="locale">{$i18n.t('auth.locale_label')}</label>
-                        <select id="locale" bind:value={form.locale_preference}>
-                            {#each LOCALES as l}
-                                <option value={l.code}>{l.flag} {l.name}</option>
-                            {/each}
-                        </select>
-                    </div>
+                        <Field
+                            id="locale"
+                            label={$i18n.t('auth.locale_label')}
+                            hint={$i18n.t('auth.locale_hint')}
+                            error={form.errors.locale_preference}
+                        >
+                            {#snippet children(attrs)}
+                                <select
+                                    {...attrs}
+                                    name="locale_preference"
+                                    class="vff-select"
+                                    bind:value={form.locale_preference}
+                                >
+                                    {#each LOCALES as l (l.code)}
+                                        <option value={l.code} lang={l.code}>{l.name}</option>
+                                    {/each}
+                                </select>
+                            {/snippet}
+                        </Field>
 
-                    <div class="actions">
-                        <button type="submit" class="vff-btn primary" disabled={form.processing}>
-                            <i class="bi bi-floppy"></i>
-                            {$i18n.t('auth.save_profile')}
-                        </button>
-                    </div>
-                </form>
-            </section>
+                        <div class="actions">
+                            <button
+                                type="submit"
+                                class="vff-btn primary"
+                                disabled={form.processing}
+                            >
+                                <i class="bi bi-floppy" aria-hidden="true"></i>
+                                {$i18n.t('auth.save_profile')}
+                            </button>
+                        </div>
+                    </form>
+                </section>
+            </div>
         </div>
     </main>
 </Layout>
 
 <style>
     .profile-page {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 48px 20px;
+        padding-block: var(--vff-section-space);
     }
     .profile-grid {
         display: grid;
-        grid-template-columns: 280px 1fr;
-        gap: 32px;
+        grid-template-columns: minmax(220px, 280px) minmax(0, 640px);
+        gap: var(--vff-block-space) 64px;
+        align-items: start;
     }
-    .profile-sidebar {
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-lg);
-        padding: 28px 22px;
-        text-align: center;
+
+    /* Identité : une fiche à filets, sans cadre. */
+    .identity {
+        min-width: 0;
     }
-    .avatar :global(i.bi) {
-        font-size: 96px;
-        color: var(--vff-accent);
+    .avatar-icon {
+        display: block;
+        font-size: 72px;
+        line-height: 1;
+        color: var(--vff-text-muted);
     }
-    .avatar img {
-        width: 128px;
-        height: 128px;
+    .avatar {
+        display: block;
+        width: 96px;
+        height: 96px;
         border-radius: 50%;
         object-fit: cover;
-        border: 3px solid var(--vff-accent);
+        border: 1px solid var(--vff-border-strong);
     }
-    .profile-sidebar h2 {
-        margin: 12px 0 4px;
-        font-family: var(--vff-font-display);
-        font-size: 22px;
-        color: var(--vff-text);
+    .identity h2 {
+        margin: 16px 0 4px;
+        font-size: 24px;
+        line-height: var(--vff-lh-heading);
+        overflow-wrap: anywhere;
     }
     .email {
-        margin: 0 0 18px;
+        margin: 0 0 24px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
-        font-size: 14px;
-        word-break: break-all;
+        overflow-wrap: anywhere;
     }
     .meta {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px 12px;
-        margin: 0;
-        text-align: left;
+        margin: 0 0 20px;
+        border-top: 1px solid var(--vff-border);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+    }
+    .meta > div {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 16px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--vff-border);
     }
     .meta dt {
-        font-size: 13px;
         color: var(--vff-text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
     }
     .meta dd {
         margin: 0;
-        font-size: 14px;
-        color: var(--vff-text);
         font-weight: 600;
-    }
-    .badge {
-        display: inline-block;
-        padding: 3px 10px;
-        border-radius: var(--vff-radius-pill);
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        background-color: var(--vff-accent-soft);
-        color: var(--vff-accent);
-    }
-    .badge.role-admin {
-        background-color: #fee2e2;
-        color: #b91c1c;
-    }
-    .badge.role-validator {
-        background-color: #dbeafe;
-        color: #1e40af;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
     }
 
-    .profile-form-wrap {
-        background-color: var(--vff-bg);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-lg);
-        padding: 32px 28px;
+    /* Formulaire. */
+    .edit {
+        min-width: 0;
     }
-    .profile-form-wrap .page-header h1 {
-        margin: 0;
-        font-family: var(--vff-font-display);
-        font-size: 26px;
+    .edit :global(.vff-section-title) {
+        margin: 0 0 var(--vff-space-5);
     }
-    .profile-form-wrap .subtitle {
-        margin: 6px 0 24px;
-        color: var(--vff-text-muted);
-        font-size: 15px;
-    }
-    .flash {
-        background-color: var(--vff-accent-soft);
-        color: var(--vff-accent);
-        padding: 10px 12px;
-        border-radius: var(--vff-radius-sm);
-        margin-bottom: 18px;
-        font-size: 14px;
+    .edit div[aria-live] :global(.vff-notice) {
+        margin-bottom: var(--vff-space-5);
     }
     form {
         display: flex;
         flex-direction: column;
-        gap: 18px;
-    }
-    .field {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-    .field label {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--vff-text);
-    }
-    .field input,
-    .field textarea,
-    .field select {
-        padding: 10px 12px;
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-sm);
-        background-color: var(--vff-bg);
-        color: var(--vff-text);
-        font-family: var(--vff-font-body);
-        font-size: 15px;
-        transition:
-            border-color var(--vff-transition),
-            box-shadow var(--vff-transition);
-    }
-    .field input:focus,
-    .field textarea:focus,
-    .field select:focus {
-        outline: none;
-        border-color: var(--vff-accent);
-        box-shadow: 0 0 0 3px var(--vff-accent-soft);
-    }
-    .error {
-        color: #c53030;
-        font-size: 13px;
+        gap: 20px;
+        padding: 28px;
     }
     .actions {
-        margin-top: 8px;
+        margin-top: 4px;
     }
 
-    @media (max-width: 720px) {
+    @media (max-width: 900px) {
         .profile-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .identity {
+            max-width: 420px;
+        }
+    }
+    @media (max-width: 600px) {
+        form {
+            padding: 20px 16px;
+        }
+        .actions :global(.vff-btn) {
+            width: 100%;
         }
     }
 </style>

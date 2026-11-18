@@ -160,11 +160,18 @@ return [
     'ulid' => 'Das Feld :attribute muss eine gültige ULID sein.',
     'uuid' => 'Das Feld :attribute muss eine gültige UUID sein.',
 
-    'custom' => [],
+    'custom' => [
+        'email' => [
+            'unique' => 'Diese E-Mail-Adresse ist bereits mit einem Konto verknüpft.',
+        ],
+        'password' => [
+            'confirmed' => 'Die beiden Passwörter stimmen nicht überein.',
+        ],
+    ],
 
     // Noms d'attributs lisibles
     'attributes' => [
-        'name' => 'Name',
+        'name' => 'Anzeigename',
         'email' => 'E-Mail-Adresse',
         'password' => 'Passwort',
         'password_confirmation' => 'Passwortbestätigung',

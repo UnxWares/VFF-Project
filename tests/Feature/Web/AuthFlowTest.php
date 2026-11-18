@@ -177,7 +177,7 @@ class AuthFlowTest extends TestCase
         $response = $this->post('/login', ['email' => 'cible@example.org', 'password' => 'password']);
         $response->assertSessionHasErrors('email');
         $this->assertMatchesRegularExpression(
-            '/^Trop de tentatives\. Réessaye dans \d+ secondes\.$/u',
+            '/^Trop de tentatives\. Réessayez dans \d+ secondes\.$/u',
             session('errors')->first('email'),
         );
         $this->assertGuest();
@@ -289,7 +289,7 @@ class AuthFlowTest extends TestCase
         $this->post('/register', [
             'name' => 'Doublon', 'email' => 'pris@example.org',
             'password' => 'motdepasse8', 'password_confirmation' => 'motdepasse8',
-        ])->assertSessionHasErrors(['email' => __('validation.unique', ['attribute' => __('validation.attributes.email')])]);
+        ])->assertSessionHasErrors(['email' => __('validation.custom.email.unique')]);
 
         $this->assertSame(1, User::count());
     }
