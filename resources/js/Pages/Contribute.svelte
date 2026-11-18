@@ -4,7 +4,7 @@
     import IconCard from '$components/IconCard.svelte';
     import SectionBlock from '$components/SectionBlock.svelte';
     import { i18n } from '$lib/i18n.js';
-    import { scrollReveal } from '$lib/actions/scrollReveal.js';
+    import { Link, page } from '@inertiajs/svelte';
 
     const ways = [
         {
@@ -28,21 +28,9 @@
     ];
 
     const steps = [
-        {
-            num: '1',
-            titleKey: 'contribute.process.step1_title',
-            textKey: 'contribute.process.step1_text',
-        },
-        {
-            num: '2',
-            titleKey: 'contribute.process.step2_title',
-            textKey: 'contribute.process.step2_text',
-        },
-        {
-            num: '3',
-            titleKey: 'contribute.process.step3_title',
-            textKey: 'contribute.process.step3_text',
-        },
+        { titleKey: 'contribute.process.step1_title', textKey: 'contribute.process.step1_text' },
+        { titleKey: 'contribute.process.step2_title', textKey: 'contribute.process.step2_text' },
+        { titleKey: 'contribute.process.step3_title', textKey: 'contribute.process.step3_text' },
     ];
 
     const rules = [
@@ -55,6 +43,7 @@
             icon: 'bi-file-earmark-check',
             titleKey: 'contribute.rules.license_title',
             textKey: 'contribute.rules.license_text',
+            link: true,
         },
         {
             icon: 'bi-heart',
@@ -62,6 +51,8 @@
             textKey: 'contribute.rules.respect_text',
         },
     ];
+
+    const signedIn = $derived(Boolean(page.props.auth?.user));
 </script>
 
 <svelte:head>
@@ -77,9 +68,9 @@
             subtitle={$i18n.t('contribute.hero.subtitle')}
         />
 
-        <SectionBlock maxWidth="1100px">
-            <div class="ways-grid" use:scrollReveal={{ threshold: 0.2 }}>
-                {#each ways as w}
+        <SectionBlock title={$i18n.t('contribute.ways.title')} maxWidth="1180px">
+            <div class="ways-grid">
+                {#each ways as w (w.titleKey)}
                     <IconCard
                         icon={w.icon}
                         title={$i18n.t(w.titleKey)}
@@ -90,11 +81,11 @@
             </div>
         </SectionBlock>
 
-        <SectionBlock kind="alt" title={$i18n.t('contribute.process.title')} maxWidth="900px">
+        <SectionBlock kind="alt" title={$i18n.t('contribute.process.title')} maxWidth="760px">
             <ol class="steps">
-                {#each steps as s}
+                {#each steps as s, i (s.titleKey)}
                     <li>
-                        <span class="step-num">{s.num}</span>
+                        <span class="step-num" aria-hidden="true">{i + 1}</span>
                         <div>
                             <h3>{$i18n.t(s.titleKey)}</h3>
                             <p>{$i18n.t(s.textKey)}</p>
@@ -104,99 +95,120 @@
             </ol>
         </SectionBlock>
 
-        <SectionBlock title={$i18n.t('contribute.rules.title')} maxWidth="900px">
+        <SectionBlock title={$i18n.t('contribute.rules.title')} maxWidth="1180px">
             <div class="rules-grid">
-                {#each rules as r}
-                    <IconCard icon={r.icon} title={$i18n.t(r.titleKey)} text={$i18n.t(r.textKey)} />
+                {#each rules as r (r.titleKey)}
+                    <div class="rule">
+                        <IconCard
+                            icon={r.icon}
+                            title={$i18n.t(r.titleKey)}
+                            text={$i18n.t(r.textKey)}
+                        />
+                        {#if r.link}
+                            <Link href="/use-conditions" class="vff-link">
+                                {$i18n.t('contribute.rules.license_link')}
+                            </Link>
+                        {/if}
+                    </div>
                 {/each}
             </div>
         </SectionBlock>
 
-        <SectionBlock kind="cta" maxWidth="700px">
-            <h2>{$i18n.t('contribute.cta.title')}</h2>
-            <p>{$i18n.t('contribute.cta.text')}</p>
-            <div class="cta-buttons">
-                <a href="/contribute/edit-segment" class="vff-btn on-cta">
-                    <i class="bi bi-pencil-square"></i>
-                    {$i18n.t('contribute.cta.edit_segment')}
-                </a>
+        <SectionBlock
+            kind="cta"
+            title={$i18n.t('contribute.cta.title')}
+            intro={$i18n.t('contribute.cta.text')}
+        >
+            {#snippet actions()}
+                {#if signedIn}
+                    <Link href="/contribute/edit-segment" class="vff-btn primary">
+                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                        {$i18n.t('contribute.cta.edit_segment')}
+                    </Link>
+                {:else}
+                    <Link href="/register" class="vff-btn primary">
+                        <i class="bi bi-person-plus" aria-hidden="true"></i>
+                        {$i18n.t('contribute.cta.register')}
+                    </Link>
+                {/if}
                 <a
                     href="https://discord.com/invite/6SwTfXBx4h"
                     target="_blank"
-                    rel="noopener"
-                    class="vff-btn ghost-on-cta"
+                    rel="noopener noreferrer"
+                    class="vff-btn secondary"
                 >
-                    <i class="bi bi-discord"></i>
-                    {$i18n.t('contribute.cta.discord')}
+                    <i class="bi bi-discord" aria-hidden="true"></i>
+                    {$i18n.t('contribute.cta.discord')}<span class="vff-sr-only">
+                        ({$i18n.t('common.new_tab')})</span
+                    >
                 </a>
                 <a
                     href="https://github.com/UnxWares/VFF-Project"
                     target="_blank"
-                    rel="noopener"
-                    class="vff-btn ghost-on-cta"
+                    rel="noopener noreferrer"
+                    class="vff-btn secondary"
                 >
-                    <i class="bi bi-github"></i>
-                    {$i18n.t('contribute.cta.github')}
+                    <i class="bi bi-github" aria-hidden="true"></i>
+                    {$i18n.t('contribute.cta.github')}<span class="vff-sr-only">
+                        ({$i18n.t('common.new_tab')})</span
+                    >
                 </a>
-            </div>
+            {/snippet}
         </SectionBlock>
     </main>
 </Layout>
 
 <style>
-    .ways-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 24px;
-    }
+    .ways-grid,
     .rules-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 24px 32px;
     }
-    .steps {
-        list-style: none;
-        padding: 0;
-        margin: 0;
+    .rule {
         display: flex;
         flex-direction: column;
-        gap: 32px;
+        align-items: flex-start;
+        gap: var(--vff-space-2);
+    }
+
+    /* Étapes : une vraie suite, donc numérotée. Même filet que les points ci-dessus. */
+    .steps {
+        display: grid;
+        gap: var(--vff-space-5);
+        margin: 0;
+        padding: 0;
+        list-style: none;
     }
     .steps li {
-        display: flex;
-        align-items: flex-start;
-        gap: 24px;
+        display: grid;
+        grid-template-columns: 2.5rem minmax(0, 1fr);
+        column-gap: var(--vff-space-4);
+        padding-top: 14px;
+        border-top: 1px solid var(--vff-border-strong);
     }
     .step-num {
-        flex: 0 0 56px;
-        width: 56px;
-        height: 56px;
-        background-color: var(--vff-accent-strong);
-        color: var(--vff-text-inverse);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         font-family: var(--vff-font-display);
-        font-size: 24px;
-        font-weight: 600;
+        font-size: var(--vff-fs-h2);
+        font-weight: 700;
+        line-height: 1.1;
+        font-variant-numeric: tabular-nums;
+        color: var(--vff-accent-ink);
     }
     .steps h3 {
-        margin: 0 0 4px;
-        color: var(--vff-text);
+        margin: 0 0 var(--vff-space-1);
     }
     .steps p {
+        max-width: var(--vff-measure);
         margin: 0;
-        font-size: 17px;
-        line-height: 1.55;
+        font-size: var(--vff-fs-md);
+        line-height: 1.6;
         color: var(--vff-text-muted);
     }
-    .cta-buttons {
-        display: flex;
-        justify-content: center;
-        gap: 16px;
-        flex-wrap: wrap;
-        margin-top: 24px;
+    @media (max-width: 600px) {
+        .steps li {
+            grid-template-columns: 2rem minmax(0, 1fr);
+            column-gap: var(--vff-space-3);
+        }
     }
-    /* `.vff-btn` est défini globalement dans general.css. */
 </style>

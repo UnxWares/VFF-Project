@@ -2,61 +2,43 @@
 
 return [
     'meta_title' => 'Spenden',
-    'meta_description' => 'Unterstützen Sie VFF, das offene Projekt zur Kartierung des französischen Eisenbahnerbes.',
+    'meta_description' => 'VFF unterstützen, das offene Projekt zur Dokumentation des französischen Eisenbahnerbes: Stand der Spenden und ihr Verwendungszweck.',
 
     'hero' => [
         'eyebrow' => 'Unterstützen',
-        'title' => 'Halten Sie das Projekt am Leben',
-        'subtitle' => 'VFF ist vollständig kostenlos, quelloffen und werbefrei. Ihre Spenden decken das Hosting, die Kartenkacheln und die für das Projekt aufgewendete Zeit.',
+        'title' => 'Das Projekt am Leben halten',
+        'subtitle' => 'VFF ist kostenlos, werbefrei und ohne Tracker von Dritten, und sein Code ist offen. Spenden sollen Hosting, Kartenhintergründe und die für das Projekt aufgewendete Zeit decken.',
     ],
 
-    'why' => [
-        'title' => 'Warum spenden?',
-        'item1_title' => 'Keine Werbung, kein Tracking',
-        'item1_text' => 'Keine Werbefinanzierung, keine Tracker von Drittanbietern. Spenden sind unser einziges Geschäftsmodell.',
-        'item2_title' => 'Stabile Infrastruktur',
-        'item2_text' => 'Ein anständiger Server, hochwertige Kartenkacheln, zuverlässige Backups: Das verursacht laufende Kosten.',
-        'item3_title' => 'Investierte Zeit',
-        'item3_text' => 'Tausende Bahnstrecken zu dokumentieren, Beiträge zu prüfen und Medien aufzubereiten: Das ist Arbeit in Teilzeit.',
-    ],
-
-    'tiers' => [
-        'title' => 'Ihre Spendenstufen',
-        'tier1_amount' => '5 €',
-        'tier1_label' => 'Weichenwärter',
-        'tier1_text' => 'Sie bezahlen zwei Tage Hosting. Danke!',
-        'tier2_amount' => '15 €',
-        'tier2_label' => 'Bahnhofsvorsteher',
-        'tier2_text' => 'Sie finanzieren eine Woche Kartenkacheln für alle unsere Besucher.',
-        'tier3_amount' => '50 €',
-        'tier3_label' => 'Lokführer',
-        'tier3_text' => 'Sie bezahlen den Server + die Kacheln für einen ganzen Monat. Ihr Name erscheint in unserer Danksagung.',
-        'tier_custom_label' => 'Freier Betrag',
-        'tier_custom_text' => 'Wählen Sie den Betrag, der Ihnen zusagt. Jeder Euro zählt.',
-    ],
-
-    'methods' => [
-        'title' => 'Zahlungsmethoden',
-        'subtitle' => 'Die endgültige Plattform wird je nach Rechtsform des Vereins festgelegt; hier die Optionen, die wir in Betracht ziehen.',
-        'patreon' => 'Patreon: regelmäßige monatliche Unterstützung, ideal für die Open-Source-Tech-Community',
-        'helloasso' => 'HelloAsso: einmalige oder regelmäßige Spende, steuerlich absetzbar, sobald der ESS-Verein anerkannt ist',
-        'undecided' => 'Die endgültige Entscheidung steht noch aus',
-        'soon' => 'Demnächst verfügbar',
+    'status' => [
+        'title' => 'Spenden sind noch nicht möglich',
+        'text' => 'Derzeit steht keine Zahlungsmethode zur Verfügung, und es kann keine Spendenquittung ausgestellt werden. Diese Seite beschreibt, was geplant ist; sie wird aktualisiert, sobald Spenden möglich sind.',
     ],
 
     'org' => [
-        'title' => 'Wer sammelt die Spenden ein?',
-        'paragraph' => 'Ein <strong>im Bereich der Sozial- und Solidarwirtschaft (ESS) eingetragener Verein</strong> mit dem Arbeitsnamen „UnxWares Opensource“ befindet sich in Gründung. Er wird die quelloffenen Projekte von UnxWares (darunter VFF) rechtlich und finanziell tragen. Bis zu seiner offiziellen Eintragung bleiben Spenden symbolisch und führen nicht zu einem Steuerabzug.',
+        'title' => 'Wer nimmt die Spenden entgegen?',
+        'paragraph' => 'Ein <strong>Verein der französischen Sozial- und Solidarwirtschaft</strong> mit dem Arbeitsnamen „UnxWares Opensource“ wird derzeit gegründet. Er soll die offenen Projekte von UnxWares, darunter VFF, rechtlich und finanziell tragen. Solange er nicht eingetragen ist, kann keine Spende angenommen werden. Die Zahlungsplattformen sind noch nicht ausgewählt.',
+    ],
+
+    'why' => [
+        'title' => 'Wofür Spenden verwendet würden',
+        'intro' => 'VFF verursacht laufende Kosten und erhält keine Werbeeinnahmen.',
+        'item1_title' => 'Hosting und Sicherungen',
+        'item1_text' => 'Ein Server, eine Datenbank und Sicherungen: ein wiederkehrender Kostenpunkt.',
+        'item2_title' => 'Kartenhintergründe und Daten',
+        'item2_text' => 'Kartenhintergründe (Kartenkacheln) und Speicherung historischer Daten.',
+        'item3_title' => 'Arbeitszeit',
+        'item3_text' => 'Tausende Strecken dokumentieren, Beiträge prüfen, Medien verarbeiten: Arbeit in Teilzeit.',
     ],
 
     'transparency' => [
         'title' => 'Transparenz',
-        'paragraph' => 'Einmal im Jahr veröffentlichen wir eine öffentliche Zusammenfassung: Gesamtbetrag der Spenden, detaillierte Ausgaben (UnxWares-Cloud-Server, Kartenkacheln, Archivreisen usw.), Anzahl der aktiven Mitwirkenden. Sie erfahren genau, wofür Ihr Geld verwendet wird.',
+        'paragraph' => 'Sobald Spenden eingehen, planen wir, jedes Jahr den gesammelten Betrag und die Ausgaben im Einzelnen zu veröffentlichen (Hosting, Kartenhintergründe, Archivbesuche). So können Sie nachvollziehen, wofür Ihr Geld verwendet wird.',
     ],
 
     'cta' => [
-        'title' => 'Eine andere Möglichkeit zu helfen?',
-        'text' => 'Sie können sich keine Spende leisten? Tragen Sie durch Daten, durch Weitergabe oder mit guter Stimmung in den sozialen Netzwerken bei.',
-        'contribute' => 'Anders mitwirken',
+        'title' => 'Eine andere Art zu helfen',
+        'text' => 'Sie können auch ohne Spende helfen: ein Datum korrigieren, eine Quelle ergänzen, einen Fehler melden oder das Projekt bekannt machen.',
+        'contribute' => 'So können Sie mitwirken',
     ],
 ];

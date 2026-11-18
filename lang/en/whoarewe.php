@@ -7,29 +7,29 @@ return [
     'hero' => [
         'eyebrow' => 'Our story',
         'title' => 'An encyclopedia born of shared passion',
-        'subtitle' => 'How two rail enthusiasts set out to map the whole of French railway heritage, both living and vanished.',
+        'subtitle' => 'Why and how we document French railway heritage, from lines in service to vanished ones.',
     ],
 
     'genesis' => [
         'title' => 'Origins',
-        'paragraph' => 'It all started with a simple observation: no centralised resource exists for French railway heritage as followed by enthusiasts. The old lines, their exact routes, the vanished stations, the rolling stock that ran on them: all this information exists, scattered across archive collections, specialist forums, town libraries, or in the memory of witnesses who are sometimes in their nineties. We wanted to create the place where it all lives together, accessible to everyone.',
+        'paragraph' => 'It all started with a simple observation: we could not find a central resource on French railway heritage. The old lines, their exact routes, the vanished stations, the rolling stock that ran on them: all this information exists, scattered across archive collections, specialist forums, town libraries, or in the memory of witnesses who are sometimes in their nineties. We wanted to create the place where it all comes together, open to everyone.',
     ],
 
     'vision' => [
-        'title' => 'Vision',
-        'paragraph' => 'To become the largest collaborative encyclopedia of the French rail network. Not just a website, but a living platform where each line tells its story (from inauguration to today, or to its dismantling), illustrated with archive photographs, plans, witness accounts and, soon, AI-assisted 3D reconstructions of vanished places.',
+        'title' => 'Our aim',
+        'paragraph' => 'To bring together in one place what is known about the French rail network. Each line has its own page, from its opening to today or to its closure, with its stations, its sources and, when we have them, archive photographs and plans. It is a collaborative encyclopedia: what appears in it is sourced and reviewed before publication.',
     ],
 
     'values' => [
-        'title' => 'Our values',
+        'title' => 'Our principles',
         'open_title' => 'Open',
-        'open_text' => 'Open-source code, open data, public API. Our entire infrastructure is built to be reused.',
+        'open_text' => 'The code is published under the MIT licence, the API is public and every piece of data keeps its source and licence.',
         'rigorous_title' => 'Rigorous',
-        'rigorous_text' => 'Cited sources, precise dates, peer review. Every contribution is verified before publication.',
+        'rigorous_text' => 'Cited sources, precise dates, review by two validators. Every contribution is checked before publication.',
         'collective_title' => 'Collective',
         'collective_text' => 'No one can document the whole network alone. VFF only exists through its contributors.',
-        'durable_title' => 'Durable',
-        'durable_text' => 'The project is built to last decades: the horizon an encyclopedia aiming for exhaustiveness needs.',
+        'durable_title' => 'Built to last',
+        'durable_text' => 'An encyclopedia takes years to build. We choose sources and tools that stand the test of time.',
     ],
 
     'milestones' => [
@@ -39,16 +39,14 @@ return [
         'item2_date' => '2024',
         'item2_text' => 'First online version, visual identity established.',
         'item3_date' => '2026',
-        'item3_text' => 'Full technical overhaul: Laravel 13, Inertia 3, Svelte 5, PostgreSQL 18 + PostGIS 3.6 (Apache AGE for the graph), MapLibre GL JS. Complete railway data model.',
-        'item4_date' => '2027',
-        'item4_text' => 'Public release of the interactive map MVP and the time selector.',
-        'item5_date' => '2030',
-        'item5_text' => 'Living 2030 snapshot frozen. Exhaustive coverage targeted.',
+        'item3_text' => 'Complete overhaul of the site and the data model. Launch of the historical map from 1830 to today, line and station pages, the public API and contributions.',
+        'item4_date' => '2030',
+        'item4_text' => 'Aim: to cover the whole French rail network, line by line, with its sources.',
     ],
 
     'cta' => [
-        'title' => 'Join the adventure',
-        'text' => 'The project stands only thanks to its community. Three ways to help: document, share, donate.',
+        'title' => 'Join the project',
+        'text' => 'The project only stands thanks to its community. You can document lines, offer archives or code, or support the project.',
         'contribute' => 'How to contribute',
         'donate' => 'Support the project',
     ],
