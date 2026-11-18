@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Era;
 use App\Models\Line;
 use App\Models\Material;
 use App\Models\Station;
@@ -20,12 +21,15 @@ class SearchController extends Controller
      * Recherche de lignes, gares et matériels.
      *
      * Recherche par nom pour l'autocomplétion : jusqu'à 8 lignes (nom ou code
-     * à 6 chiffres), 8 gares (celles dont le nom commence par le texte
-     * d'abord, avec leur ville et le code de leur département pour distinguer
-     * les homonymes) et 5 matériels roulants. Insensible à la casse et aux
-     * accents (« saint-etienne » trouve « Saint-Étienne »). Moins de 2
-     * caractères : listes vides. Les `slug` renvoyés servent d'identifiants dans les autres
-     * endpoints (`/lines/{line}/…`, `from` et `to` de l'itinéraire).
+     * à 6 chiffres), 8 gares (avec leur ville et le code de leur département
+     * pour distinguer les homonymes) et 5 matériels roulants. Lignes et gares
+     * sont triées par pertinence : correspondance exacte, début du nom, mot du
+     * nom, puis le reste ; à pertinence égale, les lignes en service passent
+     * avant les lignes fermées, puis ordre alphabétique français. Insensible à
+     * la casse et aux accents (« saint-etienne » trouve « Saint-Étienne »).
+     * Moins de 2 caractères : listes vides. Les `slug` renvoyés servent
+     * d'identifiants dans les autres endpoints (`/lines/{line}/…`, `from` et
+     * `to` de l'itinéraire).
      *
      * @response array{
      *     lines: array<array{type: 'line', slug: string, name: string, code: ?string}>,
@@ -51,13 +55,36 @@ class SearchController extends Controller
         $needle = addcslashes($q, '\\%_');
         $like = '%'.$needle.'%';
 
-        // unaccent (extension installée par la migration PostGIS) : « Saint-Etienne »
-        // trouve « Saint-Étienne », comme on le tape souvent.
+        // Pertinence (0 = meilleure) : correspondance exacte, début, mot du nom (après un espace,
+        // un tiret ou une apostrophe), puis le reste. Même gabarit pour les lignes (nom ou code,
+        // espaces du code ignorés : « 420000 » trouve « 420 000 ») et les gares.
+        $exact = $needle;
+        $prefix = $needle.'%';
+        $words = ['% '.$needle.'%', '%-'.$needle.'%', "%'".$needle.'%', '%’'.$needle.'%'];
+        $wordSql = implode(' OR ', array_fill(0, count($words), 'unaccent(%1$s) ILIKE unaccent(?)'));
+        $noSpace = str_replace(' ', '', $needle);
+
+        // Ligne « en service » : au moins une portion en service à l'ère courante.
+        $eraId = Era::where('is_current', true)->value('id') ?? Era::orderByDesc('year')->value('id');
+
+        $lineRank = 'CASE
+            WHEN unaccent(lines.name) ILIKE unaccent(?) OR unaccent(replace(lines.code, \' \', \'\')) ILIKE unaccent(?) THEN 0
+            WHEN unaccent(lines.name) ILIKE unaccent(?) OR unaccent(replace(lines.code, \' \', \'\')) ILIKE unaccent(?) THEN 1
+            WHEN '.sprintf($wordSql, 'lines.name').' THEN 2
+            ELSE 3 END';
         $lines = Line::query()
-            ->where(function ($w) use ($like) {
+            ->where(function ($w) use ($like, $noSpace) {
                 $w->whereRaw('unaccent(name) ILIKE unaccent(?)', [$like])
-                    ->orWhereRaw('unaccent(code) ILIKE unaccent(?)', [$like]);
+                    ->orWhereRaw('unaccent(code) ILIKE unaccent(?)', [$like])
+                    ->orWhereRaw("unaccent(replace(code, ' ', '')) ILIKE unaccent(?)", ['%'.$noSpace.'%']);
             })
+            ->orderByRaw($lineRank, [$exact, $noSpace, $prefix, $noSpace.'%', ...$words])
+            ->orderByRaw('CASE WHEN EXISTS (
+                SELECT 1 FROM line_segments s
+                WHERE s.line_id = lines.id AND s.era_id = ? AND s.status IN (\'in_service\', \'single_track\')
+            ) THEN 0 ELSE 1 END', [$eraId])
+            ->orderByRaw('name COLLATE "fr-x-icu"')
+            ->orderBy('id')
             ->limit(8)
             ->get(['slug', 'name', 'code'])
             ->map(fn ($l) => [
@@ -68,17 +95,20 @@ class SearchController extends Controller
             ]);
 
         $stations = DB::select(
-            <<<'SQL'
-            SELECT slug, name, city, department_code,
+            'SELECT slug, name, city, department_code,
                    ST_X(geom) AS lng, ST_Y(geom) AS lat
             FROM stations
             WHERE unaccent(name) ILIKE unaccent(?)
             ORDER BY
-              CASE WHEN unaccent(name) ILIKE unaccent(?) THEN 0 ELSE 1 END,
-              name ASC
-            LIMIT 8
-            SQL,
-            [$like, $needle.'%'],
+              CASE
+                WHEN unaccent(name) ILIKE unaccent(?) THEN 0
+                WHEN unaccent(name) ILIKE unaccent(?) THEN 1
+                WHEN '.sprintf($wordSql, 'name').' THEN 2
+                ELSE 3 END,
+              name COLLATE "fr-x-icu",
+              id
+            LIMIT 8',
+            [$like, $exact, $prefix, ...$words],
         );
 
         $stationsOut = array_map(
