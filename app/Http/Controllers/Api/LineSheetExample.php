@@ -69,7 +69,7 @@ final class LineSheetExample
                 'dismantled_to' => null,
             ],
             'electrification' => ['state' => 'none', 'km' => 0, 'pct' => 0, 'voltages' => []],
-            'signalling' => ['block_systems_km' => [], 'train_protection_km' => [], 'kvb_equipped' => false, 'ranges' => []],
+            'signalling' => ['block_systems_km' => [], 'train_protection_km' => [], 'kvb_equipped' => false, 'ranges' => [], 'history' => []],
             'facts' => [
                 [
                     'key' => 'length',
@@ -267,6 +267,7 @@ final class LineSheetExample
                 'kml' => 'https://vff-project.org/api/v1/lines/rfn-447000/kml',
                 'stops' => 'https://vff-project.org/api/v1/lines/rfn-447000/stops',
                 'signalling' => 'https://vff-project.org/api/v1/lines/rfn-447000/signalling',
+                'signalling_history' => 'https://vff-project.org/api/v1/lines/rfn-447000/signalling-history',
                 'profile' => 'https://vff-project.org/api/v1/lines/rfn-447000/profile',
                 'level_crossings' => 'https://vff-project.org/api/v1/lines/rfn-447000/level-crossings',
                 'greenways' => 'https://vff-project.org/api/v1/lines/rfn-447000/greenways',

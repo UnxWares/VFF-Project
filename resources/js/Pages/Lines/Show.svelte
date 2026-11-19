@@ -26,6 +26,7 @@
     import LineAccidents from '$components/Lines/LineAccidents.svelte';
     import LineLevelCrossings from '$components/Lines/LineLevelCrossings.svelte';
     import LineGreenways from '$components/Lines/LineGreenways.svelte';
+    import LineSignallingHistory from '$components/Lines/LineSignallingHistory.svelte';
     import LineProfile from '$components/Lines/LineProfile.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
@@ -60,6 +61,7 @@
      *   accidents?: Array<any>,
      *   level_crossings?: { total: number, summary: Array<any>, items: Array<any> },
      *   greenways?: { total_length_m: number, osm_date: string|null, items: Array<any> },
+     *   signalling_history?: Array<any>,
      *   profile?: any, trace_export_eras?: Array<number>,
      * }} */
     let {
@@ -83,6 +85,8 @@
         level_crossings = { total: 0, summary: [], items: [] },
         // Voies vertes OSM sur l'ancienne emprise (App\Services\Greenways\LineGreenways::forSheet).
         greenways = { total_length_m: 0, osm_date: null, items: [] },
+        // Mises en service de signalisation datées, lues dans Wikipédia (App\Services\Signalling\LineSignallingHistory::forSheet).
+        signalling_history = [],
         // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
         profile = null,
         // Années des ères dont le tracé peut être téléchargé (App\Services\TraceExport\LineTraceExport).
@@ -446,7 +450,7 @@
         t('lines.sheet.tech.signalling_intro') +
             (line.is_lgv && hasCabin ? ` ${t('lines.sheet.tech.signalling_intro_cab')}` : '') +
             (hasDual ? ` ${t('lines.sheet.tech.signalling_intro_dual')}` : '') +
-            ` ${t('lines.sheet.tech.signalling_today')}`,
+            ` ${t(signalling_history.length ? 'lines.sheet.tech.signalling_today_history' : 'lines.sheet.tech.signalling_today')}`,
     );
     /** Liste « code sur N km » (stats.*_coverage), sinon la liste simple des codes. */
     function coverageText(coverage, codes) {
@@ -1011,7 +1015,7 @@
             </SheetSection>
         {/if}
 
-        {#if stats.signalling || stats.train_protection || stats.gauge_mm || stats.dismantled_at_min || signalling.length}
+        {#if stats.signalling || stats.train_protection || stats.gauge_mm || stats.dismantled_at_min || signalling.length || signalling_history.length}
             <SheetSection title={t('lines.tech.title')} id="tech">
                 <dl class="tech-grid">
                     {#if stats.gauge_mm}
@@ -1129,6 +1133,10 @@
                             {/if}
                         {/each}
                     </ol>
+                {/if}
+
+                {#if signalling_history.length}
+                    <LineSignallingHistory history={signalling_history} />
                 {/if}
             </SheetSection>
         {/if}
@@ -1780,6 +1788,11 @@
         flex-wrap: wrap;
         align-items: center;
         gap: 6px;
+    }
+    /* Libellé long (allemand à 320 px) : la pastille passe à la ligne au lieu de déborder. */
+    .sig-protection :global(.vff-badge) {
+        max-width: 100%;
+        white-space: normal;
     }
 
     /* Matériels */

@@ -174,6 +174,16 @@ type Line {
     greenway_length_m: Int! @field(resolver: "App\\GraphQL\\Resolvers\\LineGreenwayField@length")
 
     """
+    Mises en service de signalisation datées (BAL, BAPR, block manuel, cantonnement téléphonique, TVM,
+    ETCS, KVB), relevées dans l'article Wikipédia de la ligne, du plus ancien au plus récent. C'est un
+    historique à part : l'état actuel de la ligne (SNCF Réseau) est donné par `GET /api/v1/lines/{line}/signalling` de l'API REST.
+    Premier relevé, limité : seuls les faits sûrs sont donnés (jour ou mois précis, ou année), et un fait
+    absent ne veut pas dire qu'aucun système n'a été mis en service. Liste vide si l'article ne date rien.
+    Texte de Wikipédia sous CC BY-SA 4.0 : reprenez la mention de `SignallingEvent.attribution`.
+    """
+    signalling_history: [SignallingEvent!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@forLine")
+
+    """
     Profil en long de la ligne (altitude le long du tracé, gares placées dessus), comme
     `GET /api/v1/lines/{line}/profile`. Altitudes de l'IGN (BD TOPO, à défaut RGE ALTI ; Licence
     Ouverte 2.0). Nul tant que le profil de la ligne n'est pas calculé.
@@ -1692,6 +1702,75 @@ type LineGreenwayWay {
 
     "Année d'ouverture donnée par OpenStreetMap (1970 ou après), nulle sinon."
     opened_year: Int
+}
+
+"""
+Mise en service d'un système de signalisation, datée par l'article Wikipédia de la ligne : un fait par
+système, date et portion. Le KVB y est un contrôle de vitesse (`role: speed_control`), jamais un cantonnement.
+"""
+type SignallingEvent {
+    "Système : `BAL`, `BAPR`, `BM` (block manuel), `CT` (cantonnement téléphonique), `TVM-300`, `TVM-430`, `TVM`, `ETCS_L1`, `ETCS_L2`, `ETCS` (niveau non précisé) ou `KVB`."
+    system: String!
+
+    "Rôle : `block` (cantonnement), `cab` (signalisation en cabine, TVM et ETCS : cantonnement et contrôle à la fois) ou `speed_control` (contrôle de vitesse : KVB)."
+    role: String!
+
+    "Date de la mise en service. Lisez-la avec `date_precision` : le jour et le mois valent `01` quand l'article ne les donne pas."
+    date: Date!
+
+    "Précision de `date` : `day`, `month` ou `year`."
+    date_precision: String!
+
+    "Fiabilité : `high` (jour ou mois donné) ou `medium` (année seule). Les faits douteux ne sont pas exposés."
+    reliability: String!
+
+    "Portée : `whole_line` (l'article dit toute la ligne), `section` (portion nommée) ou `unspecified` (l'article ne dit pas)."
+    scope: String!
+
+    "Portion concernée, nulle quand `scope` n'est pas `section`."
+    section: SignallingEventSection
+
+    "Article Wikipédia et révision d'où vient le fait."
+    source: SignallingEventSource!
+
+    "Mention à reproduire en réutilisant ces données (CC BY-SA 4.0)."
+    attribution: String! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@attribution")
+
+    "Fournisseur et licence de la donnée (Wikipédia)."
+    provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@provenance")
+}
+
+"Portion d'une mise en service de signalisation, telle que l'article la donne."
+type SignallingEventSection {
+    "Lieu de départ tel qu'écrit dans l'article, nul s'il n'est pas cité."
+    from: String
+
+    "Lieu d'arrivée tel qu'écrit dans l'article, nul s'il n'est pas cité."
+    to: String
+
+    "PK de début, en mètres, si l'article le donne."
+    pk_start_m: Int
+
+    "PK de fin, en mètres, si l'article le donne."
+    pk_end_m: Int
+}
+
+"Source d'une mise en service de signalisation."
+type SignallingEventSource {
+    "Fournisseur : `wikipedia`."
+    provider: String!
+
+    "Titre de l'article."
+    title: String!
+
+    "Permalien de la révision lue."
+    url: String!
+
+    "Numéro de la révision lue."
+    revision: Int!
+
+    "Courte phrase de l'article (200 caractères au plus), pour relire le fait."
+    excerpt: String!
 }
 
 "Nombre de passages à niveau d'un groupe."

@@ -86,6 +86,7 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/pk', [LinePkController::class, 'fromPoint'])->name('api.lines.pk');
     Route::get('/v1/lines/{line:slug}/stops', [LineStopsController::class, 'index'])->name('api.lines.stops');
     Route::get('/v1/lines/{line:slug}/signalling', [LineSignallingController::class, 'index'])->name('api.lines.signalling');
+    Route::get('/v1/lines/{line:slug}/signalling-history', [LineSignallingController::class, 'history'])->name('api.lines.signalling-history');
     Route::get('/v1/lines/{line:slug}/greenways', [LineGreenwayController::class, 'index'])->name('api.lines.greenways');
     Route::get('/v1/lines/{line:slug}/profile', [LineProfileController::class, 'show'])->name('api.lines.profile');
     Route::get('/v1/lines/{line:slug}/media', [LineMediaController::class, 'index'])->name('api.lines.media');

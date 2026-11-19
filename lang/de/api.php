@@ -118,6 +118,7 @@ return [
             'pk' => 'Kilometerpunkt eines Ortes auf einer Strecke, anhand seiner geografischen Breite und Länge.',
             'stops' => 'Bahnhöfe einer Strecke in der Reihenfolge der Kilometerpunkte, zu einer Epoche.',
             'signalling' => 'Kilometerabschnitte mit einheitlicher Signalisierung.',
+            'signalling_history' => 'Datierte Inbetriebnahmen von Signalisierungssystemen aus dem Wikipedia-Artikel der Strecke (System, Datum und seine Genauigkeit, Abschnitt, Quelle).',
             'profile' => 'Höhenprofil: Höhe entlang der Trasse mit den Bahnhöfen, Anstieg und Gefälle insgesamt, größte Neigung (IGN, Licence Ouverte 2.0).',
             'line_materials' => 'Baureihen, die auf der Strecke verkehrt sind, jeweils mit der belegenden Quelle.',
             'media' => 'Fotos, Postkarten und Pläne zu einer Strecke, mit ihren Rechten.',

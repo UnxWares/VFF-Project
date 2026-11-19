@@ -74,6 +74,7 @@
                 { path: '/api/v1/lines/{line}/pk?lat={lat}&lng={lng}', key: 'pk' },
                 { path: '/api/v1/lines/{line}/stops?era={year}', key: 'stops' },
                 { path: '/api/v1/lines/{line}/signalling', key: 'signalling' },
+                { path: '/api/v1/lines/{line}/signalling-history', key: 'signalling_history' },
                 { path: '/api/v1/lines/{line}/profile', key: 'profile' },
                 { path: '/api/v1/lines/{line}/materials', key: 'line_materials' },
                 { path: '/api/v1/lines/{line}/media', key: 'media' },

@@ -523,6 +523,7 @@ return [
             'signalling_intro_dual' => 'Sur certaines tranches, l’ETCS niveau 2 et la TVM sont installés ensemble ; la liste donne les deux.',
             'signalling_gap' => 'Aucun cantonnement dans les données SNCF Réseau : section sans cantonnement, absente des données, ou numérotation des PK interrompue.',
             'signalling_today' => 'Seul l’état actuel est connu : l’évolution de la signalisation au fil des époques n’est pas encore dans les données.',
+            'signalling_today_history' => 'Son évolution au fil du temps n’est connue que par les quelques dates relevées dans Wikipédia, plus bas.',
             'signalling_map' => 'Voir la signalisation sur la carte',
         ],
         'notes' => [

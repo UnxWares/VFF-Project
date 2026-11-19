@@ -119,6 +119,7 @@ return [
             'pk' => 'Point kilométrique d’un lieu sur une ligne, à partir de sa latitude et de sa longitude.',
             'stops' => 'Gares d’une ligne dans l’ordre des points kilométriques, à une ère.',
             'signalling' => 'Tranches de points kilométriques homogènes en signalisation.',
+            'signalling_history' => 'Mises en service de signalisation datées, relevées dans l’article Wikipédia de la ligne (système, date et sa précision, portion, source).',
             'profile' => 'Profil en long : altitude le long du tracé, gares placées dessus, dénivelés et déclivité la plus forte (IGN, Licence Ouverte 2.0).',
             'line_materials' => 'Séries de matériel roulant qui ont circulé sur la ligne, chacune avec la source qui l’atteste.',
             'media' => 'Photos, cartes postales et plans liés à une ligne, avec leurs droits.',

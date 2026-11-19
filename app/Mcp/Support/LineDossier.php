@@ -7,6 +7,7 @@ use App\Services\LineFacts;
 use App\Services\LinePhases;
 use App\Services\LineSheet;
 use App\Services\LineStats;
+use App\Services\Signalling\LineSignallingHistory;
 use App\Support\EventText;
 use App\Support\Lgv;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,7 @@ final class LineDossier
         private readonly LineStats $stats,
         private readonly LineEvents $events,
         private readonly Attribution $attribution,
+        private readonly LineSignallingHistory $signallingHistory,
     ) {}
 
     /**
@@ -67,6 +69,11 @@ final class LineDossier
         foreach ($eventRows as $e) {
             $providers[] = $this->attribution->providerFor('line_events', $e->source, $e->source_url);
         }
+        // Sans la phrase source : aucun extrait de Wikipédia dans le MCP (décision Q22), les liens suffisent.
+        $signallingHistory = $this->signallingHistory->forSheet($line);
+        if ($signallingHistory !== []) {
+            $providers[] = 'wikipedia';
+        }
         foreach ($facts as $f) {
             $providers[] = match ($f['source'] ?? null) {
                 'wikidata' => 'wikidata',
@@ -102,6 +109,8 @@ final class LineDossier
                 'train_protection_km' => $stats['train_protection_coverage'] ?? [],
                 'kvb' => (bool) ($stats['kvb_equipped'] ?? false),
                 'source' => 'sncf',
+                // Historique daté (Wikipédia), à part de l'état actuel ci-dessus ; faits sûrs seulement, liste vide sinon.
+                'history' => $signallingHistory,
             ],
             'facts' => array_map(fn (array $f) => array_diff_key($f, array_flip(['scope'])), $facts),
             'phases' => array_map(function (array $ph) use ($category, $byId, $lang) {

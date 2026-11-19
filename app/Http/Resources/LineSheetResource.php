@@ -72,6 +72,8 @@ class LineSheetResource extends JsonResource
                 'train_protection_km' => $stats['train_protection_coverage'] ?? [],
                 'kvb_equipped' => (bool) ($stats['kvb_equipped'] ?? false),
                 'ranges' => $sheet['signalling'],
+                // Mises en service datées (Wikipédia), historique à part de l'état actuel ci-dessus : `/signalling-history`.
+                'history' => $sheet['signalling_history'] ?? [],
             ],
             'facts' => $line['facts'],
             'era_summary' => $sheet['era_summary'],
@@ -97,6 +99,7 @@ class LineSheetResource extends JsonResource
                 'kml' => route('api.lines.kml', $line['slug']),
                 'stops' => route('api.lines.stops', $line['slug']),
                 'signalling' => route('api.lines.signalling', $line['slug']),
+                'signalling_history' => route('api.lines.signalling-history', $line['slug']),
                 'profile' => route('api.lines.profile', $line['slug']),
                 'level_crossings' => route('api.lines.level-crossings', $line['slug']),
                 'greenways' => route('api.lines.greenways', $line['slug']),

@@ -118,6 +118,7 @@ return [
             'pk' => 'Kilometre point of a place on a line, from its latitude and longitude.',
             'stops' => 'Stations on a line in kilometre-point order, at an era.',
             'signalling' => 'Kilometre-point ranges with uniform signalling.',
+            'signalling_history' => 'Dated commissioning of signalling systems, taken from the line’s Wikipedia article (system, date and its precision, section, source).',
             'profile' => 'Gradient profile: height along the route with the stations on it, total climb and descent, steepest gradient (IGN, Licence Ouverte 2.0).',
             'line_materials' => 'Rolling stock classes that have run on the line, each with the source that attests it.',
             'media' => 'Photos, postcards and plans linked to a line, with their rights.',
