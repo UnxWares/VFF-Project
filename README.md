@@ -2,6 +2,11 @@
 
 <img src="resources/images/vff.png" alt="Logo VFF" width="180"/>
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/uwosc/uwosc-badge-maintained-en-couleur-inverse-44px.svg">
+  <img src="docs/assets/uwosc/uwosc-badge-maintained-en-couleur-44px.svg" alt="UnxWares Open Source & Community - Supported and maintained by UnxWares" height="44">
+</picture>
+
 # VFF - Voies Ferrées de France
 
 **La plus grande encyclopédie collaborative du rail français.**

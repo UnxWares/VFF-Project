@@ -148,16 +148,16 @@ footer:where(.site-footer) .copyright p {
     line-height: 1.5;
     color: var(--vff-text);
 }
-/* Logotype UWOSC : 180 px de large (taille minimale de la charte), zone de protection d'au moins la
-   hauteur du « U » (environ 27 px à cette taille) autour, le texte compris. */
+/* Logo UWOSC (insigne et nom) : 220 px de large (taille minimale de la charte), zone de protection d'au
+   moins la hauteur du « U » (environ 26 px à cette taille) autour, le texte compris. */
 footer:where(.site-footer) .copyright .powered {
     display: inline-flex;
     align-items: center;
     gap: 28px;
     padding-block: 12px;
 }
-footer:where(.site-footer) .copyright .uwosc-logotype {
-    width: 180px;
+footer:where(.site-footer) .copyright .uwosc-logo {
+    width: 220px;
     height: auto;
 }
 

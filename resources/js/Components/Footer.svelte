@@ -4,10 +4,11 @@
     import vffLogo from '$images/vff.png';
     // Fichiers officiels de la charte UnxWares (2026-11-02) : version en couleur sur fond clair,
     // version monochrome inversée (blanche) sur fond sombre. Jamais de nom retapé à côté.
-    // Logotype officiel de l'association UWOSC (charte du 2026-11-02, fichiers non modifiés) : version
-    // en couleur sur fond clair, en couleur inversée sur fond sombre ; 180 px de large au moins.
-    import uwoscLogotype from '$images/uwosc/uwosc-logotype-en-couleur-rgb.svg';
-    import uwoscLogotypeDark from '$images/uwosc/uwosc-logotype-en-couleur-inverse-rgb.svg';
+    // Logo officiel de l'association UWOSC (insigne et nom, la version à privilégier ; charte du
+    // 2026-11-02, fichiers non modifiés) : en couleur sur fond clair, en couleur inversée sur fond
+    // sombre ; 220 px de large au moins.
+    import uwoscLogo from '$images/uwosc/uwosc-logo-en-couleur-rgb.svg';
+    import uwoscLogoDark from '$images/uwosc/uwosc-logo-en-couleur-inverse-rgb.svg';
     import unxInsigne from '$images/unxwares/unxwares-insigne-en-couleur.svg';
     import unxInsigneDark from '$images/unxwares/unxwares-insigne-monochrome-inverse.svg';
 
@@ -152,18 +153,18 @@
             <span class="powered">
                 {$i18n.t('footer.powered_by')}
                 <img
-                    class="uwosc-logotype theme-light"
-                    src={uwoscLogotype}
+                    class="uwosc-logo theme-light"
+                    src={uwoscLogo}
                     alt={$i18n.t('footer.uwosc')}
-                    width="180"
-                    height="49"
+                    width="220"
+                    height="53"
                 />
                 <img
-                    class="uwosc-logotype theme-dark"
-                    src={uwoscLogotypeDark}
+                    class="uwosc-logo theme-dark"
+                    src={uwoscLogoDark}
                     alt={$i18n.t('footer.uwosc')}
-                    width="180"
-                    height="49"
+                    width="220"
+                    height="53"
                 />
             </span>
         </p>
