@@ -29,9 +29,14 @@ use Illuminate\Support\Facades\DB;
  * section d'essais ou de records ; voir WikipediaMaterialSections::doubt()). La preuve la plus
  * forte décide : une seule preuve sans doute suffit à garder `high` ou `medium`.
  *
- * Écartement : un lien qui rattache une série à une ligne d'un autre écartement (autorail à voie
- * normale sur une ligne métrique) est écarté, sauf source explicite (MaterialGaugeRule) ; les liens
- * écartés restent lisibles par rejected() pour le bilan de l'import.
+ * Écartés, dans cet ordre (les liens écartés restent lisibles par rejected() pour le bilan de l'import) :
+ *   1. les faux positifs relus à la main, phrase par phrase ou couple entier (LineMaterialExclusions,
+ *      database/data/line_material_exclusions.php) ;
+ *   2. une série rattachée à une ligne d'un autre écartement (autorail à voie normale sur une ligne
+ *      métrique), sauf source explicite (MaterialGaugeRule) ;
+ *   3. une série électrique rattachée à une ligne jamais électrifiée dans un de ses systèmes pendant
+ *      son service (locomotive à 1 500 V continu seul sur une ligne en 25 kV), sauf source explicite
+ *      (MaterialTractionRule).
  */
 final class LineMaterialLinker
 {
@@ -56,6 +61,8 @@ final class LineMaterialLinker
         private readonly WikidataMaterialSource $wikidata,
         private readonly WikipediaArticleSource $wikipedia,
         private readonly ?MaterialGaugeRule $gauges = null,
+        private readonly ?MaterialTractionRule $traction = null,
+        private readonly ?LineMaterialExclusions $exclusions = null,
     ) {}
 
     /**
@@ -100,11 +107,18 @@ final class LineMaterialLinker
         $this->fromLineArticles($add, $refresh);
         $this->fromMaterialArticles($add, $refresh);
 
-        // Écartement contraire sans source explicite : le lien est écarté (et gardé pour le bilan).
-        $rule = $this->gauges ?? MaterialGaugeRule::fromDatabase();
+        // Exclusion relue, écartement ou électrification contraires sans source explicite : le lien est
+        // écarté (et gardé pour le bilan).
+        $exclusions = $this->exclusions ?? LineMaterialExclusions::fromDatabase();
+        $gauges = $this->gauges ?? MaterialGaugeRule::fromDatabase();
+        $traction = $this->traction ?? MaterialTractionRule::fromDatabase();
         $this->rejected = [];
         foreach ($links as $key => $link) {
-            $reason = $rule->conflict($link['line_id'], $link['material_id'], $link['evidence']);
+            $evidence = $link['evidence'];
+            $reason = $exclusions->apply($link['line_id'], $link['material_id'], $evidence);
+            $links[$key]['evidence'] = $evidence;
+            $reason ??= $gauges->conflict($link['line_id'], $link['material_id'], $evidence)
+                ?? $traction->conflict($link['line_id'], $link['material_id'], $evidence);
             if ($reason !== null) {
                 $this->rejected[$key] = $link + ['reason' => $reason];
                 unset($links[$key]);
@@ -115,7 +129,8 @@ final class LineMaterialLinker
     }
 
     /**
-     * Liens que la dernière collecte a écartés pour leur écartement, par couple « ligne:série ».
+     * Liens que la dernière collecte a écartés (exclusion relue, écartement, électrification), par couple
+     * « ligne:série », avec le motif.
      *
      * @return array<string, array{line_id: int, material_id: int, evidence: list<array<string, mixed>>, reason: string}>
      */
