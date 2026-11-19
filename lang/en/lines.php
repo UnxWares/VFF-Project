@@ -522,6 +522,7 @@ return [
             'signalling_intro_dual' => 'On some stretches, ETCS level 2 and TVM are installed together; the list gives both.',
             'signalling_gap' => 'No block system in the SNCF Réseau data: section without one, missing from the data, or a break in the kilometre post numbering.',
             'signalling_today' => 'Only the current state is known: how signalling changed over the decades is not yet in the data.',
+            'signalling_today_history' => 'How it changed over time is known only from the few dates taken from Wikipedia, further down.',
             'signalling_map' => 'View signalling on the map',
         ],
         'notes' => [

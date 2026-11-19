@@ -522,6 +522,7 @@ return [
             'signalling_intro_dual' => 'Auf einigen Abschnitten sind ETCS Level 2 und TVM gemeinsam eingebaut; die Liste nennt beide.',
             'signalling_gap' => 'Kein Blocksystem in den Daten von SNCF Réseau: Abschnitt ohne Blocksystem, nicht in den Daten enthalten oder Sprung in der Kilometrierung.',
             'signalling_today' => 'Bekannt ist nur der heutige Stand: Wie sich die Signaltechnik im Lauf der Jahrzehnte verändert hat, ist noch nicht in den Daten.',
+            'signalling_today_history' => 'Wie sich der Stand im Lauf der Zeit verändert hat, ist nur aus den wenigen Daten bekannt, die aus Wikipedia stammen (weiter unten).',
             'signalling_map' => 'Streckenblock auf der Karte ansehen',
         ],
         'notes' => [

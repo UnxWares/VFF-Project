@@ -577,7 +577,7 @@ class ImportSecondaryNetworkDates extends Command
                        AND (e.type LIKE 'opening%' OR e.type LIKE 'reopening%')
                        AND (e.section_resolution IN ('pk', 'places', 'trace', 'whole_line')
                             OR (e.section_resolution IS NULL AND e.section_from IS NULL AND e.section_pk_start_m IS NULL))) AS last_opening
-            FROM lines l JOIN tmp_sec_lines t ON t.line_id = l.id");
+            FROM lines l JOIN tmp_sec_lines t ON t.line_id = l.id ORDER BY l.id");
         $lines = [];
         foreach ($rows as $r) {
             $r->dated = (bool) $r->dated;

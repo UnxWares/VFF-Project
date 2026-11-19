@@ -39,6 +39,7 @@ class ApiDocsTest extends TestCase
         '/lines/{line}/pk',
         '/lines/{line}/stops',
         '/lines/{line}/signalling',
+        '/lines/{line}/signalling-history',
         '/lines/{line}/materials',
         '/lines/{line}/media',
         '/lines/{line}/greenways', '/greenways/tiles/{z}/{x}/{y}.mvt',
@@ -90,7 +91,7 @@ class ApiDocsTest extends TestCase
         'StationPosition', 'StationEra', 'StationLine', 'StationSource', 'StationNeighbor', 'StationSheet',
         'LineDirectoryItem', 'LineDirectoryFacets', 'LineDirectoryPage', 'StationDirectoryItem', 'StationDirectoryLine',
         'StationDirectoryPage', 'SourceValues', 'SourceProvider', 'SiteStats', 'SiteStatsEra', 'SearchResults', 'SearchLine',
-        'SearchStation', 'SearchMaterial', 'LinePk', 'LinePkSnap', 'LineGreenway', 'LineGreenwayWay',
+        'SearchStation', 'SearchMaterial', 'LinePk', 'LinePkSnap', 'LineGreenway', 'LineGreenwayWay', 'SignallingEvent', 'SignallingEventSection', 'SignallingEventSource',
     ];
 
     /** Entrées GraphQL dont chaque champ doit être décrit. */

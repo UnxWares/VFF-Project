@@ -12,6 +12,7 @@ use App\Models\Line;
 use App\Services\Api\LineDirectoryQuery;
 use App\Services\Api\SortedCursor;
 use App\Services\LineSheet;
+use App\Services\Signalling\LineSignallingHistory;
 use App\Services\TraceExport\LineTraceExport;
 use App\Support\QueryBoolean;
 use Dedoc\Scramble\Attributes\Group;
@@ -219,7 +220,10 @@ class LineController extends Controller
      * fiche ne reprend pas en entier (`geojson` tracé, `profile` profil en
      * long, `level_crossings` passages à niveau, `greenways` voies vertes sur
      * l'ancienne emprise, `accidents`, `materials`,
-     * `signalling`, `stops`, `media`, `events`, `history`, `segments`).
+     * `signalling`, `signalling_history`, `stops`, `media`, `events`, `history`, `segments`).
+     * **Signalisation** (`signalling`) : l'état actuel (`block_systems_km`, `train_protection_km`, `ranges`,
+     * SNCF Réseau) et `history`, les mises en service datées lues dans Wikipédia (même contenu que
+     * `signalling_history`).
      */
     #[PathParameter('line', 'Identifiant (slug) de la ligne, tel que renvoyé par l\'annuaire ou la recherche. Les lignes du réseau ferré national sont nommées `rfn-` suivi de leur code à 6 chiffres.', example: 'rfn-447000')]
     #[QueryParameter('geometry', 'Joindre le tracé GeoJSON de chaque portion (`portions.geometry`) : `true` ou `false` (par défaut).', type: 'boolean', default: false, example: false)]
@@ -227,11 +231,11 @@ class LineController extends Controller
     #[ApiResponse(404, 'Ligne inconnue.', examples: [ErrorExamples::LINE_NOT_FOUND])]
     #[ApiResponse(422, '`geometry` n\'est pas un booléen.', examples: [ErrorExamples::GEOMETRY_INVALID])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
-    public function show(Request $request, Line $line, LineSheet $sheet): JsonResponse
+    public function show(Request $request, Line $line, LineSheet $sheet, LineSignallingHistory $signallingHistory): JsonResponse
     {
         $request->merge(['geometry' => QueryBoolean::cast($request->query('geometry'))])->validate(['geometry' => ['nullable', 'boolean']]);
 
-        return LineSheetResource::make($sheet->build($line))->response()->header('Cache-Control', 'public, max-age=300');
+        return LineSheetResource::make($sheet->build($line) + ['signalling_history' => $signallingHistory->facts($line)])->response()->header('Cache-Control', 'public, max-age=300');
     }
 
     /**

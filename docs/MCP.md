@@ -191,7 +191,8 @@ Renvoie `line` :
   `ETCS_L2`…, avec km ; une tranche où l'ETCS niveau 2 et la TVM sont installés ensemble, comme
   sur la LGV Est, la LGV Bretagne - Pays de la Loire ou la LGV SEA, compte pour chacun des deux),
   `train_protection_km` (contrôle de vitesse, ex. `KVB`), `kvb`, `source` (`sncf`, SNCF Réseau
-  Open Data) ;
+  Open Data) ; `history` : mises en service datées lues dans l'article Wikipédia de la ligne (voir
+  ci-dessous), liste vide si l'article n'en date aucune ;
 - `facts` : faits encyclopédiques (`key`, valeur `km`/`kmh`/`mm`/`n`/`year`/`list`, `source`
   `vff`/`sncf`/`wikidata`, `item` quand l'élément Wikidata ne décrit qu'une partie de la ligne,
   `label`, `note`) ;
@@ -201,6 +202,18 @@ Renvoie `line` :
   `best_phase` (indice de la phase du plus grand développement) ;
 - `decades` : `year`, `in_service_km`, `by_category_km` ;
 - `event_count`, `events` (même forme que `line_events`), `events_omitted`.
+
+`signalling.history` est un historique à part de l'état actuel (`block_systems_km`, SNCF Réseau) : il
+n'en corrige rien. Chaque fait : `system` (`BAL`, `BAPR`, `BM`, `CT`, `TVM-300`, `TVM-430`, `TVM`,
+`ETCS_L1`, `ETCS_L2`, `ETCS`, `KVB`), `role` (`block` cantonnement, `cab` signalisation en cabine, TVM et
+ETCS, `speed_control` contrôle de vitesse : le KVB n'est jamais un cantonnement), `date` et
+`date_precision` (`day`, `month`, `year` : le jour et le mois manquants valent `01`), `reliability` (`high`
+jour ou mois donné, `medium` année seule ; les faits douteux ne sont pas exposés), `scope` (`whole_line`,
+`section`, `unspecified`), `section` (`from`, `to`, `pk_start_m`, `pk_end_m` si l'article les donne) et
+`source` (`title`, `url` permalien de la révision lue, `revision` ; pas de phrase de l'article, comme pour la
+description des lignes : l'API REST la donne). Premier
+relevé, limité : un fait absent ne veut pas dire qu'aucun système n'a été mis en service. Wikipédia étant
+citée dans `attribution`, reprenez la mention CC BY-SA 4.0.
 
 ```json
 {"line": "rfn-610000", "max_events": 50, "lang": "en"}
