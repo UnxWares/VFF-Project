@@ -443,6 +443,21 @@ class BuildStationEras extends Command
     }
 
     /**
+     * Condition SQL « la date A tombe strictement avant la date B », jugée à la précision commune : au jour
+     * si les deux sont connues au jour, au mois si l'une ne l'est qu'au mois (septembre avant novembre), et
+     * jamais vraie autrement (année, intervalle, précision inconnue) : deux dates de la même année à l'année
+     * près ne disent pas laquelle précède l'autre. Les dates d'une précision au mois sont au premier du mois.
+     */
+    private static function strictlyBefore(string $a, string $aPrecision, string $b, string $bPrecision): string
+    {
+        return "({$a} IS NOT NULL AND {$b} IS NOT NULL AND CASE
+            WHEN {$aPrecision} = 'day' AND {$bPrecision} = 'day' THEN {$a} < {$b}
+            WHEN {$aPrecision} IN ('day', 'month') AND {$bPrecision} IN ('day', 'month')
+                THEN date_trunc('month', {$a}) < date_trunc('month', {$b})
+            ELSE FALSE END)";
+    }
+
+    /**
      * « Ligne desservie de … à … » (station_lines.first_year / last_year) bornée par la vie de la gare,
      * une fois ses dates retenues (resolveClosures) : une ligne ne dessert pas une gare avant son
      * ouverture ni après sa fermeture. Une seule source de vérité pour la fiche gare (lignes
@@ -450,7 +465,11 @@ class BuildStationEras extends Command
      * période sont retirés, avec les mêmes bornes que buildLineStops (contrôle qualité du 2026-10-20 :
      * Briouze et Lonlay-le-Tesson « 434000 desservie de 1869 à 2006 », Lonlay fermée le 26/05/1991).
      * Période vide (fin avant le début) : years_source = never_served, « jamais desservie par cette
-     * ligne » sur la fiche gare, absente de la liste des gares de la ligne (LineStations).
+     * ligne » sur la fiche gare, absente de la liste des gares de la ligne (LineStations). Les deux années
+     * égales, les dates des événements de ligne (station_lines.first_event_date / last_event_date, posées par
+     * vff:attach-stations) et celles de la gare tranchent au jour ou au mois (strictlyBefore) ; une date
+     * de gare déduite des lignes (provenance inferred:…) ne tranche rien, une fermeture suivie d'une
+     * réouverture non plus. À l'année près, la période reste « 1857-1857 ».
      * Contrôle : invariant stations.line_service_outside_station_life (DataInvariants).
      */
     private function reconcileServiceYears(): void
@@ -469,12 +488,22 @@ class BuildStationEras extends Command
         SQL);
         // Ligne fermée avant l'ouverture de la gare, ou gare fermée avant l'ouverture de la ligne (Lille-Europe,
         // 1994, sur le tracé du tramway de Lille à Leers fermé en 1956) : la ligne ne l'a jamais desservie.
-        $never = DB::affectingStatement(<<<'SQL'
+        // La même année, les dates le montrent quand elles sont connues au jour ou au mois (La Fouillouse sur
+        // 4014 : section fermée le 26/09/1857, gare ouverte le 24/11/1857) ; voir strictlyBefore.
+        $lineClosedFirst = self::strictlyBefore('sl.last_event_date', 'sl.last_event_precision', 's.opened_at', 's.opened_precision');
+        $stationClosedFirst = self::strictlyBefore('s.closed_at', 's.closed_precision', 'sl.first_event_date', 'sl.first_event_precision');
+        $never = DB::affectingStatement(<<<SQL
             UPDATE station_lines sl SET years_source = 'never_served'
             FROM stations s
-            WHERE s.id = sl.station_id AND sl.last_year < sl.first_year AND sl.years_source IS DISTINCT FROM 'never_served'
-              AND ((s.opened_at IS NOT NULL AND sl.first_year = EXTRACT(YEAR FROM s.opened_at))
-                OR (s.closed_at IS NOT NULL AND sl.last_year = EXTRACT(YEAR FROM s.closed_at)))
+            WHERE s.id = sl.station_id AND sl.years_source IS DISTINCT FROM 'never_served'
+              AND ((sl.last_year < sl.first_year
+                    AND ((s.opened_at IS NOT NULL AND sl.first_year = EXTRACT(YEAR FROM s.opened_at))
+                      OR (s.closed_at IS NOT NULL AND sl.last_year = EXTRACT(YEAR FROM s.closed_at))))
+                OR (s.opened_at IS NOT NULL AND COALESCE(s.provenance->>'opened_at', '') NOT LIKE 'inferred:%'
+                    AND {$lineClosedFirst})
+                OR (s.closed_at IS NOT NULL AND s.closed_at <= CURRENT_DATE AND COALESCE(s.provenance->>'closed_at', '') NOT LIKE 'inferred:%'
+                    AND NOT EXISTS (SELECT 1 FROM station_events r WHERE r.station_id = s.id AND r.type = 'reopening' AND r.event_date > s.closed_at)
+                    AND {$stationClosedFirst}))
         SQL);
         $stops = DB::affectingStatement(<<<'SQL'
             DELETE FROM line_stops ls USING station_lines sl, eras e

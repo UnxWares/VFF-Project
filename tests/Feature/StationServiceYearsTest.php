@@ -123,6 +123,68 @@ class StationServiceYearsTest extends TestCase
         $this->assertSame(1, $this->violations('stations.line_service_outside_station_life'));
     }
 
+    /**
+     * Les deux années égales (revue des PR #19 et #20) : La Fouillouse sur 4014 (Saint-Étienne - Andrézieux),
+     * section fermée le 26/09/1857, gare ouverte le 24/11/1857, « desservie de 1857 à 1857 » sur la fiche gare.
+     * Les dates tranchent au jour, ou au mois quand c'est la précision commune ; à l'année près, rien n'est
+     * sûr et la période reste telle quelle.
+     */
+    public function test_same_year_dates_show_a_line_that_never_served_the_station(): void
+    {
+        $link = function (Station $station, array $dates): void {
+            DB::table('station_lines')->where('station_id', $station->id)->update($dates);
+        };
+        // La Fouillouse : fermeture au jour, ouverture de la gare au jour, deux mois plus tard.
+        $fouillouse = $this->station('La Fouillouse', 2.02, 2_000, ['opening' => '1857-11-24'], 1857, 1857);
+        $link($fouillouse, ['last_event_date' => '1857-09-26', 'last_event_precision' => 'day']);
+        // Même jour : rien ne dit que la ligne fermait avant le premier train de la gare.
+        $sameDay = $this->station('Même jour', 2.04, 3_000, ['opening' => '1857-09-26'], 1857, 1857);
+        $link($sameDay, ['last_event_date' => '1857-09-26', 'last_event_precision' => 'day']);
+        // Fermeture connue au mois (septembre), gare ouverte en novembre : précision commune au mois.
+        $month = $this->station('Septembre', 2.06, 4_000, ['opening' => '1857-11-24'], 1857, 1857);
+        $link($month, ['last_event_date' => '1857-09-01', 'last_event_precision' => 'month']);
+        // Même mois à la précision commune : indécidable.
+        $sameMonth = $this->station('Même mois', 2.08, 5_000, ['opening' => '1857-09-28'], 1857, 1857);
+        $link($sameMonth, ['last_event_date' => '1857-09-01', 'last_event_precision' => 'month']);
+        // Fermeture connue à l'année seulement : « 1857-1857 » reste, rien n'est présenté comme sûr.
+        $year = $this->station('À l\'année', 2.10, 6_000, ['opening' => '1857-11-24'], 1857, 1857);
+        $link($year, ['last_event_date' => '1857-01-01', 'last_event_precision' => 'year']);
+        // Ouverture de la gare déduite des lignes : pas une date de la gare, elle ne tranche rien.
+        $inferred = $this->station('Déduite', 2.12, 7_000, ['opening' => '1857-11-24'], 1857, 1857);
+        $link($inferred, ['last_event_date' => '1857-09-26', 'last_event_precision' => 'day']);
+        DB::table('stations')->where('id', $inferred->id)->update(['provenance' => json_encode(['opened_at' => 'inferred:lines'])]);
+        // L'inverse : gare fermée le 10/03/1857, ligne ouverte le 01/10/1857.
+        $closedFirst = $this->station('Fermée avant', 2.14, 8_000, ['opening' => '1840-05-01', 'closure' => '1857-03-10'], 1857, 1857);
+        $link($closedFirst, ['first_event_date' => '1857-10-01', 'first_event_precision' => 'day']);
+        DB::table('stations')->where('id', $closedFirst->id)->update(['closed_at' => '1857-03-10', 'closed_precision' => 'day']);
+        // Fermée puis rouverte après l'ouverture de la ligne : desservie.
+        $reopened = $this->station('Rouverte', 2.16, 9_000, ['opening' => '1840-05-01', 'closure' => '1857-03-10', 'reopening' => '1858-01-01'], 1857, 1857);
+        $link($reopened, ['first_event_date' => '1857-10-01', 'first_event_precision' => 'day']);
+        DB::table('stations')->where('id', $reopened->id)->update(['closed_at' => '1857-03-10', 'closed_precision' => 'day']);
+
+        $this->artisan('vff:build-station-eras', ['--today' => '2026-10-20'])->assertSuccessful();
+
+        $source = fn (Station $s) => DB::table('station_lines')->where('station_id', $s->id)->value('years_source');
+        $this->assertSame('never_served', $source($fouillouse));
+        $this->assertSame('never_served', $source($month));
+        $this->assertSame('never_served', $source($closedFirst));
+        foreach ([$sameDay, $sameMonth, $year, $inferred, $reopened] as $served) {
+            $this->assertSame('line_events', $source($served), $served->name);
+        }
+        $this->assertSame([1857, 1857, 'line_events'], $this->years($year));
+        // Carte et fiche ligne : aucune trace de la gare jamais desservie.
+        $this->assertSame(0, DB::table('line_stops')->where('station_id', $fouillouse->id)->count());
+        $this->assertNotContains('La Fouillouse', array_column((new LineStations)->forLine($this->line->id)['stations'], 'name'));
+        // Fiche gare : « jamais desservie par cette ligne », qui a fermé avant l'ouverture de la gare.
+        $this->get('/stations/'.$fouillouse->slug)->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('lines.0.never_served', 'line_closed')->etc());
+        $this->get('/stations/'.$closedFirst->slug)->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('lines.0.never_served', 'station_closed')->etc());
+        $this->get('/stations/'.$year->slug)->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('lines.0.never_served', null)->where('lines.0.first_year', 1857)->where('lines.0.last_year', 1857)->etc());
+        $this->assertSame(0, $this->violations('stations.line_service_outside_station_life'));
+    }
+
     public function test_a_station_opened_before_all_its_lines_is_reported(): void
     {
         // Mâcon-Loché-TGV « ouverte le 19/09/1981 » (Wikidata), la LGV le 27/09/1981.
