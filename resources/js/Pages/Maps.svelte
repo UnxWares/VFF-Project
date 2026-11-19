@@ -19,6 +19,7 @@
     import { accidentYears, countAccidents, fetchAccidents } from '$lib/accidentMap.js';
     import { LEVEL_CROSSING_MIN_ZOOM } from '$lib/levelCrossingMap.js';
     import { NO_ORM, activeLayers, layerNotices, readLayers, writeLayers } from '$lib/mapLayers.js';
+    import { readTint, writeTint } from '$lib/eraTint.js';
 
     // « Lire la carte » : ce que montre la carte, au présent (vocabulaire de la légende).
     const READING = ['era', 'views', 'color', 'line', 'sheet', 'route', 'layers'];
@@ -51,6 +52,8 @@
     // fond OpenRailwayMap au plus (lib/mapLayers.js).
     let dataLayers = $state([]);
     let ormLayer = $state(NO_ORM);
+    // Teinte d'époque du fond (sépia discret pour les époques anciennes) ; `?tint=off` la coupe.
+    let tintOn = $state(true);
     // Calque « Accidents » : points chargés au premier affichage.
     let accidentData = $state.raw(null);
     let accidentsState = $state('idle');
@@ -164,6 +167,13 @@
         writeLayerParams();
     }
 
+    function setTint(next) {
+        tintOn = next;
+        const url = writeTint(window.location.href, next);
+        if (url !== window.location.href)
+            window.history.replaceState(window.history.state, '', url);
+    }
+
     async function loadAccidents() {
         accidentsState = 'loading';
         try {
@@ -210,6 +220,7 @@
         const layers = readLayers(window.location.search);
         ormLayer = layers.orm;
         setDataLayers(layers.data);
+        tintOn = readTint(window.location.search);
     });
 
     $effect(() => {
@@ -268,6 +279,7 @@
                             <LayerPicker
                                 bind:data={() => dataLayers, setDataLayers}
                                 bind:orm={() => ormLayer, setOrmLayer}
+                                bind:tint={() => tintOn, setTint}
                             />
                             <button
                                 type="button"
@@ -290,6 +302,7 @@
                         {hidden}
                         mode={colorMode}
                         overlay={ormLayer}
+                        tint={tintOn}
                         accidents={showAccidents ? accidentData : null}
                         levelCrossings={showLevelCrossings}
                         signalling={showSignalling}

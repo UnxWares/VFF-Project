@@ -2,6 +2,7 @@
     import maplibregl from 'maplibre-gl';
     import 'maplibre-gl/dist/maplibre-gl.css';
     import { onDestroy, onMount } from 'svelte';
+    import { MediaQuery } from 'svelte/reactivity';
     import { get } from 'svelte/store';
     import { router } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
@@ -19,6 +20,9 @@
         HISTORIC_OVERLAY_DEFS,
         addHistoricBasemapControl,
     } from '$lib/historicBasemapControl.js';
+    import { HISTORIC_LAYER_ID } from '$lib/historicBasemaps.js';
+    // Teinte d'époque du fond de carte (sépia discret pour les époques anciennes).
+    import { NEUTRAL_TINT, WASH_COLOR, eraTint, rasterTintPaint } from '$lib/eraTint.js';
     // Palette trafic × statut partagée avec la légende et la mini-carte.
     import {
         ACTIVE_STATUSES,
@@ -163,7 +167,24 @@
         // Rappelé avec le zoom à la fin de chaque déplacement (le parent affiche alors une aide,
         // par exemple « zoomez pour voir les passages à niveau »).
         onZoomChange = null,
+        // Teinte d'époque du fond (lib/eraTint.js) voulue par le visiteur. Coupée aussi quand le
+        // système demande un contraste renforcé, hors de la vue « une décennie » et sous un fond
+        // historique de l'IGN (rendu d'origine).
+        tint = false,
     } = $props();
+
+    // Préférences du système, suivies en direct.
+    const moreContrast = new MediaQuery('(prefers-contrast: more)', false);
+    const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)', false);
+    // Un fond historique de l'IGN est affiché (couche ajoutée par HistoricBasemapPicker).
+    let historicShown = $state(false);
+    const tintSettings = $derived(
+        eraTint(era, {
+            enabled: tint && !moreContrast.current && !historicShown,
+            view,
+            today: currentEra,
+        }),
+    );
 
     // Géolocalisation refusée ('denied') ou impossible ('unavailable') : message sur la carte.
     let geoError = $state(null);
@@ -655,6 +676,45 @@
         );
     }
 
+    // ── Teinte d'époque du fond ───────────────────────────────────────────
+    const TINT_LAYER_ID = 'vff-era-tint';
+    const TINT_MS = 600;
+    const RASTER_TINT_PROPS = Object.keys(rasterTintPaint(NEUTRAL_TINT));
+
+    /**
+     * Voile couleur papier posé juste au-dessus du fond : après la couche raster `osm`, ou sous
+     * le premier libellé d'un fond vectoriel. Les fonds historiques, OpenRailwayMap et les tracés,
+     * insérés plus tard sous les tracés, restent au-dessus de lui.
+     */
+    function addTintLayer() {
+        const layers = map.getStyle()?.layers ?? [];
+        const osmIndex = layers.findIndex((l) => l.id === 'osm');
+        const before =
+            osmIndex >= 0 ? layers[osmIndex + 1]?.id : layers.find((l) => l.type === 'symbol')?.id;
+        map.addLayer(
+            {
+                id: TINT_LAYER_ID,
+                type: 'background',
+                paint: { 'background-color': WASH_COLOR, 'background-opacity': 0 },
+            },
+            before,
+        );
+    }
+
+    /** Applique les réglages de teinte, en fondu (sauf si le visiteur demande moins d'animations). */
+    function applyTint(settings, instant) {
+        if (!map || !layersReady || !map.getLayer(TINT_LAYER_ID)) return;
+        const transition = { duration: instant ? 0 : TINT_MS, delay: 0 };
+        map.setPaintProperty(TINT_LAYER_ID, 'background-opacity-transition', transition);
+        map.setPaintProperty(TINT_LAYER_ID, 'background-opacity', settings.wash);
+        if (!map.getLayer('osm')) return;
+        const paint = rasterTintPaint(settings);
+        for (const prop of RASTER_TINT_PROPS) {
+            map.setPaintProperty('osm', `${prop}-transition`, transition);
+            map.setPaintProperty('osm', prop, paint[prop]);
+        }
+    }
+
     /**
      * Transition fluide entre époques :
      *   1. Fade-out des layers (350ms grâce à `*-opacity-transition`)
@@ -885,8 +945,13 @@
         addHistoricBasemapControl(map, 'top-right');
 
         map.on('load', () => {
+            addTintLayer();
             addVffLayers(era);
             layersReady = true;
+            applyTint(tintSettings, true);
+            map.on('styledata', () => {
+                historicShown = Boolean(map?.getLayer(HISTORIC_LAYER_ID));
+            });
             applyMode(mode);
             applyOverlay(overlay);
             setupInteractions();
@@ -917,6 +982,9 @@
     }
 
     $effect(() => applyMode(mode));
+
+    // Réactif : ère, vue, réglage ou préférences changés → teinte du fond mise à jour.
+    $effect(() => applyTint(tintSettings, reducedMotion.current));
 
     // Réactif : changement d'époque OU de dataVersion → fade + swap des sources
     $effect(() => {

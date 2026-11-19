@@ -45,6 +45,10 @@ return [
         'today_hint' => 'Bahnübergänge und Streckenblock: nur das heutige Netz.',
         'orm_legend' => 'Hintergrund OpenRailwayMap',
         'orm_hint' => 'Jeweils ein Hintergrund, unter den Strecken von VFF.',
+        'basemap_legend' => 'Hintergrundkarte',
+        'tint' => 'Ältere Epochen tönen',
+        'tint_hint' => 'Je älter die Epoche, desto blasser wird die Hintergrundkarte und desto mehr geht sie ins Sepia. Das heutige Netz bleibt ungetönt.',
+        'tint_hint_contrast' => 'Tönung aus: Ihr Gerät verlangt einen stärkeren Kontrast.',
         'current_only_both' => 'Bahnübergänge und Streckenblock sind nur für das heutige Netz bekannt.',
         'orm' => [
             'standard' => 'Infrastruktur',
@@ -215,7 +219,7 @@ return [
     'read' => [
         'title' => 'Die Karte lesen',
         'era_term' => 'Epoche',
-        'era_text' => 'Die Zeitleiste unter der Karte wählt das Jahrzehnt, von 1830 bis heute. Die Wiedergabetaste zeigt die Jahrzehnte nacheinander.',
+        'era_text' => 'Die Zeitleiste unter der Karte wählt das Jahrzehnt, von 1830 bis heute. Die Wiedergabetaste zeigt die Jahrzehnte nacheinander. Je älter die Epoche, desto mehr geht die Hintergrundkarte ins Sepia; mit dem Kästchen „Ältere Epochen tönen“ unter der Schaltfläche „Ebenen“ schalten Sie die Tönung ab.',
         'color_term' => 'Farbe',
         'color_text' => 'Bei einer Strecke in Betrieb zeigt die Farbe, was darauf verkehrt: Violett für den Hochgeschwindigkeitsverkehr, Orange für das konventionelle Netz mit Personen- und Güterverkehr, Blau für reinen Güterverkehr, Grün für eine von einem Verein betriebene Strecke. Die Modi Elektrifizierung und Spurweite der Legende färben dieselben Strecken nach Spannung oder Spurweite.',
         'line_term' => 'Linie',

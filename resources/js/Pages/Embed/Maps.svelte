@@ -7,6 +7,7 @@
     import { accidentYears, countAccidents, fetchAccidents } from '$lib/accidentMap.js';
     import { LEVEL_CROSSING_MIN_ZOOM } from '$lib/levelCrossingMap.js';
     import { NO_ORM, activeLayers, layerNotices, readLayers } from '$lib/mapLayers.js';
+    import { readTint } from '$lib/eraTint.js';
 
     /**
      * Page d'intégration iframe - pleine fenêtre, sans en-tête ni pied de page.
@@ -26,6 +27,8 @@
      *                         signalling, et un fond OpenRailwayMap orm-standard | orm-maxspeed |
      *                         orm-signals | orm-electrification | orm-gauge ; une liste séparée par
      *                         des virgules est lue aussi ; voir lib/mapLayers.js)
+     *   ?tint=off             (coupe la teinte d'époque du fond ; voir lib/eraTint.js. Elle est
+     *                         coupée aussi quand ni la frise ni la légende n'écrivent l'époque)
      */
 
     // Ères servies par MapController::embed (toutes les décennies 1830 → 2030).
@@ -65,6 +68,7 @@
     let showTimeline = $state(true);
     let showLegend = $state(true);
     let showAttribution = $state(true);
+    let tintOn = $state(true);
     let frameEl = $state();
     // Calques facultatifs demandés par l'adresse (lib/mapLayers.js) : les points des accidents sont
     // chargés au premier affichage, comme sur /maps.
@@ -122,6 +126,7 @@
         showTimeline = parseBool(readParam('timeline'), true);
         showLegend = parseBool(readParam('legend'), true);
         showAttribution = parseBool(readParam('attribution'), true);
+        tintOn = readTint(window.location.search);
         const modeParam = readParam('mode');
         if (['traffic', 'electrification', 'gauge'].includes(modeParam)) colorMode = modeParam;
 
@@ -167,6 +172,7 @@
         {hidden}
         mode={colorMode}
         overlay={ormLayer}
+        tint={tintOn && (showTimeline || showLegend)}
         accidents={drawn.accidents ? accidentData : null}
         levelCrossings={drawn.levelCrossings}
         signalling={drawn.signalling}

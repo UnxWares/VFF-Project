@@ -45,6 +45,10 @@ return [
         'today_hint' => 'Level crossings and signalling: today’s network only.',
         'orm_legend' => 'OpenRailwayMap background',
         'orm_hint' => 'One background at a time, under the VFF lines.',
+        'basemap_legend' => 'Base map',
+        'tint' => 'Tint older periods',
+        'tint_hint' => 'The older the period, the paler the base map and the closer to sepia. Today’s network is not tinted.',
+        'tint_hint_contrast' => 'Tint off: your device asks for more contrast.',
         'current_only_both' => 'Level crossings and signalling are only known for today’s network.',
         'orm' => [
             'standard' => 'Infrastructure',
@@ -215,7 +219,7 @@ return [
     'read' => [
         'title' => 'Reading the map',
         'era_term' => 'Era',
-        'era_text' => 'The timeline below the map selects the decade, from 1830 to today. The play button steps through the decades one by one.',
+        'era_text' => 'The timeline below the map selects the decade, from 1830 to today. The play button steps through the decades one by one. The older the period, the closer the base map is to sepia; untick “Tint older periods” under the Layers button to remove the tint.',
         'color_term' => 'Colour',
         'color_text' => 'On a line in service, the colour shows what runs on it: purple for high speed, orange for the conventional network open to passengers and freight, blue for freight only, green for a line run by an association. The Electrification and Gauge modes of the legend colour the same routes by voltage or track gauge.',
         'line_term' => 'Stroke',

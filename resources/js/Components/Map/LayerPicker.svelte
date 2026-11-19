@@ -1,4 +1,5 @@
 <script>
+    import { MediaQuery } from 'svelte/reactivity';
     import { i18n } from '$lib/i18n.js';
     import {
         DATA_LAYERS,
@@ -21,12 +22,16 @@
      * Props (bindables) :
      *   data : calques de VFF affichés (DATA_LAYERS de lib/mapLayers.js)
      *   orm  : fond OpenRailwayMap ('none' ou un ORM_LAYERS)
+     *   tint : teinte d'époque du fond de carte (lib/eraTint.js), coupée par une case
      */
-    let { data = $bindable([]), orm = $bindable(NO_ORM) } = $props();
+    let { data = $bindable([]), orm = $bindable(NO_ORM), tint = $bindable(true) } = $props();
 
     const uid = $props.id();
     const panelId = `${uid}-panel`;
     const todayId = `${uid}-today`;
+    const tintHintId = `${uid}-tint`;
+    // Contraste renforcé demandé par le système : la teinte est toujours coupée.
+    const moreContrast = new MediaQuery('(prefers-contrast: more)', false);
 
     let open = $state(false);
     let root = $state();
@@ -118,6 +123,29 @@
                     </label>
                 {/each}
                 <p class="layer-hint">{$i18n.t('maps.layers.orm_hint')}</p>
+            </fieldset>
+        </div>
+
+        <div class="layer-group">
+            <fieldset>
+                <legend>{$i18n.t('maps.layers.basemap_legend')}</legend>
+                <label class="vff-check layer-option">
+                    <input
+                        type="checkbox"
+                        checked={tint && !moreContrast.current}
+                        disabled={moreContrast.current}
+                        onchange={(e) => (tint = e.currentTarget.checked)}
+                        aria-describedby={tintHintId}
+                    />
+                    {$i18n.t('maps.layers.tint')}
+                </label>
+                <p class="layer-hint" id={tintHintId}>
+                    {$i18n.t(
+                        moreContrast.current
+                            ? 'maps.layers.tint_hint_contrast'
+                            : 'maps.layers.tint_hint',
+                    )}
+                </p>
             </fieldset>
         </div>
     </div>

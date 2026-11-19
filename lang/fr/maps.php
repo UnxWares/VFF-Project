@@ -45,6 +45,10 @@ return [
         'today_hint' => 'Passages à niveau et signalisation : réseau d’aujourd’hui seulement.',
         'orm_legend' => 'Fond OpenRailwayMap',
         'orm_hint' => 'Un seul fond à la fois, sous les lignes de VFF.',
+        'basemap_legend' => 'Fond de carte',
+        'tint' => 'Teinte des époques anciennes',
+        'tint_hint' => 'Plus l’époque est ancienne, plus le fond pâlit et tire vers le sépia. Le réseau d’aujourd’hui n’est pas teinté.',
+        'tint_hint_contrast' => 'Teinte coupée : votre appareil demande un contraste renforcé.',
         'current_only_both' => 'Les passages à niveau et la signalisation ne sont connus que pour le réseau d’aujourd’hui.',
         'orm' => [
             'standard' => 'Infrastructure',
@@ -215,7 +219,7 @@ return [
     'read' => [
         'title' => 'Lire la carte',
         'era_term' => 'Époque',
-        'era_text' => 'La frise sous la carte choisit la décennie, de 1830 à aujourd’hui. Le bouton lecture fait défiler les décennies une à une.',
+        'era_text' => 'La frise sous la carte choisit la décennie, de 1830 à aujourd’hui. Le bouton lecture fait défiler les décennies une à une. Plus l’époque est ancienne, plus le fond de carte tire vers le sépia ; la case « Teinte des époques anciennes », dans le bouton Calques, coupe cette teinte.',
         'color_term' => 'Couleur',
         'color_text' => 'Sur une ligne en service, la couleur dit ce qui y circule : violet pour la grande vitesse, orange pour le réseau classique ouvert aux voyageurs et au fret, bleu pour le fret seul, vert pour une ligne exploitée par une association. Les modes Électrification et Écartement de la légende colorent les mêmes tracés selon la tension ou l’écartement des voies.',
         'line_term' => 'Trait',

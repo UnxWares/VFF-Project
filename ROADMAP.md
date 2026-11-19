@@ -233,7 +233,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [~] Jonctions : réduire les coudes et crochets restants (phase « escaliers »)
 - [ ] Modèle : fusion de plusieurs dates de prises de vue (calcul GPU, sur accord), publication des poids complets
 - [ ] Gallica (BnF) et fonds d'archives (SNCF, associations régionales)
-- [ ] Distinction visuelle des époques anciennes sur la carte (sépia, dégradé temporel)
+- [x] Distinction visuelle des époques anciennes sur la carte : fond pâli et teinté de sépia selon l'ère (rien aujourd'hui), réglage « Teinte des époques anciennes » et `?tint=off`
 
 ---
 
