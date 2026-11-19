@@ -217,6 +217,17 @@ return [
 
     'meta_description' => 'Enzyklopädische Seite der Strecke :name: Verlauf, datierte Phasen, Bahnhöfe, Quellen.',
 
+    // Download der Trasse der Strecke (GPX, KML, GeoJSON: API `/api/v1/lines/{slug}/gpx`).
+    'trace_download' => [
+        'title' => 'Trasse herunterladen',
+        'intro' => 'Die Trasse der Strecke als GPX-, KML- oder GeoJSON-Datei, für ein GPS-Gerät oder eine Kartensoftware. Jede Datei nennt den Namen der Strecke, die Epoche, die Adresse dieser Seite sowie die Quellen der Trasse und ihre Lizenzen.',
+        'era' => 'Epoche der Trasse',
+        'for_era' => 'Trasse von :era',
+        'note' => 'Ein Abschnitt, dessen Quelle keine Weitergabe erlaubt, ist nicht enthalten.',
+        'api' => 'API-Dokumentation',
+        'unavailable' => 'Die Trasse dieser Strecke kann nicht heruntergeladen werden: Ihre Quelle erlaubt keine Weitergabe.',
+    ],
+
     // Phasen der Strecke (App\Services\LinePhases): Auswahl neben der Karte.
     'phases' => [
         'title' => 'Phasen der Strecke',

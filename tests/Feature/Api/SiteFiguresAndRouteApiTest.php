@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\LineSegment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Nuwave\Lighthouse\Testing\MakesGraphQLRequests;
@@ -61,6 +62,8 @@ class SiteFiguresAndRouteApiTest extends TestCase
 
     public function test_line_geojson_is_a_feature_collection_with_provenance_and_validates_the_era(): void
     {
+        // Seule une source à licence ouverte (registre des droits) livre sa géométrie.
+        LineSegment::query()->update(['source' => 'osm']);
         $response = $this->getJson("/api/v1/lines/{$this->line->slug}/geojson?era=1960")
             ->assertOk()
             ->assertHeader('Content-Type', 'application/geo+json')

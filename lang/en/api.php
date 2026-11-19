@@ -46,7 +46,9 @@ return [
         ],
         'items' => [
             'stats' => 'The home page figures: number of lines, stations and rolling stock classes, kilometres in operation and the network curve at each era.',
-            'line_geojson' => 'A line’s route at an era as GeoJSON, one feature per section, with its provenance.',
+            'line_geojson' => 'A line’s route at an era as GeoJSON, one feature per section, with its provenance and the credit lines of its sources.',
+            'line_gpx' => 'A line’s route at an era as a GPX 1.1 download: one track, one segment per section, with the name, the era, the line page address and the licences of the sources.',
+            'line_kml' => 'A line’s route at an era as a KML 2.2 download: one placemark per section, with the same credits. Only sources with an open licence are included.',
             'eras' => 'The map eras, each one fixed at 31 December of its year; 2030 describes today’s network.',
             'era' => 'One era and the state of the network at that date: kilometres in service, closed, lifted and electrified.',
             'lines_geojson' => 'Network routes at an era, as GeoJSON (a FeatureCollection of sections).',

@@ -31,7 +31,8 @@ return [
             - **annuaire des lignes** (`/lines`, filtres de la page [/lines](/lines)) et **fiche complète**
               d'une ligne (`/lines/{line}` : chiffres clés, électrification, signalisation, phases datées,
               chronique sourcée, gares, sections nommées, sources), avec ses tronçons par ère
-              (`/lines/{line}/segments`) ou en GeoJSON (`/lines/{line}/geojson`), sa chronologie, ses gares par
+              (`/lines/{line}/segments`), en GeoJSON (`/lines/{line}/geojson`) ou en fichier GPX et KML à
+              télécharger (`/lines/{line}/gpx`, `/lines/{line}/kml`), sa chronologie, ses gares par
               ère, sa signalisation, son profil en long, ses passages à niveau, ses médias ;
             - **annuaire des gares** (`/stations`) et **fiche complète** d'une gare (`/stations/{station}`) ;
             - **chiffres d'ensemble** du site et courbe du réseau (`/stats`), **époques** (`/eras`) et
@@ -130,7 +131,12 @@ return [
             Data et OpenStreetMap (ODbL), IGN BD TOPO (Licence Ouverte 2.0), OpenHistoricalMap et Wikidata
             (CC0), Wikipédia (CC BY-SA). Les données signalées par `source` = `archeoferroviaire` ne sont
             pas sous ODbL : usage non commercial uniquement, avec un crédit et un lien vers la source.
-            Chaque média porte sa propre licence et son attribution.
+            Le tracé d'une ligne en fichier (`/lines/{line}/geojson`, `/gpx`, `/kml`) ne contient que les
+            géométries dont la source a une licence ouverte : celles d'une source non commerciale, sous
+            accord particulier ou de statut incertain en sont écartées, et la réponse dit lesquelles
+            (`withheld`, `geometry_withheld`, ou HTTP 451 quand rien n'est exportable). Chaque fichier porte
+            la mention de la base VFF et celle de chaque source utilisée. Chaque média porte sa propre
+            licence et son attribution.
 
             ## Versionnement
             L'API est en **version 1** (préfixe `/api/v1`, numéro de version de ce document). Dans une

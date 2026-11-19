@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\LinePkController;
 use App\Http\Controllers\Api\LineProfileController;
 use App\Http\Controllers\Api\LineSignallingController;
 use App\Http\Controllers\Api\LineStopsController;
+use App\Http\Controllers\Api\LineTraceController;
 use App\Http\Controllers\Api\MaterialController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\RouteController;
@@ -71,6 +72,9 @@ Route::middleware('throttle:300,1')->group(function (): void {
     Route::get('/v1/lines/{line:slug}', [LineController::class, 'show'])->name('api.lines.show');
     Route::get('/v1/lines/{line:slug}/segments', [LineController::class, 'segments'])->name('api.lines.segments');
     Route::get('/v1/lines/{line:slug}/geojson', [LineController::class, 'geojson'])->name('api.lines.geojson');
+    // Tracé en fichier à télécharger (GPX 1.1, KML 2.2) : seules les sources redistribuables y figurent.
+    Route::get('/v1/lines/{line:slug}/gpx', [LineTraceController::class, 'gpx'])->name('api.lines.gpx');
+    Route::get('/v1/lines/{line:slug}/kml', [LineTraceController::class, 'kml'])->name('api.lines.kml');
     Route::get('/v1/stations', [StationController::class, 'index'])->name('api.stations.index');
     Route::get('/v1/stations/{station:slug}', [StationController::class, 'show'])->name('api.stations.show');
     Route::get('/v1/sources', [SourceController::class, 'index'])->name('api.sources.index');

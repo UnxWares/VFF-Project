@@ -3,6 +3,7 @@
 namespace Tests\Feature\GraphQL;
 
 use App\Models\Line;
+use App\Models\LineSegment;
 use App\Models\Material;
 use App\Models\Station;
 use Clickbar\Magellan\Data\Geometries\Point;
@@ -55,8 +56,25 @@ class GraphQLQueriesTest extends TestCase
 
     // ─── Lignes ──────────────────────────────────────────────────────────
 
+    public function test_segment_geometry_follows_the_redistribution_rule_of_the_sources(): void
+    {
+        $query = '{ line(slug: "'.$this->line->slug.'") { segments { geojson } } }';
+
+        // Source non déclarée (tronçons de la fixture) : pas de licence connue, géométrie non redistribuée.
+        $this->graphQL($query)->assertGraphQLErrorFree()->assertJsonPath('data.line.segments.0.geojson', null);
+
+        LineSegment::query()->update(['source' => 'archeoferroviaire']);
+        $this->graphQL($query)->assertGraphQLErrorFree()->assertJsonPath('data.line.segments.0.geojson', null);
+
+        LineSegment::query()->update(['source' => 'osm']);
+        $this->assertNotNull($this->graphQL($query)->assertGraphQLErrorFree()->json('data.line.segments.0.geojson'));
+    }
+
     public function test_line_with_every_relation_and_resolver(): void
     {
+        // Seule une source à licence ouverte livre sa géométrie (registre des droits).
+        LineSegment::query()->update(['source' => 'osm']);
+
         $response = $this->graphQL(<<<'GQL'
             query ($slug: String!) {
               line(slug: $slug) {

@@ -218,6 +218,17 @@ return [
 
     'meta_description' => 'Fiche encyclopédique de la ligne :name : tracé, phases datées, gares, sources.',
 
+    // Téléchargement du tracé de la ligne (GPX, KML, GeoJSON : API `/api/v1/lines/{slug}/gpx`).
+    'trace_download' => [
+        'title' => 'Télécharger le tracé',
+        'intro' => 'Le tracé de la ligne en fichier GPX, KML ou GeoJSON, pour un GPS ou un logiciel de cartographie. Chaque fichier donne le nom de la ligne, l’ère, l’adresse de cette fiche, puis les sources du tracé et leurs licences.',
+        'era' => 'Ère du tracé',
+        'for_era' => 'tracé de :era',
+        'note' => 'Un tronçon dont la source n’autorise pas la redistribution n’est pas inclus.',
+        'api' => 'Documentation de l’API',
+        'unavailable' => 'Le tracé de cette ligne ne peut pas être téléchargé : sa source n’autorise pas la redistribution.',
+    ],
+
     // Phases de la ligne (App\Services\LinePhases) : sélecteur à côté de la carte.
     'phases' => [
         'title' => 'Phases de la ligne',

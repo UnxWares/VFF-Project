@@ -46,7 +46,9 @@ return [
         ],
         'items' => [
             'stats' => 'Die Zahlen der Startseite: Anzahl der Strecken, Bahnhöfe und Fahrzeugbaureihen, Betriebskilometer und die Netzkurve je Epoche.',
-            'line_geojson' => 'Trasse einer Strecke zu einer Epoche als GeoJSON, ein Abschnitt je Element, mit Herkunft.',
+            'line_geojson' => 'Trasse einer Strecke zu einer Epoche als GeoJSON, ein Abschnitt je Element, mit Herkunft und den Quellenangaben.',
+            'line_gpx' => 'Trasse einer Strecke zu einer Epoche als GPX-1.1-Download: eine Spur, ein Segment je Abschnitt, mit Name, Epoche, Adresse der Streckenseite und den Lizenzen der Quellen.',
+            'line_kml' => 'Trasse einer Strecke zu einer Epoche als KML-2.2-Download: eine Markierung je Abschnitt, mit denselben Angaben. Enthalten sind nur Quellen mit offener Lizenz.',
             'eras' => 'Die Epochen der Karte, jeweils zum 31. Dezember ihres Jahres; 2030 beschreibt das heutige Netz.',
             'era' => 'Eine Epoche und der Zustand des Netzes zu diesem Datum: Kilometer in Betrieb, stillgelegt, abgebaut und elektrifiziert.',
             'lines_geojson' => 'Streckenverläufe des Netzes zu einer Epoche, als GeoJSON (FeatureCollection von Abschnitten).',

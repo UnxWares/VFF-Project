@@ -71,6 +71,20 @@ final class ErrorExamples
         'errors' => ['geometry' => ['The geometry field must be true or false.']],
     ];
 
+    /** 451 : le tracé existe, mais aucune de ses sources n'autorise la redistribution (exports GPX et KML). */
+    public const GEOMETRY_WITHHELD = [
+        'error' => 'geometry_withheld',
+        'message' => 'The route exists but its sources do not allow redistribution, so nothing is exported.',
+        'withheld' => [[
+            'provider' => 'exemple',
+            'name' => 'Source d\'exemple (usage non commercial)',
+            'license' => 'Usage non commercial uniquement : redistribution non autorisée',
+            'reason' => 'licence_not_open',
+            'sections' => 3,
+            'length_m' => 18420,
+        ]],
+    ];
+
     /**
      * Corps de l'erreur 404 d'une ère inconnue.
      *

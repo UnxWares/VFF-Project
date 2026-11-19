@@ -34,6 +34,7 @@ class ApiDocsTest extends TestCase
         '/eras/{year}/tiles/{z}/{x}/{y}.mvt',
         '/eras/{year}/gtfs.zip',
         '/lines', '/lines/{line}', '/lines/{line}/segments', '/lines/{line}/geojson',
+        '/lines/{line}/gpx', '/lines/{line}/kml',
         '/lines/{line}/history',
         '/lines/{line}/pk',
         '/lines/{line}/stops',
@@ -75,6 +76,7 @@ class ApiDocsTest extends TestCase
     private const BINARY_PATHS = [
         '/eras/{year}/tiles/{z}/{x}/{y}.mvt', '/eras/{year}/gtfs.zip',
         '/level-crossings/tiles/{z}/{x}/{y}.mvt', '/eras/{year}/signalling/tiles/{z}/{x}/{y}.mvt',
+        '/lines/{line}/gpx', '/lines/{line}/kml',
     ];
 
     /** Types déclarés dans graphql/schema.graphql (hors types ajoutés par Lighthouse). */

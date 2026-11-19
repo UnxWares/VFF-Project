@@ -356,7 +356,8 @@ type LineSegment {
     """
     Géométrie du tronçon : une chaîne JSON contenant une géométrie GeoJSON (`LineString` ou
     `MultiLineString`, coordonnées WGS 84 dans l'ordre longitude, latitude). À décoder côté
-    client avec `JSON.parse`.
+    client avec `JSON.parse`. Vaut `null` quand la source du tronçon n'autorise pas la
+    redistribution (licence non ouverte, non commerciale ou statut incertain : voir `source`).
     """
     geojson: String @field(resolver: "App\\GraphQL\\Resolvers\\LineSegmentResolver@geojson")
 

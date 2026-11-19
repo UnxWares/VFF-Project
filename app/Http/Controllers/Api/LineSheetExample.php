@@ -263,6 +263,8 @@ final class LineSheetExample
                 'history' => 'https://vff-project.org/api/v1/lines/rfn-447000/history',
                 'segments' => 'https://vff-project.org/api/v1/lines/rfn-447000/segments',
                 'geojson' => 'https://vff-project.org/api/v1/lines/rfn-447000/geojson',
+                'gpx' => 'https://vff-project.org/api/v1/lines/rfn-447000/gpx',
+                'kml' => 'https://vff-project.org/api/v1/lines/rfn-447000/kml',
                 'stops' => 'https://vff-project.org/api/v1/lines/rfn-447000/stops',
                 'signalling' => 'https://vff-project.org/api/v1/lines/rfn-447000/signalling',
                 'profile' => 'https://vff-project.org/api/v1/lines/rfn-447000/profile',

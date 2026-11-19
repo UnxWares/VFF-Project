@@ -47,7 +47,9 @@ return [
         ],
         'items' => [
             'stats' => 'Les chiffres de l’accueil : nombre de lignes, de gares et de matériels, kilomètres exploités et courbe du réseau à chaque ère.',
-            'line_geojson' => 'Tracé d’une ligne à une ère en GeoJSON, un tronçon par élément, avec sa provenance.',
+            'line_geojson' => 'Tracé d’une ligne à une ère en GeoJSON, un tronçon par élément, avec sa provenance et les mentions de ses sources.',
+            'line_gpx' => 'Tracé d’une ligne à une ère en GPX 1.1, à télécharger : une trace, un segment par tronçon, avec le nom, l’ère, l’adresse de la fiche et les licences des sources.',
+            'line_kml' => 'Tracé d’une ligne à une ère en KML 2.2, à télécharger : un repère par tronçon, avec les mêmes mentions. Seules les sources à licence ouverte y figurent.',
             'eras' => 'Les ères de la carte, chacune arrêtée au 31 décembre de son année ; 2030 décrit le réseau d’aujourd’hui.',
             'era' => 'Une ère et l’état du réseau à cette date : kilomètres en service, fermés, déposés et électrifiés.',
             'lines_geojson' => 'Tracés du réseau à une ère, en GeoJSON (FeatureCollection de tronçons).',

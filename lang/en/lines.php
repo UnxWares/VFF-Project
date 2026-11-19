@@ -217,6 +217,17 @@ return [
 
     'meta_description' => 'Encyclopaedia page for the line :name: route, dated phases, stations, sources.',
 
+    // Download of the line's route (GPX, KML, GeoJSON: API `/api/v1/lines/{slug}/gpx`).
+    'trace_download' => [
+        'title' => 'Download the route',
+        'intro' => 'The line’s route as a GPX, KML or GeoJSON file, for a GPS or mapping software. Each file gives the name of the line, the era, the address of this page, then the sources of the route and their licences.',
+        'era' => 'Era of the route',
+        'for_era' => 'route of :era',
+        'note' => 'A section whose source does not allow redistribution is left out.',
+        'api' => 'API documentation',
+        'unavailable' => 'This line’s route cannot be downloaded: its source does not allow redistribution.',
+    ],
+
     // Phases of the line (App\Services\LinePhases): selector next to the map.
     'phases' => [
         'title' => 'Phases of the line',

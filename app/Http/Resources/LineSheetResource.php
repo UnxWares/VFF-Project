@@ -93,6 +93,8 @@ class LineSheetResource extends JsonResource
                 'history' => route('api.lines.history', $line['slug']),
                 'segments' => route('api.lines.segments', $line['slug']),
                 'geojson' => route('api.lines.geojson', $line['slug']),
+                'gpx' => route('api.lines.gpx', $line['slug']),
+                'kml' => route('api.lines.kml', $line['slug']),
                 'stops' => route('api.lines.stops', $line['slug']),
                 'signalling' => route('api.lines.signalling', $line['slug']),
                 'profile' => route('api.lines.profile', $line['slug']),

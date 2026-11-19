@@ -45,6 +45,16 @@
                 { path: '/api/v1/lines/{line}', key: 'line' },
                 { path: '/api/v1/lines/{line}/segments?era={year}', key: 'segments' },
                 { path: '/api/v1/lines/{line}/geojson?era={year}', key: 'line_geojson' },
+                {
+                    path: '/api/v1/lines/{line}/gpx?era={year}',
+                    key: 'line_gpx',
+                    doc: '/docs/api#api-1/tag/lignes/GET/lines/{line}/gpx',
+                },
+                {
+                    path: '/api/v1/lines/{line}/kml?era={year}',
+                    key: 'line_kml',
+                    doc: '/docs/api#api-1/tag/lignes/GET/lines/{line}/kml',
+                },
                 { path: '/api/v1/lines/{line}/history', key: 'history' },
                 { path: '/api/v1/lines/{line}/pk?lat={lat}&lng={lng}', key: 'pk' },
                 { path: '/api/v1/lines/{line}/stops?era={year}', key: 'stops' },
@@ -274,7 +284,12 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
                             <code class="path"
                                 >{#each segments(e.path) as s (s)}{s}<wbr />{/each}</code
                             >
-                            <span class="desc">{$i18n.t(`api.endpoints.items.${e.key}`)}</span>
+                            <span class="desc"
+                                >{$i18n.t(`api.endpoints.items.${e.key}`)}
+                                {#if e.doc}<a class="vff-link" href={e.doc}
+                                        >{$i18n.t('api.endpoints.reference')}</a
+                                    >{/if}</span
+                            >
                         </li>
                     {/each}
                 </ul>

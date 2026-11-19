@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\LineSegment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\BuildsRailNetwork;
@@ -109,10 +110,18 @@ class SheetsApiTest extends TestCase
             ->assertJsonStructure(['line' => ['slug', 'code', 'name'], 'data' => [['id', 'pk_start_m', 'pk_end_m', 'length_m',
                 'electrified', 'max_speed_kmh', 'gauge_mm', 'source', 'provenance' => ['provider', 'name', 'license', 'license_status']]]]);
 
+        // Un tronçon sans source déclarée n'a pas de licence connue : sa géométrie n'est pas donnée.
+        $this->getJson("/api/v1/lines/{$this->line->slug}/segments?era=1960&geometry=1")
+            ->assertOk()
+            ->assertJsonPath('data.0.geometry', null)
+            ->assertJsonPath('data.0.geometry_withheld', true);
+
+        LineSegment::query()->update(['source' => 'osm']);
         $this->getJson("/api/v1/lines/{$this->line->slug}/segments?era=1960&geometry=1")
             ->assertOk()
             ->assertJsonPath('era_year', 1960)
-            ->assertJsonPath('data.0.geometry.type', 'LineString');
+            ->assertJsonPath('data.0.geometry.type', 'LineString')
+            ->assertJsonPath('data.0.geometry_withheld', false);
 
         $this->getJson("/api/v1/lines/{$this->line->slug}/segments?era=1935")->assertNotFound();
         $this->getJson("/api/v1/lines/{$this->line->slug}/segments?era=vers1930")->assertUnprocessable()->assertJsonValidationErrors(['era']);

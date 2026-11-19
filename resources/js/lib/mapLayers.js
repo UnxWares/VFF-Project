@@ -75,3 +75,50 @@ export function toggleData(data, key, on) {
 export function layerCount({ data, orm }) {
     return orderedData(data).length + (ORM_LAYERS.includes(orm) ? 1 : 0);
 }
+
+/**
+ * Calques réellement dessinés pour la carte affichée. Les passages à niveau et la signalisation ne
+ * sont connus que pour le réseau d'aujourd'hui : sur une autre époque ils ne sont pas dessinés et
+ * `todayOnly` garde ceux qui ont été demandés, pour le message et la légende.
+ * @param {{ data: string[], orm: string }} layers calques demandés (readLayers)
+ * @param {boolean} showingToday la carte montre le réseau d'aujourd'hui
+ */
+export function activeLayers({ data, orm }, showingToday) {
+    const todayOnly = orderedData(data).filter((key) => TODAY_ONLY_LAYERS.includes(key));
+    return {
+        accidents: data.includes('accidents'),
+        levelCrossings: showingToday && data.includes('level-crossings'),
+        signalling: showingToday && data.includes('signalling'),
+        todayOnly,
+        legendOverlays: showingToday ? todayOnly : [],
+        orm,
+    };
+}
+
+/**
+ * Messages posés sur la carte par les calques : échec du chargement des accidents, calques connus
+ * seulement aujourd'hui (une phrase pour un calque, une autre pour les deux), aide au zoom des
+ * passages à niveau. `textKey` est une clé de traduction.
+ * @param {ReturnType<typeof activeLayers>} active
+ * @param {{ showingToday: boolean, accidentsFailed: boolean, zoom: number, minZoom: number }} state
+ * @returns {Array<{ key: string, textKey: string, icon?: string }>}
+ */
+export function layerNotices(active, { showingToday, accidentsFailed, zoom, minZoom }) {
+    const out = [];
+    if (active.accidents && accidentsFailed) {
+        out.push({ key: 'accidents', textKey: 'maps.accidents.error' });
+    }
+    if (active.todayOnly.length && !showingToday) {
+        const textKey =
+            active.todayOnly.length > 1
+                ? 'maps.layers.current_only_both'
+                : active.todayOnly[0] === 'signalling'
+                  ? 'maps.signalling.current_only'
+                  : 'maps.level_crossings.current_only';
+        out.push({ key: 'today', textKey });
+    }
+    if (active.levelCrossings && zoom < minZoom) {
+        out.push({ key: 'zoom', textKey: 'maps.level_crossings.zoom_hint', icon: 'bi-zoom-in' });
+    }
+    return out;
+}

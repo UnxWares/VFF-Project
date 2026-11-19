@@ -16,9 +16,9 @@
     import LayerPicker from '$components/Map/LayerPicker.svelte';
     import { i18n } from '$lib/i18n.js';
     import { defaultPair, readViewParams, writeViewParams } from '$lib/epochViews.js';
-    import { ACCIDENTS_URL, accidentYears, countAccidents } from '$lib/accidentMap.js';
+    import { accidentYears, countAccidents, fetchAccidents } from '$lib/accidentMap.js';
     import { LEVEL_CROSSING_MIN_ZOOM } from '$lib/levelCrossingMap.js';
-    import { NO_ORM, TODAY_ONLY_LAYERS, readLayers, writeLayers } from '$lib/mapLayers.js';
+    import { NO_ORM, activeLayers, layerNotices, readLayers, writeLayers } from '$lib/mapLayers.js';
 
     // « Lire la carte » : ce que montre la carte, au présent (vocabulaire de la légende).
     const READING = ['era', 'views', 'color', 'line', 'sheet', 'route', 'layers'];
@@ -124,13 +124,13 @@
             : { top: 60, right: 52, bottom: 28 + keyRoom, left: 16 };
     };
 
-    const showAccidents = $derived(dataLayers.includes('accidents'));
+    const showingToday = $derived(view === 'era' && selectedEra === currentEraYear);
+    const drawn = $derived(activeLayers({ data: dataLayers, orm: ormLayer }, showingToday));
+    const showAccidents = $derived(drawn.accidents);
     // Passages à niveau et signalisation : seul l'état d'aujourd'hui est connu (SNCF Réseau). Hors de
     // la carte d'aujourd'hui, un message le dit et propose d'y revenir.
-    const todayOnlyLayers = $derived(dataLayers.filter((k) => TODAY_ONLY_LAYERS.includes(k)));
-    const showingToday = $derived(view === 'era' && selectedEra === currentEraYear);
-    const showLevelCrossings = $derived(dataLayers.includes('level-crossings') && showingToday);
-    const showSignalling = $derived(dataLayers.includes('signalling') && showingToday);
+    const showLevelCrossings = $derived(drawn.levelCrossings);
+    const showSignalling = $derived(drawn.signalling);
     // Zoom de la carte, pour l'aide « zoomez pour voir les passages à niveau ».
     let mapZoom = $state(0);
 
@@ -167,11 +167,7 @@
     async function loadAccidents() {
         accidentsState = 'loading';
         try {
-            const response = await fetch(ACCIDENTS_URL, {
-                headers: { Accept: 'application/json' },
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            accidentData = await response.json();
+            accidentData = await fetchAccidents();
             accidentsState = 'ready';
         } catch {
             accidentsState = 'error';
@@ -191,27 +187,14 @@
 
     // Messages des calques posés sur la carte : échec des accidents, calques connus seulement
     // aujourd'hui (une phrase pour un ou deux calques), aide au zoom des passages à niveau.
-    const mapNotices = $derived.by(() => {
-        const out = [];
-        if (showAccidents && accidentsState === 'error')
-            out.push({ key: 'accidents', text: $i18n.t('maps.accidents.error') });
-        if (todayOnlyLayers.length && !showingToday) {
-            const key =
-                todayOnlyLayers.length > 1
-                    ? 'maps.layers.current_only_both'
-                    : todayOnlyLayers[0] === 'signalling'
-                      ? 'maps.signalling.current_only'
-                      : 'maps.level_crossings.current_only';
-            out.push({ key: 'today', text: $i18n.t(key) });
-        }
-        if (showLevelCrossings && mapZoom < LEVEL_CROSSING_MIN_ZOOM)
-            out.push({
-                key: 'zoom',
-                icon: 'bi-zoom-in',
-                text: $i18n.t('maps.level_crossings.zoom_hint'),
-            });
-        return out;
-    });
+    const mapNotices = $derived(
+        layerNotices(drawn, {
+            showingToday,
+            accidentsFailed: accidentsState === 'error',
+            zoom: mapZoom,
+            minZoom: LEVEL_CROSSING_MIN_ZOOM,
+        }).map((n) => ({ ...n, text: $i18n.t(n.textKey) })),
+    );
 
     // Adresse partageable : ?era=1930, ?era=1930&compare=1980, ?view=stack, et ?layer=… pour
     // chaque calque (lue au montage).
@@ -331,7 +314,7 @@
                                 bind:hidden
                                 bind:mode={colorMode}
                                 accidents={accidentLegend}
-                                overlays={showingToday ? todayOnlyLayers : []}
+                                overlays={drawn.legendOverlays}
                             />
                         </div>
                         <!-- Messages posés sur la carte, les uns sous les autres (jamais superposés). -->

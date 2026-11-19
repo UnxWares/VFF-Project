@@ -3,8 +3,10 @@ import {
     DATA_LAYERS,
     NO_ORM,
     ORM_LAYERS,
+    activeLayers,
     layerCount,
     layerLabelKey,
+    layerNotices,
     readLayers,
     toggleData,
     writeLayers,
@@ -101,5 +103,87 @@ describe('toggleData et layerCount', () => {
             'maps.overlay.signalling',
         ]);
         expect(ORM_LAYERS).toHaveLength(5);
+    });
+});
+
+describe('activeLayers (carte intégrable et /maps)', () => {
+    const asked = readLayers(
+        '?layer=signalling&layer=accidents&layer=level-crossings&layer=orm-gauge',
+    );
+
+    it('dessine tous les calques demandés sur la carte d’aujourd’hui', () => {
+        expect(activeLayers(asked, true)).toEqual({
+            accidents: true,
+            levelCrossings: true,
+            signalling: true,
+            todayOnly: ['level-crossings', 'signalling'],
+            legendOverlays: ['level-crossings', 'signalling'],
+            orm: 'orm-gauge',
+        });
+    });
+
+    it('ne dessine pas les calques d’aujourd’hui sur une autre époque, mais les garde pour le message', () => {
+        const drawn = activeLayers(asked, false);
+        expect(drawn).toMatchObject({
+            accidents: true,
+            levelCrossings: false,
+            signalling: false,
+            legendOverlays: [],
+            orm: 'orm-gauge',
+        });
+        expect(drawn.todayOnly).toEqual(['level-crossings', 'signalling']);
+    });
+
+    it('sans calque demandé, rien n’est dessiné', () => {
+        expect(activeLayers(readLayers(''), true)).toEqual({
+            accidents: false,
+            levelCrossings: false,
+            signalling: false,
+            todayOnly: [],
+            legendOverlays: [],
+            orm: NO_ORM,
+        });
+    });
+});
+
+describe('layerNotices', () => {
+    const state = { showingToday: true, accidentsFailed: false, zoom: 5, minZoom: 9 };
+
+    it('ne dit rien quand tout va bien et qu’aucun calque n’est demandé', () => {
+        expect(layerNotices(activeLayers(readLayers(''), true), state)).toEqual([]);
+    });
+
+    it('signale l’échec des accidents', () => {
+        const active = activeLayers(readLayers('?layer=accidents'), true);
+        expect(layerNotices(active, { ...state, accidentsFailed: true })).toEqual([
+            { key: 'accidents', textKey: 'maps.accidents.error' },
+        ]);
+        expect(layerNotices(active, state)).toEqual([]);
+    });
+
+    it('choisit la phrase selon les calques connus seulement aujourd’hui', () => {
+        const past = { ...state, showingToday: false };
+        const key = (search) =>
+            layerNotices(activeLayers(readLayers(search), false), past)[0]?.textKey;
+        expect(key('?layer=signalling')).toBe('maps.signalling.current_only');
+        expect(key('?layer=level-crossings')).toBe('maps.level_crossings.current_only');
+        expect(key('?layer=level-crossings&layer=signalling')).toBe(
+            'maps.layers.current_only_both',
+        );
+        expect(key('?layer=accidents')).toBeUndefined();
+    });
+
+    it('invite à zoomer pour les passages à niveau, seulement s’ils sont dessinés', () => {
+        const active = activeLayers(readLayers('?layer=level-crossings'), true);
+        expect(layerNotices(active, state)).toEqual([
+            { key: 'zoom', textKey: 'maps.level_crossings.zoom_hint', icon: 'bi-zoom-in' },
+        ]);
+        expect(layerNotices(active, { ...state, zoom: 9 })).toEqual([]);
+        expect(
+            layerNotices(activeLayers(readLayers('?layer=level-crossings'), false), {
+                ...state,
+                showingToday: false,
+            }).map((n) => n.key),
+        ).toEqual(['today']);
     });
 });

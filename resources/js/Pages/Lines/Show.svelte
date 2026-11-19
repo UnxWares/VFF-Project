@@ -28,6 +28,7 @@
     import LineProfile from '$components/Lines/LineProfile.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
+    import TraceDownload from '$components/Lines/TraceDownload.svelte';
     import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SheetToc from '$components/Sheet/SheetToc.svelte';
@@ -57,7 +58,7 @@
      *   decades?: Array<any>, chronicle?: { events: Array<any>, groups: Array<any>, notes: Array<any>, conflicts: Array<any> },
      *   accidents?: Array<any>,
      *   level_crossings?: { total: number, summary: Array<any>, items: Array<any> },
-     *   profile?: any,
+     *   profile?: any, trace_export_eras?: Array<number>,
      * }} */
     let {
         line,
@@ -80,6 +81,8 @@
         level_crossings = { total: 0, summary: [], items: [] },
         // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
         profile = null,
+        // Années des ères dont le tracé peut être téléchargé (App\Services\TraceExport\LineTraceExport).
+        trace_export_eras = [],
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
@@ -597,6 +600,12 @@
             {:else}
                 <p class="empty">{t('lines.phases.empty')}</p>
             {/if}
+            <TraceDownload
+                slug={line.slug}
+                eras={trace_export_eras}
+                currentYear={todayDecade?.year ?? null}
+                known={portions.length > 0}
+            />
         </SheetSection>
 
         <SheetSection id="about" label={t('lines.section.about')}>

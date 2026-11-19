@@ -6,18 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ListLinesRequest;
 use App\Http\Resources\LineSegmentResource;
 use App\Http\Resources\LineSheetResource;
+use App\Mcp\Support\Attribution;
 use App\Models\Era;
 use App\Models\Line;
-use App\Models\LineSegment;
 use App\Services\Api\LineDirectoryQuery;
 use App\Services\Api\SortedCursor;
 use App\Services\LineSheet;
+use App\Services\TraceExport\LineTraceExport;
 use App\Support\QueryBoolean;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -280,18 +280,18 @@ class LineController extends Controller
     #[ApiResponse(404, 'Ligne ou ère inconnue.', examples: [ErrorExamples::LINE_NOT_FOUND])]
     #[ApiResponse(422, '`era` n\'est pas un entier ou `geometry` n\'est pas un booléen.', examples: [ErrorExamples::GEOMETRY_INVALID])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
-    public function segments(Request $request, Line $line): JsonResponse
+    public function segments(Request $request, Line $line, LineTraceExport $export): JsonResponse
     {
         $input = $request->merge(['geometry' => QueryBoolean::cast($request->query('geometry'))])->validate([
             'era' => ['nullable', 'integer'],
             'geometry' => ['nullable', 'boolean'],
         ]);
-        $era = $this->era($input['era'] ?? null);
+        $era = $export->era($input['era'] ?? null);
 
         return response()->json([
             'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name],
             'era_year' => $era->year,
-            'data' => LineSegmentResource::collection($this->eraSegments($line, $era, (bool) ($input['geometry'] ?? false)))->resolve($request),
+            'data' => LineSegmentResource::collection($export->segments($line, $era, (bool) ($input['geometry'] ?? false)))->resolve($request),
         ])->header('Cache-Control', 'public, max-age=300');
     }
 
@@ -308,20 +308,39 @@ class LineController extends Controller
      * (état, trafic, électrification, vitesse, écartement, signalisation, PK,
      * longueur, `source` et `provenance` avec la licence du tracé) ; `id` est
      * l'identifiant du tronçon. La collection porte aussi `line` (`slug`,
-     * `code`, `name`) et `era_year`. Une ère sans tracé pour cette ligne donne
-     * une collection vide, pas une erreur.
+     * `code`, `name`, `url` de la fiche sur VFF), `era_year`, `attribution`
+     * (la mention de la base VFF et celle de chaque source dont vient une
+     * géométrie exportée, avec sa licence) et `withheld`. Une ère sans tracé
+     * pour cette ligne donne une collection vide, pas une erreur.
      *
-     * Les tracés viennent d'OpenStreetMap, de SNCF Réseau (ODbL), de l'IGN
-     * (Licence Ouverte 2.0), d'OpenHistoricalMap (CC0) ou d'archeoferroviaire
-     * (usage non commercial) : lisez `provenance.license_status` de chaque
-     * tronçon avant de réutiliser.
+     * **Droits.** La géométrie d'un tronçon n'est donnée que si sa source a une
+     * licence ouverte écrite et vérifiée (OpenStreetMap, SNCF Réseau, IGN,
+     * OpenHistoricalMap, contributions validées : `provenance.license_status` =
+     * `verified`). Pour un tronçon d'une source non commerciale, sous accord
+     * oral, de statut incertain ou non déclarée, `geometry` vaut `null` et
+     * `properties.geometry_withheld` vaut `true` ; ses autres propriétés restent
+     * lisibles. `withheld` résume ces tronçons par source (nombre, longueur,
+     * raison : `licence_not_open` ou `unknown_source`) ; la liste est vide quand
+     * tout est exporté. Reprenez les mentions de `attribution` si vous publiez
+     * le tracé. `/lines/{line}/segments?geometry=true` suit la même règle.
+     *
+     * Le même tracé existe en `/lines/{line}/gpx` et `/lines/{line}/kml`.
      */
     #[PathParameter('line', 'Identifiant (slug) de la ligne.', example: 'rfn-447000')]
     #[QueryParameter('era', "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante (aujourd'hui). Une année sans ère (`1935`) donne HTTP 404.", type: 'int', example: 1930)]
+    #[QueryParameter('lang', 'Langue des mentions de `attribution` : `fr` (défaut), `en` ou `de`.', type: 'string', example: 'fr')]
     #[ApiResponse(200, 'Tracé de la ligne de Morlaix à Roscoff en 1930 (un tronçon).', examples: [[
         'type' => 'FeatureCollection',
-        'line' => ['slug' => 'rfn-447000', 'code' => '447000', 'name' => 'Ligne de Morlaix à Roscoff'],
+        'line' => ['slug' => 'rfn-447000', 'code' => '447000', 'name' => 'Ligne de Morlaix à Roscoff', 'url' => 'https://vff-project.org/lines/rfn-447000'],
         'era_year' => 1930,
+        'attribution' => [
+            'notice' => 'Données de Voies Ferrées de France (vff-project.org), base sous licence ODbL 1.0 : citez « Voies Ferrées de France (vff-project.org) », le lien de la fiche et les sources ci-dessous.',
+            'sources' => [
+                ['provider' => 'vff', 'mention' => 'Voies Ferrées de France (vff-project.org), UnxWares, ODbL 1.0', 'open_licence' => true],
+                ['provider' => 'ign', 'mention' => 'IGN (BD TOPO, BD ORTHO historique), Licence Ouverte 2.0', 'open_licence' => true],
+            ],
+        ],
+        'withheld' => [],
         'features' => [[
             'type' => 'Feature',
             'id' => 8573551,
@@ -330,23 +349,35 @@ class LineController extends Controller
                 'pk_start_m' => 1093, 'pk_end_m' => 1550, 'length_m' => 457, 'status' => 'in_service', 'traffic_type' => 'mixed',
                 'is_heritage' => false, 'electrified' => false, 'gauge_mm' => 1435, 'source' => 'bdtopo',
                 'provenance' => ['provider' => 'ign', 'name' => 'IGN (BD TOPO, BD ORTHO historique)', 'license' => "Licence Ouverte 2.0 (Etalab), données publiques de l'IGN libres depuis le 1er janvier 2021", 'license_status' => 'verified'],
+                'geometry_withheld' => false,
             ],
         ]],
     ]])]
     #[ApiResponse(404, 'Ligne ou ère inconnue.', examples: [ErrorExamples::LINE_NOT_FOUND])]
-    #[ApiResponse(422, '`era` n\'est pas un entier.', examples: [ErrorExamples::ERA_INVALID])]
+    #[ApiResponse(422, '`era` n\'est pas un entier ou `lang` n\'est pas `fr`, `en` ou `de`.', examples: [ErrorExamples::ERA_INVALID])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
-    public function geojson(Request $request, Line $line): JsonResponse
+    public function geojson(Request $request, Line $line, LineTraceExport $export, Attribution $attribution): JsonResponse
     {
-        $input = $request->validate(['era' => ['nullable', 'integer']]);
-        $era = $this->era($input['era'] ?? null);
+        $input = $request->validate(['era' => ['nullable', 'integer'], 'lang' => ['nullable', 'in:fr,en,de']]);
+        $lang = $input['lang'] ?? 'fr';
+        $era = $export->era($input['era'] ?? null);
 
-        $features = LineSegmentResource::collection($this->eraSegments($line, $era, true))->resolve($request);
+        $segments = $export->segments($line, $era, true);
+        $features = LineSegmentResource::collection($segments)->resolve($request);
+        $providers = $export->exportedProviders($segments);
 
         return response()->json([
             'type' => 'FeatureCollection',
-            'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name],
+            'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name, 'url' => url('/lines/'.$line->slug)],
             'era_year' => $era->year,
+            'attribution' => [
+                'notice' => trans('mcp.attribution.notice', [], $lang),
+                'sources' => array_map(
+                    fn (string $provider): array => $attribution->source($provider, $lang),
+                    ['vff', ...$providers],
+                ),
+            ],
+            'withheld' => $export->withheld($segments),
             'features' => array_map(function (array $segment): array {
                 $geometry = $segment['geometry'] ?? null;
                 $id = $segment['id'];
@@ -355,29 +386,5 @@ class LineController extends Controller
                 return ['type' => 'Feature', 'id' => $id, 'geometry' => $geometry, 'properties' => $segment];
             }, $features),
         ], 200, ['Content-Type' => 'application/geo+json', 'Cache-Control' => 'public, max-age=300']);
-    }
-
-    /** Ère demandée (404 si ce n'est pas une décennie de la carte) ; à défaut l'ère courante. */
-    private function era(?int $year): Era
-    {
-        return $year !== null
-            ? Era::where('year', $year)->firstOrFail()
-            : Era::where('is_current', true)->first() ?? Era::orderByDesc('year')->firstOrFail();
-    }
-
-    /**
-     * Tronçons d'une ligne à une ère, dans l'ordre des PK.
-     *
-     * @return Collection<int, LineSegment>
-     */
-    private function eraSegments(Line $line, Era $era, bool $withGeometry): Collection
-    {
-        return $line->segments()->where('era_id', $era->id)
-            ->select(['id', 'pk_start_m', 'pk_end_m', 'length_meters', 'status', 'traffic_type', 'is_heritage', 'heritage_kind',
-                'electrified', 'voltage_v', 'electrified_year', 'electrification_source', 'max_speed_kmh', 'max_speed_source',
-                'gauge_mm', 'gauge_class', 'signalling', 'train_protection', 'operator', 'dismantled_at', 'reuse', 'source'])
-            ->when($withGeometry, fn ($q) => $q->selectRaw('ST_AsGeoJSON(geom, 6) AS geojson'))
-            ->orderByRaw('pk_start_m NULLS LAST, id')
-            ->get();
     }
 }
