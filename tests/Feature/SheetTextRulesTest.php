@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Http\Controllers\LineController;
 use App\Services\LineChronicle;
 use App\Services\LineFacts;
+use App\Services\LineSheet;
 use App\Support\EventText;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -159,24 +159,24 @@ class SheetTextRulesTest extends TestCase
     {
         $phases = ['phases' => [['length_by_category' => ['mixed' => 124744]]],
             'decades' => [['length_by_category' => ['mixed' => 49800, 'closed' => 72800, 'dismantled' => 2200]], ['length_by_category' => []]]];
-        $this->assertSame(124800, LineController::lineLengthM($phases));
-        $this->assertSame(0, LineController::lineLengthM(['phases' => [], 'decades' => []]));
-        $this->assertSame(1875, LineController::firstOpeningYear([['kind' => 'decline', 'precision' => 'day', 'date' => '1870-01-01'],
+        $this->assertSame(124800, LineSheet::lineLengthM($phases));
+        $this->assertSame(0, LineSheet::lineLengthM(['phases' => [], 'decades' => []]));
+        $this->assertSame(1875, LineSheet::firstOpeningYear([['kind' => 'decline', 'precision' => 'day', 'date' => '1870-01-01'],
             ['kind' => 'growth', 'precision' => 'day', 'date' => '1875-04-26']]));
     }
 
     public function test_other_names_compare_their_places_not_their_spelling(): void
     {
-        $title = LineController::nameKey('Ligne de St-Germain-des-Fossés à Darsac');
-        $this->assertSame($title, LineController::nameKey('ligne Saint-Germain-des-Fossés - Darsac'));
-        $this->assertSame(LineController::nameKey('Ligne Limoges-Angoulême'), LineController::nameKey('Voie ferrée Angoulême-Limoges'));
-        $this->assertSame(LineController::nameKey('Ligne de Gonesse à Lille-Frontière (LGV)'), LineController::nameKey('Ligne de Gonesse à Lille-Frontière'));
-        $this->assertNotSame(LineController::nameKey('Ligne de Paris-Montparnasse à Brest'), LineController::nameKey('Ligne de Paris à Brest'));
+        $title = LineSheet::nameKey('Ligne de St-Germain-des-Fossés à Darsac');
+        $this->assertSame($title, LineSheet::nameKey('ligne Saint-Germain-des-Fossés - Darsac'));
+        $this->assertSame(LineSheet::nameKey('Ligne Limoges-Angoulême'), LineSheet::nameKey('Voie ferrée Angoulême-Limoges'));
+        $this->assertSame(LineSheet::nameKey('Ligne de Gonesse à Lille-Frontière (LGV)'), LineSheet::nameKey('Ligne de Gonesse à Lille-Frontière'));
+        $this->assertNotSame(LineSheet::nameKey('Ligne de Paris-Montparnasse à Brest'), LineSheet::nameKey('Ligne de Paris à Brest'));
     }
 
     public function test_infrastructure_managers_and_operators_before_the_opening(): void
     {
-        $ops = LineController::operators([
+        $ops = LineSheet::operators([
             ['role' => 'exploitant', 'operator' => 'Compagnie des chemins de fer des Charentes', 'wikidata' => 'Q2989936', 'from_year' => 1868, 'to_year' => 1878],
             ['role' => 'exploitant', 'operator' => 'Réseau ferré de France', 'wikidata' => 'Q1071978', 'from_year' => 1997, 'to_year' => 2014],
             ['role' => 'exploitant', 'operator' => 'SNCF Réseau', 'wikidata' => 'Q21605526', 'from_year' => 2015, 'to_year' => null],

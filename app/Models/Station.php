@@ -9,6 +9,7 @@ use Database\Factories\StationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
@@ -42,6 +43,12 @@ class Station extends Model
     public function media(): MorphMany
     {
         return $this->morphMany(Media::class, 'mediable');
+    }
+
+    /** @return HasMany<StationEvent, $this> */
+    public function events(): HasMany
+    {
+        return $this->hasMany(StationEvent::class);
     }
 
     /**

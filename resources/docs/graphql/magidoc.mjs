@@ -60,10 +60,12 @@ en km/h, tensions en volts, écartements en millimètres, coordonnées WGS 84 en
 
 ## Listes paginées
 
-\`lines\`, \`stations\` et \`materials\` sont paginées : arguments \`first\` (20 par défaut, 100 au
-plus) et \`page\` (à partir de 1) ; résultats dans \`data\`, compteurs dans \`paginatorInfo\`
-(\`total\`, \`lastPage\`, \`hasMorePages\`…). Les filtres textuels ignorent la casse et acceptent le
-joker \`%\` :
+\`lines\` et \`stations\` (recherche simple par nom) sont paginées par page : arguments \`first\` (20 par
+défaut, 100 au plus) et \`page\` (à partir de 1) ; résultats dans \`data\`, compteurs dans
+\`paginatorInfo\` (\`total\`, \`lastPage\`, \`hasMorePages\`…). Pour les annuaires complets, filtrés et
+triés comme sur le site, préférez \`lineDirectory\` et \`stationDirectory\` (par curseur, voir plus
+bas). \`materials\` se lit par curseur, comme \`lineEvents\` et \`media\`. Les filtres textuels ignorent
+la casse et acceptent le joker \`%\` :
 
 \`\`\`graphql
 {
@@ -73,6 +75,91 @@ joker \`%\` :
   }
 }
 \`\`\`
+
+## Événements, chronologie des gares et médias : pagination par curseur
+
+\`lineEvents\` (événements datés de toutes les lignes) et \`media\` (photos, cartes postales, plans,
+documents) sont paginées **par curseur**, à la manière de Relay : arguments \`first\` (25 ou 20 par
+défaut, 100 au plus) et \`after\`, résultats dans \`edges { node }\`, curseur de la page suivante dans
+\`pageInfo { hasNextPage endCursor }\`. Passez \`endCursor\` dans \`after\` tant que \`hasNextPage\` est
+vrai. Le tri est fixe (chronologique pour les événements, par identifiant pour les médias) et
+s'inverse avec \`filter: { order: DESC }\`. Les filtres se passent dans l'argument \`filter\` ; une
+valeur invalide (type inconnu, date mal formée, ligne inconnue) donne une erreur de validation :
+\`errors[0].extensions.validation\` détaille chaque champ fautif.
+
+\`\`\`graphql
+{
+  lineEvents(first: 5, filter: { department: "29", from: "1930", to: "1939", type: "closure_passenger" }) {
+    pageInfo { hasNextPage endCursor }
+    edges {
+      node {
+        type event_date date_precision description source_quote
+        provenance { name license license_status }
+        source_url
+        line { slug name }
+      }
+    }
+  }
+
+  media(first: 3, filter: { station: "brest", rights_status: "public_domain" }) {
+    edges { node { title thumb_url attribution license source_url depicted_year date_precision } }
+  }
+
+  station(slug: "brest") {
+    events { type event_date source is_inferred provenance { provider license } }
+  }
+}
+\`\`\`
+
+Chaque événement garde sa source (\`source\`, \`source_url\`, \`source_quote\`) et la licence de cette
+source (\`provenance\`). Chaque média porte son auteur, sa licence, une ligne de crédit prête à
+afficher (\`attribution\`) et le lien vers sa page d'origine (\`source_url\`, sur Wikimedia Commons
+pour les médias Commons). \`Line.media\` et \`Station.media\` donnent les médias d'une entité, aussi
+par curseur.
+
+## Annuaires, fiches complètes, époques et sources
+
+\`lineDirectory\` et \`stationDirectory\` reprennent les annuaires du site (pages /lines et /stations) :
+mêmes filtres, même tri, état de chaque ligne à l'ère de référence. Ils se lisent par curseur :
+passez \`next_cursor\` dans \`after\` (c'est le même curseur que \`meta.next_cursor\` de l'API REST).
+\`facets\` donne les compteurs de la recherche, calculés seulement si vous les demandez.
+
+\`Line.sheet\` et \`Station.sheet\` rendent la fiche complète d'une ligne ou d'une gare, celle des pages
+du site : chiffres clés, électrification, signalisation, phases datées, chronique sourcée, gares,
+sections nommées pour une ligne ; présence par décennie, lignes desservies, sources et gares
+voisines pour une gare. Les parties très imbriquées (phases, chronique, décennies) sont des objets
+\`JSON\`, décrits champ par champ dans la référence REST. Le calcul d'une fiche de ligne prend
+jusqu'à quelques secondes : demandez-en une à la fois.
+
+\`Line.segments(era: 1930)\` donne les tronçons d'une ère avec leur provenance, \`Era.stats\` l'état du
+réseau à une époque (longueurs, lignes actives, gares par statut) et \`sources\` le registre des
+fournisseurs de données avec leur licence et la mention à reproduire.
+
+\`\`\`graphql
+{
+  lineDirectory(filter: { department: "29", status: "closed", sort: "code" }, first: 5) {
+    data { slug name state traffic }
+    next_cursor
+    facets { total networks { code count } }
+  }
+
+  line(slug: "rfn-447000") {
+    sheet { key_figures { length_km station_count } today { state } electrification { state } }
+    segments(era: 1930) { length_m status provenance { provider license } }
+  }
+
+  era(year: 1930) { snapshot_date stats { open_km active_lines stations_by_status { code count } } }
+
+  source(provider: "osm") { name licence mention }
+}
+\`\`\`
+
+## Erreurs
+
+Une requête invalide ou une valeur de filtre hors limites renvoie HTTP 200 avec un tableau \`errors\`
+(convention GraphQL) : \`message\` et, pour une validation, \`extensions.validation\`. Au-delà de
+300 requêtes par minute, HTTP 429 (en-tête \`Retry-After\`). Un identifiant inconnu
+(\`lineEvent(id: …)\`, \`mediaItem(id: …)\`, \`line(slug: …)\`) donne \`null\`, pas une erreur.
 
 ## Itinéraires historiques
 

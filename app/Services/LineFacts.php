@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Http\Controllers\LineController;
 use App\Support\FrenchDepartments;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +47,7 @@ final class LineFacts
         // Darsac » pour la ligne de St-Germain-des-Fossés à Darsac) : il la décrit, sa longueur diffère
         // seulement de celle du tracé (« 160 km d'après Wikidata ; tracé de VFF : 145,6 km »), au lieu de
         // la phrase contradictoire « Ligne de … seulement, pas toute la ligne ».
-        $sameLine = $item !== null && LineController::nameKey($item) === LineController::nameKey((string) ($line->name ?? ''));
+        $sameLine = $item !== null && LineSheet::nameKey($item) === LineSheet::nameKey((string) ($line->name ?? ''));
         $differs = $partial && $sameLine;
         $partial = $partial && ! $sameLine;
         $wd = fn (array $f) => $f + ['source' => 'wikidata', 'scope' => $partial ? 'item' : 'line', 'item' => $partial ? $item : null];

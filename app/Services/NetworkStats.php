@@ -112,6 +112,59 @@ class NetworkStats
     }
 
     /**
+     * État du réseau à une ère (instantané au 31/12 de l'année, ère courante = aujourd'hui) :
+     * longueurs par état des voies (même mesure que le profil de l'accueil : length_meters, sinon
+     * longueur géographique), longueur en service par trafic (associatif à part), longueur
+     * électrifiée, nombre de lignes portant du trafic et gares par statut (station_eras).
+     *
+     * @return array{open_km: int, closed_km: int, gone_km: int, electrified_km: int, active_lines: int,
+     *     open_km_by_traffic: array<string, int>, stations_by_status: array<string, int>}
+     */
+    public function eraProfile(int $eraId): array
+    {
+        $len = 'COALESCE(length_meters, ST_Length(geom::geography))';
+        $row = DB::selectOne(
+            "SELECT
+                COALESCE(SUM(CASE WHEN status IN ('in_service','single_track') THEN {$len} END), 0) / 1000 AS open_km,
+                COALESCE(SUM(CASE WHEN status IN ('abandoned','service_track','construction') THEN {$len} END), 0) / 1000 AS closed_km,
+                COALESCE(SUM(CASE WHEN status IN ('dismantled','razed') THEN {$len} END), 0) / 1000 AS gone_km,
+                COALESCE(SUM(CASE WHEN status IN ('in_service','single_track') AND electrified THEN {$len} END), 0) / 1000 AS electrified_km,
+                COUNT(DISTINCT CASE WHEN status IN ('in_service','single_track') THEN line_id END) AS active_lines
+             FROM line_segments WHERE era_id = ?",
+            [$eraId],
+        );
+
+        $byTraffic = [];
+        foreach (DB::select(
+            "SELECT CASE WHEN COALESCE(is_heritage, false) THEN 'heritage' ELSE COALESCE(traffic_type, 'unknown') END AS t,
+                    SUM({$len}) / 1000 AS km
+             FROM line_segments WHERE era_id = ? AND status IN ('in_service','single_track')
+             GROUP BY 1 ORDER BY km DESC",
+            [$eraId],
+        ) as $r) {
+            $byTraffic[(string) $r->t] = (int) round((float) $r->km);
+        }
+
+        $stations = [];
+        foreach (DB::select(
+            'SELECT status, COUNT(*) AS n FROM station_eras WHERE era_id = ? AND status IS NOT NULL GROUP BY status ORDER BY n DESC',
+            [$eraId],
+        ) as $r) {
+            $stations[(string) $r->status] = (int) $r->n;
+        }
+
+        return [
+            'open_km' => (int) round((float) ($row->open_km ?? 0)),
+            'closed_km' => (int) round((float) ($row->closed_km ?? 0)),
+            'gone_km' => (int) round((float) ($row->gone_km ?? 0)),
+            'electrified_km' => (int) round((float) ($row->electrified_km ?? 0)),
+            'active_lines' => (int) ($row->active_lines ?? 0),
+            'open_km_by_traffic' => $byTraffic,
+            'stations_by_status' => $stations,
+        ];
+    }
+
+    /**
      * Nombre d'ères (décennies) ayant au moins un tronçon cartographié.
      *
      * Remplace `Era::count()` sur la home : les ères sont toutes seedées

@@ -2,12 +2,16 @@
 
 namespace Tests\Feature\Api;
 
+use App\Mcp\Servers\VffServer;
 use GraphQL\Type\Definition\FieldDefinition;
+use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ScalarType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Mcp\Server\Tool;
 use Nuwave\Lighthouse\Schema\SchemaBuilder;
 use PHPUnit\Framework\Attributes\DataProvider;
+use ReflectionProperty;
 use Tests\TestCase;
 
 /**
@@ -22,19 +26,45 @@ class ApiDocsTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** Routes publiques de routes/api.php documentées dans la spécification OpenAPI. */
+    /** Routes publiques de routes/api.php présentées sur la page /api et documentées dans la spécification. */
     private const V1_PATHS = [
+        '/eras', '/eras/{year}',
         '/eras/{year}/lines.geojson',
         '/eras/{year}/stations.geojson',
         '/eras/{year}/tiles/{z}/{x}/{y}.mvt',
         '/eras/{year}/gtfs.zip',
-        '/search',
+        '/lines', '/lines/{line}', '/lines/{line}/segments',
         '/lines/{line}/history',
         '/lines/{line}/pk',
         '/lines/{line}/stops',
         '/lines/{line}/signalling',
+        '/lines/{line}/materials',
         '/lines/{line}/media',
+        '/stations', '/stations/{station}', '/stations/{station}/events',
+        '/events', '/events/{event}', '/media', '/media/{media}',
+        '/materials', '/materials/{material}', '/accidents', '/accidents/{accident}',
+        '/search',
         '/route',
+        '/sources', '/sources/{provider}',
+    ];
+
+    /**
+     * Tous les points d'accès dont la spécification doit être complète (résumé, description, paramètres
+     * décrits avec exemple, réponse d'exemple) : aujourd'hui, ceux de la page /api.
+     */
+    private const SPEC_PATHS = self::V1_PATHS;
+
+    /** Annuaires, fiches, ères et sources : codes de réponse documentés, avec leur corps d'exemple. */
+    private const ERROR_CODES = [
+        '/eras' => [200, 429],
+        '/eras/{year}' => [200, 404, 429],
+        '/lines' => [200, 422, 429],
+        '/lines/{line}' => [200, 404, 422, 429],
+        '/lines/{line}/segments' => [200, 404, 422, 429],
+        '/stations' => [200, 422, 429],
+        '/stations/{station}' => [200, 404, 429],
+        '/sources' => [200, 429],
+        '/sources/{provider}' => [200, 404, 429],
     ];
 
     /** Réponses binaires (MVT, ZIP) : pas d'exemple JSON attendu. */
@@ -44,7 +74,16 @@ class ApiDocsTest extends TestCase
     private const GRAPHQL_TYPES = [
         'Query', 'Era', 'Line', 'LineStop', 'LineSignallingRange', 'LineSegment', 'LineEvent',
         'Station', 'Material', 'RouteEdge', 'RouteStop', 'RouteLine', 'Route', 'Date', 'DateTime',
+        'Provenance', 'StationEvent', 'Media', 'JSON', 'KmByCode', 'CountByCode', 'EraStats', 'LineName',
+        'LineOperator', 'LineAdvocacy', 'LineToday', 'LineKeyFigures', 'LineElectrification', 'LineVoltage',
+        'LineSheetSignalling', 'LineEraSummary', 'LineSheetStation', 'LineSection', 'LineSheetMaterial', 'LineSheet',
+        'StationPosition', 'StationEra', 'StationLine', 'StationSource', 'StationNeighbor', 'StationSheet',
+        'LineDirectoryItem', 'LineDirectoryFacets', 'LineDirectoryPage', 'StationDirectoryItem', 'StationDirectoryLine',
+        'StationDirectoryPage', 'SourceValues', 'SourceProvider',
     ];
+
+    /** Entrées GraphQL dont chaque champ doit être décrit. */
+    private const GRAPHQL_INPUTS = ['LineEventFilter', 'MediaFilter', 'LineDirectoryFilter', 'StationDirectoryFilter'];
 
     public function test_scalar_is_the_main_rest_documentation(): void
     {
@@ -148,6 +187,24 @@ class ApiDocsTest extends TestCase
         $this->get('/api')->assertOk();
     }
 
+    public function test_api_page_presents_the_mcp_server_and_every_tool(): void
+    {
+        $page = (string) file_get_contents(resource_path('js/Pages/ApiDocs.svelte'));
+        $this->assertStringContainsString("'https://vff-project.org/mcp'", $page);
+
+        /** @var list<class-string<Tool>> $tools */
+        $tools = (new ReflectionProperty(VffServer::class, 'tools'))->getDefaultValue();
+        $this->assertNotEmpty($tools);
+        foreach ($tools as $class) {
+            $name = app($class)->name();
+            $this->assertStringContainsString("'{$name}'", $page, "Outil MCP {$name} absent de la page /api");
+            foreach (['fr', 'en', 'de'] as $locale) {
+                $key = "api.mcp.tools.{$name}";
+                $this->assertNotSame($key, __($key, [], $locale), "{$locale} : {$key} non traduit");
+            }
+        }
+    }
+
     public function test_graphql_reference_is_served(): void
     {
         if (! is_file(public_path('docs/graphql/index.html'))) {
@@ -193,9 +250,9 @@ class ApiDocsTest extends TestCase
 
         $this->assertStringStartsWith('3.', $spec['openapi']);
         $this->assertStringContainsString('31/12', $spec['info']['description']);
-        $this->assertSame(self::V1_PATHS, array_values(array_intersect(self::V1_PATHS, array_keys($spec['paths']))));
+        $this->assertSame(self::SPEC_PATHS, array_values(array_intersect(self::SPEC_PATHS, array_keys($spec['paths']))));
 
-        foreach (self::V1_PATHS as $path) {
+        foreach (self::SPEC_PATHS as $path) {
             $operation = $spec['paths'][$path]['get'];
             $this->assertNotEmpty($operation['summary'] ?? null, "{$path} : résumé manquant");
             $this->assertLessThanOrEqual(60, mb_strlen($operation['summary']), "{$path} : résumé trop long");
@@ -217,11 +274,37 @@ class ApiDocsTest extends TestCase
         }
     }
 
+    public function test_new_endpoints_document_their_errors_with_a_body(): void
+    {
+        $spec = $this->getJson('/docs/api.json')->assertOk()->json();
+
+        foreach (self::ERROR_CODES as $path => $codes) {
+            $responses = $spec['paths'][$path]['get']['responses'] ?? [];
+            $this->assertEqualsCanonicalizing($codes, array_map('intval', array_keys($responses)), "{$path} : codes de réponse");
+            foreach ($codes as $code) {
+                $this->assertNotEmpty($responses[(string) $code]['description'] ?? null, "{$path} : réponse {$code} sans description");
+                $this->assertNotEmpty($responses[(string) $code]['content']['application/json']['schema']['examples'] ?? null, "{$path} : réponse {$code} sans exemple");
+            }
+        }
+    }
+
+    public function test_introduction_covers_access_limits_pagination_provenance_licences_and_versioning(): void
+    {
+        $intro = (string) $this->getJson('/docs/api.json')->assertOk()->json('info.description');
+
+        foreach (['## Ce que couvre l\'API', '## Accès et authentification', 'Aucune authentification', '300 requêtes',
+            '## Conventions communes', '## Erreurs', '## Pagination par curseur', '## Provenance et licence',
+            '## Licences et sources', '## Versionnement', '/api/v2', '/sources', 'POST /mcp'] as $needle) {
+            $this->assertStringContainsString($needle, $intro);
+        }
+    }
+
     public function test_documentation_texts_have_no_long_dash(): void
     {
         $spec = (string) $this->get('/docs/api.json')->assertOk()->getContent();
-        $this->assertStringNotContainsString('—', $spec);
-        $this->assertStringNotContainsString('\\u2014', $spec);
+        foreach (["\u{2014}", '\\u2014', "\u{2013}", '\\u2013'] as $dash) {
+            $this->assertStringNotContainsString($dash, $spec);
+        }
 
         foreach (['fr', 'en', 'de'] as $locale) {
             foreach (['docs', 'api', 'errors'] as $file) {
@@ -251,6 +334,20 @@ class ApiDocsTest extends TestCase
                     // Arguments ajoutés par @paginate (first, page) : décrits par Lighthouse.
                     $this->assertNotEmpty($arg->description, "Argument {$name}.{$field->name}({$arg->name}) sans description");
                 }
+            }
+        }
+    }
+
+    public function test_every_graphql_input_field_is_described(): void
+    {
+        $schema = app(SchemaBuilder::class)->schema();
+
+        foreach (self::GRAPHQL_INPUTS as $name) {
+            $type = $schema->getType($name);
+            $this->assertInstanceOf(InputObjectType::class, $type, "Entrée GraphQL {$name} absente");
+            $this->assertNotEmpty($type->description, "Entrée {$name} sans description");
+            foreach ($type->getFields() as $field) {
+                $this->assertNotEmpty($field->description, "Champ {$name}.{$field->name} sans description");
             }
         }
     }
