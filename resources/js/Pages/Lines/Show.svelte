@@ -438,7 +438,6 @@
 
 <svelte:head>
     <title>{line.name} - VFF</title>
-    <meta name="description" content={metaDescription} />
 </svelte:head>
 
 <!-- Partage et données structurées : la ligne (avec ses premières images, auteur et licence) et

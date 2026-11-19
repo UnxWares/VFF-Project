@@ -13,6 +13,11 @@ namespace App\Services\Materials;
  *
  * Prudence : une phrase au futur ou au conditionnel (« devraient remplacer », « prévu »), ou qui
  * nie la circulation (« n'a jamais circulé », « interdit »), ne crée pas de lien.
+ *
+ * Une phrase qui reprend un sujet déjà posé pour dire qu'il a été remplacé (« Ce train a été remplacé
+ * par le TGV ») parle d'un AUTRE matériel que celui qui est cité : le lien est gardé mais marqué
+ * `refers_back`, la phrase précédente est ajoutée à la citation pour qu'elle se lise seule, et le
+ * lien ne peut pas être rangé en « source directe ».
  */
 final class WikipediaMaterialSections
 {
@@ -22,8 +27,14 @@ final class WikipediaMaterialSections
     /** Sections d'un article de MATÉRIEL qui décrivent ses services et ses lignes. */
     public const MATERIAL_SECTIONS = '/^(?:utilisations?|services?|service\s+commercial|affectations?|lignes?\s+(?:parcourues|desservies|exploit[ée]es)|dessertes?|exploitation|carri[èe]res?|parcours|missions?|engagements?|en\s+service)\b/iu';
 
+    /** Longueur maximale d'une phrase citée comme preuve. */
+    private const QUOTE_WIDTH = 300;
+
     /** Futur, conditionnel, projet ou négation de la circulation : pas de lien. */
     private const DOUBTFUL = '/\b(?:jamais|interdite?s?|incompatibles?|ne\s+(?:peu[tv]ent|pouvai(?:en)?t|pourr\w*)|devr(?:a|ont|ait|aient)|pourr(?:a|ont|ait|aient)|prévue?s?|envisag\w*|projet\w*|à\s+terme|seront|sera)\b/iu';
+
+    /** Phrase qui reprend un sujet antérieur (« Ce train », « Ces rames », « Ils », « Elles ») pour dire par quoi il est remplacé. */
+    private const REFERS_BACK_REPLACEMENT = '/^(?:ce|cet|cette|ces|celui|celle|ceux|celles|il|ils|elle|elles)\b(?:-(?:ci|là))?[^.;]*\bremplac(?:é|ée|és|ées)\b[^.;]{0,40}?\bpar\b/iu';
 
     /** Titre d'une section consacrée à des projets ou à l'avenir. */
     private const DOUBTFUL_SECTION = '/\b(?:prévue?s?|projets?|futur\w*|envisag\w*|perspectives?)\b/iu';
@@ -76,26 +87,32 @@ final class WikipediaMaterialSections
      * Liens internes d'un texte, avec la phrase (ou la ligne de liste ou de tableau) qui les porte.
      * Les liens vers des fichiers, catégories ou autres espaces de noms sont ignorés.
      *
-     * @return list<array{target: string, quote: string}>
+     * @return list<array{target: string, quote: string, refers_back: bool}>
      */
     public static function links(string $text): array
     {
         $text = self::stripNoise($text);
         $out = [];
         foreach (self::units($text) as $unit) {
-            if (! preg_match_all('/\[\[([^\[\]|#]+)(?:#[^\[\]|]*)?(?:\|[^\[\]]*)?\]\]/u', $unit, $matches)) {
+            if (! preg_match_all('/\[\[([^\[\]|#]+)(?:#[^\[\]|]*)?(?:\|[^\[\]]*)?\]\]/u', $unit['sentence'], $matches)) {
                 continue;
             }
-            $quote = self::plain($unit);
+            $quote = self::plain($unit['sentence']);
             if ($quote === '' || preg_match(self::DOUBTFUL, $quote)) {
                 continue;
+            }
+            $refersBack = preg_match(self::REFERS_BACK_REPLACEMENT, $quote) === 1;
+            // La phrase précédente (même ligne) donne son sujet à « Ce train… » : on la cite avec elle.
+            if ($refersBack && $unit['previous'] !== null) {
+                $room = self::QUOTE_WIDTH - mb_strlen($quote) - 1;
+                $quote = ($room >= 40 ? mb_strimwidth(self::plain($unit['previous']), 0, $room, '…').' ' : '').$quote;
             }
             foreach ($matches[1] as $raw) {
                 $target = self::normalizeTitle($raw);
                 // Fichiers, catégories, autres espaces de noms et liens interwikis (« :en:… ») : pas des articles.
                 if ($target !== '' && ! str_starts_with($target, ':')
                     && ! preg_match('/^(?:fichier|file|image|catégorie|category|modèle|template|portail|projet|aide|wikipédia|wp|wikt|wiktionary|commons|s|d|en|de|it|es|nl)\s*:/iu', $target)) {
-                    $out[] = ['target' => $target, 'quote' => mb_strimwidth($quote, 0, 300, '…')];
+                    $out[] = ['target' => $target, 'quote' => mb_strimwidth($quote, 0, self::QUOTE_WIDTH, '…'), 'refers_back' => $refersBack];
                 }
             }
         }
@@ -126,18 +143,21 @@ final class WikipediaMaterialSections
     }
 
     /**
-     * Unités de lecture : chaque ligne (élément de liste, cellule de tableau), découpée en phrases.
+     * Unités de lecture : chaque ligne (élément de liste, cellule de tableau), découpée en phrases ;
+     * `previous` est la phrase qui précède dans la même ligne (null pour la première).
      *
-     * @return list<string>
+     * @return list<array{sentence: string, previous: ?string}>
      */
     private static function units(string $text): array
     {
         $out = [];
         foreach (preg_split('/\n+/u', $text) ?: [] as $line) {
             // Fin de phrase : point suivi d'un espace et d'une capitale, hors des liens.
+            $previous = null;
             foreach (preg_split('/(?<=[.!?])\s+(?=[A-ZÉÈÀÂÎÔÛÇ«])(?![^\[]*\]\])/u', $line) ?: [] as $sentence) {
                 if (trim($sentence) !== '') {
-                    $out[] = $sentence;
+                    $out[] = ['sentence' => $sentence, 'previous' => $previous];
+                    $previous = $sentence;
                 }
             }
         }

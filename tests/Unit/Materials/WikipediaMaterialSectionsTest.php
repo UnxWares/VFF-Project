@@ -55,6 +55,34 @@ class WikipediaMaterialSectionsTest extends TestCase
         $this->assertSame('Un X 4750 en gare de Saint-Dié.', $links[3]['quote'], 'légende de l\'image');
     }
 
+    public function test_a_sentence_about_the_replacement_of_another_train_is_flagged_and_quoted_with_its_subject(): void
+    {
+        // Ligne d'Épinal à Bussang : le TGV est cité comme remplaçant du train Corail, pas comme sujet de la phrase.
+        $links = WikipediaMaterialSections::links(
+            "Avant l'électrification, il existait un train [[Voiture Corail|Corail]] qui reliait Paris à Remiremont. Ce train a été remplacé par le [[TGV]] après la mise en service de la [[LGV Est européenne]].\n"
+            ."Les [[Z 27500]] assurent le service. Elles ont depuis été remplacées par des [[Regio 2N]].\n"
+            .'* Ils sont remplacés par des [[X 73500]] à partir de 2002.'
+        );
+
+        $this->assertSame(['Voiture Corail', 'TGV', 'LGV Est européenne', 'Z 27500', 'Regio 2N', 'X 73500'], array_column($links, 'target'));
+        $this->assertSame([false, true, true, false, true, true], array_column($links, 'refers_back'));
+        $this->assertSame(
+            "Avant l'électrification, il existait un train Corail qui reliait Paris à Remiremont. Ce train a été remplacé par le TGV après la mise en service de la LGV Est européenne.",
+            $links[1]['quote'],
+            'la phrase précédente donne son sujet à « Ce train »',
+        );
+        $this->assertSame('Les Z 27500 assurent le service. Elles ont depuis été remplacées par des Regio 2N.', $links[4]['quote']);
+        $this->assertSame('Ils sont remplacés par des X 73500 à partir de 2002.', $links[5]['quote'], 'début de ligne : pas de phrase précédente à citer');
+    }
+
+    public function test_a_replacement_sentence_with_its_own_subject_is_not_flagged(): void
+    {
+        $links = WikipediaMaterialSections::links("Les [[Régiolis]] ont remplacé les [[X 4750]] en 2016.\nCes locomotives ont remplacé, en 2010, les [[BB 16000]] affectées à la ligne.");
+
+        $this->assertSame(['Régiolis', 'X 4750', 'BB 16000'], array_column($links, 'target'));
+        $this->assertSame([false, false, false], array_column($links, 'refers_back'), 'la série citée est celle qui a circulé : lien direct');
+    }
+
     public function test_links_to_files_categories_and_other_namespaces_are_ignored(): void
     {
         $links = WikipediaMaterialSections::links('Voir [[Catégorie:Autorail]], [[:en:BB 15000]], [[Modèle:Lien]] et [[Wikipédia:Accueil]].');
@@ -85,6 +113,6 @@ class WikipediaMaterialSectionsTest extends TestCase
         $sections = WikipediaMaterialSections::sections($wiki, WikipediaMaterialSections::MATERIAL_SECTIONS);
 
         $this->assertSame(['Services effectués', 'Services effectués > TER'], array_column($sections, 'title'));
-        $this->assertSame([['target' => 'Ligne de Lunéville à Saint-Dié', 'quote' => 'Ligne de Lunéville à Saint-Dié']], WikipediaMaterialSections::links($sections[1]['text']));
+        $this->assertSame([['target' => 'Ligne de Lunéville à Saint-Dié', 'quote' => 'Ligne de Lunéville à Saint-Dié', 'refers_back' => false]], WikipediaMaterialSections::links($sections[1]['text']));
     }
 }

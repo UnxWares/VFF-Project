@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Line;
+use App\Models\Material;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Support\BuildsRailNetwork;
@@ -134,6 +135,20 @@ class LinePagesTest extends TestCase
                 // (signalisation SNCF : une plage de cantonnement).
                 ->where('sources', fn ($s) => $this->rows($s)->pluck('type')->contains('sncf-signalling')
                     && ! $this->rows($s)->pluck('type')->contains('sncf-classification'))
+            );
+    }
+
+    public function test_show_lists_rolling_stock_by_name_in_natural_order(): void
+    {
+        foreach (['BB 15000', 'Élément à turbine à gaz', 'BB 9200', 'Autorail X 2800'] as $i => $name) {
+            $this->line->materials()->attach(Material::factory()->create(['slug' => "serie-{$i}", 'name' => $name])->id);
+        }
+
+        $this->get("/lines/{$this->line->slug}")
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('materials', fn ($materials) => $this->rows($materials)->pluck('name')->all()
+                    === ['Autorail X 2800', 'BB 9200', 'BB 15000', 'Élément à turbine à gaz', 'Z 6400'])
             );
     }
 

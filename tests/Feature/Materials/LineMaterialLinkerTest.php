@@ -124,6 +124,51 @@ class LineMaterialLinkerTest extends TestCase
         $this->assertSame('low', $shared['confidence'], 'article qui décrit plusieurs lignes');
     }
 
+    public function test_a_train_cited_as_the_replacement_of_another_is_not_a_direct_source(): void
+    {
+        // Épinal à Bussang : « Ce train a été remplacé par le TGV » parle du train Corail, pas du TGV.
+        $epinal = Line::factory()->create(['slug' => 'rfn-60000', 'name' => "Ligne d'Épinal à Bussang", 'wikipedia_title' => "Ligne d'Épinal à Bussang"]);
+        $corail = Material::factory()->create(['slug' => 'voiture-corail', 'name' => 'Voiture Corail', 'type' => 'voiture', 'wikidata_id' => 'Q2', 'wikipedia_fr' => 'Voiture Corail']);
+        $tgv = Material::factory()->create(['slug' => 'tgv', 'name' => 'TGV', 'type' => 'rame_tgv', 'wikidata_id' => 'Q3', 'wikipedia_fr' => 'TGV']);
+        $z = Material::factory()->create(['slug' => 'z-27500', 'name' => 'Z 27500', 'type' => 'automotrice', 'wikidata_id' => 'Q4', 'wikipedia_fr' => 'Z 27500']);
+
+        $wikipedia = new class(app(WikimediaClient::class), new InMemorySourceCache, 0) extends WikipediaArticleSource
+        {
+            public function sections(string $cacheName, array $titles, string $pattern, bool $refresh = false): array
+            {
+                $wikitext = "== Exploitation ==\n=== Matériels engagés ===\nLes [[Z 27500]] assurent les TER.\nIl existait un train [[Voiture Corail|Corail]] jusqu'à Remiremont. Ce train a été remplacé par le [[TGV]] après la mise en service de la LGV Est.";
+
+                return $cacheName === 'wikipedia_lines' && isset($titles[0])
+                    ? ["Ligne d'Épinal à Bussang" => ['title' => "Ligne d'Épinal à Bussang", 'revid' => 7, 'sections' => WikipediaMaterialSections::sections($wikitext, $pattern)]] + array_fill_keys($titles, null)
+                    : array_fill_keys($titles, null);
+            }
+
+            public function redirects(string $cacheName, array $titles, bool $refresh = false): array
+            {
+                return array_fill_keys($titles, []);
+            }
+        };
+        $linker = new LineMaterialLinker(
+            new class(new CommonsClient(0), new InMemorySourceCache, WikidataMaterialRules::default(), 0) extends WikidataMaterialSource
+            {
+                public function vehicleUsage(bool $refresh = false): array
+                {
+                    return [];
+                }
+            },
+            $wikipedia,
+        );
+
+        $links = $linker->collect();
+        $confidence = fn (Material $m): string => LineMaterialLinker::attributes($links["{$epinal->id}:{$m->id}"]['evidence'])['confidence'];
+
+        $this->assertSame('high', $confidence($z), 'sujet de sa phrase, section « Matériels engagés »');
+        $this->assertSame('high', $confidence($corail));
+        $this->assertSame('medium', $confidence($tgv), 'cité comme remplaçant du train Corail : jamais « source directe »');
+        $this->assertStringStartsWith("Il existait un train Corail jusqu'à Remiremont. Ce train a été remplacé par le TGV", $links["{$epinal->id}:{$tgv->id}"]['evidence'][0]['quote']);
+        $this->assertTrue($links["{$epinal->id}:{$tgv->id}"]['evidence'][0]['refers_back']);
+    }
+
     public function test_writing_is_idempotent_and_never_touches_manual_links(): void
     {
         $manual = LineMaterial::create(['line_id' => $this->lgvEst->id, 'material_id' => $this->bb15000->id, 'notes' => 'Essais 1974']);

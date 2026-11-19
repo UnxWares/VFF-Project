@@ -114,6 +114,8 @@
         font-weight: 600;
         color: var(--vff-link);
         text-underline-offset: 0.18em;
+        /* Zone cliquable d'au moins 24 px de haut (WCAG 2.5.8). */
+        padding-block: 1px;
     }
     .body :global(.accident-name:hover) {
         text-decoration-thickness: 2px;

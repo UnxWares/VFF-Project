@@ -292,7 +292,8 @@ final class LineSheet
             'events' => $events,
             // Exploitations associatives (trains touristiques, vélorails), cf. vff:import-heritage-lines.
             'heritage' => $this->heritageOperations($line->id),
-            'materials' => $line->materials->map(fn ($m) => [
+            // Par nom, dans l'ordre naturel (« BB 9200 » avant « BB 15000 », accents ignorés).
+            'materials' => $line->materials->sortBy(fn ($m): string => Str::ascii($m->name), SORT_NATURAL | SORT_FLAG_CASE)->values()->map(fn ($m) => [
                 'slug' => $m->slug,
                 'name' => $m->name,
                 'type' => $m->type,

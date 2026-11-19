@@ -299,7 +299,7 @@
                             {/if}
                         </button>
                         <div class="meta">
-                            <p class="title" title={heading(m)}>{heading(m)}</p>
+                            <p class="title">{heading(m)}</p>
                             <p class="credit">
                                 <span class="author">{m.author ?? t('media.author_unknown')}</span>,
                                 <a
@@ -598,13 +598,10 @@
         min-width: 0;
         padding: 10px 0 0;
     }
+    /* Titre complet : jamais coupé (les titres Commons peuvent être longs), il passe à la ligne. */
     .meta .title {
-        display: -webkit-box;
         margin: 0 0 4px;
-        overflow: hidden;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
+        overflow-wrap: anywhere;
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-sm);
         font-weight: 600;

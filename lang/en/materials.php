@@ -4,6 +4,7 @@
 return [
     'meta_title' => 'Rolling stock',
     'meta_description' => 'Rolling stock that ran in France: locomotives, multiple units, railcars, TGV, trams, coaches, wagons and departmental vehicles.',
+    'meta_show' => ':name, a rolling stock series: sourced specifications, lines served and credited photos.',
     'title' => 'Rolling stock',
     'subtitle' => "Locomotives, multiple units, railcars, TGV sets, trams, coaches, wagons and departmental vehicles: :total\u{a0}classes, with their specifications and the lines they ran on.",
     'subtitle_empty' => 'Locomotives, multiple units, railcars, TGV sets, coaches and wagons, with their builder, years in service and the lines they ran on.',

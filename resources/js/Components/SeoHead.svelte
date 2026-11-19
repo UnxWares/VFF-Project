@@ -1,7 +1,7 @@
 <script>
     /**
-     * Balises de partage (Open Graph, Twitter) et données structurées schema.org (JSON-LD) d'une
-     * page publique, posées dans <head>. Le <title> et la meta description restent dans la page.
+     * Description, adresse canonique, balises de partage (Open Graph, Twitter) et données structurées
+     * schema.org (JSON-LD) d'une page publique, posées dans <head>. Le <title> reste dans la page.
      *
      *   <SeoHead
      *       title={line.name}
@@ -14,8 +14,15 @@
      * `jsonLd` reçoit l'origine du site (adresse absolue exigée par schema.org) et rend un objet
      * ou une liste d'objets (lib/structuredData.js). `type` : « website » (défaut) ou « article ».
      * Le texte JSON est échappé par serializeJsonLd : aucune balise fermante possible.
+     *
+     * Au premier affichage d'une page, le serveur a déjà écrit les mêmes balises (partials/share-tags,
+     * attribut data-vff-seo : les robots qui n'exécutent pas le JavaScript ne lisent que celles-là) :
+     * le composant n'en ajoute alors aucune et laisse celles du serveur. Après une navigation interne
+     * ou un changement de langue, il prend le relais et retire les balises du serveur devenues fausses
+     * (lib/serverSeo.js).
      */
     import { i18n } from '$lib/i18n.js';
+    import { dropStaleServerSeo, serverSeoCovers } from '$lib/serverSeo.js';
     import { absoluteUrl, ogLocale, serializeJsonLd, shorten } from '$lib/structuredData.js';
 
     /** @type {{ title: string, description?: string|null, path: string, type?: 'website'|'article', image?: { url: string, alt?: string|null }|null, jsonLd?: ((origin: string) => object|object[])|null }} */
@@ -34,35 +41,48 @@
     const SCRIPT = 'script';
 
     const lang = $derived($i18n.language ?? 'fr');
+    // Le serveur a-t-il déjà écrit les balises de cette page, dans cette langue ?
+    const servedByServer = $derived(serverSeoCovers(path, ogLocale(lang)));
     const desc = $derived(shorten(description, 200));
     const blocks = $derived.by(() => {
         if (!jsonLd) return [];
         const data = jsonLd(origin);
         return (Array.isArray(data) ? data : [data]).map((d) => serializeJsonLd(d));
     });
+
+    // Navigation interne ou changement de langue : les balises du serveur ne sont plus celles de la page.
+    $effect(() => {
+        dropStaleServerSeo(path, ogLocale(lang));
+    });
 </script>
 
 <svelte:head>
-    <meta property="og:site_name" content={$i18n.t('common.app_full')} />
-    <meta property="og:type" content={type} />
-    <meta property="og:title" content={title} />
-    {#if desc}
-        <meta property="og:description" content={desc} />
-        <meta name="twitter:description" content={desc} />
-    {/if}
-    <meta property="og:url" content={absoluteUrl(origin, path)} />
-    <meta property="og:locale" content={ogLocale(lang)} />
-    <meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'} />
-    <meta name="twitter:title" content={title} />
-    {#if image}
-        <meta property="og:image" content={absoluteUrl(origin, image.url)} />
-        <meta name="twitter:image" content={absoluteUrl(origin, image.url)} />
-        {#if image.alt}
-            <meta property="og:image:alt" content={image.alt} />
-            <meta name="twitter:image:alt" content={image.alt} />
+    {#if !servedByServer}
+        {#if description}
+            <meta name="description" content={description} />
         {/if}
+        <link rel="canonical" href={absoluteUrl(origin, path)} />
+        <meta property="og:site_name" content={$i18n.t('common.app_full')} />
+        <meta property="og:type" content={type} />
+        <meta property="og:title" content={title} />
+        {#if desc}
+            <meta property="og:description" content={desc} />
+            <meta name="twitter:description" content={desc} />
+        {/if}
+        <meta property="og:url" content={absoluteUrl(origin, path)} />
+        <meta property="og:locale" content={ogLocale(lang)} />
+        <meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'} />
+        <meta name="twitter:title" content={title} />
+        {#if image}
+            <meta property="og:image" content={absoluteUrl(origin, image.url)} />
+            <meta name="twitter:image" content={absoluteUrl(origin, image.url)} />
+            {#if image.alt}
+                <meta property="og:image:alt" content={image.alt} />
+                <meta name="twitter:image:alt" content={image.alt} />
+            {/if}
+        {/if}
+        {#each blocks as json (json)}
+            <svelte:element this={SCRIPT} type="application/ld+json">{json}</svelte:element>
+        {/each}
     {/if}
-    {#each blocks as json (json)}
-        <svelte:element this={SCRIPT} type="application/ld+json">{json}</svelte:element>
-    {/each}
 </svelte:head>

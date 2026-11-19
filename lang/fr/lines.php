@@ -6,7 +6,6 @@ return [
     'breadcrumbs' => 'Fil d’Ariane',
     'also_known_as' => 'Aussi connue sous',
     'no_description' => 'Aucune description renseignée pour cette ligne.',
-    'still_running' => 'toujours en service',
     'act' => 'Agir',
 
     'types' => [

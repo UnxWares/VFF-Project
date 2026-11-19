@@ -1,3 +1,4 @@
+@php($seo = app(\App\Support\Seo\PageMetadata::class)->forPage($page))
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -24,9 +25,14 @@
         {{-- Application web installable (PWA) : barre du navigateur aux couleurs du site, dans chaque thème. --}}
         <meta name="theme-color" content="#ff6500" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#0f1419" media="(prefers-color-scheme: dark)" />
-        <meta name="description" content="{{ __('common.app_description') }}" />
+        {{-- Pages à aperçu de partage : balises complètes (partials/share-tags) ; les autres gardent la description générale. --}}
+        @if ($seo)
+            @include('partials.share-tags')
+        @else
+            <meta name="description" content="{{ __('common.app_description') }}" />
+        @endif
 
-        <title inertia>{{ config('app.name', 'VFF') }}</title>
+        <title inertia>{{ $seo?->documentTitle ?? config('app.name', 'VFF') }}</title>
 
         <link rel="icon" href="{{ asset('favicon.ico') }}" />
         <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('icons/icon-192.png') }}" />

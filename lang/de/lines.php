@@ -6,7 +6,6 @@ return [
     'breadcrumbs' => 'Brotkrümelnavigation',
     'also_known_as' => 'Auch bekannt als',
     'no_description' => 'Für diese Bahnstrecke ist keine Beschreibung verfügbar.',
-    'still_running' => 'noch in Betrieb',
     'act' => 'Aktiv werden',
 
     'types' => [
