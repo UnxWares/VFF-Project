@@ -23,6 +23,8 @@
     import { HISTORIC_LAYER_ID } from '$lib/historicBasemaps.js';
     // Teinte d'époque du fond de carte (sépia discret pour les époques anciennes).
     import { NEUTRAL_TINT, WASH_COLOR, eraTint, rasterTintPaint } from '$lib/eraTint.js';
+    // Liseré foncé sous les tracés pleins (contraste des couleurs claires sur le fond clair).
+    import { CASING_OPACITY, casingLayer } from '$lib/lineCasing.js';
     // Palette trafic × statut partagée avec la légende et la mini-carte.
     import {
         ACTIVE_STATUSES,
@@ -313,12 +315,16 @@
     }
 
     const SELECTED_LAYER_ID = 'vff-lines-selected';
+    // Liseré des tracés en service (une couche pour toute la source) : mêmes filtres et même ordre de
+    // dessin que `vff-lines-active`, posé juste dessous. Les couches en tirets n'en ont pas (lineCasing.js).
+    const CASING_LAYER_ID = 'vff-lines-casing';
 
     function selectedFilter(slug) {
         return slug ? ['==', ['get', 'line_slug'], slug] : NEVER;
     }
 
     const LINE_FILTERS = {
+        [CASING_LAYER_ID]: buildActiveFilter,
         'vff-lines-gone': buildGoneFilter,
         'vff-lines-closed': buildClosedFilter,
         'vff-lines-velorail': buildVelorailFilter,
@@ -564,6 +570,19 @@
             },
         });
 
+        // ── Liseré foncé sous les tracés en service (une couche pour toute la source) ──
+        map.addLayer(
+            casingLayer({
+                id: CASING_LAYER_ID,
+                source: 'vff-lines',
+                sourceLayer: 'vff-lines',
+                filter: buildActiveFilter(),
+                sortKey: DRAW_ORDER,
+                width: lineWidthExpr([1.5, 2.5, 4, 6]),
+                opacityTransitionMs: FADE_MS,
+            }),
+        );
+
         // ── Rails : en service - couleur = trafic de la portion ───────────
         map.addLayer({
             id: 'vff-lines-active',
@@ -725,6 +744,7 @@
         if (!map || !layersReady || !map.getLayer('vff-lines-active')) return;
 
         for (const id of LINE_LAYERS) map.setPaintProperty(id, 'line-opacity', 0);
+        map.setPaintProperty(CASING_LAYER_ID, 'line-opacity', 0);
         map.setPaintProperty('vff-stations-points', 'circle-opacity', 0);
         map.setPaintProperty('vff-stations-points', 'circle-stroke-opacity', 0);
         map.setPaintProperty('vff-stations-labels', 'text-opacity', 0);
@@ -737,6 +757,7 @@
             map.setFilter('vff-lines-threatened', buildThreatenedFilter(year));
             map.setFilter('vff-lines-reopening', buildReopeningFilter(year));
             for (const id of LINE_LAYERS) map.setPaintProperty(id, 'line-opacity', lineOpacity(id));
+            map.setPaintProperty(CASING_LAYER_ID, 'line-opacity', casingOpacity());
             map.setPaintProperty('vff-stations-points', 'circle-opacity', 1);
             map.setPaintProperty('vff-stations-points', 'circle-stroke-opacity', 1);
             map.setPaintProperty('vff-stations-labels', 'text-opacity', 1);
@@ -1003,7 +1024,7 @@
         hidden?.length;
         [...(hidden ?? [])];
         if (!map || !layersReady) return;
-        for (const id of LINE_LAYERS) {
+        for (const id of [...LINE_LAYERS, CASING_LAYER_ID]) {
             if (map.getLayer(id)) map.setFilter(id, LINE_FILTERS[id]());
         }
     });
@@ -1046,7 +1067,21 @@
     const COMPARE_LAYER_ID = 'vff-compare-lines';
     const STACK_SOURCE_ID = 'vff-stack';
     const STACK_LAYER_ID = 'vff-stack-lines';
+    const STACK_CASING_LAYER_ID = `${STACK_LAYER_ID}-casing`;
+    const STACK_CASING_MIN_ZOOM = 9;
+    const STACK_WIDTH = ['interpolate', ['linear'], ['zoom'], 4, 1.4, 8, 2.4, 12, 4, 16, 6];
     let compareTiles = null;
+
+    // Sous les accidents et l'itinéraire, s'ils sont affichés.
+    const viewLayersBefore = () =>
+        [ACCIDENT_AREA_LAYER_ID, ...ROUTE_LAYERS].find((above) => map.getLayer(above));
+
+    // Liseré d'une vue par époque : une couche pour toute la source, posée juste sous les tracés pleins
+    // qu'elle borde (ajoutée avant eux). Les tronçons en tirets et les tronçons « restés en service »
+    // (contexte discret) n'en ont pas.
+    function addViewCasing(spec) {
+        map.addLayer(casingLayer(spec), viewLayersBefore());
+    }
 
     // Couche de tracés d'une vue par époque, sous l'itinéraire s'il est affiché ; un clic
     // ouvre la bulle de la vue (`popupKind` : 'compare' ou 'stack').
@@ -1074,8 +1109,7 @@
                 },
                 paint,
             },
-            // Sous les accidents et l'itinéraire, s'ils sont affichés.
-            [ACCIDENT_AREA_LAYER_ID, ...ROUTE_LAYERS].find((above) => map.getLayer(above)),
+            viewLayersBefore(),
         );
         map.on('click', id, (e) => {
             if (e.features?.length && !overlayAt(e.point))
@@ -1104,6 +1138,17 @@
         compareTiles = tiles;
         map.addSource(COMPARE_SOURCE_ID, { type: 'vector', tiles: [tiles], maxzoom: 14 });
         for (const group of COMPARE_DASHES) {
+            // Liseré des ouvertures (trait plein, couleur claire sur le fond clair).
+            if (!group.dash) {
+                addViewCasing({
+                    id: `${group.id}-casing`,
+                    source: COMPARE_SOURCE_ID,
+                    sourceLayer: 'vff-compare',
+                    filter: ['==', ['get', 'change'], 'opened'],
+                    sortKey: compareSortExpr(),
+                    width: compareWidthExpr(),
+                });
+            }
             addViewLayer({
                 id: group.id,
                 source: COMPARE_SOURCE_ID,
@@ -1125,6 +1170,15 @@
     function ensureStackLayer() {
         if (map.getSource(STACK_SOURCE_ID)) return;
         map.addSource(STACK_SOURCE_ID, { type: 'vector', tiles: [stackTilesUrl()], maxzoom: 14 });
+        addViewCasing({
+            id: STACK_CASING_LAYER_ID,
+            source: STACK_SOURCE_ID,
+            sourceLayer: 'vff-stack',
+            sortKey: ['get', 'last_year'],
+            width: STACK_WIDTH,
+            // Vue d'ensemble : la clarté du trait porte la durée de service, un filet foncé la brouillerait.
+            minzoom: STACK_CASING_MIN_ZOOM,
+        });
         addViewLayer({
             id: STACK_LAYER_ID,
             source: STACK_SOURCE_ID,
@@ -1135,7 +1189,7 @@
             popupKind: 'stack',
             paint: {
                 'line-color': stackColorExpr(currentEra),
-                'line-width': ['interpolate', ['linear'], ['zoom'], 4, 1.4, 8, 2.4, 12, 4, 16, 6],
+                'line-width': STACK_WIDTH,
                 // Transparence : les tracés superposés de décennies différentes restent lisibles.
                 'line-opacity': 0.85,
             },
@@ -1157,8 +1211,12 @@
                 setVisibility(layer.id, !comparing && !stacking);
             }
         }
-        for (const group of COMPARE_DASHES) setVisibility(group.id, comparing);
+        for (const group of COMPARE_DASHES) {
+            setVisibility(group.id, comparing);
+            setVisibility(`${group.id}-casing`, comparing);
+        }
         setVisibility(STACK_LAYER_ID, stacking);
+        setVisibility(STACK_CASING_LAYER_ID, stacking);
         if (comparing || stacking) popup?.remove();
     }
 
@@ -1265,6 +1323,11 @@
 
     function lineOpacity(id) {
         return LINE_LAYER_OPACITY[id] * (networkDimmed ? NETWORK_DIM : 1);
+    }
+
+    // Le liseré s'estompe avec le réseau (sinon il resterait seul, foncé, autour de tracés pâles).
+    function casingOpacity() {
+        return CASING_OPACITY * (networkDimmed ? NETWORK_DIM : 1);
     }
 
     function featureAt(point, layers, px = OVERLAY_HIT_PX) {
@@ -1376,6 +1439,9 @@
             networkDimmed = on;
             for (const id of LINE_LAYERS) {
                 if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', lineOpacity(id));
+            }
+            if (map.getLayer(CASING_LAYER_ID)) {
+                map.setPaintProperty(CASING_LAYER_ID, 'line-opacity', casingOpacity());
             }
         }
     }
