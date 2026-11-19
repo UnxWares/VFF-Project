@@ -248,6 +248,39 @@ class StationCommandsTest extends TestCase
     }
 
     /**
+     * Dates des événements retenus, gardées avec leur précision pour vff:build-station-eras (La Fouillouse :
+     * fermeture le 26/09/1857, gare ouverte le 24/11/1857, même année) : la plus ancienne ouverture, la moins
+     * précise à date égale ; la fin du service qui peut tomber le plus tard (1857 à l'année après le 26/09).
+     */
+    public function test_service_dates_are_kept_with_their_precision(): void
+    {
+        $closed = $this->rfnLine('300000', 'Ligne de Charlie à Delta');
+        $this->track($closed, $this->current, [[47.0, 3.0], [47.1, 3.0]], ['status' => 'dismantled', 'traffic_type' => 'unknown']);
+        $station = $this->station('charlie', 'Charlie', 47.05, 3.0001);
+        $this->source('osm', 'n9', 'Charlie', 47.05, 3.0001, ['station_id' => $station->id]);
+        $event = fn (string $type, string $date, string $precision) => DB::table('line_events')->insert(['line_id' => $closed->id, 'type' => $type,
+            'event_date' => $date, 'date_precision' => $precision, 'description' => $type, 'created_at' => now(), 'updated_at' => now()]);
+        $event('opening', '1827-01-01', 'year');
+        $event('opening_freight', '1827-01-01', 'day');
+        $event('closure', '1857-09-26', 'day');
+        $dates = fn () => array_values((array) DB::table('station_lines')->where('station_id', $station->id)
+            ->first(['first_year', 'first_event_date', 'first_event_precision', 'last_year', 'last_event_date', 'last_event_precision']));
+
+        $this->artisan('vff:attach-stations')->assertSuccessful();
+        $this->assertSame([1827, '1827-01-01', 'year', 1857, '1857-09-26', 'day'], $dates());
+
+        // Une fermeture connue à l'année peut tomber après le 26/09 : c'est elle qui compte.
+        $event('closure_passenger', '1857-01-01', 'year');
+        $this->artisan('vff:attach-stations', ['--years-only' => true])->assertSuccessful();
+        $this->assertSame([1827, '1827-01-01', 'year', 1857, '1857-01-01', 'year'], $dates());
+
+        // Ligne de nouveau en service à la gare : ni fin, ni date de fin.
+        $this->track($closed, $this->current, [[47.0, 3.0], [47.1, 3.0]]);
+        $this->artisan('vff:attach-stations', ['--years-only' => true])->assertSuccessful();
+        $this->assertSame([1827, '1827-01-01', 'year', null, null, null], $dates());
+    }
+
+    /**
      * Pau - Canfranc (664000) : fermée d'Oloron à Canfranc en 1970, rouverte d'Oloron à Bedous en 2016.
      * La réouverture ne prolonge que la desserte des gares de la portion rouverte : Accous, au-delà de
      * Bedous, reste desservie jusqu'en 1970 (avant le 19/11/2026 : « desservie depuis 1928 », sans fin).

@@ -83,6 +83,9 @@ class AttachStations extends Command
 
     protected $description = 'Rattache les gares aux lignes (PK SNCF, PK des listes historiques, proximité des tracés) → station_lines';
 
+    /** Tri des événements de même date, du moins précis au plus précis (line_events.date_precision). */
+    private const PRECISION_COARSE_FIRST = "CASE date_precision WHEN 'day' THEN 2 WHEN 'month' THEN 1 ELSE 0 END";
+
     /**
      * Un événement de ligne (alias le) concerne la gare (alias s, rattachement
      * sl) si sa section par PK couvre le PK de la gare (± 500 m), sinon si sa
@@ -687,30 +690,40 @@ class AttachStations extends Command
         $terminusCover = fn (string $alias) => "EXISTS (SELECT 1 FROM tmp_terminus_events tt WHERE tt.sl_id = sl.id AND tt.event_id = {$alias}.id)";
         $cover = '('.self::EVENT_COVERS_STATION.' OR '.$terminusCover('le').')';
         $except = $exceptLines === [] ? '' : ' AND sl.line_id NOT IN ('.implode(',', array_map('intval', $exceptLines)).')';
-        DB::statement("UPDATE station_lines sl SET first_year = NULL, last_year = NULL, years_source = NULL WHERE TRUE{$except}");
-        // Ouverture : plus ancienne ouverture couvrant le PK.
+        DB::statement("UPDATE station_lines sl SET first_year = NULL, last_year = NULL, years_source = NULL, first_event_date = NULL,
+            first_event_precision = NULL, last_event_date = NULL, last_event_precision = NULL WHERE TRUE{$except}");
+        // Ouverture : plus ancienne ouverture couvrant le PK, gardée avec sa date et sa précision ; à date
+        // égale, la moins précise (1827 à l'année peut précéder le 30/06/1827).
+        $coarseFirst = self::PRECISION_COARSE_FIRST;
         DB::statement(<<<SQL
             WITH ev AS (
-                SELECT sl.id, MIN(EXTRACT(YEAR FROM le.event_date))::int AS y
+                SELECT DISTINCT ON (sl.id) sl.id, le.event_date, le.date_precision
                 FROM station_lines sl
                 JOIN stations s ON s.id = sl.station_id
                 JOIN line_events le ON le.line_id = sl.line_id
                  AND le.type IN ('opening', 'opening_passenger', 'opening_freight')
                  AND {$cover}
                 WHERE TRUE{$except}
-                GROUP BY sl.id
+                ORDER BY sl.id, le.event_date, {$coarseFirst}
             )
-            UPDATE station_lines sl SET first_year = ev.y, years_source = 'line_events' FROM ev WHERE ev.id = sl.id
+            UPDATE station_lines sl SET first_year = EXTRACT(YEAR FROM ev.event_date)::int, years_source = 'line_events',
+                   first_event_date = ev.event_date, first_event_precision = ev.date_precision
+            FROM ev WHERE ev.id = sl.id
         SQL);
         // Fin : dernière fin du service voyageurs / fermeture totale couvrant le PK sans réouverture
         // ensuite ; à défaut, le plus ancien déclassement ou la plus ancienne dépose. Une fin antérieure
         // à l'ouverture (déclassement d'un projet antérieur, 794000 « déclassée … le 07/07/1905 », ouverte
         // en 1910) ne termine pas la desserte. La réouverture doit couvrir la gare, comme la fermeture :
         // celle d'une autre portion de la ligne ne prolonge pas la desserte d'une gare restée fermée.
+        // Date gardée avec sa précision (BuildStationEras::reconcileServiceYears compare au jour ou au mois) :
+        // parmi les fins du service, celle qui peut tomber le plus tard (1857 à l'année après le 26/09/1857).
         $reopenCover = '('.self::eventCovers('r').' OR '.$terminusCover('r').')';
+        $latestDay = "CASE date_precision WHEN 'day' THEN event_date
+                      WHEN 'month' THEN (date_trunc('month', event_date) + interval '1 month - 1 day')::date
+                      ELSE make_date(EXTRACT(YEAR FROM event_date)::int, 12, 31) END";
         DB::statement(<<<SQL
             WITH ev AS (
-                SELECT sl.id, le.event_date, le.type IN ('closure_passenger', 'closure') AS service_end
+                SELECT sl.id, le.event_date, le.date_precision, le.type IN ('closure_passenger', 'closure') AS service_end
                 FROM station_lines sl
                 JOIN stations s ON s.id = sl.station_id
                 JOIN line_events le ON le.line_id = sl.line_id
@@ -722,11 +735,16 @@ class AttachStations extends Command
                                   AND r.type IN ('reopening', 'reopening_passenger', 'opening_passenger') AND r.event_date > le.event_date
                                   AND {$reopenCover})
             ), pick AS (
-                SELECT id, COALESCE(MAX(event_date) FILTER (WHERE service_end), MIN(event_date) FILTER (WHERE NOT service_end)) AS d
-                FROM ev GROUP BY id
+                SELECT DISTINCT ON (id) id, event_date AS d, date_precision AS p
+                FROM ev
+                ORDER BY id, service_end DESC,
+                         CASE WHEN service_end THEN {$latestDay} END DESC,
+                         CASE WHEN NOT service_end THEN event_date END,
+                         {$coarseFirst}
             )
             UPDATE station_lines sl SET last_year = EXTRACT(YEAR FROM pick.d)::int,
-                   years_source = COALESCE(sl.years_source, 'line_events')
+                   years_source = COALESCE(sl.years_source, 'line_events'),
+                   last_event_date = pick.d, last_event_precision = pick.p
             FROM pick WHERE pick.id = sl.id AND pick.d IS NOT NULL
         SQL);
         // Tracés datés rattachés à la ligne, à proximité de la gare.
@@ -746,7 +764,7 @@ class AttachStations extends Command
         SQL);
         // Ligne en service aujourd'hui (tronçons de l'ère courante) : pas de fin.
         DB::statement(<<<SQL
-            UPDATE station_lines sl SET last_year = NULL
+            UPDATE station_lines sl SET last_year = NULL, last_event_date = NULL, last_event_precision = NULL
             WHERE last_year IS NOT NULL{$except} AND EXISTS (
                 SELECT 1 FROM line_segments ls JOIN eras e ON e.id = ls.era_id AND e.is_current
                 JOIN stations s ON s.id = sl.station_id
