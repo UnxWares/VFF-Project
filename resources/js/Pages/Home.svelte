@@ -9,7 +9,10 @@
     import ArchiveGallery from '$components/Sections/ArchiveGallery.svelte';
     import Features from '$components/Sections/Features.svelte';
     import ContributeTeaser from '$components/Sections/ContributeTeaser.svelte';
+    import SeoHead from '$components/SeoHead.svelte';
+    import FlashToast from '$components/ui/FlashToast.svelte';
     import { i18n } from '$lib/i18n.js';
+    import { websiteSchema } from '$lib/structuredData.js';
 
     import '$css/index/index.css';
 
@@ -32,6 +35,22 @@
     <meta name="description" content={$i18n.t('home.meta_description')} />
 </svelte:head>
 
+<!-- Partage et données structurées : le site, sa recherche (annuaire des lignes) et son éditeur. -->
+<SeoHead
+    title={$i18n.t('home.meta_title')}
+    description={$i18n.t('home.meta_description')}
+    path="/"
+    image={{ url: '/icons/icon-512.png', alt: $i18n.t('nav.logo_alt') }}
+    jsonLd={(origin) =>
+        websiteSchema({
+            origin,
+            name: $i18n.t('common.app_full'),
+            alternateName: 'VFF',
+            description: $i18n.t('home.meta_description'),
+            lang: $i18n.language,
+        })}
+/>
+
 <!-- Ordre : accès rapide (recherche et rubriques, juste après le grand en-tête), présentation, lignes
      soutenues, trois portes d'entrée (bande orange), genèse, profil du réseau par décennie (l'élément
      marquant de la page), images d'archives, sommaire, invitation. -->
@@ -47,4 +66,6 @@
         <Features {stats} {mediaCount} />
         <ContributeTeaser />
     </main>
+    <!-- Confirmation venue du serveur (par exemple après la suppression du compte). -->
+    <FlashToast />
 </Layout>

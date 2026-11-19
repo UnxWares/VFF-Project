@@ -77,7 +77,7 @@ return [
         'about' => 'À propos de cette ligne',
         'timeline' => 'Chronologie',
         'stations' => 'Gares de la ligne',
-        'materials' => 'Matériels historiques',
+        'materials' => 'Matériel roulant',
         'media' => 'Archives',
         'evolution' => 'Décennie par décennie',
         'sections' => 'Sections nommées',

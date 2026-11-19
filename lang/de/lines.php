@@ -77,7 +77,7 @@ return [
         'about' => 'Über diese Bahnstrecke',
         'timeline' => 'Chronik',
         'stations' => 'Bahnhöfe der Strecke',
-        'materials' => 'Historische Fahrzeuge',
+        'materials' => 'Fahrzeuge',
         'media' => 'Archive',
         'evolution' => 'Jahrzehnt für Jahrzehnt',
         'sections' => 'Benannte Abschnitte',

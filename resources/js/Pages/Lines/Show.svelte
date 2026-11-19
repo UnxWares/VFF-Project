@@ -27,6 +27,9 @@
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SheetToc from '$components/Sheet/SheetToc.svelte';
+    import SeoHead from '$components/SeoHead.svelte';
+    import { breadcrumbSchema, lineSchema } from '$lib/structuredData.js';
+    import { servicePeriodText } from '$lib/materialFacts.js';
     import {
         bestPhaseIndex,
         categoryColor,
@@ -129,6 +132,14 @@
             (a, b) => a - b,
         ),
     );
+
+    const metaDescription = $derived(
+        line.description
+            ? line.description.slice(0, 300)
+            : t('lines.meta_description', { name: line.name }),
+    );
+    // Premières images de la galerie (chargées par LineGallery) pour les données structurées.
+    let seoImages = $state.raw([]);
 
     let mapSection = $state();
     function showPhase(i) {
@@ -422,13 +433,28 @@
 
 <svelte:head>
     <title>{line.name} - VFF</title>
-    <meta
-        name="description"
-        content={line.description
-            ? line.description.slice(0, 300)
-            : t('lines.meta_description', { name: line.name })}
-    />
+    <meta name="description" content={metaDescription} />
 </svelte:head>
+
+<!-- Partage et données structurées : la ligne (avec ses premières images, auteur et licence) et
+     le fil d'Ariane. -->
+<SeoHead
+    title={line.name}
+    description={metaDescription}
+    path={`/lines/${line.slug}`}
+    type="article"
+    image={seoImages[0]
+        ? { url: seoImages[0].display_url ?? seoImages[0].thumb_url, alt: seoImages[0].caption }
+        : null}
+    jsonLd={(origin) => [
+        lineSchema({ origin, line, description: line.description, images: seoImages }),
+        breadcrumbSchema(origin, [
+            { name: t('common.app_full'), path: '/' },
+            { name: t('nav.lines'), path: '/lines' },
+            { name: line.name, path: `/lines/${line.slug}` },
+        ]),
+    ]}
+/>
 
 {#snippet ext()}<i class="bi bi-box-arrow-up-right vff-ext" aria-hidden="true"></i><span
         class="vff-sr-only"
@@ -1065,13 +1091,15 @@
                     {#each materials as m (m.slug)}
                         <li>
                             <Link class="vff-tile material-card" href="/materials/{m.slug}">
+                                {@const period = servicePeriodText(
+                                    m.in_service_from,
+                                    m.in_service_to,
+                                    t,
+                                )}
                                 <strong>{m.name}</strong>
+                                <span class="meta">{t(`materials.type.${m.type}`)}</span>
                                 {#if m.builder}<span class="meta">{m.builder}</span>{/if}
-                                <span class="meta"
-                                    >{m.in_service_from}{m.in_service_to
-                                        ? `-${m.in_service_to}`
-                                        : ` - ${t('lines.still_running')}`}</span
-                                >
+                                {#if period}<span class="meta">{period}</span>{/if}
                             </Link>
                         </li>
                     {/each}
@@ -1080,7 +1108,7 @@
         {/if}
 
         <!-- Photos, cartes postales, plans : chargés à la demande (API paginée), crédits par image. -->
-        <LineGallery slug={line.slug} />
+        <LineGallery slug={line.slug} onitems={(list) => (seoImages = list.slice(0, 4))} />
 
         {#if chronicle?.notes?.length || sources.length}
             <SheetSection title={t('lines.section.notes')} id="notes">
