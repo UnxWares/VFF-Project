@@ -194,6 +194,7 @@ return [
         'article' => 'Article encyclopédique',
         'report' => 'Enquête technique',
         'inventory' => 'Bilan des enquêtes',
+        'list' => 'Liste de Wikipédia',
     ],
 
     'review' => [
@@ -213,6 +214,7 @@ return [
         'no_line' => 'Aucune ligne de VFF n’a été trouvée près du lieu.',
         'line_uncertain' => 'Plusieurs lignes passent près du centre de la commune.',
         'hinted_line_far' => 'La ligne citée par une source passe loin du lieu indiqué.',
+        'place_from_list' => 'Le lieu a été lu dans une liste de Wikipédia, sans coordonnées : il reste à vérifier.',
     ],
 
     // Résumés rédigés par VFF (AccidentSummary) : phrases complètes, lieu et date insérés.

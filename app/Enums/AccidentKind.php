@@ -11,6 +11,13 @@ namespace App\Enums;
  */
 enum AccidentKind: string
 {
+    /**
+     * Natures gardées en base mais jamais publiées (voir App\Models\Scopes\PublicAccidents).
+     *
+     * @var list<string>
+     */
+    public const HIDDEN = ['person_struck'];
+
     /** Collision entre trains, ou d'un train avec un obstacle sur la voie (heurtoir, engin). */
     case Collision = 'collision';
 

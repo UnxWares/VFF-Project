@@ -157,11 +157,32 @@ final class AccidentSourceClient
      */
     public function articleLeads(string $lang, array $titles): array
     {
+        return $this->articles($lang, $titles, full: false);
+    }
+
+    /**
+     * Texte complet (wikicode) et révision de plusieurs articles, 10 par requête (les pages de
+     * liste sont longues), redirections suivies ; un fichier de cache par titre demandé.
+     *
+     * @param  list<string>  $titles
+     * @return array<string, array{title: string, revid: int, content: string}> indexé par titre demandé
+     */
+    public function articleTexts(string $lang, array $titles): array
+    {
+        return $this->articles($lang, $titles, full: true);
+    }
+
+    /**
+     * @param  list<string>  $titles
+     * @return array<string, array{title: string, revid: int, content: string}>
+     */
+    private function articles(string $lang, array $titles, bool $full): array
+    {
         $api = "https://{$lang}.wikipedia.org/w/api.php";
         $out = [];
         $toFetch = [];
         foreach (array_values(array_unique($titles)) as $title) {
-            $cached = $this->refresh ? null : $this->readJson($this->leadPath($lang, $title));
+            $cached = $this->refresh ? null : $this->readJson($this->leadPath($lang, $title, $full));
             if ($cached !== null) {
                 $out[$title] = $cached;
             } else {
@@ -173,11 +194,11 @@ final class AccidentSourceClient
 
             return $out;
         }
-        foreach (array_chunk($toFetch, 50) as $chunk) {
+        foreach (array_chunk($toFetch, $full ? 10 : 50) as $chunk) {
             $json = $this->mediawiki($api, [
                 'action' => 'query', 'prop' => 'revisions', 'rvprop' => 'content|ids', 'rvslots' => 'main',
-                'rvsection' => 0, 'redirects' => 1, 'titles' => implode('|', $chunk),
-            ]);
+                'redirects' => 1, 'titles' => implode('|', $chunk),
+            ] + ($full ? [] : ['rvsection' => 0]));
             $aliases = [];
             foreach (['normalized', 'redirects'] as $k) {
                 foreach ($json['query'][$k] ?? [] as $n) {
@@ -197,7 +218,7 @@ final class AccidentSourceClient
                     $final = $aliases[$final];
                 }
                 if (isset($pages[$final])) {
-                    $this->writeJson($this->leadPath($lang, $title), $pages[$final]);
+                    $this->writeJson($this->leadPath($lang, $title, $full), $pages[$final]);
                     $out[$title] = $pages[$final];
                 }
             }
@@ -355,8 +376,8 @@ final class AccidentSourceClient
         }
     }
 
-    private function leadPath(string $lang, string $title): string
+    private function leadPath(string $lang, string $title, bool $full = false): string
     {
-        return "wikipedia/{$lang}/".substr(sha1($title), 0, 16).'.json';
+        return 'wikipedia/'.$lang.($full ? '-full' : '').'/'.substr(sha1($title), 0, 16).'.json';
     }
 }

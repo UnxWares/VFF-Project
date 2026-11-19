@@ -106,18 +106,18 @@ class AccidentDetailResource extends AccidentResource
             /**
              * Sources consultées, avec leur licence et les faits qu'on y a lus (date, morts, blessés, coordonnées…),
              * pour vérifier le recoupement : `provider` (`wikidata`, `wikipedia`, `bea-tt`), `role` (`data`,
-             * `article`, `report` rapport d'enquête, `inventory` bilan des enquêtes), `title`, `url` (permalien de
+             * `article`, `list` liste d'accidents de Wikipédia, `report` rapport d'enquête, `inventory` bilan des enquêtes), `title`, `url` (permalien de
              * la révision lue pour Wikipédia), `license`, `license_url`, `license_status` (`verified` : licence
              * ouverte prouvée), `revision`, `retrieved_at` (ISO 8601), `facts`. Citez le fournisseur en
              * réutilisant une donnée.
              *
              * @var list<array{provider: string, role: string, title: string, url: string, license: string, license_url: string|null, license_status: string|null, revision: int|null, retrieved_at: string, facts: array<string, mixed>}>
              */
-            'sources' => $this->sources->sortBy(fn (AccidentSource $s) => [array_search($s->role, ['report', 'inventory', 'data', 'article'], true), $s->id])
+            'sources' => $this->sources->sortBy(fn (AccidentSource $s) => [array_search($s->role, ['report', 'inventory', 'data', 'article', 'list'], true), $s->id])
                 ->values()->map(fn (AccidentSource $s) => [
                     /** Fournisseur : `wikidata`, `wikipedia`, `bea-tt`. */
                     'provider' => $s->provider,
-                    /** `data` (données structurées), `article` (encyclopédie), `report` (rapport d'enquête), `inventory` (bilan des enquêtes). */
+                    /** `data` (données structurées), `article` (encyclopédie), `list` (liste d'accidents de Wikipédia, faits seulement), `report` (rapport d'enquête), `inventory` (bilan des enquêtes). */
                     'role' => $s->role,
                     'title' => $s->title,
                     'url' => $s->url,

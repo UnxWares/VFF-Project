@@ -60,6 +60,12 @@ final class AccidentCandidate
      */
     public array $placeHints = [];
 
+    /**
+     * Les lieux de placeHints sont des lieux cités dans un texte libre, par ordre de préférence :
+     * si le premier désigne plusieurs communes, aucun des suivants ne le remplace.
+     */
+    public bool $stopAtAmbiguousPlace = false;
+
     /** Gare citée par la source (« en gare de Laroche-Migennes »). */
     public ?string $stationHint = null;
 

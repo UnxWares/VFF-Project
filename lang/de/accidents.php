@@ -194,6 +194,7 @@ return [
         'article' => 'Enzyklopädieartikel',
         'report' => 'Technische Untersuchung',
         'inventory' => 'Übersicht der Untersuchungen',
+        'list' => 'Wikipedia-Liste',
     ],
 
     'review' => [
@@ -213,6 +214,7 @@ return [
         'no_line' => 'In der Nähe des Ortes wurde keine VFF-Strecke gefunden.',
         'line_uncertain' => 'Mehrere Strecken verlaufen nahe der Gemeindemitte.',
         'hinted_line_far' => 'Die von einer Quelle genannte Strecke verläuft weit vom angegebenen Ort.',
+        'place_from_list' => 'Der Ort stammt aus einer Wikipedia-Liste ohne Koordinaten und muss noch geprüft werden.',
     ],
 
     // Von VFF verfasste Zusammenfassungen (AccidentSummary): ganze Sätze, Ort und Datum eingesetzt.

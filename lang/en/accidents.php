@@ -194,6 +194,7 @@ return [
         'article' => 'Encyclopaedia article',
         'report' => 'Technical investigation',
         'inventory' => 'Summary of investigations',
+        'list' => 'Wikipedia list',
     ],
 
     'review' => [
@@ -213,6 +214,7 @@ return [
         'no_line' => 'No VFF line was found near the place.',
         'line_uncertain' => 'Several lines run close to the centre of the municipality.',
         'hinted_line_far' => 'The line cited by a source runs far from the place given.',
+        'place_from_list' => 'The place was read from a Wikipedia list, without coordinates: it still needs checking.',
     ],
 
     // Summaries written by VFF (AccidentSummary): full sentences, place and date inserted.

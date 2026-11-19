@@ -127,17 +127,18 @@ class AccidentController extends Controller
      */
     private function facets(): array
     {
-        $decades = DB::table('accidents')
+        $decades = DB::table('accidents')->whereNotIn('kind', AccidentKind::HIDDEN)
             ->selectRaw('(EXTRACT(YEAR FROM occurred_on)::int / 10) * 10 AS decade, COUNT(*) AS n')
             ->groupBy('decade')->orderBy('decade')->get()
             ->map(fn ($r) => ['decade' => (int) $r->decade, 'count' => (int) $r->n])->all();
-        $kinds = DB::table('accidents')->selectRaw('kind, COUNT(*) AS n')->groupBy('kind')->pluck('n', 'kind')
+        $kinds = DB::table('accidents')->whereNotIn('kind', AccidentKind::HIDDEN)->selectRaw('kind, COUNT(*) AS n')->groupBy('kind')->pluck('n', 'kind')
             ->map(fn ($n) => (int) $n)->all();
-        $departments = DB::table('accidents')->whereNotNull('department_code')
+        $departments = DB::table('accidents')->whereNotIn('kind', AccidentKind::HIDDEN)->whereNotNull('department_code')
             ->selectRaw('department_code, COUNT(*) AS n')->groupBy('department_code')->orderBy('department_code')->get()
             ->map(fn ($r) => ['code' => $r->department_code, 'name' => FrenchDepartments::find($r->department_code)[0] ?? $r->department_code, 'count' => (int) $r->n])
             ->all();
         $lines = DB::table('accident_lines')->join('lines', 'lines.id', '=', 'accident_lines.line_id')
+            ->join('accidents', 'accidents.id', '=', 'accident_lines.accident_id')->whereNotIn('accidents.kind', AccidentKind::HIDDEN)
             ->selectRaw('lines.slug, lines.code, lines.name, COUNT(DISTINCT accident_lines.accident_id) AS n')
             ->groupBy('lines.slug', 'lines.code', 'lines.name')->orderBy('lines.name')->get()
             ->map(fn ($r) => ['slug' => $r->slug, 'code' => $r->code, 'name' => $r->name, 'count' => (int) $r->n])

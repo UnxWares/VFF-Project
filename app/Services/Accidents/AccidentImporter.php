@@ -32,7 +32,7 @@ final class AccidentImporter
     public const REVIEW_CODES = [
         'toll_mismatch', 'toll_ambiguous', 'date_mismatch', 'date_ambiguous', 'location_commune_only',
         'commune_not_found', 'commune_ambiguous', 'level_crossing_not_found', 'outside_france',
-        'no_location', 'no_line', 'line_uncertain', 'hinted_line_far',
+        'no_location', 'no_line', 'line_uncertain', 'hinted_line_far', 'place_from_list',
     ];
 
     /** Éléments rangés parmi les accidents qui n'en sont pas (vérifiés à la main). */
@@ -55,31 +55,43 @@ final class AccidentImporter
     public function __construct(
         private readonly WikidataAccidentCollector $wikidata,
         private readonly BeaTtAccidentCollector $beaTt,
+        private readonly WikipediaListCollector $list,
         private readonly AccidentLocator $locator,
         private readonly AccidentLineMatcher $matcher,
         private readonly AccidentSummary $summary,
     ) {}
 
-    /** @param list<string> $sources fournisseurs à lire : wikidata (avec Wikipédia), bea-tt */
-    public function run(AccidentSourceClient $client, array $sources = ['wikidata', 'bea-tt'], bool $dryRun = false, bool $prune = false): AccidentImportResult
+    /** Fournisseurs lus par défaut ; l'import complet les lit tous. */
+    public const SOURCES = ['wikidata', 'bea-tt', 'wikipedia-list'];
+
+    /** @param list<string> $sources fournisseurs à lire : wikidata (avec les articles de Wikipédia), bea-tt, wikipedia-list (listes d'accidents) */
+    public function run(AccidentSourceClient $client, array $sources = self::SOURCES, bool $dryRun = false, bool $prune = false): AccidentImportResult
     {
         $result = new AccidentImportResult;
         $startedAt = now();
 
         $wd = in_array('wikidata', $sources, true) ? $this->wikidata->collect($client) : [];
         $bea = in_array('bea-tt', $sources, true) ? $this->beaTt->collect($client) : [];
-        $result->collected = ['wikidata' => count($wd), 'bea-tt' => count($bea)];
+        $listed = in_array('wikipedia-list', $sources, true) ? $this->list->collect($client) : [];
+        $result->collected = ['wikidata' => count($wd), 'bea-tt' => count($bea), 'wikipedia-list' => count($listed)];
         $result->rejected = ['wikidata' => $this->wikidata->rejected, 'bea-tt' => $this->beaTt->rejected];
         if ($this->beaTt->warning !== null) {
             $result->warnings[] = $this->beaTt->warning;
         }
 
-        foreach ([...$wd, ...$bea] as $c) {
+        foreach ([...$wd, ...$bea, ...$listed] as $c) {
             $this->locator->locate($c);
         }
         [$candidates, $result->merged] = $this->merge($wd, $bea);
+        [$candidates, $known] = $this->mergeList($candidates, $listed, partial: count(array_intersect(['wikidata', 'bea-tt'], $sources)) < 2, result: $result);
 
         $seen = [];
+        foreach ($known as [$candidate, $accidentId]) {
+            if (! $dryRun) {
+                $this->attachToKnown($candidate, $accidentId);
+            }
+            $seen[] = $accidentId;
+        }
         foreach ($candidates as $c) {
             $skip = $this->skipReason($c);
             if ($skip !== null) {
@@ -103,10 +115,10 @@ final class AccidentImporter
             }
         }
         if (! $dryRun) {
-            $unseen = Accident::query()->whereNotIn('id', $seen)->where('imported_at', '<', $startedAt);
+            $unseen = Accident::query()->withoutGlobalScopes()->whereNotIn('id', $seen)->where('imported_at', '<', $startedAt);
             $result->unseen = (clone $unseen)->pluck('slug')->all();
             // Retrait sur demande seulement, et jamais après un import partiel (une seule source lue).
-            if ($prune && count($sources) === 2 && $client->missing === []) {
+            if ($prune && array_diff(self::SOURCES, $sources) === [] && $client->missing === []) {
                 $unseen->delete();
                 $result->pruned = $result->unseen;
             }
@@ -231,6 +243,119 @@ final class AccidentImporter
         }
     }
 
+    /**
+     * Les accidents des listes de Wikipédia complètent les autres sources : une puce qui décrit un
+     * accident déjà connu (même règle que le BEA-TT) ajoute sa source à cette fiche et le bilan qui
+     * lui manque, sans rien remplacer ; les autres deviennent des fiches « à vérifier ».
+     *
+     * Import partiel (une des deux autres sources non lue) : les fiches déjà en base issues de ces
+     * sources servent aussi de cibles (knownAccidentId).
+     *
+     * @param  list<AccidentCandidate>  $kept
+     * @param  list<AccidentCandidate>  $listed
+     * @return array{0: list<AccidentCandidate>, 1: list<array{0: AccidentCandidate, 1: int}>}
+     */
+    private function mergeList(array $kept, array $listed, bool $partial, AccidentImportResult $result): array
+    {
+        $targets = $kept;
+        $known = [];
+        foreach ($listed as $l) {
+            $target = array_find($targets, fn (AccidentCandidate $t) => $this->sameEvent($t, $l));
+            if ($target !== null) {
+                $this->absorbListed($target, $l);
+                $result->count('list', 'merged');
+
+                continue;
+            }
+            $accidentId = $partial ? $this->knownAccidentId($l) : null;
+            if ($accidentId !== null) {
+                $known[] = [$l, $accidentId];
+                $result->count('list', 'attached');
+
+                continue;
+            }
+            $kept[] = $l;
+        }
+
+        return [$kept, $known];
+    }
+
+    /** Une puce de liste complète la fiche du même accident : sa source, le bilan et la nature manquants. */
+    private function absorbListed(AccidentCandidate $target, AccidentCandidate $listed): void
+    {
+        foreach ($listed->sources as $s) {
+            $target->addSource($s);
+        }
+        if ($target->deaths === [] && isset($listed->deaths['wikipedia'])) {
+            $target->deaths['wikipedia'] = $listed->deaths['wikipedia'];
+            $target->tollUrls += $listed->tollUrls;
+        }
+        if ($target->injuries === [] && isset($listed->injuries['wikipedia'])) {
+            $target->injuries['wikipedia'] = $listed->injuries['wikipedia'];
+        }
+        if ($target->kind === null || $target->kindSource === 'label') {
+            $target->kind = $listed->kind ?? $target->kind;
+            $target->kindSource = $listed->kind !== null ? $listed->kindSource : $target->kindSource;
+        }
+    }
+
+    /**
+     * Fiche déjà en base qui décrit le même accident (import partiel) : même commune ou moins de
+     * 20 km, à un jour près. Seules les fiches qui ont une source autre qu'une liste (Wikidata,
+     * BEA-TT) sont des cibles, comme à l'import complet ; une puce déjà rattachée retrouve sa fiche.
+     */
+    private function knownAccidentId(AccidentCandidate $c): ?int
+    {
+        if ($c->date === null) {
+            return null;
+        }
+        $notFromList = fn ($q) => $q->where(fn ($w) => $w->where('provider', '!=', 'wikipedia')->orWhere('role', '!=', 'list'));
+        $attached = AccidentSource::query()->where('provider', 'wikipedia')->where('role', 'list')
+            ->whereIn('external_id', array_map(fn (AccidentSourceRef $s) => $s->externalId, $c->sources))->value('accident_id');
+        if ($attached !== null && Accident::query()->withoutGlobalScopes()->whereKey($attached)->whereHas('sources', $notFromList)->exists()) {
+            return (int) $attached;
+        }
+        $query = Accident::query()->withoutGlobalScopes()
+            ->whereBetween('occurred_on', [Carbon::parse($c->date)->subDay()->toDateString(), Carbon::parse($c->date)->addDay()->toDateString()])
+            ->whereHas('sources', $notFromList);
+        $query->where(function ($q) use ($c): void {
+            if ($c->communeInsee !== null) {
+                $q->orWhere('commune_insee', $c->communeInsee);
+            }
+            if ($c->lat !== null && $c->lng !== null) {
+                $q->orWhereRaw('ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)', [$c->lng, $c->lat, self::SAME_EVENT_MAX_M]);
+            }
+        });
+
+        return $query->orderBy('id')->value('id');
+    }
+
+    /** Ajoute la source de liste à une fiche déjà en base et complète son bilan s'il manque ; rien d'autre ne change. */
+    private function attachToKnown(AccidentCandidate $c, int $accidentId): void
+    {
+        DB::transaction(function () use ($c, $accidentId): void {
+            $accident = Accident::query()->withoutGlobalScopes()->findOrFail($accidentId);
+            foreach ($c->sources as $s) {
+                $row = AccidentSource::query()->firstOrNew(['provider' => $s->provider, 'external_id' => $s->externalId]);
+                $row->fill([
+                    'accident_id' => $accident->id, 'role' => $s->role, 'title' => Str::limit($s->title, 297),
+                    'url' => $s->url, 'licence' => $s->licence, 'licence_url' => $s->licenceUrl,
+                    'revision' => $s->revision, 'facts' => $s->facts !== [] ? $s->facts : null, 'retrieved_at' => now(),
+                ])->save();
+            }
+            $changes = [];
+            if ($accident->deaths === null && isset($c->deaths['wikipedia'])) {
+                $changes = ['deaths' => $c->deaths['wikipedia'], 'toll_source' => 'wikipedia', 'toll_source_url' => $c->tollUrls['wikipedia'] ?? null];
+            }
+            if ($accident->injuries === null && isset($c->injuries['wikipedia'])) {
+                $changes['injuries'] = $c->injuries['wikipedia'];
+            }
+            if ($changes !== []) {
+                $accident->forceFill($changes)->save();
+            }
+        });
+    }
+
     /** Candidat hors du périmètre (hors de France), null s'il est gardé. */
     private function skipReason(AccidentCandidate $c): ?string
     {
@@ -254,6 +379,16 @@ final class AccidentImporter
         }
         if ($c->wikidataId !== null && isset(self::EXCLUDED_ITEMS[$c->wikidataId])) {
             return 'excluded';
+        }
+        if (str_starts_with($c->key, 'wikipedia-list:')) {
+            // Heurts de personnes : sujet délicat, jamais publiés (la liste n'en dit rien d'utile).
+            if ($c->kind === AccidentKind::PersonStruck) {
+                return 'person_struck';
+            }
+            // Puce dont le lieu n'a pas pu être identifié : ni point, ni ligne, ni commune.
+            if ($c->lat === null && $c->communeInsee === null) {
+                return 'no_place';
+            }
         }
         if ($c->lat === null && $c->communeInsee === null && ! $c->declaredInFrance && ! str_starts_with($c->key, 'bea-tt:')) {
             return 'not_in_france';
@@ -460,12 +595,12 @@ final class AccidentImporter
     /** Fiche existante : par l'élément Wikidata, sinon par l'identifiant d'une de ses sources. */
     private function existing(AccidentCandidate $c): ?Accident
     {
-        if ($c->wikidataId !== null && ($a = Accident::query()->where('wikidata_id', $c->wikidataId)->first()) !== null) {
+        if ($c->wikidataId !== null && ($a = Accident::query()->withoutGlobalScopes()->where('wikidata_id', $c->wikidataId)->first()) !== null) {
             return $a;
         }
         foreach ($c->sources as $s) {
             $id = AccidentSource::query()->where('provider', $s->provider)->where('external_id', $s->externalId)->value('accident_id');
-            if ($id !== null && ($a = Accident::query()->find($id)) !== null
+            if ($id !== null && ($a = Accident::query()->withoutGlobalScopes()->find($id)) !== null
                 && ($a->wikidata_id === null || $a->wikidata_id === $c->wikidataId)) {
                 return $a;
             }
@@ -485,8 +620,8 @@ final class AccidentImporter
         }
         $others = AccidentSource::query()->where('accident_id', $oldId)->count();
         if ($others <= 1) {
-            $slug = Accident::query()->whereKey($oldId)->value('slug');
-            Accident::query()->whereKey($oldId)->delete();
+            $slug = Accident::query()->withoutGlobalScopes()->whereKey($oldId)->value('slug');
+            Accident::query()->withoutGlobalScopes()->whereKey($oldId)->delete();
             $result->retired[] = "{$slug} → {$into->slug}";
         }
     }
@@ -501,7 +636,7 @@ final class AccidentImporter
         };
         $base = Str::limit($date.'-'.Str::slug($c->communeName ?? $name), 150, '');
         $slug = $base;
-        for ($i = 2; Accident::query()->where('slug', $slug)->exists(); $i++) {
+        for ($i = 2; Accident::query()->withoutGlobalScopes()->where('slug', $slug)->exists(); $i++) {
             $slug = "{$base}-{$i}";
         }
 

@@ -6,9 +6,11 @@ use App\Enums\AccidentDatePrecision;
 use App\Enums\AccidentKind;
 use App\Enums\AccidentLocationPrecision;
 use App\Enums\AccidentReviewStatus;
+use App\Models\Scopes\PublicAccidents;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Database\Factories\AccidentFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -54,6 +56,7 @@ use Illuminate\Support\Carbon;
  * @property float|null $lat
  * @property float|null $lng
  */
+#[ScopedBy([PublicAccidents::class])]
 class Accident extends Model
 {
     /** @use HasFactory<AccidentFactory> */

@@ -150,6 +150,10 @@ class AccidentLocator
                 }
                 if (count($codes) > 1) {
                     $c->note('commune_ambiguous', $name.' : '.implode(', ', array_map(fn ($r) => "{$r->nom} ({$r->departement})", array_slice($rows, 0, 5))));
+                    if ($c->stopAtAmbiguousPlace) {
+                        // Le lieu principal est ambigu : les lieux cités après lui ne le remplacent pas.
+                        return null;
+                    }
                     break;
                 }
                 if ($department === null) {

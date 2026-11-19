@@ -2,6 +2,7 @@
 
 namespace App\Services\Accidents;
 
+use App\Enums\AccidentKind;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -40,13 +41,15 @@ final class AccidentMapFeatures
     /** @return list<array<string, mixed>> */
     private function features(): array
     {
+        $hidden = AccidentKind::HIDDEN;
         $rows = DB::select(
             'SELECT slug, occurred_on, date_precision, kind, commune_name, department_code,
                     location_precision, deaths, injuries, review_status,
                     ST_X(geom) AS lng, ST_Y(geom) AS lat
              FROM accidents
-             WHERE geom IS NOT NULL
+             WHERE geom IS NOT NULL AND kind NOT IN ('.implode(', ', array_fill(0, count($hidden), '?')).')
              ORDER BY occurred_on, id',
+            $hidden,
         );
 
         return array_map(fn (object $r): array => [
