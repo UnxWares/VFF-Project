@@ -236,11 +236,13 @@
                                                     min: REASON_MIN,
                                                 })}
                                                 error={active === a.id ? errors.reason : null}
+                                                required
                                             >
                                                 {#snippet children(attrs)}
                                                     <textarea
                                                         {...attrs}
                                                         class="vff-textarea"
+                                                        required
                                                         rows="4"
                                                         maxlength="2000"
                                                         bind:value={reasons[a.id]}

@@ -302,6 +302,7 @@
                     id="delete-password"
                     label={$i18n.t('account.data.delete_password_label')}
                     error={deleteForm.errors.password}
+                    required
                 >
                     {#snippet children(attrs)}
                         <!-- svelte-ignore a11y_autofocus -->

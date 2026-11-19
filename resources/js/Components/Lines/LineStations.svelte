@@ -84,7 +84,7 @@
 <ol class={['stations', { cols: stations.length > 8 }]} id="stations-list">
     {#each shown as s (s.slug)}
         {@const today = s.status_today ?? s.era_status ?? 'declassified'}
-        <li class:closed={!OPEN.includes(today)} class:terminal={s.is_terminal}>
+        <li class={{ closed: !OPEN.includes(today), terminal: s.is_terminal }}>
             <span class="pk">{s.pk_label ?? ''}</span>
             <span class="dot" style:--c={color(today)}></span>
             <div class="info">
@@ -118,8 +118,7 @@
                         {#each eraYears as y (y)}
                             {@const st = s.eras?.[y]}
                             <span
-                                class="tick"
-                                class:empty={!st}
+                                class={['tick', { empty: !st }]}
                                 data-status={st}
                                 style:--c={st ? color(st) : 'transparent'}
                             ></span>
@@ -313,8 +312,24 @@
         background: transparent;
         box-shadow: inset 0 0 0 1px var(--vff-border-strong);
     }
-    /* La couleur ne porte pas seule l'état (RGAA 3.1) : état non confirmé = case hachurée, fermée =
-       case plus basse, absente = case vide ; ouverte = case pleine. */
+    /* La couleur ne porte pas seule l'état (RGAA 3.1) : ouverte = case pleine, fret seul = deux
+       traits superposés, touristique = barres verticales, état non confirmé = case hachurée,
+       fermée = case plus basse, absente = case vide. */
+    .tick[data-status='no_commercial'] {
+        background: linear-gradient(
+            var(--c) 0 34%,
+            var(--vff-bg-elevated) 34% 66%,
+            var(--c) 66% 100%
+        );
+    }
+    .tick[data-status='tourist'] {
+        background: repeating-linear-gradient(
+            90deg,
+            var(--c) 0 2px,
+            var(--vff-bg-elevated) 2px 3px
+        );
+        box-shadow: inset 0 0 0 1px var(--c);
+    }
     .tick[data-status='uncertain'] {
         background: repeating-linear-gradient(
             135deg,

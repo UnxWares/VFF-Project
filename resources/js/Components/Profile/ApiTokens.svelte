@@ -113,7 +113,7 @@
                     {$i18n.t('api_tokens.copy')}
                 </button>
             </div>
-            <p class="copy-status" aria-live="polite">{copyStatus}</p>
+            <p class="copy-status" role="status">{copyStatus}</p>
             <p>{$i18n.t('api_tokens.new_usage')}</p>
         </Notice>
     {/if}
@@ -304,8 +304,10 @@
             'SF Mono', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Liberation Mono', monospace;
         font-size: var(--vff-fs-sm);
     }
-    .copy-status:empty {
-        display: none;
+    /* Zone d'annonce (role="status") gardée dans la page, même vide : une zone masquée par
+       display: none sort de l'arbre d'accessibilité et son premier message n'est pas lu. */
+    :global(.vff-notice) .copy-status:empty {
+        margin: 0;
     }
 
     .panel {

@@ -24,12 +24,12 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 | 9 - Reconstitutions 3D 🧪 | ⬜ pas commencée |
 | 10 - Extension historique | ✅ couverture 1830-2030 ; modèle d'extraction des voies publié |
 | 11 - Communauté | 🟡 trilingue, carte intégrable, application installable ; dons et blog à faire |
-| 12 - Mise en production | 🟡 pages légales, engagements RGPD et audit RGAA (81,94 %) faits ; messagerie et hébergement final à faire |
+| 12 - Mise en production | 🟡 pages légales, engagements RGPD et audit RGAA (86,30 %) faits ; messagerie et hébergement final à faire |
 | 13 - Nouveaux domaines | 🟡 matériel roulant, accidents, serveur MCP, signalisation et passages à niveau (carte, fiches, API) faits ; historique de la signalisation fait, relevé partiel à compléter |
 
 **En base (développement)** : 2 705 lignes, 9 363 gares, 15 519 événements datés, 71 597 médias, 21 époques, 687 séries de matériel roulant (969 liens avec les lignes), 202 accidents.
 
-**Qualité** : environ 4 200 tests PHPUnit et 440 tests vitest, Larastan sans erreur, contrôle des invariants de données (`vff:check-invariants`), des traductions (`vff:i18n-check`) et des droits des sources (`vff:source-rights`), le tout en CI ; contrôles avant commit Lefthook (à installer) ; audit RGAA 4.1.2 interne : 81,94 %.
+**Qualité** : environ 4 200 tests PHPUnit et 440 tests vitest, Larastan sans erreur, contrôle des invariants de données (`vff:check-invariants`), des traductions (`vff:i18n-check`) et des droits des sources (`vff:source-rights`), le tout en CI ; contrôles avant commit Lefthook (à installer) ; audit RGAA 4.1.2 interne : 86,30 %.
 
 **Priorités du moment** :
 
@@ -262,7 +262,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [ ] Planificateur Laravel en production (recalcul quotidien de l'époque 2030)
 - [x] Engagements des pages légales : journaux conservés 12 mois au plus, suppression des comptes inactifs depuis 3 ans (avec avertissement), suppression de compte (phase 5), information des membres avant un changement des CGU
 - [x] Correction des défauts de l'audit de l'interface (interface unifiée, contrastes, cibles, clavier : novembre 2026)
-- [x] Audit de conformité RGAA interne complet (81,94 %, partiellement conforme), taux publié dans la déclaration
+- [x] Audit de conformité RGAA interne complet (86,30 % après la revue du soir du 19/11, partiellement conforme), taux publié dans la déclaration
 - [ ] Suivi des erreurs et de la disponibilité (phase 0)
 
 ---

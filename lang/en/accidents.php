@@ -83,6 +83,7 @@ return [
         'distance' => 'Distance to the route',
         'method' => 'Method',
         'line_cited' => 'Article cited by the source',
+        'line_cited_hint' => 'opens the source that cites it, in a new tab',
         'confidence' => 'Confidence',
         'other_lines' => 'Other lines at the same place',
         'trains_title' => 'Trains and rolling stock',

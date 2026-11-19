@@ -150,7 +150,7 @@
                     {$i18n.t('webhooks.copy')}
                 </button>
             </div>
-            <p class="copy-status" aria-live="polite">{copyStatus}</p>
+            <p class="copy-status" role="status">{copyStatus}</p>
         </Notice>
     {/if}
 
@@ -290,7 +290,11 @@
                 disabled={!webhooks.can_create}
                 aria-describedby={eventsError ? 'webhook-events-error' : undefined}
             >
-                <legend>{$i18n.t('webhooks.events_legend')}</legend>
+                <legend
+                    >{$i18n.t('webhooks.events_legend')}<span class="required"
+                        >{` (${$i18n.t('common.required')})`}</span
+                    ></legend
+                >
                 {#each webhooks.events as type (type)}
                     <div class="event-choice">
                         <input
@@ -398,8 +402,10 @@
         flex: 1 1 260px;
         min-width: 0;
     }
-    .copy-status:empty {
-        display: none;
+    /* Zone d'annonce (role="status") gardée dans la page, même vide : une zone masquée par
+       display: none sort de l'arbre d'accessibilité et son premier message n'est pas lu. */
+    :global(.vff-notice) .copy-status:empty {
+        margin: 0;
     }
 
     .panel {
@@ -538,6 +544,11 @@
         font-family: var(--vff-font-heading);
         font-weight: 600;
     }
+    /* « (obligatoire) » : au moins un événement (RGAA 11.10), plus discret que la légende. */
+    .events legend .required {
+        font-weight: 400;
+        color: var(--vff-text-muted);
+    }
     .event-choice {
         display: flex;
         align-items: flex-start;
@@ -567,8 +578,10 @@
         color: var(--vff-danger);
         font-size: var(--vff-fs-sm);
     }
+    /* Vide : gardée dans la page (zone aria-live, comme .vff-error) ; la marge négative annule
+       l'écart du groupe pour qu'elle ne prenne pas de place. */
     .field-error:empty {
-        display: none;
+        margin-top: calc(-1 * var(--vff-space-3));
     }
 
     .delete-dialog {

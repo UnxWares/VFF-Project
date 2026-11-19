@@ -191,7 +191,10 @@
 {#if legend.length}
     <ul class="legend" aria-label={t('lines.sheet.decades.legend')}>
         {#each legend as cat (cat)}
-            <li><i class="swatch" style={categorySwatch(cat)}></i>{catLabel(cat)}</li>
+            <li>
+                <span class="swatch" style={categorySwatch(cat)} aria-hidden="true"
+                ></span>{catLabel(cat)}
+            </li>
         {/each}
     </ul>
 {/if}

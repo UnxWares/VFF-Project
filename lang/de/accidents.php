@@ -83,6 +83,7 @@ return [
         'distance' => 'Abstand zur Strecke',
         'method' => 'Methode',
         'line_cited' => 'Von der Quelle genannter Artikel',
+        'line_cited_hint' => 'öffnet die Quelle, die ihn nennt, in einem neuen Tab',
         'confidence' => 'Zuverlässigkeit',
         'other_lines' => 'Weitere Strecken an derselben Stelle',
         'trains_title' => 'Züge und Fahrzeuge',

@@ -332,3 +332,14 @@ html body h2.header {
         line-height: 1.2;
     }
 }
+
+/* Coloration des exemples de code (thème sombre de Prism, fond #282c34) : jetons trop pâles relevés à
+   4,5:1 au moins (RGAA 3.2). Ponctuation des gabarits « ${ } » : 5,8:1 ; commentaires : 5,4:1. */
+html body [class*='language-'] .token.interpolation-punctuation {
+    color: #ef8a92 !important;
+}
+html body [class*='language-'] .token.comment,
+html body [class*='language-'] .token.prolog,
+html body [class*='language-'] .token.cdata {
+    color: #9aa1ad !important;
+}

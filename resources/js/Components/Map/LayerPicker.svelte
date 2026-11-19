@@ -180,8 +180,10 @@
     .layer-toggle:hover {
         background-color: var(--vff-bg-muted);
     }
+    /* Calques affichés : contour orange foncé, 3:1 au moins sur le fond (RGAA 3.3) ; le nombre de
+       calques le dit aussi en texte. */
     .layer-toggle.active {
-        border-color: var(--vff-accent);
+        border-color: var(--vff-accent-strong);
     }
     .layer-toggle .bi-layers {
         color: var(--vff-text-muted);

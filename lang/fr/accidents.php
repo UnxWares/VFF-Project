@@ -83,6 +83,7 @@ return [
         'distance' => 'Distance au tracé',
         'method' => 'Méthode',
         'line_cited' => 'Article cité par la source',
+        'line_cited_hint' => 'ouvre la source qui le cite, dans un nouvel onglet',
         'confidence' => 'Confiance',
         'other_lines' => 'Autres lignes au même endroit',
         'trains_title' => 'Trains et matériel',
