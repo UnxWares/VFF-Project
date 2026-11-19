@@ -114,7 +114,7 @@ class WikipediaMaterialSectionsTest extends TestCase
         $sections = WikipediaMaterialSections::sections($wiki, WikipediaMaterialSections::MATERIAL_SECTIONS);
 
         $this->assertSame(['Services effectués', 'Services effectués > TER'], array_column($sections, 'title'));
-        $this->assertSame([['target' => 'Ligne de Lunéville à Saint-Dié', 'quote' => 'Ligne de Lunéville à Saint-Dié', 'refers_back' => false]], WikipediaMaterialSections::links($sections[1]['text']));
+        $this->assertSame([['target' => 'Ligne de Lunéville à Saint-Dié', 'quote' => 'Ligne de Lunéville à Saint-Dié', 'refers_back' => false, 'doubt' => null]], WikipediaMaterialSections::links($sections[1]['text']));
     }
 
     /** Chemin de fer du Blanc-Argent, « Matériel roulant > Matériel actuel » (révision 238401038), tel que lu par l'import. */
@@ -169,5 +169,118 @@ class WikipediaMaterialSectionsTest extends TestCase
     public function test_comparison_markers(string $before, bool $compared): void
     {
         $this->assertSame($compared, WikipediaMaterialSections::isCompared($before));
+    }
+
+    /**
+     * Phrases réelles (wikitexte des révisions lues par l'import, 19/11/2026) : famille de doute attendue
+     * pour chaque article cité. null : la phrase ne met pas en doute la circulation.
+     *
+     * @return iterable<string, array{string, string, ?string}>
+     */
+    public static function doubts(): iterable
+    {
+        // 896000, « Matériel roulant > Matériel Z 890 » (révision 240212251).
+        $z890 = 'Le {{date|14 juin 2019}}, les TMR et la SNCF ont signé avec Stadler un contrat portant sur l’acquisition de 7 nouvelles rames, immatriculées [[Z 890]] et destinées à remplacer les Z 800.';
+        yield 'commande : Z 890' => [$z890, 'Z 890', 'order'];
+        // 340506, Voies du port de Rouen (révision 240886765) : rame présentée au public, « destinée au réseau ».
+        yield 'commande : Omneo Premium destinée au réseau' => ["la ligne a été utilisée le {{Date|9 février 2020}} pour présenter aux Rouennais, face à l'[[Caserne Jeanne d'Arc|hôtel de région]], une nouvelle rame [[Regio 2N|{{nobr|Omneo Premium}} ({{nobr|Z 56600}})]] destinée au réseau TER Normandie.", 'Regio 2N', 'order'];
+        // 420000, « Trafic » (révision 239547071).
+        yield 'essai : Velaro D' => ["C'est ainsi qu'en {{date|octobre 2011}}, des essais de shuntage ont été effectués sur la ligne par des [[DB 407|Velaro D]], la rame stationnant à la [[Gare de Plouaret-Trégor|gare de Plouaret]] pour repos entre différents essais.", 'DB 407', 'trial'];
+        // 909000, « Matériel ayant circulé sur la ligne » (révision 239895345) : les essais valent pour toute la proposition.
+        yield 'essai au-delà de la virgule : X 2100' => ['** Autorail X 2101 (de la série [[X 2100]]) avec deux remorques [[XR 6000]], venu en essais sur Grenoble - Montmélian le 16/06/1980.', 'X 2100', 'trial'];
+        yield 'renfort : A1AA1A 68500' => ["** [[A1AA1A 68500]] du dépôt de Chalindrey venues en renfort pour les Jeux Olympiques d'hiver de Grenoble en {{date|février 1968}}.", 'A1AA1A 68500', 'one_off'];
+        // 538000, « Trafic > TER » (révision 235342687) : seule la série employée « très exceptionnellement ».
+        $rochelle = 'Ces trains sont normalement assurés avec du matériel [[B 82500]] et [[Régiolis|B 84500]] en traction électrique, des [[B 81500]] ont très exceptionnellement été employés lors de manques de disponibilité des B 82500 et des B 84500 ; pour autant, il n’est pas rare de les voir circuler en traction diesel.';
+        yield 'exceptionnel : B 81500' => [$rochelle, 'B 81500', 'one_off'];
+        yield 'exceptionnel : pas les B 82500 de la même phrase' => [$rochelle, 'B 82500', null];
+        yield 'exceptionnel : pas les B 84500 de la même phrase' => [$rochelle, 'Régiolis', null];
+        // 900000, « Matériel roulant » : légende d'une locomotive préservée.
+        yield 'préservation : 2CC2 3402' => ['[[Fichier:Dépôt-de-Chambéry - Rotonde - 2CC2-3402 - 20131103 143741.jpg|thumb|Locomotive [[2CC2 3402]] préservée sous la rotonde de Chambéry.]]', '2CC2 3402', 'preserved'];
+        // 972000 (révision 241186256) : « Musée de Sèvres » est une station du T2, pas un musée.
+        yield 'station « Musée de Sèvres »' => ["[[Fichier:T2 MuséeSèvres.JPG|thumb|La rame [[Alstom Citadis#Modèles|Citadis 302]] {{n°}}433 à ''Musée de Sèvres'']]", 'Alstom Citadis', null];
+        // Article « Autorail Pauline », « Services effectués > Alsace-Lorraine » (révision 241246803).
+        yield 'possibilité : Pauline' => ["Dès {{date|octobre 1933}}, l'AL considère la possibilité d'exploiter la section entre [[Sainte-Marie-aux-Mines]] et [[Sélestat]] de la [[ligne de Sélestat à Lesseux - Frapelle]] avec des autorails.", 'Ligne de Sélestat à Lesseux - Frapelle', 'possible'];
+        // Article « TGV Atlantique », « Service » (révision 240399439) : « y permettant ainsi la circulation » est
+        // dans une autre partie de la phrase que les lignes citées (le filtre des périodes, lui, lit la proposition).
+        yield 'possibilité hors de la partie de phrase : TVM-300' => ['Les [[LGV Sud Europe Atlantique]] et [[LGV Bretagne-Pays de la Loire|Bretagne-Pays de la Loire]], qui ont été mises en service en 2017, sont équipées de la TVM-300, y permettant ainsi la circulation de toutes ces rames.', 'LGV Bretagne-Pays de la Loire', null];
+        // 145000, « Exploitation » (révision 238408373).
+        yield 'acheminement : TGV vers Bischheim' => ['Elle est également utilisée pour les acheminements de rames [[TGV]] au [[technicentre de Bischheim]].', 'TGV', 'positioning'];
+        // 441000, « Exploitation » (révision 240838961) : la parenthèse qui énumère les séries lit la partie qui l'entoure.
+        $malo = "Le matériel engagé est surtout composé d'automotrices ([[Z 21500|Z TER]], [[Autorail grande capacité|AGC]] électriques, diesels et bimodes-bitension, [[TGV]] Sud-Est, Atlantiques et Duplex, [[X 2100]]) mais on retrouve également des [[BB 25500|BB 25500 + RRR]], quelques [[BB 63500]], [[BB 69400]] et [[BB 60000]] sur les dessertes Fret et Infra, ainsi que des acheminements de matériels bretons engagés sur la ligne Dol-Dinan, et bas et haut-normands vers Rennes pour le reprofilage de leurs essieux ([[X 72500]], [[X 73500]], [[X 4750]]).";
+        yield 'reprofilage : X 73500' => [$malo, 'X 73500', 'positioning'];
+        yield 'reprofilage : pas les BB 60000 du fret' => [$malo, 'BB 60000', null];
+        yield 'reprofilage : pas les X 2100 du service' => [$malo, 'X 2100', null];
+        // 908000, « Trafic et liaisons > Liaisons spéciales » (révision 241124486) : trains détournés par Lyon.
+        $valence = "Par suite de la coupure totale de la ligne, en 2007, 2008, 2009 et 2013, les trains de pèlerinages circulent entièrement en traction électrique, tractés par une [[BB 22200]] transitant par Lyon (raccordement de [[Saint-Fons]]) et [[Vienne (Isère)|Vienne]] (diocèse) jusqu'à [[gare de Toulouse-Matabiau|Toulouse Matabiau]] (rebroussement et changement de machine par une [[BB 9300]] ou [[BB 7200]] apte à circuler sous caténaire 1500 Volts continu).";
+        yield 'coupure : BB 22200' => [$valence, 'BB 22200', 'diverted'];
+        yield 'coupure : BB 7200' => [$valence, 'BB 7200', 'diverted'];
+        // 569000, « Exploitation » (révision 212104765).
+        $orleans = "Les trains n'arrivent plus dans le cul de sac d'Orléans pour changer de locomotive : ce sont les voyageurs qui changent de rame, les rames Corail (remplacés progressivement par des [[Régio2N]]) étant réservées aux relations Paris - Orléans (sauf [[Interloire]]) tandis que les matériels récents ([[Z 21500|Z21500]] et [[Régiolis|Regiolis]]) sont réservés à la ligne Orléans-Tours.";
+        yield 'réservé à une autre ligne : Z 21500' => [$orleans, 'Z 21500', 'restricted'];
+        yield 'réservé à une autre ligne : Régiolis' => [$orleans, 'Régiolis', 'restricted'];
+        yield 'réservé à une autre ligne : pas les Régio2N' => [$orleans, 'Régio2N', null];
+        // 896000, « Matériel roulant > Matériel de déneigement » (révision 240212251).
+        yield 'pièce reprise : moteur de BB 8100' => ['Il est équipé de deux turbines, entourées d’un carter de tôle, entraînées par un moteur de [[BB 8100]].', 'BB 8100', 'component'];
+        // Article « Z 4900 », « Service » (révision 225161840) : les lignes sont citées dans une note.
+        yield 'note : Z 4900' => ['Si ces automotrices circulent sur toutes les lignes électrifiées en {{unité|12|kV}} {{unité|16⅔|Hz}}{{Note|group=N|Le réseau comprend les lignes [[Ligne de Perpignan à Villefranche - Vernet-les-Bains|Perpignan - Villefranche-de-Conflent]], [[Ligne de Toulouse à Bayonne|Montréjeau - Pau]].}}, les {{nobr|14 exemplaires}} devenus {{nobr|Z 4900}} restent cantonnées à la seule ligne [[Perpignan]] - [[Villefranche-de-Conflent|Villefranche]].', 'Ligne de Toulouse à Bayonne', 'footnote'];
+        // Ligne de Nice à Digne (révision 240211690) : les AMP 800 de Provence font partie de la famille AMG 800
+        // (Wikidata Q2819261, alias AMP 800) ; « reprennent les mêmes principes que » n'est pas une comparaison écartée.
+        yield 'famille, pas comparaison : AMG 800' => ['Ces autorails reprennent les mêmes principes que les autorails [[AMG 800]] de la Corse ou de la Tunisie, tout en étant adaptés aux besoins spécifiques du réseau des Chemins de fer de Provence.', 'AMG 800', null];
+    }
+
+    #[DataProvider('doubts')]
+    public function test_doubt_families_on_real_sentences(string $wikitext, string $target, ?string $doubt): void
+    {
+        $links = array_column(WikipediaMaterialSections::links($wikitext), 'doubt', 'target');
+
+        $this->assertArrayHasKey($target, $links);
+        $this->assertSame($doubt, $links[$target]);
+    }
+
+    public function test_a_line_cited_for_the_locomotives_derived_from_the_class_is_not_linked(): void
+    {
+        // Article « 030 T Ouest 3531 à 3602 », « Utilisation et service » (révision 195379106).
+        $wiki = "Elles ont été surnommées ''[[Boër (locomotive)|Boer]]'', du fait que les locomotives [[Ligne de Petite Ceinture|Ceinture]] n° '''21 à 35''' qui en sont dérivées, ont été construites en [[1899 dans les chemins de fer|1899]] pendant la [[guerre des Boers]].";
+
+        $this->assertNotContains('Ligne de Petite Ceinture', array_column(WikipediaMaterialSections::links($wiki), 'target'));
+        $compared = [];
+        foreach (WikipediaMaterialSections::linkedSentences($wiki) as $sentence) {
+            foreach ($sentence['links'] as $link) {
+                $compared[$link['target']] = $link['compared'];
+            }
+        }
+        $this->assertTrue($compared['Ligne de Petite Ceinture'], 'aucune période non plus');
+        $this->assertFalse($compared['Guerre des Boers']);
+    }
+
+    public function test_a_sentence_left_empty_by_its_templates_gives_no_evidence(): void
+    {
+        // 669000, « Exploitation > Matériel roulant » : la phrase entière est dans {{refnec|…}}, la citation valait « . ».
+        $wiki = '{{refnec|Un défaut de conception sur les [[Z 150]], entraînant des déformations de la voie, a forcé le retrait précoce de ces matériels de la circulation}}.';
+
+        $this->assertSame([], WikipediaMaterialSections::links($wiki));
+    }
+
+    public function test_a_template_opening_the_next_sentence_ends_the_quote(): void
+    {
+        // 908000, « Matériel roulant » (révision 241124486) : la phrase suivante, non sourcée, n'est pas citée.
+        $wiki = "* Locomotives diesel [[BB 67300]] de la SNCF du dépôt de Chambéry, toujours en service, au service annuel 2014 sur des trains Saint Marcellin-Grenoble-Gières-Chambéry. {{refnec|Cependant, en raison d'avaries fréquentes de ces machines, assurant des RRR sur cette liaison, ces TER sont supprimés}}";
+
+        $this->assertSame('Locomotives diesel BB 67300 de la SNCF du dépôt de Chambéry, toujours en service, au service annuel 2014 sur des trains Saint Marcellin-Grenoble-Gières-Chambéry.', WikipediaMaterialSections::links($wiki)[0]['quote']);
+    }
+
+    public function test_sections_about_trials_records_or_preservation_cast_doubt(): void
+    {
+        $this->assertSame('section', WikipediaMaterialSections::uncertainSection("Trafic > Trains d'essai"));
+        $this->assertSame('section', WikipediaMaterialSections::uncertainSection('Carrière > Records'));
+        $this->assertSame('section', WikipediaMaterialSections::uncertainSection('Exploitation > Festivités sur la ligne des Alpes'));
+        $this->assertSame('section', WikipediaMaterialSections::uncertainSection('Matériels préservés'));
+        $this->assertNull(WikipediaMaterialSections::uncertainSection('Matériel roulant ayant circulé sur la ligne'));
+    }
+
+    public function test_a_number_without_a_link_never_names_a_series(): void
+    {
+        // Famille « série confondue par un numéro » : seul un lien posé désigne une série.
+        $this->assertSame([], WikipediaMaterialSections::links('La ligne accueille environ 2100 voyageurs par jour, et 73500 par an.'));
     }
 }

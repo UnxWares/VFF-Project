@@ -20,8 +20,18 @@ namespace App\Services\Materials;
  * lien ne peut pas être rangé en « source directe ».
  *
  * Une série citée comme terme de comparaison (« un confort similaire aux autorails X 73500 »,
- * « comparable aux », « à l'image des », « plus confortable que les », « dérivé des »)
- * n'a pas roulé pour autant sur la ligne : ce lien-là n'est pas gardé (voir isCompared()).
+ * « comparable aux », « à l'image des », « plus confortable que les », « dérivé des »), ou un
+ * article cité pour ce qui en dérive (« les locomotives [[Ceinture]] n° 21 à 35 qui en sont
+ * dérivées »), n'a pas roulé pour autant sur la ligne : ce lien-là n'est pas gardé (isCompared()).
+ *
+ * Doute (doubt()) : une phrase qui parle d'une commande, d'un essai, d'une circulation
+ * exceptionnelle, d'une présentation, d'une préservation, d'une simple possibilité, d'un
+ * acheminement vers un atelier, d'un détournement, d'une restriction à une autre portion ou
+ * d'une pièce reprise d'une série ne prouve pas que la série a roulé en service sur la ligne,
+ * sans prouver le contraire : le lien est gardé avec sa famille de doute (`doubt`), et sa
+ * fiabilité tombe à `low` si aucune autre preuve ne le confirme. Un lien posé dans une note
+ * ({{Note|…}}) ou dans un passage marqué sans source ({{Refnec|…}}) est traité de même
+ * (`footnote`) : la phrase citée ne le montre pas.
  */
 final class WikipediaMaterialSections
 {
@@ -34,8 +44,65 @@ final class WikipediaMaterialSections
     /** Longueur maximale d'une phrase citée comme preuve. */
     private const QUOTE_WIDTH = 300;
 
-    /** Futur, conditionnel, projet ou négation de la circulation : pas de lien. */
-    private const DOUBTFUL = '/\b(?:jamais|interdite?s?|incompatibles?|ne\s+(?:peu[tv]ent|pouvai(?:en)?t|pourr\w*)|devr(?:a|ont|ait|aient)|pourr(?:a|ont|ait|aient)|prévue?s?|envisag\w*|projet\w*|à\s+terme|seront|sera)\b/iu';
+    /**
+     * Futur, conditionnel, projet ou négation de la circulation : la phrase ne crée aucun lien.
+     * Alternatives d'expression régulière, reprises par MaterialPeriodExtractor (aucune période non plus).
+     */
+    public const DOUBT_WORDS = 'jamais|interdite?s?|incompatibles?|ne\s+(?:peu[tv]ent|pouvai(?:en)?t|pourr\w*)|devr(?:a|ont|ait|aient)|pourr(?:a|ont|ait|aient)|prévue?s?|envisag\w*|projet\w*|à\s+terme|seront|sera|serai(?:en)?t';
+
+    private const DOUBTFUL = '/\b(?:'.self::DOUBT_WORDS.')\b/iu';
+
+    /**
+     * Familles de doute sur la nature de la circulation, lues dans la partie de phrase qui porte le lien
+     * (doubt()) : le lien est gardé, en fiabilité `low` sans autre preuve. Les mêmes mots écartent la
+     * phrase entière des périodes (MaterialPeriodExtractor, UNCERTAIN_WORDS).
+     *
+     *   - `order` : commande, contrat, acquisition, rames « destinées à » (pas encore livrées) ;
+     *   - `trial` : essais, prototype, record ;
+     *   - `one_off` : circulation exceptionnelle, renfort, train affrété ou spécial, festivités, exposition,
+     *     présentation au public ;
+     *   - `preserved` : musée, préservation, restauration ;
+     *   - `possible` : possibilité étudiée ou considérée, infrastructure qui « permet la circulation ».
+     * S'y ajoute `component` (COMPONENT_BEFORE), propre aux liens.
+     */
+    public const UNCERTAIN = [
+        'order' => 'command(?:e|es|é|ée|és|ées|ait|aient)|contrat|acquisition|destinée?s?\s+(?:à|au|aux)',
+        'trial' => 'essais?|prototypes?|tester|testée?s?|records?',
+        'one_off' => 'exceptionnel(?:le)?s?(?:ment)?|renforts?|affrét\w*|festivit\w+|(?:trains?|circulations?|marches?|voyages?|convois?)\s+spécia(?:l|le|les|ux)|expositions?|exposée?s?|présent(?:é|ée|és|ées|ation|er)',
+        'preserved' => 'au\s+musée|musée\s+(?:du|de\s+la|des)\s+(?:chemin|rail|train|transport)\w*|préserv\w*|conserv(?:é|ée|és|ées)|monument\s+historique|cité\s+du\s+train|en\s+cours\s+de\s+(?:remise\s+en\s+état|restauration)|restaur(?:é|ée|és|ées|ation)',
+        'possible' => 'possibilit\w+|permett\w*\s+(?:ainsi\s+)?(?:la\s+)?circulation|étudi(?:é|ée|és|ées)|consid[èé]r\w*',
+    ];
+
+    /** Toutes les familles de UNCERTAIN en une alternative (filtre des périodes). */
+    public const UNCERTAIN_WORDS = self::UNCERTAIN['order'].'|'.self::UNCERTAIN['trial'].'|'.self::UNCERTAIN['one_off']
+        .'|'.self::UNCERTAIN['preserved'].'|'.self::UNCERTAIN['possible'];
+
+    /**
+     * Familles de doute propres aux liens (contexte de la mention, sans effet sur les dates) :
+     *   - `positioning` : acheminement de rames vers un atelier, reprofilage, atelier « situé le long de » la ligne ;
+     *   - `diverted` : coupure de la ligne, train détourné ou dévié ;
+     *   - `restricted` : matériel « réservé à la ligne » ou « restreint à la portion » d'une autre ligne.
+     */
+    private const CONTEXT = [
+        'positioning' => 'acheminements?\s+(?:de|des|du|d[’\'])\s*(?:rames?|matériels?|engins?|autorails?|locomotives?)|haut[- ]le[- ]pied|reprofilage|située?s?\s+(?:le\s+long|à\s+proximité|en\s+bordure)',
+        'diverted' => 'coupure|détourn\w*|déviée?s?|déviation',
+        'restricted' => 'restreinte?s?\s+à|réservée?s?\s+(?:à|aux)\s+(?:la\s+)?(?:ligne|portion|section)',
+    ];
+
+    /** Pièce reprise d'une série juste avant le lien (« entraînées par un moteur de » + BB 8100). */
+    private const COMPONENT_BEFORE = '/\b(?:moteurs?|bogies?|caisses?|pièces?|organes?|transmissions?|turbines?)\s+(?:\p{L}+\s+)?(?:de|d[’\']|des|du)\s*(?:(?:la|une|un|l[’\'])\s*)?(?:(?:locomotives?|automotrices?|autorails?|séries?)\s+)?$/iu';
+
+    /** Essais, lus dans toute la proposition qui porte la mention (doubt()). */
+    private const TRIAL_CLAUSE = '/\b(?:essais?|records?)\b/iu';
+
+    /** Phrase entière placée sous une coupure de la ligne (« Par suite de la coupure totale de la ligne, les trains… »). */
+    private const DIVERTED_FRAME = '/^(?:par\s+suite|à\s+la\s+suite|lors|pendant|durant)\s+(?:de\s+la|d[’\']une)\s+(?:coupure|fermeture|interruption)\b/iu';
+
+    /** Bornes d'une partie de phrase : ponctuation, fin de phrase, « tandis que », « alors que », « mais ». */
+    private const PART_BREAK = '[,;:]|\.(?=\s*\p{Lu})|\b(?i:tandis|alors)\s+(?i:que)\b|\b(?i:mais)\b';
+
+    /** Titre de section consacrée aux essais, aux records, aux festivités, à l'entretien ou à la préservation. */
+    private const UNCERTAIN_SECTION = '/\b(?:essais?|records?|festivit\w*|entretien|maintenance|préserv\w*|musées?)\b/iu';
 
     /** Phrase qui reprend un sujet antérieur (« Ce train », « Ces rames », « Ils », « Elles ») pour dire par quoi il est remplacé. */
     private const REFERS_BACK_REPLACEMENT = '/^(?:ce|cet|cette|ces|celui|celle|ceux|celles|il|ils|elle|elles)\b(?:-(?:ci|là))?[^.;]*\bremplac(?:é|ée|és|ées)\b[^.;]{0,40}?\bpar\b/iu';
@@ -50,11 +117,22 @@ final class WikipediaMaterialSections
      */
     private const COMPARISON_BEFORE = '/(?:\b(?:similaires?|semblables?|comparables?|identiques?|analogues?|équivalent(?:e|s|es)?|pareil(?:le)?s?|dérivé(?:e|s|es)?|inspiré(?:e|s|es)?)|\bà\s+l[’\']image|\bà\s+l[’\']instar|\bsur\s+le\s+modèle|\b(?:plus|moins)\s+(?!(?:guère|rien|que)\b)(?:\p{L}+\s+){1,2}que)\b[^.;,:()\[\]]{0,50}$/iu';
 
+    /**
+     * Juste après le lien, dans la même partie de phrase : « qui en sont dérivées ». Ce qui est décrit
+     * dérive de la série de l'article (« les locomotives [[Ceinture]] n° 21 à 35 qui en sont dérivées ») :
+     * l'article cité n'est pas un lieu de circulation de la série.
+     */
+    private const DERIVED_AFTER = '/^[^.;,:()]{0,40}?\bqui\s+en\s+(?:sont|est|furent|fut|étaient|était)\s+(?:dérivée?s?|issue?s?|inspirée?s?|tirée?s?)\b/iu';
+
     /** Titre d'une section consacrée à des projets ou à l'avenir. */
     private const DOUBTFUL_SECTION = '/\b(?:prévue?s?|projets?|futur\w*|envisag\w*|perspectives?)\b/iu';
 
-    /** Modèles en ligne dont on garde le texte (dates, unités, nombres, siècles). */
-    private const INLINE_TEMPLATES = ['date', 'date-', 'unité', 'nobr', 'nombre', 'nb', 's', 's-', 'sp', 'siècle', 'x', 'citation', 'japonais', 'formatnum', 'num', 'lang', 'abréviation', 'abr', 'm', 'n°', 'numéro'];
+    /**
+     * Modèles en ligne dont on garde le texte (dates, unités, nombres, siècles, incises). Un lien posé dans
+     * un autre modèle ({{Note|…}}, {{Refnec|…}}) n'est pas dans la phrase lue : c'est une note.
+     */
+    private const INLINE_TEMPLATES = ['date', 'date-', 'unité', 'nobr', 'nombre', 'nb', 's', 's-', 'sp', 'siècle', 'x', 'citation', 'japonais', 'formatnum', 'num', 'lang', 'abréviation', 'abr', 'm', 'n°', 'numéro',
+        'incise', 'pas clair', 'passage à actualiser'];
 
     /**
      * Sections dont le titre correspond au motif, avec leurs sous-sections.
@@ -101,7 +179,10 @@ final class WikipediaMaterialSections
      * Liens internes d'un texte, avec la phrase (ou la ligne de liste ou de tableau) qui les porte.
      * Les liens vers des fichiers, catégories ou autres espaces de noms sont ignorés.
      *
-     * @return list<array{target: string, quote: string, refers_back: bool}>
+     * `doubt` : famille de doute de la mention (doubt(), `footnote` pour un lien posé dans une note), ou
+     * null. Un article cité deux fois dans la même phrase garde sa mention la plus sûre.
+     *
+     * @return list<array{target: string, quote: string, refers_back: bool, doubt: ?string}>
      */
     public static function links(string $text): array
     {
@@ -112,7 +193,8 @@ final class WikipediaMaterialSections
                 continue;
             }
             $quote = self::plain($unit['sentence']);
-            if ($quote === '' || preg_match(self::DOUBTFUL, $quote)) {
+            // Phrase vide une fois les modèles retirés (« . ») : rien à citer.
+            if (! preg_match('/\p{L}/u', $quote) || preg_match(self::DOUBTFUL, $quote)) {
                 continue;
             }
             $refersBack = preg_match(self::REFERS_BACK_REPLACEMENT, $quote) === 1;
@@ -121,21 +203,132 @@ final class WikipediaMaterialSections
                 $room = self::QUOTE_WIDTH - mb_strlen($quote) - 1;
                 $quote = ($room >= 40 ? mb_strimwidth(self::plain($unit['previous']), 0, $room, '…').' ' : '').$quote;
             }
-            foreach ($matches as [[, $offset], [$raw]]) {
-                // Texte qui précède le lien : « un confort similaire aux autorails » + X 73500.
-                if (self::isCompared(self::plain(substr($unit['sentence'], 0, $offset)))) {
+            /** @var array<string, ?string> $doubts mention la plus sûre de chaque article de la phrase */
+            $doubts = [];
+            foreach ($matches as [[$link, $offset], [$raw]]) {
+                $before = substr($unit['sentence'], 0, $offset);
+                $plainBefore = self::plain($before);
+                $plainAfter = self::plain(substr($unit['sentence'], $offset + strlen($link)));
+                // Comparaison ou filiation : « un confort similaire aux autorails » + X 73500.
+                if (self::isCompared($plainBefore, $plainAfter)) {
                     continue;
                 }
                 $target = self::normalizeTitle($raw);
                 // Fichiers, catégories, autres espaces de noms et liens interwikis (« :en:… ») : pas des articles.
-                if ($target !== '' && ! str_starts_with($target, ':')
-                    && ! preg_match('/^(?:fichier|file|image|catégorie|category|modèle|template|portail|projet|aide|wikipédia|wp|wikt|wiktionary|commons|s|d|en|de|it|es|nl)\s*:/iu', $target)) {
-                    $out[] = ['target' => $target, 'quote' => mb_strimwidth($quote, 0, self::QUOTE_WIDTH, '…'), 'refers_back' => $refersBack];
+                if ($target === '' || str_starts_with($target, ':')
+                    || preg_match('/^(?:fichier|file|image|catégorie|category|modèle|template|portail|projet|aide|wikipédia|wp|wikt|wiktionary|commons|s|d|en|de|it|es|nl)\s*:/iu', $target)) {
+                    continue;
                 }
+                $doubt = self::inNote($before) ?? self::doubt($plainBefore, self::plain($link), $plainAfter);
+                if (! array_key_exists($target, $doubts) || $doubts[$target] !== null) {
+                    $doubts[$target] = $doubt;
+                }
+            }
+            foreach ($doubts as $target => $doubt) {
+                $out[] = ['target' => (string) $target, 'quote' => mb_strimwidth($quote, 0, self::QUOTE_WIDTH, '…'), 'refers_back' => $refersBack, 'doubt' => $doubt];
             }
         }
 
         return $out;
+    }
+
+    /**
+     * Famille de doute d'une mention (voir UNCERTAIN et CONTEXT), lue dans la partie de phrase qui la
+     * porte (part()), ou null : la phrase ne dit rien qui mette en doute la circulation.
+     *
+     * @param  string  $before  texte en clair avant la mention
+     * @param  string  $label  texte de la mention
+     * @param  string  $after  texte en clair après la mention
+     */
+    public static function doubt(string $before, string $label, string $after): ?string
+    {
+        if (preg_match(self::DIVERTED_FRAME, ltrim($before.$label.$after)) === 1) {
+            return 'diverted';
+        }
+        if (preg_match(self::COMPONENT_BEFORE, $before) === 1) {
+            return 'component';
+        }
+        [$partBefore, $partAfter] = self::part($before, $after);
+        $part = $partBefore.' '.$label.' '.$partAfter;
+        foreach ([...self::UNCERTAIN, ...self::CONTEXT] as $family => $words) {
+            if (preg_match('/\b(?:'.$words.')\b/iu', $part) === 1) {
+                return $family;
+            }
+        }
+        // Des essais disent ce que fait toute la proposition, au-delà des virgules (« Autorail X 2101 (de la
+        // série X 2100) avec deux remorques XR 6000, venu en essais sur Grenoble - Montmélian »).
+        $clause = '/;|\.(?=\s*\p{Lu})|\b(?i:tandis|alors)\s+(?i:que)\b|\b(?i:mais|puis)\b/u';
+        $wholeClause = (string) array_last(preg_split($clause, $before) ?: ['']).' '.$label.' '.(string) array_first(preg_split($clause, $after) ?: ['']);
+        if (preg_match(self::TRIAL_CLAUSE, $wholeClause) === 1) {
+            return 'trial';
+        }
+
+        return null;
+    }
+
+    /**
+     * Section dont le titre met en doute la circulation de tout ce qu'elle cite (« Trains d'essai »,
+     * « Records », « Festivités sur la ligne », « Entretien », « Matériels préservés ») : `section`, ou null.
+     */
+    public static function uncertainSection(string $title): ?string
+    {
+        return preg_match(self::UNCERTAIN_SECTION, $title) === 1 ? 'section' : null;
+    }
+
+    /**
+     * Partie de phrase qui porte la mention : entre deux virgules, points-virgules, deux-points ou
+     * parenthèses, sans dépasser « tandis que », « alors que » ni « mais ». S'y ajoutent la parenthèse qui
+     * suit aussitôt la mention (« X 73500 (en remplacement exceptionnel d'X 72500) ») et, pour une
+     * mention entre parenthèses, la partie qui entoure la parenthèse (« les matériels récents (Z 21500 et
+     * Régiolis) sont réservés à la ligne Orléans-Tours »).
+     *
+     * @return array{0: string, 1: string} texte retenu avant et après la mention
+     */
+    private static function part(string $before, string $after): array
+    {
+        $last = fn (string $text, string $pattern): string => (string) array_last(preg_split($pattern, $text) ?: ['']);
+        $first = fn (string $text, string $pattern): string => (string) array_first(preg_split($pattern, $text) ?: ['']);
+        $break = '/'.self::PART_BREAK.'/u';
+        $inner = '/'.self::PART_BREAK.'|[()]/u';
+        $ownBefore = $last($before, $inner);
+        $ownAfter = $first($after, $inner);
+        $extra = '';
+        if (trim($ownAfter) === '' && preg_match('/^\s*\(([^()]*)\)/u', substr($after, strlen($ownAfter)), $m)) {
+            $extra .= ' '.$m[1];
+        }
+        if (substr_count($before, '(') > substr_count($before, ')')) {
+            $open = (int) strrpos($before, '(');
+            $close = strpos($after, ')');
+            $outerBefore = (string) preg_replace('/\([^()]*\)/u', ' ', substr($before, 0, $open));
+            $outerAfter = $close === false ? '' : (string) preg_replace('/\([^()]*\)/u', ' ', substr($after, $close + 1));
+            $extra .= ' '.$last($outerBefore, $break).' '.$first($outerAfter, $break);
+        }
+
+        return [$ownBefore, $ownAfter.$extra];
+    }
+
+    /**
+     * Le wikitexte qui précède un lien ouvre-t-il un modèle dont le texte n'est pas lu dans la phrase ? Une
+     * note ({{Note|…}}), un passage marqué sans source ({{Refnec|…}}) : `footnote` ; sinon null.
+     */
+    private static function inNote(string $wikitextBefore): ?string
+    {
+        $open = [];
+        preg_match_all('/\{\{\s*([^|{}]*)|\}\}/u', $wikitextBefore, $tokens, PREG_SET_ORDER);
+        foreach ($tokens as $token) {
+            if (str_starts_with($token[0], '{{')) {
+                $open[] = mb_strtolower(trim($token[1]));
+            } else {
+                array_pop($open);
+            }
+        }
+        foreach ($open as $name) {
+            if ($name !== 'lien' && ! in_array($name, self::INLINE_TEMPLATES, true)) {
+                return 'footnote';
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -179,7 +372,8 @@ final class WikipediaMaterialSections
             if (preg_match_all('/\x{E000}(\d+)\x{E001}([^\x{E000}-\x{E002}]*)\x{E002}/u', $plain, $all, PREG_OFFSET_CAPTURE | PREG_SET_ORDER)) {
                 foreach ($all as $m) {
                     $clean .= $orphans(substr($plain, $offset, $m[0][1] - $offset));
-                    $links[] = ['target' => $targets[(int) $m[1][0]], 'pos' => mb_strlen($clean), 'length' => mb_strlen($m[2][0]), 'compared' => self::isCompared($clean)];
+                    $after = $orphans(substr($plain, $m[0][1] + strlen($m[0][0])));
+                    $links[] = ['target' => $targets[(int) $m[1][0]], 'pos' => mb_strlen($clean), 'length' => mb_strlen($m[2][0]), 'compared' => self::isCompared($clean, $after)];
                     $clean .= $m[2][0];
                     $offset = $m[0][1] + strlen($m[0][0]);
                 }
@@ -194,13 +388,14 @@ final class WikipediaMaterialSections
     }
 
     /**
-     * Le lien qui suit ce texte (en clair) est-il le terme d'une comparaison ? « Ce nouveau matériel
+     * Le lien entre ces deux textes (en clair) est-il le terme d'une comparaison ? « Ce nouveau matériel
      * offre un confort similaire aux autorails » + X 73500 : oui. « …de nouveaux matériels comme les
-     * ATER » + X 73500 : non.
+     * ATER » + X 73500 : non. Ou l'article est-il cité pour ce qui en dérive ? « les locomotives » +
+     * Ceinture + « n° 21 à 35 qui en sont dérivées » : oui.
      */
-    public static function isCompared(string $plainBefore): bool
+    public static function isCompared(string $plainBefore, string $plainAfter = ''): bool
     {
-        return preg_match(self::COMPARISON_BEFORE, $plainBefore) === 1;
+        return preg_match(self::COMPARISON_BEFORE, $plainBefore) === 1 || preg_match(self::DERIVED_AFTER, $plainAfter) === 1;
     }
 
     /** Titre d'article normalisé comme MediaWiki : espaces, première lettre en capitale. */
@@ -235,9 +430,10 @@ final class WikipediaMaterialSections
     {
         $out = [];
         foreach (preg_split('/\n+/u', $text) ?: [] as $line) {
-            // Fin de phrase : point suivi d'un espace et d'une capitale, hors des liens.
+            // Fin de phrase : point suivi d'un espace et d'une capitale (ou d'un modèle qui ouvre la phrase
+            // suivante, « … Chambéry. {{refnec|Cependant… »), hors des liens.
             $previous = null;
-            foreach (preg_split('/(?<=[.!?])\s+(?=[A-ZÉÈÀÂÎÔÛÇ«])(?![^\[]*\]\])/u', $line) ?: [] as $sentence) {
+            foreach (preg_split('/(?<=[.!?])\s+(?=[A-ZÉÈÀÂÎÔÛÇ«]|\{\{)(?![^\[]*\]\])/u', $line) ?: [] as $sentence) {
                 if (trim($sentence) !== '') {
                     $out[] = ['sentence' => $sentence, 'previous' => $previous];
                     $previous = $sentence;

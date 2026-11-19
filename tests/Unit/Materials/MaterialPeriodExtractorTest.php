@@ -166,7 +166,17 @@ class MaterialPeriodExtractorTest extends TestCase
             'date à venir' => ['Les [[Z 50000]] circulent sur la ligne à partir de 2030.'],
             'possibilité étudiée' => ['Dès octobre 1933, la compagnie considère la possibilité d\'exploiter la ligne avec des [[X 2400]].'],
             'début après la fin' => ['Des [[X 2400]] (de 1990 à 1980).'],
+            // Mêmes familles que le doute des liens (WikipediaMaterialSections::UNCERTAIN_WORDS).
+            'préservation' => ['La [[X 2400]] 2419 est préservée depuis 1990 par une association de la ligne.'],
+            'essai d\'un prototype' => ['Le prototype des [[X 72500]] effectue ses essais sur la ligne à partir de 1996.'],
         ];
+    }
+
+    public function test_a_line_only_allowed_to_the_class_gets_no_period(): void
+    {
+        // Article « TGV Atlantique », « Service » (révision 240399439) : 2017 est l'ouverture des LGV, la phrase
+        // dit qu'elles « permettent » la circulation des rames, pas qu'elles y roulent depuis.
+        $this->assertSame([], $this->materialFacts('Les [[Ligne de Paris-Montparnasse à Brest|LGV Sud Europe Atlantique]] et [[Ligne de Paris-Austerlitz à Bordeaux-Saint-Jean|Bretagne-Pays de la Loire]], qui ont été mises en service en 2017, sont équipées de la TVM-300, y permettant ainsi la circulation de toutes ces rames.'));
     }
 
     #[DataProvider('nothingToRead')]

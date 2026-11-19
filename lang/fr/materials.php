@@ -154,7 +154,7 @@ return [
         ],
         'low' => [
             'label' => 'À confirmer',
-            'text' => 'L’article décrit plusieurs lignes à la fois : la série n’a peut-être circulé que sur l’une d’elles.',
+            'text' => 'L’article décrit plusieurs lignes à la fois, ou la phrase citée parle d’une commande, d’un essai, d’une circulation exceptionnelle ou d’un matériel préservé : la série n’a peut-être pas roulé en service sur cette ligne.',
         ],
     ],
     'types' => [

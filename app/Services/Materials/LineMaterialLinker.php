@@ -23,7 +23,11 @@ use Illuminate\Support\Facades\DB;
  * pour les autres sections et pour une phrase qui parle du remplacement d'un autre matériel
  * (« Ce train a été remplacé par le TGV » : la série citée n'est pas le sujet de la phrase),
  * `low` quand l'article décrit plusieurs lignes de VFF à la fois (le matériel n'a peut-être
- * parcouru que l'une d'elles).
+ * parcouru que l'une d'elles) ou quand la preuve porte un doute (`doubt` : commande, essai,
+ * circulation exceptionnelle, présentation, préservation, possibilité, acheminement vers un
+ * atelier, détournement, restriction à une autre portion, pièce reprise, note de bas de page,
+ * section d'essais ou de records ; voir WikipediaMaterialSections::doubt()). La preuve la plus
+ * forte décide : une seule preuve sans doute suffit à garder `high` ou `medium`.
  *
  * Écartement : un lien qui rattache une série à une ligne d'un autre écartement (autorail à voie
  * normale sur une ligne métrique) est écarté, sauf source explicite (MaterialGaugeRule) ; les liens
@@ -222,11 +226,12 @@ final class LineMaterialLinker
 
     /**
      * Force d'une preuve : 3 Wikidata ou section « Matériel » d'un article de ligne, 2 autre section
-     * (ou phrase qui reprend un autre matériel pour dire qu'il est remplacé), 1 article partagé.
+     * (ou phrase qui reprend un autre matériel pour dire qu'il est remplacé), 1 article partagé ou
+     * preuve qui porte un doute (`doubt`).
      */
     private static function rank(array $evidence): int
     {
-        if (($evidence['shared_article'] ?? false) === true) {
+        if (($evidence['shared_article'] ?? false) === true || is_string($evidence['doubt'] ?? null)) {
             return 1;
         }
 
@@ -364,8 +369,11 @@ final class LineMaterialLinker
     }
 
     /**
+     * Preuve tirée d'une phrase. `doubt` : famille de doute de la mention, sinon celle du titre de section
+     * (« Trains d'essai », « Records »…), omise quand rien ne met la circulation en doute.
+     *
      * @param  array{title: string, revid: int}  $page
-     * @param  array{target: string, quote: string, refers_back: bool}  $link
+     * @param  array{target: string, quote: string, refers_back: bool, doubt?: ?string}  $link
      * @return array<string, mixed>
      */
     private static function wikipediaEvidence(string $kind, array $page, string $section, array $link, bool $shared): array
@@ -379,6 +387,7 @@ final class LineMaterialLinker
             'url' => 'https://fr.wikipedia.org/w/index.php?title='.rawurlencode(str_replace(' ', '_', $page['title'])).'&oldid='.$page['revid'],
             'shared_article' => $shared ?: null,
             'refers_back' => $link['refers_back'] ?: null,
+            'doubt' => $link['doubt'] ?? WikipediaMaterialSections::uncertainSection($section),
         ], fn ($v): bool => $v !== null);
     }
 }

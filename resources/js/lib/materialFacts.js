@@ -68,7 +68,7 @@ export function buildersText(names, fallback, t) {
 /**
  * Fiabilité d'un lien ligne × série, dite en clair (clés `materials.confidence.*`).
  * `high` : Wikidata ou partie « matériel » de l'article de la ligne ; `medium` : autre section ;
- * `low` : article commun à plusieurs lignes de VFF.
+ * `low` : article commun à plusieurs lignes de VFF, ou preuves qui portent toutes un doute (commande, essai…).
  *
  * @param {string|null|undefined} confidence high | medium | low
  * @param {string|null|undefined} kind nature de la preuve (wikidata, wikipedia_line_article…)
