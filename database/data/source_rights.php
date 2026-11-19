@@ -177,9 +177,6 @@ return [
             'preuve' => [
                 'http://archeoferroviaire.free.fr/v31/spip.php?page=rubrique&id_rubrique=3',
                 'https://macarte.ign.fr/cgu',
-                'https://www.data.gouv.fr/datasets/rge-alti-r',
-                'https://www.data.gouv.fr/dataservices/api-geoplateforme-calcul-altimetrique',
-                'https://cartes.gouv.fr/aide/fr/guides-utilisateur/utiliser-les-services-de-la-geoplateforme/calcul-altimetrique/',
             ],
             'citation' => 'Aucune reproduction, même partielle, en dehors de celles prévues à l\'article L 122-5 du code de la propriété intellectuelle, ne peut être faite de ce site sans l\'autorisation expresse de l\'auteur. [...] Toute diffusion ou utilisation à des fins commerciales ou publicitaires est exclue.',
             'obligations' => 'Crédit nominatif et lien vers l\'article d\'origine. Usage non commercial uniquement (mentions légales du site) : '

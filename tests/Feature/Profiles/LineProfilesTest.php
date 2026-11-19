@@ -5,6 +5,7 @@ namespace Tests\Feature\Profiles;
 use App\Models\LineProfile;
 use App\Services\Profiles\GeoplateformeClient;
 use App\Services\Profiles\LineProfileBuilder;
+use App\Services\Profiles\LineProfiles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
@@ -99,6 +100,47 @@ class LineProfilesTest extends TestCase
         $this->assertFileExists($this->cacheDir.'/.nobackup');
     }
 
+    public function test_a_trace_drawn_from_the_high_pk_end_is_still_read_from_the_lowest_pk(): void
+    {
+        // Tracé numérisé depuis Versailles (PK 17+250) et gares rangées dans l'ordre du tracé :
+        // la première gare (position 1) a le plus grand PK.
+        DB::table('line_segments')->where('line_id', $this->line->id)->update(['geom' => DB::raw('ST_Reverse(geom)')]);
+        DB::table('line_stops')->where('line_id', $this->line->id)->where('station_id', $this->origin->id)->update(['position' => 3]);
+        DB::table('line_stops')->where('line_id', $this->line->id)->where('station_id', $this->destination->id)->update(['position' => 1]);
+        DB::table('line_stops')->where('line_id', $this->line->id)->where('station_id', $this->origin->id)->update(['position' => 2]);
+        $this->fakeIgn();
+
+        $this->artisan('vff:compute-line-profiles', ['--line' => [$this->line->slug]])->assertSuccessful();
+
+        $profile = LineProfile::where('line_id', $this->line->id)->firstOrFail();
+        $this->assertSame(['paris-saint-lazare', 'versailles-rive-droite'], array_column($profile->stations, 'slug'));
+        $this->assertLessThan(50, $profile->stations[0]['distance_m']);
+        $this->assertEquals(30, $profile->points[0][1]);
+        $this->assertEquals(120, $profile->points[count($profile->points) - 1][1]);
+        // De Paris (30 m) vers Versailles (120 m) : la déclivité la plus forte est une rampe.
+        $this->assertSame('up', $profile->max_grade_direction);
+    }
+
+    public function test_a_profile_that_can_no_longer_be_computed_is_removed(): void
+    {
+        $this->fakeIgn();
+        $this->artisan('vff:compute-line-profiles', ['--line' => [$this->line->slug]])->assertSuccessful();
+        $this->assertSame(1, LineProfile::count());
+
+        // Tracé retiré de toutes les ères : l'ancien profil ne doit plus être servi.
+        DB::table('line_segments')->where('line_id', $this->line->id)->delete();
+        $this->artisan('vff:compute-line-profiles', ['--line' => [$this->line->slug], '--force' => true])
+            ->expectsOutputToContain('ancien profil supprimé')
+            ->assertSuccessful();
+        $this->assertSame(0, LineProfile::count());
+        $this->getJson("/api/v1/lines/{$this->line->slug}/profile")->assertNotFound();
+
+        // Sans profil enregistré, rien à signaler.
+        $this->artisan('vff:compute-line-profiles', ['--line' => [$this->line->slug]])
+            ->doesntExpectOutputToContain('ancien profil supprimé')
+            ->assertSuccessful();
+    }
+
     public function test_second_run_reads_the_disk_cache_and_dry_run_calls_nothing(): void
     {
         $this->fakeIgn();
@@ -166,7 +208,7 @@ class LineProfilesTest extends TestCase
         $this->assertGreaterThan(100, count($response->json('points')));
 
         $small = $this->getJson($url.'?max_points=20')->assertOk()->json('points');
-        $this->assertLessThanOrEqual(26, count($small));
+        $this->assertLessThanOrEqual(20, count($small));
         $this->getJson($url.'?max_points=3')->assertUnprocessable()->assertJsonValidationErrors('max_points');
         $this->getJson('/api/v1/lines/rfn-999999/profile')->assertNotFound();
     }
@@ -182,7 +224,7 @@ class LineProfilesTest extends TestCase
         $data = $this->postJson('/graphql', $query)->assertOk()->json('data.line.profile');
         $this->assertSame(2030, $data['era_year']);
         $this->assertSame(120.0, (float) $data['summary']['max_altitude_m']);
-        $this->assertLessThanOrEqual(16, count($data['points']));
+        $this->assertLessThanOrEqual(10, count($data['points']));
         $this->assertSame(0, $data['points'][0]['distance_m']);
         $this->assertSame('ign', $data['provenance']['provider']);
 
@@ -222,5 +264,18 @@ class LineProfilesTest extends TestCase
                 ->where('profile.summary.max_altitude_m', 120)
                 ->has('profile.stations', 2)
                 ->where('profile.provenance.provider', 'ign'));
+
+        // Profil d'une longue ligne (2 500 points) : la fiche en reçoit 600 au plus, l'API tous.
+        $points = [];
+        for ($i = 0; $i < 2500; $i++) {
+            $points[] = [$i * 250, 100.0 + ($i % 50)];
+        }
+        LineProfile::where('line_id', $this->line->id)->update(['points' => json_encode($points), 'length_m' => 624_750]);
+        $sheet = $this->get('/lines/'.$this->line->slug)->assertOk()->viewData('page')['props']['profile'];
+        $this->assertLessThanOrEqual(LineProfiles::SHEET_MAX_POINTS, count($sheet['points']));
+        $this->assertGreaterThan(500, count($sheet['points']));
+        $this->assertEquals([0, 100], $sheet['points'][0]);
+        $this->assertEquals([624_750, 149], $sheet['points'][count($sheet['points']) - 1]);
+        $this->assertCount(2500, $this->getJson("/api/v1/lines/{$this->line->slug}/profile")->json('points'));
     }
 }

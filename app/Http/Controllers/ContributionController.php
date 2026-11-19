@@ -7,7 +7,6 @@ use App\Enums\ContributionAction;
 use App\Enums\ContributionStatus;
 use App\Enums\SegmentStatus;
 use App\Enums\TrafficType;
-use App\Enums\UserRole;
 use App\Models\Contribution;
 use App\Models\Era;
 use App\Models\Line;
@@ -490,11 +489,6 @@ class ContributionController extends Controller
 
     private function isValidator(): bool
     {
-        $user = Auth::user();
-
-        return $user && in_array($user->role->value ?? null, [
-            UserRole::Validator->value,
-            UserRole::Admin->value,
-        ], true);
+        return Auth::user()?->isReviewer() ?? false;
     }
 }

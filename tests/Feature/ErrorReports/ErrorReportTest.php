@@ -16,7 +16,9 @@ use App\Services\Account\AccountDataExport;
 use App\Services\Account\AccountDeletion;
 use App\Services\ErrorReports\ErrorReportFormToken;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\ActsAsRoles;
@@ -76,10 +78,17 @@ class ErrorReportTest extends TestCase
     public function test_a_visitor_can_report_an_error(): void
     {
         $validator = $this->member('validator');
+        $payload = $this->payload();
+        // La fiche visée est cherchée une seule fois (validation), puis reprise par le contrôleur.
+        $lookups = 0;
+        DB::listen(function (QueryExecuted $q) use (&$lookups): void {
+            $lookups += preg_match('/from "lines" where "slug"/', $q->sql);
+        });
 
-        $this->from('/lines/paris-le-havre')->post('/reports', $this->payload())
+        $this->from('/lines/paris-le-havre')->post('/reports', $payload)
             ->assertRedirect('/lines/paris-le-havre')
             ->assertSessionHasNoErrors();
+        $this->assertSame(1, $lookups);
 
         $report = ErrorReport::sole();
         $this->assertSame('line', $report->subject_type->value);
@@ -93,7 +102,7 @@ class ErrorReportTest extends TestCase
         // Notification sur le site, sans le texte ni l'adresse de la personne.
         $notification = $validator->notifications()->sole();
         $this->assertSame(NotificationKind::ErrorReported->value, $notification->data['kind']);
-        $this->assertSame("/validate/reports#report-{$report->id}", $notification->data['url']);
+        $this->assertSame("/validate/reports/{$report->id}", $notification->data['url']);
         $this->assertStringContainsString('Paris - Le Havre (340000)', $notification->data['body']);
         $this->assertStringNotContainsString('lecteur@exemple.fr', json_encode($notification->data));
         $this->assertStringNotContainsString('1967', json_encode($notification->data));
@@ -234,6 +243,31 @@ class ErrorReportTest extends TestCase
                 ->where('status', 'resolved')
                 ->has('reports.data', 1)
                 ->where('reports.data.0.resolution_note', 'Corrigé.'));
+    }
+
+    public function test_the_notification_link_opens_the_tab_and_page_that_show_the_report(): void
+    {
+        $validator = $this->member('validator');
+        // 25 signalements ouverts, du plus ancien au plus récent : le 22e est sur la page 2.
+        $open = [];
+        for ($i = 0; $i < 25; $i++) {
+            $open[] = $this->report(['created_at' => now()->subDays(30 - $i)]);
+        }
+        $this->actingAs($validator)->get("/validate/reports/{$open[0]->id}")
+            ->assertRedirect("/validate/reports#report-{$open[0]->id}");
+        $this->actingAs($validator)->get("/validate/reports/{$open[21]->id}")
+            ->assertRedirect("/validate/reports?page=2#report-{$open[21]->id}");
+        $this->actingAs($validator)->get('/validate/reports?page=2')
+            ->assertInertia(fn (Assert $page) => $page->where('reports.data.1.id', $open[21]->id));
+
+        // Traité depuis la notification : l'onglet « Traités », où il est le plus récent.
+        $this->report(['status' => 'resolved', 'handled_at' => now()->subDay(), 'resolution_note' => 'Corrigé.']);
+        $open[21]->update(['status' => 'resolved', 'handled_at' => now(), 'resolution_note' => 'Corrigé.']);
+        $this->actingAs($validator)->get("/validate/reports/{$open[21]->id}")
+            ->assertRedirect("/validate/reports?status=resolved#report-{$open[21]->id}");
+
+        $this->actingAs($this->member('contributor'))->get("/validate/reports/{$open[0]->id}")->assertForbidden();
+        $this->actingAs($validator)->get('/validate/reports/999999')->assertNotFound();
     }
 
     public function test_the_sheet_link_follows_a_renamed_slug(): void

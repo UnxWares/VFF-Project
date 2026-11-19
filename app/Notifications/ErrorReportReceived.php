@@ -37,7 +37,9 @@ class ErrorReportReceived extends Notification
             'title' => __('reports.notification.title', ['id' => $this->reportId]),
             'body' => __('reports.notification.body', ['subject' => $this->subjectLabel]),
             'reason' => null,
-            'url' => route('validate.reports.index', absolute: false).'#report-'.$this->reportId,
+            // Adresse résolue à l'ouverture (ErrorReportReviewController::show) : onglet et page où
+            // le signalement figure ce jour-là, même s'il a été traité entre-temps.
+            'url' => route('validate.reports.show', $this->reportId, absolute: false),
         ];
     }
 }

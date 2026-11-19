@@ -56,6 +56,37 @@ class SourceRightsTest extends TestCase
         }
     }
 
+    /**
+     * Une preuve lue chez un fournisseur (ses domaines) ne se range pas dans l'entrée d'un autre :
+     * les liens du RGE ALTI s'étaient glissés dans l'entrée d'une source tous droits réservés.
+     * Exception explicite : les CGU de « Ma carte » (IGN), qui établissent qu'une carte tracée sur ce
+     * service appartient à son auteur, servent de preuve à l'entrée de cet auteur ; la page de Commons
+     * sur le droit d'auteur en France fonde le droit de courte citation des sites tiers. Les portails qui
+     * publient les jeux de plusieurs producteurs (transport.data.gouv.fr) ne désignent personne.
+     */
+    public function test_a_proof_link_belongs_to_the_provider_that_owns_its_domain(): void
+    {
+        $rights = self::rights();
+        $allowed = [
+            'archeoferroviaire' => ['https://macarte.ign.fr/cgu'],
+            'tiers-cites' => ['https://commons.wikimedia.org/wiki/Commons:Copyright_rules_by_territory/France/fr'],
+        ];
+        $portals = ['transport.data.gouv.fr'];
+        foreach (self::registry()['providers'] as $key => $p) {
+            foreach ($p['preuve'] as $url) {
+                $owner = $rights->providerForUrl($url);
+                if (in_array(parse_url($url, PHP_URL_HOST), $portals, true)) {
+                    continue;
+                }
+                if ($owner === null || $owner === $key || in_array($url, $allowed[$key] ?? [], true)) {
+                    continue;
+                }
+                $this->fail("{$key} : preuve {$url} rangée chez le mauvais fournisseur (domaine de {$owner})");
+            }
+        }
+        $this->addToAssertionCount(1);
+    }
+
     public function test_an_oral_agreement_is_never_safe(): void
     {
         $registry = self::fixture();

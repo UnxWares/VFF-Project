@@ -5,9 +5,11 @@ namespace App\Http\Requests;
 use App\Enums\ErrorReportSubject;
 use App\Services\ErrorReports\ErrorReportFormToken;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
+use LogicException;
 
 /**
  * Signalement d'une erreur sur une fiche, ouvert aux visiteurs comme aux membres.
@@ -22,6 +24,9 @@ class StoreErrorReportRequest extends FormRequest
     public const DESCRIPTION_MIN = 10;
 
     public const DESCRIPTION_MAX = 2000;
+
+    /** Fiche visée, trouvée une seule fois pendant la validation (after()). */
+    private ?Model $subjectModel = null;
 
     public function authorize(): bool
     {
@@ -69,12 +74,26 @@ class StoreErrorReportRequest extends FormRequest
 
                     return;
                 }
-                $subject = ErrorReportSubject::from((string) $this->input('subject_type'));
-                if ($subject->find((string) $this->input('subject_slug')) === null) {
+                $this->subjectModel = $this->subjectType()->find((string) $this->input('subject_slug'));
+                if ($this->subjectModel === null) {
                     $validator->errors()->add('form', __('reports.errors.subject_missing'));
                 }
             },
         ];
+    }
+
+    public function subjectType(): ErrorReportSubject
+    {
+        return ErrorReportSubject::from((string) $this->input('subject_type'));
+    }
+
+    /**
+     * Fiche visée par le signalement, déjà trouvée par la validation : après une validation
+     * réussie, elle existe toujours (sinon l'erreur `subject_missing` aurait été renvoyée).
+     */
+    public function subject(): Model
+    {
+        return $this->subjectModel ?? throw new LogicException('Fiche visée lue avant la validation.');
     }
 
     /** Champ piège rempli : envoi d'un robot, accepté en apparence et jamais enregistré. */

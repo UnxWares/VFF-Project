@@ -17,6 +17,9 @@ use Throwable;
  *   php artisan vff:compute-line-profiles --limit=20            # lignes sans profil, les plus longues d'abord
  *   php artisan vff:compute-line-profiles --line=rfn-5000 --dry-run   # parcours et nombre de points, sans appel
  *
+ * Une ligne déjà calculée (avec --force ou --line) dont le profil ne peut plus l'être (tracé
+ * retiré, aucune altitude) perd son ancien profil, et la sortie le signale.
+ *
  * Coût : une requête d'altitude pour 2 000 points, une requête WFS par tranche de 10 km. Une
  * ligne de 600 km : 2 requêtes d'altitude et une soixantaine de requêtes WFS, environ une minute.
  */
@@ -53,9 +56,11 @@ class ComputeLineProfiles extends Command
 
                     continue;
                 }
+                $had = LineProfile::query()->where('line_id', $line->id)->exists();
                 $profile = $builder->compute($line);
                 if ($profile === null) {
-                    $this->warn("{$label} : aucun tracé ou aucune altitude, profil non calculé");
+                    $this->warn("{$label} : aucun tracé ou aucune altitude, profil non calculé"
+                        .($had ? ', ancien profil supprimé (il ne correspondait plus au tracé)' : ''));
 
                     continue;
                 }
