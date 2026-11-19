@@ -300,13 +300,36 @@ final class EventText
         return (string) preg_replace_callback('/« (.+?) »/u', fn (array $q) => self::t('quote.quoted', ['text' => $q[1]], $locale), $names);
     }
 
-    /** Date ISO (AAAA-MM-JJ) à sa précision : « 1875 », « avril 1875 », « 1er avril 1875 », « 1 April 1875 », « 1. April 1875 ». */
-    public static function isoDate(string $iso, string $precision, string $locale): string
+    /**
+     * Date ISO (AAAA-MM-JJ) à sa précision, sans jamais écrire un jour ni un mois qu'aucune source ne
+     * donne : `day` « 1er avril 1875 », « 1 April 1875 », « 1. April 1875 » ; `month` « avril 1875 » ;
+     * `decade` « années 1950 » ; `before` « avant 1960 » ; `after` « après 1960 » ; `range`, date
+     * encadrée (fermeture d'une gare, StationTimeline::RANGE) : « entre 1980 et 1989 » avec la borne
+     * basse `$after` (fermée après cette année), « au plus tard en 1989 » sans elle, et « date
+     * inconnue » quand la borne haute n'est que l'année du calcul `$currentYear` (même règle que
+     * ServiceEnd). `year` ou toute autre précision : l'année seule.
+     */
+    public static function isoDate(string $iso, ?string $precision, string $locale, ?int $after = null, ?int $currentYear = null): string
     {
-        if (! preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $iso, $m) || $precision === 'year' || (int) $m[2] === 0) {
+        if (! preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $iso, $m)) {
             return substr($iso, 0, 4);
         }
-        $month = Carbon::create((int) $m[1], (int) $m[2], 1)->locale($locale)->translatedFormat('F');
+        $year = (int) $m[1];
+        $bounded = match ($precision) {
+            'decade' => (string) trans('stations.dates.decade', ['decade' => match ($locale) {
+                'en' => $year.'s',
+                'de' => $year.'er-Jahre',
+                default => (string) $year,
+            }], $locale),
+            'before', 'after' => (string) trans('stations.dates.'.$precision, ['year' => $year], $locale),
+            'range' => self::rangeDate($year, $after, $currentYear, $locale),
+            'day', 'month' => null,
+            default => (string) $year,
+        };
+        if ($bounded !== null || (int) $m[2] === 0) {
+            return $bounded ?? (string) $year;
+        }
+        $month = Carbon::create($year, (int) $m[2], 1)->locale($locale)->translatedFormat('F');
         if ($precision === 'month' || (int) $m[3] === 0) {
             return $month.' '.$m[1];
         }
@@ -317,6 +340,23 @@ final class EventText
             'de' => $day.'. '.$month.' '.$m[1],
             default => $day.' '.$month.' '.$m[1],
         };
+    }
+
+    /** Date encadrée (précision `range`) : voir isoDate(). */
+    private static function rangeDate(int $year, ?int $after, ?int $currentYear, string $locale): string
+    {
+        if ($currentYear !== null && $year >= $currentYear) {
+            return $after !== null
+                ? (string) trans('mcp.dates.unknown_after', ['year' => $after], $locale)
+                : (string) trans('mcp.dates.unknown', [], $locale);
+        }
+        if ($after === null) {
+            return (string) trans('stations.dates.range_upper', ['year' => $year], $locale);
+        }
+
+        return $after + 1 < $year
+            ? (string) trans('stations.dates.range', ['from' => $after + 1, 'to' => $year], $locale)
+            : (string) $year;
     }
 
     /** Entier avec séparateur des milliers de la langue (« 1 435 », « 1,435 », « 1.435 »). */

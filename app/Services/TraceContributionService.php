@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Enums\LineEventType;
 use App\Models\Contribution;
 use App\Models\Line;
+use App\Services\Contributions\ContributionNotPublishable;
+use App\Services\Contributions\PublicationFailure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -228,7 +230,7 @@ class TraceContributionService
             }
             if (! $line) {
                 if (($p['kind'] ?? null) === 'correction') {
-                    throw new \RuntimeException(__('messages.line_not_found', ['id' => $p['line_id']]));
+                    throw new ContributionNotPublishable(PublicationFailure::LineNotFound, __('messages.line_not_found', ['id' => $p['line_id']]));
                 }
                 $line = $this->createLine($contribution, $p);
                 $created = true;

@@ -19,7 +19,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Title("Point kilométrique d'un lieu sur une ligne")]
 #[Description(<<<'TXT'
 Convertit des coordonnées (latitude, longitude WGS 84 en degrés décimaux) en point kilométrique (PK) sur le tracé d'une ligne, comme l'API REST GET /api/v1/lines/{line}/pk. Le point est projeté sur le tracé le plus proche de la ligne à l'ère choisie, puis la distance est mesurée le long du tracé depuis son origine.
-Renvoie `pk_m` (mètres), `pk_label` (notation ferroviaire km+mmm : 249+204 = 249,204 km), `total_m` (longueur du tracé à cette ère) et `snap` (lat, lng du point du tracé retenu, distance_from_input_m = écart avec le lieu demandé : au-delà de quelques dizaines de mètres, le lieu n'est probablement pas sur cette ligne).
+Renvoie `pk_m` (mètres), `pk_label` (notation ferroviaire km+mmm : 249+204 = 249,204 km), `total_m` (longueur du tracé à cette ère), `geometry_withheld` et `snap` (lat, lng du point du tracé retenu, distance_from_input_m = écart avec le lieu demandé : au-delà de quelques dizaines de mètres, le lieu n'est probablement pas sur cette ligne).
+Tracé dont la source n'autorise pas la redistribution (`geometry_withheld` vrai, raison dans `geometry_withheld_reason`) : `snap` est nul, ni le point projeté ni la distance au tracé ne sont donnés, et le PK, calculé au centre de la maille de 0,001 degré du lieu puis arrondi à 100 m, est juste à 150 m près environ.
 Ce PK est mesuré le long du tracé VFF : il peut différer du PK officiel de SNCF Réseau (origine différente, sauts de numérotation). Pour les PK officiels des gares, voir `get_line` (gares) et `get_station`. Ligne sans tracé à l'ère demandée : erreur `no_geometry`.
 Exemple : {"line": "rfn-420000", "lat": 48.10, "lng": -1.67} ; {"line": "rfn-447000", "lat": 48.65, "lng": -3.9, "year": 1930}.
 TXT)]

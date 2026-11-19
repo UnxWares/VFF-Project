@@ -1,0 +1,95 @@
+{
+ "component": "Accidents/Index",
+ "props": {
+  "errors": {},
+  "app": {
+   "name": "VFF"
+  },
+  "locale": "fr",
+  "available_locales": [
+   "fr",
+   "en",
+   "de"
+  ],
+  "auth": {
+   "user": null,
+   "unread_notifications": null
+  },
+  "flash": {
+   "success": null,
+   "error": null
+  },
+  "accidents": {
+   "data": [
+    {
+     "slug": "1950-07-03-saint-amour",
+     "name": "Collision à un passage à niveau à Saint-Amour",
+     "date": "1950-07-03",
+     "date_precision": "day",
+     "kind": "level_crossing",
+     "commune": "Saint-Amour",
+     "department_code": "39",
+     "line": {
+      "slug": "rfn-880000",
+      "code": "880000",
+      "name": "Ligne de Mouchard à Bourg-en-Bresse",
+      "confidence": "low"
+     },
+     "deaths": null,
+     "injuries": null,
+     "review_status": "to_review"
+    },
+    {
+     "slug": "1951-08-24-sanry-sur-nied",
+     "name": "Collision à Sanry-sur-Nied",
+     "date": "1951-08-24",
+     "date_precision": "day",
+     "kind": "collision",
+     "commune": "Sanry-sur-Nied",
+     "department_code": "57",
+     "line": {
+      "slug": "rfn-140000",
+      "code": "140000",
+      "name": "Ligne de Réding à Metz-Ville",
+      "confidence": "high"
+     },
+     "deaths": 21,
+     "injuries": null,
+     "review_status": "ok"
+    }
+   ],
+   "current_page": 1,
+   "last_page": 1,
+   "total": 10
+  },
+  "filters": {
+   "q": "",
+   "decade": 1950,
+   "kind": null,
+   "dept": null,
+   "line": null,
+   "sort": "date"
+  }
+ },
+ "url": "/accidents?decade=1950",
+ "version": "9b561c811ea07969074ff7d276e495d2",
+ "sharedProps": [
+  "errors",
+  "app",
+  "locale",
+  "available_locales",
+  "translations",
+  "auth",
+  "flash"
+ ],
+ "onceProps": {
+  "translations.fr": {
+   "prop": "translations",
+   "expiresAt": null
+  },
+  "accidents.facets": {
+   "prop": "facets",
+   "expiresAt": 1795123312000
+  }
+ }
+}

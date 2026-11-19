@@ -172,6 +172,31 @@ class LinePagesTest extends TestCase
             ->assertJsonPath('data.materials.0.builders', $names);
     }
 
+    /** Revue des PR #19 et #20 : « Henschel, Q529531, Krauss-Maffei » sur la carte de la BR 52 ; l'identifiant brut est écarté. */
+    public function test_a_builder_without_a_label_is_left_out_of_the_names(): void
+    {
+        $series = Material::factory()->create([
+            'slug' => 'br-52',
+            'name' => 'BR 52',
+            'builder' => 'Henschel, Q529531, Krauss-Maffei',
+            'builders' => [
+                ['name' => 'Henschel', 'wikidata_id' => 'Q314093', 'units' => null],
+                ['name' => 'Q529531', 'wikidata_id' => 'Q529531', 'units' => 736],
+                ['name' => 'Krauss-Maffei', 'wikidata_id' => 'Q451557', 'units' => null],
+            ],
+        ]);
+        $this->line->materials()->attach($series->id);
+
+        $this->get("/lines/{$this->line->slug}")
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('materials', fn ($materials) => $this->rows($materials)->firstWhere('slug', 'br-52')['builders'] === ['Henschel', 'Krauss-Maffei']));
+        $this->getJson("/api/v1/lines/{$this->line->slug}")
+            ->assertOk()
+            ->assertJsonPath('data.materials.0.builders', ['Henschel', 'Krauss-Maffei'])
+            ->assertJsonPath('data.materials.0.builder', 'Henschel, Krauss-Maffei');
+    }
+
     public function test_show_has_no_spatial_fallback_for_stations(): void
     {
         // Sans gare rattachée (station_lines), la fiche n'invente pas de gares le long du

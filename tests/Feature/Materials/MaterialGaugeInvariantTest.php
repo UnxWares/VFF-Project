@@ -74,13 +74,42 @@ class MaterialGaugeInvariantTest extends TestCase
         $this->assertCount(1, MaterialGaugeRule::fromDatabase([['line' => '693000', 'material' => 'Q2784315', 'source' => ' ', 'reason' => 'sans source']])->storedConflicts(), 'une exception sans source ne vaut rien');
     }
 
+    /**
+     * Revue des PR #19 et #20 : les lignes métriques des réseaux secondaires, là où la règle joue le plus,
+     * n'ont souvent pas de code RFN. Une exception se rattache aussi par le slug, comme les exceptions
+     * d'électrification et les exclusions ; une exception qui ne trouve pas sa ligne est signalée.
+     */
+    public function test_an_exception_given_by_slug_applies_and_an_unknown_line_is_reported(): void
+    {
+        $blancArgent = Line::factory()->create(['code' => null, 'slug' => 'archeo-ligne-du-blanc-a-argent', 'name' => 'Ligne du Blanc à Argent']);
+        LineSegment::factory()->create(['line_id' => $blancArgent->id, 'era_id' => Era::query()->value('id'), 'gauge_mm' => 1000, 'length_meters' => 30_000]);
+        LineMaterial::create(['line_id' => $blancArgent->id, 'material_id' => $this->x73500->id, 'source' => 'wikipedia', 'evidence' => []]);
+        $source = 'https://fr.wikipedia.org/w/index.php?oldid=1';
+        $this->assertCount(1, MaterialGaugeRule::fromDatabase([])->storedConflicts());
+
+        $rule = MaterialGaugeRule::fromDatabase([['line' => 'archeo-ligne-du-blanc-a-argent', 'material' => 'Q2784315', 'source' => $source, 'reason' => 'essai']]);
+        $this->assertNull($rule->conflict($blancArgent->id, $this->x73500->id));
+        $this->assertSame([], $rule->storedConflicts());
+        $this->assertSame([], $rule->unresolvedEntries());
+
+        $rule = MaterialGaugeRule::fromDatabase([
+            ['line' => 'ligne-disparue', 'material' => 'Q2784315', 'source' => $source, 'reason' => 'slug changé'],
+            ['line' => '693000', 'material' => 'Q1', 'source' => ' ', 'reason' => 'série inconnue, sans source'],
+        ]);
+        $this->assertSame([
+            'line_material_gauge_exceptions.php n° 0 (ligne « ligne-disparue », série Q2784315) : ligne introuvable (ni lines.code ni lines.slug)',
+            'line_material_gauge_exceptions.php n° 1 (ligne « 693000 », série Q1) : série introuvable (materials.wikidata_id) ; source vide',
+        ], $rule->unresolvedEntries());
+        $this->assertCount(1, $rule->storedConflicts());
+    }
+
     public function test_the_exceptions_file_is_well_formed(): void
     {
         $exceptions = require database_path('data/line_material_gauge_exceptions.php');
 
         $this->assertIsArray($exceptions);
         foreach ($exceptions as $e) {
-            $this->assertMatchesRegularExpression('/^\d{6}$/', $e['line']);
+            $this->assertMatchesRegularExpression('/^(?:\d{6}|[a-z0-9]+(?:-[a-z0-9]+)*)$/', $e['line'], 'code RFN ou slug');
             $this->assertMatchesRegularExpression('/^Q\d+$/', $e['material']);
             $this->assertStringStartsWith('https://', $e['source']);
             $this->assertNotSame('', trim($e['reason']));

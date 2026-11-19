@@ -257,6 +257,43 @@ class GeometryRightsInvariantTest extends TestCase
         $this->assertSame(['osm' => true, 'archeoferroviaire' => false], $given);
     }
 
+    public function test_the_pk_of_a_withheld_vertex_reveals_neither_the_vertex_nor_the_distance(): void
+    {
+        // Lieu demandé exactement sur un sommet retenu : un point projeté ou une distance exacts le
+        // redonneraient (distance nulle), et une grille de lieux reconstituerait le tracé.
+        $gql = 'query ($slug: String!, $lat: Float!, $lng: Float!, $era: Int) { line(slug: $slug) {
+            pk(lat: $lat, lng: $lng, era: $era) { pk_m pk_label total_m geometry_withheld geometry_withheld_reason snap { lat lng distance_from_input_m } } } }';
+        foreach ([$this->line, $this->branch] as $line) {
+            foreach ([1930, 2030] as $era) {
+                foreach (self::WITHHELD_VERTICES as $vertex) {
+                    $where = "{$line->slug} {$era} ({$vertex[1]}, {$vertex[0]})";
+                    $rest = $this->getJson("/api/v1/lines/{$line->slug}/pk?lat={$vertex[1]}&lng={$vertex[0]}&era={$era}")->assertOk();
+                    $graphql = $this->postJson('/graphql', ['query' => $gql, 'variables' => ['slug' => $line->slug, 'lat' => $vertex[1], 'lng' => $vertex[0], 'era' => $era]])->assertOk();
+                    $this->assertNull($graphql->json('errors'), (string) json_encode($graphql->json('errors')));
+                    $mcp = $this->mcp('tools/call', ['name' => 'locate_on_line', 'arguments' => ['line' => $line->slug, 'lat' => $vertex[1], 'lng' => $vertex[0], 'year' => $era]]);
+                    $tool = json_decode((string) $mcp->json('result.content.0.text'), true);
+
+                    foreach (['REST' => $rest->json(), 'GraphQL' => $graphql->json('data.line.pk'), 'MCP' => $tool] as $api => $pk) {
+                        $this->assertTrue($pk['geometry_withheld'], "{$api} {$where}");
+                        $this->assertContains($pk['geometry_withheld_reason'], ['licence_not_open', 'unknown_source'], "{$api} {$where}");
+                        $this->assertNull($pk['snap'], "{$api} {$where} : ni point projeté ni distance");
+                        $this->assertSame(0, $pk['pk_m'] % 100, "{$api} {$where} : PK arrondi à 100 m");
+                    }
+                    foreach ([$rest, $graphql, $mcp] as $response) {
+                        $this->assertNoWithheldGeometry((string) $response->getContent(), "PK {$where}");
+                    }
+                }
+            }
+        }
+
+        // Tracé OpenStreetMap : le point projeté et la distance restent donnés, au mètre près.
+        [$lng, $lat] = self::OPEN_VERTEX;
+        $open = $this->getJson("/api/v1/lines/{$this->line->slug}/pk?lat={$lat}&lng={$lng}&era=1930")->assertOk();
+        $open->assertJsonPath('geometry_withheld', false)->assertJsonPath('geometry_withheld_reason', null);
+        $this->assertEqualsWithDelta($lat, $open->json('snap.lat'), 1e-9);
+        $this->assertEqualsWithDelta(0.0, $open->json('snap.distance_from_input_m'), 0.01);
+    }
+
     public function test_no_mcp_tool_returns_a_withheld_geometry(): void
     {
         $tools = $this->mcp('tools/list')->json('result.tools');

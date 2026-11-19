@@ -17,7 +17,8 @@ use Laravel\Mcp\Server\Tool;
  *   - validation stricte : arguments inconnus refusés, puis règles de l'outil (rules()) ;
  *   - langue (`lang` : fr par défaut, en, de) appliquée pendant l'appel puis rétablie ;
  *   - réponse JSON compacte avec le lien de la fiche VFF et le bloc d'attribution des licences,
- *     plafonnée en taille (ResponseBudget) ;
+ *     plafonnée en taille (ResponseBudget), sans aucune phrase citée d'une source (WikipediaExcerpts,
+ *     décision Q22) ;
  *   - erreurs métier (objet introuvable…) : réponse d'erreur JSON avec un code stable, le message
  *     dans la langue demandée et, s'il y a lieu, des suggestions.
  */
@@ -87,7 +88,7 @@ abstract class VffTool extends Tool
      */
     protected function respond(array $payload, iterable $providers, string $lang, ?string $url = null, array $lists = []): Response
     {
-        $payload = $this->withEnvelope($payload, $this->attribution->block($providers, $lang), $url);
+        $payload = $this->withEnvelope(WikipediaExcerpts::strip($payload), $this->attribution->block($providers, $lang), $url);
         $payload = ResponseBudget::fit($payload, $lists, self::maxBytes());
         if (isset($payload['truncated'])) {
             $payload['truncated_note'] = trans('mcp.truncated', [], $lang);
@@ -114,6 +115,8 @@ abstract class VffTool extends Tool
     {
         $max = self::maxBytes();
         $attribution = $this->attribution->block($providers, $lang);
+        $payload = WikipediaExcerpts::strip($payload);
+        $items = array_map(WikipediaExcerpts::strip(...), $items);
         $raw = array_values($page->items());
         $build = function (int $n) use ($payload, $listKey, $items, $raw, $page, $lang, $attribution, $url): array {
             $shortened = $n < count($items);

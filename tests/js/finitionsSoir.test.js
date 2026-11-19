@@ -51,6 +51,14 @@ describe('constructeurs d’une série (fiche ligne)', () => {
         );
     });
 
+    it('n’affiche jamais un identifiant Wikidata brut comme un nom (revue des PR #19 et #20)', () => {
+        expect(buildersText(['A', 'Q1', 'B'], null, t)).toBe('A, B');
+        expect(buildersText(['Q529531'], 'Q529531', t)).toBeNull();
+        expect(buildersText(undefined, 'Henschel, Q529531, Krauss-Maffei', t)).toBe(
+            'Henschel, Krauss-Maffei',
+        );
+    });
+
     it('reprend le texte joint de la base sans liste, et rien sans constructeur', () => {
         expect(buildersText(undefined, 'Henschel', t)).toBe('Henschel');
         expect(buildersText([], null, t)).toBeNull();

@@ -6,6 +6,7 @@ use App\GraphQL\Exceptions\ContributionApiError;
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Models\User;
 use App\Services\Api\ApiTokens;
+use App\Services\Api\PublicApiRateLimit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,9 +20,17 @@ use Illuminate\Support\Facades\Auth;
  *
  * Puis les règles du site : un compte suspendu ne contribue ni ne relit (comme le middleware
  * `not.suspended`), et seule une personne validatrice ou administratrice relit.
+ *
+ * Débit : chaque mutation compte pour une requête dans la limite `public-api`. Le middleware compte la
+ * requête HTTP, donc sa première mutation ; chaque mutation suivante de la même requête (alias,
+ * lot d'opérations) est comptée ici, avant tout contrôle, et refusée sans rien écrire au-delà de la
+ * limite (`too_many_requests`). Plusieurs champs de mutation ne contournent donc plus la limite.
  */
 final readonly class ContributionApiAccess
 {
+    /** Attribut de requête : nombre de mutations de contribution déjà reçues dans la requête HTTP. */
+    public const MUTATIONS = 'vff.graphql.contribution_mutations';
+
     public function __construct(private SessionCsrfCheck $csrf) {}
 
     /**
@@ -54,9 +63,26 @@ final readonly class ContributionApiAccess
         return $user;
     }
 
+    /**
+     * Compte la mutation dans la limite de débit : la première de la requête HTTP l'est déjà par le
+     * middleware `throttle:public-api`, les suivantes le sont ici.
+     *
+     * @throws ContributionApiError
+     */
+    private function countMutation(Request $request): void
+    {
+        $count = (int) $request->attributes->get(self::MUTATIONS, 0) + 1;
+        $request->attributes->set(self::MUTATIONS, $count);
+        if ($count > 1 && ($retryAfter = PublicApiRateLimit::hitAgain($request)) !== null) {
+            throw ContributionApiError::tooManyRequests($retryAfter);
+        }
+    }
+
     /** @throws ContributionApiError */
     private function authenticated(Request $request): User
     {
+        $this->countMutation($request);
+
         // Lighthouse exécute aussi les opérations reçues en GET : une écriture n'en passe jamais par là.
         if (! $request->isMethod('POST')) {
             throw ContributionApiError::postRequired();

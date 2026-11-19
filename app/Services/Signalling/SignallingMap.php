@@ -3,6 +3,7 @@
 namespace App\Services\Signalling;
 
 use App\Enums\SignallingFamily;
+use App\Support\MapTiles;
 use App\Support\MvtBytes;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -42,13 +43,15 @@ final class SignallingMap
             return $this->compute($eraId, $z, $x, $y);
         }
         $version = (int) Cache::get('signalling-map:version', 0);
+        $format = MapTiles::FORMAT;
 
-        return Cache::remember("signalling-map:{$version}:{$eraId}:{$z}:{$x}:{$y}", self::TTL, fn (): string => $this->compute($eraId, $z, $x, $y));
+        return Cache::remember("signalling-map:{$format}:{$version}:{$eraId}:{$z}:{$x}:{$y}", self::TTL, fn (): string => $this->compute($eraId, $z, $x, $y));
     }
 
     private function compute(int $eraId, int $z, int $x, int $y): string
     {
         $family = SignallingFamily::sql('m.signalling');
+        $geom = MapTiles::displaySql('m.geom', $z);
         $result = DB::selectOne(<<<SQL
             WITH bounds AS (
                 SELECT ST_TileEnvelope(:z, :x, :y) AS env_3857,
@@ -65,7 +68,7 @@ final class SignallingMap
                        l.slug AS line_slug,
                        l.name AS line_name,
                        l.code AS line_code,
-                       ST_AsMVTGeom(ST_Transform(m.geom, 3857), bounds.env_3857, 4096, 256, true) AS geom
+                       ST_AsMVTGeom({$geom}, bounds.env_3857, 4096, 256, true) AS geom
                 FROM line_signalling_map m
                 CROSS JOIN bounds
                 JOIN lines l ON l.id = m.line_id

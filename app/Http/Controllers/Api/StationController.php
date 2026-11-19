@@ -36,8 +36,10 @@ class StationController extends Controller
      * les gares qui existaient à cette ère sont listées.
      *
      * **Dates** : `opened_at` et `closed_at` au format `AAAA-MM-JJ`, à lire
-     * avec `opened_precision` / `closed_precision` (`day`, `month`, `year`) ;
-     * `closed_after` : gare fermée après cette année, date exacte inconnue.
+     * avec `opened_precision` / `closed_precision` (`day`, `month`, `year`, ou
+     * `range` pour une fermeture connue seulement par un intervalle : `closed_at`
+     * n'en est alors que la borne haute, jamais un jour sûr) ; `closed_after` :
+     * gare fermée après cette année, date exacte inconnue.
      * **Nature** (`type`) : `gare`, `halte`, `point_arret`, `passage_niveau`,
      * `embranchement`. `lines` : lignes rattachées à la gare (10 au plus,
      * codes SNCF Réseau d'abord ; `lines_more` compte les autres).
@@ -112,7 +114,9 @@ class StationController extends Controller
      *   `lifecycle`, `city`, `department_code`, `uic_code`, `wikidata_id`,
      *   `description` (en français) ;
      * - dates : `opened_at`, `closed_at` (`AAAA-MM-JJ`) et leur précision
-     *   (`day`, `month`, `year`), `closed_after` (fermée après cette année) ;
+     *   (`day`, `month`, `year`, ou `range` : fermée entre `closed_after` + 1 et
+     *   l'année de `closed_at`, borne haute et non jour sûr), `closed_after`
+     *   (fermée après cette année) ;
      * - position : `lat`, `lng` (WGS 84) ; `position.source` (source retenue),
      *   `position.spread_m` (écart en mètres entre les sources),
      *   `position.flagged` (à vérifier) ; `attribute_sources` : pour chaque

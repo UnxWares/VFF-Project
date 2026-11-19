@@ -262,7 +262,10 @@ Renvoie `station` (`slug`, `name`, `alt_names`, `type` : `gare`, `halte`, `point
 `status` : code et libellé parmi `active` ouverte aux voyageurs, `tourist`, `no_commercial` fret
 seul, `declassified` fermée, `gone` disparue, `planned` projetée, `technical`, `excluded` ;
 `city`, `department_code`, `uic_code`, `wikidata_id`, `lat`, `lng`, `opened` et `closed` avec
-date, précision et `when`), `eras` (statut à chaque décennie ; `uncertain` = non confirmé par les
+date, précision et `when`, la date rédigée à sa seule précision ; une fermeture de précision `range`
+n'est connue que par un intervalle : `date` vaut `null`, `from_year` et `to_year` donnent les bornes en
+années, `to_year` est nul quand la date est inconnue, et `when` dit « entre 1980 et 1989 » ou « date
+inconnue, après 1870 », jamais un jour), `eras` (statut à chaque décennie ; `uncertain` = non confirmé par les
 voies de l'époque), `events` (chronologie : `type`, `label`, date, `source`, `source_url`,
 `inferred` = date déduite des lignes et non d'une source sur la gare, `note`), `lines` (`slug`,
 `name`, `code`, `first_year`, `last_year`, `last_year_kind`, `years_source`, `pk_km`, `served_today` ;
@@ -507,6 +510,10 @@ Renvoie `material` : la fiche de l'API REST `/api/v1/materials/{slug}`, avec `fi
 et sa fiabilité `confidence`, et `periods`, ses périodes de circulation datées : voir `line_materials`). Série
 inconnue : erreur `material_not_found` avec `suggestions`.
 
+Chaque preuve donne l'article, la révision lue (`revid`), la section et le permalien `url`, mais pas la
+phrase de l'article : l'API REST la renvoie dans `quote`, le serveur MCP jamais (décision Q22, voir
+« Limites et sécurité »).
+
 ```json
 {"material": "bb-15000"}
 ```
@@ -721,10 +728,17 @@ l'ère choisie, puis la distance est mesurée le long du tracé depuis son origi
 | `year` | entier 1800 à 2100 | non | Année ramenée à l'ère de la carte (le réseau d'aujourd'hui par défaut). |
 | `lang` | `fr`, `en`, `de` | non | Langue des messages. |
 
-Renvoie `line`, `era_year`, `pk_m` (mètres), `pk_label` (`km+mmm`), `total_m` (longueur du tracé à cette ère), `snap`
-(`lat`, `lng` du point du tracé retenu, `distance_from_input_m` : au-delà de quelques dizaines de mètres, le lieu n'est
-probablement pas sur la ligne) et `vff_url`. Ce PK est mesuré le long du tracé VFF : il peut différer du PK officiel de
-SNCF Réseau. Erreur `no_geometry` si la ligne n'a pas de tracé à cette ère.
+Renvoie `line`, `era_year`, `pk_m` (mètres), `pk_label` (`km+mmm`), `total_m` (longueur du tracé à cette ère),
+`geometry_withheld`, `geometry_withheld_reason`, `snap` (`lat`, `lng` du point du tracé retenu,
+`distance_from_input_m` : au-delà de quelques dizaines de mètres, le lieu n'est probablement pas sur la ligne) et
+`vff_url`. Ce PK est mesuré le long du tracé VFF : il peut différer du PK officiel de SNCF Réseau. Erreur `no_geometry`
+si la ligne n'a pas de tracé à cette ère.
+
+Quand le point projeté longe un tronçon dont la source n'autorise pas la redistribution, `geometry_withheld` vaut
+`true` (raison `licence_not_open` ou `unknown_source`) et `snap` vaut `null` : ni le point projeté ni la distance au
+tracé ne sont donnés, car une grille de requêtes suffirait à reconstituer le tracé, même avec une distance arrondie.
+Le lieu est ramené au centre de sa maille de 0,001 degré (environ 110 m sur 75 m en France) et le PK est arrondi à
+100 m : il est juste à 150 m près environ. Même règle pour `GET /api/v1/lines/{line}/pk` et `Line.pk` en GraphQL.
 
 ```json
 {"line": "rfn-420000", "lat": 48.10, "lng": -1.67}
@@ -903,10 +917,15 @@ X-RateLimit-Remaining: 1197
 
 - **Lecture seule** : aucun outil n'écrit en base ; aucun compte, aucune contribution en attente,
   aucune donnée personnelle n'est exposée. Pas d'appel à un service externe.
-- **Textes Wikipédia exclus** : la description d'une ligne (extrait de Wikipédia, CC BY-SA 4.0) n'est
-  pas renvoyée par `get_line`, pour ne pas faire circuler un texte sous licence à partage dans les
-  mêmes conditions sans sa mention. L'API REST et GraphQL la publient avec son auteur collectif, le
-  lien de l'article, le permalien de la révision lue et la licence (`description_source`).
+- **Textes Wikipédia exclus** : aucune réponse ne recopie une phrase de Wikipédia (CC BY-SA 4.0),
+  pour ne pas faire circuler un texte sous licence à partage dans les mêmes conditions sans sa
+  mention. `get_line` ne renvoie pas la description de la ligne ; les preuves du matériel
+  (`get_material`), la signalisation (`signalling_history`, `get_line`) et les périodes
+  (`line_materials`) donnent l'article, la révision lue et son permalien, sans la phrase citée. Le
+  serveur retire de toute réponse les clés `quote`, `excerpt`, `source_quote` et `source_excerpt`, et
+  un test parcourt les réponses de tous les outils pour le vérifier. L'API REST et GraphQL publient
+  ces textes avec leur auteur collectif, le lien de l'article, le permalien de la révision lue et la
+  licence (`description_source`).
 - **Débit** : 300 requêtes par minute et par adresse IP sans jeton, davantage avec un jeton
   personnel, sur un compteur commun à l'API REST et à GraphQL (voir « Authentification et quotas »).
   Au-delà : HTTP 429.
@@ -935,12 +954,12 @@ La base de VFF est publiée sous **Open Database License (ODbL) 1.0**. En réuti
    **non commercial**.
 
 **Tracés.** Le serveur MCP ne renvoie aucune géométrie de tracé : ses réponses donnent des
-points (gares, passages à niveau, accidents, point du tracé retenu par `locate_on_line`), des
-longueurs et des PK, jamais les lignes elles-mêmes. Les tracés s'obtiennent par l'API REST, qui ne
+points (gares, passages à niveau, accidents, point du tracé retenu par `locate_on_line` quand sa
+source autorise la redistribution), des longueurs et des PK, jamais les lignes elles-mêmes. Les tracés s'obtiennent par l'API REST, qui ne
 redistribue que la géométrie d'une source dont la licence le permet : pour une source dont la
 licence n'autorise pas la redistribution, `geometry` vaut `null`, avec `geometry_withheld` et la
 raison (voir la documentation de l'API, « Droits des tracés »). Un test vérifie qu'aucun outil
-ne renvoie de géométrie de tracé.
+ne renvoie de géométrie de tracé, même interrogé exactement sur un sommet d'un tracé retenu.
 
 Les instructions du serveur rappellent ces obligations aux assistants.
 

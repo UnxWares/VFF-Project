@@ -13,6 +13,7 @@ use App\Models\Line;
 use App\Models\User;
 use App\Services\Contributions\ContributionReview;
 use App\Services\Contributions\ContributionSubmissions;
+use App\Services\Contributions\PublicationFailure;
 use App\Services\Contributions\ReviewOutcome;
 use App\Services\Contributions\ReviewResult;
 use App\Services\Reputation\ReputationLevels;
@@ -266,7 +267,10 @@ class ContributionController extends Controller
             ReviewOutcome::Own => back()->with('error', __($rejecting ? 'editor.validate.flash.own_reject' : 'editor.validate.flash.own')),
             ReviewOutcome::Closed => back()->with('error', __('editor.validate.flash.closed')),
             ReviewOutcome::AlreadyApproved => back()->with('error', __('editor.validate.flash.already')),
-            ReviewOutcome::Failed => back()->with('error', __('editor.validate.flash.failed', ['message' => (string) $result->error])),
+            // Raison stable, jamais le message brut de l'erreur (journal du site seulement).
+            ReviewOutcome::Failed => back()->with('error', __('editor.validate.flash.failed', [
+                'message' => __('editor.validate.flash.failures.'.($result->failure ?? PublicationFailure::InternalError)->value),
+            ])),
         };
     }
 

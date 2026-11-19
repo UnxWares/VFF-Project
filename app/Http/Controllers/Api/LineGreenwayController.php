@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Line;
 use App\Services\Greenways\GreenwayTiles;
 use App\Services\Greenways\LineGreenways;
+use App\Support\MapTiles;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
@@ -106,14 +107,14 @@ class LineGreenwayController extends Controller
      * de la tuile. Ces voies vertes ne dépendent pas de l'ère : c'est l'état d'OpenStreetMap à la dernière
      * lecture. Données © contributeurs OpenStreetMap, ODbL 1.0 ; tuiles en cache une journée.
      */
-    #[PathParameter('z', 'Niveau de zoom (0 à 22 ; vide sous 4).', example: 9)]
+    #[PathParameter('z', 'Niveau de zoom, de 0 à 14 (vide sous 4 ; au-delà de 14, MapLibre agrandit la tuile 14).', example: 9)]
     #[PathParameter('x', 'Colonne de la tuile dans la grille XYZ.', example: 258)]
     #[PathParameter('y', 'Rangée de la tuile dans la grille XYZ.', example: 176)]
     #[ApiResponse(200, 'Tuile MVT (protobuf binaire), éventuellement vide.')]
-    #[ApiResponse(404, 'Tuile hors de la grille XYZ.')]
+    #[ApiResponse(404, 'Tuile hors de la grille XYZ, ou zoom supérieur à 14.')]
     public function tile(int $z, int $x, int $y, GreenwayTiles $tiles): Response
     {
-        abort_unless($z <= 22 && $x < (1 << $z) && $y < (1 << $z), 404);
+        abort_unless(MapTiles::onGrid($z, $x, $y), 404);
 
         return response($tiles->tile($z, $x, $y), 200, [
             'Content-Type' => 'application/x-protobuf',

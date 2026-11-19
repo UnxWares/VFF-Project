@@ -3,6 +3,7 @@
 namespace App\Services\Materials;
 
 use App\Enums\MaterialType;
+use App\Models\Material;
 use App\Services\Media\CommonsMetadata;
 
 /**
@@ -141,7 +142,9 @@ final readonly class WikidataMaterialMapper
             'type' => $type[0]->value,
             'designations' => $this->designations($entity, $name) ?: null,
             'description' => self::plain($entity['descriptions']['fr'] ?? null),
-            'builder' => $builders !== [] ? mb_strimwidth(implode(', ', array_unique(array_column($builders, 'name'))), 0, 255, '…') : null,
+            // Texte joint sans les constructeurs sans libellé (nom = identifiant Wikidata, Material::isReadableName).
+            'builder' => ($named = array_filter(array_unique(array_column($builders, 'name')), Material::isReadableName(...))) !== []
+                ? mb_strimwidth(implode(', ', $named), 0, 255, '…') : null,
             'builders' => $builders ?: null,
             'operators' => $operators ?: null,
             'in_service_from' => $from,

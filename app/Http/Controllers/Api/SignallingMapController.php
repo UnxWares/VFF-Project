@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Era;
 use App\Services\Signalling\SignallingHistoryMap;
 use App\Services\Signalling\SignallingMap;
+use App\Support\MapTiles;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
@@ -54,17 +55,19 @@ class SignallingMapController extends Controller
      * portions placées dessus), `line_slug`, `line_name`, `line_code`. Le trait suit le tracé de la ligne à
      * cette ère (une portion fermée n'est pas dessinée). Le KVB, contrôle de vitesse, n'y figure pas.
      *
-     * Tuiles en cache une journée (navigateurs et serveur, ce dernier jusqu'au zoom 10).
+     * Zooms 0 à 14, géométrie préparée pour l'écran comme les tuiles d'une ère (arrondie à la grille de la
+     * tuile, simplifiée à partir du zoom 10). Tuiles en cache une journée (navigateurs et serveur, ce dernier
+     * jusqu'au zoom 10).
      */
     #[PathParameter('year', "Année de l'ère (décennie de 1830 à 2030) : 2030 pour l'état actuel de SNCF Réseau, une ère passée pour l'historique daté.", example: 2030)]
-    #[PathParameter('z', 'Niveau de zoom (0 à 22 ; la carte VFF demande au plus 14).', example: 6)]
+    #[PathParameter('z', 'Niveau de zoom, de 0 à 14 (au-delà, MapLibre agrandit la tuile 14).', example: 6)]
     #[PathParameter('x', 'Colonne de la tuile dans la grille XYZ.', example: 32)]
     #[PathParameter('y', 'Rangée de la tuile dans la grille XYZ.', example: 22)]
     #[ApiResponse(200, 'Tuile MVT (protobuf binaire), éventuellement vide.')]
-    #[ApiResponse(404, 'Ère inconnue, ou tuile hors de la grille XYZ.', examples: [ErrorExamples::ERA_NOT_FOUND])]
+    #[ApiResponse(404, 'Ère inconnue, ou tuile hors de la grille XYZ (zoom supérieur à 14 compris).', examples: [ErrorExamples::ERA_NOT_FOUND])]
     public function tile(int $year, int $z, int $x, int $y, SignallingMap $map, SignallingHistoryMap $history): Response|JsonResponse
     {
-        abort_unless($z <= 22 && $x < (1 << $z) && $y < (1 << $z), 404);
+        abort_unless(MapTiles::onGrid($z, $x, $y), 404);
         $era = Era::where('year', $year)->first();
         if ($era === null) {
             return response()->json(ErrorExamples::eraNotFound($year), 404);

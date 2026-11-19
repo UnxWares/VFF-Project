@@ -3,6 +3,7 @@
 namespace App\Services\Signalling;
 
 use App\Enums\SignallingFamily;
+use App\Support\MapTiles;
 use App\Support\MvtBytes;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -109,13 +110,15 @@ final class SignallingHistoryMap
             return $this->compute($eraId, $z, $x, $y);
         }
         $version = (int) Cache::get('signalling-history-map:version', 0);
+        $format = MapTiles::FORMAT;
 
-        return Cache::remember("signalling-history-map:{$version}:{$eraId}:{$z}:{$x}:{$y}", self::TTL, fn (): string => $this->compute($eraId, $z, $x, $y));
+        return Cache::remember("signalling-history-map:{$format}:{$version}:{$eraId}:{$z}:{$x}:{$y}", self::TTL, fn (): string => $this->compute($eraId, $z, $x, $y));
     }
 
     private function compute(int $eraId, int $z, int $x, int $y): string
     {
-        $result = DB::selectOne(<<<'SQL'
+        $geom = MapTiles::displaySql('h.geom', $z);
+        $result = DB::selectOne(<<<SQL
             WITH bounds AS (
                 SELECT ST_TileEnvelope(:z, :x, :y) AS env_3857,
                        ST_Transform(ST_TileEnvelope(:z2, :x2, :y2), 4326) AS env_4326
@@ -140,7 +143,7 @@ final class SignallingHistoryMap
                        l.slug AS line_slug,
                        l.name AS line_name,
                        l.code AS line_code,
-                       ST_AsMVTGeom(ST_Transform(h.geom, 3857), bounds.env_3857, 4096, 256, true) AS geom
+                       ST_AsMVTGeom({$geom}, bounds.env_3857, 4096, 256, true) AS geom
                 FROM line_signalling_history_map h
                 CROSS JOIN bounds
                 JOIN line_signalling_events e ON e.id = h.event_id

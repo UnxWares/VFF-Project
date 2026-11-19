@@ -202,7 +202,9 @@ type Line {
     Point kilométrique d'un lieu sur la ligne, comme `GET /api/v1/lines/{line}/pk` : le point est projeté
     sur le tracé de la ligne à l'ère choisie, puis la distance est mesurée le long du tracé depuis son
     origine. Ce PK peut différer du PK officiel de SNCF Réseau (origine, sauts de numérotation). Nul si
-    la ligne n'a pas de tracé à cette ère ; erreur de requête si l'ère n'existe pas.
+    la ligne n'a pas de tracé à cette ère ; erreur de requête si l'ère n'existe pas. Sur un tracé dont la
+    source n'autorise pas la redistribution, le PK est arrondi et le point projeté n'est pas donné
+    (`geometry_withheld`).
     """
     pk(
         "Latitude WGS 84 du point, en degrés décimaux."
@@ -1016,7 +1018,7 @@ type MaterialService {
 
 "Un constructeur d'une série de matériel (Wikidata, propriété P176)."
 type MaterialBuilder {
-    "Nom du constructeur (libellé Wikidata en français)."
+    "Nom du constructeur (libellé Wikidata en français, sinon en anglais). Un élément sans libellé garde son identifiant (ex. `Q529531`), que le site n'affiche pas comme un nom."
     name: String!
 
     "Élément Wikidata du constructeur (ex. `Q309084` pour Alstom)."
@@ -2836,7 +2838,7 @@ type LineSheetMaterial {
     "Constructeurs joints par des virgules, coupés à 255 caractères (« … ») quand ils sont nombreux. Liste complète : `builders`."
     builder: String
 
-    "Tous les constructeurs de la série (Wikidata P176), sans doublon, dans l'ordre de la source ; liste vide si aucun n'est connu."
+    "Tous les constructeurs de la série (Wikidata P176), sans doublon, dans l'ordre de la source, sans ceux qui n'ont pas de libellé Wikidata ; liste vide si aucun n'est connu."
     builders: [String!]!
 
     "Année de mise en service."
@@ -3628,8 +3630,21 @@ type LinePk {
     "Longueur totale du tracé de la ligne à cette ère, en mètres."
     total_m: Int!
 
-    "Point du tracé le plus proche du lieu demandé."
-    snap: LinePkSnap!
+    """
+    Vrai quand le point projeté longe un tronçon dont la source n'autorise pas la redistribution
+    (voir « Droits des tracés » dans la documentation de l'API REST). `snap` vaut alors `null` : ni le
+    point projeté ni la distance au tracé ne sont donnés, car une grille de requêtes suffirait à
+    reconstituer le tracé, même avec une distance arrondie. Le lieu est ramené au centre de sa maille
+    de 0,001 degré (environ 110 m sur 75 m en France) et `pk_m` est arrondi à 100 m : il est juste à
+    150 m près environ.
+    """
+    geometry_withheld: Boolean!
+
+    "Raison du retrait : `licence_not_open` (licence non ouverte, non commerciale ou incertaine) ou `unknown_source` (source absente du registre des droits) ; nulle quand `geometry_withheld` est faux."
+    geometry_withheld_reason: String
+
+    "Point du tracé le plus proche du lieu demandé ; nul quand `geometry_withheld` est vrai."
+    snap: LinePkSnap
 }
 
 "Point du tracé retenu pour calculer un PK."
@@ -3783,8 +3798,15 @@ site (`/contribute`, éditeur de tracé, espace de validation `/validate`).
 - session du site (cookie), depuis une page de VFF : la requête porte l'en-tête `X-XSRF-TOKEN`
   (ou `X-CSRF-TOKEN`), ou le navigateur la déclare de même origine (`Sec-Fetch-Site: same-origin`).
 
-Les mutations partagent la limite de débit du reste de l'API (REST, GraphQL, MCP). Les requêtes de
-lecture restent ouvertes sans compte.
+Les mutations partagent la limite de débit du reste de l'API (REST, GraphQL, MCP), et **chaque
+mutation compte pour une requête** : une opération qui en porte plusieurs (alias, comme
+`a: submitContribution(…) b: submitContribution(…)`, ou lot de plusieurs opérations) consomme une
+requête par mutation, et `X-RateLimit-Remaining` le montre. Une mutation au-delà de la limite est
+refusée sans rien écrire (`too_many_requests`). Les mutations s'exécutent dans l'ordre : celles qui la
+précèdent dans la même opération restent faites, les suivantes ne sont pas exécutées, et, les champs
+de mutation étant non nuls, `data` vaut alors `null` en entier. Envoyez une mutation par requête pour
+lire chaque résultat.
+Les requêtes de lecture restent ouvertes sans compte.
 
 **Erreurs.** Une erreur arrive dans `errors[]`, avec `data.<mutation>` à `null` et un code stable
 dans `extensions.code` (messages en anglais) :
@@ -3793,13 +3815,17 @@ dans `extensions.code` (messages en anglais) :
 - `insufficient_scope` : jeton sans la capacité `contribute` ;
 - `csrf_token_mismatch` : session du site sans jeton CSRF valide ;
 - `account_suspended` : compte suspendu (`extensions.suspended_until`, ISO 8601, nul si sans fin) ;
+- `too_many_requests` : limite de débit atteinte par les mutations de la requête
+  (`extensions.retry_after` : secondes à attendre) ;
 - `forbidden` : relecture demandée par un compte qui n'est ni validateur ni administrateur ;
 - `not_found` : contribution inconnue, ou retirée par un administrateur ;
 - `own_contribution` : relecture de sa propre contribution ;
 - `already_closed` : contribution déjà refusée ou publiée ;
 - `already_approved` : le même validateur approuve une deuxième fois ;
-- `application_failed` : la publication a échoué, rien n'est écrit et l'approbation est annulée
-  (`extensions.reason`).
+- `application_failed` : la publication a échoué, rien n'est écrit et l'approbation est annulée ;
+  `extensions.reason` donne la raison stable : `no_geometry` (la ligne n'a pas de tracé à l'ère de la
+  contribution), `line_not_found` (la ligne que corrige le tracé n'existe plus) ou `internal_error`
+  (erreur inattendue, consignée dans le journal du site ; son détail n'est jamais renvoyé).
 
 Une saisie refusée donne une erreur de validation : `extensions.validation` associe le chemin du
 champ (par exemple `input.segment.pk_end_m`) à ses messages.

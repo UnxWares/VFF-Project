@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\MaterialType;
 use Database\Factories\MaterialFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -89,6 +90,46 @@ class Material extends Model
         $title = $lang === 'en' ? $this->wikipedia_en : $this->wikipedia_fr;
 
         return $title !== null ? "https://{$lang}.wikipedia.org/wiki/".rawurlencode(str_replace(' ', '_', $title)) : null;
+    }
+
+    /**
+     * Nom lisible : ni vide, ni un identifiant Wikidata brut (« Q529531 »). L'import garde l'identifiant
+     * comme nom quand l'élément n'a de libellé ni en français ni en anglais (WikidataMaterialMapper) :
+     * il ne s'affiche jamais comme un nom (revue des PR #19 et #20, 16 constructeurs sur 15 séries).
+     */
+    public static function isReadableName(?string $name): bool
+    {
+        return $name !== null && trim($name) !== '' && preg_match('/^Q\d+$/', trim($name)) !== 1;
+    }
+
+    /**
+     * Noms des constructeurs (Wikidata P176), sans doublon, dans l'ordre de la source, sans ceux qui ne
+     * sont connus que par leur identifiant.
+     *
+     * @return list<string>
+     */
+    public function builderNames(): array
+    {
+        return array_values(array_unique(array_filter(array_column($this->builders ?? [], 'name'), self::isReadableName(...))));
+    }
+
+    /**
+     * Constructeurs en une ligne (`builder`, noms joints à l'import), lus sans les identifiants Wikidata
+     * bruts : « Henschel, Q529531, Krauss-Maffei » se lit « Henschel, Krauss-Maffei ».
+     *
+     * @return Attribute<?string, never>
+     */
+    protected function builder(): Attribute
+    {
+        return Attribute::get(fn (?string $value): ?string => self::readableJoinedNames($value));
+    }
+
+    /** Noms joints par des virgules, sans ceux qui ne sont qu'un identifiant Wikidata ; null s'il n'en reste aucun. */
+    public static function readableJoinedNames(?string $joined): ?string
+    {
+        $kept = array_filter(explode(', ', $joined ?? ''), self::isReadableName(...));
+
+        return $kept === [] ? null : implode(', ', $kept);
     }
 
     public function getRouteKeyName(): string

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="color-scheme" content="light dark" />
+        
+        <script data-theme-init>
+            (function () {
+                var root = document.documentElement;
+                var saved = document.cookie.match(/(?:^|; )theme=(dark|light)(?:;|$)/);
+                var dark = saved
+                    ? saved[1] === 'dark'
+                    : !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                root.setAttribute('data-theme', dark ? 'dark' : 'light');
+                var meta = document.querySelector('meta[name="color-scheme"]');
+                if (meta) meta.setAttribute('content', dark ? 'dark' : 'light');
+            })();
+        </script>
+        
+        <meta name="theme-color" content="#ff6500" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#0f1419" media="(prefers-color-scheme: dark)" />
+        
+                    <meta name="description" content="Encyclopédie collaborative du rail français, de 1830 à aujourd’hui : lignes, gares, cartes et sources." />
+        
+        <title inertia>VFF</title>
+
+        <link rel="icon" href="http://127.0.0.1:8000/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="192x192" href="http://127.0.0.1:8000/icons/icon-192.png" />
+        <link rel="apple-touch-icon" href="http://127.0.0.1:8000/icons/apple-touch-icon.png" />
+        <link rel="manifest" href="http://127.0.0.1:8000/manifest.webmanifest" />
+        <meta name="apple-mobile-web-app-title" content="VFF" />
+
+        <script type="module" src="http://[::1]:5173/@vite/client"></script><link rel="stylesheet" href="http://[::1]:5173/resources/css/general.css" /><script type="module" src="http://[::1]:5173/resources/js/app.js"></script>            </head>
+    <body>
+        
+                            <script data-page="app" type="application/json">{"component":"Accidents\/Index","props":{"errors":{},"app":{"name":"VFF"},"locale":"fr","available_locales":["fr","en","de"],"translations":{"common.app_description":"Encyclopédie collaborative du rail français, de 1830 à aujourd’hui : lignes, gares, cartes et sources.","accidents.meta_title":"Accidents ferroviaires en France","accidents.meta_description":"Chronologie des accidents et événements graves du rail français : date, lieu, ligne, bilan et sources ouvertes."},"auth":{"user":null,"unread_notifications":null},"flash":{"success":null,"error":null},"accidents":{"data":[{"slug":"1833-11-24-roanne","name":"Déraillement à Roanne","date":"1833-11-24","date_precision":"day","kind":"derailment","commune":"Roanne","department_code":"42","line":{"slug":"rfn-769000","code":"769000","name":"Ligne du Coteau à Montchanin","confidence":"low"},"deaths":null,"injuries":null,"review_status":"to_review"},{"slug":"1834-06-21-roanne","name":"Accident ferroviaire à Roanne","date":"1834-06-21","date_precision":"day","kind":"other","commune":"Roanne","department_code":"42","line":{"slug":"rfn-769000","code":"769000","name":"Ligne du Coteau à Montchanin","confidence":"low"},"deaths":2,"injuries":4,"review_status":"to_review"}],"current_page":1,"last_page":31,"total":928},"filters":{"q":"","decade":null,"kind":null,"dept":null,"line":null,"sort":"date"},"facets":{"decades":[{"decade":1830,"count":6},{"decade":1840,"count":9},{"decade":1850,"count":7}],"kinds":{"runaway":24,"explosion":7,"level_crossing":113,"fire":13,"attack":9,"collision":319,"incident":19,"derailment":340,"other":39,"structure_failure":45},"departments":[{"code":"01","name":"Ain","count":13},{"code":"02","name":"Aisne","count":11},{"code":"03","name":"Allier","count":7}],"lines":[{"slug":"rfn-586000","code":"586000","name":"Ceinture de Bordeaux","count":1},{"slug":"rfn-939001","code":"939001","name":"L'Estaque à Marseille St-Charles (Via Marseille Maritime)","count":1},{"slug":"archeo-ligne-dabbeville-a-dompierre-sur-authie","code":null,"name":"Ligne d'Abbeville à Dompierre-sur-Authie","count":1}]}},"url":"\/accidents","version":"9b561c811ea07969074ff7d276e495d2","sharedProps":["errors","app","locale","available_locales","translations","auth","flash"],"onceProps":{"translations.fr":{"prop":"translations","expiresAt":null},"accidents.facets":{"prop":"facets","expiresAt":1795124182000}}}</script><div id="app"></div>
+            </body>
+</html>

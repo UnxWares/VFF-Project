@@ -19,7 +19,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Name('get_material')]
 #[Title("Fiche d'une série de matériel roulant")]
 #[Description(<<<'TXT'
-Fiche complète d'une série de matériel roulant (même contenu que l'API REST GET /api/v1/materials/{slug}) : tous les champs de la liste `materials`, plus `field_sources` (provenance de chaque champ : source, référence précise comme "Q746572#P729", adresse, licence, valeur d'origine quand VFF a converti une unité) et `lines` (lignes parcourues, une entrée par lien attesté : ligne, période si la source la date, `evidence` = phrase citée et permalien de la révision lue, `confidence`).
+Fiche complète d'une série de matériel roulant (même contenu que l'API REST GET /api/v1/materials/{slug}) : tous les champs de la liste `materials`, plus `field_sources` (provenance de chaque champ : source, référence précise comme "Q746572#P729", adresse, licence, valeur d'origine quand VFF a converti une unité) et `lines` (lignes parcourues, une entrée par lien attesté : ligne, période si la source la date, `evidence` = preuves du lien, avec l'article, la révision lue, la section et le permalien `url` à citer, `confidence`). Aucune phrase des articles n'est recopiée : lisez-la à l'adresse du permalien.
 Les liens avec les lignes ne viennent que d'une source explicite (Wikidata « véhicule habituellement utilisé », ou section d'article Wikipédia), jamais d'un nom approchant.
 Identifiant : `material` = slug renvoyé par search ou materials (ex. "bb-15000").
 Exemple : {"material": "bb-15000"}.

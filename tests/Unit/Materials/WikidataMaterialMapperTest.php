@@ -97,6 +97,16 @@ class WikidataMaterialMapperTest extends TestCase
         $this->assertArrayNotHasKey('power_kw', $sheet['provenance'], 'pas de provenance pour un champ vide');
     }
 
+    /** Revue des PR #19 et #20 : un constructeur sans libellé (Q529531) reste dans la liste, pas dans le texte joint. */
+    public function test_a_builder_without_a_label_stays_in_the_list_but_not_in_the_joined_text(): void
+    {
+        $sheet = $this->map($this->bb15000(['P176' => [['v' => 'Q309084', 'q' => [], 'rank' => 'normal'], ['v' => 'Q529531', 'q' => [], 'rank' => 'normal']]]));
+
+        $this->assertIsArray($sheet);
+        $this->assertSame('Alstom', $sheet['builder']);
+        $this->assertSame(['Alstom', 'Q529531'], array_column($sheet['builders'], 'name'), 'identifiant gardé, avec son wikidata_id');
+    }
+
     public function test_a_decade_is_not_a_year_and_an_impossible_retirement_is_dropped(): void
     {
         $decade = ['v' => ['time' => '+1970-00-00T00:00:00Z', 'precision' => 8], 'q' => [], 'rank' => 'normal'];

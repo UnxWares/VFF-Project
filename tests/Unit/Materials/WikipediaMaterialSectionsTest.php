@@ -160,9 +160,32 @@ class WikipediaMaterialSectionsTest extends TestCase
         yield 'exemple (872000)' => ['La fréquentation a augmenté de 89 % entre 2002 et 2008 coïncidant avec l\'arrivée de nouveaux matériels comme les ATER', false];
         yield 'appartenance (359000)' => ['Ces deux engins, achetés par la région Haute-Normandie affectés au dépôt de Sotteville-lès-Rouen, sont issus respectivement des familles des', false];
         yield 'restriction' => ['Il ne circule plus guère que des', false];
+        // Revue des PR #19 et #20 : « ne … plus <mot> que » est une restriction, la série citée est la seule à rouler.
+        yield 'restriction : n\'est plus desservie que' => ['La ligne n\'est plus desservie que par des', false];
+        yield 'restriction : n’est plus parcourue que' => ['Depuis 1990, la ligne n’est plus parcourue que par les autorails', false];
+        yield 'restriction : ne circule plus désormais que' => ['Il ne circule plus désormais que des', false];
+        yield 'restriction : n\'y a plus que' => ['Sur la ligne, il n\'y a plus que des', false];
+        yield 'comparaison niée : ne sont pas plus confortables que' => ['Ces autorails ne sont pas plus confortables que les', true];
+        yield 'comparaison : moins rapides que' => ['Ces autorails sont moins rapides que les', true];
         yield 'énumération' => ['La desserte est assurée aussi bien par des X 72500 que par des', false];
         yield 'comparaison close par une virgule' => ['Un confort similaire aux trains Corail, la desserte est assurée par des', false];
         yield 'comparaison dans une autre phrase' => ['Un confort similaire aux trains Corail. Les', false];
+    }
+
+    /** Revue des PR #19 et #20 : la restriction garde le lien et la période (compared faux). */
+    public function test_a_restriction_keeps_the_link_and_a_comparison_does_not(): void
+    {
+        foreach ([
+            "La ligne n'est plus desservie que par des [[X 73500]].",
+            'Depuis 1990, la ligne n’est plus parcourue que par les autorails [[X 73500]] de la région.',
+            'Il ne circule plus désormais que des [[X 73500]] sur la ligne.',
+        ] as $sentence) {
+            $this->assertSame(['X 73500'], array_column(WikipediaMaterialSections::links($sentence), 'target'), $sentence);
+            $compared = array_column(array_merge(...array_column(WikipediaMaterialSections::linkedSentences($sentence), 'links')), 'compared', 'target');
+            $this->assertSame(['X 73500' => false], $compared, $sentence);
+        }
+        $comparison = 'Ces autorails sont plus confortables que les [[X 2800]].';
+        $this->assertSame([], array_column(WikipediaMaterialSections::links($comparison), 'target'));
     }
 
     #[DataProvider('comparisons')]
@@ -226,6 +249,36 @@ class WikipediaMaterialSectionsTest extends TestCase
         // Ligne de Nice à Digne (révision 240211690) : les AMP 800 de Provence font partie de la famille AMG 800
         // (Wikidata Q2819261, alias AMP 800) ; « reprennent les mêmes principes que » n'est pas une comparaison écartée.
         yield 'famille, pas comparaison : AMG 800' => ['Ces autorails reprennent les mêmes principes que les autorails [[AMG 800]] de la Corse ou de la Tunisie, tout en étant adaptés aux besoins spécifiques du réseau des Chemins de fer de Provence.', 'AMG 800', null];
+    }
+
+    /**
+     * Revue des PR #19 et #20 : mots de doute trop larges. « Conservée » au sens de « gardée en service »,
+     * « considérablement », « commande centralisée » et « poste de commande » ne mettent pas en doute la
+     * circulation ; les preuves réelles de l'audit gardent leur famille (doubts()).
+     *
+     * @return iterable<string, array{string, string, ?string}>
+     */
+    public static function narrowDoubts(): iterable
+    {
+        yield 'conservées en service' => ["Les [[BB 67400]] ont été conservées sur la ligne jusqu'en 2010.", 'BB 67400', null];
+        yield 'considérablement' => ['Le trafic a augmenté considérablement avec les [[X 73500]].', 'X 73500', null];
+        yield 'considérable' => ['Les [[X 73500]] apportent un gain de temps considérable.', 'X 73500', null];
+        yield 'commande centralisée' => ['La ligne est exploitée en commande centralisée avec des [[X 73500]].', 'X 73500', null];
+        yield 'poste de commande' => ['Le poste de commande de Rennes suit les [[X 73500]] en continu.', 'X 73500', null];
+        yield 'conservée au musée' => ['Une locomotive [[BB 67400]] conservée au musée de Mulhouse.', 'BB 67400', 'preserved'];
+        yield 'conservée par une association' => ['La [[BB 67400]] 67401 est conservée par une association.', 'BB 67400', 'preserved'];
+        // Preuves réelles en base (audit du 19/11/2026) : familles inchangées.
+        yield 'audit : commande des automoteurs (Saint-Germain-des-Fossés à Nîmes)' => ['La région a pu rouler, mais sans suite du fait de la commande des automoteurs [[X 72500]] aptes à circuler à 160 km/h ;', 'X 72500', 'order'];
+        yield 'audit : rames commandées (LGV Rhin-Rhône)' => ["30 rames tricourants [[TGV 2N2|Duplex nouvelle génération (TGV 2N2)]] ont été commandées par la SNCF pour l'exploitation de la ligne dès sa mise en service.", 'TGV 2N2', 'order'];
+        yield 'audit : commandés neufs (Saint-Benoît à La Rochelle)' => ['Ces engins ont ensuite été cédés à la Région des Pays de la Loire en échange de quatre unités [[B 82500]] - AGC bimode bicourant commandés neufs par cette dernière.', 'B 82500', 'order'];
+        yield 'audit : acquisition (Saint-Cloud à Saint-Nom-la-Bretèche)' => ["Le 11 décembre 2013, le STIF a validé l'acquisition de dix-neuf rames [[Z 50000]] (Francilien), pour équiper les lignes de Versailles-Rive-Droite.", 'Z 50000', 'order'];
+        yield 'audit : considère la possibilité (Pauline)' => ["Dès {{date|octobre 1933}}, l'AL considère d'exploiter la section avec des autorails de la [[ligne de Sélestat à Lesseux - Frapelle]].", 'Ligne de Sélestat à Lesseux - Frapelle', 'possible'];
+    }
+
+    #[DataProvider('narrowDoubts')]
+    public function test_doubt_words_are_not_too_broad(string $wikitext, string $target, ?string $doubt): void
+    {
+        $this->test_doubt_families_on_real_sentences($wikitext, $target, $doubt);
     }
 
     #[DataProvider('doubts')]

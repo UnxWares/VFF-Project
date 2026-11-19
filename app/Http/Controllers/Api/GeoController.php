@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Era;
 use App\Services\GeoExporter;
 use App\Services\TraceExport\LineTraceExport;
+use App\Support\MapTiles;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
@@ -25,9 +26,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Group('Cartographie par ère', "Le réseau tel qu'il était à la fin d'une décennie : tracés et gares en GeoJSON, tuiles vectorielles MVT pour MapLibre.", weight: 1)]
 class GeoController extends Controller
 {
-    /** Zoom maximal servi (la carte VFF demande au plus z14). */
-    private const MAX_ZOOM = 22;
-
     public function __construct(protected GeoExporter $exporter) {}
 
     /**
@@ -261,31 +259,43 @@ class GeoController extends Controller
      * pour les voies partagées entre plusieurs lignes, `draw_rank` (ordre de
      * dessin : la portion la plus active au-dessus) et `covered` (`true` :
      * portion recouverte par une ligne plus active à cette ère, que la carte VFF
-     * ne dessine pas). Zoom 0 à 22 ; la carte VFF n'en demande pas au-delà de 14.
+     * ne dessine pas).
+     *
+     * **Zooms 0 à 14** : la carte VFF n'en demande pas au-delà, et MapLibre agrandit
+     * lui-même la tuile 14 aux zooms suivants (déclarez `maxzoom: 14` dans la source).
+     * Au-delà, HTTP 404.
+     *
+     * **Géométrie pour l'écran** : chaque tracé est découpé dans la grille de la
+     * tuile (4 096 unités de côté, plus une marge de 256), qui arrondit ses
+     * coordonnées : 153 m au zoom 6, 9,6 m au zoom 10, 0,6 m au zoom 14 (mètres Web
+     * Mercator ; environ deux tiers sur le terrain en France). À partir du zoom 10,
+     * il est d'abord simplifié (Douglas-Peucker) : tolérance d'un demi-pixel d'écran
+     * aux zooms 10 à 13 (38 m au zoom 10, 4,8 m au zoom 13), d'une unité de la
+     * grille au zoom 14 (0,6 m Web Mercator, 0,4 m sur le terrain).
      *
      * **Affichage, pas export** : les tuiles servent à afficher la carte du site et
      * la carte intégrable (`/embed/maps`). Elles dessinent tous les tracés, y compris
      * ceux d'une source dont la licence n'autorise pas la redistribution, mais ne
-     * sont pas un export de données : leur géométrie est découpée et simplifiée pour
-     * l'écran. Pour réutiliser des tracés, servez-vous du GeoJSON de l'ère, de
-     * `/lines/{line}/geojson`, `/gpx` ou `/kml`, qui suivent la règle des droits.
+     * sont pas un export de données. Pour réutiliser des tracés, servez-vous du
+     * GeoJSON de l'ère, de `/lines/{line}/geojson`, `/gpx` ou `/kml`, qui suivent la
+     * règle des droits.
      *
      * @param  int  $year  Année de l'ère (décennie de 1830 à 2030 ; 2030 = aujourd'hui).
-     * @param  int  $z  Niveau de zoom (0 à 22).
+     * @param  int  $z  Niveau de zoom (0 à 14).
      * @param  int  $x  Colonne de la tuile (0 à 2^z - 1).
      * @param  int  $y  Rangée de la tuile (0 à 2^z - 1, origine en haut à gauche).
      */
     #[PathParameter('year', "Année de l'ère : une décennie de 1830 à 2030 (2030 = réseau actuel).", example: 2030)]
-    #[PathParameter('z', 'Niveau de zoom, de 0 à 22.', example: 8)]
+    #[PathParameter('z', 'Niveau de zoom, de 0 à 14 (au-delà, MapLibre agrandit la tuile 14).', example: 8)]
     #[PathParameter('x', 'Colonne de la tuile dans la grille XYZ (0 à 2^z - 1).', example: 129)]
     #[PathParameter('y', 'Rangée de la tuile dans la grille XYZ (0 à 2^z - 1, origine en haut à gauche).', example: 88)]
     #[ApiResponse(200, 'Tuile Mapbox Vector Tile binaire (protobuf), éventuellement vide.', mediaType: 'application/x-protobuf', type: 'string', format: 'binary')]
-    #[ApiResponse(404, 'Tuile hors de la grille XYZ (x ou y >= 2^z) ou zoom supérieur à 22.')]
+    #[ApiResponse(404, 'Tuile hors de la grille XYZ (x ou y >= 2^z) ou zoom supérieur à 14.')]
     public function tile(int $year, int $z, int $x, int $y): Response
     {
-        // Tuile hors de la grille XYZ (ou zoom > 22) : elle n'existe pas. Sans ce
+        // Tuile hors de la grille XYZ (ou zoom > 14) : elle n'existe pas. Sans ce
         // contrôle, ST_TileEnvelope lève « Invalid tile x value » (HTTP 500).
-        abort_unless($z <= self::MAX_ZOOM && $x < (1 << $z) && $y < (1 << $z), 404);
+        abort_unless(MapTiles::onGrid($z, $x, $y), 404);
 
         $tile = $this->exporter->linesAsMvt($year, $z, $x, $y);
 

@@ -122,6 +122,7 @@ class ApiRobustnessTest extends TestCase
     public static function outOfRangeTiles(): array
     {
         return [
+            'zoom 15 (la carte s\'arrête au zoom 14)' => ['/api/v1/eras/2030/tiles/15/0/0.mvt'],
             'zoom 23' => ['/api/v1/eras/2030/tiles/23/0/0.mvt'],
             'zoom 99' => ['/api/v1/eras/2030/tiles/99/0/0.mvt'],
             'x hors grille' => ['/api/v1/eras/2030/tiles/8/256/88.mvt'],
@@ -140,7 +141,7 @@ class ApiRobustnessTest extends TestCase
     public function test_tile_at_grid_limits_is_valid(): void
     {
         $this->get('/api/v1/eras/2030/tiles/0/0/0.mvt')->assertOk()->assertHeader('Content-Type', 'application/x-protobuf');
-        $this->get('/api/v1/eras/2030/tiles/22/4194303/4194303.mvt')->assertOk()->assertContent('');
+        $this->get('/api/v1/eras/2030/tiles/14/16383/16383.mvt')->assertOk()->assertContent('');
     }
 
     /** @return array<string, array{0: string}> */

@@ -73,14 +73,16 @@ class MaterialResource extends JsonResource
              */
             'description' => $this->description,
             /**
-             * Constructeurs, en une ligne lisible (noms séparés par des virgules). Nul si inconnu.
+             * Constructeurs, en une ligne lisible (noms séparés par des virgules), sans ceux qui n'ont pas de
+             * libellé Wikidata (voir `builders`). Nul si inconnu.
              *
              * @example Alstom, Matériel de Traction Électrique
              */
             'builder' => $this->builder,
             /**
              * Constructeurs, un par entrée : `name`, `wikidata_id` et `units` (engins construits par lui, nul si
-             * Wikidata ne le précise pas).
+             * Wikidata ne le précise pas). Un élément Wikidata sans libellé en français ni en anglais garde son
+             * identifiant comme `name` (ex. `Q529531`) : le site ne l'affiche pas comme un nom.
              *
              * @var list<array{name: string, wikidata_id: string|null, units: int|null}>
              */

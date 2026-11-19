@@ -13,8 +13,10 @@ use App\Models\LineSegment;
 use App\Models\User;
 use App\Models\WebhookDelivery;
 use App\Services\Api\ApiTokens;
+use App\Services\TraceContributionService;
 use App\Services\Webhooks\HostResolver;
 use App\Services\Webhooks\WebhookSubscriptions;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
@@ -593,10 +595,39 @@ class ContributionMutationsTest extends TestCase
 
         $response = $this->validateWithToken($this->token($this->member('validator')), $c->id);
         $this->assertErrorCode($response, 'application_failed', 'validateContribution');
-        $response->assertJsonPath('errors.0.extensions.reason', 'Pas de géométrie pour 999 000 ère 1900');
+        // Raison stable, jamais le message de l'erreur (qui reste dans le journal).
+        $response->assertJsonPath('errors.0.extensions.reason', 'no_geometry');
+        $this->assertStringNotContainsString('Pas de géométrie', (string) $response->getContent());
 
         $this->assertSame('approved', $c->fresh()->status->value);
         $this->assertSame(1, DB::table('contribution_approvals')->count());
+    }
+
+    public function test_an_unexpected_publication_error_never_reaches_the_caller(): void
+    {
+        // Erreur SQL pendant la publication d'un tracé : QueryException hérite de RuntimeException.
+        $this->app->instance(TraceContributionService::class, new class extends TraceContributionService
+        {
+            public function apply(Contribution $contribution): array
+            {
+                throw new QueryException('pgsql', 'insert into lines (name, secret_column) values (?, ?)', ['Ligne témoin', 'valeur-privée'],
+                    new \PDOException('SQLSTATE[23505]: Unique violation: 7 ERROR:  duplicate key value violates unique constraint "lines_slug_unique"'));
+            }
+        });
+        $c = Contribution::factory()->create([
+            'user_id' => $this->member('contributor')->id, 'type' => TraceContributionService::TYPE, 'action' => 'create',
+            'status' => 'approved', 'payload' => ['kind' => 'new_line', 'new_line_name' => 'Ligne témoin', 'portions' => []],
+        ]);
+        DB::table('contribution_approvals')->insert(['contribution_id' => $c->id, 'user_id' => $this->member('validator')->id, 'approved_at' => now()]);
+
+        $response = $this->validateWithToken($this->token($this->member('admin')), $c->id);
+        $this->assertErrorCode($response, 'application_failed', 'validateContribution');
+        $response->assertJsonPath('errors.0.extensions.reason', 'internal_error');
+        foreach (['SQLSTATE', 'insert into', 'secret_column', 'valeur-privée', 'lines_slug_unique'] as $leak) {
+            $this->assertStringNotContainsString($leak, (string) $response->getContent());
+        }
+        $this->assertSame('approved', $c->fresh()->status->value);
+        $this->assertSame(1, DB::table('contribution_approvals')->count(), 'approbation annulée avec la transaction');
     }
 
     public function test_a_validator_reviews_through_the_site_session(): void
@@ -607,6 +638,51 @@ class ContributionMutationsTest extends TestCase
             ->graphQL(self::VALIDATE, ['id' => (string) $c->id, 'decision' => 'APPROVE'])
             ->assertGraphQLErrorFree()
             ->assertJsonPath('data.validateContribution.outcome', 'APPROVED');
+    }
+
+    /** Opération à `$n` alias de submitContribution (a0, a1…), même proposition pour chacun. */
+    private static function aliasedSubmissions(int $n): string
+    {
+        $fields = implode("\n", array_map(fn (int $i): string => "a{$i}: submitContribution(input: \$input) { id }", range(0, $n - 1)));
+
+        return "mutation (\$input: ContributionInput!) {\n{$fields}\n}";
+    }
+
+    public function test_each_aliased_mutation_counts_as_one_request(): void
+    {
+        $token = $this->token($this->member('contributor'));
+
+        $this->withToken($token)->graphQL(self::aliasedSubmissions(3), ['input' => ['segment' => $this->segment()]])
+            ->assertGraphQLErrorFree()
+            ->assertHeader('X-RateLimit-Limit', '1200')
+            ->assertHeader('X-RateLimit-Remaining', '1197');
+        $this->assertSame(3, Contribution::count());
+
+        // Lot de deux opérations dans un seul POST : deux mutations, deux requêtes.
+        $this->withToken($token)->postJson('/graphql', [
+            ['query' => self::SUBMIT, 'variables' => ['input' => ['segment' => $this->segment()]]],
+            ['query' => self::SUBMIT, 'variables' => ['input' => ['segment' => $this->segment()]]],
+        ])->assertOk()->assertHeader('X-RateLimit-Remaining', '1195');
+        $this->assertSame(5, Contribution::count());
+    }
+
+    public function test_mutations_beyond_the_rate_limit_are_refused_without_writing(): void
+    {
+        config(['api.rate_limits.member' => 3]);
+        $token = $this->token($this->member('contributor'));
+
+        $response = $this->withToken($token)->graphQL(self::aliasedSubmissions(5), ['input' => ['segment' => $this->segment()]])->assertOk();
+        // La requête HTTP compte la première mutation : la 4e dépasse la limite et n'est pas faite. Les
+        // champs de mutation sont non nuls : son erreur annule `data` entier, et la 5e n'est pas exécutée.
+        $this->assertSame([['a3']], array_column($response->json('errors'), 'path'));
+        $this->assertSame('too_many_requests', $response->json('errors.0.extensions.code'));
+        $this->assertGreaterThan(0, $response->json('errors.0.extensions.retry_after'));
+        $response->assertJsonPath('data', null);
+        $this->assertSame(3, Contribution::count());
+
+        // Limite atteinte : la requête suivante est refusée avant GraphQL.
+        $this->submitWithToken($token, ['segment' => $this->segment()])->assertStatus(429);
+        $this->assertDatabaseCount('contributions', 3);
     }
 
     public function test_mutations_are_refused_over_get(): void
