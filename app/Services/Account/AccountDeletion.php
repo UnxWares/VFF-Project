@@ -22,9 +22,9 @@ use Illuminate\Support\Str;
  *   - les approbations données comme validateur restent comptées mais ne désignent plus
  *     personne ; les décisions de relecture passent à reviewed_by NULL (clé étrangère) ;
  *   - le profil (nom, courriel, mot de passe, présentation, avatar, langue), les jetons d'API et
- *     les demandes de réinitialisation du mot de passe disparaissent avec la ligne users. Les
- *     sessions et les cookies « se souvenir de moi » deviennent inopérants : ils désignent un
- *     compte qui n'existe plus ;
+ *     les demandes de réinitialisation du mot de passe disparaissent avec la ligne users, comme
+ *     ses notifications du site. Les sessions et les cookies « se souvenir de moi » deviennent
+ *     inopérants : ils désignent un compte qui n'existe plus ;
  *   - l'identifiant du compte, recopié dans les propriétés des tracés bruts (source_traces,
  *     source « contrib »), en est retiré.
  *
@@ -65,6 +65,8 @@ final readonly class AccountDeletion
             );
 
             $user->tokens()->delete();
+            // Notifications du site (relation polymorphe : aucune clé étrangère ne les supprime).
+            $user->notifications()->delete();
             DB::table('password_reset_tokens')->where('email', $user->email)->delete();
 
             $summary = new AccountDeletionSummary(

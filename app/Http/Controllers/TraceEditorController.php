@@ -7,6 +7,7 @@ use App\Enums\ContributionStatus;
 use App\Models\Contribution;
 use App\Models\Era;
 use App\Models\Line;
+use App\Services\Notifications\ContributionNotifier;
 use App\Services\TraceContributionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -100,7 +101,7 @@ class TraceEditorController extends Controller
     }
 
     /** POST /contribute/trace - enregistre la proposition (statut pending). */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ContributionNotifier $notifier): RedirectResponse
     {
         $data = $request->validate(TraceContributionService::rules(), TraceContributionService::messages());
         ['payload' => $payload, 'line' => $line] = $this->traces->normalize($data);
@@ -114,6 +115,7 @@ class TraceEditorController extends Controller
             'status' => ContributionStatus::Pending->value,
             'payload' => $payload,
         ]);
+        $notifier->submitted($contribution);
 
         return redirect()->route('contribute.thanks', ['id' => $contribution->id]);
     }

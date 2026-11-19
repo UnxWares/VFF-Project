@@ -81,7 +81,7 @@
                 <ol class="list" aria-label={$i18n.t('editor.mine.list_label')}>
                     {#each contributions as c (c.id)}
                         {@const changes = changeEntries(c.payload?.changes, tr, $i18n.language)}
-                        <li class="item">
+                        <li class="item" id="contribution-{c.id}">
                             <div class="head">
                                 <h2>
                                     {title(c)}
@@ -214,6 +214,7 @@
         border-top: 1px solid var(--vff-border);
     }
     .item {
+        scroll-margin-top: calc(var(--vff-header-h) + var(--vff-space-4));
         display: flex;
         flex-direction: column;
         gap: var(--vff-space-3);

@@ -12,6 +12,7 @@ use App\Http\Controllers\LineController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\TraceEditorController;
@@ -114,6 +115,11 @@ Route::middleware('auth')->group(function (): void {
     // Limités en fréquence : l'export lit toutes les contributions, la suppression vérifie le mot de passe.
     Route::get('/profile/data', [AccountController::class, 'export'])->middleware('throttle:6,1')->name('profile.export');
     Route::delete('/profile', [AccountController::class, 'destroy'])->middleware('throttle:6,1')->name('profile.destroy');
+
+    // Notifications sur le site (suite donnée aux contributions, relectures en attente).
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::get('/notifications/{notification}', [NotificationController::class, 'open'])->name('notifications.open');
 
     // Contributions (membres connectés)
     Route::get('/contribute/mine', [ContributionController::class, 'mine'])->name('contribute.mine');

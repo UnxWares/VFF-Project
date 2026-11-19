@@ -127,7 +127,11 @@
                             c.target?.name ?? c.payload.line_name ?? c.payload.new_line_name}
                         {@const lineCode = c.target?.code ?? c.payload.line_code}
                         {@const lineSlug = c.target?.slug ?? c.payload.line_slug}
-                        <article class="contrib" aria-labelledby="contrib-{c.id}-title">
+                        <article
+                            class="contrib"
+                            id="contribution-{c.id}"
+                            aria-labelledby="contrib-{c.id}-title"
+                        >
                             <div class="contrib-head">
                                 <div class="head-text">
                                     <p class="kind">
@@ -577,6 +581,7 @@
         gap: var(--vff-block-space);
     }
     .contrib {
+        scroll-margin-top: calc(var(--vff-header-h) + var(--vff-space-4));
         min-width: 0;
         border: 1px solid var(--vff-border);
         border-radius: var(--vff-radius-md);
