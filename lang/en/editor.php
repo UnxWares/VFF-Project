@@ -295,6 +295,11 @@ return [
             'partial' => 'Approval recorded (:count of :threshold): the contribution is waiting for another validator.',
             'rejected' => 'Contribution rejected.',
             'failed' => 'Publication failed: :message',
+            'failures' => [
+                'no_geometry' => 'the line has no route at the time of this contribution. Nothing was written.',
+                'line_not_found' => 'the line this route corrects no longer exists. Nothing was written.',
+                'internal_error' => 'unexpected error, logged for the team. Nothing was written.',
+            ],
         ],
         'errors' => [
             'reason_required' => 'Enter the reason for the rejection, at least :min characters. It is sent to the contributor.',

@@ -2,6 +2,7 @@
 
 namespace App\GraphQL\Exceptions;
 
+use App\Services\Contributions\PublicationFailure;
 use Carbon\CarbonInterface;
 use GraphQL\Error\ClientAware;
 use GraphQL\Error\ProvidesExtensions;
@@ -18,12 +19,15 @@ use GraphQL\Error\ProvidesExtensions;
  *   - insufficient_scope : jeton sans la capacité `contribute` ;
  *   - csrf_token_mismatch : session du site sans jeton CSRF valide ;
  *   - account_suspended : compte suspendu ;
+ *   - too_many_requests : limite de débit atteinte, chaque mutation comptant pour une requête ;
  *   - forbidden : relecture demandée par un compte qui n'est ni validateur ni administrateur ;
  *   - not_found : contribution inconnue ou retirée ;
  *   - own_contribution : relecture de sa propre contribution ;
  *   - already_closed : contribution déjà refusée ou publiée ;
  *   - already_approved : deuxième approbation du même validateur ;
- *   - application_failed : la publication a échoué, rien n'est écrit.
+ *   - application_failed : la publication a échoué, rien n'est écrit ; `extensions.reason` donne la
+ *     raison stable (PublicationFailure : no_geometry, line_not_found, internal_error), jamais le
+ *     message brut de l'erreur.
  */
 final class ContributionApiError extends \Exception implements ClientAware, ProvidesExtensions
 {
@@ -60,6 +64,13 @@ final class ContributionApiError extends \Exception implements ClientAware, Prov
         ]);
     }
 
+    public static function tooManyRequests(int $retryAfter): self
+    {
+        return new self('Rate limit reached: each mutation counts as one request. Retry after the delay in "retry_after" (seconds).', 'too_many_requests', [
+            'retry_after' => $retryAfter,
+        ]);
+    }
+
     public static function forbidden(): self
     {
         return new self('Only validators and administrators can review contributions.', 'forbidden');
@@ -85,10 +96,11 @@ final class ContributionApiError extends \Exception implements ClientAware, Prov
         return new self('You have already approved this contribution.', 'already_approved');
     }
 
-    public static function applicationFailed(string $reason): self
+    /** Raison stable dans `extensions.reason` ; le détail de l'erreur reste dans le journal du site. */
+    public static function applicationFailed(PublicationFailure $failure): self
     {
         return new self('The contribution could not be published; nothing was written and your approval was cancelled.', 'application_failed', [
-            'reason' => $reason,
+            'reason' => $failure->value,
         ]);
     }
 

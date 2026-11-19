@@ -34,7 +34,13 @@ class SourceRightsReport extends Command
 
     protected $description = 'Droits des sources : registre, contrôle des provenances, mesure de dépendance (lecture seule).';
 
-    /** Provenances lues en base : clé du registre => requête SQL des valeurs distinctes. */
+    /**
+     * Provenances lues en base : clé du registre => requête SQL des valeurs distinctes. Chaque table du
+     * registre (sources et composites) y a sa requête : SourceRightsCommandTest échoue sinon. Les tables
+     * sans colonne de provenance (passages à niveau, signalisation actuelle) viennent toutes de SNCF
+     * Réseau : leur requête donne la valeur que l'API sert pour elles (Provenance::for(…, 'sncf')) dès
+     * qu'elles ont une ligne.
+     */
     public const PROVENANCE_QUERIES = [
         'line_events' => 'SELECT DISTINCT source AS v FROM line_events WHERE source IS NOT NULL',
         'source_traces' => 'SELECT DISTINCT source AS v FROM source_traces',
@@ -55,6 +61,9 @@ class SourceRightsReport extends Command
         'accident_sources' => 'SELECT DISTINCT provider AS v FROM accident_sources',
         'line_profiles' => 'SELECT DISTINCT source AS v FROM line_profiles',
         'line_greenways' => 'SELECT DISTINCT source AS v FROM line_greenways',
+        'sncf_level_crossings' => "SELECT DISTINCT 'sncf' AS v FROM sncf_level_crossings",
+        'line_signalling' => "SELECT DISTINCT 'sncf' AS v FROM line_signalling",
+        'line_signalling_events' => 'SELECT DISTINCT source AS v FROM line_signalling_events',
     ];
 
     public function handle(): int

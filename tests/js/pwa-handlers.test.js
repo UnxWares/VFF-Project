@@ -1,4 +1,6 @@
 // Stratégies du service worker (resources/js/pwa/handlers.js) avec réseau et caches simulés.
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it, vi } from 'vitest';
 import {
     cacheFirst,
@@ -335,6 +337,105 @@ describe('inertia : copies des visites', () => {
     it('sans copie, demande toujours une visite complète', async () => {
         const response = await inertia(visit('/lines/z'), offlineDeps({ fetch: offline() }));
         expect(response.status).toBe(409);
+    });
+});
+
+// Vraies réponses du serveur de développement, réduites (voir tests/js/pwa-offline-copy.test.js).
+describe('hors ligne : props « once » absentes des copies Inertia', () => {
+    const fixture = (name) =>
+        readFileSync(fileURLToPath(new URL(`./fixtures/offline/${name}`, import.meta.url)), 'utf8');
+    const saved = { 'X-VFF-Saved-At': new Date(NOW).toISOString() };
+    const doc = (path) =>
+        fakeRequest(`https://vff-project.org${path}`, {
+            mode: 'navigate',
+            destination: 'document',
+        });
+    const visit = (path, once) =>
+        fakeRequest(`https://vff-project.org${path}`, {
+            headers: { 'X-Inertia': 'true', 'X-Inertia-Except-Once-Props': once },
+        });
+
+    /** Cache des pages : copies HTML (les plus anciennes d'abord), puis copies Inertia. */
+    async function pages(d, html, inertiaCopies) {
+        const cache = await d.caches.open('vff-pages-v1');
+        for (const [path, name] of html) {
+            await cache.put(
+                `https://vff-project.org${path}?__vff-copy=html`,
+                new Response(fixture(name), { headers: saved }),
+            );
+        }
+        for (const [path, name] of inertiaCopies) {
+            const url = new URL(`https://vff-project.org${path}`);
+            await cache.put(
+                `${url.origin}${url.pathname}${url.search}${url.search ? '&' : '?'}__vff-copy=inertia`,
+                new Response(fixture(name), { headers: saved }),
+            );
+        }
+    }
+
+    const pageOf = (html) =>
+        JSON.parse(/<script\b[^>]*data-page="app"[^>]*>([\s\S]*?)<\/script>/.exec(html)[1]);
+
+    it('rouvre /lines depuis un favori avec ses traductions', async () => {
+        const d = offlineDeps({ fetch: offline() });
+        await pages(d, [['/', 'home-fr.html']], [['/lines', 'lines.inertia.json']]);
+        const response = await navigation(doc('/lines'), d);
+        expect(response.status).toBe(200);
+        const page = pageOf(await response.text());
+        expect(page.component).toBe('Lines/Index');
+        expect(page.props.translations['common.app_description']).toBeTruthy();
+    });
+
+    it('préfère l enveloppe qui porte les menus des accidents, même plus ancienne', async () => {
+        const d = offlineDeps({ fetch: offline() });
+        await pages(
+            d,
+            [
+                ['/accidents', 'accidents-fr.html'],
+                ['/', 'home-fr.html'],
+            ],
+            [['/accidents?decade=1950', 'accidents-decade-1950.inertia.json']],
+        );
+        const page = pageOf(await (await navigation(doc('/accidents?decade=1950'), d)).text());
+        expect(page.props.filters.decade).toBe(1950);
+        expect(page.props.facets.decades.length).toBeGreaterThan(0);
+        expect(page.props.translations['common.app_description']).toBeTruthy();
+    });
+
+    it('sert la page hors ligne plutôt qu une page sans texte (enveloppe d une autre langue)', async () => {
+        const d = offlineDeps({ fetch: offline() });
+        await pages(d, [['/', 'home-en.html']], [['/lines', 'lines.inertia.json']]);
+        await (
+            await d.caches.open(OFFLINE_CACHE)
+        ).put(OFFLINE_KEY, new Response('<h1>Hors ligne</h1>'));
+        const response = await navigation(doc('/lines'), d);
+        expect(response.status).toBe(503);
+    });
+
+    it('complète une visite Inertia des menus qui manquent au navigateur', async () => {
+        const d = offlineDeps({ fetch: offline() });
+        await pages(
+            d,
+            [['/accidents', 'accidents-fr.html']],
+            [['/accidents?decade=1950', 'accidents-decade-1950.inertia.json']],
+        );
+        // Depuis la carte : le navigateur a les traductions, pas les menus.
+        const response = await inertia(visit('/accidents?decade=1950', 'translations.fr'), d);
+        expect(response.status).toBe(200);
+        const page = await response.json();
+        expect(page.props.facets.decades.length).toBeGreaterThan(0);
+        expect(page.props.offline_copy).toEqual({ saved_at: '2026-11-19T12:00:00.000Z' });
+    });
+
+    it('laisse le navigateur recoller ses traductions, sinon demande une visite complète', async () => {
+        const d = offlineDeps({ fetch: offline() });
+        await pages(d, [['/', 'home-en.html']], [['/lines', 'lines.inertia.json']]);
+        const same = await inertia(visit('/lines', 'translations.fr'), d);
+        expect(same.status).toBe(200);
+        expect((await same.json()).props).not.toHaveProperty('translations'); // Inertia les recolle
+        // Le navigateur est passé en anglais depuis la copie : rien ne fournit les traductions françaises.
+        const other = await inertia(visit('/lines', 'translations.en'), d);
+        expect(other.status).toBe(409);
     });
 });
 

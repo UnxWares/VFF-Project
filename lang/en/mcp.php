@@ -47,6 +47,10 @@ return [
     'truncated_page' => 'Page shortened to stay under the maximum size: next_cursor resumes at the first item not returned, so nothing is lost.',
     'between' => 'between :from and :to (no source dates this change)',
     'today' => 'today',
+    'dates' => [
+        'unknown_after' => 'date unknown, after :year (no source gives it)',
+        'unknown' => 'date unknown (no source gives it)',
+    ],
 
     'accidents' => [
         'review_note' => 'Record “to be checked”: at least one point is uncertain (tolls or dates that differ between sources, place known only to the commune, uncertain line). Do not present it as certain: the details are in review.notes of get_accident.',

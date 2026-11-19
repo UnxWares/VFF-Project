@@ -80,9 +80,12 @@ final readonly class ContributionReview
         try {
             return $this->approveInTransaction($contribution, $reviewer);
         } catch (\RuntimeException $e) {
+            // L'erreur complète part au journal ; l'appelant ne reçoit qu'une raison stable, jamais le
+            // message brut (une erreur SQL citerait la requête et ses valeurs).
             report($e);
 
-            return new ReviewResult(ReviewOutcome::Failed, $contribution->fresh(), error: $e->getMessage());
+            return new ReviewResult(ReviewOutcome::Failed, $contribution->fresh(),
+                failure: $e instanceof ContributionNotPublishable ? $e->failure : PublicationFailure::InternalError);
         }
     }
 
@@ -206,7 +209,7 @@ final readonly class ContributionReview
      * Applique une modification par PK à la géométrie : trouve la sous-ligne via PostGIS
      * (ST_LineSubstring sur le merge) et met à jour les tronçons qui la rencontrent.
      *
-     * @throws \RuntimeException la ligne n'a pas de géométrie à l'ère visée
+     * @throws ContributionNotPublishable la ligne n'a pas de géométrie à l'ère visée
      */
     private function applySegment(Contribution $contribution): void
     {
@@ -222,7 +225,7 @@ final readonly class ContributionReview
             [$line->id, $era->id],
         );
         if (! $total || ! $total->total_m) {
-            throw new \RuntimeException("Pas de géométrie pour {$line->code} ère {$era->year}");
+            throw new ContributionNotPublishable(PublicationFailure::NoGeometry, "Pas de géométrie pour {$line->code} ère {$era->year}");
         }
 
         $totalM = (float) $total->total_m;

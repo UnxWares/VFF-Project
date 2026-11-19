@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Era;
 use App\Services\EraComparison;
 use App\Services\NetworkErosion;
+use App\Support\MapTiles;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
@@ -15,9 +16,6 @@ use Illuminate\Http\Response;
 #[Group('Cartographie par ère', "Le réseau tel qu'il était à la fin d'une décennie : tracés et gares en GeoJSON, tuiles vectorielles MVT pour MapLibre.", weight: 1)]
 class EraComparisonController extends Controller
 {
-    /** Zoom maximal servi (comme les tuiles d'une ère). */
-    private const MAX_ZOOM = 22;
-
     /** En-têtes des tuiles : mêmes règles que les tuiles d'une ère (cache court, CORS ouvert). */
     private const TILE_HEADERS = [
         'Content-Type' => 'application/x-protobuf',
@@ -101,21 +99,22 @@ class EraComparisonController extends Controller
      * `line_slug`, `line_name`, `line_code`. Années dans n'importe quel ordre, comme pour la
      * comparaison. Une tuile sans changement est vide (corps de 0 octet).
      *
-     * Affichage, pas export : comme les tuiles de l'ère, elle sert à la carte du site et dessine
-     * aussi les tracés d'une source dont la licence n'autorise pas la redistribution. Pour
+     * Affichage, pas export : comme les tuiles de l'ère (zooms 0 à 14, coordonnées arrondies à la
+     * grille de la tuile, géométrie simplifiée à partir du zoom 10), elle sert à la carte du site et
+     * dessine aussi les tracés d'une source dont la licence n'autorise pas la redistribution. Pour
      * réutiliser des tracés, servez-vous des exports qui suivent la règle des droits.
      */
     #[PathParameter('year', 'Première année comparée (décennie).', example: 1930)]
     #[PathParameter('other', 'Seconde année comparée (décennie).', example: 1980)]
-    #[PathParameter('z', 'Niveau de zoom (0 à 22 ; la carte VFF demande au plus 14).', example: 6)]
+    #[PathParameter('z', 'Niveau de zoom, de 0 à 14 (au-delà, MapLibre agrandit la tuile 14).', example: 6)]
     #[PathParameter('x', 'Colonne de la tuile dans la grille XYZ.', example: 32)]
     #[PathParameter('y', 'Rangée de la tuile dans la grille XYZ.', example: 22)]
     #[ApiResponse(200, 'Tuile MVT (protobuf binaire).')]
-    #[ApiResponse(404, 'Ère inconnue, ou tuile hors de la grille XYZ.', examples: [ErrorExamples::ERA_NOT_FOUND])]
+    #[ApiResponse(404, 'Ère inconnue, ou tuile hors de la grille XYZ (zoom supérieur à 14 compris).', examples: [ErrorExamples::ERA_NOT_FOUND])]
     #[ApiResponse(422, 'Les deux années sont identiques.', examples: [['message' => 'Choose two different eras to compare.']])]
     public function tile(int $year, int $other, int $z, int $x, int $y): Response|JsonResponse
     {
-        abort_unless($this->onGrid($z, $x, $y), 404);
+        abort_unless(MapTiles::onGrid($z, $x, $y), 404);
         $pair = $this->resolve($year, $other);
         if ($pair instanceof JsonResponse) {
             return $pair;
@@ -137,25 +136,21 @@ class EraComparisonController extends Controller
      * Les décennies sont des instantanés au 31/12 : `last_year` = 1950 signifie en service au
      * 31/12/1950 mais plus au 31/12/1960.
      *
-     * Affichage, pas export : comme les tuiles de l'ère, elle sert à la carte du site et dessine
-     * aussi les tracés d'une source dont la licence n'autorise pas la redistribution. Pour
+     * Affichage, pas export : comme les tuiles de l'ère (zooms 0 à 14, coordonnées arrondies à la
+     * grille de la tuile, géométrie simplifiée à partir du zoom 10), elle sert à la carte du site et
+     * dessine aussi les tracés d'une source dont la licence n'autorise pas la redistribution. Pour
      * réutiliser des tracés, servez-vous des exports qui suivent la règle des droits.
      */
-    #[PathParameter('z', 'Niveau de zoom (0 à 22 ; la carte VFF demande au plus 14).', example: 6)]
+    #[PathParameter('z', 'Niveau de zoom, de 0 à 14 (au-delà, MapLibre agrandit la tuile 14).', example: 6)]
     #[PathParameter('x', 'Colonne de la tuile dans la grille XYZ.', example: 32)]
     #[PathParameter('y', 'Rangée de la tuile dans la grille XYZ.', example: 22)]
     #[ApiResponse(200, 'Tuile MVT (protobuf binaire).')]
-    #[ApiResponse(404, 'Tuile hors de la grille XYZ.')]
+    #[ApiResponse(404, 'Tuile hors de la grille XYZ, ou zoom supérieur à 14.')]
     public function stackedTile(int $z, int $x, int $y): Response
     {
-        abort_unless($this->onGrid($z, $x, $y), 404);
+        abort_unless(MapTiles::onGrid($z, $x, $y), 404);
 
         return response($this->erosion->tile($z, $x, $y), 200, self::TILE_HEADERS);
-    }
-
-    private function onGrid(int $z, int $x, int $y): bool
-    {
-        return $z <= self::MAX_ZOOM && $x < (1 << $z) && $y < (1 << $z);
     }
 
     /**

@@ -1,6 +1,14 @@
 // Stratégies du service worker, avec leurs dépendances injectées (cache, réseau, horloge, quota) : testables
 // sans navigateur (tests/js/pwa-handlers.test.js).
-import { htmlFromInertiaCopy, markHtmlCopy, markPage, readPageFromHtml } from './offlineCopy.js';
+import {
+    fillOnceProps,
+    hasEssentialOnceProps,
+    htmlFromInertiaCopy,
+    markHtmlCopy,
+    markPage,
+    missingOnceProps,
+    readPageFromHtml,
+} from './offlineCopy.js';
 import {
     MAP_DATA_MAX_AGE_MS,
     MAX_MAP_DATA_ENTRIES,
@@ -133,16 +141,55 @@ export async function offlineResponse(caches) {
     });
 }
 
-/** Une enveloppe HTML encore valable parmi les pages rangées (la plus récente d'abord). */
-async function findShell(cache, now) {
+/**
+ * Document HTML encore valable parmi les pages rangées, pour compléter une copie Inertia, la plus récente
+ * d'abord : de préférence une page qui porte toutes les props « once » qui manquent à la copie
+ * (traductions de la même langue, menus des accidents), sinon une page qui porte au moins les
+ * indispensables ; null si aucune ne convient. `provided` : clés que le navigateur recollera lui-même.
+ *
+ * @param {Cache} cache
+ * @param {number} now
+ * @param {object} page copie Inertia
+ * @param {string[]} [provided]
+ * @returns {Promise<string | null>}
+ */
+async function findShell(cache, now, page, provided = []) {
+    let fallback = null;
     const keys = await cache.keys();
     for (const key of [...keys].reverse()) {
         const url = typeof key === 'string' ? key : key.url;
         if (!url.endsWith('__vff-copy=html')) continue;
         const copy = await readCopy(cache, key, now, PAGE_MAX_AGE_MS);
-        if (copy) return copy.text();
+        if (!copy) continue;
+        const html = await copy.text();
+        const complete = fillOnceProps(page, readPageFromHtml(html));
+        if (missingOnceProps(complete).every((k) => provided.includes(k))) return html;
+        if (fallback === null && hasEssentialOnceProps(complete, provided)) fallback = html;
     }
-    return null;
+    return fallback;
+}
+
+/** Clés des props « once » que la page courante du navigateur porte déjà : Inertia les recolle à la réponse. */
+function clientOnceProps(request) {
+    return (request.headers.get('X-Inertia-Except-Once-Props') ?? '')
+        .split(',')
+        .map((key) => key.trim())
+        .filter(Boolean);
+}
+
+/**
+ * Copie Inertia complétée pour une visite hors ligne : les props « once » que le navigateur ne recollera
+ * pas sont reprises d'une page rangée (findShell). Null s'il manque encore une prop indispensable : la
+ * visite complète qui suit sert alors la copie HTML ou la page hors ligne.
+ */
+async function completeInertiaCopy(cache, now, page, request) {
+    const provided = clientOnceProps(request);
+    let complete = page;
+    if (!missingOnceProps(page).every((key) => provided.includes(key))) {
+        const shell = await findShell(cache, now, page, provided);
+        if (shell) complete = fillOnceProps(page, readPageFromHtml(shell));
+    }
+    return hasEssentialOnceProps(complete, provided) ? complete : null;
 }
 
 /**
@@ -160,8 +207,7 @@ async function offlinePageCopy(request, cache, now) {
     }
 
     const data = await readCopy(cache, pageCacheKey(request.url, 'inertia'), now, PAGE_MAX_AGE_MS);
-    const shell = data ? await findShell(cache, now) : null;
-    if (!data || !shell) return null;
+    if (!data) return null;
 
     let page;
     try {
@@ -169,6 +215,8 @@ async function offlinePageCopy(request, cache, now) {
     } catch {
         return null;
     }
+    const shell = await findShell(cache, now, page);
+    if (!shell) return null;
     const body = htmlFromInertiaCopy(shell, page, data.headers.get(SAVED_AT_HEADER));
     if (!body || !readPageFromHtml(body)) return null;
     return new Response(body, {
@@ -212,8 +260,9 @@ export async function navigation(request, deps) {
 
 /**
  * « Réseau d'abord » pour une visite Inertia, rangée comme une page HTML. Sans réseau : la copie Inertia de
- * la page si elle existe ; sinon la réponse 409 + X-Inertia-Location demande à Inertia une visite complète
- * de la même adresse, donc une navigation (copie HTML ou page hors ligne).
+ * la page si elle existe, complétée des props « once » que le navigateur n'a pas (completeInertiaCopy) ;
+ * sinon la réponse 409 + X-Inertia-Location demande à Inertia une visite complète de la même adresse, donc
+ * une navigation (copie HTML ou page hors ligne).
  *
  * @param {Request} request
  * @param {Deps} deps
@@ -242,9 +291,10 @@ export async function inertia(request, deps) {
             const key = pageCacheKey(request.url, 'inertia');
             const copy = await readCopy(cache, key, now(), PAGE_MAX_AGE_MS);
             const page = copy ? await copy.json().catch(() => null) : null;
-            if (copy && page) {
+            const complete = page ? await completeInertiaCopy(cache, now(), page, request) : null;
+            if (copy && complete) {
                 return new Response(
-                    JSON.stringify(markPage(page, copy.headers.get(SAVED_AT_HEADER))),
+                    JSON.stringify(markPage(complete, copy.headers.get(SAVED_AT_HEADER))),
                     { status: 200, headers: copyHeaders(copy, 'application/json') },
                 );
             }

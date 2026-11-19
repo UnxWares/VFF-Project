@@ -180,12 +180,16 @@ return [
             gardée avec ses propriétés et `geometry` à `null`), tracé d'une ligne (`/lines/{line}/geojson`,
             `/segments`, `/gpx`, `/kml`), portions de la fiche (`/lines/{line}?geometry=true`), itinéraires
             (`/route`, `/route/compare` : parties retenues absentes de `geometry`), formes du GTFS
-            (`shapes.txt` sans la forme d'une ligne concernée) et GraphQL (`LineSegment.geojson`,
-            `sheet(geometry: true)`). La réponse dit ce qui manque : `geometry_withheld`,
+            (`shapes.txt` sans la forme d'une ligne concernée), point kilométrique d'un lieu
+            (`/lines/{line}/pk` : ni point projeté ni distance au tracé, PK arrondi à 100 m) et GraphQL
+            (`LineSegment.geojson`, `sheet(geometry: true)`, `Line.pk`). La réponse dit ce qui manque : `geometry_withheld`,
             `geometry_withheld_reason` (`licence_not_open` ou `unknown_source`), le résumé `withheld`
             par source, ou HTTP 451 quand rien n'est exportable. Les tuiles vectorielles (MVT) servent à
             l'affichage de la carte du site et de la carte intégrable : elles ne sont pas un export de
-            données. Chaque fichier porte la mention de la base VFF et celle de chaque source utilisée.
+            données. Elles s'arrêtent au zoom 14, comme la carte ; leurs coordonnées sont arrondies à la
+            grille de la tuile et, à partir du zoom 10, les tracés sont simplifiés pour l'écran (un
+            demi-pixel aux zooms 10 à 13, une unité de la grille, environ 0,4 m sur le terrain, au zoom 14).
+            Chaque fichier porte la mention de la base VFF et celle de chaque source utilisée.
             Chaque média porte sa propre licence et son attribution.
 
             ## Webhooks

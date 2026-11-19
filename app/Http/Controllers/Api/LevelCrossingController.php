@@ -10,6 +10,7 @@ use App\Services\Api\Provenance;
 use App\Services\LevelCrossings\LevelCrossingQuery;
 use App\Services\LevelCrossings\LevelCrossingTiles;
 use App\Services\LevelCrossings\LineLevelCrossings;
+use App\Support\MapTiles;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
@@ -96,14 +97,14 @@ class LevelCrossingController extends Controller
      * ligne qui porte leur classe). Tuiles vides sous le zoom 9 : à l'échelle de la France, 16 800
      * points ne se lisent pas. Mises en cache une journée.
      */
-    #[PathParameter('z', 'Niveau de zoom (0 à 22 ; vide sous 9).', example: 11)]
+    #[PathParameter('z', 'Niveau de zoom, de 0 à 14 (vide sous 9 ; au-delà de 14, MapLibre agrandit la tuile 14).', example: 11)]
     #[PathParameter('x', 'Colonne de la tuile dans la grille XYZ.', example: 1044)]
     #[PathParameter('y', 'Rangée de la tuile dans la grille XYZ.', example: 709)]
     #[ApiResponse(200, 'Tuile MVT (protobuf binaire), éventuellement vide.')]
-    #[ApiResponse(404, 'Tuile hors de la grille XYZ.')]
+    #[ApiResponse(404, 'Tuile hors de la grille XYZ, ou zoom supérieur à 14.')]
     public function tile(int $z, int $x, int $y, LevelCrossingTiles $tiles): Response
     {
-        abort_unless($z <= 22 && $x < (1 << $z) && $y < (1 << $z), 404);
+        abort_unless(MapTiles::onGrid($z, $x, $y), 404);
 
         return response($tiles->tile($z, $x, $y), 200, [
             'Content-Type' => 'application/x-protobuf',

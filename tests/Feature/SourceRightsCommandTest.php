@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Console\Commands\SourceRightsReport;
 use App\Models\Era;
 use App\Models\Line;
 use App\Models\Station;
+use App\Support\SourceRights;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -35,8 +37,17 @@ class SourceRightsCommandTest extends TestCase
 
     protected function tearDown(): void
     {
-        @unlink($this->json);
-        parent::tearDown();
+        // parent::tearDown() d'abord : une erreur de nettoyage ne doit pas laisser la transaction ouverte.
+        try {
+            parent::tearDown();
+        } finally {
+            // Le fichier JSON et le fichier vide que tempnam() a créé à côté.
+            foreach ([$this->json, substr($this->json, 0, -strlen('.json'))] as $file) {
+                if (is_file($file)) {
+                    unlink($file);
+                }
+            }
+        }
     }
 
     private function line(string $name): Line
@@ -106,6 +117,33 @@ class SourceRightsCommandTest extends TestCase
 
         $this->artisan('vff:source-rights', ['--check' => true])
             ->expectsOutputToContain('line_events : provenance « blog-inconnu » absente du registre')
+            ->assertFailed();
+    }
+
+    public function test_check_reads_every_table_of_the_registry(): void
+    {
+        $rights = new SourceRights;
+        $declared = array_unique([...array_keys($rights->sources()), ...array_keys($rights->composites())]);
+
+        $this->assertSame([], array_values(array_diff($declared, array_keys(SourceRightsReport::PROVENANCE_QUERIES))),
+            'table du registre que vff:source-rights --check ne relit pas : ajoutez sa requête à PROVENANCE_QUERIES');
+        foreach (SourceRightsReport::PROVENANCE_QUERIES as $table => $sql) {
+            DB::select($sql); // chaque requête s'exécute sur le schéma réel
+        }
+    }
+
+    public function test_check_fails_on_an_undeclared_signalling_source(): void
+    {
+        // Table oubliée jusqu'à la revue de la PR #18 : une valeur nouvelle passait le contrôle sans être vue.
+        DB::table('line_signalling_events')->insert([
+            'line_id' => $this->line('Ligne signalée')->id, 'system' => 'BAL', 'role' => 'block', 'event_date' => '1975-01-01',
+            'date_precision' => 'year', 'scope' => 'unspecified', 'confidence' => 'high', 'origin' => 'text', 'source' => 'forum-inconnu',
+            'source_title' => 'Fil de discussion', 'source_revision' => 1, 'source_url' => 'https://forum.example.org/1',
+            'source_excerpt' => 'Le BAL arrive.', 'fingerprint' => sha1('forum'), 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $this->artisan('vff:source-rights', ['--check' => true])
+            ->expectsOutputToContain('line_signalling_events : provenance « forum-inconnu » absente du registre')
             ->assertFailed();
     }
 

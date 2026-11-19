@@ -295,6 +295,11 @@ return [
             'partial' => 'Freigabe gespeichert (:count von :threshold): Der Beitrag wartet auf einen weiteren Prüfer.',
             'rejected' => 'Beitrag abgelehnt.',
             'failed' => 'Veröffentlichung fehlgeschlagen: :message',
+            'failures' => [
+                'no_geometry' => 'Die Strecke hat zur Zeit dieses Beitrags keinen Verlauf. Es wurde nichts gespeichert.',
+                'line_not_found' => 'Die Strecke, die dieser Verlauf korrigiert, gibt es nicht mehr. Es wurde nichts gespeichert.',
+                'internal_error' => 'Unerwarteter Fehler, für das Team protokolliert. Es wurde nichts gespeichert.',
+            ],
         ],
         'errors' => [
             'reason_required' => 'Geben Sie den Grund der Ablehnung an, mindestens :min Zeichen. Er wird an die beitragende Person gesendet.',

@@ -295,6 +295,11 @@ return [
             'partial' => 'Approbation enregistrée (:count sur :threshold) : la contribution attend un autre validateur.',
             'rejected' => 'Contribution refusée.',
             'failed' => 'Échec de la publication : :message',
+            'failures' => [
+                'no_geometry' => 'la ligne n’a pas de tracé à l’époque de cette contribution. Rien n’a été écrit.',
+                'line_not_found' => 'la ligne que corrige ce tracé n’existe plus. Rien n’a été écrit.',
+                'internal_error' => 'erreur inattendue, consignée pour l’équipe. Rien n’a été écrit.',
+            ],
         ],
         'errors' => [
             'reason_required' => 'Indiquez le motif du refus, en :min caractères au moins : il est transmis au contributeur.',

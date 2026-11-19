@@ -6,6 +6,7 @@ use App\GraphQL\Exceptions\ContributionApiError;
 use App\GraphQL\Support\ContributionApiAccess;
 use App\GraphQL\Support\ContributionPresenter;
 use App\Services\Contributions\ContributionReview;
+use App\Services\Contributions\PublicationFailure;
 use App\Services\Contributions\ReviewOutcome;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
@@ -58,7 +59,7 @@ final readonly class ValidateContribution
                 throw match ($result->outcome) {
                     ReviewOutcome::Own => ContributionApiError::own(),
                     ReviewOutcome::AlreadyApproved => ContributionApiError::alreadyApproved(),
-                    ReviewOutcome::Failed => ContributionApiError::applicationFailed((string) $result->error),
+                    ReviewOutcome::Failed => ContributionApiError::applicationFailed($result->failure ?? PublicationFailure::InternalError),
                     default => ContributionApiError::closed(),
                 };
             }

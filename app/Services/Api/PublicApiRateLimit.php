@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\RateLimiter;
  * (AuthenticateApiToken), par compte, tous les jetons du compte partageant le même compteur.
  * La limite dépend du profil (ApiAccessProfile, config/api.php). Le middleware ThrottleRequests
  * ajoute `X-RateLimit-Limit` et `X-RateLimit-Remaining` à chaque réponse, et `Retry-After` à la
- * réponse HTTP 429.
+ * réponse HTTP 429. Une requête GraphQL compte une fois, plus une fois par mutation de contribution
+ * au-delà de la première (hitAgain, ContributionApiAccess).
  */
 final class PublicApiRateLimit
 {
@@ -51,6 +52,25 @@ final class PublicApiRateLimit
         RateLimiter::hit($key, 60);
 
         return ['limit' => $limit, 'remaining' => max(0, $limit - RateLimiter::attempts($key)), 'retry_after' => null];
+    }
+
+    /**
+     * Compte un appel de plus dans la requête HTTP en cours, sur le compteur que le middleware vient de
+     * tenir pour elle (même clé, même limite : compte ou adresse IP). Sert aux mutations GraphQL de
+     * contribution, qui comptent une par une (alias et lots d'opérations compris).
+     *
+     * @return int|null secondes avant de réessayer si la limite est atteinte (rien n'est compté), sinon null
+     */
+    public static function hitAgain(Request $request): ?int
+    {
+        $limit = self::for($request);
+        $key = md5(self::NAME.$limit->key);
+        if (RateLimiter::tooManyAttempts($key, $limit->maxAttempts)) {
+            return RateLimiter::availableIn($key);
+        }
+        RateLimiter::hit($key, $limit->decaySeconds);
+
+        return null;
     }
 
     private static function anonymousKey(Request $request): string

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Era;
 use App\Services\TraceExport\LineTraceExport;
 use App\Support\Lgv;
+use App\Support\MapTiles;
 use App\Support\TrackPriority;
 use Illuminate\Support\Facades\DB;
 
@@ -106,6 +107,8 @@ class GeoExporter
         // carte. Recouvrement caduc (signature ≠ état courant) : ignoré.
         $drawRank = TrackPriority::drawRankSql($lgv, 'l', 'ls');
         $parts = TrackPriority::partsJoinSql('ls');
+        // Tracés simplifiés à la tolérance d'affichage du zoom à partir du zoom 10 (MapTiles), puis découpés dans la tuile.
+        $geom = MapTiles::displaySql('part.g', $z);
         $result = DB::selectOne(<<<SQL
             WITH bounds AS (
                 SELECT
@@ -157,7 +160,7 @@ class GeoExporter
                     {$drawRank} AS draw_rank,
                     part.covered,
                     ST_AsMVTGeom(
-                        ST_Transform(part.g, 3857),
+                        {$geom},
                         bounds.env_3857,
                         4096,
                         256,

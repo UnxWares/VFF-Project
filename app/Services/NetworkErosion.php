@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\EraChange;
+use App\Support\MapTiles;
 use App\Support\MvtBytes;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -32,12 +33,13 @@ class NetworkErosion
             return $this->computeTile($z, $x, $y);
         }
 
-        return Cache::remember("era-stack:tile:{$z}:{$x}:{$y}", self::TILE_TTL, fn (): string => $this->computeTile($z, $x, $y));
+        return Cache::remember('era-stack:tile:'.MapTiles::FORMAT.":{$z}:{$x}:{$y}", self::TILE_TTL, fn (): string => $this->computeTile($z, $x, $y));
     }
 
     private function computeTile(int $z, int $x, int $y): string
     {
         $open = EraChange::openStatusesSql();
+        $geom = MapTiles::displaySql('s.geom', $z);
         $result = DB::selectOne(<<<SQL
             WITH bounds AS (
                 SELECT ST_TileEnvelope(:z, :x, :y) AS env_3857,
@@ -60,7 +62,7 @@ class NetworkErosion
                        l.slug AS line_slug,
                        l.name AS line_name,
                        l.code AS line_code,
-                       ST_AsMVTGeom(ST_Transform(s.geom, 3857), bounds.env_3857, 4096, 256, true) AS geom
+                       ST_AsMVTGeom({$geom}, bounds.env_3857, 4096, 256, true) AS geom
                 FROM spans s
                 JOIN lines l ON l.id = s.line_id
                 CROSS JOIN bounds

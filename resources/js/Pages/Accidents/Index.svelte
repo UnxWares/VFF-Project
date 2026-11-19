@@ -10,7 +10,12 @@
     import { accidentDate, tollText } from '$lib/accidentText.js';
     import { decadeOf, formatNumber } from '$lib/typo.js';
 
-    let { accidents, filters, facets } = $props();
+    // `facets` est une prop « once » d'Inertia : une copie hors ligne peut ne pas l'avoir (menus vides).
+    let {
+        accidents,
+        filters,
+        facets = { decades: [], kinds: {}, departments: [], lines: [] },
+    } = $props();
 
     // Les champs partent des filtres reçus puis évoluent avec la saisie : valeur initiale voulue.
     // svelte-ignore state_referenced_locally

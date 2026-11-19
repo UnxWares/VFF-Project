@@ -48,6 +48,10 @@ return [
     'truncated_page' => 'Page raccourcie pour rester sous la taille maximale : next_cursor reprend au premier élément non renvoyé, rien n\'est perdu.',
     'between' => 'entre :from et :to (aucune source ne date ce changement)',
     'today' => 'aujourd’hui',
+    'dates' => [
+        'unknown_after' => 'date inconnue, après :year (aucune source ne la date)',
+        'unknown' => 'date inconnue (aucune source ne la date)',
+    ],
 
     'accidents' => [
         'review_note' => 'Fiche « à vérifier » : au moins un point reste incertain (bilans ou dates qui diffèrent selon les sources, lieu connu à la commune près, ligne incertaine). Ne la présentez pas comme sûre : le détail est dans review.notes de get_accident.',

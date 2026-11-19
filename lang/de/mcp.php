@@ -47,6 +47,10 @@ return [
     'truncated_page' => 'Seite gekürzt, um unter der Höchstgröße zu bleiben: next_cursor setzt beim ersten nicht gelieferten Element fort, es geht nichts verloren.',
     'between' => 'zwischen :from und :to (keine Quelle datiert diese Änderung)',
     'today' => 'heute',
+    'dates' => [
+        'unknown_after' => 'Datum unbekannt, nach :year (keine Quelle nennt es)',
+        'unknown' => 'Datum unbekannt (keine Quelle nennt es)',
+    ],
 
     'accidents' => [
         'review_note' => 'Eintrag „zu prüfen“: Mindestens ein Punkt ist unsicher (Opferzahlen oder Daten, die je nach Quelle abweichen, Ort nur auf Gemeindeebene bekannt, unsichere Strecke). Stellen Sie ihn nicht als gesichert dar: Einzelheiten stehen in review.notes von get_accident.',

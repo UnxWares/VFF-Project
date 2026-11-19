@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\EraChange;
+use App\Support\MapTiles;
 use App\Support\MvtBytes;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -93,6 +94,7 @@ class EraComparison
     public function tile(int $fromEraId, int $toEraId, int $z, int $x, int $y): string
     {
         $pairs = $this->pairsSql('AND ls.geom && bounds.env_4326');
+        $geom = MapTiles::displaySql('c.geom', $z);
         $result = DB::selectOne(<<<SQL
             WITH bounds AS (
                 SELECT ST_TileEnvelope(:z, :x, :y) AS env_3857,
@@ -104,7 +106,7 @@ class EraComparison
                        l.slug AS line_slug,
                        l.name AS line_name,
                        l.code AS line_code,
-                       ST_AsMVTGeom(ST_Transform(c.geom, 3857), bounds.env_3857, 4096, 256, true) AS geom
+                       ST_AsMVTGeom({$geom}, bounds.env_3857, 4096, 256, true) AS geom
                 FROM changes c
                 JOIN lines l ON l.id = c.line_id
                 CROSS JOIN bounds

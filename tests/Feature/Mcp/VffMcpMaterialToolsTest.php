@@ -86,7 +86,11 @@ class VffMcpMaterialToolsTest extends TestCase
         $this->assertFalse($error);
         $this->assertSame('BB 15000', $data['material']['name']);
         $this->assertSame('rfn-67000', $data['material']['lines'][0]['line']['slug']);
-        $this->assertStringContainsString('BB 15000', json_encode($data['material']['lines'][0], JSON_UNESCAPED_UNICODE));
+        // Preuve sans la phrase de l'article (décision Q22) : le permalien de la révision lue suffit.
+        $evidence = $data['material']['lines'][0]['evidence'][0];
+        $this->assertSame('https://fr.wikipedia.org/w/index.php?oldid=239088070', $evidence['url']);
+        $this->assertSame(['kind', 'article', 'revid', 'section', 'url'], array_keys($evidence));
+        $this->assertStringNotContainsString('Rames Corail', json_encode($data, JSON_UNESCAPED_UNICODE));
         $this->assertSame('https://vff-project.org/materials/bb-15000', $data['vff_url']);
 
         [$data, $error] = $this->tool('get_material', ['material' => 'bb-15001']);
