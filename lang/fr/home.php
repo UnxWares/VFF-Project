@@ -3,6 +3,7 @@
 return [
     'meta_title' => 'VFF - Voies Ferrées de France',
     'meta_description' => 'Encyclopédie collaborative du chemin de fer français, de 1830 à aujourd’hui : lignes, gares, carte du réseau à chaque décennie et archives sourcées.',
+    'share_image_alt' => 'Le logo de Voies Ferrées de France sur la carte des chemins de fer d’Alexandre Vuillemin (1865)',
 
     // Grand visuel (disque VFF entre deux TGV) : phrase sous le disque et deux actions.
     'hero' => [
