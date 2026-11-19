@@ -12,6 +12,7 @@ return [
     'twitter' => 'X (Twitter)',
     'github' => 'GitHub',
     'unxwares' => 'UnxWares',
+    'uwosc' => 'UnxWares Open Source & Community (UWOSC)',
 
     'copyright' => 'Voies Ferrées de France - VFF © :start-:end',
     'powered_by' => 'Bereitgestellt von',

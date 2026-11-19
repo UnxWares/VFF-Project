@@ -4,8 +4,10 @@
     import vffLogo from '$images/vff.png';
     // Fichiers officiels de la charte UnxWares (2026-11-02) : version en couleur sur fond clair,
     // version monochrome inversée (blanche) sur fond sombre. Jamais de nom retapé à côté.
-    import unxLogo from '$images/unxwares/unxwares-logo-en-couleur.svg';
-    import unxLogoDark from '$images/unxwares/unxwares-logo-monochrome-inverse.svg';
+    // Logotype officiel de l'association UWOSC (charte du 2026-11-02, fichiers non modifiés) : version
+    // en couleur sur fond clair, en couleur inversée sur fond sombre ; 180 px de large au moins.
+    import uwoscLogotype from '$images/uwosc/uwosc-logotype-en-couleur-rgb.svg';
+    import uwoscLogotypeDark from '$images/uwosc/uwosc-logotype-en-couleur-inverse-rgb.svg';
     import unxInsigne from '$images/unxwares/unxwares-insigne-en-couleur.svg';
     import unxInsigneDark from '$images/unxwares/unxwares-insigne-monochrome-inverse.svg';
 
@@ -146,29 +148,23 @@
     <div class="copyright">
         <p>{$i18n.t('footer.copyright', { start: 2023, end: currentYear })}</p>
         <p class="credits">
+            <!-- L'association n'a pas encore de site : logotype sans lien. -->
             <span class="powered">
                 {$i18n.t('footer.powered_by')}
-                <a
-                    class="unx-logo-link"
-                    href="https://www.unxwares.studio/"
-                    rel="noopener noreferrer"
-                    target="_blank"
-                >
-                    <img
-                        class="unx-logo theme-light"
-                        src={unxLogo}
-                        alt={$i18n.t('footer.unxwares')}
-                        width="140"
-                        height="29"
-                    />
-                    <img
-                        class="unx-logo theme-dark"
-                        src={unxLogoDark}
-                        alt={$i18n.t('footer.unxwares')}
-                        width="140"
-                        height="29"
-                    />{@render newTab()}
-                </a>
+                <img
+                    class="uwosc-logotype theme-light"
+                    src={uwoscLogotype}
+                    alt={$i18n.t('footer.uwosc')}
+                    width="180"
+                    height="49"
+                />
+                <img
+                    class="uwosc-logotype theme-dark"
+                    src={uwoscLogotypeDark}
+                    alt={$i18n.t('footer.uwosc')}
+                    width="180"
+                    height="49"
+                />
             </span>
         </p>
     </div>

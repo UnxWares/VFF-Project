@@ -148,22 +148,16 @@ footer:where(.site-footer) .copyright p {
     line-height: 1.5;
     color: var(--vff-text);
 }
+/* Logotype UWOSC : 180 px de large (taille minimale de la charte), zone de protection d'au moins la
+   hauteur du « U » (environ 27 px à cette taille) autour, le texte compris. */
 footer:where(.site-footer) .copyright .powered {
     display: inline-flex;
     align-items: center;
-    /* Zone de protection du logo : au moins la hauteur du « U » (environ 17 px à 140 px de large). */
-    gap: 18px;
+    gap: 28px;
+    padding-block: 12px;
 }
-footer:where(.site-footer) .copyright a.unx-logo-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    min-height: 24px;
-    color: var(--vff-text);
-    text-decoration: none;
-}
-footer:where(.site-footer) .copyright .unx-logo {
-    width: 140px;
+footer:where(.site-footer) .copyright .uwosc-logotype {
+    width: 180px;
     height: auto;
 }
 
@@ -228,7 +222,7 @@ footer:where(.site-footer) .copyright .unx-logo {
         align-items: flex-start;
     }
     footer:where(.site-footer) .copyright p {
-        margin: 8px 0;
+        margin: 12px 0;
         font-size: 15px;
         row-gap: 8px;
     }
