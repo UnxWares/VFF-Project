@@ -11,11 +11,16 @@
             titleKey: 'contribute.ways.data_title',
             textKey: 'contribute.ways.data_text',
             statusKey: 'contribute.ways.data_status',
+            links: [
+                { href: '/contribute/trace', labelKey: 'editor.mine.new_trace' },
+                { href: '/contribute/event', labelKey: 'proposals.contribute.propose_event' },
+            ],
         },
         {
             titleKey: 'contribute.ways.media_title',
             textKey: 'contribute.ways.media_text',
             statusKey: 'contribute.ways.media_status',
+            links: [{ href: '/contribute/media', labelKey: 'proposals.contribute.propose_media' }],
         },
         {
             titleKey: 'contribute.ways.code_title',
@@ -69,7 +74,17 @@
                             title={$i18n.t(w.titleKey)}
                             text={$i18n.t(w.textKey)}
                             status={$i18n.t(w.statusKey)}
-                        />
+                        >
+                            {#if signedIn && w.links}
+                                <p class="way-links">
+                                    {#each w.links as l (l.href)}
+                                        <Link href={l.href} class="vff-link"
+                                            >{$i18n.t(l.labelKey)}</Link
+                                        >
+                                    {/each}
+                                </p>
+                            {/if}
+                        </IconCard>
                     </li>
                 {/each}
             </ul>
@@ -150,6 +165,13 @@
 </Layout>
 
 <style>
+    /* Formulaires d'une façon de contribuer (membres connectés), sous sa phrase. */
+    .way-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--vff-space-1) var(--vff-space-5);
+        margin: var(--vff-space-2) 0 0;
+    }
     /* Étapes : une vraie suite, donc numérotée. Même filet que les points ci-dessus. */
     .steps {
         display: grid;

@@ -19,6 +19,9 @@ use Illuminate\Support\Facades\DB;
  * Relecture d'une contribution par un validateur, commune à l'espace de validation du site
  * (ContributionController) et à l'API GraphQL (`validateContribution`).
  *
+ * Publication selon le type : tracé (TraceContributionService), événement daté
+ * (EventContributions), média (MediaContributions), sinon modification par PK (applySegment).
+ *
  * Règles : deux approbations indépendantes publient la contribution ; un validateur ne relit pas sa
  * propre contribution et n'approuve pas deux fois ; une contribution refusée ou publiée ne se relit
  * plus ; un refus porte un motif, transmis à l'auteur. Chaque décision recalcule la réputation de
@@ -40,6 +43,8 @@ final readonly class ContributionReview
 
     public function __construct(
         private TraceContributionService $traces,
+        private EventContributions $events,
+        private MediaContributions $media,
         private AuditLog $audit,
         private ContributionNotifier $notifier,
         private ReputationCalculator $reputation,
@@ -173,15 +178,7 @@ final readonly class ContributionReview
                     'reviewed_by' => $reviewer->id,
                     'reviewed_at' => now(),
                 ];
-                if ($contribution->type === TraceContributionService::TYPE) {
-                    $result = $this->traces->apply($contribution);
-                    $update['payload'] = [...$contribution->payload, 'applied' => $result + ['at' => now()->toIso8601String()]];
-                    $update['target_type'] = Line::class;
-                    $update['target_id'] = $result['line_id'];
-                } else {
-                    $this->applySegment($contribution);
-                }
-                $contribution->update($update);
+                $contribution->update($update + $this->publish($contribution));
                 $this->audit->record(AuditAction::ContributionApplied, $reviewer, $contribution, [
                     'type' => $contribution->type,
                     'approvals' => $count,
@@ -203,6 +200,37 @@ final readonly class ContributionReview
 
             return new ReviewResult(ReviewOutcome::Approved, $contribution, $count, $threshold);
         });
+    }
+
+    /**
+     * Publie la contribution selon son type, dans la transaction de l'approbation, et rend les
+     * colonnes à mettre à jour en plus du statut : le résultat de la publication (`applied`) et,
+     * pour un tracé, la ligne créée ou corrigée qui devient sa cible.
+     *
+     * @return array{payload?: array<string, mixed>, target_type?: class-string, target_id?: int}
+     *
+     * @throws ContributionNotPublishable publication impossible (rien n'est écrit)
+     */
+    private function publish(Contribution $contribution): array
+    {
+        $result = match ($contribution->type) {
+            TraceContributionService::TYPE => $this->traces->apply($contribution),
+            EventContributions::TYPE => $this->events->apply($contribution),
+            MediaContributions::TYPE => $this->media->apply($contribution),
+            default => null,
+        };
+        if ($result === null) {
+            $this->applySegment($contribution);
+
+            return [];
+        }
+
+        $update = ['payload' => [...$contribution->payload, 'applied' => $result + ['at' => now()->toIso8601String()]]];
+        if ($contribution->type === TraceContributionService::TYPE) {
+            $update += ['target_type' => Line::class, 'target_id' => $result['line_id']];
+        }
+
+        return $update;
     }
 
     /**

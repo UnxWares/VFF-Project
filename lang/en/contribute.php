@@ -16,8 +16,8 @@ return [
         'data_status' => 'An account is required',
 
         'media_title' => 'Offer archival media',
-        'media_text' => 'Do you have old photos, plans or dated documents? With your consent and a clear licence, they can enrich the pages of the lines concerned. For a collection of more than 50 documents, please contact us first.',
-        'media_status' => 'Through the project\'s Discord',
+        'media_text' => 'An old photograph, a postcard, a plan or a dated document that is copyright-free or under an open licence can illustrate the page of a line, a station or an event. Upload the file or give its address on Wikimedia Commons. For a collection of more than 50 documents, please contact us first.',
+        'media_status' => 'An account is required',
 
         'code_title' => 'Contribute to the code',
         'code_text' => 'The VFF code is published under the MIT licence. Bug reports, ideas, translations, map performance: submit them on GitHub. The conventions are described in CONTRIBUTING.md.',
@@ -27,7 +27,7 @@ return [
     'process' => [
         'title' => 'How a contribution is checked',
         'step1_title' => 'You submit',
-        'step1_text' => 'From your account, you submit a route or a change to a line. For code, you open a pull request on GitHub.',
+        'step1_text' => 'From your account, you submit a route, a change to a line, a dated event or an image. For code, you open a pull request on GitHub.',
         'step2_title' => 'Two validators review',
         'step2_text' => 'Two validators examine your proposal and check the sources and the consistency with existing data.',
         'step3_title' => 'Publication',

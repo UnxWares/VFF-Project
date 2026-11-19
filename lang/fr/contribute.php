@@ -16,8 +16,8 @@ return [
         'data_status' => 'Un compte est nécessaire',
 
         'media_title' => 'Apporter des médias d’archives',
-        'media_text' => 'Vous détenez des photos anciennes, des plans, des documents datés ? Avec votre accord et une licence claire, ils peuvent enrichir les fiches des lignes concernées. Pour un fonds de plus de 50 documents, contactez-nous d’abord.',
-        'media_status' => 'Par le Discord du projet',
+        'media_text' => 'Une photo ancienne, une carte postale, un plan ou un document daté, libre de droits ou sous licence ouverte, peut illustrer la fiche d’une ligne, d’une gare ou d’un événement. Déposez le fichier ou indiquez son adresse sur Wikimedia Commons. Pour un fonds de plus de 50 documents, contactez-nous d’abord.',
+        'media_status' => 'Un compte est nécessaire',
 
         'code_title' => 'Contribuer au code',
         'code_text' => 'Le code de VFF est publié sous licence MIT. Signalements de bogues, idées, traductions, performances de la carte : proposez-les sur GitHub. Les conventions sont décrites dans CONTRIBUTING.md.',
@@ -27,7 +27,7 @@ return [
     'process' => [
         'title' => 'Comment une contribution est vérifiée',
         'step1_title' => 'Vous proposez',
-        'step1_text' => 'Depuis votre compte, vous soumettez un tracé ou une modification de ligne. Pour le code, vous ouvrez une pull request sur GitHub.',
+        'step1_text' => 'Depuis votre compte, vous soumettez un tracé, une modification de ligne, un événement daté ou une image. Pour le code, vous ouvrez une pull request sur GitHub.',
         'step2_title' => 'Deux validateurs relisent',
         'step2_text' => 'Deux validateurs examinent votre proposition, vérifient les sources et la cohérence avec les données existantes.',
         'step3_title' => 'Publication',

@@ -161,7 +161,7 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] Correction d'un segment existant (`/contribute/edit-segment`)
 - [x] Page « Mes contributions »
 - [x] Validation : toute contribution est en attente jusqu'à **deux approbations** de validateurs
-- [~] Formulaire d'ajout d'événement / média / matériel (tracés et segments faits)
+- [~] Formulaires d'ajout : tracés, segments, événements datés (`/contribute/event`, publiés dans `line_events` avec leur provenance `contribution:<id>`, portion résolue ensuite par `vff:resolve-event-sections`) et images (`/contribute/media` : fichier de Wikimedia Commons ou fichier déposé, métadonnées et position GPS retirées avant l'enregistrement, fichier privé jusqu'à la publication) faits, aussi par la mutation GraphQL `submitContribution` ; matériel à faire
 - [x] Notifications (sur le site + courriel) d'acceptation ou de refus
 - [x] Réputation : trois chiffres (contributions acceptées, refusées, relectures faites) et un niveau tiré de seuils en configuration (`config/reputation.php`), recalculés à chaque décision de validation et par `vff:recalculate-reputation`, affichés sur le profil et dans l'espace de validation, expliqués sur `/contribute/reputation`, jamais dans l'API ; pas de badges
 - [x] Modération : journal d'audit, retrait d'une contribution par un administrateur, suspension d'un compte (motif, fin facultative, levée, notification, export) faits

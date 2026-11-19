@@ -13,6 +13,8 @@ use App\Models\Line;
 use App\Models\User;
 use App\Services\Contributions\ContributionReview;
 use App\Services\Contributions\ContributionSubmissions;
+use App\Services\Contributions\EventContributions;
+use App\Services\Contributions\MediaContributions;
 use App\Services\Contributions\PublicationFailure;
 use App\Services\Contributions\ReviewOutcome;
 use App\Services\Contributions\ReviewResult;
@@ -71,7 +73,7 @@ class ContributionController extends Controller
             'contribution' => [
                 'id' => $contribution->id,
                 'type' => $contribution->type,
-                'payload' => $contribution->payload,
+                'payload' => MediaContributions::withoutPrivatePath($contribution->payload ?? []),
             ],
         ]);
     }
@@ -98,7 +100,7 @@ class ContributionController extends Controller
                 'id' => $c->id,
                 'type' => $c->type,
                 'status' => $c->status->value,
-                'payload' => $c->payload,
+                'payload' => MediaContributions::withoutPrivatePath($c->payload ?? []),
                 // ISO 8601 (« 2026-11-18T10:21:00+01:00 ») : le navigateur formate selon la langue de la page.
                 'created_at' => $c->created_at->toIso8601String(),
                 'reviewed_at' => $c->reviewed_at?->toIso8601String(),
@@ -111,16 +113,16 @@ class ContributionController extends Controller
     /**
      * Dashboard validateurs - réservé aux rôles validator / admin.
      * Liste les contributions en attente (pending) ET partiellement approuvées
-     * (approved = 1 approbation sur 2), segments PK comme tracés.
+     * (approved = 1 approbation sur 2) : segments PK, tracés, événements datés et médias.
      */
-    public function validateList(TraceContributionService $traces, ReputationLevels $levels): Response
+    public function validateList(TraceContributionService $traces, EventContributions $events, MediaContributions $media, ReputationLevels $levels): Response
     {
         $this->ensureValidator();
         $me = Auth::id();
 
         $pending = Contribution::query()
             ->whereIn('status', [ContributionStatus::Pending->value, ContributionStatus::Approved->value])
-            ->whereIn('type', ['line_segment', TraceContributionService::TYPE])
+            ->whereIn('type', ['line_segment', TraceContributionService::TYPE, EventContributions::TYPE, MediaContributions::TYPE])
             ->with(['user:id,name,reputation_applied,reputation_rejected,reputation_reviews,suspended_at,suspended_until', 'target'])
             ->orderBy('created_at')
             ->limit(50)
@@ -133,7 +135,7 @@ class ContributionController extends Controller
 
         return Inertia::render('Validate/Index', [
             'threshold' => self::APPROVAL_THRESHOLD,
-            'contributions' => $pending->map(function ($c) use ($approvals, $me, $traces, $levels) {
+            'contributions' => $pending->map(function ($c) use ($approvals, $me, $traces, $events, $media, $levels) {
                 $mine = $approvals->get($c->id, collect());
                 $item = [
                     'id' => $c->id,
@@ -152,7 +154,7 @@ class ContributionController extends Controller
                     'is_mine' => (int) $c->user_id === (int) $me,
                     'approval_count' => $mine->count(),
                     'approved_by_me' => $mine->contains('user_id', $me),
-                    'payload' => $c->payload,
+                    'payload' => MediaContributions::withoutPrivatePath($c->payload ?? []),
                     'target' => $c->target instanceof Line ? [
                         'slug' => $c->target->slug,
                         'name' => $c->target->name,
@@ -163,6 +165,14 @@ class ContributionController extends Controller
                 if ($c->type === 'line_segment') {
                     // « Avant » vivant : valeurs actuelles de la portion visée (peuvent avoir changé depuis la proposition).
                     $item['current_values'] = $this->currentPortionValues($c);
+                }
+                if ($c->type === EventContributions::TYPE) {
+                    // Événements déjà connus de la même famille sur la ligne : doublon ou contradiction visibles.
+                    $item['similar_events'] = $events->similarEvents($c);
+                }
+                if ($c->type === MediaContributions::TYPE) {
+                    // Fichier déposé : lu par une adresse réservée à l'auteur et aux validateurs, jamais publique.
+                    $item['file_url'] = $media->pendingFile($c) !== null ? route('contribute.media.file', ['contribution' => $c->id]) : null;
                 }
                 if ($c->type === TraceContributionService::TYPE) {
                     $portions = $c->payload['portions'] ?? [];

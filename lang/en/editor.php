@@ -209,6 +209,9 @@ return [
         'accident' => 'Accident',
         'concession' => 'Concession',
         'concession_end' => 'End of concession',
+        'conversion' => 'Conversion of the trackbed',
+        'heritage_start' => 'Start of heritage operation',
+        'heritage_end' => 'End of heritage operation',
         'other' => 'Other',
     ],
 
@@ -299,6 +302,9 @@ return [
                 'no_geometry' => 'the line has no route at the time of this contribution. Nothing was written.',
                 'line_not_found' => 'the line this route corrects no longer exists. Nothing was written.',
                 'internal_error' => 'unexpected error, logged for the team. Nothing was written.',
+                'target_not_found' => 'the line, station or event concerned no longer exists. Nothing was written.',
+                'already_present' => 'this Commons file is already attached to this page. Nothing was written.',
+                'file_missing' => 'the uploaded file is no longer in the private store. Nothing was written.',
             ],
         ],
         'errors' => [

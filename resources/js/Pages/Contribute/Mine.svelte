@@ -12,6 +12,12 @@
         formatDay,
         formatPk,
     } from '$components/Contribute/segmentChanges.js';
+    import {
+        EVENT_TYPE,
+        MEDIA_TYPE,
+        eventFacts,
+        mediaFacts,
+    } from '$components/Contribute/proposals.js';
 
     let { contributions = [] } = $props();
 
@@ -44,6 +50,7 @@
     function title(c) {
         if (c.payload?.line_name) return c.payload.line_name;
         if (c.payload?.new_line_name) return c.payload.new_line_name;
+        if (c.payload?.station_name) return c.payload.station_name;
         return $i18n.t(
             c.payload?.kind === 'new_line'
                 ? 'editor.validate.kind_new'
@@ -65,6 +72,14 @@
                 <Link href="/contribute/edit-segment" class="vff-btn secondary">
                     <i class="bi bi-rulers" aria-hidden="true"></i>
                     {$i18n.t('editor.mine.new_segment')}
+                </Link>
+                <Link href="/contribute/event" class="vff-btn secondary">
+                    <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                    {$i18n.t('proposals.mine.new_event')}
+                </Link>
+                <Link href="/contribute/media" class="vff-btn secondary">
+                    <i class="bi bi-image" aria-hidden="true"></i>
+                    {$i18n.t('proposals.mine.new_media')}
                 </Link>
             </div>
         </PageHero>
@@ -125,6 +140,38 @@
                                             href="/lines/{c.payload.applied.line_slug}"
                                             class="vff-link"
                                             >{$i18n.t('editor.mine.view_line')}</Link
+                                        >
+                                    {/if}
+                                </p>
+                            {:else if c.type === EVENT_TYPE || c.type === MEDIA_TYPE}
+                                {@const facts =
+                                    c.type === EVENT_TYPE
+                                        ? eventFacts(c.payload, tr, $i18n.language).filter((f) =>
+                                              ['type', 'date', 'portion'].includes(f.id),
+                                          )
+                                        : mediaFacts(c.payload, tr, $i18n.language).filter((f) =>
+                                              ['title', 'license'].includes(f.id),
+                                          )}
+                                <p class="facts">
+                                    <span
+                                        >{$i18n.t(
+                                            c.type === EVENT_TYPE
+                                                ? 'proposals.review.kind_event'
+                                                : c.payload.source === 'commons'
+                                                  ? 'proposals.review.kind_media_commons'
+                                                  : 'proposals.review.kind_media_upload',
+                                        )}</span
+                                    >
+                                    {#each facts as fact (fact.id)}
+                                        <span
+                                            >{fact.label}{colon($i18n.language)}<span class="value"
+                                                >{fact.text}</span
+                                            ></span
+                                        >
+                                    {/each}
+                                    {#if c.type === EVENT_TYPE && c.payload.applied && c.payload.line_slug}
+                                        <Link href="/lines/{c.payload.line_slug}" class="vff-link"
+                                            >{$i18n.t('proposals.mine.view_event')}</Link
                                         >
                                     {/if}
                                 </p>
@@ -251,6 +298,9 @@
         font-size: var(--vff-fs-sm);
         line-height: var(--vff-lh-ui);
         color: var(--vff-text-muted);
+    }
+    .value {
+        color: var(--vff-text);
     }
     .pk,
     .nowrap {

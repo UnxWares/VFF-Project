@@ -40,7 +40,12 @@ class CommonsClient
     /** Nombre de reprises après erreur transitoire (maxlag, 429, recherche saturée). */
     public int $retryCount = 0;
 
-    public function __construct(private int $minIntervalMs = 250) {}
+    /**
+     * @param  bool  $patient  import en tâche de fond : reprises après une erreur transitoire, avec
+     *                         des attentes de plusieurs secondes. Faux pour une lecture faite pendant
+     *                         une requête du site (formulaire de contribution) : un seul essai, court.
+     */
+    public function __construct(private int $minIntervalMs = 250, private bool $patient = true) {}
 
     /**
      * Appel GET à l'API Commons (formatversion=2). Gère maxlag / 429 / 503.
@@ -169,21 +174,47 @@ class CommonsClient
     {
         $out = [];
         foreach (array_chunk(array_values(array_unique($pageIds)), 50) as $chunk) {
-            $data = $this->commons([
-                'action' => 'query',
-                'pageids' => implode('|', $chunk),
-                'prop' => 'imageinfo',
-                'iiprop' => 'extmetadata|url|size|mime',
-                'iiurlwidth' => self::THUMB_WIDTH,
-                'iiextmetadatalanguage' => 'fr',
-                'iiextmetadatafilter' => self::EXTMETADATA,
-            ]);
-            foreach ($data['query']['pages'] ?? [] as $p) {
-                if (! empty($p['missing']) || empty($p['imageinfo'][0])) {
-                    continue;
-                }
-                $out[(int) $p['pageid']] = ['title' => $p['title'], 'info' => $p['imageinfo'][0]];
+            $out += $this->imageInfo(['pageids' => implode('|', $chunk)]);
+        }
+
+        return $out;
+    }
+
+    /**
+     * Métadonnées d'un seul fichier désigné par son titre (« File:Nom.jpg »), en une requête :
+     * le titre est normalisé par Commons et les redirections de fichiers renommés sont suivies.
+     *
+     * @return array{pageid: int, title: string, info: array<string, mixed>}|null null si le fichier n'existe pas
+     */
+    public function fileInfoByTitle(string $title): ?array
+    {
+        foreach ($this->imageInfo(['titles' => $title, 'redirects' => 1]) as $pageId => $page) {
+            return ['pageid' => $pageId, ...$page];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<string, scalar>  $selector  `pageids` ou `titles`
+     * @return array<int, array{title: string, info: array<string, mixed>}> pageid → page brute
+     */
+    private function imageInfo(array $selector): array
+    {
+        $data = $this->commons($selector + [
+            'action' => 'query',
+            'prop' => 'imageinfo',
+            'iiprop' => 'extmetadata|url|size|mime',
+            'iiurlwidth' => self::THUMB_WIDTH,
+            'iiextmetadatalanguage' => 'fr',
+            'iiextmetadatafilter' => self::EXTMETADATA,
+        ]);
+        $out = [];
+        foreach ($data['query']['pages'] ?? [] as $p) {
+            if (! empty($p['missing']) || empty($p['imageinfo'][0]) || ! isset($p['pageid'])) {
+                continue;
             }
+            $out[(int) $p['pageid']] = ['title' => $p['title'], 'info' => $p['imageinfo'][0]];
         }
 
         return $out;
@@ -252,9 +283,9 @@ class CommonsClient
     {
         $params += ['format' => 'json', 'formatversion' => 2, 'maxlag' => 5];
 
-        for ($attempt = 1; $attempt <= 6; $attempt++) {
+        for ($attempt = 1; $attempt <= ($this->patient ? 6 : 1); $attempt++) {
             $res = $this->send(fn () => Http::withHeaders(['User-Agent' => self::USER_AGENT])
-                ->timeout(60)
+                ->timeout($this->patient ? 60 : 10)
                 ->get($endpoint, $params));
             $json = $res->json() ?? [];
             $code = (string) ($json['error']['code'] ?? '');
@@ -263,7 +294,9 @@ class CommonsClient
             if ($code === 'maxlag' || $code === 'ratelimited' || str_starts_with($code, 'internal_api_error')
                 || str_contains($info, 'too busy') || str_contains($info, 'try again')) {
                 $this->retryCount++;
-                Sleep::sleep(min(60, 5 * $attempt * $attempt));
+                if ($this->patient) {
+                    Sleep::sleep(min(60, 5 * $attempt * $attempt));
+                }
 
                 continue;
             }
@@ -280,7 +313,7 @@ class CommonsClient
     /** Envoi avec intervalle minimal et reprise sur 429/503/erreurs réseau. */
     private function send(callable $request): Response
     {
-        for ($attempt = 1; $attempt <= 5; $attempt++) {
+        for ($attempt = 1; $attempt <= ($this->patient ? 5 : 1); $attempt++) {
             $wait = $this->minIntervalMs / 1000 - (microtime(true) - $this->lastRequestAt);
             if ($wait > 0) {
                 Sleep::usleep((int) ($wait * 1_000_000));
@@ -291,11 +324,13 @@ class CommonsClient
                 /** @var Response $res */
                 $res = $request();
             } catch (ConnectionException $e) {
-                Sleep::sleep(5 * $attempt);
+                if ($this->patient) {
+                    Sleep::sleep(5 * $attempt);
+                }
 
                 continue;
             }
-            if (in_array($res->status(), [429, 503, 502, 504], true)) {
+            if (in_array($res->status(), [429, 503, 502, 504], true) && $this->patient) {
                 $this->retryCount++;
                 $retry = (int) ($res->header('Retry-After') ?: 10 * $attempt);
                 Sleep::sleep(min(120, max(5, $retry)));

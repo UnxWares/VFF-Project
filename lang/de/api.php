@@ -175,7 +175,7 @@ return [
     // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).
     'contribute' => [
         'title' => 'Über GraphQL beitragen',
-        'intro' => 'Zwei Mutationen entsprechen den Formularen der Website. submitContribution sendet einen Vorschlag: einen zwischen zwei Kilometerpunkten geänderten Streckenabschnitt oder einen gezeichneten Streckenverlauf. validateContribution gibt ihn frei oder lehnt ihn ab. Sie brauchen ein Konto, und es gelten die Regeln der Website: zwei Freigaben verschiedener Prüfer zur Veröffentlichung, eine Begründung für jede Ablehnung, und niemand sichtet seinen eigenen Beitrag.',
+        'intro' => 'Zwei Mutationen entsprechen den Formularen der Website. submitContribution sendet einen Vorschlag: einen zwischen zwei Kilometerpunkten geänderten Streckenabschnitt, einen gezeichneten Streckenverlauf, ein datiertes Ereignis oder ein Bild. validateContribution gibt ihn frei oder lehnt ihn ab. Sie brauchen ein Konto, und es gelten die Regeln der Website: zwei Freigaben verschiedener Prüfer zur Veröffentlichung, eine Begründung für jede Ablehnung, und niemand sichtet seinen eigenen Beitrag.',
         'auth_title' => 'Authentifizierung',
         'auth' => [
             'token' => 'Mit einem persönlichen Token, das Sie in Ihrem Profil mit angekreuztem Kästchen „Beiträge über die API erlauben“ erstellen. Ein Token ohne dieses Kästchen erhält den Fehler insufficient_scope.',
@@ -185,6 +185,8 @@ return [
         'submit_title' => 'Eine Änderung vorschlagen',
         'submit_intro' => 'Hier eine Höchstgeschwindigkeit auf 6,5 km Strecke, mit Quelle. Die Antwort enthält die Kennung des Beitrags, der nun auf zwei Freigaben wartet.',
         'response_caption' => 'Antwort',
+        'media_title' => 'Ein Ereignis oder ein Bild vorschlagen',
+        'media_intro' => 'Ein datiertes Ereignis geht über input.event, ein Bild über input.media. Ein Bild aus Wikimedia Commons braucht nur seine Adresse (commons_url). Eine hochgeladene Datei wird als multipart/form-data nach der Spezifikation GraphQL multipart request gesendet: Das Feld operations enthält die Abfrage mit file auf null, das Feld map nennt die Variable, die die Datei erhält, danach folgt die Datei. VFF entfernt ihre Metadaten vor dem Speichern.',
         'review_title' => 'Einen Beitrag sichten',
         'review_intro' => 'Nur für Prüfer und Administratoren. Eine Ablehnung braucht eine Begründung von mindestens 5 Zeichen, die der Autor erhält. Mit APPROVE veröffentlicht die zweite Freigabe den Beitrag und löst den Webhook contribution.applied aus.',
         'errors_title' => 'Fehler',

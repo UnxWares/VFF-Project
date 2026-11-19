@@ -209,6 +209,9 @@ return [
         'accident' => 'Unfall',
         'concession' => 'Konzession',
         'concession_end' => 'Ende der Konzession',
+        'conversion' => 'Umnutzung der Trasse',
+        'heritage_start' => 'Beginn des Museumsbetriebs',
+        'heritage_end' => 'Ende des Museumsbetriebs',
         'other' => 'Sonstiges',
     ],
 
@@ -299,6 +302,9 @@ return [
                 'no_geometry' => 'Die Strecke hat zur Zeit dieses Beitrags keinen Verlauf. Es wurde nichts gespeichert.',
                 'line_not_found' => 'Die Strecke, die dieser Verlauf korrigiert, gibt es nicht mehr. Es wurde nichts gespeichert.',
                 'internal_error' => 'Unerwarteter Fehler, für das Team protokolliert. Es wurde nichts gespeichert.',
+                'target_not_found' => 'Die betroffene Strecke, der Bahnhof oder das Ereignis existiert nicht mehr. Es wurde nichts gespeichert.',
+                'already_present' => 'Diese Commons-Datei ist dieser Seite bereits zugeordnet. Es wurde nichts gespeichert.',
+                'file_missing' => 'Die hochgeladene Datei liegt nicht mehr im privaten Speicher. Es wurde nichts gespeichert.',
             ],
         ],
         'errors' => [

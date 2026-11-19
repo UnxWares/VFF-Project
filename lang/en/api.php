@@ -175,7 +175,7 @@ return [
     // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).
     'contribute' => [
         'title' => 'Contributing through GraphQL',
-        'intro' => 'Two mutations follow the site’s forms. submitContribution sends a proposal: a line portion changed between two kilometre points, or a drawn route. validateContribution approves or rejects it. You need an account, and the site’s rules apply: two approvals from different validators to publish, a reason for every rejection, and nobody reviews their own contribution.',
+        'intro' => 'Two mutations follow the site’s forms. submitContribution sends a proposal: a line portion changed between two kilometre points, a drawn route, a dated event or an image. validateContribution approves or rejects it. You need an account, and the site’s rules apply: two approvals from different validators to publish, a reason for every rejection, and nobody reviews their own contribution.',
         'auth_title' => 'Authentication',
         'auth' => [
             'token' => 'With a personal token created in your profile with the “Allow contributions through the API” box ticked. A token without it gets the insufficient_scope error.',
@@ -185,6 +185,8 @@ return [
         'submit_title' => 'Proposing a change',
         'submit_intro' => 'Here, a speed limit over 6.5 km of line, with its source. The response gives the contribution’s id; it now waits for two approvals.',
         'response_caption' => 'Response',
+        'media_title' => 'Proposing an event or an image',
+        'media_intro' => 'A dated event goes through input.event, an image through input.media. An image from Wikimedia Commons only needs its address (commons_url). An uploaded file is sent as multipart/form-data, following the GraphQL multipart request specification: the operations field holds the query with file set to null, the map field names the variable that receives the file, and the file follows. VFF removes its metadata before saving it.',
         'review_title' => 'Reviewing a contribution',
         'review_intro' => 'For validators and administrators only. A rejection needs a reason of at least 5 characters, sent to the author. With APPROVE, the second approval publishes the contribution and fires the contribution.applied webhook.',
         'errors_title' => 'Errors',

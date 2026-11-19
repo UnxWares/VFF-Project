@@ -176,7 +176,7 @@ return [
     // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).
     'contribute' => [
         'title' => 'Contribuer par GraphQL',
-        'intro' => 'Deux mutations reprennent les formulaires du site. submitContribution envoie une proposition : une portion de ligne modifiée entre deux PK, ou un tracé dessiné. validateContribution l’approuve ou la refuse. Il faut un compte, et les règles sont celles du site : deux approbations de validateurs différents pour publier, un motif pour chaque refus, et personne ne relit sa propre contribution.',
+        'intro' => 'Deux mutations reprennent les formulaires du site. submitContribution envoie une proposition : une portion de ligne modifiée entre deux PK, un tracé dessiné, un événement daté ou une image. validateContribution l’approuve ou la refuse. Il faut un compte, et les règles sont celles du site : deux approbations de validateurs différents pour publier, un motif pour chaque refus, et personne ne relit sa propre contribution.',
         'auth_title' => 'Authentification',
         'auth' => [
             'token' => 'Avec un jeton personnel, créé dans votre profil avec la case « Autoriser les contributions par l’API » cochée. Un jeton sans cette case reçoit l’erreur insufficient_scope.',
@@ -186,6 +186,8 @@ return [
         'submit_title' => 'Proposer une modification',
         'submit_intro' => 'Ici, une vitesse limite sur 6,5 km de ligne, avec sa source. La réponse donne l’identifiant de la contribution, en attente de deux approbations.',
         'response_caption' => 'Réponse',
+        'media_title' => 'Proposer un événement ou une image',
+        'media_intro' => 'Un événement daté passe par input.event, une image par input.media. Une image de Wikimedia Commons ne demande que son adresse (commons_url). Un fichier déposé part en multipart/form-data, selon la spécification GraphQL multipart request : le champ operations porte la requête avec file à null, le champ map indique la variable qui reçoit le fichier, et le fichier suit. VFF retire ses métadonnées avant de l’enregistrer.',
         'review_title' => 'Relire une contribution',
         'review_intro' => 'Réservé aux validateurs et aux administrateurs. Un refus demande un motif de 5 caractères au moins, transmis à l’auteur. Avec APPROVE, la deuxième approbation publie la contribution et déclenche le webhook contribution.applied.',
         'errors_title' => 'Erreurs',

@@ -209,6 +209,9 @@ return [
         'accident' => 'Accident',
         'concession' => 'Concession',
         'concession_end' => 'Fin de concession',
+        'conversion' => 'Reconversion de l’emprise',
+        'heritage_start' => 'Début de l’exploitation associative',
+        'heritage_end' => 'Fin de l’exploitation associative',
         'other' => 'Autre',
     ],
 
@@ -299,6 +302,9 @@ return [
                 'no_geometry' => 'la ligne n’a pas de tracé à l’époque de cette contribution. Rien n’a été écrit.',
                 'line_not_found' => 'la ligne que corrige ce tracé n’existe plus. Rien n’a été écrit.',
                 'internal_error' => 'erreur inattendue, consignée pour l’équipe. Rien n’a été écrit.',
+                'target_not_found' => 'la ligne, la gare ou l’événement visé n’existe plus. Rien n’a été écrit.',
+                'already_present' => 'ce fichier Commons est déjà rattaché à cette fiche. Rien n’a été écrit.',
+                'file_missing' => 'le fichier déposé n’est plus dans la réserve privée. Rien n’a été écrit.',
             ],
         ],
         'errors' => [
