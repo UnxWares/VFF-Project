@@ -52,6 +52,66 @@ sa propre date et son propre trafic (« ouverte le 4 août 1870 et fermée au se
 1939 »), « fermée aux voyageurs et aux marchandises en 1950 » = fermeture totale, « …, au trafic
 marchandises de X à Y le … » = fermetures au fret par section.
 
+## Desserte du jour : saisonnier, touristique, vélorail, travaux (2026-11-19)
+
+Règles appliquées aux écarts entre la desserte réelle (horaires GTFS ouverts lus par
+`vff:import-station-service`, table `station_services`) et les statuts de VFF. Aucun statut nouveau : le
+modèle n'a pas d'état « suspendue » (le libellé SNCF « Neutralisée » donne déjà une voie fermée en place,
+`abandoned`), on s'en tient donc aux statuts existants. Chaque écart corrigé passe par une correction
+sourcée rejouée à chaque calcul (`database/data/gares_corrections.php`, `database/data/line_event_corrections*.php`),
+jamais par une écriture directe en base.
+
+1. Desserte saisonnière régulière (Auray - Quiberon l'été, côte Fleurie d'avril à septembre,
+   Pointe-de-Grave) : la ligne et ses gares restent ouvertes aux voyageurs toute l'année (déjà la règle 3 de
+   la mémoire « trafic et gares » : jamais « fret seul »). L'ère courante ne change pas selon la saison.
+2. Trains détournés quelques jours pendant des travaux sur une autre ligne (Le Teil et Saint-Péray sur la
+   rive droite du Rhône : un à quatre jours dans l'année) : ce n'est pas une desserte, le statut ne change pas.
+3. Travaux avec reprise annoncée et cars de substitution (Laon - Hirson, Poitiers - Limoges) : pas une
+   fermeture, la ligne et ses gares restent ouvertes (« une fermeture temporaire n'est pas une fermeture »).
+4. Suspension sans date de reprise qui dure (Montréjeau - Luchon, de 2014 à 2025) : c'est une fermeture
+   datée (`closure`), suivie d'une réouverture datée (`reopening`) si la ligne rouvre ; les ères passées
+   montrent alors la ligne fermée, voie en place.
+5. Train touristique : une gare n'est « touristique » que si le seul train qui s'y arrête est touristique. Un
+   train touristique qui roule EN PLUS d'un service public (train à vapeur du G.E.C.P. sur la ligne Nice -
+   Digne, desservie tous les jours par ZOU !) ne rend ni la portion ni ses gares touristiques (correction
+   `neutralize` de l'événement `heritage_start`, gardé dans la chronologie). Sans preuve d'arrêt, une gare
+   d'une ligne touristique garde son statut (rien n'est déduit de la seule proximité).
+6. Vélorail : ce n'est pas une circulation ferroviaire. Une gare desservie par le seul vélorail est fermée
+   (mention vélorail gardée dans `station_services.indicators`) ; un vélorail ne rouvre jamais une gare. Les
+   gares de vélorail qui ont peut-être aussi un train touristique (Le Perrier, Étretat) restent à relire.
+7. Arrêt supprimé sur une ligne qui reste ouverte (21 haltes sans aucun train dans les trois versions des
+   horaires de 2026) : fermeture aux voyageurs datée par l'article de la gare (correction `add`) ; sans date
+   publiée, état du jour seulement (correction `current` « declassified »), jamais une date inventée.
+8. Desserte réelle contredite par une source (RER A de la RATP noté « fret seul » par la liste SNCF) :
+   correction `current` « active » appuyée sur les horaires publiés ; le plafond par les lignes (R2) reste
+   appliqué ensuite. Un exploitant étranger absent des horaires français (Trenitalia à Viévola, CFL, Euskotren)
+   ne ferme pas une gare.
+9. Une gare ne se rapproche jamais d'un arrêt GTFS par son seul nom au-delà de quelques centaines de mètres :
+   « Saint-Gervais-les-Bains » (Tramway du Mont-Blanc, en ville) n'est pas l'arrêt SNCF du Fayet (1,2 km).
+
+## Date de fermeture d'une gare et frise des ères (2026-11-19)
+
+La date de fermeture retenue (`stations.closed_at`) ne contredit jamais la frise, même aux ères « non
+confirmées » (`station_eras.uncertain`) : 1 495 couples gare × ère la contredisaient le 18/11, 30 restent.
+
+1. Fin de desserte d'une ligne (événement de ligne) datée avant une ère où la gare est encore montrée ouverte
+   sur une autre de ses lignes en service (hors patrimoine) à moins de 500 m : ce n'est pas la fermeture de
+   la gare (Vourey, La Praz, Griesbach). La date retenue devient l'intervalle des ères.
+2. Année ronde d'une source qui reprend la décennie d'une autre (Wikidata « 1970 », Wikipédia « Fermeture :
+   années 1970 ») : la date retenue est la décennie, comme la frise (18 gares : Réchicourt-le-Château,
+   Marchiennes, Darnétal…). L'année ronde devient décennie, jamais l'inverse.
+3. Fret seul non confirmé sur une ligne seulement touristique (train touristique ou vélorail, aucun trafic
+   fret) : la ligne déclassée n'a plus de fret, la gare est fermée (Lapouyade, Toucy, Manot, Ansac). Un fret
+   seul confirmé par une source (Carcassonne - Rivesaltes) et l'ère courante ne changent pas.
+4. Restent, sans source pour trancher : quatre haltes de Limoges - Angoulême fermées aux voyageurs à une date
+   inconnue (Fontafie, Taponnat, Le Quéroy - Pranzac, Magnac - Touvre), gares sans voie reconstituée ou sur
+   des lignes non datées.
+
+Corrections de gare ajoutées le même jour (`App\Services\StationCorrections`) : action `pk` (PK d'une gare sur
+une ligne, d'après un schéma ou un article, quand le PK interpolé est faux : Troyes sur Troyes - Brienne) et
+gare désignée par son nom et sa position (`near`) quand elle n'a aucun identifiant (halte de tramway lue dans
+un schéma : Charantonnay).
+
 ## Classes de sortie
 
 - passenger - voyageurs avéré (GTFS rail route_type=2 dessert la ligne, OU liste-des-gares.voyageurs=O, OU Wikipedia trafic contient une marque voyageurs sans fret, OU OSM railway:traffic_mode=passenger / highspeed=yes). Stocké traffic_type='passenger' + line.type='passengers', segments status in_service/single_track.

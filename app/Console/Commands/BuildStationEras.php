@@ -91,10 +91,12 @@ class BuildStationEras extends Command
             }
             $this->applyCorrectedOpenings();
             $this->classifyKinds($applied['kinds']);
-            $this->inferEvents();
+            $this->inferEvents(array_keys(array_filter($applied['current'], fn (string $s) => $s === StationTimeline::CLOSED)));
         }
         // Trains d'attraction ou touristiques sans ligne VFF (correction « tourist »), aussi dans les processus enfants.
         $forcedTourist = $corrections->touristStations();
+        // État du jour imposé par une correction sourcée (action « current » : horaires publiés, arrêt supprimé).
+        $forcedCurrent = $corrections->currentStatuses();
 
         $eras = DB::table('eras')->orderBy('year')
             ->when($this->option('era'), fn ($q, $y) => $q->where('year', (int) $y))
@@ -135,8 +137,10 @@ class BuildStationEras extends Command
         foreach ($stations as $sid => $s) {
             $hints[$sid] = ['freight_today' => ($s->source_status ?? $s->status) === StationTimeline::FREIGHT || ($evidence[$sid]['sncf_freight'] ?? false),
                 'served_seen' => ($evidence[$sid]['voyageurs'] ?? false) ? ($evidence[$sid]['voyageurs_seen'] ?? null) : null];
-            $todayStatus[$sid] = StationTimeline::currentStatus($s->source_status ?? $s->status,
-                $this->canonicalEvents($events[$sid] ?? [], $hints[$sid]), $today, ($evidence[$sid] ?? []) + ['tourist' => isset($tourist[$sid]) || isset($forcedTourist[$sid])]);
+            $todayStatus[$sid] = isset($forcedCurrent[$sid])
+                ? StationTimeline::forcedCurrentStatus($forcedCurrent[$sid])
+                : StationTimeline::currentStatus($s->source_status ?? $s->status,
+                    $this->canonicalEvents($events[$sid] ?? [], $hints[$sid]), $today, ($evidence[$sid] ?? []) + ['tourist' => isset($tourist[$sid]) || isset($forcedTourist[$sid])]);
         }
 
         // Gares sans aucune ligne rattachée, datées par leurs propres sources (StationLineCoverage::exemption).
@@ -180,6 +184,8 @@ class BuildStationEras extends Command
                 }
                 $note = $era->is_current ? $currentNote : null;
                 $uncertain = false;
+                // Lignes en service près de la gare toutes touristiques (plafond R2).
+                $heritageLines = false;
                 // Réseau non modélisé dans line_segments (CFC, Chemins de fer de
                 // Provence, lignes touristiques…) : ni tronçon proche ni ligne
                 // rattachée connue à cette ère, et un statut attesté par OSM /
@@ -204,6 +210,7 @@ class BuildStationEras extends Command
                     $uncertain = $status !== StationTimeline::CLOSED && ! $attested;
                 } elseif ($hasSegments) {
                     [$lines, $heritageOnly] = $caps[$sid] ?? [StationTimeline::LINES_CLOSED, false];
+                    $heritageLines = $heritageOnly;
                     $new = StationTimeline::capByLines($status, $lines, $heritageOnly);
                     if ($new !== $status) {
                         $capped++;
@@ -225,6 +232,11 @@ class BuildStationEras extends Command
                 $undatedNote = $era->is_current ? null : StationTimeline::unconfirmedNote($evs, $eraYears, (int) $era->year, $status, $todayHint);
                 if ($undatedNote !== null) {
                     $uncertain = true;
+                }
+                // Fret seul non confirmé sur une ligne seulement touristique (train touristique, vélorail) :
+                // plus de fret après le déclassement, la gare est fermée (Lapouyade, Toucy, Manot).
+                if (StationTimeline::heritageLineEndsFreight($status, $heritageLines, $uncertain, (bool) $era->is_current)) {
+                    [$status, $uncertain, $undatedNote, $note] = [StationTimeline::CLOSED, false, null, StationTimeline::NOTE_HERITAGE_NO_FREIGHT];
                 }
                 $entries[$sid] = ['status' => $status, 'note' => $note, 'uncertain' => $uncertain, 'undated_note' => $undatedNote,
                     // Aucune ouverture propre : l'existence de la gare n'est déduite que de ses lignes.
@@ -513,7 +525,8 @@ class BuildStationEras extends Command
     /**
      * Dates déduites pour les gares sans date propre.
      */
-    private function inferEvents(): void
+    /** @param  list<int>  $notServedToday  gares « plus desservies aujourd'hui » (correction « current ») : jamais rouvertes par leur ligne */
+    private function inferEvents(array $notServedToday = []): void
     {
         DB::table('station_events')->where('is_inferred', true)->delete();
         $cover = AttachStations::EVENT_COVERS_STATION;
@@ -626,7 +639,10 @@ class BuildStationEras extends Command
             ORDER BY s.id, le.event_date DESC
             ON CONFLICT DO NOTHING
         SQL);
-        // f. Réouverture aux voyageurs d'une ligne après la fermeture (gare voyageurs aujourd'hui).
+        // f. Réouverture aux voyageurs d'une ligne après la fermeture (gare voyageurs aujourd'hui), sauf
+        //    gare dont une correction sourcée dit l'arrêt supprimé (Villeneuve-lès-Avignon : ligne rouverte
+        //    aux voyageurs le 29/08/2022, gare restée fermée).
+        $notServed = $notServedToday === [] ? '' : 'AND s.id NOT IN ('.implode(',', array_map('intval', $notServedToday)).')';
         $f = DB::affectingStatement(<<<SQL
             INSERT INTO station_events (station_id, type, event_date, date_precision, source, source_ref, is_inferred, note, created_at, updated_at)
             SELECT DISTINCT ON (s.id) s.id, 'reopening', le.event_date, le.date_precision, 'inferred:line_event', 'line_event:'||le.id, TRUE,
@@ -637,7 +653,7 @@ class BuildStationEras extends Command
             JOIN lines l ON l.id = sl.line_id
             JOIN line_events le ON le.line_id = sl.line_id AND le.type IN ('reopening', 'reopening_passenger')
              AND le.event_date > cp.event_date AND {$cover}
-            WHERE COALESCE(s.source_status, s.status) IN ('active', 'tourist') AND {$explicit("'reopening'")}
+            WHERE COALESCE(s.source_status, s.status) IN ('active', 'tourist') AND {$explicit("'reopening'")} {$notServed}
               -- Une réouverture de LIGNE ne rouvre pas une gare que ses propres sources disent désaffectée
               -- (OSM disused…, Wikidata fermée) sans aucun indice de desserte actuelle (gares-de-voyageurs,
               -- OSM ou Wikidata en service) : Arches - Saint-Dié rouverte le 12/12/2021 avec 3 gares seulement,
@@ -788,6 +804,25 @@ class BuildStationEras extends Command
             $cands[(int) $e->station_id][] = ['type' => $e->type, 'date' => $e->event_date, 'precision' => $e->date_precision,
                 'source' => $e->source, 'inferred' => true, 'line' => true];
         }
+        // Dernière ère où la gare est montrée ouverte (non confirmée) sur une de ses lignes en service
+        // (hors patrimoine) à moins de 500 m : la fin de desserte d'une ligne datée avant n'est pas la
+        // fermeture de la gare (StationTimeline::dropLineClosuresBeforeService).
+        $servedUntil = [];
+        foreach (DB::select(<<<'SQL'
+            SELECT se.station_id, MAX(e.year) AS y
+            FROM station_eras se
+            JOIN eras e ON e.id = se.era_id AND NOT e.is_current
+            JOIN stations s ON s.id = se.station_id
+            WHERE se.uncertain AND se.status IN ('active', 'tourist', 'no_commercial')
+              AND EXISTS (SELECT 1 FROM station_lines sl
+                          JOIN line_segments ls ON ls.line_id = sl.line_id AND ls.era_id = se.era_id
+                           AND ls.status IN ('in_service', 'single_track') AND NOT ls.is_heritage
+                           AND ls.geom && ST_Expand(s.geom, 0.007) AND ST_DWithin(ls.geom::geography, s.geom::geography, 500)
+                          WHERE sl.station_id = s.id)
+            GROUP BY se.station_id
+        SQL) as $r) {
+            $servedUntil[(int) $r->station_id] = (int) $r->y;
+        }
         $stations = DB::table('stations')->get(['id', 'closed_at', 'closed_precision', DB::raw("provenance->>'kind' AS kind"),
             DB::raw("provenance->>'closed_at' AS src"), DB::raw("provenance->>'closed_after' AS after"), 'source_status', 'status']);
         // Mêmes règles que la chronologie (canonicalEvents) : fermeture en masse contredite par la desserte
@@ -819,6 +854,8 @@ class BuildStationEras extends Command
             $ev = $evidence[$sid] ?? [];
             $c = StationTimeline::dropContradictedClosures($cands[$sid] ?? [], ($ev['voyageurs'] ?? false) ? ($ev['voyageurs_seen'] ?? null) : null);
             $c = StationTimeline::massClosureAsPassenger($c, ($st->source_status ?? $st->status) === StationTimeline::FREIGHT || ($ev['sncf_freight'] ?? false));
+            $c = StationTimeline::dropLineClosuresBeforeService($c, $servedUntil[$sid] ?? null);
+            $c = StationTimeline::roundYearAsDecade($c);
             $r = StationTimeline::resolveClosure($eras[$sid], (int) $current, $today, $c);
             if ($r === null) {
                 // Ouverte aujourd'hui : pas de date de fermeture, sauf une fermeture à venir ou saisie à la main.

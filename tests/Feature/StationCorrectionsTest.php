@@ -185,6 +185,57 @@ class StationCorrectionsTest extends TestCase
         $this->assertSame(['tourist', false], [$row?->status, (bool) $row?->uncertain]);
     }
 
+    /**
+     * État du jour imposé (action « current », 19/11/2026) : gare du RER A que la liste SNCF ne connaît
+     * qu'au fret ; gare restée fermée quand sa ligne rouvre aux voyageurs (Villeneuve-lès-Avignon) ;
+     * ligne rouverte (Montréjeau - Luchon) dont les arrêts rouvrent par une correction datée.
+     */
+    public function test_current_corrections_set_today_status(): void
+    {
+        $this->assertNotEmpty(StationCorrections::validate(['station' => ['name' => 'X', 'uic' => '1'], 'action' => 'current', 'status' => 'tourist',
+            'source_url' => 'https://transport.data.gouv.fr/', 'reason' => 'r']));
+        $rer = $this->station('Sucy-Bonneuil', 6.60, ['sncf' => ['active', false, true]], 'no_commercial', '87114413');
+        $this->event($rer, 'opening', '1872-09-05', 'wikidata');
+        $villeneuve = $this->station('Villeneuve-lès-Avignon', 6.70, ['osm' => ['active'], 'sncf' => ['disused', false, false]], 'active', '87765875');
+        $luchon = $this->station('Luchon', 6.80, ['sncf' => ['active', true, false], 'wikidata' => ['disused'], 'osm' => ['active']], 'active', '87611236');
+        $this->event($luchon, 'opening', '1873-01-01', 'wikidata');
+        $this->event($luchon, 'closure', '2014-12-19', 'wikidata');
+        $this->lineEvent('opening', '1870-01-01');
+        $this->lineEvent('reopening_passenger', '2022-08-29');
+        $url = 'https://fr.wikipedia.org/w/index.php?oldid=1';
+        $this->useCorrections([
+            ['station' => ['name' => 'Sucy-Bonneuil', 'uic' => '87114413'], 'action' => 'current', 'status' => 'active',
+                'source_url' => 'https://transport.data.gouv.fr/datasets/horaires-des-lignes-transilien-1', 'reason' => 'RER A tous les jours'],
+            ['station' => ['name' => 'Villeneuve-lès-Avignon', 'uic' => '87765875'], 'action' => 'add', 'type' => 'closure_passenger',
+                'date' => '1973-08-06', 'source_url' => $url, 'reason' => 'rive droite fermée aux voyageurs'],
+            ['station' => ['name' => 'Villeneuve-lès-Avignon', 'uic' => '87765875'], 'action' => 'current', 'status' => 'declassified',
+                'source_url' => $url, 'reason' => 'gare pas encore rouverte'],
+            ['station' => ['name' => 'Luchon', 'uic' => '87611236'], 'action' => 'neutralize',
+                'match' => ['source' => 'wikidata', 'type' => 'closure', 'date' => '2014-12-19'], 'source_url' => $url, 'reason' => 'date de la suspension'],
+            ['station' => ['name' => 'Luchon', 'uic' => '87611236'], 'action' => 'add', 'type' => 'closure', 'date' => '2014-11-18',
+                'source_url' => $url, 'reason' => 'suspension des trains'],
+            ['station' => ['name' => 'Luchon', 'uic' => '87611236'], 'action' => 'add', 'type' => 'reopening', 'date' => '2025-06-22',
+                'source_url' => $url, 'reason' => 'réouverture de la ligne'],
+        ]);
+
+        $this->artisan('vff:build-station-eras', ['--today' => '2026-11-19'])->assertSuccessful();
+
+        $row = fn (Station $s, Era $e) => DB::table('station_eras')->where('station_id', $s->id)->where('era_id', $e->id)->first();
+        // RER A : voyageurs aujourd'hui, et plus d'ère « non confirmée » avant (le fret seul ne la mettait plus en doute).
+        $this->assertSame(['active', StationTimeline::NOTE_SERVED_TODAY], [$row($rer, $this->current)?->status, $row($rer, $this->current)?->note]);
+        $this->assertSame(['active', false], [$row($rer, $this->past)?->status, (bool) $row($rer, $this->past)?->uncertain]);
+        $this->assertSame('active', DB::table('stations')->where('id', $rer->id)->value('status'));
+        // Rive droite : pas de réouverture déduite de celle de la ligne, gare fermée aujourd'hui.
+        $this->assertFalse(DB::table('station_events')->where('station_id', $villeneuve->id)->where('type', 'reopening')->exists());
+        $this->assertSame(StationTimeline::CLOSED, $row($villeneuve, $this->current)?->status);
+        // Fermée « au service des voyageurs » en 1973 : plus de voyageurs en 2020 (fret seul selon le moteur).
+        $this->assertSame(StationTimeline::FREIGHT, $row($villeneuve, $this->past)?->status);
+        // Luchon : fermée en 2020 (suspension), ouverte en 2030 (réouverture du 22/06/2025), sans date de fermeture.
+        $this->assertSame([StationTimeline::CLOSED, 'active'], [$row($luchon, $this->past)?->status, $row($luchon, $this->current)?->status]);
+        $this->assertNull($luchon->fresh()->closed_at);
+        $this->assertSame(['2014-11-18'], DB::table('station_events')->where('station_id', $luchon->id)->where('type', 'closure')->pluck('event_date')->all());
+    }
+
     /** Ouverture corrigée = date de la fiche gare (Mâcon-Loché-TGV : Wikidata 19/09/1981, article 27/09/1981). */
     public function test_corrected_opening_becomes_the_station_opening_date(): void
     {
@@ -207,5 +258,41 @@ class StationCorrectionsTest extends TestCase
         $this->assertSame(['1981-09-27', 'day', StationTimeline::CORRECTION], [$fresh->opened_at?->format('Y-m-d'), $fresh->opened_precision, $fresh->provenance['opened_at'] ?? null]);
         $this->assertSame(['1981-09-27'], DB::table('station_events')->where('station_id', $tgv->id)->where('type', 'opening')->where('is_inferred', false)->pluck('event_date')->all());
         $this->assertSame(1981, (int) DB::table('station_lines')->where('station_id', $tgv->id)->value('first_year'));
+    }
+
+    /**
+     * PK corrigé (Troyes, interpolé à 169,853 sur Troyes - Brienne au lieu de 166,193) et halte sans
+     * identifiant désignée par son nom et sa position (Charantonnay, tramway fermé au plus tard en 1936).
+     */
+    public function test_pk_correction_and_station_designated_by_position(): void
+    {
+        $url = 'https://fr.wikipedia.org/w/index.php?oldid=236561494';
+        $pk = ['station' => ['name' => 'Troyes', 'uic' => '87118000'], 'action' => 'pk', 'line' => '062000', 'pk_m' => 166193,
+            'source_url' => $url, 'reason' => 'PK du schéma'];
+        $this->assertSame([], StationCorrections::validate($pk));
+        $this->assertNotEmpty(StationCorrections::validate(['pk_m' => '166,193'] + $pk));
+        $this->assertNotEmpty(StationCorrections::validate(['line' => 'L12'] + $pk));
+        $near = ['station' => ['name' => 'Charantonnay', 'near' => [6.70, 48.20, 0.5]], 'action' => 'add', 'type' => 'closure',
+            'date' => '1936-12-31', 'precision' => 'before', 'source_url' => $url, 'reason' => 'fin du tramway'];
+        $this->assertSame([], StationCorrections::validate($near));
+        $this->assertNotEmpty(StationCorrections::validate(['station' => ['name' => 'Charantonnay', 'near' => [6.70, 48.20, 50]]] + $near));
+
+        $troyes = $this->station('Troyes', 6.60, ['sncf' => ['active', true, true]], 'active', '87118000');
+        DB::table('station_lines')->where('station_id', $troyes->id)->update(['pk_m' => 169853, 'pk_source' => 'projected']);
+        $halte = $this->station('Charantonnay', 6.70, ['wikipedia_schema' => ['unknown']]);
+        $this->station('Charantonnay', 6.85, ['osm' => ['disused']]);
+        $this->event($halte, 'opening', '1909-11-23', 'wikipedia');
+        $this->lineEvent('opening', '1900-01-01');
+        $this->useCorrections([$pk, $near]);
+
+        $this->artisan('vff:build-station-eras', ['--today' => '2026-11-19'])->assertSuccessful();
+
+        $sl = DB::table('station_lines')->where('station_id', $troyes->id)->first();
+        $this->assertSame([166193, 'correction'], [(int) $sl?->pk_m, $sl?->pk_source]);
+        // Seule la halte à moins de 500 m reçoit la fermeture : fermée en 2020 malgré la ligne en service.
+        $this->assertSame(['1936-12-31'], DB::table('station_events')->where('type', 'closure')->where('source', StationTimeline::CORRECTION)
+            ->where('station_id', $halte->id)->pluck('event_date')->all());
+        $this->assertSame(1, DB::table('station_events')->where('source', StationTimeline::CORRECTION)->count());
+        $this->assertNotSame('active', $this->eraStatus($halte, $this->past));
     }
 }

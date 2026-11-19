@@ -161,6 +161,36 @@ final class StationTimeline
 
     public const NOTE_CLOSED_TODAY = 'Fermeture datée appliquée à l\'ère courante';
 
+    /** État du jour imposé par une correction sourcée (database/data/gares_corrections.php, action « current »). */
+    public const NOTE_SERVED_TODAY = 'Desservie aujourd\'hui (horaires publiés, correction sourcée)';
+
+    public const NOTE_NOT_SERVED_TODAY = 'Plus desservie aujourd\'hui (correction sourcée)';
+
+    public const NOTE_HERITAGE_NO_FREIGHT = 'Ligne seulement touristique à cette époque : plus de fret';
+
+    /**
+     * Ère passée « fret seul » non confirmée (aucune source ne l'atteste) alors que les seules
+     * lignes en service près de la gare sont touristiques (train touristique, vélorail, sans
+     * trafic fret) : une ligne déclassée puis reprise par un train touristique n'a plus de fret,
+     * la gare est fermée (Lapouyade sur Cavignac - Coutras déclassée en 1976, 2026-11-19). Un
+     * fret seul confirmé par une source (Carcassonne - Rivesaltes) et l'ère courante restent.
+     */
+    public static function heritageLineEndsFreight(?string $status, bool $heritageOnly, bool $uncertain, bool $isCurrent): bool
+    {
+        return $status === self::FREIGHT && $heritageOnly && $uncertain && ! $isCurrent;
+    }
+
+    /**
+     * Statut du jour imposé par une correction « current » : desservie (voyageurs) ou plus
+     * desservie. Le plafond par les lignes (R2) s'applique ensuite comme pour tout statut.
+     *
+     * @return array{0: string, 1: string} [statut, note]
+     */
+    public static function forcedCurrentStatus(string $status): array
+    {
+        return $status === self::ACTIVE ? [self::ACTIVE, self::NOTE_SERVED_TODAY] : [self::CLOSED, self::NOTE_NOT_SERVED_TODAY];
+    }
+
     /**
      * Statut du jour (ère courante), avant plafonnement par les lignes.
      *
@@ -533,6 +563,60 @@ final class StationTimeline
         }
 
         return $events;
+    }
+
+    /**
+     * Fin de desserte d'une LIGNE (candidat « line » de resolveClosure) contredite par la
+     * frise : la gare est encore montrée ouverte (non confirmée) à une ère postérieure, sur
+     * une de ses lignes en service (hors patrimoine) à moins de 500 m ($servedUntil = la
+     * dernière de ces ères). La fermeture d'une autre ligne de la gare, ou un événement
+     * mal rattaché, n'est pas la fermeture de la gare : Vourey (dépose de 1959 de la
+     * double voie Romans - Moirans, ligne en service), La Praz (chemin de fer du
+     * Mont-Cenis fermé en 1871 sur Culoz - Modane), Griesbach (ligne de Lapoutroie fermée
+     * en 1950, ligne de Metzeral en service). Retirée : la date retenue devient
+     * l'intervalle des ères (« entre … et … »), sans contredire la frise (2026-11-19).
+     *
+     * @param  list<array<string, mixed>>  $candidates
+     * @return list<array<string, mixed>>
+     */
+    public static function dropLineClosuresBeforeService(array $candidates, ?int $servedUntil): array
+    {
+        if ($servedUntil === null) {
+            return $candidates;
+        }
+
+        return array_values(array_filter($candidates,
+            fn ($c) => ! ($c['line'] ?? false) || (int) substr((string) $c['date'], 0, 4) > $servedUntil));
+    }
+
+    /**
+     * Année ronde d'une source qui reprend une décennie d'une autre : Wikidata « 1970 »
+     * (précision année) et Wikipédia « Fermeture : années 1970 » pour la même gare
+     * (Réchicourt-le-Château, Marchiennes, Darnétal : 18 gares le 19/11/2026). La frise
+     * garde déjà la décennie (dedupeClosures : Wikipédia avant Wikidata) ; la date retenue
+     * fait de même, sinon « fermée en 1970 » contredirait l'ère 1970 « non confirmée ».
+     * L'année ronde devient la décennie (jamais l'inverse).
+     *
+     * @param  list<array<string, mixed>>  $candidates
+     * @return list<array<string, mixed>>
+     */
+    public static function roundYearAsDecade(array $candidates): array
+    {
+        $decades = [];
+        foreach ($candidates as $c) {
+            if (($c['precision'] ?? null) === self::DECADE) {
+                $decades[substr((string) $c['date'], 0, 10)][] = (string) ($c['source'] ?? '');
+            }
+        }
+        foreach ($candidates as $i => $c) {
+            $date = substr((string) $c['date'], 0, 10);
+            if (($c['precision'] ?? null) === 'year' && preg_match('/^\d{3}0-01-01$/', $date) === 1
+                && array_diff($decades[$date] ?? [], [(string) ($c['source'] ?? '')]) !== []) {
+                $candidates[$i]['precision'] = self::DECADE;
+            }
+        }
+
+        return $candidates;
     }
 
     /**
