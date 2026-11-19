@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Console\Commands\AttachStations;
 use App\Console\Commands\BuildSharedTrack;
+use App\Services\Materials\MaterialGaugeRule;
 use App\Support\Lgv;
 use App\Support\TrackPriority;
 use Illuminate\Database\QueryException;
@@ -40,7 +41,8 @@ use Illuminate\Support\Facades\DB;
  *     commun dessiné deux fois, ex. Vire), sauf parallèle distinct signalé par vff:build-line-references ;
  *   - patrimoine : train touristique / musée en service, vélorail fermé ;
  *   - pas de tiret long (U+2014) ni de double tiret dans les textes affichés ;
- *   - ère courante : pas de tronçon patrimoine sur une gare voyageurs desservie.
+ *   - ère courante : pas de tronçon patrimoine sur une gare voyageurs desservie ;
+ *   - pas de lien ligne × matériel dont l'écartement contredit celui de la ligne, sauf source explicite.
  */
 class DataInvariants
 {
@@ -172,6 +174,9 @@ class DataInvariants
         // Ajout « trafic-2030 » (2026-10-20), isolé en fin de liste : gare voyageurs rattachée à un autre
         // code dans liste-des-gares (944000 Cannes-la Bocca - Grasse, « fret » en 2030).
         'segments.current_freight_on_reopened_or_station' => 'Ère courante : tronçon « fret » rouvert aux voyageurs (événement daté, sans fermeture après) ou portant une gare de voyageurs SNCF desservie à moins de '.PassengerPortions::ADOPT_M.' m, quel que soit son code (lignes)',
+        // Ajout « materiel-ecartement » (2026-11-19), isolé en fin de liste : X 73500 (voie normale) relié
+        // aux lignes métriques du Blanc-Argent par une phrase de comparaison.
+        'line_materials.gauge_conflict' => 'Lien ligne × matériel dont l\'écartement couvre moins de '.(MaterialGaugeRule::MIN_SHARE * 100).' % de la longueur de la ligne (toutes ères), sans source explicite ni exception relue (liens)',
     ];
 
     /** @param  list<string>|null  $only  clés (ou préfixes, ex. « segments ») à vérifier */
@@ -1001,6 +1006,23 @@ class DataInvariants
             JOIN lines l ON l.id = h.line_id
             GROUP BY l.id, l.code, l.name
             SQL, fn ($r) => sprintf('%s %s : %s km en « fret » (%s)', $r->code, $r->name, $this->km($r->km), $r->why));
+    }
+
+    /**
+     * Série reliée à une ligne d'un autre écartement (MaterialGaugeRule : moins du quart de la longueur,
+     * toutes ères), sans phrase de preuve qui nomme l'écartement ni exception de
+     * database/data/line_material_gauge_exceptions.php.
+     *
+     * @return array{count: int, examples: list<string>}
+     */
+    private function lineMaterialsGaugeConflict(): array
+    {
+        $conflicts = MaterialGaugeRule::fromDatabase()->storedConflicts();
+
+        return ['count' => count($conflicts), 'examples' => array_map(
+            fn (array $c): string => sprintf('%s × %s (lien %d) : %s', $c['line'], $c['material'], $c['id'], $c['reason']),
+            array_slice($conflicts, 0, self::EXAMPLES),
+        )];
     }
 
     // ─── Outils ──────────────────────────────────────────────────────────

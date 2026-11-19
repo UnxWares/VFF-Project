@@ -224,8 +224,19 @@ class MaterialPeriodExtractorTest extends TestCase
         $this->assertCount(1, $sentences);
         $text = $sentences[0]['text'];
         $this->assertSame('Des rames Z 20500 et des Franciliens.', $text);
-        $this->assertSame([['target' => 'Z 20500', 'pos' => 10, 'length' => 7], ['target' => 'Z 50000', 'pos' => 25, 'length' => 11]], $sentences[0]['links']);
+        $this->assertSame([['target' => 'Z 20500', 'pos' => 10, 'length' => 7, 'compared' => false], ['target' => 'Z 50000', 'pos' => 25, 'length' => 11, 'compared' => false]], $sentences[0]['links']);
         $this->assertSame('Franciliens', mb_substr($text, 25, 11));
+    }
+
+    public function test_a_series_cited_as_a_comparison_gets_no_period(): void
+    {
+        // Phrase du Blanc-Argent, datée pour que seule la comparaison puisse l'écarter.
+        $this->assertSame(
+            [11 => [['2002-01-01', 'year', null, null, 'medium']]],
+            $this->lineFacts('Depuis 2002, les [[X 5500]] offrent un confort similaire aux autorails [[X 2000]].'),
+            'le X 2000 n\'est qu\'un terme de comparaison',
+        );
+        $this->assertSame([], $this->lineFacts('Ce nouveau matériel offre depuis 2002 un confort similaire aux autorails [[X 2000]], avec notamment la climatisation.'));
     }
 
     public function test_wikidata_precision_gives_the_reliability(): void

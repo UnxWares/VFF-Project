@@ -199,6 +199,22 @@ final class MaterialPeriodCollector
     }
 
     /**
+     * Ce que write() changerait : empreintes nouvelles et périodes en base que les sources ne portent plus.
+     *
+     * @param  array<string, array<string, mixed>>  $periods
+     * @return array{created: list<string>, removed: list<int>}
+     */
+    public static function diff(array $periods): array
+    {
+        $existing = LineMaterialPeriod::query()->pluck('id', 'fingerprint')->all();
+
+        return [
+            'created' => array_values(array_diff(array_map('strval', array_keys($periods)), array_map('strval', array_keys($existing)))),
+            'removed' => array_values(array_map('intval', array_diff_key($existing, $periods))),
+        ];
+    }
+
+    /**
      * Ligne de la table pour un fait.
      *
      * @param  array<string, mixed>  $c

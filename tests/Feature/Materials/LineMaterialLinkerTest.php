@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Materials;
 
+use App\Models\Era;
 use App\Models\Line;
 use App\Models\LineMaterial;
+use App\Models\LineSegment;
 use App\Models\Material;
 use App\Services\Materials\LineMaterialLinker;
 use App\Services\Materials\WikidataMaterialRules;
@@ -184,5 +186,39 @@ class LineMaterialLinkerTest extends TestCase
         $this->assertSame(4, LineMaterial::count());
         $this->assertSame([$this->luneville->slug], $this->x73500->lines()->pluck('slug')->all());
         $this->assertSame('high', $this->luneville->materialLinks()->where('material_id', $this->bb15000->id)->value('confidence'));
+    }
+
+    public function test_a_series_of_another_gauge_is_rejected_unless_a_source_names_the_gauge(): void
+    {
+        // Lunéville à Saint-Dié rendue métrique pour le test : 95 % à 1 000 mm, un raccordement à voie normale.
+        $era = Era::factory()->create(['year' => 2030]);
+        LineSegment::factory()->create(['line_id' => $this->luneville->id, 'era_id' => $era->id, 'gauge_mm' => 1000, 'length_meters' => 19_000]);
+        LineSegment::factory()->create(['line_id' => $this->luneville->id, 'era_id' => $era->id, 'gauge_mm' => 1435, 'length_meters' => 1_000]);
+        $this->x73500->update(['gauge_mm' => 1435]);
+        $this->bb15000->update(['gauge_mm' => 1000]);
+
+        $linker = $this->linker();
+        $links = $linker->collect();
+
+        $this->assertArrayNotHasKey("{$this->luneville->id}:{$this->x73500->id}", $links, 'Wikidata seul ne nomme pas l\'écartement');
+        $this->assertArrayHasKey("{$this->luneville->id}:{$this->bb15000->id}", $links, 'série au bon écartement');
+        $this->assertSame(
+            ["{$this->luneville->id}:{$this->x73500->id}" => 'série à 1 435 mm, ligne surtout à 1 000 mm (5 % de sa longueur à 1 435 mm)'],
+            array_map(fn (array $l): string => $l['reason'], $linker->rejected()),
+        );
+    }
+
+    public function test_diff_lists_what_writing_would_change_without_writing(): void
+    {
+        $stale = LineMaterial::create(['line_id' => $this->lgvEst->id, 'material_id' => $this->x73500->id, 'source' => 'wikipedia', 'evidence' => []]);
+        $links = $this->linker()->collect();
+
+        $diff = LineMaterialLinker::diff($links);
+
+        $this->assertEqualsCanonicalizing(array_keys($links), $diff['created']);
+        $this->assertSame([], $diff['updated']);
+        $this->assertSame(["{$this->lgvEst->id}:{$this->x73500->id}"], $diff['removed']);
+        $this->assertSame(1, LineMaterial::count(), 'diff() n\'écrit rien');
+        $this->assertModelExists($stale);
     }
 }

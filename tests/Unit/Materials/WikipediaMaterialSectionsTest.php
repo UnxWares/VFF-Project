@@ -3,6 +3,7 @@
 namespace Tests\Unit\Materials;
 
 use App\Services\Materials\WikipediaMaterialSections;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -114,5 +115,59 @@ class WikipediaMaterialSectionsTest extends TestCase
 
         $this->assertSame(['Services effectués', 'Services effectués > TER'], array_column($sections, 'title'));
         $this->assertSame([['target' => 'Ligne de Lunéville à Saint-Dié', 'quote' => 'Ligne de Lunéville à Saint-Dié', 'refers_back' => false]], WikipediaMaterialSections::links($sections[1]['text']));
+    }
+
+    /** Chemin de fer du Blanc-Argent, « Matériel roulant > Matériel actuel » (révision 238401038), tel que lu par l'import. */
+    private const BLANC_ARGENT = <<<'WIKI'
+        [[Fichier:Salbris gare 6.jpg|vignette|X 74501 et X 74505 à [[Gare de Salbris|Salbris]] (2009).]]
+        En {{date|2003|dans les chemins de fer}}, la desserte était assurée par cinq [[autorail]]s neufs construits par [[Soulé|CFD]] à [[Bagnères-de-Bigorre]], numérotés [[X 74500|X 74501 à 74505]]. Leur acquisition traduit la volonté du [[Conseil régional du Centre-Val de Loire|conseil régional du Centre]] de maintenir la ligne en service. Ce nouveau matériel offre un confort similaire aux autorails [[X 73500]], avec notamment la [[climatisation]].
+        WIKI;
+
+    public function test_a_series_cited_as_a_comparison_is_not_linked(): void
+    {
+        $targets = array_column(WikipediaMaterialSections::links(self::BLANC_ARGENT), 'target');
+
+        $this->assertContains('X 74500', $targets, 'les autorails de la ligne');
+        $this->assertNotContains('X 73500', $targets, '« un confort similaire aux autorails X 73500 » : une comparaison, pas une circulation');
+        $this->assertContains('Climatisation', $targets, 'la suite de la phrase, après la virgule, reste lue');
+    }
+
+    public function test_linked_sentences_flag_the_compared_series(): void
+    {
+        $compared = [];
+        foreach (WikipediaMaterialSections::linkedSentences(self::BLANC_ARGENT) as $sentence) {
+            foreach ($sentence['links'] as $link) {
+                $compared[$link['target']] = $link['compared'];
+            }
+        }
+
+        $this->assertTrue($compared['X 73500']);
+        $this->assertFalse($compared['X 74500']);
+    }
+
+    /** @return iterable<string, array{string, bool}> */
+    public static function comparisons(): iterable
+    {
+        // Texte en clair qui précède le lien.
+        yield 'similaire aux' => ['Ce nouveau matériel offre un confort similaire aux autorails', true];
+        yield 'identique au (Meaux à Dammartin)' => ['Type NK (identique au', true];
+        yield 'comparable aux' => ['Des performances comparables aux', true];
+        yield 'à l\'image des' => ['Une livrée à l\'image des', true];
+        yield 'à l\'instar des' => ['Climatisées à l’instar des', true];
+        yield 'plus confortable que' => ['Ces autorails sont plus confortables que les', true];
+        yield 'dérivés des' => ['Des engins dérivés des', true];
+        yield 'sur le modèle des' => ['Construits sur le modèle des', true];
+        yield 'exemple (872000)' => ['La fréquentation a augmenté de 89 % entre 2002 et 2008 coïncidant avec l\'arrivée de nouveaux matériels comme les ATER', false];
+        yield 'appartenance (359000)' => ['Ces deux engins, achetés par la région Haute-Normandie affectés au dépôt de Sotteville-lès-Rouen, sont issus respectivement des familles des', false];
+        yield 'restriction' => ['Il ne circule plus guère que des', false];
+        yield 'énumération' => ['La desserte est assurée aussi bien par des X 72500 que par des', false];
+        yield 'comparaison close par une virgule' => ['Un confort similaire aux trains Corail, la desserte est assurée par des', false];
+        yield 'comparaison dans une autre phrase' => ['Un confort similaire aux trains Corail. Les', false];
+    }
+
+    #[DataProvider('comparisons')]
+    public function test_comparison_markers(string $before, bool $compared): void
+    {
+        $this->assertSame($compared, WikipediaMaterialSections::isCompared($before));
     }
 }

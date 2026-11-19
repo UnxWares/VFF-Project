@@ -24,6 +24,10 @@ use Illuminate\Support\Facades\DB;
  * (« Ce train a été remplacé par le TGV » : la série citée n'est pas le sujet de la phrase),
  * `low` quand l'article décrit plusieurs lignes de VFF à la fois (le matériel n'a peut-être
  * parcouru que l'une d'elles).
+ *
+ * Écartement : un lien qui rattache une série à une ligne d'un autre écartement (autorail à voie
+ * normale sur une ligne métrique) est écarté, sauf source explicite (MaterialGaugeRule) ; les liens
+ * écartés restent lisibles par rejected() pour le bilan de l'import.
  */
 final class LineMaterialLinker
 {
@@ -41,9 +45,13 @@ final class LineMaterialLinker
     /** Titre d'une section consacrée au matériel : preuve la plus directe dans un article de ligne. */
     private const MATERIAL_HEADING = '/^mat[ée]riels?\b/iu';
 
+    /** @var array<string, array{line_id: int, material_id: int, evidence: list<array<string, mixed>>, reason: string}> */
+    private array $rejected = [];
+
     public function __construct(
         private readonly WikidataMaterialSource $wikidata,
         private readonly WikipediaArticleSource $wikipedia,
+        private readonly ?MaterialGaugeRule $gauges = null,
     ) {}
 
     /**
@@ -88,7 +96,64 @@ final class LineMaterialLinker
         $this->fromLineArticles($add, $refresh);
         $this->fromMaterialArticles($add, $refresh);
 
+        // Écartement contraire sans source explicite : le lien est écarté (et gardé pour le bilan).
+        $rule = $this->gauges ?? MaterialGaugeRule::fromDatabase();
+        $this->rejected = [];
+        foreach ($links as $key => $link) {
+            $reason = $rule->conflict($link['line_id'], $link['material_id'], $link['evidence']);
+            if ($reason !== null) {
+                $this->rejected[$key] = $link + ['reason' => $reason];
+                unset($links[$key]);
+            }
+        }
+
         return $links;
+    }
+
+    /**
+     * Liens que la dernière collecte a écartés pour leur écartement, par couple « ligne:série ».
+     *
+     * @return array<string, array{line_id: int, material_id: int, evidence: list<array<string, mixed>>, reason: string}>
+     */
+    public function rejected(): array
+    {
+        return $this->rejected;
+    }
+
+    /**
+     * Ce que write() changerait : couples « ligne:série » à créer, à mettre à jour (preuves, fiabilité)
+     * et liens importés à retirer.
+     *
+     * @param  array<string, array{line_id: int, material_id: int, evidence: list<array<string, mixed>>}>  $links
+     * @return array{created: list<string>, updated: list<string>, removed: list<string>}
+     */
+    public static function diff(array $links): array
+    {
+        $existing = LineMaterial::query()->whereIn('source', LineMaterial::IMPORTED_SOURCES)->get()
+            ->keyBy(fn (LineMaterial $l): string => "{$l->line_id}:{$l->material_id}");
+        $out = ['created' => [], 'updated' => [], 'removed' => []];
+        foreach ($links as $key => $link) {
+            $row = $existing->pull((string) $key);
+            if ($row === null) {
+                $out['created'][] = (string) $key;
+            } elseif (self::changed($row, self::attributes($link['evidence']))) {
+                $out['updated'][] = (string) $key;
+            }
+        }
+        $out['removed'] = array_map('strval', $existing->keys()->all());
+
+        return $out;
+    }
+
+    /**
+     * Le lien enregistré diffère-t-il de ces colonnes ?
+     *
+     * @param  array{source: string, source_url: ?string, confidence: string, evidence: list<array<string, mixed>>, fetched_at: mixed}  $values
+     */
+    private static function changed(LineMaterial $row, array $values): bool
+    {
+        return $row->source !== $values['source'] || $row->source_url !== $values['source_url']
+            || $row->confidence !== $values['confidence'] || ! JsonEquality::same($row->evidence, $values['evidence']);
     }
 
     /**
@@ -115,9 +180,7 @@ final class LineMaterialLinker
 
                     continue;
                 }
-                $changed = $row->source !== $values['source'] || $row->source_url !== $values['source_url']
-                    || $row->confidence !== $values['confidence'] || ! JsonEquality::same($row->evidence, $values['evidence']);
-                if ($changed) {
+                if (self::changed($row, $values)) {
                     $row->fill($values)->save();
                     $stats['updated']++;
                 }

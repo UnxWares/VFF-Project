@@ -13,6 +13,7 @@ use App\Services\Materials\WikipediaArticleSource;
 use App\Services\Media\CommonsClient;
 use App\Services\WikimediaClient;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Matériel roulant (phase 13) : fiches des séries ayant circulé en France, lues dans Wikidata
@@ -31,7 +32,7 @@ use Illuminate\Console\Command;
  *   vff:import-materials --refresh       # redemande tout aux sources
  *   vff:import-materials --links-only    # liens seulement (fiches déjà importées)
  *   vff:import-materials --no-attested   # sans les séries non rattachées à la France
- *   vff:import-materials --dry-run       # lit et compte, sans écrire en base
+ *   vff:import-materials --dry-run       # lit et compte, sans écrire en base (liens à créer et à retirer)
  */
 class ImportMaterials extends Command
 {
@@ -70,13 +71,54 @@ class ImportMaterials extends Command
             }
             $this->info(count($links).' lien(s) matériel ↔ ligne attesté(s).');
             $this->table(['preuve', 'liens'], collect($byKind)->map(fn (int $n, string $k): array => [$k, $n])->values()->all());
-            if (! $dryRun) {
+            $this->report($linker, $links);
+            if ($dryRun) {
+                $this->warn('--dry-run : rien n\'est écrit.');
+            } else {
                 $stats = $linker->write($links);
                 $this->info("Liens : {$stats['created']} créé(s), {$stats['updated']} mis à jour, {$stats['removed']} retiré(s).");
             }
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Bilan avant écriture : liens écartés pour leur écartement, liens à créer, à mettre à jour et à retirer.
+     *
+     * @param  array<string, array{line_id: int, material_id: int, evidence: list<array<string, mixed>>}>  $links
+     */
+    private function report(LineMaterialLinker $linker, array $links): void
+    {
+        $rejected = $linker->rejected();
+        $diff = LineMaterialLinker::diff($links);
+        $keys = [...array_keys($rejected), ...$diff['created'], ...$diff['updated'], ...$diff['removed']];
+        $lineIds = array_map(fn (string $k): int => (int) explode(':', $k)[0], $keys);
+        $materialIds = array_map(fn (string $k): int => (int) explode(':', $k)[1], $keys);
+        $lines = DB::table('lines')->whereIn('id', $lineIds)->get(['id', 'code', 'name'])->mapWithKeys(fn ($l): array => [(int) $l->id => $l->code ?? $l->name]);
+        $materials = DB::table('materials')->whereIn('id', $materialIds)->pluck('name', 'id');
+        $name = function (string $key) use ($lines, $materials): string {
+            [$line, $material] = array_map('intval', explode(':', $key));
+
+            return ($lines[$line] ?? "ligne {$line}").' × '.($materials[$material] ?? "série {$material}");
+        };
+
+        $this->line('  Écartés pour leur écartement : '.count($rejected));
+        foreach ($rejected as $key => $link) {
+            $this->line("    - {$name((string) $key)} : {$link['reason']}");
+        }
+        $this->line('  Liens à créer : '.count($diff['created']));
+        foreach ($diff['created'] as $key) {
+            $this->line("    + {$name($key)}");
+        }
+        $this->line('  Liens à mettre à jour (preuves ou fiabilité) : '.count($diff['updated']));
+        foreach ($diff['updated'] as $key) {
+            $this->line("    ~ {$name($key)}");
+        }
+        $this->line('  Liens importés à retirer : '.count($diff['removed']));
+        foreach ($diff['removed'] as $key) {
+            $this->line("    - {$name($key)}");
+        }
     }
 
     private function importMaterials(WikidataMaterialSource $source, WikipediaArticleSource $wikipedia, WikidataMaterialRules $rules, SourceCache $cache, bool $refresh, bool $dryRun): void
