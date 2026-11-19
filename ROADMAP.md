@@ -287,7 +287,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [ ] Stories d'archives (carrousel de photos sur un événement précis)
 - [ ] Quiz / mini-jeu : reconnaître la ligne / le matériel
 - [ ] Export GPX/KML d'un tracé
-- [ ] Voies vertes sur d'anciennes lignes (données OSM importées) : itinéraires pour les cyclistes
+- [x] Voies vertes sur d'anciennes lignes (données OSM importées) : rattachement mesuré (vff:link-greenways), section de la fiche ligne, calque de la carte, API REST et GraphQL
 
 ---
 
