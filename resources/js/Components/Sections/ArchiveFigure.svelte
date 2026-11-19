@@ -7,6 +7,7 @@
     import { Link } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { decadeOf } from '$lib/typo.js';
+    import { conciseAlt, figureLabel } from '$lib/altText.js';
 
     /** @type {{ media: { id: number, year: number, decade: boolean, caption: string, author: string|null, license: string, license_url: string|null, source_url: string, thumb_url: string, display_url: string|null, line: { slug: string, name: string } }, sizes?: string, loading?: 'lazy'|'eager' }} */
     let {
@@ -14,29 +15,40 @@
         sizes = '(max-width: 600px) calc(100vw - 32px), (max-width: 900px) 45vw, 380px',
         loading = 'lazy',
     } = $props();
+
+    const yearText = $derived(
+        media.decade
+            ? $i18n.t('home.archives.decade', { decade: decadeOf(media.year, $i18n.language) })
+            : String(media.year),
+    );
+    // RGAA 1.9 : la figure reprend sa légende (role="group" admis par le RGAA, + aria-label) ; l'alt reste court (1.3.9).
+    const legend = $derived(
+        figureLabel([
+            yearText,
+            media.caption,
+            media.line.name,
+            media.author || $i18n.t('home.archives.author_unknown'),
+            media.license,
+            $i18n.t('home.archives.source'),
+        ]),
+    );
 </script>
 
-<figure class="vff-figure archive">
+<figure class="vff-figure archive" role="group" aria-label={legend}>
     <img
         src={media.thumb_url}
         srcset={media.display_url
             ? `${media.thumb_url} 500w, ${media.display_url} 1280w`
             : undefined}
         {sizes}
-        alt={media.caption}
+        alt={conciseAlt(media.caption)}
         width="600"
         height="400"
         {loading}
         decoding="async"
     />
     <figcaption>
-        <span class="year"
-            >{media.decade
-                ? $i18n.t('home.archives.decade', {
-                      decade: decadeOf(media.year, $i18n.language),
-                  })
-                : media.year}</span
-        >
+        <span class="year">{yearText}</span>
         <span class="caption">{media.caption}</span>
         <Link class="vff-link" href={`/lines/${media.line.slug}`}
             ><i class="bi bi-signpost-split" aria-hidden="true"></i>

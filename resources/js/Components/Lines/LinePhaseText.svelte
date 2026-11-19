@@ -132,7 +132,10 @@
                         >{#each items as w, n (n)}{w.text
                                 ? `${n === 0 ? ', ' : ''}${w.text}`
                                 : ''}{#if w.note != null}<sup
-                                    ><a href="#note-{w.note}" title={w.source ?? ''}>[{w.note}]</a
+                                    ><a href="#note-{w.note}" title={w.source ?? ''}
+                                        ><span class="vff-sr-only"
+                                            >{`${$i18n.t('common.note_ref')} `}
+                                        </span>[{w.note}]</a
                                     ></sup
                                 >{/if}{n < items.length - 1 ? semi : ''}{/each}</span
                     >{/if}
@@ -172,10 +175,13 @@
                         {#each group as e, n (e.id)}{eventLabel(e.type)}{colon}{dateOf(
                                 e.date,
                                 e.precision,
-                            )}<sup><a href="#note-{e.note}">[{e.note}]</a></sup>{n <
-                            group.length - 1
-                                ? semi
-                                : ''}{/each}
+                            )}<sup
+                                ><a href="#note-{e.note}"
+                                    ><span class="vff-sr-only"
+                                        >{`${$i18n.t('common.note_ref')} `}
+                                    </span>[{e.note}]</a
+                                ></sup
+                            >{n < group.length - 1 ? semi : ''}{/each}
                     </p>
                 {/each}
             </div>

@@ -17,7 +17,8 @@
      * souvent un nom de fichier). Filtres et tri seulement quand ils servent (plusieurs
      * images, plusieurs types ou époques). Se masque entièrement si la ligne n'a aucun média.
      */
-    let { slug, perPage = 24 } = $props();
+    // `onitems` : reçoit les images chargées (données structurées de la fiche, SeoHead).
+    let { slug, perPage = 24, onitems = null } = $props();
 
     let items = $state.raw([]);
     let total = $state(0);
@@ -79,6 +80,7 @@
             page = json.meta.current_page;
             lastPage = json.meta.last_page;
             facets = json.facets;
+            onitems?.(items);
         } catch {
             error = true;
         } finally {
@@ -359,7 +361,7 @@
     class="lightbox"
     onclose={() => (current = null)}
     onclick={onBackdrop}
-    aria-labelledby="lb-title"
+    aria-labelledby={active ? 'lb-title' : undefined}
 >
     {#if active}
         <div class="lb-inner">

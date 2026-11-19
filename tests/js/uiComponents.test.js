@@ -167,6 +167,14 @@ describe('Field', () => {
         expect(html({})).toContain('<p class="vff-error" id="email-error" aria-live="polite">');
     });
 
+    it('écrit la mention « obligatoire » dans le libellé d’un champ requis (RGAA 11.10)', () => {
+        expect(html({})).not.toContain('vff-required');
+        const body = html({ required: true });
+        expect(body).toMatch(
+            /<label class="vff-label" for="email">Adresse<span class="vff-required[^"]*"> \(/,
+        );
+    });
+
     it('cache le libellé visuellement mais le garde pour les lecteurs d’écran', () => {
         expect(html({ labelHidden: true })).toContain('vff-label vff-sr-only');
     });

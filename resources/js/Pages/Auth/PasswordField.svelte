@@ -23,7 +23,7 @@
     let shown = $state(false);
 </script>
 
-<Field {id} {label} {hint} {error}>
+<Field {id} {label} {hint} {error} required>
     {#snippet children(attrs)}
         <div class="password-control">
             <input

@@ -1,10 +1,10 @@
 <?php
 
 // Déclaration d'accessibilité, au format du modèle officiel du RGAA 4.1.2 (article 47 de la loi n° 2005-102).
-// Elle repose sur l'audit interne du 2026-11-19 (grille WCAG 2.1 A et AA, socle du RGAA ; rapport :
-// storage/app/reports/agents/ui-controle.md, section 6). Ce n'est ni un audit de la grille RGAA complète
-// ni un audit par un tiers : aucun taux de conformité n'est publié. Pour s'en tenir à la lettre du
-// référentiel, remplacer « partiellement conforme » par « non conforme » dans la section status.
+// Elle repose sur l'audit interne RGAA 4.1.2 du 2026-11-20 (106 critères, 28 pages) : rapport
+// storage/app/reports/agents/nuit/audit-rgaa.md, grille storage/app/reports/agents/nuit/audit-rgaa-grille.csv,
+// calcul refait par storage/app/data/rgaa/grille.py. Seuils officiels : conforme à 100 %, partiellement
+// conforme à partir de 50 % de critères respectés, non conforme en dessous ou sans audit en cours de validité.
 // À mettre à jour à chaque correction ; la date est dans resources/js/Pages/Accessibility.svelte
 // (prop updated) et dans la section establishment. Le français fait foi.
 // Traduction de lang/fr/accessibility.php.
@@ -24,44 +24,47 @@ return [
 
     'status' => [
         'title' => 'Konformitätsstatus',
-        'paragraph' => '<p><strong>Die Website vff-project.org entspricht dem RGAA 4.1.2 teilweise.</strong></p>'
-            .'<p>Dieser Status beruht auf einem internen Audit vom 19. November 2026 anhand der Kriterien der Stufen A und AA der WCAG 2.1, die die Grundlage des RGAA bilden. Das Audit deckte nicht die vollständige RGAA-Kriterienliste (106 Kriterien) ab und wurde nicht von einer dritten Stelle durchgeführt. Wir veröffentlichen deshalb keine Konformitätsquote, und der erklärte Status ist durch ein solches Audit noch zu bestätigen.</p>',
+        'paragraph' => '<p><strong>Die Website vff-project.org entspricht teilweise dem RGAA 4.1.2.</strong></p>'
+            .'<p>Dieser Stand beruht auf dem internen Audit, das UnxWares am 20. November 2026 nach der Methode des RGAA 4.1.2 durchgeführt hat: Alle 106 Kriterien wurden an einer Stichprobe von 28 Seiten geprüft. Das Audit wurde nicht von einer externen Stelle durchgeführt.</p>',
     ],
 
     'results' => [
         'title' => 'Testergebnisse',
-        'paragraph' => '<p>Das interne Audit vom 19. November 2026 umfasste die unten aufgeführten Beispielseiten, insgesamt mehr als 250 Ansichten (Seiten, Bildschirmbreiten, helles und dunkles Design, Sprachen). Von den 50 Kriterien der WCAG 2.1 der Stufen A und AA werden 42 erfüllt, 1 nicht (die Sprache von Textstellen, siehe unten) und 7 sind nicht anwendbar, weil die Website weder Video noch Ton noch Bedienelemente per Bewegung enthält.</p>'
-            .'<p>Lighthouse vergibt bei der Barrierefreiheit auf den gemessenen Seiten 100 von 100 Punkten, am Computer und auf dem Smartphone. Diese Punktzahl beweist keine Konformität: Sie deckt nur einen Teil der Kriterien ab. Deshalb haben wir die Website außerdem vollständig nur mit der Tastatur durchlaufen und die Darstellung bei 200 % Zoom und bei 320 Pixel Breite geprüft, mit vergrößertem Textabstand und mit aktivierter Reduzierung von Animationen.</p>'
-            .'<p>Die Website wurde nicht mit einem Screenreader getestet: Schwierigkeiten, die diese Tests nicht zeigen, können bestehen bleiben.</p>',
+        'paragraph' => '<p>Das interne Konformitätsaudit ergibt:</p>'
+            .'<ul>'
+            .'<li>82 % der RGAA-Kriterien sind erfüllt (59 der 72 Kriterien, die auf die Website zutreffen);</li>'
+            .'<li>die durchschnittliche Konformitätsrate des Online-Dienstes beträgt 99 % (98,87 %, Mittelwert der Raten der 28 Seiten).</li>'
+            .'</ul>'
+            .'<p>24 der 28 Seiten erfüllen alle Kriterien, die für sie gelten. Elf der dreizehn nicht erfüllten Kriterien scheitern nur in den beiden Werkzeugen der API-Dokumentation, Swagger UI und Magidoc. Das vollständige Prüfraster (Status und Begründung jedes Kriteriums auf jeder Seite) erhalten Sie auf Anfrage.</p>'
+            .'<p>Die Website wurde nicht mit einem Screenreader getestet. Name, Rolle und Zustand der Bedienelemente wurden im Code und im Barrierefreiheitsbaum des Browsers geprüft; wie NVDA, JAWS, VoiceOver oder TalkBack sie tatsächlich ausgeben, ist noch zu prüfen.</p>',
     ],
 
     'non_accessible' => [
         'title' => 'Nicht barrierefreie Inhalte',
-        'paragraph' => '<p>Festgestellte Nichtkonformität:</p>'
+        'paragraph' => '<p>Nicht erfüllte Anforderungen:</p>'
             .'<ul>'
-            .'<li>Sprache von Textstellen (RGAA-Kriterium 8.7, WCAG 3.1.2): Die Bildunterschriften und Urheberangaben der Bilder von Wikimedia Commons erscheinen in ihrer Originalsprache (Englisch, Niederländisch usw.), ohne dass diese Sprache angegeben ist. Screenreader können sie daher mit falscher Aussprache vorlesen.</li>'
-            .'</ul>'
-            .'<p>Inhalte, die noch nicht geprüft wurden:</p>'
-            .'<ul>'
-            .'<li>die Mitgliederbereiche (Streckenverlauf-Editor, Validierung, Profil);</li>'
-            .'<li>die Dokumentationswerkzeuge der API (Swagger UI, GraphiQL, Magidoc), die von VFF gehostet werden und unter diese Erklärung fallen und deren Beschriftungen teilweise noch auf Englisch sind.</li>'
+            .'<li>Streckenseiten, Liste der Bahnhöfe: Der kleine farbige Streifen unter jedem Bahnhof (sein Zustand in jedem Jahrzehnt) unterscheidet „geöffnet“, „Zustand unbestätigt“ und „geschlossen“ nur durch die Farbe (Kriterium 3.1). Eröffnungs- und Schließungsdatum stehen daneben, und Screenreader lesen den vollständigen Zustand vor.</li>'
+            .'<li>Seiten zu Fahrzeugen: Der Pfeil „→“ bei Umnummerierungen („PLM 1-30 → Est 601-612“) hat keine Textalternative (Kriterium 13.5).</li>'
+            .'<li>Referenz der REST-API in Swagger UI (/docs/swagger): englische Oberfläche auf einer als französisch ausgezeichneten Seite (8.7), ein Link innerhalb einer Schaltfläche (8.2), zwei Hauptbereiche (9.2), das Feld „Filter by tag“ ohne Beschriftung (11.1). Dieselben Endpunkte sind auf der Seite <a href="/api">Zugang zur API</a> beschrieben.</li>'
+            .'<li>Referenz der GraphQL-API in Magidoc (/docs/graphql): englische Oberfläche (8.7), Seitentitel ohne Namen der Website (8.6), VFF-Logo mit dem Text „Magidoc“ (1.3), Anker „#“ neben den Überschriften (6.1 und 9.1), eine Schaltfläche ohne Namen (7.1), eine Schaltfläche innerhalb eines Links (8.2), waagerechtes Scrollen bei 320 Pixeln Breite (10.11), Suchfeld ohne Beschriftung (11.1), kein Sprunglink (12.7). Die Seite <a href="/api">Zugang zur API</a> stellt die GraphQL-API vor.</li>'
+            .'<li>Außerhalb der geprüften Stichprobe erscheinen Bildunterschriften und Urheber einiger Bilder von Wikimedia Commons in ihrer Originalsprache (Englisch, Niederländisch …), ohne dass diese Sprache ausgezeichnet ist (Kriterium 8.7).</li>'
             .'</ul>'
             .'<p>Wir berufen uns auf keine Ausnahme wegen unverhältnismäßiger Belastung.</p>',
     ],
 
     'exempt' => [
         'title' => 'Inhalte, die nicht der Barrierefreiheitspflicht unterliegen',
-        'paragraph' => 'Online-Karten und Kartendienste gehören zu den Inhalten, die nicht der Barrierefreiheitspflicht unterliegen: die Netzkarte, die Minikarten der Seiten, die einbettbare Karte, der OpenStreetMap-Kartenhintergrund und Ebenen von Dritten. Ihre Nutzung mit einem Screenreader ist nicht gewährleistet. Die Informationen, die sie zeigen, werden auch als Text angeboten: Seiten der Strecken und Bahnhöfe, Verzeichnisse der <a href="/lines">Strecken</a> und der <a href="/stations">Bahnhöfe</a>, Tabellen nach Jahrzehnt und die <a href="/api">API</a>. Inhalte Dritter, die VFF weder erstellt noch kontrolliert (Bilder von Wikimedia Commons, verlinkte Websites), fallen nicht unter diese Erklärung.',
+        'paragraph' => 'Online-Karten und Kartendienste gehören zu den Inhalten, die nicht der Pflicht zur Barrierefreiheit unterliegen: die Netzkarte, die Minikarten der Strecken- und Bahnhofsseiten, die einbettbare Karte, die OpenStreetMap-Grundkarte und Ebenen Dritter, samt ihren Zoom-Schaltflächen. Ihre Nutzung mit einem Screenreader ist nicht gewährleistet. Die Informationen, die sie zeigen, stehen auch als Text bereit: Strecken- und Bahnhofsseiten, Verzeichnisse der <a href="/lines">Strecken</a> und <a href="/stations">Bahnhöfe</a>, Tabellen nach Jahrzehnt und die <a href="/api">API</a>. Inhalte Dritter, die VFF weder erstellt noch kontrolliert (Bilder von Wikimedia Commons, verlinkte Websites), fallen nicht unter diese Erklärung.',
     ],
 
     'establishment' => [
         'title' => 'Erstellung dieser Erklärung',
-        'paragraph' => '<p>Diese Erklärung wurde am 19. November 2026 erstellt.</p>'
+        'paragraph' => '<p>Diese Erklärung wurde am 19. November 2026 erstellt und am 20. November 2026 nach dem internen RGAA-Audit aktualisiert.</p>'
             .'<ul>'
             .'<li><strong>Verwendete Technologien</strong>: HTML5, CSS, JavaScript (Svelte, MapLibre GL), SVG, WAI-ARIA.</li>'
-            .'<li><strong>Testumgebung</strong>: Chromium-Browser unter Linux, 320 bis 1.920 Pixel Breite, im hellen und im dunklen Design, auf Französisch und teilweise auf Englisch und Deutsch.</li>'
-            .'<li><strong>Werkzeuge</strong>: Lighthouse 13 (dessen Prüfungen auf axe-core beruhen), Entwicklerwerkzeuge von Chrome (Barrierefreiheitsbaum, Emulationen), die automatischen Messungen des Projekts (berechnete Kontraste, Überläufe, Größe der klickbaren Flächen), Bedienung per Tastatur, Zoom auf 200 %, Textabstand, Reduzierung von Animationen.</li>'
-            .'<li><strong>Geprüfte Seiten</strong>: Startseite, Karte, Streckenseiten (610000 und 752000) und Bahnhofsseiten (Angoulême, Limoges-Bénédictins), Verzeichnisse der Strecken, Bahnhöfe und Fahrzeuge, Unsere Geschichte, Spenden, Mitwirken, Danksagungen, rechtliche Seiten, API, Anmeldung, Registrierung, Passwort vergessen, die Fehlerseite „Seite nicht gefunden“, einbettbare Karte.</li>'
+            .'<li><strong>Testumgebung</strong>: Browser Chromium unter Linux, 320 bis 1 280 Pixel breit, im hellen Design (das dunkle Design wurde am 19. November gemessen), auf Französisch. Es wurde keine assistive Technologie eingesetzt.</li>'
+            .'<li><strong>Werkzeuge</strong>: Prüfung des erzeugten Codes und des Barrierefreiheitsbaums (Skripte des Projekts), Berechnung der Kontraste, Tastaturdurchgang mit 45 Tabulatorschritten je Seite, Bildschirmfotos ohne Stylesheets, bei 320 Pixeln Breite und mit vergrößerten Textabständen, Durchsicht des Codes der Komponenten.</li>'
+            .'<li><strong>Geprüfte Seiten</strong>: Startseite; Impressum, das auch die Kontaktangaben enthält (die Website hat keine Kontaktseite); Erklärung zur Barrierefreiheit; Mitmachen, das als Hilfeseite dient; Anmeldung; Registrierung; Passwort vergessen; Karte; Verzeichnisse der Strecken, Bahnhöfe, Fahrzeuge und Unfälle; je eine Seite zu einer Strecke (610000), einem Bahnhof (Angoulême), einem Fahrzeug (PLM 1-30) und einem Unfall (Meudon, 1842); Zugang zur API; Referenzen REST (Swagger UI) und GraphQL (Magidoc); die Fehlerseite „Seite nicht gefunden“; das Suchfenster; Profil; Trassen-Editor; meine Beiträge; Prüfung der Beiträge; dazu, ausgelost, die Datenschutzerklärung, die Nutzungsbedingungen und die technischen Credits. Die Website hat keine Sitemap-Seite. Die REST-Referenz in Scalar (/docs/api) gehörte nicht zur Stichprobe.</li>'
             .'</ul>',
     ],
 
@@ -83,6 +86,6 @@ return [
 
     'plan' => [
         'title' => 'Geplante Verbesserungen',
-        'paragraph' => 'Wir planen, beim Import der Bilder von Wikimedia Commons die Sprache jeder Bildunterschrift zu speichern und sie dann an der betroffenen Textstelle anzugeben, womit die Nichtkonformität beim Kriterium 8.7 behoben wird. Außerdem planen wir, die Mitgliederbereiche und die Dokumentationswerkzeuge der API zu prüfen, die Website mit einem Screenreader zu testen und danach ein vollständiges Audit anhand der RGAA-Kriterienliste in Auftrag zu geben. Dessen Konformitätsquote wird auf dieser Seite veröffentlicht.',
+        'paragraph' => 'Wir planen, die Farben des Jahrzehntstreifens in der Liste der Bahnhöfe durch ein Muster zu ergänzen, Umnummerierungen von Fahrzeugen in Worten zu schreiben, die Oberflächen von Swagger UI und Magidoc ins Französische zu übersetzen und ihren Code zu korrigieren und anschließend beim Import der Bilder von Wikimedia Commons die Sprache jeder Bildunterschrift zu speichern. Außerdem planen wir, die Website mit einem Screenreader zu testen und die REST-Referenz in Scalar zu prüfen. Die Konformitätsrate auf dieser Seite wird nach jeder Korrektur aktualisiert.',
     ],
 ];

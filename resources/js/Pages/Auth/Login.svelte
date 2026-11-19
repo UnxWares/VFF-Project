@@ -76,7 +76,12 @@
                     >
                 {/if}
 
-                <Field id="email" label={$i18n.t('auth.email_label')} error={form.errors.email}>
+                <Field
+                    id="email"
+                    label={$i18n.t('auth.email_label')}
+                    error={form.errors.email}
+                    required
+                >
                     {#snippet children(attrs)}
                         <input
                             {...attrs}

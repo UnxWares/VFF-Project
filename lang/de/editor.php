@@ -113,6 +113,7 @@ return [
     ],
 
     'form' => [
+        'required_note' => 'Mit einem Sternchen (*) gekennzeichnete Felder sind Pflichtfelder.',
         'line_legend' => 'Strecke',
         'kind_new' => 'Verschwundene Strecke',
         'kind_correction' => 'Strecke korrigieren',

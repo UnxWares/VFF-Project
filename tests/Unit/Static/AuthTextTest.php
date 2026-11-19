@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Les pages de compte vouvoient (français) et disent « Sie » (allemand), comme le reste du site :
- * aucun « tu », « te », « ton », « dich », « dein »… dans lang/{fr,de}/auth.php et passwords.php.
+ * aucun « tu », « te », « ton », « dich », « dein »… dans lang/{fr,de}/auth.php, passwords.php et account.php.
  */
 class AuthTextTest extends TestCase
 {
@@ -17,8 +17,10 @@ class AuthTextTest extends TestCase
         return [
             'fr auth' => ['fr', 'auth'],
             'fr passwords' => ['fr', 'passwords'],
+            'fr account' => ['fr', 'account'],
             'de auth' => ['de', 'auth'],
             'de passwords' => ['de', 'passwords'],
+            'de account' => ['de', 'account'],
         ];
     }
 

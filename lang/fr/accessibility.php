@@ -1,15 +1,15 @@
 <?php
 
 // Déclaration d'accessibilité, au format du modèle officiel du RGAA 4.1.2 (article 47 de la loi n° 2005-102).
-// Elle repose sur l'audit interne du 2026-11-19 (grille WCAG 2.1 A et AA, socle du RGAA ; rapport :
-// storage/app/reports/agents/ui-controle.md, section 6). Ce n'est ni un audit de la grille RGAA complète
-// ni un audit par un tiers : aucun taux de conformité n'est publié. Pour s'en tenir à la lettre du
-// référentiel, remplacer « partiellement conforme » par « non conforme » dans la section status.
+// Elle repose sur l'audit interne RGAA 4.1.2 du 2026-11-20 (106 critères, 28 pages) : rapport
+// storage/app/reports/agents/nuit/audit-rgaa.md, grille storage/app/reports/agents/nuit/audit-rgaa-grille.csv,
+// calcul refait par storage/app/data/rgaa/grille.py. Seuils officiels : conforme à 100 %, partiellement
+// conforme à partir de 50 % de critères respectés, non conforme en dessous ou sans audit en cours de validité.
 // À mettre à jour à chaque correction ; la date est dans resources/js/Pages/Accessibility.svelte
 // (prop updated) et dans la section establishment. Le français fait foi.
 return [
     'meta_title' => 'Déclaration d’accessibilité',
-    'meta_description' => 'État de conformité de Voies Ferrées de France au RGAA, résultats de l’audit interne, contenus non accessibles et voies de recours.',
+    'meta_description' => 'État de conformité de Voies Ferrées de France au RGAA, résultats de l’audit interne RGAA, contenus non accessibles et voies de recours.',
 
     'hero' => [
         'title' => 'Déclaration d’accessibilité',
@@ -24,43 +24,46 @@ return [
     'status' => [
         'title' => 'État de conformité',
         'paragraph' => '<p><strong>Le site vff-project.org est partiellement conforme au RGAA 4.1.2.</strong></p>'
-            .'<p>Cet état résulte d’un audit interne, mené le 19 novembre 2026 sur les critères de niveau A et AA des WCAG 2.1, qui forment le socle du RGAA. L’audit n’a pas porté sur la grille complète du RGAA (106 critères) et n’a pas été réalisé par un organisme tiers. Nous ne publions donc pas de taux de conformité, et l’état déclaré reste à confirmer par un audit de ce type.</p>',
+            .'<p>Cet état repose sur l’audit interne réalisé par UnxWares le 20 novembre 2026, selon la méthode du RGAA 4.1.2 : les 106 critères ont été vérifiés sur un échantillon de 28 pages. L’audit n’a pas été réalisé par un organisme tiers.</p>',
     ],
 
     'results' => [
         'title' => 'Résultats des tests',
-        'paragraph' => '<p>L’audit interne du 19 novembre 2026 a porté sur l’échantillon de pages donné plus bas, soit plus de 250 vues (pages, largeurs d’écran, thèmes clair et sombre, langues). Sur les 50 critères des WCAG 2.1 de niveau A et AA : 42 sont respectés, 1 ne l’est pas (la langue des passages, voir plus bas) et 7 ne s’appliquent pas, faute de vidéo, de son ou de commande par mouvement sur le site.</p>'
-            .'<p>Lighthouse donne 100 sur 100 en accessibilité sur les pages mesurées, sur ordinateur et sur téléphone. Ce score ne prouve pas la conformité : il ne couvre qu’une partie des critères. Nous avons donc aussi parcouru le site entièrement au clavier, vérifié l’affichage avec un zoom de 200 % et sur 320 pixels de large, avec l’espacement du texte augmenté et avec la réduction des animations activée.</p>'
-            .'<p>Le site n’a pas été testé avec un lecteur d’écran : des difficultés que ces tests ne montrent pas peuvent subsister.</p>',
+        'paragraph' => '<p>L’audit de conformité réalisé en interne révèle que :</p>'
+            .'<ul>'
+            .'<li>82 % des critères du RGAA sont respectés (59 critères sur les 72 qui s’appliquent au site) ;</li>'
+            .'<li>le taux moyen de conformité du service en ligne s’élève à 99 % (98,87 %, moyenne des taux des 28 pages).</li>'
+            .'</ul>'
+            .'<p>Vingt-quatre pages sur 28 respectent tous les critères qui les concernent. Onze des treize critères non respectés le sont seulement dans les deux outils de documentation de l’API, Swagger UI et Magidoc. La grille complète (statut et justification de chaque critère sur chaque page) est disponible sur demande.</p>'
+            .'<p>Le site n’a pas été testé avec un lecteur d’écran. Le nom, le rôle et l’état des composants ont été vérifiés dans le code et dans l’arbre d’accessibilité du navigateur, mais leur restitution réelle par NVDA, JAWS, VoiceOver ou TalkBack reste à contrôler.</p>',
     ],
 
     'non_accessible' => [
         'title' => 'Contenus non accessibles',
-        'paragraph' => '<p>Non-conformité constatée :</p>'
+        'paragraph' => '<p>Non-conformités :</p>'
             .'<ul>'
-            .'<li>Langue des passages (critère 8.7 du RGAA, 3.1.2 des WCAG) : les légendes et les auteurs des images de Wikimedia Commons s’affichent dans leur langue d’origine (anglais, néerlandais…) sans que cette langue soit indiquée. Les lecteurs d’écran peuvent les prononcer avec un mauvais accent.</li>'
-            .'</ul>'
-            .'<p>Contenus qui n’ont pas encore été audités :</p>'
-            .'<ul>'
-            .'<li>les pages réservées aux membres (éditeur de tracé, validation, profil) ;</li>'
-            .'<li>les outils de documentation de l’API (Swagger UI, GraphiQL, Magidoc), hébergés par VFF et soumis à cette déclaration, dont certains libellés restent en anglais.</li>'
+            .'<li>Fiches des lignes, liste des gares : la petite bande colorée sous chaque gare (état de la gare à chaque décennie) distingue « ouverte », « état non confirmé » et « fermée » par la couleur seule (critère 3.1). Les dates d’ouverture et de fermeture sont écrites à côté, et l’état complet est lu par les lecteurs d’écran.</li>'
+            .'<li>Fiches du matériel roulant : la flèche « → » des renumérotations (« PLM 1-30 → Est 601-612 ») n’a pas d’équivalent textuel (critère 13.5).</li>'
+            .'<li>Référence de l’API REST dans Swagger UI (/docs/swagger) : interface en anglais dans une page déclarée en français (8.7), lien placé dans un bouton (8.2), deux zones principales (9.2), champ « Filter by tag » sans étiquette (11.1). Les mêmes points d’accès sont décrits en français sur la page <a href="/api">Accès à l’API</a>.</li>'
+            .'<li>Référence de l’API GraphQL dans Magidoc (/docs/graphql) : interface en anglais (8.7), titre de page qui ne nomme pas le site (8.6), logo de VFF remplacé par « Magidoc » (1.3), ancres « # » à côté des titres (6.1 et 9.1), bouton sans nom (7.1), bouton placé dans un lien (8.2), défilement horizontal à 320 pixels de large (10.11), champ de recherche sans étiquette (11.1), pas de lien d’évitement (12.7). La page <a href="/api">Accès à l’API</a> présente l’API GraphQL en français.</li>'
+            .'<li>Hors de l’échantillon audité, les légendes et les auteurs de certaines images de Wikimedia Commons s’affichent dans leur langue d’origine (anglais, néerlandais…) sans que cette langue soit indiquée (critère 8.7).</li>'
             .'</ul>'
             .'<p>Nous n’invoquons aucune dérogation pour charge disproportionnée.</p>',
     ],
 
     'exempt' => [
         'title' => 'Contenus non soumis à l’obligation d’accessibilité',
-        'paragraph' => 'Les cartes et services de cartographie en ligne font partie des contenus non soumis à l’obligation d’accessibilité : carte du réseau, mini-cartes des fiches, carte intégrable, fond OpenStreetMap et calques de tiers. Leur utilisation avec un lecteur d’écran n’est pas garantie. Les informations qu’elles montrent sont proposées sous forme de texte : fiches des lignes et des gares, annuaires des <a href="/lines">lignes</a> et des <a href="/stations">gares</a>, tableaux par décennie, et <a href="/api">API</a>. Les contenus de tiers que VFF ne produit ni ne contrôle (images de Wikimedia Commons, sites liés) ne relèvent pas de cette déclaration.',
+        'paragraph' => 'Les cartes et services de cartographie en ligne font partie des contenus non soumis à l’obligation d’accessibilité : carte du réseau, mini-cartes des fiches, carte intégrable, fond OpenStreetMap et calques de tiers, avec leurs boutons de zoom. Leur utilisation avec un lecteur d’écran n’est pas garantie. Les informations qu’elles montrent sont proposées sous forme de texte : fiches des lignes et des gares, annuaires des <a href="/lines">lignes</a> et des <a href="/stations">gares</a>, tableaux par décennie, et <a href="/api">API</a>. Les contenus de tiers que VFF ne produit ni ne contrôle (images de Wikimedia Commons, sites liés) ne relèvent pas de cette déclaration.',
     ],
 
     'establishment' => [
         'title' => 'Établissement de cette déclaration',
-        'paragraph' => '<p>Cette déclaration a été établie le 19 novembre 2026.</p>'
+        'paragraph' => '<p>Cette déclaration a été établie le 19 novembre 2026. Elle a été mise à jour le 20 novembre 2026, après l’audit interne RGAA.</p>'
             .'<ul>'
             .'<li><strong>Technologies utilisées</strong> : HTML5, CSS, JavaScript (Svelte, MapLibre GL), SVG, WAI-ARIA.</li>'
-            .'<li><strong>Environnement de test</strong> : navigateur Chromium sous Linux, de 320 à 1 920 pixels de large, en thème clair et en thème sombre, en français et en partie en anglais et en allemand.</li>'
-            .'<li><strong>Outils</strong> : Lighthouse 13 (dont les contrôles reposent sur axe-core), outils de développement de Chrome (arbre d’accessibilité, émulations), mesures automatiques du projet (contrastes calculés, débordements, taille des zones cliquables), parcours au clavier, zoom à 200 %, espacement du texte, réduction des animations.</li>'
-            .'<li><strong>Pages vérifiées</strong> : accueil, carte, fiches de lignes (610000 et 752000) et de gares (Angoulême, Limoges-Bénédictins), annuaires des lignes, des gares et du matériel roulant, Notre histoire, dons, contribuer, crédits, pages légales, API, connexion, inscription, mot de passe oublié, page d’erreur « page introuvable », carte intégrable.</li>'
+            .'<li><strong>Environnement de test</strong> : navigateur Chromium sous Linux, de 320 à 1 280 pixels de large, en thème clair (le thème sombre a été mesuré le 19 novembre), en français. Aucune technologie d’assistance n’a été utilisée.</li>'
+            .'<li><strong>Outils</strong> : inspection du code généré et de l’arbre d’accessibilité (scripts du projet), calcul des contrastes, parcours au clavier de 45 tabulations par page, captures sans feuille de style, à 320 pixels de large et avec l’espacement du texte augmenté, lecture du code des composants.</li>'
+            .'<li><strong>Pages vérifiées</strong> : accueil ; mentions légales, qui donnent aussi le contact (le site n’a pas de page de contact) ; déclaration d’accessibilité ; contribuer, qui sert de page d’aide ; connexion ; inscription ; mot de passe oublié ; carte ; annuaires des lignes, des gares, du matériel roulant et des accidents ; une fiche de ligne (610000), de gare (Angoulême), de matériel (PLM 1-30) et d’accident (Meudon, 1842) ; accès à l’API ; références REST (Swagger UI) et GraphQL (Magidoc) ; page d’erreur « page introuvable » ; fenêtre de recherche ; profil ; éditeur de tracé ; mes contributions ; validation des contributions ; et, tirées au sort, la politique de confidentialité, les conditions d’utilisation et les crédits techniques. Le site n’a pas de plan du site. La référence REST dans Scalar (/docs/api) n’a pas fait partie de l’échantillon.</li>'
             .'</ul>',
     ],
 
@@ -82,6 +85,6 @@ return [
 
     'plan' => [
         'title' => 'Améliorations prévues',
-        'paragraph' => 'Nous prévoyons d’enregistrer la langue de chaque légende lors de l’import des images de Wikimedia Commons, puis de l’indiquer sur le passage concerné, ce qui lèvera la non-conformité du critère 8.7. Nous prévoyons aussi d’auditer les pages réservées aux membres et les outils de documentation de l’API, de tester le site avec un lecteur d’écran, puis de faire réaliser un audit complet de la grille du RGAA. Son taux de conformité sera publié sur cette page.',
+        'paragraph' => 'Nous prévoyons de doubler par un motif la couleur de la bande des décennies dans la liste des gares, d’écrire en toutes lettres les renumérotations du matériel roulant, de traduire en français les interfaces de Swagger UI et de Magidoc et d’en corriger le code, puis d’enregistrer la langue de chaque légende lors de l’import des images de Wikimedia Commons. Nous prévoyons aussi de tester le site avec un lecteur d’écran et d’auditer la référence REST dans Scalar. Le taux de conformité de cette page sera mis à jour après chaque correction.',
     ],
 ];

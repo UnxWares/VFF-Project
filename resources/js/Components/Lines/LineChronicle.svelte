@@ -117,7 +117,11 @@
                                         >{statusLabel(e.status)}</span
                                     >
                                     {eventLabel(e.type)}<sup
-                                        ><a href="#note-{e.note}">[{e.note}]</a></sup
+                                        ><a href="#note-{e.note}"
+                                            ><span class="vff-sr-only"
+                                                >{`${$i18n.t('common.note_ref')} `}
+                                            </span>[{e.note}]</a
+                                        ></sup
                                     >
                                     {#if e.description}<span class="desc" lang={e.description_lang}
                                             >{tieUnits(firstOfMonth(e.description, lang))}</span
@@ -141,7 +145,9 @@
                                                         byId[o].precision,
                                                     )}<sup
                                                         ><a href="#note-{byId[o].note}"
-                                                            >[{byId[o].note}]</a
+                                                            ><span class="vff-sr-only"
+                                                                >{`${$i18n.t('common.note_ref')} `}
+                                                            </span>[{byId[o].note}]</a
                                                         ></sup
                                                     >{n < e.conflicts_with.length - 1
                                                         ? ', '

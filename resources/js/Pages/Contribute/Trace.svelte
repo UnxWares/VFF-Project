@@ -488,6 +488,8 @@
                         {/if}
                     </div>
 
+                    <p class="vff-hint">{$i18n.t('editor.form.required_note')}</p>
+
                     <!-- 1. Ligne -->
                     <fieldset class="group">
                         <legend>{$i18n.t('editor.form.line_legend')}</legend>

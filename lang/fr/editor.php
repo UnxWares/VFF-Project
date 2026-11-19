@@ -113,6 +113,7 @@ return [
     ],
 
     'form' => [
+        'required_note' => 'Les champs marqués d’un astérisque (*) sont obligatoires.',
         'line_legend' => 'Ligne',
         'kind_new' => 'Ligne disparue',
         'kind_correction' => 'Corriger une ligne',

@@ -72,6 +72,7 @@
                     label={$i18n.t('auth.name_label')}
                     hint={$i18n.t('auth.name_hint')}
                     error={form.errors.name}
+                    required
                 >
                     {#snippet children(attrs)}
                         <input
@@ -87,7 +88,12 @@
                     {/snippet}
                 </Field>
 
-                <Field id="email" label={$i18n.t('auth.email_label')} error={form.errors.email}>
+                <Field
+                    id="email"
+                    label={$i18n.t('auth.email_label')}
+                    error={form.errors.email}
+                    required
+                >
                     {#snippet children(attrs)}
                         <input
                             {...attrs}
