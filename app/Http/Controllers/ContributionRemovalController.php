@@ -21,21 +21,31 @@ class ContributionRemovalController extends Controller
 {
     public function __invoke(RemoveContributionRequest $request, Contribution $contribution, AuditLog $audit): RedirectResponse
     {
-        if ($contribution->status === ContributionStatus::Applied) {
+        // Contrôle et suppression dans la même transaction, la ligne verrouillée : une approbation
+        // concurrente (qui modifie la contribution) attend la fin du retrait, ou le retrait voit
+        // le statut qu'elle vient d'écrire. Jamais de retrait d'une contribution tout juste publiée.
+        $removed = DB::transaction(function () use ($contribution, $request, $audit): ?Contribution {
+            $locked = Contribution::query()->whereKey($contribution->id)->lockForUpdate()->firstOrFail();
+            if ($locked->status === ContributionStatus::Applied) {
+                return null;
+            }
+
+            $audit->record(AuditAction::ContributionRemoved, $request->user(), context: [
+                'removed_contribution_id' => $locked->id,
+                'type' => $locked->type,
+                'status' => $locked->status->value,
+            ]);
+            $locked->delete();
+
+            return $locked;
+        });
+
+        if ($removed === null) {
             return back()->with('error', __('account.errors.removal_published'));
         }
 
-        $author = $contribution->user;
-        $notification = new ContributionRemoved($contribution->id, $contribution->created_at ?? now(), $request->validated('reason'));
-
-        DB::transaction(function () use ($contribution, $request, $audit): void {
-            $audit->record(AuditAction::ContributionRemoved, $request->user(), context: [
-                'removed_contribution_id' => $contribution->id,
-                'type' => $contribution->type,
-                'status' => $contribution->status->value,
-            ]);
-            $contribution->delete();
-        });
+        $author = $removed->user;
+        $notification = new ContributionRemoved($removed->id, $removed->created_at ?? now(), $request->validated('reason'));
 
         // Après la transaction : un courriel en échec n'annule pas le retrait (il est signalé).
         try {

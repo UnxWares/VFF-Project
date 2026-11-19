@@ -139,7 +139,7 @@ class VffMcpListToolsTest extends TestCase
                 $shortened = true;
                 $this->assertTrue($data['has_more']);
                 $this->assertGreaterThan(0, $data['truncated']['events']);
-                $this->assertNotEmpty($data['truncated_note']);
+                $this->assertSame(trans('mcp.truncated_page', [], 'fr'), $data['truncated_note'], 'note propre aux pages : next_cursor reprend la suite');
             }
             foreach ($data['events'] as $event) {
                 $seen[] = $event['id'];

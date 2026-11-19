@@ -90,6 +90,9 @@ class MaterialApiTest extends TestCase
             'écartement' => ['gauge_mm=1000', ['x-3800']],
             'avec image' => ['has_image=1', ['bb-15000']],
             'sans ligne' => ['has_lines=0', ['x-3800']],
+            'avec image, booléen en toutes lettres' => ['has_image=true', ['bb-15000']],
+            'sans ligne, booléen en toutes lettres' => ['has_lines=false', ['x-3800']],
+            'mises en service jusqu\'en 1959 (fin seule)' => ['to_year=1959', ['x-3800']],
             'plus rapides d\'abord, inconnues en dernier' => ['sort=-max_speed_kmh', ['bb-15000', 'x-73500', 'x-3800']],
             'plus construites d\'abord' => ['sort=-units_built', ['x-73500', 'x-3800', 'bb-15000']],
             'plus de lignes d\'abord' => ['sort=-lines_count', ['bb-15000', 'x-73500', 'x-3800']],
@@ -129,6 +132,7 @@ class MaterialApiTest extends TestCase
             'curseur illisible' => ['cursor=nimporte', 'cursor'],
             'curseur d\'une autre liste' => ['cursor=eyJzb3J0X251bGwiOjAsInNvcnRfa2V5IjoiNDc3MDAwIiwiaWQiOjg1MiwiX3BvaW50c1RvTmV4dEl0ZW1zIjp0cnVlfQ', 'cursor'],
             'recherche trop longue' => ['q='.str_repeat('a', 101), 'q'],
+            'booléen inconnu' => ['has_image=oui', 'has_image'],
         ];
     }
 

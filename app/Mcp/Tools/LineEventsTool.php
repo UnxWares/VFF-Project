@@ -6,6 +6,7 @@ use App\Enums\LineEventType;
 use App\Mcp\Support\LineEvents;
 use App\Mcp\Support\Lookup;
 use App\Mcp\Support\VffTool;
+use App\Support\RangeRule;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -38,7 +39,7 @@ class LineEventsTool extends VffTool
         return [
             'line' => ['required', 'string', 'min:1', 'max:100'],
             'from_year' => ['sometimes', 'integer', 'min:1700', 'max:2100'],
-            'to_year' => ['sometimes', 'integer', 'min:1700', 'max:2100', 'gte:from_year'],
+            'to_year' => ['sometimes', 'integer', 'min:1700', 'max:2100', RangeRule::atLeast('from_year')],
             'types' => ['sometimes', 'array', 'min:1', 'max:25'],
             'types.*' => ['string', 'distinct', 'in:'.implode(',', self::types())],
             'limit' => ['sometimes', 'integer', 'min:1', 'max:500'],

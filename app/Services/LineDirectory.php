@@ -110,9 +110,7 @@ final class LineDirectory
             ->selectRaw("COALESCE(traffic_type, 'unknown') AS k, COUNT(DISTINCT line_id) AS n")
             ->groupByRaw("COALESCE(traffic_type, 'unknown')")
             ->pluck('n', 'k');
-        $total = $this->apply(Line::query(), $filters, $eraId)->count();
-        $open = $this->apply(Line::query(), $filters, $eraId)->whereExists(fn ($s) => $this->activeSegments($s, $eraId))->count();
-        $closed = $this->closed($this->apply(Line::query(), $filters, $eraId), $eraId)->count();
+        $states = $this->stateCounts($this->apply(Line::query(), $filters, $eraId), $eraId);
 
         $networks = [];
         foreach ([...self::NETWORKS, 'none'] as $k) {
@@ -124,15 +122,23 @@ final class LineDirectory
         }
 
         return [
-            'total' => $total,
-            'open' => $open,
-            'closed' => $closed,
-            'unknown' => max(0, $total - $open - $closed),
+            ...$states,
             'networks' => $networks,
             'traffics' => $traffics,
             'heritage' => $this->apply(Line::query(), $filters, $eraId)
                 ->whereHas('segments', fn ($s) => $s->where('is_heritage', true))->count(),
         ];
+    }
+
+    /**
+     * Aperçu de tout l'annuaire, sans filtre : nombre de lignes ouvertes, fermées et sans tracé à
+     * l'ère, en une seule requête (mêmes valeurs que les mêmes clés de facets([], $eraId)).
+     *
+     * @return array{total: int, open: int, closed: int, unknown: int}
+     */
+    public function overview(?int $eraId): array
+    {
+        return $this->stateCounts(Line::query(), $eraId);
     }
 
     /**
@@ -199,13 +205,41 @@ final class LineDirectory
             );
     }
 
-    /** Portions en service de la ligne courante à l'ère (sous-requête EXISTS). */
-    private function activeSegments(QueryBuilder $s, ?int $eraId): QueryBuilder
+    /**
+     * Lignes de la requête par état à l'ère, en un seul passage (COUNT … FILTER) : ouvertes et
+     * fermées selon les mêmes sous-requêtes que les filtres `status=open` et `status=closed`.
+     *
+     * @param  Builder<Line>  $builder
+     * @return array{total: int, open: int, closed: int, unknown: int}
+     */
+    private function stateCounts(Builder $builder, ?int $eraId): array
+    {
+        $active = $this->activeSegments(DB::query(), $eraId);
+        $traced = $this->segmentsAtEra(DB::query(), $eraId);
+        $row = $builder->toBase()->selectRaw(
+            "COUNT(*) AS total, COUNT(*) FILTER (WHERE EXISTS ({$active->toSql()})) AS open, "
+            ."COUNT(*) FILTER (WHERE EXISTS ({$traced->toSql()}) AND NOT EXISTS ({$active->toSql()})) AS closed",
+            [...$active->getBindings(), ...$traced->getBindings(), ...$active->getBindings()],
+        )->first();
+        $total = (int) $row->total;
+        $open = (int) $row->open;
+        $closed = (int) $row->closed;
+
+        return ['total' => $total, 'open' => $open, 'closed' => $closed, 'unknown' => max(0, $total - $open - $closed)];
+    }
+
+    /** Portions de la ligne courante à l'ère, quel que soit leur statut (sous-requête EXISTS). */
+    private function segmentsAtEra(QueryBuilder $s, ?int $eraId): QueryBuilder
     {
         return $s->select(DB::raw(1))->from('line_segments as s')
             ->whereColumn('s.line_id', 'lines.id')
-            ->where('s.era_id', $eraId)
-            ->whereIn('s.status', ['in_service', 'single_track']);
+            ->where('s.era_id', $eraId);
+    }
+
+    /** Portions en service de la ligne courante à l'ère (sous-requête EXISTS). */
+    private function activeSegments(QueryBuilder $s, ?int $eraId): QueryBuilder
+    {
+        return $this->segmentsAtEra($s, $eraId)->whereIn('s.status', ['in_service', 'single_track']);
     }
 
     /**
@@ -220,8 +254,7 @@ final class LineDirectory
     private function closed(Builder $builder, ?int $eraId): Builder
     {
         return $builder
-            ->whereExists(fn ($s) => $s->select(DB::raw(1))->from('line_segments as s')
-                ->whereColumn('s.line_id', 'lines.id')->where('s.era_id', $eraId))
+            ->whereExists(fn ($s) => $this->segmentsAtEra($s, $eraId))
             ->whereNotExists(fn ($s) => $this->activeSegments($s, $eraId));
     }
 }

@@ -29,7 +29,7 @@ use Illuminate\Support\Str;
  *     source « contrib »), en est retiré.
  *
  * L'opération est consignée dans le journal d'audit sans aucune donnée du compte : origine,
- * rôle et compteurs seulement.
+ * rôle, compteurs et identifiants des contributions supprimées seulement.
  */
 final readonly class AccountDeletion
 {
@@ -40,9 +40,15 @@ final readonly class AccountDeletion
         $avatar = $user->avatar_path;
 
         $summary = DB::transaction(function () use ($user, $reason): AccountDeletionSummary {
+            // Une à une par le modèle (ses événements sont déclenchés) ; les approbations reçues
+            // partent avec elles (clé étrangère en cascade).
             $unpublished = $user->contributions()
                 ->where('status', '!=', ContributionStatus::Applied->value)
-                ->delete();
+                ->orderBy('id')
+                ->get()
+                ->each(fn (Contribution $contribution) => $contribution->delete())
+                ->map(fn (Contribution $contribution): int => $contribution->id)
+                ->all();
 
             $anonymised = Contribution::query()
                 ->where('user_id', $user->id)
@@ -62,7 +68,7 @@ final readonly class AccountDeletion
             DB::table('password_reset_tokens')->where('email', $user->email)->delete();
 
             $summary = new AccountDeletionSummary(
-                contributionsDeleted: $unpublished,
+                contributionsDeleted: count($unpublished),
                 contributionsAnonymised: $anonymised,
                 approvalsAnonymised: $approvals,
             );
@@ -71,6 +77,9 @@ final readonly class AccountDeletion
                 'reason' => $reason->value,
                 'role' => $user->role->value,
                 'contributions_deleted' => $summary->contributionsDeleted,
+                // Identifiants des contributions supprimées (comme `removed_contribution_id` d'un
+                // retrait) : ils ne désignent plus rien et ne renseignent pas sur le compte.
+                'deleted_contribution_ids' => $unpublished,
                 'contributions_anonymised' => $summary->contributionsAnonymised,
                 'approvals_anonymised' => $summary->approvalsAnonymised,
             ]);

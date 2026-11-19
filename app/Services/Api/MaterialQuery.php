@@ -4,6 +4,7 @@ namespace App\Services\Api;
 
 use App\Enums\MaterialType;
 use App\Models\Material;
+use App\Support\RangeRule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -40,7 +41,7 @@ final class MaterialQuery
             'line' => ['nullable', 'string', 'max:255', 'exists:lines,slug'],
             'in_service_at' => ['nullable', 'integer', 'between:1800,2100'],
             'from_year' => ['nullable', 'integer', 'between:1800,2100'],
-            'to_year' => ['nullable', 'integer', 'between:1800,2100', 'gte:from_year'],
+            'to_year' => ['nullable', 'integer', 'between:1800,2100', RangeRule::atLeast('from_year')],
             'gauge_mm' => ['nullable', 'integer', 'between:500,2000'],
             'has_image' => ['nullable', 'boolean'],
             'has_lines' => ['nullable', 'boolean'],

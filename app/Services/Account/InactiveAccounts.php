@@ -9,6 +9,7 @@ use App\Notifications\InactiveAccountWarning;
 use App\Services\AuditLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -93,11 +94,21 @@ final readonly class InactiveAccounts
         return ['warned' => $warned, 'failed' => $failed];
     }
 
-    /** Supprime les comptes avertis restés inutilisés ; renvoie leur nombre. */
+    /**
+     * Supprime les comptes avertis restés inutilisés ; renvoie leur nombre. Le dernier
+     * administrateur est gardé (même règle que UserPolicy::delete) et signalé dans le journal de
+     * l'application à chaque passage, pour qu'un autre administrateur soit nommé.
+     */
     public function deleteExpired(CarbonImmutable $now): int
     {
         $deleted = 0;
         $this->dueForDeletion($now)->lazyById(100)->each(function (User $user) use (&$deleted): void {
+            if ($user->isLastAdmin()) {
+                Log::warning('Comptes inactifs : le dernier administrateur n\'est pas supprimé malgré son inactivité.', ['user_id' => $user->id]);
+
+                return;
+            }
+
             $this->deletion->delete($user, AccountDeletionReason::Inactivity);
             $deleted++;
         });

@@ -82,16 +82,9 @@ class LineController extends Controller
             'heritage' => $summaries[$l->id]['heritage'] ?? false,
         ])->values();
 
-        // Aperçu de l'encyclopédie entière (sans filtre) : le chapeau de la page ne change pas avec la recherche.
-        $overall = $directory->facets([], $eraId);
-
         return Inertia::render('Lines/Index', [
-            'overview' => [
-                'total' => $overall['total'],
-                'open' => $overall['open'],
-                'closed' => $overall['closed'],
-                'unknown' => $overall['unknown'],
-            ],
+            // Aperçu de l'encyclopédie entière (sans filtre) : le chapeau de la page ne change pas avec la recherche.
+            'overview' => $directory->overview($eraId),
             'lines' => [
                 'data' => $items,
                 'current_page' => $lines->currentPage(),

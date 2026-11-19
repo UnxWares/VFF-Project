@@ -318,6 +318,13 @@ class ContributionController extends Controller
     private function approveInTransaction(Contribution $contribution, int $userId, TraceContributionService $traces, AuditLog $audit): RedirectResponse
     {
         return DB::transaction(function () use ($contribution, $userId, $traces, $audit) {
+            // Relue verrouillée : un refus, un retrait ou une autre approbation concurrents attendent
+            // la fin de celle-ci, ou elle voit leur résultat (contribution fermée ou disparue).
+            $contribution = Contribution::query()->whereKey($contribution->id)->lockForUpdate()->first();
+            if ($contribution === null || ! in_array($contribution->status, [ContributionStatus::Pending, ContributionStatus::Approved], true)) {
+                return back()->with('error', __('editor.validate.flash.closed'));
+            }
+
             // Refuse les double-approbations du même validateur
             $existing = DB::table('contribution_approvals')
                 ->where('contribution_id', $contribution->id)
@@ -380,12 +387,15 @@ class ContributionController extends Controller
     {
         $this->ensureValidator();
         $request->validate(['notes' => 'nullable|string|max:1000']);
-        $contribution = Contribution::findOrFail($id);
-        if ($contribution->status === ContributionStatus::Applied) {
-            return back()->with('error', __('editor.validate.flash.closed'));
-        }
-        $previous = $contribution->status->value;
-        DB::transaction(function () use ($contribution, $request, $audit, $previous): void {
+
+        // Contrôle et refus sur la ligne verrouillée : une approbation concurrente qui vient de
+        // publier la contribution n'est pas écrasée par un refus.
+        $rejected = DB::transaction(function () use ($id, $request, $audit): bool {
+            $contribution = Contribution::query()->lockForUpdate()->findOrFail($id);
+            if ($contribution->status === ContributionStatus::Applied) {
+                return false;
+            }
+            $previous = $contribution->status->value;
             $contribution->update([
                 'status' => ContributionStatus::Rejected->value,
                 'reviewed_by' => Auth::id(),
@@ -398,9 +408,13 @@ class ContributionController extends Controller
                 'previous_status' => $previous,
                 'with_reason' => filled($request->input('notes')),
             ]);
+
+            return true;
         });
 
-        return back()->with('success', __('editor.validate.flash.rejected'));
+        return $rejected
+            ? back()->with('success', __('editor.validate.flash.rejected'))
+            : back()->with('error', __('editor.validate.flash.closed'));
     }
 
     /**

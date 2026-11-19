@@ -100,6 +100,10 @@ class AccidentApiTest extends TestCase
         yield 'recherche sans accent' => ['q=MANDE', ['1891-07-26-saint-mande']];
         yield 'bilan minimal' => ['min_deaths=10', ['1891-07-26-saint-mande']];
         yield 'sans ligne' => ['has_line=0', ['1891-07-26-saint-mande', '1922-villecomtal']];
+        yield 'avec ligne, booléen en toutes lettres' => ['has_line=true', ['2013-07-12-bretigny-sur-orge']];
+        yield 'sans ligne, booléen en toutes lettres' => ['has_line=FALSE', ['1891-07-26-saint-mande', '1922-villecomtal']];
+        yield 'année de fin seule' => ['to=1930', ['1891-07-26-saint-mande', '1922-villecomtal']];
+        yield 'année de début seule' => ['from=2000', ['2013-07-12-bretigny-sur-orge']];
         yield 'à vérifier' => ['review=to_review', ['2013-07-12-bretigny-sur-orge']];
         yield 'récents d’abord' => ['sort=-date', ['2013-07-12-bretigny-sur-orge', '1922-villecomtal', '1891-07-26-saint-mande']];
         yield 'bilan inconnu en dernier' => ['sort=-deaths', ['1891-07-26-saint-mande', '2013-07-12-bretigny-sur-orge', '1922-villecomtal']];
@@ -122,6 +126,7 @@ class AccidentApiTest extends TestCase
         yield 'tri inconnu' => ['sort=name', 'sort'];
         yield 'page trop grande' => ['per_page=500', 'per_page'];
         yield 'tableau' => ['q[]=x', 'q'];
+        yield 'booléen inconnu' => ['has_line=oui', 'has_line'];
     }
 
     #[DataProvider('invalid')]

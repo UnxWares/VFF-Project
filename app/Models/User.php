@@ -72,6 +72,18 @@ class User extends Authenticatable implements HasLocalePreference
         return $this->role === UserRole::Admin;
     }
 
+    /**
+     * Seul administrateur du site : son compte ne doit jamais être supprimé (ni par lui-même,
+     * cf. UserPolicy::delete, ni pour inactivité), sinon personne ne pourrait plus attribuer les rôles.
+     */
+    public function isLastAdmin(): bool
+    {
+        return $this->isAdmin() && ! self::query()
+            ->where('role', UserRole::Admin->value)
+            ->whereKeyNot($this->getKey())
+            ->exists();
+    }
+
     /** @return HasMany<Contribution, $this> */
     public function contributions(): HasMany
     {

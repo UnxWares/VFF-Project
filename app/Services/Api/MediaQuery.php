@@ -6,9 +6,9 @@ use App\Enums\MediaType;
 use App\Models\Line;
 use App\Models\Media;
 use App\Models\Station;
+use App\Support\RangeRule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Fluent;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -44,7 +44,7 @@ final class MediaQuery
             'commercial_ok' => ['nullable', Rule::in([true, false, 1, 0, '1', '0'])],
             'period' => ['nullable', Rule::in([...array_keys(self::PERIODS), 'undated'])],
             'from_year' => ['nullable', 'integer', 'min:1', 'max:2100'],
-            'to_year' => ['nullable', 'integer', 'min:1', 'max:2100', Rule::when(fn (Fluent $input): bool => filled($input->get('from_year')), ['gte:from_year'])],
+            'to_year' => ['nullable', 'integer', 'min:1', 'max:2100', RangeRule::atLeast('from_year')],
             'order' => ['nullable', Rule::in(['asc', 'desc'])],
         ];
     }

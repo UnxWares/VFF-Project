@@ -100,7 +100,13 @@ class AccountDeletionTest extends TestCase
     {
         $user = $this->member();
         Contribution::factory()->for($user)->create(['status' => ContributionStatus::Applied->value]);
-        Contribution::factory()->for($user)->create(['status' => ContributionStatus::Pending->value]);
+        $pending = Contribution::factory()->for($user)->create(['status' => ContributionStatus::Pending->value]);
+        $rejected = Contribution::factory()->for($user)->create(['status' => ContributionStatus::Rejected->value]);
+        // Suppression par le modèle : ses événements sont déclenchés pour chaque contribution.
+        $deletedByModel = [];
+        Contribution::deleted(function (Contribution $c) use (&$deletedByModel): void {
+            $deletedByModel[] = $c->id;
+        });
 
         $this->actingAs($user)->delete('/profile', ['password' => 'secret-password']);
 
@@ -111,10 +117,12 @@ class AccountDeletionTest extends TestCase
         $this->assertEquals([
             'reason' => 'owner',
             'role' => 'contributor',
-            'contributions_deleted' => 1,
+            'contributions_deleted' => 2,
+            'deleted_contribution_ids' => [$pending->id, $rejected->id],
             'contributions_anonymised' => 1,
             'approvals_anonymised' => 0,
         ], $event->context);
+        $this->assertSame([$pending->id, $rejected->id], $deletedByModel);
 
         $raw = json_encode($event->getAttributes());
         $this->assertStringNotContainsString($user->email, $raw);

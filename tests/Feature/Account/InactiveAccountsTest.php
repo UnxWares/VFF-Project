@@ -4,12 +4,15 @@ namespace Tests\Feature\Account;
 
 use App\Enums\AuditAction;
 use App\Enums\ContributionStatus;
+use App\Enums\UserRole;
 use App\Models\AuditEvent;
 use App\Models\Contribution;
 use App\Models\User;
 use App\Notifications\InactiveAccountWarning;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
@@ -62,6 +65,36 @@ class InactiveAccountsTest extends TestCase
         $this->post('/login', ['email' => $user->email, 'password' => 'secret-password'])->assertRedirect();
 
         $this->assertTrue($user->fresh()->last_seen_at->isToday());
+    }
+
+    public function test_an_api_call_with_a_token_counts_as_a_visit_once_a_day(): void
+    {
+        $user = $this->memberLastSeen('2024-01-01 08:00:00');
+        $user->forceFill(['inactivity_warned_at' => '2026-11-01 05:15:00'])->saveQuietly();
+        $token = $user->createToken('script')->plainTextToken;
+
+        $this->withToken($token)->getJson('/api/user')->assertOk();
+
+        $user->refresh();
+        $this->assertTrue($user->last_seen_at->isToday());
+        $this->assertNull($user->inactivity_warned_at, 'Un membre qui utilise ses jetons n\'est pas supprimé');
+
+        // Deuxième appel le même jour : pas de nouvelle écriture.
+        $this->travel(2)->hours();
+        $this->app['auth']->forgetGuards();
+        $this->withToken($token)->getJson('/api/user')->assertOk();
+        $this->assertSame('2026-11-19 05:15:00', $user->fresh()->last_seen_at->format('Y-m-d H:i:s'));
+    }
+
+    public function test_anonymous_or_invalid_token_calls_record_nothing(): void
+    {
+        $user = $this->memberLastSeen('2024-01-01 08:00:00');
+        $user->createToken('script');
+
+        $this->getJson('/api/user')->assertUnauthorized();
+        $this->withToken('1|faux-jeton')->getJson('/api/user')->assertUnauthorized();
+
+        $this->assertSame('2024-01-01 08:00:00', $user->fresh()->last_seen_at->format('Y-m-d H:i:s'));
     }
 
     public function test_dry_run_counts_without_sending_or_deleting(): void
@@ -129,6 +162,31 @@ class InactiveAccountsTest extends TestCase
         $this->assertNull($published->fresh()->user_id);
         $deleted = AuditEvent::where('action', AuditAction::AccountDeleted)->sole();
         $this->assertSame('inactivity', $deleted->context['reason']);
+    }
+
+    public function test_the_last_administrator_is_never_deleted_for_inactivity(): void
+    {
+        Notification::fake();
+        $warnings = [];
+        Event::listen(MessageLogged::class, function (MessageLogged $log) use (&$warnings): void {
+            if ($log->level === 'warning') {
+                $warnings[] = [$log->message, $log->context];
+            }
+        });
+        $first = $this->memberLastSeen('2023-10-01 00:00:00', ['role' => UserRole::Admin->value]);
+        $second = $this->memberLastSeen('2023-10-01 00:00:00', ['role' => UserRole::Admin->value]);
+        $this->artisan('vff:prune-inactive-accounts')->assertSuccessful();
+
+        // Deux administrateurs inactifs : le premier part, le second est le dernier et reste.
+        $this->travel(31)->days();
+        $this->artisan('vff:prune-inactive-accounts')->expectsOutputToContain('1 compte(s) supprimé(s)');
+
+        $this->assertModelMissing($first);
+        $this->assertModelExists($second);
+        $this->assertSame(1, AuditEvent::where('action', AuditAction::AccountDeleted)->count());
+        $this->assertCount(1, $warnings);
+        $this->assertStringContainsString('dernier administrateur', $warnings[0][0]);
+        $this->assertSame(['user_id' => $second->id], $warnings[0][1]);
     }
 
     public function test_a_failed_email_does_not_start_the_notice_period(): void

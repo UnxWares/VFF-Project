@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
@@ -18,7 +17,7 @@ class UserPolicy
             return Response::denyAsNotFound();
         }
 
-        if ($account->isAdmin() && User::query()->where('role', UserRole::Admin->value)->count() === 1) {
+        if ($account->isLastAdmin()) {
             return Response::deny(__('account.errors.last_admin'));
         }
 

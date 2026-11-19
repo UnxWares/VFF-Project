@@ -217,6 +217,14 @@ class VffMcpServerTest extends TestCase
         $this->assertSame('1935', $data['events'][0]['when']);
         $this->assertSame('archeoferroviaire', $data['events'][0]['provider']);
 
+        // Une seule borne : l'autre reste ouverte (avant, `to_year` seul était refusé).
+        [$data, $error] = $this->tool('line_events', ['line' => 'rfn-420000', 'to_year' => 1900]);
+        $this->assertFalse($error);
+        $this->assertSame(['opening'], array_column($data['events'], 'type'));
+        [$data, $error] = $this->tool('line_events', ['line' => 'rfn-420000', 'from_year' => 1900]);
+        $this->assertFalse($error);
+        $this->assertSame(['electrification'], array_column($data['events'], 'type'));
+
         [$data] = $this->tool('line_events', ['line' => 'rfn-420000', 'types' => ['opening'], 'lang' => 'de']);
         $this->assertSame(['opening'], array_column($data['events'], 'type'));
         $this->assertSame('1. April 1865', $data['events'][0]['when']);

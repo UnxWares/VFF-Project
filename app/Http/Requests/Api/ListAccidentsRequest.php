@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use App\Services\Api\AccidentQuery;
+use App\Support\QueryBoolean;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -13,6 +14,12 @@ class ListAccidentsRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    /** `true` et `false` en toutes lettres acceptés pour les filtres booléens, comme sur les autres listes. */
+    protected function prepareForValidation(): void
+    {
+        $this->merge(QueryBoolean::castKeys($this->query(), ['has_line']));
     }
 
     /** @return array<string, list<mixed>> */

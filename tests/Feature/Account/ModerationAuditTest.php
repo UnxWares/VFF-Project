@@ -8,7 +8,9 @@ use App\Models\AuditEvent;
 use App\Models\Contribution;
 use App\Models\User;
 use App\Notifications\ContributionRemoved;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
@@ -128,6 +130,72 @@ class ModerationAuditTest extends TestCase
 
         $this->assertModelExists($contribution);
         Notification::assertNothingSent();
+        $this->assertSame(0, AuditEvent::count());
+    }
+
+    /**
+     * Simule une décision concurrente : juste après le premier chargement de la contribution par la
+     * requête, un autre validateur change son statut en base. La copie en mémoire est alors périmée.
+     */
+    private function changeStatusRightAfterLoading(Contribution $contribution, ContributionStatus $status): void
+    {
+        $done = false;
+        Contribution::retrieved(function (Contribution $loaded) use ($contribution, $status, &$done): void {
+            if (! $done && $loaded->is($contribution)) {
+                $done = true;
+                Contribution::query()->whereKey($contribution->id)->toBase()->update(['status' => $status->value]);
+            }
+        });
+    }
+
+    public function test_a_contribution_applied_while_the_removal_is_under_way_is_kept(): void
+    {
+        Notification::fake();
+        $contribution = $this->pending();
+        $this->changeStatusRightAfterLoading($contribution, ContributionStatus::Applied);
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->delete("/validate/{$contribution->id}", ['reason' => 'Publicité sans rapport'])
+            ->assertSessionHas('error', __('account.errors.removal_published'));
+
+        $this->assertModelExists($contribution);
+        Notification::assertNothingSent();
+        $this->assertSame(0, AuditEvent::count());
+    }
+
+    public function test_an_approval_does_not_reopen_a_contribution_closed_meanwhile(): void
+    {
+        $contribution = $this->pending();
+        $this->changeStatusRightAfterLoading($contribution, ContributionStatus::Rejected);
+
+        $this->actingAs(User::factory()->validator()->create())
+            ->post("/validate/{$contribution->id}/approve")
+            ->assertSessionHas('error', __('editor.validate.flash.closed'));
+
+        $this->assertSame(ContributionStatus::Rejected, $contribution->fresh()->status);
+        $this->assertSame(0, AuditEvent::count());
+        $this->assertDatabaseMissing('contribution_approvals', ['contribution_id' => $contribution->id]);
+    }
+
+    public function test_a_rejection_reads_the_contribution_locked_and_never_closes_a_published_one(): void
+    {
+        $contribution = $this->pending();
+        $contribution->update(['status' => ContributionStatus::Applied->value]);
+        $selects = [];
+        DB::listen(function (QueryExecuted $query) use (&$selects): void {
+            if (str_starts_with($query->sql, 'select') && str_contains($query->sql, '"contributions"')) {
+                $selects[] = $query->sql;
+            }
+        });
+
+        $this->actingAs(User::factory()->validator()->create())
+            ->post("/validate/{$contribution->id}/reject", ['notes' => 'Doublon'])
+            ->assertSessionHas('error', __('editor.validate.flash.closed'));
+
+        // Une seule lecture, verrouillée : une approbation concurrente attend ou a déjà publié.
+        $this->assertCount(1, $selects);
+        $this->assertStringEndsWith('for update', $selects[0]);
+        $this->assertSame(ContributionStatus::Applied, $contribution->fresh()->status);
         $this->assertSame(0, AuditEvent::count());
     }
 

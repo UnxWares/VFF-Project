@@ -2,10 +2,14 @@
 
 namespace Tests\Feature\Web;
 
+use App\Models\Era;
 use App\Models\Line;
+use App\Models\LineSegment;
 use App\Models\Station;
+use App\Services\LineDirectory;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Support\ReadsInertiaProps;
 use Tests\TestCase;
@@ -73,6 +77,34 @@ class DirectoryIndexTest extends TestCase
             ->where('lines.total', 1)
             ->where('overview.total', 2)
             ->where('overview.unknown', 2));
+    }
+
+    public function test_overview_counts_states_in_one_query_like_the_unfiltered_facets(): void
+    {
+        $current = Era::factory()->current()->create(['year' => 2030]);
+        $past = Era::factory()->create(['year' => 1930]);
+        $open = Line::factory()->create(['name' => 'Ouverte']);
+        LineSegment::factory()->for($open)->for($current)->inService()->create();
+        LineSegment::factory()->for($open)->for($current)->abandoned()->create();
+        LineSegment::factory()->for(Line::factory()->create(['name' => 'Fermée']))->for($current)->abandoned()->create();
+        LineSegment::factory()->for(Line::factory()->create(['name' => 'Ancienne']))->for($past)->inService()->create();
+        Line::factory()->create(['name' => 'Sans tracé']);
+        $directory = app(LineDirectory::class);
+
+        DB::enableQueryLog();
+        $overview = $directory->overview($current->id);
+        $this->assertCount(1, DB::getQueryLog());
+        DB::disableQueryLog();
+
+        $this->assertSame(['total' => 4, 'open' => 1, 'closed' => 1, 'unknown' => 2], $overview);
+        $this->assertSame(array_intersect_key($directory->facets([], $current->id), $overview), $overview);
+        $this->assertSame(['total' => 4, 'open' => 1, 'closed' => 0, 'unknown' => 3], $directory->overview($past->id));
+
+        $this->get('/lines?q=ferm')->assertInertia(fn (Assert $page) => $page
+            ->where('lines.total', 1)
+            ->where('overview', $overview)
+            ->where('stats.total', 1)
+            ->where('stats.closed', 1));
     }
 
     public function test_stations_sorted_in_french_order_with_exact_match_first(): void

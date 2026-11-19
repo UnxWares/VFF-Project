@@ -5,6 +5,7 @@ namespace App\Services\Api;
 use App\Enums\AccidentKind;
 use App\Enums\AccidentReviewStatus;
 use App\Models\Accident;
+use App\Support\RangeRule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -30,7 +31,7 @@ final class AccidentQuery
         return [
             'q' => ['nullable', 'string', 'max:100'],
             'from' => ['nullable', 'integer', 'between:1800,2100'],
-            'to' => ['nullable', 'integer', 'between:1800,2100', 'gte:from'],
+            'to' => ['nullable', 'integer', 'between:1800,2100', RangeRule::atLeast('from')],
             'line' => ['nullable', 'string', 'max:255', 'exists:lines,slug'],
             'department' => ['nullable', 'string', 'regex:/^(?:\d{2,3}|2[ABab])$/'],
             'kind' => ['nullable', Rule::enum(AccidentKind::class)],
