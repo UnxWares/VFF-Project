@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AccidentController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContributionController;
@@ -40,6 +41,8 @@ Route::get('/stations/{station:slug}', [StationController::class, 'show'])
     });
 Route::get('/materials', [MaterialController::class, 'index'])->name('materials.index');
 Route::get('/materials/{material:slug}', [MaterialController::class, 'show'])->name('materials.show');
+Route::get('/accidents', [AccidentController::class, 'index'])->name('accidents.index');
+Route::get('/accidents/{accident:slug}', [AccidentController::class, 'show'])->name('accidents.show');
 Route::get('/contribute', fn () => Inertia::render('Contribute'))->name('contribute');
 Route::get('/donate', fn () => Inertia::render('Donate'))->name('donate');
 

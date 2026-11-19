@@ -322,9 +322,30 @@ return [
             ],
             'lu_le' => '2026-10-20',
         ],
+        'bea-tt' => [
+            'nom' => 'BEA-TT (Bureau d\'enquêtes sur les accidents de transport terrestre)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte 2.0 (Etalab), « sauf mention contraire » ; rapports et bilan général des enquêtes',
+            'accord' => null,
+            'preuve' => [
+                'https://www.bea-tt.developpement-durable.gouv.fr/historique-des-enquetes-a1187.html',
+                'https://github.com/etalab/licence-ouverte/blob/master/LO.md',
+            ],
+            'citation' => 'Sauf mention contraire, tous les contenus de ce site sont sous licence etalab-2.0 (pied de chaque page du site, lu le 2026-11-19).',
+            'obligations' => 'Mention de la paternité (BEA-TT) et de la date de mise à jour du document (bilan général des enquêtes au 09/11/2026). Compatible ODbL en entrée.',
+            'remarques' => 'Seuls le bilan général des enquêtes (date, intitulé, mode, nombre de tués, lien du rapport) et les liens des rapports sont repris (vff:import-accidents) ; aucun texte de rapport. La page « Mentions légales » du site renvoyait une erreur le 2026-11-19 : la licence est celle du pied de page.',
+            'domaines' => ['bea-tt.developpement-durable.gouv.fr'],
+            'lu_le' => '2026-11-19',
+        ],
     ],
 
     'sources' => [
+        // Sources des fiches d'accidents (vff:import-accidents) : accident_sources.provider.
+        'accident_sources' => [
+            'wikidata' => 'wikidata',
+            'wikipedia' => 'wikipedia',
+            'bea-tt' => 'bea-tt',
+        ],
         'line_events' => [
             'wikipedia' => 'wikipedia',
             'wikipedia-reseaux' => 'wikipedia',
@@ -389,6 +410,12 @@ return [
             // Photos de la galerie d'Argentan Web Ferroviaire (œuvres de l'auteur, CC BY-SA 4.0), import préparé, non lancé.
             'argentanwebferro' => 'argentanwebferro',
         ],
+        // Matériel roulant (vff:import-materials) : fiches Wikidata, champ par champ (provenance),
+        // image Commons (licence propre à chaque fichier), liens matériel ↔ ligne attestés.
+        'materials' => ['wikidata' => 'wikidata'],
+        'materials.fields' => ['wikidata' => 'wikidata', 'commons' => 'commons', 'wikipedia' => 'wikipedia'],
+        'materials.image' => ['commons' => 'commons'],
+        'line_materials' => ['wikidata' => 'wikidata', 'wikipedia' => 'wikipedia'],
         'lines.name_source' => [
             'archeoferroviaire' => 'archeoferroviaire',
             'lignes-oubliees' => 'lignes-oubliees',

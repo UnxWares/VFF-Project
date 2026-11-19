@@ -1,0 +1,258 @@
+<?php
+
+namespace Tests\Feature\Commands;
+
+use App\Models\Accident;
+use App\Models\Line;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Sleep;
+use Tests\Support\CommandSandbox;
+use Tests\TestCase;
+
+/**
+ * vff:import-accidents sur de fausses sources (Wikidata, Wikipédia, page et bilan du BEA-TT) et
+ * une petite ligne : fusion des sources d'un même accident, bilan de l'enquête préféré et
+ * désaccord signalé, rattachement à la ligne avec portion et confiance, accident connu du seul
+ * BEA-TT localisé à la commune près, idempotence, simulation, aucune écriture dans les tables du
+ * moteur, politesse (User-Agent, cache réutilisé hors ligne).
+ */
+class ImportAccidentsCommandTest extends TestCase
+{
+    use CommandSandbox;
+    use RefreshDatabase;
+
+    private const ACCIDENT_TABLES = ['accidents', 'accident_lines', 'accident_sources'];
+
+    private Line $line;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->sandboxStorage();
+        Sleep::fake();
+        // Conteneur sans poppler : la conversion du PDF déjà en cache est relue.
+        Process::fake(['*' => Process::result('', 'pdftohtml: introuvable', 127)]);
+
+        $this->line = $this->rfnLine('679000', 'Ligne de Perpignan à Villefranche-Vernet-les-Bains', [
+            'slug' => 'rfn-679000', 'wikipedia_title' => 'Ligne de Perpignan à Villefranche-Vernet-les-Bains',
+        ]);
+        foreach ([2010, 2020, 2030] as $year) {
+            $this->track($this->line, $this->era($year, $year === 2030), [[42.685, 2.66], [42.685, 2.76]]);
+        }
+        $millas = $this->station('millas', 'Millas', 42.6855, 2.700);
+        $feliu = $this->station('st-feliu-davall', 'St-Féliu-d\'Avall', 42.6855, 2.730);
+        foreach ([[$millas, 480000], [$feliu, 484000]] as [$station, $pk]) {
+            DB::table('station_lines')->insert(['station_id' => $station->id, 'line_id' => $this->line->id, 'method' => 'sncf_pk',
+                'pk_m' => $pk, 'created_at' => now(), 'updated_at' => now()]);
+        }
+        DB::statement("INSERT INTO communes (code_insee, type, nom, nom_norm, departement, geom, created_at, updated_at)
+            VALUES ('66108', 'commune-actuelle', 'Millas', 'millas', '66', ST_SetSRID(ST_MakePoint(2.69, 42.69), 4326), now(), now())");
+        DB::table('commune_contours')->insert(['code_insee' => '66108', 'nom' => 'Millas', 'departement' => '66',
+            'geom' => DB::raw('ST_Multi(ST_MakeEnvelope(2.66, 42.66, 2.76, 42.72, 4326))'), 'created_at' => now(), 'updated_at' => now()]);
+
+        $this->fakeSources();
+        $this->cacheBeaTtConversion();
+    }
+
+    public function test_imports_merges_and_links_accidents(): void
+    {
+        $engineBefore = $this->snapshot();
+
+        $this->artisan('vff:import-accidents')->assertSuccessful();
+
+        $this->assertSame(2, Accident::count());
+        $this->assertSame($engineBefore, $this->snapshot(), 'les tables du moteur ne doivent pas changer');
+
+        $millas = Accident::query()->withCoordinates()->where('wikidata_id', 'Q45757847')->firstOrFail();
+        $this->assertSame('2017-12-14-millas', $millas->slug);
+        $this->assertSame('level_crossing', $millas->kind->value);
+        $this->assertSame(6, $millas->deaths);
+        $this->assertSame('bea-tt', $millas->toll_source);
+        $this->assertSame(14, $millas->injuries);
+        $this->assertSame('to_review', $millas->review_status->value);
+        $this->assertContains('toll_mismatch', array_column($millas->review_notes ?? [], 'code'));
+        $this->assertSame(['bea-tt', 'wikidata', 'wikipedia'], $millas->sources()->orderBy('provider')->pluck('provider')->all());
+        $this->assertSame('Accident de Millas', $millas->name['fr']);
+        $this->assertSame('Millas train-bus collision', $millas->name['en']);
+        // Pas de libellé allemand dans Wikidata : nom construit (nature et commune).
+        $this->assertSame('Zusammenstoß an einem Bahnübergang in Millas', $millas->name['de']);
+        $this->assertStringStartsWith('Le 14 décembre 2017, une collision survient à un passage à niveau à Millas (Pyrénées-Orientales).', $millas->summary['fr']);
+        $this->assertSame('exact', $millas->location_precision?->value);
+        $this->assertSame('66', $millas->department_code);
+
+        $link = $millas->lineLinks()->firstOrFail();
+        $this->assertTrue($link->is_primary);
+        $this->assertSame($this->line->id, $link->line_id);
+        $this->assertSame('high', $link->confidence->value);
+        $this->assertSame('proximity+wikipedia', $link->method);
+        $this->assertSame(2010, $link->era_year);
+        $this->assertSame('millas', $link->sectionFrom?->slug);
+        $this->assertSame('st-feliu-davall', $link->sectionTo?->slug);
+        $this->assertEqualsWithDelta(480500, (int) $link->pk_m, 400);
+        $this->assertSame('millas', $millas->nearestStation?->slug);
+
+        $freight = Accident::query()->whereNull('wikidata_id')->firstOrFail();
+        $this->assertSame('2026-01-11-millas', $freight->slug);
+        $this->assertSame('derailment', $freight->kind->value);
+        $this->assertSame('Déraillement à Millas', $freight->name['fr']);
+        $this->assertSame('Derailment at Millas', $freight->name['en']);
+        $this->assertSame('commune', $freight->location_precision?->value);
+        $this->assertContains('location_commune_only', array_column($freight->review_notes ?? [], 'code'));
+        $this->assertSame('low', $freight->lineLinks()->firstOrFail()->confidence->value);
+        $this->assertNull($freight->lineLinks()->firstOrFail()->section_from_station_id, 'pas de portion à la commune près');
+        $this->assertEquals([['label' => null, 'number' => null, 'category' => 'freight', 'material' => null, 'operator' => null, 'source' => 'bea-tt']], $freight->trains);
+
+        Http::assertSent(fn (Request $r) => str_starts_with($r->header('User-Agent')[0] ?? '', 'VFF-Bot/1.0'));
+        Http::assertNotSent(fn (Request $r) => ! str_starts_with($r->header('User-Agent')[0] ?? '', 'VFF-Bot/1.0'));
+        $this->assertFileExists(storage_path('app/data/accidents/.nobackup'));
+    }
+
+    public function test_second_run_offline_changes_nothing_and_sends_nothing(): void
+    {
+        $this->artisan('vff:import-accidents')->assertSuccessful();
+        $before = $this->snapshot(self::ACCIDENT_TABLES, ['id', 'accident_id', 'imported_at', 'retrieved_at']);
+        $slugs = Accident::query()->orderBy('slug')->pluck('slug')->all();
+        $sent = count(Http::recorded());
+
+        $this->artisan('vff:import-accidents', ['--offline' => true])->assertSuccessful();
+
+        $this->assertSame($before, $this->snapshot(self::ACCIDENT_TABLES, ['id', 'accident_id', 'imported_at', 'retrieved_at']));
+        $this->assertSame($slugs, Accident::query()->orderBy('slug')->pluck('slug')->all());
+        $this->assertCount($sent, Http::recorded(), 'hors ligne : aucune requête');
+    }
+
+    public function test_dry_run_writes_nothing(): void
+    {
+        $this->artisan('vff:import-accidents', ['--dry-run' => true])->assertSuccessful();
+
+        $this->assertSame(0, Accident::count());
+        $this->assertSame(0, DB::table('accident_sources')->count());
+    }
+
+    public function test_only_bea_tt_and_unknown_source(): void
+    {
+        $this->artisan('vff:import-accidents', ['--only' => ['bea-tt']])->assertSuccessful();
+        $this->assertSame(2, Accident::count(), 'deux rangées gardées : la belge et la routière sont écartées');
+        $this->assertSame(0, Accident::whereNotNull('wikidata_id')->count());
+
+        $this->artisan('vff:import-accidents', ['--only' => ['twitter']])->assertExitCode(2);
+    }
+
+    public function test_stale_record_is_kept_unless_pruned_after_a_full_import(): void
+    {
+        Accident::factory()->create(['slug' => '1971-07-21-niffer', 'imported_at' => now()->subDay()]);
+
+        $this->artisan('vff:import-accidents')->assertSuccessful();
+        $this->assertTrue(Accident::where('slug', '1971-07-21-niffer')->exists(), 'signalée, jamais supprimée sans --prune');
+
+        $this->artisan('vff:import-accidents', ['--only' => ['bea-tt'], '--prune' => true])->assertSuccessful();
+        $this->assertTrue(Accident::where('slug', '1971-07-21-niffer')->exists(), 'import partiel : rien n\'est retiré');
+
+        $this->artisan('vff:import-accidents', ['--prune' => true])->assertSuccessful();
+        $this->assertFalse(Accident::where('slug', '1971-07-21-niffer')->exists());
+        $this->assertSame(2, Accident::count());
+    }
+
+    public function test_report_file_lists_doubtful_cases(): void
+    {
+        $path = storage_path('app/data/accidents/bilan.json');
+        $this->artisan('vff:import-accidents', ['--report' => $path])->assertSuccessful();
+
+        $report = json_decode((string) File::get($path), true);
+        $this->assertSame(['wikidata' => 1, 'bea-tt' => 2], $report['collected']);
+        $this->assertSame(1, $report['merged']);
+        $this->assertArrayHasKey('2026-01-11-millas', $report['toReview']);
+        $this->assertSame(['outside_france' => 1, 'other_mode' => 1], $report['rejected']['bea-tt']);
+    }
+
+    private function fakeSources(): void
+    {
+        $entities = [
+            'Q45757847' => [
+                'id' => 'Q45757847', 'lastrevid' => 2520152318,
+                'labels' => ['fr' => ['value' => 'accident de Millas'], 'en' => ['value' => 'Millas train-bus collision']],
+                'claims' => [
+                    'P31' => [$this->item('Q19710423')],
+                    'P17' => [$this->item('Q142')],
+                    'P585' => [['rank' => 'normal', 'mainsnak' => ['datavalue' => ['value' => ['time' => '+2017-12-14T00:00:00Z', 'precision' => 11]]]]],
+                    'P625' => [['rank' => 'normal', 'mainsnak' => ['datavalue' => ['value' => ['latitude' => 42.6852, 'longitude' => 2.7038]]]]],
+                    'P1120' => [['rank' => 'normal', 'mainsnak' => ['datavalue' => ['value' => ['amount' => '+6', 'unit' => '1']]]]],
+                    'P1339' => [['rank' => 'normal', 'mainsnak' => ['datavalue' => ['value' => ['amount' => '+14', 'unit' => '1']]]]],
+                ],
+                'sitelinks' => ['frwiki' => ['title' => 'Accident de Millas'], 'enwiki' => ['title' => 'Millas train-bus collision']],
+            ],
+        ];
+        $lead = "{{Infobox Accident de transport\n | date = {{date|14|décembre|2017}}\n | morts = 6\n | blessés = 18\n | appareil = TER\n}}\n"
+            ."L'accident a eu lieu sur la [[Ligne de Perpignan à Villefranche-Vernet-les-Bains|ligne de Cerdagne]].";
+
+        Http::fake(function (Request $request) use ($entities, $lead) {
+            $url = $request->url();
+            if (str_starts_with($url, 'https://query.wikidata.org/sparql')) {
+                return Http::response(['results' => ['bindings' => [
+                    ['i' => ['value' => 'http://www.wikidata.org/entity/Q45757847'], 'c' => ['value' => 'http://www.wikidata.org/entity/Q142'], 'co' => ['value' => 'Point(2.7038 42.6852)']],
+                    // Accident allemand : hors de l'emprise, jamais demandé.
+                    ['i' => ['value' => 'http://www.wikidata.org/entity/Q999'], 'c' => ['value' => 'http://www.wikidata.org/entity/Q183'], 'co' => ['value' => 'Point(13.4 52.5)']],
+                ]]]);
+            }
+            if (str_starts_with($url, 'https://www.wikidata.org/w/api.php')) {
+                $ids = explode('|', (string) $request['ids']);
+
+                return Http::response(['entities' => array_intersect_key($entities, array_flip($ids))
+                    + array_fill_keys(array_diff($ids, array_keys($entities)), ['missing' => '']), ]);
+            }
+            if (str_starts_with($url, 'https://fr.wikipedia.org/w/api.php')) {
+                if (($request['generator'] ?? null) === 'categorymembers') {
+                    $pages = $request['gcmtitle'] === 'Catégorie:Accident ferroviaire en France'
+                        ? [['title' => 'Accident de Millas', 'pageprops' => ['wikibase_item' => 'Q45757847']]] : [];
+
+                    return Http::response(['query' => ['pages' => $pages]]);
+                }
+
+                return Http::response(['query' => ['pages' => [[
+                    'title' => 'Accident de Millas',
+                    'revisions' => [['revid' => 241196701, 'slots' => ['main' => ['content' => $lead]]]],
+                ]]]]);
+            }
+            if (str_ends_with($url, 'historique-des-enquetes-a1187.html')) {
+                return Http::response('<a href="IMG/pdf/20261109_bilan-general-enquetes-beatt.pdf">Bilan général</a>');
+            }
+            if (str_ends_with($url, '.pdf')) {
+                return Http::response('%PDF-1.7 faux');
+            }
+
+            return Http::response('', 404);
+        });
+    }
+
+    /** Conversion pdftohtml du bilan, déjà en cache (quatre rangées : PN de Millas, fret, Belgique, route). */
+    private function cacheBeaTtConversion(): void
+    {
+        $row = fn (int $top, string $text, string $mode, int $deaths, string $href) => <<<XML
+            <text top="{$top}" left="35" width="438" height="15" font="3">{$text}</text>
+            <text top="{$top}" left="759" width="34" height="15" font="5"><a href="{$href}">rapport</a></text>
+            <text top="{$top}" left="863" width="7" height="15" font="3">{$mode}</text>
+            <text top="{$top}" left="918" width="6" height="15" font="3">{$deaths}</text>
+            XML;
+        $xml = '<?xml version="1.0" encoding="UTF-8"?><pdf2xml><page number="1">'
+            .$row(164, '14/12/2017 Collision entre un TER et un autocar scolaire sur le PN 25 à Millas (66)', 'PN', 6, 'https://www.bea-tt.developpement-durable.gouv.fr/millas-66-14-12-2017-collision-r264.html')
+            .$row(190, '11/01/2026 Déraillement d’un train de fret à Millas (66)', 'F', 0, 'https://www.bea-tt.developpement-durable.gouv.fr/IMG/pdf/fret.pdf')
+            .$row(210, '10/07/2023 Décès par électrocution d’un élagueur à Quévy (Belgique)', 'F', 1, 'https://www.bea-tt.developpement-durable.gouv.fr/quevy-belgique-r448.html')
+            .$row(230, '24/02/2016 Collision entre un PL et un VUL sur la RN 79 à Montbeugny (03)', 'R', 12, 'https://www.bea-tt.developpement-durable.gouv.fr/montbeugny.html')
+            .'</page></pdf2xml>';
+        $path = storage_path('app/data/accidents/bea-tt/20261109_bilan-general-enquetes-beatt.xml');
+        File::ensureDirectoryExists(dirname($path));
+        File::put($path, $xml);
+        touch($path, time() - 3600);
+    }
+
+    /** @return array<string, mixed> */
+    private function item(string $id): array
+    {
+        return ['rank' => 'normal', 'mainsnak' => ['datavalue' => ['value' => ['id' => $id]]]];
+    }
+}
