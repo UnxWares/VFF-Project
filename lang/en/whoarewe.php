@@ -15,7 +15,7 @@ return [
         'baptiste' => [
             'name' => 'Baptiste Gosselin',
             'role' => 'president of UnxWares',
-            'quote' => '“Railways are at the heart of who I am. For years I have been scouring the internet to learn about the lines that once linked towns together, particularly in Normandy, and sharing what I find with my friends. The idea for VFF came to me after my grandmother died: while clearing her house, we found some old postcards, several of them showing trains and stations. I kept them. There are many projects to take on in a lifetime: we should carry them out while we can.”',
+            'quote' => '“Railways are at the heart of who I am. For years I have been scouring the internet to learn about the lines that once linked towns together, particularly in Normandy, and sharing what I find with my friends. After my grandmother died, while clearing her house, we found some old postcards, several of them showing trains and stations; I kept them. That is where the idea of bringing these stories together began. With David, we made it an UnxWares project: VFF is our project, and the project of everyone who contributes to it. There are many projects to take on in a lifetime: we should carry them out while we can.”',
         ],
         'david' => [
             'name' => 'David Gheghea',

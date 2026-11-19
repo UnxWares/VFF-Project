@@ -15,7 +15,7 @@ return [
         'baptiste' => [
             'name' => 'Baptiste Gosselin',
             'role' => 'président d’UnxWares',
-            'quote' => '« Le ferroviaire est au cœur de qui je suis. Depuis des années, j’écume internet pour me renseigner sur les lignes qui reliaient autrefois les villes, notamment en Normandie, et je partage ce que je trouve avec mes amis. L’idée de VFF m’est venue après le décès de ma grand-mère : en vidant sa maison, nous avons retrouvé de vieilles cartes postales, dont plusieurs montraient des trains et des gares. Je les ai gardées. Il y a plein de projets à faire dans une vie : il faut les réaliser quand on le peut. »',
+            'quote' => '« Le ferroviaire est au cœur de qui je suis. Depuis des années, j’écume internet pour me renseigner sur les lignes qui reliaient autrefois les villes, notamment en Normandie, et je partage ce que je trouve avec mes amis. Après le décès de ma grand-mère, en vidant sa maison, nous avons retrouvé de vieilles cartes postales, dont plusieurs montraient des trains et des gares ; je les ai gardées. C’est de là qu’est partie l’idée de rassembler ces histoires. Avec David, nous en avons fait un projet d’UnxWares : VFF est notre projet, et celui de tous ceux qui y contribuent. Il y a plein de projets à faire dans une vie : il faut les réaliser quand on le peut. »',
         ],
         'david' => [
             'name' => 'David Gheghea',
