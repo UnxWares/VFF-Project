@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import laravel from 'laravel-vite-plugin';
+import { serviceWorkerPlugin } from './resources/js/pwa/vite-plugin-sw.js';
 
 export default defineConfig({
     plugins: [
@@ -16,6 +17,8 @@ export default defineConfig({
             refresh: ['resources/views/**', 'routes/**'],
         }),
         svelte(),
+        // Service worker de la PWA : public/sw.js à la fin d'un build (jamais en développement).
+        serviceWorkerPlugin(),
     ],
     // Scalar (/docs/api) embarque Vue : indicateurs de compilation que le paquet attend (sans eux, un
     // avertissement apparaît dans la console de la page de documentation).
@@ -28,16 +31,24 @@ export default defineConfig({
         watch: {
             // Données volumineuses hors front (tuiles IGN, caches, rapports, ML) : sans
             // cette exclusion, Vite épuise les surveillances inotify (ENOSPC) et s'arrête.
-            ignored: ['**/storage/**', '**/ml/**', '**/vendor/**', '**/.pnpm-store/**', '**/bootstrap/cache/**', '**/public/build/**', '**/public/docs/**'],
+            ignored: [
+                '**/storage/**',
+                '**/ml/**',
+                '**/vendor/**',
+                '**/.pnpm-store/**',
+                '**/bootstrap/cache/**',
+                '**/public/build/**',
+                '**/public/docs/**',
+            ],
         },
     },
     resolve: {
         alias: {
-            '$lib': '/resources/js/lib',
-            '$components': '/resources/js/Components',
-            '$pages': '/resources/js/Pages',
-            '$images': '/resources/images',
-            '$css': '/resources/css',
+            $lib: '/resources/js/lib',
+            $components: '/resources/js/Components',
+            $pages: '/resources/js/Pages',
+            $images: '/resources/images',
+            $css: '/resources/css',
         },
     },
 });

@@ -21,12 +21,18 @@
                 if (meta) meta.setAttribute('content', dark ? 'dark' : 'light');
             })();
         </script>
-        <meta name="theme-color" content="#ff6500" />
+        {{-- Application web installable (PWA) : barre du navigateur aux couleurs du site, dans chaque thème. --}}
+        <meta name="theme-color" content="#ff6500" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#0f1419" media="(prefers-color-scheme: dark)" />
         <meta name="description" content="{{ __('common.app_description') }}" />
 
         <title inertia>{{ config('app.name', 'VFF') }}</title>
 
         <link rel="icon" href="{{ asset('favicon.ico') }}" />
+        <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('icons/icon-192.png') }}" />
+        <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}" />
+        <link rel="manifest" href="{{ asset('manifest.webmanifest') }}" />
+        <meta name="apple-mobile-web-app-title" content="VFF" />
 
         @vite(['resources/css/general.css', 'resources/js/app.js'])
         @inertiaHead
