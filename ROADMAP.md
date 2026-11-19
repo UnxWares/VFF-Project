@@ -16,25 +16,25 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 | 1 - Modèle de données | ✅ faite, jalon atteint |
 | 2 - Carte interactive | ✅ faite, géolocalisation comprise |
 | 3 - Sélecteur temporel | ✅ faite (21 époques de 1830 à 2030), comparaison de deux époques et vue empilée comprises |
-| 4 - Fiches détaillées | 🟡 lignes, gares, matériel, accidents, JSON-LD et profil en long faits ; profils de toutes les lignes à calculer |
-| 5 - Contribution | 🟡 comptes, éditeur de tracé, validation à deux, suppression et export du compte, journal d'audit faits ; notifications sur le site et réputation à faire |
-| 6 - API REST | 🟡 API publique complète et documentée (30 points d'accès) ; jetons, webhooks et exemples multi-langages à faire |
+| 4 - Fiches détaillées | 🟡 lignes, gares, matériel, accidents, JSON-LD, profil en long (1 523 lignes), étapes datées des sections et périodes du matériel faits ; profils des lignes restantes à calculer |
+| 5 - Contribution | 🟡 comptes, éditeur de tracé, validation à deux, notifications, réputation, modération, signalements, suppression et export du compte faits ; formulaires d'événement et de média à faire |
+| 6 - API REST | ✅ API publique documentée, jetons et quotas, webhooks, exemples curl, JavaScript et Python, départements et régions ; tracés retenus quand leur licence ne permet pas la redistribution |
 | 7 - GraphQL | 🟡 lecture publique et mutations de contribution faites ; subscriptions à faire |
 | 8 - Graphe & itinéraires | 🟡 itinéraires historiques faits sur un graphe PostgreSQL ; Apache AGE pas activé |
 | 9 - Reconstitutions 3D 🧪 | ⬜ pas commencée |
 | 10 - Extension historique | ✅ couverture 1830-2030 ; modèle d'extraction des voies publié |
-| 11 - Communauté | 🟡 trilingue, carte intégrable, application installable ; dons et blog à faire |
+| 11 - Communauté | 🟡 trilingue, carte intégrable, application installable et lisible hors ligne ; dons et blog à faire |
 | 12 - Mise en production | 🟡 pages légales, engagements RGPD et audit RGAA (86,30 %) faits ; messagerie et hébergement final à faire |
 | 13 - Nouveaux domaines | 🟡 matériel roulant, accidents, serveur MCP, signalisation et passages à niveau (carte, fiches, API) faits ; historique de la signalisation fait, relevé partiel à compléter |
 
-**En base (développement)** : 2 705 lignes, 9 363 gares, 15 519 événements datés, 71 597 médias, 21 époques, 687 séries de matériel roulant (969 liens avec les lignes), 202 accidents.
+**En base (développement)** : 2 705 lignes, 9 363 gares, 15 525 événements datés, 71 438 médias, 21 époques, 727 séries de matériel roulant (1 013 liens avec les lignes, 126 périodes de circulation datées), 928 fiches d'accidents publiées, 9 138 rattachements de voies vertes, 50 mises en service de signalisation datées montrées.
 
-**Qualité** : environ 4 200 tests PHPUnit et 440 tests vitest, Larastan sans erreur, contrôle des invariants de données (`vff:check-invariants`), des traductions (`vff:i18n-check`) et des droits des sources (`vff:source-rights`), le tout en CI ; contrôles avant commit Lefthook (à installer) ; audit RGAA 4.1.2 interne : 86,30 %.
+**Qualité** : plus de 5 300 tests PHPUnit et 700 tests vitest, Larastan sans erreur, contrôle des invariants de données (`vff:check-invariants`), des traductions (`vff:i18n-check`) et des droits des sources (`vff:source-rights`), le tout en CI ; contrôles avant commit Lefthook (à installer) ; audit RGAA 4.1.2 interne : 86,30 %.
 
 **Priorités du moment** :
 
-1. Préparer la mise en ligne (phase 12) : messagerie de vff-project.org, hébergement, aperçus de partage rendus côté serveur.
-2. Trancher les questions ouvertes de la nuit du 19 au 20/11 (`storage/app/reports/agents/QUESTIONS.md`) : corrections de données, Argentan Web Ferroviaire, accidents, matériel.
+1. Préparer la mise en ligne (phase 12) : messagerie de vff-project.org, hébergement.
+2. Trancher les questions ouvertes (`storage/app/reports/agents/QUESTIONS.md`) : comptes et domaines, Argentan Web Ferroviaire, partenaires, consentement du cache hors ligne, formes GTFS.
 3. Jonctions : phase « escaliers » (coudes et crochets restants).
 4. Historique de la signalisation par époque (phase 13) : carte par ère branchée sur les dates des articles Wikipédia ; d'autres sources datées restent à trouver.
 
@@ -162,13 +162,13 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] Page « Mes contributions »
 - [x] Validation : toute contribution est en attente jusqu'à **deux approbations** de validateurs
 - [~] Formulaire d'ajout d'événement / média / matériel (tracés et segments faits)
-- [ ] Notifications (sur le site + courriel) d'acceptation ou de refus
+- [x] Notifications (sur le site + courriel) d'acceptation ou de refus
 - [x] Réputation : trois chiffres (contributions acceptées, refusées, relectures faites) et un niveau tiré de seuils en configuration (`config/reputation.php`), recalculés à chaque décision de validation et par `vff:recalculate-reputation`, affichés sur le profil et dans l'espace de validation, expliqués sur `/contribute/reputation`, jamais dans l'API ; pas de badges
 - [x] Modération : journal d'audit, retrait d'une contribution par un administrateur, suspension d'un compte (motif, fin facultative, levée, notification, export) faits
 - [x] Signalement d'une erreur depuis le site : bouton « Signaler une erreur » en bas des fiches ligne, gare, matériel et accident (visiteurs et membres, sans traceur ni service externe), liste des signalements dans l'espace de validation (`/validate/reports`), notification des validateurs, journal d'audit, purge 12 mois après le traitement
 - [x] Suppression du compte par l'utilisateur, avec anonymisation des contributions, et export de ses données
 
-🎯 **Jalon "Open Encyclopedia"** : un visiteur peut s'inscrire et soumettre sa première contribution en moins de 3 minutes. Presque atteint : il manque les notifications.
+🎯 **Jalon "Open Encyclopedia"** : un visiteur peut s'inscrire et soumettre sa première contribution en moins de 3 minutes. Atteint : notifications sur le site faites, le courriel attend la messagerie de vff-project.org.
 
 ---
 
@@ -275,7 +275,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [x] **Passages à niveau** : 16 801 PN de SNCF Réseau (ODbL), calque « Passages à niveau » sur `/maps` (à partir du zoom 9), section de la fiche ligne (nombre par type, liste repliable), API REST (`/api/v1/level-crossings`, `/api/v1/lines/{slug}/level-crossings`, tuiles), GraphQL (`Line.level_crossings`, `levelCrossings`) et outil MCP `level_crossings`
 - [x] **Matériel roulant** : 687 séries importées de Wikidata (CC0) avec leur image Commons et la provenance de chaque champ (`vff:import-materials`), 969 liens ligne × matériel attestés par Wikidata ou par les articles Wikipédia (phrase citée, permalien, fiabilité), API REST (`/api/v1/materials`, `/api/v1/lines/{slug}/materials`) et GraphQL ; fiches enrichies sur le site ; périodes de circulation datées (`vff:import-material-periods`, table `line_material_periods` : 126 périodes sûres sur 62 lignes et 69 séries, lues dans les articles Wikipédia des lignes et des séries, permalien de la révision, fiabilité ; jamais de phrase sur le site ni dans le MCP), sur les fiches ligne et série, en REST, GraphQL (`LineMaterialLink.periods`) et MCP (`line_materials`) ; à faire : lire les tableaux des articles, rattacher les périodes aux portions du tracé, dates Wikidata quand les lignes auront des déclarations P3438 datées
 - [x] **Accidents** : 202 fiches (Wikidata, Wikipédia, BEA-TT), pages, API, calque de carte
-- [x] **Serveur MCP** pour que les assistants IA interrogent l'encyclopédie avec ses sources (17 outils dont accidents, comparaison d'ères et passages à niveau, lecture seule, `docs/MCP.md`)
+- [x] **Serveur MCP** pour que les assistants IA interrogent l'encyclopédie avec ses sources (23 outils dont accidents, comparaison d'ères, passages à niveau, historique de la signalisation et matériel par ligne, 3 invites, lecture seule, `docs/MCP.md`)
 
 ---
 
@@ -295,4 +295,4 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 
 *Cette roadmap est un document vivant. Toute proposition est bienvenue : ouvre une [issue](https://github.com/UnxWares/VFF-Project/issues) avec le label `roadmap`.*
 
-*À jour : 2026-10-21.*
+*À jour : 2026-11-19.*
