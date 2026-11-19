@@ -22,6 +22,11 @@
      * outils passent dans le panneau « Menu » ; sous 900 px, les quatre entrées aussi (le panneau
      * contient alors tout). La recherche reste dans la barre à toutes les largeurs.
      *
+     * Accidents (EXTRA) : rubrique de l'encyclopédie, mais une cinquième entrée ferait passer la
+     * barre sur deux lignes à 1 280 px (et dès 1 181 px en allemand). Au-dessus de 900 px, elle
+     * ouvre le menu « Le projet », séparée des entrées du projet par un filet ; sous 900 px, elle
+     * suit les quatre entrées de l'encyclopédie dans le panneau (jamais deux fois).
+     *
      * Menus (panneau, projet, compte) : boutons à aria-expanded, Échap ferme et rend le focus au
      * bouton, un clic ou un focus hors du menu le ferme. Styles : resources/css/header/header.css.
      */
@@ -33,6 +38,7 @@
         { href: '/stations', key: 'nav.stations' },
         { href: '/materials', key: 'nav.materials' },
     ];
+    const EXTRA = { href: '/accidents', key: 'nav.accidents', icon: 'bi-journal-text' };
     const PROJECT = [
         { href: '/contribute', key: 'nav.contribute', icon: 'bi-pencil-square' },
         { href: '/whoarewe', key: 'nav.whoarewe', icon: 'bi-people' },
@@ -71,7 +77,7 @@
     function isCurrent(href) {
         return path === href || path.startsWith(`${href}/`);
     }
-    const projectCurrent = $derived(PROJECT.some((p) => isCurrent(p.href)));
+    const projectCurrent = $derived([EXTRA, ...PROJECT].some((p) => isCurrent(p.href)));
 
     function logout() {
         accountOpen = false;
@@ -149,7 +155,7 @@
 
 {#snippet mainLinks(extraClass)}
     <ul class={['nav-main', extraClass]} aria-label={$i18n.t('nav.group_encyclopedia')}>
-        {#each MAIN as item (item.href)}
+        {#each extraClass === 'in-panel' ? [...MAIN, EXTRA] : MAIN as item (item.href)}
             <li>
                 <Link href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}
                     >{$i18n.t(item.key)}</Link
@@ -232,6 +238,15 @@
                             aria-label={$i18n.t('nav.group_project')}
                             hidden={!projectOpen}
                         >
+                            <li class="encyclopedia-extra">
+                                <Link
+                                    href={EXTRA.href}
+                                    aria-current={isCurrent(EXTRA.href) ? 'page' : undefined}
+                                >
+                                    <i class="bi {EXTRA.icon}" aria-hidden="true"></i>
+                                    {$i18n.t(EXTRA.key)}
+                                </Link>
+                            </li>
                             {#each PROJECT as item (item.href)}
                                 <li>
                                     <Link
@@ -411,6 +426,12 @@
     .account-menu[hidden] {
         display: none;
     }
+    /* Accidents (rubrique de l'encyclopédie) : un filet la sépare des entrées du projet. */
+    .project-menu .encyclopedia-extra {
+        margin-bottom: 6px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--vff-border);
+    }
     .project-menu li,
     .account-menu li {
         display: block;
@@ -559,6 +580,10 @@
         .project-menu li {
             border-bottom: 1px solid var(--vff-border);
         }
+        .project-menu .encyclopedia-extra {
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
         .project-menu :global(a) {
             min-height: 48px;
             padding: 0 6px;
@@ -573,6 +598,13 @@
         .account :global(a.account-link) {
             min-height: 44px;
             margin-top: 8px;
+        }
+    }
+
+    /* Sous 900 px, Accidents suit les entrées de l'encyclopédie dans le panneau. */
+    @media (max-width: 900px) {
+        .project-menu .encyclopedia-extra {
+            display: none;
         }
     }
 </style>

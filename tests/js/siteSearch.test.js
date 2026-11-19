@@ -16,6 +16,7 @@ const LABELS = {
     'nav.lines': 'Lignes',
     'nav.stations': 'Gares',
     'nav.materials': 'Matériel roulant',
+    'nav.accidents': 'Accidents',
     'nav.api': "Accès à l'API",
     'nav.contribute': 'Contribuer',
     'nav.whoarewe': 'Notre histoire',
@@ -76,6 +77,18 @@ describe('searchGroups', () => {
             idPrefix: 's',
         });
         expect(pages.items.map((i) => i.href)).toEqual(['/materials']);
+    });
+
+    it('la rubrique des accidents se trouve par son nom', () => {
+        const [pages] = searchGroups({
+            query: 'accident',
+            suggestions: true,
+            results: EMPTY,
+            searched: false,
+            t,
+            idPrefix: 's',
+        });
+        expect(pages.items.map((i) => i.href)).toEqual(['/accidents']);
     });
 
     it('résultats dans l’ordre, indices continus et identifiants uniques', () => {

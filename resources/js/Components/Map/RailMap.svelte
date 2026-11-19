@@ -46,6 +46,16 @@
         compareWidthExpr,
         stackColorExpr,
     } from '$lib/epochViews.js';
+    // Calque facultatif des accidents (points sobres, zone pâle quand seule la commune est connue).
+    import {
+        ACCIDENT_AREA_LAYER_ID,
+        ACCIDENT_POINT_LAYER_ID,
+        ACCIDENT_SOURCE_ID,
+        accidentLayers,
+        accidentPopupHtml,
+        accidentYearFilter,
+        accidentYears,
+    } from '$lib/accidentMap.js';
 
     /**
      * Composant carte interactive du réseau ferré VFF.
@@ -120,6 +130,9 @@
         compareEra = null,
         // Bouton « Me localiser » (sur action du visiteur seulement ; position gardée dans le navigateur).
         geolocate = false,
+        // Accidents à afficher (FeatureCollection de GET /api/v1/accidents.geojson) ou null (calque
+        // masqué). Filtrés selon la vue : jusqu'à l'ère, entre les deux ères comparées, ou tous.
+        accidents = null,
     } = $props();
 
     // Géolocalisation refusée ('denied') ou impossible ('unavailable') : message sur la carte.
@@ -669,7 +682,7 @@
     function setupInteractions() {
         // Click sur un tracé → soit callback parent (drawer), soit popup fallback.
         map.on('click', LINE_LAYERS, (e) => {
-            if (!e.features?.length) return;
+            if (!e.features?.length || accidentAt(e.point)) return;
             const props = e.features[0].properties;
 
             const line = {
@@ -747,7 +760,7 @@
 
         // Click sur une gare → popup
         map.on('click', 'vff-stations-points', (e) => {
-            if (!e.features?.length) return;
+            if (!e.features?.length || accidentAt(e.point)) return;
             const props = e.features[0].properties;
             const href = props.slug ? `/stations/${encodeURIComponent(props.slug)}` : null;
             const place = [props.city, props.department_code ? `(${props.department_code})` : '']
@@ -850,6 +863,7 @@
             setupInteractions();
             applyRoute(route);
             applyView(view, era, compareEra);
+            applyAccidents(accidents, view, era, compareEra);
         });
     });
 
@@ -957,10 +971,12 @@
                 },
                 paint,
             },
-            ROUTE_LAYERS.find((routeId) => map.getLayer(routeId)),
+            // Sous les accidents et l'itinéraire, s'ils sont affichés.
+            [ACCIDENT_AREA_LAYER_ID, ...ROUTE_LAYERS].find((above) => map.getLayer(above)),
         );
         map.on('click', id, (e) => {
-            if (e.features?.length) openViewPopup(popupKind, e.lngLat, e.features[0].properties);
+            if (e.features?.length && !accidentAt(e.point))
+                openViewPopup(popupKind, e.lngLat, e.features[0].properties);
         });
         map.on('mouseenter', id, () => (map.getCanvas().style.cursor = 'pointer'));
         map.on('mouseleave', id, () => (map.getCanvas().style.cursor = ''));
@@ -1071,6 +1087,70 @@
         const html = `<div class="rail-popup"><p class="rail-popup-title">${escapeHtml(name)}</p><p class="rail-popup-place">${escapeHtml(text)}</p>${popupLink(href)}</div>`;
         openPopup(lngLat, html, href);
     }
+
+    // ── Calque « Accidents » (facultatif) : au-dessus du réseau et des gares, sous l'itinéraire ──
+    // Un point se clique avec quelques pixels de marge (les points font 7 à 14 px) ; il passe
+    // alors avant le tracé ou la gare qui se trouve dessous.
+    const ACCIDENT_HIT_PX = 6;
+    // Données posées sur la source (setData seulement quand elles changent, pas à chaque ère).
+    let accidentData = null;
+
+    function accidentAt(point) {
+        if (!map?.getLayer(ACCIDENT_POINT_LAYER_ID)) return null;
+        const box = [
+            [point.x - ACCIDENT_HIT_PX, point.y - ACCIDENT_HIT_PX],
+            [point.x + ACCIDENT_HIT_PX, point.y + ACCIDENT_HIT_PX],
+        ];
+        return map.queryRenderedFeatures(box, { layers: [ACCIDENT_POINT_LAYER_ID] })[0] ?? null;
+    }
+
+    function openAccidentPopup(feature) {
+        const { t, language } = get(i18n);
+        const props = feature.properties;
+        const href = `/accidents/${encodeURIComponent(props.slug)}`;
+        const html = accidentPopupHtml(
+            props,
+            t,
+            language,
+            popupLink(href, 'maps.accidents.view_sheet'),
+        );
+        openPopup(feature.geometry.coordinates, html, href);
+    }
+
+    function addAccidentLayers(data) {
+        map.addSource(ACCIDENT_SOURCE_ID, { type: 'geojson', data });
+        const before = ROUTE_LAYERS.find((routeId) => map.getLayer(routeId));
+        for (const layer of accidentLayers()) map.addLayer(layer, before);
+        map.on('click', (e) => {
+            const feature = accidentAt(e.point);
+            if (feature) openAccidentPopup(feature);
+        });
+        map.on(
+            'mouseenter',
+            ACCIDENT_POINT_LAYER_ID,
+            () => (map.getCanvas().style.cursor = 'pointer'),
+        );
+        map.on('mouseleave', ACCIDENT_POINT_LAYER_ID, () => (map.getCanvas().style.cursor = ''));
+    }
+
+    function applyAccidents(data, v, from, to) {
+        if (!map || !layersReady) return;
+        const source = map.getSource(ACCIDENT_SOURCE_ID);
+        if (!data) {
+            if (source) for (const layer of accidentLayers()) setVisibility(layer.id, false);
+            return;
+        }
+        if (!source) addAccidentLayers(data);
+        else if (data !== accidentData) source.setData(data);
+        accidentData = data;
+        const years = accidentYearFilter(accidentYears(v, from, to));
+        for (const layer of accidentLayers()) {
+            map.setFilter(layer.id, layer.filter ? ['all', layer.filter, years] : years);
+            setVisibility(layer.id, true);
+        }
+    }
+
+    $effect(() => applyAccidents(accidents, view, era, compareEra));
 
     // ── Itinéraire historique (RoutePlanner) : tracé + gares, au-dessus du réseau ──
     const ROUTE_SOURCE_ID = 'vff-route';
@@ -1342,6 +1422,10 @@
         font-family: inherit;
     }
     :global(.rail-popup-label) {
+        color: var(--vff-text-muted);
+    }
+    /* Bulle d'un accident : lieu approché, fiche à vérifier. */
+    :global(.rail-popup li.rail-popup-note) {
         color: var(--vff-text-muted);
     }
     :global(.rail-popup-cta) {

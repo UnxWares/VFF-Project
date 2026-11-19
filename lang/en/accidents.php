@@ -141,8 +141,11 @@ return [
         ],
     ],
 
+    // Zéro : i18next prend la forme _zero quand count vaut 0 (« aucun mort » plutôt que « 0 mort »).
+    'deaths_zero' => 'no deaths',
     'deaths_one' => ':count death',
     'deaths_other' => ':count deaths',
+    'injuries_zero' => 'no injuries',
     'injuries_one' => ':count injured',
     'injuries_other' => ':count injured',
     'toll_unknown' => 'Toll unknown',
@@ -247,5 +250,15 @@ return [
         'toll_injuries_only' => 'Toll: :injuries; the number of deaths is not known.',
         'toll_unknown' => 'The human toll is not given by the sources consulted.',
         'toll_disputed' => 'The sources disagree on this toll.',
+    ],
+
+    // "Accidents" section of the line page (/lines/{slug}).
+    'line' => [
+        'title' => 'Accidents',
+        'intro' => 'Accidents and serious incidents linked to this line by their location. When only the municipality is known, the link still has to be checked.',
+        'show_more_one' => 'Show the other accident',
+        'show_more_other' => 'Show the other :count accidents',
+        'show_less' => 'Show fewer accidents',
+        'in_list' => 'See these accidents in the list',
     ],
 ];

@@ -70,6 +70,7 @@ return [
             'materials' => 'Séries de matériel roulant qui ont circulé en France, filtrables par type, constructeur, exploitant ou ligne.',
             'material' => 'Fiche d’une série, avec la provenance de chaque champ et les lignes parcourues.',
             'accidents' => 'Accidents et événements graves du rail en France depuis 1842 : date, nature, lieu et bilan.',
+            'accidents_map' => 'Accidents localisés en GeoJSON, jusqu’à une année donnée (paramètre to), pour une carte : lieu exact ou centre de la commune, signalé comme tel.',
             'accident' => 'Fiche d’un accident : lignes et portions concernées, trains, sources et points à vérifier.',
             'search' => 'Recherche par nom dans les lignes, les gares et le matériel. 2 caractères au minimum.',
             'route' => 'Itinéraire ferroviaire entre deux gares sur le réseau d’une ère : distance, étapes et tracé.',

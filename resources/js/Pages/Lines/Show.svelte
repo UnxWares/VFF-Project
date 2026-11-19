@@ -23,6 +23,7 @@
     import LineStations from '$components/Lines/LineStations.svelte';
     import LineSourceNotes from '$components/Lines/LineSourceNotes.svelte';
     import LineGallery from '$components/Lines/LineGallery.svelte';
+    import LineAccidents from '$components/Lines/LineAccidents.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
@@ -50,6 +51,7 @@
      *   portions?: Array<{ length_m: number, geometry: any }>, phases?: Array<any>, best_phase?: number|null,
      *   phases_unexplained?: Array<{ from: string, to: string, portions: Array<number>, length_m: number }>,
      *   decades?: Array<any>, chronicle?: { events: Array<any>, groups: Array<any>, notes: Array<any>, conflicts: Array<any> },
+     *   accidents?: Array<any>,
      * }} */
     let {
         line,
@@ -66,6 +68,8 @@
         best_phase = null,
         decades = [],
         chronicle = { events: [], groups: [], notes: [], conflicts: [] },
+        // Accidents rattachés à la ligne (App\Services\Accidents\LineAccidents).
+        accidents = [],
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
@@ -84,6 +88,7 @@
         'tech',
         'chronicle',
         'materials',
+        'accidents',
         'gallery',
         'notes',
     ];
@@ -1105,6 +1110,10 @@
                     {/each}
                 </ul>
             </SheetSection>
+        {/if}
+
+        {#if accidents.length}
+            <LineAccidents {accidents} lineSlug={line.slug} />
         {/if}
 
         <!-- Photos, cartes postales, plans : chargés à la demande (API paginée), crédits par image. -->

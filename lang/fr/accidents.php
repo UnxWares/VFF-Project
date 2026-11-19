@@ -141,8 +141,11 @@ return [
         ],
     ],
 
+    // Zéro : i18next prend la forme _zero quand count vaut 0 (« aucun mort » plutôt que « 0 mort »).
+    'deaths_zero' => 'aucun mort',
     'deaths_one' => ':count mort',
     'deaths_other' => ':count morts',
+    'injuries_zero' => 'aucun blessé',
     'injuries_one' => ':count blessé',
     'injuries_other' => ':count blessés',
     'toll_unknown' => 'Bilan inconnu',
@@ -247,5 +250,15 @@ return [
         'toll_injuries_only' => 'Bilan : :injuries ; le nombre de morts n’est pas connu.',
         'toll_unknown' => 'Le bilan humain n’est pas donné par les sources consultées.',
         'toll_disputed' => 'Les sources ne s’accordent pas sur ce bilan.',
+    ],
+
+    // Section « Accidents » de la fiche ligne (/lines/{slug}).
+    'line' => [
+        'title' => 'Accidents',
+        'intro' => 'Accidents et incidents graves rattachés à cette ligne d’après leur lieu. Quand seule la commune est connue, le rattachement reste à vérifier.',
+        'show_more_one' => 'Afficher l’autre accident',
+        'show_more_other' => 'Afficher les :count autres accidents',
+        'show_less' => 'Afficher moins d’accidents',
+        'in_list' => 'Voir ces accidents dans la liste',
     ],
 ];

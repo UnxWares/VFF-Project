@@ -86,5 +86,7 @@ Route::middleware('throttle:300,1')->group(function (): void {
 
     // Accidents et événements graves (Wikidata, Wikipédia, BEA-TT ; slug = date puis commune).
     Route::get('/v1/accidents', [AccidentController::class, 'index'])->name('api.accidents.index');
+    // Points des accidents localisés (calque « Accidents » de la carte /maps).
+    Route::get('/v1/accidents.geojson', [AccidentController::class, 'map'])->name('api.accidents.map');
     Route::get('/v1/accidents/{accident}', [AccidentController::class, 'show'])->where('accident', '[a-z0-9-]{1,160}')->name('api.accidents.show');
 });

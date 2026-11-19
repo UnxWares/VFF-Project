@@ -141,8 +141,11 @@ return [
         ],
     ],
 
+    // Zéro : i18next prend la forme _zero quand count vaut 0 (« aucun mort » plutôt que « 0 mort »).
+    'deaths_zero' => 'keine Toten',
     'deaths_one' => ':count Toter',
     'deaths_other' => ':count Tote',
+    'injuries_zero' => 'keine Verletzten',
     'injuries_one' => ':count Verletzter',
     'injuries_other' => ':count Verletzte',
     'toll_unknown' => 'Bilanz unbekannt',
@@ -247,5 +250,15 @@ return [
         'toll_injuries_only' => 'Bilanz: :injuries; die Zahl der Toten ist nicht bekannt.',
         'toll_unknown' => 'Die Opferbilanz wird von den herangezogenen Quellen nicht genannt.',
         'toll_disputed' => 'Die Quellen sind sich über diese Bilanz nicht einig.',
+    ],
+
+    // Abschnitt „Unfälle“ der Streckenseite (/lines/{slug}).
+    'line' => [
+        'title' => 'Unfälle',
+        'intro' => 'Unfälle und schwere Störungen, die dieser Strecke nach ihrem Ort zugeordnet sind. Ist nur die Gemeinde bekannt, muss die Zuordnung noch geprüft werden.',
+        'show_more_one' => 'Den weiteren Unfall anzeigen',
+        'show_more_other' => 'Die weiteren :count Unfälle anzeigen',
+        'show_less' => 'Weniger Unfälle anzeigen',
+        'in_list' => 'Diese Unfälle in der Liste ansehen',
     ],
 ];

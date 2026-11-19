@@ -42,7 +42,7 @@ class ApiDocsTest extends TestCase
         '/lines/{line}/media',
         '/stations', '/stations/{station}', '/stations/{station}/events',
         '/events', '/events/{event}', '/media', '/media/{media}',
-        '/materials', '/materials/{material}', '/accidents', '/accidents/{accident}',
+        '/materials', '/materials/{material}', '/accidents', '/accidents.geojson', '/accidents/{accident}',
         '/search',
         '/route',
         '/sources', '/sources/{provider}',

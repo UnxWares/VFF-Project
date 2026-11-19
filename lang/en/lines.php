@@ -526,6 +526,7 @@ return [
         'tech' => 'Technical',
         'chronicle' => 'Chronology',
         'materials' => 'Rolling stock',
+        'accidents' => 'Accidents',
         'gallery' => 'Photos',
         'notes' => 'Sources',
     ],

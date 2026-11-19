@@ -69,6 +69,7 @@ return [
             'materials' => 'Baureihen, die in Frankreich verkehrt sind, filterbar nach Typ, Hersteller, Betreiber oder Strecke.',
             'material' => 'Eintrag einer Baureihe, mit der Herkunft jedes Feldes und den befahrenen Strecken.',
             'accidents' => 'Eisenbahnunfälle und schwere Ereignisse in Frankreich seit 1842: Datum, Art, Ort und Opfer.',
+            'accidents_map' => 'Verortete Unfälle als GeoJSON bis zu einem bestimmten Jahr (Parameter to), für eine Karte: genauer Ort oder Ortsmitte, entsprechend gekennzeichnet.',
             'accident' => 'Eintrag eines Unfalls: betroffene Strecken und Abschnitte, Züge, Quellen und zu prüfende Punkte.',
             'search' => 'Suche nach Namen in Strecken, Bahnhöfen und Rollmaterial. Mindestens 2 Zeichen.',
             'route' => 'Bahnroute zwischen zwei Bahnhöfen im Netz einer Epoche: Entfernung, Halte und Verlauf.',

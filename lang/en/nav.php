@@ -6,6 +6,7 @@ return [
     'lines' => 'Lines',
     'stations' => 'Stations',
     'materials' => 'Rolling stock',
+    'accidents' => 'Accidents',
     'contribute' => 'Contribute',
     'donate' => 'Donate',
     'api' => 'API access',

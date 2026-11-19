@@ -294,4 +294,26 @@ final class AccidentExamples
 
     /** 404 : slug inconnu. */
     public const NOT_FOUND = ['message' => 'No query results for model [App\\Models\\Accident].'];
+
+    /** GeoJSON de la carte : un accident précis et un accident connu à la commune près (vraies fiches). */
+    public const MAP = [
+        'type' => 'FeatureCollection',
+        'features' => [
+            [
+                'type' => 'Feature',
+                'geometry' => ['type' => 'Point', 'coordinates' => [2.30222, 48.60722]],
+                'properties' => [
+                    'slug' => '2013-07-12-bretigny-sur-orge', 'date' => '2013-07-12', 'date_precision' => 'day', 'year' => 2013,
+                    'kind' => 'derailment', 'place' => 'Brétigny-sur-Orge', 'department' => '91', 'precision' => 'exact',
+                    'deaths' => 7, 'injuries' => 192, 'to_review' => true,
+                ],
+            ],
+        ],
+    ];
+
+    /** 422 de la carte : année hors bornes. */
+    public const MAP_INVALID = [
+        'message' => 'The to field must not be greater than 2100.',
+        'errors' => ['to' => ['The to field must not be greater than 2100.']],
+    ];
 }

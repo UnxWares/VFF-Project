@@ -1,4 +1,5 @@
 <script>
+    import { Link } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import {
         HERITAGE_STYLES,
@@ -14,6 +15,7 @@
         swatchStyle,
     } from '$lib/railStyle.js';
     import { COMPARE_CHANGES, stackLabels } from '$lib/epochViews.js';
+    import { ACCIDENT_COLOR, ACCIDENT_HALO } from '$lib/accidentMap.js';
 
     /**
      * Légende de la carte VFF : COULEUR = trafic des portions en service à la
@@ -32,6 +34,9 @@
      *   mode        : couleur des tracés (bindable) : 'traffic' | 'electrification' | 'gauge'
      *   view        : 'era' (une décennie), 'compare' (changements de `era` à `compareEra`) ou
      *                 'stack' (toutes les époques) ; hors 'era', la légende décrit le calque de la vue
+     *   accidents   : calque « Accidents » affiché ({ state: 'loading'|'error'|'ready', count, from,
+     *                 to } : années montrées, cf. accidentYears) ou null ; ses symboles, la période,
+     *                 le nombre d'accidents localisés et le lien vers la liste ouvrent la légende
      */
     let {
         era = null,
@@ -41,6 +46,7 @@
         mode = $bindable('traffic'),
         view = 'era',
         compareEra = null,
+        accidents = null,
     } = $props();
 
     const uid = $props.id();
@@ -144,6 +150,23 @@
     // Gares : ouvertes (voyageurs, touristique, fret seul) et fermées.
     const stationRows = STATION_STYLES;
 
+    // Période des accidents montrés (« Survenus jusqu'en 1950 », « de 1931 à 1980 »).
+    const accidentPeriod = $derived.by(() => {
+        if (!accidents) return '';
+        const { from, to } = accidents;
+        if (from != null && to != null)
+            return $i18n.t('maps.accidents.between', { from, to: inline(to) });
+        if (to == null) return $i18n.t('maps.accidents.all');
+        return to === currentEra
+            ? $i18n.t('maps.accidents.until_today')
+            : $i18n.t('maps.accidents.until', { year: to });
+    });
+    const accidentCount = $derived(
+        !accidents?.count
+            ? $i18n.t('maps.accidents.count_none')
+            : $i18n.t('maps.accidents.count', { count: accidents.count }),
+    );
+
     function isOn(key) {
         return !hidden.includes(key);
     }
@@ -189,6 +212,10 @@
     </button>
 
     <div class="legend-body" id={bodyId} hidden={!open}>
+        <!-- Calque choisi par le visiteur : en tête, visible sans faire défiler la légende. -->
+        {#if accidents}
+            {@render accidentsBody()}
+        {/if}
         {#if view === 'compare'}
             <ul class="view-rows">
                 {#each compareRows as r (r.key)}
@@ -220,6 +247,47 @@
         {/if}
     </div>
 </div>
+
+<!-- Calque « Accidents » : mêmes symboles que les couches vff-accidents-* (lib/accidentMap.js). -->
+{#snippet accidentsBody()}
+    <p class="legend-group accidents-group" id={`${uid}-accidents`}>
+        {$i18n.t('maps.accidents.title')}
+        <span class="legend-group-note">{accidentPeriod}</span>
+    </p>
+    {#if accidents.state === 'loading'}
+        <p class="legend-hint">{$i18n.t('maps.accidents.loading')}</p>
+    {:else if accidents.state === 'error'}
+        <p class="legend-hint">{$i18n.t('maps.accidents.error')}</p>
+    {:else}
+        <ul aria-labelledby={`${uid}-accidents`}>
+            <li>
+                <span class="legend-row">
+                    <i
+                        class="swatch accident"
+                        style:background={ACCIDENT_COLOR}
+                        style:border-color={ACCIDENT_HALO}
+                        aria-hidden="true"
+                    ></i>
+                    <span>{$i18n.t('maps.accidents.point_exact')}</span>
+                </span>
+            </li>
+            <li>
+                <span class="legend-row">
+                    <i
+                        class="swatch accident-area"
+                        style:--accident={ACCIDENT_COLOR}
+                        aria-hidden="true"
+                    ></i>
+                    <span>{$i18n.t('maps.accidents.point_commune')}</span>
+                </span>
+            </li>
+        </ul>
+        <p class="legend-hint">{accidentCount}. {$i18n.t('maps.accidents.note')}</p>
+    {/if}
+    <p class="legend-more">
+        <Link href="/accidents" class="vff-link">{$i18n.t('maps.accidents.list_link')}</Link>
+    </p>
+{/snippet}
 
 {#snippet eraBody()}
     <fieldset class="legend-modes">
@@ -525,6 +593,44 @@
     }
     .view-rows {
         margin-top: 8px;
+    }
+    /* Accidents : point plein cerclé de clair ; zone pâle et anneau quand seule la commune est connue. */
+    .swatch.accident {
+        width: 10px;
+        height: 10px;
+        margin: 0 6px;
+        border: 1.5px solid;
+        border-radius: 50%;
+    }
+    .swatch.accident-area {
+        position: relative;
+        width: 22px;
+        height: 22px;
+        border: 1px solid color-mix(in srgb, var(--accident) 45%, transparent);
+        border-radius: 50%;
+        background-color: color-mix(in srgb, var(--accident) 12%, transparent);
+    }
+    .swatch.accident-area::after {
+        content: '';
+        position: absolute;
+        inset: 6px;
+        border: 2px solid var(--accident);
+        border-radius: 50%;
+        background-color: #fff;
+    }
+    .legend-more {
+        margin: 6px 0 0;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--vff-border);
+    }
+    .accidents-group {
+        margin-top: 8px;
+    }
+    .legend-more :global(a) {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        font-weight: 600;
     }
     .swatch.station {
         width: 10px;

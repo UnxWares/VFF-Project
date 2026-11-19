@@ -74,6 +74,7 @@
                 { path: '/api/v1/materials', key: 'materials' },
                 { path: '/api/v1/materials/{material}', key: 'material' },
                 { path: '/api/v1/accidents', key: 'accidents' },
+                { path: '/api/v1/accidents.geojson', key: 'accidents_map' },
                 { path: '/api/v1/accidents/{accident}', key: 'accident' },
             ],
         },

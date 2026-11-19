@@ -69,6 +69,7 @@ return [
             'materials' => 'Rolling stock classes that have run in France, filterable by type, builder, operator or line.',
             'material' => 'Entry for one class, with the provenance of each field and the lines it ran on.',
             'accidents' => 'Railway accidents and serious incidents in France since 1842: date, type, place and casualties.',
+            'accidents_map' => 'Located accidents as GeoJSON, up to a given year (parameter to), for a map: exact place or town centre, flagged as such.',
             'accident' => 'Entry for one accident: lines and sections concerned, trains, sources and points to check.',
             'search' => 'Search by name across lines, stations and rolling stock. At least 2 characters.',
             'route' => 'Rail route between two stations on the network of an era: distance, stops and route.',

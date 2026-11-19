@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ReadsListFilters;
 use App\Models\Line;
+use App\Services\Accidents\LineAccidents;
 use App\Services\LineDirectory;
 use App\Services\LineSheet;
 use App\Services\LineStats;
@@ -137,9 +138,15 @@ class LineController extends Controller
         return $builder->orderByRaw("{$name}, id");
     }
 
-    /** Fiche détaillée d'une ligne ferroviaire (construction partagée avec l'API : App\Services\LineSheet). */
-    public function show(Line $line, LineSheet $sheet): Response
+    /**
+     * Fiche détaillée d'une ligne ferroviaire (construction partagée avec l'API : App\Services\LineSheet),
+     * plus les accidents rattachés à la ligne (section « Accidents » ; API : `/api/v1/accidents?line=`).
+     */
+    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents): Response
     {
-        return Inertia::render('Lines/Show', $sheet->build($line));
+        return Inertia::render('Lines/Show', [
+            ...$sheet->build($line),
+            'accidents' => $accidents->forLine($line, app()->getLocale()),
+        ]);
     }
 }

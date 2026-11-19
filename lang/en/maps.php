@@ -37,6 +37,7 @@ return [
         'orm_signals' => 'OpenRailwayMap - Signals',
         'orm_electrification' => 'OpenRailwayMap - Electrification',
         'orm_gauge' => 'OpenRailwayMap - Gauge',
+        'accidents' => 'Accidents',
     ],
 
     'legend' => [
@@ -209,7 +210,7 @@ return [
         'route_term' => 'Journey',
         'route_text' => 'Enter two stations and a year: the map draws the journey on the network in service at that time and lists the lines used.',
         'layers_term' => 'Overlays',
-        'layers_text' => 'The OpenRailwayMap overlay adds today\'s infrastructure: signals, speeds, electrification. The clock button, at the top right of the map, shows old IGN maps.',
+        'layers_text' => 'The OpenRailwayMap overlay adds today\'s infrastructure: signals, speeds, electrification. The clock button, at the top right of the map, shows old IGN maps. The Accidents overlay shows the accidents that happened up to the period displayed; a pale circle means only the municipality is known.',
         'views_term' => 'Comparing eras',
         'views_text' => 'The "View" choice above the map compares two decades (lines opened, closed or lifted in between) or stacks every era to show when each line left service. The page address keeps this choice, so you can share it.',
     ],
@@ -272,6 +273,25 @@ return [
         'popup_single' => 'In service on the :year map only',
         'popup_span' => 'In service on the maps from :from to :to',
         'popup_today' => 'In service from the :from map until today',
+    ],
+
+    // "Accidents" overlay (from the "Overlay" choice): legend, count and popup. Plain, factual tone.
+    'accidents' => [
+        'title' => 'Accidents',
+        'until' => 'Up to :year',
+        'until_today' => 'Up to today',
+        'between' => 'From :from to :to',
+        'all' => 'All dates',
+        'count_one' => ':count located accident',
+        'count_other' => ':count located accidents',
+        'count_none' => 'No located accident in this period',
+        'point_exact' => 'Place known',
+        'point_commune' => 'Only the municipality is known',
+        'note' => 'Accidents whose place is not known are only in the list.',
+        'list_link' => 'List of accidents',
+        'loading' => 'Loading accidents…',
+        'error' => 'The accidents could not be loaded. Select the overlay again to retry.',
+        'view_sheet' => 'View the accident page',
     ],
 
     // "Locate me" button: messages when the position is not available.

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\AccidentMapRequest;
 use App\Http\Requests\Api\ListAccidentsRequest;
 use App\Http\Resources\AccidentDetailResource;
 use App\Http\Resources\AccidentResource;
 use App\Models\Accident;
+use App\Services\Accidents\AccidentMapFeatures;
 use App\Services\Api\AccidentQuery;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
@@ -100,5 +102,42 @@ class AccidentController extends Controller
         ]);
 
         return AccidentDetailResource::make($model)->response()->header('Cache-Control', 'public, max-age=600');
+    }
+
+    /**
+     * Accidents en GeoJSON (carte).
+     *
+     * Une FeatureCollection compacte, un point par accident dont le lieu est connu, pour poser les
+     * accidents sur une carte (calque « Accidents » de `/maps`). Les accidents sans lieu ne sont pas
+     * renvoyés : aucune position n'est estimée. Pour le détail d'un accident, suivez son `slug`
+     * vers `/accidents/{accident}`.
+     *
+     * **Géométrie** : `Point`, coordonnées WGS 84 `[longitude, latitude]` arrondies à 5 décimales
+     * (environ 1 m).
+     *
+     * **Précision du lieu** (`precision`) : `exact` (coordonnées données par la source),
+     * `level_crossing` (passage à niveau cité, position SNCF Réseau), `station` (gare citée),
+     * `commune` (centre de la commune : le lieu exact n'est pas connu, à montrer comme une zone et
+     * non comme un point précis).
+     *
+     * **Propriétés** : `slug` ; `date` (AAAA-MM-JJ) et `date_precision` (`day`, `month`, `year` :
+     * n'affichez que la partie connue) ; `year` (année, pour filtrer par époque) ; `kind` (mêmes
+     * valeurs que le filtre `kind` de la liste) ; `place` (commune) et `department` (code INSEE
+     * du département actuel), tous deux parfois nuls ; `deaths` et `injuries` (nul = bilan
+     * inconnu des sources) ; `to_review` (`true` : un point de la fiche reste à vérifier).
+     *
+     * Ordre : du plus ancien au plus récent. Réponse en cache 10 minutes. Sources et licences :
+     * celles de la liste des accidents (Wikidata CC0, Wikipédia pour les faits, BEA-TT Licence
+     * Ouverte 2.0, passages à niveau SNCF Réseau ODbL).
+     */
+    #[QueryParameter('to', 'Accidents survenus jusqu\'à cette année, incluse (1800 à 2100). La carte de `/maps` affiche ainsi les accidents connus à la fin de la décennie choisie.', type: 'int', example: 1950)]
+    #[ApiResponse(200, 'FeatureCollection GeoJSON des accidents localisés.', examples: [AccidentExamples::MAP])]
+    #[ApiResponse(422, 'Année `to` hors des bornes 1800 à 2100 ou non entière.', examples: [AccidentExamples::MAP_INVALID])]
+    #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
+    public function map(AccidentMapRequest $request, AccidentMapFeatures $features): JsonResponse
+    {
+        return response()
+            ->json($features->collection($request->toYear()))
+            ->header('Cache-Control', 'public, max-age=600');
     }
 }

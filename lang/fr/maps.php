@@ -37,6 +37,7 @@ return [
         'orm_signals' => 'OpenRailwayMap - Signalisation',
         'orm_electrification' => 'OpenRailwayMap - Électrification',
         'orm_gauge' => 'OpenRailwayMap - Écartement',
+        'accidents' => 'Accidents',
     ],
 
     'legend' => [
@@ -209,7 +210,7 @@ return [
         'route_term' => 'Itinéraire',
         'route_text' => 'Indiquez deux gares et une année : la carte trace le parcours sur le réseau en service à cette époque et liste les lignes empruntées.',
         'layers_term' => 'Calques',
-        'layers_text' => 'Le calque OpenRailwayMap superpose l’infrastructure actuelle : signaux, vitesses, électrification. Le bouton à l’horloge, en haut à droite de la carte, affiche des cartes anciennes de l’IGN.',
+        'layers_text' => 'Le calque OpenRailwayMap superpose l’infrastructure actuelle : signaux, vitesses, électrification. Le bouton à l’horloge, en haut à droite de la carte, affiche des cartes anciennes de l’IGN. Le calque Accidents place les accidents survenus jusqu’à l’époque affichée ; un cercle pâle signale que seule la commune est connue.',
         'views_term' => 'Comparer les époques',
         'views_text' => 'Le choix « Vue », au-dessus de la carte, compare deux décennies (lignes ouvertes, fermées ou déposées entre les deux) ou superpose toutes les époques pour voir quand chaque ligne a quitté le service. L’adresse de la page garde ce choix : vous pouvez la partager.',
     ],
@@ -272,6 +273,25 @@ return [
         'popup_single' => 'En service sur la seule carte de :year',
         'popup_span' => 'En service sur les cartes de :from à :to',
         'popup_today' => 'En service depuis la carte de :from, encore aujourd’hui',
+    ],
+
+    // Calque « Accidents » (choix « Calque ») : légende, compte et bulle. Ton sobre et factuel.
+    'accidents' => [
+        'title' => 'Accidents',
+        'until' => 'Survenus jusqu’en :year',
+        'until_today' => 'Survenus jusqu’à aujourd’hui',
+        'between' => 'Survenus de :from à :to',
+        'all' => 'Toutes les dates',
+        'count_one' => ':count accident localisé',
+        'count_other' => ':count accidents localisés',
+        'count_none' => 'Aucun accident localisé sur cette période',
+        'point_exact' => 'Lieu connu',
+        'point_commune' => 'Seule la commune est connue',
+        'note' => 'Les accidents dont le lieu n’est pas connu figurent seulement dans la liste.',
+        'list_link' => 'Liste des accidents',
+        'loading' => 'Chargement des accidents…',
+        'error' => 'Les accidents n’ont pas pu être chargés. Choisissez à nouveau le calque pour réessayer.',
+        'view_sheet' => 'Voir la fiche de l’accident',
     ],
 
     // Bouton « Me localiser » : messages quand la position n'est pas disponible.

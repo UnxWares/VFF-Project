@@ -14,6 +14,7 @@
     import EraCompareBar from '$components/Map/EraCompareBar.svelte';
     import { i18n } from '$lib/i18n.js';
     import { defaultPair, readViewParams, writeViewParams } from '$lib/epochViews.js';
+    import { ACCIDENTS_URL, accidentYears, countAccidents } from '$lib/accidentMap.js';
 
     // « Lire la carte » : ce que montre la carte, au présent (vocabulaire de la légende).
     const READING = ['era', 'views', 'color', 'line', 'sheet', 'route', 'layers'];
@@ -43,6 +44,9 @@
     let mapFrameEl = $state();
     let embedModalOpen = $state(false);
     let overlay = $state('none');
+    // Calque « Accidents » (un choix du sélecteur de calques) : points chargés au premier affichage.
+    let accidentData = $state.raw(null);
+    let accidentsState = $state('idle');
     let drawerLine = $state(null);
     let flyTarget = $state(null);
     // Itinéraire historique affiché (réponse /api/v1/route) : la carte passe à son ère.
@@ -96,7 +100,42 @@
         { value: 'orm-signals', labelKey: 'maps.overlay.orm_signals' },
         { value: 'orm-electrification', labelKey: 'maps.overlay.orm_electrification' },
         { value: 'orm-gauge', labelKey: 'maps.overlay.orm_gauge' },
+        { value: 'accidents', labelKey: 'maps.overlay.accidents' },
     ];
+
+    const showAccidents = $derived(overlay === 'accidents');
+
+    function setOverlay(value) {
+        overlay = value;
+        if (value === 'accidents' && accidentsState !== 'ready' && accidentsState !== 'loading') {
+            loadAccidents();
+        }
+    }
+
+    async function loadAccidents() {
+        accidentsState = 'loading';
+        try {
+            const response = await fetch(ACCIDENTS_URL, {
+                headers: { Accept: 'application/json' },
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            accidentData = await response.json();
+            accidentsState = 'ready';
+        } catch {
+            accidentsState = 'error';
+        }
+    }
+
+    // Légende du calque : années montrées selon la vue et nombre d'accidents localisés.
+    const accidentLegend = $derived.by(() => {
+        if (!showAccidents) return null;
+        const years = accidentYears(
+            view,
+            view === 'compare' ? compareFrom : selectedEra,
+            compareTo,
+        );
+        return { state: accidentsState, count: countAccidents(accidentData, years), ...years };
+    });
 
     // Adresse partageable : ?era=1930, ?era=1930&compare=1980, ?view=stack (lue au montage).
     onMount(() => {
@@ -171,7 +210,7 @@
                             <select
                                 id="map-overlay"
                                 class="vff-select overlay-select"
-                                bind:value={overlay}
+                                bind:value={() => overlay, setOverlay}
                             >
                                 {#each OVERLAY_OPTIONS as opt (opt.value)}
                                     <option value={opt.value}>{$i18n.t(opt.labelKey)}</option>
@@ -197,7 +236,8 @@
                         currentEra={currentEraYear}
                         {hidden}
                         mode={colorMode}
-                        {overlay}
+                        overlay={showAccidents ? 'none' : overlay}
+                        accidents={showAccidents ? accidentData : null}
                         {dataVersion}
                         {flyTarget}
                         {route}
@@ -216,6 +256,7 @@
                                 currentEra={currentEraYear}
                                 bind:hidden
                                 bind:mode={colorMode}
+                                accidents={accidentLegend}
                             />
                         </div>
                         {#if view === 'era' && selectedIsEmpty}
@@ -223,7 +264,18 @@
                                 <i class="bi bi-hourglass-split" aria-hidden="true"></i>
                                 {$i18n.t('maps.era.no_data', { year: selectedEra })}
                             </p>
+                        {:else if showAccidents && accidentsState === 'error'}
+                            <p class="era-empty">{$i18n.t('maps.accidents.error')}</p>
                         {/if}
+                        <!-- Chargement ou échec du calque « Accidents », annoncé aussi quand la
+                             légende est repliée (téléphone). -->
+                        <p class="vff-sr-only" role="status">
+                            {#if showAccidents && accidentsState === 'loading'}
+                                {$i18n.t('maps.accidents.loading')}
+                            {:else if showAccidents && accidentsState === 'error'}
+                                {$i18n.t('maps.accidents.error')}
+                            {/if}
+                        </p>
                         <LineDrawer bind:line={drawerLine} currentEra={currentEraYear} />
                     </RailMap>
 

@@ -6,6 +6,7 @@ return [
     'lines' => 'Strecken',
     'stations' => 'Bahnhöfe',
     'materials' => 'Fahrzeuge',
+    'accidents' => 'Unfälle',
     'contribute' => 'Mitmachen',
     'donate' => 'Spenden',
     'api' => 'API-Zugang',
