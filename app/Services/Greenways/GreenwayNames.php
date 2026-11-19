@@ -37,6 +37,17 @@ final class GreenwayNames
         'esplanade', 'chaussee',
     ];
 
+    /**
+     * Nom affiché d'un way rattaché à une ligne : celui de son itinéraire cyclable OSM s'il est retenu,
+     * sinon le sien s'il est retenu, sinon null. Seule règle de nom des voies vertes : calculée une fois
+     * par `vff:link-greenways` (colonne `line_greenways.display_name`), puis lue telle quelle par la
+     * fiche, l'API REST, GraphQL, le serveur MCP et les tuiles de la carte.
+     */
+    public static function displayName(?string $relationName, ?string $wayName): ?string
+    {
+        return self::relationName($relationName) ?? self::wayName($wayName);
+    }
+
     /** Nom d'une relation OSM (itinéraire cyclable) à retenir comme nom de voie verte, ou null. */
     public static function relationName(?string $name): ?string
     {

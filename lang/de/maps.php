@@ -318,7 +318,7 @@ return [
     'greenways' => [
         'title' => 'Bahntrassenradwege',
         'entry' => 'Radweg auf einer ehemaligen Bahntrasse',
-        'note' => 'Radwege, die der Trasse einer stillgelegten oder abgebauten Strecke folgen. Wege, die nur neben einer Strecke in Betrieb verlaufen, werden nicht gezeichnet.',
+        'note' => 'Radwege, die der Trasse einer stillgelegten oder abgebauten Strecke folgen. Wege, die nur neben einer Strecke in Betrieb oder neben liegen gebliebenen Gleisen verlaufen, werden nicht gezeichnet.',
         'source' => 'Quelle: © OpenStreetMap-Mitwirkende (ODbL)',
         'line' => 'Strecke',
         'length' => 'Auf der früheren Trasse',

@@ -5,6 +5,7 @@ namespace Tests\Feature\Mcp;
 use App\Mcp\Tools\LineGreenwaysTool;
 use App\Models\Era;
 use App\Models\Line;
+use App\Services\Greenways\GreenwayNames;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -39,10 +40,10 @@ class VffMcpGreenwaysToolTest extends TestCase
 
     private function greenway(int $way, ?string $name, ?string $relationName, ?int $relation, int $shared, ?int $year): void
     {
-        DB::insert("INSERT INTO line_greenways (line_id, osm_way_id, osm_relation_id, name, relation_name, highway, shared_length_m, way_length_m,
+        DB::insert("INSERT INTO line_greenways (line_id, osm_way_id, osm_relation_id, name, relation_name, display_name, highway, shared_length_m, way_length_m,
                 shared_percent, opened_year, source, osm_seen_at, created_at, updated_at, geom)
-            VALUES (?, ?, ?, ?, ?, 'path', ?, ?, 100, ?, 'osm', '2026-11-18', now(), now(), ST_Multi(ST_GeomFromText(?, 4326)))", [
-            $this->line->id, $way, $relation, $name, $relationName, $shared, $shared, $year,
+            VALUES (?, ?, ?, ?, ?, ?, 'path', ?, ?, 100, ?, 'osm', '2026-11-18', now(), now(), ST_Multi(ST_GeomFromText(?, 4326)))", [
+            $this->line->id, $way, $relation, $name, $relationName, GreenwayNames::displayName($relationName, $name), $shared, $shared, $year,
             sprintf('LINESTRING(%F 48.5, %F 48.5)', 1.0 + $way / 100, 1.0 + $way / 100 + 0.01),
         ]);
     }

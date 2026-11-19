@@ -318,7 +318,7 @@ return [
     'greenways' => [
         'title' => 'Greenways',
         'entry' => 'Greenway on a former line',
-        'note' => 'Greenways and cycle paths that follow the trackbed of a closed or dismantled line. Those that only run beside a line in service are not drawn.',
+        'note' => 'Greenways and cycle paths that follow the trackbed of a closed or dismantled line. Those that only run beside a line in service or beside rails left in place are not drawn.',
         'source' => 'Source: © OpenStreetMap contributors (ODbL)',
         'line' => 'Line',
         'length' => 'On the former trackbed',

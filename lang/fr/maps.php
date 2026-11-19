@@ -318,7 +318,7 @@ return [
     'greenways' => [
         'title' => 'Voies vertes',
         'entry' => 'Voie verte sur une ancienne ligne',
-        'note' => 'Voies vertes et chemins cyclables qui suivent l’emprise d’une ligne disparue ou fermée. Celles qui longent seulement une ligne en service ne sont pas dessinées.',
+        'note' => 'Voies vertes et chemins cyclables qui suivent l’emprise d’une ligne disparue ou fermée. Celles qui longent seulement une ligne en service ou des rails restés en place ne sont pas dessinées.',
         'source' => 'Source : © contributeurs OpenStreetMap (ODbL)',
         'line' => 'Ligne',
         'length' => 'Sur l’ancienne emprise',

@@ -12,7 +12,7 @@ return [
         'unnamed' => 'Voie verte sans nom',
         'osm_hint' => 'OpenStreetMap',
         'map_link' => 'Voir les voies vertes sur la carte',
-        'method' => 'Une voie verte est rattachée à la ligne quand elle suit son axe à 8 m près, là où aucune voie n’est plus en service. Une voie verte qui longe seulement une ligne en service n’est pas retenue.',
+        'method' => 'Une voie verte est rattachée à la ligne quand elle suit son axe à 8 m près, là où il ne reste aucune voie en service ni laissée en place. Une voie verte qui longe seulement une ligne en service ou des rails restés en place n’est pas retenue.',
         'source' => 'Données © contributeurs OpenStreetMap (licence ODbL), lues le :date.',
     ],
 ];

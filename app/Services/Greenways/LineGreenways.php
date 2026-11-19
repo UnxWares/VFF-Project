@@ -11,10 +11,11 @@ use Illuminate\Support\Facades\DB;
  * nommée : section « Voie verte » de la fiche ligne, `GET /api/v1/lines/{line}/greenways` et champ
  * GraphQL `Line.greenways`. Lecture seule. Données © contributeurs OpenStreetMap, ODbL.
  *
- * Une voie verte (groupe) rassemble les ways OSM de la ligne qui portent le même nom : celui de leur
- * itinéraire cyclable OSM (relation route=bicycle|mtb) s'il existe, sinon celui du way, à condition
- * qu'il désigne un itinéraire (GreenwayNames : ni lieu, ni type de voie, ni nom de rue). Les ways sans
- * nom retenu forment un seul groupe sans nom. Le lien OSM d'un groupe pointe vers l'itinéraire s'il
+ * Une voie verte (groupe) rassemble les ways OSM de la ligne qui portent le même nom affiché
+ * (`display_name`, calculé par `vff:link-greenways` avec GreenwayNames::displayName, comme pour les
+ * tuiles de la carte) : celui de leur itinéraire cyclable OSM (relation route=bicycle|mtb) s'il existe,
+ * sinon celui du way, à condition qu'il désigne un itinéraire (ni lieu, ni type de voie, ni nom de
+ * rue). Les ways sans nom retenu forment un seul groupe sans nom. Le lien OSM d'un groupe pointe vers l'itinéraire s'il
  * existe, sinon vers le way qui suit le plus longtemps l'ancienne emprise.
  */
 final class LineGreenways
@@ -40,18 +41,55 @@ final class LineGreenways
      */
     public function groups(Line $line): array
     {
-        $rows = DB::table('line_greenways')->where('line_id', $line->id)
-            ->orderByDesc('shared_length_m')->orderBy('osm_way_id')
-            ->get(['osm_way_id', 'osm_relation_id', 'name', 'relation_name', 'highway', 'shared_length_m', 'way_length_m', 'shared_percent', 'opened_year']);
+        return $this->groupsByLine([$line->id])[$line->id];
+    }
 
+    /**
+     * Voies vertes de plusieurs lignes en une requête (chargement groupé de GraphQL), par identifiant
+     * de ligne ; une ligne sans voie verte a une liste vide.
+     *
+     * @param  list<int>  $lineIds
+     * @return array<int, list<array{
+     *     name: ?string, shared_length_m: int, way_count: int, opened_year: ?int,
+     *     osm_relation_id: ?int, osm_url: string,
+     *     ways: list<array{osm_way_id: int, osm_url: string, name: ?string, highway: ?string,
+     *         shared_length_m: int, way_length_m: int, shared_percent: int, opened_year: ?int}>
+     * }>>
+     */
+    public function groupsByLine(array $lineIds): array
+    {
+        $rows = $lineIds === [] ? collect() : DB::table('line_greenways')->whereIn('line_id', $lineIds)
+            ->orderBy('line_id')->orderByDesc('shared_length_m')->orderBy('osm_way_id')
+            ->get(['line_id', 'osm_way_id', 'osm_relation_id', 'name', 'relation_name', 'display_name', 'highway', 'shared_length_m', 'way_length_m', 'shared_percent', 'opened_year']);
+
+        $out = array_fill_keys($lineIds, []);
+        foreach ($rows->groupBy('line_id') as $lineId => $lineRows) {
+            $out[(int) $lineId] = $this->grouped($lineRows->all());
+        }
+
+        return $out;
+    }
+
+    /**
+     * Regroupe les ways d'une ligne (triés du plus long au plus court sur l'emprise) par nom affiché.
+     *
+     * @param  array<int, \stdClass>  $rows
+     * @return list<array{
+     *     name: ?string, shared_length_m: int, way_count: int, opened_year: ?int,
+     *     osm_relation_id: ?int, osm_url: string,
+     *     ways: list<array{osm_way_id: int, osm_url: string, name: ?string, highway: ?string,
+     *         shared_length_m: int, way_length_m: int, shared_percent: int, opened_year: ?int}>
+     * }>
+     */
+    private function grouped(array $rows): array
+    {
         $groups = [];
         foreach ($rows as $row) {
-            $relationName = GreenwayNames::relationName($row->relation_name);
-            $name = $relationName ?? GreenwayNames::wayName($row->name);
+            $name = $this->clean($row->display_name);
             $key = $name === null ? '' : mb_strtolower($name);
             $groups[$key] ??= ['name' => $name, 'relations' => [], 'ways' => []];
             // Le lien d'itinéraire n'est gardé que si c'est le nom de la relation qui nomme le groupe.
-            if ($row->osm_relation_id !== null && $relationName !== null) {
+            if ($row->osm_relation_id !== null && $name !== null && $name === $this->clean($row->relation_name)) {
                 $groups[$key]['relations'][] = (int) $row->osm_relation_id;
             }
             $groups[$key]['ways'][] = [

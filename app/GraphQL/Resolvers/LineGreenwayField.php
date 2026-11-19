@@ -2,30 +2,35 @@
 
 namespace App\GraphQL\Resolvers;
 
+use App\GraphQL\Loaders\LineGreenwayLoader;
 use App\Models\Line;
 use App\Services\Greenways\LineGreenways;
+use GraphQL\Deferred;
+use GraphQL\Executor\Promise\Adapter\SyncPromise;
+use GraphQL\Type\Definition\ResolveInfo;
+use Nuwave\Lighthouse\Execution\BatchLoader\BatchLoaderRegistry;
+use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
  * Voies vertes d'une ligne en GraphQL : champs `Line.greenways` et `Line.greenway_length_m`, mêmes
- * valeurs que l'API REST (`GET /api/v1/lines/{line}/greenways`). Les voies vertes d'une même ligne
- * sont lues une fois par requête (clé faible : rien ne survit à la requête).
+ * valeurs que l'API REST (`GET /api/v1/lines/{line}/greenways`). Chargement groupé : les lignes d'une
+ * même liste sont lues en une requête SQL, et les deux champs d'une ligne partagent cette lecture.
  */
 final class LineGreenwayField
 {
-    /** @var \WeakMap<Line, list<array<string, mixed>>>|null */
-    private static ?\WeakMap $perLine = null;
-
     public function __construct(private readonly LineGreenways $greenways) {}
 
-    /** @return list<array<string, mixed>> */
-    public function forLine(Line $line): array
+    /** @param  array<string, mixed>  $args */
+    public function forLine(Line $line, array $args, GraphQLContext $context, ResolveInfo $info): Deferred
     {
-        return $this->groupsOf($line);
+        return $this->loader($info)->load($line);
     }
 
-    public function length(Line $line): int
+    /** @param  array<string, mixed>  $args */
+    public function length(Line $line, array $args, GraphQLContext $context, ResolveInfo $info): SyncPromise
     {
-        return $this->greenways->totalLength($this->groupsOf($line));
+        return $this->loader($info)->load($line)
+            ->then(fn (array $groups): int => $this->greenways->totalLength($groups));
     }
 
     public function attribution(): string
@@ -39,11 +44,14 @@ final class LineGreenwayField
         return $this->greenways->provenance();
     }
 
-    /** @return list<array<string, mixed>> */
-    private function groupsOf(Line $line): array
+    /**
+     * Chargeur commun aux deux champs d'une même liste de lignes : la clé est le chemin du parent
+     * (sans les indices de liste), suivi d'un nom propre à ces champs.
+     */
+    private function loader(ResolveInfo $info): LineGreenwayLoader
     {
-        self::$perLine ??= new \WeakMap;
+        $path = [...array_slice($info->path, 0, -1), 'greenways@'];
 
-        return self::$perLine[$line] ??= $this->greenways->groups($line);
+        return BatchLoaderRegistry::instance($path, fn (): LineGreenwayLoader => new LineGreenwayLoader($this->greenways));
     }
 }

@@ -4,6 +4,7 @@ namespace Tests\Feature\Greenways;
 
 use App\Models\Era;
 use App\Models\Line;
+use App\Services\Greenways\GreenwayNames;
 use App\Services\Greenways\GreenwayTiles;
 use App\Services\Greenways\LineGreenways;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -45,11 +46,11 @@ class GreenwaySurfacesTest extends TestCase
 
     private function greenway(int $way, ?string $name, ?string $relationName, ?int $relation, string $highway, int $shared, int $length, int $percent, ?int $year, ?Line $line = null): void
     {
-        DB::insert("INSERT INTO line_greenways (line_id, osm_way_id, osm_relation_id, name, relation_name, highway, shared_length_m, way_length_m,
+        DB::insert("INSERT INTO line_greenways (line_id, osm_way_id, osm_relation_id, name, relation_name, display_name, highway, shared_length_m, way_length_m,
                 shared_percent, opened_year, source, osm_seen_at, created_at, updated_at, geom)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'osm', '2026-11-18', now(), now(),
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'osm', '2026-11-18', now(), now(),
                 ST_Multi(ST_GeomFromText(?, 4326)))", [
-            ($line ?? $this->line)->id, $way, $relation, $name, $relationName, $highway, $shared, $length, $percent, $year,
+            ($line ?? $this->line)->id, $way, $relation, $name, $relationName, GreenwayNames::displayName($relationName, $name), $highway, $shared, $length, $percent, $year,
             sprintf('LINESTRING(%F 48.5, %F 48.5)', 1.0 + $way / 100, 1.0 + $way / 100 + 0.01),
         ]);
     }
@@ -72,6 +73,30 @@ class GreenwaySurfacesTest extends TestCase
         $this->assertSame('https://www.openstreetmap.org/way/24', $groups[1]['osm_url']);
         // Le nom OSM du way reste celui d'OpenStreetMap dans le détail.
         $this->assertSame('Rue du Denier', $groups[0]['ways'][1]['name']);
+    }
+
+    public function test_the_map_tiles_show_the_same_names_as_the_api(): void
+    {
+        // Mêmes ways que le test précédent, plus une relation « Le Lac » sur un way au nom d'itinéraire.
+        $this->greenway(21, null, 'Camping', 900, 'cycleway', 700, 700, 100, null, $this->bare);
+        $this->greenway(22, 'Rue du Denier', null, null, 'cycleway', 500, 500, 100, null, $this->bare);
+        $this->greenway(23, 'Voie Verte', 'Le Lac', 901, 'path', 400, 400, 100, null, $this->bare);
+        $this->greenway(24, 'Voie verte du Marais', 'Camping', 900, 'path', 300, 300, 100, null, $this->bare);
+        $this->greenway(25, 'Voie Verte des Hautes-Vosges', 'Le Lac', 902, 'path', 300, 300, 100, null, $this->bare);
+
+        [$x, $y] = self::tileOf(48.5, 1.22, 9);
+        $tile = (string) $this->get("/api/v1/greenways/tiles/9/{$x}/{$y}.mvt")->assertOk()->getContent();
+
+        foreach (['Camping', 'Rue du Denier', 'Le Lac'] as $raw) {
+            $this->assertStringNotContainsString($raw, $tile);
+        }
+        // Valeur MVT « Voie Verte » seule : champ chaîne (0x0A) de 10 octets ; « Voie Verte des Hautes-Vosges » en a 28.
+        $this->assertStringNotContainsString("\x0A\x0AVoie Verte", $tile);
+        $this->assertStringContainsString('Voie verte du Marais', $tile);
+        $this->assertStringContainsString('Voie Verte des Hautes-Vosges', $tile);
+        // Les mêmes noms que ceux de l'API, de la fiche et du serveur MCP.
+        $api = array_column(app(LineGreenways::class)->groups($this->bare), 'name');
+        $this->assertSame([null, 'Voie verte du Marais', 'Voie Verte des Hautes-Vosges'], $api);
     }
 
     public function test_the_service_groups_ways_by_named_greenway_longest_first(): void
@@ -172,6 +197,35 @@ class GreenwaySurfacesTest extends TestCase
             ->assertJsonPath('data.line', ['greenway_length_m' => 0, 'greenways' => []]);
     }
 
+    public function test_graphql_reads_the_greenways_of_a_page_of_lines_in_one_query(): void
+    {
+        $query = '{ lines(first: 100) { data { slug greenway_length_m greenways { name ways { osm_way_id } } } } }';
+        $count = function () use ($query): int {
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $this->graphQL($query)->assertGraphQLErrorFree();
+            DB::disableQueryLog();
+
+            return count(DB::getQueryLog());
+        };
+        $before = $count();
+
+        // Trois lignes de plus, chacune avec sa voie verte : le nombre de requêtes ne bouge pas.
+        foreach ([31, 32, 33] as $way) {
+            $line = Line::factory()->create(['slug' => "rfn-9{$way}000", 'code' => "9{$way}000"]);
+            $this->greenway($way, "Voie verte n° {$way}", null, null, 'cycleway', 1000 + $way, 1000 + $way, 100, null, $line);
+        }
+        $this->assertSame($before, $count());
+
+        /** @var list<array{slug: string, greenway_length_m: int, greenways: list<array<string, mixed>>}> $data */
+        $data = $this->graphQL($query)->json('data.lines.data');
+        $lines = array_column($data, null, 'slug');
+        $this->assertSame(1031, $lines['rfn-931000']['greenway_length_m']);
+        $this->assertSame([['name' => 'Voie verte n° 31', 'ways' => [['osm_way_id' => '31']]]], $lines['rfn-931000']['greenways']);
+        $this->assertSame(19861, $lines['rfn-436000']['greenway_length_m']);
+        $this->assertSame([], $lines['rfn-1000']['greenways']);
+    }
+
     public function test_tiles_are_empty_below_the_minimum_zoom_and_carry_the_way_and_the_line(): void
     {
         $this->assertSame('', $this->get('/api/v1/greenways/tiles/3/4/2.mvt')->assertOk()->getContent());
@@ -195,7 +249,7 @@ class GreenwaySurfacesTest extends TestCase
         [$x, $y] = self::tileOf(48.5, 1.11, 9);
         $this->assertStringNotContainsString('Nouvelle voie', $tiles->tile(9, $x, $y));
 
-        DB::table('line_greenways')->where('osm_way_id', 11)->update(['name' => 'Nouvelle voie', 'relation_name' => null]);
+        DB::table('line_greenways')->where('osm_way_id', 11)->update(['name' => 'Nouvelle voie', 'relation_name' => null, 'display_name' => 'Nouvelle voie']);
         $this->assertStringNotContainsString('Nouvelle voie', $tiles->tile(9, $x, $y), 'tuile en cache');
 
         $tiles->invalidate();
