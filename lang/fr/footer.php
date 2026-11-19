@@ -18,7 +18,7 @@ return [
     'project_by' => 'Un projet de',
 
     // Mention d'état de conformité exigée par le RGAA (article 47 de la loi n° 2005-102), liée à la déclaration.
-    'accessibility_status' => 'Accessibilité : partiellement conforme',
+    'accessibility_status' => 'Accessibilité : totalement conforme',
 
     // Nom de la navigation du pied de page (lecteurs d'écran).
     'nav_label' => 'Liens du pied de page',

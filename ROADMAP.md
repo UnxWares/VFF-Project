@@ -24,12 +24,12 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 | 9 - Reconstitutions 3D 🧪 | ⬜ pas commencée |
 | 10 - Extension historique | ✅ couverture 1830-2030 ; modèle d'extraction des voies publié |
 | 11 - Communauté | 🟡 trilingue, carte intégrable, application installable et lisible hors ligne ; dons et blog à faire |
-| 12 - Mise en production | 🟡 pages légales, engagements RGPD et audit RGAA (86,30 %) faits ; messagerie et hébergement final à faire |
+| 12 - Mise en production | 🟡 pages légales, engagements RGPD et audit RGAA (100 %, totalement conforme) faits ; messagerie et hébergement final à faire |
 | 13 - Nouveaux domaines | 🟡 matériel roulant, accidents, serveur MCP, signalisation et passages à niveau (carte, fiches, API) faits ; historique de la signalisation fait, relevé partiel à compléter |
 
 **En base (développement)** : 2 705 lignes, 9 363 gares, 15 525 événements datés, 71 438 médias, 21 époques, 727 séries de matériel roulant (1 013 liens avec les lignes, 126 périodes de circulation datées), 928 fiches d'accidents publiées, 9 138 rattachements de voies vertes, 50 mises en service de signalisation datées montrées.
 
-**Qualité** : plus de 5 300 tests PHPUnit et 700 tests vitest, Larastan sans erreur, contrôle des invariants de données (`vff:check-invariants`), des traductions (`vff:i18n-check`) et des droits des sources (`vff:source-rights`), le tout en CI ; contrôles avant commit Lefthook (à installer) ; audit RGAA 4.1.2 interne : 86,30 %.
+**Qualité** : plus de 5 300 tests PHPUnit et 700 tests vitest, Larastan sans erreur, contrôle des invariants de données (`vff:check-invariants`), des traductions (`vff:i18n-check`) et des droits des sources (`vff:source-rights`), le tout en CI ; contrôles avant commit Lefthook (à installer) ; audit RGAA 4.1.2 interne : 100 % (totalement conforme, 32 pages).
 
 **Priorités du moment** :
 
@@ -263,7 +263,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [ ] Planificateur Laravel en production (recalcul quotidien de l'époque 2030)
 - [x] Engagements des pages légales : journaux conservés 12 mois au plus, suppression des comptes inactifs depuis 3 ans (avec avertissement), suppression de compte (phase 5), information des membres avant un changement des CGU
 - [x] Correction des défauts de l'audit de l'interface (interface unifiée, contrastes, cibles, clavier : novembre 2026)
-- [x] Audit de conformité RGAA interne complet (86,30 % après la revue du soir du 19/11, partiellement conforme), taux publié dans la déclaration
+- [x] Audit de conformité RGAA interne complet (100 % après la correction de Swagger UI et Magidoc le soir du 19/11, totalement conforme), taux publié dans la déclaration
 - [ ] Suivi des erreurs et de la disponibilité (phase 0)
 
 ---

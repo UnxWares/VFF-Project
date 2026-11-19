@@ -13,11 +13,13 @@
 <body class="vff-docs vff-docs--scalar">
     @include('docs._bar', ['current' => 'scalar'])
     <noscript><p class="vff-docs-noscript">{{ __('docs.noscript') }} <a href="/docs/api.json">/docs/api.json</a></p></noscript>
-    <main id="vff-docs-app" tabindex="-1"
+    {{-- Simple conteneur, pas de <main> : Scalar ouvre sa propre zone principale (une seule par page,
+         RGAA 9.2). Il reste la cible du lien d'évitement de la barre. --}}
+    <div id="vff-docs-app" tabindex="-1"
           data-spec-url="/docs/api.json"
           data-locale="{{ app()->getLocale() }}"
           data-title="{{ __('docs.title_scalar') }}">
         <p class="vff-docs-loading">{{ __('docs.loading') }}</p>
-    </main>
+    </div>
 </body>
 </html>

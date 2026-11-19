@@ -18,7 +18,7 @@ return [
     'project_by' => 'Ein Projekt von',
 
     // Konformitätsangabe nach dem RGAA (Artikel 47 des französischen Gesetzes Nr. 2005-102), verlinkt auf die Erklärung.
-    'accessibility_status' => 'Barrierefreiheit: teilweise konform',
+    'accessibility_status' => 'Barrierefreiheit: vollständig konform',
 
     // Name der Fußzeilen-Navigation (Bildschirmleser).
     'nav_label' => 'Links der Fußzeile',

@@ -5,6 +5,7 @@ import 'swagger-ui-dist/swagger-ui.css';
 import '../../css/docs/docs.css';
 import '../../css/docs/swagger.css';
 import { markContentLanguage } from './language.js';
+import { accessibilityPlugin } from './swaggerAccessibility.js';
 import { isDark, setupThemeToggle } from './theme.js';
 
 const root = document.getElementById('vff-docs-app');
@@ -18,6 +19,8 @@ SwaggerUI({
     url: root.dataset.specUrl,
     domNode: root,
     deepLinking: true,
+    // Corrections RGAA (zone principale unique, pas de lien dans un bouton, étiquette du filtre).
+    plugins: [accessibilityPlugin],
     // Pas d'appel au validateur en ligne de swagger.io.
     validatorUrl: null,
     docExpansion: 'list',

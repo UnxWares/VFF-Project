@@ -21,7 +21,9 @@
     <a class="vff-docs-brand" href="/">
         <img src="{{ Vite::asset('resources/images/vff.png') }}" alt="" width="32" height="32" />
         <span class="long">{{ __('common.app_full') }}</span>
-        <span class="short" aria-hidden="true">VFF</span>
+        {{-- Un seul des deux noms est affiché selon la largeur (docs.css) : l'autre, en display: none, sort
+             aussi de l'arbre d'accessibilité, et le lien garde un nom (RGAA 6.2) à 320 px. --}}
+        <span class="short">VFF</span>
     </a>
     <nav class="vff-docs-nav" aria-label="{{ __('docs.nav_label') }}">
         <button type="button" class="vff-docs-menu-button" popovertarget="vff-docs-menu" aria-controls="vff-docs-menu">

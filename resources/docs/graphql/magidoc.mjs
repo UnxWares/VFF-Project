@@ -332,13 +332,10 @@ export default {
                     content: [{ title: 'Introduction', content: introduction }],
                 },
             ],
+            // Aucun lien en position `header` : le gabarit l'y range dans un bouton placé dans un lien
+            // (RGAA 8.2) et l'en-tête dépasse alors 320 px de large (RGAA 10.11). GraphiQL reste dans le
+            // panneau « Voir aussi » et dans le guide.
             externalLinks: [
-                {
-                    label: 'GraphiQL',
-                    href: `${ORIGIN}/graphiql`,
-                    position: 'header',
-                    kind: 'GraphQL',
-                },
                 {
                     label: 'REST (Scalar)',
                     href: `${ORIGIN}/docs/api`,
