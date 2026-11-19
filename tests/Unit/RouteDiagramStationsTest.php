@@ -108,6 +108,41 @@ WT;
 
     // ─── runs ────────────────────────────────────────────────────────────
 
+    public function test_bskm_at_the_far_terminus_keeps_the_pk_equal_to_the_line_length(): void
+    {
+        // Ligne de Montsecret - Vassy aux Maures : « longueur = 19.6 » ; Les Maures donne son PK
+        // sur cette ligne (19,6xx) PUIS celui sur la ligne de Vire à Romagny (17,525).
+        $wikitext = <<<'WT'
+{{Infobox Ligne ferroviaire
+| nomligne = Montsecret - Vassy aux Maures
+| longueur              = 19.6
+}}
+{{BS-début}}
+{{BS1ebis|eBHF|{{BSkm|56,770|0,000}}|'''[[Gare de Montsecret - Vassy|Montsecret - Vassy]]'''|''(146m)''}}
+{{BS1ebis|exHST|14,4xx|Le Paillot}}
+{{BS1ebis|exBHF|{{BSkm|19,6xx|17,525}}|'''[[Chaulieu (Manche)|Les Maures]]'''|''(301m)''}}
+{{BS-fin}}
+WT;
+
+        $stations = $this->diagrams()->parse($wikitext)[0]['stations'];
+
+        $this->assertSame([['Montsecret - Vassy', 0], ['Le Paillot', 14400], ['Les Maures', 19600]],
+            array_map(fn ($s) => [$s['name'], $s['pk_m']], $stations));
+        $this->assertSame(19600, RouteDiagramStations::lineLengthM($wikitext));
+        $line = (new WikipediaLineParser)->parseRouteDiagram(str_replace(['19,6xx', '14,4xx'], ['19,600', '14,400'], $wikitext));
+        $this->assertSame([0, 14400, 19600], array_column($line, 'pk_m'));
+    }
+
+    public function test_bskm_choice_keeps_the_last_value_otherwise(): void
+    {
+        $this->assertSame(0, RouteDiagramStations::bskmChoice([56770, 0], 19600));
+        $this->assertSame(17525, RouteDiagramStations::bskmChoice([12000, 17525], null));
+        $this->assertSame(17525, RouteDiagramStations::bskmChoice([12000, 17525], 40000));
+        // Les deux valeurs proches de la longueur : la dernière.
+        $this->assertSame(19700, RouteDiagramStations::bskmChoice([19500, 19700], 19600));
+        $this->assertNull(RouteDiagramStations::lineLengthM('| longueur = '));
+    }
+
     public function test_a_new_run_starts_when_the_pk_goes_back_by_more_than_500_m(): void
     {
         $runs = RouteDiagramStations::runs(self::rows([['A', 0], ['B', 5000], ['C', 10000], ['D', 3000], ['E', 4000]]));
