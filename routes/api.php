@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AccidentController;
+use App\Http\Controllers\Api\EraComparisonController;
 use App\Http\Controllers\Api\EraController;
 use App\Http\Controllers\Api\GeoController;
 use App\Http\Controllers\Api\GtfsController;
@@ -39,7 +40,18 @@ Route::middleware('throttle:300,1')->group(function (): void {
                 ->where(['z' => '[0-9]{1,2}', 'x' => '[0-9]{1,7}', 'y' => '[0-9]{1,7}'])
                 ->name('api.eras.tiles');
             Route::get('/gtfs.zip', [GtfsController::class, 'export'])->name('api.eras.gtfs');
+            // Comparaison de deux ères (résumé chiffré et tuiles des changements).
+            Route::get('/compare/{other}', [EraComparisonController::class, 'show'])
+                ->where('other', '[0-9]{1,4}')
+                ->name('api.eras.compare');
+            Route::get('/compare/{other}/tiles/{z}/{x}/{y}.mvt', [EraComparisonController::class, 'tile'])
+                ->where(['other' => '[0-9]{1,4}', 'z' => '[0-9]{1,2}', 'x' => '[0-9]{1,7}', 'y' => '[0-9]{1,7}'])
+                ->name('api.eras.compare.tiles');
         });
+    // Toutes les ères empilées (érosion du réseau).
+    Route::get('/v1/eras/stacked/tiles/{z}/{x}/{y}.mvt', [EraComparisonController::class, 'stackedTile'])
+        ->where(['z' => '[0-9]{1,2}', 'x' => '[0-9]{1,7}', 'y' => '[0-9]{1,7}'])
+        ->name('api.eras.stacked.tiles');
 
     Route::get('/v1/search', [SearchController::class, 'index'])->name('api.search');
 

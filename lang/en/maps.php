@@ -210,6 +210,8 @@ return [
         'route_text' => 'Enter two stations and a year: the map draws the journey on the network in service at that time and lists the lines used.',
         'layers_term' => 'Overlays',
         'layers_text' => 'The OpenRailwayMap overlay adds today\'s infrastructure: signals, speeds, electrification. The clock button, at the top right of the map, shows old IGN maps.',
+        'views_term' => 'Comparing eras',
+        'views_text' => 'The "View" choice above the map compares two decades (lines opened, closed or lifted in between) or stacks every era to show when each line left service. The page address keeps this choice, so you can share it.',
     ],
 
     'tech' => [
@@ -226,6 +228,59 @@ return [
     ],
 
     // Map buttons (MapLibre): tooltips and names read by screen readers.
+    // Era views ("View" choice above the map).
+    'view' => [
+        'label' => 'View',
+        'era' => 'One era',
+        'compare' => 'Compare',
+        'stack' => 'All eras',
+    ],
+
+    // Comparison of two decades (bar under the map, legend, popups).
+    'compare' => [
+        'aria_label' => 'Comparison of two decades',
+        'from' => 'From',
+        'to' => 'to',
+        'legend_title' => 'From :from to :to',
+        'today_inline' => 'today',
+        'loading' => 'Working out the differences…',
+        'error' => 'The differences cannot be worked out right now.',
+        'opened' => 'Opened or reopened',
+        'closed' => 'Closed, track still in place',
+        'removed' => 'Lifted or gone',
+        'kept' => 'In service at both dates',
+        'balance' => 'Network in service: :before km (:from), then :after km (:to).',
+        'none' => 'No change between these two decades.',
+        'announce' => 'Between :from and :to: :opened km opened or reopened, :closed km closed with the track in place, :removed km lifted or gone. Network in service: :before km, then :after km.',
+        'popup' => [
+            'opened' => 'Opened or reopened between :from and :to',
+            'closed' => 'Closed between :from and :to, track still in place',
+            'removed' => 'Lifted or gone between :from and :to',
+            'kept' => 'In service at both dates (:from, :to)',
+        ],
+    ],
+
+    // All eras stacked (shade = last decade in service).
+    'stack' => [
+        'legend_title' => 'All eras',
+        'intro' => 'Each line takes the shade of the last decade in which it was in service: the darker it is, the longer it lasted.',
+        'group' => 'Last decade in service',
+        'until' => ':year or earlier',
+        'range' => ':from to :to',
+        'today' => 'Still in service today',
+        'note' => 'Each decade shows the network as it stood on 31 December of that year.',
+        'popup_single' => 'In service on the :year map only',
+        'popup_span' => 'In service on the maps from :from to :to',
+        'popup_today' => 'In service from the :from map until today',
+    ],
+
+    // "Locate me" button: messages when the position is not available.
+    'geolocate' => [
+        'denied' => 'You have not allowed access to your location. Allow it in your browser\'s site settings, then select "Locate me" again.',
+        'unavailable' => 'Your location could not be found. Check that location services are turned on for your device, then try again.',
+        'dismiss' => 'Close message',
+    ],
+
     'controls' => [
         'map' => 'Interactive railway network map',
         'zoom_in' => 'Zoom in',
@@ -236,5 +291,7 @@ return [
         'attribution' => 'Show or hide map credits',
         'map_feedback' => 'Report an error in the base map',
         'popup_close' => 'Close popup',
+        'locate' => 'Locate me (your position is only used to centre the map: it is neither sent to VFF nor stored)',
+        'locate_unavailable' => 'Location unavailable: access refused, or not supported by this browser',
     ],
 ];

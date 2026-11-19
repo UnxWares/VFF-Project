@@ -13,6 +13,7 @@
         MAP_MODES,
         swatchStyle,
     } from '$lib/railStyle.js';
+    import { COMPARE_CHANGES, stackLabels } from '$lib/epochViews.js';
 
     /**
      * Légende de la carte VFF : COULEUR = trafic des portions en service à la
@@ -29,6 +30,8 @@
      *   currentEra  : décennie actuelle ; les halos de campagne (menacée,
      *                 réouverture) n'existent qu'à cette décennie (cf. RailMap)
      *   mode        : couleur des tracés (bindable) : 'traffic' | 'electrification' | 'gauge'
+     *   view        : 'era' (une décennie), 'compare' (changements de `era` à `compareEra`) ou
+     *                 'stack' (toutes les époques) ; hors 'era', la légende décrit le calque de la vue
      */
     let {
         era = null,
@@ -36,6 +39,8 @@
         interactive = true,
         currentEra = 2030,
         mode = $bindable('traffic'),
+        view = 'era',
+        compareEra = null,
     } = $props();
 
     const uid = $props.id();
@@ -47,13 +52,27 @@
         typeof window === 'undefined' || !window.matchMedia?.('(max-width: 900px)').matches,
     );
 
-    const title = $derived(
-        era === null || era === undefined
-            ? $i18n.t('maps.legend.expand')
-            : era === currentEra
-              ? $i18n.t('maps.legend.title_current')
-              : $i18n.t('maps.legend.title', { year: era }),
-    );
+    // Décennie dans une phrase (« de 1930 à aujourd'hui »).
+    const inline = (year) =>
+        year === currentEra ? $i18n.t('maps.compare.today_inline') : String(year);
+
+    const title = $derived.by(() => {
+        if (view === 'compare' && compareEra !== null)
+            return $i18n.t('maps.compare.legend_title', { from: era, to: inline(compareEra) });
+        if (view === 'stack') return $i18n.t('maps.stack.legend_title');
+        if (era === null || era === undefined) return $i18n.t('maps.legend.expand');
+        return era === currentEra
+            ? $i18n.t('maps.legend.title_current')
+            : $i18n.t('maps.legend.title', { year: era });
+    });
+
+    // Changements de la comparaison (même trait que sur la carte).
+    const compareRows = COMPARE_CHANGES.map((c) => ({
+        key: c.key,
+        swatch: swatchStyle(c.color, c.dash, c.key !== 'kept'),
+    }));
+    // Classes de la vue empilée, du plus récent (foncé) au plus ancien (clair).
+    const stackRows = $derived([...stackLabels(currentEra)].reverse());
 
     // Lignes de légende du mode électrification / écartement (couleur seule, non masquables).
     const modeRows = $derived(
@@ -170,93 +189,122 @@
     </button>
 
     <div class="legend-body" id={bodyId} hidden={!open}>
-        <fieldset class="legend-modes">
-            <legend class="legend-group">{$i18n.t('maps.mode.label')}</legend>
-            <div class="mode-chips">
-                {#each MAP_MODES as m (m)}
-                    <label class="mode-chip">
-                        <input type="radio" name={`${uid}-mode`} value={m} bind:group={mode} />
-                        <span>{$i18n.t(`maps.mode.${m}`)}</span>
-                    </label>
-                {/each}
-            </div>
-        </fieldset>
-
-        {#if interactive}
-            <p class="legend-hint">{$i18n.t('maps.legend.hint')}</p>
-        {/if}
-
-        {#if mode !== 'traffic'}
-            <p class="legend-group" id={`${uid}-colours`}>
-                {$i18n.t(mode === 'gauge' ? 'maps.gauge.title' : 'maps.electrification.title')}
-            </p>
-            <ul aria-labelledby={`${uid}-colours`}>
-                {#each modeRows as r (r.key)}
+        {#if view === 'compare'}
+            <ul class="view-rows">
+                {#each compareRows as r (r.key)}
                     <li>
                         <span class="legend-row">
                             <i class="swatch" style={r.swatch} aria-hidden="true"></i>
-                            <span>{$i18n.t(r.labelKey)}</span>
+                            <span>{$i18n.t(`maps.compare.${r.key}`)}</span>
                         </span>
                     </li>
                 {/each}
             </ul>
-        {:else}
-            <p class="legend-group" id={`${uid}-traffic`}>{$i18n.t('maps.traffic.title')}</p>
-            <ul aria-labelledby={`${uid}-traffic`}>
-                {#each trafficRows as r (r.key)}
-                    {@render row(r)}
+        {:else if view === 'stack'}
+            <p class="legend-hint">{$i18n.t('maps.stack.intro')}</p>
+            <p class="legend-group" id={`${uid}-stack`}>{$i18n.t('maps.stack.group')}</p>
+            <ul aria-labelledby={`${uid}-stack`}>
+                {#each stackRows as r (r.key)}
+                    <li>
+                        <span class="legend-row">
+                            <i class="swatch stack" style:background={r.color} aria-hidden="true"
+                            ></i>
+                            <span>{$i18n.t(r.labelKey, r.params)}</span>
+                        </span>
+                    </li>
                 {/each}
             </ul>
+            <p class="legend-hint">{$i18n.t('maps.stack.note')}</p>
+        {:else}
+            {@render eraBody()}
         {/if}
+    </div>
+</div>
 
-        <p class="legend-group" id={`${uid}-status`}>{$i18n.t('maps.status.title')}</p>
-        <ul aria-labelledby={`${uid}-status`}>
-            {#each statusRowsView as r (r.key)}
-                {@render row(r)}
+{#snippet eraBody()}
+    <fieldset class="legend-modes">
+        <legend class="legend-group">{$i18n.t('maps.mode.label')}</legend>
+        <div class="mode-chips">
+            {#each MAP_MODES as m (m)}
+                <label class="mode-chip">
+                    <input type="radio" name={`${uid}-mode`} value={m} bind:group={mode} />
+                    <span>{$i18n.t(`maps.mode.${m}`)}</span>
+                </label>
             {/each}
-            {#if showAdvocacy}
-                <li>
-                    <span class="legend-row">
-                        <i
-                            class="swatch halo"
-                            style:background={THREATENED_COLOR}
-                            aria-hidden="true"
-                        ></i>
-                        <span>{$i18n.t('maps.legend.threatened')}</span>
-                    </span>
-                </li>
-                <li>
-                    <span class="legend-row">
-                        <i class="swatch halo" style:background={REOPENING_COLOR} aria-hidden="true"
-                        ></i>
-                        <span>{$i18n.t('maps.legend.reopening')}</span>
-                    </span>
-                </li>
-            {/if}
-        </ul>
+        </div>
+    </fieldset>
 
-        <!-- Gares : mêmes couleurs que la couche vff-stations-points (railStyle.js STATION_STYLES). -->
-        <p class="legend-group" id={`${uid}-stations`}>
-            {$i18n.t('maps.legend.stations')}
-            <span class="legend-group-note">{$i18n.t('maps.legend.stations_hint')}</span>
+    {#if interactive}
+        <p class="legend-hint">{$i18n.t('maps.legend.hint')}</p>
+    {/if}
+
+    {#if mode !== 'traffic'}
+        <p class="legend-group" id={`${uid}-colours`}>
+            {$i18n.t(mode === 'gauge' ? 'maps.gauge.title' : 'maps.electrification.title')}
         </p>
-        <ul aria-labelledby={`${uid}-stations`}>
-            {#each stationRows as r (r.key)}
+        <ul aria-labelledby={`${uid}-colours`}>
+            {#each modeRows as r (r.key)}
                 <li>
                     <span class="legend-row">
-                        <i
-                            class="swatch station"
-                            style:border-color={r.color}
-                            style:background={r.fill ?? '#ffffff'}
-                            aria-hidden="true"
-                        ></i>
+                        <i class="swatch" style={r.swatch} aria-hidden="true"></i>
                         <span>{$i18n.t(r.labelKey)}</span>
                     </span>
                 </li>
             {/each}
         </ul>
-    </div>
-</div>
+    {:else}
+        <p class="legend-group" id={`${uid}-traffic`}>{$i18n.t('maps.traffic.title')}</p>
+        <ul aria-labelledby={`${uid}-traffic`}>
+            {#each trafficRows as r (r.key)}
+                {@render row(r)}
+            {/each}
+        </ul>
+    {/if}
+
+    <p class="legend-group" id={`${uid}-status`}>{$i18n.t('maps.status.title')}</p>
+    <ul aria-labelledby={`${uid}-status`}>
+        {#each statusRowsView as r (r.key)}
+            {@render row(r)}
+        {/each}
+        {#if showAdvocacy}
+            <li>
+                <span class="legend-row">
+                    <i class="swatch halo" style:background={THREATENED_COLOR} aria-hidden="true"
+                    ></i>
+                    <span>{$i18n.t('maps.legend.threatened')}</span>
+                </span>
+            </li>
+            <li>
+                <span class="legend-row">
+                    <i class="swatch halo" style:background={REOPENING_COLOR} aria-hidden="true"
+                    ></i>
+                    <span>{$i18n.t('maps.legend.reopening')}</span>
+                </span>
+            </li>
+        {/if}
+    </ul>
+
+    <!-- Gares : mêmes couleurs que la couche vff-stations-points (railStyle.js STATION_STYLES). -->
+    <p class="legend-group" id={`${uid}-stations`}>
+        {$i18n.t('maps.legend.stations')}
+        <span class="legend-group-note">{$i18n.t('maps.legend.stations_hint')}</span>
+    </p>
+    <ul aria-labelledby={`${uid}-stations`}>
+        {#each stationRows as r (r.key)}
+            <li>
+                <span class="legend-row">
+                    <i
+                        class="swatch station"
+                        style:border-color={r.color}
+                        style:background={r.fill ?? '#ffffff'}
+                        aria-hidden="true"
+                    ></i>
+                    <span>{$i18n.t(r.labelKey)}</span>
+                </span>
+            </li>
+        {/each}
+    </ul>
+{/snippet}
 
 <style>
     /* Panneau posé sur la carte : la hauteur est bornée par son conteneur (.legend-slot de la
@@ -470,6 +518,14 @@
         opacity: 0.5;
     }
     /* Pastille de gare : rond blanc cerclé de la couleur du statut (comme sur la carte). */
+    /* Vue empilée : bande pleine, plus haute, pour lire la progression des teintes. */
+    .swatch.stack {
+        height: 6px;
+        border-radius: 3px;
+    }
+    .view-rows {
+        margin-top: 8px;
+    }
     .swatch.station {
         width: 10px;
         height: 10px;

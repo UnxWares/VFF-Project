@@ -210,6 +210,8 @@ return [
         'route_text' => 'Indiquez deux gares et une année : la carte trace le parcours sur le réseau en service à cette époque et liste les lignes empruntées.',
         'layers_term' => 'Calques',
         'layers_text' => 'Le calque OpenRailwayMap superpose l’infrastructure actuelle : signaux, vitesses, électrification. Le bouton à l’horloge, en haut à droite de la carte, affiche des cartes anciennes de l’IGN.',
+        'views_term' => 'Comparer les époques',
+        'views_text' => 'Le choix « Vue », au-dessus de la carte, compare deux décennies (lignes ouvertes, fermées ou déposées entre les deux) ou superpose toutes les époques pour voir quand chaque ligne a quitté le service. L’adresse de la page garde ce choix : vous pouvez la partager.',
     ],
 
     'tech' => [
@@ -226,6 +228,59 @@ return [
     ],
 
     // Boutons de la carte (MapLibre) : infobulles et noms lus par les lecteurs d'écran.
+    // Vues par époque (sélecteur « Vue » au-dessus de la carte).
+    'view' => [
+        'label' => 'Vue',
+        'era' => 'Une époque',
+        'compare' => 'Comparer',
+        'stack' => 'Toutes les époques',
+    ],
+
+    // Comparaison de deux décennies (barre sous la carte, légende, bulles).
+    'compare' => [
+        'aria_label' => 'Comparaison de deux décennies',
+        'from' => 'De',
+        'to' => 'à',
+        'legend_title' => 'De :from à :to',
+        'today_inline' => 'aujourd’hui',
+        'loading' => 'Calcul des différences…',
+        'error' => 'Les différences ne peuvent pas être calculées pour le moment.',
+        'opened' => 'Ouverte ou rouverte',
+        'closed' => 'Fermée, voie en place',
+        'removed' => 'Déposée ou disparue',
+        'kept' => 'En service aux deux dates',
+        'balance' => 'Réseau en service : :before km (:from), puis :after km (:to).',
+        'none' => 'Aucun changement entre ces deux décennies.',
+        'announce' => 'Entre :from et :to : :opened km ouverts ou rouverts, :closed km fermés avec la voie en place, :removed km déposés ou disparus. Réseau en service : :before km, puis :after km.',
+        'popup' => [
+            'opened' => 'Ouverte ou rouverte entre :from et :to',
+            'closed' => 'Fermée entre :from et :to, voie en place',
+            'removed' => 'Déposée ou disparue entre :from et :to',
+            'kept' => 'En service aux deux dates (:from, :to)',
+        ],
+    ],
+
+    // Toutes les époques empilées (teinte = dernière décennie en service).
+    'stack' => [
+        'legend_title' => 'Toutes les époques',
+        'intro' => 'Chaque tracé prend la teinte de la dernière décennie où il était en service : plus il est foncé, plus il a duré.',
+        'group' => 'Dernière décennie en service',
+        'until' => ':year ou avant',
+        'range' => ':from à :to',
+        'today' => 'Encore en service aujourd’hui',
+        'note' => 'Une décennie montre le réseau au 31 décembre de son année.',
+        'popup_single' => 'En service sur la seule carte de :year',
+        'popup_span' => 'En service sur les cartes de :from à :to',
+        'popup_today' => 'En service depuis la carte de :from, encore aujourd’hui',
+    ],
+
+    // Bouton « Me localiser » : messages quand la position n'est pas disponible.
+    'geolocate' => [
+        'denied' => 'Vous n’avez pas autorisé l’accès à votre position. Autorisez-le dans les réglages du site de votre navigateur, puis cliquez de nouveau sur « Me localiser ».',
+        'unavailable' => 'Votre position n’a pas pu être déterminée. Vérifiez que la localisation est activée sur votre appareil, puis réessayez.',
+        'dismiss' => 'Fermer le message',
+    ],
+
     'controls' => [
         'map' => 'Carte interactive du réseau ferré',
         'zoom_in' => 'Zoom avant',
@@ -236,5 +291,7 @@ return [
         'attribution' => 'Afficher ou masquer les crédits de la carte',
         'map_feedback' => 'Signaler une erreur du fond de carte',
         'popup_close' => 'Fermer la bulle',
+        'locate' => 'Me localiser (votre position sert seulement à centrer la carte : elle n’est ni envoyée à VFF ni enregistrée)',
+        'locate_unavailable' => 'Localisation indisponible : accès refusé, ou non pris en charge par ce navigateur',
     ],
 ];
