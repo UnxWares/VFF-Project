@@ -7,6 +7,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContributionController;
 use App\Http\Controllers\ContributionRemovalController;
 use App\Http\Controllers\CreditsController;
+use App\Http\Controllers\ErrorReportController;
+use App\Http\Controllers\ErrorReportReviewController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\LocaleController;
@@ -44,6 +46,10 @@ Route::get('/materials', [MaterialController::class, 'index'])->name('materials.
 Route::get('/materials/{material:slug}', [MaterialController::class, 'show'])->name('materials.show');
 Route::get('/accidents', [AccidentController::class, 'index'])->name('accidents.index');
 Route::get('/accidents/{accident:slug}', [AccidentController::class, 'show'])->name('accidents.show');
+// Signalement d'une erreur depuis une fiche (visiteurs et membres) : jeton d'ouverture du
+// formulaire (durée minimale de remplissage), puis envoi limité en fréquence (AppServiceProvider).
+Route::get('/reports/token', [ErrorReportController::class, 'token'])->middleware('throttle:30,1')->name('reports.token');
+Route::post('/reports', [ErrorReportController::class, 'store'])->middleware('throttle:error-reports')->name('reports.store');
 Route::get('/contribute', fn () => Inertia::render('Contribute'))->name('contribute');
 Route::get('/donate', fn () => Inertia::render('Donate'))->name('donate');
 
@@ -141,6 +147,9 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/validate', [ContributionController::class, 'validateList'])->name('validate.index');
     Route::post('/validate/{id}/approve', [ContributionController::class, 'approve'])->whereNumber('id')->name('validate.approve');
     Route::post('/validate/{id}/reject', [ContributionController::class, 'reject'])->whereNumber('id')->name('validate.reject');
+    // Signalements d'erreur envoyés depuis les fiches (validateurs et administrateurs, ErrorReportPolicy).
+    Route::get('/validate/reports', [ErrorReportReviewController::class, 'index'])->name('validate.reports.index');
+    Route::patch('/validate/reports/{report}', [ErrorReportReviewController::class, 'update'])->whereNumber('report')->name('validate.reports.update');
     // Retrait d'une contribution non publiée par un administrateur (motif envoyé à l'auteur).
     Route::delete('/validate/{contribution}', ContributionRemovalController::class)->whereNumber('contribution')->name('validate.remove');
 });

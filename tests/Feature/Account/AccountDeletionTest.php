@@ -121,6 +121,7 @@ class AccountDeletionTest extends TestCase
             'deleted_contribution_ids' => [$pending->id, $rejected->id],
             'contributions_anonymised' => 1,
             'approvals_anonymised' => 0,
+            'error_reports_deleted' => 0,
         ], $event->context);
         $this->assertSame([$pending->id, $rejected->id], $deletedByModel);
 

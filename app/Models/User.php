@@ -107,4 +107,20 @@ class User extends Authenticatable implements HasLocalePreference
     {
         return $this->hasMany(Contribution::class, 'reviewed_by');
     }
+
+    /**
+     * Signalements d'erreur envoyés par le membre connecté.
+     *
+     * @return HasMany<ErrorReport, $this>
+     */
+    public function errorReports(): HasMany
+    {
+        return $this->hasMany(ErrorReport::class);
+    }
+
+    /** Validateur ou administrateur : relit les contributions et examine les signalements. */
+    public function isReviewer(): bool
+    {
+        return in_array($this->role, [UserRole::Validator, UserRole::Admin], true);
+    }
 }

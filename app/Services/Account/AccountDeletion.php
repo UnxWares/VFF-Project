@@ -25,6 +25,7 @@ use Illuminate\Support\Str;
  *     les demandes de réinitialisation du mot de passe disparaissent avec la ligne users, comme
  *     ses notifications du site. Les sessions et les cookies « se souvenir de moi » deviennent
  *     inopérants : ils désignent un compte qui n'existe plus ;
+ *   - ses signalements d'erreur (texte, adresse de contact) sont supprimés ;
  *   - l'identifiant du compte, recopié dans les propriétés des tracés bruts (source_traces,
  *     source « contrib »), en est retiré.
  *
@@ -64,6 +65,10 @@ final readonly class AccountDeletion
                 [(string) $user->id],
             );
 
+            // Signalements d'erreur envoyés par le membre (texte et adresse de contact : données
+            // personnelles possibles), ouverts comme traités.
+            $reports = $user->errorReports()->delete();
+
             $user->tokens()->delete();
             // Notifications du site (relation polymorphe : aucune clé étrangère ne les supprime).
             $user->notifications()->delete();
@@ -84,6 +89,7 @@ final readonly class AccountDeletion
                 'deleted_contribution_ids' => $unpublished,
                 'contributions_anonymised' => $summary->contributionsAnonymised,
                 'approvals_anonymised' => $summary->approvalsAnonymised,
+                'error_reports_deleted' => $reports,
             ]);
 
             $user->delete();

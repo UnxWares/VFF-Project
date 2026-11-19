@@ -5,6 +5,7 @@
     import StationMiniMap from '$components/Stations/StationMiniMap.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
+    import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SheetToc from '$components/Sheet/SheetToc.svelte';
     import Notice from '$components/ui/Notice.svelte';
@@ -524,6 +525,8 @@
                 </dl>
             {/if}
         </SheetSection>
+
+        <ReportError type="station" slug={station.slug} name={station.name} />
     </main>
 </Layout>
 

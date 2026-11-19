@@ -163,7 +163,8 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [~] Formulaire d'ajout d'événement / média / matériel (tracés et segments faits)
 - [ ] Notifications (sur le site + courriel) d'acceptation ou de refus
 - [ ] Réputation et badges (le champ existe, aucun calcul)
-- [~] Modération : journal d'audit et retrait d'une contribution par un administrateur faits ; signalement et liste de blocage à faire
+- [~] Modération : journal d'audit et retrait d'une contribution par un administrateur faits ; liste de blocage à faire
+- [x] Signalement d'une erreur depuis le site : bouton « Signaler une erreur » en bas des fiches ligne, gare, matériel et accident (visiteurs et membres, sans traceur ni service externe), liste des signalements dans l'espace de validation (`/validate/reports`), notification des validateurs, journal d'audit, purge 12 mois après le traitement
 - [x] Suppression du compte par l'utilisateur, avec anonymisation des contributions, et export de ses données
 
 🎯 **Jalon "Open Encyclopedia"** : un visiteur peut s'inscrire et soumettre sa première contribution en moins de 3 minutes. Presque atteint : il manque les notifications.

@@ -27,6 +27,7 @@
     import LineLevelCrossings from '$components/Lines/LineLevelCrossings.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
+    import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SheetToc from '$components/Sheet/SheetToc.svelte';
     import SeoHead from '$components/SeoHead.svelte';
@@ -1177,6 +1178,8 @@
                 {/if}
             </SheetSection>
         {/if}
+
+        <ReportError type="line" slug={line.slug} name={line.name} />
     </main>
 </Layout>
 
