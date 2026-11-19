@@ -65,6 +65,28 @@ return [
         'response_caption' => 'En-têtes d’une réponse avec un jeton de membre',
     ],
 
+    'webhooks' => [
+        'title' => 'Webhooks',
+        'intro' => 'Plutôt que d’interroger l’API à intervalles réguliers, recevez un message à chaque changement qui vous intéresse. Déclarez une adresse HTTPS publique depuis votre profil et choisissez les événements : VFF y envoie un POST JSON court et signé, sans aucune donnée personnelle.',
+        'create' => 'Ajouter un webhook depuis mon profil',
+        'events_title' => 'Événements',
+        'payload_title' => 'Contenu du message',
+        'payload_intro' => 'data.id est le slug de la ressource (l’année pour une ère) et data.url son adresse dans l’API, à lire pour obtenir le détail. Le recalcul de l’ère courante ajoute as_of, lines_changed et stations_changed.',
+        'headers_title' => 'En-têtes',
+        'headers' => [
+            'event' => 'VFF-Event : le type de l’événement.',
+            'delivery' => 'VFF-Delivery : l’identifiant de l’événement, le même à chaque nouvel essai. Il sert à ignorer un doublon.',
+            'signature' => 'VFF-Signature : t=<horodatage Unix>,v1=<signature>. La signature est le HMAC-SHA256 en hexadécimal, avec votre secret, de la chaîne « <t>.<corps brut> ».',
+        ],
+        'verify_title' => 'Vérifier la signature',
+        'verify_intro' => 'Vérifiez chaque message sur le corps brut, avant de décoder le JSON. Recalculez la signature, comparez-la en temps constant et refusez un horodatage éloigné de plus de :tolerance secondes de votre horloge : un message intercepté ne pourra pas être rejoué plus tard.',
+        'js_caption' => 'JavaScript (Node.js)',
+        'py_caption' => 'Python',
+        'delivery_title' => 'Livraison et essais',
+        'delivery_text' => 'Répondez par un code 2xx en moins de :timeout secondes, puis traitez le message : le corps de votre réponse n’est pas lu, et les redirections ne sont jamais suivies. Un code 408, 429 ou 5xx, un délai dépassé ou une connexion impossible donnent un nouvel essai, :attempts au total, après 1 minute, 5 minutes, 30 minutes puis 2 heures. Après :max livraisons échouées d’affilée, l’abonnement est désactivé et vous en êtes averti sur le site. Le journal des dernières livraisons figure dans votre profil.',
+        'security_text' => 'L’adresse est vérifiée à la création, puis avant chaque envoi. Les adresses IP privées, locales, de bouclage ou de métadonnées sont refusées, en IPv4 comme en IPv6, y compris quand le nom de domaine y mène. Seul le port 443 est accepté.',
+    ],
+
     'endpoints' => [
         'reference' => 'Référence détaillée',
         'title' => 'Points d’accès REST',

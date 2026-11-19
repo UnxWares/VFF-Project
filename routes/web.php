@@ -22,8 +22,10 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\TraceEditorController;
+use App\Http\Controllers\WebhookSubscriptionController;
 use App\Http\Middleware\SetLocale;
 use App\Services\Reputation\ReputationLevels;
+use App\Services\Webhooks\WebhookSubscriptions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -66,12 +68,20 @@ Route::get('/privacy', fn () => Inertia::render('Privacy', ['updated' => LegalDo
 Route::get('/use-conditions', fn () => Inertia::render('UseConditions', ['updated' => LegalDocument::UseConditions->currentVersion()]))->name('use-conditions');
 Route::get('/accessibility', fn () => Inertia::render('Accessibility'))->name('accessibility');
 
-// Limites de débit par profil (config/api.php), affichées dans « Authentification et quotas ».
+// Limites de débit par profil (config/api.php), affichées dans « Authentification et quotas » ;
+// règles de livraison des webhooks (config/webhooks.php), affichées dans « Webhooks ».
 Route::get('/api', fn () => Inertia::render('ApiDocs', [
     'rate_limits' => array_combine(
         array_map(fn (ApiAccessProfile $p): string => $p->value, ApiAccessProfile::cases()),
         array_map(fn (ApiAccessProfile $p): int => $p->perMinute(), ApiAccessProfile::cases()),
     ),
+    // Règles de livraison des webhooks (config/webhooks.php), section « Webhooks ».
+    'webhooks' => [
+        'tolerance' => (int) config('webhooks.tolerance', 300),
+        'timeout' => (int) config('webhooks.timeout', 5),
+        'attempts' => max(1, (int) config('webhooks.attempts', 5)),
+        'disable_after' => WebhookSubscriptions::disableAfter(),
+    ],
 ]))->name('api.docs');
 
 // Documentation de l'API. REST : /docs/api (Scalar, vue resources/views/vendor/scramble/docs.blade.php)
@@ -139,6 +149,11 @@ Route::middleware('auth')->group(function (): void {
     // Jetons d'API personnels (lecture seule) : création refusée à un compte suspendu, révocation toujours possible.
     Route::post('/profile/api-tokens', [ApiTokenController::class, 'store'])->middleware(['not.suspended', 'throttle:10,1'])->name('profile.api-tokens.store');
     Route::delete('/profile/api-tokens/{token}', [ApiTokenController::class, 'destroy'])->whereNumber('token')->middleware('throttle:30,1')->name('profile.api-tokens.destroy');
+
+    // Webhooks de l'API : création et réactivation refusées à un compte suspendu, suppression toujours possible.
+    Route::post('/profile/webhooks', [WebhookSubscriptionController::class, 'store'])->middleware(['not.suspended', 'throttle:10,1'])->name('profile.webhooks.store');
+    Route::post('/profile/webhooks/{subscription}/enable', [WebhookSubscriptionController::class, 'enable'])->whereNumber('subscription')->middleware(['not.suspended', 'throttle:30,1'])->name('profile.webhooks.enable');
+    Route::delete('/profile/webhooks/{subscription}', [WebhookSubscriptionController::class, 'destroy'])->whereNumber('subscription')->middleware('throttle:30,1')->name('profile.webhooks.destroy');
 
     // Notifications sur le site (suite donnée aux contributions, relectures en attente).
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');

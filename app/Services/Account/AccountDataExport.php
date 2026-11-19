@@ -7,6 +7,7 @@ use App\Models\DatabaseNotification;
 use App\Models\ErrorReport;
 use App\Models\User;
 use App\Services\Reputation\ReputationLevels;
+use App\Services\Webhooks\WebhookSubscriptions;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -16,15 +17,16 @@ use Laravel\Sanctum\PersonalAccessToken;
  * un document JSON structuré, lisible par une machine, avec tout ce que VFF garde du compte.
  *
  * Clés en anglais et dates ISO 8601 : un format stable, indépendant de la langue de la page.
- * Le mot de passe (haché), le jeton « se souvenir de moi » et les jetons d'API eux-mêmes ne
- * sont jamais exportés : ce sont des secrets, pas des informations sur la personne.
+ * Le mot de passe (haché), le jeton « se souvenir de moi », les jetons d'API eux-mêmes et les
+ * secrets de signature des webhooks ne sont jamais exportés : ce sont des secrets, pas des
+ * informations sur la personne.
  */
 final readonly class AccountDataExport
 {
-    public function __construct(private ReputationLevels $levels) {}
+    public function __construct(private ReputationLevels $levels, private WebhookSubscriptions $webhooks) {}
 
-    /** Version du format, à incrémenter si la structure change. */
-    public const FORMAT_VERSION = 2;
+    /** Version du format, à incrémenter si la structure change (3 : abonnements webhook). */
+    public const FORMAT_VERSION = 3;
 
     /** @return array<string, mixed> */
     public function for(User $user): array
@@ -137,6 +139,8 @@ final readonly class AccountDataExport
                     'last_used_at' => $t->last_used_at?->toIso8601String(),
                     'expires_at' => $t->expires_at?->toIso8601String(),
                 ])->all(),
+            // Abonnements webhook : adresse, événements, état et dernières livraisons ; jamais le secret.
+            'webhooks' => $this->webhooks->forExport($user),
         ];
     }
 

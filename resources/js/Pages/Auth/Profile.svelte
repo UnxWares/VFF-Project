@@ -5,6 +5,7 @@
     import Field from '$components/ui/Field.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import ApiTokens from '$components/Profile/ApiTokens.svelte';
+    import Webhooks from '$components/Profile/Webhooks.svelte';
     import ReputationFigures from '$components/Reputation/ReputationFigures.svelte';
     import { focusFirstError } from './authForm.js';
     import { reportDate } from '$lib/errorReport.js';
@@ -14,8 +15,9 @@
      * `reputation` : chiffres, niveau et niveau suivant (ReputationLevels).
      * `suspension` : suspension en cours (motif, début, fin éventuelle), sinon null.
      * `api_access` : jetons d'API personnels et limite du compte (ApiTokens::forProfile).
+     * `webhooks` : abonnements webhook et leurs dernières livraisons (WebhookSubscriptions::forProfile).
      */
-    let { profile, reputation, suspension = null, api_access = null } = $props();
+    let { profile, reputation, suspension = null, api_access = null, webhooks = null } = $props();
 
     // PUT pour matcher la route REST `Route::put('/profile', ...)`.
     // Inertia transmet automatiquement _method=PUT en POST + CSRF. Valeurs de départ du formulaire.
@@ -246,6 +248,12 @@
                 {#if api_access}
                     <div class="api-area">
                         <ApiTokens access={api_access} />
+                    </div>
+                {/if}
+
+                {#if webhooks}
+                    <div class="api-area">
+                        <Webhooks {webhooks} />
                     </div>
                 {/if}
 

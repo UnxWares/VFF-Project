@@ -16,9 +16,15 @@
      * dans « Accès et limites », « Authentification et quotas » (ancre #auth, liée depuis le profil)
      * et la section MCP.
      *
-     * @type {{ rate_limits: { anonymous: number, member: number, partner: number } }}
+     * `webhooks` : règles de livraison des webhooks (config/webhooks.php), section « Webhooks » (ancre
+     * #webhooks, liée depuis le profil).
+     *
+     * @type {{
+     *   rate_limits: { anonymous: number, member: number, partner: number },
+     *   webhooks: { tolerance: number, timeout: number, attempts: number, disable_after: number },
+     * }}
      */
-    let { rate_limits } = $props();
+    let { rate_limits, webhooks } = $props();
     const number = (n) => n.toLocaleString($i18n.language);
     const authProfiles = ['anonymous', 'member', 'partner'];
 
@@ -289,6 +295,68 @@ Content-Type: application/json
 X-RateLimit-Limit: ${rate_limits.member}
 X-RateLimit-Remaining: ${rate_limits.member - 1}`);
 
+    // Section « Webhooks » : événements, message reçu et vérification de la signature (exemples
+    // exécutés contre une signature produite par App\Services\Webhooks\WebhookSignature).
+    const webhookEvents = [
+        'contribution.applied',
+        'current_era.refreshed',
+        'accident.published',
+        'material.published',
+    ];
+    const webhookPayload = `POST /vff/webhook HTTP/1.1
+Content-Type: application/json
+User-Agent: VFF-Webhooks/1.0
+VFF-Event: contribution.applied
+VFF-Delivery: 6f1c2e0a-8d4b-4c1e-9a7f-2b5d3e4c1a90
+VFF-Signature: t=1795097531,v1=5b0f3c…
+
+{
+  "id": "6f1c2e0a-8d4b-4c1e-9a7f-2b5d3e4c1a90",
+  "type": "contribution.applied",
+  "created_at": "2026-11-19T14:02:11+00:00",
+  "data": {
+    "resource": "line",
+    "id": "rfn-420000",
+    "url": "https://vff-project.org/api/v1/lines/rfn-420000"
+  }
+}`;
+    const webhookJs = $derived(
+        [
+            'import crypto from "node:crypto";',
+            '',
+            '// rawBody : le corps reçu, tel quel ; header : l’en-tête VFF-Signature.',
+            `export function verifyVffSignature(rawBody, header, secret, toleranceSeconds = ${webhooks.tolerance}) {`,
+            '    const fields = Object.fromEntries(header.split(",").map((part) => part.trim().split("=")));',
+            '    const timestamp = Number(fields.t);',
+            '    if (!Number.isInteger(timestamp) || Math.abs(Date.now() / 1000 - timestamp) > toleranceSeconds) {',
+            '        return false;',
+            '    }',
+            '    const expected = crypto.createHmac("sha256", secret).update(`${timestamp}.${rawBody}`).digest("hex");',
+            '    const received = Buffer.from(fields.v1 ?? "");',
+            '    return received.length === expected.length && crypto.timingSafeEqual(received, Buffer.from(expected));',
+            '}',
+        ].join('\n'),
+    );
+    const webhookPy = $derived(
+        [
+            'import hashlib',
+            'import hmac',
+            'import time',
+            '',
+            '',
+            `def verify_vff_signature(raw_body: bytes, header: str, secret: str, tolerance: int = ${webhooks.tolerance}) -> bool:`,
+            '    fields = dict(part.strip().split("=", 1) for part in header.split(",") if "=" in part)',
+            '    try:',
+            '        timestamp = int(fields["t"])',
+            '    except (KeyError, ValueError):',
+            '        return False',
+            '    if abs(time.time() - timestamp) > tolerance:',
+            '        return False',
+            '    expected = hmac.new(secret.encode(), f"{timestamp}.".encode() + raw_body, hashlib.sha256).hexdigest()',
+            '    return hmac.compare_digest(expected, fields.get("v1", ""))',
+        ].join('\n'),
+    );
+
     const graphqlCurl = `curl -X POST https://vff-project.org/graphql \\
   -H "Content-Type: application/json" \\
   -d '{"query": "{ line(slug: \\"rfn-405000\\") { name code } }"}'`;
@@ -412,6 +480,75 @@ X-RateLimit-Remaining: ${rate_limits.member - 1}`);
                 role="region"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{authPy}</code></pre>
+        </SectionBlock>
+
+        <SectionBlock
+            id="webhooks"
+            kind="alt"
+            title={$i18n.t('api.webhooks.title')}
+            intro={$i18n.t('api.webhooks.intro')}
+            maxWidth="900px"
+        >
+            <p class="auth-link">
+                <a class="vff-btn secondary" href="/profile#webhooks-title"
+                    >{$i18n.t('api.webhooks.create')}</a
+                >
+            </p>
+
+            <h3 class="group-title">{$i18n.t('api.webhooks.events_title')}</h3>
+            <dl class="webhook-events">
+                {#each webhookEvents as e (e)}
+                    <div>
+                        <dt><code>{e}</code></dt>
+                        <dd>{$i18n.t(`webhooks.events.${e.replace('.', '_')}.hint`)}</dd>
+                    </div>
+                {/each}
+            </dl>
+
+            <h3 class="group-title">{$i18n.t('api.webhooks.payload_title')}</h3>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{webhookPayload}</code></pre>
+            <p class="caption">{$i18n.t('api.webhooks.payload_intro')}</p>
+
+            <h3 class="group-title">{$i18n.t('api.webhooks.headers_title')}</h3>
+            <ul class="auth-headers">
+                {#each ['event', 'delivery', 'signature'] as h (h)}
+                    <li>{$i18n.t(`api.webhooks.headers.${h}`)}</li>
+                {/each}
+            </ul>
+
+            <h3 class="group-title">{$i18n.t('api.webhooks.verify_title')}</h3>
+            <p class="caption">
+                {$i18n.t('api.webhooks.verify_intro', { tolerance: webhooks.tolerance })}
+            </p>
+            <p class="caption">{$i18n.t('api.webhooks.js_caption')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{webhookJs}</code></pre>
+            <p class="caption">{$i18n.t('api.webhooks.py_caption')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{webhookPy}</code></pre>
+
+            <h3 class="group-title">{$i18n.t('api.webhooks.delivery_title')}</h3>
+            <p class="caption">
+                {$i18n.t('api.webhooks.delivery_text', {
+                    timeout: webhooks.timeout,
+                    attempts: webhooks.attempts,
+                    max: webhooks.disable_after,
+                })}
+            </p>
+            <p class="caption">{$i18n.t('api.webhooks.security_text')}</p>
         </SectionBlock>
 
         <SectionBlock
@@ -781,6 +918,23 @@ X-RateLimit-Remaining: ${rate_limits.member - 1}`);
         max-width: var(--vff-measure);
         margin: 0 0 var(--vff-block-space);
         padding-left: 1.2em;
+        font-size: var(--vff-fs-md);
+        line-height: 1.5;
+    }
+    .webhook-events {
+        display: flex;
+        flex-direction: column;
+        gap: var(--vff-space-3);
+        max-width: var(--vff-measure);
+        margin: 0 0 var(--vff-block-space);
+    }
+    .webhook-events dt code {
+        font-family: var(--api-mono);
+        font-size: var(--vff-fs-sm);
+        font-weight: 600;
+    }
+    .webhook-events dd {
+        margin: 2px 0 0;
         font-size: var(--vff-fs-md);
         line-height: 1.5;
     }

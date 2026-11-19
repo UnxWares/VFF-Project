@@ -52,4 +52,11 @@ enum AuditAction: string
     case ApiPartnerGranted = 'api_partner_granted';
     /** Profil « partenaire » de l'API retiré en console. Contexte : `account_id`. */
     case ApiPartnerRevoked = 'api_partner_revoked';
+    /**
+     * Abonnement webhook créé par son titulaire (acteur). Contexte : `subscription_id` ; jamais
+     * l'adresse ni le secret.
+     */
+    case WebhookCreated = 'webhook_created';
+    /** Abonnement webhook supprimé par son titulaire (acteur). Contexte : `subscription_id`. */
+    case WebhookDeleted = 'webhook_deleted';
 }

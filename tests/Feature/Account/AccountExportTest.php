@@ -49,7 +49,7 @@ class AccountExportTest extends TestCase
 
         $data = $response->json();
         $this->assertSame('vff-account-export', $data['format']);
-        $this->assertSame(2, $data['version']);
+        $this->assertSame(3, $data['version']);
         $this->assertSame('Élise Martin', $data['profile']['name']);
         $this->assertSame($user->email, $data['profile']['email']);
         $this->assertSame('Passionnée du PO', $data['profile']['bio']);

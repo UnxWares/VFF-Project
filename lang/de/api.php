@@ -64,6 +64,28 @@ return [
         'response_caption' => 'Header einer Antwort mit dem Token eines Mitglieds',
     ],
 
+    'webhooks' => [
+        'title' => 'Webhooks',
+        'intro' => 'Statt die API in regelmäßigen Abständen abzufragen, erhalten Sie bei jeder Änderung, der Sie folgen, eine Nachricht. Geben Sie in Ihrem Profil eine öffentliche HTTPS-Adresse an und wählen Sie die Ereignisse: Französische Bahnstrecken schickt dorthin einen kurzen, signierten JSON-POST ohne personenbezogene Daten.',
+        'create' => 'Webhook in meinem Profil hinzufügen',
+        'events_title' => 'Ereignisse',
+        'payload_title' => 'Inhalt der Nachricht',
+        'payload_intro' => 'data.id ist der Slug der Ressource (bei einer Epoche das Jahr) und data.url ihre Adresse in der API, unter der Sie die Einzelheiten abrufen. Die Neuberechnung der aktuellen Epoche fügt as_of, lines_changed und stations_changed hinzu.',
+        'headers_title' => 'Header',
+        'headers' => [
+            'event' => 'VFF-Event: der Typ des Ereignisses.',
+            'delivery' => 'VFF-Delivery: die Kennung des Ereignisses, bei jedem neuen Versuch dieselbe. Damit erkennen Sie Doppelungen.',
+            'signature' => 'VFF-Signature: t=<Unix-Zeitstempel>,v1=<Signatur>. Die Signatur ist der hexadezimale HMAC-SHA256 der Zeichenkette „<t>.<Rohkörper>“ mit Ihrem Geheimnis als Schlüssel.',
+        ],
+        'verify_title' => 'Signatur prüfen',
+        'verify_intro' => 'Prüfen Sie jede Nachricht am Rohkörper, bevor Sie das JSON dekodieren. Berechnen Sie die Signatur neu, vergleichen Sie sie in konstanter Zeit und lehnen Sie einen Zeitstempel ab, der mehr als :tolerance Sekunden von Ihrer Uhr abweicht. So lässt sich eine abgefangene Nachricht später nicht erneut einspielen.',
+        'js_caption' => 'JavaScript (Node.js)',
+        'py_caption' => 'Python',
+        'delivery_title' => 'Zustellung und Wiederholungen',
+        'delivery_text' => 'Antworten Sie innerhalb von :timeout Sekunden mit einem 2xx-Code und verarbeiten Sie die Nachricht danach: Der Körper Ihrer Antwort wird nicht gelesen, und Weiterleitungen werden nie befolgt. Ein Code 408, 429 oder 5xx, eine Zeitüberschreitung oder eine fehlgeschlagene Verbindung führen zu einem neuen Versuch, insgesamt :attempts, nach 1 Minute, 5 Minuten, 30 Minuten und dann 2 Stunden. Nach :max fehlgeschlagenen Zustellungen in Folge wird das Abonnement deaktiviert, und Sie werden auf der Website benachrichtigt. Das Protokoll der letzten Zustellungen steht in Ihrem Profil.',
+        'security_text' => 'Die Adresse wird beim Anlegen und erneut vor jeder Zustellung geprüft. Private, lokale, Loopback- und Metadaten-IP-Adressen werden abgelehnt, in IPv4 wie in IPv6, auch wenn der Domainname dorthin führt. Nur Port 443 ist zulässig.',
+    ],
+
     'endpoints' => [
         'reference' => 'Ausführliche Referenz',
         'title' => 'REST-Zugriffspunkte',

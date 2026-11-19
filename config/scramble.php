@@ -180,6 +180,96 @@ return [
             la mention de la base VFF et celle de chaque source utilisée. Chaque média porte sa propre
             licence et son attribution.
 
+            ## Webhooks
+            Plutôt que d'interroger l'API à intervalles réguliers, un membre peut recevoir un message à chaque
+            changement qui l'intéresse. Il déclare une adresse **HTTPS** publique (port 443) depuis son profil
+            (section « Webhooks » de [/profile](/profile)), choisit les événements et reçoit un **secret de
+            signature**, montré une seule fois. {webhooks.max} abonnements au plus par compte ; un compte suspendu
+            ne reçoit rien.
+
+            | Événement (`type`) | Quand | `data.resource` |
+            | --- | --- | --- |
+            | `contribution.applied` | une contribution approuvée est appliquée à une ligne ou à une gare | `line` ou `station` |
+            | `current_era.refreshed` | le recalcul quotidien de l'ère courante a changé des lignes ou des gares | `era` |
+            | `accident.published` | un import publie une nouvelle fiche d'accident | `accident` |
+            | `material.published` | un import publie une nouvelle fiche de matériel roulant | `material` |
+
+            Chaque message est un `POST` avec un corps JSON court, sans aucune donnée personnelle (ni membre,
+            ni numéro de contribution). `data.id` est le slug de la ressource (l'année pour une ère) et
+            `data.url` son adresse dans cette API, à lire pour obtenir le détail :
+
+            ```json
+            {
+              "id": "6f1c2e0a-8d4b-4c1e-9a7f-2b5d3e4c1a90",
+              "type": "contribution.applied",
+              "created_at": "2026-11-19T14:02:11+00:00",
+              "data": {
+                "resource": "line",
+                "id": "rfn-420000",
+                "url": "https://vff-project.org/api/v1/lines/rfn-420000"
+              }
+            }
+            ```
+
+            `current_era.refreshed` ajoute `as_of` (date du recalcul, `AAAA-MM-JJ`), `lines_changed` et
+            `stations_changed` (nombres de lignes et de gares recalculées).
+
+            En-têtes envoyés :
+            - `VFF-Event` : le type de l'événement ;
+            - `VFF-Delivery` : identifiant de l'événement (UUID), le même à chaque nouvel essai : servez-vous-en
+              pour ignorer un doublon ;
+            - `VFF-Signature` : `t=<horodatage Unix>,v1=<signature>`, où la signature est le HMAC-SHA256 en
+              hexadécimal, avec votre secret, de la chaîne `<t>.<corps brut>` ;
+            - `Content-Type: application/json` et `User-Agent: VFF-Webhooks/1.0`.
+
+            **Vérifiez chaque message** sur le corps brut, avant tout décodage JSON : recalculez la signature,
+            comparez-la en temps constant et refusez un horodatage éloigné de plus de {webhooks.tolerance}
+            secondes de votre horloge. Un message intercepté ne peut donc pas être rejoué plus tard.
+
+            ```javascript
+            import crypto from "node:crypto";
+
+            // rawBody : le corps reçu, tel quel (chaîne) ; header : l'en-tête VFF-Signature.
+            export function verifyVffSignature(rawBody, header, secret, toleranceSeconds = {webhooks.tolerance}) {
+                const fields = Object.fromEntries(header.split(",").map((part) => part.trim().split("=")));
+                const timestamp = Number(fields.t);
+                if (!Number.isInteger(timestamp) || Math.abs(Date.now() / 1000 - timestamp) > toleranceSeconds) {
+                    return false;
+                }
+                const expected = crypto.createHmac("sha256", secret).update(`${timestamp}.${rawBody}`).digest("hex");
+                const received = Buffer.from(fields.v1 ?? "");
+                return received.length === expected.length && crypto.timingSafeEqual(received, Buffer.from(expected));
+            }
+            ```
+
+            ```python
+            import hashlib
+            import hmac
+            import time
+
+
+            def verify_vff_signature(raw_body: bytes, header: str, secret: str, tolerance: int = {webhooks.tolerance}) -> bool:
+                fields = dict(part.strip().split("=", 1) for part in header.split(",") if "=" in part)
+                try:
+                    timestamp = int(fields["t"])
+                except (KeyError, ValueError):
+                    return False
+                if abs(time.time() - timestamp) > tolerance:
+                    return False
+                expected = hmac.new(secret.encode(), f"{timestamp}.".encode() + raw_body, hashlib.sha256).hexdigest()
+                return hmac.compare_digest(expected, fields.get("v1", ""))
+            ```
+
+            **Répondez vite par un code 2xx** (le corps de la réponse n'est pas lu), puis traitez le message.
+            VFF attend {webhooks.timeout} secondes au plus et ne suit aucune redirection. Un code 408, 429 ou 5xx,
+            un délai dépassé ou une connexion impossible donnent un nouvel essai ({webhooks.attempts} essais au
+            total, après 1 minute, 5 minutes, 30 minutes puis 2 heures) ; un autre code ou une redirection
+            sont un échec définitif. Après {webhooks.disable_after} livraisons échouées d'affilée, l'abonnement est
+            désactivé et le membre en est averti sur le site ; il le réactive depuis son profil, où figure
+            aussi le journal des dernières livraisons. L'adresse est vérifiée à la création puis avant chaque
+            envoi : les adresses IP privées, locales, de bouclage ou de métadonnées (IPv4 et IPv6, y compris
+            après résolution DNS) sont refusées.
+
             ## Versionnement
             L'API est en **version 1** (préfixe `/api/v1`, numéro de version de ce document). Dans une
             même version, les changements sont seulement additifs : nouveaux points d'accès, nouveaux

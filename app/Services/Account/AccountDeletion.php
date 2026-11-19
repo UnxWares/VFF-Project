@@ -24,7 +24,8 @@ use Illuminate\Support\Str;
  *     personne ; les décisions de relecture passent à reviewed_by NULL (clé étrangère) ;
  *   - le profil (nom, courriel, mot de passe, présentation, avatar, langue), les jetons d'API et
  *     les demandes de réinitialisation du mot de passe disparaissent avec la ligne users, comme
- *     ses notifications du site. Les sessions et les cookies « se souvenir de moi » deviennent
+ *     ses notifications du site et ses abonnements webhook (avec leur journal de livraisons).
+ *     Les sessions et les cookies « se souvenir de moi » deviennent
  *     inopérants : ils désignent un compte qui n'existe plus ;
  *   - ses signalements d'erreur (texte, adresse de contact) sont supprimés ;
  *   - l'identifiant du compte, recopié dans les propriétés des tracés bruts (source_traces,
@@ -90,6 +91,8 @@ final readonly class AccountDeletion
             $reports = $user->errorReports()->delete();
 
             $user->tokens()->delete();
+            // Abonnements webhook et leur journal (la clé étrangère en cascade le ferait aussi).
+            $user->webhookSubscriptions()->delete();
             // Notifications du site (relation polymorphe : aucune clé étrangère ne les supprime).
             $user->notifications()->delete();
             DB::table('password_reset_tokens')->where('email', $user->email)->delete();

@@ -64,6 +64,28 @@ return [
         'response_caption' => 'Headers of a response with a member token',
     ],
 
+    'webhooks' => [
+        'title' => 'Webhooks',
+        'intro' => 'Instead of polling the API at regular intervals, receive a message whenever something you follow changes. Declare a public HTTPS address in your profile and choose the events: French Railway Lines sends it a short signed JSON POST, with no personal data.',
+        'create' => 'Add a webhook from my profile',
+        'events_title' => 'Events',
+        'payload_title' => 'Message content',
+        'payload_intro' => 'data.id is the slug of the resource (the year for an era) and data.url its address in the API, to fetch the details. The current era recalculation adds as_of, lines_changed and stations_changed.',
+        'headers_title' => 'Headers',
+        'headers' => [
+            'event' => 'VFF-Event: the event type.',
+            'delivery' => 'VFF-Delivery: the event identifier, the same on every retry. Use it to ignore duplicates.',
+            'signature' => 'VFF-Signature: t=<Unix timestamp>,v1=<signature>. The signature is the hexadecimal HMAC-SHA256, keyed with your secret, of the string "<t>.<raw body>".',
+        ],
+        'verify_title' => 'Verifying the signature',
+        'verify_intro' => 'Check each message against the raw body, before decoding the JSON. Recompute the signature, compare it in constant time and reject a timestamp more than :tolerance seconds away from your clock, so that an intercepted message cannot be replayed later.',
+        'js_caption' => 'JavaScript (Node.js)',
+        'py_caption' => 'Python',
+        'delivery_title' => 'Delivery and retries',
+        'delivery_text' => 'Answer with a 2xx code within :timeout seconds, then process the message: the body of your response is not read, and redirects are never followed. A 408, 429 or 5xx code, a timeout or a failed connection lead to a retry, :attempts attempts in all, after 1 minute, 5 minutes, 30 minutes and then 2 hours. After :max failed deliveries in a row, the subscription is disabled and you are notified on the site. The log of the latest deliveries is in your profile.',
+        'security_text' => 'The address is checked when the subscription is created and again before every delivery. Private, local, loopback and metadata IP addresses are refused, in IPv4 and IPv6, including when the domain name resolves to one. Only port 443 is accepted.',
+    ],
+
     'endpoints' => [
         'reference' => 'Full reference',
         'title' => 'REST endpoints',

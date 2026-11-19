@@ -787,6 +787,13 @@ Les instructions du serveur rappellent ces obligations aux assistants.
 - **Tuiles de la signalisation et des passages à niveau** (`/api/v1/eras/{year}/signalling/tiles/...`,
   `/api/v1/level-crossings/tiles/...`) : par l'API REST seulement.
 - Pas d'invites (prompts) MCP ni de complétion d'arguments.
+- **Notifications de changement** : le serveur répond aux questions mais ne prévient de rien. Pour
+  être averti quand une contribution est publiée, quand le réseau d'aujourd'hui est recalculé ou
+  quand un import publie un accident ou un matériel, un membre déclare un **webhook** depuis son
+  profil. VFF envoie alors un court message JSON signé (HMAC-SHA256) à son adresse HTTPS, et
+  l'agent peut ensuite interroger le serveur MCP sur la ressource annoncée (`data.id` : slug de la
+  ligne, de la gare, de l'accident ou du matériel). Format, signature et exemples de vérification :
+  section `#webhooks` de la page `/api` et section « Webhooks » de `/docs/api`.
 
 ## Développement et tests
 

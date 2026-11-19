@@ -23,4 +23,6 @@ enum NotificationKind: string
     case AccountSuspended = 'account_suspended';
     /** Pour le membre : la suspension de son compte est levée avant son terme. */
     case AccountSuspensionLifted = 'account_suspension_lifted';
+    /** Pour le membre : un de ses abonnements webhook est désactivé après trop de livraisons échouées. */
+    case WebhookDisabled = 'webhook_disabled';
 }

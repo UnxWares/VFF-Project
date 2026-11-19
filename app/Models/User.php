@@ -188,6 +188,16 @@ class User extends Authenticatable implements HasLocalePreference
         return $this->hasMany(ErrorReport::class);
     }
 
+    /**
+     * Abonnements webhook du membre (section « Webhooks » du profil).
+     *
+     * @return HasMany<WebhookSubscription, $this>
+     */
+    public function webhookSubscriptions(): HasMany
+    {
+        return $this->hasMany(WebhookSubscription::class);
+    }
+
     /** Validateur ou administrateur : relit les contributions et examine les signalements. */
     public function isReviewer(): bool
     {
