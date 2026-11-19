@@ -77,6 +77,11 @@
                 { path: '/api/v1/lines/{line}/profile', key: 'profile' },
                 { path: '/api/v1/lines/{line}/materials', key: 'line_materials' },
                 { path: '/api/v1/lines/{line}/media', key: 'media' },
+                { path: '/api/v1/lines/{line}/greenways', key: 'line_greenways' },
+                {
+                    path: '/api/v1/greenways/tiles/{z}/{x}/{y}.mvt',
+                    key: 'greenways_tiles',
+                },
             ],
         },
         {

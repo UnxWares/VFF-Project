@@ -101,6 +101,7 @@ describe('toggleData et layerCount', () => {
             'maps.overlay.accidents',
             'maps.overlay.level_crossings',
             'maps.overlay.signalling',
+            'maps.overlay.greenways',
         ]);
         expect(ORM_LAYERS).toHaveLength(5);
     });
@@ -116,6 +117,7 @@ describe('activeLayers (carte intégrable et /maps)', () => {
             accidents: true,
             levelCrossings: true,
             signalling: true,
+            greenways: false,
             todayOnly: ['level-crossings', 'signalling'],
             legendOverlays: ['level-crossings', 'signalling'],
             orm: 'orm-gauge',
@@ -139,10 +141,36 @@ describe('activeLayers (carte intégrable et /maps)', () => {
             accidents: false,
             levelCrossings: false,
             signalling: false,
+            greenways: false,
             todayOnly: [],
             legendOverlays: [],
             orm: NO_ORM,
         });
+    });
+
+    it('lit ?layer=greenways et le dessine à toutes les époques, sans message « aujourd’hui seulement »', () => {
+        const asked = readLayers('?layer=greenways&layer=signalling');
+        expect(asked.data).toEqual(['signalling', 'greenways']);
+        const today = activeLayers(asked, true);
+        expect(today).toMatchObject({ greenways: true, signalling: true });
+        expect(today.legendOverlays).toEqual(['signalling', 'greenways']);
+        expect(today.todayOnly).toEqual(['signalling']);
+
+        const past = activeLayers(asked, false);
+        expect(past).toMatchObject({ greenways: true, signalling: false });
+        expect(past.legendOverlays).toEqual(['greenways']);
+        expect(past.todayOnly).toEqual(['signalling']);
+
+        const only = activeLayers(readLayers('?layer=greenways'), false);
+        expect(only.todayOnly).toEqual([]);
+        expect(
+            layerNotices(only, {
+                showingToday: false,
+                accidentsFailed: false,
+                zoom: 5,
+                minZoom: 9,
+            }),
+        ).toEqual([]);
     });
 });
 

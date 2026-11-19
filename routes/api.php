@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\GtfsController;
 use App\Http\Controllers\Api\LevelCrossingController;
 use App\Http\Controllers\Api\LineController;
 use App\Http\Controllers\Api\LineEventController;
+use App\Http\Controllers\Api\LineGreenwayController;
 use App\Http\Controllers\Api\LineHistoryController;
 use App\Http\Controllers\Api\LineMaterialController;
 use App\Http\Controllers\Api\LineMediaController;
@@ -85,6 +86,7 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/pk', [LinePkController::class, 'fromPoint'])->name('api.lines.pk');
     Route::get('/v1/lines/{line:slug}/stops', [LineStopsController::class, 'index'])->name('api.lines.stops');
     Route::get('/v1/lines/{line:slug}/signalling', [LineSignallingController::class, 'index'])->name('api.lines.signalling');
+    Route::get('/v1/lines/{line:slug}/greenways', [LineGreenwayController::class, 'index'])->name('api.lines.greenways');
     Route::get('/v1/lines/{line:slug}/profile', [LineProfileController::class, 'show'])->name('api.lines.profile');
     Route::get('/v1/lines/{line:slug}/media', [LineMediaController::class, 'index'])->name('api.lines.media');
     Route::get('/v1/route', [RouteController::class, 'route'])->name('api.route');
@@ -106,6 +108,10 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/accidents', [AccidentController::class, 'index'])->name('api.accidents.index');
     // Points des accidents localisés (calque « Accidents » de la carte /maps).
     Route::get('/v1/accidents.geojson', [AccidentController::class, 'map'])->name('api.accidents.map');
+    // Voies vertes OSM (ODbL) sur les emprises des lignes disparues ou fermées : tuiles du calque « Voies vertes » de la carte.
+    Route::get('/v1/greenways/tiles/{z}/{x}/{y}.mvt', [LineGreenwayController::class, 'tile'])
+        ->where(['z' => '[0-9]{1,2}', 'x' => '[0-9]{1,7}', 'y' => '[0-9]{1,7}'])
+        ->name('api.greenways.tiles');
     // Passages à niveau (SNCF Réseau, ODbL) : liste, PN d'une ligne, tuiles du calque de la carte.
     Route::get('/v1/level-crossings', [LevelCrossingController::class, 'index'])->name('api.level-crossings.index');
     Route::get('/v1/level-crossings/tiles/{z}/{x}/{y}.mvt', [LevelCrossingController::class, 'tile'])

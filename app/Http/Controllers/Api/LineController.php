@@ -217,7 +217,8 @@ class LineController extends Controller
      * pour la fiche, avec lien, date de lecture et champs fournis. **Liens**
      * (`links`) : la page du site et les points d'accès de la ligne que la
      * fiche ne reprend pas en entier (`geojson` tracé, `profile` profil en
-     * long, `level_crossings` passages à niveau, `accidents`, `materials`,
+     * long, `level_crossings` passages à niveau, `greenways` voies vertes sur
+     * l'ancienne emprise, `accidents`, `materials`,
      * `signalling`, `stops`, `media`, `events`, `history`, `segments`).
      */
     #[PathParameter('line', 'Identifiant (slug) de la ligne, tel que renvoyé par l\'annuaire ou la recherche. Les lignes du réseau ferré national sont nommées `rfn-` suivi de leur code à 6 chiffres.', example: 'rfn-447000')]

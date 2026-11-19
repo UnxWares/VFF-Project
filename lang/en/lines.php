@@ -542,6 +542,7 @@ return [
         'tech' => 'Technical',
         'profile' => 'Gradient profile',
         'level-crossings' => 'Level crossings',
+        'greenways' => 'Greenway',
         'chronicle' => 'Chronology',
         'materials' => 'Rolling stock',
         'accidents' => 'Accidents',

@@ -2,7 +2,7 @@
 // Logique pure, testée par tests/js/mapLayers.test.js.
 //
 // Deux sortes de calques, qui se superposent :
-// - les calques de données de VFF (accidents, passages à niveau, signalisation), cochés librement ;
+// - les calques de données de VFF (accidents, passages à niveau, signalisation, voies vertes), cochés librement ;
 // - un fond OpenRailwayMap (tuiles d'images) au plus : deux fonds d'images empilés se masqueraient.
 //
 // Adresse : un paramètre `layer` par calque, dans l'ordre de la liste ci-dessous
@@ -11,9 +11,13 @@
 // est aussi lue.
 
 /** Calques de données, de haut en bas sur la carte (les points au-dessus des lignes). */
-export const DATA_LAYERS = ['accidents', 'level-crossings', 'signalling'];
+export const DATA_LAYERS = ['accidents', 'level-crossings', 'signalling', 'greenways'];
 
-/** Calques connus seulement pour le réseau d'aujourd'hui (données actuelles de SNCF Réseau). */
+/**
+ * Calques connus seulement pour le réseau d'aujourd'hui (données actuelles de SNCF Réseau). Les
+ * voies vertes n'en font pas partie : elles montrent l'état actuel d'anciennes emprises, et se
+ * superposent à toutes les époques (le réseau de l'époque est dessous).
+ */
 export const TODAY_ONLY_LAYERS = ['level-crossings', 'signalling'];
 
 /** Fonds OpenRailwayMap (un seul à la fois). */
@@ -79,18 +83,23 @@ export function layerCount({ data, orm }) {
 /**
  * Calques réellement dessinés pour la carte affichée. Les passages à niveau et la signalisation ne
  * sont connus que pour le réseau d'aujourd'hui : sur une autre époque ils ne sont pas dessinés et
- * `todayOnly` garde ceux qui ont été demandés, pour le message et la légende.
+ * `todayOnly` garde ceux qui ont été demandés, pour le message. `legendOverlays` : calques à
+ * décrire dans la légende (les calques d'aujourd'hui seulement ce jour-là, les voies vertes toujours).
  * @param {{ data: string[], orm: string }} layers calques demandés (readLayers)
  * @param {boolean} showingToday la carte montre le réseau d'aujourd'hui
  */
 export function activeLayers({ data, orm }, showingToday) {
     const todayOnly = orderedData(data).filter((key) => TODAY_ONLY_LAYERS.includes(key));
+    const drawnToday = showingToday ? todayOnly : [];
     return {
         accidents: data.includes('accidents'),
         levelCrossings: showingToday && data.includes('level-crossings'),
         signalling: showingToday && data.includes('signalling'),
+        greenways: data.includes('greenways'),
         todayOnly,
-        legendOverlays: showingToday ? todayOnly : [],
+        legendOverlays: DATA_LAYERS.filter(
+            (key) => drawnToday.includes(key) || (key === 'greenways' && data.includes(key)),
+        ),
         orm,
     };
 }

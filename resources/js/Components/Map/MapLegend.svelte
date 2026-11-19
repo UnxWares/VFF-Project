@@ -18,6 +18,7 @@
     import { ACCIDENT_COLOR, ACCIDENT_HALO } from '$lib/accidentMap.js';
     import { LEVEL_CROSSING_GROUPS } from '$lib/levelCrossingMap.js';
     import { SIGNALLING_FAMILIES } from '$lib/signallingMap.js';
+    import { GREENWAY_COLOR } from '$lib/greenwayMap.js';
     import { OVERLAY_HALO } from '$lib/overlayPalette.js';
 
     /**
@@ -40,8 +41,8 @@
      *   accidents   : calque « Accidents » affiché ({ state: 'loading'|'error'|'ready', count, from,
      *                 to } : années montrées, cf. accidentYears) ou null ; ses symboles, la période,
      *                 le nombre d'accidents localisés et le lien vers la liste ouvrent la légende
-     *   overlays    : calques du réseau d'aujourd'hui affichés, 'level-crossings' et/ou
-     *                 'signalling' ; leurs teintes et leurs limites suivent les accidents, dans
+     *   overlays    : calques affichés, 'level-crossings', 'signalling' et/ou 'greenways' ;
+     *                 leurs teintes et leurs limites suivent les accidents, dans
      *                 l'ordre d'empilement de la carte (points au-dessus des lignes)
      */
     let {
@@ -235,6 +236,9 @@
         {#if overlays.includes('signalling')}
             <div class="overlay-block">{@render signallingBody()}</div>
         {/if}
+        {#if overlays.includes('greenways')}
+            <div class="overlay-block">{@render greenwaysBody()}</div>
+        {/if}
         {#if view === 'compare'}
             <ul class="view-rows">
                 {#each compareRows as r (r.key)}
@@ -355,6 +359,25 @@
     <p class="legend-hint">
         {$i18n.t('maps.signalling.placement_note')}
         {$i18n.t('maps.level_crossings.source')}
+    </p>
+{/snippet}
+
+<!-- Calque « Voies vertes » : trait plein rose à liseré blanc, comme la couche vff-greenways-line. -->
+{#snippet greenwaysBody()}
+    <p class="legend-group overlay-group" id={`${uid}-greenways`}>
+        {$i18n.t('maps.greenways.title')}
+    </p>
+    <ul aria-labelledby={`${uid}-greenways`}>
+        <li>
+            <span class="legend-row">
+                <i class="swatch greenway" style:background={GREENWAY_COLOR} aria-hidden="true"></i>
+                <span>{$i18n.t('maps.greenways.entry')}</span>
+            </span>
+        </li>
+    </ul>
+    <p class="legend-hint">
+        {$i18n.t('maps.greenways.note')}
+        {$i18n.t('maps.greenways.source')}
     </p>
 {/snippet}
 
@@ -678,6 +701,12 @@
         margin: 0 6px;
         border: 1.5px solid;
         border-radius: 50%;
+    }
+    /* Voie verte : trait plein rose cerclé de blanc (comme sur la carte), jamais en tirets. */
+    .swatch.greenway {
+        height: 4px;
+        border-radius: 2px;
+        box-shadow: 0 0 0 1.5px #fff;
     }
     .swatch.accident-area {
         position: relative;

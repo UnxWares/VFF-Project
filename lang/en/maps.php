@@ -34,6 +34,7 @@ return [
         'accidents' => 'Accidents',
         'level_crossings' => 'Level crossings',
         'signalling' => 'Signalling',
+        'greenways' => 'Greenways',
     ],
 
     // "Layers" button of the toolbar: VFF layers to tick, at most one OpenRailwayMap background.
@@ -229,7 +230,7 @@ return [
         'route_term' => 'Journey',
         'route_text' => 'Enter two stations and a year: the map draws the journey on the network in service at that time and lists the lines used. With “Compare with another period”, the same journey is drawn for a second year, dashed on a blue edge for the earlier one.',
         'layers_term' => 'Overlays',
-        'layers_text' => 'The Layers button, above the map, shows several overlays at once. An OpenRailwayMap background (one at a time) adds today\'s infrastructure: signals, speeds, electrification. The clock button, at the top right of the map, shows old IGN maps. The Accidents overlay shows the accidents that happened up to the period displayed; a pale circle means only the municipality is known. The Level crossings overlay shows the crossings published by SNCF Réseau, from the scale of a département. The Signalling overlay colours today’s lines by block system.',
+        'layers_text' => 'The Layers button, above the map, shows several overlays at once. An OpenRailwayMap background (one at a time) adds today\'s infrastructure: signals, speeds, electrification. The clock button, at the top right of the map, shows old IGN maps. The Accidents overlay shows the accidents that happened up to the period displayed; a pale circle means only the municipality is known. The Level crossings overlay shows the crossings published by SNCF Réseau, from the scale of a département. The Signalling overlay colours today’s lines by block system. The Greenways overlay draws OpenStreetMap greenways on the trackbed of closed or dismantled lines; it can be added to any period.',
         'views_term' => 'Comparing eras',
         'views_text' => 'The "View" choice above the map compares two decades (lines opened, closed or lifted in between) or stacks every era to show when each line left service. The page address keeps this choice, so you can share it.',
     ],
@@ -311,6 +312,19 @@ return [
         'loading' => 'Loading accidents…',
         'error' => 'The accidents could not be loaded. Untick the layer and tick it again to retry.',
         'view_sheet' => 'View the accident page',
+    ],
+
+    // Calque « Voies vertes » (OpenStreetMap, sur d'anciennes emprises) : légende, bulle.
+    'greenways' => [
+        'title' => 'Greenways',
+        'entry' => 'Greenway on a former line',
+        'note' => 'Greenways and cycle paths that follow the trackbed of a closed or dismantled line. Those that only run beside a line in service are not drawn.',
+        'source' => 'Source: © OpenStreetMap contributors (ODbL)',
+        'line' => 'Line',
+        'length' => 'On the former trackbed',
+        'opened' => 'Opened',
+        'view_osm' => 'View on OpenStreetMap',
+        'fallback_title' => 'Greenway',
     ],
 
     // Calque « Passages à niveau » (SNCF Réseau) : légende, bulle.

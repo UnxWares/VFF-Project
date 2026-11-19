@@ -124,6 +124,8 @@ return [
             'level_crossings' => 'Bahnübergänge des nationalen Schienennetzes laut SNCF Réseau: Klasse, Streckenkilometer, Gemeinde; filterbar nach Strecke, Art, Gemeinde oder Ausschnitt.',
             'line_level_crossings' => 'Bahnübergänge einer Strecke in der Reihenfolge der Streckenkilometer, mit ihrer Anzahl je Art.',
             'level_crossings_tiles' => 'Vektorkachel (MVT) der Bahnübergänge, ab Zoomstufe 9.',
+            'line_greenways' => 'OpenStreetMap-Radwege auf der früheren Trasse einer Strecke, mit gemeinsamer Länge, OSM-Link, Herkunft und ODbL-Lizenz.',
+            'greenways_tiles' => 'Vektorkachel (MVT) der Radwege auf früheren Trassen, ab Zoomstufe 4.',
             'signalling_tiles' => 'Vektorkachel (MVT) der Blockabschnitte auf dem Streckenverlauf, für das heutige Netz.',
             'stations' => 'Verzeichnis der Bahnhöfe, Haltepunkte und Haltestellen, bestehender und verschwundener.',
             'station' => 'Vollständiger Eintrag eines Bahnhofs: Daten, Status zu jeder Epoche, bediente Strecken und Quellen.',

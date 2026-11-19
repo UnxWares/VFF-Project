@@ -454,6 +454,19 @@ type Line {
   level_crossing_summary: [LevelCrossingCount!]!
 
   """
+  Voies vertes OpenStreetMap installées sur l'emprise de la ligne (ligne disparue ou fermée), la
+  plus longue sur l'emprise d'abord. Le rattachement est mesuré : un morceau de voie verte compte
+  quand il est à 8 m au plus de l'axe de la ligne et qu'aucune voie n'est en service ou en place à
+  moins de 30 m ; une voie verte qui longe seulement une ligne en service n'est jamais rattachée.
+  Liste vide si la ligne n'en a pas. Données © contributeurs OpenStreetMap (ODbL 1.0) : reprenez la
+  mention de `LineGreenway.attribution`.
+  """
+  greenways: [LineGreenway!]!
+
+  "Longueur totale, en mètres, des voies vertes qui suivent l'ancienne emprise de la ligne (0 s'il n'y en a pas)."
+  greenway_length_m: Int!
+
+  """
   Profil en long de la ligne (altitude le long du tracé, gares placées dessus), comme
   `GET /api/v1/lines/{line}/profile`. Altitudes de l'IGN (BD TOPO, à défaut RGE ALTI ; Licence
   Ouverte 2.0). Nul tant que le profil de la ligne n'est pas calculé.
@@ -1931,6 +1944,67 @@ type LineProfileStation {
 
   "Point kilométrique officiel de la gare sur la ligne, en mètres ; nul s'il est inconnu."
   pk_m: Int
+}
+
+"""
+Voie verte nommée sur l'ancienne emprise d'une ligne : les ways OpenStreetMap de la ligne qui portent le
+même nom (celui de leur itinéraire cyclable OSM s'il existe, sinon celui du way ; les ways sans nom forment
+un groupe au nom nul). Données © contributeurs OpenStreetMap, ODbL 1.0.
+"""
+type LineGreenway {
+  "Nom de la voie verte (itinéraire cyclable OSM, ou nom du way). Nul pour les ways sans nom."
+  name: String
+
+  "Longueur en mètres qui suit l'ancienne emprise de la ligne, tous les ways du groupe ensemble : ce n'est pas la longueur de la voie verte entière."
+  shared_length_m: Int!
+
+  "Nombre de ways OSM du groupe."
+  way_count: Int!
+
+  "Année d'ouverture si OpenStreetMap la donne (`start_date` du way ou de l'itinéraire, 1970 ou après), sinon nulle : elle n'est jamais devinée."
+  opened_year: Int
+
+  "Identifiant de l'itinéraire cyclable OSM (relation `route=bicycle` ou `route=mtb`), nul si les ways n'en sont membres d'aucun."
+  osm_relation_id: Int
+
+  "Lien vers l'itinéraire OSM (relation) s'il existe, sinon vers le way qui suit le plus longtemps l'emprise."
+  osm_url: String!
+
+  "Ways OSM de la voie verte sur cette ligne, le plus long sur l'emprise d'abord."
+  ways: [LineGreenwayWay!]!
+
+  "Mention à reproduire en réutilisant ces données : « © contributeurs OpenStreetMap, ODbL 1.0 » avec le lien de la licence."
+  attribution: String!
+
+  "Fournisseur et licence de la donnée (OpenStreetMap, ODbL)."
+  provenance: Provenance!
+}
+
+"Un way OpenStreetMap d'une voie verte, avec sa part sur l'ancienne emprise de la ligne."
+type LineGreenwayWay {
+  "Identifiant du way OSM (https://www.openstreetmap.org/way/<id>), rendu en chaîne : les identifiants OSM approchent la limite d'un entier GraphQL."
+  osm_way_id: ID!
+
+  "Lien vers le way sur openstreetmap.org."
+  osm_url: String!
+
+  "Nom du way, nul s'il n'en a pas."
+  name: String
+
+  "Type de chemin OSM : `cycleway`, `path`, `footway`, `track`, `bridleway` ou `pedestrian`."
+  highway: String
+
+  "Longueur du way entier, en mètres."
+  way_length_m: Int!
+
+  "Longueur du way qui suit l'ancienne emprise de la ligne, en mètres."
+  shared_length_m: Int!
+
+  "Part du way qui suit l'ancienne emprise, en pourcent (50 à 100 : un way moins présent n'est pas rattaché)."
+  shared_percent: Int!
+
+  "Année d'ouverture donnée par OpenStreetMap (1970 ou après), nulle sinon."
+  opened_year: Int
 }
 
 "Nombre de passages à niveau d'un groupe."

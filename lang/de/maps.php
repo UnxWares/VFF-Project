@@ -34,6 +34,7 @@ return [
         'accidents' => 'Unfälle',
         'level_crossings' => 'Bahnübergänge',
         'signalling' => 'Streckenblock',
+        'greenways' => 'Bahntrassenradwege',
     ],
 
     // Schaltfläche „Ebenen“ der Werkzeugleiste: VFF-Ebenen zum Ankreuzen, höchstens ein Hintergrund von OpenRailwayMap.
@@ -229,7 +230,7 @@ return [
         'route_term' => 'Verbindung',
         'route_text' => 'Geben Sie zwei Bahnhöfe und ein Jahr an: Die Karte zeichnet den Weg auf dem damals betriebenen Netz und listet die befahrenen Strecken auf. Mit „Mit einer anderen Epoche vergleichen“ wird dieselbe Fahrt für ein zweites Jahr gezeichnet, die ältere gestrichelt mit blauem Rand.',
         'layers_term' => 'Ebenen',
-        'layers_text' => 'Die Schaltfläche Ebenen über der Karte zeigt mehrere Ebenen zugleich. Ein Hintergrund von OpenRailwayMap (jeweils einer) blendet die heutige Infrastruktur ein: Signale, Geschwindigkeiten, Elektrifizierung. Die Schaltfläche mit der Uhr oben rechts auf der Karte zeigt alte Karten des IGN. Die Ebene Unfälle zeigt die Unfälle bis zur angezeigten Epoche; ein blasser Kreis bedeutet, dass nur die Gemeinde bekannt ist. Die Ebene Bahnübergänge zeigt die von SNCF Réseau veröffentlichten Übergänge, ab dem Maßstab eines Départements. Die Ebene Streckenblock färbt die heutigen Strecken nach ihrem Blocksystem.',
+        'layers_text' => 'Die Schaltfläche Ebenen über der Karte zeigt mehrere Ebenen zugleich. Ein Hintergrund von OpenRailwayMap (jeweils einer) blendet die heutige Infrastruktur ein: Signale, Geschwindigkeiten, Elektrifizierung. Die Schaltfläche mit der Uhr oben rechts auf der Karte zeigt alte Karten des IGN. Die Ebene Unfälle zeigt die Unfälle bis zur angezeigten Epoche; ein blasser Kreis bedeutet, dass nur die Gemeinde bekannt ist. Die Ebene Bahnübergänge zeigt die von SNCF Réseau veröffentlichten Übergänge, ab dem Maßstab eines Départements. Die Ebene Streckenblock färbt die heutigen Strecken nach ihrem Blocksystem. Die Ebene Bahntrassenradwege zeichnet Radwege von OpenStreetMap auf der Trasse stillgelegter oder abgebauter Strecken; sie lässt sich über jede Epoche legen.',
         'views_term' => 'Epochen vergleichen',
         'views_text' => 'Die Auswahl „Ansicht“ über der Karte vergleicht zwei Jahrzehnte (dazwischen eröffnete, stillgelegte oder abgebaute Strecken) oder legt alle Epochen übereinander, damit Sie sehen, wann jede Strecke den Betrieb verlor. Die Adresse der Seite behält diese Auswahl: Sie können sie teilen.',
     ],
@@ -311,6 +312,19 @@ return [
         'loading' => 'Unfälle werden geladen…',
         'error' => 'Die Unfälle konnten nicht geladen werden. Entfernen Sie das Häkchen und setzen Sie es erneut, um es noch einmal zu versuchen.',
         'view_sheet' => 'Zur Seite des Unfalls',
+    ],
+
+    // Calque « Voies vertes » (OpenStreetMap, sur d'anciennes emprises) : légende, bulle.
+    'greenways' => [
+        'title' => 'Bahntrassenradwege',
+        'entry' => 'Radweg auf einer ehemaligen Bahntrasse',
+        'note' => 'Radwege, die der Trasse einer stillgelegten oder abgebauten Strecke folgen. Wege, die nur neben einer Strecke in Betrieb verlaufen, werden nicht gezeichnet.',
+        'source' => 'Quelle: © OpenStreetMap-Mitwirkende (ODbL)',
+        'line' => 'Strecke',
+        'length' => 'Auf der früheren Trasse',
+        'opened' => 'Eröffnung',
+        'view_osm' => 'Auf OpenStreetMap ansehen',
+        'fallback_title' => 'Radweg',
     ],
 
     // Calque « Passages à niveau » (SNCF Réseau) : légende, bulle.

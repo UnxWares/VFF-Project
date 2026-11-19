@@ -125,6 +125,8 @@ return [
             'level_crossings' => 'Passages à niveau du réseau ferré national publiés par SNCF Réseau : classe, point kilométrique, commune, filtrables par ligne, type, commune ou emprise.',
             'line_level_crossings' => 'Passages à niveau d’une ligne dans l’ordre des points kilométriques, avec leur nombre par type.',
             'level_crossings_tiles' => 'Tuile vectorielle (MVT) des passages à niveau, à partir du zoom 9.',
+            'line_greenways' => 'Voies vertes d’OpenStreetMap sur l’ancienne emprise d’une ligne, avec la longueur commune, le lien OSM, la provenance et la licence ODbL.',
+            'greenways_tiles' => 'Tuile vectorielle (MVT) des voies vertes sur d’anciennes emprises, à partir du zoom 4.',
             'signalling_tiles' => 'Tuile vectorielle (MVT) des tranches de signalisation placées sur le tracé, pour le réseau d’aujourd’hui.',
             'stations' => 'Annuaire des gares, haltes et points d’arrêt, actuels et disparus.',
             'station' => 'Fiche complète d’une gare : dates, statut à chaque ère, lignes desservies et sources.',
