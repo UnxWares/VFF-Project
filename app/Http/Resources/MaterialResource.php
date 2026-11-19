@@ -43,8 +43,10 @@ class MaterialResource extends JsonResource
             'name' => $this->name,
             /**
              * Catégorie : `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`
-             * (rame automotrice électrique ou bimode), `autorail` (rame thermique), `rame_tgv` (grande vitesse),
-             * `voiture` (voiture voyageurs), `wagon` (marchandises), `tramway`, `engin_service` (engin de
+             * (rame automotrice électrique), `bimode` (engin qui circule sous caténaire et à l'énergie thermique :
+             * Régiolis, AGC bimodes ; rangé là seulement quand Wikidata ou l'infobox de l'article Wikipédia le dit,
+             * sinon l'engin reste `automotrice` ou `autorail`), `autorail` (rame thermique), `rame_tgv` (grande
+             * vitesse), `voiture` (voiture voyageurs), `wagon` (marchandises), `tramway`, `engin_service` (engin de
              * l'infrastructure : auscultation, chasse-neige, draisine).
              *
              * @example locomotive_electrique
@@ -98,11 +100,33 @@ class MaterialResource extends JsonResource
             'in_service_from' => $this->in_service_from,
             /**
              * Année de retrait du service (la plus récente déclarée). Nulle si la série circule encore OU si la
-             * date de retrait n'est pas renseignée : ne concluez pas qu'elle est en service.
+             * date de retrait n'est pas renseignée : ne concluez pas qu'elle est en service (voir `service`
+             * pour l'état d'utilisation, quand une source le dit).
              *
              * @example null
              */
             'in_service_to' => $this->in_service_to,
+            /**
+             * État d'utilisation, seulement quand une source le dit : `status` (`in_service` ou `withdrawn`, nul si
+             * aucune source ne le dit : une date de retrait absente ne prouve pas qu'une série circule),
+             * `units_in_service` (effectif cité par la source, nul si elle n'en donne pas), `as_of` (date à laquelle
+             * la source donne cet état : `AAAA-MM-JJ`, `AAAA-MM` ou `AAAA` selon sa précision, nulle si elle n'en
+             * donne pas), `checked_at` (date à laquelle VFF a lu la source, `AAAA-MM-JJ`), `source` (`wikidata`
+             * propriété P5817, ou `wikipedia` effectif de l'infobox) et `url` (page de la source : élément Wikidata
+             * ou version citée de l'article Wikipédia).
+             *
+             * @var array{status: string|null, units_in_service: int|null, as_of: string|null, checked_at: string|null, source: string|null, url: string|null}
+             */
+            'service' => self::service($this->resource),
+            /**
+             * Périmètre de la fiche : `france` (série rattachée à la France dans Wikidata : exploitant français ou
+             * pays France) ou `attested` (série non rattachée, par exemple un ICE, un AVE ou une locomotive belge,
+             * ajoutée parce qu'une source atteste sa circulation sur une ligne française : voir `provenance` du champ
+             * `scope` dans `field_sources`, et les liens de ligne).
+             *
+             * @example france
+             */
+            'scope' => $this->scope,
             /**
              * Nombre d'engins construits, s'il est univoque dans la source. Nul sinon.
              *
@@ -230,6 +254,25 @@ class MaterialResource extends JsonResource
                 'api' => route('api.materials.show', $this->slug),
                 'page' => route('materials.show', $this->slug),
             ],
+        ];
+    }
+
+    /**
+     * Bloc `service` : état d'utilisation et sa source (tout nul quand aucune source ne le dit).
+     *
+     * @return array{status: string|null, units_in_service: int|null, as_of: string|null, checked_at: string|null, source: string|null, url: string|null}
+     */
+    private static function service(Material $material): array
+    {
+        $entry = $material->service_status !== null ? ($material->provenance['service_status'] ?? null) : null;
+
+        return [
+            'status' => $material->service_status,
+            'units_in_service' => $entry['units'] ?? null,
+            'as_of' => $entry['as_of'] ?? null,
+            'checked_at' => $material->service_status !== null ? $material->service_status_checked_at : null,
+            'source' => $entry['source'] ?? null,
+            'url' => $entry !== null ? MaterialDetailResource::sourceUrl($entry['source'], $entry['ref'] ?? null, $entry['revid'] ?? null) : null,
         ];
     }
 

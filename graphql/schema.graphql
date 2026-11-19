@@ -696,6 +696,12 @@ input MaterialFilter {
     "Écartement en millimètres (500 à 2000), ex. `1000` pour la voie métrique."
     gauge_mm: Int
 
+    "État d'utilisation déclaré par une source : `in_service` (en service) ou `withdrawn` (retirée). Une série dont aucune source ne dit l'état n'est dans aucun des deux cas."
+    service_status: String
+
+    "Périmètre : `france` (série rattachée à la France dans Wikidata) ou `attested` (série non rattachée, par exemple un ICE ou une locomotive belge, dont une source atteste la circulation sur une ligne française)."
+    scope: String
+
     "Vrai : séries illustrées seulement ; faux : séries sans image."
     has_image: Boolean
 
@@ -828,8 +834,10 @@ type Material {
 
     """
     Catégorie : `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`,
-    `automotrice` (rame automotrice électrique ou bimode), `autorail` (rame thermique),
-    `rame_tgv` (grande vitesse), `voiture` (voiture voyageurs), `wagon` (marchandises),
+    `automotrice` (rame automotrice électrique), `bimode` (engin qui circule sous caténaire et à
+    l'énergie thermique : Régiolis, AGC bimodes ; rangé là seulement quand Wikidata ou l'infobox de
+    l'article Wikipédia le dit, sinon l'engin reste `automotrice` ou `autorail`), `autorail` (rame
+    thermique), `rame_tgv` (grande vitesse), `voiture` (voiture voyageurs), `wagon` (marchandises),
     `tramway`, `engin_service` (engin de l'infrastructure : auscultation, chasse-neige, draisine).
     """
     type: String! @field(resolver: "App\\GraphQL\\Resolvers\\EnumValue")
@@ -857,9 +865,20 @@ type Material {
 
     """
     Année de retrait du service (la plus récente déclarée). Nulle si la série circule encore OU si
-    la date de retrait n'est pas renseignée : ne concluez pas qu'elle est en service.
+    la date de retrait n'est pas renseignée : ne concluez pas qu'elle est en service (voir `service`
+    pour l'état d'utilisation, quand une source le dit).
     """
     in_service_to: Int
+
+    "État d'utilisation, seulement quand une source le dit (Wikidata P5817, effectif de l'infobox Wikipédia) ; tous les champs sont nuls sinon."
+    service: MaterialService! @field(resolver: "App\\GraphQL\\Resolvers\\MaterialField")
+
+    """
+    Périmètre de la fiche : `france` (série rattachée à la France dans Wikidata) ou `attested` (série
+    non rattachée, par exemple un ICE, un AVE ou une locomotive belge, ajoutée parce qu'une source atteste
+    sa circulation sur une ligne française : voir `field_sources` (champ `scope`) et `line_links`).
+    """
+    scope: String!
 
     "Nombre d'engins construits, s'il est univoque dans la source."
     units_built: Int
@@ -932,6 +951,30 @@ type Material {
 
     "Lignes parcourues, avec la preuve de chaque lien (source, citation, fiabilité)."
     line_links: [LineMaterialLink!]! @hasMany(relation: "lineLinks")
+}
+
+"""
+État d'utilisation d'une série, tel que le dit une source. Jamais déduit : une date de retrait absente
+ne prouve pas qu'une série circule encore.
+"""
+type MaterialService {
+    "`in_service` (en service) ou `withdrawn` (retirée) ; nul si aucune source ne le dit."
+    status: String
+
+    "Effectif cité par la source (nombre d'engins en service à la date `as_of`), nul si elle n'en donne pas."
+    units_in_service: Int
+
+    "Date à laquelle la source donne cet état : `AAAA-MM-JJ`, `AAAA-MM` ou `AAAA` selon sa précision. Nulle si elle n'en donne pas."
+    as_of: String
+
+    "Date à laquelle VFF a lu la source (`AAAA-MM-JJ`)."
+    checked_at: String
+
+    "Source : `wikidata` (propriété P5817) ou `wikipedia` (effectif de l'infobox de l'article)."
+    source: String
+
+    "Page de la source : élément Wikidata ou version citée de l'article Wikipédia."
+    url: String
 }
 
 "Un constructeur d'une série de matériel (Wikidata, propriété P176)."
@@ -1041,10 +1084,10 @@ type MaterialFieldSource {
     "Nom du champ (ex. `in_service_from`, `max_speed_kmh`, `image`)."
     field: String!
 
-    "Source : `wikidata`, `commons` (image) ou `wikipedia` (catégorie de l'article, quand Wikidata ne range pas la série)."
+    "Source : `wikidata`, `commons` (image) ou `wikipedia` (catégorie ou infobox de l'article : catégorie « bimode », effectif en service ; ou circulation en France d'une série non rattachée)."
     source: String!
 
-    "Référence précise : élément et propriété Wikidata (ex. `Q746572#P729`), fichier Commons, catégorie Wikipédia."
+    "Référence précise : élément et propriété Wikidata (ex. `Q746572#P729`), fichier Commons, catégorie Wikipédia, ou article et paramètre de l'infobox (ex. `Régiolis#infobox:Type`)."
     reference: String
 
     "Page de la source."
@@ -1908,7 +1951,7 @@ type Query {
     `GET /api/v1/materials` (argument `filter`) ; `type` et `builder` restent acceptés directement.
     """
     materials(
-        "Catégorie : `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`, `autorail`, `rame_tgv`, `voiture`, `wagon`, `tramway` ou `engin_service`."
+        "Catégorie : `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`, `bimode`, `autorail`, `rame_tgv`, `voiture`, `wagon`, `tramway` ou `engin_service`."
         type: String @eq
         "Constructeur, joker `%` accepté, casse ignorée (ex. `%alstom%`)."
         builder: String @where(operator: "ilike", key: "builder")

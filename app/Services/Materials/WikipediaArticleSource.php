@@ -48,6 +48,30 @@ class WikipediaArticleSource
     }
 
     /**
+     * Infobox « matériel ferroviaire » de chaque article (introduction seule), avec la révision lue.
+     *
+     * @param  list<string>  $titles
+     * @return array<string, array{title: string, revid: int, parameters: array<string, string>, read_on: string}|null> par titre demandé ; null si l'article n'existe pas
+     */
+    public function infoboxes(string $cacheName, array $titles, bool $refresh = false): array
+    {
+        return $this->cache->fill($cacheName, $titles, self::BATCH, function (array $chunk): array {
+            $this->pause();
+            $out = [];
+            foreach ($this->client->fetchPages($chunk, leadOnly: true) as $requested => $page) {
+                $out[$requested] = [
+                    'title' => $page['title'],
+                    'revid' => $page['revid'],
+                    'parameters' => WikipediaMaterialInfobox::parameters($page['content']),
+                    'read_on' => now()->toDateString(),
+                ];
+            }
+
+            return $out;
+        }, $refresh);
+    }
+
+    /**
      * Titres qui redirigent vers chaque article (espace principal).
      *
      * @param  list<string>  $titles  titres finaux
@@ -102,6 +126,41 @@ class WikipediaArticleSource
                 }
                 $continue = $json['continue'] ?? [];
             } while ($continue !== []);
+
+            return $out;
+        }, $refresh);
+    }
+
+    /**
+     * Élément Wikidata de chaque article (redirections et normalisation suivies).
+     *
+     * @param  list<string>  $titles
+     * @return array<string, string|null> identifiant Q… par titre demandé ; null si l'article n'existe pas ou n'a pas d'élément
+     */
+    public function wikidataIds(string $cacheName, array $titles, bool $refresh = false): array
+    {
+        return $this->cache->fill($cacheName, $titles, self::BATCH, function (array $chunk): array {
+            $this->pause();
+            $json = $this->client->api([
+                'action' => 'query', 'prop' => 'pageprops', 'ppprop' => 'wikibase_item',
+                'titles' => implode('|', $chunk), 'redirects' => 1,
+            ]);
+            $hops = [];
+            foreach (['normalized', 'redirects'] as $kind) {
+                foreach ($json['query'][$kind] ?? [] as $hop) {
+                    $hops[$kind][(string) $hop['from']] = (string) $hop['to'];
+                }
+            }
+            $items = [];
+            foreach ($json['query']['pages'] ?? [] as $page) {
+                $items[(string) ($page['title'] ?? '')] = $page['pageprops']['wikibase_item'] ?? null;
+            }
+            $out = [];
+            foreach ($chunk as $requested) {
+                $title = $hops['normalized'][$requested] ?? $requested;
+                $title = $hops['redirects'][$title] ?? $title;
+                $out[$requested] = $items[$title] ?? null;
+            }
 
             return $out;
         }, $refresh);

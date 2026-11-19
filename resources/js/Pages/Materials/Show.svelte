@@ -13,6 +13,7 @@
         provenanceOf,
         servicePeriod,
         servicePeriodText,
+        serviceState,
         splitArrows,
     } from '$lib/materialFacts.js';
 
@@ -29,6 +30,8 @@
     const CC_BY_SA = 'https://creativecommons.org/licenses/by-sa/4.0/';
 
     const period = $derived(servicePeriod(material.in_service_from, material.in_service_to));
+    // État d'utilisation : seulement si une source le dit (Wikidata, effectif d'une infobox Wikipédia).
+    const state = $derived(serviceState(material.service, t, lang));
     const image = $derived(material.image ?? null);
     const prov = $derived(provenanceOf(material.field_sources));
     const wikipedia = $derived(
@@ -49,6 +52,7 @@
                         : String(period.from ?? period.to),
                 label: t(`materials.stat.${period.kind === 'range' ? 'period' : period.kind}`),
             },
+            state && { value: state.label, label: t('materials.stat.status') },
             material.units_built != null && {
                 value: num(material.units_built),
                 label: t('materials.stat.units'),
@@ -106,6 +110,11 @@
                 id: 'in_service_to',
                 field: 'in_service_to',
                 items: material.in_service_to ? [{ text: String(material.in_service_to) }] : [],
+            },
+            {
+                id: 'service',
+                field: 'service_status',
+                items: state ? [{ text: state.label, meta: state.detail }] : [],
             },
             {
                 id: 'units_built',
@@ -317,6 +326,10 @@
                         <p class="description" lang="fr">{upperFirst(material.description)}</p>
                     {/if}
 
+                    {#if material.scope === 'attested'}
+                        <p class="scope-note">{t('materials.scope.attested')}</p>
+                    {/if}
+
                     {#if wikipedia.length || material.commons_category_url}
                         <h2 class="sub">{t('materials.about.links')}</h2>
                         <ul class="links">
@@ -473,6 +486,14 @@
         font-size: var(--vff-fs-body);
         line-height: var(--vff-lh-body);
         color: var(--vff-text);
+    }
+    .scope-note {
+        max-width: var(--vff-measure);
+        margin: 0;
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-body);
+        line-height: var(--vff-lh-body);
+        color: var(--vff-text-muted);
     }
     .sub {
         margin: var(--vff-space-3) 0 0;

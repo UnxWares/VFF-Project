@@ -30,6 +30,12 @@ final class MaterialQuery
         '-lines_count' => ['lines_count', 'desc'],
     ];
 
+    /** États d'utilisation déclarés par une source (Wikidata P5817, effectif de l'infobox Wikipédia). */
+    public const SERVICE_STATUSES = ['in_service', 'withdrawn'];
+
+    /** Périmètre : `france` (rattachée à la France dans Wikidata), `attested` (circulation en France attestée par une ligne citée). */
+    public const SCOPES = ['france', 'attested'];
+
     /** @return array<string, list<mixed>> */
     public static function rules(): array
     {
@@ -43,6 +49,8 @@ final class MaterialQuery
             'from_year' => ['nullable', 'integer', 'between:1800,2100'],
             'to_year' => ['nullable', 'integer', 'between:1800,2100', RangeRule::atLeast('from_year')],
             'gauge_mm' => ['nullable', 'integer', 'between:500,2000'],
+            'service_status' => ['nullable', Rule::in(self::SERVICE_STATUSES)],
+            'scope' => ['nullable', Rule::in(self::SCOPES)],
             'has_image' => ['nullable', 'boolean'],
             'has_lines' => ['nullable', 'boolean'],
             'sort' => ['nullable', Rule::in(array_keys(self::SORTS))],
@@ -100,6 +108,12 @@ final class MaterialQuery
         }
         if (isset($filters['gauge_mm'])) {
             $query->where('materials.gauge_mm', (int) $filters['gauge_mm']);
+        }
+        if (filled($filters['service_status'] ?? null)) {
+            $query->where('materials.service_status', $filters['service_status']);
+        }
+        if (filled($filters['scope'] ?? null)) {
+            $query->where('materials.scope', $filters['scope']);
         }
         if (isset($filters['has_image'])) {
             filter_var($filters['has_image'], FILTER_VALIDATE_BOOLEAN) ? $query->whereNotNull('materials.image') : $query->whereNull('materials.image');

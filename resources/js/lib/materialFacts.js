@@ -121,3 +121,65 @@ export function splitArrows(text) {
         .split(/\s*→\s*/)
         .filter((part, i, all) => part !== '' || all.length === 1);
 }
+
+/**
+ * Date d'une source écrite pour la lecture : « 13 juillet 2026 » (jour), « juillet 2026 » (mois) ou
+ * « 2026 » (année), selon la précision de la source (`AAAA-MM-JJ`, `AAAA-MM`, `AAAA`).
+ *
+ * @param {string|null|undefined} value
+ * @param {string} lang langue de l'interface
+ * @returns {string|null} null si la valeur est absente ou illisible
+ */
+export function formatSourceDate(value, lang) {
+    const m = /^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/.exec(String(value ?? ''));
+    if (!m) return null;
+    const year = Number(m[1]);
+    if (!m[2]) return String(year);
+    const month = Number(m[2]);
+    const day = m[3] === undefined ? undefined : Number(m[3]);
+    // Midi UTC : la date ne bascule pas d'un jour selon le fuseau du navigateur.
+    const date = new Date(Date.UTC(year, month - 1, day ?? 1, 12));
+    // Un mois ou un jour hors du calendrier (« 2026-13-45 ») déborderait sur la date suivante : illisible.
+    if (date.getUTCMonth() !== month - 1 || (day !== undefined && date.getUTCDate() !== day)) {
+        return null;
+    }
+    /** @type {Intl.DateTimeFormatOptions} */
+    const options =
+        day === undefined
+            ? { month: 'long', year: 'numeric' }
+            : { day: 'numeric', month: 'long', year: 'numeric' };
+
+    // Anglais britannique (« 13 July 2026 »), comme le reste du site.
+    return date.toLocaleDateString(lang === 'en' ? 'en-GB' : lang, { ...options, timeZone: 'UTC' });
+}
+
+/**
+ * État d'utilisation d'une série, dit seulement quand une source le dit (bloc `service` de l'API).
+ * Une date de retrait absente ne donne jamais « en service » : sans source, rien n'est affiché.
+ *
+ * @param {{ status?: string|null, units_in_service?: number|null, as_of?: string|null, checked_at?: string|null }|null|undefined} service
+ * @param {(key: string, opts?: object) => string} t traduction
+ * @param {string} lang langue de l'interface
+ * @returns {{ status: string, label: string, detail: string|null } | null} `detail` : effectif daté et date de lecture
+ */
+export function serviceState(service, t, lang) {
+    const status = service?.status;
+    if (status !== 'in_service' && status !== 'withdrawn') return null;
+    const asOf = formatSourceDate(service.as_of, lang);
+    const checked = formatSourceDate(service.checked_at, lang);
+    const parts = [];
+    if (asOf && Number.isInteger(service.units_in_service)) {
+        parts.push(
+            t('materials.service_state.fleet', { count: service.units_in_service, date: asOf }),
+        );
+    } else if (asOf) {
+        parts.push(t('materials.service_state.as_of', { date: asOf }));
+    }
+    if (checked) parts.push(t('materials.service_state.checked', { date: checked }));
+
+    return {
+        status,
+        label: String(t(`materials.service_state.${status}`)),
+        detail: parts.length ? parts.join(', ') : null,
+    };
+}

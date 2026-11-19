@@ -2,6 +2,7 @@
 
 namespace App\Services\Materials;
 
+use App\Enums\MaterialType;
 use App\Services\Media\CommonsMetadata;
 
 /**
@@ -14,7 +15,11 @@ use App\Services\Media\CommonsMetadata;
  *     n'est pas une année) ; un retrait antérieur à la mise en service est écarté ;
  *   - nombre construit retenu seulement s'il est univoque ;
  *   - vitesse et puissance : la plus grande valeur déclarée (modes d'alimentation), convertie en
- *     km/h et kW, la valeur d'origine gardée dans la provenance quand l'unité diffère.
+ *     km/h et kW, la valeur d'origine gardée dans la provenance quand l'unité diffère ;
+ *   - catégorie « bimode » : seulement si Wikidata range la série dans une classe bimode, ou si
+ *     l'infobox de son article Wikipédia l'annonce (`Type`) pour une automotrice ou un autorail ;
+ *   - état d'utilisation : « en service » seulement si Wikidata le dit (P5817) ou si l'infobox
+ *     donne un effectif daté d'une année récente ; rien sinon.
  */
 final readonly class WikidataMaterialMapper
 {
@@ -37,16 +42,18 @@ final readonly class WikidataMaterialMapper
      * @param  array<string, int|null>  $gaugeWidths  largeur des écartements, en mm
      * @param  array<string, array<string, mixed>|null>  $images  métadonnées Commons par nom de fichier
      * @param  list<string>  $categories  catégories de l'article Wikipédia, repli quand Wikidata ne range pas la série
+     * @param  array{title: string, revid: int, parameters: array<string, string>, read_on?: string, shared?: bool}|null  $infobox  infobox de l'article Wikipédia en français (`shared` : article commun à plusieurs séries, dont l'effectif est celui de la famille)
+     * @param  array{source: string, ref: string}|null  $attestation  source qui atteste la circulation en France d'une série que Wikidata ne rattache pas à la France
      * @return array<string, mixed>|string attributs de la fiche, ou motif d'exclusion (constantes SKIP_*)
      */
-    public function map(string $qid, ?array $entity, array $ancestors, array $labels, array $gaugeWidths, array $images, array $categories = []): array|string
+    public function map(string $qid, ?array $entity, array $ancestors, array $labels, array $gaugeWidths, array $images, array $categories = [], ?array $infobox = null, ?array $attestation = null): array|string
     {
         if ($entity === null) {
             return self::SKIP_NO_ENTITY;
         }
         $claims = $entity['claims'] ?? [];
         $operatorIds = array_values(array_unique(array_filter(array_map(fn (array $c): mixed => is_string($c['v']) ? $c['v'] : null, $claims['P137'] ?? []))));
-        if ($this->rules->onlyForeignOperators($operatorIds)) {
+        if ($attestation === null && $this->rules->onlyForeignOperators($operatorIds)) {
             return self::SKIP_FOREIGN;
         }
         if ($this->rules->excludedRoot($ancestors) !== null) {
@@ -64,6 +71,11 @@ final readonly class WikidataMaterialMapper
         }
         if ($type === null || $typeProvenance === null) {
             return self::SKIP_NO_TYPE;
+        }
+        // Bimode d'après l'article : Wikidata range le Régiolis en « bimode », pas toujours ses cousins.
+        if (in_array($type[0], [MaterialType::Automotrice, MaterialType::Autorail], true) && $infobox !== null && WikipediaMaterialInfobox::saysBimode($infobox['parameters'])) {
+            $type = [MaterialType::Bimode, $type[1]];
+            $typeProvenance = ['source' => 'wikipedia', 'ref' => $infobox['title'].'#infobox:Type', 'revid' => $infobox['revid']];
         }
         [$name, $nameRef] = $this->name($entity);
         if ($name === null) {
@@ -93,7 +105,9 @@ final readonly class WikidataMaterialMapper
         }
 
         $from = self::extremeYear($claims['P729'] ?? [], 'min');
-        $to = self::extremeYear($claims['P730'] ?? [], 'max');
+        // Fin de service : P730 (retrait), à défaut P2669 (date de fin).
+        $toProperty = ($claims['P730'] ?? []) !== [] ? 'P730' : 'P2669';
+        $to = self::extremeYear($claims[$toProperty] ?? [], 'max');
         if ($from !== null && $to !== null && $to < $from) {
             $to = null;
         }
@@ -144,11 +158,15 @@ final readonly class WikidataMaterialMapper
             'commons_category' => $category,
             'wikipedia_fr' => $entity['sitelinks']['frwiki'] ?? null,
             'wikipedia_en' => $entity['sitelinks']['enwiki'] ?? null,
+            'scope' => $attestation === null ? 'france' : 'attested',
         ];
+        $service = $this->serviceStatus($qid, $claims, $infobox, $entity['read_on'] ?? null);
+        $attributes['service_status'] = $service['status'] ?? null;
+        $attributes['service_status_checked_at'] = $service['checked_at'] ?? null;
 
         $sources = [
             'designations' => 'labels', 'description' => 'description:fr', 'builder' => 'P176', 'builders' => 'P176',
-            'operators' => 'P137', 'in_service_from' => 'P729', 'in_service_to' => 'P730', 'units_built' => 'P1092',
+            'operators' => 'P137', 'in_service_from' => 'P729', 'in_service_to' => $toProperty, 'units_built' => 'P1092',
             'max_speed_kmh' => 'P2052', 'power_kw' => 'P2109', 'electrification' => 'P930', 'gauges' => 'P1064',
             'gauge_mm' => 'P1064', 'wheel_arrangement' => 'P2978', 'fleet_numbers' => 'P2802', 'commons_category' => 'P373',
             'wikipedia_fr' => 'sitelink:frwiki', 'wikipedia_en' => 'sitelink:enwiki',
@@ -164,12 +182,71 @@ final readonly class WikidataMaterialMapper
         if ($powerOrigin !== null && $power !== null) {
             $provenance['power_kw']['original'] = $powerOrigin;
         }
+        if ($service !== null) {
+            $provenance['service_status'] = $service['provenance'];
+        }
+        // Périmètre : rattachée à la France par Wikidata (P17 ou exploitant français), ou attestée par une ligne citée.
+        $provenance['scope'] = $attestation ?? $ref('P17|P137');
         if ($image !== null) {
             $provenance['image'] = ['source' => 'commons', 'ref' => $image['file'], 'via' => "{$qid}#P18"];
         }
         $attributes['provenance'] = $provenance;
 
         return $attributes;
+    }
+
+    /**
+     * État d'utilisation, seulement quand une source le dit : Wikidata P5817 d'abord, sinon l'effectif
+     * de l'infobox Wikipédia (nombre d'engins en service, daté d'une année assez récente).
+     *
+     * @param  array<string, list<array<string, mixed>>>  $claims
+     * @param  array{title: string, revid: int, parameters: array<string, string>, read_on?: string, shared?: bool}|null  $infobox
+     * @return array{status: string, checked_at: string, provenance: array<string, mixed>}|null
+     */
+    private function serviceStatus(string $qid, array $claims, ?array $infobox, ?string $wikidataReadOn): ?array
+    {
+        if ($wikidataReadOn !== null) {
+            foreach ($claims['P5817'] ?? [] as $claim) {
+                $status = is_string($claim['v']) ? $this->rules->serviceStatus($claim['v']) : null;
+                if ($status !== null) {
+                    $asOf = self::asOf($claim['q']['P585'][0] ?? null);
+
+                    return [
+                        'status' => $status,
+                        'checked_at' => $wikidataReadOn,
+                        'provenance' => array_filter(['source' => 'wikidata', 'ref' => "{$qid}#P5817", 'value' => $claim['v'], 'as_of' => $asOf], fn ($v): bool => $v !== null),
+                    ];
+                }
+            }
+        }
+        $fleet = $infobox !== null ? WikipediaMaterialInfobox::fleet($infobox['parameters']['effectif'] ?? null) : null;
+        if ($infobox === null || $fleet === null || ! isset($infobox['read_on']) || (int) substr($fleet['as_of'], 0, 4) < $this->rules->fleetMinYear()) {
+            return null;
+        }
+
+        $provenance = ['source' => 'wikipedia', 'ref' => $infobox['title'].'#infobox:Effectif', 'revid' => $infobox['revid'], 'as_of' => $fleet['as_of']];
+        // L'effectif d'un article commun à plusieurs séries est celui de la famille : il n'est pas repris pour une série.
+        if (! ($infobox['shared'] ?? false)) {
+            $provenance['units'] = $fleet['count'];
+        }
+
+        return ['status' => $fleet['count'] > 0 ? 'in_service' : 'withdrawn', 'checked_at' => $infobox['read_on'], 'provenance' => $provenance];
+    }
+
+    /** Date d'une valeur temporelle Wikidata (AAAA-MM-JJ, AAAA-MM ou AAAA selon la précision), nulle si illisible. */
+    private static function asOf(mixed $time): ?string
+    {
+        if (! is_array($time) || ! preg_match('/^\+(\d{4})-(\d{2})-(\d{2})/', (string) ($time['time'] ?? ''), $m)) {
+            return null;
+        }
+        $precision = (int) ($time['precision'] ?? 0);
+
+        return match (true) {
+            $precision >= 11 => "{$m[1]}-{$m[2]}-{$m[3]}",
+            $precision === 10 => "{$m[1]}-{$m[2]}",
+            $precision === 9 => $m[1],
+            default => null,
+        };
     }
 
     /** @return list<string> identifiants Wikidata cités par l'élément (constructeurs, exploitants, alimentations, écartements, essieux) */

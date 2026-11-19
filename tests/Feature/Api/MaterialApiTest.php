@@ -53,6 +53,40 @@ class MaterialApiTest extends TestCase
         LineMaterial::create(['line_id' => $this->line->id, 'material_id' => $this->x73500->id, 'source' => 'wikipedia', 'confidence' => 'medium', 'evidence' => []]);
     }
 
+    public function test_the_service_state_and_the_scope_are_given_only_with_their_source(): void
+    {
+        Material::factory()->fromWikidata()->inService(12, '2026-07-13')->attested()->create(['slug' => 'db-407', 'name' => 'DB 407', 'type' => 'rame_tgv']);
+
+        $this->getJson('/api/v1/materials/db-407')
+            ->assertOk()
+            ->assertJsonPath('data.service', [
+                'status' => 'in_service', 'units_in_service' => 12, 'as_of' => '2026-07-13', 'checked_at' => '2026-11-19',
+                'source' => 'wikipedia', 'url' => 'https://fr.wikipedia.org/w/index.php?title=BB_15000&oldid=237800094',
+            ])
+            ->assertJsonPath('data.scope', 'attested');
+
+        // Sans source : tout est nul, jamais « en service » parce qu'il n'y a pas de date de retrait.
+        $this->getJson('/api/v1/materials/bb-15000')
+            ->assertJsonPath('data.service', ['status' => null, 'units_in_service' => null, 'as_of' => null, 'checked_at' => null, 'source' => null, 'url' => null])
+            ->assertJsonPath('data.in_service_to', null)
+            ->assertJsonPath('data.scope', 'france');
+    }
+
+    public function test_materials_filter_by_service_state_scope_and_bimode_category(): void
+    {
+        Material::factory()->fromWikidata()->inService()->attested()->create(['slug' => 'db-407', 'name' => 'DB 407', 'type' => 'rame_tgv']);
+        Material::factory()->create(['slug' => 'regiolis', 'name' => 'Régiolis', 'type' => 'bimode']);
+
+        $this->getJson('/api/v1/materials?service_status=in_service')->assertOk()->assertJsonPath('data.*.slug', ['db-407']);
+        $this->getJson('/api/v1/materials?scope=attested')->assertOk()->assertJsonPath('data.*.slug', ['db-407']);
+        $this->getJson('/api/v1/materials?scope=france')->assertOk()->assertJsonPath('data.*.slug', ['bb-15000', 'regiolis', 'x-3800', 'x-73500']);
+        $this->getJson('/api/v1/materials?type=bimode')->assertOk()
+            ->assertJsonPath('data.*.slug', ['regiolis'])
+            ->assertJsonPath('data.0.type_label', 'Rame ou engin bimode');
+        $this->getJson('/api/v1/materials?service_status=en_service')->assertUnprocessable()->assertJsonValidationErrors('service_status');
+        $this->getJson('/api/v1/materials?scope=etranger')->assertUnprocessable()->assertJsonValidationErrors('scope');
+    }
+
     public function test_the_list_gives_full_sheets_sorted_by_name_with_pagination(): void
     {
         $this->getJson('/api/v1/materials')

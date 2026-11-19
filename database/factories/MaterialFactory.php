@@ -34,6 +34,25 @@ class MaterialFactory extends Factory
         ];
     }
 
+    /** Série dont une source dit qu'elle est en service (effectif de l'infobox Wikipédia), avec la date de lecture. */
+    public function inService(int $units = 12, string $asOf = '2026-07-13'): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'service_status' => 'in_service',
+            'service_status_checked_at' => '2026-11-19',
+            'provenance' => ($attributes['provenance'] ?? []) + ['service_status' => ['source' => 'wikipedia', 'ref' => 'BB 15000#infobox:Effectif', 'revid' => 237800094, 'units' => $units, 'as_of' => $asOf]],
+        ]);
+    }
+
+    /** Série que Wikidata ne rattache pas à la France, attestée sur une ligne française. */
+    public function attested(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'scope' => 'attested',
+            'provenance' => ($attributes['provenance'] ?? []) + ['scope' => ['source' => 'wikipedia', 'ref' => 'LGV Est européenne']],
+        ]);
+    }
+
     /** Fiche importée de Wikidata, avec ses caractéristiques, son image Commons et sa provenance par champ. */
     public function fromWikidata(): static
     {

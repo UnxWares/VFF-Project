@@ -440,12 +440,14 @@ Chaque gare : `slug`, `name`, `type`, `status`, `city`, `department_code`, `uic_
 | Paramètre | Type | Obligatoire | Description |
 |---|---|---|---|
 | `q` | chaîne, 100 au plus | non | Nom, autres noms, constructeur, numéros d'engins (sans accents). |
-| `type` | catégorie | non | `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`, `autorail`, `rame_tgv`, `voiture`, `wagon`, `tramway`, `engin_service`. |
+| `type` | catégorie | non | `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`, `bimode`, `autorail`, `rame_tgv`, `voiture`, `wagon`, `tramway`, `engin_service`. |
 | `builder`, `operator` | chaîne | non | Constructeur ; exploitant (identifiant Wikidata exact ou nom partiel). |
 | `line` | slug | non | Séries attestées sur la ligne par une source. |
 | `in_service_at` | année | non | En service cette année-là. |
 | `from_year`, `to_year` | années | non | Mise en service, bornes incluses. |
 | `gauge_mm` | entier 500 à 2000 | non | Écartement. |
+| `service_status` | chaîne | non | `in_service` ou `withdrawn`, seulement quand une source le dit (Wikidata P5817, effectif de l'infobox Wikipédia). |
+| `scope` | chaîne | non | `france` (rattachée à la France dans Wikidata) ou `attested` (série non rattachée, ICE ou locomotive belge par exemple, dont une source atteste la circulation sur une ligne française). |
 | `has_image`, `has_lines` | booléens | non | Séries illustrées ; séries reliées à une ligne. |
 | `sort` | `name`, `in_service_from`, `max_speed_kmh`, `units_built`, `lines_count` (préfixe `-` : décroissant) | non | Tri, inconnues en dernier. |
 | `limit` | entier 1 à 50 | non | Séries par appel (20 par défaut). |
