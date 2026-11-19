@@ -473,6 +473,8 @@ return [
         'line_greenways' => ['osm' => 'osm'],
         'line_signalling' => ['sncf' => 'sncf'],
         // Mises en service de signalisation datées (vff:import-signalling-history) : faits relevés dans les articles de ligne de Wikipédia (CC BY-SA 4.0).
+        // La portion placée (section_geom) est tracée sur les formes SNCF Réseau (ODbL), comme line_signalling_map ; la carte par ère
+        // (line_signalling_history_map) reprend ces faits sur le tracé VFF de chaque ère.
         'line_signalling_events' => ['wikipedia' => 'wikipedia'],
         // Profils en long (vff:compute-line-profiles) : altitude de la voie BD TOPO, à défaut RGE ALTI (line_profiles.source).
         'line_profiles' => ['bdtopo-rge-alti' => 'ign'],
@@ -488,8 +490,6 @@ return [
             'archeoferroviaire' => 'archeoferroviaire',
             'lignes-oubliees' => 'lignes-oubliees',
             'wikidata' => 'wikidata',
-        // La portion placée (section_geom) est tracée sur les formes SNCF Réseau (ODbL), comme line_signalling_map ; la carte par ère
-        // (line_signalling_history_map) reprend ces faits sur le tracé VFF de chaque ère.
             // Noms historiques curés d'après Wikipédia (database/data/lignes_noms_historiques.php).
             'curated' => 'wikipedia',
             // Noms construits par VFF (communes et gares extrémités).
