@@ -263,7 +263,18 @@ final class LineStations
      */
     public function byEra(int $lineId): array
     {
-        $data = $this->forLine($lineId);
+        return self::byEraOf($this->forLine($lineId));
+    }
+
+    /**
+     * Même résumé que byEra() à partir du résultat de forLine() déjà calculé : la fiche ligne
+     * (LineSheet) s'en sert pour ne pas relancer les requêtes des gares et des terminus.
+     *
+     * @param  array{eras: list<array{year: int, is_current: bool}>, stations: list<array<string, mixed>>}  $data  résultat de forLine()
+     * @return list<array{year: int, is_current: bool, open: int, uncertain: int, closed: int, closures: list<array<string, mixed>>}>
+     */
+    public static function byEraOf(array $data): array
+    {
         $years = array_column($data['eras'], 'year');
         $closuresAt = [];
         foreach ($data['stations'] as $s) {

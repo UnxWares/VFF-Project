@@ -234,7 +234,7 @@ return [
     // Location mini-map (StationMiniMap): title, text alternative, control labels.
     'map' => [
         'title' => 'Location map of :name station',
-        'summary' => 'Position: :lat, :lng. Neighbouring stations are listed next to the map.',
+        'summary' => 'Position: :lat, :lon. Neighbouring stations are listed next to the map.',
         'open_osm' => 'Open this position on OpenStreetMap',
         'zoom_in' => 'Zoom in',
         'zoom_out' => 'Zoom out',

@@ -234,7 +234,7 @@ return [
     // Mini-carte de situation (StationMiniMap) : titre, alternative textuelle, libellés des contrôles.
     'map' => [
         'title' => 'Carte de situation de la gare :name',
-        'summary' => 'Position : :lat, :lng. Les gares voisines sont listées à côté de la carte.',
+        'summary' => 'Position : :lat, :lon. Les gares voisines sont listées à côté de la carte.',
         'open_osm' => 'Ouvrir cette position sur OpenStreetMap',
         'zoom_in' => 'Zoom avant',
         'zoom_out' => 'Zoom arrière',

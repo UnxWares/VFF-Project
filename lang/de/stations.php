@@ -234,7 +234,7 @@ return [
     // Lagekarte (StationMiniMap): Titel, Textalternative, Beschriftung der Bedienelemente.
     'map' => [
         'title' => 'Lagekarte des Bahnhofs :name',
-        'summary' => 'Position: :lat, :lng. Die Bahnhöfe in der Nähe stehen in der Liste neben der Karte.',
+        'summary' => 'Position: :lat, :lon. Die Bahnhöfe in der Nähe stehen in der Liste neben der Karte.',
         'open_osm' => 'Diese Position auf OpenStreetMap öffnen',
         'zoom_in' => 'Vergrößern',
         'zoom_out' => 'Verkleinern',

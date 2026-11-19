@@ -26,6 +26,9 @@ class AccidentController extends Controller
 
     private const SORTS = ['date', '-date', '-deaths'];
 
+    /** Durée de vie des menus de filtres gardés par le navigateur (secondes) : un import récent finit par y paraître. */
+    public const FACETS_TTL = 3600;
+
     public function index(Request $request, AccidentQuery $query): Response
     {
         $filters = $this->filters($request);
@@ -53,7 +56,10 @@ class AccidentController extends Controller
                 'total' => $page->total(),
             ],
             'filters' => $filters,
-            'facets' => $this->facets(),
+            // Valeurs des menus (environ 45 Ko, dont 43 pour les lignes) : indépendantes des filtres, elles
+            // partent avec le premier affichage de la liste puis restent dans le navigateur pendant que
+            // le visiteur filtre, cherche ou change de page (prop « once » d'Inertia, renvoyée après une heure).
+            'facets' => Inertia::once(fn (): array => $this->facets())->as('accidents.facets')->until(self::FACETS_TTL),
         ]);
     }
 

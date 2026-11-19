@@ -82,6 +82,8 @@ return [
         'builders' => 'Hersteller',
         'builder_units_one' => ":count\u{a0}Fahrzeug",
         'builder_units_other' => ":count\u{a0}Fahrzeuge",
+        'builders_more_one' => ":list und :count\u{a0}weiterer",
+        'builders_more_other' => ":list und :count\u{a0}weitere",
         'operators' => 'Betreiber',
         'operator_from' => 'ab :year',
         'operator_until' => 'bis :year',

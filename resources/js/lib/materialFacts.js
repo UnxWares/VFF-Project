@@ -39,6 +39,32 @@ export function servicePeriodText(from, to, t) {
     return String(t('materials.service.until', { year: p.to }));
 }
 
+/** Constructeurs nommés sur la carte d'une série (fiche ligne) avant « et N autres ». */
+export const BUILDERS_SHOWN = 3;
+
+/**
+ * Constructeurs d'une série en une ligne : tous jusqu'à quatre, sinon les trois premiers et le nombre
+ * des autres (« Henschel, Krupp, Borsig et 10 autres », clés `materials.facts.builders_more_*`). La
+ * liste complète reste sur la fiche de la série. Sans liste, le texte joint de la base (`builder`, qui
+ * peut finir par « … ») est repris tel quel.
+ *
+ * @param {string[]|null|undefined} names noms des constructeurs, sans doublon
+ * @param {string|null|undefined} fallback texte joint (`builder`)
+ * @param {(key: string, opts?: object) => string} t traduction
+ * @returns {string|null} null si aucun constructeur n'est connu
+ */
+export function buildersText(names, fallback, t) {
+    const list = (names ?? []).filter(Boolean);
+    if (!list.length) return fallback || null;
+    if (list.length <= BUILDERS_SHOWN + 1) return list.join(', ');
+    return String(
+        t('materials.facts.builders_more', {
+            list: list.slice(0, BUILDERS_SHOWN).join(', '),
+            count: list.length - BUILDERS_SHOWN,
+        }),
+    );
+}
+
 /**
  * Fiabilité d'un lien ligne × série, dite en clair (clés `materials.confidence.*`).
  * `high` : Wikidata ou partie « matériel » de l'article de la ligne ; `medium` : autre section ;

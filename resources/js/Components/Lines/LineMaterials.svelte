@@ -1,7 +1,7 @@
 <script>
     import { Link } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
-    import { servicePeriodText } from '$lib/materialFacts.js';
+    import { buildersText, servicePeriodText } from '$lib/materialFacts.js';
     import { periodsSummary, sortByFirstPeriod } from '$lib/materialPeriods.js';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
 
@@ -11,8 +11,11 @@
      * ses années de circulation sur la ligne (regroupées, cf. lib/materialPeriods.js). Les séries datées
      * viennent d'abord, de la plus ancienne à la plus récente. Montrée seulement s'il y a au moins une série.
      *
+     * Constructeurs : trois noms au plus, puis « et N autres » (buildersText) ; la liste complète est
+     * sur la fiche de la série.
+     *
      * @type {{ materials: Array<{ slug: string, name: string, type: string, builder: string|null,
-     *   in_service_from: number|null, in_service_to: number|null, periods?: Array<any> }> }}
+     *   builders?: string[], in_service_from: number|null, in_service_to: number|null, periods?: Array<any> }> }}
      */
     let { materials } = $props();
 
@@ -25,12 +28,13 @@
     <ul class="material-grid">
         {#each sorted as m (m.slug)}
             {@const service = servicePeriodText(m.in_service_from, m.in_service_to, t)}
+            {@const builders = buildersText(m.builders, m.builder, t)}
             {@const onLine = m.periods?.length ? periodsSummary(m.periods, t) : null}
             <li>
                 <Link class="vff-tile material-card" href="/materials/{m.slug}">
                     <strong>{m.name}</strong>
                     <span class="meta">{t(`materials.type.${m.type}`)}</span>
-                    {#if m.builder}<span class="meta">{m.builder}</span>{/if}
+                    {#if builders}<span class="meta">{builders}</span>{/if}
                     {#if service}<span class="meta">{service}</span>{/if}
                     {#if onLine}<span class="on-line"
                             >{t('materials.periods.on_line', { periods: onLine })}</span

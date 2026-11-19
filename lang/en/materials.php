@@ -82,6 +82,8 @@ return [
         'builders' => 'Builders',
         'builder_units_one' => ":count\u{a0}unit",
         'builder_units_other' => ":count\u{a0}units",
+        'builders_more_one' => ":list and :count\u{a0}other",
+        'builders_more_other' => ":list and :count\u{a0}others",
         'operators' => 'Operators',
         'operator_from' => 'from :year',
         'operator_until' => 'until :year',

@@ -82,6 +82,9 @@ return [
         'builders' => 'Constructeurs',
         'builder_units_one' => ":count\u{a0}engin",
         'builder_units_other' => ":count\u{a0}engins",
+        // Carte d'une série sur la fiche ligne : trois constructeurs nommés, puis le nombre des autres.
+        'builders_more_one' => ":list et :count\u{a0}autre",
+        'builders_more_other' => ":list et :count\u{a0}autres",
         'operators' => 'Exploitants',
         'operator_from' => 'à partir de :year',
         'operator_until' => 'jusqu’en :year',

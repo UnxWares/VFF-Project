@@ -51,6 +51,23 @@ class AccidentPagesTest extends TestCase
                 ->where('facets.lines.0.slug', 'rfn-679000'));
     }
 
+    public function test_filter_menus_are_sent_once_then_kept_by_the_browser(): void
+    {
+        $first = $this->get('/accidents')->assertOk()->viewData('page');
+        $this->assertSame('facets', $first['onceProps']['accidents.facets']['prop']);
+        $this->assertNotNull($first['onceProps']['accidents.facets']['expiresAt'], 'renvoyées après FACETS_TTL');
+        $this->assertSame('rfn-679000', $first['props']['facets']['lines'][0]['slug']);
+        $headers = ['X-Inertia' => 'true', 'X-Inertia-Version' => (string) $first['version'], 'X-Requested-With' => 'XMLHttpRequest'];
+
+        // Filtre ou recherche (navigation Inertia) : le navigateur a déjà les menus, seule la liste change.
+        $page = $this->get('/accidents?q=Millas', $headers + ['X-Inertia-Except-Once-Props' => 'accidents.facets'])->assertOk()->json();
+        $this->assertArrayNotHasKey('facets', $page['props']);
+        $this->assertSame(1, $page['props']['accidents']['total']);
+
+        // Sans eux (premier passage ou délai écoulé), ils sont envoyés.
+        $this->assertArrayHasKey('facets', $this->get('/accidents', $headers)->assertOk()->json('props'));
+    }
+
     public function test_records_to_review_stay_in_the_public_list_with_their_status(): void
     {
         Accident::factory()->on('1950-01-02')->toReview('location_commune_only', 'Millas')->create(['slug' => '1950-01-02-millas', 'kind' => 'derailment']);

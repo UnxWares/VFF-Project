@@ -246,7 +246,8 @@ class LineController extends Controller
      * les années de deux sections n'est rattachée à aucune. **Exploitations associatives**
      * (`heritage`) : nom, exploitant, nature (`tourist_train`, `velorail`),
      * portion et périodes. **Matériel roulant** (`materials`) : séries attestées sur la ligne,
-     * par nom, chacune avec `periods`, ses périodes de circulation datées par une source (début
+     * par nom, chacune avec `builders`, la liste complète de ses constructeurs (`builder` les joint
+     * et se coupe à 255 caractères), et `periods`, ses périodes de circulation datées par une source (début
      * et fin `AAAA-MM-JJ` et leur précision, portion, `source` et `source_url` ; sûres seulement,
      * détail et fiabilité dans `materials` des liens). **Sources** (`sources`) : jeux de données utilisés
      * pour la fiche, avec lien, date de lecture et champs fournis. **Liens**
