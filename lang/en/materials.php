@@ -35,6 +35,8 @@ return [
         'most_built' => 'Number built',
         'most_lines' => 'Number of lines run on',
     ],
+    // Équivalent lu de la flèche « → » d'une renumérotation (« PLM 1-30 → Est 601-612 »).
+    'renumbered' => 'renumbered as',
     'also_known' => 'Also known as: :name',
     'row' => [
         'units_one' => ":count\u{a0}built",
@@ -67,6 +69,8 @@ return [
         'builder_units_one' => ":count\u{a0}unit",
         'builder_units_other' => ":count\u{a0}units",
         'operators' => 'Operators',
+        'operator_from' => 'from :year',
+        'operator_until' => 'until :year',
         'in_service_from' => 'Entered service',
         'in_service_to' => 'Withdrawn',
         'units_built' => 'Number built',

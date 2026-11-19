@@ -35,6 +35,8 @@ return [
         'most_built' => 'Nombre d’engins construits',
         'most_lines' => 'Nombre de lignes parcourues',
     ],
+    // Équivalent lu de la flèche « → » d'une renumérotation (« PLM 1-30 → Est 601-612 »).
+    'renumbered' => 'renumérotée en',
     'also_known' => "Autre nom\u{a0}: :name",
     'row' => [
         'units_one' => ":count\u{a0}engin construit",
@@ -67,6 +69,8 @@ return [
         'builder_units_one' => ":count\u{a0}engin",
         'builder_units_other' => ":count\u{a0}engins",
         'operators' => 'Exploitants',
+        'operator_from' => 'à partir de :year',
+        'operator_until' => 'jusqu’en :year',
         'in_service_from' => 'Mise en service',
         'in_service_to' => 'Retrait',
         'units_built' => 'Engins construits',

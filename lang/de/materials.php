@@ -35,6 +35,8 @@ return [
         'most_built' => 'Anzahl gebauter Fahrzeuge',
         'most_lines' => 'Anzahl befahrener Strecken',
     ],
+    // Équivalent lu de la flèche « → » d'une renumérotation (« PLM 1-30 → Est 601-612 »).
+    'renumbered' => 'umnummeriert in',
     'also_known' => 'Auch bekannt als: :name',
     'row' => [
         'units_one' => ":count\u{a0}gebaut",
@@ -67,6 +69,8 @@ return [
         'builder_units_one' => ":count\u{a0}Fahrzeug",
         'builder_units_other' => ":count\u{a0}Fahrzeuge",
         'operators' => 'Betreiber',
+        'operator_from' => 'ab :year',
+        'operator_until' => 'bis :year',
         'in_service_from' => 'Indienststellung',
         'in_service_to' => 'Ausmusterung',
         'units_built' => 'Gebaute Fahrzeuge',
