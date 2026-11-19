@@ -79,7 +79,7 @@ return [
             'accidents' => 'Eisenbahnunfälle und schwere Ereignisse in Frankreich seit 1842: Datum, Art, Ort und Opfer.',
             'accidents_map' => 'Verortete Unfälle als GeoJSON bis zu einem bestimmten Jahr (Parameter to), für eine Karte: genauer Ort oder Ortsmitte, entsprechend gekennzeichnet.',
             'accident' => 'Eintrag eines Unfalls: betroffene Strecken und Abschnitte, Züge, Quellen und zu prüfende Punkte.',
-            'search' => 'Suche nach Namen in Strecken, Bahnhöfen und Rollmaterial. Mindestens 2 Zeichen.',
+            'search' => 'Suche nach Namen in Strecken, Bahnhöfen, Rollmaterial und Unfällen (Name, Gemeinde oder Datum). Mindestens 2 Zeichen.',
             'route' => 'Bahnroute zwischen zwei Bahnhöfen im Netz einer Epoche: Entfernung, Halte und Verlauf.',
             'route_compare' => 'Dieselbe Fahrt in zwei Epochen: die Route in jeder Epoche oder der Grund, warum es keine gibt, und was sich geändert hat (Länge, stillgelegte oder neue Strecken).',
             'sources' => 'Verzeichnis der Datenanbieter und ihrer Nutzungsbedingungen.',
@@ -126,7 +126,7 @@ return [
         'tools_title' => 'Werkzeuge',
         'tools_label' => 'Werkzeuge des VFF-MCP-Servers',
         'tools' => [
-            'search' => 'Eine Strecke, einen Bahnhof oder eine Baureihe nach Namen finden und die Kennung erhalten, die die anderen Werkzeuge erwarten.',
+            'search' => 'Eine Strecke, einen Bahnhof, eine Baureihe oder einen Unfall nach Namen finden und die Kennung erhalten, die die anderen Werkzeuge erwarten.',
             'get_line' => 'Eintrag einer Strecke: Längen, Elektrifizierung, Signalisierung, datierte Phasen und belegte Chronik.',
             'line_events' => 'Ereignisse einer Strecke in einem Zeitraum.',
             'network_events' => 'Ereignisse aller Strecken, nach Département, Typ und Zeitraum.',

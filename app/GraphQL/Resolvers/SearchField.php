@@ -6,7 +6,7 @@ use App\Services\CatalogSearch;
 
 /**
  * Requête GraphQL `search(query, limit)` : même recherche par nom que `GET /api/v1/search` et l'outil MCP
- * `search` (CatalogSearch), lignes, gares et matériels.
+ * `search` (CatalogSearch), lignes, gares, matériels et accidents.
  */
 final readonly class SearchField
 {
@@ -20,6 +20,17 @@ final readonly class SearchField
     {
         $limit = $args['limit'] ?? 8;
 
-        return $this->search->search($args['query'], $limit, $limit, $limit);
+        return $this->search->search($args['query'], $limit, $limit, $limit, $limit);
+    }
+
+    /**
+     * Nom d'un accident trouvé, dans la langue demandée (français à défaut).
+     *
+     * @param  array{names: array<string, string>, name: string}  $accident
+     * @param  array{lang?: string}  $args
+     */
+    public function accidentName(array $accident, array $args): string
+    {
+        return $accident['names'][$args['lang'] ?? 'fr'] ?? $accident['name'];
     }
 }

@@ -80,7 +80,7 @@ return [
             'accidents' => 'Accidents et événements graves du rail en France depuis 1842 : date, nature, lieu et bilan.',
             'accidents_map' => 'Accidents localisés en GeoJSON, jusqu’à une année donnée (paramètre to), pour une carte : lieu exact ou centre de la commune, signalé comme tel.',
             'accident' => 'Fiche d’un accident : lignes et portions concernées, trains, sources et points à vérifier.',
-            'search' => 'Recherche par nom dans les lignes, les gares et le matériel. 2 caractères au minimum.',
+            'search' => 'Recherche par nom dans les lignes, les gares, le matériel et les accidents (nom, commune ou date). 2 caractères au minimum.',
             'route' => 'Itinéraire ferroviaire entre deux gares sur le réseau d’une ère : distance, étapes et tracé.',
             'route_compare' => 'Le même trajet à deux époques : l’itinéraire de chacune, ou la raison de son absence, et ce qui a changé (longueur, lignes fermées ou nouvelles).',
             'sources' => 'Registre des fournisseurs de données et de leurs conditions de réutilisation.',
@@ -127,7 +127,7 @@ return [
         'tools_title' => 'Outils',
         'tools_label' => 'Outils du serveur MCP de VFF',
         'tools' => [
-            'search' => 'Trouver une ligne, une gare ou un matériel par son nom, et obtenir l’identifiant attendu par les autres outils.',
+            'search' => 'Trouver une ligne, une gare, un matériel ou un accident par son nom, et obtenir l’identifiant attendu par les autres outils.',
             'get_line' => 'Fiche d’une ligne : longueurs, électrification, signalisation, phases datées et chronologie sourcée.',
             'line_events' => 'Événements d’une ligne sur une période.',
             'network_events' => 'Événements de toutes les lignes, par département, type et période.',

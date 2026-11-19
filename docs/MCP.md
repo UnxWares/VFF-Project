@@ -118,7 +118,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 
 | Outil | Rôle |
 |---|---|
-| `search` | Trouver une ligne, une gare ou un matériel par son nom (identifiants pour les autres outils). |
+| `search` | Trouver une ligne, une gare, un matériel ou un accident par son nom (identifiants pour les autres outils). |
 | `get_line` | Fiche d'une ligne : longueurs, électrification, signalisation, phases datées, chronologie. |
 | `line_events` | Événements d'une ligne sur une période. |
 | `get_station` | Fiche d'une gare : dates, statut par décennie, lignes desservies, sources. |
@@ -138,21 +138,27 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `line_profile` | Profil en long d'une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte, altitude des gares (IGN). |
 | `locate_on_line` | Point kilométrique d'un lieu (latitude, longitude) sur le tracé d'une ligne. |
 
-### `search` : rechercher une ligne, une gare ou un matériel
+### `search` : rechercher une ligne, une gare, un matériel ou un accident
 
 Point de départ : trouve les identifiants attendus par les autres outils.
 
 | Paramètre | Type | Obligatoire | Description |
 |---|---|---|---|
-| `query` | chaîne, 2 à 100 caractères | oui | Nom de ligne, code de ligne à 6 chiffres, nom de gare ou de matériel. Casse et accents ignorés. |
-| `kinds` | liste parmi `lines`, `stations`, `materials` | non | Catégories cherchées (par défaut : les trois). |
+| `query` | chaîne, 2 à 100 caractères | oui | Nom de ligne, code de ligne à 6 chiffres, nom de gare, de matériel ou d'accident, commune ou date d'accident (`1891`, `07/2013`, `2013-07-12`). Casse et accents ignorés. |
+| `kinds` | liste parmi `lines`, `stations`, `materials`, `accidents` | non | Catégories cherchées (par défaut : les quatre). |
 | `limit` | entier 1 à 20 | non | Résultats par catégorie (8 par défaut). |
 | `lang` | `fr`, `en`, `de` | non | Langue (fr par défaut). |
 
 Renvoie `lines` (`slug`, `name`, `code`, `vff_url`), `stations` (`slug`, `name`, `city`,
 `department_code`, `lat`, `lng`, `vff_url`), `materials` (`slug`, `name`, `kind`, `builder`,
-`vff_url`). Tri par pertinence : nom exact, début du nom, mot du nom, reste ; à pertinence égale,
-lignes en service d'abord.
+`vff_url`), `accidents` (`slug`, `name` dans la langue demandée, `names` en `fr`, `en` et `de`, `date`
+et `date_precision`, `kind`, `commune`, `department_code`, `lat`, `lng` nuls sans position,
+`vff_url` ; le `slug` va à `get_accident`). Les accidents se trouvent par leur nom (dans les trois
+langues), leur commune ou leur date : une année (`1891`), un mois (`07/2013`, `2013-07`) ou un jour
+(`12/07/2013`, `2013-07-12`) ; un accident dont seule l'année ou le mois est connu ne répond pas à
+un jour précis. Seuls les accidents publiés sortent, jamais ceux que VFF ne montre pas. Tri par
+pertinence : nom exact, début du nom, mot du nom, reste ; à pertinence égale, lignes en service
+d'abord, accidents du plus ancien au plus récent.
 
 ```json
 {"query": "420000", "kinds": ["lines"]}

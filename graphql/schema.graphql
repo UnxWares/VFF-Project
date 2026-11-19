@@ -1874,8 +1874,10 @@ type Query {
 
     """
     Recherche par nom, comme `GET /api/v1/search` et l'outil MCP `search` : lignes (nom ou code à 6
-    chiffres), gares et matériels roulants, triés par pertinence (nom exact, début du nom, mot du nom,
-    reste), sans tenir compte de la casse ni des accents. Moins de 2 caractères : listes vides.
+    chiffres), gares, matériels roulants et accidents (par nom dans l'une des trois langues, commune ou
+    date : `1891`, `07/2013`, `2013-07-12`), triés par pertinence (nom exact, début du nom, mot du nom,
+    reste), sans tenir compte de la casse ni des accents. Seuls les accidents publiés sont renvoyés.
+    Moins de 2 caractères : listes vides.
     """
     search(
         "Texte cherché, 2 caractères au moins."
@@ -3146,6 +3148,9 @@ type SearchResults {
 
     "Matériels roulants dont le nom ou la désignation correspond."
     materials: [SearchMaterial!]!
+
+    "Accidents publiés dont le nom (dans l'une des trois langues), la commune ou la date correspond."
+    accidents: [SearchAccident!]!
 }
 
 "Une ligne trouvée par la recherche."
@@ -3194,6 +3199,39 @@ type SearchMaterial {
 
     "Constructeur, nul s'il n'est pas connu."
     builder: String
+}
+
+"Un accident trouvé par la recherche."
+type SearchAccident {
+    "Identifiant de l'accident (`2013-07-12-bretigny-sur-orge`), à passer à `accident(slug:)`."
+    slug: String!
+
+    "Nom usuel."
+    name(
+        "Langue : `fr` (par défaut), `en` ou `de`."
+        lang: String = "fr"
+    ): String! @field(resolver: "App\\GraphQL\\Resolvers\\SearchField@accidentName")
+
+    "Date de l'accident (`AAAA-MM-JJ`), à lire avec `date_precision`."
+    date: Date!
+
+    "Précision de `date` : `day` (date exacte), `month` (mois et année), `year` (année seule)."
+    date_precision: String!
+
+    "Nature (`derailment`, `collision`, `level_crossing`…)."
+    kind: String!
+
+    "Commune actuelle du lieu."
+    commune: String
+
+    "Code du département."
+    department_code: String
+
+    "Latitude WGS 84, nulle si le lieu n'est pas localisé."
+    lat: Float
+
+    "Longitude WGS 84, nulle si le lieu n'est pas localisé."
+    lng: Float
 }
 
 "Point kilométrique d'un lieu sur une ligne (`Line.pk`)."

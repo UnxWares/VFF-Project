@@ -79,7 +79,7 @@ return [
             'accidents' => 'Railway accidents and serious incidents in France since 1842: date, type, place and casualties.',
             'accidents_map' => 'Located accidents as GeoJSON, up to a given year (parameter to), for a map: exact place or town centre, flagged as such.',
             'accident' => 'Entry for one accident: lines and sections concerned, trains, sources and points to check.',
-            'search' => 'Search by name across lines, stations and rolling stock. At least 2 characters.',
+            'search' => 'Search by name across lines, stations, rolling stock and accidents (name, municipality or date). At least 2 characters.',
             'route' => 'Rail route between two stations on the network of an era: distance, stops and route.',
             'route_compare' => 'The same journey at two periods: the route at each one, or why there is none, and what changed (length, closed or new lines).',
             'sources' => 'Register of data providers and their reuse conditions.',
@@ -126,7 +126,7 @@ return [
         'tools_title' => 'Tools',
         'tools_label' => 'VFF MCP server tools',
         'tools' => [
-            'search' => 'Find a line, a station or a rolling stock class by name, and get the identifier the other tools expect.',
+            'search' => 'Find a line, a station, a rolling stock class or an accident by name, and get the identifier the other tools expect.',
             'get_line' => 'Entry for a line: lengths, electrification, signalling, dated phases and sourced chronology.',
             'line_events' => 'Events on a line over a period.',
             'network_events' => 'Events on every line, by département, type and period.',
