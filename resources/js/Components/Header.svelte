@@ -3,6 +3,7 @@
     import { Link, page, router } from '@inertiajs/svelte';
     import { theme } from '$lib/stores/theme.svelte.js';
     import { i18n } from '$lib/i18n.js';
+    import { navbarFade } from '$lib/actions/navbarFade.js';
     import LanguageSwitcher from './LanguageSwitcher.svelte';
     import GlobalSearch from './Search/GlobalSearch.svelte';
     import HomeHero from './HomeHero.svelte';
@@ -46,6 +47,7 @@
     ];
 
     let navEl = $state();
+    let backgroundEl = $state();
     let menuButton = $state();
     let projectWrapper = $state();
     let projectButton = $state();
@@ -183,8 +185,11 @@
     </button>
 {/snippet}
 
-<header class={['site-header', { compact }]}>
-    <div class="header-background">
+<header
+    class={['site-header', { compact }]}
+    use:navbarFade={{ nav: navEl, background: backgroundEl }}
+>
+    <div class="header-background" bind:this={backgroundEl}>
         <nav bind:this={navEl} aria-label={$i18n.t('nav.main_label')} onfocusout={onNavFocusout}>
             <div class="nav-inner">
                 <Link href="/" class="nav-title">
