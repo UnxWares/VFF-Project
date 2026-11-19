@@ -21,17 +21,17 @@ class LineSignallingController extends Controller
      *
      * Tranches de points kilométriques (PK) homogènes en signalisation, pour
      * l'ère choisie. Données de SNCF Réseau Open Data (jeux
-     * `mode-de-cantonnement-des-lignes` et `lignes-equipees-de-kvb`, Licence
-     * Ouverte), complétées pour ETCS et ERTMS sur les lignes à grande vitesse
-     * récentes. Aujourd'hui seule l'ère courante (2030) est renseignée ; une
+     * `mode-de-cantonnement-des-lignes` et `lignes-equipees-de-kvb` de SNCF Réseau, ODbL :
+     * mention « SNCF Réseau », partage à l'identique des bases dérivées), qui
+     * couvrent aussi l'ETCS des lignes à grande vitesse récentes. Aujourd'hui seule l'ère courante (2030) est renseignée ; une
      * autre ère renvoie en général une liste vide.
      *
      * Deux notions distinctes :
      * - `signalling` : mode de **cantonnement**, qui espace les trains :
      *   `BAL` (block automatique lumineux), `BAPR` (block automatique à
      *   permissivité restreinte), `BM` (block manuel), `BMVU` (block manuel de
-     *   voie unique), `CAPI` (cantonnement assuré par un poste informatique),
-     *   `CT` (cantonnement téléphonique), `TVM-300` / `TVM-430` (signalisation
+     *   voie unique), `CAPI` (cantonnement assisté par informatique),
+     *   `CT` (cantonnement téléphonique de double voie), `TVM-300` / `TVM-430` (signalisation
      *   en cabine des LGV, sans signaux latéraux), `ETCS_L1` / `ETCS_L2`.
      *   Suffixes : `-VB` voie banalisée (circulation dans les deux sens sur
      *   chaque voie), `-VU` voie unique, `-Tram` section tram-train ;
@@ -43,7 +43,8 @@ class LineSignallingController extends Controller
      *
      * PK en mètres (`pk_start_m`, `pk_end_m`, `length_m`) et en notation
      * ferroviaire `km+mmm` (`pk_start_label`, `pk_end_label`), dans la
-     * numérotation de SNCF Réseau.
+     * numérotation de SNCF Réseau. Les mêmes tranches sont dessinées sur la
+     * carte par `GET /eras/{year}/signalling/tiles/{z}/{x}/{y}.mvt`.
      *
      * @response array{
      *     line: array{slug: string, code: ?string, name: string},

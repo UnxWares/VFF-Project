@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\EraComparisonController;
 use App\Http\Controllers\Api\EraController;
 use App\Http\Controllers\Api\GeoController;
 use App\Http\Controllers\Api\GtfsController;
+use App\Http\Controllers\Api\LevelCrossingController;
 use App\Http\Controllers\Api\LineController;
 use App\Http\Controllers\Api\LineEventController;
 use App\Http\Controllers\Api\LineHistoryController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Api\MaterialController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Api\SearchController;
+use App\Http\Controllers\Api\SignallingMapController;
 use App\Http\Controllers\Api\SourceController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationEventController;
@@ -47,6 +49,10 @@ Route::middleware('throttle:300,1')->group(function (): void {
             Route::get('/compare/{other}/tiles/{z}/{x}/{y}.mvt', [EraComparisonController::class, 'tile'])
                 ->where(['other' => '[0-9]{1,4}', 'z' => '[0-9]{1,2}', 'x' => '[0-9]{1,7}', 'y' => '[0-9]{1,7}'])
                 ->name('api.eras.compare.tiles');
+            // Signalisation (tranches de line_signalling placées sur les formes SNCF Réseau).
+            Route::get('/signalling/tiles/{z}/{x}/{y}.mvt', [SignallingMapController::class, 'tile'])
+                ->where(['z' => '[0-9]{1,2}', 'x' => '[0-9]{1,7}', 'y' => '[0-9]{1,7}'])
+                ->name('api.eras.signalling.tiles');
         });
     // Toutes les ères empilées (érosion du réseau).
     Route::get('/v1/eras/stacked/tiles/{z}/{x}/{y}.mvt', [EraComparisonController::class, 'stackedTile'])
@@ -88,5 +94,11 @@ Route::middleware('throttle:300,1')->group(function (): void {
     Route::get('/v1/accidents', [AccidentController::class, 'index'])->name('api.accidents.index');
     // Points des accidents localisés (calque « Accidents » de la carte /maps).
     Route::get('/v1/accidents.geojson', [AccidentController::class, 'map'])->name('api.accidents.map');
+    // Passages à niveau (SNCF Réseau, ODbL) : liste, PN d'une ligne, tuiles du calque de la carte.
+    Route::get('/v1/level-crossings', [LevelCrossingController::class, 'index'])->name('api.level-crossings.index');
+    Route::get('/v1/level-crossings/tiles/{z}/{x}/{y}.mvt', [LevelCrossingController::class, 'tile'])
+        ->where(['z' => '[0-9]{1,2}', 'x' => '[0-9]{1,7}', 'y' => '[0-9]{1,7}'])
+        ->name('api.level-crossings.tiles');
+    Route::get('/v1/lines/{line:slug}/level-crossings', [LevelCrossingController::class, 'forLine'])->name('api.lines.level-crossings');
     Route::get('/v1/accidents/{accident}', [AccidentController::class, 'show'])->where('accident', '[a-z0-9-]{1,160}')->name('api.accidents.show');
 });

@@ -16,6 +16,9 @@
     } from '$lib/railStyle.js';
     import { COMPARE_CHANGES, stackLabels } from '$lib/epochViews.js';
     import { ACCIDENT_COLOR, ACCIDENT_HALO } from '$lib/accidentMap.js';
+    import { LEVEL_CROSSING_GROUPS } from '$lib/levelCrossingMap.js';
+    import { SIGNALLING_FAMILIES } from '$lib/signallingMap.js';
+    import { OVERLAY_HALO } from '$lib/overlayPalette.js';
 
     /**
      * Légende de la carte VFF : COULEUR = trafic des portions en service à la
@@ -37,6 +40,8 @@
      *   accidents   : calque « Accidents » affiché ({ state: 'loading'|'error'|'ready', count, from,
      *                 to } : années montrées, cf. accidentYears) ou null ; ses symboles, la période,
      *                 le nombre d'accidents localisés et le lien vers la liste ouvrent la légende
+     *   overlay     : calque du réseau d'aujourd'hui affiché, 'level-crossings' ou 'signalling'
+     *                 (null sinon) ; ses teintes et ses limites ouvrent la légende
      */
     let {
         era = null,
@@ -47,6 +52,7 @@
         view = 'era',
         compareEra = null,
         accidents = null,
+        overlay = null,
     } = $props();
 
     const uid = $props.id();
@@ -73,6 +79,11 @@
     });
 
     // Changements de la comparaison (même trait que sur la carte).
+    // Familles de cantonnement : même trait que sur la carte (tirets, pointillés).
+    const signallingRows = SIGNALLING_FAMILIES.map((f) => ({
+        key: f.key,
+        swatch: swatchStyle(f.color, f.dash, true),
+    }));
     const compareRows = COMPARE_CHANGES.map((c) => ({
         key: c.key,
         swatch: swatchStyle(c.color, c.dash, c.key !== 'kept'),
@@ -215,6 +226,10 @@
         <!-- Calque choisi par le visiteur : en tête, visible sans faire défiler la légende. -->
         {#if accidents}
             {@render accidentsBody()}
+        {:else if overlay === 'level-crossings'}
+            {@render levelCrossingsBody()}
+        {:else if overlay === 'signalling'}
+            {@render signallingBody()}
         {/if}
         {#if view === 'compare'}
             <ul class="view-rows">
@@ -286,6 +301,56 @@
     {/if}
     <p class="legend-more">
         <Link href="/accidents" class="vff-link">{$i18n.t('maps.accidents.list_link')}</Link>
+    </p>
+{/snippet}
+
+<!-- Calque « Passages à niveau » : mêmes teintes que la couche vff-level-crossings-points. -->
+{#snippet levelCrossingsBody()}
+    <p class="legend-group overlay-group" id={`${uid}-crossings`}>
+        {$i18n.t('maps.level_crossings.title')}
+    </p>
+    <ul aria-labelledby={`${uid}-crossings`}>
+        {#each LEVEL_CROSSING_GROUPS as g (g.key)}
+            <li>
+                <span class="legend-row">
+                    <i
+                        class="swatch point"
+                        style:background={g.color}
+                        style:border-color={OVERLAY_HALO}
+                        aria-hidden="true"
+                    ></i>
+                    <span>{$i18n.t(`level_crossings.groups.${g.key}`)}</span>
+                </span>
+            </li>
+        {/each}
+    </ul>
+    <p class="legend-hint">
+        {$i18n.t('maps.level_crossings.zoom_hint')}
+        {$i18n.t('maps.level_crossings.note')}
+        {$i18n.t('maps.level_crossings.source')}
+    </p>
+{/snippet}
+
+<!-- Calque « Signalisation » : familles de cantonnement ; le KVB (contrôle de vitesse) n'en est pas une. -->
+{#snippet signallingBody()}
+    <p class="legend-group overlay-group" id={`${uid}-signalling`}>
+        {$i18n.t('maps.signalling.title')}
+    </p>
+    <p class="legend-hint">{$i18n.t('maps.signalling.intro')}</p>
+    <ul aria-labelledby={`${uid}-signalling`}>
+        {#each signallingRows as r (r.key)}
+            <li>
+                <span class="legend-row">
+                    <i class="swatch" style={r.swatch} aria-hidden="true"></i>
+                    <span>{$i18n.t(`maps.signalling.families.${r.key}`)}</span>
+                </span>
+            </li>
+        {/each}
+    </ul>
+    <p class="legend-hint">{$i18n.t('maps.signalling.kvb_note')}</p>
+    <p class="legend-hint">
+        {$i18n.t('maps.signalling.placement_note')}
+        {$i18n.t('maps.level_crossings.source')}
     </p>
 {/snippet}
 
@@ -602,6 +667,14 @@
         border: 1.5px solid;
         border-radius: 50%;
     }
+    /* Passage à niveau : point de la teinte du groupe, cerclé de clair (comme sur la carte). */
+    .swatch.point {
+        width: 10px;
+        height: 10px;
+        margin: 0 6px;
+        border: 1.5px solid;
+        border-radius: 50%;
+    }
     .swatch.accident-area {
         position: relative;
         width: 22px;
@@ -623,7 +696,8 @@
         padding-bottom: 10px;
         border-bottom: 1px solid var(--vff-border);
     }
-    .accidents-group {
+    .accidents-group,
+    .overlay-group {
         margin-top: 8px;
     }
     .legend-more :global(a) {

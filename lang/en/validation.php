@@ -162,6 +162,9 @@ return [
     'uuid' => 'The :attribute field must be a valid UUID.',
 
     'custom' => [
+        'bbox' => [
+            'invalid' => 'The bounding box must be “west,south,east,north” in degrees, with west < east and south < north.',
+        ],
         'email' => [
             'unique' => 'This email address is already linked to an account.',
         ],

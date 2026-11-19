@@ -151,6 +151,16 @@ type Line {
     ): [LineSignallingRange!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingResolver")
 
     """
+    Passages à niveau de la ligne aujourd'hui (SNCF Réseau, ODbL), dans l'ordre des points
+    kilométriques, PK inconnus en dernier. Rattachement par le code de ligne : liste vide pour une
+    ligne sans code SNCF Réseau.
+    """
+    level_crossings: [LevelCrossing!]! @field(resolver: "App\\GraphQL\\Resolvers\\LevelCrossingField@forLine")
+
+    "Nombre de passages à niveau de la ligne par groupe (`LevelCrossing.group`), groupes absents omis."
+    level_crossing_summary: [LevelCrossingCount!]! @field(resolver: "App\\GraphQL\\Resolvers\\LevelCrossingField@summary")
+
+    """
     Fiche complète de la ligne, comme la page `/lines/{slug}` et `GET /api/v1/lines/{line}` :
     chiffres clés, électrification, signalisation, phases, chronique, gares, sections. Calcul
     lourd (jusqu'à quelques secondes) : demandez-la pour une ligne à la fois.
@@ -217,7 +227,7 @@ type LineSignallingRange {
     """
     Mode de cantonnement : `BAL` (block automatique lumineux), `BAPR` (block automatique à
     permissivité restreinte), `BM` (block manuel), `BMVU` (block manuel de voie unique),
-    `CAPI` (cantonnement assuré par un poste informatique), `CT` (cantonnement téléphonique),
+    `CAPI` (cantonnement assisté par informatique), `CT` (cantonnement téléphonique de double voie),
     `TVM-300` / `TVM-430` (signalisation en cabine des LGV, sans signaux latéraux),
     `ETCS_L1` / `ETCS_L2`. Suffixes : `-VB` voie banalisée (circulation dans les deux sens
     sur chaque voie), `-VU` voie unique, `-Tram` section tram-train.
@@ -1316,6 +1326,95 @@ type AccidentReviewNote {
     detail: String!
 }
 
+"""
+Passage à niveau du réseau ferré national, tel que publié par SNCF Réseau (jeu
+`liste-des-passages-a-niveau`, ODbL : mention « SNCF Réseau », partage à l'identique des bases
+dérivées). État à la date de publication, sans date d'ouverture ni de suppression.
+"""
+type LevelCrossing {
+    "Identifiant de l'installation fixe dans les bases de SNCF Réseau (ex. `30000010436`)."
+    id: ID! @rename(attribute: "id_if")
+
+    "Libellé SNCF Réseau, en général « PN » et le numéro du passage sur la ligne (ex. `PN 32`)."
+    label: String @rename(attribute: "libelle")
+
+    """
+    Classe SNCF Réseau : 10 à 16 gardés, 17 à 19 barrières automatiques (SAL 2, SAL 2B, SAL 4),
+    20 sans barrières ni signalisation lumineuse, 21 sans barrières avec SAL 0, 31 et 32 piétons,
+    41 à 46 privés, 0 PN secondaire. Nulle si la source ne la donne pas.
+    """
+    class: Int @field(resolver: "App\\GraphQL\\Resolvers\\LevelCrossingField@classNumber")
+
+    "Définition de la classe, rédigée par VFF d'après la description du jeu."
+    class_label(
+        "Langue : `fr` (par défaut), `en` ou `de`."
+        lang: String = "fr"
+    ): String @field(resolver: "App\\GraphQL\\Resolvers\\LevelCrossingField@classLabel")
+
+    """
+    Groupe : `automatic` (17 à 19), `guarded` (10 à 16), `no_barrier` (20, 21), `pedestrian`
+    (31, 32), `private` (41 à 46), `secondary` (0 : passage compté sur une autre ligne).
+    """
+    group: String @field(resolver: "App\\GraphQL\\Resolvers\\LevelCrossingField@group")
+
+    "Point kilométrique officiel, en mètres (ex. `112866`), nul s'il est inconnu."
+    pk_m: Int
+
+    "Point kilométrique en notation `km+mmm` (ex. `112+866`)."
+    pk_label: String @field(resolver: "App\\GraphQL\\Resolvers\\LevelCrossingField@pkLabel")
+
+    "Commune, telle que l'écrit SNCF Réseau."
+    commune: String
+
+    """
+    Voie franchie, libellé brut de SNCF Réseau (`VC` voie communale, `CD 106-0` route
+    départementale, `CR` chemin rural…). Pour un PN secondaire : le PN qui porte la classe.
+    """
+    crossed_way: String @rename(attribute: "obstacle")
+
+    "Code de ligne SNCF Réseau à 6 chiffres (ex. `070000`)."
+    line_code: String! @rename(attribute: "code_ligne")
+
+    "Ligne VFF qui porte ce code, nulle si le code n'a pas de fiche."
+    line: Line @belongsTo
+
+    "Latitude WGS 84, au centre du croisement (à moins d'un mètre pour plus de 90 % des PN selon SNCF Réseau)."
+    lat: Float!
+
+    "Longitude WGS 84."
+    lng: Float! @rename(attribute: "lon")
+
+    "Fournisseur et licence de la donnée (SNCF Réseau, ODbL)."
+    provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LevelCrossingField@provenance")
+}
+
+"Nombre de passages à niveau d'un groupe."
+type LevelCrossingCount {
+    "Groupe (voir `LevelCrossing.group`), ou `unknown` pour une classe que la source ne donne pas."
+    group: String!
+
+    "Nombre de passages à niveau."
+    count: Int!
+}
+
+"Filtres de la requête `levelCrossings`. Tous sont facultatifs et se combinent (ET)."
+input LevelCrossingFilter {
+    "Slug d'une ligne (ex. `rfn-70000`). Ligne inconnue : erreur de validation."
+    line: String
+
+    "Groupe : `automatic`, `guarded`, `no_barrier`, `pedestrian`, `private`, `secondary`."
+    group: String
+
+    "Classe exacte : 0, 10 à 21, 31, 32, 41 à 46."
+    class: Int
+
+    "Partie du nom de la commune, sans accents ni capitales (2 à 100 caractères)."
+    commune: String
+
+    "Emprise `ouest,sud,est,nord` en degrés WGS 84 (ex. `3.5,49.0,3.7,49.1`)."
+    bbox: String
+}
+
 "Filtres de la requête `accidents`. Tous sont facultatifs et se combinent (ET)."
 input AccidentFilter {
     "Recherche sans accents ni capitales dans le nom (toutes langues) et la commune (100 caractères au plus)."
@@ -1536,6 +1635,16 @@ type Query {
         "Filtres et tri (tous facultatifs, combinés par ET). Un filtre invalide est une erreur de validation."
         filter: AccidentFilter = {} @builder(method: "App\\GraphQL\\Builders\\AccidentFilterBuilder@filter")
     ): [Accident!]! @paginate(defaultCount: 20, maxCount: 100)
+
+    """
+    Passages à niveau du réseau ferré national (SNCF Réseau, ODbL), page par page (50 par défaut,
+    200 au plus), dans l'ordre des lignes puis des points kilométriques. Mêmes filtres que l'API
+    REST `GET /api/v1/level-crossings`.
+    """
+    levelCrossings(
+        "Filtres (tous facultatifs, combinés par ET). Un filtre invalide est une erreur de validation."
+        filter: LevelCrossingFilter = {} @builder(method: "App\\GraphQL\\Builders\\LevelCrossingFilterBuilder@filter")
+    ): [LevelCrossing!]! @paginate(defaultCount: 50, maxCount: 200)
 
     "Un accident, par son slug (ex. `2013-07-12-bretigny-sur-orge`)."
     accident(

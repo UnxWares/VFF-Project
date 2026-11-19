@@ -25,7 +25,7 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 | 10 - Extension historique | ✅ couverture 1830-2030 ; modèle d'extraction des voies publié |
 | 11 - Communauté | 🟡 trilingue, carte intégrable, application installable ; dons et blog à faire |
 | 12 - Mise en production | 🟡 pages légales, engagements RGPD et audit RGAA (81,94 %) faits ; messagerie et hébergement final à faire |
-| 13 - Nouveaux domaines | 🟡 matériel roulant, accidents et serveur MCP faits ; signalisation et passages à niveau à finir |
+| 13 - Nouveaux domaines | 🟡 matériel roulant, accidents, serveur MCP, signalisation et passages à niveau (carte, fiches, API) faits ; historique de la signalisation à faire |
 
 **En base (développement)** : 2 705 lignes, 9 363 gares, 15 519 événements datés, 71 597 médias, 21 époques, 687 séries de matériel roulant (969 liens avec les lignes), 202 accidents.
 
@@ -36,7 +36,7 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 1. Préparer la mise en ligne (phase 12) : messagerie de vff-project.org, hébergement, aperçus de partage rendus côté serveur.
 2. Trancher les questions ouvertes de la nuit du 19 au 20/11 (`storage/app/reports/agents/QUESTIONS.md`) : corrections de données, Argentan Web Ferroviaire, accidents, matériel.
 3. Jonctions : phase « escaliers » (coudes et crochets restants).
-4. Signalisation et passages à niveau sur la carte et les fiches (phase 13).
+4. Historique de la signalisation par époque (phase 13) : aucune source par date pour l'instant.
 
 ---
 
@@ -173,7 +173,7 @@ Ouvrir l'édition aux passionnés extérieurs.
 ## 🌐 Phase 6 - API REST publique (en cours)
 
 - [x] OpenAPI 3 généré par [Scramble](https://scramble.dedoc.co/)
-- [x] Endpoints : lignes et gares par époque (GeoJSON), tuiles MVT, export GTFS par époque, recherche, historique, PK, arrêts, signalisation et médias d'une ligne, itinéraire
+- [x] Endpoints : lignes et gares par époque (GeoJSON), tuiles MVT, export GTFS par époque, recherche, historique, PK, arrêts, signalisation et médias d'une ligne, itinéraire, passages à niveau (liste, par ligne, tuiles), tuiles de la signalisation
 - [x] Documentation : page `/api`, référence [Scalar](https://scalar.com/) sur `/docs/api`, Swagger UI sur `/docs/swagger`
 - [x] Accès libre sans clé, limité à 300 requêtes par minute et par adresse IP
 - [x] Exemples intégrés : curl, JavaScript (`fetch`) et Python (`requests`) sur la page `/api` et, pour les principaux points d'accès, dans la référence Scalar (`x-codeSamples`)
@@ -186,7 +186,7 @@ Ouvrir l'édition aux passionnés extérieurs.
 ## 🔮 Phase 7 - GraphQL (en cours)
 
 - [x] [Lighthouse](https://lighthouse-php.com/) installé
-- [x] Schéma en lecture : Era, Line, LineSegment, LineEvent, LineStop, LineSignallingRange, Station, Material, Route
+- [x] Schéma en lecture : Era, Line, LineSegment, LineEvent, LineStop, LineSignallingRange, LevelCrossing, Station, Material, Route
 - [x] Documentation [Magidoc](https://magidoc.js.org/) sur `/docs/graphql` + GraphiQL
 - [ ] Mutations pour l'édition (`submitContribution`, `validateContribution`), réservées aux comptes connectés
 - [ ] Subscriptions (WebSocket) pour suivre les contributions en temps réel
@@ -266,19 +266,20 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 
 ## 🧭 Phase 13 - Nouveaux domaines de l'encyclopédie (en cours)
 
-- [~] **Signalisation** : données SNCF Réseau importées (`line_signalling`, `/api/v1/lines/{slug}/signalling`), affichage sur la fiche ligne ; à faire : historique par époque, couche dédiée sur la carte
-- [~] **Passages à niveau** : données SNCF Réseau importées ; à faire : affichage sur la carte et les fiches
+- [x] **Signalisation** : données SNCF Réseau importées (`line_signalling`, `/api/v1/lines/{slug}/signalling`), fiche ligne (cantonnement et contrôle de vitesse par PK, trous des données signalés, lien vers la carte), calque « Signalisation » sur `/maps` (tranches placées sur les formes SNCF Réseau, PK calés sur les passages à niveau, tuiles `/api/v1/eras/{year}/signalling/tiles/…`)
+  - [ ] Historique par époque (seul l'état actuel est connu)
+- [x] **Passages à niveau** : 16 801 PN de SNCF Réseau (ODbL), calque « Passages à niveau » sur `/maps` (à partir du zoom 9), section de la fiche ligne (nombre par type, liste repliable), API REST (`/api/v1/level-crossings`, `/api/v1/lines/{slug}/level-crossings`, tuiles), GraphQL (`Line.level_crossings`, `levelCrossings`) et outil MCP `level_crossings`
 - [x] **Matériel roulant** : 687 séries importées de Wikidata (CC0) avec leur image Commons et la provenance de chaque champ (`vff:import-materials`), 969 liens ligne × matériel attestés par Wikidata ou par les articles Wikipédia (phrase citée, permalien, fiabilité), API REST (`/api/v1/materials`, `/api/v1/lines/{slug}/materials`) et GraphQL ; à faire : fiches enrichies sur le site, périodes de circulation par portion
 - [x] **Accidents** : 202 fiches (Wikidata, Wikipédia, BEA-TT), pages, API, calque de carte
-- [x] **Serveur MCP** pour que les assistants IA interrogent l'encyclopédie avec ses sources (16 outils dont accidents et comparaison d'ères, lecture seule, `docs/MCP.md`)
+- [x] **Serveur MCP** pour que les assistants IA interrogent l'encyclopédie avec ses sources (17 outils dont accidents, comparaison d'ères et passages à niveau, lecture seule, `docs/MCP.md`)
 
 ---
 
 ## 🌱 Idées en vrac (backlog non priorisé)
 
 - [x] Calcul d'itinéraire historique : « comment serais-je allé de A à B en 1950 ? » (phase 8)
-- [~] Couches thématiques : électrification (fait), signalisation (en cours), écartement
-- [~] Recensement des passages à niveau (données importées, phase 13)
+- [x] Couches thématiques : électrification, signalisation, écartement
+- [x] Recensement des passages à niveau (carte, fiches et API, phase 13)
 - [ ] Mode « vue ferroviaire » : carte simplifiée façon schéma
 - [x] Comparaison de deux époques (superposition, phase 3)
 - [ ] Stories d'archives (carrousel de photos sur un événement précis)

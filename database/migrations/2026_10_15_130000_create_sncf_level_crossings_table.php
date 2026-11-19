@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Passages à niveau du RFN (jeu SNCF Open Data « liste-des-passages-a-niveau »,
- * ~16 900 PN, Licence Ouverte), importés par vff:import-sncf-level-crossings.
+ * ~16 900 PN, ODbL), importés par vff:import-sncf-level-crossings.
  *
  * Pourquoi : chaque PN porte un PK officiel ET des coordonnées précises. Ce
  * sont des points de contrôle denses (un tous les 1 à 2 km sur les lignes

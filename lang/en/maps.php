@@ -38,6 +38,8 @@ return [
         'orm_electrification' => 'OpenRailwayMap - Electrification',
         'orm_gauge' => 'OpenRailwayMap - Gauge',
         'accidents' => 'Accidents',
+        'level_crossings' => 'Level crossings',
+        'signalling' => 'Signalling',
     ],
 
     'legend' => [
@@ -210,7 +212,7 @@ return [
         'route_term' => 'Journey',
         'route_text' => 'Enter two stations and a year: the map draws the journey on the network in service at that time and lists the lines used.',
         'layers_term' => 'Overlays',
-        'layers_text' => 'The OpenRailwayMap overlay adds today\'s infrastructure: signals, speeds, electrification. The clock button, at the top right of the map, shows old IGN maps. The Accidents overlay shows the accidents that happened up to the period displayed; a pale circle means only the municipality is known.',
+        'layers_text' => 'The OpenRailwayMap overlay adds today\'s infrastructure: signals, speeds, electrification. The clock button, at the top right of the map, shows old IGN maps. The Accidents overlay shows the accidents that happened up to the period displayed; a pale circle means only the municipality is known. The Level crossings overlay shows the crossings published by SNCF Réseau, from the scale of a département. The Signalling overlay colours today’s lines by block system.',
         'views_term' => 'Comparing eras',
         'views_text' => 'The "View" choice above the map compares two decades (lines opened, closed or lifted in between) or stacks every era to show when each line left service. The page address keeps this choice, so you can share it.',
     ],
@@ -292,6 +294,41 @@ return [
         'loading' => 'Loading accidents…',
         'error' => 'The accidents could not be loaded. Select the overlay again to retry.',
         'view_sheet' => 'View the accident page',
+    ],
+
+    // Calque « Passages à niveau » (SNCF Réseau) : légende, bulle.
+    'level_crossings' => [
+        'title' => 'Level crossings',
+        'zoom_hint' => 'Zoom in on the map: level crossings appear at the scale of a département.',
+        'current_only' => 'Level crossings are only known for today’s network.',
+        'show_today' => 'Show today’s map',
+        'note' => 'A crossing on several lines is drawn only once.',
+        'source' => 'Source: SNCF Réseau (ODbL)',
+        'pk' => 'Km post',
+        'line' => 'Line',
+        'fallback_title' => 'Level crossing',
+        'view_line' => 'View the line page',
+    ],
+
+    // Calque « Signalisation » : modes de cantonnement (le KVB n'en est pas un), légende, bulle.
+    'signalling' => [
+        'title' => 'Signalling',
+        'intro' => 'Block system, which keeps trains apart, on today’s network.',
+        'families' => [
+            'automatic_block' => 'Automatic light block (BAL)',
+            'restricted_block' => 'Automatic block with restricted permissiveness (BAPR)',
+            'manual_block' => 'Manual block (dashed)',
+            'telephone' => 'Telephone block or CAPI (dotted)',
+            'cab' => 'Cab signalling (TVM, ETCS)',
+        ],
+        'kvb_note' => 'KVB controls train speed; it is not a block system. It is shown in the popup of each section.',
+        'placement_note' => 'Section limits are placed from kilometre posts, within 200 m in 9 cases out of 10.',
+        'current_only' => 'Signalling is only known for today’s network.',
+        'block_label' => 'Block system',
+        'cab_label' => 'Cab signalling',
+        'protection_label' => 'Speed control',
+        'pk_label' => 'Km posts',
+        'source' => 'Source: SNCF Réseau (ODbL). Limits placed to within a few hundred metres.',
     ],
 
     // "Locate me" button: messages when the position is not available.

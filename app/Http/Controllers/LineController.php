@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ReadsListFilters;
 use App\Models\Line;
 use App\Services\Accidents\LineAccidents;
+use App\Services\LevelCrossings\LineLevelCrossings;
 use App\Services\LineDirectory;
 use App\Services\LineSheet;
 use App\Services\LineStats;
@@ -133,13 +134,15 @@ class LineController extends Controller
 
     /**
      * Fiche détaillée d'une ligne ferroviaire (construction partagée avec l'API : App\Services\LineSheet),
-     * plus les accidents rattachés à la ligne (section « Accidents » ; API : `/api/v1/accidents?line=`).
+     * plus les accidents rattachés à la ligne (section « Accidents » ; API : `/api/v1/accidents?line=`)
+     * et ses passages à niveau (section « Passages à niveau » ; API : `/api/v1/lines/{slug}/level-crossings`).
      */
-    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents): Response
+    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings): Response
     {
         return Inertia::render('Lines/Show', [
             ...$sheet->build($line),
             'accidents' => $accidents->forLine($line, app()->getLocale()),
+            'level_crossings' => $crossings->forSheet($line),
         ]);
     }
 }

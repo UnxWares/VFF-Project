@@ -52,6 +52,21 @@
             ],
         },
         {
+            key: 'equipment',
+            items: [
+                { path: '/api/v1/level-crossings', key: 'level_crossings' },
+                { path: '/api/v1/lines/{line}/level-crossings', key: 'line_level_crossings' },
+                {
+                    path: '/api/v1/level-crossings/tiles/{z}/{x}/{y}.mvt',
+                    key: 'level_crossings_tiles',
+                },
+                {
+                    path: '/api/v1/eras/{year}/signalling/tiles/{z}/{x}/{y}.mvt',
+                    key: 'signalling_tiles',
+                },
+            ],
+        },
+        {
             key: 'stations',
             items: [
                 { path: '/api/v1/stations', key: 'stations' },
@@ -107,6 +122,7 @@
         'accidents',
         'get_accident',
         'compare_eras',
+        'level_crossings',
         'sources_and_licences',
     ];
     const mcpCli = `claude mcp add --transport http vff ${MCP_URL}`;
