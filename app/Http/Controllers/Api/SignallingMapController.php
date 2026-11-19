@@ -36,7 +36,7 @@ class SignallingMapController extends Controller
      *
      * Seule l'ère courante (2030, le réseau d'aujourd'hui) est renseignée : les autres ères renvoient
      * des tuiles vides. Données SNCF Réseau (jeux `mode-de-cantonnement-des-lignes` et
-     * `lignes-equipees-de-kvb`, ODbL). Tuiles en cache une journée jusqu'au zoom 10.
+     * `lignes-equipees-de-kvb`, ODbL). Tuiles en cache une journée (navigateurs et serveur, ce dernier jusqu'au zoom 10).
      */
     #[PathParameter('year', "Année de l'ère (décennie de 1830 à 2030).", example: 2030)]
     #[PathParameter('z', 'Niveau de zoom (0 à 22 ; la carte VFF demande au plus 14).', example: 6)]
@@ -54,7 +54,7 @@ class SignallingMapController extends Controller
 
         return response($map->tile($era->id, $z, $x, $y), 200, [
             'Content-Type' => 'application/x-protobuf',
-            'Cache-Control' => 'public, max-age=3600',
+            'Cache-Control' => 'public, max-age=86400',
             'Access-Control-Allow-Origin' => '*',
         ]);
     }

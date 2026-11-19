@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+    SIGNALLING_CASING_LAYER_ID,
     SIGNALLING_DASH_GROUPS,
     SIGNALLING_FAMILIES,
     SIGNALLING_LAYER_IDS,
@@ -51,14 +52,26 @@ describe('familles et couches', () => {
                 compile(value, spec('paint_line', prop));
             }
         }
+        const strokes = layers.filter((l) => l.id !== SIGNALLING_CASING_LAYER_ID);
         for (const f of SIGNALLING_FAMILIES) {
-            const layer = layers.find((l) => l.filter && matches(l.filter, { family: f.key }));
+            const layer = strokes.find((l) => l.filter && matches(l.filter, { family: f.key }));
             expect(layer, f.key).toBeDefined();
             expect(colorOf(layer.paint['line-color'], { family: f.key })).toBe(f.color);
             expect(
-                layers.filter((l) => l.filter && matches(l.filter, { family: f.key })),
+                strokes.filter((l) => l.filter && matches(l.filter, { family: f.key })),
             ).toHaveLength(1);
         }
+    });
+
+    it('le liseré a le même filtre que les traits : pas de trait blanc seul pour une famille inconnue', () => {
+        const layers = signallingLayers();
+        const casing = layers.find((l) => l.id === SIGNALLING_CASING_LAYER_ID);
+        const strokes = layers.filter((l) => l.id !== SIGNALLING_CASING_LAYER_ID);
+        for (const family of [...SIGNALLING_FAMILIES.map((f) => f.key), 'unknown', undefined, '']) {
+            const drawn = strokes.some((l) => matches(l.filter, { family }));
+            expect(matches(casing.filter, { family }), String(family)).toBe(drawn);
+        }
+        expect(matches(casing.filter, { family: 'unknown' })).toBe(false);
     });
 
     it('adresse des tuiles de l’ère', () => {

@@ -3,9 +3,19 @@ import { dropStaleServerSeo, serverSeoCovers } from '../../resources/js/lib/serv
 
 /** Faux <head> : balises du serveur (data-vff-seo) retirables une à une, comme dans le navigateur. */
 function fakeHead({ url, locale }) {
-    const make = (attr, selector) => ({
+    const make = (attr, selector, matching = []) => ({
         selector,
-        getAttribute: () => attr,
+        attributes: { content: attr, 'data-vff-seo': '' },
+        getAttribute(name) {
+            return this.attributes[name] ?? null;
+        },
+        setAttribute(name, value) {
+            this.attributes[name] = value;
+        },
+        removeAttribute(name) {
+            delete this.attributes[name];
+        },
+        matches: (s) => matching.includes(s),
         remove() {
             this.removed = true;
         },
@@ -13,6 +23,8 @@ function fakeHead({ url, locale }) {
     const tags = [
         make(url, 'meta[property="og:url"][data-vff-seo]'),
         make(locale, 'meta[property="og:locale"][data-vff-seo]'),
+        make('Description de la gare de Bondy', '[data-vff-seo]', ['meta[name="description"]']),
+        make('https://vff-project.org/stations/bondy', '[data-vff-seo]', ['link[rel="canonical"]']),
         make('x', '[data-vff-seo]'),
     ];
     const head = {
@@ -60,5 +72,19 @@ describe('dropStaleServerSeo', () => {
         const others = fakeHead({ url: 'https://vff-project.org/stations/bondy', locale: 'fr_FR' });
         dropStaleServerSeo('/stations/bondy', 'de_DE');
         expect(others.every((t) => t.removed)).toBe(true);
+    });
+
+    it('garde une description générale, sans la marque du serveur, et retire l’adresse canonique', () => {
+        const tags = fakeHead({ url: 'https://vff-project.org/stations/bondy', locale: 'fr_FR' });
+        const [, , description, canonical, other] = tags;
+        dropStaleServerSeo('/lines', 'fr_FR', 'Encyclopédie collaborative du rail français');
+
+        expect(description.removed).toBeUndefined();
+        expect(description.getAttribute('content')).toBe(
+            'Encyclopédie collaborative du rail français',
+        );
+        expect(description.getAttribute('data-vff-seo')).toBeNull();
+        expect(canonical.removed).toBe(true);
+        expect(other.removed).toBe(true);
     });
 });

@@ -3,8 +3,8 @@
 namespace App\Support\Seo;
 
 use App\Http\Resources\MediaResource;
-use App\Models\Line;
 use App\Models\Media;
+use App\Services\Api\MediaQuery;
 use Illuminate\Http\Request;
 
 /**
@@ -21,7 +21,10 @@ final class PageMetadata
     /** Nombre d'images de la fiche ligne citées dans les données structurées (comme le navigateur). */
     private const LINE_IMAGES = 4;
 
-    public function __construct(private readonly Request $request) {}
+    public function __construct(
+        private readonly Request $request,
+        private readonly MediaQuery $media,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $page  page Inertia (`component`, `props`, `url`)
@@ -63,11 +66,19 @@ final class PageMetadata
         $description = ($line['description'] ?? null)
             ? mb_substr((string) $line['description'], 0, 300)
             : __('lines.meta_description', ['name' => $line['name']]);
-        $images = $this->lineImages($line['slug']);
-        $first = $images[0] ?? null;
+        $images = isset($line['id']) ? $this->lineImages((int) $line['id']) : [];
+        // Première image affichable : un média sans adresse d'image (document sans aperçu) est sauté.
+        $first = null;
+        foreach ($images as $media) {
+            $url = StructuredData::imageUrl($media);
+            if ($url !== null) {
+                $first = ['url' => $url, 'alt' => $media['caption'] ?? null];
+                break;
+            }
+        }
 
         return $this->build($origin, '/lines/'.$line['slug'], $line['name'].' - VFF', $line['name'], $description, 'article',
-            $first === null ? null : ['url' => $first['display_url'] ?? $first['thumb_url'], 'alt' => $first['caption'] ?? null],
+            $first,
             [
                 StructuredData::line($origin, $line, $line['description'] ?? null, $images),
                 StructuredData::breadcrumb($origin, [
@@ -101,7 +112,7 @@ final class PageMetadata
         $description = __('materials.meta_show', ['name' => $material['name']]);
         $path = '/materials/'.$material['slug'];
         $image = $material['image'] ?? null;
-        $imageUrl = is_array($image) ? ($image['display_url'] ?? $image['thumb_url'] ?? null) : null;
+        $imageUrl = is_array($image) ? StructuredData::imageUrl($image) : null;
 
         return $this->build($origin, $path, $material['name'].' - VFF', $material['name'], $description, 'article',
             $imageUrl === null ? null : ['url' => $imageUrl, 'alt' => $material['name']],
@@ -151,23 +162,14 @@ final class PageMetadata
     }
 
     /**
-     * Premières images Commons de la ligne, dans l'ordre de la galerie (époque représentée, la plus
-     * ancienne d'abord), mises en forme comme l'API des médias.
+     * Premiers médias de la ligne, dans l'ordre de la galerie (MediaQuery::galleryOrder, époque
+     * représentée la plus ancienne d'abord), mis en forme comme l'API des médias.
      *
      * @return list<array<string, mixed>>
      */
-    private function lineImages(string $slug): array
+    private function lineImages(int $lineId): array
     {
-        $lineId = Line::query()->where('slug', $slug)->value('id');
-        if ($lineId === null) {
-            return [];
-        }
-
-        return Media::query()
-            ->where('mediable_type', Line::class)
-            ->where('mediable_id', $lineId)
-            ->orderByRaw('depicted_year ASC NULLS LAST')
-            ->orderBy('id')
+        return $this->media->galleryOrder($this->media->forLine($lineId))
             ->limit(self::LINE_IMAGES)
             ->get()
             ->map(fn (Media $m): array => MediaResource::make($m)->resolve($this->request))

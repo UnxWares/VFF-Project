@@ -3,6 +3,7 @@
 namespace Tests\Feature\Commands;
 
 use App\Models\Era;
+use App\Services\LevelCrossings\LevelCrossingTiles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
@@ -190,6 +191,20 @@ class SncfImportCommandsTest extends TestCase
         $this->artisan('vff:import-sncf-level-crossings')->assertSuccessful();
         $this->assertEquals($snapshot, DB::table('sncf_level_crossings')->orderBy('id_if')->get(['id_if', 'libelle', 'pk_m'])->toArray());
         Http::assertSent(fn (Request $r) => str_contains($r->url(), 'limit=-1') && str_contains($r->url(), 'select=id_if%2Clibelle'));
+    }
+
+    public function test_level_crossings_import_invalidates_the_cached_map_tiles(): void
+    {
+        $tiles = app(LevelCrossingTiles::class);
+        $n = 2 ** 11;
+        $x = (int) floor((2.33 + 180) / 360 * $n);
+        $y = (int) floor((1 - log(tan(deg2rad(48.83)) + 1 / cos(deg2rad(48.83))) / M_PI) / 2 * $n);
+        $this->assertSame('', $tiles->tile(11, $x, $y), 'tuile vide, mise en cache');
+
+        Http::fake([self::API.'liste-des-passages-a-niveau/*' => Http::response($this->jsonFixture('Sncf/liste-des-passages-a-niveau.json'))]);
+        $this->artisan('vff:import-sncf-level-crossings')->assertSuccessful();
+
+        $this->assertStringContainsString('PN-1', $tiles->tile(11, $x, $y));
     }
 
     public function test_level_crossings_import_fails_on_http_error(): void

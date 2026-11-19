@@ -84,6 +84,12 @@ final class ApiCodeSamples implements DocumentTransformer
             'js' => 'console.log(`${body.distance_km} km, ${body.duration_h} h (indicatif)`, body.lines.map((l) => l.line_name));',
             'py' => "print(f\"{body['distance_km']} km, {body['duration_h']} h (indicatif)\", [l[\"line_name\"] for l in body[\"lines\"]])",
         ],
+        'route.compare' => [
+            'path' => '/route/compare',
+            'query' => ['from' => 'angouleme', 'to' => 'limoges-benedictins', 'era' => 1930, 'compare' => 2026],
+            'js' => 'const { earlier, later, differences } = body;'."\n".'console.log(differences.outcome, earlier.route?.distance_km, later.route?.distance_km, differences.lines_only_earlier.map((l) => [l.line_name, l.other_era]));',
+            'py' => "earlier, later, diff = body[\"earlier\"], body[\"later\"], body[\"differences\"]\nprint(diff[\"outcome\"], (earlier[\"route\"] or {}).get(\"distance_km\"), (later[\"route\"] or {}).get(\"distance_km\"))\nfor line in diff[\"lines_only_earlier\"]:\n    print(line[\"line_name\"], line[\"other_era\"])",
+        ],
         'eras.compare' => [
             'path' => '/eras/1930/compare/1980',
             'query' => [],

@@ -100,7 +100,8 @@ trait BuildsRailNetwork
             'description' => 'Ouverture de la ligne.',
         ]);
 
-        $this->material = Material::factory()->create(['slug' => 'z-6400-test', 'name' => 'Z 6400']);
+        // Type fixé : tiré au hasard, il tombait parfois sur « locomotive électrique » et faussait les filtres par type.
+        $this->material = Material::factory()->create(['slug' => 'z-6400-test', 'name' => 'Z 6400', 'type' => 'automotrice']);
         $this->line->materials()->attach($this->material->id);
 
         $now = now();

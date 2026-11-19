@@ -63,6 +63,8 @@ export function signallingLayers() {
             type: 'line',
             source: SIGNALLING_SOURCE_ID,
             'source-layer': SIGNALLING_SOURCE_LAYER,
+            // Même filtre que les traits : sans famille reconnue, pas de liseré sans trait dessus.
+            filter: ['in', ['get', 'family'], ['literal', SIGNALLING_FAMILIES.map((f) => f.key)]],
             layout: { 'line-join': 'round', 'line-cap': 'round' },
             paint: { 'line-color': OVERLAY_HALO, 'line-width': CASING_WIDTH, 'line-opacity': 0.9 },
         },

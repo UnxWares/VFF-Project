@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\LevelCrossingGroup;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -47,10 +48,59 @@ class LevelCrossing extends Model
         ];
     }
 
-    /** @return BelongsTo<Line, $this> */
+    /**
+     * Ligne VFF qui porte le code SNCF du PN. `lines.code` n'est pas unique (aucune contrainte) :
+     * quand plusieurs fiches partagent un code, la relation, la fiche ligne, les filtres et les
+     * tuiles retiennent la même, voir ownerLineIdSql().
+     *
+     * @return BelongsTo<Line, $this>
+     */
     public function line(): BelongsTo
     {
-        return $this->belongsTo(Line::class, 'code_ligne', 'code');
+        return $this->belongsTo(Line::class, 'code_ligne', 'code')
+            ->whereRaw('lines.id = '.self::ownerLineIdSql('lines.code'));
+    }
+
+    /**
+     * Expression SQL de l'identifiant de la ligne qui porte un code SNCF : la fiche du réseau
+     * principal (RFN) d'abord, puis la plus ancienne (plus petit identifiant). Choix déterministe,
+     * pour qu'un PN ne soit ni dupliqué ni attribué à deux fiches.
+     *
+     * @param  string  $codeColumn  colonne ou expression du code (`pn.code_ligne`, `lines.code`)
+     */
+    public static function ownerLineIdSql(string $codeColumn): string
+    {
+        return "(SELECT o.id FROM lines o WHERE o.code = {$codeColumn} ORDER BY COALESCE(o.network = 'principal', false) DESC, o.id LIMIT 1)";
+    }
+
+    /**
+     * PN d'une ligne : ceux de son code SNCF, si la ligne en est la fiche (ownerLineIdSql).
+     * Une ligne sans code n'en a aucun.
+     *
+     * @param  Builder<LevelCrossing>  $query
+     */
+    public function scopeOfLine(Builder $query, int $lineId, ?string $code): void
+    {
+        if ($code === null || $code === '') {
+            $query->whereRaw('1 = 0');
+
+            return;
+        }
+        $query->where('code_ligne', $code)
+            ->whereRaw(self::ownerLineIdSql('sncf_level_crossings.code_ligne').' = ?', [$lineId]);
+    }
+
+    /**
+     * Définition de la classe dans la langue demandée (langue courante par défaut). Null si la
+     * classe est illisible ou hors de la liste officielle : jamais de clé de traduction brute.
+     */
+    public function classLabel(?string $lang = null): ?string
+    {
+        $class = $this->class;
+
+        return $class !== null && in_array($class, LevelCrossingGroup::CLASSES, true)
+            ? trans("level_crossings.classes.{$class}", [], $lang)
+            : null;
     }
 
     /**

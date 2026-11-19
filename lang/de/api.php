@@ -78,6 +78,7 @@ return [
             'accident' => 'Eintrag eines Unfalls: betroffene Strecken und Abschnitte, Züge, Quellen und zu prüfende Punkte.',
             'search' => 'Suche nach Namen in Strecken, Bahnhöfen und Rollmaterial. Mindestens 2 Zeichen.',
             'route' => 'Bahnroute zwischen zwei Bahnhöfen im Netz einer Epoche: Entfernung, Halte und Verlauf.',
+            'route_compare' => 'Dieselbe Fahrt in zwei Epochen: die Route in jeder Epoche oder der Grund, warum es keine gibt, und was sich geändert hat (Länge, stillgelegte oder neue Strecken).',
             'sources' => 'Verzeichnis der Datenanbieter und ihrer Nutzungsbedingungen.',
             'source' => 'Ein Anbieter aus dem Verzeichnis, bezeichnet durch den Schlüssel provenance.provider der anderen Antworten.',
         ],

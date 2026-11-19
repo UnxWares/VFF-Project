@@ -58,11 +58,18 @@ final class StructuredData
         return str_replace('<', '\u003c', $json);
     }
 
-    /** Adresse absolue à partir d'un chemin (ou d'une adresse) du site. */
+    /**
+     * Adresse absolue à partir d'un chemin (ou d'une adresse) du site. Une adresse sans protocole
+     * (« //upload.wikimedia.org/… », forme courante chez Wikimedia) désigne un autre hôte : elle est
+     * complétée en https, jamais rattachée au site.
+     */
     public static function absoluteUrl(string $origin, string $path): string
     {
         if (preg_match('#^https?://#i', $path) === 1) {
             return $path;
+        }
+        if (str_starts_with($path, '//')) {
+            return 'https:'.$path;
         }
 
         return rtrim($origin, '/').'/'.ltrim($path, '/');
@@ -169,8 +176,8 @@ final class StructuredData
      */
     public static function imageObject(?array $m): ?array
     {
-        $url = $m['display_url'] ?? $m['thumb_url'] ?? null;
-        if ($url === null || $url === '') {
+        $url = self::imageUrl($m);
+        if ($url === null) {
             return null;
         }
         $thumb = $m['thumb_url'] ?? null;
@@ -190,6 +197,24 @@ final class StructuredData
             'copyrightNotice' => ($m['license'] ?? null) && ! ($m['license_url'] ?? null) ? $m['license'] : null,
             'acquireLicensePage' => $m['source_url'] ?? null,
         ];
+    }
+
+    /**
+     * Adresse affichable d'un média (ressource MediaResource) : grande taille, sinon vignette, sinon
+     * null (média sans image, ex. document sans aperçu).
+     *
+     * @param  array<string, mixed>|null  $m
+     */
+    public static function imageUrl(?array $m): ?string
+    {
+        foreach (['display_url', 'thumb_url'] as $key) {
+            $url = $m[$key] ?? null;
+            if (is_string($url) && $url !== '') {
+                return $url;
+            }
+        }
+
+        return null;
     }
 
     /**

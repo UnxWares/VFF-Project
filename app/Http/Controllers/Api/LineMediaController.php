@@ -11,7 +11,6 @@ use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -86,11 +85,7 @@ class LineMediaController extends Controller
         $page = max(1, $request->integer('page', 1));
         $sort = $request->input('sort', 'oldest');
 
-        $base = fn (): Builder => Media::query()
-            ->where('mediable_type', Line::class)
-            ->where('mediable_id', $line->id);
-
-        $q = $base();
+        $q = $query->forLine($line->id);
         if ($request->filled('type')) {
             $q->where('type', $request->input('type'));
         }
@@ -99,12 +94,7 @@ class LineMediaController extends Controller
         }
 
         $total = (clone $q)->count();
-        match ($sort) {
-            'newest' => $q->orderByRaw('depicted_year DESC NULLS LAST'),
-            'featured' => $q->orderByDesc('is_featured')->orderByRaw('depicted_year ASC NULLS LAST'),
-            default => $q->orderByRaw('depicted_year ASC NULLS LAST'),
-        };
-        $items = $q->orderBy('id')
+        $items = $query->galleryOrder($q, $sort)
             ->select('*')
             ->selectRaw('ST_Y(location) AS lat, ST_X(location) AS lng')
             ->offset(($page - 1) * $perPage)

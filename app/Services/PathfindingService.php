@@ -242,7 +242,14 @@ class PathfindingService
         return $out;
     }
 
-    private function resolveEra(?int $year): object
+    /**
+     * Ère dont le réseau sert au calcul pour une année demandée (null : réseau actuel).
+     *
+     * @return object{id: int, year: int, is_current: bool}
+     *
+     * @throws RouteException era_not_found
+     */
+    public function resolveEra(?int $year): object
     {
         $eras = DB::table('eras')->orderBy('year')->get(['id', 'year', 'is_current']);
         $current = $eras->firstWhere('is_current', true) ?? $eras->last();

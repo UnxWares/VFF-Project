@@ -50,9 +50,25 @@ class NotificationController extends Controller
 
         // Lien relatif écrit par l'application (ContributionNotification::path) : jamais une
         // adresse externe, même si la donnée était altérée.
-        return is_string($url) && str_starts_with($url, '/') && ! str_starts_with($url, '//')
+        return is_string($url) && self::isInternalPath($url)
             ? redirect($url)
             : redirect()->route('notifications.index');
+    }
+
+    /**
+     * Chemin interne du site : commence par une seule barre, sans barre inverse (les navigateurs
+     * lisent « /\hôte » comme « //hôte »), sans caractère de contrôle, et sans protocole ni hôte
+     * selon parse_url.
+     */
+    private static function isInternalPath(string $url): bool
+    {
+        if (! str_starts_with($url, '/') || str_starts_with($url, '//') || str_contains($url, '\\')
+            || preg_match('/[\x00-\x1F\x7F]/', $url) === 1) {
+            return false;
+        }
+        $parts = parse_url($url);
+
+        return $parts !== false && ! isset($parts['scheme']) && ! isset($parts['host']);
     }
 
     public function markAllAsRead(Request $request): RedirectResponse

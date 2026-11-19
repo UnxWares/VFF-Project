@@ -98,6 +98,10 @@
             items: [
                 { path: '/api/v1/search?q={query}', key: 'search' },
                 { path: '/api/v1/route?from={station}&to={station}&era={year}', key: 'route' },
+                {
+                    path: '/api/v1/route/compare?from={station}&to={station}&era={year}&compare={year}',
+                    key: 'route_compare',
+                },
                 { path: '/api/v1/sources', key: 'sources' },
                 { path: '/api/v1/sources/{provider}', key: 'source' },
             ],

@@ -18,10 +18,16 @@ final class SignallingMap
 
     private const CACHED_MAX_ZOOM = 10;
 
-    /** Recalcule la vue matérialisée (après un import de la signalisation) et vide le cache des tuiles. */
+    /**
+     * Recalcule la vue matérialisée (après un import de la signalisation) et vide le cache des tuiles.
+     * Sans bloquer les lectures (CONCURRENTLY, grâce à l'index unique de la migration
+     * 2026_11_20_030000), sauf si la vue n'a encore jamais été remplie : PostgreSQL refuse alors le
+     * mode concurrent, et personne ne lit une vue vide.
+     */
     public function refresh(): int
     {
-        DB::statement('REFRESH MATERIALIZED VIEW line_signalling_map');
+        $populated = (bool) DB::scalar("SELECT ispopulated FROM pg_matviews WHERE matviewname = 'line_signalling_map'");
+        DB::statement('REFRESH MATERIALIZED VIEW '.($populated ? 'CONCURRENTLY ' : '').'line_signalling_map');
         Cache::increment('signalling-map:version');
 
         return (int) DB::scalar('SELECT COUNT(*) FROM line_signalling_map');

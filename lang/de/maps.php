@@ -210,7 +210,7 @@ return [
         'sheet_term' => 'Streckenseiten',
         'sheet_text' => 'Klicken Sie auf eine Strecke, um ihren Status in der gewählten Epoche zu sehen und ihre Seite zu öffnen. Bahnhöfe erscheinen beim Hineinzoomen.',
         'route_term' => 'Verbindung',
-        'route_text' => 'Geben Sie zwei Bahnhöfe und ein Jahr an: Die Karte zeichnet den Weg auf dem damals betriebenen Netz und listet die befahrenen Strecken auf.',
+        'route_text' => 'Geben Sie zwei Bahnhöfe und ein Jahr an: Die Karte zeichnet den Weg auf dem damals betriebenen Netz und listet die befahrenen Strecken auf. Mit „Mit einer anderen Epoche vergleichen“ wird dieselbe Fahrt für ein zweites Jahr gezeichnet, die ältere gestrichelt mit blauem Rand.',
         'layers_term' => 'Ebenen',
         'layers_text' => 'Die Ebene OpenRailwayMap blendet die heutige Infrastruktur ein: Signale, Geschwindigkeiten, Elektrifizierung. Die Schaltfläche mit der Uhr oben rechts auf der Karte zeigt alte Karten des IGN. Die Ebene Unfälle zeigt die Unfälle bis zur angezeigten Epoche; ein blasser Kreis bedeutet, dass nur die Gemeinde bekannt ist. Die Ebene Bahnübergänge zeigt die von SNCF Réseau veröffentlichten Übergänge, ab dem Maßstab eines Départements. Die Ebene Streckenblock färbt die heutigen Strecken nach ihrem Blocksystem.',
         'views_term' => 'Epochen vergleichen',

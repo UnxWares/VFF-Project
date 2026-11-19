@@ -243,6 +243,20 @@ class VffMcpAccidentToolsTest extends TestCase
         $this->assertSame($this->tool('compare_eras', ['from' => 1930, 'to' => 1980])[0]['changes'], $data['changes']);
     }
 
+    public function test_compare_eras_reads_the_providers_from_the_cached_summary(): void
+    {
+        $first = $this->tool('compare_eras', ['from' => 1930, 'to' => 1980])[0];
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $again = $this->tool('compare_eras', ['from' => 1930, 'to' => 1980])[0];
+        $queries = array_column(DB::getQueryLog(), 'query');
+        DB::disableQueryLog();
+
+        $this->assertSame($first['attribution'], $again['attribution']);
+        $this->assertSame([], array_values(array_filter($queries, fn (string $sql): bool => str_contains($sql, 'line_segments'))));
+    }
+
     public function test_compare_eras_errors(): void
     {
         [$data, $error] = $this->tool('compare_eras', ['from' => 1932, 'to' => 1938]);

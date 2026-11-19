@@ -16,8 +16,10 @@ use App\Notifications\ContributionRemoved;
 use App\Services\Notifications\ContributionNotifier;
 use App\Services\TraceContributionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use Tests\Support\ActsAsRoles;
 use Tests\Support\BuildsRailNetwork;
 use Tests\TestCase;
@@ -113,8 +115,8 @@ class ContributionNotificationsTest extends TestCase
 
         $data = $this->soleData($author);
         $this->assertSame(NotificationKind::Approved->value, $data['kind']);
-        $this->assertSame("Your contribution no. {$c->id} has received its first approval", $data['title']);
-        $this->assertSame('Line: Paris - Versailles (999 000). It will be published once a second reviewer has approved it.', $data['body']);
+        $this->assertSame("Your contribution no. {$c->id} has received 1 approval (2 needed)", $data['title']);
+        $this->assertSame('Line: Paris - Versailles (999 000). It will be published once one more reviewer has approved it.', $data['body']);
         $this->assertSame("/contribute/mine#contribution-{$c->id}", $data['url']);
         $this->assertStringNotContainsString('Paul', json_encode($data));
     }
@@ -168,6 +170,61 @@ class ContributionNotificationsTest extends TestCase
         $this->assertSame(NotificationKind::Rejected->value, $data['kind']);
         $this->assertSame("Votre contribution n° {$c->id} n’a pas été retenue", $data['title']);
         $this->assertSame('Source introuvable.', $data['reason']);
+    }
+
+    public function test_a_closed_contribution_cannot_be_rejected_again(): void
+    {
+        $author = $this->member('contributor');
+        $validator = $this->member('validator');
+        $c = $this->contribution($author);
+        $this->actingAs($validator)->post("/validate/{$c->id}/reject", ['notes' => 'Source introuvable.'])->assertSessionHas('success');
+
+        // Second refus (double clic, autre validateur) : message clair, rien de modifié, aucune seconde notification.
+        $this->actingAs($this->member('admin'))->post("/validate/{$c->id}/reject", ['notes' => 'Autre motif.'])
+            ->assertSessionHas('error', __('editor.validate.flash.closed'));
+        $this->assertSame('Source introuvable.', $c->fresh()->review_notes);
+        $this->assertSame((int) $validator->id, (int) $c->fresh()->reviewed_by);
+        $this->assertSame(1, $author->notifications()->count());
+
+        $applied = $this->contribution($author, 'applied');
+        $this->actingAs($validator)->post("/validate/{$applied->id}/reject")->assertSessionHas('error', __('editor.validate.flash.closed'));
+        $this->assertSame('applied', $applied->fresh()->status->value);
+        $this->assertSame(1, $author->notifications()->count());
+    }
+
+    public function test_the_approval_text_gives_the_count_and_the_threshold(): void
+    {
+        $author = User::factory()->make(['name' => 'Jeanne']);
+
+        $this->app->setLocale('fr');
+        $one = (new ContributionApproved(5, 1, 3, 'Paris - Versailles'))->toDatabase($author);
+        $this->assertSame('Votre contribution n° 5 a reçu 1 validation sur les 3 nécessaires', $one['title']);
+        $this->assertSame('Ligne concernée : Paris - Versailles. Elle sera publiée quand 2 autres validateurs l’auront approuvée.', $one['body']);
+        $two = (new ContributionApproved(5, 2, 3))->toDatabase($author);
+        $this->assertSame('Votre contribution n° 5 a reçu 2 validations sur les 3 nécessaires', $two['title']);
+        $this->assertSame('Elle sera publiée quand un autre validateur l’aura approuvée.', $two['body']);
+
+        $this->app->setLocale('de');
+        $de = (new ContributionApproved(5, 2, 3))->toDatabase($author);
+        $this->assertSame('Ihr Beitrag Nr. 5 hat 2 Freigaben erhalten (3 erforderlich)', $de['title']);
+        $this->assertSame('Er wird veröffentlicht, sobald ein weiterer Prüfer ihn freigegeben hat.', $de['body']);
+    }
+
+    public function test_the_site_notification_is_immediate_and_the_mail_is_queued_after_commit(): void
+    {
+        Queue::fake();
+        $author = $this->member('contributor');
+        $c = $this->contribution($author);
+
+        $this->actingAs($this->member('validator'))->post("/validate/{$c->id}/reject", ['notes' => 'Doublon.'])->assertSessionHas('success');
+
+        // Un travail par canal : le site sur la connexion sync (écrit pendant la requête), le courriel
+        // sur la connexion par défaut (un worker queue:work en production), tous deux après validation.
+        Queue::assertPushed(SendQueuedNotifications::class, 2);
+        Queue::assertPushed(SendQueuedNotifications::class, fn (SendQueuedNotifications $job) => $job->channels === ['database']
+            && $job->connection === 'sync' && $job->notification instanceof ContributionRejected && $job->notification->afterCommit === true);
+        Queue::assertPushed(SendQueuedNotifications::class, fn (SendQueuedNotifications $job) => $job->channels === ['mail']
+            && $job->connection === null && $job->tries === 3);
     }
 
     public function test_a_rejection_without_reason_says_so(): void

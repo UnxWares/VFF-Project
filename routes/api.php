@@ -77,6 +77,7 @@ Route::middleware('throttle:300,1')->group(function (): void {
     Route::get('/v1/lines/{line:slug}/signalling', [LineSignallingController::class, 'index'])->name('api.lines.signalling');
     Route::get('/v1/lines/{line:slug}/media', [LineMediaController::class, 'index'])->name('api.lines.media');
     Route::get('/v1/route', [RouteController::class, 'route'])->name('api.route');
+    Route::get('/v1/route/compare', [RouteController::class, 'compare'])->name('api.route.compare');
 
     // Événements datés et médias (lecture seule, pagination par curseur ; identifiants bornés comme ci-dessus).
     Route::get('/v1/events', [LineEventController::class, 'index'])->name('api.events.index');

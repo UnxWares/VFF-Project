@@ -78,6 +78,7 @@ return [
             'accident' => 'Entry for one accident: lines and sections concerned, trains, sources and points to check.',
             'search' => 'Search by name across lines, stations and rolling stock. At least 2 characters.',
             'route' => 'Rail route between two stations on the network of an era: distance, stops and route.',
+            'route_compare' => 'The same journey at two periods: the route at each one, or why there is none, and what changed (length, closed or new lines).',
             'sources' => 'Register of data providers and their reuse conditions.',
             'source' => 'One provider from the register, identified by the provenance.provider key used in other responses.',
         ],

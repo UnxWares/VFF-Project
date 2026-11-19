@@ -27,8 +27,8 @@ return [
             'body' => 'Er wird veröffentlicht, sobald zwei verschiedene Mitglieder ihn freigegeben haben.',
         ],
         'approved' => [
-            'title' => 'Ihr Beitrag Nr. :id hat eine erste Freigabe erhalten',
-            'body' => 'Er wird veröffentlicht, sobald ein zweiter Prüfer ihn freigegeben hat.',
+            'title' => 'Ihr Beitrag Nr. :id hat :count Freigabe erhalten (:threshold erforderlich)|Ihr Beitrag Nr. :id hat :count Freigaben erhalten (:threshold erforderlich)',
+            'body' => 'Er wird veröffentlicht, sobald ein weiterer Prüfer ihn freigegeben hat.|Er wird veröffentlicht, sobald :count weitere Prüfer ihn freigegeben haben.',
         ],
         'applied' => [
             'title' => 'Ihr Beitrag Nr. :id ist veröffentlicht',

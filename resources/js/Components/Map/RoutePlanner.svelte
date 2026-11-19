@@ -3,8 +3,16 @@
     import { onMount, tick, untrack } from 'svelte';
     import Field from '$components/ui/Field.svelte';
     import StationInput from './StationInput.svelte';
+    import RouteComparisonResult from './RouteComparisonResult.svelte';
     import { i18n } from '$lib/i18n.js';
     import { formatLocale } from '$lib/typo.js';
+    import {
+        defaultCompareYear,
+        firstEra,
+        readRouteParams,
+        summarySentences,
+        writeRouteParams,
+    } from '$lib/routeCompare.js';
 
     /**
      * Itinéraire historique : « de A à B en <année> » sur le réseau en service
@@ -12,7 +20,12 @@
      * (onRoute) et aligne la carte sur l'ère retenue. Quand la carte change de
      * décennie alors qu'un itinéraire est affiché, il est recalculé pour cette
      * décennie : on voit le trajet évoluer avec le réseau. Lien partageable :
-     * /maps?from=paris&to=brest&year=1930 calcule l'itinéraire à l'ouverture.
+     * /maps?from=paris&to=brest&year=1930 calcule l'itinéraire à l'ouverture, et l'adresse suit
+     * l'itinéraire affiché.
+     *
+     * « Comparer avec une autre époque » : le même trajet à une seconde année
+     * (GET /api/v1/route/compare, &compare_year=2026 dans l'adresse) ; le parent dessine les deux
+     * tracés (onCompare) et la carte reste sur l'ère de la première année.
      *
      * La décennie « actuelle » (currentEra, 2030) est le réseau d'aujourd'hui : le champ
      * « Année » affiche alors l'année en cours, que l'API ramène au réseau actuel.
@@ -24,6 +37,7 @@
         currentEra = null,
         mapAnchor = null,
         onRoute = () => {},
+        onCompare = () => {},
         onClear = () => {},
     } = $props();
 
@@ -40,9 +54,15 @@
     let toSlug = $state(null);
     let routeYear = $state(untrack(() => asInputYear(year)));
     let heritage = $state(false);
+    let compareOn = $state(false);
+    let compareYear = $state(untrack(() => defaultCompareYear(asInputYear(year), thisYear)));
+    // Comparaison affichée (réponse de /api/v1/route/compare) ; exclusive de `result`.
+    let comparison = $state.raw(null);
+    // Résumé annoncé aux lecteurs d'écran quand une comparaison arrive.
+    let announcement = $state('');
     let loading = $state(false);
     let error = $state(null);
-    let fieldErrors = $state({ from: null, to: null, year: null });
+    let fieldErrors = $state({ from: null, to: null, year: null, compare: null });
     let result = $state(null);
     let showStations = $state(false);
     let lastPropYear = untrack(() => year);
@@ -57,13 +77,16 @@
         });
 
     onMount(() => {
-        const q = new URL(window.location.href).searchParams;
-        if (!q.get('from') || !q.get('to')) return;
-        fromText = q.get('from');
-        toText = q.get('to');
-        const y = Number.parseInt(q.get('year') ?? '', 10);
-        if (Number.isFinite(y)) routeYear = y;
-        heritage = q.get('heritage') === '1';
+        const asked = readRouteParams(window.location.search);
+        if (!asked) return;
+        fromText = asked.from;
+        toText = asked.to;
+        if (asked.year !== null) routeYear = asked.year;
+        if (asked.compareYear !== null) {
+            compareOn = true;
+            compareYear = asked.compareYear;
+        }
+        heritage = asked.heritage;
         submit();
     });
 
@@ -72,8 +95,9 @@
         if (year === lastPropYear) return;
         lastPropYear = year;
         if (result && result.era_year === year) return;
+        if (comparison && untrack(() => firstEra(comparison, routeYear)) === year) return;
         routeYear = asInputYear(year);
-        if (result) untrack(() => submit());
+        if (result || comparison) untrack(() => submit());
     });
 
     function swap() {
@@ -107,8 +131,12 @@
             year: yearValid(routeYear)
                 ? null
                 : t('itinerary.errors.year_invalid', { min: minYear, max: maxInput }),
+            compare:
+                !compareOn || yearValid(compareYear)
+                    ? null
+                    : t('itinerary.errors.compare_year_invalid', { min: minYear, max: maxInput }),
         };
-        const first = ['from', 'to', 'year'].find((k) => fieldErrors[k]);
+        const first = ['from', 'to', 'year', 'compare'].find((k) => fieldErrors[k]);
         if (first) tick().then(() => document.getElementById(`${uid}-${first}`)?.focus());
         return !first;
     }
@@ -122,17 +150,20 @@
         controller = new AbortController();
         loading = true;
         error = null;
+        announcement = '';
+        const comparing = compareOn;
         const params = new URLSearchParams({
             from,
             to,
             era: String(routeYear),
+            ...(comparing && { compare: String(compareYear) }),
             ...(heritage && { heritage: '1' }),
         });
         try {
-            const res = await fetch(`/api/v1/route?${params}`, {
-                headers: { Accept: 'application/json' },
-                signal: controller.signal,
-            });
+            const res = await fetch(
+                comparing ? `/api/v1/route/compare?${params}` : `/api/v1/route?${params}`,
+                { headers: { Accept: 'application/json' }, signal: controller.signal },
+            );
             const json = await res.json();
             if (!res.ok) {
                 error = {
@@ -141,12 +172,32 @@
                     side: json?.side,
                 };
                 result = null;
+                comparison = null;
                 onClear();
                 return;
             }
-            result = json;
             showStations = false;
-            onRoute(json);
+            if (comparing) {
+                result = null;
+                comparison = json;
+                announcement = summarySentences(json, t, km).join(' ');
+                onCompare(json, firstEra(json, routeYear));
+            } else {
+                comparison = null;
+                result = json;
+                onRoute(json);
+            }
+            // Un slug saisi (lien partagé) laisse place au nom de la gare ; un nom de ville reste
+            // tel quel (il désigne toutes les gares de la ville).
+            if (json.from && from === json.from.slug) [fromText, fromSlug] = [json.from.name, from];
+            if (json.to && to === json.to.slug) [toText, toSlug] = [json.to.name, to];
+            shareRoute({
+                from,
+                to,
+                year: routeYear,
+                compareYear: comparing ? compareYear : null,
+                heritage,
+            });
         } catch (e) {
             if (e?.name === 'AbortError') return;
             error = { message: t('itinerary.errors.generic'), candidates: [] };
@@ -169,9 +220,20 @@
     function clear() {
         controller?.abort();
         result = null;
+        comparison = null;
         error = null;
         loading = false;
+        announcement = '';
+        shareRoute(null);
         onClear();
+    }
+
+    // L'adresse suit l'itinéraire affiché, pour pouvoir le partager.
+    function shareRoute(route) {
+        const next = writeRouteParams(window.location.href, route);
+        if (next !== window.location.href) {
+            window.history.replaceState(window.history.state, '', next);
+        }
     }
 
     // Un message d'erreur disparaît dès que le champ est corrigé.
@@ -179,6 +241,7 @@
         from: fromText.trim() ? null : fieldErrors.from,
         to: toText.trim() ? null : fieldErrors.to,
         year: yearValid(routeYear) ? null : fieldErrors.year,
+        compare: !compareOn || yearValid(compareYear) ? null : fieldErrors.compare,
     });
 
     const warnings = $derived.by(() => {
@@ -272,16 +335,49 @@
                 <button type="submit" class="vff-btn primary" aria-disabled={loading}>
                     <i class="bi {loading ? 'bi-hourglass-split' : 'bi-bezier2'}" aria-hidden="true"
                     ></i>
-                    {t('itinerary.submit')}
+                    {compareOn ? t('itinerary.compare.submit') : t('itinerary.submit')}
                 </button>
             </div>
-            <label class="vff-check route-heritage">
-                <input type="checkbox" bind:checked={heritage} />
-                {t('itinerary.heritage')}
-            </label>
+            <div class="route-options">
+                <label class="vff-check">
+                    <input type="checkbox" bind:checked={heritage} />
+                    {t('itinerary.heritage')}
+                </label>
+                <label class="vff-check">
+                    <input
+                        type="checkbox"
+                        bind:checked={compareOn}
+                        aria-controls={`${uid}-compare-field`}
+                    />
+                    {t('itinerary.compare.toggle')}
+                </label>
+            </div>
+            <div class="route-compare" id={`${uid}-compare-field`} hidden={!compareOn}>
+                <Field
+                    id={`${uid}-compare`}
+                    label={t('itinerary.compare.year')}
+                    hint={t('itinerary.compare.year_hint')}
+                    error={shownErrors.compare}
+                >
+                    {#snippet children(attrs)}
+                        <input
+                            {...attrs}
+                            class="vff-input"
+                            type="number"
+                            inputmode="numeric"
+                            min={minYear}
+                            max={maxInput}
+                            step="1"
+                            disabled={!compareOn}
+                            bind:value={compareYear}
+                        />
+                    {/snippet}
+                </Field>
+            </div>
         </form>
 
         <p class="planner-status" role="status">{loading ? t('itinerary.loading') : ''}</p>
+        <p class="vff-sr-only" role="status">{announcement}</p>
 
         <div class="planner-error" role="alert">
             {#if error}
@@ -305,7 +401,9 @@
             {/if}
         </div>
 
-        {#if result}
+        {#if comparison}
+            <RouteComparisonResult {comparison} {mapAnchor} onClear={clear} />
+        {:else if result}
             <div class="result">
                 <div class="summary">
                     <p class="trip">
@@ -420,7 +518,7 @@
         grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr) 9.5rem auto;
         grid-template-areas:
             'from swap to year submit'
-            'heritage heritage heritage heritage heritage';
+            'options options options compare .';
         gap: 12px 16px;
         align-items: start;
     }
@@ -436,9 +534,21 @@
     .route-submit {
         grid-area: submit;
     }
-    .route-heritage {
-        grid-area: heritage;
-        justify-self: start;
+    .route-options {
+        grid-area: options;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 24px;
+        align-self: start;
+    }
+    .route-compare {
+        grid-area: compare;
+    }
+    .route-compare[hidden] {
+        display: none;
+    }
+    .route-compare :global(.vff-hint) {
+        order: 3;
     }
     /* Bouton d'inversion et bouton d'envoi au niveau des champs (sous la ligne des libellés). */
     .swap,
@@ -616,7 +726,8 @@
                 'swap swap'
                 'to to'
                 'year submit'
-                'heritage heritage';
+                'options options'
+                'compare .';
         }
         .swap {
             justify-self: center;
@@ -634,8 +745,9 @@
                 'swap'
                 'to'
                 'year'
-                'submit'
-                'heritage';
+                'options'
+                'compare'
+                'submit';
         }
         .route-submit {
             margin-top: 0;

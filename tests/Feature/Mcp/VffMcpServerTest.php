@@ -280,6 +280,28 @@ class VffMcpServerTest extends TestCase
         $this->assertSame('station_not_in_network', $data['error']);
     }
 
+    public function test_historical_route_compares_two_eras(): void
+    {
+        $this->artisan('vff:build-network-graph')->assertSuccessful();
+
+        [$data, $error] = $this->tool('historical_route', ['from' => 'a', 'to' => 'd', 'year' => 2026, 'compare_year' => 1930, 'lang' => 'en']);
+        $this->assertFalse($error);
+        $this->assertSame(1930, $data['earlier']['era_year']);
+        $this->assertTrue($data['earlier']['available']);
+        $this->assertSame(['a', 'b', 'd'], array_column($data['earlier']['stations'], 'slug'));
+        $this->assertFalse($data['later']['available']);
+        $this->assertSame('station_not_in_network', $data['later']['unavailable']['error']);
+        $this->assertSame('declassified', $data['later']['unavailable']['status']);
+        $this->assertSame('lost', $data['differences']['outcome']);
+        $this->assertSame(['rfn-420000' => 'open', 'ligne-b-d' => 'closed'], array_column($data['differences']['lines_only_earlier'], 'other_era', 'slug'));
+        $this->assertStringContainsString('year=1930&compare_year=2030', $data['vff_url']);
+
+        [$data, $error] = $this->tool('historical_route', ['from' => 'a', 'to' => 'c', 'year' => 1931, 'compare_year' => 1935]);
+        $this->assertTrue($error);
+        $this->assertSame('same_era', $data['error']);
+        $this->assertStringContainsString('1930', $data['message']);
+    }
+
     public function test_sources_and_licences_hide_internal_notes(): void
     {
         [$data] = $this->tool('sources_and_licences');

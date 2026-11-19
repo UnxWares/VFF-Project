@@ -4,6 +4,7 @@ namespace Tests\Feature\Api;
 
 use App\Models\Era;
 use App\Models\Line;
+use App\Services\Signalling\SignallingMap;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -68,6 +69,29 @@ class SignallingMapTest extends TestCase
         foreach (['automatic_block', 'cab', 'BAL', 'TVM-430', 'KVB', 'rfn-999000'] as $value) {
             $this->assertStringContainsString($value, $tile);
         }
+    }
+
+    public function test_tiles_are_cached_for_a_day_like_the_level_crossing_tiles(): void
+    {
+        $this->get('/api/v1/eras/2030/signalling/tiles/8/129/88.mvt')->assertOk()->assertHeader('Cache-Control', 'max-age=86400, public');
+    }
+
+    public function test_refresh_is_concurrent_once_populated_and_falls_back_while_empty(): void
+    {
+        $this->assertSame(1, (int) DB::scalar("SELECT COUNT(*) FROM pg_indexes WHERE indexname = 'line_signalling_map_piece_unique'"));
+        $map = app(SignallingMap::class);
+
+        $statements = [];
+        DB::listen(function ($query) use (&$statements): void {
+            $statements[] = $query->sql;
+        });
+        $this->assertSame(2, $map->refresh());
+        $this->assertContains('REFRESH MATERIALIZED VIEW CONCURRENTLY line_signalling_map', $statements);
+
+        DB::statement('REFRESH MATERIALIZED VIEW line_signalling_map WITH NO DATA');
+        $statements = [];
+        $this->assertSame(2, $map->refresh(), 'vue jamais remplie : repli sans CONCURRENTLY');
+        $this->assertContains('REFRESH MATERIALIZED VIEW line_signalling_map', $statements);
     }
 
     public function test_other_eras_are_empty_and_unknown_eras_are_404(): void

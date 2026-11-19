@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\LevelCrossings\LevelCrossingTiles;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -95,8 +96,13 @@ class ImportSncfLevelCrossings extends Command
             );
         }
 
+        // Les tuiles de la carte ne sont plus celles d'avant l'import.
+        app(LevelCrossingTiles::class)->invalidate();
+
         $stats = DB::selectOne('SELECT COUNT(*) n, COUNT(DISTINCT code_ligne) lignes, COUNT(pk_m) avec_pk FROM sncf_level_crossings');
         $this->info("✓ {$stats->n} PN ({$stats->avec_pk} avec PK) sur {$stats->lignes} lignes · {$skipped} ignorés (sans coordonnées ou doublons)");
+        // Les passages à niveau calent les PK de la signalisation sur la carte.
+        $this->line('Pour recaler la signalisation sur ces PN : php artisan vff:refresh-signalling-map');
 
         return self::SUCCESS;
     }

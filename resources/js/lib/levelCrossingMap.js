@@ -76,7 +76,10 @@ export function levelCrossingPopupHtml(p, t, lang, link) {
         p.class === undefined || p.class === null || p.class === '' ? null : Number(p.class);
     const pk = pkLabel(p.pk_m);
     const rows = [
-        cls !== null ? `<li>${escapeHtml(t(`level_crossings.classes.${cls}`))}</li>` : '',
+        // `group` est absent des tuiles pour une classe hors de la liste officielle : pas de définition.
+        cls !== null && p.group
+            ? `<li>${escapeHtml(t(`level_crossings.classes.${cls}`))}</li>`
+            : '',
         pk ? row(t('maps.level_crossings.pk'), pk) : '',
         p.line_name || p.line_code
             ? row(t('maps.level_crossings.line'), p.line_name ?? p.line_code)

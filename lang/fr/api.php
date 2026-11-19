@@ -79,6 +79,7 @@ return [
             'accident' => 'Fiche d’un accident : lignes et portions concernées, trains, sources et points à vérifier.',
             'search' => 'Recherche par nom dans les lignes, les gares et le matériel. 2 caractères au minimum.',
             'route' => 'Itinéraire ferroviaire entre deux gares sur le réseau d’une ère : distance, étapes et tracé.',
+            'route_compare' => 'Le même trajet à deux époques : l’itinéraire de chacune, ou la raison de son absence, et ce qui a changé (longueur, lignes fermées ou nouvelles).',
             'sources' => 'Registre des fournisseurs de données et de leurs conditions de réutilisation.',
             'source' => 'Un fournisseur du registre, désigné par la clé provenance.provider des autres réponses.',
         ],

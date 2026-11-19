@@ -5,6 +5,8 @@ namespace App\Notifications;
 use App\Enums\NotificationKind;
 use App\Models\Contribution;
 use App\Models\User;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 
 /**
@@ -15,13 +17,25 @@ use Illuminate\Notifications\Messages\MailMessage;
  *
  * Vie privée : le texte ne nomme jamais un autre membre (ni l'auteur pour les validateurs, ni le
  * validateur pour l'auteur) ; il désigne la contribution par son numéro et la ligne visée.
+ *
+ * Envoi : le courriel part dans la file d'attente (un par destinataire, après la validation de la
+ * transaction), pour que la décision d'un validateur ne dépende pas de la messagerie ; il faut un
+ * `queue:work` en production. La notification sur le site, elle, est écrite tout de suite
+ * (connexion `sync`) : le membre la voit dès son prochain affichage.
  */
-abstract class ContributionNotification extends ServiceNotification
+abstract class ContributionNotification extends ServiceNotification implements ShouldQueue
 {
+    use Queueable;
+
+    /** Essais d'un courriel avant de le tenir pour échoué (table failed_jobs). */
+    public int $tries = 3;
+
     public function __construct(
         public readonly int $contributionId,
         public readonly ?string $subject = null,
-    ) {}
+    ) {
+        $this->afterCommit();
+    }
 
     /**
      * Ligne visée par une contribution, pour le texte : « Paris - Le Havre (340000) », le nom
@@ -46,6 +60,28 @@ abstract class ContributionNotification extends ServiceNotification
     {
         // Le site d'abord : une messagerie absente ou en panne n'empêche pas la notification sur le site.
         return ['database', 'mail'];
+    }
+
+    /**
+     * Connexion de file par canal : la notification du site s'écrit pendant la requête, le courriel
+     * suit la connexion par défaut (QUEUE_CONNECTION).
+     *
+     * @return array<string, string>
+     */
+    public function viaConnections(): array
+    {
+        return ['database' => 'sync'];
+    }
+
+    /**
+     * Attente entre deux essais d'un courriel (s) : une messagerie momentanément indisponible a le
+     * temps de revenir.
+     *
+     * @return list<int>
+     */
+    public function backoff(): array
+    {
+        return [60, 300];
     }
 
     abstract public function kind(): NotificationKind;

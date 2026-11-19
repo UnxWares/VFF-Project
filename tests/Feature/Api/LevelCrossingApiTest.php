@@ -2,9 +2,13 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\LevelCrossing;
 use App\Models\Line;
+use App\Services\LevelCrossings\LevelCrossingTiles;
+use App\Services\LevelCrossings\LineLevelCrossings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\SeedsLevelCrossings;
 use Tests\TestCase;
@@ -152,6 +156,81 @@ class LevelCrossingApiTest extends TestCase
         $this->assertArrayHasKey('/lines/{line}/level-crossings', $paths);
         $this->assertArrayHasKey('/level-crossings/tiles/{z}/{x}/{y}.mvt', $paths);
         $this->assertArrayHasKey('/eras/{year}/signalling/tiles/{z}/{x}/{y}.mvt', $paths);
+    }
+
+    public function test_a_shared_sncf_code_gives_each_crossing_to_one_line_only(): void
+    {
+        // `lines.code` n'est pas unique : une fiche plus récente du réseau principal l'emporte sur
+        // une fiche secondaire plus ancienne qui porte le même code.
+        Line::where('slug', 'rfn-70000')->update(['network' => 'secondaire']);
+        Line::factory()->create(['slug' => 'rfn-70000-bis', 'code' => '070000', 'name' => 'Fiche principale', 'network' => 'principal']);
+
+        $list = $this->getJson('/api/v1/level-crossings?'.http_build_query(['line' => 'rfn-70000-bis']))->assertOk();
+        $this->assertSame(['30000010435', '30000010436', '30000010499'], array_column($list->json('data'), 'id'));
+        $this->assertSame(['rfn-70000-bis'], array_values(array_unique(array_column(array_column($list->json('data'), 'line'), 'slug'))));
+
+        $all = $this->getJson('/api/v1/level-crossings')->assertOk()->assertJsonPath('meta.total', 4);
+        $this->assertSame(4, count(array_unique(array_column($all->json('data'), 'id'))), 'aucun PN dupliqué');
+
+        $this->getJson('/api/v1/level-crossings?line=rfn-70000')->assertOk()->assertJsonPath('meta.total', 0);
+        $this->getJson('/api/v1/lines/rfn-70000/level-crossings')->assertOk()->assertJsonPath('total', 0);
+        $this->getJson('/api/v1/lines/rfn-70000-bis/level-crossings')->assertOk()->assertJsonPath('total', 3);
+
+        [$x, $y] = self::tileOf(49.06, 3.60, 11);
+        $tile = (string) $this->get("/api/v1/level-crossings/tiles/11/{$x}/{$y}.mvt")->assertOk()->getContent();
+        $this->assertSame(1, substr_count($tile, '30000010436'), 'un seul point par PN dans la tuile');
+        $this->assertStringContainsString('rfn-70000-bis', $tile);
+        $this->assertStringNotContainsString('"rfn-70000"', $tile);
+    }
+
+    public function test_the_same_network_falls_back_to_the_oldest_sheet(): void
+    {
+        Line::factory()->create(['slug' => 'rfn-70000-bis', 'code' => '070000', 'name' => 'Doublon']);
+
+        $this->getJson('/api/v1/lines/rfn-70000-bis/level-crossings')->assertOk()->assertJsonPath('total', 0);
+        $this->getJson('/api/v1/lines/rfn-70000/level-crossings')->assertOk()->assertJsonPath('total', 3);
+        $this->assertSame('rfn-70000', LevelCrossing::where('id_if', '30000010436')->first()->line->slug);
+    }
+
+    public function test_the_line_list_reuses_the_known_line_without_a_query_per_crossing(): void
+    {
+        $line = Line::where('slug', 'rfn-70000')->firstOrFail();
+
+        DB::enableQueryLog();
+        $crossings = app(LineLevelCrossings::class)->list($line);
+        foreach ($crossings as $crossing) {
+            $this->assertSame('rfn-70000', $crossing->line->slug);
+        }
+        $queries = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        $this->assertSame(3, $crossings->count());
+        $this->assertSame(1, $queries, 'une requête pour les PN, aucune pour leur ligne');
+    }
+
+    public function test_an_unknown_class_has_no_label_instead_of_a_raw_translation_key(): void
+    {
+        $this->seedLevelCrossing('30000030001', '070000', 200000, 49.1, 3.7, 'CLASSE 50');
+
+        $items = array_column($this->getJson('/api/v1/lines/rfn-70000/level-crossings')->assertOk()->json('level_crossings'), null, 'id');
+        $unknown = $items['30000030001'];
+
+        $this->assertSame(50, $unknown['class']);
+        $this->assertNull($unknown['class_label']);
+        $this->assertNull($unknown['group']);
+    }
+
+    public function test_tiles_are_cached_until_the_import_invalidates_them(): void
+    {
+        [$x, $y] = self::tileOf(49.06, 3.60, 11);
+        $tiles = app(LevelCrossingTiles::class);
+        $this->assertStringNotContainsString('30000030002', $tiles->tile(11, $x, $y));
+
+        $this->seedLevelCrossing('30000030002', '070000', 113000, 49.061, 3.601);
+        $this->assertStringNotContainsString('30000030002', $tiles->tile(11, $x, $y), 'tuile en cache');
+
+        $tiles->invalidate();
+        $this->assertStringContainsString('30000030002', $tiles->tile(11, $x, $y));
     }
 
     /** @return array{0: int, 1: int} colonne et rangée XYZ d'un point */
