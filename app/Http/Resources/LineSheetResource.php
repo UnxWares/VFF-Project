@@ -99,6 +99,7 @@ class LineSheetResource extends JsonResource
                 'signalling' => route('api.lines.signalling', $line['slug']),
                 'profile' => route('api.lines.profile', $line['slug']),
                 'level_crossings' => route('api.lines.level-crossings', $line['slug']),
+                'greenways' => route('api.lines.greenways', $line['slug']),
                 'accidents' => route('api.accidents.index', ['line' => $line['slug']]),
                 'materials' => route('api.lines.materials', $line['slug']),
                 'media' => route('api.media.index', ['line' => $line['slug']]),

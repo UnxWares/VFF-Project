@@ -269,6 +269,7 @@ final class LineSheetExample
                 'signalling' => 'https://vff-project.org/api/v1/lines/rfn-447000/signalling',
                 'profile' => 'https://vff-project.org/api/v1/lines/rfn-447000/profile',
                 'level_crossings' => 'https://vff-project.org/api/v1/lines/rfn-447000/level-crossings',
+                'greenways' => 'https://vff-project.org/api/v1/lines/rfn-447000/greenways',
                 'accidents' => 'https://vff-project.org/api/v1/accidents?line=rfn-447000',
                 'materials' => 'https://vff-project.org/api/v1/lines/rfn-447000/materials',
                 'media' => 'https://vff-project.org/api/v1/media?line=rfn-447000',

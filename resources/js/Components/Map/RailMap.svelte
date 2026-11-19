@@ -80,6 +80,16 @@
         signallingPopupHtml,
         signallingTilesUrl,
     } from '$lib/signallingMap.js';
+    // Calque facultatif « Voies vertes » (OpenStreetMap, sur d'anciennes emprises), toutes époques.
+    import {
+        GREENWAY_LAYER_IDS,
+        GREENWAY_LINE_LAYER_ID,
+        GREENWAY_MIN_ZOOM,
+        GREENWAY_SOURCE_ID,
+        greenwayLayers,
+        greenwayPopupHtml,
+        greenwayTilesUrl,
+    } from '$lib/greenwayMap.js';
 
     /**
      * Composant carte interactive du réseau ferré VFF.
@@ -166,6 +176,9 @@
         // Calque « Signalisation » (tranches de cantonnement de l'ère courante) ; le réseau habituel
         // est alors estompé pour que les couleurs des tranches se lisent.
         signalling = false,
+        // Calque « Voies vertes » : tracés d'OpenStreetMap sur l'emprise de lignes disparues ou
+        // fermées, état actuel superposé à n'importe quelle époque.
+        greenways = false,
         // Rappelé avec le zoom à la fin de chaque déplacement (le parent affiche alors une aide,
         // par exemple « zoomez pour voir les passages à niveau »).
         onZoomChange = null,
@@ -981,6 +994,7 @@
             applyAccidents(accidents, view, era, compareEra);
             applyLevelCrossings(levelCrossings);
             applySignalling(signalling);
+            applyGreenways(greenways);
             if (typeof onZoomChange === 'function') {
                 onZoomChange(map.getZoom());
                 map.on('zoomend', () => onZoomChange(map.getZoom()));
@@ -1353,7 +1367,9 @@
             4,
         );
     /** Point ou tranche d'un calque facultatif sous le clic (prioritaire sur les tracés). */
-    const overlayAt = (point) => accidentAt(point) ?? levelCrossingAt(point) ?? signallingAt(point);
+    const greenwayAt = (point) => featureAt(point, [GREENWAY_LINE_LAYER_ID], 4);
+    const overlayAt = (point) =>
+        accidentAt(point) ?? levelCrossingAt(point) ?? signallingAt(point) ?? greenwayAt(point);
 
     function openOverlayPopup(html, lineSlug, lngLat) {
         const href = lineSlug ? `/lines/${encodeURIComponent(lineSlug)}` : null;
@@ -1446,8 +1462,47 @@
         }
     }
 
+    // Voies vertes : sous les passages à niveau et la signalisation, quel que soit l'ordre des cases
+    // cochées, au-dessus du réseau.
+    function applyGreenways(on) {
+        if (!map || !layersReady) return;
+        if (on && !map.getSource(GREENWAY_SOURCE_ID)) {
+            map.addSource(GREENWAY_SOURCE_ID, {
+                type: 'vector',
+                tiles: [greenwayTilesUrl(window.location.origin, bustParam())],
+                minzoom: GREENWAY_MIN_ZOOM,
+                maxzoom: 14,
+            });
+            const before = [SIGNALLING_LAYER_IDS[0], LEVEL_CROSSING_LAYER_ID].find((id) =>
+                map.getLayer(id),
+            );
+            for (const layer of greenwayLayers()) map.addLayer(layer, before ?? overlayBefore());
+            map.on('click', (e) => {
+                if (accidentAt(e.point) || levelCrossingAt(e.point) || signallingAt(e.point))
+                    return;
+                if (stationAt(e.point)) return;
+                const f = greenwayAt(e.point);
+                if (!f) return;
+                const { t, language } = get(i18n);
+                openOverlayPopup(
+                    (link) => greenwayPopupHtml(f.properties, t, language, link),
+                    f.properties.line_slug,
+                    e.lngLat,
+                );
+            });
+            map.on(
+                'mouseenter',
+                GREENWAY_LINE_LAYER_ID,
+                () => (map.getCanvas().style.cursor = 'pointer'),
+            );
+            map.on('mouseleave', GREENWAY_LINE_LAYER_ID, () => (map.getCanvas().style.cursor = ''));
+        }
+        for (const id of GREENWAY_LAYER_IDS) setVisibility(id, on);
+    }
+
     $effect(() => applyLevelCrossings(levelCrossings));
     $effect(() => applySignalling(signalling));
+    $effect(() => applyGreenways(greenways));
 
     // ── Itinéraire historique (RoutePlanner) : tracé + gares, au-dessus du réseau ──
     // Comparaison de deux époques : le trajet le plus ancien (earlierRoute) est dessiné sous le

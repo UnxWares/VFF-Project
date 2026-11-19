@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ReadsListFilters;
 use App\Models\Line;
 use App\Services\Accidents\LineAccidents;
+use App\Services\Greenways\LineGreenways;
 use App\Services\LevelCrossings\LineLevelCrossings;
 use App\Services\LineDirectory;
 use App\Services\LineSheet;
@@ -137,18 +138,20 @@ class LineController extends Controller
     /**
      * Fiche détaillée d'une ligne ferroviaire (construction partagée avec l'API : App\Services\LineSheet),
      * plus les accidents rattachés à la ligne (section « Accidents » ; API : `/api/v1/accidents?line=`)
-     * ses passages à niveau (section « Passages à niveau » ; API : `/api/v1/lines/{slug}/level-crossings`)
+     * ses passages à niveau (section « Passages à niveau » ; API : `/api/v1/lines/{slug}/level-crossings`),
+     * ses voies vertes sur l'ancienne emprise (section « Voie verte » ; API : `/api/v1/lines/{slug}/greenways`)
      * et son profil en long s'il est calculé, allégé à LineProfiles::SHEET_MAX_POINTS points (section
      * « Profil en long » ; profil complet : `/api/v1/lines/{slug}/profile`), et les ères dont le tracé peut
      * être téléchargé en GPX, KML ou GeoJSON (`trace_export_eras` : seules les sources à licence ouverte
      * comptent ; API : `/api/v1/lines/{slug}/gpx`).
      */
-    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineProfiles $profiles, LineTraceExport $traceExport): Response
+    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineProfiles $profiles, LineTraceExport $traceExport): Response
     {
         return Inertia::render('Lines/Show', [
             ...$sheet->build($line),
             'accidents' => $accidents->forLine($line, app()->getLocale()),
             'level_crossings' => $crossings->forSheet($line),
+            'greenways' => $greenways->forSheet($line),
             'profile' => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS),
             'trace_export_eras' => $traceExport->exportableEraYears($line),
         ]);

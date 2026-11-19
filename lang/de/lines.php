@@ -542,6 +542,7 @@ return [
         'tech' => 'Technik',
         'profile' => 'Höhenprofil',
         'level-crossings' => 'Bahnübergänge',
+        'greenways' => 'Bahntrassenradweg',
         'chronicle' => 'Chronik',
         'materials' => 'Fahrzeuge',
         'accidents' => 'Unfälle',

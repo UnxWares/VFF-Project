@@ -543,6 +543,7 @@ return [
         'tech' => 'Technique',
         'profile' => 'Profil en long',
         'level-crossings' => 'Passages à niveau',
+        'greenways' => 'Voie verte',
         'chronicle' => 'Chronologie',
         'materials' => 'Matériel',
         'accidents' => 'Accidents',

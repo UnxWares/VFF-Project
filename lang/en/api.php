@@ -124,6 +124,8 @@ return [
             'level_crossings' => 'Level crossings on the national rail network as published by SNCF Réseau: class, kilometre post, municipality; filter by line, type, municipality or bounding box.',
             'line_level_crossings' => 'Level crossings on a line in kilometre post order, with the number of each type.',
             'level_crossings_tiles' => 'Vector tile (MVT) of level crossings, from zoom 9.',
+            'line_greenways' => 'OpenStreetMap greenways on the former trackbed of a line, with the shared length, the OSM link, provenance and ODbL licence.',
+            'greenways_tiles' => 'Vector tile (MVT) of greenways on former trackbeds, from zoom 4.',
             'signalling_tiles' => 'Vector tile (MVT) of signalling sections placed on the route, for today’s network.',
             'stations' => 'Directory of stations, halts and stops, current and closed.',
             'station' => 'Full entry for a station: dates, status at each era, lines served and sources.',

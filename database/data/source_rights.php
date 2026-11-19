@@ -34,6 +34,7 @@ return [
             'obligations' => 'Attribution « © contributeurs OpenStreetMap » avec lien vers openstreetmap.org/copyright et mention de l\'ODbL. '
                 .'Base DÉRIVÉE publiquement utilisée (tracés OSM mêlés à d\'autres tracés de même nature, recalages sur OSM) : '
                 .'publiée sous ODbL (art. 4.4) et offerte au public (art. 4.6). Ce qui y entre doit pouvoir être publié sous ODbL.',
+            'remarques' => 'Voies vertes rattachées aux lignes (line_greenways, vff:link-greenways) : identifiant du way, longueur et tracé de la partie qui suit l\'ancienne emprise, tirés d\'OSM. Base dérivée publiée sous ODbL ; la mention « © contributeurs OpenStreetMap » est reprise sur la carte, dans la fiche de la ligne et dans l\'API.',
             'domaines' => ['openstreetmap.org'],
             'lu_le' => '2026-10-20',
         ],
@@ -423,6 +424,8 @@ return [
         // Passages à niveau (vff:import-sncf-level-crossings) et signalisation par PK (vff:import-sncf-signalling) :
         // tables sans colonne de provenance, une seule source (SNCF Réseau, ODbL), citée par l'API.
         'sncf_level_crossings' => ['sncf' => 'sncf'],
+        // Voies vertes OSM rattachées aux lignes (vff:link-greenways) : way, géométrie et mesure tirés d'OpenStreetMap (ODbL).
+        'line_greenways' => ['osm' => 'osm'],
         'line_signalling' => ['sncf' => 'sncf'],
         // Profils en long (vff:compute-line-profiles) : altitude de la voie BD TOPO, à défaut RGE ALTI (line_profiles.source).
         'line_profiles' => ['bdtopo-rge-alti' => 'ign'],

@@ -306,6 +306,7 @@
                         accidents={showAccidents ? accidentData : null}
                         levelCrossings={showLevelCrossings}
                         signalling={showSignalling}
+                        greenways={drawn.greenways}
                         onZoomChange={(z) => (mapZoom = z)}
                         {dataVersion}
                         {flyTarget}

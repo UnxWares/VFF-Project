@@ -24,7 +24,7 @@
      *   ?mode=electrification (couleur des tracés : traffic | electrification | gauge ; défaut traffic)
      *   ?layer=accidents&layer=signalling&layer=orm-maxspeed
      *                         (calques facultatifs, comme sur /maps : accidents, level-crossings,
-     *                         signalling, et un fond OpenRailwayMap orm-standard | orm-maxspeed |
+     *                         signalling, greenways, et un fond OpenRailwayMap orm-standard | orm-maxspeed |
      *                         orm-signals | orm-electrification | orm-gauge ; une liste séparée par
      *                         des virgules est lue aussi ; voir lib/mapLayers.js)
      *   ?tint=off             (coupe la teinte d'époque du fond ; voir lib/eraTint.js. Elle est
@@ -176,6 +176,7 @@
         accidents={drawn.accidents ? accidentData : null}
         levelCrossings={drawn.levelCrossings}
         signalling={drawn.signalling}
+        greenways={drawn.greenways}
         onZoomChange={(z) => (mapZoom = z)}
         {dataVersion}
         {center}

@@ -25,6 +25,7 @@
     import LineGallery from '$components/Lines/LineGallery.svelte';
     import LineAccidents from '$components/Lines/LineAccidents.svelte';
     import LineLevelCrossings from '$components/Lines/LineLevelCrossings.svelte';
+    import LineGreenways from '$components/Lines/LineGreenways.svelte';
     import LineProfile from '$components/Lines/LineProfile.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
@@ -58,6 +59,7 @@
      *   decades?: Array<any>, chronicle?: { events: Array<any>, groups: Array<any>, notes: Array<any>, conflicts: Array<any> },
      *   accidents?: Array<any>,
      *   level_crossings?: { total: number, summary: Array<any>, items: Array<any> },
+     *   greenways?: { total_length_m: number, osm_date: string|null, items: Array<any> },
      *   profile?: any, trace_export_eras?: Array<number>,
      * }} */
     let {
@@ -79,6 +81,8 @@
         accidents = [],
         // Passages à niveau de la ligne (App\Services\LevelCrossings\LineLevelCrossings).
         level_crossings = { total: 0, summary: [], items: [] },
+        // Voies vertes OSM sur l'ancienne emprise (App\Services\Greenways\LineGreenways::forSheet).
+        greenways = { total_length_m: 0, osm_date: null, items: [] },
         // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
         profile = null,
         // Années des ères dont le tracé peut être téléchargé (App\Services\TraceExport\LineTraceExport).
@@ -101,6 +105,7 @@
         'tech',
         'profile',
         'level-crossings',
+        'greenways',
         'chronicle',
         'materials',
         'accidents',
@@ -1134,6 +1139,10 @@
 
         {#if level_crossings.total}
             <LineLevelCrossings crossings={level_crossings} />
+        {/if}
+
+        {#if greenways.items.length}
+            <LineGreenways {greenways} />
         {/if}
 
         {#if chronicle?.events?.length}

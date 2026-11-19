@@ -41,6 +41,7 @@ class ApiDocsTest extends TestCase
         '/lines/{line}/signalling',
         '/lines/{line}/materials',
         '/lines/{line}/media',
+        '/lines/{line}/greenways', '/greenways/tiles/{z}/{x}/{y}.mvt',
         '/level-crossings', '/lines/{line}/level-crossings', '/level-crossings/tiles/{z}/{x}/{y}.mvt',
         '/eras/{year}/signalling/tiles/{z}/{x}/{y}.mvt',
         '/stations', '/stations/{station}', '/stations/{station}/events',
@@ -75,7 +76,7 @@ class ApiDocsTest extends TestCase
     /** Réponses binaires (MVT, ZIP) : pas d'exemple JSON attendu. */
     private const BINARY_PATHS = [
         '/eras/{year}/tiles/{z}/{x}/{y}.mvt', '/eras/{year}/gtfs.zip',
-        '/level-crossings/tiles/{z}/{x}/{y}.mvt', '/eras/{year}/signalling/tiles/{z}/{x}/{y}.mvt',
+        '/level-crossings/tiles/{z}/{x}/{y}.mvt', '/eras/{year}/signalling/tiles/{z}/{x}/{y}.mvt', '/greenways/tiles/{z}/{x}/{y}.mvt',
         '/lines/{line}/gpx', '/lines/{line}/kml',
     ];
 
@@ -89,7 +90,7 @@ class ApiDocsTest extends TestCase
         'StationPosition', 'StationEra', 'StationLine', 'StationSource', 'StationNeighbor', 'StationSheet',
         'LineDirectoryItem', 'LineDirectoryFacets', 'LineDirectoryPage', 'StationDirectoryItem', 'StationDirectoryLine',
         'StationDirectoryPage', 'SourceValues', 'SourceProvider', 'SiteStats', 'SiteStatsEra', 'SearchResults', 'SearchLine',
-        'SearchStation', 'SearchMaterial', 'LinePk', 'LinePkSnap',
+        'SearchStation', 'SearchMaterial', 'LinePk', 'LinePkSnap', 'LineGreenway', 'LineGreenwayWay',
     ];
 
     /** Entrées GraphQL dont chaque champ doit être décrit. */

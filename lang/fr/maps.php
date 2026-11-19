@@ -34,6 +34,7 @@ return [
         'accidents' => 'Accidents',
         'level_crossings' => 'Passages à niveau',
         'signalling' => 'Signalisation',
+        'greenways' => 'Voies vertes',
     ],
 
     // Bouton « Calques » de la barre d'outils : calques de VFF à cocher, un fond OpenRailwayMap au plus.
@@ -229,7 +230,7 @@ return [
         'route_term' => 'Itinéraire',
         'route_text' => 'Indiquez deux gares et une année : la carte trace le parcours sur le réseau en service à cette époque et liste les lignes empruntées. Avec « Comparer avec une autre époque », le même trajet est tracé à une seconde année, en tirets sur liseré bleu pour la plus ancienne.',
         'layers_term' => 'Calques',
-        'layers_text' => 'Le bouton Calques, au-dessus de la carte, en affiche plusieurs à la fois. Un fond OpenRailwayMap (un seul à la fois) superpose l’infrastructure actuelle : signaux, vitesses, électrification. Le bouton à l’horloge, en haut à droite de la carte, affiche des cartes anciennes de l’IGN. Le calque Accidents place les accidents survenus jusqu’à l’époque affichée ; un cercle pâle signale que seule la commune est connue. Le calque Passages à niveau montre les passages publiés par SNCF Réseau, à partir de l’échelle d’un département. Le calque Signalisation colore les lignes d’aujourd’hui selon leur mode de cantonnement.',
+        'layers_text' => 'Le bouton Calques, au-dessus de la carte, en affiche plusieurs à la fois. Un fond OpenRailwayMap (un seul à la fois) superpose l’infrastructure actuelle : signaux, vitesses, électrification. Le bouton à l’horloge, en haut à droite de la carte, affiche des cartes anciennes de l’IGN. Le calque Accidents place les accidents survenus jusqu’à l’époque affichée ; un cercle pâle signale que seule la commune est connue. Le calque Passages à niveau montre les passages publiés par SNCF Réseau, à partir de l’échelle d’un département. Le calque Signalisation colore les lignes d’aujourd’hui selon leur mode de cantonnement. Le calque Voies vertes dessine, sur l’emprise de lignes disparues ou fermées, les voies vertes d’OpenStreetMap ; il se superpose à toutes les époques.',
         'views_term' => 'Comparer les époques',
         'views_text' => 'Le choix « Vue », au-dessus de la carte, compare deux décennies (lignes ouvertes, fermées ou déposées entre les deux) ou superpose toutes les époques pour voir quand chaque ligne a quitté le service. L’adresse de la page garde ce choix : vous pouvez la partager.',
     ],
@@ -311,6 +312,19 @@ return [
         'loading' => 'Chargement des accidents…',
         'error' => 'Les accidents n’ont pas pu être chargés. Décochez puis cochez de nouveau le calque pour réessayer.',
         'view_sheet' => 'Voir la fiche de l’accident',
+    ],
+
+    // Calque « Voies vertes » (OpenStreetMap, sur d'anciennes emprises) : légende, bulle.
+    'greenways' => [
+        'title' => 'Voies vertes',
+        'entry' => 'Voie verte sur une ancienne ligne',
+        'note' => 'Voies vertes et chemins cyclables qui suivent l’emprise d’une ligne disparue ou fermée. Celles qui longent seulement une ligne en service ne sont pas dessinées.',
+        'source' => 'Source : © contributeurs OpenStreetMap (ODbL)',
+        'line' => 'Ligne',
+        'length' => 'Sur l’ancienne emprise',
+        'opened' => 'Ouverture',
+        'view_osm' => 'Voir sur OpenStreetMap',
+        'fallback_title' => 'Voie verte',
     ],
 
     // Calque « Passages à niveau » (SNCF Réseau) : légende, bulle.
