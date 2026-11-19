@@ -43,6 +43,9 @@ final class AccidentImportResult
     /** @var list<string> éléments absents du cache en mode hors ligne */
     public array $missing = [];
 
+    /** @var list<array{key: string, reason: string}> entrées des listes anglaise et allemande qui ne rapprochent aucune fiche (lieu inconnu, ambigu ou date sans fiche) */
+    public array $editionsUnmatched = [];
+
     public int $requests = 0;
 
     public function count(string $group, string $key): void

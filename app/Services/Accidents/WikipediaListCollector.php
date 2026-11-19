@@ -90,7 +90,7 @@ final class WikipediaListCollector
     }
 
     /**
-     * @param  array{date: string, precision: AccidentDatePrecision, anchor: ?string, places: list<array{0: string, 1: ?string}>, station: ?string, line_articles: list<string>, deaths: ?int, injuries: ?int, kind: ?AccidentKind, urban: bool}  $entry
+     * @param  array{date: string, precision: AccidentDatePrecision, anchor: ?string, places: list<array{0: string, 1: ?string}>, station: ?string, place_basis: ?string, line_articles: list<string>, deaths: ?int, injuries: ?int, kind: ?AccidentKind, urban: bool}  $entry
      * @param  array{title: string, revid: int, content: string}  $page
      * @param  array<string, true>  $used  identifiants déjà pris (deux puces du même jour au même endroit)
      */
@@ -117,6 +117,10 @@ final class WikipediaListCollector
         $c->declaredInFrance = true;
         $c->stopAtAmbiguousPlace = true;
         $c->note('place_from_list');
+        if ($entry['place_basis'] !== null) {
+            // Lieu nommé par le texte de la puce sans lien lisible : correspondance sourcée de VFF.
+            $c->note('place_from_table', $entry['place_basis']);
+        }
         if ($entry['places'] !== []) {
             [$c->communeName, $c->departmentCode] = $entry['places'][0];
             $c->placeHints = array_slice($entry['places'], 1);

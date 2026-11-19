@@ -60,6 +60,52 @@ class VerifyAccidentsCommandTest extends TestCase
         $this->assertNotNull($a->verified_at);
     }
 
+    public function test_a_list_alone_plus_a_referenced_english_or_german_entry_confirms_with_its_own_rule(): void
+    {
+        $en = $this->accident('1948-02-17-millas', '1948-02-17', '66108', 'commune');
+        $this->source($en, 'wikipedia', 'list', 'fr:1948-02-17-millas', ['date' => '1948-02-17', 'place' => 'Millas', 'department' => '66']);
+        $this->source($en, 'wikipedia-en', 'list', 'en:1948-02-17-66108', ['date' => '1948-02-17', 'commune_insee' => '66108', 'place' => 'Millas', 'referenced' => true, 'references' => ['Semmens 1994']]);
+        $de = $this->accident('1949-02-17-millas', '1949-02-17', '66108', 'commune');
+        $this->source($de, 'wikipedia', 'list', 'fr:1949-02-17-millas', ['date' => '1949-02-17', 'place' => 'Millas', 'department' => '66']);
+        $this->source($de, 'wikipedia-de', 'list', 'de:1949-02-17-66108', ['date' => '1949-02-17', 'commune_insee' => '66108', 'place' => 'Millas', 'referenced' => true]);
+        // Entrée sans référence propre : elle compte avec Wikipédia, une seule famille.
+        $bare = $this->accident('1950-02-17-millas', '1950-02-17', '66108', 'commune');
+        $this->source($bare, 'wikipedia', 'list', 'fr:1950-02-17-millas', ['date' => '1950-02-17', 'place' => 'Millas', 'department' => '66']);
+        $this->source($bare, 'wikipedia-en', 'list', 'en:1950-02-17-66108', ['date' => '1950-02-17', 'commune_insee' => '66108', 'place' => 'Millas', 'referenced' => false]);
+        // Entrée référencée qui donne une autre commune : contradiction, jamais « ok ».
+        $far = $this->accident('1951-02-17-millas', '1951-02-17', '66108', 'commune');
+        $this->source($far, 'wikipedia', 'list', 'fr:1951-02-17-millas', ['date' => '1951-02-17', 'place' => 'Millas', 'department' => '66']);
+        $this->source($far, 'wikipedia-en', 'list', 'en:1951-02-17-13055', ['date' => '1951-02-17', 'commune_insee' => '13055', 'place' => 'Marseille', 'referenced' => true]);
+
+        $this->artisan('vff:verify-accidents')->assertSuccessful();
+
+        $this->assertSame('ok', $en->refresh()->review_status->value);
+        $this->assertSame('wikipedia_editions', $en->verification['rule']);
+        $this->assertEqualsCanonicalizing(['wikipedia', 'wikipedia-edition'], $en->verification['families']['place']);
+        $confirmed = array_column($en->verification['place']['confirmed_by'], 'provider');
+        $this->assertEqualsCanonicalizing(['wikipedia', 'wikipedia-en'], $confirmed, 'les deux sources et leur permalien sont gardés');
+        $this->assertSame('ok', $de->refresh()->review_status->value);
+        $this->assertSame('wikipedia_editions', $de->verification['rule']);
+        $this->assertSame('to_review', $bare->refresh()->review_status->value);
+        $this->assertNull($bare->verification['rule'] ?? null);
+        $this->assertSame(['wikipedia'], $bare->verification['families']['place']);
+        $this->assertSame('to_review', $far->refresh()->review_status->value);
+        $this->assertContains('verification_conflict', array_column($far->review_notes, 'code'));
+    }
+
+    public function test_the_rule_label_stays_the_weakest_when_an_edition_joins_a_wikimedia_pair(): void
+    {
+        // Wikidata sans référence + Wikipédia + une liste anglaise référencée : la règle reste la paire Wikimedia pour la date.
+        $a = $this->accident('2001-05-06-millas', '2001-05-06', '66108', 'exact');
+        $this->wikidataAndArticle($a, 'Q111', '2001-05-06', claims: $this->claims(refs: []));
+        $this->source($a, 'wikipedia-en', 'list', 'en:2001-05-06-66108', ['date' => '2001-05-06', 'commune_insee' => '66108', 'referenced' => true]);
+
+        $this->artisan('vff:verify-accidents')->assertSuccessful();
+
+        $this->assertSame('ok', $a->refresh()->review_status->value);
+        $this->assertSame('wikipedia_editions', $a->verification['rule']);
+    }
+
     public function test_a_wikipedia_list_alone_never_confirms(): void
     {
         $a = $this->accident('1910-01-02-millas', '1910-01-02', '66108', 'commune');

@@ -190,6 +190,8 @@ return [
         'wikidata' => 'Wikidata',
         'wikipedia' => 'Wikipedia',
         'bea_tt' => 'BEA-TT',
+        'wikipedia_en' => 'English Wikipedia',
+        'wikipedia_de' => 'German Wikipedia',
     ],
 
     'roles' => [
@@ -218,6 +220,7 @@ return [
         'line_uncertain' => 'Several lines run close to the centre of the municipality.',
         'hinted_line_far' => 'The line cited by a source runs far from the place given.',
         'place_from_list' => 'The place was read from a Wikipedia list, without coordinates: it still needs checking.',
+        'place_from_table' => 'The place is the one the Wikipedia list text names without a link: VFF matched it to a commune. It still needs checking.',
         'verification_conflict' => 'Two sources contradict each other on the date or the place.',
         'alias_toll_mismatch' => 'Another Wikidata item describes the same accident with a different toll.',
         'possible_duplicate' => 'Another record from the same day may describe the same accident.',

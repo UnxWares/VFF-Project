@@ -7,6 +7,7 @@ use App\Models\Accident;
 use App\Models\Line;
 use App\Services\Accidents\AccidentCandidate;
 use App\Services\Accidents\AccidentImporter;
+use App\Services\Accidents\WikipediaEditionCollector;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +40,9 @@ class ImportAccidentsCommandTest extends TestCase
 
     /** Texte de la page de la liste pour les années 2010, quand un test le remplace. */
     private ?string $decadeText = null;
+
+    /** Pages des listes de Wikipédia en anglais et en allemand (langue → titre → wikicode), vides sauf pour les tests qui les remplissent. */
+    private array $editionPages = ['en' => [], 'de' => []];
 
     /** Blessés que donne l'article de Wikipédia (Wikidata en donne 14). */
     private int $articleInjuries = 18;
@@ -199,7 +203,7 @@ class ImportAccidentsCommandTest extends TestCase
         $this->artisan('vff:import-accidents', ['--report' => $path])->assertSuccessful();
 
         $report = json_decode((string) File::get($path), true);
-        $this->assertSame(['wikidata' => 1, 'bea-tt' => 2, 'wikipedia-list' => 0], $report['collected']);
+        $this->assertSame(['wikidata' => 1, 'bea-tt' => 2, 'wikipedia-list' => 0, 'wikipedia-editions' => 0], $report['collected']);
         $this->assertSame(1, $report['merged']);
         $this->assertArrayHasKey('2026-01-11-millas', $report['toReview']);
         $this->assertSame(['outside_france' => 1, 'other_mode' => 1], $report['rejected']['bea-tt']);
@@ -332,6 +336,100 @@ class ImportAccidentsCommandTest extends TestCase
         $this->assertSame(1, Accident::query()->where('slug', $slug)->firstOrFail()->sources()->count(), 'l\'ancienne source de la puce est remplacée');
     }
 
+    public function test_a_list_bullet_read_under_a_new_identifier_replaces_its_old_source_on_a_known_accident(): void
+    {
+        $this->withList = true;
+        $this->artisan('vff:import-accidents')->assertSuccessful();
+        $millas = Accident::query()->where('wikidata_id', 'Q45757847')->firstOrFail();
+        // Ancien identifiant de la puce (avant le changement du schéma d'identifiants), même lien.
+        $millas->sources()->where('role', 'list')->update(['external_id' => 'fr:2017-12-14-millas-0']);
+
+        $this->artisan('vff:import-accidents', ['--only' => ['wikipedia-list'], '--offline' => true])->assertSuccessful();
+
+        $this->assertSame(1, $millas->sources()->where('role', 'list')->count(), 'une seule ligne par lien et par accident');
+        $this->assertNotSame('fr:2017-12-14-millas-0', $millas->sources()->where('role', 'list')->value('external_id'));
+    }
+
+    public function test_english_and_german_lists_add_a_second_source_to_existing_records_only(): void
+    {
+        $this->editionPages['en'] = ['List of rail accidents (2010–2019)' => "== 2014 ==\n* February 3 – ''France'' – At [[Millas]], a goods train derailed.\n== 2017 ==\n"
+            ."* December 14 – ''France'' – At [[Millas]], a TER collided with a school bus on a level crossing.{{sfn|Semmens|1994|p=12}}\n"
+            ."* December 14 – ''France'' – Between [[Millas]] and [[Saint-Féliu-d'Avall]], another accident.\n"];
+        $this->editionPages['de'] = ['Liste schwerer Unfälle im Schienenverkehr' => "== 2010er ==\n* [[Millas]] ({{FRA-1999}}) – Zusammenstoß: ''14. Dezember 2017'' – Ein Zug stieß mit einem Bus zusammen.<ref>Quelle</ref>\n"];
+
+        $this->artisan('vff:import-accidents')->assertSuccessful();
+
+        // Aucune fiche de plus : l'entrée de 2014 n'a pas de fiche, celle de 2017 en a une.
+        $this->assertSame(2, Accident::count());
+        $millas = Accident::query()->where('wikidata_id', 'Q45757847')->firstOrFail();
+        $en = $millas->sources()->where('provider', 'wikipedia-en')->firstOrFail();
+        $this->assertSame('list', $en->role);
+        $this->assertSame('CC BY-SA 4.0', $en->licence);
+        $this->assertSame('List of rail accidents (2010–2019)', $en->title);
+        $this->assertStringStartsWith('https://en.wikipedia.org/w/index.php?title=List_of_rail_accidents_%282010%E2%80%932019%29&oldid=', $en->url);
+        $this->assertStringEndsWith('#2017', $en->url);
+        $this->assertEqualsCanonicalizing(['date' => '2017-12-14', 'commune_insee' => '66108', 'place' => 'Millas', 'referenced' => true, 'references' => ['Semmens 1994']], $en->facts);
+        $de = $millas->sources()->where('provider', 'wikipedia-de')->firstOrFail();
+        $this->assertTrue($de->facts['referenced']);
+        $this->assertSame(2, $millas->sources()->whereIn('provider', ['wikipedia-en', 'wikipedia-de'])->count(), 'l\'entrée « between » ne rapproche rien');
+        $this->assertSame('to_review', $millas->review_status->value, 'l\'import ne confirme rien : seule la vérification le fait');
+
+        // Rejoué hors ligne : mêmes lignes ; entrée retirée de la page : source retirée à l'import suivant.
+        $before = $this->snapshot(self::ACCIDENT_TABLES, ['id', 'accident_id', 'imported_at', 'retrieved_at']);
+        $this->artisan('vff:import-accidents', ['--offline' => true])->assertSuccessful();
+        $this->assertSame($before, $this->snapshot(self::ACCIDENT_TABLES, ['id', 'accident_id', 'imported_at', 'retrieved_at']));
+        // Une page absente ne prouve rien (rien n'est retiré) ; toutes les pages lues sans l'entrée : source retirée.
+        $this->editionPages = ['en' => [], 'de' => []];
+        $this->artisan('vff:import-accidents', ['--only' => ['wikipedia-editions'], '--refresh' => true])->assertSuccessful();
+        $this->assertSame(2, DB::table('accident_sources')->whereIn('provider', ['wikipedia-en', 'wikipedia-de'])->count());
+        foreach ([...WikipediaEditionCollector::EN_DECADES, WikipediaEditionCollector::EN_FRANCE] as $title) {
+            $this->editionPages['en'][$title] = "== 2017 ==\n";
+        }
+        $this->editionPages['de'][WikipediaEditionCollector::DE_LIST] = "== 2010er ==\n";
+        $this->artisan('vff:import-accidents', ['--only' => ['wikipedia-editions'], '--refresh' => true])->assertSuccessful();
+        $this->assertSame(0, DB::table('accident_sources')->whereIn('provider', ['wikipedia-en', 'wikipedia-de'])->count());
+    }
+
+    public function test_the_edition_lists_respect_dry_run(): void
+    {
+        $this->artisan('vff:import-accidents')->assertSuccessful();
+        $this->editionPages['en'] = ['List of rail accidents (2010–2019)' => "== 2017 ==\n* December 14 – ''France'' – At [[Millas]], a TER collided with a school bus.{{sfn|Semmens|1994|p=12}}\n"];
+
+        $this->artisan('vff:import-accidents', ['--only' => ['wikipedia-editions'], '--dry-run' => true])->assertSuccessful();
+        $this->assertSame(0, $this->englishSources());
+
+        $this->artisan('vff:import-accidents', ['--only' => ['wikipedia-editions']])->assertSuccessful();
+        $this->assertSame(1, $this->englishSources());
+        // Un import complet suivant (sans les listes) ne les efface pas.
+        $this->artisan('vff:import-accidents', ['--only' => ['wikidata', 'bea-tt'], '--offline' => true])->assertSuccessful();
+        $this->assertSame(1, $this->englishSources());
+    }
+
+    public function test_the_place_table_recovers_a_bullet_whose_place_has_no_link(): void
+    {
+        $this->withList = true;
+        DB::statement("INSERT INTO communes (code_insee, type, nom, nom_norm, departement, geom, created_at, updated_at)
+            VALUES ('60175', 'commune-actuelle', 'Creil', 'creil', '60', ST_SetSRID(ST_MakePoint(2.48, 49.26), 4326), now(), now())");
+        DB::table('commune_contours')->insert(['code_insee' => '60175', 'nom' => 'Creil', 'departement' => '60',
+            'geom' => DB::raw('ST_Multi(ST_MakeEnvelope(2.43, 49.23, 2.53, 49.29, 4326))'), 'created_at' => now(), 'updated_at' => now()]);
+        $this->decadeText = "== 1869 ==\n* {{date|3|juillet|1869}} - En gare de Creil, une locomotive au repos, heurtée lors d'une manœuvre, part seule sur une voie et tamponne des wagons.<ref>Presse.</ref>.\n"
+            ."* {{date|4|juillet|1869}} - En gare de Creil, un autre accident sans ligne dans la table.\n";
+
+        $this->artisan('vff:import-accidents', ['--only' => ['wikipedia-list']])->assertSuccessful();
+
+        $mapped = Accident::query()->whereDate('occurred_on', '1869-07-03')->firstOrFail();
+        $this->assertSame('60175', $mapped->commune_insee);
+        $this->assertContains('place_from_table', array_column($mapped->review_notes ?? [], 'code'));
+        $this->assertSame('to_review', $mapped->review_status->value);
+        $this->assertSame(0, Accident::query()->whereDate('occurred_on', '1869-07-04')->count(), 'sans ligne dans la table, la puce reste écartée (aucun lieu)');
+    }
+
+    /** @phpstan-impure */
+    private function englishSources(): int
+    {
+        return DB::table('accident_sources')->where('provider', 'wikipedia-en')->count();
+    }
+
     /** @return array<string, array{title: string, revid: int, content: string}> */
     private function listPages(): array
     {
@@ -387,6 +485,18 @@ class ImportAccidentsCommandTest extends TestCase
 
                 return Http::response(['entities' => array_intersect_key($entities, array_flip($ids))
                     + array_fill_keys(array_diff($ids, array_keys($entities)), ['missing' => '']), ]);
+            }
+            foreach (['en', 'de'] as $lang) {
+                if (str_starts_with($url, "https://{$lang}.wikipedia.org/w/api.php")) {
+                    $pages = [];
+                    foreach (explode('|', (string) ($request['titles'] ?? '')) as $title) {
+                        if (isset($this->editionPages[$lang][$title])) {
+                            $pages[] = ['title' => $title, 'revisions' => [['revid' => 777000 + strlen($title), 'slots' => ['main' => ['content' => $this->editionPages[$lang][$title]]]]]];
+                        }
+                    }
+
+                    return Http::response(['query' => ['pages' => $pages]]);
+                }
             }
             if (str_starts_with($url, 'https://fr.wikipedia.org/w/api.php') && str_starts_with((string) ($request['titles'] ?? ''), "Liste d'accidents")) {
                 $pages = [];

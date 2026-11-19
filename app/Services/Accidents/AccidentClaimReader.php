@@ -24,7 +24,9 @@ use Illuminate\Support\Facades\DB;
  * déclaration (P585 pour la date, P625 ou P131 pour le lieu) importée de Wikimedia (référence « importé
  * depuis », P143) ou d'un élément absent du cache : elle compte avec Wikipédia, dont elle n'est qu'une copie.
  * Une déclaration sans référence reste une famille à part mais est marquée (WIKIDATA_BARE) : elle ne
- * prouve pas son indépendance.
+ * prouve pas son indépendance. Une entrée des listes de Wikipédia en anglais ou en allemand forme sa propre
+ * famille (WIKIPEDIA_EDITION) seulement si elle cite une référence qui lui est propre ; sinon elle compte
+ * avec Wikipédia.
  */
 final class AccidentClaimReader
 {
@@ -124,6 +126,7 @@ final class AccidentClaimReader
         return match ($source->provider) {
             'bea-tt' => AccidentClaim::OFFICIAL,
             'wikidata' => $this->wikidataFamily((string) ($source->external_id ?? ''), $property),
+            'wikipedia-en', 'wikipedia-de' => ($source->facts['referenced'] ?? false) === true ? AccidentClaim::WIKIPEDIA_EDITION : AccidentClaim::WIKIPEDIA,
             default => AccidentClaim::WIKIPEDIA,
         };
     }

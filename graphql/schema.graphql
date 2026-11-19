@@ -1316,7 +1316,7 @@ type Accident {
 
     """
     Vérification de la date et du lieu (`vff:verify-accidents`) : `rule` (`primary_source`, `two_sources`,
-    `wikidata_wikipedia` ou absente), `date` et `place` (valeur retenue ; sources qui concordent `confirmed_by`,
+    `wikidata_wikipedia`, `wikipedia_editions` ou absente), `date` et `place` (valeur retenue ; sources qui concordent `confirmed_by`,
     qui divergent `disagreeing`, communes voisines `nearby`, chacune avec `provider`, `role`, `url` et la date de
     lecture `retrieved_at`), `families`, `kind` (nature lue dans une source), `aliases` (autres éléments Wikidata du
     même accident, gardés avec leurs sources). Nul si la fiche n'a pas été vérifiée.

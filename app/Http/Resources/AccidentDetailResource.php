@@ -113,8 +113,8 @@ class AccidentDetailResource extends AccidentResource
             'wikipedia' => (object) ($this->wikipedia ?? []),
             /**
              * Sources consultées, avec leur licence et les faits qu'on y a lus (date, morts, blessés, coordonnées…),
-             * pour vérifier le recoupement : `provider` (`wikidata`, `wikipedia`, `bea-tt`), `role` (`data`,
-             * `article`, `list` liste d'accidents de Wikipédia, `report` rapport d'enquête, `inventory` bilan des enquêtes), `title`, `url` (permalien de
+             * pour vérifier le recoupement : `provider` (`wikidata`, `wikipedia`, `wikipedia-en`, `wikipedia-de`, `bea-tt`), `role` (`data`,
+             * `article`, `list` liste d'accidents de Wikipédia (en français, en anglais ou en allemand), `report` rapport d'enquête, `inventory` bilan des enquêtes), `title`, `url` (permalien de
              * la révision lue pour Wikipédia), `license`, `license_url`, `license_status` (`verified` : licence
              * ouverte prouvée), `revision`, `retrieved_at` (ISO 8601), `facts`. Citez le fournisseur en
              * réutilisant une donnée.
@@ -123,7 +123,7 @@ class AccidentDetailResource extends AccidentResource
              */
             'sources' => $this->sources->sortBy(fn (AccidentSource $s) => [array_search($s->role, ['report', 'inventory', 'data', 'article', 'list'], true), $s->id])
                 ->values()->map(fn (AccidentSource $s) => [
-                    /** Fournisseur : `wikidata`, `wikipedia`, `bea-tt`. */
+                    /** Fournisseur : `wikidata`, `wikipedia`, `wikipedia-en` et `wikipedia-de` (listes d'accidents des éditions anglaise et allemande), `bea-tt`. */
                     'provider' => $s->provider,
                     /** `data` (données structurées), `article` (encyclopédie), `list` (liste d'accidents de Wikipédia, faits seulement), `report` (rapport d'enquête), `inventory` (bilan des enquêtes). */
                     'role' => $s->role,
@@ -159,7 +159,8 @@ class AccidentDetailResource extends AccidentResource
                  * Vérification de la date et du lieu (`vff:verify-accidents`), nulle si la fiche n'a pas été vérifiée :
                  * `rule` (`primary_source` : l'enquête du BEA-TT donne la date et la commune ; `two_sources` : deux
                  * sources de familles différentes ; `wikidata_wikipedia` : Wikidata et Wikipédia seulement, dont l'une
-                 * peut être copiée de l'autre ; nul : aucune règle satisfaite), `date` et `place` (valeur retenue, et pour
+                 * peut être copiée de l'autre ; `wikipedia_editions` : Wikipédia en français et une liste de Wikipédia en anglais ou en
+                 * allemand qui cite sa propre référence (livre, presse), famille `wikipedia-edition` ; nul : aucune règle satisfaite), `date` et `place` (valeur retenue, et pour
                  * chacune les sources qui concordent `confirmed_by`, celles qui divergent `disagreeing`, les communes
                  * voisines `nearby` ; chaque source avec `provider`, `role`, `url`, sa valeur et `retrieved_at`, la date
                  * de lecture), `families`, `kind` (nature lue dans une source quand la fiche était « autre »), `aliases`
