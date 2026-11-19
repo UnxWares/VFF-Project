@@ -191,6 +191,26 @@ return [
             'domaines' => ['lignes-oubliees.com'],
             'lu_le' => '2026-10-20',
         ],
+        'argentanwebferro' => [
+            'nom' => 'Argentan Web Ferroviaire (argentanwebferro.fr, Thierry Danglos) : articles d\'histoire des lignes normandes et galerie de photos',
+            'statut' => 'incertain',
+            'licence' => 'Articles : tous droits réservés (mentions légales), seuls des FAITS en sont tirés ; galerie Piwigo : CC BY-SA 4.0 affichée en pied de page, valable pour les seules œuvres de l\'auteur',
+            'accord' => null,
+            'preuve' => [
+                'https://argentanwebferro.fr/mentions-legales/',
+                'https://argentanwebferro.fr/AWF/about.php',
+            ],
+            'citation' => 'Articles : « Toute reproduction, distribution, modification, adaptation, retransmission ou publication, même partielle, de ces différents éléments est strictement interdite sans l\'accord exprès par écrit de Danglos Thierry. » '
+                .'Galerie : « Ce(tte) œuvre est mise à disposition selon les termes de la Licence Creative Commons Attribution - Partage dans les Mêmes Conditions 4.0 International. »',
+            'obligations' => 'Articles : faits reformulés (dates, sections, arrêts, exploitants), lien vers l\'article avec chaque fait, au plus une phrase citée ; aucun texte, tableau ni photo d\'article repris. '
+                .'Galerie : seulement les photos de l\'auteur, avec son nom, la licence CC BY-SA 4.0, son lien et le lien de la page de la photo ; partage à l\'identique des œuvres dérivées. '
+                .'Cartes postales anciennes, archives et photos créditées à d\'autres photographes exclues.',
+            'remarques' => 'Décision de l\'utilisateur du 2026-11-19 : lecture de tout le site pour en tirer les faits. Risque résiduel : extraction systématique (droit des bases de données) '
+                .'et liens profonds (les mentions légales demandent d\'écrire avant d\'en poser) ; courriel de confirmation à l\'auteur proposé (storage/app/reports/agents/source-argentan.md). '
+                .'Faits en tables de source (argentanwebferro_*), non appliqués au moteur.',
+            'domaines' => ['argentanwebferro.fr'],
+            'lu_le' => '2026-11-19',
+        ],
         'region-sud' => [
             'nom' => 'Région Provence-Alpes-Côte d\'Azur (horaires ZOU ! : trains régionaux, Chemins de fer de Provence)',
             'statut' => 'sur',
@@ -366,6 +386,8 @@ return [
         'media' => [
             'commons' => 'commons',
             'upload' => 'vff',
+            // Photos de la galerie d'Argentan Web Ferroviaire (œuvres de l'auteur, CC BY-SA 4.0), import préparé, non lancé.
+            'argentanwebferro' => 'argentanwebferro',
         ],
         'lines.name_source' => [
             'archeoferroviaire' => 'archeoferroviaire',
