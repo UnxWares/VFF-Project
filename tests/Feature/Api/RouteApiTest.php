@@ -58,6 +58,7 @@ class RouteApiTest extends TestCase
                 'traffic_type' => 'mixed',
                 'is_heritage' => false,
                 'gauge_mm' => 1435,
+                'source' => 'osm',
             ]);
         }
 

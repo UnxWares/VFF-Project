@@ -33,8 +33,15 @@ class GtfsController extends Controller
      * `feed_info.txt` couvre l'année de l'ère (du 01/01 au 31/12). Données
      * ouvertes : citez « VFF - Voies Ferrées de France » et respectez les
      * licences des sources (ODbL pour la part issue d'OpenStreetMap et de la
-     * SNCF). Une partie des tracés (`shapes.txt`) vient de relevés tiers hors
-     * ODbL, réservés à un usage non commercial (voir `source` dans l'API GeoJSON).
+     * SNCF).
+     *
+     * **Droits des tracés** : `shapes.txt` ne contient que les formes des
+     * lignes dont tous les tronçons exploités à l'ère viennent d'une source à
+     * licence ouverte vérifiée. Quand une partie du tracé vient d'une source
+     * dont la licence n'autorise pas la redistribution, la ligne n'a pas de
+     * forme : son trajet (`trips.txt`) garde ses arrêts, sans `shape_id`. Le
+     * GeoJSON de l'ère (`/eras/{year}/lines.geojson`) dit quels tronçons sont
+     * concernés (`geometry_withheld`, résumé `withheld`).
      *
      * @param  int  $year  Année de l'ère (décennie de 1830 à 2030 ; 2030 = aujourd'hui).
      */

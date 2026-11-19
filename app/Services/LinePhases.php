@@ -646,15 +646,21 @@ final class LinePhases
             DB::select('SELECT year, is_current FROM eras ORDER BY year'));
 
         $rows = DB::select('SELECT md5(ST_AsEWKB(ls.geom)) AS k, e.year, ls.status, ls.traffic_type, ls.is_heritage, ls.heritage_kind,
-                   '.Lgv::sql('l', 'ls').' AS is_lgv
+                   ls.source, '.Lgv::sql('l', 'ls').' AS is_lgv
             FROM line_segments ls JOIN eras e ON e.id = ls.era_id JOIN lines l ON l.id = ls.line_id
             WHERE ls.line_id = ?', [$line->id]);
         if (! $rows) {
             return ['portions' => [], 'phases' => [], 'best' => null, 'used_events' => [], 'decades' => [], 'unexplained' => []];
         }
         $states = [];
+        // Provenance de la géométrie de chaque portion (toutes ères confondues) : l'API ne la
+        // redistribue que si toutes ces sources le permettent (LineTraceExport).
+        $sources = [];
         foreach ($rows as $r) {
             $states[$r->k][(int) $r->year] = self::category($r->status, $r->traffic_type, (bool) $r->is_heritage, $r->heritage_kind, (bool) $r->is_lgv);
+            if (! in_array($r->source, $sources[$r->k] ?? [], true)) {
+                $sources[$r->k][] = $r->source;
+            }
         }
 
         // Géométrie de chaque portion (une fois), ordonnée le long de la ligne : PK si connu,
@@ -672,7 +678,7 @@ final class LinePhases
         $portions = [];
         foreach ($geoms as $g) {
             $portions[] = ['key' => $g->k, 'length_m' => (int) $g->len, 'states' => $states[$g->k] ?? [],
-                'geometry' => json_decode($g->gj, true)];
+                'geometry' => json_decode($g->gj, true), 'sources' => $sources[$g->k] ?? []];
         }
 
         // Portions qui se touchent (continuité) : extrémités communes, à 3 m près.
@@ -738,7 +744,7 @@ final class LinePhases
         $result = self::compute($eras, $portions, $events, $cover, $adjacency, $today, $near, $adjacencyLoose);
 
         return [
-            'portions' => array_map(fn ($p) => ['length_m' => $p['length_m'], 'geometry' => $p['geometry']], $portions),
+            'portions' => array_map(fn ($p) => ['length_m' => $p['length_m'], 'geometry' => $p['geometry'], 'sources' => $p['sources']], $portions),
             'phases' => $result['phases'],
             'best' => $result['best'],
             'used_events' => $result['used_events'],

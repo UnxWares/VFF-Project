@@ -17,6 +17,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\MapRouteController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
@@ -35,6 +36,11 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/whoarewe', fn () => Inertia::render('WhoAreWe'))->name('whoarewe');
 Route::get('/maps', [MapController::class, 'index'])->name('maps');
+// Itinéraires dessinés par la carte du site : tracé complet pour l'affichage (l'API applique la règle des droits).
+Route::middleware('throttle:public-api')->group(function (): void {
+    Route::get('/maps/route', [MapRouteController::class, 'route'])->name('maps.route');
+    Route::get('/maps/route/compare', [MapRouteController::class, 'compare'])->name('maps.route.compare');
+});
 Route::get('/lines', [LineController::class, 'index'])->name('lines.index');
 Route::get('/lines/{line:slug}', [LineController::class, 'show'])->name('lines.show');
 Route::get('/stations', [StationController::class, 'index'])->name('stations.index');

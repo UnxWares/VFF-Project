@@ -214,7 +214,7 @@ type Line {
     lourd (jusqu'à quelques secondes) : demandez-la pour une ligne à la fois.
     """
     sheet(
-        "Joindre le tracé GeoJSON de chaque portion des phases (`portions[].geometry`)."
+        "Joindre le tracé GeoJSON de chaque portion des phases (`portions[].geometry`). Nul pour une portion dont une source n'autorise pas la redistribution (`geometry_withheld`, `geometry_withheld_reason`)."
         geometry: Boolean = false
     ): LineSheet! @field(resolver: "App\\GraphQL\\Resolvers\\SheetResolver@line")
 
@@ -380,7 +380,9 @@ type LineSegment {
     Géométrie du tronçon : une chaîne JSON contenant une géométrie GeoJSON (`LineString` ou
     `MultiLineString`, coordonnées WGS 84 dans l'ordre longitude, latitude). À décoder côté
     client avec `JSON.parse`. Vaut `null` quand la source du tronçon n'autorise pas la
-    redistribution (licence non ouverte, non commerciale ou statut incertain : voir `source`).
+    redistribution (licence non ouverte, non commerciale ou statut incertain, ou source absente du
+    registre des droits : voir `source`). Les tuiles vectorielles de la carte servent à l'affichage
+    et ne sont pas un export de données.
     """
     geojson: String @field(resolver: "App\\GraphQL\\Resolvers\\LineSegmentResolver@geojson")
 
@@ -2776,7 +2778,14 @@ type LineSheet {
     "État décennie par décennie."
     era_summary: [LineEraSummary!]!
 
-    "Tronçons élémentaires des phases : `index`, `length_m` et, avec `geometry: true`, `geometry` GeoJSON."
+    """
+    Tronçons élémentaires des phases : `index`, `length_m` et, avec `geometry: true`, `geometry`
+    GeoJSON, `geometry_withheld` et `geometry_withheld_reason`. La géométrie d'une portion n'est
+    jointe que si toutes ses sources autorisent la redistribution ; sinon elle vaut `null`,
+    `geometry_withheld` vaut `true` et `geometry_withheld_reason` donne la raison
+    (`licence_not_open` : source dont la licence n'autorise pas la redistribution ;
+    `unknown_source` : source absente du registre des droits).
+    """
     portions: JSON
 
     "Phases datées : `date`, `precision`, `kind`, `changes` (`from`, `to`, `length_m`, `event_id`), `state` par portion, `length_by_category`, `active_m`."

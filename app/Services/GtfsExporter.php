@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Era;
+use App\Services\TraceExport\LineTraceExport;
 use Illuminate\Support\Facades\DB;
 use ZipArchive;
 
@@ -28,6 +29,9 @@ class GtfsExporter
         'freight' => 100,   // Railway Service (étendu)
         'mixed' => 2,       // Rail
     ];
+
+    /** Règle des droits des tracés ; résolue à l'usage quand l'exporteur est construit sans conteneur. */
+    public function __construct(private readonly ?LineTraceExport $traceRights = null) {}
 
     /**
      * Génère un zip GTFS pour une ère et retourne son chemin sur disque.
@@ -181,6 +185,11 @@ class GtfsExporter
     /**
      * Stream shapes : 1 SQL par ligne avec ST_X/ST_Y + cumDist en SQL.
      *
+     * Règle des droits (LineTraceExport) : une forme est un tracé continu, elle n'est donc écrite
+     * que si TOUS les tronçons exploités de la ligne à l'ère viennent d'une source qui autorise la
+     * redistribution. Sinon la ligne n'a pas de forme (son trajet garde ses arrêts, sans
+     * `shape_id`) : une forme amputée de ses parties retenues serait fausse.
+     *
      * @return array<int, true> lignes dont le tracé a au moins un point
      */
     private function streamShapes(Era $era, string $path): array
@@ -195,8 +204,12 @@ class GtfsExporter
             ->distinct()
             ->pluck('line_id');
         $shaped = [];
+        $withheld = array_flip($this->withheldShapeLines($era));
 
         foreach ($lineIds as $lineId) {
+            if (isset($withheld[(int) $lineId])) {
+                continue;
+            }
             $pts = DB::select(<<<'SQL'
                 WITH dumped AS (
                     SELECT (ST_DumpPoints(ST_LineMerge(ST_Collect(geom))::geometry)).geom AS g
@@ -230,6 +243,26 @@ class GtfsExporter
         fclose($fp);
 
         return $shaped;
+    }
+
+    /**
+     * Lignes dont la forme n'est pas exportée à cette ère : au moins un tronçon exploité vient
+     * d'une source dont la licence n'autorise pas la redistribution (ou non déclarée).
+     *
+     * @return list<int>
+     */
+    public function withheldShapeLines(Era $era): array
+    {
+        $withheld = ($this->traceRights ?? app(LineTraceExport::class))->sqlWithheld('source');
+
+        return array_map('intval', DB::table('line_segments')
+            ->where('era_id', $era->id)
+            ->whereIn('status', ['in_service', 'single_track'])
+            ->whereRaw($withheld)
+            ->distinct()
+            ->orderBy('line_id')
+            ->pluck('line_id')
+            ->all());
     }
 
     private function buildCalendar(Era $era): string

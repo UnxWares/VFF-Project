@@ -111,6 +111,7 @@ class SheetsApiTest extends TestCase
                 'electrified', 'max_speed_kmh', 'gauge_mm', 'source', 'provenance' => ['provider', 'name', 'license', 'license_status']]]]);
 
         // Un tronçon sans source déclarée n'a pas de licence connue : sa géométrie n'est pas donnée.
+        LineSegment::query()->update(['source' => null]);
         $this->getJson("/api/v1/lines/{$this->line->slug}/segments?era=1960&geometry=1")
             ->assertOk()
             ->assertJsonPath('data.0.geometry', null)

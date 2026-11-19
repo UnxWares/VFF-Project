@@ -131,7 +131,8 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `list_lines` | Annuaire des lignes (réseau, état, trafic, département, époque). |
 | `list_stations` | Annuaire des gares (statut, département, époque). |
 | `materials` | Séries de matériel roulant filtrées et triées. |
-| `get_material` | Fiche d'une série de matériel, avec les lignes parcourues et leurs preuves. |
+| `get_material` | Fiche d'une série de matériel, avec les lignes parcourues, leurs preuves et leurs périodes de circulation. |
+| `line_materials` | Matériel roulant d'une ligne, avec les périodes de circulation de chaque série (début, fin, précision). |
 | `accidents` | Accidents et événements graves du rail (ligne, période, nature, département, bilan), paginés. |
 | `get_accident` | Fiche d'un accident : lignes rattachées, sources lues et leur licence, points à vérifier. |
 | `compare_eras` | Ce qui a changé sur le réseau entre deux ères : km ouverts, fermés, déposés, restés en service. |
@@ -490,10 +491,39 @@ renseigné par la source : VFF n'estime aucune valeur.
 
 Renvoie `material` : la fiche de l'API REST `/api/v1/materials/{slug}`, avec `field_sources`
 (provenance de chaque champ) et `lines` (lignes parcourues, chaque lien avec sa preuve `evidence`
-et sa fiabilité `confidence`). Série inconnue : erreur `material_not_found` avec `suggestions`.
+et sa fiabilité `confidence`, et `periods`, ses périodes de circulation datées : voir `line_materials`). Série
+inconnue : erreur `material_not_found` avec `suggestions`.
 
 ```json
 {"material": "bb-15000"}
+```
+
+### `line_materials` : matériel roulant d'une ligne et périodes de circulation
+
+Même liste que `GET /api/v1/lines/{line}/materials`, sans les phrases citées (décision Q22 : aucun extrait de
+Wikipédia dans les réponses du serveur MCP). Les périodes sont calculées par `vff:import-material-periods` à partir des
+phrases des articles Wikipédia de la ligne et des séries (faits seulement, CC BY-SA 4.0) et des qualificatifs de début
+et de fin des déclarations Wikidata P3438 (CC0).
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `type` | catégorie | non | Catégorie de matériel (`autorail`, `locomotive_diesel`…). Toutes par défaut. |
+| `lang` | `fr`, `en`, `de` | non | Langue des libellés et des messages. |
+
+Renvoie `line`, `total` (séries attestées), `dated` (séries qui ont au moins une période datée) et `materials` : pour
+chaque série, `material` (`slug` à passer à `get_material`, `name`, `type`, `type_label`), `confidence` du lien,
+`source`, `source_url` (permalien de la révision lue ou élément Wikidata) et `periods`. Une période donne `start_date`
+et `end_date` (`AAAA-MM-JJ`, l'une peut être nulle) avec `start_precision` et `end_precision` (`day`, `month` : date au
+1er du mois, `year` : date au 1er janvier), `section` (portion nommée par le titre de section de l'article, sinon
+nulle), `confidence` (`high` : jour ou mois, `medium` : année), `origin` (`line_article`, `material_article`,
+`wikidata`), `source` (`title`, `revision`, `url`) et `provenance`. Seules les périodes sûres sont données ; une fin
+nulle ne veut pas dire que la série circule encore. Exemple réel : sur la ligne de Grenoble à Montmélian
+(`rfn-909000`), les CC 72000 ont une période du 20 août 1982 au 30 mai 1986 (`high`), les BB 67300 une fin au
+2 mai 2016 (`high`). Ligne inconnue : erreur `line_not_found` avec `suggestions`.
+
+```json
+{"line": "rfn-909000"}
 ```
 
 ### `accidents` : accidents et événements graves du rail
@@ -718,6 +748,7 @@ SNCF Réseau. Erreur `no_geometry` si la ligne n'a pas de tracé à cette ère.
 | « À quel PK de Paris - Brest est ce point (48,10 ; -1,67) ? » | `locate_on_line {"line": "rfn-420000", "lat": 48.10, "lng": -1.67}` |
 | « Une voie verte a-t-elle remplacé la ligne de La Chapelle-Anthenaise à Flers ? » | `line_greenways {"line": "rfn-436000"}` : citer la mention de `provenance` |
 | « Quel matériel a circulé sur Lunéville - Saint-Dié ? » | `search {"query": "Lunéville"}` puis `materials {"line": "<slug>"}` et `get_material` pour la preuve |
+| « Jusqu'à quand les X 4300 ont-ils roulé sur Lunéville - Saint-Dié ? » | `line_materials {"line": "rfn-67000", "type": "autorail"}` : période de chaque série |
 
 ## Authentification et quotas
 
@@ -817,6 +848,14 @@ La base de VFF est publiée sous **Open Database License (ODbL) 1.0**. En réuti
 4. pour un fournisseur à `open_licence: false`, reprenez seulement avec sa mention et le lien de
    la source (`source_url`) ; les faits venant d'**archeoferroviaire** sont réservés à un usage
    **non commercial**.
+
+**Tracés.** Le serveur MCP ne renvoie aucune géométrie de tracé : ses réponses donnent des
+points (gares, passages à niveau, accidents, point du tracé retenu par `locate_on_line`), des
+longueurs et des PK, jamais les lignes elles-mêmes. Les tracés s'obtiennent par l'API REST, qui ne
+redistribue que la géométrie d'une source dont la licence le permet : pour une source dont la
+licence n'autorise pas la redistribution, `geometry` vaut `null`, avec `geometry_withheld` et la
+raison (voir la documentation de l'API, « Droits des tracés »). Un test vérifie qu'aucun outil
+ne renvoie de géométrie de tracé.
 
 Les instructions du serveur rappellent ces obligations aux assistants.
 

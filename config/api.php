@@ -16,6 +16,12 @@ return [
         'partner' => (int) env('API_RATE_LIMIT_PARTNER', 6000),
     ],
 
+    // Règle des droits des tracés (App\Services\TraceExport\LineTraceExport) : la géométrie d'un tronçon
+    // n'est redistribuée par l'API (REST, GraphQL, GTFS, itinéraires) que si sa source a une licence
+    // ouverte vérifiée dans le registre des droits. false : retour arrière, toutes les géométries
+    // sortent de nouveau. Les tuiles vectorielles de la carte (affichage) ne sont pas concernées.
+    'withhold_unlicensed_geometry' => (bool) env('API_WITHHOLD_UNLICENSED_GEOMETRY', true),
+
     'tokens' => [
         // Jetons actifs par compte au plus.
         'max_per_account' => (int) env('API_TOKENS_MAX_PER_ACCOUNT', 10),

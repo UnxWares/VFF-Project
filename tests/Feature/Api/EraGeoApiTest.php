@@ -80,7 +80,7 @@ class EraGeoApiTest extends TestCase
         $response = $this->get('/api/v1/eras/1900/lines.geojson')->assertOk();
 
         $this->assertSame(
-            ['type' => 'FeatureCollection', 'features' => []],
+            ['type' => 'FeatureCollection', 'features' => [], 'withheld' => []],
             json_decode($response->streamedContent(), true),
         );
     }

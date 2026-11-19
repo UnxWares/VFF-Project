@@ -172,13 +172,21 @@ return [
             Les tracés et les gares agrègent plusieurs sources dont les licences s'appliquent : SNCF Open
             Data et OpenStreetMap (ODbL), IGN BD TOPO (Licence Ouverte 2.0), OpenHistoricalMap et Wikidata
             (CC0), Wikipédia (CC BY-SA). Les données signalées par `source` = `archeoferroviaire` ne sont
-            pas sous ODbL : usage non commercial uniquement, avec un crédit et un lien vers la source.
-            Le tracé d'une ligne en fichier (`/lines/{line}/geojson`, `/gpx`, `/kml`) ne contient que les
-            géométries dont la source a une licence ouverte : celles d'une source non commerciale, sous
-            accord particulier ou de statut incertain en sont écartées, et la réponse dit lesquelles
-            (`withheld`, `geometry_withheld`, ou HTTP 451 quand rien n'est exportable). Chaque fichier porte
-            la mention de la base VFF et celle de chaque source utilisée. Chaque média porte sa propre
-            licence et son attribution.
+            pas sous ODbL : usage non commercial uniquement, avec un crédit et un lien vers la source ;
+            leurs tracés ne sont pas redistribués (voir ci-dessous).
+            **Droits des tracés.** L'API ne redistribue que les géométries de tronçon dont la source a une
+            licence ouverte vérifiée (registre `/sources`). Celle d'une source dont la licence n'autorise pas
+            la redistribution est retenue partout : tracés d'une ère (`/eras/{year}/lines.geojson`, entité
+            gardée avec ses propriétés et `geometry` à `null`), tracé d'une ligne (`/lines/{line}/geojson`,
+            `/segments`, `/gpx`, `/kml`), portions de la fiche (`/lines/{line}?geometry=true`), itinéraires
+            (`/route`, `/route/compare` : parties retenues absentes de `geometry`), formes du GTFS
+            (`shapes.txt` sans la forme d'une ligne concernée) et GraphQL (`LineSegment.geojson`,
+            `sheet(geometry: true)`). La réponse dit ce qui manque : `geometry_withheld`,
+            `geometry_withheld_reason` (`licence_not_open` ou `unknown_source`), le résumé `withheld`
+            par source, ou HTTP 451 quand rien n'est exportable. Les tuiles vectorielles (MVT) servent à
+            l'affichage de la carte du site et de la carte intégrable : elles ne sont pas un export de
+            données. Chaque fichier porte la mention de la base VFF et celle de chaque source utilisée.
+            Chaque média porte sa propre licence et son attribution.
 
             ## Webhooks
             Plutôt que d'interroger l'API à intervalles réguliers, un membre peut recevoir un message à chaque

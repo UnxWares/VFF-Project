@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Services\NetworkGraph\RouteException;
+use App\Services\TraceExport\LineTraceExport;
 use Illuminate\Support\Facades\DB;
 use SplPriorityQueue;
 
@@ -31,6 +32,16 @@ class PathfindingService
     private const MIN_LEG_M = 1000;
 
     /**
+     * Section gare à gare retenue (règle des droits) : elle longe un tronçon non redistribuable,
+     * à BUFFER près (degrés, environ 3 m), sur plus de OVERLAP mètres.
+     */
+    private const WITHHELD_BUFFER_DEG = 0.00003;
+
+    private const WITHHELD_OVERLAP_M = 10;
+
+    public function __construct(private readonly LineTraceExport $traceRights) {}
+
+    /**
      * Compatibilité (GraphQL) : itinéraire ou null.
      *
      * @return array<string, mixed>|null
@@ -45,7 +56,8 @@ class PathfindingService
     }
 
     /**
-     * @param  array{heritage?: bool, traffic?: string}  $options
+     * @param  array{heritage?: bool, traffic?: string, display?: bool}  $options  `display` : tracé complet
+     *                                                                             pour la carte du site (jamais par l'API)
      * @return array<string, mixed>
      *
      * @throws RouteException
@@ -90,7 +102,7 @@ class PathfindingService
                 ['era_year' => (int) $era->year]);
         }
 
-        return $this->describe($era, $build, $path, $year, $heritage, $factor);
+        return $this->describe($era, $build, $path, $year, $heritage, $factor, (bool) ($options['display'] ?? false));
     }
 
     /**
@@ -362,9 +374,10 @@ class PathfindingService
 
     /**
      * @param  array{cost: float, stations: list<int>, edges: list<int>}  $path
+     * @param  bool  $display  tracé complet pour la carte du site (règle des droits non appliquée)
      * @return array<string, mixed>
      */
-    private function describe(object $era, object $build, array $path, ?int $requestedYear, bool $heritage, float $factor): array
+    private function describe(object $era, object $build, array $path, ?int $requestedYear, bool $heritage, float $factor, bool $display): array
     {
         $stationIds = $path['stations'];
         $stationRows = collect(DB::select(<<<'SQL'
@@ -437,11 +450,28 @@ class PathfindingService
             'from_mm' => $g['from_mm'], 'to_mm' => $g['to_mm'],
         ], self::gaugeChanges($gauges));
 
-        $geometry = DB::scalar(
-            'SELECT ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_LineMerge(ST_Collect(geom)), 0.00005), 5)
-             FROM station_edges WHERE id = ANY(?::bigint[])',
+        // Règle des droits des tracés (LineTraceExport) : une section gare à gare dont le tracé
+        // reprend, sur plus de WITHHELD_OVERLAP_M, un tronçon d'une source qui n'autorise pas la
+        // redistribution est retirée de `geometry` (chiffrée dans `geometry_withheld_m`), sauf pour
+        // l'affichage de la carte du site (option `display`, comme les tuiles vectorielles).
+        $withheldSql = $display ? 'FALSE' : 'EXISTS (
+                SELECT 1 FROM line_segments ls
+                WHERE ls.era_id = e.era_id
+                  AND ls.line_id = ANY(COALESCE(e.line_ids, ARRAY[e.line_id]))
+                  AND '.$this->traceRights->sqlWithheld('ls.source').'
+                  AND ls.geom && ST_Expand(e.geom, 0.0001)
+                  AND ST_Length(ST_Intersection(e.geom, ST_Buffer(ls.geom, '.self::WITHHELD_BUFFER_DEG.'))::geography) > '.self::WITHHELD_OVERLAP_M.')';
+        $shape = DB::selectOne(
+            "WITH e AS (
+                SELECT e.id, e.geom, e.length_m, {$withheldSql} AS withheld
+                FROM station_edges e WHERE e.id = ANY(?::bigint[]))
+             SELECT ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_LineMerge(ST_Collect(geom) FILTER (WHERE NOT withheld)), 0.00005), 5) AS g,
+                    COALESCE(SUM(length_m) FILTER (WHERE withheld), 0) AS withheld_m
+             FROM e",
             [self::pgArray($path['edges'])],
         );
+        $geometry = $shape?->g;
+        $geometryWithheldM = (int) ($shape->withheld_m ?? 0);
 
         $warnings = [];
         if ($totals['non_passenger'] > 0) {
@@ -482,6 +512,9 @@ class PathfindingService
             'warnings' => $warnings,
             'options' => ['heritage' => $heritage, 'traffic' => $factor > 1.0 ? 'passenger' : 'all'],
             'geometry' => $geometry ? json_decode($geometry, true) : null,
+            // Parties du trajet retirées de `geometry` (règle des droits des tracés), en mètres.
+            'geometry_withheld' => $geometryWithheldM > 0,
+            'geometry_withheld_m' => $geometryWithheldM,
             'graph' => [
                 'built_at' => $build->built_at,
                 'stations_source' => $build->stations_source,

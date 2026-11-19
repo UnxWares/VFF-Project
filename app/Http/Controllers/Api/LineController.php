@@ -193,12 +193,20 @@ class LineController extends Controller
      * était la plus étendue. `phases_unexplained` : écarts entre la dernière
      * décennie et les sources d'aujourd'hui qu'aucun événement ne date.
      * `portions` : tronçons élémentaires de la ligne (`length_m`, et
-     * `geometry` GeoJSON avec `geometry=true`).
+     * `geometry` GeoJSON avec `geometry=true`). Droits des tracés : la
+     * géométrie d'une portion n'est jointe que si toutes ses sources
+     * autorisent la redistribution ; sinon `geometry` vaut `null`,
+     * `geometry_withheld` vaut `true` et `geometry_withheld_reason` donne la
+     * raison (`licence_not_open` : source dont la licence n'autorise pas la
+     * redistribution ; `unknown_source` : source absente du registre).
      *
      * **Décennies** (`decades`, `era_summary`) : état de la ligne au 31/12 de
      * chaque décennie (km par catégorie, en mètres dans `decades`, en km dans
      * `era_summary`) et, dans `decades.stations`, gares ouvertes, incertaines,
-     * fermées et fermetures de la décennie.
+     * fermées et fermetures de la décennie (`closures` : chaque gare comptée
+     * fermée à cette décennie et pas à la précédente, avec la date de sa fiche
+     * gare ; sans date retenue, l'intervalle de la frise en précision `range`
+     * entre `closed_after` et `closed_at` ; `reopened` : rouverte ensuite).
      *
      * **Chronique** (`chronicle`) : les événements regroupés par portion
      * (`groups`), avec `quote` (citation de la source), `status`
@@ -226,7 +234,7 @@ class LineController extends Controller
      * `signalling_history`).
      */
     #[PathParameter('line', 'Identifiant (slug) de la ligne, tel que renvoyé par l\'annuaire ou la recherche. Les lignes du réseau ferré national sont nommées `rfn-` suivi de leur code à 6 chiffres.', example: 'rfn-447000')]
-    #[QueryParameter('geometry', 'Joindre le tracé GeoJSON de chaque portion (`portions.geometry`) : `true` ou `false` (par défaut).', type: 'boolean', default: false, example: false)]
+    #[QueryParameter('geometry', 'Joindre le tracé GeoJSON de chaque portion (`portions.geometry`) : `true` ou `false` (par défaut). Une portion dont une source n\'autorise pas la redistribution garde `geometry` à `null`, avec `geometry_withheld` et `geometry_withheld_reason`.', type: 'boolean', default: false, example: false)]
     #[ApiResponse(200, 'Fiche de la ligne (extrait de la ligne de Morlaix à Roscoff ; listes raccourcies).', examples: [LineSheetExample::BODY])]
     #[ApiResponse(404, 'Ligne inconnue.', examples: [ErrorExamples::LINE_NOT_FOUND])]
     #[ApiResponse(422, '`geometry` n\'est pas un booléen.', examples: [ErrorExamples::GEOMETRY_INVALID])]
@@ -264,7 +272,11 @@ class LineController extends Controller
      *   `archeoferroviaire`, `contrib`…) et `provenance` : fournisseur et
      *   licence (voir `/sources`) ;
      * - `geometry` (avec `geometry=true`) : LineString GeoJSON, WGS 84,
-     *   coordonnées longitude, latitude à 6 décimales.
+     *   coordonnées longitude, latitude à 6 décimales ; `null` pour un tronçon
+     *   dont la source n'autorise pas la redistribution, avec alors
+     *   `geometry_withheld` à `true` et `geometry_withheld_reason`
+     *   (`licence_not_open` : licence qui n'autorise pas la redistribution ;
+     *   `unknown_source` : source absente du registre des droits).
      */
     #[PathParameter('line', 'Identifiant (slug) de la ligne.', example: 'rfn-447000')]
     #[QueryParameter('era', "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante (aujourd'hui). Une année sans ère (`1935`) donne HTTP 404, comme pour `/stops` et `/signalling`.", type: 'int', example: 1930)]
@@ -280,6 +292,7 @@ class LineController extends Controller
             'dismantled_at' => null, 'reuse' => null, 'source' => 'bdtopo',
             'provenance' => ['provider' => 'ign', 'name' => 'IGN (BD TOPO, BD ORTHO historique)', 'license' => "Licence Ouverte 2.0 (Etalab), données publiques de l'IGN libres depuis le 1er janvier 2021", 'license_status' => 'verified'],
             'geometry' => ['type' => 'LineString', 'coordinates' => [[-3.837041, 48.578218], [-3.83613, 48.581991]]],
+            'geometry_withheld' => false, 'geometry_withheld_reason' => null,
         ]],
     ]])]
     #[ApiResponse(404, 'Ligne ou ère inconnue.', examples: [ErrorExamples::LINE_NOT_FOUND])]
@@ -321,10 +334,11 @@ class LineController extends Controller
      * **Droits.** La géométrie d'un tronçon n'est donnée que si sa source a une
      * licence ouverte écrite et vérifiée (OpenStreetMap, SNCF Réseau, IGN,
      * OpenHistoricalMap, contributions validées : `provenance.license_status` =
-     * `verified`). Pour un tronçon d'une source non commerciale, sous accord
-     * oral, de statut incertain ou non déclarée, `geometry` vaut `null` et
-     * `properties.geometry_withheld` vaut `true` ; ses autres propriétés restent
-     * lisibles. `withheld` résume ces tronçons par source (nombre, longueur,
+     * `verified`). Pour un tronçon d'une source dont la licence n'autorise pas
+     * la redistribution, ou d'une source non déclarée, `geometry` vaut `null`,
+     * `properties.geometry_withheld` vaut `true` et
+     * `properties.geometry_withheld_reason` donne la raison ; ses autres
+     * propriétés restent lisibles. `withheld` résume ces tronçons par source (nombre, longueur,
      * raison : `licence_not_open` ou `unknown_source`) ; la liste est vide quand
      * tout est exporté. Reprenez les mentions de `attribution` si vous publiez
      * le tracé. `/lines/{line}/segments?geometry=true` suit la même règle.
@@ -354,7 +368,7 @@ class LineController extends Controller
                 'pk_start_m' => 1093, 'pk_end_m' => 1550, 'length_m' => 457, 'status' => 'in_service', 'traffic_type' => 'mixed',
                 'is_heritage' => false, 'electrified' => false, 'gauge_mm' => 1435, 'source' => 'bdtopo',
                 'provenance' => ['provider' => 'ign', 'name' => 'IGN (BD TOPO, BD ORTHO historique)', 'license' => "Licence Ouverte 2.0 (Etalab), données publiques de l'IGN libres depuis le 1er janvier 2021", 'license_status' => 'verified'],
-                'geometry_withheld' => false,
+                'geometry_withheld' => false, 'geometry_withheld_reason' => null,
             ],
         ]],
     ]])]
