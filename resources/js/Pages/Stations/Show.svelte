@@ -1,6 +1,6 @@
 <script>
     import { formatStationDate } from '$lib/stationDates.js';
-    import { servicePeriod } from '$lib/servicePeriod.js';
+    import { servicePeriodText } from '$lib/servicePeriod.js';
     import Layout from '$components/Layout.svelte';
     import StationEraStrip from '$components/Stations/StationEraStrip.svelte';
     import StationMiniMap from '$components/Stations/StationMiniMap.svelte';
@@ -298,7 +298,7 @@
             {#if lines.length}
                 <ul class="lines-list">
                     {#each lines as l (l.slug)}
-                        {@const period = servicePeriod(l)}
+                        {@const period = servicePeriodText(l, t, formatDate)}
                         <li class="line-row">
                             <div class="line-id">
                                 <a class="line-name" href="/lines/{l.slug}">{l.name}</a>
@@ -318,7 +318,7 @@
                             </div>
                             <p class="line-period">
                                 {#if period}
-                                    {t(`stations.lines.${period.key}`, period.params)}
+                                    {period.text}
                                     {#if period.fromStation}
                                         <span class="period-source"
                                             >{t('stations.lines.years_from_station')}</span

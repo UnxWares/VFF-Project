@@ -114,6 +114,10 @@ final class StationSheet
                 // gare (line_closed), ou gare fermée avant l'ouverture de la ligne (station_closed).
                 'never_served' => $l->years_source !== 'never_served' ? null
                     : ((int) $l->first_year === (int) $station->opened_at?->format('Y') ? 'line_closed' : 'station_closed'),
+                // Date, précision et événement de ligne qui ouvrent et terminent la desserte, nuls quand seules
+                // les années sont sûres (StationServiceDates::bounds).
+                'service_start' => ($bounds = StationServiceDates::bounds($l))['start'],
+                'service_end' => $bounds['end'],
                 'active_current' => (bool) $l->active_current,
                 'era_years' => json_decode($l->era_years, true) ?? [],
             ], $lines),
@@ -174,12 +178,15 @@ final class StationSheet
                     WHERE x.line_id = l.id AND x.status IN ('in_service', 'single_track')
                       AND x.geom && ST_Expand(st.geom, 0.007) AND ST_DWithin(x.geom::geography, st.geom::geography, 500))
             SQL;
+        // Dates de début et de fin de desserte et événements sources (StationServiceDates::bounds).
+        $dates = StationServiceDates::columns();
+        $nullDates = StationServiceDates::NULL_COLUMNS;
         $lines = DB::select(<<<SQL
             SELECT l.slug, l.code, l.name, l.network, sl.method, sl.pk_m, sl.pk_source, sl.distance_m,
-                   sl.first_year, sl.last_year, sl.years_source, {$activeCurrent} AS active_current,
+                   sl.first_year, sl.last_year, sl.years_source, {$activeCurrent} AS active_current, {$dates},
                    COALESCE((SELECT ARRAY_TO_JSON(ARRAY_AGG(e.year ORDER BY e.year)) FROM line_stops ls JOIN eras e ON e.id = ls.era_id
                              WHERE ls.line_id = l.id AND ls.station_id = sl.station_id), '[]'::json) AS era_years
-            FROM station_lines sl JOIN lines l ON l.id = sl.line_id
+            FROM station_lines sl JOIN lines l ON l.id = sl.line_id JOIN stations s ON s.id = sl.station_id
             WHERE sl.station_id = ?
             ORDER BY sl.last_year IS NOT NULL, sl.first_year NULLS LAST, l.name
         SQL, [$stationId, $stationId]);
@@ -188,7 +195,7 @@ final class StationSheet
                 SELECT l.slug, l.code, l.name, l.network, 'segment' AS method, NULL AS pk_m, NULL AS pk_source,
                        MIN(ROUND(ST_Distance(s.geom::geography, ls.geom::geography)))::int AS distance_m,
                        NULL AS first_year, NULL AS last_year, NULL AS years_source, {$activeCurrent} AS active_current,
-                       '[]'::json AS era_years
+                       {$nullDates}, '[]'::json AS era_years
                 FROM stations s
                 JOIN line_segments ls ON ls.geom && ST_Expand(s.geom, 0.005) AND ST_DWithin(ls.geom::geography, s.geom::geography, 300)
                 JOIN lines l ON l.id = ls.line_id

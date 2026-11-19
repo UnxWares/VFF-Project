@@ -5,6 +5,7 @@ namespace App\Mcp\Tools;
 use App\Enums\ServiceEnd;
 use App\Mcp\Support\Lookup;
 use App\Mcp\Support\VffTool;
+use App\Services\StationServiceDates;
 use App\Services\StationSheet;
 use App\Services\StationTimeline;
 use App\Support\EventText;
@@ -22,7 +23,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Name('get_station')]
 #[Title("Fiche d'une gare")]
 #[Description(<<<'TXT'
-Fiche d'une gare, halte ou point d'arrêt français, actuel ou disparu : identité (nom, autres noms, nature, ville, département, code UIC, élément Wikidata, coordonnées WGS 84 en degrés décimaux), statut actuel (active = ouverte aux voyageurs, tourist = train touristique, no_commercial = fret seul, declassified = fermée, gone = disparue, planned = projetée, technical = point technique, excluded = hors réseau ferré), dates d'ouverture et de fermeture avec leur précision (`when` = date rédigée à cette précision ; une fermeture de précision range n'est connue que par un intervalle : `date` nulle, `from_year` et `to_year` = bornes en années, `to_year` nul quand la date est inconnue ; chronologie : day, month, year, decade, before = avant, after = après), statut à chaque décennie de la carte (instantané au 31/12, ère courante = aujourd'hui ; uncertain = non confirmé), chronologie (chaque date avec sa source, son lien, et `inferred` = date déduite des lignes plutôt que d'une source sur la gare), lignes desservies (période de desserte : `first_year`, `last_year` et `last_year_kind` = year, upper_bound pour « au plus tard cette année » ou undated pour « fin non datée », jamais une date sûre dans ces deux cas ; `years_source` = line_events, traces, ou station quand les années viennent des dates de la gare faute d'événement daté de la ligne ; point kilométrique en km, desserte actuelle) et sources rattachées (SNCF, OSM, Wikidata, OHM…, avec lien, écart en mètres à la position retenue, méthode de rapprochement, date de lecture par VFF et attributs bruts reçus de la source). `attribute_sources` dit quelle source a fourni chaque attribut de la gare ; `position.flagged` signale une position à vérifier.
+Fiche d'une gare, halte ou point d'arrêt français, actuel ou disparu : identité (nom, autres noms, nature, ville, département, code UIC, élément Wikidata, coordonnées WGS 84 en degrés décimaux), statut actuel (active = ouverte aux voyageurs, tourist = train touristique, no_commercial = fret seul, declassified = fermée, gone = disparue, planned = projetée, technical = point technique, excluded = hors réseau ferré), dates d'ouverture et de fermeture avec leur précision (`when` = date rédigée à cette précision ; une fermeture de précision range n'est connue que par un intervalle : `date` nulle, `from_year` et `to_year` = bornes en années, `to_year` nul quand la date est inconnue ; chronologie : day, month, year, decade, before = avant, after = après), statut à chaque décennie de la carte (instantané au 31/12, ère courante = aujourd'hui ; uncertain = non confirmé), chronologie (chaque date avec sa source, son lien, et `inferred` = date déduite des lignes plutôt que d'une source sur la gare), lignes desservies (période de desserte : `first_year`, `last_year` et `last_year_kind` = year, upper_bound pour « au plus tard cette année » ou undated pour « fin non datée », jamais une date sûre dans ces deux cas ; `years_source` = line_events, traces, ou station quand les années viennent des dates de la gare faute d'événement daté de la ligne ; `service_start` et `service_end` = date sûre du début et de la fin de desserte, avec `precision` (day, month, year), `when` rédigé à cette précision et `event_id`, l'événement de ligne qui la donne (son `id` dans les événements de get_line et line_events, REST /api/v1/events/{id}), nuls quand seule l'année est sûre ; point kilométrique en km, desserte actuelle) et sources rattachées (SNCF, OSM, Wikidata, OHM…, avec lien, écart en mètres à la position retenue, méthode de rapprochement, date de lecture par VFF et attributs bruts reçus de la source). `attribute_sources` dit quelle source a fourni chaque attribut de la gare ; `position.flagged` signale une position à vérifier.
 Prend le slug renvoyé par search (ex. "limoges-benedictins").
 Exemple : {"station": "brest", "lang": "en"}.
 TXT)]
@@ -121,6 +122,9 @@ class StationSheetTool extends VffTool
                 'last_year_kind' => ServiceEnd::of($l->last_year !== null ? (int) $l->last_year : null,
                     $closedAt, $station->closed_precision, $currentYear)?->value,
                 'years_source' => $l->years_source,
+                // Date sûre du début et de la fin de desserte, et l'événement de ligne qui la donne.
+                'service_start' => StationServiceDates::written(($bounds = StationServiceDates::bounds($l, $currentYear))['start'], $lang),
+                'service_end' => StationServiceDates::written($bounds['end'], $lang),
                 'pk_km' => $l->pk_m !== null ? round($l->pk_m / 1000, 3) : null,
                 'served_today' => (bool) $l->active_current,
             ], $sheet->lines($sid)),

@@ -6,8 +6,10 @@ use App\Models\Line;
 use App\Services\LineFacts;
 use App\Services\LinePhases;
 use App\Services\LineSheet;
+use App\Services\LineStations;
 use App\Services\LineStats;
 use App\Services\Signalling\LineSignallingHistory;
+use App\Services\StationServiceDates;
 use App\Support\EventText;
 use App\Support\Lgv;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +18,8 @@ use Illuminate\Support\Facades\DB;
  * Fiche d'une ligne pour le serveur MCP (outil get_line et ressource Markdown), composée avec les
  * services de la fiche web : LinePhases (phases datées, état décennie par décennie, longueur du
  * tracé), LineStats (électrification, vitesse, signalisation de l'ère affichée), LineFacts
- * (faits encyclopédiques rapportés à leur source) et les événements datés (LineEvents).
+ * (faits encyclopédiques rapportés à leur source), les gares (LineStations, avec leurs dates de
+ * desserte) et les événements datés (LineEvents).
  *
  * Longueurs en kilomètres (une décimale), dates ISO AAAA-MM-JJ à lire avec leur précision.
  */
@@ -27,6 +30,7 @@ final class LineDossier
         private readonly LineEvents $events,
         private readonly Attribution $attribution,
         private readonly LineSignallingHistory $signallingHistory,
+        private readonly LineStations $stations,
     ) {}
 
     /**
@@ -138,6 +142,21 @@ final class LineDossier
                 'in_service_km' => round($d['active_m'] / 1000, 1),
                 'by_category_km' => self::categoriesKm($d['length_by_category'], null),
             ], $phases['decades']),
+            // Gares de la ligne dans l'ordre du tracé, avec leur période de desserte par cette ligne (années,
+            // et date sûre avec l'événement qui la donne : StationServiceDates).
+            'stations' => array_map(fn (array $st) => [
+                'slug' => $st['slug'],
+                'name' => $st['name'],
+                'pk_km' => $st['pk_m'] !== null ? round($st['pk_m'] / 1000, 3) : null,
+                'is_terminal' => $st['is_terminal'],
+                'served_from' => $st['served_from'],
+                'served_until' => $st['served_until'],
+                'served_until_kind' => $st['served_until_kind'],
+                'years_source' => $st['years_source'],
+                'service_start' => StationServiceDates::written($st['service_start'], $lang),
+                'service_end' => StationServiceDates::written($st['service_end'], $lang),
+                'status_today' => $st['status_today'],
+            ], $this->stations->forLine((int) $line->id)['stations']),
             'event_count' => $eventCount,
         ];
         if ($withEvents) {

@@ -121,9 +121,9 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | Outil | Rôle |
 |---|---|
 | `search` | Trouver une ligne, une gare, un matériel ou un accident par son nom (identifiants pour les autres outils). |
-| `get_line` | Fiche d'une ligne : longueurs, électrification, signalisation, phases datées, chronologie. |
+| `get_line` | Fiche d'une ligne : longueurs, électrification, signalisation, phases datées, gares, chronologie. |
 | `line_events` | Événements d'une ligne sur une période. |
-| `get_station` | Fiche d'une gare : dates, statut par décennie, lignes desservies, sources. |
+| `get_station` | Fiche d'une gare : dates, statut par décennie, lignes desservies et dates de desserte, sources. |
 | `network_at_era` | État du réseau à une époque (km par état et par trafic, gares par statut). |
 | `historical_route` | Itinéraire entre deux gares sur le réseau d'une époque, ou le même trajet comparé à deux époques. |
 | `sources_and_licences` | Fournisseurs de données et licences. |
@@ -205,6 +205,10 @@ Renvoie `line` :
   `to` (catégories), `length_km`, `event_id`, `source`, `source_url` ; `in_service_after_km`),
   `best_phase` (indice de la phase du plus grand développement) ;
 - `decades` : `year`, `in_service_km`, `by_category_km` ;
+- `stations` : gares de la ligne dans l'ordre du tracé (`slug`, `name`, `pk_km`, `is_terminal`,
+  `served_from`, `served_until`, `served_until_kind`, `years_source`, `service_start`,
+  `service_end`, `status_today`), avec les mêmes dates de desserte que `get_station` (voir
+  ci-dessous) ;
 - `event_count`, `events` (même forme que `line_events`), `events_omitted`.
 
 `signalling.history` est un historique à part de l'état actuel (`block_systems_km`, SNCF Réseau) : il
@@ -271,12 +275,30 @@ voies de l'époque), `events` (chronologie : `type`, `label`, date, `source`, `s
 `name`, `code`, `first_year`, `last_year`, `last_year_kind`, `years_source`, `pk_km`, `served_today` ;
 `last_year_kind` vaut `year` pour une année tirée d'une date, `upper_bound` pour « au plus tard cette
 année », `undated` pour une fin non datée où l'année n'est que celle du calcul ; `years_source` vaut
-`station` quand les années viennent des dates de la gare, faute d'événement daté de la ligne) et `sources` (provenance brute,
+`station` quand les années viennent des dates de la gare, faute d'événement daté de la ligne ;
+`service_start` et `service_end` : voir plus bas) et `sources` (provenance brute,
 lecture seule : `source`, `ref` = identifiant dans la source, `name`, `url`, `distance_m` = écart à la
 position retenue, `match_method` = comment la source a été rapprochée de la gare, `fetched_at` = date
 de lecture par VFF, `raw` = attributs bruts reçus de la source, de forme variable). `station` porte
 aussi `attribute_sources` (quelle source a fourni chaque attribut, recalage de la position compris)
 et `position` (`source`, `spread_m`, `flagged` = position à vérifier).
+
+Dates de desserte (`lines[].service_start` et `service_end` de `get_station`, `stations[]` de
+`get_line`) : la date de l'événement de ligne qui ouvre ou termine la desserte de la gare, avec
+`date` (`AAAA-MM-JJ`), `precision` (`day`, `month`, `year`), `when` (la date rédigée à cette
+précision, jamais un jour pour une date au mois ou à l'année) et `event_id`, l'identifiant de cet
+événement (le même `id` que dans `events` de `get_line` et `line_events`, et
+`/api/v1/events/{id}` en REST). L'objet vaut `null` quand seule l'année est sûre : année tirée d'un
+tracé daté ou des dates de la gare, gare ouverte (ou fermée) la même année à une date qui pourrait
+tomber après l'ouverture (avant la fin) de la ligne, fin qui n'est qu'une borne (`last_year_kind`
+autre que `year`), ligne qui n'a jamais desservi la gare. La règle est la même dans l'API REST et
+GraphQL. Exemple réel, Saint-Calais sur la ligne de Bessé-sur-Braye à Saint-Calais (`lo-507000`) :
+
+```json
+{"slug": "lo-507000", "first_year": 1879, "last_year": 1938, "last_year_kind": "year",
+ "service_start": {"date": "1879-03-31", "precision": "day", "when": "31 mars 1879", "event_id": 416},
+ "service_end": {"date": "1938-05-15", "precision": "day", "when": "15 mai 1938", "event_id": 417}}
+```
 
 ```json
 {"station": "brest"}

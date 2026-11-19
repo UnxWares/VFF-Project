@@ -54,7 +54,7 @@ class StationSheetResource extends JsonResource
             'eras' => array_map(fn (array $e): array => array_diff_key($e, ['note_lang' => true]), $page['eras']),
             'events' => array_map(fn (array $e): array => array_diff_key($e, ['note_lang' => true])
                 + ['provenance' => $provenance->for('station_events', $e['source'], $e['source_url'])], self::items($page['events'])),
-            'lines' => array_map(fn (array $l): array => $l + ['links' => [
+            'lines' => array_map(fn (array $l): array => self::withServiceEvents($l) + ['links' => [
                 'web' => url('/lines/'.$l['slug']), 'api' => route('api.lines.show', $l['slug']),
             ]], self::items($page['lines'])),
             'sources' => array_map(fn (array $s): array => ['pk_m' => is_numeric($s['pk_m']) ? (int) $s['pk_m'] : null]
@@ -72,6 +72,27 @@ class StationSheetResource extends JsonResource
                     ? route('api.departments.show', strtoupper((string) $station['department_code'])) : null,
             ],
         ];
+    }
+
+    /**
+     * Début et fin de desserte datés (StationServiceDates::bounds) avec le lien de leur événement de ligne
+     * (`GET /api/v1/events/{id}`) : même forme dans la fiche gare et la fiche ligne.
+     *
+     * @param  array<string, mixed>  $item  ligne desservie (fiche gare) ou gare (fiche ligne)
+     * @return array<string, mixed>
+     */
+    public static function withServiceEvents(array $item): array
+    {
+        foreach (['service_start', 'service_end'] as $key) {
+            $bound = $item[$key] ?? null;
+            if (is_array($bound)) {
+                $item[$key] = $bound + ['links' => [
+                    'event' => $bound['event_id'] !== null ? route('api.events.show', $bound['event_id']) : null,
+                ]];
+            }
+        }
+
+        return $item;
     }
 
     /**

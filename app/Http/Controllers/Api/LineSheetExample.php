@@ -206,6 +206,8 @@ final class LineSheetExample
                     'served_until_kind' => null,
                     // Morlaix sur Morlaix - Roscoff : aucun événement daté de la ligne au PK de la gare.
                     'years_source' => 'station',
+                    'service_start' => null,
+                    'service_end' => null,
                     'opened_at' => '1865-04-26',
                     'opened_precision' => 'day',
                     'closed_at' => null,

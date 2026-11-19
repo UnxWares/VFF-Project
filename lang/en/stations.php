@@ -126,6 +126,46 @@ return [
         'period_to_bound' => 'Served until :to at the latest',
         'period_from_undated' => 'Served from :from, end date unknown',
         'period_undated' => 'End of service undated',
+        // Période datée au jour ou au mois (servicePeriodText) : :from, :to… sont des fragments de bound.*.
+        'dated' => [
+            'from_to' => 'Served :from :to',
+            'from' => 'Served :since',
+            'to' => 'Served :until',
+            'from_to_bound' => 'Served :from until :to at the latest',
+            'from_undated' => 'Served :start, end date unknown',
+        ],
+        'bound' => [
+            'from' => [
+                'year' => 'from :date',
+                'month' => 'from :date',
+                'month_vowel' => 'from :date',
+                'day' => 'from :date',
+            ],
+            'to' => [
+                'year' => 'to :date',
+                'month' => 'to :date',
+                'month_vowel' => 'to :date',
+                'day' => 'to :date',
+            ],
+            'since' => [
+                'year' => 'since :date',
+                'month' => 'since :date',
+                'month_vowel' => 'since :date',
+                'day' => 'since :date',
+            ],
+            'until' => [
+                'year' => 'until :date',
+                'month' => 'until :date',
+                'month_vowel' => 'until :date',
+                'day' => 'until :date',
+            ],
+            'start' => [
+                'year' => 'from :date',
+                'month' => 'from :date',
+                'month_vowel' => 'from :date',
+                'day' => 'from :date',
+            ],
+        ],
         'years_from_station' => 'Years taken from the station\'s own dates, as the line has no dated event here.',
         'never_served' => [
             'line_closed' => 'Never served by this line: line closed in :to, station opened in :from',
