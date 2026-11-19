@@ -20,8 +20,10 @@ use Illuminate\Support\Facades\DB;
  * n'est déduite du texte : `from_date` / `to_date` restent vides.
  *
  * Confiance : `high` pour Wikidata ou une section « Matériel » d'un article de ligne, `medium`
- * pour les autres sections, `low` quand l'article décrit plusieurs lignes de VFF à la fois (le
- * matériel n'a peut-être parcouru que l'une d'elles).
+ * pour les autres sections et pour une phrase qui parle du remplacement d'un autre matériel
+ * (« Ce train a été remplacé par le TGV » : la série citée n'est pas le sujet de la phrase),
+ * `low` quand l'article décrit plusieurs lignes de VFF à la fois (le matériel n'a peut-être
+ * parcouru que l'une d'elles).
  */
 final class LineMaterialLinker
 {
@@ -155,7 +157,10 @@ final class LineMaterialLinker
         ];
     }
 
-    /** Force d'une preuve : 3 Wikidata ou section « Matériel » d'un article de ligne, 2 autre section, 1 article partagé. */
+    /**
+     * Force d'une preuve : 3 Wikidata ou section « Matériel » d'un article de ligne, 2 autre section
+     * (ou phrase qui reprend un autre matériel pour dire qu'il est remplacé), 1 article partagé.
+     */
     private static function rank(array $evidence): int
     {
         if (($evidence['shared_article'] ?? false) === true) {
@@ -163,6 +168,7 @@ final class LineMaterialLinker
         }
 
         return match (true) {
+            ($evidence['refers_back'] ?? false) === true => 2,
             $evidence['kind'] === self::KIND_WIKIDATA => 3,
             $evidence['kind'] === self::KIND_LINE_ARTICLE && self::isMaterialSection((string) ($evidence['section'] ?? '')) => 3,
             default => 2,
@@ -203,7 +209,7 @@ final class LineMaterialLinker
                 foreach (WikipediaMaterialSections::links($section['text']) as $link) {
                     foreach (array_unique($materialsByTitle[$link['target']] ?? []) as $materialId) {
                         foreach ($lineIds as $lineId) {
-                            $add($lineId, $materialId, self::wikipediaEvidence(self::KIND_LINE_ARTICLE, $page, $section['title'], $link['quote'], count($lineIds) > 1));
+                            $add($lineId, $materialId, self::wikipediaEvidence(self::KIND_LINE_ARTICLE, $page, $section['title'], $link, count($lineIds) > 1));
                         }
                     }
                 }
@@ -236,7 +242,7 @@ final class LineMaterialLinker
                         if (isset($lgv[$lineId]) && ! isset($fast[(int) $materials[$requested]])) {
                             continue;
                         }
-                        $add($lineId, (int) $materials[$requested], self::wikipediaEvidence(self::KIND_MATERIAL_ARTICLE, $page, $section['title'], $link['quote'], count($lineIds) > 1));
+                        $add($lineId, (int) $materials[$requested], self::wikipediaEvidence(self::KIND_MATERIAL_ARTICLE, $page, $section['title'], $link, count($lineIds) > 1));
                     }
                 }
             }
@@ -296,18 +302,20 @@ final class LineMaterialLinker
 
     /**
      * @param  array{title: string, revid: int}  $page
+     * @param  array{target: string, quote: string, refers_back: bool}  $link
      * @return array<string, mixed>
      */
-    private static function wikipediaEvidence(string $kind, array $page, string $section, string $quote, bool $shared): array
+    private static function wikipediaEvidence(string $kind, array $page, string $section, array $link, bool $shared): array
     {
         return array_filter([
             'kind' => $kind,
             'article' => $page['title'],
             'revid' => $page['revid'],
             'section' => $section,
-            'quote' => $quote,
+            'quote' => $link['quote'],
             'url' => 'https://fr.wikipedia.org/w/index.php?title='.rawurlencode(str_replace(' ', '_', $page['title'])).'&oldid='.$page['revid'],
             'shared_article' => $shared ?: null,
+            'refers_back' => $link['refers_back'] ?: null,
         ], fn ($v): bool => $v !== null);
     }
 }

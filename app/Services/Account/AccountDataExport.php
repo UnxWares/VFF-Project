@@ -3,6 +3,7 @@
 namespace App\Services\Account;
 
 use App\Models\Contribution;
+use App\Models\DatabaseNotification;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -79,6 +80,17 @@ final class AccountDataExport
                     'status' => $c->status->value,
                     'reviewed_at' => $c->reviewed_at?->toIso8601String(),
                     'review_notes' => $c->review_notes,
+                ])->all(),
+            // Notifications du site, telles qu'affichées (texte dans la langue du membre).
+            'notifications' => $user->notifications()->reorder()->orderBy('created_at')->orderBy('id')->get()
+                ->map(fn (DatabaseNotification $n): array => [
+                    'kind' => $n->data['kind'] ?? null,
+                    'contribution_id' => $n->data['contribution_id'] ?? null,
+                    'title' => $n->data['title'] ?? null,
+                    'body' => $n->data['body'] ?? null,
+                    'reason' => $n->data['reason'] ?? null,
+                    'created_at' => $n->created_at?->toIso8601String(),
+                    'read_at' => $n->read_at?->toIso8601String(),
                 ])->all(),
             'api_tokens' => $user->tokens()->orderBy('id')->get()
                 ->map(fn (PersonalAccessToken $t): array => [

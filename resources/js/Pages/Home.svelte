@@ -32,7 +32,6 @@
 
 <svelte:head>
     <title>{$i18n.t('home.meta_title')}</title>
-    <meta name="description" content={$i18n.t('home.meta_description')} />
 </svelte:head>
 
 <!-- Partage et données structurées : le site, sa recherche (annuaire des lignes) et son éditeur. -->

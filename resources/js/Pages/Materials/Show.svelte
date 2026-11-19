@@ -4,6 +4,7 @@
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
+    import SeoHead from '$components/SeoHead.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import { i18n } from '$lib/i18n.js';
     import {
@@ -259,8 +260,16 @@
 
 <svelte:head>
     <title>{material.name} - VFF</title>
-    <meta name="description" content={t('materials.meta_description')} />
 </svelte:head>
+
+<!-- Description et aperçu de partage (photo créditée de la série) : écrits d'abord par le serveur. -->
+<SeoHead
+    title={material.name}
+    description={t('materials.meta_show', { name: material.name })}
+    path={`/materials/${material.slug}`}
+    type="article"
+    image={image ? { url: image.display_url ?? image.thumb_url, alt: material.name } : null}
+/>
 
 <Layout compactHeader>
     <main>

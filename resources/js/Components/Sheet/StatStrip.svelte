@@ -119,9 +119,15 @@
             margin: 0;
             padding: 16px 0 18px;
         }
+        /* Deux colonnes : le premier chiffre de chaque rangée s'aligne sur le bord gauche de la page
+           (pas de filet orphelin), seul le filet de la deuxième colonne sépare les deux. */
         .stat {
-            padding: 0 0 0 12px;
-            border-left: 2px solid var(--vff-border-strong);
+            padding: 0;
+            border-left: 0;
+        }
+        .stat:nth-child(even) {
+            padding-left: 16px;
+            border-left: 1px solid var(--vff-border-strong);
         }
         .value {
             font-size: 24px;

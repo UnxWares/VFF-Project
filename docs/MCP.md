@@ -131,6 +131,9 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `list_stations` | Annuaire des gares (statut, département, époque). |
 | `materials` | Séries de matériel roulant filtrées et triées. |
 | `get_material` | Fiche d'une série de matériel, avec les lignes parcourues et leurs preuves. |
+| `accidents` | Accidents et événements graves du rail (ligne, période, nature, département, bilan), paginés. |
+| `get_accident` | Fiche d'un accident : lignes rattachées, sources lues et leur licence, points à vérifier. |
+| `compare_eras` | Ce qui a changé sur le réseau entre deux ères : km ouverts, fermés, déposés, restés en service. |
 
 ### `search` : rechercher une ligne, une gare ou un matériel
 
@@ -298,10 +301,10 @@ registre ne sont pas publiées).
 
 ### Outils de liste : conventions
 
-`network_events`, `media`, `list_lines`, `list_stations` et `materials` reprennent les filtres et les données
-de l'API REST (`/api/v1/events`, `/api/v1/media`, `/api/v1/lines`, `/api/v1/stations`, `/api/v1/materials`) : mêmes
-services (`LineEventQuery`, `MediaQuery`, `LineDirectoryQuery`, `StationDirectoryQuery`, `MaterialQuery`), mêmes
-règles de validation, mêmes champs. Ils paginent **par curseur** : `limit` éléments par appel ;
+`network_events`, `media`, `list_lines`, `list_stations`, `materials` et `accidents` reprennent les filtres et les
+données de l'API REST (`/api/v1/events`, `/api/v1/media`, `/api/v1/lines`, `/api/v1/stations`, `/api/v1/materials`,
+`/api/v1/accidents`) : mêmes services (`LineEventQuery`, `MediaQuery`, `LineDirectoryQuery`,
+`StationDirectoryQuery`, `MaterialQuery`, `AccidentQuery`), mêmes règles de validation, mêmes champs. Ils paginent **par curseur** : `limit` éléments par appel ;
 la réponse donne `count`, `has_more` et `next_cursor`, à repasser tel quel dans `cursor`, avec
 les mêmes filtres, pour la page suivante (`null` à la dernière page). Une page qui dépasserait la
 taille maximale est raccourcie à la frontière d'un élément (`truncated`, `truncated_note`) et
@@ -443,6 +446,92 @@ et sa fiabilité `confidence`). Série inconnue : erreur `material_not_found` av
 {"material": "bb-15000"}
 ```
 
+### `accidents` : accidents et événements graves du rail
+
+Mêmes filtres, mêmes tris et mêmes données que `GET /api/v1/accidents` (service `AccidentQuery`, ressource
+`AccidentResource`) ; pagination par curseur comme les autres outils de liste.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `q` | chaîne, 100 au plus | non | Nom de l'accident (toutes langues) ou commune, sans accents ni capitales. |
+| `from`, `to` | années 1800 à 2100 | non | Période, bornes incluses (`to` au moins égale à `from`). |
+| `line` | slug | non | Accidents rattachés à cette ligne (rattachement principal ou secondaire) ; ligne inconnue : erreur. |
+| `department` | code INSEE en majuscules | non | Département actuel du lieu (`91`, `2A`, `974`). |
+| `kind` | nature | non | `collision`, `derailment`, `level_crossing`, `fire`, `explosion`, `structure_failure`, `attack`, `person_struck`, `runaway`, `incident`, `other`. |
+| `review` | `ok`, `to_review` | non | Fiches sans point incertain, ou « à vérifier ». |
+| `min_deaths` | entier, 0 ou plus | non | Bilan connu d'au moins ce nombre de morts (exclut les bilans inconnus). |
+| `has_line` | booléen | non | `true` : rattachés à une ligne VFF ; `false` : sans ligne (lieu inconnu). |
+| `sort` | `date`, `-date`, `deaths`, `-deaths` | non | Tri (`date` par défaut) ; bilan inconnu en dernier. |
+| `limit` | entier 1 à 50 | non | Accidents par appel (20 par défaut). |
+| `cursor` | chaîne opaque | non | `next_cursor` d'un appel précédent (mêmes filtres, même tri). |
+| `lang` | `fr`, `en`, `de` | non | Langue. |
+
+Renvoie `filters`, `count`, `has_more`, `next_cursor` et `accidents`. Chaque accident reprend la liste REST, avec
+`name`, `summary` et `kind_label` dans la **seule langue demandée** (le REST donne les trois) et `when` (date
+rédigée) : `slug`, `wikidata_id`, `kind`, `date` à lire avec `date_precision` (`day`, `month`, `year`), `time`,
+`place` (`commune`, `commune_insee`, `department_code`, `department`, `lat` et `lng` en WGS 84, `precision` de la
+position : `exact`, `level_crossing`, `station`, `commune` = lieu exact inconnu), `line` (`slug`, `code`, `name`,
+`confidence` du rattachement : `high`, `medium`, `low`), `deaths` et `injuries` (`null` : aucune source consultée ne
+les donne ; `0` : aucun), `toll_source` (`bea-tt`, `wikidata`, `wikipedia`), `review_status`, `url`. Aucune victime
+n'est nommée.
+
+**Prudence** : `review_status: "to_review"` (« à vérifier ») signale un point incertain (bilans ou dates qui diffèrent
+selon les sources, lieu connu à la commune près, ligne incertaine). La réponse porte alors `review_note`, et
+l'assistant doit présenter la fiche comme incertaine. Le bilan retenu est celui de l'enquête du BEA-TT, sinon de
+Wikidata, sinon de Wikipédia.
+
+**Attribution** : le bloc `attribution` ajoute, en plus de VFF, OpenStreetMap et SNCF, un fournisseur par source
+effectivement lue pour les accidents renvoyés : Wikidata (CC0), Wikipédia (faits seulement, aucun texte repris ;
+toute citation de l'article est sous CC BY-SA 4.0, avec lien vers l'article), BEA-TT (Licence Ouverte 2.0, mention
+du BEA-TT et de la date de mise à jour du bilan).
+
+```json
+{"kind": "derailment", "min_deaths": 10, "sort": "-deaths", "limit": 5, "lang": "en"}
+```
+
+### `get_accident` : fiche d'un accident
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `accident` | slug | oui | Slug renvoyé par `accidents` (date puis commune, ex. `2013-07-12-bretigny-sur-orge`). |
+| `lang` | `fr`, `en`, `de` | non | Langue. |
+
+Renvoie `accident` (la fiche de `GET /api/v1/accidents/{slug}`, `AccidentDetailResource`) : les champs de la liste,
+plus `lines` (lignes rattachées, la principale d'abord : `line`, `is_primary`, `era_year`, `distance_m`, `pk_m` et
+`pk_label` en « km+mmm », `section` = gares de part et d'autre, `method`, `confidence`, `score`), `nearest_station`,
+`trains`, `toll_source_url`, `wikipedia` (articles par langue), `sources` (`provider`, `role`, `title`, `url`,
+`license`, `license_url`, `license_status`, `retrieved_at`, `facts` lus dans la source), `review` (`status` et
+`notes` : `code`, `label` dans la langue demandée, `detail`) et `provenance` (fournisseur de chaque fait retenu),
+avec `review_note` si la fiche est « à vérifier ». Accident inconnu : erreur `accident_not_found`.
+
+```json
+{"accident": "2013-07-12-bretigny-sur-orge", "lang": "en"}
+```
+
+### `compare_eras` : comparer le réseau à deux époques
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `from` | entier 1800 à 2100 | oui | Première année, ramenée à l'ère de la carte qui la contient ou la précède (1937 donne 1930). |
+| `to` | entier 1800 à 2100 | oui | Seconde année, même règle ; peut précéder `from` (les deux sont remises dans l'ordre chronologique). |
+| `lang` | `fr`, `en`, `de` | non | Langue des libellés. |
+
+Même résumé que `GET /api/v1/eras/{year}/compare/{other}` (service `EraComparison`) et que la vue « Comparer » de
+la carte. Renvoie `requested_years` (dans l'ordre demandé), `from` et `to` (ères réellement comparées),
+`changes` (`opened`, `closed`, `removed`, `kept`, chacun `{km, lines}`), `open_km` (`from`, `to` : longueur en
+service à chaque ère), `labels` (sens de chaque rubrique dans la langue demandée), `links` (`map` : la carte
+comparée ; `tiles` : gabarit des tuiles vectorielles REST), `available_eras`.
+
+- `opened` : en service à `to`, pas à `from` ; `closed` : fermé voie en place à `to` (voie de service comprise), pas
+  à `from` ; `removed` : en service ou fermé à `from`, déposé ou disparu à `to` ; `kept` : en service aux deux.
+- `km` : somme des tronçons de la carte (voies parallèles d'une même ligne comprises), arrondie au kilomètre :
+  un ordre de grandeur, pas le kilométrage officiel. `lines` : lignes dont au moins un tronçon est concerné.
+- Deux années dans la même ère : erreur `same_era` ; année sans carte : `era_not_found` (avec `available_eras`).
+
+```json
+{"from": 1930, "to": 1980}
+```
+
 ## Ressources
 
 | URI | Type | Contenu |
@@ -470,6 +559,9 @@ et sa fiabilité `confidence`). Série inconnue : erreur `material_not_found` av
 | « Quelles gares du Finistère existaient en 1930 ? » | `list_stations {"department": "29", "era": 1930}` |
 | « Montre-moi des cartes postales anciennes de la gare de Brest. » | `media {"station": "brest", "type": "postcard"}` ; afficher chaque image avec son `attribution` |
 | « Quelles locomotives électriques étaient les plus rapides ? » | `materials {"type": "locomotive_electrique", "sort": "-max_speed_kmh", "limit": 5}` |
+| « Quels ont été les déraillements les plus meurtriers ? » | `accidents {"kind": "derailment", "min_deaths": 10, "sort": "-deaths", "limit": 5}` ; afficher `review_note` quand une fiche est « à vérifier » |
+| « Y a-t-il eu des accidents sur Paris - Brest depuis 1950 ? » | `accidents {"line": "rfn-420000", "from": 1950}` puis `get_accident` pour les sources et la portion |
+| « Combien de kilomètres ont fermé entre 1930 et 1980 ? » | `compare_eras {"from": 1930, "to": 1980}` : lire `changes.closed` et `changes.removed` |
 | « Quel matériel a circulé sur Lunéville - Saint-Dié ? » | `search {"query": "Lunéville"}` puis `materials {"line": "<slug>"}` et `get_material` pour la preuve |
 
 ## Limites et sécurité
@@ -506,10 +598,9 @@ Les instructions du serveur rappellent ces obligations aux assistants.
 
 ## Ce que le serveur ne couvre pas encore
 
-- **Accidents** : le modèle, le service `App\Services\Api\AccidentQuery` et l'API REST
-  `/api/v1/accidents` sont en cours d'écriture (nuit du 19 au 20/11/2026) ; un outil `accidents`
-  (par ligne, période, département, nature, bilan) est à ajouter sur le socle `VffTool` avec
-  `AccidentQuery` et `AccidentResource` dès qu'ils seront stables et testés.
+- **Accidents sur la carte** (`/api/v1/accidents.geojson`) : GeoJSON volumineux, disponible par l'API REST seulement.
+- **Détail par ligne d'une comparaison d'ères** et **tuiles** de comparaison : par l'API REST
+  (`/api/v1/eras/{year}/compare/{other}/tiles/...`) ; `compare_eras` donne le résumé chiffré.
 - **Chronologie seule d'une gare** (`/api/v1/stations/{slug}/events`) : `get_station` en donne
   l'essentiel ; pas d'outil dédié paginé.
 - **Gares d'une ligne dans l'ordre des PK** (`/api/v1/lines/{slug}/stops`), **conversion d'un point
@@ -529,9 +620,12 @@ Les instructions du serveur rappellent ces obligations aux assistants.
   `LinePhases`, `LineFacts` (fiche ligne), `StationSheet` (fiche gare), `NetworkStats::eraProfile`
   (réseau à une ère), `PathfindingService` (itinéraire), `SourceRights` (licences) ; pour les outils
   de liste, les services de l'API REST : `LineEventQuery`, `MediaQuery`, `LineDirectoryQuery`,
-  `StationDirectoryQuery`, `MaterialQuery` et leurs ressources (`LineEventResource`,
-  `MediaResource`, `MaterialResource`, `MaterialDetailResource`).
-- Tests : `VFF_TEST_DB=vff_nuit_apicomplet_test bin/php artisan test tests/Feature/Mcp tests/Unit/Mcp`.
+  `StationDirectoryQuery`, `MaterialQuery`, `AccidentQuery` et leurs ressources (`LineEventResource`,
+  `MediaResource`, `MaterialResource`, `MaterialDetailResource`, `AccidentResource`, `AccidentDetailResource`) ;
+  `EraComparison` (comparaison d'ères). Présentation des accidents : `App\Mcp\Support\AccidentView`.
+- Tests : `VFF_TEST_DB=vff_xxx_test bin/php artisan test tests/Feature/Mcp tests/Unit/Mcp`.
+- `tools/list` tient en une seule page (`VffServer::$defaultPaginationLength` = 50) : le défaut du paquet (15) aurait
+  laissé des outils hors de la première page pour les clients qui ne suivent pas `nextCursor`.
 - Ajouter un outil : une classe dans `app/Mcp/Tools/` qui étend `App\Mcp\Support\VffTool`
   (`rules()`, `arguments()`, `answer()`), déclarée dans `VffServer::$tools`, avec sa description
   détaillée (contenu, unités, limites, exemple), ses tests et sa ligne dans ce document.

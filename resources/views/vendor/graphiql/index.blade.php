@@ -3,7 +3,8 @@
     barre commune des documentations, thème du site (clair, sombre), requête d'exemple VFF, aucun CDN.
     Les fichiers de GraphiQL et de React sont servis depuis public/vendor/graphiql
     (`bin/php artisan graphiql:download-assets` les télécharge une fois ; ils sont ensuite versionnés).
-    L'interface de GraphiQL n'existe qu'en anglais : sa zone porte lang="en".
+    L'interface de GraphiQL n'existe qu'en anglais : sa zone porte lang="en" (ses fenêtres, ajoutées au <body>,
+    sont marquées par resources/js/docs/graphiql.js).
 --}}
 @php
     $asset = fn (string $path) => asset("vendor/graphiql/$path");
@@ -31,6 +32,7 @@
         'url' => $url,
         'subscriptionUrl' => $subscriptionUrl,
         'query' => __('docs.graphiql_query'),
+        'locale' => app()->getLocale(),
     ], JSON_HEX_TAG | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 </body>
 </html>

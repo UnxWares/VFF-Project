@@ -4,6 +4,7 @@
 return [
     'meta_title' => 'Fahrzeuge',
     'meta_description' => 'Fahrzeuge, die in Frankreich fuhren: Lokomotiven, Triebzüge, Triebwagen, TGV, Straßenbahnen, Reisezug- und Güterwagen sowie Dienstfahrzeuge.',
+    'meta_show' => ':name, eine Fahrzeugbaureihe: belegte technische Daten, befahrene Strecken und Fotos mit Quellenangabe.',
     'title' => 'Fahrzeuge',
     'subtitle' => "Lokomotiven, Triebzüge, Triebwagen, TGV-Garnituren, Straßenbahnen, Reisezug- und Güterwagen sowie Dienstfahrzeuge: :total\u{a0}Baureihen, mit ihren technischen Daten und den Strecken, auf denen sie fuhren.",
     'subtitle_empty' => 'Lokomotiven, Triebzüge, Triebwagen, TGV-Garnituren, Reisezug- und Güterwagen, mit Hersteller, Einsatzzeit und den Strecken, auf denen sie fuhren.',

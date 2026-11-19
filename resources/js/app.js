@@ -1,6 +1,8 @@
 import { createInertiaApp, router } from '@inertiajs/svelte';
 import { mount } from 'svelte';
 import { setupI18n } from './lib/i18n.js';
+import { dropStaleServerSeo } from './lib/serverSeo.js';
+import { ogLocale } from './lib/structuredData.js';
 
 // Lazy import : chaque page Svelte = chunk séparé chargé à la demande.
 // Bénéfice énorme pour connexions lentes : on télécharge ~50 KB pour Home
@@ -26,6 +28,8 @@ createInertiaApp({
                 locale: event.detail.page.props.locale,
                 translations: event.detail.page.props.translations,
             });
+            // Pages sans composant SeoHead : les balises de partage du serveur ne les décrivent plus.
+            dropStaleServerSeo(location.pathname, ogLocale(event.detail.page.props.locale));
         });
 
         // Barre de progression discrète sur les navigations Inertia (utile

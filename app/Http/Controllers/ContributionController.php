@@ -12,6 +12,7 @@ use App\Models\Contribution;
 use App\Models\Era;
 use App\Models\Line;
 use App\Services\AuditLog;
+use App\Services\Notifications\ContributionNotifier;
 use App\Services\TraceContributionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -55,7 +56,7 @@ class ContributionController extends Controller
         ]);
     }
 
-    public function submit(Request $request): RedirectResponse
+    public function submit(Request $request, ContributionNotifier $notifier): RedirectResponse
     {
         $data = $request->validate([
             'line_code' => 'required|string',
@@ -110,6 +111,7 @@ class ContributionController extends Controller
                 'notes' => $data['notes'] ?? null,
             ],
         ]);
+        $notifier->submitted($contribution);
 
         return redirect()->route('contribute.thanks', ['id' => $contribution->id]);
     }
@@ -293,7 +295,7 @@ class ContributionController extends Controller
         return $current;
     }
 
-    public function approve(int $id, TraceContributionService $traces, AuditLog $audit): RedirectResponse
+    public function approve(int $id, TraceContributionService $traces, AuditLog $audit, ContributionNotifier $notifier): RedirectResponse
     {
         $this->ensureValidator();
         $contribution = Contribution::findOrFail($id);
@@ -307,7 +309,7 @@ class ContributionController extends Controller
         }
 
         try {
-            return $this->approveInTransaction($contribution, $userId, $traces, $audit);
+            return $this->approveInTransaction($contribution, $userId, $traces, $audit, $notifier);
         } catch (\RuntimeException $e) {
             report($e);
 
@@ -315,9 +317,9 @@ class ContributionController extends Controller
         }
     }
 
-    private function approveInTransaction(Contribution $contribution, int $userId, TraceContributionService $traces, AuditLog $audit): RedirectResponse
+    private function approveInTransaction(Contribution $contribution, int $userId, TraceContributionService $traces, AuditLog $audit, ContributionNotifier $notifier): RedirectResponse
     {
-        return DB::transaction(function () use ($contribution, $userId, $traces, $audit) {
+        return DB::transaction(function () use ($contribution, $userId, $traces, $audit, $notifier) {
             // Relue verrouillée : un refus, un retrait ou une autre approbation concurrents attendent
             // la fin de celle-ci, ou elle voit leur résultat (contribution fermée ou disparue).
             $contribution = Contribution::query()->whereKey($contribution->id)->lockForUpdate()->first();
@@ -366,6 +368,8 @@ class ContributionController extends Controller
                     'approvals' => $count,
                     'threshold' => $threshold,
                 ]);
+                // Envoyée après la validation de la transaction (rien si l'application échoue).
+                $notifier->applied($contribution);
 
                 return back()->with('success', __('editor.validate.flash.applied', ['count' => $count, 'threshold' => $threshold]));
             }
@@ -378,19 +382,20 @@ class ContributionController extends Controller
                 'approvals' => $count,
                 'threshold' => $threshold,
             ]);
+            $notifier->approved($contribution);
 
             return back()->with('success', __('editor.validate.flash.partial', ['count' => $count, 'threshold' => $threshold]));
         });
     }
 
-    public function reject(Request $request, int $id, AuditLog $audit): RedirectResponse
+    public function reject(Request $request, int $id, AuditLog $audit, ContributionNotifier $notifier): RedirectResponse
     {
         $this->ensureValidator();
         $request->validate(['notes' => 'nullable|string|max:1000']);
 
         // Contrôle et refus sur la ligne verrouillée : une approbation concurrente qui vient de
         // publier la contribution n'est pas écrasée par un refus.
-        $rejected = DB::transaction(function () use ($id, $request, $audit): bool {
+        $rejected = DB::transaction(function () use ($id, $request, $audit, $notifier): bool {
             $contribution = Contribution::query()->lockForUpdate()->findOrFail($id);
             if ($contribution->status === ContributionStatus::Applied) {
                 return false;
@@ -408,6 +413,7 @@ class ContributionController extends Controller
                 'previous_status' => $previous,
                 'with_reason' => filled($request->input('notes')),
             ]);
+            $notifier->rejected($contribution);
 
             return true;
         });

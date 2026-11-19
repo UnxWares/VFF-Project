@@ -160,7 +160,6 @@
 
 <svelte:head>
     <title>{station.name} - VFF</title>
-    <meta name="description" content={$i18n.t('stations.meta_show', { name: station.name })} />
 </svelte:head>
 
 <!-- Partage et données structurées : la gare (position, commune, code UIC) et le fil d'Ariane. -->

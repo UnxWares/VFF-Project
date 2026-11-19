@@ -104,6 +104,9 @@
         'media',
         'materials',
         'get_material',
+        'accidents',
+        'get_accident',
+        'compare_eras',
         'sources_and_licences',
     ];
     const mcpCli = `claude mcp add --transport http vff ${MCP_URL}`;
@@ -127,6 +130,33 @@ curl "https://vff-project.org/api/v1/lines/rfn-420000/pk?lat=48.10&lng=-1.67"
 
 # ${$i18n.t('api.example.curl_search')}
 curl "https://vff-project.org/api/v1/search?q=rennes"`);
+
+    // La deuxième requête en JavaScript (Node.js 18 et plus, ou navigateur : `fetch` est natif) et en Python.
+    // Chaînes simples : un gabarit de texte interpréterait « ${...} ».
+    const jsExample = [
+        'const url = new URL("https://vff-project.org/api/v1/lines/rfn-420000/pk");',
+        'url.search = new URLSearchParams({ lat: "48.10", lng: "-1.67" });',
+        '',
+        'const response = await fetch(url);',
+        'if (!response.ok) throw new Error(`HTTP ${response.status}`);',
+        'const body = await response.json();',
+        '',
+        'console.info(body.pk_label, body.snap.distance_from_input_m);',
+    ].join('\n');
+
+    const pyExample = [
+        'import requests',
+        '',
+        'response = requests.get(',
+        '    "https://vff-project.org/api/v1/lines/rfn-420000/pk",',
+        '    params={"lat": 48.10, "lng": -1.67},',
+        '    timeout=30,',
+        ')',
+        'response.raise_for_status()',
+        'body = response.json()',
+        '',
+        'print(body["pk_label"], body["snap"]["distance_from_input_m"])',
+    ].join('\n');
 
     // Réponse réelle du serveur à la deuxième requête (nom de ligne : celui de la base).
     const responseExample = `{
@@ -238,6 +268,20 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
                 role="region"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{curlExample}</code></pre>
+            <p class="caption">{$i18n.t('api.example.js_caption')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{jsExample}</code></pre>
+            <p class="caption">{$i18n.t('api.example.py_caption')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{pyExample}</code></pre>
             <p class="caption">{$i18n.t('api.example.response')}</p>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre

@@ -39,6 +39,9 @@ class HandleInertiaRequests extends Middleware
                     'avatar_path' => $request->user()->avatar_path,
                     'locale_preference' => $request->user()->locale_preference,
                 ] : null,
+                // Nombre de notifications non lues (menu du compte) : un simple compte, jamais
+                // leur contenu ; null pour un visiteur.
+                'unread_notifications' => fn () => $request->user()?->unreadNotifications()->count(),
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

@@ -5,6 +5,7 @@
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import Notice from '$components/ui/Notice.svelte';
+    import SeoHead from '$components/SeoHead.svelte';
     import AccidentMiniMap from '$components/Accidents/AccidentMiniMap.svelte';
     import { i18n } from '$lib/i18n.js';
     import {
@@ -94,8 +95,15 @@
 
 <svelte:head>
     <title>{name} - VFF</title>
-    <meta name="description" content={$i18n.t('accidents.meta_show', { name })} />
 </svelte:head>
+
+<!-- Description et aperçu de partage : écrits d'abord par le serveur. -->
+<SeoHead
+    title={name}
+    description={$i18n.t('accidents.meta_show', { name })}
+    path={`/accidents/${accident.slug}`}
+    type="article"
+/>
 
 {#snippet lineName(line)}
     {#if line.code}<span class="vff-plate">{line.code}</span>{/if}

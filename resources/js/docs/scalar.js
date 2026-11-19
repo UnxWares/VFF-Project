@@ -4,6 +4,7 @@ import { createApiReference } from '@scalar/api-reference';
 import '@scalar/api-reference/style.css';
 import '../../css/docs/docs.css';
 import '../../css/docs/scalar.css';
+import { markContentLanguage, SCALAR_SPEC_CONTENT } from './language.js';
 import { isDark, setupThemeToggle } from './theme.js';
 
 const root = document.getElementById('vff-docs-app');
@@ -32,6 +33,10 @@ const reference = createApiReference(root, {
     defaultHttpClient: { targetKey: 'shell', clientKey: 'curl' },
     metaData: { title: root.dataset.title },
 });
+
+// L'interface de Scalar suit la langue du site, mais la spécification est rédigée en français : hors du
+// français, ses textes sont balisés `lang="fr"` (RGAA 8.7).
+if (locale !== 'fr') markContentLanguage(root, SCALAR_SPEC_CONTENT, 'fr');
 
 setupThemeToggle((dark) => {
     reference.updateConfiguration({ forceDarkModeState: dark ? 'dark' : 'light' });

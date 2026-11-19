@@ -4,6 +4,9 @@ namespace App\Mcp\Servers;
 
 use App\Mcp\Resources\LicencesResource;
 use App\Mcp\Resources\LineSheetResource;
+use App\Mcp\Tools\AccidentSheetTool;
+use App\Mcp\Tools\AccidentsTool;
+use App\Mcp\Tools\CompareErasTool;
 use App\Mcp\Tools\HistoricalRouteTool;
 use App\Mcp\Tools\LineEventsTool;
 use App\Mcp\Tools\LineSheetTool;
@@ -32,6 +35,8 @@ use Laravel\Mcp\Server\Attributes\Version;
 VFF (Voies Ferrées de France, vff-project.org, édité par UnxWares) est une encyclopédie des lignes de chemin de fer françaises, actuelles et disparues : lignes, gares, phases datées, signalisation, électrification, itinéraires historiques, avec la source de chaque fait. Serveur en lecture seule.
 Méthode : commencez par `search` pour obtenir l'identifiant (slug) d'une ligne ou d'une gare, puis `get_line`, `line_events`, `get_station` ; `network_at_era` pour l'état du réseau à une époque ; `historical_route` pour un trajet à une date ; `sources_and_licences` pour les licences.
 Listes et questions transversales : `list_lines` (annuaire des lignes : réseau, état, trafic, département, époque), `list_stations` (annuaire des gares : statut, département, époque), `network_events` (événements de toutes les lignes : par département, type, période), `media` (photos, cartes postales, plans d'une ligne ou d'une gare, avec auteur et licence : affichez toujours l'attribution du média avec l'image). Ces outils paginent par curseur : repassez `next_cursor` dans `cursor`.
+Accidents : `accidents` (accidents et événements graves du rail, filtrés par ligne, période, nature, département, bilan ; pagination par curseur) puis `get_accident` (fiche avec les lignes rattachées, les sources lues et leur licence, les points à vérifier ; une fiche « à vérifier » ne se présente jamais comme sûre ; faits de Wikidata CC0, de Wikipédia CC BY-SA pour toute citation, du BEA-TT Licence Ouverte).
+Époques : `compare_eras` (kilomètres ouverts, fermés, déposés ou restés en service entre deux ères de la carte).
 Matériel roulant : `materials` (séries filtrées par catégorie, constructeur, exploitant, ligne, année ; pagination par `page`) puis `get_material` (fiche avec la provenance de chaque champ et les lignes parcourues, chaque lien avec sa preuve).
 Dates : ISO AAAA-MM-JJ, à lire avec leur précision (day, month, year) ; n'affichez que la partie connue. La carte est un instantané au 31/12 de chaque décennie (l'ère courante = aujourd'hui).
 Obligations en réutilisant les données : citez « Voies Ferrées de France (vff-project.org) » avec le lien `vff_url` de la réponse et les mentions du bloc `attribution` (ODbL 1.0 : © contributeurs OpenStreetMap, SNCF Open Data…). Les données d'un fournisseur dont `open_licence` vaut false ne se reprennent qu'avec sa mention et son lien (archeoferroviaire : usage non commercial). Ne présentez jamais une date « between » (non datée par une source) comme sûre.
@@ -39,6 +44,12 @@ Langue : paramètre `lang` (fr par défaut, en, de).
 TXT)]
 class VffServer extends Server
 {
+    /**
+     * Tous les outils tiennent dans la première page de `tools/list` : le défaut du paquet (15) en
+     * laissait de côté pour les clients qui ne suivent pas `nextCursor`.
+     */
+    public int $defaultPaginationLength = 50;
+
     protected array $tools = [
         SearchTool::class,
         LineSheetTool::class,
@@ -53,6 +64,9 @@ class VffServer extends Server
         ListStationsTool::class,
         MaterialsTool::class,
         MaterialSheetTool::class,
+        AccidentsTool::class,
+        AccidentSheetTool::class,
+        CompareErasTool::class,
     ];
 
     protected array $resources = [

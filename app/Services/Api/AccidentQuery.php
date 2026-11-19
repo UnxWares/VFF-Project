@@ -95,4 +95,34 @@ final class AccidentQuery
             ->orderBy('accidents.occurred_on')
             ->orderBy('accidents.id');
     }
+
+    /** Colonnes que porte un curseur de la liste des accidents (contrôle PaginationCursor). */
+    public const CURSOR_COLUMNS = ['sort_null', 'sort_key', 'occurred_on', 'id'];
+
+    /**
+     * Liste filtrée et triée, prête pour `cursorPaginate` (serveur MCP) : même ordre que apply()
+     * (bilan inconnu en dernier, puis date, puis identifiant), exprimé par des colonnes calculées
+     * (CURSOR_COLUMNS) que le curseur compare comme de simples colonnes. Les lat/lng sont ajoutées.
+     *
+     * @param  array<string, mixed>  $filters  filtres validés
+     * @return Builder<Accident>
+     */
+    public function cursorQuery(array $filters): Builder
+    {
+        $sort = (string) ($filters['sort'] ?? 'date');
+        $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
+        [$key, $null] = str_ends_with($sort, 'deaths')
+            ? ['COALESCE(a.deaths, 0)', '(a.deaths IS NULL)::int']
+            : ['a.occurred_on', '0'];
+
+        $filtered = $this->apply(Accident::query(), $filters)->reorder()->toBase();
+        $keyed = DB::query()->fromSub($filtered, 'a')->select('a.*')
+            ->selectRaw("{$null} AS sort_null, {$key} AS sort_key");
+
+        return Accident::query()->fromSub($keyed, 'accidents')->withCoordinates()
+            ->orderBy('sort_null')
+            ->orderBy('sort_key', $direction)
+            ->orderBy('occurred_on')
+            ->orderBy('id');
+    }
 }

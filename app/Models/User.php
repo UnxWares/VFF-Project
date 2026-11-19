@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -82,6 +83,17 @@ class User extends Authenticatable implements HasLocalePreference
             ->where('role', UserRole::Admin->value)
             ->whereKeyNot($this->getKey())
             ->exists();
+    }
+
+    /**
+     * Notifications du site, par le modèle de l'application (purge des notifications lues après
+     * 12 mois) ; unreadNotifications() et le canal `database` passent par cette relation.
+     *
+     * @return MorphMany<DatabaseNotification, $this>
+     */
+    public function notifications(): MorphMany
+    {
+        return $this->morphMany(DatabaseNotification::class, 'notifiable')->latest();
     }
 
     /** @return HasMany<Contribution, $this> */

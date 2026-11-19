@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\AuditEvent;
+use App\Models\DatabaseNotification;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -63,5 +64,12 @@ Schedule::command('vff:prune-inactive-accounts')
 Schedule::command('model:prune', ['--model' => [AuditEvent::class]])
     ->name('vff:prune-audit-events')
     ->dailyAt('05:45')
+    ->timezone('Europe/Paris')
+    ->environments(['production']);
+
+// Notifications du site lues depuis plus de 12 mois (App\Models\DatabaseNotification::prunable).
+Schedule::command('model:prune', ['--model' => [DatabaseNotification::class]])
+    ->name('vff:prune-notifications')
+    ->dailyAt('05:50')
     ->timezone('Europe/Paris')
     ->environments(['production']);

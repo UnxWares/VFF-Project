@@ -6,7 +6,6 @@ return [
     'breadcrumbs' => 'Breadcrumbs',
     'also_known_as' => 'Also known as',
     'no_description' => 'No description available for this line.',
-    'still_running' => 'still in service',
     'act' => 'Take action',
 
     'types' => [

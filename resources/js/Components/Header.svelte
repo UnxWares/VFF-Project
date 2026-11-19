@@ -56,6 +56,11 @@
 
     // Utilisateur partagé par HandleInertiaRequests (null = visiteur).
     const user = $derived(page.props.auth?.user ?? null);
+    // Notifications non lues du membre (un simple nombre, partagé par HandleInertiaRequests).
+    const unread = $derived(page.props.auth?.unread_notifications ?? 0);
+    const unreadText = $derived(
+        unread > 0 ? $i18n.t('notifications.unread_count', { count: unread }) : '',
+    );
     const path = $derived((page.url ?? '/').split(/[?#]/)[0]);
     let accountOpen = $state(false);
     let projectOpen = $state(false);
@@ -302,6 +307,12 @@
                                             <i class="bi bi-person-circle" aria-hidden="true"></i>
                                         {/if}
                                         <span class="tool-label">{$i18n.t('auth.account')}</span>
+                                        {#if unread > 0}
+                                            <span class="unread-count" aria-hidden="true"
+                                                >{unread.toLocaleString($i18n.language)}</span
+                                            >
+                                            <span class="vff-sr-only">, {unreadText}</span>
+                                        {/if}
                                         <i class="bi bi-chevron-down chevron" aria-hidden="true"
                                         ></i>
                                     </button>
@@ -323,6 +334,25 @@
                                             >
                                                 <i class="bi bi-person" aria-hidden="true"></i>
                                                 {$i18n.t('auth.profile')}
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link
+                                                href="/notifications"
+                                                aria-current={isCurrent('/notifications')
+                                                    ? 'page'
+                                                    : undefined}
+                                            >
+                                                <i class="bi bi-inbox" aria-hidden="true"></i>
+                                                {$i18n.t('notifications.menu')}
+                                                {#if unread > 0}
+                                                    <span class="unread-count" aria-hidden="true"
+                                                        >{unread.toLocaleString(
+                                                            $i18n.language,
+                                                        )}</span
+                                                    >
+                                                    <span class="vff-sr-only">, {unreadText}</span>
+                                                {/if}
                                             </Link>
                                         </li>
                                         <li>
@@ -506,6 +536,28 @@
         border-radius: 50%;
         object-fit: cover;
         border: 2px solid var(--vff-accent);
+    }
+    /* Nombre de notifications non lues : discret (texte sur fond neutre, pas de pastille vive),
+       le même dans le bouton du compte et dans l'entrée « Notifications ». Le texte complet est
+       donné aux lecteurs d'écran (.vff-sr-only). */
+    .unread-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.6em;
+        padding: 1px 7px;
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-pill);
+        background-color: var(--vff-bg-subtle);
+        color: var(--vff-text);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        font-weight: 600;
+        line-height: 1.4;
+        font-variant-numeric: tabular-nums;
+    }
+    .account-menu .unread-count {
+        margin-left: auto;
     }
     .account-trigger .bi-person-circle {
         font-size: 22px;

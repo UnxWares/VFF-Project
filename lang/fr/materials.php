@@ -4,6 +4,7 @@
 return [
     'meta_title' => 'Matériel roulant',
     'meta_description' => 'Le matériel roulant ferroviaire de France : locomotives, automotrices, autorails, TGV, tramways, voitures, wagons et engins de service.',
+    'meta_show' => ':name, série de matériel roulant : caractéristiques sourcées, lignes parcourues et photos créditées.',
     'title' => 'Matériel roulant',
     'subtitle' => "Locomotives, automotrices, autorails, rames TGV, tramways, voitures, wagons et engins de service : :total\u{a0}séries, avec leurs caractéristiques et les lignes qu’elles ont parcourues.",
     'subtitle_empty' => 'Locomotives, automotrices, autorails, rames TGV, voitures et wagons, avec leur constructeur, leurs dates de service et les lignes qu’ils ont parcourues.',
