@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\LegalDocument;
 use App\Enums\UserRole;
 use App\Models\User;
+use App\Support\Auth\AccountRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,6 +24,8 @@ use Inertia\Response;
  *     vers `contributor` etc. se fera plus tard via le système de réputation.
  *   - Régénération de session systématique après auth pour limiter le risque
  *     de session fixation.
+ *   - L'inscription exige la case d'acceptation des CGU ; la date et la version acceptée
+ *     (config/legal.php) sont enregistrées avec le compte et figurent dans l'export de ses données.
  *   - Connexion limitée à MAX_LOGIN_ATTEMPTS échecs par minute pour un couple
  *     e-mail + IP (force brute), comme le LoginRequest de Breeze.
  */
@@ -75,9 +78,10 @@ class AuthController extends Controller
     public function register(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::min(8)],
+            ...AccountRules::newAccount(),
+            'accept_terms' => ['accepted'],
+        ], [
+            'accept_terms.accepted' => __('auth.errors.terms_required'),
         ]);
 
         // `role` n'est pas affectable en masse (User::$fillable) : posé explicitement.
@@ -87,6 +91,8 @@ class AuthController extends Controller
             'password' => $data['password'], // hashed cast in User model
             'role' => UserRole::Visitor->value,
             'locale_preference' => app()->getLocale(),
+            'terms_accepted_at' => now(),
+            'terms_version' => LegalDocument::UseConditions->currentVersion(),
         ]);
         $user->save();
 

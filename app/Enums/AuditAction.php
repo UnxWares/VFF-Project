@@ -16,6 +16,13 @@ enum AuditAction: string
     case AccountDeleted = 'account_deleted';
     /** Passage de la tâche des comptes inactifs : nombre d'avertissements envoyés. */
     case InactivityWarningsSent = 'inactivity_warnings_sent';
+    /**
+     * Compte administrateur créé ou promu en console (vff:make-admin). Contexte : identifiant du
+     * compte, création ou promotion, rôle précédent ; jamais l'adresse ni le mot de passe.
+     */
+    case AdminGranted = 'admin_granted';
+    /** Dernier administrateur inactif gardé malgré la règle des 3 ans, signalé à l'adresse de contact. */
+    case LastAdminInactive = 'last_admin_inactive';
     /** Information des membres avant un changement des CGU ou de la politique de confidentialité. */
     case MembersNotified = 'members_notified';
     /** Signalement d'erreur reçu depuis une fiche (contexte : numéro et sorte de fiche, jamais le texte). */

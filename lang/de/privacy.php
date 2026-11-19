@@ -1,9 +1,11 @@
 <?php
 
 // Politique de confidentialité (RGPD, loi Informatique et Libertés). Décrit ce que fait réellement
-// le code au 2026-10-21 : cookies (config/session.php, LocaleController, lib/stores/theme.svelte.js),
+// le code au 2026-11-19 : cookies (config/session.php, LocaleController, lib/stores/theme.svelte.js),
 // stockage local (Pages/Contribute/Trace.svelte), services tiers chargés par le navigateur
-// (Components/Map/*, Lines/LineGallery.svelte), comptes (AuthController, ProfileController).
+// (Components/Map/*, Lines/LineGallery.svelte), géolocalisation (Map/RailMap.svelte), comptes
+// (AuthController, ProfileController), notifications (DatabaseNotification), signalements
+// (ErrorReport, limiteur error-reports d'AppServiceProvider). Version : config/legal.php.
 // Toute évolution de ces points doit mettre ce texte à jour. Le français fait foi.
 // Traduction de lang/fr/privacy.php.
 return [
@@ -62,15 +64,16 @@ return [
             .'<li><strong>Optionale Ebenen</strong>, die nur geladen werden, wenn Sie sie aktivieren: OpenRailwayMap auf der Karte; im Streckenverlauf-Editor die alten Karten und Luftbilder des IGN (Géoplateforme, Frankreich).</li>'
             .'<li><strong>Archivbilder</strong>: Wikimedia Foundation (Vereinigte Staaten) für die in den Galerien angezeigten Bilder von Wikimedia Commons.</li>'
             .'</ul>'
+            .'<p>Die Schaltfläche „Mich orten“ der Karte fragt Ihren Browser mit Ihrer Erlaubnis einmalig und ohne Verfolgung nach Ihrem Standort. Er dient nur dazu, die Karte zu zentrieren, und verlässt Ihren Browser nicht: VFF erhält ihn nicht und speichert ihn nicht. Wie bei jeder Bewegung der Karte werden danach die Kacheln des angezeigten Gebiets bei den Servern von VFF und beim Kartenhintergrund (OpenStreetMap oder, falls aktiviert, MapTiler) angefragt, die daraus ungefähr ableiten können, wo Sie sich befinden.</p>'
             .'<p>Diese Dienste wenden ihre eigene Datenschutzerklärung an. Die Schriftarten der Website werden von VFF selbst gehostet: Es erfolgt keine Anfrage an Google Fonts.</p>',
     ],
 
     'account' => [
         'title' => 'Wenn Sie ein Konto anlegen',
         'paragraph' => '<ul>'
-            .'<li><strong>Daten</strong>: Anzeigename, E-Mail-Adresse, Passwort (nur in gehashter Form gespeichert, niemals im Klartext), Rolle (Besucher, Mitwirkender, Prüfer oder Administrator), bevorzugte Sprache und, wenn Sie sie angeben, eine kurze Vorstellung und ein Avatar.</li>'
+            .'<li><strong>Daten</strong>: Anzeigename, E-Mail-Adresse, Passwort (nur in gehashter Form gespeichert, niemals im Klartext), Rolle (Besucher, Mitwirkender, Prüfer oder Administrator), bevorzugte Sprache, Datum Ihres letzten Besuchs mit Anmeldung, Datum und Fassung der bei der Registrierung akzeptierten Nutzungsbedingungen und, wenn Sie sie angeben, eine kurze Vorstellung und ein Avatar.</li>'
             .'<li><strong>Zwecke</strong>: Sie identifizieren, Ihre Beiträge und deren Prüfung verwalten, Ihnen einen Link zum Zurücksetzen Ihres Passworts senden.</li>'
-            .'<li><strong>Rechtsgrundlage</strong>: die Erfüllung der <a href="/use-conditions">Nutzungsbedingungen</a>, die Sie mit dem Anlegen des Kontos akzeptieren.</li>'
+            .'<li><strong>Rechtsgrundlage</strong>: die Erfüllung der <a href="/use-conditions">Nutzungsbedingungen</a>, die Sie mit dem dafür vorgesehenen Häkchen bei der Registrierung akzeptieren.</li>'
             .'<li><strong>Speicherdauer</strong>: solange das Konto besteht. Ein Konto, das 3 Jahre lang nicht genutzt wird, wird gelöscht, nach einer Warnung, die einen Monat vorher per E-Mail verschickt wird. Ein Link zum Zurücksetzen des Passworts läuft nach 60 Minuten ab.</li>'
             .'</ul>',
     ],
@@ -78,12 +81,19 @@ return [
     'contributions' => [
         'title' => 'Beiträge',
         'paragraph' => '<p>Jeder Beitrag (Streckenverlauf, datiertes Ereignis, Korrektur, Dokument) wird mit Ihrer Kennung und seinem Datum gespeichert, nach der Prüfung außerdem mit der Kennung der Person, die ihn freigegeben oder abgelehnt hat, und deren Anmerkungen. Die Prüfer sehen den Anzeigenamen des Autors. Ein freigegebener Beitrag geht unter der in den Nutzungsbedingungen vorgesehenen Lizenz in die Enzyklopädie ein.</p>'
-            .'<p>Wenn Sie Ihr Konto löschen, bleiben Ihre freigegebenen Beiträge veröffentlicht, da sie Teil der Enzyklopädie und ihrer Lizenz sind, sie sind aber nicht mehr mit Ihrem Namen verknüpft. Ihre ausstehenden Beiträge werden gelöscht.</p>',
+            .'<p>Wenn Sie Ihr Konto löschen, bleiben Ihre freigegebenen Beiträge veröffentlicht, da sie Teil der Enzyklopädie und ihrer Lizenz sind, sie sind aber nicht mehr mit Ihrem Namen verknüpft. Ihre ausstehenden Beiträge werden gelöscht.</p>'
+            .'<p>Wenn einer Ihrer Beiträge geprüft wird (freigegeben, veröffentlicht, abgelehnt oder entfernt), werden Sie auf der Website und per E-Mail informiert, mit der Begründung, falls es eine gibt. Als Prüfer werden Sie außerdem informiert, wenn ein Beitrag auf Ihre Prüfung wartet, und, nur auf der Website, wenn ein Fehler gemeldet wird. Diese Benachrichtigungen nennen die Nummer des Beitrags oder der Meldung und die betroffene Strecke oder Seite, nie den Namen eines anderen Mitglieds. Sie sind im Export Ihrer Daten enthalten und werden mit Ihrem Konto gelöscht; eine gelesene Benachrichtigung wird 12 Monate nach dem Lesen gelöscht.</p>',
+    ],
+
+    'error_reports' => [
+        'title' => 'Fehlermeldungen',
+        'paragraph' => '<p>Wenn Sie einen Fehler auf einer Seite melden, speichern wir Ihre Nachricht, die angegebene Quelle und, falls Sie sie angeben, Ihre E-Mail-Adresse, um die Seite zu korrigieren und Ihnen antworten zu können. Haben Sie Ihre Adresse angegeben, teilt Ihnen eine E-Mail mit, wie mit Ihrer Meldung verfahren wurde, zusammen mit der Anmerkung des Teams. Sind Sie angemeldet, wird die Meldung mit Ihrem Konto verknüpft. Rechtsgrundlage: das berechtigte Interesse von UnxWares an einer korrekten Enzyklopädie.</p>'
+            .'<p>Weder Ihre IP-Adresse noch ein Tracker wird mit der Meldung gespeichert. Ohne Konto dient Ihre IP-Adresse nur dazu, die Zahl der Meldungen zu begrenzen, höchstens 24 Stunden lang. Nur die Prüfer und Administratoren von VFF sehen die Meldungen. Eine Meldung wird 12 Monate nach ihrer Bearbeitung gelöscht; sind Sie Mitglied, ist sie im Export Ihrer Daten enthalten und verschwindet mit Ihrem Konto. Wenn Sie eine ohne Konto gesendete Meldung früher löschen lassen möchten, schreiben Sie an <a href="mailto:privacy@vff-project.org">privacy@vff-project.org</a>.</p>',
     ],
 
     'emails' => [
         'title' => 'E-Mails',
-        'paragraph' => 'VFF sendet nur Service-E-Mails, etwa den Link zum Zurücksetzen des Passworts. Kein Newsletter, keine Werbung.',
+        'paragraph' => 'VFF sendet nur Service-E-Mails, etwa den Link zum Zurücksetzen des Passworts, Nachrichten zu Ihren Beiträgen oder die Ankündigung einer Änderung der Nutzungsbedingungen oder dieser Erklärung. Kein Newsletter, keine Werbung.',
     ],
 
     'recipients' => [
@@ -116,7 +126,7 @@ return [
 
     'changes' => [
         'title' => 'Änderungen dieser Erklärung',
-        'paragraph' => 'Diese Erklärung folgt der Entwicklung der Website. Das Datum der letzten Aktualisierung steht oben auf der Seite. Bei wesentlichen Änderungen werden die Kontoinhaber benachrichtigt.',
+        'paragraph' => 'Diese Erklärung folgt der Entwicklung der Website. Das Datum der letzten Aktualisierung steht oben auf der Seite. Bei wesentlichen Änderungen werden die Kontoinhaber auf der Website und per E-Mail benachrichtigt.',
     ],
 
     'contact' => [

@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use App\Enums\AuditAction;
 use App\Enums\LegalDocument;
+use App\Enums\NotificationKind;
+use App\Models\DatabaseNotification;
 use App\Models\User;
 use App\Notifications\LegalDocumentChanged;
 use App\Services\AuditLog;
@@ -13,7 +15,9 @@ use Throwable;
 
 /**
  * Information des titulaires d'un compte avant un changement important des CGU (« au moins
- * 15 jours avant son entrée en vigueur ») ou de la politique de confidentialité.
+ * 15 jours avant son entrée en vigueur ») ou de la politique de confidentialité, sur le site
+ * (page /notifications) et par courriel. Relancer la commande après des courriels en échec
+ * renvoie les courriels sans doubler les notifications du site.
  *
  *   php artisan vff:notify-legal-change use-conditions --effective=2027-01-15          # simulation
  *   php artisan vff:notify-legal-change use-conditions --effective=2027-01-15 --send   # envoi
@@ -29,7 +33,7 @@ class NotifyLegalChange extends Command
         {--effective= : Date d\'entrée en vigueur de la nouvelle version (AAAA-MM-JJ)}
         {--send : Envoie réellement les courriels (sinon simple simulation)}';
 
-    protected $description = 'Prévient les membres par courriel d\'un changement des CGU ou de la politique de confidentialité';
+    protected $description = 'Prévient les membres, sur le site et par courriel, d\'un changement des CGU ou de la politique de confidentialité';
 
     public function handle(AuditLog $audit): int
     {
@@ -71,8 +75,12 @@ class NotifyLegalChange extends Command
         $sent = 0;
         $failed = 0;
         User::query()->lazyById(100)->each(function (User $user) use ($document, $effective, &$sent, &$failed): void {
+            $notification = new LegalDocumentChanged($document, $effective);
+            // Nouvel essai après un courriel en échec : la notification du site existe déjà, on ne
+            // la double pas.
+            $channels = $this->alreadyOnSite($user, $notification) ? ['mail'] : ['database', 'mail'];
             try {
-                $user->notifyNow(new LegalDocumentChanged($document, $effective));
+                $user->notifyNow($notification, $channels);
                 $sent++;
             } catch (Throwable $e) {
                 report($e);
@@ -95,5 +103,14 @@ class NotifyLegalChange extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /** Le membre a-t-il déjà, sur le site, la notification de ce même changement ? */
+    private function alreadyOnSite(User $user, LegalDocumentChanged $notification): bool
+    {
+        return $user->notifications()
+            ->where('data->kind', NotificationKind::LegalDocumentChanged->value)
+            ->get(['data'])
+            ->contains(fn (DatabaseNotification $n): bool => $notification->isSameChange($n->data));
     }
 }

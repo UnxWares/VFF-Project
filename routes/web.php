@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\LegalDocument;
 use App\Http\Controllers\AccidentController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -54,8 +55,9 @@ Route::get('/contribute', fn () => Inertia::render('Contribute'))->name('contrib
 Route::get('/donate', fn () => Inertia::render('Donate'))->name('donate');
 
 Route::get('/legal', fn () => Inertia::render('Legal'))->name('legal');
-Route::get('/privacy', fn () => Inertia::render('Privacy'))->name('privacy');
-Route::get('/use-conditions', fn () => Inertia::render('UseConditions'))->name('use-conditions');
+// Date de la version en vigueur (config/legal.php), affichée en haut de la page.
+Route::get('/privacy', fn () => Inertia::render('Privacy', ['updated' => LegalDocument::Privacy->currentVersion()]))->name('privacy');
+Route::get('/use-conditions', fn () => Inertia::render('UseConditions', ['updated' => LegalDocument::UseConditions->currentVersion()]))->name('use-conditions');
 Route::get('/accessibility', fn () => Inertia::render('Accessibility'))->name('accessibility');
 
 Route::get('/api', fn () => Inertia::render('ApiDocs'))->name('api.docs');

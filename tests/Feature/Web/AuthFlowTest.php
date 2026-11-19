@@ -226,6 +226,7 @@ class AuthFlowTest extends TestCase
                 'email' => 'jeanne@example.org',
                 'password' => 'motdepasse8',
                 'password_confirmation' => 'motdepasse8',
+                'accept_terms' => '1',
             ])
             ->assertRedirect('/')
             ->assertSessionHas('success', __('auth.registered', [], 'de'));
@@ -237,6 +238,30 @@ class AuthFlowTest extends TestCase
         $this->assertNotSame('motdepasse8', $user->getRawOriginal('password'));
         $this->assertTrue(Hash::check('motdepasse8', $user->password));
         $this->assertAuthenticatedAs($user);
+        // Acceptation des CGU : date de l'inscription et version en vigueur (config/legal.php).
+        $this->assertNotNull($user->terms_accepted_at);
+        $this->assertTrue($user->terms_accepted_at->isToday());
+        $this->assertSame(config('legal.versions.use-conditions'), $user->terms_version);
+    }
+
+    /** @return array<string, array{0: mixed}> */
+    public static function refusedTerms(): array
+    {
+        return ['absente' => [null], 'décochée' => ['0'], 'fantaisiste' => ['peut-être']];
+    }
+
+    #[DataProvider('refusedTerms')]
+    public function test_register_requires_the_terms_box(mixed $value): void
+    {
+        $payload = ['name' => 'Jeanne', 'email' => 'jeanne@example.org', 'password' => 'motdepasse8', 'password_confirmation' => 'motdepasse8'];
+        if ($value !== null) {
+            $payload['accept_terms'] = $value;
+        }
+
+        $this->withCookie('locale', 'fr')->post('/register', $payload)
+            ->assertSessionHasErrors(['accept_terms' => 'Cochez la case pour accepter les conditions générales d’utilisation.']);
+        $this->assertSame(0, User::count());
+        $this->assertGuest();
     }
 
     public function test_register_cannot_grant_a_role_reputation_or_other_privileged_field(): void
@@ -246,7 +271,9 @@ class AuthFlowTest extends TestCase
             'email' => 'pirate@example.org',
             'password' => 'motdepasse8',
             'password_confirmation' => 'motdepasse8',
+            'accept_terms' => '1',
             'role' => 'admin',
+            'terms_version' => '1999-01-01',
             'reputation' => 99999,
             'email_verified_at' => '2020-01-01 00:00:00',
             'avatar_path' => '../../.env',
@@ -257,6 +284,7 @@ class AuthFlowTest extends TestCase
         $this->assertSame(0, $user->reputation);
         $this->assertNull($user->email_verified_at);
         $this->assertNull($user->avatar_path);
+        $this->assertSame(config('legal.versions.use-conditions'), $user->terms_version);
     }
 
     /** @return array<string, array{0: array<string, mixed>, 1: array<int, string>}> */

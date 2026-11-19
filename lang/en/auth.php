@@ -7,10 +7,9 @@ return [
 
     'passwords' => [
         'reset' => 'Your password has been reset.',
-        'sent' => 'A reset link has been emailed to you.',
+        'sent' => 'If an account exists for this address, you will receive a reset link by email.',
         'throttled' => 'Too many requests, please wait a moment before trying again.',
         'token' => 'This reset link is invalid or has expired.',
-        'user' => 'No account matches this email address.',
     ],
 
     'login_title' => 'Sign in',
@@ -54,13 +53,14 @@ return [
         'password_short' => 'The password must be at least 8 characters long.',
         'confirmation_required' => 'Enter the password again to confirm it.',
         'confirmation_mismatch' => 'The two passwords do not match.',
+        'terms_required' => 'Tick the box to accept the terms of use.',
         'login_failed_title' => 'Unable to sign in',
     ],
 
     'submit' => 'Submit',
     'login_cta' => 'Sign in',
-    'register_terms' => 'By creating an account, you accept the <a href="/use-conditions">terms of use</a>.',
-    'register_privacy' => 'UnxWares, the data controller, uses your name, email address and password (never stored in plain text) to identify you and manage your contributions. Retention periods, your rights and contact details: <a href="/privacy">privacy policy</a>.',
+    'register_terms' => 'I accept the <a href="/use-conditions">terms of use</a>',
+    'register_privacy' => 'UnxWares, the data controller, records your display name, email address, password (in hashed form, never in plain text) and language, along with the date and version of the terms of use you accept. This data is used to identify you, manage your contributions and send you service emails such as the password reset link. Legal basis: performance of the terms of use. Retention periods, your rights and contact details: <a href="/privacy">privacy policy</a>.',
     'register_cta' => 'Create my account',
     'forgot_cta' => 'Send link',
     'reset_cta' => 'Save password',

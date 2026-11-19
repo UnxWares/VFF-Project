@@ -17,4 +17,6 @@ enum NotificationKind: string
     case Removed = 'contribution_removed';
     /** Pour les validateurs : un visiteur ou un membre signale une erreur sur une fiche. */
     case ErrorReported = 'error_report_received';
+    /** Pour chaque membre : les CGU ou la politique de confidentialité changent à une date donnée. */
+    case LegalDocumentChanged = 'legal_document_changed';
 }

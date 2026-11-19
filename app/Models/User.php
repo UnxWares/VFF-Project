@@ -45,6 +45,7 @@ class User extends Authenticatable implements HasLocalePreference
         'reputation' => 'integer',
         'last_seen_at' => 'datetime',
         'inactivity_warned_at' => 'datetime',
+        'terms_accepted_at' => 'datetime',
     ];
 
     /** Langue des courriels et notifications : celle choisie dans le profil. */

@@ -1,5 +1,8 @@
 <script>
     import LegalPage from '$components/LegalPage.svelte';
+
+    /** `updated` : date de la version en vigueur (config/legal.php). */
+    let { updated } = $props();
 </script>
 
 <LegalPage
@@ -22,5 +25,5 @@
         'law',
         'contact',
     ]}
-    updated="2026-10-21"
+    {updated}
 />

@@ -48,6 +48,13 @@ return [
             'action' => 'Anmelden',
             'contributions' => 'Wird Ihr Konto gelöscht, bleiben Ihre veröffentlichten Beiträge ohne Ihren Namen in der Enzyklopädie. Die übrigen werden gelöscht.',
         ],
+        'last_admin' => [
+            'subject' => 'Der letzte Administrator von Französische Bahnstrecken ist inaktiv',
+            'greeting' => 'Guten Tag,',
+            'intro' => 'Das Konto Nr. :id, der einzige Administrator der Website, wurde seit dem :date nicht mehr genutzt.',
+            'kept' => 'Konten, die 3 Jahre lang ungenutzt bleiben, werden gelöscht, dieses jedoch nicht: Ohne es könnte niemand mehr Rollen vergeben.',
+            'next' => 'Ernennen Sie einen weiteren Administrator (php artisan vff:make-admin) oder melden Sie sich wieder mit diesem Konto an.',
+        ],
 
         'removed' => [
             'subject' => 'Ihr Beitrag Nr. :id wurde entfernt',

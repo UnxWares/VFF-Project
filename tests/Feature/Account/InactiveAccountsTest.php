@@ -9,9 +9,12 @@ use App\Models\AuditEvent;
 use App\Models\Contribution;
 use App\Models\User;
 use App\Notifications\InactiveAccountWarning;
+use App\Notifications\LastAdminInactive;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -187,6 +190,43 @@ class InactiveAccountsTest extends TestCase
         $this->assertCount(1, $warnings);
         $this->assertStringContainsString('dernier administrateur', $warnings[0][0]);
         $this->assertSame(['user_id' => $second->id], $warnings[0][1]);
+    }
+
+    public function test_the_contact_address_is_told_once_when_the_last_administrator_is_inactive(): void
+    {
+        Notification::fake();
+        config(['mail.contact.address' => 'contact@vff-project.org']);
+        $admin = $this->memberLastSeen('2023-10-01 00:00:00', ['role' => UserRole::Admin->value]);
+        $this->artisan('vff:prune-inactive-accounts')->assertSuccessful();
+
+        $this->travel(31)->days();
+        $this->artisan('vff:prune-inactive-accounts')->assertSuccessful();
+        // Passages suivants : toujours dans le journal de l'application, mais plus de courriel.
+        $this->travel(1)->day();
+        $this->artisan('vff:prune-inactive-accounts')->assertSuccessful();
+
+        $this->assertModelExists($admin);
+        Notification::assertSentOnDemandTimes(LastAdminInactive::class, 1);
+        Notification::assertSentOnDemand(LastAdminInactive::class, function (LastAdminInactive $n, array $channels, AnonymousNotifiable $to) use ($admin): bool {
+            $mail = $n->toMail($to);
+            $text = implode(' ', $mail->introLines);
+
+            return $to->routes['mail'] === 'contact@vff-project.org'
+                && $n->userId === $admin->id
+                && str_contains($text, '1 octobre 2023')
+                && ! str_contains($text, $admin->email)
+                && ! str_contains($text, $admin->name);
+        });
+        $this->assertContains(ShouldQueue::class, class_implements(LastAdminInactive::class), 'Courriel mis en file d\'attente');
+        $this->assertEquals(['user_id' => $admin->id], AuditEvent::where('action', AuditAction::LastAdminInactive)->sole()->context);
+
+        // Revenu puis de nouveau inactif 3 ans : nouvel avertissement, nouvelle alerte.
+        $this->actingAs($admin->fresh())->get('/profile')->assertOk();
+        $this->travel(3)->years();
+        $this->artisan('vff:prune-inactive-accounts')->assertSuccessful();
+        $this->travel(31)->days();
+        $this->artisan('vff:prune-inactive-accounts')->assertSuccessful();
+        Notification::assertSentOnDemandTimes(LastAdminInactive::class, 2);
     }
 
     public function test_a_failed_email_does_not_start_the_notice_period(): void

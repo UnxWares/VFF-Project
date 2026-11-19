@@ -49,6 +49,9 @@ final class AccountDataExport
                 'updated_at' => $user->updated_at?->toIso8601String(),
                 'last_seen_at' => $user->last_seen_at?->toIso8601String(),
                 'inactivity_warned_at' => $user->inactivity_warned_at?->toIso8601String(),
+                // Acceptation des CGU à l'inscription (null pour un compte créé avant le 19/11/2026).
+                'terms_accepted_at' => $user->terms_accepted_at?->toIso8601String(),
+                'terms_version' => $user->terms_version,
             ],
             'contributions' => $user->contributions()->orderBy('id')->get()
                 ->map(fn (Contribution $c): array => [

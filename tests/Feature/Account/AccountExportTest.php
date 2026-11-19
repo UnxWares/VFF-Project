@@ -23,6 +23,7 @@ class AccountExportTest extends TestCase
     {
         $this->travelTo(now()->setDate(2026, 11, 19));
         $user = User::factory()->validator()->create(['name' => 'Élise Martin', 'bio' => 'Passionnée du PO']);
+        $user->forceFill(['terms_accepted_at' => now()->setTime(9, 30), 'terms_version' => '2026-10-21'])->save();
         $mine = Contribution::factory()->for($user)->create([
             'type' => 'line_segment',
             'status' => ContributionStatus::Pending->value,
@@ -53,6 +54,8 @@ class AccountExportTest extends TestCase
         $this->assertSame($user->email, $data['profile']['email']);
         $this->assertSame('Passionnée du PO', $data['profile']['bio']);
         $this->assertSame('validator', $data['profile']['role']);
+        $this->assertSame('2026-10-21', $data['profile']['terms_version']);
+        $this->assertStringStartsWith('2026-11-19T09:30:00', $data['profile']['terms_accepted_at']);
 
         $this->assertCount(1, $data['contributions']);
         $this->assertSame($mine->id, $data['contributions'][0]['id']);

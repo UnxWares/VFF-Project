@@ -48,6 +48,13 @@ return [
             'action' => 'Sign in',
             'contributions' => 'If your account is deleted, your published contributions will stay in the encyclopaedia, without your name. The others will be deleted.',
         ],
+        'last_admin' => [
+            'subject' => 'The last French Railway Lines administrator is inactive',
+            'greeting' => 'Hello,',
+            'intro' => 'Account no. :id, the only administrator of the site, has not been used since :date.',
+            'kept' => 'Accounts unused for 3 years are deleted, but not this one: without it, nobody could assign roles any more.',
+            'next' => 'Appoint another administrator (php artisan vff:make-admin) or sign in again with this account.',
+        ],
 
         'removed' => [
             'subject' => 'Your contribution no. :id has been removed',

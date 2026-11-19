@@ -104,6 +104,14 @@ return [
     ],
 
     /*
+    | Adresse de contact de l'équipe de VFF (celle des pages publiques), qui reçoit les alertes de
+    | service, par exemple quand le dernier administrateur est inactif (InactiveAccounts).
+    */
+    'contact' => [
+        'address' => env('MAIL_CONTACT_ADDRESS', 'contact@vff-project.org'),
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Markdown Mail Settings
     |--------------------------------------------------------------------------
