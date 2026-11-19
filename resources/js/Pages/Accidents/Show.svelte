@@ -3,6 +3,7 @@
     import Layout from '$components/Layout.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
+    import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import SeoHead from '$components/SeoHead.svelte';
@@ -434,6 +435,8 @@
                 {/each}
             </ul>
         </SheetSection>
+
+        <ReportError type="accident" slug={accident.slug} {name} />
 
         <div class="end"></div>
     </main>

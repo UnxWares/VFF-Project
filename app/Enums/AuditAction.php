@@ -18,4 +18,10 @@ enum AuditAction: string
     case InactivityWarningsSent = 'inactivity_warnings_sent';
     /** Information des membres avant un changement des CGU ou de la politique de confidentialité. */
     case MembersNotified = 'members_notified';
+    /** Signalement d'erreur reçu depuis une fiche (contexte : numéro et sorte de fiche, jamais le texte). */
+    case ErrorReportReceived = 'error_report_received';
+    /** Signalement examiné et traité par un validateur ou un administrateur. */
+    case ErrorReportResolved = 'error_report_resolved';
+    /** Signalement examiné et écarté. */
+    case ErrorReportRejected = 'error_report_rejected';
 }

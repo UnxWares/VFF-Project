@@ -3,6 +3,7 @@
     import { tick } from 'svelte';
     import Layout from '$components/Layout.svelte';
     import PageHero from '$components/PageHero.svelte';
+    import ReviewNav from '$components/Contribute/ReviewNav.svelte';
     import TraceDiffMap from '$components/Contribute/TraceDiffMap.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import Notice from '$components/ui/Notice.svelte';
@@ -105,7 +106,9 @@
                 count: contributions.length,
                 threshold,
             })}
-        />
+        >
+            <ReviewNav current="contributions" />
+        </PageHero>
 
         <div class="vff-container body">
             <div class="flash">

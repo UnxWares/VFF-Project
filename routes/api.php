@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\LineHistoryController;
 use App\Http\Controllers\Api\LineMaterialController;
 use App\Http\Controllers\Api\LineMediaController;
 use App\Http\Controllers\Api\LinePkController;
+use App\Http\Controllers\Api\LineProfileController;
 use App\Http\Controllers\Api\LineSignallingController;
 use App\Http\Controllers\Api\LineStopsController;
 use App\Http\Controllers\Api\MaterialController;
@@ -75,6 +76,7 @@ Route::middleware('throttle:300,1')->group(function (): void {
     Route::get('/v1/lines/{line:slug}/pk', [LinePkController::class, 'fromPoint'])->name('api.lines.pk');
     Route::get('/v1/lines/{line:slug}/stops', [LineStopsController::class, 'index'])->name('api.lines.stops');
     Route::get('/v1/lines/{line:slug}/signalling', [LineSignallingController::class, 'index'])->name('api.lines.signalling');
+    Route::get('/v1/lines/{line:slug}/profile', [LineProfileController::class, 'show'])->name('api.lines.profile');
     Route::get('/v1/lines/{line:slug}/media', [LineMediaController::class, 'index'])->name('api.lines.media');
     Route::get('/v1/route', [RouteController::class, 'route'])->name('api.route');
     Route::get('/v1/route/compare', [RouteController::class, 'compare'])->name('api.route.compare');

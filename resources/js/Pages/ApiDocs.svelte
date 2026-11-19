@@ -47,6 +47,7 @@
                 { path: '/api/v1/lines/{line}/pk?lat={lat}&lng={lng}', key: 'pk' },
                 { path: '/api/v1/lines/{line}/stops?era={year}', key: 'stops' },
                 { path: '/api/v1/lines/{line}/signalling', key: 'signalling' },
+                { path: '/api/v1/lines/{line}/profile', key: 'profile' },
                 { path: '/api/v1/lines/{line}/materials', key: 'line_materials' },
                 { path: '/api/v1/lines/{line}/media', key: 'media' },
             ],
@@ -127,6 +128,7 @@
         'get_accident',
         'compare_eras',
         'level_crossings',
+        'line_profile',
         'sources_and_licences',
     ];
     const mcpCli = `claude mcp add --transport http vff ${MCP_URL}`;

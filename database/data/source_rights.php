@@ -50,7 +50,7 @@ return [
             'lu_le' => '2026-10-20',
         ],
         'ign' => [
-            'nom' => 'IGN (BD TOPO, BD ORTHO historique)',
+            'nom' => 'IGN (BD TOPO, BD ORTHO historique, RGE ALTI)',
             'statut' => 'sur',
             'licence' => 'Licence Ouverte 2.0 (Etalab), données publiques de l\'IGN libres depuis le 1er janvier 2021',
             'accord' => null,
@@ -58,9 +58,14 @@ return [
                 'https://www.data.gouv.fr/datasets/bd-topo-r',
                 'https://www.data.gouv.fr/datasets/bd-ortho-r-historique',
                 'https://macarte.ign.fr/cgu',
+                'https://www.data.gouv.fr/datasets/rge-alti-r',
+                'https://www.data.gouv.fr/dataservices/api-geoplateforme-calcul-altimetrique',
+                'https://cartes.gouv.fr/aide/fr/guides-utilisateur/utiliser-les-services-de-la-geoplateforme/calcul-altimetrique/',
             ],
             'citation' => 'Les Contenus IGN sont soumis à la licence libre Etalab 2.0. [...] sous réserve de mentionner la paternité de l\'IGN : sa source (au moins le nom de l\'IGN) et la date de dernière mise à jour des Contenu IGN réutilisés.',
-            'obligations' => 'Mention « IGN - BD TOPO » (ou BD ORTHO historique) et date de mise à jour des données. Compatible ODbL en entrée.',
+            'obligations' => 'Mention « IGN - BD TOPO » (ou BD ORTHO historique, RGE ALTI) et date de mise à jour des données. Compatible ODbL en entrée. '
+                .'Profils en long (vff:compute-line-profiles) : RGE ALTI lu le 2026-11-19 sur data.gouv.fr (licence « lov2 », producteur IGN) ; '
+                .'service de calcul altimétrique limité à 5 requêtes par seconde par adresse IP (data.gouv.fr et page d\'aide de cartes.gouv.fr), VFF en fait une par seconde au plus.',
             'remarques' => 'SCAN 25, SCAN 100 et SCAN OACI ne sont pas libres. SCAN 50 historique et carte de l\'état-major : licence non établie par une page de l\'IGN (seulement affichés en fond de carte, aucune donnée extraite en base).',
             'domaines' => ['ign.fr', 'geopf.fr', 'cartes.gouv.fr'],
             'lu_le' => '2026-10-20',
@@ -172,6 +177,9 @@ return [
             'preuve' => [
                 'http://archeoferroviaire.free.fr/v31/spip.php?page=rubrique&id_rubrique=3',
                 'https://macarte.ign.fr/cgu',
+                'https://www.data.gouv.fr/datasets/rge-alti-r',
+                'https://www.data.gouv.fr/dataservices/api-geoplateforme-calcul-altimetrique',
+                'https://cartes.gouv.fr/aide/fr/guides-utilisateur/utiliser-les-services-de-la-geoplateforme/calcul-altimetrique/',
             ],
             'citation' => 'Aucune reproduction, même partielle, en dehors de celles prévues à l\'article L 122-5 du code de la propriété intellectuelle, ne peut être faite de ce site sans l\'autorisation expresse de l\'auteur. [...] Toute diffusion ou utilisation à des fins commerciales ou publicitaires est exclue.',
             'obligations' => 'Crédit nominatif et lien vers l\'article d\'origine. Usage non commercial uniquement (mentions légales du site) : '
@@ -418,6 +426,8 @@ return [
         // tables sans colonne de provenance, une seule source (SNCF Réseau, ODbL), citée par l'API.
         'sncf_level_crossings' => ['sncf' => 'sncf'],
         'line_signalling' => ['sncf' => 'sncf'],
+        // Profils en long (vff:compute-line-profiles) : altitude de la voie BD TOPO, à défaut RGE ALTI (line_profiles.source).
+        'line_profiles' => ['bdtopo-rge-alti' => 'ign'],
         // Matériel roulant (vff:import-materials) : fiches Wikidata, champ par champ (provenance),
         // image Commons (licence propre à chaque fichier), liens matériel ↔ ligne attestés.
         'materials' => ['wikidata' => 'wikidata'],

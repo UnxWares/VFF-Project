@@ -526,6 +526,7 @@ return [
         'sections' => 'Named sections',
         'heritage' => 'Heritage railway',
         'tech' => 'Technical',
+        'profile' => 'Gradient profile',
         'level-crossings' => 'Level crossings',
         'chronicle' => 'Chronology',
         'materials' => 'Rolling stock',

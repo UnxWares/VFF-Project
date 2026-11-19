@@ -15,4 +15,6 @@ enum NotificationKind: string
     case Rejected = 'contribution_rejected';
     /** Pour l'auteur : contribution non publiée retirée par un administrateur, avec le motif. */
     case Removed = 'contribution_removed';
+    /** Pour les validateurs : un visiteur ou un membre signale une erreur sur une fiche. */
+    case ErrorReported = 'error_report_received';
 }

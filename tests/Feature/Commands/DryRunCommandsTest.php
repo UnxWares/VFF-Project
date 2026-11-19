@@ -31,7 +31,7 @@ class DryRunCommandsTest extends TestCase
 
     /** Commandes à --dry-run (cf. CommandContractTest : la liste doit rester à jour). */
     public const COVERED = [
-        'vff:apply-event-corrections', 'vff:audit-and-fix-lines', 'vff:canonicalize-station-slugs', 'vff:classify-lines',
+        'vff:apply-event-corrections', 'vff:audit-and-fix-lines', 'vff:canonicalize-station-slugs', 'vff:classify-lines', 'vff:compute-line-profiles',
         'vff:consolidate-stations', 'vff:dates-from-trace-names', 'vff:detect-present-states', 'vff:fill-missing-geometry',
         'vff:import-accidents', 'vff:import-argentanwebferro', 'vff:import-commons-media', 'vff:import-heritage-lines', 'vff:import-lignes-oubliees',
         'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-materials', 'vff:import-secondary-network-dates',

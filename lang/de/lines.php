@@ -526,6 +526,7 @@ return [
         'sections' => 'Abschnitte',
         'heritage' => 'Museumsbahn',
         'tech' => 'Technik',
+        'profile' => 'Höhenprofil',
         'level-crossings' => 'Bahnübergänge',
         'chronicle' => 'Chronik',
         'materials' => 'Fahrzeuge',

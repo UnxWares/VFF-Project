@@ -527,6 +527,7 @@ return [
         'sections' => 'Sections',
         'heritage' => 'Train touristique',
         'tech' => 'Technique',
+        'profile' => 'Profil en long',
         'level-crossings' => 'Passages à niveau',
         'chronicle' => 'Chronologie',
         'materials' => 'Matériel',

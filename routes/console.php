@@ -2,6 +2,7 @@
 
 use App\Models\AuditEvent;
 use App\Models\DatabaseNotification;
+use App\Models\ErrorReport;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -71,5 +72,12 @@ Schedule::command('model:prune', ['--model' => [AuditEvent::class]])
 Schedule::command('model:prune', ['--model' => [DatabaseNotification::class]])
     ->name('vff:prune-notifications')
     ->dailyAt('05:50')
+    ->timezone('Europe/Paris')
+    ->environments(['production']);
+
+// Signalements d'erreur traités ou rejetés depuis plus de 12 mois (App\Models\ErrorReport::prunable).
+Schedule::command('model:prune', ['--model' => [ErrorReport::class]])
+    ->name('vff:prune-error-reports')
+    ->dailyAt('05:55')
     ->timezone('Europe/Paris')
     ->environments(['production']);

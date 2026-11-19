@@ -9,6 +9,7 @@ use App\Services\LevelCrossings\LineLevelCrossings;
 use App\Services\LineDirectory;
 use App\Services\LineSheet;
 use App\Services\LineStats;
+use App\Services\Profiles\LineProfiles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -135,14 +136,16 @@ class LineController extends Controller
     /**
      * Fiche détaillée d'une ligne ferroviaire (construction partagée avec l'API : App\Services\LineSheet),
      * plus les accidents rattachés à la ligne (section « Accidents » ; API : `/api/v1/accidents?line=`)
-     * et ses passages à niveau (section « Passages à niveau » ; API : `/api/v1/lines/{slug}/level-crossings`).
+     * ses passages à niveau (section « Passages à niveau » ; API : `/api/v1/lines/{slug}/level-crossings`)
+     * et son profil en long s'il est calculé (section « Profil en long » ; API : `/api/v1/lines/{slug}/profile`).
      */
-    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings): Response
+    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineProfiles $profiles): Response
     {
         return Inertia::render('Lines/Show', [
             ...$sheet->build($line),
             'accidents' => $accidents->forLine($line, app()->getLocale()),
             'level_crossings' => $crossings->forSheet($line),
+            'profile' => $profiles->forLine($line),
         ]);
     }
 }

@@ -16,7 +16,8 @@ use Tests\TestCase;
  * Invariants d'accès, vérifiés sur TOUTES les routes déclarées (une nouvelle route est contrôlée
  * sans qu'on pense à lui écrire un test) :
  *   - toute route web qui écrit (POST, PUT, PATCH, DELETE) exige une connexion, sauf les formulaires
- *     réservés aux visiteurs non connectés (connexion, inscription, mot de passe) ;
+ *     réservés aux visiteurs non connectés (connexion, inscription, mot de passe) et les formulaires
+ *     publics déclarés ici, qui doivent alors être limités en fréquence (throttle) ;
  *   - un visiteur non connecté est renvoyé vers la connexion (302, ou 401 en JSON) sur toute route
  *     qui exige une connexion, jamais une page ou une erreur ;
  *   - la validation des contributions est réservée aux validateurs et aux administrateurs.
@@ -28,6 +29,9 @@ class RouteAccessInvariantsTest extends TestCase
 
     /** Routes d'écriture hors de la connexion : service MCP et GraphQL ont leur propre authentification. */
     private const OWN_AUTHENTICATION_PREFIXES = ['mcp', 'graphql'];
+
+    /** Formulaires publics voulus (signalement d'une erreur depuis une fiche) : limite de débit obligatoire. */
+    private const PUBLIC_THROTTLED_WRITES = ['POST /reports'];
 
     /** @return list<RouteDefinition> */
     private function routes(): array
@@ -90,8 +94,14 @@ class RouteAccessInvariantsTest extends TestCase
                 continue;
             }
             $checked++;
+            $signature = implode('|', array_diff($route->methods(), ['HEAD'])).' /'.$route->uri();
+            if (in_array($signature, self::PUBLIC_THROTTLED_WRITES, true)) {
+                $this->assertTrue($this->hasMiddleware($route, ['throttle']), "{$signature} doit être limitée en fréquence");
+
+                continue;
+            }
             if (! $this->hasMiddleware($route, [Authenticate::class, RedirectIfAuthenticated::class, 'auth', 'guest'])) {
-                $open[] = implode('|', array_diff($route->methods(), ['HEAD'])).' /'.$route->uri();
+                $open[] = $signature;
             }
         }
 

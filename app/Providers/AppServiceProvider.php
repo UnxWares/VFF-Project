@@ -23,6 +23,9 @@ use App\Support\ApiCodeSamples;
 use App\Support\SourceRights;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\FormRequestParametersExtractor;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -50,8 +53,29 @@ class AppServiceProvider extends ServiceProvider
         // Exemples JavaScript et Python des principaux points d'accès (extension x-codeSamples lue par Scalar).
         Scramble::configure()->withDocumentTransformers(ApiCodeSamples::class);
 
+        $this->configureRateLimiting();
+
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
+    }
+
+    /**
+     * Signalements d'erreur (POST /reports, ouverts aux visiteurs) : 6 envois par 10 minutes et
+     * 20 par jour, par compte ou à défaut par adresse IP (l'adresse n'est pas enregistrée, seul
+     * le compteur du cache la connaît le temps de la fenêtre). Au-delà, le formulaire affiche un
+     * message au lieu d'une page d'erreur.
+     */
+    private function configureRateLimiting(): void
+    {
+        RateLimiter::for('error-reports', function (Request $request): array {
+            $who = $request->user()?->id ? 'user:'.$request->user()->id : 'ip:'.$request->ip();
+            $refuse = fn () => back()->withErrors(['form' => __('reports.errors.too_many')]);
+
+            return [
+                Limit::perMinutes(10, 6)->by('burst:'.$who)->response($refuse),
+                Limit::perDay(20)->by('day:'.$who)->response($refuse),
+            ];
+        });
     }
 }

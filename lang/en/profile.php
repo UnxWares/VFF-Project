@@ -1,0 +1,32 @@
+<?php
+
+// "Gradient profile" section of the line sheet (App\Services\Profiles\LineProfiles): IGN heights
+// (BD TOPO, otherwise RGE ALTI) along the route.
+return [
+    'title' => 'Gradient profile',
+    'intro' => 'Track height along the line, from :from to :to. Distances are measured along the route from :from; the official kilometre post of each station is in the table.',
+    'intro_plain' => 'Track height along the line. Distances are measured along the route from one of its ends.',
+    'stats_label' => 'Profile figures',
+    'min' => 'Lowest point',
+    'max' => 'Highest point',
+    'ascent' => 'Total climb',
+    'descent' => 'Total descent',
+    'grade' => 'Steepest gradient',
+    'grade_up' => 'climbing, from km :from to km :to',
+    'grade_down' => 'descending, from km :from to km :to',
+    'chart_label' => 'Gradient profile chart: height from :min to :max m over :km km. Each station’s height is also listed in the table below.',
+    'axis_distance' => 'Distance (km)',
+    'at_km' => 'km :km',
+    'local_grade' => 'Gradient: :grade ‰',
+    'in_tunnel' => 'in a tunnel',
+    'tunnel_legend' => 'Tunnel: height estimated between the two portals',
+    'break_note' => 'The line on the chart stops where the height is not known (gap in the route, section outside France).',
+    'show_table' => 'Station heights (:count)',
+    'table_caption' => 'Station heights on the gradient profile',
+    'station' => 'Station',
+    'pk' => 'Official kilometre post',
+    'distance' => 'Distance',
+    'altitude' => 'Height',
+    'unknown' => 'unknown',
+    'source' => 'Heights from IGN, Licence Ouverte 2.0: track height from BD TOPO, otherwise ground height (RGE ALTI). In tunnels and on bridges without a height, the value is interpolated between the two ends. The figures are approximate: gradients can differ from the official values by a few ‰. Computed on :date.',
+];

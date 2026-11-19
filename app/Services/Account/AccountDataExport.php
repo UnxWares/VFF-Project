@@ -4,6 +4,7 @@ namespace App\Services\Account;
 
 use App\Models\Contribution;
 use App\Models\DatabaseNotification;
+use App\Models\ErrorReport;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -91,6 +92,24 @@ final class AccountDataExport
                     'reason' => $n->data['reason'] ?? null,
                     'created_at' => $n->created_at?->toIso8601String(),
                     'read_at' => $n->read_at?->toIso8601String(),
+                ])->all(),
+            // Signalements d'erreur envoyés depuis les fiches, avec la suite que l'équipe leur a donnée.
+            'error_reports' => $user->errorReports()->orderBy('id')->get()
+                ->map(fn (ErrorReport $r): array => [
+                    'id' => $r->id,
+                    'subject' => [
+                        'type' => $r->subject_type->value,
+                        'slug' => $r->subject_slug,
+                        'label' => $r->subject_label,
+                    ],
+                    'description' => $r->description,
+                    'source_url' => $r->source_url,
+                    'contact_email' => $r->contact_email,
+                    'locale' => $r->locale,
+                    'status' => $r->status->value,
+                    'resolution_note' => $r->resolution_note,
+                    'created_at' => $r->created_at?->toIso8601String(),
+                    'handled_at' => $r->handled_at?->toIso8601String(),
                 ])->all(),
             'api_tokens' => $user->tokens()->orderBy('id')->get()
                 ->map(fn (PersonalAccessToken $t): array => [

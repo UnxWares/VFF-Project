@@ -16,7 +16,7 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 | 1 - Modèle de données | ✅ faite, jalon atteint |
 | 2 - Carte interactive | ✅ faite, géolocalisation comprise |
 | 3 - Sélecteur temporel | ✅ faite (21 époques de 1830 à 2030), comparaison de deux époques et vue empilée comprises |
-| 4 - Fiches détaillées | 🟡 lignes, gares, matériel, accidents et JSON-LD faits ; dénivelé à faire |
+| 4 - Fiches détaillées | 🟡 lignes, gares, matériel, accidents, JSON-LD et profil en long faits ; profils de toutes les lignes à calculer |
 | 5 - Contribution | 🟡 comptes, éditeur de tracé, validation à deux, suppression et export du compte, journal d'audit faits ; notifications sur le site et réputation à faire |
 | 6 - API REST | 🟡 API publique complète et documentée (30 points d'accès) ; jetons, webhooks et exemples multi-langages à faire |
 | 7 - GraphQL | 🟡 lecture publique faite ; mutations à faire |
@@ -143,7 +143,7 @@ Chaque ligne devient une vraie page d'encyclopédie.
   - [x] Longueur, électrification, vitesses, signalisation
   - [x] Sources et notes de sources
   - [ ] Matériel roulant historique (la section existe, la table est vide)
-  - [ ] Dénivelé
+  - [x] Dénivelé : profil en long (altitudes IGN BD TOPO et RGE ALTI, `vff:compute-line-profiles`, section de la fiche, `GET /api/v1/lines/{line}/profile`, GraphQL `Line.profile`, outil MCP `line_profile`) ; 17 lignes calculées, les autres à lancer
 - [x] Page `/stations/{slug}` (ouverture, fermeture, lignes desservies, frise par époque, mini-carte)
 - [x] Pages `/materials` et `/materials/{slug}` avec 687 séries (voir phase 13)
 - [x] Schéma JSON-LD pour le référencement (WebSite, Place, BreadcrumbList, ImageObject, TrainStation) ; à rendre côté serveur pour les aperçus de partage
@@ -163,7 +163,8 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [~] Formulaire d'ajout d'événement / média / matériel (tracés et segments faits)
 - [ ] Notifications (sur le site + courriel) d'acceptation ou de refus
 - [ ] Réputation et badges (le champ existe, aucun calcul)
-- [~] Modération : journal d'audit et retrait d'une contribution par un administrateur faits ; signalement et liste de blocage à faire
+- [~] Modération : journal d'audit et retrait d'une contribution par un administrateur faits ; liste de blocage à faire
+- [x] Signalement d'une erreur depuis le site : bouton « Signaler une erreur » en bas des fiches ligne, gare, matériel et accident (visiteurs et membres, sans traceur ni service externe), liste des signalements dans l'espace de validation (`/validate/reports`), notification des validateurs, journal d'audit, purge 12 mois après le traitement
 - [x] Suppression du compte par l'utilisateur, avec anonymisation des contributions, et export de ses données
 
 🎯 **Jalon "Open Encyclopedia"** : un visiteur peut s'inscrire et soumettre sa première contribution en moins de 3 minutes. Presque atteint : il manque les notifications.

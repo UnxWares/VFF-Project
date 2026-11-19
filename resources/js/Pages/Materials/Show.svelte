@@ -3,6 +3,7 @@
     import Layout from '$components/Layout.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
+    import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SeoHead from '$components/SeoHead.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
@@ -434,6 +435,8 @@
                 </EmptyState>
             {/if}
         </SheetSection>
+
+        <ReportError type="material" slug={material.slug} name={material.name} />
     </main>
 </Layout>
 
