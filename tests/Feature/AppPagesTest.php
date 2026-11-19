@@ -157,7 +157,7 @@ class AppPagesTest extends TestCase
     {
         $this->getJson('/api/v1/search?q=a')
             ->assertOk()
-            ->assertExactJson(['lines' => [], 'stations' => [], 'materials' => []]);
+            ->assertExactJson(['lines' => [], 'stations' => [], 'materials' => [], 'accidents' => []]);
     }
 
     public function test_unknown_era_returns_clean_404_before_streaming(): void
