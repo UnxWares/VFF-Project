@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Sleep;
 use Tests\Support\CommandSandbox;
 use Tests\TestCase;
@@ -192,6 +193,35 @@ class ImportArgentanWebFerroCommandTest extends TestCase
         $this->assertSame('rejected', DB::table('argentanwebferro_facts')->where('fingerprint', $operator->fingerprint)->value('review'));
         $added = DB::table('argentanwebferro_facts')->where('event_type', 'closure_passenger')->first();
         $this->assertSame(['curated', 'nouveau'], [$added->review, $added->vff_status]);
+    }
+
+    public function test_media_apply_copies_the_authors_photos_once_and_credits_them(): void
+    {
+        $this->artisan('vff:import-argentanwebferro')->assertSuccessful();
+        Http::fake(['argentanwebferro.fr/AWF/upload/*' => Http::response('JPEG', 200, ['Content-Type' => 'image/jpeg'])]);
+
+        $this->artisan('vff:import-argentanwebferro-media --apply')->expectsOutputToContain('1 photo(s) copiée(s)')->assertSuccessful();
+
+        $this->assertTrue(Storage::disk('public')->exists('media/argentanwebferro/501.jpg'));
+        $this->assertTrue(Storage::disk('public')->exists('media/argentanwebferro/.nobackup'), 'copies régénérables : hors sauvegardes');
+        $this->assertFalse(Storage::disk('public')->exists('media/argentanwebferro/502.jpg'), 'photo non relue : jamais copiée');
+        $media = DB::table('media')->where('provider', 'argentanwebferro')->sole();
+        $this->assertSame(
+            ['501', Line::class, $this->montsecret->id, 'Thierry Danglos', 'CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0',
+                'https://argentanwebferro.fr/AWF/picture.php?/501', 'open_license', true, 'Thierry Danglos, CC BY-SA 4.0, via Argentan Web Ferroviaire', null],
+            [$media->external_id, $media->mediable_type, (int) $media->mediable_id, $media->author, $media->license, $media->license_url,
+                $media->source_url, $media->rights_status, (bool) $media->share_alike, $media->attribution, $media->thumb_url],
+        );
+
+        $api = $this->getJson("/api/v1/lines/{$this->montsecret->slug}/media")->assertOk()->json('data.0');
+        $this->assertSame(['Argentan Web Ferroviaire', Storage::url('media/argentanwebferro/501.jpg'), 'Thierry Danglos'],
+            [$api['provider_label'], $api['thumb_url'], $api['author']]);
+
+        $sent = count(Http::recorded());
+        $this->artisan('vff:import-argentanwebferro-media --apply')->assertSuccessful();
+        $this->assertSame($sent, count(Http::recorded()), 'déjà copiée : pas de nouveau téléchargement');
+        $this->assertSame(1, DB::table('media')->where('provider', 'argentanwebferro')->count(), 'rejouable');
+        Http::assertSent(fn (Request $r) => str_contains($r->url(), '/AWF/upload/501.jpg') && $r->header('User-Agent') === ['VFF-Bot/1.0 (+https://vff-project.org)']);
     }
 
     public function test_media_import_is_a_costed_simulation_by_default(): void

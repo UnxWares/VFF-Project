@@ -39,6 +39,9 @@ class ImportArgentanWebFerroMedia extends Command
 
     private const DELAY_MS = 2500;
 
+    /** Dossier des copies sur le disque public (servi sous /storage par le lien public/storage). */
+    public const DIRECTORY = 'media/argentanwebferro';
+
     public function handle(): int
     {
         $query = DB::table('argentanwebferro_photos')->where('republishable', true)->whereNotNull('media_payload')->orderBy('piwigo_id');
@@ -60,7 +63,12 @@ class ImportArgentanWebFerroMedia extends Command
         }
 
         $disk = Storage::disk('public');
+        // Copies régénérables (la commande peut les retélécharger) : hors sauvegardes, hors git (storage/app/public/.gitignore).
+        if (! $disk->exists(self::DIRECTORY.'/.nobackup')) {
+            $disk->put(self::DIRECTORY.'/.nobackup', '');
+        }
         $done = 0;
+        $bytes = 0;
         $last = 0.0;
         foreach ($attached as $row) {
             $payload = json_decode((string) $row->media_payload, true);
@@ -79,17 +87,19 @@ class ImportArgentanWebFerroMedia extends Command
                 }
                 $disk->put($path, $response->body());
             }
-            $url = $disk->url($path);
+            $bytes += $disk->size($path);
+            // thumb_url et display_url restent vides : l'API les calcule depuis file_path (Storage::url), quel que soit le domaine.
             DB::table('media')->upsert([[
                 ...array_diff_key($payload, ['provider_meta' => true]),
-                'thumb_url' => $url, 'display_url' => $url,
+                'thumb_url' => null, 'display_url' => null,
                 'mime_type' => 'image/jpeg', 'file_size' => $disk->size($path),
                 'provider_meta' => json_encode($payload['provider_meta'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                 'created_at' => now(), 'updated_at' => now(),
             ]], ['provider', 'external_id', 'mediable_type', 'mediable_id']);
             $done++;
         }
-        $this->info("{$done} photo(s) copiée(s) et insérée(s) dans media (provider = ".GalleryInventory::PROVIDER.').');
+        $this->info("{$done} photo(s) copiée(s) et insérée(s) dans media (provider = ".GalleryInventory::PROVIDER.'), '
+            .round($bytes / 1048576, 1).' Mo dans storage/app/public/'.self::DIRECTORY.'.');
 
         return self::SUCCESS;
     }
