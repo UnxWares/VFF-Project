@@ -19,7 +19,7 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 | 4 - Fiches détaillées | 🟡 lignes, gares, matériel, accidents, JSON-LD et profil en long faits ; profils de toutes les lignes à calculer |
 | 5 - Contribution | 🟡 comptes, éditeur de tracé, validation à deux, suppression et export du compte, journal d'audit faits ; notifications sur le site et réputation à faire |
 | 6 - API REST | 🟡 API publique complète et documentée (30 points d'accès) ; jetons, webhooks et exemples multi-langages à faire |
-| 7 - GraphQL | 🟡 lecture publique faite ; mutations à faire |
+| 7 - GraphQL | 🟡 lecture publique et mutations de contribution faites ; subscriptions à faire |
 | 8 - Graphe & itinéraires | 🟡 itinéraires historiques faits sur un graphe PostgreSQL ; Apache AGE pas activé |
 | 9 - Reconstitutions 3D 🧪 | ⬜ pas commencée |
 | 10 - Extension historique | ✅ couverture 1830-2030 ; modèle d'extraction des voies publié |
@@ -190,8 +190,8 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] [Lighthouse](https://lighthouse-php.com/) installé
 - [x] Schéma en lecture : Era, Line, LineSegment, LineEvent, LineStop, LineSignallingRange, LevelCrossing, Station, Material, Route
 - [x] Documentation [Magidoc](https://magidoc.js.org/) sur `/docs/graphql` + GraphiQL
-- [ ] Mutations pour l'édition (`submitContribution`, `validateContribution`), réservées aux comptes connectés
-- [ ] Subscriptions (WebSocket) pour suivre les contributions en temps réel
+- [x] Mutations pour l'édition (`submitContribution`, `validateContribution`), réservées aux comptes connectés : jeton personnel avec la capacité `contribute` (case du profil, décochée par défaut) ou session du site avec contrôle CSRF ; mêmes règles et même code que l'espace de validation du site (`App\Services\Contributions`)
+- [ ] Subscriptions (WebSocket) pour suivre les contributions en temps réel (demande un serveur temps réel en production, par exemple Laravel Reverb ; les webhooks `contribution.applied` couvrent le besoin en attendant)
 - [x] **REST reste la référence** pour les consommateurs externes, GraphQL est un complément
 
 ---

@@ -7,11 +7,12 @@
     /**
      * Section « Jetons d'accès à l'API » du profil (ApiTokenController, App\Services\Api\ApiTokens) :
      * limite du compte, jetons (nom, création, dernière utilisation, révocation confirmée dans une
-     * fenêtre modale native) et création. Le secret d'un jeton créé n'est montré qu'une fois
-     * (`access.new_token`, donnée flash de la session).
+     * fenêtre modale native) et création, avec la case facultative « Autoriser les contributions
+     * par l'API » (capacité `contribute` des mutations GraphQL, décochée par défaut). Le secret d'un
+     * jeton créé n'est montré qu'une fois (`access.new_token`, donnée flash de la session).
      *
      * @type {{ access: {
-     *   tokens: { id: number, name: string, created_at: string|null, last_used_at: string|null }[],
+     *   tokens: { id: number, name: string, contribute: boolean, created_at: string|null, last_used_at: string|null }[],
      *   profile: 'member'|'partner', per_minute: number, anonymous_per_minute: number,
      *   max_tokens: number, can_create: boolean, suspended: boolean,
      *   new_token: { id: number, plain: string }|null
@@ -19,7 +20,7 @@
      */
     let { access } = $props();
 
-    const form = useForm({ token_name: '' });
+    const form = useForm({ token_name: '', contribute: false });
     let revokeDialog = $state();
     /** @type {{ id: number, name: string }|null} */
     let toRevoke = $state(null);
@@ -148,6 +149,13 @@
                     <li>
                         <div class="token-text">
                             <strong>{token.name}</strong>
+                            <span class="vff-badge {token.contribute ? 'accent' : 'muted'} scope"
+                                >{$i18n.t(
+                                    token.contribute
+                                        ? 'api_tokens.scope_contribute'
+                                        : 'api_tokens.scope_read',
+                                )}</span
+                            >
                             <span class="meta">
                                 {#if token.created_at}
                                     <time datetime={token.created_at}
@@ -203,6 +211,23 @@
                     />
                 {/snippet}
             </Field>
+            <div class="vff-field">
+                <label class="vff-check">
+                    <input
+                        id="token-contribute"
+                        name="contribute"
+                        type="checkbox"
+                        aria-describedby="token-contribute-hint"
+                        disabled={!access.can_create}
+                        bind:checked={form.contribute}
+                    />
+                    <span>{$i18n.t('api_tokens.contribute_label')}</span>
+                </label>
+                <p class="note" id="token-contribute-hint">
+                    {$i18n.t('api_tokens.contribute_hint')}
+                    <Link href="/api#contribute">{$i18n.t('api_tokens.docs_link')}</Link>
+                </p>
+            </div>
             {#if blockedReason}
                 <p id="token-blocked" class="note">{blockedReason}</p>
             {/if}
@@ -365,6 +390,9 @@
     }
     .token-text strong {
         overflow-wrap: anywhere;
+    }
+    .token-text .scope {
+        align-self: flex-start;
     }
     .meta {
         display: flex;

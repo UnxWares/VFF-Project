@@ -25,16 +25,16 @@ return [
 
     'access' => [
         'title' => 'Access and limits',
-        'readonly' => ['title' => 'Read-only', 'text' => 'Every REST request is a GET; GraphQL only offers read queries.'],
+        'readonly' => ['title' => 'Open reading', 'text' => 'Every REST request is a GET, and reading through GraphQL is open to everyone. Only the two contribution mutations need an account.'],
         'no_key' => ['title' => 'No key or account', 'text' => 'No sign-up: call the addresses directly. An optional personal token raises the limit.'],
         'limit' => ['title' => ':count requests per minute', 'text' => 'Limit per IP address without a token, shared by REST, GraphQL and the MCP server. Beyond it, the server answers HTTP 429.'],
-        'licence' => ['title' => 'Data licences', 'text' => 'Credit “VFF - Voies Ferrées de France” with a link to vff-project.org. Each source keeps its own licence: the details are in the references.'],
+        'licence' => ['title' => 'Data licences', 'text' => 'Credit “VFF - Voies Ferrées de France” with a link to vff-project.org. Each source keeps its own licence: the details are in the references. Track geometry from a source whose licence does not allow redistribution never leaves the API: its geometry is null and the response says so. The vector tiles are only for displaying the map.'],
     ],
 
     // "Authentication and rate limits" section (#auth anchor): optional token, limits per profile (config/api.php).
     'auth' => [
         'title' => 'Authentication and rate limits',
-        'intro' => 'The API works without a token. If the anonymous limit is not enough, create a personal token from your profile. It is read-only, like anonymous access, and is shown only once.',
+        'intro' => 'The API works without a token. If the anonymous limit is not enough, create a personal token from your profile. It reads data like anonymous access and is shown only once. To contribute through GraphQL, tick the contributions box when creating it.',
         'table_caption' => 'Request limits by caller profile',
         'col_profile' => 'Profile',
         'col_limit' => 'Limit',
@@ -165,6 +165,40 @@ return [
         'text' => 'For richer queries, a single GraphQL endpoint, POST /graphql, returns a line with its segments and events in one go. Read the schema in the reference, or try your queries in GraphiQL.',
         'links' => 'GraphQL documentation',
         'example_comment' => 'A line with its events',
+    ],
+
+    // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).
+    'contribute' => [
+        'title' => 'Contributing through GraphQL',
+        'intro' => 'Two mutations follow the site’s forms. submitContribution sends a proposal: a line portion changed between two kilometre points, or a drawn route. validateContribution approves or rejects it. You need an account, and the site’s rules apply: two approvals from different validators to publish, a reason for every rejection, and nobody reviews their own contribution.',
+        'auth_title' => 'Authentication',
+        'auth' => [
+            'token' => 'With a personal token created in your profile with the “Allow contributions through the API” box ticked. A token without it gets the insufficient_scope error.',
+            'session' => 'From a VFF page, the site session is enough: the POST request carries the X-XSRF-TOKEN header, which the browser takes from the cookie of the same name.',
+            'limit' => 'Mutations count towards the same rate limit as the rest of the API.',
+        ],
+        'submit_title' => 'Proposing a change',
+        'submit_intro' => 'Here, a speed limit over 6.5 km of line, with its source. The response gives the contribution’s id; it now waits for two approvals.',
+        'response_caption' => 'Response',
+        'review_title' => 'Reviewing a contribution',
+        'review_intro' => 'For validators and administrators only. A rejection needs a reason of at least 5 characters, sent to the author. With APPROVE, the second approval publishes the contribution and fires the contribution.applied webhook.',
+        'errors_title' => 'Errors',
+        'errors_intro' => 'An error comes in errors[], with data set to null for the mutation and a stable code in extensions.code. Messages are in English.',
+        'errors' => [
+            'post_required' => 'mutation sent with GET: only POST is accepted.',
+            'unauthenticated' => 'no token and no site session.',
+            'insufficient_scope' => 'the token cannot contribute.',
+            'csrf_token_mismatch' => 'site session without a valid CSRF token.',
+            'account_suspended' => 'suspended account; extensions.suspended_until gives the end date, if there is one.',
+            'forbidden' => 'review requested by an account that is neither a validator nor an administrator.',
+            'not_found' => 'unknown contribution, or one removed by an administrator.',
+            'own_contribution' => 'reviewing your own contribution.',
+            'already_closed' => 'contribution already rejected or published.',
+            'already_approved' => 'the same validator approves a second time.',
+            'application_failed' => 'publishing failed: nothing is written and the approval is cancelled (extensions.reason).',
+            'validation' => 'input refused: extensions.validation maps the path of each field (for example input.segment.pk_end_m) to its messages.',
+        ],
+        'reference' => 'Every field in the GraphQL reference',
     ],
 
     // Serveur MCP (docs/MCP.md) : adresse, installation, outils, limites, attribution.

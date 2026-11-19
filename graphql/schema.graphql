@@ -3481,3 +3481,346 @@ extend type Query {
         provider: String!
     ): SourceProvider @field(resolver: "App\\GraphQL\\Resolvers\\SourceField@find")
 }
+
+#
+# ─── Contributions (mutations réservées aux comptes connectés) ──────────
+#
+
+"""
+Mutations de contribution : proposer une modification, puis la relire, avec les mêmes règles que le
+site (`/contribute`, éditeur de tracé, espace de validation `/validate`).
+
+**Authentification**, l'une ou l'autre :
+- jeton personnel dans l'en-tête `Authorization: Bearer <jeton>`, créé dans le profil avec la case
+  « Autoriser les contributions » cochée (capacité `contribute`) ;
+- session du site (cookie), depuis une page de VFF : la requête porte l'en-tête `X-XSRF-TOKEN`
+  (ou `X-CSRF-TOKEN`), ou le navigateur la déclare de même origine (`Sec-Fetch-Site: same-origin`).
+
+Les mutations partagent la limite de débit du reste de l'API (REST, GraphQL, MCP). Les requêtes de
+lecture restent ouvertes sans compte.
+
+**Erreurs.** Une erreur arrive dans `errors[]`, avec `data.<mutation>` à `null` et un code stable
+dans `extensions.code` (messages en anglais) :
+- `post_required` : mutation envoyée en GET (seul POST est accepté) ;
+- `unauthenticated` : ni jeton ni session ;
+- `insufficient_scope` : jeton sans la capacité `contribute` ;
+- `csrf_token_mismatch` : session du site sans jeton CSRF valide ;
+- `account_suspended` : compte suspendu (`extensions.suspended_until`, ISO 8601, nul si sans fin) ;
+- `forbidden` : relecture demandée par un compte qui n'est ni validateur ni administrateur ;
+- `not_found` : contribution inconnue, ou retirée par un administrateur ;
+- `own_contribution` : relecture de sa propre contribution ;
+- `already_closed` : contribution déjà refusée ou publiée ;
+- `already_approved` : le même validateur approuve une deuxième fois ;
+- `application_failed` : la publication a échoué, rien n'est écrit et l'approbation est annulée
+  (`extensions.reason`).
+
+Une saisie refusée donne une erreur de validation : `extensions.validation` associe le chemin du
+champ (par exemple `input.segment.pk_end_m`) à ses messages.
+
+Un jeton inconnu, révoqué ou expiré reçoit HTTP 401, et le jeton d'un compte suspendu HTTP 403,
+avant toute exécution (comme pour les requêtes de lecture).
+"""
+type Mutation {
+    """
+    Propose une contribution, enregistrée « en attente » (`PENDING`) puis annoncée aux validateurs.
+    Elle est publiée après deux approbations indépendantes (`validateContribution`).
+
+    Renseignez exactement un des deux champs de `input` : `segment` (modification d'une portion de
+    ligne entre deux PK) ou `trace` (tracé dessiné : ligne disparue ou correction d'une ligne).
+    Le compte doit être connecté et non suspendu.
+    """
+    submitContribution(
+        "La proposition : un seul de ses deux champs."
+        input: ContributionInput!
+    ): Contribution! @field(resolver: "App\\GraphQL\\Mutations\\SubmitContribution")
+
+    """
+    Relit une contribution en attente : approbation ou refus. Réservé aux validateurs et aux
+    administrateurs, connectés et non suspendus.
+
+    Deux approbations de validateurs différents publient la contribution (`APPLIED`) : la carte et
+    la fiche de la ligne changent, l'auteur est prévenu et les webhooks `contribution.applied`
+    partent. Un refus demande un motif, transmis à l'auteur. On ne relit pas sa propre
+    contribution. Chaque décision recalcule la réputation de l'auteur et du validateur et entre au
+    journal d'audit.
+    """
+    validateContribution(
+        "Identifiant de la contribution (renvoyé par `submitContribution`)."
+        id: ID!
+        "Décision : `APPROVE` ou `REJECT`."
+        decision: ContributionDecision!
+        """
+        Motif du refus, de 5 à 1 000 caractères (espaces de début et de fin retirés), obligatoire avec
+        `REJECT` et transmis à l'auteur. Ignoré avec `APPROVE`.
+        """
+        reason: String
+    ): ContributionReview! @field(resolver: "App\\GraphQL\\Mutations\\ValidateContribution")
+}
+
+"Une proposition de contribution : renseignez exactement un des deux champs."
+input ContributionInput {
+    "Modification d'attributs d'une portion de ligne entre deux PK, à une ère."
+    segment: SegmentContributionInput
+
+    "Tracé dessiné : ligne disparue (`new_line`) ou correction d'une ligne existante (`correction`)."
+    trace: TraceContributionInput
+}
+
+"""
+Modification d'une portion de ligne entre deux points kilométriques, à une ère : les mêmes champs
+que le formulaire « Modifier une portion » du site (`/contribute/edit-segment`). Les tronçons de
+la ligne qui rencontrent la portion reçoivent les nouvelles valeurs à la publication.
+"""
+input SegmentContributionInput {
+    "Code de la ligne (6 chiffres pour le réseau ferré national, espaces ignorés : `405000` ou `405 000`)."
+    line_code: String!
+
+    "Ère visée : une décennie de 1830 à 2030 (2030 désigne le réseau d'aujourd'hui)."
+    era_year: Int!
+
+    "Début de la portion, en mètres depuis l'origine du tracé de la ligne à cette ère (0 à 9 999 999)."
+    pk_start_m: Int!
+
+    "Fin de la portion, en mètres, strictement supérieure à `pk_start_m` (au plus 9 999 999)."
+    pk_end_m: Int!
+
+    "Nouvelles valeurs : au moins une non nulle ; un champ absent ou nul reste inchangé."
+    changes: SegmentChangesInput!
+
+    """
+    Sources de la modification, au moins une (adresse web ou référence : arrêté, ouvrage, archive),
+    500 caractères au plus chacune. Les validateurs ne relisent pas une affirmation sans pièce.
+    """
+    sources: [String!]!
+
+    "Remarques pour les validateurs, 2 000 caractères au plus."
+    notes: String
+}
+
+"Nouvelles valeurs d'une portion ; un champ absent ou nul reste inchangé, `false` et `0` sont de vraies valeurs."
+input SegmentChangesInput {
+    """
+    État de la voie, mêmes valeurs que `LineSegment.status` : `in_service` (exploitée),
+    `single_track` (exploitée, à voie unique), `service_track` (voie de service ou portuaire),
+    `construction` (en travaux), `abandoned` (fermée ou neutralisée, voie encore en place),
+    `dismantled` (voie déposée, emprise encore visible), `razed` (emprise disparue).
+    """
+    status: String
+
+    "Trafic, mêmes valeurs que `LineSegment.traffic_type` : `passenger`, `freight`, `mixed` ou `unknown`."
+    traffic_type: String
+
+    "Vrai si la portion est électrifiée."
+    electrified: Boolean
+
+    "Tension d'électrification en volts, de 0 à 50 000 (ex. 1500, 25000)."
+    voltage_v: Int
+
+    "Vitesse maximale en km/h, de 0 à 600."
+    max_speed_kmh: Int
+
+    "Vrai si la portion est exploitée par une association (train touristique, vélorail, musée)."
+    is_heritage: Boolean
+}
+
+"""
+Tracé dessiné, comme dans l'éditeur de tracé du site (`/contribute/trace`) : une ou plusieurs
+portions, chacune avec ses événements datés et sourcés. À la publication, le tracé entre dans les
+sources de VFF et les événements dans l'historique de la ligne (créée si `kind` vaut `new_line`).
+"""
+input TraceContributionInput {
+    "`new_line` (ligne disparue absente de VFF) ou `correction` (ligne existante, voir `line_slug`)."
+    kind: String!
+
+    "Identifiant d'URL de la ligne corrigée (ex. `rfn-405000`) : obligatoire avec `correction`."
+    line_slug: String
+
+    "Nom de la nouvelle ligne, de 3 à 250 caractères : obligatoire avec `new_line`."
+    new_line_name: String
+
+    "Réseau : `principal`, `secondaire`, `militaire` ou `particulier`."
+    network: String!
+
+    "Fond de carte utilisé pour dessiner (ex. `ign-etat-major`), 60 caractères au plus."
+    basemap: String
+
+    "Source du tracé (carte, plan, ouvrage), de 3 à 500 caractères."
+    trace_source: String!
+
+    "Remarques pour les validateurs, 2 000 caractères au plus."
+    notes: String
+
+    "Portions du tracé, de 1 à 60."
+    portions: [TracePortionInput!]!
+
+    "Éléments existants que ce tracé remplace (facultatif) : les validateurs les voient en « avant »."
+    replaces: TraceReplacesInput
+}
+
+"Une portion du tracé : une ligne brisée et ses événements."
+input TracePortionInput {
+    "Clé de la portion, unique dans la proposition (lettres, chiffres, `_` et `-`, 24 caractères au plus)."
+    key: String!
+
+    "Nom de la portion (ex. « Section Nontron - Thiviers »), 250 caractères au plus."
+    label: String
+
+    "Lieu de départ, 250 caractères au plus."
+    from: String
+
+    "Lieu d'arrivée, 250 caractères au plus."
+    to: String
+
+    """
+    Points de la portion, de 2 à 8 000, chacun `[longitude, latitude]` en degrés WGS 84
+    (EPSG:4326). La portion doit mesurer au moins 10 m.
+    """
+    coordinates: [[Float!]!]!
+
+    "Événements datés de la portion, 30 au plus."
+    events: [TraceEventInput!]
+}
+
+"Un événement daté d'une portion (ouverture, fermeture, dépose…)."
+input TraceEventInput {
+    """
+    Type : `opening`, `opening_passenger`, `opening_freight`, `closure_passenger`,
+    `closure_freight`, `closure`, `reopening`, `reopening_passenger`, `reopening_freight`,
+    `dismantling`, `electrification`, `declassification` ou `other`.
+    """
+    type: String!
+
+    "Précision de la date : `day`, `month` ou `year`."
+    precision: String!
+
+    "Date selon la précision : `AAAA-MM-JJ`, `AAAA-MM` ou `AAAA` (années 1750 et suivantes)."
+    date: String!
+
+    "Source de l'événement (ouvrage, archive, journal officiel), de 3 à 500 caractères."
+    source: String!
+
+    "Adresse de la source, en http ou https, 500 caractères au plus."
+    source_url: String
+
+    "Description de l'événement, 1 000 caractères au plus."
+    description: String
+}
+
+"Éléments existants remplacés par un tracé (identifiants internes, ceux de l'éditeur du site)."
+input TraceReplacesInput {
+    "Tracés de source remplacés, 200 au plus."
+    source_trace_ids: [Int!]
+
+    "Tronçons de ligne remplacés, 2 000 au plus."
+    line_segment_ids: [Int!]
+
+    "Lignes remplacées, 5 au plus."
+    line_ids: [Int!]
+}
+
+"Décision d'un validateur."
+enum ContributionDecision {
+    "Approuver : à la deuxième approbation indépendante, la contribution est publiée."
+    APPROVE @enum(value: "approve")
+
+    "Refuser, avec un motif (`reason`) transmis à l'auteur."
+    REJECT @enum(value: "reject")
+}
+
+"Type d'une contribution."
+enum ContributionType {
+    "Modification d'une portion de ligne entre deux PK."
+    LINE_SEGMENT @enum(value: "line_segment")
+
+    "Tracé dessiné (ligne disparue ou correction)."
+    LINE_TRACE @enum(value: "line_trace")
+}
+
+"Nature d'une contribution."
+enum ContributionAction {
+    "Création (nouvelle ligne)."
+    CREATE @enum(value: "create")
+
+    "Modification d'une ligne existante."
+    UPDATE @enum(value: "update")
+
+    "Suppression."
+    DELETE @enum(value: "delete")
+}
+
+"État d'une contribution."
+enum ContributionStatus {
+    "En attente d'une première approbation."
+    PENDING @enum(value: "pending")
+
+    "Approuvée une fois, en attente d'un deuxième validateur."
+    APPROVED @enum(value: "approved")
+
+    "Refusée (motif dans `review_notes`)."
+    REJECTED @enum(value: "rejected")
+
+    "Publiée : appliquée à l'encyclopédie."
+    APPLIED @enum(value: "applied")
+}
+
+"Issue d'une relecture enregistrée."
+enum ContributionReviewOutcome {
+    "Approbation enregistrée, il en manque encore pour publier."
+    APPROVED @enum(value: "approved")
+
+    "Dernière approbation requise : la contribution est publiée."
+    APPLIED @enum(value: "applied")
+
+    "Contribution refusée."
+    REJECTED @enum(value: "rejected")
+}
+
+"Une contribution, telle que la voient son auteur et les validateurs."
+type Contribution {
+    "Identifiant de la contribution."
+    id: ID!
+
+    "Type de la contribution."
+    type: ContributionType!
+
+    "Création d'une ligne ou modification d'une ligne existante."
+    action: ContributionAction!
+
+    "État de la contribution."
+    status: ContributionStatus!
+
+    "Approbations reçues."
+    approvals: Int!
+
+    "Approbations indépendantes nécessaires pour publier (2)."
+    approvals_required: Int!
+
+    "Ligne visée (nulle pour une nouvelle ligne pas encore publiée)."
+    line: Line
+
+    """
+    Proposition enregistrée, normalisée par le serveur (mêmes clés que sur le site) : pour
+    `LINE_SEGMENT`, `line_code`, `line_name`, `era_year`, `pk_start_m`, `pk_end_m`, `changes`,
+    `sources` et `notes` ; pour `LINE_TRACE`, les portions en GeoJSON (`geometry`), leurs
+    événements aux dates normalisées, `length_m`, `warnings` et, une fois publiée, `applied`.
+    """
+    payload: JSON!
+
+    "Motif du refus, transmis à l'auteur ; nul sinon."
+    review_notes: String
+
+    "Date d'envoi."
+    created_at: DateTime!
+
+    "Date de la dernière décision (refus ou publication) ; nulle sinon."
+    reviewed_at: DateTime
+}
+
+"Résultat d'une relecture enregistrée."
+type ContributionReview {
+    "Ce que la décision a produit."
+    outcome: ContributionReviewOutcome!
+
+    "La contribution après la décision."
+    contribution: Contribution!
+}

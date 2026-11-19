@@ -287,11 +287,12 @@ class EventsAndMediaQueriesTest extends TestCase
         $this->graphQL('{ mediaItem(id: 999999) { id } }')->assertGraphQLErrorFree()->assertExactJson(['data' => ['mediaItem' => null]]);
     }
 
-    public function test_the_schema_has_no_mutation(): void
+    public function test_the_only_mutations_are_the_contribution_ones(): void
     {
+        // Mutations de contribution réservées aux comptes connectés (ContributionMutationsTest) ; pas de subscription.
         $this->graphQL('{ __schema { mutationType { name } subscriptionType { name } } }')
             ->assertGraphQLErrorFree()
-            ->assertExactJson(['data' => ['__schema' => ['mutationType' => null, 'subscriptionType' => null]]]);
+            ->assertExactJson(['data' => ['__schema' => ['mutationType' => ['name' => 'Mutation'], 'subscriptionType' => null]]]);
     }
 
     public function test_page_size_is_capped_at_100(): void

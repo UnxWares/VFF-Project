@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Services\Contributions\ContributionReview;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -11,9 +12,9 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class RejectContributionRequest extends FormRequest
 {
-    public const NOTES_MIN = 5;
+    public const NOTES_MIN = ContributionReview::REASON_MIN;
 
-    public const NOTES_MAX = 1000;
+    public const NOTES_MAX = ContributionReview::REASON_MAX;
 
     public function authorize(): bool
     {
@@ -23,19 +24,13 @@ class RejectContributionRequest extends FormRequest
     /** @return array<string, ValidationRule|array<mixed>|string> */
     public function rules(): array
     {
-        return [
-            'notes' => ['required', 'string', 'min:'.self::NOTES_MIN, 'max:'.self::NOTES_MAX],
-        ];
+        return ['notes' => ContributionReview::reasonRules()];
     }
 
     /** @return array<string, string> */
     public function messages(): array
     {
-        return [
-            'notes.required' => __('editor.validate.errors.reason_required', ['min' => self::NOTES_MIN]),
-            'notes.min' => __('editor.validate.errors.reason_required', ['min' => self::NOTES_MIN]),
-            'notes.max' => __('editor.validate.errors.reason_max', ['max' => self::NOTES_MAX]),
-        ];
+        return ContributionReview::reasonMessages('notes');
     }
 
     public function reason(): string

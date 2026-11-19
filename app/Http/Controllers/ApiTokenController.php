@@ -22,7 +22,7 @@ class ApiTokenController extends Controller
     public function store(StoreApiTokenRequest $request): RedirectResponse
     {
         try {
-            $token = $this->tokens->create($request->user(), $request->validated('token_name'));
+            $token = $this->tokens->create($request->user(), $request->validated('token_name'), $request->wantsContribute());
         } catch (ApiTokenRefused $refused) {
             return back()->withErrors(['token_name' => $refused->getMessage()]);
         }

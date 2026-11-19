@@ -25,16 +25,16 @@ return [
 
     'access' => [
         'title' => 'Zugang und Grenzen',
-        'readonly' => ['title' => 'Nur lesend', 'text' => 'Alle REST-Anfragen sind GET-Anfragen; GraphQL bietet nur Leseabfragen.'],
+        'readonly' => ['title' => 'Freies Lesen', 'text' => 'Alle REST-Anfragen sind GET-Anfragen, und Lesen über GraphQL steht allen offen. Nur die beiden Mutationen für Beiträge erfordern ein Konto.'],
         'no_key' => ['title' => 'Ohne Schlüssel und Konto', 'text' => 'Keine Registrierung: Rufen Sie die Adressen direkt auf. Ein freiwilliges persönliches Token hebt die Grenze an.'],
         'limit' => ['title' => ':count Anfragen pro Minute', 'text' => 'Grenze pro IP-Adresse ohne Token, gemeinsam für REST, GraphQL und den MCP-Server. Darüber antwortet der Server mit HTTP 429.'],
-        'licence' => ['title' => 'Lizenzen der Daten', 'text' => 'Nennen Sie „VFF - Voies Ferrées de France“ mit einem Link auf vff-project.org. Jede Quelle behält ihre eigene Lizenz: Einzelheiten stehen in den Referenzen.'],
+        'licence' => ['title' => 'Lizenzen der Daten', 'text' => 'Nennen Sie „VFF - Voies Ferrées de France“ mit einem Link auf vff-project.org. Jede Quelle behält ihre eigene Lizenz: Einzelheiten stehen in den Referenzen. Streckengeometrie aus einer Quelle, deren Lizenz keine Weitergabe erlaubt, gibt die API nicht heraus: Die Geometrie ist null, und die Antwort weist darauf hin. Die Vektorkacheln dienen nur der Anzeige der Karte.'],
     ],
 
     // Abschnitt „Authentifizierung und Kontingente“ (Anker #auth): freiwilliges Token, Grenzen je Profil (config/api.php).
     'auth' => [
         'title' => 'Authentifizierung und Kontingente',
-        'intro' => 'Die API funktioniert ohne Token. Reicht Ihnen die Grenze des anonymen Zugangs nicht, erstellen Sie in Ihrem Profil ein persönliches Token. Es erlaubt nur das Lesen, wie der anonyme Zugang, und wird nur einmal angezeigt.',
+        'intro' => 'Die API funktioniert ohne Token. Reicht Ihnen die Grenze des anonymen Zugangs nicht, erstellen Sie in Ihrem Profil ein persönliches Token. Es liest die Daten wie der anonyme Zugang und wird nur einmal angezeigt. Um über GraphQL beizutragen, kreuzen Sie beim Erstellen das Kästchen für Beiträge an.',
         'table_caption' => 'Anfragegrenzen je nach Profil des Aufrufers',
         'col_profile' => 'Profil',
         'col_limit' => 'Grenze',
@@ -165,6 +165,40 @@ return [
         'text' => 'Für umfangreichere Abfragen liefert ein einziger GraphQL-Endpunkt, POST /graphql, eine Strecke mit ihren Segmenten und Ereignissen auf einmal. Das Schema steht in der Referenz; Ihre Abfragen können Sie in GraphiQL ausprobieren.',
         'links' => 'GraphQL-Dokumentation',
         'example_comment' => 'Eine Strecke mit ihren Ereignissen',
+    ],
+
+    // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).
+    'contribute' => [
+        'title' => 'Über GraphQL beitragen',
+        'intro' => 'Zwei Mutationen entsprechen den Formularen der Website. submitContribution sendet einen Vorschlag: einen zwischen zwei Kilometerpunkten geänderten Streckenabschnitt oder einen gezeichneten Streckenverlauf. validateContribution gibt ihn frei oder lehnt ihn ab. Sie brauchen ein Konto, und es gelten die Regeln der Website: zwei Freigaben verschiedener Prüfer zur Veröffentlichung, eine Begründung für jede Ablehnung, und niemand sichtet seinen eigenen Beitrag.',
+        'auth_title' => 'Authentifizierung',
+        'auth' => [
+            'token' => 'Mit einem persönlichen Token, das Sie in Ihrem Profil mit angekreuztem Kästchen „Beiträge über die API erlauben“ erstellen. Ein Token ohne dieses Kästchen erhält den Fehler insufficient_scope.',
+            'session' => 'Auf einer Seite von VFF genügt die Sitzung der Website: Die POST-Anfrage trägt den Header X-XSRF-TOKEN, den der Browser aus dem gleichnamigen Cookie übernimmt.',
+            'limit' => 'Mutationen zählen zum selben Anfragelimit wie der Rest der API.',
+        ],
+        'submit_title' => 'Eine Änderung vorschlagen',
+        'submit_intro' => 'Hier eine Höchstgeschwindigkeit auf 6,5 km Strecke, mit Quelle. Die Antwort enthält die Kennung des Beitrags, der nun auf zwei Freigaben wartet.',
+        'response_caption' => 'Antwort',
+        'review_title' => 'Einen Beitrag sichten',
+        'review_intro' => 'Nur für Prüfer und Administratoren. Eine Ablehnung braucht eine Begründung von mindestens 5 Zeichen, die der Autor erhält. Mit APPROVE veröffentlicht die zweite Freigabe den Beitrag und löst den Webhook contribution.applied aus.',
+        'errors_title' => 'Fehler',
+        'errors_intro' => 'Ein Fehler steht in errors[], mit data auf null für die Mutation und einem festen Code in extensions.code. Die Meldungen sind auf Englisch.',
+        'errors' => [
+            'post_required' => 'Mutation per GET gesendet: Nur POST wird angenommen.',
+            'unauthenticated' => 'weder Token noch Sitzung der Website.',
+            'insufficient_scope' => 'Das Token darf keine Beiträge senden.',
+            'csrf_token_mismatch' => 'Sitzung der Website ohne gültiges CSRF-Token.',
+            'account_suspended' => 'Konto gesperrt; extensions.suspended_until nennt das Ende, falls es eines gibt.',
+            'forbidden' => 'Sichtung durch ein Konto, das weder Prüfer noch Administrator ist.',
+            'not_found' => 'unbekannter oder von einem Administrator entfernter Beitrag.',
+            'own_contribution' => 'Sichtung des eigenen Beitrags.',
+            'already_closed' => 'Beitrag bereits abgelehnt oder veröffentlicht.',
+            'already_approved' => 'Derselbe Prüfer gibt ein zweites Mal frei.',
+            'application_failed' => 'Die Veröffentlichung ist gescheitert: Nichts wird geschrieben, die Freigabe wird zurückgenommen (extensions.reason).',
+            'validation' => 'Eingabe abgelehnt: extensions.validation ordnet dem Pfad jedes Feldes (zum Beispiel input.segment.pk_end_m) seine Meldungen zu.',
+        ],
+        'reference' => 'Alle Felder in der GraphQL-Referenz',
     ],
 
     // Serveur MCP (docs/MCP.md) : adresse, installation, outils, limites, attribution.

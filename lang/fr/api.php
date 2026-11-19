@@ -26,16 +26,16 @@ return [
 
     'access' => [
         'title' => 'Accès et limites',
-        'readonly' => ['title' => 'Lecture seule', 'text' => 'Les requêtes REST sont toutes des GET ; GraphQL ne propose que des requêtes de lecture.'],
+        'readonly' => ['title' => 'Lecture libre', 'text' => 'Les requêtes REST sont toutes des GET et la lecture par GraphQL est ouverte à tous. Seules les deux mutations de contribution demandent un compte.'],
         'no_key' => ['title' => 'Sans clé ni compte', 'text' => 'Aucune inscription : appelez directement les adresses. Un jeton personnel, facultatif, relève la limite.'],
         'limit' => ['title' => ':count requêtes par minute', 'text' => 'Limite par adresse IP sans jeton, commune à REST, GraphQL et au serveur MCP. Au-delà, le serveur répond HTTP 429.'],
-        'licence' => ['title' => 'Licences des données', 'text' => 'Citez « VFF - Voies Ferrées de France » avec un lien vers vff-project.org. Chaque source garde sa licence : le détail figure dans les références.'],
+        'licence' => ['title' => 'Licences des données', 'text' => 'Citez « VFF - Voies Ferrées de France » avec un lien vers vff-project.org. Chaque source garde sa licence : le détail figure dans les références. Le tracé venu d’une source dont la licence n’autorise pas la redistribution ne sort pas de l’API : sa géométrie vaut null et la réponse le signale. Les tuiles vectorielles servent seulement à afficher la carte.'],
     ],
 
     // Section « Authentification et quotas » (ancre #auth) : jeton facultatif, limites par profil (config/api.php).
     'auth' => [
         'title' => 'Authentification et quotas',
-        'intro' => 'L’API s’appelle sans jeton. Si la limite de l’accès anonyme ne vous suffit pas, créez un jeton personnel depuis votre profil : il sert seulement à lire, comme l’accès anonyme, et n’est affiché qu’une fois.',
+        'intro' => 'L’API s’appelle sans jeton. Si la limite de l’accès anonyme ne vous suffit pas, créez un jeton personnel depuis votre profil : il lit les données comme l’accès anonyme et n’est affiché qu’une fois. Pour contribuer par GraphQL, cochez la case des contributions en le créant.',
         'table_caption' => 'Limites de requêtes selon le profil de l’appelant',
         'col_profile' => 'Profil',
         'col_limit' => 'Limite',
@@ -166,6 +166,40 @@ return [
         'text' => 'Pour les requêtes plus riches, un seul point d’accès GraphQL, POST /graphql, renvoie en une fois une ligne avec ses tronçons et ses événements. Lisez le schéma dans la référence, ou essayez vos requêtes dans GraphiQL.',
         'links' => 'Documentations GraphQL',
         'example_comment' => 'Une ligne avec ses événements',
+    ],
+
+    // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).
+    'contribute' => [
+        'title' => 'Contribuer par GraphQL',
+        'intro' => 'Deux mutations reprennent les formulaires du site. submitContribution envoie une proposition : une portion de ligne modifiée entre deux PK, ou un tracé dessiné. validateContribution l’approuve ou la refuse. Il faut un compte, et les règles sont celles du site : deux approbations de validateurs différents pour publier, un motif pour chaque refus, et personne ne relit sa propre contribution.',
+        'auth_title' => 'Authentification',
+        'auth' => [
+            'token' => 'Avec un jeton personnel, créé dans votre profil avec la case « Autoriser les contributions par l’API » cochée. Un jeton sans cette case reçoit l’erreur insufficient_scope.',
+            'session' => 'Depuis une page de VFF, la session du site suffit : la requête POST porte l’en-tête X-XSRF-TOKEN, que le navigateur reprend du cookie du même nom.',
+            'limit' => 'Les mutations comptent dans la même limite de débit que le reste de l’API.',
+        ],
+        'submit_title' => 'Proposer une modification',
+        'submit_intro' => 'Ici, une vitesse limite sur 6,5 km de ligne, avec sa source. La réponse donne l’identifiant de la contribution, en attente de deux approbations.',
+        'response_caption' => 'Réponse',
+        'review_title' => 'Relire une contribution',
+        'review_intro' => 'Réservé aux validateurs et aux administrateurs. Un refus demande un motif de 5 caractères au moins, transmis à l’auteur. Avec APPROVE, la deuxième approbation publie la contribution et déclenche le webhook contribution.applied.',
+        'errors_title' => 'Erreurs',
+        'errors_intro' => 'Une erreur arrive dans errors[], avec data à null pour la mutation et un code stable dans extensions.code. Les messages sont en anglais.',
+        'errors' => [
+            'post_required' => 'mutation envoyée en GET : seul POST est accepté.',
+            'unauthenticated' => 'ni jeton ni session du site.',
+            'insufficient_scope' => 'le jeton n’a pas la capacité de contribuer.',
+            'csrf_token_mismatch' => 'session du site sans jeton CSRF valide.',
+            'account_suspended' => 'compte suspendu ; extensions.suspended_until donne la date de fin, s’il y en a une.',
+            'forbidden' => 'relecture demandée par un compte qui n’est ni validateur ni administrateur.',
+            'not_found' => 'contribution inconnue, ou retirée par un administrateur.',
+            'own_contribution' => 'relecture de sa propre contribution.',
+            'already_closed' => 'contribution déjà refusée ou publiée.',
+            'already_approved' => 'le même validateur approuve une deuxième fois.',
+            'application_failed' => 'la publication a échoué : rien n’est écrit et l’approbation est annulée (extensions.reason).',
+            'validation' => 'saisie refusée : extensions.validation associe le chemin de chaque champ (par exemple input.segment.pk_end_m) à ses messages.',
+        ],
+        'reference' => 'Tous les champs dans la référence GraphQL',
     ],
 
     // Serveur MCP (docs/MCP.md) : adresse, installation, outils, limites, attribution.

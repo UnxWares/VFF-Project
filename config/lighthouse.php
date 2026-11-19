@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Http\Middleware\StartGraphQLSession;
 use GraphQL\Error\DebugFlag;
 use GraphQL\Validator\Rules\DisableIntrospection;
 use GraphQL\Validator\Rules\QueryComplexity;
@@ -58,6 +59,10 @@ return [
             // Même jeton facultatif et même limiteur que l'API REST v1 (routes/api.php, config/api.php).
             'api.token',
             'throttle:public-api',
+
+            // Session du site, seulement si son cookie est présent et sans jeton : mutations de
+            // contribution envoyées depuis le site (contrôle CSRF dans ContributionApiAccess).
+            StartGraphQLSession::class,
 
             // Logs in a user if they are authenticated. In contrast to Laravel's 'auth'
             // middleware, this delegates auth and permission checks to the field level.

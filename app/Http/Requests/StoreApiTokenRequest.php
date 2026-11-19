@@ -5,7 +5,10 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-/** Création d'un jeton d'API personnel depuis le profil : un nom pour le reconnaître. */
+/**
+ * Création d'un jeton d'API personnel depuis le profil : un nom pour le reconnaître et, cochée au
+ * besoin, la capacité de contribuer par l'API (`contribute`, décochée par défaut).
+ */
 class StoreApiTokenRequest extends FormRequest
 {
     public const NAME_MAX = 60;
@@ -20,6 +23,7 @@ class StoreApiTokenRequest extends FormRequest
     {
         return [
             'token_name' => ['required', 'string', 'max:'.self::NAME_MAX],
+            'contribute' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -31,6 +35,12 @@ class StoreApiTokenRequest extends FormRequest
             'token_name.string' => __('api_tokens.errors.name_required'),
             'token_name.max' => __('api_tokens.errors.name_max', ['max' => self::NAME_MAX]),
         ];
+    }
+
+    /** Capacité de contribution demandée (case cochée). */
+    public function wantsContribute(): bool
+    {
+        return (bool) $this->validated('contribute', false);
     }
 
     protected function prepareForValidation(): void

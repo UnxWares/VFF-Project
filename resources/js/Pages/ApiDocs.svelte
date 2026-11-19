@@ -16,6 +16,9 @@
      * dans « Accès et limites », « Authentification et quotas » (ancre #auth, liée depuis le profil)
      * et la section MCP.
      *
+     * Section « Contribuer par GraphQL » (ancre #contribute, liée depuis le profil) : mutations
+     * submitContribution et validateContribution, authentification, exemples curl et erreurs.
+     *
      * `webhooks` : règles de livraison des webhooks (config/webhooks.php), section « Webhooks » (ancre
      * #webhooks, liée depuis le profil).
      *
@@ -367,6 +370,68 @@ VFF-Signature: t=1795097531,v1=5b0f3c…
     const graphqlCurl = `curl -X POST https://vff-project.org/graphql \\
   -H "Content-Type: application/json" \\
   -d '{"query": "{ line(slug: \\"rfn-405000\\") { name code } }"}'`;
+
+    // Mutations de contribution (graphql/schema.graphql, type Mutation) : jeton avec la capacité
+    // `contribute`. Corps envoyé par un document « here » pour garder le JSON lisible.
+    const contributeCurl = `curl -X POST https://vff-project.org/graphql \\
+  -H "Authorization: Bearer $VFF_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d @- <<'JSON'
+{
+  "query": "mutation ($input: ContributionInput!) { submitContribution(input: $input) { id status approvals approvals_required } }",
+  "variables": {
+    "input": {
+      "segment": {
+        "line_code": "405000",
+        "era_year": 2030,
+        "pk_start_m": 12000,
+        "pk_end_m": 18500,
+        "changes": { "max_speed_kmh": 140 },
+        "sources": ["Référence de votre source : document, page, date"]
+      }
+    }
+  }
+}
+JSON`;
+    const contributeResponse = `{
+  "data": {
+    "submitContribution": {
+      "id": "1287",
+      "status": "PENDING",
+      "approvals": 0,
+      "approvals_required": 2
+    }
+  }
+}`;
+    const reviewCurl = `curl -X POST https://vff-project.org/graphql \\
+  -H "Authorization: Bearer $VFF_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"query": "mutation { validateContribution(id: \\"1287\\", decision: REJECT, reason: \\"La source ne couvre pas cette section.\\") { outcome contribution { status review_notes } } }"}'`;
+    const contributeError = `{
+  "errors": [
+    {
+      "message": "This API token does not have the \\"contribute\\" ability. Create a token with this ability in your profile.",
+      "path": ["submitContribution"],
+      "extensions": { "code": "insufficient_scope" }
+    }
+  ],
+  "data": { "submitContribution": null }
+}`;
+    const contributeAuth = ['token', 'session', 'limit'];
+    const contributeErrors = [
+        'post_required',
+        'unauthenticated',
+        'insufficient_scope',
+        'csrf_token_mismatch',
+        'account_suspended',
+        'forbidden',
+        'not_found',
+        'own_contribution',
+        'already_closed',
+        'already_approved',
+        'application_failed',
+        'validation',
+    ];
 </script>
 
 <svelte:head>
@@ -642,6 +707,68 @@ VFF-Signature: t=1795097531,v1=5b0f3c…
                     >{$i18n.t('api.docs.items.graphql.title')}</a
                 >
                 <a class="vff-link" href="/graphiql">{$i18n.t('api.docs.items.graphiql.title')}</a>
+            </p>
+        </SectionBlock>
+
+        <SectionBlock
+            id="contribute"
+            title={$i18n.t('api.contribute.title')}
+            intro={$i18n.t('api.contribute.intro')}
+            maxWidth="900px"
+        >
+            <h3 class="group-title">{$i18n.t('api.contribute.auth_title')}</h3>
+            <ul class="auth-headers">
+                {#each contributeAuth as a (a)}
+                    <li>{$i18n.t(`api.contribute.auth.${a}`)}</li>
+                {/each}
+            </ul>
+
+            <h3 class="group-title">{$i18n.t('api.contribute.submit_title')}</h3>
+            <p class="caption">{$i18n.t('api.contribute.submit_intro')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{contributeCurl}</code></pre>
+            <p class="caption">{$i18n.t('api.contribute.response_caption')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{contributeResponse}</code
+                ></pre>
+
+            <h3 class="group-title">{$i18n.t('api.contribute.review_title')}</h3>
+            <p class="caption">{$i18n.t('api.contribute.review_intro')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{reviewCurl}</code></pre>
+
+            <h3 class="group-title" id="contribute-errors">
+                {$i18n.t('api.contribute.errors_title')}
+            </h3>
+            <p class="caption">{$i18n.t('api.contribute.errors_intro')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{contributeError}</code></pre>
+            <ul class="endpoints tools" aria-labelledby="contribute-errors">
+                {#each contributeErrors as code (code)}
+                    <li>
+                        <code class="path">{code}</code>
+                        <span class="desc">{$i18n.t(`api.contribute.errors.${code}`)}</span>
+                    </li>
+                {/each}
+            </ul>
+            <p class="links">
+                <a class="vff-link" href="/docs/graphql">{$i18n.t('api.contribute.reference')}</a>
             </p>
         </SectionBlock>
 
