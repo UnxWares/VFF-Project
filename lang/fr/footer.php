@@ -15,7 +15,7 @@ return [
     'uwosc' => 'UnxWares Open Source & Community (UWOSC)',
 
     'copyright' => 'Voies Ferrées de France - VFF © :start-:end',
-    'powered_by' => 'Propulsé par',
+    'project_by' => 'Un projet de',
 
     // Nom de la navigation du pied de page (lecteurs d'écran).
     'nav_label' => 'Liens du pied de page',

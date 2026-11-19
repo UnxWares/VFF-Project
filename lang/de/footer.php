@@ -15,7 +15,7 @@ return [
     'uwosc' => 'UnxWares Open Source & Community (UWOSC)',
 
     'copyright' => 'Voies Ferrées de France - VFF © :start-:end',
-    'powered_by' => 'Bereitgestellt von',
+    'project_by' => 'Ein Projekt von',
 
     // Name der Fußzeilen-Navigation (Bildschirmleser).
     'nav_label' => 'Links der Fußzeile',

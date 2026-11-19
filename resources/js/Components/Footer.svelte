@@ -150,23 +150,22 @@
         <p>{$i18n.t('footer.copyright', { start: 2023, end: currentYear })}</p>
         <p class="credits">
             <!-- L'association n'a pas encore de site : logotype sans lien. -->
-            <span class="powered">
-                {$i18n.t('footer.powered_by')}
-                <img
+            <!-- Pas d'espace entre le texte et les logos : l'écart est la marge du logo (footer.css). -->
+            <span class="powered"
+                >{$i18n.t('footer.project_by')}<img
                     class="uwosc-logo theme-light"
                     src={uwoscLogo}
                     alt={$i18n.t('footer.uwosc')}
                     width="220"
                     height="53"
-                />
-                <img
+                /><img
                     class="uwosc-logo theme-dark"
                     src={uwoscLogoDark}
                     alt={$i18n.t('footer.uwosc')}
                     width="220"
                     height="53"
-                />
-            </span>
+                /></span
+            >
         </p>
     </div>
 </footer>

@@ -150,15 +150,20 @@ footer:where(.site-footer) .copyright p {
 }
 /* Logo UWOSC (insigne et nom) : 220 px de large (taille minimale de la charte), zone de protection d'au
    moins la hauteur du « U » (environ 26 px à cette taille) autour, le texte compris. */
+/* Mesures du fichier (PNG officiel de 1 500 px rendu depuis le SVG) : dessin de x 30 à 1 494 sur 1 500,
+   ligne de base du mot « UnxWares » à 247 sur 363. À 220 px de large (53 px de haut) : 4 px de marge
+   intérieure à gauche, ligne de base à 17 px du bas. Le texte et le logo sont en ligne : décaler le logo
+   de 17 px sous la ligne de base pose « Un projet de » sur la ligne de base de « UnxWares », et une marge
+   de 22 px laisse un vide visible de 26 px (la zone de protection) jusqu'à l'insigne. */
 footer:where(.site-footer) .copyright .powered {
-    display: inline-flex;
-    align-items: center;
-    gap: 28px;
+    display: inline-block;
     padding-block: 12px;
 }
 footer:where(.site-footer) .copyright .uwosc-logo {
     width: 220px;
     height: auto;
+    margin-left: 22px;
+    vertical-align: -17px;
 }
 
 /* ─── Thème sombre ────────────────────────────────────────────────────────── */
