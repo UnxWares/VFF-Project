@@ -153,6 +153,7 @@ return [
             'junction' => 'Terminus or junction on the route',
             'wikidata_p81' => 'Wikidata (line served)',
             'terminus_name' => 'End named in the line name, less than 500 m from the route',
+            'terminus_reviewed' => 'End station checked by hand against a source',
         ],
         'pk_sources' => [
             'sncf' => 'official PK',

@@ -153,6 +153,7 @@ return [
             'junction' => 'Endpunkt oder Abzweig am Streckenverlauf',
             'wikidata_p81' => 'Wikidata (bediente Strecke)',
             'terminus_name' => 'Im Streckennamen genannter Endpunkt, weniger als 500 m vom Streckenverlauf',
+            'terminus_reviewed' => 'Endbahnhof, von Hand anhand einer Quelle geprüft',
         ],
         'pk_sources' => [
             'sncf' => 'Amtlicher PK',

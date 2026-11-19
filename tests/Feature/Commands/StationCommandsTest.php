@@ -5,6 +5,7 @@ namespace Tests\Feature\Commands;
 use App\Models\Era;
 use App\Models\Line;
 use App\Models\Station;
+use App\Services\StationTerminusOverrides;
 use App\Support\StationNames;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -317,6 +318,52 @@ class StationCommandsTest extends TestCase
         $this->artisan('vff:attach-stations', ['--termini-only' => true])->expectsOutputToContain('terminus nommés : 1')->assertSuccessful();
         $this->artisan('vff:attach-stations', ['--termini-only' => true])->expectsOutputToContain('terminus nommés : 0')->assertSuccessful();
         $this->assertSame([['Kilo', 'terminus_name', 1903]], $links($secondary));
+    }
+
+    /**
+     * Terminus relus à la main (database/data/station_terminus_overrides.php) : « attach » rattache la gare
+     * nommée par la source même loin du bout du tracé (Lyon-Est, tête de ligne du CFEL, à 1 km), « none »
+     * empêche la règle des terminus nommés ; décision invalide signalée et ignorée ; --years-only les
+     * applique, --dry-run n'écrit rien, un second passage n'ajoute rien.
+     */
+    public function test_reviewed_termini_are_applied_from_the_decisions_file(): void
+    {
+        $secondary = ['code' => null, 'network' => 'secondaire'];
+        $quebec = $this->rfnLine('', 'Ligne de Quebec à Romeo', $secondary);
+        $this->track($quebec, $this->current, [[47.0, 5.0], [47.1, 5.0]], ['status' => 'dismantled', 'traffic_type' => 'unknown']);
+        // Gare propre de la compagnie à 900 m du début du tracé : hors de portée de la règle (500 m).
+        $quebecEst = $this->station('quebec-est', 'Quebec-Est', 46.9919, 5.0);
+        $sierra = $this->rfnLine('', 'Ligne de Sierra à Tango', $secondary);
+        $this->track($sierra, $this->current, [[47.2, 5.0], [47.3, 5.0]], ['status' => 'dismantled', 'traffic_type' => 'unknown']);
+        // Gare de même nom à 200 m du bout : la règle la rattacherait, la relecture dit « rien ».
+        $this->station('sierra', 'Sierra', 47.1982, 5.0);
+        $source = 'https://fr.wikipedia.org/w/index.php?title=Quebec&oldid=1';
+        $this->app->instance(StationTerminusOverrides::class, new StationTerminusOverrides([
+            ['line' => $quebec->slug, 'terminus' => 'Quebec', 'decision' => 'attach', 'station' => 'quebec-est', 'source_url' => $source, 'reason' => 'tête de ligne'],
+            ['line' => $sierra->slug, 'terminus' => 'Sierra', 'decision' => 'none', 'source_url' => null, 'reason' => 'terminus sur une place'],
+            ['line' => $quebec->slug, 'terminus' => 'Romeo', 'decision' => 'attach', 'station' => 'quebec-est', 'source_url' => null, 'reason' => 'sans source'],
+            ['line' => 'ligne-absente', 'terminus' => 'Uniform', 'decision' => 'none', 'source_url' => null, 'reason' => 'ligne d\'une autre base'],
+        ]));
+        $links = fn () => DB::table('station_lines')->whereIn('line_id', [$quebec->id, $sierra->id])->orderBy('line_id')
+            ->get(['station_id', 'line_id', 'method', 'source_ref'])->map(fn ($r) => (array) $r)->all();
+
+        $this->artisan('vff:attach-stations', ['--years-only' => true, '--dry-run' => true])
+            ->expectsOutputToContain('terminus relus : 1 ajoutés, 1 sans gare, 1 lignes absentes de la base')
+            ->expectsOutputToContain('attach : station (slug) et source_url')
+            ->assertSuccessful();
+        $this->assertSame([], $links(), '--dry-run : rien d\'écrit');
+
+        $this->artisan('vff:attach-stations', ['--years-only' => true])->assertSuccessful();
+        $expected = [['station_id' => $quebecEst->id, 'line_id' => $quebec->id, 'method' => 'terminus_reviewed', 'source_ref' => 'relu:'.$source]];
+        $this->assertSame($expected, $links());
+        $this->assertEqualsWithDelta(900, DB::table('station_lines')->where('line_id', $quebec->id)->value('distance_m'), 10);
+        $this->assertNotNull(DB::table('station_lines')->where('line_id', $quebec->id)->value('pk_m'), 'PK projeté sur le tracé');
+
+        $this->artisan('vff:attach-stations', ['--years-only' => true])->expectsOutputToContain('terminus relus : 0 ajoutés')->assertSuccessful();
+        // Rattachement complet et --termini-only : même résultat, la règle ne touche pas Sierra.
+        $this->artisan('vff:attach-stations', ['--termini-only' => true])->assertSuccessful();
+        $this->artisan('vff:attach-stations')->assertSuccessful();
+        $this->assertSame($expected, $links());
     }
 
     public function test_dry_run_reports_the_changes_without_writing(): void
