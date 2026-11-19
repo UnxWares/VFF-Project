@@ -5,9 +5,16 @@ import {
     inertia,
     navigation,
     offlineResponse,
+    pruneExpired,
+    tile,
     trimCache,
 } from '../../resources/js/pwa/handlers.js';
-import { OFFLINE_CACHE, OFFLINE_KEY } from '../../resources/js/pwa/rules.js';
+import {
+    MAX_PAGE_ENTRIES,
+    MAX_TILE_ENTRIES,
+    OFFLINE_CACHE,
+    OFFLINE_KEY,
+} from '../../resources/js/pwa/rules.js';
 import { basicResponse, fakeCache, fakeCacheStorage, fakeRequest } from './support/pwaFakes.js';
 
 const ASSET = fakeRequest('https://vff-project.org/build/assets/app-1.js');
@@ -126,5 +133,261 @@ describe('inertia', () => {
         });
         await expect(inertia(partial, down)).rejects.toThrow('offline');
         await expect(inertia(prefetch, down)).rejects.toThrow('offline');
+    });
+});
+
+// ─── Copies des pages et des tuiles (mode hors ligne) ─────────────────────────────────────────────
+
+const NOW = Date.parse('2026-11-19T12:00:00Z');
+const ALLOWED = { 'X-VFF-Offline': 'allow', 'Content-Type': 'text/html; charset=utf-8' };
+const offline = () => vi.fn(async () => Promise.reject(new TypeError('offline')));
+
+function pageHtml(props) {
+    const page = JSON.stringify({ component: 'Lines/Show', props, url: '/lines/a', version: '1' });
+    return `<!DOCTYPE html><html lang="fr"><head><title>A</title></head><body><script data-page="app" type="application/json">${page}</script><div id="app"></div></body></html>`;
+}
+
+function offlineDeps(overrides = {}) {
+    return deps({
+        pagesCache: 'vff-pages-v1',
+        tilesCache: 'vff-tiles-v1',
+        now: () => NOW,
+        estimate: async () => ({ usage: 1e6, quota: 1e9 }),
+        ...overrides,
+    });
+}
+
+async function storedKeys(d, name) {
+    return (await d.caches.open(name)).keys();
+}
+
+describe('navigation : copies des pages consultées', () => {
+    const doc = (path, headers = {}) =>
+        fakeRequest(`https://vff-project.org${path}`, {
+            mode: 'navigate',
+            destination: 'document',
+            headers,
+        });
+
+    it('range une page déclarée lisible hors ligne, puis la sert, datée, sans réseau', async () => {
+        const online = offlineDeps({
+            fetch: vi.fn(async () =>
+                basicResponse(pageHtml({ title: 'Ligne A' }), { headers: ALLOWED }),
+            ),
+        });
+        await navigation(doc('/lines/a'), online);
+        await Promise.all(online.pending);
+        expect(await storedKeys(online, 'vff-pages-v1')).toEqual([
+            'https://vff-project.org/lines/a?__vff-copy=html',
+        ]);
+
+        const response = await navigation(doc('/lines/a'), {
+            ...online,
+            fetch: offline(),
+            now: () => NOW + 3600_000,
+        });
+        expect(response.status).toBe(200);
+        expect(response.headers.get('Cache-Control')).toBe('no-store');
+        const html = await response.text();
+        expect(html).toContain('"title":"Ligne A"');
+        expect(html).toContain('"offline_copy":{"saved_at":"2026-11-19T12:00:00.000Z"}');
+    });
+
+    it('ne range pas une page sans l accord du serveur, ni une page privée', async () => {
+        const d = offlineDeps({ fetch: vi.fn(async () => basicResponse(pageHtml({}))) });
+        await navigation(doc('/lines/a'), d);
+
+        const p = offlineDeps({
+            fetch: vi.fn(async () => basicResponse(pageHtml({}), { headers: ALLOWED })),
+        });
+        await navigation(doc('/profile'), p);
+        await navigation(doc('/contribute/mine'), p);
+        await navigation(doc('/validate'), p);
+        await Promise.all([...d.pending, ...p.pending]);
+
+        expect(await storedKeys(d, 'vff-pages-v1')).toEqual([]);
+        expect(await storedKeys(p, 'vff-pages-v1')).toEqual([]);
+    });
+
+    it('ne sert jamais la copie d une page privée, même rangée par erreur', async () => {
+        const d = offlineDeps({ fetch: offline() });
+        const cache = await d.caches.open('vff-pages-v1');
+        await cache.put(
+            'https://vff-project.org/profile?__vff-copy=html',
+            new Response(pageHtml({ auth: { user: { name: 'Autre' } } }), {
+                headers: { 'X-VFF-Saved-At': new Date(NOW).toISOString() },
+            }),
+        );
+        const response = await navigation(doc('/profile'), d);
+        expect(response.type).toBe('error'); // page hors ligne absente : erreur réseau native
+    });
+
+    it('sert la page hors ligne pour une page jamais consultée', async () => {
+        const d = offlineDeps({ fetch: offline() });
+        const cache = await d.caches.open(OFFLINE_CACHE);
+        await cache.put(OFFLINE_KEY, new Response('<h1>Hors ligne</h1>'));
+        const response = await navigation(doc('/lines/jamais-vue'), d);
+        expect(response.status).toBe(503);
+        expect(await response.text()).toContain('Hors ligne');
+    });
+
+    it('n utilise plus une copie de plus de 30 jours, et la supprime', async () => {
+        const d = offlineDeps({ fetch: offline(), now: () => NOW + 31 * 24 * 3600_000 });
+        const cache = await d.caches.open('vff-pages-v1');
+        const key = 'https://vff-project.org/lines/a?__vff-copy=html';
+        await cache.put(
+            key,
+            new Response(pageHtml({}), {
+                headers: { 'X-VFF-Saved-At': new Date(NOW).toISOString() },
+            }),
+        );
+        expect((await navigation(doc('/lines/a'), d)).type).toBe('error');
+        expect(await cache.keys()).toEqual([]);
+    });
+
+    it('reconstruit une page connue seulement par sa réponse Inertia dans le document d une autre', async () => {
+        const d = offlineDeps({ fetch: offline() });
+        const cache = await d.caches.open('vff-pages-v1');
+        const saved = { 'X-VFF-Saved-At': new Date(NOW).toISOString() };
+        await cache.put(
+            'https://vff-project.org/lines?__vff-copy=html',
+            new Response(pageHtml({ title: 'Annuaire' }), { headers: saved }),
+        );
+        await cache.put(
+            'https://vff-project.org/lines/b?__vff-copy=inertia',
+            new Response(
+                JSON.stringify({
+                    component: 'Lines/Show',
+                    props: { title: 'Ligne B' },
+                    url: '/lines/b',
+                }),
+                { headers: saved },
+            ),
+        );
+        const html = await (await navigation(doc('/lines/b'), d)).text();
+        expect(html).toContain('"title":"Ligne B"');
+        expect(html).not.toContain('Annuaire');
+        expect(html).toContain('"offline_copy"');
+    });
+
+    it('ne range rien quand le site occupe déjà trop de place', async () => {
+        const d = offlineDeps({
+            fetch: vi.fn(async () => basicResponse(pageHtml({}), { headers: ALLOWED })),
+            estimate: async () => ({ usage: 900e6, quota: 1e9 }),
+        });
+        await navigation(doc('/lines/a'), d);
+        await Promise.all(d.pending);
+        expect(await storedKeys(d, 'vff-pages-v1')).toEqual([]);
+    });
+
+    it('garde au plus MAX_PAGE_ENTRIES copies, les plus anciennes partent d abord', async () => {
+        const d = offlineDeps({
+            fetch: vi.fn(async () => basicResponse(pageHtml({}), { headers: ALLOWED })),
+        });
+        for (let n = 0; n <= MAX_PAGE_ENTRIES; n += 1) {
+            await navigation(doc(`/lines/l${n}`), d);
+            await Promise.all(d.pending);
+        }
+        const keys = await storedKeys(d, 'vff-pages-v1');
+        expect(keys).toHaveLength(MAX_PAGE_ENTRIES);
+        expect(keys[0]).toBe('https://vff-project.org/lines/l1?__vff-copy=html');
+    });
+});
+
+describe('inertia : copies des visites', () => {
+    const visit = (path, headers = {}) =>
+        fakeRequest(`https://vff-project.org${path}`, {
+            headers: { 'X-Inertia': 'true', ...headers },
+        });
+    const json = (props) =>
+        basicResponse(JSON.stringify({ component: 'Lines/Show', props, url: '/lines/a' }), {
+            headers: {
+                'X-VFF-Offline': 'allow',
+                'X-Inertia': 'true',
+                'Content-Type': 'application/json',
+            },
+        });
+
+    it('range la réponse Inertia et la sert, datée, sans réseau', async () => {
+        const d = offlineDeps({ fetch: vi.fn(async () => json({ title: 'Ligne A' })) });
+        await inertia(visit('/lines/a'), d);
+        await Promise.all(d.pending);
+
+        const response = await inertia(visit('/lines/a'), { ...d, fetch: offline() });
+        expect(response.status).toBe(200);
+        expect(response.headers.get('X-Inertia')).toBe('true');
+        const page = await response.json();
+        expect(page.props.title).toBe('Ligne A');
+        expect(page.props.offline_copy).toEqual({ saved_at: '2026-11-19T12:00:00.000Z' });
+    });
+
+    it('ne range ni un préchargement ni un rechargement partiel', async () => {
+        const d = offlineDeps({ fetch: vi.fn(async () => json({})) });
+        await inertia(visit('/lines/a', { Purpose: 'prefetch' }), d);
+        await inertia(visit('/lines/a', { 'X-Inertia-Partial-Data': 'x' }), d);
+        await Promise.all(d.pending);
+        expect(await storedKeys(d, 'vff-pages-v1')).toEqual([]);
+    });
+
+    it('sans copie, demande toujours une visite complète', async () => {
+        const response = await inertia(visit('/lines/z'), offlineDeps({ fetch: offline() }));
+        expect(response.status).toBe(409);
+    });
+});
+
+describe('tuiles : seulement celles déjà affichées', () => {
+    const TILE = fakeRequest('https://vff-project.org/api/v1/eras/2030/tiles/8/129/88.mvt?v=3');
+
+    it('rend la tuile du réseau et en garde une copie, servie ensuite sans réseau', async () => {
+        const d = offlineDeps({ fetch: vi.fn(async () => basicResponse('pbf')) });
+        expect(await (await tile(TILE, d)).text()).toBe('pbf');
+        await Promise.all(d.pending);
+
+        const copy = await tile(TILE, { ...d, fetch: offline() });
+        expect(await copy.text()).toBe('pbf');
+        expect(copy.headers.get('X-VFF-Saved-At')).toBe('2026-11-19T12:00:00.000Z');
+    });
+
+    it('préfère toujours le réseau quand il répond (aucune tuile servie périmée en ligne)', async () => {
+        const d = offlineDeps({ fetch: vi.fn(async () => basicResponse('nouvelle')) });
+        await (await d.caches.open('vff-tiles-v1')).put(TILE.url, new Response('ancienne'));
+        expect(await (await tile(TILE, d)).text()).toBe('nouvelle');
+    });
+
+    it('ne sert plus une tuile de plus de 7 jours et laisse remonter l erreur', async () => {
+        const d = offlineDeps({ fetch: offline(), now: () => NOW + 8 * 24 * 3600_000 });
+        await (
+            await d.caches.open('vff-tiles-v1')
+        ).put(
+            TILE.url,
+            new Response('pbf', { headers: { 'X-VFF-Saved-At': new Date(NOW).toISOString() } }),
+        );
+        await expect(tile(TILE, d)).rejects.toThrow('offline');
+    });
+
+    it('garde au plus MAX_TILE_ENTRIES tuiles', async () => {
+        const d = offlineDeps({ fetch: vi.fn(async () => basicResponse('pbf')) });
+        for (let n = 0; n <= MAX_TILE_ENTRIES; n += 1) {
+            await tile(
+                fakeRequest(`https://vff-project.org/api/v1/eras/2030/tiles/14/${n}/1.mvt`),
+                d,
+            );
+            await Promise.all(d.pending);
+        }
+        const keys = await storedKeys(d, 'vff-tiles-v1');
+        expect(keys).toHaveLength(MAX_TILE_ENTRIES);
+        expect(keys).not.toContain('https://vff-project.org/api/v1/eras/2030/tiles/14/0/1.mvt');
+    });
+});
+
+describe('pruneExpired', () => {
+    it('supprime les copies trop anciennes ou sans date', async () => {
+        const cache = fakeCache();
+        const at = (ms) => ({ headers: { 'X-VFF-Saved-At': new Date(ms).toISOString() } });
+        await cache.put('/recente', new Response('x', at(NOW - 1000)));
+        await cache.put('/ancienne', new Response('x', at(NOW - 40 * 24 * 3600_000)));
+        await cache.put('/sans-date', new Response('x'));
+        await pruneExpired(cache, 30 * 24 * 3600_000, NOW);
+        expect(await cache.keys()).toEqual(['/recente']);
     });
 });

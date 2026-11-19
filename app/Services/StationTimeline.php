@@ -220,15 +220,23 @@ final class StationTimeline
         //    sources seulement (l'état des lignes plafonne ensuite) ; une réouverture déduite d'une
         //    réouverture de la ligne compte (Montréjeau - Luchon).
         $closing = null;
+        $partial = [];
         foreach (self::forTimeline(array_values(array_filter($events, fn ($e) => ! ($e['inferred'] ?? false) || $e['type'] === 'reopening'))) as $e) {
             if ((string) $e['date'] > $today) {
                 break;
             }
             if (in_array($e['type'], ['opening', 'reopening'], true)) {
-                $closing = null;
+                [$closing, $partial] = [null, []];
             } elseif (in_array($e['type'], self::CLOSURES, true)) {
                 $closing = $e;
+                $partial[$e['type']] = true;
             }
+        }
+        // Voyageurs ET fret fermés depuis la dernière ouverture : fermeture totale, quel que soit
+        // l'ordre des deux (Airvault-Gare : voyageurs en 1980, puis voyageurs et fret le même mois de
+        // décembre 2015 ; l'ordre de deux fermetures du même jour ne doit pas décider du statut).
+        if ($closing !== null && isset($partial['closure_passenger'], $partial['closure_freight'])) {
+            $closing = ['type' => 'closure'] + $closing;
         }
         if ($closing === null || $status === self::CLOSED) {
             return [$status, $note];

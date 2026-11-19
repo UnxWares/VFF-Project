@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\TraceExport\LineTraceExport;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
@@ -11,8 +12,9 @@ use Illuminate\Support\Collection;
  * (App\Services\LineSheet::build) : mêmes chiffres, mêmes phases, même chronique.
  *
  * Laisse de côté ce qui ne sert qu'à l'affichage (attributs `lang` HTML, libellés d'interface) et
- * la géométrie, sauf demande (`geometry=true` : tracé de chaque portion des phases). Les tracés
- * par ère s'obtiennent aussi par `/lines/{line}/segments` et les GeoJSON par ère.
+ * la géométrie, sauf demande (`geometry=true` : tracé de chaque portion des phases, retenu quand une
+ * de ses sources n'autorise pas la redistribution). Les tracés par ère s'obtiennent aussi par
+ * `/lines/{line}/segments` et les GeoJSON par ère, sous la même règle.
  *
  * @property array<string, mixed> $resource
  */
@@ -78,7 +80,7 @@ class LineSheetResource extends JsonResource
             'facts' => $line['facts'],
             'era_summary' => $sheet['era_summary'],
             'portions' => array_map(fn (array $p, int $i): array => ['index' => $i, 'length_m' => $p['length_m']]
-                + ($withGeometry ? ['geometry' => $p['geometry'] ?? null] : []), $sheet['portions'], array_keys($sheet['portions'])),
+                + ($withGeometry ? self::portionGeometry($p) : []), $sheet['portions'], array_keys($sheet['portions'])),
             'phases' => array_map(fn (array $p): array => array_diff_key($p, ['window' => true]), $sheet['phases']),
             'best_phase' => $sheet['best_phase'],
             'phases_unexplained' => $sheet['phases_unexplained'],
@@ -107,6 +109,28 @@ class LineSheetResource extends JsonResource
                 'materials' => route('api.lines.materials', $line['slug']),
                 'media' => route('api.media.index', ['line' => $line['slug']]),
             ],
+        ];
+    }
+
+    /**
+     * Géométrie d'une portion des phases, selon la règle des droits des tracés (LineTraceExport) :
+     * elle n'est jointe que si toutes les sources des tronçons de cette portion autorisent la
+     * redistribution ; sinon `geometry` vaut null, `geometry_withheld` true et
+     * `geometry_withheld_reason` donne la raison (`licence_not_open`, `unknown_source`).
+     *
+     * @param  array<string, mixed>  $portion
+     * @return array{geometry: mixed, geometry_withheld: bool, geometry_withheld_reason: ?string}
+     */
+    private static function portionGeometry(array $portion): array
+    {
+        /** @var list<?string>|null $sources */
+        $sources = isset($portion['sources']) && is_array($portion['sources']) ? array_values($portion['sources']) : null;
+        $reason = app(LineTraceExport::class)->withheldReasonForSources($sources);
+
+        return [
+            'geometry' => $reason === null ? ($portion['geometry'] ?? null) : null,
+            'geometry_withheld' => $reason !== null,
+            'geometry_withheld_reason' => $reason,
         ];
     }
 

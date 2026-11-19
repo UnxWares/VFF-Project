@@ -288,6 +288,7 @@ return [
         'confirm_apply' => 'Dernière approbation requise : la contribution sera publiée immédiatement. Confirmer ?',
         'flash' => [
             'own' => 'Vous ne pouvez pas approuver votre propre contribution.',
+            'own_reject' => 'Vous ne pouvez pas refuser votre propre contribution : un autre validateur doit la relire.',
             'closed' => 'Cette contribution a déjà été traitée.',
             'already' => 'Vous avez déjà approuvé cette contribution.',
             'applied' => 'Approbation :count sur :threshold : la contribution est publiée.',

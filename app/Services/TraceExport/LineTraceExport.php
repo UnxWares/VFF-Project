@@ -7,6 +7,7 @@ use App\Models\Line;
 use App\Models\LineSegment;
 use App\Support\SourceRights;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Tracé d'une ligne à une ère pour les exports (GeoJSON, GPX, KML) : lecture des tronçons et
@@ -14,9 +15,15 @@ use Illuminate\Database\Eloquent\Collection;
  *
  * Règle : la géométrie d'un tronçon n'est exportée que si son fournisseur (registre
  * database/data/source_rights.php, table `line_segments`) a une licence ouverte écrite et prouvée
- * (statut « sur », voir SourceRights::allowsRedistribution). Une source non commerciale, sous accord
- * oral, de statut incertain ou absente du registre n'est jamais redistribuée ; les tronçons
- * concernés sont comptés dans `withheld` pour que la réponse le dise.
+ * (statut « sur », voir SourceRights::allowsRedistribution). Une source non commerciale, de statut
+ * incertain ou absente du registre n'est jamais redistribuée ; les tronçons concernés sont comptés
+ * dans `withheld` pour que la réponse le dise.
+ *
+ * Seul point de décision de la règle pour tous les accès qui sortent une géométrie de tronçon
+ * (REST, GraphQL, GTFS, itinéraires) : redistributable(), withheldReason() et sqlRedistributable().
+ * Elle se désactive par une seule valeur de configuration, `api.withhold_unlicensed_geometry`
+ * (variable API_WITHHOLD_UNLICENSED_GEOMETRY, vraie par défaut) : à false, toutes les géométries
+ * sont de nouveau redistribuées. Les tuiles vectorielles de la carte (affichage) n'y sont pas soumises.
  */
 final class LineTraceExport
 {
@@ -57,10 +64,78 @@ final class LineTraceExport
         return $this->rights->providerFor(self::TABLE, $source);
     }
 
+    /** La règle des droits est-elle appliquée (config `api.withhold_unlicensed_geometry`, vraie par défaut) ? */
+    public function enforced(): bool
+    {
+        return (bool) config('api.withhold_unlicensed_geometry', true);
+    }
+
     /** La géométrie d'un tronçon de cette source peut-elle être redistribuée ? */
     public function redistributable(?string $source): bool
     {
-        return $this->rights->allowsRedistribution($this->provider($source));
+        return ! $this->enforced() || $this->rights->allowsRedistribution($this->provider($source));
+    }
+
+    /**
+     * Raison pour laquelle la géométrie d'un tronçon de cette source n'est pas redistribuée :
+     * `licence_not_open` (licence non ouverte, non commerciale ou statut incertain), `unknown_source`
+     * (source absente du registre), ou null si elle l'est.
+     */
+    public function withheldReason(?string $source): ?string
+    {
+        if ($this->redistributable($source)) {
+            return null;
+        }
+
+        return $this->provider($source) === null ? LineTrace::UNKNOWN_SOURCE : LineTrace::NOT_OPEN;
+    }
+
+    /**
+     * Raison du retrait d'une géométrie tirée de plusieurs tronçons (portion des phases d'une
+     * fiche) : elle n'est redistribuée que si toutes ses sources le permettent. Sources inconnues
+     * (liste vide ou absente, données calculées avant la règle) : `unknown_source`.
+     *
+     * @param  list<?string>|null  $sources
+     */
+    public function withheldReasonForSources(?array $sources): ?string
+    {
+        if (! $this->enforced()) {
+            return null;
+        }
+        if ($sources === null || $sources === []) {
+            return LineTrace::UNKNOWN_SOURCE;
+        }
+        $reasons = array_filter(array_map($this->withheldReason(...), $sources));
+
+        return match (true) {
+            $reasons === [] => null,
+            in_array(LineTrace::NOT_OPEN, $reasons, true) => LineTrace::NOT_OPEN,
+            default => LineTrace::UNKNOWN_SOURCE,
+        };
+    }
+
+    /**
+     * Condition SQL « la géométrie de ce tronçon est redistribuable » sur la colonne de provenance
+     * `$column` (ex. `ls.source`), équivalente à redistributable() : `TRUE` si la règle est
+     * désactivée, sinon la liste des valeurs dont le fournisseur a une licence ouverte vérifiée
+     * (une valeur NULL ou absente du registre donne faux ou NULL : à envelopper de COALESCE).
+     */
+    public function sqlRedistributable(string $column = 'source'): string
+    {
+        if (! $this->enforced()) {
+            return 'TRUE';
+        }
+        $open = $this->rights->sourcesWithStatus(self::TABLE, SourceRights::SAFE);
+
+        return $open === []
+            ? 'FALSE'
+            : "{$column} IN (".implode(', ', array_map(fn (string $v): string => "'".str_replace("'", "''", $v)."'", $open)).')';
+    }
+
+    /** Condition SQL inverse de sqlRedistributable() : vraie pour un tronçon dont la géométrie est retenue. */
+    public function sqlWithheld(string $column = 'source'): string
+    {
+        return 'NOT COALESCE('.$this->sqlRedistributable($column).', FALSE)';
     }
 
     /**
@@ -119,24 +194,58 @@ final class LineTraceExport
      */
     public function withheld(iterable $segments): array
     {
-        $out = [];
+        $counts = [];
         foreach ($segments as $segment) {
-            if ($this->redistributable($segment->source)) {
+            $counts[] = ['source' => $segment->source, 'sections' => 1, 'length_m' => (int) $segment->length_meters];
+        }
+
+        return $this->summarize($counts);
+    }
+
+    /**
+     * Même résumé pour tout le réseau d'une ère (GeoJSON de l'ère), compté en base.
+     *
+     * @return list<array{provider: ?string, name: ?string, license: ?string, reason: string, sections: int, length_m: int}>
+     */
+    public function withheldForEra(Era $era): array
+    {
+        if (! $this->enforced()) {
+            return [];
+        }
+        $rows = DB::select('SELECT source, COUNT(*) AS sections, COALESCE(SUM(length_meters), 0) AS length_m
+            FROM line_segments WHERE era_id = ? AND '.$this->sqlWithheld('source').'
+            GROUP BY source ORDER BY source NULLS LAST', [$era->id]);
+
+        return $this->summarize(array_map(fn (object $r): array => [
+            'source' => $r->source, 'sections' => (int) $r->sections, 'length_m' => (int) $r->length_m,
+        ], $rows));
+    }
+
+    /**
+     * @param  list<array{source: ?string, sections: int, length_m: int}>  $counts
+     * @return list<array{provider: ?string, name: ?string, license: ?string, reason: string, sections: int, length_m: int}>
+     */
+    private function summarize(array $counts): array
+    {
+        $out = [];
+        foreach ($counts as $count) {
+            $reason = $this->withheldReason($count['source']);
+            if ($reason === null) {
                 continue;
             }
-            $provider = $this->provider($segment->source);
+            $provider = $this->provider($count['source']);
             $key = $provider ?? '';
             $info = $provider !== null ? $this->rights->provider($provider) : null;
             $out[$key] ??= [
                 'provider' => $provider,
                 'name' => isset($info['nom']) ? (string) $info['nom'] : null,
                 'license' => isset($info['licence']) ? (string) $info['licence'] : null,
-                'reason' => $provider === null ? LineTrace::UNKNOWN_SOURCE : LineTrace::NOT_OPEN,
+                'reason' => $reason,
                 'sections' => 0,
                 'length_m' => 0,
             ];
-            $out[$key]['sections']++;
-            $out[$key]['length_m'] += (int) $segment->length_meters;
+            $out[$key]['sections'] += $count['sections'];
+            $out[$key]['length_m'] += $count['length_m'];
         }
 
         return array_values($out);
@@ -149,13 +258,8 @@ final class LineTraceExport
      */
     public function exportableEraYears(Line $line): array
     {
-        $open = $this->rights->sourcesWithStatus(self::TABLE, SourceRights::SAFE);
-        if ($open === []) {
-            return [];
-        }
-
         return Era::query()
-            ->whereIn('id', $line->segments()->whereIn('source', $open)->select('era_id'))
+            ->whereIn('id', $line->segments()->whereRaw($this->sqlRedistributable('source'))->select('era_id'))
             ->orderBy('year')
             ->pluck('year')
             ->map(fn ($year) => (int) $year)

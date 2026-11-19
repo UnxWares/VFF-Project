@@ -111,7 +111,7 @@ class BuildStationEras extends Command
         $stations = DB::table('stations')->get(['id', 'source_status', 'status', DB::raw("provenance->>'status' AS status_source"),
             DB::raw("provenance->>'kind' AS kind")])->keyBy('id');
         $events = [];
-        foreach (DB::table('station_events')->orderBy('event_date')->get(['station_id', 'type', 'event_date', 'date_precision', 'is_inferred', 'source']) as $e) {
+        foreach (DB::table('station_events')->orderBy('event_date')->orderBy('id')->get(['station_id', 'type', 'event_date', 'date_precision', 'is_inferred', 'source']) as $e) {
             $events[$e->station_id][] = ['type' => $e->type, 'date' => $e->event_date, 'inferred' => $e->is_inferred, 'precision' => $e->date_precision,
                 'source' => $e->source];
         }
@@ -323,6 +323,7 @@ class BuildStationEras extends Command
                 $this->info("line_stops : {$stops} arrêts");
             }
             $this->resolveClosures();
+            $this->alignErasWithClosure();
             $this->reconcileServiceYears();
         }
 
@@ -392,6 +393,7 @@ class BuildStationEras extends Command
         }
         if ($failed === []) {
             $this->resolveClosures();
+            $this->alignErasWithClosure();
             $this->reconcileServiceYears();
         }
 
@@ -412,6 +414,32 @@ class BuildStationEras extends Command
                   WHERE source = 'correction' AND type = 'opening' AND NOT is_inferred ORDER BY station_id, event_date) e
             WHERE e.station_id = s.id AND (s.opened_at IS DISTINCT FROM e.event_date OR s.provenance->>'opened_at' IS DISTINCT FROM 'correction')
         SQL);
+    }
+
+    /**
+     * Frise d'une gare fermée à une date retenue (resolveClosures) : une ère postérieure encore montrée
+     * ouverte « non confirmée » (voyageurs ou fret seul) contredisait cette date (rapport fiche-ligne du
+     * 19/11/2026 : Cabessut et les gares de Cahors - Capdenac, fermée le 09/06/2011, « fret seul ? » en 2020 ;
+     * Bruay-en-Artois et trois voisines, 21/10/2018 ; Tournon-St-Martin, 29/10/1970). Elle devient fermée.
+     * Restent telles quelles : une ère confirmée par une source, une ère touristique (train touristique
+     * après la fermeture : Chambray-Fontaine-sous-Jouy, Villebois), l'ère courante, une fermeture connue
+     * seulement par un intervalle, une gare rouverte après la date. Une ère est l'état au 31/12 de son année.
+     */
+    private function alignErasWithClosure(): void
+    {
+        $n = DB::affectingStatement(<<<'SQL'
+            UPDATE station_eras se
+            SET status = 'declassified', uncertain = FALSE,
+                note = CASE WHEN s.provenance->>'closed_at' LIKE 'inferred:%' THEN 'Dates déduites des lignes' END,
+                updated_at = NOW()
+            FROM stations s, eras e
+            WHERE s.id = se.station_id AND e.id = se.era_id AND NOT e.is_current
+              AND s.closed_at IS NOT NULL AND s.closed_at <= CURRENT_DATE AND s.closed_precision IN ('day', 'month', 'year')
+              AND e.year >= EXTRACT(YEAR FROM s.closed_at)
+              AND se.uncertain AND se.status IN ('active', 'no_commercial')
+              AND NOT EXISTS (SELECT 1 FROM station_events r WHERE r.station_id = s.id AND r.type = 'reopening' AND r.event_date > s.closed_at)
+        SQL);
+        $this->info("Frise alignée sur la date de fermeture retenue : {$n} couples gare × ère non confirmés deviennent fermés");
     }
 
     /**
@@ -454,6 +482,18 @@ class BuildStationEras extends Command
               AND ((sl.last_year IS NOT NULL AND sl.last_year <= e.year)
                    OR (sl.first_year IS NOT NULL AND sl.first_year > e.year AND NOT e.is_current))
         SQL);
+        if ($stops > 0) {
+            // Arrêts restants renumérotés et extrémités recalculées, comme buildLineStops : sinon l'API exposait
+            // des positions à trous et une ligne sans gare d'extrémité quand l'arrêt retiré en était une.
+            DB::statement(<<<'SQL'
+                UPDATE line_stops ls SET position = r.position, is_terminal = r.is_terminal
+                FROM (SELECT id, ROW_NUMBER() OVER w - 1 AS position,
+                             COUNT(*) OVER (PARTITION BY line_id, era_id) > 1
+                             AND (ROW_NUMBER() OVER w = 1 OR ROW_NUMBER() OVER w = COUNT(*) OVER (PARTITION BY line_id, era_id)) AS is_terminal
+                      FROM line_stops WINDOW w AS (PARTITION BY line_id, era_id ORDER BY pk_m, station_id)) r
+                WHERE r.id = ls.id AND (ls.position IS DISTINCT FROM r.position OR ls.is_terminal IS DISTINCT FROM r.is_terminal)
+            SQL);
+        }
         $this->info("Années de desserte bornées par les dates des gares : {$first} débuts, {$last} fins, {$never} jamais desservies ; {$stops} arrêts hors période retirés");
     }
 
@@ -537,6 +577,14 @@ class BuildStationEras extends Command
         $xLine = GeneratedText::lineInSentenceSql('x.lname');
         // Une fermeture « après 1950 » (date_precision = after) n'est pas une date : elle ne bloque pas la déduction.
         $explicit = fn (string $types) => "NOT EXISTS (SELECT 1 FROM station_events x WHERE x.station_id = s.id AND NOT x.is_inferred AND x.type IN ({$types}) AND x.date_precision <> 'after')";
+        // Deux événements de ligne à la même date : départage fixe (avant, l'ordre physique des lignes
+        // décidait, et la date d'une gare changeait d'un passage à l'autre). D'abord la précision la MOINS
+        // fine : une source « au jour » qui tombe sur le 1er du mois d'une autre source « au mois » ne fait
+        // souvent que le reprendre (Ernée : « mars 1987 » chez Wikipédia et lignes-oubliées, « 01/03/1987 »
+        // chez OHM) ; puis la fermeture totale avant les fermetures partielles ; puis le premier enregistré.
+        $precisionRank = "CASE le.date_precision WHEN 'year' THEN 0 WHEN 'month' THEN 1 WHEN 'day' THEN 2 ELSE 3 END";
+        $typeRank = "CASE le.type WHEN 'closure' THEN 0 WHEN 'closure_freight' THEN 1 WHEN 'closure_passenger' THEN 2 ELSE 3 END";
+        $sameDay = "{$precisionRank}, {$typeRank}, le.id";
 
         // a. Ouverture de la ligne (section couvrant la gare). Un événement daté
         //    pour une section précise (PK ou géométrie) passe avant un événement
@@ -551,7 +599,7 @@ class BuildStationEras extends Command
             JOIN lines l ON l.id = sl.line_id
             JOIN line_events le ON le.line_id = sl.line_id AND le.type IN ('opening', 'opening_passenger') AND {$cover}
             WHERE {$explicit("'opening'")}
-            ORDER BY s.id, (le.section_pk_start_m IS NULL AND le.section_geom IS NULL), le.event_date
+            ORDER BY s.id, (le.section_pk_start_m IS NULL AND le.section_geom IS NULL), le.event_date, {$precisionRank}, le.id
         SQL);
         // b. À défaut, tracés datés passant à < 30 m (OHM : start_date).
         $b = DB::affectingStatement(<<<SQL
@@ -576,7 +624,8 @@ class BuildStationEras extends Command
             SELECT DISTINCT ON (x.station_id) x.station_id, 'closure', x.event_date, x.date_precision, 'inferred:line_event',
                    'line_event:'||x.id, x.source_url, TRUE, 'Fin de desserte de la '||{$xLine}, NOW(), NOW()
             FROM (
-                SELECT DISTINCT ON (s.id, sl.line_id) s.id AS station_id, le.id, le.event_date, le.date_precision, le.source_url, l.name AS lname
+                SELECT DISTINCT ON (s.id, sl.line_id) s.id AS station_id, le.id, le.event_date, le.date_precision, le.source_url, l.name AS lname,
+                       {$typeRank} AS type_rank, {$precisionRank} AS precision_rank
                 FROM stations s
                 JOIN station_lines sl ON sl.station_id = s.id
                 JOIN lines l ON l.id = sl.line_id
@@ -584,9 +633,9 @@ class BuildStationEras extends Command
                  AND le.type IN ('closure', 'closure_freight', 'closure_passenger', 'declassification', 'dismantling') AND {$cover}
                 WHERE s.source_status = 'gone' AND {$explicit("'closure', 'demolition'")}
                 ORDER BY s.id, sl.line_id, (le.type IN ('declassification', 'dismantling')),
-                         (le.section_pk_start_m IS NULL AND le.section_geom IS NULL), le.event_date DESC
+                         (le.section_pk_start_m IS NULL AND le.section_geom IS NULL), le.event_date DESC, {$sameDay}
             ) x
-            ORDER BY x.station_id, x.event_date DESC
+            ORDER BY x.station_id, x.event_date DESC, x.precision_rank, x.type_rank, x.id
         SQL);
         // d. … à défaut, dernière fermeture des tracés datés à < 30 m.
         $d = DB::affectingStatement(<<<SQL
@@ -602,7 +651,9 @@ class BuildStationEras extends Command
         SQL);
         // e. Fermeture aux voyageurs : toutes les lignes de la gare fermées aux voyageurs
         //    (section datée d'abord, puis « toute la ligne ») ; la plus tardive des lignes,
-        //    avec sa précision.
+        //    avec sa précision. Une ligne rattachée seulement par son nom (terminus_name :
+        //    tramway, réseau secondaire, rarement daté) n'est pas exigée : sans fermeture datée,
+        //    elle effaçait la date des autres lignes (Gex, 31/05/1980 ; Mondoubleau, 26/10/1971).
         $e = DB::affectingStatement(<<<SQL
             INSERT INTO station_events (station_id, type, event_date, date_precision, source, source_ref, is_inferred, note, created_at, updated_at)
             SELECT DISTINCT ON (x.station_id) x.station_id, 'closure_passenger', x.event_date, x.date_precision, 'inferred:line_event',
@@ -614,13 +665,13 @@ class BuildStationEras extends Command
                 JOIN line_events le ON le.line_id = sl.line_id AND le.type = 'closure_passenger' AND {$cover}
                 WHERE COALESCE(s.source_status, s.status) IN ('no_commercial', 'declassified', 'gone')
                   AND {$explicit("'closure_passenger', 'closure'")}
-                ORDER BY s.id, sl.line_id, (le.section_pk_start_m IS NULL AND le.section_geom IS NULL), le.event_date DESC
+                ORDER BY s.id, sl.line_id, (le.section_pk_start_m IS NULL AND le.section_geom IS NULL), le.event_date DESC, {$precisionRank}, le.id
             ) x
-            WHERE (SELECT COUNT(*) FROM station_lines a WHERE a.station_id = x.station_id)
+            WHERE (SELECT COUNT(*) FROM station_lines a WHERE a.station_id = x.station_id AND a.method <> 'terminus_name')
                 = (SELECT COUNT(DISTINCT sl2.line_id) FROM station_lines sl2 JOIN stations s ON s.id = sl2.station_id
                    JOIN line_events le ON le.line_id = sl2.line_id AND le.type = 'closure_passenger'
-                   WHERE sl2.station_id = x.station_id AND {$coverSl2})
-            ORDER BY x.station_id, x.event_date DESC
+                   WHERE sl2.station_id = x.station_id AND sl2.method <> 'terminus_name' AND {$coverSl2})
+            ORDER BY x.station_id, x.event_date DESC, x.id
         SQL);
         // g. Gare rouverte (réouverture connue) sans fermeture antérieure connue :
         //    dernière fermeture de ses lignes (aux voyageurs ou totale) avant la réouverture.
@@ -636,7 +687,7 @@ class BuildStationEras extends Command
              AND le.event_date < r.event_date AND {$cover}
             WHERE NOT EXISTS (SELECT 1 FROM station_events x WHERE x.station_id = s.id
                               AND x.type IN ('closure', 'closure_passenger', 'demolition') AND x.event_date < r.event_date)
-            ORDER BY s.id, le.event_date DESC
+            ORDER BY s.id, le.event_date DESC, {$sameDay}
             ON CONFLICT DO NOTHING
         SQL);
         // f. Réouverture aux voyageurs d'une ligne après la fermeture (gare voyageurs aujourd'hui), sauf
@@ -663,7 +714,7 @@ class BuildStationEras extends Command
                          OR (p.source = 'wikidata' AND p.lifecycle NOT IN ('active', 'unknown', 'planned'))))
                    OR EXISTS (SELECT 1 FROM station_sources p WHERE p.station_id = s.id
                        AND (p.source = 'sncf_voyageurs' OR (p.source IN ('osm', 'wikidata') AND p.lifecycle = 'active'))))
-            ORDER BY s.id, le.event_date DESC
+            ORDER BY s.id, le.event_date DESC, {$sameDay}
             ON CONFLICT DO NOTHING
         SQL);
         $this->line("Dates déduites : ouverture ligne {$a}, ouverture tracé {$b}, fermeture lignes {$c}, fermeture tracé {$d}, fermeture voyageurs {$e}, fermeture avant réouverture {$g}, réouverture {$f}");

@@ -382,6 +382,54 @@ class LineSheetPageTest extends TestCase
         );
     }
 
+    public function test_named_sections_list_their_dated_openings_with_their_sources(): void
+    {
+        // « Section de Briouze » (ouverte en 1869, Wikipédia) : l'ouverture datée du 06/12/1869 de la
+        // portion A est son étape ; celle de 1881 (portion B) tombe hors de ses années d'ouverture.
+        $opening = (int) DB::table('line_events')->where('line_id', $this->line->id)->where('event_date', '1869-12-06')->value('id');
+        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->has('sections', 1)
+            ->where('sections.0.name', 'Section de Briouze')
+            ->where('sections.0.stages', function ($stages) use ($opening) {
+                $this->assertSame([['phase' => 0, 'date' => '1869-12-06', 'precision' => 'day', 'length_m' => 7300, 'event_ids' => [$opening]]],
+                    $this->rows($stages)->all());
+
+                return true;
+            })
+            // La source de l'étape est une note de la chronique (appel [n] sur la fiche).
+            ->where('chronicle.events', fn ($e) => is_int($this->rows($e)->firstWhere('id', $opening)['note'] ?? null))
+            ->where('translations', fn ($t) => is_string($this->rows($t)->get('lines.sections.stages_title')))
+        );
+        // API REST et GraphQL : même contenu.
+        $this->getJson('/api/v1/lines/ligne-test-434000')->assertOk()
+            ->assertJsonPath('data.sections.0.stages.0.date', '1869-12-06')
+            ->assertJsonPath('data.sections.0.stages.0.event_ids', [$opening]);
+        $this->postJson('/graphql', ['query' => '{ line(slug: "ligne-test-434000") { sheet { sections { name stages { phase date precision length_m event_ids } } } } }'])
+            ->assertOk()->assertJsonMissingPath('errors')
+            ->assertJsonPath('data.line.sheet.sections.0.stages', [['phase' => 0, 'date' => '1869-12-06', 'precision' => 'day', 'length_m' => 7300, 'event_ids' => [$opening]]]);
+    }
+
+    public function test_a_provisional_station_closure_is_named_in_its_decade(): void
+    {
+        // Briouze fermée pendant la décennie 1940 (frise : fermée en 1940, rouverte en 1950) : comptée
+        // fermée en 1940 ET nommée, avec l'intervalle de la frise, sans date inventée.
+        $briouze = Station::query()->where('slug', 'briouze')->value('id');
+        DB::table('station_eras')->insert([
+            ['station_id' => $briouze, 'era_id' => $this->eras[1940]->id, 'status' => 'declassified', 'created_at' => now(), 'updated_at' => now()],
+            ['station_id' => $briouze, 'era_id' => $this->eras[1950]->id, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('decades', function ($decades) {
+                $d1940 = $this->rows($decades)->firstWhere('year', 1940)['stations'];
+                $this->assertSame(1, $d1940['closed']);
+                $this->assertSame([['slug' => 'briouze', 'name' => 'Briouze', 'closed_at' => '1940-12-31', 'closed_precision' => 'range',
+                    'closed_after' => 1890, 'reopened' => true]], $d1940['closures']);
+
+                return true;
+            })
+        );
+    }
+
     public function test_line_without_any_segment_has_no_phase(): void
     {
         $empty = Line::factory()->create(['type' => null, 'alt_names' => null, 'description' => null]);

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Line;
+use App\Models\LineMaterialPeriod;
 use App\Services\Signalling\SignallingRanges;
 use App\Support\Advocacy;
 use App\Support\FrenchGrammar;
@@ -21,6 +22,13 @@ final class LineSheet
 {
     /** Statuts portant du trafic (cf. SegmentStatus::isActive / NetworkStats). */
     private const ACTIVE_STATUSES = "('in_service','single_track')";
+
+    /**
+     * Clés de la fiche que la page web n'affiche pas (build($line, forPage: true)) : `segments` (la carte
+     * de la fiche dessine `portions`), `events` (la chronique les reprend, avec leur portion) et
+     * `era_summary` (le tableau des décennies lit `decades`). L'API REST et GraphQL les donnent toujours.
+     */
+    public const PAGE_OMITTED = ['segments', 'events', 'era_summary'];
 
     /** Gestionnaires d'infrastructure (Wikidata) : jamais « exploitants » des trains, avec leurs années d'existence. */
     public const INFRASTRUCTURE_MANAGERS = [
@@ -42,12 +50,26 @@ final class LineSheet
      *   - Événements lus bruts : type (nouveaux types tolérés), précision de
      *     date, portion (section_from → section_to), source.
      *
+     * `$forPage` : version de la page web (LineController::show), sans ce que la page n'affiche pas
+     * (PAGE_OMITTED : géométrie de l'ère affichée, liste brute des événements, synthèse par ère), soit
+     * environ 500 Ko de moins sur la LGV Sud-Est. L'API et GraphQL gardent la fiche complète.
+     *
      * @return array<string, mixed>
      */
-    public function build(Line $line): array
+    public function build(Line $line, bool $forPage = false): array
     {
         // Médias (envois locaux, Commons…) servis paginés par GET /api/v1/lines/{slug}/media (LineGallery).
         $line->load('materials');
+        $materialPeriods = LineMaterialPeriod::query()
+            ->with('link:id,material_id')
+            ->whereHas('link', fn ($q) => $q->where('line_id', $line->id))
+            ->whereIn('confidence', LineMaterialPeriod::SHOWN_CONFIDENCES)
+            ->orderByRaw('COALESCE(start_date, end_date)')
+            ->orderBy('end_date')
+            ->get()
+            ->groupBy(fn (LineMaterialPeriod $p): int => $p->link->material_id)
+            ->map(fn ($periods): array => $periods->map(fn (LineMaterialPeriod $p): array => $p->toSheet())->values()->all())
+            ->all();
 
         // Trafic dominant d'une ère : un trafic connu passe avant « non renseigné », même plus court
         // (Nice - Digne : « Trafic non renseigné » en tête d'une ligne desservie par des trains régionaux).
@@ -148,7 +170,7 @@ final class LineSheet
         $chronicle = LineChronicle::forLine($line, $phases['used_events'], $stations->all(), $lineLengthM > 0 ? $lineLengthM : null);
 
         $segmentsGeoJson = [];
-        if ($latestEraId) {
+        if ($latestEraId && ! $forPage) {
             $features = collect(DB::select(
                 "SELECT ls.id, ls.status, COALESCE(ls.traffic_type, 'unknown') AS traffic_type,
                         ls.is_heritage, ls.max_speed_kmh, ls.source,
@@ -207,7 +229,9 @@ final class LineSheet
                 // Description tirée de Wikipédia, en français : lang="fr" sur une page EN ou DE.
                 'description_lang' => $s->description !== null && app()->getLocale() !== 'fr' ? 'fr' : null,
                 'source_url' => $s->source_url,
-            ]);
+            ])->values()->all();
+        // Étapes de mise en service de chaque section : les phases datées de ses années d'ouverture.
+        $sections = self::sectionStages($sections, $phases['phases']);
 
         // Charge les métadonnées encyclopédiques + sources
         $encyclopedia = DB::table('lines')
@@ -223,7 +247,7 @@ final class LineSheet
 
         $currentSummary = $eraSummary->firstWhere('year', (int) ($displayEra->year ?? 0));
 
-        return [
+        $sheet = [
             'line' => [
                 'id' => $line->id,
                 'slug' => $line->slug,
@@ -294,7 +318,8 @@ final class LineSheet
             'events' => $events,
             // Exploitations associatives (trains touristiques, vélorails), cf. vff:import-heritage-lines.
             'heritage' => $this->heritageOperations($line->id),
-            // Par nom, dans l'ordre naturel (« BB 9200 » avant « BB 15000 », accents ignorés).
+            // Par nom, dans l'ordre naturel (« BB 9200 » avant « BB 15000 », accents ignorés) ; périodes de
+            // circulation sur la ligne datées par une source (vff:import-material-periods), les plus anciennes d'abord.
             'materials' => $line->materials->sortBy(fn ($m): string => Str::ascii($m->name), SORT_NATURAL | SORT_FLAG_CASE)->values()->map(fn ($m) => [
                 'slug' => $m->slug,
                 'name' => $m->name,
@@ -302,9 +327,80 @@ final class LineSheet
                 'builder' => $m->builder,
                 'in_service_from' => $m->in_service_from,
                 'in_service_to' => $m->in_service_to,
+                'periods' => $materialPeriods[$m->id] ?? [],
             ]),
         ];
+
+        return $forPage ? array_diff_key($sheet, array_flip(self::PAGE_OMITTED)) : $sheet;
     }
+
+    /**
+     * Étapes de mise en service des sections nommées (LGV Paris - Lyon ouverte en 1981 puis en 1983) :
+     * pour chaque section, les phases datées (LinePhases, vraies dates de line_events) qui mettent
+     * en service une partie de la ligne pendant ses années d'ouverture (line_sections, de
+     * opening_year_from à opening_year_to). Rien n'est déduit au-delà :
+     *   - une phase non datée (« entre 1941 et 1950 ») n'est pas une étape ;
+     *   - les raccords fondus dans la phase (changements « minor ») ne comptent pas dans sa longueur ;
+     *   - une phase dont l'année tombe dans les années de deux sections n'est rattachée à aucune
+     *     (les sections n'ont pas de tracé propre : pas de rattachement deviné) ;
+     *   - une phase plus longue que la section (PK de fin moins PK de début, à STAGE_LENGTH_TOLERANCE
+     *     près) en déborde : elle date aussi une autre partie de la ligne (LGV Est européenne : une
+     *     seule date de 2007 pour 409 km, dont les 106 km de la seconde phase ouverte en 2016), elle
+     *     n'est rattachée à aucune section.
+     * Chaque étape : `phase` (indice dans les phases de la fiche), `date`, `precision`, `length_m`
+     * (longueur mise en service) et `event_ids` (événements qui la datent, pour leurs sources).
+     *
+     * @param  list<array<string, mixed>>  $sections  sections de la fiche (opening_year_from, opening_year_to)
+     * @param  list<array<string, mixed>>  $phases  phases de LinePhases (date, precision, changes)
+     * @return list<array<string, mixed>> les sections, chacune avec `stages`
+     */
+    public static function sectionStages(array $sections, array $phases): array
+    {
+        $years = array_map(function (array $s): ?array {
+            $from = isset($s['opening_year_from']) ? (int) $s['opening_year_from'] : null;
+            $to = isset($s['opening_year_to']) ? (int) $s['opening_year_to'] : $from;
+
+            return $from === null ? null : [$from, max($from, (int) $to)];
+        }, $sections);
+        $maxLength = array_map(fn (array $s): ?float => isset($s['pk_start_m'], $s['pk_end_m'])
+            ? ((int) $s['pk_end_m'] - (int) $s['pk_start_m']) * (1 + self::STAGE_LENGTH_TOLERANCE) : null, $sections);
+        $stages = array_fill(0, count($sections), []);
+        foreach ($phases as $index => $phase) {
+            if (($phase['precision'] ?? 'range') === 'range') {
+                continue;
+            }
+            $length = 0;
+            $eventIds = [];
+            foreach ($phase['changes'] ?? [] as $c) {
+                if (($c['minor'] ?? false) || ! LinePhases::isActive((string) $c['to']) || LinePhases::isActive((string) $c['from'])) {
+                    continue;
+                }
+                $length += (int) $c['length_m'];
+                if ($c['event_id'] !== null && ! in_array((int) $c['event_id'], $eventIds, true)) {
+                    $eventIds[] = (int) $c['event_id'];
+                }
+            }
+            if ($length === 0) {
+                continue;
+            }
+            $year = (int) substr((string) $phase['date'], 0, 4);
+            $matches = array_keys(array_filter($years, fn (?array $y): bool => $y !== null && $year >= $y[0] && $year <= $y[1]));
+            if (count($matches) !== 1 || ($maxLength[$matches[0]] !== null && $length > $maxLength[$matches[0]])) {
+                continue;
+            }
+            $stages[$matches[0]][] = ['phase' => $index, 'date' => (string) $phase['date'], 'precision' => (string) $phase['precision'],
+                'length_m' => $length, 'event_ids' => $eventIds];
+        }
+        foreach ($sections as $i => &$s) {
+            $s['stages'] = $stages[$i];
+        }
+        unset($s);
+
+        return $sections;
+    }
+
+    /** Écart toléré entre la longueur d'une étape (tracé VFF) et celle de sa section (PK des sources). */
+    public const STAGE_LENGTH_TOLERANCE = 0.1;
 
     /** PK lisible : « 7+735 » ; avant l'origine de la ligne : « -0+250 ». */
     private function formatPkLabel(int $m): string
@@ -402,6 +498,8 @@ final class LineSheet
             'link_method' => $s['link_method'] ?? null,
             'served_from' => $s['served_from'] ?? null,
             'served_until' => $s['served_until'] ?? null,
+            'served_until_kind' => $s['served_until_kind'] ?? null,
+            'years_source' => $s['years_source'] ?? null,
             'opened_at' => $s['opened_at'],
             'opened_precision' => $s['opened_precision'],
             'closed_at' => $s['closed_at'],
@@ -457,6 +555,8 @@ final class LineSheet
                 'closures' => array_map(fn ($c) => [
                     'slug' => $c['slug'], 'name' => $c['name'], 'closed_at' => $c['closed_at'],
                     'closed_precision' => $c['closed_precision'], 'closed_after' => $c['closed_after'] ?? null,
+                    // Fermeture provisoire : la gare rouvre à une décennie suivante.
+                    'reopened' => (bool) ($c['reopened'] ?? false),
                 ], $e['closures'] ?? []),
             ];
         }

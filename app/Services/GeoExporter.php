@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Era;
+use App\Services\TraceExport\LineTraceExport;
 use App\Support\Lgv;
 use App\Support\TrackPriority;
 use Illuminate\Support\Facades\DB;
@@ -16,60 +17,16 @@ use Illuminate\Support\Facades\DB;
  */
 class GeoExporter
 {
-    /**
-     * Retourne un FeatureCollection GeoJSON des tronçons d'une ère donnée.
-     *
-     * @return array{type: 'FeatureCollection', features: array<int, array<string, mixed>>}
-     */
-    public function linesAsGeoJson(int $eraYear): array
-    {
-        $era = Era::where('year', $eraYear)->firstOrFail();
-
-        $rows = DB::select(<<<'SQL'
-            SELECT
-                ls.id,
-                ls.line_id,
-                l.slug AS line_slug,
-                l.name AS line_name,
-                ls.status,
-                ls.max_speed_kmh,
-                ls.electrified,
-                ls.voltage_v,
-                ls.gauge_mm,
-                ST_AsGeoJSON(ls.geom, 6)::json AS geometry
-            FROM line_segments ls
-            INNER JOIN lines l ON l.id = ls.line_id
-            WHERE ls.era_id = :era_id
-        SQL, ['era_id' => $era->id]);
-
-        $features = array_map(
-            fn ($row) => [
-                'type' => 'Feature',
-                'id' => $row->id,
-                'geometry' => is_string($row->geometry) ? json_decode($row->geometry, true) : $row->geometry,
-                'properties' => [
-                    'line_id' => $row->line_id,
-                    'line_slug' => $row->line_slug,
-                    'line_name' => $row->line_name,
-                    'status' => $row->status,
-                    'max_speed_kmh' => $row->max_speed_kmh,
-                    'electrified' => (bool) $row->electrified,
-                    'voltage_v' => $row->voltage_v,
-                    'gauge_mm' => $row->gauge_mm,
-                ],
-            ],
-            $rows,
-        );
-
-        return [
-            'type' => 'FeatureCollection',
-            'features' => $features,
-        ];
-    }
+    public function __construct(private readonly LineTraceExport $traceRights) {}
 
     /**
-     * Variante STREAMING : itère les features une à une via un curseur DB
+     * Tronçons d'une ère en features GeoJSON, une à une via un curseur DB
      * (mémoire constante), pour éviter l'OOM 128M sur les ~77k segments.
+     *
+     * Règle des droits (LineTraceExport) : un tronçon dont la source n'autorise pas la
+     * redistribution garde son entité et ses propriétés, avec `geometry` null,
+     * `geometry_withheld` vrai et `geometry_withheld_reason` (`licence_not_open`,
+     * `unknown_source`) ; le résumé par source est donné par LineTraceExport::withheldForEra.
      *
      * @return \Generator<int, array<string, mixed>>
      */
@@ -78,6 +35,7 @@ class GeoExporter
         $era = Era::where('year', $eraYear)->firstOrFail();
 
         $lgv = Lgv::sql('l', 'ls');
+        $open = $this->traceRights->sqlRedistributable('ls.source');
         $cursor = DB::cursor(<<<SQL
             SELECT
                 ls.id, ls.line_id, l.slug AS line_slug, l.name AS line_name, l.code AS line_code,
@@ -86,17 +44,18 @@ class GeoExporter
                 ls.status, ls.traffic_type, ls.max_speed_kmh, ls.electrified,
                 ls.voltage_v, ls.gauge_mm, ls.is_heritage, ls.heritage_kind, ls.operator,
                 ls.source, ls.source_trace_id,
-                ST_AsGeoJSON(ls.geom, 6) AS geometry
+                CASE WHEN {$open} THEN ST_AsGeoJSON(ls.geom, 6) END AS geometry
             FROM line_segments ls
             INNER JOIN lines l ON l.id = ls.line_id
             WHERE ls.era_id = :era_id
         SQL, ['era_id' => $era->id]);
 
         foreach ($cursor as $row) {
+            $withheld = $this->traceRights->withheldReason($row->source);
             yield [
                 'type' => 'Feature',
                 'id' => $row->id,
-                'geometry' => json_decode($row->geometry, true),
+                'geometry' => $withheld === null && $row->geometry !== null ? json_decode($row->geometry, true) : null,
                 'properties' => [
                     'line_id' => $row->line_id,
                     'line_slug' => $row->line_slug,
@@ -115,6 +74,8 @@ class GeoExporter
                     'operator' => $row->operator,
                     'source' => $row->source,
                     'source_trace_id' => $row->source_trace_id,
+                    'geometry_withheld' => $withheld !== null,
+                    'geometry_withheld_reason' => $withheld,
                 ],
             ];
         }

@@ -4,7 +4,7 @@
 // App\Services\Api\ApiTokens). Vocabulaire : « jeton » (pas « token »), « limite » de requêtes.
 return [
     'title' => 'Jetons d’accès à l’API',
-    'intro' => 'L’API de VFF s’utilise sans jeton, avec :anonymous requêtes par minute au plus pour chaque adresse IP. Un jeton personnel relève cette limite pour votre compte. Il ne sert qu’à lire les données : il ne permet ni de modifier votre profil ni de contribuer.',
+    'intro' => 'L’API de VFF s’utilise sans jeton, avec :anonymous requêtes par minute au plus pour chaque adresse IP. Un jeton personnel relève cette limite pour votre compte. Il sert à lire les données. Si vous cochez la case prévue à sa création, il permet aussi de contribuer par l’API GraphQL. Il ne donne jamais accès à votre profil.',
     'docs_link' => 'Mode d’emploi et exemples sur la page Accès à l’API',
     'quota_label' => 'Votre limite avec un jeton',
     'quota_value' => ':count requêtes par minute',
@@ -29,6 +29,10 @@ return [
     'name_label' => 'Nom du jeton',
     'name_hint' => 'Pour le reconnaître plus tard, par exemple le nom du programme qui s’en servira.',
     'create_button' => 'Créer le jeton',
+    'contribute_label' => 'Autoriser les contributions par l’API',
+    'contribute_hint' => 'Le jeton pourra proposer des modifications et, si votre compte est validateur, approuver ou refuser celles des autres, avec les règles du site. Laissez la case vide si le programme n’a besoin que de lire.',
+    'scope_read' => 'Lecture',
+    'scope_contribute' => 'Lecture et contributions',
     'blocked_suspended' => 'Votre compte est suspendu : vous ne pouvez pas créer de jeton, et l’API refuse vos jetons jusqu’à la fin de la suspension.',
     'blocked_max' => 'Vous avez :max jetons, le nombre maximal. Révoquez-en un pour en créer un autre.',
     'new_title' => 'Copiez votre jeton maintenant',

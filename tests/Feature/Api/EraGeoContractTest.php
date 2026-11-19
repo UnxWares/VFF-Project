@@ -34,7 +34,7 @@ class EraGeoContractTest extends TestCase
         $this->assertSame([
             'line_id', 'line_slug', 'line_name', 'line_code', 'network', 'status', 'traffic_type', 'is_lgv',
             'is_heritage', 'heritage_kind', 'max_speed_kmh', 'electrified', 'voltage_v', 'gauge_mm', 'operator',
-            'source', 'source_trace_id',
+            'source', 'source_trace_id', 'geometry_withheld', 'geometry_withheld_reason',
         ], array_keys($feature['properties']));
         $this->assertSame($this->line->id, $feature['properties']['line_id']);
         $this->assertSame('999 000', $feature['properties']['line_code']);

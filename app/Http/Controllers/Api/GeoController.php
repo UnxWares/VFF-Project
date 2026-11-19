@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Era;
 use App\Services\GeoExporter;
+use App\Services\TraceExport\LineTraceExport;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
@@ -64,8 +65,24 @@ class GeoController extends Controller
      *   millimètres : 1435 voie normale, 1000 voie métrique, 600 voie étroite) ;
      * - `source` : provenance du tracé (`sncf` SNCF Réseau Open Data, ODbL ;
      *   `bdtopo` IGN BD TOPO, Licence Ouverte 2.0 ; `osm` OpenStreetMap, ODbL ;
-     *   `ohm` OpenHistoricalMap, CC0 ; `archeoferroviaire` relevés tiers hors ODbL,
-     *   usage non commercial uniquement, crédit et lien vers la source obligatoires).
+     *   `ohm` OpenHistoricalMap, CC0 ; `archeoferroviaire` relevés du site
+     *   archeoferroviaire.free.fr, hors ODbL, non redistribués : voir ci-dessous) ;
+     * - `geometry_withheld` : `true` quand la géométrie du tronçon n'est pas
+     *   redistribuée ; `geometry_withheld_reason` en donne la raison
+     *   (`licence_not_open` : source dont la licence n'autorise pas la
+     *   redistribution, `unknown_source` : source absente du registre des droits),
+     *   `null` sinon.
+     *
+     * **Droits des tracés** : seule la géométrie d'un tronçon dont la source a une
+     * licence ouverte vérifiée (registre `/sources`) est redistribuée. Pour une
+     * source dont la licence n'autorise pas la redistribution, le tronçon reste
+     * dans la collection avec toutes ses propriétés (état, trafic, longueur par
+     * la fiche…), mais `geometry` vaut `null` (entité GeoJSON sans géométrie,
+     * permise par la RFC 7946). Gardez ou écartez ces entités selon votre outil.
+     * Le membre `withheld`, après `features`, résume ces tronçons par source :
+     * `provider`, `name`, `license`, `reason`, `sections` (nombre) et `length_m`.
+     * Les tuiles vectorielles servent à l'affichage de la carte : elles ne sont
+     * pas un export de données.
      *
      * @param  int  $year  Année de l'ère (décennie de 1830 à 2030 ; 2030 = aujourd'hui).
      *
@@ -92,9 +109,12 @@ class GeoController extends Controller
      *             gauge_mm: ?int,
      *             operator: ?string,
      *             source: ?string,
-     *             source_trace_id: ?int
+     *             source_trace_id: ?int,
+     *             geometry_withheld: bool,
+     *             geometry_withheld_reason: ?string
      *         }
-     *     }>
+     *     }>,
+     *     withheld: array<array{provider: ?string, name: ?string, license: ?string, reason: string, sections: int, length_m: int}>
      * }
      */
     #[PathParameter('year', "Année de l'ère : une décennie de 1830 à 2030 (2030 = réseau actuel).", example: 1930)]
@@ -110,11 +130,16 @@ class GeoController extends Controller
                 'is_lgv' => false, 'is_heritage' => false, 'heritage_kind' => null, 'max_speed_kmh' => null,
                 'electrified' => false, 'voltage_v' => null, 'gauge_mm' => 1435, 'operator' => null,
                 'source' => 'bdtopo', 'source_trace_id' => null,
+                'geometry_withheld' => false, 'geometry_withheld_reason' => null,
             ],
+        ]],
+        'withheld' => [[
+            'provider' => 'archeoferroviaire', 'name' => 'archeoferroviaire.free.fr (J. Randé, F. Librini, K. Moreau ; tracés aussi de F. Hespert et Y. Zwartjes)',
+            'license' => 'Tous droits réservés (mentions légales) ; usage par VFF non commercial, avec crédit et lien', 'reason' => 'licence_not_open', 'sections' => 1, 'length_m' => 2480,
         ]],
     ]])]
     #[ApiResponse(404, "Ère inconnue (année qui n'est pas une décennie entre 1830 et 2030).")]
-    public function lines(int $year): StreamedResponse
+    public function lines(int $year, LineTraceExport $traceRights): StreamedResponse
     {
         // Ère inconnue → 404 AVANT d'ouvrir le flux : une fois les en-têtes 200
         // envoyés, le firstOrFail() du générateur produirait un JSON tronqué.
@@ -122,17 +147,18 @@ class GeoController extends Controller
 
         // Ère résolue AVANT d'ouvrir le flux : sinon une année inconnue levait
         // l'exception en plein streaming (200 + JSON tronqué + page d'erreur).
-        Era::where('year', $year)->firstOrFail();
+        $era = Era::where('year', $year)->firstOrFail();
 
         // Streaming via curseur DB → mémoire constante (évite l'OOM 128M sur ~77k segments).
-        return response()->stream(function () use ($year) {
+        return response()->stream(function () use ($year, $era, $traceRights) {
             echo '{"type":"FeatureCollection","features":[';
             $first = true;
             foreach ($this->exporter->streamLinesGeoJson($year) as $feature) {
                 echo ($first ? '' : ',').json_encode($feature);
                 $first = false;
             }
-            echo ']}';
+            // Résumé des tronçons dont la géométrie n'est pas redistribuée (règle des droits).
+            echo '],"withheld":'.json_encode($traceRights->withheldForEra($era)).'}';
         }, 200, [
             'Content-Type' => 'application/json',
             'Cache-Control' => 'public, max-age=60',
@@ -236,6 +262,13 @@ class GeoController extends Controller
      * dessin : la portion la plus active au-dessus) et `covered` (`true` :
      * portion recouverte par une ligne plus active à cette ère, que la carte VFF
      * ne dessine pas). Zoom 0 à 22 ; la carte VFF n'en demande pas au-delà de 14.
+     *
+     * **Affichage, pas export** : les tuiles servent à afficher la carte du site et
+     * la carte intégrable (`/embed/maps`). Elles dessinent tous les tracés, y compris
+     * ceux d'une source dont la licence n'autorise pas la redistribution, mais ne
+     * sont pas un export de données : leur géométrie est découpée et simplifiée pour
+     * l'écran. Pour réutiliser des tracés, servez-vous du GeoJSON de l'ère, de
+     * `/lines/{line}/geojson`, `/gpx` ou `/kml`, qui suivent la règle des droits.
      *
      * @param  int  $year  Année de l'ère (décennie de 1830 à 2030 ; 2030 = aujourd'hui).
      * @param  int  $z  Niveau de zoom (0 à 22).

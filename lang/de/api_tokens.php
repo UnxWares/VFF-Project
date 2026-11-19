@@ -2,7 +2,7 @@
 
 return [
     'title' => 'API-Zugriffstoken',
-    'intro' => 'Die API von VFF ist ohne Token nutzbar, mit höchstens :anonymous Anfragen pro Minute und IP-Adresse. Ein persönliches Token hebt dieses Limit für Ihr Konto an. Es erlaubt nur das Lesen der Daten: Sie können damit weder Ihr Profil ändern noch Beiträge einreichen.',
+    'intro' => 'Die API von VFF ist ohne Token nutzbar, mit höchstens :anonymous Anfragen pro Minute und IP-Adresse. Ein persönliches Token hebt dieses Limit für Ihr Konto an. Es dient zum Lesen der Daten. Wenn Sie beim Erstellen das Kästchen ankreuzen, können Sie damit auch über die GraphQL-API beitragen. Auf Ihr Profil gibt es nie Zugriff.',
     'docs_link' => 'Anleitung und Beispiele auf der Seite „API-Zugang“',
     'quota_label' => 'Ihr Limit mit Token',
     'quota_value' => ':count Anfragen pro Minute',
@@ -27,6 +27,10 @@ return [
     'name_label' => 'Name des Tokens',
     'name_hint' => 'Damit Sie es später wiedererkennen, zum Beispiel der Name des Programms, das es verwendet.',
     'create_button' => 'Token erstellen',
+    'contribute_label' => 'Beiträge über die API erlauben',
+    'contribute_hint' => 'Mit dem Token lassen sich Änderungen vorschlagen und, wenn Ihr Konto Prüferrechte hat, die Beiträge anderer freigeben oder ablehnen, nach den Regeln der Website. Lassen Sie das Kästchen leer, wenn das Programm nur lesen muss.',
+    'scope_read' => 'Lesen',
+    'scope_contribute' => 'Lesen und Beiträge',
     'blocked_suspended' => 'Ihr Konto ist gesperrt: Sie können kein Token erstellen, und die API lehnt Ihre Token bis zum Ende der Sperre ab.',
     'blocked_max' => 'Sie haben :max Token, die Höchstzahl. Widerrufen Sie eines, um ein neues zu erstellen.',
     'new_title' => 'Kopieren Sie Ihr Token jetzt',

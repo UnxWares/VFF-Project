@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ServiceEnd;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -39,7 +40,8 @@ final class LineStations
      * Chaque gare : kind (station | projected), id, slug, name, type, city, department_code, lng, lat,
      * pk_m, pk_label, is_terminal (gare au bout du tracé, voir terminals()), link_method
      * (sncf_pk, source_pk, segment…), served_from / served_until (années de
-     * desserte par CETTE ligne, station_lines), opened_at / opened_precision,
+     * desserte par CETTE ligne, station_lines), served_until_kind (ServiceEnd :
+     * year, upper_bound, undated), years_source, opened_at / opened_precision,
      * closed_at / closed_precision / closed_after / closed_year (date retenue,
      * null si ouverte aujourd'hui), status_today (statut affiché à l'ère
      * courante, null : n'existe plus), eras : année → {status (active,
@@ -53,7 +55,7 @@ final class LineStations
         $rows = DB::select(<<<'SQL'
             SELECT s.id, s.slug, s.name, s.type, s.city, s.department_code,
                    ST_X(s.geom) AS lng, ST_Y(s.geom) AS lat,
-                   sl.pk_m, sl.method, sl.first_year, sl.last_year,
+                   sl.pk_m, sl.method, sl.first_year, sl.last_year, sl.years_source,
                    s.opened_at, s.opened_precision, s.closed_at, s.closed_precision,
                    s.provenance->>'closed_after' AS closed_after, s.provenance->>'closed_at' AS closed_source,
                    s.provenance->>'kind' AS kind
@@ -115,6 +117,11 @@ final class LineStations
                 'link_method' => $r->method,
                 'served_from' => $r->first_year !== null ? (int) $r->first_year : null,
                 'served_until' => $r->last_year !== null ? (int) $r->last_year : null,
+                // year, upper_bound (au plus tard cette année) ou undated (fin non datée) : App\Enums\ServiceEnd.
+                'served_until_kind' => ServiceEnd::of($r->last_year !== null ? (int) $r->last_year : null,
+                    $r->closed_at !== null ? (string) $r->closed_at : null, $r->closed_precision, (int) now()->year)?->value,
+                // line_events, traces ou station (années tirées des dates de la gare), null si inconnues.
+                'years_source' => $r->years_source,
                 'opened_at' => $r->opened_at,
                 'opened_precision' => $r->opened_precision,
                 'closed_at' => $r->closed_at,
@@ -246,45 +253,29 @@ final class LineStations
      * précédente : les mêmes statuts que les compteurs, donc jamais plus de
      * noms que de fermetures comptées), avec la date de la fiche gare.
      *
+     * Une gare qui passe d'ouverte (ou non confirmée) à fermée sans date retenue pour ce passage
+     * (fermeture non datée, ou fermeture provisoire suivie d'une réouverture : nogent-sur-seine en
+     * 1940) est aussi nommée, avec l'intervalle que donne la frise (`closed_precision` range :
+     * « entre 1931 et 1940 ») et `reopened` si elle rouvre à une ère suivante. Avant, elle comptait
+     * parmi les gares fermées sans figurer dans la liste.
+     *
      * @return list<array{year: int, is_current: bool, open: int, uncertain: int, closed: int, closures: list<array<string, mixed>>}>
      */
     public function byEra(int $lineId): array
     {
         $data = $this->forLine($lineId);
-        // Ère où chaque gare fermée aujourd'hui apparaît dans « fermées dans la décennie » : la dernière
-        // où son fil passe à « fermée » (fermée à cette ère, pas à la précédente), c'est-à-dire la même
-        // ère que les compteurs. Une date retenue antérieure (13 mars 2018) dont la frise ne montre la
-        // fermeture qu'à l'ère suivante ne crée plus une gare « fermée » de plus que le compteur. Sans
-        // passage à « fermée » dans le fil (données contradictoires) : la décennie de la date retenue.
         $years = array_column($data['eras'], 'year');
-        $listedAt = [];
-        foreach ($data['stations'] as $i => $s) {
-            if ($s['closed_year'] === null) {
-                continue;
-            }
-            $before = null;
-            foreach ($years as $y) {
-                $status = $s['eras'][$y]['status'] ?? null;
-                if ($status === StationTimeline::CLOSED && $before !== StationTimeline::CLOSED) {
-                    $listedAt[$i] = $y;
-                }
-                $before = $status;
-            }
-            if (! isset($listedAt[$i])) {
-                foreach ($years as $y) {
-                    if ($s['closed_year'] <= $y) {
-                        $listedAt[$i] = $y;
-                        break;
-                    }
-                }
+        $closuresAt = [];
+        foreach ($data['stations'] as $s) {
+            foreach (self::closureEntries($s, $years) as $y => $entry) {
+                $closuresAt[$y][] = $entry;
             }
         }
         $out = [];
         foreach ($data['eras'] as $era) {
             $y = $era['year'];
             $counts = ['open' => 0, 'uncertain' => 0, 'closed' => 0];
-            $closures = [];
-            foreach ($data['stations'] as $i => $s) {
+            foreach ($data['stations'] as $s) {
                 $status = $s['eras'][$y]['status'] ?? null;
                 if (in_array($status, StationTimeline::OPEN_STATUSES, true)) {
                     $counts['open']++;
@@ -293,14 +284,89 @@ final class LineStations
                 } elseif ($status === StationTimeline::CLOSED) {
                     $counts['closed']++;
                 }
-                if (($listedAt[$i] ?? null) === $y) {
-                    $closures[] = ['slug' => $s['slug'], 'name' => $s['name'], 'pk_label' => $s['pk_label'],
-                        'closed_at' => $s['closed_at'], 'closed_precision' => $s['closed_precision'], 'closed_after' => $s['closed_after'],
-                        'label' => StationTimeline::closureLabel($s['closed_at'], $s['closed_precision'], $s['closed_after'])];
+            }
+            $out[] = ['year' => $y, 'is_current' => $era['is_current']] + $counts + ['closures' => $closuresAt[$y] ?? []];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Fermetures d'une gare à nommer dans la vue par décennie, par année d'ère (calcul pur, cf. byEra) :
+     *   - la fermeture retenue (gare fermée aujourd'hui, `closed_at`) à la dernière ère où son fil
+     *     passe à « fermée », c'est-à-dire la même ère que les compteurs : une date retenue antérieure
+     *     (13 mars 2018) dont la frise ne montre la fermeture qu'à l'ère suivante ne crée pas une gare
+     *     « fermée » de plus que le compteur ; si le fil finit par une disparition (ouverte ou non
+     *     confirmée, puis absente) après ce passage, à l'ère de la disparition (gare comptée absente,
+     *     non fermée, à cette ère) ; sans passage à « fermée » ni disparition dans le fil (données
+     *     contradictoires), à la décennie de la date retenue ;
+     *   - chaque autre passage d'ouverte ou non confirmée à fermée : intervalle de la frise
+     *     (`closed_at` = 31/12 de l'ère, `closed_after` = année de l'ère précédente, précision
+     *     range), `reopened` si la gare est de nouveau ouverte ou non confirmée à une ère suivante.
+     *
+     * @param  array<string, mixed>  $station  gare de forLine (slug, name, pk_label, closed_*, eras)
+     * @param  list<int>  $years  années des ères, croissantes
+     * @return array<int, array<string, mixed>>
+     */
+    public static function closureEntries(array $station, array $years): array
+    {
+        $status = fn (int $y): ?string => $station['eras'][$y]['status'] ?? null;
+        $wasOpen = fn (?string $st): bool => in_array($st, [...StationTimeline::OPEN_STATUSES, self::UNCERTAIN], true);
+        $transitions = [];
+        $before = null;
+        $previousYear = null;
+        foreach ($years as $y) {
+            if ($status($y) === StationTimeline::CLOSED && $before !== StationTimeline::CLOSED) {
+                $transitions[$y] = ['from' => $before, 'previous_year' => $previousYear];
+            }
+            $before = $status($y);
+            $previousYear = $y;
+        }
+
+        // Gare disparue : dernier passage d'ouverte (ou non confirmée) à absente.
+        $vanishedAt = null;
+        $before = null;
+        foreach ($years as $y) {
+            if ($status($y) === null && $wasOpen($before)) {
+                $vanishedAt = $y;
+            }
+            $before = $status($y);
+        }
+
+        $retainedAt = null;
+        if ($station['closed_year'] !== null) {
+            $retainedAt = array_key_last($transitions);
+            // Le fil finit par une disparition après le dernier passage à « fermée » (Vigny : fermée de
+            // 1980 à 2000, ouverte en 2010 et 2020, absente en 2030, fermée le 17/10/2023) : la date
+            // retenue est celle de ce passage, pas de l'ancienne fermeture.
+            if ($vanishedAt !== null && ($retainedAt === null || $vanishedAt > $retainedAt)) {
+                $retainedAt = $vanishedAt;
+            }
+            if ($retainedAt === null) {
+                foreach ($years as $y) {
+                    if ($station['closed_year'] <= $y) {
+                        $retainedAt = $y;
+                        break;
+                    }
                 }
             }
-            $out[] = ['year' => $y, 'is_current' => $era['is_current']] + $counts + ['closures' => $closures];
         }
+
+        $entry = fn (?string $date, ?string $precision, ?int $after, bool $reopened): array => ['slug' => $station['slug'], 'name' => $station['name'],
+            'pk_label' => $station['pk_label'], 'closed_at' => $date, 'closed_precision' => $precision, 'closed_after' => $after,
+            'label' => StationTimeline::closureLabel($date, $precision, $after), 'reopened' => $reopened];
+        $out = [];
+        foreach ($transitions as $y => $t) {
+            if ($y === $retainedAt || ! $wasOpen($t['from'])) {
+                continue;
+            }
+            $reopened = (bool) array_filter($years, fn (int $later): bool => $later > $y && $wasOpen($status($later)));
+            $out[$y] = $entry(sprintf('%04d-12-31', $y), StationTimeline::RANGE, $t['previous_year'], $reopened);
+        }
+        if ($retainedAt !== null) {
+            $out[$retainedAt] = $entry($station['closed_at'], $station['closed_precision'], $station['closed_after'] ?? null, false);
+        }
+        ksort($out);
 
         return $out;
     }

@@ -38,7 +38,7 @@ class MaterialDetailResource extends MaterialResource
             'field_sources' => self::fieldSourcesOf($this->resource),
             /**
              * Lignes parcourues, une entrée par lien attesté (voir `GET /api/v1/lines/{line}/materials` pour le
-             * détail des champs d'un lien), triées par nom de ligne.
+             * détail des champs d'un lien, dont `periods`, les périodes de circulation datées), triées par nom de ligne.
              */
             'lines' => LineMaterialLinkResource::collection($this->whenLoaded('lineLinks')),
         ];

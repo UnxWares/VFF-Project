@@ -51,6 +51,7 @@ class SourceRightsReport extends Command
         'materials.fields' => "SELECT DISTINCT p.value->>'source' AS v FROM materials, jsonb_each(COALESCE(provenance, '{}'::jsonb)) AS p",
         'materials.image' => "SELECT DISTINCT image->>'provider' AS v FROM materials WHERE image IS NOT NULL",
         'line_materials' => 'SELECT DISTINCT source AS v FROM line_materials WHERE source IS NOT NULL',
+        'line_material_periods' => 'SELECT DISTINCT source AS v FROM line_material_periods',
         'accident_sources' => 'SELECT DISTINCT provider AS v FROM accident_sources',
         'line_profiles' => 'SELECT DISTINCT source AS v FROM line_profiles',
         'line_greenways' => 'SELECT DISTINCT source AS v FROM line_greenways',

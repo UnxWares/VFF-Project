@@ -13,7 +13,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * caractéristiques techniques), avec la provenance de son tracé. La géométrie GeoJSON n'est jointe
  * que si la requête la demande (`geometry=true`, colonne calculée `geojson`), et seulement pour un tronçon
  * dont la source autorise la redistribution (LineTraceExport::redistributable) : sinon `geometry` vaut
- * null et `geometry_withheld` true.
+ * null, `geometry_withheld` true et `geometry_withheld_reason` donne la raison.
  *
  * @mixin LineSegment
  */
@@ -23,7 +23,7 @@ class LineSegmentResource extends JsonResource
     public function toArray(Request $request): array
     {
         $withGeometry = $this->resource->getAttribute('geojson') !== null;
-        $redistributable = app(LineTraceExport::class)->redistributable($this->source);
+        $withheld = app(LineTraceExport::class)->withheldReason($this->source);
 
         return [
             'id' => $this->id,
@@ -50,8 +50,10 @@ class LineSegmentResource extends JsonResource
             'reuse' => $this->reuse,
             'source' => $this->source,
             'provenance' => app(Provenance::class)->for('line_segments', $this->source),
-            'geometry' => $this->when($withGeometry, fn () => $redistributable ? json_decode((string) $this->resource->getAttribute('geojson'), true) : null),
-            'geometry_withheld' => $this->when($withGeometry, ! $redistributable),
+            'geometry' => $this->when($withGeometry, fn () => $withheld === null ? json_decode((string) $this->resource->getAttribute('geojson'), true) : null),
+            'geometry_withheld' => $this->when($withGeometry, $withheld !== null),
+            // `licence_not_open` ou `unknown_source` (LineTrace), null si la géométrie est jointe.
+            'geometry_withheld_reason' => $this->when($withGeometry, $withheld),
         ];
     }
 }

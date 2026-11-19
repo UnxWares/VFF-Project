@@ -19,6 +19,12 @@ return [
         'to' => 'Jusqu’à :to',
         'pk' => ':pk :from à :to',
     ],
+    // Origine d'un fait qui ne vient pas d'une phrase de l'article.
+    'origin' => [
+        'opening' => 'Date d’ouverture de la ligne : une ligne à grande vitesse roule en signalisation en cabine dès son ouverture.',
+        'infobox' => 'Date donnée par l’infobox de l’article.',
+        'table' => 'Date donnée par un tableau de l’article.',
+    ],
     'source' => [
         'link' => 'Wikipédia',
         'hint' => 'article « :title », nouvel onglet',

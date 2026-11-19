@@ -51,12 +51,17 @@ final class WikipediaListReader
     /** @var array<string, string> nom normalisé d'un département → code */
     private static array $departments = [];
 
-    public function __construct(private readonly AccidentKindClassifier $classifier) {}
+    private readonly AccidentPlaceTable $placeTable;
+
+    public function __construct(private readonly AccidentKindClassifier $classifier, ?AccidentPlaceTable $placeTable = null)
+    {
+        $this->placeTable = $placeTable ?? new AccidentPlaceTable;
+    }
 
     /**
      * @return list<array{
      *   date: string, precision: AccidentDatePrecision, anchor: ?string,
-     *   places: list<array{0: string, 1: ?string}>, station: ?string, line_articles: list<string>,
+     *   places: list<array{0: string, 1: ?string}>, station: ?string, place_basis: ?string, line_articles: list<string>,
      *   deaths: ?int, injuries: ?int, kind: ?AccidentKind, urban: bool
      * }>
      */
@@ -146,7 +151,7 @@ final class WikipediaListReader
     /**
      * Faits d'une puce, d'après la suite de la ligne.
      *
-     * @return array{date: string, precision: AccidentDatePrecision, places: list<array{0: string, 1: ?string}>, station: ?string, line_articles: list<string>, deaths: ?int, injuries: ?int, kind: ?AccidentKind, urban: bool}
+     * @return array{date: string, precision: AccidentDatePrecision, places: list<array{0: string, 1: ?string}>, station: ?string, place_basis: ?string, line_articles: list<string>, deaths: ?int, injuries: ?int, kind: ?AccidentKind, urban: bool}
      */
     private function facts(string $date, string $rest): array
     {
@@ -186,6 +191,13 @@ final class WikipediaListReader
             }
         }
         usort($places, fn ($a, $b) => [$a['rank'], $a['at']] <=> [$b['rank'], $b['at']]);
+        // Table de correspondance de VFF (database/data/accident_places.php) : le lieu que le texte nomme sans
+        // lien lisible. Elle prime sur la lecture automatique, qui s'y trompait (un nom de ligne, une ville du trajet).
+        $mapped = $this->placeTable->find($date, $plain);
+        if ($mapped !== null) {
+            $places = [['name' => $mapped['name'], 'department' => $mapped['department'], 'rank' => 0, 'at' => 0]];
+            $station = null;
+        }
 
         $deaths = $this->count($plain, 'morts?|tués?|décès|victimes? mortelles?|personnes? (?:tuées?|décédées?)');
         $injuries = $this->count($plain, 'blessés?|personnes? blessées?');
@@ -196,6 +208,7 @@ final class WikipediaListReader
             'precision' => AccidentDatePrecision::Day,
             'places' => array_map(fn ($p) => [$p['name'], $p['department']], $this->unique($places)),
             'station' => $station,
+            'place_basis' => $mapped['basis'] ?? null,
             'line_articles' => array_values(array_unique($lines)),
             'deaths' => $deaths,
             'injuries' => $injuries,

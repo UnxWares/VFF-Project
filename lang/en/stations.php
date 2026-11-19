@@ -122,6 +122,11 @@ return [
         'period_from_to' => 'Served from :from to :to',
         'period_from' => 'Served since :from',
         'period_to' => 'Served until :to',
+        'period_from_to_bound' => 'Served from :from until :to at the latest',
+        'period_to_bound' => 'Served until :to at the latest',
+        'period_from_undated' => 'Served from :from, end date unknown',
+        'period_undated' => 'End of service undated',
+        'years_from_station' => 'Years taken from the station\'s own dates, as the line has no dated event here.',
         'never_served' => [
             'line_closed' => 'Never served by this line: line closed in :to, station opened in :from',
             'station_closed' => 'Never served by this line: line opened in :from, station closed in :to',
@@ -147,6 +152,7 @@ return [
             'sncf_geometry' => 'Near the SNCF route',
             'junction' => 'Terminus or junction on the route',
             'wikidata_p81' => 'Wikidata (line served)',
+            'terminus_name' => 'End named in the line name, less than 500 m from the route',
         ],
         'pk_sources' => [
             'sncf' => 'official PK',

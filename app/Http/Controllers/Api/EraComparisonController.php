@@ -100,6 +100,10 @@ class EraComparisonController extends Controller
      * `change` (`opened`, `closed`, `removed` ou `kept`, voir « Comparer deux ères »),
      * `line_slug`, `line_name`, `line_code`. Années dans n'importe quel ordre, comme pour la
      * comparaison. Une tuile sans changement est vide (corps de 0 octet).
+     *
+     * Affichage, pas export : comme les tuiles de l'ère, elle sert à la carte du site et dessine
+     * aussi les tracés d'une source dont la licence n'autorise pas la redistribution. Pour
+     * réutiliser des tracés, servez-vous des exports qui suivent la règle des droits.
      */
     #[PathParameter('year', 'Première année comparée (décennie).', example: 1930)]
     #[PathParameter('other', 'Seconde année comparée (décennie).', example: 1980)]
@@ -132,6 +136,10 @@ class EraComparisonController extends Controller
      *
      * Les décennies sont des instantanés au 31/12 : `last_year` = 1950 signifie en service au
      * 31/12/1950 mais plus au 31/12/1960.
+     *
+     * Affichage, pas export : comme les tuiles de l'ère, elle sert à la carte du site et dessine
+     * aussi les tracés d'une source dont la licence n'autorise pas la redistribution. Pour
+     * réutiliser des tracés, servez-vous des exports qui suivent la règle des droits.
      */
     #[PathParameter('z', 'Niveau de zoom (0 à 22 ; la carte VFF demande au plus 14).', example: 6)]
     #[PathParameter('x', 'Colonne de la tuile dans la grille XYZ.', example: 32)]

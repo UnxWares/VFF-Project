@@ -105,8 +105,36 @@ return [
             'citation' => 'Le contenu textuel de Wikipédia est sous CC BY-SA 4.0, licence libre, laquelle permet une réutilisation gratuite de celui-ci.',
             'obligations' => 'Courte citation (source_quote) : auteur et source (permalien). Introductions reprises sur les fiches : CC BY-SA 4.0, attribution, lien vers la licence, texte repris sous la même licence. '
                 .'Section 4 de la CC BY-SA 4.0 : reprendre une partie SUBSTANTIELLE d\'une base Wikipédia rendrait la base VFF (pas ses contenus) « matériel adapté ».',
-            'remarques' => 'Fiches d\'accidents (vff:import-accidents) : seuls des FAITS sont repris des articles et des pages « Liste d\'accidents ferroviaires en France » (date, lieu cité, lignes citées, nombre de morts et de blessés, nature) ; aucun texte n\'est copié ni conservé, le résumé est rédigé par VFF. Chaque fiche cite le permalien de la révision lue (accident_sources) ; toute citation d\'un texte de Wikipédia reste sous CC BY-SA 4.0 avec attribution. Page des conditions de réutilisation relue le 2026-11-19. Matériel roulant (vff:import-materials) : seuls des FAITS sont repris de l\'infobox « Infobox Matériel ferroviaire » (catégorie annoncée, effectif en service et sa date), avec l\'article et la révision lue en provenance ; les phrases qui relient une série à une ligne sont citées avec leur permalien (line_materials.evidence). Historique de la signalisation (vff:import-signalling-history) : seuls des FAITS sont repris des articles de lignes (système, date et sa précision, portion si l\'article la donne), avec le titre de l\'article et le permalien de la révision lue ; une courte phrase (200 caractères au plus) est gardée pour relire le fait, montrée dans l\'API avec l\'attribution CC BY-SA 4.0, jamais sur la fiche.',
+            'remarques' => 'Fiches d\'accidents (vff:import-accidents) : seuls des FAITS sont repris des articles et des pages « Liste d\'accidents ferroviaires en France » (date, lieu cité, lignes citées, nombre de morts et de blessés, nature) ; aucun texte n\'est copié ni conservé, le résumé est rédigé par VFF. Chaque fiche cite le permalien de la révision lue (accident_sources) ; toute citation d\'un texte de Wikipédia reste sous CC BY-SA 4.0 avec attribution. Page des conditions de réutilisation relue le 2026-11-19. Matériel roulant (vff:import-materials) : seuls des FAITS sont repris de l\'infobox « Infobox Matériel ferroviaire » (catégorie annoncée, effectif en service et sa date), avec l\'article et la révision lue en provenance ; les phrases qui relient une série à une ligne sont citées avec leur permalien (line_materials.evidence). Historique de la signalisation (vff:import-signalling-history) : seuls des FAITS sont repris des articles de lignes (système, date et sa précision, portion si l\'article la donne), avec le titre de l\'article et le permalien de la révision lue ; une courte phrase (200 caractères au plus) est gardée pour relire le fait, montrée dans l\'API avec l\'attribution CC BY-SA 4.0, jamais sur la fiche. Périodes de circulation du matériel (vff:import-material-periods) : seuls des FAITS sont repris des phrases qui relient une série à une ligne (début, fin et leur précision, portion nommée par le titre de section), avec le titre de l\'article et le permalien de la révision lue ; la phrase est gardée en base pour relecture, jamais montrée ni servie par l\'API ou le serveur MCP.',
             'domaines' => ['wikipedia.org'],
+            'lu_le' => '2026-11-19',
+        ],
+        'wikipedia-en' => [
+            'nom' => 'Wikipédia (EN)',
+            'statut' => 'sur',
+            'licence' => 'CC BY-SA 4.0 pour les textes ; les faits (dates) ne sont pas protégés',
+            'accord' => null,
+            'preuve' => [
+                'https://en.wikipedia.org/wiki/Wikipedia:Reusing_Wikipedia_content',
+                'https://creativecommons.org/licenses/by-sa/4.0/legalcode.en',
+            ],
+            'citation' => 'While in principle Wikipedia\'s text is subject to the Creative Commons Attribution-ShareAlike License and, generally, the GNU Free Documentation License and can be used free of charge for any purpose so long as licensing terms are met',
+            'obligations' => 'Attribution par le lien vers la révision lue (permalien gardé dans accident_sources) ; tout texte repris resterait sous CC BY-SA 4.0.',
+            'remarques' => 'Fiches d\'accidents (vff:import-accidents --only=wikipedia-editions) : seuls des FAITS sont lus dans « List of rail accidents (années) » et « List of rail accidents in France » (date, lieu nommé, présence d\'une référence propre à l\'entrée) ; aucun texte n\'est copié ni conservé. Ces entrées ne créent aucune fiche : elles servent de seconde source aux fiches existantes. Page des conditions de réutilisation relue le 2026-11-19.',
+            'lu_le' => '2026-11-19',
+        ],
+        'wikipedia-de' => [
+            'nom' => 'Wikipedia (DE)',
+            'statut' => 'sur',
+            'licence' => 'CC BY-SA 4.0 pour les textes ; les faits (dates) ne sont pas protégés',
+            'accord' => null,
+            'preuve' => [
+                'https://de.wikipedia.org/wiki/Wikipedia:Weiternutzung',
+                'https://creativecommons.org/licenses/by-sa/4.0/legalcode.de',
+            ],
+            'citation' => 'Grundsätzlich dürfen alle Texte der Wikipedia gemäß der Creative-Commons-Lizenz CC-BY-SA 4.0 (Namensnennung - Weitergabe unter gleichen Bedingungen 4.0) genutzt werden.',
+            'obligations' => 'Attribution par le lien vers la révision lue (permalien gardé dans accident_sources) ; tout texte repris resterait sous CC BY-SA 4.0.',
+            'remarques' => 'Fiches d\'accidents (vff:import-accidents --only=wikipedia-editions) : seuls des FAITS sont lus dans « Liste schwerer Unfälle im Schienenverkehr » (date, lieu en tête de l\'entrée, présence d\'une référence) ; aucun texte n\'est copié ni conservé. Ces entrées ne créent aucune fiche. Page des conditions de réutilisation relue le 2026-11-19.',
             'lu_le' => '2026-11-19',
         ],
         'wikidata' => [
@@ -348,6 +376,21 @@ return [
             'domaines' => ['bea-tt.developpement-durable.gouv.fr'],
             'lu_le' => '2026-11-19',
         ],
+        'insee' => [
+            'nom' => 'Code officiel géographique (INSEE)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte 2.0 (Etalab), jeu « Code officiel géographique » publié par l\'INSEE sur data.gouv.fr',
+            'accord' => null,
+            'preuve' => [
+                'https://www.data.gouv.fr/datasets/code-officiel-geographique-1',
+                'https://www.insee.fr/fr/information/2560452',
+            ],
+            'citation' => 'Chaque année, l\'Insee met à disposition sur son site (insee.fr) le code officiel géographique qui rassemble les codes et libellés des communes, cantons, arrondissements, départements, collectivités territoriales ayant les compétences départementales, régions [...] (licence du jeu : fr-lo)',
+            'obligations' => 'Mention de la source (INSEE, Code officiel géographique) et de la date de mise à jour. Compatible ODbL en entrée.',
+            'remarques' => 'Codes et noms des départements et des régions (App\\Support\\FrenchDepartments) : valeurs des filtres department et region de l\'API, listes /api/v1/departments et /api/v1/regions. Aucune autre donnée de l\'INSEE n\'est reprise.',
+            'domaines' => ['insee.fr'],
+            'lu_le' => '2026-11-19',
+        ],
     ],
 
     'sources' => [
@@ -355,6 +398,8 @@ return [
         'accident_sources' => [
             'wikidata' => 'wikidata',
             'wikipedia' => 'wikipedia',
+            'wikipedia-en' => 'wikipedia-en',
+            'wikipedia-de' => 'wikipedia-de',
             'bea-tt' => 'bea-tt',
         ],
         'line_events' => [
@@ -428,6 +473,8 @@ return [
         'line_greenways' => ['osm' => 'osm'],
         'line_signalling' => ['sncf' => 'sncf'],
         // Mises en service de signalisation datées (vff:import-signalling-history) : faits relevés dans les articles de ligne de Wikipédia (CC BY-SA 4.0).
+        // La portion placée (section_geom) est tracée sur les formes SNCF Réseau (ODbL), comme line_signalling_map ; la carte par ère
+        // (line_signalling_history_map) reprend ces faits sur le tracé VFF de chaque ère.
         'line_signalling_events' => ['wikipedia' => 'wikipedia'],
         // Profils en long (vff:compute-line-profiles) : altitude de la voie BD TOPO, à défaut RGE ALTI (line_profiles.source).
         'line_profiles' => ['bdtopo-rge-alti' => 'ign'],
@@ -437,6 +484,8 @@ return [
         'materials.fields' => ['wikidata' => 'wikidata', 'commons' => 'commons', 'wikipedia' => 'wikipedia'],
         'materials.image' => ['commons' => 'commons'],
         'line_materials' => ['wikidata' => 'wikidata', 'wikipedia' => 'wikipedia'],
+        // Périodes de circulation datées (vff:import-material-periods) : faits relevés dans Wikipédia (CC BY-SA 4.0), dates P580/P582 de Wikidata (CC0).
+        'line_material_periods' => ['wikidata' => 'wikidata', 'wikipedia' => 'wikipedia'],
         'lines.name_source' => [
             'archeoferroviaire' => 'archeoferroviaire',
             'lignes-oubliees' => 'lignes-oubliees',

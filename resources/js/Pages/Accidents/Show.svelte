@@ -325,10 +325,18 @@
                             <div>
                                 <dt>{$i18n.t('accidents.show.line_cited')}</dt>
                                 <dd>
+                                    <!-- Le lien mène à la source (Wikipédia en français) qui cite cet
+                                         article : le texte masqué le dit (RGAA 6.1). -->
                                     <a
                                         href={primary.cited_url}
                                         target="_blank"
-                                        rel="noopener noreferrer">{primary.cited_as}</a
+                                        rel="noopener noreferrer"
+                                        ><span lang="fr">{primary.cited_as}</span><i
+                                            class="bi bi-box-arrow-up-right vff-ext"
+                                            aria-hidden="true"
+                                        ></i><span class="vff-sr-only">
+                                            ({$i18n.t('accidents.show.line_cited_hint')})</span
+                                        ></a
                                     >
                                 </dd>
                             </div>

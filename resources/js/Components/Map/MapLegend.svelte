@@ -17,7 +17,7 @@
     import { COMPARE_CHANGES, stackLabels } from '$lib/epochViews.js';
     import { ACCIDENT_COLOR, ACCIDENT_HALO } from '$lib/accidentMap.js';
     import { LEVEL_CROSSING_GROUPS } from '$lib/levelCrossingMap.js';
-    import { SIGNALLING_FAMILIES } from '$lib/signallingMap.js';
+    import { SIGNALLING_FAMILIES, SIGNALLING_UNKNOWN_OPACITY } from '$lib/signallingMap.js';
     import { GREENWAY_COLOR } from '$lib/greenwayMap.js';
     import { OVERLAY_HALO } from '$lib/overlayPalette.js';
 
@@ -86,6 +86,10 @@
         key: f.key,
         swatch: swatchStyle(f.color, f.dash, true),
     }));
+    // Époque passée : la signalisation vient des mises en service datées (Wikipédia), pas de SNCF Réseau ;
+    // un trait fin et pâle couvre une ligne entière dont la portion n'est pas connue.
+    const signallingPast = $derived(view === 'era' && era !== null && era !== currentEra);
+    const unknownSwatch = swatchStyle(SIGNALLING_FAMILIES[0].color, null, false);
     const compareRows = COMPARE_CHANGES.map((c) => ({
         key: c.key,
         swatch: swatchStyle(c.color, c.dash, c.key !== 'kept'),
@@ -344,7 +348,11 @@
     <p class="legend-group overlay-group" id={`${uid}-signalling`}>
         {$i18n.t('maps.signalling.title')}
     </p>
-    <p class="legend-hint">{$i18n.t('maps.signalling.intro')}</p>
+    <p class="legend-hint">
+        {signallingPast
+            ? $i18n.t('maps.signalling.history.intro', { year: era })
+            : $i18n.t('maps.signalling.intro')}
+    </p>
     <ul aria-labelledby={`${uid}-signalling`}>
         {#each signallingRows as r (r.key)}
             <li>
@@ -354,12 +362,29 @@
                 </span>
             </li>
         {/each}
+        {#if signallingPast}
+            <li>
+                <span class="legend-row">
+                    <i
+                        class="swatch"
+                        style={unknownSwatch}
+                        style:opacity={SIGNALLING_UNKNOWN_OPACITY}
+                        aria-hidden="true"
+                    ></i>
+                    <span>{$i18n.t('maps.signalling.history.unknown_row')}</span>
+                </span>
+            </li>
+        {/if}
     </ul>
     <p class="legend-hint">{$i18n.t('maps.signalling.kvb_note')}</p>
-    <p class="legend-hint">
-        {$i18n.t('maps.signalling.placement_note')}
-        {$i18n.t('maps.level_crossings.source')}
-    </p>
+    {#if signallingPast}
+        <p class="legend-hint">{$i18n.t('maps.signalling.history.source_note')}</p>
+    {:else}
+        <p class="legend-hint">
+            {$i18n.t('maps.signalling.placement_note')}
+            {$i18n.t('maps.level_crossings.source')}
+        </p>
+    {/if}
 {/snippet}
 
 <!-- Calque « Voies vertes » : trait plein rose à liseré blanc, comme la couche vff-greenways-line. -->

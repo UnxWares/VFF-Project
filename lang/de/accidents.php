@@ -83,6 +83,7 @@ return [
         'distance' => 'Abstand zur Strecke',
         'method' => 'Methode',
         'line_cited' => 'Von der Quelle genannter Artikel',
+        'line_cited_hint' => 'öffnet die Quelle, die ihn nennt, in einem neuen Tab',
         'confidence' => 'Zuverlässigkeit',
         'other_lines' => 'Weitere Strecken an derselben Stelle',
         'trains_title' => 'Züge und Fahrzeuge',
@@ -190,6 +191,8 @@ return [
         'wikidata' => 'Wikidata',
         'wikipedia' => 'Wikipedia',
         'bea_tt' => 'BEA-TT',
+        'wikipedia_en' => 'Englischsprachige Wikipedia',
+        'wikipedia_de' => 'Deutschsprachige Wikipedia',
     ],
 
     'roles' => [
@@ -218,6 +221,7 @@ return [
         'line_uncertain' => 'Mehrere Strecken verlaufen nahe der Gemeindemitte.',
         'hinted_line_far' => 'Die von einer Quelle genannte Strecke verläuft weit vom angegebenen Ort.',
         'place_from_list' => 'Der Ort stammt aus einer Wikipedia-Liste ohne Koordinaten und muss noch geprüft werden.',
+        'place_from_table' => 'Der Ort wird im Text der Wikipedia-Liste ohne Verweis genannt: VFF hat ihn einer Gemeinde zugeordnet. Er muss noch geprüft werden.',
         'verification_conflict' => 'Zwei Quellen widersprechen sich beim Datum oder beim Ort.',
         'alias_toll_mismatch' => 'Ein weiteres Wikidata-Element beschreibt denselben Unfall mit einer anderen Opferzahl.',
         'possible_duplicate' => 'Ein anderer Eintrag vom selben Tag beschreibt möglicherweise denselben Unfall.',

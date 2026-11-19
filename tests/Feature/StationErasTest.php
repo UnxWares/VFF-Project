@@ -122,6 +122,84 @@ class StationErasTest extends TestCase
         $this->assertNull($this->eraStatus($station));
     }
 
+    /**
+     * Cabessut (Cahors - Capdenac, fermée le 09/06/2011) : date de fermeture retenue, mais encore « non
+     * confirmée » ouverte en 2020 sur la frise (rapport fiche-ligne du 19/11/2026). L'ère postérieure à la date
+     * devient fermée ; une ère antérieure ou confirmée ne change pas.
+     */
+    public function test_unconfirmed_eras_after_the_retained_closure_date_are_closed(): void
+    {
+        $years = [2000, 2020];
+        foreach ($years as $year) {
+            Era::factory()->create(['year' => $year, 'label' => "Années {$year}"]);
+        }
+        $line = $this->line('724000', 48.55, 'abandoned', 'unknown');
+        $station = $this->station('Cabessut', 48.55, 'declassified', $line);
+        DB::table('station_events')->insert(['station_id' => $station->id, 'type' => 'opening', 'event_date' => '1886-01-01',
+            'date_precision' => 'year', 'source' => 'wikipedia', 'is_inferred' => false, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('line_events')->insert(['line_id' => $line->id, 'type' => 'closure', 'event_date' => '2011-06-09', 'date_precision' => 'day',
+            'description' => 'Fermeture', 'section_resolution' => 'whole_line', 'created_at' => now(), 'updated_at' => now()]);
+        $era = fn (int $year) => (array) DB::table('station_eras as se')->join('eras as e', 'e.id', '=', 'se.era_id')
+            ->where('se.station_id', $station->id)->where('e.year', $year)->first(['se.status', 'se.uncertain']);
+
+        $this->artisan('vff:build-station-eras', ['--today' => '2026-11-19'])
+            ->expectsOutputToContain('1 couples gare × ère non confirmés deviennent fermés')->assertSuccessful();
+
+        $this->assertSame('2011-06-09', DB::table('stations')->where('id', $station->id)->value('closed_at'));
+        $this->assertSame(['status' => 'declassified', 'uncertain' => false], $era(2020));
+        $this->assertSame('active', $era(2000)['status'] ?? null);
+    }
+
+    /**
+     * Gex : fermée aux voyageurs le 31/05/1980 avec la ligne de Collonges à Divonne. Le tramway de Ferney à
+     * Gex, rattaché par son nom (terminus_name) et sans fermeture datée, n'efface pas cette date déduite.
+     */
+    public function test_a_line_attached_by_name_does_not_block_the_inferred_passenger_closure(): void
+    {
+        $main = $this->line('895000', 48.50, 'abandoned', 'unknown');
+        $station = $this->station('Gex', 48.50, 'declassified', $main);
+        $tram = $this->line('895100', 48.50, 'dismantled', 'unknown');
+        DB::table('station_lines')->insert(['station_id' => $station->id, 'line_id' => $tram->id, 'method' => 'terminus_name', 'pk_m' => 0,
+            'distance_m' => 200, 'source_ref' => 'name:gex', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('line_events')->insert(['line_id' => $main->id, 'type' => 'closure_passenger', 'event_date' => '1980-05-31', 'date_precision' => 'day',
+            'description' => 'Fermeture aux voyageurs', 'section_resolution' => 'whole_line', 'created_at' => now(), 'updated_at' => now()]);
+        $inferred = fn () => DB::table('station_events')->where('station_id', $station->id)->where('type', 'closure_passenger')->value('event_date');
+
+        $this->artisan('vff:build-station-eras')->assertSuccessful();
+        $this->assertSame('1980-05-31', $inferred());
+
+        // Une ligne rattachée autrement (liste, proximité) et sans fermeture datée empêche toujours la déduction.
+        DB::table('station_lines')->where('line_id', $tram->id)->update(['method' => 'segment']);
+        $this->artisan('vff:build-station-eras')->assertSuccessful();
+        $this->assertNull($inferred());
+    }
+
+    /**
+     * Ernée (438000) : fin du fret en mars 1987 selon Wikipédia, fermeture totale le 01/03/1987 selon OHM.
+     * La date déduite pour la gare disparue est toujours la même, « 03/1987 » : à date égale, la précision la
+     * moins fine (le 1er du mois d'OHM reprend le mois), puis le premier enregistré. Avant, l'ordre physique
+     * des lignes la faisait changer d'un passage à l'autre.
+     */
+    public function test_same_day_line_closures_give_the_same_inferred_date_on_every_run(): void
+    {
+        $closed = $this->line('438000', 48.45, 'dismantled', 'unknown');
+        $station = $this->station('Ernée', 48.45, 'gone', $closed);
+        $event = fn (string $type, string $precision) => DB::table('line_events')->insertGetId(['line_id' => $closed->id, 'type' => $type,
+            'event_date' => '1987-03-01', 'date_precision' => $precision, 'description' => $type, 'section_resolution' => 'whole_line',
+            'created_at' => now(), 'updated_at' => now()]);
+        $event('closure', 'day');
+        $month = $event('closure_freight', 'month');
+        $event('closure_passenger', 'month');
+        $inferred = fn () => (array) DB::table('station_events')->where('station_id', $station->id)->where('type', 'closure')
+            ->first(['event_date', 'date_precision', 'source_ref']);
+
+        $this->artisan('vff:build-station-eras')->assertSuccessful();
+        $this->assertSame(['event_date' => '1987-03-01', 'date_precision' => 'month', 'source_ref' => "line_event:{$month}"], $inferred());
+
+        $this->artisan('vff:build-station-eras')->assertSuccessful();
+        $this->assertSame("line_event:{$month}", $inferred()['source_ref']);
+    }
+
     public function test_station_whose_line_has_disappeared_is_closed_whatever_wikidata_says(): void
     {
         // Ligne en service en 1990, absente de la carte actuelle (fermée puis déposée) ; la halte

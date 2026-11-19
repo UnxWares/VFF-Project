@@ -60,7 +60,8 @@ class GraphQLQueriesTest extends TestCase
     {
         $query = '{ line(slug: "'.$this->line->slug.'") { segments { geojson } } }';
 
-        // Source non déclarée (tronçons de la fixture) : pas de licence connue, géométrie non redistribuée.
+        // Source non déclarée : pas de licence connue, géométrie non redistribuée.
+        LineSegment::query()->update(['source' => null]);
         $this->graphQL($query)->assertGraphQLErrorFree()->assertJsonPath('data.line.segments.0.geojson', null);
 
         LineSegment::query()->update(['source' => 'archeoferroviaire']);

@@ -55,11 +55,30 @@ WIKI;
 
     protected function tearDown(): void
     {
-        foreach (glob($this->cache.'/*.json') ?: [] as $file) {
-            unlink($file);
+        // Le nettoyage des fichiers vient APRÈS parent::tearDown() : une erreur de fichier ne doit jamais empêcher
+        // l'annulation de la transaction de RefreshDatabase (sinon la connexion reste « idle in transaction » et
+        // le test suivant attend indéfiniment sur ses propres insertions).
+        try {
+            parent::tearDown();
+        } finally {
+            self::removeCache($this->cache);
         }
-        rmdir($this->cache);
-        parent::tearDown();
+    }
+
+    /** Dossier de cache du test : fichiers JSON, sous-dossiers et marqueurs `.nobackup`. */
+    private static function removeCache(string $dir): void
+    {
+        foreach (glob($dir.'/*', GLOB_ONLYDIR) ?: [] as $sub) {
+            self::removeCache($sub);
+        }
+        foreach ([...(glob($dir.'/*.json') ?: []), $dir.'/.nobackup'] as $file) {
+            if (is_file($file)) {
+                unlink($file);
+            }
+        }
+        if (is_dir($dir)) {
+            rmdir($dir);
+        }
     }
 
     private function article(string $title, string $content, int $revision): void
@@ -180,7 +199,11 @@ WIKI;
             ->assertJsonPath('history.0.system', 'BAL')
             ->assertJsonPath('history.0.role', 'block')
             ->assertJsonPath('history.0.reliability', 'high')
-            ->assertJsonPath('history.0.section', ['from' => 'Garches', 'to' => 'Saint-Nom-la-Bretèche', 'pk_start_m' => null, 'pk_end_m' => null])
+            ->assertJsonPath('history.0.section', [
+                'from' => 'Garches', 'to' => 'Saint-Nom-la-Bretèche', 'location' => 'unlocated', 'pk_start_m' => null, 'pk_end_m' => null,
+                'from_station' => null, 'to_station' => null,
+            ])
+            ->assertJsonPath('history.0.origin', 'text')
             ->assertJsonPath('history.0.source.revision', 240844633)
             ->assertJsonPath('history.1.role', 'speed_control')
             ->assertJsonPath('history.1.section', null)

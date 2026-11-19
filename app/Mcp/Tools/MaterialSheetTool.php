@@ -50,7 +50,7 @@ class MaterialSheetTool extends VffTool
         }
         // Même chargement que la fiche REST (Api\MaterialController::show).
         $material->loadCount(['lineLinks as lines_count' => fn (Builder $q) => $q->select(DB::raw('count(distinct line_id)'))]);
-        $material->load(['lineLinks' => fn ($q) => $q->with(['line:id,slug,code,name', 'era:id,year'])
+        $material->load(['lineLinks' => fn ($q) => $q->with(['line:id,slug,code,name', 'era:id,year', 'shownPeriods'])
             ->join('lines', 'lines.id', '=', 'line_materials.line_id')
             ->orderBy('lines.name')
             ->select('line_materials.*')]);

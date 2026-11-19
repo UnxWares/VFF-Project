@@ -6,6 +6,7 @@ use App\Enums\MaterialType;
 use App\Http\Controllers\Concerns\ReadsListFilters;
 use App\Http\Resources\MaterialDetailResource;
 use App\Models\LineMaterial;
+use App\Models\LineMaterialPeriod;
 use App\Models\Material;
 use App\Services\Api\MaterialQuery;
 use Illuminate\Http\Request;
@@ -96,7 +97,7 @@ class MaterialController extends Controller
     public function show(Material $material): Response
     {
         $links = $material->lineLinks()
-            ->with('line:id,slug,code,name')
+            ->with(['line:id,slug,code,name', 'shownPeriods'])
             ->join('lines', 'lines.id', '=', 'line_materials.line_id')
             ->orderBy('lines.name')
             ->select('line_materials.*')
@@ -129,6 +130,8 @@ class MaterialController extends Controller
                 'article' => $link->evidence[0]['article'] ?? null,
                 'section' => $link->evidence[0]['section'] ?? null,
                 'quote' => $link->evidence[0]['quote'] ?? null,
+                // Périodes de circulation sur la ligne datées par une source (sûres seulement).
+                'periods' => $link->shownPeriods->map(fn (LineMaterialPeriod $p): array => $p->toSheet())->values()->all(),
             ]),
             // Nombre total de lignes parcourues (la liste est bornée à MAX_LINES).
             'lines_total' => $material->lineLinks()->distinct()->count('line_id'),

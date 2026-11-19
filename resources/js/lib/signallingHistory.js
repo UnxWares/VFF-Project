@@ -8,6 +8,9 @@ import { formatEventDate } from './linePhases.js';
 import { pkLabel } from './levelCrossingMap.js';
 import { tieUnits } from './typo.js';
 
+/** Origines qui reçoivent une note sous la portion (`text` et `list` : phrase ou puce, sans note). */
+const ORIGIN_NOTES = ['opening', 'infobox', 'table'];
+
 /** Libellé de rôle, déjà traduit par la grille des tranches (`lines.signalling.*`, avec les deux-points). */
 const ROLE_KEYS = {
     block: 'lines.signalling.block',
@@ -76,6 +79,8 @@ export function historyRows(facts, { t, lang, pkWord }) {
         portion: portionText(f, t, pkWord),
         url: f.source.url,
         title: f.source.title,
+        // Fait lu ailleurs que dans une phrase : date d'ouverture d'une LGV, infobox, tableau.
+        note: ORIGIN_NOTES.includes(f.origin) ? t(`signalling_history.origin.${f.origin}`) : null,
     }));
 }
 

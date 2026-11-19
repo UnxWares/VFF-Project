@@ -8,6 +8,9 @@ return [
 
     'offline_document_title' => 'Hors ligne - Voies Ferrées de France',
     'offline_title' => 'Vous êtes hors ligne',
-    'offline_text' => 'Cette page demande une connexion à Internet. Vérifiez votre réseau, puis réessayez.',
+    'offline_text' => 'Cette page n’a pas été enregistrée sur cet appareil : elle n’est lisible qu’avec une connexion. Vérifiez votre réseau, puis réessayez.',
     'offline_retry' => 'Réessayer',
+
+    // Copie d'une page servie sans réseau (Components/OfflineCopyNotice.svelte) ; :date = date et heure de la copie.
+    'offline_copy' => 'Vous êtes hors ligne. Cette page est la copie enregistrée sur cet appareil le :date ; elle a pu changer depuis.',
 ];

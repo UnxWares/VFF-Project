@@ -288,6 +288,7 @@ return [
         'confirm_apply' => 'Letzte erforderliche Freigabe: Der Beitrag wird sofort veröffentlicht. Bestätigen?',
         'flash' => [
             'own' => 'Sie können Ihren eigenen Beitrag nicht freigeben.',
+            'own_reject' => 'Sie können Ihren eigenen Beitrag nicht ablehnen: Ein anderer Prüfer muss ihn sichten.',
             'closed' => 'Dieser Beitrag wurde bereits bearbeitet.',
             'already' => 'Sie haben diesen Beitrag bereits freigegeben.',
             'applied' => 'Freigabe :count von :threshold: Der Beitrag ist veröffentlicht.',

@@ -64,6 +64,16 @@ class GreenwayNamesTest extends TestCase
         $this->assertNull(GreenwayNames::wayName('Route des Vins'));
     }
 
+    public function test_the_displayed_name_is_the_relation_then_the_way_then_none(): void
+    {
+        $this->assertSame('Voie verte du Marais', GreenwayNames::displayName('Voie verte du Marais', 'Rue du Denier'));
+        // Relation écartée (lieu) : le nom du way prend le relais s'il désigne un itinéraire.
+        $this->assertSame('Voie Verte des Hautes-Vosges', GreenwayNames::displayName('Le Lac', 'Voie Verte des Hautes-Vosges'));
+        $this->assertNull(GreenwayNames::displayName('Camping', 'Avenue Maurice Maunoury'));
+        $this->assertNull(GreenwayNames::displayName(null, 'Voie Verte'));
+        $this->assertNull(GreenwayNames::displayName(null, null));
+    }
+
     public function test_empty_names_are_null(): void
     {
         foreach ([null, '', '   '] as $name) {

@@ -289,11 +289,6 @@ final class LinePhases
 
                     continue;
                 }
-                if ($from === 'none' && $dated($k, $to, ! self::isActive($to))) {
-                    $changes[$k] = [$from, $to]; // nouvelle voie (ou fermeture) datée par un événement : une vraie phase
-
-                    continue;
-                }
                 if ($from === 'none' && $i > 0) {
                     // Nouvelle géométrie à la place d'une autre : l'état d'avant est celui de cet endroit.
                     $from = $coverCategory($k, $i - 1) ?? 'none';
@@ -646,15 +641,21 @@ final class LinePhases
             DB::select('SELECT year, is_current FROM eras ORDER BY year'));
 
         $rows = DB::select('SELECT md5(ST_AsEWKB(ls.geom)) AS k, e.year, ls.status, ls.traffic_type, ls.is_heritage, ls.heritage_kind,
-                   '.Lgv::sql('l', 'ls').' AS is_lgv
+                   ls.source, '.Lgv::sql('l', 'ls').' AS is_lgv
             FROM line_segments ls JOIN eras e ON e.id = ls.era_id JOIN lines l ON l.id = ls.line_id
             WHERE ls.line_id = ?', [$line->id]);
         if (! $rows) {
             return ['portions' => [], 'phases' => [], 'best' => null, 'used_events' => [], 'decades' => [], 'unexplained' => []];
         }
         $states = [];
+        // Provenance de la géométrie de chaque portion (toutes ères confondues) : l'API ne la
+        // redistribue que si toutes ces sources le permettent (LineTraceExport).
+        $sources = [];
         foreach ($rows as $r) {
             $states[$r->k][(int) $r->year] = self::category($r->status, $r->traffic_type, (bool) $r->is_heritage, $r->heritage_kind, (bool) $r->is_lgv);
+            if (! in_array($r->source, $sources[$r->k] ?? [], true)) {
+                $sources[$r->k][] = $r->source;
+            }
         }
 
         // Géométrie de chaque portion (une fois), ordonnée le long de la ligne : PK si connu,
@@ -672,7 +673,7 @@ final class LinePhases
         $portions = [];
         foreach ($geoms as $g) {
             $portions[] = ['key' => $g->k, 'length_m' => (int) $g->len, 'states' => $states[$g->k] ?? [],
-                'geometry' => json_decode($g->gj, true)];
+                'geometry' => json_decode($g->gj, true), 'sources' => $sources[$g->k] ?? []];
         }
 
         // Portions qui se touchent (continuité) : extrémités communes, à 3 m près.
@@ -722,23 +723,32 @@ final class LinePhases
         // témoins (5, répartis le long de la portion) sont à moins de COVER_TOL_M de sa section.
         $cover = [];
         if ($localized) {
-            foreach (DB::select('WITH ev AS MATERIALIZED (
-                        SELECT id, ST_Transform(section_geom, 2154) AS g FROM line_events WHERE id = ANY(CAST(? AS bigint[]))),
-                    pts AS MATERIALIZED (
-                        SELECT t.k, ST_Transform(ST_LineInterpolatePoint(t.geom, f), 2154) AS p
-                        FROM tmp_line_portions t, unnest(ARRAY[0.1, 0.3, 0.5, 0.7, 0.9]) AS f)
-                    SELECT ev.id, pts.k FROM ev JOIN pts ON ST_DWithin(ev.g, pts.p, ?)
-                    GROUP BY ev.id, pts.k HAVING COUNT(*) >= ?',
-                ['{'.implode(',', $localized).'}', self::COVER_TOL_M, (int) ceil(5 * self::COVER_RATIO)]) as $r) {
+            // Sections des événements découpées en morceaux de 32 sommets au plus et indexées : chaque point
+            // témoin n'est comparé qu'aux morceaux proches (même résultat, la réunion des morceaux est la
+            // section). Avant : chaque point contre chaque section entière, 0,4 à 1,5 s sur une LGV.
+            DB::statement('DROP TABLE IF EXISTS tmp_line_event_pieces');
+            DB::statement('CREATE TEMP TABLE tmp_line_event_pieces AS
+                SELECT id, ST_Subdivide(ST_Transform(section_geom, 2154), 32) AS g
+                FROM line_events WHERE id = ANY(CAST(? AS bigint[]))', ['{'.implode(',', $localized).'}']);
+            DB::statement('CREATE INDEX ON tmp_line_event_pieces USING GIST (g)');
+            DB::statement('ANALYZE tmp_line_event_pieces');
+            foreach (DB::select('WITH pts AS MATERIALIZED (
+                        SELECT t.k, f.n, ST_Transform(ST_LineInterpolatePoint(t.geom, f.f), 2154) AS p
+                        FROM tmp_line_portions t, unnest(ARRAY[0.1, 0.3, 0.5, 0.7, 0.9]) WITH ORDINALITY AS f(f, n))
+                    SELECT id, k FROM (
+                        SELECT DISTINCT e.id, pts.k, pts.n FROM pts JOIN tmp_line_event_pieces e ON ST_DWithin(e.g, pts.p, ?)) hit
+                    GROUP BY id, k HAVING COUNT(*) >= ? ORDER BY id, k',
+                [self::COVER_TOL_M, (int) ceil(5 * self::COVER_RATIO)]) as $r) {
                 $cover[(int) $r->id][] = $r->k;
             }
+            DB::statement('DROP TABLE IF EXISTS tmp_line_event_pieces');
         }
         DB::statement('DROP TABLE IF EXISTS tmp_line_portions');
 
         $result = self::compute($eras, $portions, $events, $cover, $adjacency, $today, $near, $adjacencyLoose);
 
         return [
-            'portions' => array_map(fn ($p) => ['length_m' => $p['length_m'], 'geometry' => $p['geometry']], $portions),
+            'portions' => array_map(fn ($p) => ['length_m' => $p['length_m'], 'geometry' => $p['geometry'], 'sources' => $p['sources']], $portions),
             'phases' => $result['phases'],
             'best' => $result['best'],
             'used_events' => $result['used_events'],

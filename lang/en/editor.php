@@ -288,6 +288,7 @@ return [
         'confirm_apply' => 'Last approval required: the contribution will be published immediately. Confirm?',
         'flash' => [
             'own' => 'You cannot approve your own contribution.',
+            'own_reject' => 'You cannot reject your own contribution: another validator must review it.',
             'closed' => 'This contribution has already been processed.',
             'already' => 'You have already approved this contribution.',
             'applied' => 'Approval :count of :threshold: the contribution is published.',

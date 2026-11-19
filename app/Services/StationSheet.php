@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ServiceEnd;
 use App\Models\Station;
 use App\Support\GeneratedText;
 use App\Support\SourceRights;
@@ -103,6 +104,12 @@ final class StationSheet
                 'slug' => $l->slug, 'code' => $l->code, 'name' => $l->name, 'network' => $l->network,
                 'method' => $l->method, 'pk_m' => $l->pk_m !== null ? (int) $l->pk_m : null, 'pk_source' => $l->pk_source,
                 'first_year' => $l->first_year ? (int) $l->first_year : null, 'last_year' => $l->last_year ? (int) $l->last_year : null,
+                // year, upper_bound (au plus tard cette année) ou undated (fin non datée) : App\Enums\ServiceEnd.
+                'last_year_kind' => ServiceEnd::of($l->last_year ? (int) $l->last_year : null, $station->closed_at?->format('Y-m-d'),
+                    $station->closed_precision, (int) now()->year)?->value,
+                // line_events, traces, station (années tirées des dates de la gare : aucun événement daté de la
+                // ligne ne la concerne), never_served, ou null.
+                'years_source' => $l->years_source,
                 // Période vide (BuildStationEras::reconcileServiceYears) : ligne fermée avant l'ouverture de la
                 // gare (line_closed), ou gare fermée avant l'ouverture de la ligne (station_closed).
                 'never_served' => $l->years_source !== 'never_served' ? null

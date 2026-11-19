@@ -8,14 +8,20 @@ export function fakeRequest(
     return { method, url, mode, destination, headers: new Headers(headers) };
 }
 
-/** Cache en mémoire, clé = URL (ou chemin) : même ordre d'insertion que la vraie Cache API. */
+/**
+ * Cache en mémoire, clé = URL (ou chemin) : même ordre que la vraie Cache API, où ranger à nouveau une
+ * adresse la place en dernier.
+ */
 export function fakeCache() {
     const entries = new Map();
     const keyOf = (request) => (typeof request === 'string' ? request : request.url);
     return {
         entries,
         match: async (request) => entries.get(keyOf(request))?.clone(),
-        put: async (request, response) => void entries.set(keyOf(request), response),
+        put: async (request, response) => {
+            entries.delete(keyOf(request));
+            entries.set(keyOf(request), response);
+        },
         delete: async (request) => entries.delete(keyOf(request)),
         keys: async () => [...entries.keys()],
         addAll: async (urls) => urls.forEach((url) => entries.set(url, new Response('x'))),
@@ -35,9 +41,13 @@ export function fakeCacheStorage(initial = []) {
     };
 }
 
-/** Réponse « basic » 200 : `new Response` n'a pas de type modifiable, on le simule. */
-export function basicResponse(body = 'ok', { status = 200, headers = {} } = {}) {
+/** Réponse « basic » 200 : `new Response` n'a ni type ni `redirected` modifiables, on les simule. */
+export function basicResponse(
+    body = 'ok',
+    { status = 200, headers = {}, redirected = false } = {},
+) {
     const response = new Response(body, { status, headers });
     Object.defineProperty(response, 'type', { value: 'basic' });
+    Object.defineProperty(response, 'redirected', { value: redirected });
     return response;
 }

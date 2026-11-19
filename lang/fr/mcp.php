@@ -22,6 +22,7 @@ return [
             'lignes-oubliees' => 'lignes-oubliees.com, informations reproduites avec mention de l’origine et lien vers la fiche',
             'argentanwebferro' => 'Argentan Web Ferroviaire (Thierry Danglos), faits repris avec lien vers l’article',
             'bea-tt' => 'BEA-TT (Bureau d’enquêtes sur les accidents de transport terrestre), Licence Ouverte 2.0 (Etalab) ; bilan général des enquêtes et liens des rapports, avec la date de mise à jour du bilan',
+            'insee' => 'INSEE, Code officiel géographique (codes et noms des départements et des régions), Licence Ouverte 2.0',
         ],
     ],
 
@@ -90,5 +91,46 @@ return [
         'licences_title' => 'Licences et attributions des données de VFF',
         'licence' => 'Licence',
         'mention' => 'Mention',
+    ],
+
+    // Invites (prompts) MCP : message envoyé à l'assistant, dans la langue demandée (app/Mcp/Prompts).
+    'prompts' => [
+        'language' => 'français',
+        'present_line' => [
+            'message' => 'Présentez la ligne « :line » avec les données de VFF (Voies Ferrées de France).
+1. :identify
+2. Lisez sa fiche avec get_line, événements compris. Si la chronologie est raccourcie (truncated), complétez-la avec line_events.
+3. Rédigez quelques paragraphes : d\'où part la ligne et où elle va, sa longueur, son électrification et sa signalisation, les grandes dates (ouverture, fermetures, électrification, dépose) et son état aujourd\'hui.
+4. Pour chaque date ou chiffre, citez sa source (champ source et lien source_url). Écrivez une date avec sa seule précision connue : jour, mois ou année. Une phase de précision « range » n\'est datée par aucune source : dites seulement qu\'elle a eu lieu entre deux décennies.
+5. Écrivez avec vos propres mots, sans recopier de texte de Wikipédia ni d\'une autre source.
+6. Terminez par le lien vff_url de la fiche et les mentions du bloc attribution.
+Répondez en :language.',
+            'found' => 'La ligne est « :name » (identifiant :slug) : passez cet identifiant aux outils. Sa fiche en Markdown est aussi dans la ressource vff://:lang/lines/:slug.',
+            'search' => 'Cherchez son identifiant avec search {"query": ":line", "kinds": ["lines"]}. Si plusieurs lignes correspondent, demandez laquelle avant de continuer.',
+        ],
+        'compare_region_eras' => [
+            'message' => 'Comparez le réseau ferré de la région :region (code INSEE :code) en :from et en :to, avec les données de VFF. Départements de la région : :departments.
+1. Pour chaque époque, comptez les lignes ouvertes et fermées avec list_lines {"region": ":code", "era": <année>, "facets": true, "limit": 1}, et les gares par statut avec list_stations {"region": ":code", "era": <année>, "facets": true, "limit": 1}.
+2. Relevez ce qui a changé entre les deux dates avec network_events {"region": ":code", "from": ":events_from", "to": ":events_to"} (fermetures, ouvertures, électrifications, déposes), en suivant next_cursor tant que has_more vaut true.
+3. Pour situer la région dans le pays, compare_eras {"from": :from, "to": :to} donne les mêmes chiffres pour toute la France.
+4. Présentez un tableau des deux époques, puis les principaux changements, ligne par ligne, chacun avec sa date, sa précision et sa source.
+5. Précisez qu\'une ligne compte dans la région si elle y dessert une gare ou si sa fiche cite l\'un de ses départements. La carte de VFF est un instantané au 31 décembre de chaque décennie ; :era_note
+6. Terminez par les mentions du bloc attribution.
+Répondez en :language.',
+            'current' => 'l\'époque :to décrit le réseau d\'aujourd\'hui.',
+            'past' => 'les deux époques sont des instantanés au 31 décembre de leur année.',
+        ],
+        'station_story' => [
+            'message' => 'Racontez l\'histoire de la gare « :station » avec les données de VFF.
+1. :identify
+2. Lisez sa fiche avec get_station : dates d\'ouverture et de fermeture, statut à chaque décennie, lignes desservies avec leurs années de desserte, sources.
+3. Pour les lignes qui la desservent, get_line (avec include_events à false) donne leur ouverture et leur fermeture. Ajoutez les accidents survenus près de la gare avec accidents {"station": "<identifiant>"} et des images d\'archives avec media {"station": "<identifiant>"}.
+4. Racontez dans l\'ordre : l\'ouverture, les lignes qui arrivent ou ferment, les changements de statut, la situation d\'aujourd\'hui. Une décennie au statut « uncertain » n\'est pas confirmée par les voies de l\'époque : signalez-le.
+5. Donnez chaque date avec sa précision et sa source, écrivez avec vos propres mots sans recopier de texte d\'une source, et montrez chaque image avec son attribution.
+6. Terminez par le lien vff_url de la fiche et les mentions du bloc attribution.
+Répondez en :language.',
+            'found' => 'La gare est « :name » (:city, identifiant :slug) : passez cet identifiant aux outils.',
+            'search' => 'Cherchez son identifiant avec search {"query": ":station", "kinds": ["stations"]}. Plusieurs gares portent parfois le même nom : en cas de doute, demandez laquelle avant de continuer.',
+        ],
     ],
 ];

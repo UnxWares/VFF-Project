@@ -17,6 +17,22 @@ use Illuminate\Http\Request;
 #[Group('Lignes', "Une ligne en détail : chronologie, gares dans l'ordre des points kilométriques, conversion de coordonnées en PK, signalisation, médias.", weight: 2)]
 class LineSignallingController extends Controller
 {
+    /** Fait réel (ligne 974000, révision 240844633) des exemples de la documentation. */
+    private const EXAMPLE_FACT = [
+        'system' => 'BAL', 'role' => 'block', 'date' => '1962-06-01', 'date_precision' => 'month', 'reliability' => 'high',
+        'scope' => 'section', 'origin' => 'text',
+        'section' => [
+            'from' => 'Garches', 'to' => 'Saint-Nom-la-Bretèche', 'location' => 'stations', 'pk_start_m' => 16714, 'pk_end_m' => 29913,
+            'from_station' => ['slug' => 'garches-marnes-la-coquette', 'name' => 'Garches-Marnes-la-Coquette', 'pk_m' => 16714],
+            'to_station' => ['slug' => 'st-nom-la-breteche-foret-de-marly', 'name' => 'St-Nom-la-Bretêche-Forêt-de-Marly', 'pk_m' => 29913],
+        ],
+        'source' => [
+            'provider' => 'wikipedia', 'title' => 'Ligne de Saint-Cloud à Saint-Nom-la-Bretèche - Forêt-de-Marly',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Saint-Cloud_%C3%A0_Saint-Nom-la-Bret%C3%A8che_-_For%C3%AAt-de-Marly&oldid=240844633',
+            'revision' => 240844633, 'excerpt' => 'En juin 1962, le block automatique lumineux est étendu de Garches à Saint-Nom-la-Bretèche.',
+        ],
+    ];
+
     public function __construct(private readonly SignallingRanges $ranges, private readonly LineSignallingHistory $history) {}
 
     /**
@@ -102,56 +118,79 @@ class LineSignallingController extends Controller
      * Historique de la signalisation d'une ligne.
      *
      * Mises en service **datées** de systèmes de signalisation, relevées dans l'article Wikipédia de la
-     * ligne (`vff:import-signalling-history`) : un fait par système, date et portion. C'est un historique à
-     * part : l'état actuel de la ligne reste `GET /lines/{line}/signalling` (SNCF Réseau), que ces faits ne
-     * corrigent pas, et la carte par ère n'en tient pas compte. Liste vide si l'article ne date aucune mise
-     * en service.
+     * ligne (`vff:import-signalling-history`) : texte, listes, tableaux et infobox. Un fait par système, date
+     * et portion. C'est un historique à part : l'état actuel de la ligne reste `GET /lines/{line}/signalling`
+     * (SNCF Réseau), que ces faits ne corrigent pas. Liste vide si l'article ne date aucune mise en service.
      *
      * Pour chaque fait :
      * - `system` : `BAL` (block automatique lumineux), `BAPR` (block automatique à permissivité restreinte),
      *   `BM` (block manuel, toutes variantes), `CT` (cantonnement téléphonique), `TVM-300`, `TVM-430` ou `TVM`
-     *   (niveau non précisé), `ETCS_L1`, `ETCS_L2` ou `ETCS` (niveau non précisé), `KVB` ;
+     *   (version non précisée), `ETCS_L1`, `ETCS_L2` ou `ETCS` (niveau non précisé), `KVB` ;
      * - `role` : `block` (cantonnement, qui espace les trains), `cab` (signalisation en cabine, TVM et ETCS : à
-     *   la fois cantonnement et contrôle de vitesse), `speed_control` (contrôle de vitesse : le KVB n'est
-     *   **jamais** un cantonnement) ;
+     *   la fois cantonnement et contrôle de vitesse ; une ligne à grande vitesse n'a pas de BAL), `speed_control`
+     *   (contrôle de vitesse : le KVB n'est **jamais** un cantonnement) ;
      * - `date` (`AAAA-MM-JJ`) et `date_precision` (`day`, `month` ou `year` : le jour ou le mois manquants
      *   sont complétés par `01`, ne les lisez pas comme une date exacte) ;
-     * - `reliability` : `high` (jour ou mois donné) ou `medium` (année seule). Les faits douteux (date
-     *   approximative « vers 1937 », plusieurs dates dans la même phrase, période « de 1968 à 1984 », article
-     *   de plusieurs lignes) sont gardés en interne et jamais exposés ;
+     * - `reliability` : `high` (jour ou mois donné) ou `medium` (année seule, date reprise d'une phrase voisine
+     *   comme « la même année » ou « à cette occasion », qui peut être au jour, ou date déduite de l'ouverture,
+     *   voir `origin: opening` ; la précision est dans `date_precision`). Les faits douteux (date approximative « vers 1937 », plusieurs dates dans la
+     *   même phrase, période « de 1968 à 1984 », article de plusieurs lignes) sont gardés en interne et jamais
+     *   exposés ;
+     * - `origin` : où l'article donne le fait : `text` (phrase), `list` (liste à puces), `table` (ligne d'un
+     *   tableau), `infobox` (champ « signalisation » daté), `opening` (TVM d'une ligne à grande vitesse : elle
+     *   n'a pas de signaux latéraux et ne roule pas sans sa TVM, en service dès l'ouverture ; date = première
+     *   mise en service de l'infobox, version de l'infobox ou `TVM` si une autre version a précédé) ;
      * - `scope` : `whole_line` (l'article dit toute la ligne), `section` (portion nommée) ou `unspecified`
-     *   (l'article ne dit pas) ; `section` donne alors les lieux tels qu'écrits (`from`, `to`) et les PK en
-     *   mètres (`pk_start_m`, `pk_end_m`) quand l'article les cite, sinon null ;
+     *   (l'article ne dit pas) ;
+     * - `section` (portion nommée seulement, sinon null) : `from`, `to` (lieux tels qu'écrits), `location`
+     *   (`stations` : placée par les deux gares d'extrémité trouvées sur la ligne et leurs PK calés,
+     *   `article_pk` : PK donnés par l'article, `unlocated` : lieux introuvables ou ambigus, aucun PK n'est
+     *   inventé), `pk_start_m` et `pk_end_m` (PK de la portion placée, en mètres, null sinon), `from_station`
+     *   et `to_station` (`slug`, `name`, `pk_m` de chaque gare retenue, null sinon) ;
      * - `source` : `provider` (`wikipedia`), `title` de l'article, `url` (permalien de la révision lue),
      *   `revision` et `excerpt`, une courte phrase de l'article (200 caractères au plus) pour relire le fait.
      *
-     * Premier relevé, limité : les tableaux des articles ne sont pas lus, et un fait absent ne veut pas dire
-     * qu'aucun système n'a été mis en service. Le texte des articles est sous CC BY-SA 4.0 : reproduisez la
-     * mention du champ `attribution` ; seuls des faits sont repris. `provenance` donne le fournisseur et la
-     * licence, comme les autres réponses.
+     * Avec `era`, la réponse ajoute `era_year` et `in_force` : les faits encore en vigueur à la fin de l'ère
+     * (31 décembre de l'année ; aujourd'hui pour 2030), ceux que dessine la carte de l'époque
+     * (`GET /eras/{year}/signalling/tiles/…`). Un fait plus récent du même groupe (cantonnement, TVM, ETCS,
+     * KVB) qui porte sur toute la ligne ou recouvre sa portion placée le remplace ; un remplacement que
+     * l'article ne date pas reste invisible.
+     *
+     * Relevé limité : un fait absent ne veut pas dire qu'aucun système n'a été mis en service. Le texte des
+     * articles est sous CC BY-SA 4.0 : reproduisez la mention du champ `attribution` ; seuls des faits sont
+     * repris. `provenance` donne le fournisseur et la licence, comme les autres réponses.
      */
     #[PathParameter('line', 'Identifiant (slug) de la ligne, tel que renvoyé par la recherche ou par les GeoJSON (`line_slug`). Les lignes du réseau ferré national sont nommées `rfn-` suivi de leur code à 6 chiffres.', example: 'rfn-974000')]
+    #[QueryParameter('era', "Année d'une ère (décennie de 1830 à 2030) : ajoute `in_force`, les faits en vigueur à la fin de cette ère. Facultatif.", type: 'int', example: 1990)]
     #[ApiResponse(200, "Mises en service de signalisation datées de la ligne (liste vide s'il n'y en a aucune).", examples: [[
         'line' => ['slug' => 'rfn-974000', 'code' => '974000', 'name' => 'Ligne de St-Cloud à St-Nom-la-Bretèche-Forêt-de-Marly'],
-        'history' => [[
-            'system' => 'BAL', 'role' => 'block', 'date' => '1962-06-01', 'date_precision' => 'month', 'reliability' => 'high',
-            'scope' => 'section', 'section' => ['from' => 'Garches', 'to' => 'Saint-Nom-la-Bretèche', 'pk_start_m' => null, 'pk_end_m' => null],
-            'source' => [
-                'provider' => 'wikipedia', 'title' => 'Ligne de Saint-Cloud à Saint-Nom-la-Bretèche - Forêt-de-Marly',
-                'url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Saint-Cloud_%C3%A0_Saint-Nom-la-Bret%C3%A8che_-_For%C3%AAt-de-Marly&oldid=240844633',
-                'revision' => 240844633, 'excerpt' => 'En juin 1962, le block automatique lumineux est étendu de Garches à Saint-Nom-la-Bretèche.',
-            ],
-        ]],
+        'history' => [self::EXAMPLE_FACT],
+        'era_year' => 1970,
+        'in_force' => [self::EXAMPLE_FACT],
         'attribution' => LineSignallingHistory::ATTRIBUTION,
         'provenance' => ['provider' => 'wikipedia', 'name' => 'Wikipédia (FR)', 'license' => 'CC BY-SA 4.0 pour les textes ; les faits (dates) ne sont pas protégés', 'license_status' => 'verified'],
     ]])]
-    #[ApiResponse(404, 'Ligne inconnue.', examples: [ErrorExamples::LINE_NOT_FOUND])]
+    #[ApiResponse(404, 'Ligne inconnue, ou ère inconnue (`era`).', examples: [ErrorExamples::LINE_NOT_FOUND])]
+    #[ApiResponse(422, '`era` n\'est pas un nombre entier.')]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
-    public function history(Line $line): JsonResponse
+    public function history(Line $line, Request $request): JsonResponse
     {
-        return response()->json([
+        $request->validate(['era' => 'nullable|integer|min:0|max:9999']);
+        $facts = $this->history->facts($line);
+        $body = [
             'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name],
-            'history' => $this->history->facts($line),
+            'history' => $facts,
+        ];
+        if ($request->filled('era')) {
+            $era = Era::where('year', $request->integer('era'))->first();
+            if ($era === null) {
+                return response()->json(ErrorExamples::eraNotFound($request->integer('era')), 404);
+            }
+            $body['era_year'] = (int) $era->year;
+            $body['in_force'] = $this->history->inForce($line, $era, $facts);
+        }
+
+        return response()->json($body + [
             'attribution' => LineSignallingHistory::ATTRIBUTION,
             'provenance' => $this->history->provenance(),
         ])->header('Cache-Control', 'public, max-age=3600');

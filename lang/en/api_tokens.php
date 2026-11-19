@@ -2,7 +2,7 @@
 
 return [
     'title' => 'API access tokens',
-    'intro' => 'You can use the VFF API without a token, up to :anonymous requests per minute from each IP address. A personal token raises that limit for your account. It can only read data: it cannot change your profile or submit contributions.',
+    'intro' => 'You can use the VFF API without a token, up to :anonymous requests per minute from each IP address. A personal token raises that limit for your account. It reads data. If you tick the box when creating it, it can also contribute through the GraphQL API. It never gives access to your profile.',
     'docs_link' => 'How to use it, with examples, on the API access page',
     'quota_label' => 'Your limit with a token',
     'quota_value' => ':count requests per minute',
@@ -27,6 +27,10 @@ return [
     'name_label' => 'Token name',
     'name_hint' => 'So you can recognise it later, for example the name of the program that will use it.',
     'create_button' => 'Create token',
+    'contribute_label' => 'Allow contributions through the API',
+    'contribute_hint' => 'The token will be able to propose changes and, if your account is a validator, approve or reject other people’s, under the site’s rules. Leave the box empty if the program only needs to read.',
+    'scope_read' => 'Read',
+    'scope_contribute' => 'Read and contribute',
     'blocked_suspended' => 'Your account is suspended: you cannot create tokens, and the API refuses your tokens until the suspension ends.',
     'blocked_max' => 'You have :max tokens, the maximum. Revoke one to create another.',
     'new_title' => 'Copy your token now',

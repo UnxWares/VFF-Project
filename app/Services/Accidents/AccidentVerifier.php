@@ -23,10 +23,11 @@ use Illuminate\Support\Facades\DB;
  *
  * Une fiche est « ok » seulement si :
  *   - une source primaire fiable (enquête du BEA-TT) donne la date ET la commune de la fiche (`primary_source`) ; ou
- *   - deux sources de familles différentes (AccidentClaim : officielle, Wikipédia, Wikidata) donnent toutes
- *     deux la date ET la commune, sans qu'aucune autre ne dise autre chose (`two_sources` ; `wikidata_wikipedia`
+ *   - deux sources de familles différentes (AccidentClaim : officielle, Wikipédia, Wikidata, liste anglaise ou
+ *     allemande avec sa propre référence) donnent toutes deux la date ET la commune, sans qu'aucune autre ne dise autre chose (`two_sources` ; `wikidata_wikipedia`
  *     quand ce sont seulement Wikidata sans référence et Wikipédia, que l'on distingue parce que l'une peut
- *     être copiée de l'autre).
+ *     être copiée de l'autre ; `wikipedia_editions` quand l'une des deux est une liste en anglais ou en allemand
+ *     qui cite sa propre référence et l'autre Wikipédia en français).
  * et qu'aucune note de doute sur la date, le lieu ou le bilan ne reste (BLOCKING). La précision du lieu
  * reste celle que la source donne (commune, gare, point) ; le rattachement à une ligne porte sa propre
  * confiance. Une fiche déjà « ok » n'est jamais rendue « à vérifier » pour un défaut de confirmation : seulement
@@ -41,6 +42,9 @@ final class AccidentVerifier
     /** Wikidata (déclarations sans référence) et Wikipédia : deux pages, mais la première est souvent copiée de la seconde. */
     public const RULE_WIKIMEDIA_PAIR = 'wikidata_wikipedia';
 
+    /** Wikipédia et une liste en anglais ou en allemand qui cite sa propre référence : indépendantes, mais deux pages Wikimedia. */
+    public const RULE_EDITIONS = 'wikipedia_editions';
+
     /** Une commune citée à moins de cette distance du point de la fiche n'est pas une contradiction (gare voisine, hameau). */
     private const NEARBY_COMMUNE_M = 15000;
 
@@ -54,7 +58,10 @@ final class AccidentVerifier
     /** Notes que la vérification écrit elle-même et recalcule à chaque passage. */
     private const OWN_NOTES = ['possible_duplicate', 'alias_toll_mismatch', 'verification_conflict'];
 
-    private const PROVIDER_LABELS = ['bea-tt' => 'BEA-TT', 'wikidata' => 'Wikidata', 'wikipedia' => 'Wikipédia'];
+    private const PROVIDER_LABELS = [
+        'bea-tt' => 'BEA-TT', 'wikidata' => 'Wikidata', 'wikipedia' => 'Wikipédia',
+        'wikipedia-en' => 'Wikipédia en anglais', 'wikipedia-de' => 'Wikipédia en allemand',
+    ];
 
     public function __construct(
         private readonly AccidentClaimReader $claims,
@@ -229,8 +236,7 @@ final class AccidentVerifier
         } elseif (count($date['families']) >= 2 && count($place['families']) >= 2 && $date['disagree'] === [] && $place['disagree'] === []) {
             // Étiquette de chaque fait, puis la plus faible des deux : une source officielle qui ne
             // confirme que la date ne rend pas indépendantes les deux pages Wikimedia qui donnent le lieu.
-            $rule = $this->isWikimediaPair($date['families']) || $this->isWikimediaPair($place['families'])
-                ? self::RULE_WIKIMEDIA_PAIR : self::RULE_TWO_SOURCES;
+            $rule = $this->weakestRule($date['families'], $place['families']);
         }
 
         $current = $accident->review_status;
@@ -372,6 +378,24 @@ final class AccidentVerifier
     private function officialDisagrees(array $date, array $place): bool
     {
         return array_any([...$date['disagree'], ...$place['disagree']], fn (array $c): bool => ($c['family'] ?? null) === AccidentClaim::OFFICIAL);
+    }
+
+    /**
+     * Nom de la règle « deux sources » : la plus faible des deux (date, lieu). Une source officielle qui ne confirme
+     * que la date ne rend pas plus indépendantes les pages Wikimedia qui donnent le lieu.
+     *
+     * @param  list<string>  $dateFamilies
+     * @param  list<string>  $placeFamilies
+     */
+    private function weakestRule(array $dateFamilies, array $placeFamilies): string
+    {
+        $rank = fn (array $families): int => match (true) {
+            $this->isWikimediaPair($families) => 0,
+            array_diff($families, [AccidentClaim::WIKIPEDIA, AccidentClaim::WIKIDATA_BARE, AccidentClaim::WIKIPEDIA_EDITION]) === [] => 1,
+            default => 2,
+        };
+
+        return [self::RULE_WIKIMEDIA_PAIR, self::RULE_EDITIONS, self::RULE_TWO_SOURCES][min($rank($dateFamilies), $rank($placeFamilies))];
     }
 
     /**

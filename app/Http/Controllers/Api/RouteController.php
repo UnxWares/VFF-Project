@@ -66,6 +66,12 @@ class RouteController extends Controller
         ],
     ];
 
+    /**
+     * Tracé complet pour la carte du site (MapRouteController) : la règle des droits des tracés ne
+     * s'applique qu'à l'API, comme pour les tuiles vectorielles qui servent à l'affichage.
+     */
+    protected bool $forDisplay = false;
+
     public function __construct(protected PathfindingService $pathfinding) {}
 
     /**
@@ -90,7 +96,12 @@ class RouteController extends Controller
      *   `gauge_changes` : changements d'écartement en route (en mm) ;
      * - `gap_joins` : raccords entre portions de tracé non jointives ;
      *   `warnings` : avertissements à signaler à l'utilisateur ;
-     * - `geometry` : tracé du trajet en GeoJSON (WGS 84) ;
+     * - `geometry` : tracé du trajet en GeoJSON (WGS 84). Droits des tracés :
+     *   une section gare à gare qui reprend un tronçon d'une source dont la
+     *   licence n'autorise pas la redistribution en est retirée ;
+     *   `geometry_withheld` vaut alors `true` et `geometry_withheld_m` donne la
+     *   longueur retirée, en mètres (`geometry` vaut `null` si tout l'est).
+     *   Les gares (`stations`, avec leurs coordonnées) restent toutes données ;
      * - `graph` : métadonnées du graphe utilisé (date de calcul…).
      *
      * Erreurs (champ `error`, avec `message`) : `era_not_found` (404),
@@ -118,7 +129,9 @@ class RouteController extends Controller
      *     closed_stations_passed: int,
      *     gap_joins: int,
      *     warnings: array<string>,
-     *     geometry: array{type: string, coordinates: array},
+     *     geometry: ?array{type: string, coordinates: array},
+     *     geometry_withheld: bool,
+     *     geometry_withheld_m: int,
      *     graph: array{built_at: string, stations_source: string, components: int, station_nodes: int}
      * }
      */
@@ -149,6 +162,7 @@ class RouteController extends Controller
         'gap_joins' => 3, 'warnings' => ['gap_joins'],
         'options' => ['heritage' => false, 'traffic' => 'passenger'],
         'geometry' => ['type' => 'MultiLineString', 'coordinates' => [[[-4.47978, 48.38782], [-4.47854, 48.38787]]]],
+        'geometry_withheld' => true, 'geometry_withheld_m' => 35000,
         'graph' => ['built_at' => '2026-10-20 13:20:49', 'stations_source' => 'station_eras', 'components' => 21, 'station_nodes' => 8298],
     ]])]
     #[ApiResponse(404, 'Ère, gare ou chemin introuvable (`error` = `era_not_found`, `station_not_found`, `station_not_in_network` ou `no_path`).')]
@@ -172,7 +186,7 @@ class RouteController extends Controller
                 $request->string('from')->value(),
                 $request->string('to')->value(),
                 $year,
-                ['heritage' => $request->boolean('heritage'), 'traffic' => $request->input('traffic', 'passenger')],
+                ['heritage' => $request->boolean('heritage'), 'traffic' => $request->input('traffic', 'passenger'), 'display' => $this->forDisplay],
             );
         } catch (RouteException $e) {
             return response()->json(['error' => $e->errorCode, 'message' => $e->getMessage(), ...$e->details], $e->status);
@@ -193,7 +207,8 @@ class RouteController extends Controller
      * paramètres : `earlier` (la plus ancienne) et `later`. Pour chacune :
      * - `requested_year` : année demandée (nulle : réseau actuel) ; `era_year` : ère retenue ;
      *   `era_is_current` : vrai pour le réseau d'aujourd'hui ;
-     * - `route` : l'itinéraire complet (voir `GET /api/v1/route`), ou `null` ;
+     * - `route` : l'itinéraire complet (voir `GET /api/v1/route`, même règle des droits pour
+     *   `geometry` : `geometry_withheld`, `geometry_withheld_m`), ou `null` ;
      * - `unavailable` : `null`, ou la raison de l'absence de trajet : `error` = `no_path`
      *   (gares non reliées par le réseau en service) ou `station_not_in_network` (gare fermée
      *   ou hors du réseau exploité, avec `side`, `station` et `status`), avec `message`.
@@ -253,7 +268,7 @@ class RouteController extends Controller
                 $request->string('to')->value(),
                 $request->eraYear(),
                 $request->compareYear(),
-                $request->routeOptions(),
+                $request->routeOptions() + ['display' => $this->forDisplay],
             );
         } catch (RouteException $e) {
             return response()->json(['error' => $e->errorCode, 'message' => $e->getMessage(), ...$e->details], $e->status);

@@ -16,6 +16,8 @@
         serviceState,
         splitArrows,
     } from '$lib/materialFacts.js';
+    import { periodText } from '$lib/materialPeriods.js';
+    import { formatLocale } from '$lib/typo.js';
 
     let { material, lines = [], lines_total = 0 } = $props();
 
@@ -247,6 +249,21 @@
             >
         </div>
         <p class="confidence">{t(`${key}.text`)}</p>
+        {#if l.periods?.length}
+            <div class="periods">
+                <p class="periods-label">{t('materials.periods.label')}</p>
+                <ul>
+                    {#each l.periods as p, i (i)}
+                        <li>
+                            {periodText(p, t, formatLocale(lang))}
+                            (<a href={p.source_url} target="_blank" rel="noopener noreferrer"
+                                >{t('materials.periods.source')}{@render ext()}</a
+                            >)
+                        </li>
+                    {/each}
+                </ul>
+            </div>
+        {/if}
         {#if l.quote}
             <blockquote class="quote" lang="fr" cite={l.source_url}>
                 <p>{l.quote}</p>
@@ -625,6 +642,24 @@
         text-decoration: underline;
         text-decoration-color: var(--vff-accent);
         text-underline-offset: 3px;
+    }
+    .periods-label {
+        margin: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        font-weight: 600;
+        line-height: var(--vff-lh-ui);
+    }
+    .periods ul {
+        margin: 4px 0 0;
+        padding-left: 1.2em;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.6;
+    }
+    .periods a {
+        padding-block: 4px;
+        overflow-wrap: anywhere;
     }
     .confidence,
     .cite,

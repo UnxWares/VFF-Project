@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Tuiles vectorielles des voies vertes sur d'anciennes lignes (calque « Voies vertes » de /maps),
  * couche `vff-greenways` : la partie de chaque way OSM qui suit l'ancienne emprise (`line_greenways.geom`).
+ * La propriété `name` est le nom affiché (`display_name`, GreenwayNames::displayName), le même que
+ * celui de la fiche et de l'API : jamais un lieu, un type de voie ou un nom de rue tiré d'OSM.
  * Les ways qui reprennent l'emprise de deux lignes superposées sont dessinés une fois par ligne
  * (propriétés `line_slug` différentes). Servies à partir du zoom MIN_ZOOM ; sous le zoom 11 les
  * tracés sont simplifiés à la résolution de la tuile (quelques milliers de ways sur la France).
@@ -58,7 +60,7 @@ final class GreenwayTiles
             ),
             mvt_layer AS (
                 SELECT g.osm_way_id AS way_id,
-                       COALESCE(g.relation_name, g.name) AS name,
+                       g.display_name AS name,
                        g.highway,
                        g.shared_length_m,
                        g.opened_year,

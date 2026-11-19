@@ -70,6 +70,9 @@ class SourceRightsTest extends TestCase
         $allowed = [
             'archeoferroviaire' => ['https://macarte.ign.fr/cgu'],
             'tiers-cites' => ['https://commons.wikimedia.org/wiki/Commons:Copyright_rules_by_territory/France/fr'],
+            // Pages de réutilisation des éditions anglaise et allemande de Wikipédia : leur licence est celle de chaque édition.
+            'wikipedia-en' => ['https://en.wikipedia.org/wiki/Wikipedia:Reusing_Wikipedia_content'],
+            'wikipedia-de' => ['https://de.wikipedia.org/wiki/Wikipedia:Weiternutzung'],
         ];
         $portals = ['transport.data.gouv.fr'];
         foreach (self::registry()['providers'] as $key => $p) {

@@ -3,6 +3,8 @@
     import { i18n } from '$lib/i18n.js';
     import {
         categoryColor,
+        categorySwatch,
+        decadesLegend,
         formatEventDate,
         formatKm,
         maxKnownLength,
@@ -17,7 +19,10 @@
      * déposée), et ses gares (station_eras, la source de la carte et des fiches gares).
      * Les années identiques qui se suivent (mêmes longueurs, mêmes comptes de gares, aucune
      * fermeture) sont regroupées sur une ligne « 1890 à 2010 ». Le bouton « Carte » affiche la
-     * phase en vigueur à cette date, et son nom accessible dit laquelle.
+     * phase en vigueur à cette date, et son nom accessible dit laquelle. Chaque gare comptée fermée
+     * pour la première fois à une date est nommée (LineStations::closureEntries), même sans date
+     * retenue : l'intervalle de la frise, et « rouverte ensuite » pour une fermeture provisoire.
+     * Le ruban de composition a sa légende sous le tableau et son texte pour les lecteurs d'écran.
      */
     let { decades = [], phases = [], onselect = () => {} } = $props();
 
@@ -27,6 +32,8 @@
     const scale = $derived(
         Math.max(maxKnownLength(phases), ...decades.map((d) => sum(d.length_by_category))),
     );
+    const legend = $derived(decadesLegend(decades));
+    const catLabel = (cat) => t(`lines.categories.${cat}`);
 
     function sum(o) {
         return Object.values(o ?? {}).reduce((a, b) => a + b, 0);
@@ -76,8 +83,9 @@
         if (r.is_current) return t('lines.decades.today');
         return r.from === r.to ? String(r.from) : t('lines.sheet.decades.span', r);
     }
+    /** « 26 mai 1991 », « entre 1931 et 1940, rouverte ensuite » (fermeture provisoire). */
     function closureDate(c) {
-        return firstOfMonth(
+        const date = firstOfMonth(
             formatStationDate(
                 c.closed_at,
                 c.closed_precision,
@@ -87,6 +95,7 @@
             ),
             lang,
         );
+        return c.reopened ? `${date}, ${t('lines.sheet.decades.reopened')}` : date;
     }
     function seeLabel(r, idx) {
         const p = phases[idx];
@@ -128,7 +137,7 @@
                 {@const st = r.stations ?? {}}
                 {@const hasSt = (st.open ?? 0) + (st.closed ?? 0) + (st.uncertain ?? 0) > 0}
                 {@const target = phaseAt(r.to)}
-                <tr class:current={r.is_current}>
+                <tr class={{ current: r.is_current }}>
                     <th scope="row" class="sticky">{rowLabel(r)}</th>
                     <td class="strip-col">
                         <span class="strip" aria-hidden="true">
@@ -140,6 +149,9 @@
                                 ></span>
                             {/each}
                         </span>
+                        <span class="vff-sr-only"
+                            >{strip.map((s) => `${catLabel(s.cat)} ${km(s.m)}`).join(', ')}</span
+                        >
                     </td>
                     <td class="num">{r.active_m ? km(r.active_m) : '-'}</td>
                     <td class="num">{closed ? km(closed) : '-'}</td>
@@ -176,6 +188,16 @@
         </tbody>
     </table>
 </div>
+{#if legend.length}
+    <ul class="legend" aria-label={t('lines.sheet.decades.legend')}>
+        {#each legend as cat (cat)}
+            <li>
+                <span class="swatch" style={categorySwatch(cat)} aria-hidden="true"
+                ></span>{catLabel(cat)}
+            </li>
+        {/each}
+    </ul>
+{/if}
 <p class="hint">{t('lines.sheet.decades.scroll_hint')}</p>
 <p class="foot">{t('lines.sheet.decades.uncertain_note')}</p>
 
@@ -288,6 +310,29 @@
     .see:hover {
         border-color: var(--vff-accent-ink);
         color: var(--vff-accent-ink);
+    }
+    /* Légende du ruban de composition : mêmes traits que la carte et le rail de l'en-tête. */
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 20px;
+        margin: 12px 0 0;
+        padding: 0;
+        list-style: none;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        color: var(--vff-text-muted);
+    }
+    .legend li {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .swatch {
+        display: inline-block;
+        flex-shrink: 0;
+        width: 18px;
+        border-radius: 2px;
     }
     .hint {
         display: none;

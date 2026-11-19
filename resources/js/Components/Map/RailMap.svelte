@@ -173,8 +173,8 @@
         // Calque « Passages à niveau » (tuiles à partir du zoom 9) : le parent ne l'active qu'à
         // l'ère courante, seul état connu.
         levelCrossings = false,
-        // Calque « Signalisation » (tranches de cantonnement de l'ère courante) ; le réseau habituel
-        // est alors estompé pour que les couleurs des tranches se lisent.
+        // Calque « Signalisation » : tranches de SNCF Réseau à l'ère courante, mises en service datées
+        // (Wikipédia) à une ère passée ; le réseau habituel est alors estompé pour que les couleurs se lisent.
         signalling = false,
         // Calque « Voies vertes » : tracés d'OpenStreetMap sur l'emprise de lignes disparues ou
         // fermées, état actuel superposé à n'importe quelle époque.
@@ -993,7 +993,7 @@
             applyView(view, era, compareEra);
             applyAccidents(accidents, view, era, compareEra);
             applyLevelCrossings(levelCrossings);
-            applySignalling(signalling);
+            applySignalling(signalling, signallingYear);
             applyGreenways(greenways);
             if (typeof onZoomChange === 'function') {
                 onZoomChange(map.getZoom());
@@ -1331,17 +1331,19 @@
     // Sources et couches ajoutées au premier affichage, masquées ensuite (MapLibre ne charge pas les
     // tuiles d'une couche masquée). Un clic sur un point ou une tranche passe avant le tracé dessous.
     const OVERLAY_HIT_PX = 6;
-    // Réseau habituel estompé sous la signalisation (opacité multipliée), rétabli ensuite.
+    // Réseau habituel estompé sous la signalisation (opacité multipliée), rétabli ensuite. À une époque
+    // passée, peu de lignes ont une mise en service datée : le réseau s'efface davantage pour qu'elles se lisent.
     const NETWORK_DIM = 0.3;
-    let networkDimmed = false;
+    const NETWORK_DIM_HISTORY = 0.15;
+    let networkDim = 1;
 
     function lineOpacity(id) {
-        return LINE_LAYER_OPACITY[id] * (networkDimmed ? NETWORK_DIM : 1);
+        return LINE_LAYER_OPACITY[id] * networkDim;
     }
 
     // Le liseré s'estompe avec le réseau (sinon il resterait seul, foncé, autour de tracés pâles).
     function casingOpacity() {
-        return CASING_OPACITY * (networkDimmed ? NETWORK_DIM : 1);
+        return CASING_OPACITY * networkDim;
     }
 
     function featureAt(point, layers, px = OVERLAY_HIT_PX) {
@@ -1420,14 +1422,19 @@
         setVisibility(LEVEL_CROSSING_LAYER_ID, on);
     }
 
-    function applySignalling(on) {
+    // Ère dont les tuiles de signalisation sont chargées (elles suivent la décennie affichée).
+    let signallingEra = null;
+
+    function applySignalling(on, year) {
         if (!map || !layersReady) return;
+        const tiles = signallingTilesUrl(window.location.origin, year, bustParam());
+        if (on && map.getSource(SIGNALLING_SOURCE_ID) && signallingEra !== year) {
+            map.getSource(SIGNALLING_SOURCE_ID).setTiles([tiles]);
+            signallingEra = year;
+        }
         if (on && !map.getSource(SIGNALLING_SOURCE_ID)) {
-            map.addSource(SIGNALLING_SOURCE_ID, {
-                type: 'vector',
-                tiles: [signallingTilesUrl(window.location.origin, currentEra, bustParam())],
-                maxzoom: 14,
-            });
+            map.addSource(SIGNALLING_SOURCE_ID, { type: 'vector', tiles: [tiles], maxzoom: 14 });
+            signallingEra = year;
             // Calques superposés : les tranches (des lignes) passent sous les passages à niveau
             // (des points), quel que soit l'ordre dans lequel on les coche.
             const before = map.getLayer(LEVEL_CROSSING_LAYER_ID)
@@ -1451,8 +1458,9 @@
             }
         }
         for (const id of SIGNALLING_LAYER_IDS) setVisibility(id, on);
-        if (networkDimmed !== on) {
-            networkDimmed = on;
+        const dim = !on ? 1 : year === currentEra ? NETWORK_DIM : NETWORK_DIM_HISTORY;
+        if (networkDim !== dim) {
+            networkDim = dim;
             for (const id of LINE_LAYERS) {
                 if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', lineOpacity(id));
             }
@@ -1501,7 +1509,10 @@
     }
 
     $effect(() => applyLevelCrossings(levelCrossings));
-    $effect(() => applySignalling(signalling));
+    // Décennie de la signalisation : celle de la carte dans la vue « une époque » (le parent ne
+    // demande le calque que dans cette vue), sinon l'ère courante.
+    const signallingYear = $derived(view === 'era' ? era : currentEra);
+    $effect(() => applySignalling(signalling, signallingYear));
     $effect(() => applyGreenways(greenways));
 
     // ── Itinéraire historique (RoutePlanner) : tracé + gares, au-dessus du réseau ──

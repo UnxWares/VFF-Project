@@ -31,7 +31,7 @@ class RouteComparison
     public function __construct(private readonly PathfindingService $pathfinding) {}
 
     /**
-     * @param  array{heritage?: bool, traffic?: string}  $options
+     * @param  array{heritage?: bool, traffic?: string, display?: bool}  $options
      * @return array<string, mixed>
      *
      * @throws RouteException
@@ -139,7 +139,7 @@ class RouteComparison
      * Itinéraire à une époque, ou la raison qui le rend impossible.
      *
      * @param  object{id: int, year: int, is_current: bool}  $era
-     * @param  array{heritage?: bool, traffic?: string}  $options
+     * @param  array{heritage?: bool, traffic?: string, display?: bool}  $options
      * @return array{requested_year: ?int, era_year: int, era_is_current: bool, route: array<string, mixed>|null, unavailable: array<string, mixed>|null}
      */
     private function atEra(string $from, string $to, ?int $requested, object $era, array $options): array

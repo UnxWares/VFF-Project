@@ -11,6 +11,8 @@ export default defineConfig({
     resolve: {
         alias: {
             $lib: fileURLToPath(new URL('./resources/js/lib', import.meta.url)),
+            // Composants rendus côté serveur dans les tests (svelte/server), comme dans vite.config.js.
+            $components: fileURLToPath(new URL('./resources/js/Components', import.meta.url)),
         },
     },
     test: {

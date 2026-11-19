@@ -12,7 +12,7 @@ return [
         'unnamed' => 'Unnamed greenway',
         'osm_hint' => 'OpenStreetMap',
         'map_link' => 'Show greenways on the map',
-        'method' => 'A greenway is linked to the line when it follows its axis to within 8 m, where no track is still in service. A greenway that only runs beside a line in service is left out.',
+        'method' => 'A greenway is linked to the line when it follows its axis to within 8 m, where no track is in service or left in place. A greenway that only runs beside a line in service, or beside rails left in place, is left out.',
         'source' => 'Data © OpenStreetMap contributors (ODbL licence), read on :date.',
     ],
 ];

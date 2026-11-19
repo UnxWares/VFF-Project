@@ -203,6 +203,9 @@ final class LineSheetExample
                     'link_method' => 'wikidata_p81',
                     'served_from' => 1865,
                     'served_until' => null,
+                    'served_until_kind' => null,
+                    // Morlaix sur Morlaix - Roscoff : aucun événement daté de la ligne au PK de la gare.
+                    'years_source' => 'station',
                     'opened_at' => '1865-04-26',
                     'opened_precision' => 'day',
                     'closed_at' => null,
@@ -241,6 +244,7 @@ final class LineSheetExample
                     'builder' => 'Renault',
                     'in_service_from' => 1951,
                     'in_service_to' => 1989,
+                    'periods' => [],
                 ],
             ],
             'sources' => [

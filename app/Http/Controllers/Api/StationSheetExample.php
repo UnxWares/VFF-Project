@@ -76,9 +76,12 @@ final class StationSheetExample
                     'pk_source' => 'sncf',
                     'first_year' => 1865,
                     'last_year' => null,
+                    'last_year_kind' => null,
+                    'years_source' => 'line_events',
                     'never_served' => null,
                     'active_current' => true,
                     'era_years' => [1870],
+                    'links' => ['web' => 'https://vff-project.org/lines/rfn-420000', 'api' => 'https://vff-project.org/api/v1/lines/rfn-420000'],
                 ],
             ],
             'sources' => [
@@ -124,12 +127,15 @@ final class StationSheetExample
                     'lng' => -4.4211292,
                     'lat' => 48.398713,
                     'distance_m' => 4535,
+                    'links' => ['web' => 'https://vff-project.org/stations/le-rody', 'api' => 'https://vff-project.org/api/v1/stations/le-rody'],
                 ],
             ],
             'links' => [
                 'web' => 'https://vff-project.org/stations/brest',
                 'events' => 'https://vff-project.org/api/v1/stations/brest/events',
                 'media' => 'https://vff-project.org/api/v1/media?station=brest',
+                'accidents' => 'https://vff-project.org/api/v1/accidents?station=brest',
+                'department' => 'https://vff-project.org/api/v1/departments/29',
             ],
         ],
     ];

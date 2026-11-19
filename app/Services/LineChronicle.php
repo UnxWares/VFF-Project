@@ -399,11 +399,16 @@ final class LineChronicle
         // Position approchée de chaque événement localisé le long de la ligne (rangement des portions) :
         // PK de la source, sinon PK de la gare de la ligne la plus proche de sa portion.
         $pkHints = [];
-        foreach (DB::select('SELECT e.id, COALESCE(e.section_pk_start_m, (
+        // Point de la portion calculé une fois par événement (CTE matérialisée) : dans le tri, il était
+        // recalculé pour chaque gare candidate (100 ms sur la LGV Sud-Est, 20 ms ainsi).
+        foreach (DB::select('WITH e AS MATERIALIZED (
+                    SELECT id, line_id, section_pk_start_m, ST_PointOnSurface(section_geom) AS p FROM line_events
+                    WHERE line_id = ? AND (section_pk_start_m IS NOT NULL OR section_geom IS NOT NULL))
+                SELECT e.id, COALESCE(e.section_pk_start_m, (
                     SELECT sl.pk_m FROM station_lines sl JOIN stations s ON s.id = sl.station_id
                     WHERE sl.line_id = e.line_id AND sl.pk_m IS NOT NULL
-                    ORDER BY s.geom <-> ST_PointOnSurface(e.section_geom) LIMIT 1)) AS pk
-                FROM line_events e WHERE e.line_id = ? AND (e.section_pk_start_m IS NOT NULL OR e.section_geom IS NOT NULL)', [$line->id]) as $h) {
+                    ORDER BY s.geom <-> e.p LIMIT 1)) AS pk
+                FROM e', [$line->id]) as $h) {
             if ($h->pk !== null) {
                 $pkHints[(int) $h->id] = (int) $h->pk;
             }
@@ -428,7 +433,8 @@ final class LineChronicle
                 'type' => $r->type,
                 'date' => substr((string) $r->event_date, 0, 10),
                 'precision' => in_array($r->date_precision, ['day', 'month', 'year'], true) ? $r->date_precision : 'day',
-                'description' => self::renamePlaces($d['text'], [$r->section_from => $from, $r->section_to => $to]),
+                // Clé vide sans lieu (renamePlaces l'ignore) : une clé null est dépréciée en PHP 8.5.
+                'description' => self::renamePlaces($d['text'], [(string) $r->section_from => $from, (string) $r->section_to => $to]),
                 'description_lang' => $d['lang'],
                 'correction' => $correction,
                 'correction_lang' => $correction !== null && $locale !== 'fr' ? 'fr' : null,

@@ -9,9 +9,11 @@ use Illuminate\Support\Sleep;
  * Cache local des wikitextes d'articles de lignes (un fichier JSON par titre), pour relire les articles
  * sans les retélécharger. Le dossier porte un `.nobackup` : contenu régénérable, hors sauvegarde.
  *
- * Le téléchargement passe par WikimediaClient (User-Agent du robot, maxlag, 50 titres par requête, reprises)
- * avec une pause entre deux lots. Un article absent de Wikipédia est mémorisé (`missing`) pour ne pas être
- * redemandé à chaque exécution.
+ * Le téléchargement passe par WikimediaClient::api() (User-Agent du robot, maxlag, reprises), 50 titres par
+ * requête, avec une pause entre deux lots. Un article est mémorisé absent (`missing`) seulement quand l'API le
+ * dit (page `missing` ou `invalid`), pour ne pas être redemandé à chaque exécution. Une réponse d'erreur (par
+ * exemple `readonly` pendant une maintenance, en HTTP 200) arrête le remplissage sans rien écrire pour le lot :
+ * une panne passagère ne fait jamais passer un article pour absent.
  */
 final class WikipediaArticleCache
 {
@@ -63,9 +65,13 @@ final class WikipediaArticleCache
             if ($n > 0) {
                 Sleep::sleep(self::PAUSE_SECONDS);
             }
-            $pages = $this->wiki->fetchPages($chunk);
+            [$pages, $absent] = $this->fetch($chunk);
             foreach ($chunk as $title) {
                 $page = $pages[$title] ?? null;
+                if ($page === null && ! in_array($title, $absent, true)) {
+                    // Ni lu ni déclaré absent par l'API (révision sans contenu) : rien n'est mémorisé.
+                    continue;
+                }
                 file_put_contents($this->path($title), json_encode([
                     'requested' => $title,
                     'missing' => $page === null,
@@ -81,6 +87,58 @@ final class WikipediaArticleCache
         }
 
         return count($todo);
+    }
+
+    /**
+     * Wikitexte d'un lot de titres (redirections suivies) et titres que l'API déclare absents.
+     *
+     * @param  list<string>  $titles
+     * @return array{0: array<string, array{title: string, revid: int, content: string}>, 1: list<string>}
+     *
+     * @throws \RuntimeException si l'API répond par une erreur
+     */
+    private function fetch(array $titles): array
+    {
+        $params = ['action' => 'query', 'prop' => 'revisions', 'rvprop' => 'content|ids', 'rvslots' => 'main', 'redirects' => 1, 'titles' => implode('|', $titles)];
+        $pages = [];
+        $missing = [];
+        $aliases = [];
+        $continue = [];
+        do {
+            $json = $this->wiki->api($params + $continue);
+            if (isset($json['error'])) {
+                throw new \RuntimeException('Wikipédia a répondu par une erreur ('.($json['error']['code'] ?? '?').') : lot non mis en cache.');
+            }
+            foreach (['normalized', 'redirects'] as $k) {
+                foreach ($json['query'][$k] ?? [] as $n) {
+                    $aliases[$n['from']] = $n['to'];
+                }
+            }
+            foreach ($json['query']['pages'] ?? [] as $p) {
+                if (! empty($p['missing']) || ! empty($p['invalid'])) {
+                    $missing[] = (string) $p['title'];
+                } elseif (! empty($p['revisions'][0]['slots']['main']['content'])) {
+                    $pages[$p['title']] = ['title' => $p['title'], 'revid' => (int) $p['revisions'][0]['revid'], 'content' => (string) $p['revisions'][0]['slots']['main']['content']];
+                }
+            }
+            $continue = $json['continue'] ?? [];
+        } while ($continue);
+
+        $found = [];
+        $absent = [];
+        foreach ($titles as $t) {
+            $final = $t;
+            for ($i = 0; $i < 3 && isset($aliases[$final]); $i++) {
+                $final = $aliases[$final];
+            }
+            if (isset($pages[$final])) {
+                $found[$t] = $pages[$final];
+            } elseif (in_array($final, $missing, true)) {
+                $absent[] = $t;
+            }
+        }
+
+        return [$found, $absent];
     }
 
     /** @return array{title: string, revid: int, content: string, fetched_at: string, missing: bool}|null */

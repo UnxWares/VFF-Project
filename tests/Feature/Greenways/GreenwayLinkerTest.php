@@ -194,6 +194,32 @@ class GreenwayLinkerTest extends TestCase
         $this->assertNull($links[902]->osm_relation_id);
     }
 
+    public function test_the_displayed_name_is_computed_once_with_the_greenway_naming_rule(): void
+    {
+        $line = $this->seedLine('446000', 'Ligne déposée', 55.3, 1.0, 1.2);
+        // Relation « Le Lac » (lieu) sur un way au nom d'itinéraire ; relation « Camping » sur une avenue ; way « Voie Verte ».
+        $this->seedGreenway(910, 55.3, 1.0, 1.03, ['name' => 'Voie Verte des Hautes-Vosges'], [['id' => 30, 'name' => 'Le Lac']]);
+        $this->seedGreenway(911, 55.3, 1.04, 1.07, ['name' => 'Avenue Maurice Maunoury'], [['id' => 31, 'name' => 'Camping']]);
+        $this->seedGreenway(912, 55.3, 1.08, 1.11, ['name' => 'Voie Verte']);
+        $this->seedGreenway(913, 55.3, 1.12, 1.15, ['name' => 'Chemin du halage'], [['id' => 32, 'name' => 'Voie verte du Val de Sarthe']]);
+
+        $this->link();
+
+        $links = $this->linksOf($line->id);
+        $this->assertSame('Voie Verte des Hautes-Vosges', $links[910]->display_name);
+        $this->assertNull($links[911]->display_name);
+        $this->assertNull($links[912]->display_name);
+        $this->assertSame('Voie verte du Val de Sarthe', $links[913]->display_name);
+        // Les noms OSM restent tels quels à côté.
+        $this->assertSame('Avenue Maurice Maunoury', $links[911]->name);
+        $this->assertSame('Camping', $links[911]->relation_name);
+
+        // Un nom OSM qui change est renommé à la relance.
+        DB::table('present_osm_ways')->where('id', 912)->update(['name' => 'Voie verte de la Vallée']);
+        $this->link();
+        $this->assertSame('Voie verte de la Vallée', $this->linksOf($line->id)[912]->display_name);
+    }
+
     public function test_a_greenway_on_two_overlapping_lines_is_linked_to_each(): void
     {
         $first = $this->seedLine('446000', 'Ligne A', 56.0, 1.0, 1.1);

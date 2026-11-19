@@ -62,15 +62,24 @@ final class AccidentImporter
         private readonly WikidataAccidentCollector $wikidata,
         private readonly BeaTtAccidentCollector $beaTt,
         private readonly WikipediaListCollector $list,
+        private readonly WikipediaEditionCollector $editions,
+        private readonly AccidentEditionMatcher $editionMatcher,
         private readonly AccidentLocator $locator,
         private readonly AccidentLineMatcher $matcher,
         private readonly AccidentSummary $summary,
     ) {}
 
     /** Fournisseurs lus par défaut ; l'import complet les lit tous. */
-    public const SOURCES = ['wikidata', 'bea-tt', 'wikipedia-list'];
+    public const SOURCES = ['wikidata', 'bea-tt', 'wikipedia-list', 'wikipedia-editions'];
 
-    /** @param list<string> $sources fournisseurs à lire : wikidata (avec les articles de Wikipédia), bea-tt, wikipedia-list (listes d'accidents) */
+    /** Fournisseurs des listes de Wikipédia en anglais et en allemand (accident_sources.provider). */
+    public const EDITION_PROVIDERS = ['wikipedia-en', 'wikipedia-de'];
+
+    /**
+     * @param  list<string>  $sources  fournisseurs à lire : wikidata (avec les articles de Wikipédia), bea-tt, wikipedia-list (listes
+     *                                 d'accidents), wikipedia-editions (listes en anglais et en allemand, qui recoupent les fiches
+     *                                 existantes sans en créer)
+     */
     public function run(AccidentSourceClient $client, array $sources = self::SOURCES, bool $dryRun = false, bool $prune = false): AccidentImportResult
     {
         $result = new AccidentImportResult;
@@ -79,7 +88,7 @@ final class AccidentImporter
         $wd = in_array('wikidata', $sources, true) ? $this->wikidata->collect($client) : [];
         $bea = in_array('bea-tt', $sources, true) ? $this->beaTt->collect($client) : [];
         $listed = in_array('wikipedia-list', $sources, true) ? $this->list->collect($client) : [];
-        $result->collected = ['wikidata' => count($wd), 'bea-tt' => count($bea), 'wikipedia-list' => count($listed)];
+        $result->collected = ['wikidata' => count($wd), 'bea-tt' => count($bea), 'wikipedia-list' => count($listed), 'wikipedia-editions' => 0];
         $this->listIds = [];
         $this->relinked = [];
         foreach ($listed as $l) {
@@ -136,10 +145,59 @@ final class AccidentImporter
                 $result->pruned = $result->unseen;
             }
         }
+        if (in_array('wikipedia-editions', $sources, true)) {
+            $this->attachEditions($client, $dryRun, $result);
+        }
         $result->requests = $client->requests;
         $result->missing = $client->missing;
 
         return $result;
+    }
+
+    /**
+     * Listes d'accidents des Wikipédia en anglais et en allemand : chaque entrée qui décrit un accident déjà en
+     * base (même jour, commune nommée comme lieu) lui ajoute sa source, jamais une fiche. C'est la seconde lecture
+     * que vff:verify-accidents compare à la fiche ; l'import ne confirme rien lui-même.
+     *
+     * Une entrée qui ne rapproche aucune fiche est comptée (`editions`) et listée dans le bilan. Les sources de
+     * ces listes qui ne sont plus lues (entrée corrigée, page remaniée) sont retirées quand toutes les pages ont été lues.
+     */
+    private function attachEditions(AccidentSourceClient $client, bool $dryRun, AccidentImportResult $result): void
+    {
+        $entries = $this->editions->collect($client);
+        $result->collected['wikipedia-editions'] = count($entries);
+        $kept = [];
+        foreach ($entries as $entry) {
+            [$status, $accident, $place] = $this->editionMatcher->match($entry);
+            $result->count('editions', $status);
+            if ($accident === null) {
+                $result->editionsUnmatched[] = ['key' => $entry->lang.':'.$entry->date.' '.($entry->places[0]['name'] ?? '?'), 'reason' => $status];
+
+                continue;
+            }
+            $externalId = $entry->lang.':'.$entry->date.'-'.$accident->commune_insee;
+            $kept[$entry->lang === 'de' ? 'wikipedia-de' : 'wikipedia-en'][] = $externalId;
+            if ($dryRun) {
+                continue;
+            }
+            $provider = $entry->lang === 'de' ? 'wikipedia-de' : 'wikipedia-en';
+            $row = AccidentSource::query()->firstOrNew(['provider' => $provider, 'external_id' => $externalId]);
+            $row->fill([
+                'accident_id' => $accident->id, 'role' => 'list', 'title' => Str::limit($entry->title, 297), 'url' => $entry->url(),
+                'licence' => WikipediaEditionCollector::LICENCE, 'licence_url' => WikipediaEditionCollector::LICENCE_URL,
+                'revision' => $entry->revision,
+                'facts' => array_filter([
+                    'date' => $entry->date, 'commune_insee' => $accident->commune_insee, 'place' => $place,
+                    'referenced' => $entry->referenced, 'references' => $entry->references,
+                ], fn ($v) => $v !== []),
+                'retrieved_at' => now(),
+            ])->save();
+        }
+        if (! $dryRun && $this->editions->complete && $client->missing === []) {
+            foreach (self::EDITION_PROVIDERS as $provider) {
+                AccidentSource::query()->where('provider', $provider)->whereNotIn('external_id', $kept[$provider] ?? [])->delete();
+            }
+        }
     }
 
     /**
@@ -365,7 +423,12 @@ final class AccidentImporter
                     'accident_id' => $accident->id, 'role' => $s->role, 'title' => Str::limit($s->title, 297),
                     'url' => $s->url, 'licence' => $s->licence, 'licence_url' => $s->licenceUrl,
                     'revision' => $s->revision, 'facts' => $s->facts !== [] ? $s->facts : null, 'retrieved_at' => now(),
-                ])->save();
+                ]);
+                // Un même lien ne figure qu'une fois par accident : la puce relue sous un nouvel identifiant
+                // (lieu ou bilan corrigé sur Wikipédia, identifiants refaits) remplace l'ancienne ligne.
+                AccidentSource::query()->where('accident_id', $accident->id)->where('url', $s->url)
+                    ->when($row->exists, fn ($q) => $q->where('id', '!=', $row->id))->delete();
+                $row->save();
             }
             $changes = [];
             if ($accident->deaths === null && isset($c->deaths['wikipedia'])) {
@@ -605,7 +668,8 @@ final class AccidentImporter
                 $row->save();
                 $keep[] = $row->id;
             }
-            AccidentSource::query()->where('accident_id', $accident->id)->whereNotIn('id', $keep)->delete();
+            // Les sources des listes anglaise et allemande se renouvellent dans attachEditions, pas ici.
+            AccidentSource::query()->where('accident_id', $accident->id)->whereNotIn('id', $keep)->whereNotIn('provider', self::EDITION_PROVIDERS)->delete();
 
             return $accident;
         });

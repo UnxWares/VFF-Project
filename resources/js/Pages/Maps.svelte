@@ -128,10 +128,13 @@
     };
 
     const showingToday = $derived(view === 'era' && selectedEra === currentEraYear);
-    const drawn = $derived(activeLayers({ data: dataLayers, orm: ormLayer }, showingToday));
+    const drawn = $derived(
+        activeLayers({ data: dataLayers, orm: ormLayer }, showingToday, view === 'era'),
+    );
     const showAccidents = $derived(drawn.accidents);
-    // Passages à niveau et signalisation : seul l'état d'aujourd'hui est connu (SNCF Réseau). Hors de
-    // la carte d'aujourd'hui, un message le dit et propose d'y revenir.
+    // Passages à niveau : seul l'état d'aujourd'hui est connu (SNCF Réseau) ; hors de la carte
+    // d'aujourd'hui, un message le dit et propose d'y revenir. Signalisation : état de SNCF Réseau
+    // aujourd'hui, mises en service datées (Wikipédia) aux époques passées.
     const showLevelCrossings = $derived(drawn.levelCrossings);
     const showSignalling = $derived(drawn.signalling);
     // Zoom de la carte, pour l'aide « zoomez pour voir les passages à niveau ».

@@ -21,6 +21,7 @@ return [
             'lignes-oubliees' => 'lignes-oubliees.com, information reproduced with credit and a link to the entry',
             'argentanwebferro' => 'Argentan Web Ferroviaire (Thierry Danglos), facts reused with a link to the article',
             'bea-tt' => 'BEA-TT (French land transport accident investigation bureau), Open Licence 2.0 (Etalab); general overview of investigations and report links, with the overview’s update date',
+            'insee' => 'INSEE, Code officiel géographique (codes and names of French departments and regions), Open Licence 2.0',
         ],
     ],
 
@@ -89,5 +90,46 @@ return [
         'licences_title' => 'Licences and credits for VFF data',
         'licence' => 'Licence',
         'mention' => 'Credit',
+    ],
+
+    // Invites (prompts) MCP : message envoyé à l'assistant, dans la langue demandée (app/Mcp/Prompts).
+    'prompts' => [
+        'language' => 'English',
+        'present_line' => [
+            'message' => 'Present the line ":line" using data from VFF (French Railway Lines, vff-project.org).
+1. :identify
+2. Read its sheet with get_line, events included. If the timeline was shortened (truncated), fill it in with line_events.
+3. Write a few paragraphs: where the line starts and ends, its length, its electrification and signalling, the main dates (opening, closures, electrification, track removal) and its state today.
+4. Cite the source of every date and figure (source field and source_url link). Write each date only to its known precision: day, month or year. A phase with "range" precision is dated by no source: say only that it happened between two decades.
+5. Use your own words. Do not copy text from Wikipedia or any other source.
+6. End with the vff_url link of the sheet and the credits in the attribution block.
+Answer in :language.',
+            'found' => 'The line is ":name" (identifier :slug): pass this identifier to the tools. Its Markdown sheet is also available as the resource vff://:lang/lines/:slug.',
+            'search' => 'Find its identifier with search {"query": ":line", "kinds": ["lines"]}. If several lines match, ask which one before going on.',
+        ],
+        'compare_region_eras' => [
+            'message' => 'Compare the railway network of the :region region (INSEE code :code) in :from and in :to, using data from VFF. Departments of the region: :departments.
+1. For each period, count open and closed lines with list_lines {"region": ":code", "era": <year>, "facets": true, "limit": 1}, and stations by status with list_stations {"region": ":code", "era": <year>, "facets": true, "limit": 1}.
+2. List what changed between the two dates with network_events {"region": ":code", "from": ":events_from", "to": ":events_to"} (closures, openings, electrifications, track removals), following next_cursor while has_more is true.
+3. To compare the region with the country, compare_eras {"from": :from, "to": :to} gives the same figures for the whole of France.
+4. Give a table of the two periods, then the main changes line by line, each with its date, its precision and its source.
+5. Explain that a line counts in the region if it serves a station there or if its sheet names one of its departments. The VFF map is a snapshot on 31 December of each decade; :era_note
+6. End with the credits in the attribution block.
+Answer in :language.',
+            'current' => 'the :to period describes today\'s network.',
+            'past' => 'both periods are snapshots on 31 December of their year.',
+        ],
+        'station_story' => [
+            'message' => 'Tell the history of the station ":station" using data from VFF.
+1. :identify
+2. Read its sheet with get_station: opening and closing dates, status in each decade, lines served with their years of service, sources.
+3. For the lines serving it, get_line (with include_events set to false) gives their opening and closure. Add accidents near the station with accidents {"station": "<identifier>"} and archive images with media {"station": "<identifier>"}.
+4. Tell the story in order: the opening, lines arriving or closing, changes of status, the situation today. A decade with the status "uncertain" is not confirmed by the tracks of the time: say so.
+5. Give every date with its precision and its source, use your own words without copying text from a source, and show each image with its attribution.
+6. End with the vff_url link of the sheet and the credits in the attribution block.
+Answer in :language.',
+            'found' => 'The station is ":name" (:city, identifier :slug): pass this identifier to the tools.',
+            'search' => 'Find its identifier with search {"query": ":station", "kinds": ["stations"]}. Several stations sometimes share a name: if in doubt, ask which one before going on.',
+        ],
     ],
 ];

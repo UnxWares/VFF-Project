@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Services\Api\Provenance;
+use App\Support\FrenchDepartments;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
@@ -53,14 +54,22 @@ class StationSheetResource extends JsonResource
             'eras' => array_map(fn (array $e): array => array_diff_key($e, ['note_lang' => true]), $page['eras']),
             'events' => array_map(fn (array $e): array => array_diff_key($e, ['note_lang' => true])
                 + ['provenance' => $provenance->for('station_events', $e['source'], $e['source_url'])], self::items($page['events'])),
-            'lines' => $page['lines'],
+            'lines' => array_map(fn (array $l): array => $l + ['links' => [
+                'web' => url('/lines/'.$l['slug']), 'api' => route('api.lines.show', $l['slug']),
+            ]], self::items($page['lines'])),
             'sources' => array_map(fn (array $s): array => ['pk_m' => is_numeric($s['pk_m']) ? (int) $s['pk_m'] : null]
                 + $s + ['provenance' => $provenance->for('station_sources', $s['source'], $s['url'])], $page['sources']),
-            'neighbors' => $page['neighbors'],
+            'neighbors' => array_map(fn (array $n): array => $n + ['links' => [
+                'web' => url('/stations/'.$n['slug']), 'api' => route('api.stations.show', $n['slug']),
+            ]], self::items($page['neighbors'])),
             'links' => [
                 'web' => url('/stations/'.$station['slug']),
                 'events' => route('api.stations.events', $station['slug']),
                 'media' => route('api.media.index', ['station' => $station['slug']]),
+                // Accidents dont cette gare est la gare la plus proche du lieu (accidents.nearest_station_id).
+                'accidents' => route('api.accidents.index', ['station' => $station['slug']]),
+                'department' => $station['department_code'] !== null && FrenchDepartments::find((string) $station['department_code']) !== null
+                    ? route('api.departments.show', strtoupper((string) $station['department_code'])) : null,
             ],
         ];
     }

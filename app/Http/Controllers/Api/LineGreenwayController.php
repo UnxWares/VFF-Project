@@ -98,7 +98,8 @@ class LineGreenwayController extends Controller
      *
      * Tuile vectorielle Mapbox (protobuf), couche `vff-greenways` : la partie de chaque way OSM qui suit
      * l'ancienne emprise d'une ligne (`GET /lines/{line}/greenways`). Propriétés : `way_id` (identifiant du
-     * way OSM), `name` (nom de l'itinéraire OSM ou du way, absent s'ils n'en ont pas), `highway`,
+     * way OSM), `name` (nom de la voie verte, le même que `greenways[].name` de `GET /lines/{line}/greenways` :
+     * celui de l'itinéraire OSM, sinon celui du way, absent quand aucun ne désigne un itinéraire), `highway`,
      * `shared_length_m` (longueur du way sur l'emprise de cette ligne), `opened_year` (si OSM la donne),
      * `line_slug` et `line_name`. Un way qui reprend l'emprise de deux lignes superposées figure une fois
      * par ligne. Tuiles vides sous le zoom 4 ; avant le zoom 11 les tracés sont simplifiés à la résolution

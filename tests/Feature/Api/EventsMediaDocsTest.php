@@ -63,10 +63,10 @@ class EventsMediaDocsTest extends TestCase
     {
         $names = fn (string $path): array => array_column($this->spec['paths'][$path]['get']['parameters'], 'name');
 
-        $this->assertEqualsCanonicalizing(['line', 'type', 'source', 'department', 'from', 'to', 'order', 'per_page', 'cursor'], $names('/events'));
+        $this->assertEqualsCanonicalizing(['line', 'type', 'source', 'department', 'region', 'from', 'to', 'order', 'per_page', 'cursor'], $names('/events'));
         $this->assertEqualsCanonicalizing(['station', 'type', 'source', 'inferred', 'from', 'to', 'order', 'per_page', 'cursor'], $names('/stations/{station}/events'));
         $this->assertEqualsCanonicalizing(
-            ['line', 'station', 'type', 'provider', 'license', 'rights_status', 'commercial_ok', 'period', 'from_year', 'to_year', 'order', 'per_page', 'cursor'],
+            ['line', 'station', 'type', 'provider', 'license', 'rights_status', 'commercial_ok', 'period', 'from_year', 'to_year', 'featured', 'facets', 'order', 'per_page', 'cursor'],
             $names('/media'),
         );
         // Une fiche ne prend que son identifiant : aucun filtre de liste ne doit s'y glisser.

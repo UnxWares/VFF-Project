@@ -12,8 +12,8 @@ use Tests\TestCase;
 
 /**
  * GeoExporter : contrat COMPLET des features exportées (toutes les clés,
- * leurs types et valeurs) pour le GeoJSON non streamé, le GeoJSON streamé et
- * les gares, en complément de GeoExporterTest (règles d'affichage).
+ * leurs types et valeurs) pour le GeoJSON streamé des tracés et les gares, en
+ * complément de GeoExporterTest (règles d'affichage).
  */
 class GeoExporterContractTest extends TestCase
 {
@@ -29,41 +29,31 @@ class GeoExporterContractTest extends TestCase
         $this->exporter = app(GeoExporter::class);
     }
 
-    public function test_lines_geojson_lists_the_segments_of_the_era_with_their_properties(): void
-    {
-        $segment = LineSegment::where('era_id', $this->currentEra->id)->firstOrFail();
-        $segment->update(['gauge_mm' => 1000, 'electrified' => false, 'voltage_v' => null, 'max_speed_kmh' => 90]);
-
-        $collection = $this->exporter->linesAsGeoJson(2030);
-
-        $this->assertSame('FeatureCollection', $collection['type']);
-        $this->assertCount(1, $collection['features']);
-        $feature = $collection['features'][0];
-        $this->assertSame('Feature', $feature['type']);
-        $this->assertSame($segment->id, $feature['id']);
-        $this->assertSame([
-            'line_id' => $this->line->id,
-            'line_slug' => 'paris-saint-lazare-versailles-rd',
-            'line_name' => 'Paris-Saint-Lazare – Versailles-Rive-Droite',
-            'status' => 'in_service',
-            'max_speed_kmh' => 90,
-            'electrified' => false,
-            'voltage_v' => null,
-            'gauge_mm' => 1000,
-        ], $feature['properties']);
-        $this->assertSame('LineString', $feature['geometry']['type']);
-        $this->assertSame([2.3253, 48.8763], $feature['geometry']['coordinates'][0], 'lon, lat à 6 décimales');
-        $this->assertSame([2.1347, 48.8091], $feature['geometry']['coordinates'][2]);
-    }
-
-    public function test_lines_geojson_of_an_era_without_segments_is_empty_and_an_unknown_era_fails(): void
+    public function test_streamed_geojson_of_an_era_without_segments_is_empty_and_an_unknown_era_fails(): void
     {
         DB::table('line_segments')->where('era_id', $this->pastEra->id)->delete();
 
-        $this->assertSame(['type' => 'FeatureCollection', 'features' => []], $this->exporter->linesAsGeoJson(1960));
+        $this->assertSame([], iterator_to_array($this->exporter->streamLinesGeoJson(1960), false));
 
         $this->expectException(ModelNotFoundException::class);
-        $this->exporter->linesAsGeoJson(1955);
+        iterator_to_array($this->exporter->streamLinesGeoJson(1955), false);
+    }
+
+    public function test_streamed_feature_of_a_withheld_source_keeps_its_properties_without_geometry(): void
+    {
+        LineSegment::where('era_id', $this->currentEra->id)->update(['source' => 'archeoferroviaire']);
+
+        [$feature] = iterator_to_array($this->exporter->streamLinesGeoJson(2030), false);
+
+        $this->assertNull($feature['geometry']);
+        $this->assertTrue($feature['properties']['geometry_withheld']);
+        $this->assertSame('licence_not_open', $feature['properties']['geometry_withheld_reason']);
+        $this->assertSame('in_service', $feature['properties']['status']);
+
+        config(['api.withhold_unlicensed_geometry' => false]);
+        [$restored] = iterator_to_array($this->exporter->streamLinesGeoJson(2030), false);
+        $this->assertSame('LineString', $restored['geometry']['type'], 'règle désactivée : géométrie de nouveau donnée');
+        $this->assertFalse($restored['properties']['geometry_withheld']);
     }
 
     public function test_streamed_feature_has_every_map_property(): void
@@ -94,6 +84,8 @@ class GeoExporterContractTest extends TestCase
             'operator' => 'SNCF Voyageurs',
             'source' => 'osm',
             'source_trace_id' => null,
+            'geometry_withheld' => false,
+            'geometry_withheld_reason' => null,
         ], $features[0]['properties']);
         $this->assertSame(['type' => 'LineString', 'coordinates' => [[2.3253, 48.8763], [2.24, 48.853], [2.1347, 48.8091]]], $features[0]['geometry']);
     }

@@ -2,17 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ContributionAction;
-use App\Enums\ContributionStatus;
-use App\Models\Contribution;
 use App\Models\Era;
 use App\Models\Line;
-use App\Services\Notifications\ContributionNotifier;
+use App\Services\Contributions\ContributionSubmissions;
 use App\Services\TraceContributionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -101,21 +97,10 @@ class TraceEditorController extends Controller
     }
 
     /** POST /contribute/trace - enregistre la proposition (statut pending). */
-    public function store(Request $request, ContributionNotifier $notifier): RedirectResponse
+    public function store(Request $request, ContributionSubmissions $submissions): RedirectResponse
     {
         $data = $request->validate(TraceContributionService::rules(), TraceContributionService::messages());
-        ['payload' => $payload, 'line' => $line] = $this->traces->normalize($data);
-
-        $contribution = Contribution::create([
-            'user_id' => Auth::id(),
-            'type' => TraceContributionService::TYPE,
-            'action' => $line ? ContributionAction::Update->value : ContributionAction::Create->value,
-            'target_type' => $line ? Line::class : null,
-            'target_id' => $line?->id,
-            'status' => ContributionStatus::Pending->value,
-            'payload' => $payload,
-        ]);
-        $notifier->submitted($contribution);
+        $contribution = $submissions->submitTrace($request->user(), $data);
 
         return redirect()->route('contribute.thanks', ['id' => $contribution->id]);
     }

@@ -285,6 +285,55 @@ class WikidataMaterialSource
     }
 
     /**
+     * Déclarations « véhicule habituellement utilisé » (P3438) datées par un qualificatif de début (P580)
+     * ou de fin (P582), avec la précision de chaque date (9 année, 10 mois, 11 jour) : `vehicleUsage()`
+     * ne garde que la date, qui ne dit pas si « 1954-01-01 » est un jour ou une année. Une seule requête,
+     * gardée en cache (`vehicle_usage_periods`) ; hors ligne, seul le cache est lu.
+     *
+     * @return list<array{subject: string, material: string, from: ?string, from_precision: ?int, to: ?string, to_precision: ?int}>
+     */
+    public function vehicleUsagePeriods(bool $refresh = false, bool $offline = false): array
+    {
+        $cached = $refresh ? [] : $this->cache->load('vehicle_usage_periods');
+        if (isset($cached['rows']) && is_array($cached['rows'])) {
+            return $cached['rows'];
+        }
+        if ($offline) {
+            return [];
+        }
+
+        $country = $this->rules->country();
+        $rows = $this->client->sparql(<<<SPARQL
+            SELECT DISTINCT ?subject ?material ?from ?fromPrecision ?to ?toPrecision WHERE {
+              ?subject p:P3438 ?statement ; wdt:P17 wd:{$country} .
+              ?statement ps:P3438 ?material .
+              FILTER NOT EXISTS { ?statement wikibase:rank wikibase:DeprecatedRank }
+              OPTIONAL { ?statement pqv:P580 ?fromValue . ?fromValue wikibase:timeValue ?from ; wikibase:timePrecision ?fromPrecision . }
+              OPTIONAL { ?statement pqv:P582 ?toValue . ?toValue wikibase:timeValue ?to ; wikibase:timePrecision ?toPrecision . }
+              FILTER(BOUND(?from) || BOUND(?to))
+            }
+            SPARQL);
+        $out = [];
+        foreach ($rows as $row) {
+            $subject = self::qid($row['subject']['value'] ?? null);
+            $material = self::qid($row['material']['value'] ?? null);
+            if ($subject !== null && $material !== null) {
+                $out[] = [
+                    'subject' => $subject,
+                    'material' => $material,
+                    'from' => isset($row['from']['value']) ? substr((string) $row['from']['value'], 0, 10) : null,
+                    'from_precision' => isset($row['fromPrecision']['value']) ? (int) $row['fromPrecision']['value'] : null,
+                    'to' => isset($row['to']['value']) ? substr((string) $row['to']['value'], 0, 10) : null,
+                    'to_precision' => isset($row['toPrecision']['value']) ? (int) $row['toPrecision']['value'] : null,
+                ];
+            }
+        }
+        $this->cache->save('vehicle_usage_periods', ['rows' => $out, 'fetched_at' => now()->toIso8601String()]);
+
+        return $out;
+    }
+
+    /**
      * Élément wbgetentities réduit : déclarations simplifiées en {v: valeur, q: qualificatifs}.
      *
      * @param  array<string, mixed>  $entity

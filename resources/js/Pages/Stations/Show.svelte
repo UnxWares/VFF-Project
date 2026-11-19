@@ -1,5 +1,6 @@
 <script>
     import { formatStationDate } from '$lib/stationDates.js';
+    import { servicePeriod } from '$lib/servicePeriod.js';
     import Layout from '$components/Layout.svelte';
     import StationEraStrip from '$components/Stations/StationEraStrip.svelte';
     import StationMiniMap from '$components/Stations/StationMiniMap.svelte';
@@ -297,6 +298,7 @@
             {#if lines.length}
                 <ul class="lines-list">
                     {#each lines as l (l.slug)}
+                        {@const period = servicePeriod(l)}
                         <li class="line-row">
                             <div class="line-id">
                                 <a class="line-name" href="/lines/{l.slug}">{l.name}</a>
@@ -315,20 +317,13 @@
                                 </p>
                             </div>
                             <p class="line-period">
-                                {#if l.never_served}
-                                    {$i18n.t(`stations.lines.never_served.${l.never_served}`, {
-                                        from: l.first_year,
-                                        to: l.last_year,
-                                    })}
-                                {:else if l.first_year && l.last_year}
-                                    {$i18n.t('stations.lines.period_from_to', {
-                                        from: l.first_year,
-                                        to: l.last_year,
-                                    })}
-                                {:else if l.first_year}
-                                    {$i18n.t('stations.lines.period_from', { from: l.first_year })}
-                                {:else if l.last_year}
-                                    {$i18n.t('stations.lines.period_to', { to: l.last_year })}
+                                {#if period}
+                                    {t(`stations.lines.${period.key}`, period.params)}
+                                    {#if period.fromStation}
+                                        <span class="period-source"
+                                            >{t('stations.lines.years_from_station')}</span
+                                        >
+                                    {/if}
                                 {/if}
                             </p>
                             {#if l.era_years.length && !l.never_served}
@@ -735,6 +730,11 @@
     /* Sans colonne « décennies », la période reste à sa place. */
     .line-period {
         grid-column: 2;
+    }
+    /* Années tirées des dates de la gare (aucun événement daté de la ligne) : précision sous la période. */
+    .period-source {
+        display: block;
+        color: var(--vff-text-muted);
     }
 
     /* Situation : carte (7/12) et gares voisines (5/12) ; la liste donne sa hauteur à la carte. */

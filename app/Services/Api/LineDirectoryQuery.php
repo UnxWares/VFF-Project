@@ -42,6 +42,7 @@ final class LineDirectoryQuery
             'status' => ['nullable', Rule::in(['open', 'closed'])],
             'heritage' => ['nullable', 'boolean'],
             'department' => ['nullable', Rule::in(array_keys(FrenchDepartments::ALL))],
+            'region' => ['nullable', Rule::in(array_keys(FrenchDepartments::REGIONS))],
             'era' => ['nullable', 'integer', 'exists:eras,year'],
             'sort' => ['nullable', Rule::in(self::SORTS)],
             'order' => ['nullable', Rule::in(['asc', 'desc'])],
@@ -134,7 +135,11 @@ final class LineDirectoryQuery
      */
     public function facets(array $filters): array
     {
-        return $this->directory->facets($filters, $this->eraId($filters));
+        $facets = $this->directory->facets($filters, $this->eraId($filters));
+        // Objet JSON même vide (`{}`), comme les autres dictionnaires de compteurs.
+        $facets['departments'] = (object) $facets['departments'];
+
+        return $facets;
     }
 
     /** @return list<string> */

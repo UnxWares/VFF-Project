@@ -34,9 +34,22 @@ class LineMaterialController extends Controller
      * révision, section, phrase, permalien), les plus fortes d'abord, et donne `confidence` :
      * `high` (Wikidata, ou section « Matériel roulant » de l'article de la ligne), `medium`
      * (autre section), `low` (article qui décrit plusieurs lignes de VFF à la fois). La
-     * période (`from_date`, `to_date`, `era_year`) n'est donnée que si la source la date ;
-     * la portion parcourue se lit parfois dans le titre de section (« Section de
+     * portion parcourue se lit parfois dans le titre de section (« Section de
      * Saint-Just-en-Chaussée à Cambrai »).
+     *
+     * **Périodes de circulation** (`periods`) : quand une source date la circulation de la
+     * série sur la ligne, chaque période donne son début (`start_date`) et sa fin
+     * (`end_date`), l'une ou les deux, au format `AAAA-MM-JJ` avec leur précision (`day`,
+     * `month` : date au 1er du mois, `year` : date au 1er janvier). Exemple réel : les X 4300
+     * de la ligne de Lunéville à Saint-Dié, « retirés du service en novembre 2007 » d'après
+     * l'article, ont `end_date` = `2007-11-01` et `end_precision` = `month`. Les dates sont
+     * lues dans les phrases des articles Wikipédia de la ligne (`origin` = `line_article`) et
+     * de la série (`material_article`), ou dans les qualificatifs de début et de fin de
+     * Wikidata (`wikidata`). Seules les périodes sûres sont servies : `high` (jour ou mois),
+     * `medium` (année) ; une date approximative (« vers 1937 », « années 1970 ») ou une
+     * phrase ambiguë ne l'est jamais. Une fin nulle ne veut pas dire que la série circule
+     * encore. Les périodes ne reprennent aucune phrase ; `from_date` et `to_date` restent
+     * réservés aux liens saisis dans VFF.
      *
      * **Licences** : les phrases citées sont des extraits de Wikipédia (CC BY-SA 4.0) :
      * citez l'article avec le permalien `url`. Les fiches de matériel viennent de Wikidata
@@ -47,9 +60,9 @@ class LineMaterialController extends Controller
     #[QueryParameter('type', 'Catégorie de matériel : `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`, `bimode`, `autorail`, `rame_tgv`, `voiture`, `wagon`, `tramway`, `engin_service`.', type: 'string', example: 'autorail')]
     #[QueryParameter('source', 'Provenance du lien : `wikidata` ou `wikipedia`.', type: 'string', example: 'wikipedia')]
     #[QueryParameter('min_confidence', 'Fiabilité minimale : `high` (liens les plus sûrs seulement), `medium` (high et medium) ou `low` (tous, comme sans ce paramètre).', type: 'string', example: 'medium')]
-    #[ApiResponse(200, 'Matériel roulant de la ligne, avec la preuve de chaque lien.', examples: [[
+    #[ApiResponse(200, 'Matériel roulant de la ligne, avec la preuve de chaque lien et ses périodes de circulation datées.', examples: [[
         'line' => ['slug' => 'rfn-67000', 'code' => '067000', 'name' => 'Ligne de Lunéville à St-Dié'],
-        'data' => [MaterialExamples::LINE_LINK],
+        'data' => [MaterialExamples::LINE_LINK, MaterialExamples::LINE_LINK_DATED],
         'meta' => ['total' => 13],
     ]])]
     #[ApiResponse(404, 'Ligne inconnue (slug introuvable).', examples: [ErrorExamples::LINE_NOT_FOUND])]
@@ -58,7 +71,7 @@ class LineMaterialController extends Controller
     public function index(Line $line, ListLineMaterialsRequest $request): JsonResponse
     {
         $links = $line->materialLinks()
-            ->with(['material', 'era:id,year'])
+            ->with(['material', 'era:id,year', 'shownPeriods'])
             ->join('materials', 'materials.id', '=', 'line_materials.material_id')
             ->when($request->filled('type'), fn ($q) => $q->where('materials.type', $request->input('type')))
             ->when($request->filled('source'), fn ($q) => $q->where('line_materials.source', $request->input('source')))

@@ -16,7 +16,7 @@
 
     /**
      * Itinéraire historique : « de A à B en <année> » sur le réseau en service
-     * à l'époque (GET /api/v1/route). Le parent affiche le tracé sur la carte
+     * à l'époque (GET /maps/route, réponse de /api/v1/route avec le tracé complet). Le parent affiche le tracé sur la carte
      * (onRoute) et aligne la carte sur l'ère retenue. Quand la carte change de
      * décennie alors qu'un itinéraire est affiché, il est recalculé pour cette
      * décennie : on voit le trajet évoluer avec le réseau. Lien partageable :
@@ -24,7 +24,7 @@
      * l'itinéraire affiché.
      *
      * « Comparer avec une autre époque » : le même trajet à une seconde année
-     * (GET /api/v1/route/compare, &compare_year=2026 dans l'adresse) ; le parent dessine les deux
+     * (GET /maps/route/compare, &compare_year=2026 dans l'adresse) ; le parent dessine les deux
      * tracés (onCompare) et la carte reste sur l'ère de la première année.
      *
      * La décennie « actuelle » (currentEra, 2030) est le réseau d'aujourd'hui : le champ
@@ -161,7 +161,8 @@
         });
         try {
             const res = await fetch(
-                comparing ? `/api/v1/route/compare?${params}` : `/api/v1/route?${params}`,
+                // Mêmes réponses que /api/v1/route(/compare), tracé complet pour l'affichage de la carte.
+                comparing ? `/maps/route/compare?${params}` : `/maps/route?${params}`,
                 { headers: { Accept: 'application/json' }, signal: controller.signal },
             );
             const json = await res.json();

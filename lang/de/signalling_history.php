@@ -19,6 +19,12 @@ return [
         'to' => 'Bis :to',
         'pk' => ':pk :from bis :to',
     ],
+    // Herkunft einer Angabe, die nicht aus einem Satz des Artikels stammt.
+    'origin' => [
+        'opening' => 'Eröffnungsdatum der Strecke: Eine Schnellfahrstrecke fährt vom ersten Tag an mit Führerstandssignalisierung.',
+        'infobox' => 'Datum aus der Infobox des Artikels.',
+        'table' => 'Datum aus einer Tabelle des Artikels.',
+    ],
     'source' => [
         'link' => 'Wikipedia',
         'hint' => 'Artikel „:title“, neuer Tab',

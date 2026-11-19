@@ -38,6 +38,9 @@ use Illuminate\Support\Facades\DB;
  * portent déjà une voie cyclable (railway=abandoned + highway=cycleway) : ils ne sont pas rangés
  * dans `kind = greenway` par l'import, mais ils en sont.
  *
+ * Nom affiché (`display_name`) : celui que donne GreenwayNames::displayName, calculé ici une fois pour
+ * toutes et lu tel quel par la fiche, l'API, GraphQL, le serveur MCP et les tuiles de la carte.
+ *
  * Rejouable : les couples recalculés sont mis à jour, ceux qui ne passent plus les seuils sont
  * supprimés de `line_greenways` (table propre à cette fonctionnalité). Une transaction : un lecteur
  * ne voit jamais un état à moitié écrit. Données © contributeurs OpenStreetMap, ODbL.
@@ -195,6 +198,33 @@ final class GreenwayLinker
         ]);
     }
 
+    /**
+     * Calcule `display_name`, le nom affiché de chaque couple (GreenwayNames::displayName), à partir du nom
+     * de l'itinéraire OSM et du nom du way. La règle est écrite en PHP : elle est appliquée une fois par
+     * couple de noms distincts, puis écrite en une requête. Seules les lignes dont le nom change sont touchées.
+     *
+     * @return int nombre de couples (ligne, way) dont le nom affiché a changé
+     */
+    public function fillDisplayNames(): int
+    {
+        $names = DB::table('line_greenways')->distinct()->get(['name', 'relation_name'])
+            ->map(fn (object $row): array => [
+                'n' => $row->name,
+                'r' => $row->relation_name,
+                'd' => GreenwayNames::displayName($row->relation_name, $row->name),
+            ])->all();
+        if ($names === []) {
+            return 0;
+        }
+
+        return DB::affectingStatement(<<<'SQL'
+            UPDATE line_greenways g SET display_name = v.d
+            FROM jsonb_to_recordset(CAST(:names AS jsonb)) AS v(n text, r text, d text)
+            WHERE g.name IS NOT DISTINCT FROM v.n AND g.relation_name IS NOT DISTINCT FROM v.r
+              AND g.display_name IS DISTINCT FROM v.d
+            SQL, ['names' => json_encode($names, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)]);
+    }
+
     private function dropTemporaryTables(): void
     {
         foreach (['gw_cand', 'gw_refs', 'gw_tracks', 'gw_pieces', 'gw_pairs', 'gw_new'] as $table) {
@@ -217,6 +247,8 @@ final class GreenwayLinker
                 shared_percent = EXCLUDED.shared_percent, opened_year = EXCLUDED.opened_year, osm_seen_at = EXCLUDED.osm_seen_at,
                 geom = EXCLUDED.geom, updated_at = NOW()
             SQL);
+
+        $this->fillDisplayNames();
 
         // Couples qui ne passent plus les seuils (way modifié, voie verte supprimée d'OSM, ligne remise en service).
         $zone = $lineIds === null ? '' : 'AND g.line_id = ANY(CAST(:lines AS bigint[]))';

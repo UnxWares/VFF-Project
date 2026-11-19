@@ -69,6 +69,8 @@ trait BuildsRailNetwork
                 'voltage_v' => 1500,
                 'max_speed_kmh' => 120,
                 'is_heritage' => false,
+                // Source à licence ouverte : la géométrie sort des exports (règle des droits des tracés).
+                'source' => 'osm',
             ]);
         }
 

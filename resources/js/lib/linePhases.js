@@ -343,6 +343,33 @@ export const PHASE_KIND_ICONS = {
     none: 'bi-circle',
 };
 
+/**
+ * Légende du tableau « décennie par décennie » : les catégories présentes dans au moins une
+ * décennie, dans l'ordre du ruban (la couleur du ruban ne porte jamais seule l'information).
+ */
+export function decadesLegend(decades) {
+    const present = new Set();
+    for (const d of decades ?? []) {
+        for (const [cat, m] of Object.entries(d.length_by_category ?? {})) {
+            if (m > 0) present.add(cat);
+        }
+    }
+    return STRIP_ORDER.filter((cat) => present.has(cat));
+}
+
+/**
+ * Appels de note d'une étape de mise en service (LineSheet::sectionStages) : numéros des notes de
+ * source de ses événements (chronique), sans doublon, dans l'ordre croissant.
+ */
+export function stageNotes(stage, eventsById = {}) {
+    const notes = new Set();
+    for (const id of stage?.event_ids ?? []) {
+        const n = eventsById[id]?.note;
+        if (n != null) notes.add(n);
+    }
+    return [...notes].sort((a, b) => a - b);
+}
+
 /** Index de la phase suivante / précédente pour la navigation au clavier. */
 export function stepPhase(index, delta, count) {
     if (!count) return null;

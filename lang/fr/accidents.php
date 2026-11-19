@@ -83,6 +83,7 @@ return [
         'distance' => 'Distance au tracé',
         'method' => 'Méthode',
         'line_cited' => 'Article cité par la source',
+        'line_cited_hint' => 'ouvre la source qui le cite, dans un nouvel onglet',
         'confidence' => 'Confiance',
         'other_lines' => 'Autres lignes au même endroit',
         'trains_title' => 'Trains et matériel',
@@ -190,6 +191,8 @@ return [
         'wikidata' => 'Wikidata',
         'wikipedia' => 'Wikipédia',
         'bea_tt' => 'BEA-TT',
+        'wikipedia_en' => 'Wikipédia en anglais',
+        'wikipedia_de' => 'Wikipédia en allemand',
     ],
 
     'roles' => [
@@ -218,6 +221,7 @@ return [
         'line_uncertain' => 'Plusieurs lignes passent près du centre de la commune.',
         'hinted_line_far' => 'La ligne citée par une source passe loin du lieu indiqué.',
         'place_from_list' => 'Le lieu a été lu dans une liste de Wikipédia, sans coordonnées : il reste à vérifier.',
+        'place_from_table' => 'Le lieu est celui que le texte de la liste de Wikipédia nomme sans lien : VFF l’a rapproché d’une commune. Il reste à vérifier.',
         'verification_conflict' => 'Deux sources se contredisent sur la date ou sur le lieu.',
         'alias_toll_mismatch' => 'Un autre élément Wikidata décrit le même accident avec un autre bilan.',
         'possible_duplicate' => 'Une autre fiche du même jour décrit peut-être le même accident.',

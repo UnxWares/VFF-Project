@@ -83,6 +83,8 @@ describe('unregisterServiceWorker', () => {
         const cacheStorage = fakeCacheStorage([
             'vff-static-1',
             'vff-static-2',
+            'vff-pages-2',
+            'vff-tiles-2',
             'vff-offline',
             'tuiles-osm',
         ]);

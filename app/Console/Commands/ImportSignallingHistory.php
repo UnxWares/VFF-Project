@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Services\Signalling\SignallingHistoryExtractor;
+use App\Services\Signalling\SignallingHistoryMap;
+use App\Services\Signalling\SignallingSectionLocator;
 use App\Services\Signalling\WikipediaArticleCache;
 use App\Services\WikimediaClient;
 use Illuminate\Console\Command;
@@ -23,6 +25,11 @@ use Illuminate\Support\Facades\DB;
  * Rejouable : un fait a une empreinte stable (ligne, système, date, portion) ; les faits d'une ligne lue qui ne
  * sont plus extraits sont retirés (cette table seulement).
  *
+ * Deuxième passe (soirée du 19/11/2026) : l'infobox et les tableaux sont lus aussi, la TVM d'une LGV est datée
+ * de son ouverture (SignallingInfoboxReader), chaque portion nommée est placée sur la ligne par ses gares
+ * d'extrémité et leurs PK calés (SignallingSectionLocator), puis la carte par ère est recalculée
+ * (`line_signalling_history_map`, SignallingHistoryMap ; l'ère courante garde l'état de SNCF Réseau).
+ *
  *   php artisan vff:import-signalling-history
  *   php artisan vff:import-signalling-history --line=956000 --dry-run -v
  *   php artisan vff:import-signalling-history --offline
@@ -37,9 +44,9 @@ class ImportSignallingHistory extends Command
         {--cache-dir= : dossier du cache des articles}
         {--dry-run : n\'écrit rien en base, affiche le bilan (et les faits avec -v)}';
 
-    protected $description = 'Range les mises en service de signalisation (BAL, BAPR, BM, CT, TVM, ETCS, KVB) datées dans les articles Wikipédia des lignes.';
+    protected $description = 'Range les mises en service de signalisation (BAL, BAPR, BM, CT, TVM, ETCS, KVB) datées dans les articles Wikipédia des lignes, les place sur le tracé et recalcule la carte par ère.';
 
-    public function handle(WikimediaClient $wiki, SignallingHistoryExtractor $extractor): int
+    public function handle(WikimediaClient $wiki, SignallingHistoryExtractor $extractor, SignallingSectionLocator $locator, SignallingHistoryMap $map): int
     {
         $lines = $this->lines();
         if ($lines === []) {
@@ -56,8 +63,11 @@ class ImportSignallingHistory extends Command
             $this->line("  Articles demandés à Wikipédia : {$asked} (le reste vient du cache)");
         }
 
-        $perTitle = array_count_values(array_column($lines, 'wikipedia_title'));
-        $stats = ['read' => 0, 'missing' => 0, 'rejected' => 0, 'with_facts' => 0, 'facts' => 0, 'removed' => 0, 'confidence' => [], 'system' => []];
+        // Titres partagés comptés sur toutes les lignes, pas seulement celles choisies par --line ou --limit.
+        $perTitle = DB::table('lines')->whereNotNull('wikipedia_title')->where('wikipedia_title', '!=', '')
+            ->groupBy('wikipedia_title')->selectRaw('wikipedia_title, COUNT(*) AS n')->pluck('n', 'wikipedia_title')->map(fn ($n): int => (int) $n)->all();
+        $readIds = [];
+        $stats = ['read' => 0, 'missing' => 0, 'rejected' => 0, 'with_facts' => 0, 'facts' => 0, 'removed' => 0, 'confidence' => [], 'system' => [], 'origin' => [], 'location' => []];
         $dry = (bool) $this->option('dry-run');
 
         foreach ($lines as $line) {
@@ -76,12 +86,14 @@ class ImportSignallingHistory extends Command
                 continue;
             }
             $stats['read']++;
-            $facts = $extractor->extract($article['content'], $article['title']);
+            $readIds[] = $line['id'];
+            $facts = $extractor->extract($article['content'], $article['title'], lgv: $line['is_lgv']);
             if (count($codes) > 1) {
-                // Article de plusieurs lignes : on ne sait pas à laquelle le fait s'applique.
-                $facts = array_map(fn (array $f) => ['confidence' => 'low'] + $f, $facts);
+                // Article de plusieurs lignes : on ne sait pas à laquelle le fait s'applique. Sauf la TVM d'une
+                // LGV datée de son ouverture : elle équipe toutes les lignes de l'article.
+                $facts = array_map(fn (array $f) => $f['origin'] === 'opening' ? $f : ['confidence' => 'low'] + $f, $facts);
             }
-            $rows = $this->rows($line, $article, $facts);
+            $rows = $this->rows($line, $article, $facts, $locator, ! $dry);
             if ($rows !== []) {
                 $stats['with_facts']++;
             }
@@ -89,9 +101,12 @@ class ImportSignallingHistory extends Command
                 $stats['facts']++;
                 $stats['confidence'][$row['confidence']] = ($stats['confidence'][$row['confidence']] ?? 0) + 1;
                 $stats['system'][$row['system']] = ($stats['system'][$row['system']] ?? 0) + 1;
+                $stats['origin'][$row['origin']] = ($stats['origin'][$row['origin']] ?? 0) + 1;
+                $location = $row['section_location'] ?? $row['scope'];
+                $stats['location'][$location] = ($stats['location'][$location] ?? 0) + 1;
                 if ($dry && $this->output->isVerbose()) {
                     $this->line(sprintf('  [%s] %-8s %s %-5s %-6s %s%s', $line['code'] ?? $line['slug'], $row['system'], $row['event_date'], $row['date_precision'], $row['confidence'],
-                        $row['scope'] === 'section' ? trim(($row['section_from'] ?? '?').' -> '.($row['section_to'] ?? '?')).' ' : $row['scope'].' ', $row['source_excerpt']));
+                        $row['scope'] === 'section' ? trim(($row['section_from'] ?? '?').' -> '.($row['section_to'] ?? '?')).' ['.$row['section_location'].'] ' : $row['scope'].' ', $row['source_excerpt']));
                 }
             }
             if (! $dry) {
@@ -99,17 +114,31 @@ class ImportSignallingHistory extends Command
             }
         }
 
-        $this->info(sprintf('%s%d lignes lues, %d avec des faits, %d faits (%d retirés car disparus de l\'article).',
+        // Import complet : les faits d'une ligne qui n'est plus lue (article absent, rejeté, titre retiré) disparaissent.
+        if ($this->option('line') === [] && ! $this->option('limit')) {
+            $orphans = DB::table('line_signalling_events')->whereNotIn('line_id', $readIds ?: [0]);
+            $stats['removed'] += $dry ? $orphans->count() : $orphans->delete();
+        }
+
+        $this->info(sprintf('%s%d lignes lues, %d avec des faits, %d faits (%d retirés : disparus de l\'article, ou ligne qui n\'est plus lue).',
             $dry ? '[simulation] ' : '', $stats['read'], $stats['with_facts'], $stats['facts'], $stats['removed']));
         $this->line(sprintf('  Sans article en cache : %d ; article d\'une autre ligne ou partagé : %d.', $stats['missing'], $stats['rejected']));
         ksort($stats['system']);
         $this->table(['Système', 'Faits'], array_map(fn ($k, $v) => [$k, $v], array_keys($stats['system']), $stats['system']));
         $this->table(['Fiabilité', 'Faits'], array_map(fn ($k, $v) => [$k, $v], array_keys($stats['confidence']), $stats['confidence']));
+        ksort($stats['origin']);
+        $this->table(['Origine', 'Faits'], array_map(fn ($k, $v) => [$k, $v], array_keys($stats['origin']), $stats['origin']));
+        ksort($stats['location']);
+        $this->table(['Portion', 'Faits'], array_map(fn ($k, $v) => [$k, $v], array_keys($stats['location']), $stats['location']));
+
+        if (! $dry) {
+            $this->info('Carte par ère : '.$map->rebuild().' tracés (ères passées ; l\'ère courante garde l\'état de SNCF Réseau).');
+        }
 
         return self::SUCCESS;
     }
 
-    /** @return list<array{id: int, code: ?string, slug: string, wikipedia_title: string}> */
+    /** @return list<array{id: int, code: ?string, slug: string, wikipedia_title: string, is_lgv: bool}> */
     private function lines(): array
     {
         $query = DB::table('lines')->whereNotNull('wikipedia_title')->where('wikipedia_title', '!=', '')->orderBy('id');
@@ -122,24 +151,27 @@ class ImportSignallingHistory extends Command
             $query->limit((int) $limit);
         }
 
-        return $query->get(['id', 'code', 'slug', 'wikipedia_title'])->map(fn ($l) => [
-            'id' => (int) $l->id, 'code' => $l->code, 'slug' => $l->slug, 'wikipedia_title' => $l->wikipedia_title,
+        return $query->get(['id', 'code', 'slug', 'wikipedia_title', 'is_lgv'])->map(fn ($l) => [
+            'id' => (int) $l->id, 'code' => $l->code, 'slug' => $l->slug, 'wikipedia_title' => $l->wikipedia_title, 'is_lgv' => (bool) $l->is_lgv,
         ])->all();
     }
 
     /**
-     * @param  array{id: int}  $line
+     * @param  array{id: int, code: ?string}  $line
      * @param  array{title: string, revid: int}  $article
      * @param  list<array<string, mixed>>  $facts
+     * @param  bool  $withGeometry  trace aussi la portion placée (pas en simulation)
      * @return list<array<string, mixed>>
      */
-    private function rows(array $line, array $article, array $facts): array
+    private function rows(array $line, array $article, array $facts, SignallingSectionLocator $locator, bool $withGeometry): array
     {
         $now = now();
         $url = WikimediaClient::permalink($article['title'], $article['revid']);
         $rows = [];
         foreach ($facts as $f) {
             $fingerprint = sha1(implode('|', [$line['id'], $f['system'], $f['date'], $f['section_from'], $f['section_to'], $f['pk_start_m'], $f['pk_end_m']]));
+            $place = $locator->locate($line['id'], $f['scope'], $f['section_from'], $f['section_to'], $f['pk_start_m'], $f['pk_end_m']);
+            $geometry = $withGeometry && $place['pk_start_m'] !== null ? $locator->geometry($line['code'], $place['pk_start_m'], (int) $place['pk_end_m']) : null;
             $rows[$fingerprint] = [
                 'line_id' => $line['id'],
                 'system' => $f['system'],
@@ -151,6 +183,12 @@ class ImportSignallingHistory extends Command
                 'section_to' => $f['section_to'] !== null ? mb_substr($f['section_to'], 0, 255) : null,
                 'pk_start_m' => $f['pk_start_m'],
                 'pk_end_m' => $f['pk_end_m'],
+                'section_location' => $place['location'],
+                'from_station_id' => $place['from_station_id'],
+                'to_station_id' => $place['to_station_id'],
+                'located_pk_start_m' => $place['pk_start_m'],
+                'located_pk_end_m' => $place['pk_end_m'],
+                'section_geom' => $geometry,
                 'confidence' => $f['confidence'],
                 'origin' => $f['origin'],
                 'source' => 'wikipedia',
@@ -177,9 +215,16 @@ class ImportSignallingHistory extends Command
     {
         return DB::transaction(function () use ($lineId, $rows): int {
             if ($rows !== []) {
+                $geometries = array_column($rows, 'section_geom', 'fingerprint');
+                $rows = array_map(fn (array $r): array => array_diff_key($r, ['section_geom' => true]), $rows);
                 DB::table('line_signalling_events')->upsert($rows, ['fingerprint'], [
-                    'role', 'date_precision', 'scope', 'confidence', 'origin', 'source_title', 'source_revision', 'source_url', 'source_excerpt', 'updated_at',
+                    'role', 'date_precision', 'scope', 'section_location', 'from_station_id', 'to_station_id', 'located_pk_start_m', 'located_pk_end_m',
+                    'confidence', 'origin', 'source_title', 'source_revision', 'source_url', 'source_excerpt', 'updated_at',
                 ]);
+                foreach ($geometries as $fingerprint => $geometry) {
+                    DB::update("UPDATE line_signalling_events SET section_geom = CASE WHEN ?::text IS NULL THEN NULL ELSE ST_GeomFromEWKB(decode(?, 'hex')) END WHERE fingerprint = ?",
+                        [$geometry, $geometry, $fingerprint]);
+                }
             }
 
             return DB::table('line_signalling_events')->where('line_id', $lineId)

@@ -1,12 +1,27 @@
 // Règles de cache de la PWA (resources/js/pwa/rules.js) : ce qui est gardé hors ligne, ce qui ne l'est jamais.
 import { describe, expect, it } from 'vitest';
 import {
+    MAX_PAGE_ENTRIES,
+    MAX_TILE_ENTRIES,
+    PAGE_MAX_AGE_MS,
+    STORAGE_BUDGET_BYTES,
+    TILE_MAX_AGE_MS,
     classify,
+    hasSecretParam,
+    hasStorageRoom,
     isCacheable,
+    isExpired,
+    isOfflinePageRequest,
+    isStorablePage,
+    isStorableTile,
+    isVffCache,
     matchesPath,
+    pageCacheKey,
+    pagesCacheName,
     shouldHardVisitOnFailure,
     staleCacheNames,
     staticCacheName,
+    tilesCacheName,
 } from '../../resources/js/pwa/rules.js';
 import { basicResponse, fakeRequest } from './support/pwaFakes.js';
 
@@ -43,7 +58,10 @@ describe('classify', () => {
     it('ne touche pas à l API, au GraphQL, à la documentation ni aux médias déposés', () => {
         for (const path of [
             '/api/lines',
+            '/api/v1/lines',
+            '/api/v1/eras/2030/lines.geojson',
             '/api/eras/2030/tiles/6/33/22.mvt',
+            '/api/v1/eras/2030/tiles/6/33/22.png',
             '/graphql',
             '/graphiql',
             '/docs/api',
@@ -152,9 +170,190 @@ describe('isCacheable', () => {
 });
 
 describe('caches versionnés', () => {
-    it('ne supprime que les caches statiques d une autre version, jamais la page hors ligne', () => {
-        const names = ['vff-static-aaa', 'vff-static-bbb', 'vff-offline', 'cache-d-un-autre-outil'];
-        expect(staleCacheNames(names, 'bbb')).toEqual(['vff-static-aaa']);
+    it('supprime les caches d une autre version, jamais la page hors ligne ni ceux d un autre outil', () => {
+        const names = [
+            'vff-static-aaa',
+            'vff-static-bbb',
+            'vff-pages-aaa',
+            'vff-pages-bbb',
+            'vff-tiles-aaa',
+            'vff-tiles-bbb',
+            'vff-offline',
+            'cache-d-un-autre-outil',
+        ];
+        expect(staleCacheNames(names, 'bbb')).toEqual([
+            'vff-static-aaa',
+            'vff-pages-aaa',
+            'vff-tiles-aaa',
+        ]);
         expect(staticCacheName('bbb')).toBe('vff-static-bbb');
+        expect(pagesCacheName('bbb')).toBe('vff-pages-bbb');
+        expect(tilesCacheName('bbb')).toBe('vff-tiles-bbb');
+    });
+
+    it('reconnaît les caches de VFF', () => {
+        expect(isVffCache('vff-pages-1')).toBe(true);
+        expect(isVffCache('vff-offline')).toBe(true);
+        expect(isVffCache('tuiles-osm')).toBe(false);
+    });
+});
+
+describe('tuiles', () => {
+    it('reconnaît les tuiles vectorielles de VFF sous /api/v1, avec ou sans version des données', () => {
+        for (const path of [
+            '/api/v1/eras/2030/tiles/6/33/22.mvt',
+            '/api/v1/eras/2030/tiles/14/8301/5636.mvt?v=42',
+            '/api/v1/eras/1930/compare/2030/tiles/8/129/88.mvt',
+            '/api/v1/eras/2030/signalling/tiles/9/259/176.mvt',
+            '/api/v1/eras/stacked/tiles/7/64/44.mvt',
+            '/api/v1/greenways/tiles/10/518/352.mvt',
+            '/api/v1/level-crossings/tiles/12/2075/1409.mvt',
+        ]) {
+            expect(classify(get(path), ORIGIN), path).toBe('tile');
+        }
+    });
+
+    it('laisse au navigateur les tuiles des autres serveurs (OpenStreetMap, OpenRailwayMap)', () => {
+        for (const url of [
+            'https://tile.openstreetmap.org/6/33/22.png',
+            'https://a.tiles.openrailwaymap.org/standard/6/33/22.png',
+            'https://autre.example/api/v1/eras/2030/tiles/6/33/22.mvt',
+        ]) {
+            expect(classify(fakeRequest(url), ORIGIN), url).toBe('network');
+        }
+    });
+
+    it('ne range qu une tuile complète, sans no-store ni redirection', () => {
+        expect(isStorableTile(basicResponse())).toBe(true);
+        expect(isStorableTile(basicResponse(null, { status: 204 }))).toBe(false);
+        expect(isStorableTile(basicResponse('x', { status: 404 }))).toBe(false);
+        expect(isStorableTile(basicResponse('x', { redirected: true }))).toBe(false);
+        expect(
+            isStorableTile(basicResponse('x', { headers: { 'Cache-Control': 'no-store' } })),
+        ).toBe(false);
+    });
+});
+
+describe('jetons et secrets', () => {
+    it('ne touche à aucune requête dont l adresse porte un jeton ou une signature', () => {
+        expect(hasSecretParam(`${ORIGIN}/lines?token=abc`)).toBe(true);
+        expect(hasSecretParam(`${ORIGIN}/lines?Signature=abc&expires=1`)).toBe(true);
+        expect(hasSecretParam(`${ORIGIN}/lines?page=2&q=paris`)).toBe(false);
+        for (const path of [
+            '/lines?token=abc',
+            '/reset-password/x?signature=y',
+            '/api/v1/eras/2030/tiles/6/33/22.mvt?api_token=abc',
+            '/build/assets/app.js?access_token=abc',
+        ]) {
+            expect(
+                classify(get(path, { mode: 'navigate', destination: 'document' }), ORIGIN),
+                path,
+            ).toBe('network');
+        }
+    });
+});
+
+describe('pages gardées hors ligne', () => {
+    const allowed = { 'X-VFF-Offline': 'allow', 'Cache-Control': 'no-cache, private' };
+
+    it('accepte une page complète hors des chemins privés', () => {
+        for (const path of ['/', '/lines', '/lines/paris-lyon', '/stations?page=2', '/privacy']) {
+            expect(isOfflinePageRequest(get(path)), path).toBe(true);
+            expect(
+                isOfflinePageRequest(get(path, { headers: { 'X-Inertia': 'true' } })),
+                path,
+            ).toBe(true);
+        }
+    });
+
+    it('refuse les pages de compte, de contribution, de validation et d administration', () => {
+        for (const path of [
+            '/login',
+            '/register',
+            '/forgot-password',
+            '/reset-password/abc',
+            '/profile',
+            '/profile/data',
+            '/notifications',
+            '/contribute',
+            '/contribute/mine',
+            '/contribute/trace',
+            '/validate',
+            '/validate/reports/3',
+            '/admin',
+            '/reports/token',
+            '/locale/en',
+        ]) {
+            expect(isOfflinePageRequest(get(path)), path).toBe(false);
+        }
+    });
+
+    it('refuse les préchargements et les rechargements partiels', () => {
+        for (const headers of [
+            { Purpose: 'prefetch' },
+            { 'X-Inertia-Partial-Data': 'lines' },
+            { 'X-Inertia-Partial-Component': 'Lines/Index' },
+            { 'X-Inertia-Partial-Except': 'lines' },
+        ]) {
+            expect(isOfflinePageRequest(get('/lines', { headers })), JSON.stringify(headers)).toBe(
+                false,
+            );
+        }
+    });
+
+    it('ne range une page que si le serveur l a déclarée lisible hors ligne', () => {
+        expect(isStorablePage(basicResponse('x', { headers: allowed }))).toBe(true);
+        expect(isStorablePage(basicResponse('x'))).toBe(false);
+        expect(isStorablePage(basicResponse('x', { headers: { 'X-VFF-Offline': 'non' } }))).toBe(
+            false,
+        );
+    });
+
+    it('refuse une page en erreur, redirigée, opaque ou marquée no-store', () => {
+        expect(isStorablePage(basicResponse('x', { status: 404, headers: allowed }))).toBe(false);
+        expect(isStorablePage(basicResponse('x', { headers: allowed, redirected: true }))).toBe(
+            false,
+        );
+        expect(isStorablePage(new Response('x', { headers: allowed }))).toBe(false);
+        expect(
+            isStorablePage(
+                basicResponse('x', { headers: { ...allowed, 'Cache-Control': 'no-store' } }),
+            ),
+        ).toBe(false);
+    });
+
+    it('distingue la copie HTML et la copie Inertia d une même adresse, sans l ancre', () => {
+        expect(pageCacheKey(`${ORIGIN}/lines#carte`, 'html')).toBe(
+            `${ORIGIN}/lines?__vff-copy=html`,
+        );
+        expect(pageCacheKey(`${ORIGIN}/lines?page=2`, 'inertia')).toBe(
+            `${ORIGIN}/lines?page=2&__vff-copy=inertia`,
+        );
+    });
+});
+
+describe('plafonds, durées de vie et quota', () => {
+    const now = Date.parse('2026-11-19T12:00:00Z');
+
+    it('fixe des plafonds raisonnables', () => {
+        expect(MAX_PAGE_ENTRIES).toBeLessThanOrEqual(100);
+        expect(MAX_TILE_ENTRIES).toBeLessThanOrEqual(1000);
+        expect(PAGE_MAX_AGE_MS).toBe(30 * 24 * 3600 * 1000);
+        expect(TILE_MAX_AGE_MS).toBe(7 * 24 * 3600 * 1000);
+    });
+
+    it('périme une copie trop ancienne ou sans date', () => {
+        expect(isExpired('2026-11-18T12:00:00Z', now, TILE_MAX_AGE_MS)).toBe(false);
+        expect(isExpired('2026-11-01T12:00:00Z', now, TILE_MAX_AGE_MS)).toBe(true);
+        expect(isExpired(null, now, TILE_MAX_AGE_MS)).toBe(true);
+        expect(isExpired('pas une date', now, TILE_MAX_AGE_MS)).toBe(true);
+    });
+
+    it('cesse de ranger au-delà de la moitié du quota ou du budget de 100 Mo', () => {
+        expect(hasStorageRoom(undefined)).toBe(true);
+        expect(hasStorageRoom({ usage: 10, quota: 0 })).toBe(true);
+        expect(hasStorageRoom({ usage: 10e6, quota: 1e9 })).toBe(true);
+        expect(hasStorageRoom({ usage: 30e6, quota: 50e6 })).toBe(false);
+        expect(hasStorageRoom({ usage: STORAGE_BUDGET_BYTES, quota: 1e12 })).toBe(false);
     });
 });

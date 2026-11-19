@@ -24,6 +24,13 @@ final readonly class AccidentClaim
     /** Wikidata, déclaration sans référence : pas un import déclaré, mais rien ne prouve non plus qu'elle ne vienne pas de Wikipédia. */
     public const WIKIDATA_BARE = 'wikidata-bare';
 
+    /**
+     * Liste de Wikipédia en anglais ou en allemand dont l'entrée cite sa propre référence (livre, presse) :
+     * écrite par d'autres contributeurs et appuyée sur une source qui n'est pas Wikipédia. Une entrée sans
+     * référence propre compte avec Wikipédia (WIKIPEDIA).
+     */
+    public const WIKIPEDIA_EDITION = 'wikipedia-edition';
+
     public function __construct(
         public int $sourceId,
         public string $provider,

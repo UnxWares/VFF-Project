@@ -8,6 +8,9 @@ return [
 
     'offline_document_title' => 'Offline - French Railway Lines',
     'offline_title' => 'You are offline',
-    'offline_text' => 'This page needs an internet connection. Check your network, then try again.',
+    'offline_text' => 'This page has not been saved on this device, so it needs a connection. Check your network, then try again.',
     'offline_retry' => 'Try again',
+
+    // Copy of a page served without a network (Components/OfflineCopyNotice.svelte); :date = date and time of the copy.
+    'offline_copy' => 'You are offline. This is the copy of the page saved on this device on :date; it may have changed since.',
 ];

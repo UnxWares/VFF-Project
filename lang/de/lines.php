@@ -113,6 +113,8 @@ return [
         'intro' => 'Diese SNCF-Strecke umfasst mehrere Abschnitte mit eigenen Handelsnamen.',
         'opening' => 'Inbetriebnahme: :years',
         'source' => 'Quelle Wikipedia',
+        'stages_title' => 'Datierte Inbetriebnahmen',
+        'stages_intro' => 'Jeder Abschnitt nennt die Inbetriebnahmen, die die Quellen in seinen Eröffnungsjahren datieren.',
     ],
 
     'signalling' => [
@@ -495,6 +497,8 @@ return [
             'see_label' => 'Zustand von :year auf der Karte anzeigen (Phase vom :date)',
             'uncertain_note' => 'Unbestätigte Bahnhöfe: von ihren Quellen als geöffnet genannt, ohne bekanntes Gleis zu diesem Zeitpunkt, das dies bestätigt. Gleiche aufeinanderfolgende Jahre sind zusammengefasst.',
             'scroll_hint' => 'Scrollen Sie die Tabelle nach rechts, um alle Spalten zu sehen.',
+            'reopened' => 'später wieder eröffnet',
+            'legend' => 'Legende zur Zusammensetzung der Strecke',
         ],
         'stations' => [
             'legend_title' => 'So lesen Sie die Jahrzehntleiste',

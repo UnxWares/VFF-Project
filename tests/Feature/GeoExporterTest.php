@@ -97,7 +97,7 @@ class GeoExporterTest extends TestCase
     {
         $lgv = $this->line('Ligne de Tango à Uniform', 48.50, ['code' => '752000'], segment: ['traffic_type' => 'passenger']);
         DB::table('sncf_line_catlig')->insert(['code_ligne' => '752000', 'catlig' => 'Ligne à grande vitesse']);
-        $museum = $this->line('Ligne de Victor à Whisky', 48.55, segment: ['is_heritage' => true, 'heritage_kind' => 'museum']);
+        $museum = $this->line('Ligne de Victor à Whisky', 48.55, segment: ['is_heritage' => true, 'heritage_kind' => 'museum', 'source' => 'osm']);
 
         $features = collect(iterator_to_array(app(GeoExporter::class)->streamLinesGeoJson(2030), false))->keyBy('properties.line_id');
 
