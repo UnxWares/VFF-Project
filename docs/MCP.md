@@ -140,6 +140,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `line_profile` | Profil en long d'une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte, altitude des gares (IGN). |
 | `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
 | `locate_on_line` | Point kilométrique d'un lieu (latitude, longitude) sur le tracé d'une ligne. |
+| `signalling_history` | Mises en service datées de signalisation d'une ligne (Wikipédia), et faits en vigueur à une époque, ceux que montre la carte. |
 
 ### `search` : rechercher une ligne, une gare, un matériel ou un accident
 
@@ -209,12 +210,16 @@ n'en corrige rien. Chaque fait : `system` (`BAL`, `BAPR`, `BM`, `CT`, `TVM-300`,
 `ETCS_L1`, `ETCS_L2`, `ETCS`, `KVB`), `role` (`block` cantonnement, `cab` signalisation en cabine, TVM et
 ETCS, `speed_control` contrôle de vitesse : le KVB n'est jamais un cantonnement), `date` et
 `date_precision` (`day`, `month`, `year` : le jour et le mois manquants valent `01`), `reliability` (`high`
-jour ou mois donné, `medium` année seule ; les faits douteux ne sont pas exposés), `scope` (`whole_line`,
-`section`, `unspecified`), `section` (`from`, `to`, `pk_start_m`, `pk_end_m` si l'article les donne) et
-`source` (`title`, `url` permalien de la révision lue, `revision` ; pas de phrase de l'article, comme pour la
-description des lignes : l'API REST la donne). Premier
-relevé, limité : un fait absent ne veut pas dire qu'aucun système n'a été mis en service. Wikipédia étant
-citée dans `attribution`, reprenez la mention CC BY-SA 4.0.
+jour ou mois donné ; `medium` année seule, date reprise d'une phrase voisine, qui peut être au jour, ou date
+déduite de l'ouverture ; les faits douteux ne sont pas exposés), `origin` (`text`, `list`, `table`, `infobox`,
+`opening` : TVM d'une ligne à grande vitesse, en service dès l'ouverture), `scope` (`whole_line`, `section`,
+`unspecified`), `section` (`from`, `to` tels qu'écrits ; `location` : `stations` placée par ses gares
+d'extrémité, `article_pk` PK de l'article, `unlocated` non placée ; `pk_start_m`, `pk_end_m` de la portion
+placée ; `from_station`, `to_station` avec `slug`, `name`, `pk_m`) et `source` (`title`, `url` permalien de la
+révision lue, `revision` ; pas de phrase de l'article, comme pour la description des lignes : l'API REST la
+donne). Relevé partiel : un fait absent ne veut pas dire qu'aucun système n'a été mis en service. L'outil
+`signalling_history` donne les mêmes faits et ceux en vigueur à une époque. Wikipédia étant citée dans
+`attribution`, reprenez la mention CC BY-SA 4.0.
 
 ```json
 {"line": "rfn-610000", "max_events": 50, "lang": "en"}
@@ -713,6 +718,30 @@ SNCF Réseau. Erreur `no_geometry` si la ligne n'a pas de tracé à cette ère.
 
 ```json
 {"line": "rfn-420000", "lat": 48.10, "lng": -1.67}
+```
+
+### `signalling_history` : historique de la signalisation d'une ligne
+
+Mêmes faits que `GET /api/v1/lines/{line}/signalling-history` (service `LineSignallingHistory`) : mises en service
+datées de BAL, BAPR, block manuel, cantonnement téléphonique, TVM, ETCS et KVB, relevées dans l'article Wikipédia de
+la ligne (texte, listes, tableaux, infobox). Les champs de chaque fait sont décrits avec `get_line` ci-dessus. Aucune
+phrase de l'article n'est renvoyée (décision Q22) : le permalien de la révision lue suffit pour vérifier.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `year` | entier 1800 à 2100 | non | Année ramenée à l'ère de la carte : ajoute `era` (`year`, `is_current`) et `in_force`. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `history` (tous les faits sûrs, du plus ancien au plus récent), avec `year` : `era` et `in_force`, les
+faits encore en vigueur au 31 décembre de l'année de l'ère (aujourd'hui pour l'ère courante), ceux que dessine le calque
+« Signalisation » de la carte à cette époque. Un fait plus récent du même groupe (cantonnement, TVM, ETCS, KVB) qui
+porte sur toute la ligne ou recouvre sa portion placée le remplace ; un fait sans portion connue ne remplace rien, et un
+remplacement que l'article ne date pas reste invisible. Puis `provenance` (Wikipédia, CC BY-SA 4.0, `mention`),
+`vff_url` et `attribution`. Erreurs : `line_not_found` (avec des suggestions), `era_not_found`.
+
+```json
+{"line": "rfn-905000", "year": 1990}
 ```
 
 ## Ressources

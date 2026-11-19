@@ -19,6 +19,12 @@ return [
         'to' => 'As far as :to',
         'pk' => ':pk :from to :to',
     ],
+    // Origin of a fact that does not come from a sentence of the article.
+    'origin' => [
+        'opening' => 'Line opening date: a high-speed line runs on cab signalling from the day it opens.',
+        'infobox' => 'Date given in the article’s infobox.',
+        'table' => 'Date given in a table of the article.',
+    ],
     'source' => [
         'link' => 'Wikipedia',
         'hint' => 'article “:title”, new tab',

@@ -168,6 +168,7 @@
         'line_greenways',
         'line_materials',
         'locate_on_line',
+        'signalling_history',
         'sources_and_licences',
     ];
     const mcpCli = `claude mcp add --transport http vff ${MCP_URL}`;

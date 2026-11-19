@@ -241,6 +241,7 @@ return [
             'line_greenways' => 'Bahntrassenradwege aus OpenStreetMap auf der früheren Trasse einer stillgelegten oder abgebauten Strecke, mit der auf der Trasse gemessenen Länge und der Quelle.',
             'line_materials' => 'Baureihen einer Strecke mit den Jahren ihres Einsatzes, wenn eine Quelle sie datiert, und dem Link zu dieser Quelle.',
             'locate_on_line' => 'Kilometerpunkt eines Ortes aus seinen Koordinaten auf der Trasse einer Strecke.',
+            'signalling_history' => 'Datierte Inbetriebnahmen der Signalisierung einer Strecke aus Wikipedia und die in einem Zeitraum geltenden Systeme, wie auf der Karte.',
             'sources_and_licences' => 'Datenanbieter und Lizenzen.',
         ],
         'licence_title' => 'Namensnennung',

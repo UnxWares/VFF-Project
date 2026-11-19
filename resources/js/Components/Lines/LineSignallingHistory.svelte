@@ -53,6 +53,9 @@
                         ></a
                     >
                 </p>
+                {#if r.note}
+                    <p class="origin">{r.note}</p>
+                {/if}
             </div>
         </li>
     {/each}
@@ -108,6 +111,9 @@
     .kind {
         margin-right: 4px;
         font-size: var(--vff-fs-sm);
+        color: var(--vff-text-muted);
+    }
+    .origin {
         color: var(--vff-text-muted);
     }
     .portion {

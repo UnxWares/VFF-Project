@@ -241,6 +241,7 @@ return [
             'line_greenways' => 'Greenways from OpenStreetMap on the former trackbed of a closed or removed line, with the length measured on the trackbed and the source.',
             'line_materials' => 'Rolling stock classes of a line, with the years they ran there when a source dates them, and a link to that source.',
             'locate_on_line' => 'Kilometre point of a place given by its coordinates, on a line’s route.',
+            'signalling_history' => 'Dated commissioning of signalling on a line, taken from Wikipedia, and the systems in force at a given period, as on the map.',
             'sources_and_licences' => 'Data providers and licences.',
         ],
         'licence_title' => 'Attribution',

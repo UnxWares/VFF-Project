@@ -242,6 +242,7 @@ return [
             'line_greenways' => 'Voies vertes d’OpenStreetMap sur l’ancienne emprise d’une ligne fermée ou disparue, avec la longueur mesurée sur l’emprise et la source.',
             'line_materials' => 'Séries de matériel roulant d’une ligne, avec leurs années de circulation quand une source les date, et le lien vers cette source.',
             'locate_on_line' => 'Point kilométrique d’un lieu donné par ses coordonnées, sur le tracé d’une ligne.',
+            'signalling_history' => 'Mises en service de signalisation datées d’une ligne, relevées dans Wikipédia, et celles en vigueur à une époque, comme sur la carte.',
             'sources_and_licences' => 'Fournisseurs de données et licences.',
         ],
         'licence_title' => 'Attribution',

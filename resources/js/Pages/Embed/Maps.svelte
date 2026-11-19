@@ -79,7 +79,8 @@
     let mapZoom = $state(0);
 
     const showingToday = $derived(selectedEra === currentEraYear);
-    const drawn = $derived(activeLayers({ data: dataLayers, orm: ormLayer }, showingToday));
+    // Carte intégrée : toujours une seule époque, la signalisation s'y lit à toutes les ères.
+    const drawn = $derived(activeLayers({ data: dataLayers, orm: ormLayer }, showingToday, true));
     const accidentLegend = $derived(
         drawn.accidents
             ? {

@@ -23,6 +23,7 @@ use App\Mcp\Tools\MediaTool;
 use App\Mcp\Tools\NetworkAtEraTool;
 use App\Mcp\Tools\NetworkEventsTool;
 use App\Mcp\Tools\SearchTool;
+use App\Mcp\Tools\SignallingHistoryTool;
 use App\Mcp\Tools\SourcesTool;
 use App\Mcp\Tools\StationSheetTool;
 use Laravel\Mcp\Server;
@@ -78,6 +79,7 @@ class VffServer extends Server
         LineGreenwaysTool::class,
         LineMaterialsTool::class,
         LocateOnLineTool::class,
+        SignallingHistoryTool::class,
     ];
 
     protected array $resources = [

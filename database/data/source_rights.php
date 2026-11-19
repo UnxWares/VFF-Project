@@ -473,6 +473,8 @@ return [
             'archeoferroviaire' => 'archeoferroviaire',
             'lignes-oubliees' => 'lignes-oubliees',
             'wikidata' => 'wikidata',
+        // La portion placée (section_geom) est tracée sur les formes SNCF Réseau (ODbL), comme line_signalling_map ; la carte par ère
+        // (line_signalling_history_map) reprend ces faits sur le tracé VFF de chaque ère.
             // Noms historiques curés d'après Wikipédia (database/data/lignes_noms_historiques.php).
             'curated' => 'wikipedia',
             // Noms construits par VFF (communes et gares extrémités).

@@ -25,7 +25,7 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 | 10 - Extension historique | ✅ couverture 1830-2030 ; modèle d'extraction des voies publié |
 | 11 - Communauté | 🟡 trilingue, carte intégrable, application installable ; dons et blog à faire |
 | 12 - Mise en production | 🟡 pages légales, engagements RGPD et audit RGAA (81,94 %) faits ; messagerie et hébergement final à faire |
-| 13 - Nouveaux domaines | 🟡 matériel roulant, accidents, serveur MCP, signalisation et passages à niveau (carte, fiches, API) faits ; historique de la signalisation à faire |
+| 13 - Nouveaux domaines | 🟡 matériel roulant, accidents, serveur MCP, signalisation et passages à niveau (carte, fiches, API) faits ; historique de la signalisation fait, relevé partiel à compléter |
 
 **En base (développement)** : 2 705 lignes, 9 363 gares, 15 519 événements datés, 71 597 médias, 21 époques, 687 séries de matériel roulant (969 liens avec les lignes), 202 accidents.
 
@@ -36,7 +36,7 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 1. Préparer la mise en ligne (phase 12) : messagerie de vff-project.org, hébergement, aperçus de partage rendus côté serveur.
 2. Trancher les questions ouvertes de la nuit du 19 au 20/11 (`storage/app/reports/agents/QUESTIONS.md`) : corrections de données, Argentan Web Ferroviaire, accidents, matériel.
 3. Jonctions : phase « escaliers » (coudes et crochets restants).
-4. Historique de la signalisation par époque (phase 13) : aucune source par date pour l'instant.
+4. Historique de la signalisation par époque (phase 13) : carte par ère branchée sur les dates des articles Wikipédia ; d'autres sources datées restent à trouver.
 
 ---
 
@@ -270,8 +270,8 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 ## 🧭 Phase 13 - Nouveaux domaines de l'encyclopédie (en cours)
 
 - [x] **Signalisation** : données SNCF Réseau importées (`line_signalling`, `/api/v1/lines/{slug}/signalling`), fiche ligne (cantonnement et contrôle de vitesse par PK, trous des données signalés, lien vers la carte), calque « Signalisation » sur `/maps` (tranches placées sur les formes SNCF Réseau, PK calés sur les passages à niveau, tuiles `/api/v1/eras/{year}/signalling/tiles/…`) ; tranches à deux systèmes (ETCS niveau 2 et TVM sur les LGV Est, BPL et SEA) gardées entières (`signalling_systems`)
-  - [x] Historique par époque, première version limitée : 53 mises en service datées (BAL, BAPR, block manuel, cantonnement téléphonique, ETCS, KVB comme contrôle de vitesse) lues dans les articles Wikipédia des lignes (`vff:import-signalling-history`, table `line_signalling_events`, CC BY-SA, faits et permalien de la révision), frise « Signalisation au fil du temps » sur la fiche ligne (faits sûrs seulement), API REST (`/lines/{slug}/signalling-history`), GraphQL (`Line.signalling_history`) et outil MCP `get_line`
-  - [ ] Historique par époque : lire les tableaux des articles, rattacher les faits aux portions du tracé, couvrir TVM, et brancher la carte par ère (aujourd'hui seul l'état actuel SNCF Réseau y est utilisé)
+  - [x] Historique par époque : 66 mises en service datées relevées dans les articles Wikipédia des lignes (texte, listes, tableaux, infobox ; TVM des LGV datée de l'ouverture), 50 montrées sur 43 lignes (BAL, BAPR, block manuel, cantonnement téléphonique, TVM, ETCS ; le seul fait KVB est peu sûr et caché), portions placées par leurs gares d'extrémité et leurs PK calés (`vff:import-signalling-history`, table `line_signalling_events`, CC BY-SA, faits et permalien de la révision), frise « Signalisation au fil du temps » sur la fiche ligne, calque « Signalisation » de `/maps` aux époques passées (faits en vigueur à la fin de l'ère ; l'état actuel de SNCF Réseau reste celui d'aujourd'hui), API REST (`/lines/{slug}/signalling-history?era=`, tuiles par ère), GraphQL (`Line.signalling_history(era:)`, `sheet.signalling.history`) et outil MCP `signalling_history`
+  - [ ] Historique par époque : d'autres sources datées (aucun tableau d'article ne date un système aujourd'hui, et un remplacement que l'article ne date pas reste invisible)
 - [x] **Passages à niveau** : 16 801 PN de SNCF Réseau (ODbL), calque « Passages à niveau » sur `/maps` (à partir du zoom 9), section de la fiche ligne (nombre par type, liste repliable), API REST (`/api/v1/level-crossings`, `/api/v1/lines/{slug}/level-crossings`, tuiles), GraphQL (`Line.level_crossings`, `levelCrossings`) et outil MCP `level_crossings`
 - [x] **Matériel roulant** : 687 séries importées de Wikidata (CC0) avec leur image Commons et la provenance de chaque champ (`vff:import-materials`), 969 liens ligne × matériel attestés par Wikidata ou par les articles Wikipédia (phrase citée, permalien, fiabilité), API REST (`/api/v1/materials`, `/api/v1/lines/{slug}/materials`) et GraphQL ; fiches enrichies sur le site ; périodes de circulation datées (`vff:import-material-periods`, table `line_material_periods` : 126 périodes sûres sur 62 lignes et 69 séries, lues dans les articles Wikipédia des lignes et des séries, permalien de la révision, fiabilité ; jamais de phrase sur le site ni dans le MCP), sur les fiches ligne et série, en REST, GraphQL (`LineMaterialLink.periods`) et MCP (`line_materials`) ; à faire : lire les tableaux des articles, rattacher les périodes aux portions du tracé, dates Wikidata quand les lignes auront des déclarations P3438 datées
 - [x] **Accidents** : 202 fiches (Wikidata, Wikipédia, BEA-TT), pages, API, calque de carte

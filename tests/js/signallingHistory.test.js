@@ -124,3 +124,54 @@ describe('historyRows', () => {
         ).toEqual(['Ligne de A à B', 'Autre']);
     });
 });
+
+describe('origine et portion placée (deuxième passe)', () => {
+    const ctx = { t, lang: 'fr', pkWord: 'PK' };
+
+    it('une TVM datée de l’ouverture d’une LGV porte une note, une phrase de l’article aucune', () => {
+        const rows = historyRows(
+            [
+                fact({ origin: 'text' }),
+                fact({
+                    system: 'TVM-430',
+                    role: 'cab',
+                    origin: 'opening',
+                    scope: 'unspecified',
+                    section: null,
+                }),
+                fact({
+                    system: 'BM',
+                    origin: 'infobox',
+                    date: '1985-01-01',
+                    date_precision: 'year',
+                }),
+            ],
+            ctx,
+        );
+        expect(rows.map((r) => r.note)).toEqual([
+            null,
+            'signalling_history.origin.opening',
+            'signalling_history.origin.infobox',
+        ]);
+        expect(rows[1].kind).toBe('Signalisation en cabine :');
+    });
+
+    it('une portion placée par ses gares donne ses PK', () => {
+        const text = portionText(
+            fact({
+                section: {
+                    from: 'Garches',
+                    to: 'Saint-Nom-la-Bretèche',
+                    location: 'stations',
+                    pk_start_m: 16714,
+                    pk_end_m: 29913,
+                },
+            }),
+            t,
+            'PK',
+        );
+        expect(text).toContain('16+714');
+        expect(text).toContain('29+913');
+        expect(text).toContain('from=Garches');
+    });
+});

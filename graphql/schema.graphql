@@ -175,13 +175,18 @@ type Line {
 
     """
     Mises en service de signalisation datées (BAL, BAPR, block manuel, cantonnement téléphonique, TVM,
-    ETCS, KVB), relevées dans l'article Wikipédia de la ligne, du plus ancien au plus récent. C'est un
-    historique à part : l'état actuel de la ligne (SNCF Réseau) est donné par `GET /api/v1/lines/{line}/signalling` de l'API REST.
-    Premier relevé, limité : seuls les faits sûrs sont donnés (jour ou mois précis, ou année), et un fait
-    absent ne veut pas dire qu'aucun système n'a été mis en service. Liste vide si l'article ne date rien.
-    Texte de Wikipédia sous CC BY-SA 4.0 : reprenez la mention de `SignallingEvent.attribution`.
+    ETCS, KVB), relevées dans l'article Wikipédia de la ligne (texte, listes, tableaux, infobox), du plus
+    ancien au plus récent. C'est un historique à part : l'état actuel de la ligne (SNCF Réseau) est donné
+    par `GET /api/v1/lines/{line}/signalling` de l'API REST. Seuls les faits sûrs sont donnés (jour ou mois
+    précis, ou année), et un fait absent ne veut pas dire qu'aucun système n'a été mis en service. Liste vide
+    si l'article ne date rien. Avec `era`, seuls les faits encore en vigueur à la fin de l'ère (ceux que
+    dessine la carte de l'époque). Texte de Wikipédia sous CC BY-SA 4.0 : reprenez la mention de
+    `SignallingEvent.attribution`.
     """
-    signalling_history: [SignallingEvent!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@forLine")
+    signalling_history(
+        "Année d'une ère (décennie de 1830 à 2030) : seulement les faits en vigueur au 31 décembre de cette année (aujourd'hui pour 2030). Un fait plus récent du même groupe (cantonnement, TVM, ETCS, KVB) qui porte sur toute la ligne ou recouvre sa portion le remplace. Ère inconnue : liste vide."
+        era: Int
+    ): [SignallingEvent!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@forLine")
 
     """
     Profil en long de la ligne (altitude le long du tracé, gares placées dessus), comme
@@ -1777,8 +1782,11 @@ type SignallingEvent {
     "Précision de `date` : `day`, `month` ou `year`."
     date_precision: String!
 
-    "Fiabilité : `high` (jour ou mois donné) ou `medium` (année seule). Les faits douteux ne sont pas exposés."
+    "Fiabilité : `high` (jour ou mois donné) ou `medium` (année seule, date reprise d'une phrase voisine comme « la même année » ou « à cette occasion », ou date déduite de l'ouverture : `origin` vaut `opening`). Lisez la précision dans `date_precision`. Les faits douteux ne sont pas exposés."
     reliability: String!
+
+    "Où l'article donne le fait : `text` (phrase), `list` (liste à puces), `table` (ligne d'un tableau), `infobox` (champ « signalisation » daté) ou `opening` (TVM d'une ligne à grande vitesse, en service dès l'ouverture : date de la première mise en service de l'infobox)."
+    origin: String!
 
     "Portée : `whole_line` (l'article dit toute la ligne), `section` (portion nommée) ou `unspecified` (l'article ne dit pas)."
     scope: String!
@@ -1796,7 +1804,7 @@ type SignallingEvent {
     provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@provenance")
 }
 
-"Portion d'une mise en service de signalisation, telle que l'article la donne."
+"Portion d'une mise en service de signalisation, telle que l'article la donne, et sa place sur la ligne quand elle est connue."
 type SignallingEventSection {
     "Lieu de départ tel qu'écrit dans l'article, nul s'il n'est pas cité."
     from: String
@@ -1804,11 +1812,32 @@ type SignallingEventSection {
     "Lieu d'arrivée tel qu'écrit dans l'article, nul s'il n'est pas cité."
     to: String
 
-    "PK de début, en mètres, si l'article le donne."
+    "Placement : `stations` (les deux gares d'extrémité trouvées sur la ligne, avec leur PK calé), `article_pk` (PK donnés par l'article) ou `unlocated` (lieux introuvables ou ambigus : aucun PK n'est inventé)."
+    location: String!
+
+    "PK de début de la portion placée, en mètres (numérotation de SNCF Réseau), nul si elle n'est pas placée."
     pk_start_m: Int
 
-    "PK de fin, en mètres, si l'article le donne."
+    "PK de fin de la portion placée, en mètres, nul si elle n'est pas placée."
     pk_end_m: Int
+
+    "Gare retenue pour le lieu de départ (`location: stations`), nulle sinon."
+    from_station: SignallingEventStation
+
+    "Gare retenue pour le lieu d'arrivée (`location: stations`), nulle sinon."
+    to_station: SignallingEventStation
+}
+
+"Gare d'extrémité d'une portion de signalisation placée sur la ligne."
+type SignallingEventStation {
+    "Identifiant (slug) de la gare, comme dans `station(slug:)`."
+    slug: String!
+
+    "Nom de la gare."
+    name: String!
+
+    "PK de la gare sur cette ligne, en mètres."
+    pk_m: Int
 }
 
 "Source d'une mise en service de signalisation."
@@ -2604,6 +2633,9 @@ type LineSheetSignalling {
 
     "Tranches de points kilométriques homogènes."
     ranges: [LineSignallingRange!]!
+
+    "Mises en service datées relevées dans l'article Wikipédia de la ligne (historique à part de l'état actuel ci-dessus), comme `Line.signalling_history`."
+    history: [SignallingEvent!]!
 }
 
 "L'état de la ligne au 31/12 d'une décennie (frise « évolution »)."

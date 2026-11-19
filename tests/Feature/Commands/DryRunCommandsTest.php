@@ -61,7 +61,7 @@ class DryRunCommandsTest extends TestCase
 
     /** Tables des sources, des comptes, du matériel et des accidents : hors du moteur, mais qu'un --dry-run ne doit pas toucher non plus. */
     private const OTHER_TABLES = [
-        'users', 'contributions', 'contribution_approvals', 'audit_events', 'materials', 'line_materials', 'line_material_periods', 'line_greenways', 'line_signalling_events', 'accidents', 'accident_lines', 'accident_sources',
+        'users', 'contributions', 'contribution_approvals', 'audit_events', 'materials', 'line_materials', 'line_material_periods', 'line_greenways', 'line_signalling_events', 'line_signalling_history_map', 'accidents', 'accident_lines', 'accident_sources',
         'argentanwebferro_articles', 'argentanwebferro_facts', 'argentanwebferro_photos',
     ];
 

@@ -117,23 +117,37 @@ describe('activeLayers (carte intégrable et /maps)', () => {
             accidents: true,
             levelCrossings: true,
             signalling: true,
+            signallingHistory: false,
             greenways: false,
-            todayOnly: ['level-crossings', 'signalling'],
+            todayOnly: ['level-crossings'],
+            eraViewOnly: [],
             legendOverlays: ['level-crossings', 'signalling'],
             orm: 'orm-gauge',
         });
     });
 
-    it('ne dessine pas les calques d’aujourd’hui sur une autre époque, mais les garde pour le message', () => {
-        const drawn = activeLayers(asked, false);
+    it('ne dessine pas les passages à niveau sur une autre époque, mais la signalisation datée oui', () => {
+        const drawn = activeLayers(asked, false, true);
         expect(drawn).toMatchObject({
             accidents: true,
             levelCrossings: false,
-            signalling: false,
-            legendOverlays: [],
+            signalling: true,
+            signallingHistory: true,
+            legendOverlays: ['signalling'],
             orm: 'orm-gauge',
         });
-        expect(drawn.todayOnly).toEqual(['level-crossings', 'signalling']);
+        expect(drawn.todayOnly).toEqual(['level-crossings']);
+        expect(drawn.eraViewOnly).toEqual([]);
+    });
+
+    it('hors de la vue « une époque » (comparaison, ères empilées), la signalisation n’est pas dessinée', () => {
+        const drawn = activeLayers(asked, false, false);
+        expect(drawn).toMatchObject({
+            signalling: false,
+            signallingHistory: false,
+            legendOverlays: [],
+        });
+        expect(drawn.eraViewOnly).toEqual(['signalling']);
     });
 
     it('sans calque demandé, rien n’est dessiné', () => {
@@ -141,8 +155,10 @@ describe('activeLayers (carte intégrable et /maps)', () => {
             accidents: false,
             levelCrossings: false,
             signalling: false,
+            signallingHistory: false,
             greenways: false,
             todayOnly: [],
+            eraViewOnly: [],
             legendOverlays: [],
             orm: NO_ORM,
         });
@@ -154,12 +170,12 @@ describe('activeLayers (carte intégrable et /maps)', () => {
         const today = activeLayers(asked, true);
         expect(today).toMatchObject({ greenways: true, signalling: true });
         expect(today.legendOverlays).toEqual(['signalling', 'greenways']);
-        expect(today.todayOnly).toEqual(['signalling']);
+        expect(today.todayOnly).toEqual([]);
 
-        const past = activeLayers(asked, false);
-        expect(past).toMatchObject({ greenways: true, signalling: false });
-        expect(past.legendOverlays).toEqual(['greenways']);
-        expect(past.todayOnly).toEqual(['signalling']);
+        const past = activeLayers(asked, false, true);
+        expect(past).toMatchObject({ greenways: true, signalling: true, signallingHistory: true });
+        expect(past.legendOverlays).toEqual(['signalling', 'greenways']);
+        expect(past.todayOnly).toEqual([]);
 
         const only = activeLayers(readLayers('?layer=greenways'), false);
         expect(only.todayOnly).toEqual([]);
@@ -189,16 +205,24 @@ describe('layerNotices', () => {
         expect(layerNotices(active, state)).toEqual([]);
     });
 
-    it('choisit la phrase selon les calques connus seulement aujourd’hui', () => {
+    it('choisit les phrases selon la vue : passages à niveau d’aujourd’hui, signalisation datée', () => {
         const past = { ...state, showingToday: false };
-        const key = (search) =>
-            layerNotices(activeLayers(readLayers(search), false), past)[0]?.textKey;
-        expect(key('?layer=signalling')).toBe('maps.signalling.current_only');
-        expect(key('?layer=level-crossings')).toBe('maps.level_crossings.current_only');
-        expect(key('?layer=level-crossings&layer=signalling')).toBe(
-            'maps.layers.current_only_both',
+        const keys = (search, eraView) =>
+            layerNotices(activeLayers(readLayers(search), false, eraView), past).map(
+                (n) => n.textKey,
+            );
+        expect(keys('?layer=signalling', true)).toEqual(['maps.signalling.history_notice']);
+        expect(keys('?layer=signalling', false)).toEqual(['maps.signalling.era_view_only']);
+        expect(keys('?layer=level-crossings', true)).toEqual(['maps.level_crossings.current_only']);
+        expect(keys('?layer=level-crossings&layer=signalling', true)).toEqual([
+            'maps.level_crossings.current_only',
+            'maps.signalling.history_notice',
+        ]);
+        expect(keys('?layer=accidents', true)).toEqual([]);
+        // Aujourd'hui : l'état de SNCF Réseau, sans message.
+        expect(layerNotices(activeLayers(readLayers('?layer=signalling'), true), state)).toEqual(
+            [],
         );
-        expect(key('?layer=accidents')).toBeUndefined();
     });
 
     it('invite à zoomer pour les passages à niveau, seulement s’ils sont dessinés', () => {

@@ -18,30 +18,25 @@ use App\Services\WikipediaLineParser;
  *
  * Fiabilité :
  *   - `high`   : jour ou mois précis, une seule date dans la proposition, système sujet de la mise en service ;
- *   - `medium` : année seule, mêmes conditions ;
- *   - `low`    : date approximative (« vers 1937 », « avant 1950 »), plusieurs dates dans la proposition,
- *                période (« de 1968 à 1984 »), date hors de la vie du système. Gardé, jamais montré.
+ *   - `medium` : année seule, ou date reprise d'une phrase voisine (« la même année », « à cette occasion »),
+ *                mêmes conditions ;
+ *   - `low`    : date approximative (« vers 1937 », « avant 1950 »), y compris dans la puce parente, plusieurs
+ *                dates dans la proposition, période (« de 1968 à 1984 »), date hors de la vie du système, date
+ *                portée par une autre portion de la proposition que celle du système. Gardé, jamais montré.
  *
- * Sections écartées : notes, bibliographie, galerie, projets et avenir. Les tableaux ne sont pas lus (première
- * version). Une proposition qui cite une autre ligne (lien ⟦…⟧ du texte brut de WikipediaLineParser) est écartée :
- * le fait peut concerner l'autre ligne.
+ * Portion : cherchée d'abord dans le texte qui suit le système (jusqu'au système suivant), sinon dans toute la
+ * proposition : « Entre Angers et Saint-Nazaire, c'est du BAL mis en service entre Angers et La Possonnière »
+ * donne Angers - La Possonnière.
+ *
+ * Sections écartées : notes, bibliographie, galerie, projets et avenir. Une proposition qui cite une autre ligne
+ * (lien ⟦…⟧ du texte brut de WikipediaLineParser) est écartée : le fait peut concerner l'autre ligne.
+ *
+ * Origine de chaque fait (`origin`) : `text` (phrase), `list` (puce), `table` (ligne d'un tableau,
+ * SignallingTableReader), `infobox` (système daté dans l'infobox) ou `opening` (TVM d'une ligne à grande
+ * vitesse, en service dès l'ouverture : SignallingInfoboxReader).
  */
 final class SignallingHistoryExtractor
 {
-    /** Système → (expression, sensible à la casse pour les sigles). Le code final est calculé par code(). */
-    private const MENTIONS = [
-        'BAL' => '/(?i:blo(?:ck|c)\s+automatique\s+lumineux)|\bBAL(?:-VB)?\b/u',
-        'BAPR' => '/(?i:blo(?:ck|c)\s+automatique\s+à\s+permissivité\s+restreinte)|\bBAPR(?:-[A-Z]{2})?\b/u',
-        'BM' => '/(?i:blo(?:ck|c)\s+manuel(?:\s+unifié)?)|\bBM(?:VU|U)?\b/u',
-        'CT' => '/(?i:cantonnement\s+téléphonique)(?!\s+assisté)/u',
-        'TVM' => '/(?i:transmission\s+voie[- ]machine)|\bTVM(?:[\s-]*(?:300|430))?\b/u',
-        'ETCS' => '/\b(?:ETCS|ERTMS)(?:\s*[\/-]\s*(?:ETCS|ERTMS))?(?:\s+(?:de\s+)?(?:niveau|level|N)\s*([12])|\s*L([12])\b)?/u',
-        'KVB' => '/\bKVB(?:\s?P)?\b|(?i:contrôle\s+de\s+vitesse\s+par\s+balises)/u',
-    ];
-
-    /** Année avant laquelle le système n'existait pas : une date plus ancienne est une erreur de lecture probable. */
-    private const FIRST_YEAR = ['BAL' => 1925, 'BAPR' => 1935, 'BM' => 1850, 'CT' => 1850, 'TVM' => 1976, 'ETCS' => 1998, 'KVB' => 1980];
-
     /** Verbe ou nom de mise en service. */
     private const VERB = '/\bmis(?:e|es)?\s+en\s+(?:service|place|œuvre)|\bentr\w+\s+en\s+service|\binstall\w+|\bpos(?:é|ée|és|ées|ent|er)\b|\bpose\b|\béquip\w+|\bdot(?:é|ée|és|ées|ation)\b|\bétend\w+|\bétendu\w*|\bextension\b|\bdéploy\w+|\bgénéralis\w+|\binaugur\w+|\brempla[cç]\w+|\bactiv(?:é|ée|ation)\b|\bsubstitu\w+|\bintrodui\w+|\binstauré\w*/iu';
 
@@ -65,14 +60,22 @@ final class SignallingHistoryExtractor
 
     private const MAX_EXCERPT = 200;
 
-    public function __construct(private readonly WikipediaLineParser $parser) {}
+    private readonly SignallingInfoboxReader $infobox;
+
+    private readonly SignallingTableReader $tables;
+
+    public function __construct(private readonly WikipediaLineParser $parser)
+    {
+        $this->infobox = new SignallingInfoboxReader($parser);
+        $this->tables = new SignallingTableReader($parser);
+    }
 
     /**
      * @return list<array{system: string, role: string, date: string, precision: string, scope: string,
      *     section_from: ?string, section_to: ?string, pk_start_m: ?int, pk_end_m: ?int,
      *     confidence: string, origin: string, excerpt: string}>
      */
-    public function extract(string $wikitext, string $title, ?\DateTimeInterface $today = null): array
+    public function extract(string $wikitext, string $title, ?\DateTimeInterface $today = null, bool $lgv = false): array
     {
         $today ??= new \DateTimeImmutable;
         $infobox = $this->parser->parseInfobox($wikitext);
@@ -95,13 +98,18 @@ final class SignallingHistoryExtractor
                 continue;
             }
             if (str_starts_with($line, '{|')) {
+                $table = [];
                 for ($depth = 0; $i < $count; $i++) {
                     $tl = trim($lines[$i]);
+                    $table[] = $tl;
                     $depth += str_starts_with($tl, '{|') ? 1 : 0;
                     $depth -= str_starts_with($tl, '|}') ? 1 : 0;
                     if ($depth <= 0) {
                         break;
                     }
+                }
+                if (! $skip) {
+                    array_push($facts, ...$this->tables->facts($table, $ends, $today));
                 }
 
                 continue;
@@ -122,9 +130,10 @@ final class SignallingHistoryExtractor
             $inherited = $origin === 'list' ? ($parentDates[$depth - 1] ?? null) : null;
             $parentDates = array_filter($parentDates, fn ($d) => $d < $depth, ARRAY_FILTER_USE_KEY);
 
-            if ($origin === 'list' && mb_strlen($line) <= 120 && $this->mentions($line) === []
+            if ($origin === 'list' && mb_strlen($line) <= 120 && SignallingSystems::mentions($line) === []
                 && ($dates = array_values(array_filter($this->parser->findDates($line), fn ($d) => $d['precision'] !== 'decade'))) !== []) {
-                $parentDates[$depth] = $dates[0];
+                // « Vers 1937 : », « De 1968 à 1984 : » : la date héritée par les puces filles reste douteuse.
+                $parentDates[$depth] = $dates[0] + ['doubtful' => $this->doubtfulDate($line, $dates)];
 
                 continue;
             }
@@ -138,18 +147,50 @@ final class SignallingHistoryExtractor
             }
         }
 
-        return $this->deduplicated($facts);
+        array_push($facts, ...$this->infobox->facts($wikitext, $ends, $lgv, $today));
+
+        return $this->deduplicated(array_map($this->withCleanPlaces(...), $facts));
+    }
+
+    /**
+     * Lieux de la portion sans le système qui les précède : « Le BAPR de Rezé » → « Rezé ». Un lieu qui
+     * n'est plus qu'un système, ou vide, est retiré ; une portion sans lieu ni PK n'est plus une portion.
+     *
+     * @param  array<string, mixed>  $fact
+     * @return array<string, mixed>
+     */
+    private function withCleanPlaces(array $fact): array
+    {
+        foreach (['section_from', 'section_to'] as $key) {
+            $place = $fact[$key];
+            if (! is_string($place)) {
+                continue;
+            }
+            $mentions = SignallingSystems::mentions($place);
+            if ($mentions !== []) {
+                $last = $mentions[array_key_last($mentions)];
+                $place = mb_substr($place, $last['pos'] + mb_strlen($last['text']));
+                $place = (string) preg_replace('/^\s*(?:\(\s*[^)]*\)\s*)?(?:de\s+la\s+|de\s+l[’\']|des\s+|du\s+|de\s+|d[’\']|entre\s+|à\s+partir\s+de\s+)?/iu', '', $place);
+            }
+            $place = trim($place, " \t,;:-");
+            $fact[$key] = $place === '' ? null : $place;
+        }
+        if ($fact['scope'] === 'section' && $fact['section_from'] === null && $fact['section_to'] === null && $fact['pk_start_m'] === null) {
+            $fact['scope'] = 'unspecified';
+        }
+
+        return $fact;
     }
 
     /**
      * @param  list<string>  $ends
-     * @param  array{date: string, precision: string, year: int, pos: int}|null  $inherited  date de la puce parente
+     * @param  array{date: string, precision: string, year: int, pos: int, doubtful?: bool}|null  $inherited  date de la puce parente (douteuse : « Vers 1937 : »)
      * @param  array{date: string, precision: string, year: int, pos: int}|null  $previousDate  date unique de la phrase précédente
      * @return list<array<string, mixed>>
      */
     private function factsOfSentence(string $sentence, array $ends, ?array $inherited, ?array $previousDate, \DateTimeInterface $today): array
     {
-        if ($this->mentions($sentence) === []) {
+        if (SignallingSystems::mentions($sentence) === []) {
             return [];
         }
         $out = [];
@@ -158,14 +199,16 @@ final class SignallingHistoryExtractor
             $hasVerb = (bool) preg_match(self::VERB, $clause);
             $verbOk = $hasVerb || ($previousHadVerb && preg_match(self::CONTINUATION, $clause));
             $previousHadVerb = $hasVerb || $previousHadVerb && preg_match(self::CONTINUATION, $clause);
-            $mentions = $this->mentions($clause);
+            $mentions = SignallingSystems::mentions($clause);
             if ($mentions === [] || ! $verbOk || preg_match(self::NEGATIVE, $clause) || str_contains($clause, '⟦')) {
                 continue;
             }
             $dates = $this->datesOf($clause);
             $viaReference = false;
+            $doubtful = false;
             if ($dates === [] && $inherited !== null) {
-                $dates = [$inherited + ['pos' => 0]];
+                $doubtful = (bool) ($inherited['doubtful'] ?? false);
+                $dates = [['pos' => 0] + array_diff_key($inherited, ['doubtful' => true])];
             } elseif ($dates === [] && $previousDate !== null && preg_match(self::SAME_TIME, $clause, $same)) {
                 // « La même année, le BAL est installé… » : année seulement ; « À cette occasion » : la date précise.
                 $sameDay = ! str_contains(mb_strtolower($same[0]), 'année');
@@ -176,19 +219,26 @@ final class SignallingHistoryExtractor
             if ($dates === []) {
                 continue;
             }
-            $section = $this->parser->findSection($clause, $ends);
-            if ($section !== null && $section['other_line']) {
-                continue;
-            }
+            $clauseSection = $this->parser->findSection($clause, $ends);
 
-            foreach ($mentions as $mention) {
-                if ($this->isReplaced($clause, $mention, $mentions) || $this->isFormer($clause, $mention)) {
+            foreach ($mentions as $k => $mention) {
+                if ($this->isReplaced($clause, $mention, $mentions) || $this->isFormer($clause, $mention, $mentions[$k - 1] ?? null)) {
                     continue;
                 }
                 $date = $this->nearestDate($dates, $mention['pos']);
                 if (strtotime($date['date']) > $today->getTimestamp()) {
                     continue;
                 }
+                // Portion du système : dans le texte qui le suit (jusqu'au système suivant), sinon celle de la proposition.
+                $next = $mentions[$k + 1]['pos'] ?? mb_strlen($clause);
+                $own = $this->parser->findSection(mb_substr($clause, $mention['pos'], $next - $mention['pos']), $ends);
+                $section = self::isPortion($own) ? $own : $clauseSection;
+                if ($section !== null && $section['other_line']) {
+                    continue;
+                }
+                // La date est avant le système, dans un passage qui a sa propre portion : elle peut être celle de cette autre portion.
+                $foreignDate = $section === $own && $date['pos'] < $mention['pos']
+                    && self::isPortion($this->parser->findSection(mb_substr($clause, 0, $mention['pos']), $ends));
                 $out[] = [
                     'system' => $mention['system'],
                     'role' => SignallingRole::forSystem($mention['system'])->value,
@@ -199,65 +249,13 @@ final class SignallingHistoryExtractor
                     'section_to' => $section['to'] ?? null,
                     'pk_start_m' => $section['pk_start'] ?? null,
                     'pk_end_m' => $section['pk_end'] ?? null,
-                    'confidence' => $this->confidence($clause, $mention, $dates, $date, $viaReference),
+                    'confidence' => $doubtful || $foreignDate ? 'low' : $this->confidence($clause, $mention, $dates, $date, $viaReference),
                     'excerpt' => $this->excerpt($clause),
                 ];
             }
         }
 
         return $out;
-    }
-
-    /**
-     * Systèmes cités dans un texte, avec leur position (en caractères) et leur code.
-     *
-     * @return list<array{system: string, pos: int, text: string}>
-     */
-    private function mentions(string $text): array
-    {
-        $found = [];
-        foreach (self::MENTIONS as $family => $rx) {
-            if (! preg_match_all($rx, $text, $all, PREG_OFFSET_CAPTURE | PREG_SET_ORDER)) {
-                continue;
-            }
-            foreach ($all as $m) {
-                $found[] = [
-                    'system' => $this->code($family, $m),
-                    'pos' => mb_strlen(substr($text, 0, $m[0][1])),
-                    'text' => $m[0][0],
-                ];
-            }
-        }
-        usort($found, fn ($a, $b) => $a['pos'] <=> $b['pos']);
-
-        // « block automatique lumineux (BAL) » : le sigle répète le nom, c'est une seule mention.
-        $mentions = [];
-        foreach ($found as $m) {
-            $last = $mentions === [] ? null : $mentions[array_key_last($mentions)];
-            $gap = $last === null ? '' : mb_substr($text, $last['pos'] + mb_strlen($last['text']), $m['pos'] - $last['pos'] - mb_strlen($last['text']));
-            if ($last !== null && $last['system'] === $m['system'] && preg_match('/^\s*\(\s*$/u', $gap)) {
-                continue;
-            }
-            $mentions[] = $m;
-        }
-
-        return $mentions;
-    }
-
-    /** Code du système d'après la famille et ce que le texte précise (TVM 300, ETCS niveau 2). */
-    private function code(string $family, array $match): string
-    {
-        $text = $match[0][0];
-        if ($family === 'TVM' && preg_match('/(300|430)/', $text, $n)) {
-            return 'TVM-'.$n[1];
-        }
-        if ($family === 'ETCS') {
-            $level = $match[1][0] ?? ($match[2][0] ?? '');
-
-            return $level !== '' ? 'ETCS_L'.$level : 'ETCS';
-        }
-
-        return $family;
     }
 
     /**
@@ -290,7 +288,8 @@ final class SignallingHistoryExtractor
      */
     private function clauses(string $sentence): array
     {
-        $parts = preg_split('/\s*;\s*|,?\s+puis\s+|,\s+(?=(?:avant|alors|tandis|mais)\b)|\s+(?:tandis|alors)\s+que\s+/iu', $sentence) ?: [$sentence];
+        // « …en mai 1994, après pose du BAL » : la date est celle de l'autre action, la pose est antérieure.
+        $parts = preg_split('/\s*;\s*|,?\s+puis\s+|,\s+(?=(?:avant|alors|tandis|mais)\b)|\s+(?:tandis|alors)\s+que\s+|,?\s+(?=(?:après|avant)\s+(?:la\s+|le\s+|l[’\']\s*)?(?:pose|mise\s+en\s+(?:service|place)|installation|équipement|déploiement)\b)/iu', $sentence) ?: [$sentence];
         $parts = array_merge(...array_map($this->splitAtParticiple(...), $parts));
         $out = [];
         foreach ($parts as $part) {
@@ -326,7 +325,7 @@ final class SignallingHistoryExtractor
         for ($i = 1; $i < count($tokens); $i += 2) {
             // Une autre action (électrification, ouverture…) coupe toujours : sa date n'est pas celle du système.
             $otherAction = (bool) preg_match('/^(?:électrifi|ouvert|fermé|relié|construit|prolong|déclass)/iu', $tokens[$i + 1]);
-            if ($otherAction || ($this->hasDate($current) && $this->mentions($current) === [])) {
+            if ($otherAction || ($this->hasDate($current) && SignallingSystems::mentions($current) === [])) {
                 $out[] = $current;
                 $current = $tokens[$i + 1];
 
@@ -342,9 +341,9 @@ final class SignallingHistoryExtractor
     /** « …du BAL en 1978, du BAPR depuis 1980 » : chaque système garde sa date, la date du premier n'est pas celle du second. */
     private function startsWithOtherSystem(string $left, string $right): bool
     {
-        $first = $this->mentions($right)[0] ?? null;
+        $first = SignallingSystems::mentions($right)[0] ?? null;
 
-        return $first !== null && $first['pos'] < 30 && $this->mentions($left) !== []
+        return $first !== null && $first['pos'] < 30 && SignallingSystems::mentions($left) !== []
             && preg_match('/^(?:et\s+)?(?:(?:du|de\s+la|des|le|la|les|l[’\']|d[’\'])\s*)?(?:(?:ancien|nouveau)\s+)?(?:\S+\s+){0,3}$/iu', mb_substr($right, 0, $first['pos']));
     }
 
@@ -368,9 +367,15 @@ final class SignallingHistoryExtractor
     }
 
     /** « l'ancien BAL », « elle était jusque-là assurée par du block manuel » : un système déjà disparu. */
-    private function isFormer(string $clause, array $mention): bool
+    private function isFormer(string $clause, array $mention, ?array $previous = null): bool
     {
-        $before = mb_substr($clause, max(0, $mention['pos'] - 60), min(60, $mention['pos']));
+        // Fenêtre limitée au texte qui suit le système précédent : « le BM, qui équipait jusque-là la ligne, est
+        // remplacé par le BAL » ne fait pas du BAL un ancien système.
+        $from = max(0, $mention['pos'] - 60, $previous === null ? 0 : $previous['pos'] + mb_strlen($previous['text']));
+        $before = mb_substr($clause, $from, $mention['pos'] - $from);
+        if (preg_match('/(?:rempla[cç]\w*\s+par|au\s+profit\s+d[eu]|cède\s+la\s+place\s+(?:au|à))\s+(?:(?:le|la|les|l[’\']|un|une|du|des)\s*)?(?:nouveau\s+|nouvelle\s+)?$/iu', $before)) {
+            return false;
+        }
 
         return (bool) preg_match('/\bancien(?:ne)?s?\s+(?:système\s+)?$/iu', mb_substr($before, -18))
             || preg_match('/\b(?:était|étaient|jusque-là|jusqu[’\']alors|auparavant|précédemment|anciennement|jadis)\b[^.;()]{0,45}$/iu', $before)
@@ -393,6 +398,26 @@ final class SignallingHistoryExtractor
         });
 
         return $dates[0];
+    }
+
+    /** Une portion lue par findSection, avec des lieux, des PK ou « toute la ligne ». */
+    private static function isPortion(?array $section): bool
+    {
+        return $section !== null && ($section['whole_line'] || $section['from'] !== null || $section['to'] !== null || $section['pk_start'] !== null);
+    }
+
+    /**
+     * Date d'une puce parente douteuse : approximative (« Vers 1937 »), période (« De 1968 à 1984 ») ou plusieurs dates.
+     *
+     * @param  non-empty-list<array{pos: int, date: string, precision: string, year: int}>  $dates
+     */
+    private function doubtfulDate(string $text, array $dates): bool
+    {
+        $before = mb_substr($text, max(0, $dates[0]['pos'] - 30), min(30, $dates[0]['pos']));
+
+        return count(array_unique(array_column($dates, 'date'))) > 1
+            || preg_match('/(?:19|20)\d\d\s*(?:-|–|à|et|au)\s*(?:19|20)\d\d/u', $text)
+            || preg_match(self::APPROXIMATE, $before);
     }
 
     /**
@@ -418,8 +443,7 @@ final class SignallingHistoryExtractor
         $before = mb_substr($clause, max(0, $date['pos'] - 30), min(30, $date['pos']));
         $year = $date['year'];
         $period = (bool) preg_match('/(?:19|20)\d\d\s*(?:-|–|à|et|au)\s*(?:19|20)\d\d/u', $clause);
-        $code = preg_replace('/[-_].*$/', '', $mention['system']);
-        $tooEarly = $year < (self::FIRST_YEAR[$code] ?? 0);
+        $tooEarly = SignallingSystems::tooEarly($mention['system'], $year);
         if (count($distinct) > 1 || $period || $tooEarly || preg_match(self::APPROXIMATE, $before) || preg_match(self::EXCEPTION, $clause)) {
             return 'low';
         }

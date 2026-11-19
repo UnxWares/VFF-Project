@@ -16,9 +16,11 @@ export const DATA_LAYERS = ['accidents', 'level-crossings', 'signalling', 'green
 /**
  * Calques connus seulement pour le réseau d'aujourd'hui (données actuelles de SNCF Réseau). Les
  * voies vertes n'en font pas partie : elles montrent l'état actuel d'anciennes emprises, et se
- * superposent à toutes les époques (le réseau de l'époque est dessous).
+ * superposent à toutes les époques (le réseau de l'époque est dessous). La signalisation non plus :
+ * aujourd'hui l'état de SNCF Réseau, aux époques passées les mises en service datées relevées dans
+ * Wikipédia ; elle se lit dans la vue « une époque » seulement (ni comparaison, ni ères empilées).
  */
-export const TODAY_ONLY_LAYERS = ['level-crossings', 'signalling'];
+export const TODAY_ONLY_LAYERS = ['level-crossings'];
 
 /** Fonds OpenRailwayMap (un seul à la fois). */
 export const ORM_LAYERS = [
@@ -81,33 +83,41 @@ export function layerCount({ data, orm }) {
 }
 
 /**
- * Calques réellement dessinés pour la carte affichée. Les passages à niveau et la signalisation ne
- * sont connus que pour le réseau d'aujourd'hui : sur une autre époque ils ne sont pas dessinés et
- * `todayOnly` garde ceux qui ont été demandés, pour le message. `legendOverlays` : calques à
- * décrire dans la légende (les calques d'aujourd'hui seulement ce jour-là, les voies vertes toujours).
+ * Calques réellement dessinés pour la carte affichée. Les passages à niveau ne sont connus que pour
+ * le réseau d'aujourd'hui : sur une autre époque ils ne sont pas dessinés et `todayOnly` les garde,
+ * pour le message. La signalisation est dessinée dans la vue « une époque » : état de SNCF Réseau
+ * aujourd'hui, historique daté (`signallingHistory`) aux époques passées ; hors de cette vue,
+ * `eraViewOnly` la garde pour le message. `legendOverlays` : calques à décrire dans la légende.
  * @param {{ data: string[], orm: string }} layers calques demandés (readLayers)
  * @param {boolean} showingToday la carte montre le réseau d'aujourd'hui
+ * @param {boolean} [eraView] la carte montre une seule époque (vue « une époque »)
  */
-export function activeLayers({ data, orm }, showingToday) {
+export function activeLayers({ data, orm }, showingToday, eraView = showingToday) {
     const todayOnly = orderedData(data).filter((key) => TODAY_ONLY_LAYERS.includes(key));
-    const drawnToday = showingToday ? todayOnly : [];
+    const signalling = eraView && data.includes('signalling');
     return {
         accidents: data.includes('accidents'),
         levelCrossings: showingToday && data.includes('level-crossings'),
-        signalling: showingToday && data.includes('signalling'),
+        signalling,
+        signallingHistory: signalling && !showingToday,
         greenways: data.includes('greenways'),
         todayOnly,
+        eraViewOnly: !eraView && data.includes('signalling') ? ['signalling'] : [],
         legendOverlays: DATA_LAYERS.filter(
-            (key) => drawnToday.includes(key) || (key === 'greenways' && data.includes(key)),
+            (key) =>
+                (key === 'level-crossings' && showingToday && todayOnly.includes(key)) ||
+                (key === 'signalling' && signalling) ||
+                (key === 'greenways' && data.includes(key)),
         ),
         orm,
     };
 }
 
 /**
- * Messages posés sur la carte par les calques : échec du chargement des accidents, calques connus
- * seulement aujourd'hui (une phrase pour un calque, une autre pour les deux), aide au zoom des
- * passages à niveau. `textKey` est une clé de traduction.
+ * Messages posés sur la carte par les calques : échec du chargement des accidents, passages à niveau
+ * connus seulement aujourd'hui, signalisation lisible seulement dans la vue « une époque », nature de
+ * la signalisation d'une époque passée (historique daté, partiel), aide au zoom des passages à niveau.
+ * `textKey` est une clé de traduction.
  * @param {ReturnType<typeof activeLayers>} active
  * @param {{ showingToday: boolean, accidentsFailed: boolean, zoom: number, minZoom: number }} state
  * @returns {Array<{ key: string, textKey: string, icon?: string }>}
@@ -118,13 +128,17 @@ export function layerNotices(active, { showingToday, accidentsFailed, zoom, minZ
         out.push({ key: 'accidents', textKey: 'maps.accidents.error' });
     }
     if (active.todayOnly.length && !showingToday) {
-        const textKey =
-            active.todayOnly.length > 1
-                ? 'maps.layers.current_only_both'
-                : active.todayOnly[0] === 'signalling'
-                  ? 'maps.signalling.current_only'
-                  : 'maps.level_crossings.current_only';
-        out.push({ key: 'today', textKey });
+        out.push({ key: 'today', textKey: 'maps.level_crossings.current_only' });
+    }
+    if (active.eraViewOnly?.length) {
+        out.push({ key: 'era-view', textKey: 'maps.signalling.era_view_only' });
+    }
+    if (active.signallingHistory) {
+        out.push({
+            key: 'signalling-history',
+            textKey: 'maps.signalling.history_notice',
+            icon: 'bi-clock-history',
+        });
     }
     if (active.levelCrossings && zoom < minZoom) {
         out.push({ key: 'zoom', textKey: 'maps.level_crossings.zoom_hint', icon: 'bi-zoom-in' });

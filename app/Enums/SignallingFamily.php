@@ -35,7 +35,8 @@ enum SignallingFamily: string
             str_starts_with($code, 'BAPR') => self::RestrictedBlock,
             $code === 'BM', str_starts_with($code, 'BMVU') => self::ManualBlock,
             str_starts_with($code, 'CT'), $code === 'CAPI' => self::Telephone,
-            str_starts_with($code, 'TVM-'), str_starts_with($code, 'ETCS_') => self::Cab,
+            // TVM et ETCS sans version ni niveau : codes de l'historique daté (line_signalling_events).
+            $code === 'TVM', $code === 'ETCS', str_starts_with($code, 'TVM-'), str_starts_with($code, 'ETCS_') => self::Cab,
             default => null,
         };
     }
@@ -48,7 +49,7 @@ enum SignallingFamily: string
             WHEN {$column} LIKE 'BAPR%' THEN '".self::RestrictedBlock->value."'
             WHEN {$column} = 'BM' OR {$column} LIKE 'BMVU%' THEN '".self::ManualBlock->value."'
             WHEN {$column} LIKE 'CT%' OR {$column} = 'CAPI' THEN '".self::Telephone->value."'
-            WHEN {$column} LIKE 'TVM-%' OR {$column} LIKE 'ETCS\\_%' THEN '".self::Cab->value."'
+            WHEN {$column} IN ('TVM', 'ETCS') OR {$column} LIKE 'TVM-%' OR {$column} LIKE 'ETCS\\_%' THEN '".self::Cab->value."'
         END";
     }
 }
