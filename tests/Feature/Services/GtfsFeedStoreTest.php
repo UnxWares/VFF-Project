@@ -8,7 +8,6 @@ use App\Services\StationService\GtfsFeedStore;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
-use PHPUnit\Framework\Attributes\Group;
 use RuntimeException;
 use Tests\TestCase;
 use Throwable;
@@ -167,12 +166,7 @@ class GtfsFeedStoreTest extends TestCase
         GtfsFeedStore::closestVersion($this->root.'/absent.csv', 10, 20260715);
     }
 
-    /**
-     * Bogue connu : `fopen() ?: throw` ne voit pas l'échec, car Laravel convertit l'avertissement de fopen
-     * en ErrorException avant ; le message « Historique illisible » prévu par le code n'apparaît jamais.
-     */
-    #[Group('known-bug')]
-    #[Group('bug-connu')]
+    /** Un historique absent lève l'exception documentée, pas l'avertissement de fopen converti par Laravel. */
     public function test_a_missing_history_file_raises_the_documented_runtime_exception(): void
     {
         $this->expectException(RuntimeException::class);

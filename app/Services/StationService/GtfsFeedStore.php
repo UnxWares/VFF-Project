@@ -71,7 +71,11 @@ final readonly class GtfsFeedStore
     {
         $target = Ymd::toDate($day)->getTimestamp();
         $best = null;
-        $handle = fopen($csv, 'rb') ?: throw new RuntimeException("Historique illisible : {$csv}");
+        // Vérifié avant fopen : Laravel convertit l'avertissement d'un fopen raté en ErrorException.
+        $handle = is_file($csv) && is_readable($csv) ? fopen($csv, 'rb') : false;
+        if ($handle === false) {
+            throw new RuntimeException("Historique illisible : {$csv}");
+        }
         $header = fgetcsv($handle, null, ',', '"', '') ?: [];
         while (($row = fgetcsv($handle, null, ',', '"', '')) !== false) {
             $r = array_combine($header, array_pad(array_slice($row, 0, count($header)), count($header), ''));

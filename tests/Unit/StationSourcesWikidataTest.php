@@ -4,8 +4,6 @@ namespace Tests\Unit;
 
 use App\Console\Commands\ImportStationSources;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
@@ -16,9 +14,6 @@ use ReflectionMethod;
  *   - ouverture, réouverture, fermeture (voyageurs, fret) et démolition, avec leur précision ;
  *   - cycle de vie tiré de P5817, sinon de la classe et des fermetures.
  */
-// Le bogue connu ci-dessous (clé nulle) lève une dépréciation PHP 8.5 dans la plupart des tests : ignorée ici,
-// vérifiée à part par le test du groupe known-bug.
-#[IgnoreDeprecations]
 class StationSourcesWikidataTest extends TestCase
 {
     private const EARTH = 'http://www.wikidata.org/entity/Q2';
@@ -229,12 +224,7 @@ class StationSourcesWikidataTest extends TestCase
         $this->assertSame('Gare de Brest', $r['properties']['frwiki']);
     }
 
-    /**
-     * Bogue connu : sans P5817 (cas le plus courant), la table des cycles de vie est lue avec une clé nulle
-     * (`[...][$state] ?? ...` dans ImportStationSources::parseWikidata), ce que PHP 8.5 déprécie.
-     */
-    #[Group('known-bug')]
-    #[Group('bug-connu')]
+    /** Sans P5817 (cas le plus courant), la lecture du cycle de vie ne lève aucune dépréciation PHP 8.5. */
     public function test_a_missing_usage_state_raises_no_php_deprecation(): void
     {
         $deprecations = [];
