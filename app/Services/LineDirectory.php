@@ -22,7 +22,8 @@ use Illuminate\Support\Facades\DB;
  *   - `status` : `open` (au moins une portion en service à l'ère), `closed` (tracé connu à l'ère,
  *     plus aucune portion en service) ; une ligne sans tracé à l'ère n'est ni l'une ni l'autre ;
  *   - `heritage` : au moins une portion associative (train touristique, vélorail), toutes ères ;
- *   - `department` : code INSEE, lignes dont la fiche cite le département ou qui y desservent une gare.
+ *   - `department` : code INSEE, lignes dont la fiche cite le département ou qui y desservent une gare ;
+ *   - `region` : code INSEE de la région, lignes d'au moins un de ses départements (même règle).
  */
 final class LineDirectory
 {
@@ -82,8 +83,11 @@ final class LineDirectory
         if (filter_var($filters['heritage'] ?? false, FILTER_VALIDATE_BOOL)) {
             $builder->whereHas('segments', fn ($s) => $s->where('is_heritage', true));
         }
-        if (filled($filters['department'] ?? null)) {
+        if (filled($filters['department'] ?? null) && ! in_array('department', $skip, true)) {
             $builder->whereIn('lines.id', self::idsInDepartment((string) $filters['department']));
+        }
+        if (filled($filters['region'] ?? null)) {
+            $builder->whereIn('lines.id', self::idsInDepartments(FrenchDepartments::inRegion((string) $filters['region'])));
         }
 
         return $builder;
@@ -95,7 +99,7 @@ final class LineDirectory
      * pour garder visibles les autres choix.
      *
      * @param  array<string, mixed>  $filters
-     * @return array{total: int, open: int, closed: int, unknown: int, networks: array<string, int>, traffics: array<string, int>, heritage: int}
+     * @return array{total: int, open: int, closed: int, unknown: int, networks: array<string, int>, traffics: array<string, int>, heritage: int, departments: array<string, int>}
      */
     public function facets(array $filters, ?int $eraId): array
     {
@@ -127,6 +131,10 @@ final class LineDirectory
             'traffics' => $traffics,
             'heritage' => $this->apply(Line::query(), $filters, $eraId)
                 ->whereHas('segments', fn ($s) => $s->where('is_heritage', true))->count(),
+            // Par département (sans le filtre `department`) : une ligne compte dans chacun de ses départements.
+            'departments' => app(Territories::class)->lineCounts(
+                $this->apply(Line::query()->select('lines.id'), $filters, $eraId, ['department'])->toBase(),
+            ),
         ];
     }
 
@@ -195,13 +203,30 @@ final class LineDirectory
      */
     public static function idsInDepartment(string $code): QueryBuilder
     {
-        $name = FrenchDepartments::find($code)[0] ?? $code;
+        return self::idsInDepartments([$code]);
+    }
 
-        return DB::table('lines')->select('id')->whereJsonContains('departements', $name)
+    /**
+     * Sous-requête : identifiants des lignes d'au moins un de ces départements (même règle
+     * qu'idsInDepartment). Liste vide : aucune ligne.
+     *
+     * @param  list<string>  $codes  codes INSEE
+     */
+    public static function idsInDepartments(array $codes): QueryBuilder
+    {
+        $names = array_map(fn (string $code): string => FrenchDepartments::find($code)[0] ?? $code, $codes);
+
+        return DB::table('lines')->select('id')
+            ->where(function (QueryBuilder $w) use ($names): void {
+                $w->whereRaw('false');
+                foreach ($names as $name) {
+                    $w->orWhereJsonContains('departements', $name);
+                }
+            })
             ->union(
                 DB::table('station_lines')->select('station_lines.line_id')
                     ->join('stations', 'stations.id', '=', 'station_lines.station_id')
-                    ->where('stations.department_code', $code),
+                    ->whereIn('stations.department_code', $codes),
             );
     }
 

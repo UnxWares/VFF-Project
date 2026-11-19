@@ -72,11 +72,60 @@ final class FrenchDepartments
         '974' => ['La Réunion', 'La Réunion'], '976' => ['Mayotte', 'Mayotte'],
     ];
 
+    /**
+     * Régions : code INSEE → nom (Code officiel géographique, régions depuis le 1er janvier 2016 ;
+     * régions d'outre-mer 01 à 06). Les noms sont ceux de ALL.
+     */
+    public const REGIONS = [
+        '84' => self::ARA, '27' => self::BFC, '53' => self::BRE, '24' => self::CVL, '94' => 'Corse',
+        '44' => self::GES, '32' => self::HDF, '11' => self::IDF, '28' => self::NOR, '75' => self::NAQ,
+        '76' => self::OCC, '52' => self::PDL, '93' => self::PAC,
+        '01' => 'Guadeloupe', '02' => 'Martinique', '03' => 'Guyane', '04' => 'La Réunion', '06' => 'Mayotte',
+    ];
+
     /** @return array{0: string, 1: string}|null [nom, région] */
     public static function find(string $code): ?array
     {
         $code = strtoupper(trim($code));
 
         return self::ALL[$code] ?? self::ALL[str_pad($code, 2, '0', STR_PAD_LEFT)] ?? null;
+    }
+
+    /**
+     * Codes des départements en chaînes (les clés numériques de ALL deviennent des entiers en PHP :
+     * un schéma JSON `string` doit recevoir `"29"`, pas `29`).
+     *
+     * @return list<string>
+     */
+    public static function codes(): array
+    {
+        return array_map('strval', array_keys(self::ALL));
+    }
+
+    /** @return list<string> codes INSEE des régions, en chaînes */
+    public static function regionCodes(): array
+    {
+        return array_map('strval', array_keys(self::REGIONS));
+    }
+
+    /** Code INSEE de la région d'un département (`29` → `53`), ou null si le département est inconnu. */
+    public static function regionCode(string $department): ?string
+    {
+        $region = self::find($department)[1] ?? null;
+        $code = $region !== null ? array_search($region, self::REGIONS, true) : false;
+
+        return $code === false ? null : (string) $code;
+    }
+
+    /**
+     * Codes des départements d'une région, dans l'ordre du code officiel (`53` → 22, 29, 35, 56).
+     *
+     * @return list<string> liste vide si la région est inconnue
+     */
+    public static function inRegion(string $region): array
+    {
+        $name = self::REGIONS[strtoupper(trim($region))] ?? null;
+
+        return $name === null ? [] : array_map('strval', array_keys(array_filter(self::ALL, fn (array $d): bool => $d[1] === $name)));
     }
 }

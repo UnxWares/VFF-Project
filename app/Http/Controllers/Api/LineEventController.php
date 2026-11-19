@@ -62,6 +62,8 @@ class LineEventController extends Controller
      * **Département** : le filtre retient les lignes dont la fiche cite ce
      * département ou qui y desservent une gare ; un événement est rattaché à la
      * ligne entière, pas à la seule portion située dans le département.
+     * `region` applique la même règle à tous les départements d'une région.
+     * Codes acceptés et noms : `/departments` et `/regions`.
      *
      * **Provenance et licence** : chaque événement garde sa source (`source`,
      * `source_url` : la page consultée) et un bloc `provenance` : `provider` et
@@ -78,6 +80,7 @@ class LineEventController extends Controller
     #[QueryParameter('type', "Type d'événement : `opening`, `closure`, `reopening`, `opening_passenger`, `closure_passenger`, `reopening_passenger`, `opening_freight`, `closure_freight`, `reopening_freight`, `electrification`, `modernization`, `dismantling`, `conversion`, `concession`, `concession_end`, `declassification`, `heritage_start`, `heritage_end`, `accident`, `other`. Une autre valeur donne HTTP 422.", type: 'string', example: 'closure_passenger')]
     #[QueryParameter('source', "Provenance de l'événement, 64 caractères au plus : `wikipedia`, `wikipedia-reseaux`, `wikidata`, `ohm`, `lignes-oubliees`, `archeoferroviaire`, `osm`, `heritage`, `estimation-reseau`, `manual`… Une valeur sans événement donne une liste vide.", type: 'string', example: 'wikipedia')]
     #[QueryParameter('department', 'Code INSEE du département (`01` à `95`, `2A`, `2B`, `971` à `976`) : lignes citant ce département ou y desservant une gare. Les minuscules sont acceptées (`2a`). Un autre code donne HTTP 422.', type: 'string', example: '29')]
+    #[QueryParameter('region', 'Code INSEE de la région (`11`, `24`, `27`, `28`, `32`, `44`, `52`, `53`, `75`, `76`, `84`, `93`, `94`, outre-mer `01` à `06`) : lignes citant l\'un de ses départements ou y desservant une gare. Un autre code donne HTTP 422. Liste avec les noms : `/regions`.', type: 'string', example: '53')]
     #[QueryParameter('from', 'Début de la période, bornes incluses : une année (`1930`, soit le 1er janvier) ou une date (`1930-06-15`). Toute autre forme, ou une date inexistante (`1930-02-31`), donne HTTP 422.', type: 'string', example: '1930')]
     #[QueryParameter('to', 'Fin de la période, bornes incluses : une année (`1939`, soit le 31 décembre) ou une date (`1939-12-31`).', type: 'string', example: '1939')]
     #[QueryParameter('order', 'Ordre chronologique : `asc` (du plus ancien, par défaut) ou `desc` (du plus récent).', type: 'string', default: 'asc', example: 'asc')]

@@ -21,6 +21,7 @@ return [
             'lignes-oubliees' => 'lignes-oubliees.com, Angaben mit Herkunftsnennung und Link zum Eintrag wiedergegeben',
             'argentanwebferro' => 'Argentan Web Ferroviaire (Thierry Danglos), Fakten mit Link zum Artikel übernommen',
             'bea-tt' => 'BEA-TT (französische Untersuchungsstelle für Landverkehrsunfälle), Licence Ouverte 2.0 (Etalab); Gesamtübersicht der Untersuchungen und Links zu den Berichten, mit dem Aktualisierungsdatum der Übersicht',
+            'insee' => 'INSEE, Code officiel géographique (Codes und Namen der französischen Departements und Regionen), Licence Ouverte 2.0',
         ],
     ],
 
@@ -89,5 +90,46 @@ return [
         'licences_title' => 'Lizenzen und Quellenangaben der VFF-Daten',
         'licence' => 'Lizenz',
         'mention' => 'Nennung',
+    ],
+
+    // Invites (prompts) MCP : message envoyé à l'assistant, dans la langue demandée (app/Mcp/Prompts).
+    'prompts' => [
+        'language' => 'Deutsch',
+        'present_line' => [
+            'message' => 'Stellen Sie die Strecke „:line“ mit den Daten von VFF (Französische Bahnstrecken, vff-project.org) vor.
+1. :identify
+2. Lesen Sie ihr Datenblatt mit get_line, einschließlich der Ereignisse. Ist die Chronik gekürzt (truncated), ergänzen Sie sie mit line_events.
+3. Schreiben Sie einige Absätze: wo die Strecke beginnt und endet, ihre Länge, Elektrifizierung und Signaltechnik, die wichtigen Daten (Eröffnung, Stilllegungen, Elektrifizierung, Abbau) und ihren heutigen Zustand.
+4. Nennen Sie zu jedem Datum und jeder Zahl die Quelle (Feld source und Link source_url). Geben Sie ein Datum nur so genau an, wie es bekannt ist: Tag, Monat oder Jahr. Eine Phase mit der Genauigkeit „range“ ist durch keine Quelle datiert: Sagen Sie nur, dass sie zwischen zwei Jahrzehnten stattfand.
+5. Schreiben Sie mit eigenen Worten und kopieren Sie keinen Text aus Wikipedia oder einer anderen Quelle.
+6. Schließen Sie mit dem Link vff_url des Datenblatts und den Nennungen aus dem Block attribution.
+Antworten Sie auf :language.',
+            'found' => 'Die Strecke ist „:name“ (Kennung :slug): Übergeben Sie diese Kennung an die Werkzeuge. Ihr Datenblatt in Markdown steht auch in der Ressource vff://:lang/lines/:slug.',
+            'search' => 'Suchen Sie ihre Kennung mit search {"query": ":line", "kinds": ["lines"]}. Passen mehrere Strecken, fragen Sie nach, welche gemeint ist, bevor Sie fortfahren.',
+        ],
+        'compare_region_eras' => [
+            'message' => 'Vergleichen Sie das Eisenbahnnetz der Region :region (INSEE-Code :code) in :from und in :to mit den Daten von VFF. Departements der Region: :departments.
+1. Zählen Sie für jede Epoche die offenen und stillgelegten Strecken mit list_lines {"region": ":code", "era": <Jahr>, "facets": true, "limit": 1} und die Bahnhöfe nach Status mit list_stations {"region": ":code", "era": <Jahr>, "facets": true, "limit": 1}.
+2. Ermitteln Sie die Änderungen zwischen beiden Daten mit network_events {"region": ":code", "from": ":events_from", "to": ":events_to"} (Stilllegungen, Eröffnungen, Elektrifizierungen, Abbau) und folgen Sie next_cursor, solange has_more true ist.
+3. Zum Vergleich mit dem ganzen Land liefert compare_eras {"from": :from, "to": :to} dieselben Zahlen für ganz Frankreich.
+4. Zeigen Sie eine Tabelle der beiden Epochen und danach die wichtigsten Änderungen Strecke für Strecke, jeweils mit Datum, Genauigkeit und Quelle.
+5. Erklären Sie, dass eine Strecke zur Region zählt, wenn sie dort einen Bahnhof bedient oder ihr Datenblatt eines ihrer Departements nennt. Die VFF-Karte ist eine Momentaufnahme zum 31. Dezember jedes Jahrzehnts; :era_note
+6. Schließen Sie mit den Nennungen aus dem Block attribution.
+Antworten Sie auf :language.',
+            'current' => 'die Epoche :to beschreibt das heutige Netz.',
+            'past' => 'beide Epochen sind Momentaufnahmen zum 31. Dezember ihres Jahres.',
+        ],
+        'station_story' => [
+            'message' => 'Erzählen Sie die Geschichte des Bahnhofs „:station“ mit den Daten von VFF.
+1. :identify
+2. Lesen Sie sein Datenblatt mit get_station: Eröffnungs- und Schließungsdatum, Status in jedem Jahrzehnt, bediente Strecken mit ihren Bedienungsjahren, Quellen.
+3. Für die Strecken, die ihn bedienen, liefert get_line (mit include_events auf false) Eröffnung und Stilllegung. Ergänzen Sie Unfälle in der Nähe des Bahnhofs mit accidents {"station": "<Kennung>"} und Archivbilder mit media {"station": "<Kennung>"}.
+4. Erzählen Sie der Reihe nach: die Eröffnung, hinzukommende oder stillgelegte Strecken, Statusänderungen, die heutige Lage. Ein Jahrzehnt mit dem Status „uncertain“ ist durch die Gleise der Zeit nicht bestätigt: Weisen Sie darauf hin.
+5. Geben Sie jedes Datum mit Genauigkeit und Quelle an, schreiben Sie mit eigenen Worten, ohne Text aus einer Quelle zu kopieren, und zeigen Sie jedes Bild mit seiner Nennung.
+6. Schließen Sie mit dem Link vff_url des Datenblatts und den Nennungen aus dem Block attribution.
+Antworten Sie auf :language.',
+            'found' => 'Der Bahnhof ist „:name“ (:city, Kennung :slug): Übergeben Sie diese Kennung an die Werkzeuge.',
+            'search' => 'Suchen Sie seine Kennung mit search {"query": ":station", "kinds": ["stations"]}. Manchmal tragen mehrere Bahnhöfe denselben Namen: Fragen Sie im Zweifel nach, welcher gemeint ist, bevor Sie fortfahren.',
+        ],
     ],
 ];

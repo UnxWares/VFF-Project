@@ -19,12 +19,13 @@ par les licences.
 2. [Conventions communes](#conventions-communes)
 3. [Outils](#outils)
 4. [Ressources](#ressources)
-5. [Exemples : questions et appels](#exemples--questions-et-appels)
-6. [Authentification et quotas](#authentification-et-quotas)
-7. [Limites et sécurité](#limites-et-sécurité)
-8. [Attribution et licences](#attribution-et-licences)
-9. [Ce que le serveur ne couvre pas encore](#ce-que-le-serveur-ne-couvre-pas-encore)
-10. [Développement et tests](#développement-et-tests)
+5. [Invites (prompts)](#invites-prompts)
+6. [Exemples : questions et appels](#exemples--questions-et-appels)
+7. [Authentification et quotas](#authentification-et-quotas)
+8. [Limites et sécurité](#limites-et-sécurité)
+9. [Attribution et licences](#attribution-et-licences)
+10. [Ce que le serveur ne couvre pas encore](#ce-que-le-serveur-ne-couvre-pas-encore)
+11. [Développement et tests](#développement-et-tests)
 
 ## Installation dans un client MCP
 
@@ -141,6 +142,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
 | `locate_on_line` | Point kilométrique d'un lieu (latitude, longitude) sur le tracé d'une ligne. |
 | `signalling_history` | Mises en service datées de signalisation d'une ligne (Wikipédia), et faits en vigueur à une époque, ceux que montre la carte. |
+| `list_departments` | Régions et départements (codes INSEE et noms) à passer dans `department` et `region`, avec le nombre de lignes, de gares et d'accidents de chacun. |
 
 ### `search` : rechercher une ligne, une gare, un matériel ou un accident
 
@@ -373,6 +375,7 @@ aucun élément. `count` donne le nombre d'éléments renvoyés, `filters` rappe
 | `type` | type d'événement | non | Mêmes types que `line_events`. |
 | `source` | chaîne, 64 au plus | non | `wikipedia`, `wikidata`, `ohm`, `lignes-oubliees`, `archeoferroviaire`, `osm`, `heritage`, `manual`… |
 | `department` | code INSEE en majuscules | non | `29`, `2A`, `974` : lignes citant ce département ou y desservant une gare. |
+| `region` | code INSEE de la région | non | `53`, `84`, `01` : lignes citant l'un de ses départements ou y desservant une gare. Codes et noms : `list_departments`. |
 | `from`, `to` | année `AAAA` ou date `AAAA-MM-JJ` | non | Période, bornes incluses (une année va du 1er janvier au 31 décembre). |
 | `order` | `asc`, `desc` | non | Ordre chronologique (`asc` par défaut). |
 | `limit` | entier 1 à 200 | non | Événements par appel (50 par défaut). |
@@ -423,6 +426,7 @@ dimensions, `depicted_year`, `author`, `license`, `license_url`, `attribution`, 
 | `traffic` | `passenger`, `mixed`, `freight`, `unknown` | non | Trafic d'une portion en service à l'ère de référence. |
 | `heritage` | booléen | non | Portion associative (train touristique, vélorail). |
 | `department` | code INSEE en majuscules | non | Lignes citant ce département ou y desservant une gare. |
+| `region` | code INSEE de la région | non | Lignes citant l'un de ses départements ou y desservant une gare. Codes et noms : `list_departments`. |
 | `era` | décennie 1830 à 2030 | non | Ère de référence (par défaut : aujourd'hui). |
 | `sort` | `name`, `code`, `slug` | non | Tri (`name` : alphabétique français ; `code` : lignes sans code en dernier). |
 | `order` | `asc`, `desc` | non | Sens du tri. |
@@ -433,7 +437,7 @@ dimensions, `depicted_year`, `author`, `license`, `license_url`, `attribution`, 
 Renvoie `era_year` et `lines` : `slug`, `code`, `name`, `network`, `historical_operator`,
 `regions`, `departements`, `state` (`open`, `closed`, `unknown` : sans tracé à cette ère),
 `traffic`, `heritage`, `vff_url` ; avec `facets` : `total`, `open`, `closed`, `unknown`,
-`networks`, `traffics`, `heritage`.
+`networks`, `traffics`, `heritage`, `departments` (lignes par département, sans le filtre `department`).
 
 ```json
 {"traffic": "freight", "era": 1930, "facets": true}
@@ -446,11 +450,12 @@ Renvoie `era_year` et `lines` : `slug`, `code`, `name`, `network`, `historical_o
 | `q` | chaîne, 100 au plus | non | Nom, commune, autre nom ou début du code UIC. |
 | `status` | `active`, `tourist`, `no_commercial`, `declassified`, `gone`, `planned` | non | Statut (avec `era` : les quatre premiers). |
 | `department` | code INSEE en majuscules | non | Département de la gare. |
+| `region` | code INSEE de la région | non | Gares de ses départements. Codes et noms : `list_departments`. |
 | `era` | décennie 1830 à 2030 | non | Statut à cette ère ; gares absentes de l'ère exclues. |
 | `flagged` | booléen | non | Position à vérifier. |
 | `sort` | `name`, `city`, `opened`, `closed` | non | Tri (valeurs manquantes en dernier). |
 | `order` | `asc`, `desc` | non | Sens du tri. |
-| `facets` | booléen | non | Ajoute le nombre de gares par statut. |
+| `facets` | booléen | non | Ajoute le nombre de gares par statut (`facets`) et par département (`department_facets`, sans le filtre `department`). |
 | `limit` | entier 1 à 100 | non | Gares par appel (25 par défaut). |
 | `cursor` | chaîne opaque | non | Page suivante. |
 
@@ -542,6 +547,8 @@ Mêmes filtres, mêmes tris et mêmes données que `GET /api/v1/accidents` (serv
 | `from`, `to` | années 1800 à 2100 | non | Période, bornes incluses (`to` au moins égale à `from`). |
 | `line` | slug | non | Accidents rattachés à cette ligne (rattachement principal ou secondaire) ; ligne inconnue : erreur. |
 | `department` | code INSEE en majuscules | non | Département actuel du lieu (`91`, `2A`, `974`). |
+| `region` | code INSEE de la région | non | Lieu dans l'un de ses départements (`11`). Codes et noms : `list_departments`. |
+| `station` | slug | non | Accidents dont cette gare est la gare la plus proche du lieu (10 km au plus) ; gare inconnue : erreur. |
 | `kind` | nature | non | `collision`, `derailment`, `level_crossing`, `fire`, `explosion`, `structure_failure`, `attack`, `person_struck`, `runaway`, `incident`, `other`. |
 | `review` | `ok`, `to_review` | non | Fiches dont la date et le lieu sont confirmés (BEA-TT ou deux sources indépendantes), ou « à vérifier ». |
 | `min_deaths` | entier, 0 ou plus | non | Bilan connu d'au moins ce nombre de morts (exclut les bilans inconnus). |
@@ -744,12 +751,56 @@ remplacement que l'article ne date pas reste invisible. Puis `provenance` (Wikip
 {"line": "rfn-905000", "year": 1990}
 ```
 
+### `list_departments` : départements et régions
+
+Liste de référence des territoires (Code officiel géographique de l'INSEE, Licence Ouverte 2.0), mêmes données que
+`GET /api/v1/regions` et `GET /api/v1/departments` (service `Territories`).
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `region` | code INSEE de la région | non | Une seule région. Par défaut : toutes. |
+| `lang` | `fr`, `en`, `de` | non | Langue des mentions (les noms restent en français). |
+
+Renvoie `source` et `regions` (ordre alphabétique) : `code`, `name`, `counts` et `departments` (`code`, `name`,
+`counts`, dans l'ordre du code officiel). `counts` : `lines` (ce que renvoie `list_lines` avec ce filtre : lignes
+dont la fiche cite le territoire ou qui y desservent une gare ; une ligne qui traverse plusieurs départements d'une
+région y compte une fois), `stations` (gares de l'annuaire), `accidents` (accidents publiés, département actuel du
+lieu).
+
+```json
+{"region": "53"}
+```
+
 ## Ressources
 
 | URI | Type | Contenu |
 |---|---|---|
 | `vff://licences` | `text/markdown` | Conditions de réutilisation et licence de chaque source (français). |
 | `vff://{lang}/lines/{slug}` | `text/markdown` | Fiche d'une ligne prête à citer : identité, longueurs, électrification, signalisation, phases, chronologie (50 événements au plus), sources et lien. Ex. `vff://fr/lines/rfn-420000`. |
+
+## Invites (prompts)
+
+Le serveur déclare la capacité `prompts` (`prompts/list`, `prompts/get`) et `completions`
+(`completion/complete`). Une invite renvoie un seul message (rôle `user`), rédigé dans la langue
+`lang`, qui dit à l'assistant quels outils appeler, comment dater et citer chaque fait, et qu'il
+doit écrire avec ses propres mots. Le message ne contient aucune donnée de source (aucun extrait de
+Wikipédia, décision Q22), seulement le nom et l'identifiant de l'objet quand il est trouvé ; sinon,
+il demande de le chercher avec `search`. Textes : `lang/{fr,en,de}/mcp.php`, clé `prompts`.
+
+| Invite | Arguments | Ce que demande le message |
+|---|---|---|
+| `present_line` | `line` (obligatoire : nom, code à 6 chiffres ou slug), `lang` | Présenter la ligne : tracé, longueur, électrification, signalisation, grandes dates, état actuel, avec `get_line` et `line_events`, chaque fait sourcé ; renvoie aussi vers la ressource `vff://{lang}/lines/{slug}`. |
+| `compare_region_eras` | `region` (obligatoire : code INSEE ou nom), `from`, `to` (obligatoires : années 1830 à 2100, ramenées aux ères de la carte), `lang` | Comparer la région aux deux ères : `list_lines` et `list_stations` avec `region` et `era`, `network_events` entre les deux dates, `compare_eras` pour la France entière. |
+| `station_story` | `station` (obligatoire : nom ou slug), `lang` | Raconter l'histoire de la gare : `get_station`, `get_line` des lignes desservies, `accidents` et `media` avec `station`. |
+
+Erreurs : argument manquant, région inconnue, années de la même ère ou langue hors `fr`, `en`, `de`
+donnent l'erreur JSON-RPC `-32602`. Complétion : `lang`, `region` (codes et noms), `line` et
+`station` (20 identifiants au plus dont le début ou le nom correspond à la saisie, accents ignorés).
+
+```json
+{"jsonrpc": "2.0", "id": 1, "method": "prompts/get",
+ "params": {"name": "compare_region_eras", "arguments": {"region": "Bretagne", "from": "1930", "to": "2026"}}}
+```
 
 ## Exemples : questions et appels
 
@@ -767,6 +818,8 @@ remplacement que l'article ne date pas reste invisible. Puis `provenance` (Wikip
 | « Puis-je réutiliser ces dates dans une application commerciale ? » | `sources_and_licences {}` : ODbL pour la base, sauf les faits d'un fournisseur à `open_licence: false` (archeoferroviaire : non commercial) |
 | « Quelles lignes du Finistère ont fermé aux voyageurs dans les années 1930 ? » | `network_events {"department": "29", "type": "closure_passenger", "from": "1930", "to": "1939"}` |
 | « Liste les lignes fermées de la Creuse. » | `list_lines {"department": "23", "status": "closed"}` (puis `next_cursor` tant que `has_more`) |
+| « Quelles lignes de Bretagne étaient ouvertes en 1930 ? » | `list_departments {"region": "53"}` si le code n'est pas connu, puis `list_lines {"region": "53", "era": 1930, "status": "open"}` |
+| « Y a-t-il eu des accidents près de la gare de Brétigny ? » | `accidents {"station": "bretigny"}` |
 | « Combien de lignes ne portaient que du fret en 1930 ? » | `list_lines {"traffic": "freight", "era": 1930, "facets": true, "limit": 1}` : lire `facets` |
 | « Quelles gares du Finistère existaient en 1930 ? » | `list_stations {"department": "29", "era": 1930}` |
 | « Montre-moi des cartes postales anciennes de la gare de Brest. » | `media {"station": "brest", "type": "postcard"}` ; afficher chaque image avec son `attribution` |
@@ -903,7 +956,6 @@ Les instructions du serveur rappellent ces obligations aux assistants.
 - **Historique de la signalisation** par époque : pas encore dans les données.
 - **Tuiles de la signalisation et des passages à niveau** (`/api/v1/eras/{year}/signalling/tiles/...`,
   `/api/v1/level-crossings/tiles/...`) : par l'API REST seulement.
-- Pas d'invites (prompts) MCP ni de complétion d'arguments.
 - **Notifications de changement** : le serveur répond aux questions mais ne prévient de rien. Pour
   être averti quand une contribution est publiée, quand le réseau d'aujourd'hui est recalculé ou
   quand un import publie un accident ou un matériel, un membre déclare un **webhook** depuis son

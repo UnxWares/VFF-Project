@@ -99,6 +99,7 @@ return [
             'events_media' => 'Ereignisse und Medien',
             'materials_accidents' => 'Rollmaterial und Unfälle',
             'tools' => 'Suche, Routen und Quellen',
+            'territories' => 'Departements und Regionen',
         ],
         'items' => [
             'stats' => 'Die Zahlen der Startseite: Anzahl der Strecken, Bahnhöfe und Fahrzeugbaureihen, Betriebskilometer und die Netzkurve je Epoche.',
@@ -145,6 +146,10 @@ return [
             'route_compare' => 'Dieselbe Fahrt in zwei Epochen: die Route in jeder Epoche oder der Grund, warum es keine gibt, und was sich geändert hat (Länge, stillgelegte oder neue Strecken).',
             'sources' => 'Verzeichnis der Datenanbieter und ihrer Nutzungsbedingungen.',
             'source' => 'Ein Anbieter aus dem Verzeichnis, bezeichnet durch den Schlüssel provenance.provider der anderen Antworten.',
+            'departments' => 'Französische Departements mit INSEE-Code, Region und der Zahl der erfassten Strecken, Bahnhöfe und Unfälle: die Werte, die der Parameter department annimmt.',
+            'department' => 'Ein Departement, mit Links zu seinen Strecken, Bahnhöfen, Ereignissen und Unfällen.',
+            'regions' => 'Regionen mit ihren Departements und Zählern: die Werte, die der Parameter region annimmt.',
+            'region' => 'Eine Region, mit denselben Links.',
         ],
     ],
 
@@ -243,6 +248,14 @@ return [
             'locate_on_line' => 'Kilometerpunkt eines Ortes aus seinen Koordinaten auf der Trasse einer Strecke.',
             'signalling_history' => 'Datierte Inbetriebnahmen der Signalisierung einer Strecke aus Wikipedia und die in einem Zeitraum geltenden Systeme, wie auf der Karte.',
             'sources_and_licences' => 'Datenanbieter und Lizenzen.',
+            'list_departments' => 'INSEE-Codes und Namen der Regionen und Departements, mit der Zahl der Strecken, Bahnhöfe und Unfälle in jedem, für die Filter department und region.',
+        ],
+        'prompts_title' => 'Prompts',
+        'prompts_intro' => 'Der Server bietet auch Prompts an, die ein MCP-Client als fertige Befehle anzeigt. Jeder schickt dem Assistenten eine Nachricht, welche Werkzeuge er aufrufen und wie er die Quellen nennen soll. Die Argumente werden bei der Eingabe ergänzt.',
+        'prompts' => [
+            'present_line' => 'Eine Strecke mit ihren Quellen vorstellen: Verlauf, Länge, Elektrifizierung, Signaltechnik, wichtige Daten und heutiger Zustand. Argumente: line, lang.',
+            'compare_region_eras' => 'Das Netz einer Region zu zwei Zeitpunkten vergleichen: offene und stillgelegte Strecken, Bahnhöfe, datierte Änderungen dazwischen. Argumente: region, from, to, lang.',
+            'station_story' => 'Die Geschichte eines Bahnhofs erzählen: Eröffnung, bediente Strecken, Statusänderungen, Unfälle in der Nähe, Archivbilder. Argumente: station, lang.',
         ],
         'licence_title' => 'Namensnennung',
         'licence_text' => 'Die VFF-Datenbank wird unter der Lizenz ODbL 1.0 veröffentlicht. Wenn Sie eine Antwort weiterverwenden, nennen Sie „Französische Bahnstrecken (vff-project.org)“ mit dem Link zum Eintrag, übernehmen Sie die Nennungen aus dem Block attribution und veröffentlichen Sie jede abgeleitete Datenbank, die Sie verbreiten, unter der ODbL. Einige Quellen sind nur für nicht kommerzielle Nutzung freigegeben: Die Antwort weist darauf hin.',

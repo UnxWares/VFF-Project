@@ -100,6 +100,7 @@ return [
             'events_media' => 'Événements et médias',
             'materials_accidents' => 'Matériel roulant et accidents',
             'tools' => 'Recherche, itinéraires et sources',
+            'territories' => 'Départements et régions',
         ],
         'items' => [
             'stats' => 'Les chiffres de l’accueil : nombre de lignes, de gares et de matériels, kilomètres exploités et courbe du réseau à chaque ère.',
@@ -146,6 +147,10 @@ return [
             'route_compare' => 'Le même trajet à deux époques : l’itinéraire de chacune, ou la raison de son absence, et ce qui a changé (longueur, lignes fermées ou nouvelles).',
             'sources' => 'Registre des fournisseurs de données et de leurs conditions de réutilisation.',
             'source' => 'Un fournisseur du registre, désigné par la clé provenance.provider des autres réponses.',
+            'departments' => 'Départements avec leur code INSEE, leur région et le nombre de lignes, de gares et d’accidents recensés : les valeurs acceptées par le paramètre department.',
+            'department' => 'Un département, avec les liens vers ses lignes, ses gares, ses événements et ses accidents.',
+            'regions' => 'Régions avec leurs départements et leurs compteurs : les valeurs acceptées par le paramètre region.',
+            'region' => 'Une région, avec les mêmes liens.',
         ],
     ],
 
@@ -244,6 +249,14 @@ return [
             'locate_on_line' => 'Point kilométrique d’un lieu donné par ses coordonnées, sur le tracé d’une ligne.',
             'signalling_history' => 'Mises en service de signalisation datées d’une ligne, relevées dans Wikipédia, et celles en vigueur à une époque, comme sur la carte.',
             'sources_and_licences' => 'Fournisseurs de données et licences.',
+            'list_departments' => 'Codes INSEE et noms des régions et des départements, avec le nombre de lignes, de gares et d’accidents de chacun, pour les filtres department et region.',
+        ],
+        'prompts_title' => 'Invites',
+        'prompts_intro' => 'Le serveur propose aussi des invites (prompts) : un client MCP les affiche comme des commandes prêtes à l’emploi. Chacune envoie à l’assistant un message qui dit quels outils appeler et comment citer les sources. Les arguments se complètent pendant la saisie.',
+        'prompts' => [
+            'present_line' => 'Présenter une ligne avec ses sources : tracé, longueur, électrification, signalisation, grandes dates et état actuel. Arguments : line, lang.',
+            'compare_region_eras' => 'Comparer le réseau d’une région à deux époques : lignes ouvertes et fermées, gares, changements datés entre les deux. Arguments : region, from, to, lang.',
+            'station_story' => 'Raconter l’histoire d’une gare : ouverture, lignes desservies, changements de statut, accidents à proximité, images d’archives. Arguments : station, lang.',
         ],
         'licence_title' => 'Attribution',
         'licence_text' => 'La base de VFF est publiée sous licence ODbL 1.0. Si vous reprenez une réponse, citez « Voies Ferrées de France (vff-project.org) » avec le lien de la fiche, reproduisez les mentions du bloc attribution et publiez sous ODbL toute base dérivée que vous diffusez. Certaines sources sont réservées à un usage non commercial : la réponse le précise.',

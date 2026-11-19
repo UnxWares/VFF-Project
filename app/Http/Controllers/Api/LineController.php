@@ -105,10 +105,11 @@ class LineController extends Controller
             'next_cursor' => 'eyJzb3J0X251bGwiOjAsInNvcnRfa2V5IjoiNDc3MDAwIiwiaWQiOjI2MiwiX3BvaW50c1RvTmV4dEl0ZW1zIjp0cnVlfQ', 'prev_cursor' => null,
             'era_year' => 2030,
             'facets' => [
-                'total' => 14, 'open' => 0, 'closed' => 14, 'unknown' => 0,
-                'networks' => ['principal' => 2, 'secondaire' => 12, 'militaire' => 0, 'particulier' => 0, 'none' => 0],
+                'total' => 15, 'open' => 0, 'closed' => 15, 'unknown' => 0,
+                'networks' => ['principal' => 2, 'secondaire' => 13, 'militaire' => 0, 'particulier' => 0, 'none' => 0],
                 'traffics' => ['passenger' => 0, 'mixed' => 0, 'freight' => 0, 'unknown' => 0], 'heritage' => 0,
-                'departments' => ['22' => 3, '29' => 14, '56' => 1],
+                // Raccourci : 94 départements dans la réponse.
+                'departments' => ['22' => 13, '29' => 15, '35' => 9, '56' => 10],
             ],
         ],
     ]])]

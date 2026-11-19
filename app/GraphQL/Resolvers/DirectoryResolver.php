@@ -79,7 +79,20 @@ final class DirectoryResolver
     }
 
     /**
-     * Dictionnaire de compteurs (`networks`, `traffics`) en liste de paires (code, nombre).
+     * Nombre de gares par département, en liste de paires (code INSEE, nombre).
+     *
+     * @param  array{_filters: array<string, mixed>}  $root
+     * @return list<array{code: string, count: int}>
+     */
+    public function stationDepartmentFacets(array $root): array
+    {
+        $counts = $this->stations->departmentFacets($root['_filters']);
+
+        return array_map(fn (int|string $code, int $count) => ['code' => (string) $code, 'count' => $count], array_keys($counts), $counts);
+    }
+
+    /**
+     * Dictionnaire de compteurs (`networks`, `traffics`, `departments`) en liste de paires (code, nombre).
      *
      * @param  array<string, mixed>  $root
      * @param  array<string, mixed>  $args
@@ -89,7 +102,7 @@ final class DirectoryResolver
     {
         $counts = (array) ($root[$info->fieldName] ?? []);
 
-        return array_map(fn (string $code, int $count) => ['code' => $code, 'count' => $count], array_keys($counts), $counts);
+        return array_map(fn (int|string $code, int $count) => ['code' => (string) $code, 'count' => $count], array_keys($counts), $counts);
     }
 
     /**

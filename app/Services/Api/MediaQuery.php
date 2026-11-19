@@ -6,8 +6,11 @@ use App\Enums\MediaType;
 use App\Models\Line;
 use App\Models\Media;
 use App\Models\Station;
+use App\Support\QueryBoolean;
 use App\Support\RangeRule;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -45,6 +48,7 @@ final class MediaQuery
             'period' => ['nullable', Rule::in([...array_keys(self::PERIODS), 'undated'])],
             'from_year' => ['nullable', 'integer', 'min:1', 'max:2100'],
             'to_year' => ['nullable', 'integer', 'min:1', 'max:2100', RangeRule::atLeast('from_year')],
+            'featured' => ['nullable', 'boolean'],
             'order' => ['nullable', Rule::in(['asc', 'desc'])],
         ];
     }
@@ -65,7 +69,7 @@ final class MediaQuery
             };
         }
 
-        return $filters;
+        return QueryBoolean::castKeys($filters, ['featured']);
     }
 
     /**
@@ -121,10 +125,41 @@ final class MediaQuery
         if (filled($filters['to_year'] ?? null)) {
             $query->where('media.depicted_year', '<=', (int) $filters['to_year']);
         }
+        if (isset($filters['featured'])) {
+            $query->where('media.is_featured', filter_var($filters['featured'], FILTER_VALIDATE_BOOLEAN));
+        }
 
         $direction = ($filters['order'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
 
         return $query->orderBy('media.id', $direction);
+    }
+
+    /** Auteurs donnés par les compteurs (les plus représentés), comme la page /credits/media. */
+    public const FACET_AUTHORS = 30;
+
+    /**
+     * Compteurs des médias filtrés (ceux de la page /credits/media) : `total`, `types` (nombre par
+     * nature), `licenses` (nombre par licence déclarée, `null` = inconnue, les plus fréquentes
+     * d'abord) et `authors` (les FACET_AUTHORS auteurs les plus représentés).
+     *
+     * @param  array<string, mixed>  $filters  filtres validés
+     * @return array{total: int, types: array<string, int>, licenses: list<array{license: ?string, count: int}>, authors: list<array{author: string, count: int}>}
+     */
+    public function facets(array $filters): array
+    {
+        $base = fn (): QueryBuilder => $this->apply(Media::query(), $filters)->reorder()->toBase();
+
+        return [
+            'total' => (int) $base()->select(DB::raw('COUNT(*) AS n'))->value('n'),
+            'types' => array_map('intval', $base()->select(DB::raw('media.type AS k, COUNT(*) AS n'))
+                ->groupBy('media.type')->orderBy('media.type')->pluck('n', 'k')->all()),
+            'licenses' => $base()->select(DB::raw('media.license AS license, COUNT(*) AS n'))
+                ->groupBy('media.license')->orderByDesc('n')->orderBy('media.license')->get()
+                ->map(fn (object $r): array => ['license' => $r->license, 'count' => (int) $r->n])->all(),
+            'authors' => $base()->select(DB::raw('media.author AS author, COUNT(*) AS n'))->whereNotNull('media.author')
+                ->groupBy('media.author')->orderByDesc('n')->orderBy('media.author')->limit(self::FACET_AUTHORS)->get()
+                ->map(fn (object $r): array => ['author' => (string) $r->author, 'count' => (int) $r->n])->all(),
+        ];
     }
 
     /**

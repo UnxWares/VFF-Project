@@ -5,6 +5,7 @@ namespace App\Services\Api;
 use App\Enums\AccidentKind;
 use App\Enums\AccidentReviewStatus;
 use App\Models\Accident;
+use App\Support\FrenchDepartments;
 use App\Support\RangeRule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,8 @@ final class AccidentQuery
             'to' => ['nullable', 'integer', 'between:1800,2100', RangeRule::atLeast('from')],
             'line' => ['nullable', 'string', 'max:255', 'exists:lines,slug'],
             'department' => ['nullable', 'string', 'regex:/^(?:\d{2,3}|2[ABab])$/'],
+            'region' => ['nullable', Rule::in(array_keys(FrenchDepartments::REGIONS))],
+            'station' => ['nullable', 'string', 'max:255', 'exists:stations,slug'],
             'kind' => ['nullable', Rule::enum(AccidentKind::class)],
             'review' => ['nullable', Rule::enum(AccidentReviewStatus::class)],
             'min_deaths' => ['nullable', 'integer', 'min:0'],
@@ -79,6 +82,13 @@ final class AccidentQuery
         }
         if (filled($filters['department'] ?? null)) {
             $query->where('accidents.department_code', strtoupper((string) $filters['department']));
+        }
+        if (filled($filters['region'] ?? null)) {
+            $query->whereIn('accidents.department_code', FrenchDepartments::inRegion((string) $filters['region']));
+        }
+        if (filled($filters['station'] ?? null)) {
+            // Accidents dont cette gare est la gare la plus proche du lieu (10 km au plus, vff:import-accidents).
+            $query->where('accidents.nearest_station_id', DB::table('stations')->where('slug', $filters['station'])->value('id'));
         }
         if (filled($filters['kind'] ?? null)) {
             $query->where('accidents.kind', $filters['kind']);

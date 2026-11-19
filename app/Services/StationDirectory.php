@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Controllers\Concerns\ReadsListFilters;
 use App\Models\Era;
+use App\Support\FrenchDepartments;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\DB;
  * Lecture seule.
  *
  * Filtres (déjà validés) : `q` (nom, commune, autre nom, début du code UIC), `department` (code
- * INSEE), `era` (année d'une ère : statut de la gare à cette ère, gares absentes de l'ère exclues),
+ * INSEE), `region` (code INSEE de la région : gares de ses départements), `era` (année d'une ère : statut de la gare à cette ère, gares absentes de l'ère exclues),
  * `flagged` (position à vérifier), `status` (statut affiché, cf. STATUSES).
  *
  * Les points techniques (postes, garages, points d'une LGV) et les fiches exclues du réseau ferré
@@ -46,6 +47,7 @@ final class StationDirectory
     {
         $q = trim((string) ($filters['q'] ?? ''));
         $dept = trim((string) ($filters['department'] ?? ''));
+        $region = trim((string) ($filters['region'] ?? ''));
 
         return DB::table('stations as s')
             ->when($era, fn ($b) => $b->join('station_eras as se', fn ($j) => $j->on('se.station_id', '=', 's.id')->where('se.era_id', $era->id)))
@@ -53,6 +55,7 @@ final class StationDirectory
                 ->orWhere('s.city', 'ilike', $this->containsPattern($q))->orWhere('s.uic_code', 'like', $this->prefixPattern($q))
                 ->orWhereRaw('s.alt_names::text ILIKE ?', [$this->containsPattern($q)])))
             ->when($dept !== '', fn ($b) => $b->where('s.department_code', $dept))
+            ->when($region !== '', fn ($b) => $b->whereIn('s.department_code', FrenchDepartments::inRegion($region)))
             ->when(filter_var($filters['flagged'] ?? false, FILTER_VALIDATE_BOOL), fn ($b) => $b->where('s.position_flagged', true))
             ->whereRaw("COALESCE(s.provenance->>'kind', '') NOT IN ('technical', 'excluded')");
     }

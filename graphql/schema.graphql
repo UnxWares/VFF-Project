@@ -685,8 +685,11 @@ input LineEventFilter {
     "Provenance de l'événement (voir `LineEvent.source`), ex. `wikipedia`."
     source: String
 
-    "Code INSEE du département (`35`, `2A`, `971`…) : lignes citant ce département ou y desservant une gare."
+    "Code INSEE du département (`35`, `2A`, `971`…) : lignes citant ce département ou y desservant une gare. Liste : requête `departments`."
     department: String
+
+    "Code INSEE de la région (`53` Bretagne, `11` Île-de-France…, liste : requête `regions`) : lignes citant l'un de ses départements ou y desservant une gare."
+    region: String
 
     "Début de la période, bornes incluses : une année (`1930`, soit le 1er janvier) ou une date (`1930-06-15`)."
     from: String
@@ -777,6 +780,9 @@ input MediaFilter {
 
     "Année représentée maximale, incluse, au moins égale à `from_year`."
     to_year: Int
+
+    "Vrai : seulement les médias mis en avant (images de l'accueil) ; faux : les autres."
+    featured: Boolean
 
     "Ordre des identifiants. Par défaut : croissant (`ASC`)."
     order: SortOrder
@@ -1901,6 +1907,12 @@ input AccidentFilter {
 
     "Code INSEE du département actuel du lieu (ex. `91`, `2A`)."
     department: String
+
+    "Code INSEE de la région (`53` Bretagne, `11` Île-de-France…, liste : requête `regions`) : accidents dont le lieu est dans l'un de ses départements."
+    region: String
+
+    "Slug d'une gare : accidents dont elle est la gare la plus proche du lieu (10 km au plus). Gare inconnue : erreur de validation."
+    station: String
 
     "Nature (voir `Accident.kind`)."
     kind: String
@@ -3165,6 +3177,13 @@ type StationSheet {
 
     "Gares à moins de 10 km (12 au plus), de la plus proche à la plus lointaine."
     neighbors: [StationNeighbor!]!
+
+    """
+    Liens : page web (`web`) et points d'accès REST liés : chronologie (`events`), médias (`media`),
+    accidents dont la gare est la gare la plus proche du lieu (`accidents`), département (`department`,
+    nul si inconnu).
+    """
+    links: JSON
 }
 
 "Une ligne de l'annuaire, avec son état à l'ère de référence."
@@ -3222,6 +3241,9 @@ type LineDirectoryFacets {
 
     "Lignes avec une portion associative."
     heritage: Int!
+
+    "Lignes par département (code INSEE), sans le filtre `department` ; une ligne compte dans chacun de ses départements. Départements sans ligne absents."
+    departments: [CountByCode!]! @field(resolver: "App\\GraphQL\\Resolvers\\DirectoryResolver@pairs")
 }
 
 "Une page de l'annuaire des lignes."
@@ -3324,6 +3346,9 @@ type StationDirectoryPage {
 
     "Nombre de gares par statut pour la recherche, sans le filtre `status` (calculé seulement s'il est demandé)."
     facets: [CountByCode!]! @field(resolver: "App\\GraphQL\\Resolvers\\DirectoryResolver@stationFacets")
+
+    "Nombre de gares par département (code INSEE) pour la recherche, sans le filtre `department` ; départements sans gare absents (calculé seulement s'il est demandé)."
+    department_facets: [CountByCode!]! @field(resolver: "App\\GraphQL\\Resolvers\\DirectoryResolver@stationDepartmentFacets")
 }
 
 "Filtres de `lineDirectory`, ceux de la page `/lines` (combinés : ET)."
@@ -3343,8 +3368,11 @@ input LineDirectoryFilter {
     "Seulement les lignes avec une portion associative."
     heritage: Boolean
 
-    "Code INSEE du département (lignes citant ce département ou y desservant une gare)."
+    "Code INSEE du département (lignes citant ce département ou y desservant une gare). Liste : requête `departments`."
     department: String
+
+    "Code INSEE de la région (`53` Bretagne, `11` Île-de-France…, liste : requête `regions`) : lignes citant l'un de ses départements ou y desservant une gare."
+    region: String
 
     "Année de l'ère de référence (décennie de 1830 à 2030). Par défaut : aujourd'hui."
     era: Int
@@ -3364,8 +3392,11 @@ input StationDirectoryFilter {
     "Statut : `active`, `tourist`, `no_commercial`, `declassified`, `gone`, `planned`."
     status: String
 
-    "Code INSEE du département de la gare."
+    "Code INSEE du département de la gare. Liste : requête `departments`."
     department: String
+
+    "Code INSEE de la région (`53` Bretagne, `11` Île-de-France…, liste : requête `regions`) : gares de ses départements."
+    region: String
 
     "Année d'une ère : statut à cette ère, gares absentes exclues."
     era: Int
@@ -3621,6 +3652,94 @@ extend type Query {
         "Clé du fournisseur (ex. `osm`, `sncf`, `archeoferroviaire`)."
         provider: String!
     ): SourceProvider @field(resolver: "App\\GraphQL\\Resolvers\\SourceField@find")
+
+    """
+    Départements : les valeurs acceptées par les filtres `department`, avec leur nom, leur région et ce
+    que VFF y recense, comme `GET /api/v1/departments`. Ordre du code officiel (`01` à `95`, `2A`, `2B`,
+    puis `971` à `976`).
+    """
+    departments(
+        "Code INSEE d'une région : seulement ses départements. Code inconnu : erreur de validation."
+        region: String
+    ): [Department!]! @field(resolver: "App\\GraphQL\\Resolvers\\TerritoryResolver@departments")
+
+    "Un département, par son code INSEE (`29`, `2A`, `971` ; minuscules acceptées) ; nul s'il est inconnu."
+    department(
+        "Code INSEE du département."
+        code: String!
+    ): Department @field(resolver: "App\\GraphQL\\Resolvers\\TerritoryResolver@department")
+
+    "Régions (valeurs acceptées par les filtres `region`), avec leurs départements, comme `GET /api/v1/regions`. Ordre alphabétique."
+    regions: [Region!]! @field(resolver: "App\\GraphQL\\Resolvers\\TerritoryResolver@regions")
+
+    "Une région, par son code INSEE (`53`, `84`, `01`) ; nul si elle est inconnue."
+    region(
+        "Code INSEE de la région."
+        code: String!
+    ): Region @field(resolver: "App\\GraphQL\\Resolvers\\TerritoryResolver@region")
+}
+
+"""
+Un département français. Code et nom tirés du Code officiel géographique de l'INSEE (Licence Ouverte
+2.0), région depuis le 1er janvier 2016. Les compteurs suivent les règles des filtres `department`.
+"""
+type Department {
+    "Code INSEE : `01` à `95`, `2A`, `2B`, `971` à `976` (valeur des filtres `department`)."
+    code: String!
+
+    "Nom officiel (ex. « Finistère »)."
+    name: String!
+
+    "Région du département."
+    region: RegionRef!
+
+    "Ce que VFF recense dans le département."
+    counts: TerritoryCounts!
+}
+
+"Une région française (Code officiel géographique de l'INSEE, Licence Ouverte 2.0)."
+type Region {
+    "Code INSEE : `11` à `94`, outre-mer `01` à `06` (valeur des filtres `region`)."
+    code: String!
+
+    "Nom officiel (ex. « Bretagne »)."
+    name: String!
+
+    "Départements de la région, dans l'ordre du code officiel."
+    departments: [DepartmentRef!]!
+
+    "Ce que VFF recense dans la région (une ligne qui traverse plusieurs de ses départements compte une fois)."
+    counts: TerritoryCounts!
+}
+
+"Une région, par son code et son nom."
+type RegionRef {
+    "Code INSEE de la région."
+    code: String!
+
+    "Nom de la région."
+    name: String!
+}
+
+"Un département, par son code et son nom."
+type DepartmentRef {
+    "Code INSEE du département."
+    code: String!
+
+    "Nom du département."
+    name: String!
+}
+
+"Ce que VFF recense dans un département ou une région."
+type TerritoryCounts {
+    "Lignes dont la fiche cite le territoire ou qui y desservent une gare (résultat du filtre `department` ou `region` de `lineDirectory`)."
+    lines: Int!
+
+    "Gares de l'annuaire situées dans le territoire (points techniques exclus)."
+    stations: Int!
+
+    "Accidents publiés dont le lieu est dans le territoire (département actuel)."
+    accidents: Int!
 }
 
 #

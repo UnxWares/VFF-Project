@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\SourceController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationEventController;
 use App\Http\Controllers\Api\StatsController;
+use App\Http\Controllers\Api\TerritoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -82,6 +83,11 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/stations/{station:slug}', [StationController::class, 'show'])->name('api.stations.show');
     Route::get('/v1/sources', [SourceController::class, 'index'])->name('api.sources.index');
     Route::get('/v1/sources/{provider}', [SourceController::class, 'show'])->where('provider', '[a-z0-9_-]{1,64}')->name('api.sources.show');
+    // Liste de référence des départements et des régions (valeurs des filtres department et region, INSEE).
+    Route::get('/v1/departments', [TerritoryController::class, 'departments'])->name('api.departments.index');
+    Route::get('/v1/departments/{department}', [TerritoryController::class, 'department'])->where('department', '[0-9]{2,3}|2[ABab]')->name('api.departments.show');
+    Route::get('/v1/regions', [TerritoryController::class, 'regions'])->name('api.regions.index');
+    Route::get('/v1/regions/{region}', [TerritoryController::class, 'region'])->where('region', '[0-9]{2}')->name('api.regions.show');
     Route::get('/v1/lines/{line:slug}/history', [LineHistoryController::class, 'show'])->name('api.lines.history');
     Route::get('/v1/lines/{line:slug}/pk', [LinePkController::class, 'fromPoint'])->name('api.lines.pk');
     Route::get('/v1/lines/{line:slug}/stops', [LineStopsController::class, 'index'])->name('api.lines.stops');

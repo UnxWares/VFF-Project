@@ -64,6 +64,15 @@ class MediaController extends Controller
      * **Rattachement** : `subject` dit à quoi le média est lié : `type`
      * (`line`, `station`, `material` ou `event`) avec `slug` et `name` (ou
      * `id` pour un événement).
+     *
+     * **Mis en avant** : `featured=true` donne les images que l'accueil peut
+     * montrer (champ `featured`), `featured=false` les autres.
+     *
+     * **Compteurs** : `facets=true` ajoute `meta.facets`, les chiffres de la
+     * page [/credits/media](/credits/media) pour la recherche en cours :
+     * `total`, `types` (nombre de médias par nature), `licenses` (par licence
+     * déclarée, `null` = inconnue, les plus fréquentes d'abord) et `authors`
+     * (les 30 auteurs les plus représentés).
      */
     #[QueryParameter('line', "Identifiant (slug) d'une ligne : ses médias seulement. Exclusif avec `station`. Une ligne inconnue donne HTTP 422.", type: 'string', example: 'rfn-447000')]
     #[QueryParameter('station', "Identifiant (slug) d'une gare : ses médias seulement. Exclusif avec `line`. Une gare inconnue donne HTTP 422.", type: 'string', example: 'brest')]
@@ -75,10 +84,12 @@ class MediaController extends Controller
     #[QueryParameter('period', 'Époque représentée : `pre1900` (jusqu\'à 1899), `1900_1944`, `1945_1969`, `1970_1999`, `since2000` (depuis 2000), `undated` (année inconnue). Bornes incluses.', type: 'string', example: '1900_1944')]
     #[QueryParameter('from_year', 'Année représentée minimale, de 1 à 2100, incluse. Exclut les médias non datés.', type: 'int', example: 1900)]
     #[QueryParameter('to_year', 'Année représentée maximale, de 1 à 2100, incluse, au moins égale à `from_year` (sinon HTTP 422). Exclut les médias non datés.', type: 'int', example: 1944)]
+    #[QueryParameter('featured', '`true` : seulement les médias mis en avant (images de l\'accueil) ; `false` : les autres.', type: 'boolean', example: true)]
+    #[QueryParameter('facets', 'Ajouter les compteurs de la recherche dans `meta.facets` (total, par nature, par licence, 30 premiers auteurs) : `true` ou `false` (par défaut).', type: 'boolean', default: false, example: true)]
     #[QueryParameter('order', 'Ordre des identifiants : `asc` (par défaut) ou `desc`.', type: 'string', default: 'asc', example: 'asc')]
     #[QueryParameter('per_page', 'Nombre de médias par page, de 1 à 60.', type: 'int', default: 24, example: 24)]
     #[QueryParameter('cursor', 'Curseur de la page voulue, tel que renvoyé par `meta.next_cursor` : une chaîne opaque, à ne pas fabriquer. Sans curseur : première page.', type: 'string', example: 'eyJtZWRpYS5pZCI6MjkzMCwiX3BvaW50c1RvTmV4dEl0ZW1zIjp0cnVlfQ')]
-    #[ApiResponse(200, 'Une page de médias (ici un média de la ligne de Morlaix à Roscoff, `line=rfn-447000&per_page=1`).', examples: [[
+    #[ApiResponse(200, 'Une page de médias (ici un média de la ligne de Morlaix à Roscoff, `line=rfn-447000&per_page=1&facets=true`, compteurs raccourcis).', examples: [[
         'data' => [[
             'id' => 2930, 'provider' => 'commons', 'provider_label' => 'Wikimedia Commons', 'type' => 'photo',
             'title' => 'Sainte-Sève ligne Morlaix - Roscoff',
@@ -93,8 +104,14 @@ class MediaController extends Controller
             'location' => ['lat' => 48.561166, 'lng' => -3.866779],
             'subject' => ['type' => 'line', 'slug' => 'rfn-447000', 'name' => 'Ligne de Morlaix à Roscoff'],
         ]],
-        'links' => ['first' => null, 'last' => null, 'prev' => null, 'next' => 'https://vff-project.org/api/v1/media?line=rfn-447000&per_page=1&cursor=eyJtZWRpYS5pZCI6MjkzMCwiX3BvaW50c1RvTmV4dEl0ZW1zIjp0cnVlfQ'],
-        'meta' => ['path' => 'https://vff-project.org/api/v1/media', 'per_page' => 1, 'next_cursor' => 'eyJtZWRpYS5pZCI6MjkzMCwiX3BvaW50c1RvTmV4dEl0ZW1zIjp0cnVlfQ', 'prev_cursor' => null],
+        'links' => ['first' => null, 'last' => null, 'prev' => null, 'next' => 'https://vff-project.org/api/v1/media?line=rfn-447000&per_page=1&facets=true&cursor=eyJtZWRpYS5pZCI6MjkzMCwiX3BvaW50c1RvTmV4dEl0ZW1zIjp0cnVlfQ'],
+        'meta' => ['path' => 'https://vff-project.org/api/v1/media', 'per_page' => 1, 'next_cursor' => 'eyJtZWRpYS5pZCI6MjkzMCwiX3BvaW50c1RvTmV4dEl0ZW1zIjp0cnVlfQ', 'prev_cursor' => null,
+            'facets' => [
+                'total' => 51, 'types' => ['photo' => 44, 'postcard' => 7],
+                'licenses' => [['license' => 'CC BY-SA 4.0', 'count' => 20], ['license' => 'CC BY-SA 3.0', 'count' => 14], ['license' => 'Public domain', 'count' => 10]],
+                'authors' => [['author' => 'Spendeau', 'count' => 9], ['author' => 'Bruno Corpet (Quoique)', 'count' => 5]],
+            ],
+        ],
     ]])]
     #[ApiResponse(422, 'Filtre ou curseur invalide : type inconnu, `line` et `station` ensemble, ligne ou gare inconnue, `to_year` avant `from_year`, `per_page` hors de 1 à 60. Le corps donne `message` et, par paramètre, la liste des erreurs dans `errors`.', examples: [ErrorExamples::MEDIA_INVALID])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
@@ -104,7 +121,16 @@ class MediaController extends Controller
             ->cursorPaginate($request->perPage())
             ->withQueryString();
 
-        return MediaResource::collection($media)->response()->header('Cache-Control', 'public, max-age=300');
+        $facets = null;
+        if ($request->wantsFacets()) {
+            $facets = $query->facets($request->filters());
+            // Objet JSON même vide (`{}`), comme les autres dictionnaires de compteurs.
+            $facets['types'] = (object) $facets['types'];
+        }
+
+        return MediaResource::collection($media)
+            ->additional($facets !== null ? ['meta' => ['facets' => $facets]] : [])
+            ->response()->header('Cache-Control', 'public, max-age=300');
     }
 
     /**

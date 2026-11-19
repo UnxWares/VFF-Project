@@ -34,6 +34,7 @@ final class LineEventQuery
             'type' => ['nullable', Rule::enum(LineEventType::class)],
             'source' => ['nullable', 'string', 'max:64'],
             'department' => ['nullable', Rule::in(array_keys(FrenchDepartments::ALL))],
+            'region' => ['nullable', Rule::in(array_keys(FrenchDepartments::REGIONS))],
             'from' => ['nullable', new PartialDate],
             'to' => ['nullable', new PartialDate],
             'order' => ['nullable', Rule::in(['asc', 'desc'])],
@@ -101,6 +102,9 @@ final class LineEventQuery
         }
         if (filled($filters['department'] ?? null)) {
             $query->whereIn('line_events.line_id', LineDirectory::idsInDepartment((string) $filters['department']));
+        }
+        if (filled($filters['region'] ?? null)) {
+            $query->whereIn('line_events.line_id', LineDirectory::idsInDepartments(FrenchDepartments::inRegion((string) $filters['region'])));
         }
 
         $direction = ($filters['order'] ?? 'asc') === 'desc' ? 'desc' : 'asc';

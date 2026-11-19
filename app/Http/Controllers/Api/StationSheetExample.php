@@ -124,12 +124,15 @@ final class StationSheetExample
                     'lng' => -4.4211292,
                     'lat' => 48.398713,
                     'distance_m' => 4535,
+                    'links' => ['web' => 'https://vff-project.org/stations/le-rody', 'api' => 'https://vff-project.org/api/v1/stations/le-rody'],
                 ],
             ],
             'links' => [
                 'web' => 'https://vff-project.org/stations/brest',
                 'events' => 'https://vff-project.org/api/v1/stations/brest/events',
                 'media' => 'https://vff-project.org/api/v1/media?station=brest',
+                'accidents' => 'https://vff-project.org/api/v1/accidents?station=brest',
+                'department' => 'https://vff-project.org/api/v1/departments/29',
             ],
         ],
     ];

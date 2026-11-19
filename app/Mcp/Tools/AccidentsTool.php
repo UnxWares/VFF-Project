@@ -10,6 +10,7 @@ use App\Mcp\Support\CursorPage;
 use App\Mcp\Support\VffTool;
 use App\Rules\PaginationCursor;
 use App\Services\Api\AccidentQuery;
+use App\Support\FrenchDepartments;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -26,7 +27,7 @@ Accidents et événements graves du rail français (collisions, déraillements, 
 Chaque accident : `slug` (pour get_accident), `name` et `summary` (résumé rédigé par VFF, jamais recopié d'une source) dans la langue demandée, `kind` et `kind_label` (collision, derailment, level_crossing, fire, explosion, structure_failure, attack, person_struck, runaway, incident, other), `date` ISO AAAA-MM-JJ à lire avec `date_precision` (day = date exacte ; month = mois connu, jour à 01 ; year = année seule) et `when` (date rédigée), `time` (HH:MM, rare), `place` (`commune`, `commune_insee`, `department_code`, `department`, `lat` et `lng` en WGS 84, `precision` de la position : exact, level_crossing, station, commune = lieu exact inconnu), `line` (ligne VFF retenue : slug, code, name, `confidence` high, medium ou low du rattachement), `deaths` et `injuries` (nombres, null = aucune source consultée ne les donne ; 0 = aucun), `toll_source` (bea-tt, wikidata ou wikipedia), `review_status`, `url`. Aucune victime n'est nommée.
 Prudence : `review_status` = "to_review" (à vérifier) signale un point incertain (une seule source pour la date ou le lieu, bilans ou dates qui diffèrent selon les sources, lieu connu à la commune près, ligne incertaine) ; présentez-le comme tel, jamais comme sûr, et renvoyez à get_accident pour le détail (`review.notes`). Le bilan retenu est celui de l'enquête officielle du BEA-TT, sinon de Wikidata, sinon de Wikipédia.
 Sources et licences (bloc `attribution`, un fournisseur par source lue) : Wikidata (CC0), Wikipédia (faits seulement, aucun texte repris : toute citation de l'article est sous CC BY-SA 4.0, avec lien vers l'article), BEA-TT (Licence Ouverte 2.0, mention du BEA-TT et de la date de mise à jour du bilan). Les accidents urbains (métro, tramway) ne sont pas importés.
-Filtres : `q` (nom ou commune, sans accents), `from`/`to` (années, 1800 à 2100, incluses), `line` (slug, ex. "rfn-570000"), `department` (code INSEE : "91", "2A", "974"), `kind`, `review` (ok ou to_review), `min_deaths` (bilan connu d'au moins ce nombre de morts), `has_line` (true : rattachés à une ligne VFF). Tri `sort` : date (défaut), -date, deaths, -deaths ; bilan inconnu en dernier.
+Filtres : `q` (nom ou commune, sans accents), `from`/`to` (années, 1800 à 2100, incluses), `line` (slug, ex. "rfn-570000"), `department` (code INSEE : "91", "2A", "974"), `region` (code INSEE de la région : "11"), `station` (slug d'une gare : accidents dont elle est la gare la plus proche du lieu), `kind`, `review` (ok ou to_review), `min_deaths` (bilan connu d'au moins ce nombre de morts), `has_line` (true : rattachés à une ligne VFF). Tri `sort` : date (défaut), -date, deaths, -deaths ; bilan inconnu en dernier.
 Pagination par curseur, comme les autres outils de liste : `limit` accidents par appel (1 à 50, 20 par défaut), puis `next_cursor` dans `cursor` avec les mêmes filtres et le même tri tant que `has_more` vaut true ; une page trop volumineuse est raccourcie (`truncated`) et `next_cursor` reprend au premier accident non renvoyé.
 Exemples : {"line": "rfn-570000", "from": 1950, "to": 2020} ; {"kind": "derailment", "min_deaths": 10, "sort": "-deaths", "limit": 5} ; {"department": "29", "review": "ok"}.
 TXT)]
@@ -51,6 +52,8 @@ class AccidentsTool extends VffTool
             'to' => $schema->integer()->min(1800)->max(2100)->description('Accidents survenus jusqu\'à cette année, incluse, au moins égale à from (ex. 2020).'),
             'line' => $schema->string()->max(255)->description('Slug d\'une ligne (ex. "rfn-570000"), tel que renvoyé par search : accidents rattachés à cette ligne, principale ou secondaire. Ligne inconnue : erreur.'),
             'department' => $schema->string()->max(3)->description('Code INSEE du département actuel du lieu, en majuscules ("91", "2A", "974").'),
+            'region' => $schema->string()->enum(FrenchDepartments::regionCodes())->description('Code INSEE de la région du lieu ("11" Île-de-France ; liste avec les noms : outil list_departments).'),
+            'station' => $schema->string()->max(255)->description('Slug d\'une gare (ex. "bretigny"), tel que renvoyé par search : accidents dont elle est la gare la plus proche du lieu (10 km au plus). Gare inconnue : erreur.'),
             'kind' => $schema->string()->enum(array_map(fn (AccidentKind $k) => $k->value, AccidentKind::cases()))->description('Nature de l\'accident.'),
             'review' => $schema->string()->enum(array_map(fn (AccidentReviewStatus $s) => $s->value, AccidentReviewStatus::cases()))->description('ok : date et lieu confirmés (enquête du BEA-TT ou deux sources indépendantes) ; to_review : fiches « à vérifier ».'),
             'min_deaths' => $schema->integer()->min(0)->description('Bilan d\'au moins ce nombre de morts ; exclut les bilans inconnus.'),

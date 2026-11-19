@@ -376,6 +376,21 @@ return [
             'domaines' => ['bea-tt.developpement-durable.gouv.fr'],
             'lu_le' => '2026-11-19',
         ],
+        'insee' => [
+            'nom' => 'Code officiel géographique (INSEE)',
+            'statut' => 'sur',
+            'licence' => 'Licence Ouverte 2.0 (Etalab), jeu « Code officiel géographique » publié par l\'INSEE sur data.gouv.fr',
+            'accord' => null,
+            'preuve' => [
+                'https://www.data.gouv.fr/datasets/code-officiel-geographique-1',
+                'https://www.insee.fr/fr/information/2560452',
+            ],
+            'citation' => 'Chaque année, l\'Insee met à disposition sur son site (insee.fr) le code officiel géographique qui rassemble les codes et libellés des communes, cantons, arrondissements, départements, collectivités territoriales ayant les compétences départementales, régions [...] (licence du jeu : fr-lo)',
+            'obligations' => 'Mention de la source (INSEE, Code officiel géographique) et de la date de mise à jour. Compatible ODbL en entrée.',
+            'remarques' => 'Codes et noms des départements et des régions (App\\Support\\FrenchDepartments) : valeurs des filtres department et region de l\'API, listes /api/v1/departments et /api/v1/regions. Aucune autre donnée de l\'INSEE n\'est reprise.',
+            'domaines' => ['insee.fr'],
+            'lu_le' => '2026-11-19',
+        ],
     ],
 
     'sources' => [

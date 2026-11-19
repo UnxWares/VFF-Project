@@ -4,6 +4,7 @@ namespace App\Services\Api;
 
 use App\Models\Era;
 use App\Services\StationDirectory;
+use App\Services\Territories;
 use App\Support\FrenchDepartments;
 use App\Support\QueryBoolean;
 use Illuminate\Database\Query\Builder;
@@ -43,6 +44,7 @@ final class StationDirectoryQuery
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', Rule::in(StationDirectory::STATUSES)],
             'department' => ['nullable', Rule::in(array_keys(FrenchDepartments::ALL))],
+            'region' => ['nullable', Rule::in(array_keys(FrenchDepartments::REGIONS))],
             'era' => ['nullable', 'integer', 'exists:eras,year'],
             'flagged' => ['nullable', 'boolean'],
             'sort' => ['nullable', Rule::in(self::SORTS)],
@@ -147,5 +149,20 @@ final class StationDirectoryQuery
         $era = $this->era($filters);
 
         return $this->directory->counts($this->directory->base($filters, $era), $era);
+    }
+
+    /**
+     * Nombre de gares par département (filtres appliqués, statut compris, sauf le département),
+     * départements sans gare absents.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return array<string, int>
+     */
+    public function departmentFacets(array $filters): array
+    {
+        $era = $this->era($filters);
+        $base = $this->directory->base(array_diff_key($filters, ['department' => true]), $era);
+
+        return app(Territories::class)->stationCounts($this->directory->whereStatus($base, $filters['status'] ?? null, $era));
     }
 }

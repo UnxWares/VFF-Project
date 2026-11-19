@@ -99,6 +99,7 @@ return [
             'events_media' => 'Events and media',
             'materials_accidents' => 'Rolling stock and accidents',
             'tools' => 'Search, routes and sources',
+            'territories' => 'Departments and regions',
         ],
         'items' => [
             'stats' => 'The home page figures: number of lines, stations and rolling stock classes, kilometres in operation and the network curve at each era.',
@@ -145,6 +146,10 @@ return [
             'route_compare' => 'The same journey at two periods: the route at each one, or why there is none, and what changed (length, closed or new lines).',
             'sources' => 'Register of data providers and their reuse conditions.',
             'source' => 'One provider from the register, identified by the provenance.provider key used in other responses.',
+            'departments' => 'French departments with their INSEE code, their region and the number of lines, stations and accidents recorded: the values accepted by the department parameter.',
+            'department' => 'One department, with links to its lines, stations, events and accidents.',
+            'regions' => 'Regions with their departments and counts: the values accepted by the region parameter.',
+            'region' => 'One region, with the same links.',
         ],
     ],
 
@@ -243,6 +248,14 @@ return [
             'locate_on_line' => 'Kilometre point of a place given by its coordinates, on a line’s route.',
             'signalling_history' => 'Dated commissioning of signalling on a line, taken from Wikipedia, and the systems in force at a given period, as on the map.',
             'sources_and_licences' => 'Data providers and licences.',
+            'list_departments' => 'INSEE codes and names of regions and departments, with the number of lines, stations and accidents in each, for the department and region filters.',
+        ],
+        'prompts_title' => 'Prompts',
+        'prompts_intro' => 'The server also offers prompts, which an MCP client shows as ready-made commands. Each one sends the assistant a message saying which tools to call and how to cite the sources. Arguments are completed as you type.',
+        'prompts' => [
+            'present_line' => 'Present a line with its sources: route, length, electrification, signalling, main dates and current state. Arguments: line, lang.',
+            'compare_region_eras' => 'Compare a region’s network at two periods: open and closed lines, stations, dated changes in between. Arguments: region, from, to, lang.',
+            'station_story' => 'Tell the history of a station: opening, lines served, changes of status, nearby accidents, archive images. Arguments: station, lang.',
         ],
         'licence_title' => 'Attribution',
         'licence_text' => 'The VFF database is published under the ODbL 1.0 licence. If you reuse an answer, credit “French Railway Lines (vff-project.org)” with the link to the entry, reproduce the credits in the attribution block and publish any derived database you share under the ODbL. Some sources are restricted to non-commercial use: the answer says so.',

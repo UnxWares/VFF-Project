@@ -112,6 +112,15 @@
             ],
         },
         {
+            key: 'territories',
+            items: [
+                { path: '/api/v1/departments?region={region}', key: 'departments' },
+                { path: '/api/v1/departments/{department}', key: 'department' },
+                { path: '/api/v1/regions', key: 'regions' },
+                { path: '/api/v1/regions/{region}', key: 'region' },
+            ],
+        },
+        {
             key: 'events_media',
             items: [
                 { path: '/api/v1/events', key: 'events' },
@@ -169,8 +178,11 @@
         'line_materials',
         'locate_on_line',
         'signalling_history',
+        'list_departments',
         'sources_and_licences',
     ];
+    // Invites (prompts) du serveur MCP, dans l'ordre du serveur.
+    const mcpPrompts = ['present_line', 'compare_region_eras', 'station_story'];
     const mcpCli = `claude mcp add --transport http vff ${MCP_URL}`;
     const mcpConfig = `{
   "mcpServers": {
@@ -828,6 +840,17 @@ JSON`;
                     <li>
                         <code class="path">{tool}</code>
                         <span class="desc">{$i18n.t(`api.mcp.tools.${tool}`)}</span>
+                    </li>
+                {/each}
+            </ul>
+
+            <h3 class="group-title" id="mcp-prompts">{$i18n.t('api.mcp.prompts_title')}</h3>
+            <p class="caption">{$i18n.t('api.mcp.prompts_intro')}</p>
+            <ul class="endpoints tools" aria-labelledby="mcp-prompts">
+                {#each mcpPrompts as prompt (prompt)}
+                    <li>
+                        <code class="path">{prompt}</code>
+                        <span class="desc">{$i18n.t(`api.mcp.prompts.${prompt}`)}</span>
                     </li>
                 {/each}
             </ul>

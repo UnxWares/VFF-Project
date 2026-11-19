@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api;
 
 use App\Rules\PaginationCursor;
 use App\Services\Api\MediaQuery;
+use App\Support\QueryBoolean;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -18,22 +19,28 @@ class ListMediaRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge(MediaQuery::normalize($this->query()));
+        $this->merge(QueryBoolean::castKeys(MediaQuery::normalize($this->query()), ['facets']));
     }
 
     /** @return array<string, list<mixed>> */
     public function rules(): array
     {
         return MediaQuery::rules() + [
+            'facets' => ['nullable', 'boolean'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:60'],
             'cursor' => ['nullable', 'string', 'max:512', new PaginationCursor(['media.id'])],
         ];
     }
 
-    /** @return array<string, mixed> filtres validés, sans pagination */
+    /** @return array<string, mixed> filtres validés, sans pagination ni compteurs */
     public function filters(): array
     {
-        return $this->safe()->except(['per_page', 'cursor']);
+        return $this->safe()->except(['per_page', 'cursor', 'facets']);
+    }
+
+    public function wantsFacets(): bool
+    {
+        return $this->boolean('facets');
     }
 
     public function perPage(): int
