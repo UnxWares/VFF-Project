@@ -13,4 +13,5 @@ return [
 
     // Copy of a page served without a network (Components/OfflineCopyNotice.svelte); :date = date and time of the copy.
     'offline_copy' => 'You are offline. This is the copy of the page saved on this device on :date; it may have changed since.',
+    'offline_map_partial' => 'The map has no background and only shows the lines and stations already displayed on this device.',
 ];

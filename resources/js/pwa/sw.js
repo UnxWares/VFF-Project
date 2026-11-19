@@ -2,14 +2,16 @@
 // __VFF_SW_VERSION__ change à chaque déploiement, donc le navigateur y voit une nouvelle version.
 //
 // Règles (rules.js) : cache d'abord pour les fichiers versionnés ; réseau d'abord pour les pages, avec une
-// copie des pages publiques déjà consultées ; réseau d'abord pour les tuiles de VFF déjà affichées ; rien
-// pour l'API, les écritures, les pages privées ni les autres serveurs.
-import { cacheFirst, inertia, navigation, pruneExpired, tile } from './handlers.js';
+// copie des pages publiques déjà consultées ; réseau d'abord pour les tuiles et les données GeoJSON de la
+// carte déjà affichées ; rien pour le reste de l'API, les écritures, les pages privées ni les autres serveurs.
+import { cacheFirst, inertia, mapData, navigation, pruneExpired, tile } from './handlers.js';
 import {
+    MAP_DATA_MAX_AGE_MS,
     PAGE_MAX_AGE_MS,
     PRECACHE,
     TILE_MAX_AGE_MS,
     classify,
+    mapDataCacheName,
     pagesCacheName,
     staleCacheNames,
     staticCacheName,
@@ -41,6 +43,7 @@ const VERSION = typeof __VFF_SW_VERSION__ === 'string' ? __VFF_SW_VERSION__ : 'd
 const CACHE = staticCacheName(VERSION);
 const PAGES = pagesCacheName(VERSION);
 const TILES = tilesCacheName(VERSION);
+const MAP_DATA = mapDataCacheName(VERSION);
 
 sw.addEventListener('install', (/** @type {SwExtendableEvent} */ event) => {
     // Pas de skipWaiting automatique : la page propose le rechargement (message « Nouvelle version disponible »).
@@ -58,6 +61,7 @@ sw.addEventListener('activate', (/** @type {SwExtendableEvent} */ event) => {
             const expiring = [
                 [PAGES, PAGE_MAX_AGE_MS],
                 [TILES, TILE_MAX_AGE_MS],
+                [MAP_DATA, MAP_DATA_MAX_AGE_MS],
             ];
             for (const [name, maxAge] of expiring) {
                 if (names.includes(name)) await pruneExpired(await caches.open(name), maxAge, now);
@@ -81,6 +85,7 @@ sw.addEventListener('fetch', (/** @type {SwFetchEvent} */ event) => {
         cacheName: CACHE,
         pagesCache: PAGES,
         tilesCache: TILES,
+        mapDataCache: MAP_DATA,
         waitUntil: (p) => event.waitUntil(p),
         now: () => Date.now(),
         estimate: async () => sw.navigator?.storage?.estimate?.(),
@@ -92,6 +97,9 @@ sw.addEventListener('fetch', (/** @type {SwFetchEvent} */ event) => {
             break;
         case 'tile':
             event.respondWith(tile(request, deps));
+            break;
+        case 'mapdata':
+            event.respondWith(mapData(request, deps));
             break;
         case 'navigation':
             event.respondWith(navigation(request, { ...deps, preload: event.preloadResponse }));

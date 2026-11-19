@@ -249,7 +249,8 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [ ] Présence dans les conférences open data / patrimoine
 - [x] Application installable (PWA), avec page hors ligne
 - [x] Mode hors ligne : pages publiques déjà consultées sans être connecté (HTML et Inertia, 60 au plus, 30 jours) et tuiles vectorielles de VFF déjà affichées (500 au plus, 7 jours), avec la date de la copie ; jamais les pages de compte, de contribution ni de validation, ni les tuiles OpenStreetMap
-- [ ] Mode hors ligne, suite : données de la carte (GeoJSON des gares, style, glyphes) et fond de carte libre auto-hébergé
+- [x] Mode hors ligne, suite : données de la carte déjà affichées (gares d'une ère, accidents : 8 fichiers au plus, 7 jours) ; hors ligne, les cartes montrent les tracés de VFF sur un fond neutre et le signal de copie le dit (style écrit dans le code, noms de gares en police locale, aucune ressource tierce gardée)
+- [ ] Mode hors ligne, fin : fond de carte libre auto-hébergé (PMTiles), images déjà vues
 
 ---
 

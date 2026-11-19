@@ -6,7 +6,7 @@ import { SW_URL, isVffCache } from './rules.js';
 export const UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000;
 
 /**
- * Désinscrit tous les service workers du site et vide leurs caches (fichiers, pages, tuiles, page hors ligne).
+ * Désinscrit tous les service workers du site et vide leurs caches (fichiers, pages, tuiles, données de la carte, page hors ligne).
  * Appelée en développement (HMR : un service worker resté d'un essai de production fausserait tout) et quand
  * la PWA est coupée (VITE_PWA=false).
  *

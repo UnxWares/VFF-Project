@@ -13,4 +13,5 @@ return [
 
     // Copie d'une page servie sans réseau (Components/OfflineCopyNotice.svelte) ; :date = date et heure de la copie.
     'offline_copy' => 'Vous êtes hors ligne. Cette page est la copie enregistrée sur cet appareil le :date ; elle a pu changer depuis.',
+    'offline_map_partial' => 'La carte n’a pas de fond de plan et ne montre que les tracés et les gares déjà affichés sur cet appareil.',
 ];

@@ -2,6 +2,8 @@
 // sans navigateur (tests/js/pwa-handlers.test.js).
 import { htmlFromInertiaCopy, markHtmlCopy, markPage, readPageFromHtml } from './offlineCopy.js';
 import {
+    MAP_DATA_MAX_AGE_MS,
+    MAX_MAP_DATA_ENTRIES,
     MAX_PAGE_ENTRIES,
     MAX_STATIC_ENTRIES,
     MAX_TILE_ENTRIES,
@@ -14,6 +16,7 @@ import {
     isCacheable,
     isExpired,
     isOfflinePageRequest,
+    isStorableMapData,
     isStorablePage,
     isStorableTile,
     pageCacheKey,
@@ -27,6 +30,7 @@ import {
  * @property {string} cacheName cache des fichiers statiques
  * @property {string} [pagesCache] cache des pages
  * @property {string} [tilesCache] cache des tuiles
+ * @property {string} [mapDataCache] cache des données GeoJSON de la carte
  * @property {(p: Promise<unknown>) => void} waitUntil
  * @property {() => number} [now]
  * @property {() => Promise<{usage?: number, quota?: number} | undefined>} [estimate]
@@ -250,30 +254,58 @@ export async function inertia(request, deps) {
 }
 
 /**
- * « Réseau d'abord » pour une tuile vectorielle de VFF : en ligne, rien ne change (la carte reçoit la tuile
- * du serveur, une copie est rangée) ; sans réseau, la copie d'une tuile déjà affichée, sinon l'erreur.
+ * « Réseau d'abord » avec copie : en ligne, rien ne change (la page reçoit la réponse du serveur, une copie
+ * est rangée si elle convient) ; sans réseau, la copie d'une réponse déjà reçue et encore valable, sinon
+ * l'erreur réseau d'origine.
  *
  * @param {Request} request
  * @param {Deps} deps
+ * @param {{cacheName?: string, isStorable: (r: Response) => boolean, max: number, maxAge: number}} rule
  */
-export async function tile(request, deps) {
-    const { caches, fetch, tilesCache, now = Date.now } = deps;
+async function networkFirstCopy(request, deps, { cacheName, isStorable, max, maxAge }) {
+    const { caches, fetch, now = Date.now } = deps;
     try {
         const response = await fetch(request);
-        if (tilesCache && isStorableTile(response)) {
-            remember(deps, tilesCache, request.url, response.clone(), MAX_TILE_ENTRIES);
+        if (cacheName && isStorable(response)) {
+            remember(deps, cacheName, request.url, response.clone(), max);
         }
         return response;
     } catch (error) {
-        if (tilesCache) {
-            const copy = await readCopy(
-                await caches.open(tilesCache),
-                request.url,
-                now(),
-                TILE_MAX_AGE_MS,
-            );
+        if (cacheName) {
+            const copy = await readCopy(await caches.open(cacheName), request.url, now(), maxAge);
             if (copy) return copy;
         }
         throw error;
     }
+}
+
+/**
+ * Tuile vectorielle de VFF : la copie d'une tuile déjà affichée sert sans réseau.
+ *
+ * @param {Request} request
+ * @param {Deps} deps
+ */
+export function tile(request, deps) {
+    return networkFirstCopy(request, deps, {
+        cacheName: deps.tilesCache,
+        isStorable: isStorableTile,
+        max: MAX_TILE_ENTRIES,
+        maxAge: TILE_MAX_AGE_MS,
+    });
+}
+
+/**
+ * Données GeoJSON de la carte (gares d'une ère, accidents) : la copie d'un fichier déjà affiché sert sans
+ * réseau ; une ère jamais affichée reste sans gares (la carte le dit, OfflineCopyNotice).
+ *
+ * @param {Request} request
+ * @param {Deps} deps
+ */
+export function mapData(request, deps) {
+    return networkFirstCopy(request, deps, {
+        cacheName: deps.mapDataCache,
+        isStorable: isStorableMapData,
+        max: MAX_MAP_DATA_ENTRIES,
+        maxAge: MAP_DATA_MAX_AGE_MS,
+    });
 }

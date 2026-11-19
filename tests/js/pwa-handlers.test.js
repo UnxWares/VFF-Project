@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
     cacheFirst,
     inertia,
+    mapData,
     navigation,
     offlineResponse,
     pruneExpired,
@@ -10,6 +11,7 @@ import {
     trimCache,
 } from '../../resources/js/pwa/handlers.js';
 import {
+    MAX_MAP_DATA_ENTRIES,
     MAX_PAGE_ENTRIES,
     MAX_TILE_ENTRIES,
     OFFLINE_CACHE,
@@ -151,6 +153,7 @@ function offlineDeps(overrides = {}) {
     return deps({
         pagesCache: 'vff-pages-v1',
         tilesCache: 'vff-tiles-v1',
+        mapDataCache: 'vff-mapdata-v1',
         now: () => NOW,
         estimate: async () => ({ usage: 1e6, quota: 1e9 }),
         ...overrides,
@@ -389,5 +392,80 @@ describe('pruneExpired', () => {
         await cache.put('/sans-date', new Response('x'));
         await pruneExpired(cache, 30 * 24 * 3600_000, NOW);
         expect(await cache.keys()).toEqual(['/recente']);
+    });
+});
+
+describe('données de la carte : seulement celles déjà affichées', () => {
+    const STATIONS = fakeRequest('https://vff-project.org/api/v1/eras/1930/stations.geojson?v=3');
+    const json = (body) =>
+        vi.fn(async () => basicResponse(body, { headers: { 'Content-Type': 'application/json' } }));
+
+    it('rend la réponse du réseau et en garde une copie datée, servie ensuite sans réseau', async () => {
+        const d = offlineDeps({ fetch: json('{"type":"FeatureCollection"}') });
+        expect(await (await mapData(STATIONS, d)).text()).toBe('{"type":"FeatureCollection"}');
+        await Promise.all(d.pending);
+        expect(await storedKeys(d, 'vff-mapdata-v1')).toEqual([STATIONS.url]);
+
+        const copy = await mapData(STATIONS, { ...d, fetch: offline() });
+        expect(await copy.text()).toBe('{"type":"FeatureCollection"}');
+        expect(copy.headers.get('X-VFF-Saved-At')).toBe('2026-11-19T12:00:00.000Z');
+    });
+
+    it('préfère toujours le réseau quand il répond', async () => {
+        const d = offlineDeps({ fetch: json('nouvelle') });
+        await (await d.caches.open('vff-mapdata-v1')).put(STATIONS.url, new Response('ancienne'));
+        expect(await (await mapData(STATIONS, d)).text()).toBe('nouvelle');
+    });
+
+    it('sans réseau, une ère jamais affichée reste une erreur (rien n est inventé)', async () => {
+        const d = offlineDeps({ fetch: offline() });
+        await expect(mapData(STATIONS, d)).rejects.toThrow('offline');
+    });
+
+    it('ne range ni une erreur ni une page HTML, ni rien quand le quota est atteint', async () => {
+        const html = vi.fn(async () =>
+            basicResponse('<html>', { headers: { 'Content-Type': 'text/html' } }),
+        );
+        const d = offlineDeps({ fetch: html });
+        await mapData(STATIONS, d);
+        await Promise.all(d.pending);
+        expect(await storedKeys(d, 'vff-mapdata-v1')).toEqual([]);
+
+        const full = offlineDeps({
+            fetch: json('{}'),
+            estimate: async () => ({ usage: 200 * 1024 * 1024, quota: 1e10 }),
+        });
+        await mapData(STATIONS, full);
+        await Promise.all(full.pending);
+        expect(await storedKeys(full, 'vff-mapdata-v1')).toEqual([]);
+    });
+
+    it('ne sert plus une copie de plus de 7 jours', async () => {
+        const d = offlineDeps({ fetch: offline(), now: () => NOW + 8 * 24 * 3600_000 });
+        await (
+            await d.caches.open('vff-mapdata-v1')
+        ).put(
+            STATIONS.url,
+            new Response('{}', { headers: { 'X-VFF-Saved-At': new Date(NOW).toISOString() } }),
+        );
+        await expect(mapData(STATIONS, d)).rejects.toThrow('offline');
+        expect(await storedKeys(d, 'vff-mapdata-v1')).toEqual([]);
+    });
+
+    it('garde au plus MAX_MAP_DATA_ENTRIES fichiers, les plus anciens partent d abord', async () => {
+        const d = offlineDeps({ fetch: json('{}') });
+        const url = (year) => `https://vff-project.org/api/v1/eras/${year}/stations.geojson`;
+        for (let n = 0; n <= MAX_MAP_DATA_ENTRIES; n += 1) {
+            await mapData(fakeRequest(url(1900 + n * 10)), d);
+            await Promise.all(d.pending);
+        }
+        const keys = await storedKeys(d, 'vff-mapdata-v1');
+        expect(keys).toHaveLength(MAX_MAP_DATA_ENTRIES);
+        expect(keys).not.toContain(url(1900));
+    });
+
+    it('sans cache configuré, se contente du réseau', async () => {
+        const d = deps({ fetch: offline() });
+        await expect(mapData(STATIONS, d)).rejects.toThrow('offline');
     });
 });
