@@ -246,6 +246,119 @@ class StationCommandsTest extends TestCase
         $this->assertSame([1869, 1970], $years());
     }
 
+    /**
+     * Pau - Canfranc (664000) : fermée d'Oloron à Canfranc en 1970, rouverte d'Oloron à Bedous en 2016.
+     * La réouverture ne prolonge que la desserte des gares de la portion rouverte : Accous, au-delà de
+     * Bedous, reste desservie jusqu'en 1970 (avant le 19/11/2026 : « desservie depuis 1928 », sans fin).
+     */
+    public function test_reopening_of_another_portion_does_not_extend_service(): void
+    {
+        $line = $this->rfnLine('664000', 'Ligne de Pau à Canfranc');
+        $this->track($line, $this->current, [[47.0, 3.0], [47.1, 3.0]], ['status' => 'abandoned', 'traffic_type' => 'unknown']);
+        $stations = [];
+        foreach (['Bedous' => [47.045, 5_000], 'Accous' => [47.072, 8_000]] as $name => [$lat, $pk]) {
+            $stations[$name] = $this->station(strtolower($name), $name, $lat, 3.0);
+            $this->source('sncf', "8766{$pk}", $name, $lat, 3.0, ['station_id' => $stations[$name]->id,
+                'properties' => ['lines' => [['code_ligne' => '664000', 'pk_m' => $pk]]]]);
+        }
+        $event = fn (string $type, string $date, ?array $pk) => DB::table('line_events')->insert(['line_id' => $line->id, 'type' => $type,
+            'event_date' => $date, 'description' => $type, 'section_pk_start_m' => $pk[0] ?? null, 'section_pk_end_m' => $pk[1] ?? null,
+            'section_resolution' => $pk === null ? 'whole_line' : 'pk', 'created_at' => now(), 'updated_at' => now()]);
+        $event('opening', '1928-07-18', null);
+        $event('closure', '1970-03-27', [0, 11_100]);
+        $event('reopening_passenger', '2016-06-26', [0, 6_000]);
+        $years = fn (string $name) => array_values((array) DB::table('station_lines')->where('station_id', $stations[$name]->id)->first(['first_year', 'last_year']));
+
+        $this->artisan('vff:attach-stations')->assertSuccessful();
+
+        $this->assertSame([1928, null], $years('Bedous'), 'portion rouverte : desservie aujourd\'hui');
+        $this->assertSame([1928, 1970], $years('Accous'), 'portion restée fermée');
+    }
+
+    /**
+     * Ligne secondaire sans liste officielle (Lorient - Gourin, Caussade - Caylus) : son tracé s'arrête sur
+     * la place de la gare, à 100-400 m. La gare de même nom qu'une extrémité est rattachée (terminus_name),
+     * jamais une gare ambiguë, jamais en double, jamais sur une ligne du RFN (liste SNCF).
+     */
+    public function test_named_terminus_of_a_secondary_line_is_attached(): void
+    {
+        $secondary = $this->rfnLine('', 'Ligne de Kilo à Lima', ['code' => null, 'network' => 'secondaire']);
+        // Tracé de 47,000 à 47,100 ; Kilo à 300 m au sud de son début, Lima-Ville et Lima-Port à 200 m de sa fin.
+        $this->track($secondary, $this->current, [[47.0, 4.0], [47.1, 4.0]], ['status' => 'dismantled', 'traffic_type' => 'unknown']);
+        $kilo = $this->station('kilo', 'Kilo', 46.9973, 4.0);
+        $this->station('lima-ville', 'Lima-Ville', 47.1018, 4.0);
+        $this->station('lima-port', 'Lima-Port', 47.1015, 4.0010);
+        // Gare intermédiaire à 300 m : pas une extrémité, pas rattachée.
+        $this->station('mike', 'Mike', 47.05, 4.0040);
+        // Extrémité nommée, mais au milieu du tracé, loin de ses bouts (Le Touquet-Aéroport sur « Ligne
+        // d'Etaples au Touquet ») : pas le terminus.
+        $other = $this->rfnLine('', 'Ligne de Oscar à Papa', ['code' => null, 'network' => 'secondaire']);
+        $this->track($other, $this->current, [[47.2, 4.0], [47.3, 4.0]], ['status' => 'dismantled', 'traffic_type' => 'unknown']);
+        $this->station('papa', 'Papa', 47.25, 4.0030);
+        // Ligne du RFN (liste SNCF) dont Kilo serait aussi une extrémité : la règle ne s'y applique pas.
+        $rfn = $this->rfnLine('700000', 'Ligne de Kilo à November');
+        $this->track($rfn, $this->current, [[47.0, 4.0], [47.0, 4.1]]);
+        DB::table('sncf_gares')->insert(['code_ligne' => '700000', 'libelle' => 'NOVEMBER', 'code_uic' => '87700000', 'pk_m' => 7_000]);
+        DB::table('line_events')->insert(['line_id' => $secondary->id, 'type' => 'opening', 'event_date' => '1903-06-01',
+            'description' => 'Ouverture', 'section_resolution' => 'whole_line', 'created_at' => now(), 'updated_at' => now()]);
+        $links = fn (Line $line) => DB::table('station_lines as sl')->join('stations as s', 's.id', '=', 'sl.station_id')
+            ->where('sl.line_id', $line->id)->orderBy('s.name')->get(['s.name', 'sl.method', 'sl.distance_m', 'sl.first_year'])
+            ->map(fn ($r) => [$r->name, $r->method, $r->first_year])->all();
+
+        $this->artisan('vff:attach-stations')->expectsOutputToContain('terminus nommés : 1')->assertSuccessful();
+
+        $this->assertSame([['Kilo', 'terminus_name', 1903]], $links($secondary));
+        $this->assertEqualsWithDelta(300, DB::table('station_lines')->where('station_id', $kilo->id)->value('distance_m'), 10);
+        $this->assertNotContains('terminus_name', DB::table('station_lines')->where('line_id', $rfn->id)->pluck('method')->all());
+        $this->assertSame([], $links($other));
+
+        // --termini-only : ajout sans rien retirer, et jamais deux fois.
+        DB::table('station_lines')->where('line_id', $secondary->id)->delete();
+        $this->artisan('vff:attach-stations', ['--termini-only' => true])->expectsOutputToContain('terminus nommés : 1')->assertSuccessful();
+        $this->artisan('vff:attach-stations', ['--termini-only' => true])->expectsOutputToContain('terminus nommés : 0')->assertSuccessful();
+        $this->assertSame([['Kilo', 'terminus_name', 1903]], $links($secondary));
+    }
+
+    public function test_dry_run_reports_the_changes_without_writing(): void
+    {
+        $closed = $this->rfnLine('300000', 'Ligne de Charlie à Delta');
+        $this->track($closed, $this->current, [[47.0, 3.0], [47.1, 3.0]], ['status' => 'dismantled', 'traffic_type' => 'unknown']);
+        $station = $this->station('charlie', 'Charlie', 47.05, 3.0001);
+        $this->source('osm', 'n9', 'Charlie', 47.05, 3.0001, ['station_id' => $station->id]);
+        $event = fn (string $type, string $date) => DB::table('line_events')->insert(['line_id' => $closed->id, 'type' => $type,
+            'event_date' => $date, 'description' => $type, 'created_at' => now(), 'updated_at' => now()]);
+        $event('opening', '1880-01-01');
+        $event('closure', '1950-06-01');
+        $this->artisan('vff:attach-stations')->assertSuccessful();
+        // Sources nouvelles depuis le dernier calcul : ouverture plus ancienne, réouverture de la ligne.
+        $event('opening', '1875-05-01');
+        $event('reopening', '1995-01-01');
+        $before = $this->snapshot(['station_lines']);
+        $csv = storage_path('app/reports/annees-desserte.csv');
+
+        $this->artisan('vff:attach-stations', ['--years-only' => true, '--dry-run' => true, '--report' => $csv])
+            ->expectsOutputToContain('Passage à blanc')->assertSuccessful();
+
+        $this->assertSame($before, $this->snapshot(['station_lines']), '--dry-run a écrit');
+        $rows = array_map(fn ($l) => str_getcsv($l, escape: ''), file($csv, FILE_IGNORE_NEW_LINES) ?: []);
+        $this->assertCount(2, $rows);
+        $row = array_combine($rows[0], $rows[1]);
+        $this->assertSame(['Charlie', '300000', 'gardé', '1880', '1875', 'avancée', '1950', '', 'retirée'],
+            [$row['gare'], $row['ligne_code'], $row['rattachement'], $row['debut_avant'], $row['debut_apres'], $row['debut'],
+                $row['fin_avant'], $row['fin_apres'], $row['fin']]);
+
+        // Rattachement complet à blanc : la gare déplacée loin de la voie perdrait sa ligne, rien n'est écrit.
+        DB::table('stations')->where('id', $station->id)->update(['geom' => DB::raw('ST_SetSRID(ST_MakePoint(3.05, 47.05), 4326)')]);
+        DB::table('station_sources')->where('station_id', $station->id)->update(['geom' => DB::raw('ST_SetSRID(ST_MakePoint(3.05, 47.05), 4326)')]);
+        $this->artisan('vff:attach-stations', ['--dry-run' => true, '--report' => $csv])->assertSuccessful();
+        $this->assertSame($before, $this->snapshot(['station_lines']));
+        $this->assertStringContainsString(',retiré,', (string) file_get_contents($csv));
+
+        // En vrai : les années changent.
+        $this->artisan('vff:attach-stations', ['--years-only' => true])->assertSuccessful();
+        $this->assertSame([1875, null], array_values((array) DB::table('station_lines')->where('station_id', $station->id)->first(['first_year', 'last_year'])));
+    }
+
     public function test_junction_station_is_attached_to_the_branch_it_terminates(): void
     {
         // liste-des-gares ne cite Briouze que sous la ligne principale (100000) ; la branche 434000

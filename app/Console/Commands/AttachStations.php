@@ -2,9 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Services\StationLinkChanges;
+use App\Support\StationNames;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 /**
  * Rattache les gares aux lignes (y compris disparues) → `station_lines`.
@@ -31,6 +34,10 @@ use Illuminate\Support\Facades\Schema;
  *                  434000 Briouze - La Ferté-Macé). Terminus = nom de la gare
  *                  dans le nom de la ligne (« Ligne de Briouze à … »), ou
  *                  extrémité du tracé SNCF de la ligne à ≤ 300 m (hors LGV).
+ *   4. terminus_name : gare de même nom qu'une extrémité d'une ligne sans
+ *                  liste officielle, près d'un bout de son tracé
+ *                  (attachNamedTermini ; seul, sans rien retirer :
+ *                  --termini-only).
  *
  * PK manquant : projection sur le tracé, interpolée entre les gares voisines
  * de PK connu de la même ligne (pk_source = projected), sinon abscisse
@@ -39,12 +46,22 @@ use Illuminate\Support\Facades\Schema;
  * Période de desserte (first_year / last_year) : événements de la ligne
  * (`line_events`) dont la section couvre le PK de la gare, sinon tracés datés
  * rattachés à la ligne à proximité.
+ *
+ * Tout le calcul se fait dans une transaction : les lecteurs voient l'ancienne
+ * table jusqu'à la fin. --dry-run l'annule et n'affiche que les changements
+ * (rattachements ajoutés ou retirés, PK, années de desserte ajoutées, retirées,
+ * avancées ou reculées) ; --report=<fichier.csv> en écrit le détail.
+ *
+ *   php artisan vff:attach-stations --years-only --dry-run --report=storage/app/reports/annees-desserte.csv
  */
 class AttachStations extends Command
 {
     protected $signature = 'vff:attach-stations {--buffer=60 : Distance max gare ↔ tracé (m) pour une position précise}
         {--years-only : Recalcule seulement les années de desserte (first_year / last_year) des rattachements existants}
-        {--except=* : Avec --years-only, codes de lignes à laisser de côté}';
+        {--except=* : Avec --years-only, codes de lignes à laisser de côté}
+        {--dry-run : Calcule tout dans une transaction annulée : affiche les changements sans rien écrire}
+        {--report= : Fichier CSV du détail des rattachements changés (chemin relatif à la racine du projet)}
+        {--termini-only : Ajoute seulement les terminus nommés (étape 4) aux rattachements existants, puis recalcule les années}';
 
     protected $description = 'Rattache les gares aux lignes (PK SNCF, PK des listes historiques, proximité des tracés) → station_lines';
 
@@ -83,15 +100,65 @@ class AttachStations extends Command
         )
         SQL;
 
-    public function handle(): int
+    /**
+     * Événement de ligne d'alias $alias (au lieu de « le ») couvrant la gare : même règle
+     * qu'EVENT_COVERS_STATION, pour une sous-requête (réouverture au PK de la gare).
+     */
+    public static function eventCovers(string $alias): string
     {
-        if ($this->option('years-only')) {
-            $except = DB::table('lines')->whereIn('code', (array) $this->option('except'))->pluck('id')->map(fn ($id) => (int) $id)->all();
-            $this->computeServiceYears($except);
-            $this->line('  années de desserte recalculées'.($except ? ' (lignes laissées de côté : '.implode(', ', (array) $this->option('except')).')' : ''));
+        return str_replace('le.', "{$alias}.", self::EVENT_COVERS_STATION);
+    }
 
-            return self::SUCCESS;
+    public function handle(StationLinkChanges $changes): int
+    {
+        $dryRun = (bool) $this->option('dry-run');
+        DB::beginTransaction();
+        try {
+            $changes->snapshot();
+            match (true) {
+                (bool) $this->option('years-only') => $this->recomputeYears(),
+                (bool) $this->option('termini-only') => $this->addNamedTermini(),
+                default => $this->attach(),
+            };
+            $diff = $changes->compare();
+            $dryRun ? DB::rollBack() : DB::commit();
+        } catch (Throwable $e) {
+            DB::rollBack();
+
+            throw $e;
         }
+
+        $this->table(['changement', 'rattachements'], collect($changes->summary($diff))->map(fn ($n, $label) => [$label, $n])->values()->all());
+        if ($report = $this->option('report')) {
+            $path = $changes->writeCsv($diff, (string) $report);
+            $this->line('  détail : '.(str_starts_with($path, base_path().'/') ? substr($path, strlen(base_path()) + 1) : $path));
+        }
+        if ($dryRun) {
+            $this->warn('Passage à blanc (--dry-run) : rien n\'a été écrit.');
+        }
+
+        return self::SUCCESS;
+    }
+
+    /** --years-only : années de desserte des rattachements existants, sauf lignes --except. */
+    private function recomputeYears(): void
+    {
+        $except = DB::table('lines')->whereIn('code', (array) $this->option('except'))->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $this->computeServiceYears($except);
+        $this->line('  années de desserte recalculées'.($except ? ' (lignes laissées de côté : '.implode(', ', (array) $this->option('except')).')' : ''));
+    }
+
+    /** --termini-only : terminus nommés en plus des rattachements existants, puis PK et années de desserte. */
+    private function addNamedTermini(): void
+    {
+        $this->line('  terminus nommés : '.$this->attachNamedTermini());
+        $this->projectMissingPk();
+        $this->computeServiceYears();
+    }
+
+    /** Rattachement complet : station_lines vidée puis reconstruite (PK, période de desserte). */
+    private function attach(): void
+    {
         $buffer = (int) $this->option('buffer');
         DB::table('station_lines')->delete();
         $now = now();
@@ -196,6 +263,9 @@ class AttachStations extends Command
             $this->line("  {$method} : {$n}");
         }
 
+        // 4. Terminus nommés des lignes sans liste officielle.
+        $this->line('  terminus nommés : '.$this->attachNamedTermini());
+
         $this->projectMissingPk();
         $this->computeServiceYears();
 
@@ -207,8 +277,131 @@ class AttachStations extends Command
         $total = DB::table('stations')->count();
         $this->table(['rattachements', 'gares rattachées', 'lignes', 'avec PK', 'début daté', 'fin datée'],
             [[(int) $r->links, "{$r->stations} / {$total}", (int) $r->lines, (int) $r->with_pk, (int) $r->with_first, (int) $r->with_last]]);
+    }
 
-        return self::SUCCESS;
+    /**
+     * Extrémités nommées d'une ligne, normalisées (StationNames) : « Ligne de Lorient à Gourin »
+     * → [lorient, gourin] ; « Ligne du Mans à … » → le mans ; « … au Conquet » → le conquet. Précision
+     * entre parenthèses et extrémité « frontière » écartées.
+     *
+     * @return list<string>
+     */
+    public static function terminiFromName(string $name): array
+    {
+        $s = trim((string) preg_replace('/\s*\([^)]*\)/u', '', $name));
+        if (preg_match('/^(?:ligne|tramway|chemin de fer|voie ferrée|embranchement)\s+(de la |de l[\'’]|du |des |de |d[\'’])(.+)$/iu', $s, $m) !== 1) {
+            return [];
+        }
+        $article = ['de la ' => 'La ', 'du ' => 'Le ', 'des ' => 'Les '][mb_strtolower($m[1])] ?? '';
+        $parts = preg_split('/ (à la |à l[\'’]|au |aux |à )/u', $article.$m[2], 2, PREG_SPLIT_DELIM_CAPTURE) ?: [];
+        if (count($parts) === 3) {
+            $parts = [$parts[0], (['au ' => 'Le ', 'aux ' => 'Les ', 'à la ' => 'La '][$parts[1]] ?? (str_starts_with($parts[1], 'à l') ? 'L\'' : '')).$parts[2]];
+        }
+
+        return array_values(array_filter(array_map(fn (string $p) => StationNames::normalize($p), $parts),
+            fn (?string $t) => $t !== null && ! str_contains($t, 'frontiere')));
+    }
+
+    /**
+     * Gare retenue pour une extrémité nommée parmi les gares proches du tracé : le même nom d'abord ;
+     * sinon le nom prolongé (« montauban » → « montauban ville bourbon »), seulement si c'est la seule
+     * gare de toute la base qui porte ce nom ($sameNameInBase : gares dont le nom est l'extrémité ou la
+     * prolonge). Une ville à plusieurs gares (Lyon, Marseille, Mulhouse, Toulouse) ne désigne pas une
+     * gare précise : rien. Une seule gare retenue, sinon aucune.
+     *
+     * @param  array<int, string>  $nearby  identifiant de gare → nom normalisé
+     */
+    public static function terminusStation(string $terminus, array $nearby, int $sameNameInBase): ?int
+    {
+        $exact = array_keys(array_filter($nearby, fn (string $n) => $n === $terminus));
+        $longer = array_keys(array_filter($nearby, fn (string $n) => str_starts_with($n, $terminus.' ')));
+        $found = $exact !== [] ? $exact : ($sameNameInBase === 1 ? $longer : []);
+
+        return count($found) === 1 ? (int) $found[0] : null;
+    }
+
+    /**
+     * 4. Terminus nommé (méthode terminus_name) : ligne sans liste officielle SNCF (réseau secondaire, tramway, ligne fermée avant les listes ; hors
+     * lignes militaires, LGV et raccordements), gare dont le nom est celui d'une extrémité de la ligne, à
+     * ≤ 500 m de l'un de ses tracés et d'un bout de ce tracé (Le Touquet-Aéroport, au milieu de « Ligne
+     * d'Etaples au Touquet », n'en est pas le terminus). Le tracé d'une ligne secondaire s'arrête souvent
+     * sur la place de la gare ou à la gare de sa compagnie, à 100-400 m : la proximité seule (≤ 60 / 150 m)
+     * ne la rattachait pas, et 65 lignes secondaires de 10 km ou plus n'avaient aucune gare (Lorient -
+     * Gourin, Caussade - Caylus…). Rien si la ligne a déjà une gare de ce nom, ou si plusieurs gares
+     * conviennent (terminusStation : Nice-St-Roch et Nice-Pont-Michel pour Nice - Levens ; « Lyon », ville
+     * à plusieurs gares).
+     *
+     * vff:build-station-eras n'exige pas la fermeture aux voyageurs de ces lignes pour dater celle de la
+     * gare (sinon Gex, Mondoubleau, Droué… perdaient leur date sourcée : essai du 19/11/2026).
+     */
+    private function attachNamedTermini(): int
+    {
+        $lines = DB::table('lines as l')->where('l.network', '<>', 'militaire')->where('l.is_lgv', false)
+            ->where('l.name', 'not ilike', '%(LGV)%')->where('l.name', 'not ilike', 'Raccordement%')
+            ->whereNotExists(fn ($q) => $q->from('sncf_gares as sg')->whereColumn('sg.code_ligne', 'l.code'))
+            ->pluck('l.name', 'l.id');
+        $termini = $lines->map(fn (string $name) => self::terminiFromName($name))->filter();
+        if ($termini->isEmpty()) {
+            return 0;
+        }
+        $ids = '{'.$termini->keys()->implode(',').'}';
+        $nearby = [];
+        foreach (DB::select(<<<'SQL'
+            WITH g AS (
+                SELECT line_id, geom FROM line_segments WHERE line_id = ANY(:ids::bigint[])
+                UNION ALL SELECT line_id, geom FROM source_traces WHERE line_id = ANY(:ids::bigint[])
+                UNION ALL SELECT line_id, geom FROM line_reference_geometries WHERE line_id = ANY(:ids::bigint[])
+            ),
+            -- Bouts des tracés : morceaux de l'ère la plus longue de la ligne mis bout à bout, tracés des
+            -- sources, tracé de référence ; une extrémité nommée est près d'un bout, pas au milieu de la ligne.
+            eras AS (
+                SELECT DISTINCT ON (line_id) line_id, era_id FROM (
+                    SELECT line_id, era_id, SUM(length_meters) AS m FROM line_segments WHERE line_id = ANY(:ids::bigint[]) GROUP BY 1, 2) x
+                ORDER BY line_id, m DESC, era_id
+            ),
+            pieces AS (
+                SELECT ls.line_id, (ST_Dump(ST_LineMerge(ST_Collect(ST_Force2D(ls.geom))))).geom AS piece
+                FROM line_segments ls JOIN eras e ON e.line_id = ls.line_id AND e.era_id = ls.era_id GROUP BY ls.line_id
+                UNION ALL
+                SELECT line_id, (ST_Dump(ST_LineMerge(ST_Force2D(geom)))).geom FROM source_traces WHERE line_id = ANY(:ids::bigint[])
+                UNION ALL
+                SELECT line_id, (ST_Dump(ST_LineMerge(ST_Force2D(geom)))).geom FROM line_reference_geometries WHERE line_id = ANY(:ids::bigint[])
+            ),
+            ends AS (
+                SELECT line_id, ST_StartPoint(piece) AS pt FROM pieces WHERE GeometryType(piece) = 'LINESTRING'
+                UNION ALL SELECT line_id, ST_EndPoint(piece) FROM pieces WHERE GeometryType(piece) = 'LINESTRING'
+            )
+            SELECT g.line_id, s.id, s.name, ROUND(MIN(ST_Distance(s.geom::geography, g.geom::geography))) AS d
+            FROM g
+            JOIN stations s ON s.geom && ST_Expand(g.geom, 0.007) AND ST_DWithin(s.geom::geography, g.geom::geography, 500)
+            WHERE s.provenance->>'kind' IS NULL
+              AND EXISTS (SELECT 1 FROM ends WHERE ends.line_id = g.line_id AND ST_DWithin(ends.pt::geography, s.geom::geography, 500))
+            GROUP BY g.line_id, s.id, s.name
+        SQL, ['ids' => $ids]) as $r) {
+            $nearby[(int) $r->line_id][(int) $r->id] = ['name' => (string) StationNames::normalize($r->name), 'd' => (int) $r->d];
+        }
+        // Gares de toute la base par nom normalisé : un nom prolongé n'est retenu que s'il est unique.
+        $allNames = DB::table('stations')->pluck('name')->map(fn (string $n) => (string) StationNames::normalize($n))->all();
+        $sameName = fn (string $t) => count(array_filter($allNames, fn (string $n) => $n === $t || str_starts_with($n, $t.' ')));
+        $attached = [];
+        foreach (DB::table('station_lines as sl')->join('stations as s', 's.id', '=', 'sl.station_id')
+            ->whereIn('sl.line_id', $termini->keys())->get(['sl.line_id', 's.name']) as $r) {
+            $attached[(int) $r->line_id][] = (string) StationNames::normalize($r->name);
+        }
+        $rows = [];
+        foreach ($termini as $lineId => $lineTermini) {
+            $near = array_map(fn (array $x) => $x['name'], $nearby[$lineId] ?? []);
+            foreach ($lineTermini as $terminus) {
+                $already = array_filter($attached[$lineId] ?? [], fn (string $n) => $n === $terminus || str_starts_with($n, $terminus.' '));
+                $sid = $already === [] ? self::terminusStation($terminus, $near, $sameName($terminus)) : null;
+                if ($sid !== null) {
+                    $rows[] = ['station_id' => $sid, 'line_id' => $lineId, 'method' => 'terminus_name', 'distance_m' => $nearby[$lineId][$sid]['d'],
+                        'source_ref' => mb_substr('name:'.$terminus, 0, 160), 'created_at' => now(), 'updated_at' => now()];
+                }
+            }
+        }
+
+        return DB::table('station_lines')->insertOrIgnore($rows);
     }
 
     /**
@@ -328,7 +521,9 @@ class AttachStations extends Command
         // Fin : dernière fin du service voyageurs / fermeture totale couvrant le PK sans réouverture
         // ensuite ; à défaut, le plus ancien déclassement ou la plus ancienne dépose. Une fin antérieure
         // à l'ouverture (déclassement d'un projet antérieur, 794000 « déclassée … le 07/07/1905 », ouverte
-        // en 1910) ne termine pas la desserte.
+        // en 1910) ne termine pas la desserte. La réouverture doit couvrir la gare, comme la fermeture :
+        // celle d'une autre portion de la ligne ne prolonge pas la desserte d'une gare restée fermée.
+        $reopenCover = self::eventCovers('r');
         DB::statement(<<<SQL
             WITH ev AS (
                 SELECT sl.id, le.event_date, le.type IN ('closure_passenger', 'closure') AS service_end
@@ -340,7 +535,8 @@ class AttachStations extends Command
                 WHERE TRUE{$except}
                   AND (sl.first_year IS NULL OR EXTRACT(YEAR FROM le.event_date) >= sl.first_year)
                   AND NOT EXISTS (SELECT 1 FROM line_events r WHERE r.line_id = sl.line_id
-                                  AND r.type IN ('reopening', 'reopening_passenger', 'opening_passenger') AND r.event_date > le.event_date)
+                                  AND r.type IN ('reopening', 'reopening_passenger', 'opening_passenger') AND r.event_date > le.event_date
+                                  AND {$reopenCover})
             ), pick AS (
                 SELECT id, COALESCE(MAX(event_date) FILTER (WHERE service_end), MIN(event_date) FILTER (WHERE NOT service_end)) AS d
                 FROM ev GROUP BY id

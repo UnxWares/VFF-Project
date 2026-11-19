@@ -147,6 +147,7 @@ return [
             'sncf_geometry' => 'Proche du tracé SNCF',
             'junction' => 'Terminus ou bifurcation sur le tracé',
             'wikidata_p81' => 'Wikidata (ligne desservie)',
+            'terminus_name' => 'Extrémité nommée dans le nom de la ligne, à moins de 500 m du tracé',
         ],
         'pk_sources' => [
             'sncf' => 'PK officiel',

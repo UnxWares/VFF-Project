@@ -105,6 +105,10 @@ class StationServiceYearsTest extends TestCase
             ->where('station_id', $s->id)->orderBy('year')->pluck('year')->all();
         $this->assertNotContains(2030, $stopYears($closed));
         $this->assertSame([], $stopYears($later));
+        // Arrêts restants renumérotés : en 2030, Témoin seule, position 0, pas une « extrémité » (une seule gare).
+        $this->assertSame([[$fine->id, 0, false]], DB::table('line_stops')->join('eras', 'eras.id', '=', 'line_stops.era_id')
+            ->where('eras.is_current', true)->get(['station_id', 'position', 'is_terminal'])
+            ->map(fn ($r) => [(int) $r->station_id, (int) $r->position, (bool) $r->is_terminal])->all());
 
         // Fiche ligne : la gare jamais desservie n'est pas une gare de la ligne.
         $this->assertSame(['Briouze', 'Témoin'], array_column((new LineStations)->forLine($this->line->id)['stations'], 'name'));

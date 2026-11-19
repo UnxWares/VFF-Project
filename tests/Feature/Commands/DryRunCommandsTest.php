@@ -31,7 +31,7 @@ class DryRunCommandsTest extends TestCase
 
     /** Commandes à --dry-run (cf. CommandContractTest : la liste doit rester à jour). */
     public const COVERED = [
-        'vff:apply-event-corrections', 'vff:audit-and-fix-lines', 'vff:canonicalize-station-slugs', 'vff:classify-lines', 'vff:compute-line-profiles',
+        'vff:apply-event-corrections', 'vff:attach-stations', 'vff:audit-and-fix-lines', 'vff:canonicalize-station-slugs', 'vff:classify-lines', 'vff:compute-line-profiles',
         'vff:consolidate-stations', 'vff:dates-from-trace-names', 'vff:detect-present-states', 'vff:fill-missing-geometry',
         'vff:import-accidents', 'vff:import-argentanwebferro', 'vff:import-commons-media', 'vff:import-heritage-lines', 'vff:import-lignes-oubliees',
         'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-material-periods', 'vff:import-materials', 'vff:import-secondary-network-dates', 'vff:import-signalling-history',
@@ -141,6 +141,7 @@ class DryRunCommandsTest extends TestCase
         yield 'tracé SNCF manquant' => ['vff:fill-missing-geometry', [], ['line_segments']];
         yield 'classification' => ['vff:classify-lines', [], ['line_segments', 'line_sources']];
         yield 'dédoublonnage des gares' => ['vff:consolidate-stations', [], ['stations', 'station_sources']];
+        yield 'rattachement des gares' => ['vff:attach-stations', [], ['station_lines']];
         yield 'comptes inutilisés' => ['vff:prune-inactive-accounts', [], ['users', 'audit_events']];
         yield 'réputation des comptes' => ['vff:recalculate-reputation', [], ['users']];
     }

@@ -147,6 +147,7 @@ return [
             'sncf_geometry' => 'Near the SNCF route',
             'junction' => 'Terminus or junction on the route',
             'wikidata_p81' => 'Wikidata (line served)',
+            'terminus_name' => 'End named in the line name, less than 500 m from the route',
         ],
         'pk_sources' => [
             'sncf' => 'official PK',

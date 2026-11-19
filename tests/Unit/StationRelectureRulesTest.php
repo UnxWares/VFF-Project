@@ -113,6 +113,32 @@ class StationRelectureRulesTest extends TestCase
             ['status_source' => 'sncf', 'sncf_freight' => true])[0]);
     }
 
+    /**
+     * Airvault-Gare (Wikipédia : voyageurs fermés en 1980, « fermée à tout trafic ferroviaire en décembre
+     * 2015 ») : fin des voyageurs et fin du fret le même mois. Le statut du jour ne dépend plus de l'ordre
+     * des deux fermetures (il basculait entre « fret seul » et « fermée » d'un passage à l'autre).
+     */
+    public function test_passenger_and_freight_closures_close_the_station_in_any_order(): void
+    {
+        $opening = $this->ev('opening', '1874-01-01', 'wikidata');
+        $passenger = $this->ev('closure_passenger', '2015-12-01', 'wikipedia', 'month');
+        $freight = $this->ev('closure_freight', '2015-12-01', 'wikipedia', 'month');
+        $evidence = ['status_source' => 'sncf', 'sncf_freight' => true];
+        foreach ([[$opening, $passenger, $freight], [$opening, $freight, $passenger]] as $events) {
+            $this->assertSame([StationTimeline::CLOSED, StationTimeline::NOTE_CLOSED_TODAY],
+                StationTimeline::currentStatus('no_commercial', $events, '2026-11-19', $evidence));
+        }
+        // Gare voyageurs : la fin du fret après celle des voyageurs la ferme aussi (avant : restait ouverte).
+        $this->assertSame(StationTimeline::CLOSED, StationTimeline::currentStatus('active',
+            [$opening, $this->ev('closure_passenger', '1980-01-01', 'wikipedia'), $freight], '2026-11-19', $evidence)[0]);
+        // Fin des voyageurs seule : fret seul, comme avant.
+        $this->assertSame(StationTimeline::FREIGHT, StationTimeline::currentStatus('active', [$opening, $passenger], '2026-11-19', $evidence)[0]);
+        // Réouverture entre les deux : la fermeture aux voyageurs antérieure ne compte plus.
+        $this->assertSame(StationTimeline::FREIGHT, StationTimeline::currentStatus('no_commercial',
+            [$opening, $this->ev('closure_freight', '1990-01-01', 'wikipedia'), $this->ev('reopening', '2000-01-01', 'wikipedia'), $passenger],
+            '2026-11-19', $evidence)[0]);
+    }
+
     // ── Conflit de date : fermeture voyageurs suivie de fret ────────────────────
 
     public function test_passenger_closure_before_freight_eras_is_not_a_conflict(): void

@@ -147,6 +147,7 @@ return [
             'sncf_geometry' => 'Nahe dem SNCF-Streckenverlauf',
             'junction' => 'Endpunkt oder Abzweig am Streckenverlauf',
             'wikidata_p81' => 'Wikidata (bediente Strecke)',
+            'terminus_name' => 'Im Streckennamen genannter Endpunkt, weniger als 500 m vom Streckenverlauf',
         ],
         'pk_sources' => [
             'sncf' => 'Amtlicher PK',
