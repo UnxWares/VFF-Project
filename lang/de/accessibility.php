@@ -1,13 +1,16 @@
 <?php
 
-// Déclaration d'accessibilité, au format du RGAA 4.1.2. Sans audit RGAA complet, le référentiel
-// impose l'état « non conforme ». Les contenus non accessibles reprennent les constats de l'audit
-// interne du 2026-10-21 (storage/app/reports/agents/audit-ui.md) : à mettre à jour à chaque
-// correction, et après l'audit RGAA (taux de conformité). Le français fait foi.
+// Déclaration d'accessibilité, au format du modèle officiel du RGAA 4.1.2 (article 47 de la loi n° 2005-102).
+// Elle repose sur l'audit interne du 2026-11-19 (grille WCAG 2.1 A et AA, socle du RGAA ; rapport :
+// storage/app/reports/agents/ui-controle.md, section 6). Ce n'est ni un audit de la grille RGAA complète
+// ni un audit par un tiers : aucun taux de conformité n'est publié. Pour s'en tenir à la lettre du
+// référentiel, remplacer « partiellement conforme » par « non conforme » dans la section status.
+// À mettre à jour à chaque correction ; la date est dans resources/js/Pages/Accessibility.svelte
+// (prop updated) et dans la section establishment. Le français fait foi.
 // Traduction de lang/fr/accessibility.php.
 return [
     'meta_title' => 'Erklärung zur Barrierefreiheit',
-    'meta_description' => 'Stand der Konformität von Voies Ferrées de France mit dem RGAA, nicht barrierefreie Inhalte und Rechtsbehelfe.',
+    'meta_description' => 'Stand der Konformität von Voies Ferrées de France mit dem RGAA, Ergebnisse des internen Audits, nicht barrierefreie Inhalte und Rechtsbehelfe.',
 
     'hero' => [
         'title' => 'Erklärung zur Barrierefreiheit',
@@ -16,46 +19,49 @@ return [
 
     'commitment' => [
         'title' => 'Unser Engagement',
-        'paragraph' => 'UnxWares möchte, dass Voies Ferrées de France für alle nutzbar ist, unabhängig von Behinderung, Gerät oder Art der Navigation. VFF unterliegt nicht der Barrierefreiheitspflicht nach Artikel 47 des französischen Gesetzes Nr. 2005-102 vom 11. Februar 2005, folgt aber freiwillig dem französischen Barrierefreiheitsstandard RGAA 4.1.2. Diese Erklärung gilt für die Website <a href="https://vff-project.org">vff-project.org</a>. Diese Seite ist eine Übersetzung: Rechtlich verbindlich ist allein die französische Fassung.',
+        'paragraph' => 'Voies Ferrées de France (VFF) wird von UnxWares herausgegeben, einer französischen vereinfachten Aktiengesellschaft (société par actions simplifiée), deren Angaben im <a href="/legal">Impressum</a> stehen. UnxWares möchte, dass VFF für alle nutzbar ist, unabhängig von Behinderung, Gerät oder Art der Navigation. Die Website unterliegt nicht der Barrierefreiheitspflicht nach Artikel 47 des französischen Gesetzes Nr. 2005-102 vom 11. Februar 2005, folgt aber freiwillig dem französischen Barrierefreiheitsstandard RGAA 4.1.2. Diese Erklärung gilt für die Website <a href="https://vff-project.org">vff-project.org</a>. Diese Seite ist eine Übersetzung: Rechtlich verbindlich ist allein die französische Fassung.',
     ],
 
     'status' => [
         'title' => 'Konformitätsstatus',
-        'paragraph' => '<p><strong>Die Website vff-project.org entspricht nicht dem RGAA 4.1.2.</strong></p>'
-            .'<p>Sie wurde noch keinem RGAA-Konformitätsaudit unterzogen. Ohne ein solches Audit verlangt der Standard, sie als nicht konform zu erklären.</p>',
+        'paragraph' => '<p><strong>Die Website vff-project.org entspricht dem RGAA 4.1.2 teilweise.</strong></p>'
+            .'<p>Dieser Status beruht auf einem internen Audit vom 19. November 2026 anhand der Kriterien der Stufen A und AA der WCAG 2.1, die die Grundlage des RGAA bilden. Das Audit deckte nicht die vollständige RGAA-Kriterienliste (106 Kriterien) ab und wurde nicht von einer dritten Stelle durchgeführt. Wir veröffentlichen deshalb keine Konformitätsquote, und der erklärte Status ist durch ein solches Audit noch zu bestätigen.</p>',
     ],
 
     'results' => [
         'title' => 'Testergebnisse',
-        'paragraph' => 'Am 21. Oktober 2026 wurde ein internes Audit an 47 Seiten und Zuständen der Website durchgeführt, bei sechs Bildschirmbreiten (von 375 bis 1.920 Pixel), im hellen und im dunklen Design, auf Französisch und teilweise auf Englisch und Deutsch. Es ergab Darstellungs- und Bedienungsmängel, von denen ein Teil die Barrierefreiheit betrifft. Es folgt nicht der Methode des RGAA und erlaubt keine Berechnung einer Konformitätsquote.',
+        'paragraph' => '<p>Das interne Audit vom 19. November 2026 umfasste die unten aufgeführten Beispielseiten, insgesamt mehr als 250 Ansichten (Seiten, Bildschirmbreiten, helles und dunkles Design, Sprachen). Von den 50 Kriterien der WCAG 2.1 der Stufen A und AA werden 42 erfüllt, 1 nicht (die Sprache von Textstellen, siehe unten) und 7 sind nicht anwendbar, weil die Website weder Video noch Ton noch Bedienelemente per Bewegung enthält.</p>'
+            .'<p>Lighthouse vergibt bei der Barrierefreiheit auf den gemessenen Seiten 100 von 100 Punkten, am Computer und auf dem Smartphone. Diese Punktzahl beweist keine Konformität: Sie deckt nur einen Teil der Kriterien ab. Deshalb haben wir die Website außerdem vollständig nur mit der Tastatur durchlaufen und die Darstellung bei 200 % Zoom und bei 320 Pixel Breite geprüft, mit vergrößertem Textabstand und mit aktivierter Reduzierung von Animationen.</p>'
+            .'<p>Die Website wurde nicht mit einem Screenreader getestet: Schwierigkeiten, die diese Tests nicht zeigen, können bestehen bleiben.</p>',
     ],
 
     'non_accessible' => [
         'title' => 'Nicht barrierefreie Inhalte',
-        'paragraph' => '<p>Bekannte Mängel, die derzeit behoben werden:</p>'
+        'paragraph' => '<p>Festgestellte Nichtkonformität:</p>'
             .'<ul>'
-            .'<li>Kontraste: Mehrere orangefarbene Texte auf hellem Grund sowie weiße Texte auf orangefarbenem Grund erreichen nicht das für Fließtext geforderte Kontrastverhältnis von 4,5:1 (Kriterium 3.2).</li>'
-            .'<li>Auf bestimmten Seiten verschwinden die Auswahlmenüs für Sprache und Konto am Computer unter dem Seiteninhalt oder werden auf dem Smartphone abgeschnitten: Die Einträge sind dann nicht nutzbar.</li>'
-            .'<li>Die interaktiven Karten (Netzkarte nach Epoche, Karten der Streckenseiten, Streckenverlauf-Editor) sind per Tastatur nicht vollständig bedienbar und werden von Screenreadern nicht wiedergegeben.</li>'
-            .'<li>Auf kleinen Bildschirmen überlappen sich bestimmte Elemente, zum Beispiel der Hinweis „Heute“ der Streckenseiten mit dem Titel des nächsten Abschnitts.</li>'
-            .'<li>Die Fehlermeldungen der Anmelde- und Registrierungsformulare werden auf den französischen Seiten auf Englisch angezeigt, und die Fehlerseite „Seite nicht gefunden“ ist weder übersetzt noch an das dunkle Design angepasst.</li>'
+            .'<li>Sprache von Textstellen (RGAA-Kriterium 8.7, WCAG 3.1.2): Die Bildunterschriften und Urheberangaben der Bilder von Wikimedia Commons erscheinen in ihrer Originalsprache (Englisch, Niederländisch usw.), ohne dass diese Sprache angegeben ist. Screenreader können sie daher mit falscher Aussprache vorlesen.</li>'
             .'</ul>'
-            .'<p>Die Website wurde noch nicht mit einem Screenreader getestet: Es können weitere Schwierigkeiten bestehen. Die Informationen der Karten werden auch als Text angeboten: Seiten der Strecken und Bahnhöfe, Listen der <a href="/lines">Strecken</a> und der <a href="/stations">Bahnhöfe</a> sowie die <a href="/api">API</a>.</p>',
+            .'<p>Inhalte, die noch nicht geprüft wurden:</p>'
+            .'<ul>'
+            .'<li>die Mitgliederbereiche (Streckenverlauf-Editor, Validierung, Profil);</li>'
+            .'<li>die Dokumentationswerkzeuge der API (Swagger UI, GraphiQL, Magidoc), die von VFF gehostet werden und unter diese Erklärung fallen und deren Beschriftungen teilweise noch auf Englisch sind.</li>'
+            .'</ul>'
+            .'<p>Wir berufen uns auf keine Ausnahme wegen unverhältnismäßiger Belastung.</p>',
     ],
 
     'exempt' => [
         'title' => 'Inhalte, die nicht der Barrierefreiheitspflicht unterliegen',
-        'paragraph' => 'Online-Karten und Kartendienste gehören zu den Inhalten, die nicht der Barrierefreiheitspflicht unterliegen. VFF bemüht sich dennoch, das Wesentliche davon als Text darzustellen, auf den Seiten der Strecken und Bahnhöfe. Inhalte Dritter, die VFF weder erstellt noch kontrolliert (Bilder von Wikimedia Commons, Kartenhintergründe, verlinkte Websites), fallen nicht unter diese Erklärung.',
+        'paragraph' => 'Online-Karten und Kartendienste gehören zu den Inhalten, die nicht der Barrierefreiheitspflicht unterliegen: die Netzkarte, die Minikarten der Seiten, die einbettbare Karte, der OpenStreetMap-Kartenhintergrund und Ebenen von Dritten. Ihre Nutzung mit einem Screenreader ist nicht gewährleistet. Die Informationen, die sie zeigen, werden auch als Text angeboten: Seiten der Strecken und Bahnhöfe, Verzeichnisse der <a href="/lines">Strecken</a> und der <a href="/stations">Bahnhöfe</a>, Tabellen nach Jahrzehnt und die <a href="/api">API</a>. Inhalte Dritter, die VFF weder erstellt noch kontrolliert (Bilder von Wikimedia Commons, verlinkte Websites), fallen nicht unter diese Erklärung.',
     ],
 
     'establishment' => [
         'title' => 'Erstellung dieser Erklärung',
-        'paragraph' => '<p>Diese Erklärung wurde am 21. Oktober 2026 erstellt.</p>'
+        'paragraph' => '<p>Diese Erklärung wurde am 19. November 2026 erstellt.</p>'
             .'<ul>'
             .'<li><strong>Verwendete Technologien</strong>: HTML5, CSS, JavaScript (Svelte, MapLibre GL), SVG, WAI-ARIA.</li>'
-            .'<li><strong>Testumgebung</strong>: Chromium-Browser unter Linux, 375 bis 1.920 Pixel Breite, im hellen und dunklen Design.</li>'
-            .'<li><strong>Werkzeuge</strong>: automatische Messungen (Kontraste, Überläufe, Größe der klickbaren Flächen, Konsolenfehler) und visuelle Durchsicht jedes Screenshots.</li>'
-            .'<li><strong>Geprüfte Seiten</strong>: Startseite, Karte, Listen und Seiten der Strecken und Bahnhöfe, Fahrzeuge, Mitwirken, Spenden, Über uns, Danksagungen, rechtliche Seiten, API und ihre Dokumentation, Anmeldung, Registrierung, Passwort vergessen, Mitgliederbereiche, Fehlerseite.</li>'
+            .'<li><strong>Testumgebung</strong>: Chromium-Browser unter Linux, 320 bis 1.920 Pixel Breite, im hellen und im dunklen Design, auf Französisch und teilweise auf Englisch und Deutsch.</li>'
+            .'<li><strong>Werkzeuge</strong>: Lighthouse 13 (dessen Prüfungen auf axe-core beruhen), Entwicklerwerkzeuge von Chrome (Barrierefreiheitsbaum, Emulationen), die automatischen Messungen des Projekts (berechnete Kontraste, Überläufe, Größe der klickbaren Flächen), Bedienung per Tastatur, Zoom auf 200 %, Textabstand, Reduzierung von Animationen.</li>'
+            .'<li><strong>Geprüfte Seiten</strong>: Startseite, Karte, Streckenseiten (610000 und 752000) und Bahnhofsseiten (Angoulême, Limoges-Bénédictins), Verzeichnisse der Strecken, Bahnhöfe und Fahrzeuge, Unsere Geschichte, Spenden, Mitwirken, Danksagungen, rechtliche Seiten, API, Anmeldung, Registrierung, Passwort vergessen, die Fehlerseite „Seite nicht gefunden“, einbettbare Karte.</li>'
             .'</ul>',
     ],
 
@@ -77,6 +83,6 @@ return [
 
     'plan' => [
         'title' => 'Geplante Verbesserungen',
-        'paragraph' => 'Wir beheben zuerst die blockierenden Mängel (Menüs der Kopfzeile, Überlappungen, Formulare), danach die Kontraste. Anschließend wird ein vollständiges RGAA-Konformitätsaudit durchgeführt und seine Konformitätsquote auf dieser Seite veröffentlicht.',
+        'paragraph' => 'Wir planen, beim Import der Bilder von Wikimedia Commons die Sprache jeder Bildunterschrift zu speichern und sie dann an der betroffenen Textstelle anzugeben, womit die Nichtkonformität beim Kriterium 8.7 behoben wird. Außerdem planen wir, die Mitgliederbereiche und die Dokumentationswerkzeuge der API zu prüfen, die Website mit einem Screenreader zu testen und danach ein vollständiges Audit anhand der RGAA-Kriterienliste in Auftrag zu geben. Dessen Konformitätsquote wird auf dieser Seite veröffentlicht.',
     ],
 ];
