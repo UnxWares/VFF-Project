@@ -2939,6 +2939,12 @@ type LineSheetStation {
   "Origine des années de desserte : `line_events` (événements datés de la ligne au PK de la gare), `traces` (tracés datés), `station` (dates de la gare elle-même, faute d'événement daté de la ligne, ex. Morlaix sur 447000), nul si inconnues."
   years_source: String
 
+  "Date sûre du début de desserte par la ligne, avec l'événement de ligne qui la donne ; nulle quand seule l'année est sûre (voir `StationServiceDate`)."
+  service_start: StationServiceDate
+
+  "Date sûre de la fin de desserte par la ligne, avec l'événement de ligne qui la donne ; nulle quand seule l'année est sûre, et toujours quand `served_until_kind` n'est pas `year`."
+  service_end: StationServiceDate
+
   "Date d'ouverture (`AAAA-MM-JJ`)."
   opened_at: String
 
@@ -3229,6 +3235,26 @@ type StationEra {
   undated: Boolean!
 }
 
+"""
+Début ou fin de desserte d'une gare par une ligne, daté par un événement de la ligne. Présent
+seulement quand cette date vaut pour la gare : son année est celle de la période de desserte, la
+gare n'a pas ouvert (fermé) la même année à une date qui pourrait la contredire, la fin est une vraie
+date (ni borne haute ni fin non datée) et la ligne a desservi la gare. Exemple réel : Saint-Calais
+sur la ligne de Bessé-sur-Braye à Saint-Calais (`lo-507000`), début
+`{date: "1879-03-31", precision: "day", event_id: 416}`, fin
+`{date: "1938-05-15", precision: "day", event_id: 417}` (fermeture aux voyageurs).
+"""
+type StationServiceDate {
+  "Date `AAAA-MM-JJ`, à lire avec `precision` : au mois, le jour vaut 01 et ne compte pas ; à l'année, seule l'année compte."
+  date: String!
+
+  "Précision de `date` : `day`, `month` ou `year`."
+  precision: String!
+
+  "Événement de ligne qui donne la date (requête `lineEvent(id:)`, REST `/api/v1/events/{id}`) ; nul s'il n'a pas été retrouvé."
+  event_id: Int
+}
+
 "Une ligne desservant une gare."
 type StationLine {
   "Slug de la ligne."
@@ -3263,6 +3289,12 @@ type StationLine {
 
   "Origine des années de desserte : `line_events` (événements datés de la ligne au PK de la gare), `traces` (tracés datés), `station` (dates de la gare elle-même, faute d'événement daté de la ligne, ex. Morlaix sur 447000), `never_served`, nul si inconnues."
   years_source: String
+
+  "Date sûre du début de desserte par cette ligne, avec l'événement de ligne qui la donne ; nulle quand seule l'année est sûre (voir `StationServiceDate`)."
+  service_start: StationServiceDate
+
+  "Date sûre de la fin de desserte par cette ligne, avec l'événement de ligne qui la donne ; nulle quand seule l'année est sûre, et toujours quand `last_year_kind` n'est pas `year`."
+  service_end: StationServiceDate
 
   "`line_closed` (ligne fermée avant l'ouverture de la gare), `station_closed`, ou nul."
   never_served: String
