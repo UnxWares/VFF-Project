@@ -214,7 +214,9 @@ class LineController extends Controller
      * `era_summary`) et, dans `decades.stations`, gares ouvertes, incertaines,
      * fermées et fermetures de la décennie (`closures` : chaque gare comptée
      * fermée à cette décennie et pas à la précédente, avec la date de sa fiche
-     * gare ; sans date retenue, l'intervalle de la frise en précision `range`
+     * gare ; une gare dont la frise finit par une disparition, ouverte puis
+     * absente, après sa dernière fermeture porte sa date retenue à la décennie
+     * de la disparition, ex. Vigny en 2030 pour le 17/10/2023 ; sans date retenue, l'intervalle de la frise en précision `range`
      * entre `closed_after` et `closed_at` ; `reopened` : rouverte ensuite).
      *
      * **Chronique** (`chronicle`) : les événements regroupés par portion
@@ -227,6 +229,14 @@ class LineController extends Controller
      * **Gares** (`stations`) : toutes les gares de la ligne, toutes ères, dans
      * l'ordre du tracé : `pk_m`/`pk_label`, dates (`opened_at`, `closed_at` et
      * leur précision, `closed_after` : fermée après cette année),
+     * `served_from`/`served_until` (années de desserte par cette ligne),
+     * `served_until_kind` (`year` : année tirée d'une date ; `upper_bound` :
+     * desservie au plus tard cette année, fermeture de la gare connue
+     * seulement par un intervalle, ex. Frenelle-la-Grande - Puzieux sur
+     * 040000, 1989 ; `undated` : fin non datée, l'année n'est que celle du
+     * calcul, ex. Jarménil sur 062000, 2026 ; `null` sans fin), `years_source`
+     * (`line_events`, `traces`, ou `station` : années tirées des dates de la
+     * gare faute d'événement daté de la ligne, ex. Morlaix sur 447000),
      * `status_today` (`null` : disparue), `eras` : statut à chaque décennie.
      * **Sections nommées** (`sections`) : PK de début et de fin, années
      * d'ouverture, description, source, et `stages` : les mises en service

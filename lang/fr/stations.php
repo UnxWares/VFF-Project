@@ -122,6 +122,11 @@ return [
         'period_from_to' => 'Desservie de :from à :to',
         'period_from' => 'Desservie depuis :from',
         'period_to' => 'Desservie jusqu’en :to',
+        'period_from_to_bound' => 'Desservie de :from à :to au plus tard',
+        'period_to_bound' => 'Desservie jusqu’en :to au plus tard',
+        'period_from_undated' => 'Desservie à partir de :from, fin non datée',
+        'period_undated' => 'Fin de desserte non datée',
+        'years_from_station' => 'Années tirées des dates de la gare, faute d’événement daté sur la ligne.',
         'never_served' => [
             'line_closed' => 'Jamais desservie par cette ligne : ligne fermée en :to, gare ouverte en :from',
             'station_closed' => 'Jamais desservie par cette ligne : ligne ouverte en :from, gare fermée en :to',

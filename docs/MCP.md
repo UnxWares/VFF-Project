@@ -265,7 +265,10 @@ seul, `declassified` fermée, `gone` disparue, `planned` projetée, `technical`,
 date, précision et `when`), `eras` (statut à chaque décennie ; `uncertain` = non confirmé par les
 voies de l'époque), `events` (chronologie : `type`, `label`, date, `source`, `source_url`,
 `inferred` = date déduite des lignes et non d'une source sur la gare, `note`), `lines` (`slug`,
-`name`, `code`, `first_year`, `last_year`, `pk_km`, `served_today`) et `sources` (provenance brute,
+`name`, `code`, `first_year`, `last_year`, `last_year_kind`, `years_source`, `pk_km`, `served_today` ;
+`last_year_kind` vaut `year` pour une année tirée d'une date, `upper_bound` pour « au plus tard cette
+année », `undated` pour une fin non datée où l'année n'est que celle du calcul ; `years_source` vaut
+`station` quand les années viennent des dates de la gare, faute d'événement daté de la ligne) et `sources` (provenance brute,
 lecture seule : `source`, `ref` = identifiant dans la source, `name`, `url`, `distance_m` = écart à la
 position retenue, `match_method` = comment la source a été rapprochée de la gare, `fetched_at` = date
 de lecture par VFF, `raw` = attributs bruts reçus de la source, de forme variable). `station` porte

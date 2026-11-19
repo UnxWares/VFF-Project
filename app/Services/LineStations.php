@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ServiceEnd;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -39,7 +40,8 @@ final class LineStations
      * Chaque gare : kind (station | projected), id, slug, name, type, city, department_code, lng, lat,
      * pk_m, pk_label, is_terminal (gare au bout du tracé, voir terminals()), link_method
      * (sncf_pk, source_pk, segment…), served_from / served_until (années de
-     * desserte par CETTE ligne, station_lines), opened_at / opened_precision,
+     * desserte par CETTE ligne, station_lines), served_until_kind (ServiceEnd :
+     * year, upper_bound, undated), years_source, opened_at / opened_precision,
      * closed_at / closed_precision / closed_after / closed_year (date retenue,
      * null si ouverte aujourd'hui), status_today (statut affiché à l'ère
      * courante, null : n'existe plus), eras : année → {status (active,
@@ -53,7 +55,7 @@ final class LineStations
         $rows = DB::select(<<<'SQL'
             SELECT s.id, s.slug, s.name, s.type, s.city, s.department_code,
                    ST_X(s.geom) AS lng, ST_Y(s.geom) AS lat,
-                   sl.pk_m, sl.method, sl.first_year, sl.last_year,
+                   sl.pk_m, sl.method, sl.first_year, sl.last_year, sl.years_source,
                    s.opened_at, s.opened_precision, s.closed_at, s.closed_precision,
                    s.provenance->>'closed_after' AS closed_after, s.provenance->>'closed_at' AS closed_source,
                    s.provenance->>'kind' AS kind
@@ -115,6 +117,11 @@ final class LineStations
                 'link_method' => $r->method,
                 'served_from' => $r->first_year !== null ? (int) $r->first_year : null,
                 'served_until' => $r->last_year !== null ? (int) $r->last_year : null,
+                // year, upper_bound (au plus tard cette année) ou undated (fin non datée) : App\Enums\ServiceEnd.
+                'served_until_kind' => ServiceEnd::of($r->last_year !== null ? (int) $r->last_year : null,
+                    $r->closed_at !== null ? (string) $r->closed_at : null, $r->closed_precision, (int) now()->year)?->value,
+                // line_events, traces ou station (années tirées des dates de la gare), null si inconnues.
+                'years_source' => $r->years_source,
                 'opened_at' => $r->opened_at,
                 'opened_precision' => $r->opened_precision,
                 'closed_at' => $r->closed_at,
@@ -289,7 +296,9 @@ final class LineStations
      *   - la fermeture retenue (gare fermée aujourd'hui, `closed_at`) à la dernière ère où son fil
      *     passe à « fermée », c'est-à-dire la même ère que les compteurs : une date retenue antérieure
      *     (13 mars 2018) dont la frise ne montre la fermeture qu'à l'ère suivante ne crée pas une gare
-     *     « fermée » de plus que le compteur ; sans passage à « fermée » dans le fil (données
+     *     « fermée » de plus que le compteur ; si le fil finit par une disparition (ouverte ou non
+     *     confirmée, puis absente) après ce passage, à l'ère de la disparition (gare comptée absente,
+     *     non fermée, à cette ère) ; sans passage à « fermée » ni disparition dans le fil (données
      *     contradictoires), à la décennie de la date retenue ;
      *   - chaque autre passage d'ouverte ou non confirmée à fermée : intervalle de la frise
      *     (`closed_at` = 31/12 de l'ère, `closed_after` = année de l'ère précédente, précision
@@ -314,9 +323,25 @@ final class LineStations
             $previousYear = $y;
         }
 
+        // Gare disparue : dernier passage d'ouverte (ou non confirmée) à absente.
+        $vanishedAt = null;
+        $before = null;
+        foreach ($years as $y) {
+            if ($status($y) === null && $wasOpen($before)) {
+                $vanishedAt = $y;
+            }
+            $before = $status($y);
+        }
+
         $retainedAt = null;
         if ($station['closed_year'] !== null) {
             $retainedAt = array_key_last($transitions);
+            // Le fil finit par une disparition après le dernier passage à « fermée » (Vigny : fermée de
+            // 1980 à 2000, ouverte en 2010 et 2020, absente en 2030, fermée le 17/10/2023) : la date
+            // retenue est celle de ce passage, pas de l'ancienne fermeture.
+            if ($vanishedAt !== null && ($retainedAt === null || $vanishedAt > $retainedAt)) {
+                $retainedAt = $vanishedAt;
+            }
             if ($retainedAt === null) {
                 foreach ($years as $y) {
                     if ($station['closed_year'] <= $y) {

@@ -81,4 +81,19 @@ return [
         'quote' => 'Le 2 juin 1856 est ouverte la ligne entre Argenton-sur-Creuse et Limoges pour le trafic des marchandises, puis la ligne devient mixte',
         'reason' => 'ouverture de la section Argenton-sur-Creuse - Limoges (marchandises, puis voyageurs le 16/06/1858)',
     ],
+
+    // Chantier « gares-affichage » (19/11/2026, constat 6 de storage/app/reports/agents/jour/donnees-gares.md).
+    // 440000 Vire - Romagny : l'objet OHM way 201186371 (2,4 km près de Vire, start_date 1870-07-03) est la voie
+    // d'Argentan à Granville (405000), section Vire - Granville ouverte le 03/07/1870 ; le même objet date aussi
+    // 405000 et 415000. La ligne de Vire à Romagny n'ouvre que le 18/12/1887 (Vire - Les Maures). Effet : la gare
+    // de Vire « desservie par 440000 depuis 1870 ».
+    [
+        'line' => '440000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'opening', 'date' => '1870-07-03', 'from' => 'Vire'],
+        'label' => 'Ouverture de Vire à Granville, sur la ligne d\'Argentan à Granville (autre ligne)',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_d%27Argentan_%C3%A0_Granville&oldid=240174253',
+        'quote' => 'Le troisième et dernier tronçon, long de cinquante-sept kilomètres de Vire à Granville, est réalisé de 1867 à 1870. [...] Le tronçon est mis en service le 3 juillet 1870',
+        'reason' => 'ouverture de la section Vire - Granville de la ligne 405000 (way OHM 201186371), pas de la ligne de Vire à Romagny, ouverte de Vire aux Maures le 18/12/1887 (Ligne de Vire à Romagny, oldid 226857304)',
+    ],
 ];

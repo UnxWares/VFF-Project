@@ -498,6 +498,8 @@ final class LineSheet
             'link_method' => $s['link_method'] ?? null,
             'served_from' => $s['served_from'] ?? null,
             'served_until' => $s['served_until'] ?? null,
+            'served_until_kind' => $s['served_until_kind'] ?? null,
+            'years_source' => $s['years_source'] ?? null,
             'opened_at' => $s['opened_at'],
             'opened_precision' => $s['opened_precision'],
             'closed_at' => $s['closed_at'],

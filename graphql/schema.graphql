@@ -2718,6 +2718,12 @@ type LineSheetStation {
     "Dernière année de desserte (nulle : toujours desservie ou inconnue)."
     served_until: Int
 
+    "Nature de `served_until` : `year` (année tirée d'une date), `upper_bound` (desservie au plus tard cette année : la gare n'a qu'une fermeture en intervalle, ex. Frenelle-la-Grande - Puzieux sur 040000, 1989), `undated` (fin non datée : l'année n'est que celle du calcul, ex. Jarménil sur 062000, 2026), nul sans fin."
+    served_until_kind: String
+
+    "Origine des années de desserte : `line_events` (événements datés de la ligne au PK de la gare), `traces` (tracés datés), `station` (dates de la gare elle-même, faute d'événement daté de la ligne, ex. Morlaix sur 447000), nul si inconnues."
+    years_source: String
+
     "Date d'ouverture (`AAAA-MM-JJ`)."
     opened_at: String
 
@@ -3033,6 +3039,12 @@ type StationLine {
 
     "Dernière année de desserte (nulle : toujours desservie)."
     last_year: Int
+
+    "Nature de `last_year` : `year` (année tirée d'une date), `upper_bound` (desservie au plus tard cette année : la gare n'a qu'une fermeture en intervalle, ex. Frenelle-la-Grande - Puzieux sur 040000, 1989), `undated` (fin non datée : l'année n'est que celle du calcul, ex. Jarménil sur 062000, 2026), nul sans fin."
+    last_year_kind: String
+
+    "Origine des années de desserte : `line_events` (événements datés de la ligne au PK de la gare), `traces` (tracés datés), `station` (dates de la gare elle-même, faute d'événement daté de la ligne, ex. Morlaix sur 447000), `never_served`, nul si inconnues."
+    years_source: String
 
     "`line_closed` (ligne fermée avant l'ouverture de la gare), `station_closed`, ou nul."
     never_served: String

@@ -127,7 +127,19 @@ class StationController extends Controller
      *   liste paginée et filtrable est sur `/stations/{station}/events` ;
      * - `lines` : lignes desservies, avec `pk_m` (point kilométrique en
      *   mètres) et sa source, `method` (comment la gare est rattachée),
-     *   `first_year`/`last_year` (années de desserte), `never_served`
+     *   `first_year`/`last_year` (années de desserte), `last_year_kind`
+     *   (nature de `last_year` : `year` = année tirée d'une date ;
+     *   `upper_bound` = borne haute, desservie au plus tard cette année, la
+     *   gare n'ayant qu'une fermeture en intervalle, ex. Frenelle-la-Grande -
+     *   Puzieux sur 040000, `last_year` 1989 pour une fermeture « entre 1980
+     *   et 1989 » ; `undated` = fin non datée, la gare est fermée mais rien
+     *   ne date sa fermeture et `last_year` n'est que l'année du calcul, ex.
+     *   Jarménil sur 062000, `last_year` 2026 ; `null` sans fin),
+     *   `years_source` (d'où viennent les années : `line_events` =
+     *   événements datés de la ligne au PK de la gare, `traces` = tracés
+     *   datés, `station` = dates de la gare elle-même faute d'événement daté
+     *   de la ligne, ex. Morlaix sur 447000 ; `never_served` ; `null` :
+     *   inconnues), `never_served`
      *   (`line_closed`, `station_closed` ou `null`), `active_current`
      *   (desservie par une portion en service aujourd'hui), `era_years`
      *   (décennies où la gare est un arrêt de la ligne) ;

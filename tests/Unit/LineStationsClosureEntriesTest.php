@@ -97,4 +97,43 @@ class LineStationsClosureEntriesTest extends TestCase
         $this->assertSame([1940], array_keys($entries));
         $this->assertSame('1937', $entries[1940]['label']);
     }
+
+    public function test_a_station_that_vanishes_after_reopening_takes_its_date_where_it_vanishes(): void
+    {
+        // Vigny (099000), transposée sur les ères du test : fermée de 1980 à 2000, ouverte en 2010 et 2020, absente en 2030, fermée le 17/10/2023.
+        $entries = LineStations::closureEntries(self::station(
+            [1900 => 'active', 1910 => 'declassified', 1920 => 'declassified', 1930 => 'active', 1940 => 'active', 1950 => 'active', 2030 => null],
+            '1947-10-17', 'day',
+        ), self::YEARS);
+
+        $this->assertSame([1910, 2030], array_keys($entries));
+        $this->assertSame(['1910-12-31', 'range', 1900, true], [$entries[1910]['closed_at'], $entries[1910]['closed_precision'], $entries[1910]['closed_after'], $entries[1910]['reopened']]);
+        $this->assertSame(['1947-10-17', 'day', false], [$entries[2030]['closed_at'], $entries[2030]['closed_precision'], $entries[2030]['reopened']]);
+        $this->assertSame('17/10/1947', $entries[2030]['label']);
+    }
+
+    public function test_a_station_that_vanishes_while_freight_only_takes_its_date_where_it_vanishes(): void
+    {
+        // Le Crouais (472000), transposée : fermée en 2000, fret seul en 2010, absente ensuite, fermée en 2018.
+        $entries = LineStations::closureEntries(self::station(
+            [1900 => 'active', 1910 => 'active', 1920 => 'declassified', 1930 => 'no_commercial', 1940 => null, 1950 => null, 2030 => null],
+            '1938-01-01', 'year',
+        ), self::YEARS);
+
+        $this->assertSame([1920, 1940], array_keys($entries));
+        $this->assertTrue($entries[1920]['reopened']);
+        $this->assertSame(['1938', false], [$entries[1940]['label'], $entries[1940]['reopened']]);
+    }
+
+    public function test_a_vanishing_before_the_last_closure_does_not_move_the_date(): void
+    {
+        // Absente un temps, puis rouverte et fermée : la date reste au dernier passage à « fermée ».
+        $entries = LineStations::closureEntries(self::station(
+            [1900 => 'active', 1910 => null, 1920 => 'active', 1930 => 'active', 1940 => 'declassified', 1950 => 'declassified', 2030 => 'declassified'],
+            '1936-05-02', 'day',
+        ), self::YEARS);
+
+        $this->assertSame([1940], array_keys($entries));
+        $this->assertSame('02/05/1936', $entries[1940]['label']);
+    }
 }

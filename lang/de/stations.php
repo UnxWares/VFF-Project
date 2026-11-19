@@ -122,6 +122,11 @@ return [
         'period_from_to' => 'Bedient von :from bis :to',
         'period_from' => 'Bedient seit :from',
         'period_to' => 'Bedient bis :to',
+        'period_from_to_bound' => 'Bedient von :from bis spätestens :to',
+        'period_to_bound' => 'Bedient bis spätestens :to',
+        'period_from_undated' => 'Bedient ab :from, Ende nicht datiert',
+        'period_undated' => 'Ende der Bedienung nicht datiert',
+        'years_from_station' => 'Jahre aus den Daten des Bahnhofs, da für die Strecke hier kein datiertes Ereignis vorliegt.',
         'never_served' => [
             'line_closed' => 'Nie von dieser Strecke bedient: Strecke :to stillgelegt, Bahnhof :from eröffnet',
             'station_closed' => 'Nie von dieser Strecke bedient: Strecke :from eröffnet, Bahnhof :to geschlossen',

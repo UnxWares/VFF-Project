@@ -76,9 +76,12 @@ final class StationSheetExample
                     'pk_source' => 'sncf',
                     'first_year' => 1865,
                     'last_year' => null,
+                    'last_year_kind' => null,
+                    'years_source' => 'line_events',
                     'never_served' => null,
                     'active_current' => true,
                     'era_years' => [1870],
+                    'links' => ['web' => 'https://vff-project.org/lines/rfn-420000', 'api' => 'https://vff-project.org/api/v1/lines/rfn-420000'],
                 ],
             ],
             'sources' => [
