@@ -70,6 +70,7 @@ describe('levelCrossingPopupHtml', () => {
     const props = {
         label: 'PN 32',
         class: 17,
+        group: 'automatic',
         pk_m: 112866,
         commune: 'Courthiézy',
         crossed_way: 'VC',
@@ -99,8 +100,15 @@ describe('levelCrossingPopupHtml', () => {
     });
 
     it('accepte la classe 0 (PN secondaire)', () => {
-        expect(levelCrossingPopupHtml({ class: 0 }, t, 'fr', '')).toContain(
+        expect(levelCrossingPopupHtml({ class: 0, group: 'secondary' }, t, 'fr', '')).toContain(
             'level_crossings.classes.0',
         );
+    });
+
+    it('ne montre jamais une clé de traduction pour une classe hors de la liste officielle', () => {
+        // Classe 50 : le serveur n'envoie pas de groupe (propriété nulle, absente de la tuile).
+        const html = levelCrossingPopupHtml({ label: 'PN 7', class: 50 }, t, 'fr', '');
+        expect(html).toContain('PN 7');
+        expect(html).not.toContain('level_crossings.classes');
     });
 });

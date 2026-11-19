@@ -15,7 +15,8 @@ use Illuminate\Support\Collection;
 final class LineLevelCrossings
 {
     /**
-     * PN de la ligne (vide pour une ligne sans code SNCF), PK inconnus en dernier.
+     * PN de la ligne (vide pour une ligne sans code SNCF, ou dont une autre fiche porte le même code :
+     * voir LevelCrossing::ownerLineIdSql), PK inconnus en dernier.
      *
      * @return Collection<int, LevelCrossing>
      */
@@ -25,10 +26,12 @@ final class LineLevelCrossings
             return new Collection;
         }
 
+        // La ligne est connue : elle sert de relation `line` à chaque PN (pas de requête par PN).
         return LevelCrossing::query()
-            ->where('code_ligne', $line->code)
+            ->ofLine($line->id, $line->code)
             ->orderByRaw('pk_m IS NULL, pk_m, id')
-            ->get(['id', 'id_if', 'libelle', 'mnemo', 'obstacle', 'code_ligne', 'rg_troncon', 'pk_m', 'commune', 'lat', 'lon']);
+            ->get(['id', 'id_if', 'libelle', 'mnemo', 'obstacle', 'code_ligne', 'rg_troncon', 'pk_m', 'commune', 'lat', 'lon'])
+            ->each(fn (LevelCrossing $c) => $c->setRelation('line', $line));
     }
 
     /**

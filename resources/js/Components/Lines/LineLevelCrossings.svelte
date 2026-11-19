@@ -25,8 +25,9 @@
         t('level_crossings.line.intro', { count: crossings.total }) +
             (hasSecondary ? ` ${t('level_crossings.line.secondary_note')}` : ''),
     );
+    // Le groupe est nul pour une classe absente ou hors de la liste officielle : pas de définition.
     const classLabel = (c) =>
-        c.class === null
+        c.group === null
             ? t('level_crossings.line.unknown')
             : t(`level_crossings.classes.${c.class}`);
 </script>

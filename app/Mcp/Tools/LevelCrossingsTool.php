@@ -23,7 +23,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Title('Passages à niveau')]
 #[Description(<<<'TXT'
 Passages à niveau (PN) du réseau ferré national publiés par SNCF Réseau (environ 16 800), filtrables par ligne, groupe, classe, commune ou emprise. Mêmes données et mêmes filtres que l'API REST GET /api/v1/level-crossings. État actuel seulement : aucune date d'ouverture ou de suppression n'est connue, et un PN supprimé avant la publication du jeu n'y figure pas.
-Chaque PN : `id` (identifiant SNCF Réseau), `label` (« PN 32 »), `class` (classe SNCF Réseau) et `class_label` (sa définition dans la langue demandée), `group` et `group_label`, `pk_m` et `pk_label` (point kilométrique officiel, en mètres et en notation km+mmm), `commune`, `crossed_way` (voie franchie, libellé brut : VC voie communale, CD 106-0 route départementale, CR chemin rural), `line` (slug, code, name), `lat` et `lng` en WGS 84.
+Chaque PN : `id` (identifiant SNCF Réseau), `label` (« PN 32 »), `class` (classe SNCF Réseau) et `class_label` (sa définition dans la langue demandée, null pour une classe hors de la liste officielle), `group` et `group_label`, `pk_m` et `pk_label` (point kilométrique officiel, en mètres et en notation km+mmm), `commune`, `crossed_way` (voie franchie, libellé brut : VC voie communale, CD 106-0 route départementale, CR chemin rural), `line` (slug, code, name), `lat` et `lng` en WGS 84.
 Groupes : automatic (barrières automatiques, classes 17 à 19), guarded (gardés, 10 à 16), no_barrier (sans barrières, 20 et 21), pedestrian (piétons, 31 et 32), private (privés, 41 à 46), secondary (classe 0 : passage situé sur plusieurs lignes, compté sur une autre ; à exclure pour compter des passages).
 Avec `line`, la réponse ajoute `summary` : nombre de PN de la ligne par groupe.
 Licence : ODbL 1.0 (bloc `attribution`) ; citez « SNCF Réseau » et partagez sous la même licence une base dérivée publiquement utilisée.
@@ -79,14 +79,13 @@ class LevelCrossingsTool extends VffTool
     /** @return array<string, mixed> */
     private static function present(LevelCrossing $c, string $lang): array
     {
-        $class = $c->class;
         $group = $c->group;
 
         return [
             'id' => $c->id_if,
             'label' => $c->libelle,
-            'class' => $class,
-            'class_label' => $class === null ? null : trans("level_crossings.classes.{$class}", [], $lang),
+            'class' => $c->class,
+            'class_label' => $c->classLabel($lang),
             'group' => $group?->value,
             'group_label' => $group === null ? null : trans("level_crossings.groups.{$group->value}", [], $lang),
             'pk_m' => $c->pk_m,

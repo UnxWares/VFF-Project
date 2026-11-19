@@ -6,6 +6,7 @@ use App\Models\Era;
 use App\Models\Line;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Nuwave\Lighthouse\Testing\MakesGraphQLRequests;
 use Tests\Support\SeedsLevelCrossings;
@@ -67,6 +68,52 @@ class LevelCrossingSurfacesTest extends TestCase
 
         $this->graphQL('{ levelCrossings(filter: { group: "nope" }) { data { id } } }')
             ->assertGraphQLValidationKeys(['group']);
+    }
+
+    public function test_graphql_reads_a_line_crossings_once_for_both_fields(): void
+    {
+        $queries = 0;
+        DB::listen(function ($query) use (&$queries): void {
+            $queries += str_contains($query->sql, 'from "sncf_level_crossings"') ? 1 : 0;
+        });
+
+        $this->graphQL('{ line(slug: "rfn-70000") { level_crossing_summary { group count } level_crossings { id line { slug } } } }')
+            ->assertJsonPath('data.line.level_crossings.0.line.slug', 'rfn-70000')
+            ->assertJsonCount(2, 'data.line.level_crossings');
+
+        $this->assertSame(1, $queries);
+    }
+
+    public function test_graphql_and_mcp_give_no_label_for_an_unknown_class(): void
+    {
+        $this->seedLevelCrossing('30000030001', '070000', 200000, 49.1, 3.7, 'CLASSE 50');
+
+        $this->graphQL('{ line(slug: "rfn-70000") { level_crossings { id class class_label group } } }')
+            ->assertJsonPath('data.line.level_crossings.2', ['id' => '30000030001', 'class' => 50, 'class_label' => null, 'group' => null]);
+
+        $result = $this->withHeaders(['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-06-18'])
+            ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => [
+                'name' => 'level_crossings', 'arguments' => ['line' => 'rfn-70000', 'lang' => 'de'],
+            ]])->assertOk()->json('result');
+        $this->assertFalse($result['isError']);
+        $items = array_column(json_decode($result['content'][0]['text'], true)['level_crossings'], null, 'id');
+        $unknown = $items['30000030001'];
+
+        $this->assertSame(50, $unknown['class']);
+        $this->assertNull($unknown['class_label']);
+        $this->assertNull($unknown['group_label']);
+    }
+
+    public function test_line_sheet_lists_an_unknown_class_without_group(): void
+    {
+        $this->seedLevelCrossing('30000030001', '070000', 200000, 49.1, 3.7, 'CLASSE 50');
+
+        $this->get('/lines/rfn-70000')->assertInertia(fn (Assert $page) => $page
+            ->where('level_crossings.total', 3)
+            ->where('level_crossings.items.2', [
+                'id' => '30000030001', 'label' => 'PN 01', 'class' => 50, 'group' => null,
+                'pk' => '200+000', 'commune' => 'Courthiézy', 'crossed_way' => 'VC',
+            ]));
     }
 
     public function test_mcp_tool_lists_crossings_with_summary_and_sncf_attribution(): void

@@ -19,7 +19,6 @@ class LevelCrossingResource extends JsonResource
     /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
-        $class = $this->resource->class;
         $group = $this->resource->group;
 
         return [
@@ -43,13 +42,14 @@ class LevelCrossingResource extends JsonResource
              *
              * @example 17
              */
-            'class' => $class,
+            'class' => $this->resource->class,
             /**
-             * Définition de la classe, en français (texte de VFF d'après la description du jeu).
+             * Définition de la classe, en français (texte de VFF d'après la description du jeu). Null si la classe est
+             * absente ou n'est pas dans la liste officielle (classe inconnue de VFF).
              *
              * @example Public pour voitures, barrières ou demi-barrières automatiques, signalisation lumineuse SAL 2 ou SAL 2B
              */
-            'class_label' => $class === null ? null : __("level_crossings.classes.{$class}", [], 'fr'),
+            'class_label' => $this->resource->classLabel('fr'),
             /**
              * Groupe de la classe : `automatic` (17 à 19), `guarded` (10 à 16), `no_barrier` (20, 21), `pedestrian`
              * (31, 32), `private` (41 à 46), `secondary` (0 : passage déjà compté sur une autre ligne, voir `crossed_way`).

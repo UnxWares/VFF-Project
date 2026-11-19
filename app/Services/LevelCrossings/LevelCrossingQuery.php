@@ -78,7 +78,9 @@ final class LevelCrossingQuery
     public function apply(Builder $query, array $filters): Builder
     {
         if (filled($filters['line'] ?? null)) {
-            $query->where('code_ligne', Line::where('slug', $filters['line'])->value('code'));
+            $line = Line::where('slug', $filters['line'])->first(['id', 'code']);
+            // Ligne inconnue (rejetée en amont par la validation) : aucun PN.
+            $line === null ? $query->whereRaw('1 = 0') : $query->ofLine($line->id, $line->code);
         }
         if (filled($filters['group'] ?? null)) {
             $classes = LevelCrossingGroup::from((string) $filters['group'])->classes();
