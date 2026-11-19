@@ -529,6 +529,12 @@
         text-align: left;
         cursor: pointer;
     }
+    /* Téléphone : cible tactile de 44 px. */
+    @media (max-width: 600px) {
+        .legend-toggle {
+            min-height: 44px;
+        }
+    }
     .vff-legend:not(.collapsed) .legend-toggle {
         border-bottom: 1px solid var(--vff-border);
         border-radius: var(--vff-radius-md) var(--vff-radius-md) 0 0;

@@ -100,7 +100,7 @@ main #maps .maps-box h2 {
 main #maps .maps-box p {
     margin: 0 0 var(--vff-space-5);
     font-family: Montserrat, var(--vff-font-body);
-    font-size: var(--vff-fs-md);
+    font-size: var(--vff-fs-body);
     line-height: 1.6;
     color: var(--vff-text);
 }

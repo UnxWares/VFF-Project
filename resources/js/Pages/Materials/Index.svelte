@@ -6,7 +6,12 @@
     import DirectoryFilters from '$components/Directory/DirectoryFilters.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import { i18n } from '$lib/i18n.js';
-    import { matchedDesignation, servicePeriodText, splitArrows } from '$lib/materialFacts.js';
+    import {
+        buildersText,
+        matchedDesignation,
+        servicePeriodText,
+        splitArrows,
+    } from '$lib/materialFacts.js';
 
     let { materials, counts = [], filters = {}, sorts = [], overall = 0 } = $props();
 
@@ -210,6 +215,7 @@
                     <ul class="list">
                         {#each materials.data as m, i (m.slug)}
                             {@const alias = matchedDesignation(m, filters.q ?? '')}
+                            {@const builders = buildersText(m.builders, m.builder, t)}
                             <li class="item">
                                 <div class="thumb">
                                     {#if m.thumb}
@@ -235,9 +241,9 @@
                                     <span class="meta">
                                         {#each metaOf(m) as part, j (j)}<span>{part}</span>{/each}
                                     </span>
-                                    {#if m.builder}
-                                        <!-- Liste parfois longue (huit constructeurs) : une ligne, coupée, entière au survol. -->
-                                        <span class="builder" title={m.builder}>{m.builder}</span>
+                                    {#if builders}
+                                        <!-- Comme la fiche ligne : tous les noms jusqu'à quatre, sinon trois et « et N autres ». -->
+                                        <span class="builder">{builders}</span>
                                     {/if}
                                     {#if figuresOf(m).length}
                                         <span class="meta figures">
@@ -417,13 +423,11 @@
         margin-left: 6px;
     }
     .builder {
-        overflow: hidden;
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-sm);
         line-height: var(--vff-lh-ui);
         color: var(--vff-text-muted);
-        white-space: nowrap;
-        text-overflow: ellipsis;
+        overflow-wrap: anywhere;
     }
     .figures {
         font-variant-numeric: tabular-nums;
@@ -444,6 +448,9 @@
             overflow-x: auto;
             padding: 2px var(--vff-gutter) 6px;
             scrollbar-width: thin;
+        }
+        .categories :global(.chip) {
+            min-height: 44px;
         }
         .item {
             grid-template-columns: 88px minmax(0, 1fr);

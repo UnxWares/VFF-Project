@@ -117,6 +117,26 @@ class MaterialDirectoryTest extends TestCase
                 ->where('materials.data.0.units_built', 65));
     }
 
+    public function test_rows_give_every_builder_even_when_the_joined_text_is_cut(): void
+    {
+        // 141 PLM, BR 52… : le texte joint s'arrête à 255 caractères sur « … » ; la carte de l'annuaire
+        // tire « trois noms et N autres » de la liste complète, sans doublon, comme la fiche ligne.
+        $names = array_map(fn (int $i): string => "Constructeur {$i}", range(1, 13));
+        Material::factory()->create([
+            'slug' => 'br-52',
+            'name' => 'BR 52',
+            'builder' => mb_strimwidth(implode(', ', $names), 0, 60, '…'),
+            'builders' => array_map(fn (string $n): array => ['name' => $n, 'wikidata_id' => null, 'units' => null], [...$names, 'Constructeur 1']),
+        ]);
+        Material::factory()->create(['slug' => 'x-1', 'name' => 'X 1', 'builder' => null, 'builders' => null]);
+
+        $this->get('/materials')
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('materials.data.0.slug', 'br-52')
+                ->where('materials.data.0.builders', $names)
+                ->where('materials.data.1.builders', []));
+    }
+
     public function test_the_directory_is_paginated(): void
     {
         Material::factory()->count(50)->create();

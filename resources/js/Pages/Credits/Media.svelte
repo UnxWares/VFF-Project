@@ -339,7 +339,7 @@
     }
     .sources p {
         margin: 0 0 var(--vff-space-2);
-        font-size: var(--vff-fs-md);
+        font-size: var(--vff-fs-body);
         line-height: 1.6;
         color: var(--vff-text-muted);
     }

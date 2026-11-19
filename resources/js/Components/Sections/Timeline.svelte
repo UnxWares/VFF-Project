@@ -399,7 +399,7 @@
     .milestones p {
         margin: 0;
         font-family: var(--vff-font-body);
-        font-size: var(--vff-fs-md);
+        font-size: var(--vff-fs-body);
         line-height: 1.6;
         color: var(--vff-text-muted);
     }
@@ -411,6 +411,10 @@
     @media (max-width: 600px) {
         .milestones {
             grid-template-columns: minmax(0, 1fr);
+        }
+        /* Cible tactile de 44 px pour « Afficher les chiffres par décennie ». */
+        .figures summary {
+            padding-block: 10px;
         }
     }
 </style>
