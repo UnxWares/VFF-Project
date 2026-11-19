@@ -45,6 +45,8 @@ return [
             'tools' => 'Suche, Routen und Quellen',
         ],
         'items' => [
+            'stats' => 'Die Zahlen der Startseite: Anzahl der Strecken, Bahnhöfe und Fahrzeugbaureihen, Betriebskilometer und die Netzkurve je Epoche.',
+            'line_geojson' => 'Trasse einer Strecke zu einer Epoche als GeoJSON, ein Abschnitt je Element, mit Herkunft.',
             'eras' => 'Die Epochen der Karte, jeweils zum 31. Dezember ihres Jahres; 2030 beschreibt das heutige Netz.',
             'era' => 'Eine Epoche und der Zustand des Netzes zu diesem Datum: Kilometer in Betrieb, stillgelegt, abgebaut und elektrifiziert.',
             'lines_geojson' => 'Streckenverläufe des Netzes zu einer Epoche, als GeoJSON (FeatureCollection von Abschnitten).',
@@ -141,6 +143,7 @@ return [
             'compare_eras' => 'Eröffnete, stillgelegte, abgebaute oder weiter betriebene Kilometer zwischen zwei Epochen der Karte.',
             'level_crossings' => 'Bahnübergänge laut SNCF Réseau, nach Strecke, Art, Gemeinde oder Ausschnitt, mit Klasse und Streckenkilometer.',
             'line_profile' => 'Höhenprofil einer Strecke: Höhen entlang der Trasse, Anstieg und Gefälle, größte Neigung und Höhe der Bahnhöfe.',
+            'locate_on_line' => 'Kilometerpunkt eines Ortes aus seinen Koordinaten auf der Trasse einer Strecke.',
             'sources_and_licences' => 'Datenanbieter und Lizenzen.',
         ],
         'licence_title' => 'Namensnennung',

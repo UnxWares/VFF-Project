@@ -85,6 +85,36 @@ class DirectoryAndSheetQueriesTest extends TestCase
         $this->assertSame([1960, 2030], array_column($response->json('data.station.sheet.eras'), 'year'));
     }
 
+    public function test_line_description_source_and_station_raw_provenance_are_typed_fields(): void
+    {
+        $this->line->update(['description' => 'La ligne relie Paris à Brest.']);
+        DB::table('line_sources')->insert(['line_id' => $this->line->id, 'source_type' => 'wikipedia-intro',
+            'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Paris_%C3%A0_Brest&oldid=42', 'fetched_at' => '2026-10-19 23:00:00',
+            'fields_provided' => json_encode(['title' => 'Ligne de Paris à Brest'])]);
+        DB::table('station_sources')->insert([
+            'station_id' => $this->origin->id, 'source' => 'osm', 'source_ref' => 'n123', 'name' => 'Paris Saint-Lazare', 'lifecycle' => 'active',
+            'match_method' => 'near', 'seen_at' => '2026-10-15 17:21:48', 'properties' => json_encode(['railway' => 'station']),
+            'geom' => DB::raw('ST_SetSRID(ST_MakePoint(2.3253, 48.8763), 4326)'),
+        ]);
+
+        $response = $this->graphQL('query ($slug: String!) {
+            line(slug: $slug) { sheet { description description_source { type title revision_id permalink history_url author attribution license license_url fetched_at urls } } }
+            station(slug: "paris-saint-lazare") { sheet { sources { source ref fetched_at raw match_method pk_m precision_m provenance { license_status } } } }
+        }', ['slug' => $this->line->slug])->assertJsonMissingPath('errors');
+
+        $source = $response->json('data.line.sheet.description_source');
+        $this->assertSame('wikipedia', $source['type']);
+        $this->assertSame(42, $source['revision_id']);
+        $this->assertSame('Contributeurs de Wikipédia', $source['author']);
+        $this->assertSame('CC BY-SA 4.0', $source['license']);
+        $this->assertStringContainsString('oldid=42', $source['permalink']);
+        $this->assertStringContainsString('action=history', $source['history_url']);
+        $this->assertSame('2026-10-15', $response->json('data.station.sheet.sources.0.fetched_at'));
+        $this->assertSame('osm', $response->json('data.station.sheet.sources.0.source'));
+        $this->assertSame(['railway' => 'station'], $response->json('data.station.sheet.sources.0.raw'));
+        $this->assertSame('verified', $response->json('data.station.sheet.sources.0.provenance.license_status'));
+    }
+
     public function test_line_sheet_segments_of_an_era_and_era_stats(): void
     {
         $response = $this->graphQL('query ($slug: String!) {

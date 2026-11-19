@@ -45,6 +45,8 @@ return [
             'tools' => 'Search, routes and sources',
         ],
         'items' => [
+            'stats' => 'The home page figures: number of lines, stations and rolling stock classes, kilometres in operation and the network curve at each era.',
+            'line_geojson' => 'A line’s route at an era as GeoJSON, one feature per section, with its provenance.',
             'eras' => 'The map eras, each one fixed at 31 December of its year; 2030 describes today’s network.',
             'era' => 'One era and the state of the network at that date: kilometres in service, closed, lifted and electrified.',
             'lines_geojson' => 'Network routes at an era, as GeoJSON (a FeatureCollection of sections).',
@@ -141,6 +143,7 @@ return [
             'compare_eras' => 'Kilometres opened, closed, lifted or kept in service between two map eras.',
             'level_crossings' => 'Level crossings published by SNCF Réseau, by line, type, municipality or bounding box, with their class and kilometre post.',
             'line_profile' => 'Gradient profile of a line: heights along the route, total climb and descent, steepest gradient and station heights.',
+            'locate_on_line' => 'Kilometre point of a place given by its coordinates, on a line’s route.',
             'sources_and_licences' => 'Data providers and licences.',
         ],
         'licence_title' => 'Attribution',

@@ -46,6 +46,8 @@ return [
             'tools' => 'Recherche, itinéraires et sources',
         ],
         'items' => [
+            'stats' => 'Les chiffres de l’accueil : nombre de lignes, de gares et de matériels, kilomètres exploités et courbe du réseau à chaque ère.',
+            'line_geojson' => 'Tracé d’une ligne à une ère en GeoJSON, un tronçon par élément, avec sa provenance.',
             'eras' => 'Les ères de la carte, chacune arrêtée au 31 décembre de son année ; 2030 décrit le réseau d’aujourd’hui.',
             'era' => 'Une ère et l’état du réseau à cette date : kilomètres en service, fermés, déposés et électrifiés.',
             'lines_geojson' => 'Tracés du réseau à une ère, en GeoJSON (FeatureCollection de tronçons).',
@@ -142,6 +144,7 @@ return [
             'compare_eras' => 'Kilomètres ouverts, fermés, déposés ou restés en service entre deux époques de la carte.',
             'level_crossings' => 'Passages à niveau publiés par SNCF Réseau, par ligne, type, commune ou emprise, avec leur classe et leur point kilométrique.',
             'line_profile' => 'Profil en long d’une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte et altitude des gares.',
+            'locate_on_line' => 'Point kilométrique d’un lieu donné par ses coordonnées, sur le tracé d’une ligne.',
             'sources_and_licences' => 'Fournisseurs de données et licences.',
         ],
         'licence_title' => 'Attribution',

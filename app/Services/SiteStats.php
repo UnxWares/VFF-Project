@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Line;
+use App\Models\Material;
+use App\Models\Station;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Chiffres d'ensemble du site : compteurs (lignes, gares, matériels, ères cartographiées, kilomètres exploités)
+ * et profil du réseau à chaque ère. Une seule construction pour la page d'accueil et pour l'API publique
+ * (GET /api/v1/stats, requête GraphQL `stats`). Le cache est versionné par l'empreinte des données : dès qu'un
+ * import ou le moteur décennal écrit des lignes, des segments ou des gares, la clé change.
+ *
+ * Périmètres (alignés sur les libellés lang/{fr,en,de}/home.php) :
+ *   - lines_count : lignes recensées (en service ET disparues) ;
+ *   - stations_count : gares recensées ;
+ *   - materials_count : séries de matériel roulant ;
+ *   - eras_count : décennies réellement cartographiées (et non les ères seulement déclarées) ;
+ *   - total_km : kilomètres de lignes exploitées aujourd'hui (formes SNCF Réseau « Exploitée »).
+ */
+final class SiteStats
+{
+    public function __construct(private readonly NetworkStats $network) {}
+
+    /** @return array{lines_count: int, stations_count: int, materials_count: int, eras_count: int, total_km: int} */
+    public function counts(): array
+    {
+        return Cache::remember('home_stats:'.$this->network->dataFingerprint(), 600, fn (): array => [
+            'lines_count' => Line::count(),
+            'stations_count' => Station::count(),
+            'materials_count' => Material::count(),
+            'eras_count' => $this->network->mappedErasCount(),
+            'total_km' => (int) round($this->network->totalRouteKm()),
+        ]);
+    }
+
+    /**
+     * Profil du réseau : longueur des lignes ouvertes (segments en service ou à voie unique) et nombre de lignes
+     * à chaque décennie. Somme de length_meters (environ 0,3 s sans cache ; ST_Length sur toute la géographie
+     * prenait 18 s pour les mêmes valeurs à 1 km près), ST_Length seulement pour les rares segments sans longueur.
+     *
+     * @return list<array{year: int, km: int, lines: int, current: bool}>
+     */
+    public function profile(): array
+    {
+        return Cache::remember('home_profile:'.$this->network->dataFingerprint(), 86400, fn (): array => collect(DB::select(
+            'SELECT e.year, e.is_current,
+                    COALESCE(ROUND(SUM(COALESCE(s.length_meters, ST_Length(s.geom::geography))) / 1000), 0)::int AS km,
+                    COUNT(DISTINCT s.line_id)::int AS lines
+             FROM eras e
+             LEFT JOIN line_segments s ON s.era_id = e.id AND s.status IN (?, ?)
+             GROUP BY e.id, e.year, e.is_current
+             ORDER BY e.year',
+            NetworkStats::ACTIVE_STATUSES,
+        ))->map(fn ($r): array => [
+            'year' => (int) $r->year,
+            'km' => (int) $r->km,
+            'lines' => (int) $r->lines,
+            'current' => (bool) $r->is_current,
+        ])->values()->all());
+    }
+}

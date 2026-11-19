@@ -61,6 +61,11 @@ final class ErrorExamples
         'errors' => ['status' => ['The selected status is invalid.']],
     ];
 
+    public const ERA_INVALID = [
+        'message' => 'The era field must be an integer.',
+        'errors' => ['era' => ['The era field must be an integer.']],
+    ];
+
     public const GEOMETRY_INVALID = [
         'message' => 'The geometry field must be true or false.',
         'errors' => ['geometry' => ['The geometry field must be true or false.']],

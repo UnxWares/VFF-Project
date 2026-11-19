@@ -31,10 +31,12 @@ return [
             - **annuaire des lignes** (`/lines`, filtres de la page [/lines](/lines)) et **fiche complète**
               d'une ligne (`/lines/{line}` : chiffres clés, électrification, signalisation, phases datées,
               chronique sourcée, gares, sections nommées, sources), avec ses tronçons par ère
-              (`/lines/{line}/segments`), sa chronologie, ses gares par ère, sa signalisation, ses médias ;
+              (`/lines/{line}/segments`) ou en GeoJSON (`/lines/{line}/geojson`), sa chronologie, ses gares par
+              ère, sa signalisation, son profil en long, ses passages à niveau, ses médias ;
             - **annuaire des gares** (`/stations`) et **fiche complète** d'une gare (`/stations/{station}`) ;
-            - **époques** (`/eras`) et **statistiques du réseau** à chaque époque (`/eras/{year}`), cartes
-              par ère (GeoJSON, tuiles MVT, GTFS) ;
+            - **chiffres d'ensemble** du site et courbe du réseau (`/stats`), **époques** (`/eras`) et
+              **statistiques du réseau** à chaque époque (`/eras/{year}`), cartes par ère (GeoJSON, tuiles
+              MVT, GTFS) ;
             - **événements** de tout le réseau (`/events`) et **médias** (`/media`) ;
             - **matériel roulant** (`/materials`) ; **itinéraires historiques** (`/route`) ; **recherche** ;
             - **registre des sources et licences** (`/sources`).
@@ -114,8 +116,12 @@ return [
             cette licence (`license_status` : `verified` licence ouverte établie, `uncertain` autorisation
             particulière ou conditions à lire, `forbidden`). Chaque média porte son auteur, sa licence,
             son `attribution` prête à afficher et le lien `source_url` de sa page d'origine. Les fiches
-            gardent la source de chaque fait (`facts`, `attribute_sources`, notes de la chronique). Le
-            registre complet des fournisseurs (licence, mention à reproduire, pages qui l'établissent)
+            gardent la source de chaque fait (`facts`, `attribute_sources`, notes de la chronique). Les
+            sources d'une gare donnent leur provenance brute en lecture seule : identifiant dans la source,
+            date de lecture (`fetched_at`), attributs reçus tels quels (`raw`), méthode de rapprochement et
+            écart à la position retenue. La présentation d'une ligne (`description`) est un extrait de
+            Wikipédia sous CC BY-SA 4.0 : `description_source` donne de quoi la citer (auteur collectif,
+            article, permalien de la version lue, licence, mention prête à copier). Le registre complet des fournisseurs (licence, mention à reproduire, pages qui l'établissent)
             est sur `/sources`. Citez toujours le fournisseur en réutilisant une donnée.
 
             ## Licences et sources

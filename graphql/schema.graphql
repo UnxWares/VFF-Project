@@ -171,6 +171,21 @@ type Line {
     ): LineProfile @field(resolver: "App\\GraphQL\\Resolvers\\LineProfileField")
 
     """
+    Point kilométrique d'un lieu sur la ligne, comme `GET /api/v1/lines/{line}/pk` : le point est projeté
+    sur le tracé de la ligne à l'ère choisie, puis la distance est mesurée le long du tracé depuis son
+    origine. Ce PK peut différer du PK officiel de SNCF Réseau (origine, sauts de numérotation). Nul si
+    la ligne n'a pas de tracé à cette ère ; erreur de requête si l'ère n'existe pas.
+    """
+    pk(
+        "Latitude WGS 84 du point, en degrés décimaux."
+        lat: Float! @rules(apply: ["numeric", "between:-90,90"])
+        "Longitude WGS 84 du point, en degrés décimaux."
+        lng: Float! @rules(apply: ["numeric", "between:-180,180"])
+        "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante, le réseau d'aujourd'hui."
+        era: Int
+    ): LinePk @field(resolver: "App\\GraphQL\\Resolvers\\LinePkField")
+
+    """
     Fiche complète de la ligne, comme la page `/lines/{slug}` et `GET /api/v1/lines/{line}` :
     chiffres clés, électrification, signalisation, phases, chronique, gares, sections. Calcul
     lourd (jusqu'à quelques secondes) : demandez-la pour une ligne à la fois.
@@ -1803,6 +1818,25 @@ type Query {
     ): Era @find
 
     """
+    Recherche par nom, comme `GET /api/v1/search` et l'outil MCP `search` : lignes (nom ou code à 6
+    chiffres), gares et matériels roulants, triés par pertinence (nom exact, début du nom, mot du nom,
+    reste), sans tenir compte de la casse ni des accents. Moins de 2 caractères : listes vides.
+    """
+    search(
+        "Texte cherché, 2 caractères au moins."
+        query: String!
+        "Résultats par catégorie, de 1 à 20 (8 par défaut)."
+        limit: Int = 8 @rules(apply: ["integer", "between:1,20"])
+    ): SearchResults! @field(resolver: "App\\GraphQL\\Resolvers\\SearchField")
+
+    """
+    Chiffres d'ensemble du site : lignes, gares, matériels, ères cartographiées, kilomètres exploités
+    aujourd'hui et profil du réseau à chaque ère. Mêmes valeurs que la page d'accueil et que l'API
+    REST `GET /api/v1/stats`, mêmes noms de champs.
+    """
+    stats: SiteStats! @field(resolver: "App\\GraphQL\\Resolvers\\SiteStatsResolver")
+
+    """
     Ce qui a changé sur le réseau entre deux ères de la carte : kilomètres et nombre de lignes
     ouvertes, fermées, déposées ou restées en service. Même résumé que l'API REST
     `GET /api/v1/eras/{year}/compare/{other}`, mêmes noms de champs. Les deux années peuvent venir
@@ -2143,22 +2177,49 @@ type LineOperator {
     source: String
 }
 
-"Campagne de défense de la ligne relayée par VFF (réouverture, menace de fermeture)."
-type LineAdvocacy {
-    "Nature : `reopening` (réouverture), `threat` (menace)…"
-    kind: String!
+"""
+Source de la description d'une ligne. Pour un extrait Wikipédia (`type` = `wikipedia`) : de quoi respecter la licence CC BY-SA 4.0
+(auteur collectif, article, permalien de la version lue, licence). Pour une ligne décrite à la main (`type` = `curated`) : les sources citées.
+"""
+type LineDescriptionSource {
+    "`wikipedia` (extrait de l'article, sous CC BY-SA 4.0) ou `curated` (texte rédigé à la main, sources citées dans `urls`)."
+    type: String!
 
-    "Titre de la campagne, en français."
-    title: String!
+    "Titre de l'article Wikipédia (`wikipedia`)."
+    title: String
 
-    "Message de la campagne, en français."
-    message: String
+    "Lien exact de la version lue de l'article (`wikipedia`)."
+    url: String
 
-    "Libellé de l'appel à agir."
-    cta_label: String
+    "Lien vers l'article, dans sa version courante (`wikipedia`)."
+    article_url: String
 
-    "Lien de l'appel à agir (association, pétition)."
-    cta_url: String
+    "Numéro de la révision lue (`oldid` de Wikipédia), ou nul s'il n'est pas connu."
+    revision_id: Int
+
+    "Permalien de la révision lue, ou nul si elle n'est pas connue."
+    permalink: String
+
+    "Historique de l'article, où figurent les auteurs."
+    history_url: String
+
+    "Auteur collectif à citer : « Contributeurs de Wikipédia »."
+    author: String
+
+    "Mention d'attribution prête à copier (article, auteur, licence)."
+    attribution: String
+
+    "Date de lecture de l'article (AAAA-MM-JJ)."
+    fetched_at: String
+
+    "Licence de l'extrait : `CC BY-SA 4.0`."
+    license: String
+
+    "Lien vers le texte de la licence."
+    license_url: String
+
+    "Sources citées pour une description rédigée à la main (`curated`)."
+    urls: [String!]
 }
 
 "L'état de la ligne aujourd'hui (ou à sa dernière décennie connue)."
@@ -2444,11 +2505,8 @@ type LineSheet {
     "Extrait de l'article Wikipédia, en français, sous CC BY-SA 4.0 (voir `description_source`)."
     description: String
 
-    "Source de la description : `title`, `url` (version lue), `article_url`, `fetched_at`, `license`, `license_url`."
-    description_source: JSON
-
-    "Campagne de défense relayée par VFF, ou nul."
-    advocacy: LineAdvocacy
+    "Source de la description : auteur collectif, article, permalien de la révision lue et licence à citer."
+    description_source: LineDescriptionSource
 
     "Compagnie d'origine."
     historical_operator: String
@@ -2630,8 +2688,23 @@ type StationSource {
     "Desserte fret déclarée."
     freight: Boolean
 
+    "Point kilométrique donné par la source, en mètres (si elle en donne un)."
+    pk_m: Int
+
+    "Comment la source a été placée sur la carte : `pk` (calée sur le point kilométrique), `commune`, `coords`…"
+    geocoding: String
+
+    "Précision estimée de la position donnée par la source, en mètres (nul : position exacte ou inconnue)."
+    precision_m: Int
+
     "Lien vers l'objet de la source."
     url: String
+
+    "Date à laquelle VFF a lu l'objet dans la source (AAAA-MM-JJ)."
+    fetched_at: String
+
+    "Attributs bruts tels que reçus de la source (étiquettes OSM, champs SNCF, éléments Wikidata, calage), en lecture seule. Leur forme dépend de la source."
+    raw: JSON
 
     "Fournisseur et licence de la source."
     provenance: Provenance!
@@ -2968,6 +3041,131 @@ type SourceProvider {
 
     "Valeurs de provenance, par table, qui renvoient à ce fournisseur."
     source_values: [SourceValues!]!
+}
+
+"""
+Chiffres d'ensemble du site (page d'accueil, `GET /api/v1/stats`). Recalculés dès que les données du réseau changent.
+"""
+type SiteStats {
+    "Lignes recensées, en service ou disparues."
+    lines_count: Int!
+
+    "Gares et haltes recensées, ouvertes ou fermées."
+    stations_count: Int!
+
+    "Séries de matériel roulant."
+    materials_count: Int!
+
+    "Ères dont la carte a au moins un tronçon."
+    eras_count: Int!
+
+    "Kilomètres de lignes exploitées aujourd'hui, d'après les formes de SNCF Réseau (l'axe de chaque ligne, une fois)."
+    total_km: Int!
+
+    "Le réseau à chaque ère : kilomètres en service et lignes actives."
+    profile: [SiteStatsEra!]!
+}
+
+"Le réseau à une ère, dans `SiteStats.profile`."
+type SiteStatsEra {
+    "Année de l'ère (1830, 1840… 2030)."
+    year: Int!
+
+    "Longueur des tronçons en service, en km arrondis. Voies parallèles comprises : un ordre de grandeur de l'étendue du réseau."
+    km: Int!
+
+    "Nombre de lignes qui portent du trafic."
+    lines: Int!
+
+    "Vrai pour l'ère d'aujourd'hui (2030)."
+    current: Boolean!
+}
+
+"Résultats d'une recherche par nom."
+type SearchResults {
+    "Lignes dont le nom ou le code correspond."
+    lines: [SearchLine!]!
+
+    "Gares dont le nom correspond."
+    stations: [SearchStation!]!
+
+    "Matériels roulants dont le nom ou la désignation correspond."
+    materials: [SearchMaterial!]!
+}
+
+"Une ligne trouvée par la recherche."
+type SearchLine {
+    "Identifiant de la ligne (`rfn-420000`), à passer à `line(slug:)`."
+    slug: String!
+
+    "Nom de la ligne."
+    name: String!
+
+    "Code SNCF Réseau à 6 chiffres, nul pour une ligne hors réseau ferré national."
+    code: String
+}
+
+"Une gare trouvée par la recherche."
+type SearchStation {
+    "Identifiant de la gare, à passer à `station(slug:)`."
+    slug: String!
+
+    "Nom de la gare."
+    name: String!
+
+    "Commune, pour distinguer les homonymes."
+    city: String
+
+    "Code du département."
+    department_code: String
+
+    "Latitude WGS 84."
+    lat: Float!
+
+    "Longitude WGS 84."
+    lng: Float!
+}
+
+"Un matériel roulant trouvé par la recherche."
+type SearchMaterial {
+    "Identifiant de la série, à passer à `material(slug:)`."
+    slug: String!
+
+    "Nom de la série."
+    name: String!
+
+    "Catégorie (`locomotive_electrique`, `automotrice`…)."
+    kind: String!
+
+    "Constructeur, nul s'il n'est pas connu."
+    builder: String
+}
+
+"Point kilométrique d'un lieu sur une ligne (`Line.pk`)."
+type LinePk {
+    "PK en mètres, mesuré le long du tracé VFF depuis son origine."
+    pk_m: Int!
+
+    "PK en notation ferroviaire `km+mmm` (`249+204` = 249,204 km)."
+    pk_label: String!
+
+    "Longueur totale du tracé de la ligne à cette ère, en mètres."
+    total_m: Int!
+
+    "Point du tracé le plus proche du lieu demandé."
+    snap: LinePkSnap!
+}
+
+"Point du tracé retenu pour calculer un PK."
+type LinePkSnap {
+    "Latitude WGS 84 du point du tracé."
+    lat: Float!
+
+    "Longitude WGS 84 du point du tracé."
+    lng: Float!
+
+    "Distance entre le lieu demandé et le tracé, en mètres. Au-delà de quelques dizaines de mètres, le lieu n'est probablement pas sur cette ligne."
+    distance_from_input_m: Float!
 }
 
 extend type Query {

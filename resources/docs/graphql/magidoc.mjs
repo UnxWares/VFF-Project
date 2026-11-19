@@ -131,6 +131,15 @@ voisines pour une gare. Les parties très imbriquées (phases, chronique, décen
 \`JSON\`, décrits champ par champ dans la référence REST. Le calcul d'une fiche de ligne prend
 jusqu'à quelques secondes : demandez-en une à la fois.
 
+Dans la fiche d'une ligne, \`description\` est un extrait de Wikipédia sous CC BY-SA 4.0 : \`description_source\`
+donne l'auteur collectif, l'article, le permalien de la version lue, la licence et une mention prête à
+copier. Dans celle d'une gare, chaque entrée de \`sources\` garde sa provenance brute : identifiant dans
+la source, date de lecture (\`fetched_at\`), attributs reçus tels quels (\`raw\`), méthode de rapprochement.
+
+\`stats\` donne les chiffres d'ensemble du site (lignes, gares, matériels, kilomètres exploités) et la
+courbe du réseau à chaque ère ; \`search(query: "brest")\` cherche une ligne, une gare ou un matériel par
+son nom ; \`Line.pk(lat:, lng:)\` convertit des coordonnées en point kilométrique sur la ligne.
+
 \`Line.segments(era: 1930)\` donne les tronçons d'une ère avec leur provenance, \`Era.stats\` l'état du
 réseau à une époque (longueurs, lignes actives, gares par statut) et \`sources\` le registre des
 fournisseurs de données avec leur licence et la mention à reproduire.
@@ -160,6 +169,17 @@ tel.
   }
 
   era(year: 1930) { snapshot_date stats { open_km active_lines stations_by_status { code count } } }
+
+  stats { lines_count stations_count total_km profile { year km lines } }
+
+  search(query: "brest", limit: 3) { lines { slug name } stations { slug city } }
+
+  line(slug: "rfn-420000") {
+    pk(lat: 48.10, lng: -1.67) { pk_label snap { distance_from_input_m } }
+    sheet { description description_source { author permalink license attribution } }
+  }
+
+  station(slug: "brest") { sheet { sources { source ref fetched_at match_method raw } } }
 
   eraComparison(from: 1930, to: 1980) {
     changes { closed { km lines } removed { km lines } }

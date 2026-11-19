@@ -122,7 +122,7 @@ class VffMcpServerTest extends TestCase
         $tools = collect((array) $list->json('result.tools'))->keyBy('name');
         $this->assertEqualsCanonicalizing(
             ['search', 'get_line', 'line_events', 'get_station', 'network_at_era', 'historical_route', 'sources_and_licences',
-                'network_events', 'media', 'list_lines', 'list_stations', 'materials', 'get_material', 'accidents', 'get_accident', 'compare_eras', 'level_crossings', 'line_profile'],
+                'network_events', 'media', 'list_lines', 'list_stations', 'materials', 'get_material', 'accidents', 'get_accident', 'compare_eras', 'level_crossings', 'line_profile', 'locate_on_line'],
             $tools->keys()->all(),
         );
         foreach ($tools as $name => $tool) {

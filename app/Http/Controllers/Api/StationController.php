@@ -107,8 +107,10 @@ class StationController extends Controller
      *   (`day`, `month`, `year`), `closed_after` (fermée après cette année) ;
      * - position : `lat`, `lng` (WGS 84) ; `position.source` (source retenue),
      *   `position.spread_m` (écart en mètres entre les sources),
-     *   `position.flagged` (à vérifier) ; `attribute_sources` : source de
-     *   chaque attribut (`name`, `opened_at`, `geom`…) et détail du recalage ;
+     *   `position.flagged` (à vérifier) ; `attribute_sources` : pour chaque
+     *   attribut (`name`, `opened_at`, `geom`…), la source retenue (clé de
+     *   `sources[].source`), et `geom_recalage` (détail du recalage de la
+     *   position : point d'origine, déplacement en mètres, mode) ;
      * - `eras` : statut à chaque décennie (`null` : la gare n'existe pas
      *   encore ou plus ; `uncertain` : ouverte selon ses sources, non
      *   confirmée par les voies de l'ère), avec une note en français ;
@@ -121,10 +123,20 @@ class StationController extends Controller
      *   (`line_closed`, `station_closed` ou `null`), `active_current`
      *   (desservie par une portion en service aujourd'hui), `era_years`
      *   (décennies où la gare est un arrêt de la ligne) ;
-     * - `sources` : chaque source rattachée, avec son nom, ses dates, son
-     *   écart à la position retenue (`distance_m`), la desserte déclarée
-     *   (`passenger`, `freight`), son lien `url` et sa `provenance`
-     *   (fournisseur, licence) ;
+     * - `sources` : provenance brute, en lecture seule, de chaque source
+     *   rattachée. Identité : `source`, `ref` (identifiant dans la source),
+     *   `name`, `url` (lien vers l'objet), `lifecycle` (état selon la source),
+     *   `opened_on`, `closed_on`, `passenger`, `freight`. Récupération :
+     *   `fetched_at` (date de lecture par VFF) et `raw` (attributs bruts reçus,
+     *   dont la forme dépend de la source : étiquettes OSM, champs SNCF,
+     *   éléments Wikidata, calage). Fiabilité : `match_method` (comment la source
+     *   a été rapprochée de la gare : `seed`, `uic`, `wikidata`, `osm_ref`,
+     *   `name_near`, `near`), `distance_m` (écart à la position retenue),
+     *   `geocoding` et `precision_m` (comment et à quelle précision la source
+     *   a été placée quand elle ne donne pas de coordonnées exactes), `pk_m`
+     *   (point kilométrique de la source) et `provenance.license_status`
+     *   (`verified`, `uncertain`) ; `provenance` donne aussi le fournisseur
+     *   et la licence ;
      * - `neighbors` : gares à moins de 10 km (12 au plus), de la plus proche
      *   à la plus lointaine.
      */
@@ -134,6 +146,6 @@ class StationController extends Controller
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
     public function show(Station $station, StationSheet $sheet): JsonResponse
     {
-        return StationSheetResource::make($sheet->page($station))->response()->header('Cache-Control', 'public, max-age=300');
+        return StationSheetResource::make($sheet->page($station, withRaw: true))->response()->header('Cache-Control', 'public, max-age=300');
     }
 }

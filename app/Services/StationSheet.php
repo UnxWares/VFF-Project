@@ -20,11 +20,13 @@ final class StationSheet
      * Fiche complète d'une gare (props de la page Stations/Show, reprises par l'API publique
      * GET /api/v1/stations/{station}) : identité, dates, position et sa provenance, présence par
      * décennie, chronologie, lignes desservies, sources et gares voisines (10 km, 12 au plus). Les
-     * notes générées sont dans la langue courante de l'application.
+     * notes générées sont dans la langue courante de l'application. `$withRaw` ajoute à chaque source
+     * sa date de lecture et ses attributs bruts (API publique : provenance en lecture seule) ; la page
+     * web n'en a pas besoin.
      *
      * @return array<string, mixed>
      */
-    public function page(Station $station): array
+    public function page(Station $station, bool $withRaw = false): array
     {
         $sid = $station->id;
         $coords = DB::selectOne('SELECT ST_X(geom) AS lng, ST_Y(geom) AS lat FROM stations WHERE id = ?', [$sid]);
@@ -33,6 +35,7 @@ final class StationSheet
         $events = $this->events($sid);
         $lines = $this->lines($sid);
         $sources = $this->sources($sid);
+        $rawBySource = $withRaw ? $this->rawBySource($sid) : [];
 
         // Gares voisines, comme l'annuaire : ni point technique ni fiche exclue du réseau ferré par une
         // correction sourcée (« Safari Train », petit train d'un zoo, apparaissait près de Lisieux).
@@ -111,7 +114,7 @@ final class StationSheet
                 'passenger' => $s->passenger, 'freight' => $s->freight, 'pk_m' => $s->pk_m, 'geocoding' => $s->geocoding,
                 'precision_m' => is_numeric($s->precision_m) ? (int) $s->precision_m : null,
                 'url' => self::sourceUrl($s),
-            ], $sources),
+            ] + ($withRaw ? $rawBySource[$s->source.'|'.$s->source_ref] : []), $sources),
             'neighbors' => array_map(fn ($n) => [
                 'slug' => $n->slug, 'name' => $n->name, 'type' => $n->type, 'city' => $n->city, 'status' => $n->status,
                 'lng' => (float) $n->lng, 'lat' => (float) $n->lat, 'distance_m' => (int) $n->distance_m,
@@ -206,6 +209,26 @@ final class StationSheet
             WHERE ss.station_id = ?
             ORDER BY CASE ss.source WHEN 'sncf' THEN 0 WHEN 'sncf_voyageurs' THEN 1 WHEN 'osm' THEN 2 WHEN 'wikidata' THEN 3 WHEN 'ohm' THEN 4 ELSE 5 END, ss.id
         SQL, [$stationId]);
+    }
+
+    /**
+     * Date de lecture et attributs bruts de chaque source de la gare (colonnes `seen_at` et `properties`
+     * de station_sources), indexés par « source|référence ». Provenance publiée telle quelle par l'API.
+     *
+     * @return array<string, array{fetched_at: ?string, raw: array<string, mixed>|\stdClass}>
+     */
+    public function rawBySource(int $stationId): array
+    {
+        $out = [];
+        foreach (DB::select('SELECT source, source_ref, seen_at, properties FROM station_sources WHERE station_id = ?', [$stationId]) as $r) {
+            $raw = json_decode((string) $r->properties, true);
+            $out[$r->source.'|'.$r->source_ref] = [
+                'fetched_at' => $r->seen_at !== null ? substr((string) $r->seen_at, 0, 10) : null,
+                'raw' => is_array($raw) && $raw !== [] ? $raw : new \stdClass,
+            ];
+        }
+
+        return $out;
     }
 
     /**

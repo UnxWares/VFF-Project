@@ -34,7 +34,7 @@ class SheetsApiTest extends TestCase
             ->assertJsonPath('data.materials.0.slug', 'z-6400-test')
             ->assertJsonStructure(['data' => [
                 'slug', 'code', 'name', 'names', 'wikidata', 'network', 'is_lgv', 'is_threatened', 'description',
-                'description_source', 'advocacy', 'historical_operators', 'regions', 'departements',
+                'description_source', 'historical_operators', 'regions', 'departements',
                 'today' => ['era_year', 'state', 'traffic'],
                 'key_figures' => ['length_km', 'length_definition', 'active_length_km', 'max_speed_kmh', 'gauge_mm',
                     'station_count', 'station_open_count', 'event_count', 'segment_count'],
@@ -47,6 +47,44 @@ class SheetsApiTest extends TestCase
         $this->assertSame([1960, 2030], $response->json('data.era_summary.*.year'));
         $this->assertArrayNotHasKey('geometry', $response->json('data.portions.0') ?? []);
         $this->assertStringEndsWith('/api/v1/events?line='.$this->line->slug, $response->json('data.links.events'));
+    }
+
+    public function test_line_description_comes_with_everything_the_cc_by_sa_licence_asks_for(): void
+    {
+        $this->line->update(['description' => 'La ligne relie Paris à Brest.']);
+        DB::table('line_sources')->insert(['line_id' => $this->line->id, 'source_type' => 'wikipedia-intro',
+            'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Paris_%C3%A0_Brest&oldid=238010272', 'fetched_at' => '2026-10-19 23:00:00',
+            'fields_provided' => json_encode(['fields' => ['description'], 'title' => 'Ligne de Paris à Brest', 'revision_id' => 238010272])]);
+
+        $this->getJson("/api/v1/lines/{$this->line->slug}")
+            ->assertOk()
+            ->assertJsonPath('data.description', 'La ligne relie Paris à Brest.')
+            ->assertJsonPath('data.description_source.type', 'wikipedia')
+            ->assertJsonPath('data.description_source.title', 'Ligne de Paris à Brest')
+            ->assertJsonPath('data.description_source.article_url', 'https://fr.wikipedia.org/wiki/Ligne_de_Paris_%C3%A0_Brest')
+            ->assertJsonPath('data.description_source.revision_id', 238010272)
+            ->assertJsonPath('data.description_source.permalink', 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Paris_%C3%A0_Brest&oldid=238010272')
+            ->assertJsonPath('data.description_source.history_url', 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Paris_%C3%A0_Brest&action=history')
+            ->assertJsonPath('data.description_source.author', 'Contributeurs de Wikipédia')
+            ->assertJsonPath('data.description_source.license', 'CC BY-SA 4.0')
+            ->assertJsonPath('data.description_source.license_url', 'https://creativecommons.org/licenses/by-sa/4.0/deed.fr')
+            ->assertJsonPath('data.description_source.fetched_at', '2026-10-19')
+            ->assertJsonPath('data.description_source.attribution', '« Ligne de Paris à Brest », Wikipédia en français, par les contributeurs de Wikipédia, CC BY-SA 4.0');
+    }
+
+    public function test_line_description_without_a_known_revision_has_no_permalink(): void
+    {
+        $this->line->update(['description' => 'Texte.']);
+        DB::table('line_sources')->insert(['line_id' => $this->line->id, 'source_type' => 'wikipedia-intro',
+            'source_url' => 'https://fr.wikipedia.org/wiki/Ligne_de_Paris_%C3%A0_Brest', 'fetched_at' => '2026-10-19 23:00:00',
+            'fields_provided' => json_encode(['title' => 'Ligne de Paris à Brest'])]);
+
+        $this->getJson("/api/v1/lines/{$this->line->slug}")
+            ->assertOk()
+            ->assertJsonPath('data.description_source.revision_id', null)
+            ->assertJsonPath('data.description_source.permalink', null)
+            ->assertJsonPath('data.description_source.article_url', 'https://fr.wikipedia.org/wiki/Ligne_de_Paris_%C3%A0_Brest')
+            ->assertJsonPath('data.description_source.license', 'CC BY-SA 4.0');
     }
 
     public function test_line_sheet_adds_portion_geometry_on_request_and_validates_the_flag(): void
@@ -103,6 +141,38 @@ class SheetsApiTest extends TestCase
                 'sources', 'neighbors', 'links' => ['web', 'events', 'media']]]);
 
         $this->getJson('/api/v1/stations/gare-inconnue')->assertNotFound();
+    }
+
+    public function test_station_sources_publish_the_raw_provenance_read_only(): void
+    {
+        DB::table('station_sources')->insert([
+            'station_id' => $this->origin->id, 'source' => 'sncf', 'source_ref' => '87271007', 'name' => 'Paris Saint-Lazare',
+            'kind' => 'gare', 'lifecycle' => 'active', 'match_method' => 'uic', 'seen_at' => '2026-10-15 17:08:34',
+            'properties' => json_encode(['commune' => 'PARIS', 'lines' => [['code_ligne' => '287000', 'pk_m' => 0]], 'pk_m' => '35785', 'precision_m' => '428']),
+            'geom' => DB::raw('ST_SetSRID(ST_MakePoint(2.3253, 48.8763), 4326)'),
+        ]);
+        DB::table('station_sources')->insert([
+            'station_id' => $this->origin->id, 'source' => 'ohm', 'source_ref' => 'n9', 'name' => 'Saint-Lazare', 'lifecycle' => 'unknown',
+            'seen_at' => '2026-10-16 08:00:00', 'geom' => DB::raw('ST_SetSRID(ST_MakePoint(2.3253, 48.8763), 4326)'),
+        ]);
+        $this->origin->update(['provenance' => ['name' => 'sncf', 'geom' => 'sncf', 'geom_recalage' => ['mode' => 'concordance', 'moved_m' => 12]]]);
+
+        $response = $this->getJson('/api/v1/stations/paris-saint-lazare')->assertOk();
+        /** @var list<array<string, mixed>> $sources */
+        $sources = $response->json('data.sources');
+        $sncf = collect($sources)->firstWhere('source', 'sncf');
+        $this->assertSame('87271007', $sncf['ref']);
+        $this->assertSame('2026-10-15', $sncf['fetched_at']);
+        $this->assertSame('uic', $sncf['match_method']);
+        $this->assertEquals(['code_ligne' => '287000', 'pk_m' => 0], $sncf['raw']['lines'][0]);
+        $this->assertSame(35785, $sncf['pk_m'], 'le point kilométrique est un entier, comme dans les autres réponses');
+        $this->assertSame(428, $sncf['precision_m']);
+        $this->assertSame('verified', $sncf['provenance']['license_status']);
+        $ohm = collect($sources)->firstWhere('source', 'ohm');
+        $this->assertSame([], $ohm['raw'], 'sans attribut brut, un objet vide et non une liste');
+        $this->assertStringContainsString('"raw":{}', $response->getContent());
+        $response->assertJsonPath('data.attribute_sources.geom', 'sncf')
+            ->assertJsonPath('data.attribute_sources.geom_recalage.moved_m', 12);
     }
 
     public function test_eras_list_and_one_era_with_network_stats(): void

@@ -29,6 +29,7 @@
         {
             key: 'network',
             items: [
+                { path: '/api/v1/stats', key: 'stats' },
                 { path: '/api/v1/eras', key: 'eras' },
                 { path: '/api/v1/eras/{year}', key: 'era' },
                 { path: '/api/v1/eras/{year}/lines.geojson', key: 'lines_geojson' },
@@ -43,6 +44,7 @@
                 { path: '/api/v1/lines', key: 'lines' },
                 { path: '/api/v1/lines/{line}', key: 'line' },
                 { path: '/api/v1/lines/{line}/segments?era={year}', key: 'segments' },
+                { path: '/api/v1/lines/{line}/geojson?era={year}', key: 'line_geojson' },
                 { path: '/api/v1/lines/{line}/history', key: 'history' },
                 { path: '/api/v1/lines/{line}/pk?lat={lat}&lng={lng}', key: 'pk' },
                 { path: '/api/v1/lines/{line}/stops?era={year}', key: 'stops' },
@@ -129,6 +131,7 @@
         'compare_eras',
         'level_crossings',
         'line_profile',
+        'locate_on_line',
         'sources_and_licences',
     ];
     const mcpCli = `claude mcp add --transport http vff ${MCP_URL}`;

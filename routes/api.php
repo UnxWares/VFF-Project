@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\SignallingMapController;
 use App\Http\Controllers\Api\SourceController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationEventController;
+use App\Http\Controllers\Api\StatsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -63,11 +64,13 @@ Route::middleware('throttle:300,1')->group(function (): void {
     Route::get('/v1/search', [SearchController::class, 'index'])->name('api.search');
 
     // Annuaires et fiches complètes (ce que montrent /lines, /stations), ères et statistiques, registre des sources.
+    Route::get('/v1/stats', [StatsController::class, 'show'])->name('api.stats');
     Route::get('/v1/eras', [EraController::class, 'index'])->name('api.eras.index');
     Route::get('/v1/eras/{year}', [EraController::class, 'show'])->where('year', '[0-9]{1,4}')->name('api.eras.show');
     Route::get('/v1/lines', [LineController::class, 'index'])->name('api.lines.index');
     Route::get('/v1/lines/{line:slug}', [LineController::class, 'show'])->name('api.lines.show');
     Route::get('/v1/lines/{line:slug}/segments', [LineController::class, 'segments'])->name('api.lines.segments');
+    Route::get('/v1/lines/{line:slug}/geojson', [LineController::class, 'geojson'])->name('api.lines.geojson');
     Route::get('/v1/stations', [StationController::class, 'index'])->name('api.stations.index');
     Route::get('/v1/stations/{station:slug}', [StationController::class, 'show'])->name('api.stations.show');
     Route::get('/v1/sources', [SourceController::class, 'index'])->name('api.sources.index');

@@ -28,12 +28,12 @@ class ApiDocsTest extends TestCase
 
     /** Routes publiques de routes/api.php présentées sur la page /api et documentées dans la spécification. */
     private const V1_PATHS = [
-        '/eras', '/eras/{year}',
+        '/stats', '/eras', '/eras/{year}',
         '/eras/{year}/lines.geojson',
         '/eras/{year}/stations.geojson',
         '/eras/{year}/tiles/{z}/{x}/{y}.mvt',
         '/eras/{year}/gtfs.zip',
-        '/lines', '/lines/{line}', '/lines/{line}/segments',
+        '/lines', '/lines/{line}', '/lines/{line}/segments', '/lines/{line}/geojson',
         '/lines/{line}/history',
         '/lines/{line}/pk',
         '/lines/{line}/stops',
@@ -58,11 +58,13 @@ class ApiDocsTest extends TestCase
 
     /** Annuaires, fiches, ères et sources : codes de réponse documentés, avec leur corps d'exemple. */
     private const ERROR_CODES = [
+        '/stats' => [200, 429],
         '/eras' => [200, 429],
         '/eras/{year}' => [200, 404, 429],
         '/lines' => [200, 422, 429],
         '/lines/{line}' => [200, 404, 422, 429],
         '/lines/{line}/segments' => [200, 404, 422, 429],
+        '/lines/{line}/geojson' => [200, 404, 422, 429],
         '/stations' => [200, 422, 429],
         '/stations/{station}' => [200, 404, 429],
         '/sources' => [200, 429],
@@ -80,11 +82,12 @@ class ApiDocsTest extends TestCase
         'Query', 'Era', 'Line', 'LineStop', 'LineSignallingRange', 'LineSegment', 'LineEvent',
         'Station', 'Material', 'RouteEdge', 'RouteStop', 'RouteLine', 'Route', 'Date', 'DateTime',
         'Provenance', 'StationEvent', 'Media', 'JSON', 'KmByCode', 'CountByCode', 'EraStats', 'LineName',
-        'LineOperator', 'LineAdvocacy', 'LineToday', 'LineKeyFigures', 'LineElectrification', 'LineVoltage',
+        'LineOperator', 'LineDescriptionSource', 'LineToday', 'LineKeyFigures', 'LineElectrification', 'LineVoltage',
         'LineSheetSignalling', 'LineEraSummary', 'LineSheetStation', 'LineSection', 'LineSheetMaterial', 'LineSheet',
         'StationPosition', 'StationEra', 'StationLine', 'StationSource', 'StationNeighbor', 'StationSheet',
         'LineDirectoryItem', 'LineDirectoryFacets', 'LineDirectoryPage', 'StationDirectoryItem', 'StationDirectoryLine',
-        'StationDirectoryPage', 'SourceValues', 'SourceProvider',
+        'StationDirectoryPage', 'SourceValues', 'SourceProvider', 'SiteStats', 'SiteStatsEra', 'SearchResults', 'SearchLine',
+        'SearchStation', 'SearchMaterial', 'LinePk', 'LinePkSnap',
     ];
 
     /** Entrées GraphQL dont chaque champ doit être décrit. */

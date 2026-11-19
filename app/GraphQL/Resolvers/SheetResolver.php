@@ -32,6 +32,6 @@ final class SheetResolver
     /** @return array<string, mixed> */
     public function station(Station $station): array
     {
-        return StationSheetResource::make($this->stations->page($station))->resolve(new Request);
+        return StationSheetResource::make($this->stations->page($station, withRaw: true))->resolve(new Request);
     }
 }

@@ -136,6 +136,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `compare_eras` | Ce qui a changé sur le réseau entre deux ères : km ouverts, fermés, déposés, restés en service. |
 | `level_crossings` | Passages à niveau publiés par SNCF Réseau (classe, PK, commune), par ligne, groupe, commune ou emprise, paginés. |
 | `line_profile` | Profil en long d'une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte, altitude des gares (IGN). |
+| `locate_on_line` | Point kilométrique d'un lieu (latitude, longitude) sur le tracé d'une ligne. |
 
 ### `search` : rechercher une ligne, une gare ou un matériel
 
@@ -233,8 +234,12 @@ seul, `declassified` fermée, `gone` disparue, `planned` projetée, `technical`,
 date, précision et `when`), `eras` (statut à chaque décennie ; `uncertain` = non confirmé par les
 voies de l'époque), `events` (chronologie : `type`, `label`, date, `source`, `source_url`,
 `inferred` = date déduite des lignes et non d'une source sur la gare, `note`), `lines` (`slug`,
-`name`, `code`, `first_year`, `last_year`, `pk_km`, `served_today`) et `sources` (`source`, `ref`,
-`name`, `url`, `distance_m` = écart à la position retenue).
+`name`, `code`, `first_year`, `last_year`, `pk_km`, `served_today`) et `sources` (provenance brute,
+lecture seule : `source`, `ref` = identifiant dans la source, `name`, `url`, `distance_m` = écart à la
+position retenue, `match_method` = comment la source a été rapprochée de la gare, `fetched_at` = date
+de lecture par VFF, `raw` = attributs bruts reçus de la source, de forme variable). `station` porte
+aussi `attribute_sources` (quelle source a fourni chaque attribut, recalage de la position compris)
+et `position` (`source`, `spread_m`, `flagged` = position à vérifier).
 
 ```json
 {"station": "brest"}
@@ -251,7 +256,9 @@ Renvoie `requested_year`, `era_year`, `is_current`, `snapshot` (`AAAA-12-31` ou 
 `open_km` (en service), `closed_km` (fermé, voie en place), `gone_km` (déposé ou effacé),
 `electrified_km` (électrifié en service), `active_lines`, `open_km_by_traffic` (`mixed`,
 `passenger`, `freight`, `heritage`, `unknown`), `stations_by_status` (nombre de gares par statut à
-cette ère), `available_eras`, `vff_url` (la carte à cette époque).
+cette ère), `available_eras`, `site_totals` (lignes, gares, matériels, ères cartographiées et km exploités
+aujourd'hui : les chiffres de l'accueil), `network_profile` (km en service et lignes actives à chaque ère, voies
+parallèles comprises), `vff_url` (la carte à cette époque).
 
 Les longueurs additionnent les tronçons de la carte (voies parallèles d'une même ligne comprises) :
 un ordre de grandeur, pas le kilométrage officiel du réseau.
@@ -597,6 +604,28 @@ sont pas des PK. Attribution : IGN (BD TOPO, RGE ALTI), Licence Ouverte 2.0.
 {"line": "rfn-896000", "max_points": 100}
 ```
 
+### `locate_on_line` : point kilométrique d'un lieu
+
+Même résultat que `GET /api/v1/lines/{line}/pk` (service `LinePk`) : le point est projeté sur le tracé de la ligne à
+l'ère choisie, puis la distance est mesurée le long du tracé depuis son origine.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `lat` | nombre, -90 à 90 | oui | Latitude WGS 84, en degrés décimaux. |
+| `lng` | nombre, -180 à 180 | oui | Longitude WGS 84, en degrés décimaux. |
+| `year` | entier 1800 à 2100 | non | Année ramenée à l'ère de la carte (le réseau d'aujourd'hui par défaut). |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `era_year`, `pk_m` (mètres), `pk_label` (`km+mmm`), `total_m` (longueur du tracé à cette ère), `snap`
+(`lat`, `lng` du point du tracé retenu, `distance_from_input_m` : au-delà de quelques dizaines de mètres, le lieu n'est
+probablement pas sur la ligne) et `vff_url`. Ce PK est mesuré le long du tracé VFF : il peut différer du PK officiel de
+SNCF Réseau. Erreur `no_geometry` si la ligne n'a pas de tracé à cette ère.
+
+```json
+{"line": "rfn-420000", "lat": 48.10, "lng": -1.67}
+```
+
 ## Ressources
 
 | URI | Type | Contenu |
@@ -627,12 +656,17 @@ sont pas des PK. Attribution : IGN (BD TOPO, RGE ALTI), Licence Ouverte 2.0.
 | « Quels ont été les déraillements les plus meurtriers ? » | `accidents {"kind": "derailment", "min_deaths": 10, "sort": "-deaths", "limit": 5}` ; afficher `review_note` quand une fiche est « à vérifier » |
 | « Y a-t-il eu des accidents sur Paris - Brest depuis 1950 ? » | `accidents {"line": "rfn-420000", "from": 1950}` puis `get_accident` pour les sources et la portion |
 | « Combien de kilomètres ont fermé entre 1930 et 1980 ? » | `compare_eras {"from": 1930, "to": 1980}` : lire `changes.closed` et `changes.removed` |
+| « À quel PK de Paris - Brest est ce point (48,10 ; -1,67) ? » | `locate_on_line {"line": "rfn-420000", "lat": 48.10, "lng": -1.67}` |
 | « Quel matériel a circulé sur Lunéville - Saint-Dié ? » | `search {"query": "Lunéville"}` puis `materials {"line": "<slug>"}` et `get_material` pour la preuve |
 
 ## Limites et sécurité
 
 - **Lecture seule** : aucun outil n'écrit en base ; aucun compte, aucune contribution en attente,
   aucune donnée personnelle n'est exposée. Pas d'appel à un service externe.
+- **Textes Wikipédia exclus** : la description d'une ligne (extrait de Wikipédia, CC BY-SA 4.0) n'est
+  pas renvoyée par `get_line`, pour ne pas faire circuler un texte sous licence à partage dans les
+  mêmes conditions sans sa mention. L'API REST et GraphQL la publient avec son auteur collectif, le
+  lien de l'article, le permalien de la révision lue et la licence (`description_source`).
 - **Débit** : 300 requêtes par minute et par adresse IP sur `POST /mcp` (la même limite que l'API
   REST et GraphQL ; `MCP_RATE_LIMIT`). Au-delà : HTTP 429.
 - **Taille** : 48 000 octets au plus par réponse (`MCP_MAX_RESPONSE_BYTES`). Au-delà, les listes les
