@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * @property int|null $user_id NULL quand le compte de l'auteur a été supprimé (contribution publiée gardée)
+ */
 class Contribution extends Model
 {
     /** @use HasFactory<ContributionFactory> */

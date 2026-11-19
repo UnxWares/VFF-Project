@@ -54,7 +54,8 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['single'],
+            // Production : canal quotidien (rotation et purge automatiques, voir `daily`).
+            'channels' => explode(',', (string) env('LOG_STACK', 'daily')),
             'ignore_exceptions' => false,
         ],
 
@@ -69,7 +70,9 @@ return [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
-            'days' => 14,
+            // Politique de confidentialité : journaux techniques « conservés 12 mois au plus ».
+            // Un fichier par jour, les plus anciens supprimés au-delà de LOG_DAILY_DAYS (365 au plus).
+            'days' => min((int) env('LOG_DAILY_DAYS', 365), 365),
             'replace_placeholders' => true,
         ],
 

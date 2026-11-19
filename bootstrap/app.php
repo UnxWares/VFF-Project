@@ -5,6 +5,7 @@ use App\Http\Middleware\ApiLocale;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\TrackLastSeen;
 use App\Support\Translations;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -27,6 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            // Dernière visite des membres connectés (délai d'inactivité de 3 ans).
+            TrackLastSeen::class,
         ]);
         // X-Frame-Options (sauf /embed/*), nosniff, Referrer-Policy. En tête du
         // groupe web pour couvrir aussi les 404 de liaison de modèle et les 419.

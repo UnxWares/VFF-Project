@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AuditAction;
 use App\Enums\ContributionAction;
 use App\Enums\ContributionStatus;
 use App\Enums\SegmentStatus;
@@ -10,6 +11,7 @@ use App\Enums\UserRole;
 use App\Models\Contribution;
 use App\Models\Era;
 use App\Models\Line;
+use App\Services\AuditLog;
 use App\Services\TraceContributionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -190,7 +192,11 @@ class ContributionController extends Controller
                     'type' => $c->type,
                     'status' => $c->status->value,
                     'created_at' => $c->created_at->diffForHumans(),
-                    'user' => [
+                    // Compte supprimé : la contribution reste, sans auteur (« Contributeur anonyme »).
+                    'user' => $c->user_id === null ? [
+                        'name' => __('account.anonymous_contributor'),
+                        'reputation' => null,
+                    ] : [
                         'name' => $c->user->name,
                         'reputation' => $c->user->reputation,
                     ],
@@ -287,7 +293,7 @@ class ContributionController extends Controller
         return $current;
     }
 
-    public function approve(int $id, TraceContributionService $traces): RedirectResponse
+    public function approve(int $id, TraceContributionService $traces, AuditLog $audit): RedirectResponse
     {
         $this->ensureValidator();
         $contribution = Contribution::findOrFail($id);
@@ -301,7 +307,7 @@ class ContributionController extends Controller
         }
 
         try {
-            return $this->approveInTransaction($contribution, $userId, $traces);
+            return $this->approveInTransaction($contribution, $userId, $traces, $audit);
         } catch (\RuntimeException $e) {
             report($e);
 
@@ -309,9 +315,9 @@ class ContributionController extends Controller
         }
     }
 
-    private function approveInTransaction(Contribution $contribution, int $userId, TraceContributionService $traces): RedirectResponse
+    private function approveInTransaction(Contribution $contribution, int $userId, TraceContributionService $traces, AuditLog $audit): RedirectResponse
     {
-        return DB::transaction(function () use ($contribution, $userId, $traces) {
+        return DB::transaction(function () use ($contribution, $userId, $traces, $audit) {
             // Refuse les double-approbations du même validateur
             $existing = DB::table('contribution_approvals')
                 ->where('contribution_id', $contribution->id)
@@ -348,6 +354,11 @@ class ContributionController extends Controller
                     $this->applyContribution($contribution);
                 }
                 $contribution->update($update);
+                $audit->record(AuditAction::ContributionApplied, Auth::user(), $contribution, [
+                    'type' => $contribution->type,
+                    'approvals' => $count,
+                    'threshold' => $threshold,
+                ]);
 
                 return back()->with('success', __('editor.validate.flash.applied', ['count' => $count, 'threshold' => $threshold]));
             }
@@ -355,12 +366,17 @@ class ContributionController extends Controller
             $contribution->update([
                 'status' => ContributionStatus::Approved->value,
             ]);
+            $audit->record(AuditAction::ContributionApproved, Auth::user(), $contribution, [
+                'type' => $contribution->type,
+                'approvals' => $count,
+                'threshold' => $threshold,
+            ]);
 
             return back()->with('success', __('editor.validate.flash.partial', ['count' => $count, 'threshold' => $threshold]));
         });
     }
 
-    public function reject(Request $request, int $id): RedirectResponse
+    public function reject(Request $request, int $id, AuditLog $audit): RedirectResponse
     {
         $this->ensureValidator();
         $request->validate(['notes' => 'nullable|string|max:1000']);
@@ -368,12 +384,21 @@ class ContributionController extends Controller
         if ($contribution->status === ContributionStatus::Applied) {
             return back()->with('error', __('editor.validate.flash.closed'));
         }
-        $contribution->update([
-            'status' => ContributionStatus::Rejected->value,
-            'reviewed_by' => Auth::id(),
-            'reviewed_at' => now(),
-            'review_notes' => $request->input('notes'),
-        ]);
+        $previous = $contribution->status->value;
+        DB::transaction(function () use ($contribution, $request, $audit, $previous): void {
+            $contribution->update([
+                'status' => ContributionStatus::Rejected->value,
+                'reviewed_by' => Auth::id(),
+                'reviewed_at' => now(),
+                'review_notes' => $request->input('notes'),
+            ]);
+            // Le motif reste dans la contribution (review_notes) : le journal note seulement sa présence.
+            $audit->record(AuditAction::ContributionRejected, Auth::user(), $contribution, [
+                'type' => $contribution->type,
+                'previous_status' => $previous,
+                'with_reason' => filled($request->input('notes')),
+            ]);
+        });
 
         return back()->with('success', __('editor.validate.flash.rejected'));
     }
