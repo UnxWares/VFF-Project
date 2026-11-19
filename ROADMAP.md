@@ -16,7 +16,7 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 | 1 - Modèle de données | ✅ faite, jalon atteint |
 | 2 - Carte interactive | ✅ faite, géolocalisation comprise |
 | 3 - Sélecteur temporel | ✅ faite (21 époques de 1830 à 2030), comparaison de deux époques et vue empilée comprises |
-| 4 - Fiches détaillées | 🟡 lignes, gares, matériel, accidents et JSON-LD faits ; dénivelé à faire |
+| 4 - Fiches détaillées | 🟡 lignes, gares, matériel, accidents, JSON-LD et profil en long faits ; profils de toutes les lignes à calculer |
 | 5 - Contribution | 🟡 comptes, éditeur de tracé, validation à deux, suppression et export du compte, journal d'audit faits ; notifications sur le site et réputation à faire |
 | 6 - API REST | 🟡 API publique complète et documentée (30 points d'accès) ; jetons, webhooks et exemples multi-langages à faire |
 | 7 - GraphQL | 🟡 lecture publique faite ; mutations à faire |
@@ -143,7 +143,7 @@ Chaque ligne devient une vraie page d'encyclopédie.
   - [x] Longueur, électrification, vitesses, signalisation
   - [x] Sources et notes de sources
   - [ ] Matériel roulant historique (la section existe, la table est vide)
-  - [ ] Dénivelé
+  - [x] Dénivelé : profil en long (altitudes IGN BD TOPO et RGE ALTI, `vff:compute-line-profiles`, section de la fiche, `GET /api/v1/lines/{line}/profile`, GraphQL `Line.profile`, outil MCP `line_profile`) ; 17 lignes calculées, les autres à lancer
 - [x] Page `/stations/{slug}` (ouverture, fermeture, lignes desservies, frise par époque, mini-carte)
 - [x] Pages `/materials` et `/materials/{slug}` avec 687 séries (voir phase 13)
 - [x] Schéma JSON-LD pour le référencement (WebSite, Place, BreadcrumbList, ImageObject, TrainStation) ; à rendre côté serveur pour les aperçus de partage

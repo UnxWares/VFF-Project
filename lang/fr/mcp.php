@@ -28,6 +28,7 @@ return [
     'errors' => [
         'unknown_arguments' => 'Arguments inconnus : :names.',
         'line_not_found' => 'Ligne introuvable : « :query ». Cherchez son identifiant avec l’outil search (suggestions jointes).',
+        'profile_not_computed' => 'Le profil en long de « :line » n’est pas encore calculé.',
         'station_not_found' => 'Gare introuvable : « :query ». Cherchez son identifiant avec l’outil search (suggestions jointes).',
         'material_not_found' => 'Série de matériel introuvable : « :query ». Cherchez son identifiant avec l’outil search ou materials (suggestions jointes).',
         'accident_not_found' => 'Accident introuvable : « :query ». Cherchez son identifiant avec l’outil accidents (filtre q).',

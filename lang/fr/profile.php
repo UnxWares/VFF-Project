@@ -1,0 +1,32 @@
+<?php
+
+// Section « Profil en long » de la fiche ligne (App\Services\Profiles\LineProfiles) : altitudes de
+// l'IGN (BD TOPO, à défaut RGE ALTI) le long du tracé.
+return [
+    'title' => 'Profil en long',
+    'intro' => 'Altitude de la voie le long de la ligne, de :from à :to. Les distances sont mesurées sur le tracé depuis :from ; le point kilométrique officiel de chaque gare est dans le tableau.',
+    'intro_plain' => 'Altitude de la voie le long de la ligne. Les distances sont mesurées sur le tracé depuis l’une de ses extrémités.',
+    'stats_label' => 'Chiffres du profil',
+    'min' => 'Point le plus bas',
+    'max' => 'Point le plus haut',
+    'ascent' => 'Montée cumulée',
+    'descent' => 'Descente cumulée',
+    'grade' => 'Déclivité la plus forte',
+    'grade_up' => 'en montée, du km :from au km :to',
+    'grade_down' => 'en descente, du km :from au km :to',
+    'chart_label' => 'Graphique du profil en long : altitude de :min à :max m sur :km km. L’altitude de chaque gare figure aussi dans le tableau qui suit.',
+    'axis_distance' => 'Distance (km)',
+    'at_km' => 'km :km',
+    'local_grade' => 'Déclivité : :grade ‰',
+    'in_tunnel' => 'en tunnel',
+    'tunnel_legend' => 'Tunnel : altitude estimée entre les deux têtes',
+    'break_note' => 'La courbe s’interrompt là où l’altitude n’est pas connue (trou dans le tracé, partie hors de France).',
+    'show_table' => 'Altitude des gares (:count)',
+    'table_caption' => 'Altitude des gares sur le profil en long',
+    'station' => 'Gare',
+    'pk' => 'PK officiel',
+    'distance' => 'Distance',
+    'altitude' => 'Altitude',
+    'unknown' => 'inconnue',
+    'source' => 'Altitudes de l’IGN, Licence Ouverte 2.0 : altitude de la voie dans la BD TOPO, à défaut altitude du terrain (RGE ALTI). Dans les tunnels et sur les ponts sans altitude, la valeur est interpolée entre les deux têtes. Les chiffres sont indicatifs : la déclivité peut s’écarter de quelques ‰ des valeurs officielles. Calcul du :date.',
+];

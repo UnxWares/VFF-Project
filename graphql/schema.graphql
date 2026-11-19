@@ -161,6 +161,16 @@ type Line {
     level_crossing_summary: [LevelCrossingCount!]! @field(resolver: "App\\GraphQL\\Resolvers\\LevelCrossingField@summary")
 
     """
+    Profil en long de la ligne (altitude le long du tracé, gares placées dessus), comme
+    `GET /api/v1/lines/{line}/profile`. Altitudes de l'IGN (BD TOPO, à défaut RGE ALTI ; Licence
+    Ouverte 2.0). Nul tant que le profil de la ligne n'est pas calculé.
+    """
+    profile(
+        "Nombre de points au plus (10 à 5 000) : profil allégé qui garde les deux bouts, le point le plus bas et le plus haut. Par défaut : tous les points."
+        max_points: Int @rules(apply: ["nullable", "integer", "between:10,5000"])
+    ): LineProfile @field(resolver: "App\\GraphQL\\Resolvers\\LineProfileField")
+
+    """
     Fiche complète de la ligne, comme la page `/lines/{slug}` et `GET /api/v1/lines/{line}` :
     chiffres clés, électrification, signalisation, phases, chronique, gares, sections. Calcul
     lourd (jusqu'à quelques secondes) : demandez-la pour une ligne à la fois.
@@ -1386,6 +1396,139 @@ type LevelCrossing {
 
     "Fournisseur et licence de la donnée (SNCF Réseau, ODbL)."
     provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LevelCrossingField@provenance")
+}
+
+"""
+Profil en long d'une ligne : altitude le long du parcours, de la première gare (plus petit PK)
+vers la dernière. Les distances sont mesurées le long du parcours depuis son origine, en mètres :
+ce ne sont pas des PK officiels (voir `LineProfileStation.pk_m`). Altitudes en mètres (NGF-IGN69).
+"""
+type LineProfile {
+    "Année de l'ère dont le tracé a été échantillonné (2030 = aujourd'hui)."
+    era_year: Int!
+
+    "Pas d'échantillonnage le long du parcours, en mètres (100 à 250 selon la longueur)."
+    step_m: Int!
+
+    "Longueur du parcours profilé, lacunes comprises, en mètres."
+    length_m: Int!
+
+    "Longueur totale du tracé de la ligne à cette ère, en mètres (épis et raccordements compris)."
+    trace_length_m: Int!
+
+    "Altitudes extrêmes, dénivelés cumulés et déclivité la plus forte."
+    summary: LineProfileSummary!
+
+    "Points du profil dans l'ordre du parcours."
+    points: [LineProfilePoint!]!
+
+    "Tunnels et ponts de la BD TOPO sous le parcours."
+    structures: [LineProfileStructure!]!
+
+    "Nombre de points de chaque origine d'altitude."
+    altitude_sources: LineProfileAltitudeSources!
+
+    "Lacunes du tracé (aucune altitude entre leurs bornes)."
+    gaps: [LineProfileGap!]!
+
+    "Gares de la ligne placées sur le profil (à moins de 500 m du parcours)."
+    stations: [LineProfileStation!]!
+
+    "Date du calcul (ISO 8601)."
+    computed_at: String!
+
+    "Provenance et licence des altitudes."
+    provenance: Provenance!
+}
+
+"Chiffres d'un profil en long. Valeurs indicatives : quelques ‰ d'écart avec la déclivité officielle sont courants."
+type LineProfileSummary {
+    "Altitude la plus basse du parcours, en mètres."
+    min_altitude_m: Float!
+
+    "Altitude la plus haute du parcours, en mètres."
+    max_altitude_m: Float!
+
+    "Dénivelé positif cumulé dans le sens du parcours, en mètres (variations de moins de 3 m ignorées)."
+    ascent_m: Float!
+
+    "Dénivelé négatif cumulé dans le sens du parcours, en mètres (variations de moins de 3 m ignorées)."
+    descent_m: Float!
+
+    "Déclivité la plus forte, en ‰ (mètres par kilomètre) : pente moyenne par moindres carrés sur 1 km."
+    max_grade_permil: Float!
+
+    "Début de la fenêtre de la déclivité la plus forte, en mètres le long du parcours."
+    max_grade_from_m: Int!
+
+    "Fin de la fenêtre de la déclivité la plus forte, en mètres le long du parcours."
+    max_grade_to_m: Int!
+
+    "`up` : rampe dans le sens du parcours ; `down` : pente."
+    max_grade_direction: String!
+}
+
+"Un point du profil."
+type LineProfilePoint {
+    "Distance le long du parcours depuis son origine, en mètres."
+    distance_m: Int!
+
+    "Altitude en mètres, arrondie au décimètre ; nulle sans valeur (hors de France, lacune)."
+    altitude_m: Float
+}
+
+"Un ouvrage d'art sous le parcours (BD TOPO)."
+type LineProfileStructure {
+    "Début, en mètres le long du parcours."
+    from_m: Int!
+
+    "Fin, en mètres le long du parcours."
+    to_m: Int!
+
+    "`tunnel` ou `bridge` (pont, viaduc)."
+    kind: String!
+}
+
+"Origine des altitudes d'un profil, en nombre de points."
+type LineProfileAltitudeSources {
+    "Altitude de la voie dans la BD TOPO (géométrie 3D)."
+    bdtopo: Int!
+
+    "Altitude du terrain (RGE ALTI), faute de voie dans la BD TOPO."
+    rge_alti: Int!
+
+    "Interpolée (tunnel ou pont sans altitude, point aberrant, petit trou)."
+    interpolated: Int!
+
+    "Sans altitude (hors de France, trou trop long)."
+    missing: Int!
+}
+
+"Une lacune du tracé dans un profil en long."
+type LineProfileGap {
+    "Début, en mètres le long du parcours."
+    from_m: Int!
+
+    "Fin, en mètres le long du parcours."
+    to_m: Int!
+}
+
+"Une gare placée sur un profil en long."
+type LineProfileStation {
+    "Identifiant (slug) de la gare."
+    slug: String!
+
+    "Nom de la gare."
+    name: String!
+
+    "Position le long du parcours, en mètres."
+    distance_m: Int!
+
+    "Altitude du profil à la gare, en mètres ; nulle sans valeur."
+    altitude_m: Float
+
+    "Point kilométrique officiel de la gare sur la ligne, en mètres ; nul s'il est inconnu."
+    pk_m: Int
 }
 
 "Nombre de passages à niveau d'un groupe."

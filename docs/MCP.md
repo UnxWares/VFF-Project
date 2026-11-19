@@ -135,6 +135,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `get_accident` | Fiche d'un accident : lignes rattachées, sources lues et leur licence, points à vérifier. |
 | `compare_eras` | Ce qui a changé sur le réseau entre deux ères : km ouverts, fermés, déposés, restés en service. |
 | `level_crossings` | Passages à niveau publiés par SNCF Réseau (classe, PK, commune), par ligne, groupe, commune ou emprise, paginés. |
+| `line_profile` | Profil en long d'une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte, altitude des gares (IGN). |
 
 ### `search` : rechercher une ligne, une gare ou un matériel
 
@@ -574,6 +575,26 @@ passages. Attribution : SNCF Réseau, ODbL 1.0.
 
 ```json
 {"line": "rfn-70000", "group": "automatic", "limit": 20, "lang": "en"}
+```
+
+### `line_profile` : profil en long
+
+Même contenu que `GET /api/v1/lines/{line}/profile` (service `LineProfiles`), allégé à 200 points par défaut. Profils
+calculés à l'avance par `vff:compute-line-profiles` : une ligne sans profil renvoie l'erreur `profile_not_computed`.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `max_points` | entier 10 à 2 000 | non | Nombre de points au plus (200 par défaut) ; les bouts, le point le plus bas et le plus haut restent. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `profile` (`era_year`, `step_m`, `length_m`, `summary` avec altitudes extrêmes, dénivelés et
+déclivité la plus forte en ‰ sur 1 km, `points` = `[distance_m, altitude_m]` le long du parcours, `structures`,
+`gaps`, `stations` avec leur PK officiel, `altitude_sources`) et `vff_url` (section de la fiche). Les distances ne
+sont pas des PK. Attribution : IGN (BD TOPO, RGE ALTI), Licence Ouverte 2.0.
+
+```json
+{"line": "rfn-896000", "max_points": 100}
 ```
 
 ## Ressources

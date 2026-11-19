@@ -25,6 +25,7 @@
     import LineGallery from '$components/Lines/LineGallery.svelte';
     import LineAccidents from '$components/Lines/LineAccidents.svelte';
     import LineLevelCrossings from '$components/Lines/LineLevelCrossings.svelte';
+    import LineProfile from '$components/Lines/LineProfile.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import ReportError from '$components/Sheet/ReportError.svelte';
@@ -56,6 +57,7 @@
      *   decades?: Array<any>, chronicle?: { events: Array<any>, groups: Array<any>, notes: Array<any>, conflicts: Array<any> },
      *   accidents?: Array<any>,
      *   level_crossings?: { total: number, summary: Array<any>, items: Array<any> },
+     *   profile?: any,
      * }} */
     let {
         line,
@@ -76,6 +78,8 @@
         accidents = [],
         // Passages à niveau de la ligne (App\Services\LevelCrossings\LineLevelCrossings).
         level_crossings = { total: 0, summary: [], items: [] },
+        // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
+        profile = null,
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
@@ -92,6 +96,7 @@
         'sections',
         'heritage',
         'tech',
+        'profile',
         'level-crossings',
         'chronicle',
         'materials',
@@ -1109,6 +1114,10 @@
                     </ol>
                 {/if}
             </SheetSection>
+        {/if}
+
+        {#if profile}
+            <LineProfile {profile} />
         {/if}
 
         {#if level_crossings.total}

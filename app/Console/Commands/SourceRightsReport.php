@@ -52,6 +52,7 @@ class SourceRightsReport extends Command
         'materials.image' => "SELECT DISTINCT image->>'provider' AS v FROM materials WHERE image IS NOT NULL",
         'line_materials' => 'SELECT DISTINCT source AS v FROM line_materials WHERE source IS NOT NULL',
         'accident_sources' => 'SELECT DISTINCT provider AS v FROM accident_sources',
+        'line_profiles' => 'SELECT DISTINCT source AS v FROM line_profiles',
     ];
 
     public function handle(): int
