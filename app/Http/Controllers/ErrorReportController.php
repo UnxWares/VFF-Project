@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\AuditAction;
 use App\Enums\ErrorReportStatus;
-use App\Enums\ErrorReportSubject;
 use App\Http\Requests\StoreErrorReportRequest;
 use App\Models\ErrorReport;
 use App\Services\AuditLog;
@@ -38,9 +37,8 @@ class ErrorReportController extends Controller
             return back();
         }
 
-        $subject = ErrorReportSubject::from($request->validated('subject_type'));
-        $model = $subject->find($request->validated('subject_slug'));
-        abort_if($model === null, 422);
+        $subject = $request->subjectType();
+        $model = $request->subject();
 
         DB::transaction(function () use ($request, $subject, $model, $audit, $notifier): void {
             $report = ErrorReport::create([

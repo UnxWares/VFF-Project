@@ -31,69 +31,98 @@ final class ProfileStats
     private const SPIKE_HALF_WINDOW = 5;
 
     /**
+     * Morceaux continus de la série : bornes [premier, dernier] (indices inclus), coupées là où
+     * une lacune du parcours sépare deux points voisins. Sans lacune, un seul morceau.
+     *
+     * @param  list<array{0: int|float, 1: float|null}>  $points
+     * @param  list<array{0: float, 1: float}>  $gaps
+     * @return list<array{0: int, 1: int}>
+     */
+    public static function pieces(array $points, array $gaps = []): array
+    {
+        $n = count($points);
+        if ($n === 0) {
+            return [];
+        }
+        $pieces = [];
+        $start = 0;
+        for ($i = 1; $i < $n; $i++) {
+            if (self::crossesGap($gaps, $points[$i - 1][0], $points[$i][0])) {
+                $pieces[] = [$start, $i - 1];
+                $start = $i;
+            }
+        }
+        $pieces[] = [$start, $n - 1];
+
+        return $pieces;
+    }
+
+    /**
      * Efface (altitude null) les points qui s'écartent de plus de SPIKE_THRESHOLD_M de la médiane
      * des points voisins (fenêtre de 2 × 5 + 1 points) : une voie ne saute pas de plusieurs
      * dizaines de mètres d'un point à l'autre. Cas vus : tronçon d'une autre voie croisée en tunnel
      * à un autre niveau, tablier ou fond de tranchée. Sur une pente régulière, la médiane d'une
      * fenêtre symétrique vaut le point central : les vraies déclivités ne sont pas touchées.
+     * La fenêtre reste dans le morceau du point : de l'autre côté d'une lacune, la voie peut être
+     * bien plus haute ou plus basse sans que rien soit faux.
      *
      * @param  list<array{0: float, 1: float|null}>  $points
+     * @param  list<array{0: float, 1: float}>  $gaps  lacunes [début, fin] du parcours
      * @return list<array{0: float, 1: float|null}>
      */
-    public static function removeSpikes(array $points): array
+    public static function removeSpikes(array $points, array $gaps = []): array
     {
         $zs = array_column($points, 1);
-        $n = count($points);
-        foreach ($points as $i => $p) {
-            if ($p[1] === null) {
-                continue;
-            }
-            // Fenêtre symétrique, rétrécie près des bouts : sur une pente, une fenêtre d'un seul
-            // côté aurait une médiane décalée et effacerait à tort le premier ou le dernier point.
-            $half = min(self::SPIKE_HALF_WINDOW, $i, $n - 1 - $i);
-            $window = array_values(array_filter(
-                array_slice($zs, $i - $half, 2 * $half + 1),
-                fn (?float $z): bool => $z !== null,
-            ));
-            if (count($window) < 3) {
-                continue;
-            }
-            sort($window);
-            $median = $window[intdiv(count($window), 2)];
-            if (abs($p[1] - $median) > self::SPIKE_THRESHOLD_M) {
-                $points[$i][1] = null;
+        foreach (self::pieces($points, $gaps) as [$first, $last]) {
+            for ($i = $first; $i <= $last; $i++) {
+                if ($points[$i][1] === null) {
+                    continue;
+                }
+                // Fenêtre symétrique, rétrécie près des bouts du morceau : sur une pente, une fenêtre
+                // d'un seul côté aurait une médiane décalée et effacerait à tort le premier ou le
+                // dernier point.
+                $half = min(self::SPIKE_HALF_WINDOW, $i - $first, $last - $i);
+                $window = array_values(array_filter(
+                    array_slice($zs, $i - $half, 2 * $half + 1),
+                    fn (?float $z): bool => $z !== null,
+                ));
+                if (count($window) < 3) {
+                    continue;
+                }
+                sort($window);
+                $median = $window[intdiv(count($window), 2)];
+                if (abs($points[$i][1] - $median) > self::SPIKE_THRESHOLD_M) {
+                    $points[$i][1] = null;
+                }
             }
         }
 
-        return self::removePeaks($points);
+        return self::removePeaks($points, $gaps);
     }
 
     /**
      * Efface les pics isolés entre deux trous (point à l'air libre entre deux tunnels, où la
      * médiane manque de voisins) : un point qu'on atteint et qu'on quitte avec une déclivité de
      * plus de MAX_PLAUSIBLE_GRADE, en sens contraires, par rapport aux points valides qui
-     * l'encadrent. Plusieurs passages, un pic pouvant en cacher un autre.
+     * l'encadrent dans le même morceau. Plusieurs passages, un pic pouvant en cacher un autre.
      *
      * @param  list<array{0: float, 1: float|null}>  $points
+     * @param  list<array{0: float, 1: float}>  $gaps
      * @return list<array{0: float, 1: float|null}>
      */
-    private static function removePeaks(array $points): array
+    private static function removePeaks(array $points, array $gaps): array
     {
+        $pieces = self::pieces($points, $gaps);
         for ($pass = 0; $pass < 3; $pass++) {
-            $valid = array_keys(array_filter($points, fn (array $p): bool => $p[1] !== null));
-            $removed = false;
-            for ($k = 1, $n = count($valid); $k < $n - 1; $k++) {
-                [$a, $b, $c] = [$points[$valid[$k - 1]], $points[$valid[$k]], $points[$valid[$k + 1]]];
-                $in = ($b[1] - $a[1]) / max(1.0, $b[0] - $a[0]);
-                $out = ($c[1] - $b[1]) / max(1.0, $c[0] - $b[0]);
-                if (abs($in) > self::MAX_PLAUSIBLE_GRADE && abs($out) > self::MAX_PLAUSIBLE_GRADE && $in * $out < 0) {
-                    $points[$valid[$k]][1] = null;
-                    $removed = true;
-                    $k++;
-                }
+            $peaks = [];
+            foreach ($pieces as [$first, $last]) {
+                array_push($peaks, ...self::peaksIn($points, $first, $last));
             }
-            if (! $removed) {
+            if ($peaks === []) {
                 break;
+            }
+            foreach ($peaks as $i) {
+                $points[$i][1] = null;
             }
         }
 
@@ -101,44 +130,74 @@ final class ProfileStats
     }
 
     /**
+     * Un passage de removePeaks sur les points [$first, $last] : indices des pics à effacer (un
+     * pic sur deux au plus quand ils se suivent, le suivant est jugé au passage d'après).
+     *
+     * @param  list<array{0: float, 1: float|null}>  $points
+     * @return list<int>
+     */
+    private static function peaksIn(array $points, int $first, int $last): array
+    {
+        $valid = array_keys(array_filter(
+            array_slice($points, $first, $last - $first + 1, true),
+            fn (array $p): bool => $p[1] !== null,
+        ));
+        $peaks = [];
+        for ($k = 1, $n = count($valid); $k < $n - 1; $k++) {
+            [$a, $b, $c] = [$points[$valid[$k - 1]], $points[$valid[$k]], $points[$valid[$k + 1]]];
+            $in = ($b[1] - $a[1]) / max(1.0, $b[0] - $a[0]);
+            $out = ($c[1] - $b[1]) / max(1.0, $c[0] - $b[0]);
+            if (abs($in) > self::MAX_PLAUSIBLE_GRADE && abs($out) > self::MAX_PLAUSIBLE_GRADE && $in * $out < 0) {
+                $peaks[] = $valid[$k];
+                $k++;
+            }
+        }
+
+        return $peaks;
+    }
+
+    /**
      * Remplace l'altitude des points pris dans un ouvrage (tunnel, pont : le modèle de terrain y
      * donne le sommet de la montagne ou le fond de la vallée) et des trous de courte longueur par
      * une interpolation linéaire entre les deux points valides qui les encadrent. Une suite sans
      * voisin d'un côté prend l'altitude du seul voisin si elle est courte ; une suite plus longue
-     * que `$maxHoleM` reste vide, sauf un ouvrage encadré des deux côtés.
+     * que `$maxHoleM` reste vide, sauf un ouvrage encadré des deux côtés. Les voisins sont pris
+     * dans le même morceau : rien n'est interpolé par-dessus une lacune du parcours.
      *
      * @param  list<array{0: float, 1: float|null}>  $points
      * @param  list<bool>  $inStructure  un drapeau par point
+     * @param  list<array{0: float, 1: float}>  $gaps  lacunes [début, fin] du parcours
      * @return list<array{0: float, 1: float|null}>
      */
-    public static function fillStructures(array $points, array $inStructure, float $maxHoleM = 1000.0): array
+    public static function fillStructures(array $points, array $inStructure, float $maxHoleM = 1000.0, array $gaps = []): array
     {
-        $n = count($points);
-        $i = 0;
-        while ($i < $n) {
-            if (! ($inStructure[$i] ?? false) && $points[$i][1] !== null) {
-                $i++;
+        foreach (self::pieces($points, $gaps) as [$first, $last]) {
+            $i = $first;
+            while ($i <= $last) {
+                if (! ($inStructure[$i] ?? false) && $points[$i][1] !== null) {
+                    $i++;
 
-                continue;
-            }
-            // Suite de points à remplacer : [$i, $j[.
-            $j = $i;
-            $structure = false;
-            while ($j < $n && (($inStructure[$j] ?? false) || $points[$j][1] === null)) {
-                $structure = $structure || ($inStructure[$j] ?? false);
-                $j++;
-            }
-            $before = $i > 0 ? $points[$i - 1] : null;
-            $after = $j < $n ? $points[$j] : null;
-            $span = ($after[0] ?? $points[$j - 1][0]) - ($before[0] ?? $points[$i][0]);
-            // Ouvrage encadré des deux côtés : interpolation, quelle que soit sa longueur. Ouvrage
-            // ouvert d'un côté (tunnel qui passe la frontière) ou trou : seulement s'il est court.
-            if (($structure && $before !== null && $after !== null) || $span <= $maxHoleM) {
-                for ($k = $i; $k < $j; $k++) {
-                    $points[$k][1] = self::between($before, $after, $points[$k][0]);
+                    continue;
                 }
+                // Suite de points à remplacer : [$i, $j[.
+                $j = $i;
+                $structure = false;
+                while ($j <= $last && (($inStructure[$j] ?? false) || $points[$j][1] === null)) {
+                    $structure = $structure || ($inStructure[$j] ?? false);
+                    $j++;
+                }
+                $before = $i > $first ? $points[$i - 1] : null;
+                $after = $j <= $last ? $points[$j] : null;
+                $span = ($after[0] ?? $points[$j - 1][0]) - ($before[0] ?? $points[$i][0]);
+                // Ouvrage encadré des deux côtés : interpolation, quelle que soit sa longueur. Ouvrage
+                // ouvert d'un côté (tunnel qui passe la frontière) ou trou : seulement s'il est court.
+                if (($structure && $before !== null && $after !== null) || $span <= $maxHoleM) {
+                    for ($k = $i; $k < $j; $k++) {
+                        $points[$k][1] = self::between($before, $after, $points[$k][0]);
+                    }
+                }
+                $i = $j;
             }
-            $i = $j;
         }
 
         return $points;

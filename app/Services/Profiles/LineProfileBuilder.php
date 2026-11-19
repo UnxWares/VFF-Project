@@ -11,8 +11,9 @@ use Illuminate\Support\Facades\DB;
  * Calcul du profil en long d'une ligne (commande vff:compute-line-profiles) :
  *
  * 1. tracé de l'ère courante (sinon de la dernière ère qui en a un), voies de service exclues,
- *    assemblé en un parcours de bout en bout (ProfileChain) et orienté de la première gare de la
- *    ligne (plus petit PK) vers la dernière ;
+ *    assemblé en un parcours de bout en bout (ProfileChain) et orienté du plus petit PK officiel
+ *    des gares placées dessus vers le plus grand (à défaut de PK, de la première gare de la ligne
+ *    vers la dernière) ;
  * 2. points tous les 100 à 250 m selon la longueur (ProfilePath::stepFor) ;
  * 3. altitude de la VOIE quand un tronçon de la BD TOPO passe à moins de TRACK_TOLERANCE_M du
  *    point (géométrie 3D, interpolée le long du tronçon) ; sinon altitude du terrain (RGE ALTI),
@@ -22,7 +23,8 @@ use Illuminate\Support\Facades\DB;
  *    (valeur publiée de la ligne), 110 ‰ avec le seul modèle de terrain ;
  * 5. extrêmes, dénivelés et déclivité la plus forte (ProfileStats), gares placées sur le profil.
  *
- * Lecture seule sur les tables du moteur ; seule `line_profiles` est écrite.
+ * Lecture seule sur les tables du moteur ; seule `line_profiles` est écrite. Une ligne dont le
+ * profil ne peut plus être calculé perd l'ancien : il ne correspond plus à son tracé.
  */
 final readonly class LineProfileBuilder
 {
@@ -74,11 +76,16 @@ final readonly class LineProfileBuilder
         ];
     }
 
-    /** Calcule et enregistre le profil ; null si la ligne n'a aucun tracé exploitable. */
+    /**
+     * Calcule et enregistre le profil. Null si la ligne n'a aucun tracé exploitable ou aucune
+     * altitude : l'ancien profil éventuel est alors supprimé, pour ne plus être servi.
+     */
     public function compute(Line $line): ?LineProfile
     {
         $plan = $this->plan($line);
         if ($plan === null) {
+            $this->discard($line);
+
             return null;
         }
         ['era' => $era, 'path' => $path, 'samples' => $samples] = $plan;
@@ -112,7 +119,7 @@ final readonly class LineProfileBuilder
             }
         }
         $spikes = $points;
-        $points = ProfileStats::removeSpikes($points);
+        $points = ProfileStats::removeSpikes($points, $path->gaps);
         foreach ($points as $i => $p) {
             if ($p[1] === null && $spikes[$i][1] !== null) {
                 // Aberration effacée : le point sera compté parmi les interpolés.
@@ -123,11 +130,13 @@ final readonly class LineProfileBuilder
         $points = ProfileStats::fillStructures($points, array_map(
             fn (array $t): bool => $t['z'] === null && in_array($t['kind'], ['tunnel', 'bridge'], true),
             $track,
-        ));
+        ), gaps: $path->gaps);
         $origins['missing'] = count(array_filter($points, fn (array $p): bool => $p[1] === null));
         $origins['interpolated'] = count($points) - $origins['bdtopo'] - $origins['rge_alti'] - $origins['missing'];
         $stats = ProfileStats::summarize($points, $path->gaps, $unknown);
         if ($stats === null) {
+            $this->discard($line);
+
             return null;
         }
 
@@ -146,6 +155,12 @@ final readonly class LineProfileBuilder
             ...$stats,
             'computed_at' => now(),
         ]);
+    }
+
+    /** Supprime le profil enregistré de la ligne, s'il y en a un. */
+    private function discard(Line $line): void
+    {
+        LineProfile::query()->where('line_id', $line->id)->delete();
     }
 
     /**
@@ -222,7 +237,8 @@ final readonly class LineProfileBuilder
     }
 
     /**
-     * Gares de la ligne à l'ère du tracé, dans l'ordre des PK.
+     * Gares de la ligne à l'ère du tracé, dans l'ordre de `line_stops.position` (rang le long du
+     * tracé, qui peut aller du grand PK vers le petit).
      *
      * @return list<array{slug: string, name: string, pk_m: int|null, lon: float, lat: float}>
      */
@@ -244,23 +260,33 @@ final readonly class LineProfileBuilder
     }
 
     /**
-     * Le parcours part du côté de la première gare (plus petit PK) quand les deux gares extrêmes
-     * sont placées dessus ; sinon il garde le sens de l'assemblage.
+     * Sens du parcours : du plus petit PK officiel vers le plus grand, d'après les gares placées
+     * sur le parcours (à moins de STATION_MAX_OFFSET_M) qui ont un PK. L'ordre des gares
+     * (`line_stops.position`) suit le tracé, qui a pu être numérisé depuis le grand PK : il ne sert
+     * qu'à défaut de deux PK distincts (première gare placée vers la dernière). Avec moins de deux
+     * gares placées, le sens de l'assemblage est gardé.
      *
      * @param  list<array{slug: string, name: string, pk_m: int|null, lon: float, lat: float}>  $stops
      */
     private function orient(ProfilePath $path, array $stops): ProfilePath
     {
-        if (count($stops) < 2) {
-            return $path;
+        $placed = [];
+        foreach ($stops as $stop) {
+            $at = $path->locate([$stop['lon'], $stop['lat']]);
+            if ($at['offset'] <= self::STATION_MAX_OFFSET_M) {
+                $placed[] = ['pk' => $stop['pk_m'], 'distance' => $at['distance']];
+            }
         }
-        $first = $path->locate([$stops[0]['lon'], $stops[0]['lat']]);
-        $last = $path->locate([$stops[count($stops) - 1]['lon'], $stops[count($stops) - 1]['lat']]);
-        if ($first['offset'] > self::STATION_MAX_OFFSET_M || $last['offset'] > self::STATION_MAX_OFFSET_M) {
+        $withPk = array_values(array_filter($placed, fn (array $p): bool => $p['pk'] !== null));
+        usort($withPk, fn (array $a, array $b): int => $a['pk'] <=> $b['pk']);
+        [$from, $to] = count($withPk) >= 2 && $withPk[0]['pk'] !== $withPk[count($withPk) - 1]['pk']
+            ? [$withPk[0], $withPk[count($withPk) - 1]]
+            : [$placed[0] ?? null, $placed[count($placed) - 1] ?? null];
+        if ($from === null || $to === null || $from === $to) {
             return $path;
         }
 
-        return $first['distance'] > $last['distance'] ? $path->reversed() : $path;
+        return $from['distance'] > $to['distance'] ? $path->reversed() : $path;
     }
 
     /**

@@ -1,6 +1,6 @@
 // Calculs du graphique « Profil en long » de la fiche ligne (LineProfile.svelte) : graduations,
-// tracé SVG coupé aux trous, point le plus proche du pointeur, déclivité locale et choix des
-// gares nommées sans chevauchement. Données : App\Services\Profiles\LineProfiles (points
+// tracé SVG coupé aux trous et aux lacunes du parcours, point le plus proche du pointeur,
+// déclivité locale et choix des gares nommées sans chevauchement. Données : App\Services\Profiles\LineProfiles (points
 // [distance_m, altitude_m|null] dans l'ordre du parcours).
 
 /** Fenêtre de la déclivité locale, comme la déclivité maximale calculée côté serveur. */
@@ -59,51 +59,78 @@ export function altitudeDomain(points, count = 4) {
 }
 
 /**
- * Tracé SVG de la courbe, coupé là où l'altitude manque (trou, hors de France) : un nouveau
- * `M` repart après chaque trou.
- * @param {Array<[number, number|null]>} points
- * @param {(d: number) => number} x
- * @param {(z: number) => number} y
+ * Vrai si une lacune du parcours (`profile.gaps`, saut entre deux morceaux du tracé, sans aucun
+ * point) passe entre les distances `a` et `b`, à un demi-mètre près, comme côté serveur
+ * (ProfileStats::crossesGap).
+ * @param {Array<{ from_m: number, to_m: number }>} gaps
+ * @param {number} a
+ * @param {number} b
  */
-export function linePath(points, x, y) {
-    let path = '';
-    let pen = false;
-    for (const [d, z] of points) {
-        if (z === null) {
-            pen = false;
-            continue;
-        }
-        path += `${pen ? 'L' : 'M'}${x(d).toFixed(1)},${y(z).toFixed(1)}`;
-        pen = true;
-    }
-    return path;
+export function crossesGap(gaps, a, b) {
+    const lo = Math.min(a, b);
+    const hi = Math.max(a, b);
+    return gaps.some((g) => g.from_m < hi - 0.5 && g.to_m > lo + 0.5);
 }
 
 /**
- * Surface sous la courbe jusqu'à la ligne de base, une forme fermée par série continue.
+ * Séries continues de la courbe : coupées là où l'altitude manque (trou, hors de France) et
+ * là où une lacune du parcours sépare deux points voisins.
+ * @param {Array<[number, number|null]>} points
+ * @param {Array<{ from_m: number, to_m: number }>} gaps
+ * @returns {Array<Array<[number, number]>>}
+ */
+export function runs(points, gaps = []) {
+    const out = [];
+    let run = [];
+    let prev = null;
+    for (const p of points) {
+        if (p[1] === null || (prev !== null && crossesGap(gaps, prev[0], p[0]))) {
+            if (run.length) out.push(run);
+            run = [];
+        }
+        if (p[1] !== null) run.push(p);
+        prev = p;
+    }
+    if (run.length) out.push(run);
+    return out;
+}
+
+/**
+ * Tracé SVG de la courbe, coupé aux trous et aux lacunes : un nouveau `M` repart après chacun.
+ * @param {Array<[number, number|null]>} points
+ * @param {(d: number) => number} x
+ * @param {(z: number) => number} y
+ * @param {Array<{ from_m: number, to_m: number }>} [gaps]
+ */
+export function linePath(points, x, y, gaps = []) {
+    return runs(points, gaps)
+        .map((run) =>
+            run
+                .map(([d, z], i) => `${i === 0 ? 'M' : 'L'}${x(d).toFixed(1)},${y(z).toFixed(1)}`)
+                .join(''),
+        )
+        .join('');
+}
+
+/**
+ * Surface sous la courbe jusqu'à la ligne de base, une forme fermée par série continue (une
+ * série d'un seul point n'en a pas).
  * @param {Array<[number, number|null]>} points
  * @param {(d: number) => number} x
  * @param {(z: number) => number} y
  * @param {number} baseY ordonnée de la ligne de base, en pixels
+ * @param {Array<{ from_m: number, to_m: number }>} [gaps]
  */
-export function areaPath(points, x, y, baseY) {
-    let path = '';
-    let run = [];
-    const flush = () => {
-        if (run.length > 1) {
+export function areaPath(points, x, y, baseY, gaps = []) {
+    return runs(points, gaps)
+        .filter((run) => run.length > 1)
+        .map((run) => {
             const first = x(run[0][0]).toFixed(1);
             const last = x(run[run.length - 1][0]).toFixed(1);
             const top = run.map(([d, z]) => `L${x(d).toFixed(1)},${y(z).toFixed(1)}`).join('');
-            path += `M${first},${baseY.toFixed(1)}${top}L${last},${baseY.toFixed(1)}Z`;
-        }
-        run = [];
-    };
-    for (const p of points) {
-        if (p[1] === null) flush();
-        else run.push(p);
-    }
-    flush();
-    return path;
+            return `M${first},${baseY.toFixed(1)}${top}L${last},${baseY.toFixed(1)}Z`;
+        })
+        .join('');
 }
 
 /**
@@ -127,13 +154,15 @@ export function nearestIndex(points, d) {
  * Déclivité locale en ‰ autour d'une distance : pente de la droite des moindres carrés des
  * points d'une fenêtre de 1 km centrée (même méthode que la déclivité maximale du serveur).
  * Positive quand la ligne monte dans le sens du parcours. Null s'il manque une altitude dans
- * la fenêtre ou s'il y a moins de trois points.
+ * la fenêtre, si une lacune du parcours la traverse ou s'il y a moins de trois points.
  * @param {Array<[number, number|null]>} points
  * @param {number} d
+ * @param {Array<{ from_m: number, to_m: number }>} [gaps]
  * @param {number} [window]
  * @returns {number|null}
  */
-export function gradeAt(points, d, window = GRADE_WINDOW_M) {
+export function gradeAt(points, d, gaps = [], window = GRADE_WINDOW_M) {
+    if (crossesGap(gaps, d - window / 2, d + window / 2)) return null;
     const inside = points.filter(([pd]) => pd >= d - window / 2 && pd <= d + window / 2);
     if (inside.length < 3 || inside.some(([, z]) => z === null)) return null;
     const n = inside.length;

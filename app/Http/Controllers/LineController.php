@@ -137,7 +137,8 @@ class LineController extends Controller
      * Fiche détaillée d'une ligne ferroviaire (construction partagée avec l'API : App\Services\LineSheet),
      * plus les accidents rattachés à la ligne (section « Accidents » ; API : `/api/v1/accidents?line=`)
      * ses passages à niveau (section « Passages à niveau » ; API : `/api/v1/lines/{slug}/level-crossings`)
-     * et son profil en long s'il est calculé (section « Profil en long » ; API : `/api/v1/lines/{slug}/profile`).
+     * et son profil en long s'il est calculé, allégé à LineProfiles::SHEET_MAX_POINTS points (section
+     * « Profil en long » ; profil complet : `/api/v1/lines/{slug}/profile`).
      */
     public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineProfiles $profiles): Response
     {
@@ -145,7 +146,7 @@ class LineController extends Controller
             ...$sheet->build($line),
             'accidents' => $accidents->forLine($line, app()->getLocale()),
             'level_crossings' => $crossings->forSheet($line),
-            'profile' => $profiles->forLine($line),
+            'profile' => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS),
         ]);
     }
 }

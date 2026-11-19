@@ -62,6 +62,69 @@ class ProfileStatsTest extends TestCase
         $this->assertNull(ProfileStats::removeSpikes($peak)[3][1]);
     }
 
+    public function test_splits_the_series_into_pieces_at_the_path_gaps(): void
+    {
+        $points = [[0.0, 1.0], [100.0, 2.0], [2100.0, 3.0], [2200.0, 4.0]];
+
+        $this->assertSame([[0, 1], [2, 3]], ProfileStats::pieces($points, [[100.0, 2100.0]]));
+        $this->assertSame([[0, 3]], ProfileStats::pieces($points));
+        $this->assertSame([], ProfileStats::pieces([]));
+    }
+
+    public function test_spikes_peaks_and_holes_are_judged_within_their_own_piece(): void
+    {
+        // Plat à 100 m, lacune, court morceau de 200 m à 300 m d'altitude (autre niveau du tracé),
+        // lacune, plat à 100 m : rien de faux. Sans les lacunes, la médiane des voisins d'en bas
+        // effacerait les deux points du morceau du milieu.
+        $low = self::series(1000, fn (): float => 100.0);
+        $mid = [[1500.0, 300.0], [1600.0, 300.0]];
+        $after = array_map(fn (array $p): array => [$p[0] + 2100.0, 100.0], $low);
+        $points = [...$low, ...$mid, ...$after];
+        $gaps = [[1000.0, 1500.0], [1600.0, 2100.0]];
+        $this->assertNull(ProfileStats::removeSpikes($points)[11][1]);
+        $this->assertSame($points, ProfileStats::removeSpikes($points, $gaps));
+
+        // Point isolé juste après la lacune, encadré par un trou : comparé au morceau d'avant, il
+        // ferait un pic de plus de 120 ‰ ; dans son morceau, il n'a pas de voisin et reste.
+        $edge = [[0.0, 100.0], [100.0, 100.0], [600.0, 300.0], [700.0, null], [800.0, 100.0]];
+        $this->assertNull(ProfileStats::removeSpikes($edge)[2][1]);
+        $this->assertSame(300.0, ProfileStats::removeSpikes($edge, [[100.0, 600.0]])[2][1]);
+
+        // Tunnel qui touche la lacune : aucune altitude inventée par-dessus.
+        $tunnel = [[0.0, 100.0], [100.0, null], [2100.0, null], [2200.0, 300.0]];
+        $filled = ProfileStats::fillStructures($tunnel, [false, true, true, false], gaps: [[100.0, 2100.0]]);
+        $this->assertEqualsWithDelta(100.0, $filled[1][1], 1e-9);
+        $this->assertEqualsWithDelta(300.0, $filled[2][1], 1e-9);
+        // Sans la lacune : une rampe de 200 m inventée sur 2,2 km.
+        $this->assertEqualsWithDelta(290.9, ProfileStats::fillStructures($tunnel, [false, true, true, false])[2][1], 0.1);
+    }
+
+    public function test_downsample_never_exceeds_the_budget_and_keeps_gap_edges_first(): void
+    {
+        // 2 501 points, quarante trous d'un point (80 bords) et une lacune : bien plus de points
+        // obligés que de place pour une courbe régulière.
+        $points = [];
+        for ($i = 0; $i <= 2500; $i++) {
+            $points[] = [$i * 100, $i % 60 === 30 ? null : 100.0 + $i % 7];
+        }
+        $gaps = [['from_m' => 120_000, 'to_m' => 120_100]];
+        foreach ([10, 50, 600] as $max) {
+            $small = LineProfiles::downsample($points, $max, $gaps);
+            $this->assertLessThanOrEqual($max, count($small), "max {$max}");
+            $this->assertSame($points[0], $small[0]);
+            $this->assertSame($points[2500], $small[count($small) - 1]);
+            $this->assertContains($points[1200], $small, "bord de lacune, max {$max}");
+            $this->assertContains($points[1201], $small, "bord de lacune, max {$max}");
+            $distances = array_column($small, 0);
+            $this->assertSame($distances, array_values(array_unique($distances)));
+            $sorted = $distances;
+            sort($sorted);
+            $this->assertSame($sorted, $distances);
+        }
+        $this->assertGreaterThan(550, count(LineProfiles::downsample($points, 600, $gaps)));
+        $this->assertSame([], LineProfiles::downsample($points, 0));
+    }
+
     public function test_counts_climbs_above_the_three_metre_threshold(): void
     {
         // Bruit de ±1 m sur du plat, puis montée de 50 m et descente de 20 m.
@@ -134,7 +197,7 @@ class ProfileStatsTest extends TestCase
         }
         $small = LineProfiles::downsample($points, 50);
 
-        $this->assertLessThan(70, count($small));
+        $this->assertLessThanOrEqual(50, count($small));
         $this->assertSame($points[0], $small[0]);
         $this->assertSame($points[1000], $small[count($small) - 1]);
         $this->assertContains([43700, 999.0], $small);

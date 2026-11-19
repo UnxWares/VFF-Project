@@ -6,6 +6,8 @@
     import {
         altitudeDomain,
         areaPath,
+        crossesGap,
+        GRADE_WINDOW_M,
         gradeAt,
         labelledStations,
         linePath,
@@ -98,8 +100,8 @@
             (k) => k * 1000 <= profile.length_m,
         ),
     );
-    const line = $derived(linePath(profile.points, x, y));
-    const area = $derived(areaPath(profile.points, x, y, baseY));
+    const line = $derived(linePath(profile.points, x, y, profile.gaps));
+    const area = $derived(areaPath(profile.points, x, y, baseY, profile.gaps));
     // Largeur d'un nom en Inter 14 px : 7,6 px par caractère en moyenne (mesuré sur les noms de gares).
     const named = $derived(
         labelledStations(profile.stations, x, {
@@ -113,21 +115,28 @@
     // pour que la courbe reste lisible ; toutes restent dans le tableau.
     const dense = $derived(profile.stations.length > plotW / 14);
 
-    // Lecture au survol (souris, stylet, doigt) : point le plus proche du pointeur.
+    // Lecture au survol (souris, stylet, doigt) : point le plus proche du pointeur ; rien dans une
+    // lacune du parcours, où aucune altitude n'est connue.
     let hover = $state(/** @type {number|null} */ (null));
     function onPointer(event) {
         const box = event.currentTarget.getBoundingClientRect();
         const d = ((event.clientX - box.left) / box.width) * profile.length_m;
-        const i = nearestIndex(profile.points, d);
+        const i = crossesGap(profile.gaps, d, d) ? -1 : nearestIndex(profile.points, d);
         hover = i >= 0 && profile.points[i][1] !== null ? i : null;
     }
+    // Fenêtre de la déclivité locale : 1 km, élargie à quatre intervalles moyens (deux de part et
+    // d'autre) quand les points reçus sont plus espacés (profil allégé d'une longue ligne), pour
+    // garder au moins trois points.
+    const gradeWindow = $derived(
+        Math.max(GRADE_WINDOW_M, (4 * profile.length_m) / Math.max(1, profile.points.length - 1)),
+    );
     const reading = $derived.by(() => {
         if (hover === null) return null;
         const [d, z] = profile.points[hover];
         return {
             d,
             z,
-            grade: gradeAt(profile.points, d),
+            grade: gradeAt(profile.points, d, profile.gaps, gradeWindow),
             tunnel: tunnels.some((tu) => d >= tu.from_m && d <= tu.to_m),
             left: x(d) > pad.left + plotW / 2,
         };

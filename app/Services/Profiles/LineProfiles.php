@@ -14,6 +14,12 @@ use App\Services\Api\Provenance;
  */
 final readonly class LineProfiles
 {
+    /**
+     * Points du profil passés à la fiche ligne : environ un par pixel et demi de la courbe à
+     * 1 280 px, au lieu de 2 500 au plus (le profil complet reste dans l'API).
+     */
+    public const SHEET_MAX_POINTS = 600;
+
     public function __construct(private Provenance $provenance) {}
 
     public function find(Line $line): ?LineProfile
@@ -75,7 +81,7 @@ final readonly class LineProfiles
                 'max_grade_to_m' => $profile->max_grade_to_m,
                 'max_grade_direction' => $profile->max_grade_direction,
             ],
-            'points' => $maxPoints === null ? $profile->points : self::downsample($profile->points, $maxPoints),
+            'points' => $maxPoints === null ? $profile->points : self::downsample($profile->points, $maxPoints, $profile->gaps),
             'structures' => $profile->structures,
             'altitude_sources' => $profile->altitude_sources,
             'gaps' => $profile->gaps,
@@ -86,41 +92,56 @@ final readonly class LineProfiles
     }
 
     /**
-     * Profil allégé à `$max` points environ : points régulièrement espacés, plus les deux bouts,
-     * le point le plus bas, le plus haut et les deux bords de chaque série sans altitude (les
-     * extrêmes et les trous restent visibles). Ordre du parcours conservé.
+     * Profil allégé à `$max` points AU PLUS, ordre du parcours conservé. Points gardés d'abord :
+     * les deux bouts, le point le plus bas, le plus haut, les deux bords de chaque lacune du
+     * parcours et de chaque série sans altitude (les extrêmes et les trous restent visibles) ; le
+     * reste du budget va à des points régulièrement espacés. Si ces points obligés dépassent le
+     * budget, ils sont pris dans cet ordre de priorité jusqu'à `$max`.
      *
      * @param  list<array{0: int, 1: float|null}>  $points
+     * @param  list<array{from_m: int, to_m: int}>  $gaps  lacunes du parcours (`line_profiles.gaps`)
      * @return list<array{0: int, 1: float|null}>
      */
-    public static function downsample(array $points, int $max): array
+    public static function downsample(array $points, int $max, array $gaps = []): array
     {
         $n = count($points);
-        if ($n <= $max || $max < 2) {
+        if ($n <= $max) {
             return $points;
         }
-        $keep = [0 => true, $n - 1 => true];
-        $step = ($n - 1) / ($max - 1);
-        for ($k = 1; $k < $max - 1; $k++) {
-            $keep[(int) round($k * $step)] = true;
+        if ($max <= 0) {
+            return [];
         }
+
         $min = null;
-        $maxIdx = null;
+        $top = null;
+        $holeEdges = [];
         foreach ($points as $i => [, $z]) {
             if ($z !== null) {
                 $min = $min === null || $z < $points[$min][1] ? $i : $min;
-                $maxIdx = $maxIdx === null || $z > $points[$maxIdx][1] ? $i : $maxIdx;
+                $top = $top === null || $z > $points[$top][1] ? $i : $top;
             }
-            $prevNull = $i > 0 && $points[$i - 1][1] === null;
-            if (($z === null) !== $prevNull && $i > 0) {
-                $keep[$i - 1] = true;
+            if ($i > 0 && ($z === null) !== ($points[$i - 1][1] === null)) {
+                array_push($holeEdges, $i - 1, $i);
+            }
+        }
+        $gapEdges = [];
+        $pieces = ProfileStats::pieces($points, array_map(fn (array $g): array => [(float) $g['from_m'], (float) $g['to_m']], $gaps));
+        for ($k = 1, $c = count($pieces); $k < $c; $k++) {
+            array_push($gapEdges, $pieces[$k - 1][1], $pieces[$k][0]);
+        }
+
+        // Points obligés, par ordre de priorité, dans la limite du budget.
+        $keep = [];
+        foreach ([0, $n - 1, $min, $top, ...$gapEdges, ...$holeEdges] as $i) {
+            if ($i !== null && count($keep) < $max) {
                 $keep[$i] = true;
             }
         }
-        foreach ([$min, $maxIdx] as $i) {
-            if ($i !== null) {
-                $keep[$i] = true;
-            }
+        // Reste du budget : points régulièrement espacés entre les deux bouts (un point qui tombe
+        // sur un point déjà gardé n'en ajoute pas : le total reste sous `$max`).
+        $free = $max - count($keep);
+        for ($k = 1; $k <= $free; $k++) {
+            $keep[(int) round($k * ($n - 1) / ($free + 1))] = true;
         }
         ksort($keep);
 

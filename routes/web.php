@@ -149,6 +149,8 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/validate/{id}/reject', [ContributionController::class, 'reject'])->whereNumber('id')->name('validate.reject');
     // Signalements d'erreur envoyés depuis les fiches (validateurs et administrateurs, ErrorReportPolicy).
     Route::get('/validate/reports', [ErrorReportReviewController::class, 'index'])->name('validate.reports.index');
+    // Lien des notifications : renvoie vers l'onglet et la page de la liste qui montrent ce signalement.
+    Route::get('/validate/reports/{report}', [ErrorReportReviewController::class, 'show'])->whereNumber('report')->name('validate.reports.show');
     Route::patch('/validate/reports/{report}', [ErrorReportReviewController::class, 'update'])->whereNumber('report')->name('validate.reports.update');
     // Retrait d'une contribution non publiée par un administrateur (motif envoyé à l'auteur).
     Route::delete('/validate/{contribution}', ContributionRemovalController::class)->whereNumber('contribution')->name('validate.remove');

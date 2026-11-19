@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Translation\HasLocalePreference;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -121,6 +123,17 @@ class User extends Authenticatable implements HasLocalePreference
     /** Validateur ou administrateur : relit les contributions et examine les signalements. */
     public function isReviewer(): bool
     {
-        return in_array($this->role, [UserRole::Validator, UserRole::Admin], true);
+        return $this->role->isReviewer();
+    }
+
+    /**
+     * Validateurs et administrateurs (UserRole::REVIEWERS).
+     *
+     * @param  Builder<User>  $query
+     */
+    #[Scope]
+    protected function reviewers(Builder $query): void
+    {
+        $query->whereIn('role', array_map(fn (UserRole $role): string => $role->value, UserRole::REVIEWERS));
     }
 }

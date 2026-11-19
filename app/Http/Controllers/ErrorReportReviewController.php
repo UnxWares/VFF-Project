@@ -75,6 +75,33 @@ class ErrorReportReviewController extends Controller
         ]);
     }
 
+    /**
+     * Adresse stable d'un signalement (lien des notifications) : redirection vers l'onglet de son
+     * état actuel et la page de la liste où il figure, ancrée sur lui. Le signalement peut avoir
+     * été traité depuis l'envoi de la notification, ou d'autres être arrivés avant lui.
+     */
+    public function show(ErrorReport $report): RedirectResponse
+    {
+        Gate::authorize('viewAny', ErrorReport::class);
+
+        $before = ErrorReport::query()
+            ->where('status', $report->status->value)
+            ->where(fn ($q) => $report->status->isOpen()
+                // Même ordre que la liste : ouverts du plus ancien au plus récent…
+                ? $q->where('created_at', '<', $report->created_at)
+                    ->orWhere(fn ($q) => $q->where('created_at', $report->created_at)->where('id', '<', $report->id))
+                // … fermés du plus récemment traité au plus anciennement traité.
+                : $q->where('handled_at', '>', $report->handled_at)
+                    ->orWhere(fn ($q) => $q->where('handled_at', $report->handled_at)->where('id', '>', $report->id)))
+            ->count();
+        $page = intdiv($before, self::PER_PAGE) + 1;
+
+        return redirect()->to(route('validate.reports.index', array_filter([
+            'status' => $report->status->isOpen() ? null : $report->status->value,
+            'page' => $page > 1 ? $page : null,
+        ]), absolute: false).'#report-'.$report->id);
+    }
+
     public function update(HandleErrorReportRequest $request, ErrorReport $report, AuditLog $audit): RedirectResponse
     {
         $status = $request->status();
