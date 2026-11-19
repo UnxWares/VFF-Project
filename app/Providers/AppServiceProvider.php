@@ -20,11 +20,13 @@ use App\Services\Api\MediaQuery;
 use App\Services\Api\StationDirectoryQuery;
 use App\Services\Api\StationEventQuery;
 use App\Support\ApiCodeSamples;
+use App\Support\DatabaseGuard;
 use App\Support\SourceRights;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\FormRequestParametersExtractor;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -39,6 +41,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Les commandes qui vident la base ne tournent que sur une base de test (voir DatabaseGuard).
+        $connection = config('database.default');
+        DB::prohibitDestructiveCommands(! DatabaseGuard::isDisposable(config("database.connections.{$connection}.database")));
+
         // Les paramètres de ces listes sont décrits à la main (attributs QueryParameter des contrôleurs : description,
         // bornes, exemple) ; Scramble ne doit pas les redéduire des règles de validation, sans description.
         FormRequestParametersExtractor::ignoreInstanceOf([
