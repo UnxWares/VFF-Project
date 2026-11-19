@@ -80,10 +80,12 @@ return [
 
     'example' => [
         'title' => 'REST-Beispiele',
-        'intro' => 'Drei Anfragen zum Kopieren in ein Terminal, danach die Antwort auf die zweite, so wie der Server sie liefert.',
+        'intro' => 'Drei Anfragen zum Kopieren in ein Terminal, danach die zweite in JavaScript und Python sowie ihre Antwort, so wie der Server sie liefert. Jeder Endpunkt der Scalar-Referenz enthält auch seine JavaScript- und Python-Beispiele.',
         'curl_lines' => 'Streckenverläufe des heutigen Netzes (Epoche 2030) als GeoJSON',
         'curl_pk' => 'Streckenkilometer eines Ortes auf der Strecke Paris-Montparnasse - Brest',
         'curl_search' => 'Suche nach Namen',
+        'js_caption' => 'Die zweite Anfrage in JavaScript (fetch, Node.js 18 oder neuer, oder Browser)',
+        'py_caption' => 'Die zweite Anfrage in Python (Bibliothek requests)',
         'response' => 'Antwort auf die zweite Anfrage: Der Punkt wird auf den nächstgelegenen Streckenverlauf gelegt (snap), hier 395 m entfernt.',
         'code_label' => 'Codebeispiel',
     ],
@@ -127,6 +129,9 @@ return [
             'media' => 'Fotos, Postkarten und Pläne einer Strecke oder eines Bahnhofs, mit ihren Rechten.',
             'materials' => 'Baureihen des Rollmaterials, gefiltert und sortiert.',
             'get_material' => 'Eintrag einer Baureihe, mit den befahrenen Strecken und ihren Belegen.',
+            'accidents' => 'Eisenbahnunfälle und schwere Vorfälle, gefiltert nach Strecke, Zeitraum, Art, Département oder Opferzahl, mit ihren Quellen.',
+            'get_accident' => 'Eintrag eines Unfalls: zugeordnete Strecken, gelesene Quellen mit ihrer Lizenz und zu prüfende Punkte.',
+            'compare_eras' => 'Eröffnete, stillgelegte, abgebaute oder weiter betriebene Kilometer zwischen zwei Epochen der Karte.',
             'sources_and_licences' => 'Datenanbieter und Lizenzen.',
         ],
         'licence_title' => 'Namensnennung',

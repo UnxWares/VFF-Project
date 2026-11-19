@@ -81,10 +81,12 @@ return [
 
     'example' => [
         'title' => 'Exemples REST',
-        'intro' => 'Trois requêtes à copier dans un terminal, puis la réponse de la deuxième, telle que le serveur la renvoie.',
+        'intro' => 'Trois requêtes à copier dans un terminal, puis la deuxième en JavaScript et en Python, et sa réponse, telle que le serveur la renvoie. Chaque point d’accès de la référence Scalar porte aussi ses exemples JavaScript et Python.',
         'curl_lines' => 'Tracés du réseau d’aujourd’hui (ère 2030), en GeoJSON',
         'curl_pk' => 'Point kilométrique d’un lieu sur la ligne Paris-Montparnasse - Brest',
         'curl_search' => 'Recherche par nom',
+        'js_caption' => 'La deuxième requête en JavaScript (fetch, Node.js 18 ou plus, ou navigateur)',
+        'py_caption' => 'La deuxième requête en Python (bibliothèque requests)',
         'response' => 'Réponse à la deuxième requête : le point est ramené sur le tracé le plus proche (snap), à 395 m ici.',
         'code_label' => 'Exemple de code',
     ],
@@ -128,6 +130,9 @@ return [
             'media' => 'Photos, cartes postales et plans d’une ligne ou d’une gare, avec leurs droits.',
             'materials' => 'Séries de matériel roulant, filtrées et triées.',
             'get_material' => 'Fiche d’une série de matériel, avec les lignes parcourues et leurs preuves.',
+            'accidents' => 'Accidents et événements graves du rail, filtrés par ligne, période, nature, département ou bilan, avec leurs sources.',
+            'get_accident' => 'Fiche d’un accident : lignes rattachées, sources lues avec leur licence et points à vérifier.',
+            'compare_eras' => 'Kilomètres ouverts, fermés, déposés ou restés en service entre deux époques de la carte.',
             'sources_and_licences' => 'Fournisseurs de données et licences.',
         ],
         'licence_title' => 'Attribution',

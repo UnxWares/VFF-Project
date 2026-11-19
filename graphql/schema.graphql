@@ -1454,6 +1454,20 @@ type Query {
     ): Era @find
 
     """
+    Ce qui a changé sur le réseau entre deux ères de la carte : kilomètres et nombre de lignes
+    ouvertes, fermées, déposées ou restées en service. Même résumé que l'API REST
+    `GET /api/v1/eras/{year}/compare/{other}`, mêmes noms de champs. Les deux années peuvent venir
+    dans n'importe quel ordre. Erreur de requête si une année n'est pas une décennie de la carte
+    ou si les deux années sont identiques.
+    """
+    eraComparison(
+        "Première année comparée : une décennie de 1830 à 2030 (ex. `1930`)."
+        from: Int!
+        "Seconde année comparée : une autre décennie de 1830 à 2030 (ex. `1980`)."
+        to: Int!
+    ): EraComparison! @field(resolver: "App\\GraphQL\\Resolvers\\EraComparisonResolver")
+
+    """
     Lignes, page par page (20 par défaut, 100 au plus), filtrables par nom, code et trafic.
     Les filtres `name` et `code` ignorent la casse et acceptent le joker `%` :
     `name: "%brest%"` trouve toutes les lignes dont le nom contient « brest ».
@@ -1596,6 +1610,78 @@ type KmByCode {
 
     "Longueur en kilomètres (une décimale dans les fiches, arrondie à l'unité dans les statistiques d'ère)."
     km: Float!
+}
+
+"""
+Comparaison de deux ères de la carte : ce qui a changé sur le réseau entre deux décennies.
+Les longueurs additionnent les tronçons de la carte (voies parallèles d'une même ligne
+comprises, arrondies au kilomètre) : un ordre de grandeur, pas le kilométrage officiel. Les
+tronçons sont appariés d'une ère à l'autre par ligne et par géométrie identique. Chaque ère est
+un instantané au 31/12 de son année ; 2030 est le réseau d'aujourd'hui.
+"""
+type EraComparison {
+    "Année de la plus ancienne des deux ères comparées."
+    from: Int!
+
+    "Année de la plus récente des deux ères comparées."
+    to: Int!
+
+    "Changements entre `from` et `to`, par catégorie."
+    changes: EraChanges!
+
+    "Longueur en service à chacune des deux ères, en km arrondis."
+    open_km: EraOpenKm!
+
+    "Liens utiles : cette comparaison en REST, sur la carte, tuiles vectorielles, sources."
+    links: EraComparisonLinks!
+}
+
+"Les quatre catégories de changement entre deux ères."
+type EraChanges {
+    "Ouvert ou rouvert entre les deux ères : en service à `to`, pas à `from`."
+    opened: EraChangeTotal!
+
+    "Fermé à `to` voie en place (voie de service comprise), alors qu'il ne l'était pas à `from`."
+    closed: EraChangeTotal!
+
+    "En service ou fermé à `from`, déposé ou disparu à `to`."
+    removed: EraChangeTotal!
+
+    "En service aux deux ères."
+    kept: EraChangeTotal!
+}
+
+"Longueur et nombre de lignes d'une catégorie de changement."
+type EraChangeTotal {
+    "Somme des tronçons concernés, en kilomètres arrondis (voies parallèles d'une même ligne comprises)."
+    km: Int!
+
+    "Nombre de lignes dont au moins un tronçon est concerné (une ligne fermée en partie compte dans `closed` et dans `kept`)."
+    lines: Int!
+}
+
+"Longueur en service à chacune des deux ères comparées."
+type EraOpenKm {
+    "Longueur en service à l'ère `from`, en km arrondis."
+    from: Int!
+
+    "Longueur en service à l'ère `to`, en km arrondis."
+    to: Int!
+}
+
+"Liens associés à une comparaison d'ères."
+type EraComparisonLinks {
+    "Adresse de cette comparaison dans l'API REST."
+    self: String!
+
+    "La comparaison sur la carte du site."
+    map: String!
+
+    "Gabarit des tuiles vectorielles MVT de la comparaison (`{z}/{x}/{y}` à remplacer, MapLibre)."
+    tiles: String!
+
+    "Registre des sources et de leurs licences."
+    sources: String!
 }
 
 "Nombre d'objets rattachés à un code (ex. gares par statut)."

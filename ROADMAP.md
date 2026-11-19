@@ -176,7 +176,7 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] Endpoints : lignes et gares par époque (GeoJSON), tuiles MVT, export GTFS par époque, recherche, historique, PK, arrêts, signalisation et médias d'une ligne, itinéraire
 - [x] Documentation : page `/api`, référence [Scalar](https://scalar.com/) sur `/docs/api`, Swagger UI sur `/docs/swagger`
 - [x] Accès libre sans clé, limité à 300 requêtes par minute et par adresse IP
-- [~] Exemples intégrés (curl fait ; JavaScript et Python à faire)
+- [x] Exemples intégrés : curl, JavaScript (`fetch`) et Python (`requests`) sur la page `/api` et, pour les principaux points d'accès, dans la référence Scalar (`x-codeSamples`)
 - [x] Points d'accès des annuaires, fiches complètes, tronçons, époques, sources, événements, médias, matériel et accidents
 - [ ] Jetons API (Sanctum) et quotas par profil (anonyme / inscrit / partenaire)
 - [ ] Webhooks pour notifier les changements
@@ -270,7 +270,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [~] **Passages à niveau** : données SNCF Réseau importées ; à faire : affichage sur la carte et les fiches
 - [x] **Matériel roulant** : 687 séries importées de Wikidata (CC0) avec leur image Commons et la provenance de chaque champ (`vff:import-materials`), 969 liens ligne × matériel attestés par Wikidata ou par les articles Wikipédia (phrase citée, permalien, fiabilité), API REST (`/api/v1/materials`, `/api/v1/lines/{slug}/materials`) et GraphQL ; à faire : fiches enrichies sur le site, périodes de circulation par portion
 - [x] **Accidents** : 202 fiches (Wikidata, Wikipédia, BEA-TT), pages, API, calque de carte
-- [x] **Serveur MCP** pour que les assistants IA interrogent l'encyclopédie avec ses sources (13 outils, lecture seule, `docs/MCP.md`)
+- [x] **Serveur MCP** pour que les assistants IA interrogent l'encyclopédie avec ses sources (16 outils dont accidents et comparaison d'ères, lecture seule, `docs/MCP.md`)
 
 ---
 

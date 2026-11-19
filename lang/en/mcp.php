@@ -20,6 +20,7 @@ return [
             'archeoferroviaire' => 'archeoferroviaire.free.fr (J. Randé, F. Librini, K. Moreau), non-commercial use, with a link to the article',
             'lignes-oubliees' => 'lignes-oubliees.com, information reproduced with credit and a link to the entry',
             'argentanwebferro' => 'Argentan Web Ferroviaire (Thierry Danglos), facts reused with a link to the article',
+            'bea-tt' => 'BEA-TT (French land transport accident investigation bureau), Open Licence 2.0 (Etalab); general overview of investigations and report links, with the overview’s update date',
         ],
     ],
 
@@ -28,7 +29,9 @@ return [
         'line_not_found' => 'Line not found: “:query”. Look up its identifier with the search tool (suggestions attached).',
         'station_not_found' => 'Station not found: “:query”. Look up its identifier with the search tool (suggestions attached).',
         'material_not_found' => 'Rolling stock class not found: “:query”. Look up its identifier with the search or materials tool (suggestions attached).',
+        'accident_not_found' => 'Accident not found: “:query”. Look up its identifier with the accidents tool (q filter).',
         'era_not_found' => 'No network map for :year (see the available eras).',
+        'same_era' => 'Both years fall in the same map era (:year): choose two different decades (see the available eras).',
         'graph_not_built' => 'The rail graph for this period has not been computed yet: no route can be calculated for now.',
         'ambiguous_station' => 'Several stations match: use a slug from the candidates.',
         'same_station' => 'Departure and arrival are the same station.',
@@ -41,6 +44,17 @@ return [
     'truncated_page' => 'Page shortened to stay under the maximum size: next_cursor resumes at the first item not returned, so nothing is lost.',
     'between' => 'between :from and :to (no source dates this change)',
     'today' => 'today',
+
+    'accidents' => [
+        'review_note' => 'Record “to be checked”: at least one point is uncertain (tolls or dates that differ between sources, place known only to the commune, uncertain line). Do not present it as certain: the details are in review.notes of get_accident.',
+    ],
+
+    'compare' => [
+        'opened' => 'Opened or reopened between the two eras (in service at the second, not at the first)',
+        'closed' => 'Closed with the track still in place at the second era, not at the first',
+        'removed' => 'Lifted or gone at the second era (in service or closed at the first)',
+        'kept' => 'In service at both eras',
+    ],
 
     'traffic' => [
         'passenger' => 'Passengers only',

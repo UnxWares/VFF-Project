@@ -3,6 +3,7 @@
 // ce module monte la console, avec la requête d'exemple de VFF et le thème du site.
 import '../../css/docs/docs.css';
 import '../../css/docs/graphiql.css';
+import { markContentLanguage, markPortalLanguage } from './language.js';
 import { isDark, setupThemeToggle } from './theme.js';
 
 /** Globales posées par les scripts classiques de public/vendor/graphiql (React, ReactDOM, GraphiQL). */
@@ -31,4 +32,10 @@ function render(dark) {
 }
 
 render(isDark());
+
+// L'interface de GraphiQL est en anglais (zone `lang="en"`), y compris ses fenêtres, ajoutées au <body> hors
+// de cette zone. La requête d'exemple, elle, est dans la langue du site (config.locale).
+markPortalLanguage(document.body, 'en');
+if (config.locale && config.locale !== 'en')
+    markContentLanguage(container, '.graphiql-query-editor .CodeMirror-code', config.locale);
 setupThemeToggle(render);

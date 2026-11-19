@@ -20,6 +20,7 @@ return [
             'archeoferroviaire' => 'archeoferroviaire.free.fr (J. Randé, F. Librini, K. Moreau), nicht kommerzielle Nutzung, mit Link zum Artikel',
             'lignes-oubliees' => 'lignes-oubliees.com, Angaben mit Herkunftsnennung und Link zum Eintrag wiedergegeben',
             'argentanwebferro' => 'Argentan Web Ferroviaire (Thierry Danglos), Fakten mit Link zum Artikel übernommen',
+            'bea-tt' => 'BEA-TT (französische Untersuchungsstelle für Landverkehrsunfälle), Licence Ouverte 2.0 (Etalab); Gesamtübersicht der Untersuchungen und Links zu den Berichten, mit dem Aktualisierungsdatum der Übersicht',
         ],
     ],
 
@@ -28,7 +29,9 @@ return [
         'line_not_found' => 'Strecke nicht gefunden: „:query“. Suchen Sie ihre Kennung mit dem Werkzeug search (Vorschläge anbei).',
         'station_not_found' => 'Bahnhof nicht gefunden: „:query“. Suchen Sie seine Kennung mit dem Werkzeug search (Vorschläge anbei).',
         'material_not_found' => 'Fahrzeugbaureihe nicht gefunden: „:query“. Suchen Sie ihre Kennung mit dem Werkzeug search oder materials (Vorschläge anbei).',
+        'accident_not_found' => 'Unfall nicht gefunden: „:query“. Suchen Sie seine Kennung mit dem Werkzeug accidents (Filter q).',
         'era_not_found' => 'Keine Netzkarte für :year (siehe verfügbare Epochen).',
+        'same_era' => 'Beide Jahre liegen in derselben Epoche der Karte (:year): Wählen Sie zwei verschiedene Jahrzehnte (siehe verfügbare Epochen).',
         'graph_not_built' => 'Der Streckengraph dieser Epoche ist noch nicht berechnet: derzeit keine Route möglich.',
         'ambiguous_station' => 'Mehrere Bahnhöfe passen: Geben Sie einen Slug aus den Kandidaten an.',
         'same_station' => 'Abfahrt und Ankunft bezeichnen denselben Bahnhof.',
@@ -41,6 +44,17 @@ return [
     'truncated_page' => 'Seite gekürzt, um unter der Höchstgröße zu bleiben: next_cursor setzt beim ersten nicht gelieferten Element fort, es geht nichts verloren.',
     'between' => 'zwischen :from und :to (keine Quelle datiert diese Änderung)',
     'today' => 'heute',
+
+    'accidents' => [
+        'review_note' => 'Eintrag „zu prüfen“: Mindestens ein Punkt ist unsicher (Opferzahlen oder Daten, die je nach Quelle abweichen, Ort nur auf Gemeindeebene bekannt, unsichere Strecke). Stellen Sie ihn nicht als gesichert dar: Einzelheiten stehen in review.notes von get_accident.',
+    ],
+
+    'compare' => [
+        'opened' => 'Zwischen den beiden Epochen eröffnet oder wiedereröffnet (in der zweiten in Betrieb, in der ersten nicht)',
+        'closed' => 'In der zweiten Epoche stillgelegt, Gleis noch vorhanden, in der ersten nicht',
+        'removed' => 'In der zweiten Epoche abgebaut oder verschwunden (in der ersten in Betrieb oder stillgelegt)',
+        'kept' => 'In beiden Epochen in Betrieb',
+    ],
 
     'traffic' => [
         'passenger' => 'Nur Personenverkehr',

@@ -117,10 +117,12 @@ class VffMcpServerTest extends TestCase
             ->assertJsonPath('result.serverInfo.name', 'VFF - Voies Ferrées de France')
             ->assertHeader('X-RateLimit-Limit', '300');
 
-        $tools = collect((array) $this->rpc('tools/list')->assertOk()->json('result.tools'))->keyBy('name');
+        $list = $this->rpc('tools/list')->assertOk();
+        $this->assertNull($list->json('result.nextCursor'), 'tous les outils tiennent dans la première page');
+        $tools = collect((array) $list->json('result.tools'))->keyBy('name');
         $this->assertEqualsCanonicalizing(
             ['search', 'get_line', 'line_events', 'get_station', 'network_at_era', 'historical_route', 'sources_and_licences',
-                'network_events', 'media', 'list_lines', 'list_stations', 'materials', 'get_material'],
+                'network_events', 'media', 'list_lines', 'list_stations', 'materials', 'get_material', 'accidents', 'get_accident', 'compare_eras'],
             $tools->keys()->all(),
         );
         foreach ($tools as $name => $tool) {

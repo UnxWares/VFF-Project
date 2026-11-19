@@ -80,10 +80,12 @@ return [
 
     'example' => [
         'title' => 'REST examples',
-        'intro' => 'Three requests to copy into a terminal, then the answer to the second one, as the server returns it.',
+        'intro' => 'Three requests to copy into a terminal, then the second one in JavaScript and Python, and its answer, as the server returns it. Each endpoint in the Scalar reference also carries its JavaScript and Python examples.',
         'curl_lines' => 'Routes of today\'s network (era 2030), as GeoJSON',
         'curl_pk' => 'Kilometre point of a location on the Paris-Montparnasse - Brest line',
         'curl_search' => 'Search by name',
+        'js_caption' => 'The second request in JavaScript (fetch, Node.js 18 or later, or a browser)',
+        'py_caption' => 'The second request in Python (requests library)',
         'response' => 'Answer to the second request: the point is moved onto the nearest route (snap), 395 m away here.',
         'code_label' => 'Code sample',
     ],
@@ -127,6 +129,9 @@ return [
             'media' => 'Photos, postcards and plans of a line or station, with their rights.',
             'materials' => 'Rolling stock classes, filtered and sorted.',
             'get_material' => 'Entry for a rolling stock class, with the lines it ran on and the evidence.',
+            'accidents' => 'Rail accidents and serious incidents, filtered by line, period, kind, département or toll, with their sources.',
+            'get_accident' => 'Entry for an accident: attached lines, sources read with their licence, and points to check.',
+            'compare_eras' => 'Kilometres opened, closed, lifted or kept in service between two map eras.',
             'sources_and_licences' => 'Data providers and licences.',
         ],
         'licence_title' => 'Attribution',

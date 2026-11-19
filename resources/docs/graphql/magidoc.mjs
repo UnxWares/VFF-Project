@@ -17,8 +17,8 @@ const introduction = `
 # API GraphQL de VFF
 
 **VFF - Voies Ferrées de France** est l'encyclopédie collaborative du rail français. Son API
-GraphQL donne accès aux lignes, gares, tronçons, chronologies, signalisation et matériels
-roulants, ainsi qu'au calcul d'itinéraires historiques.
+GraphQL donne accès aux lignes, gares, tronçons, chronologies, signalisation, matériels roulants
+et accidents, à la comparaison de deux ères, ainsi qu'au calcul d'itinéraires historiques.
 
 - Point d'accès : \`POST https://vff-project.org/graphql\` (corps JSON \`{"query": "…", "variables": {…}}\`).
 - Essais en direct : [GraphiQL](${ORIGIN}/graphiql).
@@ -135,6 +135,17 @@ jusqu'à quelques secondes : demandez-en une à la fois.
 réseau à une époque (longueurs, lignes actives, gares par statut) et \`sources\` le registre des
 fournisseurs de données avec leur licence et la mention à reproduire.
 
+\`eraComparison(from: 1930, to: 1980)\` résume ce qui a changé entre deux ères : kilomètres et nombre
+de lignes ouvertes (\`opened\`), fermées voie en place (\`closed\`), déposées ou disparues
+(\`removed\`) et restées en service (\`kept\`), avec la longueur en service à chaque date
+(\`open_km\`). Mêmes chiffres et mêmes noms que \`GET /api/v1/eras/{year}/compare/{other}\`.
+
+\`accidents\` et \`accident(slug:)\` donnent les accidents et événements graves du rail (date et sa
+précision, lieu, ligne rattachée et portion, bilan humain et sa source, sources lues avec leur
+licence), avec les mêmes filtres que \`GET /api/v1/accidents\` ; \`Line.accidents\` liste ceux d'une
+ligne. Une fiche dont \`review_status\` vaut \`to_review\` a un point incertain : à présenter comme
+tel.
+
 \`\`\`graphql
 {
   lineDirectory(filter: { department: "29", status: "closed", sort: "code" }, first: 5) {
@@ -149,6 +160,15 @@ fournisseurs de données avec leur licence et la mention à reproduire.
   }
 
   era(year: 1930) { snapshot_date stats { open_km active_lines stations_by_status { code count } } }
+
+  eraComparison(from: 1930, to: 1980) {
+    changes { closed { km lines } removed { km lines } }
+    open_km { from to }
+  }
+
+  accidents(first: 3, filter: { kind: "derailment", min_deaths: 10, sort: "-deaths" }) {
+    data { slug name date date_precision deaths review_status }
+  }
 
   source(provider: "osm") { name licence mention }
 }

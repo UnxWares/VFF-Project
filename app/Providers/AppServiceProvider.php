@@ -18,7 +18,9 @@ use App\Services\Api\MaterialQuery;
 use App\Services\Api\MediaQuery;
 use App\Services\Api\StationDirectoryQuery;
 use App\Services\Api\StationEventQuery;
+use App\Support\ApiCodeSamples;
 use App\Support\SourceRights;
+use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\FormRequestParametersExtractor;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -42,6 +44,9 @@ class AppServiceProvider extends ServiceProvider
             ListLinesRequest::class, ListStationsRequest::class, LineDirectoryQuery::class, StationDirectoryQuery::class,
             ListAccidentsRequest::class, AccidentQuery::class, AccidentMapRequest::class,
         ]);
+
+        // Exemples JavaScript et Python des principaux points d'accès (extension x-codeSamples lue par Scalar).
+        Scramble::configure()->withDocumentTransformers(ApiCodeSamples::class);
 
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
