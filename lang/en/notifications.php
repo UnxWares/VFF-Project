@@ -27,8 +27,8 @@ return [
             'body' => 'It will be published once two different members have approved it.',
         ],
         'approved' => [
-            'title' => 'Your contribution no. :id has received its first approval',
-            'body' => 'It will be published once a second reviewer has approved it.',
+            'title' => 'Your contribution no. :id has received :count approval (:threshold needed)|Your contribution no. :id has received :count approvals (:threshold needed)',
+            'body' => 'It will be published once one more reviewer has approved it.|It will be published once :count more reviewers have approved it.',
         ],
         'applied' => [
             'title' => 'Your contribution no. :id has been published',

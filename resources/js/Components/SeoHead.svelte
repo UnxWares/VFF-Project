@@ -51,8 +51,13 @@
     });
 
     // Navigation interne ou changement de langue : les balises du serveur ne sont plus celles de la page.
+    // Sans description propre, la page garde la description générale du site.
     $effect(() => {
-        dropStaleServerSeo(path, ogLocale(lang));
+        dropStaleServerSeo(
+            path,
+            ogLocale(lang),
+            description ? null : $i18n.t('common.app_description'),
+        );
     });
 </script>
 

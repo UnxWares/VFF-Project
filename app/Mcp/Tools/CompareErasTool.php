@@ -7,7 +7,6 @@ use App\Mcp\Support\Lookup;
 use App\Mcp\Support\VffTool;
 use App\Services\EraComparison;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
-use Illuminate\Support\Facades\DB;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -65,9 +64,12 @@ class CompareErasTool extends VffTool
             return $this->fail('same_era', ['year' => $from->year], ['available_eras' => Lookup::eraYears()]);
         }
 
-        $summary = app(EraComparison::class)->summary($from->id, $to->id);
-        $providers = DB::table('line_segments')->whereIn('era_id', [$from->id, $to->id])->distinct()->pluck('source')
-            ->map(fn ($s) => $this->attribution->providerFor('line_segments', $s))->all();
+        $comparison = app(EraComparison::class);
+        $report = $comparison->compare($from->id, $from->year, $to->id, $to->year, (string) config('mcp.vff.public_url'));
+        $providers = array_map(
+            fn (?string $source): ?string => $this->attribution->providerFor('line_segments', $source),
+            $comparison->sources($from->id, $to->id),
+        );
         $labels = [];
         foreach (EraChange::cases() as $change) {
             $labels[$change->value] = (string) trans('mcp.compare.'.$change->value, [], $lang);
@@ -75,16 +77,14 @@ class CompareErasTool extends VffTool
 
         return $this->respond([
             'requested_years' => $requested,
-            'from' => $from->year,
-            'to' => $to->year,
-            'changes' => $summary['changes'],
-            'open_km' => $summary['open_km'],
+            'from' => $report['from'],
+            'to' => $report['to'],
+            'changes' => $report['changes'],
+            'open_km' => $report['open_km'],
             'labels' => $labels,
-            'links' => [
-                'map' => self::url("/maps?era={$from->year}&compare={$to->year}"),
-                'tiles' => self::url("/api/v1/eras/{$from->year}/compare/{$to->year}/tiles").'/{z}/{x}/{y}.mvt',
-            ],
+            // Liens de la carte et des tuiles seulement : l'API REST est décrite à part.
+            'links' => ['map' => $report['links']['map'], 'tiles' => $report['links']['tiles']],
             'available_eras' => Lookup::eraYears(),
-        ], $providers, $lang, self::url("/maps?era={$from->year}&compare={$to->year}"));
+        ], $providers, $lang, $report['links']['map']);
     }
 }

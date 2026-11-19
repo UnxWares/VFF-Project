@@ -128,6 +128,38 @@ final class MediaQuery
     }
 
     /**
+     * Médias d'une ligne (galerie de la fiche, `GET /api/v1/lines/{line}/media`, images des aperçus de
+     * partage), sans ordre : à compléter par des filtres puis par galleryOrder().
+     *
+     * @return Builder<Media>
+     */
+    public function forLine(int $lineId): Builder
+    {
+        return Media::query()
+            ->where('mediable_type', Line::class)
+            ->where('mediable_id', $lineId);
+    }
+
+    /**
+     * Ordre de la galerie d'une ligne : `oldest` (époque représentée la plus ancienne d'abord, défaut),
+     * `newest` ou `featured` (mis en avant d'abord) ; médias non datés en dernier, puis par identifiant
+     * (ordre stable d'une page à l'autre).
+     *
+     * @param  Builder<Media>  $query
+     * @return Builder<Media>
+     */
+    public function galleryOrder(Builder $query, string $sort = 'oldest'): Builder
+    {
+        match ($sort) {
+            'newest' => $query->orderByRaw('depicted_year DESC NULLS LAST'),
+            'featured' => $query->orderByDesc('is_featured')->orderByRaw('depicted_year ASC NULLS LAST'),
+            default => $query->orderByRaw('depicted_year ASC NULLS LAST'),
+        };
+
+        return $query->orderBy('id');
+    }
+
+    /**
      * Restreint à une tranche d'époque représentée (`undated` : année inconnue).
      *
      * @param  Builder<Media>  $query

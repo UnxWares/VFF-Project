@@ -12,8 +12,11 @@ use Illuminate\Support\Facades\DB;
  *
  * Calcul à la volée sur `line_segments`, sans table ni pipeline : les tronçons d'une ère
  * sont appariés à ceux de l'autre par ligne et par géométrie identique (empreinte md5 du
- * WKB), puis classés par EraChange. Les deux années arrivent dans l'ordre chronologique
- * (EraPair).
+ * WKB), puis classés par EraChange. Les deux ères arrivent dans l'ordre chronologique
+ * (la plus ancienne d'abord) : c'est à l'appelant de les remettre dans l'ordre.
+ *
+ * compare() rend le contenu commun à l'API REST (`GET /api/v1/eras/{year}/compare/{other}`), à
+ * GraphQL (`eraComparison`) et à l'outil MCP `compare_eras`, liens compris.
  */
 class EraComparison
 {
@@ -21,15 +24,66 @@ class EraComparison
     private const SUMMARY_TTL = 600;
 
     /**
-     * Longueur (km arrondis) et nombre de lignes touchées pour chaque changement (clé =
-     * EraChange::value), et longueur en service à chacune des deux ères.
+     * Comparaison prête à servir : années comparées, changements, longueurs en service et liens
+     * (même contenu pour REST, GraphQL et MCP).
      *
-     * @return array{changes: array<string, array{km: int, lines: int}>, open_km: array{from: int, to: int}}
+     * @param  string  $baseUrl  adresse du site devant les liens (`url('/')`, ou l'adresse publique pour MCP)
+     * @return array{from: int, to: int, changes: array<string, array{km: int, lines: int}>, open_km: array{from: int, to: int}, links: array{self: string, map: string, tiles: string, sources: string}}
      */
-    public function summary(int $fromEraId, int $toEraId): array
+    public function compare(int $fromEraId, int $fromYear, int $toEraId, int $toYear, string $baseUrl): array
+    {
+        $summary = $this->summary($fromEraId, $toEraId);
+
+        return [
+            'from' => $fromYear,
+            'to' => $toYear,
+            'changes' => $summary['changes'],
+            'open_km' => $summary['open_km'],
+            'links' => self::links($fromYear, $toYear, $baseUrl),
+        ];
+    }
+
+    /**
+     * Liens d'une comparaison : elle-même dans l'API, la vue « Comparer » de la carte, le gabarit
+     * MapLibre de ses tuiles et la liste des sources.
+     *
+     * @return array{self: string, map: string, tiles: string, sources: string}
+     */
+    public static function links(int $fromYear, int $toYear, string $baseUrl): array
+    {
+        $base = rtrim($baseUrl, '/');
+        $self = $base.route('api.eras.compare', [$fromYear, $toYear], absolute: false);
+
+        return [
+            'self' => $self,
+            'map' => "{$base}/maps?era={$fromYear}&compare={$toYear}",
+            // Gabarit MapLibre : route() refuse « {z} » (paramètre numérique).
+            'tiles' => "{$self}/tiles/{z}/{x}/{y}.mvt",
+            'sources' => $base.route('api.sources.index', absolute: false),
+        ];
+    }
+
+    /**
+     * Fournisseurs (`line_segments.source`) des tronçons des deux ères, pour l'attribution ; gardés
+     * en cache avec le résumé.
+     *
+     * @return list<string|null>
+     */
+    public function sources(int $fromEraId, int $toEraId): array
+    {
+        return $this->summary($fromEraId, $toEraId)['sources'];
+    }
+
+    /**
+     * Longueur (km arrondis) et nombre de lignes touchées pour chaque changement (clé =
+     * EraChange::value), longueur en service à chacune des deux ères et fournisseurs des tronçons.
+     *
+     * @return array{changes: array<string, array{km: int, lines: int}>, open_km: array{from: int, to: int}, sources: list<string|null>}
+     */
+    private function summary(int $fromEraId, int $toEraId): array
     {
         return Cache::remember(
-            "era-compare:summary:{$fromEraId}:{$toEraId}",
+            "era-compare:summary:v2:{$fromEraId}:{$toEraId}",
             self::SUMMARY_TTL,
             fn (): array => $this->computeSummary($fromEraId, $toEraId),
         );
@@ -62,7 +116,7 @@ class EraComparison
         return MvtBytes::from($result->tile ?? '');
     }
 
-    /** @return array{changes: array<string, array{km: int, lines: int}>, open_km: array{from: int, to: int}} */
+    /** @return array{changes: array<string, array{km: int, lines: int}>, open_km: array{from: int, to: int}, sources: list<string|null>} */
     private function computeSummary(int $fromEraId, int $toEraId): array
     {
         $pairs = $this->pairsSql('');
@@ -88,7 +142,16 @@ class EraComparison
             }
         }
 
-        return ['changes' => $changes, 'open_km' => ['from' => (int) round($openBefore), 'to' => (int) round($openAfter)]];
+        // null compris : un tronçon sans source a aussi son fournisseur par défaut (attribution MCP).
+        $sources = DB::table('line_segments')->whereIn('era_id', [$fromEraId, $toEraId])
+            ->distinct()->orderBy('source')->pluck('source')
+            ->map(fn ($source): ?string => $source === null ? null : (string) $source)->values()->all();
+
+        return [
+            'changes' => $changes,
+            'open_km' => ['from' => (int) round($openBefore), 'to' => (int) round($openAfter)],
+            'sources' => $sources,
+        ];
     }
 
     /**

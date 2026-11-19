@@ -88,18 +88,7 @@ class EraComparisonController extends Controller
         [$from, $to] = $pair;
 
         return response()->json([
-            'data' => [
-                'from' => $from->year,
-                'to' => $to->year,
-                ...$this->comparison->summary($from->id, $to->id),
-                'links' => [
-                    'self' => route('api.eras.compare', [$from->year, $to->year]),
-                    'map' => url("/maps?era={$from->year}&compare={$to->year}"),
-                    // Gabarit MapLibre : route() refuse « {z} » (paramètre numérique).
-                    'tiles' => url("/api/v1/eras/{$from->year}/compare/{$to->year}/tiles").'/{z}/{x}/{y}.mvt',
-                    'sources' => route('api.sources.index'),
-                ],
-            ],
+            'data' => $this->comparison->compare($from->id, $from->year, $to->id, $to->year, url('/')),
         ])->header('Cache-Control', 'public, max-age=300');
     }
 

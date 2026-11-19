@@ -87,6 +87,40 @@ class ShareTagsTest extends TestCase
         $this->assertSame(['Voies Ferrées de France', 'Lignes', 'Ligne de Limoges-Bénédictins à Angoulême'], array_column($breadcrumb['itemListElement'], 'name'));
     }
 
+    public function test_a_media_without_image_is_skipped_for_the_share_image(): void
+    {
+        $line = Line::factory()->create(['slug' => 'rfn-570000', 'name' => 'Ligne de Paris à Bordeaux']);
+        $media = fn (array $attributes) => Media::factory()->create([
+            'mediable_type' => Line::class, 'mediable_id' => $line->id, 'type' => MediaType::Document->value, 'provider' => 'gallica',
+            'thumb_url' => null, 'display_url' => null, 'file_path' => null, ...$attributes,
+        ]);
+        // Le plus ancien (premier de la galerie) n'a aucune image : il est sauté, sans erreur 500.
+        $media(['depicted_year' => 1850, 'caption' => 'Acte de concession', 'external_id' => 'doc-1']);
+        $this->assertSame(Response::HTTP_OK, $this->get('/lines/rfn-570000')->getStatusCode());
+
+        $media(['depicted_year' => 1900, 'type' => MediaType::Photo->value, 'provider' => 'commons', 'caption' => 'Gare de Poitiers',
+            'thumb_url' => '//upload.wikimedia.org/thumb/500.jpg', 'external_id' => 'File:Poitiers.jpg']);
+        $doc = $this->document($this->get('/lines/rfn-570000')->assertOk());
+
+        $this->assertSame('https://upload.wikimedia.org/thumb/500.jpg', $this->meta($doc, 'og:image'));
+        $this->assertSame('Gare de Poitiers', $this->meta($doc, 'og:image:alt'));
+        [$place] = $this->jsonLd($doc);
+        $this->assertCount(1, $place['image']);
+    }
+
+    public function test_a_line_whose_media_have_no_image_has_no_share_image(): void
+    {
+        $line = Line::factory()->create(['slug' => 'rfn-571000']);
+        Media::factory()->create([
+            'mediable_type' => Line::class, 'mediable_id' => $line->id, 'type' => MediaType::Document->value, 'provider' => 'gallica',
+            'thumb_url' => null, 'display_url' => null, 'file_path' => null, 'external_id' => 'doc-2',
+        ]);
+        $doc = $this->document($this->get('/lines/rfn-571000')->assertOk());
+
+        $this->assertNull($this->meta($doc, 'og:image'));
+        $this->assertSame('summary', $this->meta($doc, 'twitter:card'));
+    }
+
     public function test_every_share_tag_appears_once_and_the_generic_description_is_replaced(): void
     {
         Line::factory()->create(['slug' => 'rfn-1', 'name' => 'Ligne 1']);

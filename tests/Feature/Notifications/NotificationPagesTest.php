@@ -85,9 +85,11 @@ class NotificationPagesTest extends TestCase
         $me = $this->member('contributor');
         $this->notified($me);
         $notification = $me->notifications()->sole();
-        $notification->forceFill(['data' => [...$notification->data, 'url' => '//exemple.org/']])->save();
+        foreach (['//exemple.org/', '/\\exemple.org/', '/\\/exemple.org', 'https://exemple.org/', "/\t/exemple.org", 'contribute/mine'] as $url) {
+            $notification->forceFill(['data' => [...$notification->data, 'url' => $url]])->save();
 
-        $this->actingAs($me)->get("/notifications/{$notification->id}")->assertRedirect('/notifications');
+            $this->actingAs($me)->get("/notifications/{$notification->id}")->assertRedirect('/notifications');
+        }
     }
 
     public function test_someone_elses_notification_cannot_be_opened(): void

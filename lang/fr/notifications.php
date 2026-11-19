@@ -29,8 +29,8 @@ return [
             'body' => 'Elle sera publiée après deux validations de membres différents.',
         ],
         'approved' => [
-            'title' => 'Votre contribution n° :id a reçu une première validation',
-            'body' => 'Elle sera publiée quand un second validateur l’aura approuvée.',
+            'title' => 'Votre contribution n° :id a reçu :count validation sur les :threshold nécessaires|Votre contribution n° :id a reçu :count validations sur les :threshold nécessaires',
+            'body' => 'Elle sera publiée quand un autre validateur l’aura approuvée.|Elle sera publiée quand :count autres validateurs l’auront approuvée.',
         ],
         'applied' => [
             'title' => 'Votre contribution n° :id est publiée',

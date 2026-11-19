@@ -26,7 +26,7 @@ use Inertia\Response;
 class ContributionController extends Controller
 {
     /** Nombre d'approbations indépendantes requises avant application. */
-    private const APPROVAL_THRESHOLD = 2;
+    public const APPROVAL_THRESHOLD = 2;
 
     /** Attributs d'une portion qu'une modification par PK peut changer (les autres clés sont ignorées). */
     private const SEGMENT_FIELDS = ['status', 'traffic_type', 'electrified', 'voltage_v', 'max_speed_kmh', 'is_heritage'];
@@ -304,7 +304,7 @@ class ContributionController extends Controller
         if ((int) $contribution->user_id === (int) $userId) {
             return back()->with('error', __('editor.validate.flash.own'));
         }
-        if (! in_array($contribution->status, [ContributionStatus::Pending, ContributionStatus::Approved], true)) {
+        if (! $contribution->status->isOpen()) {
             return back()->with('error', __('editor.validate.flash.closed'));
         }
 
@@ -323,7 +323,7 @@ class ContributionController extends Controller
             // Relue verrouillée : un refus, un retrait ou une autre approbation concurrents attendent
             // la fin de celle-ci, ou elle voit leur résultat (contribution fermée ou disparue).
             $contribution = Contribution::query()->whereKey($contribution->id)->lockForUpdate()->first();
-            if ($contribution === null || ! in_array($contribution->status, [ContributionStatus::Pending, ContributionStatus::Approved], true)) {
+            if ($contribution === null || ! $contribution->status->isOpen()) {
                 return back()->with('error', __('editor.validate.flash.closed'));
             }
 
@@ -382,7 +382,7 @@ class ContributionController extends Controller
                 'approvals' => $count,
                 'threshold' => $threshold,
             ]);
-            $notifier->approved($contribution);
+            $notifier->approved($contribution, $count, $threshold);
 
             return back()->with('success', __('editor.validate.flash.partial', ['count' => $count, 'threshold' => $threshold]));
         });
@@ -394,10 +394,12 @@ class ContributionController extends Controller
         $request->validate(['notes' => 'nullable|string|max:1000']);
 
         // Contrôle et refus sur la ligne verrouillée : une approbation concurrente qui vient de
-        // publier la contribution n'est pas écrasée par un refus.
+        // publier la contribution n'est pas écrasée par un refus, et une contribution déjà close
+        // (refusée ou publiée) n'est ni refusée de nouveau ni annoncée une seconde fois à son auteur.
+        // Une contribution retirée n'existe plus (404).
         $rejected = DB::transaction(function () use ($id, $request, $audit, $notifier): bool {
             $contribution = Contribution::query()->lockForUpdate()->findOrFail($id);
-            if ($contribution->status === ContributionStatus::Applied) {
+            if (! $contribution->status->isOpen()) {
                 return false;
             }
             $previous = $contribution->status->value;

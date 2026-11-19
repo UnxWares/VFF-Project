@@ -1,4 +1,5 @@
 import { createInertiaApp, router } from '@inertiajs/svelte';
+import i18next from 'i18next';
 import { mount } from 'svelte';
 import { setupI18n } from './lib/i18n.js';
 import { dropStaleServerSeo } from './lib/serverSeo.js';
@@ -28,8 +29,13 @@ createInertiaApp({
                 locale: event.detail.page.props.locale,
                 translations: event.detail.page.props.translations,
             });
-            // Pages sans composant SeoHead : les balises de partage du serveur ne les décrivent plus.
-            dropStaleServerSeo(location.pathname, ogLocale(event.detail.page.props.locale));
+            // Pages sans composant SeoHead : les balises de partage du serveur ne les décrivent plus
+            // (la description redevient celle du site).
+            dropStaleServerSeo(
+                location.pathname,
+                ogLocale(event.detail.page.props.locale),
+                i18next.t('common.app_description'),
+            );
         });
 
         // Barre de progression discrète sur les navigations Inertia (utile

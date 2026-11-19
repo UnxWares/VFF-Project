@@ -34,6 +34,8 @@ class StructuredDataTest extends TestCase
     {
         $this->assertSame('https://vff-project.org/lines/rfn-956000', StructuredData::absoluteUrl(self::ORIGIN.'/', '/lines/rfn-956000'));
         $this->assertSame('https://example.org/a.png', StructuredData::absoluteUrl(self::ORIGIN, 'https://example.org/a.png'));
+        // Adresse sans protocole (Wikimedia) : un autre hôte, jamais rattaché au site.
+        $this->assertSame('https://upload.wikimedia.org/a.jpg', StructuredData::absoluteUrl(self::ORIGIN, '//upload.wikimedia.org/a.jpg'));
         $this->assertSame('https://www.wikidata.org/wiki/Q3239771', StructuredData::wikidataUrl('Q3239771'));
         $this->assertNull(StructuredData::wikidataUrl('3239771'));
         $this->assertNull(StructuredData::wikidataUrl(null));
@@ -158,5 +160,14 @@ class StructuredDataTest extends TestCase
         $year = StructuredData::accident(self::ORIGIN, ['date_precision' => 'year', 'date' => '1842-01-01', 'place' => ['lat' => 48.8, 'lng' => 2.2, 'precision' => 'exact']] + $accident, 'fr', null);
         $this->assertSame('1842', $year['startDate']);
         $this->assertSame(48.8, $year['location']['geo']['latitude']);
+    }
+
+    public function test_image_url_prefers_the_large_size_and_skips_media_without_image(): void
+    {
+        $this->assertSame('https://x/1280.jpg', StructuredData::imageUrl(['display_url' => 'https://x/1280.jpg', 'thumb_url' => 'https://x/500.jpg']));
+        $this->assertSame('https://x/500.jpg', StructuredData::imageUrl(['display_url' => '', 'thumb_url' => 'https://x/500.jpg']));
+        $this->assertNull(StructuredData::imageUrl(['display_url' => null, 'thumb_url' => null]));
+        $this->assertNull(StructuredData::imageUrl(null));
+        $this->assertNull(StructuredData::imageObject(['display_url' => null, 'thumb_url' => null, 'title' => 'Document']));
     }
 }

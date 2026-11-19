@@ -6,6 +6,7 @@
 
 const SELECTOR = '[data-vff-seo]';
 const URL_SELECTOR = 'meta[property="og:url"][data-vff-seo]';
+const DESCRIPTION_SELECTOR = 'meta[name="description"]';
 
 /**
  * Vrai quand les balises du serveur décrivent déjà la page de ce chemin, dans cette langue (après un
@@ -29,11 +30,22 @@ export function serverSeoCovers(path, locale) {
 
 /**
  * Retire les balises du serveur qui ne décrivent plus la page courante (navigation interne,
- * changement de langue).
+ * changement de langue). La description n'est pas retirée : elle redevient la description générale
+ * du site (celle que le gabarit donne aux pages sans aperçu), pour que les pages sans SeoHead en
+ * gardent une. L'adresse canonique part avec les balises de partage : celle de la page précédente
+ * serait fausse, et le gabarit n'en donne pas aux autres pages.
  * @param {string} path chemin de la page courante
  * @param {string} locale locale Open Graph courante
+ * @param {string|null} [defaultDescription] description générale (`common.app_description`)
  */
-export function dropStaleServerSeo(path, locale) {
+export function dropStaleServerSeo(path, locale, defaultDescription = null) {
     if (typeof document === 'undefined' || serverSeoCovers(path, locale)) return;
-    for (const el of document.head.querySelectorAll(SELECTOR)) el.remove();
+    for (const el of document.head.querySelectorAll(SELECTOR)) {
+        if (defaultDescription && el.matches(DESCRIPTION_SELECTOR)) {
+            el.setAttribute('content', defaultDescription);
+            el.removeAttribute('data-vff-seo');
+        } else {
+            el.remove();
+        }
+    }
 }
