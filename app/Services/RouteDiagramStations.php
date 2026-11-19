@@ -43,6 +43,7 @@ final class RouteDiagramStations
     public function parse(string $wikitext): array
     {
         $wikitext = preg_replace('/<!--.*?-->/su', '', $wikitext);
+        $length = self::lineLengthM($wikitext);
         $tables = [];
         $table = 0;
         foreach (preg_split('/\R/u', $wikitext) as $i => $line) {
@@ -68,7 +69,7 @@ final class RouteDiagramStations
             if ($name === '' || mb_strlen($name) > 80 || preg_match(self::NOT_A_STATION, $name)) {
                 continue;
             }
-            $tables[$table][] = ['name' => $name, 'pk_m' => self::pk($pos[$n]), 'icon' => mb_substr($icons, 0, 60), 'row' => $i];
+            $tables[$table][] = ['name' => $name, 'pk_m' => self::pk($pos[$n], $length), 'icon' => mb_substr($icons, 0, 60), 'row' => $i];
         }
 
         $out = [];
@@ -83,12 +84,14 @@ final class RouteDiagramStations
 
     /**
      * PK d'une cellule de schéma, en mètres : « 12,8 », « 393,21 -00,0 » (PK sur la ligne
-     * d'origine puis sur celle-ci : le dernier), « {{BSkm|102,468|0,000}} » (le dernier).
+     * d'origine puis sur celle-ci : le dernier), « {{BSkm|102,468|0,000}} » (cf. bskmChoice()).
      */
-    public static function pk(string $cell): ?int
+    public static function pk(string $cell, ?int $lineLengthM = null): ?int
     {
         if (preg_match('/\{\{\s*BSkm\s*\|([^}]*)\}\}/u', $cell, $k)) {
-            $cell = (string) array_slice(explode('|', $k[1]), -1)[0];
+            $values = array_values(array_filter(array_map(fn ($v) => self::pk($v), explode('|', $k[1])), fn ($v) => $v !== null));
+
+            return $values === [] ? null : self::bskmChoice($values, $lineLengthM);
         }
         $cell = preg_replace("/'{2,}|<[^>]+>|\{\{[^}]*\}\}/u", ' ', $cell);
         if (! preg_match_all('/(?<![\d,.])(-?\d{1,4})(?:[,.](\d{1,3}))?(?![\d,.])/u', $cell, $mm, PREG_SET_ORDER)) {
@@ -99,6 +102,50 @@ final class RouteDiagramStations
         $frac = isset($m[2]) ? (int) str_pad($m[2], 3, '0') : 0;
 
         return $km * 1000 + ($km < 0 || str_starts_with($m[1], '-') ? -$frac : $frac);
+    }
+
+    /**
+     * Valeur retenue d'un « {{BSkm|a|b}} » (deux PK pour une même gare) : d'ordinaire le PK
+     * sur la ligne d'origine puis celui sur cette ligne, donc le dernier
+     * (« {{BSkm|56,770|0,000}} », Montsecret - Vassy). Mais au terminus d'une ligne qui
+     * rejoint une autre ligne, le schéma donne parfois l'inverse : le PK sur cette ligne puis
+     * celui sur l'autre (« {{BSkm|19,6xx|17,525}} », Les Maures : 19,6 km, longueur de la
+     * ligne de Montsecret - Vassy aux Maures dans l'infobox ; 17,525 est son PK sur la ligne de
+     * Vire à Romagny). Une valeur égale à la longueur de la ligne (à 2 % près, 300 m au moins)
+     * l'emporte alors sur la dernière.
+     *
+     * @param  non-empty-list<int>  $values
+     */
+    public static function bskmChoice(array $values, ?int $lineLengthM): int
+    {
+        $last = $values[count($values) - 1];
+        if ($lineLengthM === null || $lineLengthM <= 0) {
+            return $last;
+        }
+        $tol = max(300, (int) round(0.02 * $lineLengthM));
+        if (abs($last - $lineLengthM) <= $tol) {
+            return $last;
+        }
+        foreach ($values as $v) {
+            if (abs($v - $lineLengthM) <= $tol) {
+                return $v;
+            }
+        }
+
+        return $last;
+    }
+
+    /**
+     * Longueur de la ligne donnée par l'infobox (« | longueur = 19.6 », en km), en mètres.
+     */
+    public static function lineLengthM(string $wikitext): ?int
+    {
+        if (! preg_match('/\|\s*longueur\s*=\s*(\d{1,4}(?:[.,]\d{1,3})?)\s*(?:km)?\s*(?:\n|\||<|$)/u', $wikitext, $m)) {
+            return null;
+        }
+        $km = (float) str_replace(',', '.', $m[1]);
+
+        return $km > 0 ? (int) round($km * 1000) : null;
     }
 
     /**

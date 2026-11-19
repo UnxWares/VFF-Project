@@ -7,8 +7,6 @@ return [
     'also_known_as' => 'Auch bekannt als',
     'no_description' => 'Für diese Bahnstrecke ist keine Beschreibung verfügbar.',
     'still_running' => 'noch in Betrieb',
-    'source' => 'Quelle',
-    'source_link' => 'Quelle ansehen',
     'act' => 'Aktiv werden',
 
     'types' => [
@@ -43,14 +41,14 @@ return [
     ],
 
     'stats' => [
-        'stations_hint' => 'Bahnhöfe der Strecke, stillgelegte eingeschlossen (:open heute in Betrieb)',
+        'stations_hint' => 'Bahnhöfe der Strecke, geschlossene eingeschlossen (:open heute in Betrieb)',
         'stations' => 'Bahnhöfe',
         'events' => 'Ereignisse',
         'electrified' => 'Elektrifiziert',
         'electrification' => 'Elektrifizierung',
         'km_line' => 'km Strecke',
-        'km_line_extent_hint' => 'Länge der Strecke bei ihrer größten Ausdehnung, stillgelegte oder abgebaute Abschnitte eingeschlossen',
-        'km_line_hint' => ':km km Gleis kumuliert (alle Gleise)',
+        'km_line_extent_hint' => 'Größte Länge der Strecke, stillgelegte oder abgebaute Abschnitte eingeschlossen',
+        'km_line_hint' => ':km km Gleislänge insgesamt (alle Gleise)',
         'km_active' => 'km in Betrieb',
         'km_greatest' => 'km zur Blütezeit',
         'km_today' => 'km heute',
@@ -89,14 +87,6 @@ return [
         'history' => 'Geschichte der Strecke',
         'chronicle' => 'Ausführliche Chronik nach Abschnitten',
         'notes' => 'Anmerkungen und Quellen',
-    ],
-
-    'evolution' => [
-        'intro' => 'Zustand der Strecke in jedem kartierten Jahrzehnt (Länge in Betrieb / stillgelegt / abgebaut).',
-        'active' => ':km km in Betrieb',
-        'closed' => ':km km stillgelegt',
-        'gone' => ':km km abgebaut',
-        'heritage' => 'davon :km km Vereinsbetrieb',
     ],
 
     'stops' => [
@@ -195,7 +185,6 @@ return [
     'index' => [
         'meta_title' => 'Bahnstrecken',
         'meta_description' => 'Verzeichnis der französischen Bahnstrecken: :total erfasste Strecken mit Geschichte, Verlauf und Fahrzeugen.',
-        'eyebrow' => 'Schienennetz',
         'title' => 'Bahnstrecken',
         'subtitle' => ":total\u{a0}erfasste Strecken: :open\u{a0}in Betrieb, :closed\u{a0}stillgelegt, :unknown\u{a0}mit noch unbekanntem Verlauf.",
         'filters_title' => 'Strecken suchen und filtern',
@@ -204,7 +193,7 @@ return [
         'all_networks' => 'Alle Kategorien',
         'all_traffics' => 'Alle Verkehrsarten',
         'all_states' => 'In Betrieb und stillgelegt',
-        'heritage' => 'Nur touristische Museumsbahn-Strecken',
+        'heritage' => 'Nur Museumsbahnstrecken',
         'sort_label' => 'Sortieren nach',
         'sort_name' => 'Name, A bis Z',
         'sort_name_desc' => 'Name, Z bis A',
@@ -230,7 +219,7 @@ return [
     // Phasen der Strecke (App\Services\LinePhases): Auswahl neben der Karte.
     'phases' => [
         'title' => 'Phasen der Strecke',
-        'intro' => 'Die ganze Strecke zu jedem Datum, an dem sich Gleis oder Verkehr ändern, nach den Daten der Quellen. Die Karte zeigt zuerst die Strecke in ihrer größten Ausdehnung; wählen Sie eine Phase, um ihren vollständigen Zustand an diesem Datum zu sehen.',
+        'intro' => 'Die ganze Strecke zu jedem Datum, an dem sich Gleis oder Verkehr ändern, nach den Daten der Quellen. Die Karte zeigt zuerst die Strecke in ihrer größten Länge; wählen Sie eine Phase, um ihren vollständigen Zustand an diesem Datum zu sehen.',
         'empty' => 'Der Streckenverlauf dieser Strecke ist noch nicht bekannt.',
         'legend' => 'Kartenlegende',
         'gesture_windows' => 'Verwenden Sie Strg + Mausrad, um die Karte zu zoomen',
@@ -238,23 +227,22 @@ return [
         'gesture_mobile' => 'Verschieben Sie die Karte mit zwei Fingern',
         'previous' => 'Vorherige Phase',
         'next' => 'Nächste Phase',
-        'show_best' => 'Größte Ausdehnung',
-        'best_badge' => 'Größte Ausdehnung',
+        'show_best' => 'Größte Länge',
+        'best_badge' => 'Größte Länge',
         'minor_only' => 'Anpassungen des Streckenverlaufs',
         'and_more' => '(+ :count)',
         'between' => 'Zwischen :from und :to',
         'between_today' => 'Seit :from',
         'before' => 'Vor :year',
         'mode_neighbor' => 'Datum des angrenzenden Abschnitts, laut den Quellen gleichzeitig eröffnet oder stillgelegt.',
-        'mode_whole_line' => 'Von der Quelle für die ganze Strecke angegebenes Datum, ohne Abschnitt.',
-        'mode_undated' => 'Keine Quelle datiert diese Änderung: nur das Jahrzehnt ist bekannt.',
-        'inconsistent' => 'Ein verschwundenes Gleis taucht ohne bekannte Wiedereröffnung wieder auf: Daten zu prüfen.',
+        'mode_whole_line' => 'Von der Quelle für die ganze Strecke angegebenes Datum, ohne Angabe des Abschnitts.',
+        'mode_undated' => 'Keine Quelle datiert diese Änderung: Nur das Jahrzehnt ist bekannt.',
+        'inconsistent' => 'Ein verschwundenes Gleis taucht ohne bekannte Wiedereröffnung wieder auf: Die Daten müssen geprüft werden.',
         'minor' => 'Dazu Anpassungen des Streckenverlaufs (:km).',
         'more_portions' => 'weitere Abschnitte (:count)',
         'whole_line_source' => 'für die ganze Strecke',
         'unnamed_portions' => 'kartierte Abschnitte (:count)',
-        'see_on_map' => 'Auf der Karte zeigen',
-        'see_on_map_for' => 'Strecke auf der Karte anzeigen, Stand: :date',
+        'see_on_map' => 'Auf der Karte ansehen',
         // Ère courante : changements qu’aucun événement ne date (LinePhases, `unexplained`), hors phases.
         'unexplained_title' => 'Heute, laut aktuellen Quellen',
         'unexplained_item' => ':to auf :km (:from im rekonstruierten Zustand am 31. Dezember :year); keine Quelle datiert diese Änderung.',
@@ -265,7 +253,7 @@ return [
     'changes' => [
         'opening' => 'Eröffnung von :km',
         'reopening' => 'Wiedereröffnung von :km',
-        'passenger_end' => 'Ende des Personenverkehrs auf :km, weiter im Güterverkehr',
+        'passenger_end' => 'Ende des Personenverkehrs auf :km, die für den Güterverkehr offen bleiben',
         'passenger_start' => 'Rückkehr des Personenverkehrs auf :km',
         'traffic' => 'Verkehrsänderung auf :km: :from, dann :to',
         'closure' => 'Stilllegung von :km, Gleis bleibt erhalten',
@@ -288,13 +276,13 @@ return [
         'construction' => 'Im Bau',
         'closed' => 'Stillgelegt, Gleis vorhanden',
         'dismantled' => 'Gleis abgebaut',
-        'razed' => 'Trasse verschwunden',
+        'razed' => 'Trasse beseitigt',
         'gone' => 'Gleis verschwunden',
         'none' => 'Noch nicht gebaut',
     ],
 
     'chronicle' => [
-        'intro' => 'Alle bekannten Ereignisse der Strecke, nach Abschnitten gruppiert. Jedes verweist in einer Fußnote auf seine Quelle. Geben zwei Quellen für dieselbe Tatsache verschiedene Daten an, wird die Abweichung angezeigt statt stillschweigend entschieden.',
+        'intro' => 'Alle bekannten Ereignisse der Strecke, nach Abschnitten gruppiert. Jedes verweist in einer Fußnote auf seine Quelle. Geben zwei Quellen für dieselbe Tatsache verschiedene Daten an, zeigt VFF die Abweichung an, ohne zu entscheiden.',
         'whole_line' => 'Ganze Strecke',
         'traced' => 'Auf dem Streckenverlauf verortete Abschnitte ohne Ortsnamen',
         'near_groups' => 'Nach einem einzigen Ort benannte Abschnitte',
@@ -374,7 +362,7 @@ return [
     ],
 
     'stations' => [
-        'empty' => 'Dieser Strecke ist noch kein Bahnhof zugeordnet. Bahnhöfe werden über ihren Streckenkilometer (PK) oder ihre Lage am Streckenverlauf zugeordnet; wenn Sie die Bahnhöfe dieser Strecke kennen, können Sie beitragen.',
+        'empty' => 'Dieser Strecke ist noch kein Bahnhof zugeordnet. Bahnhöfe werden über ihren Streckenkilometer (PK) oder ihre Lage am Streckenverlauf zugeordnet; wenn Sie die Bahnhöfe dieser Strecke kennen, können Sie mitwirken.',
         'intro' => 'Alle Bahnhöfe und Haltepunkte der Strecke in Streckenreihenfolge, auch geschlossene und solche an abgebauten Abschnitten. Die Kästchenreihe zeigt den Zustand jedes Bahnhofs Jahrzehnt für Jahrzehnt.',
         'opened' => 'eröffnet: :date',
         'closed' => 'geschlossen: :date',
@@ -448,12 +436,12 @@ return [
             'km_active' => 'km in Betrieb',
             // i18next-Plurale (`_one` / `_other`); der Schlüssel ohne Endung ist der Rückfall.
             'stations' => 'Bahnhöfe',
-            'phases' => 'Daten von Änderungen',
+            'phases' => 'Änderungsdaten',
             'stations_one' => 'Bahnhof',
             'stations_other' => 'Bahnhöfe',
-            'phases_one' => 'Datum einer Änderung',
-            'phases_other' => 'Daten von Änderungen',
-            'speed_max' => 'km/h höchstens',
+            'phases_one' => 'Änderungsdatum',
+            'phases_other' => 'Änderungsdaten',
+            'speed_max' => 'km/h maximal',
             'today' => 'heute',
             'electrification' => 'Elektrifizierung',
             'electrified' => 'Elektrifiziert',
@@ -461,14 +449,14 @@ return [
             'not_electrified' => 'Nicht elektrifiziert',
             'electrified_bit' => 'außer :pct',
             'electrified_bit_hint' => 'Nur :pct der Strecke sind elektrifiziert (:kv).',
-            'speed_max_on' => 'km/h höchstens (auf :km)',
+            'speed_max_on' => 'km/h maximal (auf :km)',
             'since_year' => 'seit :year',
             'coverage' => ':label auf :km',
         ],
         'phases' => [
             'best_badge' => 'Größte Länge',
             'show_best' => 'Größte Länge',
-            'show_best_label' => 'Die Strecke in ihrer größten Länge zeigen',
+            'show_best_label' => 'Die Strecke in ihrer größten Länge anzeigen',
             // Liste höher als der Bildschirm: Schaltfläche, die sie weiterrollt.
             'more_below_one' => ':count weiteres Datum weiter unten',
             'more_below_other' => ':count weitere Daten weiter unten',
@@ -489,10 +477,10 @@ return [
             'col_open' => 'Geöffnete Bahnhöfe',
             'col_closed' => 'Geschlossene Bahnhöfe',
             'col_uncertain' => 'Unbestätigt',
-            'col_closures' => 'Seitdem geschlossene Bahnhöfe',
+            'col_closures' => 'Zwischenzeitlich geschlossene Bahnhöfe',
             'span' => ':from bis :to',
             'see' => 'Karte',
-            'see_label' => 'Zustand von :year auf der Karte zeigen (Phase vom :date)',
+            'see_label' => 'Zustand von :year auf der Karte anzeigen (Phase vom :date)',
             'uncertain_note' => 'Unbestätigte Bahnhöfe: von ihren Quellen als geöffnet genannt, ohne bekanntes Gleis zu diesem Zeitpunkt, das dies bestätigt. Gleiche aufeinanderfolgende Jahre sind zusammengefasst.',
             'scroll_hint' => 'Scrollen Sie die Tabelle nach rechts, um alle Spalten zu sehen.',
         ],
@@ -515,8 +503,8 @@ return [
             'agrees' => 'Bestätigt',
         ],
         'tech' => [
-            'pk' => 'km',
-            'pk_title' => 'Streckenkilometer (französisch PK)',
+            'pk' => 'PK',
+            'pk_title' => 'Streckenkilometer (PK, französisch point kilométrique)',
             'signalling_intro' => 'Blocksystem (Zugfolge: BAL, BAPR, BM…) und Zugbeeinflussung (KVB, TVM, ETCS) entlang der Strecke, heutiger Zustand. Quelle: SNCF Réseau Open Data (Blocksysteme, mit KVB ausgerüstete Strecken).',
             'signalling_intro_cab' => 'Auf den Schnellfahrabschnitten wird im Führerstand signalisiert.',
         ],
@@ -527,7 +515,7 @@ return [
 
     // Mitlaufendes Inhaltsverzeichnis des Steckbriefs (kurze Abschnittsnamen).
     'toc' => [
-        'label' => 'Inhalt des Steckbriefs',
+        'label' => 'Inhaltsverzeichnis der Seite',
         'trace' => 'Verlauf',
         'about' => 'Überblick',
         'history' => 'Geschichte',

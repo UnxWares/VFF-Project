@@ -47,5 +47,8 @@ createInertiaApp({
         });
 
         mount(App, { target: el, props });
+
+        // Application web installable : service worker et bandeau de mise à jour, chargés après le montage.
+        import('./pwa/index.js').then(({ initPwa }) => initPwa());
     },
 });

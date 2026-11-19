@@ -49,7 +49,12 @@
     const showTypes = $derived(grandTotal > 6 && typeKeys.length > 1);
     const showPeriods = $derived(grandTotal > 6 && periodKeys.length > 1);
     const showSort = $derived(grandTotal > 1);
-    const providers = $derived(Object.keys(facets?.providers ?? {}).filter((p) => p !== 'upload'));
+    // Mention « hébergées par … en lien direct » : seulement les fournisseurs en lien direct (pas les envois ni les copies locales).
+    const providers = $derived(
+        Object.keys(facets?.providers ?? {}).filter(
+            (p) => p !== 'upload' && p !== 'argentanwebferro',
+        ),
+    );
     const hasMore = $derived(page < lastPage);
     const active = $derived(current !== null ? items[current] : null);
     const single = $derived(total <= 1);
@@ -271,12 +276,9 @@
             <ul class="grid">
                 {#each items as m, i (m.id)}
                     <li class="card">
-                        <button
-                            type="button"
-                            class="thumb"
-                            onclick={() => open(i)}
-                            aria-label={t('media.open', { title: heading(m) })}
-                        >
+                        <button type="button" class="thumb" onclick={() => open(i)}>
+                            <span class="vff-sr-only">{t('media.open', { title: heading(m) })}</span
+                            >
                             <img
                                 src={m.thumb_url}
                                 alt=""

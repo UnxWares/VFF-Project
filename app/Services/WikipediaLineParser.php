@@ -449,6 +449,7 @@ class WikipediaLineParser
         if (! preg_match_all('/\{\{\s*BS(\d*)(?:e?bis|-?)\s*\|/u', $wikitext, $mm, PREG_OFFSET_CAPTURE | PREG_SET_ORDER)) {
             return [];
         }
+        $length = RouteDiagramStations::lineLengthM($wikitext);
         foreach ($mm as $m) {
             $n = $m[1][0] === '' ? 1 : (int) $m[1][0];
             $params = $this->templateParams($wikitext, $m[0][1] + strlen($m[0][0]));
@@ -461,9 +462,17 @@ class WikipediaLineParser
                 continue;
             }
             $km = trim($pos[$n]);
-            // {{BSkm|102,468|0,000}} : PK sur la ligne d'origine puis sur celle-ci → le dernier.
+            // {{BSkm|102,468|0,000}} : PK sur la ligne d'origine puis sur celle-ci → le dernier, sauf
+            // au terminus qui donne le PK sur cette ligne puis sur l'autre (RouteDiagramStations::bskmChoice).
             if (preg_match('/\{\{\s*BSkm\s*\|([^}]*)\}\}/u', $km, $k)) {
-                $km = trim((string) array_slice(explode('|', $k[1]), -1)[0]);
+                $values = array_map(fn ($v) => trim(preg_replace("/'{2,}|<[^>]+>/u", '', $v)), explode('|', $k[1]));
+                $parsed = [];
+                foreach ($values as $v) {
+                    if (preg_match('/^-?\d{1,4}(?:[,.]\d{1,3})?$/u', $v)) {
+                        $parsed[(int) RouteDiagramStations::pk($v)] = $v;
+                    }
+                }
+                $km = $parsed === [] ? (string) end($values) : $parsed[RouteDiagramStations::bskmChoice(array_keys($parsed), $length)];
             }
             $km = trim(preg_replace("/'{2,}|<[^>]+>/u", '', $km));
             if (! preg_match('/^(-?\d{1,4})(?:[,.](\d{1,3}))?$/u', $km, $k)) {

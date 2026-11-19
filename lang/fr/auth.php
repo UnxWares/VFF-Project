@@ -32,13 +32,13 @@ return [
     'forgot_title' => 'Mot de passe oublié',
     'forgot_subtitle' => 'Saisissez votre adresse e-mail : nous vous enverrons un lien pour choisir un nouveau mot de passe.',
     'reset_title' => 'Nouveau mot de passe',
-    'reset_subtitle' => 'Choisissez un mot de passe d\'au moins 8 caractères.',
+    'reset_subtitle' => 'Choisissez un mot de passe d’au moins 8 caractères.',
     'profile_title' => 'Mon profil',
     'profile_subtitle' => 'Gérez vos informations personnelles.',
 
     // Champs
     'edit_title' => 'Modifier mon profil',
-    'name_label' => 'Nom d\'affichage',
+    'name_label' => 'Nom d’affichage',
     'name_hint' => 'Les validateurs voient ce nom à côté de vos contributions.',
     'email_label' => 'Adresse e-mail',
     'password_label' => 'Mot de passe',
@@ -48,10 +48,10 @@ return [
     'show_password' => 'Afficher le mot de passe',
     'hide_password' => 'Masquer le mot de passe',
     'bio_label' => 'Présentation',
-    'bio_hint' => 'Facultatif, 2 000 caractères au plus.',
+    'bio_hint' => 'Facultatif, 2 000 caractères au plus.',
     'bio_placeholder' => 'Quelques mots sur vous',
     'locale_label' => 'Langue préférée',
-    'locale_hint' => 'La langue s\'applique dès l\'enregistrement.',
+    'locale_hint' => 'La langue s’applique dès l’enregistrement.',
     'remember_label' => 'Se souvenir de moi',
     'role_label' => 'Rôle',
     'reputation_label' => 'Réputation',
@@ -60,9 +60,9 @@ return [
 
     // Erreurs de saisie (contrôlées dans le navigateur avant l'envoi)
     'errors' => [
-        'name_required' => 'Saisissez votre nom d\'affichage.',
+        'name_required' => 'Saisissez votre nom d’affichage.',
         'email_required' => 'Saisissez votre adresse e-mail.',
-        'email_invalid' => 'Cette adresse e-mail n\'est pas valide.',
+        'email_invalid' => 'Cette adresse e-mail n’est pas valide.',
         'password_required' => 'Saisissez votre mot de passe.',
         'password_new_required' => 'Choisissez un mot de passe.',
         'password_short' => 'Le mot de passe doit contenir au moins 8 caractères.',
@@ -74,7 +74,7 @@ return [
     // Actions
     'submit' => 'Valider',
     'login_cta' => 'Se connecter',
-    'register_terms' => 'En créant un compte, vous acceptez les <a href="/use-conditions">conditions générales d\'utilisation</a>.',
+    'register_terms' => 'En créant un compte, vous acceptez les <a href="/use-conditions">conditions générales d’utilisation</a>.',
     'register_privacy' => 'UnxWares, responsable du traitement, utilise votre nom, votre adresse e-mail et votre mot de passe (jamais conservé en clair) pour vous identifier et gérer vos contributions. Durées de conservation, droits et contact : <a href="/privacy">politique de confidentialité</a>.',
     'register_cta' => 'Créer mon compte',
     'forgot_cta' => 'Envoyer le lien',

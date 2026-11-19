@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'meta_title' => 'Unsere Karten',
-    'meta_description' => 'Interaktive Karte des französischen Schienennetzes, in Betrieb und verschwunden, Epoche für Epoche.',
+    'meta_title' => 'Karte des französischen Eisenbahnnetzes',
+    'meta_description' => 'Interaktive Karte des französischen Eisenbahnnetzes, in Betrieb und verschwunden, Epoche für Epoche.',
 
     'hero' => [
         'title' => 'Die Karte der französischen Eisenbahn, von 1830 bis heute',
@@ -53,10 +53,10 @@ return [
         // Bahnhöfe (Farbe = Status im gewählten Jahrzehnt, siehe railStyle.js STATION_STYLES).
         'stations' => 'Bahnhöfe in dieser Zeit',
         'stations_hint' => 'Beim Hineinzoomen sichtbar.',
-        'station_active' => 'Für den Personenverkehr geöffnet (und Güterverkehr)',
-        'station_tourist' => 'Touristisch / Museumsbahn',
+        'station_active' => 'Für den Personenverkehr (und Güterverkehr) geöffnet',
+        'station_tourist' => 'Museumsbahn',
         'station_freight' => 'Nur Güterverkehr',
-        'station_uncertain' => 'Unsicher (keine bekannte Strecke in dieser Zeit)',
+        'station_uncertain' => 'Unsicher (kein bekanntes Gleis in dieser Zeit)',
         'station_closed' => 'Geschlossen',
     ],
 
@@ -106,7 +106,7 @@ return [
         'dc3000' => '3 kV Gleichstrom',
         'ac15' => '15 kV 16,7 Hz (Wechselstrom)',
         'low' => '1.000 V und weniger (Stromschiene)',
-        'other' => 'Andere Spannung (12 kV der Midi…)',
+        'other' => 'Andere Spannung (12 kV der Midi-Bahn…)',
         'unknown_voltage' => 'Elektrifiziert, Spannung unbekannt',
         'unknown_date' => 'Heute elektrifiziert, Datum unbekannt',
         'none' => 'Nicht elektrifiziert',
@@ -152,7 +152,7 @@ return [
 
     // Streckeninfo beim Klick auf die Karte (LineDrawer) und Popup der eingebetteten Karte.
     'drawer' => [
-        'fallback_line_name' => 'Abschnitt',
+        'fallback_line_name' => 'Streckensegment',
         'view_full_sheet' => 'Seite der Strecke öffnen',
         'view_station' => 'Seite des Bahnhofs öffnen',
         'suggest_edit' => 'Änderung vorschlagen',
@@ -190,7 +190,7 @@ return [
         'copied' => 'Code kopiert',
         'copy_failed' => 'Automatisches Kopieren ist nicht möglich: Der Code ist markiert, kopieren Sie ihn mit Strg+C (Cmd+C auf dem Mac).',
         'preview' => 'Vorschau',
-        'iframe_title' => 'Interaktive Karte des französischen Schienennetzes - VFF',
+        'iframe_title' => 'Interaktive Karte des französischen Eisenbahnnetzes - VFF',
         'preview_title' => 'Vorschau der eingebetteten Karte',
         'credit' => 'Karte: VFF',
     ],
@@ -201,15 +201,15 @@ return [
         'era_term' => 'Epoche',
         'era_text' => 'Die Zeitleiste unter der Karte wählt das Jahrzehnt, von 1830 bis heute. Die Wiedergabetaste zeigt die Jahrzehnte nacheinander.',
         'color_term' => 'Farbe',
-        'color_text' => 'Bei einer Strecke in Betrieb zeigt die Farbe, was darauf verkehrt: Violett für den Hochgeschwindigkeitsverkehr, Orange für das klassische Netz mit Personen- und Güterverkehr, Blau für reinen Güterverkehr, Grün für eine von einem Verein betriebene Strecke. Die Modi Elektrifizierung und Spurweite der Legende färben dieselben Strecken nach Spannung oder Spurweite.',
-        'line_term' => 'Strich',
-        'line_text' => 'Durchgezogener Strich: in Betrieb. Rote Striche: stillgelegte Strecke, Gleis noch vorhanden. Graue Punkte: Gleis abgebaut oder Trasse verschwunden.',
+        'color_text' => 'Bei einer Strecke in Betrieb zeigt die Farbe, was darauf verkehrt: Violett für den Hochgeschwindigkeitsverkehr, Orange für das konventionelle Netz mit Personen- und Güterverkehr, Blau für reinen Güterverkehr, Grün für eine von einem Verein betriebene Strecke. Die Modi Elektrifizierung und Spurweite der Legende färben dieselben Strecken nach Spannung oder Spurweite.',
+        'line_term' => 'Linie',
+        'line_text' => 'Durchgezogene Linie: Strecke in Betrieb. Rot gestrichelt: stillgelegte Strecke, deren Gleis noch vorhanden ist. Grau gepunktet: Gleis abgebaut oder Trasse beseitigt.',
         'sheet_term' => 'Streckenseiten',
         'sheet_text' => 'Klicken Sie auf eine Strecke, um ihren Status in der gewählten Epoche zu sehen und ihre Seite zu öffnen. Bahnhöfe erscheinen beim Hineinzoomen.',
-        'route_term' => 'Reiseweg',
+        'route_term' => 'Verbindung',
         'route_text' => 'Geben Sie zwei Bahnhöfe und ein Jahr an: Die Karte zeichnet den Weg auf dem damals betriebenen Netz und listet die befahrenen Strecken auf.',
         'layers_term' => 'Ebenen',
-        'layers_text' => 'Die Ebene OpenRailwayMap zeigt die heutige Infrastruktur: Signale, Geschwindigkeiten, Elektrifizierung. Die Uhr-Schaltfläche oben rechts auf der Karte zeigt alte Karten des IGN.',
+        'layers_text' => 'Die Ebene OpenRailwayMap blendet die heutige Infrastruktur ein: Signale, Geschwindigkeiten, Elektrifizierung. Die Schaltfläche mit der Uhr oben rechts auf der Karte zeigt alte Karten des IGN.',
     ],
 
     'tech' => [
@@ -227,7 +227,7 @@ return [
 
     // Schaltflächen der Karte (MapLibre): Tooltips und von Screenreadern vorgelesene Namen.
     'controls' => [
-        'map' => 'Interaktive Karte des Schienennetzes',
+        'map' => 'Interaktive Karte des Eisenbahnnetzes',
         'zoom_in' => 'Vergrößern',
         'zoom_out' => 'Verkleinern',
         'reset_bearing' => 'Ziehen, um die Karte zu drehen, klicken, um nach Norden auszurichten',

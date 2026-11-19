@@ -294,6 +294,12 @@ final class EventText
         return (string) preg_replace('/\s*[–—]\s*/u', ' - ', $text);
     }
 
+    /** Noms entre guillemets français (« A », « B ») repris avec les guillemets de la langue (“A”, „A“). */
+    private static function requote(string $names, string $locale): string
+    {
+        return (string) preg_replace_callback('/« (.+?) »/u', fn (array $q) => self::t('quote.quoted', ['text' => $q[1]], $locale), $names);
+    }
+
     /** Date ISO (AAAA-MM-JJ) à sa précision : « 1875 », « avril 1875 », « 1er avril 1875 », « 1 April 1875 », « 1. April 1875 ». */
     public static function isoDate(string $iso, string $precision, string $locale): string
     {
@@ -567,7 +573,7 @@ final class EventText
             } elseif (preg_match('/^, (en|le) (.+?) \(d\'après (.+?)\)/u', $tail, $x)) {
                 $out .= ', '.$h($x[1] === 'en' ? 'in' : 'on', ['date' => $date($x[2])]).' '.$h('according', ['source' => $src($x[3])]);
             } elseif (preg_match('/^ ; aussi nommé (.+?)(?= ; |\. Sources|$)/u', $tail, $x)) {
-                $out .= '; '.$h('alias', ['names' => $x[1]]);
+                $out .= '; '.$h('alias', ['names' => self::requote($x[1], $locale)]);
             } elseif (preg_match('/^ ; voie partagée avec (.+?)(?= ; |\. Sources|$)/u', $tail, $x)) {
                 $out .= '; '.$h('shared', ['names' => $x[1]]);
             } elseif (preg_match('/^\. Sources : (.+)\.$/u', $tail, $x)) {

@@ -7,8 +7,6 @@ return [
     'also_known_as' => 'Also known as',
     'no_description' => 'No description available for this line.',
     'still_running' => 'still in service',
-    'source' => 'Source',
-    'source_link' => 'View source',
     'act' => 'Take action',
 
     'types' => [
@@ -32,7 +30,7 @@ return [
         'mixed' => 'Mixed (passenger + freight)',
         'freight' => 'Freight only',
         'unknown' => 'Traffic unknown',
-        'heritage' => 'Heritage train (association)',
+        'heritage' => 'Heritage railway (association)',
     ],
 
     'states' => [
@@ -49,7 +47,7 @@ return [
         'electrified' => 'Electrified',
         'electrification' => 'Electrification',
         'km_line' => 'km of line',
-        'km_line_extent_hint' => 'Length of the line at its greatest extent, closed or lifted sections included',
+        'km_line_extent_hint' => 'Greatest length of the line, closed or lifted sections included',
         'km_line_hint' => ':km km of track in total (all tracks)',
         'km_active' => 'km in service',
         'km_greatest' => 'km at its peak',
@@ -57,7 +55,7 @@ return [
         'today_closed' => 'Now closed',
         'today_gone' => 'Now lifted',
         'speed_max' => 'km/h max',
-        'partially_electrified' => 'Partially electrified (:pct %)',
+        'partially_electrified' => 'Partially electrified (:pct%)',
         'not_electrified' => 'Not electrified',
         'title' => 'Key figures',
         'phases' => 'Phases',
@@ -91,14 +89,6 @@ return [
         'notes' => 'Notes and sources',
     ],
 
-    'evolution' => [
-        'intro' => 'State of the line in each mapped decade (length in service / closed / lifted).',
-        'active' => ':km km in service',
-        'closed' => ':km km closed',
-        'gone' => ':km km lifted',
-        'heritage' => 'incl. :km km run by associations',
-    ],
-
     'stops' => [
         'terminus' => 'Terminus',
         'declassified' => 'Decommissioned',
@@ -107,9 +97,9 @@ return [
 
     // Volunteer-run operation of a section (line_events heritage_start / heritage_end).
     'heritage' => [
-        'intro' => 'Sections run by an association (tourist train, rail bikes, operating museum), usually after commercial traffic ended.',
+        'intro' => 'Sections run by an association (heritage railway, rail bikes, operating museum), usually after commercial traffic ended.',
         'kind' => [
-            'tourist_train' => 'Tourist train',
+            'tourist_train' => 'Heritage railway',
             'velorail' => 'Rail bikes (vélorail)',
             'museum' => 'Operating railway museum',
         ],
@@ -121,7 +111,7 @@ return [
     ],
 
     'sections' => [
-        'intro' => 'This SNCF line groups several sections with distinct commercial names.',
+        'intro' => 'This SNCF line groups several named sections, each with its own commercial name.',
         'opening' => 'Opened: :years',
         'source' => 'Wikipedia source',
     ],
@@ -195,7 +185,6 @@ return [
     'index' => [
         'meta_title' => 'Railway lines',
         'meta_description' => 'Directory of French railway lines: :total lines documented with history, route and rolling stock.',
-        'eyebrow' => 'Rail network',
         'title' => 'Railway lines',
         'subtitle' => ":total\u{a0}lines documented: :open\u{a0}in service, :closed\u{a0}closed, :unknown\u{a0}with a route not yet known.",
         'filters_title' => 'Search and filter lines',
@@ -204,7 +193,7 @@ return [
         'all_networks' => 'All categories',
         'all_traffics' => 'All traffic types',
         'all_states' => 'In service and closed',
-        'heritage' => 'Heritage railway lines only',
+        'heritage' => 'Heritage railways only',
         'sort_label' => 'Sort by',
         'sort_name' => 'Name, A to Z',
         'sort_name_desc' => 'Name, Z to A',
@@ -225,12 +214,12 @@ return [
         'filter_state' => 'Current state',
     ],
 
-    'meta_description' => 'Encyclopedic page of the :name line: route, dated phases, stations, sources.',
+    'meta_description' => 'Encyclopaedia page for the line :name: route, dated phases, stations, sources.',
 
     // Phases of the line (App\Services\LinePhases): selector next to the map.
     'phases' => [
         'title' => 'Phases of the line',
-        'intro' => 'The whole line at each date when its track or traffic changed, according to the dates given by the sources. The map opens on the line at its greatest extent; pick a phase to see its full state at that date.',
+        'intro' => 'The whole line at each date when its track or traffic changed, according to the dates given by the sources. The map opens on the line at its greatest length; pick a phase to see its full state at that date.',
         'empty' => 'The route of this line is not known yet.',
         'legend' => 'Map legend',
         'gesture_windows' => 'Use Ctrl + scroll to zoom the map',
@@ -238,8 +227,8 @@ return [
         'gesture_mobile' => 'Use two fingers to move the map',
         'previous' => 'Previous phase',
         'next' => 'Next phase',
-        'show_best' => 'Greatest extent',
-        'best_badge' => 'Greatest extent',
+        'show_best' => 'Greatest length',
+        'best_badge' => 'Greatest length',
         'minor_only' => 'Route adjustments',
         'and_more' => '(+ :count)',
         'between' => 'Between :from and :to',
@@ -254,7 +243,6 @@ return [
         'whole_line_source' => 'for the whole line',
         'unnamed_portions' => 'mapped sections (:count)',
         'see_on_map' => 'Show on the map',
-        'see_on_map_for' => 'Show the line on the map at: :date',
         // Ère courante : changements qu’aucun événement ne date (LinePhases, `unexplained`), hors phases.
         'unexplained_title' => 'Today, according to current sources',
         'unexplained_item' => ':to on :km (:from in the reconstructed state on 31 December :year); no source dates this change.',
@@ -266,7 +254,7 @@ return [
         'opening' => ':km opened',
         'reopening' => ':km reopened',
         'passenger_end' => 'End of passenger traffic on :km, still open to freight',
-        'passenger_start' => 'Passenger traffic back on :km',
+        'passenger_start' => 'Passenger traffic resumed on :km',
         'traffic' => 'Traffic change on :km: :from, then :to',
         'closure' => ':km closed, track left in place',
         'closure_removal' => 'End of operation and removal of the track on :km',
@@ -282,7 +270,7 @@ return [
         'mixed' => 'Passengers and freight',
         'freight' => 'Freight only',
         'unknown' => 'In service, traffic unknown',
-        'heritage' => 'Heritage train',
+        'heritage' => 'Heritage railway',
         'velorail' => 'Rail bikes',
         'service_track' => 'Service track',
         'construction' => 'Under construction',
@@ -294,7 +282,7 @@ return [
     ],
 
     'chronicle' => [
-        'intro' => 'Every known event of the line, grouped by section. Each one refers to its source in a note. When two sources give different dates for the same fact, the disagreement is shown rather than silently settled.',
+        'intro' => 'Every known event of the line, grouped by section. Each one refers to its source in a note. When two sources give different dates for the same fact, VFF shows the disagreement without choosing between them.',
         'whole_line' => 'Whole line',
         'traced' => 'Sections located on the route, without a place name',
         'near_groups' => 'Sections named after a single place',
@@ -341,7 +329,7 @@ return [
         'osm' => 'OpenStreetMap',
         'wikidata' => 'Wikidata',
         'estimation-reseau' => 'Estimate from the operating company (uncertain date)',
-        'heritage' => 'List of French heritage railways',
+        'heritage' => 'List of heritage railways',
         'archeoferroviaire' => 'archeoferroviaire',
         'vff' => 'VFF (merged pages)',
         'unknown' => 'Unspecified source',
@@ -504,7 +492,7 @@ return [
             'single' => ':year: :state',
             'today' => 'today',
             'show_all' => 'Show all :count stations',
-            'show_less' => 'Shorten the list',
+            'show_less' => 'Collapse the list',
         ],
         'chronicle' => [
             'event_count' => ':count events',
@@ -516,7 +504,7 @@ return [
         ],
         'tech' => [
             'pk' => 'km',
-            'pk_title' => 'chainage (French kilometre post, PK)',
+            'pk_title' => 'kilometre point (PK)',
             'signalling_intro' => 'Block system (train spacing: BAL, BAPR, BM…) and train protection (KVB, TVM, ETCS) along the route, current state. Source: SNCF Réseau Open Data (block systems, lines fitted with KVB).',
             'signalling_intro_cab' => 'On the high-speed stretches, signalling is in the cab.',
         ],
@@ -527,13 +515,13 @@ return [
 
     // Sticky contents of the sheet (short section labels).
     'toc' => [
-        'label' => 'Contents of this sheet',
+        'label' => 'Contents of this page',
         'trace' => 'Route',
         'about' => 'About',
         'history' => 'History',
         'decades' => 'Decades',
         'stations' => 'Stations',
-        'sections' => 'Sections',
+        'sections' => 'Named sections',
         'heritage' => 'Heritage railway',
         'tech' => 'Technical',
         'chronicle' => 'Chronology',

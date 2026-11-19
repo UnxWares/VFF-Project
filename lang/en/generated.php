@@ -9,7 +9,7 @@ return [
         'undated_lines' => 'Uncertain status: the station\'s lines are undated, status not capped',
         'no_track' => 'Uncertain status: no reconstructed track within 300 m at that time',
         'track_gone' => 'No track left at that time (line closed, then gone)',
-        'unmodeled_tourist' => 'Tourist railway not among the VFF lines: status not capped',
+        'unmodeled_tourist' => 'Heritage railway not among the VFF lines: status not capped',
         'not_served' => 'No longer served (missing from the SNCF passenger stations, no stop in service according to OSM or Wikidata)',
         'closed_today' => 'Dated closure applied to the current era',
         'undated' => 'Undated closure',
@@ -185,7 +185,7 @@ return [
         'lo_table' => 'RFF table of closures and decommissionings: section :section, PK :from to :to (:km km), :date',
     ],
     'heritage' => [
-        'kind_tourist_train' => 'tourist train',
+        'kind_tourist_train' => 'heritage railway',
         'kind_velorail' => 'rail bike',
         'kind_museum' => 'operating railway museum',
         'between' => 'between :from and :to',

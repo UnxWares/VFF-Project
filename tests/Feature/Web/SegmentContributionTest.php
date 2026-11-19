@@ -539,7 +539,7 @@ class SegmentContributionTest extends TestCase
         DB::table('contribution_approvals')->insert(['contribution_id' => $c->id, 'user_id' => $this->member('validator')->id, 'approved_at' => now()]);
 
         $this->actingAs($this->member('validator'))->post("/validate/{$c->id}/approve")
-            ->assertSessionHas('error', 'Échec de la publication : Pas de géométrie pour 999 000 ère 1900');
+            ->assertSessionHas('error', 'Échec de la publication : Pas de géométrie pour 999 000 ère 1900');
 
         $this->assertSame('approved', $c->fresh()->status->value);
         $this->assertSame(1, DB::table('contribution_approvals')->count(), 'approbation annulée avec la transaction');

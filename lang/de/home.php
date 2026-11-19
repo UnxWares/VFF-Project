@@ -2,19 +2,21 @@
 
 return [
     'meta_title' => 'VFF - Französische Bahnstrecken',
-    'meta_description' => 'Eine gemeinschaftliche Enzyklopädie der französischen Eisenbahn von 1830 bis heute: Strecken, Bahnhöfe, eine Karte des Netzes für jedes Jahrzehnt und belegte Archivbilder.',
+    'meta_description' => 'Eine gemeinschaftliche Enzyklopädie der französischen Eisenbahn von 1830 bis heute: Strecken, Bahnhöfe, eine Karte des Netzes für jedes Jahrzehnt und Archivmaterial mit Quellenangaben.',
 
     // Großes Titelbild (VFF-Scheibe zwischen zwei TGV): Zeile unter der Scheibe und zwei Aktionen.
     'hero' => [
         'tagline' => 'Die Enzyklopädie der französischen Bahnstrecken, von 1830 bis heute',
         'open_map' => 'Karte öffnen',
         'search' => 'Strecke oder Bahnhof suchen',
+        // Hintergrund: Ausschnitt der Karte von Vuillemin (1865), siehe credits.media.partners.home_map_*.
+        'credit' => 'Hintergrund: Eisenbahnkarte von Alexandre Vuillemin (1865), gemeinfrei',
     ],
 
     // Vorstellung (ursprüngliches Design: Logo, Titel, Text, zwei Schaltflächen).
     'whoarewe' => [
         'title' => 'VFF - Wo sich die Schienen kreuzen',
-        'paragraph' => 'Als Projekt von UnxWares, getragen von seinen beiden Gesellschaftern und den Mitwirkenden, ist VFF eine gemeinschaftliche Enzyklopädie der französischen Eisenbahn von 1830 bis heute. Sie beschreibt jede Strecke, ob in Betrieb oder stillgelegt: ihren Verlauf, ihre Bahnhöfe, ihre Daten und die Quelle jeder Angabe. Sie können sie lesen, Korrekturen vorschlagen und ihre Daten über die öffentliche API weiterverwenden.',
+        'paragraph' => 'Als Projekt von UnxWares, getragen von seinen beiden Gesellschaftern und den Mitwirkenden, ist VFF eine gemeinschaftliche Enzyklopädie der französischen Eisenbahn von 1830 bis heute. Sie beschreibt jede Strecke, ob in Betrieb oder verschwunden: ihren Verlauf, ihre Bahnhöfe, ihre Daten und die Quelle jeder Angabe. Sie können sie lesen, Korrekturen vorschlagen und ihre Daten über die öffentliche API weiterverwenden.',
         'cta_history' => 'Unsere Geschichte',
         'cta_donate' => 'Spenden',
     ],
@@ -85,7 +87,7 @@ return [
     'archives' => [
         'title' => 'Die Eisenbahn in Bildern',
         'intro' => 'Fotos und Postkarten aus Wikimedia Commons, den Seiten der Strecken zugeordnet, mit Urheber und Lizenz.',
-        'decade' => 'Um :year',
+        'decade' => ':decade',
         'author_unknown' => 'Unbekannter Urheber',
         'source' => 'Wikimedia Commons',
         'cta' => 'Strecken durchsuchen',
@@ -96,7 +98,7 @@ return [
         'label' => 'Schnellzugriff',
         'shortcut_hint' => 'Auf jeder Seite öffnet :keys die Suche.',
         'map_detail' => '1830 bis heute',
-        'materials_detail' => 'Lokomotiven, Triebwagen, Wagen',
+        'materials_detail' => 'Lokomotiven, Triebzüge, Reisezugwagen',
         'api_detail' => 'REST, GraphQL, GeoJSON',
         'contribute_detail' => 'Eine Strecke korrigieren, eine Quelle angeben',
     ],
@@ -105,7 +107,7 @@ return [
     'contents' => [
         'title' => 'In der Enzyklopädie',
         'lines_title' => 'Strecken',
-        'lines_text' => 'Verlauf, Bahnhöfe, Chronik und Quellen jeder Strecke, ob in Betrieb oder stillgelegt.',
+        'lines_text' => 'Verlauf, Bahnhöfe, Chronik und Quellen jeder Strecke, ob in Betrieb oder verschwunden.',
         'lines_count_one' => ":value\u{00A0}Seite",
         'lines_count_other' => ":value\u{00A0}Seiten",
         'stations_title' => 'Bahnhöfe',
@@ -113,7 +115,7 @@ return [
         'stations_count_one' => ":value\u{00A0}Seite",
         'stations_count_other' => ":value\u{00A0}Seiten",
         'materials_title' => 'Fahrzeuge',
-        'materials_text' => 'Lokomotiven, Triebwagen und Reisezugwagen mit den Strecken, auf denen sie fuhren.',
+        'materials_text' => 'Lokomotiven, Triebzüge und Reisezugwagen mit den Strecken, auf denen sie fuhren.',
         'materials_count_one' => ":value\u{00A0}Seite",
         'materials_count_other' => ":value\u{00A0}Seiten",
         'map_title' => 'Historische Karte',

@@ -6,7 +6,7 @@ return [
     'back' => 'Go back',
     'home' => 'Back to the home page',
     'reload' => 'Reload the page',
-    'login' => 'Log in',
+    'login' => 'Sign in',
     'explore' => 'To carry on browsing',
     'map' => 'Open the map',
     'lines' => 'Browse the lines',
@@ -15,7 +15,7 @@ return [
 
     '403' => [
         'title' => 'Access denied',
-        'text' => 'You do not have permission to open this page. If you think this is a mistake, log in with the right account or write to us.',
+        'text' => 'You do not have permission to open this page. If you think this is a mistake, sign in with the right account or write to us.',
     ],
     '404' => [
         'title' => 'Page not found',

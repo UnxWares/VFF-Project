@@ -31,11 +31,15 @@ header:where(.site-header) .header-background {
 
 /* Pages internes : barre seule, sans héros, toujours visible (navbarFade ne pose plus que des
    classes : nav-hidden, nav-shown ; aucune opacité en ligne à contrer). */
+/* Hauteurs minimales (et non fixes) : si l'utilisateur agrandit les espacements du texte
+   (WCAG 1.4.12), la barre passe sur deux rangées au lieu de pousser « Connexion » hors de l'écran. */
 header:where(.site-header).compact {
-    height: var(--vff-header-h);
+    height: auto;
+    min-height: var(--vff-header-h);
 }
 header:where(.site-header).compact .header-background {
-    height: var(--vff-header-h);
+    height: auto;
+    min-height: var(--vff-header-h);
     background-image: none;
     background-color: var(--vff-bg);
 }
@@ -52,7 +56,7 @@ header:where(.site-header) .header-background nav {
     /* Au-dessus du grand visuel de l'accueil (sa flèche passait sur la barre en quittant le héros). */
     z-index: 4;
     width: 100%;
-    height: var(--vff-header-h);
+    min-height: var(--vff-header-h);
     background-color: var(--vff-bg);
     color: var(--vff-text);
     box-shadow:
@@ -73,9 +77,10 @@ header:where(.site-header):not(.compact) .header-background nav.nav-hidden:focus
 /* Rangée de la barre : sur la grille commune (même bord gauche que le contenu et le pied de page). */
 header:where(.site-header) nav .nav-inner {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0 var(--vff-space-6);
-    height: 100%;
+    min-height: var(--vff-header-h);
     max-width: calc(var(--vff-container) + 2 * var(--vff-gutter));
     margin: 0 auto;
     padding-inline: var(--vff-gutter);
@@ -172,6 +177,7 @@ header:where(.site-header) nav .nav-main.in-panel {
 header:where(.site-header) nav .links {
     display: flex;
     flex: 1 1 auto;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0 var(--vff-space-5);
     min-width: 0;
@@ -295,41 +301,46 @@ header:where(.site-header) nav .nav-toggle .toggle-label {
 }
 
 /* ─── Héros de l'accueil (HomeHero.svelte) ────────────────────────────────────
-   Photo des rails déjà floutée dans le fichier (plus de flou calculé : backdrop-filter retiré),
-   léger voile, disque VFF entre deux TGV, phrase sur une étiquette sombre translucide, deux
-   actions, flèche vers le contenu. Le groupe est centré dans l'écran, sous la barre quand elle est
-   affichée (1 180 px et moins) et au-dessus de la flèche.
+   Fond : carte ancienne des chemins de fer (Vuillemin, 1865, domaine public), nette, déjà passée
+   en sépia sombre dans le fichier : le papier, sa partie la plus claire, laisse au blanc au moins
+   5:1 partout ; aucun voile n'est nécessaire (léger voile en thème sombre seulement). Disque VFF
+   entre deux TGV, phrase en blanc, deux actions, flèche vers le contenu, crédit du fond en bas.
+   Disque, phrase et actions sont séparés par le même espace (--hero-space) ; le groupe est centré
+   entre la barre (affichée ou non) et la flèche, un peu au-dessus du milieu de l'écran.
    Écartement des TGV : --tgv-progress (0 : contre le disque, 1 : au bord de l'écran) fois
    --tgv-travel. Navigateurs qui lient une animation au défilement : animation CSS sur la première
    hauteur d'écran, hors du fil principal ; les autres : lib/actions/parallaxTGV.js écrit la
    variable ; mouvement réduit : rames immobiles, déjà écartées.
-   Couleurs propres à la photo (texte clair sur étiquette sombre translucide, GUIDE section 2) :
-   variables --hero-*, identiques dans les deux thèmes sauf le voile. */
+   Couleurs propres au fond (texte clair posé sur une image sombre, GUIDE section 2) : variables
+   --hero-*, identiques dans les deux thèmes sauf le voile. */
 header:where(.site-header) .hero {
     --hero-ink: #ffffff;
     --hero-ring: #000000;
-    --hero-plate: rgb(16 20 24 / 0.7);
-    --hero-plate-hover: rgb(16 20 24 / 0.86);
-    --hero-veil: rgb(16 20 24 / 0.16);
-    /* Teinte moyenne de la photo, le temps qu'elle arrive. */
-    --hero-placeholder: #7f786b;
+    --hero-veil: transparent;
+    --hero-hover: rgb(16 20 24 / 0.4);
+    /* Teinte moyenne de la carte, le temps qu'elle arrive (le blanc y fait 8:1). */
+    --hero-placeholder: #5e4d39;
+    --hero-space: clamp(24px, 4.2vh, 44px);
+    /* Hauteur réservée au crédit sous la flèche (téléphone et tablette, cf. plus bas). */
+    --hero-credit-h: 0px;
     /* Disque et rames : 20 % de la largeur, jamais plus que la taille d'origine des TGV (465 px),
        ni plus que 42 % de la hauteur (fenêtres larges et basses). */
     --hero-disc: min(20vw, 465px, 42vh);
     --hero-tgv: var(--hero-disc);
     --tgv-gap: 1vw;
     --tgv-travel: calc(49.5vw - var(--hero-disc) / 2 - var(--hero-tgv) - var(--tgv-gap));
-    --hero-arrow: 56px;
-    --hero-arrow-gap: clamp(16px, 3.5vh, 32px);
+    --hero-arrow: 52px;
+    --hero-arrow-gap: clamp(20px, 4vh, 40px);
     position: relative;
     isolation: isolate;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: clamp(20px, 3.2vh, 32px);
+    gap: var(--hero-space);
     height: 100%;
-    padding: 24px var(--vff-gutter) calc(var(--hero-arrow) + 2 * var(--hero-arrow-gap));
+    padding: calc(var(--vff-header-h) + 16px) var(--vff-gutter)
+        calc(var(--hero-arrow) + 2 * var(--hero-arrow-gap) + var(--hero-credit-h));
     overflow: clip;
     background-color: var(--hero-placeholder);
     color: var(--hero-ink);
@@ -398,49 +409,44 @@ header:where(.site-header) .hero-tgv.right {
     }
 }
 
-/* Phrase de présentation : étiquette sombre translucide, lisible sur toute la photo. Une ligne dès
-   la tablette ; plus étroit, coupure ordinaire (des lignes équilibrées laisseraient l'étiquette plus
-   large que son texte). */
+/* Phrase de présentation : Gabarito blanc, centré, lignes équilibrées (deux sur ordinateur). */
 header:where(.site-header) .hero-tagline {
-    max-width: min(40em, 100%);
+    max-width: min(24em, 100%);
     margin: 0;
-    padding: 10px 20px;
-    border-radius: var(--vff-radius-md);
-    background-color: var(--hero-plate);
     color: var(--hero-ink);
     font-family: var(--vff-font-display);
-    font-size: clamp(1.125rem, 0.9rem + 0.8vw, 2rem);
+    font-size: clamp(1.375rem, 1rem + 1vw, 2rem);
     font-weight: 600;
-    line-height: 1.3;
+    line-height: 1.25;
     text-align: center;
-    text-wrap: pretty;
+    text-wrap: balance;
 }
 
-/* Actions : la carte (bouton principal) et la recherche de tout le site. Sur la photo, le bouton
-   secondaire est opaque (son contour orange seul ne s'y lit pas). */
+/* Actions : la carte (orange plein) et la recherche de tout le site (contour blanc). Largeur selon
+   le libellé (rembourrage généreux), même hauteur, même rayon, même graisse ; 17 à 20 px. */
 header:where(.site-header) .hero-actions {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 12px 16px;
 }
-/* Mêmes boutons que partout, un peu plus grands sur grand écran (16 à 20 px). */
 header:where(.site-header) .hero-actions .vff-btn {
-    padding: 0.625em 1.25em;
-    font-size: clamp(var(--vff-fs-md), 0.75rem + 0.45vw, 1.25rem);
+    min-height: 50px;
+    padding: 0.5em 1.6em;
+    font-size: clamp(1.0625rem, 0.85rem + 0.4vw, 1.25rem);
     text-wrap: balance;
 }
 header:where(.site-header) .hero-actions .vff-btn.secondary {
-    border-color: var(--vff-bg-elevated);
-    background-color: var(--vff-bg-elevated);
-    color: var(--vff-text);
+    border-color: var(--hero-ink);
+    background-color: transparent;
+    color: var(--hero-ink);
 }
+/* Survol : le fond s'assombrit sous le bouton (le blanc garde son contraste). */
 header:where(.site-header) .hero-actions .vff-btn.secondary:hover {
-    border-color: var(--vff-bg-muted);
-    background-color: var(--vff-bg-muted);
+    background-color: var(--hero-hover);
 }
 
-/* Flèche vers le contenu : rond sombre translucide à filet blanc. */
+/* Flèche vers le contenu : rond à filet blanc, comme le bouton de recherche. */
 header:where(.site-header) .hero-scroll {
     position: absolute;
     bottom: var(--hero-arrow-gap);
@@ -451,17 +457,17 @@ header:where(.site-header) .hero-scroll {
     height: var(--hero-arrow);
     border: 2px solid var(--hero-ink);
     border-radius: 50%;
-    background-color: var(--hero-plate);
+    background-color: transparent;
     color: var(--hero-ink);
     text-decoration: none;
     translate: -50% 0;
     transition: background-color var(--vff-transition);
 }
 header:where(.site-header) .hero-scroll:hover {
-    background-color: var(--hero-plate-hover);
+    background-color: var(--hero-hover);
 }
 header:where(.site-header) .hero-scroll .bi {
-    font-size: 26px;
+    font-size: 24px;
     line-height: 1;
 }
 /* Invitation à défiler : trois rebonds après le chargement, puis immobile (moins de 5 s). */
@@ -476,7 +482,31 @@ header:where(.site-header) .hero-scroll .bi {
     }
 }
 
-/* Focus sur la photo : double contour blanc et noir, visible sur toutes les teintes. */
+/* Crédit du fond : en bas à droite, sur la grille ; lien vers la page des crédits. */
+header:where(.site-header) .hero-credit {
+    position: absolute;
+    right: var(--vff-gutter);
+    bottom: 14px;
+    max-width: calc(50% - var(--hero-arrow));
+    margin: 0;
+    color: var(--hero-ink);
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-xs);
+    line-height: 1.4;
+    text-align: right;
+}
+header:where(.site-header) .hero-credit a {
+    display: inline-block;
+    padding-block: 3px;
+    color: inherit;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+}
+header:where(.site-header) .hero-credit a:hover {
+    text-decoration-thickness: 2px;
+}
+
+/* Focus sur le fond : double contour blanc et noir, visible sur toutes les teintes. */
 header:where(.site-header) .hero :is(a, button):focus-visible {
     outline: 3px solid var(--hero-ink);
     outline-offset: 2px;
@@ -484,16 +514,26 @@ header:where(.site-header) .hero :is(a, button):focus-visible {
 }
 
 [data-theme='dark'] header:where(.site-header) .hero {
-    --hero-veil: rgb(16 20 24 / 0.3);
+    --hero-veil: rgb(16 20 24 / 0.2);
 }
 
-/* Barre affichée dès le chargement (1 180 px et moins) : le groupe se centre sous elle. */
-@media (max-width: 1180px) {
+/* Tablette et téléphone : crédit centré sous la flèche. */
+@media (max-width: 900px) {
     header:where(.site-header) .hero {
-        padding-top: calc(var(--vff-header-h) + 16px);
+        --hero-credit-h: 40px;
+    }
+    header:where(.site-header) .hero-scroll {
+        bottom: calc(var(--hero-arrow-gap) + var(--hero-credit-h));
+    }
+    header:where(.site-header) .hero-credit {
+        left: var(--vff-gutter);
+        bottom: 10px;
+        max-width: none;
+        text-align: center;
+        text-wrap: balance;
     }
 }
-/* Téléphone : disque plus grand que les rames, actions l'une sous l'autre. */
+/* Téléphone : disque plus grand que les rames. */
 @media (max-width: 700px) {
     header:where(.site-header) .hero {
         --hero-disc: min(38vw, 30svh);
@@ -501,11 +541,18 @@ header:where(.site-header) .hero :is(a, button):focus-visible {
         --hero-arrow: 48px;
     }
 }
-@media (max-width: 600px) {
-    header:where(.site-header) .hero-actions {
-        flex-direction: column;
-        align-items: stretch;
-        width: min(100%, 22rem);
+/* Petits téléphones : le crédit peut prendre trois lignes. */
+@media (max-width: 400px) {
+    header:where(.site-header) .hero {
+        --hero-credit-h: 64px;
+    }
+}
+/* Petits téléphones bas (600 px et moins) : disque et espaces resserrés, flèche à distance. */
+@media (max-width: 600px) and (max-height: 600px) {
+    header:where(.site-header) .hero {
+        --hero-disc: min(30vw, 22svh);
+        --hero-space: 16px;
+        --hero-arrow: 44px;
     }
 }
 /* Fenêtres basses (téléphone en paysage) : tout tient dans l'écran, sans la flèche. */
@@ -513,19 +560,19 @@ header:where(.site-header) .hero :is(a, button):focus-visible {
     header:where(.site-header) .hero {
         --hero-disc: min(20vw, 26svh);
         --hero-tgv: var(--hero-disc);
-        gap: 12px;
-        padding-bottom: 16px;
+        --hero-space: 14px;
+        --hero-credit-h: 24px;
+        padding-bottom: calc(var(--hero-credit-h) + 16px);
     }
     header:where(.site-header) .hero-tagline {
-        padding: 6px 14px;
-        font-size: 1.0625rem;
-    }
-    header:where(.site-header) .hero-actions {
-        flex-direction: row;
-        width: auto;
+        max-width: min(36em, 100%);
+        font-size: 1.25rem;
     }
     header:where(.site-header) .hero-scroll {
         display: none;
+    }
+    header:where(.site-header) .hero-credit {
+        bottom: 8px;
     }
 }
 
@@ -545,6 +592,7 @@ header:where(.site-header) .hero :is(a, button):focus-visible {
         pointer-events: auto;
     }
     header:where(.site-header) nav .nav-inner {
+        flex-wrap: nowrap;
         gap: 0 var(--vff-space-5);
     }
     header:where(.site-header) nav .nav-title {

@@ -29,7 +29,7 @@ return [
     'period' => 'In service',
     'builder' => 'Builder',
     'key_figures' => 'Key figures',
-    'lines' => 'Lines served',
+    'lines' => 'Lines run on',
     'no_lines' => 'No line references this rolling stock yet.',
     'contribute' => 'Contribute',
     'types' => [
@@ -41,6 +41,8 @@ return [
         'rame_tgv' => 'TGV and high speed',
         'voiture' => 'Coaches',
         'wagon' => 'Wagons',
+        'tramway' => 'Trams',
+        'engin_service' => 'Departmental vehicles',
     ],
     'type' => [
         'locomotive_vapeur' => 'Steam locomotive',
@@ -51,5 +53,7 @@ return [
         'rame_tgv' => 'TGV trainset',
         'voiture' => 'Coach',
         'wagon' => 'Wagon',
+        'tramway' => 'Tram',
+        'engin_service' => 'Departmental vehicle',
     ],
 ];

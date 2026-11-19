@@ -5,8 +5,7 @@ return [
     'meta_description' => 'VFF unterstützen, das offene Projekt zur Dokumentation des französischen Eisenbahnerbes: Stand der Spenden und ihr Verwendungszweck.',
 
     'hero' => [
-        'eyebrow' => 'Unterstützen',
-        'title' => 'Das Projekt am Leben halten',
+        'title' => 'Halten Sie das Projekt am Leben',
         'subtitle' => 'VFF ist kostenlos, werbefrei und ohne Tracker von Dritten, und sein Code ist offen. Spenden sollen Hosting, Kartenhintergründe und die für das Projekt aufgewendete Zeit decken.',
     ],
 

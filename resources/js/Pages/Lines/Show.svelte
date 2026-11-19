@@ -812,16 +812,11 @@
                         <li class={{ selected: i === selected }}>
                             <div class="h-date">
                                 <span class="h-day">{phaseDate(p)}</span>
-                                <button
-                                    type="button"
-                                    class="see-map"
-                                    onclick={() => showPhase(i)}
-                                    aria-label={t('lines.phases.see_on_map_for', {
-                                        date: phaseDate(p),
-                                    })}
-                                >
+                                <button type="button" class="see-map" onclick={() => showPhase(i)}>
                                     <i class="bi bi-map" aria-hidden="true"></i>
-                                    {t('lines.phases.see_on_map')}
+                                    {t('lines.phases.see_on_map')}<span class="vff-sr-only">
+                                        ({phaseDate(p)})</span
+                                    >
                                 </button>
                             </div>
                             <div class="h-text"><LinePhaseText phase={p} {eventsById} /></div>
@@ -1416,10 +1411,14 @@
     }
     /* Cible de 24 px au moins, sans décaler les lignes de la fiche. */
     .infobox dd a,
-    .data-sources a,
-    .attribution a {
+    .data-sources a {
         display: inline-block;
         margin: -3px 0;
+        padding: 3px 0;
+    }
+    /* Crédit de l'extrait : liens EN LIGNE (un bloc insécable laissait « ( » seul en fin de ligne et
+       ne coupait pas un long titre) ; le rembourrage vertical donne la même cible de 24 px. */
+    .attribution a {
         padding: 3px 0;
     }
 

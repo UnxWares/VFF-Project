@@ -9,7 +9,10 @@ use Illuminate\Console\Command;
  *
  *   1. vff:import-station-sources  (SNCF, OSM, OHM, Wikidata, gares par PK)
  *   2. vff:consolidate-stations    (dédoublonnage → stations + station_events)
- *   3. vff:attach-stations         (gares ↔ lignes → station_lines)
+ *   3. vff:place-listed-stations   (gares des listes par ligne posées par leur PK :
+ *                                   calage robuste « PK = distance » sur les gares
+ *                                   de position fiable et les lieux-dits)
+ *      vff:attach-stations         (gares ↔ lignes → station_lines)
  *   4. vff:snap-stations           (gares décalées recalées sur la voie de
  *                                   leurs lignes, meilleure source de position)
  *   5. vff:import-station-closures (dates de fermeture des gares : articles
@@ -45,6 +48,7 @@ class StationsPipeline extends Command
             $steps[] = ['vff:consolidate-stations', []];
         }
         if (! $this->option('only-eras')) {
+            $steps[] = ['vff:place-listed-stations', []];
             $steps[] = ['vff:attach-stations', []];
             $steps[] = ['vff:snap-stations', []];
             $steps[] = ['vff:import-station-closures', $this->option('from-cache') ? ['--from-cache' => true] : []];

@@ -24,8 +24,19 @@
         e.status ? $i18n.t(`stations.statuses.${e.status}`) : $i18n.t('stations.statuses.absent');
     // Typographie : espace insécable avant les deux-points en français seulement.
     const colon = $derived(($i18n.language ?? 'fr') === 'fr' ? ' : ' : ': ');
+    /**
+     * Année affichée dans la case ; la décennie en cours se lit « Auj. » (« Today », « Heute »).
+     * Le nom accessible commence par ce texte visible (WCAG 2.5.3), développé s'il est abrégé.
+     */
+    const yearText = (e) => (e.is_current ? $i18n.t('stations.era_today') : String(e.year));
+    function spoken(e) {
+        if (!e.is_current) return yearText(e);
+        const long = $i18n.t('stations.lines.era.today');
+        const short = yearText(e);
+        return short.toLowerCase() === long.toLowerCase() ? short : `${short} (${long})`;
+    }
     /** Nom accessible d'une case : année, statut et note (déjà dans la langue de la page). */
-    const tip = (e) => `${e.year}${colon}${label(e)}${e.note ? ` (${e.note})` : ''}`;
+    const tip = (e) => `${spoken(e)}${colon}${label(e)}${e.note ? ` (${e.note})` : ''}`;
 
     /** Encre lisible (noire ou blanche) sur une couleur de statut : le meilleur contraste des deux. */
     function inkFor(hex) {
@@ -74,9 +85,7 @@
                     {#if e.status}<i class="bi {STATION_STATUS_ICON[e.status] ?? 'bi-circle'}"
                         ></i>{/if}
                 </span>
-                <span class="year" aria-hidden="true"
-                    >{e.is_current ? $i18n.t('stations.era_today') : e.year}</span
-                >
+                <span class="year" aria-hidden="true">{yearText(e)}</span>
             </a>
         </li>
     {/each}
@@ -112,7 +121,7 @@
         <ul>
             {#each noted as e (e.year)}
                 <li>
-                    <strong>{e.is_current ? $i18n.t('stations.era_today') : e.year}</strong>
+                    <strong>{yearText(e)}</strong>
                     <span lang={e.note_lang}>{label(e)} ({e.note})</span>
                 </li>
             {/each}

@@ -8,11 +8,12 @@ import { formatStationDate } from '../../resources/js/lib/stationDates.js';
 const fr = {
     'stations.dates.range': 'entre :from et :to',
     'stations.dates.range_upper': 'au plus tard en :year',
-    'stations.dates.decade': 'années :year',
+    'stations.dates.decade': 'années :decade',
     'stations.dates.after': 'après :year',
     'stations.dates.before': 'avant :year',
 };
-const t = (key, opts = {}) => (fr[key] ?? key).replace(/:(\w+)/g, (_, k) => String(opts[k] ?? `:${k}`));
+const t = (key, opts = {}) =>
+    (fr[key] ?? key).replace(/:(\w+)/g, (_, k) => String(opts[k] ?? `:${k}`));
 
 describe('formatStationDate', () => {
     it('jour, mois, année', () => {
@@ -43,6 +44,21 @@ describe('formatStationDate', () => {
         expect(formatStationDate('1984-01-01', 'before', null, t)).toBe('avant 1984');
     });
 
+    it('décennie formée selon la langue (« the 1980s », « 1980er-Jahre »)', () => {
+        const en = (key, opts = {}) =>
+            key === 'stations.dates.decade' ? `the ${opts.decade}` : key;
+        const de = (key, opts = {}) =>
+            key === 'stations.dates.decade' ? String(opts.decade) : key;
+        expect(formatStationDate('1980-01-01', 'decade', null, en, 'en')).toBe('the 1980s');
+        expect(formatStationDate('1980-01-01', 'decade', null, en, 'en-GB')).toBe('the 1980s');
+        expect(formatStationDate('1980-01-01', 'decade', null, de, 'de')).toBe('1980er-Jahre');
+    });
+
+    it('anglais britannique : le jour avant le mois', () => {
+        expect(formatStationDate('1981-09-27', 'day', null, t, 'en')).toBe('27 September 1981');
+        expect(formatStationDate('1981-09-27', 'day', null, t, 'en-GB')).toBe('27 September 1981');
+    });
+
     it('sans date', () => {
         expect(formatStationDate(null)).toBeNull();
         expect(formatStationDate('')).toBeNull();
@@ -50,7 +66,10 @@ describe('formatStationDate', () => {
 
     it('jamais de tiret long dans les libellés', () => {
         for (const lang of ['fr', 'en', 'de']) {
-            const php = readFileSync(new URL(`../../lang/${lang}/stations.php`, import.meta.url), 'utf8');
+            const php = readFileSync(
+                new URL(`../../lang/${lang}/stations.php`, import.meta.url),
+                'utf8',
+            );
             expect(php).toMatch(/'range' =>/);
             expect(php).toMatch(/'range_upper' =>/);
             expect(php).not.toMatch(/—|--/);

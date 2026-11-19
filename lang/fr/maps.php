@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'meta_title' => 'Nos cartes',
+    'meta_title' => 'Carte du rail français',
     'meta_description' => 'Carte interactive du réseau ferré français, en service et disparu, par époque.',
 
     'hero' => [
@@ -105,7 +105,7 @@ return [
         'dc1500' => '1,5 kV continu',
         'dc3000' => '3 kV continu',
         'ac15' => '15 kV 16,7 Hz (alternatif)',
-        'low' => '1 000 V et moins (troisième rail)',
+        'low' => '1 000 V et moins (troisième rail)',
         'other' => 'Autre tension (12 kV du Midi…)',
         'unknown_voltage' => 'Électrifiée, tension inconnue',
         'unknown_date' => 'Électrifiée aujourd’hui, date inconnue',
@@ -115,8 +115,8 @@ return [
 
     'gauge' => [
         'title' => 'Écartement des voies',
-        'standard' => 'Voie normale (1 435 mm)',
-        'metre' => 'Voie métrique (1 000 mm)',
+        'standard' => 'Voie normale (1 435 mm)',
+        'metre' => 'Voie métrique (1 000 mm)',
         'narrow' => 'Voie étroite (600, 700, 750 mm…)',
         'broad' => 'Voie large',
         'unknown' => 'Écartement inconnu',

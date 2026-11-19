@@ -6,16 +6,15 @@ return [
     'meta_description' => 'Zugang zur VFF-API: REST-Endpunkte, GraphQL-API, OpenAPI-Spezifikation und Beispielabfragen. Nur lesend, ohne Schlüssel und ohne Konto.',
 
     'hero' => [
-        'eyebrow' => 'Öffentliche API',
         'title' => 'Die Daten von VFF für Ihre eigenen Werkzeuge',
-        'subtitle' => 'Strecken, Bahnhöfe, Chroniken und Streckenverläufe des Schienennetzes von 1830 bis heute, als JSON, GeoJSON, Vektorkacheln und GTFS. Nur lesend, ohne Schlüssel und ohne Konto.',
+        'subtitle' => 'Strecken, Bahnhöfe, Chroniken und Streckenverläufe des Eisenbahnnetzes von 1830 bis heute, als JSON, GeoJSON, Vektorkacheln und GTFS. Nur lesend, ohne Schlüssel und ohne Konto.',
     ],
 
     'docs' => [
         'title' => 'Dokumentation',
-        'intro' => 'Alle beschreiben dieselben Daten: Wählen Sie die Oberfläche, die Ihnen besser gefällt.',
+        'intro' => 'Alle beschreiben dieselben Daten: Wählen Sie die Oberfläche, die Ihnen am besten zusagt.',
         'items' => [
-            'scalar' => ['title' => 'REST-Referenz (Scalar)', 'text' => 'Die Hauptreferenz, mit Live-Anfragen und Codebeispielen.'],
+            'scalar' => ['title' => 'REST-Referenz (Scalar)', 'text' => 'Die Hauptreferenz mit Live-Anfragen und Codebeispielen.'],
             'swagger' => ['title' => 'REST-Referenz (Swagger UI)', 'text' => 'Dieselbe Spezifikation in einer klassischeren Oberfläche.'],
             'openapi' => ['title' => 'OpenAPI-3.1-Spezifikation', 'text' => 'JSON-Datei zum Import in Postman, Insomnia oder einen Client-Generator.'],
             'graphql' => ['title' => 'GraphQL-Referenz', 'text' => 'Typen, Abfragen und Beispiele des Schemas.'],
@@ -57,7 +56,7 @@ return [
         'curl_lines' => 'Streckenverläufe des heutigen Netzes (Epoche 2030) als GeoJSON',
         'curl_pk' => 'Streckenkilometer eines Ortes auf der Strecke Paris-Montparnasse - Brest',
         'curl_search' => 'Suche nach Namen',
-        'response' => 'Antwort auf die zweite Anfrage: Der Punkt wird auf den nächsten Streckenverlauf gelegt (snap), hier 395 m entfernt.',
+        'response' => 'Antwort auf die zweite Anfrage: Der Punkt wird auf den nächstgelegenen Streckenverlauf gelegt (snap), hier 395 m entfernt.',
         'code_label' => 'Codebeispiel',
     ],
 

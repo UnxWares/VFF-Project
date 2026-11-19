@@ -1,19 +1,22 @@
-/* Pied de page du site (Footer.svelte). Ordinateur : bandeau (logo + texte) à gauche, trois colonnes
-   de liens à droite, mentions dessous ; sur la grille commune (1 180 px et gouttières du site : même
-   bord gauche que le logo de l'en-tête et le contenu). Sous 1 180 px, le bandeau passe au-dessus des
-   liens ; sous 600 px, tout s'empile.
+/* Pied de page du site (Footer.svelte), dessin d'origine gardé : bandeau (logo + texte) à gauche, trois
+   colonnes de liens à icône à droite, filet avant « Accès à l'API », mentions dessous. Corrigé le 19/11 :
+   sur la grille commune (même bord gauche que le contenu), tout part d'une même ligne en haut (logo,
+   texte, titres), présentation plus large, liens plus aérés, pas de bande entre la page et le pied,
+   couleurs du thème. Sous 1 180 px, le bandeau passe au-dessus des liens ; sous 600 px, tout s'empile.
    Sélecteurs en footer:where(.site-footer) : les autres <footer> (fiches, galerie) ne sont pas
    touchés, la spécificité reste celle d'origine. */
 footer:where(.site-footer) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 30px;
-    /* Fond « papier » un ton plus soutenu que la page, filet fin au-dessus (plus d'ombre grise). */
-    background-color: var(--vff-bg-subtle);
+    /* Accolé à la dernière section : aucune bande d'une autre teinte entre les deux. */
+    margin: 0;
+    background-color: var(--vff-bg);
     color: var(--vff-text);
     border-top: 1px solid var(--vff-border);
+    box-shadow: 0 0 8px var(--vff-shadow);
 }
+/* Grille commune : même largeur et même bord gauche que le contenu des pages. */
 footer:where(.site-footer) > * {
     width: 100%;
     max-width: calc(var(--vff-container) + 2 * var(--vff-gutter));
@@ -22,7 +25,7 @@ footer:where(.site-footer) > * {
 footer:where(.site-footer) .footer-infos {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     gap: 24px 64px;
     margin: var(--vff-space-7) 0 var(--vff-space-6);
 }
@@ -30,8 +33,8 @@ footer:where(.site-footer) .footer-infos {
 /* Bandeau : logo VFF et présentation. */
 footer:where(.site-footer) .banner {
     display: flex;
-    align-items: center;
-    flex: 0 1 35%;
+    align-items: flex-start;
+    flex: 0 1 42%;
     min-width: 0;
 }
 footer:where(.site-footer) .banner img {
@@ -40,7 +43,8 @@ footer:where(.site-footer) .banner img {
     height: 100px;
 }
 footer:where(.site-footer) .banner p {
-    margin: 0 0 0 15px;
+    /* Première ligne au niveau des titres de colonne (même ligne de départ que le logo). */
+    margin: -0.2em 0 0 20px;
     font-family: var(--vff-font-body);
     font-size: 18px;
     line-height: 1.55;
@@ -75,13 +79,13 @@ footer:where(.site-footer) .footer-links li {
     display: block;
     font-family: var(--vff-font-body);
     font-size: 20px;
-    line-height: 1.2;
+    line-height: 1.6;
 }
 footer:where(.site-footer) .footer-links a {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    min-height: 24px;
+    min-height: 32px;
     color: var(--vff-text);
     text-decoration: none;
     text-underline-offset: 0.2em;
@@ -93,8 +97,8 @@ footer:where(.site-footer) .footer-links a:hover {
 }
 /* Filet entre les liens du site et l'API (même dessin que l'ancien <hr>). */
 footer:where(.site-footer) .footer-links li.api {
-    margin-top: 3px;
-    padding-top: 3px;
+    margin-top: 6px;
+    padding-top: 6px;
     border-top: 1px solid var(--vff-border-strong);
 }
 footer:where(.site-footer) .unx-insigne {
@@ -121,8 +125,8 @@ footer:where(.site-footer) .theme-dark {
 footer:where(.site-footer) hr {
     width: calc(100% - 2 * var(--vff-gutter));
     max-width: var(--vff-container);
+    margin: 0;
     padding: 0;
-    margin: 3px 0;
     border: none;
     border-top: 1px solid var(--vff-border-strong);
 }
@@ -144,31 +148,28 @@ footer:where(.site-footer) .copyright p {
     line-height: 1.5;
     color: var(--vff-text);
 }
+/* Logo UWOSC (insigne et nom) : 220 px de large (taille minimale de la charte), zone de protection d'au
+   moins la hauteur du « U » (environ 26 px à cette taille) autour, le texte compris. */
+/* Mesures du fichier (PNG officiel de 1 500 px rendu depuis le SVG) : dessin de x 30 à 1 494 sur 1 500,
+   ligne de base du mot « UnxWares » à 247 sur 363. À 220 px de large (53 px de haut) : 4 px de marge
+   intérieure à gauche, ligne de base à 17 px du bas. Le texte et le logo sont en ligne : décaler le logo
+   de 17 px sous la ligne de base pose « Un projet de » sur la ligne de base de « UnxWares », et une marge
+   de 22 px laisse un vide visible de 26 px (la zone de protection) jusqu'à l'insigne. */
 footer:where(.site-footer) .copyright .powered {
-    display: inline-flex;
-    align-items: center;
-    /* Zone de protection du logo : au moins la hauteur du « U » (environ 17 px à 140 px de large). */
-    gap: 18px;
+    display: inline-block;
+    padding-block: 12px;
 }
-footer:where(.site-footer) .copyright a.unx-logo-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    min-height: 24px;
-    color: var(--vff-text);
-    text-decoration: none;
-}
-footer:where(.site-footer) .copyright .unx-logo {
-    width: 140px;
+footer:where(.site-footer) .copyright .uwosc-logo {
+    width: 220px;
     height: auto;
-}
-footer:where(.site-footer) .copyright .made-by::before {
-    content: '·';
-    margin-right: 18px;
-    color: var(--vff-text-muted);
+    margin-left: 22px;
+    vertical-align: -17px;
 }
 
 /* ─── Thème sombre ────────────────────────────────────────────────────────── */
+[data-theme='dark'] footer:where(.site-footer) {
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+}
 [data-theme='dark'] footer:where(.site-footer) .banner p,
 [data-theme='dark'] footer:where(.site-footer) .copyright p,
 [data-theme='dark'] footer:where(.site-footer) .footer-links a {
@@ -183,7 +184,7 @@ footer:where(.site-footer) .copyright .made-by::before {
     footer:where(.site-footer) .footer-infos {
         flex-direction: column;
         align-items: stretch;
-        gap: 20px;
+        gap: var(--vff-block-space);
     }
     footer:where(.site-footer) .banner {
         flex: none;
@@ -207,7 +208,7 @@ footer:where(.site-footer) .copyright .made-by::before {
     }
     footer:where(.site-footer) .banner p {
         margin: 12px 0 0;
-        font-size: 16px;
+        font-size: 17px;
     }
     footer:where(.site-footer) .footer-links {
         gap: 20px 32px;
@@ -216,21 +217,18 @@ footer:where(.site-footer) .copyright .made-by::before {
         flex: 1 1 135px;
     }
     footer:where(.site-footer) .footer-links li {
-        font-size: 17px;
+        font-size: 18px;
     }
     footer:where(.site-footer) .footer-links a {
-        min-height: 40px;
+        min-height: 44px;
     }
     footer:where(.site-footer) .copyright {
         flex-direction: column;
         align-items: flex-start;
     }
     footer:where(.site-footer) .copyright p {
-        margin: 8px 0;
+        margin: 12px 0;
         font-size: 15px;
         row-gap: 8px;
-    }
-    footer:where(.site-footer) .copyright .made-by::before {
-        content: none;
     }
 }

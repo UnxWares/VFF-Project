@@ -263,8 +263,8 @@ class GeneratedTextsTest extends TestCase
             'voie verte' => ['osm', 'Reconversion en voie verte (Trans\'Oise), ouverte en 2020 d\'après OpenStreetMap', null, null,
                 'Conversion into a greenway (Trans\'Oise), opened in 2020 according to OpenStreetMap', 'Umbau zum Radweg (Trans\'Oise), eröffnet 2020 laut OpenStreetMap'],
             'patrimoine' => ['heritage', 'Exploitation associative : Chemin de fer du Haut Forez, train touristique entre Sembadel et Chaise-Dieu, depuis 1986 (d\'après article Wikipédia de l\'exploitation) ; aussi nommé « Chemin de Fer du Haut Forez (CFHF) ». Sources : Wikipédia (liste), IGN BD TOPO.', null, null,
-                'Run by an association: Chemin de fer du Haut Forez, tourist train between Sembadel and Chaise-Dieu, since 1986 (according to the Wikipedia article on the operator); also known as « Chemin de Fer du Haut Forez (CFHF) ». Sources: Wikipedia (list), IGN BD TOPO.',
-                'Betrieb durch einen Verein: Chemin de fer du Haut Forez, Museumsbahn zwischen Sembadel und Chaise-Dieu, seit 1986 (laut dem Wikipedia-Artikel über den Betreiber); auch genannt « Chemin de Fer du Haut Forez (CFHF) ». Quellen: Wikipedia (Liste), IGN BD TOPO.'],
+                'Run by an association: Chemin de fer du Haut Forez, heritage railway between Sembadel and Chaise-Dieu, since 1986 (according to the Wikipedia article on the operator); also known as “Chemin de Fer du Haut Forez (CFHF)”. Sources: Wikipedia (list), IGN BD TOPO.',
+                'Betrieb durch einen Verein: Chemin de fer du Haut Forez, Museumsbahn zwischen Sembadel und Chaise-Dieu, seit 1986 (laut dem Wikipedia-Artikel über den Betreiber); auch genannt „Chemin de Fer du Haut Forez (CFHF)“. Quellen: Wikipedia (Liste), IGN BD TOPO.'],
         ];
     }
 

@@ -45,12 +45,12 @@ return [
         'undo' => 'Rückgängig',
         'undo_title' => 'Letzte Änderung rückgängig machen (Strg+Z)',
         'snap' => 'Einrasten',
-        'snap_title' => 'An bestehenden Trassen einrasten (Umschalt gedrückt halten zum Deaktivieren)',
+        'snap_title' => 'An bestehenden Trassen einrasten (Umschalttaste gedrückt halten, um es vorübergehend zu deaktivieren)',
     ],
 
     'hints' => [
-        'view' => 'Klicken Sie auf einen Abschnitt, um ihn auszuwählen, oder auf eine Referenztrasse (gestrichelt), um sie zu übernehmen.',
-        'draw' => 'Klicken Sie, um Stützpunkte zu setzen. Ein Start am Ende des ausgewählten Abschnitts verlängert ihn.',
+        'view' => 'Klicken Sie auf einen Abschnitt, um ihn auszuwählen, oder auf eine Referenztrasse (gestrichelt), um sie zu übernehmen und zu korrigieren.',
+        'draw' => 'Klicken Sie, um Stützpunkte zu setzen. Wenn Sie am Ende des ausgewählten Abschnitts beginnen, wird er verlängert.',
         'drawing_one' => ':count Stützpunkt gesetzt: Setzen Sie einen weiteren, dann Doppelklick oder Enter zum Beenden; die Rücktaste entfernt den letzten, Esc bricht ab.',
         'drawing_other' => ':count Stützpunkte gesetzt: Doppelklick oder Enter zum Beenden; die Rücktaste entfernt den letzten, Esc bricht ab.',
         'edit' => 'Ziehen Sie einen Stützpunkt, um ihn zu verschieben, oder einen Zwischenpunkt, um einen neuen zu erzeugen; Rechtsklick oder Alt+Klick löscht einen Stützpunkt.',
@@ -71,7 +71,7 @@ return [
             'zoom' => 'Zoomen Sie hinein, um Referenztrassen anzuzeigen und daran einzurasten.',
             'loading' => 'Trassen werden geladen…',
             'ok' => 'Trassen für diesen Bereich geladen.',
-            'truncated' => 'Dichter Bereich: nur die längsten Trassen werden angezeigt, zoomen Sie weiter hinein.',
+            'truncated' => 'Dichter Bereich: Nur die längsten Trassen werden angezeigt; zoomen Sie weiter hinein.',
             'error' => 'Referenztrassen konnten nicht geladen werden.',
         ],
     ],
@@ -90,13 +90,13 @@ return [
     ],
 
     'help' => [
-        'title' => 'Wie funktioniert es?',
+        'title' => 'Wie funktioniert das?',
         'step_basemap' => 'Wählen Sie eine historische Grundkarte (Generalstabskarte, Karte 1950, Luftbilder) und stellen Sie die Deckkraft ein.',
         'step_draw' => 'Werkzeug „Zeichnen“: Klicken Sie entlang des auf der Karte sichtbaren Gleises; ein Doppelklick beendet den Abschnitt.',
         'step_take' => 'Oder klicken Sie auf eine gestrichelte Referenztrasse (Werkzeug „Navigieren“), um sie zu übernehmen und zu korrigieren.',
-        'step_edit' => 'Werkzeug „Bearbeiten“: Verschieben, ergänzen oder löschen Sie Stützpunkte; das Einrasten richtet sich nach bestehenden Trassen.',
+        'step_edit' => 'Werkzeug „Bearbeiten“: Verschieben, ergänzen oder löschen Sie Stützpunkte; beim Einrasten haften sie an bestehenden Trassen.',
         'step_cut' => 'Werkzeug „Teilen“: Teilen Sie die Strecke dort, wo sich ihre Geschichte ändert (Teilstilllegung, Gleisabbau…).',
-        'step_events' => 'Fügen Sie für jeden Abschnitt die datierten Ereignisse mit Genauigkeit und zitierter Quelle hinzu.',
+        'step_events' => 'Fügen Sie für jeden Abschnitt die datierten Ereignisse mit ihrer Genauigkeit und der zitierten Quelle hinzu.',
         'shortcuts_title' => 'Tastenkürzel',
         'key_enter' => 'Enter',
         'key_escape' => 'Esc',
@@ -104,7 +104,7 @@ return [
         'key_undo' => 'Strg+Z',
         'key_shift' => 'Umschalt gedrückt',
         'key_alt' => 'Alt+Klick',
-        'shortcut_enter' => 'den gezeichneten Abschnitt abschließen',
+        'shortcut_enter' => 'den gerade gezeichneten Abschnitt abschließen',
         'shortcut_escape' => 'die laufende Zeichnung verwerfen, dann zum Werkzeug Navigieren zurückkehren',
         'shortcut_backspace' => 'den zuletzt gesetzten Stützpunkt entfernen',
         'shortcut_undo' => 'die letzte Änderung rückgängig machen',
@@ -128,7 +128,7 @@ return [
         'network_change' => 'Vorgeschlagene Kategorieänderung: :from → :to.',
         'sources_legend' => 'Quellen',
         'trace_source' => 'Quelle der Trasse',
-        'trace_source_auto' => 'Gezeichnet auf „:source“, IGN Géoplateforme.',
+        'trace_source_auto' => 'Trasse nach „:source“ gezeichnet, IGN Géoplateforme.',
         'trace_source_hint' => 'Wonach wurde die Trasse gezeichnet? (Karte, Luftbild, Plan, Geländeaufnahme…)',
         'notes' => 'Hinweise für die Prüfer',
         'notes_placeholder' => 'Kontext, Unsicherheiten, zu prüfende Punkte…',
@@ -141,13 +141,13 @@ return [
 
     'networks' => [
         'principal' => 'Hauptbahn',
-        'principal_hint' => 'Allgemeines Interesse (nationales Netz, große Gesellschaften).',
+        'principal_hint' => 'Von allgemeinem Interesse (nationales Netz, große Bahngesellschaften).',
         'secondaire' => 'Nebenbahn',
-        'secondaire_hint' => 'Lokales Interesse, Meterspur, Departementsstraßenbahnen.',
+        'secondaire_hint' => 'Von lokalem Interesse, Meterspur, Straßenbahnen der Départements.',
         'militaire' => 'Militärbahn',
         'militaire_hint' => 'Strategische Strecken, Festungsbahnen, militärische 60-cm-Bahnen.',
         'particulier' => 'Privatbahn',
-        'particulier_hint' => 'Bergwerke, Steinbrüche, Forste, Zuckerfabriken, Industrieanschlüsse.',
+        'particulier_hint' => 'Bergwerke, Steinbrüche, Forstbetriebe, Zuckerfabriken, Industrieanschlüsse.',
     ],
 
     'portions' => [
@@ -246,7 +246,6 @@ return [
 
     'validate' => [
         'meta_title' => 'Zu prüfende Beiträge',
-        'eyebrow' => 'Prüfung',
         'title' => 'Zu prüfende Beiträge',
         'subtitle_one' => ':count Beitrag zu prüfen. Ein Beitrag wird nach :threshold Freigaben verschiedener Prüfer veröffentlicht.',
         'subtitle_other' => ':count Beiträge zu prüfen. Ein Beitrag wird nach :threshold Freigaben verschiedener Prüfer veröffentlicht.',
@@ -259,7 +258,7 @@ return [
         'source_n' => 'Quelle :n',
         'event_link' => 'Link der Quelle öffnen',
         'pk_length' => 'Länge',
-        'empty' => 'Keine Beiträge zu prüfen',
+        'empty' => 'Keine ausstehenden Beiträge',
         'kind_new' => 'Neue verschwundene Strecke',
         'kind_correction' => 'Trassenkorrektur',
         'kind_segment' => 'Änderung nach PK',
@@ -278,7 +277,7 @@ return [
         'pk_portion' => 'Abschnitt',
         'current_value' => 'Aktueller Wert',
         'proposed_value' => 'Vorgeschlagener Wert',
-        'sources' => 'Quellen:',
+        'sources' => 'Quellen',
         'view_sheet' => 'Streckenseite ansehen',
         'own' => 'Ihr Beitrag (ein anderer Prüfer muss ihn sichten)',
         'already' => 'Bereits von Ihnen freigegeben',
@@ -287,7 +286,7 @@ return [
         'reject' => 'Ablehnen',
         'reject_prompt' => 'Ablehnungsgrund (optional):',
         'confirm_approve' => 'Diesen Beitrag freigeben?',
-        'confirm_apply' => 'Letzte erforderliche Freigabe: der Beitrag wird sofort veröffentlicht. Bestätigen?',
+        'confirm_apply' => 'Letzte erforderliche Freigabe: Der Beitrag wird sofort veröffentlicht. Bestätigen?',
         'flash' => [
             'own' => 'Sie können Ihren eigenen Beitrag nicht freigeben.',
             'closed' => 'Dieser Beitrag wurde bereits bearbeitet.',
@@ -301,7 +300,6 @@ return [
 
     'thanks' => [
         'meta_title' => 'Vorschlag gesendet',
-        'eyebrow' => 'Mitwirken',
         'title' => 'Vorschlag gesendet',
         'subtitle' => 'Danke. Zwei Prüfer sichten Ihren Vorschlag vor der Veröffentlichung.',
         'recap' => 'Zusammenfassung',
@@ -322,7 +320,6 @@ return [
 
     'mine' => [
         'meta_title' => 'Meine Beiträge',
-        'eyebrow' => 'Mitwirken',
         'title' => 'Meine Beiträge',
         'subtitle' => 'Ihre Vorschläge und ihre Prüfung durch die Prüfer.',
         'new_trace' => 'Strecke nachzeichnen',
@@ -350,13 +347,12 @@ return [
     // Bezeichnungen der Änderungen in Meine Beiträge, Danke und Prüfung.
     'segment' => [
         'meta_title' => 'Streckenabschnitt bearbeiten',
-        'eyebrow' => 'Mitwirken',
         'title' => 'Streckenabschnitt bearbeiten',
         'subtitle' => 'Geben Sie die Strecke, den betroffenen Abschnitt über seine Streckenkilometer (PK) und die Änderungen an. Zwei Prüfer sichten jeden Vorschlag vor der Veröffentlichung.',
         'back_to_map' => 'Zurück zur Karte',
         'line_legend' => 'Strecke und Epoche',
         'line_code' => 'Streckennummer',
-        'line_code_hint' => 'Nummer im französischen Schienennetz, zum Beispiel 420000.',
+        'line_code_hint' => 'Nummer im französischen Eisenbahnnetz (Réseau ferré national), zum Beispiel 420000.',
         'line_code_placeholder' => '420000',
         'line_found' => 'Strecke gefunden: :name',
         'line_searching' => 'Strecke wird gesucht…',

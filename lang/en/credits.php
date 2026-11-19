@@ -2,13 +2,12 @@
 
 // Pages /credits/tech and /credits/media (Pages/Credits/*.svelte).
 return [
-    'eyebrow' => 'Credits',
 
     'tech' => [
         'meta_title' => 'Technical credits',
         'meta_description' => 'The free software and open data sources VFF is built with.',
         'title' => 'The software and sources behind VFF',
-        'subtitle' => 'VFF relies on free software and on data whose every source is cited with its licence. Here is who we owe this platform to.',
+        'subtitle' => 'VFF relies on free software and on data for which every source is cited with its licence. Here is who we owe this platform to.',
         'software_title' => 'Software and tools',
         'sources_title' => 'Railway data sources',
         'name_license' => 'Licence',
@@ -43,7 +42,7 @@ return [
             'python' => 'Image processing pipeline',
             'pytorch' => 'Training and inference on the graphics card',
             'smp' => 'U-Net architecture',
-            'torchvision' => 'Encoder pre-trained on ImageNet, the model’s starting point',
+            'torchvision' => 'Encoder pre-trained on ImageNet, the model\'s starting point',
             'ign_ortho' => 'Historical aerial photographs analysed',
             'phpunit' => 'More than 2,200 tests, run in parallel',
             'infection' => 'Mutation testing',
@@ -72,7 +71,7 @@ return [
         ],
         'commitment' => [
             'title' => 'Our technical choices',
-            'p1' => 'Nearly all the tools on this page are <strong>free software</strong>. We prefer the free version when there is one (Valkey rather than Redis, MapLibre rather than Mapbox) and publish our own code under the MIT licence. The one exception: computing on the graphics card relies on NVIDIA’s driver and CUDA, which are not free.',
+            'p1' => 'Nearly all the tools on this page are <strong>free software</strong>. We prefer the free version when there is one (Valkey rather than Redis, MapLibre rather than Mapbox) and publish our own code under the MIT licence. The one exception: computing on the graphics card relies on NVIDIA\'s driver and CUDA, which are not free.',
             'p2' => 'If you spot a missing dependency, write to us or suggest a change on',
             'repo_link' => 'our repository',
         ],
@@ -87,7 +86,7 @@ return [
         'meta_title' => 'Media credits',
         'meta_description' => 'Sources, licences and authors of the media shown on VFF (photos, plans, documents).',
         'title' => 'Photographs, archives and plans',
-        'subtitle' => 'Every medium on VFF carries its author’s attribution and its licence. This page summarises the licences and the best-represented authors, and cites the archive sources.',
+        'subtitle' => 'Each media item on VFF carries its author\'s attribution and its licence. This page summarises the licences and the best-represented authors, and cites the archive sources.',
         'stats_label' => 'Media listed',
         'stats' => [
             'total' => 'media listed',
@@ -117,8 +116,11 @@ return [
         'anonymous' => 'Anonymous',
         'partners_title' => 'Archive sources',
         'partners' => [
+            // Background of the home page hero (HomeHero.svelte, home.hero.credit).
+            'home_map_title' => 'Home page background',
+            'home_map_text' => 'Cropped, sepia-toned detail of the “Carte spéciale des chemins de fer de la France et de l’Allemagne à l’usage des voyageurs” (special railway map of France and Germany for travellers), drawn by Alexandre Vuillemin and published by A. Logerot (Paris, 1865). Copy held by the Library of Congress (Washington), public domain.',
             'gallica_title' => 'BnF Gallica',
-            'gallica_text' => 'Historical IGN maps, Cassini and État-Major maps, old timetables. Each document can be reused under the BnF’s conditions, which you can read on Gallica.',
+            'gallica_text' => 'Historical IGN maps, Cassini and État-major maps, old timetables. Each document can be reused under the BnF\'s conditions, which you can read on Gallica.',
             'commons_title' => 'Wikipedia and Wikimedia Commons',
             'commons_text' => 'Archive photographs and illustrations, each under its own licence (most often CC BY-SA).',
             'assoc_title' => 'Regional railway associations',

@@ -62,6 +62,14 @@
 
     const sources = [
         {
+            // Fond du grand visuel de l'accueil : cible du lien de crédit posé sous le visuel.
+            id: 'fond-accueil',
+            titleKey: 'credits.media.partners.home_map_title',
+            textKey: 'credits.media.partners.home_map_text',
+            href: 'https://commons.wikimedia.org/wiki/File:Carte_speciale_des_chemins_de_fer_de_la_France_et_de_l%27Allemagne_a_l%27usage_des_voyageurs_indiquant_toutes_les_stations_qui_desservent_les_villes,_bourgs_et_communes_situ%C3%A9s_s%C3%BBr_ile_parcours_des_lignes_LOC_2015591058.jpg',
+            host: 'commons.wikimedia.org',
+        },
+        {
             titleKey: 'credits.media.partners.gallica_title',
             textKey: 'credits.media.partners.gallica_text',
             href: 'https://gallica.bnf.fr',
@@ -217,7 +225,7 @@
         <SectionBlock kind="alt" title={$i18n.t('credits.media.partners_title')} maxWidth="1180px">
             <ul class="sources">
                 {#each sources as s (s.titleKey)}
-                    <li>
+                    <li id={s.id}>
                         <h3>{$i18n.t(s.titleKey)}</h3>
                         <p>{$i18n.t(s.textKey)}</p>
                         {#if s.href}

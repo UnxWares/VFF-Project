@@ -2,11 +2,10 @@
 
 return [
     'title' => 'Fotos & Archiv',
-    'subtitle' => 'Fotografien, Postkarten, Karten und Archivdokumente der Strecke.',
+    'subtitle' => 'Fotografien, Postkarten, Pläne und Archivdokumente der Strecke.',
     'loading' => 'Bilder werden geladen…',
     'error' => 'Die Bilder konnten gerade nicht geladen werden.',
     'retry' => 'Erneut versuchen',
-    'empty' => 'Für diese Strecke gibt es noch keine Bilder.',
     'empty_filtered' => 'Kein Bild entspricht diesen Filtern.',
     'load_more' => 'Weitere Bilder anzeigen',
     'shown' => ':shown von :total',
@@ -58,7 +57,6 @@ return [
     ],
 
     'author_unknown' => 'Unbekannter Urheber',
-    'source' => 'Quelle',
     'view_source' => 'Datei auf :provider ansehen',
     'via' => 'über :provider',
     'share_alike' => 'Weitergabe unter gleichen Bedingungen',

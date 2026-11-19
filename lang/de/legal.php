@@ -9,7 +9,6 @@ return [
     'meta_description' => 'Herausgeber, Hosting, Lizenzen, Quellen und Meldung von Inhalten bei Voies Ferrées de France.',
 
     'hero' => [
-        'eyebrow' => 'Rechtliche Informationen',
         'title' => 'Impressum',
         'updated' => 'Zuletzt aktualisiert: :date',
     ],

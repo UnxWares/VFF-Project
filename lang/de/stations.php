@@ -2,7 +2,6 @@
 
 return [
     'list_title' => 'Bahnhöfe und Haltepunkte',
-    'list_eyebrow' => 'Schienennetz',
     'list_subtitle' => ':total Bahnhöfe und Haltepunkte erfasst, bestehende und verschwundene',
     'meta_list' => 'Verzeichnis der französischen Bahnhöfe und Haltepunkte, bestehend und verschwunden, Jahrzehnt für Jahrzehnt.',
     'meta_show' => 'Geschichte des Bahnhofs :name: Eröffnung, Schließungen, bediente Strecken im Lauf der Zeit, Quellen.',
@@ -16,7 +15,7 @@ return [
     'all_statuses' => 'Alle Status',
     'filter_era' => 'Zeitraum',
     'all_eras' => 'Heute',
-    'era_option' => 'Jahrzehnt :year',
+    'era_option' => ':decade',
     'filter_department' => 'Département',
     'all_departments' => 'Alle Départements',
     'flagged_only' => 'Nur abweichende Positionen',
@@ -45,14 +44,13 @@ return [
     'more_lines' => '+ :count weitere',
     'notes_title' => 'Daten und Status lesen',
     'note_inferred' => 'Ein abgeleitetes Datum stammt nicht aus einer Quelle über den Bahnhof selbst, sondern aus den Strecken, die ihn bedienen.',
-    'note_undated' => 'Undatierte Schließung: keine Quelle nennt ein Datum, es ist nur durch den Zustand der Strecken eingegrenzt, die den Bahnhof bedienten.',
-    'note_statuses' => 'Geschlossen: kein kommerzieller Betrieb mehr. Verschwunden: Quellen beschreiben den Bahnhof als abgerissen, eingeebnet oder abgebaut.',
+    'note_undated' => 'Undatierte Schließung: Keine Quelle nennt ein Datum; sie ist nur durch den Zustand der Strecken eingegrenzt, die den Bahnhof bedienten.',
+    'note_statuses' => 'Geschlossen: kein kommerzieller Betrieb mehr. Verschwunden: Die Quellen beschreiben den Bahnhof als abgerissen, eingeebnet oder abgebaut.',
     'opened_in' => 'eröffnet :year',
     'closed_in' => 'geschlossen :year',
     'inferred_short' => 'abgeleitet',
     'era_today' => 'Heute',
     'also_known_as_label' => 'Weitere Namen:',
-    'sources_count' => ':count Quellen',
 
     'types' => [
         'gare' => 'Bahnhof',
@@ -63,7 +61,7 @@ return [
     ],
 
     'dates' => [
-        'decade' => 'Jahrzehnt ab :year',
+        'decade' => ':decade',
         'after' => 'nach :year',
         'before' => 'vor :year',
         'range' => 'zwischen :from und :to',
@@ -199,7 +197,7 @@ return [
             'planned' => 'geplant',
             'unknown' => 'Zustand unbekannt',
         ],
-        'distance' => ':m m Entfernung von der gewählten Position',
+        'distance' => ':m m von der gewählten Position entfernt',
         'status_in_source' => 'Status in dieser Quelle: :state',
         'far_hint' => 'deutliche Abweichung',
         'geocoded_by_pk' => 'Position aus PK :pk abgeleitet',
@@ -236,13 +234,13 @@ return [
         'zoom_out' => 'Verkleinern',
         'fullscreen_enter' => 'Karte im Vollbild anzeigen',
         'fullscreen_exit' => 'Vollbild beenden',
-        'attribution' => 'Kartenquellen ein- oder ausblenden',
+        'attribution' => 'Kartennachweise ein- oder ausblenden',
         'this_station' => 'Dieser Bahnhof',
     ],
 
     // Mitlaufendes Inhaltsverzeichnis des Steckbriefs (kurze Abschnittsnamen).
     'toc' => [
-        'label' => 'Inhalt des Steckbriefs',
+        'label' => 'Inhaltsverzeichnis der Seite',
         'about' => 'Überblick',
         'eras' => 'Jahrzehnte',
         'history' => 'Chronik',

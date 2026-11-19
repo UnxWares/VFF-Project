@@ -5,19 +5,18 @@ return [
     'meta_description' => 'Soutenir VFF, le projet ouvert qui documente le patrimoine ferroviaire français : où en sont les dons, à quoi ils serviront.',
 
     'hero' => [
-        'eyebrow' => 'Soutenir',
         'title' => 'Faites vivre le projet',
-        'subtitle' => "VFF est gratuit, sans publicité et sans traceur tiers, et son code est ouvert. Les dons serviront à couvrir l'hébergement, les fonds de carte et le temps consacré au projet.",
+        'subtitle' => 'VFF est gratuit, sans publicité et sans traceur tiers, et son code est ouvert. Les dons serviront à couvrir l’hébergement, les fonds de carte et le temps consacré au projet.',
     ],
 
     'status' => [
         'title' => 'Les dons ne sont pas encore ouverts',
-        'text' => "Aucun moyen de paiement n'est disponible aujourd'hui, et aucun reçu fiscal ne peut être délivré. Cette page décrit ce qui est prévu ; elle sera mise à jour à l'ouverture.",
+        'text' => 'Aucun moyen de paiement n’est disponible aujourd’hui, et aucun reçu fiscal ne peut être délivré. Cette page décrit ce qui est prévu ; elle sera mise à jour à l’ouverture.',
     ],
 
     'org' => [
         'title' => 'Qui collectera les dons ?',
-        'paragraph' => "Une <strong>association relevant de l'économie sociale et solidaire</strong>, sous le nom de travail « UnxWares Opensource », est en cours de constitution. Elle aura vocation à porter juridiquement et financièrement les projets ouverts d'UnxWares, dont VFF. Tant qu'elle n'est pas enregistrée, aucun don ne peut être reçu. Les plateformes de paiement n'ont pas encore été choisies.",
+        'paragraph' => 'Une <strong>association relevant de l’économie sociale et solidaire</strong>, sous le nom de travail « UnxWares Opensource », est en cours de constitution. Elle aura vocation à porter juridiquement et financièrement les projets ouverts d’UnxWares, dont VFF. Tant qu’elle n’est pas enregistrée, aucun don ne peut être reçu. Les plateformes de paiement n’ont pas encore été choisies.',
     ],
 
     'why' => [

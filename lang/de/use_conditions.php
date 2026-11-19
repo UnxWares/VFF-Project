@@ -9,7 +9,6 @@ return [
     'meta_description' => 'Regeln für die Nutzung von Voies Ferrées de France: Konto, Beiträge, Lizenzen, Weiterverwendung der Daten und der API.',
 
     'hero' => [
-        'eyebrow' => 'Nutzungsbedingungen',
         'title' => 'Nutzungsbedingungen',
         'updated' => 'Zuletzt aktualisiert: :date',
     ],

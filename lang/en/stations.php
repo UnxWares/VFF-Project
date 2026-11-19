@@ -2,7 +2,6 @@
 
 return [
     'list_title' => 'Stations and halts',
-    'list_eyebrow' => 'Rail network',
     'list_subtitle' => ':total stations and halts listed, current and vanished',
     'meta_list' => 'Directory of French railway stations and halts, current and vanished, decade by decade.',
     'meta_show' => 'History of :name station: opening, closures, lines served over time, sources.',
@@ -16,7 +15,7 @@ return [
     'all_statuses' => 'All statuses',
     'filter_era' => 'Period',
     'all_eras' => 'Today',
-    'era_option' => 'The :year decade',
+    'era_option' => 'The :decade',
     'filter_department' => 'Department',
     'all_departments' => 'All departments',
     'flagged_only' => 'Diverging positions only',
@@ -52,7 +51,6 @@ return [
     'inferred_short' => 'inferred',
     'era_today' => 'Today',
     'also_known_as_label' => 'Other names:',
-    'sources_count' => ':count sources',
 
     'types' => [
         'gare' => 'Station',
@@ -63,7 +61,7 @@ return [
     ],
 
     'dates' => [
-        'decade' => 'decade from :year',
+        'decade' => 'the :decade',
         'after' => 'after :year',
         'before' => 'before :year',
         'range' => 'between :from and :to',
@@ -72,7 +70,7 @@ return [
 
     'statuses' => [
         'active' => 'Open to passengers',
-        'tourist' => 'Served by a heritage train',
+        'tourist' => 'Served by a heritage railway',
         'no_commercial' => 'Freight only',
         'declassified' => 'Closed',
         'uncertain' => 'Uncertain (status not confirmed for that time)',
@@ -242,7 +240,7 @@ return [
 
     // Sticky contents of the sheet (short section labels).
     'toc' => [
-        'label' => 'Contents of this sheet',
+        'label' => 'Contents of this page',
         'about' => 'About',
         'eras' => 'Decades',
         'history' => 'Chronology',

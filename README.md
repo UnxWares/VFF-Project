@@ -2,6 +2,11 @@
 
 <img src="resources/images/vff.png" alt="Logo VFF" width="180"/>
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/uwosc/uwosc-badge-maintained-en-couleur-inverse-44px.svg">
+  <img src="docs/assets/uwosc/uwosc-badge-maintained-en-couleur-44px.svg" alt="UnxWares Open Source & Community - Supported and maintained by UnxWares" height="44">
+</picture>
+
 # VFF - Voies Ferrées de France
 
 **La plus grande encyclopédie collaborative du rail français.**
@@ -360,6 +365,14 @@ Les contrôles du projet sont des tests PHPUnit (`tests/Unit/Static`) : ils tour
 `make analyse-baseline` (ou `composer analyse:baseline`) et `pnpm check --update-baseline`.
 Ne jamais régénérer pour faire taire une erreur nouvelle sans l'avoir comprise.
 
+### Contrôles avant commit (Lefthook)
+
+`lefthook.yml` rejoue en local, sur les fichiers indexés, Pint, Prettier, ESLint, la recherche des
+tirets interdits et des mentions d'attribution à un outil d'IA, et `vff:i18n-check --strict` ; avant
+un push, svelte-check et les contrôles statiques. Installation, une fois et depuis l'hôte (le conteneur
+`bin/pnpm` n'a pas git) : `bin/pnpm install` puis `node_modules/.bin/lefthook install`. Détails dans
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
 ### Traductions
 
 Le FR (`lang/fr`) est la source. `php artisan vff:i18n-check` échoue si une clé FR manque en
@@ -371,8 +384,8 @@ signalés ; `--strict` les rend bloquants.
 ### Intégration continue
 
 `.github/workflows/ci.yml` : PHP 8.5 (Pint, `vff:i18n-check`, PHPStan, contrôles statiques,
-PHPUnit sur un service `postgis/postgis:18-3.6`) et front (pnpm, Prettier, ESLint, svelte-check,
-build Vite). Sur une pull request, Pint et
+PHPUnit sur un service `postgis/postgis:18-3.6`, registre des sources `vff:source-rights --check`) et
+front (pnpm, Prettier, ESLint, vitest, svelte-check, build Vite). Sur une pull request, Pint et
 Prettier ne bloquent que sur les **fichiers modifiés** ; sur `main`, le contrôle complet est
 informatif tant que le dépôt n'a pas été reformaté d'un bloc (`make pint` + `make format`, à
 faire quand aucun chantier parallèle n'est en cours).

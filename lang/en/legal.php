@@ -9,7 +9,6 @@ return [
     'meta_description' => 'Publisher, host, licences, sources and reporting of content for Voies Ferrées de France.',
 
     'hero' => [
-        'eyebrow' => 'Legal information',
         'title' => 'Legal notice',
         'updated' => 'Last updated: :date',
     ],
@@ -46,7 +45,7 @@ return [
 
     'nature' => [
         'title' => 'Nature of the site',
-        'paragraph' => 'VFF is a collaborative encyclopedia of the French rail network, from 1830 to today: routes, dates, stations and the state of lines in each period, with their sources. The site is free, ad-free and has no tracking tools. It sells nothing.',
+        'paragraph' => 'VFF is a collaborative encyclopaedia of the French rail network, from 1830 to today: routes, dates, stations and the state of lines in each period, with their sources. The site is free, ad-free and has no tracking tools. It sells nothing.',
     ],
 
     'accessibility' => [

@@ -1,8 +1,8 @@
 # VFF - Intégration continue
 #
-#   php   : Pint, contrôle i18n (vff:i18n-check), PHPStan + Larastan (niveau 6, baseline),
+#   php   : Pint, contrôle i18n (vff:i18n-check), registre des sources (vff:source-rights --check), PHPStan + Larastan (niveau 6, baseline),
 #           contrôles statiques (tests/Unit/Static), PHPUnit sur PostgreSQL 18 + PostGIS 3.6
-#   front : pnpm install, Prettier, ESLint, svelte-check (baseline), build Vite
+#   front : pnpm install, Prettier, ESLint, vitest, svelte-check (baseline), build Vite
 #
 # Analyse statique (PHPStan, svelte-check) : la dette existante est gelée dans
 # phpstan-baseline.neon et svelte-check-baseline.json ; toute NOUVELLE erreur bloque.
@@ -95,6 +95,15 @@ jobs:
       - name: Traductions (FR → EN, DE)
         run: php artisan vff:i18n-check --ansi
 
+      # Les provenances sont lues en base : migrer d'abord la base jetable du service
+      # (vide, donc seule la cohérence du registre est vérifiée ici ; les tests refont leur migration).
+      - name: Registre des sources et licences (vff:source-rights --check)
+        env:
+          DB_DATABASE: vff_test
+        run: |
+          php artisan migrate --force --no-interaction
+          php artisan vff:source-rights --check
+
       - name: Cache PHPStan
         uses: actions/cache@v4
         with:
@@ -146,6 +155,9 @@ jobs:
 
       - name: ESLint (bugs JS / Svelte)
         run: pnpm lint:js
+
+      - name: Tests vitest (utilitaires du front)
+        run: pnpm test
 
       - name: svelte-check (JSDoc, nouvelles erreurs bloquantes)
         run: pnpm check

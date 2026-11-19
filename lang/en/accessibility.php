@@ -10,7 +10,6 @@ return [
     'meta_description' => 'Compliance status of Voies Ferrées de France with the RGAA, inaccessible content and means of redress.',
 
     'hero' => [
-        'eyebrow' => 'Accessibility',
         'title' => 'Accessibility statement',
         'updated' => 'Issued on :date',
     ],

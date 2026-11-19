@@ -3,9 +3,9 @@
 // Pages /materials et /materials/{slug} (Pages/Materials/*.svelte).
 return [
     'meta_title' => 'Matériel roulant',
-    'meta_description' => 'Le matériel roulant ferroviaire français : locomotives, automotrices, autorails, TGV, voitures et wagons.',
+    'meta_description' => 'Le matériel roulant ferroviaire français : locomotives, automotrices, autorails, TGV, voitures et wagons.',
     'title' => 'Matériel roulant',
-    'subtitle' => "Locomotives, automotrices, autorails, rames TGV, voitures et wagons : :total\u{a0}séries recensées, avec leur constructeur et leurs dates de service.",
+    'subtitle' => "Locomotives, automotrices, autorails, rames TGV, voitures et wagons : :total\u{a0}séries recensées, avec leur constructeur et leurs dates de service.",
     'subtitle_empty' => 'Locomotives, automotrices, autorails, rames TGV, voitures et wagons, avec leur constructeur, leurs dates de service et les lignes qu’ils ont parcourues.',
     'empty_title' => 'Aucune fiche de matériel pour l’instant',
     'empty_text' => 'L’encyclopédie ne décrit pas encore de matériel roulant. Chaque fiche présentera une série, son constructeur, ses dates de service et les lignes qu’elle a parcourues. En attendant, les fiches des lignes et des gares sont déjà consultables.',
@@ -17,7 +17,7 @@ return [
     'filter_type' => 'Type de matériel',
     'all_types' => 'Tous les types',
     'reset' => 'Réinitialiser les filtres',
-    'results' => 'Résultats : :count',
+    'results' => 'Résultats : :count',
     'no_match_title' => 'Aucun matériel ne correspond',
     'no_match_text' => 'Retirez un filtre ou essayez un autre nom ou un autre constructeur.',
     'col_name' => 'Série',
@@ -41,6 +41,8 @@ return [
         'rame_tgv' => 'TGV et grande vitesse',
         'voiture' => 'Voitures',
         'wagon' => 'Wagons',
+        'tramway' => 'Tramways',
+        'engin_service' => 'Engins de service',
     ],
     'type' => [
         'locomotive_vapeur' => 'Locomotive à vapeur',
@@ -51,5 +53,7 @@ return [
         'rame_tgv' => 'Rame TGV',
         'voiture' => 'Voiture',
         'wagon' => 'Wagon',
+        'tramway' => 'Tramway',
+        'engin_service' => 'Engin de service',
     ],
 ];

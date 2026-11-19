@@ -21,6 +21,20 @@ export function quoted(text, lang) {
 }
 
 /**
+ * Décennie formée selon la langue, pour le paramètre `:decade` des traductions :
+ * « 1930 » (« années 1930 »), « 1930s », « 1930er-Jahre ». Accepte aussi une locale
+ * de format (« en-GB »).
+ * @param {number|string} year première année de la décennie
+ * @param {string} [lang]
+ */
+export function decadeOf(year, lang = 'fr') {
+    const code = String(lang).slice(0, 2);
+    if (code === 'en') return `${year}s`;
+    if (code === 'de') return `${year}er-Jahre`;
+    return String(year);
+}
+
+/**
  * Locale des formats de date et de nombre : l'anglais du site est britannique
  * (« 26 April 1875 », pas « April 26, 1875 »).
  * @param {string} [lang]

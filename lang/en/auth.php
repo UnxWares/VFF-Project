@@ -2,8 +2,8 @@
 
 return [
     'failed' => 'These credentials do not match our records.',
-    'password' => 'The provided password is incorrect.',
-    'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
+    'password' => 'Incorrect password.',
+    'throttle' => 'Too many attempts. Try again in :seconds seconds.',
 
     'passwords' => [
         'reset' => 'Your password has been reset.',
@@ -14,7 +14,7 @@ return [
     ],
 
     'login_title' => 'Sign in',
-    'login_subtitle' => 'Glad to see you back!',
+    'login_subtitle' => 'Good to see you again!',
     'register_title' => 'Create an account',
     'register_subtitle' => 'Join the VFF community.',
     'forgot_title' => 'Forgot password',
@@ -69,7 +69,7 @@ return [
     'profile' => 'My profile',
     'account' => 'My account',
     'my_contributions' => 'My contributions',
-    'validate' => 'Contributions to validate',
+    'validate' => 'Contributions to review',
     'login' => 'Sign in',
     'register' => 'Sign up',
 

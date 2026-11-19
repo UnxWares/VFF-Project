@@ -9,7 +9,6 @@ return [
     'meta_description' => 'Rules for using Voies Ferrées de France: account, contributions, licences, reuse of data and of the API.',
 
     'hero' => [
-        'eyebrow' => 'Terms of use',
         'title' => 'Terms of use',
         'updated' => 'Last updated: :date',
     ],

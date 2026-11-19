@@ -520,12 +520,17 @@
             flex: 1;
             width: auto;
         }
+        /* Les trois périodes tiennent sur une rangée jusqu'à 320 px (le bouton s'étire, le texte
+           reste en 14 px, rembourrage latéral minimal). */
         .periods {
             flex-basis: 100%;
+            gap: 4px;
         }
         .period {
             flex: 1;
-            padding-inline: 6px;
+            min-width: 0;
+            padding-inline: 2px;
+            font-size: var(--vff-fs-xs);
         }
         .track-area.dense .stop.odd:not(.active, .last) .stop-label {
             display: none;

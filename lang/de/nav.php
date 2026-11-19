@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'whoarewe' => 'Über uns',
+    'whoarewe' => 'Unsere Geschichte',
     'maps' => 'Karte',
     'lines' => 'Strecken',
     'stations' => 'Bahnhöfe',
@@ -14,16 +14,10 @@ return [
     'use_conditions' => 'Nutzungsbedingungen',
     'credits_tech' => 'Technische Danksagung',
     'credits_media' => 'Bildnachweise',
-    'account' => 'Mein Konto',
-    'theme_toggle' => 'Design wechseln',
     'theme_light' => 'Helles Design',
     'theme_dark' => 'Dunkles Design',
     'lang_switch' => 'Sprache wechseln',
-    'menu_open' => 'Menü öffnen',
-    'menu_close' => 'Menü schließen',
     'logo_alt' => 'Voies Ferrées de France, die Eisenbahn-Enzyklopädie',
-    'tgv_tail_alt' => 'Heck des TGV',
-    'tgv_head_alt' => 'Triebkopf des TGV',
     'scroll_to_content' => 'Zum Inhalt scrollen',
 
     // Kopfzeile: Sprunglink, Name der Navigation, Menüschaltfläche (unter 1.180 px).
@@ -31,7 +25,7 @@ return [
     'main_label' => 'Hauptnavigation',
     'menu' => 'Menü',
     // Kontomenü (Prüfende): derselbe Begriff wie der Titel der Prüfseite.
-    'review_contributions' => 'Beiträge prüfen',
+    'review_contributions' => 'Zu prüfende Beiträge',
     // Gruppen der Leiste: die Enzyklopädie, dann das Projekt.
     'group_encyclopedia' => 'Enzyklopädie',
     'group_project' => 'Das Projekt',
@@ -57,6 +51,6 @@ return [
         'no_results' => 'Keine Strecke und kein Bahnhof entspricht „:query“.',
         'error' => 'Die Suche ist derzeit nicht verfügbar. Bitte versuchen Sie es gleich noch einmal.',
         'clear' => 'Suche löschen',
-        'keys_hint' => 'Pfeiltasten zum Blättern, Eingabe zum Öffnen, Escape zum Schließen.',
+        'keys_hint' => 'Pfeiltasten nach oben und unten zum Blättern, Eingabetaste zum Öffnen, Esc zum Schließen.',
     ],
 ];

@@ -4,8 +4,11 @@
     import vffLogo from '$images/vff.png';
     // Fichiers officiels de la charte UnxWares (2026-11-02) : version en couleur sur fond clair,
     // version monochrome inversée (blanche) sur fond sombre. Jamais de nom retapé à côté.
-    import unxLogo from '$images/unxwares/unxwares-logo-en-couleur.svg';
-    import unxLogoDark from '$images/unxwares/unxwares-logo-monochrome-inverse.svg';
+    // Logo officiel de l'association UWOSC (insigne et nom, la version à privilégier ; charte du
+    // 2026-11-02, fichiers non modifiés) : en couleur sur fond clair, en couleur inversée sur fond
+    // sombre ; 220 px de large au moins.
+    import uwoscLogo from '$images/uwosc/uwosc-logo-en-couleur-rgb.svg';
+    import uwoscLogoDark from '$images/uwosc/uwosc-logo-en-couleur-inverse-rgb.svg';
     import unxInsigne from '$images/unxwares/unxwares-insigne-en-couleur.svg';
     import unxInsigneDark from '$images/unxwares/unxwares-insigne-monochrome-inverse.svg';
 
@@ -16,12 +19,11 @@
      */
     const currentYear = new Date().getFullYear();
 
-    // Liens internes : sans icône (décorative) ; les réseaux gardent leur logo, qui les identifie.
     const QUICK = [
-        { href: '/whoarewe', key: 'nav.whoarewe' },
-        { href: '/maps', key: 'nav.maps' },
-        { href: '/contribute', key: 'nav.contribute' },
-        { href: '/donate', key: 'nav.donate' },
+        { href: '/whoarewe', icon: 'bi-people', key: 'nav.whoarewe' },
+        { href: '/maps', icon: 'bi-map', key: 'nav.maps' },
+        { href: '/contribute', icon: 'bi-geo', key: 'nav.contribute' },
+        { href: '/donate', icon: 'bi-balloon-heart', key: 'nav.donate' },
     ];
     const SOCIAL = [
         {
@@ -42,11 +44,11 @@
         },
     ];
     const LEGAL = [
-        { href: '/legal', key: 'nav.legal' },
-        { href: '/privacy', key: 'nav.privacy' },
-        { href: '/use-conditions', key: 'nav.use_conditions' },
-        { href: '/credits/tech', key: 'nav.credits_tech' },
-        { href: '/credits/media', key: 'nav.credits_media' },
+        { href: '/legal', icon: 'bi-folder', key: 'nav.legal' },
+        { href: '/privacy', icon: 'bi-bell-slash', key: 'nav.privacy' },
+        { href: '/use-conditions', icon: 'bi-check2-circle', key: 'nav.use_conditions' },
+        { href: '/credits/tech', icon: 'bi-code-square', key: 'nav.credits_tech' },
+        { href: '/credits/media', icon: 'bi-camera', key: 'nav.credits_media' },
     ];
 </script>
 
@@ -75,9 +77,19 @@
                 </h2>
                 <ul>
                     {#each QUICK as item (item.href)}
-                        <li><Link href={item.href}>{$i18n.t(item.key)}</Link></li>
+                        <li>
+                            <Link href={item.href}
+                                ><i class="bi {item.icon}" aria-hidden="true"></i>
+                                {$i18n.t(item.key)}</Link
+                            >
+                        </li>
                     {/each}
-                    <li class="api"><Link href="/api">{$i18n.t('nav.api')}</Link></li>
+                    <li class="api">
+                        <Link href="/api"
+                            ><i class="bi bi-cursor" aria-hidden="true"></i>
+                            {$i18n.t('nav.api')}</Link
+                        >
+                    </li>
                 </ul>
             </div>
             <div class="footer-col contact-links">
@@ -122,7 +134,12 @@
                 <h2 class="footer-title">{$i18n.t('footer.legal')}</h2>
                 <ul>
                     {#each LEGAL as item (item.href)}
-                        <li><Link href={item.href}>{$i18n.t(item.key)}</Link></li>
+                        <li>
+                            <Link href={item.href}
+                                ><i class="bi {item.icon}" aria-hidden="true"></i>
+                                {$i18n.t(item.key)}</Link
+                            >
+                        </li>
                     {/each}
                 </ul>
             </div>
@@ -132,31 +149,23 @@
     <div class="copyright">
         <p>{$i18n.t('footer.copyright', { start: 2023, end: currentYear })}</p>
         <p class="credits">
-            <span class="powered">
-                {$i18n.t('footer.powered_by')}
-                <a
-                    class="unx-logo-link"
-                    href="https://www.unxwares.studio/"
-                    rel="noopener noreferrer"
-                    target="_blank"
-                >
-                    <img
-                        class="unx-logo theme-light"
-                        src={unxLogo}
-                        alt={$i18n.t('footer.unxwares')}
-                        width="140"
-                        height="29"
-                    />
-                    <img
-                        class="unx-logo theme-dark"
-                        src={unxLogoDark}
-                        alt={$i18n.t('footer.unxwares')}
-                        width="140"
-                        height="29"
-                    />{@render newTab()}
-                </a>
-            </span>
-            <span class="made-by">{$i18n.t('footer.made_by', { name: 'Baptiste Gosselin' })}</span>
+            <!-- L'association n'a pas encore de site : logotype sans lien. -->
+            <!-- Pas d'espace entre le texte et les logos : l'écart est la marge du logo (footer.css). -->
+            <span class="powered"
+                >{$i18n.t('footer.project_by')}<img
+                    class="uwosc-logo theme-light"
+                    src={uwoscLogo}
+                    alt={$i18n.t('footer.uwosc')}
+                    width="220"
+                    height="53"
+                /><img
+                    class="uwosc-logo theme-dark"
+                    src={uwoscLogoDark}
+                    alt={$i18n.t('footer.uwosc')}
+                    width="220"
+                    height="53"
+                /></span
+            >
         </p>
     </div>
 </footer>

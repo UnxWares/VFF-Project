@@ -264,10 +264,17 @@
         white-space: nowrap;
         color: var(--vff-text-muted);
     }
+    /* « Aujourd'hui », plus large que sa colonne : calé sur le bord droit de la dernière barre, il
+       déborde vers la gauche, sur l'année précédente (masquée : la décennie en cours est celle
+       d'aujourd'hui), et jamais hors de la page (avant : défilement horizontal à 1 024 px). */
     .today .year {
+        justify-self: end;
         overflow: visible;
         font-weight: 600;
         color: var(--vff-accent-ink);
+    }
+    .decade:has(+ .today) .year {
+        visibility: hidden;
     }
     .decade:hover .year {
         color: var(--vff-text);
@@ -302,8 +309,10 @@
             min-height: 32px;
         }
         .year,
-        .alternate:not(.today) .year {
+        .alternate:not(.today) .year,
+        .decade:has(+ .today) .year {
             grid-area: year;
+            justify-self: start;
             text-align: left;
             visibility: visible;
         }

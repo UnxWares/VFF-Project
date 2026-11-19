@@ -24,8 +24,8 @@ return [
         'ortho_1980_1995' => 'Aerial photos 1980-1995',
         'source' => 'Source: :provider - :title (Licence Ouverte 2.0, Open Licence)',
         'title_cassini' => 'Cassini map',
-        'title_etatmajor40' => 'General Staff map (1820-1866)',
-        'title_scan50_1950' => '1950 map (historic SCAN 50)',
+        'title_etatmajor40' => 'État-major map (1820-1866)',
+        'title_scan50_1950' => '1950 map (historical SCAN 50)',
         'title_ortho_1950_1965' => 'Aerial photographs 1950-1965',
         'title_ortho_1965_1980' => 'Aerial photographs 1965-1980',
         'title_ortho_1980_1995' => 'Aerial photographs 1980-1995',
@@ -247,7 +247,6 @@ return [
     'validate' => [
         'meta_title' => 'Contributions to review',
         'title' => 'Contributions to review',
-        'eyebrow' => 'Review',
         'subtitle_one' => ':count contribution to review. A contribution is published after :threshold approvals from different validators.',
         'subtitle_other' => ':count contributions to review. A contribution is published after :threshold approvals from different validators.',
         'empty_text' => 'No proposal is waiting for review.',
@@ -278,10 +277,10 @@ return [
         'pk_portion' => 'Section',
         'current_value' => 'Current value',
         'proposed_value' => 'Proposed value',
-        'sources' => 'Sources:',
+        'sources' => 'Sources',
         'view_sheet' => 'View the line page',
         'own' => 'Your contribution (another validator must review it)',
-        'already' => 'You already approved',
+        'already' => 'You have already approved',
         'approve' => 'Approve',
         'approve_apply' => 'Approve and publish',
         'reject' => 'Reject',
@@ -291,7 +290,7 @@ return [
         'flash' => [
             'own' => 'You cannot approve your own contribution.',
             'closed' => 'This contribution has already been processed.',
-            'already' => 'You already approved this contribution.',
+            'already' => 'You have already approved this contribution.',
             'applied' => 'Approval :count of :threshold: the contribution is published.',
             'partial' => 'Approval recorded (:count of :threshold): the contribution is waiting for another validator.',
             'rejected' => 'Contribution rejected.',
@@ -301,7 +300,6 @@ return [
 
     'thanks' => [
         'meta_title' => 'Proposal submitted',
-        'eyebrow' => 'Contribute',
         'title' => 'Proposal submitted',
         'subtitle' => 'Thank you. Two validators will review your proposal before it is published.',
         'recap' => 'Summary',
@@ -322,7 +320,6 @@ return [
 
     'mine' => [
         'meta_title' => 'My contributions',
-        'eyebrow' => 'Contribute',
         'title' => 'My contributions',
         'subtitle' => 'Your proposals and their review by validators.',
         'new_trace' => 'Retrace a line',
@@ -350,9 +347,8 @@ return [
     // changes shown in My contributions, Thank you and Review.
     'segment' => [
         'meta_title' => 'Edit a section of a line',
-        'eyebrow' => 'Contribute',
         'title' => 'Edit a section of a line',
-        'subtitle' => 'Enter the line, the section concerned by its kilometre points (PK) and what changes. Two validators review every proposal before publication.',
+        'subtitle' => 'Enter the line, the section concerned (by its kilometre points, PK) and what changes. Two validators review every proposal before publication.',
         'back_to_map' => 'Back to the map',
         'line_legend' => 'Line and period',
         'line_code' => 'Line code',
@@ -403,7 +399,7 @@ return [
             'electrified' => 'Electrification',
             'voltage_v' => 'Voltage',
             'max_speed_kmh' => 'Maximum speed',
-            'is_heritage' => 'Tourist use',
+            'is_heritage' => 'Heritage use',
         ],
         'values' => [
             'yes' => 'Yes',

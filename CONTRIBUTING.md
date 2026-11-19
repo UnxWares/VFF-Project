@@ -184,6 +184,32 @@ gh pr create --base main
 
 ---
 
+### Contrôles avant commit (Lefthook)
+
+[Lefthook](https://lefthook.dev) (`lefthook.yml`, dépendance de développement) rejoue localement
+une partie de la CI, sur les seuls fichiers indexés :
+
+| Crochet | Contrôles |
+|---|---|
+| `pre-commit` (en parallèle) | Pint `--test` (PHP), Prettier `--check` et ESLint (JS, Svelte, CSS), tirets interdits (tiret long, demi-cadratin, double tiret de ponctuation ; même règle que `TypographicDashTest`), mentions d'attribution à un outil d'IA, `vff:i18n-check --strict` si un fichier de `lang/` est indexé |
+| `commit-msg` | pas de co-auteur ni de mention d'outil d'IA dans le message |
+| `pre-push` (plus long) | `bin/pnpm check` (svelte-check) et `tests/Unit/Static` |
+
+Tout passe par les enveloppes Podman (`bin/php`, `bin/pnpm`). Le conteneur `bin/pnpm` n'a pas
+git : installer les crochets **depuis l'hôte**, une fois :
+
+```bash
+bin/pnpm install                          # récupère le binaire lefthook
+node_modules/.bin/lefthook install        # écrit les crochets dans .git/hooks
+```
+
+Si `core.hooksPath` est défini globalement (cas de certains postes), Lefthook refuse d'installer :
+exécuter d'abord `git config --local core.hooksPath .git/hooks` dans le dépôt, puis relancer
+l'installation. Lancement manuel, sans commit : `node_modules/.bin/lefthook run pre-commit`
+(ajouter `--all-files` pour tout le dépôt : la dette de style existante, notamment Pint, y apparaît)
+ou `node_modules/.bin/lefthook run pre-push`. Pour sauter exceptionnellement les crochets :
+`LEFTHOOK=0 git commit`. La CI reste l'arbitre.
+
 ## Tests
 
 ```bash

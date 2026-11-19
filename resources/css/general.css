@@ -292,6 +292,9 @@ li {
 .vff-hyphenate :is(p, li),
 p.vff-hyphenate {
     hyphens: auto;
+    /* Seulement les mots longs (10 lettres et plus, 4 de chaque côté) : pas de « dé-livré » ni de
+       nom propre court coupé (« Unx-Wares »). */
+    hyphenate-limit-chars: 10 4 4;
 }
 /* Liens : orange lisible et soulignés par défaut ; :where() laisse la main aux composants. */
 :where(a) {
@@ -662,6 +665,11 @@ a.vff-tile:hover,
     font-size: 0.75em;
     vertical-align: 0.05em;
 }
+/* Glyphe en ligne (bootstrap-icons le pose en inline-block, que le navigateur peut renvoyer seul à
+   la ligne) : l'icône reste collée au dernier mot du lien. */
+.vff-ext::before {
+    display: inline;
+}
 
 /* Champs (Components/ui/Field.svelte). */
 .vff-field {
@@ -722,6 +730,10 @@ a.vff-tile:hover,
     color: var(--vff-text-muted);
     opacity: 1;
 }
+/* Champ étroit : texte d'exemple coupé par des points de suspension, jamais au milieu d'un mot. */
+.vff-input {
+    text-overflow: ellipsis;
+}
 .vff-input:focus-visible,
 .vff-select:focus-visible,
 .vff-textarea:focus-visible {
@@ -768,7 +780,11 @@ a.vff-tile:hover,
 
 /* Tableaux. Envelopper dans .vff-table-wrap (défilement horizontal), avec tabindex="0",
    role="region" et aria-label quand le tableau peut déborder (accès au clavier). */
+/* position: relative : les textes masqués (.vff-sr-only, en position absolue) des cellules restent
+   dans le cadre qui défile ; sinon ils dépassent de la page et la font défiler en largeur (gares à
+   768 px et au zoom 200 %). */
 .vff-table-wrap {
+    position: relative;
     max-width: 100%;
     overflow-x: auto;
     border: 1px solid var(--vff-border);
@@ -1031,6 +1047,12 @@ a.vff-tile:hover,
 }
 :root .maplibregl-popup-content {
     border-radius: var(--vff-radius-md);
+}
+/* Liens des crédits de la carte : soulignés, comme dans le texte (MapLibre ne les distingue que
+   par la couleur, 2,2:1 en thème sombre : WCAG 1.4.1). */
+:root .maplibregl-ctrl-attrib a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 /* ─── Accès rapide (agent acces, vague 3) ────────────────────────────────────

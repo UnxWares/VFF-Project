@@ -350,8 +350,9 @@
     }
     /* Appel de note : cible de 24 px (le texte reste en exposant). */
     sup a {
-        /* Remplissage en ligne : la zone cliquable grandit sans écarter les lignes du texte. */
-        padding: 5px 4px;
+        /* Remplissage en ligne : la zone cliquable grandit sans écarter les lignes du texte
+           (« [1] » en 14 px, environ 14 px de large, + 2 × 6 px : 24 px au moins). */
+        padding: 5px 6px;
         color: var(--vff-link);
         font-size: var(--vff-fs-xs);
         text-decoration: none;
