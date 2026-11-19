@@ -1,0 +1,15 @@
+# Mots que LanguageTool ne connaît pas et qui ne sont pas des fautes (noms propres, sigles, noms de lieux).
+# Un mot par ligne, tel qu'il apparaît dans les textes. Lu par scripts/languagetool-check.mjs.
+VFF
+UnxWares
+UWOSC
+Traktion
+Valkey
+MapLibre
+GeoJSON
+GraphQL
+GraphiQL
+Gallica
+Wikidata
+OpenRailwayMap
+OpenHistoricalMap
