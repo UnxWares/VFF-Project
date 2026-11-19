@@ -137,6 +137,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `compare_eras` | Ce qui a changé sur le réseau entre deux ères : km ouverts, fermés, déposés, restés en service. |
 | `level_crossings` | Passages à niveau publiés par SNCF Réseau (classe, PK, commune), par ligne, groupe, commune ou emprise, paginés. |
 | `line_profile` | Profil en long d'une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte, altitude des gares (IGN). |
+| `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
 | `locate_on_line` | Point kilométrique d'un lieu (latitude, longitude) sur le tracé d'une ligne. |
 
 ### `search` : rechercher une ligne, une gare, un matériel ou un accident
@@ -615,6 +616,40 @@ sont pas des PK. Attribution : IGN (BD TOPO, RGE ALTI), Licence Ouverte 2.0.
 {"line": "rfn-896000", "max_points": 100}
 ```
 
+### `line_greenways` : voies vertes d'une ancienne ligne
+
+Même contenu que `GET /api/v1/lines/{line}/greenways` (service `LineGreenways`). Voies vertes et chemins cyclables
+d'OpenStreetMap qui reprennent l'emprise d'une ligne fermée ou disparue, rattachés par `vff:link-greenways`. Le
+rattachement est mesuré : un way OSM est retenu quand au moins 50 m de sa longueur (et la moitié) suivent l'axe de la
+ligne à 8 m près, là où aucune voie n'est en service ni en place à moins de 30 m ; une ligne n'a de voie verte qu'à
+partir de 300 m communs. Les tramways, métros, funiculaires, téléphériques et plans inclinés (d'après le nom de la
+fiche) n'en reçoivent jamais ; un tram-train du réseau ferré national (code SNCF Réseau à 6 chiffres) est une ligne
+ferroviaire.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `include_ways` | booléen | non | Ajoute le détail par way OSM, 50 au plus par voie verte (`ways_not_shown` donne le reste). Faux par défaut. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `total_shared_length_m` (mètres de voie verte sur l'ancienne emprise), `osm_date` (date de lecture
+d'OpenStreetMap), `greenways` (une voie verte par nom, la plus longue d'abord : `name`, `shared_length_m`, `way_count`,
+`opened_year`, `osm_relation_id`, `osm_url`, et `ways` avec `include_ways`), `provenance`, `method` (les seuils
+ci-dessus) et `vff_url` (section de la fiche). Le nom d'une voie verte est celui de son itinéraire cyclable OSM, sinon
+celui du way, à condition qu'il désigne un itinéraire : un lieu (« Camping », « Le Lac »), un type de voie (« Voie
+verte ») ou un nom de rue (« Rue du Denier », « Route de Saint-Mesmin ») ne nomme pas un groupe, qui reste alors sans
+nom (`name` nul) ; la règle est écrite dans `GreenwayNames`, et le `name` de chaque way garde le nom OSM tel quel.
+`opened_year` n'est donnée que si OSM la fournit (jamais devinée). Une ligne sans voie verte rattachée renvoie une
+liste vide.
+
+Provenance et licence : OpenStreetMap, ODbL 1.0. `provenance` donne le fournisseur, la licence et la mention
+« © contributeurs OpenStreetMap, ODbL 1.0 (https://www.openstreetmap.org/copyright) » à reproduire ; le bloc
+`attribution` cite OpenStreetMap comme toute réponse. Une base dérivée diffusée se partage sous la même licence.
+
+```json
+{"line": "rfn-436000", "include_ways": true}
+```
+
 ### `locate_on_line` : point kilométrique d'un lieu
 
 Même résultat que `GET /api/v1/lines/{line}/pk` (service `LinePk`) : le point est projeté sur le tracé de la ligne à
@@ -668,6 +703,7 @@ SNCF Réseau. Erreur `no_geometry` si la ligne n'a pas de tracé à cette ère.
 | « Y a-t-il eu des accidents sur Paris - Brest depuis 1950 ? » | `accidents {"line": "rfn-420000", "from": 1950}` puis `get_accident` pour les sources et la portion |
 | « Combien de kilomètres ont fermé entre 1930 et 1980 ? » | `compare_eras {"from": 1930, "to": 1980}` : lire `changes.closed` et `changes.removed` |
 | « À quel PK de Paris - Brest est ce point (48,10 ; -1,67) ? » | `locate_on_line {"line": "rfn-420000", "lat": 48.10, "lng": -1.67}` |
+| « Une voie verte a-t-elle remplacé la ligne de La Chapelle-Anthenaise à Flers ? » | `line_greenways {"line": "rfn-436000"}` : citer la mention de `provenance` |
 | « Quel matériel a circulé sur Lunéville - Saint-Dié ? » | `search {"query": "Lunéville"}` puis `materials {"line": "<slug>"}` et `get_material` pour la preuve |
 
 ## Authentification et quotas

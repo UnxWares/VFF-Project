@@ -203,6 +203,7 @@ return [
             'compare_eras' => 'Eröffnete, stillgelegte, abgebaute oder weiter betriebene Kilometer zwischen zwei Epochen der Karte.',
             'level_crossings' => 'Bahnübergänge laut SNCF Réseau, nach Strecke, Art, Gemeinde oder Ausschnitt, mit Klasse und Streckenkilometer.',
             'line_profile' => 'Höhenprofil einer Strecke: Höhen entlang der Trasse, Anstieg und Gefälle, größte Neigung und Höhe der Bahnhöfe.',
+            'line_greenways' => 'Bahntrassenradwege aus OpenStreetMap auf der früheren Trasse einer stillgelegten oder abgebauten Strecke, mit der auf der Trasse gemessenen Länge und der Quelle.',
             'locate_on_line' => 'Kilometerpunkt eines Ortes aus seinen Koordinaten auf der Trasse einer Strecke.',
             'sources_and_licences' => 'Datenanbieter und Lizenzen.',
         ],

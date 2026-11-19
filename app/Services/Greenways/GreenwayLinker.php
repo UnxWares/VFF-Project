@@ -27,6 +27,12 @@ use Illuminate\Support\Facades\DB;
  * 8 m d'une ligne) : les ways sont presque tous soit à plus de 90 % sur l'emprise, soit à moins de
  * 40 % (parallèles ou en croisement), les seuils coupent dans le creux entre les deux.
  *
+ * Seules les lignes ferroviaires au sens de VFF reçoivent une voie verte : un tramway, un métro, un
+ * funiculaire, un téléphérique ou un plan incliné ne compte pas (NOT_RAILWAY_NAME, lu sur le nom de
+ * la fiche). Une piste cyclable le long d'une rue tombe sinon à moins de 8 m de l'axe d'un ancien
+ * tramway. Exception : un tram-train du réseau ferré national (code SNCF Réseau à 6 chiffres), qui
+ * est une ligne ferroviaire.
+ *
  * Candidats : les voies vertes de `present_osm_ways` (`kind = greenway` : highway=cycleway ou chemin
  * ouvert aux vélos), plus les ways ferroviaires au cycle de vie `abandoned|razed|dismantled` qui
  * portent déjà une voie cyclable (railway=abandoned + highway=cycleway) : ils ne sont pas rangés
@@ -58,6 +64,12 @@ final class GreenwayLinker
 
     /** Année la plus ancienne retenue comme ouverture d'une voie verte (avant : date de la ligne ferroviaire). */
     public const MIN_OPENED_YEAR = 1970;
+
+    /** Nom (début, sans la mention « Ligne de ») d'une fiche qui n'est pas une ligne ferroviaire. */
+    public const NOT_RAILWAY_NAME = '^(ancienne |ancien )?(ligne de )?(tramways?|tram-train|metro|métro|funiculaires?|téléphérique|telepherique|plan incliné|plan incline)( |$)';
+
+    /** Un tram-train est ferroviaire quand sa ligne a un code SNCF Réseau à 6 chiffres (réseau ferré national). */
+    public const RFN_CODE = '^[0-9]{6}$';
 
     /** Voie cyclable ou chemin ouvert aux vélos : way du cycle de vie ferroviaire déjà reconverti. */
     private const REUSED_RAILWAY = <<<'SQL'
@@ -94,7 +106,7 @@ final class GreenwayLinker
         $tolerance = self::AXIS_TOLERANCE_M;
         $clearance = self::CLEARANCE_M;
         $reused = self::REUSED_RAILWAY;
-        $zone = $lineIds === null ? '' : 'WHERE line_id = ANY(CAST(:lines AS bigint[]))';
+        $zone = $lineIds === null ? '' : 'AND r.line_id = ANY(CAST(:lines AS bigint[]))';
         $bindings = $lineIds === null ? [] : ['lines' => '{'.implode(',', array_map('intval', $lineIds)).'}'];
 
         $this->dropTemporaryTables();
@@ -102,8 +114,10 @@ final class GreenwayLinker
         // Axes de référence des lignes, en Lambert-93 (mètres), découpés pour que l'index spatial serve.
         DB::statement(<<<SQL
             CREATE TEMP TABLE gw_refs AS
-            SELECT line_id, ST_Subdivide(ST_Transform(geom, 2154), 64) AS g FROM line_reference_geometries {$zone}
-            SQL, $bindings);
+            SELECT r.line_id, ST_Subdivide(ST_Transform(r.geom, 2154), 64) AS g
+            FROM line_reference_geometries r JOIN lines l ON l.id = r.line_id
+            WHERE NOT (l.name ~* :notRailway AND NOT (l.name ~* 'tram-train' AND l.code ~ :rfnCode)) {$zone}
+            SQL, $bindings + ['notRailway' => self::NOT_RAILWAY_NAME, 'rfnCode' => self::RFN_CODE]);
         DB::statement('CREATE INDEX ON gw_refs USING GIST (g)');
 
         // Voies encore là : tronçons en service à l'ère courante, voies laissées en place.

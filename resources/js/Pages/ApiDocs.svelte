@@ -161,6 +161,7 @@
         'compare_eras',
         'level_crossings',
         'line_profile',
+        'line_greenways',
         'locate_on_line',
         'sources_and_licences',
     ];

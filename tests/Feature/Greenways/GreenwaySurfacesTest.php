@@ -43,15 +43,35 @@ class GreenwaySurfacesTest extends TestCase
         $this->greenway(15, null, null, null, 'cycleway', 300, 300, 100, null);
     }
 
-    private function greenway(int $way, ?string $name, ?string $relationName, ?int $relation, string $highway, int $shared, int $length, int $percent, ?int $year): void
+    private function greenway(int $way, ?string $name, ?string $relationName, ?int $relation, string $highway, int $shared, int $length, int $percent, ?int $year, ?Line $line = null): void
     {
         DB::insert("INSERT INTO line_greenways (line_id, osm_way_id, osm_relation_id, name, relation_name, highway, shared_length_m, way_length_m,
                 shared_percent, opened_year, source, osm_seen_at, created_at, updated_at, geom)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'osm', '2026-11-18', now(), now(),
                 ST_Multi(ST_GeomFromText(?, 4326)))", [
-            $this->line->id, $way, $relation, $name, $relationName, $highway, $shared, $length, $percent, $year,
+            ($line ?? $this->line)->id, $way, $relation, $name, $relationName, $highway, $shared, $length, $percent, $year,
             sprintf('LINESTRING(%F 48.5, %F 48.5)', 1.0 + $way / 100, 1.0 + $way / 100 + 0.01),
         ]);
+    }
+
+    public function test_a_name_that_is_not_an_itinerary_never_names_a_group(): void
+    {
+        // Relation « Camping » (lieu), way nommé d'après une rue, way d'un type de voie : aucun ne donne son nom.
+        $this->greenway(21, null, 'Camping', 900, 'cycleway', 700, 700, 100, null, $this->bare);
+        $this->greenway(22, 'Rue du Denier', null, null, 'cycleway', 500, 500, 100, null, $this->bare);
+        $this->greenway(23, 'Voie Verte', 'Le Lac', 901, 'path', 400, 400, 100, null, $this->bare);
+        // Relation « Camping » mais way au nom d'itinéraire : le nom du way nomme le groupe, sans lien de relation.
+        $this->greenway(24, 'Voie verte du Marais', 'Camping', 900, 'path', 300, 300, 100, null, $this->bare);
+
+        $groups = app(LineGreenways::class)->groups($this->bare);
+
+        $this->assertSame([null, 'Voie verte du Marais'], array_column($groups, 'name'));
+        $this->assertSame([21, 22, 23], array_column($groups[0]['ways'], 'osm_way_id'));
+        $this->assertSame('https://www.openstreetmap.org/way/21', $groups[0]['osm_url']);
+        $this->assertNull($groups[0]['osm_relation_id']);
+        $this->assertSame('https://www.openstreetmap.org/way/24', $groups[1]['osm_url']);
+        // Le nom OSM du way reste celui d'OpenStreetMap dans le détail.
+        $this->assertSame('Rue du Denier', $groups[0]['ways'][1]['name']);
     }
 
     public function test_the_service_groups_ways_by_named_greenway_longest_first(): void
