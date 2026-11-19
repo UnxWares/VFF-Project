@@ -2,6 +2,11 @@
 
 namespace App\Enums;
 
+/**
+ * Catégorie d'une série de matériel roulant. `tramway` : motrices et rames de tramway (urbain ou
+ * interurbain) ; `engin_service` : engins de l'infrastructure (voitures d'auscultation,
+ * chasse-neige, draisines), qui ne transportent ni voyageurs ni marchandises.
+ */
 enum MaterialType: string
 {
     case LocomotiveElectrique = 'locomotive_electrique';
@@ -12,4 +17,6 @@ enum MaterialType: string
     case RameTgv = 'rame_tgv';
     case Voiture = 'voiture';
     case Wagon = 'wagon';
+    case Tramway = 'tramway';
+    case EnginService = 'engin_service';
 }
