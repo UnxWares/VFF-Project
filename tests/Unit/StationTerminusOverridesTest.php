@@ -52,11 +52,15 @@ class StationTerminusOverridesTest extends TestCase
         $this->assertSame(160, mb_strlen(StationTerminusOverrides::sourceRef(['source_url' => 'https://'.str_repeat('a', 200)])));
     }
 
-    /** Les 42 cas relus le 19/11/2026 : tous valides, une seule décision par extrémité, chaque rattachement sourcé par un permalien. */
+    /**
+     * Les 42 cas relus le 19/11/2026, puis la nouvelle lecture du soir (Lyon - La Balme passée à « none »,
+     * Sainte-Foy-l'Argentière ajoutée) : tous valides, une seule décision par extrémité, chaque rattachement
+     * sourcé par un permalien.
+     */
     public function test_the_versioned_file_is_valid(): void
     {
         $entries = self::file();
-        $this->assertCount(42, $entries);
+        $this->assertCount(43, $entries);
         $keys = [];
         foreach ($entries as $i => $e) {
             $this->assertSame([], StationTerminusOverrides::validate($e), "décision n° {$i} ({$e['line']})");
@@ -66,7 +70,26 @@ class StationTerminusOverridesTest extends TestCase
             }
         }
         $this->assertSame($keys, array_values(array_unique($keys)), 'une décision par ligne et par extrémité');
-        $this->assertCount(8, array_filter($entries, fn (array $e) => $e['decision'] === 'attach'));
+        $this->assertCount(7, array_filter($entries, fn (array $e) => $e['decision'] === 'attach'));
+    }
+
+    /**
+     * Cas témoins de la relecture du soir : la ligne de Lyon à La Balme est la ligne 16 des tramways OTL
+     * (départ du quai Jules-Courmont), pas le CFEL, donc pas Lyon-Est ; la ligne inachevée de Pontcharra
+     * n'a de terminus à aucun de ses deux bouts.
+     */
+    public function test_reviewed_again_lines_have_no_terminus_station(): void
+    {
+        $byKey = [];
+        foreach (self::file() as $e) {
+            $byKey[$e['line'].'|'.StationTerminusOverrides::key($e['terminus'])] = $e;
+        }
+        $laBalme = $byKey['archeo-ligne-de-lyon-a-la-balme|lyon'];
+        $this->assertSame('none', $laBalme['decision']);
+        $this->assertStringContainsString('title=Ancien_tramway_de_Lyon&oldid=241111716', (string) $laBalme['source_url']);
+        $pontcharra = 'archeo-ligne-de-pontcharra-a-sainte-foy-largentiere';
+        $this->assertSame(['none', 'none'], [$byKey[$pontcharra.'|pontcharra']['decision'], $byKey[$pontcharra.'|sainte foy l argentiere']['decision']]);
+        $this->assertSame([], StationTerminusOverrides::validate($byKey[$pontcharra.'|sainte foy l argentiere'], 'Ligne de Pontcharra à Sainte-Foy-l’Argentière'));
     }
 
     public function test_constructor_takes_the_given_entries(): void

@@ -153,7 +153,7 @@ return [
         ],
         'low' => [
             'label' => 'Unconfirmed',
-            'text' => 'The article covers several lines at once, so the class may have run on only one of them.',
+            'text' => 'The article covers several lines at once, or the quoted sentence is about an order, a trial, a one-off run or preserved stock: the class may never have run on this line in regular service.',
         ],
     ],
     'types' => [

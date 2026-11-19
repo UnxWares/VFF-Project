@@ -541,16 +541,19 @@
             flex: 1;
             width: auto;
         }
-        /* Les trois périodes tiennent sur une rangée jusqu'à 320 px (le bouton s'étire, le texte
-           reste en 14 px, rembourrage latéral minimal). */
+        /* Les trois périodes tiennent sur une rangée dès 360 px environ ; plus étroit (320 px), la
+           dernière passe dessous au lieu de déborder de sa pilule et du cadre (texte en 14 px,
+           chaque bouton à la largeur de son libellé, cible tactile de 44 px). */
         .periods {
             flex-basis: 100%;
+            flex-wrap: wrap;
+            min-width: 0;
             gap: 4px;
         }
         .period {
-            flex: 1;
-            min-width: 0;
-            padding-inline: 2px;
+            flex: 1 1 auto;
+            min-height: 44px;
+            padding-inline: 4px;
             font-size: var(--vff-fs-xs);
         }
     }

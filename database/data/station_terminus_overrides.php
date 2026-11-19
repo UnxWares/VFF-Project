@@ -6,13 +6,18 @@
  * La règle des terminus nommés (AttachStations::attachNamedTermini, méthode terminus_name) écarte par
  * prudence les villes à plusieurs gares, les noms prolongés non uniques et les gares loin des bouts du
  * tracé : 42 cas le 19/11/2026 (rapport storage/app/reports/agents/soir/gares-recalcul.md). Chacun a été
- * relu (storage/app/reports/agents/soir/gares-candidats.md) :
+ * relu (storage/app/reports/agents/soir/gares-candidats.md) ; le soir même, Lyon - La Balme est passée de
+ * « attach » à « none » et Sainte-Foy-l'Argentière (Pontcharra, ligne inachevée) a reçu un « none »
+ * (storage/app/reports/agents/soir/lignes-incoherences.md) :
  *   - decision « attach » : la source nomme la gare d'extrémité de la ligne ; la gare (slug de
  *     stations) est rattachée avec la méthode terminus_reviewed, la distance au tracé et la provenance
  *     « relu:<source_url> » ;
  *   - decision « none » : aucune source ne désigne une gare de la base (terminus sur une place, gare
  *     propre au réseau secondaire absente de la base, ligne inachevée…) ; la règle des terminus nommés
  *     ne rattache rien pour cette extrémité.
+ * Une décision l'emporte aussi sur ce qui est déjà en base : au passage suivant de vff:attach-stations
+ * (même --years-only), le terminus nommé de l'extrémité décidée et le terminus relu dont la gare n'est
+ * plus celle d'une décision « attach » de la ligne sont retirés.
  *
  * Clés : line (slug de lines), terminus (extrémité telle qu'écrite dans le nom de la ligne),
  * decision, station (slug, pour « attach »), source_url (permalien oldid, obligatoire pour « attach »),
@@ -48,11 +53,6 @@ return [
     // Chambéry et de Chignin » à la place du tramway.
     ['line' => 'archeo-ligne-de-chambery-a-chignin', 'terminus' => 'Chambéry', 'decision' => 'attach', 'station' => 'chambery-challes-les-eaux',
         'source_url' => $wp('Tramway de la Savoie', 236094838), 'reason' => 'réseau organisé autour de la gare de Chambéry, seule gare de la ville'],
-
-    // Chemin de fer de l'Est de Lyon : tête de ligne à la gare de Lyon-Est jusqu'en 1950 (puis ancienne gare de la
-    // Part-Dieu, absente de la base). Le tracé source s'arrête à 1 km de la gare.
-    ['line' => 'archeo-ligne-de-lyon-a-la-balme', 'terminus' => 'Lyon', 'decision' => 'attach', 'station' => 'lyon-est',
-        'source_url' => $wp("Chemin de fer de l'Est de Lyon", 240183241), 'reason' => 'tête de ligne du CFEL à la gare de Lyon-Est (1881-1950)'],
 
     // Embranchement de 4,9 km « partant de la gare de Moulis » vers la Gironde (vœu de 1878, compagnie du Médoc).
     ['line' => 'archeo-ligne-de-moulis-a-port-de-lamarque', 'terminus' => 'Moulis', 'decision' => 'attach', 'station' => 'moulis-listrac',
@@ -90,6 +90,11 @@ return [
         'reason' => $noSource.'tramway, gare de Grenoble à 1 km du bout du tracé'],
     ['line' => 'lo-137000', 'terminus' => 'Logelbach', 'decision' => 'none', 'source_url' => $wp('Chemin de fer de la vallée de Kaysersberg', 241121876),
         'reason' => 'origine officielle de la ligne 137000 (bifurcation à Logelbach) mais les trains partaient de Colmar, déjà rattachée ; arrêt à Logelbach non attesté'],
+    // Relu de nouveau le 19/11/2026 au soir (rapport soir/lignes-incoherences.md) : d'abord rattachée à Lyon-Est comme
+    // ligne du Chemin de fer de l'Est de Lyon, c'est la ligne 16 des tramways OTL (Lyon - Pont de Sault-Brénaz par
+    // Jons, Villette-d'Anthon et La Balme), partie du quai Jules-Courmont ; son tracé ne suit le CFEL que sur 0,3 km.
+    ['line' => 'archeo-ligne-de-lyon-a-la-balme', 'terminus' => 'Lyon', 'decision' => 'none', 'source_url' => $wp('Ancien tramway de Lyon', 241111716),
+        'reason' => 'ligne 16 des tramways OTL, au départ du terminus du quai Jules-Courmont (lignes 16 et 17), pas de la gare de Lyon-Est du CFEL'],
     ['line' => 'archeo-ligne-de-lyon-a-neuville-sur-saone', 'terminus' => 'Lyon', 'decision' => 'none', 'source_url' => null,
         'reason' => $noSource.'tramway ; Lyon-St-Paul n\'est qu\'une gare proche du bout du tracé'],
     ['line' => 'archeo-ligne-de-marseille-a-allauch', 'terminus' => 'Marseille', 'decision' => 'none', 'source_url' => $wp('Ancien tramway de Marseille', 239738009),
@@ -104,6 +109,11 @@ return [
         'reason' => 'tramway suburbain (1910) parti du Marché central ; le terminus de Dombasle n\'est pas dit à la gare'],
     ['line' => 'archeo-ligne-de-pontcharra-a-sainte-foy-largentiere', 'terminus' => 'Pontcharra', 'decision' => 'none', 'source_url' => $wp('Chemins de fer départementaux de Rhône et Loire', 226987797),
         'reason' => 'ligne inachevée selon la source ; la fiche Pontcharra-St-Forgeux de la base date de 2004'],
+    // Autre extrémité de la même ligne inachevée (soir/lignes-incoherences.md) : la règle des terminus nommés y avait
+    // rattaché la gare PLM de Sainte-Foy-l'Argentière, alors qu'aucun train de la compagnie n'y est arrivé.
+    ['line' => 'archeo-ligne-de-pontcharra-a-sainte-foy-largentiere', 'terminus' => 'Sainte-Foy-l’Argentière', 'decision' => 'none',
+        'source_url' => $wp('Chemins de fer départementaux de Rhône et Loire', 226987797),
+        'reason' => 'ligne inachevée, jamais ouverte : la gare PLM de Sainte-Foy-l\'Argentière n\'en a jamais été le terminus'],
     ['line' => 'archeo-ligne-de-saint-etienne-a-saint-genest-lerpt', 'terminus' => 'Saint-Etienne', 'decision' => 'none', 'source_url' => null,
         'reason' => $noSource.'tramway ; Saint-Étienne a plusieurs gares, aucune au bout du tracé'],
     ['line' => 'archeo-ligne-de-saint-malo-a-cancale-la-houle', 'terminus' => 'Saint-Malo', 'decision' => 'none', 'source_url' => $wp('Tramways bretons', 227452674),

@@ -33,9 +33,13 @@ class LineMaterialController extends Controller
      * **Preuve et fiabilité** : chaque entrée cite ses preuves (`evidence` : article,
      * révision, section, phrase, permalien), les plus fortes d'abord, et donne `confidence` :
      * `high` (Wikidata, ou section « Matériel roulant » de l'article de la ligne), `medium`
-     * (autre section), `low` (article qui décrit plusieurs lignes de VFF à la fois). La
-     * portion parcourue se lit parfois dans le titre de section (« Section de
-     * Saint-Just-en-Chaussée à Cambrai »).
+     * (autre section), `low` (article qui décrit plusieurs lignes de VFF à la fois, ou preuves
+     * qui portent toutes un doute). Une preuve porte `doubt` quand sa phrase parle d'une
+     * commande, d'un essai, d'une circulation exceptionnelle, d'un matériel préservé, d'un
+     * acheminement vers un atelier ou d'un détournement : exemple réel, les Z 890 de la ligne de
+     * Saint-Gervais à Vallorcine (« un contrat portant sur l'acquisition de 7 nouvelles rames »,
+     * `doubt` = `order`). La portion parcourue se lit parfois dans le titre de section (« Section
+     * de Saint-Just-en-Chaussée à Cambrai »).
      *
      * **Périodes de circulation** (`periods`) : quand une source date la circulation de la
      * série sur la ligne, chaque période donne son début (`start_date`) et sa fin

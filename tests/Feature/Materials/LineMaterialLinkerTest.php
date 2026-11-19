@@ -7,6 +7,7 @@ use App\Models\Line;
 use App\Models\LineMaterial;
 use App\Models\LineSegment;
 use App\Models\Material;
+use App\Services\Materials\LineMaterialExclusions;
 use App\Services\Materials\LineMaterialLinker;
 use App\Services\Materials\WikidataMaterialRules;
 use App\Services\Materials\WikidataMaterialSource;
@@ -49,7 +50,7 @@ class LineMaterialLinkerTest extends TestCase
         DB::table('wikidata_lines')->insert(['qid' => 'Q3240003', 'category' => 'line', 'line_id' => $this->luneville->id, 'fetched_at' => now()]);
     }
 
-    private function linker(): LineMaterialLinker
+    private function linker(?LineMaterialExclusions $exclusions = null): LineMaterialLinker
     {
         $cache = new InMemorySourceCache;
         $wikidata = new class(new CommonsClient(0), $cache, WikidataMaterialRules::default(), 0) extends WikidataMaterialSource
@@ -87,7 +88,7 @@ class LineMaterialLinkerTest extends TestCase
             }
         };
 
-        return new LineMaterialLinker($wikidata, $wikipedia);
+        return new LineMaterialLinker($wikidata, $wikipedia, exclusions: $exclusions);
     }
 
     public function test_links_come_only_from_sources_with_their_evidence(): void
@@ -206,6 +207,39 @@ class LineMaterialLinkerTest extends TestCase
             ["{$this->luneville->id}:{$this->x73500->id}" => 'série à 1 435 mm, ligne surtout à 1 000 mm (5 % de sa longueur à 1 435 mm)'],
             array_map(fn (array $l): string => $l['reason'], $linker->rejected()),
         );
+    }
+
+    public function test_an_electric_series_is_rejected_on_a_line_never_electrified_in_its_system(): void
+    {
+        // Lunéville à Saint-Dié rendue non électrifiée pour le test (état connu par la source SNCF).
+        $era = Era::factory()->create(['year' => 2030]);
+        LineSegment::factory()->create(['line_id' => $this->luneville->id, 'era_id' => $era->id, 'electrified' => false, 'voltage_v' => null, 'electrification_source' => 'sncf', 'length_meters' => 50_000]);
+        $this->bb15000->update(['electrification' => [['label' => 'électrification ferroviaire 25 kV 50 Hz', 'wikidata_id' => 'Q106530439']], 'in_service_from' => 1971, 'in_service_to' => null]);
+
+        $linker = $this->linker();
+        $links = $linker->collect();
+
+        $this->assertArrayNotHasKey("{$this->luneville->id}:{$this->bb15000->id}", $links);
+        $this->assertArrayHasKey("{$this->luneville->id}:{$this->x73500->id}", $links, 'autorail : pas de jugement');
+        $this->assertSame(
+            ["{$this->luneville->id}:{$this->bb15000->id}" => 'série à 25 kV, ligne jamais électrifiée dans un système compatible'],
+            array_map(fn (array $l): string => $l['reason'], $linker->rejected()),
+        );
+    }
+
+    public function test_a_reviewed_exclusion_removes_its_sentence_or_the_whole_link(): void
+    {
+        $linker = $this->linker(LineMaterialExclusions::fromDatabase([
+            ['line' => 'rfn-67000', 'material' => 'Q746572', 'quote' => 'Rames Corail tractées par des', 'source' => 'https://fr.wikipedia.org/w/index.php?oldid=239088070', 'reason' => 'test'],
+            ['line' => 'rfn-67000', 'material' => 'Q2784315', 'source' => 'https://fr.wikipedia.org/w/index.php?oldid=239088070', 'reason' => 'couple entier'],
+        ]));
+        $links = $linker->collect();
+
+        $bb15000 = $links["{$this->luneville->id}:{$this->bb15000->id}"] ?? null;
+        $this->assertNotNull($bb15000, 'l\'article de la série prouve encore le lien');
+        $this->assertSame(['wikipedia_material_article'], array_column($bb15000['evidence'], 'kind'));
+        $this->assertArrayNotHasKey("{$this->luneville->id}:{$this->x73500->id}", $links);
+        $this->assertSame('exclusion relue : couple entier', $linker->rejected()["{$this->luneville->id}:{$this->x73500->id}"]['reason']);
     }
 
     public function test_diff_lists_what_writing_would_change_without_writing(): void

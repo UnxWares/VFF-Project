@@ -43,7 +43,9 @@ use Throwable;
  *                  (database/data/station_terminus_overrides.php, StationTerminusOverrides) :
  *                  « attach » rattache la gare nommée par la source, « none » interdit le
  *                  rattachement par la règle 4 ; appliquées dans les trois modes (complet,
- *                  --termini-only, --years-only), sans rien retirer.
+ *                  --termini-only, --years-only). Hors rattachement complet, une décision
+ *                  retire aussi ce qu'elle contredit : le terminus nommé de son extrémité et
+ *                  le terminus relu dont la gare n'est plus celle d'une décision « attach ».
  *
  * PK manquant : projection sur le tracé, interpolée entre les gares voisines
  * de PK connu de la même ligne (pk_source = projected), sinon abscisse
@@ -336,6 +338,12 @@ class AttachStations extends Command
         return count($found) === 1 ? (int) $found[0] : null;
     }
 
+    /** Provenance d'un terminus nommé (station_lines.source_ref) : « name: » suivi de l'extrémité normalisée. */
+    public static function namedTerminusRef(string $terminus): string
+    {
+        return mb_substr('name:'.$terminus, 0, 160);
+    }
+
     /**
      * 4. Terminus nommé (méthode terminus_name) : ligne sans liste officielle SNCF (réseau secondaire, tramway, ligne fermée avant les listes ; hors
      * lignes militaires, LGV et raccordements), gare dont le nom est celui d'une extrémité de la ligne, à
@@ -413,7 +421,7 @@ class AttachStations extends Command
                 $sid = $already === [] ? self::terminusStation($terminus, $near, $sameName($terminus)) : null;
                 if ($sid !== null) {
                     $rows[] = ['station_id' => $sid, 'line_id' => $lineId, 'method' => 'terminus_name', 'distance_m' => $nearby[$lineId][$sid]['d'],
-                        'source_ref' => mb_substr('name:'.$terminus, 0, 160), 'created_at' => now(), 'updated_at' => now()];
+                        'source_ref' => self::namedTerminusRef($terminus), 'created_at' => now(), 'updated_at' => now()];
                 }
             }
         }
@@ -441,11 +449,13 @@ class AttachStations extends Command
     }
 
     /**
-     * 5. Terminus relus à la main (StationTerminusOverrides) : chaque décision « attach » valide
-     * rattache la gare nommée (méthode terminus_reviewed, distance au plus proche tracé de la ligne,
-     * provenance « relu:<permalien> »), sans rien retirer ni réécrire un rattachement existant.
-     * Une décision invalide ou dont la gare est introuvable est signalée et ignorée ; celle d'une ligne
-     * absente de la base est comptée.
+     * 5. Terminus relus à la main (StationTerminusOverrides). Une décision valide l'emporte d'abord sur
+     * les rattachements des règles des terminus déjà en base, qu'un rattachement complet ne referait pas
+     * (retractTerminusLinks : --years-only, --termini-only). Puis chaque décision « attach » rattache la
+     * gare nommée (méthode terminus_reviewed, distance au plus proche tracé de la ligne, provenance
+     * « relu:<permalien> »), sans réécrire un rattachement d'une autre méthode. Une décision invalide ou
+     * dont la gare est introuvable est signalée et ignorée (rien n'est retiré pour elle) ; celle d'une
+     * ligne absente de la base est comptée.
      *
      * @return list<int> identifiants des rattachements ajoutés
      */
@@ -457,8 +467,9 @@ class AttachStations extends Command
         }
         $lines = DB::table('lines')->whereIn('slug', array_column($entries, 'line'))->get(['id', 'slug', 'name'])->keyBy('slug');
         $stations = DB::table('stations')->whereIn('slug', array_filter(array_column($entries, 'station')))->pluck('id', 'slug');
-        $added = [];
-        $none = $absent = 0;
+        /** @var list<array{line: int, terminus: string, station: ?int, entry: array<string, mixed>}> $valid */
+        $valid = [];
+        $absent = 0;
         foreach ($entries as $i => $e) {
             // Ligne absente de cette base (base de test, ligne fusionnée) : rien à faire.
             $line = $lines[$e['line'] ?? ''] ?? null;
@@ -476,12 +487,18 @@ class AttachStations extends Command
 
                 continue;
             }
-            if ($e['decision'] === 'none') {
+            $valid[] = ['line' => (int) $line->id, 'terminus' => StationTerminusOverrides::key($e['terminus']),
+                'station' => $e['decision'] === 'attach' ? (int) $stations[$e['station']] : null, 'entry' => $e];
+        }
+        $removed = $this->retractTerminusLinks($valid);
+        $added = [];
+        $none = 0;
+        foreach ($valid as ['line' => $lineId, 'station' => $stationId, 'entry' => $e]) {
+            if ($stationId === null) {
                 $none++;
 
                 continue;
             }
-            $stationId = (int) $stations[$e['station']];
             $distance = DB::selectOne(<<<'SQL'
                 SELECT ROUND(MIN(ST_Distance(s.geom::geography, g.geom::geography)))::int AS d
                 FROM stations s, (
@@ -490,19 +507,52 @@ class AttachStations extends Command
                     UNION ALL SELECT geom FROM line_reference_geometries WHERE line_id = :l3
                 ) g
                 WHERE s.id = :s
-            SQL, ['l1' => $line->id, 'l2' => $line->id, 'l3' => $line->id, 's' => $stationId])?->d;
+            SQL, ['l1' => $lineId, 'l2' => $lineId, 'l3' => $lineId, 's' => $stationId])?->d;
             // Gare déjà rattachée à la ligne (autre méthode) : rien n'est réécrit.
             $inserted = DB::table('station_lines')->insertOrIgnore([
-                'station_id' => $stationId, 'line_id' => $line->id, 'method' => StationTerminusOverrides::METHOD,
+                'station_id' => $stationId, 'line_id' => $lineId, 'method' => StationTerminusOverrides::METHOD,
                 'distance_m' => $distance, 'source_ref' => StationTerminusOverrides::sourceRef($e), 'created_at' => now(), 'updated_at' => now(),
             ]);
             if ($inserted === 1) {
-                $added[] = (int) DB::table('station_lines')->where('station_id', $stationId)->where('line_id', $line->id)->value('id');
+                $added[] = (int) DB::table('station_lines')->where('station_id', $stationId)->where('line_id', $lineId)->value('id');
             }
         }
-        $this->line('  terminus relus : '.count($added).' ajoutés, '.$none.' sans gare'.($absent > 0 ? ", {$absent} lignes absentes de la base" : ''));
+        $this->line('  terminus relus : '.count($added).' ajoutés'.($removed > 0 ? ", {$removed} retirés" : '').', '.$none.' sans gare'
+            .($absent > 0 ? ", {$absent} lignes absentes de la base" : ''));
 
         return $added;
+    }
+
+    /**
+     * Rattachements des règles des terminus que contredit une décision relue valide, retirés (nombre rendu) :
+     *   - le terminus nommé (méthode terminus_name, provenance « name:<extrémité> ») de l'extrémité décidée,
+     *     que la règle 4 ne traite plus (Sainte-Foy-l'Argentière sur la ligne inachevée de Pontcharra) ;
+     *   - le terminus relu (terminus_reviewed) d'une ligne décidée dont la gare n'est celle d'aucune de ses
+     *     décisions « attach » : décision passée à « none » ou changée de gare après une nouvelle lecture
+     *     (Lyon-Est sur le tramway OTL de Lyon à La Balme, 19/11/2026).
+     * Seules les lignes qui ont une décision valide sont touchées ; les autres méthodes jamais.
+     *
+     * @param  list<array{line: int, terminus: string, station: ?int, entry: array<string, mixed>}>  $decisions
+     */
+    private function retractTerminusLinks(array $decisions): int
+    {
+        $byLine = [];
+        foreach ($decisions as $d) {
+            $byLine[$d['line']]['refs'][] = self::namedTerminusRef($d['terminus']);
+            $byLine[$d['line']]['stations'] ??= [];
+            if ($d['station'] !== null) {
+                $byLine[$d['line']]['stations'][] = $d['station'];
+            }
+        }
+        $removed = 0;
+        foreach ($byLine as $lineId => $d) {
+            $removed += DB::table('station_lines')->where('line_id', $lineId)
+                ->where(fn ($q) => $q->where(fn ($q) => $q->where('method', 'terminus_name')->whereIn('source_ref', $d['refs']))
+                    ->orWhere(fn ($q) => $q->where('method', StationTerminusOverrides::METHOD)->whereNotIn('station_id', $d['stations'])))
+                ->delete();
+        }
+
+        return $removed;
     }
 
     /**

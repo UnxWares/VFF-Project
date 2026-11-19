@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Console\Commands\AttachStations;
 use App\Console\Commands\BuildSharedTrack;
 use App\Services\Materials\MaterialGaugeRule;
+use App\Services\Materials\MaterialTractionRule;
 use App\Support\Lgv;
 use App\Support\TrackPriority;
 use Illuminate\Database\QueryException;
@@ -177,6 +178,12 @@ class DataInvariants
         // Ajout « materiel-ecartement » (2026-11-19), isolé en fin de liste : X 73500 (voie normale) relié
         // aux lignes métriques du Blanc-Argent par une phrase de comparaison.
         'line_materials.gauge_conflict' => 'Lien ligne × matériel dont l\'écartement couvre moins de '.(MaterialGaugeRule::MIN_SHARE * 100).' % de la longueur de la ligne (toutes ères), sans source explicite ni exception relue (liens)',
+        // Ajout « materiel-audit » (2026-11-19), isolé en fin de liste : Z 890 (896000) en « source directe »
+        // sur la seule foi d'un contrat d'achat.
+        'line_materials.doubtful_confidence' => 'Lien importé affiché sûr (high ou medium) alors que toutes ses preuves portent un doute (commande, essai, circulation exceptionnelle…) ou viennent d\'un article commun à plusieurs lignes (liens)',
+        // Ajout « materiel-electrification » (2026-11-19), isolé en fin de liste : BB 9300 et BB 7200 (1 500 V
+        // continu) reliées à Valence - Moirans (25 kV) par une phrase sur un changement de machine à Toulouse.
+        'line_materials.traction_conflict' => 'Lien ligne × série électrique dont aucun système ne couvre '.(MaterialTractionRule::MIN_SHARE * 100).' % de la longueur de la ligne à une ère au moins de son service, sans phrase qui nomme la tension ni exception relue (liens)',
     ];
 
     /** @param  list<string>|null  $only  clés (ou préfixes, ex. « segments ») à vérifier */
@@ -1018,6 +1025,49 @@ class DataInvariants
     private function lineMaterialsGaugeConflict(): array
     {
         $conflicts = MaterialGaugeRule::fromDatabase()->storedConflicts();
+
+        return ['count' => count($conflicts), 'examples' => array_map(
+            fn (array $c): string => sprintf('%s × %s (lien %d) : %s', $c['line'], $c['material'], $c['id'], $c['reason']),
+            array_slice($conflicts, 0, self::EXAMPLES),
+        )];
+    }
+
+    /**
+     * Lien importé en `high` ou `medium` sans aucune preuve franche : chaque preuve porte un doute
+     * (`doubt`, WikipediaMaterialSections::doubt()) ou vient d'un article commun à plusieurs lignes.
+     * LineMaterialLinker::attributes() le range en `low` ; un écart veut dire une saisie à la main ou
+     * des preuves écrites par une ancienne version de l'import.
+     *
+     * @return array{count: int, examples: list<string>}
+     */
+    private function lineMaterialsDoubtfulConfidence(): array
+    {
+        return $this->violations(<<<'SQL'
+            SELECT lm.id AS sort, lm.id, l.code, l.name AS line_name, m.name AS material, lm.confidence,
+                   (SELECT string_agg(DISTINCT COALESCE(e->>'doubt', 'shared_article'), ', ') FROM jsonb_array_elements(lm.evidence) e) AS doubts
+            FROM line_materials lm
+            JOIN lines l ON l.id = lm.line_id
+            JOIN materials m ON m.id = lm.material_id
+            WHERE lm.source IN ('wikidata', 'wikipedia')
+              AND lm.confidence IN ('high', 'medium')
+              AND jsonb_typeof(lm.evidence) = 'array' AND jsonb_array_length(lm.evidence) > 0
+              AND NOT EXISTS (
+                  SELECT 1 FROM jsonb_array_elements(lm.evidence) e
+                  WHERE e->>'doubt' IS NULL AND COALESCE((e->>'shared_article')::boolean, false) = false
+              )
+            SQL, fn ($r) => sprintf('%s × %s (lien %d, %s) : %s', $r->code ?? $r->line_name, $r->material, $r->id, $r->confidence, $r->doubts), order: 'sort');
+    }
+
+    /**
+     * Série électrique reliée à une ligne jamais électrifiée dans un de ses systèmes pendant son service
+     * (MaterialTractionRule : moins de MIN_SHARE de la longueur connue à chaque ère), sans phrase de preuve
+     * qui nomme sa tension ni exception de database/data/line_material_traction_exceptions.php.
+     *
+     * @return array{count: int, examples: list<string>}
+     */
+    private function lineMaterialsTractionConflict(): array
+    {
+        $conflicts = MaterialTractionRule::fromDatabase()->storedConflicts();
 
         return ['count' => count($conflicts), 'examples' => array_map(
             fn (array $c): string => sprintf('%s × %s (lien %d) : %s', $c['line'], $c['material'], $c['id'], $c['reason']),

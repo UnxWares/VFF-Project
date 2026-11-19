@@ -233,6 +233,13 @@
     .tool.best-jump {
         margin-left: auto;
     }
+    /* Téléphone : cible tactile de 44 px. */
+    @media (max-width: 600px) {
+        .tool {
+            min-width: 44px;
+            min-height: 44px;
+        }
+    }
     .tool.best-jump[aria-pressed='true'] {
         border-color: var(--vff-accent);
         background: var(--vff-bg-accent);

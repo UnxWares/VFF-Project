@@ -153,7 +153,7 @@ return [
         ],
         'low' => [
             'label' => 'Unbestätigt',
-            'text' => 'Der Artikel beschreibt mehrere Strecken zugleich; die Baureihe fuhr vielleicht nur auf einer davon.',
+            'text' => 'Der Artikel beschreibt mehrere Strecken zugleich, oder der zitierte Satz handelt von einer Bestellung, einer Probefahrt, einer Sonderfahrt oder erhaltenen Fahrzeugen: Die Baureihe ist auf dieser Strecke womöglich nie im Regelbetrieb gefahren.',
         ],
     ],
     'types' => [

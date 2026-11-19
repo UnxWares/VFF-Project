@@ -62,8 +62,8 @@ class LineMaterialLinkResource extends JsonResource
             /**
              * Fiabilité du lien : `high` (Wikidata, ou section « Matériel roulant » de l'article de la ligne),
              * `medium` (autre section : exploitation, desserte de la ligne ; utilisation, services de la série),
-             * `low` (article qui décrit plusieurs lignes de VFF à la fois : la série n'a peut-être parcouru que
-             * l'une d'elles).
+             * `low` (à confirmer : article qui décrit plusieurs lignes de VFF à la fois, ou preuves qui portent
+             * toutes un doute, voir `evidence[].doubt`). La preuve la plus forte décide.
              *
              * @example high
              */
@@ -99,7 +99,13 @@ class LineMaterialLinkResource extends JsonResource
              * l'article de la série) ou `wikidata`. Pour Wikipédia : `article`, `revid` (révision lue), `section`
              * (titre de la section, « Section > Sous-section »), `quote` (phrase qui porte le lien, extrait sous
              * CC BY-SA 4.0 : citez l'article), `url` (permalien), `shared_article` (vrai si l'article décrit
-             * plusieurs lignes). Pour Wikidata : `property` (`P3438`), `subject` (élément de la ligne),
+             * plusieurs lignes), `doubt` (absent si rien ne met la circulation en doute ; sinon la raison :
+             * `order` commande ou contrat, `trial` essai ou record, `one_off` circulation exceptionnelle,
+             * spéciale ou présentation, `preserved` musée ou préservation, `possible` simple possibilité,
+             * `positioning` acheminement vers un atelier, `diverted` coupure ou détournement, `restricted`
+             * matériel réservé à une autre ligne, `component` pièce reprise de la série, `footnote` lien posé
+             * dans une note ou un passage sans source, `section` section d'essais, de records ou de
+             * préservation). Pour Wikidata : `property` (`P3438`), `subject` (élément de la ligne),
              * `from_year` / `to_year` (période déclarée), `url`.
              *
              * @var list<array<string, mixed>>
@@ -132,7 +138,7 @@ class LineMaterialLinkResource extends JsonResource
      */
     private static function evidence(array $evidence): array
     {
-        $keys = ['kind', 'article', 'revid', 'section', 'quote', 'property', 'subject', 'from_year', 'to_year', 'shared_article', 'url'];
+        $keys = ['kind', 'article', 'revid', 'section', 'quote', 'property', 'subject', 'from_year', 'to_year', 'shared_article', 'doubt', 'url'];
 
         return array_filter(array_replace(array_flip($keys), $evidence), fn (mixed $v, string $k): bool => array_key_exists($k, $evidence), ARRAY_FILTER_USE_BOTH);
     }

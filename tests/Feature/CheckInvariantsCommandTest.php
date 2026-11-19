@@ -173,6 +173,10 @@ class CheckInvariantsCommandTest extends TestCase
             'segments.current_freight_on_reopened_or_station' => 0,
             // Écartement des liens ligne × matériel (MaterialGaugeInvariantTest) : aucun lien ici.
             'line_materials.gauge_conflict' => 0,
+            // Fiabilité des liens douteux (LineMaterialDoubtTest) : aucun lien ici.
+            'line_materials.doubtful_confidence' => 0,
+            // Électrification des liens ligne × matériel (MaterialTractionInvariantTest) : aucun lien ici.
+            'line_materials.traction_conflict' => 0,
         ], $counts);
 
         $this->assertStringContainsString('200000 Ligne de Bravo à Charlie', $results['segments.current_freight_on_passenger_code']['examples'][0]);

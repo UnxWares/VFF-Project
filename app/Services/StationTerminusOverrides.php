@@ -14,6 +14,9 @@ use App\Support\StationNames;
  *     bouts du tracé ou dans une ville à plusieurs gares, parce qu'une source la nomme ;
  *   - « none »   : rien n'est rattaché pour cette extrémité.
  *
+ * La décision vaut aussi pour les rattachements déjà en base (AttachStations::retractTerminusLinks) :
+ * terminus nommé de l'extrémité décidée, terminus relu qu'aucune décision « attach » ne porte plus.
+ *
  * Une décision mal formée n'est jamais appliquée (validate) : la commande la signale.
  */
 final class StationTerminusOverrides

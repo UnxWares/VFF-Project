@@ -359,5 +359,9 @@
         thead th.strip-col {
             min-width: 96px;
         }
+        /* Cible tactile de 44 px pour « Carte ». */
+        .see {
+            min-height: 44px;
+        }
     }
 </style>

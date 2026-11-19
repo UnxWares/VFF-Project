@@ -21,8 +21,9 @@ use Illuminate\Support\Facades\DB;
  * gardée en cache, sauf hors ligne.
  *
  * Une période n'est gardée que pour un lien attesté. Fiabilité abaissée à `low` (jamais montrée) quand le
- * fait sort de la vie de la série (début avant sa mise en service, fin après son retrait) ou quand l'article
- * décrit plusieurs lignes de VFF à la fois.
+ * fait sort de la vie de la série (début avant sa mise en service, fin après son retrait), quand l'article
+ * décrit plusieurs lignes de VFF à la fois ou quand la section parle d'essais, de records, de festivités,
+ * d'entretien ou de préservation (WikipediaMaterialSections::uncertainSection()).
  */
 final class MaterialPeriodCollector
 {
@@ -223,7 +224,8 @@ final class MaterialPeriodCollector
     private function row(int $linkId, array $c, ?object $material, bool $sharedArticle): array
     {
         $confidence = $c['confidence'];
-        if ($sharedArticle && $c['origin'] !== 'wikidata') {
+        // Article commun à plusieurs lignes, ou section d'essais, de records, de festivités (comme les liens).
+        if ($c['origin'] !== 'wikidata' && ($sharedArticle || WikipediaMaterialSections::uncertainSection((string) $c['heading']) !== null)) {
             $confidence = 'low';
         }
         // Hors de la vie de la série : erreur de lecture probable (date d'une autre série, d'une autre action).

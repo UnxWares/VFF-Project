@@ -191,6 +191,7 @@
     }
     /* Légende : cases un peu plus grandes que celles des gares, pour que le motif se lise. */
     .legend .tick {
+        flex: none;
         width: 18px;
         height: 10px;
     }
@@ -301,9 +302,11 @@
         height: 6px;
         margin-top: 4px;
     }
+    /* 9 px par décennie ; sur une colonne étroite (320 px : 21 décennies pour 192 px), les cases
+       se resserrent au lieu de sortir de la colonne. */
     .tick {
-        flex-shrink: 0;
-        width: 9px;
+        flex: 0 1 9px;
+        min-width: 5px;
         height: 6px;
         border-radius: 1px;
         background: var(--c);

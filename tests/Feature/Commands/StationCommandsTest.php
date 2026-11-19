@@ -322,7 +322,7 @@ class StationCommandsTest extends TestCase
 
     /**
      * Terminus relus à la main (database/data/station_terminus_overrides.php) : « attach » rattache la gare
-     * nommée par la source même loin du bout du tracé (Lyon-Est, tête de ligne du CFEL, à 1 km), « none »
+     * nommée par la source même loin du bout du tracé (gare propre d'une compagnie, à 900 m), « none »
      * empêche la règle des terminus nommés ; décision invalide signalée et ignorée ; --years-only les
      * applique, --dry-run n'écrit rien, un second passage n'ajoute rien.
      */
@@ -364,6 +364,57 @@ class StationCommandsTest extends TestCase
         $this->artisan('vff:attach-stations', ['--termini-only' => true])->assertSuccessful();
         $this->artisan('vff:attach-stations')->assertSuccessful();
         $this->assertSame($expected, $links());
+    }
+
+    /**
+     * Une décision relue l'emporte sur ce qui est déjà en base, même en --years-only (relecture du 19/11/2026
+     * au soir) : « none » retire le terminus nommé de son extrémité (Sainte-Foy-l'Argentière sur la ligne
+     * inachevée de Pontcharra) et le terminus relu qu'aucune décision « attach » ne porte plus (Lyon-Est sur
+     * le tramway OTL de Lyon à La Balme). L'autre extrémité, les autres méthodes et les lignes sans décision
+     * ne bougent pas ; --dry-run n'écrit rien ; un second passage ne retire plus rien.
+     */
+    public function test_reviewed_decisions_retract_terminus_links_already_in_base(): void
+    {
+        $secondary = ['code' => null, 'network' => 'secondaire'];
+        $victor = $this->rfnLine('', 'Ligne de Victor à Whiskey', $secondary);
+        $this->track($victor, $this->current, [[47.0, 6.0], [47.1, 6.0]], ['status' => 'dismantled', 'traffic_type' => 'unknown']);
+        // Gares de même nom à 170 m des deux bouts du tracé : la règle des terminus nommés les rattache.
+        $this->station('victor', 'Victor', 46.9985, 6.0);
+        $whiskey = $this->station('whiskey', 'Whiskey', 47.1015, 6.0);
+        $xray = $this->rfnLine('', 'Ligne de Xray à Yankee', $secondary);
+        $this->track($xray, $this->current, [[47.2, 6.0], [47.3, 6.0]], ['status' => 'dismantled', 'traffic_type' => 'unknown']);
+        $xrayEst = $this->station('xray-est', 'Xray-Est', 47.1919, 6.0);
+        // Gare au bord du tracé, rattachée par proximité : jamais touchée par les décisions.
+        $zulu = $this->station('zulu', 'Zulu', 47.25, 6.0001);
+        $source = 'https://fr.wikipedia.org/w/index.php?title=Xray&oldid=1';
+        $decide = fn (array $entries) => $this->app->instance(StationTerminusOverrides::class, new StationTerminusOverrides($entries));
+        $decide([['line' => $xray->slug, 'terminus' => 'Xray', 'decision' => 'attach', 'station' => 'xray-est', 'source_url' => $source, 'reason' => 'gare de la compagnie']]);
+        $links = fn () => DB::table('station_lines as sl')->join('stations as s', 's.id', '=', 'sl.station_id')
+            ->whereIn('sl.line_id', [$victor->id, $xray->id])->orderBy('s.name')->pluck('sl.method', 's.name')->all();
+        $this->artisan('vff:attach-stations')->assertSuccessful();
+        $before = ['Victor' => 'terminus_name', 'Whiskey' => 'terminus_name', 'Xray-Est' => 'terminus_reviewed', 'Zulu' => 'segment'];
+        $this->assertSame($before, $links());
+
+        // Nouvelle lecture : Victor n'est pas le terminus, et la gare de Xray non plus.
+        $decide([
+            ['line' => $victor->slug, 'terminus' => 'Victor', 'decision' => 'none', 'source_url' => null, 'reason' => 'ligne inachevée'],
+            ['line' => $xray->slug, 'terminus' => 'Xray', 'decision' => 'none', 'source_url' => $source, 'reason' => 'départ d\'un quai'],
+        ]);
+        $this->artisan('vff:attach-stations', ['--years-only' => true, '--dry-run' => true])
+            ->expectsOutputToContain('terminus relus : 0 ajoutés, 2 retirés, 2 sans gare')->assertSuccessful();
+        $this->assertSame($before, $links(), '--dry-run : rien d\'écrit');
+
+        $this->artisan('vff:attach-stations', ['--years-only' => true])->expectsOutputToContain('2 retirés')->assertSuccessful();
+        $this->assertSame(['Whiskey' => 'terminus_name', 'Zulu' => 'segment'], $links());
+        $this->assertSame(0, DB::table('station_lines')->where('station_id', $xrayEst->id)->count());
+        $this->assertSame(1, DB::table('station_lines')->where('station_id', $whiskey->id)->count());
+        $this->assertSame(1, DB::table('station_lines')->where('station_id', $zulu->id)->count());
+
+        $this->artisan('vff:attach-stations', ['--years-only' => true])
+            ->expectsOutputToContain('terminus relus : 0 ajoutés, 2 sans gare')->assertSuccessful();
+        // Rattachement complet : même résultat.
+        $this->artisan('vff:attach-stations')->assertSuccessful();
+        $this->assertSame(['Whiskey' => 'terminus_name', 'Zulu' => 'segment'], $links());
     }
 
     public function test_dry_run_reports_the_changes_without_writing(): void

@@ -179,7 +179,7 @@
     .steps p {
         max-width: var(--vff-measure);
         margin: 0;
-        font-size: var(--vff-fs-md);
+        font-size: var(--vff-fs-body);
         line-height: 1.6;
         color: var(--vff-text-muted);
     }

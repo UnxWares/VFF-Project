@@ -51,8 +51,14 @@ final class MaterialPeriodExtractor
     /** Écart maximal (caractères) entre la date et la mention la plus proche pour un fait sûr. */
     private const MAX_DISTANCE = 120;
 
-    /** Futur, conditionnel, projet, commande ou livraison : la phrase ne dit pas que la série a roulé. */
-    private const DOUBTFUL = '/\b(?:jamais|interdite?s?|incompatibles?|ne\s+(?:peu[tv]ent|pouvai(?:en)?t|pourr\w*)|devr(?:a|ont|ait|aient)|pourr(?:a|ont|ait|aient)|prévue?s?|envisag\w*|projet\w*|à\s+terme|seront|sera|serai(?:en)?t|destiné\w*|command\w*|contrat|acquisition|livr(?:é|ée|és|ées|aison\w*)|commandées?|construit\w*|essais?|record|exposition|présent(?:é|ée|és|ées|ation)|renfort|affrét\w*|exceptionnel\w*|spécial\w*|festivit\w+|possibilit\w+|consid[èé]r\w*|étudi\w*)\b/iu';
+    /**
+     * Futur, conditionnel, projet, commande ou livraison : la phrase ne dit pas que la série a roulé. Mêmes
+     * familles que le filtre des liens (WikipediaMaterialSections : DOUBT_WORDS écarte la phrase, UNCERTAIN_WORDS
+     * fait tomber le lien à `low`), plus les mots qui datent autre chose que la circulation (livraison,
+     * construction) et des formes plus larges (« spécialement », « étudiés »).
+     */
+    private const DOUBTFUL = '/\b(?:'.WikipediaMaterialSections::DOUBT_WORDS.'|'.WikipediaMaterialSections::UNCERTAIN_WORDS
+        .'|destiné\w*|command\w*|livr(?:é|ée|és|ées|aison\w*)|construit\w*|exceptionnel\w*|spécial\w*|étudi\w*)\b/iu';
 
     /** Chiffres de trafic : la date porte sur la fréquentation, pas sur le matériel. */
     private const STATISTIC = '/%|\bfréquentation\b|\bvoyageurs\s+par\b|\bproportion\b|\b\d+\s+trains\b/iu';

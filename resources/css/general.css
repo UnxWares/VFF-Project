@@ -630,6 +630,13 @@ a.vff-tile:hover,
     padding: 6px 12px;
     font-size: var(--vff-fs-sm);
 }
+/* Téléphone : les petits boutons retrouvent une cible tactile de 44 px (36 px suffisent à la souris). */
+@media (max-width: 600px) {
+    .vff-btn.small,
+    .vff-btn.quiet {
+        min-height: 44px;
+    }
+}
 .vff-btn.block {
     display: flex;
     width: 100%;

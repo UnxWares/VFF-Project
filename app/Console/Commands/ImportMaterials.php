@@ -84,7 +84,7 @@ class ImportMaterials extends Command
     }
 
     /**
-     * Bilan avant écriture : liens écartés pour leur écartement, liens à créer, à mettre à jour et à retirer.
+     * Bilan avant écriture : liens écartés (exclusion relue, écartement, électrification), liens à créer, à mettre à jour et à retirer.
      *
      * @param  array<string, array{line_id: int, material_id: int, evidence: list<array<string, mixed>>}>  $links
      */
@@ -103,7 +103,7 @@ class ImportMaterials extends Command
             return ($lines[$line] ?? "ligne {$line}").' × '.($materials[$material] ?? "série {$material}");
         };
 
-        $this->line('  Écartés pour leur écartement : '.count($rejected));
+        $this->line('  Écartés (exclusion relue, écartement, électrification) : '.count($rejected));
         foreach ($rejected as $key => $link) {
             $this->line("    - {$name((string) $key)} : {$link['reason']}");
         }

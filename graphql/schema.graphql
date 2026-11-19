@@ -1170,7 +1170,8 @@ type LineMaterialLink {
 
     """
     Fiabilité : `high` (Wikidata, ou section « Matériel roulant » de l'article de la ligne),
-    `medium` (autre section), `low` (article qui décrit plusieurs lignes de VFF à la fois).
+    `medium` (autre section), `low` (à confirmer : article qui décrit plusieurs lignes de VFF à la
+    fois, ou preuves qui portent toutes un doute, voir `LineMaterialEvidence.doubt`).
     """
     confidence: String
 
@@ -1281,6 +1282,17 @@ type LineMaterialEvidence {
 
     "Vrai si l'article décrit plusieurs lignes de VFF à la fois."
     shared_article: Boolean
+
+    """
+    Raison de douter que la série ait roulé en service sur la ligne d'après cette phrase, ou nul :
+    `order` (commande, contrat), `trial` (essai, record), `one_off` (circulation exceptionnelle,
+    spéciale, présentation), `preserved` (musée, préservation), `possible` (simple possibilité),
+    `positioning` (acheminement vers un atelier), `diverted` (coupure, détournement), `restricted`
+    (matériel réservé à une autre ligne), `component` (pièce reprise de la série), `footnote` (lien
+    posé dans une note ou un passage sans source), `section` (section d'essais, de records ou de
+    préservation). Un lien dont toutes les preuves portent un doute est en fiabilité `low`.
+    """
+    doubt: String
 
     "Permalien de la preuve."
     url: String

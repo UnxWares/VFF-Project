@@ -228,7 +228,8 @@
         padding: 1px 5px;
         border-radius: var(--vff-radius-xs);
         background-color: var(--vff-bg-muted);
-        font-size: 0.9em;
+        /* Un peu plus petit que le texte, jamais sous 14 px (noms de cookies dans un tableau en 15 px). */
+        font-size: max(0.9em, var(--vff-fs-xs));
         overflow-wrap: anywhere;
     }
     .legal-text :global(.nowrap),

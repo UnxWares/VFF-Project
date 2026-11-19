@@ -44,7 +44,7 @@ class MaterialController extends Controller
 
         // Colonnes choisies avant apply(), qui y ajoute le nombre de lignes (`lines_count`).
         $columns = Material::query()->select(['materials.slug', 'materials.name', 'materials.type', 'materials.builder',
-            'materials.designations', 'materials.in_service_from', 'materials.in_service_to', 'materials.units_built',
+            'materials.builders', 'materials.designations', 'materials.in_service_from', 'materials.in_service_to', 'materials.units_built',
             'materials.max_speed_kmh', 'materials.image', 'materials.service_status']);
         $list = $query->apply($columns, ['q' => $q, 'type' => $type, 'sort' => $sort])
             ->paginate(self::PER_PAGE)
@@ -64,7 +64,10 @@ class MaterialController extends Controller
                     'slug' => $m->slug,
                     'name' => $m->name,
                     'type' => $m->getRawOriginal('type'),
+                    // `builder` : texte joint, coupé à 255 caractères (« … ») ; `builders` : tous les noms (Wikidata
+                    // P176), sans doublon, d'où la carte tire « trois noms et N autres » comme la fiche ligne.
                     'builder' => $m->builder,
+                    'builders' => array_values(array_unique(array_column($m->builders ?? [], 'name'))),
                     'designations' => $m->designations ?? [],
                     'in_service_from' => $m->in_service_from,
                     'in_service_to' => $m->in_service_to,
