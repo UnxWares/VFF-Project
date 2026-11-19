@@ -143,10 +143,26 @@ class StationController extends Controller
      *   événements datés de la ligne au PK de la gare, `traces` = tracés
      *   datés, `station` = dates de la gare elle-même faute d'événement daté
      *   de la ligne, ex. Morlaix sur 447000 ; `never_served` ; `null` :
-     *   inconnues), `never_served`
+     *   inconnues), `service_start` et `service_end` (dates de début et
+     *   de fin de desserte, détaillées plus bas), `never_served`
      *   (`line_closed`, `station_closed` ou `null`), `active_current`
      *   (desservie par une portion en service aujourd'hui), `era_years`
      *   (décennies où la gare est un arrêt de la ligne) ;
+     * - `lines[].service_start` / `lines[].service_end` : date de l'événement
+     *   de ligne qui ouvre (ferme) la desserte de la gare, quand elle est
+     *   sûre. `date` (`AAAA-MM-JJ`) se lit avec `precision` : `day`, `month`
+     *   (le jour vaut alors 01 et n'a pas de sens) ou `year` (seule l'année
+     *   compte). `event_id` est l'événement de ligne qui la donne, à lire
+     *   sur `/events/{id}` (`links.event`). Ces objets sont `null` quand
+     *   seules les années sont sûres : année tirée d'un tracé daté ou des
+     *   dates de la gare, gare ouverte ou fermée la même année à une date qui
+     *   pourrait précéder (suivre) celle de la ligne, fin non datée ou borne
+     *   haute (`last_year_kind` différent de `year`), ligne qui n'a jamais
+     *   desservi la gare. Exemple réel : Saint-Calais sur la ligne de
+     *   Bessé-sur-Braye à Saint-Calais (`lo-507000`), `service_start` =
+     *   `{"date": "1879-03-31", "precision": "day", "event_id": 416}`,
+     *   `service_end` = `{"date": "1938-05-15", "precision": "day",
+     *   "event_id": 417}` (fermeture aux voyageurs) ;
      * - `sources` : provenance brute, en lecture seule, de chaque source
      *   rattachée. Identité : `source`, `ref` (identifiant dans la source),
      *   `name`, `url` (lien vers l'objet), `lifecycle` (état selon la source),

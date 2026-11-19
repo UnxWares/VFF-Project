@@ -126,6 +126,46 @@ return [
         'period_to_bound' => 'Bedient bis spätestens :to',
         'period_from_undated' => 'Bedient ab :from, Ende nicht datiert',
         'period_undated' => 'Ende der Bedienung nicht datiert',
+        // Période datée au jour ou au mois (servicePeriodText) : :from, :to… sont des fragments de bound.*.
+        'dated' => [
+            'from_to' => 'Bedient :from :to',
+            'from' => 'Bedient :since',
+            'to' => 'Bedient :until',
+            'from_to_bound' => 'Bedient :from bis spätestens :to',
+            'from_undated' => 'Bedient :start, Ende nicht datiert',
+        ],
+        'bound' => [
+            'from' => [
+                'year' => 'von :date',
+                'month' => 'von :date',
+                'month_vowel' => 'von :date',
+                'day' => 'vom :date',
+            ],
+            'to' => [
+                'year' => 'bis :date',
+                'month' => 'bis :date',
+                'month_vowel' => 'bis :date',
+                'day' => 'bis zum :date',
+            ],
+            'since' => [
+                'year' => 'seit :date',
+                'month' => 'seit :date',
+                'month_vowel' => 'seit :date',
+                'day' => 'seit dem :date',
+            ],
+            'until' => [
+                'year' => 'bis :date',
+                'month' => 'bis :date',
+                'month_vowel' => 'bis :date',
+                'day' => 'bis zum :date',
+            ],
+            'start' => [
+                'year' => 'ab :date',
+                'month' => 'ab :date',
+                'month_vowel' => 'ab :date',
+                'day' => 'ab dem :date',
+            ],
+        ],
         'years_from_station' => 'Jahre aus den Daten des Bahnhofs, da für die Strecke hier kein datiertes Ereignis vorliegt.',
         'never_served' => [
             'line_closed' => 'Nie von dieser Strecke bedient: Strecke :to stillgelegt, Bahnhof :from eröffnet',

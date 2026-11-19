@@ -237,6 +237,12 @@ class LineController extends Controller
      * calcul, ex. Jarménil sur 062000, 2026 ; `null` sans fin), `years_source`
      * (`line_events`, `traces`, ou `station` : années tirées des dates de la
      * gare faute d'événement daté de la ligne, ex. Morlaix sur 447000),
+     * `service_start`/`service_end` (date sûre du début et de la fin de
+     * desserte par cette ligne : `date` `AAAA-MM-JJ` à lire avec `precision`
+     * `day`, `month` ou `year`, `event_id` et `links.event` : l'événement de
+     * ligne qui la donne, voir `/events/{id}` ; `null` quand seules les années
+     * sont sûres, mêmes règles que la fiche gare ; ex. Saint-Calais sur
+     * `lo-507000` : du 31/03/1879, événement 416, au 15/05/1938, événement 417),
      * `status_today` (`null` : disparue), `eras` : statut à chaque décennie.
      * **Sections nommées** (`sections`) : PK de début et de fin, années
      * d'ouverture, description, source, et `stages` : les mises en service

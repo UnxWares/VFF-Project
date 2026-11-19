@@ -78,6 +78,9 @@ final class StationSheetExample
                     'last_year' => null,
                     'last_year_kind' => null,
                     'years_source' => 'line_events',
+                    // Brest sur 420000 : année seule, aucun événement de ligne au jour pour la gare.
+                    'service_start' => null,
+                    'service_end' => null,
                     'never_served' => null,
                     'active_current' => true,
                     'era_years' => [1870],

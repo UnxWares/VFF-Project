@@ -507,6 +507,8 @@ final class LineSheet
             'served_until' => $s['served_until'] ?? null,
             'served_until_kind' => $s['served_until_kind'] ?? null,
             'years_source' => $s['years_source'] ?? null,
+            'service_start' => $s['service_start'] ?? null,
+            'service_end' => $s['service_end'] ?? null,
             'opened_at' => $s['opened_at'],
             'opened_precision' => $s['opened_precision'],
             'closed_at' => $s['closed_at'],

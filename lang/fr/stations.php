@@ -126,6 +126,46 @@ return [
         'period_to_bound' => 'Desservie jusqu’en :to au plus tard',
         'period_from_undated' => 'Desservie à partir de :from, fin non datée',
         'period_undated' => 'Fin de desserte non datée',
+        // Période datée au jour ou au mois (servicePeriodText) : :from, :to… sont des fragments de bound.*.
+        'dated' => [
+            'from_to' => 'Desservie :from :to',
+            'from' => 'Desservie :since',
+            'to' => 'Desservie :until',
+            'from_to_bound' => 'Desservie :from à :to au plus tard',
+            'from_undated' => 'Desservie :start, fin non datée',
+        ],
+        'bound' => [
+            'from' => [
+                'year' => 'de :date',
+                'month' => 'de :date',
+                'month_vowel' => 'd’:date',
+                'day' => 'du :date',
+            ],
+            'to' => [
+                'year' => 'à :date',
+                'month' => 'à :date',
+                'month_vowel' => 'à :date',
+                'day' => 'au :date',
+            ],
+            'since' => [
+                'year' => 'depuis :date',
+                'month' => 'depuis :date',
+                'month_vowel' => 'depuis :date',
+                'day' => 'depuis le :date',
+            ],
+            'until' => [
+                'year' => 'jusqu’en :date',
+                'month' => 'jusqu’en :date',
+                'month_vowel' => 'jusqu’en :date',
+                'day' => 'jusqu’au :date',
+            ],
+            'start' => [
+                'year' => 'à partir de :date',
+                'month' => 'à partir de :date',
+                'month_vowel' => 'à partir d’:date',
+                'day' => 'à partir du :date',
+            ],
+        ],
         'years_from_station' => 'Années tirées des dates de la gare, faute d’événement daté sur la ligne.',
         'never_served' => [
             'line_closed' => 'Jamais desservie par cette ligne : ligne fermée en :to, gare ouverte en :from',

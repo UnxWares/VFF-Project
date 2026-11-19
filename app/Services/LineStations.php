@@ -41,7 +41,8 @@ final class LineStations
      * pk_m, pk_label, is_terminal (gare au bout du tracé, voir terminals()), link_method
      * (sncf_pk, source_pk, segment…), served_from / served_until (années de
      * desserte par CETTE ligne, station_lines), served_until_kind (ServiceEnd :
-     * year, upper_bound, undated), years_source, opened_at / opened_precision,
+     * year, upper_bound, undated), years_source, service_start / service_end
+     * (date, précision et événement de ligne, StationServiceDates::bounds), opened_at / opened_precision,
      * closed_at / closed_precision / closed_after / closed_year (date retenue,
      * null si ouverte aujourd'hui), status_today (statut affiché à l'ère
      * courante, null : n'existe plus), eras : année → {status (active,
@@ -52,10 +53,11 @@ final class LineStations
     public function forLine(int $lineId): array
     {
         $eras = DB::table('eras')->orderBy('year')->get(['id', 'year', 'is_current']);
-        $rows = DB::select(<<<'SQL'
+        $dates = StationServiceDates::columns();
+        $rows = DB::select(<<<SQL
             SELECT s.id, s.slug, s.name, s.type, s.city, s.department_code,
                    ST_X(s.geom) AS lng, ST_Y(s.geom) AS lat,
-                   sl.pk_m, sl.method, sl.first_year, sl.last_year, sl.years_source,
+                   sl.pk_m, sl.method, sl.first_year, sl.last_year, sl.years_source, {$dates},
                    s.opened_at, s.opened_precision, s.closed_at, s.closed_precision,
                    s.provenance->>'closed_after' AS closed_after, s.provenance->>'closed_at' AS closed_source,
                    s.provenance->>'kind' AS kind
@@ -122,6 +124,9 @@ final class LineStations
                     $r->closed_at !== null ? (string) $r->closed_at : null, $r->closed_precision, (int) now()->year)?->value,
                 // line_events, traces ou station (années tirées des dates de la gare), null si inconnues.
                 'years_source' => $r->years_source,
+                // Date, précision et événement de ligne qui ouvrent et terminent la desserte (StationServiceDates).
+                'service_start' => ($bounds = StationServiceDates::bounds($r))['start'],
+                'service_end' => $bounds['end'],
                 'opened_at' => $r->opened_at,
                 'opened_precision' => $r->opened_precision,
                 'closed_at' => $r->closed_at,
