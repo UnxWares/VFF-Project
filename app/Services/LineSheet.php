@@ -23,6 +23,13 @@ final class LineSheet
     /** Statuts portant du trafic (cf. SegmentStatus::isActive / NetworkStats). */
     private const ACTIVE_STATUSES = "('in_service','single_track')";
 
+    /**
+     * Clés de la fiche que la page web n'affiche pas (build($line, forPage: true)) : `segments` (la carte
+     * de la fiche dessine `portions`), `events` (la chronique les reprend, avec leur portion) et
+     * `era_summary` (le tableau des décennies lit `decades`). L'API REST et GraphQL les donnent toujours.
+     */
+    public const PAGE_OMITTED = ['segments', 'events', 'era_summary'];
+
     /** Gestionnaires d'infrastructure (Wikidata) : jamais « exploitants » des trains, avec leurs années d'existence. */
     public const INFRASTRUCTURE_MANAGERS = [
         'Q1071978' => ['name' => 'Réseau ferré de France', 'from' => 1997, 'to' => 2014],
@@ -43,9 +50,13 @@ final class LineSheet
      *   - Événements lus bruts : type (nouveaux types tolérés), précision de
      *     date, portion (section_from → section_to), source.
      *
+     * `$forPage` : version de la page web (LineController::show), sans ce que la page n'affiche pas
+     * (PAGE_OMITTED : géométrie de l'ère affichée, liste brute des événements, synthèse par ère), soit
+     * environ 500 Ko de moins sur la LGV Sud-Est. L'API et GraphQL gardent la fiche complète.
+     *
      * @return array<string, mixed>
      */
-    public function build(Line $line): array
+    public function build(Line $line, bool $forPage = false): array
     {
         // Médias (envois locaux, Commons…) servis paginés par GET /api/v1/lines/{slug}/media (LineGallery).
         $line->load('materials');
@@ -159,7 +170,7 @@ final class LineSheet
         $chronicle = LineChronicle::forLine($line, $phases['used_events'], $stations->all(), $lineLengthM > 0 ? $lineLengthM : null);
 
         $segmentsGeoJson = [];
-        if ($latestEraId) {
+        if ($latestEraId && ! $forPage) {
             $features = collect(DB::select(
                 "SELECT ls.id, ls.status, COALESCE(ls.traffic_type, 'unknown') AS traffic_type,
                         ls.is_heritage, ls.max_speed_kmh, ls.source,
@@ -236,7 +247,7 @@ final class LineSheet
 
         $currentSummary = $eraSummary->firstWhere('year', (int) ($displayEra->year ?? 0));
 
-        return [
+        $sheet = [
             'line' => [
                 'id' => $line->id,
                 'slug' => $line->slug,
@@ -319,6 +330,8 @@ final class LineSheet
                 'periods' => $materialPeriods[$m->id] ?? [],
             ]),
         ];
+
+        return $forPage ? array_diff_key($sheet, array_flip(self::PAGE_OMITTED)) : $sheet;
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Models\Era;
 use App\Models\Line;
 use App\Models\LineEvent;
 use App\Models\LineSegment;
+use App\Services\LineSheet;
 use Clickbar\Magellan\Data\Geometries\LineString;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -124,15 +125,24 @@ class AppPagesTest extends TestCase
             ->where('line.network', 'principal')
             ->where('line.display_era_year', 2030)
             ->where('line.current_traffic', 'passenger')
-            ->where('segments.0.era_year', 2030)
-            ->has('era_summary', 3)
-            ->where('era_summary.0.year', 1960)
-            ->where('era_summary.2.year', 2030)
-            ->where('events.1.type', 'closure_passenger')
-            ->where('events.1.date_precision', 'month')
-            ->where('events.1.section_from', 'Saint-Cloud')
-            ->where('events.1.section_to', 'Versailles')
-            ->where('events.1.source_url', 'https://example.org/source'));
+            // Géométrie de l'ère affichée, synthèse par ère et liste brute des événements : hors de la page
+            // (LineSheet::PAGE_OMITTED), dans la fiche complète de l'API, vérifiée ci-dessous.
+            ->missing('segments')
+            ->missing('era_summary')
+            ->missing('events'));
+
+        $sheet = app(LineSheet::class)->build($this->line->fresh());
+        $this->assertSame(2030, $sheet['segments'][0]['era_year']);
+        $this->assertSame([1960, 1980, 2030], $sheet['era_summary']->pluck('year')->all());
+        $this->assertSame('closure_passenger', $sheet['events'][1]['type']);
+        $this->assertSame('month', $sheet['events'][1]['date_precision']);
+        $this->assertSame('Saint-Cloud', $sheet['events'][1]['section_from']);
+        $this->assertSame('Versailles', $sheet['events'][1]['section_to']);
+        $this->assertSame('https://example.org/source', $sheet['events'][1]['source_url']);
+        $this->getJson("/api/v1/lines/{$this->line->slug}")
+            ->assertOk()
+            ->assertJsonPath('data.era_summary.0.year', 1960)
+            ->assertJsonPath('data.era_summary.2.year', 2030);
 
         $this->getJson("/api/v1/lines/{$this->line->slug}/history")
             ->assertOk()

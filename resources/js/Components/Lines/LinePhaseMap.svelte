@@ -1,8 +1,8 @@
 <script>
-    import maplibregl from 'maplibre-gl';
     import 'maplibre-gl/dist/maplibre-gl.css';
     import { onDestroy, onMount } from 'svelte';
     import { router } from '@inertiajs/svelte';
+    import { loadMaplibre } from '$lib/loadMaplibre.js';
     import { i18n } from '$lib/i18n.js';
     import { theme } from '$lib/stores/theme.svelte.js';
     import { formatLocale, tieUnits } from '$lib/typo.js';
@@ -126,7 +126,12 @@
         base * 2.4,
     ];
 
-    onMount(() => {
+    // MapLibre (1 Mo) chargé après l'affichage de la fiche : le texte ne l'attend plus.
+    let destroyed = false;
+
+    onMount(async () => {
+        const maplibregl = await loadMaplibre();
+        if (destroyed || !mapContainer) return;
         map = new maplibregl.Map({
             container: mapContainer,
             style: buildStyle(),
@@ -299,6 +304,7 @@
     });
 
     onDestroy(() => {
+        destroyed = true;
         map?.remove();
         map = null;
     });

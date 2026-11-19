@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Era;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -35,9 +36,18 @@ class MapController extends Controller
      */
     private function mapProps(): array
     {
-        $segCounts = DB::table('line_segments')
-            ->select('era_id', DB::raw('COUNT(*) AS n'))
-            ->groupBy('era_id')->pluck('n', 'era_id');
+        // Dernière modification des segments (index line_segments.updated_at : lecture immédiate).
+        $lastUpdate = DB::table('line_segments')->max('updated_at');
+        // Nombre de segments par ère : relecture des 383 000 segments (environ 50 ms), gardée en cache
+        // tant que les segments ne changent pas (clé = dernière modification) et 10 min au plus (une
+        // suppression seule ne change pas la clé).
+        $segCounts = collect(Cache::remember(
+            'map_era_segment_counts:'.($lastUpdate ?? 'none'),
+            600,
+            fn (): array => DB::table('line_segments')
+                ->select('era_id', DB::raw('COUNT(*) AS n'))
+                ->groupBy('era_id')->pluck('n', 'era_id')->map(fn ($n): int => (int) $n)->all(),
+        ));
 
         $eras = Era::orderBy('year')
             ->get(['id', 'year', 'label', 'is_current'])
@@ -54,7 +64,6 @@ class MapController extends Controller
         // Version de données dérivée de la dernière modification des segments :
         // change automatiquement à chaque (re)classification/import → bust du
         // cache des tuiles MVT côté navigateur, sans hard-refresh manuel.
-        $lastUpdate = DB::table('line_segments')->max('updated_at');
         $dataVersion = $lastUpdate
             ? (string) strtotime((string) $lastUpdate).'-'.$segCounts->sum()
             : 'v0';

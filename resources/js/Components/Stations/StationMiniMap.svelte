@@ -1,8 +1,8 @@
 <script>
-    import maplibregl from 'maplibre-gl';
     import 'maplibre-gl/dist/maplibre-gl.css';
     import { onDestroy, onMount } from 'svelte';
     import { i18n } from '$lib/i18n.js';
+    import { loadMaplibre } from '$lib/loadMaplibre.js';
 
     /**
      * Mini-carte centrée sur une gare, avec ses voisines. Région nommée (le titre dit ce que montre
@@ -34,7 +34,12 @@
         };
     }
 
-    onMount(() => {
+    // MapLibre (1 Mo) chargé après l'affichage de la fiche : le texte ne l'attend plus.
+    let destroyed = false;
+
+    onMount(async () => {
+        const maplibregl = await loadMaplibre();
+        if (destroyed || !mapContainer) return;
         map = new maplibregl.Map({
             container: mapContainer,
             style: buildStyle(),
@@ -112,6 +117,7 @@
     });
 
     onDestroy(() => {
+        destroyed = true;
         map?.remove();
         map = null;
     });

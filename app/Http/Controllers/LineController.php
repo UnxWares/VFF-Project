@@ -151,7 +151,8 @@ class LineController extends Controller
     public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineTraceExport $traceExport): Response
     {
         return Inertia::render('Lines/Show', [
-            ...$sheet->build($line),
+            // Sans ce que la page n'affiche pas (LineSheet::PAGE_OMITTED, données complètes dans l'API).
+            ...$sheet->build($line, forPage: true),
             'accidents' => $accidents->forLine($line, app()->getLocale()),
             'level_crossings' => $crossings->forSheet($line),
             'greenways' => $greenways->forSheet($line),

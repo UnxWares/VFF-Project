@@ -4,12 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\Era;
 use App\Models\Line;
+use App\Services\LineSheet;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
- * Fiche ligne (LineController::show) : synthèse par décennie `era_summary`
+ * Fiche ligne (LineSheet, servie par GET /api/v1/lines/{slug}) : synthèse par décennie `era_summary`
  * (frise « évolution ») : km en service / fermés / déposés, km patrimoine,
  * trafic dominant, avec « heritage » quand le train touristique est majoritaire.
  */
@@ -96,9 +97,11 @@ class LineEraSummaryTest extends TestCase
     /** @return list<array<string, mixed>> */
     private function summary(): array
     {
-        $props = $this->get('/lines/'.$this->line->slug)->assertOk()->viewData('page')['props'];
+        // La page web ne la reçoit plus (LineSheet::PAGE_OMITTED : son tableau des décennies lit `decades`) ;
+        // la synthèse reste servie par l'API, depuis la même fiche (LineSheet::build).
+        $this->getJson('/api/v1/lines/'.$this->line->slug)->assertOk()->assertJsonStructure(['data' => ['era_summary']]);
 
-        return collect($props['era_summary'])->toArray();
+        return app(LineSheet::class)->build($this->line->fresh())['era_summary']->toArray();
     }
 
     /** @return array<string, mixed> */

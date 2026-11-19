@@ -108,13 +108,12 @@ class LinePagesTest extends TestCase
                 ->where('line.name', $this->line->name)
                 ->where('line.code', '999 000')
                 ->where('line.is_threatened', false)
-                // Groupes GeoJSON par ère : l'ère courante est présente, avec une vraie géométrie.
-                ->where('segments', fn ($groups) => $groups->contains(
-                    fn ($g) => $g['era_year'] === 2030
-                        && $g['features'][0]['type'] === 'Feature'
-                        && $g['features'][0]['geometry']['type'] === 'LineString'
-                        && count($g['features'][0]['geometry']['coordinates']) === 3
-                ))
+                // La carte de la fiche dessine les portions (géométrie une fois) ; la géométrie brute de l'ère
+                // affichée, les événements et la synthèse par ère restent dans l'API (LineSheet::PAGE_OMITTED).
+                ->where('portions.0.geometry.type', 'LineString')
+                ->missing('segments')
+                ->missing('events')
+                ->missing('era_summary')
                 // Gares rattachées (station_lines), dans l'ordre des PK.
                 ->has('stations', 2)
                 ->where('stations.0.slug', 'paris-saint-lazare')
@@ -126,7 +125,6 @@ class LinePagesTest extends TestCase
                 ->where('signalling.0.signalling', 'BAL')
                 ->where('signalling.0.pk_end_label', '17+250')
                 ->where('signalling.0.train_protection', ['KVB'])
-                ->has('events', 1)
                 ->has('materials', 1)
                 ->where('materials.0.slug', $this->material->slug)
                 ->missing('media')
@@ -175,7 +173,7 @@ class LinePagesTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Lines/Show')
                 ->where('line.type', null)
-                ->has('segments', 0)
+                ->has('portions', 0)
                 ->has('stations', 0)
             );
     }
