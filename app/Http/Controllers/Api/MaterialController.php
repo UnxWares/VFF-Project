@@ -95,8 +95,15 @@ class MaterialController extends Controller
      * la ligne dans une section « Utilisation », « Services » ou « Carrière » de l'article de
      * la série. Chaque lien cite la phrase qui le porte et le permalien de la révision lue
      * (`evidence`), avec sa fiabilité (`confidence`). Les phrases au futur, au conditionnel
-     * ou qui nient la circulation ne créent pas de lien. Les dates de circulation ne sont
-     * données que si la source les date.
+     * ou qui nient la circulation ne créent pas de lien.
+     *
+     * **Périodes de circulation** : `lines[].periods` donne, pour chaque ligne, les périodes
+     * datées par une source (début et fin au format `AAAA-MM-JJ` avec leur précision `day`,
+     * `month` ou `year`, fiabilité `high` ou `medium`, source citée par son permalien). Exemple
+     * réel : les CC 72000 sur la ligne de Grenoble à Montmélian, « du 20/08/1982 au
+     * 30/05/1986 » sur l'IC « Le Rhodanien » d'après l'article de la ligne. Une fin nulle ne
+     * veut pas dire que la série y circule encore ; les détails sont décrits dans
+     * `GET /api/v1/lines/{line}/materials`.
      */
     #[PathParameter('material', 'Slug de la série, tel que renvoyé par la liste (`slug`).', example: 'bb-15000')]
     #[ApiResponse(200, 'Fiche de la série.', examples: [self::SHOW_EXAMPLE])]
@@ -105,7 +112,7 @@ class MaterialController extends Controller
     public function show(Material $material): JsonResponse
     {
         $material->loadCount(['lineLinks as lines_count' => fn (Builder $q) => $q->select(\DB::raw('count(distinct line_id)'))]);
-        $material->load(['lineLinks' => fn ($q) => $q->with(['line:id,slug,code,name', 'era:id,year'])
+        $material->load(['lineLinks' => fn ($q) => $q->with(['line:id,slug,code,name', 'era:id,year', 'shownPeriods'])
             ->join('lines', 'lines.id', '=', 'line_materials.line_id')
             ->orderBy('lines.name')
             ->select('line_materials.*')]);

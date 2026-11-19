@@ -64,6 +64,7 @@ class MaterialSheetPropsTest extends TestCase
                     ->hasAll(['slug', 'name', 'code', 'source_url', 'kind', 'article'])
                     ->where('confidence', 'medium')
                     ->where('section', 'Exploitation')
-                    ->whereType('quote', 'string')));
+                    ->whereType('quote', 'string')
+                    ->whereType('periods', 'array')));
     }
 }

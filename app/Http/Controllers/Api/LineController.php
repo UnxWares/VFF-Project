@@ -62,7 +62,13 @@ class LineController extends Controller
      * renseigné), par trafic (`traffics`, sur les portions en service à
      * l'ère) et avec une portion associative (`heritage`). Chaque facette est
      * comptée sans son propre filtre (filtrer `traffic=freight` laisse voir
-     * les autres trafics).
+     * les autres trafics). `departments` donne le nombre de lignes par
+     * département (code INSEE, sans le filtre `department` ; une ligne compte
+     * dans chacun de ses départements, départements sans ligne absents).
+     *
+     * **Territoire** : `department` ou `region` (codes INSEE). Les valeurs
+     * acceptées, avec les noms et les compteurs, sont listées par
+     * `/departments` et `/regions`.
      *
      * `meta.era_year` rappelle l'ère de référence. Données : registre des
      * lignes de SNCF Réseau (ODbL), Wikidata (CC0), relevés des lignes
@@ -74,6 +80,7 @@ class LineController extends Controller
     #[QueryParameter('traffic', "Trafic d'au moins une portion en service à l'ère : `passenger`, `mixed`, `freight` ou `unknown`.", type: 'string', example: 'freight')]
     #[QueryParameter('heritage', 'Seulement les lignes avec une portion associative (train touristique, vélorail), toutes ères confondues : `true` ou `false`.', type: 'boolean', example: true)]
     #[QueryParameter('department', 'Code INSEE du département (`01` à `95`, `2A`, `2B`, `971` à `976`) : lignes citant ce département ou y desservant une gare. Minuscules acceptées.', type: 'string', example: '29')]
+    #[QueryParameter('region', 'Code INSEE de la région (`11`, `24`, `27`, `28`, `32`, `44`, `52`, `53`, `75`, `76`, `84`, `93`, `94`, outre-mer `01` à `06`) : lignes citant l\'un de ses départements ou y desservant une gare. Liste avec les noms : `/regions`.', type: 'string', example: '53')]
     #[QueryParameter('era', "Année de l'ère de référence (décennie de 1830 à 2030) pour `status`, `traffic` et l'état renvoyé. Par défaut : l'ère courante (aujourd'hui). Une année sans ère (`1935`) donne HTTP 422.", type: 'int', example: 1930)]
     #[QueryParameter('sort', 'Clé de tri : `name` (par défaut), `code` ou `slug`.', type: 'string', default: 'name', example: 'name')]
     #[QueryParameter('order', 'Sens du tri : `asc` (par défaut) ou `desc`.', type: 'string', default: 'asc', example: 'asc')]
@@ -101,6 +108,7 @@ class LineController extends Controller
                 'total' => 14, 'open' => 0, 'closed' => 14, 'unknown' => 0,
                 'networks' => ['principal' => 2, 'secondaire' => 12, 'militaire' => 0, 'particulier' => 0, 'none' => 0],
                 'traffics' => ['passenger' => 0, 'mixed' => 0, 'freight' => 0, 'unknown' => 0], 'heritage' => 0,
+                'departments' => ['22' => 3, '29' => 14, '56' => 1],
             ],
         ],
     ]])]
@@ -226,7 +234,10 @@ class LineController extends Controller
      * qui la datent, voir `/events/{id}`). Une phase dont l'année tombe dans
      * les années de deux sections n'est rattachée à aucune. **Exploitations associatives**
      * (`heritage`) : nom, exploitant, nature (`tourist_train`, `velorail`),
-     * portion et périodes. **Sources** (`sources`) : jeux de données utilisés
+     * portion et périodes. **Matériel roulant** (`materials`) : séries attestées sur la ligne,
+     * par nom, chacune avec `periods`, ses périodes de circulation datées par une source (début
+     * et fin `AAAA-MM-JJ` et leur précision, portion, `source` et `source_url` ; sûres seulement,
+     * détail et fiabilité dans `materials` des liens). **Sources** (`sources`) : jeux de données utilisés
      * pour la fiche, avec lien, date de lecture et champs fournis. **Liens**
      * (`links`) : la page du site et les points d'accès de la ligne que la
      * fiche ne reprend pas en entier (`geojson` tracé, `profile` profil en

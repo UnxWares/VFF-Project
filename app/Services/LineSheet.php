@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Line;
+use App\Models\LineMaterialPeriod;
 use App\Services\Signalling\SignallingRanges;
 use App\Support\Advocacy;
 use App\Support\FrenchGrammar;
@@ -48,6 +49,16 @@ final class LineSheet
     {
         // Médias (envois locaux, Commons…) servis paginés par GET /api/v1/lines/{slug}/media (LineGallery).
         $line->load('materials');
+        $materialPeriods = LineMaterialPeriod::query()
+            ->with('link:id,material_id')
+            ->whereHas('link', fn ($q) => $q->where('line_id', $line->id))
+            ->whereIn('confidence', LineMaterialPeriod::SHOWN_CONFIDENCES)
+            ->orderByRaw('COALESCE(start_date, end_date)')
+            ->orderBy('end_date')
+            ->get()
+            ->groupBy(fn (LineMaterialPeriod $p): int => $p->link->material_id)
+            ->map(fn ($periods): array => $periods->map(fn (LineMaterialPeriod $p): array => $p->toSheet())->values()->all())
+            ->all();
 
         // Trafic dominant d'une ère : un trafic connu passe avant « non renseigné », même plus court
         // (Nice - Digne : « Trafic non renseigné » en tête d'une ligne desservie par des trains régionaux).
@@ -296,7 +307,8 @@ final class LineSheet
             'events' => $events,
             // Exploitations associatives (trains touristiques, vélorails), cf. vff:import-heritage-lines.
             'heritage' => $this->heritageOperations($line->id),
-            // Par nom, dans l'ordre naturel (« BB 9200 » avant « BB 15000 », accents ignorés).
+            // Par nom, dans l'ordre naturel (« BB 9200 » avant « BB 15000 », accents ignorés) ; périodes de
+            // circulation sur la ligne datées par une source (vff:import-material-periods), les plus anciennes d'abord.
             'materials' => $line->materials->sortBy(fn ($m): string => Str::ascii($m->name), SORT_NATURAL | SORT_FLAG_CASE)->values()->map(fn ($m) => [
                 'slug' => $m->slug,
                 'name' => $m->name,
@@ -304,6 +316,7 @@ final class LineSheet
                 'builder' => $m->builder,
                 'in_service_from' => $m->in_service_from,
                 'in_service_to' => $m->in_service_to,
+                'periods' => $materialPeriods[$m->id] ?? [],
             ]),
         ];
     }

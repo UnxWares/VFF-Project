@@ -166,6 +166,7 @@
         'level_crossings',
         'line_profile',
         'line_greenways',
+        'line_materials',
         'locate_on_line',
         'sources_and_licences',
     ];

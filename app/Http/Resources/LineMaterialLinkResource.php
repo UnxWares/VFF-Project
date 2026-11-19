@@ -75,14 +75,14 @@ class LineMaterialLinkResource extends JsonResource
              */
             'era_year' => $this->era?->year,
             /**
-             * Début de la circulation sur la ligne (`AAAA-MM-JJ`), seulement si la source le date. Aucune date
-             * n'est déduite du texte des articles : souvent nul.
+             * Début de la circulation saisi dans VFF (`AAAA-MM-JJ`) : nul pour les liens importés, dont les dates
+             * lues dans les sources sont dans `periods`.
              *
              * @example null
              */
             'from_date' => $this->from_date?->toDateString(),
             /**
-             * Fin de la circulation sur la ligne (`AAAA-MM-JJ`), seulement si la source le date. Souvent nul.
+             * Fin de la circulation saisie dans VFF (`AAAA-MM-JJ`) : nulle pour les liens importés (voir `periods`).
              *
              * @example null
              */
@@ -105,6 +105,15 @@ class LineMaterialLinkResource extends JsonResource
              * @var list<array<string, mixed>>
              */
             'evidence' => array_map(self::evidence(...), $this->evidence ?? []),
+            /**
+             * Périodes de circulation de la série sur la ligne, datées par une source (début, fin, ou les deux,
+             * avec leur précision), de la plus ancienne à la plus récente. Seules les périodes sûres sont servies
+             * (`high`, `medium`) ; liste vide quand aucune source ne date la circulation. Voir le détail des
+             * champs dans `LineMaterialPeriod`.
+             *
+             * @var list<array<string, mixed>>
+             */
+            'periods' => LineMaterialPeriodResource::collection($this->shownPeriods)->resolve($request),
             /**
              * Fournisseur et licence de la source du lien (`provider`, `name`, `license`, `license_status`).
              *

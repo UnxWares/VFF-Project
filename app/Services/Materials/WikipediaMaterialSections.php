@@ -120,6 +120,59 @@ final class WikipediaMaterialSections
         return $out;
     }
 
+    /**
+     * Phrases d'un texte en clair, avec la position de chaque lien interne dans ce texte : pour lire
+     * ce que la phrase dit de l'article cité (une date, une période). Les lignes de tableau et les
+     * légendes d'image ne sont pas des phrases suivies et sont laissées de côté.
+     *
+     * @return list<array{text: string, links: list<array{target: string, pos: int, length: int}>}>
+     */
+    public static function linkedSentences(string $text): array
+    {
+        $out = [];
+        foreach (self::units(self::stripNoise($text)) as $unit) {
+            $raw = ltrim($unit['sentence']);
+            if (preg_match('/^(?:[|!]|\{\||\[\[\s*(?:fichier|file|image)\s*:)/iu', $raw)) {
+                continue;
+            }
+            $targets = [];
+            // Chaque lien d'article devient « \u{E000}n\u{E001}texte\u{E002} » : la marque survit à plain().
+            $marked = (string) preg_replace_callback('/\[\[([^\[\]|#]+)(?:#[^\[\]|]*)?(?:\|([^\[\]]*))?\]\]/u', function (array $m) use (&$targets): string {
+                $target = self::normalizeTitle($m[1]);
+                if ($target === '' || str_starts_with($target, ':') || preg_match('/^[\p{L} ]{1,12}\s*:/u', $target)) {
+                    return $m[0];
+                }
+                $targets[] = $target;
+                $label = str_replace('|', ' ', ($m[2] ?? '') !== '' ? $m[2] : $m[1]);
+
+                return "\u{E000}".(count($targets) - 1)."\u{E001}".$label."\u{E002}";
+            }, $raw);
+            if ($targets === []) {
+                continue;
+            }
+            $plain = self::plain($marked);
+            // Marques orphelines (lien coupé par un modèle) : retirées du texte autour des liens.
+            $orphans = fn (string $s): string => (string) preg_replace('/\x{E000}\d*\x{E001}?|[\x{E001}\x{E002}]/u', '', $s);
+            $links = [];
+            $clean = '';
+            $offset = 0;
+            if (preg_match_all('/\x{E000}(\d+)\x{E001}([^\x{E000}-\x{E002}]*)\x{E002}/u', $plain, $all, PREG_OFFSET_CAPTURE | PREG_SET_ORDER)) {
+                foreach ($all as $m) {
+                    $clean .= $orphans(substr($plain, $offset, $m[0][1] - $offset));
+                    $links[] = ['target' => $targets[(int) $m[1][0]], 'pos' => mb_strlen($clean), 'length' => mb_strlen($m[2][0])];
+                    $clean .= $m[2][0];
+                    $offset = $m[0][1] + strlen($m[0][0]);
+                }
+            }
+            $clean .= $orphans(substr($plain, $offset));
+            if ($links !== [] && trim($clean) !== '') {
+                $out[] = ['text' => $clean, 'links' => $links];
+            }
+        }
+
+        return $out;
+    }
+
     /** Titre d'article normalisé comme MediaWiki : espaces, première lettre en capitale. */
     public static function normalizeTitle(string $title): string
     {

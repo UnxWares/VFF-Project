@@ -191,6 +191,7 @@ final class MaterialExamples
                 'url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Lun%C3%A9ville_%C3%A0_Saint-Di%C3%A9&oldid=239088070',
             ],
         ],
+        'periods' => [],
         'provenance' => [
             'provider' => 'wikipedia',
             'name' => 'Wikipédia (FR)',
@@ -226,6 +227,66 @@ final class MaterialExamples
                 'section' => 'Trafic > Matériel roulant',
                 'quote' => 'Rames Corail tractées par des BB 15000, les trains Corail ne circulent plus depuis la circulation des TGV ;',
                 'url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Lun%C3%A9ville_%C3%A0_Saint-Di%C3%A9&oldid=239088070',
+            ],
+        ],
+        'periods' => [],
+        'provenance' => [
+            'provider' => 'wikipedia',
+            'name' => 'Wikipédia (FR)',
+            'license' => 'CC BY-SA 4.0 pour les textes ; les faits (dates) ne sont pas protégés',
+            'license_status' => 'verified',
+        ],
+    ];
+
+    /** Série de la ligne de Lunéville à Saint-Dié datée par l'article (relevé réel du 19/11/2026). */
+    public const LINE_LINK_DATED = [
+        'material' => [
+            'slug' => 'x-4300',
+            'name' => 'X 4300',
+            'type' => 'autorail',
+            'type_label' => 'Autorail',
+            'builder' => 'Blanc-Misseron',
+            'in_service_from' => 1963,
+            'in_service_to' => null,
+            'thumb_url' => 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/81/X4356chartres.jpg/500px-X4356chartres.jpg',
+        ],
+        'source' => 'wikipedia',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Lun%C3%A9ville_%C3%A0_Saint-Di%C3%A9&oldid=239088070',
+        'confidence' => 'high',
+        'era_year' => null,
+        'from_date' => null,
+        'to_date' => null,
+        'notes' => null,
+        'evidence' => [
+            [
+                'kind' => 'wikipedia_line_article',
+                'article' => 'Ligne de Lunéville à Saint-Dié',
+                'revid' => 239088070,
+                'section' => 'Trafic > Matériel roulant',
+                'quote' => 'Les X 4300 ont été retirés du service en novembre 2007.',
+                'url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Lun%C3%A9ville_%C3%A0_Saint-Di%C3%A9&oldid=239088070',
+            ],
+        ],
+        'periods' => [
+            [
+                'start_date' => null,
+                'start_precision' => null,
+                'end_date' => '2007-11-01',
+                'end_precision' => 'month',
+                'section' => null,
+                'confidence' => 'high',
+                'origin' => 'line_article',
+                'source' => [
+                    'title' => 'Ligne de Lunéville à Saint-Dié',
+                    'revision' => 239088070,
+                    'url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Lun%C3%A9ville_%C3%A0_Saint-Di%C3%A9&oldid=239088070',
+                ],
+                'provenance' => [
+                    'provider' => 'wikipedia',
+                    'name' => 'Wikipédia (FR)',
+                    'license' => 'CC BY-SA 4.0 pour les textes ; les faits (dates) ne sont pas protégés',
+                    'license_status' => 'verified',
+                ],
             ],
         ],
         'provenance' => [

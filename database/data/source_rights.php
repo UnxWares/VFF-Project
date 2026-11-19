@@ -467,6 +467,8 @@ return [
         'materials.fields' => ['wikidata' => 'wikidata', 'commons' => 'commons', 'wikipedia' => 'wikipedia'],
         'materials.image' => ['commons' => 'commons'],
         'line_materials' => ['wikidata' => 'wikidata', 'wikipedia' => 'wikipedia'],
+        // Périodes de circulation datées (vff:import-material-periods) : faits relevés dans Wikipédia (CC BY-SA 4.0), dates P580/P582 de Wikidata (CC0).
+        'line_material_periods' => ['wikidata' => 'wikidata', 'wikipedia' => 'wikipedia'],
         'lines.name_source' => [
             'archeoferroviaire' => 'archeoferroviaire',
             'lignes-oubliees' => 'lignes-oubliees',

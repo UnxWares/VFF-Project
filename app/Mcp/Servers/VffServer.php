@@ -11,6 +11,7 @@ use App\Mcp\Tools\HistoricalRouteTool;
 use App\Mcp\Tools\LevelCrossingsTool;
 use App\Mcp\Tools\LineEventsTool;
 use App\Mcp\Tools\LineGreenwaysTool;
+use App\Mcp\Tools\LineMaterialsTool;
 use App\Mcp\Tools\LineProfileTool;
 use App\Mcp\Tools\LineSheetTool;
 use App\Mcp\Tools\ListLinesTool;
@@ -42,7 +43,7 @@ Listes et questions transversales : `list_lines` (annuaire des lignes : réseau,
 Accidents : `accidents` (accidents et événements graves du rail, filtrés par ligne, période, nature, département, bilan ; pagination par curseur) puis `get_accident` (fiche avec les lignes rattachées, les sources lues et leur licence, les points à vérifier ; une fiche « à vérifier » ne se présente jamais comme sûre ; faits de Wikidata CC0, de Wikipédia CC BY-SA pour toute citation, du BEA-TT Licence Ouverte).
 Passages à niveau : `level_crossings` (PN publiés par SNCF Réseau, ODbL : classe, PK, commune ; par ligne, groupe, commune ou emprise ; état actuel seulement, sans dates). Signalisation : `get_line` (le cantonnement espace les trains, le contrôle de vitesse KVB n'est jamais un cantonnement ; sur la LGV Est, la LGV Bretagne - Pays de la Loire et la LGV SEA, l'ETCS niveau 2 et la TVM sont installés ensemble et comptent tous les deux). Relief : `line_profile` (profil en long d'une ligne : altitudes, dénivelés, déclivité la plus forte, gares ; IGN, Licence Ouverte 2.0). Voies vertes : `line_greenways` (voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue, longueur mesurée sur l'emprise ; OSM, ODbL). Position : `locate_on_line` (point kilométrique d'un lieu donné par ses coordonnées, sur le tracé d'une ligne).
 Époques : `compare_eras` (kilomètres ouverts, fermés, déposés ou restés en service entre deux ères de la carte).
-Matériel roulant : `materials` (séries filtrées par catégorie, constructeur, exploitant, ligne, année ; pagination par `page`) puis `get_material` (fiche avec la provenance de chaque champ et les lignes parcourues, chaque lien avec sa preuve).
+Matériel roulant : `materials` (séries filtrées par catégorie, constructeur, exploitant, ligne, année ; pagination par `page`) puis `get_material` (fiche avec la provenance de chaque champ et les lignes parcourues, chaque lien avec sa preuve et ses périodes de circulation datées) ; `line_materials` (séries d'une ligne avec leurs périodes de circulation : début, fin, précision).
 Dates : ISO AAAA-MM-JJ, à lire avec leur précision (day, month, year) ; n'affichez que la partie connue. La carte est un instantané au 31/12 de chaque décennie (l'ère courante = aujourd'hui).
 Obligations en réutilisant les données : citez « Voies Ferrées de France (vff-project.org) » avec le lien `vff_url` de la réponse et les mentions du bloc `attribution` (ODbL 1.0 : © contributeurs OpenStreetMap, SNCF Open Data…). Les données d'un fournisseur dont `open_licence` vaut false ne se reprennent qu'avec sa mention et son lien (archeoferroviaire : usage non commercial). Ne présentez jamais une date « between » (non datée par une source) comme sûre.
 Langue : paramètre `lang` (fr par défaut, en, de).
@@ -75,6 +76,7 @@ class VffServer extends Server
         LevelCrossingsTool::class,
         LineProfileTool::class,
         LineGreenwaysTool::class,
+        LineMaterialsTool::class,
         LocateOnLineTool::class,
     ];
 

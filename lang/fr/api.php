@@ -240,6 +240,7 @@ return [
             'level_crossings' => 'Passages à niveau publiés par SNCF Réseau, par ligne, type, commune ou emprise, avec leur classe et leur point kilométrique.',
             'line_profile' => 'Profil en long d’une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte et altitude des gares.',
             'line_greenways' => 'Voies vertes d’OpenStreetMap sur l’ancienne emprise d’une ligne fermée ou disparue, avec la longueur mesurée sur l’emprise et la source.',
+            'line_materials' => 'Séries de matériel roulant d’une ligne, avec leurs années de circulation quand une source les date, et le lien vers cette source.',
             'locate_on_line' => 'Point kilométrique d’un lieu donné par ses coordonnées, sur le tracé d’une ligne.',
             'sources_and_licences' => 'Fournisseurs de données et licences.',
         ],

@@ -1166,11 +1166,18 @@ type LineMaterialLink {
     "Ère VFF à laquelle le lien est rattaché, quand la source la date. Souvent nulle."
     era: Era @belongsTo
 
-    "Début de la circulation sur la ligne, seulement si la source le date (aucune date n'est déduite du texte)."
+    "Début de la circulation saisi dans VFF : nul pour les liens importés, dont les dates lues dans les sources sont dans `periods`."
     from_date: Date
 
-    "Fin de la circulation sur la ligne, seulement si la source la date."
+    "Fin de la circulation saisie dans VFF : nulle pour les liens importés (voir `periods`)."
     to_date: Date
+
+    """
+    Périodes de circulation de la série sur la ligne, datées par une source, de la plus ancienne à la
+    plus récente. Seules les périodes sûres (`high`, `medium`) sont servies ; liste vide quand aucune
+    source ne date la circulation.
+    """
+    periods: [LineMaterialPeriod!]! @hasMany(relation: "shownPeriods")
 
     "Note libre (liens saisis dans VFF)."
     notes: String
@@ -1180,6 +1187,53 @@ type LineMaterialLink {
 
     "Fournisseur et licence de la source du lien."
     provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField")
+}
+
+"""
+Période de circulation d'une série sur une ligne, lue dans une source datée : phrase d'un article
+Wikipédia qui relie la série et la ligne (faits seulement, CC BY-SA 4.0, la phrase n'est jamais
+servie) ou qualificatifs de date d'une déclaration Wikidata P3438 (CC0). Une date à l'année s'écrit
+au 1er janvier, une date au mois au 1er du mois : lisez toujours la précision.
+"""
+type LineMaterialPeriod {
+    "Début de la circulation (`AAAA-MM-JJ`), nul si la source ne donne que la fin (« jusqu'en 1990 »)."
+    start_date: Date
+
+    "Précision du début : `day`, `month` ou `year`. Nulle sans début."
+    start_precision: String
+
+    "Fin de la circulation (`AAAA-MM-JJ`), nulle si la source ne la donne pas : une fin nulle ne veut pas dire que la série y circule encore."
+    end_date: Date
+
+    "Précision de la fin : `day`, `month` ou `year`. Nulle sans fin."
+    end_precision: String
+
+    "Début de la portion parcourue, quand le titre de section de l'article la nomme (lieu tel qu'écrit)."
+    section_from: String
+
+    "Fin de la portion parcourue (voir `section_from`)."
+    section_to: String
+
+    "Fiabilité : `high` (chaque date au jour ou au mois) ou `medium` (une date à l'année). Les périodes `low` ne sont jamais servies."
+    confidence: String!
+
+    "Où le fait a été lu : `line_article` (article de la ligne), `material_article` (article de la série) ou `wikidata`."
+    origin: String!
+
+    "Fournisseur de la source : `wikipedia` ou `wikidata`."
+    source: String!
+
+    "Titre de l'article Wikipédia lu, ou élément Wikidata de la ligne (`Q…`)."
+    source_title: String
+
+    "Révision de l'article lue (`oldid`), nulle pour Wikidata."
+    source_revision: Int
+
+    "Permalien de la source (révision Wikipédia ou élément Wikidata) : à citer."
+    source_url: String!
+
+    "Fournisseur et licence de la source."
+    provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialPeriodField")
 }
 
 """
@@ -2725,6 +2779,36 @@ type LineSheetMaterial {
 
     "Année de retrait."
     in_service_to: Int
+
+    "Périodes de circulation sur cette ligne datées par une source (sûres seulement), les plus anciennes d'abord. Détail et fiabilité : `Line.material_links.periods`."
+    periods: [LineSheetMaterialPeriod!]!
+}
+
+"Période de circulation d'une série sur la ligne (forme courte de `LineMaterialPeriod`)."
+type LineSheetMaterialPeriod {
+    "Début (`AAAA-MM-JJ`), nul si seule la fin est connue."
+    start_date: String
+
+    "Précision du début : `day`, `month` ou `year`."
+    start_precision: String
+
+    "Fin (`AAAA-MM-JJ`), nulle si la source ne la donne pas."
+    end_date: String
+
+    "Précision de la fin : `day`, `month` ou `year`."
+    end_precision: String
+
+    "Début de la portion parcourue, si l'article la nomme."
+    section_from: String
+
+    "Fin de la portion parcourue."
+    section_to: String
+
+    "Fournisseur de la source : `wikipedia` ou `wikidata`."
+    source: String!
+
+    "Permalien de la source."
+    source_url: String!
 }
 
 """

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Lien ligne × matériel roulant : le matériel a circulé (ou circule) sur la ligne.
@@ -11,7 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Un lien importé n'existe que si une source le dit : `source` (wikidata, wikipedia), `source_url`
  * (permalien de la révision lue) et `evidence`, liste des preuves (article, section, citation).
  * `from_date` / `to_date` / `era_id` ne sont remplis que si la source date la période ; un lien
- * saisi dans VFF a une `source` nulle.
+ * saisi dans VFF a une `source` nulle. Les périodes lues dans les articles (début, fin, précision,
+ * fiabilité) sont dans `periods` (table `line_material_periods`).
  */
 class LineMaterial extends Model
 {
@@ -46,5 +48,27 @@ class LineMaterial extends Model
     public function era(): BelongsTo
     {
         return $this->belongsTo(Era::class);
+    }
+
+    /**
+     * Périodes de circulation datées par une source, de la plus ancienne à la plus récente.
+     *
+     * @return HasMany<LineMaterialPeriod, $this>
+     */
+    public function periods(): HasMany
+    {
+        return $this->hasMany(LineMaterialPeriod::class)
+            ->orderByRaw('COALESCE(start_date, end_date)')
+            ->orderBy('end_date');
+    }
+
+    /**
+     * Périodes montrées (fiabilité `high` ou `medium`).
+     *
+     * @return HasMany<LineMaterialPeriod, $this>
+     */
+    public function shownPeriods(): HasMany
+    {
+        return $this->periods()->whereIn('confidence', LineMaterialPeriod::SHOWN_CONFIDENCES);
     }
 }

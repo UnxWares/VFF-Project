@@ -1,6 +1,5 @@
 <script>
     import { untrack } from 'svelte';
-    import { Link } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
     import { i18n } from '$lib/i18n.js';
     import {
@@ -27,6 +26,7 @@
     import LineLevelCrossings from '$components/Lines/LineLevelCrossings.svelte';
     import LineGreenways from '$components/Lines/LineGreenways.svelte';
     import LineSignallingHistory from '$components/Lines/LineSignallingHistory.svelte';
+    import LineMaterials from '$components/Lines/LineMaterials.svelte';
     import LineProfile from '$components/Lines/LineProfile.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
@@ -36,7 +36,6 @@
     import SheetToc from '$components/Sheet/SheetToc.svelte';
     import SeoHead from '$components/SeoHead.svelte';
     import { breadcrumbSchema, lineSchema } from '$lib/structuredData.js';
-    import { servicePeriodText } from '$lib/materialFacts.js';
     import { signallingSystems, signallingWithGaps, systemsLabel } from '$lib/signallingMap.js';
     import {
         bestPhaseIndex,
@@ -1206,25 +1205,7 @@
         {/if}
 
         {#if materials.length}
-            <SheetSection id="materials" title={t('lines.section.materials')}>
-                <ul class="material-grid">
-                    {#each materials as m (m.slug)}
-                        <li>
-                            <Link class="vff-tile material-card" href="/materials/{m.slug}">
-                                {@const period = servicePeriodText(
-                                    m.in_service_from,
-                                    m.in_service_to,
-                                    t,
-                                )}
-                                <strong>{m.name}</strong>
-                                <span class="meta">{t(`materials.type.${m.type}`)}</span>
-                                {#if m.builder}<span class="meta">{m.builder}</span>{/if}
-                                {#if period}<span class="meta">{period}</span>{/if}
-                            </Link>
-                        </li>
-                    {/each}
-                </ul>
-            </SheetSection>
+            <LineMaterials {materials} />
         {/if}
 
         {#if accidents.length}
@@ -1895,22 +1876,6 @@
     .sig-protection :global(.vff-badge) {
         max-width: 100%;
         white-space: normal;
-    }
-
-    /* Matériels */
-    .material-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        gap: var(--vff-space-4);
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-    .material-grid :global(.material-card) {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        height: 100%;
     }
 
     /* Notes */

@@ -241,6 +241,7 @@ final class LineSheetExample
                     'builder' => 'Renault',
                     'in_service_from' => 1951,
                     'in_service_to' => 1989,
+                    'periods' => [],
                 ],
             ],
             'sources' => [
