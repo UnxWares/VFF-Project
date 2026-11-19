@@ -5,7 +5,10 @@ namespace App\GraphQL\Mutations;
 use App\GraphQL\Support\ContributionApiAccess;
 use App\GraphQL\Support\ContributionPresenter;
 use App\Models\Era;
+use App\Models\Station;
 use App\Services\Contributions\ContributionSubmissions;
+use App\Services\Contributions\EventContributions;
+use App\Services\Contributions\MediaContributions;
 use App\Services\TraceContributionService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
@@ -15,9 +18,10 @@ use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
  * Mutation `submitContribution` : la même proposition que sur le site (modification d'une portion
- * par PK, ou tracé dessiné), mêmes règles de saisie, même enregistrement (ContributionSubmissions)
- * et même annonce aux validateurs. Erreurs de saisie en anglais, comme le reste de l'API, avec le
- * chemin du champ (`input.segment.pk_end_m`) dans `extensions.validation`.
+ * par PK, tracé dessiné, événement daté, image), mêmes règles de saisie, même enregistrement
+ * (ContributionSubmissions) et même annonce aux validateurs. Erreurs de saisie en anglais, comme le
+ * reste de l'API, avec le chemin du champ (`input.segment.pk_end_m`) dans `extensions.validation`.
+ * Une image déposée arrive en requête multipart (scalaire `Upload`, UploadedFile).
  */
 final readonly class SubmitContribution
 {
@@ -30,7 +34,7 @@ final readonly class SubmitContribution
     ) {}
 
     /**
-     * @param  array{input: array{segment?: array<string, mixed>|null, trace?: array<string, mixed>|null}}  $args
+     * @param  array{input: array<string, array<string, mixed>|null>}  $args
      * @return array<string, mixed>
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): array
@@ -41,31 +45,37 @@ final readonly class SubmitContribution
             $input = array_filter($args['input'], fn ($value) => $value !== null);
             if (count($input) !== 1) {
                 throw ValidationException::withMessages([
-                    'input' => 'Provide exactly one of "segment" or "trace".',
+                    'input' => 'Provide exactly one of "segment", "trace", "event" or "media".',
                 ]);
             }
 
             $kind = array_key_first($input);
             $prefix = "input.$kind.";
             try {
-                $contribution = $kind === 'segment'
-                    ? $this->submissions->submitSegment($author, Validator::make(
-                        $input['segment'],
-                        ContributionSubmissions::segmentRules(),
-                        ContributionSubmissions::segmentMessages(),
-                    )->validate())
-                    : $this->submissions->submitTrace($author, Validator::make(
-                        $input['trace'],
-                        TraceContributionService::rules(),
-                        TraceContributionService::messages(),
-                    )->validate());
+                $data = $input[$kind];
+                $contribution = match ($kind) {
+                    'segment' => $this->submissions->submitSegment($author, Validator::make(
+                        $data, ContributionSubmissions::segmentRules(), ContributionSubmissions::segmentMessages(),
+                    )->validate()),
+                    'trace' => $this->submissions->submitTrace($author, Validator::make(
+                        $data, TraceContributionService::rules(), TraceContributionService::messages(),
+                    )->validate()),
+                    'event' => $this->submissions->submitEvent($author, Validator::make(
+                        $data, EventContributions::rules(), EventContributions::messages(),
+                    )->validate()),
+                    default => $this->submissions->submitMedia($author, Validator::make(
+                        $data, MediaContributions::rules(), MediaContributions::messages(),
+                    )->validate()),
+                };
             } catch (ValidationException $e) {
                 throw ValidationException::withMessages(self::prefixed($e->errors(), $prefix));
             } catch (ModelNotFoundException $e) {
-                // Ligne ou ère inconnue (le site répond 404) : une erreur de saisie dans l'API.
-                throw ValidationException::withMessages($e->getModel() === Era::class
-                    ? [$prefix.'era_year' => 'Unknown era: use a decade from 1830 to 2030.']
-                    : [$prefix.($kind === 'segment' ? 'line_code' : 'line_slug') => 'Unknown line.']);
+                // Ligne, gare ou ère inconnue (le site répond 404) : une erreur de saisie dans l'API.
+                throw ValidationException::withMessages(match (true) {
+                    $e->getModel() === Era::class => [$prefix.'era_year' => 'Unknown era: use a decade from 1830 to 2030.'],
+                    $e->getModel() === Station::class => [$prefix.'station_slug' => 'Unknown station.'],
+                    default => [$prefix.($kind === 'segment' ? 'line_code' : 'line_slug') => 'Unknown line.'],
+                });
             }
 
             return $this->presenter->present($contribution);

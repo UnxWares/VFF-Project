@@ -15,6 +15,15 @@ enum PublicationFailure: string
     /** La ligne que corrige un tracé n'existe plus. */
     case LineNotFound = 'line_not_found';
 
+    /** La ligne, la gare ou l'événement auquel se rattache un événement ou un média n'existe plus. */
+    case TargetNotFound = 'target_not_found';
+
+    /** Le même fichier Commons est déjà rattaché à la même fiche (ajouté entre-temps). */
+    case AlreadyPresent = 'already_present';
+
+    /** Le fichier déposé n'est plus dans la réserve privée (retiré entre-temps). */
+    case FileMissing = 'file_missing';
+
     /** Erreur inattendue (base de données, programme) : le détail est dans le journal. */
     case InternalError = 'internal_error';
 }

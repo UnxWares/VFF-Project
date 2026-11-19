@@ -4,7 +4,9 @@ namespace App\GraphQL\Support;
 
 use App\Models\Contribution;
 use App\Models\Line;
+use App\Models\Station;
 use App\Services\Contributions\ContributionReview;
+use App\Services\Contributions\MediaContributions;
 
 /**
  * Forme GraphQL d'une contribution (type `Contribution` de graphql/schema.graphql), rendue à son
@@ -27,7 +29,8 @@ final readonly class ContributionPresenter
             'approvals' => $this->review->approvalCount($contribution->id),
             'approvals_required' => ContributionReview::APPROVAL_THRESHOLD,
             'line' => $contribution->target instanceof Line ? $contribution->target : null,
-            'payload' => $contribution->payload ?? [],
+            'station' => $contribution->target instanceof Station ? $contribution->target : null,
+            'payload' => MediaContributions::withoutPrivatePath($contribution->payload ?? []),
             'review_notes' => $contribution->review_notes,
             'created_at' => $contribution->created_at,
             'reviewed_at' => $contribution->reviewed_at,

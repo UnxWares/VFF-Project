@@ -417,6 +417,12 @@ JSON`;
     }
   }
 }`;
+    // Image déposée : requête multipart (spécification GraphQL multipart request, scalaire Upload).
+    const mediaCurl = `curl -X POST https://vff-project.org/graphql \\
+  -H "Authorization: Bearer $VFF_TOKEN" \\
+  -F operations='{"query": "mutation ($input: ContributionInput!) { submitContribution(input: $input) { id status } }", "variables": {"input": {"media": {"source": "upload", "target_type": "line", "line_slug": "rfn-610000", "file": null, "media_type": "photo", "title": "Gare de Nontron, côté quai", "author": "Prénom Nom", "license": "cc-by-sa-4.0", "rights_confirmed": true}}}}' \\
+  -F map='{"0": ["variables.input.media.file"]}' \\
+  -F 0=@gare-de-nontron.jpg`;
     const reviewCurl = `curl -X POST https://vff-project.org/graphql \\
   -H "Authorization: Bearer $VFF_TOKEN" \\
   -H "Content-Type: application/json" \\
@@ -753,6 +759,15 @@ JSON`;
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{contributeResponse}</code
                 ></pre>
+
+            <h3 class="group-title">{$i18n.t('api.contribute.media_title')}</h3>
+            <p class="caption">{$i18n.t('api.contribute.media_intro')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{mediaCurl}</code></pre>
 
             <h3 class="group-title">{$i18n.t('api.contribute.review_title')}</h3>
             <p class="caption">{$i18n.t('api.contribute.review_intro')}</p>

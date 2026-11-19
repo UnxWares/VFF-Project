@@ -13,12 +13,14 @@ use App\Http\Controllers\ContributionRemovalController;
 use App\Http\Controllers\CreditsController;
 use App\Http\Controllers\ErrorReportController;
 use App\Http\Controllers\ErrorReportReviewController;
+use App\Http\Controllers\EventContributionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\MapRouteController;
 use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\MediaContributionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StationController;
@@ -172,6 +174,15 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/contribute/edit-segment', [ContributionController::class, 'submit'])->middleware('not.suspended')->name('contribute.submit');
     // whereNumber : un id non numérique (« abc ») atteignait thanks(int $id) → TypeError → 500.
     Route::get('/contribute/thanks/{id}', [ContributionController::class, 'thanks'])->whereNumber('id')->name('contribute.thanks');
+
+    // Événement daté d'une ligne et image (Commons ou fichier déposé), publiés après deux approbations.
+    Route::get('/contribute/event', [EventContributionController::class, 'create'])->middleware('not.suspended')->name('contribute.event.create');
+    Route::post('/contribute/event', [EventContributionController::class, 'store'])->middleware(['not.suspended', 'throttle:20,1'])->name('contribute.event.store');
+    Route::get('/contribute/media', [MediaContributionController::class, 'create'])->middleware('not.suspended')->name('contribute.media.create');
+    Route::post('/contribute/media', [MediaContributionController::class, 'store'])->middleware(['not.suspended', 'throttle:10,1'])->name('contribute.media.store');
+    // Aperçu d'un fichier Commons (une requête à l'API de Commons) et fichier déposé en attente (auteur et validateurs).
+    Route::get('/contribute/media/commons', [MediaContributionController::class, 'commons'])->middleware(['not.suspended', 'throttle:30,1'])->name('contribute.media.commons');
+    Route::get('/contribute/media/{contribution}/file', [MediaContributionController::class, 'file'])->whereNumber('contribution')->name('contribute.media.file');
 
     // Éditeur de tracé sur fonds historiques IGN (lignes disparues / corrections)
     Route::prefix('contribute/trace')->name('contribute.trace.')->controller(TraceEditorController::class)->middleware('not.suspended')->group(function (): void {

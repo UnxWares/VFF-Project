@@ -5,6 +5,7 @@
     import PageHero from '$components/PageHero.svelte';
     import ReviewNav from '$components/Contribute/ReviewNav.svelte';
     import TraceDiffMap from '$components/Contribute/TraceDiffMap.svelte';
+    import ProposalReview from '$components/Contribute/ProposalReview.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import Field from '$components/ui/Field.svelte';
     import Notice from '$components/ui/Notice.svelte';
@@ -14,6 +15,8 @@
     import { findHistoricBasemap, historicTitle } from '$lib/historicBasemaps.js';
     import { formatKm, portionColor } from '$lib/traceGeometry.js';
     import { colon } from '$lib/typo.js';
+    import { formatStationDate } from '$lib/stationDates.js';
+    import { EVENT_TYPE, MEDIA_TYPE } from '$components/Contribute/proposals.js';
     import {
         changeEntries,
         eraLabel,
@@ -26,7 +29,7 @@
 
     const flash = $derived(page.props.flash ?? {});
     /** Traduction passée aux fonctions de segmentChanges.js. */
-    const tr = (key, opts) => $i18n.t(key, opts);
+    const tr = (key, opts) => String($i18n.t(key, opts));
 
     // Refus : un seul formulaire ouvert à la fois (motif obligatoire), au lieu d'une boîte du navigateur.
     let rejecting = $state(null);
@@ -156,9 +159,17 @@
                 <div class="list">
                     {#each contributions as c (c.id)}
                         {@const lineName =
-                            c.target?.name ?? c.payload.line_name ?? c.payload.new_line_name}
+                            c.target?.name ??
+                            c.payload.line_name ??
+                            c.payload.new_line_name ??
+                            c.payload.station_name}
                         {@const lineCode = c.target?.code ?? c.payload.line_code}
                         {@const lineSlug = c.target?.slug ?? c.payload.line_slug}
+                        {@const sheetHref = c.payload.station_slug
+                            ? `/stations/${c.payload.station_slug}`
+                            : lineSlug
+                              ? `/lines/${lineSlug}`
+                              : null}
                         <article
                             class="contrib"
                             id="contribution-{c.id}"
@@ -173,6 +184,16 @@
                                                 c.payload.kind === 'new_line'
                                                     ? 'editor.validate.kind_new'
                                                     : 'editor.validate.kind_correction',
+                                            )}
+                                        {:else if c.type === EVENT_TYPE}
+                                            <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                                            {$i18n.t('proposals.review.kind_event')}
+                                        {:else if c.type === MEDIA_TYPE}
+                                            <i class="bi bi-image" aria-hidden="true"></i>
+                                            {$i18n.t(
+                                                c.payload.source === 'commons'
+                                                    ? 'proposals.review.kind_media_commons'
+                                                    : 'proposals.review.kind_media_upload',
                                             )}
                                         {:else}
                                             <i class="bi bi-rulers" aria-hidden="true"></i>
@@ -208,6 +229,18 @@
                                 <span class="vff-badge accent">
                                     {#if c.type === 'line_trace'}
                                         {$i18n.t(`editor.networks.${c.payload.network}`)}
+                                    {:else if c.type === EVENT_TYPE}
+                                        {formatStationDate(
+                                            c.payload.date,
+                                            c.payload.precision,
+                                            null,
+                                            tr,
+                                            $i18n.language,
+                                        )}
+                                    {:else if c.type === MEDIA_TYPE}
+                                        {$i18n.t(
+                                            `proposals.media.targets.${c.payload.target_type ?? 'line'}`,
+                                        )}
                                     {:else}
                                         {eraLabel(c.payload.era_year, tr)}
                                     {/if}
@@ -215,7 +248,9 @@
                             </div>
 
                             <div class="contrib-body">
-                                {#if c.type === 'line_trace'}
+                                {#if c.type === EVENT_TYPE || c.type === MEDIA_TYPE}
+                                    <ProposalReview contribution={c} />
+                                {:else if c.type === 'line_trace'}
                                     <TraceDiffMap
                                         portions={c.payload.portions ?? []}
                                         before={c.payload.before}
@@ -543,8 +578,8 @@
                                         >
                                     </button>
                                 {/if}
-                                {#if lineSlug}
-                                    <Link href="/lines/{lineSlug}" class="vff-link sheet-link">
+                                {#if sheetHref}
+                                    <Link href={sheetHref} class="vff-link sheet-link">
                                         {$i18n.t('editor.validate.view_sheet')}<span
                                             class="vff-sr-only"
                                             >{colon($i18n.language)}{lineName}</span

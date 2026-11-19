@@ -16,8 +16,8 @@ return [
         'data_status' => 'Ein Konto ist erforderlich',
 
         'media_title' => 'Archivmedien beisteuern',
-        'media_text' => 'Besitzen Sie alte Fotografien, Pläne oder datierte Dokumente? Mit Ihrer Zustimmung und einer eindeutigen Lizenz können sie die Seiten der betreffenden Strecken bereichern. Für Bestände von mehr als 50 Dokumenten nehmen Sie bitte zuerst Kontakt mit uns auf.',
-        'media_status' => 'Über den Discord des Projekts',
+        'media_text' => 'Eine alte Fotografie, eine Postkarte, ein Plan oder ein datiertes Dokument, gemeinfrei oder unter offener Lizenz, kann die Seite einer Strecke, eines Bahnhofs oder eines Ereignisses bebildern. Laden Sie die Datei hoch oder geben Sie ihre Adresse auf Wikimedia Commons an. Für Bestände von mehr als 50 Dokumenten nehmen Sie bitte zuerst Kontakt mit uns auf.',
+        'media_status' => 'Ein Konto ist erforderlich',
 
         'code_title' => 'Zum Code beitragen',
         'code_text' => 'Der Code von VFF steht unter der MIT-Lizenz. Fehlermeldungen, Ideen, Übersetzungen, Leistung der Karte: Reichen Sie sie auf GitHub ein. Die Konventionen stehen in der Datei CONTRIBUTING.md.',
@@ -27,7 +27,7 @@ return [
     'process' => [
         'title' => 'So wird ein Beitrag geprüft',
         'step1_title' => 'Sie reichen ein',
-        'step1_text' => 'Von Ihrem Konto aus reichen Sie einen Streckenverlauf oder eine Änderung an einer Strecke ein. Für Code erstellen Sie einen Pull Request auf GitHub.',
+        'step1_text' => 'Von Ihrem Konto aus reichen Sie einen Streckenverlauf, eine Änderung an einer Strecke, ein datiertes Ereignis oder ein Bild ein. Für Code erstellen Sie einen Pull Request auf GitHub.',
         'step2_title' => 'Zwei Prüfer sichten',
         'step2_text' => 'Zwei Prüfer untersuchen Ihren Vorschlag und kontrollieren die Quellen und die Stimmigkeit mit den vorhandenen Daten.',
         'step3_title' => 'Veröffentlichung',

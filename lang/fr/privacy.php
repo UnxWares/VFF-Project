@@ -5,7 +5,8 @@
 // stockage local (Pages/Contribute/Trace.svelte), services tiers chargés par le navigateur
 // (Components/Map/*, Lines/LineGallery.svelte), géolocalisation (Map/RailMap.svelte), comptes
 // (AuthController, ProfileController), notifications (DatabaseNotification), signalements
-// (ErrorReport, limiteur error-reports d'AppServiceProvider). Version : config/legal.php.
+// (ErrorReport, limiteur error-reports d'AppServiceProvider), images proposées (MediaContributions,
+// ImageSanitizer). Version : config/legal.php.
 // Toute évolution de ces points doit mettre ce texte à jour. Le français fait foi.
 return [
     'meta_title' => 'Politique de confidentialité',
@@ -61,7 +62,7 @@ return [
             .'<ul>'
             .'<li><strong>Fond de carte</strong> : OpenStreetMap Foundation (Royaume-Uni), pour les tuiles de la carte ; OpenFreeMap, pour les polices de caractères de la carte ; MapTiler (Suisse), lorsque ce fond est activé.</li>'
             .'<li><strong>Calques facultatifs</strong>, chargés seulement si vous les activez : OpenRailwayMap sur la carte ; dans l’éditeur de tracé, les cartes et photographies anciennes de l’IGN (Géoplateforme, France).</li>'
-            .'<li><strong>Images d’archives</strong> : Wikimedia Foundation (États-Unis), pour les images de Wikimedia Commons affichées dans les galeries.</li>'
+            .'<li><strong>Images d’archives</strong> : Wikimedia Foundation (États-Unis), pour les images de Wikimedia Commons affichées dans les galeries, dans le formulaire « Proposer une image » et dans l’espace de validation.</li>'
             .'</ul>'
             .'<p>Le bouton « Me localiser » de la carte demande votre position à votre navigateur, avec votre autorisation, une seule fois et sans suivi. Elle sert uniquement à centrer la carte et ne quitte pas votre navigateur : VFF ne la reçoit pas et ne l’enregistre pas. Comme à chaque déplacement de la carte, les tuiles de la zone affichée sont ensuite demandées aux serveurs de VFF et au fond de carte (OpenStreetMap, ou MapTiler s’il est activé), qui peuvent en déduire approximativement où vous vous trouvez.</p>'
             .'<p>Ces services appliquent leur propre politique de confidentialité. Les polices de caractères du site sont hébergées par VFF : aucune requête n’est faite vers Google Fonts.</p>',
@@ -82,6 +83,7 @@ return [
     'contributions' => [
         'title' => 'Contributions',
         'paragraph' => '<p>Chaque contribution (tracé, événement daté, correction, document) est enregistrée avec votre identifiant et sa date, puis, une fois examinée, avec l’identifiant de la personne qui l’a validée ou refusée et ses remarques. Les validateurs voient le nom d’affichage de l’auteur. Une contribution validée entre dans l’encyclopédie sous la licence prévue par les conditions générales d’utilisation.</p>'
+            .'<p>Si vous proposez une image en déposant un fichier, VFF enregistre ce fichier avec le nom de son auteur et sa licence, que vous indiquez, et, si vous les donnez, la date et le lieu de la prise de vue et ses coordonnées. Avant d’enregistrer le fichier, VFF en retire les métadonnées (position GPS, appareil, dates) et n’en garde que l’orientation de l’image. Jusqu’à sa publication, le fichier n’est visible que par vous et par les validateurs. Une fois l’image publiée, son auteur, sa licence, sa date, son lieu et ses coordonnées sont affichés avec elle et diffusés par l’API. Le fichier est effacé si l’image est refusée ou retirée, ou si vous supprimez votre compte avant sa publication. Si vous proposez une image de Wikimedia Commons, le serveur de VFF lit sur Commons son titre, son auteur et sa licence : seule l’adresse du fichier est envoyée à Commons.</p>'
             .'<p>Si vous supprimez votre compte, vos contributions validées restent publiées, car elles font partie de l’encyclopédie et de sa licence, mais elles ne sont plus rattachées à votre nom. Vos contributions en attente sont supprimées.</p>'
             .'<p>Quand une de vos contributions est relue (validée, publiée, refusée ou retirée), vous en êtes informé sur le site et par courriel, avec le motif s’il y en a un. Si vous êtes validateur, vous l’êtes aussi quand une contribution attend votre relecture et, sur le site seulement, quand une erreur est signalée. Ces notifications indiquent le numéro de la contribution ou du signalement et la ligne ou la fiche concernée, jamais le nom d’un autre membre. Elles figurent dans l’export de vos données et sont supprimées avec votre compte ; une notification lue est effacée 12 mois après sa lecture.</p>'
             .'<p>VFF calcule la réputation de chaque membre : le nombre de ses contributions acceptées et publiées, celui de ses contributions refusées, celui des relectures qu’il a faites s’il est validateur, et le niveau qui s’en déduit avec des seuils publics (<a href="/contribute/reputation">page d’aide sur la réputation</a>). Ces chiffres sont enregistrés avec votre compte et recalculés à chaque décision de validation. Vous les voyez dans votre profil. Les validateurs les voient, avec votre niveau, à côté de votre nom quand ils relisent une de vos contributions. Un compte suspendu garde ses chiffres mais n’affiche aucun niveau. Ils figurent dans l’export de vos données, ne sont jamais publiés ni transmis par l’API, et disparaissent avec votre compte.</p>'

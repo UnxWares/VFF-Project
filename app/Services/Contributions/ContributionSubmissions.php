@@ -16,18 +16,23 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 /**
  * Enregistrement d'une contribution (statut « pending ») et annonce aux validateurs, commun au site
  * (formulaire de modification par PK, éditeur de tracé) et à l'API GraphQL (`submitContribution`).
  *
- * Les deux types existants :
+ * Les types :
  *   - `line_segment` : changement d'attributs d'une portion de ligne entre deux PK, à une ère ;
- *   - `line_trace` (TraceContributionService::TYPE) : tracé dessiné, ligne disparue ou correction.
+ *   - `line_trace` (TraceContributionService::TYPE) : tracé dessiné, ligne disparue ou correction ;
+ *   - `line_event` (EventContributions::TYPE) : événement daté d'une ligne existante ;
+ *   - `media` (MediaContributions::TYPE) : image de Commons ou fichier déposé, rattaché à une ligne,
+ *     une gare ou un événement.
  *
  * Les données arrivent déjà validées par les règles de ce service (segmentRules) ou de
- * TraceContributionService::rules(). Les contrôles d'accès (compte connecté, non suspendu) restent à
- * l'appelant : middleware `auth` et `not.suspended` sur le site, ContributionApiAccess dans l'API.
+ * TraceContributionService, EventContributions et MediaContributions (rules()). Les contrôles
+ * d'accès (compte connecté, non suspendu) restent à l'appelant : middleware `auth` et
+ * `not.suspended` sur le site, ContributionApiAccess dans l'API.
  */
 final readonly class ContributionSubmissions
 {
@@ -36,6 +41,8 @@ final readonly class ContributionSubmissions
 
     public function __construct(
         private TraceContributionService $traces,
+        private EventContributions $events,
+        private MediaContributions $media,
         private ContributionNotifier $notifier,
     ) {}
 
@@ -147,6 +154,71 @@ final readonly class ContributionSubmissions
             'status' => ContributionStatus::Pending->value,
             'payload' => $payload,
         ]);
+        $this->notifier->submitted($contribution);
+
+        return $contribution;
+    }
+
+    /**
+     * Enregistre un événement daté validé par EventContributions::rules().
+     *
+     * @param  array<string, mixed>  $data
+     *
+     * @throws ValidationException date illisible pour la précision choisie
+     * @throws ModelNotFoundException ligne inconnue
+     */
+    public function submitEvent(User $author, array $data): Contribution
+    {
+        ['payload' => $payload, 'line' => $line] = $this->events->normalize($data);
+
+        $contribution = Contribution::create([
+            'user_id' => $author->id,
+            'type' => EventContributions::TYPE,
+            'action' => ContributionAction::Create->value,
+            'target_type' => Line::class,
+            'target_id' => $line->id,
+            'status' => ContributionStatus::Pending->value,
+            'payload' => $payload,
+        ]);
+        $this->notifier->submitted($contribution);
+
+        return $contribution;
+    }
+
+    /**
+     * Enregistre un média validé par MediaContributions::rules(). Un fichier déposé, déjà nettoyé
+     * de ses métadonnées, va dans la réserve privée avant l'enregistrement de la contribution ; il
+     * est effacé si celui-ci échoue.
+     *
+     * @param  array<string, mixed>  $data
+     *
+     * @throws ValidationException fichier refusé, adresse Commons refusée, doublon
+     * @throws ModelNotFoundException ligne ou gare inconnue
+     */
+    public function submitMedia(User $author, array $data): Contribution
+    {
+        ['payload' => $payload, 'target' => $target, 'image' => $image] = $this->media->prepare($data);
+        $path = $image !== null ? $this->media->storePrivate($image) : null;
+        if ($path !== null) {
+            $payload['file']['path'] = $path;
+        }
+
+        try {
+            $contribution = Contribution::create([
+                'user_id' => $author->id,
+                'type' => MediaContributions::TYPE,
+                'action' => ContributionAction::Create->value,
+                'target_type' => $target::class,
+                'target_id' => $target->id,
+                'status' => ContributionStatus::Pending->value,
+                'payload' => $payload,
+            ]);
+        } catch (Throwable $e) {
+            if ($path !== null) {
+                $this->media->deletePrivate($path);
+            }
+            throw $e;
+        }
         $this->notifier->submitted($contribution);
 
         return $contribution;

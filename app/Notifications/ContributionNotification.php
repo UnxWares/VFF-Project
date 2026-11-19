@@ -39,12 +39,13 @@ abstract class ContributionNotification extends ServiceNotification implements S
 
     /**
      * Ligne visée par une contribution, pour le texte : « Paris - Le Havre (340000) », le nom
-     * proposé pour une ligne nouvelle, ou null si la charge utile n'en donne aucun.
+     * proposé pour une ligne nouvelle, la gare d'une image, ou null si la charge utile n'en donne aucun.
      */
     public static function subjectOf(Contribution $contribution): ?string
     {
         $payload = $contribution->payload ?? [];
-        $name = trim((string) ($payload['line_name'] ?? $payload['new_line_name'] ?? ''));
+        // Une image rattachée à une gare n'a pas de ligne : la gare la désigne.
+        $name = trim((string) ($payload['line_name'] ?? $payload['new_line_name'] ?? $payload['station_name'] ?? ''));
         $code = trim((string) ($payload['line_code'] ?? ''));
 
         return match (true) {

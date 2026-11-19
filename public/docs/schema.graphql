@@ -329,8 +329,9 @@ type Query {
 }
 
 """
-Mutations de contribution : proposer une modification, puis la relire, avec les mêmes règles que le
-site (`/contribute`, éditeur de tracé, espace de validation `/validate`).
+Mutations de contribution : proposer une modification, un événement daté ou une image, puis la
+relire, avec les mêmes règles que le site (`/contribute`, éditeur de tracé, formulaires
+`/contribute/event` et `/contribute/media`, espace de validation `/validate`).
 
 **Authentification**, l'une ou l'autre :
 - jeton personnel dans l'en-tête `Authorization: Bearer <jeton>`, créé dans le profil avec la case
@@ -364,8 +365,11 @@ dans `extensions.code` (messages en anglais) :
 - `already_approved` : le même validateur approuve une deuxième fois ;
 - `application_failed` : la publication a échoué, rien n'est écrit et l'approbation est annulée ;
   `extensions.reason` donne la raison stable : `no_geometry` (la ligne n'a pas de tracé à l'ère de la
-  contribution), `line_not_found` (la ligne que corrige le tracé n'existe plus) ou `internal_error`
-  (erreur inattendue, consignée dans le journal du site ; son détail n'est jamais renvoyé).
+  contribution), `line_not_found` (la ligne que corrige le tracé n'existe plus), `target_not_found`
+  (la ligne, la gare ou l'événement d'un événement daté ou d'une image n'existe plus),
+  `already_present` (le fichier Commons a été rattaché entre-temps à la même fiche), `file_missing`
+  (le fichier déposé n'est plus dans la réserve privée) ou `internal_error` (erreur inattendue,
+  consignée dans le journal du site ; son détail n'est jamais renvoyé).
 
 Une saisie refusée donne une erreur de validation : `extensions.validation` associe le chemin du
 champ (par exemple `input.segment.pk_end_m`) à ses messages.
@@ -378,12 +382,13 @@ type Mutation {
   Propose une contribution, enregistrée « en attente » (`PENDING`) puis annoncée aux validateurs.
   Elle est publiée après deux approbations indépendantes (`validateContribution`).
   
-  Renseignez exactement un des deux champs de `input` : `segment` (modification d'une portion de
-  ligne entre deux PK) ou `trace` (tracé dessiné : ligne disparue ou correction d'une ligne).
-  Le compte doit être connecté et non suspendu.
+  Renseignez exactement un des quatre champs de `input` : `segment` (modification d'une portion de
+  ligne entre deux PK), `trace` (tracé dessiné : ligne disparue ou correction d'une ligne), `event`
+  (événement daté d'une ligne) ou `media` (image de Wikimedia Commons ou fichier déposé, en requête
+  multipart). Le compte doit être connecté et non suspendu.
   """
   submitContribution(
-    "La proposition : un seul de ses deux champs."
+    "La proposition : un seul de ses quatre champs."
     input: ContributionInput!
   ): Contribution!
 
@@ -427,6 +432,14 @@ Structure JSON (objet ou liste) renvoyée telle quelle, en sortie seulement : sa
 par le champ qui la porte et, en détail, dans la documentation REST (`/docs/api`).
 """
 scalar JSON
+
+"""
+Fichier envoyé avec une mutation, en entrée seulement (`MediaContributionInput.file`). La requête
+est alors en `multipart/form-data`, selon la spécification GraphQL multipart request : un champ
+`operations` (la requête et ses variables, le fichier à `null`), un champ `map` (quel envoi remplit
+quelle variable, ex. `{"0": ["variables.input.media.file"]}`) et le fichier lui-même (champ `0`).
+"""
+scalar Upload
 
 """
 Une ère : un instantané du réseau au **31/12** d'une année ronde.
@@ -3953,13 +3966,166 @@ type TerritoryCounts {
   accidents: Int!
 }
 
-"Une proposition de contribution : renseignez exactement un des deux champs."
+"Une proposition de contribution : renseignez exactement un des quatre champs."
 input ContributionInput {
   "Modification d'attributs d'une portion de ligne entre deux PK, à une ère."
   segment: SegmentContributionInput
 
   "Tracé dessiné : ligne disparue (`new_line`) ou correction d'une ligne existante (`correction`)."
   trace: TraceContributionInput
+
+  "Événement daté d'une ligne existante (ouverture, fermeture, électrification…), avec sa source."
+  event: EventContributionInput
+
+  "Image rattachée à une ligne, une gare ou un événement : fichier de Wikimedia Commons ou fichier déposé."
+  media: MediaContributionInput
+}
+
+"""
+Événement daté d'une ligne existante, comme dans le formulaire « Proposer un événement daté » du
+site (`/contribute/event`). À la publication, il entre dans l'historique de la ligne (`LineEvent`,
+source `contrib`, provenance `contribution:<id>`). Sa portion est résolue ensuite par une tâche à
+part : la carte par décennie n'est pas recalculée à la publication.
+"""
+input EventContributionInput {
+  "Identifiant d'URL de la ligne (ex. `rfn-610000`)."
+  line_slug: String!
+
+  """
+  Type : `opening`, `opening_passenger`, `opening_freight`, `closure_passenger`, `closure_freight`,
+  `closure`, `reopening`, `reopening_passenger`, `reopening_freight`, `dismantling`,
+  `electrification`, `declassification`, `modernization`, `conversion`, `heritage_start`,
+  `heritage_end`, `concession`, `concession_end` ou `other`. `accident` n'est pas proposé : les
+  accidents ont leur propre fiche vérifiée.
+  """
+  type: String!
+
+  "Précision de la date, celle que donne la source : `day`, `month` ou `year`."
+  precision: String!
+
+  "Date selon la précision : `AAAA-MM-JJ`, `AAAA-MM` ou `AAAA` (années 1750 et suivantes)."
+  date: String!
+
+  """
+  Portion concernée : `whole` (toute la ligne), `places` (entre `from` et `to`) ou `pk` (entre
+  `pk_start_m` et `pk_end_m`). Les champs de l'autre forme de portion sont ignorés.
+  """
+  portion: String!
+
+  "Début de la portion, avec `places` : gare, halte ou commune écrite comme dans la source, 250 caractères au plus."
+  from: String
+
+  "Fin de la portion, avec `places` : différente de `from`, 250 caractères au plus."
+  to: String
+
+  "Début de la portion, avec `pk` : point kilométrique en mètres (PK 12+345 = 12345), de 0 à 9 999 999."
+  pk_start_m: Int
+
+  "Fin de la portion, avec `pk` : en mètres, strictement supérieure à `pk_start_m`."
+  pk_end_m: Int
+
+  "Nouvel usage de l'emprise, avec le type `conversion` seulement : `greenway`, `road`, `path`, `urban` ou `other`."
+  reuse: String
+
+  "Exploitation associative, avec `heritage_start` ou `heritage_end` seulement : `tourist_train`, `velorail` ou `museum`."
+  heritage_kind: String
+
+  "Précision publiée avec l'événement, une phrase de 300 caractères au plus ; obligatoire avec le type `other`."
+  description: String
+
+  "Nature de la source : `web` (page web), `document` (document numérisé) ou `print` (ouvrage ou archive papier)."
+  source_kind: String!
+
+  "Titre ou référence de la source, de 3 à 300 caractères (ex. « Journal officiel du 16 juin 1890, p. 2 »)."
+  source_title: String!
+
+  "Adresse de la source, en http ou https, 500 caractères au plus : obligatoire sauf avec `print`."
+  source_url: String
+
+  """
+  Licence du document, obligatoire avec `document` et ignorée sinon : `public_domain`, `cc0-1.0`,
+  `cc-by-4.0`, `cc-by-sa-4.0`, `etalab-2.0`, `all_rights_reserved` ou `unknown`. VFF ne reprend que
+  le fait daté et le lien : un document sous droits peut être cité.
+  """
+  source_license: String
+
+  "Note pour les validateurs, non publiée, 2 000 caractères au plus."
+  notes: String
+}
+
+"""
+Image rattachée à une ligne, une gare ou un événement daté, comme dans le formulaire « Proposer une
+image » du site (`/contribute/media`). Deux origines :
+- `commons` : un fichier de Wikimedia Commons (`commons_url`). Auteur, licence et miniature sont lus
+  sur Commons ; une licence non libre ou qui interdit l'usage commercial est refusée. L'image reste
+  hébergée par Wikimedia ;
+- `upload` : un fichier déposé (`file`, voir le scalaire `Upload`) avec son auteur, sa licence, sa
+  date et son lieu. Type réel, taille et dimensions sont contrôlés ; les métadonnées du fichier
+  (position GPS, appareil, dates) sont retirées avant l'enregistrement, seule l'orientation reste.
+  Avant la publication, le fichier n'est montré qu'à son auteur et aux validateurs.
+
+À la publication, le média entre dans `Media` avec sa provenance (`contribution:<id>`).
+"""
+input MediaContributionInput {
+  "Origine : `commons` (fichier de Wikimedia Commons) ou `upload` (fichier déposé)."
+  source: String!
+
+  "Rattachement : `line` (une ligne), `station` (une gare) ou `event` (un événement daté d'une ligne)."
+  target_type: String!
+
+  "Identifiant d'URL de la ligne, avec `line` et `event` (ex. `rfn-610000`)."
+  line_slug: String
+
+  "Identifiant d'URL de la gare, avec `station` (ex. `nontron`)."
+  station_slug: String
+
+  "Identifiant de l'événement (`LineEvent.id`), avec `event` : il doit appartenir à la ligne `line_slug`."
+  event_id: ID
+
+  """
+  Avec `commons` : adresse de la page du fichier (`https://commons.wikimedia.org/wiki/File:…`),
+  du fichier sur `upload.wikimedia.org`, ou son titre `File:…`, 500 caractères au plus.
+  """
+  commons_url: String
+
+  "Avec `upload` : l'image, JPEG, PNG ou WebP (type lu dans le fichier), 10 Mo au plus, chaque côté de 400 à 12 000 pixels."
+  file: Upload
+
+  "Avec `upload` : nature de l'image, `photo`, `postcard`, `plan`, `map` ou `document`."
+  media_type: String
+
+  "Avec `upload` : titre, ce que montre l'image, de 3 à 250 caractères."
+  title: String
+
+  "Avec `upload` : légende facultative, 800 caractères au plus."
+  caption: String
+
+  "Avec `upload` : auteur de la photo ou du document, de 2 à 200 caractères, publié avec l'image."
+  author: String
+
+  "Avec `upload` : licence, `public_domain`, `cc0-1.0`, `cc-by-4.0`, `cc-by-sa-4.0` ou `etalab-2.0`."
+  license: String
+
+  "Avec `upload` : précision de la date de prise de vue, `day`, `month` ou `year` ; à donner avec `captured_date`."
+  captured_precision: String
+
+  "Avec `upload` : date de prise de vue selon la précision, `AAAA-MM-JJ`, `AAAA-MM` ou `AAAA`."
+  captured_date: String
+
+  "Avec `upload` : lieu de la prise de vue (gare, commune, lieu-dit), 250 caractères au plus."
+  place: String
+
+  "Avec `upload` : latitude WGS 84 en degrés décimaux (de -90 à 90), à donner avec `lng` ; publiée avec l'image."
+  lat: Float
+
+  "Avec `upload` : longitude WGS 84 en degrés décimaux (de -180 à 180), à donner avec `lat`."
+  lng: Float
+
+  "Avec `upload` : `true` pour attester le droit de partager ce fichier sous cette licence (obligatoire)."
+  rights_confirmed: Boolean
+
+  "Note pour les validateurs, non publiée, 2 000 caractères au plus."
+  notes: String
 }
 
 """
@@ -4130,11 +4296,17 @@ enum ContributionType {
 
   "Tracé dessiné (ligne disparue ou correction)."
   LINE_TRACE
+
+  "Événement daté d'une ligne."
+  LINE_EVENT
+
+  "Image (fichier de Wikimedia Commons ou fichier déposé)."
+  MEDIA
 }
 
 "Nature d'une contribution."
 enum ContributionAction {
-  "Création (nouvelle ligne)."
+  "Création (nouvelle ligne, événement daté, image)."
   CREATE
 
   "Modification d'une ligne existante."
@@ -4191,14 +4363,24 @@ type Contribution {
   "Approbations indépendantes nécessaires pour publier (2)."
   approvals_required: Int!
 
-  "Ligne visée (nulle pour une nouvelle ligne pas encore publiée)."
+  "Ligne visée (nulle pour une nouvelle ligne pas encore publiée et pour une image de gare)."
   line: Line
+
+  "Gare visée par une image rattachée à une gare ; nulle sinon."
+  station: Station
 
   """
   Proposition enregistrée, normalisée par le serveur (mêmes clés que sur le site) : pour
   `LINE_SEGMENT`, `line_code`, `line_name`, `era_year`, `pk_start_m`, `pk_end_m`, `changes`,
   `sources` et `notes` ; pour `LINE_TRACE`, les portions en GeoJSON (`geometry`), leurs
-  événements aux dates normalisées, `length_m`, `warnings` et, une fois publiée, `applied`.
+  événements aux dates normalisées, `length_m`, `warnings` et, une fois publiée, `applied` ; pour
+  `LINE_EVENT`, `line_slug`, `event_type`, `date` (`AAAA-MM-JJ`) et `precision`, `portion`
+  (`kind`, `from`, `to`, `pk_start_m`, `pk_end_m`), `source` (`kind`, `title`, `url`, `license`),
+  `description`, `notes` et, une fois publiée, `applied.line_event_id` ; pour `MEDIA`, `source`,
+  `target_type` et la fiche, puis `commons` (métadonnées lues sur Commons) ou, pour un fichier
+  déposé, `title`, `author`, `license`, `captured`, `place`, `location` et `file` (type,
+  dimensions, empreinte SHA-256, métadonnées retirées, jamais d'adresse publique avant la
+  publication) et, une fois publiée, `applied.media_id`.
   """
   payload: JSON!
 
