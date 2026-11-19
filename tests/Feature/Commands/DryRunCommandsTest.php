@@ -7,6 +7,8 @@ use App\Models\Line;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Sleep;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\Support\CommandSandbox;
@@ -31,9 +33,11 @@ class DryRunCommandsTest extends TestCase
     public const COVERED = [
         'vff:apply-event-corrections', 'vff:audit-and-fix-lines', 'vff:canonicalize-station-slugs', 'vff:classify-lines',
         'vff:consolidate-stations', 'vff:dates-from-trace-names', 'vff:detect-present-states', 'vff:fill-missing-geometry',
-        'vff:import-commons-media', 'vff:import-heritage-lines', 'vff:import-lignes-oubliees', 'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-secondary-network-dates', 'vff:import-station-closures',
-        'vff:import-station-sources', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology', 'vff:import-wikipedia-line', 'vff:link-traces',
-        'vff:match-current-network', 'vff:merge-split-lines', 'vff:ohm-events', 'vff:reclassify-status', 'vff:refresh-current-era',
+        'vff:import-accidents', 'vff:import-argentanwebferro', 'vff:import-commons-media', 'vff:import-heritage-lines', 'vff:import-lignes-oubliees',
+        'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-materials', 'vff:import-secondary-network-dates',
+        'vff:import-station-closures', 'vff:import-station-sources', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology',
+        'vff:import-wikipedia-line', 'vff:link-traces', 'vff:match-current-network', 'vff:merge-split-lines', 'vff:ohm-events',
+        'vff:place-listed-stations', 'vff:prune-inactive-accounts', 'vff:reclassify-status', 'vff:refresh-current-era',
         'vff:resolve-event-sections', 'vff:seed-off-network-lines', 'vff:snap-stations',
     ];
 
@@ -46,6 +50,16 @@ class DryRunCommandsTest extends TestCase
         'vff:import-wikidata-lines' => ['--from-cache' => true],
         'vff:import-station-closures' => ['--from-cache' => true],
         'vff:import-line-descriptions' => ['--from-cache' => true],
+        // Caches du bac à sable vides : aucune requête réseau.
+        'vff:import-accidents' => ['--offline' => true],
+        'vff:import-argentanwebferro' => ['--offline' => true],
+        'vff:place-listed-stations' => ['--no-places' => true],
+    ];
+
+    /** Tables des sources, des comptes, du matériel et des accidents : hors du moteur, mais qu'un --dry-run ne doit pas toucher non plus. */
+    private const OTHER_TABLES = [
+        'users', 'audit_events', 'materials', 'line_materials', 'accidents', 'accident_lines', 'accident_sources',
+        'argentanwebferro_articles', 'argentanwebferro_facts', 'argentanwebferro_photos',
     ];
 
     private Era $past;
@@ -60,6 +74,8 @@ class DryRunCommandsTest extends TestCase
     {
         parent::setUp();
         $this->sandboxStorage();
+        Sleep::fake();
+        Notification::fake();
         $this->useCorrections([]);
         $this->buildDataset();
 
@@ -93,11 +109,11 @@ class DryRunCommandsTest extends TestCase
         if (in_array($name, self::KNOWN_BUGS, true)) {
             $this->markTestSkipped("{$name} : cf. test known-bug test_dry_run_of_commands_with_known_bugs");
         }
-        $before = $this->snapshot();
+        $before = $this->snapshotAll();
 
         $this->artisan($name, ['--dry-run' => true] + (self::ARGS[$name] ?? []))->run();
 
-        $this->assertSame($before, $this->snapshot(), "{$name} --dry-run a modifié la base");
+        $this->assertSame($before, $this->snapshotAll(), "{$name} --dry-run a modifié la base");
     }
 
     #[Group('known-bug')]
@@ -107,9 +123,9 @@ class DryRunCommandsTest extends TestCase
             $this->markTestSkipped('Aucune commande --dry-run en bug connu.');
         }
         foreach (self::KNOWN_BUGS as $name) {
-            $before = $this->snapshot();
+            $before = $this->snapshotAll();
             $this->artisan($name, ['--dry-run' => true] + (self::ARGS[$name] ?? []))->run();
-            $this->assertSame($before, $this->snapshot(), "{$name} --dry-run a modifié la base");
+            $this->assertSame($before, $this->snapshotAll(), "{$name} --dry-run a modifié la base");
         }
     }
 
@@ -122,6 +138,7 @@ class DryRunCommandsTest extends TestCase
         yield 'tracé SNCF manquant' => ['vff:fill-missing-geometry', [], ['line_segments']];
         yield 'classification' => ['vff:classify-lines', [], ['line_segments', 'line_sources']];
         yield 'dédoublonnage des gares' => ['vff:consolidate-stations', [], ['stations', 'station_sources']];
+        yield 'comptes inutilisés' => ['vff:prune-inactive-accounts', [], ['users', 'audit_events']];
     }
 
     /** Témoin : sans --dry-run, la commande a bien du travail sur ce jeu de données. */
@@ -142,13 +159,19 @@ class DryRunCommandsTest extends TestCase
             'from' => 'Alpha', 'to' => 'Bravo', 'source_url' => 'https://example.org/source', 'quote' => 'Rouverte en 2010.',
             'reason' => 'réouverture attestée',
         ]]);
-        $before = $this->snapshot();
+        $before = $this->snapshotAll();
 
         $this->artisan('vff:apply-event-corrections', ['--dry-run' => true])->expectsOutputToContain('à ajouter')->assertSuccessful();
-        $this->assertSame($before, $this->snapshot());
+        $this->assertSame($before, $this->snapshotAll());
 
         $this->artisan('vff:apply-event-corrections')->expectsOutputToContain('ajouté')->assertSuccessful();
         $this->assertSame(1, DB::table('line_events')->where('source', 'manual')->count());
+    }
+
+    /** @return array<string, array{rows: int, md5: string|null}> */
+    private function snapshotAll(): array
+    {
+        return $this->snapshot([...self::SNAPSHOT_TABLES, ...self::OTHER_TABLES]);
     }
 
     // ─── Jeu de données ────────────────────────────────────────────────
@@ -185,6 +208,12 @@ class DryRunCommandsTest extends TestCase
             'line_id' => $this->alpha->id, 'type' => 'opening', 'event_date' => '1855-06-01', 'date_precision' => 'day',
             'description' => "Ouverture d'Alpha à Bravo", 'source' => 'wikipedia', 'section_from' => 'Alpha', 'section_to' => 'Bravo',
             'section_resolution' => 'pending', 'fingerprint' => 'wikipedia:test:1', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        // Compte inutilisé depuis plus de trois ans : à avertir (ou à supprimer une fois averti).
+        DB::table('users')->insert([
+            'name' => 'Ancien membre', 'email' => 'ancien@example.org', 'password' => 'x',
+            'created_at' => now()->subYears(4), 'updated_at' => now()->subYears(4), 'last_seen_at' => now()->subYears(4),
         ]);
 
         // Sources de gares : SNCF + OSM au même endroit (même gare), à dédoublonner.

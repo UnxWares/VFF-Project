@@ -9,30 +9,11 @@
         "Property '__vffTraceMap' does not exist on type 'Window & typeof globalThis'.": 1,
         "Type '{ version: number; sources: { 'osm-raster': { type: string; tiles: string[]; tileSize: number; maxzoom: number; attribution: string; }; }; layers: { id: string; type: string; source: string; }[]; }' is not assignable to type 'string | StyleSpecification'.": 1
     },
-    "resources/js/Components/Lines/LineGallery.svelte": {
-        "Property 'toLowerCase' does not exist on type 'string | $SpecialObject | TFunctionDetailedResult<string | $SpecialObject, any>'.": 1,
-        "Type 'string | $SpecialObject | TFunctionDetailedResult<string | $SpecialObject, any>' is not assignable to type 'string'.": 7
-    },
-    "resources/js/Components/Map/EmbedCodeModal.svelte": {
-        "Property 'select' does not exist on type 'Element'.": 1
-    },
     "resources/js/Components/Map/RailMap.svelte": {
         "Type 'any[]' is not assignable to type 'LngLatLike'.": 1,
         "Type 'string | { version: number; sources: { 'osm-raster': { type: string; tiles: string[]; tileSize: number; maxzoom: number; attribution: string; }; }; layers: { id: string; type: string; source: string; }[]; glyphs: string; }' is not assignable to type 'string | StyleSpecification'.": 1
     },
-    "resources/js/Components/Map/RoutePlanner.svelte": {
-        "Type 'string | $SpecialObject | TFunctionDetailedResult<string | $SpecialObject, any>' is not assignable to type 'string'.": 4
-    },
     "resources/js/Components/Stations/StationMiniMap.svelte": {
         "Type 'string | { version: number; sources: { 'osm-raster': { type: string; tiles: string[]; tileSize: number; maxzoom: number; attribution: string; }; }; layers: { id: string; type: string; source: string; }[]; glyphs: string; }' is not assignable to type 'string | StyleSpecification'.": 1
-    },
-    "resources/js/Pages/Contribute/Trace.svelte": {
-        "Property 'line_slug' does not exist on type '{}'.": 2,
-        "Property 'new_line_name' does not exist on type '{}'.": 2,
-        "Property 'portions' does not exist on type '{}'.": 2,
-        "Property 'trace_source' does not exist on type '{}'.": 2
-    },
-    "resources/js/Pages/Lines/Index.svelte": {
-        "Argument of type '{ q: any; network: any; traffic: any; status: any; heritage: number; }' is not assignable to parameter of type 'RequestPayload'.": 1
     }
 }

@@ -138,6 +138,27 @@ class ApiDocsTest extends TestCase
         $this->assertStringNotContainsStringIgnoringCase('stoplight', $html);
     }
 
+    /** RGAA 8.7 : Swagger UI n'existe qu'en anglais, la barre du site et le message sans JavaScript gardent la langue du visiteur. */
+    #[DataProvider('localeCodes')]
+    public function test_swagger_ui_is_declared_in_english_and_the_site_parts_keep_the_visitor_language(string $locale): void
+    {
+        $html = $this->withCookie('locale', $locale)->get('/docs/swagger')->assertOk()->getContent();
+
+        $this->assertStringContainsString('<html lang="en">', $html);
+        $this->assertStringContainsString('<header class="vff-docs-bar" lang="'.$locale.'">', $html);
+        $this->assertStringContainsString('<p class="vff-docs-noscript" lang="'.$locale.'">', $html);
+    }
+
+    /** Scalar traduit son interface (fr, en, de) : la page suit la langue du visiteur. */
+    #[DataProvider('localeCodes')]
+    public function test_scalar_page_follows_the_visitor_language(string $locale): void
+    {
+        $html = $this->withCookie('locale', $locale)->get('/docs/api')->assertOk()->getContent();
+
+        $this->assertStringContainsString('<html lang="'.$locale.'">', $html);
+        $this->assertStringContainsString('data-locale="'.$locale.'"', $html);
+    }
+
     #[DataProvider('locales')]
     public function test_documentation_bar_is_translated(string $locale, string $back): void
     {
@@ -145,6 +166,12 @@ class ApiDocsTest extends TestCase
             ->get('/docs/swagger')
             ->assertOk()
             ->assertSee($back);
+    }
+
+    /** @return array<string, array{string}> */
+    public static function localeCodes(): array
+    {
+        return ['fr' => ['fr'], 'en' => ['en'], 'de' => ['de']];
     }
 
     /** @return array<string, array{string, string}> */
@@ -232,7 +259,10 @@ class ApiDocsTest extends TestCase
         }
 
         $html = (string) file_get_contents($page);
-        $this->assertStringContainsString('<html lang="fr">', $html);
+        // RGAA 8.7 : interface Magidoc en anglais, textes du guide et du schéma balisés en français par le script.
+        $this->assertStringContainsString('<html lang="en">', $html);
+        $this->assertStringContainsString('data-vff-lang', $html);
+        $this->assertStringContainsString("main.lang = 'fr'", $html);
         $this->assertStringContainsString('theme=(dark|light)', $html, 'le thème du cookie du site doit être lu');
         $this->assertStringContainsString('<title>Guide - Introduction - VFF API GraphQL</title>', $html);
 

@@ -41,7 +41,7 @@ export default [
     },
     {
         // Configuration, scripts et tests (Vitest) : environnement Node.
-        files: ['*.config.js', 'scripts/**/*.{js,mjs}', 'tests/js/**/*.js'],
+        files: ['*.config.js', 'scripts/**/*.{js,mjs}', 'resources/docs/**/*.mjs', 'tests/js/**/*.js'],
         languageOptions: {
             globals: { ...globals.node },
         },

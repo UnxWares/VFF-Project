@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AccidentController;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContributionController;

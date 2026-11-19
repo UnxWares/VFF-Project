@@ -4,6 +4,7 @@ import SwaggerUI from 'swagger-ui-dist/swagger-ui-es-bundle.js';
 import 'swagger-ui-dist/swagger-ui.css';
 import '../../css/docs/docs.css';
 import '../../css/docs/swagger.css';
+import { markContentLanguage } from './language.js';
 import { isDark, setupThemeToggle } from './theme.js';
 
 const root = document.getElementById('vff-docs-app');
@@ -26,5 +27,12 @@ SwaggerUI({
     filter: true,
     syntaxHighlight: { activate: true, theme: 'monokai' },
 });
+
+// Interface de Swagger UI en anglais (page déclarée `lang="en"`) ; textes de la spécification en français.
+markContentLanguage(
+    root,
+    '.renderedMarkdown, .markdown, .opblock-summary-description, .opblock-tag small',
+    'fr',
+);
 
 setupThemeToggle(syncTheme);
