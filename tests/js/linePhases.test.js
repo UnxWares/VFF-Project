@@ -10,6 +10,7 @@ import {
     categoryColor,
     categorySwatch,
     changeVerbKey,
+    decadesLegend,
     formatEventDate,
     formatKm,
     maxKnownLength,
@@ -17,6 +18,7 @@ import {
     phaseFeatureCollection,
     phaseStrip,
     portionsBounds,
+    stageNotes,
     stepPhase,
     summarizeChanges,
 } from '$lib/linePhases.js';
@@ -237,6 +239,26 @@ describe('résumé d’une phase', () => {
     it('signale une incohérence du moteur', () => {
         const { changes } = summarizeChanges({ changes: [{ from: 'dismantled', to: 'closed', length_m: 10, event_id: null, inconsistent: true, portions: [0] }] });
         expect(changes[0].inconsistent).toBe(true);
+    });
+});
+
+describe('légende des décennies et notes des étapes', () => {
+    it('légende : catégories présentes dans au moins une décennie, dans l’ordre du ruban', () => {
+        const decades = [
+            { year: 1990, length_by_category: { lgv: 382600 } },
+            { year: 2000, length_by_category: { closed: 315, mixed: 0, dismantled: 13556 } },
+            { year: 2030, length_by_category: { freight: 7300, lgv: 714200 } },
+        ];
+        expect(decadesLegend(decades)).toEqual(['lgv', 'freight', 'closed', 'dismantled']);
+        expect(decadesLegend([])).toEqual([]);
+        expect(decadesLegend(undefined)).toEqual([]);
+    });
+
+    it('notes d’une étape : numéros des sources de ses événements, sans doublon, triés', () => {
+        const eventsById = { 13490: { note: 3 }, 13491: { note: 3 }, 11154: { note: 1 }, 99: {} };
+        expect(stageNotes({ event_ids: [13490, 13491, 11154, 99, 404] }, eventsById)).toEqual([1, 3]);
+        expect(stageNotes({ event_ids: [] }, eventsById)).toEqual([]);
+        expect(stageNotes(null)).toEqual([]);
     });
 });
 

@@ -113,6 +113,8 @@ return [
         'intro' => 'Cette ligne SNCF regroupe plusieurs sections aux appellations commerciales distinctes.',
         'opening' => 'Mise en service : :years',
         'source' => 'Source Wikipédia',
+        'stages_title' => 'Mises en service datées',
+        'stages_intro' => 'Chaque section liste les mises en service que les sources datent pendant ses années d’ouverture.',
     ],
 
     'signalling' => [
@@ -496,6 +498,8 @@ return [
             'see_label' => 'Voir sur la carte l’état de :year (phase du :date)',
             'uncertain_note' => 'Gares non confirmées : citées ouvertes par leurs sources, sans voie connue à cette date pour le confirmer. Les années identiques qui se suivent sont regroupées.',
             'scroll_hint' => 'Faites défiler le tableau vers la droite pour voir toutes les colonnes.',
+            'reopened' => 'rouverte ensuite',
+            'legend' => 'Légende de la composition de la ligne',
         ],
         'stations' => [
             'legend_title' => 'Lire le fil des décennies',

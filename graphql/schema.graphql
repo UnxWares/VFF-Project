@@ -2679,6 +2679,31 @@ type LineSection {
 
     "Lien vers la source."
     source_url: String
+
+    """
+    Mises en service datées de la section : les phases de la ligne qui ouvrent une partie du tracé
+    pendant ses années d'ouverture, dans l'ordre des dates. Une phase dont l'année tombe dans les
+    années de deux sections n'est rattachée à aucune.
+    """
+    stages: [LineSectionStage!]!
+}
+
+"Une mise en service datée d'une section nommée (ex. LGV Paris - Lyon, 27 septembre 1981)."
+type LineSectionStage {
+    "Indice de la phase dans `LineSheet.phases`."
+    phase: Int!
+
+    "Date de la mise en service (AAAA-MM-JJ), à lire avec `precision`."
+    date: String!
+
+    "Précision de la date : `day`, `month` ou `year`."
+    precision: String!
+
+    "Longueur mise en service, en mètres."
+    length_m: Int!
+
+    "Événements qui datent cette mise en service (voir `Query.lineEvent` et `LineSheet.chronicle`)."
+    event_ids: [Int!]!
 }
 
 "Un matériel roulant ayant circulé sur la ligne (résumé)."

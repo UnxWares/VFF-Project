@@ -220,7 +220,11 @@ class LineController extends Controller
      * leur précision, `closed_after` : fermée après cette année),
      * `status_today` (`null` : disparue), `eras` : statut à chaque décennie.
      * **Sections nommées** (`sections`) : PK de début et de fin, années
-     * d'ouverture, description, source. **Exploitations associatives**
+     * d'ouverture, description, source, et `stages` : les mises en service
+     * datées de ses années d'ouverture (`phase` : indice dans `phases`,
+     * `date` et `precision`, `length_m` en mètres, `event_ids` : événements
+     * qui la datent, voir `/events/{id}`). Une phase dont l'année tombe dans
+     * les années de deux sections n'est rattachée à aucune. **Exploitations associatives**
      * (`heritage`) : nom, exploitant, nature (`tourist_train`, `velorail`),
      * portion et périodes. **Sources** (`sources`) : jeux de données utilisés
      * pour la fiche, avec lien, date de lecture et champs fournis. **Liens**

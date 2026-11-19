@@ -428,7 +428,8 @@ final class LineChronicle
                 'type' => $r->type,
                 'date' => substr((string) $r->event_date, 0, 10),
                 'precision' => in_array($r->date_precision, ['day', 'month', 'year'], true) ? $r->date_precision : 'day',
-                'description' => self::renamePlaces($d['text'], [$r->section_from => $from, $r->section_to => $to]),
+                // Clé vide sans lieu (renamePlaces l'ignore) : une clé null est dépréciée en PHP 8.5.
+                'description' => self::renamePlaces($d['text'], [(string) $r->section_from => $from, (string) $r->section_to => $to]),
                 'description_lang' => $d['lang'],
                 'correction' => $correction,
                 'correction_lang' => $correction !== null && $locale !== 'fr' ? 'fr' : null,

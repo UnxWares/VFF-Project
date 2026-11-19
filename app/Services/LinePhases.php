@@ -289,11 +289,6 @@ final class LinePhases
 
                     continue;
                 }
-                if ($from === 'none' && $dated($k, $to, ! self::isActive($to))) {
-                    $changes[$k] = [$from, $to]; // nouvelle voie (ou fermeture) datée par un événement : une vraie phase
-
-                    continue;
-                }
                 if ($from === 'none' && $i > 0) {
                     // Nouvelle géométrie à la place d'une autre : l'état d'avant est celui de cet endroit.
                     $from = $coverCategory($k, $i - 1) ?? 'none';

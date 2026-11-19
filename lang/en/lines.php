@@ -113,6 +113,8 @@ return [
         'intro' => 'This SNCF line groups several named sections, each with its own commercial name.',
         'opening' => 'Opened: :years',
         'source' => 'Wikipedia source',
+        'stages_title' => 'Dated openings',
+        'stages_intro' => 'Each section lists the openings that the sources date within its opening years.',
     ],
 
     'signalling' => [
@@ -495,6 +497,8 @@ return [
             'see_label' => 'Show the state of :year on the map (phase of :date)',
             'uncertain_note' => 'Unconfirmed stations: listed as open by their sources, with no known track at that date to confirm it. Identical consecutive years are grouped.',
             'scroll_hint' => 'Scroll the table to the right to see all the columns.',
+            'reopened' => 'reopened later',
+            'legend' => 'Key to the make-up of the line',
         ],
         'stations' => [
             'legend_title' => 'Reading the decade strip',

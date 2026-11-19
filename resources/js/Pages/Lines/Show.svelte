@@ -48,6 +48,7 @@
         phaseDateLabel,
         phaseEraYear,
         phaseStrip,
+        stageNotes,
     } from '$lib/linePhases.js';
 
     /** Props de LineController::show (les médias sont chargés à part par LineGallery, via l'API).
@@ -919,46 +920,91 @@
             <SheetSection
                 id="sections"
                 title={t('lines.section.sections')}
-                intro={t('lines.sections.intro')}
+                intro={sections.some((s) => s.stages?.length)
+                    ? `${t('lines.sections.intro')} ${t('lines.sections.stages_intro')}`
+                    : t('lines.sections.intro')}
             >
                 <ol class="ls-list">
-                    {#each sections as s (s.name)}
-                        <li class="ls-item">
-                            <p class="ls-name">
-                                <strong lang={srcLang}>{s.name}</strong>
-                                {#if s.alt_names?.length}<span class="meta" lang={srcLang}
-                                        >({s.alt_names.join(', ')})</span
-                                    >{/if}
-                            </p>
-                            <p class="ls-meta">
-                                <span title={t('lines.sheet.tech.pk_title')}
-                                    >{pkRange(s.pk_start_label, s.pk_end_label)}</span
-                                >
-                                <span class="ls-len"
-                                    >{withUnit(s.length_km, 'km', lang, {
-                                        maximumFractionDigits: 1,
-                                    })}</span
-                                >
-                                {#if s.opening_year_from}<span
-                                        >{t('lines.sections.opening', {
-                                            years: `${s.opening_year_from}${s.opening_year_to && s.opening_year_to !== s.opening_year_from ? `-${s.opening_year_to}` : ''}`,
+                    {#each sections as s, si (s.name)}
+                        <li class={['ls-item', { 'with-stages': s.stages?.length }]}>
+                            <div class="ls-main">
+                                <p class="ls-name">
+                                    <strong lang={srcLang}>{s.name}</strong>
+                                    {#if s.alt_names?.length}<span class="meta" lang={srcLang}
+                                            >({s.alt_names.join(', ')})</span
+                                        >{/if}
+                                </p>
+                                <p class="ls-meta">
+                                    <span title={t('lines.sheet.tech.pk_title')}
+                                        >{pkRange(s.pk_start_label, s.pk_end_label)}</span
+                                    >
+                                    <span class="ls-len"
+                                        >{withUnit(s.length_km, 'km', lang, {
+                                            maximumFractionDigits: 1,
                                         })}</span
-                                    >{/if}
-                            </p>
-                            {#if s.description}<p
-                                    class="ls-desc"
-                                    lang={s.description_lang ?? srcLang}
-                                >
-                                    {tieUnits(s.description)}
-                                </p>{/if}
-                            {#if s.source_url}
-                                <a
-                                    class="vff-link"
-                                    href={s.source_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    >{t('lines.sections.source')}{@render ext()}</a
-                                >
+                                    >
+                                    {#if s.opening_year_from}<span
+                                            >{t('lines.sections.opening', {
+                                                years: `${s.opening_year_from}${s.opening_year_to && s.opening_year_to !== s.opening_year_from ? `-${s.opening_year_to}` : ''}`,
+                                            })}</span
+                                        >{/if}
+                                </p>
+                                {#if s.description}<p
+                                        class="ls-desc"
+                                        lang={s.description_lang ?? srcLang}
+                                    >
+                                        {tieUnits(s.description)}
+                                    </p>{/if}
+                                {#if s.source_url}
+                                    <a
+                                        class="vff-link"
+                                        href={s.source_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        >{t('lines.sections.source')}{@render ext()}</a
+                                    >
+                                {/if}
+                            </div>
+                            {#if s.stages?.length}
+                                <!-- Étapes : phases datées des années d'ouverture de la section (LineSheet::sectionStages). -->
+                                <div class="ls-stages">
+                                    <p class="ls-stages-title" id="section-stages-{si}">
+                                        {t('lines.sections.stages_title')}
+                                    </p>
+                                    <ol aria-labelledby="section-stages-{si}">
+                                        {#each s.stages as st (st.phase)}
+                                            {@const day = dateOf(st.date, st.precision)}
+                                            <li>
+                                                <span class="st-date">{day}</span>
+                                                <span class="st-what"
+                                                    >{tieUnits(
+                                                        t('lines.changes.opening', {
+                                                            km: km(st.length_m),
+                                                        }),
+                                                    )}{#each stageNotes(st, eventsById) as n (n)}<sup
+                                                            ><a href="#note-{n}"
+                                                                ><span class="vff-sr-only"
+                                                                    >{`${t('common.note_ref')} `}</span
+                                                                >[{n}]</a
+                                                            ></sup
+                                                        >{/each}</span
+                                                >
+                                                <button
+                                                    type="button"
+                                                    class="see-map"
+                                                    onclick={() => showPhase(st.phase)}
+                                                >
+                                                    <i class="bi bi-map" aria-hidden="true"></i>
+                                                    {t('lines.phases.see_on_map')}<span
+                                                        class="vff-sr-only"
+                                                    >
+                                                        ({day})</span
+                                                    >
+                                                </button>
+                                            </li>
+                                        {/each}
+                                    </ol>
+                                </div>
                             {/if}
                         </li>
                     {/each}
@@ -1699,6 +1745,62 @@
         font-size: var(--vff-fs-md);
         line-height: 1.55;
     }
+    /* Section avec ses mises en service datées : le texte à sa largeur de lecture, les étapes à
+       droite (plus de moitié droite vide) ; dessous sur tablette et téléphone. */
+    .ls-item.with-stages {
+        display: grid;
+        grid-template-columns: minmax(0, var(--vff-measure)) minmax(0, 1fr);
+        gap: var(--vff-space-4) 48px;
+        align-items: start;
+    }
+    .ls-stages-title {
+        margin: 0 0 6px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        font-weight: 600;
+        color: var(--vff-text-muted);
+    }
+    .ls-stages ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .ls-stages li {
+        display: grid;
+        grid-template-columns: 10.5em minmax(0, 1fr);
+        gap: 2px 16px;
+        padding: 10px 0;
+        border-top: 1px solid var(--vff-border);
+    }
+    .st-date {
+        font-family: var(--vff-font-display);
+        font-size: var(--vff-fs-md);
+        font-weight: 700;
+        line-height: 1.4;
+        font-variant-numeric: tabular-nums;
+    }
+    .st-what {
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-md);
+        line-height: 1.5;
+    }
+    .ls-stages .see-map {
+        grid-column: 2;
+        justify-self: start;
+    }
+    /* Appel de note : exposant sans écarter les lignes, cible de 24 px. */
+    .st-what sup {
+        line-height: 0;
+    }
+    .st-what sup a {
+        padding: 5px 6px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        text-decoration: none;
+    }
+    .st-what sup a:hover {
+        text-decoration: underline;
+    }
 
     /* Technique et signalisation */
     .tech-grid {
@@ -1823,6 +1925,23 @@
         overflow-wrap: anywhere;
     }
 
+    /* Tablette et petit ordinateur (jusqu'à 1 180 px) : le texte, puis la fiche sur toute la
+       largeur (en deux colonnes, cf. @container fiche), puis la campagne. À côté du texte, la fiche
+       n'avait que 370 px : une seule colonne, deux fois plus haute que l'introduction, et 900 px
+       de vide sous le texte de la LGV Sud-Est à 1 024 px (question Q4). Même ordre de lecture. */
+    @media (max-width: 1180px) {
+        .about-grid {
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-areas: 'about' 'fiche' 'adv';
+            grid-template-rows: auto;
+        }
+        .ls-item.with-stages {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .ls-stages {
+            max-width: var(--vff-measure);
+        }
+    }
     @media (max-width: 900px) {
         /* Téléphone et tablette : la carte et le détail de la phase, puis la liste complète des
            phases dessous. */
@@ -1831,11 +1950,6 @@
             --phases-max: none;
             grid-template-columns: minmax(0, 1fr);
             grid-template-areas: 'map' 'detail' 'list';
-            grid-template-rows: auto;
-        }
-        .about-grid {
-            grid-template-columns: minmax(0, 1fr);
-            grid-template-areas: 'about' 'fiche' 'adv';
             grid-template-rows: auto;
         }
         .history li {
@@ -1869,6 +1983,12 @@
         }
         .history li {
             padding-left: 18px;
+        }
+        .ls-stages li {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .ls-stages .see-map {
+            grid-column: 1;
         }
     }
 </style>

@@ -207,7 +207,9 @@ final class LineSheet
                 // Description tirée de Wikipédia, en français : lang="fr" sur une page EN ou DE.
                 'description_lang' => $s->description !== null && app()->getLocale() !== 'fr' ? 'fr' : null,
                 'source_url' => $s->source_url,
-            ]);
+            ])->values()->all();
+        // Étapes de mise en service de chaque section : les phases datées de ses années d'ouverture.
+        $sections = self::sectionStages($sections, $phases['phases']);
 
         // Charge les métadonnées encyclopédiques + sources
         $encyclopedia = DB::table('lines')
@@ -305,6 +307,74 @@ final class LineSheet
             ]),
         ];
     }
+
+    /**
+     * Étapes de mise en service des sections nommées (LGV Paris - Lyon ouverte en 1981 puis en 1983) :
+     * pour chaque section, les phases datées (LinePhases, vraies dates de line_events) qui mettent
+     * en service une partie de la ligne pendant ses années d'ouverture (line_sections, de
+     * opening_year_from à opening_year_to). Rien n'est déduit au-delà :
+     *   - une phase non datée (« entre 1941 et 1950 ») n'est pas une étape ;
+     *   - les raccords fondus dans la phase (changements « minor ») ne comptent pas dans sa longueur ;
+     *   - une phase dont l'année tombe dans les années de deux sections n'est rattachée à aucune
+     *     (les sections n'ont pas de tracé propre : pas de rattachement deviné) ;
+     *   - une phase plus longue que la section (PK de fin moins PK de début, à STAGE_LENGTH_TOLERANCE
+     *     près) en déborde : elle date aussi une autre partie de la ligne (LGV Est européenne : une
+     *     seule date de 2007 pour 409 km, dont les 106 km de la seconde phase ouverte en 2016), elle
+     *     n'est rattachée à aucune section.
+     * Chaque étape : `phase` (indice dans les phases de la fiche), `date`, `precision`, `length_m`
+     * (longueur mise en service) et `event_ids` (événements qui la datent, pour leurs sources).
+     *
+     * @param  list<array<string, mixed>>  $sections  sections de la fiche (opening_year_from, opening_year_to)
+     * @param  list<array<string, mixed>>  $phases  phases de LinePhases (date, precision, changes)
+     * @return list<array<string, mixed>> les sections, chacune avec `stages`
+     */
+    public static function sectionStages(array $sections, array $phases): array
+    {
+        $years = array_map(function (array $s): ?array {
+            $from = isset($s['opening_year_from']) ? (int) $s['opening_year_from'] : null;
+            $to = isset($s['opening_year_to']) ? (int) $s['opening_year_to'] : $from;
+
+            return $from === null ? null : [$from, max($from, (int) $to)];
+        }, $sections);
+        $maxLength = array_map(fn (array $s): ?float => isset($s['pk_start_m'], $s['pk_end_m'])
+            ? ((int) $s['pk_end_m'] - (int) $s['pk_start_m']) * (1 + self::STAGE_LENGTH_TOLERANCE) : null, $sections);
+        $stages = array_fill(0, count($sections), []);
+        foreach ($phases as $index => $phase) {
+            if (($phase['precision'] ?? 'range') === 'range') {
+                continue;
+            }
+            $length = 0;
+            $eventIds = [];
+            foreach ($phase['changes'] ?? [] as $c) {
+                if (($c['minor'] ?? false) || ! LinePhases::isActive((string) $c['to']) || LinePhases::isActive((string) $c['from'])) {
+                    continue;
+                }
+                $length += (int) $c['length_m'];
+                if ($c['event_id'] !== null && ! in_array((int) $c['event_id'], $eventIds, true)) {
+                    $eventIds[] = (int) $c['event_id'];
+                }
+            }
+            if ($length === 0) {
+                continue;
+            }
+            $year = (int) substr((string) $phase['date'], 0, 4);
+            $matches = array_keys(array_filter($years, fn (?array $y): bool => $y !== null && $year >= $y[0] && $year <= $y[1]));
+            if (count($matches) !== 1 || ($maxLength[$matches[0]] !== null && $length > $maxLength[$matches[0]])) {
+                continue;
+            }
+            $stages[$matches[0]][] = ['phase' => $index, 'date' => (string) $phase['date'], 'precision' => (string) $phase['precision'],
+                'length_m' => $length, 'event_ids' => $eventIds];
+        }
+        foreach ($sections as $i => &$s) {
+            $s['stages'] = $stages[$i];
+        }
+        unset($s);
+
+        return $sections;
+    }
+
+    /** Écart toléré entre la longueur d'une étape (tracé VFF) et celle de sa section (PK des sources). */
+    public const STAGE_LENGTH_TOLERANCE = 0.1;
 
     /** PK lisible : « 7+735 » ; avant l'origine de la ligne : « -0+250 ». */
     private function formatPkLabel(int $m): string
@@ -457,6 +527,8 @@ final class LineSheet
                 'closures' => array_map(fn ($c) => [
                     'slug' => $c['slug'], 'name' => $c['name'], 'closed_at' => $c['closed_at'],
                     'closed_precision' => $c['closed_precision'], 'closed_after' => $c['closed_after'] ?? null,
+                    // Fermeture provisoire : la gare rouvre à une décennie suivante.
+                    'reopened' => (bool) ($c['reopened'] ?? false),
                 ], $e['closures'] ?? []),
             ];
         }
