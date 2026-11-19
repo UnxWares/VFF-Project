@@ -203,7 +203,52 @@ class SegmentContributionTest extends TestCase
     {
         $this->actingAs($this->member())
             ->post('/contribute/edit-segment', [])
-            ->assertSessionHasErrors(['line_code', 'era_year', 'pk_start_m', 'pk_end_m', 'changes']);
+            ->assertSessionHasErrors(['line_code', 'era_year', 'pk_start_m', 'pk_end_m', 'changes', 'sources']);
+    }
+
+    /** @return array<string, array{0: array<string, mixed>}> */
+    public static function missingSources(): array
+    {
+        return [
+            'liste vide' => [['sources' => []]],
+            'une source vide' => [['sources' => ['']]],
+            'une source faite de blancs' => [['sources' => ['   ']]],
+            'une bonne et une vide' => [['sources' => ['Arrêté du 12/03/1998', '']]],
+        ];
+    }
+
+    #[DataProvider('missingSources')]
+    public function test_a_pk_edit_requires_at_least_one_source(array $overrides): void
+    {
+        $payload = $this->payload();
+        $payload['sources'] = $overrides['sources'];
+
+        $this->actingAs($this->member())->post('/contribute/edit-segment', $payload)
+            ->assertSessionHasErrors();
+
+        $this->assertSame(0, Contribution::count());
+    }
+
+    public function test_a_missing_sources_key_is_refused_with_the_readable_message(): void
+    {
+        $payload = $this->payload();
+        unset($payload['sources']);
+
+        $this->actingAs($this->member())->post('/contribute/edit-segment', $payload)
+            ->assertSessionHasErrors(['sources' => __('editor.segment.errors.source_required')]);
+        $this->assertSame(0, Contribution::count());
+    }
+
+    public function test_a_url_or_a_reference_is_an_acceptable_source(): void
+    {
+        $member = $this->member();
+
+        $this->actingAs($member)->post('/contribute/edit-segment', $this->payload(['sources' => ['https://fr.wikipedia.org/wiki/Ligne_de_Paris-Saint-Lazare_au_Havre']]))
+            ->assertSessionHasNoErrors();
+        $this->actingAs($member)->post('/contribute/edit-segment', $this->payload(['sources' => ['Chaix 1938, tableau 412']]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(2, Contribution::count());
     }
 
     public function test_every_enum_value_is_accepted(): void
@@ -583,7 +628,7 @@ class SegmentContributionTest extends TestCase
     {
         $c = $this->contribution($this->member()->id, 'applied');
 
-        $this->actingAs($this->member('validator'))->post("/validate/{$c->id}/reject")
+        $this->actingAs($this->member('validator'))->post("/validate/{$c->id}/reject", ['notes' => 'Déjà publiée.'])
             ->assertSessionHas('error', 'Cette contribution a déjà été traitée.');
         $this->assertSame('applied', $c->fresh()->status->value);
     }
@@ -597,11 +642,47 @@ class SegmentContributionTest extends TestCase
         $this->assertSame('pending', $c->fresh()->status->value);
     }
 
+    #[DataProvider('missingReasons')]
+    public function test_reject_requires_a_reason(array $body): void
+    {
+        $c = $this->contribution($this->member()->id);
+
+        $this->actingAs($this->member('validator'))->post("/validate/{$c->id}/reject", $body)
+            ->assertSessionHasErrors(['notes' => __('editor.validate.errors.reason_required', ['min' => 5])]);
+
+        $c->refresh();
+        $this->assertSame('pending', $c->status->value);
+        $this->assertNull($c->review_notes);
+        $this->assertNull($c->reviewed_by);
+        $this->assertSame(0, $c->user->notifications()->count());
+    }
+
+    /** @return array<string, array{0: array<string, mixed>}> */
+    public static function missingReasons(): array
+    {
+        return [
+            'sans champ' => [[]],
+            'vide' => [['notes' => '']],
+            'blancs' => [['notes' => "   \n  "]],
+            'trop court' => [['notes' => 'Non.']],
+        ];
+    }
+
+    public function test_reject_trims_the_reason(): void
+    {
+        $c = $this->contribution($this->member()->id);
+
+        $this->actingAs($this->member('validator'))->post("/validate/{$c->id}/reject", ['notes' => "  Doublon avec la n° 3.  \n"])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('Doublon avec la n° 3.', $c->fresh()->review_notes);
+    }
+
     public function test_unknown_contribution_is_404_for_moderators(): void
     {
         $validator = $this->member('validator');
 
         $this->actingAs($validator)->post('/validate/999999/approve')->assertNotFound();
-        $this->actingAs($validator)->post('/validate/999999/reject')->assertNotFound();
+        $this->actingAs($validator)->post('/validate/999999/reject', ['notes' => 'Introuvable.'])->assertNotFound();
     }
 }

@@ -6,8 +6,10 @@
     import ReviewNav from '$components/Contribute/ReviewNav.svelte';
     import TraceDiffMap from '$components/Contribute/TraceDiffMap.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
+    import Field from '$components/ui/Field.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import { i18n } from '$lib/i18n.js';
+    import { REASON_MAX, REASON_MIN, isReasonMissing } from '$lib/rejectReason.js';
     import { findHistoricBasemap, historicTitle } from '$lib/historicBasemaps.js';
     import { formatKm, portionColor } from '$lib/traceGeometry.js';
     import { colon } from '$lib/typo.js';
@@ -25,9 +27,13 @@
     /** Traduction passée aux fonctions de segmentChanges.js. */
     const tr = (key, opts) => $i18n.t(key, opts);
 
-    // Refus : un seul formulaire ouvert à la fois (motif facultatif), au lieu d'une boîte du navigateur.
+    // Refus : un seul formulaire ouvert à la fois (motif obligatoire), au lieu d'une boîte du navigateur.
     let rejecting = $state(null);
     let rejectNotes = $state('');
+    let rejectAttempted = $state(false);
+    /** Erreur renvoyée par le serveur pour le motif (le formulaire ouvert seulement). */
+    let rejectServerError = $state(null);
+    const rejectMissing = $derived(rejectAttempted && isReasonMissing(rejectNotes));
     let processing = $state(false);
 
     function approve(c) {
@@ -50,6 +56,8 @@
     async function openReject(c) {
         rejecting = c.id;
         rejectNotes = '';
+        rejectAttempted = false;
+        rejectServerError = null;
         await tick();
         document.getElementById(`reject-notes-${c.id}`)?.focus();
     }
@@ -59,16 +67,36 @@
         document.getElementById(`reject-btn-${c.id}`)?.focus();
     }
 
+    /** Message d'erreur du motif, affiché seulement sur le formulaire de refus ouvert. */
+    function rejectError(id) {
+        if (rejecting !== id) return null;
+        if (rejectMissing)
+            return $i18n.t('editor.validate.errors.reason_required', { min: REASON_MIN });
+        return rejectServerError;
+    }
+
     function submitReject(e, c) {
         e.preventDefault();
+        const notes = rejectNotes.trim();
+        // Le serveur exige le même motif : on évite l'aller-retour quand il manque.
+        rejectAttempted = true;
+        rejectServerError = null;
+        if (isReasonMissing(notes)) {
+            document.getElementById(`reject-notes-${c.id}`)?.focus();
+            return;
+        }
         router.post(
             `/validate/${c.id}/reject`,
-            { notes: rejectNotes.trim() },
+            { notes },
             {
                 preserveScroll: true,
                 onStart: () => (processing = true),
                 onFinish: () => (processing = false),
                 onSuccess: () => (rejecting = null),
+                onError: (errors) => {
+                    rejectServerError = errors.notes ?? null;
+                    document.getElementById(`reject-notes-${c.id}`)?.focus();
+                },
             },
         );
     }
@@ -523,18 +551,31 @@
                             </div>
 
                             {#if rejecting === c.id}
-                                <form class="reject-form" onsubmit={(e) => submitReject(e, c)}>
-                                    <label class="vff-label" for="reject-notes-{c.id}"
-                                        >{$i18n.t('editor.validate.reject_reason')}</label
-                                    >
-                                    <textarea
+                                <form
+                                    class="reject-form"
+                                    novalidate
+                                    onsubmit={(e) => submitReject(e, c)}
+                                >
+                                    <Field
                                         id="reject-notes-{c.id}"
-                                        class="vff-textarea"
-                                        rows="3"
-                                        maxlength="2000"
-                                        bind:value={rejectNotes}
-                                        onkeydown={(e) => e.key === 'Escape' && cancelReject(c)}
-                                    ></textarea>
+                                        label={$i18n.t('editor.validate.reject_reason')}
+                                        error={rejectError(c.id)}
+                                        required
+                                    >
+                                        {#snippet children(attrs)}
+                                            <textarea
+                                                {...attrs}
+                                                class="vff-textarea"
+                                                rows="3"
+                                                minlength={REASON_MIN}
+                                                maxlength={REASON_MAX}
+                                                required
+                                                bind:value={rejectNotes}
+                                                onkeydown={(e) =>
+                                                    e.key === 'Escape' && cancelReject(c)}
+                                            ></textarea>
+                                        {/snippet}
+                                    </Field>
                                     <div class="reject-actions">
                                         <button
                                             type="submit"

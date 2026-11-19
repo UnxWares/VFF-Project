@@ -15,7 +15,7 @@ return [
         'source_label' => 'Source',
         'source_hint' => 'Lien vers un document, un article ou une page qui appuie la correction.',
         'contact_label' => 'Votre adresse électronique',
-        'contact_hint' => 'Seulement si vous acceptez que l’équipe vous écrive au sujet de ce signalement.',
+        'contact_hint' => 'Seulement si vous acceptez que l’équipe vous écrive : un courriel vous prévient quand le signalement est traité.',
         'optional' => 'facultatif',
         'honeypot_label' => 'Laissez ce champ vide',
         'privacy' => 'Votre message et votre adresse servent uniquement à traiter ce signalement. Ils sont effacés 12 mois après son traitement.',
@@ -23,7 +23,7 @@ return [
         'submit' => 'Envoyer le signalement',
         'cancel' => 'Annuler',
         'thanks_title' => 'Merci, votre signalement est envoyé',
-        'thanks_text' => 'L’équipe va le relire. Si vous avez laissé votre adresse, elle pourra vous écrire pour vous demander une précision.',
+        'thanks_text' => 'L’équipe va le relire. Si vous avez laissé votre adresse, vous recevrez un courriel quand il sera traité, et l’équipe pourra vous écrire pour vous demander une précision.',
         'close' => 'Fermer',
     ],
 
@@ -43,6 +43,23 @@ return [
     'notification' => [
         'title' => 'Signalement n° :id à examiner',
         'body' => 'Une erreur est signalée sur la fiche « :subject ».',
+    ],
+
+    // Courriel de suivi envoyé à la personne qui a laissé son adresse, quand son signalement est traité ou rejeté.
+    'mail' => [
+        'greeting' => 'Bonjour,',
+        'intro' => 'Vous avez signalé une erreur sur la fiche « :subject » (signalement n° :id).',
+        'resolved' => [
+            'subject' => 'Votre signalement n° :id a été traité',
+            'outcome' => 'L’équipe l’a traité. Merci de votre aide.',
+        ],
+        'rejected' => [
+            'subject' => 'Votre signalement n° :id n’a pas été retenu',
+            'outcome' => 'L’équipe l’a examiné et n’a pas modifié la fiche.',
+        ],
+        'note' => 'Note de l’équipe : :note',
+        'action' => 'Voir la fiche',
+        'why_you' => 'Vous recevez ce message parce que vous avez laissé votre adresse en signalant cette erreur. Elle ne sert qu’à ce courriel et sera effacée avec le signalement, 12 mois après son traitement.',
     ],
 
     'review' => [
@@ -82,7 +99,7 @@ return [
         'handled' => 'le :date',
         'note' => 'Note de l’équipe',
         'note_label' => 'Note de l’équipe',
-        'note_hint' => 'Ce qui a été corrigé, ou la raison du rejet (obligatoire pour rejeter).',
+        'note_hint' => 'Ce qui a été corrigé, ou la raison du rejet (obligatoire pour rejeter). Elle est envoyée par courriel à la personne qui a signalé l’erreur, si elle a laissé son adresse.',
         'mark_resolved' => 'Marquer comme traité',
         'reject' => 'Rejeter',
         'empty' => [

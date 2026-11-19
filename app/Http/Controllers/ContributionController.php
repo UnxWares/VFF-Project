@@ -7,6 +7,8 @@ use App\Enums\ContributionAction;
 use App\Enums\ContributionStatus;
 use App\Enums\SegmentStatus;
 use App\Enums\TrafficType;
+use App\Http\Requests\RejectContributionRequest;
+use App\Http\Requests\SubmitSegmentContributionRequest;
 use App\Models\Contribution;
 use App\Models\Era;
 use App\Models\Line;
@@ -17,7 +19,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -55,27 +56,9 @@ class ContributionController extends Controller
         ]);
     }
 
-    public function submit(Request $request, ContributionNotifier $notifier): RedirectResponse
+    public function submit(SubmitSegmentContributionRequest $request, ContributionNotifier $notifier): RedirectResponse
     {
-        $data = $request->validate([
-            'line_code' => 'required|string',
-            'era_year' => 'required|integer',
-            'pk_start_m' => 'required|integer|min:0|max:9999999',
-            'pk_end_m' => 'required|integer|min:0|max:9999999|gt:pk_start_m',
-            'changes' => 'required|array',
-            // Valeurs des énumérations : avant, une valeur libre passait la validation
-            // puis faisait échouer l'application (CHECK SQL) au moment de l'approbation,
-            // avec l'erreur SQL brute affichée au validateur.
-            'changes.status' => ['nullable', 'string', Rule::enum(SegmentStatus::class)],
-            'changes.traffic_type' => ['nullable', 'string', Rule::enum(TrafficType::class)],
-            'changes.electrified' => 'nullable|boolean',
-            'changes.voltage_v' => 'nullable|integer|min:0|max:50000',
-            'changes.max_speed_kmh' => 'nullable|integer|min:0|max:600',
-            'changes.is_heritage' => 'nullable|boolean',
-            'sources' => 'nullable|array',
-            'sources.*' => 'string|max:500',
-            'notes' => 'nullable|string|max:2000',
-        ]);
+        $data = $request->validated();
 
         // Le navigateur bloque déjà un envoi vide ; ici le serveur le refuse aussi (champs laissés
         // sur « Inchangé » ou vides, ou clés inconnues seules) : rien à relire pour les validateurs.
@@ -387,16 +370,15 @@ class ContributionController extends Controller
         });
     }
 
-    public function reject(Request $request, int $id, AuditLog $audit, ContributionNotifier $notifier): RedirectResponse
+    public function reject(RejectContributionRequest $request, int $id, AuditLog $audit, ContributionNotifier $notifier): RedirectResponse
     {
-        $this->ensureValidator();
-        $request->validate(['notes' => 'nullable|string|max:1000']);
+        $reason = $request->reason();
 
         // Contrôle et refus sur la ligne verrouillée : une approbation concurrente qui vient de
         // publier la contribution n'est pas écrasée par un refus, et une contribution déjà close
         // (refusée ou publiée) n'est ni refusée de nouveau ni annoncée une seconde fois à son auteur.
         // Une contribution retirée n'existe plus (404).
-        $rejected = DB::transaction(function () use ($id, $request, $audit, $notifier): bool {
+        $rejected = DB::transaction(function () use ($id, $reason, $audit, $notifier): bool {
             $contribution = Contribution::query()->lockForUpdate()->findOrFail($id);
             if (! $contribution->status->isOpen()) {
                 return false;
@@ -406,13 +388,13 @@ class ContributionController extends Controller
                 'status' => ContributionStatus::Rejected->value,
                 'reviewed_by' => Auth::id(),
                 'reviewed_at' => now(),
-                'review_notes' => $request->input('notes'),
+                'review_notes' => $reason,
             ]);
             // Le motif reste dans la contribution (review_notes) : le journal note seulement sa présence.
             $audit->record(AuditAction::ContributionRejected, Auth::user(), $contribution, [
                 'type' => $contribution->type,
                 'previous_status' => $previous,
-                'with_reason' => filled($request->input('notes')),
+                'with_reason' => true,
             ]);
             $notifier->rejected($contribution);
 

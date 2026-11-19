@@ -187,7 +187,7 @@ class ContributionNotificationsTest extends TestCase
         $this->assertSame(1, $author->notifications()->count());
 
         $applied = $this->contribution($author, 'applied');
-        $this->actingAs($validator)->post("/validate/{$applied->id}/reject")->assertSessionHas('error', __('editor.validate.flash.closed'));
+        $this->actingAs($validator)->post("/validate/{$applied->id}/reject", ['notes' => 'Déjà publiée.'])->assertSessionHas('error', __('editor.validate.flash.closed'));
         $this->assertSame('applied', $applied->fresh()->status->value);
         $this->assertSame(1, $author->notifications()->count());
     }
@@ -227,14 +227,14 @@ class ContributionNotificationsTest extends TestCase
             && $job->connection === null && $job->tries === 3);
     }
 
-    public function test_a_rejection_without_reason_says_so(): void
+    public function test_a_legacy_rejection_without_reason_says_so(): void
     {
-        $author = $this->member('contributor');
-        $c = $this->contribution($author);
+        // Les refus d'avant le motif obligatoire n'en ont pas : la notification le dit toujours.
+        $author = User::factory()->make(['name' => 'Jeanne']);
+        $this->app->setLocale('fr');
 
-        $this->actingAs($this->member('validator'))->post("/validate/{$c->id}/reject", ['notes' => '  '])->assertSessionHas('success');
+        $data = (new ContributionRejected(7, 'Paris - Versailles (999 000)'))->toDatabase($author);
 
-        $data = $this->soleData($author);
         $this->assertNull($data['reason']);
         $this->assertStringContainsString('sans donner de motif', $data['body']);
     }

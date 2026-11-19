@@ -5,6 +5,7 @@ namespace App\Services\Notifications;
 use App\Models\User;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification as NotificationFacade;
 use Throwable;
 
 /**
@@ -48,6 +49,21 @@ final readonly class SiteNotifier
                 } catch (Throwable $e) {
                     report($e);
                 }
+            }
+        });
+    }
+
+    /**
+     * Une adresse électronique sans compte (personne qui a laissé son adresse dans un formulaire) :
+     * même règles d'envoi, après la validation de la transaction et sans jamais la faire échouer.
+     */
+    public function toAddress(string $email, Notification $notification): void
+    {
+        DB::afterCommit(function () use ($email, $notification): void {
+            try {
+                NotificationFacade::route('mail', $email)->notify($notification);
+            } catch (Throwable $e) {
+                report($e);
             }
         });
     }

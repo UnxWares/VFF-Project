@@ -253,7 +253,7 @@ return [
         'empty_text' => 'No proposal is waiting for review.',
         'submitted' => 'Submitted :date',
         'changes' => 'Proposed changes',
-        'reject_reason' => 'Reason for rejection (optional, sent to the contributor)',
+        'reject_reason' => 'Reason for rejection (sent to the contributor)',
         'reject_confirm' => 'Confirm rejection',
         'cancel' => 'Cancel',
         'source_n' => 'Source :n',
@@ -285,7 +285,6 @@ return [
         'approve' => 'Approve',
         'approve_apply' => 'Approve and publish',
         'reject' => 'Reject',
-        'reject_prompt' => 'Reason for rejection (optional):',
         'confirm_approve' => 'Approve this contribution?',
         'confirm_apply' => 'Last approval required: the contribution will be published immediately. Confirm?',
         'flash' => [
@@ -296,6 +295,10 @@ return [
             'partial' => 'Approval recorded (:count of :threshold): the contribution is waiting for another validator.',
             'rejected' => 'Contribution rejected.',
             'failed' => 'Publication failed: :message',
+        ],
+        'errors' => [
+            'reason_required' => 'Enter the reason for the rejection, at least :min characters. It is sent to the contributor.',
+            'reason_max' => 'The reason is longer than :max characters.',
         ],
     ],
 

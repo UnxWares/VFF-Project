@@ -15,7 +15,7 @@ return [
         'source_label' => 'Quelle',
         'source_hint' => 'Link zu einem Dokument, Artikel oder einer Seite, die die Korrektur belegt.',
         'contact_label' => 'Ihre E-Mail-Adresse',
-        'contact_hint' => 'Nur wenn das Team Ihnen zu dieser Meldung schreiben darf.',
+        'contact_hint' => 'Nur wenn das Team Ihnen schreiben darf: Sie erhalten eine E-Mail, sobald die Meldung bearbeitet wurde.',
         'optional' => 'freiwillig',
         'honeypot_label' => 'Dieses Feld bitte leer lassen',
         'privacy' => 'Ihre Nachricht und Ihre Adresse dienen nur der Bearbeitung dieser Meldung. Sie werden 12 Monate nach der Bearbeitung gelöscht.',
@@ -23,7 +23,7 @@ return [
         'submit' => 'Meldung senden',
         'cancel' => 'Abbrechen',
         'thanks_title' => 'Danke, Ihre Meldung wurde gesendet',
-        'thanks_text' => 'Das Team wird sie lesen. Wenn Sie Ihre Adresse angegeben haben, kann es Ihnen für eine Rückfrage schreiben.',
+        'thanks_text' => 'Das Team wird sie lesen. Wenn Sie Ihre Adresse angegeben haben, erhalten Sie eine E-Mail, sobald sie bearbeitet wurde, und das Team kann Ihnen für eine Rückfrage schreiben.',
         'close' => 'Schließen',
     ],
 
@@ -43,6 +43,23 @@ return [
     'notification' => [
         'title' => 'Meldung Nr. :id zu prüfen',
         'body' => 'Auf der Seite „:subject“ wurde ein Fehler gemeldet.',
+    ],
+
+    // Folge-E-Mail an die Person, die ihre Adresse angegeben hat, wenn ihre Meldung bearbeitet oder abgelehnt wird.
+    'mail' => [
+        'greeting' => 'Guten Tag,',
+        'intro' => 'Sie haben auf der Seite „:subject“ einen Fehler gemeldet (Meldung Nr. :id).',
+        'resolved' => [
+            'subject' => 'Ihre Meldung Nr. :id wurde bearbeitet',
+            'outcome' => 'Das Team hat sie bearbeitet. Vielen Dank für Ihre Hilfe.',
+        ],
+        'rejected' => [
+            'subject' => 'Ihre Meldung Nr. :id wurde nicht übernommen',
+            'outcome' => 'Das Team hat sie geprüft und die Seite nicht geändert.',
+        ],
+        'note' => 'Hinweis des Teams: :note',
+        'action' => 'Seite ansehen',
+        'why_you' => 'Sie erhalten diese Nachricht, weil Sie beim Melden des Fehlers Ihre Adresse angegeben haben. Sie wird nur für diese E-Mail verwendet und zusammen mit der Meldung 12 Monate nach der Bearbeitung gelöscht.',
     ],
 
     'review' => [
@@ -82,7 +99,7 @@ return [
         'handled' => 'am :date',
         'note' => 'Notiz des Teams',
         'note_label' => 'Notiz des Teams',
-        'note_hint' => 'Was korrigiert wurde oder warum die Meldung abgelehnt wird (zum Ablehnen erforderlich).',
+        'note_hint' => 'Was korrigiert wurde oder warum die Meldung abgelehnt wird (zum Ablehnen erforderlich). Sie wird per E-Mail an die meldende Person geschickt, falls diese ihre Adresse angegeben hat.',
         'mark_resolved' => 'Als erledigt markieren',
         'reject' => 'Ablehnen',
         'empty' => [
