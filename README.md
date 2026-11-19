@@ -260,7 +260,7 @@ VFF-Project/
 │   │   └── lib/
 │   │       ├── i18n.js       # setup i18next + LOCALES
 │   │       ├── stores/       # theme.svelte.js
-│   │       └── actions/      # parallaxTGV, scrollReveal, smoothScrollTo
+│   │       └── actions/      # navbarFade, parallaxTGV, scrollReveal, smoothScrollTo
 │   └── views/
 │       └── app.blade.php     # Shell Inertia (1 seul template Blade)
 ├── routes/

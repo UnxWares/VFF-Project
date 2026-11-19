@@ -1,5 +1,5 @@
-/* En-tête du site (Header.svelte). Accueil : 200 vh avec le héros TGV, barre fixe visible dès le haut
-   de la page, par-dessus le héros. Pages internes (classe compact) : barre seule, de hauteur --vff-header-h
+/* En-tête du site (Header.svelte). Accueil : 200 vh avec le héros TGV, barre fixe qui apparaît
+   en quittant le héros. Pages internes (classe compact) : barre seule, de hauteur --vff-header-h
    (88 px, 72 px sous 1 180 px, 64 px sous 600 px). Sous 1 180 px, le projet et les outils passent
    dans un panneau ouvert par le bouton « Menu » ; sous 900 px, les quatre entrées aussi.
    Les sélecteurs commencent par header:where(.site-header) : les autres <header> (galerie, fiches)
@@ -29,7 +29,8 @@ header:where(.site-header) .header-background {
     height: 100vh;
 }
 
-/* Pages internes : barre seule, sans héros. */
+/* Pages internes : barre seule, sans héros, toujours visible (navbarFade ne pose plus que des
+   classes : nav-hidden, nav-shown ; aucune opacité en ligne à contrer). */
 /* Hauteurs minimales (et non fixes) : si l'utilisateur agrandit les espacements du texte
    (WCAG 1.4.12), la barre passe sur deux rangées au lieu de pousser « Connexion » hors de l'écran. */
 header:where(.site-header).compact {
@@ -43,11 +44,13 @@ header:where(.site-header).compact .header-background {
     background-color: var(--vff-bg);
 }
 header:where(.site-header).compact .header-background nav {
+    opacity: 1;
     position: relative;
 }
 
 /* ─── Barre ───────────────────────────────────────────────────────────────── */
 header:where(.site-header) .header-background nav {
+    opacity: 0;
     position: fixed;
     top: 0;
     /* Au-dessus du grand visuel de l'accueil (sa flèche passait sur la barre en quittant le héros). */
@@ -59,6 +62,16 @@ header:where(.site-header) .header-background nav {
     box-shadow:
         0 1px 0 var(--vff-border),
         0 2px 8px var(--vff-shadow);
+    transition: opacity 250ms ease;
+}
+/* Accueil : la barre est invisible (opacité 0) tant que le héros est à l'écran. Invisible, elle ne
+   capte pas les clics ; au clavier, elle réapparaît dès qu'un de ses éléments a le focus. */
+header:where(.site-header):not(.compact) .header-background nav.nav-hidden:not(:focus-within) {
+    pointer-events: none;
+}
+header:where(.site-header) .header-background nav.nav-shown,
+header:where(.site-header):not(.compact) .header-background nav.nav-hidden:focus-within {
+    opacity: 1;
 }
 
 /* Rangée de la barre : sur la grille commune (même bord gauche que le contenu et le pied de page). */
@@ -293,7 +306,7 @@ header:where(.site-header) nav .nav-toggle .toggle-label {
    5:1 partout ; aucun voile n'est nécessaire (léger voile en thème sombre seulement). Disque VFF
    entre deux TGV, phrase en blanc, deux actions, flèche vers le contenu, crédit du fond en bas.
    Disque, phrase et actions sont séparés par le même espace (--hero-space) ; le groupe est centré
-   entre la barre et la flèche, un peu au-dessus du milieu de l'écran.
+   entre la barre (affichée ou non) et la flèche, un peu au-dessus du milieu de l'écran.
    Écartement des TGV : --tgv-progress (0 : contre le disque, 1 : au bord de l'écran) fois
    --tgv-travel. Navigateurs qui lient une animation au défilement : animation CSS sur la première
    hauteur d'écran, hors du fil principal ; les autres : lib/actions/parallaxTGV.js écrit la
@@ -571,6 +584,13 @@ header:where(.site-header) .hero :is(a, button):focus-visible {
 
 /* ─── Sous 1 180 px : barre de 72 px, projet et outils dans un panneau ───── */
 @media (max-width: 1180px) {
+    /* Accueil : la barre reste visible dès le chargement (sinon aucun menu pendant deux écrans). */
+    header:where(.site-header):not(.compact) .header-background nav,
+    header:where(.site-header):not(.compact) .header-background nav.nav-hidden,
+    header:where(.site-header):not(.compact) .header-background nav.nav-hidden:not(:focus-within) {
+        opacity: 1;
+        pointer-events: auto;
+    }
     header:where(.site-header) nav .nav-inner {
         flex-wrap: nowrap;
         gap: 0 var(--vff-space-5);
