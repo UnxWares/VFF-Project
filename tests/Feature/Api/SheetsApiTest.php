@@ -184,6 +184,41 @@ class SheetsApiTest extends TestCase
             ->assertJsonPath('data.attribute_sources.geom_recalage.moved_m', 12);
     }
 
+    public function test_raw_attributes_of_a_source_without_an_open_licence_are_withheld(): void
+    {
+        DB::table('station_sources')->insert([
+            'station_id' => $this->origin->id, 'source' => 'lignes-oubliees', 'source_ref' => 'lo-42', 'name' => 'Saint-Lazare',
+            'lifecycle' => 'unknown', 'seen_at' => '2026-10-16 08:00:00',
+            'properties' => json_encode(['page' => 'https://lignes-oubliees.fr/ligne-42', 'pk_raw' => '12,3', 'branch' => 'nord']),
+            'geom' => DB::raw('ST_SetSRID(ST_MakePoint(2.3253, 48.8763), 4326)'),
+        ]);
+        DB::table('station_sources')->insert([
+            'station_id' => $this->origin->id, 'source' => 'osm', 'source_ref' => 'n123', 'name' => 'Paris Saint-Lazare', 'lifecycle' => 'active',
+            'seen_at' => '2026-10-15 17:21:48', 'properties' => json_encode(['railway' => 'station']),
+            'geom' => DB::raw('ST_SetSRID(ST_MakePoint(2.3253, 48.8763), 4326)'),
+        ]);
+
+        $response = $this->getJson('/api/v1/stations/paris-saint-lazare')->assertOk();
+        /** @var list<array<string, mixed>> $list */
+        $list = $response->json('data.sources');
+        $sources = collect($list);
+        $forgotten = $sources->firstWhere('source', 'lignes-oubliees');
+        $this->assertNull($forgotten['raw']);
+        $this->assertTrue($forgotten['raw_withheld']);
+        $this->assertSame('uncertain', $forgotten['provenance']['license_status']);
+        $this->assertSame('2026-10-16', $forgotten['fetched_at'], 'la date de lecture reste publiée');
+        $this->assertStringNotContainsString('pk_raw', $response->getContent());
+        $osm = $sources->firstWhere('source', 'osm');
+        $this->assertSame(['railway' => 'station'], $osm['raw']);
+        $this->assertFalse($osm['raw_withheld']);
+
+        $graphql = $this->postJson('/graphql', ['query' => '{ station(slug: "paris-saint-lazare") { sheet { sources { source raw raw_withheld } } } }'])->assertOk();
+        $this->assertStringNotContainsString('pk_raw', $graphql->getContent());
+        /** @var list<array<string, mixed>> $graphqlSources */
+        $graphqlSources = $graphql->json('data.station.sheet.sources');
+        $this->assertTrue(collect($graphqlSources)->firstWhere('source', 'lignes-oubliees')['raw_withheld']);
+    }
+
     public function test_eras_list_and_one_era_with_network_stats(): void
     {
         $this->getJson('/api/v1/eras')

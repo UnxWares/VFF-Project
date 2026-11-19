@@ -6,8 +6,10 @@ use App\Enums\ContributionStatus;
 use App\Models\Contribution;
 use App\Models\User;
 use App\Services\Reputation\ReputationCalculator;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
@@ -70,6 +72,26 @@ class ReputationCalculatorTest extends TestCase
         // $validator : 2 approbations données + 1 refus décidé ; $other : 1 approbation.
         $this->assertSame([0, 0, 3], $this->counters($validator));
         $this->assertSame([0, 0, 1], $this->counters($other));
+    }
+
+    public function test_the_migration_fills_the_counters_of_existing_accounts(): void
+    {
+        $author = User::factory()->contributor()->create();
+        $validator = User::factory()->validator()->create();
+        $this->contribution($author, ContributionStatus::Applied, $validator);
+        $this->contribution($author, ContributionStatus::Rejected, $validator);
+        // État d'avant la migration : l'ancien champ, sans les compteurs (annulé avec la transaction du test).
+        Schema::table('users', function (Blueprint $table): void {
+            $table->dropColumn(['reputation_applied', 'reputation_rejected', 'reputation_reviews']);
+        });
+        Schema::table('users', function (Blueprint $table): void {
+            $table->integer('reputation')->default(0);
+        });
+
+        (require database_path('migrations/2026_11_24_010000_replace_reputation_score_with_counters.php'))->up();
+
+        $this->assertSame([1, 1, 0], $this->counters($author), 'aucun membre ne reste à zéro après le déploiement');
+        $this->assertSame([0, 0, 1], $this->counters($validator));
     }
 
     public function test_reviewing_your_own_contribution_never_counts(): void

@@ -192,6 +192,20 @@ class ReputationDecisionsTest extends TestCase
         $this->assertSame([0, 0, 1], $this->counters($validator));
     }
 
+    public function test_deleting_an_author_account_recalculates_the_validators_who_rejected_their_contributions(): void
+    {
+        $author = $this->member('contributor', ['password' => 'secret-password']);
+        $validator = $this->member('validator');
+        foreach ([$this->pending($author), $this->pending($author)] as $contribution) {
+            $this->actingAs($validator)->post("/validate/{$contribution->id}/reject", ['notes' => 'Source sans rapport avec la ligne.']);
+        }
+        $this->assertSame([0, 0, 2], $this->counters($validator));
+
+        $this->actingAs($author)->delete('/profile', ['password' => 'secret-password'])->assertRedirect(route('home'));
+
+        $this->assertSame([0, 0, 0], $this->counters($validator), 'les refus partent avec les contributions supprimées');
+    }
+
     public function test_deleting_a_reviewer_account_changes_nobody_else(): void
     {
         $author = $this->member('contributor');

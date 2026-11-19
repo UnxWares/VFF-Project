@@ -35,6 +35,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Testing\Fakes\QueueFake;
 use Inertia\Testing\AssertableInertia as Assert;
 use RuntimeException;
 use Tests\Support\ActsAsRoles;
@@ -197,6 +198,20 @@ class WebhooksTest extends TestCase
         app(WebhookSubscriptions::class)->create($user->fresh(), self::URL, [WebhookEvent::AccidentPublished]);
     }
 
+    public function test_a_suspension_decided_during_the_request_is_read_on_the_locked_row(): void
+    {
+        $user = $this->member('contributor');
+        // Suspension écrite en base après le chargement du modèle de la requête.
+        User::query()->whereKey($user->id)->update(['suspended_at' => now(), 'suspended_until' => null]);
+
+        try {
+            app(WebhookSubscriptions::class)->create($user, self::URL, [WebhookEvent::AccidentPublished]);
+            $this->fail('un compte suspendu ne crée pas d\'abonnement');
+        } catch (WebhookSubscriptionRefused) {
+            $this->assertSame(0, WebhookSubscription::count());
+        }
+    }
+
     public function test_member_deletes_and_reactivates_only_their_own_subscriptions(): void
     {
         $user = $this->member('contributor');
@@ -261,24 +276,26 @@ class WebhooksTest extends TestCase
         $all = $this->subscription();
         $accidentsOnly = $this->subscription(events: [WebhookEvent::AccidentPublished]);
 
-        $accident = Accident::factory()->create();
-        Accident::factory()->create(['kind' => 'person_struck']);
+        // Une fiche d'accident n'est pas annoncée à sa création : seulement après sa vérification
+        // (VerifyAccidentsCommandTest).
+        Accident::factory()->create();
         $material = Material::factory()->create();
         CurrentEraRefreshed::dispatch(2030, '2026-11-19', 3, 1);
+        app(WebhookDispatcher::class)->dispatch(WebhookEvent::AccidentPublished, 'accident', '1933-12-23-lagny', route('api.accidents.show', ['accident' => '1933-12-23-lagny']));
 
         $types = fn (WebhookSubscription $s) => WebhookDelivery::query()->where('webhook_subscription_id', $s->id)->orderBy('id')->pluck('event_type')->all();
-        $this->assertSame(['accident.published', 'material.published', 'current_era.refreshed'], $types($all));
+        $this->assertSame(['material.published', 'current_era.refreshed', 'accident.published'], $types($all));
         $this->assertSame(['accident.published'], $types($accidentsOnly));
 
         $payloads = WebhookDelivery::query()->where('webhook_subscription_id', $all->id)->orderBy('id')->get()
             ->map(fn (WebhookDelivery $d): array => $d->orderedPayload());
-        $this->assertSame(['resource' => 'accident', 'id' => $accident->slug, 'url' => route('api.accidents.show', ['accident' => $accident->slug])], $payloads[0]['data']);
-        $this->assertSame(route('api.materials.show', ['material' => $material->slug]), $payloads[1]['data']['url']);
-        $this->assertSame(['resource' => 'era', 'id' => 2030, 'url' => route('api.eras.show', ['year' => 2030]), 'as_of' => '2026-11-19', 'lines_changed' => 3, 'stations_changed' => 1], $payloads[2]['data']);
+        $this->assertSame(route('api.materials.show', ['material' => $material->slug]), $payloads[0]['data']['url']);
+        $this->assertSame(['resource' => 'era', 'id' => 2030, 'url' => route('api.eras.show', ['year' => 2030]), 'as_of' => '2026-11-19', 'lines_changed' => 3, 'stations_changed' => 1], $payloads[1]['data']);
+        $this->assertSame(['resource' => 'accident', 'id' => '1933-12-23-lagny', 'url' => route('api.accidents.show', ['accident' => '1933-12-23-lagny'])], $payloads[2]['data']);
         // Un même événement porte le même identifiant pour tous les abonnés.
         $this->assertSame(
             WebhookDelivery::query()->where('webhook_subscription_id', $accidentsOnly->id)->value('event_id'),
-            WebhookDelivery::query()->where('webhook_subscription_id', $all->id)->orderBy('id')->value('event_id'),
+            WebhookDelivery::query()->where('webhook_subscription_id', $all->id)->where('event_type', 'accident.published')->value('event_id'),
         );
     }
 
@@ -291,7 +308,7 @@ class WebhooksTest extends TestCase
         $this->subscription($suspendedUser);
         $suspendedUser->forceFill(['suspended_at' => now(), 'suspended_until' => now()->addWeek()])->save();
 
-        Accident::factory()->create();
+        Material::factory()->create();
 
         $this->assertSame(0, WebhookDelivery::count());
         Queue::assertNothingPushed();
@@ -302,8 +319,37 @@ class WebhooksTest extends TestCase
         Queue::fake();
         $subscription = $this->subscription(events: [WebhookEvent::MaterialPublished]);
         Material::factory()->count(5)->create();
+        // Rien n'est encore envoyé : aucune livraison en attente n'est élaguée.
+        $this->assertSame(5, $subscription->deliveries()->count());
 
+        $subscription->deliveries()->update(['status' => WebhookDeliveryStatus::Succeeded->value]);
+        Material::factory()->create();
+
+        // 3 terminées gardées, plus la nouvelle en attente.
+        $this->assertSame(3, $subscription->deliveries()->where('status', WebhookDeliveryStatus::Succeeded->value)->count());
+        $this->assertSame(1, $subscription->deliveries()->where('status', WebhookDeliveryStatus::Pending->value)->count());
+    }
+
+    public function test_a_burst_of_events_loses_no_delivery_before_it_is_sent(): void
+    {
+        Queue::fake();
+        Http::fake([self::URL => Http::response('', 204)]);
+        $subscription = $this->subscription(events: [WebhookEvent::MaterialPublished]);
+
+        // Import massif : 60 fiches créées d'affilée, la file passe ensuite.
+        Material::factory()->count(60)->create();
+        /** @var QueueFake $queue */
+        $queue = Queue::getFacadeRoot();
+        $jobs = $queue->pushed(DeliverWebhook::class);
+        $this->assertCount(60, $jobs);
+        foreach ($jobs as $job) {
+            $job->withFakeQueueInteractions()->handle(app(WebhookSender::class), app(WebhookSubscriptions::class));
+        }
+
+        Http::assertSentCount(60);
+        // Le journal revient ensuite à sa taille.
         $this->assertSame(3, $subscription->deliveries()->count());
+        $this->assertSame(0, $subscription->deliveries()->where('status', '!=', WebhookDeliveryStatus::Succeeded->value)->count());
     }
 
     public function test_dispatcher_never_breaks_the_caller(): void

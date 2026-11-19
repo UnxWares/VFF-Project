@@ -105,6 +105,7 @@ final class StationSheetExample
                         'department' => 'FINISTERE',
                         'position_spread_m' => 0,
                     ],
+                    'raw_withheld' => false,
                     'provenance' => [
                         'provider' => 'sncf',
                         'name' => 'SNCF Open Data (SNCF Réseau, Gares & Connexions, GTFS voyageurs)',

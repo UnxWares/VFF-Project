@@ -3,6 +3,7 @@
 namespace App\Services\Webhooks;
 
 use App\Enums\AuditAction;
+use App\Enums\WebhookDeliveryStatus;
 use App\Enums\WebhookEvent;
 use App\Models\User;
 use App\Models\WebhookDelivery;
@@ -58,9 +59,10 @@ final readonly class WebhookSubscriptions
         $target = $this->guard->target($url);
 
         return DB::transaction(function () use ($user, $target, $events): WebhookSubscription {
-            User::query()->whereKey($user->id)->lockForUpdate()->first();
+            // Suspension relue sur la ligne verrouillée : une suspension décidée pendant la requête compte.
+            $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
 
-            if ($user->isSuspended()) {
+            if ($locked->isSuspended()) {
                 throw WebhookSubscriptionRefused::suspended();
             }
             if ($user->webhookSubscriptions()->count() >= self::maxPerAccount()) {
@@ -137,6 +139,22 @@ final readonly class WebhookSubscriptions
 
         if ($disabled !== null) {
             $this->notifier->send($disabled->user, new WebhookDisabled($disabled->id, $disabled->url, $disabled->consecutive_failures));
+        }
+    }
+
+    /**
+     * Élague le journal de l'abonnement : garde les `log_size` livraisons terminées les plus
+     * récentes. Une livraison en attente n'est jamais supprimée, sinon un import massif (des
+     * centaines de fiches créées d'affilée) effacerait des événements avant leur envoi.
+     */
+    public function pruneLog(int $subscriptionId): void
+    {
+        $keep = max(1, (int) config('webhooks.log_size', 50));
+        $finished = fn () => WebhookDelivery::query()->where('webhook_subscription_id', $subscriptionId)
+            ->where('status', '!=', WebhookDeliveryStatus::Pending->value);
+        $oldestKept = $finished()->orderByDesc('id')->skip($keep - 1)->value('id');
+        if ($oldestKept !== null) {
+            $finished()->where('id', '<', $oldestKept)->delete();
         }
     }
 

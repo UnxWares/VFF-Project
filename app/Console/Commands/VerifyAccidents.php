@@ -17,7 +17,9 @@ use Illuminate\Support\Facades\File;
  * Rejouable et idempotente : un second passage ne change rien. Elle repart des faits déjà gardés dans
  * accident_sources et du cache de storage/app/data/accidents ; les seules requêtes possibles (lecture
  * seule, polies) suivent les redirections d'articles de ligne de Wikipédia, et sont mises en cache.
- * Après vff:import-accidents (qui refait les rattachements et le statut), la rejouer.
+ * Après vff:import-accidents (qui refait les rattachements et le statut), la rejouer : l'import ne met
+ * jamais une fiche « ok », et une fiche publique n'est annoncée aux webhooks (accident.published)
+ * qu'après sa première vérification.
  *
  *   vff:verify-accidents --dry-run     # tout calculer, rien garder
  *   vff:verify-accidents --offline     # aucune requête, cache seul
@@ -62,6 +64,7 @@ class VerifyAccidents extends Command
         $this->line('  « ok » par règle : '.(implode(', ', array_map(fn ($k, $n) => "{$k} {$n}", array_keys($r->rules), $r->rules)) ?: 'aucune'));
         $this->line(sprintf('  « ok » sans confirmation (laissées telles quelles) : %d ; rendues « à vérifier » : %d', count($r->unconfirmedOk), count($r->demoted)));
         $this->line(sprintf('  alias : %d ; doublons possibles : %d ; natures reclassées : %d', count($r->aliases), count($r->possibleDuplicates), count($r->reclassified)));
+        $this->line(sprintf('  fiches annoncées aux webhooks (première vérification) : %d', $dryRun ? 0 : count($r->announced)));
         $this->line('  lignes citées : '.(implode(', ', array_map(fn ($k, $n) => "{$k} {$n}", array_keys($r->citedLines), $r->citedLines)) ?: 'aucune').' ; titres sans ligne VFF : '.count($r->unresolvedLineTitles));
         if ($this->output->isVerbose()) {
             foreach ($r->aliases as $a) {

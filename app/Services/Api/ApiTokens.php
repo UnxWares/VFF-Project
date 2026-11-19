@@ -43,9 +43,10 @@ final readonly class ApiTokens
     public function create(User $user, string $name): NewAccessToken
     {
         return DB::transaction(function () use ($user, $name): NewAccessToken {
-            User::query()->whereKey($user->id)->lockForUpdate()->first();
+            // Suspension relue sur la ligne verrouillée : une suspension décidée pendant la requête compte.
+            $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
 
-            if ($user->isSuspended()) {
+            if ($locked->isSuspended()) {
                 throw ApiTokenRefused::suspended();
             }
             if ($user->tokens()->count() >= self::maxPerAccount()) {

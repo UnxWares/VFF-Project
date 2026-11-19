@@ -68,8 +68,23 @@ class VffMcpLocateAndProvenanceTest extends TestCase
         $this->assertSame('2026-10-15', $source['fetched_at']);
         $this->assertSame('near', $source['match_method']);
         $this->assertSame(['railway' => 'station'], $source['raw']);
+        $this->assertFalse($source['raw_withheld']);
         $this->assertEquals(['name' => 'osm', 'geom' => 'osm'], $data['station']['attribute_sources']);
         $this->assertSame(['source' => 'osm', 'spread_m' => 12, 'flagged' => true], $data['station']['position']);
+    }
+
+    public function test_get_station_withholds_the_raw_attributes_of_a_source_without_an_open_licence(): void
+    {
+        DB::table('station_sources')->insert([
+            'station_id' => $this->origin->id, 'source' => 'lignes-oubliees', 'source_ref' => 'lo-42', 'name' => 'Saint-Lazare',
+            'lifecycle' => 'unknown', 'seen_at' => '2026-10-16 08:00:00', 'properties' => json_encode(['pk_raw' => '12,3', 'branch' => 'nord']),
+            'geom' => DB::raw('ST_SetSRID(ST_MakePoint(2.3253, 48.8763), 4326)'),
+        ]);
+
+        [$data] = $this->tool('get_station', ['station' => 'paris-saint-lazare']);
+
+        $this->assertNull($data['sources'][0]['raw']);
+        $this->assertTrue($data['sources'][0]['raw_withheld']);
     }
 
     public function test_network_at_era_adds_the_site_totals_and_the_network_curve(): void

@@ -62,6 +62,8 @@ class NetworkAtEraTool extends VffTool
             $stations[] = ['code' => $code, 'label' => (string) trans('stations.statuses.'.$code, [], $lang), 'count' => $n];
         }
 
+        $siteStats = app(SiteStats::class);
+
         return $this->respond([
             'requested_year' => (int) $input['year'],
             'era_year' => $era->year,
@@ -76,8 +78,8 @@ class NetworkAtEraTool extends VffTool
             'stations_by_status' => $stations,
             'available_eras' => Lookup::eraYears(),
             // Chiffres d'ensemble du site et courbe du réseau à chaque ère (mêmes valeurs que GET /api/v1/stats).
-            'site_totals' => app(SiteStats::class)->counts(),
-            'network_profile' => app(SiteStats::class)->profile(),
+            'site_totals' => $siteStats->counts(),
+            'network_profile' => $siteStats->profile(),
         ], $providers, $lang, self::url('/maps?era='.$era->year));
     }
 }

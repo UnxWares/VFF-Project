@@ -221,6 +221,7 @@ return [
         'verification_conflict' => 'Deux sources se contredisent sur la date ou sur le lieu.',
         'alias_toll_mismatch' => 'Un autre élément Wikidata décrit le même accident avec un autre bilan.',
         'possible_duplicate' => 'Une autre fiche du même jour décrit peut-être le même accident.',
+        'list_kind_hidden' => 'Une liste de Wikipédia décrit peut-être un heurt de personne : la nature de la fiche est gardée et reste à vérifier.',
     ],
 
     // Résumés rédigés par VFF (AccidentSummary) : phrases complètes, lieu et date insérés.

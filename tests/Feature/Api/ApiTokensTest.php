@@ -198,6 +198,20 @@ class ApiTokensTest extends TestCase
         app(ApiTokens::class)->create($user->fresh(), 'Direct');
     }
 
+    public function test_a_suspension_decided_during_the_request_is_read_on_the_locked_row(): void
+    {
+        $user = $this->member('contributor');
+        // Suspension écrite en base après le chargement du modèle de la requête.
+        User::query()->whereKey($user->id)->update(['suspended_at' => now(), 'suspended_until' => null]);
+
+        try {
+            app(ApiTokens::class)->create($user, 'Script');
+            $this->fail('un compte suspendu ne crée pas de jeton');
+        } catch (ApiTokenRefused) {
+            $this->assertSame(0, PersonalAccessToken::count());
+        }
+    }
+
     public function test_tokens_work_again_when_the_suspension_has_ended(): void
     {
         $user = $this->member('contributor');

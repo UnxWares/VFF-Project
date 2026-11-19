@@ -191,7 +191,7 @@ return [
             | --- | --- | --- |
             | `contribution.applied` | une contribution approuvée est appliquée à une ligne ou à une gare | `line` ou `station` |
             | `current_era.refreshed` | le recalcul quotidien de l'ère courante a changé des lignes ou des gares | `era` |
-            | `accident.published` | un import publie une nouvelle fiche d'accident | `accident` |
+            | `accident.published` | une nouvelle fiche d'accident est publiée, après la vérification de ses sources (`vff:verify-accidents`) ; jamais un doublon ni un heurt de personne | `accident` |
             | `material.published` | un import publie une nouvelle fiche de matériel roulant | `material` |
 
             Chaque message est un `POST` avec un corps JSON court, sans aucune donnée personnelle (ni membre,

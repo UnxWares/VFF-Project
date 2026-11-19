@@ -69,7 +69,7 @@ class StationSheetTool extends VffTool
         $rawBySource = $sheet->rawBySource($sid);
         $sources = array_map(function ($s) use (&$providers, $rawBySource) {
             $providers[] = $this->attribution->providerFor('station_sources', $s->source, $s->source_url);
-            $raw = $rawBySource[$s->source.'|'.$s->source_ref] ?? ['fetched_at' => null, 'raw' => new \stdClass];
+            $raw = StationSheet::rawFor($rawBySource, $s);
 
             return ['source' => $s->source, 'ref' => $s->source_ref, 'name' => $s->name, 'url' => StationSheet::sourceUrl($s),
                 'distance_m' => (int) $s->distance_m, 'match_method' => $s->match_method] + $raw;

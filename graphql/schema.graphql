@@ -2779,8 +2779,11 @@ type StationSource {
     "Date à laquelle VFF a lu l'objet dans la source (AAAA-MM-JJ)."
     fetched_at: String
 
-    "Attributs bruts tels que reçus de la source (étiquettes OSM, champs SNCF, éléments Wikidata, calage), en lecture seule. Leur forme dépend de la source."
+    "Attributs bruts tels que reçus de la source (étiquettes OSM, champs SNCF, éléments Wikidata, calage), en lecture seule. Leur forme dépend de la source. Nul quand la source n'est pas sous licence ouverte vérifiée (voir `raw_withheld`)."
     raw: JSON
+
+    "Vrai si les attributs bruts ne sont pas republiés : comme pour les tracés, seule une source sous licence ouverte vérifiée (`provenance.license_status` = `verified`) les voit republiés."
+    raw_withheld: Boolean!
 
     "Fournisseur et licence de la source."
     provenance: Provenance!

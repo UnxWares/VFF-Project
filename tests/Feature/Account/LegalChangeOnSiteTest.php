@@ -5,7 +5,10 @@ namespace Tests\Feature\Account;
 use App\Enums\LegalDocument;
 use App\Enums\NotificationKind;
 use App\Models\User;
+use App\Notifications\LegalDocumentChanged;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Mail\Transport\ArrayTransport;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -48,13 +51,20 @@ class LegalChangeOnSiteTest extends TestCase
         $this->actingAs($fr)->get('/notifications/'.$fr->notifications()->sole()->id)->assertRedirect('/use-conditions');
     }
 
-    public function test_a_second_run_sends_the_email_again_without_doubling_the_site_notification(): void
+    public function test_a_second_run_sends_nothing_again_to_members_already_mailed(): void
     {
+        config(['mail.default' => 'array']);
         $user = User::factory()->create();
         $args = ['document' => 'privacy', '--effective' => '2026-11-19', '--send' => true];
+        $mails = fn (): int => $this->sentMails();
 
         $this->artisan('vff:notify-legal-change', $args)->assertSuccessful();
-        $this->artisan('vff:notify-legal-change', $args)->assertSuccessful();
+        $this->assertSame(1, $mails());
+        $this->assertNotNull($user->notifications()->sole()->data['mailed_at'] ?? null, 'le courriel parti est noté');
+        $this->artisan('vff:notify-legal-change', $args)
+            ->expectsOutputToContain('1 membre(s) déjà prévenu(s)')
+            ->assertSuccessful();
+        $this->assertSame(1, $mails(), 'aucun second courriel');
         $this->assertSame(1, $user->notifications()->count());
 
         // Autre changement (autre date) : nouvelle notification.
@@ -75,8 +85,25 @@ class LegalChangeOnSiteTest extends TestCase
         $this->assertSame(1, $user->notifications()->count());
 
         config(['mail.default' => 'array']);
+        $other = User::factory()->create();
+        $other->notifications()->create([
+            'id' => (string) Str::uuid(), 'type' => LegalDocumentChanged::class,
+            'data' => ['kind' => NotificationKind::LegalDocumentChanged->value, 'document' => 'privacy', 'effective_date' => '2026-11-19', 'mailed_at' => '2026-11-19T09:00:00+00:00'],
+        ]);
+        // Seul l'échec est repris : le membre déjà prévenu par courriel ne reçoit rien.
         $this->artisan('vff:notify-legal-change', $args)->expectsOutputToContain('1 membre(s) prévenu(s)')->assertSuccessful();
-        $this->assertDatabaseCount('notifications', 1);
+        $this->assertSame(1, $this->sentMails());
+        $this->assertDatabaseCount('notifications', 2);
+        $this->assertNotNull($user->notifications()->sole()->data['mailed_at'] ?? null);
+    }
+
+    /** Courriels envoyés par le transport « array » des tests. */
+    private function sentMails(): int
+    {
+        $transport = app('mail.manager')->mailer('array')->getSymfonyTransport();
+        $this->assertInstanceOf(ArrayTransport::class, $transport);
+
+        return $transport->messages()->count();
     }
 
     public function test_legal_pages_show_the_version_in_force(): void

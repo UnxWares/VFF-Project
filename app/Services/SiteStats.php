@@ -23,12 +23,20 @@ use Illuminate\Support\Facades\DB;
  */
 final class SiteStats
 {
+    /** Empreinte des données, calculée une seule fois par instance (counts() puis profile() dans la même réponse). */
+    private ?string $fingerprint = null;
+
     public function __construct(private readonly NetworkStats $network) {}
+
+    private function fingerprint(): string
+    {
+        return $this->fingerprint ??= $this->network->dataFingerprint();
+    }
 
     /** @return array{lines_count: int, stations_count: int, materials_count: int, eras_count: int, total_km: int} */
     public function counts(): array
     {
-        return Cache::remember('home_stats:'.$this->network->dataFingerprint(), 600, fn (): array => [
+        return Cache::remember('home_stats:'.$this->fingerprint(), 600, fn (): array => [
             'lines_count' => Line::count(),
             'stations_count' => Station::count(),
             'materials_count' => Material::count(),
@@ -46,7 +54,7 @@ final class SiteStats
      */
     public function profile(): array
     {
-        return Cache::remember('home_profile:'.$this->network->dataFingerprint(), 86400, fn (): array => collect(DB::select(
+        return Cache::remember('home_profile:'.$this->fingerprint(), 86400, fn (): array => collect(DB::select(
             'SELECT e.year, e.is_current,
                     COALESCE(ROUND(SUM(COALESCE(s.length_meters, ST_Length(s.geom::geography))) / 1000), 0)::int AS km,
                     COUNT(DISTINCT s.line_id)::int AS lines

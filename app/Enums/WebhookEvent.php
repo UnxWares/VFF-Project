@@ -12,7 +12,7 @@ enum WebhookEvent: string
     case ContributionApplied = 'contribution.applied';
     /** L'ère courante (réseau d'aujourd'hui) a été recalculée : des lignes ou des gares ont changé (vff:refresh-current-era). */
     case CurrentEraRefreshed = 'current_era.refreshed';
-    /** Nouvelle fiche d'accident publiée par un import. */
+    /** Nouvelle fiche d'accident publiée, annoncée après sa première vérification (vff:verify-accidents), jamais un alias ni une nature masquée. */
     case AccidentPublished = 'accident.published';
     /** Nouvelle fiche de matériel roulant publiée par un import. */
     case MaterialPublished = 'material.published';

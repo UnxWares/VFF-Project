@@ -26,6 +26,8 @@ use Throwable;
  */
 final readonly class WebhookDispatcher
 {
+    public function __construct(private WebhookSubscriptions $subscriptions) {}
+
     /**
      * @param  string  $resource  `line`, `station`, `era`, `accident` ou `material`
      * @param  string|int  $id  slug de la ressource, année pour une ère
@@ -72,20 +74,8 @@ final readonly class WebhookDispatcher
                 'payload' => $payload,
                 'status' => WebhookDeliveryStatus::Pending,
             ]);
-            $this->prune($subscription->id);
+            $this->subscriptions->pruneLog($subscription->id);
             DeliverWebhook::dispatch($delivery->id);
-        }
-    }
-
-    /** Garde les `log_size` livraisons les plus récentes de l'abonnement. */
-    private function prune(int $subscriptionId): void
-    {
-        $keep = max(1, (int) config('webhooks.log_size', 50));
-        $oldestKept = WebhookDelivery::query()->where('webhook_subscription_id', $subscriptionId)
-            ->orderByDesc('id')->skip($keep - 1)->value('id');
-        if ($oldestKept !== null) {
-            WebhookDelivery::query()->where('webhook_subscription_id', $subscriptionId)
-                ->where('id', '<', $oldestKept)->delete();
         }
     }
 }

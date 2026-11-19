@@ -18,7 +18,7 @@ return [
         ],
         'accident_published' => [
             'label' => 'Nouvel accident',
-            'hint' => 'Une fiche d’accident vient d’être publiée par un import.',
+            'hint' => 'Une fiche d’accident est publiée, une fois ses sources vérifiées.',
         ],
         'material_published' => [
             'label' => 'Nouveau matériel',

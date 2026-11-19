@@ -221,6 +221,7 @@ return [
         'verification_conflict' => 'Two sources contradict each other on the date or the place.',
         'alias_toll_mismatch' => 'Another Wikidata item describes the same accident with a different toll.',
         'possible_duplicate' => 'Another record from the same day may describe the same accident.',
+        'list_kind_hidden' => 'A Wikipedia list may describe a person being struck: the record keeps its type, which still needs checking.',
     ],
 
     // Summaries written by VFF (AccidentSummary): full sentences, place and date inserted.

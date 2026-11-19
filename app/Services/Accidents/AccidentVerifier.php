@@ -5,8 +5,10 @@ namespace App\Services\Accidents;
 use App\Enums\AccidentDatePrecision;
 use App\Enums\AccidentKind;
 use App\Enums\AccidentReviewStatus;
+use App\Enums\WebhookEvent;
 use App\Models\Accident;
 use App\Models\AccidentLine;
+use App\Services\Webhooks\WebhookDispatcher;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -60,6 +62,7 @@ final class AccidentVerifier
         private readonly AccidentKindFromSources $kinds,
         private readonly AccidentCitedLines $citedLines,
         private readonly AccidentSummary $summary,
+        private readonly WebhookDispatcher $webhooks,
     ) {}
 
     /**
@@ -78,7 +81,12 @@ final class AccidentVerifier
             $this->citedLines->prepare($client, $accidents->all(), $result);
             foreach ($accidents as $accident) {
                 $this->citedLines->apply($accident, $result);
-                $this->verify($accident->refresh()->load('sources', 'aliases.sources'), $possible[$accident->id] ?? [], $demote, $result);
+                $accident->refresh()->load('sources', 'aliases.sources');
+                $firstVerification = $accident->verified_at === null;
+                $this->verify($accident, $possible[$accident->id] ?? [], $demote, $result);
+                if ($firstVerification) {
+                    $this->announce($accident, $result);
+                }
             }
             $result->after = $this->counts();
             $dryRun ? DB::rollBack() : DB::commit();
@@ -89,6 +97,20 @@ final class AccidentVerifier
         }
 
         return $result;
+    }
+
+    /**
+     * Fiche vérifiée pour la première fois : annoncée aux abonnés (`accident.published`) si elle est publique,
+     * jamais un alias ni une nature masquée. L'annonce attend la validation de la transaction : une
+     * simulation (annulée) n'annonce rien.
+     */
+    private function announce(Accident $accident, AccidentVerificationResult $result): void
+    {
+        if ($accident->verified_at === null || $accident->alias_of_id !== null || in_array($accident->kind->value, AccidentKind::HIDDEN, true)) {
+            return;
+        }
+        $result->announced[] = $accident->slug;
+        $this->webhooks->dispatch(WebhookEvent::AccidentPublished, 'accident', $accident->slug, route('api.accidents.show', ['accident' => $accident->slug]));
     }
 
     /**
@@ -205,7 +227,9 @@ final class AccidentVerifier
             && ! $this->officialDisagrees($date, $place)) {
             $rule = self::RULE_PRIMARY;
         } elseif (count($date['families']) >= 2 && count($place['families']) >= 2 && $date['disagree'] === [] && $place['disagree'] === []) {
-            $rule = array_diff([...$date['families'], ...$place['families']], [AccidentClaim::WIKIPEDIA, AccidentClaim::WIKIDATA_BARE]) === []
+            // Étiquette de chaque fait, puis la plus faible des deux : une source officielle qui ne
+            // confirme que la date ne rend pas indépendantes les deux pages Wikimedia qui donnent le lieu.
+            $rule = $this->isWikimediaPair($date['families']) || $this->isWikimediaPair($place['families'])
                 ? self::RULE_WIKIMEDIA_PAIR : self::RULE_TWO_SOURCES;
         }
 
@@ -301,6 +325,11 @@ final class AccidentVerifier
                     continue;
                 }
                 $agrees = $this->sameDate($accident->occurred_on->toDateString(), $accident->date_precision, $claim->date, $claim->datePrecision);
+                // Une source moins précise que la fiche (l'année seule pour une date au jour) ne la
+                // confirme pas ; elle la contredit encore si elle donne une autre année ou un autre mois.
+                if ($agrees && $claim->datePrecision->rank() < $accident->date_precision->rank()) {
+                    continue;
+                }
                 $family = $claim->dateFamily;
             } else {
                 if ($claim->communeInsee === null || $accident->commune_insee === null) {
@@ -345,7 +374,18 @@ final class AccidentVerifier
         return array_any([...$date['disagree'], ...$place['disagree']], fn (array $c): bool => ($c['family'] ?? null) === AccidentClaim::OFFICIAL);
     }
 
-    /** Deux dates se confirment au jour, au mois ou à l'année selon la moins précise des deux. */
+    /**
+     * Familles qui confirment un fait : seulement Wikipédia et Wikidata sans référence, dont l'une peut être
+     * copiée de l'autre.
+     *
+     * @param  list<string>  $families
+     */
+    private function isWikimediaPair(array $families): bool
+    {
+        return array_diff($families, [AccidentClaim::WIKIPEDIA, AccidentClaim::WIKIDATA_BARE]) === [];
+    }
+
+    /** Deux dates concordent au jour, au mois ou à l'année selon la moins précise des deux. */
     private function sameDate(string $a, AccidentDatePrecision $pa, string $b, AccidentDatePrecision $pb): bool
     {
         return match (min($pa->rank(), $pb->rank())) {

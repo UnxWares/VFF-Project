@@ -62,6 +62,7 @@ final class DeliverWebhook implements ShouldQueue
         $subscription = $delivery->subscription;
         if ($subscription === null || ! $subscription->isActive() || $subscription->user === null || $subscription->user->isSuspended()) {
             $delivery->update(['status' => WebhookDeliveryStatus::Skipped]);
+            $subscriptions->pruneLog($delivery->webhook_subscription_id);
 
             return;
         }
@@ -79,6 +80,7 @@ final class DeliverWebhook implements ShouldQueue
         if ($attempt->succeeded) {
             $delivery->fill(['status' => WebhookDeliveryStatus::Succeeded, 'delivered_at' => now()])->save();
             $subscriptions->recordSuccess($subscription);
+            $subscriptions->pruneLog($subscription->id);
 
             return;
         }
@@ -92,6 +94,7 @@ final class DeliverWebhook implements ShouldQueue
 
         $delivery->fill(['status' => WebhookDeliveryStatus::Failed])->save();
         $subscriptions->recordFailure($subscription);
+        $subscriptions->pruneLog($subscription->id);
     }
 
     /** Erreur imprévue à chaque essai de la file : la livraison est tenue pour échouée. */

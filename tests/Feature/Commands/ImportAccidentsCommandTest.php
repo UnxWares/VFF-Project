@@ -2,8 +2,11 @@
 
 namespace Tests\Feature\Commands;
 
+use App\Enums\AccidentKind;
 use App\Models\Accident;
 use App\Models\Line;
+use App\Services\Accidents\AccidentCandidate;
+use App\Services\Accidents\AccidentImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +14,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Sleep;
+use ReflectionMethod;
 use Tests\Support\CommandSandbox;
 use Tests\TestCase;
 
@@ -32,6 +36,12 @@ class ImportAccidentsCommandTest extends TestCase
 
     /** Les listes d'accidents de Wikipédia sont fausses ou vides selon le test. */
     private bool $withList = false;
+
+    /** Texte de la page de la liste pour les années 2010, quand un test le remplace. */
+    private ?string $decadeText = null;
+
+    /** Blessés que donne l'article de Wikipédia (Wikidata en donne 14). */
+    private int $articleInjuries = 18;
 
     protected function setUp(): void
     {
@@ -113,6 +123,28 @@ class ImportAccidentsCommandTest extends TestCase
         Http::assertSent(fn (Request $r) => str_starts_with($r->header('User-Agent')[0] ?? '', 'VFF-Bot/1.0'));
         Http::assertNotSent(fn (Request $r) => ! str_starts_with($r->header('User-Agent')[0] ?? '', 'VFF-Bot/1.0'));
         $this->assertFileExists(storage_path('app/data/accidents/.nobackup'));
+    }
+
+    public function test_the_import_never_confirms_a_fiche_only_the_verification_does(): void
+    {
+        // Bilans concordants : aucun point à vérifier à l'import, la fiche serait passée « ok » autrefois.
+        $this->articleInjuries = 14;
+
+        $this->artisan('vff:import-accidents')->assertSuccessful();
+
+        $millas = Accident::query()->where('wikidata_id', 'Q45757847')->firstOrFail();
+        $this->assertSame([], array_intersect(array_column($millas->review_notes ?? [], 'code'), AccidentImporter::REVIEW_CODES));
+        $this->assertSame('to_review', $millas->review_status->value);
+        $this->assertSame(0, Accident::query()->where('review_status', 'ok')->count());
+
+        // Une fiche que la vérification a confirmée le reste quand l'import est rejoué ; une fiche « ok »
+        // sans règle de vérification repasse « à vérifier ».
+        $millas->forceFill(['review_status' => 'ok', 'verification' => ['rule' => 'primary_source']])->save();
+        $freight = Accident::query()->whereNull('wikidata_id')->firstOrFail();
+        $freight->forceFill(['review_status' => 'ok'])->save();
+        $this->artisan('vff:import-accidents', ['--offline' => true])->assertSuccessful();
+        $this->assertSame('ok', $millas->refresh()->review_status->value);
+        $this->assertSame('to_review', $freight->refresh()->review_status->value);
     }
 
     public function test_second_run_offline_changes_nothing_and_sends_nothing(): void
@@ -242,6 +274,64 @@ class ImportAccidentsCommandTest extends TestCase
         $this->assertSame(1, $millas->sources()->where('role', 'list')->count());
     }
 
+    public function test_a_bullet_without_a_place_never_attaches_to_an_accident_of_the_same_day(): void
+    {
+        $this->withList = true;
+        $this->artisan('vff:import-accidents', ['--only' => ['bea-tt', 'wikidata']])->assertSuccessful();
+        $millas = Accident::query()->where('wikidata_id', 'Q45757847')->firstOrFail();
+        $this->decadeText = "== 2017 ==\n* {{Date-|14|12|2017}} - un train déraille sur une ligne de montagne, quatre morts.\n";
+
+        $this->artisan('vff:import-accidents', ['--only' => ['wikipedia-list']])->assertSuccessful();
+
+        $this->assertSame(0, $millas->sources()->where('role', 'list')->count(), 'aucune source d\'un autre accident');
+        $this->assertSame(6, $millas->refresh()->deaths);
+        $this->assertSame(2, Accident::count());
+    }
+
+    public function test_a_bullet_alone_never_hides_a_record_of_another_source(): void
+    {
+        $target = new AccidentCandidate('wikidata:Q1');
+        $target->kind = AccidentKind::Other;
+        $target->kindSource = 'label';
+        $listed = new AccidentCandidate('wikipedia-list:fr:1950-05-01-meudon-0');
+        $listed->kind = AccidentKind::PersonStruck;
+        $listed->kindSource = 'wikipedia';
+
+        (new ReflectionMethod(AccidentImporter::class, 'absorbListed'))->invoke(app(AccidentImporter::class), $target, $listed);
+
+        $this->assertSame(AccidentKind::Other, $target->kind, 'la nature de la cible est gardée');
+        $this->assertTrue($target->hasNote('list_kind_hidden'), 'la fiche est signalée pour relecture');
+    }
+
+    public function test_list_bullets_keep_their_record_when_wikipedia_reorders_or_corrects_them(): void
+    {
+        $this->withList = true;
+        DB::statement("INSERT INTO communes (code_insee, type, nom, nom_norm, departement, geom, created_at, updated_at)
+            VALUES ('66200', 'commune-actuelle', 'Saint-Féliu-d''Avall', 'saint feliu d avall', '66', ST_SetSRID(ST_MakePoint(2.80, 42.69), 4326), now(), now())");
+        DB::table('commune_contours')->insert(['code_insee' => '66200', 'nom' => 'Saint-Féliu-d\'Avall', 'departement' => '66',
+            'geom' => DB::raw('ST_Multi(ST_MakeEnvelope(2.76, 42.66, 2.86, 42.72, 4326))'), 'created_at' => now(), 'updated_at' => now()]);
+        $freight = "* {{Date-|3|2|2014}} - [[Millas]] : un train de marchandises déraille, trois morts.\n";
+        $passengers = "* {{Date-|3|2|2014}} - [[Millas]] : un train de voyageurs déraille, un mort.\n";
+        $this->decadeText = "== 2014 ==\n".$freight.$passengers;
+        $this->artisan('vff:import-accidents')->assertSuccessful();
+        $deathsBySlug = fn (): array => Accident::query()->whereDate('occurred_on', '2014-02-03')->orderBy('slug')->pluck('deaths', 'slug')->all();
+        $before = $deathsBySlug();
+        $this->assertCount(2, $before);
+
+        // Une puce insérée au-dessus de l'autre : chaque fiche garde son accident.
+        $this->decadeText = "== 2014 ==\n".$passengers.$freight;
+        $this->artisan('vff:import-accidents', ['--refresh' => true])->assertSuccessful();
+        $this->assertSame($before, $deathsBySlug());
+
+        // Le lieu de la première puce est corrigé : la même fiche suit, sans doublon.
+        $this->decadeText = "== 2014 ==\n".$passengers.str_replace('[[Millas]]', "[[Saint-Féliu-d'Avall]]", $freight);
+        $this->artisan('vff:import-accidents', ['--refresh' => true])->assertSuccessful();
+        $this->assertSame($before, $deathsBySlug());
+        $slug = array_search(3, $before, true);
+        $this->assertSame('66200', Accident::query()->where('slug', $slug)->value('commune_insee'));
+        $this->assertSame(1, Accident::query()->where('slug', $slug)->firstOrFail()->sources()->count(), 'l\'ancienne source de la puce est remplacée');
+    }
+
     /** @return array<string, array{title: string, revid: int, content: string}> */
     private function listPages(): array
     {
@@ -254,6 +344,8 @@ class ImportAccidentsCommandTest extends TestCase
             ."* {{Date-|7|3|2002}} - un train déraille sur une ligne de montagne.\n"
             ."== 2017 ==\n"
             ."* {{Date-|14|12|2017}} - [[Millas]] ([[Pyrénées-Orientales]]) : collision entre un autocar et un TER à un passage à niveau, six morts et vingt blessés.\n";
+
+        $decade = $this->decadeText ?? $decade;
 
         return [
             "Liste d'accidents ferroviaires en France" => ['title' => "Liste d'accidents ferroviaires en France", 'revid' => 240000000, 'content' => $home],
@@ -278,7 +370,7 @@ class ImportAccidentsCommandTest extends TestCase
                 'sitelinks' => ['frwiki' => ['title' => 'Accident de Millas'], 'enwiki' => ['title' => 'Millas train-bus collision']],
             ],
         ];
-        $lead = "{{Infobox Accident de transport\n | date = {{date|14|décembre|2017}}\n | morts = 6\n | blessés = 18\n | appareil = TER\n}}\n"
+        $lead = fn (): string => "{{Infobox Accident de transport\n | date = {{date|14|décembre|2017}}\n | morts = 6\n | blessés = {$this->articleInjuries}\n | appareil = TER\n}}\n"
             ."L'accident a eu lieu sur la [[Ligne de Perpignan à Villefranche-Vernet-les-Bains|ligne de Cerdagne]].";
 
         Http::fake(function (Request $request) use ($entities, $lead) {
@@ -316,7 +408,7 @@ class ImportAccidentsCommandTest extends TestCase
 
                 return Http::response(['query' => ['pages' => [[
                     'title' => 'Accident de Millas',
-                    'revisions' => [['revid' => 241196701, 'slots' => ['main' => ['content' => $lead]]]],
+                    'revisions' => [['revid' => 241196701, 'slots' => ['main' => ['content' => $lead()]]]],
                 ]]]]);
             }
             if (str_ends_with($url, 'historique-des-enquetes-a1187.html')) {

@@ -1,7 +1,9 @@
 <?php
 
+use App\Services\Reputation\ReputationCalculator;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -10,8 +12,9 @@ use Illuminate\Support\Facades\Schema;
  * contributions et des approbations (App\Services\Reputation\ReputationCalculator). Le niveau
  * s'en déduit avec les seuils de config/reputation.php et n'est pas stocké.
  *
- * L'ancien champ `reputation` (entier, jamais calculé) est retiré ; la commande
- * `vff:recalculate-reputation` remplit les compteurs des comptes existants.
+ * L'ancien champ `reputation` (entier, jamais calculé) est retiré. Les compteurs des comptes
+ * existants sont remplis à la fin de la migration (même calcul que `vff:recalculate-reputation`),
+ * pour qu'aucun membre n'affiche zéro après le déploiement ; sans compte, rien n'est lu.
  */
 return new class extends Migration
 {
@@ -26,6 +29,10 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table): void {
             $table->dropColumn('reputation');
         });
+
+        if (DB::table('users')->exists()) {
+            app(ReputationCalculator::class)->recalculateAll();
+        }
     }
 
     public function down(): void

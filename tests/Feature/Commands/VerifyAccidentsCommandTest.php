@@ -5,10 +5,14 @@ namespace Tests\Feature\Commands;
 use App\Enums\AccidentKind;
 use App\Models\Accident;
 use App\Models\AccidentLine;
+use App\Models\User;
+use App\Models\WebhookDelivery;
+use App\Services\Webhooks\WebhookSignature;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Queue;
 use Tests\Support\CommandSandbox;
 use Tests\TestCase;
 
@@ -249,6 +253,68 @@ class VerifyAccidentsCommandTest extends TestCase
 
         $this->artisan('vff:verify-accidents', ['--offline' => true, '--demote' => true])->assertSuccessful();
         $this->assertSame('to_review', $a->refresh()->review_status->value);
+    }
+
+    public function test_the_rule_label_is_the_weakest_of_date_and_place(): void
+    {
+        // Le BEA-TT confirme la date seule (intitulé sans commune) ; le lieu ne vient que de Wikidata
+        // sans référence et de Wikipédia.
+        $a = $this->accident('2008-05-06-millas', '2008-05-06', '66108', 'exact');
+        $this->wikidataAndArticle($a, 'Q401', '2008-05-06', claims: $this->claims(refs: []));
+        $this->source($a, 'bea-tt', 'report', 'bea-401', ['date' => '2008-05-06', 'mode' => 'F'], 'Déraillement d\'un train de fret');
+
+        $this->artisan('vff:verify-accidents', ['--offline' => true])->assertSuccessful();
+
+        $a->refresh();
+        $families = $a->verification['families']['date'];
+        sort($families);
+        $this->assertSame(['official', 'wikidata-bare', 'wikipedia'], $families);
+        $this->assertSame('wikidata_wikipedia', $a->verification['rule'], 'le lieu n\'a pas deux sources indépendantes');
+    }
+
+    public function test_a_date_known_only_to_the_year_does_not_confirm_a_day(): void
+    {
+        $a = $this->accident('2009-05-06-millas', '2009-05-06', '66108', 'exact');
+        $this->source($a, 'wikidata', 'data', 'Q501', ['date' => '2009-01-01', 'date_precision' => 'year', 'lat' => 42.69, 'lng' => 2.7]);
+        $this->source($a, 'wikipedia', 'article', 'fr:Article Q501', ['date' => '2009-05-06', 'date_precision' => 'day', 'lat' => 42.69, 'lng' => 2.7]);
+        $path = storage_path('app/data/accidents/wikidata/entities/Q501.json');
+        File::ensureDirectoryExists(dirname($path));
+        File::put($path, json_encode(['id' => 'Q501', 'claims' => $this->claims(refs: [])]));
+        // Une année différente contredit encore.
+        $b = $this->accident('2010-05-06-millas', '2010-05-06', '66108', 'exact');
+        $this->source($b, 'wikipedia', 'list', 'fr:2011-millas', ['date' => '2011-01-01', 'date_precision' => 'year', 'place' => 'Millas', 'department' => '66']);
+
+        $this->artisan('vff:verify-accidents', ['--offline' => true])->assertSuccessful();
+
+        $a->refresh();
+        $this->assertSame('to_review', $a->review_status->value);
+        $this->assertNull($a->verification['rule'] ?? null);
+        $this->assertSame(['wikipedia'], $a->verification['families']['date']);
+        $this->assertSame('2011-01-01', $b->refresh()->verification['date']['disagreeing'][0]['date']);
+    }
+
+    public function test_a_public_fiche_is_announced_once_after_its_first_verification_never_an_alias_nor_a_hidden_one(): void
+    {
+        Queue::fake();
+        $user = User::factory()->create();
+        $subscription = $user->webhookSubscriptions()->create(['url' => 'https://hooks.example.org/vff', 'events' => ['accident.published'], 'secret' => WebhookSignature::newSecret()]);
+        $public = $this->accident('2017-12-14-millas', '2017-12-14', '66108', 'commune');
+        $this->source($public, 'bea-tt', 'report', 'bea-1', ['date' => '2017-12-14', 'mode' => 'F'], 'Déraillement à Millas (66)');
+        $hidden = $this->accident('2018-01-02-millas', '2018-01-02', '66108', 'commune', ['kind' => 'person_struck']);
+        $this->source($hidden, 'bea-tt', 'report', 'bea-2', ['date' => '2018-01-02', 'mode' => 'F'], 'Heurt d\'une personne à Millas (66)');
+        $this->accident('2017-12-14-millas-2', '2017-12-14', '66108', 'commune', ['alias_of_id' => $public->id]);
+        $sent = fn (): array => WebhookDelivery::query()->where('webhook_subscription_id', $subscription->id)->get()
+            ->map(fn (WebhookDelivery $d): string => $d->orderedPayload()['data']['id'])->all();
+
+        $this->assertSame([], $sent(), 'rien n\'est annoncé à la création, avant la vérification');
+        $this->artisan('vff:verify-accidents', ['--offline' => true, '--dry-run' => true])->assertSuccessful();
+        $this->assertSame([], $sent(), 'une simulation n\'annonce rien');
+
+        $this->artisan('vff:verify-accidents', ['--offline' => true])->assertSuccessful();
+        $this->assertSame(['2017-12-14-millas'], $sent());
+
+        $this->artisan('vff:verify-accidents', ['--offline' => true])->assertSuccessful();
+        $this->assertSame(['2017-12-14-millas'], $sent(), 'une fiche déjà vérifiée n\'est pas annoncée de nouveau');
     }
 
     // ---- fabriques -----------------------------------------------------------

@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use App\Events\CurrentEraRefreshed;
 use App\Listeners\AnnounceWebhookEvents;
-use App\Models\Accident;
 use App\Models\Contribution;
 use App\Models\Material;
 use App\Services\Webhooks\DnsHostResolver;
@@ -28,7 +27,7 @@ final class WebhookServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Contribution::updated(fn (Contribution $c) => app(AnnounceWebhookEvents::class)->contributionUpdated($c));
-        Accident::created(fn (Accident $a) => app(AnnounceWebhookEvents::class)->accidentCreated($a));
+        // accident.published part de vff:verify-accidents (AccidentVerifier), une fois la fiche vérifiée.
         Material::created(fn (Material $m) => app(AnnounceWebhookEvents::class)->materialCreated($m));
         Event::listen(CurrentEraRefreshed::class, [AnnounceWebhookEvents::class, 'currentEraRefreshed']);
 

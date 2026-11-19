@@ -43,12 +43,20 @@ final readonly class AccountDeletion
         $avatar = $user->avatar_path;
 
         $summary = DB::transaction(function () use ($user, $reason): AccountDeletionSummary {
-            // Relecteurs dont des approbations disparaissent avec les contributions supprimées plus bas :
-            // leur réputation est recalculée une fois le compte supprimé.
-            $affectedReviewers = DB::table('contribution_approvals')
-                ->whereIn('contribution_id', $user->contributions()->where('status', '!=', ContributionStatus::Applied->value)->select('id'))
-                ->pluck('user_id')
-                ->all();
+            // Relecteurs dont des approbations ou des refus disparaissent avec les contributions supprimées
+            // plus bas (un refus décidé compte comme relecture) : leur réputation est recalculée une fois le
+            // compte supprimé.
+            $affectedReviewers = [
+                ...DB::table('contribution_approvals')
+                    ->whereIn('contribution_id', $user->contributions()->where('status', '!=', ContributionStatus::Applied->value)->select('id'))
+                    ->pluck('user_id')
+                    ->all(),
+                ...$user->contributions()
+                    ->where('status', ContributionStatus::Rejected->value)
+                    ->whereNotNull('reviewed_by')
+                    ->pluck('reviewed_by')
+                    ->all(),
+            ];
 
             // Une à une par le modèle (ses événements sont déclenchés) ; les approbations reçues
             // partent avec elles (clé étrangère en cascade).

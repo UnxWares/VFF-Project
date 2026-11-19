@@ -70,6 +70,26 @@ final class WikipediaListCollector
     }
 
     /**
+     * Identifiant d'une puce : date, lieu cité et empreinte des faits lus (lieux, gare, bilan). Il ne dépend
+     * pas de l'ordre des puces dans la page : une puce insérée au-dessus d'une autre ne lui prend pas son
+     * identifiant. Quand un contributeur corrige le lieu ou le bilan, l'identifiant change, et l'import
+     * retrouve la fiche par sa date et sa commune ou son bilan (AccidentImporter::existing).
+     *
+     * @param  array{date: string, places: list<array{0: string, 1: ?string}>, station: ?string, deaths: ?int, injuries: ?int}  $entry
+     */
+    public static function externalId(array $entry): string
+    {
+        $place = $entry['places'][0][0] ?? $entry['station'];
+        $facts = [
+            array_map(fn (array $p): array => [Str::slug($p[0]), $p[1]], $entry['places']),
+            $entry['station'] !== null ? Str::slug($entry['station']) : null,
+            $entry['deaths'], $entry['injuries'],
+        ];
+
+        return 'fr:'.$entry['date'].'-'.Str::slug(Str::limit((string) $place, 40, '')).'-'.substr(sha1((string) json_encode($facts)), 0, 8);
+    }
+
+    /**
      * @param  array{date: string, precision: AccidentDatePrecision, anchor: ?string, places: list<array{0: string, 1: ?string}>, station: ?string, line_articles: list<string>, deaths: ?int, injuries: ?int, kind: ?AccidentKind, urban: bool}  $entry
      * @param  array{title: string, revid: int, content: string}  $page
      * @param  array<string, true>  $used  identifiants déjà pris (deux puces du même jour au même endroit)
@@ -77,9 +97,10 @@ final class WikipediaListCollector
     private function candidate(array $entry, array $page, array &$used): AccidentCandidate
     {
         $place = $entry['places'][0][0] ?? $entry['station'];
-        $base = 'fr:'.$entry['date'].'-'.Str::slug(Str::limit((string) $place, 40, ''));
-        // Deux puces du même jour au même endroit se distinguent par leur rang.
-        $key = $base;
+        $key = self::externalId($entry);
+        // Deux puces qui disent exactement la même chose le même jour se distinguent par leur rang :
+        // les échanger ne change rien.
+        $base = $key;
         for ($i = 2; isset($used[$key]); $i++) {
             $key = "{$base}-{$i}";
         }

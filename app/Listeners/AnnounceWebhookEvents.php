@@ -2,11 +2,9 @@
 
 namespace App\Listeners;
 
-use App\Enums\AccidentKind;
 use App\Enums\ContributionStatus;
 use App\Enums\WebhookEvent;
 use App\Events\CurrentEraRefreshed;
-use App\Models\Accident;
 use App\Models\Contribution;
 use App\Models\Line;
 use App\Models\Material;
@@ -20,8 +18,7 @@ use App\Services\Webhooks\WebhookDispatcher;
  *   - contribution passée à l'état « appliquée » (quel que soit le chemin : approbation, tracé) :
  *     `contribution.applied`, avec la ligne ou la gare visée ;
  *   - ère courante recalculée (CurrentEraRefreshed) : `current_era.refreshed` ;
- *   - fiche d'accident publiée créée par un import (pas les natures cachées ni les alias,
- *     PublicAccidents) : `accident.published` ;
+ *   - (`accident.published` part de la vérification des accidents, AccidentVerifier) ;
  *   - fiche de matériel créée par un import : `material.published`.
  */
 final readonly class AnnounceWebhookEvents
@@ -53,15 +50,6 @@ final readonly class AnnounceWebhookEvents
             'lines_changed' => $event->linesCount,
             'stations_changed' => $event->stationsCount,
         ]);
-    }
-
-    public function accidentCreated(Accident $accident): void
-    {
-        if (in_array($accident->kind->value, AccidentKind::HIDDEN, true) || $accident->alias_of_id !== null) {
-            return;
-        }
-
-        $this->dispatcher->dispatch(WebhookEvent::AccidentPublished, 'accident', $accident->slug, route('api.accidents.show', ['accident' => $accident->slug]));
     }
 
     public function materialCreated(Material $material): void

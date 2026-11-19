@@ -32,7 +32,7 @@ final class AccidentImporter
     public const REVIEW_CODES = [
         'toll_mismatch', 'toll_ambiguous', 'date_mismatch', 'date_ambiguous', 'location_commune_only',
         'commune_not_found', 'commune_ambiguous', 'level_crossing_not_found', 'outside_france',
-        'no_location', 'no_line', 'line_uncertain', 'hinted_line_far', 'place_from_list',
+        'no_location', 'no_line', 'line_uncertain', 'hinted_line_far', 'place_from_list', 'list_kind_hidden',
     ];
 
     /** Éléments rangés parmi les accidents qui n'en sont pas (vérifiés à la main). */
@@ -51,6 +51,12 @@ final class AccidentImporter
 
     /** … ou même commune et dates à une semaine près (divergence signalée). */
     private const SAME_COMMUNE_MAX_DAYS = 7;
+
+    /** @var array<string, true> identifiants des puces de liste lues par cet import */
+    private array $listIds = [];
+
+    /** @var array<int, true> fiches de liste déjà retrouvées par rapprochement de secours pendant cet import */
+    private array $relinked = [];
 
     public function __construct(
         private readonly WikidataAccidentCollector $wikidata,
@@ -74,6 +80,13 @@ final class AccidentImporter
         $bea = in_array('bea-tt', $sources, true) ? $this->beaTt->collect($client) : [];
         $listed = in_array('wikipedia-list', $sources, true) ? $this->list->collect($client) : [];
         $result->collected = ['wikidata' => count($wd), 'bea-tt' => count($bea), 'wikipedia-list' => count($listed)];
+        $this->listIds = [];
+        $this->relinked = [];
+        foreach ($listed as $l) {
+            foreach ($l->sources as $s) {
+                $this->listIds[$s->externalId] = true;
+            }
+        }
         $result->rejected = ['wikidata' => $this->wikidata->rejected, 'bea-tt' => $this->beaTt->rejected];
         if ($this->beaTt->warning !== null) {
             $result->warnings[] = $this->beaTt->warning;
@@ -293,6 +306,13 @@ final class AccidentImporter
         if ($target->injuries === [] && isset($listed->injuries['wikipedia'])) {
             $target->injuries['wikipedia'] = $listed->injuries['wikipedia'];
         }
+        // Une puce seule ne masque jamais une fiche d'une autre source : la nature de la cible est
+        // gardée et la fiche signalée pour relecture.
+        if ($listed->kind !== null && in_array($listed->kind->value, AccidentKind::HIDDEN, true)) {
+            $target->note('list_kind_hidden', $listed->kind->value);
+
+            return;
+        }
         if ($target->kind === null || $target->kindSource === 'label') {
             $target->kind = $listed->kind ?? $target->kind;
             $target->kindSource = $listed->kind !== null ? $listed->kindSource : $target->kindSource;
@@ -314,6 +334,10 @@ final class AccidentImporter
             ->whereIn('external_id', array_map(fn (AccidentSourceRef $s) => $s->externalId, $c->sources))->value('accident_id');
         if ($attached !== null && Accident::query()->withoutGlobalScopes()->whereKey($attached)->whereHas('sources', $notFromList)->exists()) {
             return (int) $attached;
+        }
+        // Sans lieu, le rapprochement ne tiendrait qu'à la date : n'importe quel accident du même jour.
+        if ($c->communeInsee === null && ($c->lat === null || $c->lng === null)) {
+            return null;
         }
         $query = Accident::query()->withoutGlobalScopes()
             ->whereBetween('occurred_on', [Carbon::parse($c->date)->subDay()->toDateString(), Carbon::parse($c->date)->addDay()->toDateString()])
@@ -400,7 +424,7 @@ final class AccidentImporter
     /**
      * Attributs à écrire : bilan retenu, nom, résumé, rattachements, état de relecture.
      *
-     * @return array{attributes: array<string, mixed>, links: list<array<string, mixed>>, station: ?array{id: int, distance_m: int}}
+     * @return array{attributes: array<string, mixed>, links: list<array<string, mixed>>, station: ?array{id: int, distance_m: int}, review: bool}
      */
     public function prepare(AccidentCandidate $c): array
     {
@@ -463,7 +487,8 @@ final class AccidentImporter
                 'injuries' => $injuries['value'],
                 'toll_disputed' => $deaths['disputed'] || $injuries['disputed'],
             ]),
-            'review_status' => ($review ? AccidentReviewStatus::ToReview : AccidentReviewStatus::Ok)->value,
+            // Jamais « ok » à l'import : seule la vérification (vff:verify-accidents) confirme la date et le lieu.
+            'review_status' => AccidentReviewStatus::ToReview->value,
             'review_notes' => $c->notes !== [] ? $c->notes : null,
             'provenance' => array_filter([
                 'date' => $c->dateSource,
@@ -475,7 +500,7 @@ final class AccidentImporter
             ]),
         ];
 
-        return ['attributes' => $attributes, 'links' => $links, 'station' => $station];
+        return ['attributes' => $attributes, 'links' => $links, 'station' => $station, 'review' => $review];
     }
 
     /**
@@ -517,14 +542,21 @@ final class AccidentImporter
     /**
      * Écriture d'un accident, de ses rattachements et de ses sources (une transaction).
      *
-     * @param  array{attributes: array<string, mixed>, links: list<array<string, mixed>>, station: ?array{id: int, distance_m: int}}  $prepared
+     * Une fiche que la vérification a déjà confirmée (règle gardée dans `verification`) reste « ok » si
+     * l'import ne lui trouve aucun point à vérifier : rejouer l'import ne la fait pas osciller.
+     *
+     * @param  array{attributes: array<string, mixed>, links: list<array<string, mixed>>, station: ?array{id: int, distance_m: int}, review: bool}  $prepared
      */
     private function persist(AccidentCandidate $c, array $prepared, AccidentImportResult $result): Accident
     {
         return DB::transaction(function () use ($c, $prepared, $result): Accident {
             $accident = $this->existing($c) ?? new Accident;
             $created = ! $accident->exists;
+            $confirmed = ! $created && $accident->review_status === AccidentReviewStatus::Ok && ($accident->verification['rule'] ?? null) !== null;
             $accident->fill($prepared['attributes'] + ['imported_at' => now()]);
+            if ($confirmed && ! $prepared['review']) {
+                $accident->review_status = AccidentReviewStatus::Ok;
+            }
             if ($created) {
                 $accident->slug = $this->uniqueSlug($c, $prepared['attributes']['name']['fr']);
             }
@@ -593,7 +625,43 @@ final class AccidentImporter
             }
         }
 
-        return null;
+        return str_starts_with($c->key, 'wikipedia-list:') ? $this->relinkedListAccident($c) : null;
+    }
+
+    /**
+     * Rapprochement de secours d'une puce de liste dont l'identifiant a changé (lieu ou bilan corrigé sur
+     * Wikipédia) : la fiche de liste du même jour dont la puce n'a pas été relue, à la même commune, ou à
+     * défaut au même bilan et à la même nature. Une seule fiche doit répondre, sinon aucune n'est choisie
+     * (une nouvelle fiche vaut mieux que deux accidents mélangés).
+     */
+    private function relinkedListAccident(AccidentCandidate $c): ?Accident
+    {
+        if ($c->date === null || $c->precision !== AccidentDatePrecision::Day) {
+            return null;
+        }
+        $orphans = Accident::query()->withoutGlobalScopes()->whereNull('wikidata_id')
+            ->whereDate('occurred_on', $c->date)
+            ->whereHas('sources', fn ($q) => $q->where('provider', 'wikipedia')->where('role', 'list'))
+            ->whereDoesntHave('sources', fn ($q) => $q->where(fn ($w) => $w->where('provider', '!=', 'wikipedia')->orWhere('role', '!=', 'list')))
+            ->with('sources')
+            ->get()
+            ->filter(fn (Accident $a): bool => ! isset($this->relinked[$a->id])
+                && $a->sources->every(fn (AccidentSource $s): bool => ! isset($this->listIds[(string) $s->external_id])));
+
+        $kind = $c->kind ?? AccidentKind::Other;
+        $deaths = $c->deaths['wikipedia'] ?? null;
+        $sameCommune = $orphans->filter(fn (Accident $a): bool => $c->communeInsee !== null && $a->commune_insee === $c->communeInsee);
+        $sameFacts = $orphans->filter(fn (Accident $a): bool => $deaths !== null && $a->deaths === $deaths && $a->kind === $kind);
+        $match = match (true) {
+            $sameCommune->count() === 1 => $sameCommune->first(),
+            $sameCommune->isEmpty() && $sameFacts->count() === 1 => $sameFacts->first(),
+            default => null,
+        };
+        if ($match !== null) {
+            $this->relinked[$match->id] = true;
+        }
+
+        return $match;
     }
 
     /**

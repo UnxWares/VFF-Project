@@ -38,8 +38,15 @@ final class WikipediaListReader
     /** Articles dont le titre ne désigne pas un lieu. */
     private const NOT_PLACE = '/^(?:Ligne |LGV |Compagnie |Société |Chemin de fer|Réseau |Chemins de fer|Gare |Station |Halte |Tramway|Métro|Train |Trains |TGV|TER|RER|Intercités|Transilien|Corail|Autorail|Locomotive|Automotrice|Rame |Wagon|Voiture|Camion|Poids|Passage à niveau|Tunnel|Viaduc|Pont |Catégorie:|Fichier:|Image:|[A-Z]{1,3} ?\d|[A-Z]{1,4}$|\d)/u';
 
-    /** Un train qui heurte une personne (texte normalisé : minuscules, sans accents). */
-    private const PERSON_STRUCK = '/\b(?:percut\w*|heurt\w*|fauch\w*|happ\w*|ecras\w*|renvers\w*|tamponn\w*)\s+(?:(?:mortellement|fatalement|grievement|violemment)\s+)?(?:un |une |le |la |les |des |deux |trois |quatre |cinq |six |\d+ )?(?:jeunes? |vieux |vieille |autres? )?(?:pietons?|personnes?|hommes?|femmes?|dames?|enfants?|cyclistes?|ouvriers?|cheminots?|agents?|salaries?|promeneurs?|randonneurs?|passants?|adolescents?|voyageurs?|gamins?|fillettes?|garcons?|riverains?|techniciens?)\b/';
+    /**
+     * Un train qui heurte une personne (texte normalisé : minuscules, sans accents) : la personne est l'objet
+     * direct d'un verbe conjugué. Un participe présent (« la locomotive écrasant les voyageurs ») décrit les
+     * suites d'une autre collision, pas un heurt de personne.
+     */
+    private const PERSON_STRUCK = '/\b(?:percut|heurt|fauch|happ|ecras|renvers|tamponn)(?!\w*ant\b)\w*\s+(?:(?:mortellement|fatalement|grievement|violemment)\s+)?(?:un |une |le |la |les |des |deux |trois |quatre |cinq |six |\d+ )?(?:jeunes? |vieux |vieille |autres? )?(?:pietons?|personnes?|hommes?|femmes?|dames?|enfants?|cyclistes?|ouvriers?|cheminots?|agents?|salaries?|promeneurs?|randonneurs?|passants?|adolescents?|voyageurs?|gamins?|fillettes?|garcons?|riverains?|techniciens?)\b/';
+
+    /** Un train ou un véhicule heurté, ou deux trains qui se rencontrent : collision, jamais un heurt de personne. */
+    private const VEHICLE_STRUCK = '/\b(?:(?:percut|heurt|tamponn|prend|prennent)\w*\s+(?:(?:de plein fouet|en echarpe|par l arriere)\s+)?(?:un |une |le |la |les |l |des )?(?:autre |second |deuxieme )?(?:train|express|rapide|convoi|omnibus|locomotive|machine|rame|autorail|wagon|tgv|ter|marchandises|camion|autocar|car|bus|tracteur|voiture)\w*|se telescop\w*|en echarpe|collision)\b/';
 
     /** @var array<string, string> nom normalisé d'un département → code */
     private static array $departments = [];
@@ -207,7 +214,7 @@ final class WikipediaListReader
         $kind = $this->classifier->fromFrenchText($plain) ?? $this->classifier->fromNarrative($plain);
         $crossing = (bool) preg_match('/\b(?:passages? a niveau|pn)\b/', $normalized);
         if (! $crossing && ! preg_match('/\b(?:deraill\w*|collision entre)\b/', $normalized)
-            && preg_match(self::PERSON_STRUCK, $normalized)) {
+            && ! preg_match(self::VEHICLE_STRUCK, $normalized) && preg_match(self::PERSON_STRUCK, $normalized)) {
             return AccidentKind::PersonStruck;
         }
         if ($crossing && in_array($kind, [null, AccidentKind::Collision, AccidentKind::Derailment], true)) {

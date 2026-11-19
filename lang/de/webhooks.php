@@ -18,7 +18,7 @@ return [
         ],
         'accident_published' => [
             'label' => 'Neuer Unfall',
-            'hint' => 'Ein Import hat gerade einen Unfalleintrag veröffentlicht.',
+            'hint' => 'Ein Unfalleintrag wird veröffentlicht, sobald seine Quellen geprüft sind.',
         ],
         'material_published' => [
             'label' => 'Neues Rollmaterial',

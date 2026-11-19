@@ -16,8 +16,9 @@ use Throwable;
 /**
  * Information des titulaires d'un compte avant un changement important des CGU (« au moins
  * 15 jours avant son entrée en vigueur ») ou de la politique de confidentialité, sur le site
- * (page /notifications) et par courriel. Relancer la commande après des courriels en échec
- * renvoie les courriels sans doubler les notifications du site.
+ * (page /notifications) et par courriel. Un courriel parti est noté dans la notification du site
+ * (`data.mailed_at`) : relancer la commande après des courriels en échec ne reprend que les échecs,
+ * sans rien renvoyer aux membres déjà prévenus ni doubler les notifications du site.
  *
  *   php artisan vff:notify-legal-change use-conditions --effective=2027-01-15          # simulation
  *   php artisan vff:notify-legal-change use-conditions --effective=2027-01-15 --send   # envoi
@@ -74,18 +75,29 @@ class NotifyLegalChange extends Command
 
         $sent = 0;
         $failed = 0;
-        User::query()->lazyById(100)->each(function (User $user) use ($document, $effective, &$sent, &$failed): void {
+        $already = 0;
+        User::query()->lazyById(100)->each(function (User $user) use ($document, $effective, &$sent, &$failed, &$already): void {
             $notification = new LegalDocumentChanged($document, $effective);
+            $onSite = $this->onSite($user, $notification);
+            // Déjà prévenu, courriel compris : rien n'est renvoyé.
+            if ($onSite !== null && isset($onSite->data['mailed_at'])) {
+                $already++;
+
+                return;
+            }
             // Nouvel essai après un courriel en échec : la notification du site existe déjà, on ne
             // la double pas.
-            $channels = $this->alreadyOnSite($user, $notification) ? ['mail'] : ['database', 'mail'];
+            $channels = $onSite !== null ? ['mail'] : ['database', 'mail'];
             try {
                 $user->notifyNow($notification, $channels);
-                $sent++;
             } catch (Throwable $e) {
                 report($e);
                 $failed++;
+
+                return;
             }
+            $sent++;
+            $this->markMailed($onSite ?? $this->onSite($user, $notification));
         });
 
         $audit->record(AuditAction::MembersNotified, context: [
@@ -93,9 +105,13 @@ class NotifyLegalChange extends Command
             'effective_date' => $effective->format('Y-m-d'),
             'sent' => $sent,
             'failed' => $failed,
+            'already_notified' => $already,
         ]);
 
         $this->info(sprintf('%d membre(s) prévenu(s).', $sent));
+        if ($already > 0) {
+            $this->line(sprintf('%d membre(s) déjà prévenu(s) par courriel : rien ne leur a été renvoyé.', $already));
+        }
         if ($failed > 0) {
             $this->warn(sprintf('%d courriel(s) en échec : voir le journal de l\'application.', $failed));
 
@@ -105,12 +121,21 @@ class NotifyLegalChange extends Command
         return self::SUCCESS;
     }
 
-    /** Le membre a-t-il déjà, sur le site, la notification de ce même changement ? */
-    private function alreadyOnSite(User $user, LegalDocumentChanged $notification): bool
+    /** Notification du site de ce même changement, si le membre l'a déjà. */
+    private function onSite(User $user, LegalDocumentChanged $notification): ?DatabaseNotification
     {
         return $user->notifications()
             ->where('data->kind', NotificationKind::LegalDocumentChanged->value)
-            ->get(['data'])
-            ->contains(fn (DatabaseNotification $n): bool => $notification->isSameChange($n->data));
+            ->get()
+            ->first(fn (DatabaseNotification $n): bool => $notification->isSameChange($n->data));
+    }
+
+    /** Note dans la notification du site que le courriel est parti (relance : pas de second envoi). */
+    private function markMailed(?DatabaseNotification $notification): void
+    {
+        if ($notification === null) {
+            return;
+        }
+        $notification->forceFill(['data' => [...$notification->data, 'mailed_at' => now()->toIso8601String()]])->save();
     }
 }

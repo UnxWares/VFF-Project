@@ -41,6 +41,9 @@ final class AccidentVerificationResult
     /** @var list<string> titres d'articles de ligne cités qu'aucune ligne de VFF ne porte */
     public array $unresolvedLineTitles = [];
 
+    /** @var list<string> fiches publiques vérifiées pour la première fois, annoncées aux webhooks (accident.published) */
+    public array $announced = [];
+
     /** @var list<string> */
     public array $warnings = [];
 

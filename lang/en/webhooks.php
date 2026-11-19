@@ -18,7 +18,7 @@ return [
         ],
         'accident_published' => [
             'label' => 'New accident',
-            'hint' => 'An import has just published an accident record.',
+            'hint' => 'An accident record is published once its sources have been checked.',
         ],
         'material_published' => [
             'label' => 'New rolling stock',

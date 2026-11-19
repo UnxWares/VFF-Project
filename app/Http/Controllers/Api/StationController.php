@@ -129,7 +129,10 @@ class StationController extends Controller
      *   `opened_on`, `closed_on`, `passenger`, `freight`. Récupération :
      *   `fetched_at` (date de lecture par VFF) et `raw` (attributs bruts reçus,
      *   dont la forme dépend de la source : étiquettes OSM, champs SNCF,
-     *   éléments Wikidata, calage). Fiabilité : `match_method` (comment la source
+     *   éléments Wikidata, calage). Comme les tracés, ces attributs ne sont
+     *   republiés que pour une source sous licence ouverte vérifiée
+     *   (`provenance.license_status` = `verified`) : pour une autre source,
+     *   `raw` vaut `null` et `raw_withheld` vaut `true`. Fiabilité : `match_method` (comment la source
      *   a été rapprochée de la gare : `seed`, `uic`, `wikidata`, `osm_ref`,
      *   `name_near`, `near`), `distance_m` (écart à la position retenue),
      *   `geocoding` et `precision_m` (comment et à quelle précision la source

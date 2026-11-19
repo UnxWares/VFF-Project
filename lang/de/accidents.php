@@ -221,6 +221,7 @@ return [
         'verification_conflict' => 'Zwei Quellen widersprechen sich beim Datum oder beim Ort.',
         'alias_toll_mismatch' => 'Ein weiteres Wikidata-Element beschreibt denselben Unfall mit einer anderen Opferzahl.',
         'possible_duplicate' => 'Ein anderer Eintrag vom selben Tag beschreibt möglicherweise denselben Unfall.',
+        'list_kind_hidden' => 'Eine Wikipedia-Liste beschreibt möglicherweise einen Personenunfall: Die Art des Eintrags bleibt unverändert und muss noch geprüft werden.',
     ],
 
     // Von VFF verfasste Zusammenfassungen (AccidentSummary): ganze Sätze, Ort und Datum eingesetzt.

@@ -3,8 +3,10 @@
 namespace Tests\Feature\Api;
 
 use App\Models\LineSegment;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Testing\MakesGraphQLRequests;
 use Tests\Support\BuildsRailNetwork;
 use Tests\TestCase;
@@ -49,6 +51,20 @@ class SiteFiguresAndRouteApiTest extends TestCase
         $home = $this->get('/')->assertOk()->viewData('page')['props'];
         $this->assertSame($response->json('data.lines_count'), $home['stats']['lines_count']);
         $this->assertSame($response->json('data.profile'), $home['profile']);
+    }
+
+    public function test_the_data_fingerprint_is_computed_once_per_call_of_the_figures(): void
+    {
+        $fingerprints = 0;
+        DB::listen(function (QueryExecuted $query) use (&$fingerprints): void {
+            $fingerprints += str_contains($query->sql, 'MAX(updated_at) FROM line_segments') ? 1 : 0;
+        });
+
+        $this->getJson('/api/v1/stats')->assertOk();
+        $this->assertSame(1, $fingerprints, 'compteurs et courbe partagent la même empreinte');
+
+        $this->graphQL('{ stats { lines_count profile { year } } }')->assertJsonMissingPath('errors');
+        $this->assertSame(2, $fingerprints);
     }
 
     public function test_graphql_stats_match_the_rest_figures(): void

@@ -129,6 +129,12 @@ class WikipediaListReaderTest extends TestCase
         yield 'verbe de collision' => ['un express percute un train de marchandises à l\'arrêt', AccidentKind::Collision];
         yield 'train qui se renverse' => ['la locomotive et six wagons se renversent', AccidentKind::Derailment];
         yield 'verbe sans nature' => ['le train arrive en gare avec du retard', null];
+        // Faux heurts de personne : les victimes sont les voyageurs d'une collision entre trains.
+        yield 'voyageurs écrasés par une collision' => ['un express tamponne un train de marchandises à l\'arrêt, la locomotive écrasant les voyageurs de la voiture de tête, 12 morts', AccidentKind::Collision];
+        yield 'participe présent' => ['la machine se couche sur le quai, renversant les voyageurs qui attendaient', AccidentKind::Derailment];
+        yield 'train heurté puis voyageurs' => ['un rapide heurte un omnibus et fauche les voyageurs qui en descendaient', AccidentKind::Collision];
+        yield 'deux trains se télescopent' => ['deux trains se télescopent, écrasant des voyageurs', AccidentKind::Collision];
+        yield 'piéton fauché' => ['un train fauche un piéton qui traversait les voies', AccidentKind::PersonStruck];
     }
 
     #[DataProvider('kinds')]
