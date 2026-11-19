@@ -368,6 +368,20 @@ class LineSheetPageTest extends TestCase
         );
     }
 
+    public function test_dual_cab_range_counts_both_systems_and_names_them_once(): void
+    {
+        DB::table('line_signalling')->insert(['line_id' => $this->line->id, 'era_id' => $this->eras[2030]->id, 'pk_start_m' => 7300, 'pk_end_m' => 14600,
+            'signalling' => 'ETCS_L2', 'signalling_systems' => json_encode(['ETCS_L2', 'TVM-300']),
+            'train_protection' => json_encode(['ERTMS_L2', 'TVM-300']), 'kvb_equipped' => false, 'created_at' => now(), 'updated_at' => now()]);
+
+        $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('stats.signalling', 'BAPR-VB, ETCS_L2, TVM-300')
+            ->where('signalling.1.signalling_systems', ['ETCS_L2', 'TVM-300'])
+            // La TVM est nommée comme cantonnement : pas une seconde fois dans le contrôle de vitesse.
+            ->where('signalling.1.train_protection', ['ERTMS_L2'])
+        );
+    }
+
     public function test_line_without_any_segment_has_no_phase(): void
     {
         $empty = Line::factory()->create(['type' => null, 'alt_names' => null, 'description' => null]);

@@ -1229,7 +1229,9 @@
         openPopup(lngLat, html(popupLink(href, 'maps.level_crossings.view_line')), href);
     }
 
-    // Couches des deux calques sous les accidents, l'itinéraire et les gares.
+    // Couches des deux calques sous les accidents, l'itinéraire et les gares. Ordre d'empilement des
+    // calques facultatifs, de haut en bas : accidents, passages à niveau, signalisation, puis le
+    // réseau ; le fond OpenRailwayMap (image) reste sous le réseau.
     function overlayBefore() {
         return [ACCIDENT_AREA_LAYER_ID, ...ROUTE_LAYERS, 'vff-stations-points'].find((id) =>
             map.getLayer(id),
@@ -1279,7 +1281,11 @@
                 tiles: [signallingTilesUrl(window.location.origin, currentEra, bustParam())],
                 maxzoom: 14,
             });
-            const before = overlayBefore();
+            // Calques superposés : les tranches (des lignes) passent sous les passages à niveau
+            // (des points), quel que soit l'ordre dans lequel on les coche.
+            const before = map.getLayer(LEVEL_CROSSING_LAYER_ID)
+                ? LEVEL_CROSSING_LAYER_ID
+                : overlayBefore();
             for (const layer of signallingLayers()) map.addLayer(layer, before);
             map.on('click', (e) => {
                 if (accidentAt(e.point) || levelCrossingAt(e.point) || stationAt(e.point)) return;

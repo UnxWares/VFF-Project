@@ -34,7 +34,7 @@
     import SeoHead from '$components/SeoHead.svelte';
     import { breadcrumbSchema, lineSchema } from '$lib/structuredData.js';
     import { servicePeriodText } from '$lib/materialFacts.js';
-    import { signallingWithGaps } from '$lib/signallingMap.js';
+    import { signallingSystems, signallingWithGaps, systemsLabel } from '$lib/signallingMap.js';
     import {
         bestPhaseIndex,
         categoryColor,
@@ -175,6 +175,8 @@
     }
     const isCabin = (sig) => /^(TVM-|ETCS_)/.test(sig);
     const hasCabin = $derived(signalling.some((r) => isCabin(r.signalling)));
+    // Tranches à deux systèmes installés ensemble (ETCS niveau 2 et TVM sur les LGV récentes).
+    const hasDual = $derived(signalling.some((r) => signallingSystems(r).length > 1));
     // Tranches dans l'ordre des PK, avec les trous des données intercalés (clé stable par tranche).
     const signallingRows = $derived(
         signallingWithGaps(signalling.map((r, i) => ({ ...r, key: `r-${i}` }))),
@@ -435,6 +437,7 @@
     const signallingIntro = $derived(
         t('lines.sheet.tech.signalling_intro') +
             (line.is_lgv && hasCabin ? ` ${t('lines.sheet.tech.signalling_intro_cab')}` : '') +
+            (hasDual ? ` ${t('lines.sheet.tech.signalling_intro_dual')}` : '') +
             ` ${t('lines.sheet.tech.signalling_today')}`,
     );
     /** Liste « code sur N km » (stats.*_coverage), sinon la liste simple des codes. */
@@ -1091,7 +1094,7 @@
                                                         ? t('lines.signalling.cabin')
                                                         : t('lines.signalling.block')}</span
                                                 >
-                                                {sigLabel(r.signalling)}</span
+                                                {systemsLabel(r, t)}</span
                                             >
                                         </p>
                                         {#if r.train_protection.length || r.kvb_equipped}

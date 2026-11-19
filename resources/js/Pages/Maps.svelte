@@ -13,10 +13,12 @@
     import RouteCompareKey from '$components/Map/RouteCompareKey.svelte';
     import EraViewSwitch from '$components/Map/EraViewSwitch.svelte';
     import EraCompareBar from '$components/Map/EraCompareBar.svelte';
+    import LayerPicker from '$components/Map/LayerPicker.svelte';
     import { i18n } from '$lib/i18n.js';
     import { defaultPair, readViewParams, writeViewParams } from '$lib/epochViews.js';
     import { ACCIDENTS_URL, accidentYears, countAccidents } from '$lib/accidentMap.js';
     import { LEVEL_CROSSING_MIN_ZOOM } from '$lib/levelCrossingMap.js';
+    import { NO_ORM, TODAY_ONLY_LAYERS, readLayers, writeLayers } from '$lib/mapLayers.js';
 
     // « Lire la carte » : ce que montre la carte, au présent (vocabulaire de la légende).
     const READING = ['era', 'views', 'color', 'line', 'sheet', 'route', 'layers'];
@@ -45,8 +47,11 @@
     let colorMode = $state('traffic');
     let mapFrameEl = $state();
     let embedModalOpen = $state(false);
-    let overlay = $state('none');
-    // Calque « Accidents » (un choix du sélecteur de calques) : points chargés au premier affichage.
+    // Calques facultatifs (bouton « Calques ») : ceux de VFF, cochés librement et superposés, et un
+    // fond OpenRailwayMap au plus (lib/mapLayers.js).
+    let dataLayers = $state([]);
+    let ormLayer = $state(NO_ORM);
+    // Calque « Accidents » : points chargés au premier affichage.
     let accidentData = $state.raw(null);
     let accidentsState = $state('idle');
     let drawerLine = $state(null);
@@ -119,27 +124,13 @@
             : { top: 60, right: 52, bottom: 28 + keyRoom, left: 16 };
     };
 
-    const OVERLAY_OPTIONS = [
-        { value: 'none', labelKey: 'maps.overlay.none' },
-        { value: 'orm-standard', labelKey: 'maps.overlay.orm_standard' },
-        { value: 'orm-maxspeed', labelKey: 'maps.overlay.orm_maxspeed' },
-        { value: 'orm-signals', labelKey: 'maps.overlay.orm_signals' },
-        { value: 'orm-electrification', labelKey: 'maps.overlay.orm_electrification' },
-        { value: 'orm-gauge', labelKey: 'maps.overlay.orm_gauge' },
-        { value: 'accidents', labelKey: 'maps.overlay.accidents' },
-        { value: 'level-crossings', labelKey: 'maps.overlay.level_crossings' },
-        { value: 'signalling', labelKey: 'maps.overlay.signalling' },
-    ];
-    // Calques VFF (pas des tuiles raster OpenRailwayMap) : la carte reçoit alors overlay = 'none'.
-    const VFF_OVERLAYS = ['accidents', 'level-crossings', 'signalling'];
-
-    const showAccidents = $derived(overlay === 'accidents');
+    const showAccidents = $derived(dataLayers.includes('accidents'));
     // Passages à niveau et signalisation : seul l'état d'aujourd'hui est connu (SNCF Réseau). Hors de
     // la carte d'aujourd'hui, un message le dit et propose d'y revenir.
-    const todayOnlyOverlay = $derived(overlay === 'level-crossings' || overlay === 'signalling');
+    const todayOnlyLayers = $derived(dataLayers.filter((k) => TODAY_ONLY_LAYERS.includes(k)));
     const showingToday = $derived(view === 'era' && selectedEra === currentEraYear);
-    const showLevelCrossings = $derived(overlay === 'level-crossings' && showingToday);
-    const showSignalling = $derived(overlay === 'signalling' && showingToday);
+    const showLevelCrossings = $derived(dataLayers.includes('level-crossings') && showingToday);
+    const showSignalling = $derived(dataLayers.includes('signalling') && showingToday);
     // Zoom de la carte, pour l'aide « zoomez pour voir les passages à niveau ».
     let mapZoom = $state(0);
 
@@ -148,18 +139,29 @@
         selectedEra = currentEraYear;
     }
 
-    function setOverlay(value) {
-        overlay = value;
-        // L'adresse suit le calque choisi (?layer=…), pour pouvoir la partager.
-        const url = new URL(window.location.href);
-        if (value === 'none') url.searchParams.delete('layer');
-        else url.searchParams.set('layer', value);
-        if (url.href !== window.location.href) {
-            window.history.replaceState(window.history.state, '', url.href);
+    // L'adresse suit les calques choisis (?layer=…&layer=…), pour pouvoir la partager.
+    function writeLayerParams() {
+        const next = writeLayers(window.location.href, { data: dataLayers, orm: ormLayer });
+        if (next !== window.location.href) {
+            window.history.replaceState(window.history.state, '', next);
         }
-        if (value === 'accidents' && accidentsState !== 'ready' && accidentsState !== 'loading') {
+    }
+
+    function setDataLayers(next) {
+        dataLayers = next;
+        writeLayerParams();
+        if (
+            next.includes('accidents') &&
+            accidentsState !== 'ready' &&
+            accidentsState !== 'loading'
+        ) {
             loadAccidents();
         }
+    }
+
+    function setOrmLayer(next) {
+        ormLayer = next;
+        writeLayerParams();
     }
 
     async function loadAccidents() {
@@ -187,8 +189,32 @@
         return { state: accidentsState, count: countAccidents(accidentData, years), ...years };
     });
 
-    // Adresse partageable : ?era=1930, ?era=1930&compare=1980, ?view=stack, et ?layer=… pour un
-    // calque (lue au montage).
+    // Messages des calques posés sur la carte : échec des accidents, calques connus seulement
+    // aujourd'hui (une phrase pour un ou deux calques), aide au zoom des passages à niveau.
+    const mapNotices = $derived.by(() => {
+        const out = [];
+        if (showAccidents && accidentsState === 'error')
+            out.push({ key: 'accidents', text: $i18n.t('maps.accidents.error') });
+        if (todayOnlyLayers.length && !showingToday) {
+            const key =
+                todayOnlyLayers.length > 1
+                    ? 'maps.layers.current_only_both'
+                    : todayOnlyLayers[0] === 'signalling'
+                      ? 'maps.signalling.current_only'
+                      : 'maps.level_crossings.current_only';
+            out.push({ key: 'today', text: $i18n.t(key) });
+        }
+        if (showLevelCrossings && mapZoom < LEVEL_CROSSING_MIN_ZOOM)
+            out.push({
+                key: 'zoom',
+                icon: 'bi-zoom-in',
+                text: $i18n.t('maps.level_crossings.zoom_hint'),
+            });
+        return out;
+    });
+
+    // Adresse partageable : ?era=1930, ?era=1930&compare=1980, ?view=stack, et ?layer=… pour
+    // chaque calque (lue au montage).
     onMount(() => {
         const fromUrl = readViewParams(window.location.search, eras);
         if (fromUrl.era !== null) selectedEra = fromUrl.era;
@@ -197,11 +223,10 @@
             compareTo = fromUrl.compare;
         }
         view = fromUrl.view;
-        // Calque demandé par un lien (fiche ligne : « Voir la signalisation sur la carte »).
-        const layer = new URLSearchParams(window.location.search).get('layer');
-        if (layer && layer !== 'none' && OVERLAY_OPTIONS.some((o) => o.value === layer)) {
-            setOverlay(layer);
-        }
+        // Calques demandés par un lien (fiche ligne : « Voir la signalisation sur la carte »).
+        const layers = readLayers(window.location.search);
+        ormLayer = layers.orm;
+        setDataLayers(layers.data);
     });
 
     $effect(() => {
@@ -257,21 +282,10 @@
                             <EraViewSwitch bind:view={() => view, setView} />
                         </div>
                         <div class="toolbar-tools">
-                            <label class="overlay-label" for="map-overlay">
-                                <i class="bi bi-layers" aria-hidden="true"></i>
-                                <span class="overlay-label-text"
-                                    >{$i18n.t('maps.overlay.label')}</span
-                                >
-                            </label>
-                            <select
-                                id="map-overlay"
-                                class="vff-select overlay-select"
-                                bind:value={() => overlay, setOverlay}
-                            >
-                                {#each OVERLAY_OPTIONS as opt (opt.value)}
-                                    <option value={opt.value}>{$i18n.t(opt.labelKey)}</option>
-                                {/each}
-                            </select>
+                            <LayerPicker
+                                bind:data={() => dataLayers, setDataLayers}
+                                bind:orm={() => ormLayer, setOrmLayer}
+                            />
                             <button
                                 type="button"
                                 class="vff-btn secondary embed-btn"
@@ -292,7 +306,7 @@
                         currentEra={currentEraYear}
                         {hidden}
                         mode={colorMode}
-                        overlay={VFF_OVERLAYS.includes(overlay) ? 'none' : overlay}
+                        overlay={ormLayer}
                         accidents={showAccidents ? accidentData : null}
                         levelCrossings={showLevelCrossings}
                         signalling={showSignalling}
@@ -317,51 +331,54 @@
                                 bind:hidden
                                 bind:mode={colorMode}
                                 accidents={accidentLegend}
-                                overlay={todayOnlyOverlay && showingToday ? overlay : null}
+                                overlays={showingToday ? todayOnlyLayers : []}
                             />
                         </div>
-                        {#if view === 'era' && selectedIsEmpty}
-                            <p class="era-empty">
-                                <i class="bi bi-hourglass-split" aria-hidden="true"></i>
-                                {$i18n.t('maps.era.no_data', { year: selectedEra })}
-                            </p>
-                        {:else if showAccidents && accidentsState === 'error'}
-                            <p class="era-empty">{$i18n.t('maps.accidents.error')}</p>
-                        {:else if todayOnlyOverlay && !showingToday}
-                            <div class="era-empty today-only">
-                                <p>
-                                    {$i18n.t(
-                                        overlay === 'signalling'
-                                            ? 'maps.signalling.current_only'
-                                            : 'maps.level_crossings.current_only',
-                                    )}
-                                </p>
-                                <button type="button" class="vff-btn secondary" onclick={showToday}>
-                                    {$i18n.t('maps.level_crossings.show_today')}
-                                </button>
+                        <!-- Messages posés sur la carte, les uns sous les autres (jamais superposés). -->
+                        {#if (view === 'era' && selectedIsEmpty) || mapNotices.length}
+                            <div class="map-notices">
+                                {#if view === 'era' && selectedIsEmpty}
+                                    <p class="era-empty">
+                                        <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                                        {$i18n.t('maps.era.no_data', { year: selectedEra })}
+                                    </p>
+                                {/if}
+                                {#each mapNotices as notice (notice.key)}
+                                    {#if notice.key === 'today'}
+                                        <div class="era-empty today-only">
+                                            <p>{notice.text}</p>
+                                            <button
+                                                type="button"
+                                                class="vff-btn secondary"
+                                                onclick={showToday}
+                                            >
+                                                {$i18n.t('maps.level_crossings.show_today')}
+                                            </button>
+                                        </div>
+                                    {:else}
+                                        <p class="era-empty">
+                                            {#if notice.icon}<i
+                                                    class="bi {notice.icon}"
+                                                    aria-hidden="true"
+                                                ></i>{/if}
+                                            {notice.text}
+                                        </p>
+                                    {/if}
+                                {/each}
                             </div>
-                        {:else if showLevelCrossings && mapZoom < LEVEL_CROSSING_MIN_ZOOM}
-                            <p class="era-empty">
-                                <i class="bi bi-zoom-in" aria-hidden="true"></i>
-                                {$i18n.t('maps.level_crossings.zoom_hint')}
-                            </p>
                         {/if}
-                        <!-- Chargement ou échec du calque « Accidents », aide au zoom des passages à
-                             niveau : annoncés aussi quand la légende est repliée (téléphone). -->
+                        <!-- Chargement ou échec du calque « Accidents », calques du réseau d'aujourd'hui,
+                             aide au zoom des passages à niveau : annoncés aussi quand la légende est
+                             repliée (téléphone). -->
                         <p class="vff-sr-only" role="status">
-                            {#if showAccidents && accidentsState === 'loading'}
-                                {$i18n.t('maps.accidents.loading')}
-                            {:else if showAccidents && accidentsState === 'error'}
-                                {$i18n.t('maps.accidents.error')}
-                            {:else if todayOnlyOverlay && !showingToday}
-                                {$i18n.t(
-                                    overlay === 'signalling'
-                                        ? 'maps.signalling.current_only'
-                                        : 'maps.level_crossings.current_only',
-                                )}
-                            {:else if showLevelCrossings && mapZoom < LEVEL_CROSSING_MIN_ZOOM}
-                                {$i18n.t('maps.level_crossings.zoom_hint')}
-                            {/if}
+                            {[
+                                showAccidents && accidentsState === 'loading'
+                                    ? $i18n.t('maps.accidents.loading')
+                                    : '',
+                                ...mapNotices.map((n) => n.text),
+                            ]
+                                .filter(Boolean)
+                                .join(' ')}
                         </p>
                         {#if routeComparison && view === 'era'}
                             <div class="route-key-slot">
@@ -600,25 +617,6 @@
         flex: none;
         min-width: 0;
     }
-    .overlay-label {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-sm);
-        font-weight: 600;
-        color: var(--vff-text);
-        white-space: nowrap;
-    }
-    .overlay-label .bi {
-        color: var(--vff-text-muted);
-    }
-    .overlay-select {
-        width: auto;
-        max-width: 20rem;
-        min-width: 0;
-    }
-
     /* Calques posés sur la carte (dans son cadre, sous les boutons de MapLibre). La légende a un
        haut et un bas : elle défile au lieu de dépasser, et laisse voir l'échelle. */
     .legend-slot {
@@ -657,18 +655,32 @@
         box-shadow: var(--vff-shadow-popover);
     }
 
-    .era-empty {
+    /* Messages sur la carte, centrés en haut, empilés quand plusieurs s'appliquent (accidents en
+       échec, réseau d'aujourd'hui seulement, aide au zoom). */
+    .map-notices {
         position: absolute;
         top: 12px;
         left: 50%;
         z-index: 2;
         display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        width: max-content;
+        max-width: min(420px, calc(100% - 340px));
+        transform: translateX(-50%);
+        pointer-events: none;
+    }
+    .map-notices > * {
+        pointer-events: auto;
+    }
+    .era-empty {
+        display: flex;
         gap: 8px;
         align-items: baseline;
-        max-width: min(420px, calc(100% - 340px));
+        max-width: 100%;
         margin: 0;
         padding: 8px 12px;
-        transform: translateX(-50%);
         border: 1px solid var(--vff-border-strong);
         border-radius: var(--vff-radius-md);
         background-color: var(--vff-bg-elevated);
@@ -723,24 +735,10 @@
         display: none;
     }
 
-    /* Tablette : une seule rangée d'outils (plus de hauteur pour la carte) ; « Calque » est lu,
-       l'icône reste ; la légende est repliée, le bandeau « pas encore de données » descend. */
-    /* Jusqu'à 1 400 px : recherche, vue, calque et « Intégrer » tiennent sur une rangée ; le mot
-       « Calque » reste lu, l'icône le montre. */
+    /* Jusqu'à 1 400 px : recherche, vue, calques et « Intégrer » tiennent sur une rangée. */
     @media (max-width: 1400px) {
         .toolbar-search {
             flex-basis: 240px;
-        }
-        .overlay-label-text {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
-            clip-path: inset(50%);
-            white-space: nowrap;
-        }
-        .overlay-select {
-            max-width: 14rem;
         }
     }
     @media (max-width: 900px) {
@@ -754,23 +752,13 @@
         .toolbar-tools {
             margin-left: 0;
         }
-        .overlay-label-text {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
-            clip-path: inset(50%);
-            white-space: nowrap;
-        }
-        .overlay-select {
-            max-width: 13rem;
-        }
-        .era-empty {
+        /* Tablette : la légende est repliée, les messages descendent sous son bouton. */
+        .map-notices {
             top: 60px;
             max-width: calc(100% - 24px);
         }
     }
-    /* Téléphone : recherche et calque sur une rangée ; « Intégrer » (tâche d'ordinateur) passe sous
+    /* Téléphone : recherche et calques sur une rangée ; « Intégrer » (tâche d'ordinateur) passe sous
        la carte ; les raccourcis du titre aussi (la page continue juste en dessous). */
     @media (max-width: 600px) {
         /* Hauteur minimale plutôt que fixe : avec le choix de la vue et le résumé de la
@@ -801,9 +789,6 @@
         .toolbar-tools {
             flex: none;
             gap: 6px;
-        }
-        .overlay-select {
-            width: 7.5rem;
         }
         .toolbar-tools .embed-btn {
             display: none;

@@ -30,16 +30,29 @@ return [
     ],
 
     'overlay' => [
-        'label' => 'Overlay',
         'none' => 'None',
-        'orm_standard' => 'OpenRailwayMap - Infrastructure',
-        'orm_maxspeed' => 'OpenRailwayMap - Max speeds',
-        'orm_signals' => 'OpenRailwayMap - Signals',
-        'orm_electrification' => 'OpenRailwayMap - Electrification',
-        'orm_gauge' => 'OpenRailwayMap - Gauge',
         'accidents' => 'Accidents',
         'level_crossings' => 'Level crossings',
         'signalling' => 'Signalling',
+    ],
+
+    // "Layers" button of the toolbar: VFF layers to tick, at most one OpenRailwayMap background.
+    'layers' => [
+        'button' => 'Layers',
+        'active_one' => ':count layer shown',
+        'active_other' => ':count layers shown',
+        'data_legend' => 'Add to the map',
+        'today_hint' => 'Level crossings and signalling: today’s network only.',
+        'orm_legend' => 'OpenRailwayMap background',
+        'orm_hint' => 'One background at a time, under the VFF lines.',
+        'current_only_both' => 'Level crossings and signalling are only known for today’s network.',
+        'orm' => [
+            'standard' => 'Infrastructure',
+            'maxspeed' => 'Max speeds',
+            'signals' => 'Signals',
+            'electrification' => 'Electrification',
+            'gauge' => 'Gauge',
+        ],
     ],
 
     'legend' => [
@@ -212,7 +225,7 @@ return [
         'route_term' => 'Journey',
         'route_text' => 'Enter two stations and a year: the map draws the journey on the network in service at that time and lists the lines used. With “Compare with another period”, the same journey is drawn for a second year, dashed on a blue edge for the earlier one.',
         'layers_term' => 'Overlays',
-        'layers_text' => 'The OpenRailwayMap overlay adds today\'s infrastructure: signals, speeds, electrification. The clock button, at the top right of the map, shows old IGN maps. The Accidents overlay shows the accidents that happened up to the period displayed; a pale circle means only the municipality is known. The Level crossings overlay shows the crossings published by SNCF Réseau, from the scale of a département. The Signalling overlay colours today’s lines by block system.',
+        'layers_text' => 'The Layers button, above the map, shows several overlays at once. An OpenRailwayMap background (one at a time) adds today\'s infrastructure: signals, speeds, electrification. The clock button, at the top right of the map, shows old IGN maps. The Accidents overlay shows the accidents that happened up to the period displayed; a pale circle means only the municipality is known. The Level crossings overlay shows the crossings published by SNCF Réseau, from the scale of a département. The Signalling overlay colours today’s lines by block system.',
         'views_term' => 'Comparing eras',
         'views_text' => 'The "View" choice above the map compares two decades (lines opened, closed or lifted in between) or stacks every era to show when each line left service. The page address keeps this choice, so you can share it.',
     ],
@@ -292,7 +305,7 @@ return [
         'note' => 'Accidents whose place is not known are only in the list.',
         'list_link' => 'List of accidents',
         'loading' => 'Loading accidents…',
-        'error' => 'The accidents could not be loaded. Select the overlay again to retry.',
+        'error' => 'The accidents could not be loaded. Untick the layer and tick it again to retry.',
         'view_sheet' => 'View the accident page',
     ],
 

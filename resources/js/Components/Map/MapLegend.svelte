@@ -40,8 +40,9 @@
      *   accidents   : calque « Accidents » affiché ({ state: 'loading'|'error'|'ready', count, from,
      *                 to } : années montrées, cf. accidentYears) ou null ; ses symboles, la période,
      *                 le nombre d'accidents localisés et le lien vers la liste ouvrent la légende
-     *   overlay     : calque du réseau d'aujourd'hui affiché, 'level-crossings' ou 'signalling'
-     *                 (null sinon) ; ses teintes et ses limites ouvrent la légende
+     *   overlays    : calques du réseau d'aujourd'hui affichés, 'level-crossings' et/ou
+     *                 'signalling' ; leurs teintes et leurs limites suivent les accidents, dans
+     *                 l'ordre d'empilement de la carte (points au-dessus des lignes)
      */
     let {
         era = null,
@@ -52,7 +53,7 @@
         view = 'era',
         compareEra = null,
         accidents = null,
-        overlay = null,
+        overlays = [],
     } = $props();
 
     const uid = $props.id();
@@ -223,13 +224,16 @@
     </button>
 
     <div class="legend-body" id={bodyId} hidden={!open}>
-        <!-- Calque choisi par le visiteur : en tête, visible sans faire défiler la légende. -->
+        <!-- Calques choisis par le visiteur : en tête, visibles sans faire défiler la légende, un
+             bloc par calque séparé par un filet, de haut en bas comme sur la carte. -->
         {#if accidents}
-            {@render accidentsBody()}
-        {:else if overlay === 'level-crossings'}
-            {@render levelCrossingsBody()}
-        {:else if overlay === 'signalling'}
-            {@render signallingBody()}
+            <div class="overlay-block">{@render accidentsBody()}</div>
+        {/if}
+        {#if overlays.includes('level-crossings')}
+            <div class="overlay-block">{@render levelCrossingsBody()}</div>
+        {/if}
+        {#if overlays.includes('signalling')}
+            <div class="overlay-block">{@render signallingBody()}</div>
         {/if}
         {#if view === 'compare'}
             <ul class="view-rows">
@@ -693,8 +697,14 @@
     }
     .legend-more {
         margin: 6px 0 0;
+    }
+    /* Un bloc par calque facultatif, fermé par un filet avant le bloc suivant ou le réseau. */
+    .overlay-block {
         padding-bottom: 10px;
         border-bottom: 1px solid var(--vff-border);
+    }
+    .overlay-block + .overlay-block {
+        padding-top: 4px;
     }
     .accidents-group,
     .overlay-group {

@@ -255,9 +255,21 @@ type LineSignallingRange {
     `CAPI` (cantonnement assisté par informatique), `CT` (cantonnement téléphonique de double voie),
     `TVM-300` / `TVM-430` (signalisation en cabine des LGV, sans signaux latéraux),
     `ETCS_L1` / `ETCS_L2`. Suffixes : `-VB` voie banalisée (circulation dans les deux sens
-    sur chaque voie), `-VU` voie unique, `-Tram` section tram-train.
+    sur chaque voie), `-VU` voie unique, `-Tram` section tram-train. Quand deux systèmes sont
+    installés ensemble, c'est le premier du libellé de SNCF Réseau : voir `signalling_systems`.
     """
     signalling: String!
+
+    """
+    Tous les systèmes de cantonnement installés sur la tranche, code principal (`signalling`)
+    en premier. En général un seul ; deux sur les LGV équipées à la fois de l'ETCS niveau 2 et de
+    la TVM : `["ETCS_L2", "TVM-300"]` (LGV Bretagne - Pays de la Loire, LGV SEA),
+    `["ETCS_L2", "TVM-430"]` (LGV Est).
+    """
+    signalling_systems: [String!]!
+
+    "Libellé de SNCF Réseau tel quel (ex. « European train control system 2/Transmission voie-machine 300 »), null pour une tranche d'une autre source."
+    source_label: String
 
     """
     Systèmes de contrôle de vitesse installés sur la tranche : `KVB`, `KVBP`, `TVM-300`,
@@ -2308,7 +2320,7 @@ type LineVoltage {
 
 "Signalisation de la ligne à l'ère affichée (SNCF Réseau Open Data, ODbL)."
 type LineSheetSignalling {
-    "Longueur par mode de cantonnement (`BAL`, `BAPR-VB`, `CT-VU`…)."
+    "Longueur par mode de cantonnement (`BAL`, `BAPR-VB`, `CT-VU`…) ; une tranche à deux systèmes (ETCS niveau 2 et TVM) compte pour chacun."
     block_systems_km: [KmByCode!]!
 
     "Longueur par système de contrôle de vitesse (`KVB`, `TVM 430`, `ETCS 2`…)."

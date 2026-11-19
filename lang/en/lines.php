@@ -120,6 +120,8 @@ return [
         'protection' => 'Train protection:',
         'cabin' => 'Cab signalling:',
         'block' => 'Block system:',
+        // Entre les deux derniers systèmes d'une tranche : « ETCS niveau 2 et TVM 300 ».
+        'and' => 'and',
         'codes' => [
             'BAL' => 'BAL, automatic light block',
             'BAL-VB' => 'BAL, bidirectional track',
@@ -506,6 +508,7 @@ return [
             'pk_title' => 'kilometre point (PK)',
             'signalling_intro' => 'Block system (train spacing: BAL, BAPR, BM…) and train protection (KVB, TVM, ETCS) along the route, current state. Source: SNCF Réseau Open Data (block systems, lines fitted with KVB).',
             'signalling_intro_cab' => 'On the high-speed stretches, signalling is in the cab.',
+            'signalling_intro_dual' => 'On some stretches, ETCS level 2 and TVM are installed together; the list gives both.',
             'signalling_gap' => 'No block system in the SNCF Réseau data: section without one, missing from the data, or a break in the kilometre post numbering.',
             'signalling_today' => 'Only the current state is known: how signalling changed over the decades is not yet in the data.',
             'signalling_map' => 'View signalling on the map',

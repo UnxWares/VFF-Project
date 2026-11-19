@@ -180,8 +180,10 @@ Renvoie `line` :
 - `electrification` : `state` (`none`, `marginal` moins de 5 %, `partial`, `full` 95 % et plus),
   `state_label`, `km`, `pct`, `voltages` (`voltage_v`, `km`) ;
 - `signalling` : `block_systems_km` (cantonnement : `BAL`, `BAPR-VB`, `CT-VU`, `TVM-430`,
-  `ETCS_2`…, avec km), `train_protection_km` (contrôle de vitesse, ex. `KVB`), `kvb`, `source`
-  (`sncf`, SNCF Réseau Open Data) ;
+  `ETCS_L2`…, avec km ; une tranche où l'ETCS niveau 2 et la TVM sont installés ensemble, comme
+  sur la LGV Est, la LGV Bretagne - Pays de la Loire ou la LGV SEA, compte pour chacun des deux),
+  `train_protection_km` (contrôle de vitesse, ex. `KVB`), `kvb`, `source` (`sncf`, SNCF Réseau
+  Open Data) ;
 - `facts` : faits encyclopédiques (`key`, valeur `km`/`kmh`/`mm`/`n`/`year`/`list`, `source`
   `vff`/`sncf`/`wikidata`, `item` quand l'élément Wikidata ne décrit qu'une partie de la ligne,
   `label`, `note`) ;

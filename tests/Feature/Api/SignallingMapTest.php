@@ -34,10 +34,11 @@ class SignallingMapTest extends TestCase
         // la distance, la limite des tranches doit suivre le PN, pas le milieu de la forme.
         $this->seedSncfShape('999000', 0, 10_000, 48.0, 2.0, 2.1);
         $this->seedLevelCrossing('30000099001', '999000', 5_000, 48.0, 2.07);
-        foreach ([[0, 5_000, 'BAL', ['KVB'], true], [5_000, 10_000, 'TVM-430', ['TVM-430'], false]] as [$a, $b, $sig, $tp, $kvb]) {
+        // Seconde tranche : ETCS niveau 2 et TVM 430 installés ensemble (LGV Est).
+        foreach ([[0, 5_000, 'BAL', ['BAL'], ['KVB'], true], [5_000, 10_000, 'TVM-430', ['TVM-430', 'ETCS_L2'], ['TVM-430', 'ERTMS_L2'], false]] as [$a, $b, $sig, $systems, $tp, $kvb]) {
             DB::table('line_signalling')->insert([
                 'line_id' => $line->id, 'era_id' => $this->current->id, 'pk_start_m' => $a, 'pk_end_m' => $b,
-                'signalling' => $sig, 'train_protection' => json_encode($tp), 'kvb_equipped' => $kvb,
+                'signalling' => $sig, 'signalling_systems' => json_encode($systems), 'train_protection' => json_encode($tp), 'kvb_equipped' => $kvb,
                 'note' => 'Source : SNCF Open Data, mode-de-cantonnement-des-lignes', 'created_at' => now(), 'updated_at' => now(),
             ]);
         }
@@ -66,7 +67,7 @@ class SignallingMapTest extends TestCase
             ->getContent();
 
         $this->assertStringContainsString('vff-signalling', $tile);
-        foreach (['automatic_block', 'cab', 'BAL', 'TVM-430', 'KVB', 'rfn-999000'] as $value) {
+        foreach (['automatic_block', 'cab', 'BAL', 'TVM-430', 'KVB', 'rfn-999000', 'signalling_systems', 'TVM-430,ETCS_L2'] as $value) {
             $this->assertStringContainsString($value, $tile);
         }
     }

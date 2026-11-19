@@ -108,6 +108,7 @@ Définir et implémenter le cœur du domaine ferroviaire.
 - [x] Endpoint `GET /api/v1/eras/{year}/lines.geojson` (et `stations.geojson`)
 - [x] Style cartographique custom : rails en orange `#ff6500`, gares en pastilles, statuts et trafics différenciés
 - [x] Calques facultatifs OpenRailwayMap et Carto Tchoo
+- [x] Calques superposés (bouton « Calques ») : accidents, passages à niveau et signalisation cochés ensemble, un fond OpenRailwayMap au plus, état gardé dans l'adresse (`?layer=…&layer=…`)
 - [x] Clic sur une ligne → panneau latéral (`LineDrawer`) avec fiche minimale
 - [x] Recherche par nom de ligne / gare (`/api/v1/search`, autocomplétion)
 - [x] Légende dynamique (`MapLegend`)
@@ -267,7 +268,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 
 ## 🧭 Phase 13 - Nouveaux domaines de l'encyclopédie (en cours)
 
-- [x] **Signalisation** : données SNCF Réseau importées (`line_signalling`, `/api/v1/lines/{slug}/signalling`), fiche ligne (cantonnement et contrôle de vitesse par PK, trous des données signalés, lien vers la carte), calque « Signalisation » sur `/maps` (tranches placées sur les formes SNCF Réseau, PK calés sur les passages à niveau, tuiles `/api/v1/eras/{year}/signalling/tiles/…`)
+- [x] **Signalisation** : données SNCF Réseau importées (`line_signalling`, `/api/v1/lines/{slug}/signalling`), fiche ligne (cantonnement et contrôle de vitesse par PK, trous des données signalés, lien vers la carte), calque « Signalisation » sur `/maps` (tranches placées sur les formes SNCF Réseau, PK calés sur les passages à niveau, tuiles `/api/v1/eras/{year}/signalling/tiles/…`) ; tranches à deux systèmes (ETCS niveau 2 et TVM sur les LGV Est, BPL et SEA) gardées entières (`signalling_systems`)
   - [ ] Historique par époque (seul l'état actuel est connu)
 - [x] **Passages à niveau** : 16 801 PN de SNCF Réseau (ODbL), calque « Passages à niveau » sur `/maps` (à partir du zoom 9), section de la fiche ligne (nombre par type, liste repliable), API REST (`/api/v1/level-crossings`, `/api/v1/lines/{slug}/level-crossings`, tuiles), GraphQL (`Line.level_crossings`, `levelCrossings`) et outil MCP `level_crossings`
 - [x] **Matériel roulant** : 687 séries importées de Wikidata (CC0) avec leur image Commons et la provenance de chaque champ (`vff:import-materials`), 969 liens ligne × matériel attestés par Wikidata ou par les articles Wikipédia (phrase citée, permalien, fiabilité), API REST (`/api/v1/materials`, `/api/v1/lines/{slug}/materials`) et GraphQL ; à faire : fiches enrichies sur le site, périodes de circulation par portion

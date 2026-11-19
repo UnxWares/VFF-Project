@@ -120,6 +120,8 @@ return [
         'protection' => 'Contrôle de vitesse :',
         'cabin' => 'Signalisation en cabine :',
         'block' => 'Cantonnement :',
+        // Entre les deux derniers systèmes d'une tranche : « ETCS niveau 2 et TVM 300 ».
+        'and' => 'et',
         'codes' => [
             'BAL' => 'BAL, block automatique lumineux',
             'BAL-VB' => 'BAL de voie banalisée',
@@ -507,6 +509,7 @@ return [
             'pk_title' => 'point kilométrique',
             'signalling_intro' => 'Cantonnement (espacement des trains : BAL, BAPR, BM…) et contrôle de vitesse (KVB, TVM, ETCS) le long du tracé, état actuel. Source : SNCF Réseau Open Data (modes de cantonnement, lignes équipées du KVB).',
             'signalling_intro_cab' => 'Sur les plages en grande vitesse, la signalisation est en cabine.',
+            'signalling_intro_dual' => 'Sur certaines tranches, l’ETCS niveau 2 et la TVM sont installés ensemble ; la liste donne les deux.',
             'signalling_gap' => 'Aucun cantonnement dans les données SNCF Réseau : section sans cantonnement, absente des données, ou numérotation des PK interrompue.',
             'signalling_today' => 'Seul l’état actuel est connu : l’évolution de la signalisation au fil des époques n’est pas encore dans les données.',
             'signalling_map' => 'Voir la signalisation sur la carte',

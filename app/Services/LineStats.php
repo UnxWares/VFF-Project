@@ -77,15 +77,19 @@ final class LineStats
         // n'est qu'une vue de l'ancien fallback approximatif. Chaque mode avec la
         // longueur qu'il couvre, du plus étendu au moins étendu (sur une LGV, la TVM
         // avant le BAL des raccordements) ; contrôle de vitesse sans la signalisation
-        // en cabine déjà citée (la TVM est les deux : une seule mention).
+        // en cabine déjà citée (la TVM est les deux : une seule mention). Une tranche à deux
+        // systèmes (ETCS niveau 2 et TVM, `signalling_systems`) compte pour chacun des deux.
         $sigAgg = DB::selectOne(
             'SELECT BOOL_OR(kvb_equipped) AS any_kvb FROM line_signalling WHERE line_id = ? AND era_id = ?',
             [$line->id, $eraId],
         );
         $signallingCoverage = array_map(fn ($r) => ['code' => $r->code, 'km' => round((float) $r->m / 1000, 1)], DB::select(
-            'SELECT signalling AS code, SUM(GREATEST(pk_end_m - pk_start_m, 0)) AS m
-             FROM line_signalling WHERE line_id = ? AND era_id = ? AND signalling IS NOT NULL
-             GROUP BY signalling ORDER BY m DESC, signalling',
+            'SELECT s.code, SUM(GREATEST(ls.pk_end_m - ls.pk_start_m, 0)) AS m
+             FROM line_signalling ls
+             CROSS JOIN LATERAL jsonb_array_elements_text(CASE WHEN jsonb_array_length(ls.signalling_systems) > 0
+                 THEN ls.signalling_systems ELSE jsonb_build_array(ls.signalling) END) AS s(code)
+             WHERE ls.line_id = ? AND ls.era_id = ? AND ls.signalling IS NOT NULL
+             GROUP BY s.code ORDER BY m DESC, s.code',
             [$line->id, $eraId],
         ));
         $cabCodes = array_values(array_filter(array_column($signallingCoverage, 'code'), fn ($c) => (bool) preg_match('/^(TVM-|ETCS_|ERTMS_)/', (string) $c)));
