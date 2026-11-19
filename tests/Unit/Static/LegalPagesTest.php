@@ -132,12 +132,12 @@ class LegalPagesTest extends TestCase
     /** La déclaration d'accessibilité renvoie, dans les trois langues, vers la grille d'audit publiée. */
     public function test_accessibility_statement_links_the_published_audit_grid(): void
     {
-        $grid = public_path('rgaa/grille-audit-rgaa-2026-11-20.csv');
+        $grid = public_path('rgaa/grille-audit-rgaa-2026-11-19.csv');
         $this->assertFileExists($grid);
         $this->assertStringStartsWith('critere,thematique,intitule,page,page_nom,url,statut', (string) file_get_contents($grid));
         foreach (self::LOCALES as $locale) {
             $results = $this->texts($locale, 'accessibility')['results']['paragraph'];
-            $this->assertStringContainsString('href="/rgaa/grille-audit-rgaa-2026-11-20.csv"', $results, $locale);
+            $this->assertStringContainsString('href="/rgaa/grille-audit-rgaa-2026-11-19.csv"', $results, $locale);
         }
     }
 

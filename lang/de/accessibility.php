@@ -1,7 +1,7 @@
 <?php
 
 // Déclaration d'accessibilité, au format du modèle officiel du RGAA 4.1.2 (article 47 de la loi n° 2005-102).
-// Elle repose sur l'audit interne RGAA 4.1.2 du 2026-11-20 (106 critères, 28 pages) : rapport
+// Elle repose sur l'audit interne RGAA 4.1.2 du 2026-11-19 (106 critères, 28 pages) : rapport
 // storage/app/reports/agents/nuit/audit-rgaa.md, grille storage/app/reports/agents/nuit/audit-rgaa-grille.csv,
 // calcul refait par storage/app/data/rgaa/grille.py. Seuils officiels : conforme à 100 %, partiellement
 // conforme à partir de 50 % de critères respectés, non conforme en dessous ou sans audit en cours de validité.
@@ -25,7 +25,7 @@ return [
     'status' => [
         'title' => 'Konformitätsstatus',
         'paragraph' => '<p><strong>Die Website vff-project.org entspricht teilweise dem RGAA 4.1.2.</strong></p>'
-            .'<p>Dieser Stand beruht auf dem internen Audit, das UnxWares am 20. November 2026 nach der Methode des RGAA 4.1.2 durchgeführt hat: Alle 106 Kriterien wurden an einer Stichprobe von 28 Seiten geprüft. Das Audit wurde nicht von einer externen Stelle durchgeführt.</p>',
+            .'<p>Dieser Stand beruht auf dem internen Audit, das UnxWares am 19. November 2026 nach der Methode des RGAA 4.1.2 durchgeführt hat: Alle 106 Kriterien wurden an einer Stichprobe von 28 Seiten geprüft. Das Audit wurde nicht von einer externen Stelle durchgeführt.</p>',
     ],
 
     'results' => [
@@ -35,7 +35,7 @@ return [
             .'<li>82 % der RGAA-Kriterien sind erfüllt (59 der 72 Kriterien, die auf die Website zutreffen);</li>'
             .'<li>die durchschnittliche Konformitätsrate des Online-Dienstes beträgt 99 % (98,87 %, Mittelwert der Raten der 28 Seiten).</li>'
             .'</ul>'
-            .'<p>24 der 28 Seiten erfüllen alle Kriterien, die für sie gelten. Elf der dreizehn nicht erfüllten Kriterien scheitern nur in den beiden Werkzeugen der API-Dokumentation, Swagger UI und Magidoc. Das vollständige Prüfraster (Status und Begründung jedes Kriteriums auf jeder Seite) können Sie herunterladen: <a href="/rgaa/grille-audit-rgaa-2026-11-20.csv" download>RGAA-Prüfraster (CSV-Datei, 744 KB, auf Französisch)</a>.</p>'
+            .'<p>24 der 28 Seiten erfüllen alle Kriterien, die für sie gelten. Elf der dreizehn nicht erfüllten Kriterien scheitern nur in den beiden Werkzeugen der API-Dokumentation, Swagger UI und Magidoc. Das vollständige Prüfraster (Status und Begründung jedes Kriteriums auf jeder Seite) können Sie herunterladen: <a href="/rgaa/grille-audit-rgaa-2026-11-19.csv" download>RGAA-Prüfraster (CSV-Datei, 744 KB, auf Französisch)</a>.</p>'
             .'<p>Die Website wurde nicht mit einem Screenreader getestet. Name, Rolle und Zustand der Bedienelemente wurden im Code und im Barrierefreiheitsbaum des Browsers geprüft; wie NVDA, JAWS, VoiceOver oder TalkBack sie tatsächlich ausgeben, ist noch zu prüfen.</p>',
     ],
 
@@ -59,7 +59,7 @@ return [
 
     'establishment' => [
         'title' => 'Erstellung dieser Erklärung',
-        'paragraph' => '<p>Diese Erklärung wurde am 19. November 2026 erstellt und am 20. November 2026 nach dem internen RGAA-Audit aktualisiert.</p>'
+        'paragraph' => '<p>Diese Erklärung wurde am 19. November 2026 nach dem internen RGAA-Audit erstellt.</p>'
             .'<ul>'
             .'<li><strong>Verwendete Technologien</strong>: HTML5, CSS, JavaScript (Svelte, MapLibre GL), SVG, WAI-ARIA.</li>'
             .'<li><strong>Testumgebung</strong>: Browser Chromium unter Linux, 320 bis 1 280 Pixel breit, im hellen Design (das dunkle Design wurde am 19. November gemessen), auf Französisch. Es wurde keine assistive Technologie eingesetzt.</li>'

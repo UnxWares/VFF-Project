@@ -8,7 +8,7 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 
 ---
 
-## 📍 Où en est-on ? (2026-11-20)
+## 📍 Où en est-on ? (2026-11-19)
 
 | Phase | État |
 |:-|:-|

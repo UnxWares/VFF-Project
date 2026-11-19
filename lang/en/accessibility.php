@@ -1,7 +1,7 @@
 <?php
 
 // Déclaration d'accessibilité, au format du modèle officiel du RGAA 4.1.2 (article 47 de la loi n° 2005-102).
-// Elle repose sur l'audit interne RGAA 4.1.2 du 2026-11-20 (106 critères, 28 pages) : rapport
+// Elle repose sur l'audit interne RGAA 4.1.2 du 2026-11-19 (106 critères, 28 pages) : rapport
 // storage/app/reports/agents/nuit/audit-rgaa.md, grille storage/app/reports/agents/nuit/audit-rgaa-grille.csv,
 // calcul refait par storage/app/data/rgaa/grille.py. Seuils officiels : conforme à 100 %, partiellement
 // conforme à partir de 50 % de critères respectés, non conforme en dessous ou sans audit en cours de validité.
@@ -25,7 +25,7 @@ return [
     'status' => [
         'title' => 'Compliance status',
         'paragraph' => '<p><strong>The site vff-project.org is partially compliant with RGAA 4.1.2.</strong></p>'
-            .'<p>This status is based on the internal audit carried out by UnxWares on 20 November 2026, following the RGAA 4.1.2 method: all 106 criteria were checked on a sample of 28 pages. The audit was not carried out by a third party.</p>',
+            .'<p>This status is based on the internal audit carried out by UnxWares on 19 November 2026, following the RGAA 4.1.2 method: all 106 criteria were checked on a sample of 28 pages. The audit was not carried out by a third party.</p>',
     ],
 
     'results' => [
@@ -35,7 +35,7 @@ return [
             .'<li>82% of the RGAA criteria are met (59 of the 72 criteria that apply to the site);</li>'
             .'<li>the average compliance rate of the online service is 99% (98.87%, the average of the rates of the 28 pages).</li>'
             .'</ul>'
-            .'<p>Twenty-four of the 28 pages meet every criterion that applies to them. Eleven of the thirteen criteria not met fail only in the two API documentation tools, Swagger UI and Magidoc. The full grid (status and reason for each criterion on each page) can be downloaded: <a href="/rgaa/grille-audit-rgaa-2026-11-20.csv" download>RGAA audit grid (CSV file, 744 KB, in French)</a>.</p>'
+            .'<p>Twenty-four of the 28 pages meet every criterion that applies to them. Eleven of the thirteen criteria not met fail only in the two API documentation tools, Swagger UI and Magidoc. The full grid (status and reason for each criterion on each page) can be downloaded: <a href="/rgaa/grille-audit-rgaa-2026-11-19.csv" download>RGAA audit grid (CSV file, 744 KB, in French)</a>.</p>'
             .'<p>The site has not been tested with a screen reader. The name, role and state of the components were checked in the code and in the browser’s accessibility tree, but how NVDA, JAWS, VoiceOver or TalkBack actually read them still has to be checked.</p>',
     ],
 
@@ -59,7 +59,7 @@ return [
 
     'establishment' => [
         'title' => 'Preparation of this statement',
-        'paragraph' => '<p>This statement was prepared on 19 November 2026. It was updated on 20 November 2026, after the internal RGAA audit.</p>'
+        'paragraph' => '<p>This statement was prepared on 19 November 2026, after the internal RGAA audit.</p>'
             .'<ul>'
             .'<li><strong>Technologies used</strong>: HTML5, CSS, JavaScript (Svelte, MapLibre GL), SVG, WAI-ARIA.</li>'
             .'<li><strong>Test environment</strong>: Chromium browser on Linux, from 320 to 1,280 pixels wide, in the light theme (the dark theme was measured on 19 November), in French. No assistive technology was used.</li>'
