@@ -164,7 +164,7 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [~] Formulaire d'ajout d'événement / média / matériel (tracés et segments faits)
 - [ ] Notifications (sur le site + courriel) d'acceptation ou de refus
 - [ ] Réputation et badges (le champ existe, aucun calcul)
-- [~] Modération : journal d'audit et retrait d'une contribution par un administrateur faits ; liste de blocage à faire
+- [x] Modération : journal d'audit, retrait d'une contribution par un administrateur, suspension d'un compte (motif, fin facultative, levée, notification, export) faits
 - [x] Signalement d'une erreur depuis le site : bouton « Signaler une erreur » en bas des fiches ligne, gare, matériel et accident (visiteurs et membres, sans traceur ni service externe), liste des signalements dans l'espace de validation (`/validate/reports`), notification des validateurs, journal d'audit, purge 12 mois après le traitement
 - [x] Suppression du compte par l'utilisateur, avec anonymisation des contributions, et export de ses données
 
@@ -177,10 +177,10 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] OpenAPI 3 généré par [Scramble](https://scramble.dedoc.co/)
 - [x] Endpoints : lignes et gares par époque (GeoJSON), tuiles MVT, export GTFS par époque, recherche, historique, PK, arrêts, signalisation et médias d'une ligne, itinéraire, passages à niveau (liste, par ligne, tuiles), tuiles de la signalisation
 - [x] Documentation : page `/api`, référence [Scalar](https://scalar.com/) sur `/docs/api`, Swagger UI sur `/docs/swagger`
-- [x] Accès libre sans clé, limité à 300 requêtes par minute et par adresse IP
+- [x] Accès libre sans clé, limité à 300 requêtes par minute et par adresse IP (davantage avec un jeton personnel)
 - [x] Exemples intégrés : curl, JavaScript (`fetch`) et Python (`requests`) sur la page `/api` et, pour les principaux points d'accès, dans la référence Scalar (`x-codeSamples`)
 - [x] Points d'accès des annuaires, fiches complètes, tronçons, époques, sources, événements, médias, matériel et accidents
-- [ ] Jetons API (Sanctum) et quotas par profil (anonyme / inscrit / partenaire)
+- [x] Jetons API (Sanctum, lecture seule, créés depuis le profil) et quotas par profil (anonyme 300, membre 1 200, partenaire 6 000 requêtes par minute, `config/api.php`), compteur commun à REST, GraphQL et MCP
 - [ ] Webhooks pour notifier les changements
 
 ---

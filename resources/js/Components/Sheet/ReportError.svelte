@@ -10,7 +10,7 @@
      * (GET /reports/token) qui impose une durée minimale de remplissage ; un champ piège caché
      * (`homepage`) et une limite de débit côté serveur complètent le dispositif. Aucun traceur.
      */
-    import { Link, useForm } from '@inertiajs/svelte';
+    import { Link, page, useForm } from '@inertiajs/svelte';
     import Field from '$components/ui/Field.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import { focusFirstError } from '$pages/Auth/authForm.js';
@@ -29,6 +29,8 @@
     let dialog = $state();
     let sent = $state(false);
     let tokenFailed = $state(false);
+    /** Compte suspendu : le serveur refuse les signalements, la fenêtre l'annonce au lieu du formulaire. */
+    const suspended = $derived(page.props.auth?.user?.suspended === true);
 
     const form = useForm({
         subject_type: '',
@@ -119,6 +121,19 @@
             <p>{t('reports.dialog.thanks_text')}</p>
             <div class="actions">
                 <button type="button" class="vff-btn primary" onclick={() => dialog?.close()}>
+                    {t('reports.dialog.close')}
+                </button>
+            </div>
+        </div>
+    {:else if suspended}
+        <div class="body">
+            <h2 id="report-title">{t('reports.dialog.title')}</h2>
+            <Notice tone="warning" live="off">{t('moderation.report.suspended')}</Notice>
+            <div class="actions">
+                <Link class="vff-btn primary" href="/profile"
+                    >{t('moderation.report.profile_link')}</Link
+                >
+                <button type="button" class="vff-btn secondary" onclick={() => dialog?.close()}>
                     {t('reports.dialog.close')}
                 </button>
             </div>

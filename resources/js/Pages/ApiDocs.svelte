@@ -11,7 +11,16 @@
      * de routes/api.php par sujet (avec les noms de paramètres de la spécification), donne des exemples
      * dont la réponse est celle du serveur et présente le serveur MCP. Les documentations sont des pages
      * hors Inertia : liens simples.
+     *
+     * `rate_limits` : requêtes par minute de chaque profil (config/api.php, routes/web.php), montrées
+     * dans « Accès et limites », « Authentification et quotas » (ancre #auth, liée depuis le profil)
+     * et la section MCP.
+     *
+     * @type {{ rate_limits: { anonymous: number, member: number, partner: number } }}
      */
+    let { rate_limits } = $props();
+    const number = (n) => n.toLocaleString($i18n.language);
+    const authProfiles = ['anonymous', 'member', 'partner'];
 
     const docs = [
         { key: 'scalar', href: '/docs/api' },
@@ -222,6 +231,64 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
   }
 }`);
 
+    // Section « Authentification et quotas » : mêmes requêtes avec et sans jeton (variable VFF_TOKEN).
+    const authCurl = $derived(`# ${$i18n.t('api.auth.curl_without')}
+curl -i https://vff-project.org/api/v1/stats
+# ${$i18n.t('api.auth.curl_with')}
+curl -i -H "Authorization: Bearer $VFF_TOKEN" https://vff-project.org/api/v1/stats`);
+    const authJs = [
+        'const token = process.env.VFF_TOKEN;',
+        'const headers = token ? { Authorization: `Bearer ${token}` } : {};',
+        '',
+        'async function get(url) {',
+        '    const response = await fetch(url, { headers });',
+        '    if (response.status === 429) {',
+        '        const wait = Number(response.headers.get("Retry-After") ?? 60);',
+        '        await new Promise((resolve) => setTimeout(resolve, wait * 1000));',
+        '        return get(url);',
+        '    }',
+        '    if (!response.ok) throw new Error(`HTTP ${response.status}`);',
+        '    console.info(',
+        '        response.headers.get("X-RateLimit-Limit"),',
+        '        response.headers.get("X-RateLimit-Remaining"),',
+        '    );',
+        '    return response.json();',
+        '}',
+        '',
+        'const stats = await get("https://vff-project.org/api/v1/stats");',
+        'console.info(stats.data.lines_count);',
+    ].join('\n');
+    const authPy = [
+        'import os',
+        'import time',
+        '',
+        'import requests',
+        '',
+        'headers = {}',
+        'if os.environ.get("VFF_TOKEN"):',
+        '    headers["Authorization"] = f"Bearer {os.environ[\'VFF_TOKEN\']}"',
+        '',
+        '',
+        'def get(url):',
+        '    while True:',
+        '        response = requests.get(url, headers=headers, timeout=30)',
+        '        if response.status_code != 429:',
+        '            break',
+        '        time.sleep(int(response.headers.get("Retry-After", 60)))',
+        '    response.raise_for_status()',
+        '    print(response.headers["X-RateLimit-Limit"], response.headers["X-RateLimit-Remaining"])',
+        '    return response.json()',
+        '',
+        '',
+        'stats = get("https://vff-project.org/api/v1/stats")',
+        'print(stats["data"]["lines_count"])',
+    ].join('\n');
+    // En-têtes d'une réponse réelle du serveur de développement avec un jeton de membre.
+    const authResponse = $derived(`HTTP/1.1 200 OK
+Content-Type: application/json
+X-RateLimit-Limit: ${rate_limits.member}
+X-RateLimit-Remaining: ${rate_limits.member - 1}`);
+
     const graphqlCurl = `curl -X POST https://vff-project.org/graphql \\
   -H "Content-Type: application/json" \\
   -d '{"query": "{ line(slug: \\"rfn-405000\\") { name code } }"}'`;
@@ -261,12 +328,90 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
                 {#each access as a (a.key)}
                     <li>
                         <IconCard
-                            title={$i18n.t(`api.access.${a.key}.title`)}
+                            title={$i18n.t(`api.access.${a.key}.title`, {
+                                count: number(rate_limits.anonymous),
+                            })}
                             text={$i18n.t(`api.access.${a.key}.text`)}
                         />
                     </li>
                 {/each}
             </ul>
+        </SectionBlock>
+
+        <SectionBlock
+            id="auth"
+            title={$i18n.t('api.auth.title')}
+            intro={$i18n.t('api.auth.intro')}
+            maxWidth="900px"
+        >
+            <div class="vff-table-wrap">
+                <table class="vff-table quotas">
+                    <caption class="vff-sr-only">{$i18n.t('api.auth.table_caption')}</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">{$i18n.t('api.auth.col_profile')}</th>
+                            <th scope="col" class="num">{$i18n.t('api.auth.col_limit')}</th>
+                            <th scope="col">{$i18n.t('api.auth.col_counter')}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each authProfiles as p (p)}
+                            <tr>
+                                <th scope="row">{$i18n.t(`api.auth.profiles.${p}.name`)}</th>
+                                <td class="num">
+                                    {$i18n.t('api.auth.per_minute', {
+                                        count: number(rate_limits[p]),
+                                    })}
+                                </td>
+                                <td>{$i18n.t(`api.auth.profiles.${p}.counter`)}</td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
+            </div>
+            <p class="caption">{$i18n.t('api.auth.shared')}</p>
+            <p class="auth-link">
+                <a class="vff-btn secondary" href="/profile#api-tokens-title"
+                    >{$i18n.t('api.auth.create')}</a
+                >
+            </p>
+
+            <h3 class="group-title">{$i18n.t('api.auth.headers_title')}</h3>
+            <ul class="auth-headers">
+                {#each ['limit', 'remaining', 'retry', 'invalid', 'suspended'] as h (h)}
+                    <li>{$i18n.t(`api.auth.headers.${h}`)}</li>
+                {/each}
+            </ul>
+
+            <h3 class="group-title">{$i18n.t('api.auth.examples_title')}</h3>
+            <p class="caption">{$i18n.t('api.auth.examples_intro')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{authCurl}</code></pre>
+            <p class="caption">{$i18n.t('api.auth.response_caption')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{authResponse}</code></pre>
+            <p class="caption">{$i18n.t('api.auth.js_caption')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{authJs}</code></pre>
+            <p class="caption">{$i18n.t('api.auth.py_caption')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{authPy}</code></pre>
         </SectionBlock>
 
         <SectionBlock
@@ -377,7 +522,9 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
                 </div>
                 <div>
                     <dt>{$i18n.t('api.mcp.limit_label')}</dt>
-                    <dd>{$i18n.t('api.mcp.limit')}</dd>
+                    <dd>
+                        {$i18n.t('api.mcp.limit', { count: number(rate_limits.anonymous) })}
+                    </dd>
                 </div>
                 <div>
                     <dt>{$i18n.t('api.mcp.lang_label')}</dt>
@@ -592,6 +739,50 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
         display: block;
         font: inherit;
         white-space: pre;
+    }
+    /* Authentification et quotas : tableau des limites, en-têtes et erreurs. */
+    .quotas {
+        font-size: var(--vff-fs-md);
+    }
+    .quotas tbody th {
+        font-weight: 600;
+    }
+    /* Téléphone : chaque profil en bloc (nom, limite, compteur), sans défilement horizontal. */
+    @media (max-width: 600px) {
+        .quotas thead {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+        }
+        .quotas tr {
+            display: block;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--vff-border);
+        }
+        .quotas tbody tr:last-child {
+            border-bottom: 0;
+        }
+        .vff-table-wrap .quotas :is(th, td) {
+            display: block;
+            padding: 2px 0;
+            border: 0;
+            text-align: left;
+        }
+    }
+    .auth-link {
+        margin: var(--vff-space-4) 0 var(--vff-block-space);
+    }
+    .auth-headers {
+        display: flex;
+        flex-direction: column;
+        gap: var(--vff-space-2);
+        max-width: var(--vff-measure);
+        margin: 0 0 var(--vff-block-space);
+        padding-left: 1.2em;
+        font-size: var(--vff-fs-md);
+        line-height: 1.5;
     }
     .links {
         display: flex;

@@ -244,7 +244,8 @@ class MaterialApiTest extends TestCase
             $this->assertNotEmpty($operation['responses']['200']['content']['application/json']['schema']['examples'] ?? null, "{$path} : exemple manquant");
         }
         // Chaque erreur possible documentée, avec un exemple de corps.
-        foreach (['/materials' => [200, 422, 429], '/materials/{material}' => [200, 404, 429], '/lines/{line}/materials' => [200, 404, 422, 429]] as $path => $codes) {
+        // 401 et 403 : jeton invalide ou d'un compte suspendu, sur chaque opération (ApiAuthDocumentation).
+        foreach (['/materials' => [200, 401, 403, 422, 429], '/materials/{material}' => [200, 401, 403, 404, 429], '/lines/{line}/materials' => [200, 401, 403, 404, 422, 429]] as $path => $codes) {
             $responses = $spec['paths'][$path]['get']['responses'];
             $this->assertEqualsCanonicalizing($codes, array_map('intval', array_keys($responses)), "{$path} : codes de réponse");
             foreach ($codes as $code) {

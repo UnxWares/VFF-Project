@@ -1,8 +1,11 @@
 <?php
 
+use App\Enums\ApiAccessProfile;
 use App\Enums\LegalDocument;
 use App\Http\Controllers\AccidentController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AccountModerationController;
+use App\Http\Controllers\ApiTokenController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContributionController;
@@ -50,7 +53,7 @@ Route::get('/accidents/{accident:slug}', [AccidentController::class, 'show'])->n
 // Signalement d'une erreur depuis une fiche (visiteurs et membres) : jeton d'ouverture du
 // formulaire (durée minimale de remplissage), puis envoi limité en fréquence (AppServiceProvider).
 Route::get('/reports/token', [ErrorReportController::class, 'token'])->middleware('throttle:30,1')->name('reports.token');
-Route::post('/reports', [ErrorReportController::class, 'store'])->middleware('throttle:error-reports')->name('reports.store');
+Route::post('/reports', [ErrorReportController::class, 'store'])->middleware(['throttle:error-reports', 'not.suspended'])->name('reports.store');
 Route::get('/contribute', fn () => Inertia::render('Contribute'))->name('contribute');
 Route::get('/donate', fn () => Inertia::render('Donate'))->name('donate');
 
@@ -60,7 +63,13 @@ Route::get('/privacy', fn () => Inertia::render('Privacy', ['updated' => LegalDo
 Route::get('/use-conditions', fn () => Inertia::render('UseConditions', ['updated' => LegalDocument::UseConditions->currentVersion()]))->name('use-conditions');
 Route::get('/accessibility', fn () => Inertia::render('Accessibility'))->name('accessibility');
 
-Route::get('/api', fn () => Inertia::render('ApiDocs'))->name('api.docs');
+// Limites de débit par profil (config/api.php), affichées dans « Authentification et quotas ».
+Route::get('/api', fn () => Inertia::render('ApiDocs', [
+    'rate_limits' => array_combine(
+        array_map(fn (ApiAccessProfile $p): string => $p->value, ApiAccessProfile::cases()),
+        array_map(fn (ApiAccessProfile $p): int => $p->perMinute(), ApiAccessProfile::cases()),
+    ),
+]))->name('api.docs');
 
 // Documentation de l'API. REST : /docs/api (Scalar, vue resources/views/vendor/scramble/docs.blade.php)
 // et /docs/api.json sont déclarées par dedoc/scramble ; Swagger UI lit la même spécification.
@@ -124,6 +133,10 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/profile/data', [AccountController::class, 'export'])->middleware('throttle:6,1')->name('profile.export');
     Route::delete('/profile', [AccountController::class, 'destroy'])->middleware('throttle:6,1')->name('profile.destroy');
 
+    // Jetons d'API personnels (lecture seule) : création refusée à un compte suspendu, révocation toujours possible.
+    Route::post('/profile/api-tokens', [ApiTokenController::class, 'store'])->middleware(['not.suspended', 'throttle:10,1'])->name('profile.api-tokens.store');
+    Route::delete('/profile/api-tokens/{token}', [ApiTokenController::class, 'destroy'])->whereNumber('token')->middleware('throttle:30,1')->name('profile.api-tokens.destroy');
+
     // Notifications sur le site (suite donnée aux contributions, relectures en attente).
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
@@ -131,13 +144,13 @@ Route::middleware('auth')->group(function (): void {
 
     // Contributions (membres connectés)
     Route::get('/contribute/mine', [ContributionController::class, 'mine'])->name('contribute.mine');
-    Route::get('/contribute/edit-segment', [ContributionController::class, 'editSegment'])->name('contribute.edit-segment');
-    Route::post('/contribute/edit-segment', [ContributionController::class, 'submit'])->name('contribute.submit');
+    Route::get('/contribute/edit-segment', [ContributionController::class, 'editSegment'])->middleware('not.suspended')->name('contribute.edit-segment');
+    Route::post('/contribute/edit-segment', [ContributionController::class, 'submit'])->middleware('not.suspended')->name('contribute.submit');
     // whereNumber : un id non numérique (« abc ») atteignait thanks(int $id) → TypeError → 500.
     Route::get('/contribute/thanks/{id}', [ContributionController::class, 'thanks'])->whereNumber('id')->name('contribute.thanks');
 
     // Éditeur de tracé sur fonds historiques IGN (lignes disparues / corrections)
-    Route::prefix('contribute/trace')->name('contribute.trace.')->controller(TraceEditorController::class)->group(function (): void {
+    Route::prefix('contribute/trace')->name('contribute.trace.')->controller(TraceEditorController::class)->middleware('not.suspended')->group(function (): void {
         Route::get('/', 'create')->name('create');
         Route::post('/', 'store')->name('store');
         Route::get('/reference', 'reference')->middleware('throttle:240,1')->name('reference');
@@ -146,14 +159,18 @@ Route::middleware('auth')->group(function (): void {
     });
 
     // Validators dashboard (auth + role check côté controller)
-    Route::get('/validate', [ContributionController::class, 'validateList'])->name('validate.index');
-    Route::post('/validate/{id}/approve', [ContributionController::class, 'approve'])->whereNumber('id')->name('validate.approve');
-    Route::post('/validate/{id}/reject', [ContributionController::class, 'reject'])->whereNumber('id')->name('validate.reject');
+    Route::get('/validate', [ContributionController::class, 'validateList'])->middleware('not.suspended')->name('validate.index');
+    Route::post('/validate/{id}/approve', [ContributionController::class, 'approve'])->whereNumber('id')->middleware('not.suspended')->name('validate.approve');
+    Route::post('/validate/{id}/reject', [ContributionController::class, 'reject'])->whereNumber('id')->middleware('not.suspended')->name('validate.reject');
     // Signalements d'erreur envoyés depuis les fiches (validateurs et administrateurs, ErrorReportPolicy).
-    Route::get('/validate/reports', [ErrorReportReviewController::class, 'index'])->name('validate.reports.index');
+    Route::get('/validate/reports', [ErrorReportReviewController::class, 'index'])->middleware('not.suspended')->name('validate.reports.index');
     // Lien des notifications : renvoie vers l'onglet et la page de la liste qui montrent ce signalement.
-    Route::get('/validate/reports/{report}', [ErrorReportReviewController::class, 'show'])->whereNumber('report')->name('validate.reports.show');
-    Route::patch('/validate/reports/{report}', [ErrorReportReviewController::class, 'update'])->whereNumber('report')->name('validate.reports.update');
+    Route::get('/validate/reports/{report}', [ErrorReportReviewController::class, 'show'])->whereNumber('report')->middleware('not.suspended')->name('validate.reports.show');
+    Route::patch('/validate/reports/{report}', [ErrorReportReviewController::class, 'update'])->whereNumber('report')->middleware('not.suspended')->name('validate.reports.update');
     // Retrait d'une contribution non publiée par un administrateur (motif envoyé à l'auteur).
-    Route::delete('/validate/{contribution}', ContributionRemovalController::class)->whereNumber('contribution')->name('validate.remove');
+    Route::delete('/validate/{contribution}', ContributionRemovalController::class)->whereNumber('contribution')->middleware('not.suspended')->name('validate.remove');
+    // Comptes (administrateurs, UserPolicy) : liste, suspension avec motif et fin facultative, levée.
+    Route::get('/validate/accounts', [AccountModerationController::class, 'index'])->middleware('not.suspended')->name('validate.accounts.index');
+    Route::post('/validate/accounts/{user}/suspension', [AccountModerationController::class, 'suspend'])->whereNumber('user')->middleware('not.suspended')->name('validate.accounts.suspend');
+    Route::delete('/validate/accounts/{user}/suspension', [AccountModerationController::class, 'lift'])->whereNumber('user')->middleware('not.suspended')->name('validate.accounts.lift');
 });

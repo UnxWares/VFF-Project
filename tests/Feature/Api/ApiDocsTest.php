@@ -320,6 +320,8 @@ class ApiDocsTest extends TestCase
 
         foreach (self::ERROR_CODES as $path => $codes) {
             $responses = $spec['paths'][$path]['get']['responses'] ?? [];
+            // 401 et 403 : jeton invalide ou d'un compte suspendu, sur chaque opération (ApiAuthDocumentation).
+            $codes = [...$codes, 401, 403];
             $this->assertEqualsCanonicalizing($codes, array_map('intval', array_keys($responses)), "{$path} : codes de réponse");
             foreach ($codes as $code) {
                 $this->assertNotEmpty($responses[(string) $code]['description'] ?? null, "{$path} : réponse {$code} sans description");
@@ -332,7 +334,8 @@ class ApiDocsTest extends TestCase
     {
         $intro = (string) $this->getJson('/docs/api.json')->assertOk()->json('info.description');
 
-        foreach (['## Ce que couvre l\'API', '## Accès et authentification', 'Aucune authentification', '300 requêtes',
+        foreach (['## Ce que couvre l\'API', '## Authentification et quotas', '**sans jeton**', '300 requêtes', '1 200 requêtes',
+            'Authorization: Bearer', 'X-RateLimit-Limit', 'Retry-After', 'invalid_token', 'account_suspended',
             '## Conventions communes', '## Erreurs', '## Pagination par curseur', '## Provenance et licence',
             '## Licences et sources', '## Versionnement', '/api/v2', '/sources', 'POST /mcp'] as $needle) {
             $this->assertStringContainsString($needle, $intro);

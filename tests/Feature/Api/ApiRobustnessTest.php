@@ -93,7 +93,7 @@ class ApiRobustnessTest extends TestCase
             ->assertHeader('Access-Control-Allow-Origin', '*');
     }
 
-    // ─── Limite de débit (throttle:300,1) ────────────────────────────────
+    // ─── Limite de débit (throttle:public-api, 300 sans jeton) ────────────────────────────────
 
     public function test_rate_limit_headers_then_429_after_300_requests_per_minute(): void
     {

@@ -28,12 +28,14 @@ use App\Http\Controllers\Api\StatsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->get('/user', fn (Request $request) => $request->user());
+// Compte du jeton (lecture seule) ; un jeton d'un compte suspendu est refusé (AuthenticateApiToken).
+Route::middleware(['api.token', 'auth:sanctum', 'throttle:public-api'])->get('/user', fn (Request $request) => $request->user());
 
 // ── API v1 publique : cartographie ─────────────────────────────────────────
-// Toutes les routes sont GET, sans auth (données ouvertes - ODbL).
-// Rate-limit généreux (navigation carte = nombreuses tuiles) mais anti-abus.
-Route::middleware('throttle:300,1')->group(function (): void {
+// Toutes les routes sont GET, sans auth (données ouvertes - ODbL). Jeton personnel facultatif
+// (api.token) : il relève la limite de débit du compte (limiteur public-api, config/api.php).
+// Limite généreuse (navigation carte = nombreuses tuiles) mais anti-abus.
+Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void {
     // Longueurs bornées : un entier géant (« 99999999999999999999 ») ne rentre pas
     // dans le paramètre int du contrôleur (TypeError, HTTP 500) → 404 de routage.
     Route::prefix('v1/eras/{year}')

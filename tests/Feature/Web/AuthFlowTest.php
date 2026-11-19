@@ -350,6 +350,7 @@ class AuthFlowTest extends TestCase
                 'reputation' => $user->reputation,
                 'avatar_path' => null,
                 'locale_preference' => 'en',
+                'suspended' => false,
             ]));
     }
 }

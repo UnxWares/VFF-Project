@@ -4,10 +4,16 @@
     import PageHero from '$components/PageHero.svelte';
     import Field from '$components/ui/Field.svelte';
     import Notice from '$components/ui/Notice.svelte';
+    import ApiTokens from '$components/Profile/ApiTokens.svelte';
     import { focusFirstError } from './authForm.js';
+    import { reportDate } from '$lib/errorReport.js';
     import { LOCALES, i18n } from '$lib/i18n.js';
 
-    let { profile } = $props();
+    /**
+     * `suspension` : suspension en cours (motif, début, fin éventuelle), sinon null.
+     * `api_access` : jetons d'API personnels et limite du compte (ApiTokens::forProfile).
+     */
+    let { profile, suspension = null, api_access = null } = $props();
 
     // PUT pour matcher la route REST `Route::put('/profile', ...)`.
     // Inertia transmet automatiquement _method=PUT en POST + CSRF. Valeurs de départ du formulaire.
@@ -90,6 +96,29 @@
         />
 
         <div class="vff-container profile-page">
+            {#if suspension}
+                <div class="suspension">
+                    <Notice tone="warning" live="off" title={$i18n.t('moderation.profile.title')}>
+                        <p>
+                            {suspension.until
+                                ? $i18n.t('moderation.profile.until', {
+                                      date: reportDate(
+                                          suspension.until,
+                                          $i18n.language,
+                                          'Europe/Paris',
+                                      ),
+                                  })
+                                : $i18n.t('moderation.profile.indefinite')}
+                            {$i18n.t('moderation.profile.since', {
+                                date: reportDate(suspension.since, $i18n.language, 'Europe/Paris'),
+                            })}
+                        </p>
+                        <p>{$i18n.t('moderation.profile.reason', { reason: suspension.reason })}</p>
+                        <p>{$i18n.t('moderation.profile.effect')}</p>
+                        <p>{$i18n.t('moderation.profile.contest')}</p>
+                    </Notice>
+                </div>
+            {/if}
             <div class="profile-grid">
                 <aside class="identity" aria-labelledby="identity-name">
                     {#if profile.avatar_path}
@@ -214,6 +243,12 @@
                     </form>
                 </section>
 
+                {#if api_access}
+                    <div class="api-area">
+                        <ApiTokens access={api_access} />
+                    </div>
+                {/if}
+
                 <section class="my-data" aria-labelledby="data-title">
                     <h2 id="data-title" class="vff-section-title">
                         {$i18n.t('account.data.title')}
@@ -295,6 +330,15 @@
 <style>
     .profile-page {
         padding-block: var(--vff-section-space);
+    }
+    .suspension {
+        max-width: 860px;
+        margin-bottom: var(--vff-block-space);
+    }
+    .suspension :global(p) {
+        margin: 0 0 var(--vff-space-2);
+        overflow-wrap: anywhere;
+        white-space: pre-line;
     }
     .profile-grid {
         display: grid;
@@ -378,7 +422,8 @@
         margin-top: 4px;
     }
 
-    /* Mes données : sous le formulaire, dans la même colonne. */
+    /* Jetons d'API puis Mes données : sous le formulaire, dans la même colonne. */
+    .api-area,
     .my-data {
         grid-column: 2;
         min-width: 0;
@@ -466,6 +511,7 @@
         .identity {
             max-width: 420px;
         }
+        .api-area,
         .my-data {
             grid-column: auto;
         }

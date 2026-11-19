@@ -52,6 +52,16 @@ final class AccountDataExport
                 // Acceptation des CGU à l'inscription (null pour un compte créé avant le 19/11/2026).
                 'terms_accepted_at' => $user->terms_accepted_at?->toIso8601String(),
                 'terms_version' => $user->terms_version,
+                // Profil « partenaire » de l'API accordé par un administrateur (null sinon).
+                'api_partner_since' => $user->api_partner_at?->toIso8601String(),
+            ],
+            // Suspension du compte par un administrateur (null si le compte n'a jamais été suspendu ou
+            // si la suspension a été levée). Jamais le nom de l'administrateur qui l'a décidée.
+            'suspension' => $user->suspended_at === null ? null : [
+                'active' => $user->isSuspended(),
+                'suspended_at' => $user->suspended_at->toIso8601String(),
+                'ends_at' => $user->suspended_until?->toIso8601String(),
+                'reason' => $user->suspension_reason,
             ],
             'contributions' => $user->contributions()->orderBy('id')->get()
                 ->map(fn (Contribution $c): array => [

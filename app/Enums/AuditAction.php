@@ -31,4 +31,25 @@ enum AuditAction: string
     case ErrorReportResolved = 'error_report_resolved';
     /** Signalement examiné et écarté. */
     case ErrorReportRejected = 'error_report_rejected';
+    /**
+     * Compte suspendu par un administrateur. Contexte : `account_id` (retiré à la suppression du
+     * compte, AccountDeletion), `with_end_date`, `ends_at` ; jamais le motif ni le nom.
+     */
+    case AccountSuspended = 'account_suspended';
+    /** Suspension levée à la main par un administrateur (contexte : `account_id`). */
+    case AccountSuspensionLifted = 'account_suspension_lifted';
+    /**
+     * Jeton d'API personnel créé par son titulaire (acteur). Contexte : `token_id` ; jamais le nom
+     * du jeton ni son secret.
+     */
+    case ApiTokenCreated = 'api_token_created';
+    /** Jeton d'API révoqué par son titulaire (acteur). Contexte : `token_id`. */
+    case ApiTokenRevoked = 'api_token_revoked';
+    /**
+     * Profil « partenaire » de l'API accordé en console (vff:api-partner). Contexte : `account_id`
+     * (retiré à la suppression du compte, AccountDeletion).
+     */
+    case ApiPartnerGranted = 'api_partner_granted';
+    /** Profil « partenaire » de l'API retiré en console. Contexte : `account_id`. */
+    case ApiPartnerRevoked = 'api_partner_revoked';
 }

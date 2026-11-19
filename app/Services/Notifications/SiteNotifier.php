@@ -26,6 +26,8 @@ final readonly class SiteNotifier
     {
         $reviewers = User::query()
             ->reviewers()
+            // Un validateur suspendu ne peut rien relire : inutile de le prévenir.
+            ->notSuspended()
             ->when($exceptUserId !== null, fn ($query) => $query->whereKeyNot($exceptUserId))
             ->orderBy('id')
             ->get();

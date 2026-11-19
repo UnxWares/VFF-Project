@@ -20,10 +20,11 @@ par les licences.
 3. [Outils](#outils)
 4. [Ressources](#ressources)
 5. [Exemples : questions et appels](#exemples--questions-et-appels)
-6. [Limites et sécurité](#limites-et-sécurité)
-7. [Attribution et licences](#attribution-et-licences)
-8. [Ce que le serveur ne couvre pas encore](#ce-que-le-serveur-ne-couvre-pas-encore)
-9. [Développement et tests](#développement-et-tests)
+6. [Authentification et quotas](#authentification-et-quotas)
+7. [Limites et sécurité](#limites-et-sécurité)
+8. [Attribution et licences](#attribution-et-licences)
+9. [Ce que le serveur ne couvre pas encore](#ce-que-le-serveur-ne-couvre-pas-encore)
+10. [Développement et tests](#développement-et-tests)
 
 ## Installation dans un client MCP
 
@@ -669,6 +670,70 @@ SNCF Réseau. Erreur `no_geometry` si la ligne n'a pas de tracé à cette ère.
 | « À quel PK de Paris - Brest est ce point (48,10 ; -1,67) ? » | `locate_on_line {"line": "rfn-420000", "lat": 48.10, "lng": -1.67}` |
 | « Quel matériel a circulé sur Lunéville - Saint-Dié ? » | `search {"query": "Lunéville"}` puis `materials {"line": "<slug>"}` et `get_material` pour la preuve |
 
+## Authentification et quotas
+
+Le serveur s'utilise sans compte ni jeton. Un **jeton personnel** de l'API, facultatif, relève la
+limite de débit : un membre le crée depuis son profil (section « Jetons d'accès à l'API » de
+`/profile`). Il ne sert qu'à lire, comme l'accès anonyme, et n'est affiché qu'une fois. Le serveur
+MCP lit le même en-tête que l'API REST et GraphQL : `Authorization: Bearer <jeton>`.
+
+| Profil | Limite (valeurs par défaut) | Compteur |
+| --- | --- | --- |
+| Sans jeton | 300 requêtes par minute (`API_RATE_LIMIT_ANONYMOUS`) | par adresse IP |
+| Jeton d'un membre | 1 200 requêtes par minute (`API_RATE_LIMIT_MEMBER`) | par compte, tous ses jetons ensemble |
+| Jeton d'un compte partenaire | 6 000 requêtes par minute (`API_RATE_LIMIT_PARTNER`) | par compte |
+
+Les valeurs se règlent dans `config/api.php`. Le profil partenaire est accordé par un administrateur
+du serveur (`php artisan vff:api-partner <compte>`, `--revoke` pour le retirer, `--list` pour la
+liste). Le compteur est **commun** à `POST /mcp`, à l'API REST et à GraphQL : un appel MCP compte
+comme une requête REST.
+
+Chaque réponse HTTP porte `X-RateLimit-Limit` (la limite de l'appelant) et `X-RateLimit-Remaining`
+(requêtes restantes dans la minute). Au-delà de la limite : **HTTP 429** avec `Retry-After` (attente
+en secondes), avant toute réponse JSON-RPC. Un jeton inconnu, révoqué ou expiré donne **HTTP 401**
+(`{"error": "invalid_token"}`) : l'appel n'est pas servi en anonyme, et il est compté sur le
+compteur de l'adresse IP. Le jeton d'un compte suspendu donne **HTTP 403**
+(`{"error": "account_suspended"}`) jusqu'à la fin de la suspension.
+
+Claude Code, avec un jeton :
+
+```bash
+claude mcp add --transport http vff https://vff-project.org/mcp \
+  --header "Authorization: Bearer $VFF_TOKEN"
+```
+
+Fichier de configuration (Claude Desktop, Cursor, VS Code) :
+
+```json
+{
+  "mcpServers": {
+    "vff": {
+      "type": "http",
+      "url": "https://vff-project.org/mcp",
+      "headers": { "Authorization": "Bearer <votre jeton>" }
+    }
+  }
+}
+```
+
+Essai en ligne de commande (`-i` affiche les en-têtes de limite) :
+
+```bash
+curl -si https://vff-project.org/mcp \
+  -H "Authorization: Bearer $VFF_TOKEN" \
+  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
+  -H 'MCP-Protocol-Version: 2025-06-18' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+Réponse du serveur de développement avec le jeton d'un membre (extrait) :
+
+```http
+HTTP/1.1 200 OK
+X-RateLimit-Limit: 1200
+X-RateLimit-Remaining: 1197
+```
+
 ## Limites et sécurité
 
 - **Lecture seule** : aucun outil n'écrit en base ; aucun compte, aucune contribution en attente,
@@ -677,8 +742,9 @@ SNCF Réseau. Erreur `no_geometry` si la ligne n'a pas de tracé à cette ère.
   pas renvoyée par `get_line`, pour ne pas faire circuler un texte sous licence à partage dans les
   mêmes conditions sans sa mention. L'API REST et GraphQL la publient avec son auteur collectif, le
   lien de l'article, le permalien de la révision lue et la licence (`description_source`).
-- **Débit** : 300 requêtes par minute et par adresse IP sur `POST /mcp` (la même limite que l'API
-  REST et GraphQL ; `MCP_RATE_LIMIT`). Au-delà : HTTP 429.
+- **Débit** : 300 requêtes par minute et par adresse IP sans jeton, davantage avec un jeton
+  personnel, sur un compteur commun à l'API REST et à GraphQL (voir « Authentification et quotas »).
+  Au-delà : HTTP 429.
 - **Taille** : 48 000 octets au plus par réponse (`MCP_MAX_RESPONSE_BYTES`). Au-delà, les listes les
   plus longues (événements, phases, gares…) sont raccourcies par la fin, et `truncated` le dit :
   réduisez la période, les types ou `max_events`. Les outils de liste ne perdent rien : leur

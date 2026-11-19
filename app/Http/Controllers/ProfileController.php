@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Middleware\SetLocale;
+use App\Services\Api\ApiTokens;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -10,7 +11,7 @@ use Inertia\Response;
 
 class ProfileController extends Controller
 {
-    public function show(Request $request): Response
+    public function show(Request $request, ApiTokens $tokens): Response
     {
         $user = $request->user();
 
@@ -27,6 +28,16 @@ class ProfileController extends Controller
                 'email_verified_at' => $user->email_verified_at,
                 'created_at' => $user->created_at?->toIso8601String(),
             ],
+            // Suspension en cours : motif et fin éventuelle, pour que le membre sache pourquoi
+            // il ne peut plus contribuer (null sinon).
+            'suspension' => $user->isSuspended() ? [
+                'since' => $user->suspended_at?->toIso8601String(),
+                'until' => $user->suspended_until?->toIso8601String(),
+                'reason' => $user->suspension_reason,
+            ] : null,
+            // Jetons d'API personnels (sans secret), quota du compte ; secret du jeton tout juste
+            // créé, montré une seule fois (donnée flash de ApiTokenController::store).
+            'api_access' => $tokens->forProfile($user, $request->session()->get(ApiTokenController::FLASH)),
         ]);
     }
 

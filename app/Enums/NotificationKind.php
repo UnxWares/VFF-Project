@@ -19,4 +19,8 @@ enum NotificationKind: string
     case ErrorReported = 'error_report_received';
     /** Pour chaque membre : les CGU ou la politique de confidentialité changent à une date donnée. */
     case LegalDocumentChanged = 'legal_document_changed';
+    /** Pour le membre : son compte est suspendu par un administrateur, avec le motif. */
+    case AccountSuspended = 'account_suspended';
+    /** Pour le membre : la suspension de son compte est levée avant son terme. */
+    case AccountSuspensionLifted = 'account_suspension_lifted';
 }

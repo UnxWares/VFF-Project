@@ -152,7 +152,8 @@ class LevelCrossingApiTest extends TestCase
         foreach ($list['parameters'] as $p) {
             $this->assertNotEmpty($p['description'], $p['name']);
         }
-        $this->assertEqualsCanonicalizing(['200', '422', '429'], array_map('strval', array_keys($list['responses'])));
+        // 401 et 403 : jeton invalide ou d'un compte suspendu (ApiAuthDocumentation).
+        $this->assertEqualsCanonicalizing(['200', '401', '403', '422', '429'], array_map('strval', array_keys($list['responses'])));
         $this->assertArrayHasKey('/lines/{line}/level-crossings', $paths);
         $this->assertArrayHasKey('/level-crossings/tiles/{z}/{x}/{y}.mvt', $paths);
         $this->assertArrayHasKey('/eras/{year}/signalling/tiles/{z}/{x}/{y}.mvt', $paths);

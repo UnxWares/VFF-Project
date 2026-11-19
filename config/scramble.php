@@ -22,6 +22,7 @@ return [
 
     'info' => [
         'version' => env('API_VERSION', '1.0.0'),
+        // {limit.anonymous|member|partner} : limites de config/api.php, posées par App\Support\ApiAuthDocumentation.
         'description' => <<<'MD'
             API publique de **VFF - Voies Ferrées de France**, l'encyclopédie collaborative du rail français :
             tracés, gares, chronologies, signalisation et médias du réseau ferroviaire, de 1830 à aujourd'hui.
@@ -56,20 +57,59 @@ return [
             ## Formats
             - **JSON** pour les fiches, la recherche et les itinéraires ;
             - **GeoJSON** (RFC 7946, coordonnées WGS 84 dans l'ordre longitude, latitude) pour les tracés et les gares ;
+            - **GPX 1.1** et **KML 2.2** (fichiers à télécharger) pour le tracé d'une ligne ;
             - **Mapbox Vector Tiles** (MVT) pour l'affichage cartographique avec MapLibre GL ;
             - **GTFS Static** (ZIP) pour les outils de transport.
 
             Distances et points kilométriques (PK) en **mètres**, notation ferroviaire `km+mmm`
             (`249+204` = 249,204 km), vitesses en km/h, tensions en volts, écartements en millimètres.
 
-            ## Accès et authentification
-            Aucune authentification : tous les points d'accès sont en lecture (`GET`), **anonymes** et
-            sans clé ni compte. Limite : 300 requêtes par minute et par adresse IP (HTTP 429 au-delà),
-            la même pour GraphQL et le serveur MCP. Les réponses portent un en-tête `Cache-Control`
-            (5 minutes en général, 1 heure pour le registre des sources) : gardez-les en cache plutôt
-            que de les redemander. Envoyez l'en-tête `Accept: application/json`. Les textes tirés des
-            sources et rédigés par VFF (notes, présentations d'ères, chroniques) sont en français.
+            ## Authentification et quotas
+            Tous les points d'accès sont en lecture (`GET`) et s'appellent **sans jeton** ni compte. Un **jeton
+            personnel**, facultatif, relève la limite de débit : un membre le crée depuis son profil (section
+            « Jetons d'accès à l'API » de [/profile](/profile)). Il ne sert qu'à lire, comme l'accès anonyme, et
+            n'est affiché qu'une fois, à sa création. Il s'envoie dans l'en-tête `Authorization: Bearer <jeton>`.
 
+            | Profil | Limite | Compteur |
+            | --- | --- | --- |
+            | Sans jeton | {limit.anonymous} requêtes par minute | par adresse IP |
+            | Jeton d'un membre | {limit.member} requêtes par minute | par compte, tous ses jetons ensemble |
+            | Jeton d'un compte partenaire | {limit.partner} requêtes par minute | par compte (profil accordé par l'équipe de VFF) |
+
+            Le compteur est commun à l'API REST, à GraphQL et au serveur MCP. Chaque réponse porte
+            `X-RateLimit-Limit` (la limite de l'appelant) et `X-RateLimit-Remaining` (requêtes restantes dans la
+            minute). Au-delà, **HTTP 429** avec `Retry-After` (attente en secondes). Un jeton inconnu, révoqué
+            ou expiré donne **HTTP 401** (`"error": "invalid_token"`) : l'appel n'est pas compté comme
+            anonyme, retirez l'en-tête pour revenir à l'accès sans jeton. Le jeton d'un compte suspendu donne
+            **HTTP 403** (`"error": "account_suspended"`) jusqu'à la fin de la suspension.
+
+            ```bash
+            curl -i https://vff-project.org/api/v1/stats
+            curl -i -H "Authorization: Bearer $VFF_TOKEN" https://vff-project.org/api/v1/stats
+            ```
+
+            ```javascript
+            const response = await fetch("https://vff-project.org/api/v1/stats", {
+                headers: { Authorization: `Bearer ${process.env.VFF_TOKEN}` },
+            });
+            console.log(response.status, response.headers.get("X-RateLimit-Limit"), response.headers.get("X-RateLimit-Remaining"));
+            ```
+
+            ```python
+            import os, time
+            import requests
+
+            headers = {"Authorization": f"Bearer {os.environ['VFF_TOKEN']}"}
+            response = requests.get("https://vff-project.org/api/v1/stats", headers=headers, timeout=30)
+            if response.status_code == 429:
+                time.sleep(int(response.headers["Retry-After"]))
+            print(response.status_code, response.headers["X-RateLimit-Limit"], response.headers["X-RateLimit-Remaining"])
+            ```
+
+            Les réponses portent aussi un en-tête `Cache-Control` (5 minutes en général, 1 heure pour le
+            registre des sources) : gardez-les en cache plutôt que de les redemander. Envoyez l'en-tête
+            `Accept: application/json`. Les textes tirés des sources et rédigés par VFF (notes, présentations
+            d'ères, chroniques) sont en français.
             ## Conventions communes
             - **Identifiants** : les lignes et les gares se désignent par leur `slug` (ex. `rfn-420000`,
               `brest`), les événements et les médias par leur `id` numérique, les ères par leur année.
@@ -93,8 +133,10 @@ return [
               énumération, une date mal formée, une borne dépassée ou un curseur illisible. Corps :
               `{"message": "…", "errors": {"paramètre": ["…"]}}`. Il n'y a pas de HTTP 400 : une requête
               mal formée est toujours signalée par un 422 détaillé.
-            - **429** : plus de 300 requêtes par minute. L'en-tête `Retry-After` donne l'attente en
-              secondes, `X-RateLimit-Remaining` le nombre de requêtes restantes.
+            - **401** : jeton invalide, révoqué ou expiré (`invalid_token`) ; **403** : jeton d'un compte
+              suspendu (`account_suspended`). Voir « Authentification et quotas ».
+            - **429** : limite de requêtes par minute dépassée ({limit.anonymous} sans jeton). L'en-tête `Retry-After`
+              donne l'attente en secondes, `X-RateLimit-Remaining` le nombre de requêtes restantes.
             - Les messages d'erreur de validation sont en anglais, quelle que soit la langue du site.
 
             ## Pagination par curseur

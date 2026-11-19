@@ -25,7 +25,9 @@ return [
 
     'allowed_headers' => ['*'],
 
-    'exposed_headers' => [],
+    // Lisibles par un script d'une autre origine (fetch dans un navigateur) : limite de débit de
+    // l'API publique et attente après une réponse 429 (config/api.php).
+    'exposed_headers' => ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'Retry-After'],
 
     'max_age' => 0,
 

@@ -12,13 +12,16 @@ use App\Http\Requests\Api\ListMaterialsRequest;
 use App\Http\Requests\Api\ListMediaRequest;
 use App\Http\Requests\Api\ListStationEventsRequest;
 use App\Http\Requests\Api\ListStationsRequest;
+use App\Models\User;
 use App\Services\Api\AccidentQuery;
 use App\Services\Api\LineDirectoryQuery;
 use App\Services\Api\LineEventQuery;
 use App\Services\Api\MaterialQuery;
 use App\Services\Api\MediaQuery;
+use App\Services\Api\PublicApiRateLimit;
 use App\Services\Api\StationDirectoryQuery;
 use App\Services\Api\StationEventQuery;
+use App\Support\ApiAuthDocumentation;
 use App\Support\ApiCodeSamples;
 use App\Support\DatabaseGuard;
 use App\Support\SourceRights;
@@ -30,6 +33,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -57,7 +61,14 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         // Exemples JavaScript et Python des principaux points d'accès (extension x-codeSamples lue par Scalar).
-        Scramble::configure()->withDocumentTransformers(ApiCodeSamples::class);
+        // Jeton facultatif, quotas par profil, réponses 401, 403 et 429 (section « Authentification et quotas »).
+        Scramble::configure()->withDocumentTransformers([ApiCodeSamples::class, ApiAuthDocumentation::class]);
+
+        // Le jeton d'un compte suspendu est refusé partout où Sanctum authentifie (auth:sanctum) ;
+        // l'API publique le refuse avec un message dans AuthenticateApiToken.
+        Sanctum::authenticateAccessTokensUsing(
+            fn ($token, bool $isValid): bool => $isValid && ! ($token->tokenable instanceof User && $token->tokenable->isSuspended()),
+        );
 
         $this->configureRateLimiting();
 
@@ -74,6 +85,9 @@ class AppServiceProvider extends ServiceProvider
      */
     private function configureRateLimiting(): void
     {
+        // API publique (REST, GraphQL, MCP) : limite par profil, anonyme, membre ou partenaire.
+        RateLimiter::for(PublicApiRateLimit::NAME, PublicApiRateLimit::for(...));
+
         RateLimiter::for('error-reports', function (Request $request): array {
             $who = $request->user()?->id ? 'user:'.$request->user()->id : 'ip:'.$request->ip();
             $refuse = fn () => back()->withErrors(['form' => __('reports.errors.too_many')]);

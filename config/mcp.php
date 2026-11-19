@@ -23,8 +23,6 @@ return [
         // au-delà, les listes les plus longues sont raccourcies et la réponse le dit (`truncated`).
         'max_response_bytes' => (int) env('MCP_MAX_RESPONSE_BYTES', 48_000),
 
-        // Requêtes par minute et par adresse IP sur POST /mcp : la même limite que l'API publique.
-        'rate_limit_per_minute' => (int) env('MCP_RATE_LIMIT', 300),
     ],
 
 ];
