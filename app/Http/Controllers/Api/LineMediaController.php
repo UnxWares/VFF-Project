@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\MediaResource;
 use App\Models\Line;
 use App\Models\Media;
+use App\Services\Api\MediaQuery;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
@@ -13,27 +15,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 #[Group('Lignes', "Une ligne en détail : chronologie, gares dans l'ordre des points kilométriques, conversion de coordonnées en PK, signalisation, médias.", weight: 2)]
 class LineMediaController extends Controller
 {
-    /** Tranches d'époque proposées comme filtres (bornes incluses). */
-    public const PERIODS = [
-        'pre1900' => [null, 1899],
-        '1900_1944' => [1900, 1944],
-        '1945_1969' => [1945, 1969],
-        '1970_1999' => [1970, 1999],
-        'since2000' => [2000, null],
-    ];
-
-    private const PROVIDER_LABELS = [
-        'commons' => 'Wikimedia Commons',
-        'wikidata' => 'Wikidata',
-        'gallica' => 'Gallica (BnF)',
-        'upload' => 'VFF',
-    ];
-
     /**
      * Médias d'une ligne.
      *
@@ -87,14 +72,14 @@ class LineMediaController extends Controller
         ],
     ]])]
     #[ApiResponse(404, 'Ligne inconnue (slug introuvable).')]
-    public function index(Line $line, Request $request): JsonResponse
+    public function index(Line $line, Request $request, MediaQuery $query): JsonResponse
     {
         $request->validate([
             'page' => 'nullable|integer|min:1',
             'per_page' => 'nullable|integer|min:1|max:60',
             'sort' => 'nullable|in:oldest,newest,featured',
             'type' => 'nullable|in:photo,postcard,map,plan,document',
-            'period' => 'nullable|in:'.implode(',', [...array_keys(self::PERIODS), 'undated']),
+            'period' => 'nullable|in:'.implode(',', [...array_keys(MediaQuery::PERIODS), 'undated']),
         ]);
 
         $perPage = $request->integer('per_page', 24);
@@ -110,19 +95,7 @@ class LineMediaController extends Controller
             $q->where('type', $request->input('type'));
         }
         if ($request->filled('period')) {
-            $period = $request->input('period');
-            if ($period === 'undated') {
-                $q->whereNull('depicted_year');
-            } else {
-                [$from, $to] = self::PERIODS[$period];
-                $q->whereNotNull('depicted_year');
-                if ($from !== null) {
-                    $q->where('depicted_year', '>=', $from);
-                }
-                if ($to !== null) {
-                    $q->where('depicted_year', '<=', $to);
-                }
-            }
+            $query->wherePeriod($q, $request->string('period')->toString());
         }
 
         $total = (clone $q)->count();
@@ -140,7 +113,7 @@ class LineMediaController extends Controller
 
         return response()->json([
             'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name],
-            'data' => $items->map(fn (Media $m) => $this->present($m))->values(),
+            'data' => $items->map(fn (Media $m) => MediaResource::make($m)->resolve())->values(),
             'meta' => [
                 'current_page' => $page,
                 'per_page' => $perPage,
@@ -152,41 +125,6 @@ class LineMediaController extends Controller
         ])->header('Cache-Control', 'public, max-age=300');
     }
 
-    /** @return array<string, mixed> */
-    private function present(Media $m): array
-    {
-        $meta = $m->provider_meta ?? [];
-        $thumb = $m->thumb_url ?? ($m->file_path ? Storage::url($m->file_path) : null);
-
-        return [
-            'id' => $m->id,
-            'provider' => $m->provider,
-            'provider_label' => self::PROVIDER_LABELS[$m->provider] ?? $m->provider,
-            'type' => $m->type?->value,
-            'title' => $m->title,
-            'caption' => $m->caption,
-            'thumb_url' => $thumb,
-            'display_url' => $m->display_url ?? $thumb,
-            'source_url' => $m->source_url,
-            'width' => $m->width,
-            'height' => $m->height,
-            'depicted_year' => $m->depicted_year,
-            'depicted_year_to' => $meta['year_to'] ?? null,
-            'date_precision' => $meta['date_precision'] ?? ($m->depicted_year ? 'year' : null),
-            'captured_at' => $m->captured_at?->toDateString(),
-            'author' => $m->author,
-            'attribution' => $m->attribution,
-            'license' => $m->license,
-            'license_url' => $m->license_url,
-            'rights_status' => $m->rights_status,
-            'commercial_ok' => $m->commercial_ok,
-            'share_alike' => $m->share_alike,
-            'attribution_required' => $meta['attribution_required'] ?? null,
-            'featured' => $m->is_featured,
-            'location' => $m->lat !== null ? ['lat' => (float) $m->lat, 'lng' => (float) $m->lng] : null,
-        ];
-    }
-
     /**
      * Compteurs pour les filtres (sur l'ensemble des médias de la ligne).
      *
@@ -195,7 +133,7 @@ class LineMediaController extends Controller
     private function facets(Line $line): array
     {
         $cases = [];
-        foreach (self::PERIODS as $key => [$from, $to]) {
+        foreach (MediaQuery::PERIODS as $key => [$from, $to]) {
             $cond = array_filter([
                 $from !== null ? "depicted_year >= {$from}" : null,
                 $to !== null ? "depicted_year <= {$to}" : null,
@@ -211,7 +149,7 @@ class LineMediaController extends Controller
             [Line::class, $line->id],
         );
 
-        $out = ['types' => [], 'periods' => array_fill_keys([...array_keys(self::PERIODS), 'undated'], 0), 'rights' => [], 'providers' => []];
+        $out = ['types' => [], 'periods' => array_fill_keys([...array_keys(MediaQuery::PERIODS), 'undated'], 0), 'rights' => [], 'providers' => []];
         foreach ($rows as $r) {
             $n = (int) $r->n;
             $out['types'][$r->type] = ($out['types'][$r->type] ?? 0) + $n;

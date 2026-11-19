@@ -37,6 +37,7 @@ return [
         'orm_signals' => 'OpenRailwayMap - Signale',
         'orm_electrification' => 'OpenRailwayMap - Elektrifizierung',
         'orm_gauge' => 'OpenRailwayMap - Spurweite',
+        'accidents' => 'Unfälle',
     ],
 
     'legend' => [
@@ -209,7 +210,9 @@ return [
         'route_term' => 'Verbindung',
         'route_text' => 'Geben Sie zwei Bahnhöfe und ein Jahr an: Die Karte zeichnet den Weg auf dem damals betriebenen Netz und listet die befahrenen Strecken auf.',
         'layers_term' => 'Ebenen',
-        'layers_text' => 'Die Ebene OpenRailwayMap blendet die heutige Infrastruktur ein: Signale, Geschwindigkeiten, Elektrifizierung. Die Schaltfläche mit der Uhr oben rechts auf der Karte zeigt alte Karten des IGN.',
+        'layers_text' => 'Die Ebene OpenRailwayMap blendet die heutige Infrastruktur ein: Signale, Geschwindigkeiten, Elektrifizierung. Die Schaltfläche mit der Uhr oben rechts auf der Karte zeigt alte Karten des IGN. Die Ebene Unfälle zeigt die Unfälle bis zur angezeigten Epoche; ein blasser Kreis bedeutet, dass nur die Gemeinde bekannt ist.',
+        'views_term' => 'Epochen vergleichen',
+        'views_text' => 'Die Auswahl „Ansicht“ über der Karte vergleicht zwei Jahrzehnte (dazwischen eröffnete, stillgelegte oder abgebaute Strecken) oder legt alle Epochen übereinander, damit Sie sehen, wann jede Strecke den Betrieb verlor. Die Adresse der Seite behält diese Auswahl: Sie können sie teilen.',
     ],
 
     'tech' => [
@@ -226,6 +229,78 @@ return [
     ],
 
     // Schaltflächen der Karte (MapLibre): Tooltips und von Screenreadern vorgelesene Namen.
+    // Ansichten nach Epoche (Auswahl „Ansicht“ über der Karte).
+    'view' => [
+        'label' => 'Ansicht',
+        'era' => 'Eine Epoche',
+        'compare' => 'Vergleichen',
+        'stack' => 'Alle Epochen',
+    ],
+
+    // Vergleich zweier Jahrzehnte (Leiste unter der Karte, Legende, Popups).
+    'compare' => [
+        'aria_label' => 'Vergleich zweier Jahrzehnte',
+        'from' => 'Von',
+        'to' => 'bis',
+        'legend_title' => 'Von :from bis :to',
+        'today_inline' => 'heute',
+        'loading' => 'Unterschiede werden berechnet …',
+        'error' => 'Die Unterschiede können gerade nicht berechnet werden.',
+        'opened' => 'Eröffnet oder wiedereröffnet',
+        'closed' => 'Stillgelegt, Gleis noch vorhanden',
+        'removed' => 'Abgebaut oder verschwunden',
+        'kept' => 'Zu beiden Zeitpunkten in Betrieb',
+        'balance' => 'Strecken in Betrieb: :before km (:from), dann :after km (:to).',
+        'none' => 'Keine Änderung zwischen diesen beiden Jahrzehnten.',
+        'announce' => 'Zwischen :from und :to: :opened km eröffnet oder wiedereröffnet, :closed km stillgelegt mit Gleis, :removed km abgebaut oder verschwunden. Strecken in Betrieb: :before km, dann :after km.',
+        'popup' => [
+            'opened' => 'Zwischen :from und :to eröffnet oder wiedereröffnet',
+            'closed' => 'Zwischen :from und :to stillgelegt, Gleis noch vorhanden',
+            'removed' => 'Zwischen :from und :to abgebaut oder verschwunden',
+            'kept' => 'Zu beiden Zeitpunkten in Betrieb (:from, :to)',
+        ],
+    ],
+
+    // Alle Epochen übereinander (Farbton = letztes Jahrzehnt in Betrieb).
+    'stack' => [
+        'legend_title' => 'Alle Epochen',
+        'intro' => 'Jede Strecke trägt den Farbton des letzten Jahrzehnts, in dem sie in Betrieb war: Je dunkler, desto länger blieb sie bestehen.',
+        'group' => 'Letztes Jahrzehnt in Betrieb',
+        'until' => ':year oder früher',
+        'range' => ':from bis :to',
+        'today' => 'Heute noch in Betrieb',
+        'note' => 'Jedes Jahrzehnt zeigt das Netz am 31. Dezember des jeweiligen Jahres.',
+        'popup_single' => 'Nur auf der Karte von :year in Betrieb',
+        'popup_span' => 'Auf den Karten von :from bis :to in Betrieb',
+        'popup_today' => 'Seit der Karte von :from in Betrieb, bis heute',
+    ],
+
+    // Ebene „Unfälle“ (Auswahl „Ebene“): Legende, Anzahl und Infofenster. Sachlicher, nüchterner Ton.
+    'accidents' => [
+        'title' => 'Unfälle',
+        'until' => 'Bis :year',
+        'until_today' => 'Bis heute',
+        'between' => 'Von :from bis :to',
+        'all' => 'Alle Daten',
+        'count_one' => ':count verorteter Unfall',
+        'count_other' => ':count verortete Unfälle',
+        'count_none' => 'Kein verorteter Unfall in diesem Zeitraum',
+        'point_exact' => 'Ort bekannt',
+        'point_commune' => 'Nur die Gemeinde ist bekannt',
+        'note' => 'Unfälle ohne bekannten Ort stehen nur in der Liste.',
+        'list_link' => 'Liste der Unfälle',
+        'loading' => 'Unfälle werden geladen…',
+        'error' => 'Die Unfälle konnten nicht geladen werden. Wählen Sie die Ebene erneut, um es noch einmal zu versuchen.',
+        'view_sheet' => 'Zur Seite des Unfalls',
+    ],
+
+    // Schaltfläche „Mich orten“: Meldungen, wenn der Standort nicht verfügbar ist.
+    'geolocate' => [
+        'denied' => 'Sie haben den Zugriff auf Ihren Standort nicht erlaubt. Erlauben Sie ihn in den Website-Einstellungen Ihres Browsers und klicken Sie dann erneut auf „Mich orten“.',
+        'unavailable' => 'Ihr Standort konnte nicht ermittelt werden. Prüfen Sie, ob die Standortdienste Ihres Geräts aktiviert sind, und versuchen Sie es erneut.',
+        'dismiss' => 'Meldung schließen',
+    ],
+
     'controls' => [
         'map' => 'Interaktive Karte des Eisenbahnnetzes',
         'zoom_in' => 'Vergrößern',
@@ -236,5 +311,7 @@ return [
         'attribution' => 'Kartennachweise ein- oder ausblenden',
         'map_feedback' => 'Fehler in der Hintergrundkarte melden',
         'popup_close' => 'Popup schließen',
+        'locate' => 'Mich orten (Ihr Standort dient nur dazu, die Karte zu zentrieren: Er wird weder an VFF gesendet noch gespeichert)',
+        'locate_unavailable' => 'Ortung nicht verfügbar: Zugriff verweigert oder vom Browser nicht unterstützt',
     ],
 ];

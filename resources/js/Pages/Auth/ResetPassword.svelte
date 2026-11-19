@@ -66,7 +66,12 @@
     <main>
         <AuthCard title={$i18n.t('auth.reset_title')} subtitle={$i18n.t('auth.reset_subtitle')}>
             <form class="auth-form" onsubmit={submit} novalidate>
-                <Field id="email" label={$i18n.t('auth.email_label')} error={form.errors.email}>
+                <Field
+                    id="email"
+                    label={$i18n.t('auth.email_label')}
+                    error={form.errors.email}
+                    required
+                >
                     {#snippet children(attrs)}
                         <input
                             {...attrs}

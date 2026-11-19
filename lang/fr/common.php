@@ -11,6 +11,8 @@ return [
 
     // Textes communs des composants partagés (pagination, liens externes).
     'new_tab' => 's’ouvre dans un nouvel onglet',
+    'note_ref' => 'Note',
+    'required' => 'obligatoire',
     'pagination' => 'Pagination',
     'previous' => 'Précédent',
     'next' => 'Suivant',

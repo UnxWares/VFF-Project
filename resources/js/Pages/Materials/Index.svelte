@@ -1,189 +1,271 @@
 <script>
+    import { Link, router } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
     import PageHero from '$components/PageHero.svelte';
+    import Pagination from '$components/Directory/Pagination.svelte';
     import DirectoryFilters from '$components/Directory/DirectoryFilters.svelte';
-    import DirectoryTable from '$components/Directory/DirectoryTable.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import { i18n } from '$lib/i18n.js';
+    import { matchedDesignation, servicePeriodText, splitArrows } from '$lib/materialFacts.js';
 
-    let { groups = [], total = 0 } = $props();
+    let { materials, counts = [], filters = {}, sorts = [], overall = 0 } = $props();
 
-    const TYPE_ICONS = {
-        locomotive_vapeur: 'bi-fire',
-        locomotive_diesel: 'bi-fuel-pump-fill',
-        locomotive_electrique: 'bi-lightning-charge-fill',
-        automotrice: 'bi-train-front-fill',
-        autorail: 'bi-train-front',
-        rame_tgv: 'bi-speedometer2',
-        voiture: 'bi-train-lightrail-front',
-        wagon: 'bi-box-seam',
+    // Clé de traduction de chaque tri (les valeurs d'adresse commencent parfois par « - »).
+    const SORT_KEYS = {
+        name: 'name',
+        in_service_from: 'oldest',
+        '-in_service_from': 'newest',
+        '-max_speed_kmh': 'fastest',
+        '-units_built': 'most_built',
+        '-lines_count': 'most_lines',
     };
-    const typeLabel = (type) => $i18n.t(`materials.types.${type}`, { defaultValue: type });
-    const fmt = (n) => Number(n ?? 0).toLocaleString($i18n.language ?? 'fr');
+    const DEFAULT_SORT = 'name';
 
-    // Le parc est petit et arrive en une seule page : recherche et filtre se font ici, sans rechargement.
-    let q = $state('');
-    let type = $state('');
-    const hasFilters = $derived(!!(q.trim() || type));
+    const lang = $derived($i18n.language ?? 'fr');
+    const t = (key, opts) => String($i18n.t(key, opts));
+    const fmt = (n) => Number(n ?? 0).toLocaleString(lang);
 
-    /** Sans accents ni capitales : « evreux » trouve « Évreux ». */
-    const fold = (text) =>
-        String(text ?? '')
-            .normalize('NFD')
-            .replace(/[̀-ͯ]/g, '')
-            .toLowerCase();
+    // Les champs partent des filtres reçus puis évoluent avec la saisie : valeur initiale voulue.
+    // svelte-ignore state_referenced_locally
+    let q = $state(filters.q ?? '');
+    // svelte-ignore state_referenced_locally
+    let sort = $state(filters.sort ?? DEFAULT_SORT);
+    const type = $derived(filters.type ?? '');
+    const hasFilters = $derived(!!(q || type || sort !== DEFAULT_SORT));
+    const countedAll = $derived(counts.reduce((n, c) => n + c.count, 0));
 
-    const visible = $derived.by(() => {
-        const needle = fold(q.trim());
+    /** Paramètres de l'adresse, sans les valeurs par défaut. */
+    function params(extra = {}) {
+        const p = { q, type, sort: sort === DEFAULT_SORT ? '' : sort, ...extra };
+        return Object.fromEntries(Object.entries(p).filter(([, v]) => v !== '' && v != null));
+    }
+    const typeHref = (value) => {
+        const query = new URLSearchParams(params({ type: value })).toString();
+        return query ? `/materials?${query}` : '/materials';
+    };
 
-        return groups
-            .filter((g) => !type || g.type === type)
-            .map((g) => ({
-                ...g,
-                items: g.items.filter(
-                    (m) =>
-                        !needle ||
-                        fold(m.name).includes(needle) ||
-                        fold(m.builder).includes(needle),
-                ),
-            }))
-            .filter((g) => g.items.length);
-    });
-    const shown = $derived(visible.reduce((n, g) => n + g.items.length, 0));
-
-    function reset() {
-        q = '';
-        type = '';
+    let debounceTimer;
+    function applyFilters(now = false) {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(
+            () =>
+                router.get('/materials', params(), {
+                    preserveState: true,
+                    preserveScroll: true,
+                    replace: true,
+                }),
+            now ? 0 : 250,
+        );
     }
 
-    const period = (m) =>
-        m.in_service_from
-            ? `${m.in_service_from}-${m.in_service_to ?? $i18n.t('materials.present')}`
-            : '';
+    function reset() {
+        clearTimeout(debounceTimer);
+        q = '';
+        sort = DEFAULT_SORT;
+        router.get('/materials', {}, { preserveState: true, replace: true });
+    }
+
+    function goToPage(page) {
+        router.get('/materials', params({ page }), { preserveScroll: false });
+    }
+
+    /**
+     * Téléphone : la rangée des catégories défile ; la catégorie choisie y est ramenée en vue
+     * (sans bouger la page). Relancé quand la catégorie change.
+     */
+    function revealCurrent(list) {
+        void type;
+        const current = list.querySelector('[aria-current="page"]');
+        if (current && list.scrollWidth > list.clientWidth) {
+            list.scrollLeft = current.offsetLeft - list.offsetLeft - 16;
+        }
+    }
+
+    /** Catégorie et période : « Autorail · 1950-1988 » (le constructeur a sa propre ligne). */
+    function metaOf(m) {
+        return [
+            t(`materials.type.${m.type}`),
+            servicePeriodText(m.in_service_from, m.in_service_to, t),
+        ].filter(Boolean);
+    }
+
+    /** Chiffres disponibles : engins construits, vitesse, lignes parcourues. */
+    function figuresOf(m) {
+        return [
+            m.units_built != null && t('materials.row.units', { count: m.units_built }),
+            m.max_speed_kmh != null && t('materials.unit.kmh', { value: fmt(m.max_speed_kmh) }),
+            m.lines_count > 0 && t('materials.row.lines', { count: m.lines_count }),
+        ].filter(Boolean);
+    }
 </script>
 
+{#snippet arrowed(text)}{#each splitArrows(text) as part, i (i)}{#if i > 0}<span aria-hidden="true"
+                >&nbsp;→&nbsp;</span
+            ><span class="vff-sr-only">{` ${t('materials.renumbered')} `}</span
+            >{/if}{part}{/each}{/snippet}
+
 <svelte:head>
-    <title>{$i18n.t('materials.meta_title')} - VFF</title>
-    <meta name="description" content={$i18n.t('materials.meta_description')} />
+    <title>{t('materials.meta_title')} - VFF</title>
+    <meta name="description" content={t('materials.meta_description')} />
 </svelte:head>
 
 <Layout compactHeader>
     <main>
         <PageHero
-            title={$i18n.t('materials.title')}
-            subtitle={total > 0
-                ? $i18n.t('materials.subtitle', { total: fmt(total) })
-                : $i18n.t('materials.subtitle_empty')}
+            title={t('materials.title')}
+            subtitle={overall > 0
+                ? t('materials.subtitle', { total: fmt(overall) })
+                : t('materials.subtitle_empty')}
         />
 
         <div class="vff-container directory">
-            {#if total === 0}
+            {#if overall === 0}
                 <EmptyState
                     icon="bi-train-front"
                     headingLevel={2}
-                    title={$i18n.t('materials.empty_title')}
-                    text={$i18n.t('materials.empty_text')}
+                    title={t('materials.empty_title')}
+                    text={t('materials.empty_text')}
                 >
-                    <a href="/lines" class="vff-btn primary">
-                        {$i18n.t('materials.empty_browse')}
-                    </a>
-                    <a href="/contribute" class="vff-btn secondary">
-                        {$i18n.t('materials.empty_cta')}
-                    </a>
+                    <Link href="/lines" class="vff-btn primary">{t('materials.empty_browse')}</Link>
+                    <Link href="/contribute" class="vff-btn secondary"
+                        >{t('materials.empty_cta')}</Link
+                    >
                 </EmptyState>
             {:else}
                 <DirectoryFilters
-                    label={$i18n.t('materials.filters_title')}
-                    results={$i18n.t('materials.results', { count: fmt(shown) })}
+                    label={t('materials.filters_title')}
+                    results={t('materials.results', { count: fmt(materials.total) })}
                     canReset={hasFilters}
-                    resetLabel={$i18n.t('materials.reset')}
+                    resetLabel={t('materials.reset')}
                     onreset={reset}
+                    onsubmit={() => applyFilters(true)}
                 >
-                    <div class="vff-field wide">
+                    <div class="vff-field">
                         <label class="vff-label" for="materials-q"
-                            >{$i18n.t('materials.search_label')}</label
+                            >{t('materials.search_label')}</label
                         >
                         <input
                             id="materials-q"
                             class="vff-input"
                             type="search"
+                            name="q"
                             autocomplete="off"
                             enterkeyhint="search"
-                            placeholder={$i18n.t('materials.search_hint')}
+                            placeholder={t('materials.search_hint')}
                             bind:value={q}
+                            oninput={() => applyFilters()}
                         />
                     </div>
                     <div class="vff-field">
-                        <label class="vff-label" for="materials-type"
-                            >{$i18n.t('materials.filter_type')}</label
+                        <label class="vff-label" for="materials-sort"
+                            >{t('materials.sort_label')}</label
                         >
-                        <select id="materials-type" class="vff-select" bind:value={type}>
-                            <option value="">{$i18n.t('materials.all_types')}</option>
-                            {#each groups as g (g.type)}
-                                <option value={g.type}
-                                    >{typeLabel(g.type)} ({fmt(g.items.length)})</option
+                        <select
+                            id="materials-sort"
+                            class="vff-select"
+                            bind:value={sort}
+                            onchange={() => applyFilters(true)}
+                        >
+                            {#each sorts as s (s)}
+                                <option value={s}
+                                    >{t(`materials.sorts.${SORT_KEYS[s] ?? s}`)}</option
                                 >
                             {/each}
                         </select>
                     </div>
                 </DirectoryFilters>
 
-                {#each visible as g (g.type)}
-                    <section class="type-block" aria-labelledby="type-{g.type}">
-                        <h2 class="vff-section-title" id="type-{g.type}">
-                            <i
-                                class="bi {TYPE_ICONS[g.type] ?? 'bi-train-front'}"
-                                aria-hidden="true"
-                            ></i>
-                            {typeLabel(g.type)}
-                            <span class="count">({fmt(g.items.length)})</span>
-                        </h2>
-                        <DirectoryTable label={typeLabel(g.type)} caption={typeLabel(g.type)}>
-                            <thead>
-                                <tr>
-                                    <th scope="col">{$i18n.t('materials.col_name')}</th>
-                                    <th scope="col">{$i18n.t('materials.col_builder')}</th>
-                                    <th scope="col" class="num"
-                                        >{$i18n.t('materials.col_period')}</th
-                                    >
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {#each g.items as m (m.slug)}
-                                    <tr>
-                                        <td class="name">
-                                            <a class="material-link" href="/materials/{m.slug}"
-                                                >{m.name}</a
-                                            >
-                                        </td>
-                                        <td
-                                            class={{ blank: !m.builder }}
-                                            data-label={$i18n.t('materials.col_builder')}
+                <nav class="categories" aria-label={t('materials.filter_type')}>
+                    <ul {@attach revealCurrent}>
+                        <li>
+                            <Link
+                                class="chip"
+                                href={typeHref('')}
+                                preserveState
+                                preserveScroll
+                                aria-current={type === '' ? 'page' : undefined}
+                                >{t('materials.all_types')}
+                                <span class="n">{fmt(countedAll)}</span></Link
+                            >
+                        </li>
+                        {#each counts as c (c.type)}
+                            <li>
+                                <Link
+                                    class="chip"
+                                    href={typeHref(c.type)}
+                                    preserveState
+                                    preserveScroll
+                                    aria-current={type === c.type ? 'page' : undefined}
+                                    >{t(`materials.types.${c.type}`)}
+                                    <span class="n">{fmt(c.count)}</span></Link
+                                >
+                            </li>
+                        {/each}
+                    </ul>
+                </nav>
+
+                {#if materials.data.length}
+                    <ul class="list">
+                        {#each materials.data as m, i (m.slug)}
+                            {@const alias = matchedDesignation(m, filters.q ?? '')}
+                            <li class="item">
+                                <div class="thumb">
+                                    {#if m.thumb}
+                                        <img
+                                            src={m.thumb.url}
+                                            alt=""
+                                            width="240"
+                                            height="160"
+                                            loading={i < 6 ? undefined : 'lazy'}
+                                            decoding="async"
+                                        />
+                                    {/if}
+                                </div>
+                                <div class="body">
+                                    <Link class="name" href="/materials/{m.slug}">{m.name}</Link>
+                                    {#if alias}
+                                        <span class="alias"
+                                            >{@render arrowed(
+                                                t('materials.also_known', { name: alias }),
+                                            )}</span
                                         >
-                                            {m.builder ?? ''}
-                                        </td>
-                                        <td
-                                            class={['num', { blank: !m.in_service_from }]}
-                                            data-label={$i18n.t('materials.col_period')}
-                                        >
-                                            {period(m)}
-                                        </td>
-                                    </tr>
-                                {/each}
-                            </tbody>
-                        </DirectoryTable>
-                    </section>
+                                    {/if}
+                                    <span class="meta">
+                                        {#each metaOf(m) as part, j (j)}<span>{part}</span>{/each}
+                                    </span>
+                                    {#if m.builder}
+                                        <!-- Liste parfois longue (huit constructeurs) : une ligne, coupée, entière au survol. -->
+                                        <span class="builder" title={m.builder}>{m.builder}</span>
+                                    {/if}
+                                    {#if figuresOf(m).length}
+                                        <span class="meta figures">
+                                            {#each figuresOf(m) as part, j (j)}<span>{part}</span
+                                                >{/each}
+                                        </span>
+                                    {/if}
+                                </div>
+                            </li>
+                        {/each}
+                    </ul>
+
+                    {#if materials.last_page > 1}
+                        <Pagination
+                            current={materials.current_page}
+                            last={materials.last_page}
+                            onpage={goToPage}
+                        />
+                    {/if}
                 {:else}
                     <EmptyState
                         icon="bi-search"
-                        title={$i18n.t('materials.no_match_title')}
-                        text={$i18n.t('materials.no_match_text')}
+                        title={t('materials.no_match_title')}
+                        text={t('materials.no_match_text')}
                     >
                         <button type="button" class="vff-btn secondary small" onclick={reset}>
-                            {$i18n.t('materials.reset')}
+                            {t('materials.reset')}
                         </button>
                     </EmptyState>
-                {/each}
+                {/if}
             {/if}
         </div>
     </main>
@@ -200,40 +282,170 @@
         padding-top: var(--vff-block-space);
         padding-bottom: var(--vff-section-space);
     }
-    .type-block {
+
+    /* Catégories : étiquettes en pilule, la catégorie choisie en fond orange pâle et soulignée. */
+    .categories ul {
         display: flex;
-        flex-direction: column;
-        gap: var(--vff-space-4);
-    }
-    .type-block h2 {
+        flex-wrap: wrap;
+        gap: 8px;
         margin: 0;
+        padding: 0;
+        list-style: none;
     }
-    .type-block h2 i {
-        margin-right: 6px;
-        color: var(--vff-accent-ink);
-    }
-    .count {
+    .categories :global(.chip) {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 6px 16px;
+        border: 1px solid var(--vff-border-control);
+        border-radius: var(--vff-radius-pill);
+        background-color: var(--vff-bg-elevated);
         font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-md);
-        font-weight: 400;
-        font-variant-numeric: tabular-nums;
-        color: var(--vff-text-muted);
-    }
-    .material-link {
-        display: inline-block;
-        /* Zone cliquable de 24 px au moins sans changer l'espacement des lignes. */
-        padding-block: 4px;
-        margin-block: -4px;
-        font-family: var(--vff-font-display);
-        font-size: var(--vff-fs-md);
+        font-size: var(--vff-fs-sm);
         color: var(--vff-text);
         text-decoration: none;
-        text-underline-offset: 3px;
-        text-decoration-thickness: 2px;
+        white-space: nowrap;
+        transition:
+            background-color var(--vff-transition),
+            border-color var(--vff-transition);
     }
-    .material-link:hover {
+    .categories :global(.chip:hover) {
+        border-color: var(--vff-accent-ink);
+        background-color: var(--vff-accent-soft);
+    }
+    .categories :global(.chip[aria-current='page']) {
+        border-color: var(--vff-accent-ink);
+        background-color: var(--vff-bg-accent);
+        color: var(--vff-accent-ink);
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+    .n {
+        font-variant-numeric: tabular-nums;
+        color: var(--vff-text-muted);
+        font-weight: 400;
+    }
+
+    /* Liste : une rangée par série (vignette, nom, détails), deux colonnes sur grand écran. */
+    .list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 32px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--vff-border);
+    }
+    .item {
+        position: relative;
+        display: grid;
+        grid-template-columns: 120px minmax(0, 1fr);
+        gap: 16px;
+        align-items: start;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--vff-border);
+    }
+    .thumb {
+        aspect-ratio: 3 / 2;
+        overflow: hidden;
+        border-radius: var(--vff-radius-sm);
+        background-color: var(--vff-bg-subtle);
+    }
+    .thumb img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .body {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+    .body :global(.name) {
+        display: inline-block;
+        padding-block: 2px;
+        font-family: var(--vff-font-display);
+        font-size: var(--vff-fs-md);
+        font-weight: 700;
+        line-height: 1.35;
+        color: var(--vff-text);
+        text-decoration: none;
+        overflow-wrap: anywhere;
+    }
+    /* Toute la rangée est cliquable par le lien du nom (une seule cible pour le clavier). */
+    .body :global(.name)::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: var(--vff-radius-sm);
+    }
+    .item:hover :global(.name) {
         color: var(--vff-accent-ink);
         text-decoration: underline;
         text-decoration-color: var(--vff-accent);
+        text-underline-offset: 3px;
+    }
+    .body :global(.name:focus-visible) {
+        outline: none;
+    }
+    .body :global(.name:focus-visible)::after {
+        outline: var(--vff-focus-width) solid var(--vff-focus);
+        outline-offset: var(--vff-focus-offset);
+    }
+    .alias {
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        color: var(--vff-text);
+    }
+    .meta {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 6px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
+        color: var(--vff-text-muted);
+    }
+    .meta span:not(:last-child)::after {
+        content: '·';
+        margin-left: 6px;
+    }
+    .builder {
+        overflow: hidden;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
+        color: var(--vff-text-muted);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+    .figures {
+        font-variant-numeric: tabular-nums;
+    }
+
+    @media (max-width: 900px) {
+        .list {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+    @media (max-width: 600px) {
+        /* Téléphone : les catégories défilent sur une rangée au lieu d'occuper cinq lignes. */
+        .categories {
+            margin-inline: calc(-1 * var(--vff-gutter));
+        }
+        .categories ul {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 2px var(--vff-gutter) 6px;
+            scrollbar-width: thin;
+        }
+        .item {
+            grid-template-columns: 88px minmax(0, 1fr);
+            gap: 12px;
+        }
     }
 </style>

@@ -20,6 +20,6 @@
             "$css/*": ["./resources/css/*"]
         }
     },
-    "include": ["resources/js/**/*.js", "resources/js/**/*.svelte"],
+    "include": ["resources/js/**/*.js", "resources/js/**/*.svelte", "resources/js/**/*.d.ts"],
     "exclude": ["node_modules", "public", "vendor", "resources/images/vendor"]
 }

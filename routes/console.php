@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\AuditEvent;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -41,3 +42,26 @@ Schedule::command('vff:refresh-current-era')
     ->timezone('Europe/Paris')
     // Pas de runInBackground : avec bin/php, le conteneur s'arrête à la fin de schedule:run.
     ->withoutOverlapping(180);
+
+/*
+| Engagements de la politique de confidentialité (production seulement : aucune tâche planifiée
+| sur les postes de développement).
+|
+| Comptes inutilisés depuis 3 ans : suppression des comptes avertis il y a un mois au moins, puis
+| avertissement par courriel de ceux qui atteignent 3 ans d'inactivité dans un mois. Entrées du
+| journal d'audit qui désignent une personne : 12 mois, comme les journaux techniques (rotation du
+| canal `daily`, config/logging.php).
+*/
+
+Schedule::command('vff:prune-inactive-accounts')
+    ->name('vff:prune-inactive-accounts')
+    ->dailyAt('05:15')
+    ->timezone('Europe/Paris')
+    ->environments(['production'])
+    ->withoutOverlapping(60);
+
+Schedule::command('model:prune', ['--model' => [AuditEvent::class]])
+    ->name('vff:prune-audit-events')
+    ->dailyAt('05:45')
+    ->timezone('Europe/Paris')
+    ->environments(['production']);

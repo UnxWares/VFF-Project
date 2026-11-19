@@ -38,6 +38,31 @@
             : null,
     );
 
+    // Suppression du compte (DELETE /profile), confirmée par le mot de passe dans une fenêtre
+    // modale native : le navigateur piège le focus, ferme à Échap et rend le focus au bouton.
+    const deleteForm = useForm({ password: '' });
+    let deleteDialog = $state();
+
+    function openDelete() {
+        deleteForm.reset();
+        deleteForm.clearErrors();
+        deleteDialog.showModal();
+    }
+
+    function confirmDelete(e) {
+        e.preventDefault();
+        deleteForm.clearErrors();
+        if (!deleteForm.password) {
+            deleteForm.setError('password', $i18n.t('account.data.delete_password_required'));
+            focusFirstError(['delete-password']);
+            return;
+        }
+        deleteForm.delete('/profile', {
+            preserveScroll: true,
+            onError: () => focusFirstError(['delete-password']),
+        });
+    }
+
     function submit(e) {
         e.preventDefault();
         form.clearErrors();
@@ -122,6 +147,7 @@
                             label={$i18n.t('auth.name_label')}
                             hint={$i18n.t('auth.name_hint')}
                             error={form.errors.name}
+                            required
                         >
                             {#snippet children(attrs)}
                                 <input
@@ -187,8 +213,82 @@
                         </div>
                     </form>
                 </section>
+
+                <section class="my-data" aria-labelledby="data-title">
+                    <h2 id="data-title" class="vff-section-title">
+                        {$i18n.t('account.data.title')}
+                    </h2>
+                    <p class="data-intro">
+                        {$i18n.t('account.data.intro')}
+                        <Link href="/privacy">{$i18n.t('account.data.privacy_link')}</Link>
+                    </p>
+
+                    <div class="vff-panel data-panel">
+                        <div class="data-row">
+                            <h3>{$i18n.t('account.data.export_title')}</h3>
+                            <p>{$i18n.t('account.data.export_text')}</p>
+                            <!-- Lien ordinaire, pas Inertia : la réponse est un fichier JSON. -->
+                            <a class="vff-btn secondary" href="/profile/data" download>
+                                <i class="bi bi-download" aria-hidden="true"></i>
+                                {$i18n.t('account.data.export_button')}
+                            </a>
+                        </div>
+                        <div class="data-row danger-zone">
+                            <h3>{$i18n.t('account.data.delete_title')}</h3>
+                            <p>{$i18n.t('account.data.delete_text')}</p>
+                            <button type="button" class="vff-btn danger" onclick={openDelete}>
+                                {$i18n.t('account.data.delete_button')}
+                            </button>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
+
+        <dialog
+            bind:this={deleteDialog}
+            class="delete-dialog"
+            aria-labelledby="delete-title"
+            aria-describedby="delete-text"
+        >
+            <form onsubmit={confirmDelete} novalidate>
+                <h2 id="delete-title">{$i18n.t('account.data.delete_confirm_title')}</h2>
+                <p id="delete-text">{$i18n.t('account.data.delete_confirm_text')}</p>
+
+                <Field
+                    id="delete-password"
+                    label={$i18n.t('account.data.delete_password_label')}
+                    error={deleteForm.errors.password}
+                >
+                    {#snippet children(attrs)}
+                        <!-- svelte-ignore a11y_autofocus -->
+                        <input
+                            {...attrs}
+                            name="password"
+                            class="vff-input"
+                            type="password"
+                            autocomplete="current-password"
+                            required
+                            autofocus
+                            bind:value={deleteForm.password}
+                        />
+                    {/snippet}
+                </Field>
+
+                <div class="dialog-actions">
+                    <button
+                        type="button"
+                        class="vff-btn secondary"
+                        onclick={() => deleteDialog.close()}
+                    >
+                        {$i18n.t('account.data.delete_cancel')}
+                    </button>
+                    <button type="submit" class="vff-btn danger" disabled={deleteForm.processing}>
+                        {$i18n.t('account.data.delete_confirm_button')}
+                    </button>
+                </div>
+            </form>
+        </dialog>
     </main>
 </Layout>
 
@@ -278,6 +378,87 @@
         margin-top: 4px;
     }
 
+    /* Mes données : sous le formulaire, dans la même colonne. */
+    .my-data {
+        grid-column: 2;
+        min-width: 0;
+        margin-top: var(--vff-block-space);
+    }
+    .my-data :global(.vff-section-title) {
+        margin: 0 0 var(--vff-space-3);
+    }
+    .data-intro {
+        max-width: var(--vff-measure);
+        margin: 0 0 var(--vff-space-5);
+        font-size: var(--vff-fs-body);
+        line-height: var(--vff-lh-body);
+    }
+    .data-panel {
+        padding-block: 0;
+    }
+    .data-row {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--vff-space-3);
+        padding-block: var(--vff-pad-box);
+    }
+    /* La suppression est séparée de l'export par un filet, son bouton porte la couleur d'erreur. */
+    .data-row + .data-row {
+        border-top: 1px solid var(--vff-border);
+    }
+    .data-row h3 {
+        margin: 0;
+    }
+    .data-row p {
+        max-width: var(--vff-measure);
+        margin: 0 0 var(--vff-space-1);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
+        color: var(--vff-text-muted);
+    }
+
+    /* Fenêtre de confirmation de la suppression. */
+    .delete-dialog {
+        width: min(520px, calc(100vw - 32px));
+        max-width: none;
+        max-height: calc(100dvh - 32px);
+        padding: 0;
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-lg);
+        background-color: var(--vff-bg-elevated);
+        box-shadow: var(--vff-shadow-popover);
+        color: var(--vff-text);
+    }
+    .delete-dialog:modal {
+        overscroll-behavior: contain;
+    }
+    .delete-dialog::backdrop {
+        overflow: hidden;
+        overscroll-behavior: contain;
+        background-color: rgb(0 0 0 / 0.55);
+    }
+    .delete-dialog form {
+        gap: var(--vff-space-5);
+    }
+    .delete-dialog h2 {
+        margin: 0;
+        font-size: var(--vff-fs-h3);
+        font-family: var(--vff-font-display);
+        text-wrap: balance;
+    }
+    .delete-dialog p {
+        margin: 0;
+        font-size: var(--vff-fs-md);
+        line-height: 1.5;
+    }
+    .dialog-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: var(--vff-space-3);
+    }
+
     @media (max-width: 900px) {
         .profile-grid {
             grid-template-columns: minmax(0, 1fr);
@@ -285,12 +466,17 @@
         .identity {
             max-width: 420px;
         }
+        .my-data {
+            grid-column: auto;
+        }
     }
     @media (max-width: 600px) {
         form {
             padding: 20px 16px;
         }
-        .actions :global(.vff-btn) {
+        .actions :global(.vff-btn),
+        .data-row :global(.vff-btn),
+        .dialog-actions :global(.vff-btn) {
             width: 100%;
         }
     }

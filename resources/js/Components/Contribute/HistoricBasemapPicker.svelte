@@ -93,7 +93,7 @@
             title={$i18n.t('editor.basemaps.title')}
             aria-label={$i18n.t('editor.basemaps.title')}
             aria-expanded={open}
-            aria-controls="hb-panel-{uid}"
+            aria-controls={open ? `hb-panel-${uid}` : undefined}
             onclick={() => (open = !open)}
         >
             <i class="bi bi-clock-history" aria-hidden="true"></i>

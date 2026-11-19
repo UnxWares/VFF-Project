@@ -37,6 +37,25 @@
         DRAW_ORDER,
         modeColorExpr,
     } from '$lib/railStyle.js';
+    // Vues par époque (comparaison, toutes les époques empilées) : calques ajoutés, style intact.
+    import {
+        COMPARE_CHANGES,
+        compareColorExpr,
+        compareOpacityExpr,
+        compareSortExpr,
+        compareWidthExpr,
+        stackColorExpr,
+    } from '$lib/epochViews.js';
+    // Calque facultatif des accidents (points sobres, zone pâle quand seule la commune est connue).
+    import {
+        ACCIDENT_AREA_LAYER_ID,
+        ACCIDENT_POINT_LAYER_ID,
+        ACCIDENT_SOURCE_ID,
+        accidentLayers,
+        accidentPopupHtml,
+        accidentYearFilter,
+        accidentYears,
+    } from '$lib/accidentMap.js';
 
     /**
      * Composant carte interactive du réseau ferré VFF.
@@ -104,7 +123,20 @@
         selectedLine = null,
         // Liens des bulles ouverts dans un nouvel onglet (carte intégrée dans un autre site).
         popupLinksNewTab = false,
+        // Vue : 'era' (une décennie, couches habituelles), 'compare' (changements entre `era`
+        // et `compareEra`) ou 'stack' (toutes les décennies empilées).
+        view = 'era',
+        // Seconde décennie de la comparaison (la plus récente ; `era` est la plus ancienne).
+        compareEra = null,
+        // Bouton « Me localiser » (sur action du visiteur seulement ; position gardée dans le navigateur).
+        geolocate = false,
+        // Accidents à afficher (FeatureCollection de GET /api/v1/accidents.geojson) ou null (calque
+        // masqué). Filtrés selon la vue : jusqu'à l'ère, entre les deux ères comparées, ou tous.
+        accidents = null,
     } = $props();
+
+    // Géolocalisation refusée ('denied') ou impossible ('unavailable') : message sur la carte.
+    let geoError = $state(null);
 
     /**
      * Rendu en trois couches superposées (de bas en haut) :
@@ -336,6 +368,14 @@
 
     function tilesUrlForEra(year) {
         return `${window.location.origin}${TILES_BASE}/${year}/tiles/{z}/{x}/{y}.mvt${bustParam()}`;
+    }
+
+    function compareTilesUrl(from, to) {
+        return `${window.location.origin}${TILES_BASE}/${from}/compare/${to}/tiles/{z}/{x}/{y}.mvt${bustParam()}`;
+    }
+
+    function stackTilesUrl() {
+        return `${window.location.origin}${TILES_BASE}/stacked/tiles/{z}/{x}/{y}.mvt${bustParam()}`;
     }
 
     function stationsUrlForEra(year) {
@@ -642,7 +682,7 @@
     function setupInteractions() {
         // Click sur un tracé → soit callback parent (drawer), soit popup fallback.
         map.on('click', LINE_LAYERS, (e) => {
-            if (!e.features?.length) return;
+            if (!e.features?.length || accidentAt(e.point)) return;
             const props = e.features[0].properties;
 
             const line = {
@@ -720,7 +760,7 @@
 
         // Click sur une gare → popup
         map.on('click', 'vff-stations-points', (e) => {
-            if (!e.features?.length) return;
+            if (!e.features?.length || accidentAt(e.point)) return;
             const props = e.features[0].properties;
             const href = props.slug ? `/stations/${encodeURIComponent(props.slug)}` : null;
             const place = [props.city, props.department_code ? `(${props.department_code})` : '']
@@ -757,7 +797,23 @@
             'AttributionControl.ToggleAttribution': t('maps.controls.attribution'),
             'AttributionControl.MapFeedback': t('maps.controls.map_feedback'),
             'Popup.Close': t('maps.controls.popup_close'),
+            'GeolocateControl.FindMyLocation': t('maps.controls.locate'),
+            'GeolocateControl.LocationNotAvailable': t('maps.controls.locate_unavailable'),
         };
+    }
+
+    // « Me localiser » : la position n'est demandée qu'au clic, une seule fois (pas de suivi),
+    // et ne sert qu'à centrer la carte dans le navigateur : elle n'est envoyée à aucun serveur.
+    function geolocateControl() {
+        const control = new maplibregl.GeolocateControl({
+            positionOptions: { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 },
+            trackUserLocation: false,
+            fitBoundsOptions: { maxZoom: 12 },
+        });
+        // Code 1 : le visiteur (ou son navigateur) refuse l'accès à la position.
+        control.on('error', (e) => (geoError = e?.code === 1 ? 'denied' : 'unavailable'));
+        control.on('geolocate', () => (geoError = null));
+        return control;
     }
 
     // Cadrage d'ouverture : emprise complète (fitBounds), sinon emprise téléphone, sinon centre / zoom.
@@ -795,6 +851,7 @@
             new maplibregl.FullscreenControl({ container: fullscreenContainer ?? wrapperEl }),
             'top-right',
         );
+        if (geolocate) map.addControl(geolocateControl(), 'top-right');
         map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
         addHistoricBasemapControl(map, 'top-right');
 
@@ -805,6 +862,8 @@
             applyOverlay(overlay);
             setupInteractions();
             applyRoute(route);
+            applyView(view, era, compareEra);
+            applyAccidents(accidents, view, era, compareEra);
         });
     });
 
@@ -874,6 +933,224 @@
         if (!map || !layersReady || !map.getLayer(SELECTED_LAYER_ID)) return;
         map.setFilter(SELECTED_LAYER_ID, selectedFilter(slug));
     });
+
+    // ── Vues par époque : comparaison de deux décennies, toutes les décennies empilées ──
+    // Calques ajoutés au premier usage ; en dehors de la vue « une décennie », les couches
+    // habituelles (tracés, halos, gares) sont masquées : MapLibre ne charge alors plus leurs
+    // tuiles. Le style des couches habituelles n'est jamais modifié.
+    const BASE_SOURCES = ['vff-lines', 'vff-stations'];
+    const COMPARE_SOURCE_ID = 'vff-compare';
+    const COMPARE_LAYER_ID = 'vff-compare-lines';
+    const STACK_SOURCE_ID = 'vff-stack';
+    const STACK_LAYER_ID = 'vff-stack-lines';
+    let compareTiles = null;
+
+    // Couche de tracés d'une vue par époque, sous l'itinéraire s'il est affiché ; un clic
+    // ouvre la bulle de la vue (`popupKind` : 'compare' ou 'stack').
+    function addViewLayer({
+        id,
+        source,
+        sourceLayer,
+        paint,
+        sortKey,
+        filter = null,
+        round,
+        popupKind,
+    }) {
+        map.addLayer(
+            {
+                id,
+                type: 'line',
+                source,
+                'source-layer': sourceLayer,
+                ...(filter ? { filter } : {}),
+                layout: {
+                    'line-join': 'round',
+                    'line-sort-key': sortKey,
+                    ...(round ? { 'line-cap': 'round' } : {}),
+                },
+                paint,
+            },
+            // Sous les accidents et l'itinéraire, s'ils sont affichés.
+            [ACCIDENT_AREA_LAYER_ID, ...ROUTE_LAYERS].find((above) => map.getLayer(above)),
+        );
+        map.on('click', id, (e) => {
+            if (e.features?.length && !accidentAt(e.point))
+                openViewPopup(popupKind, e.lngLat, e.features[0].properties);
+        });
+        map.on('mouseenter', id, () => (map.getCanvas().style.cursor = 'pointer'));
+        map.on('mouseleave', id, () => (map.getCanvas().style.cursor = ''));
+    }
+
+    // Trait selon le changement : `line-dasharray` n'accepte pas d'expression par entité, d'où
+    // une couche par motif (trait plein, tirets, pointillés) sur la même source.
+    const COMPARE_DASHES = [...new Set(COMPARE_CHANGES.map((c) => JSON.stringify(c.dash)))].map(
+        (key, i) => ({
+            id: `${COMPARE_LAYER_ID}-${i}`,
+            dash: JSON.parse(key),
+            keys: COMPARE_CHANGES.filter((c) => JSON.stringify(c.dash) === key).map((c) => c.key),
+        }),
+    );
+
+    function ensureCompareLayers(tiles) {
+        if (map.getSource(COMPARE_SOURCE_ID)) {
+            if (tiles !== compareTiles) map.getSource(COMPARE_SOURCE_ID).setTiles([tiles]);
+            compareTiles = tiles;
+            return;
+        }
+        compareTiles = tiles;
+        map.addSource(COMPARE_SOURCE_ID, { type: 'vector', tiles: [tiles], maxzoom: 14 });
+        for (const group of COMPARE_DASHES) {
+            addViewLayer({
+                id: group.id,
+                source: COMPARE_SOURCE_ID,
+                sourceLayer: 'vff-compare',
+                filter: ['match', ['get', 'change'], group.keys, true, false],
+                sortKey: compareSortExpr(),
+                round: !group.dash,
+                popupKind: 'compare',
+                paint: {
+                    'line-color': compareColorExpr(),
+                    'line-width': compareWidthExpr(),
+                    'line-opacity': compareOpacityExpr(),
+                    ...(group.dash ? { 'line-dasharray': group.dash } : {}),
+                },
+            });
+        }
+    }
+
+    function ensureStackLayer() {
+        if (map.getSource(STACK_SOURCE_ID)) return;
+        map.addSource(STACK_SOURCE_ID, { type: 'vector', tiles: [stackTilesUrl()], maxzoom: 14 });
+        addViewLayer({
+            id: STACK_LAYER_ID,
+            source: STACK_SOURCE_ID,
+            sourceLayer: 'vff-stack',
+            // Les plus récents au-dessus : le réseau actuel recouvre ce qui a disparu.
+            sortKey: ['get', 'last_year'],
+            round: true,
+            popupKind: 'stack',
+            paint: {
+                'line-color': stackColorExpr(currentEra),
+                'line-width': ['interpolate', ['linear'], ['zoom'], 4, 1.4, 8, 2.4, 12, 4, 16, 6],
+                // Transparence : les tracés superposés de décennies différentes restent lisibles.
+                'line-opacity': 0.85,
+            },
+        });
+    }
+
+    function setVisibility(id, on) {
+        if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
+    }
+
+    function applyView(v, from, to) {
+        if (!map || !layersReady) return;
+        const comparing = v === 'compare' && from != null && to != null && from !== to;
+        const stacking = v === 'stack';
+        if (comparing) ensureCompareLayers(compareTilesUrl(from, to));
+        if (stacking) ensureStackLayer();
+        for (const layer of map.getStyle().layers) {
+            if (BASE_SOURCES.includes(layer.source)) {
+                setVisibility(layer.id, !comparing && !stacking);
+            }
+        }
+        for (const group of COMPARE_DASHES) setVisibility(group.id, comparing);
+        setVisibility(STACK_LAYER_ID, stacking);
+        if (comparing || stacking) popup?.remove();
+    }
+
+    $effect(() => applyView(view, era, compareEra));
+
+    // Bulle d'un tracé des vues par époque : nom, ce qui lui est arrivé, lien vers la fiche.
+    function openViewPopup(kind, lngLat, props) {
+        const t = get(i18n).t;
+        const yearLabel = (y) => (Number(y) === currentEra ? t('maps.drawer.today') : String(y));
+        let text;
+        if (kind === 'stack') {
+            const first = Number(props.first_year);
+            const last = Number(props.last_year);
+            text =
+                first === last
+                    ? t('maps.stack.popup_single', { year: yearLabel(first) })
+                    : t(last === currentEra ? 'maps.stack.popup_today' : 'maps.stack.popup_span', {
+                          from: first,
+                          to: yearLabel(last),
+                      });
+        } else {
+            text = t(`maps.compare.popup.${props.change}`, {
+                from: era,
+                to: yearLabel(compareEra),
+            });
+        }
+        const href = props.line_slug ? `/lines/${encodeURIComponent(props.line_slug)}` : null;
+        const name = props.line_name ?? t('maps.drawer.fallback_line_name');
+        const html = `<div class="rail-popup"><p class="rail-popup-title">${escapeHtml(name)}</p><p class="rail-popup-place">${escapeHtml(text)}</p>${popupLink(href)}</div>`;
+        openPopup(lngLat, html, href);
+    }
+
+    // ── Calque « Accidents » (facultatif) : au-dessus du réseau et des gares, sous l'itinéraire ──
+    // Un point se clique avec quelques pixels de marge (les points font 7 à 14 px) ; il passe
+    // alors avant le tracé ou la gare qui se trouve dessous.
+    const ACCIDENT_HIT_PX = 6;
+    // Données posées sur la source (setData seulement quand elles changent, pas à chaque ère).
+    let accidentData = null;
+
+    function accidentAt(point) {
+        if (!map?.getLayer(ACCIDENT_POINT_LAYER_ID)) return null;
+        const box = [
+            [point.x - ACCIDENT_HIT_PX, point.y - ACCIDENT_HIT_PX],
+            [point.x + ACCIDENT_HIT_PX, point.y + ACCIDENT_HIT_PX],
+        ];
+        return map.queryRenderedFeatures(box, { layers: [ACCIDENT_POINT_LAYER_ID] })[0] ?? null;
+    }
+
+    function openAccidentPopup(feature) {
+        const { t, language } = get(i18n);
+        const props = feature.properties;
+        const href = `/accidents/${encodeURIComponent(props.slug)}`;
+        const html = accidentPopupHtml(
+            props,
+            t,
+            language,
+            popupLink(href, 'maps.accidents.view_sheet'),
+        );
+        openPopup(feature.geometry.coordinates, html, href);
+    }
+
+    function addAccidentLayers(data) {
+        map.addSource(ACCIDENT_SOURCE_ID, { type: 'geojson', data });
+        const before = ROUTE_LAYERS.find((routeId) => map.getLayer(routeId));
+        for (const layer of accidentLayers()) map.addLayer(layer, before);
+        map.on('click', (e) => {
+            const feature = accidentAt(e.point);
+            if (feature) openAccidentPopup(feature);
+        });
+        map.on(
+            'mouseenter',
+            ACCIDENT_POINT_LAYER_ID,
+            () => (map.getCanvas().style.cursor = 'pointer'),
+        );
+        map.on('mouseleave', ACCIDENT_POINT_LAYER_ID, () => (map.getCanvas().style.cursor = ''));
+    }
+
+    function applyAccidents(data, v, from, to) {
+        if (!map || !layersReady) return;
+        const source = map.getSource(ACCIDENT_SOURCE_ID);
+        if (!data) {
+            if (source) for (const layer of accidentLayers()) setVisibility(layer.id, false);
+            return;
+        }
+        if (!source) addAccidentLayers(data);
+        else if (data !== accidentData) source.setData(data);
+        accidentData = data;
+        const years = accidentYearFilter(accidentYears(v, from, to));
+        for (const layer of accidentLayers()) {
+            map.setFilter(layer.id, layer.filter ? ['all', layer.filter, years] : years);
+            setVisibility(layer.id, true);
+        }
+    }
+
+    $effect(() => applyAccidents(accidents, view, era, compareEra));
 
     // ── Itinéraire historique (RoutePlanner) : tracé + gares, au-dessus du réseau ──
     const ROUTE_SOURCE_ID = 'vff-route';
@@ -1016,6 +1293,20 @@
 <div class="rail-map-wrapper" bind:this={wrapperEl}>
     <div class="rail-map" bind:this={mapContainer} style="height: {height};"></div>
     {@render children?.()}
+    {#if geoError}
+        <div class="geo-notice" role="alert">
+            <i class="bi bi-geo-alt" aria-hidden="true"></i>
+            <p>{$i18n.t(`maps.geolocate.${geoError}`)}</p>
+            <button
+                type="button"
+                class="geo-close"
+                aria-label={$i18n.t('maps.geolocate.dismiss')}
+                onclick={() => (geoError = null)}
+            >
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -1023,6 +1314,51 @@
     .rail-map-wrapper {
         position: relative;
         overflow: hidden;
+    }
+    /* Géolocalisation refusée ou impossible : message posé en haut de la carte, à gauche des
+       boutons de MapLibre. */
+    .geo-notice {
+        position: absolute;
+        top: 12px;
+        right: 56px;
+        z-index: 3;
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        max-width: min(380px, calc(100% - 80px));
+        padding: 8px 8px 8px 12px;
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-md);
+        background-color: var(--vff-bg-elevated);
+        box-shadow: var(--vff-shadow-popover);
+        color: var(--vff-text);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
+    }
+    .geo-notice p {
+        margin: 0;
+        padding-top: 4px;
+    }
+    .geo-notice > .bi {
+        padding-top: 4px;
+        color: var(--vff-text-muted);
+    }
+    .geo-close {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border: 0;
+        border-radius: var(--vff-radius-sm);
+        background: transparent;
+        color: var(--vff-text-muted);
+        cursor: pointer;
+    }
+    .geo-close:hover {
+        background-color: var(--vff-bg-muted);
+        color: var(--vff-text);
     }
     .rail-map {
         width: 100%;
@@ -1086,6 +1422,10 @@
         font-family: inherit;
     }
     :global(.rail-popup-label) {
+        color: var(--vff-text-muted);
+    }
+    /* Bulle d'un accident : lieu approché, fiche à vérifier. */
+    :global(.rail-popup li.rail-popup-note) {
         color: var(--vff-text-muted);
     }
     :global(.rail-popup-cta) {

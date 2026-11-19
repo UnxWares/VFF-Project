@@ -62,7 +62,7 @@ return [
     'errors' => [
         'name_required' => 'Saisissez votre nom d’affichage.',
         'email_required' => 'Saisissez votre adresse e-mail.',
-        'email_invalid' => 'Cette adresse e-mail n’est pas valide.',
+        'email_invalid' => 'Cette adresse e-mail n’est pas valide : elle s’écrit sous la forme nom@exemple.fr.',
         'password_required' => 'Saisissez votre mot de passe.',
         'password_new_required' => 'Choisissez un mot de passe.',
         'password_short' => 'Le mot de passe doit contenir au moins 8 caractères.',

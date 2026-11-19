@@ -14,10 +14,21 @@
      *
      * Props : `id` (id du contrôle, obligatoire), `label`, `hint`, `error` (texte ou tableau de
      * textes, tel que form.errors.x), `labelHidden` (libellé lu mais pas affiché : à éviter, seulement
-     * si un titre visible nomme déjà le champ).
+     * si un titre visible nomme déjà le champ), `required` (ajoute « (obligatoire) » au libellé visible :
+     * l'attribut required du contrôle ne se voit pas, RGAA 11.10).
      */
-    /** @type {{ id: string, label: string, hint?: string|null, error?: string|string[]|null, labelHidden?: boolean, children: import('svelte').Snippet<[Record<string, string|undefined>]> }} */
-    let { id, label, hint = null, error = null, labelHidden = false, children } = $props();
+    import { i18n } from '$lib/i18n.js';
+
+    /** @type {{ id: string, label: string, hint?: string|null, error?: string|string[]|null, labelHidden?: boolean, required?: boolean, children: import('svelte').Snippet<[Record<string, string|undefined>]> }} */
+    let {
+        id,
+        label,
+        hint = null,
+        error = null,
+        labelHidden = false,
+        required = false,
+        children,
+    } = $props();
 
     const message = $derived(Array.isArray(error) ? error.join(' ') : error || '');
     const hintId = $derived(`${id}-hint`);
@@ -31,7 +42,10 @@
 </script>
 
 <div class="vff-field">
-    <label class={['vff-label', { 'vff-sr-only': labelHidden }]} for={id}>{label}</label>
+    <label class={['vff-label', { 'vff-sr-only': labelHidden }]} for={id}
+        >{label}{#if required}<span class="vff-required">{` (${$i18n.t('common.required')})`}</span
+            >{/if}</label
+    >
     {#if hint}
         <p class="vff-hint" id={hintId}>{hint}</p>
     {/if}
@@ -42,3 +56,11 @@
             >{/if}
     </p>
 </div>
+
+<style>
+    /* Mention « (obligatoire) » : dans le libellé, plus discrète que lui. */
+    .vff-required {
+        font-weight: 400;
+        color: var(--vff-text-muted);
+    }
+</style>

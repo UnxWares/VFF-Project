@@ -255,3 +255,17 @@ html.dark-mode .swagger-ui .info .title small.version-stamp pre {
         font-size: 28px;
     }
 }
+
+/* Bouton « copier le chemin » : Swagger UI ne l'ouvre qu'au survol (largeur 0 sinon) ; il reçoit
+   pourtant le focus. Ouvert aussi quand le résumé contient le focus (RGAA 10.7 et 10.14). */
+.vff-docs--swagger .swagger-ui .opblock .opblock-summary:focus-within .view-line-link {
+    margin: 0 5px;
+    width: 18px;
+}
+.vff-docs--swagger
+    .swagger-ui
+    .opblock
+    .opblock-summary:focus-within
+    .view-line-link.copy-to-clipboard {
+    width: 24px;
+}

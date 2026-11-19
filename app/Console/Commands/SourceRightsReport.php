@@ -47,6 +47,11 @@ class SourceRightsReport extends Command
         'media' => 'SELECT DISTINCT provider AS v FROM media',
         'station_services' => "SELECT DISTINCT e->>'feed' AS v FROM station_services, jsonb_array_elements(evidence) AS e",
         'lines.name_source' => "SELECT DISTINCT alt_names->>'name_source' AS v FROM lines WHERE alt_names->>'name_source' IS NOT NULL",
+        'materials' => 'SELECT DISTINCT source AS v FROM materials WHERE source IS NOT NULL',
+        'materials.fields' => "SELECT DISTINCT p.value->>'source' AS v FROM materials, jsonb_each(COALESCE(provenance, '{}'::jsonb)) AS p",
+        'materials.image' => "SELECT DISTINCT image->>'provider' AS v FROM materials WHERE image IS NOT NULL",
+        'line_materials' => 'SELECT DISTINCT source AS v FROM line_materials WHERE source IS NOT NULL',
+        'accident_sources' => 'SELECT DISTINCT provider AS v FROM accident_sources',
     ];
 
     public function handle(): int

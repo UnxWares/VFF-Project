@@ -28,11 +28,17 @@ type Query {
     slug: String!
   ): Station
 
-  "Un matériel roulant, par son slug."
+  "Une série de matériel roulant, par son slug (ex. `bb-15000`)."
   material(
-    "Slug du matériel."
+    "Slug de la série."
     slug: String!
   ): Material
+
+  "Un accident, par son slug (ex. `2013-07-12-bretigny-sur-orge`)."
+  accident(
+    "Slug de l'accident : date puis commune."
+    slug: String!
+  ): Accident
 
   """
   Itinéraire historique entre deux gares, sur le réseau en service à l'époque demandée
@@ -53,6 +59,57 @@ type Query {
     """
     era: Int
   ): Route
+
+  "Un événement de ligne, par son identifiant."
+  lineEvent(
+    "Identifiant de l'événement."
+    id: ID!
+  ): LineEvent
+
+  "Un média, par son identifiant."
+  mediaItem(
+    "Identifiant du média."
+    id: ID!
+  ): Media
+
+  """
+  Annuaire des lignes (filtres de la page `/lines`), trié et paginé par curseur, comme
+  `GET /api/v1/lines`. Passez `next_cursor` dans `after` pour la page suivante.
+  """
+  lineDirectory(
+    "Filtres facultatifs, combinés (ET)."
+    filter: LineDirectoryFilter = {  }
+
+    "Nombre de lignes par page, de 1 à 100."
+    first: Int = 25
+
+    "Curseur `next_cursor` de la page précédente."
+    after: String
+  ): LineDirectoryPage!
+
+  """
+  Annuaire des gares (filtres de la page `/stations`), trié et paginé par curseur, comme
+  `GET /api/v1/stations`.
+  """
+  stationDirectory(
+    "Filtres facultatifs, combinés (ET)."
+    filter: StationDirectoryFilter = {  }
+
+    "Nombre de gares par page, de 1 à 100."
+    first: Int = 25
+
+    "Curseur `next_cursor` de la page précédente."
+    after: String
+  ): StationDirectoryPage!
+
+  "Registre des fournisseurs de données et de leurs licences, comme `GET /api/v1/sources`."
+  sources: [SourceProvider!]!
+
+  "Un fournisseur, par sa clé (celle de `Provenance.provider`) ; nul s'il est inconnu."
+  source(
+    "Clé du fournisseur (ex. `osm`, `sncf`, `archeoferroviaire`)."
+    provider: String!
+  ): SourceProvider
 
   """
   Lignes, page par page (20 par défaut, 100 au plus), filtrables par nom, code et trafic.
@@ -97,20 +154,79 @@ type Query {
     page: Int
   ): StationPaginator!
 
-  "Matériels roulants, page par page (20 par défaut, 100 au plus), filtrables par catégorie et constructeur."
+  """
+  Séries de matériel roulant (20 par défaut, 100 au plus), triées par nom sauf `filter.sort`.
+  Pagination par curseur, comme `lineEvents` et `media` : lisez `pageInfo { hasNextPage endCursor }`
+  et repassez `endCursor` dans `after`. Mêmes filtres et même tri que l'API REST
+  `GET /api/v1/materials` (argument `filter`) ; `type` et `builder` restent acceptés directement.
+  """
   materials(
-    "Catégorie : `locomotive_electrique`, `locomotive_diesel`, `locomotive_vapeur`, `automotrice`, `autorail`, `rame_tgv`, `voiture` ou `wagon`."
+    "Catégorie : `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`, `autorail`, `rame_tgv`, `voiture`, `wagon`, `tramway` ou `engin_service`."
     type: String
 
     "Constructeur, joker `%` accepté, casse ignorée (ex. `%alstom%`)."
     builder: String
+
+    "Filtres et tri (tous facultatifs, combinés par ET). Un filtre invalide est une erreur de validation."
+    filter: MaterialFilter = {  }
+
+    "Limits number of fetched items. Maximum allowed value: 100."
+    first: Int! = 20
+
+    "A cursor after which elements are returned."
+    after: String
+  ): MaterialConnection!
+
+  """
+  Accidents et événements graves du rail français, page par page (20 par défaut, 100 au plus),
+  du plus ancien au plus récent sauf `filter.sort`. Mêmes filtres et même tri que l'API REST
+  `GET /api/v1/accidents`.
+  """
+  accidents(
+    "Filtres et tri (tous facultatifs, combinés par ET). Un filtre invalide est une erreur de validation."
+    filter: AccidentFilter = {  }
 
     "Limits number of fetched items. Maximum allowed value: 100."
     first: Int! = 20
 
     "The offset from which items are returned."
     page: Int
-  ): MaterialPaginator!
+  ): AccidentPaginator!
+
+  """
+  Événements datés de toutes les lignes (ouvertures, fermetures, électrifications, déposes…),
+  page par page (25 par défaut, 100 au plus), du plus ancien au plus récent, filtrables par
+  ligne, type, source, département et période. Pagination par curseur : lisez
+  `pageInfo { hasNextPage endCursor }` et repassez `endCursor` dans `after`. Chaque événement
+  garde sa source, sa citation et la licence de sa source (`provenance`).
+  """
+  lineEvents(
+    "Filtres facultatifs, combinés (ET)."
+    filter: LineEventFilter = {  }
+
+    "Limits number of fetched items. Maximum allowed value: 100."
+    first: Int! = 25
+
+    "A cursor after which elements are returned."
+    after: String
+  ): LineEventConnection!
+
+  """
+  Médias (photos, cartes postales, plans, cartes, documents) de toutes les lignes et gares,
+  page par page (20 par défaut, 100 au plus), dans l'ordre de leurs identifiants, filtrables
+  par ligne, gare, nature, fournisseur, licence, droits et époque. Chaque média porte son auteur,
+  sa licence et le lien vers sa source : affichez `attribution` avec l'image.
+  """
+  media(
+    "Filtres facultatifs, combinés (ET)."
+    filter: MediaFilter = {  }
+
+    "Limits number of fetched items. Maximum allowed value: 100."
+    first: Int! = 20
+
+    "A cursor after which elements are returned."
+    after: String
+  ): MediaConnection!
 }
 
 "Date et heure au format `AAAA-MM-JJ HH:MM:SS` (heure de Paris), par exemple `2026-10-20 14:05:00`."
@@ -122,6 +238,12 @@ qu'au mois ou à l'année, le jour (et le mois) valent `01` : voir le champ de p
 associé quand il existe (`LineEvent.date_precision`).
 """
 scalar Date
+
+"""
+Structure JSON (objet ou liste) renvoyée telle quelle, en sortie seulement : sa forme est décrite
+par le champ qui la porte et, en détail, dans la documentation REST (`/docs/api`).
+"""
+scalar JSON
 
 """
 Une ère : un instantané du réseau au **31/12** d'une année ronde.
@@ -146,6 +268,15 @@ type Era {
 
   "Présentation de la période, en français : faits marquants du réseau à cette époque."
   description: String
+
+  "Date de l'instantané (`AAAA-12-31`) ; nulle pour l'ère courante, recalculée au jour même."
+  snapshot_date: String
+
+  "Faux si la carte de cette ère n'a encore aucun tronçon."
+  has_data: Boolean!
+
+  "État du réseau à cette ère (longueurs, lignes actives, gares par statut), comme `GET /api/v1/eras/{year}`."
+  stats: EraStats!
 }
 
 """
@@ -193,16 +324,30 @@ type Line {
   alt_names: [String!]
 
   """
-  Tous les tronçons de la ligne, **toutes ères confondues** (filtrez sur `era.year`). Liste
-  longue pour les grandes lignes : une ligne compte des dizaines de tronçons par ère.
+  Tronçons de la ligne : ceux d'une ère avec `era` (dans l'ordre des points kilométriques, comme
+  `GET /api/v1/lines/{line}/segments`), sinon **toutes ères confondues**. Liste longue pour les
+  grandes lignes : une ligne compte des dizaines de tronçons par ère.
   """
-  segments: [LineSegment!]!
+  segments(
+    "Année de l'ère (décennie de 1830 à 2030). Par défaut : toutes les ères."
+    era: Int
+  ): [LineSegment!]!
 
   "Chronologie de la ligne : ouvertures, fermetures, électrifications, déposes… (ordre non garanti : triez sur `event_date`)."
   events: [LineEvent!]!
 
-  "Matériels roulants associés à la ligne (ayant circulé ou circulant dessus)."
+  "Matériels roulants associés à la ligne (ayant circulé ou circulant dessus), sans la preuve : voir `material_links`."
   materials: [Material!]!
+
+  "Matériel roulant de la ligne, avec la preuve de chaque lien (source, citation, fiabilité)."
+  material_links: [LineMaterialLink!]!
+
+  """
+  Accidents et événements graves rattachés à la ligne (lieu sur son tracé de l'époque, ou ligne
+  citée par une source), rattachement principal ou secondaire : le détail est dans
+  `Accident.lines`. Ordre non garanti : triez sur `date`.
+  """
+  accidents: [Accident!]!
 
   """
   Gares de la ligne à une ère, dans l'ordre des points kilométriques, sur le modèle de
@@ -224,11 +369,33 @@ type Line {
     era: Int
   ): [LineSignallingRange!]!
 
+  """
+  Fiche complète de la ligne, comme la page `/lines/{slug}` et `GET /api/v1/lines/{line}` :
+  chiffres clés, électrification, signalisation, phases, chronique, gares, sections. Calcul
+  lourd (jusqu'à quelques secondes) : demandez-la pour une ligne à la fois.
+  """
+  sheet(
+    "Joindre le tracé GeoJSON de chaque portion des phases (`portions[].geometry`)."
+    geometry: Boolean = false
+  ): LineSheet!
+
   "Date de création de la fiche dans VFF (pas une date historique)."
   created_at: DateTime!
 
   "Date de dernière modification de la fiche dans VFF."
   updated_at: DateTime!
+
+  """
+  Médias (photos, cartes postales, plans…) rattachés à la ligne, page par page (20 par défaut,
+  100 au plus), dans l'ordre de leurs identifiants. Chaque média porte ses droits.
+  """
+  media(
+    "Limits number of fetched items. Maximum allowed value: 100."
+    first: Int! = 20
+
+    "A cursor after which elements are returned."
+    after: String
+  ): MediaConnection!
 }
 
 """
@@ -376,6 +543,30 @@ type LineSegment {
   client avec `JSON.parse`.
   """
   geojson: String
+
+  "Longueur du tronçon, en mètres."
+  length_m: Int
+
+  "Nature de l'exploitation associative : `tourist_train`, `velorail`, `museum`."
+  heritage_kind: String
+
+  "Année d'électrification, quand elle est connue."
+  electrified_year: Int
+
+  "Source de l'électrification (`sncf`, `osm`, `wikipedia`…)."
+  electrification_source: String
+
+  "Source de la vitesse maximale."
+  max_speed_source: String
+
+  "Classe d'écartement : `standard`, `metre`, `narrow`…"
+  gauge_class: String
+
+  "Reconversion de l'emprise après dépose : `greenway` (voie verte), `road`, `path`, `urban`, `other`."
+  reuse: String
+
+  "Fournisseur du tracé et sa licence (registre des droits)."
+  provenance: Provenance!
 }
 
 """
@@ -432,8 +623,310 @@ type LineEvent {
   "Lien vers le document source consulté. Citez-le en réutilisant la donnée."
   source_url: String
 
+  """
+  Fournisseur de la donnée et licence de sa source, d'après le registre des droits de VFF.
+  À citer en réutilisant l'événement.
+  """
+  provenance: Provenance!
+
+  "Fiabilité de la date : `high`, `medium` ou `low`."
+  confidence: String
+
+  "Citation de la source : l'extrait du texte d'où l'événement est tiré. Sous la licence de la source."
+  source_quote: String
+
+  "Point kilométrique de début de la portion concernée, en mètres, quand elle a pu être située sur le tracé."
+  section_pk_start_m: Int
+
+  "Point kilométrique de fin de la portion concernée, en mètres."
+  section_pk_end_m: Int
+
+  "Longueur de la portion concernée, en mètres."
+  section_length_m: Int
+
+  "Comment la portion a été située sur le tracé (`pk`, `whole_line`, `unresolved`…)."
+  section_resolution: String
+
+  "Reconversion de l'emprise après la dépose (voie verte, route…), pour un événement `conversion`."
+  reuse: String
+
+  "Nature de l'exploitation associative (train touristique, vélorail, musée…), pour `heritage_start` et `heritage_end`."
+  heritage_kind: String
+
   "La ligne concernée."
   line: Line!
+}
+
+"""
+Provenance et licence d'une donnée, d'après le registre des droits de VFF. Citez le
+fournisseur en réutilisant la donnée.
+"""
+type Provenance {
+  "Clé du fournisseur (`wikipedia`, `wikidata`, `ohm`, `osm`, `sncf`, `vff`…). Nulle si la source n'est pas déclarée."
+  provider: String
+
+  "Nom lisible du fournisseur."
+  name: String
+
+  "Licence ou conditions de réutilisation, telles que vérifiées par VFF."
+  license: String
+
+  """
+  Solidité de la licence : `verified` (licence ouverte établie), `uncertain` (autorisation
+  particulière ou conditions à lire : citez la source), `forbidden`.
+  """
+  license_status: String
+}
+
+"""
+Un événement daté de la vie d'une gare : ouverture, fermeture, démolition…
+
+Comme pour `LineEvent`, lisez `event_date` avec `date_precision`.
+"""
+type StationEvent {
+  "Identifiant interne de l'événement."
+  id: ID!
+
+  """
+  Nature de l'événement : `opening` (ouverture), `closure` (fermeture totale),
+  `closure_passenger` (fermeture aux voyageurs), `closure_freight` (fermeture au fret),
+  `reopening` (réouverture), `demolition` (démolition).
+  """
+  type: String!
+
+  "Date de l'événement (`AAAA-MM-JJ`), à lire avec `date_precision`."
+  event_date: Date!
+
+  "Précision de `event_date` : `day`, `month` ou `year` (mois et jour fixés à 01)."
+  date_precision: String
+
+  "Source de l'événement : `wikidata`, `wikipedia`, `ohm`, `osm`, `correction`, `inferred:line_event`, `inferred:trace`…"
+  source: String!
+
+  "Référence dans la source (identifiant Wikidata et propriété, page…)."
+  source_ref: String
+
+  "Lien vers la source, quand il existe."
+  source_url: String
+
+  "Vrai si VFF a déduit l'événement des lignes qui desservent la gare ou de l'état des tracés : ce n'est pas un relevé direct."
+  is_inferred: Boolean!
+
+  "Précision sur le contexte de l'événement."
+  note: String
+
+  "Fournisseur de la donnée et licence de sa source."
+  provenance: Provenance!
+
+  "La gare concernée."
+  station: Station!
+}
+
+"""
+Un média : photo, carte postale, plan, carte ou document d'archive lié à une ligne ou à une gare.
+
+Les médias externes (Wikimedia Commons…) ne sont pas hébergés par VFF : les adresses d'images
+pointent chez le fournisseur. Chaque média porte ses propres droits, à afficher avec l'image :
+`attribution` est une ligne de crédit prête à l'emploi.
+"""
+type Media {
+  "Identifiant interne du média."
+  id: ID!
+
+  "Fournisseur du média : `commons` (Wikimedia Commons), `wikidata`, `gallica`, `upload` (hébergé par VFF)…"
+  provider: String!
+
+  "Nom lisible du fournisseur (ex. « Wikimedia Commons »)."
+  provider_label: String!
+
+  "Nature du média : `photo`, `postcard` (carte postale), `map` (carte), `plan` ou `document`."
+  type: String!
+
+  "Titre du média."
+  title: String
+
+  "Légende du média."
+  caption: String
+
+  "Adresse de la vignette (environ 500 px), chez le fournisseur pour un média externe."
+  thumb_url: String
+
+  "Adresse de l'image en grande taille."
+  display_url: String
+
+  "Page d'origine du média : la page Wikimedia Commons du fichier pour un média Commons. À citer."
+  source_url: String
+
+  "Largeur de l'image, en pixels."
+  width: Int
+
+  "Hauteur de l'image, en pixels."
+  height: Int
+
+  "Année représentée par le média (pas celle de sa mise en ligne). Nulle si inconnue."
+  depicted_year: Int
+
+  "Fin de la fourchette d'années représentées, quand `date_precision` vaut `range`."
+  depicted_year_to: Int
+
+  """
+  Ce qu'on sait de la date représentée : `day`, `month`, `year`, `decade`, `circa` (vers),
+  `range` (fourchette), `before` ou `after`.
+  """
+  date_precision: String
+
+  "Date de prise de vue, quand elle est connue."
+  captured_at: Date
+
+  "Auteur du média."
+  author: String
+
+  "Ligne de crédit prête à l'emploi, à afficher avec l'image (auteur, licence, fournisseur)."
+  attribution: String
+
+  "Licence telle que déclarée par la source (ex. `CC BY-SA 4.0`, `Public domain`). Nulle si inconnue : aucune licence n'est présumée."
+  license: String
+
+  "Lien vers le texte de la licence."
+  license_url: String
+
+  "Statut des droits : `public_domain`, `open_license` (licence libre), `permission` (autorisation) ou `unknown`."
+  rights_status: String!
+
+  "Vrai si l'usage commercial est permis, faux s'il ne l'est pas, nul si inconnu."
+  commercial_ok: Boolean
+
+  "Vrai si le partage dans les mêmes conditions est exigé."
+  share_alike: Boolean
+
+  "Vrai si la mention de l'auteur est obligatoire, nul si inconnu."
+  attribution_required: Boolean
+
+  "Vrai si le média est mis en avant sur la fiche de son entité."
+  featured: Boolean!
+
+  "Latitude WGS 84 du lieu de prise de vue, en degrés décimaux, quand elle est connue."
+  lat: Float
+
+  "Longitude WGS 84 du lieu de prise de vue, en degrés décimaux, quand elle est connue."
+  lng: Float
+
+  "La ligne à laquelle le média est rattaché, si c'est une ligne."
+  line: Line
+
+  "La gare à laquelle le média est rattaché, si c'est une gare."
+  station: Station
+}
+
+"Directions for ordering a list of records."
+enum SortOrder {
+  "Sort records in ascending order."
+  ASC
+
+  "Sort records in descending order."
+  DESC
+}
+
+"Filtres de la requête `lineEvents`. Tous sont facultatifs et se combinent (ET)."
+input LineEventFilter {
+  "Slug de la ligne (ex. `rfn-420000`). Une ligne inconnue est une erreur de validation."
+  line: String
+
+  "Type d'événement (voir `LineEvent.type`), ex. `closure_passenger`."
+  type: String
+
+  "Provenance de l'événement (voir `LineEvent.source`), ex. `wikipedia`."
+  source: String
+
+  "Code INSEE du département (`35`, `2A`, `971`…) : lignes citant ce département ou y desservant une gare."
+  department: String
+
+  "Début de la période, bornes incluses : une année (`1930`, soit le 1er janvier) ou une date (`1930-06-15`)."
+  from: String
+
+  "Fin de la période, bornes incluses : une année (`1939`, soit le 31 décembre) ou une date (`1939-12-31`)."
+  to: String
+
+  "Ordre chronologique. Par défaut : du plus ancien (`ASC`)."
+  order: SortOrder
+}
+
+"Filtres de la requête `materials`. Tous sont facultatifs et se combinent (ET)."
+input MaterialFilter {
+  "Recherche sans accents ni capitales dans le nom, les autres noms, les constructeurs et les numéros d'engins (100 caractères au plus)."
+  q: String
+
+  "Catégorie (voir `Material.type`)."
+  type: String
+
+  "Constructeur, recherche partielle sans accents ni capitales (ex. `alsthom`)."
+  builder: String
+
+  "Exploitant : identifiant Wikidata exact (`Q13646` = SNCF) ou nom partiel sans accents ni capitales."
+  operator: String
+
+  "Slug d'une ligne : séries qui l'ont parcourue d'après une source. Ligne inconnue : erreur de validation."
+  line: String
+
+  "Année (1800 à 2100) : séries en service cette année-là (mises en service avant, pas retirées avant ; sans date de mise en service : exclues)."
+  in_service_at: Int
+
+  "Mise en service à partir de cette année, incluse (1800 à 2100)."
+  from_year: Int
+
+  "Mise en service jusqu'à cette année, incluse (1800 à 2100, au moins égale à `from_year`)."
+  to_year: Int
+
+  "Écartement en millimètres (500 à 2000), ex. `1000` pour la voie métrique."
+  gauge_mm: Int
+
+  "Vrai : séries illustrées seulement ; faux : séries sans image."
+  has_image: Boolean
+
+  "Vrai : séries reliées à au moins une ligne ; faux : séries sans ligne connue."
+  has_lines: Boolean
+
+  """
+  Tri : `name` (par défaut), `in_service_from`, `max_speed_kmh`, `units_built`, `lines_count`,
+  préfixe `-` pour l'ordre décroissant (ex. `-max_speed_kmh`). Valeurs inconnues en dernier.
+  """
+  sort: String
+}
+
+"Filtres de la requête `media`. Tous sont facultatifs et se combinent (ET)."
+input MediaFilter {
+  "Slug d'une ligne : ses médias seulement. Exclusif avec `station`."
+  line: String
+
+  "Slug d'une gare : ses médias seulement. Exclusif avec `line`."
+  station: String
+
+  "Nature du média : `photo`, `postcard`, `map`, `plan` ou `document`."
+  type: String
+
+  "Fournisseur du média : `commons`, `upload`…"
+  provider: String
+
+  "Licence telle que déclarée par la source, casse ignorée (ex. `CC BY-SA 4.0`)."
+  license: String
+
+  "Statut des droits : `public_domain`, `open_license`, `permission` ou `unknown`."
+  rights_status: String
+
+  "Vrai : seulement les médias d'usage commercial permis ; faux : les autres."
+  commercial_ok: Boolean
+
+  "Époque représentée : `pre1900`, `1900_1944`, `1945_1969`, `1970_1999`, `since2000` ou `undated`."
+  period: String
+
+  "Année représentée minimale, incluse (exclut les médias non datés)."
+  from_year: Int
+
+  "Année représentée maximale, incluse, au moins égale à `from_year`."
+  to_year: Int
+
+  "Ordre des identifiants. Par défaut : croissant (`ASC`)."
+  order: SortOrder
 }
 
 """
@@ -481,40 +974,616 @@ type Station {
 
   "Longitude WGS 84, en degrés décimaux."
   lng: Float
+
+  "Chronologie de la gare : ouverture, fermeture, démolition…, du plus ancien au plus récent, avec la source de chaque événement."
+  events: [StationEvent!]!
+
+  """
+  Fiche complète de la gare, comme la page `/stations/{slug}` et `GET /api/v1/stations/{station}` :
+  présence par décennie, lignes desservies, sources, gares voisines.
+  """
+  sheet: StationSheet!
+
+  """
+  Médias (photos, cartes postales, plans…) rattachés à la gare, page par page (20 par défaut,
+  100 au plus), dans l'ordre de leurs identifiants. Chaque média porte ses droits.
+  """
+  media(
+    "Limits number of fetched items. Maximum allowed value: 100."
+    first: Int! = 20
+
+    "A cursor after which elements are returned."
+    after: String
+  ): MediaConnection!
 }
 
-"Un matériel roulant : une série de locomotives, d'automotrices, de rames TGV, de voitures ou de wagons."
+"""
+Une série de matériel roulant ayant circulé en France : locomotives (vapeur, diesel,
+électriques), automotrices, autorails, rames TGV, voitures, wagons, tramways, engins de service.
+
+Fiches importées de **Wikidata** (CC0, aucune obligation) ; image et droits lus dans
+**Wikimedia Commons** (licence propre à chaque fichier, à afficher avec l'image). Un champ nul
+veut dire que la source ne le renseigne pas : VFF n'estime aucune valeur. La provenance de
+chaque champ est dans `field_sources`.
+"""
 type Material {
   "Identifiant interne du matériel."
   id: ID!
 
-  "Identifiant stable et lisible, dérivé du nom."
+  "Identifiant stable et lisible, dérivé du nom (ex. `bb-15000`), utilisé dans les URL du site et de l'API REST."
   slug: String!
 
-  "Nom de la série (ex. « BB 15000 »)."
+  "Nom d'usage de la série : titre de l'article Wikipédia en français, sinon libellé Wikidata (ex. « BB 15000 »)."
   name: String!
 
   """
-  Catégorie : `locomotive_electrique`, `locomotive_diesel`, `locomotive_vapeur`,
-  `automotrice` (rame électrique automotrice), `autorail` (rame thermique), `rame_tgv`,
-  `voiture` (voiture voyageurs), `wagon` (wagon de marchandises).
+  Catégorie : `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`,
+  `automotrice` (rame automotrice électrique ou bimode), `autorail` (rame thermique),
+  `rame_tgv` (grande vitesse), `voiture` (voiture voyageurs), `wagon` (marchandises),
+  `tramway`, `engin_service` (engin de l'infrastructure : auscultation, chasse-neige, draisine).
   """
   type: String!
 
-  "Constructeur (ex. Alstom, ANF, Siemens)."
-  builder: String
+  "Libellé français de la catégorie (ex. « Locomotive électrique »)."
+  type_label: String!
 
-  "Année de mise en service de la série."
-  in_service_from: Int
+  "Autres noms : libellés et alias Wikidata (français, anglais), surnoms. Liste vide si aucun."
+  designations: [String!]!
 
-  "Année de retrait du service ; nulle si la série circule encore."
-  in_service_to: Int
-
-  "Présentation du matériel, en français."
+  "Courte description en français (description Wikidata, CC0), ex. « série de 65 locomotives électriques de la SNCF »."
   description: String
 
-  "Lignes sur lesquelles ce matériel a circulé ou circule."
+  "Constructeurs en une ligne lisible, noms séparés par des virgules (ex. « Alstom, Matériel de Traction Électrique »)."
+  builder: String
+
+  "Constructeurs, un par entrée, avec le nombre d'engins construits par chacun quand il est connu."
+  builders: [MaterialBuilder!]!
+
+  "Exploitants de la série, avec leur période d'exploitation et le nombre d'engins quand ils sont connus."
+  operators: [MaterialOperator!]!
+
+  "Année de mise en service de la série (la plus ancienne déclarée). Nulle si inconnue."
+  in_service_from: Int
+
+  """
+  Année de retrait du service (la plus récente déclarée). Nulle si la série circule encore OU si
+  la date de retrait n'est pas renseignée : ne concluez pas qu'elle est en service.
+  """
+  in_service_to: Int
+
+  "Nombre d'engins construits, s'il est univoque dans la source."
+  units_built: Int
+
+  "Vitesse maximale en km/h (la plus grande déclarée, convertie si la source l'exprime en mi/h)."
+  max_speed_kmh: Int
+
+  """
+  Puissance nominale en kilowatts (la plus grande déclarée ; convertie depuis les
+  chevaux-vapeur métriques si besoin, valeur d'origine dans `field_sources`). Rarement renseignée.
+  """
+  power_kw: Int
+
+  "Alimentations électriques (ex. « électrification ferroviaire 25 kV 50 Hz »). Liste vide pour un engin thermique ou si non renseignée."
+  electrification: [MaterialElectrification!]!
+
+  "Écartement en millimètres quand la série n'en a qu'un (`1435` voie normale, `1000` voie métrique). Nul si inconnu ou multiple."
+  gauge_mm: Int
+
+  "Écartements de la série."
+  gauges: [MaterialGauge!]!
+
+  "Disposition des essieux telle que libellée par Wikidata (ex. « B'B' », « 141 »)."
+  wheel_arrangement: String
+
+  "Numéros des engins de la série, tels que déclarés (ex. « 15001 - 15065 » ; plusieurs plages séparées par « ; »)."
+  fleet_numbers: String
+
+  "Image principale, hébergée par Wikimedia Commons, avec ses droits. Nulle si aucune."
+  image: MaterialImage
+
+  "Catégorie Wikimedia Commons de la série (autres photos), ex. « SNCF Class BB 15000 »."
+  commons_category: String
+
+  "Adresse de la catégorie Commons."
+  commons_category_url: String
+
+  "Élément Wikidata de la série (ex. `Q746572`). Nul pour une fiche saisie dans VFF."
+  wikidata_id: String
+
+  "Adresse de l'élément Wikidata."
+  wikidata_url: String
+
+  "Titre de l'article Wikipédia en français."
+  wikipedia_fr: String
+
+  "Adresse de l'article Wikipédia en français."
+  wikipedia_fr_url: String
+
+  "Titre de l'article Wikipédia en anglais."
+  wikipedia_en: String
+
+  "Adresse de l'article Wikipédia en anglais."
+  wikipedia_en_url: String
+
+  "Nombre de lignes de VFF que la série a parcourues d'après une source (voir `line_links`)."
+  lines_count: Int!
+
+  "Provenance de la fiche : `wikidata`, ou nulle pour une fiche saisie dans VFF."
+  source: String
+
+  "Fournisseur de la fiche et sa licence (Wikidata : CC0). L'image a sa propre licence (`image`)."
+  provenance: Provenance!
+
+  "Provenance de chaque champ renseigné : source, référence précise, adresse, licence."
+  field_sources: [MaterialFieldSource!]!
+
+  "Lignes sur lesquelles ce matériel a circulé ou circule (sans la preuve : voir `line_links`)."
   lines: [Line!]!
+
+  "Lignes parcourues, avec la preuve de chaque lien (source, citation, fiabilité)."
+  line_links: [LineMaterialLink!]!
+}
+
+"Un constructeur d'une série de matériel (Wikidata, propriété P176)."
+type MaterialBuilder {
+  "Nom du constructeur (libellé Wikidata en français)."
+  name: String!
+
+  "Élément Wikidata du constructeur (ex. `Q309084` pour Alstom)."
+  wikidata_id: String
+
+  "Nombre d'engins construits par ce constructeur, nul si non précisé."
+  units: Int
+}
+
+"Un exploitant d'une série de matériel (Wikidata, propriété P137)."
+type MaterialOperator {
+  "Nom de l'exploitant (libellé Wikidata en français, ex. « SNCF »)."
+  name: String!
+
+  "Élément Wikidata de l'exploitant (ex. `Q13646` pour la SNCF)."
+  wikidata_id: String
+
+  "Première année d'exploitation par lui, nulle si non précisée."
+  from_year: Int
+
+  "Dernière année d'exploitation par lui, nulle si non précisée ou en cours."
+  to_year: Int
+
+  "Nombre d'engins exploités par lui, nul si non précisé."
+  units: Int
+}
+
+"Une alimentation électrique d'une série (Wikidata, propriété P930)."
+type MaterialElectrification {
+  "Libellé Wikidata en français (ex. « électrification ferroviaire 1 500 V continu »)."
+  label: String!
+
+  "Élément Wikidata du système d'électrification."
+  wikidata_id: String
+}
+
+"Un écartement de voie d'une série (Wikidata, propriété P1064)."
+type MaterialGauge {
+  "Libellé Wikidata en français (ex. « écartement standard », « écartement métrique »)."
+  label: String!
+
+  "Écartement en millimètres (largeur déclarée par l'élément d'écartement), nul si inconnu."
+  mm: Int
+
+  "Élément Wikidata de l'écartement (ex. `Q1999572`)."
+  wikidata_id: String
+}
+
+"""
+Image d'une série, hébergée par Wikimedia Commons. Ses droits sont ceux du fichier : à afficher
+avec l'image (`attribution` est une ligne de crédit prête à l'emploi).
+"""
+type MaterialImage {
+  "Fournisseur : `commons`."
+  provider: String!
+
+  "Nom du fichier Commons (« File:… »)."
+  file: String!
+
+  "Adresse de la vignette (500 px de large)."
+  thumb_url: String
+
+  "Adresse de l'image en grande taille."
+  display_url: String
+
+  "Page du fichier sur Commons : à citer."
+  source_url: String!
+
+  "Largeur de l'original, en pixels."
+  width: Int
+
+  "Hauteur de l'original, en pixels."
+  height: Int
+
+  "Auteur, nul si inconnu ou anonyme."
+  author: String
+
+  "Licence telle que déclarée par Commons (ex. `CC BY-SA 4.0`), nulle si inconnue : aucune licence n'est présumée."
+  license: String
+
+  "Lien vers le texte de la licence."
+  license_url: String
+
+  "Statut des droits : `public_domain`, `open_license` (licence libre) ou `unknown`."
+  rights_status: String!
+
+  "Vrai si l'usage commercial est permis, nul si inconnu."
+  commercial_ok: Boolean
+
+  "Vrai si le partage dans les mêmes conditions est exigé."
+  share_alike: Boolean
+
+  "Vrai si la mention de l'auteur est obligatoire, nul si inconnu."
+  attribution_required: Boolean
+
+  "Ligne de crédit prête à l'emploi (auteur, licence, « via Wikimedia Commons »)."
+  attribution: String!
+}
+
+"Provenance d'un champ d'une fiche de matériel."
+type MaterialFieldSource {
+  "Nom du champ (ex. `in_service_from`, `max_speed_kmh`, `image`)."
+  field: String!
+
+  "Source : `wikidata`, `commons` (image) ou `wikipedia` (catégorie de l'article, quand Wikidata ne range pas la série)."
+  source: String!
+
+  "Référence précise : élément et propriété Wikidata (ex. `Q746572#P729`), fichier Commons, catégorie Wikipédia."
+  reference: String
+
+  "Page de la source."
+  url: String
+
+  "Valeur d'origine quand VFF a converti l'unité (ex. `2000` pour 2000 ch), sinon nulle."
+  original_amount: Float
+
+  "Unité d'origine (élément Wikidata, ex. `Q160857` cheval-vapeur métrique), sinon nulle."
+  original_unit: String
+
+  "Clé du fournisseur dans le registre des droits de VFF."
+  provider: String
+
+  "Nom lisible du fournisseur."
+  name: String
+
+  "Licence de la source, telle que vérifiée par VFF."
+  license: String
+
+  "Solidité de la licence : `verified`, `uncertain` ou `forbidden`."
+  license_status: String
+}
+
+"""
+Lien entre une ligne et une série de matériel : la série a circulé (ou circule) sur la ligne
+d'après une source citée. Jamais déduit d'un nom approchant : déclaration Wikidata (P3438), ou
+lien posé dans une section « Matériel roulant », « Exploitation », « Desserte » de l'article
+Wikipédia de la ligne, ou « Utilisation », « Services », « Carrière » de l'article de la série.
+"""
+type LineMaterialLink {
+  "La ligne."
+  line: Line!
+
+  "La série de matériel."
+  material: Material!
+
+  "Provenance du lien : `wikidata`, `wikipedia`, ou nulle pour un lien saisi dans VFF."
+  source: String
+
+  "Permalien de la source la plus forte (révision Wikipédia `oldid` ou élément Wikidata) : à citer."
+  source_url: String
+
+  """
+  Fiabilité : `high` (Wikidata, ou section « Matériel roulant » de l'article de la ligne),
+  `medium` (autre section), `low` (article qui décrit plusieurs lignes de VFF à la fois).
+  """
+  confidence: String
+
+  "Ère VFF à laquelle le lien est rattaché, quand la source la date. Souvent nulle."
+  era: Era
+
+  "Début de la circulation sur la ligne, seulement si la source le date (aucune date n'est déduite du texte)."
+  from_date: Date
+
+  "Fin de la circulation sur la ligne, seulement si la source la date."
+  to_date: Date
+
+  "Note libre (liens saisis dans VFF)."
+  notes: String
+
+  "Preuves du lien, les plus fortes d'abord (cinq au plus)."
+  evidence: [LineMaterialEvidence!]!
+
+  "Fournisseur et licence de la source du lien."
+  provenance: Provenance!
+}
+
+"""
+Une preuve d'un lien ligne × matériel. Les phrases citées sont des extraits de Wikipédia
+(CC BY-SA 4.0) : citez l'article avec le permalien `url`.
+"""
+type LineMaterialEvidence {
+  "`wikipedia_line_article` (lien vers la série dans l'article de la ligne), `wikipedia_material_article` (lien vers la ligne dans l'article de la série) ou `wikidata`."
+  kind: String!
+
+  "Titre de l'article Wikipédia lu."
+  article: String
+
+  "Révision de l'article lue (identifiant `oldid`)."
+  revid: Int
+
+  "Titre de la section (« Section > Sous-section »), qui précise parfois la portion parcourue."
+  section: String
+
+  "Phrase (ou ligne de liste, de tableau) qui porte le lien."
+  quote: String
+
+  "Propriété Wikidata (`P3438`, véhicule habituellement utilisé)."
+  property: String
+
+  "Élément Wikidata de la ligne qui porte la déclaration."
+  subject: String
+
+  "Première année déclarée par Wikidata (qualificatif P580)."
+  from_year: Int
+
+  "Dernière année déclarée par Wikidata (qualificatif P582)."
+  to_year: Int
+
+  "Vrai si l'article décrit plusieurs lignes de VFF à la fois."
+  shared_article: Boolean
+
+  "Permalien de la preuve."
+  url: String
+}
+
+"""
+Un accident ou un événement grave du rail français : date et précision, nature, lieu, lignes
+rattachées, bilan humain et sa source, résumé, sources ouvertes avec leur licence.
+
+Faits recoupés entre Wikidata (CC0), Wikipédia (faits seulement, CC BY-SA 4.0 pour toute
+citation) et le bilan général des enquêtes du BEA-TT (Licence Ouverte 2.0), par
+`vff:import-accidents`. Un champ nul veut dire qu'aucune source consultée ne le donne : VFF
+n'estime aucune valeur. Aucune victime n'est nommée.
+"""
+type Accident {
+  "Identifiant interne de l'accident."
+  id: ID!
+
+  "Identifiant stable et lisible : date (selon sa précision) puis commune (ex. `2013-07-12-bretigny-sur-orge`)."
+  slug: String!
+
+  "Élément Wikidata (`Q…`), nul si l'accident n'y figure pas (accident connu par le seul BEA-TT)."
+  wikidata_id: String
+
+  "Nom usuel : libellé Wikidata, sinon nom construit par VFF (nature et commune)."
+  name(
+    "Langue : `fr` (par défaut), `en` ou `de`."
+    lang: String = "fr"
+  ): String!
+
+  """
+  Nature : `collision` (entre trains ou avec un obstacle sur la voie), `derailment`
+  (déraillement), `level_crossing` (collision à un passage à niveau), `fire` (incendie),
+  `explosion`, `structure_failure` (rupture d'ouvrage : pont, tunnel, mur, rail), `attack`
+  (attentat), `person_struck` (personnes heurtées hors passage à niveau), `runaway` (dérive),
+  `incident` (incident grave sans accident : quasi-collision, dépassement de vitesse,
+  immobilisation), `other`.
+  """
+  kind: String!
+
+  "Date de l'accident (`AAAA-MM-JJ`), à lire avec `date_precision` (au 1er du mois ou au 1er janvier si moins précise)."
+  date: Date!
+
+  "Précision de `date` : `day` (date exacte), `month` (mois et année), `year` (année seule)."
+  date_precision: String!
+
+  "Heure locale (`HH:MM`) quand une source la donne."
+  time: String
+
+  "Commune actuelle (contours IGN ADMIN EXPRESS) où se trouve le lieu."
+  commune: String
+
+  "Code INSEE de la commune."
+  commune_insee: String
+
+  "Code INSEE du département actuel (`2A`, `2B` pour la Corse)."
+  department_code: String
+
+  "Latitude WGS 84 du lieu, en degrés décimaux ; nulle si le lieu est inconnu."
+  lat: Float
+
+  "Longitude WGS 84 du lieu, en degrés décimaux ; nulle si le lieu est inconnu."
+  lng: Float
+
+  """
+  D'où vient la position : `exact` (coordonnées données par la source), `level_crossing`
+  (passage à niveau cité, jeu SNCF Réseau), `station` (gare ou lieu cité), `commune` (centre
+  de la commune : lieu exact inconnu). Nulle si le lieu est inconnu.
+  """
+  location_precision: String
+
+  "Nombre de morts, selon `toll_source` ; nul si inconnu (0 : aucun mort)."
+  deaths: Int
+
+  "Nombre de blessés ; nul si inconnu. Les sources comptent parfois différemment : voir `review_status`."
+  injuries: Int
+
+  "Fournisseur du bilan retenu : `bea-tt` (enquête officielle, préférée), `wikidata`, `wikipedia`."
+  toll_source: String
+
+  "Lien qui appuie le bilan retenu (référence Wikidata, permalien Wikipédia, rapport du BEA-TT)."
+  toll_source_url: String
+
+  "Résumé rédigé par VFF à partir des faits retenus, jamais recopié d'une source."
+  summary(
+    "Langue : `fr` (par défaut), `en` ou `de`."
+    lang: String = "fr"
+  ): String!
+
+  "Article de Wikipédia sur l'accident dans la langue demandée, nul s'il n'existe pas."
+  wikipedia_url(
+    "Langue : `fr` (par défaut), `en` ou `de`."
+    lang: String = "fr"
+  ): String
+
+  "`ok`, ou `to_review` quand un point reste incertain (voir `review_notes`)."
+  review_status: String!
+
+  "Points incertains : bilans ou dates qui diffèrent selon les sources, lieu vague, ligne incertaine."
+  review_notes: [AccidentReviewNote!]!
+
+  "Trains et matériel impliqués, quand les sources les nomment."
+  trains: [AccidentTrain!]!
+
+  "Lignes rattachées, avec la portion, le PK estimé, la méthode et la confiance (ordre non garanti : la principale a `is_primary`)."
+  lines: [AccidentLineLink!]!
+
+  "Gare VFF la plus proche du lieu, ouverte à la date quand ses dates sont connues (10 km au plus)."
+  nearest_station: Station
+
+  "Distance du lieu à `nearest_station`, en mètres."
+  nearest_station_distance_m: Int
+
+  "Sources consultées, avec leur licence et les faits lus dans chacune."
+  sources: [AccidentSource!]!
+}
+
+"Rattachement d'un accident à une ligne VFF, sur le tracé de l'époque de l'accident."
+type AccidentLineLink {
+  "Ligne VFF (nulle si elle a disparu de VFF depuis l'import)."
+  line: Line
+
+  "Vrai pour la ligne retenue comme lieu de l'accident ; faux pour une ligne au même endroit (tronc commun, jonction) ou citée par une source."
+  is_primary: Boolean!
+
+  "Ère dont le tracé a servi au rattachement (décennie qui encadre la date)."
+  era_year: Int
+
+  "Distance du lieu au tracé, en mètres."
+  distance_m: Int
+
+  "Point kilométrique estimé, en mètres : PK du passage à niveau cité, sinon interpolé entre les deux gares qui encadrent le lieu."
+  pk_m: Int
+
+  "Le même PK en notation ferroviaire `km+mmm`."
+  pk_label: String
+
+  "Portion : gare d'un côté du lieu. Seule renseignée (`section_to` nulle) : accident en gare. Nulle si le lieu n'est connu qu'à la commune près."
+  section_from: Station
+
+  "Portion : gare de l'autre côté du lieu."
+  section_to: Station
+
+  "Méthodes : `proximity` (tracé de l'époque), `wikidata` (ligne citée par Wikidata), `wikipedia` (article de ligne cité), `level_crossing` (ligne du passage à niveau)."
+  method: [String!]!
+
+  "Confiance : `high`, `medium` ou `low` (commune seule, ligne la plus proche : à vérifier)."
+  confidence: String!
+
+  "Score de 0 à 1 : proximité du tracé et concordance des sources."
+  score: Float!
+}
+
+"Une source consultée pour un accident."
+type AccidentSource {
+  "Fournisseur : `wikidata`, `wikipedia`, `bea-tt` (clé du registre des droits de VFF)."
+  provider: String!
+
+  "`data` (données structurées), `article` (encyclopédie), `report` (rapport d'enquête), `inventory` (bilan des enquêtes)."
+  role: String!
+
+  "Titre de la source (intitulé de l'enquête, titre de l'article, libellé de l'élément)."
+  title: String!
+
+  "Lien vers la source (permalien de la révision lue pour Wikipédia)."
+  url: String!
+
+  "Licence de la source (CC0 1.0, CC BY-SA 4.0, Licence Ouverte 2.0)."
+  license: String!
+
+  "Lien vers le texte de la licence."
+  license_url: String
+
+  "Révision lue (oldid Wikipédia, lastrevid Wikidata), en texte."
+  revision: String
+
+  "Date de consultation."
+  retrieved_at: DateTime!
+
+  "Faits lus dans cette source (date, morts, blessés, coordonnées…), objet JSON sérialisé."
+  facts: String
+}
+
+"Un train ou un matériel impliqué dans un accident."
+type AccidentTrain {
+  "Nom de service (`TER`, `TGV`, `Intercités`, `RER C`…), invariable."
+  label: String
+
+  "Catégorie quand le service n'est pas nommé : `passenger`, `freight`, `works` (travaux), `test` (essai)."
+  category: String
+
+  "Numéro de train, quand il est cité."
+  number: String
+
+  "Matériel roulant (en français), quand il est cité."
+  material: String
+
+  "Exploitant."
+  operator: String
+
+  "Fournisseur qui cite ce train : `wikidata`, `wikipedia` ou `bea-tt`."
+  source: String
+}
+
+"Un point incertain d'une fiche d'accident."
+type AccidentReviewNote {
+  "Code stable : `toll_mismatch`, `toll_ambiguous`, `date_mismatch`, `location_commune_only`, `commune_not_found`, `line_uncertain`, `no_line`…"
+  code: String!
+
+  "Explication en français."
+  label: String!
+
+  "Valeurs en cause (ex. « blessés : Wikidata 14, Wikipédia 18 »)."
+  detail: String!
+}
+
+"Filtres de la requête `accidents`. Tous sont facultatifs et se combinent (ET)."
+input AccidentFilter {
+  "Recherche sans accents ni capitales dans le nom (toutes langues) et la commune (100 caractères au plus)."
+  q: String
+
+  "À partir de cette année, incluse (1800 à 2100)."
+  from: Int
+
+  "Jusqu'à cette année, incluse (1800 à 2100, au moins égale à `from`)."
+  to: Int
+
+  "Slug d'une ligne : accidents rattachés à cette ligne. Ligne inconnue : erreur de validation."
+  line: String
+
+  "Code INSEE du département actuel du lieu (ex. `91`, `2A`)."
+  department: String
+
+  "Nature (voir `Accident.kind`)."
+  kind: String
+
+  "`ok` ou `to_review`."
+  review: String
+
+  "Bilan d'au moins ce nombre de morts (exclut les bilans inconnus)."
+  min_deaths: Int
+
+  "Vrai : accidents rattachés à une ligne ; faux : sans ligne."
+  has_line: Boolean
+
+  "Tri : `date` (par défaut), `-date`, `deaths`, `-deaths`. Bilan inconnu en dernier."
+  sort: String
 }
 
 "Une section d'itinéraire entre deux gares consécutives du trajet."
@@ -599,6 +1668,969 @@ type Route {
   edges: [RouteEdge!]!
 }
 
+"Longueur (en km) rattachée à un code : mode de cantonnement, système de contrôle, trafic, tension…"
+type KmByCode {
+  "Code (ex. `BAL`, `KVB`, `mixed`)."
+  code: String!
+
+  "Longueur en kilomètres (une décimale dans les fiches, arrondie à l'unité dans les statistiques d'ère)."
+  km: Float!
+}
+
+"Nombre d'objets rattachés à un code (ex. gares par statut)."
+type CountByCode {
+  "Code (ex. `active`, `declassified`)."
+  code: String!
+
+  "Nombre d'objets."
+  count: Int!
+}
+
+"""
+État du réseau à une ère, d'après la carte VFF (mêmes chiffres que la carte et l'accueil). Les
+longueurs sont la somme des tronçons de la carte (voies parallèles d'une même ligne comprises) :
+un ordre de grandeur, pas le kilométrage officiel.
+"""
+type EraStats {
+  "Longueur en service (voyageurs, fret ou associatif), en km arrondis."
+  open_km: Int!
+
+  "Longueur fermée, voie encore en place, en km."
+  closed_km: Int!
+
+  "Longueur déposée ou effacée, en km."
+  gone_km: Int!
+
+  "Longueur électrifiée et en service, en km."
+  electrified_km: Int!
+
+  "Nombre de lignes portant du trafic à cette ère."
+  active_lines: Int!
+
+  "Longueur en service par trafic : `mixed`, `passenger`, `freight`, `heritage` (associatif), `unknown`."
+  open_km_by_traffic: [KmByCode!]!
+
+  "Nombre de gares par statut à cette ère : `active`, `tourist`, `no_commercial`, `declassified`."
+  stations_by_status: [CountByCode!]!
+}
+
+"Un autre nom d'une ligne, avec sa source."
+type LineName {
+  "Le nom."
+  name: String!
+
+  "Nature : `name` (nom successif ou usuel), `section` (section nommée), `merged` (fiche fusionnée), `wikipedia` (titre de l'article), `lignes-oubliees`, `archeo`…"
+  kind: String!
+
+  "Source du nom (`wikidata`, `wikipedia`, `lignes-oubliees`, `archeoferroviaire`…)."
+  source: String
+
+  "Lien vers la source."
+  url: String
+
+  "Première année d'usage du nom, si elle est connue."
+  from: Int
+
+  "Dernière année d'usage du nom, si elle est connue."
+  to: Int
+}
+
+"Une compagnie ou un gestionnaire de la ligne, avec ses années."
+type LineOperator {
+  "Nom de la compagnie ou du gestionnaire."
+  operator: String!
+
+  "Rôle, en français : `exploitant`, `gestionnaire`, `propriétaire`, ou plusieurs séparés par une virgule."
+  role: String
+
+  "Élément Wikidata de la compagnie (ex. `Q13646`)."
+  wikidata: String
+
+  "Première année dans ce rôle sur la ligne."
+  from_year: Int
+
+  "Dernière année dans ce rôle (nulle si inconnue ou toujours en fonction)."
+  to_year: Int
+
+  "Vrai si la compagnie est toujours en fonction."
+  ongoing: Boolean
+
+  "Source de l'information (`wikidata`…)."
+  source: String
+}
+
+"Campagne de défense de la ligne relayée par VFF (réouverture, menace de fermeture)."
+type LineAdvocacy {
+  "Nature : `reopening` (réouverture), `threat` (menace)…"
+  kind: String!
+
+  "Titre de la campagne, en français."
+  title: String!
+
+  "Message de la campagne, en français."
+  message: String
+
+  "Libellé de l'appel à agir."
+  cta_label: String
+
+  "Lien de l'appel à agir (association, pétition)."
+  cta_url: String
+}
+
+"L'état de la ligne aujourd'hui (ou à sa dernière décennie connue)."
+type LineToday {
+  "Ère affichée : l'ère courante (2030) si la ligne y a un tracé, sinon sa dernière décennie."
+  era_year: Int
+
+  "État : `open` (au moins une portion en service), `closed` (fermée, voie en place), `gone` (déposée)."
+  state: String
+
+  "Trafic dominant : `passenger`, `mixed`, `freight`, `heritage` (associatif), `unknown`."
+  traffic: String
+}
+
+"Les chiffres clés d'une ligne, ceux de l'en-tête de sa page."
+type LineKeyFigures {
+  "Longueur du tracé VFF à son plus grand développement, toutes portions comprises (en service, fermées, déposées), en km."
+  length_km: Float
+
+  "Origine de `length_km` : `trace` (tracé VFF), `sncf` (formes SNCF), `segments` (somme des tronçons)."
+  length_definition: String
+
+  "Longueur en service aujourd'hui, en km, de la même mesure."
+  active_length_km: Float
+
+  "Longueur des formes SNCF Réseau (généralisées), en km."
+  length_sncf_km: Float
+
+  "Longueur publiée (Wikidata), en mètres."
+  length_official_m: Int
+
+  "Vitesse maximale des tronçons, en km/h."
+  max_speed_kmh: Int
+
+  "Vitesse maximale publiée (Wikidata), en km/h."
+  max_speed_kmh_official: Int
+
+  "Écartement des rails, en mm (`1435` voie normale, `1000` voie métrique…)."
+  gauge_mm: Int
+
+  "Nombre de voies (Wikidata)."
+  tracks: Int
+
+  "Nombre de gares de la ligne, toutes ères, fermées comprises."
+  station_count: Int!
+
+  "Nombre de ces gares ouvertes aujourd'hui."
+  station_open_count: Int!
+
+  "Nombre d'événements datés."
+  event_count: Int!
+
+  "Nombre de tronçons de l'ère affichée."
+  segment_count: Int!
+
+  "Première date de dépose connue (`AAAA-MM-JJ`)."
+  dismantled_from: String
+
+  "Dernière date de dépose connue (`AAAA-MM-JJ`)."
+  dismantled_to: String
+}
+
+"Électrification d'une ligne à l'ère affichée."
+type LineElectrification {
+  "`full` (toute la ligne), `partial`, `marginal` (quelques voies seulement : gare, raccordement), `none`."
+  state: String!
+
+  "Longueur électrifiée, en km."
+  km: Float
+
+  "Part électrifiée, en pourcentage."
+  pct: Float
+
+  "Longueur par tension (`code` = tension en volts, ex. `1500`, `25000`)."
+  voltages: [LineVoltage!]!
+}
+
+"Longueur électrifiée sous une tension."
+type LineVoltage {
+  "Tension en volts (ex. `1500` continu, `25000` alternatif 50 Hz)."
+  voltage_v: Int!
+
+  "Longueur en km."
+  km: Float!
+}
+
+"Signalisation de la ligne à l'ère affichée (SNCF Réseau Open Data, ODbL)."
+type LineSheetSignalling {
+  "Longueur par mode de cantonnement (`BAL`, `BAPR-VB`, `CT-VU`…)."
+  block_systems_km: [KmByCode!]!
+
+  "Longueur par système de contrôle de vitesse (`KVB`, `TVM 430`, `ETCS 2`…)."
+  train_protection_km: [KmByCode!]!
+
+  "Vrai si une partie de la ligne est équipée du KVB."
+  kvb_equipped: Boolean!
+
+  "Tranches de points kilométriques homogènes."
+  ranges: [LineSignallingRange!]!
+}
+
+"L'état de la ligne au 31/12 d'une décennie (frise « évolution »)."
+type LineEraSummary {
+  "Année de l'ère."
+  year: Int!
+
+  "Vrai pour l'ère courante (aujourd'hui)."
+  is_current: Boolean!
+
+  "Longueur en service, en km."
+  active_km: Float!
+
+  "Longueur fermée, voie en place, en km."
+  closed_km: Float!
+
+  "Longueur déposée ou effacée, en km."
+  gone_km: Float!
+
+  "Longueur exploitée par une association, en km."
+  heritage_km: Float!
+
+  "Trafic dominant : `passenger`, `mixed`, `freight`, `heritage`, `unknown`."
+  traffic: String
+
+  "`open`, `closed` ou `gone`."
+  state: String!
+}
+
+"Une gare d'une ligne, toutes ères confondues, dans l'ordre du tracé."
+type LineSheetStation {
+  "Slug de la gare."
+  slug: String!
+
+  "Nom de la gare."
+  name: String!
+
+  "Nature : `gare`, `halte`, `point_arret`…"
+  type: String
+
+  "Commune."
+  city: String
+
+  "Code INSEE du département."
+  department_code: String
+
+  "Latitude WGS 84."
+  lat: Float
+
+  "Longitude WGS 84."
+  lng: Float
+
+  "Point kilométrique sur la ligne, en mètres."
+  pk_m: Int
+
+  "Point kilométrique en notation `km+mmm`."
+  pk_label: String
+
+  "Vrai pour une gare d'extrémité."
+  is_terminal: Boolean!
+
+  "Comment la gare est rattachée à la ligne (`sncf_pk`, `wikidata_p81`, `segment`…)."
+  link_method: String
+
+  "Première année de desserte par la ligne."
+  served_from: Int
+
+  "Dernière année de desserte (nulle : toujours desservie ou inconnue)."
+  served_until: Int
+
+  "Date d'ouverture (`AAAA-MM-JJ`)."
+  opened_at: String
+
+  "Précision de `opened_at` : `day`, `month`, `year`."
+  opened_precision: String
+
+  "Date de fermeture (`AAAA-MM-JJ`)."
+  closed_at: String
+
+  "Précision de `closed_at` : `day`, `month`, `year`, `range`."
+  closed_precision: String
+
+  "Gare fermée après cette année, date exacte inconnue."
+  closed_after: Int
+
+  "Année de fermeture retenue."
+  closed_year: Int
+
+  "Statut aujourd'hui (`active`, `tourist`, `no_commercial`, `declassified`) ; nul si la gare a disparu."
+  status_today: String
+
+  "Statut à chaque décennie : objet `{ \"1930\": \"active\", … }`."
+  eras: JSON
+}
+
+"Une section nommée d'une ligne (ex. « LGV Rhône-Alpes »)."
+type LineSection {
+  "Nom de la section."
+  name: String!
+
+  "Autres noms."
+  alt_names: [String!]!
+
+  "Point kilométrique de début, en mètres."
+  pk_start_m: Int!
+
+  "Point kilométrique de fin, en mètres."
+  pk_end_m: Int!
+
+  "PK de début en notation `km+mmm`."
+  pk_start_label: String!
+
+  "PK de fin en notation `km+mmm`."
+  pk_end_label: String!
+
+  "Longueur, en km."
+  length_km: Float!
+
+  "Première année d'ouverture."
+  opening_year_from: Int
+
+  "Dernière année d'ouverture (section ouverte en plusieurs fois)."
+  opening_year_to: Int
+
+  "Présentation, en français (Wikipédia, CC BY-SA)."
+  description: String
+
+  "Lien vers la source."
+  source_url: String
+}
+
+"Un matériel roulant ayant circulé sur la ligne (résumé)."
+type LineSheetMaterial {
+  "Slug du matériel."
+  slug: String!
+
+  "Nom de la série."
+  name: String!
+
+  "Catégorie (voir `Material.type`)."
+  type: String
+
+  "Constructeur."
+  builder: String
+
+  "Année de mise en service."
+  in_service_from: Int
+
+  "Année de retrait."
+  in_service_to: Int
+}
+
+"""
+Fiche complète d'une ligne : tout ce que montre la page `/lines/{slug}`, au même contrat que
+`GET /api/v1/lines/{line}`. Les parties très imbriquées (faits, phases, décennies, chronique,
+exploitations associatives, sources) sont des objets `JSON` dont chaque champ est décrit dans la
+documentation REST (`/docs/api`, « Fiche complète d'une ligne »).
+"""
+type LineSheet {
+  "Slug de la ligne."
+  slug: String!
+
+  "Code SNCF Réseau à 6 chiffres."
+  code: String
+
+  "Nom usuel."
+  name: String!
+
+  "Autres noms, chacun avec sa source."
+  names: [LineName!]!
+
+  "Élément Wikidata de la ligne."
+  wikidata: String
+
+  "Réseau : `principal`, `secondaire`, `militaire`, `particulier`."
+  network: String
+
+  "Ligne à grande vitesse (signalisation en cabine)."
+  is_lgv: Boolean!
+
+  "Ligne menacée de fermeture."
+  is_threatened: Boolean!
+
+  "Extrait de l'article Wikipédia, en français, sous CC BY-SA 4.0 (voir `description_source`)."
+  description: String
+
+  "Source de la description : `title`, `url` (version lue), `article_url`, `fetched_at`, `license`, `license_url`."
+  description_source: JSON
+
+  "Campagne de défense relayée par VFF, ou nul."
+  advocacy: LineAdvocacy
+
+  "Compagnie d'origine."
+  historical_operator: String
+
+  "Compagnies et gestionnaires successifs."
+  historical_operators: [LineOperator!]!
+
+  "Année de concession."
+  concession_year: Int
+
+  "Régions traversées (noms)."
+  regions: [String!]!
+
+  "Départements traversés (noms)."
+  departements: [String!]!
+
+  "Titre de l'article Wikipédia."
+  wikipedia_title: String
+
+  "Article d'archeoferroviaire (usage non commercial, crédit et lien)."
+  archeo_url: String
+
+  "État aujourd'hui."
+  today: LineToday!
+
+  "Chiffres clés."
+  key_figures: LineKeyFigures!
+
+  "Électrification à l'ère affichée, ou nul."
+  electrification: LineElectrification
+
+  "Signalisation à l'ère affichée."
+  signalling: LineSheetSignalling!
+
+  "Faits de la fiche, chacun avec `key`, sa valeur (`km`, `mm`, `kmh`…), `source`, `scope` (`line` ou `part`), `item`, `as_of`, `label` et `note` en français."
+  facts: JSON
+
+  "État décennie par décennie."
+  era_summary: [LineEraSummary!]!
+
+  "Tronçons élémentaires des phases : `index`, `length_m` et, avec `geometry: true`, `geometry` GeoJSON."
+  portions: JSON
+
+  "Phases datées : `date`, `precision`, `kind`, `changes` (`from`, `to`, `length_m`, `event_id`), `state` par portion, `length_by_category`, `active_m`."
+  phases: JSON
+
+  "Indice de la phase où la ligne était la plus étendue."
+  best_phase: Int
+
+  "Écarts entre la dernière décennie et les sources d'aujourd'hui qu'aucun événement ne date."
+  phases_unexplained: JSON
+
+  "Décennies : `year`, `length_by_category` (m), `active_m`, `phases`, `stations` (ouvertes, incertaines, fermées, fermetures)."
+  decades: JSON
+
+  "Chronique sourcée : `events`, `groups` (par portion), `notes`, `conflicts`, `statuses`."
+  chronicle: JSON
+
+  "Gares de la ligne, toutes ères, dans l'ordre du tracé."
+  stations: [LineSheetStation!]!
+
+  "Sections nommées."
+  sections: [LineSection!]!
+
+  "Exploitations associatives : `name`, `operator`, `kind`, `from`, `to`, `length_km`, `periods`, `source_url`."
+  heritage: JSON
+
+  "Matériels roulants associés."
+  materials: [LineSheetMaterial!]!
+
+  "Jeux de données utilisés pour la fiche : `type`, `url`, `fetched_at`, `fields`."
+  sources: JSON
+
+  "Liens : page web et points d'accès REST liés (événements, tronçons, gares, médias…)."
+  links: JSON
+}
+
+"Position d'une gare et sa fiabilité."
+type StationPosition {
+  "Source retenue pour la position (`osm`, `sncf`, `wikidata`…)."
+  source: String
+
+  "Écart entre les sources, en mètres."
+  spread_m: Int
+
+  "Vrai si la position est à vérifier."
+  flagged: Boolean!
+}
+
+"Statut d'une gare à une décennie."
+type StationEra {
+  "Année de l'ère."
+  year: Int!
+
+  "Vrai pour l'ère courante (aujourd'hui)."
+  is_current: Boolean!
+
+  "Statut : `active`, `tourist`, `no_commercial`, `declassified`, `uncertain` (ouverte selon ses sources, non confirmée par les voies) ; nul si la gare n'existe pas encore ou plus."
+  status: String
+
+  "Note sur ce statut, en français."
+  note: String
+
+  "Vrai si l'ère est incertaine faute de date de fermeture."
+  undated: Boolean!
+}
+
+"Une ligne desservant une gare."
+type StationLine {
+  "Slug de la ligne."
+  slug: String!
+
+  "Code SNCF Réseau."
+  code: String
+
+  "Nom de la ligne."
+  name: String!
+
+  "Réseau de la ligne."
+  network: String
+
+  "Comment la gare est rattachée (`sncf_pk`, `wikidata_p81`, `segment`…)."
+  method: String
+
+  "Point kilométrique de la gare sur la ligne, en mètres."
+  pk_m: Int
+
+  "Source du PK (`sncf`, `projected_raw`…)."
+  pk_source: String
+
+  "Première année de desserte."
+  first_year: Int
+
+  "Dernière année de desserte (nulle : toujours desservie)."
+  last_year: Int
+
+  "`line_closed` (ligne fermée avant l'ouverture de la gare), `station_closed`, ou nul."
+  never_served: String
+
+  "Vrai si une portion en service aujourd'hui dessert la gare."
+  active_current: Boolean!
+
+  "Décennies où la gare est un arrêt de la ligne."
+  era_years: [Int!]!
+}
+
+"Une source rattachée à une gare."
+type StationSource {
+  "Source : `sncf`, `sncf_voyageurs`, `osm`, `wikidata`, `ohm`, `lignes-oubliees`…"
+  source: String!
+
+  "Identifiant dans la source (code UIC, objet OSM `n123`, élément Wikidata…)."
+  ref: String
+
+  "Nom dans la source."
+  name: String
+
+  "Cycle de vie selon la source."
+  lifecycle: String
+
+  "Code UIC selon la source."
+  uic_code: String
+
+  "Date d'ouverture selon la source."
+  opened_on: String
+
+  "Date de fermeture selon la source."
+  closed_on: String
+
+  "Méthode d'appariement avec la gare (`uic`, `seed`, `name`…)."
+  match_method: String
+
+  "Écart à la position retenue, en mètres."
+  distance_m: Int
+
+  "Desserte voyageurs déclarée."
+  passenger: Boolean
+
+  "Desserte fret déclarée."
+  freight: Boolean
+
+  "Lien vers l'objet de la source."
+  url: String
+
+  "Fournisseur et licence de la source."
+  provenance: Provenance!
+}
+
+"Une gare voisine (moins de 10 km)."
+type StationNeighbor {
+  "Slug."
+  slug: String!
+
+  "Nom."
+  name: String!
+
+  "Nature."
+  type: String
+
+  "Commune."
+  city: String
+
+  "Statut actuel."
+  status: String
+
+  "Latitude WGS 84."
+  lat: Float!
+
+  "Longitude WGS 84."
+  lng: Float!
+
+  "Distance, en mètres."
+  distance_m: Int!
+}
+
+"""
+Fiche complète d'une gare : tout ce que montre la page `/stations/{slug}`, au même contrat que
+`GET /api/v1/stations/{station}`. La chronologie est sur `Station.events`.
+"""
+type StationSheet {
+  "Statut affiché (voir l'annuaire ; `technical` point technique, `excluded` fiche retirée du réseau ferré)."
+  status: String!
+
+  "Statut selon les sources."
+  source_status: String
+
+  "Autres noms."
+  alt_names: JSON
+
+  "Précision de la date d'ouverture : `day`, `month`, `year`."
+  opened_precision: String
+
+  "Précision de la date de fermeture."
+  closed_precision: String
+
+  "Fermée après cette année, date exacte inconnue."
+  closed_after: Int
+
+  "Code UIC."
+  uic_code: String
+
+  "Élément Wikidata."
+  wikidata_id: String
+
+  "Position et fiabilité."
+  position: StationPosition!
+
+  "Source de chaque attribut (`name`, `opened_at`, `geom`…) et détail du recalage."
+  attribute_sources: JSON
+
+  "Statut à chaque décennie."
+  eras: [StationEra!]!
+
+  "Lignes desservies."
+  lines: [StationLine!]!
+
+  "Sources rattachées."
+  sources: [StationSource!]!
+
+  "Gares à moins de 10 km (12 au plus), de la plus proche à la plus lointaine."
+  neighbors: [StationNeighbor!]!
+}
+
+"Une ligne de l'annuaire, avec son état à l'ère de référence."
+type LineDirectoryItem {
+  "Slug."
+  slug: String!
+
+  "Code SNCF Réseau."
+  code: String
+
+  "Nom."
+  name: String!
+
+  "Réseau : `principal`, `secondaire`, `militaire`, `particulier` (nul : non renseigné)."
+  network: String
+
+  "Compagnie d'origine."
+  historical_operator: String
+
+  "Régions (noms)."
+  regions: [String!]!
+
+  "Départements (noms)."
+  departements: [String!]!
+
+  "État à l'ère de référence : `open`, `closed`, `unknown` (aucun tracé à cette ère)."
+  state: String!
+
+  "Trafic dominant à l'ère de référence : `passenger`, `mixed`, `freight`, `unknown` ; nul si rien n'est en service."
+  traffic: String
+
+  "Vrai si une portion est exploitée par une association à l'ère de référence."
+  heritage: Boolean!
+}
+
+"Compteurs de l'annuaire des lignes (chaque facette est comptée sans son propre filtre)."
+type LineDirectoryFacets {
+  "Nombre de lignes trouvées."
+  total: Int!
+
+  "Lignes ouvertes à l'ère de référence."
+  open: Int!
+
+  "Lignes fermées à l'ère de référence."
+  closed: Int!
+
+  "Lignes sans tracé à l'ère de référence."
+  unknown: Int!
+
+  "Lignes par réseau (`none` : non renseigné)."
+  networks: [CountByCode!]!
+
+  "Lignes par trafic de leurs portions en service."
+  traffics: [CountByCode!]!
+
+  "Lignes avec une portion associative."
+  heritage: Int!
+}
+
+"Une page de l'annuaire des lignes."
+type LineDirectoryPage {
+  "Les lignes de la page."
+  data: [LineDirectoryItem!]!
+
+  "Curseur de la page suivante, à passer dans `after` ; nul à la dernière page. Le même que `meta.next_cursor` de l'API REST."
+  next_cursor: String
+
+  "Ère de référence de `state`, `traffic` et des filtres `status` et `traffic`."
+  era_year: Int
+
+  "Compteurs de la recherche (calculés seulement s'ils sont demandés)."
+  facets: LineDirectoryFacets!
+}
+
+"Une gare de l'annuaire."
+type StationDirectoryItem {
+  "Slug."
+  slug: String!
+
+  "Nom."
+  name: String!
+
+  "Nature : `gare`, `halte`, `point_arret`, `passage_niveau`, `embranchement`."
+  type: String
+
+  "Statut affiché, ou statut à l'ère `era` : `active`, `tourist`, `no_commercial`, `declassified`, `gone`, `planned`."
+  status: String
+
+  "Commune."
+  city: String
+
+  "Code INSEE du département."
+  department_code: String
+
+  "Code UIC."
+  uic_code: String
+
+  "Élément Wikidata."
+  wikidata_id: String
+
+  "Date d'ouverture (`AAAA-MM-JJ`)."
+  opened_at: String
+
+  "Précision de la date d'ouverture : `day`, `month`, `year`."
+  opened_precision: String
+
+  "Date de fermeture (`AAAA-MM-JJ`)."
+  closed_at: String
+
+  "Précision de la date de fermeture."
+  closed_precision: String
+
+  "Fermée après cette année, date exacte inconnue."
+  closed_after: Int
+
+  "Latitude WGS 84."
+  lat: Float!
+
+  "Longitude WGS 84."
+  lng: Float!
+
+  "Vrai si la position est à vérifier."
+  position_flagged: Boolean!
+
+  "Nombre de sources rattachées."
+  sources_count: Int!
+
+  "Lignes desservant la gare (10 au plus, codes d'abord)."
+  lines: [StationDirectoryLine!]!
+
+  "Nombre d'autres lignes, au-delà des 10 données."
+  lines_more: Int!
+}
+
+"Une ligne desservant une gare de l'annuaire."
+type StationDirectoryLine {
+  "Slug de la ligne."
+  slug: String!
+
+  "Code SNCF Réseau."
+  code: String
+
+  "Nom de la ligne."
+  name: String!
+}
+
+"Une page de l'annuaire des gares."
+type StationDirectoryPage {
+  "Les gares de la page."
+  data: [StationDirectoryItem!]!
+
+  "Curseur de la page suivante, à passer dans `after` ; nul à la dernière page."
+  next_cursor: String
+
+  "Ère du filtre `era`, ou nul."
+  era_year: Int
+
+  "Nombre de gares par statut pour la recherche, sans le filtre `status` (calculé seulement s'il est demandé)."
+  facets: [CountByCode!]!
+}
+
+"Filtres de `lineDirectory`, ceux de la page `/lines` (combinés : ET)."
+input LineDirectoryFilter {
+  "Recherche littérale dans le nom, le code ou la compagnie d'origine, 100 caractères au plus."
+  q: String
+
+  "Réseau : `principal`, `secondaire`, `militaire`, `particulier` ou `none`."
+  network: String
+
+  "Trafic d'au moins une portion en service à l'ère : `passenger`, `mixed`, `freight`, `unknown`."
+  traffic: String
+
+  "État à l'ère de référence : `open` ou `closed`."
+  status: String
+
+  "Seulement les lignes avec une portion associative."
+  heritage: Boolean
+
+  "Code INSEE du département (lignes citant ce département ou y desservant une gare)."
+  department: String
+
+  "Année de l'ère de référence (décennie de 1830 à 2030). Par défaut : aujourd'hui."
+  era: Int
+
+  "Tri : `name` (alphabétique français, par défaut), `code` (lignes sans code en dernier), `slug`."
+  sort: String
+
+  "Sens du tri (`ASC` par défaut)."
+  order: SortOrder
+}
+
+"Filtres de `stationDirectory`, ceux de la page `/stations` (combinés : ET)."
+input StationDirectoryFilter {
+  "Recherche littérale dans le nom, la commune, les autres noms, ou début du code UIC."
+  q: String
+
+  "Statut : `active`, `tourist`, `no_commercial`, `declassified`, `gone`, `planned`."
+  status: String
+
+  "Code INSEE du département de la gare."
+  department: String
+
+  "Année d'une ère : statut à cette ère, gares absentes exclues."
+  era: Int
+
+  "Seulement les gares dont la position est à vérifier."
+  flagged: Boolean
+
+  "Tri : `name` (par défaut), `city`, `opened`, `closed` (sans valeur : en dernier)."
+  sort: String
+
+  "Sens du tri (`ASC` par défaut)."
+  order: SortOrder
+}
+
+"Les valeurs de provenance d'une table qui désignent un fournisseur."
+type SourceValues {
+  "Table (`line_events`, `line_segments`, `station_sources`, `station_events`, `media`…)."
+  table: String!
+
+  "Valeurs du champ `source` de cette table."
+  values: [String!]!
+}
+
+"Un fournisseur de données de VFF et sa licence, tel que VFF l'a vérifiée."
+type SourceProvider {
+  "Clé du fournisseur : celle de `Provenance.provider`."
+  provider: String!
+
+  "Nom du fournisseur."
+  name: String!
+
+  "Licence ou conditions de réutilisation, en français."
+  licence: String!
+
+  "`verified` (licence ouverte prouvée), `uncertain` (autorisation particulière, conditions à lire), `forbidden`."
+  license_status: String
+
+  "Vrai si la licence est ouverte et prouvée."
+  open_licence: Boolean!
+
+  "Mention à reproduire en réutilisant les données."
+  mention: String
+
+  "Phrase exacte de la licence ou des conditions."
+  citation: String
+
+  "Pages qui établissent la licence."
+  proof: [String!]!
+
+  "Date de lecture des pages (`AAAA-MM-JJ`)."
+  checked_on: String
+
+  "Domaines des liens qui désignent ce fournisseur."
+  domains: [String!]!
+
+  "Valeurs de provenance, par table, qui renvoient à ce fournisseur."
+  source_values: [SourceValues!]!
+}
+
+"Information about pagination using a Relay style cursor connection."
+type PageInfo {
+  "When paginating forwards, are there more items?"
+  hasNextPage: Boolean!
+
+  "When paginating backwards, are there more items?"
+  hasPreviousPage: Boolean!
+
+  "The cursor to continue paginating backwards."
+  startCursor: String
+
+  "The cursor to continue paginating forwards."
+  endCursor: String
+
+  "Total number of nodes in the paginated connection."
+  total: Int!
+
+  "Number of nodes in the current page."
+  count: Int!
+
+  "Index of the current page."
+  currentPage: Int!
+
+  "Index of the last available page."
+  lastPage: Int!
+}
+
+"A paginated list of Media edges."
+type MediaConnection {
+  "Pagination information about the list of edges."
+  pageInfo: PageInfo!
+
+  "A list of Media edges."
+  edges: [MediaEdge!]!
+}
+
+"An edge that contains a node of type Media and a cursor."
+type MediaEdge {
+  "The Media node."
+  node: Media!
+
+  "A unique cursor that can be used for pagination."
+  cursor: String!
+}
+
 "Information about pagination using a fully featured paginator."
 type PaginatorInfo {
   "Number of items in the current page."
@@ -644,22 +2676,49 @@ type StationPaginator {
   data: [Station!]!
 }
 
-"A paginated list of Material items."
-type MaterialPaginator {
+"A paginated list of Material edges."
+type MaterialConnection {
+  "Pagination information about the list of edges."
+  pageInfo: PageInfo!
+
+  "A list of Material edges."
+  edges: [MaterialEdge!]!
+}
+
+"An edge that contains a node of type Material and a cursor."
+type MaterialEdge {
+  "The Material node."
+  node: Material!
+
+  "A unique cursor that can be used for pagination."
+  cursor: String!
+}
+
+"A paginated list of Accident items."
+type AccidentPaginator {
   "Pagination information about the list of items."
   paginatorInfo: PaginatorInfo!
 
-  "A list of Material items."
-  data: [Material!]!
+  "A list of Accident items."
+  data: [Accident!]!
 }
 
-"Directions for ordering a list of records."
-enum SortOrder {
-  "Sort records in ascending order."
-  ASC
+"A paginated list of LineEvent edges."
+type LineEventConnection {
+  "Pagination information about the list of edges."
+  pageInfo: PageInfo!
 
-  "Sort records in descending order."
-  DESC
+  "A list of LineEvent edges."
+  edges: [LineEventEdge!]!
+}
+
+"An edge that contains a node of type LineEvent and a cursor."
+type LineEventEdge {
+  "The LineEvent node."
+  node: LineEvent!
+
+  "A unique cursor that can be used for pagination."
+  cursor: String!
 }
 
 "Aggregate functions when ordering by a relation without specifying a column."

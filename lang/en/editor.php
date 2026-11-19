@@ -113,6 +113,7 @@ return [
     ],
 
     'form' => [
+        'required_note' => 'Fields marked with an asterisk (*) are required.',
         'line_legend' => 'Line',
         'kind_new' => 'Vanished line',
         'kind_correction' => 'Correct a line',

@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Controllers\AccidentController;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContributionController;
+use App\Http\Controllers\ContributionRemovalController;
 use App\Http\Controllers\CreditsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LineController;
@@ -38,6 +41,8 @@ Route::get('/stations/{station:slug}', [StationController::class, 'show'])
     });
 Route::get('/materials', [MaterialController::class, 'index'])->name('materials.index');
 Route::get('/materials/{material:slug}', [MaterialController::class, 'show'])->name('materials.show');
+Route::get('/accidents', [AccidentController::class, 'index'])->name('accidents.index');
+Route::get('/accidents/{accident:slug}', [AccidentController::class, 'show'])->name('accidents.show');
 Route::get('/contribute', fn () => Inertia::render('Contribute'))->name('contribute');
 Route::get('/donate', fn () => Inertia::render('Donate'))->name('donate');
 
@@ -105,6 +110,11 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
+    // Droits sur ses données (politique de confidentialité) : export JSON et suppression du compte.
+    // Limités en fréquence : l'export lit toutes les contributions, la suppression vérifie le mot de passe.
+    Route::get('/profile/data', [AccountController::class, 'export'])->middleware('throttle:6,1')->name('profile.export');
+    Route::delete('/profile', [AccountController::class, 'destroy'])->middleware('throttle:6,1')->name('profile.destroy');
+
     // Contributions (membres connectés)
     Route::get('/contribute/mine', [ContributionController::class, 'mine'])->name('contribute.mine');
     Route::get('/contribute/edit-segment', [ContributionController::class, 'editSegment'])->name('contribute.edit-segment');
@@ -125,4 +135,6 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/validate', [ContributionController::class, 'validateList'])->name('validate.index');
     Route::post('/validate/{id}/approve', [ContributionController::class, 'approve'])->whereNumber('id')->name('validate.approve');
     Route::post('/validate/{id}/reject', [ContributionController::class, 'reject'])->whereNumber('id')->name('validate.reject');
+    // Retrait d'une contribution non publiée par un administrateur (motif envoyé à l'auteur).
+    Route::delete('/validate/{contribution}', ContributionRemovalController::class)->whereNumber('contribution')->name('validate.remove');
 });

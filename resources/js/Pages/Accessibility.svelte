@@ -15,5 +15,5 @@
         'recourse',
         'plan',
     ]}
-    updated="2026-10-21"
+    updated="2026-11-20"
 />

@@ -18,8 +18,9 @@ class Translations
      * validation, statuts du broker de mots de passe, pagination, messages
      * HTTP). Le front ne les utilise pas : les erreurs arrivent déjà traduites
      * dans les props Inertia (`errors`). Les exclure évite d'alourdir chaque page.
+     * `mcp` : réponses du serveur MCP (app/Mcp), jamais affichées par les pages.
      */
-    public const SERVER_ONLY = ['validation', 'passwords', 'pagination', 'messages'];
+    public const SERVER_ONLY = ['validation', 'passwords', 'pagination', 'messages', 'mcp'];
 
     /**
      * Charge la map plate des traductions pour `$locale`, avec fallback sur

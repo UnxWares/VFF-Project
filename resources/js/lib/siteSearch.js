@@ -8,6 +8,7 @@ export const SITE_PAGES = [
     { href: '/lines', key: 'nav.lines', icon: 'bi-bezier' },
     { href: '/stations', key: 'nav.stations', icon: 'bi-pin-map' },
     { href: '/materials', key: 'nav.materials', icon: 'bi-train-front' },
+    { href: '/accidents', key: 'nav.accidents', icon: 'bi-journal-text' },
     { href: '/api', key: 'nav.api', icon: 'bi-code-slash' },
     { href: '/contribute', key: 'nav.contribute', icon: 'bi-pencil-square' },
     { href: '/whoarewe', key: 'nav.whoarewe', icon: 'bi-people' },

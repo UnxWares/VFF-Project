@@ -10,10 +10,14 @@
     import SearchBox from '$components/Map/SearchBox.svelte';
     import MapLegend from '$components/Map/MapLegend.svelte';
     import RoutePlanner from '$components/Map/RoutePlanner.svelte';
+    import EraViewSwitch from '$components/Map/EraViewSwitch.svelte';
+    import EraCompareBar from '$components/Map/EraCompareBar.svelte';
     import { i18n } from '$lib/i18n.js';
+    import { defaultPair, readViewParams, writeViewParams } from '$lib/epochViews.js';
+    import { ACCIDENTS_URL, accidentYears, countAccidents } from '$lib/accidentMap.js';
 
     // « Lire la carte » : ce que montre la carte, au présent (vocabulaire de la légende).
-    const READING = ['era', 'color', 'line', 'sheet', 'route', 'layers'];
+    const READING = ['era', 'views', 'color', 'line', 'sheet', 'route', 'layers'];
 
     let { eras: erasProp = null, currentEraYear = 2030, dataVersion = 'v0' } = $props();
     // TOUTES les décennies sont sélectionnables (1830 → 2030) ; celles sans
@@ -40,13 +44,31 @@
     let mapFrameEl = $state();
     let embedModalOpen = $state(false);
     let overlay = $state('none');
+    // Calque « Accidents » (un choix du sélecteur de calques) : points chargés au premier affichage.
+    let accidentData = $state.raw(null);
+    let accidentsState = $state('idle');
     let drawerLine = $state(null);
     let flyTarget = $state(null);
     // Itinéraire historique affiché (réponse /api/v1/route) : la carte passe à son ère.
     let route = $state(null);
+    // Vue : une décennie ('era'), deux décennies comparées ('compare'), toutes ('stack').
+    let view = $state('era');
+    // Décennies comparées (compareFrom < compareTo), choisies au passage à la comparaison.
+    let compareFrom = $state(null);
+    let compareTo = $state(null);
+
+    function setView(next) {
+        if (next === 'compare' && compareFrom === null) {
+            [compareFrom, compareTo] = defaultPair(selectedEra, eras, currentEraYear) ?? [];
+        }
+        // La fiche latérale décrit une ligne à UNE décennie : elle se ferme hors de cette vue.
+        if (next !== 'era') drawerLine = null;
+        view = next;
+    }
 
     function onRoute(result) {
         route = result;
+        view = 'era';
         if (eras.includes(result.era_year)) selectedEra = result.era_year;
     }
 
@@ -78,32 +100,64 @@
         { value: 'orm-signals', labelKey: 'maps.overlay.orm_signals' },
         { value: 'orm-electrification', labelKey: 'maps.overlay.orm_electrification' },
         { value: 'orm-gauge', labelKey: 'maps.overlay.orm_gauge' },
+        { value: 'accidents', labelKey: 'maps.overlay.accidents' },
     ];
 
-    function readEraFromUrl() {
-        if (typeof window === 'undefined') return null;
-        const param = new URL(window.location.href).searchParams.get('era');
-        const parsed = Number.parseInt(param, 10);
-        return Number.isFinite(parsed) && eras.includes(parsed) ? parsed : null;
-    }
+    const showAccidents = $derived(overlay === 'accidents');
 
-    function writeEraToUrl(year) {
-        if (typeof window === 'undefined') return;
-        const url = new URL(window.location.href);
-        if (year === eras[eras.length - 1]) {
-            url.searchParams.delete('era');
-        } else {
-            url.searchParams.set('era', String(year));
+    function setOverlay(value) {
+        overlay = value;
+        if (value === 'accidents' && accidentsState !== 'ready' && accidentsState !== 'loading') {
+            loadAccidents();
         }
-        window.history.replaceState(window.history.state, '', url);
     }
 
-    onMount(() => {
-        const fromUrl = readEraFromUrl();
-        if (fromUrl !== null) selectedEra = fromUrl;
+    async function loadAccidents() {
+        accidentsState = 'loading';
+        try {
+            const response = await fetch(ACCIDENTS_URL, {
+                headers: { Accept: 'application/json' },
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            accidentData = await response.json();
+            accidentsState = 'ready';
+        } catch {
+            accidentsState = 'error';
+        }
+    }
+
+    // Légende du calque : années montrées selon la vue et nombre d'accidents localisés.
+    const accidentLegend = $derived.by(() => {
+        if (!showAccidents) return null;
+        const years = accidentYears(
+            view,
+            view === 'compare' ? compareFrom : selectedEra,
+            compareTo,
+        );
+        return { state: accidentsState, count: countAccidents(accidentData, years), ...years };
     });
 
-    $effect(() => writeEraToUrl(selectedEra));
+    // Adresse partageable : ?era=1930, ?era=1930&compare=1980, ?view=stack (lue au montage).
+    onMount(() => {
+        const fromUrl = readViewParams(window.location.search, eras);
+        if (fromUrl.era !== null) selectedEra = fromUrl.era;
+        if (fromUrl.view === 'compare') {
+            compareFrom = fromUrl.era;
+            compareTo = fromUrl.compare;
+        }
+        view = fromUrl.view;
+    });
+
+    $effect(() => {
+        const state =
+            view === 'compare'
+                ? { view, era: compareFrom, compare: compareTo }
+                : { view, era: selectedEra };
+        const next = writeViewParams(window.location.href, state, eras[eras.length - 1]);
+        if (next !== window.location.href) {
+            window.history.replaceState(window.history.state, '', next);
+        }
+    });
 </script>
 
 <svelte:head>
@@ -143,6 +197,9 @@
                         <div class="toolbar-search">
                             <SearchBox onPick={onSearchPick} />
                         </div>
+                        <div class="toolbar-view">
+                            <EraViewSwitch bind:view={() => view, setView} />
+                        </div>
                         <div class="toolbar-tools">
                             <label class="overlay-label" for="map-overlay">
                                 <i class="bi bi-layers" aria-hidden="true"></i>
@@ -153,7 +210,7 @@
                             <select
                                 id="map-overlay"
                                 class="vff-select overlay-select"
-                                bind:value={overlay}
+                                bind:value={() => overlay, setOverlay}
                             >
                                 {#each OVERLAY_OPTIONS as opt (opt.value)}
                                     <option value={opt.value}>{$i18n.t(opt.labelKey)}</option>
@@ -172,11 +229,15 @@
                     </div>
 
                     <RailMap
-                        era={selectedEra}
+                        era={view === 'compare' ? compareFrom : selectedEra}
+                        {view}
+                        compareEra={compareTo}
+                        geolocate
                         currentEra={currentEraYear}
                         {hidden}
                         mode={colorMode}
-                        {overlay}
+                        overlay={showAccidents ? 'none' : overlay}
+                        accidents={showAccidents ? accidentData : null}
                         {dataVersion}
                         {flyTarget}
                         {route}
@@ -189,28 +250,51 @@
                     >
                         <div class="legend-slot">
                             <MapLegend
-                                era={selectedEra}
+                                era={view === 'compare' ? compareFrom : selectedEra}
+                                {view}
+                                compareEra={compareTo}
                                 currentEra={currentEraYear}
                                 bind:hidden
                                 bind:mode={colorMode}
+                                accidents={accidentLegend}
                             />
                         </div>
-                        {#if selectedIsEmpty}
+                        {#if view === 'era' && selectedIsEmpty}
                             <p class="era-empty">
                                 <i class="bi bi-hourglass-split" aria-hidden="true"></i>
                                 {$i18n.t('maps.era.no_data', { year: selectedEra })}
                             </p>
+                        {:else if showAccidents && accidentsState === 'error'}
+                            <p class="era-empty">{$i18n.t('maps.accidents.error')}</p>
                         {/if}
+                        <!-- Chargement ou échec du calque « Accidents », annoncé aussi quand la
+                             légende est repliée (téléphone). -->
+                        <p class="vff-sr-only" role="status">
+                            {#if showAccidents && accidentsState === 'loading'}
+                                {$i18n.t('maps.accidents.loading')}
+                            {:else if showAccidents && accidentsState === 'error'}
+                                {$i18n.t('maps.accidents.error')}
+                            {/if}
+                        </p>
                         <LineDrawer bind:line={drawerLine} currentEra={currentEraYear} />
                     </RailMap>
 
-                    <TimelineSlider
-                        {eras}
-                        {emptyYears}
-                        currentEra={currentEraYear}
-                        labels={eraLabels}
-                        bind:value={selectedEra}
-                    />
+                    {#if view === 'compare'}
+                        <EraCompareBar
+                            {eras}
+                            currentEra={currentEraYear}
+                            bind:from={compareFrom}
+                            bind:to={compareTo}
+                        />
+                    {:else if view === 'era'}
+                        <TimelineSlider
+                            {eras}
+                            {emptyYears}
+                            currentEra={currentEraYear}
+                            labels={eraLabels}
+                            bind:value={selectedEra}
+                        />
+                    {/if}
                 </div>
             </section>
         </div>
@@ -415,6 +499,10 @@
         margin-left: auto;
         min-width: 0;
     }
+    .toolbar-view {
+        flex: none;
+        min-width: 0;
+    }
     .overlay-label {
         display: inline-flex;
         align-items: center;
@@ -518,6 +606,24 @@
 
     /* Tablette : une seule rangée d'outils (plus de hauteur pour la carte) ; « Calque » est lu,
        l'icône reste ; la légende est repliée, le bandeau « pas encore de données » descend. */
+    /* Jusqu'à 1 400 px : recherche, vue, calque et « Intégrer » tiennent sur une rangée ; le mot
+       « Calque » reste lu, l'icône le montre. */
+    @media (max-width: 1400px) {
+        .toolbar-search {
+            flex-basis: 240px;
+        }
+        .overlay-label-text {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
+        }
+        .overlay-select {
+            max-width: 14rem;
+        }
+    }
     @media (max-width: 900px) {
         .map-head {
             padding-block: var(--vff-space-4) var(--vff-space-3);
@@ -548,20 +654,30 @@
     /* Téléphone : recherche et calque sur une rangée ; « Intégrer » (tâche d'ordinateur) passe sous
        la carte ; les raccourcis du titre aussi (la page continue juste en dessous). */
     @media (max-width: 600px) {
+        /* Hauteur minimale plutôt que fixe : avec le choix de la vue et le résumé de la
+           comparaison, le cadre grandit au lieu d'écraser la carte (360 px au moins). */
         .map-screen {
-            height: max(560px, calc(100dvh - var(--vff-header-h)));
+            height: auto;
+            min-height: max(560px, calc(100dvh - var(--vff-header-h)));
             padding-bottom: var(--vff-space-4);
+        }
+        .map-frame :global(.rail-map-wrapper) {
+            flex: 1 0 360px;
         }
         .map-jumps {
             display: none;
         }
         .map-toolbar {
-            flex-wrap: nowrap;
             gap: 8px;
             padding: 8px;
         }
+        /* Le choix de la vue prend sa propre rangée, sous la recherche et le calque. */
+        .toolbar-view {
+            flex: 1 1 100%;
+            order: 3;
+        }
         .toolbar-search {
-            flex: 1 1 auto;
+            flex: 1 1 0;
         }
         .toolbar-tools {
             flex: none;

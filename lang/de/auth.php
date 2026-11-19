@@ -48,7 +48,7 @@ return [
     'errors' => [
         'name_required' => 'Geben Sie Ihren Anzeigenamen ein.',
         'email_required' => 'Geben Sie Ihre E-Mail-Adresse ein.',
-        'email_invalid' => 'Diese E-Mail-Adresse ist nicht gültig.',
+        'email_invalid' => 'Diese E-Mail-Adresse ist nicht gültig. Sie hat die Form name@beispiel.de.',
         'password_required' => 'Geben Sie Ihr Passwort ein.',
         'password_new_required' => 'Wählen Sie ein Passwort.',
         'password_short' => 'Das Passwort muss mindestens 8 Zeichen lang sein.',

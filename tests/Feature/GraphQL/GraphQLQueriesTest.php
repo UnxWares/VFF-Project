@@ -163,7 +163,7 @@ class GraphQLQueriesTest extends TestCase
         $this->graphQL('{ lines(first: 101) { paginatorInfo { total } } }')
             ->assertGraphQLErrorMessage('Maximum number of 100 requested items exceeded, got 101. Fetch smaller chunks.');
         $this->graphQL('{ stations(first: 500) { paginatorInfo { total } } }')->assertJsonPath('data.stations', null);
-        $this->graphQL('{ materials(first: -1) { paginatorInfo { total } } }')->assertJsonPath('data.materials', null);
+        $this->graphQL('{ materials(first: -1) { pageInfo { total } } }')->assertJsonPath('data.materials', null);
     }
 
     /** @return array<string, array{0: string}> */
@@ -182,12 +182,16 @@ class GraphQLQueriesTest extends TestCase
     #[DataProvider('hostilePatterns')]
     public function test_ilike_filters_are_bound_parameters(string $pattern): void
     {
-        foreach (['lines(name: $p)', 'lines(code: $p)', 'stations(name: $p)', 'materials(builder: $p)'] as $field) {
+        foreach (['lines(name: $p)', 'lines(code: $p)', 'stations(name: $p)'] as $field) {
             $root = strtok($field, '(');
             $this->graphQL("query (\$p: String) { {$field} { paginatorInfo { total } } }", ['p' => $pattern])
                 ->assertGraphQLErrorFree()
                 ->assertJsonPath("data.{$root}.paginatorInfo.total", 0);
         }
+        // materials : connexion par curseur, compteur dans pageInfo.
+        $this->graphQL('query ($p: String) { materials(builder: $p) { pageInfo { total } } }', ['p' => $pattern])
+            ->assertGraphQLErrorFree()
+            ->assertJsonPath('data.materials.pageInfo.total', 0);
         $this->assertSame(1, Line::count());
     }
 
@@ -222,11 +226,11 @@ class GraphQLQueriesTest extends TestCase
         Material::factory()->create(['slug' => 'bb-9200-x', 'name' => 'BB 9200', 'type' => 'locomotive_electrique',
             'builder' => 'Alsthom', 'in_service_from' => 1957, 'in_service_to' => 2014]);
 
-        $this->graphQL('{ materials(type: "locomotive_electrique") { paginatorInfo { total } data { slug type builder in_service_from in_service_to } } }')
+        $this->graphQL('{ materials(type: "locomotive_electrique") { pageInfo { total } edges { node { slug type builder in_service_from in_service_to } } } }')
             ->assertGraphQLErrorFree()
-            ->assertJsonPath('data.materials.data', [['slug' => 'bb-9200-x', 'type' => 'locomotive_electrique', 'builder' => 'Alsthom',
-                'in_service_from' => 1957, 'in_service_to' => 2014]]);
-        $this->graphQL('{ materials(builder: "alsth%") { data { slug } } }')->assertJsonPath('data.materials.data.0.slug', 'bb-9200-x');
+            ->assertJsonPath('data.materials.edges', [['node' => ['slug' => 'bb-9200-x', 'type' => 'locomotive_electrique', 'builder' => 'Alsthom',
+                'in_service_from' => 1957, 'in_service_to' => 2014]]]);
+        $this->graphQL('{ materials(builder: "alsth%") { edges { node { slug } } } }')->assertJsonPath('data.materials.edges.0.node.slug', 'bb-9200-x');
 
         $this->graphQL('{ material(slug: "z-6400-test") { name lines { slug name } } }')
             ->assertGraphQLErrorFree()
@@ -302,9 +306,11 @@ class GraphQLQueriesTest extends TestCase
 
         $this->graphQL('{ __schema { queryType { fields { name } } } }')
             ->assertGraphQLErrorFree()
-            ->assertJsonPath('data.__schema.queryType.fields.*.name', fn ($names) => collect($names)->sort()->values()->all() === [
-                'era', 'eras', 'line', 'lines', 'material', 'materials', 'route', 'station', 'stations',
-            ]);
+            // Au moins ces requêtes (d'autres s'ajoutent : événements, médias…) ; aucune mutation n'existe.
+            ->assertJsonPath('data.__schema.queryType.fields.*.name', fn ($names) => array_diff(
+                ['era', 'eras', 'line', 'lines', 'material', 'materials', 'route', 'station', 'stations', 'lineEvents', 'lineEvent', 'media', 'mediaItem'],
+                $names,
+            ) === []);
     }
 
     public function test_graphql_endpoint_is_rate_limited_like_the_rest_api(): void

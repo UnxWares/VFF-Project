@@ -107,11 +107,12 @@
                         .join(', ')}</span
                 >
                 {#if eraYears.length}
-                    <span
-                        class="life"
-                        role="img"
-                        aria-label={t('lines.sheet.stations.life_label', { text: lifeText(s) })}
+                    <!-- Texte masqué plutôt qu'aria-label : sans feuille de style, l'état par décennie
+                         reste écrit (RGAA 10.2) ; la bande colorée est alors invisible. -->
+                    <span class="vff-sr-only"
+                        >{t('lines.sheet.stations.life_label', { text: lifeText(s) })}</span
                     >
+                    <span class="life" aria-hidden="true">
                         {#each eraYears as y (y)}
                             {@const st = s.eras?.[y]}
                             <span

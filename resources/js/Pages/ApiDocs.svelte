@@ -7,9 +7,10 @@
 
     /**
      * Page « Accès à l'API » : renvoie vers les six documentations (Scalar, Swagger UI, OpenAPI, référence
-     * GraphQL, GraphiQL, schéma), rappelle les conditions d'accès, liste les points d'accès REST (les 11 de
-     * routes/api.php, avec les noms de paramètres de la spécification) et donne des exemples dont la
-     * réponse est celle du serveur. Les documentations sont des pages hors Inertia : liens simples.
+     * GraphQL, GraphiQL, schéma), rappelle les conditions d'accès, liste les points d'accès REST publics
+     * de routes/api.php par sujet (avec les noms de paramètres de la spécification), donne des exemples
+     * dont la réponse est celle du serveur et présente le serveur MCP. Les documentations sont des pages
+     * hors Inertia : liens simples.
      */
 
     const docs = [
@@ -23,19 +24,97 @@
 
     const access = [{ key: 'readonly' }, { key: 'no_key' }, { key: 'limit' }, { key: 'licence' }];
 
-    const endpoints = [
-        { path: '/api/v1/eras/{year}/lines.geojson', key: 'lines_geojson' },
-        { path: '/api/v1/eras/{year}/stations.geojson', key: 'stations_geojson' },
-        { path: '/api/v1/eras/{year}/tiles/{z}/{x}/{y}.mvt', key: 'tiles' },
-        { path: '/api/v1/eras/{year}/gtfs.zip', key: 'gtfs' },
-        { path: '/api/v1/search?q={query}', key: 'search' },
-        { path: '/api/v1/lines/{line}/history', key: 'history' },
-        { path: '/api/v1/lines/{line}/pk?lat={lat}&lng={lng}', key: 'pk' },
-        { path: '/api/v1/lines/{line}/stops?era={year}', key: 'stops' },
-        { path: '/api/v1/lines/{line}/signalling', key: 'signalling' },
-        { path: '/api/v1/lines/{line}/media', key: 'media' },
-        { path: '/api/v1/route?from={station}&to={station}&era={year}', key: 'route' },
+    // Points d'accès de routes/api.php, rangés par sujet (mêmes groupes que la référence Scalar).
+    const endpointGroups = [
+        {
+            key: 'network',
+            items: [
+                { path: '/api/v1/eras', key: 'eras' },
+                { path: '/api/v1/eras/{year}', key: 'era' },
+                { path: '/api/v1/eras/{year}/lines.geojson', key: 'lines_geojson' },
+                { path: '/api/v1/eras/{year}/stations.geojson', key: 'stations_geojson' },
+                { path: '/api/v1/eras/{year}/tiles/{z}/{x}/{y}.mvt', key: 'tiles' },
+                { path: '/api/v1/eras/{year}/gtfs.zip', key: 'gtfs' },
+            ],
+        },
+        {
+            key: 'lines',
+            items: [
+                { path: '/api/v1/lines', key: 'lines' },
+                { path: '/api/v1/lines/{line}', key: 'line' },
+                { path: '/api/v1/lines/{line}/segments?era={year}', key: 'segments' },
+                { path: '/api/v1/lines/{line}/history', key: 'history' },
+                { path: '/api/v1/lines/{line}/pk?lat={lat}&lng={lng}', key: 'pk' },
+                { path: '/api/v1/lines/{line}/stops?era={year}', key: 'stops' },
+                { path: '/api/v1/lines/{line}/signalling', key: 'signalling' },
+                { path: '/api/v1/lines/{line}/materials', key: 'line_materials' },
+                { path: '/api/v1/lines/{line}/media', key: 'media' },
+            ],
+        },
+        {
+            key: 'stations',
+            items: [
+                { path: '/api/v1/stations', key: 'stations' },
+                { path: '/api/v1/stations/{station}', key: 'station' },
+                { path: '/api/v1/stations/{station}/events', key: 'station_events' },
+            ],
+        },
+        {
+            key: 'events_media',
+            items: [
+                { path: '/api/v1/events', key: 'events' },
+                { path: '/api/v1/events/{event}', key: 'event' },
+                { path: '/api/v1/media', key: 'media_all' },
+                { path: '/api/v1/media/{media}', key: 'media_item' },
+            ],
+        },
+        {
+            key: 'materials_accidents',
+            items: [
+                { path: '/api/v1/materials', key: 'materials' },
+                { path: '/api/v1/materials/{material}', key: 'material' },
+                { path: '/api/v1/accidents', key: 'accidents' },
+                { path: '/api/v1/accidents.geojson', key: 'accidents_map' },
+                { path: '/api/v1/accidents/{accident}', key: 'accident' },
+            ],
+        },
+        {
+            key: 'tools',
+            items: [
+                { path: '/api/v1/search?q={query}', key: 'search' },
+                { path: '/api/v1/route?from={station}&to={station}&era={year}', key: 'route' },
+                { path: '/api/v1/sources', key: 'sources' },
+                { path: '/api/v1/sources/{provider}', key: 'source' },
+            ],
+        },
     ];
+
+    // Serveur MCP (docs/MCP.md, app/Mcp/Servers/VffServer.php) : outils dans l'ordre du serveur.
+    const MCP_URL = 'https://vff-project.org/mcp';
+    const mcpTools = [
+        'search',
+        'get_line',
+        'line_events',
+        'network_events',
+        'get_station',
+        'network_at_era',
+        'historical_route',
+        'list_lines',
+        'list_stations',
+        'media',
+        'materials',
+        'get_material',
+        'sources_and_licences',
+    ];
+    const mcpCli = `claude mcp add --transport http vff ${MCP_URL}`;
+    const mcpConfig = `{
+  "mcpServers": {
+    "vff": {
+      "type": "http",
+      "url": "${MCP_URL}"
+    }
+  }
+}`;
 
     /** Coupe un chemin après chaque barre oblique : une longue adresse passe à la ligne entre deux segments. */
     const segments = (path) => path.split(/(?<=[/?&])/);
@@ -130,16 +209,21 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
             intro={$i18n.t('api.endpoints.intro')}
             maxWidth="1180px"
         >
-            <ul class="endpoints" aria-label={$i18n.t('api.endpoints.label')}>
-                {#each endpoints as e (e.key)}
-                    <li>
-                        <code class="path"
-                            >{#each segments(e.path) as s (s)}{s}<wbr />{/each}</code
-                        >
-                        <span class="desc">{$i18n.t(`api.endpoints.items.${e.key}`)}</span>
-                    </li>
-                {/each}
-            </ul>
+            {#each endpointGroups as g (g.key)}
+                <h3 class="group-title" id="endpoints-{g.key}">
+                    {$i18n.t(`api.endpoints.groups.${g.key}`)}
+                </h3>
+                <ul class="endpoints" aria-labelledby="endpoints-{g.key}">
+                    {#each g.items as e (e.key)}
+                        <li>
+                            <code class="path"
+                                >{#each segments(e.path) as s (s)}{s}<wbr />{/each}</code
+                            >
+                            <span class="desc">{$i18n.t(`api.endpoints.items.${e.key}`)}</span>
+                        </li>
+                    {/each}
+                </ul>
+            {/each}
         </SectionBlock>
 
         <SectionBlock
@@ -186,6 +270,66 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
                 >
                 <a class="vff-link" href="/graphiql">{$i18n.t('api.docs.items.graphiql.title')}</a>
             </p>
+        </SectionBlock>
+
+        <SectionBlock
+            kind="alt"
+            id="mcp"
+            title={$i18n.t('api.mcp.title')}
+            intro={$i18n.t('api.mcp.intro')}
+            maxWidth="900px"
+        >
+            <dl class="facts" aria-label={$i18n.t('api.mcp.facts_label')}>
+                <div>
+                    <dt>{$i18n.t('api.mcp.address_label')}</dt>
+                    <dd>
+                        <code class="path">{MCP_URL}</code>
+                        <span class="note">{$i18n.t('api.mcp.address_note')}</span>
+                    </dd>
+                </div>
+                <div>
+                    <dt>{$i18n.t('api.mcp.access_label')}</dt>
+                    <dd>{$i18n.t('api.mcp.access')}</dd>
+                </div>
+                <div>
+                    <dt>{$i18n.t('api.mcp.limit_label')}</dt>
+                    <dd>{$i18n.t('api.mcp.limit')}</dd>
+                </div>
+                <div>
+                    <dt>{$i18n.t('api.mcp.lang_label')}</dt>
+                    <dd>{$i18n.t('api.mcp.lang')}</dd>
+                </div>
+            </dl>
+
+            <h3 class="group-title">{$i18n.t('api.mcp.install_title')}</h3>
+            <p class="caption">{$i18n.t('api.mcp.install_cli')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{mcpCli}</code></pre>
+            <p class="caption">{$i18n.t('api.mcp.install_config')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{mcpConfig}</code></pre>
+            <p class="caption">{$i18n.t('api.mcp.install_relay')}</p>
+
+            <h3 class="group-title" id="mcp-tools">{$i18n.t('api.mcp.tools_title')}</h3>
+            <ul class="endpoints tools" aria-labelledby="mcp-tools">
+                {#each mcpTools as tool (tool)}
+                    <li>
+                        <code class="path">{tool}</code>
+                        <span class="desc">{$i18n.t(`api.mcp.tools.${tool}`)}</span>
+                    </li>
+                {/each}
+            </ul>
+
+            <h3 class="group-title">{$i18n.t('api.mcp.licence_title')}</h3>
+            <p class="caption">{$i18n.t('api.mcp.licence_text')}</p>
         </SectionBlock>
 
         <SectionBlock
@@ -282,6 +426,10 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
         padding: 14px 0;
         border-bottom: 1px solid var(--vff-border);
     }
+    /* Outils MCP : noms courts, colonne plus étroite. */
+    .tools li {
+        grid-template-columns: minmax(0, 13rem) minmax(0, 1fr);
+    }
     .path {
         font-family: var(--api-mono);
         font-size: var(--vff-fs-sm);
@@ -292,6 +440,49 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
         font-size: var(--vff-fs-md);
         line-height: 1.5;
         color: var(--vff-text-muted);
+    }
+
+    /* Sous-titres des groupes de points d'accès et des parties de la section MCP. */
+    .group-title {
+        margin: var(--vff-block-space) 0 var(--vff-space-3);
+    }
+    .group-title:first-child {
+        margin-top: 0;
+    }
+
+    /* Serveur MCP : adresse, accès, limites, langues, en rangées à filets. */
+    .facts {
+        margin: 0;
+        border-top: 1px solid var(--vff-border-strong);
+    }
+    .facts > div {
+        display: grid;
+        grid-template-columns: minmax(0, 10rem) minmax(0, 1fr);
+        gap: 4px 32px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--vff-border);
+    }
+    .facts dt {
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        font-weight: 600;
+        color: var(--vff-text);
+    }
+    .facts dd {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+        align-items: baseline;
+        margin: 0;
+        font-size: var(--vff-fs-md);
+        line-height: 1.5;
+        color: var(--vff-text-muted);
+    }
+    .facts .path {
+        overflow-wrap: anywhere;
+    }
+    .note {
+        font-size: var(--vff-fs-sm);
     }
 
     .caption {
@@ -331,7 +522,9 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
     }
 
     @media (max-width: 900px) {
-        .endpoints li {
+        .endpoints li,
+        .tools li,
+        .facts > div {
             grid-template-columns: minmax(0, 1fr);
         }
     }

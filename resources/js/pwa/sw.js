@@ -6,32 +6,51 @@
 import { cacheFirst, inertia, navigation } from './handlers.js';
 import { PRECACHE, classify, staleCacheNames, staticCacheName } from './rules.js';
 
+/**
+ * Le projet est vérifié avec la bibliothèque DOM, pas WebWorker (les deux se contredisent) : ces types décrivent
+ * le peu d'API propres aux service workers dont ce fichier se sert.
+ * @typedef {Event & { waitUntil(promise: Promise<unknown>): void }} SwExtendableEvent
+ * @typedef {SwExtendableEvent & {
+ *   request: Request,
+ *   preloadResponse: Promise<Response | undefined>,
+ *   respondWith(response: Promise<Response>): void,
+ * }} SwFetchEvent
+ * @typedef {SwExtendableEvent & { data: { type?: string } | null }} SwMessageEvent
+ * @typedef {object} SwScope
+ * @property {{ navigationPreload?: { enable(): Promise<void> } }} registration
+ * @property {{ claim(): Promise<void> }} clients
+ * @property {() => Promise<void>} skipWaiting
+ * @property {Location} location
+ * @property {(type: string, listener: (event: any) => void) => void} addEventListener
+ */
+const sw = /** @type {SwScope} */ (/** @type {unknown} */ (self));
+
 /* global __VFF_SW_VERSION__ */
 const VERSION = typeof __VFF_SW_VERSION__ === 'string' ? __VFF_SW_VERSION__ : 'dev';
 const CACHE = staticCacheName(VERSION);
 
-self.addEventListener('install', (event) => {
+sw.addEventListener('install', (/** @type {SwExtendableEvent} */ event) => {
     // Pas de skipWaiting automatique : la page propose le rechargement (message « Nouvelle version disponible »).
     event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(PRECACHE)));
 });
 
-self.addEventListener('activate', (event) => {
+sw.addEventListener('activate', (/** @type {SwExtendableEvent} */ event) => {
     event.waitUntil(
         (async () => {
             const stale = staleCacheNames(await caches.keys(), VERSION);
             await Promise.all(stale.map((name) => caches.delete(name)));
             // Précharge de navigation : la requête réseau part pendant le démarrage du service worker.
-            await self.registration.navigationPreload?.enable();
-            await self.clients.claim();
+            await sw.registration.navigationPreload?.enable();
+            await sw.clients.claim();
         })(),
     );
 });
 
-self.addEventListener('message', (event) => {
-    if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+sw.addEventListener('message', (/** @type {SwMessageEvent} */ event) => {
+    if (event.data?.type === 'SKIP_WAITING') sw.skipWaiting();
 });
 
-self.addEventListener('fetch', (event) => {
+sw.addEventListener('fetch', (/** @type {SwFetchEvent} */ event) => {
     const { request } = event;
     const deps = {
         caches,
@@ -40,7 +59,7 @@ self.addEventListener('fetch', (event) => {
         waitUntil: (p) => event.waitUntil(p),
     };
 
-    switch (classify(request, self.location.origin)) {
+    switch (classify(request, sw.location.origin)) {
         case 'static':
             event.respondWith(cacheFirst(request, deps));
             break;

@@ -31,7 +31,8 @@ final class GalleryInventory
 
     public const LICENSE = 'CC BY-SA 4.0';
 
-    public const LICENSE_URL = 'https://creativecommons.org/licenses/by-sa/4.0/';
+    /** Même forme que les médias Commons déjà en base. */
+    public const LICENSE_URL = 'https://creativecommons.org/licenses/by-sa/4.0';
 
     /** Mots-clés de la galerie qui nomment un autre photographe que l'auteur (pwg.tags.getList). */
     public const PHOTOGRAPHER_TAGS = [
@@ -137,7 +138,8 @@ final class GalleryInventory
             'author' => self::AUTHOR,
             'license' => self::LICENSE,
             'license_url' => self::LICENSE_URL,
-            'attribution' => self::AUTHOR.' (Argentan Web Ferroviaire), '.self::LICENSE,
+            // Même forme que les crédits Commons (« Auteur, CC BY-SA 4.0, via Wikimedia Commons »).
+            'attribution' => self::AUTHOR.', '.self::LICENSE.', via Argentan Web Ferroviaire',
             'rights_status' => 'open_license',
             'commercial_ok' => true,
             'share_alike' => true,

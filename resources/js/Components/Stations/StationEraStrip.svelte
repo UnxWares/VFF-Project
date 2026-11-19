@@ -35,8 +35,13 @@
         const short = yearText(e);
         return short.toLowerCase() === long.toLowerCase() ? short : `${short} (${long})`;
     }
-    /** Nom accessible d'une case : année, statut et note (déjà dans la langue de la page). */
-    const tip = (e) => `${spoken(e)}${colon}${label(e)}${e.note ? ` (${e.note})` : ''}`;
+    /**
+     * Suite du nom accessible après l'année visible : développement de « Auj. », statut et note
+     * (déjà dans la langue de la page). Texte masqué plutôt qu'aria-label : sans feuille de style,
+     * le statut reste écrit (RGAA 10.2), alors que la couleur et l'icône disparaissent.
+     */
+    const rest = (e) =>
+        `${spoken(e).slice(yearText(e).length)}${colon}${label(e)}${e.note ? ` (${e.note})` : ''}`;
 
     /** Encre lisible (noire ou blanche) sur une couleur de statut : le meilleur contraste des deux. */
     function inkFor(hex) {
@@ -78,14 +83,13 @@
                 class:current={e.is_current}
                 style:--c={STATION_STATUS_COLOR[e.status] ?? 'transparent'}
                 style:--ink={inkOf(e.status)}
-                aria-label={tip(e)}
                 aria-current={e.is_current ? 'date' : undefined}
             >
                 <span class="bar" class:empty={!e.status} aria-hidden="true">
                     {#if e.status}<i class="bi {STATION_STATUS_ICON[e.status] ?? 'bi-circle'}"
                         ></i>{/if}
                 </span>
-                <span class="year" aria-hidden="true">{yearText(e)}</span>
+                <span class="year">{yearText(e)}</span><span class="vff-sr-only">{rest(e)}</span>
             </a>
         </li>
     {/each}

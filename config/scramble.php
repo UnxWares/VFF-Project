@@ -26,6 +26,24 @@ return [
             API publique de **VFF - Voies Ferrées de France**, l'encyclopédie collaborative du rail français :
             tracés, gares, chronologies, signalisation et médias du réseau ferroviaire, de 1830 à aujourd'hui.
 
+            ## Ce que couvre l'API
+            Tout ce que montre le site s'obtient ici, calculé par le même code que les pages :
+            - **annuaire des lignes** (`/lines`, filtres de la page [/lines](/lines)) et **fiche complète**
+              d'une ligne (`/lines/{line}` : chiffres clés, électrification, signalisation, phases datées,
+              chronique sourcée, gares, sections nommées, sources), avec ses tronçons par ère
+              (`/lines/{line}/segments`), sa chronologie, ses gares par ère, sa signalisation, ses médias ;
+            - **annuaire des gares** (`/stations`) et **fiche complète** d'une gare (`/stations/{station}`) ;
+            - **époques** (`/eras`) et **statistiques du réseau** à chaque époque (`/eras/{year}`), cartes
+              par ère (GeoJSON, tuiles MVT, GTFS) ;
+            - **événements** de tout le réseau (`/events`) et **médias** (`/media`) ;
+            - **matériel roulant** (`/materials`) ; **itinéraires historiques** (`/route`) ; **recherche** ;
+            - **registre des sources et licences** (`/sources`).
+
+            La même matière existe en **GraphQL** (`POST /graphql`, requêtes `lineDirectory`,
+            `stationDirectory`, `Line.sheet`, `Station.sheet`, `Era.stats`, `sources`…) et, pour les
+            assistants IA, par le **serveur MCP** (`POST /mcp`, voir `docs/MCP.md`). Seules les
+            contributions, réservées aux comptes, restent hors de l'API publique.
+
             ## Ères
             Le réseau est décrit par **ères décennales**, de `1830` à `2030`. Chaque ère est un instantané
             au **31/12** de son année : l'ère `1930` montre le réseau au 31/12/1930. L'ère `2030` désigne
@@ -41,12 +59,64 @@ return [
             Distances et points kilométriques (PK) en **mètres**, notation ferroviaire `km+mmm`
             (`249+204` = 249,204 km), vitesses en km/h, tensions en volts, écartements en millimètres.
 
-            ## Accès
-            Tous les endpoints sont en lecture (`GET`), **anonymes** et sans clé. Limite : 300 requêtes
-            par minute et par adresse IP (HTTP 429 au-delà). Erreurs au format JSON : `message`, et pour
-            certaines un code `error` stable (ex. `no_geometry`, `station_not_found`). Envoyez l'en-tête
-            `Accept: application/json` : un paramètre invalide renvoie alors HTTP 422, avec le détail
-            par paramètre dans `errors`.
+            ## Accès et authentification
+            Aucune authentification : tous les points d'accès sont en lecture (`GET`), **anonymes** et
+            sans clé ni compte. Limite : 300 requêtes par minute et par adresse IP (HTTP 429 au-delà),
+            la même pour GraphQL et le serveur MCP. Les réponses portent un en-tête `Cache-Control`
+            (5 minutes en général, 1 heure pour le registre des sources) : gardez-les en cache plutôt
+            que de les redemander. Envoyez l'en-tête `Accept: application/json`. Les textes tirés des
+            sources et rédigés par VFF (notes, présentations d'ères, chroniques) sont en français.
+
+            ## Conventions communes
+            - **Identifiants** : les lignes et les gares se désignent par leur `slug` (ex. `rfn-420000`,
+              `brest`), les événements et les médias par leur `id` numérique, les ères par leur année.
+            - **Dates** : ISO `AAAA-MM-JJ`, toujours accompagnées de leur précision (`date_precision`,
+              `opened_precision`… : `day`, `month`, `year`) ; quand seule l'année est connue, mois et jour
+              valent `01`. N'affichez que la partie connue. Une période (`from`, `to`) accepte une année
+              (`1930`) ou une date (`1930-06-15`), bornes incluses.
+            - **Mêmes noms de paramètres partout** : `q` (recherche littérale), `department` (code INSEE),
+              `era` (année d'une ère), `from`/`to`, `sort` et `order` (`asc`, `desc`), `per_page` et
+              `cursor` ; booléens écrits `true`/`false` (ou `1`/`0`).
+            - **Liens** : chaque élément d'annuaire et chaque fiche donnent `links.web` (la page du site)
+              et les adresses des points d'accès liés.
+
+            ## Erreurs
+            - **404** : la ressource demandée n'existe pas : ligne, gare, événement, média, fournisseur ou
+              ère du chemin, ou ère choisie par `era` pour un objet d'une ère (`/lines/{line}/stops`,
+              `/signalling`, `/segments`, `/pk`, `/route`). Corps : `{"message": "…"}`, parfois avec un code
+              `error` stable (ex. `era_not_found`, `station_not_found`, `no_geometry`).
+            - **422** : paramètre invalide, y compris un **filtre** de liste qui ne désigne rien (ligne,
+              département ou ère inconnus dans `/events`, `/lines`, `/stations`), une valeur hors
+              énumération, une date mal formée, une borne dépassée ou un curseur illisible. Corps :
+              `{"message": "…", "errors": {"paramètre": ["…"]}}`. Il n'y a pas de HTTP 400 : une requête
+              mal formée est toujours signalée par un 422 détaillé.
+            - **429** : plus de 300 requêtes par minute. L'en-tête `Retry-After` donne l'attente en
+              secondes, `X-RateLimit-Remaining` le nombre de requêtes restantes.
+            - Les messages d'erreur de validation sont en anglais, quelle que soit la langue du site.
+
+            ## Pagination par curseur
+            Les annuaires des lignes, des gares et du matériel (`/lines`, `/stations`, `/materials`), les listes d'événements
+            (`/events`, `/stations/{station}/events`) et de médias (`/media`) sont paginés **par curseur** :
+            `per_page` (taille de page, bornée) et `cursor`. Chaque réponse
+            contient `data`, `links.next` (adresse de la page suivante, filtres conservés, `null` à la
+            dernière page) et `meta.next_cursor`. Suivez `links.next` jusqu'à `null`. Il n'y a ni numéro
+            de page ni total : le curseur reste valable même si des données sont ajoutées entre deux
+            appels. C'est une chaîne opaque, à reprendre telle quelle, valable seulement pour la liste
+            et le tri qui l'ont produite (sinon HTTP 422). Tri : chronologique pour les événements, par
+            identifiant pour les médias, au choix (`sort`) pour les annuaires ; `order=desc` l'inverse.
+            Les annuaires ajoutent, sur demande (`facets=true`), les compteurs de la recherche en cours
+            dans `meta.facets`. En GraphQL, le même curseur se passe dans `after`.
+
+            ## Provenance et licence de chaque donnée
+            Chaque événement, chaque tronçon, chaque source de gare porte sa source (`source`,
+            `source_url`, parfois une citation `source_quote`) et un bloc `provenance` : fournisseur
+            (`provider`, `name`), licence (`license`) et solidité de
+            cette licence (`license_status` : `verified` licence ouverte établie, `uncertain` autorisation
+            particulière ou conditions à lire, `forbidden`). Chaque média porte son auteur, sa licence,
+            son `attribution` prête à afficher et le lien `source_url` de sa page d'origine. Les fiches
+            gardent la source de chaque fait (`facts`, `attribute_sources`, notes de la chronique). Le
+            registre complet des fournisseurs (licence, mention à reproduire, pages qui l'établissent)
+            est sur `/sources`. Citez toujours le fournisseur en réutilisant une donnée.
 
             ## Licences et sources
             Données ouvertes : citez « VFF - Voies Ferrées de France » et un lien vers https://vff-project.org.
@@ -56,8 +126,17 @@ return [
             pas sous ODbL : usage non commercial uniquement, avec un crédit et un lien vers la source.
             Chaque média porte sa propre licence et son attribution.
 
+            ## Versionnement
+            L'API est en **version 1** (préfixe `/api/v1`, numéro de version de ce document). Dans une
+            même version, les changements sont seulement additifs : nouveaux points d'accès, nouveaux
+            champs, nouvelles valeurs d'énumération (ignorez ce que vous ne connaissez pas). Un
+            changement incompatible (champ retiré ou renommé, sens modifié) passera par un nouveau
+            préfixe `/api/v2`, la v1 restant servie pendant la transition. Le schéma GraphQL suit les
+            mêmes règles (champs retirés d'abord marqués `@deprecated`).
+
             ## Voir aussi
             - API GraphQL : `POST /graphql`, référence sur [/docs/graphql](/docs/graphql), essais dans [GraphiQL](/graphiql) ;
+            - serveur MCP pour les assistants IA : `POST /mcp` (documentation : `docs/MCP.md` du dépôt) ;
             - spécification OpenAPI brute : [/docs/api.json](/docs/api.json) ;
             - cette documentation existe aussi en [Swagger UI](/docs/swagger).
             MD,

@@ -34,8 +34,18 @@ class Line extends Model
     public function materials(): BelongsToMany
     {
         return $this->belongsToMany(Material::class, 'line_materials')
-            ->withPivot(['era_id', 'from_date', 'to_date', 'notes'])
+            ->withPivot(LineMaterial::PIVOT_COLUMNS)
             ->withTimestamps();
+    }
+
+    /**
+     * Liens vers le matériel roulant avec leur preuve (source, citation, période).
+     *
+     * @return HasMany<LineMaterial, $this>
+     */
+    public function materialLinks(): HasMany
+    {
+        return $this->hasMany(LineMaterial::class);
     }
 
     /** @return HasMany<LineEvent, $this> */
@@ -48,6 +58,18 @@ class Line extends Model
     public function media(): MorphMany
     {
         return $this->morphMany(Media::class, 'mediable');
+    }
+
+    /**
+     * Accidents rattachés à la ligne (vff:import-accidents), principaux ou secondaires.
+     *
+     * @return BelongsToMany<Accident, $this>
+     */
+    public function accidents(): BelongsToMany
+    {
+        return $this->belongsToMany(Accident::class, 'accident_lines')
+            ->withPivot(['is_primary', 'era_year', 'distance_m', 'pk_m', 'method', 'confidence', 'score'])
+            ->withTimestamps();
     }
 
     public function getRouteKeyName(): string

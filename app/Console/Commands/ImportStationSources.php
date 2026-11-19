@@ -571,7 +571,7 @@ class ImportStationSources extends Command
             'Q55654238' => 'active', 'Q109551035' => 'active', 'Q11639308' => 'disused', 'Q55570340' => 'disused',
             'Q104664889' => 'disused', 'Q56651571' => 'disused', 'Q110435753' => 'disused', 'Q56556915' => 'razed',
             'Q63065035' => 'abandoned', 'Q811683' => 'planned', 'Q12377751' => 'planned', 'Q30108381' => 'planned',
-        ][$state] ?? (in_array('Q4663385', $p31, true) || in_array('Q106772341', $p31, true) || $isClosed ? 'disused' : 'unknown');
+        ][$state ?? ''] ?? (in_array('Q4663385', $p31, true) || in_array('Q106772341', $p31, true) || $isClosed ? 'disused' : 'unknown');
 
         $uic = $this->wdValues($claims, 'P722')[0]['value'] ?? null;
 

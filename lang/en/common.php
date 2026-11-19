@@ -11,6 +11,8 @@ return [
 
     // Shared component texts (pagination, external links).
     'new_tab' => 'opens in a new tab',
+    'note_ref' => 'Note',
+    'required' => 'required',
     'pagination' => 'Pagination',
     'previous' => 'Previous',
     'next' => 'Next',

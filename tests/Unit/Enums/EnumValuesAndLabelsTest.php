@@ -46,7 +46,7 @@ class EnumValuesAndLabelsTest extends TestCase
             'LineType' => [LineType::class, ['passenger', 'freight', 'mixed']],
             'MaterialType' => [MaterialType::class, [
                 'locomotive_electrique', 'locomotive_diesel', 'locomotive_vapeur', 'automotrice', 'autorail',
-                'rame_tgv', 'voiture', 'wagon',
+                'rame_tgv', 'voiture', 'wagon', 'tramway', 'engin_service',
             ]],
             'MediaType' => [MediaType::class, ['photo', 'plan', 'document', 'map', 'postcard']],
             'SegmentStatus' => [SegmentStatus::class, [

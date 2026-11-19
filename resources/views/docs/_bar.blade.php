@@ -2,7 +2,8 @@
     Barre commune aux documentations de l'API (Scalar, Swagger UI, GraphiQL) : même identité que l'en-tête
     du site (logo, nom, filet orange), liens vers la page API et les cinq documentations, choix de la
     langue et du thème. Sous 1 400 px, la liste se range dans un menu (popover natif : Échap ferme et
-    rend le focus au bouton). $current : api | scalar | swagger | graphql | graphiql.
+    rend le focus au bouton). $current : api | scalar | swagger | graphql | graphiql ; $lang (facultatif) :
+    langue de la barre quand la page est déclarée dans une autre (Swagger UI : `en`).
 --}}
 @php
     $links = [
@@ -15,8 +16,8 @@
     ];
     $languages = ['fr' => 'Français', 'en' => 'English', 'de' => 'Deutsch'];
 @endphp
-<a class="vff-docs-skip" href="#vff-docs-app">{{ __('nav.skip_to_content') }}</a>
-<header class="vff-docs-bar">
+<a class="vff-docs-skip" href="#vff-docs-app"@isset($lang) lang="{{ $lang }}"@endisset>{{ __('nav.skip_to_content') }}</a>
+<header class="vff-docs-bar"@isset($lang) lang="{{ $lang }}"@endisset>
     <a class="vff-docs-brand" href="/">
         <img src="{{ Vite::asset('resources/images/vff.png') }}" alt="" width="32" height="32" />
         <span class="long">{{ __('common.app_full') }}</span>

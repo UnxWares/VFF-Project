@@ -48,7 +48,7 @@ return [
     'errors' => [
         'name_required' => 'Enter your display name.',
         'email_required' => 'Enter your email address.',
-        'email_invalid' => 'This email address is not valid.',
+        'email_invalid' => 'This email address is not valid: it should look like name@example.com.',
         'password_required' => 'Enter your password.',
         'password_new_required' => 'Choose a password.',
         'password_short' => 'The password must be at least 8 characters long.',

@@ -3,7 +3,6 @@
 namespace Tests\Feature\Web;
 
 use App\Models\Line;
-use App\Models\Material;
 use App\Models\Media;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -29,32 +28,11 @@ class CatalogPagesTest extends TestCase
         $this->buildRailNetwork();
     }
 
-    public function test_materials_are_grouped_by_type_in_service_order(): void
-    {
-        Material::query()->delete();
-        $bb = Material::factory()->create(['slug' => 'bb-9200', 'name' => 'BB 9200', 'type' => 'locomotive_electrique', 'in_service_from' => 1957, 'in_service_to' => null, 'builder' => 'Schneider']);
-        $cc = Material::factory()->create(['slug' => 'cc-7100', 'name' => 'CC 7100', 'type' => 'locomotive_electrique', 'in_service_from' => 1952, 'in_service_to' => 1990]);
-        $x = Material::factory()->create(['slug' => 'x-2800', 'name' => 'X 2800', 'type' => 'autorail', 'in_service_from' => 1957, 'in_service_to' => 1990]);
-
-        $this->get('/materials')
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('Materials/Index')
-                ->where('total', 3)
-                ->has('groups', 2)
-                ->where('groups.0.type', 'locomotive_electrique')
-                ->where('groups.0.items.0', ['slug' => 'cc-7100', 'name' => 'CC 7100', 'builder' => $cc->builder, 'in_service_from' => 1952, 'in_service_to' => 1990])
-                ->where('groups.0.items.1.slug', $bb->slug)
-                ->where('groups.0.items.1.in_service_to', null)
-                ->where('groups.1.type', 'autorail')
-                ->where('groups.1.items.0.slug', $x->slug));
-    }
-
-    public function test_material_page_lists_at_most_twenty_lines_by_name(): void
+    public function test_material_page_lists_its_lines_by_name(): void
     {
         $lines = collect(range(1, 22))->map(fn ($i) => Line::factory()->create(['name' => sprintf('Ligne témoin %02d', $i)]));
         $this->material->lines()->attach($lines->pluck('id'));
-        $expected = Line::whereIn('id', [...$lines->pluck('id'), $this->line->id])->orderBy('name')->limit(20)->pluck('slug')->all();
+        $expected = Line::whereIn('id', [...$lines->pluck('id'), $this->line->id])->orderBy('name')->pluck('slug')->all();
 
         $this->get('/materials/'.$this->material->slug)
             ->assertOk()
@@ -63,7 +41,8 @@ class CatalogPagesTest extends TestCase
                 ->where('material.slug', 'z-6400-test')
                 ->where('material.name', 'Z 6400')
                 ->where('material.type', $this->material->type->value)
-                ->has('lines', 20)
+                ->has('lines', 23)
+                ->where('lines_total', 23)
                 ->where('lines', fn ($l) => $l->pluck('slug')->all() === $expected));
     }
 

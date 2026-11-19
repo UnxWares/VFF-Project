@@ -9,6 +9,8 @@
     import SheetToc from '$components/Sheet/SheetToc.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
+    import SeoHead from '$components/SeoHead.svelte';
+    import { breadcrumbSchema, stationSchema } from '$lib/structuredData.js';
     import {
         STATION_STATUS_COLOR,
         STATION_STATUS_ICON,
@@ -161,6 +163,22 @@
     <meta name="description" content={$i18n.t('stations.meta_show', { name: station.name })} />
 </svelte:head>
 
+<!-- Partage et données structurées : la gare (position, commune, code UIC) et le fil d'Ariane. -->
+<SeoHead
+    title={station.name}
+    description={$i18n.t('stations.meta_show', { name: station.name })}
+    path={`/stations/${station.slug}`}
+    type="article"
+    jsonLd={(origin) => [
+        stationSchema({ origin, station, description: station.description }),
+        breadcrumbSchema(origin, [
+            { name: $i18n.t('common.app_full'), path: '/' },
+            { name: $i18n.t('nav.stations'), path: '/stations' },
+            { name: station.name, path: `/stations/${station.slug}` },
+        ]),
+    ]}
+/>
+
 {#snippet statusMark(status)}
     <span
         class="mark"
@@ -232,7 +250,7 @@
             {#if events.length}
                 <ol class="timeline">
                     {#each events as e, i (i)}
-                        <li class:inferred={e.inferred}>
+                        <li class={{ inferred: e.inferred }}>
                             <p class="when">
                                 {#if e.date}
                                     <time datetime={e.date}>{formatDate(e.date, e.precision)}</time>
@@ -329,7 +347,7 @@
         </SheetSection>
 
         <SheetSection id="location" title={$i18n.t('stations.sections.map')}>
-            <div class="location" class:solo={!neighbors.length}>
+            <div class={['location', { solo: !neighbors.length }]}>
                 <div class="map-col">
                     <div class="map-frame">
                         <StationMiniMap {station} {neighbors} height="100%" />
@@ -468,7 +486,7 @@
                                 defaultValue: s.match_method ?? '',
                             })}
                             {#if s.distance_m > 0}
-                                <span class="dist" class:far={s.distance_m > 100}
+                                <span class={['dist', { far: s.distance_m > 100 }]}
                                     >{#if s.distance_m > 100}<i
                                             class="bi bi-exclamation-triangle"
                                             aria-hidden="true"
