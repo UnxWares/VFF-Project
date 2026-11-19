@@ -1,4 +1,4 @@
-import{$ as e,B as t,D as n,Dt as r,F as i,G as a,H as o,K as s,L as c,M as l,N as u,P as d,Q as f,R as p,S as m,Y as h,Z as g,_,at as v,bt as y,ct as b,f as x,it as S,j as C,k as ee,kt as te,l as w,o as ne,ot as re,st as ie,ut as ae,w as oe,wt as se,x as ce,yt as T,z as le}from"./WhYXVPzS.js";import{i as ue}from"./DbsRXqc5.js";import"./v_jBEYI6.js";import"./CL7zaV3M.js";var de=t(`<pre><code> </code></pre>`);function fe(t,n){y(n,!1);let r=w(n,`token`,8);var i={options:void 0,renderers:void 0};x();var o=de(),s=S(o),l=S(s,!0);return se(s),se(o),e(()=>{oe(s,1,(a(r()),h(()=>`lang-${r().lang}`))),c(l,(a(r()),h(()=>r().text)))}),p(t,o),_(n,`options`,void 0),_(n,`renderers`,void 0),T(i)}var pe=t(`<code> </code>`);function me(t,n){y(n,!1);let r=w(n,`token`,8);var i={options:void 0,renderers:void 0};x();var o=pe(),s=S(o,!0);return se(o),e(e=>c(s,e),[()=>(a(r()),h(()=>r().raw.slice(1,r().raw.length-1)))]),p(t,o),_(n,`options`,void 0),_(n,`renderers`,void 0),T(i)}function he(e,t){let n=w(t,`tokens`,8),r=w(t,`renderers`,8),a=w(t,`options`,8);var o=le(),c=v(o),l=e=>{var t=le();u(v(t),1,n,d,(e,t)=>{ge(e,{get token(){return s(t)},get renderers(){return r()},get options(){return a()}})}),p(e,t)};i(c,e=>{n()&&e(l)}),p(e,o)}function ge(t,n){y(n,!1);let r=w(n,`token`,8),s=w(n,`renderers`,8),l=w(n,`options`,8);x();var u=le(),d=v(u),f=t=>{var n=le();ee(v(n),()=>s()[r().type],(t,n)=>{n(t,{get token(){return r()},get options(){return l()},get renderers(){return s()},children:(t,n)=>{var u=le(),d=v(u),f=e=>{he(e,{get tokens(){return a(r()),h(()=>r().tokens)},get renderers(){return s()},get options(){return l()}})},m=t=>{var n=o();e(()=>c(n,(a(r()),h(()=>r().raw)))),p(t,n)};i(d,e=>{a(r()),h(()=>`tokens`in r()&&r().tokens)?e(f):e(m,-1)}),p(t,u)},$$slots:{default:!0}})}),p(t,n)};i(d,e=>{a(s()),a(r()),h(()=>s()[r().type])&&e(f)}),p(t,u),T()}function _e(e,t){y(t,!1);let r=w(t,`token`,8),i=w(t,`options`,8),o=w(t,`renderers`,8),c=ie();g(()=>a(r()),()=>{b(c,r().ordered?`ol`:`ul`)}),f(),x();var l=le();n(v(l),()=>s(c),!1,(e,t)=>{ce(e,()=>({start:(a(r()),h(()=>r().start||1))}));var n=le();u(v(n),1,()=>(a(r()),h(()=>r().items)),d,(e,t)=>{{let n=ae(()=>(s(t),h(()=>({...s(t)}))));ge(e,{get token(){return s(n)},get options(){return i()},get renderers(){return o()}})}}),p(t,n)}),p(e,l),T()}var ve=t(`<li><!></li>`);function ye(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=ve();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var be=t(`<blockquote><!></blockquote>`);function xe(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=be();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Se=t(`<br/>`);function Ce(e,t){return y(t,!1),p(e,Se()),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T({token:void 0,options:void 0,renderers:void 0})}var we=t(`<del><!></del>`);function Te(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=we();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Ee=t(`<dfn><!></dfn>`);function De(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=Ee();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Oe=t(`<em><!></em>`);function ke(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=Oe();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function Ae(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=le();return C(v(r),t,`default`,{},null),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function je(...e){return`/${e.flatMap(e=>e.split(`/`)).filter(e=>!!e).join(`/`)}`}function Me(e){return e.startsWith(`/`)||e.startsWith(`#`)}function Ne(e,t){return t.slug(e).replace(/--+/g,`-`)}function Pe(e,t){y(t,!1);let r=w(t,`token`,8),i=w(t,`options`,8),o=ie();g(()=>(a(r()),a(i())),()=>{b(o,Ne(r().text,i().slugger))}),f();var c={renderers:void 0};x();var l=le();return n(v(l),()=>`h${r().depth}`,!1,(e,n)=>{ce(e,()=>({id:s(o)}));var r=le();C(v(r),t,`default`,{},null),p(n,r)}),p(e,l),_(t,`renderers`,void 0),T(c)}var Fe=t(`<hr/>`);function Ie(e,t){return y(t,!1),p(e,Fe()),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T({token:void 0,options:void 0,renderers:void 0})}function Le(e,t){y(t,!1);let n=w(t,`token`,8);var r={options:void 0,renderers:void 0};x();var i=le();return l(v(i),()=>(a(n()),h(()=>n().text))),p(e,i),_(t,`options`,void 0),_(t,`renderers`,void 0),T(r)}var Re=t(`<img class="markdown-image svelte-n6q0or"/>`);function ze(t,n){y(n,!1);let r=w(n,`token`,8),i=w(n,`options`,8);var o={renderers:void 0};x();var s=Re();return e(e=>{m(s,`src`,e),m(s,`title`,(a(r()),h(()=>r().title))),m(s,`alt`,(a(r()),h(()=>r().text)))},[()=>(a(Me),a(r()),a(je),a(i()),h(()=>Me(r().href)?je(i().baseUrl,r().href):r().href))]),p(t,s),_(n,`renderers`,void 0),T(o)}var Be=t(`<a><!></a>`);function Ve(t,n){y(n,!1);let r=w(n,`token`,8),i=w(n,`options`,8);var o={renderers:void 0};x();var s=Be();return C(S(s),n,`default`,{},null),se(s),e(e=>{m(s,`href`,e),m(s,`title`,(a(r()),h(()=>r().title)))},[()=>(a(Me),a(r()),a(je),a(i()),h(()=>Me(r().href)?je(i().baseUrl,r().href):r().href))]),p(t,s),_(n,`renderers`,void 0),T(o)}var He=t(`<p><!></p>`);function Ue(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=He();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function We(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=le();return C(v(r),t,`default`,{},null),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Ge=t(`<strong><!></strong>`);function Ke(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=Ge();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function qe(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=le();return C(v(r),t,`default`,{},null),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Je=t(`<th scope="col"><!></th>`),Ye=t(`<td><!></td>`),Xe=t(`<tr></tr>`),Ze=t(`<table><thead><tr></tr></thead><tbody></tbody></table>`);function Qe(e,t){y(t,!1);let n=w(t,`token`,8),r=w(t,`options`,8),i=w(t,`renderers`,8);x();var o=Ze(),c=S(o),l=S(c);u(l,5,()=>(a(n()),h(()=>n().header)),d,(e,t)=>{var n=Je();he(S(n),{get tokens(){return s(t),h(()=>s(t).tokens)},get options(){return r()},get renderers(){return i()}}),se(n),p(e,n)}),se(l),se(c);var f=re(c);u(f,5,()=>(a(n()),h(()=>n().rows)),d,(e,t)=>{var n=Xe();u(n,5,()=>s(t),d,(e,t)=>{var n=Ye();he(S(n),{get tokens(){return s(t),h(()=>s(t).tokens)},get options(){return r()},get renderers(){return i()}}),se(n),p(e,n)}),se(n),p(e,n)}),se(f),se(o),p(e,o),T()}function $e(e){return{name:`container`,level:`block`,start(e){return e.match(/^:::[^:\n]/)?.index},tokenizer(t){let n=/^:::[\s]?(?<type>[a-z0-9-]+)(?<options>.*)?\n(?<content>(?:.|\n)*)\n:::(?:\n|$)/i,r=et(t);if(!r)return;let i=n.exec(r);if(!i?.groups)return;let a=i.groups.type.toLocaleLowerCase(),o=tt(i.groups.options||``),s=i.groups.content||``,c=e({type:a,content:s,raw:i[0],options:o,lexer:this.lexer});return c?.tokens&&this.lexer.blockTokens(s,c.tokens),c}}}function et(e){if(!e.startsWith(`:::`))return;let t=e.split(`
+import{$ as e,B as t,D as n,Dt as r,F as i,G as a,H as o,K as s,L as c,M as l,N as u,P as d,Q as f,R as p,S as m,Y as h,Z as g,_,at as v,bt as y,ct as b,f as x,it as S,j as C,k as ee,kt as te,l as w,o as ne,ot as re,st as ie,ut as ae,w as oe,wt as se,x as ce,yt as T,z as le}from"./WhYXVPzS.js";import{i as ue}from"./CRHWD-4c.js";import"./v_jBEYI6.js";import"./CL7zaV3M.js";var de=t(`<pre><code> </code></pre>`);function fe(t,n){y(n,!1);let r=w(n,`token`,8);var i={options:void 0,renderers:void 0};x();var o=de(),s=S(o),l=S(s,!0);return se(s),se(o),e(()=>{oe(s,1,(a(r()),h(()=>`lang-${r().lang}`))),c(l,(a(r()),h(()=>r().text)))}),p(t,o),_(n,`options`,void 0),_(n,`renderers`,void 0),T(i)}var pe=t(`<code> </code>`);function me(t,n){y(n,!1);let r=w(n,`token`,8);var i={options:void 0,renderers:void 0};x();var o=pe(),s=S(o,!0);return se(o),e(e=>c(s,e),[()=>(a(r()),h(()=>r().raw.slice(1,r().raw.length-1)))]),p(t,o),_(n,`options`,void 0),_(n,`renderers`,void 0),T(i)}function he(e,t){let n=w(t,`tokens`,8),r=w(t,`renderers`,8),a=w(t,`options`,8);var o=le(),c=v(o),l=e=>{var t=le();u(v(t),1,n,d,(e,t)=>{ge(e,{get token(){return s(t)},get renderers(){return r()},get options(){return a()}})}),p(e,t)};i(c,e=>{n()&&e(l)}),p(e,o)}function ge(t,n){y(n,!1);let r=w(n,`token`,8),s=w(n,`renderers`,8),l=w(n,`options`,8);x();var u=le(),d=v(u),f=t=>{var n=le();ee(v(n),()=>s()[r().type],(t,n)=>{n(t,{get token(){return r()},get options(){return l()},get renderers(){return s()},children:(t,n)=>{var u=le(),d=v(u),f=e=>{he(e,{get tokens(){return a(r()),h(()=>r().tokens)},get renderers(){return s()},get options(){return l()}})},m=t=>{var n=o();e(()=>c(n,(a(r()),h(()=>r().raw)))),p(t,n)};i(d,e=>{a(r()),h(()=>`tokens`in r()&&r().tokens)?e(f):e(m,-1)}),p(t,u)},$$slots:{default:!0}})}),p(t,n)};i(d,e=>{a(s()),a(r()),h(()=>s()[r().type])&&e(f)}),p(t,u),T()}function _e(e,t){y(t,!1);let r=w(t,`token`,8),i=w(t,`options`,8),o=w(t,`renderers`,8),c=ie();g(()=>a(r()),()=>{b(c,r().ordered?`ol`:`ul`)}),f(),x();var l=le();n(v(l),()=>s(c),!1,(e,t)=>{ce(e,()=>({start:(a(r()),h(()=>r().start||1))}));var n=le();u(v(n),1,()=>(a(r()),h(()=>r().items)),d,(e,t)=>{{let n=ae(()=>(s(t),h(()=>({...s(t)}))));ge(e,{get token(){return s(n)},get options(){return i()},get renderers(){return o()}})}}),p(t,n)}),p(e,l),T()}var ve=t(`<li><!></li>`);function ye(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=ve();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var be=t(`<blockquote><!></blockquote>`);function xe(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=be();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Se=t(`<br/>`);function Ce(e,t){return y(t,!1),p(e,Se()),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T({token:void 0,options:void 0,renderers:void 0})}var we=t(`<del><!></del>`);function Te(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=we();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Ee=t(`<dfn><!></dfn>`);function De(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=Ee();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Oe=t(`<em><!></em>`);function ke(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=Oe();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function Ae(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=le();return C(v(r),t,`default`,{},null),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function je(...e){return`/${e.flatMap(e=>e.split(`/`)).filter(e=>!!e).join(`/`)}`}function Me(e){return e.startsWith(`/`)||e.startsWith(`#`)}function Ne(e,t){return t.slug(e).replace(/--+/g,`-`)}function Pe(e,t){y(t,!1);let r=w(t,`token`,8),i=w(t,`options`,8),o=ie();g(()=>(a(r()),a(i())),()=>{b(o,Ne(r().text,i().slugger))}),f();var c={renderers:void 0};x();var l=le();return n(v(l),()=>`h${r().depth}`,!1,(e,n)=>{ce(e,()=>({id:s(o)}));var r=le();C(v(r),t,`default`,{},null),p(n,r)}),p(e,l),_(t,`renderers`,void 0),T(c)}var Fe=t(`<hr/>`);function Ie(e,t){return y(t,!1),p(e,Fe()),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T({token:void 0,options:void 0,renderers:void 0})}function Le(e,t){y(t,!1);let n=w(t,`token`,8);var r={options:void 0,renderers:void 0};x();var i=le();return l(v(i),()=>(a(n()),h(()=>n().text))),p(e,i),_(t,`options`,void 0),_(t,`renderers`,void 0),T(r)}var Re=t(`<img class="markdown-image svelte-n6q0or"/>`);function ze(t,n){y(n,!1);let r=w(n,`token`,8),i=w(n,`options`,8);var o={renderers:void 0};x();var s=Re();return e(e=>{m(s,`src`,e),m(s,`title`,(a(r()),h(()=>r().title))),m(s,`alt`,(a(r()),h(()=>r().text)))},[()=>(a(Me),a(r()),a(je),a(i()),h(()=>Me(r().href)?je(i().baseUrl,r().href):r().href))]),p(t,s),_(n,`renderers`,void 0),T(o)}var Be=t(`<a><!></a>`);function Ve(t,n){y(n,!1);let r=w(n,`token`,8),i=w(n,`options`,8);var o={renderers:void 0};x();var s=Be();return C(S(s),n,`default`,{},null),se(s),e(e=>{m(s,`href`,e),m(s,`title`,(a(r()),h(()=>r().title)))},[()=>(a(Me),a(r()),a(je),a(i()),h(()=>Me(r().href)?je(i().baseUrl,r().href):r().href))]),p(t,s),_(n,`renderers`,void 0),T(o)}var He=t(`<p><!></p>`);function Ue(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=He();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function We(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=le();return C(v(r),t,`default`,{},null),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Ge=t(`<strong><!></strong>`);function Ke(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=Ge();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function qe(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=le();return C(v(r),t,`default`,{},null),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Je=t(`<th scope="col"><!></th>`),Ye=t(`<td><!></td>`),Xe=t(`<tr></tr>`),Ze=t(`<table><thead><tr></tr></thead><tbody></tbody></table>`);function Qe(e,t){y(t,!1);let n=w(t,`token`,8),r=w(t,`options`,8),i=w(t,`renderers`,8);x();var o=Ze(),c=S(o),l=S(c);u(l,5,()=>(a(n()),h(()=>n().header)),d,(e,t)=>{var n=Je();he(S(n),{get tokens(){return s(t),h(()=>s(t).tokens)},get options(){return r()},get renderers(){return i()}}),se(n),p(e,n)}),se(l),se(c);var f=re(c);u(f,5,()=>(a(n()),h(()=>n().rows)),d,(e,t)=>{var n=Xe();u(n,5,()=>s(t),d,(e,t)=>{var n=Ye();he(S(n),{get tokens(){return s(t),h(()=>s(t).tokens)},get options(){return r()},get renderers(){return i()}}),se(n),p(e,n)}),se(n),p(e,n)}),se(f),se(o),p(e,o),T()}function $e(e){return{name:`container`,level:`block`,start(e){return e.match(/^:::[^:\n]/)?.index},tokenizer(t){let n=/^:::[\s]?(?<type>[a-z0-9-]+)(?<options>.*)?\n(?<content>(?:.|\n)*)\n:::(?:\n|$)/i,r=et(t);if(!r)return;let i=n.exec(r);if(!i?.groups)return;let a=i.groups.type.toLocaleLowerCase(),o=tt(i.groups.options||``),s=i.groups.content||``,c=e({type:a,content:s,raw:i[0],options:o,lexer:this.lexer});return c?.tokens&&this.lexer.blockTokens(s,c.tokens),c}}}function et(e){if(!e.startsWith(`:::`))return;let t=e.split(`
 `),n=1,r=1;for(r=1;r<t.length;r++){let e=t[r];if(e.startsWith(`:::`)&&(/:::[^:\n\s]/.test(e)?n++:/^:::(\n|$)/.test(e)&&--n),n===0)break}return t.slice(0,r+1).join(`
 `)}function tt(e){let t={},n=e;for(;;){let e=/(?<name>[a-z0-9]+)(?:="(?<value>(?:.*?))")?/i.exec(n);if(!e)break;let r=e?.groups?.name;r&&(t[r]=e?.groups?.value??!0),n=n.slice(e.index+e[0].length)}return t}var nt={containerExtension:$e},rt=/[\0-\x1F!-,\.\/:-@\[-\^`\{-\xA9\xAB-\xB4\xB6-\xB9\xBB-\xBF\xD7\xF7\u02C2-\u02C5\u02D2-\u02DF\u02E5-\u02EB\u02ED\u02EF-\u02FF\u0375\u0378\u0379\u037E\u0380-\u0385\u0387\u038B\u038D\u03A2\u03F6\u0482\u0530\u0557\u0558\u055A-\u055F\u0589-\u0590\u05BE\u05C0\u05C3\u05C6\u05C8-\u05CF\u05EB-\u05EE\u05F3-\u060F\u061B-\u061F\u066A-\u066D\u06D4\u06DD\u06DE\u06E9\u06FD\u06FE\u0700-\u070F\u074B\u074C\u07B2-\u07BF\u07F6-\u07F9\u07FB\u07FC\u07FE\u07FF\u082E-\u083F\u085C-\u085F\u086B-\u089F\u08B5\u08C8-\u08D2\u08E2\u0964\u0965\u0970\u0984\u098D\u098E\u0991\u0992\u09A9\u09B1\u09B3-\u09B5\u09BA\u09BB\u09C5\u09C6\u09C9\u09CA\u09CF-\u09D6\u09D8-\u09DB\u09DE\u09E4\u09E5\u09F2-\u09FB\u09FD\u09FF\u0A00\u0A04\u0A0B-\u0A0E\u0A11\u0A12\u0A29\u0A31\u0A34\u0A37\u0A3A\u0A3B\u0A3D\u0A43-\u0A46\u0A49\u0A4A\u0A4E-\u0A50\u0A52-\u0A58\u0A5D\u0A5F-\u0A65\u0A76-\u0A80\u0A84\u0A8E\u0A92\u0AA9\u0AB1\u0AB4\u0ABA\u0ABB\u0AC6\u0ACA\u0ACE\u0ACF\u0AD1-\u0ADF\u0AE4\u0AE5\u0AF0-\u0AF8\u0B00\u0B04\u0B0D\u0B0E\u0B11\u0B12\u0B29\u0B31\u0B34\u0B3A\u0B3B\u0B45\u0B46\u0B49\u0B4A\u0B4E-\u0B54\u0B58-\u0B5B\u0B5E\u0B64\u0B65\u0B70\u0B72-\u0B81\u0B84\u0B8B-\u0B8D\u0B91\u0B96-\u0B98\u0B9B\u0B9D\u0BA0-\u0BA2\u0BA5-\u0BA7\u0BAB-\u0BAD\u0BBA-\u0BBD\u0BC3-\u0BC5\u0BC9\u0BCE\u0BCF\u0BD1-\u0BD6\u0BD8-\u0BE5\u0BF0-\u0BFF\u0C0D\u0C11\u0C29\u0C3A-\u0C3C\u0C45\u0C49\u0C4E-\u0C54\u0C57\u0C5B-\u0C5F\u0C64\u0C65\u0C70-\u0C7F\u0C84\u0C8D\u0C91\u0CA9\u0CB4\u0CBA\u0CBB\u0CC5\u0CC9\u0CCE-\u0CD4\u0CD7-\u0CDD\u0CDF\u0CE4\u0CE5\u0CF0\u0CF3-\u0CFF\u0D0D\u0D11\u0D45\u0D49\u0D4F-\u0D53\u0D58-\u0D5E\u0D64\u0D65\u0D70-\u0D79\u0D80\u0D84\u0D97-\u0D99\u0DB2\u0DBC\u0DBE\u0DBF\u0DC7-\u0DC9\u0DCB-\u0DCE\u0DD5\u0DD7\u0DE0-\u0DE5\u0DF0\u0DF1\u0DF4-\u0E00\u0E3B-\u0E3F\u0E4F\u0E5A-\u0E80\u0E83\u0E85\u0E8B\u0EA4\u0EA6\u0EBE\u0EBF\u0EC5\u0EC7\u0ECE\u0ECF\u0EDA\u0EDB\u0EE0-\u0EFF\u0F01-\u0F17\u0F1A-\u0F1F\u0F2A-\u0F34\u0F36\u0F38\u0F3A-\u0F3D\u0F48\u0F6D-\u0F70\u0F85\u0F98\u0FBD-\u0FC5\u0FC7-\u0FFF\u104A-\u104F\u109E\u109F\u10C6\u10C8-\u10CC\u10CE\u10CF\u10FB\u1249\u124E\u124F\u1257\u1259\u125E\u125F\u1289\u128E\u128F\u12B1\u12B6\u12B7\u12BF\u12C1\u12C6\u12C7\u12D7\u1311\u1316\u1317\u135B\u135C\u1360-\u137F\u1390-\u139F\u13F6\u13F7\u13FE-\u1400\u166D\u166E\u1680\u169B-\u169F\u16EB-\u16ED\u16F9-\u16FF\u170D\u1715-\u171F\u1735-\u173F\u1754-\u175F\u176D\u1771\u1774-\u177F\u17D4-\u17D6\u17D8-\u17DB\u17DE\u17DF\u17EA-\u180A\u180E\u180F\u181A-\u181F\u1879-\u187F\u18AB-\u18AF\u18F6-\u18FF\u191F\u192C-\u192F\u193C-\u1945\u196E\u196F\u1975-\u197F\u19AC-\u19AF\u19CA-\u19CF\u19DA-\u19FF\u1A1C-\u1A1F\u1A5F\u1A7D\u1A7E\u1A8A-\u1A8F\u1A9A-\u1AA6\u1AA8-\u1AAF\u1AC1-\u1AFF\u1B4C-\u1B4F\u1B5A-\u1B6A\u1B74-\u1B7F\u1BF4-\u1BFF\u1C38-\u1C3F\u1C4A-\u1C4C\u1C7E\u1C7F\u1C89-\u1C8F\u1CBB\u1CBC\u1CC0-\u1CCF\u1CD3\u1CFB-\u1CFF\u1DFA\u1F16\u1F17\u1F1E\u1F1F\u1F46\u1F47\u1F4E\u1F4F\u1F58\u1F5A\u1F5C\u1F5E\u1F7E\u1F7F\u1FB5\u1FBD\u1FBF-\u1FC1\u1FC5\u1FCD-\u1FCF\u1FD4\u1FD5\u1FDC-\u1FDF\u1FED-\u1FF1\u1FF5\u1FFD-\u203E\u2041-\u2053\u2055-\u2070\u2072-\u207E\u2080-\u208F\u209D-\u20CF\u20F1-\u2101\u2103-\u2106\u2108\u2109\u2114\u2116-\u2118\u211E-\u2123\u2125\u2127\u2129\u212E\u213A\u213B\u2140-\u2144\u214A-\u214D\u214F-\u215F\u2189-\u24B5\u24EA-\u2BFF\u2C2F\u2C5F\u2CE5-\u2CEA\u2CF4-\u2CFF\u2D26\u2D28-\u2D2C\u2D2E\u2D2F\u2D68-\u2D6E\u2D70-\u2D7E\u2D97-\u2D9F\u2DA7\u2DAF\u2DB7\u2DBF\u2DC7\u2DCF\u2DD7\u2DDF\u2E00-\u2E2E\u2E30-\u3004\u3008-\u3020\u3030\u3036\u3037\u303D-\u3040\u3097\u3098\u309B\u309C\u30A0\u30FB\u3100-\u3104\u3130\u318F-\u319F\u31C0-\u31EF\u3200-\u33FF\u4DC0-\u4DFF\u9FFD-\u9FFF\uA48D-\uA4CF\uA4FE\uA4FF\uA60D-\uA60F\uA62C-\uA63F\uA673\uA67E\uA6F2-\uA716\uA720\uA721\uA789\uA78A\uA7C0\uA7C1\uA7CB-\uA7F4\uA828-\uA82B\uA82D-\uA83F\uA874-\uA87F\uA8C6-\uA8CF\uA8DA-\uA8DF\uA8F8-\uA8FA\uA8FC\uA92E\uA92F\uA954-\uA95F\uA97D-\uA97F\uA9C1-\uA9CE\uA9DA-\uA9DF\uA9FF\uAA37-\uAA3F\uAA4E\uAA4F\uAA5A-\uAA5F\uAA77-\uAA79\uAAC3-\uAADA\uAADE\uAADF\uAAF0\uAAF1\uAAF7-\uAB00\uAB07\uAB08\uAB0F\uAB10\uAB17-\uAB1F\uAB27\uAB2F\uAB5B\uAB6A-\uAB6F\uABEB\uABEE\uABEF\uABFA-\uABFF\uD7A4-\uD7AF\uD7C7-\uD7CA\uD7FC-\uD7FF\uE000-\uF8FF\uFA6E\uFA6F\uFADA-\uFAFF\uFB07-\uFB12\uFB18-\uFB1C\uFB29\uFB37\uFB3D\uFB3F\uFB42\uFB45\uFBB2-\uFBD2\uFD3E-\uFD4F\uFD90\uFD91\uFDC8-\uFDEF\uFDFC-\uFDFF\uFE10-\uFE1F\uFE30-\uFE32\uFE35-\uFE4C\uFE50-\uFE6F\uFE75\uFEFD-\uFF0F\uFF1A-\uFF20\uFF3B-\uFF3E\uFF40\uFF5B-\uFF65\uFFBF-\uFFC1\uFFC8\uFFC9\uFFD0\uFFD1\uFFD8\uFFD9\uFFDD-\uFFFF]|\uD800[\uDC0C\uDC27\uDC3B\uDC3E\uDC4E\uDC4F\uDC5E-\uDC7F\uDCFB-\uDD3F\uDD75-\uDDFC\uDDFE-\uDE7F\uDE9D-\uDE9F\uDED1-\uDEDF\uDEE1-\uDEFF\uDF20-\uDF2C\uDF4B-\uDF4F\uDF7B-\uDF7F\uDF9E\uDF9F\uDFC4-\uDFC7\uDFD0\uDFD6-\uDFFF]|\uD801[\uDC9E\uDC9F\uDCAA-\uDCAF\uDCD4-\uDCD7\uDCFC-\uDCFF\uDD28-\uDD2F\uDD64-\uDDFF\uDF37-\uDF3F\uDF56-\uDF5F\uDF68-\uDFFF]|\uD802[\uDC06\uDC07\uDC09\uDC36\uDC39-\uDC3B\uDC3D\uDC3E\uDC56-\uDC5F\uDC77-\uDC7F\uDC9F-\uDCDF\uDCF3\uDCF6-\uDCFF\uDD16-\uDD1F\uDD3A-\uDD7F\uDDB8-\uDDBD\uDDC0-\uDDFF\uDE04\uDE07-\uDE0B\uDE14\uDE18\uDE36\uDE37\uDE3B-\uDE3E\uDE40-\uDE5F\uDE7D-\uDE7F\uDE9D-\uDEBF\uDEC8\uDEE7-\uDEFF\uDF36-\uDF3F\uDF56-\uDF5F\uDF73-\uDF7F\uDF92-\uDFFF]|\uD803[\uDC49-\uDC7F\uDCB3-\uDCBF\uDCF3-\uDCFF\uDD28-\uDD2F\uDD3A-\uDE7F\uDEAA\uDEAD-\uDEAF\uDEB2-\uDEFF\uDF1D-\uDF26\uDF28-\uDF2F\uDF51-\uDFAF\uDFC5-\uDFDF\uDFF7-\uDFFF]|\uD804[\uDC47-\uDC65\uDC70-\uDC7E\uDCBB-\uDCCF\uDCE9-\uDCEF\uDCFA-\uDCFF\uDD35\uDD40-\uDD43\uDD48-\uDD4F\uDD74\uDD75\uDD77-\uDD7F\uDDC5-\uDDC8\uDDCD\uDDDB\uDDDD-\uDDFF\uDE12\uDE38-\uDE3D\uDE3F-\uDE7F\uDE87\uDE89\uDE8E\uDE9E\uDEA9-\uDEAF\uDEEB-\uDEEF\uDEFA-\uDEFF\uDF04\uDF0D\uDF0E\uDF11\uDF12\uDF29\uDF31\uDF34\uDF3A\uDF45\uDF46\uDF49\uDF4A\uDF4E\uDF4F\uDF51-\uDF56\uDF58-\uDF5C\uDF64\uDF65\uDF6D-\uDF6F\uDF75-\uDFFF]|\uD805[\uDC4B-\uDC4F\uDC5A-\uDC5D\uDC62-\uDC7F\uDCC6\uDCC8-\uDCCF\uDCDA-\uDD7F\uDDB6\uDDB7\uDDC1-\uDDD7\uDDDE-\uDDFF\uDE41-\uDE43\uDE45-\uDE4F\uDE5A-\uDE7F\uDEB9-\uDEBF\uDECA-\uDEFF\uDF1B\uDF1C\uDF2C-\uDF2F\uDF3A-\uDFFF]|\uD806[\uDC3B-\uDC9F\uDCEA-\uDCFE\uDD07\uDD08\uDD0A\uDD0B\uDD14\uDD17\uDD36\uDD39\uDD3A\uDD44-\uDD4F\uDD5A-\uDD9F\uDDA8\uDDA9\uDDD8\uDDD9\uDDE2\uDDE5-\uDDFF\uDE3F-\uDE46\uDE48-\uDE4F\uDE9A-\uDE9C\uDE9E-\uDEBF\uDEF9-\uDFFF]|\uD807[\uDC09\uDC37\uDC41-\uDC4F\uDC5A-\uDC71\uDC90\uDC91\uDCA8\uDCB7-\uDCFF\uDD07\uDD0A\uDD37-\uDD39\uDD3B\uDD3E\uDD48-\uDD4F\uDD5A-\uDD5F\uDD66\uDD69\uDD8F\uDD92\uDD99-\uDD9F\uDDAA-\uDEDF\uDEF7-\uDFAF\uDFB1-\uDFFF]|\uD808[\uDF9A-\uDFFF]|\uD809[\uDC6F-\uDC7F\uDD44-\uDFFF]|[\uD80A\uD80B\uD80E-\uD810\uD812-\uD819\uD824-\uD82B\uD82D\uD82E\uD830-\uD833\uD837\uD839\uD83D\uD83F\uD87B-\uD87D\uD87F\uD885-\uDB3F\uDB41-\uDBFF][\uDC00-\uDFFF]|\uD80D[\uDC2F-\uDFFF]|\uD811[\uDE47-\uDFFF]|\uD81A[\uDE39-\uDE3F\uDE5F\uDE6A-\uDECF\uDEEE\uDEEF\uDEF5-\uDEFF\uDF37-\uDF3F\uDF44-\uDF4F\uDF5A-\uDF62\uDF78-\uDF7C\uDF90-\uDFFF]|\uD81B[\uDC00-\uDE3F\uDE80-\uDEFF\uDF4B-\uDF4E\uDF88-\uDF8E\uDFA0-\uDFDF\uDFE2\uDFE5-\uDFEF\uDFF2-\uDFFF]|\uD821[\uDFF8-\uDFFF]|\uD823[\uDCD6-\uDCFF\uDD09-\uDFFF]|\uD82C[\uDD1F-\uDD4F\uDD53-\uDD63\uDD68-\uDD6F\uDEFC-\uDFFF]|\uD82F[\uDC6B-\uDC6F\uDC7D-\uDC7F\uDC89-\uDC8F\uDC9A-\uDC9C\uDC9F-\uDFFF]|\uD834[\uDC00-\uDD64\uDD6A-\uDD6C\uDD73-\uDD7A\uDD83\uDD84\uDD8C-\uDDA9\uDDAE-\uDE41\uDE45-\uDFFF]|\uD835[\uDC55\uDC9D\uDCA0\uDCA1\uDCA3\uDCA4\uDCA7\uDCA8\uDCAD\uDCBA\uDCBC\uDCC4\uDD06\uDD0B\uDD0C\uDD15\uDD1D\uDD3A\uDD3F\uDD45\uDD47-\uDD49\uDD51\uDEA6\uDEA7\uDEC1\uDEDB\uDEFB\uDF15\uDF35\uDF4F\uDF6F\uDF89\uDFA9\uDFC3\uDFCC\uDFCD]|\uD836[\uDC00-\uDDFF\uDE37-\uDE3A\uDE6D-\uDE74\uDE76-\uDE83\uDE85-\uDE9A\uDEA0\uDEB0-\uDFFF]|\uD838[\uDC07\uDC19\uDC1A\uDC22\uDC25\uDC2B-\uDCFF\uDD2D-\uDD2F\uDD3E\uDD3F\uDD4A-\uDD4D\uDD4F-\uDEBF\uDEFA-\uDFFF]|\uD83A[\uDCC5-\uDCCF\uDCD7-\uDCFF\uDD4C-\uDD4F\uDD5A-\uDFFF]|\uD83B[\uDC00-\uDDFF\uDE04\uDE20\uDE23\uDE25\uDE26\uDE28\uDE33\uDE38\uDE3A\uDE3C-\uDE41\uDE43-\uDE46\uDE48\uDE4A\uDE4C\uDE50\uDE53\uDE55\uDE56\uDE58\uDE5A\uDE5C\uDE5E\uDE60\uDE63\uDE65\uDE66\uDE6B\uDE73\uDE78\uDE7D\uDE7F\uDE8A\uDE9C-\uDEA0\uDEA4\uDEAA\uDEBC-\uDFFF]|\uD83C[\uDC00-\uDD2F\uDD4A-\uDD4F\uDD6A-\uDD6F\uDD8A-\uDFFF]|\uD83E[\uDC00-\uDFEF\uDFFA-\uDFFF]|\uD869[\uDEDE-\uDEFF]|\uD86D[\uDF35-\uDF3F]|\uD86E[\uDC1E\uDC1F]|\uD873[\uDEA2-\uDEAF]|\uD87A[\uDFE1-\uDFFF]|\uD87E[\uDE1E-\uDFFF]|\uD884[\uDF4B-\uDFFF]|\uDB40[\uDC00-\uDCFF\uDDF0-\uDFFF]/g,it=Object.hasOwnProperty,at=class{constructor(){this.occurrences,this.reset()}slug(e,t){let n=this,r=ot(e,t===!0),i=r;for(;it.call(n.occurrences,r);)n.occurrences[i]++,r=i+`-`+n.occurrences[i];return n.occurrences[r]=0,r}reset(){this.occurrences=Object.create(null)}};function ot(e,t){return typeof e==`string`?(t||(e=e.toLowerCase()),e.replace(rt,``).replace(/ /g,`-`)):``}function st(){return{async:!1,breaks:!1,extensions:null,gfm:!0,hooks:null,pedantic:!1,renderer:null,silent:!1,tokenizer:null,walkTokens:null}}var ct=st();function lt(e){ct=e}var ut={exec:()=>null};function E(e,t=``){let n=typeof e==`string`?e:e.source,r={replace:(e,t)=>{let i=typeof t==`string`?t:t.source;return i=i.replace(ft.caret,`$1`),n=n.replace(e,i),r},getRegex:()=>new RegExp(n,t)};return r}var dt=((e=``)=>{try{return!!RegExp(`(?<=1)(?<!1)`+e)}catch{return!1}})(),ft={codeRemoveIndent:/^(?: {1,4}| {0,3}\t)/gm,outputLinkReplace:/\\([\[\]])/g,indentCodeCompensation:/^(\s+)(?:```)/,beginningSpace:/^\s+/,endingHash:/#$/,startingSpaceChar:/^ /,endingSpaceChar:/ $/,nonSpaceChar:/[^ ]/,newLineCharGlobal:/\n/g,tabCharGlobal:/\t/g,multipleSpaceGlobal:/\s+/g,blankLine:/^[ \t]*$/,doubleBlankLine:/\n[ \t]*\n[ \t]*$/,blockquoteStart:/^ {0,3}>/,blockquoteSetextReplace:/\n {0,3}((?:=+|-+) *)(?=\n|$)/g,blockquoteSetextReplace2:/^ {0,3}>[ \t]?/gm,listReplaceNesting:/^ {1,4}(?=( {4})*[^ ])/g,listIsTask:/^\[[ xX]\] +\S/,listReplaceTask:/^\[[ xX]\] +/,listTaskCheckbox:/\[[ xX]\]/,anyLine:/\n.*\n/,hrefBrackets:/^<(.*)>$/,tableDelimiter:/[:|]/,tableAlignChars:/^\||\| *$/g,tableRowBlankLine:/\n[ \t]*$/,tableAlignRight:/^ *-+: *$/,tableAlignCenter:/^ *:-+: *$/,tableAlignLeft:/^ *:-+ *$/,startATag:/^<a /i,endATag:/^<\/a>/i,startPreScriptTag:/^<(pre|code|kbd|script)(\s|>)/i,endPreScriptTag:/^<\/(pre|code|kbd|script)(\s|>)/i,startAngleBracket:/^</,endAngleBracket:/>$/,pedanticHrefTitle:/^([^'"]*[^\s])\s+(['"])(.*)\2/,unicodeAlphaNumeric:/[\p{L}\p{N}]/u,escapeTest:/[&<>"']/,escapeReplace:/[&<>"']/g,escapeTestNoEncode:/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/,escapeReplaceNoEncode:/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/g,caret:/(^|[^\[])\^/g,percentDecode:/%25/g,findPipe:/\|/g,splitPipe:/ \|/,slashPipe:/\\\|/g,carriageReturn:/\r\n|\r/g,spaceLine:/^ +$/gm,notSpaceStart:/^\S*/,endingNewline:/\n$/,listItemRegex:e=>RegExp(`^( {0,3}${e})((?:[	 ][^\\n]*)?(?:\\n|$))`),nextBulletRegex:e=>RegExp(`^ {0,${Math.min(3,e-1)}}(?:[*+-]|\\d{1,9}[.)])((?:[ 	][^\\n]*)?(?:\\n|$))`),hrRegex:e=>RegExp(`^ {0,${Math.min(3,e-1)}}((?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$)`),fencesBeginRegex:e=>RegExp(`^ {0,${Math.min(3,e-1)}}(?:\`\`\`|~~~)`),headingBeginRegex:e=>RegExp(`^ {0,${Math.min(3,e-1)}}#`),htmlBeginRegex:e=>RegExp(`^ {0,${Math.min(3,e-1)}}<(?:[a-z].*>|!--)`,`i`),blockquoteBeginRegex:e=>RegExp(`^ {0,${Math.min(3,e-1)}}>`)},pt=/^(?:[ \t]*(?:\n|$))+/,mt=/^((?: {4}| {0,3}\t)[^\n]+(?:\n(?:[ \t]*(?:\n|$))*)?)+/,ht=/^ {0,3}(`{3,}(?=[^`\n]*(?:\n|$))|~{3,})([^\n]*)(?:\n|$)(?:|([\s\S]*?)(?:\n|$))(?: {0,3}\1[~`]* *(?=\n|$)|$)/,gt=/^ {0,3}((?:-[\t ]*){3,}|(?:_[ \t]*){3,}|(?:\*[ \t]*){3,})(?:\n+|$)/,_t=/^ {0,3}(#{1,6})(?=\s|$)(.*)(?:\n+|$)/,vt=/ {0,3}(?:[*+-]|\d{1,9}[.)])/,yt=/^(?!bull |blockCode|fences|blockquote|heading|html|table)((?:.|\n(?!\s*?\n|bull |blockCode|fences|blockquote|heading|html|table))+?)\n {0,3}(=+|-+) *(?:\n+|$)/,bt=E(yt).replace(/bull/g,vt).replace(/blockCode/g,/(?: {4}| {0,3}\t)/).replace(/fences/g,/ {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g,/ {0,3}>/).replace(/heading/g,/ {0,3}#{1,6}/).replace(/html/g,/ {0,3}<[^\n>]+>\n/).replace(/\|table/g,``).getRegex(),xt=E(yt).replace(/bull/g,vt).replace(/blockCode/g,/(?: {4}| {0,3}\t)/).replace(/fences/g,/ {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g,/ {0,3}>/).replace(/heading/g,/ {0,3}#{1,6}/).replace(/html/g,/ {0,3}<[^\n>]+>\n/).replace(/table/g,/ {0,3}\|?(?:[:\- ]*\|)+[\:\- ]*\n/).getRegex(),St=/^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html|table| +\n)[^\n]+)*)/,Ct=/^[^\n]+/,wt=/(?!\s*\])(?:\\[\s\S]|[^\[\]\\])+/,Tt=E(/^ {0,3}\[(label)\]: *(?:\n[ \t]*)?([^<\s][^\s]*|<.*?>)(?:(?: +(?:\n[ \t]*)?| *\n[ \t]*)(title))? *(?:\n+|$)/).replace(`label`,wt).replace(`title`,/(?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))/).getRegex(),Et=E(/^(bull)([ \t][^\n]+?)?(?:\n|$)/).replace(/bull/g,vt).getRegex(),Dt=`address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|meta|nav|noframes|ol|optgroup|option|p|param|search|section|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul`,Ot=/<!--(?:-?>|[\s\S]*?(?:-->|$))/,kt=E(`^ {0,3}(?:<(script|pre|style|textarea)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n+|$)|comment[^\\n]*(\\n+|$)|<\\?[\\s\\S]*?(?:\\?>\\n*|$)|<![A-Z][\\s\\S]*?(?:>\\n*|$)|<!\\[CDATA\\[[\\s\\S]*?(?:\\]\\]>\\n*|$)|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|<(?!script|pre|style|textarea)([a-z][\\w-]*)(?:attribute)*? */?>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|</(?!script|pre|style|textarea)[a-z][\\w-]*\\s*>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$))`,`i`).replace(`comment`,Ot).replace(`tag`,Dt).replace(`attribute`,/ +[a-zA-Z:_][\w.:-]*(?: *= *"[^"\n]*"| *= *'[^'\n]*'| *= *[^\s"'=<>`]+)?/).getRegex(),D=E(St).replace(`hr`,gt).replace(`heading`,` {0,3}#{1,6}(?:\\s|$)`).replace(`|lheading`,``).replace(`|table`,``).replace(`blockquote`,` {0,3}>`).replace(`fences`," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace(`list`,` {0,3}(?:[*+-]|1[.)])[ \\t]`).replace(`html`,`</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)`).replace(`tag`,Dt).getRegex(),At={blockquote:E(/^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/).replace(`paragraph`,D).getRegex(),code:mt,def:Tt,fences:ht,heading:_t,hr:gt,html:kt,lheading:bt,list:Et,newline:pt,paragraph:D,table:ut,text:Ct},jt=E(`^ *([^\\n ].*)\\n {0,3}((?:\\| *)?:?-+:? *(?:\\| *:?-+:? *)*(?:\\| *)?)(?:\\n((?:(?! *\\n|hr|heading|blockquote|code|fences|list|html).*(?:\\n|$))*)\\n*|$)`).replace(`hr`,gt).replace(`heading`,` {0,3}#{1,6}(?:\\s|$)`).replace(`blockquote`,` {0,3}>`).replace(`code`,`(?: {4}| {0,3}	)[^\\n]`).replace(`fences`," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace(`list`,` {0,3}(?:[*+-]|1[.)])[ \\t]`).replace(`html`,`</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)`).replace(`tag`,Dt).getRegex(),Mt={...At,lheading:xt,table:jt,paragraph:E(St).replace(`hr`,gt).replace(`heading`,` {0,3}#{1,6}(?:\\s|$)`).replace(`|lheading`,``).replace(`table`,jt).replace(`blockquote`,` {0,3}>`).replace(`fences`," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace(`list`,` {0,3}(?:[*+-]|1[.)])[ \\t]`).replace(`html`,`</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)`).replace(`tag`,Dt).getRegex()},Nt={...At,html:E(`^ *(?:comment *(?:\\n|\\s*$)|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)|<tag(?:"[^"]*"|'[^']*'|\\s[^'"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))`).replace(`comment`,Ot).replace(/tag/g,`(?!(?:a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)\\b)\\w+(?!:|[^\\w\\s@]*@)\\b`).getRegex(),def:/^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/,heading:/^(#{1,6})(.*)(?:\n+|$)/,fences:ut,lheading:/^(.+?)\n {0,3}(=+|-+) *(?:\n+|$)/,paragraph:E(St).replace(`hr`,gt).replace(`heading`,` *#{1,6} *[^
 ]`).replace(`lheading`,bt).replace(`|table`,``).replace(`blockquote`,` {0,3}>`).replace(`|fences`,``).replace(`|list`,``).replace(`|html`,``).replace(`|tag`,``).getRegex()},Pt=/^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/,Ft=/^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/,It=/^( {2,}|\\)\n(?!\s*$)/,Lt=/^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*_]|\b_|$)|[^ ](?= {2,}\n)))/,O=/[\p{P}\p{S}]/u,Rt=/[\s\p{P}\p{S}]/u,zt=/[^\s\p{P}\p{S}]/u,Bt=E(/^((?![*_])punctSpace)/,`u`).replace(/punctSpace/g,Rt).getRegex(),Vt=/(?!~)[\p{P}\p{S}]/u,Ht=/(?!~)[\s\p{P}\p{S}]/u,Ut=/(?:[^\s\p{P}\p{S}]|~)/u,Wt=E(/link|precode-code|html/,`g`).replace(`link`,/\[(?:[^\[\]`]|(?<a>`+)[^`]+\k<a>(?!`))*?\]\((?:\\[\s\S]|[^\\\(\)]|\((?:\\[\s\S]|[^\\\(\)])*\))*\)/).replace(`precode-`,dt?"(?<!`)()":"(^^|[^`])").replace(`code`,/(?<b>`+)[^`]+\k<b>(?!`)/).replace(`html`,/<(?! )[^<>]*?>/).getRegex(),Gt=/^(?:\*+(?:((?!\*)punct)|([^\s*]))?)|^_+(?:((?!_)punct)|([^\s_]))?/,Kt=E(Gt,`u`).replace(/punct/g,O).getRegex(),qt=E(Gt,`u`).replace(/punct/g,Vt).getRegex(),Jt=`^[^_*]*?__[^_*]*?\\*[^_*]*?(?=__)|[^*]+(?=[^*])|(?!\\*)punct(\\*+)(?=[\\s]|$)|notPunctSpace(\\*+)(?!\\*)(?=punctSpace|$)|(?!\\*)punctSpace(\\*+)(?=notPunctSpace)|[\\s](\\*+)(?!\\*)(?=punct)|(?!\\*)punct(\\*+)(?!\\*)(?=punct)|notPunctSpace(\\*+)(?=notPunctSpace)`,Yt=E(Jt,`gu`).replace(/notPunctSpace/g,zt).replace(/punctSpace/g,Rt).replace(/punct/g,O).getRegex(),Xt=E(Jt,`gu`).replace(/notPunctSpace/g,Ut).replace(/punctSpace/g,Ht).replace(/punct/g,Vt).getRegex(),Zt=E(`^[^_*]*?\\*\\*[^_*]*?_[^_*]*?(?=\\*\\*)|[^_]+(?=[^_])|(?!_)punct(_+)(?=[\\s]|$)|notPunctSpace(_+)(?!_)(?=punctSpace|$)|(?!_)punctSpace(_+)(?=notPunctSpace)|[\\s](_+)(?!_)(?=punct)|(?!_)punct(_+)(?!_)(?=punct)`,`gu`).replace(/notPunctSpace/g,zt).replace(/punctSpace/g,Rt).replace(/punct/g,O).getRegex(),Qt=E(/^~~?(?:((?!~)punct)|[^\s~])/,`u`).replace(/punct/g,O).getRegex(),$t=E(`^[^~]+(?=[^~])|(?!~)punct(~~?)(?=[\\s]|$)|notPunctSpace(~~?)(?!~)(?=punctSpace|$)|(?!~)punctSpace(~~?)(?=notPunctSpace)|[\\s](~~?)(?!~)(?=punct)|(?!~)punct(~~?)(?!~)(?=punct)|notPunctSpace(~~?)(?=notPunctSpace)`,`gu`).replace(/notPunctSpace/g,zt).replace(/punctSpace/g,Rt).replace(/punct/g,O).getRegex(),en=E(/\\(punct)/,`gu`).replace(/punct/g,O).getRegex(),tn=E(/^<(scheme:[^\s\x00-\x1f<>]*|email)>/).replace(`scheme`,/[a-zA-Z][a-zA-Z0-9+.-]{1,31}/).replace(`email`,/[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(@)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(?![-_])/).getRegex(),nn=E(Ot).replace(`(?:-->|$)`,`-->`).getRegex(),rn=E(`^comment|^</[a-zA-Z][\\w:-]*\\s*>|^<[a-zA-Z][\\w-]*(?:attribute)*?\\s*/?>|^<\\?[\\s\\S]*?\\?>|^<![a-zA-Z]+\\s[\\s\\S]*?>|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>`).replace(`comment`,nn).replace(`attribute`,/\s+[a-zA-Z:_][\w.:-]*(?:\s*=\s*"[^"]*"|\s*=\s*'[^']*'|\s*=\s*[^\s"'=<>`]+)?/).getRegex(),an=/(?:\[(?:\\[\s\S]|[^\[\]\\])*\]|\\[\s\S]|`+(?!`)[^`]*?`+(?!`)|``+(?=\])|[^\[\]\\`])*?/,on=E(/^!?\[(label)\]\(\s*(href)(?:(?:[ \t]+(?:\n[ \t]*)?|\n[ \t]*)(title))?\s*\)/).replace(`label`,an).replace(`href`,/<(?:\\.|[^\n<>\\])+>|[^ \t\n\x00-\x1f]*/).replace(`title`,/"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/).getRegex(),sn=E(/^!?\[(label)\]\[(ref)\]/).replace(`label`,an).replace(`ref`,wt).getRegex(),cn=E(/^!?\[(ref)\](?:\[\])?/).replace(`ref`,wt).getRegex(),ln=E(`reflink|nolink(?!\\()`,`g`).replace(`reflink`,sn).replace(`nolink`,cn).getRegex(),un=/[hH][tT][tT][pP][sS]?|[fF][tT][pP]/,dn={_backpedal:ut,anyPunctuation:en,autolink:tn,blockSkip:Wt,br:It,code:Ft,del:ut,delLDelim:ut,delRDelim:ut,emStrongLDelim:Kt,emStrongRDelimAst:Yt,emStrongRDelimUnd:Zt,escape:Pt,link:on,nolink:cn,punctuation:Bt,reflink:sn,reflinkSearch:ln,tag:rn,text:Lt,url:ut},fn={...dn,link:E(/^!?\[(label)\]\((.*?)\)/).replace(`label`,an).getRegex(),reflink:E(/^!?\[(label)\]\s*\[([^\]]*)\]/).replace(`label`,an).getRegex()},pn={...dn,emStrongRDelimAst:Xt,emStrongLDelim:qt,delLDelim:Qt,delRDelim:$t,url:E(/^((?:protocol):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/).replace(`protocol`,un).replace(`email`,/[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/).getRegex(),_backpedal:/(?:[^?!.,:;*_'"~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_'"~)]+(?!$))+/,del:/^(~~?)(?=[^\s~])((?:\\[\s\S]|[^\\])*?(?:\\[\s\S]|[^\s~\\]))\1(?=[^~]|$)/,text:E(/^([`~]+|[^`~])(?:(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)|[\s\S]*?(?:(?=[\\<!\[`*~_]|\b_|protocol:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)))/).replace(`protocol`,un).getRegex()},mn={...pn,br:E(It).replace(`{2,}`,`*`).getRegex(),text:E(pn.text).replace(`\\b_`,`\\b_| {2,}\\n`).replace(/\{2,\}/g,`*`).getRegex()},hn={normal:At,gfm:Mt,pedantic:Nt},gn={normal:dn,gfm:pn,breaks:mn,pedantic:fn},_n={"&":`&amp;`,"<":`&lt;`,">":`&gt;`,'"':`&quot;`,"'":`&#39;`},k=e=>_n[e];function A(e,t){if(t){if(ft.escapeTest.test(e))return e.replace(ft.escapeReplace,k)}else if(ft.escapeTestNoEncode.test(e))return e.replace(ft.escapeReplaceNoEncode,k);return e}function vn(e){try{e=encodeURI(e).replace(ft.percentDecode,`%`)}catch{return null}return e}function yn(e,t){let n=e.replace(ft.findPipe,(e,t,n)=>{let r=!1,i=t;for(;--i>=0&&n[i]===`\\`;)r=!r;return r?`|`:` |`}).split(ft.splitPipe),r=0;if(n[0].trim()||n.shift(),n.length>0&&!n.at(-1)?.trim()&&n.pop(),t)if(n.length>t)n.splice(t);else for(;n.length<t;)n.push(``);for(;r<n.length;r++)n[r]=n[r].trim().replace(ft.slashPipe,`|`);return n}function bn(e,t,n){let r=e.length;if(r===0)return``;let i=0;for(;i<r;){let a=e.charAt(r-i-1);if(a===t&&!n)i++;else if(a!==t&&n)i++;else break}return e.slice(0,r-i)}function xn(e){let t=e.split(`
@@ -284,6 +284,27 @@ type Query {
     provider: String!
   ): SourceProvider
   """
+  Départements : les valeurs acceptées par les filtres \`department\`, avec leur nom, leur région et ce
+  que VFF y recense, comme \`GET /api/v1/departments\`. Ordre du code officiel (\`01\` à \`95\`, \`2A\`, \`2B\`,
+  puis \`971\` à \`976\`).
+  """
+  departments(
+    "Code INSEE d'une région : seulement ses départements. Code inconnu : erreur de validation."
+    region: String
+  ): [Department!]!
+  "Un département, par son code INSEE (\`29\`, \`2A\`, \`971\` ; minuscules acceptées) ; nul s'il est inconnu."
+  department(
+    "Code INSEE du département."
+    code: String!
+  ): Department
+  "Régions (valeurs acceptées par les filtres \`region\`), avec leurs départements, comme \`GET /api/v1/regions\`. Ordre alphabétique."
+  regions: [Region!]!
+  "Une région, par son code INSEE (\`53\`, \`84\`, \`01\`) ; nul si elle est inconnue."
+  region(
+    "Code INSEE de la région."
+    code: String!
+  ): Region
+  """
   Lignes, page par page (20 par défaut, 100 au plus), filtrables par nom, code et trafic.
   Les filtres \`name\` et \`code\` ignorent la casse et acceptent le joker \`%\` :
   \`name: "%brest%"\` trouve toutes les lignes dont le nom contient « brest ».
@@ -389,6 +410,77 @@ type Query {
     "A cursor after which elements are returned."
     after: String
   ): MediaConnection!
+}
+
+
+"""
+Mutations de contribution : proposer une modification, puis la relire, avec les mêmes règles que le
+site (\`/contribute\`, éditeur de tracé, espace de validation \`/validate\`).
+
+**Authentification**, l'une ou l'autre :
+- jeton personnel dans l'en-tête \`Authorization: Bearer <jeton>\`, créé dans le profil avec la case
+  « Autoriser les contributions » cochée (capacité \`contribute\`) ;
+- session du site (cookie), depuis une page de VFF : la requête porte l'en-tête \`X-XSRF-TOKEN\`
+  (ou \`X-CSRF-TOKEN\`), ou le navigateur la déclare de même origine (\`Sec-Fetch-Site: same-origin\`).
+
+Les mutations partagent la limite de débit du reste de l'API (REST, GraphQL, MCP). Les requêtes de
+lecture restent ouvertes sans compte.
+
+**Erreurs.** Une erreur arrive dans \`errors[]\`, avec \`data.<mutation>\` à \`null\` et un code stable
+dans \`extensions.code\` (messages en anglais) :
+- \`post_required\` : mutation envoyée en GET (seul POST est accepté) ;
+- \`unauthenticated\` : ni jeton ni session ;
+- \`insufficient_scope\` : jeton sans la capacité \`contribute\` ;
+- \`csrf_token_mismatch\` : session du site sans jeton CSRF valide ;
+- \`account_suspended\` : compte suspendu (\`extensions.suspended_until\`, ISO 8601, nul si sans fin) ;
+- \`forbidden\` : relecture demandée par un compte qui n'est ni validateur ni administrateur ;
+- \`not_found\` : contribution inconnue, ou retirée par un administrateur ;
+- \`own_contribution\` : relecture de sa propre contribution ;
+- \`already_closed\` : contribution déjà refusée ou publiée ;
+- \`already_approved\` : le même validateur approuve une deuxième fois ;
+- \`application_failed\` : la publication a échoué, rien n'est écrit et l'approbation est annulée
+  (\`extensions.reason\`).
+
+Une saisie refusée donne une erreur de validation : \`extensions.validation\` associe le chemin du
+champ (par exemple \`input.segment.pk_end_m\`) à ses messages.
+
+Un jeton inconnu, révoqué ou expiré reçoit HTTP 401, et le jeton d'un compte suspendu HTTP 403,
+avant toute exécution (comme pour les requêtes de lecture).
+"""
+type Mutation {
+  """
+  Propose une contribution, enregistrée « en attente » (\`PENDING\`) puis annoncée aux validateurs.
+  Elle est publiée après deux approbations indépendantes (\`validateContribution\`).
+  
+  Renseignez exactement un des deux champs de \`input\` : \`segment\` (modification d'une portion de
+  ligne entre deux PK) ou \`trace\` (tracé dessiné : ligne disparue ou correction d'une ligne).
+  Le compte doit être connecté et non suspendu.
+  """
+  submitContribution(
+    "La proposition : un seul de ses deux champs."
+    input: ContributionInput!
+  ): Contribution!
+  """
+  Relit une contribution en attente : approbation ou refus. Réservé aux validateurs et aux
+  administrateurs, connectés et non suspendus.
+  
+  Deux approbations de validateurs différents publient la contribution (\`APPLIED\`) : la carte et
+  la fiche de la ligne changent, l'auteur est prévenu et les webhooks \`contribution.applied\`
+  partent. Un refus demande un motif, transmis à l'auteur. On ne relit pas sa propre
+  contribution. Chaque décision recalcule la réputation de l'auteur et du validateur et entre au
+  journal d'audit.
+  """
+  validateContribution(
+    "Identifiant de la contribution (renvoyé par \`submitContribution\`)."
+    id: ID!
+    "Décision : \`APPROVE\` ou \`REJECT\`."
+    decision: ContributionDecision!
+    """
+    Motif du refus, de 5 à 1 000 caractères (espaces de début et de fin retirés), obligatoire avec
+    \`REJECT\` et transmis à l'auteur. Ignoré avec \`APPROVE\`.
+    """
+    reason: String
+  ): ContributionReview!
 }
 
 
@@ -534,13 +626,18 @@ type Line {
   greenway_length_m: Int!
   """
   Mises en service de signalisation datées (BAL, BAPR, block manuel, cantonnement téléphonique, TVM,
-  ETCS, KVB), relevées dans l'article Wikipédia de la ligne, du plus ancien au plus récent. C'est un
-  historique à part : l'état actuel de la ligne (SNCF Réseau) est donné par \`GET /api/v1/lines/{line}/signalling\` de l'API REST.
-  Premier relevé, limité : seuls les faits sûrs sont donnés (jour ou mois précis, ou année), et un fait
-  absent ne veut pas dire qu'aucun système n'a été mis en service. Liste vide si l'article ne date rien.
-  Texte de Wikipédia sous CC BY-SA 4.0 : reprenez la mention de \`SignallingEvent.attribution\`.
+  ETCS, KVB), relevées dans l'article Wikipédia de la ligne (texte, listes, tableaux, infobox), du plus
+  ancien au plus récent. C'est un historique à part : l'état actuel de la ligne (SNCF Réseau) est donné
+  par \`GET /api/v1/lines/{line}/signalling\` de l'API REST. Seuls les faits sûrs sont donnés (jour ou mois
+  précis, ou année), et un fait absent ne veut pas dire qu'aucun système n'a été mis en service. Liste vide
+  si l'article ne date rien. Avec \`era\`, seuls les faits encore en vigueur à la fin de l'ère (ceux que
+  dessine la carte de l'époque). Texte de Wikipédia sous CC BY-SA 4.0 : reprenez la mention de
+  \`SignallingEvent.attribution\`.
   """
-  signalling_history: [SignallingEvent!]!
+  signalling_history(
+    "Année d'une ère (décennie de 1830 à 2030) : seulement les faits en vigueur au 31 décembre de cette année (aujourd'hui pour 2030). Un fait plus récent du même groupe (cantonnement, TVM, ETCS, KVB) qui porte sur toute la ligne ou recouvre sa portion le remplace. Ère inconnue : liste vide."
+    era: Int
+  ): [SignallingEvent!]!
   """
   Profil en long de la ligne (altitude le long du tracé, gares placées dessus), comme
   \`GET /api/v1/lines/{line}/profile\`. Altitudes de l'IGN (BD TOPO, à défaut RGE ALTI ; Licence
@@ -570,7 +667,7 @@ type Line {
   lourd (jusqu'à quelques secondes) : demandez-la pour une ligne à la fois.
   """
   sheet(
-    "Joindre le tracé GeoJSON de chaque portion des phases (\`portions[].geometry\`)."
+    "Joindre le tracé GeoJSON de chaque portion des phases (\`portions[].geometry\`). Nul pour une portion dont une source n'autorise pas la redistribution (\`geometry_withheld\`, \`geometry_withheld_reason\`)."
     geometry: Boolean = false
   ): LineSheet!
   "Date de création de la fiche dans VFF (pas une date historique)."
@@ -719,7 +816,9 @@ type LineSegment {
   Géométrie du tronçon : une chaîne JSON contenant une géométrie GeoJSON (\`LineString\` ou
   \`MultiLineString\`, coordonnées WGS 84 dans l'ordre longitude, latitude). À décoder côté
   client avec \`JSON.parse\`. Vaut \`null\` quand la source du tronçon n'autorise pas la
-  redistribution (licence non ouverte, non commerciale ou statut incertain : voir \`source\`).
+  redistribution (licence non ouverte, non commerciale ou statut incertain, ou source absente du
+  registre des droits : voir \`source\`). Les tuiles vectorielles de la carte servent à l'affichage
+  et ne sont pas un export de données.
   """
   geojson: String
   "Longueur du tronçon, en mètres."
@@ -953,8 +1052,10 @@ input LineEventFilter {
   type: String
   "Provenance de l'événement (voir \`LineEvent.source\`), ex. \`wikipedia\`."
   source: String
-  "Code INSEE du département (\`35\`, \`2A\`, \`971\`…) : lignes citant ce département ou y desservant une gare."
+  "Code INSEE du département (\`35\`, \`2A\`, \`971\`…) : lignes citant ce département ou y desservant une gare. Liste : requête \`departments\`."
   department: String
+  "Code INSEE de la région (\`53\` Bretagne, \`11\` Île-de-France…, liste : requête \`regions\`) : lignes citant l'un de ses départements ou y desservant une gare."
+  region: String
   "Début de la période, bornes incluses : une année (\`1930\`, soit le 1er janvier) ou une date (\`1930-06-15\`)."
   from: String
   "Fin de la période, bornes incluses : une année (\`1939\`, soit le 31 décembre) ou une date (\`1939-12-31\`)."
@@ -1022,6 +1123,8 @@ input MediaFilter {
   from_year: Int
   "Année représentée maximale, incluse, au moins égale à \`from_year\`."
   to_year: Int
+  "Vrai : seulement les médias mis en avant (images de l'accueil) ; faux : les autres."
+  featured: Boolean
   "Ordre des identifiants. Par défaut : croissant (\`ASC\`)."
   order: SortOrder
 }
@@ -1337,15 +1440,57 @@ type LineMaterialLink {
   confidence: String
   "Ère VFF à laquelle le lien est rattaché, quand la source la date. Souvent nulle."
   era: Era
-  "Début de la circulation sur la ligne, seulement si la source le date (aucune date n'est déduite du texte)."
+  "Début de la circulation saisi dans VFF : nul pour les liens importés, dont les dates lues dans les sources sont dans \`periods\`."
   from_date: Date
-  "Fin de la circulation sur la ligne, seulement si la source la date."
+  "Fin de la circulation saisie dans VFF : nulle pour les liens importés (voir \`periods\`)."
   to_date: Date
+  """
+  Périodes de circulation de la série sur la ligne, datées par une source, de la plus ancienne à la
+  plus récente. Seules les périodes sûres (\`high\`, \`medium\`) sont servies ; liste vide quand aucune
+  source ne date la circulation.
+  """
+  periods: [LineMaterialPeriod!]!
   "Note libre (liens saisis dans VFF)."
   notes: String
   "Preuves du lien, les plus fortes d'abord (cinq au plus)."
   evidence: [LineMaterialEvidence!]!
   "Fournisseur et licence de la source du lien."
+  provenance: Provenance!
+}
+
+
+"""
+Période de circulation d'une série sur une ligne, lue dans une source datée : phrase d'un article
+Wikipédia qui relie la série et la ligne (faits seulement, CC BY-SA 4.0, la phrase n'est jamais
+servie) ou qualificatifs de date d'une déclaration Wikidata P3438 (CC0). Une date à l'année s'écrit
+au 1er janvier, une date au mois au 1er du mois : lisez toujours la précision.
+"""
+type LineMaterialPeriod {
+  "Début de la circulation (\`AAAA-MM-JJ\`), nul si la source ne donne que la fin (« jusqu'en 1990 »)."
+  start_date: Date
+  "Précision du début : \`day\`, \`month\` ou \`year\`. Nulle sans début."
+  start_precision: String
+  "Fin de la circulation (\`AAAA-MM-JJ\`), nulle si la source ne la donne pas : une fin nulle ne veut pas dire que la série y circule encore."
+  end_date: Date
+  "Précision de la fin : \`day\`, \`month\` ou \`year\`. Nulle sans fin."
+  end_precision: String
+  "Début de la portion parcourue, quand le titre de section de l'article la nomme (lieu tel qu'écrit)."
+  section_from: String
+  "Fin de la portion parcourue (voir \`section_from\`)."
+  section_to: String
+  "Fiabilité : \`high\` (chaque date au jour ou au mois) ou \`medium\` (une date à l'année). Les périodes \`low\` ne sont jamais servies."
+  confidence: String!
+  "Où le fait a été lu : \`line_article\` (article de la ligne), \`material_article\` (article de la série) ou \`wikidata\`."
+  origin: String!
+  "Fournisseur de la source : \`wikipedia\` ou \`wikidata\`."
+  source: String!
+  "Titre de l'article Wikipédia lu, ou élément Wikidata de la ligne (\`Q…\`)."
+  source_title: String
+  "Révision de l'article lue (\`oldid\`), nulle pour Wikidata."
+  source_revision: Int
+  "Permalien de la source (révision Wikipédia ou élément Wikidata) : à citer."
+  source_url: String!
+  "Fournisseur et licence de la source."
   provenance: Provenance!
 }
 
@@ -1454,7 +1599,7 @@ type Accident {
   review_status: String!
   """
   Vérification de la date et du lieu (\`vff:verify-accidents\`) : \`rule\` (\`primary_source\`, \`two_sources\`,
-  \`wikidata_wikipedia\` ou absente), \`date\` et \`place\` (valeur retenue ; sources qui concordent \`confirmed_by\`,
+  \`wikidata_wikipedia\`, \`wikipedia_editions\` ou absente), \`date\` et \`place\` (valeur retenue ; sources qui concordent \`confirmed_by\`,
   qui divergent \`disagreeing\`, communes voisines \`nearby\`, chacune avec \`provider\`, \`role\`, \`url\` et la date de
   lecture \`retrieved_at\`), \`families\`, \`kind\` (nature lue dans une source), \`aliases\` (autres éléments Wikidata du
   même accident, gardés avec leurs sources). Nul si la fiche n'a pas été vérifiée.
@@ -1781,8 +1926,10 @@ type SignallingEvent {
   date: Date!
   "Précision de \`date\` : \`day\`, \`month\` ou \`year\`."
   date_precision: String!
-  "Fiabilité : \`high\` (jour ou mois donné) ou \`medium\` (année seule). Les faits douteux ne sont pas exposés."
+  "Fiabilité : \`high\` (jour ou mois donné) ou \`medium\` (année seule, date reprise d'une phrase voisine comme « la même année » ou « à cette occasion », ou date déduite de l'ouverture : \`origin\` vaut \`opening\`). Lisez la précision dans \`date_precision\`. Les faits douteux ne sont pas exposés."
   reliability: String!
+  "Où l'article donne le fait : \`text\` (phrase), \`list\` (liste à puces), \`table\` (ligne d'un tableau), \`infobox\` (champ « signalisation » daté) ou \`opening\` (TVM d'une ligne à grande vitesse, en service dès l'ouverture : date de la première mise en service de l'infobox)."
+  origin: String!
   "Portée : \`whole_line\` (l'article dit toute la ligne), \`section\` (portion nommée) ou \`unspecified\` (l'article ne dit pas)."
   scope: String!
   "Portion concernée, nulle quand \`scope\` n'est pas \`section\`."
@@ -1796,16 +1943,33 @@ type SignallingEvent {
 }
 
 
-"Portion d'une mise en service de signalisation, telle que l'article la donne."
+"Portion d'une mise en service de signalisation, telle que l'article la donne, et sa place sur la ligne quand elle est connue."
 type SignallingEventSection {
   "Lieu de départ tel qu'écrit dans l'article, nul s'il n'est pas cité."
   from: String
   "Lieu d'arrivée tel qu'écrit dans l'article, nul s'il n'est pas cité."
   to: String
-  "PK de début, en mètres, si l'article le donne."
+  "Placement : \`stations\` (les deux gares d'extrémité trouvées sur la ligne, avec leur PK calé), \`article_pk\` (PK donnés par l'article) ou \`unlocated\` (lieux introuvables ou ambigus : aucun PK n'est inventé)."
+  location: String!
+  "PK de début de la portion placée, en mètres (numérotation de SNCF Réseau), nul si elle n'est pas placée."
   pk_start_m: Int
-  "PK de fin, en mètres, si l'article le donne."
+  "PK de fin de la portion placée, en mètres, nul si elle n'est pas placée."
   pk_end_m: Int
+  "Gare retenue pour le lieu de départ (\`location: stations\`), nulle sinon."
+  from_station: SignallingEventStation
+  "Gare retenue pour le lieu d'arrivée (\`location: stations\`), nulle sinon."
+  to_station: SignallingEventStation
+}
+
+
+"Gare d'extrémité d'une portion de signalisation placée sur la ligne."
+type SignallingEventStation {
+  "Identifiant (slug) de la gare, comme dans \`station(slug:)\`."
+  slug: String!
+  "Nom de la gare."
+  name: String!
+  "PK de la gare sur cette ligne, en mètres."
+  pk_m: Int
 }
 
 
@@ -1860,6 +2024,10 @@ input AccidentFilter {
   line: String
   "Code INSEE du département actuel du lieu (ex. \`91\`, \`2A\`)."
   department: String
+  "Code INSEE de la région (\`53\` Bretagne, \`11\` Île-de-France…, liste : requête \`regions\`) : accidents dont le lieu est dans l'un de ses départements."
+  region: String
+  "Slug d'une gare : accidents dont elle est la gare la plus proche du lieu (10 km au plus). Gare inconnue : erreur de validation."
+  station: String
   "Nature (voir \`Accident.kind\`)."
   kind: String
   "\`ok\` ou \`to_review\`."
@@ -2286,6 +2454,8 @@ type LineSheetSignalling {
   kvb_equipped: Boolean!
   "Tranches de points kilométriques homogènes."
   ranges: [LineSignallingRange!]!
+  "Mises en service datées relevées dans l'article Wikipédia de la ligne (historique à part de l'état actuel ci-dessus), comme \`Line.signalling_history\`."
+  history: [SignallingEvent!]!
 }
 
 
@@ -2338,6 +2508,10 @@ type LineSheetStation {
   served_from: Int
   "Dernière année de desserte (nulle : toujours desservie ou inconnue)."
   served_until: Int
+  "Nature de \`served_until\` : \`year\` (année tirée d'une date), \`upper_bound\` (desservie au plus tard cette année : la gare n'a qu'une fermeture en intervalle, ex. Frenelle-la-Grande - Puzieux sur 040000, 1989), \`undated\` (fin non datée : l'année n'est que celle du calcul, ex. Jarménil sur 062000, 2026), nul sans fin."
+  served_until_kind: String
+  "Origine des années de desserte : \`line_events\` (événements datés de la ligne au PK de la gare), \`traces\` (tracés datés), \`station\` (dates de la gare elle-même, faute d'événement daté de la ligne, ex. Morlaix sur 447000), nul si inconnues."
+  years_source: String
   "Date d'ouverture (\`AAAA-MM-JJ\`)."
   opened_at: String
   "Précision de \`opened_at\` : \`day\`, \`month\`, \`year\`."
@@ -2381,6 +2555,27 @@ type LineSection {
   description: String
   "Lien vers la source."
   source_url: String
+  """
+  Mises en service datées de la section : les phases de la ligne qui ouvrent une partie du tracé
+  pendant ses années d'ouverture, dans l'ordre des dates. Une phase dont l'année tombe dans les
+  années de deux sections n'est rattachée à aucune.
+  """
+  stages: [LineSectionStage!]!
+}
+
+
+"Une mise en service datée d'une section nommée (ex. LGV Paris - Lyon, 27 septembre 1981)."
+type LineSectionStage {
+  "Indice de la phase dans \`LineSheet.phases\`."
+  phase: Int!
+  "Date de la mise en service (AAAA-MM-JJ), à lire avec \`precision\`."
+  date: String!
+  "Précision de la date : \`day\`, \`month\` ou \`year\`."
+  precision: String!
+  "Longueur mise en service, en mètres."
+  length_m: Int!
+  "Événements qui datent cette mise en service (voir \`Query.lineEvent\` et \`LineSheet.chronicle\`)."
+  event_ids: [Int!]!
 }
 
 
@@ -2398,6 +2593,29 @@ type LineSheetMaterial {
   in_service_from: Int
   "Année de retrait."
   in_service_to: Int
+  "Périodes de circulation sur cette ligne datées par une source (sûres seulement), les plus anciennes d'abord. Détail et fiabilité : \`Line.material_links.periods\`."
+  periods: [LineSheetMaterialPeriod!]!
+}
+
+
+"Période de circulation d'une série sur la ligne (forme courte de \`LineMaterialPeriod\`)."
+type LineSheetMaterialPeriod {
+  "Début (\`AAAA-MM-JJ\`), nul si seule la fin est connue."
+  start_date: String
+  "Précision du début : \`day\`, \`month\` ou \`year\`."
+  start_precision: String
+  "Fin (\`AAAA-MM-JJ\`), nulle si la source ne la donne pas."
+  end_date: String
+  "Précision de la fin : \`day\`, \`month\` ou \`year\`."
+  end_precision: String
+  "Début de la portion parcourue, si l'article la nomme."
+  section_from: String
+  "Fin de la portion parcourue."
+  section_to: String
+  "Fournisseur de la source : \`wikipedia\` ou \`wikidata\`."
+  source: String!
+  "Permalien de la source."
+  source_url: String!
 }
 
 
@@ -2454,7 +2672,14 @@ type LineSheet {
   facts: JSON
   "État décennie par décennie."
   era_summary: [LineEraSummary!]!
-  "Tronçons élémentaires des phases : \`index\`, \`length_m\` et, avec \`geometry: true\`, \`geometry\` GeoJSON."
+  """
+  Tronçons élémentaires des phases : \`index\`, \`length_m\` et, avec \`geometry: true\`, \`geometry\`
+  GeoJSON, \`geometry_withheld\` et \`geometry_withheld_reason\`. La géométrie d'une portion n'est
+  jointe que si toutes ses sources autorisent la redistribution ; sinon elle vaut \`null\`,
+  \`geometry_withheld\` vaut \`true\` et \`geometry_withheld_reason\` donne la raison
+  (\`licence_not_open\` : source dont la licence n'autorise pas la redistribution ;
+  \`unknown_source\` : source absente du registre des droits).
+  """
   portions: JSON
   "Phases datées : \`date\`, \`precision\`, \`kind\`, \`changes\` (\`from\`, \`to\`, \`length_m\`, \`event_id\`), \`state\` par portion, \`length_by_category\`, \`active_m\`."
   phases: JSON
@@ -2527,6 +2752,10 @@ type StationLine {
   first_year: Int
   "Dernière année de desserte (nulle : toujours desservie)."
   last_year: Int
+  "Nature de \`last_year\` : \`year\` (année tirée d'une date), \`upper_bound\` (desservie au plus tard cette année : la gare n'a qu'une fermeture en intervalle, ex. Frenelle-la-Grande - Puzieux sur 040000, 1989), \`undated\` (fin non datée : l'année n'est que celle du calcul, ex. Jarménil sur 062000, 2026), nul sans fin."
+  last_year_kind: String
+  "Origine des années de desserte : \`line_events\` (événements datés de la ligne au PK de la gare), \`traces\` (tracés datés), \`station\` (dates de la gare elle-même, faute d'événement daté de la ligne, ex. Morlaix sur 447000), \`never_served\`, nul si inconnues."
+  years_source: String
   "\`line_closed\` (ligne fermée avant l'ouverture de la gare), \`station_closed\`, ou nul."
   never_served: String
   "Vrai si une portion en service aujourd'hui dessert la gare."
@@ -2633,6 +2862,12 @@ type StationSheet {
   sources: [StationSource!]!
   "Gares à moins de 10 km (12 au plus), de la plus proche à la plus lointaine."
   neighbors: [StationNeighbor!]!
+  """
+  Liens : page web (\`web\`) et points d'accès REST liés : chronologie (\`events\`), médias (\`media\`),
+  accidents dont la gare est la gare la plus proche du lieu (\`accidents\`), département (\`department\`,
+  nul si inconnu).
+  """
+  links: JSON
 }
 
 
@@ -2677,6 +2912,8 @@ type LineDirectoryFacets {
   traffics: [CountByCode!]!
   "Lignes avec une portion associative."
   heritage: Int!
+  "Lignes par département (code INSEE), sans le filtre \`department\` ; une ligne compte dans chacun de ses départements. Départements sans ligne absents."
+  departments: [CountByCode!]!
 }
 
 
@@ -2757,6 +2994,8 @@ type StationDirectoryPage {
   era_year: Int
   "Nombre de gares par statut pour la recherche, sans le filtre \`status\` (calculé seulement s'il est demandé)."
   facets: [CountByCode!]!
+  "Nombre de gares par département (code INSEE) pour la recherche, sans le filtre \`department\` ; départements sans gare absents (calculé seulement s'il est demandé)."
+  department_facets: [CountByCode!]!
 }
 
 
@@ -2772,8 +3011,10 @@ input LineDirectoryFilter {
   status: String
   "Seulement les lignes avec une portion associative."
   heritage: Boolean
-  "Code INSEE du département (lignes citant ce département ou y desservant une gare)."
+  "Code INSEE du département (lignes citant ce département ou y desservant une gare). Liste : requête \`departments\`."
   department: String
+  "Code INSEE de la région (\`53\` Bretagne, \`11\` Île-de-France…, liste : requête \`regions\`) : lignes citant l'un de ses départements ou y desservant une gare."
+  region: String
   "Année de l'ère de référence (décennie de 1830 à 2030). Par défaut : aujourd'hui."
   era: Int
   "Tri : \`name\` (alphabétique français, par défaut), \`code\` (lignes sans code en dernier), \`slug\`."
@@ -2789,8 +3030,10 @@ input StationDirectoryFilter {
   q: String
   "Statut : \`active\`, \`tourist\`, \`no_commercial\`, \`declassified\`, \`gone\`, \`planned\`."
   status: String
-  "Code INSEE du département de la gare."
+  "Code INSEE du département de la gare. Liste : requête \`departments\`."
   department: String
+  "Code INSEE de la région (\`53\` Bretagne, \`11\` Île-de-France…, liste : requête \`regions\`) : gares de ses départements."
+  region: String
   "Année d'une ère : statut à cette ère, gares absentes exclues."
   era: Int
   "Seulement les gares dont la position est à vérifier."
@@ -2969,6 +3212,294 @@ type LinePkSnap {
   lng: Float!
   "Distance entre le lieu demandé et le tracé, en mètres. Au-delà de quelques dizaines de mètres, le lieu n'est probablement pas sur cette ligne."
   distance_from_input_m: Float!
+}
+
+
+"""
+Un département français. Code et nom tirés du Code officiel géographique de l'INSEE (Licence Ouverte
+2.0), région depuis le 1er janvier 2016. Les compteurs suivent les règles des filtres \`department\`.
+"""
+type Department {
+  "Code INSEE : \`01\` à \`95\`, \`2A\`, \`2B\`, \`971\` à \`976\` (valeur des filtres \`department\`)."
+  code: String!
+  "Nom officiel (ex. « Finistère »)."
+  name: String!
+  "Région du département."
+  region: RegionRef!
+  "Ce que VFF recense dans le département."
+  counts: TerritoryCounts!
+}
+
+
+"Une région française (Code officiel géographique de l'INSEE, Licence Ouverte 2.0)."
+type Region {
+  "Code INSEE : \`11\` à \`94\`, outre-mer \`01\` à \`06\` (valeur des filtres \`region\`)."
+  code: String!
+  "Nom officiel (ex. « Bretagne »)."
+  name: String!
+  "Départements de la région, dans l'ordre du code officiel."
+  departments: [DepartmentRef!]!
+  "Ce que VFF recense dans la région (une ligne qui traverse plusieurs de ses départements compte une fois)."
+  counts: TerritoryCounts!
+}
+
+
+"Une région, par son code et son nom."
+type RegionRef {
+  "Code INSEE de la région."
+  code: String!
+  "Nom de la région."
+  name: String!
+}
+
+
+"Un département, par son code et son nom."
+type DepartmentRef {
+  "Code INSEE du département."
+  code: String!
+  "Nom du département."
+  name: String!
+}
+
+
+"Ce que VFF recense dans un département ou une région."
+type TerritoryCounts {
+  "Lignes dont la fiche cite le territoire ou qui y desservent une gare (résultat du filtre \`department\` ou \`region\` de \`lineDirectory\`)."
+  lines: Int!
+  "Gares de l'annuaire situées dans le territoire (points techniques exclus)."
+  stations: Int!
+  "Accidents publiés dont le lieu est dans le territoire (département actuel)."
+  accidents: Int!
+}
+
+
+"Une proposition de contribution : renseignez exactement un des deux champs."
+input ContributionInput {
+  "Modification d'attributs d'une portion de ligne entre deux PK, à une ère."
+  segment: SegmentContributionInput
+  "Tracé dessiné : ligne disparue (\`new_line\`) ou correction d'une ligne existante (\`correction\`)."
+  trace: TraceContributionInput
+}
+
+
+"""
+Modification d'une portion de ligne entre deux points kilométriques, à une ère : les mêmes champs
+que le formulaire « Modifier une portion » du site (\`/contribute/edit-segment\`). Les tronçons de
+la ligne qui rencontrent la portion reçoivent les nouvelles valeurs à la publication.
+"""
+input SegmentContributionInput {
+  "Code de la ligne (6 chiffres pour le réseau ferré national, espaces ignorés : \`405000\` ou \`405 000\`)."
+  line_code: String!
+  "Ère visée : une décennie de 1830 à 2030 (2030 désigne le réseau d'aujourd'hui)."
+  era_year: Int!
+  "Début de la portion, en mètres depuis l'origine du tracé de la ligne à cette ère (0 à 9 999 999)."
+  pk_start_m: Int!
+  "Fin de la portion, en mètres, strictement supérieure à \`pk_start_m\` (au plus 9 999 999)."
+  pk_end_m: Int!
+  "Nouvelles valeurs : au moins une non nulle ; un champ absent ou nul reste inchangé."
+  changes: SegmentChangesInput!
+  """
+  Sources de la modification, au moins une (adresse web ou référence : arrêté, ouvrage, archive),
+  500 caractères au plus chacune. Les validateurs ne relisent pas une affirmation sans pièce.
+  """
+  sources: [String!]!
+  "Remarques pour les validateurs, 2 000 caractères au plus."
+  notes: String
+}
+
+
+"Nouvelles valeurs d'une portion ; un champ absent ou nul reste inchangé, \`false\` et \`0\` sont de vraies valeurs."
+input SegmentChangesInput {
+  """
+  État de la voie, mêmes valeurs que \`LineSegment.status\` : \`in_service\` (exploitée),
+  \`single_track\` (exploitée, à voie unique), \`service_track\` (voie de service ou portuaire),
+  \`construction\` (en travaux), \`abandoned\` (fermée ou neutralisée, voie encore en place),
+  \`dismantled\` (voie déposée, emprise encore visible), \`razed\` (emprise disparue).
+  """
+  status: String
+  "Trafic, mêmes valeurs que \`LineSegment.traffic_type\` : \`passenger\`, \`freight\`, \`mixed\` ou \`unknown\`."
+  traffic_type: String
+  "Vrai si la portion est électrifiée."
+  electrified: Boolean
+  "Tension d'électrification en volts, de 0 à 50 000 (ex. 1500, 25000)."
+  voltage_v: Int
+  "Vitesse maximale en km/h, de 0 à 600."
+  max_speed_kmh: Int
+  "Vrai si la portion est exploitée par une association (train touristique, vélorail, musée)."
+  is_heritage: Boolean
+}
+
+
+"""
+Tracé dessiné, comme dans l'éditeur de tracé du site (\`/contribute/trace\`) : une ou plusieurs
+portions, chacune avec ses événements datés et sourcés. À la publication, le tracé entre dans les
+sources de VFF et les événements dans l'historique de la ligne (créée si \`kind\` vaut \`new_line\`).
+"""
+input TraceContributionInput {
+  "\`new_line\` (ligne disparue absente de VFF) ou \`correction\` (ligne existante, voir \`line_slug\`)."
+  kind: String!
+  "Identifiant d'URL de la ligne corrigée (ex. \`rfn-405000\`) : obligatoire avec \`correction\`."
+  line_slug: String
+  "Nom de la nouvelle ligne, de 3 à 250 caractères : obligatoire avec \`new_line\`."
+  new_line_name: String
+  "Réseau : \`principal\`, \`secondaire\`, \`militaire\` ou \`particulier\`."
+  network: String!
+  "Fond de carte utilisé pour dessiner (ex. \`ign-etat-major\`), 60 caractères au plus."
+  basemap: String
+  "Source du tracé (carte, plan, ouvrage), de 3 à 500 caractères."
+  trace_source: String!
+  "Remarques pour les validateurs, 2 000 caractères au plus."
+  notes: String
+  "Portions du tracé, de 1 à 60."
+  portions: [TracePortionInput!]!
+  "Éléments existants que ce tracé remplace (facultatif) : les validateurs les voient en « avant »."
+  replaces: TraceReplacesInput
+}
+
+
+"Une portion du tracé : une ligne brisée et ses événements."
+input TracePortionInput {
+  "Clé de la portion, unique dans la proposition (lettres, chiffres, \`_\` et \`-\`, 24 caractères au plus)."
+  key: String!
+  "Nom de la portion (ex. « Section Nontron - Thiviers »), 250 caractères au plus."
+  label: String
+  "Lieu de départ, 250 caractères au plus."
+  from: String
+  "Lieu d'arrivée, 250 caractères au plus."
+  to: String
+  """
+  Points de la portion, de 2 à 8 000, chacun \`[longitude, latitude]\` en degrés WGS 84
+  (EPSG:4326). La portion doit mesurer au moins 10 m.
+  """
+  coordinates: [[Float!]!]!
+  "Événements datés de la portion, 30 au plus."
+  events: [TraceEventInput!]
+}
+
+
+"Un événement daté d'une portion (ouverture, fermeture, dépose…)."
+input TraceEventInput {
+  """
+  Type : \`opening\`, \`opening_passenger\`, \`opening_freight\`, \`closure_passenger\`,
+  \`closure_freight\`, \`closure\`, \`reopening\`, \`reopening_passenger\`, \`reopening_freight\`,
+  \`dismantling\`, \`electrification\`, \`declassification\` ou \`other\`.
+  """
+  type: String!
+  "Précision de la date : \`day\`, \`month\` ou \`year\`."
+  precision: String!
+  "Date selon la précision : \`AAAA-MM-JJ\`, \`AAAA-MM\` ou \`AAAA\` (années 1750 et suivantes)."
+  date: String!
+  "Source de l'événement (ouvrage, archive, journal officiel), de 3 à 500 caractères."
+  source: String!
+  "Adresse de la source, en http ou https, 500 caractères au plus."
+  source_url: String
+  "Description de l'événement, 1 000 caractères au plus."
+  description: String
+}
+
+
+"Éléments existants remplacés par un tracé (identifiants internes, ceux de l'éditeur du site)."
+input TraceReplacesInput {
+  "Tracés de source remplacés, 200 au plus."
+  source_trace_ids: [Int!]
+  "Tronçons de ligne remplacés, 2 000 au plus."
+  line_segment_ids: [Int!]
+  "Lignes remplacées, 5 au plus."
+  line_ids: [Int!]
+}
+
+
+"Décision d'un validateur."
+enum ContributionDecision {
+  "Approuver : à la deuxième approbation indépendante, la contribution est publiée."
+  APPROVE
+  "Refuser, avec un motif (\`reason\`) transmis à l'auteur."
+  REJECT
+}
+
+
+"Type d'une contribution."
+enum ContributionType {
+  "Modification d'une portion de ligne entre deux PK."
+  LINE_SEGMENT
+  "Tracé dessiné (ligne disparue ou correction)."
+  LINE_TRACE
+}
+
+
+"Nature d'une contribution."
+enum ContributionAction {
+  "Création (nouvelle ligne)."
+  CREATE
+  "Modification d'une ligne existante."
+  UPDATE
+  "Suppression."
+  DELETE
+}
+
+
+"État d'une contribution."
+enum ContributionStatus {
+  "En attente d'une première approbation."
+  PENDING
+  "Approuvée une fois, en attente d'un deuxième validateur."
+  APPROVED
+  "Refusée (motif dans \`review_notes\`)."
+  REJECTED
+  "Publiée : appliquée à l'encyclopédie."
+  APPLIED
+}
+
+
+"Issue d'une relecture enregistrée."
+enum ContributionReviewOutcome {
+  "Approbation enregistrée, il en manque encore pour publier."
+  APPROVED
+  "Dernière approbation requise : la contribution est publiée."
+  APPLIED
+  "Contribution refusée."
+  REJECTED
+}
+
+
+"Une contribution, telle que la voient son auteur et les validateurs."
+type Contribution {
+  "Identifiant de la contribution."
+  id: ID!
+  "Type de la contribution."
+  type: ContributionType!
+  "Création d'une ligne ou modification d'une ligne existante."
+  action: ContributionAction!
+  "État de la contribution."
+  status: ContributionStatus!
+  "Approbations reçues."
+  approvals: Int!
+  "Approbations indépendantes nécessaires pour publier (2)."
+  approvals_required: Int!
+  "Ligne visée (nulle pour une nouvelle ligne pas encore publiée)."
+  line: Line
+  """
+  Proposition enregistrée, normalisée par le serveur (mêmes clés que sur le site) : pour
+  \`LINE_SEGMENT\`, \`line_code\`, \`line_name\`, \`era_year\`, \`pk_start_m\`, \`pk_end_m\`, \`changes\`,
+  \`sources\` et \`notes\` ; pour \`LINE_TRACE\`, les portions en GeoJSON (\`geometry\`), leurs
+  événements aux dates normalisées, \`length_m\`, \`warnings\` et, une fois publiée, \`applied\`.
+  """
+  payload: JSON!
+  "Motif du refus, transmis à l'auteur ; nul sinon."
+  review_notes: String
+  "Date d'envoi."
+  created_at: DateTime!
+  "Date de la dernière décision (refus ou publication) ; nulle sinon."
+  reviewed_at: DateTime
+}
+
+
+"Résultat d'une relecture enregistrée."
+type ContributionReview {
+  "Ce que la décision a produit."
+  outcome: ContributionReviewOutcome!
+  "La contribution après la décision."
+  contribution: Contribution!
 }
 
 
