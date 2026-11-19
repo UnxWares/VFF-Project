@@ -1,13 +1,14 @@
 // Enregistrement du service worker, suivi des mises à jour, désinscription. Toutes les dépendances du navigateur
 // sont injectées : la logique se teste sans DOM (tests/js/pwa-register.test.js).
-import { SW_URL, STATIC_CACHE_PREFIX, OFFLINE_CACHE } from './rules.js';
+import { SW_URL, isVffCache } from './rules.js';
 
 /** Au plus une recherche de nouvelle version par heure quand l'onglet redevient visible. */
 export const UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000;
 
 /**
- * Désinscrit tous les service workers du site et vide leurs caches. Appelée en développement (HMR : un service
- * worker resté d'un essai de production fausserait tout) et quand la PWA est coupée (VITE_PWA=false).
+ * Désinscrit tous les service workers du site et vide leurs caches (fichiers, pages, tuiles, page hors ligne).
+ * Appelée en développement (HMR : un service worker resté d'un essai de production fausserait tout) et quand
+ * la PWA est coupée (VITE_PWA=false).
  *
  * @param {ServiceWorkerContainer} serviceWorker
  * @param {CacheStorage | undefined} cacheStorage
@@ -18,11 +19,7 @@ export async function unregisterServiceWorker(serviceWorker, cacheStorage) {
 
     if (cacheStorage) {
         const names = await cacheStorage.keys();
-        await Promise.all(
-            names
-                .filter((name) => name.startsWith(STATIC_CACHE_PREFIX) || name === OFFLINE_CACHE)
-                .map((name) => cacheStorage.delete(name)),
-        );
+        await Promise.all(names.filter(isVffCache).map((name) => cacheStorage.delete(name)));
     }
 }
 

@@ -1,5 +1,5 @@
 // Câblage du service worker (resources/js/pwa/sw.js) : événements écoutés, pas de skipWaiting automatique,
-// nettoyage des anciens caches, et aucune prise en charge des requêtes hors règles.
+// nettoyage des anciens caches, copies des pages et des tuiles, et aucune prise en charge hors règles.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { basicResponse, fakeCacheStorage, fakeRequest } from './support/pwaFakes.js';
 
@@ -48,12 +48,19 @@ describe('service worker', () => {
         const { handlers, self, cacheStorage } = await loadWorker([
             'vff-static-ancienne',
             'vff-static-dev',
+            'vff-pages-ancienne',
+            'vff-pages-dev',
+            'vff-tiles-ancienne',
             'vff-offline',
         ]);
         let activated;
         handlers.activate({ waitUntil: (p) => (activated = p) });
         await activated;
-        expect(await cacheStorage.keys()).toEqual(['vff-static-dev', 'vff-offline']);
+        expect(await cacheStorage.keys()).toEqual([
+            'vff-static-dev',
+            'vff-pages-dev',
+            'vff-offline',
+        ]);
         expect(self.registration.navigationPreload.enable).toHaveBeenCalled();
         expect(self.clients.claim).toHaveBeenCalled();
     });
@@ -67,8 +74,34 @@ describe('service worker', () => {
         expect(respondWith).toHaveBeenCalledOnce();
 
         respondWith.mockClear();
+        handlers.fetch(event('https://vff-project.org/api/v1/eras/2030/tiles/6/33/22.mvt'));
+        expect(respondWith).toHaveBeenCalledOnce();
+
+        respondWith.mockClear();
         handlers.fetch(event('https://vff-project.org/api/lines'));
         handlers.fetch(event('https://tile.openstreetmap.org/6/33/22.png'));
         expect(respondWith).not.toHaveBeenCalled();
+    });
+
+    it('range une page déclarée lisible hors ligne dans le cache des pages de la version', async () => {
+        const { handlers, cacheStorage } = await loadWorker();
+        globalThis.fetch.mockImplementation(async () =>
+            basicResponse('<html></html>', { headers: { 'X-VFF-Offline': 'allow' } }),
+        );
+        const pending = [];
+        let responded;
+        handlers.fetch({
+            request: fakeRequest('https://vff-project.org/lines', {
+                mode: 'navigate',
+                destination: 'document',
+            }),
+            preloadResponse: Promise.resolve(undefined),
+            respondWith: (p) => (responded = p),
+            waitUntil: (p) => pending.push(p),
+        });
+        expect((await responded).status).toBe(200);
+        await Promise.all(pending);
+        const cache = await cacheStorage.open('vff-pages-dev');
+        expect(await cache.keys()).toEqual(['https://vff-project.org/lines?__vff-copy=html']);
     });
 });

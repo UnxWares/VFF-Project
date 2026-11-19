@@ -248,7 +248,8 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [ ] Programme de partenariat avec les associations ferroviaires locales (CFTA, AAATV, MFCF…)
 - [ ] Présence dans les conférences open data / patrimoine
 - [x] Application installable (PWA), avec page hors ligne
-- [ ] Mode hors ligne (cache de tuiles + données)
+- [x] Mode hors ligne : pages publiques déjà consultées sans être connecté (HTML et Inertia, 60 au plus, 30 jours) et tuiles vectorielles de VFF déjà affichées (500 au plus, 7 jours), avec la date de la copie ; jamais les pages de compte, de contribution ni de validation, ni les tuiles OpenStreetMap
+- [ ] Mode hors ligne, suite : données de la carte (GeoJSON des gares, style, glyphes) et fond de carte libre auto-hébergé
 
 ---
 

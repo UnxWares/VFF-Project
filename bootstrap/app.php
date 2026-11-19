@@ -5,6 +5,7 @@ use App\Http\Middleware\ApiLocale;
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\EnsureAccountNotSuspended;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\MarkOfflineReadable;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackLastSeen;
@@ -33,6 +34,8 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
             // Dernière visite des membres connectés (délai d'inactivité de 3 ans).
             TrackLastSeen::class,
+            // Pages publiques qu'un visiteur non connecté peut relire hors ligne (service worker).
+            MarkOfflineReadable::class,
         ]);
         // X-Frame-Options (sauf /embed/*), nosniff, Referrer-Policy. En tête du
         // groupe web pour couvrir aussi les 404 de liaison de modèle et les 419.
