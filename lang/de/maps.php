@@ -38,6 +38,8 @@ return [
         'orm_electrification' => 'OpenRailwayMap - Elektrifizierung',
         'orm_gauge' => 'OpenRailwayMap - Spurweite',
         'accidents' => 'Unfälle',
+        'level_crossings' => 'Bahnübergänge',
+        'signalling' => 'Streckenblock',
     ],
 
     'legend' => [
@@ -210,7 +212,7 @@ return [
         'route_term' => 'Verbindung',
         'route_text' => 'Geben Sie zwei Bahnhöfe und ein Jahr an: Die Karte zeichnet den Weg auf dem damals betriebenen Netz und listet die befahrenen Strecken auf.',
         'layers_term' => 'Ebenen',
-        'layers_text' => 'Die Ebene OpenRailwayMap blendet die heutige Infrastruktur ein: Signale, Geschwindigkeiten, Elektrifizierung. Die Schaltfläche mit der Uhr oben rechts auf der Karte zeigt alte Karten des IGN. Die Ebene Unfälle zeigt die Unfälle bis zur angezeigten Epoche; ein blasser Kreis bedeutet, dass nur die Gemeinde bekannt ist.',
+        'layers_text' => 'Die Ebene OpenRailwayMap blendet die heutige Infrastruktur ein: Signale, Geschwindigkeiten, Elektrifizierung. Die Schaltfläche mit der Uhr oben rechts auf der Karte zeigt alte Karten des IGN. Die Ebene Unfälle zeigt die Unfälle bis zur angezeigten Epoche; ein blasser Kreis bedeutet, dass nur die Gemeinde bekannt ist. Die Ebene Bahnübergänge zeigt die von SNCF Réseau veröffentlichten Übergänge, ab dem Maßstab eines Départements. Die Ebene Streckenblock färbt die heutigen Strecken nach ihrem Blocksystem.',
         'views_term' => 'Epochen vergleichen',
         'views_text' => 'Die Auswahl „Ansicht“ über der Karte vergleicht zwei Jahrzehnte (dazwischen eröffnete, stillgelegte oder abgebaute Strecken) oder legt alle Epochen übereinander, damit Sie sehen, wann jede Strecke den Betrieb verlor. Die Adresse der Seite behält diese Auswahl: Sie können sie teilen.',
     ],
@@ -292,6 +294,41 @@ return [
         'loading' => 'Unfälle werden geladen…',
         'error' => 'Die Unfälle konnten nicht geladen werden. Wählen Sie die Ebene erneut, um es noch einmal zu versuchen.',
         'view_sheet' => 'Zur Seite des Unfalls',
+    ],
+
+    // Calque « Passages à niveau » (SNCF Réseau) : légende, bulle.
+    'level_crossings' => [
+        'title' => 'Bahnübergänge',
+        'zoom_hint' => 'Zoomen Sie in die Karte: Bahnübergänge erscheinen ab dem Maßstab eines Départements.',
+        'current_only' => 'Bahnübergänge sind nur für das heutige Netz bekannt.',
+        'show_today' => 'Heutige Karte anzeigen',
+        'note' => 'Ein Übergang auf mehreren Strecken wird nur einmal gezeichnet.',
+        'source' => 'Quelle: SNCF Réseau (ODbL)',
+        'pk' => 'km',
+        'line' => 'Strecke',
+        'fallback_title' => 'Bahnübergang',
+        'view_line' => 'Streckenseite ansehen',
+    ],
+
+    // Calque « Signalisation » : modes de cantonnement (le KVB n'en est pas un), légende, bulle.
+    'signalling' => [
+        'title' => 'Streckenblock',
+        'intro' => 'Blocksystem, das die Züge in Abstand hält, im heutigen Netz.',
+        'families' => [
+            'automatic_block' => 'Selbsttätiger Lichtblock (BAL)',
+            'restricted_block' => 'Selbsttätiger Block mit eingeschränkter Permissivität (BAPR)',
+            'manual_block' => 'Handblock (gestrichelt)',
+            'telephone' => 'Telefonblock oder CAPI (gepunktet)',
+            'cab' => 'Führerstandssignalisierung (TVM, ETCS)',
+        ],
+        'kvb_note' => 'Die KVB überwacht die Geschwindigkeit der Züge und ist kein Blocksystem: Sie steht in der Infoblase jedes Abschnitts.',
+        'placement_note' => 'Die Grenzen der Abschnitte werden nach den Streckenkilometern gesetzt, in 9 von 10 Fällen auf weniger als 200 m genau.',
+        'current_only' => 'Der Streckenblock ist nur für das heutige Netz bekannt.',
+        'block_label' => 'Blocksystem',
+        'cab_label' => 'Führerstandssignalisierung',
+        'protection_label' => 'Geschwindigkeitsüberwachung',
+        'pk_label' => 'km',
+        'source' => 'Quelle: SNCF Réseau (ODbL). Grenzen auf einige hundert Meter genau gesetzt.',
     ],
 
     // Schaltfläche „Mich orten“: Meldungen, wenn der Standort nicht verfügbar ist.

@@ -161,6 +161,9 @@ return [
     'uuid' => 'Das Feld :attribute muss eine gültige UUID sein.',
 
     'custom' => [
+        'bbox' => [
+            'invalid' => 'Der Ausschnitt muss „West,Süd,Ost,Nord“ in Grad angeben, mit West < Ost und Süd < Nord.',
+        ],
         'email' => [
             'unique' => 'Diese E-Mail-Adresse ist bereits mit einem Konto verknüpft.',
         ],

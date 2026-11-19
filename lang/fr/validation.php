@@ -161,6 +161,9 @@ return [
     'uuid' => 'Le champ :attribute doit être un UUID valide.',
 
     'custom' => [
+        'bbox' => [
+            'invalid' => 'L’emprise doit être « ouest,sud,est,nord » en degrés, avec ouest < est et sud < nord.',
+        ],
         'email' => [
             'unique' => 'Cette adresse e-mail est déjà associée à un compte.',
         ],

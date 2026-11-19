@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Signalling\SignallingMap;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\DB;
@@ -124,6 +125,10 @@ class ImportSncfSignalling extends Command
             FROM line_signalling WHERE era_id = ?
         ', [$eraId]);
         $this->info("État final : {$st->total} tranches sur {$st->lines} lignes ({$st->kvb_count} avec KVB)");
+
+        // Calque « Signalisation » de la carte : tracé des tranches recalculé (vue matérialisée).
+        $pieces = app(SignallingMap::class)->refresh();
+        $this->info("Carte de la signalisation : {$pieces} morceaux de tracé recalculés");
 
         return self::SUCCESS;
     }

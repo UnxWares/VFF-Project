@@ -24,6 +24,7 @@
     import LineSourceNotes from '$components/Lines/LineSourceNotes.svelte';
     import LineGallery from '$components/Lines/LineGallery.svelte';
     import LineAccidents from '$components/Lines/LineAccidents.svelte';
+    import LineLevelCrossings from '$components/Lines/LineLevelCrossings.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
@@ -31,6 +32,7 @@
     import SeoHead from '$components/SeoHead.svelte';
     import { breadcrumbSchema, lineSchema } from '$lib/structuredData.js';
     import { servicePeriodText } from '$lib/materialFacts.js';
+    import { signallingWithGaps } from '$lib/signallingMap.js';
     import {
         bestPhaseIndex,
         categoryColor,
@@ -52,6 +54,7 @@
      *   phases_unexplained?: Array<{ from: string, to: string, portions: Array<number>, length_m: number }>,
      *   decades?: Array<any>, chronicle?: { events: Array<any>, groups: Array<any>, notes: Array<any>, conflicts: Array<any> },
      *   accidents?: Array<any>,
+     *   level_crossings?: { total: number, summary: Array<any>, items: Array<any> },
      * }} */
     let {
         line,
@@ -70,6 +73,8 @@
         chronicle = { events: [], groups: [], notes: [], conflicts: [] },
         // Accidents rattachés à la ligne (App\Services\Accidents\LineAccidents).
         accidents = [],
+        // Passages à niveau de la ligne (App\Services\LevelCrossings\LineLevelCrossings).
+        level_crossings = { total: 0, summary: [], items: [] },
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
@@ -86,6 +91,7 @@
         'sections',
         'heritage',
         'tech',
+        'level-crossings',
         'chronicle',
         'materials',
         'accidents',
@@ -163,6 +169,10 @@
     }
     const isCabin = (sig) => /^(TVM-|ETCS_)/.test(sig);
     const hasCabin = $derived(signalling.some((r) => isCabin(r.signalling)));
+    // Tranches dans l'ordre des PK, avec les trous des données intercalés (clé stable par tranche).
+    const signallingRows = $derived(
+        signallingWithGaps(signalling.map((r, i) => ({ ...r, key: `r-${i}` }))),
+    );
     const pkWord = $derived(t('lines.sheet.tech.pk'));
     const pkRange = (a, b) => `${pkWord}${NBSP}${a} - ${pkWord}${NBSP}${b}`;
 
@@ -418,7 +428,8 @@
     );
     const signallingIntro = $derived(
         t('lines.sheet.tech.signalling_intro') +
-            (line.is_lgv && hasCabin ? ` ${t('lines.sheet.tech.signalling_intro_cab')}` : ''),
+            (line.is_lgv && hasCabin ? ` ${t('lines.sheet.tech.signalling_intro_cab')}` : '') +
+            ` ${t('lines.sheet.tech.signalling_today')}`,
     );
     /** Liste « code sur N km » (stats.*_coverage), sinon la liste simple des codes. */
     function coverageText(coverage, codes) {
@@ -1032,55 +1043,75 @@
                 {#if signalling.length}
                     <h3 class="sub">{t('lines.section.signalling')}</h3>
                     <p class="section-intro">{signallingIntro}</p>
+                    <p class="sig-more">
+                        <a class="vff-link" href="/maps?layer=signalling"
+                            >{t('lines.sheet.tech.signalling_map')}</a
+                        >
+                    </p>
                     <ol class="sig-ranges">
-                        {#each signalling as r, i (i)}
-                            <li class="sig-range">
-                                <p class="sig-pk">
-                                    <span title={t('lines.sheet.tech.pk_title')}
-                                        >{pkRange(r.pk_start_label, r.pk_end_label)}</span
-                                    >
-                                    <span class="sig-len"
-                                        >{withUnit(r.length_m / 1000, 'km', lang, {
-                                            maximumFractionDigits: 1,
-                                        })}</span
-                                    >
-                                </p>
-                                <div class="sig-body">
-                                    <p class="sig-main">
-                                        <i
-                                            class="bi {isCabin(r.signalling)
-                                                ? 'bi-broadcast-pin'
-                                                : 'bi-stoplights'}"
-                                            aria-hidden="true"
-                                        ></i>
-                                        <span
-                                            ><span class="sig-kind"
-                                                >{isCabin(r.signalling)
-                                                    ? t('lines.signalling.cabin')
-                                                    : t('lines.signalling.block')}</span
-                                            >
-                                            {sigLabel(r.signalling)}</span
+                        {#each signallingRows as r (r.key)}
+                            {#if r.gap}
+                                <li class="sig-range sig-gap">
+                                    <p class="sig-pk">
+                                        <span title={t('lines.sheet.tech.pk_title')}
+                                            >{pkRange(r.from, r.to)}</span
                                         >
                                     </p>
-                                    {#if r.train_protection.length || r.kvb_equipped}
-                                        <p class="sig-protection">
-                                            <span class="sig-kind"
-                                                >{t('lines.signalling.protection')}</span
+                                    <p class="sig-body">{t('lines.sheet.tech.signalling_gap')}</p>
+                                </li>
+                            {:else}
+                                <li class="sig-range">
+                                    <p class="sig-pk">
+                                        <span title={t('lines.sheet.tech.pk_title')}
+                                            >{pkRange(r.pk_start_label, r.pk_end_label)}</span
+                                        >
+                                        <span class="sig-len"
+                                            >{withUnit(r.length_m / 1000, 'km', lang, {
+                                                maximumFractionDigits: 1,
+                                            })}</span
+                                        >
+                                    </p>
+                                    <div class="sig-body">
+                                        <p class="sig-main">
+                                            <i
+                                                class="bi {isCabin(r.signalling)
+                                                    ? 'bi-broadcast-pin'
+                                                    : 'bi-stoplights'}"
+                                                aria-hidden="true"
+                                            ></i>
+                                            <span
+                                                ><span class="sig-kind"
+                                                    >{isCabin(r.signalling)
+                                                        ? t('lines.signalling.cabin')
+                                                        : t('lines.signalling.block')}</span
+                                                >
+                                                {sigLabel(r.signalling)}</span
                                             >
-                                            {#each r.train_protection as p (p)}<span
-                                                    class="vff-badge">{sigLabel(p)}</span
-                                                >{/each}
-                                            {#if r.kvb_equipped && !r.train_protection.includes('KVB')}<span
-                                                    class="vff-badge">KVB</span
-                                                >{/if}
                                         </p>
-                                    {/if}
-                                </div>
-                            </li>
+                                        {#if r.train_protection.length || r.kvb_equipped}
+                                            <p class="sig-protection">
+                                                <span class="sig-kind"
+                                                    >{t('lines.signalling.protection')}</span
+                                                >
+                                                {#each r.train_protection as p (p)}<span
+                                                        class="vff-badge">{sigLabel(p)}</span
+                                                    >{/each}
+                                                {#if r.kvb_equipped && !r.train_protection.includes('KVB')}<span
+                                                        class="vff-badge">KVB</span
+                                                    >{/if}
+                                            </p>
+                                        {/if}
+                                    </div>
+                                </li>
+                            {/if}
                         {/each}
                     </ol>
                 {/if}
             </SheetSection>
+        {/if}
+
+        {#if level_crossings.total}
+            <LineLevelCrossings crossings={level_crossings} />
         {/if}
 
         {#if chronicle?.events?.length}
@@ -1666,6 +1697,13 @@
     }
     .sig-len {
         color: var(--vff-text-muted);
+    }
+    /* Trou des données : même grille, texte secondaire, sans icône (rien n'est affirmé). */
+    .sig-gap .sig-body {
+        color: var(--vff-text-muted);
+    }
+    .sig-more {
+        margin: 0 0 var(--vff-space-4);
     }
     .sig-body {
         display: flex;

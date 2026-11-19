@@ -56,6 +56,23 @@
         accidentYearFilter,
         accidentYears,
     } from '$lib/accidentMap.js';
+    // Calques facultatifs du réseau d'aujourd'hui : passages à niveau, signalisation (SNCF Réseau).
+    import {
+        LEVEL_CROSSING_LAYER_ID,
+        LEVEL_CROSSING_MIN_ZOOM,
+        LEVEL_CROSSING_SOURCE_ID,
+        levelCrossingLayer,
+        levelCrossingPopupHtml,
+        levelCrossingTilesUrl,
+    } from '$lib/levelCrossingMap.js';
+    import {
+        SIGNALLING_DASH_GROUPS,
+        SIGNALLING_LAYER_IDS,
+        SIGNALLING_SOURCE_ID,
+        signallingLayers,
+        signallingPopupHtml,
+        signallingTilesUrl,
+    } from '$lib/signallingMap.js';
 
     /**
      * Composant carte interactive du réseau ferré VFF.
@@ -133,6 +150,15 @@
         // Accidents à afficher (FeatureCollection de GET /api/v1/accidents.geojson) ou null (calque
         // masqué). Filtrés selon la vue : jusqu'à l'ère, entre les deux ères comparées, ou tous.
         accidents = null,
+        // Calque « Passages à niveau » (tuiles à partir du zoom 9) : le parent ne l'active qu'à
+        // l'ère courante, seul état connu.
+        levelCrossings = false,
+        // Calque « Signalisation » (tranches de cantonnement de l'ère courante) ; le réseau habituel
+        // est alors estompé pour que les couleurs des tranches se lisent.
+        signalling = false,
+        // Rappelé avec le zoom à la fin de chaque déplacement (le parent affiche alors une aide,
+        // par exemple « zoomez pour voir les passages à niveau »).
+        onZoomChange = null,
     } = $props();
 
     // Géolocalisation refusée ('denied') ou impossible ('unavailable') : message sur la carte.
@@ -646,8 +672,7 @@
             // Halos de campagne : seulement à la décennie actuelle.
             map.setFilter('vff-lines-threatened', buildThreatenedFilter(year));
             map.setFilter('vff-lines-reopening', buildReopeningFilter(year));
-            for (const id of LINE_LAYERS)
-                map.setPaintProperty(id, 'line-opacity', LINE_LAYER_OPACITY[id]);
+            for (const id of LINE_LAYERS) map.setPaintProperty(id, 'line-opacity', lineOpacity(id));
             map.setPaintProperty('vff-stations-points', 'circle-opacity', 1);
             map.setPaintProperty('vff-stations-points', 'circle-stroke-opacity', 1);
             map.setPaintProperty('vff-stations-labels', 'text-opacity', 1);
@@ -682,7 +707,7 @@
     function setupInteractions() {
         // Click sur un tracé → soit callback parent (drawer), soit popup fallback.
         map.on('click', LINE_LAYERS, (e) => {
-            if (!e.features?.length || accidentAt(e.point)) return;
+            if (!e.features?.length || overlayAt(e.point)) return;
             const props = e.features[0].properties;
 
             const line = {
@@ -760,7 +785,7 @@
 
         // Click sur une gare → popup
         map.on('click', 'vff-stations-points', (e) => {
-            if (!e.features?.length || accidentAt(e.point)) return;
+            if (!e.features?.length || accidentAt(e.point) || levelCrossingAt(e.point)) return;
             const props = e.features[0].properties;
             const href = props.slug ? `/stations/${encodeURIComponent(props.slug)}` : null;
             const place = [props.city, props.department_code ? `(${props.department_code})` : '']
@@ -864,6 +889,12 @@
             applyRoute(route);
             applyView(view, era, compareEra);
             applyAccidents(accidents, view, era, compareEra);
+            applyLevelCrossings(levelCrossings);
+            applySignalling(signalling);
+            if (typeof onZoomChange === 'function') {
+                onZoomChange(map.getZoom());
+                map.on('zoomend', () => onZoomChange(map.getZoom()));
+            }
         });
     });
 
@@ -975,7 +1006,7 @@
             [ACCIDENT_AREA_LAYER_ID, ...ROUTE_LAYERS].find((above) => map.getLayer(above)),
         );
         map.on('click', id, (e) => {
-            if (e.features?.length && !accidentAt(e.point))
+            if (e.features?.length && !overlayAt(e.point))
                 openViewPopup(popupKind, e.lngLat, e.features[0].properties);
         });
         map.on('mouseenter', id, () => (map.getCanvas().style.cursor = 'pointer'));
@@ -1151,6 +1182,126 @@
     }
 
     $effect(() => applyAccidents(accidents, view, era, compareEra));
+
+    // ── Calques « Passages à niveau » et « Signalisation » (facultatifs, réseau d'aujourd'hui) ──
+    // Sources et couches ajoutées au premier affichage, masquées ensuite (MapLibre ne charge pas les
+    // tuiles d'une couche masquée). Un clic sur un point ou une tranche passe avant le tracé dessous.
+    const OVERLAY_HIT_PX = 6;
+    // Réseau habituel estompé sous la signalisation (opacité multipliée), rétabli ensuite.
+    const NETWORK_DIM = 0.3;
+    let networkDimmed = false;
+
+    function lineOpacity(id) {
+        return LINE_LAYER_OPACITY[id] * (networkDimmed ? NETWORK_DIM : 1);
+    }
+
+    function featureAt(point, layers, px = OVERLAY_HIT_PX) {
+        if (!layers.some((id) => map?.getLayer(id))) return null;
+        const box = [
+            [point.x - px, point.y - px],
+            [point.x + px, point.y + px],
+        ];
+        return (
+            map.queryRenderedFeatures(box, {
+                layers: layers.filter((id) => map.getLayer(id)),
+            })[0] ?? null
+        );
+    }
+
+    const levelCrossingAt = (point) => featureAt(point, [LEVEL_CROSSING_LAYER_ID]);
+    const signallingAt = (point) =>
+        featureAt(
+            point,
+            SIGNALLING_DASH_GROUPS.map((g) => g.id),
+            4,
+        );
+    /** Point ou tranche d'un calque facultatif sous le clic (prioritaire sur les tracés). */
+    const overlayAt = (point) => accidentAt(point) ?? levelCrossingAt(point) ?? signallingAt(point);
+
+    function openOverlayPopup(html, lineSlug, lngLat) {
+        const href = lineSlug ? `/lines/${encodeURIComponent(lineSlug)}` : null;
+        openPopup(lngLat, html(popupLink(href, 'maps.level_crossings.view_line')), href);
+    }
+
+    // Couches des deux calques sous les accidents, l'itinéraire et les gares.
+    function overlayBefore() {
+        return [ACCIDENT_AREA_LAYER_ID, ...ROUTE_LAYERS, 'vff-stations-points'].find((id) =>
+            map.getLayer(id),
+        );
+    }
+
+    function applyLevelCrossings(on) {
+        if (!map || !layersReady) return;
+        if (on && !map.getSource(LEVEL_CROSSING_SOURCE_ID)) {
+            map.addSource(LEVEL_CROSSING_SOURCE_ID, {
+                type: 'vector',
+                tiles: [levelCrossingTilesUrl(window.location.origin, bustParam())],
+                minzoom: LEVEL_CROSSING_MIN_ZOOM,
+                maxzoom: 14,
+            });
+            map.addLayer(levelCrossingLayer(), overlayBefore());
+            map.on('click', (e) => {
+                if (accidentAt(e.point)) return;
+                const f = levelCrossingAt(e.point);
+                if (!f) return;
+                const { t, language } = get(i18n);
+                openOverlayPopup(
+                    (link) => levelCrossingPopupHtml(f.properties, t, language, link),
+                    f.properties.line_slug,
+                    f.geometry.coordinates,
+                );
+            });
+            map.on(
+                'mouseenter',
+                LEVEL_CROSSING_LAYER_ID,
+                () => (map.getCanvas().style.cursor = 'pointer'),
+            );
+            map.on(
+                'mouseleave',
+                LEVEL_CROSSING_LAYER_ID,
+                () => (map.getCanvas().style.cursor = ''),
+            );
+        }
+        setVisibility(LEVEL_CROSSING_LAYER_ID, on);
+    }
+
+    function applySignalling(on) {
+        if (!map || !layersReady) return;
+        if (on && !map.getSource(SIGNALLING_SOURCE_ID)) {
+            map.addSource(SIGNALLING_SOURCE_ID, {
+                type: 'vector',
+                tiles: [signallingTilesUrl(window.location.origin, currentEra, bustParam())],
+                maxzoom: 14,
+            });
+            const before = overlayBefore();
+            for (const layer of signallingLayers()) map.addLayer(layer, before);
+            map.on('click', (e) => {
+                if (accidentAt(e.point) || levelCrossingAt(e.point)) return;
+                const f = signallingAt(e.point);
+                if (!f) return;
+                const { t, language } = get(i18n);
+                openOverlayPopup(
+                    (link) => signallingPopupHtml(f.properties, t, language, link),
+                    f.properties.line_slug,
+                    e.lngLat,
+                );
+            });
+            for (const g of SIGNALLING_DASH_GROUPS) {
+                map.on('mouseenter', g.id, () => (map.getCanvas().style.cursor = 'pointer'));
+                map.on('mouseleave', g.id, () => (map.getCanvas().style.cursor = ''));
+            }
+        }
+        for (const id of SIGNALLING_LAYER_IDS) setVisibility(id, on);
+        if (networkDimmed !== on) {
+            networkDimmed = on;
+            for (const id of LINE_LAYERS) {
+                if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', lineOpacity(id));
+            }
+        }
+    }
+
+    $effect(() => applyLevelCrossings(levelCrossings));
+    $effect(() => applySignalling(signalling));
 
     // ── Itinéraire historique (RoutePlanner) : tracé + gares, au-dessus du réseau ──
     const ROUTE_SOURCE_ID = 'vff-route';

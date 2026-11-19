@@ -38,6 +38,8 @@ return [
         'orm_electrification' => 'OpenRailwayMap - Électrification',
         'orm_gauge' => 'OpenRailwayMap - Écartement',
         'accidents' => 'Accidents',
+        'level_crossings' => 'Passages à niveau',
+        'signalling' => 'Signalisation',
     ],
 
     'legend' => [
@@ -210,7 +212,7 @@ return [
         'route_term' => 'Itinéraire',
         'route_text' => 'Indiquez deux gares et une année : la carte trace le parcours sur le réseau en service à cette époque et liste les lignes empruntées.',
         'layers_term' => 'Calques',
-        'layers_text' => 'Le calque OpenRailwayMap superpose l’infrastructure actuelle : signaux, vitesses, électrification. Le bouton à l’horloge, en haut à droite de la carte, affiche des cartes anciennes de l’IGN. Le calque Accidents place les accidents survenus jusqu’à l’époque affichée ; un cercle pâle signale que seule la commune est connue.',
+        'layers_text' => 'Le calque OpenRailwayMap superpose l’infrastructure actuelle : signaux, vitesses, électrification. Le bouton à l’horloge, en haut à droite de la carte, affiche des cartes anciennes de l’IGN. Le calque Accidents place les accidents survenus jusqu’à l’époque affichée ; un cercle pâle signale que seule la commune est connue. Le calque Passages à niveau montre les passages publiés par SNCF Réseau, à partir de l’échelle d’un département. Le calque Signalisation colore les lignes d’aujourd’hui selon leur mode de cantonnement.',
         'views_term' => 'Comparer les époques',
         'views_text' => 'Le choix « Vue », au-dessus de la carte, compare deux décennies (lignes ouvertes, fermées ou déposées entre les deux) ou superpose toutes les époques pour voir quand chaque ligne a quitté le service. L’adresse de la page garde ce choix : vous pouvez la partager.',
     ],
@@ -292,6 +294,41 @@ return [
         'loading' => 'Chargement des accidents…',
         'error' => 'Les accidents n’ont pas pu être chargés. Choisissez à nouveau le calque pour réessayer.',
         'view_sheet' => 'Voir la fiche de l’accident',
+    ],
+
+    // Calque « Passages à niveau » (SNCF Réseau) : légende, bulle.
+    'level_crossings' => [
+        'title' => 'Passages à niveau',
+        'zoom_hint' => 'Zoomez sur la carte : les passages à niveau apparaissent à l’échelle d’un département.',
+        'current_only' => 'Les passages à niveau ne sont connus que pour le réseau d’aujourd’hui.',
+        'show_today' => 'Afficher la carte d’aujourd’hui',
+        'note' => 'Un passage situé sur plusieurs lignes n’est dessiné qu’une fois.',
+        'source' => 'Source : SNCF Réseau (ODbL)',
+        'pk' => 'PK',
+        'line' => 'Ligne',
+        'fallback_title' => 'Passage à niveau',
+        'view_line' => 'Voir la fiche de la ligne',
+    ],
+
+    // Calque « Signalisation » : modes de cantonnement (le KVB n'en est pas un), légende, bulle.
+    'signalling' => [
+        'title' => 'Signalisation',
+        'intro' => 'Mode de cantonnement, qui espace les trains, sur le réseau d’aujourd’hui.',
+        'families' => [
+            'automatic_block' => 'Block automatique lumineux (BAL)',
+            'restricted_block' => 'Block automatique à permissivité restreinte (BAPR)',
+            'manual_block' => 'Block manuel (tirets)',
+            'telephone' => 'Cantonnement téléphonique ou CAPI (pointillés)',
+            'cab' => 'Signalisation en cabine (TVM, ETCS)',
+        ],
+        'kvb_note' => 'Le KVB contrôle la vitesse des trains, ce n’est pas un mode de cantonnement : il est indiqué dans la bulle de chaque tranche.',
+        'placement_note' => 'Les limites des tranches sont placées d’après les points kilométriques, à moins de 200 m près dans 9 cas sur 10.',
+        'current_only' => 'La signalisation n’est connue que pour le réseau d’aujourd’hui.',
+        'block_label' => 'Cantonnement',
+        'cab_label' => 'Signalisation en cabine',
+        'protection_label' => 'Contrôle de vitesse',
+        'pk_label' => 'PK',
+        'source' => 'Source : SNCF Réseau (ODbL). Limites placées à quelques centaines de mètres près.',
     ],
 
     // Bouton « Me localiser » : messages quand la position n'est pas disponible.

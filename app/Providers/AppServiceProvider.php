@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Http\Requests\Api\AccidentMapRequest;
 use App\Http\Requests\Api\ListAccidentsRequest;
+use App\Http\Requests\Api\ListLevelCrossingsRequest;
 use App\Http\Requests\Api\ListLineEventsRequest;
 use App\Http\Requests\Api\ListLineMaterialsRequest;
 use App\Http\Requests\Api\ListLinesRequest;
@@ -43,6 +44,7 @@ class AppServiceProvider extends ServiceProvider
             ListMaterialsRequest::class, ListLineMaterialsRequest::class, MaterialQuery::class,
             ListLinesRequest::class, ListStationsRequest::class, LineDirectoryQuery::class, StationDirectoryQuery::class,
             ListAccidentsRequest::class, AccidentQuery::class, AccidentMapRequest::class,
+            ListLevelCrossingsRequest::class,
         ]);
 
         // Exemples JavaScript et Python des principaux points d'accès (extension x-codeSamples lue par Scalar).

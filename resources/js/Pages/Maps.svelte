@@ -15,6 +15,7 @@
     import { i18n } from '$lib/i18n.js';
     import { defaultPair, readViewParams, writeViewParams } from '$lib/epochViews.js';
     import { ACCIDENTS_URL, accidentYears, countAccidents } from '$lib/accidentMap.js';
+    import { LEVEL_CROSSING_MIN_ZOOM } from '$lib/levelCrossingMap.js';
 
     // « Lire la carte » : ce que montre la carte, au présent (vocabulaire de la légende).
     const READING = ['era', 'views', 'color', 'line', 'sheet', 'route', 'layers'];
@@ -101,12 +102,36 @@
         { value: 'orm-electrification', labelKey: 'maps.overlay.orm_electrification' },
         { value: 'orm-gauge', labelKey: 'maps.overlay.orm_gauge' },
         { value: 'accidents', labelKey: 'maps.overlay.accidents' },
+        { value: 'level-crossings', labelKey: 'maps.overlay.level_crossings' },
+        { value: 'signalling', labelKey: 'maps.overlay.signalling' },
     ];
+    // Calques VFF (pas des tuiles raster OpenRailwayMap) : la carte reçoit alors overlay = 'none'.
+    const VFF_OVERLAYS = ['accidents', 'level-crossings', 'signalling'];
 
     const showAccidents = $derived(overlay === 'accidents');
+    // Passages à niveau et signalisation : seul l'état d'aujourd'hui est connu (SNCF Réseau). Hors de
+    // la carte d'aujourd'hui, un message le dit et propose d'y revenir.
+    const todayOnlyOverlay = $derived(overlay === 'level-crossings' || overlay === 'signalling');
+    const showingToday = $derived(view === 'era' && selectedEra === currentEraYear);
+    const showLevelCrossings = $derived(overlay === 'level-crossings' && showingToday);
+    const showSignalling = $derived(overlay === 'signalling' && showingToday);
+    // Zoom de la carte, pour l'aide « zoomez pour voir les passages à niveau ».
+    let mapZoom = $state(0);
+
+    function showToday() {
+        setView('era');
+        selectedEra = currentEraYear;
+    }
 
     function setOverlay(value) {
         overlay = value;
+        // L'adresse suit le calque choisi (?layer=…), pour pouvoir la partager.
+        const url = new URL(window.location.href);
+        if (value === 'none') url.searchParams.delete('layer');
+        else url.searchParams.set('layer', value);
+        if (url.href !== window.location.href) {
+            window.history.replaceState(window.history.state, '', url.href);
+        }
         if (value === 'accidents' && accidentsState !== 'ready' && accidentsState !== 'loading') {
             loadAccidents();
         }
@@ -137,7 +162,8 @@
         return { state: accidentsState, count: countAccidents(accidentData, years), ...years };
     });
 
-    // Adresse partageable : ?era=1930, ?era=1930&compare=1980, ?view=stack (lue au montage).
+    // Adresse partageable : ?era=1930, ?era=1930&compare=1980, ?view=stack, et ?layer=… pour un
+    // calque (lue au montage).
     onMount(() => {
         const fromUrl = readViewParams(window.location.search, eras);
         if (fromUrl.era !== null) selectedEra = fromUrl.era;
@@ -146,6 +172,11 @@
             compareTo = fromUrl.compare;
         }
         view = fromUrl.view;
+        // Calque demandé par un lien (fiche ligne : « Voir la signalisation sur la carte »).
+        const layer = new URLSearchParams(window.location.search).get('layer');
+        if (layer && layer !== 'none' && OVERLAY_OPTIONS.some((o) => o.value === layer)) {
+            setOverlay(layer);
+        }
     });
 
     $effect(() => {
@@ -236,8 +267,11 @@
                         currentEra={currentEraYear}
                         {hidden}
                         mode={colorMode}
-                        overlay={showAccidents ? 'none' : overlay}
+                        overlay={VFF_OVERLAYS.includes(overlay) ? 'none' : overlay}
                         accidents={showAccidents ? accidentData : null}
+                        levelCrossings={showLevelCrossings}
+                        signalling={showSignalling}
+                        onZoomChange={(z) => (mapZoom = z)}
                         {dataVersion}
                         {flyTarget}
                         {route}
@@ -257,6 +291,7 @@
                                 bind:hidden
                                 bind:mode={colorMode}
                                 accidents={accidentLegend}
+                                overlay={todayOnlyOverlay && showingToday ? overlay : null}
                             />
                         </div>
                         {#if view === 'era' && selectedIsEmpty}
@@ -266,14 +301,40 @@
                             </p>
                         {:else if showAccidents && accidentsState === 'error'}
                             <p class="era-empty">{$i18n.t('maps.accidents.error')}</p>
+                        {:else if todayOnlyOverlay && !showingToday}
+                            <div class="era-empty today-only">
+                                <p>
+                                    {$i18n.t(
+                                        overlay === 'signalling'
+                                            ? 'maps.signalling.current_only'
+                                            : 'maps.level_crossings.current_only',
+                                    )}
+                                </p>
+                                <button type="button" class="vff-btn secondary" onclick={showToday}>
+                                    {$i18n.t('maps.level_crossings.show_today')}
+                                </button>
+                            </div>
+                        {:else if showLevelCrossings && mapZoom < LEVEL_CROSSING_MIN_ZOOM}
+                            <p class="era-empty">
+                                <i class="bi bi-zoom-in" aria-hidden="true"></i>
+                                {$i18n.t('maps.level_crossings.zoom_hint')}
+                            </p>
                         {/if}
-                        <!-- Chargement ou échec du calque « Accidents », annoncé aussi quand la
-                             légende est repliée (téléphone). -->
+                        <!-- Chargement ou échec du calque « Accidents », aide au zoom des passages à
+                             niveau : annoncés aussi quand la légende est repliée (téléphone). -->
                         <p class="vff-sr-only" role="status">
                             {#if showAccidents && accidentsState === 'loading'}
                                 {$i18n.t('maps.accidents.loading')}
                             {:else if showAccidents && accidentsState === 'error'}
                                 {$i18n.t('maps.accidents.error')}
+                            {:else if todayOnlyOverlay && !showingToday}
+                                {$i18n.t(
+                                    overlay === 'signalling'
+                                        ? 'maps.signalling.current_only'
+                                        : 'maps.level_crossings.current_only',
+                                )}
+                            {:else if showLevelCrossings && mapZoom < LEVEL_CROSSING_MIN_ZOOM}
+                                {$i18n.t('maps.level_crossings.zoom_hint')}
                             {/if}
                         </p>
                         <LineDrawer bind:line={drawerLine} currentEra={currentEraYear} />
@@ -538,6 +599,15 @@
     .legend-slot > :global(*) {
         pointer-events: auto;
     }
+    .era-empty.today-only {
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .today-only p {
+        margin: 0;
+    }
+
     .era-empty {
         position: absolute;
         top: 12px;

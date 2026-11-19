@@ -134,6 +134,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `accidents` | Accidents et événements graves du rail (ligne, période, nature, département, bilan), paginés. |
 | `get_accident` | Fiche d'un accident : lignes rattachées, sources lues et leur licence, points à vérifier. |
 | `compare_eras` | Ce qui a changé sur le réseau entre deux ères : km ouverts, fermés, déposés, restés en service. |
+| `level_crossings` | Passages à niveau publiés par SNCF Réseau (classe, PK, commune), par ligne, groupe, commune ou emprise, paginés. |
 
 ### `search` : rechercher une ligne, une gare ou un matériel
 
@@ -532,6 +533,33 @@ comparée ; `tiles` : gabarit des tuiles vectorielles REST), `available_eras`.
 {"from": 1930, "to": 1980}
 ```
 
+### `level_crossings` : passages à niveau
+
+Mêmes filtres et mêmes données que `GET /api/v1/level-crossings` (service `LevelCrossingQuery`) ; pagination par
+curseur comme les autres outils de liste. Environ 16 800 PN publiés par SNCF Réseau (jeu
+`liste-des-passages-a-niveau`, ODbL). État actuel seulement : aucune date d'ouverture ni de suppression.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug | non | PN de cette ligne (rattachés par son code SNCF Réseau) ; ligne inconnue : erreur. La réponse ajoute `summary` (nombre par groupe). |
+| `group` | groupe | non | `automatic` (classes 17 à 19), `guarded` (10 à 16), `no_barrier` (20, 21), `pedestrian` (31, 32), `private` (41 à 46), `secondary` (0). |
+| `class` | entier | non | Classe exacte : 0, 10 à 21, 31, 32, 41 à 46. |
+| `commune` | chaîne, 2 à 100 | non | Partie du nom de la commune, sans accents ni capitales. |
+| `bbox` | `ouest,sud,est,nord` | non | Emprise en degrés WGS 84. |
+| `limit` | entier 1 à 100 | non | PN par appel (50 par défaut). |
+| `cursor` | chaîne opaque | non | `next_cursor` d'un appel précédent (mêmes filtres). |
+| `lang` | `fr`, `en`, `de` | non | Langue des libellés de classe et de groupe. |
+
+Renvoie `filters`, `count`, `has_more`, `next_cursor`, `level_crossings` et, avec `line`, `summary` et `vff_url`
+(section de la fiche ligne). Chaque PN : `id`, `label`, `class` et `class_label`, `group` et `group_label`, `pk_m` et
+`pk_label`, `commune`, `crossed_way` (libellé brut de la voie franchie), `line`, `lat`, `lng`. Un PN secondaire
+(`secondary`) est un passage situé sur plusieurs lignes et compté sur une autre : à exclure pour compter des
+passages. Attribution : SNCF Réseau, ODbL 1.0.
+
+```json
+{"line": "rfn-70000", "group": "automatic", "limit": 20, "lang": "en"}
+```
+
 ## Ressources
 
 | URI | Type | Contenu |
@@ -609,6 +637,8 @@ Les instructions du serveur rappellent ces obligations aux assistants.
   **géométries** (GeoJSON, tuiles, GTFS) : disponibles par l'API REST, pas par le serveur MCP
   (réponses trop volumineuses pour un assistant).
 - **Historique de la signalisation** par époque : pas encore dans les données.
+- **Tuiles de la signalisation et des passages à niveau** (`/api/v1/eras/{year}/signalling/tiles/...`,
+  `/api/v1/level-crossings/tiles/...`) : par l'API REST seulement.
 - Pas d'invites (prompts) MCP ni de complétion d'arguments.
 
 ## Développement et tests

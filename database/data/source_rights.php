@@ -74,11 +74,15 @@ return [
                 'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/lignes-par-statut',
                 'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/formes-des-lignes-du-rfn',
                 'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/liste-des-gares',
+                'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/liste-des-passages-a-niveau',
+                'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/mode-de-cantonnement-des-lignes',
+                'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/lignes-equipees-de-kvb',
                 'https://transport.data.gouv.fr/datasets/horaires-sncf',
                 'https://transport.data.gouv.fr/datasets/horaires-des-lignes-transilien-1',
             ],
             'citation' => '"license": "Open Database License (ODbL)" (métadonnées des 12 jeux utilisés, lues le 2026-10-20) ; '
-                .'« licence » : « odc-odbl » pour horaires-sncf et horaires-des-lignes-transilien-1 (API transport.data.gouv.fr, lue le 2026-11-18)',
+                .'« licence » : « odc-odbl » pour horaires-sncf et horaires-des-lignes-transilien-1 (API transport.data.gouv.fr, lue le 2026-11-18) ; '
+                .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour liste-des-passages-a-niveau, mode-de-cantonnement-des-lignes et lignes-equipees-de-kvb (lus le 2026-11-20)',
             'obligations' => 'Attribution (SNCF Réseau / SNCF Gares & Connexions / SNCF Voyageurs) ; partage à l\'identique des bases dérivées publiquement utilisées.',
             'domaines' => ['sncf.com', 'transport.data.gouv.fr'],
             'lu_le' => '2026-10-20',
@@ -410,6 +414,10 @@ return [
             // Photos de la galerie d'Argentan Web Ferroviaire (œuvres de l'auteur, CC BY-SA 4.0), import préparé, non lancé.
             'argentanwebferro' => 'argentanwebferro',
         ],
+        // Passages à niveau (vff:import-sncf-level-crossings) et signalisation par PK (vff:import-sncf-signalling) :
+        // tables sans colonne de provenance, une seule source (SNCF Réseau, ODbL), citée par l'API.
+        'sncf_level_crossings' => ['sncf' => 'sncf'],
+        'line_signalling' => ['sncf' => 'sncf'],
         // Matériel roulant (vff:import-materials) : fiches Wikidata, champ par champ (provenance),
         // image Commons (licence propre à chaque fichier), liens matériel ↔ ligne attestés.
         'materials' => ['wikidata' => 'wikidata'],
