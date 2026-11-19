@@ -248,6 +248,62 @@ class GreenwayLinkerTest extends TestCase
         $this->assertSame([1201], array_keys($this->linksOf($b->id)));
     }
 
+    public function test_tramways_metros_and_funiculars_never_receive_a_greenway(): void
+    {
+        // Une piste cyclable le long d'une rue tombe à moins de 8 m de l'axe d'un ancien tramway.
+        $railway = $this->seedLine('452000', 'Ligne ferroviaire fermée', 62.0, 1.0, 1.1);
+        $names = ['Tramway de Lille (TELB E)', 'Tramways de l\'Ain', 'Ligne de tramway 2 (ELRT)', 'Ancien métro de Lyon',
+            'Funiculaire de Saint-Paul à Fourvière', 'Téléphérique de Batère', 'Plan incliné d\'Ivry'];
+        $lat = 62.0;
+        $excluded = [];
+        foreach ($names as $i => $name) {
+            $lat += 0.5;
+            // Même un code à 6 chiffres ne fait pas d'un tramway une ligne ferroviaire.
+            $line = $this->seedLine((string) (453000 + $i), $name, $lat, 1.0, 1.1);
+            $this->seedGreenway(1400 + $i, $lat, 1.0, 1.03);
+            $excluded[] = $line->id;
+        }
+        $this->seedGreenway(1399, 62.0, 1.0, 1.03);
+        // Un nom qui contient seulement le mot ne suffit pas : « Ligne du Tramway-Vert » reste ferroviaire.
+        $other = $this->seedLine('470000', 'Ligne de Poitiers au Tramway-Vert', 70.0, 1.0, 1.1);
+        $this->seedGreenway(1500, 70.0, 1.0, 1.03);
+
+        $result = $this->link();
+
+        $this->assertSame([1399], array_keys($this->linksOf($railway->id)));
+        $this->assertSame([1500], array_keys($this->linksOf($other->id)));
+        $this->assertSame(0, DB::table('line_greenways')->whereIn('line_id', $excluded)->count());
+        $this->assertSame(2, $result['lines']);
+    }
+
+    public function test_a_tram_train_on_the_national_network_is_a_railway_line(): void
+    {
+        $rfn = $this->seedLine('454000', 'Tram-train de l\'Ouest lyonnais', 63.0, 1.0, 1.1);
+        $local = $this->seedLine('454001', 'Tram-train local', 64.0, 1.0, 1.1);
+        $local->update(['code' => null]);
+        $this->seedGreenway(1600, 63.0, 1.0, 1.03);
+        $this->seedGreenway(1601, 64.0, 1.0, 1.03);
+
+        $this->link();
+
+        $this->assertSame([1600], array_keys($this->linksOf($rfn->id)));
+        $this->assertSame([], $this->linksOf($local->id), 'sans code SNCF Réseau, un tram-train est un tramway');
+    }
+
+    public function test_a_line_that_became_a_tramway_loses_its_old_links_on_the_next_run(): void
+    {
+        $line = $this->seedLine('455000', 'Ligne devenue tramway', 65.0, 1.0, 1.1);
+        $this->seedGreenway(1700, 65.0, 1.0, 1.03);
+        $this->link();
+        $this->assertCount(1, $this->linksOf($line->id));
+
+        $line->update(['name' => 'Tramway de Test']);
+        $result = $this->link();
+
+        $this->assertSame(1, $result['removed']);
+        $this->assertSame([], $this->linksOf($line->id));
+    }
+
     public function test_the_command_prints_the_figures_and_resolves_lines_by_code(): void
     {
         $this->seedLine('450000', 'Ligne A', 60.0, 1.0, 1.1);

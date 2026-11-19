@@ -25,11 +25,15 @@ class LineGreenwayController extends Controller
      * moins de 30 m. Une voie verte qui longe seulement une ligne en service, ou une voie laissée en
      * place, n'est donc jamais rattachée. Un way est retenu si au moins 50 m de sa longueur (et au moins
      * la moitié) suivent l'ancienne emprise ; une ligne n'a de voie verte qu'à partir de 300 m communs.
+     * Les tramways, métros, funiculaires, téléphériques et plans inclinés (d'après le nom de la fiche) n'en
+     * reçoivent jamais ; un tram-train du réseau ferré national (code à 6 chiffres) est une ligne ferroviaire.
      * Liste vide pour une ligne sans voie verte rattachée.
      *
      * `greenways` regroupe les ways par voie verte nommée : le nom est celui de l'itinéraire cyclable OSM
-     * (relation `route=bicycle` ou `route=mtb`) quand le way en est membre, sinon celui du way ; les ways
-     * sans nom forment un groupe au `name` nul. Pour chaque voie verte :
+     * (relation `route=bicycle` ou `route=mtb`) quand le way en est membre, sinon celui du way, à condition
+     * qu'il désigne un itinéraire : un lieu (« Camping »), un type de voie (« Voie verte ») ou un nom de rue
+     * ne nomme pas un groupe. Les ways sans nom retenu forment un groupe au `name` nul (le `name` de chaque
+     * way, dans `ways`, garde le nom OSM tel quel). Pour chaque voie verte :
      * - `shared_length_m` : longueur en mètres qui suit l'ancienne emprise de la ligne, tous ses ways
      *   ensemble (et non la longueur de la voie verte entière, qui peut dépasser la ligne) ;
      * - `opened_year` : année d'ouverture si OSM la donne (`start_date` du way ou de l'itinéraire, 1970 ou

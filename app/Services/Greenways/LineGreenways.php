@@ -12,8 +12,9 @@ use Illuminate\Support\Facades\DB;
  * GraphQL `Line.greenways`. Lecture seule. Données © contributeurs OpenStreetMap, ODbL.
  *
  * Une voie verte (groupe) rassemble les ways OSM de la ligne qui portent le même nom : celui de leur
- * itinéraire cyclable OSM (relation route=bicycle|mtb) s'il existe, sinon celui du way. Les ways sans
- * aucun nom forment un seul groupe sans nom. Le lien OSM d'un groupe pointe vers l'itinéraire s'il
+ * itinéraire cyclable OSM (relation route=bicycle|mtb) s'il existe, sinon celui du way, à condition
+ * qu'il désigne un itinéraire (GreenwayNames : ni lieu, ni type de voie, ni nom de rue). Les ways sans
+ * nom retenu forment un seul groupe sans nom. Le lien OSM d'un groupe pointe vers l'itinéraire s'il
  * existe, sinon vers le way qui suit le plus longtemps l'ancienne emprise.
  */
 final class LineGreenways
@@ -45,10 +46,12 @@ final class LineGreenways
 
         $groups = [];
         foreach ($rows as $row) {
-            $name = $this->clean($row->relation_name) ?? $this->clean($row->name);
+            $relationName = GreenwayNames::relationName($row->relation_name);
+            $name = $relationName ?? GreenwayNames::wayName($row->name);
             $key = $name === null ? '' : mb_strtolower($name);
             $groups[$key] ??= ['name' => $name, 'relations' => [], 'ways' => []];
-            if ($row->osm_relation_id !== null) {
+            // Le lien d'itinéraire n'est gardé que si c'est le nom de la relation qui nomme le groupe.
+            if ($row->osm_relation_id !== null && $relationName !== null) {
                 $groups[$key]['relations'][] = (int) $row->osm_relation_id;
             }
             $groups[$key]['ways'][] = [

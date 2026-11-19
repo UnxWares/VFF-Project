@@ -204,6 +204,7 @@ return [
             'compare_eras' => 'Kilomètres ouverts, fermés, déposés ou restés en service entre deux époques de la carte.',
             'level_crossings' => 'Passages à niveau publiés par SNCF Réseau, par ligne, type, commune ou emprise, avec leur classe et leur point kilométrique.',
             'line_profile' => 'Profil en long d’une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte et altitude des gares.',
+            'line_greenways' => 'Voies vertes d’OpenStreetMap sur l’ancienne emprise d’une ligne fermée ou disparue, avec la longueur mesurée sur l’emprise et la source.',
             'locate_on_line' => 'Point kilométrique d’un lieu donné par ses coordonnées, sur le tracé d’une ligne.',
             'sources_and_licences' => 'Fournisseurs de données et licences.',
         ],
