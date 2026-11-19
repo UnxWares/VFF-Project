@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
     ACCIDENT_SOURCE_ID,
     accidentLayers,
@@ -6,6 +6,7 @@ import {
     accidentYearFilter,
     accidentYears,
     countAccidents,
+    fetchAccidents,
     isApproximate,
 } from '$lib/accidentMap.js';
 import { colorOf, compile, matches, spec } from './support/maplibre.js';
@@ -149,5 +150,21 @@ describe('accidentPopupHtml', () => {
         );
         expect(html).toContain('&lt;b&gt;X&lt;/b&gt;');
         expect(html).not.toContain('<b>');
+    });
+});
+
+describe('fetchAccidents', () => {
+    it('demande le GeoJSON des accidents et le rend décodé', async () => {
+        const collection = { type: 'FeatureCollection', features: [point(1950)] };
+        const fetcher = vi.fn().mockResolvedValue({ ok: true, json: async () => collection });
+        await expect(fetchAccidents(fetcher)).resolves.toEqual(collection);
+        expect(fetcher).toHaveBeenCalledWith('/api/v1/accidents.geojson', {
+            headers: { Accept: 'application/json' },
+        });
+    });
+
+    it('lève une erreur quand la réponse n’est pas bonne', async () => {
+        const fetcher = vi.fn().mockResolvedValue({ ok: false, status: 503 });
+        await expect(fetchAccidents(fetcher)).rejects.toThrow('HTTP 503');
     });
 });

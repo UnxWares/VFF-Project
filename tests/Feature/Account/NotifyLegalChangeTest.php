@@ -66,7 +66,7 @@ class NotifyLegalChangeTest extends TestCase
 
         $event = AuditEvent::sole();
         $this->assertSame(AuditAction::MembersNotified, $event->action);
-        $this->assertEquals(['document' => 'use-conditions', 'effective_date' => '2026-12-04', 'sent' => 2, 'failed' => 0], $event->context, 'Contexte du journal (ordre des clés jsonb indifférent)');
+        $this->assertEquals(['document' => 'use-conditions', 'effective_date' => '2026-12-04', 'sent' => 2, 'failed' => 0, 'already_notified' => 0], $event->context, 'Contexte du journal (ordre des clés jsonb indifférent)');
     }
 
     public function test_privacy_policy_change_can_take_effect_today(): void

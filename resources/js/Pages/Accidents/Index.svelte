@@ -34,7 +34,6 @@
         'explosion',
         'structure_failure',
         'attack',
-        'person_struck',
         'runaway',
         'incident',
         'other',

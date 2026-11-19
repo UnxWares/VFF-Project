@@ -171,6 +171,21 @@ type Line {
     ): LineProfile @field(resolver: "App\\GraphQL\\Resolvers\\LineProfileField")
 
     """
+    Point kilométrique d'un lieu sur la ligne, comme `GET /api/v1/lines/{line}/pk` : le point est projeté
+    sur le tracé de la ligne à l'ère choisie, puis la distance est mesurée le long du tracé depuis son
+    origine. Ce PK peut différer du PK officiel de SNCF Réseau (origine, sauts de numérotation). Nul si
+    la ligne n'a pas de tracé à cette ère ; erreur de requête si l'ère n'existe pas.
+    """
+    pk(
+        "Latitude WGS 84 du point, en degrés décimaux."
+        lat: Float! @rules(apply: ["numeric", "between:-90,90"])
+        "Longitude WGS 84 du point, en degrés décimaux."
+        lng: Float! @rules(apply: ["numeric", "between:-180,180"])
+        "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante, le réseau d'aujourd'hui."
+        era: Int
+    ): LinePk @field(resolver: "App\\GraphQL\\Resolvers\\LinePkField")
+
+    """
     Fiche complète de la ligne, comme la page `/lines/{slug}` et `GET /api/v1/lines/{line}` :
     chiffres clés, électrification, signalisation, phases, chronique, gares, sections. Calcul
     lourd (jusqu'à quelques secondes) : demandez-la pour une ligne à la fois.
@@ -240,9 +255,21 @@ type LineSignallingRange {
     `CAPI` (cantonnement assisté par informatique), `CT` (cantonnement téléphonique de double voie),
     `TVM-300` / `TVM-430` (signalisation en cabine des LGV, sans signaux latéraux),
     `ETCS_L1` / `ETCS_L2`. Suffixes : `-VB` voie banalisée (circulation dans les deux sens
-    sur chaque voie), `-VU` voie unique, `-Tram` section tram-train.
+    sur chaque voie), `-VU` voie unique, `-Tram` section tram-train. Quand deux systèmes sont
+    installés ensemble, c'est le premier du libellé de SNCF Réseau : voir `signalling_systems`.
     """
     signalling: String!
+
+    """
+    Tous les systèmes de cantonnement installés sur la tranche, code principal (`signalling`)
+    en premier. En général un seul ; deux sur les LGV équipées à la fois de l'ETCS niveau 2 et de
+    la TVM : `["ETCS_L2", "TVM-300"]` (LGV Bretagne - Pays de la Loire, LGV SEA),
+    `["ETCS_L2", "TVM-430"]` (LGV Est).
+    """
+    signalling_systems: [String!]!
+
+    "Libellé de SNCF Réseau tel quel (ex. « European train control system 2/Transmission voie-machine 300 »), null pour une tranche d'une autre source."
+    source_label: String
 
     """
     Systèmes de contrôle de vitesse installés sur la tranche : `KVB`, `KVBP`, `TVM-300`,
@@ -329,7 +356,8 @@ type LineSegment {
     """
     Géométrie du tronçon : une chaîne JSON contenant une géométrie GeoJSON (`LineString` ou
     `MultiLineString`, coordonnées WGS 84 dans l'ordre longitude, latitude). À décoder côté
-    client avec `JSON.parse`.
+    client avec `JSON.parse`. Vaut `null` quand la source du tronçon n'autorise pas la
+    redistribution (licence non ouverte, non commerciale ou statut incertain : voir `source`).
     """
     geojson: String @field(resolver: "App\\GraphQL\\Resolvers\\LineSegmentResolver@geojson")
 
@@ -669,6 +697,12 @@ input MaterialFilter {
     "Écartement en millimètres (500 à 2000), ex. `1000` pour la voie métrique."
     gauge_mm: Int
 
+    "État d'utilisation déclaré par une source : `in_service` (en service) ou `withdrawn` (retirée). Une série dont aucune source ne dit l'état n'est dans aucun des deux cas."
+    service_status: String
+
+    "Périmètre : `france` (série rattachée à la France dans Wikidata) ou `attested` (série non rattachée, par exemple un ICE ou une locomotive belge, dont une source atteste la circulation sur une ligne française)."
+    scope: String
+
     "Vrai : séries illustrées seulement ; faux : séries sans image."
     has_image: Boolean
 
@@ -801,8 +835,10 @@ type Material {
 
     """
     Catégorie : `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`,
-    `automotrice` (rame automotrice électrique ou bimode), `autorail` (rame thermique),
-    `rame_tgv` (grande vitesse), `voiture` (voiture voyageurs), `wagon` (marchandises),
+    `automotrice` (rame automotrice électrique), `bimode` (engin qui circule sous caténaire et à
+    l'énergie thermique : Régiolis, AGC bimodes ; rangé là seulement quand Wikidata ou l'infobox de
+    l'article Wikipédia le dit, sinon l'engin reste `automotrice` ou `autorail`), `autorail` (rame
+    thermique), `rame_tgv` (grande vitesse), `voiture` (voiture voyageurs), `wagon` (marchandises),
     `tramway`, `engin_service` (engin de l'infrastructure : auscultation, chasse-neige, draisine).
     """
     type: String! @field(resolver: "App\\GraphQL\\Resolvers\\EnumValue")
@@ -830,9 +866,20 @@ type Material {
 
     """
     Année de retrait du service (la plus récente déclarée). Nulle si la série circule encore OU si
-    la date de retrait n'est pas renseignée : ne concluez pas qu'elle est en service.
+    la date de retrait n'est pas renseignée : ne concluez pas qu'elle est en service (voir `service`
+    pour l'état d'utilisation, quand une source le dit).
     """
     in_service_to: Int
+
+    "État d'utilisation, seulement quand une source le dit (Wikidata P5817, effectif de l'infobox Wikipédia) ; tous les champs sont nuls sinon."
+    service: MaterialService! @field(resolver: "App\\GraphQL\\Resolvers\\MaterialField")
+
+    """
+    Périmètre de la fiche : `france` (série rattachée à la France dans Wikidata) ou `attested` (série
+    non rattachée, par exemple un ICE, un AVE ou une locomotive belge, ajoutée parce qu'une source atteste
+    sa circulation sur une ligne française : voir `field_sources` (champ `scope`) et `line_links`).
+    """
+    scope: String!
 
     "Nombre d'engins construits, s'il est univoque dans la source."
     units_built: Int
@@ -905,6 +952,30 @@ type Material {
 
     "Lignes parcourues, avec la preuve de chaque lien (source, citation, fiabilité)."
     line_links: [LineMaterialLink!]! @hasMany(relation: "lineLinks")
+}
+
+"""
+État d'utilisation d'une série, tel que le dit une source. Jamais déduit : une date de retrait absente
+ne prouve pas qu'une série circule encore.
+"""
+type MaterialService {
+    "`in_service` (en service) ou `withdrawn` (retirée) ; nul si aucune source ne le dit."
+    status: String
+
+    "Effectif cité par la source (nombre d'engins en service à la date `as_of`), nul si elle n'en donne pas."
+    units_in_service: Int
+
+    "Date à laquelle la source donne cet état : `AAAA-MM-JJ`, `AAAA-MM` ou `AAAA` selon sa précision. Nulle si elle n'en donne pas."
+    as_of: String
+
+    "Date à laquelle VFF a lu la source (`AAAA-MM-JJ`)."
+    checked_at: String
+
+    "Source : `wikidata` (propriété P5817) ou `wikipedia` (effectif de l'infobox de l'article)."
+    source: String
+
+    "Page de la source : élément Wikidata ou version citée de l'article Wikipédia."
+    url: String
 }
 
 "Un constructeur d'une série de matériel (Wikidata, propriété P176)."
@@ -1014,10 +1085,10 @@ type MaterialFieldSource {
     "Nom du champ (ex. `in_service_from`, `max_speed_kmh`, `image`)."
     field: String!
 
-    "Source : `wikidata`, `commons` (image) ou `wikipedia` (catégorie de l'article, quand Wikidata ne range pas la série)."
+    "Source : `wikidata`, `commons` (image) ou `wikipedia` (catégorie ou infobox de l'article : catégorie « bimode », effectif en service ; ou circulation en France d'une série non rattachée)."
     source: String!
 
-    "Référence précise : élément et propriété Wikidata (ex. `Q746572#P729`), fichier Commons, catégorie Wikipédia."
+    "Référence précise : élément et propriété Wikidata (ex. `Q746572#P729`), fichier Commons, catégorie Wikipédia, ou article et paramètre de l'infobox (ex. `Régiolis#infobox:Type`)."
     reference: String
 
     "Page de la source."
@@ -1215,8 +1286,20 @@ type Accident {
         lang: String = "fr"
     ): String @field(resolver: "App\\GraphQL\\Resolvers\\AccidentField@wikipediaUrl")
 
-    "`ok`, ou `to_review` quand un point reste incertain (voir `review_notes`)."
+    "`ok` : date et lieu confirmés par une source primaire (enquête du BEA-TT) ou par deux sources indépendantes (voir `verification`) ; `to_review` quand un point reste incertain (voir `review_notes`). Le rattachement à une ligne porte sa propre confiance."
     review_status: String! @field(resolver: "App\\GraphQL\\Resolvers\\EnumValue")
+
+    """
+    Vérification de la date et du lieu (`vff:verify-accidents`) : `rule` (`primary_source`, `two_sources`,
+    `wikidata_wikipedia` ou absente), `date` et `place` (valeur retenue ; sources qui concordent `confirmed_by`,
+    qui divergent `disagreeing`, communes voisines `nearby`, chacune avec `provider`, `role`, `url` et la date de
+    lecture `retrieved_at`), `families`, `kind` (nature lue dans une source), `aliases` (autres éléments Wikidata du
+    même accident, gardés avec leurs sources). Nul si la fiche n'a pas été vérifiée.
+    """
+    verification: JSON
+
+    "Date de la dernière vérification, nulle si la fiche n'a pas été vérifiée."
+    verified_at: DateTime
 
     "Points incertains : bilans ou dates qui diffèrent selon les sources, lieu vague, ligne incertaine."
     review_notes: [AccidentReviewNote!]! @field(resolver: "App\\GraphQL\\Resolvers\\AccidentField@reviewNotes")
@@ -1271,6 +1354,12 @@ type AccidentLineLink {
 
     "Score de 0 à 1 : proximité du tracé et concordance des sources."
     score: Float!
+
+    "Titre de l'article de ligne de Wikipédia cité par la source (ex. `Ligne de Paris-Lyon à Marseille-Saint-Charles`). Nul si aucune source ne cite cette ligne."
+    cited_as: String
+
+    "Permalien de la source qui cite la ligne (révision lue de la page de Wikipédia). Nul si aucune source ne cite cette ligne."
+    cited_url: String
 }
 
 "Une source consultée pour un accident."
@@ -1803,6 +1892,27 @@ type Query {
     ): Era @find
 
     """
+    Recherche par nom, comme `GET /api/v1/search` et l'outil MCP `search` : lignes (nom ou code à 6
+    chiffres), gares, matériels roulants et accidents (par nom dans l'une des trois langues, commune ou
+    date : `1891`, `07/2013`, `2013-07-12`), triés par pertinence (nom exact, début du nom, mot du nom,
+    reste), sans tenir compte de la casse ni des accents. Seuls les accidents publiés sont renvoyés.
+    Moins de 2 caractères : listes vides.
+    """
+    search(
+        "Texte cherché, 2 caractères au moins."
+        query: String!
+        "Résultats par catégorie, de 1 à 20 (8 par défaut)."
+        limit: Int = 8 @rules(apply: ["integer", "between:1,20"])
+    ): SearchResults! @field(resolver: "App\\GraphQL\\Resolvers\\SearchField")
+
+    """
+    Chiffres d'ensemble du site : lignes, gares, matériels, ères cartographiées, kilomètres exploités
+    aujourd'hui et profil du réseau à chaque ère. Mêmes valeurs que la page d'accueil et que l'API
+    REST `GET /api/v1/stats`, mêmes noms de champs.
+    """
+    stats: SiteStats! @field(resolver: "App\\GraphQL\\Resolvers\\SiteStatsResolver")
+
+    """
     Ce qui a changé sur le réseau entre deux ères de la carte : kilomètres et nombre de lignes
     ouvertes, fermées, déposées ou restées en service. Même résumé que l'API REST
     `GET /api/v1/eras/{year}/compare/{other}`, mêmes noms de champs. Les deux années peuvent venir
@@ -1862,7 +1972,7 @@ type Query {
     `GET /api/v1/materials` (argument `filter`) ; `type` et `builder` restent acceptés directement.
     """
     materials(
-        "Catégorie : `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`, `autorail`, `rame_tgv`, `voiture`, `wagon`, `tramway` ou `engin_service`."
+        "Catégorie : `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`, `bimode`, `autorail`, `rame_tgv`, `voiture`, `wagon`, `tramway` ou `engin_service`."
         type: String @eq
         "Constructeur, joker `%` accepté, casse ignorée (ex. `%alstom%`)."
         builder: String @where(operator: "ilike", key: "builder")
@@ -2143,22 +2253,49 @@ type LineOperator {
     source: String
 }
 
-"Campagne de défense de la ligne relayée par VFF (réouverture, menace de fermeture)."
-type LineAdvocacy {
-    "Nature : `reopening` (réouverture), `threat` (menace)…"
-    kind: String!
+"""
+Source de la description d'une ligne. Pour un extrait Wikipédia (`type` = `wikipedia`) : de quoi respecter la licence CC BY-SA 4.0
+(auteur collectif, article, permalien de la version lue, licence). Pour une ligne décrite à la main (`type` = `curated`) : les sources citées.
+"""
+type LineDescriptionSource {
+    "`wikipedia` (extrait de l'article, sous CC BY-SA 4.0) ou `curated` (texte rédigé à la main, sources citées dans `urls`)."
+    type: String!
 
-    "Titre de la campagne, en français."
-    title: String!
+    "Titre de l'article Wikipédia (`wikipedia`)."
+    title: String
 
-    "Message de la campagne, en français."
-    message: String
+    "Lien exact de la version lue de l'article (`wikipedia`)."
+    url: String
 
-    "Libellé de l'appel à agir."
-    cta_label: String
+    "Lien vers l'article, dans sa version courante (`wikipedia`)."
+    article_url: String
 
-    "Lien de l'appel à agir (association, pétition)."
-    cta_url: String
+    "Numéro de la révision lue (`oldid` de Wikipédia), ou nul s'il n'est pas connu."
+    revision_id: Int
+
+    "Permalien de la révision lue, ou nul si elle n'est pas connue."
+    permalink: String
+
+    "Historique de l'article, où figurent les auteurs."
+    history_url: String
+
+    "Auteur collectif à citer : « Contributeurs de Wikipédia »."
+    author: String
+
+    "Mention d'attribution prête à copier (article, auteur, licence)."
+    attribution: String
+
+    "Date de lecture de l'article (AAAA-MM-JJ)."
+    fetched_at: String
+
+    "Licence de l'extrait : `CC BY-SA 4.0`."
+    license: String
+
+    "Lien vers le texte de la licence."
+    license_url: String
+
+    "Sources citées pour une description rédigée à la main (`curated`)."
+    urls: [String!]
 }
 
 "L'état de la ligne aujourd'hui (ou à sa dernière décennie connue)."
@@ -2247,7 +2384,7 @@ type LineVoltage {
 
 "Signalisation de la ligne à l'ère affichée (SNCF Réseau Open Data, ODbL)."
 type LineSheetSignalling {
-    "Longueur par mode de cantonnement (`BAL`, `BAPR-VB`, `CT-VU`…)."
+    "Longueur par mode de cantonnement (`BAL`, `BAPR-VB`, `CT-VU`…) ; une tranche à deux systèmes (ETCS niveau 2 et TVM) compte pour chacun."
     block_systems_km: [KmByCode!]!
 
     "Longueur par système de contrôle de vitesse (`KVB`, `TVM 430`, `ETCS 2`…)."
@@ -2444,11 +2581,8 @@ type LineSheet {
     "Extrait de l'article Wikipédia, en français, sous CC BY-SA 4.0 (voir `description_source`)."
     description: String
 
-    "Source de la description : `title`, `url` (version lue), `article_url`, `fetched_at`, `license`, `license_url`."
-    description_source: JSON
-
-    "Campagne de défense relayée par VFF, ou nul."
-    advocacy: LineAdvocacy
+    "Source de la description : auteur collectif, article, permalien de la révision lue et licence à citer."
+    description_source: LineDescriptionSource
 
     "Compagnie d'origine."
     historical_operator: String
@@ -2630,8 +2764,26 @@ type StationSource {
     "Desserte fret déclarée."
     freight: Boolean
 
+    "Point kilométrique donné par la source, en mètres (si elle en donne un)."
+    pk_m: Int
+
+    "Comment la source a été placée sur la carte : `pk` (calée sur le point kilométrique), `commune`, `coords`…"
+    geocoding: String
+
+    "Précision estimée de la position donnée par la source, en mètres (nul : position exacte ou inconnue)."
+    precision_m: Int
+
     "Lien vers l'objet de la source."
     url: String
+
+    "Date à laquelle VFF a lu l'objet dans la source (AAAA-MM-JJ)."
+    fetched_at: String
+
+    "Attributs bruts tels que reçus de la source (étiquettes OSM, champs SNCF, éléments Wikidata, calage), en lecture seule. Leur forme dépend de la source. Nul quand la source n'est pas sous licence ouverte vérifiée (voir `raw_withheld`)."
+    raw: JSON
+
+    "Vrai si les attributs bruts ne sont pas republiés : comme pour les tracés, seule une source sous licence ouverte vérifiée (`provenance.license_status` = `verified`) les voit republiés."
+    raw_withheld: Boolean!
 
     "Fournisseur et licence de la source."
     provenance: Provenance!
@@ -2968,6 +3120,167 @@ type SourceProvider {
 
     "Valeurs de provenance, par table, qui renvoient à ce fournisseur."
     source_values: [SourceValues!]!
+}
+
+"""
+Chiffres d'ensemble du site (page d'accueil, `GET /api/v1/stats`). Recalculés dès que les données du réseau changent.
+"""
+type SiteStats {
+    "Lignes recensées, en service ou disparues."
+    lines_count: Int!
+
+    "Gares et haltes recensées, ouvertes ou fermées."
+    stations_count: Int!
+
+    "Séries de matériel roulant."
+    materials_count: Int!
+
+    "Ères dont la carte a au moins un tronçon."
+    eras_count: Int!
+
+    "Kilomètres de lignes exploitées aujourd'hui, d'après les formes de SNCF Réseau (l'axe de chaque ligne, une fois)."
+    total_km: Int!
+
+    "Le réseau à chaque ère : kilomètres en service et lignes actives."
+    profile: [SiteStatsEra!]!
+}
+
+"Le réseau à une ère, dans `SiteStats.profile`."
+type SiteStatsEra {
+    "Année de l'ère (1830, 1840… 2030)."
+    year: Int!
+
+    "Longueur des tronçons en service, en km arrondis. Voies parallèles comprises : un ordre de grandeur de l'étendue du réseau."
+    km: Int!
+
+    "Nombre de lignes qui portent du trafic."
+    lines: Int!
+
+    "Vrai pour l'ère d'aujourd'hui (2030)."
+    current: Boolean!
+}
+
+"Résultats d'une recherche par nom."
+type SearchResults {
+    "Lignes dont le nom ou le code correspond."
+    lines: [SearchLine!]!
+
+    "Gares dont le nom correspond."
+    stations: [SearchStation!]!
+
+    "Matériels roulants dont le nom ou la désignation correspond."
+    materials: [SearchMaterial!]!
+
+    "Accidents publiés dont le nom (dans l'une des trois langues), la commune ou la date correspond."
+    accidents: [SearchAccident!]!
+}
+
+"Une ligne trouvée par la recherche."
+type SearchLine {
+    "Identifiant de la ligne (`rfn-420000`), à passer à `line(slug:)`."
+    slug: String!
+
+    "Nom de la ligne."
+    name: String!
+
+    "Code SNCF Réseau à 6 chiffres, nul pour une ligne hors réseau ferré national."
+    code: String
+}
+
+"Une gare trouvée par la recherche."
+type SearchStation {
+    "Identifiant de la gare, à passer à `station(slug:)`."
+    slug: String!
+
+    "Nom de la gare."
+    name: String!
+
+    "Commune, pour distinguer les homonymes."
+    city: String
+
+    "Code du département."
+    department_code: String
+
+    "Latitude WGS 84."
+    lat: Float!
+
+    "Longitude WGS 84."
+    lng: Float!
+}
+
+"Un matériel roulant trouvé par la recherche."
+type SearchMaterial {
+    "Identifiant de la série, à passer à `material(slug:)`."
+    slug: String!
+
+    "Nom de la série."
+    name: String!
+
+    "Catégorie (`locomotive_electrique`, `automotrice`…)."
+    kind: String!
+
+    "Constructeur, nul s'il n'est pas connu."
+    builder: String
+}
+
+"Un accident trouvé par la recherche."
+type SearchAccident {
+    "Identifiant de l'accident (`2013-07-12-bretigny-sur-orge`), à passer à `accident(slug:)`."
+    slug: String!
+
+    "Nom usuel."
+    name(
+        "Langue : `fr` (par défaut), `en` ou `de`."
+        lang: String = "fr"
+    ): String! @field(resolver: "App\\GraphQL\\Resolvers\\SearchField@accidentName")
+
+    "Date de l'accident (`AAAA-MM-JJ`), à lire avec `date_precision`."
+    date: Date!
+
+    "Précision de `date` : `day` (date exacte), `month` (mois et année), `year` (année seule)."
+    date_precision: String!
+
+    "Nature (`derailment`, `collision`, `level_crossing`…)."
+    kind: String!
+
+    "Commune actuelle du lieu."
+    commune: String
+
+    "Code du département."
+    department_code: String
+
+    "Latitude WGS 84, nulle si le lieu n'est pas localisé."
+    lat: Float
+
+    "Longitude WGS 84, nulle si le lieu n'est pas localisé."
+    lng: Float
+}
+
+"Point kilométrique d'un lieu sur une ligne (`Line.pk`)."
+type LinePk {
+    "PK en mètres, mesuré le long du tracé VFF depuis son origine."
+    pk_m: Int!
+
+    "PK en notation ferroviaire `km+mmm` (`249+204` = 249,204 km)."
+    pk_label: String!
+
+    "Longueur totale du tracé de la ligne à cette ère, en mètres."
+    total_m: Int!
+
+    "Point du tracé le plus proche du lieu demandé."
+    snap: LinePkSnap!
+}
+
+"Point du tracé retenu pour calculer un PK."
+type LinePkSnap {
+    "Latitude WGS 84 du point du tracé."
+    lat: Float!
+
+    "Longitude WGS 84 du point du tracé."
+    lng: Float!
+
+    "Distance entre le lieu demandé et le tracé, en mètres. Au-delà de quelques dizaines de mètres, le lieu n'est probablement pas sur cette ligne."
+    distance_from_input_m: Float!
 }
 
 extend type Query {

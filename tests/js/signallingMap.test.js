@@ -7,8 +7,10 @@ import {
     protectionCodes,
     signallingLayers,
     signallingPopupHtml,
+    signallingSystems,
     signallingTilesUrl,
     signallingWithGaps,
+    systemsLabel,
 } from '$lib/signallingMap.js';
 import { colorOf, compile, matches, spec } from './support/maplibre.js';
 
@@ -97,6 +99,50 @@ describe('protectionCodes', () => {
         expect(
             protectionCodes({ signalling: 'BAPR', train_protection: '', kvb_equipped: false }),
         ).toEqual([]);
+    });
+});
+
+describe('deux systèmes installés ensemble (ETCS niveau 2 et TVM)', () => {
+    const tile = {
+        signalling: 'ETCS_L2',
+        signalling_systems: 'ETCS_L2,TVM-300',
+        train_protection: 'ERTMS_L2,TVM-300',
+    };
+    const labels = {
+        'lines.signalling.and': 'et',
+        'lines.signalling.codes.ETCS_L2': 'ETCS niveau 2',
+        'lines.signalling.codes.TVM-300': 'TVM 300',
+    };
+    const tr = (key) => labels[key] ?? key;
+
+    it('lit la liste des tuiles (chaîne) comme celle de la fiche (tableau)', () => {
+        expect(signallingSystems(tile)).toEqual(['ETCS_L2', 'TVM-300']);
+        expect(
+            signallingSystems({
+                signalling: 'ETCS_L2',
+                signalling_systems: ['ETCS_L2', 'TVM-300'],
+            }),
+        ).toEqual(['ETCS_L2', 'TVM-300']);
+        // Tranche sans liste (avant la colonne) : son seul code.
+        expect(signallingSystems({ signalling: 'BAL' })).toEqual(['BAL']);
+        expect(
+            signallingSystems({ signalling: 'TVM-430', signalling_systems: ['ETCS_L2'] }),
+        ).toEqual(['TVM-430', 'ETCS_L2']);
+    });
+
+    it('nomme les deux systèmes, et la TVM une seule fois', () => {
+        expect(systemsLabel(tile, tr)).toBe('ETCS niveau 2 et TVM 300');
+        expect(systemsLabel({ signalling: 'ETCS_L2' }, tr)).toBe('ETCS niveau 2');
+        expect(protectionCodes(tile)).toEqual(['ERTMS_L2']);
+        const html = signallingPopupHtml(
+            { ...tile, family: 'cab', line_name: 'LGV' },
+            tr,
+            'fr',
+            '',
+        );
+        expect(html).toContain('ETCS niveau');
+        expect(html).toContain('TVM');
+        expect(html.match(/TVM/g)).toHaveLength(1);
     });
 });
 

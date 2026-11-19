@@ -31,7 +31,7 @@ class ProfileTest extends TestCase
     {
         $user = $this->member('contributor', [
             'name' => 'Jeanne', 'email' => 'jeanne@example.org', 'bio' => 'Passionnée de la ligne des Causses.',
-            'reputation' => 42, 'locale_preference' => 'de',
+            'reputation_applied' => 6, 'reputation_rejected' => 1, 'reputation_reviews' => 2, 'locale_preference' => 'de',
         ]);
 
         $this->actingAs($user)->get('/profile')
@@ -44,13 +44,17 @@ class ProfileTest extends TestCase
                     ->where('email', 'jeanne@example.org')
                     ->where('bio', 'Passionnée de la ligne des Causses.')
                     ->where('role', 'contributor')
-                    ->where('reputation', 42)
                     ->where('avatar_path', null)
                     ->where('locale_preference', 'de')
                     ->whereType('email_verified_at', 'string')
                     ->where('created_at', $user->created_at->toIso8601String())
                     ->missing('password')
-                    ->missing('remember_token')));
+                    ->missing('remember_token')
+                    ->missing('reputation'))
+                ->where('reputation', [
+                    'applied' => 6, 'rejected' => 1, 'reviews' => 2, 'acceptance_rate' => 85, 'level' => 'regular',
+                    'next' => ['level' => 'experienced', 'missing' => ['applied' => 14, 'reviews' => 8, 'acceptance' => null]],
+                ]));
     }
 
     public function test_update_changes_name_bio_and_language(): void
@@ -85,13 +89,13 @@ class ProfileTest extends TestCase
 
     public function test_update_cannot_escalate_privileges_or_change_protected_fields(): void
     {
-        $user = $this->member(null, ['email' => 'moi@example.org', 'reputation' => 3]);
+        $user = $this->member(null, ['email' => 'moi@example.org', 'reputation_applied' => 3]);
 
         $this->actingAs($user)->put('/profile', [
             'name' => 'Moi',
             'locale_preference' => 'fr',
             'role' => 'admin',
-            'reputation' => 100000,
+            'reputation_applied' => 100000,
             'email' => 'admin@vff-project.org',
             'password' => 'piratage',
             'avatar_path' => '/etc/passwd',
@@ -102,7 +106,7 @@ class ProfileTest extends TestCase
         $fresh = User::findOrFail($user->id);
         $this->assertSame('Moi', $fresh->name);
         $this->assertSame('visitor', $fresh->role->value);
-        $this->assertSame(3, $fresh->reputation);
+        $this->assertSame(3, $fresh->reputation_applied);
         $this->assertSame('moi@example.org', $fresh->email);
         $this->assertNull($fresh->avatar_path);
         $this->assertSame($user->getRawOriginal('password'), $fresh->getRawOriginal('password'));
@@ -153,14 +157,16 @@ class ProfileTest extends TestCase
     {
         $user = User::create([
             'name' => 'Direct', 'email' => 'direct@example.org', 'password' => 'motdepasse8',
-            'role' => 'admin', 'reputation' => 5000,
+            'role' => 'admin', 'reputation_applied' => 5000,
         ]);
 
         $fresh = $user->fresh();
         $this->assertSame('visitor', $fresh->role->value, 'role ne doit pas être affectable en masse');
-        $this->assertSame(0, $fresh->reputation);
+        $this->assertSame(0, $fresh->reputation_applied);
         $this->assertNotContains('role', $user->getFillable());
-        $this->assertNotContains('reputation', $user->getFillable());
+        foreach (['reputation_applied', 'reputation_rejected', 'reputation_reviews'] as $column) {
+            $this->assertNotContains($column, $user->getFillable());
+        }
         $this->assertContains('password', $user->getHidden());
         $this->assertContains('remember_token', $user->getHidden());
         $this->assertArrayNotHasKey('password', $fresh->toArray());

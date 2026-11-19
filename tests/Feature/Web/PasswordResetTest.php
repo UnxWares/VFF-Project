@@ -22,6 +22,9 @@ use Tests\TestCase;
  * Bug corrigé : le contrôleur traduisait le statut brut (« passwords.sent ») ;
  * faute de lang/fr/passwords.php, l'utilisateur francophone recevait le texte
  * anglais du framework (« We have emailed your password reset link. »).
+ *
+ * Énumération des comptes : même réponse, même limite et même message d'erreur que l'adresse ait
+ * un compte ou non (le lien part après la réponse).
  */
 class PasswordResetTest extends TestCase
 {
@@ -63,7 +66,7 @@ class PasswordResetTest extends TestCase
             ->post('/forgot-password', ['email' => 'marie@example.org'])
             ->assertRedirect('/forgot-password')
             ->assertSessionHasNoErrors()
-            ->assertSessionHas('success', 'Un lien de réinitialisation vous a été envoyé par e-mail.');
+            ->assertSessionHas('success', 'Si un compte existe avec cette adresse, vous allez recevoir un lien de réinitialisation par e-mail.');
 
         Notification::assertSentTo($user, ResetPassword::class);
         $this->assertDatabaseHas('password_reset_tokens', ['email' => 'marie@example.org']);
@@ -90,17 +93,21 @@ class PasswordResetTest extends TestCase
         $this->assertNotSame($key, __($key, [], $locale), "Clé {$key} absente en {$locale}");
     }
 
-    public function test_unknown_email_gets_a_translated_error(): void
+    public function test_unknown_email_gets_the_same_answer_as_a_known_one(): void
     {
         Notification::fake();
+        $this->member(null, ['email' => 'marie@example.org']);
 
-        $this->from('/forgot-password')
-            ->post('/forgot-password', ['email' => 'personne@example.org'])
-            ->assertRedirect('/forgot-password')
-            ->assertSessionHasErrors(['email' => 'Aucun compte ne correspond à cette adresse e-mail.'])
-            ->assertSessionHasInput('email', 'personne@example.org');
+        $known = $this->from('/forgot-password')->post('/forgot-password', ['email' => 'marie@example.org']);
+        $unknown = $this->from('/forgot-password')->post('/forgot-password', ['email' => 'personne@example.org']);
 
-        Notification::assertNothingSent();
+        foreach ([$known, $unknown] as $response) {
+            $response->assertRedirect('/forgot-password')
+                ->assertSessionHasNoErrors()
+                ->assertSessionHas('success', __('auth.passwords.sent'));
+        }
+        $this->assertDatabaseMissing('password_reset_tokens', ['email' => 'personne@example.org']);
+        Notification::assertSentTimes(ResetPassword::class, 1);
     }
 
     public function test_a_second_request_within_the_minute_is_throttled(): void
@@ -109,10 +116,21 @@ class PasswordResetTest extends TestCase
         $user = $this->member(null, ['email' => 'marie@example.org']);
 
         $this->post('/forgot-password', ['email' => 'marie@example.org'])->assertSessionHasNoErrors();
-        $this->post('/forgot-password', ['email' => 'marie@example.org'])
+        $this->post('/forgot-password', ['email' => 'Marie@Example.org '])
             ->assertSessionHasErrors(['email' => 'Trop de demandes, patientez un peu avant de réessayer.']);
 
         Notification::assertSentToTimes($user, ResetPassword::class, 1);
+    }
+
+    public function test_an_unknown_address_is_throttled_the_same_way(): void
+    {
+        Notification::fake();
+
+        $this->post('/forgot-password', ['email' => 'personne@example.org'])->assertSessionHasNoErrors();
+        $this->post('/forgot-password', ['email' => 'personne@example.org'])
+            ->assertSessionHasErrors(['email' => 'Trop de demandes, patientez un peu avant de réessayer.']);
+
+        Notification::assertNothingSent();
     }
 
     /** @return array<string, array{0: array<string, mixed>}> */
@@ -193,12 +211,12 @@ class PasswordResetTest extends TestCase
         $this->assertTrue(Hash::check('password', $marie->fresh()->password));
     }
 
-    public function test_unknown_account_on_reset(): void
+    public function test_unknown_account_on_reset_gets_the_invalid_link_message(): void
     {
         $this->post('/reset-password', [
             'token' => 'x', 'email' => 'personne@example.org',
             'password' => 'nouveau-mdp', 'password_confirmation' => 'nouveau-mdp',
-        ])->assertSessionHasErrors(['email' => 'Aucun compte ne correspond à cette adresse e-mail.']);
+        ])->assertSessionHasErrors(['email' => 'Ce lien de réinitialisation est invalide ou a expiré.']);
     }
 
     /** @return array<string, array{0: array<string, mixed>, 1: array<int, string>}> */

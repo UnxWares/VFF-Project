@@ -20,6 +20,9 @@ TTY_OPTS=(-i)
 # Base de test parallèle (cf. tests/CreatesApplication.php) : VFF_TEST_DB=vff_unit_test bin/php artisan test
 ENV_OPTS=(-e HOME=/tmp)
 [ -n "${VFF_TEST_DB:-}" ] && ENV_OPTS+=(-e "VFF_TEST_DB=$VFF_TEST_DB")
+# Une base choisie sur l'hôte (DB_DATABASE=vff_x_test bin/php artisan …) doit l'être aussi dans le conteneur :
+# sans cela, `.env` désigne la base de développement (incident du 19/11/2026).
+[ -n "${DB_DATABASE:-}" ] && ENV_OPTS+=(-e "DB_DATABASE=$DB_DATABASE")
 [ -t 0 ] && [ -t 1 ] && TTY_OPTS+=(-t)
 
 exec "$ENGINE" run --rm "${TTY_OPTS[@]}" "${USER_OPTS[@]}" --network host \

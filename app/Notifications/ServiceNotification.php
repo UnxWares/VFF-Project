@@ -3,10 +3,10 @@
 namespace App\Notifications;
 
 use App\Models\User;
+use App\Support\LongDate;
 use DateTimeInterface;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Carbon;
 
 /**
  * Courriel de service envoyé à un membre (la politique de confidentialité exclut toute lettre
@@ -36,8 +36,6 @@ abstract class ServiceNotification extends Notification
      */
     protected function longDate(DateTimeInterface $date): string
     {
-        $locale = app()->getLocale();
-
-        return Carbon::instance($date)->locale($locale)->isoFormat($locale === 'de' ? 'D. MMMM YYYY' : 'D MMMM YYYY');
+        return LongDate::format($date);
     }
 }

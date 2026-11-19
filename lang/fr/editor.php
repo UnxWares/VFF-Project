@@ -253,7 +253,7 @@ return [
         'empty_text' => 'Aucune proposition n’attend de relecture.',
         'submitted' => 'Proposée :date',
         'changes' => 'Changements proposés',
-        'reject_reason' => 'Motif du refus (facultatif, transmis au contributeur)',
+        'reject_reason' => 'Motif du refus (transmis au contributeur)',
         'reject_confirm' => 'Confirmer le refus',
         'cancel' => 'Annuler',
         'source_n' => 'Source :n',
@@ -263,7 +263,6 @@ return [
         'kind_new' => 'Nouvelle ligne disparue',
         'kind_correction' => 'Correction de tracé',
         'kind_segment' => 'Modification par PK',
-        'by' => 'par :name (réputation :reputation)',
         'approvals_one' => ':count approbation sur :threshold',
         'approvals_other' => ':count approbations sur :threshold',
         'length' => 'Longueur',
@@ -285,7 +284,6 @@ return [
         'approve' => 'Approuver',
         'approve_apply' => 'Approuver et publier',
         'reject' => 'Refuser',
-        'reject_prompt' => 'Motif du refus (facultatif) :',
         'confirm_approve' => 'Approuver cette contribution ?',
         'confirm_apply' => 'Dernière approbation requise : la contribution sera publiée immédiatement. Confirmer ?',
         'flash' => [
@@ -296,6 +294,10 @@ return [
             'partial' => 'Approbation enregistrée (:count sur :threshold) : la contribution attend un autre validateur.',
             'rejected' => 'Contribution refusée.',
             'failed' => 'Échec de la publication : :message',
+        ],
+        'errors' => [
+            'reason_required' => 'Indiquez le motif du refus, en :min caractères au moins : il est transmis au contributeur.',
+            'reason_max' => 'Le motif dépasse :max caractères.',
         ],
     ],
 

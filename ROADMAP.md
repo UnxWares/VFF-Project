@@ -8,7 +8,7 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 
 ---
 
-## 📍 Où en est-on ? (2026-11-20)
+## 📍 Où en est-on ? (2026-11-19)
 
 | Phase | État |
 |:-|:-|
@@ -108,6 +108,7 @@ Définir et implémenter le cœur du domaine ferroviaire.
 - [x] Endpoint `GET /api/v1/eras/{year}/lines.geojson` (et `stations.geojson`)
 - [x] Style cartographique custom : rails en orange `#ff6500`, gares en pastilles, statuts et trafics différenciés
 - [x] Calques facultatifs OpenRailwayMap et Carto Tchoo
+- [x] Calques superposés (bouton « Calques ») : accidents, passages à niveau et signalisation cochés ensemble, un fond OpenRailwayMap au plus, état gardé dans l'adresse (`?layer=…&layer=…`)
 - [x] Clic sur une ligne → panneau latéral (`LineDrawer`) avec fiche minimale
 - [x] Recherche par nom de ligne / gare (`/api/v1/search`, autocomplétion)
 - [x] Légende dynamique (`MapLegend`)
@@ -162,8 +163,8 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] Validation : toute contribution est en attente jusqu'à **deux approbations** de validateurs
 - [~] Formulaire d'ajout d'événement / média / matériel (tracés et segments faits)
 - [ ] Notifications (sur le site + courriel) d'acceptation ou de refus
-- [ ] Réputation et badges (le champ existe, aucun calcul)
-- [~] Modération : journal d'audit et retrait d'une contribution par un administrateur faits ; liste de blocage à faire
+- [x] Réputation : trois chiffres (contributions acceptées, refusées, relectures faites) et un niveau tiré de seuils en configuration (`config/reputation.php`), recalculés à chaque décision de validation et par `vff:recalculate-reputation`, affichés sur le profil et dans l'espace de validation, expliqués sur `/contribute/reputation`, jamais dans l'API ; pas de badges
+- [x] Modération : journal d'audit, retrait d'une contribution par un administrateur, suspension d'un compte (motif, fin facultative, levée, notification, export) faits
 - [x] Signalement d'une erreur depuis le site : bouton « Signaler une erreur » en bas des fiches ligne, gare, matériel et accident (visiteurs et membres, sans traceur ni service externe), liste des signalements dans l'espace de validation (`/validate/reports`), notification des validateurs, journal d'audit, purge 12 mois après le traitement
 - [x] Suppression du compte par l'utilisateur, avec anonymisation des contributions, et export de ses données
 
@@ -176,11 +177,11 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] OpenAPI 3 généré par [Scramble](https://scramble.dedoc.co/)
 - [x] Endpoints : lignes et gares par époque (GeoJSON), tuiles MVT, export GTFS par époque, recherche, historique, PK, arrêts, signalisation et médias d'une ligne, itinéraire, passages à niveau (liste, par ligne, tuiles), tuiles de la signalisation
 - [x] Documentation : page `/api`, référence [Scalar](https://scalar.com/) sur `/docs/api`, Swagger UI sur `/docs/swagger`
-- [x] Accès libre sans clé, limité à 300 requêtes par minute et par adresse IP
+- [x] Accès libre sans clé, limité à 300 requêtes par minute et par adresse IP (davantage avec un jeton personnel)
 - [x] Exemples intégrés : curl, JavaScript (`fetch`) et Python (`requests`) sur la page `/api` et, pour les principaux points d'accès, dans la référence Scalar (`x-codeSamples`)
 - [x] Points d'accès des annuaires, fiches complètes, tronçons, époques, sources, événements, médias, matériel et accidents
-- [ ] Jetons API (Sanctum) et quotas par profil (anonyme / inscrit / partenaire)
-- [ ] Webhooks pour notifier les changements
+- [x] Jetons API (Sanctum, lecture seule, créés depuis le profil) et quotas par profil (anonyme 300, membre 1 200, partenaire 6 000 requêtes par minute, `config/api.php`), compteur commun à REST, GraphQL et MCP
+- [x] Webhooks pour notifier les changements : abonnement depuis le profil (adresse HTTPS, événements `contribution.applied`, `current_era.refreshed`, `accident.published`, `material.published`), messages JSON signés HMAC-SHA256 avec horodatage, envoi par la file avec essais espacés et désactivation après échecs répétés, protection SSRF à chaque envoi
 
 ---
 
@@ -232,7 +233,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [~] Jonctions : réduire les coudes et crochets restants (phase « escaliers »)
 - [ ] Modèle : fusion de plusieurs dates de prises de vue (calcul GPU, sur accord), publication des poids complets
 - [ ] Gallica (BnF) et fonds d'archives (SNCF, associations régionales)
-- [ ] Distinction visuelle des époques anciennes sur la carte (sépia, dégradé temporel)
+- [x] Distinction visuelle des époques anciennes sur la carte : fond pâli et teinté de sépia selon l'ère (rien aujourd'hui), réglage « Teinte des époques anciennes » et `?tint=off`
 
 ---
 
@@ -267,7 +268,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 
 ## 🧭 Phase 13 - Nouveaux domaines de l'encyclopédie (en cours)
 
-- [x] **Signalisation** : données SNCF Réseau importées (`line_signalling`, `/api/v1/lines/{slug}/signalling`), fiche ligne (cantonnement et contrôle de vitesse par PK, trous des données signalés, lien vers la carte), calque « Signalisation » sur `/maps` (tranches placées sur les formes SNCF Réseau, PK calés sur les passages à niveau, tuiles `/api/v1/eras/{year}/signalling/tiles/…`)
+- [x] **Signalisation** : données SNCF Réseau importées (`line_signalling`, `/api/v1/lines/{slug}/signalling`), fiche ligne (cantonnement et contrôle de vitesse par PK, trous des données signalés, lien vers la carte), calque « Signalisation » sur `/maps` (tranches placées sur les formes SNCF Réseau, PK calés sur les passages à niveau, tuiles `/api/v1/eras/{year}/signalling/tiles/…`) ; tranches à deux systèmes (ETCS niveau 2 et TVM sur les LGV Est, BPL et SEA) gardées entières (`signalling_systems`)
   - [ ] Historique par époque (seul l'état actuel est connu)
 - [x] **Passages à niveau** : 16 801 PN de SNCF Réseau (ODbL), calque « Passages à niveau » sur `/maps` (à partir du zoom 9), section de la fiche ligne (nombre par type, liste repliable), API REST (`/api/v1/level-crossings`, `/api/v1/lines/{slug}/level-crossings`, tuiles), GraphQL (`Line.level_crossings`, `levelCrossings`) et outil MCP `level_crossings`
 - [x] **Matériel roulant** : 687 séries importées de Wikidata (CC0) avec leur image Commons et la provenance de chaque champ (`vff:import-materials`), 969 liens ligne × matériel attestés par Wikidata ou par les articles Wikipédia (phrase citée, permalien, fiabilité), API REST (`/api/v1/materials`, `/api/v1/lines/{slug}/materials`) et GraphQL ; à faire : fiches enrichies sur le site, périodes de circulation par portion

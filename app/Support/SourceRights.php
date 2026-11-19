@@ -116,6 +116,17 @@ final class SourceRights
         return null;
     }
 
+    /**
+     * La donnée de ce fournisseur peut-elle être redistribuée (exports GPX, KML et GeoJSON) ?
+     * Seule une licence ouverte écrite et prouvée (statut « sur ») l'autorise : une source dont
+     * l'usage est non commercial, l'accord oral ou le statut incertain, ou qui n'est pas déclarée
+     * (fournisseur null), n'est jamais redistribuée.
+     */
+    public function allowsRedistribution(?string $provider): bool
+    {
+        return $provider !== null && $this->status($provider) === self::SAFE;
+    }
+
     /** Statut d'une donnée (cf. providerFor) ; null si la source n'est pas déclarée. */
     public function statusFor(string $table, ?string $source, ?string $url = null): ?string
     {

@@ -55,8 +55,9 @@ return [
             // Always set the `Accept: application/json` header.
             AcceptJson::class,
 
-            // Même limite anti-abus que l'API REST v1 (routes/api.php).
-            'throttle:300,1',
+            // Même jeton facultatif et même limiteur que l'API REST v1 (routes/api.php, config/api.php).
+            'api.token',
+            'throttle:public-api',
 
             // Logs in a user if they are authenticated. In contrast to Laravel's 'auth'
             // middleware, this delegates auth and permission checks to the field level.

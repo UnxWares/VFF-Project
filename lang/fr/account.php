@@ -53,6 +53,13 @@ return [
             'action' => 'Me connecter',
             'contributions' => 'Si votre compte est supprimé, vos contributions publiées resteront dans l’encyclopédie, sans votre nom. Les autres seront supprimées.',
         ],
+        'last_admin' => [
+            'subject' => 'Le dernier administrateur de Voies Ferrées de France est inactif',
+            'greeting' => 'Bonjour,',
+            'intro' => 'Le compte n° :id, seul administrateur du site, n’a pas été utilisé depuis le :date.',
+            'kept' => 'La suppression des comptes inutilisés pendant 3 ans ne s’applique pas à ce compte : sans lui, plus personne ne pourrait attribuer les rôles.',
+            'next' => 'Nommez un autre administrateur (commande php artisan vff:make-admin) ou reconnectez-vous avec ce compte.',
+        ],
 
         'removed' => [
             'subject' => 'Votre contribution n° :id a été retirée',

@@ -2,11 +2,14 @@
 
 use App\Http\Middleware\AllowIframeEmbed;
 use App\Http\Middleware\ApiLocale;
+use App\Http\Middleware\AuthenticateApiToken;
+use App\Http\Middleware\EnsureAccountNotSuspended;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackLastSeen;
 use App\Support\Translations;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -46,7 +49,14 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'iframe.embed' => AllowIframeEmbed::class,
+            // Contribuer, relire, signaler : refusé à un compte suspendu (EnsureAccountNotSuspended).
+            'not.suspended' => EnsureAccountNotSuspended::class,
+            // Jeton personnel facultatif de l'API publique (REST, GraphQL, MCP), avant le limiteur.
+            'api.token' => AuthenticateApiToken::class,
         ]);
+        // Le jeton doit être lu avant l'authentification (auth:sanctum de /api/user : refus 403 d'un
+        // compte suspendu plutôt qu'un 401 muet) et avant le limiteur, dont la limite dépend du compte.
+        $middleware->prependToPriorityList(AuthenticatesRequests::class, AuthenticateApiToken::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Page d'erreur d'une URL inconnue (404) ou d'une méthode non autorisée (405) :

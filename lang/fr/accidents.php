@@ -82,6 +82,7 @@ return [
         'era_value' => 'Ère :year',
         'distance' => 'Distance au tracé',
         'method' => 'Méthode',
+        'line_cited' => 'Article cité par la source',
         'confidence' => 'Confiance',
         'other_lines' => 'Autres lignes au même endroit',
         'trains_title' => 'Trains et matériel',
@@ -96,6 +97,8 @@ return [
         'wikipedia_title' => 'Articles de Wikipédia',
         'review_title' => 'Points à vérifier',
         'review_intro' => 'Cette fiche a été constituée automatiquement à partir des sources ; ces points restent incertains :',
+        'reserves_title' => 'Réserves',
+        'reserves_intro' => 'La date et la commune sont confirmées par les sources ; à noter :',
         'back' => 'Tous les accidents',
     ],
 
@@ -194,6 +197,7 @@ return [
         'article' => 'Article encyclopédique',
         'report' => 'Enquête technique',
         'inventory' => 'Bilan des enquêtes',
+        'list' => 'Liste de Wikipédia',
     ],
 
     'review' => [
@@ -213,6 +217,11 @@ return [
         'no_line' => 'Aucune ligne de VFF n’a été trouvée près du lieu.',
         'line_uncertain' => 'Plusieurs lignes passent près du centre de la commune.',
         'hinted_line_far' => 'La ligne citée par une source passe loin du lieu indiqué.',
+        'place_from_list' => 'Le lieu a été lu dans une liste de Wikipédia, sans coordonnées : il reste à vérifier.',
+        'verification_conflict' => 'Deux sources se contredisent sur la date ou sur le lieu.',
+        'alias_toll_mismatch' => 'Un autre élément Wikidata décrit le même accident avec un autre bilan.',
+        'possible_duplicate' => 'Une autre fiche du même jour décrit peut-être le même accident.',
+        'list_kind_hidden' => 'Une liste de Wikipédia décrit peut-être un heurt de personne : la nature de la fiche est gardée et reste à vérifier.',
     ],
 
     // Résumés rédigés par VFF (AccidentSummary) : phrases complètes, lieu et date insérés.

@@ -71,7 +71,9 @@
         <ul aria-label={t('lines.sheet.stations.legend_title')}>
             {#each legendKeys as k (k)}
                 <li>
-                    <span class="tick" style:--c={color(k)}></span>{t(`lines.stations.status.${k}`)}
+                    <span class="tick" data-status={k} style:--c={color(k)}></span>{t(
+                        `lines.stations.status.${k}`,
+                    )}
                 </li>
             {/each}
             <li><span class="tick empty"></span>{t('lines.stations.status.none')}</li>
@@ -118,6 +120,7 @@
                             <span
                                 class="tick"
                                 class:empty={!st}
+                                data-status={st}
                                 style:--c={st ? color(st) : 'transparent'}
                             ></span>
                         {/each}
@@ -186,6 +189,14 @@
         align-items: center;
         gap: 6px;
         font-size: var(--vff-fs-xs);
+    }
+    /* Légende : cases un peu plus grandes que celles des gares, pour que le motif se lise. */
+    .legend .tick {
+        width: 18px;
+        height: 10px;
+    }
+    .legend .tick[data-status='declassified'] {
+        height: 4px;
     }
     .stations {
         margin: 0;
@@ -286,7 +297,9 @@
     }
     .life {
         display: flex;
+        align-items: center;
         gap: 2px;
+        height: 6px;
         margin-top: 4px;
     }
     .tick {
@@ -299,6 +312,19 @@
     .tick.empty {
         background: transparent;
         box-shadow: inset 0 0 0 1px var(--vff-border-strong);
+    }
+    /* La couleur ne porte pas seule l'état (RGAA 3.1) : état non confirmé = case hachurée, fermée =
+       case plus basse, absente = case vide ; ouverte = case pleine. */
+    .tick[data-status='uncertain'] {
+        background: repeating-linear-gradient(
+            135deg,
+            var(--c) 0 2px,
+            var(--vff-bg-elevated) 2px 4px
+        );
+        box-shadow: inset 0 0 0 1px var(--c);
+    }
+    .tick[data-status='declassified'] {
+        height: 3px;
     }
     .badges {
         display: flex;

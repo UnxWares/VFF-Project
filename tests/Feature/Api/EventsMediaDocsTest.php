@@ -39,7 +39,8 @@ class EventsMediaDocsTest extends TestCase
             $this->assertLessThanOrEqual(60, mb_strlen($operation['summary']), "{$path} : résumé trop long");
             $this->assertGreaterThan(300, mb_strlen($operation['description'] ?? ''), "{$path} : description trop courte");
             $this->assertNotEmpty($operation['tags'] ?? [], "{$path} : groupe manquant");
-            $this->assertEqualsCanonicalizing($codes, array_map('intval', array_keys($operation['responses'])), "{$path} : codes de réponse");
+            // 401 et 403 : jeton invalide ou d'un compte suspendu, sur chaque opération (ApiAuthDocumentation).
+            $this->assertEqualsCanonicalizing([...$codes, 401, 403], array_map('intval', array_keys($operation['responses'])), "{$path} : codes de réponse");
         }
     }
 

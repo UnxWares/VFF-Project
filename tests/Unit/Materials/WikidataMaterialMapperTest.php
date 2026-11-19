@@ -161,6 +161,95 @@ class WikidataMaterialMapperTest extends TestCase
         $this->assertSame('Q746572#label:fr', $sheet['provenance']['name']['ref']);
     }
 
+    /** Infobox lue dans l'article Wikipédia de la série. */
+    private function infobox(array $parameters, bool $shared = false): array
+    {
+        return ['title' => 'BB 15000', 'revid' => 237800094, 'parameters' => $parameters, 'read_on' => '2026-11-19'] + ($shared ? ['shared' => true] : []);
+    }
+
+    public function test_a_railcar_becomes_bimode_only_when_wikidata_or_its_article_says_so(): void
+    {
+        // Wikidata : classe « engin ferroviaire bi-modes ».
+        $sheet = $this->map($this->bb15000(), ['Q1567915', 'Q483373', 'Q28455463']);
+        $this->assertSame('bimode', $sheet['type']);
+        $this->assertSame('Q746572#P279:Q28455463', $sheet['provenance']['type']['ref']);
+
+        // Un autorail sans classe bimode reste autorail ; son article l'annonce bimode : sa catégorie change, avec la révision citée.
+        $this->assertSame('autorail', $this->map($this->bb15000(), ['Q1567915'])['type']);
+        $sheet = $this->mapper->map('Q746572', $this->bb15000(), ['Q1567915'], self::LABELS, [], [], [], $this->infobox(['type' => 'automotrice bimode']));
+        $this->assertSame('bimode', $sheet['type']);
+        $this->assertSame(['source' => 'wikipedia', 'ref' => 'BB 15000#infobox:Type', 'revid' => 237800094], $sheet['provenance']['type']);
+
+        // Une locomotive n'est pas reclassée par l'infobox (la famille Traxx écrit « bimode » dans sa motorisation).
+        $sheet = $this->mapper->map('Q746572', $this->bb15000(), ['Q625151'], self::LABELS, [], [], [], $this->infobox(['type' => 'automotrice bimode']));
+        $this->assertSame('locomotive_electrique', $sheet['type']);
+    }
+
+    public function test_the_service_state_comes_only_from_a_source_with_its_reading_date(): void
+    {
+        $withoutSource = $this->map($this->bb15000());
+        $this->assertNull($withoutSource['service_status'], 'une date de retrait absente ne prouve pas que la série circule');
+        $this->assertNull($withoutSource['service_status_checked_at']);
+        $this->assertArrayNotHasKey('service_status', $withoutSource['provenance']);
+
+        // Effectif de l'infobox, daté d'une année récente.
+        $sheet = $this->mapper->map('Q746572', $this->bb15000(), ['Q625151'], self::LABELS, [], [], [], $this->infobox(['effectif' => '1 au 13 07 2026']));
+        $this->assertSame(['in_service', '2026-11-19'], [$sheet['service_status'], $sheet['service_status_checked_at']]);
+        $this->assertSame(['source' => 'wikipedia', 'ref' => 'BB 15000#infobox:Effectif', 'revid' => 237800094, 'as_of' => '2026-07-13', 'units' => 1], $sheet['provenance']['service_status']);
+
+        // Effectif nul : retirée. Effectif d'une année trop ancienne, ou sans date : rien.
+        $this->assertSame('withdrawn', $this->mapper->map('Q746572', $this->bb15000(), ['Q625151'], self::LABELS, [], [], [], $this->infobox(['effectif' => '0 en 2025']))['service_status']);
+        $this->assertNull($this->mapper->map('Q746572', $this->bb15000(), ['Q625151'], self::LABELS, [], [], [], $this->infobox(['effectif' => '12 rames (en 2012)']))['service_status']);
+        $this->assertNull($this->mapper->map('Q746572', $this->bb15000(), ['Q625151'], self::LABELS, [], [], [], $this->infobox(['effectif' => '12 rames']))['service_status']);
+    }
+
+    public function test_the_fleet_of_an_article_shared_by_several_series_is_not_given_to_one_of_them(): void
+    {
+        $sheet = $this->mapper->map('Q746572', $this->bb15000(), ['Q625151'], self::LABELS, [], [], [], $this->infobox(['effectif' => '513 au 18 05 2026'], shared: true));
+
+        $this->assertSame('in_service', $sheet['service_status']);
+        $this->assertArrayNotHasKey('units', $sheet['provenance']['service_status']);
+    }
+
+    public function test_wikidata_state_of_use_comes_first_and_keeps_its_value_and_date(): void
+    {
+        $entity = ['read_on' => '2026-11-18'] + $this->bb15000(['P5817' => [['v' => 'Q55654238', 'q' => ['P585' => [['time' => '+2025-03-00T00:00:00Z', 'precision' => 10]]], 'rank' => 'normal']]]);
+        $sheet = $this->mapper->map('Q746572', $entity, ['Q625151'], self::LABELS, [], [], [], $this->infobox(['effectif' => '0 en 2025']));
+
+        $this->assertSame(['in_service', '2026-11-18'], [$sheet['service_status'], $sheet['service_status_checked_at']]);
+        $this->assertSame(['source' => 'wikidata', 'ref' => 'Q746572#P5817', 'value' => 'Q55654238', 'as_of' => '2025-03'], $sheet['provenance']['service_status']);
+
+        // Valeur inconnue (« abandonné », par exemple) : aucun état.
+        $unknown = ['read_on' => '2026-11-18'] + $this->bb15000(['P5817' => [['v' => 'Q1', 'q' => [], 'rank' => 'normal']]]);
+        $this->assertNull($this->map($unknown)['service_status']);
+    }
+
+    public function test_the_discontinued_date_is_used_when_there_is_no_retirement_date(): void
+    {
+        $end = ['v' => ['time' => '+1999-00-00T00:00:00Z', 'precision' => 9], 'q' => [], 'rank' => 'normal'];
+        $sheet = $this->map($this->bb15000(['P2669' => [$end]]));
+
+        $this->assertSame(1999, $sheet['in_service_to']);
+        $this->assertSame('Q746572#P2669', $sheet['provenance']['in_service_to']['ref']);
+    }
+
+    public function test_a_series_attested_on_a_french_line_keeps_its_attestation_and_skips_the_operator_rule(): void
+    {
+        $foreign = $this->bb15000(['P137' => [['v' => 'Q3359730', 'q' => [], 'rank' => 'normal']]]);
+        $attestation = ['source' => 'wikipedia', 'ref' => 'LGV Est européenne'];
+
+        $sheet = $this->mapper->map('Q746572', $foreign, ['Q625151'], self::LABELS, [], [], [], null, $attestation);
+
+        $this->assertIsArray($sheet);
+        $this->assertSame('attested', $sheet['scope']);
+        $this->assertSame($attestation, $sheet['provenance']['scope']);
+        // Une série rattachée à la France par Wikidata est du périmètre « france » avec sa propre provenance.
+        $french = $this->map($this->bb15000());
+        $this->assertSame(['france', ['source' => 'wikidata', 'ref' => 'Q746572#P17|P137']], [$french['scope'], $french['provenance']['scope']]);
+        // Le métro reste écarté même attesté.
+        $this->assertSame(WikidataMaterialMapper::SKIP_METRO, $this->mapper->map('Q746572', $foreign, ['Q1144784'], self::LABELS, [], [], [], null, $attestation));
+    }
+
     public function test_entities_are_trimmed_to_useful_claims_without_deprecated_ones(): void
     {
         $snak = fn (string $id): array => ['snaktype' => 'value', 'datavalue' => ['type' => 'wikibase-entityid', 'value' => ['id' => $id]]];

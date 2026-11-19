@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\LinePkController;
 use App\Http\Controllers\Api\LineProfileController;
 use App\Http\Controllers\Api\LineSignallingController;
 use App\Http\Controllers\Api\LineStopsController;
+use App\Http\Controllers\Api\LineTraceController;
 use App\Http\Controllers\Api\MaterialController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\RouteController;
@@ -23,15 +24,18 @@ use App\Http\Controllers\Api\SignallingMapController;
 use App\Http\Controllers\Api\SourceController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationEventController;
+use App\Http\Controllers\Api\StatsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->get('/user', fn (Request $request) => $request->user());
+// Compte du jeton (lecture seule) ; un jeton d'un compte suspendu est refusé (AuthenticateApiToken).
+Route::middleware(['api.token', 'auth:sanctum', 'throttle:public-api'])->get('/user', fn (Request $request) => $request->user());
 
 // ── API v1 publique : cartographie ─────────────────────────────────────────
-// Toutes les routes sont GET, sans auth (données ouvertes - ODbL).
-// Rate-limit généreux (navigation carte = nombreuses tuiles) mais anti-abus.
-Route::middleware('throttle:300,1')->group(function (): void {
+// Toutes les routes sont GET, sans auth (données ouvertes - ODbL). Jeton personnel facultatif
+// (api.token) : il relève la limite de débit du compte (limiteur public-api, config/api.php).
+// Limite généreuse (navigation carte = nombreuses tuiles) mais anti-abus.
+Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void {
     // Longueurs bornées : un entier géant (« 99999999999999999999 ») ne rentre pas
     // dans le paramètre int du contrôleur (TypeError, HTTP 500) → 404 de routage.
     Route::prefix('v1/eras/{year}')
@@ -63,11 +67,16 @@ Route::middleware('throttle:300,1')->group(function (): void {
     Route::get('/v1/search', [SearchController::class, 'index'])->name('api.search');
 
     // Annuaires et fiches complètes (ce que montrent /lines, /stations), ères et statistiques, registre des sources.
+    Route::get('/v1/stats', [StatsController::class, 'show'])->name('api.stats');
     Route::get('/v1/eras', [EraController::class, 'index'])->name('api.eras.index');
     Route::get('/v1/eras/{year}', [EraController::class, 'show'])->where('year', '[0-9]{1,4}')->name('api.eras.show');
     Route::get('/v1/lines', [LineController::class, 'index'])->name('api.lines.index');
     Route::get('/v1/lines/{line:slug}', [LineController::class, 'show'])->name('api.lines.show');
     Route::get('/v1/lines/{line:slug}/segments', [LineController::class, 'segments'])->name('api.lines.segments');
+    Route::get('/v1/lines/{line:slug}/geojson', [LineController::class, 'geojson'])->name('api.lines.geojson');
+    // Tracé en fichier à télécharger (GPX 1.1, KML 2.2) : seules les sources redistribuables y figurent.
+    Route::get('/v1/lines/{line:slug}/gpx', [LineTraceController::class, 'gpx'])->name('api.lines.gpx');
+    Route::get('/v1/lines/{line:slug}/kml', [LineTraceController::class, 'kml'])->name('api.lines.kml');
     Route::get('/v1/stations', [StationController::class, 'index'])->name('api.stations.index');
     Route::get('/v1/stations/{station:slug}', [StationController::class, 'show'])->name('api.stations.show');
     Route::get('/v1/sources', [SourceController::class, 'index'])->name('api.sources.index');

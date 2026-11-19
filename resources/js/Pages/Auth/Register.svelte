@@ -12,9 +12,12 @@
         email: '',
         password: '',
         password_confirmation: '',
+        accept_terms: false,
     });
 
-    const FIELDS = ['name', 'email', 'password', 'password_confirmation'];
+    const FIELDS = ['name', 'email', 'password', 'password_confirmation', 'accept_terms'];
+
+    const termsError = $derived(form.errors.accept_terms || '');
 
     /** Contrôle dans le navigateur avant l'envoi (le serveur refait les mêmes contrôles). */
     function check() {
@@ -37,6 +40,9 @@
             errors.password_confirmation = $i18n.t('auth.errors.confirmation_required');
         } else if (form.password_confirmation !== form.password) {
             errors.password_confirmation = $i18n.t('auth.errors.confirmation_mismatch');
+        }
+        if (!form.accept_terms) {
+            errors.accept_terms = $i18n.t('auth.errors.terms_required');
         }
         return errors;
     }
@@ -127,8 +133,30 @@
                     bind:value={form.password_confirmation}
                 />
 
-                <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-                <p class="auth-terms">{@html $i18n.t('auth.register_terms')}</p>
+                <!-- Case obligatoire : la date et la version des CGU acceptées sont enregistrées. -->
+                <div class="vff-field">
+                    <label class="vff-check terms">
+                        <input
+                            id="accept_terms"
+                            name="accept_terms"
+                            type="checkbox"
+                            required
+                            aria-describedby={termsError ? 'accept_terms-error' : undefined}
+                            aria-invalid={termsError ? 'true' : undefined}
+                            bind:checked={form.accept_terms}
+                        />
+                        <span
+                            ><!-- eslint-disable-next-line svelte/no-at-html-tags -->
+                            {@html $i18n.t('auth.register_terms')}<span class="vff-required"
+                                >{` (${$i18n.t('common.required')})`}</span
+                            ></span
+                        >
+                    </label>
+                    <p class="vff-error" id="accept_terms-error" aria-live="polite">
+                        {#if termsError}<i class="bi bi-exclamation-circle" aria-hidden="true"
+                            ></i><span>{termsError}</span>{/if}
+                    </p>
+                </div>
 
                 <div class="auth-actions">
                     <button type="submit" class="vff-btn primary block" disabled={form.processing}>
@@ -152,6 +180,14 @@
 </Layout>
 
 <style>
+    /* Libellé sur plusieurs lignes au besoin : la case reste en haut, alignée sur la première. */
+    .terms {
+        align-items: flex-start;
+    }
+    .vff-required {
+        font-weight: 400;
+        color: var(--vff-text-muted);
+    }
     .privacy {
         padding-top: 16px;
         border-top: 1px solid var(--vff-border);

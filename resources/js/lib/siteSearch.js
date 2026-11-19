@@ -1,6 +1,8 @@
 // Recherche de tout le site (Components/Search) : logique pure, testée par tests/js/siteSearch.test.js.
-// Les résultats viennent de GET /api/v1/search (lignes, gares, matériel roulant) ; s'y ajoutent les
-// rubriques du site et deux liens vers les annuaires filtrés.
+// Les résultats viennent de GET /api/v1/search (lignes, gares, matériel roulant, accidents) ; s'y ajoutent les
+// rubriques du site et deux liens vers les annuaires filtrés (trois quand des accidents répondent).
+
+import { accidentDate } from './accidentText.js';
 
 /** Rubriques du site proposées par la recherche (champ vide, ou nom qui correspond au texte). */
 export const SITE_PAGES = [
@@ -31,19 +33,34 @@ export function stationDetail(station) {
 }
 
 /**
- * Groupes de résultats, dans l'ordre affiché : rubriques, lignes, gares, matériel roulant, puis
+ * Date et lieu d'un accident trouvé : « 12 juillet 2013, Brétigny-sur-Orge (91) » ; la date suit sa
+ * précision (« juillet 2013 », « 1891 »), le lieu manque quand la commune est inconnue.
+ * @param {{ date: string, date_precision: 'day'|'month'|'year', commune?: string|null, department_code?: string|null }} accident
+ * @param {string} [lang]
+ */
+export function accidentDetail(accident, lang = 'fr') {
+    const dept = accident.department_code ? `(${accident.department_code})` : null;
+    const place = [accident.commune, dept].filter(Boolean).join(' ');
+    return [accidentDate(accident.date, accident.date_precision, lang), place]
+        .filter(Boolean)
+        .join(', ');
+}
+
+/**
+ * Groupes de résultats, dans l'ordre affiché : rubriques, lignes, gares, matériel roulant, accidents, puis
  * « Tous les résultats » (annuaires filtrés, une fois la recherche faite). Les groupes vides sont
  * retirés ; chaque option reçoit un indice continu et un identifiant (aria-activedescendant).
  *
  * @param {object} p
  * @param {string} p.query texte saisi, sans espaces autour
  * @param {boolean} p.suggestions champ vide = toutes les rubriques
- * @param {{ lines: any[], stations: any[], materials: any[] }} p.results réponse de l'API
+ * @param {{ lines: any[], stations: any[], materials: any[], accidents?: any[] }} p.results réponse de l'API
  * @param {boolean} p.searched la réponse correspond au texte saisi (ou l'appel a échoué)
  * @param {(key: string, params?: object) => string} p.t traduction
  * @param {string} p.idPrefix préfixe des identifiants
+ * @param {string} [p.lang] langue de la page (nom et date des accidents)
  */
-export function searchGroups({ query, suggestions, results, searched, t, idPrefix }) {
+export function searchGroups({ query, suggestions, results, searched, t, idPrefix, lang = 'fr' }) {
     const pages =
         query.length === 0
             ? suggestions
@@ -51,6 +68,7 @@ export function searchGroups({ query, suggestions, results, searched, t, idPrefi
                 : []
             : SITE_PAGES.filter((p) => fold(t(p.key)).includes(fold(query)));
     const encoded = encodeURIComponent(query);
+    const accidents = results.accidents ?? [];
     const groups = [
         {
             type: 'page',
@@ -88,6 +106,16 @@ export function searchGroups({ query, suggestions, results, searched, t, idPrefi
             })),
         },
         {
+            type: 'accident',
+            label: t('nav.search.accidents'),
+            items: accidents.map((a) => ({
+                href: `/accidents/${a.slug}`,
+                name: a.names?.[lang] ?? a.name,
+                icon: 'bi-exclamation-triangle',
+                detail: accidentDetail(a, lang),
+            })),
+        },
+        {
             type: 'more',
             label: t('nav.search.more'),
             items:
@@ -103,6 +131,15 @@ export function searchGroups({ query, suggestions, results, searched, t, idPrefi
                               name: t('nav.search.all_stations', { query }),
                               icon: 'bi-list-ul',
                           },
+                          ...(accidents.length
+                              ? [
+                                    {
+                                        href: `/accidents?q=${encoded}`,
+                                        name: t('nav.search.all_accidents', { query }),
+                                        icon: 'bi-list-ul',
+                                    },
+                                ]
+                              : []),
                       ]
                     : [],
         },

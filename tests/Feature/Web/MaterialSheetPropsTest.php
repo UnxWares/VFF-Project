@@ -17,6 +17,25 @@ class MaterialSheetPropsTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_the_sheet_gives_the_service_state_and_scope_with_their_source(): void
+    {
+        Material::factory()->fromWikidata()->inService(12, '2026-07-13')->attested()->create(['slug' => 'db-407', 'name' => 'DB 407', 'type' => 'bimode']);
+        Material::factory()->create(['slug' => 'z-2', 'name' => 'Z 2', 'type' => 'automotrice', 'in_service_to' => null]);
+
+        $this->get('/materials/db-407')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('material.type', 'bimode')
+            ->where('material.scope', 'attested')
+            ->where('material.service.status', 'in_service')
+            ->where('material.service.units_in_service', 12)
+            ->where('material.service.as_of', '2026-07-13')
+            ->where('material.service.checked_at', '2026-11-19'));
+
+        // Sans source, la page ne reçoit aucun état d'utilisation (pas de « en service » déduit d'un retrait absent).
+        $this->get('/materials/z-2')->assertInertia(fn (Assert $page) => $page
+            ->where('material.scope', 'france')
+            ->where('material.service.status', null));
+    }
+
     public function test_the_sheet_keeps_its_props_and_adds_sourced_fields_and_evidence(): void
     {
         $material = Material::factory()->fromWikidata()->create(['slug' => 'bb-15000', 'name' => 'BB 15000', 'type' => 'locomotive_electrique']);

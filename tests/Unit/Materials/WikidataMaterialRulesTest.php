@@ -29,8 +29,13 @@ class WikidataMaterialRulesTest extends TestCase
             'vapeur avant tout le reste' => [['Q171043', 'Q93301'], MaterialType::LocomotiveVapeur],
             'locotracteur' => [['Q1079190'], MaterialType::LocomotiveDiesel],
             'rame TGV avant automotrice' => [['Q483373', 'Q13402959'], MaterialType::RameTgv],
-            // Un bimode descend des rames électriques ET thermiques : automotrice.
-            'bimode' => [['Q1567915', 'Q483373', 'Q3588091'], MaterialType::Automotrice],
+            // Un bimode descend des rames électriques ET thermiques : sa classe « bimode » le range à part.
+            'bimode' => [['Q1567915', 'Q483373', 'Q3588091'], MaterialType::Bimode],
+            'engin bi-modes' => [['Q483373', 'Q28455463'], MaterialType::Bimode],
+            'classe bimode ambiguë sans classe électrique : turbotrain' => [['Q3588091', 'Q3959904', 'Q5526370'], MaterialType::Autorail],
+            'classe bimode ambiguë sans classe électrique ni thermique' => [['Q3588091', 'Q3959904'], MaterialType::Automotrice],
+            'électrique sans classe bimode' => [['Q483373'], MaterialType::Automotrice],
+            'thermique sans classe bimode' => [['Q1567915', 'Q3959904'], MaterialType::Autorail],
             'rame diesel avant rame générique' => [['Q1567915', 'Q3959904'], MaterialType::Autorail],
             'rame générique' => [['Q3959904'], MaterialType::Automotrice],
             'modèle de tramway' => [['Q76154857'], MaterialType::Tramway],

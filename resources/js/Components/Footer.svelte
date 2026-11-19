@@ -147,7 +147,12 @@
     </div>
     <hr />
     <div class="copyright">
-        <p>{$i18n.t('footer.copyright', { start: 2023, end: currentYear })}</p>
+        <p>
+            {$i18n.t('footer.copyright', { start: 2023, end: currentYear })}
+            <Link href="/accessibility" class="a11y-status"
+                >{$i18n.t('footer.accessibility_status')}</Link
+            >
+        </p>
         <p class="credits">
             <!-- L'association n'a pas encore de site : logotype sans lien. -->
             <!-- Pas d'espace entre le texte et les logos : l'écart est la marge du logo (footer.css). -->

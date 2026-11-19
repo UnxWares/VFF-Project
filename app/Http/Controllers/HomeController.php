@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Line;
-use App\Models\Material;
 use App\Models\Media;
-use App\Models\Station;
-use App\Services\NetworkStats;
+use App\Services\SiteStats;
 use App\Support\Advocacy;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -15,53 +13,17 @@ use Inertia\Response;
 
 class HomeController extends Controller
 {
-    public function index(NetworkStats $networkStats): Response
+    public function index(SiteStats $siteStats): Response
     {
-        // Cache versionné par une empreinte des données : dès qu'un import ou le
-        // moteur décennal écrit des lignes/segments/gares, la clé change et les
-        // compteurs sont recalculés (avant : clé fixe 'home_stats' jamais
-        // invalidée → compteurs figés à 0 après recréation de la base).
-        //
-        // Périmètres (alignés sur les libellés lang/*/home.php) :
-        //   - lines_count    : lignes recensées (en service ET disparues)
-        //   - stations_count : gares recensées
-        //   - eras_count     : décennies réellement cartographiées (≠ ères seedées)
-        //   - total_km       : km de lignes exploitées aujourd'hui (route-km SNCF)
-        $fingerprint = $networkStats->dataFingerprint();
-        $key = 'home_stats:'.$fingerprint;
-
-        $stats = Cache::remember($key, 600, fn () => [
-            'lines_count' => Line::count(),
-            'stations_count' => Station::count(),
-            'materials_count' => Material::count(),
-            'eras_count' => $networkStats->mappedErasCount(),
-            'total_km' => (int) round($networkStats->totalRouteKm()),
-        ]);
+        // Compteurs et profil du réseau : mêmes chiffres que l'API publique (App\Services\SiteStats).
+        $stats = $siteStats->counts();
 
         // Nombre d'images d'archives (sommaire de l'accueil). Prop à part : la forme de `stats` est
         // vérifiée clé par clé par d'autres tests. L'empreinte ne suit pas les médias : 10 min.
         // (int) : un nombre seul revient du cache Valkey sous forme de chaîne.
         $mediaCount = (int) Cache::remember('home_media_count', 600, fn () => Media::count());
 
-        // Profil du réseau : longueur des lignes ouvertes (segments en service ou à voie unique) et
-        // nombre de lignes à chaque décennie. Somme de length_meters (environ 0,3 s sans cache ;
-        // ST_Length sur toute la géographie prenait 18 s pour les mêmes valeurs à 1 km près),
-        // ST_Length seulement pour les rares segments sans longueur enregistrée.
-        $profile = Cache::remember('home_profile:'.$fingerprint, 86400, fn () => collect(DB::select(
-            'SELECT e.year, e.is_current,
-                    COALESCE(ROUND(SUM(COALESCE(s.length_meters, ST_Length(s.geom::geography))) / 1000), 0)::int AS km,
-                    COUNT(DISTINCT s.line_id)::int AS lines
-             FROM eras e
-             LEFT JOIN line_segments s ON s.era_id = e.id AND s.status IN (?, ?)
-             GROUP BY e.id, e.year, e.is_current
-             ORDER BY e.year',
-            NetworkStats::ACTIVE_STATUSES,
-        ))->map(fn ($r) => [
-            'year' => (int) $r->year,
-            'km' => (int) $r->km,
-            'lines' => (int) $r->lines,
-            'current' => (bool) $r->is_current,
-        ])->values()->all());
+        $profile = $siteStats->profile();
 
         $archives = Cache::remember('home_archives:7:'.now()->toDateString(), 86400, fn () => $this->archives());
 

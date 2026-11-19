@@ -99,7 +99,7 @@ class LineApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('lines.0.slug', $this->line->slug)
             ->assertJsonPath('stations.0.slug', 'versailles-rive-droite')
-            ->assertJsonStructure(['lines', 'stations', 'materials']);
+            ->assertJsonStructure(['lines', 'stations', 'materials', 'accidents']);
 
         // Moins de 2 caractères : réponse vide, pas d'erreur.
         $this->getJson('/api/v1/search?q=v')

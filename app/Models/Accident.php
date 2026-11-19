@@ -6,9 +6,11 @@ use App\Enums\AccidentDatePrecision;
 use App\Enums\AccidentKind;
 use App\Enums\AccidentLocationPrecision;
 use App\Enums\AccidentReviewStatus;
+use App\Models\Scopes\PublicAccidents;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Database\Factories\AccidentFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -50,10 +52,14 @@ use Illuminate\Support\Carbon;
  * @property list<array{code: string, detail: string}>|null $review_notes
  * @property array<string, string>|null $provenance
  * @property Carbon $imported_at
+ * @property array<string, mixed>|null $verification
+ * @property Carbon|null $verified_at
+ * @property int|null $alias_of_id
  * @property Point|null $geom
  * @property float|null $lat
  * @property float|null $lng
  */
+#[ScopedBy([PublicAccidents::class])]
 class Accident extends Model
 {
     /** @use HasFactory<AccidentFactory> */
@@ -81,6 +87,9 @@ class Accident extends Model
             'deaths' => 'integer',
             'injuries' => 'integer',
             'nearest_station_distance_m' => 'integer',
+            'verification' => 'array',
+            'verified_at' => 'datetime',
+            'alias_of_id' => 'integer',
             'imported_at' => 'datetime',
             'lat' => 'float',
             'lng' => 'float',
@@ -108,6 +117,17 @@ class Accident extends Model
         return $this->belongsToMany(Line::class, 'accident_lines')
             ->withPivot(['is_primary', 'era_year', 'distance_m', 'pk_m', 'section_from_station_id', 'section_to_station_id', 'method', 'confidence', 'score'])
             ->withTimestamps();
+    }
+
+    /**
+     * Fiches alias : elles décrivent le même accident (deux éléments Wikidata pour un seul accident),
+     * gardées avec leurs sources et jamais publiées.
+     *
+     * @return HasMany<Accident, $this>
+     */
+    public function aliases(): HasMany
+    {
+        return $this->hasMany(self::class, 'alias_of_id')->withoutGlobalScopes();
     }
 
     /** @return HasMany<AccidentSource, $this> */

@@ -21,6 +21,12 @@ enum LegalDocument: string
         };
     }
 
+    /** Version en vigueur : date AAAA-MM-JJ de la page publiée (config/legal.php). */
+    public function currentVersion(): string
+    {
+        return (string) config('legal.versions.'.$this->value);
+    }
+
     /** Nom de la route de la page publique du texte. */
     public function routeName(): string
     {

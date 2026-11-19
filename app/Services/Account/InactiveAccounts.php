@@ -4,12 +4,15 @@ namespace App\Services\Account;
 
 use App\Enums\AccountDeletionReason;
 use App\Enums\AuditAction;
+use App\Models\AuditEvent;
 use App\Models\User;
 use App\Notifications\InactiveAccountWarning;
+use App\Notifications\LastAdminInactive;
 use App\Services\AuditLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Throwable;
 
 /**
@@ -97,7 +100,8 @@ final readonly class InactiveAccounts
     /**
      * Supprime les comptes avertis restés inutilisés ; renvoie leur nombre. Le dernier
      * administrateur est gardé (même règle que UserPolicy::delete) et signalé dans le journal de
-     * l'application à chaque passage, pour qu'un autre administrateur soit nommé.
+     * l'application à chaque passage, pour qu'un autre administrateur soit nommé ; l'adresse de
+     * contact en est aussi prévenue par courriel, une fois par période d'inactivité.
      */
     public function deleteExpired(CarbonImmutable $now): int
     {
@@ -105,6 +109,7 @@ final readonly class InactiveAccounts
         $this->dueForDeletion($now)->lazyById(100)->each(function (User $user) use (&$deleted): void {
             if ($user->isLastAdmin()) {
                 Log::warning('Comptes inactifs : le dernier administrateur n\'est pas supprimé malgré son inactivité.', ['user_id' => $user->id]);
+                $this->alertContact($user);
 
                 return;
             }
@@ -114,5 +119,41 @@ final readonly class InactiveAccounts
         });
 
         return $deleted;
+    }
+
+    /**
+     * Courriel à l'adresse de contact (mis en file d'attente), une seule fois par période
+     * d'inactivité : pas de nouvel envoi tant que le journal d'audit garde une alerte pour ce
+     * compte depuis son avertissement. S'il revient puis redevient inactif, il est averti de
+     * nouveau (inactivity_warned_at plus récent) et l'alerte repart.
+     */
+    private function alertContact(User $user): void
+    {
+        $address = (string) config('mail.contact.address');
+        if ($address === '') {
+            return;
+        }
+
+        $alreadyAlerted = AuditEvent::query()
+            ->where('action', AuditAction::LastAdminInactive->value)
+            ->where('context->user_id', (string) $user->id)
+            ->where('created_at', '>=', $user->inactivity_warned_at)
+            ->exists();
+        if ($alreadyAlerted) {
+            return;
+        }
+
+        try {
+            Notification::route('mail', $address)
+                ->notify((new LastAdminInactive($user->id, $user->last_seen_at ?? $user->created_at ?? now()))
+                    ->locale((string) config('app.locale')));
+        } catch (Throwable $e) {
+            // File d'attente indisponible : la tâche continue, le prochain passage réessaiera.
+            report($e);
+
+            return;
+        }
+
+        $this->audit->record(AuditAction::LastAdminInactive, context: ['user_id' => $user->id]);
     }
 }

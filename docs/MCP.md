@@ -20,10 +20,11 @@ par les licences.
 3. [Outils](#outils)
 4. [Ressources](#ressources)
 5. [Exemples : questions et appels](#exemples--questions-et-appels)
-6. [Limites et sécurité](#limites-et-sécurité)
-7. [Attribution et licences](#attribution-et-licences)
-8. [Ce que le serveur ne couvre pas encore](#ce-que-le-serveur-ne-couvre-pas-encore)
-9. [Développement et tests](#développement-et-tests)
+6. [Authentification et quotas](#authentification-et-quotas)
+7. [Limites et sécurité](#limites-et-sécurité)
+8. [Attribution et licences](#attribution-et-licences)
+9. [Ce que le serveur ne couvre pas encore](#ce-que-le-serveur-ne-couvre-pas-encore)
+10. [Développement et tests](#développement-et-tests)
 
 ## Installation dans un client MCP
 
@@ -118,7 +119,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 
 | Outil | Rôle |
 |---|---|
-| `search` | Trouver une ligne, une gare ou un matériel par son nom (identifiants pour les autres outils). |
+| `search` | Trouver une ligne, une gare, un matériel ou un accident par son nom (identifiants pour les autres outils). |
 | `get_line` | Fiche d'une ligne : longueurs, électrification, signalisation, phases datées, chronologie. |
 | `line_events` | Événements d'une ligne sur une période. |
 | `get_station` | Fiche d'une gare : dates, statut par décennie, lignes desservies, sources. |
@@ -136,22 +137,29 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `compare_eras` | Ce qui a changé sur le réseau entre deux ères : km ouverts, fermés, déposés, restés en service. |
 | `level_crossings` | Passages à niveau publiés par SNCF Réseau (classe, PK, commune), par ligne, groupe, commune ou emprise, paginés. |
 | `line_profile` | Profil en long d'une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte, altitude des gares (IGN). |
+| `locate_on_line` | Point kilométrique d'un lieu (latitude, longitude) sur le tracé d'une ligne. |
 
-### `search` : rechercher une ligne, une gare ou un matériel
+### `search` : rechercher une ligne, une gare, un matériel ou un accident
 
 Point de départ : trouve les identifiants attendus par les autres outils.
 
 | Paramètre | Type | Obligatoire | Description |
 |---|---|---|---|
-| `query` | chaîne, 2 à 100 caractères | oui | Nom de ligne, code de ligne à 6 chiffres, nom de gare ou de matériel. Casse et accents ignorés. |
-| `kinds` | liste parmi `lines`, `stations`, `materials` | non | Catégories cherchées (par défaut : les trois). |
+| `query` | chaîne, 2 à 100 caractères | oui | Nom de ligne, code de ligne à 6 chiffres, nom de gare, de matériel ou d'accident, commune ou date d'accident (`1891`, `07/2013`, `2013-07-12`). Casse et accents ignorés. |
+| `kinds` | liste parmi `lines`, `stations`, `materials`, `accidents` | non | Catégories cherchées (par défaut : les quatre). |
 | `limit` | entier 1 à 20 | non | Résultats par catégorie (8 par défaut). |
 | `lang` | `fr`, `en`, `de` | non | Langue (fr par défaut). |
 
 Renvoie `lines` (`slug`, `name`, `code`, `vff_url`), `stations` (`slug`, `name`, `city`,
 `department_code`, `lat`, `lng`, `vff_url`), `materials` (`slug`, `name`, `kind`, `builder`,
-`vff_url`). Tri par pertinence : nom exact, début du nom, mot du nom, reste ; à pertinence égale,
-lignes en service d'abord.
+`vff_url`), `accidents` (`slug`, `name` dans la langue demandée, `names` en `fr`, `en` et `de`, `date`
+et `date_precision`, `kind`, `commune`, `department_code`, `lat`, `lng` nuls sans position,
+`vff_url` ; le `slug` va à `get_accident`). Les accidents se trouvent par leur nom (dans les trois
+langues), leur commune ou leur date : une année (`1891`), un mois (`07/2013`, `2013-07`) ou un jour
+(`12/07/2013`, `2013-07-12`) ; un accident dont seule l'année ou le mois est connu ne répond pas à
+un jour précis. Seuls les accidents publiés sortent, jamais ceux que VFF ne montre pas. Tri par
+pertinence : nom exact, début du nom, mot du nom, reste ; à pertinence égale, lignes en service
+d'abord, accidents du plus ancien au plus récent.
 
 ```json
 {"query": "420000", "kinds": ["lines"]}
@@ -179,8 +187,10 @@ Renvoie `line` :
 - `electrification` : `state` (`none`, `marginal` moins de 5 %, `partial`, `full` 95 % et plus),
   `state_label`, `km`, `pct`, `voltages` (`voltage_v`, `km`) ;
 - `signalling` : `block_systems_km` (cantonnement : `BAL`, `BAPR-VB`, `CT-VU`, `TVM-430`,
-  `ETCS_2`…, avec km), `train_protection_km` (contrôle de vitesse, ex. `KVB`), `kvb`, `source`
-  (`sncf`, SNCF Réseau Open Data) ;
+  `ETCS_L2`…, avec km ; une tranche où l'ETCS niveau 2 et la TVM sont installés ensemble, comme
+  sur la LGV Est, la LGV Bretagne - Pays de la Loire ou la LGV SEA, compte pour chacun des deux),
+  `train_protection_km` (contrôle de vitesse, ex. `KVB`), `kvb`, `source` (`sncf`, SNCF Réseau
+  Open Data) ;
 - `facts` : faits encyclopédiques (`key`, valeur `km`/`kmh`/`mm`/`n`/`year`/`list`, `source`
   `vff`/`sncf`/`wikidata`, `item` quand l'élément Wikidata ne décrit qu'une partie de la ligne,
   `label`, `note`) ;
@@ -233,8 +243,12 @@ seul, `declassified` fermée, `gone` disparue, `planned` projetée, `technical`,
 date, précision et `when`), `eras` (statut à chaque décennie ; `uncertain` = non confirmé par les
 voies de l'époque), `events` (chronologie : `type`, `label`, date, `source`, `source_url`,
 `inferred` = date déduite des lignes et non d'une source sur la gare, `note`), `lines` (`slug`,
-`name`, `code`, `first_year`, `last_year`, `pk_km`, `served_today`) et `sources` (`source`, `ref`,
-`name`, `url`, `distance_m` = écart à la position retenue).
+`name`, `code`, `first_year`, `last_year`, `pk_km`, `served_today`) et `sources` (provenance brute,
+lecture seule : `source`, `ref` = identifiant dans la source, `name`, `url`, `distance_m` = écart à la
+position retenue, `match_method` = comment la source a été rapprochée de la gare, `fetched_at` = date
+de lecture par VFF, `raw` = attributs bruts reçus de la source, de forme variable). `station` porte
+aussi `attribute_sources` (quelle source a fourni chaque attribut, recalage de la position compris)
+et `position` (`source`, `spread_m`, `flagged` = position à vérifier).
 
 ```json
 {"station": "brest"}
@@ -251,7 +265,9 @@ Renvoie `requested_year`, `era_year`, `is_current`, `snapshot` (`AAAA-12-31` ou 
 `open_km` (en service), `closed_km` (fermé, voie en place), `gone_km` (déposé ou effacé),
 `electrified_km` (électrifié en service), `active_lines`, `open_km_by_traffic` (`mixed`,
 `passenger`, `freight`, `heritage`, `unknown`), `stations_by_status` (nombre de gares par statut à
-cette ère), `available_eras`, `vff_url` (la carte à cette époque).
+cette ère), `available_eras`, `site_totals` (lignes, gares, matériels, ères cartographiées et km exploités
+aujourd'hui : les chiffres de l'accueil), `network_profile` (km en service et lignes actives à chaque ère, voies
+parallèles comprises), `vff_url` (la carte à cette époque).
 
 Les longueurs additionnent les tronçons de la carte (voies parallèles d'une même ligne comprises) :
 un ordre de grandeur, pas le kilométrage officiel du réseau.
@@ -431,12 +447,14 @@ Chaque gare : `slug`, `name`, `type`, `status`, `city`, `department_code`, `uic_
 | Paramètre | Type | Obligatoire | Description |
 |---|---|---|---|
 | `q` | chaîne, 100 au plus | non | Nom, autres noms, constructeur, numéros d'engins (sans accents). |
-| `type` | catégorie | non | `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`, `autorail`, `rame_tgv`, `voiture`, `wagon`, `tramway`, `engin_service`. |
+| `type` | catégorie | non | `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`, `bimode`, `autorail`, `rame_tgv`, `voiture`, `wagon`, `tramway`, `engin_service`. |
 | `builder`, `operator` | chaîne | non | Constructeur ; exploitant (identifiant Wikidata exact ou nom partiel). |
 | `line` | slug | non | Séries attestées sur la ligne par une source. |
 | `in_service_at` | année | non | En service cette année-là. |
 | `from_year`, `to_year` | années | non | Mise en service, bornes incluses. |
 | `gauge_mm` | entier 500 à 2000 | non | Écartement. |
+| `service_status` | chaîne | non | `in_service` ou `withdrawn`, seulement quand une source le dit (Wikidata P5817, effectif de l'infobox Wikipédia). |
+| `scope` | chaîne | non | `france` (rattachée à la France dans Wikidata) ou `attested` (série non rattachée, ICE ou locomotive belge par exemple, dont une source atteste la circulation sur une ligne française). |
 | `has_image`, `has_lines` | booléens | non | Séries illustrées ; séries reliées à une ligne. |
 | `sort` | `name`, `in_service_from`, `max_speed_kmh`, `units_built`, `lines_count` (préfixe `-` : décroissant) | non | Tri, inconnues en dernier. |
 | `limit` | entier 1 à 50 | non | Séries par appel (20 par défaut). |
@@ -476,7 +494,7 @@ Mêmes filtres, mêmes tris et mêmes données que `GET /api/v1/accidents` (serv
 | `line` | slug | non | Accidents rattachés à cette ligne (rattachement principal ou secondaire) ; ligne inconnue : erreur. |
 | `department` | code INSEE en majuscules | non | Département actuel du lieu (`91`, `2A`, `974`). |
 | `kind` | nature | non | `collision`, `derailment`, `level_crossing`, `fire`, `explosion`, `structure_failure`, `attack`, `person_struck`, `runaway`, `incident`, `other`. |
-| `review` | `ok`, `to_review` | non | Fiches sans point incertain, ou « à vérifier ». |
+| `review` | `ok`, `to_review` | non | Fiches dont la date et le lieu sont confirmés (BEA-TT ou deux sources indépendantes), ou « à vérifier ». |
 | `min_deaths` | entier, 0 ou plus | non | Bilan connu d'au moins ce nombre de morts (exclut les bilans inconnus). |
 | `has_line` | booléen | non | `true` : rattachés à une ligne VFF ; `false` : sans ligne (lieu inconnu). |
 | `sort` | `date`, `-date`, `deaths`, `-deaths` | non | Tri (`date` par défaut) ; bilan inconnu en dernier. |
@@ -597,6 +615,28 @@ sont pas des PK. Attribution : IGN (BD TOPO, RGE ALTI), Licence Ouverte 2.0.
 {"line": "rfn-896000", "max_points": 100}
 ```
 
+### `locate_on_line` : point kilométrique d'un lieu
+
+Même résultat que `GET /api/v1/lines/{line}/pk` (service `LinePk`) : le point est projeté sur le tracé de la ligne à
+l'ère choisie, puis la distance est mesurée le long du tracé depuis son origine.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `lat` | nombre, -90 à 90 | oui | Latitude WGS 84, en degrés décimaux. |
+| `lng` | nombre, -180 à 180 | oui | Longitude WGS 84, en degrés décimaux. |
+| `year` | entier 1800 à 2100 | non | Année ramenée à l'ère de la carte (le réseau d'aujourd'hui par défaut). |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `era_year`, `pk_m` (mètres), `pk_label` (`km+mmm`), `total_m` (longueur du tracé à cette ère), `snap`
+(`lat`, `lng` du point du tracé retenu, `distance_from_input_m` : au-delà de quelques dizaines de mètres, le lieu n'est
+probablement pas sur la ligne) et `vff_url`. Ce PK est mesuré le long du tracé VFF : il peut différer du PK officiel de
+SNCF Réseau. Erreur `no_geometry` si la ligne n'a pas de tracé à cette ère.
+
+```json
+{"line": "rfn-420000", "lat": 48.10, "lng": -1.67}
+```
+
 ## Ressources
 
 | URI | Type | Contenu |
@@ -627,14 +667,84 @@ sont pas des PK. Attribution : IGN (BD TOPO, RGE ALTI), Licence Ouverte 2.0.
 | « Quels ont été les déraillements les plus meurtriers ? » | `accidents {"kind": "derailment", "min_deaths": 10, "sort": "-deaths", "limit": 5}` ; afficher `review_note` quand une fiche est « à vérifier » |
 | « Y a-t-il eu des accidents sur Paris - Brest depuis 1950 ? » | `accidents {"line": "rfn-420000", "from": 1950}` puis `get_accident` pour les sources et la portion |
 | « Combien de kilomètres ont fermé entre 1930 et 1980 ? » | `compare_eras {"from": 1930, "to": 1980}` : lire `changes.closed` et `changes.removed` |
+| « À quel PK de Paris - Brest est ce point (48,10 ; -1,67) ? » | `locate_on_line {"line": "rfn-420000", "lat": 48.10, "lng": -1.67}` |
 | « Quel matériel a circulé sur Lunéville - Saint-Dié ? » | `search {"query": "Lunéville"}` puis `materials {"line": "<slug>"}` et `get_material` pour la preuve |
+
+## Authentification et quotas
+
+Le serveur s'utilise sans compte ni jeton. Un **jeton personnel** de l'API, facultatif, relève la
+limite de débit : un membre le crée depuis son profil (section « Jetons d'accès à l'API » de
+`/profile`). Il ne sert qu'à lire, comme l'accès anonyme, et n'est affiché qu'une fois. Le serveur
+MCP lit le même en-tête que l'API REST et GraphQL : `Authorization: Bearer <jeton>`.
+
+| Profil | Limite (valeurs par défaut) | Compteur |
+| --- | --- | --- |
+| Sans jeton | 300 requêtes par minute (`API_RATE_LIMIT_ANONYMOUS`) | par adresse IP |
+| Jeton d'un membre | 1 200 requêtes par minute (`API_RATE_LIMIT_MEMBER`) | par compte, tous ses jetons ensemble |
+| Jeton d'un compte partenaire | 6 000 requêtes par minute (`API_RATE_LIMIT_PARTNER`) | par compte |
+
+Les valeurs se règlent dans `config/api.php`. Le profil partenaire est accordé par un administrateur
+du serveur (`php artisan vff:api-partner <compte>`, `--revoke` pour le retirer, `--list` pour la
+liste). Le compteur est **commun** à `POST /mcp`, à l'API REST et à GraphQL : un appel MCP compte
+comme une requête REST.
+
+Chaque réponse HTTP porte `X-RateLimit-Limit` (la limite de l'appelant) et `X-RateLimit-Remaining`
+(requêtes restantes dans la minute). Au-delà de la limite : **HTTP 429** avec `Retry-After` (attente
+en secondes), avant toute réponse JSON-RPC. Un jeton inconnu, révoqué ou expiré donne **HTTP 401**
+(`{"error": "invalid_token"}`) : l'appel n'est pas servi en anonyme, et il est compté sur le
+compteur de l'adresse IP. Le jeton d'un compte suspendu donne **HTTP 403**
+(`{"error": "account_suspended"}`) jusqu'à la fin de la suspension.
+
+Claude Code, avec un jeton :
+
+```bash
+claude mcp add --transport http vff https://vff-project.org/mcp \
+  --header "Authorization: Bearer $VFF_TOKEN"
+```
+
+Fichier de configuration (Claude Desktop, Cursor, VS Code) :
+
+```json
+{
+  "mcpServers": {
+    "vff": {
+      "type": "http",
+      "url": "https://vff-project.org/mcp",
+      "headers": { "Authorization": "Bearer <votre jeton>" }
+    }
+  }
+}
+```
+
+Essai en ligne de commande (`-i` affiche les en-têtes de limite) :
+
+```bash
+curl -si https://vff-project.org/mcp \
+  -H "Authorization: Bearer $VFF_TOKEN" \
+  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
+  -H 'MCP-Protocol-Version: 2025-06-18' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+Réponse du serveur de développement avec le jeton d'un membre (extrait) :
+
+```http
+HTTP/1.1 200 OK
+X-RateLimit-Limit: 1200
+X-RateLimit-Remaining: 1197
+```
 
 ## Limites et sécurité
 
 - **Lecture seule** : aucun outil n'écrit en base ; aucun compte, aucune contribution en attente,
   aucune donnée personnelle n'est exposée. Pas d'appel à un service externe.
-- **Débit** : 300 requêtes par minute et par adresse IP sur `POST /mcp` (la même limite que l'API
-  REST et GraphQL ; `MCP_RATE_LIMIT`). Au-delà : HTTP 429.
+- **Textes Wikipédia exclus** : la description d'une ligne (extrait de Wikipédia, CC BY-SA 4.0) n'est
+  pas renvoyée par `get_line`, pour ne pas faire circuler un texte sous licence à partage dans les
+  mêmes conditions sans sa mention. L'API REST et GraphQL la publient avec son auteur collectif, le
+  lien de l'article, le permalien de la révision lue et la licence (`description_source`).
+- **Débit** : 300 requêtes par minute et par adresse IP sans jeton, davantage avec un jeton
+  personnel, sur un compteur commun à l'API REST et à GraphQL (voir « Authentification et quotas »).
+  Au-delà : HTTP 429.
 - **Taille** : 48 000 octets au plus par réponse (`MCP_MAX_RESPONSE_BYTES`). Au-delà, les listes les
   plus longues (événements, phases, gares…) sont raccourcies par la fin, et `truncated` le dit :
   réduisez la période, les types ou `max_events`. Les outils de liste ne perdent rien : leur
@@ -677,6 +787,13 @@ Les instructions du serveur rappellent ces obligations aux assistants.
 - **Tuiles de la signalisation et des passages à niveau** (`/api/v1/eras/{year}/signalling/tiles/...`,
   `/api/v1/level-crossings/tiles/...`) : par l'API REST seulement.
 - Pas d'invites (prompts) MCP ni de complétion d'arguments.
+- **Notifications de changement** : le serveur répond aux questions mais ne prévient de rien. Pour
+  être averti quand une contribution est publiée, quand le réseau d'aujourd'hui est recalculé ou
+  quand un import publie un accident ou un matériel, un membre déclare un **webhook** depuis son
+  profil. VFF envoie alors un court message JSON signé (HMAC-SHA256) à son adresse HTTPS, et
+  l'agent peut ensuite interroger le serveur MCP sur la ressource annoncée (`data.id` : slug de la
+  ligne, de la gare, de l'accident ou du matériel). Format, signature et exemples de vérification :
+  section `#webhooks` de la page `/api` et section « Webhooks » de `/docs/api`.
 
 ## Développement et tests
 

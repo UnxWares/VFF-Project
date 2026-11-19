@@ -152,9 +152,36 @@ class LineEndpointsContractTest extends TestCase
             ->assertOk()
             ->assertJsonPath('ranges', [
                 ['pk_start_m' => 0, 'pk_end_m' => 17_250, 'pk_start_label' => '0+000', 'pk_end_label' => '17+250',
-                    'length_m' => 17_250, 'signalling' => 'BAL', 'train_protection' => ['KVB'], 'kvb_equipped' => true, 'note' => null],
+                    'length_m' => 17_250, 'signalling' => 'BAL', 'signalling_systems' => ['BAL'], 'train_protection' => ['KVB'], 'kvb_equipped' => true, 'source_label' => null, 'note' => null],
                 ['pk_start_m' => 17_250, 'pk_end_m' => 20_040, 'pk_start_label' => '17+250', 'pk_end_label' => '20+040',
-                    'length_m' => 2_790, 'signalling' => 'BAPR', 'train_protection' => [], 'kvb_equipped' => false, 'note' => 'Voie unique'],
+                    'length_m' => 2_790, 'signalling' => 'BAPR', 'signalling_systems' => ['BAPR'], 'train_protection' => [], 'kvb_equipped' => false, 'source_label' => null, 'note' => 'Voie unique'],
+            ]);
+    }
+
+    public function test_signalling_keeps_both_systems_of_a_dual_range(): void
+    {
+        DB::table('line_signalling')->insert([
+            'line_id' => $this->line->id, 'era_id' => $this->currentEra->id,
+            'pk_start_m' => 17_250, 'pk_end_m' => 20_040, 'signalling' => 'ETCS_L2',
+            'signalling_systems' => json_encode(['ETCS_L2', 'TVM-300']),
+            'source_label' => 'European train control system 2/Transmission voie-machine 300',
+            'train_protection' => json_encode(['ERTMS_L2', 'TVM-300']), 'kvb_equipped' => false,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $this->getJson("/api/v1/lines/{$this->line->slug}/signalling")
+            ->assertOk()
+            ->assertJsonPath('ranges.1.signalling', 'ETCS_L2')
+            ->assertJsonPath('ranges.1.signalling_systems', ['ETCS_L2', 'TVM-300'])
+            ->assertJsonPath('ranges.1.train_protection', ['ERTMS_L2', 'TVM-300'])
+            ->assertJsonPath('ranges.1.source_label', 'European train control system 2/Transmission voie-machine 300');
+
+        $this->postJson('/graphql', ['query' => '{ line(slug: "'.$this->line->slug.'") { signalling { signalling signalling_systems source_label } } }'])
+            ->assertOk()
+            ->assertJsonPath('data.line.signalling.1', [
+                'signalling' => 'ETCS_L2',
+                'signalling_systems' => ['ETCS_L2', 'TVM-300'],
+                'source_label' => 'European train control system 2/Transmission voie-machine 300',
             ]);
     }
 

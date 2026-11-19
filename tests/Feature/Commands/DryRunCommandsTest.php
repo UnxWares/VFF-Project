@@ -37,8 +37,8 @@ class DryRunCommandsTest extends TestCase
         'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-materials', 'vff:import-secondary-network-dates',
         'vff:import-station-closures', 'vff:import-station-sources', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology',
         'vff:import-wikipedia-line', 'vff:link-traces', 'vff:match-current-network', 'vff:merge-split-lines', 'vff:ohm-events',
-        'vff:place-listed-stations', 'vff:prune-inactive-accounts', 'vff:reclassify-status', 'vff:refresh-current-era',
-        'vff:resolve-event-sections', 'vff:seed-off-network-lines', 'vff:snap-stations',
+        'vff:place-listed-stations', 'vff:prune-inactive-accounts', 'vff:recalculate-reputation', 'vff:reclassify-status', 'vff:refresh-current-era',
+        'vff:resolve-event-sections', 'vff:seed-off-network-lines', 'vff:snap-stations', 'vff:verify-accidents',
     ];
 
     /** Arguments supplémentaires nécessaires à certaines commandes. */
@@ -53,12 +53,13 @@ class DryRunCommandsTest extends TestCase
         // Caches du bac à sable vides : aucune requête réseau.
         'vff:import-accidents' => ['--offline' => true],
         'vff:import-argentanwebferro' => ['--offline' => true],
+        'vff:verify-accidents' => ['--offline' => true],
         'vff:place-listed-stations' => ['--no-places' => true],
     ];
 
     /** Tables des sources, des comptes, du matériel et des accidents : hors du moteur, mais qu'un --dry-run ne doit pas toucher non plus. */
     private const OTHER_TABLES = [
-        'users', 'audit_events', 'materials', 'line_materials', 'accidents', 'accident_lines', 'accident_sources',
+        'users', 'contributions', 'contribution_approvals', 'audit_events', 'materials', 'line_materials', 'accidents', 'accident_lines', 'accident_sources',
         'argentanwebferro_articles', 'argentanwebferro_facts', 'argentanwebferro_photos',
     ];
 
@@ -139,6 +140,7 @@ class DryRunCommandsTest extends TestCase
         yield 'classification' => ['vff:classify-lines', [], ['line_segments', 'line_sources']];
         yield 'dédoublonnage des gares' => ['vff:consolidate-stations', [], ['stations', 'station_sources']];
         yield 'comptes inutilisés' => ['vff:prune-inactive-accounts', [], ['users', 'audit_events']];
+        yield 'réputation des comptes' => ['vff:recalculate-reputation', [], ['users']];
     }
 
     /** Témoin : sans --dry-run, la commande a bien du travail sur ce jeu de données. */
@@ -214,6 +216,17 @@ class DryRunCommandsTest extends TestCase
         DB::table('users')->insert([
             'name' => 'Ancien membre', 'email' => 'ancien@example.org', 'password' => 'x',
             'created_at' => now()->subYears(4), 'updated_at' => now()->subYears(4), 'last_seen_at' => now()->subYears(4),
+        ]);
+
+        // Membre dont une contribution est appliquée alors que ses compteurs de réputation sont à zéro :
+        // à recalculer (vue récemment, hors de portée de la suppression des comptes inutilisés).
+        $author = DB::table('users')->insertGetId([
+            'name' => 'Auteur', 'email' => 'auteur@example.org', 'password' => 'x', 'last_seen_at' => now(),
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('contributions')->insert([
+            'user_id' => $author, 'type' => 'line_segment', 'action' => 'update', 'status' => 'applied',
+            'payload' => '{}', 'created_at' => now(), 'updated_at' => now(),
         ]);
 
         // Sources de gares : SNCF + OSM au même endroit (même gare), à dédoublonner.

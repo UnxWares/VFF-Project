@@ -120,6 +120,8 @@ return [
         'protection' => 'Contrôle de vitesse :',
         'cabin' => 'Signalisation en cabine :',
         'block' => 'Cantonnement :',
+        // Entre les deux derniers systèmes d'une tranche : « ETCS niveau 2 et TVM 300 ».
+        'and' => 'et',
         'codes' => [
             'BAL' => 'BAL, block automatique lumineux',
             'BAL-VB' => 'BAL de voie banalisée',
@@ -215,6 +217,17 @@ return [
     ],
 
     'meta_description' => 'Fiche encyclopédique de la ligne :name : tracé, phases datées, gares, sources.',
+
+    // Téléchargement du tracé de la ligne (GPX, KML, GeoJSON : API `/api/v1/lines/{slug}/gpx`).
+    'trace_download' => [
+        'title' => 'Télécharger le tracé',
+        'intro' => 'Le tracé de la ligne en fichier GPX, KML ou GeoJSON, pour un GPS ou un logiciel de cartographie. Chaque fichier donne le nom de la ligne, l’ère, l’adresse de cette fiche, puis les sources du tracé et leurs licences.',
+        'era' => 'Ère du tracé',
+        'for_era' => 'tracé de :era',
+        'note' => 'Un tronçon dont la source n’autorise pas la redistribution n’est pas inclus.',
+        'api' => 'Documentation de l’API',
+        'unavailable' => 'Le tracé de cette ligne ne peut pas être téléchargé : sa source n’autorise pas la redistribution.',
+    ],
 
     // Phases de la ligne (App\Services\LinePhases) : sélecteur à côté de la carte.
     'phases' => [
@@ -507,6 +520,7 @@ return [
             'pk_title' => 'point kilométrique',
             'signalling_intro' => 'Cantonnement (espacement des trains : BAL, BAPR, BM…) et contrôle de vitesse (KVB, TVM, ETCS) le long du tracé, état actuel. Source : SNCF Réseau Open Data (modes de cantonnement, lignes équipées du KVB).',
             'signalling_intro_cab' => 'Sur les plages en grande vitesse, la signalisation est en cabine.',
+            'signalling_intro_dual' => 'Sur certaines tranches, l’ETCS niveau 2 et la TVM sont installés ensemble ; la liste donne les deux.',
             'signalling_gap' => 'Aucun cantonnement dans les données SNCF Réseau : section sans cantonnement, absente des données, ou numérotation des PK interrompue.',
             'signalling_today' => 'Seul l’état actuel est connu : l’évolution de la signalisation au fil des époques n’est pas encore dans les données.',
             'signalling_map' => 'Voir la signalisation sur la carte',

@@ -5,17 +5,19 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Era;
 use App\Models\Line;
+use App\Services\Signalling\SignallingRanges;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 #[Group('Lignes', "Une ligne en détail : chronologie, gares dans l'ordre des points kilométriques, conversion de coordonnées en PK, signalisation, médias.", weight: 2)]
 class LineSignallingController extends Controller
 {
+    public function __construct(private readonly SignallingRanges $ranges) {}
+
     /**
      * Signalisation d'une ligne.
      *
@@ -35,6 +37,13 @@ class LineSignallingController extends Controller
      *   en cabine des LGV, sans signaux latéraux), `ETCS_L1` / `ETCS_L2`.
      *   Suffixes : `-VB` voie banalisée (circulation dans les deux sens sur
      *   chaque voie), `-VU` voie unique, `-Tram` section tram-train ;
+     * - `signalling_systems` : **tous** les systèmes de cantonnement installés sur la
+     *   tranche, code principal (`signalling`) en premier. En général un seul ; deux sur les
+     *   LGV équipées à la fois de l'ETCS niveau 2 et de la TVM (`["ETCS_L2", "TVM-300"]` sur
+     *   la LGV Bretagne - Pays de la Loire et la LGV SEA, `["ETCS_L2", "TVM-430"]` sur la
+     *   LGV Est), que SNCF Réseau publie dans un seul libellé ;
+     * - `source_label` : libellé de SNCF Réseau tel quel (ex. « European train control
+     *   system 2/Transmission voie-machine 300 »), null pour une tranche d'une autre source ;
      * - `train_protection` : systèmes de **contrôle de vitesse** superposés
      *   au cantonnement (`KVB`, `KVBP`, `TVM-300`, `TVM-430`, `ERTMS_L1`,
      *   `ERTMS_L2`). Le KVB est un contrôle de vitesse, pas un mode de
@@ -52,9 +61,9 @@ class LineSignallingController extends Controller
      *     ranges: array<array{
      *         pk_start_m: int, pk_end_m: int,
      *         pk_start_label: string, pk_end_label: string,
-     *         length_m: int, signalling: string,
+     *         length_m: int, signalling: string, signalling_systems: array<string>,
      *         train_protection: array<string>, kvb_equipped: bool,
-     *         note: ?string
+     *         source_label: ?string, note: ?string
      *     }>
      * }
      */
@@ -65,7 +74,8 @@ class LineSignallingController extends Controller
         'era_year' => 2030,
         'ranges' => [[
             'pk_start_m' => 420110, 'pk_end_m' => 436505, 'pk_start_label' => '420+110', 'pk_end_label' => '436+505',
-            'length_m' => 16395, 'signalling' => 'BAPR', 'train_protection' => ['KVB'], 'kvb_equipped' => true,
+            'length_m' => 16395, 'signalling' => 'BAPR', 'signalling_systems' => ['BAPR'], 'train_protection' => ['KVB'], 'kvb_equipped' => true,
+            'source_label' => 'Block automatique à permissivité restreinte de double voie',
             'note' => 'Source : SNCF Open Data, mode-de-cantonnement-des-lignes',
         ]],
     ]])]
@@ -78,33 +88,12 @@ class LineSignallingController extends Controller
             ? Era::where('year', $request->integer('era'))->firstOrFail()
             : Era::where('is_current', true)->firstOrFail();
 
-        $rows = DB::table('line_signalling')
-            ->where('line_id', $line->id)
-            ->where('era_id', $era->id)
-            ->orderBy('pk_start_m')
-            ->get(['pk_start_m', 'pk_end_m', 'signalling', 'train_protection', 'kvb_equipped', 'note']);
-
-        $ranges = $rows->map(fn ($r) => [
-            'pk_start_m' => (int) $r->pk_start_m,
-            'pk_end_m' => (int) $r->pk_end_m,
-            'pk_start_label' => $this->formatPk((int) $r->pk_start_m),
-            'pk_end_label' => $this->formatPk((int) $r->pk_end_m),
-            'length_m' => (int) ($r->pk_end_m - $r->pk_start_m),
-            'signalling' => $r->signalling,
-            'train_protection' => $r->train_protection ? json_decode($r->train_protection, true) : [],
-            'kvb_equipped' => (bool) $r->kvb_equipped,
-            'note' => $r->note,
-        ])->all();
+        $ranges = $this->ranges->forLine($line->id, $era->id);
 
         return response()->json([
             'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name],
             'era_year' => $era->year,
             'ranges' => $ranges,
         ])->header('Cache-Control', 'public, max-age=600');
-    }
-
-    private function formatPk(int $m): string
-    {
-        return sprintf('%d+%03d', intdiv($m, 1000), $m % 1000);
     }
 }

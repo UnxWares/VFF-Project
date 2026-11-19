@@ -98,6 +98,14 @@ final class StationSheetExample
                     'geocoding' => null,
                     'precision_m' => null,
                     'url' => 'https://ressources.data.sncf.com/explore/dataset/liste-des-gares/table/?q=87474007',
+                    'fetched_at' => '2026-10-15',
+                    'raw' => [
+                        'lines' => [['fret' => true, 'pk_m' => 622422, 'voyageurs' => true, 'code_ligne' => '420000', 'rg_troncon' => 1]],
+                        'commune' => 'BREST',
+                        'department' => 'FINISTERE',
+                        'position_spread_m' => 0,
+                    ],
+                    'raw_withheld' => false,
                     'provenance' => [
                         'provider' => 'sncf',
                         'name' => 'SNCF Open Data (SNCF Réseau, Gares & Connexions, GTFS voyageurs)',

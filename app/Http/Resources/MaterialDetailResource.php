@@ -16,7 +16,7 @@ class MaterialDetailResource extends MaterialResource
 {
     /** Ordre des champs dans `field_sources`, celui de la fiche. */
     private const FIELD_ORDER = [
-        'name', 'type', 'designations', 'description', 'builder', 'builders', 'operators', 'in_service_from',
+        'name', 'type', 'scope', 'service_status', 'designations', 'description', 'builder', 'builders', 'operators', 'in_service_from',
         'in_service_to', 'units_built', 'max_speed_kmh', 'power_kw', 'electrification', 'gauge_mm', 'gauges',
         'wheel_arrangement', 'fleet_numbers', 'image', 'commons_category', 'wikipedia_fr', 'wikipedia_en',
     ];
@@ -60,7 +60,7 @@ class MaterialDetailResource extends MaterialResource
                 'field' => (string) $field,
                 'source' => $source,
                 'reference' => $ref,
-                'url' => self::sourceUrl($source, $ref),
+                'url' => self::sourceUrl($source, $ref, $entry['revid'] ?? null),
                 'original' => $entry['original'] ?? null,
                 ...$provenance->for('materials.fields', $source),
             ];
@@ -73,8 +73,11 @@ class MaterialDetailResource extends MaterialResource
         return $out;
     }
 
-    /** Page de la source d'un champ : élément Wikidata, fichier Commons ou catégorie Wikipédia. */
-    public static function sourceUrl(string $source, ?string $ref): ?string
+    /**
+     * Page de la source d'un champ : élément Wikidata, fichier Commons, catégorie ou article Wikipédia (version
+     * citée quand la révision est connue).
+     */
+    public static function sourceUrl(string $source, ?string $ref, ?int $revid = null): ?string
     {
         if ($ref === null || $ref === '') {
             return null;
@@ -83,8 +86,19 @@ class MaterialDetailResource extends MaterialResource
         return match ($source) {
             'wikidata' => 'https://www.wikidata.org/wiki/'.strtok($ref, '#'),
             'commons' => 'https://commons.wikimedia.org/wiki/'.str_replace('%3A', ':', rawurlencode(str_replace(' ', '_', $ref))),
-            'wikipedia' => 'https://fr.wikipedia.org/wiki/'.str_replace('%3A', ':', rawurlencode(str_replace(' ', '_', $ref))),
+            'wikipedia' => self::wikipediaUrl($ref, $revid),
             default => null,
         };
+    }
+
+    /** Article Wikipédia : permalien de la révision citée quand elle est connue, sinon article courant. L'ancre (`#infobox:Type`) n'est pas une page. */
+    private static function wikipediaUrl(string $ref, ?int $revid): string
+    {
+        $title = str_replace(' ', '_', (string) strtok($ref, '#'));
+        if ($revid !== null) {
+            return 'https://fr.wikipedia.org/w/index.php?title='.rawurlencode($title).'&oldid='.$revid;
+        }
+
+        return 'https://fr.wikipedia.org/wiki/'.str_replace('%3A', ':', rawurlencode($title));
     }
 }

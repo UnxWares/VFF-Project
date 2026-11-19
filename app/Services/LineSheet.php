@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Line;
+use App\Services\Signalling\SignallingRanges;
 use App\Support\Advocacy;
 use App\Support\FrenchGrammar;
 use App\Support\Lgv;
@@ -181,8 +182,9 @@ final class LineSheet
             ];
         }
 
+        // Sans la signalisation en cabine déjà nommée (« TVM 300 » une fois, pas deux).
         $signallingRanges = $latestEraId
-            ? $this->signallingRangesForLine($line->id, $latestEraId)
+            ? app(SignallingRanges::class)->forLine($line->id, $latestEraId, withoutBlockSystems: true)
             : [];
 
         // Sections nommées (LGV Sud-Est / Rhône-Alpes / Méditerranée…)
@@ -302,39 +304,6 @@ final class LineSheet
                 'in_service_to' => $m->in_service_to,
             ]),
         ];
-    }
-
-    /**
-     * Tranches PK de signalisation pour une ligne et une ère, depuis
-     * `line_signalling` (source : SNCF Réseau Open Data + curation ETCS).
-     *
-     * @return array<array{
-     *     pk_start_m: int, pk_end_m: int, pk_start_label: string,
-     *     pk_end_label: string, length_m: int, signalling: string,
-     *     train_protection: array<string>, kvb_equipped: bool, note: ?string
-     * }>
-     */
-    private function signallingRangesForLine(int $lineId, int $eraId): array
-    {
-        $rows = DB::table('line_signalling')
-            ->where('line_id', $lineId)
-            ->where('era_id', $eraId)
-            ->orderBy('pk_start_m')
-            ->get(['pk_start_m', 'pk_end_m', 'signalling', 'train_protection', 'kvb_equipped', 'note'])
-            ->all();
-
-        return array_map(fn ($r) => [
-            'pk_start_m' => (int) $r->pk_start_m,
-            'pk_end_m' => (int) $r->pk_end_m,
-            'pk_start_label' => $this->formatPkLabel((int) $r->pk_start_m),
-            'pk_end_label' => $this->formatPkLabel((int) $r->pk_end_m),
-            'length_m' => (int) ($r->pk_end_m - $r->pk_start_m),
-            'signalling' => $r->signalling,
-            // Sans la signalisation en cabine déjà nommée (« TVM 300 » une fois, pas deux).
-            'train_protection' => array_values(array_diff($r->train_protection ? (array) json_decode($r->train_protection, true) : [], [$r->signalling])),
-            'kvb_equipped' => (bool) $r->kvb_equipped,
-            'note' => $r->note,
-        ], $rows);
     }
 
     /** PK lisible : « 7+735 » ; avant l'origine de la ligne : « -0+250 ». */

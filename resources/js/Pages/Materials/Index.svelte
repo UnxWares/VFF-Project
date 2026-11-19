@@ -86,6 +86,8 @@
         return [
             t(`materials.type.${m.type}`),
             servicePeriodText(m.in_service_from, m.in_service_to, t),
+            // Seulement quand une source le dit : une date de retrait absente ne prouve rien.
+            m.service_status === 'in_service' && t('materials.service_state.in_service'),
         ].filter(Boolean);
     }
 

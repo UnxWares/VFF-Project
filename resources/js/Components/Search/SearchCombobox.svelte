@@ -5,7 +5,7 @@
 
     /**
      * Recherche de tout le site : rubriques (Carte, Lignes, Gares…), lignes, gares et matériel
-     * roulant (GET /api/v1/search), puis « Toutes les lignes / gares contenant… » vers les annuaires.
+     * roulant et accidents (GET /api/v1/search), puis « Toutes les lignes / gares / accidents contenant… » vers les annuaires.
      * Choisir un résultat ouvre directement sa page.
      *
      * Combobox ARIA 1.2 : le focus reste dans le champ, les flèches parcourent les résultats
@@ -37,7 +37,7 @@
     const listId = `${uid}-list`;
 
     let q = $state('');
-    let results = $state.raw({ lines: [], stations: [], materials: [] });
+    let results = $state.raw({ lines: [], stations: [], materials: [], accidents: [] });
     // idle | loading | done | error
     let phase = $state('idle');
     let searched = $state('');
@@ -61,12 +61,16 @@
             searched: query === searched && (phase === 'done' || phase === 'error'),
             t,
             idPrefix: uid,
+            lang: $i18n.language,
         }),
     );
     const options = $derived(groups.flatMap((g) => g.items));
     // Nombre de vrais résultats (sans les rubriques ni les liens vers les annuaires).
     const resultCount = $derived(
-        results.lines.length + results.stations.length + results.materials.length,
+        results.lines.length +
+            results.stations.length +
+            results.materials.length +
+            results.accidents.length,
     );
 
     const listShown = $derived(options.length > 0 && (!floating || isOpen));
@@ -104,11 +108,12 @@
                 lines: data.lines ?? [],
                 stations: data.stations ?? [],
                 materials: data.materials ?? [],
+                accidents: data.accidents ?? [],
             };
             phase = 'done';
         } catch (e) {
             if (e.name === 'AbortError') return;
-            results = { lines: [], stations: [], materials: [] };
+            results = { lines: [], stations: [], materials: [], accidents: [] };
             phase = 'error';
         }
         searched = text;
@@ -119,7 +124,7 @@
     function reset() {
         clearTimeout(debounceTimer);
         abortCtrl?.abort();
-        results = { lines: [], stations: [], materials: [] };
+        results = { lines: [], stations: [], materials: [], accidents: [] };
         phase = 'idle';
         searched = '';
         activeIndex = -1;

@@ -447,6 +447,7 @@
                         label={$i18n.t('editor.segment.sources_label')}
                         hint={$i18n.t('editor.segment.sources_hint')}
                         error={errorFor('sources')}
+                        required
                     >
                         {#snippet children(attrs)}
                             <textarea

@@ -10,6 +10,7 @@ use App\Services\LineDirectory;
 use App\Services\LineSheet;
 use App\Services\LineStats;
 use App\Services\Profiles\LineProfiles;
+use App\Services\TraceExport\LineTraceExport;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -138,15 +139,18 @@ class LineController extends Controller
      * plus les accidents rattachés à la ligne (section « Accidents » ; API : `/api/v1/accidents?line=`)
      * ses passages à niveau (section « Passages à niveau » ; API : `/api/v1/lines/{slug}/level-crossings`)
      * et son profil en long s'il est calculé, allégé à LineProfiles::SHEET_MAX_POINTS points (section
-     * « Profil en long » ; profil complet : `/api/v1/lines/{slug}/profile`).
+     * « Profil en long » ; profil complet : `/api/v1/lines/{slug}/profile`), et les ères dont le tracé peut
+     * être téléchargé en GPX, KML ou GeoJSON (`trace_export_eras` : seules les sources à licence ouverte
+     * comptent ; API : `/api/v1/lines/{slug}/gpx`).
      */
-    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineProfiles $profiles): Response
+    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineProfiles $profiles, LineTraceExport $traceExport): Response
     {
         return Inertia::render('Lines/Show', [
             ...$sheet->build($line),
             'accidents' => $accidents->forLine($line, app()->getLocale()),
             'level_crossings' => $crossings->forSheet($line),
             'profile' => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS),
+            'trace_export_eras' => $traceExport->exportableEraYears($line),
         ]);
     }
 }

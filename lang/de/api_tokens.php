@@ -1,0 +1,51 @@
+<?php
+
+return [
+    'title' => 'API-Zugriffstoken',
+    'intro' => 'Die API von VFF ist ohne Token nutzbar, mit höchstens :anonymous Anfragen pro Minute und IP-Adresse. Ein persönliches Token hebt dieses Limit für Ihr Konto an. Es erlaubt nur das Lesen der Daten: Sie können damit weder Ihr Profil ändern noch Beiträge einreichen.',
+    'docs_link' => 'Anleitung und Beispiele auf der Seite „API-Zugang“',
+    'quota_label' => 'Ihr Limit mit Token',
+    'quota_value' => ':count Anfragen pro Minute',
+    'quota_shared' => 'Alle Ihre Token teilen sich diesen Zähler, für REST, GraphQL und den MCP-Server.',
+    'profiles' => [
+        'member' => 'Mitgliedskonto',
+        'partner' => 'Partnerkonto',
+    ],
+    'list_title' => 'Ihre Token',
+    'count' => ':count von :max',
+    'empty' => 'Sie haben noch kein Token.',
+    'created_at' => 'Erstellt am :date',
+    'last_used' => 'Zuletzt verwendet am :date',
+    'never_used' => 'Noch nie verwendet',
+    'revoke' => 'Widerrufen',
+    'revoke_label' => 'Token „:name“ widerrufen',
+    'revoke_confirm_title' => 'Token „:name“ widerrufen?',
+    'revoke_confirm_text' => 'Programme, die es verwenden, erhalten bei der nächsten Anfrage den Fehler 401. Ein widerrufenes Token lässt sich nicht wiederherstellen.',
+    'revoke_confirm_button' => 'Token widerrufen',
+    'cancel' => 'Abbrechen',
+    'create_title' => 'Token erstellen',
+    'name_label' => 'Name des Tokens',
+    'name_hint' => 'Damit Sie es später wiedererkennen, zum Beispiel der Name des Programms, das es verwendet.',
+    'create_button' => 'Token erstellen',
+    'blocked_suspended' => 'Ihr Konto ist gesperrt: Sie können kein Token erstellen, und die API lehnt Ihre Token bis zum Ende der Sperre ab.',
+    'blocked_max' => 'Sie haben :max Token, die Höchstzahl. Widerrufen Sie eines, um ein neues zu erstellen.',
+    'new_title' => 'Kopieren Sie Ihr Token jetzt',
+    'new_text' => 'Es wird nicht noch einmal angezeigt. Bewahren Sie es wie ein Passwort auf: Wer es besitzt, verbraucht Ihr Limit.',
+    'new_label' => 'Neues Token',
+    'new_usage' => 'Senden Sie es im Header jeder Anfrage: Authorization: Bearer, gefolgt vom Token.',
+    'copy' => 'Token kopieren',
+    'copied' => 'Token kopiert.',
+    'copy_failed' => 'Das Kopieren ist fehlgeschlagen: Markieren Sie das Token und kopieren Sie es von Hand.',
+
+    'errors' => [
+        'name_required' => 'Geben Sie dem Token einen Namen.',
+        'name_max' => 'Der Name des Tokens darf höchstens :max Zeichen lang sein.',
+        'suspended' => 'Ihr Konto ist gesperrt: Sie können kein Token erstellen.',
+        'too_many' => 'Sie haben bereits :max Token, die Höchstzahl. Widerrufen Sie eines, um ein neues zu erstellen.',
+    ],
+
+    'flash' => [
+        'created' => 'Das Token wurde erstellt.',
+        'revoked' => 'Das Token wurde widerrufen.',
+    ],
+];

@@ -411,4 +411,344 @@ return [
         'source_url' => $wp('Gare de Chabanais', 222234033),
         'reason' => 'remplacée par la date au jour de l\'article de la gare',
     ],
+
+    // ── 4. Desserte du jour (chantier « donnees-gares », 19/11/2026) ─────────────────────────────
+    //
+    // Écarts relevés par vff:import-station-service (storage/app/reports/agents/gares-desserte.md,
+    // gares-desserte/ecarts-annotes.csv) : horaires GTFS ouverts du 15/04, du 15/06 et du 18/11/2026,
+    // confirmés un par un par une source datée. Règles retenues (docs/METHODE-CLASSIFICATION.md,
+    // « Desserte du jour ») : desserte saisonnière régulière = ouverte ; trains détournés quelques jours
+    // pendant des travaux ailleurs = pas une desserte ; travaux avec reprise annoncée = pas une fermeture.
+
+    // Montréjeau - Luchon : circulations suspendues le 18/11/2014, ligne rouverte le 22/06/2025 avec ses
+    // quatre arrêts de 2014 (trains tous les jours dans les trois versions des horaires SNCF). La
+    // « fermeture » Wikidata du 19/12/2014 ne correspond à aucune date de l'article ; la « démolition »
+    // Wikidata de Luchon est la date de la suspension : le bâtiment voyageurs est resté ouvert.
+    ...array_merge(...array_map(fn (array $g) => [
+        [
+            'station' => ['name' => $g[0], 'uic' => $g[1]],
+            'action' => 'add',
+            'type' => 'closure',
+            'date' => '2014-11-18',
+            'precision' => 'day',
+            'source_url' => $wp('Ligne de Montréjeau - Gourdan-Polignan à Luchon', 239813913),
+            'quote' => 'Réseau ferré de France et la SNCF suspendent les circulations ferroviaires à partir du 18 novembre 2014',
+            'reason' => 'suspension des trains sur toute la ligne (remplacés par des cars jusqu\'en 2025)',
+        ],
+        [
+            'station' => ['name' => $g[0], 'uic' => $g[1]],
+            'action' => 'neutralize',
+            'match' => ['source' => 'wikidata', 'type' => 'closure', 'date' => '2014-12-19'],
+            'source_url' => $wp('Ligne de Montréjeau - Gourdan-Polignan à Luchon', 239813913),
+            'reason' => 'remplacée par la date de la suspension (18/11/2014) donnée par l\'article de la ligne',
+        ],
+        [
+            'station' => ['name' => $g[0], 'uic' => $g[1]],
+            'action' => 'add',
+            'type' => 'reopening',
+            'date' => '2025-06-22',
+            'precision' => 'day',
+            'source_url' => $wp('Ligne de Montréjeau - Gourdan-Polignan à Luchon', 239813913),
+            'quote' => 'Les travaux et la pose des rails sont effectués en 2024. La réouverture a lieu le 22 juin 2025',
+            'reason' => 'réouverture de la ligne et de ses quatre arrêts (Loures - Barbazan, Saléchan - Siradan, Marignac - Saint-Béat, Luchon)',
+        ],
+    ], [['Loures-Barbazan', '87611178'], ['Saléchan-Siradan', '87618710'], ['Marignac-St-Béat', '87611194'], ['Luchon', '87611236']])),
+    [
+        'station' => ['name' => 'Luchon', 'uic' => '87611236'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'demolition', 'date' => '2014-11-18'],
+        'source_url' => $wp('Ligne de Montréjeau - Gourdan-Polignan à Luchon', 239813913),
+        'quote' => 'Depuis 2014 le bâtiment voyageurs de la gare de Luchon est toujours ouvert, sauf ponctuellement',
+        'reason' => 'date de la suspension des trains lue comme une démolition : le bâtiment voyageurs est resté ouvert',
+    ],
+
+    // RER A, section de la RATP : la liste SNCF des gares ne donne que le drapeau fret (« fret seul »),
+    // les trains du RER A s'y arrêtent tous les jours (horaires Transilien du 18/11 au 17/12/2026).
+    ...array_map(fn (array $g) => [
+        'station' => ['name' => $g[0], 'uic' => $g[1]],
+        'action' => 'current',
+        'status' => 'active',
+        'source_url' => 'https://transport.data.gouv.fr/datasets/horaires-des-lignes-transilien-1',
+        'reason' => "gare du RER A (section de la RATP) desservie tous les jours : {$g[2]} arrêts de trains du 18/11 au 17/12/2026 dans les horaires GTFS Transilien (ODbL) ; la liste SNCF des gares ne la connaît qu'au fret",
+    ], [['La Varenne-Chennevières', '87114389', '7 390'], ['Sucy-Bonneuil', '87114413', '7 390'], ['Rueil-Malmaison', '87382119', '7 390']]),
+
+    // Haltes sans aucun train ni car dans les trois versions des horaires (avril, juin et novembre
+    // 2026), fréquentation 2025 nulle ou presque : arrêt supprimé, date de l'article de la gare. Une
+    // halte (point d'arrêt voyageurs, ni fret dans la liste SNCF) qui n'est plus desservie est fermée
+    // (« closure ») ; une gare fermée « au service des voyageurs » garde ce type (fret seul ensuite si
+    // la liste SNCF lui donne du fret).
+    ...array_map(fn (array $g) => [
+        'station' => ['name' => $g[0], 'uic' => $g[1]],
+        'action' => 'add',
+        'type' => $g[2],
+        'date' => $g[3],
+        'precision' => $g[4],
+        'source_url' => $wp($g[5], $g[6]),
+        'quote' => $g[7],
+        'reason' => $g[8],
+    ], [
+        ['Liart', '87172544', 'closure_passenger', '2022-01-01', 'year', 'Gare de Liart', 232244635,
+            'Jusqu\'en 2022, la gare est desservie par des trains du réseau TER Grand Est',
+            'fin de la desserte voyageurs en 2022 (aucun train dans les horaires de 2026)'],
+        ['Sérifontaine', '87381269', 'closure_passenger', '2024-07-19', 'day', 'Ligne de Saint-Denis à Dieppe', 239854982,
+            'et ferme le 19 juillet 2024 pour un manque de fréquentation et un fort déficit',
+            'trains Gisors - Serqueux remplacés par des cars (article de la gare, oldid 231989226 : « ferme à nouveau en juillet 2024 »)'],
+        ['Gournay-Ferrières', '87381293', 'closure_passenger', '2024-07-19', 'day', 'Ligne de Saint-Denis à Dieppe', 239854982,
+            'et ferme le 19 juillet 2024 pour un manque de fréquentation et un fort déficit',
+            'trains Gisors - Serqueux remplacés par des cars (article de la gare, oldid 240339466 : « à nouveau supprimé en juillet 2024 »)'],
+        ['Le Havre-Graville', '87413203', 'closure', '2024-09-01', 'month', 'Gare du Havre-Graville', 230878443,
+            'Cette halte de la Société nationale des chemins de fer français (SNCF) n\'est plus desservie depuis septembre 2024',
+            'liaison Le Havre - Montivilliers - Rolleville supprimée en septembre 2024 (cars en attendant le tramway)'],
+        ['Bolbec-Nointot', '87413351', 'closure', '2019-01-01', 'year', 'Gare de Bolbec - Nointot', 218249834,
+            'En juin, la fermeture en 2019 est confirmée',
+            'halte fermée aux voyageurs fin 2019 (l\'article dit aussi « au début de l\'année 2020 » : même ère)'],
+        ['Trentels-Ladignac', '87586446', 'closure', '2020-12-13', 'day', 'Gare de Trentels-Ladignac', 235034774,
+            'depuis le 13 décembre 2020, les trains ne s\'arrêtent plus',
+            'arrêt supprimé (transport à la demande à la place)'],
+        ['Lavaveix-les-Mines', '87597781', 'closure', '2025-08-31', 'day', 'Gare de Lavaveix-les-Mines', 229097905,
+            'La ligne ferroviaire reliant Guéret à Felletin ferme officiellement le soir du 31 août 2025',
+            'fermeture de la ligne Busseau-sur-Creuse - Felletin (cars ensuite)'],
+        ['Felletin', '87597849', 'closure', '2025-08-31', 'day', 'Gare de Felletin', 228892923,
+            'la liaison ferroviaire reliant Guéret à Felletin est fermée au soir du 31 août 2025',
+            'fermeture de la ligne Busseau-sur-Creuse - Felletin (cars ensuite)'],
+        ['Lestelle', '87611111', 'closure', '2022-01-01', 'year', 'Gare de Lestelle', 241087122,
+            'En 2022, le point d\'arrêt de Lestelle est supprimé',
+            'point d\'arrêt supprimé en 2022'],
+        ['Labarthe-Inard', '87611129', 'closure', '2022-01-01', 'year', 'Gare de Labarthe-Inard', 235032512,
+            'En 2022, le point d\'arrêt de Labarthe -Inard est supprimé',
+            'point d\'arrêt supprimé en 2022'],
+        ['Ossun', '87671313', 'closure_passenger', '2022-01-01', 'year', 'Gare d\'Ossun', 235030562,
+            'fermeture = 2022',
+            'fermeture de la halte en 2022 (infobox de l\'article, gare rangée parmi les gares fermées des Hautes-Pyrénées)'],
+        ['Carantilly-Marigny', '87447144', 'closure', '2018-12-09', 'day', 'Gare de Carantilly - Marigny', 235031158,
+            'Aucun train ne s\'y arrête depuis sa fermeture annoncée par la Région Normandie en décembre 2018',
+            'halte fermée le 09/12/2018 (date de l\'infobox de l\'article)'],
+        ['Pont-Hébert', '87447185', 'closure', '2018-12-09', 'day', 'Gare de Pont-Hébert', 235033827,
+            'Aucun train ne s\'y arrête depuis sa fermeture annoncée par la Région Normandie en décembre 2018',
+            'halte fermée le 09/12/2018 (date de l\'infobox de l\'article)'],
+        ['Trémentines', '87484238', 'closure_passenger', '2003-01-01', 'year', 'Gare de Trémentines', 235933884,
+            'La gare est fermée au service des voyageurs en 2003',
+            'fermeture au service des voyageurs en 2003'],
+        ['St-Loup-Lamairé', '87487157', 'closure_passenger', '1980-09-27', 'day', 'Ligne de Chartres à Bordeaux-Saint-Jean', 240356620,
+            'et de Thouars à Parthenay et Niort au 27 septembre 1980',
+            'fermeture aux voyageurs de la section Thouars - Parthenay - Niort (l\'article de la gare dit aussi 1980)'],
+        ['Villeneuve-lès-Avignon', '87765875', 'closure_passenger', '1973-08-06', 'day', 'Ligne de Givors-Canal à Grezan', 238687433,
+            'Depuis la fermeture de la ligne au trafic voyageurs le 6 août 1973',
+            'fermeture aux voyageurs de la rive droite du Rhône ; la gare n\'a pas rouvert avec la ligne en 2022'],
+    ]),
+    // Virville - Manneville : deux fiches portent son code UIC (doublon OSM n1281386660 posé à 37 km) ;
+    // la fiche de la halte est désignée par son élément Wikidata.
+    [
+        'station' => ['name' => 'Virville-Manneville', 'wikidata' => 'Q2382506'],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '2018-12-09',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Virville - Manneville', 237268978),
+        'quote' => 'fermeture = 9 décembre 2018',
+        'reason' => 'halte fermée au service des voyageurs le 09/12/2018 (infobox de l\'article)',
+    ],
+    // Trentels-Ladignac : la ligne de Niversac à Agen rouvre le 22/03/2026 après une coupure, sans que les
+    // trains s'arrêtent de nouveau à la halte (aucun arrêt dans les horaires de juin et de novembre 2026).
+    [
+        'station' => ['name' => 'Trentels-Ladignac', 'uic' => '87586446'],
+        'action' => 'current',
+        'status' => 'declassified',
+        'source_url' => $wp('Gare de Trentels-Ladignac', 235034774),
+        'quote' => 'depuis le 13 décembre 2020, les trains ne s\'arrêtent plus',
+        'reason' => 'halte non rouverte avec la ligne en 2026 (aucun arrêt dans les horaires GTFS SNCF de juin et de novembre 2026)',
+    ],
+    // Haltes de la section Parthenay - Niort, fermée aux voyageurs avec elle (OSM : bâtiment, ancienne gare).
+    [
+        'station' => ['name' => 'Échiré - Saint-Gelais', 'osm' => 'w74192930'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1980-09-27',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Chartres à Bordeaux-Saint-Jean', 240356620),
+        'quote' => 'et de Thouars à Parthenay et Niort au 27 septembre 1980',
+        'reason' => 'halte de la section Parthenay - Niort, fermée aux voyageurs avec elle (OSM : bâtiment, disused:railway=station)',
+    ],
+    // Villeneuve-lès-Avignon : la rive droite du Rhône a rouvert aux voyageurs le 29/08/2022 sans cette gare
+    // (OSM : proposed=station) ; travaux de réouverture de la gare pour la fin de 2027.
+    [
+        'station' => ['name' => 'Villeneuve-lès-Avignon', 'uic' => '87765875'],
+        'action' => 'current',
+        'status' => 'declassified',
+        'source_url' => 'https://tvsudmagazine.fr/2026/11/villeneuve-lez-avignon-56-millions-deuros-investis-pour-rouvrir-la-gare-fin-2027-une-nouvelle-etape-pour-le-retour-du-train-sur-la-rive-droite-du-rhone/',
+        'quote' => 'ce chantier doit permettre une remise en service de la gare fin 2027',
+        'reason' => 'gare pas encore rouverte (réouverture annoncée pour la fin de 2027) : la réouverture de la ligne en 2022 ne la rouvre pas',
+    ],
+    // Vaulry : point d'arrêt fermé selon l'article (sans date) ; aucun train dans les horaires de 2026.
+    [
+        'station' => ['name' => 'Vaulry', 'uic' => '87592451'],
+        'action' => 'current',
+        'status' => 'declassified',
+        'source_url' => $wp('Gare de Vaulry', 195455617),
+        'quote' => 'Et est fermée au trafic actuellement',
+        'reason' => 'halte fermée (sans date connue) ; aucun train ni car dans les horaires GTFS SNCF d\'avril, juin et novembre 2026',
+    ],
+    // Foulain : l'objet OSM est l'« emplacement de l'ancienne gare » ; liste SNCF ni voyageurs ni fret.
+    [
+        'station' => ['name' => 'Foulain', 'osm' => 'n14098359248'],
+        'action' => 'current',
+        'status' => 'declassified',
+        'source_url' => $osm('n14098359248'),
+        'quote' => 'Emplacement de l\'ancienne gare ferroviaire de Foulain',
+        'reason' => 'ancienne gare (nom de l\'objet OSM ; liste SNCF des gares : ni voyageurs ni fret ; aucun train dans les horaires de 2026)',
+    ],
+
+    // ── 5. Données des fiches (chantier « donnees-gares », 19/11/2026) ───────────────────────────
+    //
+    // Constats de storage/app/reports/agents/ui-donnees-fiches.md (« Données fausses repérées »),
+    // recherches dans storage/app/reports/agents/jour/donnees-gares-recherche-q18.md.
+
+    // Ligne 610000 Limoges - Angoulême : haltes « non confirmées » de 1890 à 2010 faute de date propre
+    // (fermeture déduite de la section Saillat-Chassenon - Angoulême, fermée le 13/03/2018).
+    ...array_map(fn (array $g) => [
+        'station' => ['name' => $g[0], 'uic' => $g[1]],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '2018-03-13',
+        'precision' => 'day',
+        'source_url' => $wp($g[2], $g[3]),
+        'quote' => 'elle n\'est plus desservie par des trains depuis le 13 mars 2018',
+        'reason' => 'fin de la desserte avec la fermeture de la section Saillat-Chassenon - Angoulême (cars TER ensuite)',
+    ], [['Roumazières-Loubert', '87583468', 'Gare de Roumazières-Loubert', 222234533], ['Ruelle', '87583203', 'Gare de Ruelle', 222234559]]),
+    [
+        'station' => ['name' => 'Ruelle', 'uic' => '87583203'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1875-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Ruelle', 222234559),
+        'quote' => 'Elle est mise en service en 1875 par la Compagnie des Charentes',
+        'reason' => 'ouverture de la gare (VFF la déduisait de la ligne)',
+    ],
+    [
+        'station' => ['name' => 'Roumazières-Loubert', 'uic' => '87583468'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1875-04-26',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Roumazières-Loubert', 222234533),
+        'quote' => 'mise en service = 26 avril 1875',
+        'reason' => 'date au jour de l\'infobox de l\'article (Wikidata : 1875 seulement)',
+    ],
+    [
+        'station' => ['name' => 'Roumazières-Loubert', 'uic' => '87583468'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'opening', 'date' => '1875-01-01'],
+        'source_url' => $wp('Gare de Roumazières-Loubert', 222234533),
+        'reason' => 'remplacée par la date au jour de l\'article de la gare',
+    ],
+    // Verneuil-sur-Vienne : fermée aux voyageurs en 2017 (aucun train dans les horaires GTFS SNCF d'avril,
+    // juin et novembre 2026, fréquentation 2025 nulle) ; la liste SNCF lui garde le fret.
+    [
+        'station' => ['name' => 'Verneuil-sur-Vienne', 'uic' => '87592675'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1875-04-26',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Verneuil-sur-Vienne', 223772559),
+        'quote' => 'La compagnie met en service, le 26 avril 1875, sa ligne et donc la gare de Verneuil',
+        'reason' => 'ouverture de la gare (VFF la déduisait de la ligne)',
+    ],
+    [
+        'station' => ['name' => 'Verneuil-sur-Vienne', 'uic' => '87592675'],
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '2017-01-01',
+        'precision' => 'year',
+        'source_url' => $wp('Gare de Verneuil-sur-Vienne', 223772559),
+        'quote' => 'Elle est fermée au service des voyageurs en 2017',
+        'reason' => 'fermeture au service des voyageurs (confirmée par l\'absence de tout train dans les horaires GTFS de 2026)',
+    ],
+    // Limoges-Bénédictins : ouverte le 02/06/1856 (Wikidata : 1856 seulement).
+    [
+        'station' => ['name' => 'Limoges-Bénédictins', 'uic' => '87592006'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1856-06-02',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Limoges-Bénédictins', 240488154),
+        'quote' => 'Le 2 juin 1856, le premier train, un convoi de marchandises en provenance d\'Argenton-sur-Creuse, arrive en gare de Limoges',
+        'reason' => 'date au jour de l\'article de la gare (première gare, remplacée par le bâtiment actuel en 1929)',
+    ],
+    [
+        'station' => ['name' => 'Limoges-Bénédictins', 'uic' => '87592006'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'opening', 'date' => '1856-01-01'],
+        'source_url' => $wp('Gare de Limoges-Bénédictins', 240488154),
+        'reason' => 'remplacée par la date au jour de l\'article de la gare',
+    ],
+    // Brienne-le-Château : aucune ligne ne la dessert avant 1884 ; l'ouverture Wikidata « 1875 » est la
+    // concession éventuelle de Jessains - Éclaron (31/12/1875). Ouverte avec Jessains - Éclaron.
+    [
+        'station' => ['name' => 'Brienne-le-Château', 'uic' => '87118752'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1884-04-10',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Jessains à Sorcy', 224485726),
+        'quote' => 'Elle est finalement ouverte le 10 avril 1884',
+        'reason' => 'ouverture de la ligne de Jessains à Éclaron par Brienne, première ligne de la gare (Troyes - Brienne en décembre 1886)',
+    ],
+    [
+        'station' => ['name' => 'Brienne-le-Château', 'uic' => '87118752'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'opening', 'date' => '1875-01-01'],
+        'source_url' => $wp('Ligne de Jessains à Sorcy', 224485726),
+        'reason' => 'aucune ligne ne dessert Brienne en 1875 (date de la concession éventuelle de la ligne)',
+    ],
+    // Charantonnay : halte du tramway de Lyon à Saint-Marcellin (schéma Wikipédia), rattachée à tort à la
+    // LGV Rhône-Alpes, qui la montrait ouverte de 1990 à 2020. Section Heyrieux - Saint-Jean-de-Bournay
+    // fermée en 1935 ou 1936 : fermée au plus tard en 1936.
+    [
+        'station' => ['name' => 'Charantonnay', 'near' => [5.0936, 45.5433, 0.5]],
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1936-12-31',
+        'precision' => 'before',
+        'source_url' => $wp('Tramways de l\'Ouest du Dauphiné', 236094878),
+        'quote' => 'Heyrieux - Saint-Jean-de-Bournay (23 novembre 1909 - 1935/36)',
+        'reason' => 'fin du tramway entre Heyrieux et Saint-Jean-de-Bournay (cars à partir de 1937) ; la halte n\'a jamais été une gare de la LGV',
+    ],
+    // Troyes : PK 169,853 interpolé sur la ligne de Troyes à Brienne, 36 m de Saint-Julien-les-Villas.
+    [
+        'station' => ['name' => 'Troyes', 'uic' => '87118000'],
+        'action' => 'pk',
+        'line' => '012000',
+        'pk_m' => 166193,
+        'source_url' => $wp('Ligne de Troyes à Brienne-le-Château', 236561494),
+        'quote' => 'BHF|166,193|Troyes',
+        'reason' => 'PK de la gare de Troyes dans le schéma de la ligne (même PK que sur Paris-Est - Mulhouse : article de la gare, oldid 241434192)',
+    ],
+
+    // ── 6. Positions des gares (chantier « donnees-gares », 19/11/2026) ──────────────────────────
+    //
+    // Tri des 147 points SNCF à plus de 300 m de leur référence (storage/app/reports/agents/gares-position.md,
+    // tri dans storage/app/reports/agents/jour/donnees-gares/tri-points-sncf.csv). Déplacées seulement quand
+    // l'objet OSM de la gare (bâtiment voyageurs ou arrêt) et les coordonnées de l'article Wikipédia
+    // concordent à moins de 35 m, sur la voie de la ligne (moins de 15 m du tracé), et que l'article donne le
+    // PK de la liste SNCF à 200 m près (même gare) : le point SNCF, lui aussi sur la voie, est 0,5 à 1,7 km plus
+    // loin, à l'écart de son propre PK.
+    ...array_map(fn (array $g) => [
+        'station' => ['name' => $g[0], 'uic' => $g[1]],
+        'action' => 'position',
+        'lng' => $g[2],
+        'lat' => $g[3],
+        'source_url' => $osm($g[4]),
+        'quote' => $g[5],
+        'reason' => $g[6],
+    ], [
+        ['Le Blanc', '87597211', 1.0662511, 46.6408492, 'w66915832', 'latitude = 46.64087, longitude = 1.066272',
+            'bâtiment voyageurs OSM « Gare du Blanc » ; coordonnées et PK 407,8 de l\'article Gare du Blanc (oldid 240774659) ; point SNCF à 1 721 m'],
+        ['Concremiers', '87597252', 1.0127365, 46.6004636, 'w182500831', 'latitude = 46.600566, longitude = 1.012838',
+            'bâtiment voyageurs OSM « Gare de Concremiers » ; coordonnées et PK 400,144 de l\'article Gare de Concremiers (oldid 228675721) ; point SNCF à 568 m'],
+        ['Talizat', '87783159', 3.0275431, 45.1107995, 'w970359982', 'latitude = 45.110816, longitude = 3.02759',
+            'bâtiment voyageurs OSM (building=train_station) ; coordonnées et PK 702,971 de l\'article Gare de Talizat (oldid 231762671) ; point SNCF à 1 410 m'],
+        ['Pellevoisin', '87576488', 1.420627, 46.9819771, 'n1960039507', 'latitude = 46.982004, longitude = 1.420452',
+            'gare OSM « Pellevoisin » ; coordonnées et PK 268 de l\'article Gare de Pellevoisin (oldid 232043961) ; point SNCF à 485 m'],
+    ]),
 ];

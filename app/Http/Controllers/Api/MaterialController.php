@@ -52,7 +52,7 @@ class MaterialController extends Controller
      * Il n'y a ni numéro de page ni total.
      */
     #[QueryParameter('q', 'Recherche, sans accents ni capitales, dans le nom, les autres noms, les constructeurs et les numéros d\'engins (1 à 100 caractères).', type: 'string', example: 'picasso')]
-    #[QueryParameter('type', 'Catégorie : `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`, `autorail`, `rame_tgv`, `voiture`, `wagon`, `tramway`, `engin_service`.', type: 'string', example: 'locomotive_electrique')]
+    #[QueryParameter('type', 'Catégorie : `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`, `bimode`, `autorail`, `rame_tgv`, `voiture`, `wagon`, `tramway`, `engin_service`.', type: 'string', example: 'locomotive_electrique')]
     #[QueryParameter('builder', 'Constructeur, recherche partielle sans accents ni capitales (ex. `alsthom`, `fives-lille`).', type: 'string', example: 'alstom')]
     #[QueryParameter('operator', 'Exploitant : identifiant Wikidata exact (`Q13646` = SNCF) ou nom partiel sans accents ni capitales (`paris a lyon` trouve le PLM).', type: 'string', example: 'Q13646')]
     #[QueryParameter('line', 'Slug d\'une ligne : séries qui l\'ont parcourue d\'après une source (voir `/lines/{line}/materials`). Ligne inconnue : HTTP 422.', type: 'string', example: 'rfn-67000')]
@@ -60,6 +60,8 @@ class MaterialController extends Controller
     #[QueryParameter('from_year', 'Mise en service à partir de cette année, incluse (1800 à 2100).', type: 'int', example: 1950)]
     #[QueryParameter('to_year', 'Mise en service jusqu\'à cette année, incluse (1800 à 2100, au moins égale à `from_year`).', type: 'int', example: 1959)]
     #[QueryParameter('gauge_mm', 'Écartement en millimètres (500 à 2000) : `1435` voie normale, `1000` voie métrique.', type: 'int', example: 1000)]
+    #[QueryParameter('service_status', 'État d\'utilisation déclaré par une source : `in_service` (en service) ou `withdrawn` (retirée). Une série dont aucune source ne dit l\'état n\'est dans aucun des deux cas : l\'absence de date de retrait ne prouve pas qu\'elle circule.', type: 'string', example: 'in_service')]
+    #[QueryParameter('scope', 'Périmètre : `france` (séries rattachées à la France dans Wikidata) ou `attested` (séries non rattachées, comme un ICE, un AVE ou une locomotive belge, dont une source atteste la circulation sur une ligne française).', type: 'string', example: 'attested')]
     #[QueryParameter('has_image', '`true` : séries illustrées seulement ; `false` : séries sans image.', type: 'bool', example: true)]
     #[QueryParameter('has_lines', '`true` : séries reliées à au moins une ligne ; `false` : séries sans ligne connue.', type: 'bool', example: true)]
     #[QueryParameter('sort', 'Tri : `name`, `-name`, `in_service_from`, `-in_service_from`, `max_speed_kmh`, `-max_speed_kmh`, `units_built`, `-units_built`, `lines_count`, `-lines_count`. Inconnues en dernier.', type: 'string', default: 'name', example: '-max_speed_kmh')]

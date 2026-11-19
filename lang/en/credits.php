@@ -44,7 +44,7 @@ return [
             'smp' => 'U-Net architecture',
             'torchvision' => 'Encoder pre-trained on ImageNet, the model\'s starting point',
             'ign_ortho' => 'Historical aerial photographs analysed',
-            'phpunit' => 'More than 2,200 tests, run in parallel',
+            'phpunit' => 'More than 4,000 tests, run in parallel',
             'infection' => 'Mutation testing',
             'phpstan' => 'PHP static analysis',
             'vitest' => 'JavaScript tests',

@@ -22,8 +22,75 @@ et accidents, à la comparaison de deux ères, ainsi qu'au calcul d'itinéraires
 
 - Point d'accès : \`POST https://vff-project.org/graphql\` (corps JSON \`{"query": "…", "variables": {…}}\`).
 - Essais en direct : [GraphiQL](${ORIGIN}/graphiql).
-- Lecture seule, anonyme, sans clé. Limite : 300 requêtes par minute et par adresse IP.
+- Lecture seule, sans clé obligatoire : 300 requêtes par minute et par adresse IP sans jeton,
+  davantage avec un jeton personnel (voir « Authentification et quotas »).
 - Schéma complet au format SDL : [/docs/schema.graphql](${ORIGIN}/docs/schema.graphql).
+
+## Authentification et quotas
+
+GraphQL s'appelle sans jeton. Un **jeton personnel**, facultatif, relève la limite de débit : un
+membre le crée depuis son [profil](${ORIGIN}/profile) (section « Jetons d'accès à l'API »). Il ne
+sert qu'à lire, comme l'accès anonyme, et n'est affiché qu'une fois. Il s'envoie dans l'en-tête
+\`Authorization: Bearer <jeton>\`.
+
+| Profil | Limite | Compteur |
+| --- | --- | --- |
+| Sans jeton | 300 requêtes par minute | par adresse IP |
+| Jeton d'un membre | 1 200 requêtes par minute | par compte, tous ses jetons ensemble |
+| Jeton d'un compte partenaire | 6 000 requêtes par minute | par compte (profil accordé par l'équipe de VFF) |
+
+Le compteur est commun à GraphQL, à l'API REST et au serveur MCP. Chaque réponse porte
+\`X-RateLimit-Limit\` (la limite de l'appelant) et \`X-RateLimit-Remaining\` (requêtes restantes dans
+la minute). Ces refus sont des réponses HTTP, avant toute exécution de la requête GraphQL :
+
+- **HTTP 429** avec \`Retry-After\` (attente en secondes) : limite atteinte ;
+- **HTTP 401** (\`{"error": "invalid_token"}\`) : jeton inconnu, révoqué ou expiré ; l'appel n'est
+  pas servi en anonyme, retirez l'en-tête pour revenir à l'accès sans jeton ;
+- **HTTP 403** (\`{"error": "account_suspended"}\`) : jeton d'un compte suspendu, refusé jusqu'à la
+  fin de la suspension.
+
+\`\`\`bash
+# Sans jeton
+curl -i -X POST https://vff-project.org/graphql \\
+  -H "Content-Type: application/json" \\
+  -d '{"query": "{ stats { lines_count } }"}'
+# Avec un jeton
+curl -i -X POST https://vff-project.org/graphql \\
+  -H "Authorization: Bearer $VFF_TOKEN" -H "Content-Type: application/json" \\
+  -d '{"query": "{ stats { lines_count } }"}'
+\`\`\`
+
+\`\`\`javascript
+const token = process.env.VFF_TOKEN;
+const response = await fetch("https://vff-project.org/graphql", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: \`Bearer \${token}\` } : {}),
+    },
+    body: JSON.stringify({ query: "{ stats { lines_count } }" }),
+});
+console.info(response.status, response.headers.get("X-RateLimit-Remaining"));
+console.info((await response.json()).data.stats.lines_count);
+\`\`\`
+
+\`\`\`python
+import os
+
+import requests
+
+headers = {}
+if os.environ.get("VFF_TOKEN"):
+    headers["Authorization"] = f"Bearer {os.environ['VFF_TOKEN']}"
+response = requests.post(
+    "https://vff-project.org/graphql",
+    json={"query": "{ stats { lines_count } }"},
+    headers=headers,
+    timeout=30,
+)
+print(response.status_code, response.headers["X-RateLimit-Remaining"])
+print(response.json()["data"]["stats"]["lines_count"])
+\`\`\`
 
 ## Ères
 
@@ -131,6 +198,15 @@ voisines pour une gare. Les parties très imbriquées (phases, chronique, décen
 \`JSON\`, décrits champ par champ dans la référence REST. Le calcul d'une fiche de ligne prend
 jusqu'à quelques secondes : demandez-en une à la fois.
 
+Dans la fiche d'une ligne, \`description\` est un extrait de Wikipédia sous CC BY-SA 4.0 : \`description_source\`
+donne l'auteur collectif, l'article, le permalien de la version lue, la licence et une mention prête à
+copier. Dans celle d'une gare, chaque entrée de \`sources\` garde sa provenance brute : identifiant dans
+la source, date de lecture (\`fetched_at\`), attributs reçus tels quels (\`raw\`), méthode de rapprochement.
+
+\`stats\` donne les chiffres d'ensemble du site (lignes, gares, matériels, kilomètres exploités) et la
+courbe du réseau à chaque ère ; \`search(query: "brest")\` cherche une ligne, une gare ou un matériel par
+son nom ; \`Line.pk(lat:, lng:)\` convertit des coordonnées en point kilométrique sur la ligne.
+
 \`Line.segments(era: 1930)\` donne les tronçons d'une ère avec leur provenance, \`Era.stats\` l'état du
 réseau à une époque (longueurs, lignes actives, gares par statut) et \`sources\` le registre des
 fournisseurs de données avec leur licence et la mention à reproduire.
@@ -161,6 +237,17 @@ tel.
 
   era(year: 1930) { snapshot_date stats { open_km active_lines stations_by_status { code count } } }
 
+  stats { lines_count stations_count total_km profile { year km lines } }
+
+  search(query: "brest", limit: 3) { lines { slug name } stations { slug city } }
+
+  line(slug: "rfn-420000") {
+    pk(lat: 48.10, lng: -1.67) { pk_label snap { distance_from_input_m } }
+    sheet { description description_source { author permalink license attribution } }
+  }
+
+  station(slug: "brest") { sheet { sources { source ref fetched_at match_method raw } } }
+
   eraComparison(from: 1930, to: 1980) {
     changes { closed { km lines } removed { km lines } }
     open_km { from to }
@@ -177,8 +264,9 @@ tel.
 ## Erreurs
 
 Une requête invalide ou une valeur de filtre hors limites renvoie HTTP 200 avec un tableau \`errors\`
-(convention GraphQL) : \`message\` et, pour une validation, \`extensions.validation\`. Au-delà de
-300 requêtes par minute, HTTP 429 (en-tête \`Retry-After\`). Un identifiant inconnu
+(convention GraphQL) : \`message\` et, pour une validation, \`extensions.validation\`. Au-delà de la
+limite de requêtes par minute, HTTP 429 (en-tête \`Retry-After\`) ; un jeton invalide donne HTTP 401
+(voir « Authentification et quotas »). Un identifiant inconnu
 (\`lineEvent(id: …)\`, \`mediaItem(id: …)\`, \`line(slug: …)\`) donne \`null\`, pas une erreur.
 
 ## Itinéraires historiques
@@ -245,13 +333,48 @@ export default {
                 },
             ],
             externalLinks: [
-                { label: 'GraphiQL', href: `${ORIGIN}/graphiql`, position: 'header', kind: 'GraphQL' },
-                { label: 'REST (Scalar)', href: `${ORIGIN}/docs/api`, position: 'navigation', group: 'Voir aussi' },
-                { label: 'REST (Swagger UI)', href: `${ORIGIN}/docs/swagger`, position: 'navigation', group: 'Voir aussi' },
-                { label: 'OpenAPI (JSON)', href: `${ORIGIN}/docs/api.json`, position: 'navigation', group: 'Voir aussi' },
-                { label: 'GraphiQL', href: `${ORIGIN}/graphiql`, position: 'navigation', group: 'Voir aussi' },
-                { label: "Accès à l'API", href: `${ORIGIN}/api`, position: 'navigation', group: 'Voir aussi' },
-                { label: 'Site VFF', href: `${ORIGIN}/`, position: 'navigation', group: 'Voir aussi' },
+                {
+                    label: 'GraphiQL',
+                    href: `${ORIGIN}/graphiql`,
+                    position: 'header',
+                    kind: 'GraphQL',
+                },
+                {
+                    label: 'REST (Scalar)',
+                    href: `${ORIGIN}/docs/api`,
+                    position: 'navigation',
+                    group: 'Voir aussi',
+                },
+                {
+                    label: 'REST (Swagger UI)',
+                    href: `${ORIGIN}/docs/swagger`,
+                    position: 'navigation',
+                    group: 'Voir aussi',
+                },
+                {
+                    label: 'OpenAPI (JSON)',
+                    href: `${ORIGIN}/docs/api.json`,
+                    position: 'navigation',
+                    group: 'Voir aussi',
+                },
+                {
+                    label: 'GraphiQL',
+                    href: `${ORIGIN}/graphiql`,
+                    position: 'navigation',
+                    group: 'Voir aussi',
+                },
+                {
+                    label: "Accès à l'API",
+                    href: `${ORIGIN}/api`,
+                    position: 'navigation',
+                    group: 'Voir aussi',
+                },
+                {
+                    label: 'Site VFF',
+                    href: `${ORIGIN}/`,
+                    position: 'navigation',
+                    group: 'Voir aussi',
+                },
             ],
         },
     },

@@ -377,6 +377,33 @@ class SncfImportCommandsTest extends TestCase
         $this->assertSame($snapshot, $this->snapshot(['line_signalling'], except: ['id']));
     }
 
+    public function test_signalling_import_keeps_both_systems_of_a_combined_label(): void
+    {
+        $this->serve('mode-de-cantonnement-des-lignes', ['results' => [
+            ['code_ligne' => '408000', 'libelle' => 'European train control system 2/Transmission voie-machine 300', 'pkd' => '001+950', 'pkf' => '178+385'],
+            ['code_ligne' => '408000', 'libelle' => 'Transmission voie-machine 300', 'pkd' => '000+000', 'pkf' => '001+950'],
+            ['code_ligne' => '408000', 'libelle' => 'European train control system 2/Système inconnu', 'pkd' => '178+385', 'pkf' => '180+000'],
+        ]]);
+        $this->serve('lignes-equipees-de-kvb', ['results' => [
+            ['code_ligne' => '408000', 'pkd' => '000+000', 'pkf' => '180+000'],
+        ]]);
+        $lgv = $this->rfnLine('408000', 'Ligne de Connerré à Rennes (LGV)');
+
+        $this->artisan('vff:import-sncf-signalling')
+            ->expectsOutputToContain('✓ 2 tranches insérées')
+            ->expectsOutputToContain('Libellés inconnus, tranches ignorées : European train control system 2/Système inconnu')
+            ->assertSuccessful();
+
+        $ranges = DB::table('line_signalling')->where('line_id', $lgv->id)->orderBy('pk_start_m')
+            ->get(['signalling', 'signalling_systems', 'source_label', 'train_protection', 'kvb_equipped']);
+        $this->assertSame(['TVM-300', ['TVM-300'], 'Transmission voie-machine 300'], [$ranges[0]->signalling, json_decode($ranges[0]->signalling_systems, true), $ranges[0]->source_label]);
+        // ETCS niveau 2 et TVM 300 gardés tous les deux ; contrôle de vitesse des deux ; jamais de KVB en cabine.
+        $this->assertSame(
+            ['ETCS_L2', ['ETCS_L2', 'TVM-300'], 'European train control system 2/Transmission voie-machine 300', ['ERTMS_L2', 'TVM-300'], false],
+            [$ranges[1]->signalling, json_decode($ranges[1]->signalling_systems, true), $ranges[1]->source_label, json_decode($ranges[1]->train_protection, true), $ranges[1]->kvb_equipped],
+        );
+    }
+
     public function test_signalling_import_keeps_existing_ranges_when_a_dataset_is_down(): void
     {
         $this->fakeSignalling();

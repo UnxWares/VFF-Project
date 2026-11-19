@@ -63,6 +63,25 @@ class MaterialDirectoryTest extends TestCase
                 ->where('counts', [['type' => 'tramway', 'count' => 1], ['type' => 'engin_service', 'count' => 2]]));
     }
 
+    public function test_bimode_is_its_own_category_and_only_in_service_series_say_so(): void
+    {
+        Material::factory()->create(['slug' => 'regiolis', 'name' => 'Régiolis', 'type' => 'bimode']);
+        Material::factory()->create(['slug' => 'z-2', 'name' => 'Z 2', 'type' => 'automotrice']);
+        Material::factory()->inService()->create(['slug' => 'z-3', 'name' => 'Z 3', 'type' => 'automotrice', 'in_service_to' => null]);
+
+        $this->get('/materials?type=bimode')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('filters.type', 'bimode')
+                ->where('materials.total', 1)
+                ->where('materials.data.0.slug', 'regiolis')
+                ->where('counts', [['type' => 'automotrice', 'count' => 2], ['type' => 'bimode', 'count' => 1]]));
+
+        // L'annuaire ne dit « en service » que pour une série dont une source le dit (et jamais d'après un retrait absent).
+        $this->get('/materials?type=automotrice')->assertInertia(fn (Assert $page) => $page
+            ->where('materials.data', fn (Collection $rows) => $rows->pluck('service_status', 'slug')->all() === ['z-2' => null, 'z-3' => 'in_service']));
+    }
+
     public function test_sort_by_entry_into_service_puts_unknown_years_last(): void
     {
         Material::factory()->create(['slug' => 'a', 'name' => 'A', 'in_service_from' => null, 'in_service_to' => null]);

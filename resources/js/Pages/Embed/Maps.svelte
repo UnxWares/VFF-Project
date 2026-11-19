@@ -4,6 +4,10 @@
     import TimelineSlider from '$components/Map/TimelineSlider.svelte';
     import MapLegend from '$components/Map/MapLegend.svelte';
     import { i18n } from '$lib/i18n.js';
+    import { accidentYears, countAccidents, fetchAccidents } from '$lib/accidentMap.js';
+    import { LEVEL_CROSSING_MIN_ZOOM } from '$lib/levelCrossingMap.js';
+    import { NO_ORM, activeLayers, layerNotices, readLayers } from '$lib/mapLayers.js';
+    import { readTint } from '$lib/eraTint.js';
 
     /**
      * Page d'intégration iframe - pleine fenêtre, sans en-tête ni pied de page.
@@ -18,6 +22,13 @@
      *   ?legend=0             (défaut 1 = visible)
      *   ?attribution=0        (défaut 1 = lien « Carte : VFF »)
      *   ?mode=electrification (couleur des tracés : traffic | electrification | gauge ; défaut traffic)
+     *   ?layer=accidents&layer=signalling&layer=orm-maxspeed
+     *                         (calques facultatifs, comme sur /maps : accidents, level-crossings,
+     *                         signalling, et un fond OpenRailwayMap orm-standard | orm-maxspeed |
+     *                         orm-signals | orm-electrification | orm-gauge ; une liste séparée par
+     *                         des virgules est lue aussi ; voir lib/mapLayers.js)
+     *   ?tint=off             (coupe la teinte d'époque du fond ; voir lib/eraTint.js. Elle est
+     *                         coupée aussi quand ni la frise ni la légende n'écrivent l'époque)
      */
 
     // Ères servies par MapController::embed (toutes les décennies 1830 → 2030).
@@ -57,7 +68,45 @@
     let showTimeline = $state(true);
     let showLegend = $state(true);
     let showAttribution = $state(true);
+    let tintOn = $state(true);
     let frameEl = $state();
+    // Calques facultatifs demandés par l'adresse (lib/mapLayers.js) : les points des accidents sont
+    // chargés au premier affichage, comme sur /maps.
+    let dataLayers = $state([]);
+    let ormLayer = $state(NO_ORM);
+    let accidentData = $state.raw(null);
+    let accidentsState = $state('idle');
+    let mapZoom = $state(0);
+
+    const showingToday = $derived(selectedEra === currentEraYear);
+    const drawn = $derived(activeLayers({ data: dataLayers, orm: ormLayer }, showingToday));
+    const accidentLegend = $derived(
+        drawn.accidents
+            ? {
+                  state: accidentsState,
+                  count: countAccidents(accidentData, accidentYears('era', selectedEra, null)),
+                  ...accidentYears('era', selectedEra, null),
+              }
+            : null,
+    );
+    const notices = $derived(
+        layerNotices(drawn, {
+            showingToday,
+            accidentsFailed: accidentsState === 'error',
+            zoom: mapZoom,
+            minZoom: LEVEL_CROSSING_MIN_ZOOM,
+        }).map((n) => ({ ...n, text: $i18n.t(n.textKey) })),
+    );
+
+    async function loadAccidents() {
+        accidentsState = 'loading';
+        try {
+            accidentData = await fetchAccidents();
+            accidentsState = 'ready';
+        } catch {
+            accidentsState = 'error';
+        }
+    }
 
     function readParam(name) {
         if (typeof window === 'undefined') return null;
@@ -77,8 +126,14 @@
         showTimeline = parseBool(readParam('timeline'), true);
         showLegend = parseBool(readParam('legend'), true);
         showAttribution = parseBool(readParam('attribution'), true);
+        tintOn = readTint(window.location.search);
         const modeParam = readParam('mode');
         if (['traffic', 'electrification', 'gauge'].includes(modeParam)) colorMode = modeParam;
+
+        const layers = readLayers(window.location.search);
+        dataLayers = layers.data;
+        ormLayer = layers.orm;
+        if (layers.data.includes('accidents')) loadAccidents();
 
         const centerParam = readParam('center');
         if (centerParam) {
@@ -116,6 +171,12 @@
         currentEra={currentEraYear}
         {hidden}
         mode={colorMode}
+        overlay={ormLayer}
+        tint={tintOn && (showTimeline || showLegend)}
+        accidents={drawn.accidents ? accidentData : null}
+        levelCrossings={drawn.levelCrossings}
+        signalling={drawn.signalling}
+        onZoomChange={(z) => (mapZoom = z)}
         {dataVersion}
         {center}
         {zoom}
@@ -132,9 +193,33 @@
                     currentEra={currentEraYear}
                     bind:hidden
                     bind:mode={colorMode}
+                    accidents={accidentLegend}
+                    overlays={drawn.legendOverlays}
                 />
             </div>
         {/if}
+
+        {#if notices.length}
+            <div class="embed-notices">
+                {#each notices as notice (notice.key)}
+                    <p>
+                        {#if notice.icon}<i class="bi {notice.icon}" aria-hidden="true"></i>{/if}
+                        {notice.text}
+                    </p>
+                {/each}
+            </div>
+        {/if}
+        <!-- Chargement des accidents et messages des calques : annoncés même sans légende. -->
+        <p class="vff-sr-only" role="status">
+            {[
+                accidentsState === 'loading' && drawn.accidents
+                    ? $i18n.t('maps.accidents.loading')
+                    : '',
+                ...notices.map((n) => n.text),
+            ]
+                .filter(Boolean)
+                .join(' ')}
+        </p>
 
         {#if showAttribution}
             <a
@@ -196,6 +281,40 @@
     }
     .legend-slot > :global(*) {
         pointer-events: auto;
+    }
+
+    /* Messages des calques, en haut au centre, les uns sous les autres (jamais superposés). */
+    .embed-notices {
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        width: max-content;
+        max-width: min(420px, calc(100% - 640px));
+        transform: translateX(-50%);
+        pointer-events: none;
+    }
+    .embed-notices p {
+        margin: 0;
+        padding: 8px 12px;
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-md);
+        background-color: var(--vff-bg-elevated);
+        box-shadow: var(--vff-shadow-popover);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
+        color: var(--vff-text);
+    }
+    @media (max-width: 900px) {
+        .embed-notices {
+            top: 56px;
+            max-width: calc(100% - 24px);
+        }
     }
 
     /* Lien vers VFF : en haut à droite, à gauche des boutons de la carte. */

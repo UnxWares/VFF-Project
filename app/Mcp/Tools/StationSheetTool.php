@@ -20,7 +20,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Name('get_station')]
 #[Title("Fiche d'une gare")]
 #[Description(<<<'TXT'
-Fiche d'une gare, halte ou point d'arrêt français, actuel ou disparu : identité (nom, autres noms, nature, ville, département, code UIC, élément Wikidata, coordonnées WGS 84 en degrés décimaux), statut actuel (active = ouverte aux voyageurs, tourist = train touristique, no_commercial = fret seul, declassified = fermée, gone = disparue, planned = projetée, technical = point technique, excluded = hors réseau ferré), dates d'ouverture et de fermeture avec leur précision, statut à chaque décennie de la carte (instantané au 31/12, ère courante = aujourd'hui ; uncertain = non confirmé), chronologie (chaque date avec sa source, son lien, et `inferred` = date déduite des lignes plutôt que d'une source sur la gare), lignes desservies (période de desserte, point kilométrique en km, desserte actuelle) et sources rattachées (SNCF, OSM, Wikidata, OHM…, avec lien et écart en mètres à la position retenue).
+Fiche d'une gare, halte ou point d'arrêt français, actuel ou disparu : identité (nom, autres noms, nature, ville, département, code UIC, élément Wikidata, coordonnées WGS 84 en degrés décimaux), statut actuel (active = ouverte aux voyageurs, tourist = train touristique, no_commercial = fret seul, declassified = fermée, gone = disparue, planned = projetée, technical = point technique, excluded = hors réseau ferré), dates d'ouverture et de fermeture avec leur précision, statut à chaque décennie de la carte (instantané au 31/12, ère courante = aujourd'hui ; uncertain = non confirmé), chronologie (chaque date avec sa source, son lien, et `inferred` = date déduite des lignes plutôt que d'une source sur la gare), lignes desservies (période de desserte, point kilométrique en km, desserte actuelle) et sources rattachées (SNCF, OSM, Wikidata, OHM…, avec lien, écart en mètres à la position retenue, méthode de rapprochement, date de lecture par VFF et attributs bruts reçus de la source). `attribute_sources` dit quelle source a fourni chaque attribut de la gare ; `position.flagged` signale une position à vérifier.
 Prend le slug renvoyé par search (ex. "limoges-benedictins").
 Exemple : {"station": "brest", "lang": "en"}.
 TXT)]
@@ -66,11 +66,13 @@ class StationSheetTool extends VffTool
                 + ['source' => $e->source, 'source_url' => $e->source_url, 'inferred' => (bool) $e->is_inferred, 'note' => $note['text']];
         })->values()->all();
 
-        $sources = array_map(function ($s) use (&$providers) {
+        $rawBySource = $sheet->rawBySource($sid);
+        $sources = array_map(function ($s) use (&$providers, $rawBySource) {
             $providers[] = $this->attribution->providerFor('station_sources', $s->source, $s->source_url);
+            $raw = StationSheet::rawFor($rawBySource, $s);
 
             return ['source' => $s->source, 'ref' => $s->source_ref, 'name' => $s->name, 'url' => StationSheet::sourceUrl($s),
-                'distance_m' => (int) $s->distance_m];
+                'distance_m' => (int) $s->distance_m, 'match_method' => $s->match_method] + $raw;
         }, $sheet->sources($sid));
 
         return $this->respond([
@@ -84,6 +86,12 @@ class StationSheetTool extends VffTool
                 'department_code' => $station->department_code,
                 'uic_code' => $station->uic_code,
                 'wikidata_id' => $station->wikidata_id,
+                'attribute_sources' => $station->provenance ?? [],
+                'position' => [
+                    'source' => $station->position_source,
+                    'spread_m' => $station->position_spread_m,
+                    'flagged' => (bool) $station->position_flagged,
+                ],
                 'lat' => round((float) $coords->lat, 6),
                 'lng' => round((float) $coords->lng, 6),
                 'opened' => $date($station->opened_at?->format('Y-m-d'), $station->opened_precision),

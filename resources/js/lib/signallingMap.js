@@ -84,12 +84,33 @@ export function signallingLayers() {
     ];
 }
 
+/** Liste de codes : tableau (fiche ligne, API) ou chaîne séparée par des virgules (tuiles). */
+function codeList(value) {
+    const list = Array.isArray(value) ? value : String(value ?? '').split(',');
+    return list.map((c) => String(c).trim()).filter(Boolean);
+}
+
+/**
+ * Systèmes de cantonnement d'une tranche, code principal en premier : deux sur les LGV équipées à
+ * la fois de l'ETCS niveau 2 et de la TVM (« ETCS_L2,TVM-300 »), un seul ailleurs.
+ */
+export function signallingSystems(p) {
+    const list = codeList(p.signalling_systems);
+    if (p.signalling && !list.includes(p.signalling)) list.unshift(p.signalling);
+    return [...new Set(list)];
+}
+
+/** Libellé des systèmes d'une tranche : « ETCS niveau 2 et TVM 300 (jusqu’à 300 km/h) ». */
+export function systemsLabel(p, t) {
+    const labels = signallingSystems(p).map((c) => codeLabel(c, t));
+    if (labels.length < 2) return labels[0] ?? '';
+    return `${labels.slice(0, -1).join(', ')} ${t('lines.signalling.and')} ${labels.at(-1)}`;
+}
+
 /** Codes de contrôle de vitesse d'une tranche (« KVB,TVM-430 » → liste), sans le cantonnement lui-même. */
 export function protectionCodes(p) {
-    const list = String(p.train_protection ?? '')
-        .split(',')
-        .map((c) => c.trim())
-        .filter((c) => c && c !== p.signalling);
+    const systems = signallingSystems(p);
+    const list = codeList(p.train_protection).filter((c) => !systems.includes(c));
     const kvb = p.kvb_equipped === true || p.kvb_equipped === 'true';
     if (kvb && !list.includes('KVB') && !list.includes('KVBP')) list.push('KVB');
     return list;
@@ -121,7 +142,7 @@ export function signallingPopupHtml(p, t, lang, link) {
     const rows = [
         row(
             t(cab ? 'maps.signalling.cab_label' : 'maps.signalling.block_label'),
-            codeLabel(p.signalling, t),
+            systemsLabel(p, t),
         ),
         protection.length
             ? row(

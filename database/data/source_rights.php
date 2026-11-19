@@ -104,8 +104,9 @@ return [
             'citation' => 'Le contenu textuel de Wikipédia est sous CC BY-SA 4.0, licence libre, laquelle permet une réutilisation gratuite de celui-ci.',
             'obligations' => 'Courte citation (source_quote) : auteur et source (permalien). Introductions reprises sur les fiches : CC BY-SA 4.0, attribution, lien vers la licence, texte repris sous la même licence. '
                 .'Section 4 de la CC BY-SA 4.0 : reprendre une partie SUBSTANTIELLE d\'une base Wikipédia rendrait la base VFF (pas ses contenus) « matériel adapté ».',
+            'remarques' => 'Fiches d\'accidents (vff:import-accidents) : seuls des FAITS sont repris des articles et des pages « Liste d\'accidents ferroviaires en France » (date, lieu cité, lignes citées, nombre de morts et de blessés, nature) ; aucun texte n\'est copié ni conservé, le résumé est rédigé par VFF. Chaque fiche cite le permalien de la révision lue (accident_sources) ; toute citation d\'un texte de Wikipédia reste sous CC BY-SA 4.0 avec attribution. Page des conditions de réutilisation relue le 2026-11-19. Matériel roulant (vff:import-materials) : seuls des FAITS sont repris de l\'infobox « Infobox Matériel ferroviaire » (catégorie annoncée, effectif en service et sa date), avec l\'article et la révision lue en provenance ; les phrases qui relient une série à une ligne sont citées avec leur permalien (line_materials.evidence).',
             'domaines' => ['wikipedia.org'],
-            'lu_le' => '2026-10-20',
+            'lu_le' => '2026-11-19',
         ],
         'wikidata' => [
             'nom' => 'Wikidata',

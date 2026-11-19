@@ -51,6 +51,19 @@ class AccidentPagesTest extends TestCase
                 ->where('facets.lines.0.slug', 'rfn-679000'));
     }
 
+    public function test_records_to_review_stay_in_the_public_list_with_their_status(): void
+    {
+        Accident::factory()->on('1950-01-02')->toReview('location_commune_only', 'Millas')->create(['slug' => '1950-01-02-millas', 'kind' => 'derailment']);
+
+        $this->get('/accidents')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('accidents.total', 3)
+            ->where('accidents.data.1.slug', '1950-01-02-millas')
+            ->where('accidents.data.1.review_status', 'to_review'));
+        $this->get('/accidents/1950-01-02-millas')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('accident.review.status', 'to_review')
+            ->where('accident.review.notes.0.code', 'location_commune_only'));
+    }
+
     public function test_unknown_filter_values_are_ignored_never_an_error(): void
     {
         $this->get('/accidents?decade=1234&kind=meteor&dept=zz&line=nope&sort=bad&q[]=x&page=abc')

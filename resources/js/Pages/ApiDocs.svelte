@@ -11,7 +11,22 @@
      * de routes/api.php par sujet (avec les noms de paramètres de la spécification), donne des exemples
      * dont la réponse est celle du serveur et présente le serveur MCP. Les documentations sont des pages
      * hors Inertia : liens simples.
+     *
+     * `rate_limits` : requêtes par minute de chaque profil (config/api.php, routes/web.php), montrées
+     * dans « Accès et limites », « Authentification et quotas » (ancre #auth, liée depuis le profil)
+     * et la section MCP.
+     *
+     * `webhooks` : règles de livraison des webhooks (config/webhooks.php), section « Webhooks » (ancre
+     * #webhooks, liée depuis le profil).
+     *
+     * @type {{
+     *   rate_limits: { anonymous: number, member: number, partner: number },
+     *   webhooks: { tolerance: number, timeout: number, attempts: number, disable_after: number },
+     * }}
      */
+    let { rate_limits, webhooks } = $props();
+    const number = (n) => n.toLocaleString($i18n.language);
+    const authProfiles = ['anonymous', 'member', 'partner'];
 
     const docs = [
         { key: 'scalar', href: '/docs/api' },
@@ -29,6 +44,7 @@
         {
             key: 'network',
             items: [
+                { path: '/api/v1/stats', key: 'stats' },
                 { path: '/api/v1/eras', key: 'eras' },
                 { path: '/api/v1/eras/{year}', key: 'era' },
                 { path: '/api/v1/eras/{year}/lines.geojson', key: 'lines_geojson' },
@@ -43,6 +59,17 @@
                 { path: '/api/v1/lines', key: 'lines' },
                 { path: '/api/v1/lines/{line}', key: 'line' },
                 { path: '/api/v1/lines/{line}/segments?era={year}', key: 'segments' },
+                { path: '/api/v1/lines/{line}/geojson?era={year}', key: 'line_geojson' },
+                {
+                    path: '/api/v1/lines/{line}/gpx?era={year}',
+                    key: 'line_gpx',
+                    doc: '/docs/api#api-1/tag/lignes/GET/lines/{line}/gpx',
+                },
+                {
+                    path: '/api/v1/lines/{line}/kml?era={year}',
+                    key: 'line_kml',
+                    doc: '/docs/api#api-1/tag/lignes/GET/lines/{line}/kml',
+                },
                 { path: '/api/v1/lines/{line}/history', key: 'history' },
                 { path: '/api/v1/lines/{line}/pk?lat={lat}&lng={lng}', key: 'pk' },
                 { path: '/api/v1/lines/{line}/stops?era={year}', key: 'stops' },
@@ -129,6 +156,7 @@
         'compare_eras',
         'level_crossings',
         'line_profile',
+        'locate_on_line',
         'sources_and_licences',
     ];
     const mcpCli = `claude mcp add --transport http vff ${MCP_URL}`;
@@ -209,6 +237,126 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
   }
 }`);
 
+    // Section « Authentification et quotas » : mêmes requêtes avec et sans jeton (variable VFF_TOKEN).
+    const authCurl = $derived(`# ${$i18n.t('api.auth.curl_without')}
+curl -i https://vff-project.org/api/v1/stats
+# ${$i18n.t('api.auth.curl_with')}
+curl -i -H "Authorization: Bearer $VFF_TOKEN" https://vff-project.org/api/v1/stats`);
+    const authJs = [
+        'const token = process.env.VFF_TOKEN;',
+        'const headers = token ? { Authorization: `Bearer ${token}` } : {};',
+        '',
+        'async function get(url) {',
+        '    const response = await fetch(url, { headers });',
+        '    if (response.status === 429) {',
+        '        const wait = Number(response.headers.get("Retry-After") ?? 60);',
+        '        await new Promise((resolve) => setTimeout(resolve, wait * 1000));',
+        '        return get(url);',
+        '    }',
+        '    if (!response.ok) throw new Error(`HTTP ${response.status}`);',
+        '    console.info(',
+        '        response.headers.get("X-RateLimit-Limit"),',
+        '        response.headers.get("X-RateLimit-Remaining"),',
+        '    );',
+        '    return response.json();',
+        '}',
+        '',
+        'const stats = await get("https://vff-project.org/api/v1/stats");',
+        'console.info(stats.data.lines_count);',
+    ].join('\n');
+    const authPy = [
+        'import os',
+        'import time',
+        '',
+        'import requests',
+        '',
+        'headers = {}',
+        'if os.environ.get("VFF_TOKEN"):',
+        '    headers["Authorization"] = f"Bearer {os.environ[\'VFF_TOKEN\']}"',
+        '',
+        '',
+        'def get(url):',
+        '    while True:',
+        '        response = requests.get(url, headers=headers, timeout=30)',
+        '        if response.status_code != 429:',
+        '            break',
+        '        time.sleep(int(response.headers.get("Retry-After", 60)))',
+        '    response.raise_for_status()',
+        '    print(response.headers["X-RateLimit-Limit"], response.headers["X-RateLimit-Remaining"])',
+        '    return response.json()',
+        '',
+        '',
+        'stats = get("https://vff-project.org/api/v1/stats")',
+        'print(stats["data"]["lines_count"])',
+    ].join('\n');
+    // En-têtes d'une réponse réelle du serveur de développement avec un jeton de membre.
+    const authResponse = $derived(`HTTP/1.1 200 OK
+Content-Type: application/json
+X-RateLimit-Limit: ${rate_limits.member}
+X-RateLimit-Remaining: ${rate_limits.member - 1}`);
+
+    // Section « Webhooks » : événements, message reçu et vérification de la signature (exemples
+    // exécutés contre une signature produite par App\Services\Webhooks\WebhookSignature).
+    const webhookEvents = [
+        'contribution.applied',
+        'current_era.refreshed',
+        'accident.published',
+        'material.published',
+    ];
+    const webhookPayload = `POST /vff/webhook HTTP/1.1
+Content-Type: application/json
+User-Agent: VFF-Webhooks/1.0
+VFF-Event: contribution.applied
+VFF-Delivery: 6f1c2e0a-8d4b-4c1e-9a7f-2b5d3e4c1a90
+VFF-Signature: t=1795097531,v1=5b0f3c…
+
+{
+  "id": "6f1c2e0a-8d4b-4c1e-9a7f-2b5d3e4c1a90",
+  "type": "contribution.applied",
+  "created_at": "2026-11-19T14:02:11+00:00",
+  "data": {
+    "resource": "line",
+    "id": "rfn-420000",
+    "url": "https://vff-project.org/api/v1/lines/rfn-420000"
+  }
+}`;
+    const webhookJs = $derived(
+        [
+            'import crypto from "node:crypto";',
+            '',
+            '// rawBody : le corps reçu, tel quel ; header : l’en-tête VFF-Signature.',
+            `export function verifyVffSignature(rawBody, header, secret, toleranceSeconds = ${webhooks.tolerance}) {`,
+            '    const fields = Object.fromEntries(header.split(",").map((part) => part.trim().split("=")));',
+            '    const timestamp = Number(fields.t);',
+            '    if (!Number.isInteger(timestamp) || Math.abs(Date.now() / 1000 - timestamp) > toleranceSeconds) {',
+            '        return false;',
+            '    }',
+            '    const expected = crypto.createHmac("sha256", secret).update(`${timestamp}.${rawBody}`).digest("hex");',
+            '    const received = Buffer.from(fields.v1 ?? "");',
+            '    return received.length === expected.length && crypto.timingSafeEqual(received, Buffer.from(expected));',
+            '}',
+        ].join('\n'),
+    );
+    const webhookPy = $derived(
+        [
+            'import hashlib',
+            'import hmac',
+            'import time',
+            '',
+            '',
+            `def verify_vff_signature(raw_body: bytes, header: str, secret: str, tolerance: int = ${webhooks.tolerance}) -> bool:`,
+            '    fields = dict(part.strip().split("=", 1) for part in header.split(",") if "=" in part)',
+            '    try:',
+            '        timestamp = int(fields["t"])',
+            '    except (KeyError, ValueError):',
+            '        return False',
+            '    if abs(time.time() - timestamp) > tolerance:',
+            '        return False',
+            '    expected = hmac.new(secret.encode(), f"{timestamp}.".encode() + raw_body, hashlib.sha256).hexdigest()',
+            '    return hmac.compare_digest(expected, fields.get("v1", ""))',
+        ].join('\n'),
+    );
+
     const graphqlCurl = `curl -X POST https://vff-project.org/graphql \\
   -H "Content-Type: application/json" \\
   -d '{"query": "{ line(slug: \\"rfn-405000\\") { name code } }"}'`;
@@ -248,12 +396,159 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
                 {#each access as a (a.key)}
                     <li>
                         <IconCard
-                            title={$i18n.t(`api.access.${a.key}.title`)}
+                            title={$i18n.t(`api.access.${a.key}.title`, {
+                                count: number(rate_limits.anonymous),
+                            })}
                             text={$i18n.t(`api.access.${a.key}.text`)}
                         />
                     </li>
                 {/each}
             </ul>
+        </SectionBlock>
+
+        <SectionBlock
+            id="auth"
+            title={$i18n.t('api.auth.title')}
+            intro={$i18n.t('api.auth.intro')}
+            maxWidth="900px"
+        >
+            <div class="vff-table-wrap">
+                <table class="vff-table quotas">
+                    <caption class="vff-sr-only">{$i18n.t('api.auth.table_caption')}</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">{$i18n.t('api.auth.col_profile')}</th>
+                            <th scope="col" class="num">{$i18n.t('api.auth.col_limit')}</th>
+                            <th scope="col">{$i18n.t('api.auth.col_counter')}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each authProfiles as p (p)}
+                            <tr>
+                                <th scope="row">{$i18n.t(`api.auth.profiles.${p}.name`)}</th>
+                                <td class="num">
+                                    {$i18n.t('api.auth.per_minute', {
+                                        count: number(rate_limits[p]),
+                                    })}
+                                </td>
+                                <td>{$i18n.t(`api.auth.profiles.${p}.counter`)}</td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
+            </div>
+            <p class="caption">{$i18n.t('api.auth.shared')}</p>
+            <p class="auth-link">
+                <a class="vff-btn secondary" href="/profile#api-tokens-title"
+                    >{$i18n.t('api.auth.create')}</a
+                >
+            </p>
+
+            <h3 class="group-title">{$i18n.t('api.auth.headers_title')}</h3>
+            <ul class="auth-headers">
+                {#each ['limit', 'remaining', 'retry', 'invalid', 'suspended'] as h (h)}
+                    <li>{$i18n.t(`api.auth.headers.${h}`)}</li>
+                {/each}
+            </ul>
+
+            <h3 class="group-title">{$i18n.t('api.auth.examples_title')}</h3>
+            <p class="caption">{$i18n.t('api.auth.examples_intro')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{authCurl}</code></pre>
+            <p class="caption">{$i18n.t('api.auth.response_caption')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{authResponse}</code></pre>
+            <p class="caption">{$i18n.t('api.auth.js_caption')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{authJs}</code></pre>
+            <p class="caption">{$i18n.t('api.auth.py_caption')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{authPy}</code></pre>
+        </SectionBlock>
+
+        <SectionBlock
+            id="webhooks"
+            kind="alt"
+            title={$i18n.t('api.webhooks.title')}
+            intro={$i18n.t('api.webhooks.intro')}
+            maxWidth="900px"
+        >
+            <p class="auth-link">
+                <a class="vff-btn secondary" href="/profile#webhooks-title"
+                    >{$i18n.t('api.webhooks.create')}</a
+                >
+            </p>
+
+            <h3 class="group-title">{$i18n.t('api.webhooks.events_title')}</h3>
+            <dl class="webhook-events">
+                {#each webhookEvents as e (e)}
+                    <div>
+                        <dt><code>{e}</code></dt>
+                        <dd>{$i18n.t(`webhooks.events.${e.replace('.', '_')}.hint`)}</dd>
+                    </div>
+                {/each}
+            </dl>
+
+            <h3 class="group-title">{$i18n.t('api.webhooks.payload_title')}</h3>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{webhookPayload}</code></pre>
+            <p class="caption">{$i18n.t('api.webhooks.payload_intro')}</p>
+
+            <h3 class="group-title">{$i18n.t('api.webhooks.headers_title')}</h3>
+            <ul class="auth-headers">
+                {#each ['event', 'delivery', 'signature'] as h (h)}
+                    <li>{$i18n.t(`api.webhooks.headers.${h}`)}</li>
+                {/each}
+            </ul>
+
+            <h3 class="group-title">{$i18n.t('api.webhooks.verify_title')}</h3>
+            <p class="caption">
+                {$i18n.t('api.webhooks.verify_intro', { tolerance: webhooks.tolerance })}
+            </p>
+            <p class="caption">{$i18n.t('api.webhooks.js_caption')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{webhookJs}</code></pre>
+            <p class="caption">{$i18n.t('api.webhooks.py_caption')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{webhookPy}</code></pre>
+
+            <h3 class="group-title">{$i18n.t('api.webhooks.delivery_title')}</h3>
+            <p class="caption">
+                {$i18n.t('api.webhooks.delivery_text', {
+                    timeout: webhooks.timeout,
+                    attempts: webhooks.attempts,
+                    max: webhooks.disable_after,
+                })}
+            </p>
+            <p class="caption">{$i18n.t('api.webhooks.security_text')}</p>
         </SectionBlock>
 
         <SectionBlock
@@ -271,7 +566,12 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
                             <code class="path"
                                 >{#each segments(e.path) as s (s)}{s}<wbr />{/each}</code
                             >
-                            <span class="desc">{$i18n.t(`api.endpoints.items.${e.key}`)}</span>
+                            <span class="desc"
+                                >{$i18n.t(`api.endpoints.items.${e.key}`)}
+                                {#if e.doc}<a class="vff-link" href={e.doc}
+                                        >{$i18n.t('api.endpoints.reference')}</a
+                                    >{/if}</span
+                            >
                         </li>
                     {/each}
                 </ul>
@@ -359,7 +659,9 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
                 </div>
                 <div>
                     <dt>{$i18n.t('api.mcp.limit_label')}</dt>
-                    <dd>{$i18n.t('api.mcp.limit')}</dd>
+                    <dd>
+                        {$i18n.t('api.mcp.limit', { count: number(rate_limits.anonymous) })}
+                    </dd>
                 </div>
                 <div>
                     <dt>{$i18n.t('api.mcp.lang_label')}</dt>
@@ -574,6 +876,67 @@ curl "https://vff-project.org/api/v1/search?q=rennes"`);
         display: block;
         font: inherit;
         white-space: pre;
+    }
+    /* Authentification et quotas : tableau des limites, en-têtes et erreurs. */
+    .quotas {
+        font-size: var(--vff-fs-md);
+    }
+    .quotas tbody th {
+        font-weight: 600;
+    }
+    /* Téléphone : chaque profil en bloc (nom, limite, compteur), sans défilement horizontal. */
+    @media (max-width: 600px) {
+        .quotas thead {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+        }
+        .quotas tr {
+            display: block;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--vff-border);
+        }
+        .quotas tbody tr:last-child {
+            border-bottom: 0;
+        }
+        .vff-table-wrap .quotas :is(th, td) {
+            display: block;
+            padding: 2px 0;
+            border: 0;
+            text-align: left;
+        }
+    }
+    .auth-link {
+        margin: var(--vff-space-4) 0 var(--vff-block-space);
+    }
+    .auth-headers {
+        display: flex;
+        flex-direction: column;
+        gap: var(--vff-space-2);
+        max-width: var(--vff-measure);
+        margin: 0 0 var(--vff-block-space);
+        padding-left: 1.2em;
+        font-size: var(--vff-fs-md);
+        line-height: 1.5;
+    }
+    .webhook-events {
+        display: flex;
+        flex-direction: column;
+        gap: var(--vff-space-3);
+        max-width: var(--vff-measure);
+        margin: 0 0 var(--vff-block-space);
+    }
+    .webhook-events dt code {
+        font-family: var(--api-mono);
+        font-size: var(--vff-fs-sm);
+        font-weight: 600;
+    }
+    .webhook-events dd {
+        margin: 2px 0 0;
+        font-size: var(--vff-fs-md);
+        line-height: 1.5;
     }
     .links {
         display: flex;

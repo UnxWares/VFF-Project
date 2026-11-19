@@ -8,6 +8,7 @@ use App\Enums\ContributionStatus;
 use App\Models\Contribution;
 use App\Models\User;
 use App\Services\AuditLog;
+use App\Services\Reputation\ReputationCalculator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -23,24 +24,40 @@ use Illuminate\Support\Str;
  *     personne ; les décisions de relecture passent à reviewed_by NULL (clé étrangère) ;
  *   - le profil (nom, courriel, mot de passe, présentation, avatar, langue), les jetons d'API et
  *     les demandes de réinitialisation du mot de passe disparaissent avec la ligne users, comme
- *     ses notifications du site. Les sessions et les cookies « se souvenir de moi » deviennent
+ *     ses notifications du site et ses abonnements webhook (avec leur journal de livraisons).
+ *     Les sessions et les cookies « se souvenir de moi » deviennent
  *     inopérants : ils désignent un compte qui n'existe plus ;
  *   - ses signalements d'erreur (texte, adresse de contact) sont supprimés ;
  *   - l'identifiant du compte, recopié dans les propriétés des tracés bruts (source_traces,
- *     source « contrib »), en est retiré.
+ *     source « contrib ») et dans le journal d'audit (suspension, levée), en est retiré.
  *
  * L'opération est consignée dans le journal d'audit sans aucune donnée du compte : origine,
  * rôle, compteurs et identifiants des contributions supprimées seulement.
  */
 final readonly class AccountDeletion
 {
-    public function __construct(private AuditLog $audit) {}
+    public function __construct(private AuditLog $audit, private ReputationCalculator $reputation) {}
 
     public function delete(User $user, AccountDeletionReason $reason): AccountDeletionSummary
     {
         $avatar = $user->avatar_path;
 
         $summary = DB::transaction(function () use ($user, $reason): AccountDeletionSummary {
+            // Relecteurs dont des approbations ou des refus disparaissent avec les contributions supprimées
+            // plus bas (un refus décidé compte comme relecture) : leur réputation est recalculée une fois le
+            // compte supprimé.
+            $affectedReviewers = [
+                ...DB::table('contribution_approvals')
+                    ->whereIn('contribution_id', $user->contributions()->where('status', '!=', ContributionStatus::Applied->value)->select('id'))
+                    ->pluck('user_id')
+                    ->all(),
+                ...$user->contributions()
+                    ->where('status', ContributionStatus::Rejected->value)
+                    ->whereNotNull('reviewed_by')
+                    ->pluck('reviewed_by')
+                    ->all(),
+            ];
+
             // Une à une par le modèle (ses événements sont déclenchés) ; les approbations reçues
             // partent avec elles (clé étrangère en cascade).
             $unpublished = $user->contributions()
@@ -65,11 +82,25 @@ final readonly class AccountDeletion
                 [(string) $user->id],
             );
 
+            // Entrées du journal d'audit qui désignent ce compte (suspension, levée, profil partenaire
+            // de l'API) : l'identifiant en est retiré, l'entrée garde son action et sa date.
+            DB::update(
+                "UPDATE audit_events SET context = context - 'account_id'
+                 WHERE action IN (?, ?, ?, ?) AND context->>'account_id' = ?",
+                [
+                    AuditAction::AccountSuspended->value, AuditAction::AccountSuspensionLifted->value,
+                    AuditAction::ApiPartnerGranted->value, AuditAction::ApiPartnerRevoked->value,
+                    (string) $user->id,
+                ],
+            );
+
             // Signalements d'erreur envoyés par le membre (texte et adresse de contact : données
             // personnelles possibles), ouverts comme traités.
             $reports = $user->errorReports()->delete();
 
             $user->tokens()->delete();
+            // Abonnements webhook et leur journal (la clé étrangère en cascade le ferait aussi).
+            $user->webhookSubscriptions()->delete();
             // Notifications du site (relation polymorphe : aucune clé étrangère ne les supprime).
             $user->notifications()->delete();
             DB::table('password_reset_tokens')->where('email', $user->email)->delete();
@@ -93,6 +124,7 @@ final readonly class AccountDeletion
             ]);
 
             $user->delete();
+            DB::afterCommit(fn () => $this->reputation->recalculate($affectedReviewers));
 
             return $summary;
         });

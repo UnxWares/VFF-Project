@@ -36,8 +36,7 @@ class LineSheetResource extends JsonResource
             'is_lgv' => $line['is_lgv'],
             'is_threatened' => $line['is_threatened'],
             'description' => $line['description'],
-            'description_source' => $line['description_source'],
-            'advocacy' => $line['advocacy'] === null ? null : array_diff_key($line['advocacy'], ['lang' => true]),
+            'description_source' => self::descriptionSource($line['description_source']),
             'historical_operator' => $line['historical_operator'],
             'historical_operators' => $line['historical_operators'],
             'concession_year' => $line['concession_year'],
@@ -93,10 +92,44 @@ class LineSheetResource extends JsonResource
                 'events' => route('api.events.index', ['line' => $line['slug']]),
                 'history' => route('api.lines.history', $line['slug']),
                 'segments' => route('api.lines.segments', $line['slug']),
+                'geojson' => route('api.lines.geojson', $line['slug']),
+                'gpx' => route('api.lines.gpx', $line['slug']),
+                'kml' => route('api.lines.kml', $line['slug']),
                 'stops' => route('api.lines.stops', $line['slug']),
                 'signalling' => route('api.lines.signalling', $line['slug']),
+                'profile' => route('api.lines.profile', $line['slug']),
+                'level_crossings' => route('api.lines.level-crossings', $line['slug']),
+                'accidents' => route('api.accidents.index', ['line' => $line['slug']]),
+                'materials' => route('api.lines.materials', $line['slug']),
                 'media' => route('api.media.index', ['line' => $line['slug']]),
             ],
+        ];
+    }
+
+    /**
+     * Source de la description : pour un extrait Wikipédia, de quoi respecter la licence CC BY-SA 4.0
+     * (auteur collectif, lien vers l'article, permalien de la révision lue, licence) ; pour une ligne
+     * décrite à la main, les sources citées. Le bloc de soutien (`advocacy`) n'est jamais publié :
+     * c'est un engagement éditorial du site, pas une donnée.
+     *
+     * @param  array<string, mixed>|null  $source
+     * @return array<string, mixed>|null
+     */
+    private static function descriptionSource(?array $source): ?array
+    {
+        if ($source === null || ($source['type'] ?? null) !== 'wikipedia') {
+            return $source;
+        }
+        $title = (string) ($source['title'] ?? '');
+        parse_str((string) parse_url((string) $source['url'], PHP_URL_QUERY), $query);
+        $revision = isset($query['oldid']) && ctype_digit((string) $query['oldid']) ? (int) $query['oldid'] : null;
+
+        return $source + [
+            'revision_id' => $revision,
+            'permalink' => $revision !== null ? $source['url'] : null,
+            'history_url' => 'https://fr.wikipedia.org/w/index.php?'.http_build_query(['title' => str_replace(' ', '_', $title), 'action' => 'history'], '', '&', PHP_QUERY_RFC3986),
+            'author' => 'Contributeurs de Wikipédia',
+            'attribution' => sprintf('« %s », Wikipédia en français, par les contributeurs de Wikipédia, %s', $title, $source['license']),
         ];
     }
 

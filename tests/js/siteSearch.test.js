@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     SITE_PAGES,
+    accidentDetail,
     fold,
     isSearchShortcut,
     searchGroups,
@@ -139,6 +140,98 @@ describe('searchGroups', () => {
             '/stations?q=Saint%20L%C3%B4',
         ]);
         expect(after[0].items[0].name).toBe('nav.search.all_lines(Saint Lô)');
+    });
+});
+
+describe('accidentDetail', () => {
+    it('date selon sa précision, puis commune et département', () => {
+        const base = { commune: 'Brétigny-sur-Orge', department_code: '91' };
+        expect(accidentDetail({ ...base, date: '2013-07-12', date_precision: 'day' })).toBe(
+            '12 juillet 2013, Brétigny-sur-Orge (91)',
+        );
+        expect(accidentDetail({ ...base, date: '2013-07-01', date_precision: 'month' })).toBe(
+            'juillet 2013, Brétigny-sur-Orge (91)',
+        );
+        expect(accidentDetail({ ...base, date: '1922-01-01', date_precision: 'year' })).toBe(
+            '1922, Brétigny-sur-Orge (91)',
+        );
+    });
+    it('dans la langue de la page, sans commune ni département inventés', () => {
+        expect(
+            accidentDetail({ date: '2013-07-12', date_precision: 'day', commune: null }, 'en'),
+        ).toBe('12 July 2013');
+        expect(
+            accidentDetail(
+                { date: '1891-07-26', date_precision: 'day', commune: 'Saint-Mandé' },
+                'de',
+            ),
+        ).toBe('26. Juli 1891, Saint-Mandé');
+    });
+});
+
+describe('searchGroups : accidents', () => {
+    const accident = {
+        slug: '2013-07-12-bretigny-sur-orge',
+        name: 'Accident ferroviaire de Brétigny-sur-Orge',
+        names: {
+            fr: 'Accident ferroviaire de Brétigny-sur-Orge',
+            en: 'Brétigny-sur-Orge train crash',
+            de: 'Eisenbahnunfall von Brétigny-sur-Orge',
+        },
+        date: '2013-07-12',
+        date_precision: 'day',
+        commune: 'Brétigny-sur-Orge',
+        department_code: '91',
+    };
+    const run = (extra = {}) =>
+        searchGroups({
+            query: 'bretigny',
+            suggestions: false,
+            results: { ...EMPTY, accidents: [accident] },
+            searched: true,
+            t,
+            idPrefix: 'a',
+            ...extra,
+        });
+
+    it('un groupe après le matériel roulant, vers la fiche, avec date et lieu', () => {
+        const groups = run();
+        expect(groups.map((g) => g.type)).toEqual(['accident', 'more']);
+        expect(groups[0].items[0]).toMatchObject({
+            href: '/accidents/2013-07-12-bretigny-sur-orge',
+            name: 'Accident ferroviaire de Brétigny-sur-Orge',
+            detail: '12 juillet 2013, Brétigny-sur-Orge (91)',
+        });
+    });
+    it('nom dans la langue de la page, français à défaut', () => {
+        expect(run({ lang: 'en' })[0].items[0].name).toBe('Brétigny-sur-Orge train crash');
+        expect(run({ lang: 'de' })[0].items[0].name).toBe('Eisenbahnunfall von Brétigny-sur-Orge');
+        const { names: _names, ...withoutNames } = accident;
+        expect(
+            run({ lang: 'en', results: { ...EMPTY, accidents: [withoutNames] } })[0].items[0].name,
+        ).toBe('Accident ferroviaire de Brétigny-sur-Orge');
+    });
+    it('un lien vers l’annuaire des accidents seulement quand des accidents répondent', () => {
+        const more = run().find((g) => g.type === 'more');
+        expect(more.items.map((i) => i.href)).toEqual([
+            '/lines?q=bretigny',
+            '/stations?q=bretigny',
+            '/accidents?q=bretigny',
+        ]);
+        const without = run({ results: { ...EMPTY, accidents: [] } }).find(
+            (g) => g.type === 'more',
+        );
+        expect(without.items.map((i) => i.href)).toEqual([
+            '/lines?q=bretigny',
+            '/stations?q=bretigny',
+        ]);
+    });
+    it('une réponse sans accidents (ancienne forme) reste lisible', () => {
+        expect(() => run({ results: EMPTY })).not.toThrow();
+    });
+    it('les indices restent continus avec le groupe des accidents', () => {
+        const options = run().flatMap((g) => g.items);
+        expect(options.map((o) => o.index)).toEqual([0, 1, 2, 3]);
     });
 });
 

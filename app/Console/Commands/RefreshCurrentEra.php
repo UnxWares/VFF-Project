@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Events\CurrentEraRefreshed;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -25,7 +26,8 @@ use Illuminate\Support\Facades\DB;
  *      --cache-only), puis, pour l'ère courante,
  *      le trafic officiel (vff:classify-lines), les corrections R1/R2
  *      (vff:check-consistency --fix, non bloquant), les gares (vff:build-station-eras),
- *      les voies partagées (vff:build-shared-track) et le graphe (vff:build-network-graph).
+ *      les voies partagées (vff:build-shared-track) et le graphe (vff:build-network-graph) ;
+ *   5. annonce le recalcul aux abonnés webhook (CurrentEraRefreshed, `current_era.refreshed`).
  *
  * Reconstruction complète en cours (verrou pris, processus vff:rebuild-history ou
  * vff:build-era-segments visible, verrou consultatif ou écriture des tronçons dans une
@@ -123,6 +125,8 @@ class RefreshCurrentEra extends Command
         }
 
         Cache::forget('home_stats');
+        // Webhooks `current_era.refreshed` (abonnés de l'API).
+        CurrentEraRefreshed::dispatch((int) $era->year, $today, count($lineIds), count($stationIds));
         $this->info('✓ Ère courante recalculée au '.$today.'.');
 
         return self::SUCCESS;

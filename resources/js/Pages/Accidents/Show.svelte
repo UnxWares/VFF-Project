@@ -158,11 +158,21 @@
                     <div class="aside-col">
                         {#if accident.review.notes.length}
                             <Notice
-                                tone="warning"
+                                tone={accident.review.status === 'ok' ? 'info' : 'warning'}
                                 live="off"
-                                title={$i18n.t('accidents.show.review_title')}
+                                title={$i18n.t(
+                                    accident.review.status === 'ok'
+                                        ? 'accidents.show.reserves_title'
+                                        : 'accidents.show.review_title',
+                                )}
                             >
-                                <p>{$i18n.t('accidents.show.review_intro')}</p>
+                                <p>
+                                    {$i18n.t(
+                                        accident.review.status === 'ok'
+                                            ? 'accidents.show.reserves_intro'
+                                            : 'accidents.show.review_intro',
+                                    )}
+                                </p>
                                 <ul>
                                     {#each accident.review.notes as n, i (i)}
                                         <li>
@@ -311,6 +321,18 @@
                             <dt>{$i18n.t('accidents.show.method')}</dt>
                             <dd>{methodsText(primary)}</dd>
                         </div>
+                        {#if primary.cited_as && primary.cited_url}
+                            <div>
+                                <dt>{$i18n.t('accidents.show.line_cited')}</dt>
+                                <dd>
+                                    <a
+                                        href={primary.cited_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer">{primary.cited_as}</a
+                                    >
+                                </dd>
+                            </div>
+                        {/if}
                         {#if primary.era_year}
                             <div>
                                 <dt>{$i18n.t('accidents.show.era_used')}</dt>

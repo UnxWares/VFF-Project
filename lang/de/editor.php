@@ -253,7 +253,7 @@ return [
         'empty_text' => 'Kein Vorschlag wartet auf Prüfung.',
         'submitted' => 'Eingereicht :date',
         'changes' => 'Vorgeschlagene Änderungen',
-        'reject_reason' => 'Grund der Ablehnung (optional, wird an die beitragende Person gesendet)',
+        'reject_reason' => 'Grund der Ablehnung (wird an die beitragende Person gesendet)',
         'reject_confirm' => 'Ablehnung bestätigen',
         'cancel' => 'Abbrechen',
         'source_n' => 'Quelle :n',
@@ -263,7 +263,6 @@ return [
         'kind_new' => 'Neue verschwundene Strecke',
         'kind_correction' => 'Trassenkorrektur',
         'kind_segment' => 'Änderung nach PK',
-        'by' => 'von :name (Reputation :reputation)',
         'approvals_one' => ':count von :threshold Freigaben',
         'approvals_other' => ':count von :threshold Freigaben',
         'length' => 'Länge',
@@ -285,7 +284,6 @@ return [
         'approve' => 'Freigeben',
         'approve_apply' => 'Freigeben und veröffentlichen',
         'reject' => 'Ablehnen',
-        'reject_prompt' => 'Ablehnungsgrund (optional):',
         'confirm_approve' => 'Diesen Beitrag freigeben?',
         'confirm_apply' => 'Letzte erforderliche Freigabe: Der Beitrag wird sofort veröffentlicht. Bestätigen?',
         'flash' => [
@@ -296,6 +294,10 @@ return [
             'partial' => 'Freigabe gespeichert (:count von :threshold): Der Beitrag wartet auf einen weiteren Prüfer.',
             'rejected' => 'Beitrag abgelehnt.',
             'failed' => 'Veröffentlichung fehlgeschlagen: :message',
+        ],
+        'errors' => [
+            'reason_required' => 'Geben Sie den Grund der Ablehnung an, mindestens :min Zeichen. Er wird an die beitragende Person gesendet.',
+            'reason_max' => 'Der Grund ist länger als :max Zeichen.',
         ],
     ],
 

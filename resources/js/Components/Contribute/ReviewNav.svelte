@@ -1,19 +1,24 @@
 <script>
     /**
-     * Passage entre les deux listes de l'espace de validation : contributions à relire
-     * (/validate) et signalements d'erreur (/validate/reports). La page courante est marquée
-     * par `aria-current` et soulignée (jamais par la seule couleur).
+     * Passage entre les listes de l'espace de validation : contributions à relire (/validate),
+     * signalements d'erreur (/validate/reports) et, pour les administrateurs, comptes
+     * (/validate/accounts). La page courante est marquée par `aria-current` et soulignée (jamais
+     * par la seule couleur).
      */
-    import { Link } from '@inertiajs/svelte';
+    import { Link, page } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
 
-    /** @type {{ current: 'contributions'|'reports' }} */
+    /** @type {{ current: 'contributions'|'reports'|'accounts' }} */
     let { current } = $props();
 
-    const links = [
+    const isAdmin = $derived(page.props.auth?.user?.role === 'admin');
+    const links = $derived([
         { id: 'contributions', href: '/validate', key: 'reports.review.contributions_link' },
         { id: 'reports', href: '/validate/reports', key: 'reports.review.reports_link' },
-    ];
+        ...(isAdmin
+            ? [{ id: 'accounts', href: '/validate/accounts', key: 'moderation.admin.nav_link' }]
+            : []),
+    ]);
 </script>
 
 <nav class="review-nav" aria-label={$i18n.t('reports.review.nav_label')}>

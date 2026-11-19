@@ -30,7 +30,7 @@ class SignallingMapController extends Controller
      * Le KVB est un contrôle de vitesse, jamais un mode de cantonnement : il n'a pas de `family`.
      *
      * **Placement** : le PK n'est pas la distance mesurée sur le tracé ; il est interpolé entre les
-     * passages à niveau dont SNCF Réseau donne à la fois le PK et la position. Mesure du 20/11/2026 :
+     * passages à niveau dont SNCF Réseau donne à la fois le PK et la position. Mesure du 19/11/2026 :
      * une limite de tranche tombe à 34 m près en médiane, à moins de 190 m dans 9 cas sur 10.
      * Environ 1 % des kilomètres ne sont pas dessinés (ligne sans forme SNCF Réseau).
      *

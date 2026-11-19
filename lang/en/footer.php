@@ -17,6 +17,9 @@ return [
     'copyright' => 'Voies Ferrées de France - VFF © :start-:end',
     'project_by' => 'A project by',
 
+    // Compliance status line required by the RGAA (article 47 of the French law no. 2005-102), linked to the statement.
+    'accessibility_status' => 'Accessibility: partially compliant',
+
     // Name of the footer navigation (screen readers).
     'nav_label' => 'Footer links',
 ];

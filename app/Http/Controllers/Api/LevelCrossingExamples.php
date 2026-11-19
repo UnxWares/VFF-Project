@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 /**
- * Exemples réels (base du 20/11/2026) des réponses des passages à niveau, pour la documentation
+ * Exemples réels (base du 19/11/2026) des réponses des passages à niveau, pour la documentation
  * OpenAPI (attributs `ApiResponse` de LevelCrossingController).
  */
 final class LevelCrossingExamples

@@ -10,8 +10,11 @@ namespace App\Http\Controllers\Api;
  */
 final class ErrorExamples
 {
-    /** 429 : plus de 300 requêtes par minute et par adresse IP ; l'en-tête `Retry-After` donne l'attente en secondes. */
-    public const TOO_MANY_REQUESTS = 'Limite de 300 requêtes par minute et par adresse IP dépassée. L\'en-tête `Retry-After` donne le délai d\'attente en secondes, `X-RateLimit-Remaining` le nombre de requêtes restantes.';
+    /**
+     * 429 : limite de requêtes par minute du profil dépassée (300 par adresse IP sans jeton, plus avec un
+     * jeton : config/api.php) ; l'en-tête `Retry-After` donne l'attente en secondes.
+     */
+    public const TOO_MANY_REQUESTS = 'Limite de requêtes par minute dépassée : 300 par adresse IP sans jeton, davantage avec un jeton personnel (voir « Authentification et quotas »). L\'en-tête `Retry-After` donne le délai d\'attente en secondes, `X-RateLimit-Limit` la limite et `X-RateLimit-Remaining` le nombre de requêtes restantes.';
 
     public const TOO_MANY_REQUESTS_BODY = ['message' => 'Too Many Attempts.'];
 
@@ -61,9 +64,28 @@ final class ErrorExamples
         'errors' => ['status' => ['The selected status is invalid.']],
     ];
 
+    public const ERA_INVALID = [
+        'message' => 'The era field must be an integer.',
+        'errors' => ['era' => ['The era field must be an integer.']],
+    ];
+
     public const GEOMETRY_INVALID = [
         'message' => 'The geometry field must be true or false.',
         'errors' => ['geometry' => ['The geometry field must be true or false.']],
+    ];
+
+    /** 451 : le tracé existe, mais aucune de ses sources n'autorise la redistribution (exports GPX et KML). */
+    public const GEOMETRY_WITHHELD = [
+        'error' => 'geometry_withheld',
+        'message' => 'The route exists but its sources do not allow redistribution, so nothing is exported.',
+        'withheld' => [[
+            'provider' => 'exemple',
+            'name' => 'Source d\'exemple (usage non commercial)',
+            'license' => 'Usage non commercial uniquement : redistribution non autorisée',
+            'reason' => 'licence_not_open',
+            'sections' => 3,
+            'length_m' => 18420,
+        ]],
     ];
 
     /**

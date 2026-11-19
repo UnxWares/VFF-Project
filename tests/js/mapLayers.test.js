@@ -1,0 +1,189 @@
+import { describe, expect, it } from 'vitest';
+import {
+    DATA_LAYERS,
+    NO_ORM,
+    ORM_LAYERS,
+    activeLayers,
+    layerCount,
+    layerLabelKey,
+    layerNotices,
+    readLayers,
+    toggleData,
+    writeLayers,
+} from '$lib/mapLayers.js';
+
+const BASE = 'https://vff-project.org/maps';
+
+describe('readLayers', () => {
+    it('lit les anciennes adresses à un seul calque', () => {
+        expect(readLayers('?layer=signalling')).toEqual({ data: ['signalling'], orm: NO_ORM });
+        expect(readLayers('?layer=orm-maxspeed')).toEqual({ data: [], orm: 'orm-maxspeed' });
+        expect(readLayers('?layer=accidents&era=1950')).toEqual({
+            data: ['accidents'],
+            orm: NO_ORM,
+        });
+    });
+
+    it('lit plusieurs calques, répétés ou séparés par des virgules, dans l’ordre d’empilement', () => {
+        expect(readLayers('?layer=signalling&layer=accidents&layer=orm-gauge')).toEqual({
+            data: ['accidents', 'signalling'],
+            orm: 'orm-gauge',
+        });
+        expect(readLayers('?layer=signalling,level-crossings')).toEqual({
+            data: ['level-crossings', 'signalling'],
+            orm: NO_ORM,
+        });
+        expect(readLayers('?layer=signalling%2Caccidents')).toEqual({
+            data: ['accidents', 'signalling'],
+            orm: NO_ORM,
+        });
+    });
+
+    it('ignore les valeurs inconnues, les doublons et un second fond OpenRailwayMap', () => {
+        expect(
+            readLayers(
+                '?layer=none&layer=foo&layer=accidents&layer=accidents&layer=orm-signals&layer=orm-gauge',
+            ),
+        ).toEqual({ data: ['accidents'], orm: 'orm-signals' });
+        expect(readLayers('')).toEqual({ data: [], orm: NO_ORM });
+        expect(readLayers('?layer=')).toEqual({ data: [], orm: NO_ORM });
+    });
+});
+
+describe('writeLayers', () => {
+    it('écrit un paramètre par calque et garde les autres paramètres', () => {
+        expect(
+            writeLayers(`${BASE}?era=1950`, {
+                data: ['signalling', 'accidents'],
+                orm: 'orm-standard',
+            }),
+        ).toBe(`${BASE}?era=1950&layer=accidents&layer=signalling&layer=orm-standard`);
+    });
+
+    it('retire le paramètre quand aucun calque n’est affiché', () => {
+        expect(writeLayers(`${BASE}?layer=accidents&era=1950`, { data: [], orm: NO_ORM })).toBe(
+            `${BASE}?era=1950`,
+        );
+    });
+
+    it('une adresse à un seul calque reste celle d’avant', () => {
+        expect(writeLayers(BASE, { data: ['signalling'], orm: NO_ORM })).toBe(
+            `${BASE}?layer=signalling`,
+        );
+    });
+
+    it('relit exactement ce qu’elle écrit', () => {
+        const layers = { data: ['accidents', 'level-crossings', 'signalling'], orm: 'orm-signals' };
+        const href = writeLayers(BASE, layers);
+        expect(readLayers(new URL(href).search)).toEqual(layers);
+    });
+
+    it('n’écrit pas un fond inconnu', () => {
+        expect(writeLayers(BASE, { data: [], orm: 'orm-foo' })).toBe(`${BASE}`);
+    });
+});
+
+describe('toggleData et layerCount', () => {
+    it('coche et décoche en gardant l’ordre d’empilement', () => {
+        expect(toggleData([], 'signalling', true)).toEqual(['signalling']);
+        expect(toggleData(['signalling'], 'accidents', true)).toEqual(['accidents', 'signalling']);
+        expect(toggleData(['accidents', 'signalling'], 'accidents', false)).toEqual(['signalling']);
+        expect(toggleData(['accidents'], 'accidents', true)).toEqual(['accidents']);
+    });
+
+    it('compte les calques de données et le fond', () => {
+        expect(layerCount({ data: [], orm: NO_ORM })).toBe(0);
+        expect(layerCount({ data: ['accidents', 'signalling'], orm: 'orm-gauge' })).toBe(3);
+    });
+
+    it('chaque calque de données a une clé de traduction maps.overlay.*', () => {
+        expect(DATA_LAYERS.map(layerLabelKey)).toEqual([
+            'maps.overlay.accidents',
+            'maps.overlay.level_crossings',
+            'maps.overlay.signalling',
+        ]);
+        expect(ORM_LAYERS).toHaveLength(5);
+    });
+});
+
+describe('activeLayers (carte intégrable et /maps)', () => {
+    const asked = readLayers(
+        '?layer=signalling&layer=accidents&layer=level-crossings&layer=orm-gauge',
+    );
+
+    it('dessine tous les calques demandés sur la carte d’aujourd’hui', () => {
+        expect(activeLayers(asked, true)).toEqual({
+            accidents: true,
+            levelCrossings: true,
+            signalling: true,
+            todayOnly: ['level-crossings', 'signalling'],
+            legendOverlays: ['level-crossings', 'signalling'],
+            orm: 'orm-gauge',
+        });
+    });
+
+    it('ne dessine pas les calques d’aujourd’hui sur une autre époque, mais les garde pour le message', () => {
+        const drawn = activeLayers(asked, false);
+        expect(drawn).toMatchObject({
+            accidents: true,
+            levelCrossings: false,
+            signalling: false,
+            legendOverlays: [],
+            orm: 'orm-gauge',
+        });
+        expect(drawn.todayOnly).toEqual(['level-crossings', 'signalling']);
+    });
+
+    it('sans calque demandé, rien n’est dessiné', () => {
+        expect(activeLayers(readLayers(''), true)).toEqual({
+            accidents: false,
+            levelCrossings: false,
+            signalling: false,
+            todayOnly: [],
+            legendOverlays: [],
+            orm: NO_ORM,
+        });
+    });
+});
+
+describe('layerNotices', () => {
+    const state = { showingToday: true, accidentsFailed: false, zoom: 5, minZoom: 9 };
+
+    it('ne dit rien quand tout va bien et qu’aucun calque n’est demandé', () => {
+        expect(layerNotices(activeLayers(readLayers(''), true), state)).toEqual([]);
+    });
+
+    it('signale l’échec des accidents', () => {
+        const active = activeLayers(readLayers('?layer=accidents'), true);
+        expect(layerNotices(active, { ...state, accidentsFailed: true })).toEqual([
+            { key: 'accidents', textKey: 'maps.accidents.error' },
+        ]);
+        expect(layerNotices(active, state)).toEqual([]);
+    });
+
+    it('choisit la phrase selon les calques connus seulement aujourd’hui', () => {
+        const past = { ...state, showingToday: false };
+        const key = (search) =>
+            layerNotices(activeLayers(readLayers(search), false), past)[0]?.textKey;
+        expect(key('?layer=signalling')).toBe('maps.signalling.current_only');
+        expect(key('?layer=level-crossings')).toBe('maps.level_crossings.current_only');
+        expect(key('?layer=level-crossings&layer=signalling')).toBe(
+            'maps.layers.current_only_both',
+        );
+        expect(key('?layer=accidents')).toBeUndefined();
+    });
+
+    it('invite à zoomer pour les passages à niveau, seulement s’ils sont dessinés', () => {
+        const active = activeLayers(readLayers('?layer=level-crossings'), true);
+        expect(layerNotices(active, state)).toEqual([
+            { key: 'zoom', textKey: 'maps.level_crossings.zoom_hint', icon: 'bi-zoom-in' },
+        ]);
+        expect(layerNotices(active, { ...state, zoom: 9 })).toEqual([]);
+        expect(
+            layerNotices(activeLayers(readLayers('?layer=level-crossings'), false), {
+                ...state,
+                showingToday: false,
+            }).map((n) => n.key),
+        ).toEqual(['today']);
+    });
+});

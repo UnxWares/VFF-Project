@@ -104,7 +104,7 @@ Le projet est **100 % collaboratif** : passionnés, archivistes, photographes, h
 | **Build front** | [Vite 8](https://vitejs.dev) | HMR rapide, intégration Laravel via `laravel-vite-plugin` 3 |
 | **Iconographie** | [Bootstrap Icons](https://icons.getbootstrap.com) | Déjà en place, cohérent avec l'existant |
 | **Typographie** | Lato · Gabarito · Inter · Montserrat | Auto-hébergées, identité visuelle déjà posée |
-| **Tests** | [PHPUnit 13](https://phpunit.de) + [ParaTest](https://github.com/paratestphp/paratest), [Vitest](https://vitest.dev), [Infection](https://infection.github.io) + pcov | Plus de 2 200 tests unitaires et feature (en parallèle), tests JS, tests de mutation et mesure de couverture |
+| **Tests** | [PHPUnit 13](https://phpunit.de) + [ParaTest](https://github.com/paratestphp/paratest), [Vitest](https://vitest.dev), [Infection](https://infection.github.io) + pcov | Plus de 4 000 tests unitaires et feature (en parallèle), tests JS, tests de mutation et mesure de couverture |
 | **Qualité** | [Laravel Pint](https://github.com/laravel/pint), Prettier ; [PHPStan](https://phpstan.org) + [Larastan](https://github.com/larastan/larastan), [ESLint](https://eslint.org) + eslint-plugin-svelte, [svelte-check](https://github.com/sveltejs/language-tools) | Formatage automatique ; analyse statique (bugs, types, code mort) |
 | **Auth** | [Laravel Sanctum](https://laravel.com/docs/sanctum) | Sessions + tokens API |
 | **Conteneurs** | [Podman](https://podman.io) (sans root) + podman-compose ; compatible [Docker](https://www.docker.com) / Compose | Tout tourne en conteneurs, rien à installer sur l'hôte : PHP, Composer et Node via `bin/php`, `bin/composer`, `bin/pnpm` ; base et cache via `docker-compose.yml` |
@@ -260,7 +260,7 @@ VFF-Project/
 │   │   └── lib/
 │   │       ├── i18n.js       # setup i18next + LOCALES
 │   │       ├── stores/       # theme.svelte.js
-│   │       └── actions/      # navbarFade, parallaxTGV, scrollReveal, smoothScrollTo
+│   │       └── actions/      # parallaxTGV, scrollReveal, smoothScrollTo
 │   └── views/
 │       └── app.blade.php     # Shell Inertia (1 seul template Blade)
 ├── routes/

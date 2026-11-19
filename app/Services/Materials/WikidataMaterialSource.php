@@ -19,12 +19,15 @@ class WikidataMaterialSource
     /** Propriétés lues sur une série (le reste de l'élément n'est pas gardé en cache). */
     public const PROPERTIES = [
         'P31', 'P279', 'P17', 'P137', 'P176', 'P729', 'P730', 'P1092', 'P2052', 'P2109', 'P930', 'P1064',
-        'P2978', 'P2802', 'P1449', 'P18', 'P373',
+        'P2978', 'P2802', 'P1449', 'P18', 'P373', 'P2669', 'P5817',
     ];
 
     private const BATCH_SPARQL = 100;
 
     private const BATCH_API = 50;
+
+    /** Éléments testés par requête SPARQL pour `seriesAmong()` (les requêtes sont longues à évaluer). */
+    private const BATCH_SERIES = 400;
 
     public function __construct(
         private readonly CommonsClient $client,
@@ -60,6 +63,39 @@ class WikidataMaterialSource
         $this->cache->save('candidates', ['qids' => $qids, 'fetched_at' => now()->toIso8601String()]);
 
         return $qids;
+    }
+
+    /**
+     * Parmi des éléments quelconques, ceux qui sont des séries de matériel : instances d'une
+     * sous-classe de « classe de matériel roulant ferroviaire » (même définition que `candidates()`,
+     * sans le rattachement à la France).
+     *
+     * @param  list<string>  $qids
+     * @return array<string, bool> par identifiant
+     */
+    public function seriesAmong(array $qids, bool $refresh = false): array
+    {
+        $class = $this->rules->rollingStockClass();
+
+        return $this->cache->fill('series_among', $qids, self::BATCH_SERIES, function (array $chunk) use ($class): array {
+            $this->pause();
+            $values = implode(' ', array_map(fn (string $q): string => "wd:{$q}", $chunk));
+            $rows = $this->client->sparql(<<<SPARQL
+                SELECT DISTINCT ?item WHERE {
+                  VALUES ?item { {$values} }
+                  ?meta wdt:P279* wd:{$class} .
+                  ?item wdt:P31 ?meta .
+                }
+                SPARQL);
+            $out = array_fill_keys($chunk, false);
+            foreach ($rows as $row) {
+                if (($item = self::qid($row['item']['value'] ?? null)) !== null) {
+                    $out[$item] = true;
+                }
+            }
+
+            return $out;
+        }, $refresh);
     }
 
     /**
@@ -120,7 +156,8 @@ class WikidataMaterialSource
             $out = [];
             foreach ($json['entities'] ?? [] as $qid => $entity) {
                 if (! isset($entity['missing'])) {
-                    $out[(string) $qid] = self::trimEntity($entity);
+                    // Date de lecture : la « date de vérification » de l'état d'utilisation (P5817).
+                    $out[(string) $qid] = self::trimEntity($entity) + ['read_on' => now()->toDateString()];
                 }
             }
 
@@ -266,7 +303,7 @@ class WikidataMaterialSource
                     continue;
                 }
                 $qualifiers = [];
-                foreach (['P580', 'P582', 'P1092', 'P1114'] as $q) {
+                foreach (['P580', 'P582', 'P585', 'P1092', 'P1114'] as $q) {
                     foreach ($claim['qualifiers'][$q] ?? [] as $snak) {
                         if (($qv = self::snakValue($snak)) !== null) {
                             $qualifiers[$q][] = $qv;

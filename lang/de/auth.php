@@ -7,10 +7,9 @@ return [
 
     'passwords' => [
         'reset' => 'Ihr Passwort wurde zurückgesetzt.',
-        'sent' => 'Wir haben Ihnen einen Link zum Zurücksetzen per E-Mail gesendet.',
+        'sent' => 'Wenn zu dieser Adresse ein Konto existiert, erhalten Sie einen Link zum Zurücksetzen per E-Mail.',
         'throttled' => 'Zu viele Anfragen, bitte warten Sie einen Moment, bevor Sie es erneut versuchen.',
         'token' => 'Dieser Link zum Zurücksetzen ist ungültig oder abgelaufen.',
-        'user' => 'Zu dieser E-Mail-Adresse gibt es kein Konto.',
     ],
 
     'login_title' => 'Anmelden',
@@ -41,7 +40,6 @@ return [
     'locale_hint' => 'Die Sprache gilt, sobald Sie speichern.',
     'remember_label' => 'Angemeldet bleiben',
     'role_label' => 'Rolle',
-    'reputation_label' => 'Reputation',
     'member_since' => 'Mitglied seit',
     'email_fixed_hint' => 'Mit dieser Adresse melden Sie sich an.',
 
@@ -54,13 +52,14 @@ return [
         'password_short' => 'Das Passwort muss mindestens 8 Zeichen lang sein.',
         'confirmation_required' => 'Geben Sie das Passwort zur Bestätigung noch einmal ein.',
         'confirmation_mismatch' => 'Die beiden Passwörter stimmen nicht überein.',
+        'terms_required' => 'Bitte setzen Sie das Häkchen, um die Nutzungsbedingungen zu akzeptieren.',
         'login_failed_title' => 'Anmeldung nicht möglich',
     ],
 
     'submit' => 'Absenden',
     'login_cta' => 'Anmelden',
-    'register_terms' => 'Mit dem Anlegen eines Kontos akzeptieren Sie die <a href="/use-conditions">Nutzungsbedingungen</a>.',
-    'register_privacy' => 'UnxWares, die verantwortliche Stelle, verwendet Ihren Namen, Ihre E-Mail-Adresse und Ihr Passwort (nie im Klartext gespeichert), um Sie zu identifizieren und Ihre Beiträge zu verwalten. Aufbewahrungsdauer, Ihre Rechte und Kontakt: <a href="/privacy">Datenschutzerklärung</a>.',
+    'register_terms' => 'Ich akzeptiere die <a href="/use-conditions">Nutzungsbedingungen</a>',
+    'register_privacy' => 'UnxWares, die verantwortliche Stelle, speichert Ihren Anzeigenamen, Ihre E-Mail-Adresse, Ihr Passwort (nur als Hash, nie im Klartext) und Ihre Sprache sowie Datum und Fassung der Nutzungsbedingungen, die Sie akzeptieren. Diese Daten dienen dazu, Sie zu identifizieren, Ihre Beiträge zu verwalten und Ihnen Service-E-Mails zu senden, etwa den Link zum Zurücksetzen des Passworts. Rechtsgrundlage: die Erfüllung der Nutzungsbedingungen. Aufbewahrungsdauer, Ihre Rechte und Kontakt: <a href="/privacy">Datenschutzerklärung</a>.',
     'register_cta' => 'Konto erstellen',
     'forgot_cta' => 'Link senden',
     'reset_cta' => 'Passwort speichern',

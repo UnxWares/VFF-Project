@@ -5,13 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Era;
 use App\Models\Line;
+use App\Services\LinePk;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 #[Group('Lignes', "Une ligne en détail : chronologie, gares dans l'ordre des points kilométriques, conversion de coordonnées en PK, signalisation, médias.", weight: 2)]
 class LinePkController extends Controller
@@ -56,7 +56,7 @@ class LinePkController extends Controller
         'snap' => ['lat' => 48.103576, 'lng' => -1.67024, 'distance_from_input_m' => 395.12],
     ]])]
     #[ApiResponse(404, 'Ligne ou ère inconnue, ou ligne sans tracé à cette ère (`error` = `no_geometry`).')]
-    public function fromPoint(Line $line, Request $request): JsonResponse
+    public function fromPoint(Line $line, Request $request, LinePk $pk): JsonResponse
     {
         $request->validate([
             // Bornes WGS 84 : un point impossible n'a pas de PK.
@@ -69,73 +69,12 @@ class LinePkController extends Controller
             ? Era::where('year', $request->integer('era'))->firstOrFail()
             : Era::where('is_current', true)->firstOrFail();
 
-        // ST_LineMerge renvoie un MULTILINESTRING dès que le tracé n'est pas
-        // parfaitement continu (raccordements, lacunes) : ST_LineLocatePoint
-        // échoue alors (« 1st arg isn't a line » → HTTP 500). On découpe donc
-        // le tracé fusionné en composantes, on snappe sur la plus proche et on
-        // ajoute la longueur cumulée des composantes précédentes.
-        $lng = (float) $request->input('lng');
-        $lat = (float) $request->input('lat');
+        $result = $pk->locate($line, $era->id, (float) $request->input('lat'), (float) $request->input('lng'));
 
-        $row = DB::selectOne(
-            <<<'SQL'
-            WITH merged AS (
-                SELECT ST_LineMerge(ST_Collect(geom)) AS g
-                FROM line_segments WHERE line_id = ? AND era_id = ?
-            ),
-            parts AS (
-                SELECT COALESCE((d).path[1], 1) AS idx, (d).geom AS g
-                FROM (SELECT ST_Dump(g) AS d FROM merged WHERE g IS NOT NULL) x
-            ),
-            lens AS (
-                SELECT idx, g, ST_Length(g::geography) AS len,
-                       COALESCE(SUM(ST_Length(g::geography)) OVER (
-                           ORDER BY idx ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
-                       ), 0) AS offset_m
-                FROM parts
-            ),
-            pt AS (SELECT ST_SetSRID(ST_MakePoint(?, ?), 4326) AS p),
-            best AS (
-                SELECT lens.*, ST_Distance(lens.g::geography, pt.p::geography) AS dist_m
-                FROM lens, pt
-                ORDER BY ST_Distance(lens.g::geography, pt.p::geography)
-                LIMIT 1
-            )
-            SELECT
-                best.offset_m + ST_LineLocatePoint(best.g, pt.p) * best.len AS pk_m,
-                (SELECT SUM(len) FROM lens) AS total_m,
-                ST_X(ST_ClosestPoint(best.g, pt.p)) AS snap_lng,
-                ST_Y(ST_ClosestPoint(best.g, pt.p)) AS snap_lat,
-                best.dist_m
-            FROM best, pt
-            SQL,
-            [$line->id, $era->id, $lng, $lat],
-        );
-
-        if (! $row || ! $row->total_m) {
+        if ($result === null) {
             return response()->json(['error' => 'no_geometry'], 404);
         }
 
-        $pkM = (int) round((float) $row->pk_m);
-
-        return response()->json([
-            'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name],
-            'pk_m' => $pkM,
-            'pk_label' => $this->formatPk($pkM),
-            'total_m' => (int) round((float) $row->total_m),
-            'snap' => [
-                'lat' => (float) $row->snap_lat,
-                'lng' => (float) $row->snap_lng,
-                'distance_from_input_m' => (float) $row->dist_m,
-            ],
-        ]);
-    }
-
-    private function formatPk(int $m): string
-    {
-        $km = intdiv($m, 1000);
-        $rest = $m % 1000;
-
-        return sprintf('%d+%03d', $km, $rest);
+        return response()->json(['line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name]] + $result);
     }
 }

@@ -8,6 +8,7 @@ use App\Enums\ErrorReportSubject;
 use App\Http\Requests\HandleErrorReportRequest;
 use App\Models\ErrorReport;
 use App\Services\AuditLog;
+use App\Services\ErrorReports\ErrorReportNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -102,11 +103,11 @@ class ErrorReportReviewController extends Controller
         ]), absolute: false).'#report-'.$report->id);
     }
 
-    public function update(HandleErrorReportRequest $request, ErrorReport $report, AuditLog $audit): RedirectResponse
+    public function update(HandleErrorReportRequest $request, ErrorReport $report, AuditLog $audit, ErrorReportNotifier $notifier): RedirectResponse
     {
         $status = $request->status();
 
-        $handled = DB::transaction(function () use ($request, $report, $status, $audit): bool {
+        $handled = DB::transaction(function () use ($request, $report, $status, $audit, $notifier): bool {
             // Relu verrouillé : deux validateurs qui traitent le même signalement en même temps
             // ne l'enregistrent qu'une fois.
             $locked = ErrorReport::query()->whereKey($report->id)->lockForUpdate()->firstOrFail();
@@ -126,8 +127,12 @@ class ErrorReportReviewController extends Controller
                     'report_id' => $locked->id,
                     'subject_type' => $locked->subject_type->value,
                     'with_note' => $locked->resolution_note !== null,
+                    'follow_up_queued' => filled($locked->contact_email),
                 ],
             );
+            // Courriel de suivi à la personne qui a signalé (si elle a laissé son adresse), mis en
+            // file une fois la transaction validée.
+            $notifier->handled($locked);
 
             return true;
         });

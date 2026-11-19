@@ -148,6 +148,19 @@ footer:where(.site-footer) .copyright p {
     line-height: 1.5;
     color: var(--vff-text);
 }
+/* Mention d'accessibilité (RGAA) : lien souligné, cible de 24 px au moins. */
+footer:where(.site-footer) .copyright .a11y-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+footer:where(.site-footer) .copyright .a11y-status:hover {
+    color: var(--vff-accent-ink);
+}
+
 /* Logo UWOSC (insigne et nom) : 220 px de large (taille minimale de la charte), zone de protection d'au
    moins la hauteur du « U » (environ 26 px à cette taille) autour, le texte compris. */
 /* Mesures du fichier (PNG officiel de 1 500 px rendu depuis le SVG) : dessin de x 30 à 1 494 sur 1 500,

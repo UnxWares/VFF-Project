@@ -25,9 +25,10 @@ final class ApiCodeSamples implements DocumentTransformer
      *   path  : chemin sous /api/v1, avec des valeurs réelles à la place des paramètres de chemin ;
      *   query : paramètres de requête (chaîne ou entier) ;
      *   js    : lecture de la réponse, `body` étant le JSON décodé ;
-     *   py    : même lecture en Python, `body` étant le JSON décodé.
+     *   py    : même lecture en Python, `body` étant le JSON décodé ;
+     *   text  : vrai si la réponse est un fichier texte (GPX, KML) et non du JSON : `body` est alors le texte du fichier.
      *
-     * @var array<string, array{path: string, query: array<string, string|int>, js: string, py: string}>
+     * @var array<string, array{path: string, query: array<string, string|int>, js: string, py: string, text?: bool}>
      */
     public const SAMPLES = [
         'lines.index' => [
@@ -39,8 +40,40 @@ final class ApiCodeSamples implements DocumentTransformer
         'lines.show' => [
             'path' => '/lines/rfn-420000',
             'query' => [],
-            'js' => 'const line = body.data;'."\n".'console.log(line.name, `${line.key_figures.length_km} km`, line.today.state);',
-            'py' => "line = body[\"data\"]\nprint(line[\"name\"], f\"{line['key_figures']['length_km']} km\", line[\"today\"][\"state\"])",
+            'js' => 'const line = body.data;'."\n".'console.log(line.name, `${line.key_figures.length_km} km`, line.today.state);'."\n".'// Le texte de présentation vient de Wikipédia : citez-le avec sa licence.'."\n".'if (line.description) console.log(line.description_source.attribution, line.description_source.permalink);',
+            'py' => "line = body[\"data\"]\nprint(line[\"name\"], f\"{line['key_figures']['length_km']} km\", line[\"today\"][\"state\"])\n# Le texte de présentation vient de Wikipédia : citez-le avec sa licence.\nif line[\"description\"]:\n    print(line[\"description_source\"][\"attribution\"], line[\"description_source\"][\"permalink\"])",
+        ],
+        'stations.show' => [
+            'path' => '/stations/brest',
+            'query' => [],
+            'js' => 'for (const source of body.data.sources) console.log(source.source, source.ref, source.fetched_at, source.match_method, source.provenance.license);',
+            'py' => "for source in body[\"data\"][\"sources\"]:\n    print(source[\"source\"], source[\"ref\"], source[\"fetched_at\"], source[\"match_method\"], source[\"provenance\"][\"license\"])",
+        ],
+        'lines.geojson' => [
+            'path' => '/lines/rfn-420000/geojson',
+            'query' => ['era' => 1930],
+            'js' => 'console.log(body.features.length, "tronçons en", body.era_year);'."\n".'for (const f of body.features.slice(0, 3)) console.log(f.id, f.properties.status, f.geometry.type);',
+            'py' => "print(len(body[\"features\"]), \"tronçons en\", body[\"era_year\"])\nfor f in body[\"features\"][:3]:\n    print(f[\"id\"], f[\"properties\"][\"status\"], f[\"geometry\"][\"type\"])",
+        ],
+        'lines.gpx' => [
+            'path' => '/lines/rfn-420000/gpx',
+            'query' => ['era' => 1930],
+            'text' => true,
+            'js' => 'const { writeFile } = await import("node:fs/promises");'."\n".'await writeFile("rfn-420000-1930.gpx", body);'."\n".'console.log((body.match(/<trkseg>/g) ?? []).length, "tronçons enregistrés dans rfn-420000-1930.gpx");',
+            'py' => "with open(\"rfn-420000-1930.gpx\", \"w\", encoding=\"utf-8\") as file:\n    file.write(body)\nprint(body.count(\"<trkseg>\"), \"tronçons enregistrés dans rfn-420000-1930.gpx\")",
+        ],
+        'lines.kml' => [
+            'path' => '/lines/rfn-420000/kml',
+            'query' => ['era' => 1930, 'lang' => 'en'],
+            'text' => true,
+            'js' => 'const { writeFile } = await import("node:fs/promises");'."\n".'await writeFile("rfn-420000-1930.kml", body);'."\n".'console.log((body.match(/<Placemark>/g) ?? []).length, "sections saved in rfn-420000-1930.kml");',
+            'py' => "with open(\"rfn-420000-1930.kml\", \"w\", encoding=\"utf-8\") as file:\n    file.write(body)\nprint(body.count(\"<Placemark>\"), \"sections saved in rfn-420000-1930.kml\")",
+        ],
+        'stats' => [
+            'path' => '/stats',
+            'query' => [],
+            'js' => 'const { lines_count, stations_count, profile } = body.data;'."\n".'console.log(lines_count, "lignes,", stations_count, "gares");'."\n".'for (const era of profile) console.log(era.year, era.km, "km");',
+            'py' => "data = body[\"data\"]\nprint(data[\"lines_count\"], \"lignes,\", data[\"stations_count\"], \"gares\")\nfor era in data[\"profile\"]:\n    print(era[\"year\"], era[\"km\"], \"km\")",
         ],
         'stations.index' => [
             'path' => '/stations',
@@ -128,7 +161,7 @@ final class ApiCodeSamples implements DocumentTransformer
     {
         $sample = self::SAMPLES[$operationId];
         $url = $baseUrl.$sample['path'];
-        $fetch = "const response = await fetch(url);\nif (!response.ok) throw new Error(`HTTP \${response.status}`);\nconst body = await response.json();\n\n".$sample['js']."\n";
+        $fetch = "const response = await fetch(url);\nif (!response.ok) throw new Error(`HTTP \${response.status}`);\nconst body = await response.".(($sample['text'] ?? false) ? 'text' : 'json')."();\n\n".$sample['js']."\n";
         if ($sample['query'] === []) {
             return "const url = \"{$url}\";\n".$fetch;
         }
@@ -150,6 +183,6 @@ final class ApiCodeSamples implements DocumentTransformer
             array_keys($sample['query']), $sample['query'],
         ))."    },\n";
 
-        return "import requests\n\nresponse = requests.get(\n    \"{$url}\",\n{$params}    timeout=30,\n)\nresponse.raise_for_status()\nbody = response.json()\n\n".$sample['py']."\n";
+        return "import requests\n\nresponse = requests.get(\n    \"{$url}\",\n{$params}    timeout=30,\n)\nresponse.raise_for_status()\nbody = response.".(($sample['text'] ?? false) ? 'text' : 'json()')."\n\n".$sample['py']."\n";
     }
 }

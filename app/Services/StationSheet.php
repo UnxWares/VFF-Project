@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Station;
 use App\Support\GeneratedText;
+use App\Support\SourceRights;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -16,15 +17,19 @@ use Illuminate\Support\Facades\DB;
  */
 final class StationSheet
 {
+    public function __construct(private readonly SourceRights $rights) {}
+
     /**
      * Fiche complète d'une gare (props de la page Stations/Show, reprises par l'API publique
      * GET /api/v1/stations/{station}) : identité, dates, position et sa provenance, présence par
      * décennie, chronologie, lignes desservies, sources et gares voisines (10 km, 12 au plus). Les
-     * notes générées sont dans la langue courante de l'application.
+     * notes générées sont dans la langue courante de l'application. `$withRaw` ajoute à chaque source
+     * sa date de lecture et ses attributs bruts (API publique : provenance en lecture seule) ; la page
+     * web n'en a pas besoin.
      *
      * @return array<string, mixed>
      */
-    public function page(Station $station): array
+    public function page(Station $station, bool $withRaw = false): array
     {
         $sid = $station->id;
         $coords = DB::selectOne('SELECT ST_X(geom) AS lng, ST_Y(geom) AS lat FROM stations WHERE id = ?', [$sid]);
@@ -33,6 +38,7 @@ final class StationSheet
         $events = $this->events($sid);
         $lines = $this->lines($sid);
         $sources = $this->sources($sid);
+        $rawBySource = $withRaw ? $this->rawBySource($sid) : [];
 
         // Gares voisines, comme l'annuaire : ni point technique ni fiche exclue du réseau ferré par une
         // correction sourcée (« Safari Train », petit train d'un zoo, apparaissait près de Lisieux).
@@ -111,7 +117,7 @@ final class StationSheet
                 'passenger' => $s->passenger, 'freight' => $s->freight, 'pk_m' => $s->pk_m, 'geocoding' => $s->geocoding,
                 'precision_m' => is_numeric($s->precision_m) ? (int) $s->precision_m : null,
                 'url' => self::sourceUrl($s),
-            ], $sources),
+            ] + ($withRaw ? self::rawFor($rawBySource, $s) : []), $sources),
             'neighbors' => array_map(fn ($n) => [
                 'slug' => $n->slug, 'name' => $n->name, 'type' => $n->type, 'city' => $n->city, 'status' => $n->status,
                 'lng' => (float) $n->lng, 'lat' => (float) $n->lat, 'distance_m' => (int) $n->distance_m,
@@ -206,6 +212,44 @@ final class StationSheet
             WHERE ss.station_id = ?
             ORDER BY CASE ss.source WHEN 'sncf' THEN 0 WHEN 'sncf_voyageurs' THEN 1 WHEN 'osm' THEN 2 WHEN 'wikidata' THEN 3 WHEN 'ohm' THEN 4 ELSE 5 END, ss.id
         SQL, [$stationId]);
+    }
+
+    /**
+     * Date de lecture et attributs bruts de chaque source de la gare (colonnes `seen_at` et `properties`
+     * de station_sources), indexés par « source|référence ». Provenance publiée par l'API (REST, GraphQL
+     * et MCP) selon la règle de redistribution du registre des droits, comme les géométries : les
+     * attributs bruts d'une source qui n'est pas sous licence ouverte vérifiée (statut incertain, usage
+     * non commercial, source non déclarée) ne sont jamais republiés. `raw` vaut alors null et
+     * `raw_withheld` vrai ; `provenance.license_status` dit pourquoi.
+     *
+     * @return array<string, array{fetched_at: ?string, raw: array<string, mixed>|\stdClass|null, raw_withheld: bool}>
+     */
+    public function rawBySource(int $stationId): array
+    {
+        $out = [];
+        foreach (DB::select('SELECT source, source_ref, seen_at, properties FROM station_sources WHERE station_id = ?', [$stationId]) as $r) {
+            $raw = json_decode((string) $r->properties, true);
+            $url = is_array($raw) && is_string($raw['source_url'] ?? null) ? $raw['source_url'] : null;
+            $open = $this->rights->allowsRedistribution($this->rights->providerFor('station_sources', $r->source, $url));
+            $out[$r->source.'|'.$r->source_ref] = [
+                'fetched_at' => $r->seen_at !== null ? substr((string) $r->seen_at, 0, 10) : null,
+                'raw' => ! $open ? null : (is_array($raw) && $raw !== [] ? $raw : new \stdClass),
+                'raw_withheld' => ! $open,
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Date de lecture et attributs bruts d'une source de la fiche (cf. rawBySource).
+     *
+     * @param  array<string, array{fetched_at: ?string, raw: array<string, mixed>|\stdClass|null, raw_withheld: bool}>  $rawBySource
+     * @return array{fetched_at: ?string, raw: array<string, mixed>|\stdClass|null, raw_withheld: bool}
+     */
+    public static function rawFor(array $rawBySource, object $source): array
+    {
+        return $rawBySource[$source->source.'|'.$source->source_ref] ?? ['fetched_at' => null, 'raw' => null, 'raw_withheld' => true];
     }
 
     /**

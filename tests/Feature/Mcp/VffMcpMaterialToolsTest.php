@@ -47,6 +47,20 @@ class VffMcpMaterialToolsTest extends TestCase
         return [json_decode($text, true) ?? ['raw' => $text], (bool) $result['isError']];
     }
 
+    public function test_materials_filter_by_bimode_category_service_state_and_scope(): void
+    {
+        Material::factory()->fromWikidata()->inService(12, '2026-07-13')->attested()->create(['slug' => 'db-407', 'name' => 'DB 407', 'type' => 'bimode']);
+
+        [$data, $error] = $this->tool('materials', ['type' => 'bimode', 'service_status' => 'in_service', 'scope' => 'attested']);
+        $this->assertFalse($error);
+        $this->assertSame(['db-407'], array_column($data['materials'], 'slug'));
+        $this->assertSame('in_service', $data['materials'][0]['service']['status']);
+        $this->assertSame('attested', $data['materials'][0]['scope']);
+
+        [, $error] = $this->tool('materials', ['service_status' => 'en_service']);
+        $this->assertTrue($error, 'valeur inconnue refusée');
+    }
+
     public function test_materials_filtered_sorted_and_paginated(): void
     {
         [$data, $error] = $this->tool('materials', ['q' => 'picasso']);

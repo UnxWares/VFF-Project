@@ -175,8 +175,10 @@ class AccidentResource extends JsonResource
              */
             'summary' => $this->summary,
             /**
-             * `ok`, ou `to_review` quand un point reste incertain (bilans ou dates qui diffèrent selon les sources,
-             * lieu connu à la commune près, ligne incertaine) : détail dans `review.notes` de la fiche.
+             * `ok` : la date et le lieu (à la précision que la source donne) sont confirmés par une source primaire
+             * (enquête du BEA-TT) ou par deux sources indépendantes, voir `review.verification` de la fiche. `to_review`
+             * quand un point reste incertain (une seule source, bilans ou dates qui diffèrent, lieu douteux) : détail
+             * dans `review.notes`. Le rattachement à une ligne porte sa propre confiance.
              *
              * @example to_review
              */

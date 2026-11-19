@@ -63,4 +63,22 @@ return [
         'quote' => 'Afin d\'expérimenter la traction électrique, à l\'automne 1909, une section de la ligne est équipée d\'une ligne aérienne légère',
         'reason' => 'dépose de la ligne aérienne d\'essai, la voie reste en service',
     ],
+
+    // Chantier « donnees-gares » (19/11/2026, constats de storage/app/reports/agents/ui-donnees-fiches.md).
+    // 590000 Les Aubrais - Montauban : aucune ouverture datée entre Argenton-sur-Creuse et Limoges (seule
+    // l'ouverture de 1847 de toute la ligne) ; les derniers 1,3 km avant Limoges-Bénédictins n'apparaissaient
+    // qu'avec la section Limoges - Brive (1893), et la gare, ouverte en 1856, restait « non confirmée » faute
+    // de voie aux ères 1860 et 1870.
+    [
+        'line' => '590000',
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1856-06-02',
+        'precision' => 'day',
+        'from' => 'Argenton-sur-Creuse',
+        'to' => 'Limoges-Bénédictins',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_des_Aubrais_-_Orl%C3%A9ans_%C3%A0_Montauban-Ville-Bourbon&oldid=240629017',
+        'quote' => 'Le 2 juin 1856 est ouverte la ligne entre Argenton-sur-Creuse et Limoges pour le trafic des marchandises, puis la ligne devient mixte',
+        'reason' => 'ouverture de la section Argenton-sur-Creuse - Limoges (marchandises, puis voyageurs le 16/06/1858)',
+    ],
 ];

@@ -44,7 +44,7 @@ class LineMaterialController extends Controller
      * donnée par la fiche de la série.
      */
     #[PathParameter('line', 'Identifiant (slug) de la ligne, tel que renvoyé par la recherche ou par les GeoJSON (`line_slug`). Les lignes du réseau ferré national sont nommées `rfn-` suivi de leur code à 6 chiffres.', example: 'rfn-67000')]
-    #[QueryParameter('type', 'Catégorie de matériel : `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`, `autorail`, `rame_tgv`, `voiture`, `wagon`, `tramway`, `engin_service`.', type: 'string', example: 'autorail')]
+    #[QueryParameter('type', 'Catégorie de matériel : `locomotive_vapeur`, `locomotive_diesel`, `locomotive_electrique`, `automotrice`, `bimode`, `autorail`, `rame_tgv`, `voiture`, `wagon`, `tramway`, `engin_service`.', type: 'string', example: 'autorail')]
     #[QueryParameter('source', 'Provenance du lien : `wikidata` ou `wikipedia`.', type: 'string', example: 'wikipedia')]
     #[QueryParameter('min_confidence', 'Fiabilité minimale : `high` (liens les plus sûrs seulement), `medium` (high et medium) ou `low` (tous, comme sans ce paramètre).', type: 'string', example: 'medium')]
     #[ApiResponse(200, 'Matériel roulant de la ligne, avec la preuve de chaque lien.', examples: [[

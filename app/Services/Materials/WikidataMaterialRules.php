@@ -16,7 +16,9 @@ final readonly class WikidataMaterialRules
      *     excluded_operators: array<string, string>, excluded_roots: array<string, string>,
      *     type_rules: list<array{0: string, 1: array<string, string>}>,
      *     category_rules: list<array{0: string, 1: string}>,
-     *     speed_units: array<string, float>, power_units: array<string, float>, millimetre: string
+     *     speed_units: array<string, float>, power_units: array<string, float>, millimetre: string,
+     *     service_status_values: array<string, string>, fleet_min_year: int,
+     *     bimode_needs_electric: list<string>, electric_classes: list<string>
      * }  $config
      */
     public function __construct(private array $config) {}
@@ -87,9 +89,11 @@ final readonly class WikidataMaterialRules
     public function typeFor(array $ancestors): ?array
     {
         $set = array_flip($ancestors);
+        $electric = array_intersect_key($set, array_flip($this->config['electric_classes'])) !== [];
         foreach ($this->config['type_rules'] as [$type, $classes]) {
             foreach (array_keys($classes) as $qid) {
-                if (isset($set[$qid])) {
+                // Une classe « bimode » ambiguë ne compte que pour une série qui descend aussi d'une classe électrique.
+                if (isset($set[$qid]) && ! ($type === MaterialType::Bimode->value && ! $electric && in_array($qid, $this->config['bimode_needs_electric'], true))) {
                     return [MaterialType::from($type), $qid];
                 }
             }
@@ -116,6 +120,18 @@ final readonly class WikidataMaterialRules
         }
 
         return null;
+    }
+
+    /** État VFF (`in_service`, `withdrawn`) d'une valeur de P5817, nul si la valeur n'est pas reconnue. */
+    public function serviceStatus(string $value): ?string
+    {
+        return $this->config['service_status_values'][$value] ?? null;
+    }
+
+    /** Année avant laquelle un effectif cité par une infobox n'atteste plus la situation actuelle. */
+    public function fleetMinYear(): int
+    {
+        return $this->config['fleet_min_year'];
     }
 
     /** Vitesse en km/h arrondie, ou null si l'unité est inconnue ou la valeur absurde. */

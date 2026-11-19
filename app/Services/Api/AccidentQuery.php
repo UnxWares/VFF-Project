@@ -62,9 +62,14 @@ final class AccidentQuery
     {
         if (filled($filters['q'] ?? null)) {
             $like = '%'.addcslashes(trim((string) $filters['q']), '\\%_').'%';
+            // Nom dans l'une des trois langues (pas le texte du JSON : « fr » y est une clé), commune, ou
+            // identifiant, qui commence par la date (« 1891 », « 2013-07 » trouvent leurs accidents).
             $query->where(fn (Builder $q) => $q
-                ->whereRaw('unaccent(accidents.name::text) ILIKE unaccent(?)', [$like])
-                ->orWhereRaw("unaccent(COALESCE(accidents.commune_name, '')) ILIKE unaccent(?)", [$like]));
+                ->whereRaw("unaccent(COALESCE(accidents.name->>'fr', '')) ILIKE unaccent(?)", [$like])
+                ->orWhereRaw("unaccent(COALESCE(accidents.name->>'en', '')) ILIKE unaccent(?)", [$like])
+                ->orWhereRaw("unaccent(COALESCE(accidents.name->>'de', '')) ILIKE unaccent(?)", [$like])
+                ->orWhereRaw("unaccent(COALESCE(accidents.commune_name, '')) ILIKE unaccent(?)", [$like])
+                ->orWhereRaw('unaccent(accidents.slug) ILIKE unaccent(?)', [$like]));
         }
         $from = isset($filters['from']) ? (int) $filters['from'] : null;
         $to = isset($filters['to']) ? (int) $filters['to'] : null;

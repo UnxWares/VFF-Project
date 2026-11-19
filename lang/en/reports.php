@@ -15,7 +15,7 @@ return [
         'source_label' => 'Source',
         'source_hint' => 'Link to a document, article or page that supports the correction.',
         'contact_label' => 'Your email address',
-        'contact_hint' => 'Only if you are happy for the team to write to you about this report.',
+        'contact_hint' => 'Only if you are happy for the team to write to you: you will get an email when the report has been dealt with.',
         'optional' => 'optional',
         'honeypot_label' => 'Leave this field empty',
         'privacy' => 'Your message and address are used only to handle this report. They are deleted 12 months after it has been dealt with.',
@@ -23,7 +23,7 @@ return [
         'submit' => 'Send the report',
         'cancel' => 'Cancel',
         'thanks_title' => 'Thank you, your report has been sent',
-        'thanks_text' => 'The team will read it. If you left your address, they may write to you to ask for more detail.',
+        'thanks_text' => 'The team will read it. If you left your address, you will get an email when it has been dealt with, and the team may write to ask for more detail.',
         'close' => 'Close',
     ],
 
@@ -43,6 +43,23 @@ return [
     'notification' => [
         'title' => 'Report no. :id to review',
         'body' => 'An error has been reported on the page “:subject”.',
+    ],
+
+    // Follow-up email sent to the person who left an address, when their report is dealt with or rejected.
+    'mail' => [
+        'greeting' => 'Hello,',
+        'intro' => 'You reported an error on the page “:subject” (report no. :id).',
+        'resolved' => [
+            'subject' => 'Your report no. :id has been dealt with',
+            'outcome' => 'The team has dealt with it. Thank you for your help.',
+        ],
+        'rejected' => [
+            'subject' => 'Your report no. :id was not accepted',
+            'outcome' => 'The team reviewed it and did not change the page.',
+        ],
+        'note' => 'Note from the team: :note',
+        'action' => 'View the page',
+        'why_you' => 'You are receiving this message because you left your address when reporting this error. It is used only for this email and will be deleted with the report, 12 months after it has been dealt with.',
     ],
 
     'review' => [
@@ -82,7 +99,7 @@ return [
         'handled' => 'on :date',
         'note' => 'Team note',
         'note_label' => 'Team note',
-        'note_hint' => 'What was corrected, or why the report is rejected (required to reject).',
+        'note_hint' => 'What was corrected, or why the report is rejected (required to reject). It is emailed to the person who reported the error, if they left an address.',
         'mark_resolved' => 'Mark as dealt with',
         'reject' => 'Reject',
         'empty' => [

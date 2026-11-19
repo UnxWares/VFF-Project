@@ -5,6 +5,7 @@ namespace App\Mcp\Tools;
 use App\Mcp\Support\Lookup;
 use App\Mcp\Support\VffTool;
 use App\Services\NetworkStats;
+use App\Services\SiteStats;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
 use Laravel\Mcp\Response;
@@ -19,7 +20,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Title('État du réseau à une époque')]
 #[Description(<<<'TXT'
 Statistiques du réseau ferré français à une époque, d'après la carte VFF par décennie (instantané au 31/12 de l'année de l'ère ; l'ère courante décrit le réseau d'aujourd'hui). Une année quelconque est ramenée à l'ère qui la contient ou la précède (1937 donne l'ère 1930) ; à partir de l'année en cours : réseau actuel.
-Renvoie, en km arrondis : longueur en service (open_km), fermée voie en place (closed_km), déposée ou effacée (gone_km), électrifiée en service (electrified_km), longueur en service par trafic (mixed, passenger, freight, heritage = associatif, unknown) ; le nombre de lignes portant du trafic (active_lines) et le nombre de gares par statut à cette ère (active, tourist, no_commercial, declassified, uncertain…), plus la liste des ères disponibles.
+Renvoie, en km arrondis : longueur en service (open_km), fermée voie en place (closed_km), déposée ou effacée (gone_km), électrifiée en service (electrified_km), longueur en service par trafic (mixed, passenger, freight, heritage = associatif, unknown) ; le nombre de lignes portant du trafic (active_lines) et le nombre de gares par statut à cette ère (active, tourist, no_commercial, declassified, uncertain…), plus la liste des ères disponibles, les chiffres d'ensemble du site (`site_totals` : lignes, gares, matériels, ères cartographiées, km exploités aujourd'hui) et la courbe du réseau à chaque ère (`network_profile` : km en service et lignes actives par ère, voies parallèles comprises).
 Les longueurs sont celles des tronçons de la carte (somme des tracés, voies parallèles d'une même ligne comprises), à prendre comme ordre de grandeur et non comme kilométrage officiel.
 Exemple : {"year": 1930} ; {"year": 2026, "lang": "de"}.
 TXT)]
@@ -61,6 +62,8 @@ class NetworkAtEraTool extends VffTool
             $stations[] = ['code' => $code, 'label' => (string) trans('stations.statuses.'.$code, [], $lang), 'count' => $n];
         }
 
+        $siteStats = app(SiteStats::class);
+
         return $this->respond([
             'requested_year' => (int) $input['year'],
             'era_year' => $era->year,
@@ -74,6 +77,9 @@ class NetworkAtEraTool extends VffTool
             'open_km_by_traffic' => $traffic,
             'stations_by_status' => $stations,
             'available_eras' => Lookup::eraYears(),
+            // Chiffres d'ensemble du site et courbe du réseau à chaque ère (mêmes valeurs que GET /api/v1/stats).
+            'site_totals' => $siteStats->counts(),
+            'network_profile' => $siteStats->profile(),
         ], $providers, $lang, self::url('/maps?era='.$era->year));
     }
 }

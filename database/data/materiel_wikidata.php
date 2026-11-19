@@ -39,9 +39,24 @@ return [
         'Q1144784' => 'véhicule automatique léger (VAL)',
     ],
 
+    // Bimode = électrique ET thermique. La classe Q3588091 (« rame automotrice bimode », en anglais « hybrid-powered
+    // multiple unit ») couvre aussi un turbotrain à turbine et moteur diesel (ETG) : elle ne range une série en
+    // « bimode » que si celle-ci descend aussi d'une classe électrique. La classe Q28455463 (« electro-diesel
+    // multiple unit ») n'a pas besoin de cette garantie.
+    'bimode_needs_electric' => ['Q3588091'],
+    'electric_classes' => ['Q483373', 'Q16936947', 'Q625151'],
+
     // Règles de catégorie, dans l'ordre : [catégorie VFF, classes Wikidata qui la désignent].
     'type_rules' => [
         ['rame_tgv', ['Q13402959' => 'train à grande vitesse', 'Q129337' => 'TGV']],
+        // Un engin bimode descend à la fois des rames électriques et thermiques : sa classe « bimode »
+        // le distingue (catégorie à part, attribuée seulement quand Wikidata le déclare). Placé avant
+        // les règles de traction, car un bimode descend aussi des classes électrique et thermique ; sans
+        // classe « bimode », une série reste dans la catégorie de sa traction.
+        ['bimode', [
+            'Q3588091' => 'rame automotrice bimode',
+            'Q28455463' => 'engin ferroviaire bi-modes',
+        ]],
         ['locomotive_vapeur', ['Q171043' => 'locomotive à vapeur']],
         ['locomotive_electrique', ['Q625151' => 'locomotive électrique']],
         ['locomotive_diesel', ['Q34336' => 'locomotive diesel', 'Q1079190' => 'locotracteur']],
@@ -53,11 +68,7 @@ return [
             'Q209658' => 'draisine',
             'Q1967218' => 'voiture d\'auscultation de la voie',
         ]],
-        // Un engin bimode descend à la fois des rames électriques et thermiques : « automotrice »,
-        // comme on désigne les Régiolis et AGC bimodes. D'où l'ordre : bimode, électrique, thermique.
         ['automotrice', [
-            'Q3588091' => 'rame automotrice bimode',
-            'Q28455463' => 'engin ferroviaire bi-modes',
             'Q483373' => 'rame automotrice électrique',
             'Q16936947' => 'automotrice électrique',
         ]],
@@ -90,6 +101,18 @@ return [
         ['voiture', '/^(?:Voiture de chemin de fer|Voiture voyageurs|Remorque d\'autorail)\b/u'],
         ['wagon', '/^Wagon\b/u'],
     ],
+
+    // État d'utilisation (P5817) : valeurs reconnues et état VFF correspondant. Une autre valeur
+    // (inconnue, « abandonné »…) ne donne rien. Wikidata renseigne très peu cette propriété (1 série sur
+    // 709 le 2026-11-19) : l'effectif de l'infobox Wikipédia complète.
+    'service_status_values' => [
+        'Q55654238' => 'in_service',    // en cours d'utilisation
+    ],
+
+    // Effectif de l'infobox Wikipédia : l'effectif en service n'est retenu que si l'article le date
+    // de cette année ou d'une année plus récente (un effectif plus ancien n'atteste pas la situation
+    // actuelle : la série a pu être retirée depuis).
+    'fleet_min_year' => 2020,
 
     // Unités de vitesse (P2052) : facteur vers le km/h.
     'speed_units' => [

@@ -7,6 +7,13 @@ import { escapeHtml } from '../Components/Map/lineInfo.js';
 /** Points des accidents localisés (GET /api/v1/accidents.geojson, en cache 10 min). */
 export const ACCIDENTS_URL = '/api/v1/accidents.geojson';
 
+/** Charge les points des accidents (FeatureCollection) ; lève une erreur si la réponse n'est pas bonne. */
+export async function fetchAccidents(fetcher = fetch) {
+    const response = await fetcher(ACCIDENTS_URL, { headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+}
+
 export const ACCIDENT_SOURCE_ID = 'vff-accidents';
 /** Zone pâle autour du centre de la commune (lieu exact inconnu) : décor, jamais cliquable. */
 export const ACCIDENT_AREA_LAYER_ID = 'vff-accidents-area';

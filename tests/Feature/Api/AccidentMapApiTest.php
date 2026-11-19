@@ -97,8 +97,9 @@ class AccidentMapApiTest extends TestCase
         $this->assertSame('to', $operation['parameters'][0]['name']);
         $this->assertNotEmpty($operation['parameters'][0]['description']);
         $this->assertSame(1950, $operation['parameters'][0]['example']);
-        $this->assertEqualsCanonicalizing(['200', '422', '429'], array_map('strval', array_keys($operation['responses'])));
-        foreach (['200', '422', '429'] as $code) {
+        // 401 et 403 : jeton invalide ou d'un compte suspendu (ApiAuthDocumentation).
+        $this->assertEqualsCanonicalizing(['200', '401', '403', '422', '429'], array_map('strval', array_keys($operation['responses'])));
+        foreach (['200', '401', '403', '422', '429'] as $code) {
             $this->assertNotEmpty($operation['responses'][$code]['content']['application/json']['schema']['examples'] ?? null, "réponse {$code} sans exemple");
         }
     }

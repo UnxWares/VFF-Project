@@ -28,12 +28,13 @@ class ApiDocsTest extends TestCase
 
     /** Routes publiques de routes/api.php présentées sur la page /api et documentées dans la spécification. */
     private const V1_PATHS = [
-        '/eras', '/eras/{year}',
+        '/stats', '/eras', '/eras/{year}',
         '/eras/{year}/lines.geojson',
         '/eras/{year}/stations.geojson',
         '/eras/{year}/tiles/{z}/{x}/{y}.mvt',
         '/eras/{year}/gtfs.zip',
-        '/lines', '/lines/{line}', '/lines/{line}/segments',
+        '/lines', '/lines/{line}', '/lines/{line}/segments', '/lines/{line}/geojson',
+        '/lines/{line}/gpx', '/lines/{line}/kml',
         '/lines/{line}/history',
         '/lines/{line}/pk',
         '/lines/{line}/stops',
@@ -58,11 +59,13 @@ class ApiDocsTest extends TestCase
 
     /** Annuaires, fiches, ères et sources : codes de réponse documentés, avec leur corps d'exemple. */
     private const ERROR_CODES = [
+        '/stats' => [200, 429],
         '/eras' => [200, 429],
         '/eras/{year}' => [200, 404, 429],
         '/lines' => [200, 422, 429],
         '/lines/{line}' => [200, 404, 422, 429],
         '/lines/{line}/segments' => [200, 404, 422, 429],
+        '/lines/{line}/geojson' => [200, 404, 422, 429],
         '/stations' => [200, 422, 429],
         '/stations/{station}' => [200, 404, 429],
         '/sources' => [200, 429],
@@ -73,6 +76,7 @@ class ApiDocsTest extends TestCase
     private const BINARY_PATHS = [
         '/eras/{year}/tiles/{z}/{x}/{y}.mvt', '/eras/{year}/gtfs.zip',
         '/level-crossings/tiles/{z}/{x}/{y}.mvt', '/eras/{year}/signalling/tiles/{z}/{x}/{y}.mvt',
+        '/lines/{line}/gpx', '/lines/{line}/kml',
     ];
 
     /** Types déclarés dans graphql/schema.graphql (hors types ajoutés par Lighthouse). */
@@ -80,11 +84,12 @@ class ApiDocsTest extends TestCase
         'Query', 'Era', 'Line', 'LineStop', 'LineSignallingRange', 'LineSegment', 'LineEvent',
         'Station', 'Material', 'RouteEdge', 'RouteStop', 'RouteLine', 'Route', 'Date', 'DateTime',
         'Provenance', 'StationEvent', 'Media', 'JSON', 'KmByCode', 'CountByCode', 'EraStats', 'LineName',
-        'LineOperator', 'LineAdvocacy', 'LineToday', 'LineKeyFigures', 'LineElectrification', 'LineVoltage',
+        'LineOperator', 'LineDescriptionSource', 'LineToday', 'LineKeyFigures', 'LineElectrification', 'LineVoltage',
         'LineSheetSignalling', 'LineEraSummary', 'LineSheetStation', 'LineSection', 'LineSheetMaterial', 'LineSheet',
         'StationPosition', 'StationEra', 'StationLine', 'StationSource', 'StationNeighbor', 'StationSheet',
         'LineDirectoryItem', 'LineDirectoryFacets', 'LineDirectoryPage', 'StationDirectoryItem', 'StationDirectoryLine',
-        'StationDirectoryPage', 'SourceValues', 'SourceProvider',
+        'StationDirectoryPage', 'SourceValues', 'SourceProvider', 'SiteStats', 'SiteStatsEra', 'SearchResults', 'SearchLine',
+        'SearchStation', 'SearchMaterial', 'LinePk', 'LinePkSnap',
     ];
 
     /** Entrées GraphQL dont chaque champ doit être décrit. */
@@ -315,6 +320,8 @@ class ApiDocsTest extends TestCase
 
         foreach (self::ERROR_CODES as $path => $codes) {
             $responses = $spec['paths'][$path]['get']['responses'] ?? [];
+            // 401 et 403 : jeton invalide ou d'un compte suspendu, sur chaque opération (ApiAuthDocumentation).
+            $codes = [...$codes, 401, 403];
             $this->assertEqualsCanonicalizing($codes, array_map('intval', array_keys($responses)), "{$path} : codes de réponse");
             foreach ($codes as $code) {
                 $this->assertNotEmpty($responses[(string) $code]['description'] ?? null, "{$path} : réponse {$code} sans description");
@@ -327,7 +334,8 @@ class ApiDocsTest extends TestCase
     {
         $intro = (string) $this->getJson('/docs/api.json')->assertOk()->json('info.description');
 
-        foreach (['## Ce que couvre l\'API', '## Accès et authentification', 'Aucune authentification', '300 requêtes',
+        foreach (['## Ce que couvre l\'API', '## Authentification et quotas', '**sans jeton**', '300 requêtes', '1 200 requêtes',
+            'Authorization: Bearer', 'X-RateLimit-Limit', 'Retry-After', 'invalid_token', 'account_suspended',
             '## Conventions communes', '## Erreurs', '## Pagination par curseur', '## Provenance et licence',
             '## Licences et sources', '## Versionnement', '/api/v2', '/sources', 'POST /mcp'] as $needle) {
             $this->assertStringContainsString($needle, $intro);

@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ListLinesRequest;
 use App\Http\Resources\LineSegmentResource;
 use App\Http\Resources\LineSheetResource;
+use App\Mcp\Support\Attribution;
 use App\Models\Era;
 use App\Models\Line;
 use App\Services\Api\LineDirectoryQuery;
 use App\Services\Api\SortedCursor;
 use App\Services\LineSheet;
+use App\Services\TraceExport\LineTraceExport;
 use App\Support\QueryBoolean;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
@@ -134,10 +136,17 @@ class LineController extends Controller
      * `is_threatened` (ligne menacée de fermeture), `historical_operators`
      * (compagnies et gestionnaires successifs : `operator`, `role`
      * `exploitant` ou `gestionnaire`, `from_year`, `to_year`, `ongoing`,
-     * `source`). `description` : extrait de l'article Wikipédia, sous
-     * CC BY-SA 4.0 ; `description_source` donne l'article, sa version et la
-     * licence à citer. `advocacy` : campagne de défense de la ligne relayée
-     * par VFF (`kind`, `title`, `message`, `cta_label`, `cta_url`), ou `null`.
+     * `source`). `description` : extrait de l'article Wikipédia (en
+     * français), sous CC BY-SA 4.0 ; `description_source` donne de quoi le
+     * citer : `title` et `article_url` (article), `author` (« Contributeurs de
+     * Wikipédia », auteur collectif) et `history_url` (liste des auteurs),
+     * `revision_id` et `permalink` (version lue, `null` si elle n'est pas
+     * connue ; `url` est le lien exact de la version lue), `fetched_at`
+     * (date de lecture), `license` et `license_url`, `attribution` (mention
+     * prête à copier). Pour une ligne décrite à la main, `description_source`
+     * vaut `{"type": "curated", "urls": [...]}` (sources citées, sans licence
+     * Wikipédia). Le message de soutien du site à certaines lignes n'est pas
+     * une donnée : il n'est pas publié par l'API.
      *
      * **Aujourd'hui** (`today`) : ère affichée (`era_year` : l'ère courante si
      * la ligne y a un tracé, sinon sa dernière décennie), `state` (`open`,
@@ -205,7 +214,11 @@ class LineController extends Controller
      * d'ouverture, description, source. **Exploitations associatives**
      * (`heritage`) : nom, exploitant, nature (`tourist_train`, `velorail`),
      * portion et périodes. **Sources** (`sources`) : jeux de données utilisés
-     * pour la fiche, avec lien, date de lecture et champs fournis.
+     * pour la fiche, avec lien, date de lecture et champs fournis. **Liens**
+     * (`links`) : la page du site et les points d'accès de la ligne que la
+     * fiche ne reprend pas en entier (`geojson` tracé, `profile` profil en
+     * long, `level_crossings` passages à niveau, `accidents`, `materials`,
+     * `signalling`, `stops`, `media`, `events`, `history`, `segments`).
      */
     #[PathParameter('line', 'Identifiant (slug) de la ligne, tel que renvoyé par l\'annuaire ou la recherche. Les lignes du réseau ferré national sont nommées `rfn-` suivi de leur code à 6 chiffres.', example: 'rfn-447000')]
     #[QueryParameter('geometry', 'Joindre le tracé GeoJSON de chaque portion (`portions.geometry`) : `true` ou `false` (par défaut).', type: 'boolean', default: false, example: false)]
@@ -267,28 +280,111 @@ class LineController extends Controller
     #[ApiResponse(404, 'Ligne ou ère inconnue.', examples: [ErrorExamples::LINE_NOT_FOUND])]
     #[ApiResponse(422, '`era` n\'est pas un entier ou `geometry` n\'est pas un booléen.', examples: [ErrorExamples::GEOMETRY_INVALID])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
-    public function segments(Request $request, Line $line): JsonResponse
+    public function segments(Request $request, Line $line, LineTraceExport $export): JsonResponse
     {
         $input = $request->merge(['geometry' => QueryBoolean::cast($request->query('geometry'))])->validate([
             'era' => ['nullable', 'integer'],
             'geometry' => ['nullable', 'boolean'],
         ]);
-        $era = isset($input['era'])
-            ? Era::where('year', (int) $input['era'])->firstOrFail()
-            : Era::where('is_current', true)->first() ?? Era::orderByDesc('year')->firstOrFail();
-
-        $segments = $line->segments()->where('era_id', $era->id)
-            ->select(['id', 'pk_start_m', 'pk_end_m', 'length_meters', 'status', 'traffic_type', 'is_heritage', 'heritage_kind',
-                'electrified', 'voltage_v', 'electrified_year', 'electrification_source', 'max_speed_kmh', 'max_speed_source',
-                'gauge_mm', 'gauge_class', 'signalling', 'train_protection', 'operator', 'dismantled_at', 'reuse', 'source'])
-            ->when((bool) ($input['geometry'] ?? false), fn ($q) => $q->selectRaw('ST_AsGeoJSON(geom, 6) AS geojson'))
-            ->orderByRaw('pk_start_m NULLS LAST, id')
-            ->get();
+        $era = $export->era($input['era'] ?? null);
 
         return response()->json([
             'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name],
             'era_year' => $era->year,
-            'data' => LineSegmentResource::collection($segments)->resolve($request),
+            'data' => LineSegmentResource::collection($export->segments($line, $era, (bool) ($input['geometry'] ?? false)))->resolve($request),
         ])->header('Cache-Control', 'public, max-age=300');
+    }
+
+    /**
+     * Tracé d'une ligne à une ère, en GeoJSON.
+     *
+     * Le tracé de la ligne au 31/12 de l'ère (l'ère courante par défaut :
+     * aujourd'hui), prêt pour un SIG, Leaflet, MapLibre ou `geojson.io` : une
+     * `FeatureCollection` (RFC 7946, WGS 84, longitude puis latitude à 6
+     * décimales) d'un `Feature` par tronçon, dans l'ordre des points
+     * kilométriques. La réponse est servie en `application/geo+json`.
+     *
+     * Les `properties` de chaque `Feature` sont celles de `/lines/{line}/segments`
+     * (état, trafic, électrification, vitesse, écartement, signalisation, PK,
+     * longueur, `source` et `provenance` avec la licence du tracé) ; `id` est
+     * l'identifiant du tronçon. La collection porte aussi `line` (`slug`,
+     * `code`, `name`, `url` de la fiche sur VFF), `era_year`, `attribution`
+     * (la mention de la base VFF et celle de chaque source dont vient une
+     * géométrie exportée, avec sa licence) et `withheld`. Une ère sans tracé
+     * pour cette ligne donne une collection vide, pas une erreur.
+     *
+     * **Droits.** La géométrie d'un tronçon n'est donnée que si sa source a une
+     * licence ouverte écrite et vérifiée (OpenStreetMap, SNCF Réseau, IGN,
+     * OpenHistoricalMap, contributions validées : `provenance.license_status` =
+     * `verified`). Pour un tronçon d'une source non commerciale, sous accord
+     * oral, de statut incertain ou non déclarée, `geometry` vaut `null` et
+     * `properties.geometry_withheld` vaut `true` ; ses autres propriétés restent
+     * lisibles. `withheld` résume ces tronçons par source (nombre, longueur,
+     * raison : `licence_not_open` ou `unknown_source`) ; la liste est vide quand
+     * tout est exporté. Reprenez les mentions de `attribution` si vous publiez
+     * le tracé. `/lines/{line}/segments?geometry=true` suit la même règle.
+     *
+     * Le même tracé existe en `/lines/{line}/gpx` et `/lines/{line}/kml`.
+     */
+    #[PathParameter('line', 'Identifiant (slug) de la ligne.', example: 'rfn-447000')]
+    #[QueryParameter('era', "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante (aujourd'hui). Une année sans ère (`1935`) donne HTTP 404.", type: 'int', example: 1930)]
+    #[QueryParameter('lang', 'Langue des mentions de `attribution` : `fr` (défaut), `en` ou `de`.', type: 'string', example: 'fr')]
+    #[ApiResponse(200, 'Tracé de la ligne de Morlaix à Roscoff en 1930 (un tronçon).', examples: [[
+        'type' => 'FeatureCollection',
+        'line' => ['slug' => 'rfn-447000', 'code' => '447000', 'name' => 'Ligne de Morlaix à Roscoff', 'url' => 'https://vff-project.org/lines/rfn-447000'],
+        'era_year' => 1930,
+        'attribution' => [
+            'notice' => 'Données de Voies Ferrées de France (vff-project.org), base sous licence ODbL 1.0 : citez « Voies Ferrées de France (vff-project.org) », le lien de la fiche et les sources ci-dessous.',
+            'sources' => [
+                ['provider' => 'vff', 'mention' => 'Voies Ferrées de France (vff-project.org), UnxWares, ODbL 1.0', 'open_licence' => true],
+                ['provider' => 'ign', 'mention' => 'IGN (BD TOPO, BD ORTHO historique), Licence Ouverte 2.0', 'open_licence' => true],
+            ],
+        ],
+        'withheld' => [],
+        'features' => [[
+            'type' => 'Feature',
+            'id' => 8573551,
+            'geometry' => ['type' => 'LineString', 'coordinates' => [[-3.837041, 48.578218], [-3.83613, 48.581991]]],
+            'properties' => [
+                'pk_start_m' => 1093, 'pk_end_m' => 1550, 'length_m' => 457, 'status' => 'in_service', 'traffic_type' => 'mixed',
+                'is_heritage' => false, 'electrified' => false, 'gauge_mm' => 1435, 'source' => 'bdtopo',
+                'provenance' => ['provider' => 'ign', 'name' => 'IGN (BD TOPO, BD ORTHO historique)', 'license' => "Licence Ouverte 2.0 (Etalab), données publiques de l'IGN libres depuis le 1er janvier 2021", 'license_status' => 'verified'],
+                'geometry_withheld' => false,
+            ],
+        ]],
+    ]])]
+    #[ApiResponse(404, 'Ligne ou ère inconnue.', examples: [ErrorExamples::LINE_NOT_FOUND])]
+    #[ApiResponse(422, '`era` n\'est pas un entier ou `lang` n\'est pas `fr`, `en` ou `de`.', examples: [ErrorExamples::ERA_INVALID])]
+    #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
+    public function geojson(Request $request, Line $line, LineTraceExport $export, Attribution $attribution): JsonResponse
+    {
+        $input = $request->validate(['era' => ['nullable', 'integer'], 'lang' => ['nullable', 'in:fr,en,de']]);
+        $lang = $input['lang'] ?? 'fr';
+        $era = $export->era($input['era'] ?? null);
+
+        $segments = $export->segments($line, $era, true);
+        $features = LineSegmentResource::collection($segments)->resolve($request);
+        $providers = $export->exportedProviders($segments);
+
+        return response()->json([
+            'type' => 'FeatureCollection',
+            'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name, 'url' => url('/lines/'.$line->slug)],
+            'era_year' => $era->year,
+            'attribution' => [
+                'notice' => trans('mcp.attribution.notice', [], $lang),
+                'sources' => array_map(
+                    fn (string $provider): array => $attribution->source($provider, $lang),
+                    ['vff', ...$providers],
+                ),
+            ],
+            'withheld' => $export->withheld($segments),
+            'features' => array_map(function (array $segment): array {
+                $geometry = $segment['geometry'] ?? null;
+                $id = $segment['id'];
+                unset($segment['id'], $segment['geometry']);
+
+                return ['type' => 'Feature', 'id' => $id, 'geometry' => $geometry, 'properties' => $segment];
+            }, $features),
+        ], 200, ['Content-Type' => 'application/geo+json', 'Cache-Control' => 'public, max-age=300']);
     }
 }

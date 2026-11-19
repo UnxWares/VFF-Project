@@ -27,6 +27,7 @@ return [
     'errors' => [
         'unknown_arguments' => 'Unbekannte Argumente: :names.',
         'line_not_found' => 'Strecke nicht gefunden: „:query“. Suchen Sie ihre Kennung mit dem Werkzeug search (Vorschläge anbei).',
+        'no_geometry' => 'Die Trasse von „:line“ existiert für die Epoche :year nicht: kein Kilometerpunkt.',
         'profile_not_computed' => 'Das Längsprofil von „:line“ ist noch nicht berechnet.',
         'station_not_found' => 'Bahnhof nicht gefunden: „:query“. Suchen Sie seine Kennung mit dem Werkzeug search (Vorschläge anbei).',
         'material_not_found' => 'Fahrzeugbaureihe nicht gefunden: „:query“. Suchen Sie ihre Kennung mit dem Werkzeug search oder materials (Vorschläge anbei).',

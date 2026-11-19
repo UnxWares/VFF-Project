@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Materials\AttestedSeriesFinder;
 use App\Services\Materials\LineMaterialLinker;
 use App\Services\Materials\MaterialImporter;
 use App\Services\Materials\SourceCache;
@@ -18,6 +19,10 @@ use Illuminate\Console\Command;
  * (CC0) avec leur image Commons (licence par fichier), puis liens matériel ↔ ligne attestés par
  * Wikidata ou par les articles Wikipédia (sections « Matériel roulant », « Utilisation »…).
  *
+ * Séries que Wikidata ne rattache pas à la France (ICE, AVE, locomotives belges…) : ajoutées seulement
+ * si une source atteste leur circulation sur une ligne française (AttestedSeriesFinder), avec cette
+ * source en provenance (`scope` = attested).
+ *
  * Idempotente : une relance met à jour les fiches et les liens importés, sans jamais écraser une
  * valeur saisie dans VFF ni toucher un lien saisi à la main. Cache local des réponses dans
  * storage/app/data/materiel/ : une relance ne redemande aux serveurs que ce qui manque.
@@ -25,6 +30,7 @@ use Illuminate\Console\Command;
  *   vff:import-materials                 # fiches puis liens
  *   vff:import-materials --refresh       # redemande tout aux sources
  *   vff:import-materials --links-only    # liens seulement (fiches déjà importées)
+ *   vff:import-materials --no-attested   # sans les séries non rattachées à la France
  *   vff:import-materials --dry-run       # lit et compte, sans écrire en base
  */
 class ImportMaterials extends Command
@@ -33,6 +39,7 @@ class ImportMaterials extends Command
         {--refresh : Ignore le cache local et redemande tout aux sources}
         {--links-only : Ne recalcule que les liens matériel ↔ ligne}
         {--no-links : N\'importe que les fiches}
+        {--no-attested : N\'ajoute pas les séries que Wikidata ne rattache pas à la France}
         {--dry-run : Lit les sources et compte, sans écrire en base}';
 
     /** Une seconde au moins entre deux appels aux serveurs Wikimedia. */
@@ -76,6 +83,12 @@ class ImportMaterials extends Command
     {
         $qids = $source->candidates($refresh);
         $this->info(count($qids).' série(s) candidate(s) dans Wikidata.');
+        $attested = [];
+        if (! $this->option('no-attested')) {
+            $attested = (new AttestedSeriesFinder($source, $wikipedia))->find($qids, $refresh);
+            $this->info(count($attested).' série(s) non rattachée(s) à la France mais attestée(s) sur une ligne française.');
+            $qids = array_values(array_unique([...$qids, ...array_keys($attested)]));
+        }
         $ancestors = $source->ancestors($qids, $refresh);
         $entities = $source->entities($qids, $refresh);
 
@@ -105,13 +118,30 @@ class ImportMaterials extends Command
             }
         }
         $categories = $wikipedia->categories('wikipedia_categories', array_values($unranked), $refresh);
+        // Infobox des articles (catégorie « bimode », effectif en service).
+        $articles = [];
+        foreach ($qids as $qid) {
+            if (is_string($title = $entities[$qid]['sitelinks']['frwiki'] ?? null)) {
+                $articles[$qid] = $title;
+            }
+        }
+        $infoboxes = $wikipedia->infoboxes('wikipedia_infoboxes', array_values($articles), $refresh);
+        // Un article partagé par plusieurs séries (Z 55500 et Z 56300 redirigent vers « Regio 2N ») donne
+        // l'effectif de la famille, pas celui de la série : on compte par titre final, redirections suivies.
+        $finalTitles = array_count_values(array_filter(array_map(fn (string $t): ?string => $infoboxes[$t]['title'] ?? null, $articles)));
+        foreach ($infoboxes as $requested => $infobox) {
+            if ($infobox !== null && ($finalTitles[$infobox['title']] ?? 0) > 1) {
+                $infoboxes[$requested]['shared'] = true;
+            }
+        }
 
         $mapper = new WikidataMaterialMapper($rules);
         $records = [];
         $skipped = [];
         foreach ($qids as $qid) {
             $result = $mapper->map($qid, $entities[$qid] ?? null, $ancestors[$qid] ?? [], $labels, $widths, $images,
-                isset($unranked[$qid]) ? ($categories[$unranked[$qid]] ?? []) : []);
+                isset($unranked[$qid]) ? ($categories[$unranked[$qid]] ?? []) : [],
+                isset($articles[$qid]) ? ($infoboxes[$articles[$qid]] ?? null) : null, $attested[$qid] ?? null);
             if (is_string($result)) {
                 $skipped[$result][] = $qid.' '.($entities[$qid]['labels']['fr'] ?? $entities[$qid]['labels']['en'] ?? '');
 

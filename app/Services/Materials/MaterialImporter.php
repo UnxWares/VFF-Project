@@ -17,14 +17,18 @@ use Illuminate\Support\Str;
  */
 final class MaterialImporter
 {
-    /** Sources dont l'import peut mettre à jour la valeur. */
-    private const IMPORTED = ['wikidata', 'commons'];
+    /** Sources dont l'import peut mettre à jour la valeur (Wikipédia : catégorie bimode et état d'utilisation d'après l'infobox). */
+    private const IMPORTED = ['wikidata', 'commons', 'wikipedia'];
+
+    /** Champ sans provenance propre : celle d'un autre champ fait foi. */
+    private const COMPANION = ['service_status_checked_at' => 'service_status'];
 
     /** Champs écrits par l'import (hors identifiant, slug, provenance et dates techniques). */
     private const FIELDS = [
         'name', 'type', 'designations', 'description', 'builder', 'builders', 'operators', 'in_service_from',
         'in_service_to', 'units_built', 'max_speed_kmh', 'power_kw', 'electrification', 'gauges', 'gauge_mm',
         'wheel_arrangement', 'fleet_numbers', 'image', 'commons_category', 'wikipedia_fr', 'wikipedia_en',
+        'service_status', 'service_status_checked_at', 'scope',
     ];
 
     /**
@@ -68,15 +72,19 @@ final class MaterialImporter
     /** @param array<string, mixed> $record */
     private function update(Material $material, array $record): bool
     {
-        $provenance = $material->provenance ?? [];
+        $original = $material->provenance ?? [];
+        $provenance = $original;
         foreach (self::FIELDS as $field) {
             $current = $material->getAttribute($field);
-            $owned = in_array($provenance[$field]['source'] ?? null, self::IMPORTED, true);
+            // La date de vérification d'un état d'utilisation suit la provenance de cet état.
+            $owner = self::COMPANION[$field] ?? $field;
+            // Le périmètre est toujours calculé par l'import (jamais saisi dans VFF).
+            $owned = $field === 'scope' || in_array($original[$owner]['source'] ?? null, self::IMPORTED, true);
             $empty = $current === null || $current === [] || $current === '';
             if (! $owned && ! $empty) {
                 continue;
             }
-            $value = $record[$field] ?? null;
+            $value = $record[$field] ?? ($field === 'scope' ? 'france' : null);
             if (! JsonEquality::same($current instanceof \BackedEnum ? $current->value : $current, $value)) {
                 $material->setAttribute($field, $value);
             }

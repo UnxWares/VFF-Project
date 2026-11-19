@@ -120,6 +120,8 @@ return [
         'protection' => 'Zugbeeinflussung:',
         'cabin' => 'Führerstandssignalisierung:',
         'block' => 'Blocksystem:',
+        // Entre les deux derniers systèmes d'une tranche : « ETCS niveau 2 et TVM 300 ».
+        'and' => 'und',
         'codes' => [
             'BAL' => 'BAL, selbsttätiger Lichtblock',
             'BAL-VB' => 'BAL, Gleiswechselbetrieb',
@@ -214,6 +216,17 @@ return [
     ],
 
     'meta_description' => 'Enzyklopädische Seite der Strecke :name: Verlauf, datierte Phasen, Bahnhöfe, Quellen.',
+
+    // Download der Trasse der Strecke (GPX, KML, GeoJSON: API `/api/v1/lines/{slug}/gpx`).
+    'trace_download' => [
+        'title' => 'Trasse herunterladen',
+        'intro' => 'Die Trasse der Strecke als GPX-, KML- oder GeoJSON-Datei, für ein GPS-Gerät oder eine Kartensoftware. Jede Datei nennt den Namen der Strecke, die Epoche, die Adresse dieser Seite sowie die Quellen der Trasse und ihre Lizenzen.',
+        'era' => 'Epoche der Trasse',
+        'for_era' => 'Trasse von :era',
+        'note' => 'Ein Abschnitt, dessen Quelle keine Weitergabe erlaubt, ist nicht enthalten.',
+        'api' => 'API-Dokumentation',
+        'unavailable' => 'Die Trasse dieser Strecke kann nicht heruntergeladen werden: Ihre Quelle erlaubt keine Weitergabe.',
+    ],
 
     // Phasen der Strecke (App\Services\LinePhases): Auswahl neben der Karte.
     'phases' => [
@@ -506,6 +519,7 @@ return [
             'pk_title' => 'Streckenkilometer (PK, französisch point kilométrique)',
             'signalling_intro' => 'Blocksystem (Zugfolge: BAL, BAPR, BM…) und Zugbeeinflussung (KVB, TVM, ETCS) entlang der Strecke, heutiger Zustand. Quelle: SNCF Réseau Open Data (Blocksysteme, mit KVB ausgerüstete Strecken).',
             'signalling_intro_cab' => 'Auf den Schnellfahrabschnitten wird im Führerstand signalisiert.',
+            'signalling_intro_dual' => 'Auf einigen Abschnitten sind ETCS Level 2 und TVM gemeinsam eingebaut; die Liste nennt beide.',
             'signalling_gap' => 'Kein Blocksystem in den Daten von SNCF Réseau: Abschnitt ohne Blocksystem, nicht in den Daten enthalten oder Sprung in der Kilometrierung.',
             'signalling_today' => 'Bekannt ist nur der heutige Stand: Wie sich die Signaltechnik im Lauf der Jahrzehnte verändert hat, ist noch nicht in den Daten.',
             'signalling_map' => 'Streckenblock auf der Karte ansehen',

@@ -54,7 +54,8 @@ class StationSheetResource extends JsonResource
             'events' => array_map(fn (array $e): array => array_diff_key($e, ['note_lang' => true])
                 + ['provenance' => $provenance->for('station_events', $e['source'], $e['source_url'])], self::items($page['events'])),
             'lines' => $page['lines'],
-            'sources' => array_map(fn (array $s): array => $s + ['provenance' => $provenance->for('station_sources', $s['source'], $s['url'])], $page['sources']),
+            'sources' => array_map(fn (array $s): array => ['pk_m' => is_numeric($s['pk_m']) ? (int) $s['pk_m'] : null]
+                + $s + ['provenance' => $provenance->for('station_sources', $s['source'], $s['url'])], $page['sources']),
             'neighbors' => $page['neighbors'],
             'links' => [
                 'web' => url('/stations/'.$station['slug']),

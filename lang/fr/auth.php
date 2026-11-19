@@ -18,10 +18,9 @@ return [
     // Statuts du broker password (Password::status)
     'passwords' => [
         'reset' => 'Votre mot de passe a été réinitialisé.',
-        'sent' => 'Un lien de réinitialisation vous a été envoyé par e-mail.',
+        'sent' => 'Si un compte existe avec cette adresse, vous allez recevoir un lien de réinitialisation par e-mail.',
         'throttled' => 'Trop de demandes, patientez un peu avant de réessayer.',
         'token' => 'Ce lien de réinitialisation est invalide ou a expiré.',
-        'user' => 'Aucun compte ne correspond à cette adresse e-mail.',
     ],
 
     // Pages
@@ -54,7 +53,6 @@ return [
     'locale_hint' => 'La langue s’applique dès l’enregistrement.',
     'remember_label' => 'Se souvenir de moi',
     'role_label' => 'Rôle',
-    'reputation_label' => 'Réputation',
     'member_since' => 'Membre depuis',
     'email_fixed_hint' => 'Cette adresse sert à vous connecter.',
 
@@ -68,14 +66,15 @@ return [
         'password_short' => 'Le mot de passe doit contenir au moins 8 caractères.',
         'confirmation_required' => 'Saisissez à nouveau le mot de passe pour le confirmer.',
         'confirmation_mismatch' => 'Les deux mots de passe ne sont pas identiques.',
+        'terms_required' => 'Cochez la case pour accepter les conditions générales d’utilisation.',
         'login_failed_title' => 'Connexion impossible',
     ],
 
     // Actions
     'submit' => 'Valider',
     'login_cta' => 'Se connecter',
-    'register_terms' => 'En créant un compte, vous acceptez les <a href="/use-conditions">conditions générales d’utilisation</a>.',
-    'register_privacy' => 'UnxWares, responsable du traitement, utilise votre nom, votre adresse e-mail et votre mot de passe (jamais conservé en clair) pour vous identifier et gérer vos contributions. Durées de conservation, droits et contact : <a href="/privacy">politique de confidentialité</a>.',
+    'register_terms' => 'Vous acceptez les <a href="/use-conditions">conditions générales d’utilisation</a>',
+    'register_privacy' => 'UnxWares, responsable du traitement, enregistre votre nom d’affichage, votre adresse électronique, votre mot de passe (sous forme hachée, jamais en clair), votre langue, ainsi que la date et la version des conditions générales d’utilisation que vous acceptez. Ces données servent à vous identifier, à gérer vos contributions et à vous envoyer les courriels de service, comme le lien de réinitialisation du mot de passe. Base légale : l’exécution des conditions générales d’utilisation. Durées de conservation, droits et contact : <a href="/privacy">politique de confidentialité</a>.',
     'register_cta' => 'Créer mon compte',
     'forgot_cta' => 'Envoyer le lien',
     'reset_cta' => 'Enregistrer le mot de passe',

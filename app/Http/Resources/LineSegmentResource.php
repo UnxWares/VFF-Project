@@ -4,13 +4,16 @@ namespace App\Http\Resources;
 
 use App\Models\LineSegment;
 use App\Services\Api\Provenance;
+use App\Services\TraceExport\LineTraceExport;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Tronçon d'une ligne à une ère (portion homogène du tracé : même état, même trafic, mêmes
  * caractéristiques techniques), avec la provenance de son tracé. La géométrie GeoJSON n'est jointe
- * que si la requête la demande (`geometry=true`, colonne calculée `geojson`).
+ * que si la requête la demande (`geometry=true`, colonne calculée `geojson`), et seulement pour un tronçon
+ * dont la source autorise la redistribution (LineTraceExport::redistributable) : sinon `geometry` vaut
+ * null et `geometry_withheld` true.
  *
  * @mixin LineSegment
  */
@@ -19,6 +22,9 @@ class LineSegmentResource extends JsonResource
     /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
+        $withGeometry = $this->resource->getAttribute('geojson') !== null;
+        $redistributable = app(LineTraceExport::class)->redistributable($this->source);
+
         return [
             'id' => $this->id,
             'pk_start_m' => $this->pk_start_m,
@@ -44,7 +50,8 @@ class LineSegmentResource extends JsonResource
             'reuse' => $this->reuse,
             'source' => $this->source,
             'provenance' => app(Provenance::class)->for('line_segments', $this->source),
-            'geometry' => $this->when($this->resource->getAttribute('geojson') !== null, fn () => json_decode((string) $this->resource->getAttribute('geojson'), true)),
+            'geometry' => $this->when($withGeometry, fn () => $redistributable ? json_decode((string) $this->resource->getAttribute('geojson'), true) : null),
+            'geometry_withheld' => $this->when($withGeometry, ! $redistributable),
         ];
     }
 }

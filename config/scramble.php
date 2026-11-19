@@ -22,6 +22,7 @@ return [
 
     'info' => [
         'version' => env('API_VERSION', '1.0.0'),
+        // {limit.anonymous|member|partner} : limites de config/api.php, posées par App\Support\ApiAuthDocumentation.
         'description' => <<<'MD'
             API publique de **VFF - Voies Ferrées de France**, l'encyclopédie collaborative du rail français :
             tracés, gares, chronologies, signalisation et médias du réseau ferroviaire, de 1830 à aujourd'hui.
@@ -31,10 +32,13 @@ return [
             - **annuaire des lignes** (`/lines`, filtres de la page [/lines](/lines)) et **fiche complète**
               d'une ligne (`/lines/{line}` : chiffres clés, électrification, signalisation, phases datées,
               chronique sourcée, gares, sections nommées, sources), avec ses tronçons par ère
-              (`/lines/{line}/segments`), sa chronologie, ses gares par ère, sa signalisation, ses médias ;
+              (`/lines/{line}/segments`), en GeoJSON (`/lines/{line}/geojson`) ou en fichier GPX et KML à
+              télécharger (`/lines/{line}/gpx`, `/lines/{line}/kml`), sa chronologie, ses gares par
+              ère, sa signalisation, son profil en long, ses passages à niveau, ses médias ;
             - **annuaire des gares** (`/stations`) et **fiche complète** d'une gare (`/stations/{station}`) ;
-            - **époques** (`/eras`) et **statistiques du réseau** à chaque époque (`/eras/{year}`), cartes
-              par ère (GeoJSON, tuiles MVT, GTFS) ;
+            - **chiffres d'ensemble** du site et courbe du réseau (`/stats`), **époques** (`/eras`) et
+              **statistiques du réseau** à chaque époque (`/eras/{year}`), cartes par ère (GeoJSON, tuiles
+              MVT, GTFS) ;
             - **événements** de tout le réseau (`/events`) et **médias** (`/media`) ;
             - **matériel roulant** (`/materials`) ; **itinéraires historiques** (`/route`) ; **recherche** ;
             - **registre des sources et licences** (`/sources`).
@@ -53,20 +57,59 @@ return [
             ## Formats
             - **JSON** pour les fiches, la recherche et les itinéraires ;
             - **GeoJSON** (RFC 7946, coordonnées WGS 84 dans l'ordre longitude, latitude) pour les tracés et les gares ;
+            - **GPX 1.1** et **KML 2.2** (fichiers à télécharger) pour le tracé d'une ligne ;
             - **Mapbox Vector Tiles** (MVT) pour l'affichage cartographique avec MapLibre GL ;
             - **GTFS Static** (ZIP) pour les outils de transport.
 
             Distances et points kilométriques (PK) en **mètres**, notation ferroviaire `km+mmm`
             (`249+204` = 249,204 km), vitesses en km/h, tensions en volts, écartements en millimètres.
 
-            ## Accès et authentification
-            Aucune authentification : tous les points d'accès sont en lecture (`GET`), **anonymes** et
-            sans clé ni compte. Limite : 300 requêtes par minute et par adresse IP (HTTP 429 au-delà),
-            la même pour GraphQL et le serveur MCP. Les réponses portent un en-tête `Cache-Control`
-            (5 minutes en général, 1 heure pour le registre des sources) : gardez-les en cache plutôt
-            que de les redemander. Envoyez l'en-tête `Accept: application/json`. Les textes tirés des
-            sources et rédigés par VFF (notes, présentations d'ères, chroniques) sont en français.
+            ## Authentification et quotas
+            Tous les points d'accès sont en lecture (`GET`) et s'appellent **sans jeton** ni compte. Un **jeton
+            personnel**, facultatif, relève la limite de débit : un membre le crée depuis son profil (section
+            « Jetons d'accès à l'API » de [/profile](/profile)). Il ne sert qu'à lire, comme l'accès anonyme, et
+            n'est affiché qu'une fois, à sa création. Il s'envoie dans l'en-tête `Authorization: Bearer <jeton>`.
 
+            | Profil | Limite | Compteur |
+            | --- | --- | --- |
+            | Sans jeton | {limit.anonymous} requêtes par minute | par adresse IP |
+            | Jeton d'un membre | {limit.member} requêtes par minute | par compte, tous ses jetons ensemble |
+            | Jeton d'un compte partenaire | {limit.partner} requêtes par minute | par compte (profil accordé par l'équipe de VFF) |
+
+            Le compteur est commun à l'API REST, à GraphQL et au serveur MCP. Chaque réponse porte
+            `X-RateLimit-Limit` (la limite de l'appelant) et `X-RateLimit-Remaining` (requêtes restantes dans la
+            minute). Au-delà, **HTTP 429** avec `Retry-After` (attente en secondes). Un jeton inconnu, révoqué
+            ou expiré donne **HTTP 401** (`"error": "invalid_token"`) : l'appel n'est pas compté comme
+            anonyme, retirez l'en-tête pour revenir à l'accès sans jeton. Le jeton d'un compte suspendu donne
+            **HTTP 403** (`"error": "account_suspended"`) jusqu'à la fin de la suspension.
+
+            ```bash
+            curl -i https://vff-project.org/api/v1/stats
+            curl -i -H "Authorization: Bearer $VFF_TOKEN" https://vff-project.org/api/v1/stats
+            ```
+
+            ```javascript
+            const response = await fetch("https://vff-project.org/api/v1/stats", {
+                headers: { Authorization: `Bearer ${process.env.VFF_TOKEN}` },
+            });
+            console.log(response.status, response.headers.get("X-RateLimit-Limit"), response.headers.get("X-RateLimit-Remaining"));
+            ```
+
+            ```python
+            import os, time
+            import requests
+
+            headers = {"Authorization": f"Bearer {os.environ['VFF_TOKEN']}"}
+            response = requests.get("https://vff-project.org/api/v1/stats", headers=headers, timeout=30)
+            if response.status_code == 429:
+                time.sleep(int(response.headers["Retry-After"]))
+            print(response.status_code, response.headers["X-RateLimit-Limit"], response.headers["X-RateLimit-Remaining"])
+            ```
+
+            Les réponses portent aussi un en-tête `Cache-Control` (5 minutes en général, 1 heure pour le
+            registre des sources) : gardez-les en cache plutôt que de les redemander. Envoyez l'en-tête
+            `Accept: application/json`. Les textes tirés des sources et rédigés par VFF (notes, présentations
+            d'ères, chroniques) sont en français.
             ## Conventions communes
             - **Identifiants** : les lignes et les gares se désignent par leur `slug` (ex. `rfn-420000`,
               `brest`), les événements et les médias par leur `id` numérique, les ères par leur année.
@@ -90,8 +133,10 @@ return [
               énumération, une date mal formée, une borne dépassée ou un curseur illisible. Corps :
               `{"message": "…", "errors": {"paramètre": ["…"]}}`. Il n'y a pas de HTTP 400 : une requête
               mal formée est toujours signalée par un 422 détaillé.
-            - **429** : plus de 300 requêtes par minute. L'en-tête `Retry-After` donne l'attente en
-              secondes, `X-RateLimit-Remaining` le nombre de requêtes restantes.
+            - **401** : jeton invalide, révoqué ou expiré (`invalid_token`) ; **403** : jeton d'un compte
+              suspendu (`account_suspended`). Voir « Authentification et quotas ».
+            - **429** : limite de requêtes par minute dépassée ({limit.anonymous} sans jeton). L'en-tête `Retry-After`
+              donne l'attente en secondes, `X-RateLimit-Remaining` le nombre de requêtes restantes.
             - Les messages d'erreur de validation sont en anglais, quelle que soit la langue du site.
 
             ## Pagination par curseur
@@ -114,8 +159,12 @@ return [
             cette licence (`license_status` : `verified` licence ouverte établie, `uncertain` autorisation
             particulière ou conditions à lire, `forbidden`). Chaque média porte son auteur, sa licence,
             son `attribution` prête à afficher et le lien `source_url` de sa page d'origine. Les fiches
-            gardent la source de chaque fait (`facts`, `attribute_sources`, notes de la chronique). Le
-            registre complet des fournisseurs (licence, mention à reproduire, pages qui l'établissent)
+            gardent la source de chaque fait (`facts`, `attribute_sources`, notes de la chronique). Les
+            sources d'une gare donnent leur provenance brute en lecture seule : identifiant dans la source,
+            date de lecture (`fetched_at`), attributs reçus tels quels (`raw`), méthode de rapprochement et
+            écart à la position retenue. La présentation d'une ligne (`description`) est un extrait de
+            Wikipédia sous CC BY-SA 4.0 : `description_source` donne de quoi la citer (auteur collectif,
+            article, permalien de la version lue, licence, mention prête à copier). Le registre complet des fournisseurs (licence, mention à reproduire, pages qui l'établissent)
             est sur `/sources`. Citez toujours le fournisseur en réutilisant une donnée.
 
             ## Licences et sources
@@ -124,7 +173,102 @@ return [
             Data et OpenStreetMap (ODbL), IGN BD TOPO (Licence Ouverte 2.0), OpenHistoricalMap et Wikidata
             (CC0), Wikipédia (CC BY-SA). Les données signalées par `source` = `archeoferroviaire` ne sont
             pas sous ODbL : usage non commercial uniquement, avec un crédit et un lien vers la source.
-            Chaque média porte sa propre licence et son attribution.
+            Le tracé d'une ligne en fichier (`/lines/{line}/geojson`, `/gpx`, `/kml`) ne contient que les
+            géométries dont la source a une licence ouverte : celles d'une source non commerciale, sous
+            accord particulier ou de statut incertain en sont écartées, et la réponse dit lesquelles
+            (`withheld`, `geometry_withheld`, ou HTTP 451 quand rien n'est exportable). Chaque fichier porte
+            la mention de la base VFF et celle de chaque source utilisée. Chaque média porte sa propre
+            licence et son attribution.
+
+            ## Webhooks
+            Plutôt que d'interroger l'API à intervalles réguliers, un membre peut recevoir un message à chaque
+            changement qui l'intéresse. Il déclare une adresse **HTTPS** publique (port 443) depuis son profil
+            (section « Webhooks » de [/profile](/profile)), choisit les événements et reçoit un **secret de
+            signature**, montré une seule fois. {webhooks.max} abonnements au plus par compte ; un compte suspendu
+            ne reçoit rien.
+
+            | Événement (`type`) | Quand | `data.resource` |
+            | --- | --- | --- |
+            | `contribution.applied` | une contribution approuvée est appliquée à une ligne ou à une gare | `line` ou `station` |
+            | `current_era.refreshed` | le recalcul quotidien de l'ère courante a changé des lignes ou des gares | `era` |
+            | `accident.published` | une nouvelle fiche d'accident est publiée, après la vérification de ses sources (`vff:verify-accidents`) ; jamais un doublon ni un heurt de personne | `accident` |
+            | `material.published` | un import publie une nouvelle fiche de matériel roulant | `material` |
+
+            Chaque message est un `POST` avec un corps JSON court, sans aucune donnée personnelle (ni membre,
+            ni numéro de contribution). `data.id` est le slug de la ressource (l'année pour une ère) et
+            `data.url` son adresse dans cette API, à lire pour obtenir le détail :
+
+            ```json
+            {
+              "id": "6f1c2e0a-8d4b-4c1e-9a7f-2b5d3e4c1a90",
+              "type": "contribution.applied",
+              "created_at": "2026-11-19T14:02:11+00:00",
+              "data": {
+                "resource": "line",
+                "id": "rfn-420000",
+                "url": "https://vff-project.org/api/v1/lines/rfn-420000"
+              }
+            }
+            ```
+
+            `current_era.refreshed` ajoute `as_of` (date du recalcul, `AAAA-MM-JJ`), `lines_changed` et
+            `stations_changed` (nombres de lignes et de gares recalculées).
+
+            En-têtes envoyés :
+            - `VFF-Event` : le type de l'événement ;
+            - `VFF-Delivery` : identifiant de l'événement (UUID), le même à chaque nouvel essai : servez-vous-en
+              pour ignorer un doublon ;
+            - `VFF-Signature` : `t=<horodatage Unix>,v1=<signature>`, où la signature est le HMAC-SHA256 en
+              hexadécimal, avec votre secret, de la chaîne `<t>.<corps brut>` ;
+            - `Content-Type: application/json` et `User-Agent: VFF-Webhooks/1.0`.
+
+            **Vérifiez chaque message** sur le corps brut, avant tout décodage JSON : recalculez la signature,
+            comparez-la en temps constant et refusez un horodatage éloigné de plus de {webhooks.tolerance}
+            secondes de votre horloge. Un message intercepté ne peut donc pas être rejoué plus tard.
+
+            ```javascript
+            import crypto from "node:crypto";
+
+            // rawBody : le corps reçu, tel quel (chaîne) ; header : l'en-tête VFF-Signature.
+            export function verifyVffSignature(rawBody, header, secret, toleranceSeconds = {webhooks.tolerance}) {
+                const fields = Object.fromEntries(header.split(",").map((part) => part.trim().split("=")));
+                const timestamp = Number(fields.t);
+                if (!Number.isInteger(timestamp) || Math.abs(Date.now() / 1000 - timestamp) > toleranceSeconds) {
+                    return false;
+                }
+                const expected = crypto.createHmac("sha256", secret).update(`${timestamp}.${rawBody}`).digest("hex");
+                const received = Buffer.from(fields.v1 ?? "");
+                return received.length === expected.length && crypto.timingSafeEqual(received, Buffer.from(expected));
+            }
+            ```
+
+            ```python
+            import hashlib
+            import hmac
+            import time
+
+
+            def verify_vff_signature(raw_body: bytes, header: str, secret: str, tolerance: int = {webhooks.tolerance}) -> bool:
+                fields = dict(part.strip().split("=", 1) for part in header.split(",") if "=" in part)
+                try:
+                    timestamp = int(fields["t"])
+                except (KeyError, ValueError):
+                    return False
+                if abs(time.time() - timestamp) > tolerance:
+                    return False
+                expected = hmac.new(secret.encode(), f"{timestamp}.".encode() + raw_body, hashlib.sha256).hexdigest()
+                return hmac.compare_digest(expected, fields.get("v1", ""))
+            ```
+
+            **Répondez vite par un code 2xx** (le corps de la réponse n'est pas lu), puis traitez le message.
+            VFF attend {webhooks.timeout} secondes au plus et ne suit aucune redirection. Un code 408, 429 ou 5xx,
+            un délai dépassé ou une connexion impossible donnent un nouvel essai ({webhooks.attempts} essais au
+            total, après 1 minute, 5 minutes, 30 minutes puis 2 heures) ; un autre code ou une redirection
+            sont un échec définitif. Après {webhooks.disable_after} livraisons échouées d'affilée, l'abonnement est
+            désactivé et le membre en est averti sur le site ; il le réactive depuis son profil, où figure
+            aussi le journal des dernières livraisons. L'adresse est vérifiée à la création puis avant chaque
+            envoi : les adresses IP privées, locales, de bouclage ou de métadonnées (IPv4 et IPv6, y compris
+            après résolution DNS) sont refusées.
 
             ## Versionnement
             L'API est en **version 1** (préfixe `/api/v1`, numéro de version de ce document). Dans une

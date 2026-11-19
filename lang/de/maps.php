@@ -30,16 +30,33 @@ return [
     ],
 
     'overlay' => [
-        'label' => 'Ebene',
         'none' => 'Keine',
-        'orm_standard' => 'OpenRailwayMap - Infrastruktur',
-        'orm_maxspeed' => 'OpenRailwayMap - Höchstgeschwindigkeiten',
-        'orm_signals' => 'OpenRailwayMap - Signale',
-        'orm_electrification' => 'OpenRailwayMap - Elektrifizierung',
-        'orm_gauge' => 'OpenRailwayMap - Spurweite',
         'accidents' => 'Unfälle',
         'level_crossings' => 'Bahnübergänge',
         'signalling' => 'Streckenblock',
+    ],
+
+    // Schaltfläche „Ebenen“ der Werkzeugleiste: VFF-Ebenen zum Ankreuzen, höchstens ein Hintergrund von OpenRailwayMap.
+    'layers' => [
+        'button' => 'Ebenen',
+        'active_one' => ':count Ebene angezeigt',
+        'active_other' => ':count Ebenen angezeigt',
+        'data_legend' => 'Zur Karte hinzufügen',
+        'today_hint' => 'Bahnübergänge und Streckenblock: nur das heutige Netz.',
+        'orm_legend' => 'Hintergrund OpenRailwayMap',
+        'orm_hint' => 'Jeweils ein Hintergrund, unter den Strecken von VFF.',
+        'basemap_legend' => 'Hintergrundkarte',
+        'tint' => 'Ältere Epochen tönen',
+        'tint_hint' => 'Je älter die Epoche, desto blasser wird die Hintergrundkarte und desto mehr geht sie ins Sepia. Das heutige Netz bleibt ungetönt.',
+        'tint_hint_contrast' => 'Tönung aus: Ihr Gerät verlangt einen stärkeren Kontrast.',
+        'current_only_both' => 'Bahnübergänge und Streckenblock sind nur für das heutige Netz bekannt.',
+        'orm' => [
+            'standard' => 'Infrastruktur',
+            'maxspeed' => 'Höchstgeschwindigkeiten',
+            'signals' => 'Signale',
+            'electrification' => 'Elektrifizierung',
+            'gauge' => 'Spurweite',
+        ],
     ],
 
     'legend' => [
@@ -202,7 +219,7 @@ return [
     'read' => [
         'title' => 'Die Karte lesen',
         'era_term' => 'Epoche',
-        'era_text' => 'Die Zeitleiste unter der Karte wählt das Jahrzehnt, von 1830 bis heute. Die Wiedergabetaste zeigt die Jahrzehnte nacheinander.',
+        'era_text' => 'Die Zeitleiste unter der Karte wählt das Jahrzehnt, von 1830 bis heute. Die Wiedergabetaste zeigt die Jahrzehnte nacheinander. Je älter die Epoche, desto mehr geht die Hintergrundkarte ins Sepia; mit dem Kästchen „Ältere Epochen tönen“ unter der Schaltfläche „Ebenen“ schalten Sie die Tönung ab.',
         'color_term' => 'Farbe',
         'color_text' => 'Bei einer Strecke in Betrieb zeigt die Farbe, was darauf verkehrt: Violett für den Hochgeschwindigkeitsverkehr, Orange für das konventionelle Netz mit Personen- und Güterverkehr, Blau für reinen Güterverkehr, Grün für eine von einem Verein betriebene Strecke. Die Modi Elektrifizierung und Spurweite der Legende färben dieselben Strecken nach Spannung oder Spurweite.',
         'line_term' => 'Linie',
@@ -212,7 +229,7 @@ return [
         'route_term' => 'Verbindung',
         'route_text' => 'Geben Sie zwei Bahnhöfe und ein Jahr an: Die Karte zeichnet den Weg auf dem damals betriebenen Netz und listet die befahrenen Strecken auf. Mit „Mit einer anderen Epoche vergleichen“ wird dieselbe Fahrt für ein zweites Jahr gezeichnet, die ältere gestrichelt mit blauem Rand.',
         'layers_term' => 'Ebenen',
-        'layers_text' => 'Die Ebene OpenRailwayMap blendet die heutige Infrastruktur ein: Signale, Geschwindigkeiten, Elektrifizierung. Die Schaltfläche mit der Uhr oben rechts auf der Karte zeigt alte Karten des IGN. Die Ebene Unfälle zeigt die Unfälle bis zur angezeigten Epoche; ein blasser Kreis bedeutet, dass nur die Gemeinde bekannt ist. Die Ebene Bahnübergänge zeigt die von SNCF Réseau veröffentlichten Übergänge, ab dem Maßstab eines Départements. Die Ebene Streckenblock färbt die heutigen Strecken nach ihrem Blocksystem.',
+        'layers_text' => 'Die Schaltfläche Ebenen über der Karte zeigt mehrere Ebenen zugleich. Ein Hintergrund von OpenRailwayMap (jeweils einer) blendet die heutige Infrastruktur ein: Signale, Geschwindigkeiten, Elektrifizierung. Die Schaltfläche mit der Uhr oben rechts auf der Karte zeigt alte Karten des IGN. Die Ebene Unfälle zeigt die Unfälle bis zur angezeigten Epoche; ein blasser Kreis bedeutet, dass nur die Gemeinde bekannt ist. Die Ebene Bahnübergänge zeigt die von SNCF Réseau veröffentlichten Übergänge, ab dem Maßstab eines Départements. Die Ebene Streckenblock färbt die heutigen Strecken nach ihrem Blocksystem.',
         'views_term' => 'Epochen vergleichen',
         'views_text' => 'Die Auswahl „Ansicht“ über der Karte vergleicht zwei Jahrzehnte (dazwischen eröffnete, stillgelegte oder abgebaute Strecken) oder legt alle Epochen übereinander, damit Sie sehen, wann jede Strecke den Betrieb verlor. Die Adresse der Seite behält diese Auswahl: Sie können sie teilen.',
     ],
@@ -292,7 +309,7 @@ return [
         'note' => 'Unfälle ohne bekannten Ort stehen nur in der Liste.',
         'list_link' => 'Liste der Unfälle',
         'loading' => 'Unfälle werden geladen…',
-        'error' => 'Die Unfälle konnten nicht geladen werden. Wählen Sie die Ebene erneut, um es noch einmal zu versuchen.',
+        'error' => 'Die Unfälle konnten nicht geladen werden. Entfernen Sie das Häkchen und setzen Sie es erneut, um es noch einmal zu versuchen.',
         'view_sheet' => 'Zur Seite des Unfalls',
     ],
 

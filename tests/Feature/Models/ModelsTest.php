@@ -260,17 +260,17 @@ class ModelsTest extends TestCase
         $this->assertArrayNotHasKey('password', $array);
         $this->assertArrayNotHasKey('remember_token', $array);
         $this->assertStringNotContainsString('secret-pass', $user->toJson());
-        $this->assertSame(0, $user->fresh()->reputation);
+        $this->assertSame(0, $user->fresh()->reputation_applied);
         $this->assertInstanceOf(CarbonInterface::class, $user->fresh()->email_verified_at);
     }
 
     public function test_user_mass_assignment_ignores_non_fillable_columns(): void
     {
         $user = User::create(['name' => 'Eve', 'email' => 'eve@example.org', 'password' => 'secret-pass',
-            'reputation' => 9999, 'email_verified_at' => now(), 'id' => 4242]);
+            'reputation_applied' => 9999, 'email_verified_at' => now(), 'id' => 4242]);
 
         $user = $user->fresh();
-        $this->assertSame(0, $user->reputation, 'la réputation ne se fixe pas par affectation de masse');
+        $this->assertSame(0, $user->reputation_applied, 'la réputation ne se fixe pas par affectation de masse');
         $this->assertNull($user->email_verified_at);
         $this->assertNotSame(4242, $user->id);
     }

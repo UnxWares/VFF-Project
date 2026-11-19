@@ -30,16 +30,33 @@ return [
     ],
 
     'overlay' => [
-        'label' => 'Calque',
         'none' => 'Aucun',
-        'orm_standard' => 'OpenRailwayMap - Infrastructure',
-        'orm_maxspeed' => 'OpenRailwayMap - Vitesses',
-        'orm_signals' => 'OpenRailwayMap - Signalisation',
-        'orm_electrification' => 'OpenRailwayMap - Électrification',
-        'orm_gauge' => 'OpenRailwayMap - Écartement',
         'accidents' => 'Accidents',
         'level_crossings' => 'Passages à niveau',
         'signalling' => 'Signalisation',
+    ],
+
+    // Bouton « Calques » de la barre d'outils : calques de VFF à cocher, un fond OpenRailwayMap au plus.
+    'layers' => [
+        'button' => 'Calques',
+        'active_one' => ':count calque affiché',
+        'active_other' => ':count calques affichés',
+        'data_legend' => 'Ajouter à la carte',
+        'today_hint' => 'Passages à niveau et signalisation : réseau d’aujourd’hui seulement.',
+        'orm_legend' => 'Fond OpenRailwayMap',
+        'orm_hint' => 'Un seul fond à la fois, sous les lignes de VFF.',
+        'basemap_legend' => 'Fond de carte',
+        'tint' => 'Teinte des époques anciennes',
+        'tint_hint' => 'Plus l’époque est ancienne, plus le fond pâlit et tire vers le sépia. Le réseau d’aujourd’hui n’est pas teinté.',
+        'tint_hint_contrast' => 'Teinte coupée : votre appareil demande un contraste renforcé.',
+        'current_only_both' => 'Les passages à niveau et la signalisation ne sont connus que pour le réseau d’aujourd’hui.',
+        'orm' => [
+            'standard' => 'Infrastructure',
+            'maxspeed' => 'Vitesses',
+            'signals' => 'Signaux',
+            'electrification' => 'Électrification',
+            'gauge' => 'Écartement',
+        ],
     ],
 
     'legend' => [
@@ -202,7 +219,7 @@ return [
     'read' => [
         'title' => 'Lire la carte',
         'era_term' => 'Époque',
-        'era_text' => 'La frise sous la carte choisit la décennie, de 1830 à aujourd’hui. Le bouton lecture fait défiler les décennies une à une.',
+        'era_text' => 'La frise sous la carte choisit la décennie, de 1830 à aujourd’hui. Le bouton lecture fait défiler les décennies une à une. Plus l’époque est ancienne, plus le fond de carte tire vers le sépia ; la case « Teinte des époques anciennes », dans le bouton Calques, coupe cette teinte.',
         'color_term' => 'Couleur',
         'color_text' => 'Sur une ligne en service, la couleur dit ce qui y circule : violet pour la grande vitesse, orange pour le réseau classique ouvert aux voyageurs et au fret, bleu pour le fret seul, vert pour une ligne exploitée par une association. Les modes Électrification et Écartement de la légende colorent les mêmes tracés selon la tension ou l’écartement des voies.',
         'line_term' => 'Trait',
@@ -212,7 +229,7 @@ return [
         'route_term' => 'Itinéraire',
         'route_text' => 'Indiquez deux gares et une année : la carte trace le parcours sur le réseau en service à cette époque et liste les lignes empruntées. Avec « Comparer avec une autre époque », le même trajet est tracé à une seconde année, en tirets sur liseré bleu pour la plus ancienne.',
         'layers_term' => 'Calques',
-        'layers_text' => 'Le calque OpenRailwayMap superpose l’infrastructure actuelle : signaux, vitesses, électrification. Le bouton à l’horloge, en haut à droite de la carte, affiche des cartes anciennes de l’IGN. Le calque Accidents place les accidents survenus jusqu’à l’époque affichée ; un cercle pâle signale que seule la commune est connue. Le calque Passages à niveau montre les passages publiés par SNCF Réseau, à partir de l’échelle d’un département. Le calque Signalisation colore les lignes d’aujourd’hui selon leur mode de cantonnement.',
+        'layers_text' => 'Le bouton Calques, au-dessus de la carte, en affiche plusieurs à la fois. Un fond OpenRailwayMap (un seul à la fois) superpose l’infrastructure actuelle : signaux, vitesses, électrification. Le bouton à l’horloge, en haut à droite de la carte, affiche des cartes anciennes de l’IGN. Le calque Accidents place les accidents survenus jusqu’à l’époque affichée ; un cercle pâle signale que seule la commune est connue. Le calque Passages à niveau montre les passages publiés par SNCF Réseau, à partir de l’échelle d’un département. Le calque Signalisation colore les lignes d’aujourd’hui selon leur mode de cantonnement.',
         'views_term' => 'Comparer les époques',
         'views_text' => 'Le choix « Vue », au-dessus de la carte, compare deux décennies (lignes ouvertes, fermées ou déposées entre les deux) ou superpose toutes les époques pour voir quand chaque ligne a quitté le service. L’adresse de la page garde ce choix : vous pouvez la partager.',
     ],
@@ -292,7 +309,7 @@ return [
         'note' => 'Les accidents dont le lieu n’est pas connu figurent seulement dans la liste.',
         'list_link' => 'Liste des accidents',
         'loading' => 'Chargement des accidents…',
-        'error' => 'Les accidents n’ont pas pu être chargés. Choisissez à nouveau le calque pour réessayer.',
+        'error' => 'Les accidents n’ont pas pu être chargés. Décochez puis cochez de nouveau le calque pour réessayer.',
         'view_sheet' => 'Voir la fiche de l’accident',
     ],
 

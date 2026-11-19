@@ -39,6 +39,21 @@ class MaterialGraphQLTest extends TestCase
         ]);
     }
 
+    public function test_the_service_state_scope_and_their_filters_are_available(): void
+    {
+        Material::factory()->fromWikidata()->inService(12, '2026-07-13')->attested()->create(['slug' => 'db-407', 'name' => 'DB 407', 'type' => 'bimode']);
+
+        $this->graphQL('{ materials(first: 10, filter: {service_status: "in_service", scope: "attested"}) { edges { node { slug type type_label scope service { status units_in_service as_of checked_at source url } } } } }')
+            ->assertGraphQLErrorFree()
+            ->assertJsonPath('data.materials.edges', [['node' => [
+                'slug' => 'db-407', 'type' => 'bimode', 'type_label' => 'Rame ou engin bimode', 'scope' => 'attested',
+                'service' => ['status' => 'in_service', 'units_in_service' => 12, 'as_of' => '2026-07-13', 'checked_at' => '2026-11-19', 'source' => 'wikipedia', 'url' => 'https://fr.wikipedia.org/w/index.php?title=BB_15000&oldid=237800094'],
+            ]]]);
+
+        $this->graphQL('{ material(slug: "bb-15000") { scope service { status source } } }')
+            ->assertJsonPath('data.material', ['scope' => 'france', 'service' => ['status' => null, 'source' => null]]);
+    }
+
     public function test_materials_can_be_filtered_and_sorted_like_the_rest_api(): void
     {
         $response = $this->graphQL(/** @lang GraphQL */ '

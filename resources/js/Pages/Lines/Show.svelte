@@ -28,13 +28,14 @@
     import LineProfile from '$components/Lines/LineProfile.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
+    import TraceDownload from '$components/Lines/TraceDownload.svelte';
     import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SheetToc from '$components/Sheet/SheetToc.svelte';
     import SeoHead from '$components/SeoHead.svelte';
     import { breadcrumbSchema, lineSchema } from '$lib/structuredData.js';
     import { servicePeriodText } from '$lib/materialFacts.js';
-    import { signallingWithGaps } from '$lib/signallingMap.js';
+    import { signallingSystems, signallingWithGaps, systemsLabel } from '$lib/signallingMap.js';
     import {
         bestPhaseIndex,
         categoryColor,
@@ -57,7 +58,7 @@
      *   decades?: Array<any>, chronicle?: { events: Array<any>, groups: Array<any>, notes: Array<any>, conflicts: Array<any> },
      *   accidents?: Array<any>,
      *   level_crossings?: { total: number, summary: Array<any>, items: Array<any> },
-     *   profile?: any,
+     *   profile?: any, trace_export_eras?: Array<number>,
      * }} */
     let {
         line,
@@ -80,6 +81,8 @@
         level_crossings = { total: 0, summary: [], items: [] },
         // Profil en long, s'il est calculé (App\Services\Profiles\LineProfiles).
         profile = null,
+        // Années des ères dont le tracé peut être téléchargé (App\Services\TraceExport\LineTraceExport).
+        trace_export_eras = [],
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
@@ -175,6 +178,8 @@
     }
     const isCabin = (sig) => /^(TVM-|ETCS_)/.test(sig);
     const hasCabin = $derived(signalling.some((r) => isCabin(r.signalling)));
+    // Tranches à deux systèmes installés ensemble (ETCS niveau 2 et TVM sur les LGV récentes).
+    const hasDual = $derived(signalling.some((r) => signallingSystems(r).length > 1));
     // Tranches dans l'ordre des PK, avec les trous des données intercalés (clé stable par tranche).
     const signallingRows = $derived(
         signallingWithGaps(signalling.map((r, i) => ({ ...r, key: `r-${i}` }))),
@@ -435,6 +440,7 @@
     const signallingIntro = $derived(
         t('lines.sheet.tech.signalling_intro') +
             (line.is_lgv && hasCabin ? ` ${t('lines.sheet.tech.signalling_intro_cab')}` : '') +
+            (hasDual ? ` ${t('lines.sheet.tech.signalling_intro_dual')}` : '') +
             ` ${t('lines.sheet.tech.signalling_today')}`,
     );
     /** Liste « code sur N km » (stats.*_coverage), sinon la liste simple des codes. */
@@ -594,6 +600,12 @@
             {:else}
                 <p class="empty">{t('lines.phases.empty')}</p>
             {/if}
+            <TraceDownload
+                slug={line.slug}
+                eras={trace_export_eras}
+                currentYear={todayDecade?.year ?? null}
+                known={portions.length > 0}
+            />
         </SheetSection>
 
         <SheetSection id="about" label={t('lines.section.about')}>
@@ -1091,7 +1103,7 @@
                                                         ? t('lines.signalling.cabin')
                                                         : t('lines.signalling.block')}</span
                                                 >
-                                                {sigLabel(r.signalling)}</span
+                                                {systemsLabel(r, t)}</span
                                             >
                                         </p>
                                         {#if r.train_protection.length || r.kvb_equipped}
@@ -1420,6 +1432,24 @@
     }
     .infobox dl {
         margin: 0;
+    }
+    /* Fiche longue (9 rangées ou plus) dans une colonne assez large : deux colonnes, libellé au-dessus
+       de la valeur, dans l'ordre de lecture (colonne par colonne). La fiche n'est plus bien plus haute
+       que le texte, donc plus de grand vide sous l'introduction (mise en page seulement : mêmes
+       rangées, même ordre). */
+    .infobox {
+        container: fiche / inline-size;
+    }
+    @container fiche (min-width: 28rem) {
+        .infobox dl:has(> .row:nth-child(9)) {
+            column-count: 2;
+            column-gap: 32px;
+        }
+        .infobox dl:has(> .row:nth-child(9)) > .row {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 2px;
+            break-inside: avoid;
+        }
     }
     .infobox .row {
         display: grid;

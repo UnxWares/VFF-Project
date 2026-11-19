@@ -17,7 +17,8 @@ use Illuminate\Support\Facades\DB;
  *
  * Gare visée (clé « station ») : « name » (obligatoire, contrôle) et une clé stable parmi
  * « uic » (stations.uic_code), « wikidata », « osm » (station_sources osm, ex. « w37889707 ») ;
- * « near » [lng, lat, rayon en km] départage deux fiches homonymes. Une correction dont la
+ * « near » [lng, lat, rayon en km] départage deux fiches homonymes, ou désigne seule une gare
+ * sans identifiant (halte lue dans un schéma Wikipédia : Charantonnay). Une correction dont la
  * gare est introuvable ou ambiguë n'est pas appliquée (signalée).
  *
  * Actions :
@@ -29,13 +30,27 @@ use Illuminate\Support\Facades\DB;
  *   - kind       : « excluded » (hors du réseau ferré : tramway, métro, funiculaire, fiche
  *                  erronée) ou « projected » (gare annoncée, jamais ouverte) ;
  *   - tourist    : train d'attraction ou touristique sans ligne VFF : statut « touristique » ;
- *   - position   : lng, lat (WGS 84) d'une meilleure source.
+ *   - current    : état du jour (ère courante seulement), « status » active (desservie aujourd'hui
+ *                  par des trains de voyageurs publics : horaires publiés) ou declassified (plus
+ *                  desservie aujourd'hui) ; il remplace le statut des sources (drapeau fret seul de
+ *                  la liste SNCF sur une section RATP, gare dite touristique d'une ligne à service
+ *                  public quotidien, halte dont l'arrêt est supprimé), le plafond par les lignes
+ *                  (règle R2) s'applique ensuite ; « plus desservie » empêche aussi la réouverture
+ *                  déduite d'une réouverture de la ligne (vff:build-station-eras, étape f) ;
+ *   - position   : lng, lat (WGS 84) d'une meilleure source ;
+ *   - pk         : PK de la gare sur une ligne (« line » : code SNCF, « pk_m » : mètres), d'après
+ *                  un schéma ou un article (PK interpolé faux : Troyes sur Troyes - Brienne) ;
+ *                  réécrit station_lines.pk_m (pk_source « correction ») avant les dates déduites
+ *                  et les arrêts (line_stops), à chaque passage.
  *
  * Champs communs : source_url, quote (citation courte), reason. Pas de tiret long.
  */
 final class StationCorrections
 {
-    public const ACTIONS = ['add', 'neutralize', 'kind', 'tourist', 'position'];
+    public const ACTIONS = ['add', 'neutralize', 'kind', 'tourist', 'current', 'position', 'pk'];
+
+    /** États du jour admis par l'action « current ». */
+    public const CURRENT_STATUSES = [StationTimeline::ACTIVE, StationTimeline::CLOSED];
 
     public const EVENT_TYPES = ['opening', 'reopening', 'closure', 'closure_passenger', 'closure_freight', 'demolition'];
 
@@ -62,8 +77,12 @@ final class StationCorrections
             $errors[] = 'action inconnue';
         }
         $st = $c['station'] ?? [];
-        if (! is_array($st) || ! isset($st['name']) || ! array_intersect_key($st, array_flip(['uic', 'wikidata', 'osm']))) {
-            $errors[] = 'gare : name + uic, wikidata ou osm';
+        if (! is_array($st) || ! isset($st['name']) || ! array_intersect_key($st, array_flip(['uic', 'wikidata', 'osm', 'near']))) {
+            $errors[] = 'gare : name + uic, wikidata, osm ou near';
+        }
+        if (is_array($st) && isset($st['near']) && (! is_array($st['near']) || count($st['near']) !== 3
+            || array_filter($st['near'], fn ($v) => ! is_numeric($v)) !== [] || $st['near'][2] <= 0 || $st['near'][2] > 5)) {
+            $errors[] = 'gare : near [lng, lat, rayon en km, 5 au plus]';
         }
         if (! isset($c['source_url']) || ! str_starts_with((string) $c['source_url'], 'http')) {
             $errors[] = 'source_url manquante';
@@ -82,8 +101,14 @@ final class StationCorrections
         if ($action === 'kind' && ! in_array($c['kind'] ?? null, [StationTimeline::KIND_EXCLUDED, StationTimeline::KIND_PROJECTED], true)) {
             $errors[] = 'kind : excluded ou projected';
         }
+        if ($action === 'current' && ! in_array($c['status'] ?? null, self::CURRENT_STATUSES, true)) {
+            $errors[] = 'current : status active ou declassified';
+        }
         if ($action === 'position' && (! is_numeric($c['lng'] ?? null) || ! is_numeric($c['lat'] ?? null))) {
             $errors[] = 'position : lng, lat';
+        }
+        if ($action === 'pk' && (preg_match('/^\d{6}$/', (string) ($c['line'] ?? '')) !== 1 || ! is_int($c['pk_m'] ?? null) || $c['pk_m'] < 0)) {
+            $errors[] = 'pk : line (code SNCF), pk_m (entier, mètres)';
         }
         foreach (['reason', 'quote'] as $k) {
             if (isset($c[$k]) && (str_contains((string) $c[$k], "\u{2014}") || str_contains((string) $c[$k], '--'))) {
@@ -143,15 +168,32 @@ final class StationCorrections
     }
 
     /**
-     * Applique les corrections en base : événements (add, neutralize) et positions.
-     * Renvoie les gares de nature imposée (kind) et les gares touristiques (tourist),
-     * appliquées par vff:build-station-eras.
+     * État du jour imposé (action « current ») : [id => active | declassified].
      *
-     * @return array{kinds: array<int, string>, tourist: array<int, true>, applied: int, skipped: list<string>}
+     * @return array<int, string>
+     */
+    public function currentStatuses(): array
+    {
+        $out = [];
+        foreach ($this->corrections as $c) {
+            if (($c['action'] ?? null) === 'current' && self::validate($c) === [] && count($ids = self::resolveStation($c['station'])) === 1) {
+                $out[$ids[0]] = (string) $c['status'];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Applique les corrections en base : événements (add, neutralize), positions et PK.
+     * Renvoie les gares de nature imposée (kind), les gares touristiques (tourist) et l'état
+     * du jour imposé (current), appliqués par vff:build-station-eras.
+     *
+     * @return array{kinds: array<int, string>, tourist: array<int, true>, current: array<int, string>, applied: int, skipped: list<string>}
      */
     public function apply(): array
     {
-        $out = ['kinds' => [], 'tourist' => [], 'applied' => 0, 'skipped' => []];
+        $out = ['kinds' => [], 'tourist' => [], 'current' => [], 'applied' => 0, 'skipped' => []];
         DB::transaction(function () use (&$out) {
             DB::table('station_events')->where('source', StationTimeline::CORRECTION)->delete();
             foreach ($this->corrections as $i => $c) {
@@ -186,6 +228,11 @@ final class StationCorrections
                     SQL, [(float) $c['lng'], (float) $c['lat'], (string) $c['source_url'], $sid, (float) $c['lng'], (float) $c['lat']]) >= 0,
                     'kind' => (bool) ($out['kinds'][$sid] = $c['kind']),
                     'tourist' => $out['tourist'][$sid] = true,
+                    'current' => (bool) ($out['current'][$sid] = (string) $c['status']),
+                    'pk' => DB::update(<<<'SQL'
+                        UPDATE station_lines SET pk_m = ?, pk_source = 'correction', updated_at = NOW()
+                        WHERE station_id = ? AND line_id IN (SELECT id FROM lines WHERE code = ?)
+                    SQL, [(int) $c['pk_m'], $sid, (string) $c['line']]) > 0,
                     default => false,
                 };
                 if ($done) {

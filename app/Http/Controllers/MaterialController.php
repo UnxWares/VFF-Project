@@ -44,7 +44,7 @@ class MaterialController extends Controller
         // Colonnes choisies avant apply(), qui y ajoute le nombre de lignes (`lines_count`).
         $columns = Material::query()->select(['materials.slug', 'materials.name', 'materials.type', 'materials.builder',
             'materials.designations', 'materials.in_service_from', 'materials.in_service_to', 'materials.units_built',
-            'materials.max_speed_kmh', 'materials.image']);
+            'materials.max_speed_kmh', 'materials.image', 'materials.service_status']);
         $list = $query->apply($columns, ['q' => $q, 'type' => $type, 'sort' => $sort])
             ->paginate(self::PER_PAGE)
             ->withQueryString();
@@ -69,6 +69,7 @@ class MaterialController extends Controller
                     'in_service_to' => $m->in_service_to,
                     'units_built' => $m->units_built,
                     'max_speed_kmh' => $m->max_speed_kmh,
+                    'service_status' => $m->service_status,
                     'lines_count' => (int) $m->lines_count,
                     'thumb' => self::thumbOf($m->image),
                 ])->all(),
@@ -115,7 +116,7 @@ class MaterialController extends Controller
             ] + Arr::only($detail, [
                 'type_label', 'designations', 'builders', 'operators', 'units_built', 'max_speed_kmh', 'power_kw',
                 'electrification', 'gauge_mm', 'gauges', 'wheel_arrangement', 'fleet_numbers', 'image',
-                'commons_category_url', 'wikidata_url', 'wikipedia', 'field_sources',
+                'commons_category_url', 'wikidata_url', 'wikipedia', 'field_sources', 'service', 'scope',
             ]),
             'lines' => $links->map(fn (LineMaterial $link) => [
                 'slug' => $link->line->slug,

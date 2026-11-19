@@ -35,9 +35,10 @@ class HandleInertiaRequests extends Middleware
                     'name' => $request->user()->name,
                     'email' => $request->user()->email,
                     'role' => $request->user()->role->value,
-                    'reputation' => $request->user()->reputation,
                     'avatar_path' => $request->user()->avatar_path,
                     'locale_preference' => $request->user()->locale_preference,
+                    // Compte suspendu : les formulaires de contribution et de signalement l'annoncent.
+                    'suspended' => $request->user()->isSuspended(),
                 ] : null,
                 // Nombre de notifications non lues (menu du compte) : un simple compte, jamais
                 // leur contenu ; null pour un visiteur.

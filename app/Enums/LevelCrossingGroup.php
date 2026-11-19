@@ -34,7 +34,7 @@ enum LevelCrossingGroup: string
     /** Ordre d'affichage (résumé, légende). */
     public const ORDER = ['automatic', 'guarded', 'no_barrier', 'pedestrian', 'private', 'secondary'];
 
-    /** Classes officielles connues (description du jeu SNCF Réseau, lue le 20/11/2026). */
+    /** Classes officielles connues (description du jeu SNCF Réseau, lue le 19/11/2026). */
     public const CLASSES = [0, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 31, 32, 41, 42, 43, 44, 45, 46];
 
     /** Groupe d'une classe ; null pour une classe absente de la liste officielle. */
