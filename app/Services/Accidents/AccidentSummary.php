@@ -54,6 +54,31 @@ final class AccidentSummary
     }
 
     /**
+     * Nom par langue : libellé de la source quand il existe, sinon nature et commune (« Déraillement à
+     * Cléon »).
+     *
+     * @param  array<string, string>  $labels  libellés de la source par langue
+     * @return array<string, string>
+     */
+    public function names(array $labels, AccidentKind $kind, ?string $commune): array
+    {
+        $out = [];
+        foreach (self::LOCALES as $locale) {
+            if (isset($labels[$locale])) {
+                $out[$locale] = $labels[$locale];
+
+                continue;
+            }
+            $kindName = __('accidents.names.kinds.'.$kind->value, [], $locale);
+            $out[$locale] = $commune !== null
+                ? __('accidents.names.at_commune', ['kind' => $kindName, 'commune' => $commune], $locale)
+                : $kindName;
+        }
+
+        return $out;
+    }
+
+    /**
      * Libellé d'un train : nom de service et numéro (« TER 849 902 »), sinon catégorie traduite
      * (« train de fret »), puis le matériel entre parenthèses quand il est connu.
      *

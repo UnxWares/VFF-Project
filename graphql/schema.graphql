@@ -1286,8 +1286,20 @@ type Accident {
         lang: String = "fr"
     ): String @field(resolver: "App\\GraphQL\\Resolvers\\AccidentField@wikipediaUrl")
 
-    "`ok`, ou `to_review` quand un point reste incertain (voir `review_notes`)."
+    "`ok` : date et lieu confirmés par une source primaire (enquête du BEA-TT) ou par deux sources indépendantes (voir `verification`) ; `to_review` quand un point reste incertain (voir `review_notes`). Le rattachement à une ligne porte sa propre confiance."
     review_status: String! @field(resolver: "App\\GraphQL\\Resolvers\\EnumValue")
+
+    """
+    Vérification de la date et du lieu (`vff:verify-accidents`) : `rule` (`primary_source`, `two_sources`,
+    `wikidata_wikipedia` ou absente), `date` et `place` (valeur retenue ; sources qui concordent `confirmed_by`,
+    qui divergent `disagreeing`, communes voisines `nearby`, chacune avec `provider`, `role`, `url` et la date de
+    lecture `retrieved_at`), `families`, `kind` (nature lue dans une source), `aliases` (autres éléments Wikidata du
+    même accident, gardés avec leurs sources). Nul si la fiche n'a pas été vérifiée.
+    """
+    verification: JSON
+
+    "Date de la dernière vérification, nulle si la fiche n'a pas été vérifiée."
+    verified_at: DateTime
 
     "Points incertains : bilans ou dates qui diffèrent selon les sources, lieu vague, ligne incertaine."
     review_notes: [AccidentReviewNote!]! @field(resolver: "App\\GraphQL\\Resolvers\\AccidentField@reviewNotes")
@@ -1342,6 +1354,12 @@ type AccidentLineLink {
 
     "Score de 0 à 1 : proximité du tracé et concordance des sources."
     score: Float!
+
+    "Titre de l'article de ligne de Wikipédia cité par la source (ex. `Ligne de Paris-Lyon à Marseille-Saint-Charles`). Nul si aucune source ne cite cette ligne."
+    cited_as: String
+
+    "Permalien de la source qui cite la ligne (révision lue de la page de Wikipédia). Nul si aucune source ne cite cette ligne."
+    cited_url: String
 }
 
 "Une source consultée pour un accident."

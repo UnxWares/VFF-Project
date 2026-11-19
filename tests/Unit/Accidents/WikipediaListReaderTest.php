@@ -116,7 +116,7 @@ class WikipediaListReaderTest extends TestCase
         $this->assertSame(['Ligne de Paris à Lille'], $entries[0]['line_articles']);
     }
 
-    /** @return iterable<string, array{string, AccidentKind}> */
+    /** @return iterable<string, array{string, ?AccidentKind}> */
     public static function kinds(): iterable
     {
         yield 'personne heurtée' => ['un TER percute fatalement une dame de 82 ans qui traversait la voie', AccidentKind::PersonStruck];
@@ -126,10 +126,13 @@ class WikipediaListReaderTest extends TestCase
         yield 'piéton à un passage à niveau' => ['un train percute un piéton à un passage à niveau', AccidentKind::LevelCrossing];
         yield 'déraillement avec un agent' => ['le train déraille et percute un agent', AccidentKind::Derailment];
         yield 'déraillement simple' => ['un train de voyageurs déraille', AccidentKind::Derailment];
+        yield 'verbe de collision' => ['un express percute un train de marchandises à l\'arrêt', AccidentKind::Collision];
+        yield 'train qui se renverse' => ['la locomotive et six wagons se renversent', AccidentKind::Derailment];
+        yield 'verbe sans nature' => ['le train arrive en gare avec du retard', null];
     }
 
     #[DataProvider('kinds')]
-    public function test_reads_the_kind(string $text, AccidentKind $kind): void
+    public function test_reads_the_kind(string $text, ?AccidentKind $kind): void
     {
         $entries = $this->reader->read("* {{date|1|mai|1950}} - [[Meudon]] : {$text}.");
 

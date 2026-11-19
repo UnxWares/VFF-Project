@@ -52,6 +52,22 @@ final class AccidentKindClassifier
         AccidentKind::Other->value => '/\b(?:electrocution|haute tension|chute)\b/',
     ];
 
+    /**
+     * Verbes du récit d'une liste (« percute », « tamponne », « se renversent », « s'effondre ») : la
+     * même règle de la première circonstance, mais sur des formes conjuguées que les titres d'enquête
+     * et les types d'infobox n'emploient pas. N'est appliqué qu'à défaut de nature lue par
+     * fromFrenchText() ; un train qui heurte une personne est traité avant par le lecteur de liste.
+     */
+    private const NARRATIVE = [
+        AccidentKind::Derailment->value => '/\b(?:se renvers\w*|se couch\w*|culbut\w*|rails s ecart\w*|(?:quitt|sort)\w* (?:les rails|des rails|la voie|de la voie))/',
+        AccidentKind::Collision->value => '/\b(?:percut\w*|tamponn\w*|telescop\w*|en echarpe|heurt\w*|embouti\w*|rattrap\w*)/',
+        AccidentKind::Runaway->value => '/\b(?:s emball\w*|a la derive)\b/',
+        AccidentKind::Fire->value => '/\b(?:prend(?:nt)? feu|prit feu|en feu)\b/',
+        AccidentKind::Explosion->value => '/\bexplos\w*/',
+        AccidentKind::StructureFailure->value => '/\b(?:s effondr\w*|s ecroul\w*|ecroul\w*|emporte par (?:la crue|les eaux|une crue))/',
+        AccidentKind::PersonStruck->value => '/\bhapp\w*/',
+    ];
+
     /** @param list<string> $classes */
     public function fromWikidataClasses(array $classes): ?AccidentKind
     {
@@ -66,6 +82,22 @@ final class AccidentKindClassifier
 
     public function fromFrenchText(?string $text): ?AccidentKind
     {
+        return $this->firstMatch($text, self::PATTERNS);
+    }
+
+    /** Nature d'après le récit d'une puce de liste (verbes conjugués) ; null si le texte ne la dit pas. */
+    public function fromNarrative(?string $text): ?AccidentKind
+    {
+        return $this->firstMatch($text, self::NARRATIVE);
+    }
+
+    /**
+     * Nature de la première circonstance nommée.
+     *
+     * @param  array<string, string>  $patterns  nature → motif sur le texte normalisé
+     */
+    private function firstMatch(?string $text, array $patterns): ?AccidentKind
+    {
         $norm = PlaceNames::normalize($text);
         if ($norm === '') {
             return null;
@@ -74,7 +106,7 @@ final class AccidentKindClassifier
         $norm = str_replace('sans collision', 'sans', $norm);
         $best = null;
         $bestPos = PHP_INT_MAX;
-        foreach (self::PATTERNS as $kind => $pattern) {
+        foreach ($patterns as $kind => $pattern) {
             if (preg_match($pattern, $norm, $m, PREG_OFFSET_CAPTURE) && $m[0][1] < $bestPos) {
                 $bestPos = $m[0][1];
                 $best = AccidentKind::from($kind);

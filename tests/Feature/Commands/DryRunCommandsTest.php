@@ -38,7 +38,7 @@ class DryRunCommandsTest extends TestCase
         'vff:import-station-closures', 'vff:import-station-sources', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology',
         'vff:import-wikipedia-line', 'vff:link-traces', 'vff:match-current-network', 'vff:merge-split-lines', 'vff:ohm-events',
         'vff:place-listed-stations', 'vff:prune-inactive-accounts', 'vff:reclassify-status', 'vff:refresh-current-era',
-        'vff:resolve-event-sections', 'vff:seed-off-network-lines', 'vff:snap-stations',
+        'vff:resolve-event-sections', 'vff:seed-off-network-lines', 'vff:snap-stations', 'vff:verify-accidents',
     ];
 
     /** Arguments supplémentaires nécessaires à certaines commandes. */
@@ -53,6 +53,7 @@ class DryRunCommandsTest extends TestCase
         // Caches du bac à sable vides : aucune requête réseau.
         'vff:import-accidents' => ['--offline' => true],
         'vff:import-argentanwebferro' => ['--offline' => true],
+        'vff:verify-accidents' => ['--offline' => true],
         'vff:place-listed-stations' => ['--no-places' => true],
     ];
 

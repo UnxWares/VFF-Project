@@ -22,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $method
  * @property AccidentLinkConfidence $confidence
  * @property float $score
+ * @property string|null $cited_as
+ * @property string|null $cited_url
  */
 class AccidentLine extends Model
 {

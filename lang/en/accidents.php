@@ -82,6 +82,7 @@ return [
         'era_value' => ':year era',
         'distance' => 'Distance to the route',
         'method' => 'Method',
+        'line_cited' => 'Article cited by the source',
         'confidence' => 'Confidence',
         'other_lines' => 'Other lines at the same place',
         'trains_title' => 'Trains and rolling stock',
@@ -96,6 +97,8 @@ return [
         'wikipedia_title' => 'Wikipedia articles',
         'review_title' => 'Points to be checked',
         'review_intro' => 'This page was compiled automatically from the sources; these points remain uncertain:',
+        'reserves_title' => 'Reservations',
+        'reserves_intro' => 'The date and the municipality are confirmed by the sources; please note:',
         'back' => 'All accidents',
     ],
 
@@ -215,6 +218,9 @@ return [
         'line_uncertain' => 'Several lines run close to the centre of the municipality.',
         'hinted_line_far' => 'The line cited by a source runs far from the place given.',
         'place_from_list' => 'The place was read from a Wikipedia list, without coordinates: it still needs checking.',
+        'verification_conflict' => 'Two sources contradict each other on the date or the place.',
+        'alias_toll_mismatch' => 'Another Wikidata item describes the same accident with a different toll.',
+        'possible_duplicate' => 'Another record from the same day may describe the same accident.',
     ],
 
     // Summaries written by VFF (AccidentSummary): full sentences, place and date inserted.

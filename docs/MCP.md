@@ -494,7 +494,7 @@ Mêmes filtres, mêmes tris et mêmes données que `GET /api/v1/accidents` (serv
 | `line` | slug | non | Accidents rattachés à cette ligne (rattachement principal ou secondaire) ; ligne inconnue : erreur. |
 | `department` | code INSEE en majuscules | non | Département actuel du lieu (`91`, `2A`, `974`). |
 | `kind` | nature | non | `collision`, `derailment`, `level_crossing`, `fire`, `explosion`, `structure_failure`, `attack`, `person_struck`, `runaway`, `incident`, `other`. |
-| `review` | `ok`, `to_review` | non | Fiches sans point incertain, ou « à vérifier ». |
+| `review` | `ok`, `to_review` | non | Fiches dont la date et le lieu sont confirmés (BEA-TT ou deux sources indépendantes), ou « à vérifier ». |
 | `min_deaths` | entier, 0 ou plus | non | Bilan connu d'au moins ce nombre de morts (exclut les bilans inconnus). |
 | `has_line` | booléen | non | `true` : rattachés à une ligne VFF ; `false` : sans ligne (lieu inconnu). |
 | `sort` | `date`, `-date`, `deaths`, `-deaths` | non | Tri (`date` par défaut) ; bilan inconnu en dernier. |

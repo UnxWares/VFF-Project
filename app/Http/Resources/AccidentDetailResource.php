@@ -32,9 +32,10 @@ class AccidentDetailResource extends AccidentResource
              * (tronc commun, jonction) ou citées par une source. Liste vide si aucune. Pour chacune : `line`
              * (`slug`, `code`, `name`), `is_primary`, `era_year` (ère du tracé utilisé), `distance_m` (du lieu au
              * tracé), `pk_m` et `pk_label` (point kilométrique estimé, en mètres et en `km+mmm`), `section`
-             * (portion : gares `from` et `to`), `method`, `confidence` (`high`, `medium`, `low`), `score` (0 à 1).
+             * (portion : gares `from` et `to`), `method`, `confidence` (`high`, `medium`, `low`), `score` (0 à 1),
+             * `cited_as` et `cited_url` (article de ligne cité par la source, et permalien de cette source).
              *
-             * @var list<array{line: array{slug: string, code: string|null, name: string}|null, is_primary: bool, era_year: int|null, distance_m: int|null, pk_m: int|null, pk_label: string|null, section: array{from: array{slug: string, name: string}|null, to: array{slug: string, name: string}|null}, method: list<string>, confidence: string, score: float}>
+             * @var list<array{line: array{slug: string, code: string|null, name: string}|null, is_primary: bool, era_year: int|null, distance_m: int|null, pk_m: int|null, pk_label: string|null, section: array{from: array{slug: string, name: string}|null, to: array{slug: string, name: string}|null}, method: list<string>, confidence: string, score: float, cited_as: string|null, cited_url: string|null}>
              */
             'lines' => $this->lineLinks->sortByDesc('is_primary')->values()->map(fn (AccidentLine $l) => [
                 /** Ligne VFF : `slug`, `code` (SNCF Réseau, 6 chiffres, nul hors réseau national), `name`. */
@@ -72,6 +73,13 @@ class AccidentDetailResource extends AccidentResource
                 'confidence' => $l->confidence->value,
                 /** Score de 0 à 1 : proximité du tracé et concordance des sources. */
                 'score' => $l->score,
+                /**
+                 * Titre de l'article de ligne de Wikipédia cité par la source (ex. `Ligne de Paris-Lyon à
+                 * Marseille-Saint-Charles`). Nul si aucune source ne cite cette ligne.
+                 */
+                'cited_as' => $l->cited_as,
+                /** Permalien de la source qui cite la ligne (révision lue de la page de Wikipédia). Nul sinon. */
+                'cited_url' => $l->cited_url,
             ])->all(),
             /**
              * Gare VFF la plus proche du lieu, ouverte à la date de l'accident quand ses dates sont connues (10 km
@@ -147,6 +155,21 @@ class AccidentDetailResource extends AccidentResource
                     'label' => __("accidents.review.{$n['code']}", [], 'fr'),
                     'detail' => $n['detail'],
                 ], $this->review_notes ?? []),
+                /**
+                 * Vérification de la date et du lieu (`vff:verify-accidents`), nulle si la fiche n'a pas été vérifiée :
+                 * `rule` (`primary_source` : l'enquête du BEA-TT donne la date et la commune ; `two_sources` : deux
+                 * sources de familles différentes ; `wikidata_wikipedia` : Wikidata et Wikipédia seulement, dont l'une
+                 * peut être copiée de l'autre ; nul : aucune règle satisfaite), `date` et `place` (valeur retenue, et pour
+                 * chacune les sources qui concordent `confirmed_by`, celles qui divergent `disagreeing`, les communes
+                 * voisines `nearby` ; chaque source avec `provider`, `role`, `url`, sa valeur et `retrieved_at`, la date
+                 * de lecture), `families`, `kind` (nature lue dans une source quand la fiche était « autre »), `aliases`
+                 * (autres éléments Wikidata du même accident, gardés avec leurs sources).
+                 *
+                 * @var array<string, mixed>|null
+                 */
+                'verification' => $this->verification,
+                /** Date de la dernière vérification (ISO 8601), nulle si la fiche n'a pas été vérifiée. */
+                'verified_at' => $this->verified_at?->toIso8601String(),
             ],
             /**
              * Fournisseur de chaque fait retenu : `date`, `kind`, `location`, `deaths`, `injuries`, `name`

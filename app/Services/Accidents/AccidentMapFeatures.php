@@ -47,7 +47,7 @@ final class AccidentMapFeatures
                     location_precision, deaths, injuries, review_status,
                     ST_X(geom) AS lng, ST_Y(geom) AS lat
              FROM accidents
-             WHERE geom IS NOT NULL AND kind NOT IN ('.implode(', ', array_fill(0, count($hidden), '?')).')
+             WHERE geom IS NOT NULL AND alias_of_id IS NULL AND kind NOT IN ('.implode(', ', array_fill(0, count($hidden), '?')).')
              ORDER BY occurred_on, id',
             $hidden,
         );

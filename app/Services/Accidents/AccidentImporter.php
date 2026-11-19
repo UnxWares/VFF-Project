@@ -511,20 +511,7 @@ final class AccidentImporter
      */
     private function names(AccidentCandidate $c, AccidentKind $kind): array
     {
-        $out = [];
-        foreach (AccidentSummary::LOCALES as $locale) {
-            if (isset($c->labels[$locale])) {
-                $out[$locale] = $c->labels[$locale];
-
-                continue;
-            }
-            $kindName = __('accidents.names.kinds.'.$kind->value, [], $locale);
-            $out[$locale] = $c->communeName !== null
-                ? __('accidents.names.at_commune', ['kind' => $kindName, 'commune' => $c->communeName], $locale)
-                : $kindName;
-        }
-
-        return $out;
+        return $this->summary->names($c->labels, $kind, $c->communeName);
     }
 
     /**

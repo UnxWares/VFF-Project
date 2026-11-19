@@ -173,6 +173,47 @@ final class AccidentSourceClient
     }
 
     /**
+     * Titre final de chaque article demandé, redirections suivies (« Ligne Lille - Thionville » →
+     * « Ligne de Lille à Thionville »), 50 titres par requête, un fichier de cache par lot. Un titre
+     * qui n'est pas une redirection se renvoie lui-même ; hors ligne, seuls les lots en cache sont lus.
+     *
+     * @param  list<string>  $titles
+     * @return array<string, string> titre demandé → titre final
+     */
+    public function redirectTargets(string $lang, array $titles): array
+    {
+        $api = "https://{$lang}.wikipedia.org/w/api.php";
+        $titles = array_values(array_unique($titles));
+        sort($titles);
+        $out = [];
+        foreach (array_chunk($titles, 50) as $chunk) {
+            $slug = substr(sha1(implode('|', $chunk)), 0, 16);
+            $map = $this->cachedJson("wikipedia/{$lang}-redirects-{$slug}.json", function () use ($api, $chunk): string {
+                $json = $this->mediawiki($api, ['action' => 'query', 'redirects' => 1, 'titles' => implode('|', $chunk)]);
+                $aliases = [];
+                foreach (['normalized', 'redirects'] as $k) {
+                    foreach ($json['query'][$k] ?? [] as $n) {
+                        $aliases[$n['from']] = $n['to'];
+                    }
+                }
+                $map = [];
+                foreach ($chunk as $title) {
+                    $final = $title;
+                    for ($i = 0; $i < 3 && isset($aliases[$final]); $i++) {
+                        $final = $aliases[$final];
+                    }
+                    $map[$title] = $final;
+                }
+
+                return (string) json_encode($map, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }) ?? [];
+            $out += $map;
+        }
+
+        return $out;
+    }
+
+    /**
      * @param  list<string>  $titles
      * @return array<string, array{title: string, revid: int, content: string}>
      */

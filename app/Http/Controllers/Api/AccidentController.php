@@ -56,7 +56,7 @@ class AccidentController extends Controller
     #[QueryParameter('line', 'Slug d\'une ligne : accidents rattachés à cette ligne (rattachement principal ou secondaire). Ligne inconnue : HTTP 422.', type: 'string', example: 'rfn-570000')]
     #[QueryParameter('department', 'Code INSEE du département actuel du lieu (`01` à `95`, `2A`, `2B`, `971` à `976`).', type: 'string', example: '91')]
     #[QueryParameter('kind', 'Nature : `collision`, `derailment`, `level_crossing`, `fire`, `explosion`, `structure_failure`, `attack`, `person_struck`, `runaway`, `incident`, `other`.', type: 'string', example: 'derailment')]
-    #[QueryParameter('review', '`ok` : fiches sans point incertain ; `to_review` : fiches dont un point reste à vérifier.', type: 'string', example: 'ok')]
+    #[QueryParameter('review', '`ok` : fiches dont la date et le lieu sont confirmés (enquête du BEA-TT ou deux sources indépendantes) ; `to_review` : fiches dont un point reste à vérifier.', type: 'string', example: 'ok')]
     #[QueryParameter('min_deaths', 'Bilan d\'au moins ce nombre de morts (0 ou plus) ; exclut les bilans inconnus.', type: 'int', example: 10)]
     #[QueryParameter('has_line', '`true` : accidents rattachés à une ligne VFF ; `false` : sans ligne (lieu inconnu, réseau urbain).', type: 'bool', example: true)]
     #[QueryParameter('sort', 'Tri : `date`, `-date`, `deaths`, `-deaths`. Bilan inconnu en dernier.', type: 'string', default: 'date', example: '-deaths')]

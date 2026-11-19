@@ -47,6 +47,35 @@ class AccidentKindClassifierTest extends TestCase
         $this->assertSame($expected, (new AccidentKindClassifier)->fromFrenchText($title));
     }
 
+    /** @return iterable<string, array{0: string, 1: ?AccidentKind}> */
+    public static function narratives(): iterable
+    {
+        yield 'percute' => ['un train de voyageurs percute l\'arrière d\'un convoi de marchandises arrêté à un carré', AccidentKind::Collision];
+        yield 'tamponne' => ['le train de marchandises tamponne un train omnibus à l\'arrêt en gare', AccidentKind::Collision];
+        yield 'se télescopent' => ['deux trains de permissionnaires se télescopent dans le brouillard', AccidentKind::Collision];
+        yield 'prend en écharpe' => ['l\'express prend en écharpe un train de marchandises', AccidentKind::Collision];
+        yield 'heurte un obstacle' => ['l\'express heurte un arbre déraciné par une tornade, la locomotive se couche', AccidentKind::Collision];
+        yield 'se renversent' => ['les rails s\'écartent au passage d\'un train, dont la locomotive et six wagons se renversent', AccidentKind::Derailment];
+        yield 'quitte la voie' => ['le train quitte la voie dans une courbe', AccidentKind::Derailment];
+        yield 'chaudière qui explose' => ['la chaudière de la locomotive explose, tuant le mécanicien', AccidentKind::Explosion];
+        yield 'viaduc qui s\'effondre' => ['le viaduc, miné par des inondations, s\'effondre au passage d\'un train', AccidentKind::StructureFailure];
+        yield 'train qui s\'emballe' => ['un train excessivement chargé s\'emballe dans une descente', AccidentKind::Runaway];
+        yield 'prend feu' => ['la voiture de tête prend feu', AccidentKind::Fire];
+        yield 'rien de net' => ['sur la ligne d\'Andrézieux à Roanne', null];
+        yield 'bombardement' => ['un express est bloqué par un bombardement', null];
+    }
+
+    #[DataProvider('narratives')]
+    public function test_narrative_verbs_name_a_kind_only_when_the_text_says_so(string $text, ?AccidentKind $expected): void
+    {
+        $this->assertSame($expected, (new AccidentKindClassifier)->fromNarrative($text));
+    }
+
+    public function test_narrative_verbs_are_not_applied_to_titles(): void
+    {
+        $this->assertNull((new AccidentKindClassifier)->fromFrenchText('un train percute un camion'));
+    }
+
     public function test_wikidata_class_maps_to_a_kind_and_generic_class_does_not(): void
     {
         $classifier = new AccidentKindClassifier;

@@ -204,7 +204,7 @@ final class WikipediaListReader
      */
     private function kind(string $plain, string $normalized): ?AccidentKind
     {
-        $kind = $this->classifier->fromFrenchText($plain);
+        $kind = $this->classifier->fromFrenchText($plain) ?? $this->classifier->fromNarrative($plain);
         $crossing = (bool) preg_match('/\b(?:passages? a niveau|pn)\b/', $normalized);
         if (! $crossing && ! preg_match('/\b(?:deraill\w*|collision entre)\b/', $normalized)
             && preg_match(self::PERSON_STRUCK, $normalized)) {

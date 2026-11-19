@@ -16,6 +16,9 @@ use Illuminate\Database\Eloquent\Scope;
  * encyclopédique pour les lignes (décision du 19/11/2026). L'import les relit sans ce filtre
  * (`withoutGlobalScopes()`).
  *
+ * Une fiche alias (`alias_of_id`) décrit le même accident qu'une autre, déjà publiée : elle est gardée
+ * avec ses sources (vff:verify-accidents) mais n'est jamais montrée.
+ *
  * @implements Scope<Accident>
  */
 final class PublicAccidents implements Scope
@@ -26,6 +29,7 @@ final class PublicAccidents implements Scope
      */
     public function apply(Builder $builder, Model $model): void
     {
-        $builder->whereNotIn($model->qualifyColumn('kind'), AccidentKind::HIDDEN);
+        $builder->whereNotIn($model->qualifyColumn('kind'), AccidentKind::HIDDEN)
+            ->whereNull($model->qualifyColumn('alias_of_id'));
     }
 }

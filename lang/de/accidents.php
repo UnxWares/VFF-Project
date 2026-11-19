@@ -82,6 +82,7 @@ return [
         'era_value' => 'Stand :year',
         'distance' => 'Abstand zur Strecke',
         'method' => 'Methode',
+        'line_cited' => 'Von der Quelle genannter Artikel',
         'confidence' => 'Zuverlässigkeit',
         'other_lines' => 'Weitere Strecken an derselben Stelle',
         'trains_title' => 'Züge und Fahrzeuge',
@@ -96,6 +97,8 @@ return [
         'wikipedia_title' => 'Wikipedia-Artikel',
         'review_title' => 'Zu prüfende Punkte',
         'review_intro' => 'Diese Seite wurde automatisch aus den Quellen erstellt; folgende Punkte bleiben unsicher:',
+        'reserves_title' => 'Vorbehalte',
+        'reserves_intro' => 'Datum und Gemeinde sind durch die Quellen bestätigt; zu beachten:',
         'back' => 'Alle Unfälle',
     ],
 
@@ -215,6 +218,9 @@ return [
         'line_uncertain' => 'Mehrere Strecken verlaufen nahe der Gemeindemitte.',
         'hinted_line_far' => 'Die von einer Quelle genannte Strecke verläuft weit vom angegebenen Ort.',
         'place_from_list' => 'Der Ort stammt aus einer Wikipedia-Liste ohne Koordinaten und muss noch geprüft werden.',
+        'verification_conflict' => 'Zwei Quellen widersprechen sich beim Datum oder beim Ort.',
+        'alias_toll_mismatch' => 'Ein weiteres Wikidata-Element beschreibt denselben Unfall mit einer anderen Opferzahl.',
+        'possible_duplicate' => 'Ein anderer Eintrag vom selben Tag beschreibt möglicherweise denselben Unfall.',
     ],
 
     // Von VFF verfasste Zusammenfassungen (AccidentSummary): ganze Sätze, Ort und Datum eingesetzt.

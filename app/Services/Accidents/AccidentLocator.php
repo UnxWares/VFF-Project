@@ -107,7 +107,7 @@ class AccidentLocator
     }
 
     /** Commune dont le contour contient le point, sinon la plus proche à moins de 15 km. */
-    private function communeAt(float $lat, float $lng): ?object
+    public function communeAt(float $lat, float $lng): ?object
     {
         return DB::selectOne(
             'SELECT code_insee, nom, departement,
