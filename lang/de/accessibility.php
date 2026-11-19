@@ -35,7 +35,7 @@ return [
             .'<li>82 % der RGAA-Kriterien sind erfüllt (59 der 72 Kriterien, die auf die Website zutreffen);</li>'
             .'<li>die durchschnittliche Konformitätsrate des Online-Dienstes beträgt 99 % (98,87 %, Mittelwert der Raten der 28 Seiten).</li>'
             .'</ul>'
-            .'<p>24 der 28 Seiten erfüllen alle Kriterien, die für sie gelten. Elf der dreizehn nicht erfüllten Kriterien scheitern nur in den beiden Werkzeugen der API-Dokumentation, Swagger UI und Magidoc. Das vollständige Prüfraster (Status und Begründung jedes Kriteriums auf jeder Seite) erhalten Sie auf Anfrage.</p>'
+            .'<p>24 der 28 Seiten erfüllen alle Kriterien, die für sie gelten. Elf der dreizehn nicht erfüllten Kriterien scheitern nur in den beiden Werkzeugen der API-Dokumentation, Swagger UI und Magidoc. Das vollständige Prüfraster (Status und Begründung jedes Kriteriums auf jeder Seite) können Sie herunterladen: <a href="/rgaa/grille-audit-rgaa-2026-11-20.csv" download>RGAA-Prüfraster (CSV-Datei, 744 KB, auf Französisch)</a>.</p>'
             .'<p>Die Website wurde nicht mit einem Screenreader getestet. Name, Rolle und Zustand der Bedienelemente wurden im Code und im Barrierefreiheitsbaum des Browsers geprüft; wie NVDA, JAWS, VoiceOver oder TalkBack sie tatsächlich ausgeben, ist noch zu prüfen.</p>',
     ],
 
@@ -43,7 +43,7 @@ return [
         'title' => 'Nicht barrierefreie Inhalte',
         'paragraph' => '<p>Nicht erfüllte Anforderungen:</p>'
             .'<ul>'
-            .'<li>Streckenseiten, Liste der Bahnhöfe: Der kleine farbige Streifen unter jedem Bahnhof (sein Zustand in jedem Jahrzehnt) unterscheidet „geöffnet“, „Zustand unbestätigt“ und „geschlossen“ nur durch die Farbe (Kriterium 3.1). Eröffnungs- und Schließungsdatum stehen daneben, und Screenreader lesen den vollständigen Zustand vor.</li>'
+            .'<li>Streckenseiten, Liste der Bahnhöfe: Der kleine farbige Streifen unter jedem Bahnhof (sein Zustand in jedem Jahrzehnt) unterscheidet „geöffnet“, „Zustand unbestätigt“ und „geschlossen“ nur durch die Farbe (Kriterium 3.1). Eröffnungs- und Schließungsdatum stehen daneben, und Screenreader lesen den vollständigen Zustand vor. Seit der Prüfung steht zum Streifen außerdem eine sichtbare Legende, und jeder Zustand hat seine eigene Form (volles, schraffiertes, niedriges oder leeres Feld); dieser Punkt wird bei der nächsten Prüfung erneut kontrolliert.</li>'
             .'<li>Seiten zu Fahrzeugen: Der Pfeil „→“ bei Umnummerierungen („PLM 1-30 → Est 601-612“) hat keine Textalternative (Kriterium 13.5).</li>'
             .'<li>Referenz der REST-API in Swagger UI (/docs/swagger): englische Oberfläche auf einer als französisch ausgezeichneten Seite (8.7), ein Link innerhalb einer Schaltfläche (8.2), zwei Hauptbereiche (9.2), das Feld „Filter by tag“ ohne Beschriftung (11.1). Dieselben Endpunkte sind auf der Seite <a href="/api">Zugang zur API</a> beschrieben.</li>'
             .'<li>Referenz der GraphQL-API in Magidoc (/docs/graphql): englische Oberfläche (8.7), Seitentitel ohne Namen der Website (8.6), VFF-Logo mit dem Text „Magidoc“ (1.3), Anker „#“ neben den Überschriften (6.1 und 9.1), eine Schaltfläche ohne Namen (7.1), eine Schaltfläche innerhalb eines Links (8.2), waagerechtes Scrollen bei 320 Pixeln Breite (10.11), Suchfeld ohne Beschriftung (11.1), kein Sprunglink (12.7). Die Seite <a href="/api">Zugang zur API</a> stellt die GraphQL-API vor.</li>'
@@ -86,6 +86,6 @@ return [
 
     'plan' => [
         'title' => 'Geplante Verbesserungen',
-        'paragraph' => 'Wir planen, die Farben des Jahrzehntstreifens in der Liste der Bahnhöfe durch ein Muster zu ergänzen, Umnummerierungen von Fahrzeugen in Worten zu schreiben, die Oberflächen von Swagger UI und Magidoc ins Französische zu übersetzen und ihren Code zu korrigieren und anschließend beim Import der Bilder von Wikimedia Commons die Sprache jeder Bildunterschrift zu speichern. Außerdem planen wir, die Website mit einem Screenreader zu testen und die REST-Referenz in Scalar zu prüfen. Die Konformitätsrate auf dieser Seite wird nach jeder Korrektur aktualisiert.',
+        'paragraph' => 'Wir planen, den Jahrzehntstreifen in der Liste der Bahnhöfe erneut zu prüfen, Umnummerierungen von Fahrzeugen in Worten zu schreiben, die Oberflächen von Swagger UI und Magidoc ins Französische zu übersetzen und ihren Code zu korrigieren und anschließend beim Import der Bilder von Wikimedia Commons die Sprache jeder Bildunterschrift zu speichern. Außerdem planen wir, die Website mit einem Screenreader zu testen und die REST-Referenz in Scalar zu prüfen. Die Konformitätsrate auf dieser Seite wird nach jeder Korrektur aktualisiert.',
     ],
 ];

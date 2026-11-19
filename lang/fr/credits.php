@@ -44,7 +44,7 @@ return [
             'smp' => 'Architecture U-Net',
             'torchvision' => 'Encodeur pré-entraîné sur ImageNet, point de départ du modèle',
             'ign_ortho' => 'Photos aériennes anciennes analysées',
-            'phpunit' => 'Plus de 2 200 tests, en parallèle',
+            'phpunit' => 'Plus de 4 000 tests, en parallèle',
             'infection' => 'Tests de mutation',
             'phpstan' => 'Analyse statique PHP',
             'vitest' => 'Tests JavaScript',

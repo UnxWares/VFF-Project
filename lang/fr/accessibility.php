@@ -34,7 +34,7 @@ return [
             .'<li>82 % des critères du RGAA sont respectés (59 critères sur les 72 qui s’appliquent au site) ;</li>'
             .'<li>le taux moyen de conformité du service en ligne s’élève à 99 % (98,87 %, moyenne des taux des 28 pages).</li>'
             .'</ul>'
-            .'<p>Vingt-quatre pages sur 28 respectent tous les critères qui les concernent. Onze des treize critères non respectés le sont seulement dans les deux outils de documentation de l’API, Swagger UI et Magidoc. La grille complète (statut et justification de chaque critère sur chaque page) est disponible sur demande.</p>'
+            .'<p>Vingt-quatre pages sur 28 respectent tous les critères qui les concernent. Onze des treize critères non respectés le sont seulement dans les deux outils de documentation de l’API, Swagger UI et Magidoc. La grille complète (statut et justification de chaque critère sur chaque page) se télécharge : <a href="/rgaa/grille-audit-rgaa-2026-11-20.csv" download>grille d’audit RGAA (fichier CSV, 744 Ko)</a>.</p>'
             .'<p>Le site n’a pas été testé avec un lecteur d’écran. Le nom, le rôle et l’état des composants ont été vérifiés dans le code et dans l’arbre d’accessibilité du navigateur, mais leur restitution réelle par NVDA, JAWS, VoiceOver ou TalkBack reste à contrôler.</p>',
     ],
 
@@ -42,7 +42,7 @@ return [
         'title' => 'Contenus non accessibles',
         'paragraph' => '<p>Non-conformités :</p>'
             .'<ul>'
-            .'<li>Fiches des lignes, liste des gares : la petite bande colorée sous chaque gare (état de la gare à chaque décennie) distingue « ouverte », « état non confirmé » et « fermée » par la couleur seule (critère 3.1). Les dates d’ouverture et de fermeture sont écrites à côté, et l’état complet est lu par les lecteurs d’écran.</li>'
+            .'<li>Fiches des lignes, liste des gares : la petite bande colorée sous chaque gare (état de la gare à chaque décennie) distingue « ouverte », « état non confirmé » et « fermée » par la couleur seule (critère 3.1). Les dates d’ouverture et de fermeture sont écrites à côté, et l’état complet est lu par les lecteurs d’écran. Depuis l’audit, la bande est aussi accompagnée d’une légende visible et chaque état a sa forme (case pleine, hachurée, basse ou vide) ; ce point sera revérifié lors du prochain audit.</li>'
             .'<li>Fiches du matériel roulant : la flèche « → » des renumérotations (« PLM 1-30 → Est 601-612 ») n’a pas d’équivalent textuel (critère 13.5).</li>'
             .'<li>Référence de l’API REST dans Swagger UI (/docs/swagger) : interface en anglais dans une page déclarée en français (8.7), lien placé dans un bouton (8.2), deux zones principales (9.2), champ « Filter by tag » sans étiquette (11.1). Les mêmes points d’accès sont décrits en français sur la page <a href="/api">Accès à l’API</a>.</li>'
             .'<li>Référence de l’API GraphQL dans Magidoc (/docs/graphql) : interface en anglais (8.7), titre de page qui ne nomme pas le site (8.6), logo de VFF remplacé par « Magidoc » (1.3), ancres « # » à côté des titres (6.1 et 9.1), bouton sans nom (7.1), bouton placé dans un lien (8.2), défilement horizontal à 320 pixels de large (10.11), champ de recherche sans étiquette (11.1), pas de lien d’évitement (12.7). La page <a href="/api">Accès à l’API</a> présente l’API GraphQL en français.</li>'
@@ -85,6 +85,6 @@ return [
 
     'plan' => [
         'title' => 'Améliorations prévues',
-        'paragraph' => 'Nous prévoyons de doubler par un motif la couleur de la bande des décennies dans la liste des gares, d’écrire en toutes lettres les renumérotations du matériel roulant, de traduire en français les interfaces de Swagger UI et de Magidoc et d’en corriger le code, puis d’enregistrer la langue de chaque légende lors de l’import des images de Wikimedia Commons. Nous prévoyons aussi de tester le site avec un lecteur d’écran et d’auditer la référence REST dans Scalar. Le taux de conformité de cette page sera mis à jour après chaque correction.',
+        'paragraph' => 'Nous prévoyons de revérifier la bande des décennies dans la liste des gares, d’écrire en toutes lettres les renumérotations du matériel roulant, de traduire en français les interfaces de Swagger UI et de Magidoc et d’en corriger le code, puis d’enregistrer la langue de chaque légende lors de l’import des images de Wikimedia Commons. Nous prévoyons aussi de tester le site avec un lecteur d’écran et d’auditer la référence REST dans Scalar. Le taux de conformité de cette page sera mis à jour après chaque correction.',
     ],
 ];

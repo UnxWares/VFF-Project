@@ -114,6 +114,10 @@ class LegalPagesTest extends TestCase
             foreach (self::LOCALES as $locale) {
                 preg_match_all('/href="(\/[^"#]*)"/', json_encode($this->texts($locale, $namespace), JSON_UNESCAPED_SLASHES), $m);
                 foreach (array_unique($m[1]) as $path) {
+                    // Fichier publié tel quel dans public/ (grille d'audit RGAA) : pas de route.
+                    if (is_file(public_path($path))) {
+                        continue;
+                    }
                     try {
                         Route::getRoutes()->match(Request::create($path));
                     } catch (HttpException) {
@@ -123,6 +127,18 @@ class LegalPagesTest extends TestCase
             }
         }
         $this->addToAssertionCount(1);
+    }
+
+    /** La déclaration d'accessibilité renvoie, dans les trois langues, vers la grille d'audit publiée. */
+    public function test_accessibility_statement_links_the_published_audit_grid(): void
+    {
+        $grid = public_path('rgaa/grille-audit-rgaa-2026-11-20.csv');
+        $this->assertFileExists($grid);
+        $this->assertStringStartsWith('critere,thematique,intitule,page,page_nom,url,statut', (string) file_get_contents($grid));
+        foreach (self::LOCALES as $locale) {
+            $results = $this->texts($locale, 'accessibility')['results']['paragraph'];
+            $this->assertStringContainsString('href="/rgaa/grille-audit-rgaa-2026-11-20.csv"', $results, $locale);
+        }
     }
 
     public function test_publisher_details_are_complete(): void

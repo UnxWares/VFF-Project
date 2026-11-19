@@ -21,6 +21,9 @@ final class PageMetadata
     /** Nombre d'images de la fiche ligne citées dans les données structurées (comme le navigateur). */
     private const LINE_IMAGES = 4;
 
+    /** Image de partage de l'accueil : 1 200 x 630 px, logo sur la carte de 1865 (domaine public) de l'accueil. */
+    public const HOME_SHARE_IMAGE = '/share/accueil-1200x630.jpg';
+
     public function __construct(
         private readonly Request $request,
         private readonly MediaQuery $media,
@@ -55,8 +58,8 @@ final class PageMetadata
         $description = __('home.meta_description');
 
         return $this->build($origin, '/', $title, $title, $description, 'website', [
-            'url' => $origin.'/icons/icon-512.png',
-            'alt' => __('nav.logo_alt'),
+            'url' => $origin.self::HOME_SHARE_IMAGE,
+            'alt' => __('home.share_image_alt'),
         ], [StructuredData::website($origin, __('common.app_full'), 'VFF', $description, $this->lang())]);
     }
 

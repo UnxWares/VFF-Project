@@ -8,6 +8,7 @@ use App\Models\Line;
 use App\Models\Material;
 use App\Models\Media;
 use App\Models\Station;
+use App\Support\Seo\PageMetadata;
 use Dom\HTMLDocument;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
@@ -144,13 +145,26 @@ class ShareTagsTest extends TestCase
         $this->assertSame('website', $this->meta($doc, 'og:type'));
         $this->assertSame('en_GB', $this->meta($doc, 'og:locale'));
         $this->assertSame('French Railway Lines', $this->meta($doc, 'og:site_name'));
-        $this->assertSame(url('/icons/icon-512.png'), $this->meta($doc, 'og:image'));
+        $this->assertSame(url('/share/accueil-1200x630.jpg'), $this->meta($doc, 'og:image'));
+        $this->assertSame(url('/share/accueil-1200x630.jpg'), $this->meta($doc, 'twitter:image'));
+        $this->assertSame('summary_large_image', $this->meta($doc, 'twitter:card'));
+        $this->assertSame(__('home.share_image_alt'), $this->meta($doc, 'og:image:alt'));
         $this->assertSame('VFF - French Railway Lines', $doc->querySelector('head title')->textContent);
 
         $graph = $this->jsonLd($doc)[0]['@graph'];
         $this->assertSame('WebSite', $graph[0]['@type']);
         $this->assertSame('en', $graph[0]['inLanguage']);
         $this->assertSame('Organization', $graph[1]['@type']);
+    }
+
+    public function test_home_share_image_is_a_1200_by_630_jpeg(): void
+    {
+        $file = public_path(substr(PageMetadata::HOME_SHARE_IMAGE, 1));
+
+        $this->assertFileExists($file);
+        $size = getimagesize($file);
+        $this->assertIsArray($size);
+        $this->assertSame([1200, 630, IMAGETYPE_JPEG], [$size[0], $size[1], $size[2]]);
     }
 
     public function test_station_material_and_accident_sheets(): void

@@ -1421,6 +1421,24 @@
     .infobox dl {
         margin: 0;
     }
+    /* Fiche longue (9 rangées ou plus) dans une colonne assez large : deux colonnes, libellé au-dessus
+       de la valeur, dans l'ordre de lecture (colonne par colonne). La fiche n'est plus bien plus haute
+       que le texte, donc plus de grand vide sous l'introduction (mise en page seulement : mêmes
+       rangées, même ordre). */
+    .infobox {
+        container: fiche / inline-size;
+    }
+    @container fiche (min-width: 28rem) {
+        .infobox dl:has(> .row:nth-child(9)) {
+            column-count: 2;
+            column-gap: 32px;
+        }
+        .infobox dl:has(> .row:nth-child(9)) > .row {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 2px;
+            break-inside: avoid;
+        }
+    }
     .infobox .row {
         display: grid;
         grid-template-columns: minmax(0, 9.5em) minmax(0, 1fr);

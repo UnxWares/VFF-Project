@@ -35,7 +35,7 @@ return [
             .'<li>82% of the RGAA criteria are met (59 of the 72 criteria that apply to the site);</li>'
             .'<li>the average compliance rate of the online service is 99% (98.87%, the average of the rates of the 28 pages).</li>'
             .'</ul>'
-            .'<p>Twenty-four of the 28 pages meet every criterion that applies to them. Eleven of the thirteen criteria not met fail only in the two API documentation tools, Swagger UI and Magidoc. The full grid (status and reason for each criterion on each page) is available on request.</p>'
+            .'<p>Twenty-four of the 28 pages meet every criterion that applies to them. Eleven of the thirteen criteria not met fail only in the two API documentation tools, Swagger UI and Magidoc. The full grid (status and reason for each criterion on each page) can be downloaded: <a href="/rgaa/grille-audit-rgaa-2026-11-20.csv" download>RGAA audit grid (CSV file, 744 KB, in French)</a>.</p>'
             .'<p>The site has not been tested with a screen reader. The name, role and state of the components were checked in the code and in the browser’s accessibility tree, but how NVDA, JAWS, VoiceOver or TalkBack actually read them still has to be checked.</p>',
     ],
 
@@ -43,7 +43,7 @@ return [
         'title' => 'Inaccessible content',
         'paragraph' => '<p>Non-compliance:</p>'
             .'<ul>'
-            .'<li>Line pages, list of stations: the small coloured strip under each station (its status in each decade) tells “open”, “status unconfirmed” and “closed” apart by colour alone (criterion 3.1). The opening and closing dates are written next to it, and screen readers read the full status.</li>'
+            .'<li>Line pages, list of stations: the small coloured strip under each station (its status in each decade) tells “open”, “status unconfirmed” and “closed” apart by colour alone (criterion 3.1). The opening and closing dates are written next to it, and screen readers read the full status. Since the audit, the strip also comes with a visible legend and each status has its own shape (solid, hatched, low or empty cell); this point will be checked again at the next audit.</li>'
             .'<li>Rolling stock pages: the arrow “→” used for renumberings (“PLM 1-30 → Est 601-612”) has no text equivalent (criterion 13.5).</li>'
             .'<li>REST API reference in Swagger UI (/docs/swagger): interface in English on a page declared in French (8.7), a link placed inside a button (8.2), two main regions (9.2), the “Filter by tag” field has no label (11.1). The same endpoints are described on the <a href="/api">API access</a> page.</li>'
             .'<li>GraphQL API reference in Magidoc (/docs/graphql): interface in English (8.7), page title that does not name the site (8.6), VFF logo labelled “Magidoc” (1.3), “#” anchors next to the headings (6.1 and 9.1), a button without a name (7.1), a button placed inside a link (8.2), horizontal scrolling at 320 pixels wide (10.11), search field without a label (11.1), no skip link (12.7). The <a href="/api">API access</a> page presents the GraphQL API.</li>'
@@ -86,6 +86,6 @@ return [
 
     'plan' => [
         'title' => 'Planned improvements',
-        'paragraph' => 'We plan to add a pattern to the colours of the decade strip in the list of stations, to spell out rolling stock renumberings in words, to translate the Swagger UI and Magidoc interfaces into French and fix their code, and then to record the language of each caption when importing Wikimedia Commons images. We also plan to test the site with a screen reader and to audit the REST reference in Scalar. The compliance rate on this page will be updated after each fix.',
+        'paragraph' => 'We plan to check the decade strip in the list of stations again, to spell out rolling stock renumberings in words, to translate the Swagger UI and Magidoc interfaces into French and fix their code, and then to record the language of each caption when importing Wikimedia Commons images. We also plan to test the site with a screen reader and to audit the REST reference in Scalar. The compliance rate on this page will be updated after each fix.',
     ],
 ];
