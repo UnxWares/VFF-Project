@@ -21,6 +21,7 @@ use App\Services\Api\MediaQuery;
 use App\Services\Api\PublicApiRateLimit;
 use App\Services\Api\StationDirectoryQuery;
 use App\Services\Api\StationEventQuery;
+use App\Services\Reputation\ReputationLevels;
 use App\Support\ApiAuthDocumentation;
 use App\Support\ApiCodeSamples;
 use App\Support\DatabaseGuard;
@@ -41,6 +42,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Registre des droits des sources : lu une fois par processus (fournisseurs et licences de l'API).
         $this->app->singleton(SourceRights::class);
+
+        // Niveaux de réputation : lus dans config/reputation.php à chaque résolution (pas de copie figée).
+        $this->app->bind(ReputationLevels::class, fn (): ReputationLevels => ReputationLevels::fromConfig());
     }
 
     public function boot(): void

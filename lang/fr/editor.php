@@ -263,7 +263,6 @@ return [
         'kind_new' => 'Nouvelle ligne disparue',
         'kind_correction' => 'Correction de tracé',
         'kind_segment' => 'Modification par PK',
-        'by' => 'par :name (réputation :reputation)',
         'approvals_one' => ':count approbation sur :threshold',
         'approvals_other' => ':count approbations sur :threshold',
         'length' => 'Longueur',

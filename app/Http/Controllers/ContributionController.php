@@ -14,6 +14,8 @@ use App\Models\Era;
 use App\Models\Line;
 use App\Services\AuditLog;
 use App\Services\Notifications\ContributionNotifier;
+use App\Services\Reputation\ReputationCalculator;
+use App\Services\Reputation\ReputationLevels;
 use App\Services\TraceContributionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -149,7 +151,7 @@ class ContributionController extends Controller
      * Liste les contributions en attente (pending) ET partiellement approuvées
      * (approved = 1 approbation sur 2), segments PK comme tracés.
      */
-    public function validateList(TraceContributionService $traces): Response
+    public function validateList(TraceContributionService $traces, ReputationLevels $levels): Response
     {
         $this->ensureValidator();
         $me = Auth::id();
@@ -157,7 +159,7 @@ class ContributionController extends Controller
         $pending = Contribution::query()
             ->whereIn('status', [ContributionStatus::Pending->value, ContributionStatus::Approved->value])
             ->whereIn('type', ['line_segment', TraceContributionService::TYPE])
-            ->with(['user:id,name,reputation', 'target'])
+            ->with(['user:id,name,reputation_applied,reputation_rejected,reputation_reviews,suspended_at,suspended_until', 'target'])
             ->orderBy('created_at')
             ->limit(50)
             ->get();
@@ -169,20 +171,21 @@ class ContributionController extends Controller
 
         return Inertia::render('Validate/Index', [
             'threshold' => self::APPROVAL_THRESHOLD,
-            'contributions' => $pending->map(function ($c) use ($approvals, $me, $traces) {
+            'contributions' => $pending->map(function ($c) use ($approvals, $me, $traces, $levels) {
                 $mine = $approvals->get($c->id, collect());
                 $item = [
                     'id' => $c->id,
                     'type' => $c->type,
                     'status' => $c->status->value,
                     'created_at' => $c->created_at->diffForHumans(),
-                    // Compte supprimé : la contribution reste, sans auteur (« Contributeur anonyme »).
+                    // Compte supprimé : la contribution reste, sans auteur (« Contributeur anonyme »,
+                    // sans réputation). Compte suspendu : les chiffres, mais pas de niveau.
                     'user' => $c->user_id === null ? [
                         'name' => __('account.anonymous_contributor'),
                         'reputation' => null,
                     ] : [
                         'name' => $c->user->name,
-                        'reputation' => $c->user->reputation,
+                        'reputation' => $levels->forUser($c->user)->forReviewer(),
                     ],
                     'is_mine' => (int) $c->user_id === (int) $me,
                     'approval_count' => $mine->count(),
@@ -277,7 +280,7 @@ class ContributionController extends Controller
         return $current;
     }
 
-    public function approve(int $id, TraceContributionService $traces, AuditLog $audit, ContributionNotifier $notifier): RedirectResponse
+    public function approve(int $id, TraceContributionService $traces, AuditLog $audit, ContributionNotifier $notifier, ReputationCalculator $reputation): RedirectResponse
     {
         $this->ensureValidator();
         $contribution = Contribution::findOrFail($id);
@@ -291,7 +294,7 @@ class ContributionController extends Controller
         }
 
         try {
-            return $this->approveInTransaction($contribution, $userId, $traces, $audit, $notifier);
+            return $this->approveInTransaction($contribution, $userId, $traces, $audit, $notifier, $reputation);
         } catch (\RuntimeException $e) {
             report($e);
 
@@ -299,9 +302,9 @@ class ContributionController extends Controller
         }
     }
 
-    private function approveInTransaction(Contribution $contribution, int $userId, TraceContributionService $traces, AuditLog $audit, ContributionNotifier $notifier): RedirectResponse
+    private function approveInTransaction(Contribution $contribution, int $userId, TraceContributionService $traces, AuditLog $audit, ContributionNotifier $notifier, ReputationCalculator $reputation): RedirectResponse
     {
-        return DB::transaction(function () use ($contribution, $userId, $traces, $audit, $notifier) {
+        return DB::transaction(function () use ($contribution, $userId, $traces, $audit, $notifier, $reputation) {
             // Relue verrouillée : un refus, un retrait ou une autre approbation concurrents attendent
             // la fin de celle-ci, ou elle voit leur résultat (contribution fermée ou disparue).
             $contribution = Contribution::query()->whereKey($contribution->id)->lockForUpdate()->first();
@@ -323,6 +326,9 @@ class ContributionController extends Controller
                 'user_id' => $userId,
                 'approved_at' => now(),
             ]);
+            // Réputation : une relecture de plus pour le validateur et, si la contribution est
+            // appliquée, une contribution acceptée de plus pour son auteur (après la validation de la transaction).
+            DB::afterCommit(fn () => $reputation->recalculate([$userId, $contribution->user_id]));
 
             $count = DB::table('contribution_approvals')
                 ->where('contribution_id', $contribution->id)
@@ -370,7 +376,7 @@ class ContributionController extends Controller
         });
     }
 
-    public function reject(RejectContributionRequest $request, int $id, AuditLog $audit, ContributionNotifier $notifier): RedirectResponse
+    public function reject(RejectContributionRequest $request, int $id, AuditLog $audit, ContributionNotifier $notifier, ReputationCalculator $reputation): RedirectResponse
     {
         $reason = $request->reason();
 
@@ -378,7 +384,7 @@ class ContributionController extends Controller
         // publier la contribution n'est pas écrasée par un refus, et une contribution déjà close
         // (refusée ou publiée) n'est ni refusée de nouveau ni annoncée une seconde fois à son auteur.
         // Une contribution retirée n'existe plus (404).
-        $rejected = DB::transaction(function () use ($id, $reason, $audit, $notifier): bool {
+        $rejected = DB::transaction(function () use ($id, $reason, $audit, $notifier, $reputation): bool {
             $contribution = Contribution::query()->lockForUpdate()->findOrFail($id);
             if (! $contribution->status->isOpen()) {
                 return false;
@@ -397,6 +403,8 @@ class ContributionController extends Controller
                 'with_reason' => true,
             ]);
             $notifier->rejected($contribution);
+            // Réputation : un refus de plus pour l'auteur, une relecture de plus pour le validateur.
+            DB::afterCommit(fn () => $reputation->recalculate([Auth::id(), $contribution->user_id]));
 
             return true;
         });

@@ -27,7 +27,6 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
             'role' => UserRole::Visitor->value,
-            'reputation' => 0,
             'bio' => null,
             'avatar_path' => null,
             'locale_preference' => 'fr',
@@ -43,7 +42,6 @@ class UserFactory extends Factory
     {
         return $this->state(fn () => [
             'role' => UserRole::Contributor->value,
-            'reputation' => fake()->numberBetween(10, 100),
         ]);
     }
 
@@ -51,7 +49,6 @@ class UserFactory extends Factory
     {
         return $this->state(fn () => [
             'role' => UserRole::Validator->value,
-            'reputation' => fake()->numberBetween(100, 1000),
         ]);
     }
 
@@ -59,7 +56,6 @@ class UserFactory extends Factory
     {
         return $this->state(fn () => [
             'role' => UserRole::Admin->value,
-            'reputation' => fake()->numberBetween(1000, 5000),
         ]);
     }
 }

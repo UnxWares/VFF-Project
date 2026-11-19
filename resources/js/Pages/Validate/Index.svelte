@@ -8,6 +8,7 @@
     import EmptyState from '$components/ui/EmptyState.svelte';
     import Field from '$components/ui/Field.svelte';
     import Notice from '$components/ui/Notice.svelte';
+    import ReputationInline from '$components/Reputation/ReputationInline.svelte';
     import { i18n } from '$lib/i18n.js';
     import { REASON_MAX, REASON_MIN, isReasonMissing } from '$lib/rejectReason.js';
     import { findHistoricBasemap, historicTitle } from '$lib/historicBasemaps.js';
@@ -184,10 +185,12 @@
                                     </h2>
                                     <p class="meta">
                                         <span
-                                            >{$i18n.t('editor.validate.by', {
+                                            >{$i18n.t('reputation.validate.by', {
                                                 name: c.user.name,
-                                                reputation: c.user.reputation,
-                                            })}</span
+                                            })}
+                                            <ReputationInline
+                                                reputation={c.user.reputation}
+                                            /></span
                                         >
                                         <span
                                             >{$i18n.t('editor.validate.submitted', {

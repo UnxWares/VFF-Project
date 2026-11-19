@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Middleware\SetLocale;
 use App\Services\Api\ApiTokens;
+use App\Services\Reputation\ReputationLevels;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -11,7 +12,7 @@ use Inertia\Response;
 
 class ProfileController extends Controller
 {
-    public function show(Request $request, ApiTokens $tokens): Response
+    public function show(Request $request, ApiTokens $tokens, ReputationLevels $levels): Response
     {
         $user = $request->user();
 
@@ -22,12 +23,14 @@ class ProfileController extends Controller
                 'email' => $user->email,
                 'bio' => $user->bio,
                 'role' => $user->role->value,
-                'reputation' => $user->reputation,
                 'avatar_path' => $user->avatar_path,
                 'locale_preference' => $user->locale_preference,
                 'email_verified_at' => $user->email_verified_at,
                 'created_at' => $user->created_at?->toIso8601String(),
             ],
+            // Réputation : trois chiffres, le niveau (null si le compte est suspendu) et ce qu'il manque
+            // pour le suivant (page d'aide /contribute/reputation).
+            'reputation' => $levels->forUser($user)->toArray(),
             // Suspension en cours : motif et fin éventuelle, pour que le membre sache pourquoi
             // il ne peut plus contribuer (null sinon).
             'suspension' => $user->isSuspended() ? [

@@ -263,7 +263,6 @@ return [
         'kind_new' => 'New vanished line',
         'kind_correction' => 'Route correction',
         'kind_segment' => 'Edit by kilometre point (PK)',
-        'by' => 'by :name (reputation :reputation)',
         'approvals_one' => ':count of :threshold approvals',
         'approvals_other' => ':count of :threshold approvals',
         'length' => 'Length',

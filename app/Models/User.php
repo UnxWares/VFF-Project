@@ -21,7 +21,7 @@ class User extends Authenticatable implements HasLocalePreference
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
-     * `role` et `reputation` volontairement absents : un futur
+     * `role` et les compteurs `reputation_*` volontairement absents : un futur
      * `$user->update($request->all())` ne doit jamais pouvoir promouvoir un
      * compte (rôle posé explicitement, cf. AuthController::register).
      */
@@ -34,6 +34,13 @@ class User extends Authenticatable implements HasLocalePreference
         'locale_preference',
     ];
 
+    /** Valeurs des colonnes à zéro par défaut : un modèle tout juste créé (non relu) a déjà ses compteurs. */
+    protected $attributes = [
+        'reputation_applied' => 0,
+        'reputation_rejected' => 0,
+        'reputation_reviews' => 0,
+    ];
+
     protected $hidden = [
         'password',
         'remember_token',
@@ -43,7 +50,10 @@ class User extends Authenticatable implements HasLocalePreference
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'role' => UserRole::class,
-        'reputation' => 'integer',
+        // Compteurs de réputation (ReputationCalculator) : jamais posés à la main.
+        'reputation_applied' => 'integer',
+        'reputation_rejected' => 'integer',
+        'reputation_reviews' => 'integer',
         'last_seen_at' => 'datetime',
         'inactivity_warned_at' => 'datetime',
         'terms_accepted_at' => 'datetime',

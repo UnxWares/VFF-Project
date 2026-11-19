@@ -5,15 +5,17 @@
     import Field from '$components/ui/Field.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import ApiTokens from '$components/Profile/ApiTokens.svelte';
+    import ReputationFigures from '$components/Reputation/ReputationFigures.svelte';
     import { focusFirstError } from './authForm.js';
     import { reportDate } from '$lib/errorReport.js';
     import { LOCALES, i18n } from '$lib/i18n.js';
 
     /**
+     * `reputation` : chiffres, niveau et niveau suivant (ReputationLevels).
      * `suspension` : suspension en cours (motif, début, fin éventuelle), sinon null.
      * `api_access` : jetons d'API personnels et limite du compte (ApiTokens::forProfile).
      */
-    let { profile, suspension = null, api_access = null } = $props();
+    let { profile, reputation, suspension = null, api_access = null } = $props();
 
     // PUT pour matcher la route REST `Route::put('/profile', ...)`.
     // Inertia transmet automatiquement _method=PUT en POST + CSRF. Valeurs de départ du formulaire.
@@ -144,10 +146,6 @@
                                 >
                             </dd>
                         </div>
-                        <div>
-                            <dt>{$i18n.t('auth.reputation_label')}</dt>
-                            <dd>{profile.reputation.toLocaleString($i18n.language)}</dd>
-                        </div>
                         {#if memberSince}
                             <div>
                                 <dt>{$i18n.t('auth.member_since')}</dt>
@@ -155,6 +153,8 @@
                             </div>
                         {/if}
                     </dl>
+
+                    <ReputationFigures {reputation} />
 
                     <Link class="vff-link" href="/contribute/mine"
                         >{$i18n.t('auth.my_contributions')}</Link

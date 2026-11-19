@@ -22,7 +22,7 @@ class UserFactoryTest extends TestCase
 
         $this->assertTrue(Hash::check('password', $user->password));
         $this->assertSame(UserRole::Visitor, $user->role);
-        $this->assertSame(0, $user->reputation);
+        $this->assertSame(0, $user->reputation_applied);
         $this->assertNotNull($user->email_verified_at);
         $this->assertArrayNotHasKey('password', $user->toArray(), 'jamais sérialisé');
         $this->assertArrayNotHasKey('remember_token', $user->toArray());

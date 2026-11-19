@@ -53,7 +53,6 @@ return [
     'locale_hint' => 'La langue s’applique dès l’enregistrement.',
     'remember_label' => 'Se souvenir de moi',
     'role_label' => 'Rôle',
-    'reputation_label' => 'Réputation',
     'member_since' => 'Membre depuis',
     'email_fixed_hint' => 'Cette adresse sert à vous connecter.',
 

@@ -8,6 +8,7 @@ use App\Http\Requests\RemoveContributionRequest;
 use App\Models\Contribution;
 use App\Services\AuditLog;
 use App\Services\Notifications\ContributionNotifier;
+use App\Services\Reputation\ReputationCalculator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -19,12 +20,12 @@ use Illuminate\Support\Facades\DB;
  */
 class ContributionRemovalController extends Controller
 {
-    public function __invoke(RemoveContributionRequest $request, Contribution $contribution, AuditLog $audit, ContributionNotifier $notifier): RedirectResponse
+    public function __invoke(RemoveContributionRequest $request, Contribution $contribution, AuditLog $audit, ContributionNotifier $notifier, ReputationCalculator $reputation): RedirectResponse
     {
         // Contrôle et suppression dans la même transaction, la ligne verrouillée : une approbation
         // concurrente (qui modifie la contribution) attend la fin du retrait, ou le retrait voit
         // le statut qu'elle vient d'écrire. Jamais de retrait d'une contribution tout juste publiée.
-        $removed = DB::transaction(function () use ($contribution, $request, $audit): ?Contribution {
+        $removed = DB::transaction(function () use ($contribution, $request, $audit, $reputation): ?Contribution {
             $locked = Contribution::query()->whereKey($contribution->id)->lockForUpdate()->firstOrFail();
             if ($locked->status === ContributionStatus::Applied) {
                 return null;
@@ -35,7 +36,11 @@ class ContributionRemovalController extends Controller
                 'type' => $locked->type,
                 'status' => $locked->status->value,
             ]);
+            // Réputation : les approbations partent avec la contribution (cascade) et un refus retiré
+            // ne compte plus : les relecteurs et l'auteur sont recalculés une fois la suppression validée.
+            $approvers = DB::table('contribution_approvals')->where('contribution_id', $locked->id)->pluck('user_id')->all();
             $locked->delete();
+            DB::afterCommit(fn () => $reputation->recalculate([...$approvers, $locked->user_id, $locked->reviewed_by]));
 
             return $locked;
         });

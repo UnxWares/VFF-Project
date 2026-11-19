@@ -40,7 +40,6 @@ return [
     'locale_hint' => 'Die Sprache gilt, sobald Sie speichern.',
     'remember_label' => 'Angemeldet bleiben',
     'role_label' => 'Rolle',
-    'reputation_label' => 'Reputation',
     'member_since' => 'Mitglied seit',
     'email_fixed_hint' => 'Mit dieser Adresse melden Sie sich an.',
 

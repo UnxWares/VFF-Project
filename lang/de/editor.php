@@ -263,7 +263,6 @@ return [
         'kind_new' => 'Neue verschwundene Strecke',
         'kind_correction' => 'Trassenkorrektur',
         'kind_segment' => 'Änderung nach PK',
-        'by' => 'von :name (Reputation :reputation)',
         'approvals_one' => ':count von :threshold Freigaben',
         'approvals_other' => ':count von :threshold Freigaben',
         'length' => 'Länge',

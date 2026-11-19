@@ -8,6 +8,7 @@ use App\Enums\ContributionStatus;
 use App\Models\Contribution;
 use App\Models\User;
 use App\Services\AuditLog;
+use App\Services\Reputation\ReputationCalculator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -34,13 +35,20 @@ use Illuminate\Support\Str;
  */
 final readonly class AccountDeletion
 {
-    public function __construct(private AuditLog $audit) {}
+    public function __construct(private AuditLog $audit, private ReputationCalculator $reputation) {}
 
     public function delete(User $user, AccountDeletionReason $reason): AccountDeletionSummary
     {
         $avatar = $user->avatar_path;
 
         $summary = DB::transaction(function () use ($user, $reason): AccountDeletionSummary {
+            // Relecteurs dont des approbations disparaissent avec les contributions supprimées plus bas :
+            // leur réputation est recalculée une fois le compte supprimé.
+            $affectedReviewers = DB::table('contribution_approvals')
+                ->whereIn('contribution_id', $user->contributions()->where('status', '!=', ContributionStatus::Applied->value)->select('id'))
+                ->pluck('user_id')
+                ->all();
+
             // Une à une par le modèle (ses événements sont déclenchés) ; les approbations reçues
             // partent avec elles (clé étrangère en cascade).
             $unpublished = $user->contributions()
@@ -105,6 +113,7 @@ final readonly class AccountDeletion
             ]);
 
             $user->delete();
+            DB::afterCommit(fn () => $this->reputation->recalculate($affectedReviewers));
 
             return $summary;
         });

@@ -233,7 +233,7 @@ class AuthFlowTest extends TestCase
 
         $user = User::where('email', 'jeanne@example.org')->sole();
         $this->assertSame('visitor', $user->role->value);
-        $this->assertSame(0, $user->reputation);
+        $this->assertSame(0, $user->reputation_applied);
         $this->assertSame('de', $user->locale_preference);
         $this->assertNotSame('motdepasse8', $user->getRawOriginal('password'));
         $this->assertTrue(Hash::check('motdepasse8', $user->password));
@@ -274,14 +274,14 @@ class AuthFlowTest extends TestCase
             'accept_terms' => '1',
             'role' => 'admin',
             'terms_version' => '1999-01-01',
-            'reputation' => 99999,
+            'reputation_applied' => 99999,
             'email_verified_at' => '2020-01-01 00:00:00',
             'avatar_path' => '../../.env',
         ])->assertRedirect('/');
 
         $user = User::where('email', 'pirate@example.org')->sole();
         $this->assertSame('visitor', $user->role->value);
-        $this->assertSame(0, $user->reputation);
+        $this->assertSame(0, $user->reputation_applied);
         $this->assertNull($user->email_verified_at);
         $this->assertNull($user->avatar_path);
         $this->assertSame(config('legal.versions.use-conditions'), $user->terms_version);
@@ -347,7 +347,6 @@ class AuthFlowTest extends TestCase
                 'name' => 'Valérie',
                 'email' => 'valerie@example.org',
                 'role' => 'validator',
-                'reputation' => $user->reputation,
                 'avatar_path' => null,
                 'locale_preference' => 'en',
                 'suspended' => false,

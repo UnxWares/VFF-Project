@@ -40,7 +40,6 @@ return [
     'locale_hint' => 'The language applies as soon as you save.',
     'remember_label' => 'Remember me',
     'role_label' => 'Role',
-    'reputation_label' => 'Reputation',
     'member_since' => 'Member since',
     'email_fixed_hint' => 'You use this address to sign in.',
 

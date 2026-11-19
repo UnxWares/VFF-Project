@@ -163,7 +163,7 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] Validation : toute contribution est en attente jusqu'à **deux approbations** de validateurs
 - [~] Formulaire d'ajout d'événement / média / matériel (tracés et segments faits)
 - [ ] Notifications (sur le site + courriel) d'acceptation ou de refus
-- [ ] Réputation et badges (le champ existe, aucun calcul)
+- [x] Réputation : trois chiffres (contributions acceptées, refusées, relectures faites) et un niveau tiré de seuils en configuration (`config/reputation.php`), recalculés à chaque décision de validation et par `vff:recalculate-reputation`, affichés sur le profil et dans l'espace de validation, expliqués sur `/contribute/reputation`, jamais dans l'API ; pas de badges
 - [x] Modération : journal d'audit, retrait d'une contribution par un administrateur, suspension d'un compte (motif, fin facultative, levée, notification, export) faits
 - [x] Signalement d'une erreur depuis le site : bouton « Signaler une erreur » en bas des fiches ligne, gare, matériel et accident (visiteurs et membres, sans traceur ni service externe), liste des signalements dans l'espace de validation (`/validate/reports`), notification des validateurs, journal d'audit, purge 12 mois après le traitement
 - [x] Suppression du compte par l'utilisateur, avec anonymisation des contributions, et export de ses données

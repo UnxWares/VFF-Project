@@ -23,6 +23,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\TraceEditorController;
 use App\Http\Middleware\SetLocale;
+use App\Services\Reputation\ReputationLevels;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -55,6 +56,8 @@ Route::get('/accidents/{accident:slug}', [AccidentController::class, 'show'])->n
 Route::get('/reports/token', [ErrorReportController::class, 'token'])->middleware('throttle:30,1')->name('reports.token');
 Route::post('/reports', [ErrorReportController::class, 'store'])->middleware(['throttle:error-reports', 'not.suspended'])->name('reports.store');
 Route::get('/contribute', fn () => Inertia::render('Contribute'))->name('contribute');
+// Page d'aide : ce que comptent les chiffres de réputation et les seuils de chaque niveau (config/reputation.php).
+Route::get('/contribute/reputation', fn (ReputationLevels $levels) => Inertia::render('Contribute/Reputation', ['levels' => $levels->all()]))->name('contribute.reputation');
 Route::get('/donate', fn () => Inertia::render('Donate'))->name('donate');
 
 Route::get('/legal', fn () => Inertia::render('Legal'))->name('legal');
