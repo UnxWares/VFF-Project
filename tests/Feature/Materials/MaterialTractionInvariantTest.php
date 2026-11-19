@@ -93,6 +93,12 @@ class MaterialTractionInvariantTest extends TestCase
         $exception = [['line' => '908000', 'material' => 'Q607033', 'source' => 'https://fr.wikipedia.org/w/index.php?oldid=1', 'reason' => 'essai']];
         $this->assertSame([], MaterialTractionRule::fromDatabase($exception)->storedConflicts(), 'exception relue, avec sa source');
         $this->assertCount(1, MaterialTractionRule::fromDatabase([['line' => '908000', 'material' => 'Q607033', 'source' => ' ', 'reason' => 'sans source']])->storedConflicts(), 'une exception sans source ne vaut rien');
+        $this->assertSame([], MaterialTractionRule::fromDatabase($exception)->unresolvedEntries());
+        // Revue des PR #19 et #20 : une exception qui ne trouve pas sa ligne est signalée, pas ignorée en silence.
+        $this->assertSame(
+            ['line_material_traction_exceptions.php n° 0 (ligne « ligne-disparue », série Q607033) : ligne introuvable (ni lines.code ni lines.slug)'],
+            MaterialTractionRule::fromDatabase([['line' => 'ligne-disparue', 'material' => 'Q607033', 'source' => 'https://fr.wikipedia.org/w/index.php?oldid=1', 'reason' => 'essai']])->unresolvedEntries(),
+        );
     }
 
     public function test_exclusions_remove_one_sentence_or_the_whole_link(): void

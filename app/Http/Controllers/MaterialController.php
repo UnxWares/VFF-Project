@@ -66,8 +66,9 @@ class MaterialController extends Controller
                     'type' => $m->getRawOriginal('type'),
                     // `builder` : texte joint, coupé à 255 caractères (« … ») ; `builders` : tous les noms (Wikidata
                     // P176), sans doublon, d'où la carte tire « trois noms et N autres » comme la fiche ligne.
+                    // Un constructeur sans libellé (identifiant Wikidata seul) n'est dans aucun des deux.
                     'builder' => $m->builder,
-                    'builders' => array_values(array_unique(array_column($m->builders ?? [], 'name'))),
+                    'builders' => $m->builderNames(),
                     'designations' => $m->designations ?? [],
                     'in_service_from' => $m->in_service_from,
                     'in_service_to' => $m->in_service_to,
@@ -107,6 +108,11 @@ class MaterialController extends Controller
             ->limit(self::MAX_LINES)
             ->get();
         $detail = MaterialDetailResource::make($material)->resolve(request());
+        // Fiche : constructeurs et exploitants sans libellé (identifiant Wikidata seul) non affichés comme des
+        // noms ; l'API les garde, avec leur `wikidata_id`.
+        foreach (['builders', 'operators'] as $field) {
+            $detail[$field] = array_values(array_filter($detail[$field] ?? [], fn (array $e): bool => Material::isReadableName($e['name'] ?? null)));
+        }
 
         return Inertia::render('Materials/Show', [
             'material' => [

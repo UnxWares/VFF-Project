@@ -137,6 +137,34 @@ class MaterialDirectoryTest extends TestCase
                 ->where('materials.data.1.builders', []));
     }
 
+    /**
+     * Revue des PR #19 et #20 : un constructeur sans libellé Wikidata (ni français ni anglais) n'est connu que
+     * par son identifiant (« Q529531 », 15 séries dont la BR 52). L'identifiant brut n'est jamais montré
+     * comme un nom : ni dans la liste, ni dans le texte joint, ni sur la fiche de la série.
+     */
+    public function test_a_builder_known_only_by_its_wikidata_id_is_not_shown_as_a_name(): void
+    {
+        Material::factory()->create([
+            'slug' => 'br-52',
+            'name' => 'BR 52',
+            'builder' => 'Henschel, Q529531, Krauss-Maffei',
+            'builders' => [
+                ['name' => 'Henschel', 'wikidata_id' => 'Q314093', 'units' => 1050],
+                ['name' => 'Q529531', 'wikidata_id' => 'Q529531', 'units' => 736],
+                ['name' => 'Krauss-Maffei', 'wikidata_id' => 'Q451557', 'units' => null],
+            ],
+        ]);
+
+        $this->get('/materials')
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('materials.data.0.builders', ['Henschel', 'Krauss-Maffei'])
+                ->where('materials.data.0.builder', 'Henschel, Krauss-Maffei'));
+        $this->get('/materials/br-52')
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('material.builder', 'Henschel, Krauss-Maffei')
+                ->where('material.builders', fn (Collection $builders) => $builders->pluck('name')->all() === ['Henschel', 'Krauss-Maffei']));
+    }
+
     public function test_the_directory_is_paginated(): void
     {
         Material::factory()->count(50)->create();

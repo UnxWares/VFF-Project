@@ -327,9 +327,10 @@ final class LineSheet
                 'name' => $m->name,
                 'type' => $m->type,
                 // `builder` : noms joints, coupés à 255 caractères (« … ») pour les séries aux nombreux
-                // constructeurs ; `builders` : la liste complète des noms (Wikidata P176), sans doublon.
+                // constructeurs ; `builders` : la liste complète des noms (Wikidata P176), sans doublon. Un
+                // constructeur sans libellé (identifiant Wikidata seul) n'est dans aucun des deux.
                 'builder' => $m->builder,
-                'builders' => array_values(array_unique(array_column($m->builders ?? [], 'name'))),
+                'builders' => $m->builderNames(),
                 'in_service_from' => $m->in_service_from,
                 'in_service_to' => $m->in_service_to,
                 'periods' => $materialPeriods[$m->id] ?? [],

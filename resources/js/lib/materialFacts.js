@@ -39,6 +39,9 @@ export function servicePeriodText(from, to, t) {
     return String(t('materials.service.until', { year: p.to }));
 }
 
+/** Identifiant Wikidata seul (« Q529531 ») : nom d'un élément sans libellé, jamais affiché. */
+const BARE_WIKIDATA_ID = /^Q\d+$/;
+
 /** Constructeurs nommés sur la carte d'une série (fiche ligne) avant « et N autres ». */
 export const BUILDERS_SHOWN = 3;
 
@@ -46,7 +49,8 @@ export const BUILDERS_SHOWN = 3;
  * Constructeurs d'une série en une ligne : tous jusqu'à quatre, sinon les trois premiers et le nombre
  * des autres (« Henschel, Krupp, Borsig et 10 autres », clés `materials.facts.builders_more_*`). La
  * liste complète reste sur la fiche de la série. Sans liste, le texte joint de la base (`builder`, qui
- * peut finir par « … ») est repris tel quel.
+ * peut finir par « … ») est repris. Un identifiant Wikidata brut (« Q529531 », constructeur sans libellé)
+ * n'est jamais montré comme un nom.
  *
  * @param {string[]|null|undefined} names noms des constructeurs, sans doublon
  * @param {string|null|undefined} fallback texte joint (`builder`)
@@ -54,8 +58,14 @@ export const BUILDERS_SHOWN = 3;
  * @returns {string|null} null si aucun constructeur n'est connu
  */
 export function buildersText(names, fallback, t) {
-    const list = (names ?? []).filter(Boolean);
-    if (!list.length) return fallback || null;
+    const list = (names ?? []).filter((name) => name && !BARE_WIKIDATA_ID.test(name));
+    if (!list.length) {
+        const joined = (fallback ?? '')
+            .split(', ')
+            .filter((name) => name && !BARE_WIKIDATA_ID.test(name))
+            .join(', ');
+        return joined || null;
+    }
     if (list.length <= BUILDERS_SHOWN + 1) return list.join(', ');
     return String(
         t('materials.facts.builders_more', {

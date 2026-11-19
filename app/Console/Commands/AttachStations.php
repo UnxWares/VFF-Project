@@ -67,6 +67,13 @@ class AttachStations extends Command
     /** Décisions relues à la main (étape 5), chargées par handle(). */
     private StationTerminusOverrides $overrides;
 
+    /**
+     * Décisions relues valides de ce passage (reviewedDecisions), lues et signalées une seule fois.
+     *
+     * @var array{valid: list<array{line: int, terminus: string, station: ?int, entry: array<string, mixed>}>, absent: int}|null
+     */
+    private ?array $decisions = null;
+
     protected $signature = 'vff:attach-stations {--buffer=60 : Distance max gare ↔ tracé (m) pour une position précise}
         {--years-only : Recalcule seulement les années de desserte (first_year / last_year) des rattachements existants, après les terminus relus à la main}
         {--except=* : Avec --years-only, codes de lignes à laisser de côté}
@@ -123,6 +130,7 @@ class AttachStations extends Command
     public function handle(StationLinkChanges $changes, StationTerminusOverrides $overrides): int
     {
         $this->overrides = $overrides;
+        $this->decisions = null;
         $dryRun = (bool) $this->option('dry-run');
         DB::beginTransaction();
         try {
@@ -431,47 +439,41 @@ class AttachStations extends Command
 
     /**
      * Extrémités relues à la main par ligne (identifiant de ligne → extrémités normalisées) : la
-     * règle 4 ne les traite pas, la décision relue l'emporte.
+     * règle 4 ne les traite pas, la décision relue l'emporte. Seules les décisions valides comptent :
+     * une décision invalide (gare introuvable après une fusion de gares, champ manquant) est signalée
+     * et la règle générale s'applique à son extrémité, sinon le terminus disparaissait au rattachement
+     * complet (revue des PR #19 et #20, 19/11/2026).
      *
      * @return array<int, list<string>>
      */
     private function reviewedTermini(): array
     {
-        $ids = DB::table('lines')->whereIn('slug', array_column($this->overrides->all(), 'line'))->pluck('id', 'slug');
         $out = [];
-        foreach ($this->overrides->all() as $e) {
-            if (isset($ids[$e['line']]) && is_string($e['terminus'] ?? null)) {
-                $out[(int) $ids[$e['line']]][] = StationTerminusOverrides::key($e['terminus']);
-            }
+        foreach ($this->reviewedDecisions()['valid'] as $d) {
+            $out[$d['line']][] = $d['terminus'];
         }
 
         return $out;
     }
 
     /**
-     * 5. Terminus relus à la main (StationTerminusOverrides). Une décision valide l'emporte d'abord sur
-     * les rattachements des règles des terminus déjà en base, qu'un rattachement complet ne referait pas
-     * (retractTerminusLinks : --years-only, --termini-only). Puis chaque décision « attach » rattache la
-     * gare nommée (méthode terminus_reviewed, distance au plus proche tracé de la ligne, provenance
-     * « relu:<permalien> »), sans réécrire un rattachement d'une autre méthode. Une décision invalide ou
-     * dont la gare est introuvable est signalée et ignorée (rien n'est retiré pour elle) ; celle d'une
-     * ligne absente de la base est comptée.
+     * Décisions relues valides (ligne et gare résolues), lues une fois par passage. Une décision invalide
+     * ou dont la gare est introuvable est signalée et ignorée : la règle des terminus nommés s'applique
+     * alors à son extrémité. Une ligne absente de la base (base de test, ligne fusionnée) est comptée.
      *
-     * @return list<int> identifiants des rattachements ajoutés
+     * @return array{valid: list<array{line: int, terminus: string, station: ?int, entry: array<string, mixed>}>, absent: int}
      */
-    private function applyTerminusOverrides(): array
+    private function reviewedDecisions(): array
     {
-        $entries = $this->overrides->all();
-        if ($entries === []) {
-            return [];
+        if ($this->decisions !== null) {
+            return $this->decisions;
         }
-        $lines = DB::table('lines')->whereIn('slug', array_column($entries, 'line'))->get(['id', 'slug', 'name'])->keyBy('slug');
-        $stations = DB::table('stations')->whereIn('slug', array_filter(array_column($entries, 'station')))->pluck('id', 'slug');
-        /** @var list<array{line: int, terminus: string, station: ?int, entry: array<string, mixed>}> $valid */
+        $entries = $this->overrides->all();
+        $lines = DB::table('lines')->whereIn('slug', array_filter(array_column($entries, 'line'), 'is_string'))->get(['id', 'slug', 'name'])->keyBy('slug');
+        $stations = DB::table('stations')->whereIn('slug', array_filter(array_column($entries, 'station'), 'is_string'))->pluck('id', 'slug');
         $valid = [];
         $absent = 0;
         foreach ($entries as $i => $e) {
-            // Ligne absente de cette base (base de test, ligne fusionnée) : rien à faire.
             $line = $lines[$e['line'] ?? ''] ?? null;
             if ($line === null) {
                 $absent++;
@@ -483,13 +485,35 @@ class AttachStations extends Command
                 $errors[] = 'gare introuvable';
             }
             if ($errors !== []) {
-                $this->warn("  terminus relu n° {$i} ignoré (".($e['line'] ?? '?').') : '.implode(' ; ', $errors));
+                $this->warn("  terminus relu n° {$i} ignoré (".($e['line'] ?? '?').') : '.implode(' ; ', $errors)
+                    .' ; la règle des terminus nommés s\'applique à cette extrémité');
 
                 continue;
             }
             $valid[] = ['line' => (int) $line->id, 'terminus' => StationTerminusOverrides::key($e['terminus']),
                 'station' => $e['decision'] === 'attach' ? (int) $stations[$e['station']] : null, 'entry' => $e];
         }
+
+        return $this->decisions = ['valid' => $valid, 'absent' => $absent];
+    }
+
+    /**
+     * 5. Terminus relus à la main (StationTerminusOverrides). Une décision valide l'emporte d'abord sur
+     * les rattachements des règles des terminus déjà en base, qu'un rattachement complet ne referait pas
+     * (retractTerminusLinks : --years-only, --termini-only). Puis chaque décision « attach » rattache la
+     * gare nommée (méthode terminus_reviewed, distance au plus proche tracé de la ligne, provenance
+     * « relu:<permalien> »), sans réécrire un rattachement d'une autre méthode. Une décision invalide ou
+     * dont la gare est introuvable est signalée et ignorée (rien n'est retiré pour elle, reviewedDecisions) ;
+     * celle d'une ligne absente de la base est comptée.
+     *
+     * @return list<int> identifiants des rattachements ajoutés
+     */
+    private function applyTerminusOverrides(): array
+    {
+        if ($this->overrides->all() === []) {
+            return [];
+        }
+        ['valid' => $valid, 'absent' => $absent] = $this->reviewedDecisions();
         $removed = $this->retractTerminusLinks($valid);
         $added = [];
         $none = 0;
@@ -642,6 +666,10 @@ class AttachStations extends Command
      * dont la section couvre le PK (ou sans section = toute la ligne), sinon
      * tracés datés de la ligne à < 100 m.
      *
+     * Terminus nommé ou relu (terminus_name, terminus_reviewed), souvent à plus de 300 m du tracé :
+     * événements de la ligne qui la couvrent en plus, voir terminusEvents (revue des PR #19 et #20 :
+     * Chambéry-Challes-les-Eaux « desservie depuis 1856 », date de la gare, pour un tramway de 1897 à 1932).
+     *
      * Fin de desserte (2026-10-20, contrôle qualité : « 434000 desservie de 1869 à 2006 » à
      * Lonlay-le-Tesson, fermée le 26/05/1991, sur une ligne fermée en 1992) : la DERNIÈRE fin du
      * service voyageurs ou fermeture totale couvrant la gare qu'aucune réouverture ne suit ; un
@@ -655,7 +683,9 @@ class AttachStations extends Command
      */
     private function computeServiceYears(array $exceptLines = []): void
     {
-        $cover = self::EVENT_COVERS_STATION;
+        $this->terminusEvents($exceptLines);
+        $terminusCover = fn (string $alias) => "EXISTS (SELECT 1 FROM tmp_terminus_events tt WHERE tt.sl_id = sl.id AND tt.event_id = {$alias}.id)";
+        $cover = '('.self::EVENT_COVERS_STATION.' OR '.$terminusCover('le').')';
         $except = $exceptLines === [] ? '' : ' AND sl.line_id NOT IN ('.implode(',', array_map('intval', $exceptLines)).')';
         DB::statement("UPDATE station_lines sl SET first_year = NULL, last_year = NULL, years_source = NULL WHERE TRUE{$except}");
         // Ouverture : plus ancienne ouverture couvrant le PK.
@@ -677,7 +707,7 @@ class AttachStations extends Command
         // à l'ouverture (déclassement d'un projet antérieur, 794000 « déclassée … le 07/07/1905 », ouverte
         // en 1910) ne termine pas la desserte. La réouverture doit couvrir la gare, comme la fermeture :
         // celle d'une autre portion de la ligne ne prolonge pas la desserte d'une gare restée fermée.
-        $reopenCover = self::eventCovers('r');
+        $reopenCover = '('.self::eventCovers('r').' OR '.$terminusCover('r').')';
         DB::statement(<<<SQL
             WITH ev AS (
                 SELECT sl.id, le.event_date, le.type IN ('closure_passenger', 'closure') AS service_end
@@ -723,5 +753,53 @@ class AttachStations extends Command
                 WHERE ls.line_id = sl.line_id AND ls.status IN ('in_service', 'single_track')
                   AND ls.geom && ST_Expand(s.geom, 0.003) AND ST_DWithin(ls.geom::geography, s.geom::geography, 200))
         SQL);
+    }
+
+    /**
+     * Événements de ligne qui couvrent un terminus nommé ou relu quelle que soit sa distance au tracé
+     * (table temporaire tmp_terminus_events, rattachement → événement) : ceux de toute la ligne, et ceux
+     * d'une section qui part ou arrive à l'extrémité rattachée (section_from ou section_to, normalisé,
+     * égal à l'extrémité ou au nom de la gare), même non résolue. La gare d'une compagnie ou de la grande
+     * ligne est souvent à 300-500 m du bout du tracé : la règle générale (≤ 300 m) ne la couvrait pas.
+     *
+     * @param  list<int>  $exceptLines  lignes laissées de côté (--years-only --except)
+     */
+    private function terminusEvents(array $exceptLines): void
+    {
+        DB::statement('DROP TABLE IF EXISTS tmp_terminus_events');
+        DB::statement('CREATE TEMP TABLE tmp_terminus_events (sl_id bigint, event_id bigint, PRIMARY KEY (sl_id, event_id))');
+        $reviewed = [];
+        foreach ($this->reviewedDecisions()['valid'] as $d) {
+            if ($d['station'] !== null) {
+                $reviewed[$d['line']][$d['station']][] = $d['terminus'];
+            }
+        }
+        $links = DB::table('station_lines as sl')->join('stations as s', 's.id', '=', 'sl.station_id')
+            ->whereIn('sl.method', ['terminus_name', StationTerminusOverrides::METHOD])
+            ->whereNotIn('sl.line_id', $exceptLines)
+            ->get(['sl.id', 'sl.line_id', 'sl.station_id', 'sl.method', 'sl.source_ref', 's.name']);
+        if ($links->isEmpty()) {
+            return;
+        }
+        $events = DB::table('line_events')->whereIn('line_id', $links->pluck('line_id')->unique()->values())
+            ->get(['id', 'line_id', 'section_resolution', 'section_from', 'section_to'])->groupBy('line_id');
+        $rows = [];
+        foreach ($links as $l) {
+            $names = array_filter([
+                StationNames::normalize($l->name),
+                ...($l->method === 'terminus_name' && str_starts_with((string) $l->source_ref, 'name:') ? [substr((string) $l->source_ref, 5)] : []),
+                ...($reviewed[(int) $l->line_id][(int) $l->station_id] ?? []),
+            ]);
+            foreach ($events[$l->line_id] ?? [] as $e) {
+                if ($e->section_resolution === 'whole_line'
+                    || in_array(StationNames::normalize($e->section_from), $names, true)
+                    || in_array(StationNames::normalize($e->section_to), $names, true)) {
+                    $rows[] = ['sl_id' => (int) $l->id, 'event_id' => (int) $e->id];
+                }
+            }
+        }
+        foreach (array_chunk($rows, 1000) as $chunk) {
+            DB::table('tmp_terminus_events')->insert($chunk);
+        }
     }
 }

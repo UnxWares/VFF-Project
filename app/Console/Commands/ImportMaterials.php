@@ -103,6 +103,9 @@ class ImportMaterials extends Command
             return ($lines[$line] ?? "ligne {$line}").' × '.($materials[$material] ?? "série {$material}");
         };
 
+        foreach ($linker->unresolvedEntries() as $problem) {
+            $this->warn("  Exception ou exclusion sans effet : {$problem}");
+        }
         $this->line('  Écartés (exclusion relue, écartement, électrification) : '.count($rejected));
         foreach ($rejected as $key => $link) {
             $this->line("    - {$name((string) $key)} : {$link['reason']}");

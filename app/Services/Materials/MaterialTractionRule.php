@@ -59,12 +59,20 @@ final class MaterialTractionRule
      * @param  array<int, array<int, array{total: float, volts: array<int, float>}>>  $profiles  ligne → ère (année) → longueur connue et longueur électrifiée par tension (0 : inconnue)
      * @param  array<int, array{volts: list<int>, from: ?int, to: ?int}>  $materials  série → tensions et années de service
      * @param  array<string, string>  $exceptions  « ligne:série » → source de l'exception
+     * @param  list<string>  $unresolved  exceptions sans effet dans cette base (LineMaterialExclusions::unresolved)
      */
     public function __construct(
         private readonly array $profiles,
         private readonly array $materials,
         private readonly array $exceptions = [],
+        private readonly array $unresolved = [],
     ) {}
+
+    /** @return list<string> exceptions du fichier sans effet dans cette base, à signaler */
+    public function unresolvedEntries(): array
+    {
+        return $this->unresolved;
+    }
 
     /**
      * Règle chargée depuis la base : électrification des lignes par ère, systèmes des séries, exceptions.
@@ -110,7 +118,8 @@ final class MaterialTractionRule
 
         $exceptions ??= require database_path('data/line_material_traction_exceptions.php');
 
-        return new self($profiles, $materials, LineMaterialExclusions::keyed($exceptions));
+        return new self($profiles, $materials, LineMaterialExclusions::keyed($exceptions),
+            LineMaterialExclusions::unresolved($exceptions, 'line_material_traction_exceptions.php'));
     }
 
     /**

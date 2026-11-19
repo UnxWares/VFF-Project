@@ -57,6 +57,9 @@ final class LineMaterialLinker
     /** @var array<string, array{line_id: int, material_id: int, evidence: list<array<string, mixed>>, reason: string}> */
     private array $rejected = [];
 
+    /** @var list<string> exclusions et exceptions sans effet à la dernière collecte */
+    private array $unresolved = [];
+
     public function __construct(
         private readonly WikidataMaterialSource $wikidata,
         private readonly WikipediaArticleSource $wikipedia,
@@ -113,6 +116,7 @@ final class LineMaterialLinker
         $gauges = $this->gauges ?? MaterialGaugeRule::fromDatabase();
         $traction = $this->traction ?? MaterialTractionRule::fromDatabase();
         $this->rejected = [];
+        $this->unresolved = [...$exclusions->unresolvedEntries(), ...$gauges->unresolvedEntries(), ...$traction->unresolvedEntries()];
         foreach ($links as $key => $link) {
             $evidence = $link['evidence'];
             $reason = $exclusions->apply($link['line_id'], $link['material_id'], $evidence);
@@ -137,6 +141,17 @@ final class LineMaterialLinker
     public function rejected(): array
     {
         return $this->rejected;
+    }
+
+    /**
+     * Exclusions et exceptions relues sans effet à la dernière collecte (ligne ou série introuvable, source
+     * vide), une phrase par entrée : l'import les signale.
+     *
+     * @return list<string>
+     */
+    public function unresolvedEntries(): array
+    {
+        return $this->unresolved;
     }
 
     /**

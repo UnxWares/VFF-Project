@@ -57,20 +57,23 @@ final class WikipediaMaterialSections
      * (doubt()) : le lien est gardé, en fiabilité `low` sans autre preuve. Les mêmes mots écartent la
      * phrase entière des périodes (MaterialPeriodExtractor, UNCERTAIN_WORDS).
      *
-     *   - `order` : commande, contrat, acquisition, rames « destinées à » (pas encore livrées) ;
+     *   - `order` : commande, contrat, acquisition, rames « destinées à » (pas encore livrées) ; pas la
+     *     « commande centralisée » ni le « poste de commande » (exploitation de la ligne) ;
      *   - `trial` : essais, prototype, record ;
      *   - `one_off` : circulation exceptionnelle, renfort, train affrété ou spécial, festivités, exposition,
      *     présentation au public ;
-     *   - `preserved` : musée, préservation, restauration ;
-     *   - `possible` : possibilité étudiée ou considérée, infrastructure qui « permet la circulation ».
+     *   - `preserved` : musée, préservation, restauration ; « conservée » seulement avec un musée, une
+     *     association ou « en état de marche » (seule, elle veut souvent dire « gardée en service ») ;
+     *   - `possible` : possibilité étudiée ou considérée, infrastructure qui « permet la circulation » ;
+     *     pas « considérable » ni « considérablement ».
      * S'y ajoute `component` (COMPONENT_BEFORE), propre aux liens.
      */
     public const UNCERTAIN = [
-        'order' => 'command(?:e|es|é|ée|és|ées|ait|aient)|contrat|acquisition|destinée?s?\s+(?:à|au|aux)',
+        'order' => '(?<!poste\sde\s)(?<!postes\sde\s)command(?:e|es|é|ée|és|ées|ait|aient)(?!\s+centralisée?s?\b)|contrat|acquisition|destinée?s?\s+(?:à|au|aux)',
         'trial' => 'essais?|prototypes?|tester|testée?s?|records?',
         'one_off' => 'exceptionnel(?:le)?s?(?:ment)?|renforts?|affrét\w*|festivit\w+|(?:trains?|circulations?|marches?|voyages?|convois?)\s+spécia(?:l|le|les|ux)|expositions?|exposée?s?|présent(?:é|ée|és|ées|ation|er)',
-        'preserved' => 'au\s+musée|musée\s+(?:du|de\s+la|des)\s+(?:chemin|rail|train|transport)\w*|préserv\w*|conserv(?:é|ée|és|ées)|monument\s+historique|cité\s+du\s+train|en\s+cours\s+de\s+(?:remise\s+en\s+état|restauration)|restaur(?:é|ée|és|ées|ation)',
-        'possible' => 'possibilit\w+|permett\w*\s+(?:ainsi\s+)?(?:la\s+)?circulation|étudi(?:é|ée|és|ées)|consid[èé]r\w*',
+        'preserved' => 'au\s+musée|musée\s+(?:du|de\s+la|des)\s+(?:chemin|rail|train|transport)\w*|préserv\w*|conserv(?:é|ée|és|ées)\s+(?:au\s+musée|par\s+(?:une?|l[’\']|les?|des)\s*(?:association|amicale|musée|cité|club)\w*|en\s+état\s+de\s+marche|à\s+titre\s+historique)|monument\s+historique|cité\s+du\s+train|en\s+cours\s+de\s+(?:remise\s+en\s+état|restauration)|restaur(?:é|ée|és|ées|ation)',
+        'possible' => 'possibilit\w+|permett\w*\s+(?:ainsi\s+)?(?:la\s+)?circulation|étudi(?:é|ée|és|ées)|consid[èé]r(?:e|ent|é|ée|és|ées|ait|aient|ation)',
     ];
 
     /** Toutes les familles de UNCERTAIN en une alternative (filtre des périodes). */
@@ -111,11 +114,21 @@ final class WikipediaMaterialSections
      * Comparaison ou filiation juste avant le lien, dans la même partie de phrase (sans virgule ni
      * point entre les deux) : la série citée sert de référence, elle n'est pas engagée sur la ligne.
      * « comme les » seul n'en fait pas partie : « de nouveaux matériels comme les X 73500 » cite un
-     * exemple de ce qui circule. « aussi bien que » non plus (énumération), ni « ne … plus guère que »
-     * (restriction : la série est la seule à rouler), ni « issus des familles des X 2200 et XR 6000 »
-     * (appartenance : l'X 92201 et la XR 96000 de Fécamp sont de ces séries).
+     * exemple de ce qui circule. « aussi bien que » non plus (énumération), ni « ne … plus … que »
+     * (restriction, RESTRICTION_BEFORE : la série est la seule à rouler), ni « issus des familles des
+     * X 2200 et XR 6000 » (appartenance : l'X 92201 et la XR 96000 de Fécamp sont de ces séries).
      */
-    private const COMPARISON_BEFORE = '/(?:\b(?:similaires?|semblables?|comparables?|identiques?|analogues?|équivalent(?:e|s|es)?|pareil(?:le)?s?|dérivé(?:e|s|es)?|inspiré(?:e|s|es)?)|\bà\s+l[’\']image|\bà\s+l[’\']instar|\bsur\s+le\s+modèle|\b(?:plus|moins)\s+(?!(?:guère|rien|que)\b)(?:\p{L}+\s+){1,2}que)\b[^.;,:()\[\]]{0,50}$/iu';
+    private const COMPARISON_BEFORE = '/(?:\b(?:similaires?|semblables?|comparables?|identiques?|analogues?|équivalent(?:e|s|es)?|pareil(?:le)?s?|dérivé(?:e|s|es)?|inspiré(?:e|s|es)?)|\bà\s+l[’\']image|\bà\s+l[’\']instar|\bsur\s+le\s+modèle)\b[^.;,:()\[\]]{0,50}$/iu';
+
+    /** Comparatif juste avant le lien, même partie de phrase : « plus confortables que les », « moins rapides que les ». */
+    private const COMPARATIVE_BEFORE = '/\b(?:plus|moins)\s+(?!(?:guère|rien|que)\b)(?:\p{L}+\s+){1,2}que\b[^.;,:()\[\]]{0,50}$/iu';
+
+    /**
+     * Restriction juste avant le lien : « n'est plus desservie que par des », « ne circule plus désormais
+     * que des », « n'y a plus que » (revue des PR #19 et #20). La négation porte sur « plus », la série
+     * citée est la seule à rouler ; « ne sont pas plus confortables que » reste une comparaison.
+     */
+    private const RESTRICTION_BEFORE = '/\bn(?:e\s+|[’\']\s?)(?:(?!pas\b)\p{L}+\s+){0,2}plus\s+(?:\p{L}+\s+){0,2}que\b[^.;,:()\[\]]{0,50}$/iu';
 
     /**
      * Juste après le lien, dans la même partie de phrase : « qui en sont dérivées ». Ce qui est décrit
@@ -395,7 +408,9 @@ final class WikipediaMaterialSections
      */
     public static function isCompared(string $plainBefore, string $plainAfter = ''): bool
     {
-        return preg_match(self::COMPARISON_BEFORE, $plainBefore) === 1 || preg_match(self::DERIVED_AFTER, $plainAfter) === 1;
+        return preg_match(self::COMPARISON_BEFORE, $plainBefore) === 1
+            || (preg_match(self::COMPARATIVE_BEFORE, $plainBefore) === 1 && preg_match(self::RESTRICTION_BEFORE, $plainBefore) !== 1)
+            || preg_match(self::DERIVED_AFTER, $plainAfter) === 1;
     }
 
     /** Titre d'article normalisé comme MediaWiki : espaces, première lettre en capitale. */

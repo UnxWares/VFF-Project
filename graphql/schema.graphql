@@ -1016,7 +1016,7 @@ type MaterialService {
 
 "Un constructeur d'une série de matériel (Wikidata, propriété P176)."
 type MaterialBuilder {
-    "Nom du constructeur (libellé Wikidata en français)."
+    "Nom du constructeur (libellé Wikidata en français, sinon en anglais). Un élément sans libellé garde son identifiant (ex. `Q529531`), que le site n'affiche pas comme un nom."
     name: String!
 
     "Élément Wikidata du constructeur (ex. `Q309084` pour Alstom)."
@@ -2836,7 +2836,7 @@ type LineSheetMaterial {
     "Constructeurs joints par des virgules, coupés à 255 caractères (« … ») quand ils sont nombreux. Liste complète : `builders`."
     builder: String
 
-    "Tous les constructeurs de la série (Wikidata P176), sans doublon, dans l'ordre de la source ; liste vide si aucun n'est connu."
+    "Tous les constructeurs de la série (Wikidata P176), sans doublon, dans l'ordre de la source, sans ceux qui n'ont pas de libellé Wikidata ; liste vide si aucun n'est connu."
     builders: [String!]!
 
     "Année de mise en service."

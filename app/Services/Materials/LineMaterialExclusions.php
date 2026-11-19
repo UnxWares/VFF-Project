@@ -20,8 +20,15 @@ final class LineMaterialExclusions
 {
     /**
      * @param  array<string, list<array{quote: ?string, reason: string}>>  $byKey  « ligne:série » → exclusions
+     * @param  list<string>  $unresolved  entrées sans effet dans cette base (unresolved())
      */
-    public function __construct(private readonly array $byKey = []) {}
+    public function __construct(private readonly array $byKey = [], private readonly array $unresolved = []) {}
+
+    /** @return list<string> entrées du fichier sans effet dans cette base, à signaler (unresolved()) */
+    public function unresolvedEntries(): array
+    {
+        return $this->unresolved;
+    }
 
     /**
      * Exclusions chargées depuis le fichier de données (ou la liste donnée), rattachées aux ids de la base.
@@ -39,7 +46,7 @@ final class LineMaterialExclusions
             }
         }
 
-        return new self($byKey);
+        return new self($byKey, self::unresolved($entries, 'line_material_exclusions.php'));
     }
 
     /**
@@ -64,6 +71,55 @@ final class LineMaterialExclusions
         if ($entries === []) {
             return [];
         }
+        [$lines, $materials] = self::lookup($entries);
+        $out = [];
+        foreach ($entries as $e) {
+            if (isset($lines[$e['line']], $materials[$e['material']]) && trim($e['source']) !== '') {
+                $out[$lines[$e['line']].':'.$materials[$e['material']]][] = $e;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Entrées sans effet dans cette base, une phrase par entrée : ligne introuvable (ni lines.code ni
+     * lines.slug), série introuvable (materials.wikidata_id) ou source vide. L'import les affiche : une
+     * exception mal rattachée ne doit pas être ignorée sans message (revue des PR #19 et #20).
+     *
+     * @param  list<array{line: string, material: string, quote?: string, source: string, reason: string}>  $entries
+     * @param  string  $file  fichier de données, nommé dans le message
+     * @return list<string>
+     */
+    public static function unresolved(array $entries, string $file): array
+    {
+        if ($entries === []) {
+            return [];
+        }
+        [$lines, $materials] = self::lookup($entries);
+        $out = [];
+        foreach ($entries as $i => $e) {
+            $problems = array_values(array_filter([
+                isset($lines[$e['line']]) ? null : 'ligne introuvable (ni lines.code ni lines.slug)',
+                isset($materials[$e['material']]) ? null : 'série introuvable (materials.wikidata_id)',
+                trim($e['source']) !== '' ? null : 'source vide',
+            ]));
+            if ($problems !== []) {
+                $out[] = "{$file} n° {$i} (ligne « {$e['line']} », série {$e['material']}) : ".implode(' ; ', $problems);
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Identifiants des lignes (par code RFN et par slug) et des séries (par QID) cités par les entrées.
+     *
+     * @param  list<array{line: string, material: string, quote?: string, source: string, reason: string}>  $entries
+     * @return array{0: array<string, int>, 1: array<string, int>}
+     */
+    private static function lookup(array $entries): array
+    {
         $refs = array_column($entries, 'line');
         $lines = [];
         foreach (DB::table('lines')->whereIn('code', $refs)->orWhereIn('slug', $refs)->get(['id', 'code', 'slug']) as $row) {
@@ -73,15 +129,10 @@ final class LineMaterialExclusions
                 }
             }
         }
-        $materials = DB::table('materials')->whereIn('wikidata_id', array_column($entries, 'material'))->pluck('id', 'wikidata_id')->all();
-        $out = [];
-        foreach ($entries as $e) {
-            if (isset($lines[$e['line']], $materials[$e['material']]) && trim($e['source']) !== '') {
-                $out[$lines[$e['line']].':'.$materials[$e['material']]][] = $e;
-            }
-        }
+        $materials = DB::table('materials')->whereIn('wikidata_id', array_column($entries, 'material'))->pluck('id', 'wikidata_id')
+            ->map(fn ($id): int => (int) $id)->all();
 
-        return $out;
+        return [$lines, $materials];
     }
 
     /**

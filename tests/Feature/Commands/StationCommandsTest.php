@@ -417,6 +417,75 @@ class StationCommandsTest extends TestCase
         $this->assertSame(['Whiskey' => 'terminus_name', 'Zulu' => 'segment'], $links());
     }
 
+    /**
+     * Revue des PR #19 et #20 (19/11/2026) : Chambéry-Challes-les-Eaux, rattachée à 378 m du tracé du tramway
+     * de Chambéry à Chignin, était « desservie depuis 1856 » (date de la gare) alors que la ligne a ses dates
+     * (1897 à 1932). Pour un terminus relu ou nommé, un événement de toute la ligne ou d'une section qui part
+     * ou arrive à l'extrémité rattachée couvre la gare, quelle que soit la distance au tracé.
+     */
+    public function test_reviewed_terminus_far_from_the_trace_takes_the_years_of_the_line(): void
+    {
+        $line = $this->rfnLine('', 'Ligne de Victor à Whiskey', ['code' => null, 'network' => 'secondaire']);
+        $this->track($line, $this->current, [[47.0, 6.0], [47.1, 6.0]], ['status' => 'dismantled', 'traffic_type' => 'unknown']);
+        // Gare de la grande ligne, à 400 m au sud du début du tracé du tramway, ouverte en 1856.
+        $victor = $this->station('victor-ville', 'Victor-Ville', 46.9964, 6.0);
+        DB::table('station_events')->insert(['station_id' => $victor->id, 'type' => 'opening', 'event_date' => '1856-01-01',
+            'date_precision' => 'year', 'source' => 'wikipedia', 'is_inferred' => false, 'created_at' => now(), 'updated_at' => now()]);
+        $this->app->instance(StationTerminusOverrides::class, new StationTerminusOverrides([
+            ['line' => $line->slug, 'terminus' => 'Victor', 'decision' => 'attach', 'station' => 'victor-ville',
+                'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Victor&oldid=1', 'reason' => 'tête de ligne'],
+        ]));
+        $event = fn (string $type, string $date, array $section) => DB::table('line_events')->insert($section + ['line_id' => $line->id,
+            'type' => $type, 'event_date' => $date, 'description' => $type, 'created_at' => now(), 'updated_at' => now()]);
+        // Section nommée non résolue qui part de l'extrémité rattachée, sans géométrie.
+        $event('opening', '1897-01-01', ['section_resolution' => 'unresolved', 'section_from' => 'Victor', 'section_to' => 'Whiskey']);
+        // Section d'une autre portion, loin de la gare : ne la concerne pas.
+        $event('closure', '1929-01-01', ['section_resolution' => 'unresolved', 'section_from' => 'Uniform', 'section_to' => 'Whiskey']);
+        // Fermeture de toute la ligne, avec la géométrie du tracé (à 400 m de la gare).
+        $event('closure', '1932-12-31', ['section_resolution' => 'whole_line',
+            'section_geom' => DB::raw('ST_SetSRID(ST_MakeLine(ST_MakePoint(6.0, 47.0), ST_MakePoint(6.0, 47.1)), 4326)')]);
+
+        $this->artisan('vff:attach-stations')->assertSuccessful();
+        $this->assertSame([1897, 1932, 'line_events'], $this->serviceYears($victor->id));
+
+        // Le recalcul des ères borne par les dates de la gare sans reprendre 1856.
+        $this->artisan('vff:build-station-eras')->assertSuccessful();
+        $this->assertSame([1897, 1932, 'line_events'], $this->serviceYears($victor->id), 'après vff:build-station-eras');
+
+        $this->artisan('vff:attach-stations', ['--years-only' => true])->assertSuccessful();
+        $this->assertSame([1897, 1932, 'line_events'], $this->serviceYears($victor->id), 'après --years-only');
+    }
+
+    /** @return list<mixed> années de desserte et leur source, pour l'unique rattachement de la gare */
+    private function serviceYears(int $stationId): array
+    {
+        return array_values((array) DB::table('station_lines')->where('station_id', $stationId)->first(['first_year', 'last_year', 'years_source']));
+    }
+
+    /**
+     * Revue des PR #19 et #20 : une décision « attach » dont la gare n'existe plus (slug changé après une fusion
+     * de gares) est signalée et ne bloque pas la règle des terminus nommés ; avant, le rattachement complet
+     * vidait station_lines et le terminus disparaissait avec un simple avertissement.
+     */
+    public function test_invalid_reviewed_decision_leaves_the_named_terminus_rule_in_place(): void
+    {
+        $line = $this->rfnLine('', 'Ligne de Victor à Whiskey', ['code' => null, 'network' => 'secondaire']);
+        $this->track($line, $this->current, [[47.0, 6.0], [47.1, 6.0]], ['status' => 'dismantled', 'traffic_type' => 'unknown']);
+        $victor = $this->station('victor', 'Victor', 46.9985, 6.0);
+        $this->app->instance(StationTerminusOverrides::class, new StationTerminusOverrides([
+            ['line' => $line->slug, 'terminus' => 'Victor', 'decision' => 'attach', 'station' => 'victor-ancienne',
+                'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Victor&oldid=1', 'reason' => 'gare fusionnée depuis'],
+        ]));
+        $method = fn () => DB::table('station_lines')->where('station_id', $victor->id)->where('line_id', $line->id)->value('method');
+
+        foreach ([[], ['--termini-only' => true], ['--years-only' => true]] as $options) {
+            $this->artisan('vff:attach-stations', $options)
+                ->expectsOutputToContain('gare introuvable ; la règle des terminus nommés s\'applique à cette extrémité')
+                ->assertSuccessful();
+            $this->assertSame('terminus_name', $method(), 'options : '.json_encode($options));
+        }
+    }
+
     public function test_dry_run_reports_the_changes_without_writing(): void
     {
         $closed = $this->rfnLine('300000', 'Ligne de Charlie à Delta');

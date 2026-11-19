@@ -20,7 +20,8 @@ use Illuminate\Support\Facades\DB;
  * Sauf source explicite :
  *   - une phrase de preuve qui nomme l'écartement de la série (« sur la section à voie normale »,
  *     « 1 435 mm ») : la source a vu la différence et l'explique ;
- *   - une exception relue à la main, avec sa source, dans database/data/line_material_gauge_exceptions.php.
+ *   - une exception relue à la main, avec sa source, dans database/data/line_material_gauge_exceptions.php
+ *     (ligne par code RFN ou par slug, comme les autres fichiers relus : LineMaterialExclusions::keyed).
  */
 final class MaterialGaugeRule
 {
@@ -38,12 +39,20 @@ final class MaterialGaugeRule
      * @param  array<int, array<int, float>>  $profiles  ligne → [écartement (mm) → longueur (m)]
      * @param  array<int, int>  $materialGauges  série → écartement (mm)
      * @param  array<string, string>  $exceptions  « ligne:série » → source de l'exception
+     * @param  list<string>  $unresolved  exceptions sans effet dans cette base (LineMaterialExclusions::unresolved)
      */
     public function __construct(
         private readonly array $profiles,
         private readonly array $materialGauges,
         private readonly array $exceptions = [],
+        private readonly array $unresolved = [],
     ) {}
+
+    /** @return list<string> exceptions du fichier sans effet dans cette base, à signaler */
+    public function unresolvedEntries(): array
+    {
+        return $this->unresolved;
+    }
 
     /**
      * Règle chargée depuis la base : profils d'écartement des lignes, écartement des séries, exceptions.
@@ -63,18 +72,9 @@ final class MaterialGaugeRule
         $gauges = DB::table('materials')->whereNotNull('gauge_mm')->pluck('gauge_mm', 'id')->map(fn ($g): int => (int) $g)->all();
 
         $exceptions ??= require database_path('data/line_material_gauge_exceptions.php');
-        $byKey = [];
-        if ($exceptions !== []) {
-            $lines = DB::table('lines')->whereIn('code', array_column($exceptions, 'line'))->pluck('id', 'code')->all();
-            $materials = DB::table('materials')->whereIn('wikidata_id', array_column($exceptions, 'material'))->pluck('id', 'wikidata_id')->all();
-            foreach ($exceptions as $e) {
-                if (isset($lines[$e['line']], $materials[$e['material']]) && trim($e['source']) !== '') {
-                    $byKey[$lines[$e['line']].':'.$materials[$e['material']]] = $e['source'];
-                }
-            }
-        }
 
-        return new self($profiles, $gauges, $byKey);
+        return new self($profiles, $gauges, LineMaterialExclusions::keyed($exceptions),
+            LineMaterialExclusions::unresolved($exceptions, 'line_material_gauge_exceptions.php'));
     }
 
     /**
