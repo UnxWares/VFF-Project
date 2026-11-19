@@ -14,7 +14,7 @@ return [
         'title' => 'Dokumentation',
         'intro' => 'Alle beschreiben dieselben Daten: Wählen Sie die Oberfläche, die Ihnen am besten zusagt.',
         'items' => [
-            'scalar' => ['title' => 'REST-Referenz (Scalar)', 'text' => 'Die Hauptreferenz, mit Live-Anfragen und Codebeispielen.'],
+            'scalar' => ['title' => 'REST-Referenz (Scalar)', 'text' => 'Die Hauptreferenz mit Live-Anfragen und Codebeispielen.'],
             'swagger' => ['title' => 'REST-Referenz (Swagger UI)', 'text' => 'Dieselbe Spezifikation in einer klassischeren Oberfläche.'],
             'openapi' => ['title' => 'OpenAPI-3.1-Spezifikation', 'text' => 'JSON-Datei zum Import in Postman, Insomnia oder einen Client-Generator.'],
             'graphql' => ['title' => 'GraphQL-Referenz', 'text' => 'Typen, Abfragen und Beispiele des Schemas.'],

@@ -185,7 +185,7 @@ return [
         'lo_table' => 'RFF table of closures and decommissionings: section :section, PK :from to :to (:km km), :date',
     ],
     'heritage' => [
-        'kind_tourist_train' => 'tourist train',
+        'kind_tourist_train' => 'heritage railway',
         'kind_velorail' => 'rail bike',
         'kind_museum' => 'operating railway museum',
         'between' => 'between :from and :to',

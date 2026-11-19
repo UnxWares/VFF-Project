@@ -87,7 +87,7 @@ return [
     'archives' => [
         'title' => 'The railway in pictures',
         'intro' => 'Photographs and postcards published on Wikimedia Commons and linked to the line pages, with their author and licence.',
-        'decade' => 'The :year decade',
+        'decade' => 'The :decade',
         'author_unknown' => 'Unknown author',
         'source' => 'Wikimedia Commons',
         'cta' => 'Browse the lines',

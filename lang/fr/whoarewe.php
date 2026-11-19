@@ -64,7 +64,7 @@ return [
 
     'cta' => [
         'title' => 'Rejoignez le projet',
-        'text' => 'Le projet ne tient qu’à travers sa communauté. Vous pouvez documenter des lignes, proposer des archives ou du code, ou soutenir le projet.',
+        'text' => 'Le projet repose sur sa communauté. Vous pouvez documenter des lignes, proposer des archives ou du code, ou soutenir le projet.',
         'contribute' => 'Comment contribuer',
         'donate' => 'Soutenir le projet',
     ],

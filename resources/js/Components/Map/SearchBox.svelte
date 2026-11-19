@@ -292,6 +292,8 @@
         color: inherit;
         font-family: inherit;
         font-size: var(--vff-fs-md);
+        /* Champ étroit (téléphone) : texte d'exemple coupé par des points de suspension. */
+        text-overflow: ellipsis;
     }
     /* Le contour est porté par le cadre (focus-within). */
     input:focus-visible {

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'meta_title' => 'Our maps',
+    'meta_title' => 'Map of French railways',
     'meta_description' => 'Interactive map of the French railway network, in service and vanished, era by era.',
 
     'hero' => [

@@ -6,7 +6,7 @@ return [
 
     'hero' => [
         'title' => 'Take part in the encyclopaedia',
-        'subtitle' => 'VFF relies on its contributors. Here are the three ways to take part, and how your contributions are checked before they are published.',
+        'subtitle' => 'VFF relies on its contributors. There are three ways to take part, and every contribution is checked before it is published.',
     ],
 
     'ways' => [

@@ -41,6 +41,8 @@ return [
         'rame_tgv' => 'TGV und Hochgeschwindigkeit',
         'voiture' => 'Reisezugwagen',
         'wagon' => 'Güterwagen',
+        'tramway' => 'Straßenbahnen',
+        'engin_service' => 'Dienstfahrzeuge',
     ],
     'type' => [
         'locomotive_vapeur' => 'Dampflokomotive',
@@ -51,5 +53,7 @@ return [
         'rame_tgv' => 'TGV-Triebzug',
         'voiture' => 'Reisezugwagen',
         'wagon' => 'Güterwagen',
+        'tramway' => 'Straßenbahn',
+        'engin_service' => 'Dienstfahrzeug',
     ],
 ];

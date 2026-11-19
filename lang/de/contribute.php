@@ -6,7 +6,7 @@ return [
 
     'hero' => [
         'title' => 'Wirken Sie an der Enzyklopädie mit',
-        'subtitle' => 'VFF lebt von seinen Mitwirkenden. Hier sind die drei Möglichkeiten mitzuwirken, und so werden Ihre Beiträge vor der Veröffentlichung geprüft.',
+        'subtitle' => 'VFF lebt von seinen Mitwirkenden. Es gibt drei Möglichkeiten mitzuwirken, und jeder Beitrag wird vor der Veröffentlichung geprüft.',
     ],
 
     'ways' => [

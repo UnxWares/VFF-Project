@@ -15,7 +15,7 @@ return [
     'all_statuses' => 'Alle Status',
     'filter_era' => 'Zeitraum',
     'all_eras' => 'Heute',
-    'era_option' => 'Jahrzehnt :year',
+    'era_option' => ':decade',
     'filter_department' => 'Département',
     'all_departments' => 'Alle Départements',
     'flagged_only' => 'Nur abweichende Positionen',
@@ -61,7 +61,7 @@ return [
     ],
 
     'dates' => [
-        'decade' => 'Jahrzehnt ab :year',
+        'decade' => ':decade',
         'after' => 'nach :year',
         'before' => 'vor :year',
         'range' => 'zwischen :from und :to',

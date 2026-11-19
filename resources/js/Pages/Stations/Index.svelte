@@ -8,6 +8,7 @@
     import EmptyState from '$components/ui/EmptyState.svelte';
     import { STATION_STATUS_COLOR } from '$components/Stations/stationStatus.js';
     import { i18n } from '$lib/i18n.js';
+    import { decadeOf } from '$lib/typo.js';
 
     let { stations, filters, counts = {}, eras = [], departments = [], overall = 0 } = $props();
 
@@ -181,7 +182,9 @@
                         <option value="">{$i18n.t('stations.all_eras')}</option>
                         {#each eras as y (y)}
                             <option value={String(y)}
-                                >{$i18n.t('stations.era_option', { year: y })}</option
+                                >{$i18n.t('stations.era_option', {
+                                    decade: decadeOf(y, $i18n.language),
+                                })}</option
                             >
                         {/each}
                     </select>
@@ -415,15 +418,15 @@
         border-color: var(--vff-accent-ink);
         background-color: var(--vff-bg-accent);
     }
+    /* Nom d'une ligne sans code : en entier, sur deux lignes au besoin (coupé par « … » avant, le
+       nom n'était plus lisible : « Lignes minières du Bassin minier du Nord (secteur… »). */
     .line-name {
         display: block;
         max-width: 30ch;
-        overflow: hidden;
         font-size: var(--vff-fs-xs);
+        line-height: 1.35;
         color: var(--vff-text);
         text-decoration: none;
-        text-overflow: ellipsis;
-        white-space: nowrap;
         padding-block: 3px;
     }
     .line-name:hover {
@@ -483,7 +486,6 @@
         }
         .line-name {
             max-width: none;
-            white-space: normal;
         }
     }
 </style>

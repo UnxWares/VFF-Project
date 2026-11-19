@@ -1,3 +1,5 @@
+import { decadeOf, formatLocale } from './typo.js';
+
 /**
  * Dates d'une gare, même libellé partout (fiche gare, fiche ligne, carte).
  *
@@ -10,7 +12,7 @@
  * @param {string} [precision]
  * @param {number|null} [after]
  * @param {(key: string, opts?: object) => string} [t]  traduction (clés stations.dates.*)
- * @param {string} [lang]
+ * @param {string} [lang]  langue ou locale de format (« en » est rendu en anglais britannique)
  * @returns {string|null}
  */
 export function formatStationDate(
@@ -27,7 +29,9 @@ export function formatStationDate(
         return after + 1 < y ? t('stations.dates.range', { from: after + 1, to: y }) : String(y);
     }
     if (precision === 'year') return String(y);
-    if (['decade', 'after', 'before'].includes(precision))
+    if (precision === 'decade')
+        return t('stations.dates.decade', { year: y, decade: decadeOf(y, lang) });
+    if (precision === 'after' || precision === 'before')
         return t(`stations.dates.${precision}`, { year: y });
     const date = new Date(Date.UTC(y, (m || 1) - 1, d || 1));
     /** @type {Intl.DateTimeFormatOptions} */
@@ -36,7 +40,7 @@ export function formatStationDate(
             ? { month: 'long', year: 'numeric' }
             : { day: 'numeric', month: 'long', year: 'numeric' };
 
-    const locale = lang || 'fr';
+    const locale = formatLocale(lang);
     const text = date.toLocaleDateString(locale, { ...opts, timeZone: 'UTC' });
     // Français : « 1er janvier 1867 » (le premier du mois prend l'ordinal).
     if (precision === 'day' && d === 1 && locale.startsWith('fr')) {

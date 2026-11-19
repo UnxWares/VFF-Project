@@ -41,6 +41,8 @@ return [
         'rame_tgv' => 'TGV et grande vitesse',
         'voiture' => 'Voitures',
         'wagon' => 'Wagons',
+        'tramway' => 'Tramways',
+        'engin_service' => 'Engins de service',
     ],
     'type' => [
         'locomotive_vapeur' => 'Locomotive à vapeur',
@@ -51,5 +53,7 @@ return [
         'rame_tgv' => 'Rame TGV',
         'voiture' => 'Voiture',
         'wagon' => 'Wagon',
+        'tramway' => 'Tramway',
+        'engin_service' => 'Engin de service',
     ],
 ];

@@ -58,6 +58,10 @@
     align-items: center;
     min-height: 24px;
 }
+/* Bouton « Schemas » (20 px de haut) : même cible, sans changer sa largeur. */
+.vff-docs--swagger .swagger-ui .models-control {
+    min-height: 24px;
+}
 .vff-docs--swagger .swagger-ui a,
 .vff-docs--swagger .swagger-ui .info a {
     color: var(--vff-accent-ink);

@@ -15,7 +15,7 @@ return [
     'all_statuses' => 'Tous les statuts',
     'filter_era' => 'Époque',
     'all_eras' => 'Aujourd’hui',
-    'era_option' => 'Années :year',
+    'era_option' => 'Années :decade',
     'filter_department' => 'Département',
     'all_departments' => 'Tous les départements',
     'flagged_only' => 'Seulement les positions divergentes',
@@ -61,7 +61,7 @@ return [
     ],
 
     'dates' => [
-        'decade' => 'années :year',
+        'decade' => 'années :decade',
         'after' => 'après :year',
         'before' => 'avant :year',
         'range' => 'entre :from et :to',

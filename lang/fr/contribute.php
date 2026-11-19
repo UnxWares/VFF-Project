@@ -6,7 +6,7 @@ return [
 
     'hero' => [
         'title' => 'Participez à l’encyclopédie',
-        'subtitle' => 'VFF repose sur ses contributeurs. Voici les trois façons de participer, et comment vos apports sont vérifiés avant d’être publiés.',
+        'subtitle' => 'VFF repose sur ses contributeurs. Il y a trois façons de participer, et chaque apport est vérifié avant d’être publié.',
     ],
 
     'ways' => [

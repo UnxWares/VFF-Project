@@ -47,7 +47,7 @@ return [
         'collective_title' => 'Collective',
         'collective_text' => 'No one can document the whole network alone. VFF only exists through its contributors.',
         'durable_title' => 'Built to last',
-        'durable_text' => 'An encyclopaedia takes years to build. We choose sources and tools that stand the test of time.',
+        'durable_text' => 'An encyclopaedia takes years to build. We choose sources and tools that will last.',
     ],
 
     'milestones' => [

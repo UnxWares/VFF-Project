@@ -6,6 +6,7 @@
      */
     import { Link } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
+    import { decadeOf } from '$lib/typo.js';
 
     /** @type {{ media: { id: number, year: number, decade: boolean, caption: string, author: string|null, license: string, license_url: string|null, source_url: string, thumb_url: string, display_url: string|null, line: { slug: string, name: string } }, sizes?: string, loading?: 'lazy'|'eager' }} */
     let {
@@ -31,7 +32,9 @@
     <figcaption>
         <span class="year"
             >{media.decade
-                ? $i18n.t('home.archives.decade', { year: media.year })
+                ? $i18n.t('home.archives.decade', {
+                      decade: decadeOf(media.year, $i18n.language),
+                  })
                 : media.year}</span
         >
         <span class="caption">{media.caption}</span>

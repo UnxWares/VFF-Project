@@ -17,3 +17,21 @@ export function isActiveSetting(control) {
 export function countActiveSettings(controls) {
     return [...controls].filter(isActiveSetting).length;
 }
+
+/** Premier contrôle des filtres repliables (tous les champs sauf le premier, la recherche). */
+export const REVEALED_CONTROL = ':scope > :nth-child(2) :is(input, select, textarea, button)';
+
+/**
+ * Contrôle qui reçoit le focus quand les filtres s'ouvrent AU CLAVIER : les champs révélés sont
+ * placés au-dessus du bouton « Filtres », le focus y va pour suivre l'ordre de lecture
+ * (WCAG 2.4.3). Un clic (souris, toucher) laisse le focus en place : `detail` vaut 0 seulement
+ * pour une activation au clavier (Entrée, Espace).
+ *
+ * @param {boolean} open état après la bascule
+ * @param {number} detail `event.detail` du clic
+ * @param {{ querySelector: (s: string) => any } | null | undefined} fields conteneur des champs
+ */
+export function revealedFocusTarget(open, detail, fields) {
+    if (!open || detail !== 0 || !fields) return null;
+    return fields.querySelector(REVEALED_CONTROL) ?? null;
+}

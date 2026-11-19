@@ -243,7 +243,6 @@ return [
         'whole_line_source' => 'for the whole line',
         'unnamed_portions' => 'mapped sections (:count)',
         'see_on_map' => 'Show on the map',
-        'see_on_map_for' => 'Show the line on the map at: :date',
         // Ère courante : changements qu’aucun événement ne date (LinePhases, `unexplained`), hors phases.
         'unexplained_title' => 'Today, according to current sources',
         'unexplained_item' => ':to on :km (:from in the reconstructed state on 31 December :year); no source dates this change.',
@@ -283,7 +282,7 @@ return [
     ],
 
     'chronicle' => [
-        'intro' => 'Every known event of the line, grouped by section. Each one refers to its source in a note. When two sources give different dates for the same fact, the disagreement is shown rather than silently settled.',
+        'intro' => 'Every known event of the line, grouped by section. Each one refers to its source in a note. When two sources give different dates for the same fact, VFF shows the disagreement without choosing between them.',
         'whole_line' => 'Whole line',
         'traced' => 'Sections located on the route, without a place name',
         'near_groups' => 'Sections named after a single place',

@@ -243,7 +243,6 @@ return [
         'whole_line_source' => 'für die ganze Strecke',
         'unnamed_portions' => 'kartierte Abschnitte (:count)',
         'see_on_map' => 'Auf der Karte ansehen',
-        'see_on_map_for' => 'Strecke auf der Karte anzeigen, Stand: :date',
         // Ère courante : changements qu’aucun événement ne date (LinePhases, `unexplained`), hors phases.
         'unexplained_title' => 'Heute, laut aktuellen Quellen',
         'unexplained_item' => ':to auf :km (:from im rekonstruierten Zustand am 31. Dezember :year); keine Quelle datiert diese Änderung.',
@@ -283,7 +282,7 @@ return [
     ],
 
     'chronicle' => [
-        'intro' => 'Alle bekannten Ereignisse der Strecke, nach Abschnitten gruppiert. Jedes verweist in einer Fußnote auf seine Quelle. Geben zwei Quellen für dieselbe Tatsache verschiedene Daten an, wird die Abweichung angezeigt statt stillschweigend entschieden.',
+        'intro' => 'Alle bekannten Ereignisse der Strecke, nach Abschnitten gruppiert. Jedes verweist in einer Fußnote auf seine Quelle. Geben zwei Quellen für dieselbe Tatsache verschiedene Daten an, zeigt VFF die Abweichung an, ohne zu entscheiden.',
         'whole_line' => 'Ganze Strecke',
         'traced' => 'Auf dem Streckenverlauf verortete Abschnitte ohne Ortsnamen',
         'near_groups' => 'Nach einem einzigen Ort benannte Abschnitte',

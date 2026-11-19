@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'meta_title' => 'Unsere Karten',
+    'meta_title' => 'Karte des französischen Eisenbahnnetzes',
     'meta_description' => 'Interaktive Karte des französischen Eisenbahnnetzes, in Betrieb und verschwunden, Epoche für Epoche.',
 
     'hero' => [

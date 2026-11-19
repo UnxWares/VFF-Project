@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     colon,
+    decadeOf,
     firstOfMonth,
     formatLocale,
     formatNumber,
@@ -55,6 +56,14 @@ describe('typo', () => {
         expect(firstOfMonth('11 décembre 1950', 'fr')).toBe('11 décembre 1950');
         expect(firstOfMonth('21 mai 1857', 'fr')).toBe('21 mai 1857');
         expect(firstOfMonth('1 December 1950', 'en')).toBe('1 December 1950');
+    });
+
+    it('décennie formée selon la langue', () => {
+        expect(decadeOf(1930, 'fr')).toBe('1930');
+        expect(decadeOf(1930, 'en')).toBe('1930s');
+        expect(decadeOf(1930, 'en-GB')).toBe('1930s');
+        expect(decadeOf(1930, 'de')).toBe('1930er-Jahre');
+        expect(decadeOf(1930)).toBe('1930');
     });
 });
 

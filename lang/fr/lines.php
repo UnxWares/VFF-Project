@@ -185,7 +185,7 @@ return [
     // Annuaire /lines.
     'index' => [
         'meta_title' => 'Lignes ferroviaires',
-        'meta_description' => 'Annuaire des lignes ferroviaires françaises : :total lignes recensées avec historique, tracé et matériels.',
+        'meta_description' => 'Annuaire des lignes ferroviaires françaises : :total lignes recensées avec historique, tracé et matériel roulant.',
         'title' => 'Lignes ferroviaires',
         'subtitle' => ":total\u{a0}lignes recensées : :open\u{a0}en service, :closed\u{a0}fermées, :unknown\u{a0}au tracé encore inconnu.",
         'filters_title' => 'Rechercher et filtrer les lignes',
@@ -244,7 +244,6 @@ return [
         'whole_line_source' => 'pour toute la ligne',
         'unnamed_portions' => 'portions tracées (:count)',
         'see_on_map' => 'Voir sur la carte',
-        'see_on_map_for' => 'Voir la ligne sur la carte à la date : :date',
         // Ère courante : changements qu’aucun événement ne date (LinePhases, `unexplained`), hors phases.
         'unexplained_title' => 'Aujourd’hui, d’après les sources actuelles',
         'unexplained_item' => ':to sur :km (:from dans l’état reconstitué au 31 décembre :year) ; aucune source ne date ce changement.',
@@ -284,7 +283,7 @@ return [
     ],
 
     'chronicle' => [
-        'intro' => 'Tous les événements connus de la ligne, regroupés par portion. Chacun renvoie à sa source en note. Quand deux sources donnent des dates différentes pour le même fait, la divergence est signalée plutôt que tranchée en silence.',
+        'intro' => 'Tous les événements connus de la ligne, regroupés par portion. Chacun renvoie à sa source en note. Quand deux sources donnent des dates différentes pour le même fait, VFF signale l’écart sans trancher.',
         'whole_line' => 'Toute la ligne',
         'traced' => 'Portions localisées sur le tracé, sans nom de lieu',
         'near_groups' => 'Portions désignées par un seul lieu',

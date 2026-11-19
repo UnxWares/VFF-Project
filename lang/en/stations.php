@@ -15,7 +15,7 @@ return [
     'all_statuses' => 'All statuses',
     'filter_era' => 'Period',
     'all_eras' => 'Today',
-    'era_option' => 'The :year decade',
+    'era_option' => 'The :decade',
     'filter_department' => 'Department',
     'all_departments' => 'All departments',
     'flagged_only' => 'Diverging positions only',
@@ -61,7 +61,7 @@ return [
     ],
 
     'dates' => [
-        'decade' => 'the :year decade',
+        'decade' => 'the :decade',
         'after' => 'after :year',
         'before' => 'before :year',
         'range' => 'between :from and :to',

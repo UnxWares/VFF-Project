@@ -87,7 +87,7 @@ return [
     'archives' => [
         'title' => 'Le rail en images',
         'intro' => 'Photographies et cartes postales publiées sur Wikimedia Commons et rattachées aux fiches des lignes, avec leur auteur et leur licence.',
-        'decade' => 'Années :year',
+        'decade' => 'Années :decade',
         'author_unknown' => 'Auteur inconnu',
         'source' => 'Wikimedia Commons',
         'cta' => 'Parcourir les lignes',

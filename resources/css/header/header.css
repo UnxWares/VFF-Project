@@ -31,11 +31,15 @@ header:where(.site-header) .header-background {
 
 /* Pages internes : barre seule, sans héros, toujours visible (navbarFade ne pose plus que des
    classes : nav-hidden, nav-shown ; aucune opacité en ligne à contrer). */
+/* Hauteurs minimales (et non fixes) : si l'utilisateur agrandit les espacements du texte
+   (WCAG 1.4.12), la barre passe sur deux rangées au lieu de pousser « Connexion » hors de l'écran. */
 header:where(.site-header).compact {
-    height: var(--vff-header-h);
+    height: auto;
+    min-height: var(--vff-header-h);
 }
 header:where(.site-header).compact .header-background {
-    height: var(--vff-header-h);
+    height: auto;
+    min-height: var(--vff-header-h);
     background-image: none;
     background-color: var(--vff-bg);
 }
@@ -52,7 +56,7 @@ header:where(.site-header) .header-background nav {
     /* Au-dessus du grand visuel de l'accueil (sa flèche passait sur la barre en quittant le héros). */
     z-index: 4;
     width: 100%;
-    height: var(--vff-header-h);
+    min-height: var(--vff-header-h);
     background-color: var(--vff-bg);
     color: var(--vff-text);
     box-shadow:
@@ -73,9 +77,10 @@ header:where(.site-header):not(.compact) .header-background nav.nav-hidden:focus
 /* Rangée de la barre : sur la grille commune (même bord gauche que le contenu et le pied de page). */
 header:where(.site-header) nav .nav-inner {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0 var(--vff-space-6);
-    height: 100%;
+    min-height: var(--vff-header-h);
     max-width: calc(var(--vff-container) + 2 * var(--vff-gutter));
     margin: 0 auto;
     padding-inline: var(--vff-gutter);
@@ -172,6 +177,7 @@ header:where(.site-header) nav .nav-main.in-panel {
 header:where(.site-header) nav .links {
     display: flex;
     flex: 1 1 auto;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0 var(--vff-space-5);
     min-width: 0;
@@ -586,6 +592,7 @@ header:where(.site-header) .hero :is(a, button):focus-visible {
         pointer-events: auto;
     }
     header:where(.site-header) nav .nav-inner {
+        flex-wrap: nowrap;
         gap: 0 var(--vff-space-5);
     }
     header:where(.site-header) nav .nav-title {

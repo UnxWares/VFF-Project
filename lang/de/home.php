@@ -87,7 +87,7 @@ return [
     'archives' => [
         'title' => 'Die Eisenbahn in Bildern',
         'intro' => 'Fotos und Postkarten aus Wikimedia Commons, den Seiten der Strecken zugeordnet, mit Urheber und Lizenz.',
-        'decade' => 'Um :year',
+        'decade' => ':decade',
         'author_unknown' => 'Unbekannter Urheber',
         'source' => 'Wikimedia Commons',
         'cta' => 'Strecken durchsuchen',

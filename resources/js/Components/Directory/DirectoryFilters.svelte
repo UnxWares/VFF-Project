@@ -1,7 +1,7 @@
 <script>
     import { onMount, tick } from 'svelte';
     import { i18n } from '$lib/i18n.js';
-    import { countActiveSettings } from '$lib/directoryFilters.js';
+    import { countActiveSettings, revealedFocusTarget } from '$lib/directoryFilters.js';
 
     /**
      * Panneau de recherche et de filtres d'un annuaire (lignes, gares, matériel) : un vrai formulaire
@@ -42,6 +42,14 @@
         countActive();
     }
 
+    /** Bascule des filtres (téléphone) ; au clavier, le focus suit les champs révélés au-dessus. */
+    async function toggle(e) {
+        open = !open;
+        const detail = e.detail;
+        await tick();
+        revealedFocusTarget(open, detail, fieldsEl)?.focus();
+    }
+
     onMount(countActive);
 </script>
 
@@ -64,7 +72,7 @@
                 class="vff-btn secondary small filters-toggle"
                 aria-expanded={open}
                 aria-controls={fieldsId}
-                onclick={() => (open = !open)}
+                onclick={toggle}
             >
                 <i class="bi bi-sliders" aria-hidden="true"></i>
                 {$i18n.t('common.filters')}{#if active}<span aria-hidden="true"

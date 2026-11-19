@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'meta_title' => 'Nos cartes',
+    'meta_title' => 'Carte du rail français',
     'meta_description' => 'Carte interactive du réseau ferré français, en service et disparu, par époque.',
 
     'hero' => [
