@@ -324,6 +324,11 @@ export default {
             customStyles: [`${SITE_ROOT}/vff.css`],
             fieldsSorting: 'default',
             argumentsSorting: 'default',
+            // Exemples des scalaires que Magidoc ne sait pas inventer. Un fichier (`Upload`) vaut null dans les
+            // variables d'une requête multipart : le fichier lui-même part dans la partie désignée par `map`.
+            queryGenerationFactories: {
+                Upload: null,
+            },
             // Page rangée dans une rubrique (URL /docs/graphql/guide/introduction) : une page au
             // premier niveau est mal servie par `artisan serve` (PATH_INFO du serveur PHP intégré).
             pages: [
