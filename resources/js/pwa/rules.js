@@ -10,7 +10,11 @@
 //   - les tuiles vectorielles de VFF déjà affichées par la carte, « réseau d'abord », avec un plafond et
 //     une durée de vie. Aucune tuile d'un autre serveur : celles d'OpenStreetMap ou d'OpenRailwayMap
 //     restent dans le cache HTTP du navigateur, selon leurs en-têtes, comme le demandent leurs règles
-//     d'usage. Rien n'est jamais préchargé.
+//     d'usage. Rien n'est jamais préchargé ;
+//   - les données GeoJSON de la carte déjà affichées (gares d'une ère, points des accidents), « réseau
+//     d'abord », avec un plafond plus bas (quelques Mo chacune) et la même durée de vie que les tuiles.
+//     Le style de la carte est écrit dans le code (aucune requête) ; les glyphes viennent d'un tiers
+//     (OpenFreeMap) et ne sont pas gardés : hors ligne, MapLibre dessine les noms avec une police locale.
 // Les caches portent la version du déploiement : un nouveau déploiement repart à vide.
 
 /** Adresse du service worker (à la racine : sa portée couvre tout le site). */
@@ -22,11 +26,14 @@ export const STATIC_CACHE_PREFIX = 'vff-static-';
 export const PAGES_CACHE_PREFIX = 'vff-pages-';
 /** Tuiles vectorielles de VFF déjà affichées. */
 export const TILES_CACHE_PREFIX = 'vff-tiles-';
+/** Données GeoJSON de la carte déjà affichées (gares d'une ère, accidents). */
+export const MAP_DATA_CACHE_PREFIX = 'vff-mapdata-';
 /** Caches qui portent la version du déploiement (supprimés à l'activation d'une autre version). */
 export const VERSIONED_CACHE_PREFIXES = [
     STATIC_CACHE_PREFIX,
     PAGES_CACHE_PREFIX,
     TILES_CACHE_PREFIX,
+    MAP_DATA_CACHE_PREFIX,
 ];
 
 /** Page « hors ligne » traduite, rangée par la page elle-même (dans la langue de l'utilisateur). */
@@ -41,8 +48,8 @@ export const PRECACHE = ['/icons/icon-192.png'];
 
 /**
  * Chemins que le service worker ne touche jamais : API et documentation, médias déposés, serveur MCP,
- * pages intégrées (iframe), sonde de santé, et ses propres fichiers. Exception : les tuiles vectorielles
- * de VFF (TILE_PATH), sous /api/v1.
+ * pages intégrées (iframe), sonde de santé, et ses propres fichiers. Exceptions : les tuiles vectorielles
+ * de VFF (TILE_PATH) et les données GeoJSON de la carte (MAP_DATA_PATH), sous /api/v1.
  */
 export const NEVER_INTERCEPT = [
     '/api',
@@ -91,6 +98,13 @@ export const SECRET_QUERY_PARAMS = [
 /** Tuile vectorielle de VFF : /api/v1/…/tiles/{z}/{x}/{y}.mvt (ères, comparaisons, signalisation, voies vertes…). */
 const TILE_PATH = /^\/api\/v1\/(?:[a-z0-9-]+\/)*tiles\/\d{1,2}\/\d{1,7}\/\d{1,7}\.mvt$/;
 
+/**
+ * Données GeoJSON chargées par la carte /maps : gares d'une ère (/api/v1/eras/{année}/stations.geojson) et
+ * points des accidents (/api/v1/accidents.geojson). Pas le tracé complet d'une ère (lines.geojson) ni
+ * celui d'une ligne : ce sont des téléchargements, jamais affichés par la carte.
+ */
+const MAP_DATA_PATH = /^\/api\/v1\/(?:eras\/\d{1,4}\/stations|accidents)\.geojson$/;
+
 /** En-tête posé par le serveur sur une page lisible hors ligne (App\Http\Middleware\MarkOfflineReadable). */
 export const OFFLINE_HEADER = 'X-VFF-Offline';
 export const OFFLINE_HEADER_VALUE = 'allow';
@@ -109,6 +123,9 @@ export const MAX_PAGE_ENTRIES = 60;
 export const PAGE_MAX_AGE_MS = 30 * DAY_MS;
 export const MAX_TILE_ENTRIES = 500;
 export const TILE_MAX_AGE_MS = 7 * DAY_MS;
+/** Un fichier de gares d'une ère pèse 2,5 à 4 Mo : huit fichiers au plus (une quarantaine de Mo). */
+export const MAX_MAP_DATA_ENTRIES = 8;
+export const MAP_DATA_MAX_AGE_MS = 7 * DAY_MS;
 
 /**
  * Quota du navigateur : on ne range plus de page ni de tuile quand le site occupe déjà plus de la moitié
@@ -135,17 +152,22 @@ export function isTilePath(pathname) {
     return TILE_PATH.test(pathname);
 }
 
+export function isMapDataPath(pathname) {
+    return MAP_DATA_PATH.test(pathname);
+}
+
 /**
  * Stratégie pour une requête :
  *   - `static`     : fichier public versionné, « cache d'abord » ;
  *   - `tile`       : tuile vectorielle de VFF, « réseau d'abord », copie si le réseau manque ;
+ *   - `mapdata`    : données GeoJSON de la carte, « réseau d'abord », copie si le réseau manque ;
  *   - `navigation` : page HTML, « réseau d'abord », copie ou page hors ligne si le réseau manque ;
  *   - `inertia`    : visite Inertia, « réseau d'abord », copie ou visite complète si le réseau manque ;
  *   - `network`    : le service worker ne s'en mêle pas (navigateur et réseau, comme sans service worker).
  *
  * @param {Request} request
  * @param {string} origin origine du site (`self.location.origin`)
- * @returns {'static' | 'tile' | 'navigation' | 'inertia' | 'network'}
+ * @returns {'static' | 'tile' | 'mapdata' | 'navigation' | 'inertia' | 'network'}
  */
 export function classify(request, origin) {
     if (request.method !== 'GET') return 'network';
@@ -159,6 +181,7 @@ export function classify(request, origin) {
 
     if (STATIC_PATHS.some((prefix) => url.pathname.startsWith(prefix))) return 'static';
     if (isTilePath(url.pathname)) return 'tile';
+    if (isMapDataPath(url.pathname)) return 'mapdata';
     if (NEVER_INTERCEPT.some((prefix) => matchesPath(url.pathname, prefix))) return 'network';
 
     if (request.headers.has('X-Inertia')) return 'inertia';
@@ -231,6 +254,14 @@ export function isStorableTile(response) {
     );
 }
 
+/** Données de la carte : comme une tuile, et seulement du JSON (jamais une page d'erreur HTML). */
+export function isStorableMapData(response) {
+    return (
+        isStorableTile(response) &&
+        /\b(?:geo\+)?json\b/i.test(response.headers.get('Content-Type') ?? '')
+    );
+}
+
 /**
  * Clé de la copie d'une page : l'adresse sans ancre, marquée du type de réponse. Une même adresse a deux
  * copies distinctes, le document HTML et la réponse JSON d'Inertia.
@@ -271,6 +302,10 @@ export function pagesCacheName(version) {
 
 export function tilesCacheName(version) {
     return `${TILES_CACHE_PREFIX}${version}`;
+}
+
+export function mapDataCacheName(version) {
+    return `${MAP_DATA_CACHE_PREFIX}${version}`;
 }
 
 /** Vrai pour tout cache créé par le service worker de VFF (versionné ou page hors ligne). */

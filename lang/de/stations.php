@@ -153,6 +153,7 @@ return [
             'junction' => 'Endpunkt oder Abzweig am Streckenverlauf',
             'wikidata_p81' => 'Wikidata (bediente Strecke)',
             'terminus_name' => 'Im Streckennamen genannter Endpunkt, weniger als 500 m vom Streckenverlauf',
+            'terminus_reviewed' => 'Endbahnhof, von Hand anhand einer Quelle geprüft',
         ],
         'pk_sources' => [
             'sncf' => 'Amtlicher PK',
@@ -234,7 +235,7 @@ return [
     // Lagekarte (StationMiniMap): Titel, Textalternative, Beschriftung der Bedienelemente.
     'map' => [
         'title' => 'Lagekarte des Bahnhofs :name',
-        'summary' => 'Position: :lat, :lng. Die Bahnhöfe in der Nähe stehen in der Liste neben der Karte.',
+        'summary' => 'Position: :lat, :lon. Die Bahnhöfe in der Nähe stehen in der Liste neben der Karte.',
         'open_osm' => 'Diese Position auf OpenStreetMap öffnen',
         'zoom_in' => 'Vergrößern',
         'zoom_out' => 'Verkleinern',

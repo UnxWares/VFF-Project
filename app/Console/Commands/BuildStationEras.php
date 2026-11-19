@@ -651,8 +651,9 @@ class BuildStationEras extends Command
         SQL);
         // e. Fermeture aux voyageurs : toutes les lignes de la gare fermées aux voyageurs
         //    (section datée d'abord, puis « toute la ligne ») ; la plus tardive des lignes,
-        //    avec sa précision. Une ligne rattachée seulement par son nom (terminus_name :
-        //    tramway, réseau secondaire, rarement daté) n'est pas exigée : sans fermeture datée,
+        //    avec sa précision. Une ligne rattachée seulement par son nom ou par un terminus
+        //    relu (terminus_name, terminus_reviewed : tramway, réseau secondaire, rarement daté)
+        //    n'est pas exigée : sans fermeture datée,
         //    elle effaçait la date des autres lignes (Gex, 31/05/1980 ; Mondoubleau, 26/10/1971).
         $e = DB::affectingStatement(<<<SQL
             INSERT INTO station_events (station_id, type, event_date, date_precision, source, source_ref, is_inferred, note, created_at, updated_at)
@@ -667,10 +668,10 @@ class BuildStationEras extends Command
                   AND {$explicit("'closure_passenger', 'closure'")}
                 ORDER BY s.id, sl.line_id, (le.section_pk_start_m IS NULL AND le.section_geom IS NULL), le.event_date DESC, {$precisionRank}, le.id
             ) x
-            WHERE (SELECT COUNT(*) FROM station_lines a WHERE a.station_id = x.station_id AND a.method <> 'terminus_name')
+            WHERE (SELECT COUNT(*) FROM station_lines a WHERE a.station_id = x.station_id AND a.method NOT IN ('terminus_name', 'terminus_reviewed'))
                 = (SELECT COUNT(DISTINCT sl2.line_id) FROM station_lines sl2 JOIN stations s ON s.id = sl2.station_id
                    JOIN line_events le ON le.line_id = sl2.line_id AND le.type = 'closure_passenger'
-                   WHERE sl2.station_id = x.station_id AND sl2.method <> 'terminus_name' AND {$coverSl2})
+                   WHERE sl2.station_id = x.station_id AND sl2.method NOT IN ('terminus_name', 'terminus_reviewed') AND {$coverSl2})
             ORDER BY x.station_id, x.event_date DESC, x.id
         SQL);
         // g. Gare rouverte (réouverture connue) sans fermeture antérieure connue :

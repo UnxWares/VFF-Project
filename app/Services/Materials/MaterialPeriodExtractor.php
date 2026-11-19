@@ -24,6 +24,8 @@ use App\Services\WikipediaLineParser;
  *
  * Écarté : futur, conditionnel, projet, commande, livraison, essai ou circulation exceptionnelle
  * (« venues en renfort », « affrété »), date à venir, début postérieur à la fin.
+ * Une série citée comme terme de comparaison (« un confort similaire aux X 73500 », « à l'image des »)
+ * ne reçoit aucune période (WikipediaMaterialSections::isCompared()).
  *
  * Fiabilité (comme l'historique de la signalisation) :
  *   - `high`   : chaque date au jour ou au mois ;
@@ -108,7 +110,8 @@ final class MaterialPeriodExtractor
                 $found = [];
                 $isAmbiguous = false;
                 foreach ($sentence['links'] as $link) {
-                    if ($link['pos'] < $start || $link['pos'] >= $start + mb_strlen($clause)) {
+                    // Hors de la proposition, ou série citée comme terme de comparaison (« similaire aux X 73500 »).
+                    if ($link['pos'] < $start || $link['pos'] >= $start + mb_strlen($clause) || $link['compared']) {
                         continue;
                     }
                     $ids = $mentions($link['target']);

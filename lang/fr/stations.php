@@ -153,6 +153,7 @@ return [
             'junction' => 'Terminus ou bifurcation sur le tracé',
             'wikidata_p81' => 'Wikidata (ligne desservie)',
             'terminus_name' => 'Extrémité nommée dans le nom de la ligne, à moins de 500 m du tracé',
+            'terminus_reviewed' => 'Gare d’extrémité relue à la main d’après une source',
         ],
         'pk_sources' => [
             'sncf' => 'PK officiel',
@@ -234,7 +235,7 @@ return [
     // Mini-carte de situation (StationMiniMap) : titre, alternative textuelle, libellés des contrôles.
     'map' => [
         'title' => 'Carte de situation de la gare :name',
-        'summary' => 'Position : :lat, :lng. Les gares voisines sont listées à côté de la carte.',
+        'summary' => 'Position : :lat, :lon. Les gares voisines sont listées à côté de la carte.',
         'open_osm' => 'Ouvrir cette position sur OpenStreetMap',
         'zoom_in' => 'Zoom avant',
         'zoom_out' => 'Zoom arrière',

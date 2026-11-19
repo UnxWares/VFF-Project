@@ -10,10 +10,6 @@
         "Type '{ version: number; sources: { 'osm-raster': { type: string; tiles: string[]; tileSize: number; maxzoom: number; attribution: string; }; }; layers: { id: string; type: string; source: string; }[]; }' is not assignable to type 'string | StyleSpecification'.": 1
     },
     "resources/js/Components/Map/RailMap.svelte": {
-        "Type 'any[]' is not assignable to type 'LngLatLike'.": 1,
-        "Type 'string | { version: number; sources: { 'osm-raster': { type: string; tiles: string[]; tileSize: number; maxzoom: number; attribution: string; }; }; layers: { id: string; type: string; source: string; }[]; glyphs: string; }' is not assignable to type 'string | StyleSpecification'.": 1
-    },
-    "resources/js/Components/Stations/StationMiniMap.svelte": {
-        "Type 'string | { version: number; sources: { 'osm-raster': { type: string; tiles: string[]; tileSize: number; maxzoom: number; attribution: string; }; }; layers: { id: string; type: string; source: string; }[]; glyphs: string; }' is not assignable to type 'string | StyleSpecification'.": 1
+        "Type 'any[]' is not assignable to type 'LngLatLike'.": 1
     }
 }

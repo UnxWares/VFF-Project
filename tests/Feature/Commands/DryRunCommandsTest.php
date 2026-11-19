@@ -4,6 +4,7 @@ namespace Tests\Feature\Commands;
 
 use App\Models\Era;
 use App\Models\Line;
+use App\Services\StationTerminusOverrides;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -171,6 +172,23 @@ class DryRunCommandsTest extends TestCase
 
         $this->artisan('vff:apply-event-corrections')->expectsOutputToContain('ajouté')->assertSuccessful();
         $this->assertSame(1, DB::table('line_events')->where('source', 'manual')->count());
+    }
+
+    /** Terminus relus à la main (vff:attach-stations --years-only) : rien d'écrit à blanc, le rattachement ensuite. */
+    public function test_attach_stations_reviewed_termini_dry_run_then_real_run(): void
+    {
+        $this->app->instance(StationTerminusOverrides::class, new StationTerminusOverrides([[
+            'line' => $this->alpha->slug, 'terminus' => 'Bravo', 'decision' => 'attach', 'station' => 'bravo',
+            'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Bravo&oldid=1', 'reason' => 'gare d\'extrémité',
+        ]]));
+        $before = $this->snapshotAll();
+
+        $this->artisan('vff:attach-stations', ['--years-only' => true, '--dry-run' => true])->expectsOutputToContain('terminus relus : 1 ajoutés')->assertSuccessful();
+        $this->assertSame($before, $this->snapshotAll());
+
+        $this->artisan('vff:attach-stations', ['--years-only' => true])->assertSuccessful();
+        $this->assertSame('terminus_reviewed', DB::table('station_lines')->where('line_id', $this->alpha->id)
+            ->where('station_id', DB::table('stations')->where('slug', 'bravo')->value('id'))->value('method'));
     }
 
     /** @return array<string, array{rows: int, md5: string|null}> */

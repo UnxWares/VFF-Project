@@ -242,6 +242,7 @@ final class LineSheetExample
                     'name' => 'X 2400',
                     'type' => 'autorail',
                     'builder' => 'Renault',
+                    'builders' => ['Renault'],
                     'in_service_from' => 1951,
                     'in_service_to' => 1989,
                     'periods' => [],

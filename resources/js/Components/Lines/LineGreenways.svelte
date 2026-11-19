@@ -1,4 +1,5 @@
 <script>
+    import { Link } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { formatEventDate, formatKm } from '$lib/linePhases.js';
     import { formatLocale, tieUnits } from '$lib/typo.js';
@@ -62,7 +63,8 @@
             {/each}
         </ul>
         <p class="more">
-            <a class="vff-link" href="/maps?layer=greenways">{t('greenways.line.map_link')}</a>
+            <Link class="vff-link" href="/maps?layer=greenways">{t('greenways.line.map_link')}</Link
+            >
         </p>
         <p class="note">{t('greenways.line.method')} {sourceNote}</p>
     </div>
@@ -95,6 +97,7 @@
     }
     .meta {
         font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-ui);
         color: var(--vff-text-muted);
     }
     .more,
@@ -102,8 +105,11 @@
         max-width: var(--vff-measure);
         margin: 0;
     }
+    /* Note de méthode : texte secondaire de plusieurs lignes, 15 px au moins (--vff-fs-sm) et
+       interligne du texte courant (guide, section 3). */
     .note {
         font-size: var(--vff-fs-sm);
+        line-height: var(--vff-lh-body);
         color: var(--vff-text-muted);
     }
 </style>

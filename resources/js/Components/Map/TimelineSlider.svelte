@@ -1,6 +1,7 @@
 <script>
     import { onDestroy } from 'svelte';
     import { i18n } from '$lib/i18n.js';
+    import { visibleLabels } from '$lib/timelineLabels.js';
 
     /**
      * Frise des époques : choix de la décennie affichée par la carte, dessinée comme un schéma
@@ -69,8 +70,23 @@
     const span = $derived(currentYears[currentYears.length - 1] - currentYears[0] || 1);
     const percentFor = (year) => ((year - currentYears[0]) / span) * 100;
     const fillPercent = $derived(percentFor(value));
-    // Plus de six décennies sur un téléphone : une étiquette sur deux (les points restent).
-    const dense = $derived(currentYears.length > 6);
+
+    // Étiquettes qui tiennent sans se toucher à la largeur réelle de la frise (1900-1990 à 1 280 px
+    // donnait « 19001910 ») : mesurées dans le navigateur, une sur deux ou sur trois au besoin, la
+    // décennie choisie et les deux bouts d'abord (lib/timelineLabels.js). Les points restent tous.
+    let stopsWidth = $state(0);
+    /** @type {number[]} */
+    let labelWidths = $state([]);
+    const shownLabels = $derived(
+        stopsWidth > 0
+            ? visibleLabels(
+                  currentYears.map((y) => (percentFor(y) / 100) * stopsWidth),
+                  currentYears.map((_, i) => labelWidths[i] ?? 0),
+                  currentYears.map(stopLabel),
+                  currentYears.indexOf(value),
+              )
+            : currentYears.map(() => true),
+    );
 
     const isToday = $derived(value === todayEra);
     const isEmpty = $derived(emptyYears.includes(value));
@@ -216,7 +232,7 @@
         </div>
     {/if}
 
-    <div class={['track-area', { dense }]}>
+    <div class="track-area">
         <div
             class="slider"
             role="slider"
@@ -234,7 +250,7 @@
                 <div class="rail-fill" style:width="{fillPercent}%"></div>
             </div>
         </div>
-        <div class="stops">
+        <div class="stops" bind:clientWidth={stopsWidth}>
             {#each currentYears as year, i (year)}
                 <button
                     type="button"
@@ -248,7 +264,7 @@
                             empty: emptyYears.includes(year),
                             first: i === 0,
                             last: i === currentYears.length - 1,
-                            odd: i % 2 === 1,
+                            'label-hidden': !shownLabels[i],
                         },
                     ]}
                     style:left="{percentFor(year)}%"
@@ -258,7 +274,9 @@
                     }}
                 >
                     <span class="stop-dot"></span>
-                    <span class="stop-label">{stopLabel(year)}</span>
+                    <span class="stop-label" bind:offsetWidth={labelWidths[i]}
+                        >{stopLabel(year)}</span
+                    >
                 </button>
             {/each}
         </div>
@@ -475,6 +493,10 @@
         color: var(--vff-text);
         font-weight: 600;
     }
+    /* Étiquette sans la place voulue : cachée mais toujours mesurée (visibility garde sa largeur). */
+    .stop.label-hidden .stop-label {
+        visibility: hidden;
+    }
 
     /* Jusqu'à 1 180 px : la frise passe sous le titre et les périodes, sur toute la largeur (à côté,
        elle était trop courte : « 2020 » et « Aujourd'hui » se chevauchaient vers 1 024 px). */
@@ -510,8 +532,7 @@
             height: 48px;
         }
     }
-    /* Téléphone : bouton et année, puis périodes, puis frise ; une étiquette sur deux si la
-       période compte plus de six décennies. */
+    /* Téléphone : bouton et année, puis périodes, puis frise. */
     @media (max-width: 600px) {
         .timeline-head {
             flex-basis: 100%;
@@ -531,9 +552,6 @@
             min-width: 0;
             padding-inline: 2px;
             font-size: var(--vff-fs-xs);
-        }
-        .track-area.dense .stop.odd:not(.active, .last) .stop-label {
-            display: none;
         }
     }
 </style>

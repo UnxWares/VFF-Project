@@ -1,6 +1,8 @@
 // Règles de cache de la PWA (resources/js/pwa/rules.js) : ce qui est gardé hors ligne, ce qui ne l'est jamais.
 import { describe, expect, it } from 'vitest';
 import {
+    MAP_DATA_MAX_AGE_MS,
+    MAX_MAP_DATA_ENTRIES,
     MAX_PAGE_ENTRIES,
     MAX_TILE_ENTRIES,
     PAGE_MAX_AGE_MS,
@@ -11,10 +13,13 @@ import {
     hasStorageRoom,
     isCacheable,
     isExpired,
+    isMapDataPath,
     isOfflinePageRequest,
+    isStorableMapData,
     isStorablePage,
     isStorableTile,
     isVffCache,
+    mapDataCacheName,
     matchesPath,
     pageCacheKey,
     pagesCacheName,
@@ -355,5 +360,83 @@ describe('plafonds, durées de vie et quota', () => {
         expect(hasStorageRoom({ usage: 10e6, quota: 1e9 })).toBe(true);
         expect(hasStorageRoom({ usage: 30e6, quota: 50e6 })).toBe(false);
         expect(hasStorageRoom({ usage: STORAGE_BUDGET_BYTES, quota: 1e12 })).toBe(false);
+    });
+});
+
+describe('données de la carte', () => {
+    it('reconnaît les gares d une ère et les points des accidents, avec ou sans version des données', () => {
+        for (const path of [
+            '/api/v1/eras/2030/stations.geojson',
+            '/api/v1/eras/1930/stations.geojson?v=42',
+            '/api/v1/accidents.geojson',
+        ]) {
+            expect(classify(get(path), ORIGIN), path).toBe('mapdata');
+        }
+    });
+
+    it('laisse passer le reste de l API, dont les téléchargements de tracés', () => {
+        for (const path of [
+            '/api/v1/eras/2030/lines.geojson',
+            '/api/v1/lines/paris-lyon/geojson',
+            '/api/v1/eras/2030/gtfs.zip',
+            '/api/v1/eras/2030/compare/1930',
+            '/api/v1/accidents',
+            '/api/v1/eras/20300/stations.geojson',
+            '/api/v1/eras/2030/stations.geojson/x',
+        ]) {
+            expect(isMapDataPath(new URL(`${ORIGIN}${path}`).pathname), path).toBe(false);
+            expect(classify(get(path), ORIGIN), path).toBe('network');
+        }
+    });
+
+    it('ne touche jamais aux données d un autre serveur ni à une requête avec jeton', () => {
+        for (const request of [
+            fakeRequest('https://autre.example/api/v1/eras/2030/stations.geojson'),
+            get('/api/v1/eras/2030/stations.geojson?api_token=abc'),
+            get('/api/v1/accidents.geojson?token=abc'),
+            get('/api/v1/accidents.geojson', { headers: { Authorization: 'Bearer abc' } }),
+            get('/api/v1/accidents.geojson', { method: 'POST' }),
+        ]) {
+            expect(classify(request, ORIGIN), request.url).toBe('network');
+        }
+    });
+
+    it('ne range que du JSON complet, sans no-store ni redirection', () => {
+        const json = { 'Content-Type': 'application/json' };
+        expect(isStorableMapData(basicResponse('{}', { headers: json }))).toBe(true);
+        expect(
+            isStorableMapData(
+                basicResponse('{}', { headers: { 'Content-Type': 'application/geo+json' } }),
+            ),
+        ).toBe(true);
+        expect(
+            isStorableMapData(
+                basicResponse('<html>', { headers: { 'Content-Type': 'text/html' } }),
+            ),
+        ).toBe(false);
+        expect(isStorableMapData(basicResponse('{}', { status: 500, headers: json }))).toBe(false);
+        expect(isStorableMapData(basicResponse('{}', { redirected: true, headers: json }))).toBe(
+            false,
+        );
+        expect(
+            isStorableMapData(
+                basicResponse('{}', {
+                    headers: { ...json, 'Cache-Control': 'no-store' },
+                }),
+            ),
+        ).toBe(false);
+    });
+
+    it('a son cache versionné, supprimé avec les autres à l activation d une nouvelle version', () => {
+        expect(mapDataCacheName('bbb')).toBe('vff-mapdata-bbb');
+        expect(isVffCache('vff-mapdata-aaa')).toBe(true);
+        expect(staleCacheNames(['vff-mapdata-aaa', 'vff-mapdata-bbb'], 'bbb')).toEqual([
+            'vff-mapdata-aaa',
+        ]);
+    });
+
+    it('garde peu de fichiers (quelques Mo chacun), sept jours au plus', () => {
+        expect(MAX_MAP_DATA_ENTRIES).toBeLessThanOrEqual(10);
+        expect(MAP_DATA_MAX_AGE_MS).toBe(7 * 24 * 3600_000);
     });
 });

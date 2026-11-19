@@ -43,7 +43,7 @@
                         {#each n.urls as u, i (u)}<a
                                 href={u}
                                 target="_blank"
-                                rel="noopener noreferrer">{u.split('/').pop()}</a
+                                rel="noopener noreferrer">{u.split('/').pop()}{@render ext()}</a
                             >{i < n.urls.length - 1 ? ', ' : ''}{/each}
                     </p>
                 </details>

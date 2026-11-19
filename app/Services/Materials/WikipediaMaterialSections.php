@@ -18,6 +18,10 @@ namespace App\Services\Materials;
  * par le TGV ») parle d'un AUTRE matériel que celui qui est cité : le lien est gardé mais marqué
  * `refers_back`, la phrase précédente est ajoutée à la citation pour qu'elle se lise seule, et le
  * lien ne peut pas être rangé en « source directe ».
+ *
+ * Une série citée comme terme de comparaison (« un confort similaire aux autorails X 73500 »,
+ * « comparable aux », « à l'image des », « plus confortable que les », « dérivé des »)
+ * n'a pas roulé pour autant sur la ligne : ce lien-là n'est pas gardé (voir isCompared()).
  */
 final class WikipediaMaterialSections
 {
@@ -35,6 +39,16 @@ final class WikipediaMaterialSections
 
     /** Phrase qui reprend un sujet antérieur (« Ce train », « Ces rames », « Ils », « Elles ») pour dire par quoi il est remplacé. */
     private const REFERS_BACK_REPLACEMENT = '/^(?:ce|cet|cette|ces|celui|celle|ceux|celles|il|ils|elle|elles)\b(?:-(?:ci|là))?[^.;]*\bremplac(?:é|ée|és|ées)\b[^.;]{0,40}?\bpar\b/iu';
+
+    /**
+     * Comparaison ou filiation juste avant le lien, dans la même partie de phrase (sans virgule ni
+     * point entre les deux) : la série citée sert de référence, elle n'est pas engagée sur la ligne.
+     * « comme les » seul n'en fait pas partie : « de nouveaux matériels comme les X 73500 » cite un
+     * exemple de ce qui circule. « aussi bien que » non plus (énumération), ni « ne … plus guère que »
+     * (restriction : la série est la seule à rouler), ni « issus des familles des X 2200 et XR 6000 »
+     * (appartenance : l'X 92201 et la XR 96000 de Fécamp sont de ces séries).
+     */
+    private const COMPARISON_BEFORE = '/(?:\b(?:similaires?|semblables?|comparables?|identiques?|analogues?|équivalent(?:e|s|es)?|pareil(?:le)?s?|dérivé(?:e|s|es)?|inspiré(?:e|s|es)?)|\bà\s+l[’\']image|\bà\s+l[’\']instar|\bsur\s+le\s+modèle|\b(?:plus|moins)\s+(?!(?:guère|rien|que)\b)(?:\p{L}+\s+){1,2}que)\b[^.;,:()\[\]]{0,50}$/iu';
 
     /** Titre d'une section consacrée à des projets ou à l'avenir. */
     private const DOUBTFUL_SECTION = '/\b(?:prévue?s?|projets?|futur\w*|envisag\w*|perspectives?)\b/iu';
@@ -94,7 +108,7 @@ final class WikipediaMaterialSections
         $text = self::stripNoise($text);
         $out = [];
         foreach (self::units($text) as $unit) {
-            if (! preg_match_all('/\[\[([^\[\]|#]+)(?:#[^\[\]|]*)?(?:\|[^\[\]]*)?\]\]/u', $unit['sentence'], $matches)) {
+            if (! preg_match_all('/\[\[([^\[\]|#]+)(?:#[^\[\]|]*)?(?:\|[^\[\]]*)?\]\]/u', $unit['sentence'], $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
                 continue;
             }
             $quote = self::plain($unit['sentence']);
@@ -107,7 +121,11 @@ final class WikipediaMaterialSections
                 $room = self::QUOTE_WIDTH - mb_strlen($quote) - 1;
                 $quote = ($room >= 40 ? mb_strimwidth(self::plain($unit['previous']), 0, $room, '…').' ' : '').$quote;
             }
-            foreach ($matches[1] as $raw) {
+            foreach ($matches as [[, $offset], [$raw]]) {
+                // Texte qui précède le lien : « un confort similaire aux autorails » + X 73500.
+                if (self::isCompared(self::plain(substr($unit['sentence'], 0, $offset)))) {
+                    continue;
+                }
                 $target = self::normalizeTitle($raw);
                 // Fichiers, catégories, autres espaces de noms et liens interwikis (« :en:… ») : pas des articles.
                 if ($target !== '' && ! str_starts_with($target, ':')
@@ -125,7 +143,9 @@ final class WikipediaMaterialSections
      * ce que la phrase dit de l'article cité (une date, une période). Les lignes de tableau et les
      * légendes d'image ne sont pas des phrases suivies et sont laissées de côté.
      *
-     * @return list<array{text: string, links: list<array{target: string, pos: int, length: int}>}>
+     * `compared` : la série est citée comme terme de comparaison (isCompared()).
+     *
+     * @return list<array{text: string, links: list<array{target: string, pos: int, length: int, compared: bool}>}>
      */
     public static function linkedSentences(string $text): array
     {
@@ -159,7 +179,7 @@ final class WikipediaMaterialSections
             if (preg_match_all('/\x{E000}(\d+)\x{E001}([^\x{E000}-\x{E002}]*)\x{E002}/u', $plain, $all, PREG_OFFSET_CAPTURE | PREG_SET_ORDER)) {
                 foreach ($all as $m) {
                     $clean .= $orphans(substr($plain, $offset, $m[0][1] - $offset));
-                    $links[] = ['target' => $targets[(int) $m[1][0]], 'pos' => mb_strlen($clean), 'length' => mb_strlen($m[2][0])];
+                    $links[] = ['target' => $targets[(int) $m[1][0]], 'pos' => mb_strlen($clean), 'length' => mb_strlen($m[2][0]), 'compared' => self::isCompared($clean)];
                     $clean .= $m[2][0];
                     $offset = $m[0][1] + strlen($m[0][0]);
                 }
@@ -171,6 +191,16 @@ final class WikipediaMaterialSections
         }
 
         return $out;
+    }
+
+    /**
+     * Le lien qui suit ce texte (en clair) est-il le terme d'une comparaison ? « Ce nouveau matériel
+     * offre un confort similaire aux autorails » + X 73500 : oui. « …de nouveaux matériels comme les
+     * ATER » + X 73500 : non.
+     */
+    public static function isCompared(string $plainBefore): bool
+    {
+        return preg_match(self::COMPARISON_BEFORE, $plainBefore) === 1;
     }
 
     /** Titre d'article normalisé comme MediaWiki : espaces, première lettre en capitale. */

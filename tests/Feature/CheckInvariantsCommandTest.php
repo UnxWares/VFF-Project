@@ -171,6 +171,8 @@ class CheckInvariantsCommandTest extends TestCase
             'stations.opened_before_lines' => 0,
             // Fret rouvert aux voyageurs ou sur une gare de voyageurs SNCF (PassengerStationOnTrackTest) : aucun ici.
             'segments.current_freight_on_reopened_or_station' => 0,
+            // Écartement des liens ligne × matériel (MaterialGaugeInvariantTest) : aucun lien ici.
+            'line_materials.gauge_conflict' => 0,
         ], $counts);
 
         $this->assertStringContainsString('200000 Ligne de Bravo à Charlie', $results['segments.current_freight_on_passenger_code']['examples'][0]);

@@ -51,6 +51,8 @@ describe('service worker', () => {
             'vff-pages-ancienne',
             'vff-pages-dev',
             'vff-tiles-ancienne',
+            'vff-mapdata-ancienne',
+            'vff-mapdata-dev',
             'vff-offline',
         ]);
         let activated;
@@ -59,6 +61,7 @@ describe('service worker', () => {
         expect(await cacheStorage.keys()).toEqual([
             'vff-static-dev',
             'vff-pages-dev',
+            'vff-mapdata-dev',
             'vff-offline',
         ]);
         expect(self.registration.navigationPreload.enable).toHaveBeenCalled();
@@ -78,6 +81,12 @@ describe('service worker', () => {
         expect(respondWith).toHaveBeenCalledOnce();
 
         respondWith.mockClear();
+        handlers.fetch(event('https://vff-project.org/api/v1/eras/2030/stations.geojson'));
+        expect(respondWith).toHaveBeenCalledOnce();
+
+        respondWith.mockClear();
+        handlers.fetch(event('https://vff-project.org/api/v1/eras/2030/lines.geojson'));
+        handlers.fetch(event('https://tiles.openfreemap.org/fonts/Noto%20Sans%20Bold/0-255.pbf'));
         handlers.fetch(event('https://vff-project.org/api/lines'));
         handlers.fetch(event('https://tile.openstreetmap.org/6/33/22.png'));
         expect(respondWith).not.toHaveBeenCalled();
@@ -103,5 +112,27 @@ describe('service worker', () => {
         await Promise.all(pending);
         const cache = await cacheStorage.open('vff-pages-dev');
         expect(await cache.keys()).toEqual(['https://vff-project.org/lines?__vff-copy=html']);
+    });
+});
+
+describe('service worker : données de la carte', () => {
+    it('range les gares d une ère affichée dans le cache de la version', async () => {
+        const { handlers, cacheStorage } = await loadWorker();
+        globalThis.fetch.mockImplementation(async () =>
+            basicResponse('{}', { headers: { 'Content-Type': 'application/json' } }),
+        );
+        const pending = [];
+        let responded;
+        handlers.fetch({
+            request: fakeRequest('https://vff-project.org/api/v1/eras/1930/stations.geojson'),
+            respondWith: (p) => (responded = p),
+            waitUntil: (p) => pending.push(p),
+        });
+        expect((await responded).status).toBe(200);
+        await Promise.all(pending);
+        const cache = await cacheStorage.open('vff-mapdata-dev');
+        expect(await cache.keys()).toEqual([
+            'https://vff-project.org/api/v1/eras/1930/stations.geojson',
+        ]);
     });
 });

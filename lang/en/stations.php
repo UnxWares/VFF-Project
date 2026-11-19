@@ -153,6 +153,7 @@ return [
             'junction' => 'Terminus or junction on the route',
             'wikidata_p81' => 'Wikidata (line served)',
             'terminus_name' => 'End named in the line name, less than 500 m from the route',
+            'terminus_reviewed' => 'End station checked by hand against a source',
         ],
         'pk_sources' => [
             'sncf' => 'official PK',
@@ -234,7 +235,7 @@ return [
     // Location mini-map (StationMiniMap): title, text alternative, control labels.
     'map' => [
         'title' => 'Location map of :name station',
-        'summary' => 'Position: :lat, :lng. Neighbouring stations are listed next to the map.',
+        'summary' => 'Position: :lat, :lon. Neighbouring stations are listed next to the map.',
         'open_osm' => 'Open this position on OpenStreetMap',
         'zoom_in' => 'Zoom in',
         'zoom_out' => 'Zoom out',

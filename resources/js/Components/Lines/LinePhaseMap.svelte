@@ -1,9 +1,10 @@
 <script>
     import 'maplibre-gl/dist/maplibre-gl.css';
     import { onDestroy, onMount } from 'svelte';
-    import { router } from '@inertiajs/svelte';
+    import { page, router } from '@inertiajs/svelte';
     import { loadMaplibre } from '$lib/loadMaplibre.js';
     import { i18n } from '$lib/i18n.js';
+    import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
     import { theme } from '$lib/stores/theme.svelte.js';
     import { formatLocale, tieUnits } from '$lib/typo.js';
     import {
@@ -46,7 +47,15 @@
     const t = (k, o) => String($i18n.t(k, o));
 
     /** @returns {string | import('maplibre-gl').StyleSpecification} */
-    function buildStyle() {
+    // Fin du signal « carte sur fond neutre » (lib/offlineMap.svelte.js), appelée quand la carte disparaît.
+    let releasePartialMap = null;
+
+    /**
+     * @param {boolean} offline page lue sans réseau : fond neutre, aucune tuile ni style d'un tiers
+     * @returns {string | import('maplibre-gl').StyleSpecification}
+     */
+    function buildStyle(offline) {
+        if (offline) return neutralMapStyle({ dark: theme.isDark });
         const key = import.meta.env.VITE_MAPTILER_KEY;
         if (key) return `https://api.maptiler.com/maps/basic-v2/style.json?key=${key}`;
         return {
@@ -132,9 +141,11 @@
     onMount(async () => {
         const maplibregl = await loadMaplibre();
         if (destroyed || !mapContainer) return;
+        const offline = isOfflineView(page.props);
+        if (offline) releasePartialMap = reportPartialMap();
         map = new maplibregl.Map({
             container: mapContainer,
-            style: buildStyle(),
+            style: buildStyle(offline),
             center: [2.5, 47.0],
             zoom: 5.5,
             attributionControl: { compact: true },
@@ -305,6 +316,7 @@
 
     onDestroy(() => {
         destroyed = true;
+        releasePartialMap?.();
         map?.remove();
         map = null;
     });

@@ -14,7 +14,8 @@
      * dans un <div class="table-wrap"> ; un texte sans balise de bloc est enveloppé dans un <p>.
      * `updated` : date ISO (AAAA-MM-JJ), écrite dans la langue de la page.
      * Mise en forme seulement : le texte est rendu tel quel (legalTypography ne fait que poser des
-     * espaces insécables et garder les codes de licence d'un bloc).
+     * espaces insécables, garder les codes de licence d'un bloc et annoncer les liens qui s'ouvrent
+     * dans un nouvel onglet).
      */
     let { namespace, sections, updated = '2026-05-11' } = $props();
 
@@ -24,6 +25,7 @@
         legalTypography(
             /^\s*<(p|ul|ol|div|table|h3)\b/i.test(html) ? html : `<p>${html}</p>`,
             lang,
+            String($i18n.t('common.new_tab')),
         );
 
     const items = $derived(sections.map((s) => (typeof s === 'string' ? { slug: s } : s)));

@@ -72,9 +72,20 @@ class PageQueryBudgetTest extends TestCase
     {
         $queries = $this->queriesOf('/lines/'.$this->line->slug);
 
-        $this->assertLessThanOrEqual(56, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        $this->assertLessThanOrEqual(52, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
         // La page ne lit plus la géométrie de l'ère affichée (LineSheet::PAGE_OMITTED).
         $this->assertEmpty(array_filter($queries, fn (string $sql): bool => str_contains($sql, 'ST_AsGeoJSON(ls.geom, 6)')));
+    }
+
+    public function test_line_sheet_reads_the_stations_and_their_terminals_once(): void
+    {
+        $queries = $this->queriesOf('/lines/'.$this->line->slug);
+        $count = fn (string $needle): int => count(array_filter($queries, fn (string $sql): bool => str_contains($sql, $needle)));
+
+        // LineStations::forLine (gares de la ligne puis terminus) : la liste, l'en-tête et la vue
+        // « décennie par décennie » reprennent le même résultat (LineStations::byEraOf).
+        $this->assertSame(1, $count("provenance->>'closed_after' AS closed_after"), 'requête des gares de la ligne');
+        $this->assertSame(1, $count('ST_Dump(ST_LineMerge(ST_Collect(geom)))'), 'requête des terminus');
     }
 
     public function test_station_sheet_stays_within_its_query_budget(): void

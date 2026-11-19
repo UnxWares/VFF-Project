@@ -66,6 +66,18 @@ class ImportMaterialPeriods extends Command
             }
         }
 
+        $diff = MaterialPeriodCollector::diff($periods);
+        $this->line('  Périodes à créer : '.count($diff['created']).' ; périodes en base à retirer : '.count($diff['removed']));
+        if ($this->output->isVerbose() && $diff['removed'] !== []) {
+            $gone = DB::table('line_material_periods')->join('line_materials', 'line_materials.id', '=', 'line_material_periods.line_material_id')
+                ->join('lines', 'lines.id', '=', 'line_materials.line_id')->join('materials', 'materials.id', '=', 'line_materials.material_id')
+                ->whereIn('line_material_periods.id', $diff['removed'])
+                ->get(['lines.code', 'materials.name', 'line_material_periods.start_date', 'line_material_periods.end_date', 'line_material_periods.confidence']);
+            foreach ($gone as $p) {
+                $this->line(sprintf('    - [%s] %s %s | %s → %s', $p->confidence, $p->code, $p->name, $p->start_date ?? '…', $p->end_date ?? '…'));
+            }
+        }
+
         if ($this->option('dry-run')) {
             $this->warn('--dry-run : rien n\'est écrit.');
 

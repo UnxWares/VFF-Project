@@ -38,4 +38,25 @@ render(isDark());
 markPortalLanguage(document.body, 'en');
 if (config.locale && config.locale !== 'en')
     markContentLanguage(container, '.graphiql-query-editor .CodeMirror-code', config.locale);
+// RGAA 11.1 : les zones de saisie de CodeMirror (une par éditeur) n'ont pas d'étiquette. Chacune reçoit le
+// nom de son éditeur, en anglais comme l'interface. Les éditeurs secondaires sont dans l'ordre de GraphiQL :
+// variables, puis en-têtes.
+function labelEditors() {
+    const name = (textarea) => {
+        if (textarea.closest('.graphiql-query-editor')) return 'Query editor';
+        if (textarea.closest('.result-window')) return 'Response';
+        const tool = textarea.closest('.graphiql-editor-tool');
+        if (!tool) return null;
+        const editors = [...tool.querySelectorAll('.graphiql-editor')];
+        return editors.indexOf(textarea.closest('.graphiql-editor')) === 0
+            ? 'Variables'
+            : 'Headers';
+    };
+    container.querySelectorAll('.CodeMirror textarea:not([aria-label])').forEach((textarea) => {
+        const label = name(textarea);
+        if (label) textarea.setAttribute('aria-label', label);
+    });
+}
+labelEditors();
+new MutationObserver(labelEditors).observe(container, { childList: true, subtree: true });
 setupThemeToggle(render);

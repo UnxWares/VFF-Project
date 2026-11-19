@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\StationLinkChanges;
+use App\Services\StationTerminusOverrides;
 use App\Support\StationNames;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -38,6 +39,11 @@ use Throwable;
  *                  liste officielle, près d'un bout de son tracé
  *                  (attachNamedTermini ; seul, sans rien retirer :
  *                  --termini-only).
+ *   5. terminus_reviewed : extrémités relues à la main
+ *                  (database/data/station_terminus_overrides.php, StationTerminusOverrides) :
+ *                  « attach » rattache la gare nommée par la source, « none » interdit le
+ *                  rattachement par la règle 4 ; appliquées dans les trois modes (complet,
+ *                  --termini-only, --years-only), sans rien retirer.
  *
  * PK manquant : projection sur le tracé, interpolée entre les gares voisines
  * de PK connu de la même ligne (pk_source = projected), sinon abscisse
@@ -56,8 +62,11 @@ use Throwable;
  */
 class AttachStations extends Command
 {
+    /** Décisions relues à la main (étape 5), chargées par handle(). */
+    private StationTerminusOverrides $overrides;
+
     protected $signature = 'vff:attach-stations {--buffer=60 : Distance max gare ↔ tracé (m) pour une position précise}
-        {--years-only : Recalcule seulement les années de desserte (first_year / last_year) des rattachements existants}
+        {--years-only : Recalcule seulement les années de desserte (first_year / last_year) des rattachements existants, après les terminus relus à la main}
         {--except=* : Avec --years-only, codes de lignes à laisser de côté}
         {--dry-run : Calcule tout dans une transaction annulée : affiche les changements sans rien écrire}
         {--report= : Fichier CSV du détail des rattachements changés (chemin relatif à la racine du projet)}
@@ -109,8 +118,9 @@ class AttachStations extends Command
         return str_replace('le.', "{$alias}.", self::EVENT_COVERS_STATION);
     }
 
-    public function handle(StationLinkChanges $changes): int
+    public function handle(StationLinkChanges $changes, StationTerminusOverrides $overrides): int
     {
+        $this->overrides = $overrides;
         $dryRun = (bool) $this->option('dry-run');
         DB::beginTransaction();
         try {
@@ -140,9 +150,13 @@ class AttachStations extends Command
         return self::SUCCESS;
     }
 
-    /** --years-only : années de desserte des rattachements existants, sauf lignes --except. */
+    /** --years-only : terminus relus à la main, puis années de desserte des rattachements existants, sauf lignes --except. */
     private function recomputeYears(): void
     {
+        $added = $this->applyTerminusOverrides();
+        if ($added !== []) {
+            $this->projectMissingPk($added);
+        }
         $except = DB::table('lines')->whereIn('code', (array) $this->option('except'))->pluck('id')->map(fn ($id) => (int) $id)->all();
         $this->computeServiceYears($except);
         $this->line('  années de desserte recalculées'.($except ? ' (lignes laissées de côté : '.implode(', ', (array) $this->option('except')).')' : ''));
@@ -152,6 +166,7 @@ class AttachStations extends Command
     private function addNamedTermini(): void
     {
         $this->line('  terminus nommés : '.$this->attachNamedTermini());
+        $this->applyTerminusOverrides();
         $this->projectMissingPk();
         $this->computeServiceYears();
     }
@@ -263,8 +278,9 @@ class AttachStations extends Command
             $this->line("  {$method} : {$n}");
         }
 
-        // 4. Terminus nommés des lignes sans liste officielle.
+        // 4. Terminus nommés des lignes sans liste officielle ; 5. terminus relus à la main.
         $this->line('  terminus nommés : '.$this->attachNamedTermini());
+        $this->applyTerminusOverrides();
 
         $this->projectMissingPk();
         $this->computeServiceYears();
@@ -388,10 +404,11 @@ class AttachStations extends Command
             ->whereIn('sl.line_id', $termini->keys())->get(['sl.line_id', 's.name']) as $r) {
             $attached[(int) $r->line_id][] = (string) StationNames::normalize($r->name);
         }
+        $reviewed = $this->reviewedTermini();
         $rows = [];
         foreach ($termini as $lineId => $lineTermini) {
             $near = array_map(fn (array $x) => $x['name'], $nearby[$lineId] ?? []);
-            foreach ($lineTermini as $terminus) {
+            foreach (array_diff($lineTermini, $reviewed[$lineId] ?? []) as $terminus) {
                 $already = array_filter($attached[$lineId] ?? [], fn (string $n) => $n === $terminus || str_starts_with($n, $terminus.' '));
                 $sid = $already === [] ? self::terminusStation($terminus, $near, $sameName($terminus)) : null;
                 if ($sid !== null) {
@@ -405,10 +422,96 @@ class AttachStations extends Command
     }
 
     /**
+     * Extrémités relues à la main par ligne (identifiant de ligne → extrémités normalisées) : la
+     * règle 4 ne les traite pas, la décision relue l'emporte.
+     *
+     * @return array<int, list<string>>
+     */
+    private function reviewedTermini(): array
+    {
+        $ids = DB::table('lines')->whereIn('slug', array_column($this->overrides->all(), 'line'))->pluck('id', 'slug');
+        $out = [];
+        foreach ($this->overrides->all() as $e) {
+            if (isset($ids[$e['line']]) && is_string($e['terminus'] ?? null)) {
+                $out[(int) $ids[$e['line']]][] = StationTerminusOverrides::key($e['terminus']);
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * 5. Terminus relus à la main (StationTerminusOverrides) : chaque décision « attach » valide
+     * rattache la gare nommée (méthode terminus_reviewed, distance au plus proche tracé de la ligne,
+     * provenance « relu:<permalien> »), sans rien retirer ni réécrire un rattachement existant.
+     * Une décision invalide ou dont la gare est introuvable est signalée et ignorée ; celle d'une ligne
+     * absente de la base est comptée.
+     *
+     * @return list<int> identifiants des rattachements ajoutés
+     */
+    private function applyTerminusOverrides(): array
+    {
+        $entries = $this->overrides->all();
+        if ($entries === []) {
+            return [];
+        }
+        $lines = DB::table('lines')->whereIn('slug', array_column($entries, 'line'))->get(['id', 'slug', 'name'])->keyBy('slug');
+        $stations = DB::table('stations')->whereIn('slug', array_filter(array_column($entries, 'station')))->pluck('id', 'slug');
+        $added = [];
+        $none = $absent = 0;
+        foreach ($entries as $i => $e) {
+            // Ligne absente de cette base (base de test, ligne fusionnée) : rien à faire.
+            $line = $lines[$e['line'] ?? ''] ?? null;
+            if ($line === null) {
+                $absent++;
+
+                continue;
+            }
+            $errors = StationTerminusOverrides::validate($e, $line->name);
+            if (($e['decision'] ?? null) === 'attach' && ! isset($stations[$e['station'] ?? ''])) {
+                $errors[] = 'gare introuvable';
+            }
+            if ($errors !== []) {
+                $this->warn("  terminus relu n° {$i} ignoré (".($e['line'] ?? '?').') : '.implode(' ; ', $errors));
+
+                continue;
+            }
+            if ($e['decision'] === 'none') {
+                $none++;
+
+                continue;
+            }
+            $stationId = (int) $stations[$e['station']];
+            $distance = DB::selectOne(<<<'SQL'
+                SELECT ROUND(MIN(ST_Distance(s.geom::geography, g.geom::geography)))::int AS d
+                FROM stations s, (
+                    SELECT geom FROM line_segments WHERE line_id = :l1
+                    UNION ALL SELECT geom FROM source_traces WHERE line_id = :l2
+                    UNION ALL SELECT geom FROM line_reference_geometries WHERE line_id = :l3
+                ) g
+                WHERE s.id = :s
+            SQL, ['l1' => $line->id, 'l2' => $line->id, 'l3' => $line->id, 's' => $stationId])?->d;
+            // Gare déjà rattachée à la ligne (autre méthode) : rien n'est réécrit.
+            $inserted = DB::table('station_lines')->insertOrIgnore([
+                'station_id' => $stationId, 'line_id' => $line->id, 'method' => StationTerminusOverrides::METHOD,
+                'distance_m' => $distance, 'source_ref' => StationTerminusOverrides::sourceRef($e), 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            if ($inserted === 1) {
+                $added[] = (int) DB::table('station_lines')->where('station_id', $stationId)->where('line_id', $line->id)->value('id');
+            }
+        }
+        $this->line('  terminus relus : '.count($added).' ajoutés, '.$none.' sans gare'.($absent > 0 ? ", {$absent} lignes absentes de la base" : ''));
+
+        return $added;
+    }
+
+    /**
      * PK des rattachements par proximité : projection sur le tronçon le plus
      * proche de la ligne, interpolée entre gares voisines de PK connu.
+     *
+     * @param  list<int>|null  $only  rattachements à traiter (--years-only : terminus relus ajoutés), sinon tous ceux sans PK
      */
-    private function projectMissingPk(): void
+    private function projectMissingPk(?array $only = null): void
     {
         DB::statement('DROP TABLE IF EXISTS tmp_line_tr');
         // Tronçons SNCF avec leurs PK officiels de début et de fin (pk_debut / pk_fin) : une gare sans
@@ -456,7 +559,8 @@ class AttachStations extends Command
             JOIN LATERAL (SELECT tid, geom, pk_debut, pk_fin FROM tmp_line_tr t WHERE t.line_id = sl.line_id
                           ORDER BY t.geom <-> s.geom LIMIT 1) tr ON TRUE
         SQL);
-        $n = DB::affectingStatement(<<<'SQL'
+        $onlySql = $only === null ? '' : ' AND sl.id IN ('.implode(',', array_map('intval', $only ?: [0])).')';
+        $n = DB::affectingStatement(<<<SQL
             WITH t AS (
                 SELECT a.id, a.tid, a.frac, a.len, a.pk_debut, a.pk_fin,
                        lo.pk_m AS lpk, lo.frac AS lfrac, hi.pk_m AS hpk, hi.frac AS hfrac
@@ -478,7 +582,7 @@ class AttachStations extends Command
                     ELSE t.frac * t.len END),
                 pk_source = CASE WHEN t.lpk IS NOT NULL OR t.hpk IS NOT NULL OR (t.pk_debut IS NOT NULL AND t.pk_fin IS NOT NULL)
                     THEN 'projected' ELSE 'projected_raw' END
-            FROM t WHERE t.id = sl.id
+            FROM t WHERE t.id = sl.id{$onlySql}
         SQL);
         $this->line("  PK projetés : {$n}");
     }

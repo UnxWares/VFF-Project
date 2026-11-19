@@ -348,7 +348,8 @@
                         <StationMiniMap {station} {neighbors} height="100%" />
                     </div>
                     <p class="map-note">
-                        {$i18n.t('stations.map.summary', { lat: latText, lng: lngText })}
+                        <!-- « lon », jamais « lng » : i18next lit `lng` comme la langue voulue. -->
+                        {$i18n.t('stations.map.summary', { lat: latText, lon: lngText })}
                         <a href={osmUrl} target="_blank" rel="noopener noreferrer"
                             >{$i18n.t('stations.map.open_osm')}<i
                                 class="bi bi-box-arrow-up-right vff-ext"

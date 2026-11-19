@@ -3011,8 +3011,11 @@ type LineSheetMaterial {
   "Catégorie (voir `Material.type`)."
   type: String
 
-  "Constructeur."
+  "Constructeurs joints par des virgules, coupés à 255 caractères (« … ») quand ils sont nombreux. Liste complète : `builders`."
   builder: String
+
+  "Tous les constructeurs de la série (Wikidata P176), sans doublon, dans l'ordre de la source ; liste vide si aucun n'est connu."
+  builders: [String!]!
 
   "Année de mise en service."
   in_service_from: Int

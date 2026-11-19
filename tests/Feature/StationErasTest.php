@@ -163,8 +163,13 @@ class StationErasTest extends TestCase
             'distance_m' => 200, 'source_ref' => 'name:gex', 'created_at' => now(), 'updated_at' => now()]);
         DB::table('line_events')->insert(['line_id' => $main->id, 'type' => 'closure_passenger', 'event_date' => '1980-05-31', 'date_precision' => 'day',
             'description' => 'Fermeture aux voyageurs', 'section_resolution' => 'whole_line', 'created_at' => now(), 'updated_at' => now()]);
-        $inferred = fn () => DB::table('station_events')->where('station_id', $station->id)->where('type', 'closure_passenger')->value('event_date');
+        $inferred = fn (): mixed => $this->passengerClosureDate($station->id);
 
+        $this->artisan('vff:build-station-eras')->assertSuccessful();
+        $this->assertSame('1980-05-31', $inferred());
+
+        // Même chose pour un terminus relu à la main (terminus_reviewed, database/data/station_terminus_overrides.php).
+        DB::table('station_lines')->where('line_id', $tram->id)->update(['method' => 'terminus_reviewed']);
         $this->artisan('vff:build-station-eras')->assertSuccessful();
         $this->assertSame('1980-05-31', $inferred());
 
@@ -329,5 +334,15 @@ class StationErasTest extends TestCase
         $features = collect($this->getJson('/api/v1/eras/2030/stations.geojson')->assertOk()->json('features'));
         $this->assertSame('closed', $features->firstWhere('properties.name', 'Gare fermée')['properties']['service']);
         $this->assertSame('passenger', $features->firstWhere('properties.name', 'Gare ouverte')['properties']['service']);
+    }
+
+    /**
+     * Date de fermeture aux voyageurs déduite pour une gare (relue en base à chaque appel).
+     *
+     * @phpstan-impure
+     */
+    private function passengerClosureDate(int $stationId): mixed
+    {
+        return DB::table('station_events')->where('station_id', $stationId)->where('type', 'closure_passenger')->value('event_date');
     }
 }

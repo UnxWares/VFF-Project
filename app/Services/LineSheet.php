@@ -114,8 +114,10 @@ final class LineSheet
         // déposée), dans l'ordre du tracé, avec leur état à chaque décennie. Une seule source,
         // App\Services\LineStations (agent « gares », mêmes données que la carte et la fiche
         // gare) pour l'en-tête, la liste, la carte et les décennies : aucun repli divergent.
-        $lineStations = app(LineStations::class);
-        $stations = $this->lineStations($lineStations, $line->id);
+        // Calculées une fois (requête des terminus comprise : environ 130 à 210 ms sur la LGV Sud-Est),
+        // puis reprises par la vue « décennie par décennie » (LineStations::byEraOf).
+        $lineStationData = app(LineStations::class)->forLine($line->id);
+        $stations = $this->lineStations($lineStationData);
 
         // Événements : lecture brute (pas de cast enum → un type ajouté en base
         // par un import ne fait pas planter la fiche).
@@ -147,7 +149,7 @@ final class LineSheet
         // Phases de la ligne (vraies dates de line_events, état de toute la ligne à chaque
         // phase) et chronique (événements par portion, notes de source, désaccords).
         $phases = LinePhases::forLine($line);
-        $decades = $this->decadesWithStations($phases['decades'], $lineStations->byEra($line->id));
+        $decades = $this->decadesWithStations($phases['decades'], LineStations::byEraOf($lineStationData));
 
         // UNE longueur par fiche (chantier « UI unifiée », constats « six longueurs pour la même
         // ligne ») : celle du tracé que VFF dessine, toutes portions comprises (en service, fermées,
@@ -324,7 +326,10 @@ final class LineSheet
                 'slug' => $m->slug,
                 'name' => $m->name,
                 'type' => $m->type,
+                // `builder` : noms joints, coupés à 255 caractères (« … ») pour les séries aux nombreux
+                // constructeurs ; `builders` : la liste complète des noms (Wikidata P176), sans doublon.
                 'builder' => $m->builder,
+                'builders' => array_values(array_unique(array_column($m->builders ?? [], 'name'))),
                 'in_service_from' => $m->in_service_from,
                 'in_service_to' => $m->in_service_to,
                 'periods' => $materialPeriods[$m->id] ?? [],
@@ -466,11 +471,12 @@ final class LineSheet
      * Pas de repli (comptage spatial, line_stops d'une seule ère) : il divergerait de la carte
      * et de la fiche gare. Une ligne sans gare rattachée affiche une liste vide.
      *
+     * @param  array{stations: list<array<string, mixed>>}  $data  résultat de LineStations::forLine
      * @return Collection<int, array<mixed>>
      */
-    private function lineStations(LineStations $service, int $lineId): Collection
+    private function lineStations(array $data): Collection
     {
-        return collect($service->forLine($lineId)['stations'])->map(fn ($s) => $this->stationProps($s))->values();
+        return collect($data['stations'])->map(fn ($s) => $this->stationProps($s))->values();
     }
 
     /** Gare de LineStations::forLine au format de la fiche (états par ère réduits au statut affiché). */

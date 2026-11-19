@@ -150,6 +150,28 @@ class LinePagesTest extends TestCase
             );
     }
 
+    public function test_show_gives_every_builder_of_a_series_even_when_the_joined_text_is_cut(): void
+    {
+        // 141 PLM, BR 52… : la liste jointe dépasse 255 caractères et finit par « … » ; la carte de la
+        // série affiche trois noms puis « et N autres » à partir de la liste complète (`builders`).
+        $names = array_map(fn (int $i): string => "Constructeur {$i}", range(1, 13));
+        $series = Material::factory()->create([
+            'slug' => 'serie-nombreux-constructeurs',
+            'name' => 'BR 52',
+            'builder' => mb_strimwidth(implode(', ', $names), 0, 60, '…'),
+            'builders' => array_map(fn (string $n): array => ['name' => $n, 'wikidata_id' => null, 'units' => null], [...$names, 'Constructeur 1']),
+        ]);
+        $this->line->materials()->attach($series->id);
+
+        $this->get("/lines/{$this->line->slug}")
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('materials', fn ($materials) => $this->rows($materials)->firstWhere('slug', $series->slug)['builders'] === $names));
+        $this->getJson("/api/v1/lines/{$this->line->slug}")
+            ->assertOk()
+            ->assertJsonPath('data.materials.0.builders', $names);
+    }
+
     public function test_show_has_no_spatial_fallback_for_stations(): void
     {
         // Sans gare rattachée (station_lines), la fiche n'invente pas de gares le long du

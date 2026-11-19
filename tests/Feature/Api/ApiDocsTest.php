@@ -286,6 +286,61 @@ class ApiDocsTest extends TestCase
         }
     }
 
+    /**
+     * RGAA, corrections de resources/docs/graphql/a11y.mjs : lien d'évitement (12.7), logo nommé (1.3),
+     * bouton « Voir aussi » nommé (7.1), liens « # » nommés hors des titres (6.1, 9.1), aucun bouton dans
+     * un lien (8.2), aucun bloc dans un paragraphe (hydratation), titre complet après navigation (8.6).
+     */
+    public function test_graphql_reference_carries_the_accessibility_fixes(): void
+    {
+        $page = public_path('docs/graphql/queries/line.html');
+        if (! is_file($page)) {
+            $this->markTestSkipped('Référence GraphQL non générée (make docs-graphql).');
+        }
+
+        $html = (string) file_get_contents($page);
+        $this->assertStringContainsString('<body><a class="vff-skip-link" href="#main-content">Skip to main content</a>', $html);
+        $this->assertStringContainsString('<main id="main-content"', $html);
+        $this->assertStringContainsString('alt="VFF GraphQL API, home"', $html);
+        $this->assertStringNotContainsString('alt="Magidoc"', $html);
+        $this->assertStringContainsString('aria-label="Voir aussi" aria-expanded="false"', $html);
+        $this->assertStringContainsString('class="header-base header-hashtag svelte-xid2sy" role="none"', $html);
+        $this->assertStringContainsString('aria-label="Link to this section" lang="en">#</a>', $html);
+        $this->assertDoesNotMatchRegularExpression('/<a [^>]*>(?:<!--[^>]*-->)*<button/', $html, 'bouton dans un lien');
+        $this->assertStringNotContainsString('<p><!--[0--><p', $html, 'paragraphe dans un paragraphe');
+        $this->assertStringContainsString('<title>Query - line - VFF API GraphQL</title>', $html);
+
+        $scripts = implode("\n", array_map(
+            fn (string $file): string => (string) file_get_contents($file),
+            [...glob(public_path('docs/graphql/_app/immutable/nodes/*.js')) ?: [], ...glob(public_path('docs/graphql/_app/immutable/chunks/*.js')) ?: []],
+        ));
+        $this->assertStringNotContainsString('alt:`Magidoc`', $scripts);
+        $this->assertStringContainsString('labelText:`Search the reference`', $scripts);
+        $this->assertStringContainsString('.title=`Query - ${', $scripts);
+        $this->assertStringContainsString('} - VFF API GraphQL`', $scripts);
+
+        $css = (string) file_get_contents(public_path('docs/graphql/vff.css'));
+        $this->assertSame((string) file_get_contents(resource_path('docs/graphql/assets/vff.css')), $css);
+        $this->assertStringContainsString('.vff-skip-link:focus', $css);
+    }
+
+    /**
+     * RGAA 9.2 : Scalar et Swagger UI ouvrent leur propre zone principale ; la page Scalar n'en ajoute pas
+     * une seconde (Swagger UI, lui, perd la sienne par resources/js/docs/swaggerAccessibility.js). La cible
+     * du lien d'évitement existe toujours.
+     */
+    public function test_rest_documentations_keep_a_single_main_area(): void
+    {
+        $scalar = $this->get('/docs/api')->assertOk()->getContent();
+        $this->assertStringNotContainsString('<main', $scalar);
+        $this->assertStringContainsString('<div id="vff-docs-app"', $scalar);
+
+        $swagger = $this->get('/docs/swagger')->assertOk()->getContent();
+        $this->assertSame(1, substr_count($swagger, '<main'));
+        $this->assertStringContainsString('<main id="vff-docs-app"', $swagger);
+        $this->assertStringContainsString('accessibilityPlugin', (string) file_get_contents(resource_path('js/docs/swagger.js')));
+    }
+
     public function test_openapi_spec_documents_every_public_v1_endpoint(): void
     {
         $spec = $this->getJson('/docs/api.json')->assertOk()->json();

@@ -271,6 +271,11 @@ html body pre * {
 html body .code-span {
     color: inherit;
 }
+/* Code en ligne long (« GET /api/v1/eras/{year}/compare/{other} ») : coupé dans la ligne plutôt que
+   d'élargir la page. Sans cela, à 320 px, la page faisait 360 px et l'en-tête fixe aussi (RGAA 10.11). */
+html body .code-span {
+    overflow-wrap: anywhere;
+}
 
 /* Icônes de l'en-tête : orange du site, pas le bleu Carbon. */
 html body .bx--header__action,
@@ -320,9 +325,10 @@ html body main a:not(.bx--btn) {
     color: var(--cds-link-primary);
 }
 
-/* Titres : pas de coupure au milieu d'un mot ; taille réduite sur téléphone. */
-html body h1.header,
-html body h2.header {
+/* Titres : pas de coupure au milieu d'un mot (le gabarit coupe n'importe où : « V / FF ») ; taille
+   réduite sur téléphone. Sélecteur plus précis que `.header.svelte-xxx` du gabarit. */
+html body h1.header.header-base,
+html body h2.header.header-base {
     overflow-wrap: normal;
     word-break: normal;
 }
@@ -342,4 +348,36 @@ html body [class*='language-'] .token.comment,
 html body [class*='language-'] .token.prolog,
 html body [class*='language-'] .token.cdata {
     color: #9aa1ad !important;
+}
+
+/* Lien d'évitement (RGAA 12.7), ajouté en tête de chaque page par postbuild.mjs : caché hors de
+   l'écran, il apparaît au premier appui sur Tab, par-dessus l'en-tête. */
+.vff-skip-link {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 10000;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #8f3800;
+    font-weight: 700;
+    text-decoration: underline;
+    transform: translateY(-200%);
+}
+.vff-skip-link:focus {
+    transform: none;
+    outline: 3px solid #ff6500;
+    outline-offset: 2px;
+}
+:root[theme='g100'] .vff-skip-link {
+    background: #181f29;
+    color: #ffae75;
+}
+
+/* Liens « # » des intertitres : visibles au survol dans le gabarit, aussi au clavier (RGAA 10.7). */
+html body .hashtag:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--cds-focus);
+    outline-offset: 2px;
 }

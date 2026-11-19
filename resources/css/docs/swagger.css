@@ -269,3 +269,28 @@ html.dark-mode .swagger-ui .info .title small.version-stamp pre {
     .view-line-link.copy-to-clipboard {
     width: 24px;
 }
+
+/* Étiquette du champ « Filter by tag » (ajoutée par js/docs/swaggerAccessibility.js, RGAA 11.1), collée
+   à son champ : la marge haute de 20 px du champ passe au-dessus de l'étiquette. */
+.vff-docs--swagger .swagger-ui .vff-swagger-filter-label {
+    display: block;
+    margin: 20px 0 6px;
+    font-family: var(--vff-font-body);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--vff-text);
+}
+.vff-docs--swagger .swagger-ui .filter .vff-swagger-filter-label + .operation-filter-input {
+    margin-top: 0;
+}
+
+/* Tableaux des descriptions (markdown de la spécification) : à 320 px, les cellules de code dépassaient
+   de l'écran (372 px). Les mots longs se coupent dans la cellule (RGAA 10.11). */
+.vff-docs--swagger .swagger-ui .renderedMarkdown table,
+.vff-docs--swagger .swagger-ui .markdown table {
+    width: 100%;
+}
+.vff-docs--swagger .swagger-ui .renderedMarkdown :is(th, td, code),
+.vff-docs--swagger .swagger-ui .markdown :is(th, td, code) {
+    overflow-wrap: anywhere;
+}
