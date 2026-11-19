@@ -163,7 +163,9 @@ class MaterialPeriodsTest extends TestCase
         $this->artisan('vff:import-material-periods', ['--offline' => true])->assertSuccessful();
 
         $rest = $this->getJson('/api/v1/lines/rfn-908000/materials')->assertOk();
-        $x = collect($rest->json('data'))->firstWhere('material.slug', 'x-72500');
+        /** @var list<array<string, mixed>> $restLinks */
+        $restLinks = $rest->json('data');
+        $x = collect($restLinks)->firstWhere('material.slug', 'x-72500');
         $this->assertSame([[
             'start_date' => null, 'start_precision' => null, 'end_date' => '2009-09-06', 'end_precision' => 'day', 'section' => null,
             'confidence' => 'high', 'origin' => 'line_article',
@@ -176,7 +178,9 @@ class MaterialPeriodsTest extends TestCase
             ->assertJsonPath('data.lines.0.periods.*.origin', ['line_article', 'wikidata'])
             ->assertJsonPath('data.lines.0.periods.1.provenance.provider', 'wikidata');
 
-        $links = collect($this->graphQL('{ line(slug: "rfn-908000") { material_links { material { slug } periods { start_date end_date confidence origin provenance { provider } } } } }')->assertGraphQLErrorFree()->json('data.line.material_links'));
+        /** @var list<array<string, mixed>> $graphLinks */
+        $graphLinks = $this->graphQL('{ line(slug: "rfn-908000") { material_links { material { slug } periods { start_date end_date confidence origin provenance { provider } } } } }')->assertGraphQLErrorFree()->json('data.line.material_links');
+        $links = collect($graphLinks);
         $this->assertSame(
             [['start_date' => '1971-01-01', 'end_date' => '1989-01-01', 'confidence' => 'medium', 'origin' => 'line_article', 'provenance' => ['provider' => 'wikipedia']],
                 ['start_date' => null, 'end_date' => '2001-06-24', 'confidence' => 'high', 'origin' => 'wikidata', 'provenance' => ['provider' => 'wikidata']]],
@@ -194,7 +198,9 @@ class MaterialPeriodsTest extends TestCase
         $data = json_decode($text, true);
         $this->assertSame(3, $data['total']);
         $this->assertSame(3, $data['dated']);
-        $this->assertSame('high', collect($data['materials'])->firstWhere('material.slug', 'b-82500')['periods'][0]['confidence']);
+        /** @var list<array<string, mixed>> $sheetMaterials */
+        $sheetMaterials = $data['materials'];
+        $this->assertSame('high', collect($sheetMaterials)->firstWhere('material.slug', 'b-82500')['periods'][0]['confidence']);
         $this->assertStringNotContainsString('Vénissieux', $text, 'aucune phrase des articles dans la réponse MCP');
         $this->assertStringNotContainsString('quote', $text);
     }
