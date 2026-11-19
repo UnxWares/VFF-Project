@@ -200,7 +200,7 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] **Itinéraire historique** : « comment aller de Paris à Brest en 1950 ? » (`PathfindingService`, `/api/v1/route`, planificateur sur la carte)
 - [x] Export du graphe au format GTFS
 - [ ] [Apache AGE](https://age.apache.org/) et requêtes Cypher : pas activé, le graphe en tables suffit pour l'instant ; à réévaluer pour les requêtes complexes
-- [ ] Comparaison d'un trajet entre époques
+- [x] **Comparaison d'un trajet entre deux époques** : « Angoulême - Limoges en 1930 et aujourd'hui » (`RouteComparison`, `/api/v1/route/compare`, champ GraphQL `routeComparison`, `compare_year` de l'outil MCP `historical_route`, choix « Comparer avec une autre époque » du planificateur)
 - [ ] Visualisation du graphe en mode administration
 
 ---

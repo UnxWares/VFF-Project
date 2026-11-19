@@ -1345,7 +1345,7 @@ type LevelCrossing {
     """
     class: Int @field(resolver: "App\\GraphQL\\Resolvers\\LevelCrossingField@classNumber")
 
-    "Définition de la classe, rédigée par VFF d'après la description du jeu."
+    "Définition de la classe, rédigée par VFF d'après la description du jeu. Nulle si la classe est absente ou hors de la liste officielle."
     class_label(
         "Langue : `fr` (par défaut), `en` ou `de`."
         lang: String = "fr"
@@ -1530,6 +1530,113 @@ type Route {
     edges: [RouteEdge!]!
 }
 
+"Gare de départ ou d'arrivée d'une comparaison de trajets."
+type RouteEnd {
+    "Slug de la gare."
+    slug: String!
+
+    "Nom de la gare."
+    name: String!
+}
+
+"Le trajet à l'une des deux époques comparées : l'itinéraire, ou la raison de son absence."
+type RouteAtEra {
+    "Année demandée (nulle : réseau actuel)."
+    requested_year: Int
+
+    "Année de l'ère dont le réseau a servi au calcul (2030 = réseau actuel)."
+    era_year: Int!
+
+    "Vrai si l'ère est le réseau d'aujourd'hui."
+    era_is_current: Boolean!
+
+    "Itinéraire à cette époque, ou `null` si le trajet y est impossible."
+    route: Route
+
+    """
+    Raison de l'absence de trajet, ou `null` : `no_path` (gares non reliées par le réseau en
+    service) ou `station_not_in_network` (gare fermée ou hors du réseau exploité).
+    """
+    unavailable_reason: String @field(resolver: "App\\GraphQL\\Resolvers\\RouteComparisonResolver@reason")
+
+    "Message en français qui explique l'absence de trajet, ou `null`."
+    unavailable_message: String @field(resolver: "App\\GraphQL\\Resolvers\\RouteComparisonResolver@message")
+}
+
+"Une ligne empruntée par l'un des deux trajets comparés, longueurs parcourues additionnées."
+type RouteLineChange {
+    "Slug de la ligne (nul pour un raccordement sans fiche)."
+    line_slug: String
+
+    "Nom de la ligne."
+    line_name: String
+
+    "Code SNCF Réseau de la ligne, à 6 chiffres."
+    line_code: String
+
+    "Longueur parcourue sur cette ligne, en mètres."
+    length_m: Int!
+
+    """
+    Pour une ligne d'un seul des deux trajets : ce qu'elle était à l'autre époque. `open` (en
+    service sur au moins 90 % de son tracé), `partly_open` (en partie), `closed` (fermée, voie en
+    place) ou `none` (déposée, pas encore ouverte ou absente de la carte). Nul pour une ligne
+    commune aux deux trajets ou sans slug.
+    """
+    other_era: String
+}
+
+"Ce qui change entre les deux trajets."
+type RouteDifferences {
+    """
+    `both` (trajet possible aux deux époques), `lost` (devenu impossible), `gained` (devenu
+    possible) ou `neither` (impossible aux deux).
+    """
+    outcome: String!
+
+    "Écart de longueur en mètres, seconde époque moins première (nul si un trajet manque)."
+    distance_change_m: Int
+
+    "Même écart, en pourcentage de la longueur à la première époque."
+    distance_change_percent: Float
+
+    "Vrai si les deux trajets passent par les mêmes gares."
+    same_path: Boolean!
+
+    "Lignes empruntées aux deux époques (longueurs de la seconde)."
+    shared_lines: [RouteLineChange!]!
+
+    "Lignes empruntées seulement à la première époque."
+    lines_only_earlier: [RouteLineChange!]!
+
+    "Lignes empruntées seulement à la seconde époque."
+    lines_only_later: [RouteLineChange!]!
+
+    "Nombre de gares communes aux deux trajets."
+    shared_stations: Int!
+}
+
+"""
+Un même trajet (gare A → gare B) à deux époques, rangées dans l'ordre chronologique, et le
+résumé de leurs différences.
+"""
+type RouteComparison {
+    "Gare de départ (nulle si aucun des deux trajets n'existe et que `from` n'est pas un slug)."
+    from: RouteEnd
+
+    "Gare d'arrivée (mêmes règles)."
+    to: RouteEnd
+
+    "Le trajet à la plus ancienne des deux époques."
+    earlier: RouteAtEra!
+
+    "Le trajet à la plus récente des deux époques."
+    later: RouteAtEra!
+
+    "Résumé des différences."
+    differences: RouteDifferences!
+}
+
 #
 # ─── Queries publiques ──────────────────────────────────────────────────
 #
@@ -1669,6 +1776,24 @@ type Query {
         """
         era: Int
     ): Route @field(resolver: "App\\GraphQL\\Resolvers\\RouteResolver")
+
+    """
+    Un même trajet à deux époques (ex. Angoulême - Limoges en 1930 et aujourd'hui) : l'itinéraire
+    de chacune, ou la raison de son absence, et les différences (longueur, lignes qui ne sont plus
+    empruntées ou nouvelles, trajet devenu impossible). Renvoie `null` si une gare est inconnue ou
+    ambiguë, si les deux années désignent la même ère ou si un graphe manque : l'API REST
+    `GET /api/v1/route/compare` en donne le motif (code `error`).
+    """
+    routeComparison(
+        "Gare de départ : slug (ex. `angouleme`), nom exact ou nom de ville."
+        from: String!
+        "Gare d'arrivée, mêmes formes que `from`."
+        to: String!
+        "Première année (par défaut : réseau actuel), mêmes règles que `route(era)`."
+        era: Int
+        "Seconde année, mêmes règles ; elle doit désigner une autre ère que `era`."
+        compare: Int!
+    ): RouteComparison @field(resolver: "App\\GraphQL\\Resolvers\\RouteComparisonResolver")
 
     """
     Événements datés de toutes les lignes (ouvertures, fermetures, électrifications, déposes…),

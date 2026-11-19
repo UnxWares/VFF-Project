@@ -6,6 +6,7 @@
     import { router } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { colon, formatNumber } from '$lib/typo.js';
+    import { ROUTE_STYLES } from '$lib/routeCompare.js';
     import {
         electrificationInfo,
         escapeHtml,
@@ -127,6 +128,9 @@
         mode = 'traffic',
         // Itinéraire historique à tracer (réponse de /api/v1/route) ou null.
         route = null,
+        // Comparaison de deux époques : itinéraire de l'époque la plus ancienne, dessiné sous
+        // `route` dans un autre style (routeCompare.js), ou null.
+        earlierRoute = null,
         // Emprise [[ouest, sud], [est, nord]] cadrée à l'ouverture quand la carte fait moins
         // de 700 px de large (téléphone) ; au-dessus, centre et zoom ci-dessus. null : jamais.
         narrowBounds = null,
@@ -886,7 +890,7 @@
             applyMode(mode);
             applyOverlay(overlay);
             setupInteractions();
-            applyRoute(route);
+            applyRoutes(route, earlierRoute);
             applyView(view, era, compareEra);
             applyAccidents(accidents, view, era, compareEra);
             applyLevelCrossings(levelCrossings);
@@ -1209,6 +1213,8 @@
     }
 
     const levelCrossingAt = (point) => featureAt(point, [LEVEL_CROSSING_LAYER_ID]);
+    // Gare sous le clic (point exact, comme le clic de la couche) : elle passe avant la signalisation.
+    const stationAt = (point) => featureAt(point, ['vff-stations-points'], 0);
     const signallingAt = (point) =>
         featureAt(
             point,
@@ -1276,7 +1282,7 @@
             const before = overlayBefore();
             for (const layer of signallingLayers()) map.addLayer(layer, before);
             map.on('click', (e) => {
-                if (accidentAt(e.point) || levelCrossingAt(e.point)) return;
+                if (accidentAt(e.point) || levelCrossingAt(e.point) || stationAt(e.point)) return;
                 const f = signallingAt(e.point);
                 if (!f) return;
                 const { t, language } = get(i18n);
@@ -1304,13 +1310,20 @@
     $effect(() => applySignalling(signalling));
 
     // ── Itinéraire historique (RoutePlanner) : tracé + gares, au-dessus du réseau ──
-    const ROUTE_SOURCE_ID = 'vff-route';
-    const ROUTE_LAYERS = [
-        'vff-route-casing',
-        'vff-route-line',
-        'vff-route-stops',
-        'vff-route-labels',
+    // Comparaison de deux époques : le trajet le plus ancien (earlierRoute) est dessiné sous le
+    // plus récent (route), dans un autre style (ROUTE_STYLES de routeCompare.js).
+    const ROUTE_TRACES = [
+        { key: 'earlier', source: 'vff-route-earlier', style: ROUTE_STYLES.earlier },
+        { key: 'later', source: 'vff-route', style: ROUTE_STYLES.later },
     ];
+    const traceLayers = (source) => [
+        `${source}-casing`,
+        `${source}-line`,
+        `${source}-stops`,
+        `${source}-labels`,
+    ];
+    // Couches des itinéraires, de la plus basse à la plus haute.
+    const ROUTE_LAYERS = ROUTE_TRACES.flatMap((trace) => traceLayers(trace.source));
 
     function routeGeojson(r) {
         const features = [];
@@ -1327,46 +1340,62 @@
         return { type: 'FeatureCollection', features };
     }
 
-    function applyRoute(r) {
-        if (!map || !layersReady) return;
-        if (!r) {
-            for (const id of ROUTE_LAYERS) if (map.getLayer(id)) map.removeLayer(id);
-            if (map.getSource(ROUTE_SOURCE_ID)) map.removeSource(ROUTE_SOURCE_ID);
-            return;
-        }
-        const data = routeGeojson(r);
-        if (map.getSource(ROUTE_SOURCE_ID)) {
-            map.getSource(ROUTE_SOURCE_ID).setData(data);
-        } else {
-            map.addSource(ROUTE_SOURCE_ID, { type: 'geojson', data });
-            const path = ['==', ['get', 'kind'], 'path'];
-            map.addLayer({
-                id: 'vff-route-casing',
+    function removeTrace(source) {
+        for (const id of traceLayers(source)) if (map.getLayer(id)) map.removeLayer(id);
+        if (map.getSource(source)) map.removeSource(source);
+    }
+
+    /**
+     * Ajoute les couches d'un tracé, sous `before` (première couche d'un tracé déjà présent
+     * au-dessus). Les noms des terminus ne sont écrits qu'une fois, par le tracé du haut.
+     */
+    function addTrace({ source, style }, data, before, labelEnds) {
+        map.addSource(source, { type: 'geojson', data });
+        const path = ['==', ['get', 'kind'], 'path'];
+        const width = (scale, ...stops) => [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            ...stops.flatMap(([z, w]) => [z, w * scale]),
+        ];
+        map.addLayer(
+            {
+                id: `${source}-casing`,
                 type: 'line',
-                source: ROUTE_SOURCE_ID,
+                source,
                 filter: path,
                 layout: { 'line-cap': 'round', 'line-join': 'round' },
                 paint: {
-                    'line-color': '#fde047',
-                    'line-width': ['interpolate', ['linear'], ['zoom'], 4, 7, 10, 12, 14, 16],
+                    'line-color': style.casing,
+                    'line-width': width(style.casingScale, [4, 7], [10, 12], [14, 16]),
                     'line-opacity': 0.9,
                 },
-            });
-            map.addLayer({
-                id: 'vff-route-line',
+            },
+            before,
+        );
+        map.addLayer(
+            {
+                id: `${source}-line`,
                 type: 'line',
-                source: ROUTE_SOURCE_ID,
+                source,
                 filter: path,
-                layout: { 'line-cap': 'round', 'line-join': 'round' },
-                paint: {
-                    'line-color': '#111827',
-                    'line-width': ['interpolate', ['linear'], ['zoom'], 4, 2.5, 10, 4, 14, 6],
+                layout: {
+                    'line-cap': style.dash ? 'butt' : 'round',
+                    'line-join': 'round',
                 },
-            });
-            map.addLayer({
-                id: 'vff-route-stops',
+                paint: {
+                    'line-color': style.core,
+                    'line-width': width(1, [4, 2.5], [10, 4], [14, 6]),
+                    ...(style.dash && { 'line-dasharray': style.dash }),
+                },
+            },
+            before,
+        );
+        map.addLayer(
+            {
+                id: `${source}-stops`,
                 type: 'circle',
-                source: ROUTE_SOURCE_ID,
+                source,
                 filter: ['!=', ['get', 'kind'], 'path'],
                 paint: {
                     // Le zoom doit être l'entrée d'un « interpolate » de premier niveau (sinon
@@ -1386,16 +1415,18 @@
                     'circle-stroke-color': '#111827',
                     'circle-stroke-width': ['case', ['==', ['get', 'kind'], 'end'], 2.5, 1.5],
                 },
-            });
-            map.addLayer({
-                id: 'vff-route-labels',
+            },
+            before,
+        );
+        const stopLabels = ['all', ['==', ['get', 'kind'], 'stop'], ['>=', ['zoom'], 9]];
+        map.addLayer(
+            {
+                id: `${source}-labels`,
                 type: 'symbol',
-                source: ROUTE_SOURCE_ID,
-                filter: [
-                    'any',
-                    ['==', ['get', 'kind'], 'end'],
-                    ['all', ['==', ['get', 'kind'], 'stop'], ['>=', ['zoom'], 9]],
-                ],
+                source,
+                filter: labelEnds
+                    ? ['any', ['==', ['get', 'kind'], 'end'], stopLabels]
+                    : stopLabels,
                 layout: {
                     'text-field': ['get', 'name'],
                     'text-size': ['case', ['==', ['get', 'kind'], 'end'], 14, 13],
@@ -1408,9 +1439,36 @@
                     'text-halo-color': '#ffffff',
                     'text-halo-width': 2,
                 },
-            });
+            },
+            before,
+        );
+    }
+
+    function applyRoutes(later, earlier) {
+        if (!map || !layersReady) return;
+        const routes = { later, earlier };
+        // Du haut vers le bas, pour poser chaque tracé sous ceux déjà présents au-dessus.
+        let labelled = false;
+        for (const trace of [...ROUTE_TRACES].reverse()) {
+            const r = routes[trace.key];
+            if (!r) {
+                removeTrace(trace.source);
+                continue;
+            }
+            const data = routeGeojson(r);
+            const labelEnds = !labelled;
+            labelled = true;
+            // Le tracé du haut a pu apparaître ou disparaître : on repose les couches.
+            removeTrace(trace.source);
+            const above = ROUTE_LAYERS.slice(ROUTE_LAYERS.indexOf(`${trace.source}-labels`) + 1);
+            addTrace(
+                trace,
+                data,
+                above.find((id) => map.getLayer(id)),
+                labelEnds,
+            );
         }
-        const pts = r.stations ?? [];
+        const pts = [...(later?.stations ?? []), ...(earlier?.stations ?? [])];
         if (pts.length) {
             const lngs = pts.map((s) => s.lng);
             const lats = pts.map((s) => s.lat);
@@ -1432,7 +1490,7 @@
         return { top: p.top + 40, right: p.right + 40, bottom: p.bottom + 40, left: p.left + 40 };
     }
 
-    $effect(() => applyRoute(route));
+    $effect(() => applyRoutes(route, earlierRoute));
 
     onDestroy(() => {
         popup?.remove();

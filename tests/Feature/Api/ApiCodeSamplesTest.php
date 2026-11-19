@@ -35,7 +35,7 @@ class ApiCodeSamplesTest extends TestCase
         $operations = $this->operations();
 
         $this->assertEqualsCanonicalizing(
-            ['lines.index', 'lines.show', 'stations.index', 'events.index', 'media.index', 'materials.index', 'accidents.index', 'search', 'route', 'eras.compare'],
+            ['lines.index', 'lines.show', 'stations.index', 'events.index', 'media.index', 'materials.index', 'accidents.index', 'search', 'route', 'route.compare', 'eras.compare'],
             array_keys(ApiCodeSamples::SAMPLES),
         );
         foreach (array_keys(ApiCodeSamples::SAMPLES) as $id) {

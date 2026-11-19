@@ -10,6 +10,7 @@
     import SearchBox from '$components/Map/SearchBox.svelte';
     import MapLegend from '$components/Map/MapLegend.svelte';
     import RoutePlanner from '$components/Map/RoutePlanner.svelte';
+    import RouteCompareKey from '$components/Map/RouteCompareKey.svelte';
     import EraViewSwitch from '$components/Map/EraViewSwitch.svelte';
     import EraCompareBar from '$components/Map/EraCompareBar.svelte';
     import { i18n } from '$lib/i18n.js';
@@ -52,6 +53,10 @@
     let flyTarget = $state(null);
     // Itinéraire historique affiché (réponse /api/v1/route) : la carte passe à son ère.
     let route = $state(null);
+    // Comparaison d'un trajet entre deux époques (réponse de /api/v1/route/compare) : `route` est
+    // alors le trajet le plus récent, `earlierRoute` le plus ancien (dessiné dessous).
+    let routeComparison = $state.raw(null);
+    let earlierRoute = $state.raw(null);
     // Vue : une décennie ('era'), deux décennies comparées ('compare'), toutes ('stack').
     let view = $state('era');
     // Décennies comparées (compareFrom < compareTo), choisies au passage à la comparaison.
@@ -68,9 +73,26 @@
     }
 
     function onRoute(result) {
+        routeComparison = null;
+        earlierRoute = null;
         route = result;
         view = 'era';
         if (eras.includes(result.era_year)) selectedEra = result.era_year;
+    }
+
+    // La carte reste sur l'ère de la première année demandée (`mapEra`).
+    function onCompare(comparison, mapEra) {
+        routeComparison = comparison;
+        earlierRoute = comparison.earlier.route;
+        route = comparison.later.route;
+        view = 'era';
+        if (eras.includes(mapEra)) selectedEra = mapEra;
+    }
+
+    function clearRoute() {
+        routeComparison = null;
+        earlierRoute = null;
+        route = null;
     }
 
     function onSearchPick(picked) {
@@ -89,10 +111,13 @@
         [9.6, 51.1],
     ];
     // Ordinateur : la légende ouverte occupe la gauche (272 px), les boutons de zoom la droite.
-    const fitPadding = (w) =>
-        w > 900
-            ? { top: 24, right: 56, bottom: 32, left: 300 }
-            : { top: 60, right: 52, bottom: 28, left: 16 };
+    // Deux trajets comparés : place en bas pour leur légende, posée sur la carte.
+    const fitPadding = (w) => {
+        const keyRoom = routeComparison ? 64 : 0;
+        return w > 900
+            ? { top: 24, right: 56, bottom: 32 + keyRoom, left: 300 }
+            : { top: 60, right: 52, bottom: 28 + keyRoom, left: 16 };
+    };
 
     const OVERLAY_OPTIONS = [
         { value: 'none', labelKey: 'maps.overlay.none' },
@@ -275,6 +300,7 @@
                         {dataVersion}
                         {flyTarget}
                         {route}
+                        {earlierRoute}
                         height="100%"
                         fitBounds={FRANCE_BOUNDS}
                         {fitPadding}
@@ -337,6 +363,15 @@
                                 {$i18n.t('maps.level_crossings.zoom_hint')}
                             {/if}
                         </p>
+                        {#if routeComparison && view === 'era'}
+                            <div class="route-key-slot">
+                                <RouteCompareKey
+                                    comparison={routeComparison}
+                                    compact
+                                    label={$i18n.t('itinerary.compare.map_key')}
+                                />
+                            </div>
+                        {/if}
                         <LineDrawer bind:line={drawerLine} currentEra={currentEraYear} />
                     </RailMap>
 
@@ -381,7 +416,8 @@
                 currentEra={currentEraYear}
                 mapAnchor="carte"
                 {onRoute}
-                onClear={() => (route = null)}
+                {onCompare}
+                onClear={clearRoute}
             />
         </div>
 
@@ -606,6 +642,19 @@
 
     .today-only p {
         margin: 0;
+    }
+
+    /* Légende des deux trajets comparés, en bas à droite de la carte (au-dessus de l'attribution). */
+    .route-key-slot {
+        position: absolute;
+        right: 10px;
+        bottom: 36px;
+        z-index: var(--vff-z-raised);
+        padding: 8px 12px;
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-md);
+        background-color: var(--vff-bg-elevated);
+        box-shadow: var(--vff-shadow-popover);
     }
 
     .era-empty {

@@ -210,7 +210,7 @@ return [
         'sheet_term' => 'Fiches',
         'sheet_text' => 'Cliquez sur un tracé pour voir son statut à l’époque choisie et ouvrir la fiche de la ligne. Les gares apparaissent en zoomant.',
         'route_term' => 'Itinéraire',
-        'route_text' => 'Indiquez deux gares et une année : la carte trace le parcours sur le réseau en service à cette époque et liste les lignes empruntées.',
+        'route_text' => 'Indiquez deux gares et une année : la carte trace le parcours sur le réseau en service à cette époque et liste les lignes empruntées. Avec « Comparer avec une autre époque », le même trajet est tracé à une seconde année, en tirets sur liseré bleu pour la plus ancienne.',
         'layers_term' => 'Calques',
         'layers_text' => 'Le calque OpenRailwayMap superpose l’infrastructure actuelle : signaux, vitesses, électrification. Le bouton à l’horloge, en haut à droite de la carte, affiche des cartes anciennes de l’IGN. Le calque Accidents place les accidents survenus jusqu’à l’époque affichée ; un cercle pâle signale que seule la commune est connue. Le calque Passages à niveau montre les passages publiés par SNCF Réseau, à partir de l’échelle d’un département. Le calque Signalisation colore les lignes d’aujourd’hui selon leur mode de cantonnement.',
         'views_term' => 'Comparer les époques',

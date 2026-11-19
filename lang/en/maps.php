@@ -210,7 +210,7 @@ return [
         'sheet_term' => 'Line pages',
         'sheet_text' => 'Click a route to see its status in the selected era and open the line page. Stations appear when you zoom in.',
         'route_term' => 'Journey',
-        'route_text' => 'Enter two stations and a year: the map draws the journey on the network in service at that time and lists the lines used.',
+        'route_text' => 'Enter two stations and a year: the map draws the journey on the network in service at that time and lists the lines used. With “Compare with another period”, the same journey is drawn for a second year, dashed on a blue edge for the earlier one.',
         'layers_term' => 'Overlays',
         'layers_text' => 'The OpenRailwayMap overlay adds today\'s infrastructure: signals, speeds, electrification. The clock button, at the top right of the map, shows old IGN maps. The Accidents overlay shows the accidents that happened up to the period displayed; a pale circle means only the municipality is known. The Level crossings overlay shows the crossings published by SNCF Réseau, from the scale of a département. The Signalling overlay colours today’s lines by block system.',
         'views_term' => 'Comparing eras',

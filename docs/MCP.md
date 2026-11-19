@@ -123,7 +123,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `line_events` | Événements d'une ligne sur une période. |
 | `get_station` | Fiche d'une gare : dates, statut par décennie, lignes desservies, sources. |
 | `network_at_era` | État du réseau à une époque (km par état et par trafic, gares par statut). |
-| `historical_route` | Itinéraire entre deux gares sur le réseau d'une époque. |
+| `historical_route` | Itinéraire entre deux gares sur le réseau d'une époque, ou le même trajet comparé à deux époques. |
 | `sources_and_licences` | Fournisseurs de données et licences. |
 | `network_events` | Événements de toutes les lignes (département, type, période), paginés. |
 | `media` | Photos, cartes postales, plans d'une ligne ou d'une gare, avec leurs droits. |
@@ -268,6 +268,7 @@ un ordre de grandeur, pas le kilométrage officiel du réseau.
 | `year` | entier 1800 à 2100 | non | Année (réseau actuel par défaut). |
 | `heritage` | booléen | non | Autoriser les voies associatives (`false` par défaut). |
 | `traffic` | `passenger` ou `all` | non | `passenger` (défaut) : voies sans service voyageurs comptées 4 fois leur longueur. |
+| `compare_year` | entier 1800 à 2100 | non | Seconde année : compare le même trajet à deux époques (elle doit tomber dans une autre ère que `year`). |
 | `lang` | `fr`, `en`, `de` | non | Langue. |
 
 Renvoie `from`, `to`, `requested_year`, `era_year`, `distance_km`, `duration_h` (durée
@@ -282,6 +283,21 @@ Erreurs : `era_not_found`, `graph_not_built`, `station_not_found`, `ambiguous_st
 
 ```json
 {"from": "rennes", "to": "brest", "year": 1930}
+```
+
+Avec `compare_year`, la réponse range les deux époques dans l'ordre chronologique : `earlier` et
+`later`, chacune avec `requested_year`, `era_year`, `available` et, selon le cas, l'itinéraire
+résumé (mêmes champs que ci-dessus) ou `unavailable` (`error` = `no_path` ou
+`station_not_in_network`, `message` dans la langue demandée, `station` et `status` le cas échéant).
+Puis `differences` : `outcome` (`both`, `lost` pour un trajet devenu impossible, `gained`,
+`neither`), `distance_change_km` et `distance_change_percent` (seconde époque moins première),
+`same_path`, `shared_lines`, `lines_only_earlier` et `lines_only_later` (avec `other_era` : `open`,
+`partly_open`, `closed` ou `none` à l'autre époque) et `shared_stations`. `vff_url` ouvre les deux
+trajets sur la carte. Erreur supplémentaire : `same_era`. Même calcul que
+`GET /api/v1/route/compare`.
+
+```json
+{"from": "angouleme", "to": "limoges-benedictins", "year": 1930, "compare_year": 2026}
 ```
 
 ### `sources_and_licences` : sources et licences
@@ -578,7 +594,7 @@ passages. Attribution : SNCF Réseau, ODbL 1.0.
 | « La gare de Brest est-elle ouverte depuis quand, et quelles lignes la desservent ? » | `search {"query": "Brest", "kinds": ["stations"]}` puis `get_station {"station": "brest"}` |
 | « Combien de kilomètres de voies ferrées en France en 1930, et aujourd'hui ? » | `network_at_era {"year": 1930}` et `network_at_era {"year": 2026}` |
 | « Comment aller de Rennes à Brest en train en 1930 ? » | `historical_route {"from": "rennes", "to": "brest", "year": 1930}` |
-| « Pouvait-on aller de Limoges à Angoulême en 1990 ? Et aujourd'hui ? » | `historical_route` avec `year` 1990, puis sans `year` ; une erreur `no_path` ou `station_not_in_network` répond « non » |
+| « Pouvait-on aller de Limoges à Angoulême en 1990 ? Et aujourd'hui ? » | `historical_route` avec `year` 1990 et `compare_year` 2026 : `differences.outcome` répond (`both`, `lost`…) |
 | « How long was the French network in 1950? » (en anglais) | `network_at_era {"year": 1950, "lang": "en"}` |
 | « Puis-je réutiliser ces dates dans une application commerciale ? » | `sources_and_licences {}` : ODbL pour la base, sauf les faits d'un fournisseur à `open_licence: false` (archeoferroviaire : non commercial) |
 | « Quelles lignes du Finistère ont fermé aux voyageurs dans les années 1930 ? » | `network_events {"department": "29", "type": "closure_passenger", "from": "1930", "to": "1939"}` |
