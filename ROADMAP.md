@@ -8,35 +8,35 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 
 ---
 
-## 📍 Où en est-on ? (2026-10-21)
+## 📍 Où en est-on ? (2026-11-20)
 
 | Phase | État |
 |:-|:-|
-| 0 - Fondations | ✅ faite, reste le suivi des erreurs et les hooks de commit |
+| 0 - Fondations | ✅ faite, reste le suivi des erreurs |
 | 1 - Modèle de données | ✅ faite, jalon atteint |
-| 2 - Carte interactive | ✅ faite, reste la géolocalisation |
-| 3 - Sélecteur temporel | ✅ faite (21 époques de 1830 à 2030), reste la vue empilée |
-| 4 - Fiches détaillées | 🟡 lignes et gares faites ; matériel, JSON-LD et dénivelé à faire |
-| 5 - Contribution | 🟡 comptes, éditeur de tracé et validation à deux faits ; notifications et modération à faire |
-| 6 - API REST | 🟡 API publique et documentée ; jetons, webhooks et exemples multi-langages à faire |
+| 2 - Carte interactive | ✅ faite, géolocalisation comprise |
+| 3 - Sélecteur temporel | ✅ faite (21 époques de 1830 à 2030), comparaison de deux époques et vue empilée comprises |
+| 4 - Fiches détaillées | 🟡 lignes, gares, matériel, accidents et JSON-LD faits ; dénivelé à faire |
+| 5 - Contribution | 🟡 comptes, éditeur de tracé, validation à deux, suppression et export du compte, journal d'audit faits ; notifications sur le site et réputation à faire |
+| 6 - API REST | 🟡 API publique complète et documentée (30 points d'accès) ; jetons, webhooks et exemples multi-langages à faire |
 | 7 - GraphQL | 🟡 lecture publique faite ; mutations à faire |
 | 8 - Graphe & itinéraires | 🟡 itinéraires historiques faits sur un graphe PostgreSQL ; Apache AGE pas activé |
 | 9 - Reconstitutions 3D 🧪 | ⬜ pas commencée |
 | 10 - Extension historique | ✅ couverture 1830-2030 ; modèle d'extraction des voies publié |
-| 11 - Communauté | 🟡 trilingue et carte intégrable ; dons, application et blog à faire |
-| 12 - Mise en production | 🟡 pages légales faites ; messagerie, hébergement final et engagements RGPD à faire |
-| 13 - Nouveaux domaines | 🟡 signalisation commencée ; matériel, accidents et serveur MCP à faire |
+| 11 - Communauté | 🟡 trilingue, carte intégrable, application installable ; dons et blog à faire |
+| 12 - Mise en production | 🟡 pages légales, engagements RGPD et audit RGAA (81,94 %) faits ; messagerie et hébergement final à faire |
+| 13 - Nouveaux domaines | 🟡 matériel roulant, accidents et serveur MCP faits ; signalisation et passages à niveau à finir |
 
-**En base (développement)** : 2 705 lignes, 9 363 gares, 15 519 événements datés, 71 438 médias, 21 époques. Aucun matériel roulant pour l'instant.
+**En base (développement)** : 2 705 lignes, 9 363 gares, 15 519 événements datés, 71 597 médias, 21 époques, 687 séries de matériel roulant (969 liens avec les lignes), 202 accidents.
 
-**Qualité** : environ 1 740 tests unitaires et 1 590 tests fonctionnels PHPUnit, 165 tests vitest, Larastan, contrôle des invariants de données (`vff:check-invariants`) et des traductions (`vff:i18n-check`), le tout en CI.
+**Qualité** : environ 4 200 tests PHPUnit et 440 tests vitest, Larastan sans erreur, contrôle des invariants de données (`vff:check-invariants`), des traductions (`vff:i18n-check`) et des droits des sources (`vff:source-rights`), le tout en CI ; contrôles avant commit Lefthook (à installer) ; audit RGAA 4.1.2 interne : 81,94 %.
 
 **Priorités du moment** :
 
-1. Corriger les défauts relevés par l'audit de l'interface du 2026-10-21 (310 problèmes, tri en cours), bloquants d'abord.
-2. Préparer la mise en ligne (phase 12) : messagerie de vff-project.org, hébergement, engagements des pages légales.
+1. Préparer la mise en ligne (phase 12) : messagerie de vff-project.org, hébergement, aperçus de partage rendus côté serveur.
+2. Trancher les questions ouvertes de la nuit du 19 au 20/11 (`storage/app/reports/agents/QUESTIONS.md`) : corrections de données, Argentan Web Ferroviaire, accidents, matériel.
 3. Jonctions : phase « escaliers » (coudes et crochets restants).
-4. Fiches matériel roulant (phase 13).
+4. Signalisation et passages à niveau sur la carte et les fiches (phase 13).
 
 ---
 
@@ -61,7 +61,7 @@ Base technique propre, sur laquelle tout le reste repose.
 - [~] Tests de mutation (Infection installé, pas encore exploité)
 - [~] Mise au format Prettier de tout le dépôt (environ 70 fichiers encore non conformes, contrôle bloquant seulement sur les fichiers modifiés)
 - [ ] Suivi des erreurs et de la disponibilité (Sentry ou équivalent auto-hébergé, Uptime Kuma)
-- [ ] Hooks avant commit (Lefthook)
+- [~] Hooks avant commit (Lefthook) : configuration prête, alignée sur la CI, à installer
 
 🎯 **Jalon "Foundations Done"** : atteint.
 
@@ -112,7 +112,7 @@ Définir et implémenter le cœur du domaine ferroviaire.
 - [x] Recherche par nom de ligne / gare (`/api/v1/search`, autocomplétion)
 - [x] Légende dynamique (`MapLegend`)
 - [x] Tuiles vectorielles MVT (`/api/v1/eras/{year}/tiles/{z}/{x}/{y}.mvt`)
-- [ ] Géolocalisation de l'utilisateur
+- [x] Géolocalisation de l'utilisateur (sur demande, position jamais envoyée)
 
 🎯 **Jalon "Map MVP"** : atteint.
 
@@ -124,8 +124,8 @@ Définir et implémenter le cœur du domaine ferroviaire.
 - [x] Transition entre époques
 - [x] URL `?era=` partageable
 - [x] Époque 2030 = état du réseau au jour même, recalculée chaque jour à partir des événements datés
-- [ ] Bouton « voir tout en empilé » : toutes les époques en transparence pour visualiser l'érosion du réseau
-- [ ] Comparaison de deux époques côte à côte
+- [x] Vue « toutes les époques » : chaque tronçon teinté par sa dernière décennie en service (érosion du réseau)
+- [x] Comparaison de deux époques (différences superposées, kilomètres par changement, adresse partageable)
 
 🎯 **Jalon "Time Travel"** : atteint.
 
@@ -145,8 +145,8 @@ Chaque ligne devient une vraie page d'encyclopédie.
   - [ ] Matériel roulant historique (la section existe, la table est vide)
   - [ ] Dénivelé
 - [x] Page `/stations/{slug}` (ouverture, fermeture, lignes desservies, frise par époque, mini-carte)
-- [~] Page `/materials/{slug}` (page prête, sans données : voir phase 13)
-- [ ] Schéma JSON-LD pour le référencement (BreadcrumbList, ImageObject, Place)
+- [x] Pages `/materials` et `/materials/{slug}` avec 687 séries (voir phase 13)
+- [x] Schéma JSON-LD pour le référencement (WebSite, Place, BreadcrumbList, ImageObject, TrainStation) ; à rendre côté serveur pour les aperçus de partage
 
 ---
 
@@ -163,8 +163,8 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [~] Formulaire d'ajout d'événement / média / matériel (tracés et segments faits)
 - [ ] Notifications (sur le site + courriel) d'acceptation ou de refus
 - [ ] Réputation et badges (le champ existe, aucun calcul)
-- [ ] Modération : signalement depuis le site, liste de blocage, journal d'audit
-- [ ] Suppression du compte par l'utilisateur, avec anonymisation des contributions (promis par la politique de confidentialité)
+- [~] Modération : journal d'audit et retrait d'une contribution par un administrateur faits ; signalement et liste de blocage à faire
+- [x] Suppression du compte par l'utilisateur, avec anonymisation des contributions, et export de ses données
 
 🎯 **Jalon "Open Encyclopedia"** : un visiteur peut s'inscrire et soumettre sa première contribution en moins de 3 minutes. Presque atteint : il manque les notifications.
 
@@ -177,7 +177,7 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] Documentation : page `/api`, référence [Scalar](https://scalar.com/) sur `/docs/api`, Swagger UI sur `/docs/swagger`
 - [x] Accès libre sans clé, limité à 300 requêtes par minute et par adresse IP
 - [~] Exemples intégrés (curl fait ; JavaScript et Python à faire)
-- [ ] Endpoints dédiés au matériel, aux événements et aux médias en général
+- [x] Points d'accès des annuaires, fiches complètes, tronçons, époques, sources, événements, médias, matériel et accidents
 - [ ] Jetons API (Sanctum) et quotas par profil (anonyme / inscrit / partenaire)
 - [ ] Webhooks pour notifier les changements
 
@@ -245,7 +245,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [ ] Blog / journal de bord du projet (articles longs sur des lignes emblématiques)
 - [ ] Programme de partenariat avec les associations ferroviaires locales (CFTA, AAATV, MFCF…)
 - [ ] Présence dans les conférences open data / patrimoine
-- [ ] Application mobile (PWA en première intention)
+- [x] Application installable (PWA), avec page hors ligne
 - [ ] Mode hors ligne (cache de tuiles + données)
 
 ---
@@ -257,9 +257,9 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [ ] Messagerie de `vff-project.org` : aucun enregistrement MX à ce jour, `contact@` et `privacy@` ne reçoivent rien
 - [ ] Hébergement sur l'infrastructure d'UnxWares (le domaine pointe aujourd'hui sur un serveur Hetzner Cloud à Helsinki)
 - [ ] Planificateur Laravel en production (recalcul quotidien de l'époque 2030)
-- [ ] Engagements des pages légales : journaux conservés 12 mois au plus, suppression des comptes inactifs depuis 3 ans (avec avertissement), suppression de compte (phase 5), information des membres avant un changement des CGU
-- [ ] Correction des défauts de l'audit de l'interface (310 problèmes relevés le 2026-10-21, tri en cours)
-- [ ] Audit de conformité RGAA complet, publication du taux de conformité
+- [x] Engagements des pages légales : journaux conservés 12 mois au plus, suppression des comptes inactifs depuis 3 ans (avec avertissement), suppression de compte (phase 5), information des membres avant un changement des CGU
+- [x] Correction des défauts de l'audit de l'interface (interface unifiée, contrastes, cibles, clavier : novembre 2026)
+- [x] Audit de conformité RGAA interne complet (81,94 %, partiellement conforme), taux publié dans la déclaration
 - [ ] Suivi des erreurs et de la disponibilité (phase 0)
 
 ---
@@ -268,9 +268,9 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 
 - [~] **Signalisation** : données SNCF Réseau importées (`line_signalling`, `/api/v1/lines/{slug}/signalling`), affichage sur la fiche ligne ; à faire : historique par époque, couche dédiée sur la carte
 - [~] **Passages à niveau** : données SNCF Réseau importées ; à faire : affichage sur la carte et les fiches
-- [ ] **Matériel roulant** : remplir la table `materials`, fiches matériel, lien avec les lignes parcourues
-- [ ] **Accidents** : modèle de données, sources, fiches
-- [ ] **Serveur MCP** pour que les assistants IA interrogent l'encyclopédie avec ses sources
+- [x] **Matériel roulant** : 687 séries importées de Wikidata (CC0) avec leur image Commons et la provenance de chaque champ (`vff:import-materials`), 969 liens ligne × matériel attestés par Wikidata ou par les articles Wikipédia (phrase citée, permalien, fiabilité), API REST (`/api/v1/materials`, `/api/v1/lines/{slug}/materials`) et GraphQL ; à faire : fiches enrichies sur le site, périodes de circulation par portion
+- [x] **Accidents** : 202 fiches (Wikidata, Wikipédia, BEA-TT), pages, API, calque de carte
+- [x] **Serveur MCP** pour que les assistants IA interrogent l'encyclopédie avec ses sources (13 outils, lecture seule, `docs/MCP.md`)
 
 ---
 
@@ -280,7 +280,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [~] Couches thématiques : électrification (fait), signalisation (en cours), écartement
 - [~] Recensement des passages à niveau (données importées, phase 13)
 - [ ] Mode « vue ferroviaire » : carte simplifiée façon schéma
-- [ ] Comparaison de deux époques en écran partagé
+- [x] Comparaison de deux époques (superposition, phase 3)
 - [ ] Stories d'archives (carrousel de photos sur un événement précis)
 - [ ] Quiz / mini-jeu : reconnaître la ligne / le matériel
 - [ ] Export GPX/KML d'un tracé
