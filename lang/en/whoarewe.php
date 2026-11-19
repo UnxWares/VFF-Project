@@ -18,8 +18,8 @@ return [
             'quote' => '“Railways are at the heart of who I am. For years I have been scouring the internet to learn about the lines that once linked towns together, particularly in Normandy, and sharing what I find with my friends. The idea for VFF came to me after my grandmother died: while clearing her house, we found some old postcards, several of them showing trains and stations. I kept them. There are many projects to take on in a lifetime: we should carry them out while we can.”',
         ],
         'david' => [
-            'name' => 'David',
-            'role' => 'partner at UnxWares',
+            'name' => 'David Gheghea',
+            'role' => 'managing director of UnxWares',
             'text' => 'He too works with Traktion, a train driver assistance project with which UnxWares collaborates.',
         ],
         'unxwares' => [

@@ -18,8 +18,8 @@ return [
             'quote' => '« Le ferroviaire est au cœur de qui je suis. Depuis des années, j’écume internet pour me renseigner sur les lignes qui reliaient autrefois les villes, notamment en Normandie, et je partage ce que je trouve avec mes amis. L’idée de VFF m’est venue après le décès de ma grand-mère : en vidant sa maison, nous avons retrouvé de vieilles cartes postales, dont plusieurs montraient des trains et des gares. Je les ai gardées. Il y a plein de projets à faire dans une vie : il faut les réaliser quand on le peut. »',
         ],
         'david' => [
-            'name' => 'David',
-            'role' => 'associé d’UnxWares',
+            'name' => 'David Gheghea',
+            'role' => 'directeur général d’UnxWares',
             'text' => 'Il travaille lui aussi en lien avec Traktion, un projet d’assistant de conduite ferroviaire avec lequel UnxWares collabore.',
         ],
         'unxwares' => [

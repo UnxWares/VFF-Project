@@ -18,8 +18,8 @@ return [
             'quote' => '„Die Eisenbahn ist ein zentraler Teil von mir. Seit Jahren durchforste ich das Internet nach den Strecken, die früher die Städte miteinander verbanden, vor allem in der Normandie, und teile meine Funde mit Freunden. Die Idee zu VFF kam mir nach dem Tod meiner Großmutter: Beim Ausräumen ihres Hauses fanden wir alte Postkarten, von denen mehrere Züge und Bahnhöfe zeigten. Ich habe sie behalten. Es gibt im Leben viele Projekte: Man sollte sie verwirklichen, solange man kann.“',
         ],
         'david' => [
-            'name' => 'David',
-            'role' => 'Gesellschafter von UnxWares',
+            'name' => 'David Gheghea',
+            'role' => 'Geschäftsführer von UnxWares',
             'text' => 'Auch er arbeitet mit Traktion zusammen, einem Projekt für einen Fahrassistenten für Triebfahrzeugführer, mit dem UnxWares kooperiert.',
         ],
         'unxwares' => [
