@@ -4,6 +4,7 @@ namespace App\Services\Api;
 
 use App\Enums\MediaType;
 use App\Models\Line;
+use App\Models\Material;
 use App\Models\Media;
 use App\Models\Station;
 use App\Support\QueryBoolean;
@@ -38,8 +39,9 @@ final class MediaQuery
     public static function rules(): array
     {
         return [
-            'line' => ['nullable', 'string', 'max:255', 'exists:lines,slug', 'prohibits:station'],
-            'station' => ['nullable', 'string', 'max:255', 'exists:stations,slug', 'prohibits:line'],
+            'line' => ['nullable', 'string', 'max:255', 'exists:lines,slug', 'prohibits:station,material'],
+            'station' => ['nullable', 'string', 'max:255', 'exists:stations,slug', 'prohibits:line,material'],
+            'material' => ['nullable', 'string', 'max:255', 'exists:materials,slug', 'prohibits:line,station'],
             'type' => ['nullable', Rule::enum(MediaType::class)],
             'provider' => ['nullable', 'string', 'max:20'],
             'license' => ['nullable', 'string', 'max:191'],
@@ -104,6 +106,10 @@ final class MediaQuery
         if (filled($filters['station'] ?? null)) {
             $query->where('media.mediable_type', Station::class)
                 ->whereIn('media.mediable_id', Station::query()->select('id')->where('slug', $filters['station']));
+        }
+        if (filled($filters['material'] ?? null)) {
+            $query->where('media.mediable_type', Material::class)
+                ->whereIn('media.mediable_id', Material::query()->select('id')->where('slug', $filters['material']));
         }
         foreach (['type', 'provider', 'rights_status'] as $column) {
             if (filled($filters[$column] ?? null)) {

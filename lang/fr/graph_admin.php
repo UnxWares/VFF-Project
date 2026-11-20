@@ -177,6 +177,17 @@ return [
         'open_station' => 'Fiche de la gare',
     ],
 
+    'filters' => [
+        'label' => 'Filtrer les jonctions',
+        'type' => 'Type de jonction',
+        'all_types' => 'Tous les types',
+        'line' => 'Ligne',
+        'line_hint' => 'Numéro à 6 chiffres (420000) ou adresse de la fiche (rfn-420000).',
+        'apply' => 'Filtrer',
+        'clear' => 'Tout afficher',
+        'unknown_line' => 'Aucune ligne ne correspond à « :line ».',
+    ],
+
     'checks' => [
         'title' => 'Diagnostics',
         'choose' => 'Liste à afficher',
@@ -211,7 +222,9 @@ return [
         ],
         'caption' => ':title, page :page sur :last',
         'total' => ':total au total',
-        'capped' => 'Les :count premiers cas sont listés.',
+        'filtered' => ':count sur :total correspondent au filtre',
+        'empty_filtered' => 'Aucune jonction ne correspond au filtre.',
+        'export' => 'Télécharger en CSV',
         'empty' => 'Rien à signaler pour cette époque.',
         'loading' => 'Chargement de la liste…',
         'loading_page' => 'Chargement de la page :page…',

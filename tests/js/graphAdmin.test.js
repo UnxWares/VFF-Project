@@ -4,6 +4,7 @@ import {
     LINE_PALETTE,
     checkUrl,
     detailRows,
+    exportUrl,
     detailTitle,
     edgeColorExpr,
     featureRequest,
@@ -36,6 +37,26 @@ describe('adresses', () => {
         );
         expect(featureUrl(1970, 'station_edge', 12)).toBe(
             '/validate/graph/1970/features/station_edge/12',
+        );
+    });
+
+    it('ajoute le filtre des jonctions aux adresses de la liste et de l’export CSV', () => {
+        const filters = { type: 'jump', line: ' rfn-420000 ' };
+        expect(checkUrl(1930, 'junctions', 2, filters)).toBe(
+            '/validate/graph/1930/diagnostics/junctions?page=2&type=jump&line=rfn-420000',
+        );
+        expect(exportUrl(1930, 'junctions', filters)).toBe(
+            '/validate/graph/1930/diagnostics/junctions.csv?type=jump&line=rfn-420000',
+        );
+        // Filtre vide, type inconnu, ou liste qui ne se filtre pas : adresse sans paramètre.
+        expect(exportUrl(1930, 'junctions', { type: '', line: '  ' })).toBe(
+            '/validate/graph/1930/diagnostics/junctions.csv',
+        );
+        expect(checkUrl(1930, 'junctions', 1, { type: 'autre' })).toBe(
+            '/validate/graph/1930/diagnostics/junctions?page=1',
+        );
+        expect(exportUrl(2030, 'islands', filters)).toBe(
+            '/validate/graph/2030/diagnostics/islands.csv',
         );
     });
 

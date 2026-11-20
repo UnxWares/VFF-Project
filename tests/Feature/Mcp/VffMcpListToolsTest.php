@@ -5,6 +5,7 @@ namespace Tests\Feature\Mcp;
 use App\Models\Era;
 use App\Models\Line;
 use App\Models\LineSegment;
+use App\Models\Material;
 use App\Models\Station;
 use Clickbar\Magellan\Data\Geometries\LineString;
 use Clickbar\Magellan\Data\Geometries\Point;
@@ -165,6 +166,26 @@ class VffMcpListToolsTest extends TestCase
 
         [$next] = $this->tool('media', ['station' => 'a', 'limit' => 1, 'cursor' => $data['next_cursor']]);
         $this->assertSame('Gare A 2', $next['media'][0]['title']);
+    }
+
+    public function test_media_of_a_rolling_stock_series(): void
+    {
+        $material = Material::factory()->create(['slug' => 'x-73500', 'name' => 'X 73500']);
+        DB::table('media')->insert([
+            'mediable_type' => Material::class, 'mediable_id' => $material->id, 'provider' => 'upload', 'external_id' => 'contribution:1',
+            'type' => 'photo', 'title' => 'X 73500 en gare', 'mime_type' => 'image/jpeg', 'file_path' => 'media/contributions/1-a.jpg',
+            'author' => 'Auteur', 'license' => 'CC BY-SA 4.0', 'attribution' => 'Auteur, CC BY-SA 4.0',
+            'rights_status' => 'open_license', 'commercial_ok' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        [$data, $error] = $this->tool('media', ['material' => 'x-73500']);
+        $this->assertFalse($error);
+        $this->assertSame(['X 73500 en gare'], array_column($data['media'], 'title'));
+        $this->assertSame(['type' => 'material', 'slug' => 'x-73500', 'name' => 'X 73500'], $data['media'][0]['subject']);
+        $this->assertSame('https://vff-project.org/materials/x-73500', $data['vff_url']);
+
+        [, $error] = $this->tool('media', ['material' => 'x-73500', 'station' => 'a']);
+        $this->assertTrue($error, 'un seul rattachement à la fois');
     }
 
     public function test_list_lines_with_era_status_and_facets(): void

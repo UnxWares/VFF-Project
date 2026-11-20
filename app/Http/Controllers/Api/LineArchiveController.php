@@ -85,7 +85,8 @@ class LineArchiveController extends Controller
      * et `catalogue_url`, `title` (titre propre et premier complément), `type`, `authors` (tels que la notice
      * les écrit), `date` (`label` : date imprimée dans la notice, « [ca 1850] » ; `year` ; `year_to` : fin d'un
      * intervalle ; `exact` : AAAA-MM-JJ quand la notice donne le jour ou le mois ; `precision` : `day`,
-     * `month`, `year`, `circa`, `range` ou `unknown`), `shelfmark` (cote de l'original à la BnF), `match`
+     * `month`, `year`, `circa` (date approchée), `range`, `before` (au plus tard `year`, « Avant 1885 »), `after`
+     * (au plus tôt `year`) ou `unknown`), `shelfmark` (cote de l'original à la BnF), `match`
      * (score, seuil, raisons point par point, lieux reconnus dans le titre), `record_updated_on` (dernière
      * mise à jour de la notice à la BnF) et `fetched_at` (récupération par VFF). Ordre : du plus ancien au
      * plus récent, documents sans date en dernier.

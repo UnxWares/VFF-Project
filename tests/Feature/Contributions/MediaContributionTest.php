@@ -6,6 +6,7 @@ use App\Enums\AccountDeletionReason;
 use App\Models\Contribution;
 use App\Models\Line;
 use App\Models\LineEvent;
+use App\Models\Material;
 use App\Models\Media;
 use App\Models\Station;
 use App\Models\User;
@@ -411,6 +412,72 @@ class MediaContributionTest extends TestCase
         $this->assertSame($this->origin->name, $contribution->payload['station_name']);
         $this->publish($contribution);
         $this->assertSame(1, Media::query()->where('mediable_type', Station::class)->where('mediable_id', $this->origin->id)->count());
+    }
+
+    public function test_the_form_preselects_a_rolling_stock_series(): void
+    {
+        $material = Material::factory()->create(['slug' => 'x-73500', 'name' => 'X 73500']);
+
+        $this->actingAs($this->member())
+            ->get('/contribute/media?material=x-73500')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('preselected.material.slug', 'x-73500')
+                ->where('preselected.material.name', 'X 73500')
+                ->where('preselected.line', null));
+        $this->actingAs($this->member())->get('/contribute/media?material=inconnue')
+            ->assertInertia(fn (Assert $page) => $page->where('preselected.material', null));
+    }
+
+    public function test_an_image_can_be_attached_to_a_rolling_stock_series(): void
+    {
+        $material = Material::factory()->create(['slug' => 'x-73500', 'name' => 'X 73500']);
+        // Le rattachement à une série ne demande pas de ligne.
+        $contribution = $this->submit($this->member(), $this->upload(['target_type' => 'material', 'material_slug' => 'x-73500', 'line_slug' => null]));
+
+        $this->assertSame([Material::class, $material->id], [$contribution->target_type, (int) $contribution->target_id]);
+        $this->assertSame(['material', 'x-73500', 'X 73500'], [$contribution->payload['target_type'], $contribution->payload['material_slug'], $contribution->payload['material_name']]);
+        $this->assertArrayNotHasKey('line_slug', $contribution->payload);
+
+        $this->publish($contribution);
+        $media = Media::query()->findOrFail($contribution->fresh()->payload['applied']['media_id']);
+        $this->assertSame([Material::class, $material->id], [$media->mediable_type, $media->mediable_id]);
+
+        // L'API la donne avec le filtre de la série, et dit à quoi elle est rattachée.
+        $this->getJson('/api/v1/media?material=x-73500')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $media->id)
+            ->assertJsonPath('data.0.subject.type', 'material')
+            ->assertJsonPath('data.0.subject.slug', 'x-73500');
+        $this->getJson("/api/v1/media?line={$this->line->slug}")->assertJsonCount(0, 'data');
+        $this->getJson('/api/v1/media?material=inconnue')->assertUnprocessable()->assertJsonValidationErrors('material');
+        $this->getJson("/api/v1/media?material=x-73500&line={$this->line->slug}")->assertUnprocessable();
+    }
+
+    public function test_an_unknown_series_is_refused(): void
+    {
+        $this->actingAs($this->member())->from('/contribute/media')
+            ->post('/contribute/media', $this->upload(['target_type' => 'material', 'material_slug' => 'inconnue']))
+            ->assertSessionHasErrors('material_slug');
+        $this->actingAs($this->member())->from('/contribute/media')
+            ->post('/contribute/media', $this->upload(['target_type' => 'material']))
+            ->assertSessionHasErrors('material_slug');
+        $this->assertSame([], Storage::disk(MediaContributions::PRIVATE_DISK)->allFiles());
+    }
+
+    public function test_a_commons_file_already_attached_to_the_series_is_refused(): void
+    {
+        $this->fakeCommons();
+        $material = Material::factory()->create(['slug' => 'x-73500', 'name' => 'X 73500']);
+        $this->publish($this->submit($this->member(), $this->commons(['target_type' => 'material', 'material_slug' => 'x-73500'])));
+        $this->assertSame(1, $material->media()->count());
+
+        $this->actingAs($this->member())->from('/contribute/media')
+            ->post('/contribute/media', $this->commons(['target_type' => 'material', 'material_slug' => 'x-73500']))
+            ->assertSessionHasErrors('commons_url');
+        // Le même fichier reste proposable pour une ligne.
+        $this->submit($this->member(), $this->commons());
     }
 
     public function test_a_missing_private_file_fails_cleanly(): void

@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Proposition d'une image (fichier Wikimedia Commons ou fichier déposé) rattachée à une ligne, une
- * gare ou un événement. Règles communes avec l'API GraphQL (MediaContributions).
+ * gare, un événement ou une série de matériel. Règles communes avec l'API GraphQL (MediaContributions).
  */
 class SubmitMediaContributionRequest extends FormRequest
 {

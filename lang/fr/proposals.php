@@ -120,12 +120,13 @@ return [
     'media' => [
         'meta_title' => 'Proposer une image',
         'title' => 'Proposer une image',
-        'subtitle' => 'Une photo, une carte postale, un plan ou un document libre de droits ou sous licence ouverte, pour la fiche d’une ligne, d’une gare ou d’un événement. Deux validateurs relisent chaque proposition avant sa publication.',
+        'subtitle' => 'Une photo, une carte postale, un plan ou un document libre de droits ou sous licence ouverte, pour la fiche d’une ligne, d’une gare, d’un événement ou d’une série de matériel. Deux validateurs relisent chaque proposition avant sa publication.',
         'target_legend' => 'Fiche concernée',
         'targets' => [
             'line' => 'Une ligne',
             'station' => 'Une gare',
             'event' => 'Un événement daté d’une ligne',
+            'material' => 'Une série de matériel roulant',
         ],
         'event' => 'Événement',
         'event_choose' => 'Choisissez l’événement',
@@ -278,7 +279,8 @@ return [
         'stale_title' => 'La fiche a changé depuis l’envoi',
         'stale_text' => 'Valeur actuelle de « :field » : :now. La publication échouera : la proposition a été faite sur une autre valeur.',
         'impact_title' => 'Liens rendus contraires aux règles',
-        'impact_text' => 'Publiée, cette correction ferait contredire à :count lien(s) de la série la règle d’écartement ou d’électrification. La publication sera refusée tant que ces liens existent.',
+        'impact_text_one' => 'Publiée, cette correction mettrait :count lien de la série en contradiction avec la règle d’écartement ou d’électrification. La publication sera refusée tant que ce lien existe.',
+        'impact_text_other' => 'Publiée, cette correction mettrait :count liens de la série en contradiction avec la règle d’écartement ou d’électrification. La publication sera refusée tant que ces liens existent.',
         'fields' => [
             'name' => 'Nom',
             'type' => 'Catégorie',
@@ -432,7 +434,8 @@ return [
         'wikidata_use' => 'Utiliser :final',
         'impact_checking' => 'Vérification des lignes où circule la série…',
         'impact_title' => 'Cette correction contredirait des liens de la série',
-        'impact_text' => 'Avec ces valeurs, :count lien(s) de la série vers une ligne contrediraient la règle d’écartement ou d’électrification. Vous pouvez envoyer la proposition, mais elle ne sera publiée qu’une fois ces liens retirés ou justifiés.',
+        'impact_text_one' => 'Avec ces valeurs, :count lien de la série vers une ligne contredirait la règle d’écartement ou d’électrification. Vous pouvez envoyer la proposition, mais elle ne sera publiée qu’une fois ce lien retiré ou justifié.',
+        'impact_text_other' => 'Avec ces valeurs, :count liens de la série vers une ligne contrediraient la règle d’écartement ou d’électrification. Vous pouvez envoyer la proposition, mais elle ne sera publiée qu’une fois ces liens retirés ou justifiés.',
         'impact_link' => ':line (source : :source) : :reason',
         'gauges' => [
             1435 => '1 435 mm (voie normale)',

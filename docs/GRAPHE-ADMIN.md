@@ -35,7 +35,8 @@ aujourd'hui).
 | --- | --- |
 | `/validate/graph?era=1930&layer=stations` | page Inertia `Validate/Graph` (époque et couche facultatives : par défaut l'époque actuelle et la topologie ; `missing_era` vaut l'année demandée quand elle n'a pas de graphe) |
 | `/validate/graph/{year}/diagnostics` | résumé : `{ era, built_at, summary: { topology, stations, lines }, checks, thresholds }` |
-| `/validate/graph/{year}/diagnostics/{check}?page=1` | une page de 25 éléments d'une liste : `{ era, check, total, listed, page, per_page, last_page, items }` |
+| `/validate/graph/{year}/diagnostics/{check}?page=1` | une page de 25 éléments d'une liste : `{ era, check, total, filtered, page, per_page, last_page, items, filters }` ; pour les jonctions, filtres `type` et `line` (voir plus bas) |
+| `/validate/graph/{year}/diagnostics/{check}.csv` | toute la liste en CSV (mêmes filtres), écrite au fil de la réponse ; fichier `graphe-{year}-{liste}.csv`, par exemple `graphe-1930-jonctions-sauts-rfn-420000.csv` |
 | `/validate/graph/{year}/tiles/{layer}/{z}/{x}/{y}.mvt` | tuile vectorielle (calques `edges` et `nodes`), zoom 8 à 14 (404 en dessous), `Cache-Control: private` |
 | `/validate/graph/{year}/features/{kind}/{id}` | attributs d'un élément de l'époque (404 s'il n'en fait pas partie) : `kind` vaut `node`, `edge`, `station_edge`, `station` (identifiant de la gare, présente à l'époque par `station_eras` ou par un nœud) ou `stop` (identifiant dans `line_stops`) ; `id` a 18 chiffres au plus. Une arête sans tracé donne `nodes_gap_m`, la distance entre ses deux nœuds |
 
@@ -47,8 +48,9 @@ plus bas), et le navigateur la garde une heure.
 
 ### Listes (`{check}`)
 
-Chaque liste est triée du cas le plus grave au moins grave et gardée en entier jusqu'à 2 000 éléments
-(`total` donne le nombre exact, `listed` le nombre gardé).
+Chaque liste est triée du cas le plus grave au moins grave et gardée en entier dans le cache (le rapport
+de 1930, avec ses 8 992 jonctions, pèse 3 Mo ; 2 Mo pour 2030). `total` compte toute la liste, `filtered` les éléments qui
+passent le filtre (égal à `total` sans filtre).
 
 | `check` | Contenu d'un élément |
 | --- | --- |
@@ -57,8 +59,35 @@ Chaque liste est triée du cas le plus grave au moins grave et gardée en entier
 | `isolated_nodes` | nœud sans arête : `id`, `kind`, `station_id`, `lng`, `lat` |
 | `stations_without_edge` | gare ouverte sans arête gare à gare : `id`, `slug`, `name`, `reason` (`unattached` : aucun nœud, la gare est loin de toute voie ; `no_neighbour` : rattachée sans gare voisine), `lng`, `lat` |
 | `edges` | arête anormale : `layer` (`topology` ou `stations`), `id`, `reason`, `length_m`, `measured_m` (longueur du tracé ; pour une arête de la topologie sans tracé, distance entre ses deux nœuds ; pour une arête de gare à gare, distance à vol d'oiseau), `line`, `lng`, `lat` |
-| `junctions` | jonction écartée : `type` (`spread` : nœud dont les extrémités d'arêtes ne coïncident pas ; `connector` : raccord de lacune ; `jump` : arête sans tracé dont les deux nœuds sont à plus de 0,01 m l'un de l'autre), `id` (nœud pour `spread`, arête sinon), `distance_m`, `kind`, `ends`, `lines`, `lng`, `lat` |
+| `junctions` | jonction écartée : `type` (`spread` : nœud dont les extrémités d'arêtes ne coïncident pas ; `connector` : raccord de lacune ; `jump` : arête sans tracé dont les deux nœuds sont à plus de 0,01 m l'un de l'autre), `id` (nœud pour `spread`, arête sinon), `distance_m`, `kind`, `ends`, `lines` (nombre de lignes), `line_ids` et `line_refs` (lignes concernées : `id`, `slug`, `name`, `code`), `lng`, `lat` |
 | `fragmented_lines` | ligne dont les voies de l'époque forment plusieurs morceaux : `line`, `pieces`, `edges`, `length_m`, `bbox` |
+
+Lignes d'une jonction : pour `spread`, celles des tracés qui se rejoignent au nœud ; pour `connector`
+(le raccord n'a pas de ligne), celles des voies qui arrivent à ses deux bouts ; pour `jump`, celle de
+l'arête sans tracé.
+
+### Filtre des jonctions
+
+Seule la liste `junctions` se filtre ; les autres ignorent ces paramètres.
+
+- `type` : `spread`, `connector` ou `jump` (une autre valeur répond 422) ;
+- `line` : slug de la ligne (`rfn-420000`) ou numéro à 6 chiffres, avec ou sans espace (`420000`,
+  `420 000`). Une jonction passe si la ligne fait partie de ses lignes. Ligne introuvable : liste vide
+  et `filters.unknown_line` vaut le texte demandé (404 pour l'export CSV).
+
+La réponse rappelle le filtre appliqué : `filters: { type, line: { id, slug, name, code } | null,
+unknown_line }`. Sur la page, le formulaire « Filtrer les jonctions » apparaît au-dessus du tableau
+des jonctions.
+
+### Export CSV
+
+Le lien « Télécharger en CSV », à côté du nombre de cas, donne toute la liste affichée, filtre
+compris, sans plafond. Format : UTF-8 avec BOM, virgule entre les champs, point décimal, en-têtes en
+français quelle que soit la langue de l'interface, types, défauts et couches écrits en clair en
+français, distances en mètres, coordonnées en degrés WGS 84 ; plusieurs lignes ou gares dans une
+cellule sont séparées par « ; ». Un texte qui commence par `=`, `+`, `-`, `@` ou une tabulation est
+précédé d'une apostrophe, pour qu'un tableur ne l'exécute pas comme une formule. Réponse
+`Cache-Control: private, no-store`. Code : `GraphDiagnosticsCsv`.
 
 Défauts des arêtes (`reason`) : `no_geometry` (pas de tracé, testé en premier : le constructeur écrit
 une longueur nulle pour ces arêtes), `zero_length` (tracé de longueur nulle), `loop`
@@ -89,7 +118,7 @@ d'oiseau).
   chargement d'une page du tableau, la précédente reste affichée et le chargement est annoncé aux
   lecteurs d'écran. « Voir sur la carte » sur une île ou une ligne en morceaux recadre la carte et
   affiche un résumé de l'élément dans le panneau.
-- Code : `App\Services\NetworkGraph\GraphDiagnostics`, `GraphTiles`, `GraphFeatureDetails`,
+- Code : `App\Services\NetworkGraph\GraphDiagnostics`, `DiagnosticsFilter`, `GraphDiagnosticsCsv`, `GraphTiles`, `GraphFeatureDetails`,
   `App\Http\Controllers\NetworkGraphAdminController` ; tests :
   `tests/Feature/Validate/NetworkGraphAdminTest.php`, `tests/js/graphAdmin.test.js`.
 

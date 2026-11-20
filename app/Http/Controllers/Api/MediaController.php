@@ -19,14 +19,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Http\JsonResponse;
 
-#[Group('Médias', "Photos, cartes postales, plans, cartes et documents d'archive liés aux lignes et aux gares, avec leur auteur, leur licence et le lien vers leur source.", weight: 6)]
+#[Group('Médias', "Photos, cartes postales, plans, cartes et documents d'archive liés aux lignes, aux gares et aux séries de matériel, avec leur auteur, leur licence et le lien vers leur source.", weight: 6)]
 class MediaController extends Controller
 {
     /**
      * Médias.
      *
      * Photos, cartes postales, plans, cartes et documents d'archive, toutes
-     * lignes et gares confondues, filtrables et paginés par curseur, dans
+     * lignes, gares et séries de matériel confondues, filtrables et paginés par curseur, dans
      * l'ordre croissant de leur identifiant (`order=desc` pour l'inverse).
      * Pour les médias d'une seule ligne avec compteurs par filtre, voir
      * `/lines/{line}/media`.
@@ -74,8 +74,9 @@ class MediaController extends Controller
      * déclarée, `null` = inconnue, les plus fréquentes d'abord) et `authors`
      * (les 30 auteurs les plus représentés).
      */
-    #[QueryParameter('line', "Identifiant (slug) d'une ligne : ses médias seulement. Exclusif avec `station`. Une ligne inconnue donne HTTP 422.", type: 'string', example: 'rfn-447000')]
-    #[QueryParameter('station', "Identifiant (slug) d'une gare : ses médias seulement. Exclusif avec `line`. Une gare inconnue donne HTTP 422.", type: 'string', example: 'brest')]
+    #[QueryParameter('line', "Identifiant (slug) d'une ligne : ses médias seulement. Exclusif avec `station` et `material`. Une ligne inconnue donne HTTP 422.", type: 'string', example: 'rfn-447000')]
+    #[QueryParameter('station', "Identifiant (slug) d'une gare : ses médias seulement. Exclusif avec `line` et `material`. Une gare inconnue donne HTTP 422.", type: 'string', example: 'brest')]
+    #[QueryParameter('material', "Identifiant (slug) d'une série de matériel roulant : ses médias seulement (images proposées pour sa fiche et publiées). Exclusif avec `line` et `station`. Une série inconnue donne HTTP 422.", type: 'string', example: 'x-73500')]
     #[QueryParameter('type', 'Type de média : `photo`, `postcard` (carte postale), `map` (carte), `plan`, `document`.', type: 'string', example: 'postcard')]
     #[QueryParameter('provider', 'Fournisseur du média, 20 caractères au plus : `commons` (Wikimedia Commons), `upload` (hébergé par VFF), `argentanwebferro`…', type: 'string', example: 'commons')]
     #[QueryParameter('license', 'Licence telle que déclarée par la source, sans tenir compte de la casse, correspondance exacte (ex. `CC BY-SA 4.0`, `Public domain`). 191 caractères au plus.', type: 'string', example: 'CC BY-SA 4.0')]
@@ -113,7 +114,7 @@ class MediaController extends Controller
             ],
         ],
     ]])]
-    #[ApiResponse(422, 'Filtre ou curseur invalide : type inconnu, `line` et `station` ensemble, ligne ou gare inconnue, `to_year` avant `from_year`, `per_page` hors de 1 à 60. Le corps donne `message` et, par paramètre, la liste des erreurs dans `errors`.', examples: [ErrorExamples::MEDIA_INVALID])]
+    #[ApiResponse(422, 'Filtre ou curseur invalide : type inconnu, deux filtres parmi `line`, `station` et `material` ensemble, ligne, gare ou série inconnue, `to_year` avant `from_year`, `per_page` hors de 1 à 60. Le corps donne `message` et, par paramètre, la liste des erreurs dans `errors`.', examples: [ErrorExamples::MEDIA_INVALID])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
     public function index(ListMediaRequest $request, MediaQuery $query): JsonResponse
     {

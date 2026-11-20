@@ -424,7 +424,7 @@ Chaque événement : `id`, `when` (date rédigée), `type`, `date`, `date_precis
 
 | Paramètre | Type | Obligatoire | Description |
 |---|---|---|---|
-| `line` ou `station` | slug | non | Médias d'une ligne ou d'une gare (l'un ou l'autre). |
+| `line`, `station` ou `material` | slug | non | Médias d'une ligne, d'une gare ou d'une série de matériel (un seul des trois). |
 | `type` | `photo`, `postcard`, `plan`, `map`, `document` | non | Nature. |
 | `provider` | chaîne | non | `commons`, `upload`, `argentanwebferro`… |
 | `license` | chaîne | non | Licence exacte, casse ignorée (`CC BY-SA 4.0`). |
@@ -438,7 +438,7 @@ Chaque événement : `id`, `when` (date rédigée), `type`, `date`, `date_precis
 
 Chaque média : `title`, `caption`, `thumb_url`, `display_url`, `source_url` (page d'origine),
 dimensions, `depicted_year`, `author`, `license`, `license_url`, `attribution`, `rights_status`,
-`commercial_ok`, `share_alike`, `location`, `subject` (ligne ou gare). **Affichez toujours
+`commercial_ok`, `share_alike`, `location`, `subject` (ligne, gare ou série). **Affichez toujours
 `attribution` et le lien `source_url` avec l'image.**
 
 ```json
@@ -781,7 +781,8 @@ n'est pas cherchée. Une liste vide ne veut pas dire que Gallica n'a rien sur la
 
 Renvoie `line`, `total`, `documents` (du plus ancien au plus récent, sans date en dernier : `gallica_ark`,
 `gallica_url`, `catalogue_ark`, `catalogue_url`, `title`, `type`, `authors`, `date` avec `label`, `year`, `year_to`,
-`exact` et `precision` (`day`, `month`, `year`, `circa`, `range`, `unknown`), `shelfmark`, `match` avec le score, le
+`exact` et `precision` (`day`, `month`, `year`, `circa`, `range`, `before` : au plus tard `year`, `after` : au plus
+tôt `year`, `unknown`), `shelfmark`, `match` avec le score, le
 seuil, les raisons et les lieux reconnus, `record_updated_on`, `fetched_at`), `provenance`, `method` (seuil et points)
 et `vff_url` (section de la fiche).
 

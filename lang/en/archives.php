@@ -7,6 +7,8 @@ return [
         'intro' => 'Documents digitised in Gallica, the digital library of the BnF (French National Library), whose title refers to this line. Each link opens the document on the BnF website.',
         'undated' => 'Undated',
         'circa' => 'c. :year',
+        'before' => 'before :year',
+        'after' => 'after :year',
         'types' => [
             'monograph' => 'Printed text',
             'map' => 'Map or plan',

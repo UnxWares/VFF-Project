@@ -38,8 +38,8 @@ class LineArchiveDocument extends Model
     /** Types de documents retenus : texte imprimé, document cartographique, image fixe, manuscrit. */
     public const TYPES = ['monograph', 'map', 'image', 'manuscript'];
 
-    /** Précisions de date : jour, mois, année, date approchée, intervalle (year à year_to), inconnue. */
-    public const DATE_PRECISIONS = ['day', 'month', 'year', 'circa', 'range', 'unknown'];
+    /** Précisions de date : jour, mois, année, date approchée, intervalle (year à year_to), au plus tard year, au plus tôt year, inconnue. */
+    public const DATE_PRECISIONS = ['day', 'month', 'year', 'circa', 'range', 'before', 'after', 'unknown'];
 
     protected $guarded = ['id'];
 

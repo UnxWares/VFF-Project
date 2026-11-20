@@ -229,6 +229,8 @@ Route::middleware('auth')->group(function (): void {
     Route::prefix('validate/graph')->name('validate.graph.')->controller(NetworkGraphAdminController::class)->middleware('not.suspended')->group(function (): void {
         Route::get('/', 'index')->name('index');
         Route::get('/{year}/diagnostics', 'diagnostics')->where('year', '[0-9]{1,4}')->name('diagnostics');
+        Route::get('/{year}/diagnostics/{check}.csv', 'export')->where('year', '[0-9]{1,4}')
+            ->whereIn('check', GraphDiagnostics::CHECKS)->name('export');
         Route::get('/{year}/diagnostics/{check}', 'check')->where('year', '[0-9]{1,4}')
             ->whereIn('check', GraphDiagnostics::CHECKS)->name('check');
         Route::get('/{year}/tiles/{layer}/{z}/{x}/{y}.mvt', 'tile')

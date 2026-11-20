@@ -120,12 +120,13 @@ return [
     'media' => [
         'meta_title' => 'Propose an image',
         'title' => 'Propose an image',
-        'subtitle' => 'A photograph, postcard, plan or document that is copyright-free or under an open licence, for the page of a line, a station or an event. Two validators review every proposal before it is published.',
+        'subtitle' => 'A photograph, postcard, plan or document that is copyright-free or under an open licence, for the page of a line, a station, an event or a rolling stock series. Two validators review every proposal before it is published.',
         'target_legend' => 'Page concerned',
         'targets' => [
             'line' => 'A line',
             'station' => 'A station',
             'event' => 'A dated event of a line',
+            'material' => 'A rolling stock series',
         ],
         'event' => 'Event',
         'event_choose' => 'Choose the event',
@@ -278,7 +279,8 @@ return [
         'stale_title' => 'The page has changed since the proposal was sent',
         'stale_text' => 'Current value of “:field”: :now. Publication will fail, because the proposal was made against another value.',
         'impact_title' => 'Links that would break the rules',
-        'impact_text' => 'Once published, this correction would put :count link(s) of the series against the gauge or electrification rule. Publication will be refused while those links exist.',
+        'impact_text_one' => 'Once published, this correction would put :count link of the series against the gauge or electrification rule. Publication will be refused while that link exists.',
+        'impact_text_other' => 'Once published, this correction would put :count links of the series against the gauge or electrification rule. Publication will be refused while those links exist.',
         'fields' => [
             'name' => 'Name',
             'type' => 'Category',
@@ -432,7 +434,8 @@ return [
         'wikidata_use' => 'Use :final',
         'impact_checking' => 'Checking the lines where the series runs…',
         'impact_title' => 'This correction would contradict links of the series',
-        'impact_text' => 'With these values, :count link(s) between the series and a line would go against the gauge or electrification rule. You can send the proposal, but it will only be published once those links are removed or justified.',
+        'impact_text_one' => 'With these values, :count link between the series and a line would go against the gauge or electrification rule. You can send the proposal, but it will only be published once that link is removed or justified.',
+        'impact_text_other' => 'With these values, :count links between the series and a line would go against the gauge or electrification rule. You can send the proposal, but it will only be published once those links are removed or justified.',
         'impact_link' => ':line (source: :source): :reason',
         'gauges' => [
             1435 => '1,435 mm (standard gauge)',

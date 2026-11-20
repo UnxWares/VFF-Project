@@ -29,12 +29,20 @@
     const t = (k, o) => String($i18n.t(k, o));
     const lang = $derived($i18n.language ?? 'fr');
     const shown = $derived(expanded ? archives.items : archives.items.slice(0, VISIBLE));
-    const hiddenCount = $derived(archives.items.length - VISIBLE);
+    // Documents cachés, pas entrées : une entrée regroupe parfois plusieurs notices (autres vues).
+    const hiddenCount = $derived(
+        archives.items
+            .slice(VISIBLE)
+            .reduce((sum, item) => sum + 1 + (item.more_urls?.length ?? 0), 0),
+    );
     // Titres des notices de la BnF : en français, quelle que soit la langue de la page (sur le titre seul :
     // l'aide « s'ouvre dans un nouvel onglet » suit la langue de la page).
     const titleLang = $derived(lang === 'fr' ? undefined : 'fr');
 
-    /** Date à sa précision : « 1860 », « vers 1850 », « 1890-1899 », « 1er novembre 1873 », « Sans date ». */
+    /**
+     * Date à sa précision : « 1860 », « vers 1850 », « avant 1885 » (borne, pas une date approchée),
+     * « 1890-1899 », « 1er novembre 1873 », « Sans date ».
+     */
     function dateOf(item) {
         const locale = formatLocale(lang);
         switch (item.date_precision) {
@@ -45,6 +53,10 @@
                     : String(item.year);
             case 'circa':
                 return t('archives.line.circa', { year: item.year });
+            case 'before':
+                return t('archives.line.before', { year: item.year });
+            case 'after':
+                return t('archives.line.after', { year: item.year });
             case 'range':
                 return item.year_to ? `${item.year}-${item.year_to}` : String(item.year);
             case 'year':

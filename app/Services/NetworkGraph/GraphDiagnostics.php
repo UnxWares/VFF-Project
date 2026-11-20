@@ -33,17 +33,16 @@ use Illuminate\Support\Facades\DB;
  *
  * Le rapport d'une ère est calculé en une fois (quelques secondes sur une ère de 50 000 arêtes),
  * gardé en cache sous la date de construction du graphe (une reconstruction change la clé) ; les
- * listes sont triées (le plus grave d'abord) et bornées à LIST_CAP éléments, servies par pages.
+ * listes sont triées (le plus grave d'abord) et gardées en entier (3 Mo de cache pour l'ère 1930
+ * et ses 8 992 jonctions), servies par pages et exportées en CSV (GraphDiagnosticsCsv). Les jonctions se
+ * filtrent par type et par ligne (DiagnosticsFilter).
  */
 final class GraphDiagnostics
 {
     /** Version du rapport, dans la clé du cache : à changer quand son contenu change. */
-    public const FORMAT = 2;
+    public const FORMAT = 3;
 
     public const TTL_SECONDS = 7 * 24 * 3600;
-
-    /** Éléments gardés par liste (le total exact reste dans `total`). */
-    public const LIST_CAP = 2000;
 
     public const PER_PAGE = 25;
 
@@ -64,6 +63,9 @@ final class GraphDiagnostics
     public const CHECKS = [
         'islands', 'station_islands', 'isolated_nodes', 'stations_without_edge', 'edges', 'junctions', 'fragmented_lines',
     ];
+
+    /** Types de jonctions écartées (`type` des éléments de la liste `junctions`). */
+    public const JUNCTION_TYPES = ['spread', 'connector', 'jump'];
 
     /** Statuts d'une gare ouverte à l'ère (station_eras), comme EraGraphBuilder. */
     private const OPEN_STATUSES = ['active', 'tourist', 'no_commercial'];
@@ -92,27 +94,55 @@ final class GraphDiagnostics
     }
 
     /**
-     * Une page d'une liste du rapport.
+     * Éléments d'une liste du rapport qui passent le filtre, dans l'ordre de la liste.
      *
      * @param  array{lists: array<string, array{total: int, items: list<array<string, mixed>>}>}  $report
-     * @return array{check: string, total: int, listed: int, page: int, per_page: int, last_page: int, items: list<array<string, mixed>>}
+     * @return list<array<string, mixed>>
      */
-    public static function page(array $report, string $check, int $page, int $perPage = self::PER_PAGE): array
+    public static function items(array $report, string $check, ?DiagnosticsFilter $filter = null): array
     {
-        $list = $report['lists'][$check] ?? ['total' => 0, 'items' => []];
-        $listed = count($list['items']);
-        $last = max(1, (int) ceil($listed / $perPage));
+        $items = $report['lists'][$check]['items'] ?? [];
+        if ($filter === null || ! $filter->active()) {
+            return $items;
+        }
+
+        return array_values(array_filter($items, fn (array $item): bool => $filter->matches($item)));
+    }
+
+    /**
+     * Une page d'une liste du rapport, après le filtre : `total` compte toute la liste, `filtered`
+     * les éléments qui passent le filtre.
+     *
+     * @param  array{lists: array<string, array{total: int, items: list<array<string, mixed>>}>}  $report
+     * @return array{check: string, total: int, filtered: int, page: int, per_page: int, last_page: int, items: list<array<string, mixed>>}
+     */
+    public static function page(array $report, string $check, int $page, int $perPage = self::PER_PAGE, ?DiagnosticsFilter $filter = null): array
+    {
+        $items = self::items($report, $check, $filter);
+        $filtered = count($items);
+        $last = max(1, (int) ceil($filtered / $perPage));
         $page = min(max(1, $page), $last);
 
         return [
             'check' => $check,
-            'total' => $list['total'],
-            'listed' => $listed,
+            'total' => $report['lists'][$check]['total'] ?? 0,
+            'filtered' => $filtered,
             'page' => $page,
             'per_page' => $perPage,
             'last_page' => $last,
-            'items' => array_slice($list['items'], ($page - 1) * $perPage, $perPage),
+            'items' => array_slice($items, ($page - 1) * $perPage, $perPage),
         ];
+    }
+
+    /**
+     * Nom, numéro et adresse de fiche de lignes, par identifiant (les inconnues sont omises).
+     *
+     * @param  list<int>  $ids
+     * @return array<int, array{id: int, slug: string, name: string, code: string|null}>
+     */
+    public function lineRefs(array $ids): array
+    {
+        return $this->lines(array_values(array_unique($ids)));
     }
 
     /**
@@ -152,6 +182,8 @@ final class GraphDiagnostics
         $degree = [];
         $connectors = 0;
         $byLine = [];
+        // Lignes des voies (hors raccords) qui arrivent à chaque nœud : lignes d'un raccord de lacune.
+        $nodeLines = [];
         foreach (DB::cursor('SELECT id, from_node_id, to_node_id, line_id, length_m, is_connector FROM network_edges WHERE era_id = ?', [$eraId]) as $e) {
             $from = (int) $e->from_node_id;
             $to = (int) $e->to_node_id;
@@ -164,13 +196,15 @@ final class GraphDiagnostics
                 $connectors++;
             } elseif ($line !== null) {
                 $byLine[$line][] = [$from, $to, (int) $e->length_m];
+                $nodeLines[$from][$line] = true;
+                $nodeLines[$to][$line] = true;
             }
         }
 
         [$islands, $largest, $components] = $this->islands($topology, $edgeRows, $nodes);
         $isolated = $this->isolatedNodes($nodes, $degree);
         $edges = $this->edgeAnomalies($eraId);
-        $junctions = $this->junctions($eraId, $nodes);
+        $junctions = $this->junctions($eraId, $nodes, $nodeLines);
         $fragmented = $this->fragmentedLines($byLine, $nodes);
 
         // ── Gares ────────────────────────────────────────────────────────────
@@ -247,13 +281,13 @@ final class GraphDiagnostics
                 ],
             ],
             'lists' => [
-                'islands' => self::capped($islands),
-                'station_islands' => self::capped($stationIslands),
-                'isolated_nodes' => self::capped($isolated),
-                'stations_without_edge' => self::capped($withoutEdge),
-                'edges' => self::capped($edges),
-                'junctions' => self::capped($junctions),
-                'fragmented_lines' => self::capped($fragmented),
+                'islands' => self::listed($islands),
+                'station_islands' => self::listed($stationIslands),
+                'isolated_nodes' => self::listed($isolated),
+                'stations_without_edge' => self::listed($withoutEdge),
+                'edges' => self::listed($edges),
+                'junctions' => self::listed($junctions),
+                'fragmented_lines' => self::listed($fragmented),
             ],
         ];
     }
@@ -431,10 +465,15 @@ final class GraphDiagnostics
      * Jonctions écartées : nœuds dont les extrémités d'arêtes ne coïncident pas, raccords de lacunes,
      * et sauts (arêtes sans tracé entre deux nœuds distants de plus de JUNCTION_TOLERANCE_M).
      *
+     * `line_ids` : lignes concernées, pour le filtre par ligne. Nœud écarté : lignes des tracés qui
+     * s'y rejoignent ; raccord : lignes des voies qui arrivent à ses deux bouts (le raccord n'a pas
+     * de ligne) ; saut : ligne de l'arête sans tracé.
+     *
      * @param  array<int, array{0: float, 1: float, 2: int|null, 3: string}>  $nodes
+     * @param  array<int, array<int, true>>  $nodeLines  lignes des voies qui arrivent à chaque nœud
      * @return list<array<string, mixed>>
      */
-    private function junctions(int $eraId, array $nodes): array
+    private function junctions(int $eraId, array $nodes, array $nodeLines): array
     {
         $tol = self::JUNCTION_TOLERANCE_M;
         // Écart = plus grande distance entre deux extrémités d'arêtes au nœud, en Lambert-93 (mètres).
@@ -448,10 +487,11 @@ final class GraphDiagnostics
             ),
             agg AS (
                 SELECT node_id, count(*) AS ends, count(DISTINCT line_id) AS lines,
+                       array_to_json(array_agg(DISTINCT line_id) FILTER (WHERE line_id IS NOT NULL)) AS line_ids,
                        ST_MaxDistance(ST_Transform(ST_Collect(p), 2154), ST_Transform(ST_Collect(p), 2154)) AS spread
                 FROM ends GROUP BY node_id HAVING count(*) > 1
             )
-            SELECT node_id, ends, lines, spread FROM agg WHERE spread > {$tol}
+            SELECT node_id, ends, lines, line_ids, spread FROM agg WHERE spread > {$tol}
             SQL, [$eraId, $eraId]);
 
         $items = [];
@@ -465,16 +505,19 @@ final class GraphDiagnostics
                 'station_id' => $node[2] ?? null,
                 'ends' => (int) $r->ends,
                 'lines' => (int) $r->lines,
+                'line_ids' => array_map(intval(...), $r->line_ids !== null ? (array) json_decode((string) $r->line_ids, true) : []),
                 'lng' => $node[0] ?? null,
                 'lat' => $node[1] ?? null,
             ];
         }
         $rows = DB::select(<<<'SQL'
-            SELECT id, length_m, from_node_id, ST_X(ST_StartPoint(geom)) AS lng, ST_Y(ST_StartPoint(geom)) AS lat
+            SELECT id, length_m, from_node_id, to_node_id, ST_X(ST_StartPoint(geom)) AS lng, ST_Y(ST_StartPoint(geom)) AS lat
             FROM network_edges WHERE era_id = ? AND is_connector
             SQL, [$eraId]);
         foreach ($rows as $r) {
             $node = $nodes[(int) $r->from_node_id] ?? null;
+            $lineIds = array_keys(($nodeLines[(int) $r->from_node_id] ?? []) + ($nodeLines[(int) $r->to_node_id] ?? []));
+            sort($lineIds);
             $items[] = [
                 'type' => 'connector',
                 'id' => (int) $r->id,
@@ -482,7 +525,8 @@ final class GraphDiagnostics
                 'kind' => $node[3] ?? null,
                 'station_id' => $node[2] ?? null,
                 'ends' => 2,
-                'lines' => 0,
+                'lines' => count($lineIds),
+                'line_ids' => $lineIds,
                 'lng' => $r->lng !== null ? (float) $r->lng : ($node[0] ?? null),
                 'lat' => $r->lat !== null ? (float) $r->lat : ($node[1] ?? null),
             ];
@@ -511,6 +555,7 @@ final class GraphDiagnostics
                 'station_id' => $node[2] ?? null,
                 'ends' => 2,
                 'lines' => $r->line_id !== null ? 1 : 0,
+                'line_ids' => $r->line_id !== null ? [(int) $r->line_id] : [],
                 'lng' => (float) $r->lng,
                 'lat' => (float) $r->lat,
             ];
@@ -712,8 +757,8 @@ final class GraphDiagnostics
      * @param  list<array<string, mixed>>  $items
      * @return array{total: int, items: list<array<string, mixed>>}
      */
-    private static function capped(array $items): array
+    private static function listed(array $items): array
     {
-        return ['total' => count($items), 'items' => array_slice($items, 0, self::LIST_CAP)];
+        return ['total' => count($items), 'items' => $items];
     }
 }

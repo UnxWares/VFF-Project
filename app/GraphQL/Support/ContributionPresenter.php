@@ -41,8 +41,8 @@ final readonly class ContributionPresenter
     }
 
     /**
-     * Série visée : la série corrigée ou créée (cible d'une contribution `material_series`), ou la
-     * série d'un lien `line_material` ; nulle sinon.
+     * Série visée : la série corrigée ou créée (cible d'une contribution `material_series`), la série
+     * d'une image (`media` rattachée à une série) ou la série d'un lien `line_material` ; nulle sinon.
      */
     private function material(Contribution $contribution): ?Material
     {

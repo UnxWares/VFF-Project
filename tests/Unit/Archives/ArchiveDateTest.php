@@ -47,6 +47,11 @@ class ArchiveDateTest extends TestCase
         yield 'sans date, rien de codé' => ['20200928u        u  y0frey50         ', 'S. d.', null, null, null, 'unknown', null];
         yield 'texte et code en désaccord : le texte, en date approchée' => ['20071107d1864    m  y0frey50      ba', '1854', 1854, null, null, 'circa', '1854'];
         yield 'copyright d\'une reproduction : date de l\'original' => ['20071107e19931790 m  y0frey50      ba', 'cop. 1993', 1790, null, null, 'year', 'cop. 1993'];
+        // « Avant 1885 » est une borne haute (code f, une seule année), pas une date approchée.
+        yield 'borne haute codée' => ['19960701f1885    u  y0frey50      ba', 'Avant 1885', 1885, null, null, 'before', 'Avant 1885'];
+        yield 'borne haute sans zone 100' => [null, '[avant 1900]', 1900, null, null, 'before', '[avant 1900]'];
+        yield 'borne basse' => ['19960701f1871    u  y0frey50      ba', 'Après 1871', 1871, null, null, 'after', 'Après 1871'];
+        yield 'borne d\'une autre année : année codée, date approchée' => ['19960701f1885    u  y0frey50      ba', 'Avant 1890', 1885, null, null, 'circa', 'Avant 1890'];
         yield 'rien du tout' => [null, null, null, null, null, 'unknown', null];
         yield 'année hors du possible' => ['20200928d0000    u  y0frey50         ', null, null, null, null, 'unknown', null];
     }

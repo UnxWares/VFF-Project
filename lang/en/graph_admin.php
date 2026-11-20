@@ -177,6 +177,17 @@ return [
         'open_station' => 'Station page',
     ],
 
+    'filters' => [
+        'label' => 'Filter the junctions',
+        'type' => 'Junction type',
+        'all_types' => 'All types',
+        'line' => 'Line',
+        'line_hint' => 'Six-digit number (420000) or the address of its page (rfn-420000).',
+        'apply' => 'Filter',
+        'clear' => 'Show all',
+        'unknown_line' => 'No line matches “:line”.',
+    ],
+
     'checks' => [
         'title' => 'Diagnostics',
         'choose' => 'List to show',
@@ -211,7 +222,9 @@ return [
         ],
         'caption' => ':title, page :page of :last',
         'total' => ':total in all',
-        'capped' => 'The first :count cases are listed.',
+        'filtered' => ':count of :total match the filter',
+        'empty_filtered' => 'No junction matches the filter.',
+        'export' => 'Download as CSV',
         'empty' => 'Nothing to report for this era.',
         'loading' => 'Loading the list…',
         'loading_page' => 'Loading page :page…',

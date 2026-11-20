@@ -5,7 +5,9 @@ namespace Tests\Feature\Validate;
 use App\Models\Era;
 use App\Models\Line;
 use App\Models\Station;
+use App\Services\NetworkGraph\DiagnosticsFilter;
 use App\Services\NetworkGraph\GraphDiagnostics;
+use App\Services\NetworkGraph\GraphDiagnosticsCsv;
 use App\Services\NetworkGraph\GraphTiles;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -175,6 +177,7 @@ class NetworkGraphAdminTest extends TestCase
             '/validate/graph',
             '/validate/graph/1930/diagnostics',
             '/validate/graph/1930/diagnostics/islands',
+            '/validate/graph/1930/diagnostics/junctions.csv',
             '/validate/graph/1930/tiles/topology/8/129/88.mvt',
             "/validate/graph/1930/features/edge/{$this->e['E1']}",
         ] as $uri) {
@@ -200,6 +203,7 @@ class NetworkGraphAdminTest extends TestCase
         foreach ([
             '/validate/graph/1930/diagnostics',
             '/validate/graph/1930/diagnostics/junctions?page=1',
+            '/validate/graph/1930/diagnostics/edges.csv',
             '/validate/graph/1930/tiles/topology/8/129/88.mvt',
             "/validate/graph/1930/features/node/{$this->n['N1']}",
         ] as $uri) {
@@ -405,6 +409,147 @@ class NetworkGraphAdminTest extends TestCase
         $this->assertSame(1, GraphDiagnostics::page($this->report(), 'islands', 99, 25)['page']);
 
         $this->actingAs($admin)->getJson('/validate/graph/1930/diagnostics/inconnu')->assertNotFound();
+    }
+
+    // ---- Filtre des jonctions et export CSV ---------------------------------------------------
+
+    /** Ajoute un saut sur L3 (49,9 m) et un raccord de lacune entre N8 (L1) et N9 (L2), puis recalcule. */
+    private function withJumpAndConnector(): void
+    {
+        $this->n['N11'] = $this->node(2.10, 48.0, 'junction');
+        $this->n['N12'] = $this->node(2.10067, 48.0, 'gap');
+        $this->e['E8'] = $this->edge('N11', 'N12', 'L3', null);
+        $this->e['C1'] = (int) DB::scalar(
+            "INSERT INTO network_edges (era_id, from_node_id, to_node_id, line_id, length_m, status, is_connector, geom, created_at, updated_at)
+             VALUES (?, ?, ?, NULL, 120, 'in_service', true, ST_GeomFromText('LINESTRING(2.02 48.0, 2.05 48.05)', 4326), now(), now()) RETURNING id",
+            [$this->era->id, $this->n['N8'], $this->n['N9']],
+        );
+        $this->assertNotNull(app(GraphDiagnostics::class)->report($this->era->id, fresh: true));
+    }
+
+    public function test_each_junction_names_the_lines_it_concerns(): void
+    {
+        $this->withJumpAndConnector();
+        $items = $this->report()['lists']['junctions']['items'];
+        $ids = fn (string ...$codes): array => array_map(fn (string $c): int => $this->lines[$c]->id, $codes);
+
+        $spread = $this->firstWhere($items, 'type', 'spread');
+        $this->assertNotNull($spread);
+        $this->assertEqualsCanonicalizing($ids('L1', 'L2'), $spread['line_ids']);
+        // Le raccord n'a pas de ligne : ce sont celles des voies qui arrivent à ses deux bouts.
+        $connector = $this->firstWhere($items, 'type', 'connector');
+        $this->assertNotNull($connector);
+        $this->assertEqualsCanonicalizing($ids('L1', 'L2'), $connector['line_ids']);
+        $this->assertSame(2, $connector['lines']);
+        $jump = $this->firstWhere($items, 'type', 'jump');
+        $this->assertNotNull($jump);
+        $this->assertSame($ids('L3'), $jump['line_ids']);
+    }
+
+    public function test_junctions_are_filtered_by_type_and_by_line(): void
+    {
+        $this->withJumpAndConnector();
+        $admin = $this->member('admin');
+        $url = '/validate/graph/1930/diagnostics/junctions';
+
+        $this->actingAs($admin)->getJson("{$url}?type=jump")
+            ->assertOk()
+            ->assertJsonPath('total', 3)
+            ->assertJsonPath('filtered', 1)
+            ->assertJsonPath('items.0.type', 'jump')
+            ->assertJsonPath('items.0.line_refs.0.code', 'L3')
+            ->assertJsonPath('filters.type', 'jump');
+
+        $l2 = $this->lines['L2'];
+        $response = $this->actingAs($admin)->getJson("{$url}?line={$l2->slug}")
+            ->assertOk()
+            ->assertJsonPath('filtered', 2)
+            ->assertJsonPath('filters.line.code', 'L2')
+            ->assertJsonPath('filters.unknown_line', null);
+        $this->assertEqualsCanonicalizing(['spread', 'connector'], array_column($response->json('items'), 'type'));
+
+        $this->actingAs($admin)->getJson("{$url}?type=spread&line={$l2->slug}")
+            ->assertJsonPath('filtered', 1)
+            ->assertJsonPath('items.0.id', $this->n['N1']);
+        $this->actingAs($admin)->getJson("{$url}?type=jump&line={$l2->slug}")
+            ->assertJsonPath('filtered', 0)
+            ->assertJsonCount(0, 'items');
+
+        // Ligne inconnue : rien de listé, et la réponse le dit ; type inconnu : 422.
+        $this->actingAs($admin)->getJson("{$url}?line=999999")
+            ->assertOk()
+            ->assertJsonPath('filtered', 0)
+            ->assertJsonPath('filters.unknown_line', '999999');
+        $this->actingAs($admin)->getJson("{$url}?type=autre")->assertUnprocessable();
+        // Les autres listes ne se filtrent pas.
+        $this->actingAs($admin)->getJson('/validate/graph/1930/diagnostics/islands?line=999999')
+            ->assertJsonPath('filtered', $this->report()['lists']['islands']['total']);
+    }
+
+    public function test_a_list_is_exported_in_csv_with_french_headers_and_the_era_in_the_file_name(): void
+    {
+        $this->withJumpAndConnector();
+        $admin = $this->member('admin');
+
+        $response = $this->actingAs($admin)->get('/validate/graph/1930/diagnostics/junctions.csv')->assertOk();
+        $this->assertStringStartsWith('text/csv', (string) $response->headers->get('Content-Type'));
+        $this->assertStringContainsString('graphe-1930-jonctions.csv', (string) $response->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
+        $body = $response->streamedContent();
+        $this->assertStringStartsWith("\u{FEFF}", $body);
+        $rows = array_map(str_getcsv(...), array_filter(explode("\n", substr($body, 3))));
+        $this->assertSame(GraphDiagnosticsCsv::headers('junctions'), $rows[0]);
+        $this->assertSame('Type', $rows[0][0]);
+        $this->assertCount(4, $rows, 'en-têtes + écartée, raccord, saut');
+        // Le plus grand écart d'abord (raccord de 120 m), libellés en français, lignes nommées.
+        $this->assertSame('Raccord de lacune', $rows[1][0]);
+        $this->assertSame('120', $rows[1][2]);
+        $this->assertStringContainsString('Ligne L1 (L1)', $rows[1][7]);
+        $this->assertStringContainsString('Ligne L2 (L2)', $rows[1][7]);
+
+        $l3 = $this->lines['L3'];
+        $filtered = $this->actingAs($admin)->get("/validate/graph/1930/diagnostics/junctions.csv?type=jump&line={$l3->slug}")->assertOk();
+        $this->assertStringContainsString("graphe-1930-jonctions-sauts-{$l3->slug}.csv", (string) $filtered->headers->get('Content-Disposition'));
+        $this->assertCount(2, array_filter(explode("\n", $filtered->streamedContent())));
+
+        foreach (GraphDiagnostics::CHECKS as $check) {
+            $csv = $this->actingAs($admin)->get("/validate/graph/1930/diagnostics/{$check}.csv")->assertOk()->streamedContent();
+            $this->assertSame(GraphDiagnosticsCsv::headers($check), str_getcsv(strtok(substr($csv, 3), "\n")), $check);
+        }
+        $this->actingAs($admin)->get('/validate/graph/1930/diagnostics/junctions.csv?line=999999')->assertNotFound();
+        $this->actingAs($admin)->get('/validate/graph/1940/diagnostics/junctions.csv')->assertNotFound();
+    }
+
+    public function test_the_export_writes_the_whole_list_beyond_2000_items(): void
+    {
+        $items = [];
+        for ($i = 1; $i <= 2500; $i++) {
+            $items[] = ['type' => 'jump', 'id' => $i, 'distance_m' => 1.5, 'kind' => 'gap', 'station_id' => null, 'ends' => 2, 'lines' => 0, 'line_ids' => [], 'lng' => -1.25, 'lat' => 48.0];
+        }
+        $report = ['lists' => ['junctions' => ['total' => 2500, 'items' => $items]]];
+        $handle = fopen('php://memory', 'w+b');
+        $this->assertIsResource($handle);
+        app(GraphDiagnosticsCsv::class)->write($handle, $report, 'junctions', new DiagnosticsFilter('junctions'));
+        rewind($handle);
+        $csv = (string) stream_get_contents($handle);
+        fclose($handle);
+
+        $lines = array_values(array_filter(explode("\n", $csv)));
+        $this->assertCount(2501, $lines);
+        $this->assertSame('"Saut sans tracé",2500,1.5,"Bout d’un raccord",,2,0,,-1.25,48', $lines[2500]);
+        // Toute la liste est aussi servie par pages, sans plafond.
+        $this->assertSame(100, GraphDiagnostics::page($report, 'junctions', 100)['last_page']);
+    }
+
+    public function test_a_csv_cell_never_starts_a_formula(): void
+    {
+        $this->assertSame("'=SOMME(A1)", GraphDiagnosticsCsv::cell('=SOMME(A1)'));
+        $this->assertSame("'+33", GraphDiagnosticsCsv::cell('+33'));
+        $this->assertSame("'@ligne", GraphDiagnosticsCsv::cell('@ligne'));
+        $this->assertSame('-1.67', GraphDiagnosticsCsv::cell(-1.67));
+        $this->assertSame('0', GraphDiagnosticsCsv::cell(0.0));
+        $this->assertSame('', GraphDiagnosticsCsv::cell(null));
+        $this->assertSame('Gare A', GraphDiagnosticsCsv::cell('Gare A'));
     }
 
     // ---- Carte et attributs --------------------------------------------------------------------

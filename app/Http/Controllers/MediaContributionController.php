@@ -7,6 +7,7 @@ use App\Http\Requests\SubmitMediaContributionRequest;
 use App\Models\Contribution;
 use App\Models\Line;
 use App\Models\LineEvent;
+use App\Models\Material;
 use App\Models\Station;
 use App\Services\Contributions\ContributionSubmissions;
 use App\Services\Contributions\MediaContributions;
@@ -28,8 +29,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class MediaContributionController extends Controller
 {
     /**
-     * Formulaire, avec la fiche présélectionnée : `?line=<slug>`, `?station=<slug>` ou
-     * `?event=<id>` (l'événement et sa ligne).
+     * Formulaire, avec la fiche présélectionnée : `?line=<slug>`, `?station=<slug>`,
+     * `?material=<slug>` (série de matériel) ou `?event=<id>` (l'événement et sa ligne).
      */
     public function create(Request $request): Response
     {
@@ -42,11 +43,15 @@ class MediaContributionController extends Controller
         $station = $request->filled('station')
             ? Station::query()->where('slug', (string) $request->query('station'))->first(['slug', 'name', 'city'])
             : null;
+        $material = $request->filled('material')
+            ? Material::query()->where('slug', (string) $request->query('material'))->first(['slug', 'name', 'type'])
+            : null;
 
         return Inertia::render('Contribute/ProposeMedia', [
             'preselected' => [
                 'line' => $line?->only(['slug', 'code', 'name']),
                 'station' => $station?->only(['slug', 'name', 'city']),
+                'material' => $material?->only(['slug', 'name', 'type']),
                 'eventId' => $event?->id,
             ],
             'mediaTypes' => MediaContributions::mediaTypes(),

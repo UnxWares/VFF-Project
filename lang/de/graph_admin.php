@@ -177,6 +177,17 @@ return [
         'open_station' => 'Seite des Bahnhofs',
     ],
 
+    'filters' => [
+        'label' => 'Verzweigungen filtern',
+        'type' => 'Art der Verzweigung',
+        'all_types' => 'Alle Arten',
+        'line' => 'Strecke',
+        'line_hint' => 'Sechsstellige Nummer (420000) oder Adresse der Seite (rfn-420000).',
+        'apply' => 'Filtern',
+        'clear' => 'Alle anzeigen',
+        'unknown_line' => 'Keine Strecke entspricht „:line“.',
+    ],
+
     'checks' => [
         'title' => 'Diagnosen',
         'choose' => 'Anzuzeigende Liste',
@@ -211,7 +222,9 @@ return [
         ],
         'caption' => ':title, Seite :page von :last',
         'total' => ':total insgesamt',
-        'capped' => 'Die ersten :count Fälle sind aufgeführt.',
+        'filtered' => ':count von :total entsprechen dem Filter',
+        'empty_filtered' => 'Keine Verzweigung entspricht dem Filter.',
+        'export' => 'Als CSV herunterladen',
         'empty' => 'Für diese Epoche gibt es nichts zu melden.',
         'loading' => 'Liste wird geladen …',
         'loading_page' => 'Seite :page wird geladen …',

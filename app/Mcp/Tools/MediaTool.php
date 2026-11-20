@@ -21,10 +21,10 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Name('media')]
 #[Title('Photos, cartes postales, plans et documents')]
 #[Description(<<<'TXT'
-Médias (photos, cartes postales, plans, cartes, documents d'archive) rattachés aux lignes et aux gares, avec leurs droits. Mêmes données et mêmes filtres que l'API REST GET /api/v1/media.
-Chaque média : `id`, `type` (photo, postcard, plan, map, document), `title`, `caption`, `thumb_url` et `display_url` (image, souvent hébergée chez le fournisseur, ex. Wikimedia Commons), `source_url` (page d'origine), `width`/`height` en pixels, `depicted_year` (année représentée, `depicted_year_to` pour une fourchette, `date_precision`), `author`, `license`, `license_url`, `attribution` (texte prêt à afficher), `rights_status` (public_domain, open_license, permission, unknown), `commercial_ok`, `share_alike`, `location` (lat, lng WGS 84) et `subject` (ligne ou gare rattachée).
+Médias (photos, cartes postales, plans, cartes, documents d'archive) rattachés aux lignes, aux gares et aux séries de matériel, avec leurs droits. Mêmes données et mêmes filtres que l'API REST GET /api/v1/media.
+Chaque média : `id`, `type` (photo, postcard, plan, map, document), `title`, `caption`, `thumb_url` et `display_url` (image, souvent hébergée chez le fournisseur, ex. Wikimedia Commons), `source_url` (page d'origine), `width`/`height` en pixels, `depicted_year` (année représentée, `depicted_year_to` pour une fourchette, `date_precision`), `author`, `license`, `license_url`, `attribution` (texte prêt à afficher), `rights_status` (public_domain, open_license, permission, unknown), `commercial_ok`, `share_alike`, `location` (lat, lng WGS 84) et `subject` (ligne, gare ou série rattachée).
 Obligation : montrez toujours l'`attribution` (auteur et licence) et le lien `source_url` avec l'image ; une licence share_alike impose la même licence à l'œuvre dérivée.
-Filtres : `line` ou `station` (slug, l'un ou l'autre), `type`, `provider` (commons, upload, argentanwebferro…), `license` (texte exact, ex. "CC BY-SA 4.0"), `rights_status`, `commercial_ok`, `period` (pre1900, 1900_1944, 1945_1969, 1970_1999, since2000, undated), `from_year`/`to_year` (année représentée), `order` (asc, desc : par identifiant).
+Filtres : `line`, `station` ou `material` (slug, un seul des trois), `type`, `provider` (commons, upload, argentanwebferro…), `license` (texte exact, ex. "CC BY-SA 4.0"), `rights_status`, `commercial_ok`, `period` (pre1900, 1900_1944, 1945_1969, 1970_1999, since2000, undated), `from_year`/`to_year` (année représentée), `order` (asc, desc : par identifiant).
 Pagination : `limit` médias par appel (1 à 60, 20 par défaut), puis `next_cursor` dans `cursor` tant que `has_more` vaut true  ; une page trop volumineuse est raccourcie (`truncated`) et `next_cursor` reprend au premier média non renvoyé.
 Exemple : {"station": "brest", "limit": 5} ; {"line": "rfn-610000", "period": "pre1900", "commercial_ok": true}.
 TXT)]
@@ -44,8 +44,9 @@ class MediaTool extends VffTool
     protected function arguments(JsonSchema $schema): array
     {
         return [
-            'line' => $schema->string()->max(255)->description('Slug d\'une ligne (ex. "rfn-610000"). Exclusif avec `station`.'),
-            'station' => $schema->string()->max(255)->description('Slug d\'une gare (ex. "brest"). Exclusif avec `line`.'),
+            'line' => $schema->string()->max(255)->description('Slug d\'une ligne (ex. "rfn-610000"). Exclusif avec `station` et `material`.'),
+            'station' => $schema->string()->max(255)->description('Slug d\'une gare (ex. "brest"). Exclusif avec `line` et `material`.'),
+            'material' => $schema->string()->max(255)->description('Slug d\'une série de matériel roulant (ex. "x-73500") : images proposées pour sa fiche. Exclusif avec `line` et `station`.'),
             'type' => $schema->string()->enum(array_map(fn (MediaType $t) => $t->value, MediaType::cases()))->description('Nature du média. Par défaut : toutes.'),
             'provider' => $schema->string()->max(20)->description('Fournisseur : commons (Wikimedia Commons), upload (envoi sur VFF), argentanwebferro… Par défaut : tous.'),
             'license' => $schema->string()->max(191)->description('Licence exacte, casse ignorée (ex. "CC BY-SA 4.0", "Public domain").'),
@@ -74,6 +75,7 @@ class MediaTool extends VffTool
             self::url(match (true) {
                 isset($filters['line']) => '/lines/'.$filters['line'],
                 isset($filters['station']) => '/stations/'.$filters['station'],
+                isset($filters['material']) => '/materials/'.$filters['material'],
                 default => '/credits/media',
             }),
         );
