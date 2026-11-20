@@ -419,9 +419,9 @@ class NetworkGraphAdminTest extends TestCase
         $this->assertNotSame([], array_filter($diagnostics, fn (string $key): bool => str_ends_with($key, ':islands')));
 
         // La page d'accueil du graphe ne lit que l'en-tête (résumé chiffré).
-        $read = [];
+        $before = count($read);
         $this->actingAs($admin)->get('/validate/graph?era=1930')->assertOk();
-        foreach (array_filter($read, fn (string $key): bool => str_starts_with($key, 'graph-diagnostics:')) as $key) {
+        foreach (array_filter(array_slice($read, $before), fn (string $key): bool => str_starts_with($key, 'graph-diagnostics:')) as $key) {
             $this->assertMatchesRegularExpression('/^graph-diagnostics:\d+:\d+:\d+$/', $key);
         }
     }
