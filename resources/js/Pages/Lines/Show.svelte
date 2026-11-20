@@ -1244,7 +1244,19 @@
             </SheetSection>
         {/if}
 
-        <ReportError type="line" slug={line.slug} name={line.name} />
+        <ReportError
+            type="line"
+            slug={line.slug}
+            name={line.name}
+            proposals={[
+                { href: `/contribute/event?line=${line.slug}`, label: t('proposals.sheet.event') },
+                { href: `/contribute/media?line=${line.slug}`, label: t('proposals.sheet.media') },
+                {
+                    href: `/contribute/material?line=${line.slug}`,
+                    label: t('proposals.sheet.material'),
+                },
+            ]}
+        />
     </main>
 </Layout>
 

@@ -522,7 +522,17 @@
             {/if}
         </SheetSection>
 
-        <ReportError type="station" slug={station.slug} name={station.name} />
+        <ReportError
+            type="station"
+            slug={station.slug}
+            name={station.name}
+            proposals={[
+                {
+                    href: `/contribute/media?station=${station.slug}`,
+                    label: t('proposals.sheet.media'),
+                },
+            ]}
+        />
     </main>
 </Layout>
 

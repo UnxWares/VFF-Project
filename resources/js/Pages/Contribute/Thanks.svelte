@@ -13,29 +13,47 @@
         readableUrl,
     } from '$components/Contribute/segmentChanges.js';
     import {
-        EVENT_TYPE,
+        LINE_MATERIAL_TYPE,
         MEDIA_TYPE,
-        eventFacts,
-        mediaFacts,
+        PROPOSAL_TYPES,
+        SERIES_TYPE,
+        proposalFacts,
     } from '$components/Contribute/proposals.js';
 
     let { contribution } = $props();
 
     const p = $derived(contribution.payload ?? {});
     const isTrace = $derived(contribution.type === 'line_trace');
-    const isEvent = $derived(contribution.type === EVENT_TYPE);
     const isMedia = $derived(contribution.type === MEDIA_TYPE);
+    const isLineMaterial = $derived(contribution.type === LINE_MATERIAL_TYPE);
+    const isSeries = $derived(contribution.type === SERIES_TYPE);
+    const isProposal = $derived(PROPOSAL_TYPES.includes(contribution.type));
+    /** Texte de la suite et formulaire « proposer un autre… », par type de proposition sourcée. */
+    const NEXT = {
+        line_event: {
+            moderation: 'event_moderation',
+            again: 'new_event',
+            href: '/contribute/event',
+        },
+        media: { moderation: 'media_moderation', again: 'new_media', href: '/contribute/media' },
+        line_material: {
+            moderation: 'line_material_moderation',
+            again: 'new_line_material',
+            href: '/contribute/material',
+        },
+        material_series: {
+            moderation: 'series_moderation',
+            again: 'new_series',
+            href: '/contribute/series',
+        },
+    };
+    const next = $derived(NEXT[contribution.type] ?? null);
     /** Traduction passée aux fonctions de segmentChanges.js. */
     const tr = (key, opts) => $i18n.t(key, opts);
     const changes = $derived(changeEntries(p.changes, tr, $i18n.language));
-    // Événement daté ou image : les faits proposés, comme les voient les validateurs.
-    const facts = $derived(
-        isEvent
-            ? eventFacts(p, tr, $i18n.language)
-            : isMedia
-              ? mediaFacts(p, tr, $i18n.language)
-              : [],
-    );
+    // Proposition sourcée (événement, image, matériel, série) : les faits proposés, comme les voient
+    // les validateurs (la ligne d'un lien de matériel est déjà dans ses faits).
+    const facts = $derived(isProposal ? proposalFacts(contribution, tr, $i18n.language) : []);
 </script>
 
 <svelte:head><title>{$i18n.t('editor.thanks.meta_title')} - VFF</title></svelte:head>
@@ -51,7 +69,7 @@
             <section class="recap-block" aria-labelledby="recap-title">
                 <h2 id="recap-title" class="vff-section-title">{$i18n.t('editor.thanks.recap')}</h2>
                 <dl class="recap">
-                    {#if !isMedia}
+                    {#if !isMedia && !isLineMaterial && !isSeries}
                         <div>
                             <dt>{$i18n.t('editor.thanks.line')}</dt>
                             <dd>
@@ -60,7 +78,7 @@
                             </dd>
                         </div>
                     {/if}
-                    {#if isEvent || isMedia}
+                    {#if isProposal}
                         {#each facts as fact (fact.id)}
                             <div>
                                 <dt>{fact.label}</dt>
@@ -166,26 +184,19 @@
                     {/if}
                 </dl>
                 {#if isTrace}<p class="moderation">{$i18n.t('editor.thanks.moderation')}</p>{/if}
-                {#if isEvent}<p class="moderation">
-                        {$i18n.t('proposals.thanks.event_moderation')}
-                    </p>{/if}
-                {#if isMedia}<p class="moderation">
-                        {$i18n.t('proposals.thanks.media_moderation')}
+                {#if next}<p class="moderation">
+                        {$i18n.t(`proposals.thanks.${next.moderation}`)}
                     </p>{/if}
             </section>
 
             <div class="actions">
-                {#if isEvent || isMedia}
+                {#if next}
                     <Link href="/contribute/mine" class="vff-btn primary"
                         ><i class="bi bi-list-check" aria-hidden="true"></i>
                         {$i18n.t('editor.thanks.mine')}</Link
                     >
-                    <Link
-                        href={isEvent ? '/contribute/event' : '/contribute/media'}
-                        class="vff-btn secondary"
-                        >{$i18n.t(
-                            isEvent ? 'proposals.thanks.new_event' : 'proposals.thanks.new_media',
-                        )}</Link
+                    <Link href={next.href} class="vff-btn secondary"
+                        >{$i18n.t(`proposals.thanks.${next.again}`)}</Link
                     >
                 {:else if isTrace}
                     <Link href="/contribute/mine" class="vff-btn primary"

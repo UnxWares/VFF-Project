@@ -15,14 +15,27 @@ enum PublicationFailure: string
     /** La ligne que corrige un tracé n'existe plus. */
     case LineNotFound = 'line_not_found';
 
-    /** La ligne, la gare ou l'événement auquel se rattache un événement ou un média n'existe plus. */
+    /**
+     * La fiche visée n'existe plus : ligne, gare ou événement d'un événement ou d'un média, ligne ou
+     * série d'un lien matériel, série à corriger.
+     */
     case TargetNotFound = 'target_not_found';
 
-    /** Le même fichier Commons est déjà rattaché à la même fiche (ajouté entre-temps). */
+    /**
+     * Déjà présent, ajouté entre-temps : le même fichier Commons sur la même fiche, ou une série du
+     * même nom ou du même identifiant Wikidata.
+     */
     case AlreadyPresent = 'already_present';
 
     /** Le fichier déposé n'est plus dans la réserve privée (retiré entre-temps). */
     case FileMissing = 'file_missing';
+
+    /**
+     * Le lien entre une série et une ligne contredit maintenant la règle d'écartement ou
+     * d'électrification (tronçons de la ligne ou fiche de la série changés depuis l'envoi), et la
+     * phrase citée ne suffit plus à le justifier.
+     */
+    case Incompatible = 'incompatible';
 
     /** Erreur inattendue (base de données, programme) : le détail est dans le journal. */
     case InternalError = 'internal_error';

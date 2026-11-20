@@ -168,8 +168,9 @@ final class MaterialPeriodCollector
     }
 
     /**
-     * Remplace les périodes en base par celles-ci (table `line_material_periods` seulement) ; une période
-     * dont l'empreinte n'a pas changé est gardée telle quelle.
+     * Remplace les périodes importées en base par celles-ci (table `line_material_periods` seulement) ; une
+     * période dont l'empreinte n'a pas changé est gardée telle quelle. Les périodes d'une autre source (une
+     * contribution validée, source `contrib`) ne sont jamais touchées.
      *
      * @param  array<string, array<string, mixed>>  $periods
      * @return array{created: int, updated: int, removed: int}
@@ -178,7 +179,7 @@ final class MaterialPeriodCollector
     {
         $stats = ['created' => 0, 'updated' => 0, 'removed' => 0];
         DB::transaction(function () use ($periods, &$stats): void {
-            $existing = LineMaterialPeriod::query()->get()->keyBy('fingerprint');
+            $existing = LineMaterialPeriod::query()->whereIn('source', LineMaterial::IMPORTED_SOURCES)->get()->keyBy('fingerprint');
             foreach ($periods as $fingerprint => $values) {
                 $row = $existing->pull($fingerprint);
                 if ($row === null) {
@@ -207,7 +208,7 @@ final class MaterialPeriodCollector
      */
     public static function diff(array $periods): array
     {
-        $existing = LineMaterialPeriod::query()->pluck('id', 'fingerprint')->all();
+        $existing = LineMaterialPeriod::query()->whereIn('source', LineMaterial::IMPORTED_SOURCES)->pluck('id', 'fingerprint')->all();
 
         return [
             'created' => array_values(array_diff(array_map('strval', array_keys($periods)), array_map('strval', array_keys($existing)))),

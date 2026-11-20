@@ -137,6 +137,7 @@ return [
         'revision' => 'version quoted',
         'license' => 'text licensed under CC BY-SA 4.0',
         'wikidata' => 'Wikidata, the line’s “rolling stock” property',
+        'contribution' => 'Approved contribution, source: :title',
     ],
     'confidence' => [
         'high' => [
@@ -146,6 +147,14 @@ return [
         'high_wikidata' => [
             'label' => 'Direct source',
             'text' => 'Stated in Wikidata.',
+        ],
+        'high_contribution' => [
+            'label' => 'Direct source',
+            'text' => 'Proposed by a contributor with their source, then reviewed by two validators.',
+        ],
+        'low_contribution' => [
+            'label' => 'To be confirmed',
+            'text' => 'Proposed by a contributor for an exceptional run, trials or a museum train: the series may never have run in service on this line.',
         ],
         'medium' => [
             'label' => 'Indirect source',

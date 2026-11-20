@@ -302,9 +302,10 @@ return [
                 'no_geometry' => 'Die Strecke hat zur Zeit dieses Beitrags keinen Verlauf. Es wurde nichts gespeichert.',
                 'line_not_found' => 'Die Strecke, die dieser Verlauf korrigiert, gibt es nicht mehr. Es wurde nichts gespeichert.',
                 'internal_error' => 'Unerwarteter Fehler, für das Team protokolliert. Es wurde nichts gespeichert.',
-                'target_not_found' => 'Die betroffene Strecke, der Bahnhof oder das Ereignis existiert nicht mehr. Es wurde nichts gespeichert.',
-                'already_present' => 'Diese Commons-Datei ist dieser Seite bereits zugeordnet. Es wurde nichts gespeichert.',
+                'target_not_found' => 'Die betroffene Strecke, der Bahnhof, das Ereignis oder die Baureihe existiert nicht mehr. Es wurde nichts gespeichert.',
+                'already_present' => 'Diese Commons-Datei ist dieser Seite bereits zugeordnet, oder diese Baureihe gibt es bereits. Es wurde nichts gespeichert.',
                 'file_missing' => 'Die hochgeladene Datei liegt nicht mehr im privaten Speicher. Es wurde nichts gespeichert.',
+                'incompatible' => 'Die Verbindung widerspricht jetzt der Regel zu Spurweite oder Elektrifizierung, und der zitierte Satz reicht nicht mehr aus. Es wurde nichts gespeichert.',
             ],
         ],
         'errors' => [

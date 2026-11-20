@@ -89,6 +89,11 @@
     .summary li {
         padding-block: 3px;
     }
+    /* Cible de 24 px au moins (WCAG 2.5.8), même pour un message court sur une ligne. */
+    .summary a {
+        display: inline-block;
+        padding-block: 3px;
+    }
     .actions {
         display: flex;
         flex-wrap: wrap;

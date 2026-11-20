@@ -10,10 +10,13 @@ use App\Http\Requests\SubmitSegmentContributionRequest;
 use App\Models\Contribution;
 use App\Models\Era;
 use App\Models\Line;
+use App\Models\Material;
 use App\Models\User;
 use App\Services\Contributions\ContributionReview;
 use App\Services\Contributions\ContributionSubmissions;
 use App\Services\Contributions\EventContributions;
+use App\Services\Contributions\LineMaterialContributions;
+use App\Services\Contributions\MaterialSeriesContributions;
 use App\Services\Contributions\MediaContributions;
 use App\Services\Contributions\PublicationFailure;
 use App\Services\Contributions\ReviewOutcome;
@@ -113,16 +116,17 @@ class ContributionController extends Controller
     /**
      * Dashboard validateurs - réservé aux rôles validator / admin.
      * Liste les contributions en attente (pending) ET partiellement approuvées
-     * (approved = 1 approbation sur 2) : segments PK, tracés, événements datés et médias.
+     * (approved = 1 approbation sur 2) : segments PK, tracés, événements datés, médias, matériel sur
+     * une ligne et séries de matériel.
      */
-    public function validateList(TraceContributionService $traces, EventContributions $events, MediaContributions $media, ReputationLevels $levels): Response
+    public function validateList(TraceContributionService $traces, EventContributions $events, MediaContributions $media, LineMaterialContributions $lineMaterials, ReputationLevels $levels): Response
     {
         $this->ensureValidator();
         $me = Auth::id();
 
         $pending = Contribution::query()
             ->whereIn('status', [ContributionStatus::Pending->value, ContributionStatus::Approved->value])
-            ->whereIn('type', ['line_segment', TraceContributionService::TYPE, EventContributions::TYPE, MediaContributions::TYPE])
+            ->whereIn('type', ['line_segment', TraceContributionService::TYPE, EventContributions::TYPE, MediaContributions::TYPE, LineMaterialContributions::TYPE, MaterialSeriesContributions::TYPE])
             ->with(['user:id,name,reputation_applied,reputation_rejected,reputation_reviews,suspended_at,suspended_until', 'target'])
             ->orderBy('created_at')
             ->limit(50)
@@ -135,7 +139,7 @@ class ContributionController extends Controller
 
         return Inertia::render('Validate/Index', [
             'threshold' => self::APPROVAL_THRESHOLD,
-            'contributions' => $pending->map(function ($c) use ($approvals, $me, $traces, $events, $media, $levels) {
+            'contributions' => $pending->map(function ($c) use ($approvals, $me, $traces, $events, $media, $lineMaterials, $levels) {
                 $mine = $approvals->get($c->id, collect());
                 $item = [
                     'id' => $c->id,
@@ -161,6 +165,12 @@ class ContributionController extends Controller
                         'code' => $c->target->code,
                         'network' => $c->target->network,
                     ] : null,
+                    // Série corrigée : sa fiche actuelle (la proposition garde aussi les valeurs « avant »).
+                    'material' => $c->target instanceof Material ? [
+                        'slug' => $c->target->slug,
+                        'name' => $c->target->name,
+                        'type' => $c->target->getRawOriginal('type'),
+                    ] : null,
                 ];
                 if ($c->type === 'line_segment') {
                     // « Avant » vivant : valeurs actuelles de la portion visée (peuvent avoir changé depuis la proposition).
@@ -169,6 +179,10 @@ class ContributionController extends Controller
                 if ($c->type === EventContributions::TYPE) {
                     // Événements déjà connus de la même famille sur la ligne : doublon ou contradiction visibles.
                     $item['similar_events'] = $events->similarEvents($c);
+                }
+                if ($c->type === LineMaterialContributions::TYPE) {
+                    // Liens déjà connus du couple et règle relue maintenant avec la phrase citée.
+                    $item['material_context'] = $lineMaterials->reviewContext($c);
                 }
                 if ($c->type === MediaContributions::TYPE) {
                     // Fichier déposé : lu par une adresse réservée à l'auteur et aux validateurs, jamais publique.

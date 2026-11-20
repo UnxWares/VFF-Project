@@ -47,7 +47,8 @@ class LineMaterialPeriodResource extends JsonResource
             'end_precision' => $this->end_precision,
             /**
              * Portion parcourue (`from`, `to`, lieux tels qu'écrits), quand le titre de section de l'article la
-             * nomme ; nulle sinon (la période vaut alors pour la ligne, sans précision de portion).
+             * nomme ou que le contributeur l'a donnée ; nulle sinon (la période vaut alors pour la ligne, sans
+             * précision de portion).
              *
              * @var array{from: string, to: string}|null
              */
@@ -62,16 +63,19 @@ class LineMaterialPeriodResource extends JsonResource
             /**
              * Où le fait a été lu : `line_article` (article Wikipédia de la ligne, phrase qui cite la série),
              * `material_article` (article de la série, phrase qui cite la ligne) ou `wikidata` (qualificatifs
-             * P580 et P582 de la déclaration P3438 de la ligne).
+             * P580 et P582 de la déclaration P3438 de la ligne) ou `contribution` (proposée par un contributeur,
+             * avec sa source, et validée par deux relecteurs).
              *
              * @example line_article
              */
             'origin' => $this->origin,
             /**
-             * Source citée : `title` (titre de l'article Wikipédia, ou élément Wikidata de la ligne),
-             * `revision` (révision lue, `oldid`, nulle pour Wikidata), `url` (permalien à citer).
+             * Source citée : `title` (titre de l'article Wikipédia, élément Wikidata de la ligne, ou titre et
+             * licence de la source d'une contribution), `revision` (révision lue, `oldid`, nulle pour Wikidata
+             * et les contributions), `url` (permalien à citer ; nulle seulement pour une contribution qui cite
+             * un ouvrage ou une archive papier par sa référence).
              *
-             * @var array{title: string|null, revision: int|null, url: string}
+             * @var array{title: string|null, revision: int|null, url: string|null}
              */
             'source' => [
                 'title' => $this->source_title,
@@ -80,7 +84,7 @@ class LineMaterialPeriodResource extends JsonResource
             ],
             /**
              * Fournisseur et licence de la source (`provider`, `name`, `license`, `license_status`) : Wikipédia
-             * (CC BY-SA 4.0, citer l'article avec le permalien) ou Wikidata (CC0).
+             * (CC BY-SA 4.0, citer l'article avec le permalien), Wikidata (CC0) ou VFF (contribution validée).
              *
              * @var array{provider: string|null, name: string|null, license: string|null, license_status: string|null}
              */

@@ -1,7 +1,9 @@
-// Propositions « événement daté » et « image » : contrôles des formulaires avant l'envoi et
-// affichage des propositions (Contribute/ProposeEvent, ProposeMedia, Thanks, Mine,
-// Validate/Index). Mêmes règles que le serveur (App\Services\Contributions\EventContributions,
-// MediaContributions) : le navigateur signale les erreurs tout de suite, le serveur reste juge.
+// Propositions « événement daté », « image », « matériel sur une ligne » et « série de matériel » :
+// contrôles des formulaires avant l'envoi et affichage des propositions (Contribute/ProposeEvent,
+// ProposeMedia, ProposeLineMaterial, ProposeSeries, Thanks, Mine, Validate/Index). Mêmes règles que le
+// serveur (App\Services\Contributions\EventContributions, MediaContributions,
+// LineMaterialContributions, MaterialSeriesContributions) : le navigateur signale les erreurs tout de
+// suite, le serveur reste juge.
 
 import { formatStationDate } from '$lib/stationDates.js';
 import { NBSP, formatLocale } from '$lib/typo.js';
@@ -9,6 +11,8 @@ import { formatPk } from './segmentChanges.js';
 
 export const EVENT_TYPE = 'line_event';
 export const MEDIA_TYPE = 'media';
+export const LINE_MATERIAL_TYPE = 'line_material';
+export const SERIES_TYPE = 'material_series';
 
 /** Première année acceptée pour une date (TraceContributionService::normalizeDate). */
 export const MIN_YEAR = 1750;
@@ -26,6 +30,9 @@ export const LIMITS = {
     title: [3, 250],
     caption: 800,
     author: [2, 200],
+    quote: [10, 600],
+    seriesName: [2, 120],
+    builder: [2, 255],
 };
 
 const pad = (n, size = 2) => String(n).padStart(size, '0');
@@ -122,8 +129,20 @@ export function eventErrors(f, t, now = new Date()) {
     }
     if (f.type === 'other' && !text(f.description))
         e.description = t('proposals.event.errors.description_other');
-    const title = text(f.source_title);
-    if (title.length < LIMITS.sourceTitle[0])
+    return { ...e, ...sourceErrors(f, t) };
+}
+
+/**
+ * Erreurs de la source d'une proposition (champs `source_*`, SourceCitation côté serveur) : titre
+ * ou référence, adresse sauf pour un ouvrage papier, licence d'un document numérisé.
+ * @param {{ source_kind: string, source_title: string, source_url: string|null, source_license: string|null }} f
+ * @param {(key: string, opts?: object) => any} t
+ * @returns {Record<string, string>}
+ */
+export function sourceErrors(f, t) {
+    /** @type {Record<string, string>} */
+    const e = {};
+    if (text(f.source_title).length < LIMITS.sourceTitle[0])
         e.source_title = t('proposals.event.errors.source_title');
     if (f.source_kind !== 'print' && !text(f.source_url))
         e.source_url = t('proposals.event.errors.source_url');
@@ -132,6 +151,102 @@ export function eventErrors(f, t, now = new Date()) {
     if (f.source_kind === 'document' && !f.source_license)
         e.source_license = t('proposals.event.errors.source_license');
     return e;
+}
+
+/**
+ * Erreurs du formulaire « Proposer un matériel sur une ligne », par champ (mêmes clés que le
+ * serveur). `quoteRequired` : le contrôle de compatibilité a trouvé un conflit avec une règle, la
+ * phrase de la source devient obligatoire.
+ * @param {object} f valeurs du formulaire (dates déjà composées, null sans date)
+ * @param {(key: string, opts?: object) => any} t
+ * @param {{ quoteRequired?: boolean, now?: Date }} [options]
+ * @returns {Record<string, string>}
+ */
+export function lineMaterialErrors(f, t, { quoteRequired = false, now = new Date() } = {}) {
+    /** @type {Record<string, string>} */
+    const e = {};
+    if (!f.line_slug) e.line_slug = t('proposals.errors.line_required');
+    if (!f.material_slug) e.material_slug = t('proposals.errors.material_required');
+    for (const bound of ['start', 'end']) {
+        const precision = f[`${bound}_precision`];
+        if (precision && !isValidDate(f[`${bound}_date`], precision, now))
+            e[`${bound}_date`] = t('editor.errors.bad_date');
+    }
+    if (!e.start_date && !e.end_date && f.start_date && f.end_date) {
+        if (paddedDate(f.end_date) < paddedDate(f.start_date))
+            e.end_date = t('proposals.line_material.errors.end_before_start');
+    }
+    const [from, to] = [text(f.section_from), text(f.section_to)];
+    if (from || to) {
+        if (!from || !to) e.section_to = t('proposals.event.errors.places');
+        else if (from.toLowerCase() === to.toLowerCase())
+            e.section_to = t('proposals.event.errors.places_same');
+        else if (!f.start_date && !f.end_date)
+            e.start_date = t('proposals.line_material.errors.section_without_date');
+    }
+    const quote = text(f.quote);
+    if (quote && (quote.length < LIMITS.quote[0] || quote.length > LIMITS.quote[1]))
+        e.quote = t('proposals.line_material.errors.quote_length', {
+            min: LIMITS.quote[0],
+            max: LIMITS.quote[1],
+        });
+    else if (!quote && quoteRequired) e.quote = t('proposals.line_material.errors.quote_required');
+    return { ...e, ...sourceErrors(f, t) };
+}
+
+/** Date au jour, au mois ou à l'année ramenée au premier jour, pour comparer deux bornes. */
+function paddedDate(value) {
+    const [y, m = '01', d = '01'] = String(value).split('-');
+    return `${y}-${m}-${d}`;
+}
+
+/**
+ * Identifiant « Q123 » d'une saisie Wikidata (identifiant seul ou adresse d'un élément), null si
+ * la saisie n'en désigne pas (même lecture que WikidataItemResolver::normalize côté serveur).
+ * @param {string|null} input
+ */
+export function normalizeQid(input) {
+    let value = text(input);
+    const url =
+        /^https?:\/\/(?:www\.|m\.)?wikidata\.org\/(?:wiki\/(?:Special:EntityPage\/)?|entity\/)(Q\d+)(?:[#?].*)?$/i.exec(
+            value,
+        );
+    if (url) value = url[1];
+    value = value.toUpperCase();
+    return /^Q[1-9]\d{0,11}$/.test(value) ? value : null;
+}
+
+/**
+ * Erreurs du formulaire « Proposer une série », par champ.
+ * @param {object} f valeurs du formulaire
+ * @param {(key: string, opts?: object) => any} t
+ * @param {{ minYear?: number, now?: Date }} [options]
+ * @returns {Record<string, string>}
+ */
+export function seriesErrors(f, t, { minYear = 1800, now = new Date() } = {}) {
+    /** @type {Record<string, string>} */
+    const e = {};
+    if (f.mode === 'correction' && !f.material_slug)
+        e.material_slug = t('proposals.series.errors.material');
+    if (f.mode === 'new') {
+        if (text(f.name).length < LIMITS.seriesName[0]) e.name = t('proposals.series.errors.name');
+        if (!f.type) e.type = t('proposals.series.errors.type');
+    }
+    const maxYear = now.getFullYear() + 30;
+    const years = {};
+    for (const key of ['in_service_from', 'in_service_to']) {
+        const raw = text(f[key]);
+        if (!raw) continue;
+        const year = Number(raw);
+        if (!/^\d{4}$/.test(raw) || year < minYear || year > maxYear)
+            e[key] = t('proposals.series.errors.year', { min: minYear });
+        else years[key] = year;
+    }
+    if (years.in_service_from && years.in_service_to && years.in_service_to < years.in_service_from)
+        e.in_service_to = t('proposals.series.errors.years_order');
+    if (text(f.wikidata_id) && !normalizeQid(f.wikidata_id))
+        e.wikidata_id = t('proposals.series.errors.qid_format');
+    return { ...e, ...sourceErrors(f, t) };
 }
 
 /**
@@ -475,5 +590,187 @@ export function removedMetadataText(kinds, t) {
  * @param {object} p charge utile
  */
 export function proposalHeading(p) {
-    return p.line_name ?? p.station_name ?? p.title ?? p.commons?.title ?? '';
+    return p.line_name ?? p.station_name ?? p.material_name ?? p.title ?? p.commons?.title ?? '';
 }
+
+/**
+ * Source d'une proposition en fait affichable : titre (lien vers l'adresse quand il y en a une),
+ * nature et licence en complément.
+ * @param {{ kind?: string, title?: string, url?: string|null, license?: string|null }|null} source
+ * @param {(key: string, opts?: object) => any} t
+ */
+export function sourceFact(source, t) {
+    const s = source ?? {};
+    const note = [
+        s.kind ? translated(t, `proposals.event.source_kinds.${s.kind}`, s.kind) : null,
+        s.license ? translated(t, `proposals.licenses.${s.license}`, s.license) : null,
+    ].filter(Boolean);
+    return {
+        id: 'source',
+        label: t('proposals.review.source'),
+        text: s.title ?? '',
+        href: isWebUrl(s.url) ? s.url : null,
+        note: note.join(', ') || null,
+    };
+}
+
+/**
+ * Faits d'une proposition « matériel sur une ligne » : série, ligne, circulation, début et fin de
+ * la période, portion parcourue, source, phrase citée.
+ * @param {object} p charge utile
+ * @param {(key: string, opts?: object) => any} t
+ * @param {string} lang
+ */
+export function lineMaterialFacts(p, t, lang) {
+    const period = p.period ?? null;
+    const date = (bound) =>
+        bound ? (formatStationDate(bound.date, bound.precision, null, t, lang) ?? '') : null;
+    return [
+        { id: 'series', label: t('proposals.review.series'), text: p.material_name ?? '' },
+        {
+            id: 'line',
+            label: t('proposals.review.line'),
+            text: [p.line_name, p.line_code].filter(Boolean).join(' '),
+        },
+        {
+            id: 'circulation',
+            label: t('proposals.review.circulation'),
+            text: translated(
+                t,
+                `proposals.line_material.circulations.${p.circulation}`,
+                p.circulation ?? '',
+            ),
+        },
+        period?.start && {
+            id: 'start',
+            label: t('proposals.review.start'),
+            text: date(period.start),
+        },
+        period?.end && { id: 'end', label: t('proposals.review.end'), text: date(period.end) },
+        period?.from && {
+            id: 'section',
+            label: t('proposals.review.section'),
+            text: t('proposals.review.places_range', { from: period.from, to: period.to }),
+        },
+        sourceFact(p.source, t),
+        p.quote && { id: 'quote', label: t('proposals.review.quote'), text: p.quote },
+    ].filter(Boolean);
+}
+
+/**
+ * Valeur d'un champ de série en clair : catégorie, écartement, systèmes d'électrification.
+ * @param {string} field
+ * @param {any} value
+ * @param {(key: string, opts?: object) => any} t
+ */
+export function seriesValueText(field, value, t) {
+    if (
+        value === null ||
+        value === undefined ||
+        value === '' ||
+        (Array.isArray(value) && !value.length)
+    )
+        return t('proposals.series.none');
+    if (field === 'type') return translated(t, `materials.type.${value}`, value);
+    if (field === 'gauge_mm')
+        return translated(t, `proposals.series.gauges.${value}`, `${value} mm`);
+    if (field === 'electrification')
+        return value.map((k) => translated(t, `proposals.series.systems.${k}`, k)).join(', ');
+    return String(value);
+}
+
+/** Ordre d'affichage des champs d'une série (MaterialSeriesContributions::FIELDS). */
+export const SERIES_FIELDS = [
+    'name',
+    'type',
+    'builder',
+    'in_service_from',
+    'in_service_to',
+    'gauge_mm',
+    'electrification',
+    'wikidata_id',
+];
+
+/**
+ * Lignes « champ, avant, après » d'une proposition de série : les valeurs données pour une
+ * nouvelle série (avant vide), les changements d'une correction.
+ * @param {object} p charge utile
+ * @param {(key: string, opts?: object) => any} t
+ * @returns {{ field: string, label: string, before: string|null, after: string }[]}
+ */
+export function seriesChanges(p, t) {
+    const isNew = p.mode === 'new';
+    const source = isNew ? (p.values ?? {}) : (p.changes ?? {});
+    return SERIES_FIELDS.filter((f) => source[f] !== undefined).map((field) => ({
+        field,
+        label: t(`proposals.review.fields.${field}`),
+        before: isNew ? null : seriesValueText(field, source[field].before, t),
+        after: seriesValueText(field, isNew ? source[field] : source[field].after, t),
+    }));
+}
+
+/**
+ * Faits d'une proposition de série : nature (nouvelle série, correction), série, élément Wikidata
+ * vérifié, source. Les valeurs proposées sont dans seriesChanges().
+ * @param {object} p charge utile
+ * @param {(key: string, opts?: object) => any} t
+ */
+export function seriesFacts(p, t) {
+    return [
+        {
+            id: 'mode',
+            label: t('proposals.review.mode'),
+            text: t(
+                p.mode === 'new'
+                    ? 'proposals.review.kind_series_new'
+                    : 'proposals.review.kind_series_correction',
+            ),
+        },
+        { id: 'series', label: t('proposals.review.series'), text: p.material_name ?? '' },
+        p.wikidata?.id && {
+            id: 'wikidata',
+            label: t('proposals.review.wikidata_item'),
+            text: [p.wikidata.id, p.wikidata.label].filter(Boolean).join(', '),
+            href: `https://www.wikidata.org/wiki/${p.wikidata.id}`,
+            note: p.wikidata.description ?? null,
+        },
+        sourceFact(p.source, t),
+    ].filter(Boolean);
+}
+
+/**
+ * Clé du libellé de la nature d'une proposition (espace de validation, « Mes contributions »).
+ * @param {{ type: string, payload?: any }} c
+ */
+export function proposalKindKey(c) {
+    const p = c.payload ?? {};
+    if (c.type === EVENT_TYPE) return 'proposals.review.kind_event';
+    if (c.type === MEDIA_TYPE)
+        return p.source === 'commons'
+            ? 'proposals.review.kind_media_commons'
+            : 'proposals.review.kind_media_upload';
+    if (c.type === LINE_MATERIAL_TYPE) return 'proposals.review.kind_line_material';
+    if (c.type === SERIES_TYPE)
+        return p.mode === 'new'
+            ? 'proposals.review.kind_series_new'
+            : 'proposals.review.kind_series_correction';
+    return null;
+}
+
+/**
+ * Faits d'une proposition sourcée selon son type (événement, image, matériel, série).
+ * @param {{ type: string, payload?: any }} c
+ * @param {(key: string, opts?: object) => any} t
+ * @param {string} lang
+ */
+export function proposalFacts(c, t, lang) {
+    const p = c.payload ?? {};
+    if (c.type === EVENT_TYPE) return eventFacts(p, t, lang);
+    if (c.type === MEDIA_TYPE) return mediaFacts(p, t, lang);
+    if (c.type === LINE_MATERIAL_TYPE) return lineMaterialFacts(p, t, lang);
+    if (c.type === SERIES_TYPE) return seriesFacts(p, t);
+    return [];
+}
+
+/** Types de proposition sourcée relus par ProposalReview. */
+export const PROPOSAL_TYPES = [EVENT_TYPE, MEDIA_TYPE, LINE_MATERIAL_TYPE, SERIES_TYPE];

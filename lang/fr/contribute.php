@@ -12,7 +12,7 @@ return [
     'ways' => [
         'title' => 'Trois façons de contribuer',
         'data_title' => 'Documenter des lignes',
-        'data_text' => 'Après inscription, vous pouvez retracer une ligne ou une portion de ligne et dater chaque événement (ouverture, fermeture, dépose) en citant vos sources. Deux validateurs relisent chaque proposition avant publication.',
+        'data_text' => 'Après inscription, vous pouvez retracer une ligne ou une portion de ligne et dater chaque événement (ouverture, fermeture, dépose), ou dire quel matériel a roulé sur une ligne, en citant vos sources. Deux validateurs relisent chaque proposition avant publication.',
         'data_status' => 'Un compte est nécessaire',
 
         'media_title' => 'Apporter des médias d’archives',

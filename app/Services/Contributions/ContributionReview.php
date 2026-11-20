@@ -7,6 +7,7 @@ use App\Enums\ContributionStatus;
 use App\Models\Contribution;
 use App\Models\Era;
 use App\Models\Line;
+use App\Models\Material;
 use App\Models\User;
 use App\Services\AuditLog;
 use App\Services\Notifications\ContributionNotifier;
@@ -20,7 +21,9 @@ use Illuminate\Support\Facades\DB;
  * (ContributionController) et à l'API GraphQL (`validateContribution`).
  *
  * Publication selon le type : tracé (TraceContributionService), événement daté
- * (EventContributions), média (MediaContributions), sinon modification par PK (applySegment).
+ * (EventContributions), média (MediaContributions), matériel sur une ligne
+ * (LineMaterialContributions), série de matériel (MaterialSeriesContributions), sinon modification
+ * par PK (applySegment).
  *
  * Règles : deux approbations indépendantes publient la contribution ; un validateur ne relit pas sa
  * propre contribution et n'approuve pas deux fois ; une contribution refusée ou publiée ne se relit
@@ -45,6 +48,8 @@ final readonly class ContributionReview
         private TraceContributionService $traces,
         private EventContributions $events,
         private MediaContributions $media,
+        private LineMaterialContributions $lineMaterials,
+        private MaterialSeriesContributions $series,
         private AuditLog $audit,
         private ContributionNotifier $notifier,
         private ReputationCalculator $reputation,
@@ -205,7 +210,7 @@ final readonly class ContributionReview
     /**
      * Publie la contribution selon son type, dans la transaction de l'approbation, et rend les
      * colonnes à mettre à jour en plus du statut : le résultat de la publication (`applied`) et,
-     * pour un tracé, la ligne créée ou corrigée qui devient sa cible.
+     * pour un tracé ou une série, la fiche créée ou corrigée qui devient sa cible.
      *
      * @return array{payload?: array<string, mixed>, target_type?: class-string, target_id?: int}
      *
@@ -217,6 +222,8 @@ final readonly class ContributionReview
             TraceContributionService::TYPE => $this->traces->apply($contribution),
             EventContributions::TYPE => $this->events->apply($contribution),
             MediaContributions::TYPE => $this->media->apply($contribution),
+            LineMaterialContributions::TYPE => $this->lineMaterials->apply($contribution),
+            MaterialSeriesContributions::TYPE => $this->series->apply($contribution),
             default => null,
         };
         if ($result === null) {
@@ -228,6 +235,10 @@ final readonly class ContributionReview
         $update = ['payload' => [...$contribution->payload, 'applied' => $result + ['at' => now()->toIso8601String()]]];
         if ($contribution->type === TraceContributionService::TYPE) {
             $update += ['target_type' => Line::class, 'target_id' => $result['line_id']];
+        }
+        if ($contribution->type === MaterialSeriesContributions::TYPE) {
+            // Nouvelle série : la fiche créée devient la cible de la contribution.
+            $update += ['target_type' => Material::class, 'target_id' => $result['material_id']];
         }
 
         return $update;

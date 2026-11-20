@@ -15,6 +15,12 @@ réputation, journal d'audit, notifications ; webhook `contribution.applied` par
 | `line_trace` | `/contribute/trace` | `TraceContributionService` | `source_traces` et `line_events` (source `contrib`, portion = tracé dessiné) |
 | `line_event` | `/contribute/event` | `EventContributions` | une ligne de `line_events` |
 | `media` | `/contribute/media` | `MediaContributions` | une ligne de `media` (et le fichier déposé dans le disque public) |
+| `line_material` | `/contribute/material` | `LineMaterialContributions` | un lien de `line_materials` (source `contrib`) et, s'il y a des dates, une période de `line_material_periods` |
+| `material_series` | `/contribute/series` | `MaterialSeriesContributions` | une série créée ou corrigée dans `materials` |
+
+La source (nature, titre ou référence, adresse sauf pour un ouvrage papier, licence d'un document
+numérisé) suit les mêmes règles pour les événements, le matériel et les séries
+(`SourceCitation`).
 
 ## Événement daté (`line_event`)
 
@@ -85,9 +91,82 @@ l'API (`/api/v1/media`), les fiches ne les montrent pas encore.
 Pas de miniature générée : l'image PHP du projet n'a pas d'extension graphique. Les galeries
 reçoivent le fichier entier (10 Mo au plus).
 
+## Matériel sur une ligne (`line_material`)
+
+Saisie : ligne et série existantes (recherche du site), nature de la circulation (`regular` service
+régulier, `occasional` circulation exceptionnelle, `trial` essais, `heritage` train de musée ou
+touristique), période de service facultative (début et fin, chacun à sa précision `day`, `month`,
+`year`, ou inconnu), portion parcourue facultative (deux lieux, avec une date), source obligatoire,
+phrase de la source (`quote`, 10 à 600 caractères), note pour les validateurs. Les fiches ligne
+(« Proposer un matériel ») et série (« Proposer une ligne où cette série a circulé ») ouvrent le
+formulaire avec la fiche choisie (`?line=<slug>`, `?material=<slug>`).
+
+Règles d'écartement et d'électrification, les mêmes que l'import (`MaterialGaugeRule`,
+`MaterialTractionRule`, exceptions relues comprises) :
+
+- un lien compatible (ou que les règles ne jugent pas) passe ;
+- un lien incompatible est refusé, avec un message qui donne les chiffres (écartement de la série
+  et de la ligne, ou tensions de la série et part de la ligne électrifiée) ;
+- il passe quand même si `quote` cite une phrase de la source qui nomme l'écartement (« voie
+  normale », « 1 435 mm ») ou la tension de la série (« 750 V ») : c'est la preuve qu'accepte
+  déjà la règle pour un lien importé. Pour une série électrique, seule une circulation régulière
+  lève le conflit. La charge utile garde alors `exception` (`rule`, `reason`), que l'espace de
+  validation affiche en tête de la proposition. Exemple : les Z 1200 sur la ligne des Moulineaux
+  (972000), électrifiée par troisième rail en 750 V, que VFF ne connaît pas.
+
+Le formulaire contrôle le couple dès que la ligne et la série sont choisies
+(`GET /contribute/material/check?line=…&material=…`, 30 par minute) : conflit, lien déjà connu,
+exclusion relue de `database/data/line_material_exclusions.php` (signalée, pas bloquante).
+
+Doublons : un lien déjà sûr (`high` ou `medium`, toutes sources) n'est accepté qu'avec une
+période ; la même proposition (couple et période) en attente est refusée.
+
+À la publication (`LineMaterialContributions::apply`) :
+
+- `line_materials` : un lien `source` = `contrib` par couple ligne × série, à côté des liens
+  importés, que l'import ne touche jamais. Chaque contribution y ajoute une preuve `kind` =
+  `contribution` (`contribution` = `contribution:<id>`, `title`, `source_kind`, `license`, `quote`,
+  `doubt`, `url`). Fiabilité : `high` dès qu'une preuve déclare un service régulier, sinon `low`
+  (familles de doute `one_off`, `trial`, `preserved`, comme `LineMaterialLinker`) ;
+- `line_material_periods` : la période, empreinte `contribution:<id>`, `origin` = `contribution`,
+  `source` = `contrib`, `source_title` (référence et licence), `source_url` (nulle pour un ouvrage
+  papier), fiabilité `high` (jour ou mois), `medium` (une année) ou `low` (circulation douteuse,
+  jamais montrée) ;
+- la règle est relue avec la phrase citée : un lien devenu incompatible entre-temps échoue
+  (`incompatible`).
+
+Aucun import n'est relancé. `vff:import-material-periods` ne remplace plus que les périodes des
+sources importées (`wikidata`, `wikipedia`) et garde celles des contributions. Les fiches ligne et
+série montrent une série ou une ligne une seule fois même si plusieurs sources les relient.
+
+## Série de matériel (`material_series`)
+
+Deux modes : `new` (série absente de VFF) et `correction` (`material_slug`, formulaire prérempli
+avec les valeurs actuelles : `/contribute/series?material=<slug>`). Champs : nom, catégorie
+(`MaterialType`, qui dit la traction), systèmes d'électrification (liste fermée
+`MaterialSeriesContributions::ELECTRIFICATION`, mêmes libellés et éléments Wikidata que l'import),
+écartement (1 435, 1 000, 600, 1 668 ou 1 520 mm), constructeurs, années de mise en service et de
+retrait, identifiant Wikidata facultatif, source obligatoire.
+
+- L'identifiant Wikidata est vérifié (`WikidataItemResolver` : une requête `wbgetentities`,
+  User-Agent générique, 10 s, cache d'une heure) : un élément inconnu est refusé, un élément
+  fusionné prend son identifiant final, Wikidata injoignable donne un message clair. Bouton
+  « Vérifier » : `GET /contribute/series/wikidata?qid=…` (30 par minute).
+- Doublons : une série de même identifiant Wikidata ou de même nom (casse et accents ignorés) est
+  refusée, avec l'invitation à corriger sa fiche ; une proposition semblable en attente aussi.
+- Correction : seuls les champs qui changent sont gardés (`changes` : `before`, `after`) ; un champ
+  vide ne change rien (pour retirer une valeur, « Signaler une erreur »).
+
+À la publication (`MaterialSeriesContributions::apply`), la série est créée (`source` = `contrib`,
+adresse tirée du nom) ou corrigée ; chaque champ écrit prend la provenance `{source: contrib, ref:
+contribution:<id>, url}`. `MaterialImporter` ne remplace jamais un champ dont la provenance n'est
+pas importée : une valeur validée reste. La série créée devient la cible de la contribution.
+
 ## Raisons d'échec d'une publication
 
 `PublicationFailure` (montrée au validateur, `extensions.reason` dans l'API) : `no_geometry`,
-`line_not_found`, `target_not_found` (ligne, gare ou événement disparu), `already_present` (fichier
-Commons rattaché entre-temps à la même fiche), `file_missing` (fichier déposé absent de la réserve
-privée), `internal_error`. Rien n'est écrit et l'approbation est annulée.
+`line_not_found`, `target_not_found` (ligne, gare, événement ou série disparu), `already_present` (fichier
+Commons rattaché entre-temps à la même fiche, ou série de même nom ou de même identifiant Wikidata
+ajoutée entre-temps), `file_missing` (fichier déposé absent de la réserve privée), `incompatible`
+(lien de matériel devenu contraire à la règle d'écartement ou d'électrification), `internal_error`.
+Rien n'est écrit et l'approbation est annulée.

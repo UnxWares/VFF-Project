@@ -58,11 +58,13 @@ final class MaterialGaugeRule
      * Règle chargée depuis la base : profils d'écartement des lignes, écartement des séries, exceptions.
      *
      * @param  list<array{line: string, material: string, source: string, reason: string}>|null  $exceptions  null : le fichier de données
+     * @param  int|null  $lineId  une seule ligne (contrôle d'une proposition), null : toutes
      */
-    public static function fromDatabase(?array $exceptions = null): self
+    public static function fromDatabase(?array $exceptions = null, ?int $lineId = null): self
     {
         $profiles = [];
         $rows = DB::table('line_segments')->whereNotNull('gauge_mm')
+            ->when($lineId !== null, fn ($q) => $q->where('line_id', $lineId))
             ->groupBy('line_id', 'gauge_mm')
             ->selectRaw('line_id, gauge_mm, SUM(COALESCE(length_meters, ST_Length(geom::geography))) AS meters')
             ->get();
@@ -84,6 +86,25 @@ final class MaterialGaugeRule
      */
     public function conflict(int $lineId, int $materialId, array $evidence = []): ?string
     {
+        $details = $this->details($lineId, $materialId, $evidence);
+        if ($details === null) {
+            return null;
+        }
+        $mm = fn (int $width): string => number_format($width, 0, ',', ' ').' mm';
+
+        return sprintf('série à %s, ligne surtout à %s (%d %% de sa longueur à %s)', $mm($details['series_mm']), $mm($details['line_mm']), $details['share'], $mm($details['series_mm']));
+    }
+
+    /**
+     * Le conflit en chiffres, ou null si le lien est compatible (ou non jugé) : écartement de la série,
+     * écartement principal de la ligne, part de la ligne à l'écartement de la série (pour cent, arrondi).
+     * Sert au motif de conflict() et aux messages traduits du formulaire de contribution.
+     *
+     * @param  list<array<string, mixed>>  $evidence  preuves du lien (phrases citées)
+     * @return array{series_mm: int, line_mm: int, share: int}|null
+     */
+    public function details(int $lineId, int $materialId, array $evidence = []): ?array
+    {
         $gauge = $this->materialGauges[$materialId] ?? null;
         $profile = $this->profiles[$lineId] ?? [];
         $total = array_sum($profile);
@@ -100,11 +121,8 @@ final class MaterialGaugeRule
             }
         }
         arsort($profile);
-        $main = array_key_first($profile);
 
-        $mm = fn (int $width): string => number_format($width, 0, ',', ' ').' mm';
-
-        return sprintf('série à %s, ligne surtout à %s (%d %% de sa longueur à %s)', $mm($gauge), $mm((int) $main), (int) round($share * 100), $mm($gauge));
+        return ['series_mm' => $gauge, 'line_mm' => (int) array_key_first($profile), 'share' => (int) round($share * 100)];
     }
 
     /** La phrase nomme-t-elle cet écartement (« voie normale », « 1 435 mm ») ? */

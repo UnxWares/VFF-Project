@@ -129,7 +129,7 @@ class EventMediaContributionMutationsTest extends TestCase
         $this->submit($token, ['event' => $this->event(['line_slug' => 'inconnue'])])
             ->assertGraphQLValidationKeys(['input.event.line_slug']);
         $this->submit($token, ['event' => $this->event(), 'media' => ['source' => 'commons', 'target_type' => 'line']])
-            ->assertGraphQLValidationError('input', 'Provide exactly one of "segment", "trace", "event" or "media".');
+            ->assertGraphQLValidationError('input', 'Provide exactly one of "segment", "trace", "event", "media", "line_material" or "series".');
         $this->assertSame(0, Contribution::count());
     }
 

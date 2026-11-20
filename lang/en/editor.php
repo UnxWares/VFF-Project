@@ -302,9 +302,10 @@ return [
                 'no_geometry' => 'the line has no route at the time of this contribution. Nothing was written.',
                 'line_not_found' => 'the line this route corrects no longer exists. Nothing was written.',
                 'internal_error' => 'unexpected error, logged for the team. Nothing was written.',
-                'target_not_found' => 'the line, station or event concerned no longer exists. Nothing was written.',
-                'already_present' => 'this Commons file is already attached to this page. Nothing was written.',
+                'target_not_found' => 'the line, station, event or series concerned no longer exists. Nothing was written.',
+                'already_present' => 'this Commons file is already attached to this page, or this series already exists. Nothing was written.',
                 'file_missing' => 'the uploaded file is no longer in the private store. Nothing was written.',
+                'incompatible' => 'the link now goes against the gauge or electrification rule, and the quoted sentence is no longer enough. Nothing was written.',
             ],
         ],
         'errors' => [

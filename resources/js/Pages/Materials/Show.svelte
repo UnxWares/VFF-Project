@@ -255,10 +255,10 @@
                 <ul>
                     {#each l.periods as p, i (i)}
                         <li>
-                            {periodText(p, t, formatLocale(lang))}
-                            (<a href={p.source_url} target="_blank" rel="noopener noreferrer"
-                                >{t('materials.periods.source')}{@render ext()}</a
-                            >)
+                            {periodText(p, t, formatLocale(lang))}{#if p.source_url}
+                                (<a href={p.source_url} target="_blank" rel="noopener noreferrer"
+                                    >{t('materials.periods.source')}{@render ext()}</a
+                                >){/if}
                         </li>
                     {/each}
                 </ul>
@@ -274,6 +274,17 @@
                 <a href={l.source_url} target="_blank" rel="noopener noreferrer"
                     >{t('materials.section_lines.wikidata')}{@render ext()}</a
                 >
+            {:else if l.kind === 'contribution'}
+                {#if l.source_url}<a
+                        href={l.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        >{t('materials.section_lines.contribution', {
+                            title: l.source_title ?? '',
+                        })}{@render ext()}</a
+                    >{:else}{t('materials.section_lines.contribution', {
+                        title: l.source_title ?? '',
+                    })}{/if}
             {:else}
                 {#each citeParts(l) as part, i (i)}{i > 0 ? ', ' : ''}{#if part.href}<a
                             href={part.href}
@@ -459,14 +470,30 @@
                 {/if}
             {:else}
                 <EmptyState icon="bi-bezier2" title={t('materials.no_lines')}>
-                    <Link class="vff-btn secondary small" href="/contribute"
+                    <Link
+                        class="vff-btn secondary small"
+                        href="/contribute/material?material={material.slug}"
                         >{t('materials.contribute')}</Link
                     >
                 </EmptyState>
             {/if}
         </SheetSection>
 
-        <ReportError type="material" slug={material.slug} name={material.name} />
+        <ReportError
+            type="material"
+            slug={material.slug}
+            name={material.name}
+            proposals={[
+                {
+                    href: `/contribute/material?material=${material.slug}`,
+                    label: t('proposals.sheet.material_line'),
+                },
+                {
+                    href: `/contribute/series?material=${material.slug}`,
+                    label: t('proposals.sheet.series'),
+                },
+            ]}
+        />
     </main>
 </Layout>
 

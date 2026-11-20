@@ -2,7 +2,6 @@
 
 namespace App\Services\Contributions;
 
-use App\Enums\ContentLicense;
 use App\Enums\LineEventType;
 use App\Models\Contribution;
 use App\Models\Line;
@@ -38,7 +37,7 @@ final readonly class EventContributions
     public const PORTIONS = ['whole', 'places', 'pk'];
 
     /** Nature de la source : page web, document numérisé (avec sa licence), ouvrage ou archive papier. */
-    public const SOURCE_KINDS = ['web', 'document', 'print'];
+    public const SOURCE_KINDS = SourceCitation::KINDS;
 
     /** Valeurs admises par line_events (contraintes line_events_reuse_check et line_events_heritage_kind_check). */
     public const REUSES = ['greenway', 'road', 'path', 'urban', 'other'];
@@ -87,10 +86,7 @@ final readonly class EventContributions
             'reuse' => ['exclude_unless:type,conversion', 'nullable', 'string', Rule::in(self::REUSES)],
             'heritage_kind' => ['exclude_unless:type,heritage_start,heritage_end', 'nullable', 'string', Rule::in(self::HERITAGE_KINDS)],
             'description' => ['nullable', 'required_if:type,other', 'string', 'max:300'],
-            'source_kind' => ['required', 'string', Rule::in(self::SOURCE_KINDS)],
-            'source_title' => ['required', 'string', 'min:3', 'max:300'],
-            'source_url' => ['nullable', 'required_unless:source_kind,print', 'url:http,https', 'max:500'],
-            'source_license' => ['exclude_unless:source_kind,document', 'required', 'string', Rule::enum(ContentLicense::class)],
+            ...SourceCitation::rules(),
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }
@@ -110,11 +106,7 @@ final readonly class EventContributions
             'pk_end_m.required' => __('proposals.event.errors.pk'),
             'pk_end_m.gt' => __('proposals.event.errors.pk_order'),
             'description.required_if' => __('proposals.event.errors.description_other'),
-            'source_title.required' => __('proposals.event.errors.source_title'),
-            'source_title.min' => __('proposals.event.errors.source_title'),
-            'source_url.required_unless' => __('proposals.event.errors.source_url'),
-            'source_url.url' => __('editor.errors.bad_url'),
-            'source_license.required' => __('proposals.event.errors.source_license'),
+            ...SourceCitation::messages(),
         ];
     }
 
@@ -152,12 +144,7 @@ final readonly class EventContributions
                 'reuse' => $data['reuse'] ?? null,
                 'heritage_kind' => $data['heritage_kind'] ?? null,
                 'description' => self::clean($data['description'] ?? null),
-                'source' => [
-                    'kind' => $data['source_kind'],
-                    'title' => self::clean($data['source_title']),
-                    'url' => self::clean($data['source_url'] ?? null),
-                    'license' => $data['source_license'] ?? null,
-                ],
+                'source' => SourceCitation::fromInput($data),
                 'notes' => self::trimmed($data['notes'] ?? null),
             ],
         ];
@@ -187,7 +174,7 @@ final readonly class EventContributions
             'description' => self::description($p, $contribution->id),
             'source' => self::SOURCE,
             'source_url' => $p['source']['url'] ?? null,
-            'source_quote' => self::sourceQuote($p['source'] ?? []),
+            'source_quote' => SourceCitation::reference($p['source'] ?? []),
             'confidence' => 'high',
             'section_from' => $portion['from'] ?? null,
             'section_to' => $portion['to'] ?? null,
@@ -291,42 +278,19 @@ final readonly class EventContributions
         return Str::limit($label.$where.$detail, 900, '…')." (contribution n° {$contributionId})";
     }
 
-    /**
-     * Référence de la source, gardée dans line_events.source_quote : son titre et, pour un
-     * document, sa licence.
-     *
-     * @param  array<string, mixed>  $source
-     */
-    private static function sourceQuote(array $source): ?string
-    {
-        $title = $source['title'] ?? null;
-        if ($title === null) {
-            return null;
-        }
-        $license = ContentLicense::tryFrom((string) ($source['license'] ?? ''));
-
-        return $license !== null ? "{$title} (licence : {$license->label()})" : $title;
-    }
-
     /** PK en kilomètres et mètres : 12345 → « 12+345 ». */
     private static function pk(int $meters): string
     {
         return sprintf('%d+%03d', intdiv($meters, 1000), $meters % 1000);
     }
 
-    /** Texte d'une ligne : espaces de début et de fin retirés, blancs intérieurs réduits à un seul. */
     private static function clean(mixed $value): ?string
     {
-        $text = is_string($value) ? trim((string) preg_replace('/\s+/u', ' ', $value)) : '';
-
-        return $text === '' ? null : $text;
+        return SourceCitation::clean($value);
     }
 
-    /** Texte libre sur plusieurs lignes : seulement les blancs de début et de fin retirés. */
     private static function trimmed(mixed $value): ?string
     {
-        $text = is_string($value) ? trim($value) : '';
-
-        return $text === '' ? null : $text;
+        return SourceCitation::trimmed($value);
     }
 }

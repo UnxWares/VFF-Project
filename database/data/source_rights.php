@@ -480,12 +480,14 @@ return [
         'line_profiles' => ['bdtopo-rge-alti' => 'ign'],
         // Matériel roulant (vff:import-materials) : fiches Wikidata, champ par champ (provenance),
         // image Commons (licence propre à chaque fichier), liens matériel ↔ ligne attestés.
-        'materials' => ['wikidata' => 'wikidata'],
-        'materials.fields' => ['wikidata' => 'wikidata', 'commons' => 'commons', 'wikipedia' => 'wikipedia'],
+        // `contrib` : séries, champs, liens et périodes proposés par les contributeurs et validés (LineMaterialContributions,
+        // MaterialSeriesContributions), sous CC BY-SA 4.0 comme les autres contributions.
+        'materials' => ['wikidata' => 'wikidata', 'contrib' => 'vff'],
+        'materials.fields' => ['wikidata' => 'wikidata', 'commons' => 'commons', 'wikipedia' => 'wikipedia', 'contrib' => 'vff'],
         'materials.image' => ['commons' => 'commons'],
-        'line_materials' => ['wikidata' => 'wikidata', 'wikipedia' => 'wikipedia'],
+        'line_materials' => ['wikidata' => 'wikidata', 'wikipedia' => 'wikipedia', 'contrib' => 'vff'],
         // Périodes de circulation datées (vff:import-material-periods) : faits relevés dans Wikipédia (CC BY-SA 4.0), dates P580/P582 de Wikidata (CC0).
-        'line_material_periods' => ['wikidata' => 'wikidata', 'wikipedia' => 'wikipedia'],
+        'line_material_periods' => ['wikidata' => 'wikidata', 'wikipedia' => 'wikipedia', 'contrib' => 'vff'],
         'lines.name_source' => [
             'archeoferroviaire' => 'archeoferroviaire',
             'lignes-oubliees' => 'lignes-oubliees',

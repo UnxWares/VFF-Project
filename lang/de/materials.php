@@ -137,6 +137,7 @@ return [
         'revision' => 'zitierte Fassung',
         'license' => 'Text unter der Lizenz CC BY-SA 4.0',
         'wikidata' => 'Wikidata, Eigenschaft „eingesetzte Fahrzeuge“ der Strecke',
+        'contribution' => 'Geprüfter Beitrag, Quelle: :title',
     ],
     'confidence' => [
         'high' => [
@@ -146,6 +147,14 @@ return [
         'high_wikidata' => [
             'label' => 'Direkte Quelle',
             'text' => 'In Wikidata angegeben.',
+        ],
+        'high_contribution' => [
+            'label' => 'Direkte Quelle',
+            'text' => 'Von einer beitragenden Person mit Quelle vorgeschlagen, dann von zwei Prüfenden durchgesehen.',
+        ],
+        'low_contribution' => [
+            'label' => 'Zu bestätigen',
+            'text' => 'Von einer beitragenden Person für eine Sonderfahrt, Versuchsfahrten oder einen Museumszug vorgeschlagen: Die Baureihe ist auf dieser Strecke vielleicht nie im Regelbetrieb gefahren.',
         ],
         'medium' => [
             'label' => 'Indirekte Quelle',

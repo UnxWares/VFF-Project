@@ -78,13 +78,15 @@ final class MaterialTractionRule
      * Règle chargée depuis la base : électrification des lignes par ère, systèmes des séries, exceptions.
      *
      * @param  list<array{line: string, material: string, source: string, reason: string}>|null  $exceptions  null : le fichier de données
+     * @param  int|null  $lineId  une seule ligne (contrôle d'une proposition), null : toutes
      */
-    public static function fromDatabase(?array $exceptions = null): self
+    public static function fromDatabase(?array $exceptions = null, ?int $lineId = null): self
     {
         /** @var array<int, array<int, array{total: float, volts: array<int, float>}>> $profiles */
         $profiles = [];
         $rows = DB::table('line_segments')
             ->join('eras', 'eras.id', '=', 'line_segments.era_id')
+            ->when($lineId !== null, fn ($q) => $q->where('line_segments.line_id', $lineId))
             ->whereNotNull('line_segments.electrification_source')
             ->whereNotIn('line_segments.electrification_source', self::UNKNOWN_SOURCES)
             ->groupBy('line_segments.line_id', 'eras.year', 'line_segments.electrified', 'line_segments.voltage_v')
@@ -155,6 +157,28 @@ final class MaterialTractionRule
      */
     public function conflict(int $lineId, int $materialId, array $evidence = []): ?string
     {
+        $details = $this->details($lineId, $materialId, $evidence);
+        if ($details === null) {
+            return null;
+        }
+        $systems = implode(', ', array_map(self::format(...), $details['volts']));
+
+        return $details['partial']
+            ? sprintf('série à %s, ligne au plus à %d %% de sa longueur sous un courant compatible', $systems, $details['share'])
+            : sprintf('série à %s, ligne jamais électrifiée dans un système compatible', $systems);
+    }
+
+    /**
+     * Le conflit en chiffres, ou null si le lien est compatible (ou non jugé) : tensions de la série (V),
+     * meilleure part de la ligne sous un courant compatible (pour cent, arrondi) et `partial`, vrai si une
+     * partie de la ligne l'a été (même moins de 1 %). Sert au motif de conflict() et aux messages traduits
+     * du formulaire de contribution.
+     *
+     * @param  list<array<string, mixed>>  $evidence  preuves du lien (phrases citées)
+     * @return array{volts: list<int>, share: int, partial: bool}|null
+     */
+    public function details(int $lineId, int $materialId, array $evidence = []): ?array
+    {
         $material = $this->materials[$materialId] ?? null;
         if ($material === null || isset($this->exceptions["{$lineId}:{$materialId}"])) {
             return null;
@@ -181,11 +205,7 @@ final class MaterialTractionRule
             }
         }
 
-        $systems = implode(', ', array_map(self::format(...), $material['volts']));
-
-        return $best > 0
-            ? sprintf('série à %s, ligne au plus à %d %% de sa longueur sous un courant compatible', $systems, (int) round($best * 100))
-            : sprintf('série à %s, ligne jamais électrifiée dans un système compatible', $systems);
+        return ['volts' => $material['volts'], 'share' => (int) round($best * 100), 'partial' => $best > 0];
     }
 
     /**

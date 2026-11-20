@@ -1,24 +1,29 @@
 <script>
     /**
-     * Choix d'une ligne ou d'une gare existante par la recherche du site (/api/v1/search) : un champ
+     * Choix d'une ligne, d'une gare ou d'une série de matériel existante par la recherche du site
+     * (/api/v1/search) : un champ
      * de recherche, puis une liste de résultats en boutons (Tab et Entrée au clavier). Une fois le
      * choix fait, seul le nom choisi reste affiché, avec un bouton pour en choisir un autre.
      *
-     * Props : `kind` (`line` ou `station`), `id` (id du champ de recherche, cible des liens du
-     * récapitulatif d'erreurs), `selected` (liable : { slug, name, code? , city? } ou null), `error`.
+     * Props : `kind` (`line`, `station` ou `material`), `id` (id du champ de recherche, cible des
+     * liens du récapitulatif d'erreurs), `selected` (liable : { slug, name, code?, city?, type? } ou
+     * null ; `type` : catégorie d'une série), `error`, `onchange` (appelé après chaque choix ou retrait).
      */
     import { tick } from 'svelte';
     import Field from '$components/ui/Field.svelte';
     import { i18n } from '$lib/i18n.js';
     import { colon } from '$lib/typo.js';
 
-    /** @type {{ kind: 'line'|'station', id: string, selected?: { slug: string, name: string, code?: string|null, city?: string|null }|null, error?: string|null }} */
-    let { kind, id, selected = $bindable(null), error = null } = $props();
+    /** @type {{ kind: 'line'|'station'|'material', id: string, selected?: { slug: string, name: string, code?: string|null, city?: string|null, type?: string|null }|null, error?: string|null, onchange?: () => void }} */
+    let { kind, id, selected = $bindable(null), error = null, onchange } = $props();
+
+    /** Liste de la réponse de la recherche pour chaque genre de fiche. */
+    const RESULT_KEYS = { line: 'lines', station: 'stations', material: 'materials' };
 
     const MIN_QUERY = 3;
 
     let query = $state('');
-    /** @type {{ slug: string, name: string, code?: string|null, city?: string|null, department_code?: string|null }[]} */
+    /** @type {{ slug: string, name: string, code?: string|null, city?: string|null, department_code?: string|null, kind?: string|null }[]} */
     let results = $state.raw([]);
     /** idle | searching | done | failed */
     let status = $state('idle');
@@ -62,7 +67,7 @@
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
-            results = (kind === 'line' ? data.lines : data.stations) ?? [];
+            results = data[RESULT_KEYS[kind]] ?? [];
             status = 'done';
         } catch (e) {
             if (e instanceof DOMException && e.name === 'AbortError') return;
@@ -71,20 +76,30 @@
         }
     }
 
-    /** @param {{ slug: string, name: string, code?: string|null, city?: string|null }} item */
+    /** Catégorie d'une série (« Automotrice »), affichée à côté de son nom. */
+    function typeLabel(type) {
+        const key = `materials.type.${type}`;
+        const label = $i18n.t(key);
+        return label === key ? null : label;
+    }
+
+    /** @param {{ slug: string, name: string, code?: string|null, city?: string|null, kind?: string|null }} item */
     async function choose(item) {
         selected = {
             slug: item.slug,
             name: item.name,
             code: item.code ?? null,
             city: item.city ?? null,
+            type: kind === 'material' ? (item.kind ?? null) : null,
         };
+        onchange?.();
         await tick();
         document.getElementById(`${id}-chosen`)?.focus();
     }
 
     async function change() {
         selected = null;
+        onchange?.();
         await tick();
         document.getElementById(id)?.focus();
     }
@@ -99,6 +114,9 @@
             {#if selected.code}<span class="vff-plate">{selected.code}</span>{/if}
             {#if selected.city && selected.city !== selected.name}<span class="muted"
                     >({selected.city})</span
+                >{/if}
+            {#if selected.type && typeLabel(selected.type)}<span class="muted"
+                    >({typeLabel(selected.type)})</span
                 >{/if}
         </p>
         <button type="button" class="vff-btn secondary small" onclick={change}>
@@ -133,6 +151,9 @@
                             {#if item.city && item.city !== item.name}<span class="muted"
                                     >{item.city}{#if item.department_code}
                                         ({item.department_code}){/if}</span
+                                >{/if}
+                            {#if kind === 'material' && item.kind && typeLabel(item.kind)}<span
+                                    class="muted">{typeLabel(item.kind)}</span
                                 >{/if}
                         </button>
                     </li>

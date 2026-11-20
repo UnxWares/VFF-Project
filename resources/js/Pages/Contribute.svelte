@@ -14,6 +14,11 @@
             links: [
                 { href: '/contribute/trace', labelKey: 'editor.mine.new_trace' },
                 { href: '/contribute/event', labelKey: 'proposals.contribute.propose_event' },
+                {
+                    href: '/contribute/material',
+                    labelKey: 'proposals.contribute.propose_line_material',
+                },
+                { href: '/contribute/series', labelKey: 'proposals.contribute.propose_series' },
             ],
         },
         {

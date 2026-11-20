@@ -16,7 +16,14 @@
     import { formatKm, portionColor } from '$lib/traceGeometry.js';
     import { colon } from '$lib/typo.js';
     import { formatStationDate } from '$lib/stationDates.js';
-    import { EVENT_TYPE, MEDIA_TYPE } from '$components/Contribute/proposals.js';
+    import {
+        EVENT_TYPE,
+        LINE_MATERIAL_TYPE,
+        MEDIA_TYPE,
+        PROPOSAL_TYPES,
+        SERIES_TYPE,
+        proposalKindKey,
+    } from '$components/Contribute/proposals.js';
     import {
         changeEntries,
         eraLabel,
@@ -162,14 +169,18 @@
                             c.target?.name ??
                             c.payload.line_name ??
                             c.payload.new_line_name ??
-                            c.payload.station_name}
+                            c.payload.station_name ??
+                            c.payload.material_name}
                         {@const lineCode = c.target?.code ?? c.payload.line_code}
                         {@const lineSlug = c.target?.slug ?? c.payload.line_slug}
+                        {@const materialSlug = c.material?.slug ?? c.payload.material_slug}
                         {@const sheetHref = c.payload.station_slug
                             ? `/stations/${c.payload.station_slug}`
-                            : lineSlug
-                              ? `/lines/${lineSlug}`
-                              : null}
+                            : c.type === SERIES_TYPE && materialSlug
+                              ? `/materials/${materialSlug}`
+                              : lineSlug
+                                ? `/lines/${lineSlug}`
+                                : null}
                         <article
                             class="contrib"
                             id="contribution-{c.id}"
@@ -190,11 +201,10 @@
                                             {$i18n.t('proposals.review.kind_event')}
                                         {:else if c.type === MEDIA_TYPE}
                                             <i class="bi bi-image" aria-hidden="true"></i>
-                                            {$i18n.t(
-                                                c.payload.source === 'commons'
-                                                    ? 'proposals.review.kind_media_commons'
-                                                    : 'proposals.review.kind_media_upload',
-                                            )}
+                                            {$i18n.t(proposalKindKey(c))}
+                                        {:else if c.type === LINE_MATERIAL_TYPE || c.type === SERIES_TYPE}
+                                            <i class="bi bi-train-front" aria-hidden="true"></i>
+                                            {$i18n.t(proposalKindKey(c))}
                                         {:else}
                                             <i class="bi bi-rulers" aria-hidden="true"></i>
                                             {$i18n.t('editor.validate.kind_segment')}
@@ -241,6 +251,12 @@
                                         {$i18n.t(
                                             `proposals.media.targets.${c.payload.target_type ?? 'line'}`,
                                         )}
+                                    {:else if c.type === LINE_MATERIAL_TYPE}
+                                        {c.payload.material_name}
+                                    {:else if c.type === SERIES_TYPE}
+                                        {$i18n.t(
+                                            `materials.type.${c.payload.values?.type ?? c.payload.changes?.type?.after ?? c.material?.type}`,
+                                        )}
                                     {:else}
                                         {eraLabel(c.payload.era_year, tr)}
                                     {/if}
@@ -248,7 +264,7 @@
                             </div>
 
                             <div class="contrib-body">
-                                {#if c.type === EVENT_TYPE || c.type === MEDIA_TYPE}
+                                {#if PROPOSAL_TYPES.includes(c.type)}
                                     <ProposalReview contribution={c} />
                                 {:else if c.type === 'line_trace'}
                                     <TraceDiffMap

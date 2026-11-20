@@ -1,21 +1,29 @@
 <script>
     /**
-     * Corps d'une proposition « événement daté » ou « image » dans l'espace de validation : les faits
-     * proposés, la source, la note de l'auteur ; pour un événement, ceux du même genre déjà connus
-     * sur la ligne ; pour une image, l'image elle-même (miniature de Commons, ou fichier déposé lu
-     * par son adresse privée) et les métadonnées retirées.
+     * Corps d'une proposition sourcée dans l'espace de validation : les faits proposés, la source,
+     * la note de l'auteur ; pour un événement, ceux du même genre déjà connus sur la ligne ; pour une
+     * image, l'image elle-même (miniature de Commons, ou fichier déposé lu par son adresse privée) et
+     * les métadonnées retirées ; pour un matériel sur une ligne, l'exception aux règles d'écartement ou
+     * d'électrification en évidence et les liens déjà connus ; pour une série, les valeurs proposées
+     * (avant, après).
      *
      * Props : `contribution` (élément de ContributionController::validateList).
      */
     import { i18n } from '$lib/i18n.js';
+    import Notice from '$components/ui/Notice.svelte';
     import { formatStationDate } from '$lib/stationDates.js';
+    import { periodText } from '$lib/materialPeriods.js';
+    import { formatLocale } from '$lib/typo.js';
     import {
         EVENT_TYPE,
-        eventFacts,
+        LINE_MATERIAL_TYPE,
+        MEDIA_TYPE,
+        SERIES_TYPE,
         eventTypeLabel,
-        mediaFacts,
         portionText,
+        proposalFacts,
         removedMetadataText,
+        seriesChanges,
     } from './proposals.js';
 
     /** @type {{ contribution: any }} */
@@ -24,10 +32,23 @@
     const tr = (key, opts) => String($i18n.t(key, opts));
     const p = $derived(contribution.payload ?? {});
     const isEvent = $derived(contribution.type === EVENT_TYPE);
+    const isMedia = $derived(contribution.type === MEDIA_TYPE);
+    const isLineMaterial = $derived(contribution.type === LINE_MATERIAL_TYPE);
+    const isSeries = $derived(contribution.type === SERIES_TYPE);
+    // La nature de la proposition (nouvelle série, correction) est déjà dans l'en-tête de la carte.
     const facts = $derived(
-        isEvent ? eventFacts(p, tr, $i18n.language) : mediaFacts(p, tr, $i18n.language),
+        proposalFacts(contribution, tr, $i18n.language).filter((f) => f.id !== 'mode'),
     );
-    const commons = $derived(!isEvent && p.source === 'commons' ? (p.commons ?? {}) : null);
+    const commons = $derived(isMedia && p.source === 'commons' ? (p.commons ?? {}) : null);
+    const changes = $derived(isSeries ? seriesChanges(p, tr) : []);
+    const context = $derived(contribution.material_context ?? { links: [], conflict_now: null });
+
+    /** Libellé d'une provenance ou d'une fiabilité de lien (repli : la valeur brute). */
+    function linkLabel(group, value) {
+        const key = `proposals.line_material.${group}.${value ?? 'none'}`;
+        const text = tr(key);
+        return text === key ? (value ?? '') : text;
+    }
     const imageSrc = $derived(commons ? commons.thumb_url : contribution.file_url);
     const imageHref = $derived(commons ? commons.source_url : contribution.file_url);
     const imageTitle = $derived(commons?.title ?? p.title ?? '');
@@ -46,7 +67,33 @@
 </script>
 
 <div class="review">
-    {#if !isEvent}
+    {#if isLineMaterial}
+        {#if p.exception}
+            <Notice tone="warning" live="off" title={$i18n.t('proposals.review.exception_title')}>
+                <p>
+                    {$i18n.t(`proposals.review.exception_${p.exception.rule}`, {
+                        reason: p.exception.reason,
+                    })}
+                </p>
+            </Notice>
+        {/if}
+        {#if context.conflict_now && !p.exception}
+            <Notice tone="danger" live="off" title={$i18n.t('proposals.review.conflict_now_title')}>
+                <p>
+                    {$i18n.t('proposals.review.conflict_now_text', {
+                        reason: context.conflict_now,
+                    })}
+                </p>
+            </Notice>
+        {/if}
+        {#if p.excluded}
+            <Notice tone="warning" live="off" title={$i18n.t('proposals.review.excluded_title')}>
+                <p>{p.excluded}</p>
+            </Notice>
+        {/if}
+    {/if}
+
+    {#if isMedia}
         {#if imageSrc}
             <figure class="image">
                 <img
@@ -95,7 +142,41 @@
         {/each}
     </dl>
 
-    {#if !isEvent && p.file}
+    {#if isSeries && changes.length}
+        <section class="similar" aria-labelledby="changes-{contribution.id}">
+            <h3 id="changes-{contribution.id}">{$i18n.t('proposals.review.changes_title')}</h3>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+            <div
+                class="vff-table-wrap"
+                role="region"
+                aria-labelledby="changes-{contribution.id}"
+                tabindex="0"
+            >
+                <table class="vff-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">{$i18n.t('proposals.review.field')}</th>
+                            {#if p.mode !== 'new'}
+                                <th scope="col">{$i18n.t('proposals.review.before')}</th>
+                            {/if}
+                            <th scope="col">{$i18n.t('proposals.review.after')}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each changes as ch (ch.field)}
+                            <tr>
+                                <th scope="row">{ch.label}</th>
+                                {#if p.mode !== 'new'}<td class="wrap">{ch.before}</td>{/if}
+                                <td class="wrap">{ch.after}</td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {/if}
+
+    {#if isMedia && p.file}
         <p class="muted">
             <i class="bi bi-shield-check" aria-hidden="true"></i>
             {removedMetadataText(p.file.removed, tr)}
@@ -106,6 +187,66 @@
         <blockquote class="notes" aria-label={$i18n.t('proposals.review.notes')}>
             {p.notes}
         </blockquote>
+    {/if}
+
+    {#if isLineMaterial}
+        <section class="similar" aria-labelledby="links-{contribution.id}">
+            <h3 id="links-{contribution.id}">{$i18n.t('proposals.review.links_title')}</h3>
+            {#if context.links.length}
+                <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+                <div
+                    class="vff-table-wrap"
+                    role="region"
+                    aria-labelledby="links-{contribution.id}"
+                    tabindex="0"
+                >
+                    <table class="vff-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">{$i18n.t('proposals.review.link_source')}</th>
+                                <th scope="col">{$i18n.t('proposals.review.link_confidence')}</th>
+                                <th scope="col">{$i18n.t('proposals.review.link_periods')}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {#each context.links as l (l.id)}
+                                <tr>
+                                    <th scope="row" class="wrap">
+                                        {#if l.source_url}<a
+                                                href={l.source_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer nofollow"
+                                                >{linkLabel('sources', l.source)}<span
+                                                    class="vff-sr-only"
+                                                >
+                                                    ({$i18n.t('common.new_tab')})</span
+                                                ><i
+                                                    class="bi bi-box-arrow-up-right vff-ext"
+                                                    aria-hidden="true"
+                                                ></i></a
+                                            >{:else}{linkLabel('sources', l.source)}{/if}
+                                    </th>
+                                    <td>{linkLabel('confidences', l.confidence)}</td>
+                                    <td class="wrap"
+                                        >{l.periods
+                                            .map((period) =>
+                                                periodText(
+                                                    period,
+                                                    tr,
+                                                    formatLocale($i18n.language),
+                                                ),
+                                            )
+                                            .join(', ')}</td
+                                    >
+                                </tr>
+                            {/each}
+                        </tbody>
+                    </table>
+                </div>
+            {:else}
+                <p class="muted">{$i18n.t('proposals.review.links_none')}</p>
+            {/if}
+        </section>
     {/if}
 
     {#if isEvent}
