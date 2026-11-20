@@ -752,20 +752,25 @@ rattachés à la ligne par un score calculé sur le seul titre de la notice (`Ar
 
 | Raison | Points | Condition |
 |---|---|---|
-| `rail_route` | 4 | le titre décrit une voie ferrée entre deux lieux de la ligne qui se suivent (« chemin de fer de X à Y », « ligne de X à Y ») |
-| `route` | 3 | à défaut, un trajet entre ces deux lieux (« de X à Y », « entre X et Y ») |
-| `two_places` | 2 | à défaut, le titre nomme deux lieux de la ligne (communes, gares, extrémités de ses noms) |
+| `rail_route` | 4 | le titre décrit une voie ferrée entre deux lieux de la ligne qui se suivent (« chemin de fer de X à Y », « ligne de X à Y », « la ligne X à Y », « chemin de fer de X à Z et à Y ») |
+| `route` | 3 | à défaut, un trajet entre ces deux lieux (« de X à Y », « entre X et Y », « rapide Paris - Bordeaux ») |
+| `two_places` | 1 | à défaut, le titre nomme deux lieux de la ligne (communes, gares, extrémités de ses noms) |
+| `only_line_places` | 1 | sans trajet, tous les lieux reconnus dans le titre sont sur la ligne |
 | `ends` | 2 | ces deux lieux sont les extrémités de la ligne (nom actuel, ancien nom ou gares terminus) |
 | `rail_word` / `rail_hint` | 2 / 1 | chemin de fer, voie ferrée, tramway, railway, embranchement, ferroviaire, « ligne de X à Y » ; ou seulement gare, train, locomotive, wagon |
 | `date_in_life` | 2 | date entre la première date connue de la ligne et sa fermeture (ou aujourd'hui) |
 | `date_project` / `date_after_closure` | 1 | dans les 40 ans avant la première date ; après la fermeture |
 | `date_unknown` | 0 | document sans date, ou ligne sans date connue |
+| `date_doubtful` | 0 | le titre imprime une année à plus de 40 ans de la date de la notice : la date ne compte pas |
 | `doc_type` | 1 | texte imprimé, carte, image fixe ou manuscrit |
 | `secondary_mention` | 0 | la ligne n'est citée que comme raccordement d'une autre : ses extrémités ne comptent pas |
 
 Un document est retenu à partir de 9 points sur 11, avec un mot du rail, sans autre transport dans le titre (métro,
 canal, bateaux à vapeur, autocar, téléphone) sauf « chemin de fer de X à Y », et jamais avant 1820 ni plus de 40 ans avant la
-première date de la ligne. Un titre qui convient aussi bien à plus de deux lignes n'est rattaché à aucune. La presse
+première date de la ligne. Deux lieux nommés sans trajet ne suffisent que s'ils sont les extrémités de la ligne, que le titre
+ne cite aucun autre lieu connu et que la date tombe dans la vie de la ligne. Seul le meilleur score garde le document ; à
+égalité, une ligne reliée par un trajet passe avant une ligne seulement nommée. Un titre qui convient aussi bien à plus de
+deux lignes n'est rattaché à aucune. La presse
 n'est pas cherchée. Une liste vide ne veut pas dire que Gallica n'a rien sur la ligne.
 
 | Paramètre | Type | Obligatoire | Description |

@@ -41,7 +41,8 @@ final class CatalogueSruParser
     /**
      * @return array{total: int, records: list<ArchiveRecord>}
      *
-     * @throws RuntimeException réponse illisible ou diagnostic SRU (requête refusée)
+     * @throws RuntimeException réponse illisible, diagnostic SRU (requête refusée) ou XML qui n'est pas une réponse
+     *                          SRU (page de maintenance servie avec le code 200 : pas de `srw:numberOfRecords`)
      */
     public function parse(string $xml): array
     {
@@ -65,6 +66,10 @@ final class CatalogueSruParser
         if ($diagnostic !== '') {
             throw new RuntimeException('Diagnostic SRU : '.$diagnostic);
         }
+        $total = trim((string) $xp->evaluate('string(/srw:searchRetrieveResponse/srw:numberOfRecords)'));
+        if (! ctype_digit($total)) {
+            throw new RuntimeException('Réponse qui n\'est pas une réponse SRU (nombre de notices absent).');
+        }
 
         $records = [];
         foreach ($xp->query('//srw:records/srw:record') ?: [] as $node) {
@@ -77,7 +82,7 @@ final class CatalogueSruParser
             }
         }
 
-        return ['total' => (int) $xp->evaluate('number(//srw:numberOfRecords)'), 'records' => $records];
+        return ['total' => (int) $total, 'records' => $records];
     }
 
     private function record(DOMXPath $xp, DOMElement $node): ?ArchiveRecord

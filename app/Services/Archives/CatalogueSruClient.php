@@ -15,7 +15,8 @@ use RuntimeException;
  *
  * Chaque page de réponse est gardée sur disque (storage/app/data/gallica/sru/, dossier marqué `.nobackup`) :
  * une relance relit le cache sans requête, ce qui permet de reprendre un import interrompu. `offline` :
- * cache seulement (une page absente compte comme vide) ; `refresh` : le cache est ignoré et réécrit.
+ * cache seulement (une page absente est une erreur : la requête n'a pas de réponse) ; `refresh` : le cache est
+ * ignoré et réécrit.
  *
  * Pourquoi le catalogue général et pas l'API SRU de Gallica (gallica.bnf.fr/SRU) : le 20/11/2026, gallica.bnf.fr
  * refusait toutes les requêtes de la machine de développement (blocage Cloudflare). Le catalogue décrit les
@@ -66,7 +67,8 @@ class CatalogueSruClient
      *
      * @return array{total: int, records: list<ArchiveRecord>, truncated: bool, fetched_at: ?int}
      *
-     * @throws RuntimeException serveur injoignable ou réponse refusée après trois essais
+     * @throws RuntimeException serveur injoignable ou réponse refusée après trois essais, réponse qui n'est pas du
+     *                          SRU, ou page absente du cache hors ligne
      */
     public function search(string $cql): array
     {
@@ -74,11 +76,7 @@ class CatalogueSruClient
         $total = 0;
         $fetchedAt = null;
         for ($page = 0; $page < self::MAX_PAGES; $page++) {
-            $read = $this->page($cql, $page * self::PAGE_SIZE + 1);
-            if ($read === null) {
-                break;
-            }
-            [$xml, $time] = $read;
+            [$xml, $time] = $this->page($cql, $page * self::PAGE_SIZE + 1);
             $fetchedAt = $fetchedAt === null ? $time : min($fetchedAt, $time);
             $parsed = $this->parser->parse($xml);
             $total = $parsed['total'];
@@ -92,12 +90,13 @@ class CatalogueSruClient
     }
 
     /**
-     * Une page de réponse (XML) et sa date de lecture (horodatage Unix), du cache ou du serveur ; null hors
-     * ligne quand elle n'est pas en cache.
+     * Une page de réponse (XML) et sa date de lecture (horodatage Unix), du cache ou du serveur.
      *
-     * @return array{0: string, 1: int}|null
+     * @return array{0: string, 1: int}
+     *
+     * @throws RuntimeException hors ligne, page absente du cache
      */
-    private function page(string $cql, int $start): ?array
+    private function page(string $cql, int $start): array
     {
         $path = $this->cacheDir.'/sru/'.sha1($cql.'#'.$start).'.xml';
         if (! $this->refresh && is_file($path)) {
@@ -108,7 +107,8 @@ class CatalogueSruClient
         if ($this->offline) {
             $this->cacheMisses++;
 
-            return null;
+            // Une page absente ne vaut pas une réponse vide : la ligne garderait sinon zéro document.
+            throw new RuntimeException('page absente du cache local (--offline)');
         }
         $xml = $this->fetch($cql, $start);
         // Une réponse refusée (diagnostic SRU) lève une exception ici et n'est jamais mise en cache.

@@ -7,15 +7,16 @@
     /**
      * Section « Dans les archives » de la fiche ligne (LineArchives::forSheet côté serveur) : documents
      * numérisés dans Gallica (BnF) dont le titre désigne la ligne, du plus ancien au plus récent, avec un
-     * lien vers Gallica, le type, les auteurs (deux au plus) et la cote. Les notices de même titre, date et type (plusieurs
-     * photographies d'un même événement) forment une seule entrée avec des liens « Autres vues ». Aucune
+     * lien vers Gallica, le type, les auteurs (deux au plus) et les cotes. Les notices de même titre, date et type
+     * (plusieurs photographies d'un même événement) forment une seule entrée avec des liens « Autres vues » et
+     * toutes leurs cotes. Aucune
      * image n'est chargée : seules les métadonnées de la BnF sont reprises. Au-delà de VISIBLE entrées, la
      * suite se déplie (bouton à aria-expanded). Montrée seulement s'il y a au moins un document.
      *
      * @type {{ archives: { total: number, fetched_on: string|null, items: Array<{ title: string,
      *   type: 'monograph'|'map'|'image'|'manuscript', date: string|null, year: number|null,
      *   year_to: number|null, exact: string|null, date_precision: string, authors: Array<string>,
-     *   shelfmark: string|null, url: string, more_urls: Array<string> }> } }}
+     *   shelfmarks: Array<string>, url: string, more_urls: Array<string> }> } }}
      */
     let { archives } = $props();
 
@@ -29,7 +30,8 @@
     const lang = $derived($i18n.language ?? 'fr');
     const shown = $derived(expanded ? archives.items : archives.items.slice(0, VISIBLE));
     const hiddenCount = $derived(archives.items.length - VISIBLE);
-    // Titres des notices de la BnF : en français, quelle que soit la langue de la page.
+    // Titres des notices de la BnF : en français, quelle que soit la langue de la page (sur le titre seul :
+    // l'aide « s'ouvre dans un nouvel onglet » suit la langue de la page).
     const titleLang = $derived(lang === 'fr' ? undefined : 'fr');
 
     /** Date à sa précision : « 1860 », « vers 1850 », « 1890-1899 », « 1er novembre 1873 », « Sans date ». */
@@ -62,7 +64,7 @@
     );
     /**
      * Métadonnées d'un document : type, auteurs (deux au plus, « Antoine-Rémi Polonceau et Jean-Baptiste
-     * Bélanger ») et cote, qui ne se coupe pas (« GE C-3528 »).
+     * Bélanger ») et cotes, qui ne se coupent pas (« GE C-3528 », « cotes YE-54393, YE-54394 »).
      */
     const metaOf = (item) =>
         [
@@ -73,9 +75,12 @@
                       nowrap: false,
                   }
                 : null,
-            item.shelfmark
+            item.shelfmarks.length
                 ? {
-                      text: t('archives.line.shelfmark', { shelfmark: item.shelfmark }),
+                      text: t('archives.line.shelfmark', {
+                          shelfmark: item.shelfmarks.join(', '),
+                          count: item.shelfmarks.length,
+                      }),
                       nowrap: true,
                   }
                 : null,
@@ -107,12 +112,8 @@
             <li>
                 <span class="when">{dateOf(item)}</span>
                 <div class="body">
-                    <a
-                        class="doc-title"
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        lang={titleLang}>{item.title}{@render ext()}</a
+                    <a class="doc-title" href={item.url} target="_blank" rel="noopener noreferrer"
+                        ><span lang={titleLang}>{item.title}</span>{@render ext()}</a
                     >
                     <span class="meta"
                         >{#each metaOf(item) as part, k (k)}{#if k > 0}{SEP}{/if}<span

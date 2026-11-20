@@ -35,11 +35,12 @@ final class LineArchives
 
     /**
      * Section de la fiche : documents regroupés quand plusieurs notices portent le même titre, la même
-     * date et le même type (cinq photographies d'un même déraillement), date de récupération la plus ancienne.
+     * date et le même type (cinq photographies d'un même déraillement), avec toutes leurs cotes (deux
+     * exemplaires d'une même ode, YE-54393 et YE-54394) ; date de récupération la plus ancienne.
      *
      * @return array{total: int, fetched_on: ?string, items: list<array{title: string, type: string, date: ?string,
-     *     year: ?int, year_to: ?int, exact: ?string, date_precision: string, authors: list<string>, shelfmark: ?string,
-     *     url: string, more_urls: list<string>}>}
+     *     year: ?int, year_to: ?int, exact: ?string, date_precision: string, authors: list<string>,
+     *     shelfmarks: list<string>, url: string, more_urls: list<string>}>}
      */
     public function forSheet(Line $line): array
     {
@@ -49,6 +50,9 @@ final class LineArchives
             $key = mb_strtolower($d->title).'|'.$d->date_label.'|'.$d->doc_type;
             if (isset($items[$key])) {
                 $items[$key]['more_urls'][] = $d->gallica_url;
+                if ($d->shelfmark !== null && ! in_array($d->shelfmark, $items[$key]['shelfmarks'], true)) {
+                    $items[$key]['shelfmarks'][] = $d->shelfmark;
+                }
 
                 continue;
             }
@@ -61,7 +65,7 @@ final class LineArchives
                 'exact' => $d->exact_date?->toDateString(),
                 'date_precision' => $d->date_precision,
                 'authors' => $d->authors,
-                'shelfmark' => $d->shelfmark,
+                'shelfmarks' => $d->shelfmark === null ? [] : [$d->shelfmark],
                 'url' => $d->gallica_url,
                 'more_urls' => [],
             ];

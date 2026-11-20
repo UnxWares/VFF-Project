@@ -20,6 +20,11 @@ use Illuminate\Support\Facades\File;
  * plus, cache disque des réponses (storage/app/data/gallica) : une relance reprend là où l'import s'est
  * arrêté sans redemander les pages déjà lues. N'écrit dans aucune table du moteur.
  *
+ * Chaque notice relue est rejugée pour toutes les lignes et ses rattachements sont remplacés ; une notice que
+ * la passe n'a pas relue reste en place (seul l'import complet sans erreur retire celles qu'aucune requête ne
+ * trouve plus). Une ligne dont une requête échoue (serveur, réponse illisible, page absente du cache avec
+ * --offline) garde ses documents : la commande la nomme et se termine en erreur.
+ *
  *   vff:import-gallica --dry-run --report=storage/app/data/gallica/candidats.csv
  *   vff:import-gallica --line=rfn-610000 --line=rfn-340000
  *   vff:import-gallica --limit=50 --offline
@@ -27,7 +32,7 @@ use Illuminate\Support\Facades\File;
 class ImportGallica extends Command
 {
     protected $signature = 'vff:import-gallica
-        {--line=* : Slug d\'une ligne à traiter (option répétable) ; toutes les lignes par défaut}
+        {--line=* : Slug d\'une ligne dont les requêtes sont relancées (option répétable) ; toutes les lignes par défaut}
         {--limit= : Nombre de lignes traitées au plus, dans l\'ordre des identifiants}
         {--threshold= : Score minimal d\'un document rattaché (9 par défaut, sur 11)}
         {--offline : N\'utilise que le cache local, aucune requête réseau}
@@ -60,6 +65,7 @@ class ImportGallica extends Command
         if ($this->option('limit') !== null) {
             $lines = array_slice($lines, 0, max(0, (int) $this->option('limit')));
         }
+        $complete = $slugs === [] && $this->option('limit') === null;
 
         $client = CatalogueSruClient::default((bool) $this->option('offline'), (bool) $this->option('refresh'));
         $importer = new GallicaImporter($client);
@@ -85,15 +91,22 @@ class ImportGallica extends Command
             $this->line("Documents jugés : {$path}");
         }
 
+        if ($result['failed'] !== []) {
+            $this->error(sprintf(
+                '%d ligne(s) non mise(s) à jour, documents gardés tels quels (requête en erreur ou absente du cache) : %s',
+                count($result['failed']), implode(', ', array_keys($result['failed'])),
+            ));
+        }
+
         if ($this->option('dry-run')) {
             $this->line('Essai (--dry-run) : rien n\'est écrit.');
 
-            return self::SUCCESS;
+            return $result['failed'] === [] ? self::SUCCESS : self::FAILURE;
         }
-        $written = $importer->store($result['documents'], array_map(fn (LinePlaces $l): int => $l->id, $lines));
-        $this->info("Documents enregistrés : {$written}.");
+        $stored = $importer->store($result, $complete);
+        $this->info("Documents enregistrés : {$stored['written']} ; documents Gallica en base : {$stored['before']} avant, {$stored['after']} après.");
 
-        return self::SUCCESS;
+        return $result['failed'] === [] ? self::SUCCESS : self::FAILURE;
     }
 
     /** @param list<array<string, mixed>> $rows */

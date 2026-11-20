@@ -1865,7 +1865,7 @@ type LineArchiveDocument {
     "Score de rattachement à la ligne, de 9 (seuil) à 11."
     score: Int!
 
-    "Raisons du score, point par point : `rail_route` (4), `route` (3) ou `two_places` (2), `ends` (2) ou `secondary_mention` (0), `rail_word` (2) ou `rail_hint` (1), `date_in_life` (2), `date_project` (1), `date_after_closure` (1) ou `date_unknown` (0), `doc_type` (1)."
+    "Raisons du score, point par point : `rail_route` (4), `route` (3) ou `two_places` (1, plus `only_line_places` (1) si le titre ne nomme aucun lieu hors de la ligne), `ends` (2) ou `secondary_mention` (0), `rail_word` (2) ou `rail_hint` (1), `date_in_life` (2), `date_project` (1), `date_after_closure` (1), `date_unknown` (0) ou `date_doubtful` (0, année imprimée dans le titre à plus de 40 ans de la date de la notice), `doc_type` (1)."
     score_reasons: [ArchiveMatchReason!]!
 
     "Lieux de la ligne reconnus dans le titre."
@@ -1886,7 +1886,7 @@ type LineArchiveDocument {
 
 "Une raison du score de rattachement d'un document d'archives."
 type ArchiveMatchReason {
-    "Code de la raison : `rail_route` (voie ferrée « de X à Y »), `route` (trajet « de X à Y »), `two_places`, `ends`, `secondary_mention`, `rail_word`, `rail_hint`, `date_in_life`, `date_project`, `date_after_closure`, `date_unknown` ou `doc_type`."
+    "Code de la raison : `rail_route` (voie ferrée « de X à Y »), `route` (trajet « de X à Y »), `two_places`, `only_line_places`, `ends`, `secondary_mention`, `rail_word`, `rail_hint`, `date_in_life`, `date_project`, `date_after_closure`, `date_unknown`, `date_doubtful` ou `doc_type`."
     code: String!
 
     "Points apportés au score."

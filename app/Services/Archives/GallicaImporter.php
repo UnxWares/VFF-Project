@@ -16,7 +16,14 @@ use RuntimeException;
  * 2. Chaque notice trouvée est jugée pour TOUTES les lignes dont son titre nomme deux lieux
  *    (ArchiveMatcher) : elle va à la ligne au meilleur score, s'il atteint le seuil, et à deux lignes au
  *    plus à égalité ; sinon elle est ambiguë et n'est rattachée à aucune.
- * 3. Pour les lignes traitées, les documents de la source `gallica` sont remplacés (relance sans doublon).
+ * 3. Enregistrement notice par notice (store) : les rattachements de chaque notice relue sont remplacés par
+ *    le nouveau jugement, sur toutes les lignes. Une notice que la passe n'a pas relue n'est jamais retirée,
+ *    sauf à l'import complet sans erreur (elle n'est alors plus trouvée par aucune requête). Le résultat d'un
+ *    import partiel (--line, --limit) ne dépend donc pas des lignes choisies : il ne retire jamais un
+ *    document qu'une autre ligne a trouvé.
+ *
+ * Une ligne dont une requête a échoué (erreur du serveur, réponse qui n'est pas du SRU, page absente du
+ * cache hors ligne) est « en erreur » : ses notices ne sont pas rejugées et ses documents ne bougent pas.
  */
 final class GallicaImporter
 {
@@ -44,10 +51,15 @@ final class GallicaImporter
     /**
      * Interroge le catalogue pour les lignes données et juge chaque notice trouvée.
      *
+     * `documents` : documents retenus, par ligne (toutes les lignes, pas seulement celles qui sont traitées) ;
+     * `arks` : notices relues et jugées ; `failed` : lignes en erreur (slug → identifiant), qui ne bougent pas.
+     *
      * @param  list<LinePlaces>  $lines  lignes traitées
      * @param  (callable(LinePlaces): void)|null  $onLine  appelé après chaque ligne (barre de progression)
      * @return array{
      *     documents: array<int, list<array<string, mixed>>>,
+     *     arks: list<string>,
+     *     failed: array<string, int>,
      *     candidates: list<array<string, mixed>>,
      *     errors: list<string>,
      *     stats: array{lines: int, queries: int, truncated: int, records: int, accepted: int, lines_with_documents: int, ambiguous: int}
@@ -58,29 +70,36 @@ final class GallicaImporter
         /** @var array<string, array{record: ArchiveRecord, fetched_at: ?int}> $records */
         $records = [];
         $errors = [];
+        $failed = [];
         $queries = 0;
         $truncated = 0;
         foreach ($lines as $line) {
+            $found = [];
             foreach ($line->queryPairs as [$a, $b]) {
                 $queries++;
                 try {
                     $result = $this->client->search(self::cql($a, $b));
                 } catch (RuntimeException $e) {
                     $errors[] = "{$line->slug} ({$a} / {$b}) : {$e->getMessage()}";
+                    $failed[$line->slug] = $line->id;
 
                     continue;
                 }
                 $truncated += $result['truncated'] ? 1 : 0;
                 foreach ($result['records'] as $record) {
-                    $records[$record->gallicaArk] ??= ['record' => $record, 'fetched_at' => $result['fetched_at']];
+                    $found[$record->gallicaArk] ??= ['record' => $record, 'fetched_at' => $result['fetched_at']];
                 }
+            }
+            // Une ligne en erreur ne fait rejuger aucune notice : son résultat serait incomplet.
+            if (! isset($failed[$line->slug])) {
+                $records += $found;
             }
             if ($onLine !== null) {
                 $onLine($line);
             }
         }
 
-        $processed = array_fill_keys(array_map(fn (LinePlaces $l): int => $l->id, $lines), true);
+        $frozen = array_fill_keys($failed, true);
         $documents = [];
         $candidates = [];
         $ambiguous = 0;
@@ -93,7 +112,7 @@ final class GallicaImporter
             }
             foreach ($judged as $match) {
                 $line = $index->line($match->lineId);
-                $accepted = in_array($match->lineId, $winnerIds, true) && isset($processed[$match->lineId]);
+                $accepted = in_array($match->lineId, $winnerIds, true) && ! isset($frozen[$match->lineId]);
                 $candidates[] = [
                     'line' => $line?->slug, 'line_name' => $line?->name, 'gallica_ark' => $record->gallicaArk,
                     'title' => $record->title, 'date' => $record->date->label, 'year' => $record->date->year,
@@ -109,6 +128,8 @@ final class GallicaImporter
 
         return [
             'documents' => $documents,
+            'arks' => array_keys($records),
+            'failed' => $failed,
             'candidates' => $candidates,
             'errors' => $errors,
             'stats' => [
@@ -124,21 +145,35 @@ final class GallicaImporter
     }
 
     /**
-     * Remplace les documents de la source `gallica` des lignes traitées.
+     * Enregistre le résultat de run(), notice par notice :
+     *   - chaque notice relue (`arks`) perd ses anciens rattachements, sur toutes les lignes, et reçoit les
+     *     nouveaux (`documents`) ;
+     *   - `$complete` (import de toutes les lignes, sans ligne en erreur) : les documents d'une notice qu'aucune
+     *     requête n'a plus trouvée sont aussi retirés ;
+     *   - les lignes en erreur (`failed`) ne perdent ni ne reçoivent rien.
      *
-     * @param  array<int, list<array<string, mixed>>>  $documents  par ligne
-     * @param  list<int>  $lineIds  lignes traitées (celles sans document perdent les anciens)
+     * @param  array{documents: array<int, list<array<string, mixed>>>, arks: list<string>, failed: array<string, int>}  $result
+     * @return array{written: int, before: int, after: int} documents écrits ; documents de la source avant et après
      */
-    public function store(array $documents, array $lineIds): int
+    public function store(array $result, bool $complete): array
     {
-        $written = 0;
-        DB::transaction(function () use ($documents, $lineIds, &$written): void {
-            foreach (array_chunk($lineIds, 500) as $chunk) {
-                LineArchiveDocument::query()->where('source', self::SOURCE)->whereIn('line_id', $chunk)->delete();
+        $frozen = array_values($result['failed']);
+        $complete = $complete && $frozen === [];
+
+        return DB::transaction(function () use ($result, $frozen, $complete): array {
+            $all = fn () => LineArchiveDocument::query()->where('source', self::SOURCE);
+            $movable = fn () => $all()->when($frozen !== [], fn ($q) => $q->whereNotIn('line_id', $frozen));
+            $before = $all()->count();
+            if ($complete) {
+                $movable()->whereNotIn('gallica_ark', $result['arks'] === [] ? [''] : $result['arks'])->delete();
+            }
+            foreach (array_chunk($result['arks'], 500) as $chunk) {
+                $movable()->whereIn('gallica_ark', $chunk)->delete();
             }
             $now = now();
-            foreach ($documents as $lineId => $rows) {
-                if (! in_array($lineId, $lineIds, true)) {
+            $written = 0;
+            foreach ($result['documents'] as $lineId => $rows) {
+                if (in_array($lineId, $frozen, true)) {
                     continue;
                 }
                 foreach ($rows as $row) {
@@ -146,9 +181,9 @@ final class GallicaImporter
                     $written++;
                 }
             }
-        });
 
-        return $written;
+            return ['written' => $written, 'before' => $before, 'after' => $all()->count()];
+        });
     }
 
     /** @return array<string, mixed> colonnes de line_archive_documents (sans line_id) */

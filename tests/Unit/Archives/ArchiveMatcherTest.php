@@ -141,12 +141,18 @@ class ArchiveMatcherTest extends TestCase
     public function test_two_places_without_a_route_pass_only_when_they_are_the_ends_and_the_date_fits(): void
     {
         $ends = $this->judge($this->record('Tours, catastrophe de chemin de fer, rapide de Paris, près du Havre', 1926, 'image'))['rfn-340000'];
-        $this->assertSame(['two_places', 'ends', 'rail_word', 'date_in_life', 'doc_type'], self::codes($ends));
+        $this->assertSame(['two_places', 'only_line_places', 'ends', 'rail_word', 'date_in_life', 'doc_type'], self::codes($ends));
         $this->assertSame(9, $ends->score);
 
         $middle = $this->judge($this->record('Gares de Poissy et de Rouen', 1926, 'image'))['rfn-340000'];
-        $this->assertSame(['two_places', 'rail_hint', 'date_in_life', 'doc_type'], self::codes($middle));
+        $this->assertSame(['two_places', 'only_line_places', 'rail_hint', 'date_in_life', 'doc_type'], self::codes($middle));
         $this->assertFalse($middle->passes(ArchiveMatcher::THRESHOLD));
+
+        // Un lieu d'une autre ligne (Gisors) : il manque le point qui permettait d'atteindre le seuil.
+        $other = $this->judge($this->record('Chemin de fer : Gisors, Paris, Le Havre', 1926, 'image'))['rfn-340000'];
+        $this->assertSame(['two_places', 'ends', 'rail_word', 'date_in_life', 'doc_type'], self::codes($other));
+        $this->assertSame(8, $other->score);
+        $this->assertFalse($other->passes(ArchiveMatcher::THRESHOLD));
     }
 
     public function test_a_place_list_is_not_a_route(): void
@@ -162,8 +168,118 @@ class ArchiveMatcherTest extends TestCase
         $m = $this->judge($this->record('Chemin de fer de Gisors : raccordement avec la ligne de Paris au Havre', 1870))['rfn-340000'];
 
         $this->assertSame(['two_places', 'secondary_mention', 'rail_word', 'date_in_life', 'doc_type'], self::codes($m));
-        $this->assertSame(7, $m->score);
+        $this->assertSame(6, $m->score);
         $this->assertFalse($m->passes(ArchiveMatcher::THRESHOLD));
+    }
+
+    /**
+     * Lignes des faux rattachements relevés par la revue du commit bb27386 (point 3), nommées comme dans `vff`.
+     *
+     * @return array<string, ArchiveMatch> par slug
+     */
+    private function judgeOnReviewLines(string $title, int $year, string $type = 'monograph'): array
+    {
+        $line = fn (int $id, string $slug, string $name, array $stations, int $first) => LinePlaceIndex::linePlaces([
+            'id' => $id, 'slug' => $slug, 'name' => $name, 'first_year' => $first, 'open_today' => true,
+            'stations' => array_map(fn (array $s, int $k) => ['name' => $s[0], 'city' => $s[1], 'pk_m' => $k * 10000], $stations, array_keys($stations)),
+        ]);
+        $index = new LinePlaceIndex([
+            1 => $line(1, 'rfn-340000', 'Ligne de Paris-St-Lazare au Havre', [['Paris-St-Lazare', 'Paris'], ['Rouen-Rive-Droite', 'Rouen'], ['Le Havre', 'Le Havre']], 1840),
+            2 => $line(2, 'rfn-561000', 'Ligne de Tours au Mans', [['Tours', 'Tours'], ['Château-du-Loir', 'Château-du-Loir'], ['Le Mans', 'Le Mans']], 1855),
+            3 => $line(3, 'rfn-70000', 'Ligne de Noisy-le-Sec à Strasbourg-Ville', [['Paris-Est', 'Paris'], ['Noisy-le-Sec', 'Noisy-le-Sec'], ['Strasbourg-Ville', 'Strasbourg']], 1845),
+            4 => $line(4, 'rfn-969000', 'Ligne de Paris-Bastille à Marles-en-Brie', [['Paris-Bastille', 'Paris'], ['Vincennes', 'Vincennes'], ['Saint-Maur', 'Saint-Maur-des-Fossés'], ['La Varenne-Saint-Hilaire', 'Saint-Maur-des-Fossés']], 1855),
+            5 => $line(5, 'rfn-973000', 'Ligne de Paris-St-Lazare à Versailles-RD', [['Paris-St-Lazare', 'Paris'], ['Saint-Cloud', 'Saint-Cloud'], ['Versailles-Rive-Droite', 'Versailles']], 1839),
+            6 => $line(6, 'rfn-976000', "Ligne de L'Étang-la-Ville à Saint-Cloud", [["L'Étang-la-Ville", "L'Étang-la-Ville"], ['Saint-Cloud', 'Saint-Cloud']], 1882),
+        ]);
+        $record = new ArchiveRecord('ark:/12148/btv1b'.substr(md5($title), 0, 9), null, $title, $title, $type, [],
+            new ArchiveDate((string) $year, $year, null, null, 'year'), null, null);
+        $out = [];
+        foreach ((new ArchiveMatcher)->candidates($record, $index) as $m) {
+            $out[$index->line($m->lineId)->slug ?? '?'] = $m;
+        }
+
+        return $out;
+    }
+
+    /** @return iterable<string, array{string, int, string, string}> titre, année, type, ligne qui ne doit pas le recevoir */
+    public static function reviewFalseMatches(): iterable
+    {
+        yield 'id 163 : trois lignes au départ de Paris' => ['[Lignes de chemin de fer de Paris à Rouen, au Mans, à Tours, avec l\'indication des lignes projetées sur ce réseau]', 1875, 'map', 'rfn-561000'];
+        yield 'id 32 : embarcadère de la ligne de Vincennes' => ["Notes et observations de M. Caffin d'Orsigny, sur une pétition touchant une modification à l'emplacement fixé de l'embarcadère du chemin de fer de Paris à la Varenne-Saint-Hilaire, par Vincennes et Saint-Maur : à Messieurs les président et membres du conseil d'administration du chemin de fer de Strasbourg", 1855, 'monograph', 'rfn-70000'];
+        yield 'id 30 : invitation de 1858 datée de 1978' => ['Ville de Paris. Inauguration du boulevard de Sébastopol le Lundi 5 Avril 1858, à 2 heures Gare du Chemin de Fer de Strasbourg. Tribune du Portique [...] Bon pour une personne [etc.]', 1978, 'monograph', 'rfn-70000'];
+        yield 'id 143 : simple mention de la ligne Paris à Versailles' => ["Ministère des Travaux publics. Département de Seine-et-Oise. Chemins de fer de L'Etang-la-ville à Saint-Cloud... Partie comprise entre le chemin de fer de grande ceinture et la ligne Paris à Versailles (rive droite)...", 1875, 'map', 'rfn-973000'];
+    }
+
+    #[DataProvider('reviewFalseMatches')]
+    public function test_two_named_places_alone_no_longer_reach_the_threshold(string $title, int $year, string $type, string $wrongLine): void
+    {
+        $judged = $this->judgeOnReviewLines($title, $year, $type);
+        $winners = array_map(fn (ArchiveMatch $m) => $m->lineId, (new ArchiveMatcher)->winners(array_values($judged)));
+
+        $this->assertArrayHasKey($wrongLine, $judged);
+        $this->assertFalse($judged[$wrongLine]->passes(ArchiveMatcher::THRESHOLD), (string) $judged[$wrongLine]->score);
+        $this->assertNotContains($judged[$wrongLine]->lineId, $winners);
+    }
+
+    public function test_the_review_examples_go_to_the_line_they_describe(): void
+    {
+        // « de Paris à Rouen, au Mans » : la ligne de Paris au Havre par Rouen reçoit la carte de 1875.
+        $map = $this->judgeOnReviewLines('[Lignes de chemin de fer de Paris à Rouen, au Mans, à Tours, avec l\'indication des lignes projetées sur ce réseau]', 1875, 'map');
+        $this->assertSame('rail_route', self::codes($map['rfn-340000'])[0]);
+        $this->assertTrue($map['rfn-340000']->passes(ArchiveMatcher::THRESHOLD));
+
+        // « la ligne Paris à Versailles » après « comprise entre » : une mention, pas le sujet.
+        $mention = $this->judgeOnReviewLines("Chemins de fer de L'Etang-la-ville à Saint-Cloud... Partie comprise entre le chemin de fer de grande ceinture et la ligne Paris à Versailles (rive droite)...", 1875, 'map');
+        $this->assertContains('secondary_mention', self::codes($mention['rfn-973000']));
+        $this->assertSame('rail_route', self::codes($mention['rfn-976000'])[0]);
+
+        // Sans marque de mention, « la ligne Paris à Versailles » est bien un trajet.
+        $route = $this->judgeOnReviewLines('Plan de la ligne Paris à Versailles (rive droite)', 1875, 'map');
+        $this->assertSame('rail_route', self::codes($route['rfn-973000'])[0]);
+    }
+
+    public function test_an_enumeration_of_destinations_is_a_route_to_each_of_them(): void
+    {
+        $m = $this->judge($this->record('Chemin de fer de Paris à Cologne et au Havre', 1850))['rfn-340000'];
+        $this->assertSame(['rail_route', 'ends', 'rail_word', 'date_in_life', 'doc_type'], self::codes($m));
+
+        $list = $this->judge($this->record('Itinéraires de Paris à Saint-Germain, Poissy, Auteuil, Le Havre', 1850))['rfn-340000'];
+        $this->assertSame('route', self::codes($list)[0]);
+    }
+
+    public function test_two_places_separated_by_a_spaced_dash_are_a_route(): void
+    {
+        $m = $this->judge($this->record('Catastrophe de chemin de fer [déraillement du rapide Paris - Le Havre, près de Tours]', 1926, 'image'))['rfn-340000'];
+
+        $this->assertSame(['route', 'ends', 'rail_word', 'date_in_life', 'doc_type'], self::codes($m));
+        $this->assertSame(10, $m->score);
+    }
+
+    public function test_a_printed_year_far_from_the_record_date_makes_the_date_doubtful(): void
+    {
+        $m = $this->judge($this->record('Inauguration du chemin de fer de Paris au Havre, le 5 avril 1847', 1978))['rfn-340000'];
+        $this->assertContains('date_doubtful', self::codes($m));
+        $this->assertSame(9, $m->score);
+
+        $near = $this->judge($this->record('Inauguration du chemin de fer de Paris au Havre, le 5 avril 1847', 1848))['rfn-340000'];
+        $this->assertContains('date_in_life', self::codes($near));
+    }
+
+    public function test_a_document_on_two_lines_keeps_only_the_better_one(): void
+    {
+        $matcher = new ArchiveMatcher;
+        $reason = fn (string $code) => [['code' => $code, 'points' => ArchiveMatcher::POINTS[$code]]];
+        // Scores différents : seule la meilleure ligne garde le document.
+        $this->assertSame([1], array_map(fn (ArchiveMatch $m) => $m->lineId, $matcher->winners([
+            new ArchiveMatch(1, 11, $reason('rail_route'), [], null, ['a', 'b']),
+            new ArchiveMatch(2, 9, $reason('rail_route'), [], null, ['c', 'd']),
+        ])));
+        // Même score : la ligne reliée par un trajet passe avant celle dont le titre nomme seulement deux lieux
+        // (« Chemin de fer d'Auch à Lannemezan, d'Arreau à Saint-Lary », revue du commit bb27386).
+        $this->assertSame([1], array_map(fn (ArchiveMatch $m) => $m->lineId, $matcher->winners([
+            new ArchiveMatch(2, 9, $reason('two_places'), [], null, ['lannemezan', 'arreau']),
+            new ArchiveMatch(1, 9, $reason('rail_route'), [], null, ['auch', 'lannemezan']),
+        ])));
     }
 
     public function test_a_horse_tramway_is_not_the_railway(): void

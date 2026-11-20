@@ -56,20 +56,23 @@ class LineArchiveController extends Controller
      *
      * - `rail_route` (4 points) : le titre décrit une voie ferrée entre deux lieux de la ligne qui se suivent
      *   (« chemin de fer de Limoges à Angoulême », « ligne de Toulouse à Bayonne ») ; à défaut `route` (3) : un
-     *   trajet entre eux (« de Paris au Havre », « entre Paris et Le Havre ») ; à défaut `two_places` (2) : il
-     *   nomme deux lieux de la ligne (communes ou gares, extrémités de son nom actuel ou de ses anciens noms) ;
+     *   trajet entre eux (« de Paris au Havre », « entre Paris et Le Havre », « rapide Paris - Bordeaux ») ; à
+     *   défaut `two_places` (1) : il nomme deux lieux de la ligne (communes ou gares, extrémités de son nom actuel
+     *   ou de ses anciens noms), et `only_line_places` (1) s'il ne nomme aucun lieu situé hors de la ligne ;
      * - `ends` (2) : ces deux lieux sont les extrémités de la ligne ;
      * - `rail_word` (2) : chemin de fer, voie ferrée, tramway, railway, embranchement, ferroviaire, « ligne de
      *   X à Y » ; ou `rail_hint` (1) : seulement gare, train, locomotive ou wagon ;
      * - date : `date_in_life` (2) entre la première date connue de la ligne et sa fermeture ; `date_project`
      *   (1) dans les 40 ans avant (projets, enquêtes) ; `date_after_closure` (1) après la fermeture ;
-     *   `date_unknown` (0) document sans date ou ligne sans date connue ;
+     *   `date_unknown` (0) document sans date ou ligne sans date connue ; `date_doubtful` (0) le titre imprime une
+     *   année à plus de 40 ans de la date de la notice ;
      * - `doc_type` (1) : texte imprimé (`monograph`), carte (`map`), image fixe (`image`) ou manuscrit (`manuscript`) ;
      * - `secondary_mention` (0) : la ligne n'est citée que comme raccordement d'une autre (« raccordement avec la
      *   ligne de Paris à Bordeaux ») ; ses extrémités ne comptent alors pas.
      *
      * Une ligne qui existait à la date du document passe avant une ligne alors en projet, et la ligne dont le
-     * titre nomme le plus de lieux passe avant celle qui n'en partage qu'une partie.
+     * titre nomme le plus de lieux passe avant celle qui n'en partage qu'une partie. Seul le meilleur score garde
+     * le document ; à égalité, une ligne reliée par un trajet passe avant une ligne seulement nommée.
      *
      * Un document n'est retenu qu'à partir de 9 points sur 11 (`match.threshold`, `match.max_score`), avec un
      * mot du rail, sans autre moyen de transport dans le titre (métro, canal, bateaux à vapeur, autocar…) sauf

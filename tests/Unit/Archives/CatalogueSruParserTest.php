@@ -100,4 +100,13 @@ class CatalogueSruParserTest extends TestCase
         $this->expectException(RuntimeException::class);
         (new CatalogueSruParser)->parse('<html>Attention Required! | Cloudflare');
     }
+
+    public function test_a_well_formed_xml_page_that_is_not_sru_is_an_error(): void
+    {
+        // Page de maintenance servie avec le code 200 : une RuntimeException (erreur de la ligne), jamais une
+        // erreur PHP qui arrêterait tout l'import (revue du commit bb27386, point 6).
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('pas une réponse SRU');
+        (new CatalogueSruParser)->parse('<?xml version="1.0"?><maintenance>Service indisponible</maintenance>');
+    }
 }

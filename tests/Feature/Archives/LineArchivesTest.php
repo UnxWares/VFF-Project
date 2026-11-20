@@ -39,9 +39,9 @@ class LineArchivesTest extends TestCase
         $this->document('ark:/12148/bpt6k372725k', 'Chemin de fer de Paris à Rouen et au Havre, par la vallée de la Seine', 'monograph', 1837, 'year',
             ['authors' => ['Polonceau, Antoine-Rémy'], 'catalogue_ark' => 'ark:/12148/cb30000001q']);
         $this->document('ark:/12148/btv1b104834123', 'Pont sur la ligne de Paris au Havre à Poissy', 'image', null, 'unknown');
-        // Deux photographies d'un même déraillement : une seule entrée sur la fiche.
-        $this->document('ark:/12148/btv1b90000001', 'Catastrophe de chemin de fer près de Rouen', 'image', 1926, 'year');
-        $this->document('ark:/12148/btv1b90000002', 'Catastrophe de chemin de fer près de Rouen', 'image', 1926, 'year');
+        // Deux photographies d'un même déraillement, deux exemplaires aux cotes différentes : une seule entrée sur la fiche.
+        $this->document('ark:/12148/btv1b90000001', 'Catastrophe de chemin de fer près de Rouen', 'image', 1926, 'year', ['shelfmark' => 'YE-54393']);
+        $this->document('ark:/12148/btv1b90000002', 'Catastrophe de chemin de fer près de Rouen', 'image', 1926, 'year', ['shelfmark' => 'YE-54394']);
     }
 
     /** @param array<string, mixed> $extra */
@@ -77,6 +77,13 @@ class LineArchivesTest extends TestCase
         // Aucune image ni vignette dans la réponse.
         $this->assertStringNotContainsString('thumbnail', (string) $res->getContent());
         $this->assertStringNotContainsString('iiif', (string) $res->getContent());
+    }
+
+    public function test_the_rest_api_gives_the_shelfmark_of_each_copy(): void
+    {
+        $res = $this->getJson('/api/v1/lines/rfn-340000/archives')->assertOk();
+
+        $this->assertSame([null, 'GE DL 1838-38', 'YE-54393', 'YE-54394', null], array_column($res->json('documents'), 'shelfmark'));
     }
 
     public function test_the_rest_api_filters_by_type_and_validates_it(): void
@@ -136,6 +143,10 @@ class LineArchivesTest extends TestCase
             ->has('archives.items', 4)
             ->where('archives.items.0.title', 'Chemin de fer de Paris à Rouen et au Havre, par la vallée de la Seine')
             ->where('archives.items.2.more_urls', ['https://gallica.bnf.fr/ark:/12148/btv1b90000002'])
+            // Les deux cotes de l'entrée regroupée restent lisibles (revue du commit bb27386, point 8).
+            ->where('archives.items.2.shelfmarks', ['YE-54393', 'YE-54394'])
+            ->where('archives.items.1.shelfmarks', ['GE DL 1838-38'])
+            ->where('archives.items.0.shelfmarks', [])
             ->where('archives.items.3.date', null)
             ->where('archives.items.3.date_precision', 'unknown'));
 

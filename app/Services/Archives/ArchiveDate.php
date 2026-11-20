@@ -9,6 +9,17 @@ namespace App\Services\Archives;
  */
 final readonly class ArchiveDate
 {
+    /** Date approchée dans le texte imprimé : « [ca 1850] », « circa 1869 », « vers 1880 », « env. 1900 », « 1910? ». */
+    private const APPROX = '/\b(ca|circa|vers|env)\b\.?|\?/iu';
+
+    /** Mois en français (avec et sans accents) et en anglais, numérotés. */
+    private const MONTHS = [
+        'janvier' => 1, 'fevrier' => 2, 'février' => 2, 'mars' => 3, 'avril' => 4, 'mai' => 5, 'juin' => 6, 'juillet' => 7,
+        'aout' => 8, 'août' => 8, 'septembre' => 9, 'octobre' => 10, 'novembre' => 11, 'decembre' => 12, 'décembre' => 12,
+        'january' => 1, 'february' => 2, 'march' => 3, 'april' => 4, 'may' => 5, 'june' => 6, 'july' => 7, 'august' => 8,
+        'september' => 9, 'october' => 10, 'november' => 11, 'december' => 12,
+    ];
+
     public function __construct(
         public ?string $label,
         public ?int $year,
@@ -32,7 +43,10 @@ final readonly class ArchiveDate
      *   j : date détaillée, la seconde « date » donne le mois et le jour (MMJJ) ;
      *   u : inconnue.
      * Un chiffre inconnu (« 189. ») donne la décennie (intervalle) ; deux ou plus (« 18.. ») : date inconnue.
-     * « ca », « vers », « env. » ou « ? » dans le texte imprimé : date approchée (circa).
+     * « ca », « circa », « vers », « env. » ou « ? » dans le texte imprimé : date approchée (circa).
+     * Une seule année codée : le jour ou le mois imprimés de la même année sont gardés (« 21 juin 1926 »,
+     * « 10/05/1874 », « [Mai 1923] », « August 6, 1870 ») ; si le texte imprimé n'est qu'une autre année
+     * (« 1854 » pour 1864 codé), cette année l'emporte, en date approchée : la notice se contredit.
      */
     public static function fromUnimarc(?string $field100, ?string $label): self
     {
@@ -43,7 +57,7 @@ final readonly class ArchiveDate
         $kind = $field100[8];
         $first = substr($field100, 9, 4);
         $second = substr($field100, 13, 4);
-        $approx = $label !== null && preg_match('/\b(ca|vers|env)\b\.?|\?/iu', $label) === 1;
+        $approx = $label !== null && preg_match(self::APPROX, $label) === 1;
 
         if ($kind === 'u') {
             return self::fromLabel($label);
@@ -73,16 +87,62 @@ final readonly class ArchiveDate
             return new self($label, $from['from'], $to['to'], null, 'range');
         }
 
-        return new self($label ?? (string) $from['from'], $from['from'], null, null, $approx || $kind === 'f' ? 'circa' : 'year');
+        $year = $from['from'];
+        if ($kind === 'd' && $label !== null && preg_match('/^\[?(\d{4})\]?$/', $label, $m) === 1 && self::year($m[1]) !== null && (int) $m[1] !== $year) {
+            return new self($label, (int) $m[1], null, null, 'circa');
+        }
+        if (! $approx && $kind !== 'f' && ($detail = self::detail($label, $year)) !== null) {
+            return new self($label, $year, null, $detail[0], $detail[1]);
+        }
+
+        return new self($label ?? (string) $year, $year, null, null, $approx || $kind === 'f' ? 'circa' : 'year');
     }
 
-    /** Sans zone 100 exploitable : une année à quatre chiffres lue dans le texte, sinon inconnue. */
+    /**
+     * Jour ou mois de l'année `$year` imprimés dans le texte : [AAAA-MM-JJ, day] ou [AAAA-MM-01, month], null
+     * si le texte n'en donne pas ou s'il parle d'une autre année.
+     *
+     * @return array{0: string, 1: string}|null
+     */
+    private static function detail(?string $label, int $year): ?array
+    {
+        if ($label === null) {
+            return null;
+        }
+        $months = implode('|', array_keys(self::MONTHS));
+        $day = null;
+        $month = null;
+        $y = null;
+        if (preg_match('#\b(\d{1,2})/(\d{1,2})/(\d{4})\b#u', $label, $m) === 1) {
+            [$day, $month, $y] = [(int) $m[1], (int) $m[2], (int) $m[3]];
+        } elseif (preg_match("/(?<![\\d.])(1er|\\d{1,2})\\s+({$months})\\s+(\\d{4})\\b/iu", $label, $m) === 1) {
+            [$day, $month, $y] = [$m[1] === '1er' ? 1 : (int) $m[1], self::MONTHS[mb_strtolower($m[2])], (int) $m[3]];
+        } elseif (preg_match("/\\b({$months})\\s+(\\d{1,2}),\\s*(\\d{4})\\b/iu", $label, $m) === 1) {
+            [$day, $month, $y] = [(int) $m[2], self::MONTHS[mb_strtolower($m[1])], (int) $m[3]];
+        } elseif (preg_match("/(?<![\\p{L}])({$months})\\s+(\\d{4})\\b/iu", $label, $m) === 1) {
+            [$month, $y] = [self::MONTHS[mb_strtolower($m[1])], (int) $m[2]];
+        }
+        if ($y !== $year || $month < 1 || $month > 12) {
+            return null;
+        }
+        if ($day === null) {
+            return [sprintf('%04d-%02d-01', $year, $month), 'month'];
+        }
+
+        return checkdate($month, $day, $year) ? [sprintf('%04d-%02d-%02d', $year, $month, $day), 'day'] : null;
+    }
+
+    /** Sans zone 100 exploitable : une année à quatre chiffres lue dans le texte (et son jour), sinon inconnue. */
     private static function fromLabel(?string $label): self
     {
         if ($label !== null && preg_match('/\b(1[6-9]\d\d|20[0-4]\d)\b/', $label, $m) === 1) {
-            $approx = preg_match('/\b(ca|vers|env)\b\.?|\?/iu', $label) === 1;
+            $year = (int) $m[1];
+            if (preg_match(self::APPROX, $label) === 1) {
+                return new self($label, $year, null, null, 'circa');
+            }
+            $detail = self::detail($label, $year);
 
-            return new self($label, (int) $m[1], null, null, $approx ? 'circa' : 'year');
+            return new self($label, $year, null, $detail[0] ?? null, $detail[1] ?? 'year');
         }
 
         return self::unknown($label);
@@ -110,11 +170,14 @@ final readonly class ArchiveDate
         return null;
     }
 
-    /** « [ca 1850] » reste tel quel ; « [s.d.] » (sans date) et les blancs seuls : null. */
+    /**
+     * « [ca 1850] » reste tel quel ; « sans date » sous ses formes (« [s.d.] », « (s. d.) », « (s. d.,) »,
+     * « S. d. ») et les blancs seuls : null, pour ne pas masquer une année codée dans la zone 100.
+     */
     private static function cleanLabel(string $label): ?string
     {
         $label = trim((string) preg_replace('/\s+/u', ' ', $label), " \t,;:");
-        if ($label === '' || preg_match('/^\[?s\.\s?d\.?\]?$/iu', $label) === 1) {
+        if ($label === '' || preg_match('/^[\[(]?\s*s\.\s*d\.?\s*,?\s*[\])]?$/iu', $label) === 1) {
             return null;
         }
 
