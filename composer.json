@@ -85,6 +85,10 @@
         "test:mutation": [
             "Composer\\Config::disableProcessTimeout",
             "@php vendor/bin/infection --threads=4 --only-covering-test-cases --show-mutations=20 --no-progress"
+        ],
+        "test:mutation:critical": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php vendor/bin/infection -c tests/Mutation/Critical/infection.json5 --threads=4 --only-covering-test-cases --show-mutations=20 --no-progress"
         ]
     },
     "scripts-descriptions": {
@@ -94,7 +98,8 @@
         "test:static": "Contrôles statiques du projet (tirets, clés i18n, palette, routes), sans base",
         "test:parallel": "PHPUnit en 4 processus (bases <base>_test_1 à _4, créées par Laravel)",
         "test:coverage": "Couverture (pcov activé à la demande) : résumé texte + Clover + HTML dans storage/app/reports/coverage",
-        "test:mutation": "Tests de mutation Infection (4 threads) sur les services purs critiques (infection.json5), long"
+        "test:mutation": "Tests de mutation Infection (4 threads) sur les services purs critiques (infection.json5), long",
+        "test:mutation:critical": "Tests de mutation Infection (4 threads) des règles métier critiques : moteur d'historique, desserte des gares, validation à deux, matériel, images (tests/Mutation/Critical), long"
     },
     "extra": {
         "laravel": {
