@@ -60,7 +60,7 @@ return [
             'archeo' => 'J. Randé, F. Librini, K. Moreau; routes by F. Hespert and Y. Zwartjes',
             'lignes_oubliees' => 'L. Dagallier: dates and kilometre points of vanished lines',
             'wikipedia' => 'Line and rolling stock histories',
-            'gallica' => 'Historical archives',
+            'gallica' => 'Catalogue records of digitised documents about a line (Open Licence), with a link to Gallica; no images reused',
         ],
         'ai' => [
             'title' => 'Routes realigned by a neural network',
@@ -120,7 +120,7 @@ return [
             'home_map_title' => 'Home page background',
             'home_map_text' => 'Cropped, sepia-toned detail of the “Carte spéciale des chemins de fer de la France et de l’Allemagne à l’usage des voyageurs” (special railway map of France and Germany for travellers), drawn by Alexandre Vuillemin and published by A. Logerot (Paris, 1865). Copy held by the Library of Congress (Washington), public domain.',
             'gallica_title' => 'BnF Gallica',
-            'gallica_text' => 'Historical IGN maps, Cassini and État-major maps, old timetables. Each document can be reused under the BnF\'s conditions, which you can read on Gallica.',
+            'gallica_text' => 'Digitised documents about a line: project reports, plans, photographs. VFF only reuses their catalogue record (title, date, shelfmark; Open Licence) and links to Gallica to view them. The documents themselves can be reused under the BnF’s conditions.',
             'commons_title' => 'Wikipedia and Wikimedia Commons',
             'commons_text' => 'Archive photographs and illustrations, each under its own licence (most often CC BY-SA).',
             'assoc_title' => 'Regional railway associations',

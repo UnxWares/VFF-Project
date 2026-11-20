@@ -182,6 +182,20 @@ type Line {
     greenway_length_m: Int! @field(resolver: "App\\GraphQL\\Resolvers\\LineGreenwayField@length")
 
     """
+    Documents d'archives numérisés dans Gallica (Bibliothèque nationale de France) dont le titre parle
+    de la ligne, du plus ancien au plus récent (sans date en dernier), comme
+    `GET /api/v1/lines/{line}/archives` : projets, plans et cartes du tracé, mémoires, guides,
+    photographies. Rattachement par un score explicable calculé sur le seul titre de la notice
+    (`LineArchiveDocument.score_reasons`), retenu à partir de 9 points sur 11 ; liste vide si aucun
+    document n'est sûr. Métadonnées des notices de la BnF sous Licence Ouverte : reprenez la mention
+    `LineArchiveDocument.attribution`. Aucune image ni vignette n'est servie : suivez `gallica_url`.
+    """
+    archives(
+        "Ne garder qu'un type de document. Par défaut : tous."
+        type: ArchiveDocumentType @where(key: "doc_type")
+    ): [LineArchiveDocument!]! @hasMany(relation: "archiveDocuments")
+
+    """
     Mises en service de signalisation datées (BAL, BAPR, block manuel, cantonnement téléphonique, TVM,
     ETCS, KVB), relevées dans l'article Wikipédia de la ligne (texte, listes, tableaux, infobox), du plus
     ancien au plus récent. C'est un historique à part : l'état actuel de la ligne (SNCF Réseau) est donné
@@ -1784,6 +1798,99 @@ type LineGreenway {
 
     "Fournisseur et licence de la donnée (OpenStreetMap, ODbL)."
     provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineGreenwayField@provenance")
+}
+
+"Type d'un document d'archives, d'après la notice de la BnF."
+enum ArchiveDocumentType {
+    "Texte imprimé : livre, brochure, mémoire, rapport, guide."
+    MONOGRAPH @enum(value: "monograph")
+
+    "Document cartographique : carte, plan, profil en long."
+    MAP @enum(value: "map")
+
+    "Image fixe : photographie, estampe, affiche, carte postale."
+    IMAGE @enum(value: "image")
+
+    "Manuscrit."
+    MANUSCRIPT @enum(value: "manuscript")
+}
+
+"""
+Document d'archives numérisé en accès libre dans Gallica, rattaché à une ligne d'après le titre de sa
+notice au catalogue général de la BnF (`vff:import-gallica`). Seules les métadonnées de la notice
+(Licence Ouverte) sont gardées par VFF, avec les identifiants ark ; le document lui-même se consulte
+dans Gallica, et sa réutilisation suit les conditions d'utilisation de Gallica (non commerciale libre
+avec la mention « Source gallica.bnf.fr / BnF », commerciale soumise à redevance).
+"""
+type LineArchiveDocument {
+    "Identifiant ark du document numérisé dans Gallica (ex. `ark:/12148/bpt6k1192344q`)."
+    gallica_ark: String!
+
+    "Lien vers le document dans Gallica."
+    gallica_url: String!
+
+    "Identifiant ark de la notice au catalogue général de la BnF (ex. `ark:/12148/cb315821610`), nul s'il manque."
+    catalogue_ark: String
+
+    "Lien vers la notice au catalogue général de la BnF."
+    catalogue_url: String
+
+    "Titre propre de la notice, suivi de son premier complément après « : »."
+    title: String!
+
+    "Type de document : `monograph` (texte imprimé), `map` (carte, plan), `image` (image fixe) ou `manuscript`."
+    type: String! @rename(attribute: "doc_type")
+
+    "Auteurs, illustrateurs, éditeurs scientifiques ou collectivités, tels que la notice les écrit (« Villemandy, Alfred de ») ; quatre au plus."
+    authors: [String!]!
+
+    "Date telle que la notice l'imprime (« 1860 », « [ca 1850] », « 1er novembre 1873 »), nulle si la notice n'en donne pas."
+    date_label: String
+
+    "Année du document (première année d'un intervalle), nulle si elle est inconnue."
+    year: Int
+
+    "Dernière année d'un intervalle (`date_precision` = `range`), nulle sinon."
+    year_to: Int
+
+    "Jour exact (précision `day`) ou premier jour du mois (précision `month`), quand la notice le donne."
+    exact_date: Date
+
+    "Précision de la date : `day`, `month`, `year`, `circa` (date approchée), `range` (entre `year` et `year_to`) ou `unknown`."
+    date_precision: String!
+
+    "Cote de l'original à la BnF (ex. `V-54984`, `GE C-4520`), nulle si la notice n'en donne pas."
+    shelfmark: String
+
+    "Score de rattachement à la ligne, de 9 (seuil) à 11."
+    score: Int!
+
+    "Raisons du score, point par point : `rail_route` (4), `route` (3) ou `two_places` (2), `ends` (2) ou `secondary_mention` (0), `rail_word` (2) ou `rail_hint` (1), `date_in_life` (2), `date_project` (1), `date_after_closure` (1) ou `date_unknown` (0), `doc_type` (1)."
+    score_reasons: [ArchiveMatchReason!]!
+
+    "Lieux de la ligne reconnus dans le titre."
+    matched_places: [String!]!
+
+    "Dernière mise à jour de la notice à la BnF."
+    record_updated_on: Date
+
+    "Date de récupération de la notice par VFF (à citer avec la source)."
+    fetched_at: DateTime!
+
+    "Mention de source à reproduire : « Source : gallica.bnf.fr / BnF », Licence Ouverte pour les métadonnées."
+    attribution: String! @field(resolver: "App\\GraphQL\\Resolvers\\LineArchiveField@attribution")
+
+    "Fournisseur et licence de la donnée (Gallica, BnF)."
+    provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineArchiveField@provenance")
+}
+
+"Une raison du score de rattachement d'un document d'archives."
+type ArchiveMatchReason {
+    "Code de la raison : `rail_route` (voie ferrée « de X à Y »), `route` (trajet « de X à Y »), `two_places`, `ends`, `secondary_mention`, `rail_word`, `rail_hint`, `date_in_life`, `date_project`, `date_after_closure`, `date_unknown` ou `doc_type`."
+    code: String!
+
+    "Points apportés au score."
+    points: Int!
 }
 
 "Un way OpenStreetMap d'une voie verte, avec sa part sur l'ancienne emprise de la ligne."

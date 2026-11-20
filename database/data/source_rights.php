@@ -391,6 +391,31 @@ return [
             'domaines' => ['insee.fr'],
             'lu_le' => '2026-11-19',
         ],
+        'gallica' => [
+            'nom' => 'Gallica, bibliothèque numérique de la BnF (notices du catalogue général de la Bibliothèque nationale de France)',
+            'statut' => 'sur',
+            'licence' => 'Métadonnées descriptives de la BnF : Licence Ouverte (Etalab) depuis le 1er janvier 2014. Documents numérisés : conditions d\'utilisation des contenus de Gallica (réutilisation non commerciale libre et gratuite avec la mention de source, réutilisation commerciale soumise à autorisation et à redevance)',
+            'accord' => null,
+            'preuve' => [
+                'https://www.bnf.fr/fr/conditions-de-reutilisations-des-donnees-de-la-bnf',
+                'https://www.bnf.fr/sites/default/files/2018-11/metadonnees_bnf_cond_utilisation.pdf',
+                'https://api.bnf.fr/fr/conditions-generales-dutilisation-du-site-bnf-api-et-jeux-de-donnees',
+                'https://www.bnf.fr/fr/faire-une-utilisation-commerciale-dune-reproduction',
+                'https://api.bnf.fr/fr/api-gallica-de-recherche',
+                'https://api.bnf.fr/fr/api-sru-catalogue-general',
+            ],
+            'citation' => 'Métadonnées : « La BnF a, depuis le 1er janvier 2014, placé ses métadonnées descriptives (données bibliographiques et d\'autorité) sous la « Licence Ouverte / Open Licence » de l\'État élaborée par la mission Etalab. L\'utilisation de ces métadonnées est libre et gratuite sous réserve du maintien de la mention de leur source et de l\'indication de leur date de récupération. » '
+                .'Documents : « Ces utilisations commerciales sont soumises à autorisation et au paiement d\'une redevance [...] L\'utilisation non commerciale des documents ou dans une publication académique ou scientifique est libre et gratuite sous réserve de la mention de source : BnF ou Bibliothèque nationale de France. »',
+            'obligations' => 'Mention « Source : gallica.bnf.fr / BnF » (Bibliothèque nationale de France) et date de récupération des notices. '
+                .'Seules les métadonnées des notices produites par la BnF sont reprises (titre, date, type, auteurs, cote, identifiants ark) avec un lien vers le document dans Gallica (vff:import-gallica, table line_archive_documents). '
+                .'Aucune image, vignette ni texte numérisé n\'est stocké ni affiché : sur un site édité par une société, leur affichage pourrait relever de la réutilisation commerciale (tarif « Web et applications mobiles » : 75 € HT par image).',
+            'remarques' => 'Lu le 2026-11-20. gallica.bnf.fr (SRU, OAI-PMH, IIIF et page des conditions d\'utilisation) refuse les requêtes de la machine de développement (blocage Cloudflare « Sorry, you have been blocked »), et aussi celles de l\'outil de lecture de pages : '
+                .'les notices sont donc lues dans l\'API SRU du catalogue général (catalogue.bnf.fr/api/SRU, critère bib.digitized = freeAccess : document numérisé en accès libre dans Gallica), qui décrit les mêmes documents. '
+                .'Le catalogue général ne décrit que les collections de la BnF : les documents des bibliothèques partenaires de Gallica, soumis aux règles de chaque institution, n\'y sont pas. '
+                .'La page des conditions d\'utilisation de Gallica (https://gallica.bnf.fr/edit/und/conditions-dutilisation-des-contenus-de-gallica, citée comme licence par la page de l\'API) n\'a pas pu être lue.',
+            'domaines' => ['gallica.bnf.fr', 'catalogue.bnf.fr'],
+            'lu_le' => '2026-11-20',
+        ],
     ],
 
     'sources' => [
@@ -478,6 +503,9 @@ return [
         'line_signalling_events' => ['wikipedia' => 'wikipedia'],
         // Profils en long (vff:compute-line-profiles) : altitude de la voie BD TOPO, à défaut RGE ALTI (line_profiles.source).
         'line_profiles' => ['bdtopo-rge-alti' => 'ign'],
+        // Documents d'archives de Gallica rattachés aux lignes (vff:import-gallica) : métadonnées des notices de la BnF
+        // (Licence Ouverte) et lien vers Gallica, jamais l'image ni le texte numérisés.
+        'line_archive_documents' => ['gallica' => 'gallica'],
         // Matériel roulant (vff:import-materials) : fiches Wikidata, champ par champ (provenance),
         // image Commons (licence propre à chaque fichier), liens matériel ↔ ligne attestés.
         // `contrib` : séries, champs, liens et périodes proposés par les contributeurs et validés (LineMaterialContributions,

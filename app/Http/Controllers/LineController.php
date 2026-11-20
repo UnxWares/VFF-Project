@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ReadsListFilters;
 use App\Models\Line;
 use App\Services\Accidents\LineAccidents;
+use App\Services\Archives\LineArchives;
 use App\Services\Greenways\LineGreenways;
 use App\Services\LevelCrossings\LineLevelCrossings;
 use App\Services\LineDirectory;
@@ -146,9 +147,10 @@ class LineController extends Controller
      * et son profil en long s'il est calculé, allégé à LineProfiles::SHEET_MAX_POINTS points (section
      * « Profil en long » ; profil complet : `/api/v1/lines/{slug}/profile`), et les ères dont le tracé peut
      * être téléchargé en GPX, KML ou GeoJSON (`trace_export_eras` : seules les sources à licence ouverte
-     * comptent ; API : `/api/v1/lines/{slug}/gpx`).
+     * comptent ; API : `/api/v1/lines/{slug}/gpx`), et les documents de Gallica qui en parlent (section « Dans
+     * les archives » ; API : `/api/v1/lines/{slug}/archives`).
      */
-    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineTraceExport $traceExport): Response
+    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineTraceExport $traceExport, LineArchives $archives): Response
     {
         return Inertia::render('Lines/Show', [
             // Sans ce que la page n'affiche pas (LineSheet::PAGE_OMITTED, données complètes dans l'API).
@@ -159,6 +161,7 @@ class LineController extends Controller
             'signalling_history' => $signallingHistory->forSheet($line),
             'profile' => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS),
             'trace_export_eras' => $traceExport->exportableEraYears($line),
+            'archives' => $archives->forSheet($line),
         ]);
     }
 }

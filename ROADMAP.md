@@ -232,7 +232,8 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [x] Jonctions entre lignes : 0 m d'écart à chaque jonction sur les 21 époques, raccords en courbe
 - [~] Jonctions : réduire les coudes et crochets restants (phase « escaliers »)
 - [ ] Modèle : fusion de plusieurs dates de prises de vue (calcul GPU, sur accord), publication des poids complets
-- [ ] Gallica (BnF) et fonds d'archives (SNCF, associations régionales)
+- [~] Gallica (BnF) : 246 documents numérisés rattachés à 65 lignes par le titre de leur notice (score expliqué, seuil prudent, précision mesurée de 92 % sur 50 documents tirés au hasard), section « Dans les archives » de la fiche ligne, `GET /api/v1/lines/{slug}/archives`, `Line.archives` en GraphQL et outil MCP `line_archives` ; seules les métadonnées de la BnF (Licence Ouverte) et le lien vers Gallica sont repris, aucune image. Reste : la presse, les documents des bibliothèques partenaires et l'API de Gallica elle-même (refusée à la machine de développement)
+- [ ] Fonds d'archives (SNCF, associations régionales)
 - [x] Distinction visuelle des époques anciennes sur la carte : fond pâli et teinté de sépia selon l'ère (rien aujourd'hui), réglage « Teinte des époques anciennes » et `?tint=off`
 
 ---

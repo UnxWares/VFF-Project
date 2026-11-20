@@ -552,6 +552,7 @@ return [
         'materials' => 'Rolling stock',
         'accidents' => 'Accidents',
         'gallery' => 'Photos',
+        'archives' => 'Archives',
         'notes' => 'Sources',
     ],
 ];

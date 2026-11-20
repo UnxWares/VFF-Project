@@ -54,6 +54,18 @@ class Line extends Model
         return $this->hasMany(LineEvent::class);
     }
 
+    /**
+     * Documents d'archives de Gallica rattachés à la ligne (vff:import-gallica), du plus ancien au plus
+     * récent, les documents sans date en dernier.
+     *
+     * @return HasMany<LineArchiveDocument, $this>
+     */
+    public function archiveDocuments(): HasMany
+    {
+        return $this->hasMany(LineArchiveDocument::class)
+            ->orderByRaw('year IS NULL, year, exact_date NULLS LAST, title, id');
+    }
+
     /** @return MorphMany<Media, $this> */
     public function media(): MorphMany
     {

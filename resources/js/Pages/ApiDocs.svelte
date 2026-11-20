@@ -82,6 +82,7 @@
                 { path: '/api/v1/lines/{line}/materials', key: 'line_materials' },
                 { path: '/api/v1/lines/{line}/media', key: 'media' },
                 { path: '/api/v1/lines/{line}/greenways', key: 'line_greenways' },
+                { path: '/api/v1/lines/{line}/archives', key: 'line_archives' },
                 {
                     path: '/api/v1/greenways/tiles/{z}/{x}/{y}.mvt',
                     key: 'greenways_tiles',
@@ -175,6 +176,7 @@
         'level_crossings',
         'line_profile',
         'line_greenways',
+        'line_archives',
         'line_materials',
         'locate_on_line',
         'signalling_history',

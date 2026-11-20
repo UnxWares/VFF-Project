@@ -140,6 +140,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `level_crossings` | Passages à niveau publiés par SNCF Réseau (classe, PK, commune), par ligne, groupe, commune ou emprise, paginés. |
 | `line_profile` | Profil en long d'une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte, altitude des gares (IGN). |
 | `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
+| `line_archives` | Documents numérisés dans Gallica (BnF) dont le titre désigne une ligne : titre, date et précision, type, auteurs, cote, lien vers Gallica, score de rattachement. |
 | `locate_on_line` | Point kilométrique d'un lieu (latitude, longitude) sur le tracé d'une ligne. |
 | `signalling_history` | Mises en service datées de signalisation d'une ligne (Wikipédia), et faits en vigueur à une époque, ceux que montre la carte. |
 | `list_departments` | Régions et départements (codes INSEE et noms) à passer dans `department` et `region`, avec le nombre de lignes, de gares et d'accidents de chacun. |
@@ -737,6 +738,52 @@ Provenance et licence : OpenStreetMap, ODbL 1.0. `provenance` donne le fournisse
 {"line": "rfn-436000", "include_ways": true}
 ```
 
+### `line_archives` : documents d'archives d'une ligne (Gallica)
+
+Même contenu que `GET /api/v1/lines/{line}/archives` (service `LineArchives`). Documents numérisés en accès libre dans
+Gallica, la bibliothèque numérique de la BnF, dont le titre désigne la ligne : projets, plans et cartes du tracé,
+mémoires, guides, photographies. Ils sont trouvés par `vff:import-gallica` dans le catalogue général de la BnF, puis
+rattachés à la ligne par un score calculé sur le seul titre de la notice (`ArchiveMatcher`) :
+
+| Raison | Points | Condition |
+|---|---|---|
+| `rail_route` | 4 | le titre décrit une voie ferrée entre deux lieux de la ligne qui se suivent (« chemin de fer de X à Y », « ligne de X à Y ») |
+| `route` | 3 | à défaut, un trajet entre ces deux lieux (« de X à Y », « entre X et Y ») |
+| `two_places` | 2 | à défaut, le titre nomme deux lieux de la ligne (communes, gares, extrémités de ses noms) |
+| `ends` | 2 | ces deux lieux sont les extrémités de la ligne (nom actuel, ancien nom ou gares terminus) |
+| `rail_word` / `rail_hint` | 2 / 1 | chemin de fer, voie ferrée, tramway, railway, embranchement, ferroviaire, « ligne de X à Y » ; ou seulement gare, train, locomotive, wagon |
+| `date_in_life` | 2 | date entre la première date connue de la ligne et sa fermeture (ou aujourd'hui) |
+| `date_project` / `date_after_closure` | 1 | dans les 40 ans avant la première date ; après la fermeture |
+| `date_unknown` | 0 | document sans date, ou ligne sans date connue |
+| `doc_type` | 1 | texte imprimé, carte, image fixe ou manuscrit |
+| `secondary_mention` | 0 | la ligne n'est citée que comme raccordement d'une autre : ses extrémités ne comptent pas |
+
+Un document est retenu à partir de 9 points sur 11, avec un mot du rail, sans autre transport dans le titre (métro,
+canal, bateaux à vapeur, autocar, téléphone) sauf « chemin de fer de X à Y », et jamais avant 1820 ni plus de 40 ans avant la
+première date de la ligne. Un titre qui convient aussi bien à plus de deux lignes n'est rattaché à aucune. La presse
+n'est pas cherchée. Une liste vide ne veut pas dire que Gallica n'a rien sur la ligne.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `type` | `monograph`, `map`, `image`, `manuscript` | non | Ne garder qu'un type de document. Tous par défaut. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `total`, `documents` (du plus ancien au plus récent, sans date en dernier : `gallica_ark`,
+`gallica_url`, `catalogue_ark`, `catalogue_url`, `title`, `type`, `authors`, `date` avec `label`, `year`, `year_to`,
+`exact` et `precision` (`day`, `month`, `year`, `circa`, `range`, `unknown`), `shelfmark`, `match` avec le score, le
+seuil, les raisons et les lieux reconnus, `record_updated_on`, `fetched_at`), `provenance`, `method` (seuil et points)
+et `vff_url` (section de la fiche).
+
+Droits : les métadonnées des notices de la BnF sont sous Licence Ouverte ; reprenez la mention « Source :
+gallica.bnf.fr / BnF » avec la date de récupération (`fetched_at`). VFF ne sert aucune image, vignette ni texte
+numérisé : renvoyez le lecteur vers `gallica_url`. La réutilisation des documents eux-mêmes suit les conditions
+d'utilisation de Gallica (non commerciale libre avec la mention de source, commerciale soumise à redevance).
+
+```json
+{"line": "rfn-340000", "type": "map"}
+```
+
 ### `locate_on_line` : point kilométrique d'un lieu
 
 Même résultat que `GET /api/v1/lines/{line}/pk` (service `LinePk`) : le point est projeté sur le tracé de la ligne à
@@ -868,6 +915,7 @@ donnent l'erreur JSON-RPC `-32602`. Complétion : `lang`, `region` (codes et nom
 | « Combien de kilomètres ont fermé entre 1930 et 1980 ? » | `compare_eras {"from": 1930, "to": 1980}` : lire `changes.closed` et `changes.removed` |
 | « À quel PK de Paris - Brest est ce point (48,10 ; -1,67) ? » | `locate_on_line {"line": "rfn-420000", "lat": 48.10, "lng": -1.67}` |
 | « Une voie verte a-t-elle remplacé la ligne de La Chapelle-Anthenaise à Flers ? » | `line_greenways {"line": "rfn-436000"}` : citer la mention de `provenance` |
+| « Gallica a-t-il des plans du chemin de fer de Paris au Havre ? » | `line_archives {"line": "rfn-340000", "type": "map"}` : donner `gallica_url` et la mention « Source : gallica.bnf.fr / BnF » |
 | « Quel matériel a circulé sur Lunéville - Saint-Dié ? » | `search {"query": "Lunéville"}` puis `materials {"line": "<slug>"}` et `get_material` pour la preuve |
 | « Jusqu'à quand les X 4300 ont-ils roulé sur Lunéville - Saint-Dié ? » | `line_materials {"line": "rfn-67000", "type": "autorail"}` : période de chaque série |
 

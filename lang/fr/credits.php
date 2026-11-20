@@ -60,7 +60,7 @@ return [
             'archeo' => 'J. Randé, F. Librini, K. Moreau ; tracés de F. Hespert et Y. Zwartjes',
             'lignes_oubliees' => 'L. Dagallier : dates et points kilométriques des lignes disparues',
             'wikipedia' => 'Histoire des lignes et des matériels',
-            'gallica' => 'Archives historiques',
+            'gallica' => 'Notices des documents numérisés qui parlent d’une ligne (Licence Ouverte), avec un lien vers Gallica ; aucune image reprise',
         ],
         'ai' => [
             'title' => 'Des tracés recalés par un réseau de neurones',
@@ -120,7 +120,7 @@ return [
             'home_map_title' => 'Fond de la page d’accueil',
             'home_map_text' => "Détail recadré et teinté en sépia de la «\u{00A0}Carte spéciale des chemins de fer de la France et de l’Allemagne à l’usage des voyageurs\u{00A0}», dressée par Alexandre Vuillemin et publiée par A. Logerot (Paris, 1865). Exemplaire de la Bibliothèque du Congrès (Washington), domaine public.",
             'gallica_title' => 'BnF Gallica',
-            'gallica_text' => 'Cartes IGN historiques, plans Cassini, État-Major, horaires anciens. Chaque document se réutilise selon les conditions de la BnF, à consulter sur Gallica.',
+            'gallica_text' => 'Documents numérisés qui parlent d’une ligne : projets, plans, photographies. VFF reprend seulement leur notice (titre, date, cote ; Licence Ouverte) et renvoie vers Gallica pour les consulter. Le document lui-même se réutilise selon les conditions de la BnF.',
             'commons_title' => 'Wikipédia et Wikimedia Commons',
             'commons_text' => 'Photographies d’archives et illustrations, chacune sous sa propre licence (le plus souvent CC BY-SA).',
             'assoc_title' => 'Associations ferroviaires régionales',
