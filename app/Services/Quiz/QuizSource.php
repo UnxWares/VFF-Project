@@ -11,8 +11,8 @@ use App\Enums\QuizLevel;
 interface QuizSource
 {
     /**
-     * Sujets possibles, triés par identifiant (le tirage d'une graine en dépend). Chaque élément a au
-     * moins `id`, `key` (slug de la fiche) et `label` (nom affiché) ; les libellés sont distincts.
+     * Sujets possibles, triés par identifiant. Chaque élément a au moins `id`, `key` (slug de la fiche) et
+     * `label` (nom affiché) ; les libellés sont distincts.
      *
      * @return list<array<string, mixed>>
      */

@@ -12,9 +12,13 @@ use Illuminate\Support\Facades\DB;
 /**
  * Jeu « Reconnaître la ligne » : le tracé d'une ligne, seul, sans nom ni fond de carte.
  *
- * Vivier : lignes dont le texte « À propos » vient de Wikipédia (phrase montrée après la réponse) et
- * dont le tracé peut être redistribué. Même règle des droits que les exports (LineTraceExport,
- * `api.withhold_unlicensed_geometry`) : l'ère retenue est celle où le tracé de la ligne est le plus
+ * Vivier : lignes dont le texte « À propos » vient de Wikipédia (phrase montrée après la réponse, avec
+ * l'attribution de Wikipédia) et dont le tracé peut être redistribué. Un texte rédigé à la main dans
+ * `database/data/lignes_hors_rfn.php` remplace celui de Wikipédia à chaque passage de
+ * vff:seed-off-network-lines, même si la ligne garde sa source `wikipedia-intro` : ces lignes sont
+ * écartées (handWrittenSlugs()), pour ne jamais attribuer à Wikipédia un texte qui n'en vient pas.
+ *
+ * Même règle des droits que les exports (LineTraceExport, `api.withhold_unlicensed_geometry`) : l'ère retenue est celle où le tracé de la ligne est le plus
  * long parmi les ères dont TOUS les tronçons ont une source à licence ouverte vérifiée, et ce tracé doit
  * couvrir au moins COVERAGE de la plus grande longueur connue de la ligne (pas de fragment trompeur).
  *
@@ -53,8 +57,9 @@ final class LineQuiz implements QuizSource
     public function pool(): array
     {
         $ok = $this->rights->sqlRedistributable('ls.source');
+        $handWritten = '{'.implode(',', array_map(fn (string $slug): string => '"'.addcslashes($slug, '"\\').'"', self::handWrittenSlugs())).'}';
 
-        return Cache::remember('quiz:lines-pool:v1:'.md5($ok), now()->addHour(), function () use ($ok): array {
+        return Cache::remember('quiz:lines-pool:v2:'.md5($ok.$handWritten), now()->addHour(), function () use ($ok, $handWritten): array {
             $rows = DB::select(<<<SQL
                 WITH per AS (
                     SELECT ls.line_id, ls.era_id,
@@ -81,8 +86,9 @@ final class LineQuiz implements QuizSource
                 WHERE b.len >= ? AND b.len >= ? * m.len
                   AND l.description IS NOT NULL AND btrim(l.description) <> ''
                   AND EXISTS (SELECT 1 FROM line_sources src WHERE src.line_id = l.id AND src.source_type = 'wikipedia-intro')
+                  AND l.slug <> ALL (?::text[])
                 ORDER BY l.id
-            SQL, [self::MIN_LENGTH_M, self::COVERAGE]);
+            SQL, [self::MIN_LENGTH_M, self::COVERAGE, $handWritten]);
 
             return array_map(fn (object $r): array => [
                 'id' => (int) $r->id,
@@ -95,6 +101,25 @@ final class LineQuiz implements QuizSource
                 'cy' => (float) $r->cy,
             ], $rows);
         });
+    }
+
+    /**
+     * Lignes dont la description est rédigée à la main (database/data/lignes_hors_rfn.php, réécrite par
+     * vff:seed-off-network-lines) : leur texte ne vient pas de Wikipédia.
+     *
+     * @return list<string>
+     */
+    public static function handWrittenSlugs(): array
+    {
+        $entries = require database_path('data/lignes_hors_rfn.php');
+        $slugs = [];
+        foreach (is_array($entries) ? $entries : [] as $e) {
+            if (is_array($e) && is_string($e['slug'] ?? null) && trim((string) ($e['description'] ?? '')) !== '') {
+                $slugs[] = $e['slug'];
+            }
+        }
+
+        return $slugs;
     }
 
     /** Lignes du vivier de la plus proche à la plus lointaine (distance entre les centres des tracés). */

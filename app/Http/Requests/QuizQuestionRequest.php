@@ -10,8 +10,9 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * Désignation d'une question du quiz : jeu, niveau, graine de la série et numéro de la question
- * (0 à 9). Lue dans l'adresse ; la réponse JSON dit l'erreur (422) au lieu de rediriger.
+ * Désignation d'une question du quiz : jeu, niveau, graine de la série, version de la série
+ * (QuizSeries::version()) et numéro de la question (0 à 9). Lue dans l'adresse ; une valeur absente,
+ * mal formée ou passée en tableau (`game[]=…`) est une erreur de validation, jamais une erreur serveur.
  */
 class QuizQuestionRequest extends FormRequest
 {
@@ -27,6 +28,7 @@ class QuizQuestionRequest extends FormRequest
             'game' => ['required', Rule::enum(QuizGame::class)],
             'level' => ['required', Rule::enum(QuizLevel::class)],
             'seed' => ['required', 'string', 'regex:'.QuizSeries::SEED_PATTERN],
+            'v' => ['required', 'string', 'regex:'.QuizSeries::VERSION_PATTERN],
             'q' => ['required', 'integer', 'min:0', 'max:'.(QuizSeries::LENGTH - 1)],
         ];
     }
@@ -44,6 +46,11 @@ class QuizQuestionRequest extends FormRequest
     public function seed(): string
     {
         return $this->string('seed')->toString();
+    }
+
+    public function version(): string
+    {
+        return $this->string('v')->toString();
     }
 
     public function index(): int

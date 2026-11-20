@@ -177,7 +177,14 @@
                         <li>
                             <span class="when"
                                 >{documentDate(d.date, t, lang)},
-                                <span class="gap">{gapPhrase(d.gap_years, t)}</span></span
+                                <span class="gap"
+                                    >{gapPhrase(
+                                        d.gap_years,
+                                        t,
+                                        false,
+                                        d.date?.precision === 'circa',
+                                    )}</span
+                                ></span
                             >
                             <span class="body">
                                 <a href={d.gallica_url} target="_blank" rel="noopener noreferrer"

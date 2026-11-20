@@ -35,8 +35,11 @@ class LineStoryController extends Controller
      * - Événements concernés : ouvertures, réouvertures, fermetures (tous services, voyageurs, fret),
      *   déclassements, déposes, reconversions, électrifications, modernisations, débuts et fins d'exploitation
      *   touristique, accidents. Les concessions et `other` n'ont pas d'histoire.
-     * - Images : celles de la ligne datées à 5 ans au plus de l'événement, à l'année près au moins, aux droits
-     *   connus, plus celles rattachées à l'événement.
+     * - Images : celles de la ligne dont toutes les années possibles sont à 5 ans au plus de l'événement (année
+     *   exacte, décennie, fourchette, ou année « vers » comptée à 2 ans près ; jamais une borne seule « avant » ou
+     *   « après »), du domaine public ou sous licence ouverte, plus celles rattachées à l'événement. Les images
+     *   que le site montre avec une simple autorisation de leur auteur ne sont pas diffusées par l'API : le
+     *   nombre d'images peut donc être plus petit que sur le site, et une histoire du site peut manquer ici.
      * - Documents : notices de Gallica de la ligne dans la même fenêtre, datées à l'année près au moins.
      * - Seuil : 3 images et documents au moins, dont 2 images.
      */
@@ -62,7 +65,7 @@ class LineStoryController extends Controller
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
     public function index(Line $line): JsonResponse
     {
-        $available = $this->stories->available($line);
+        $available = $this->stories->available($line, true);
         $events = LineEvent::query()->whereIn('id', array_keys($available))->get()->keyBy('id');
         $items = [];
         foreach ($available as $id => $counts) {
@@ -97,8 +100,11 @@ class LineStoryController extends Controller
      * `images` : au plus 24, les plus proches de la date, rangées dans l'ordre chronologique (sans date en
      * dernier) ; même forme que `GET /api/v1/lines/{line}/media` (auteur, `license`, `license_url`,
      * `attribution`, `source_url`, `rights_status`…), plus `gap_years` (écart signé avec l'année de
-     * l'événement : 4 = quatre ans après, -2 = deux ans avant, 0 = la même année, null = image de
-     * l'événement sans date) et `attached` (true : image rattachée à l'événement lui-même).
+     * l'événement, calculé sur `depicted_year` : 4 = quatre ans après, -2 = deux ans avant, 0 = la même année,
+     * null = image de l'événement sans date), `gap_years_min` et `gap_years_max` (écarts extrêmes possibles
+     * d'après la précision de la date : égaux à `gap_years` pour une date exacte, -5 et -1 pour une photo
+     * « vers 1840 » d'un événement de 1843), `gap_exact` (false : dites l'écart comme approximatif, « environ
+     * trois ans avant », ou comme un intervalle) et `attached` (true : image rattachée à l'événement lui-même).
      * `images_total` : nombre d'images retenues avant la limite de 24.
      *
      * `documents` : même forme que `GET /api/v1/lines/{line}/archives`, plus `gap_years` (0 quand l'intervalle
@@ -109,8 +115,9 @@ class LineStoryController extends Controller
      *
      * - Événements concernés : ouvertures, réouvertures, fermetures, déclassements, déposes, reconversions,
      *   électrifications, modernisations, exploitation touristique, accidents.
-     * - Images : à 5 ans au plus, datées à l'année près au moins (`day`, `month`, `year`, `circa`), droits
-     *   connus ; plus celles rattachées à l'événement.
+     * - Images : tout l'intervalle possible de la date à 5 ans au plus (`day`, `month`, `year` ; `circa` compté
+     *   à 2 ans près ; `decade` ; `range` avec sa fin), domaine public ou licence ouverte (pas les images
+     *   montrées sur le site avec une simple autorisation) ; plus celles rattachées à l'événement.
      * - Seuil : 3 images et documents au moins, dont 2 images ; sinon 404.
      *
      * **Droits** : affichez chaque image avec son auteur, sa licence (et son lien) et sa source, comme le fait le
@@ -141,7 +148,8 @@ class LineStoryController extends Controller
             'attribution' => 'Johann Jacob Weber (Hrsg.), 1803-1880, Public domain, via Wikimedia Commons',
             'license' => 'Public domain', 'license_url' => null, 'rights_status' => 'public_domain',
             'commercial_ok' => true, 'share_alike' => false, 'attribution_required' => false, 'featured' => false,
-            'contribution_id' => null, 'location' => null, 'gap_years' => 0, 'attached' => false,
+            'contribution_id' => null, 'location' => null, 'gap_years' => 0, 'gap_years_min' => 0, 'gap_years_max' => 0,
+            'gap_exact' => true, 'attached' => false,
         ]],
         'documents' => [[
             'gallica_ark' => 'ark:/12148/btv1b53035187p', 'gallica_url' => 'https://gallica.bnf.fr/ark:/12148/btv1b53035187p',
@@ -165,7 +173,7 @@ class LineStoryController extends Controller
     public function show(Line $line, int $event): JsonResponse
     {
         $model = LineEvent::query()->whereKey($event)->where('line_id', $line->id)->first();
-        $story = $model === null ? null : $this->stories->story($line, $model);
+        $story = $model === null ? null : $this->stories->story($line, $model, true);
         if ($story === null) {
             return response()->json(['message' => $model === null
                 ? 'No event '.$event.' on line '.$line->slug.'.'

@@ -71,9 +71,21 @@ describe('adresses', () => {
         expect(quizHref('materials', 'easy', 'ab12')).toBe(
             '/quiz?game=materials&level=easy&seed=ab12',
         );
-        expect(answerHref({ game: 'lines', level: 'easy', seed: 'ab12' }, 3, 'rfn-610000')).toBe(
-            '/quiz/answer?game=lines&level=easy&seed=ab12&q=3&choice=rfn-610000',
+        expect(quizHref('materials', 'easy', 'ab12', '0a1b2c3d')).toBe(
+            '/quiz?game=materials&level=easy&seed=ab12&v=0a1b2c3d',
         );
+        // Une version sans graine n'a pas de sens : le serveur tire une graine et calcule la version.
+        expect(quizHref('lines', 'easy', null, '0a1b2c3d')).toBe('/quiz?game=lines&level=easy');
+    });
+
+    it('envoie la version de la série avec chaque réponse', () => {
+        expect(
+            answerHref(
+                { game: 'lines', level: 'easy', seed: 'ab12', version: '0a1b2c3d' },
+                3,
+                'rfn-610000',
+            ),
+        ).toBe('/quiz/answer?game=lines&level=easy&seed=ab12&v=0a1b2c3d&q=3&choice=rfn-610000');
     });
 });
 

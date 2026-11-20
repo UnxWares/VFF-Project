@@ -64,6 +64,8 @@ return [
     ],
     'dated' => ':type from :year',
     'dated_circa' => ':type from around :year',
+    'dated_decade' => ':type from the :decade',
+    'dated_range' => ':type from :from-:to',
     'undated' => ':type, undated',
     'gap' => [
         'same_year' => 'the same year',
@@ -72,6 +74,12 @@ return [
         'before_one' => 'one year earlier',
         'before_other' => ':years years earlier',
         'attached' => 'picture attached to the event',
+        'about_same_year' => 'around the same year',
+        'about_after_one' => 'about one year later',
+        'about_after_other' => 'about :years years later',
+        'about_before_one' => 'about one year earlier',
+        'about_before_other' => 'about :years years earlier',
+        'between' => 'from :from to :to',
     ],
     'numbers' => [
         '2' => 'two',

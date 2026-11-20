@@ -536,11 +536,17 @@ type LineEvent {
 
     """
     Histoire de l'événement, comme `GET /api/v1/lines/{line}/stories/{event}` et la page
-    `/lines/{line}/stories/{event}` du site : images publiées de la ligne datées à 5 ans au plus de
-    l'événement (année représentée connue au moins à l'année près, droits connus ; plus les images
-    rattachées à l'événement), documents de Gallica de la même période, gares de la portion. Nulle quand
-    l'événement n'en a pas : type sans histoire (concession, `other`), ou moins de 3 images et documents
-    dont 2 images. Calculée événement par événement : à demander pour un événement, pas pour une liste.
+    `/lines/{line}/stories/{event}` du site : images publiées de la ligne dont toutes les années possibles
+    sont à 5 ans au plus de l'événement (date exacte, décennie, fourchette, ou année « vers » comptée à 2 ans
+    près), du domaine public ou sous licence ouverte (pas les images montrées sur le site avec une simple
+    autorisation), plus les images rattachées à l'événement ; documents de Gallica de la même période, gares
+    de la portion. Nulle quand l'événement n'en a pas : type sans histoire (concession, `other`), ou moins de
+    3 images et documents dont 2 images.
+
+    Calculée seulement pour un événement demandé seul (`lineEvent(id: …) { story { … } }`), et pour 3
+    événements au plus par requête : dans une liste (`line.events`, `lineEvents`, `media`), ou au-delà de 3,
+    le champ vaut null avec une erreur. Pour toutes les histoires d'une ligne, utilisez
+    `GET /api/v1/lines/{line}/stories`.
     """
     story: LineEventStory @field(resolver: "App\\GraphQL\\Resolvers\\LineEventStoryField")
 }
@@ -575,8 +581,17 @@ type LineEventStory {
 
 "Une image d'une histoire d'événement."
 type LineEventStoryImage {
-    "Écart signé avec l'année de l'événement : 4 = quatre ans après, -2 = deux ans avant, 0 = la même année, nul = image de l'événement sans date."
+    "Écart signé entre l'année représentée (`Media.depicted_year`) et l'année de l'événement : 4 = quatre ans après, -2 = deux ans avant, 0 = la même année, nul = image de l'événement sans date."
     gap_years: Int
+
+    "Plus petit écart possible d'après la précision de la date (-5 pour une photo « vers 1840 » d'un événement de 1843) ; égal à `gap_years` pour une date exacte, nul quand la date n'est pas bornée."
+    gap_years_min: Int
+
+    "Plus grand écart possible (-1 dans le même exemple)."
+    gap_years_max: Int
+
+    "Vrai quand l'écart est sûr (date exacte, à l'année près). Faux : dites-le approximatif (« environ trois ans avant ») ou comme un intervalle."
+    gap_exact: Boolean!
 
     "Vrai pour une image rattachée à l'événement lui-même (proposée puis validée pour lui)."
     attached: Boolean!

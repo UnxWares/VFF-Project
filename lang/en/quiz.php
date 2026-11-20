@@ -55,6 +55,11 @@ return [
         'next' => 'Next question',
         'finish' => 'See the result',
         'error' => 'Your answer could not be checked. Please try again in a moment.',
+        'stale' => 'This quiz has changed since the page was loaded, because the VFF database has been updated. Your answer was not marked. Start a new quiz to carry on.',
+    ],
+    'stale' => [
+        'title' => 'This quiz has changed',
+        'text' => 'The VFF database has been updated since this address was created, and its questions are no longer the same. You can start a new quiz with the same game and level.',
     ],
     'hints' => [
         'show' => 'Show clues',

@@ -55,6 +55,11 @@ return [
         'next' => 'Question suivante',
         'finish' => 'Voir le résultat',
         'error' => 'La réponse n\'a pas pu être vérifiée. Réessayez dans un instant.',
+        'stale' => 'Cette série a changé depuis l\'affichage de la page, car la base de VFF a été mise à jour. Votre réponse n\'a pas été jugée. Commencez une nouvelle série pour continuer.',
+    ],
+    'stale' => [
+        'title' => 'Cette série a changé',
+        'text' => 'La base de VFF a été mise à jour depuis la création de cette adresse, et les questions de la série ne sont plus les mêmes. Vous pouvez commencer une nouvelle série au même jeu et au même niveau.',
     ],
     'hints' => [
         'show' => 'Afficher les indices',

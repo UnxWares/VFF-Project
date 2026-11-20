@@ -55,6 +55,11 @@ return [
         'next' => 'Nächste Frage',
         'finish' => 'Ergebnis anzeigen',
         'error' => 'Ihre Antwort konnte nicht geprüft werden. Bitte versuchen Sie es gleich noch einmal.',
+        'stale' => 'Dieses Quiz hat sich seit dem Laden der Seite geändert, weil die Datenbank von VFF aktualisiert wurde. Ihre Antwort wurde nicht gewertet. Beginnen Sie ein neues Quiz, um weiterzuspielen.',
+    ],
+    'stale' => [
+        'title' => 'Dieses Quiz hat sich geändert',
+        'text' => 'Die Datenbank von VFF wurde seit dem Erstellen dieser Adresse aktualisiert, und seine Fragen sind nicht mehr dieselben. Sie können ein neues Quiz mit demselben Spiel und derselben Schwierigkeit beginnen.',
     ],
     'hints' => [
         'show' => 'Hinweise anzeigen',

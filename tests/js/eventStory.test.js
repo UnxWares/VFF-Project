@@ -17,7 +17,17 @@ import {
 const FR = {
     'stories.numbers.2': 'deux',
     'stories.numbers.4': 'quatre',
+    'stories.numbers.3': 'trois',
     'stories.numbers.5': 'cinq',
+    'stories.numbers.6': 'six',
+    'stories.gap.about_same_year': 'à peu près la même année',
+    'stories.gap.about_after_one': 'environ un an après',
+    'stories.gap.about_after_other': 'environ {{years}} ans après',
+    'stories.gap.about_before_one': 'environ un an avant',
+    'stories.gap.about_before_other': 'environ {{years}} ans avant',
+    'stories.gap.between': 'de {{from}} à {{to}}',
+    'stories.dated_decade': '{{type}} des années {{decade}}',
+    'stories.dated_range': '{{type}} de {{from}}-{{to}}',
     'stories.gap.same_year': 'la même année',
     'stories.gap.after_one': 'un an après',
     'stories.gap.after_other': '{{years}} ans après',
@@ -64,8 +74,71 @@ describe('gapPhrase', () => {
 describe('yearsWord', () => {
     it('lettres de 2 à 10 quand la traduction existe, chiffres sinon', () => {
         expect(yearsWord(5, t)).toBe('cinq');
-        expect(yearsWord(3, t)).toBe('3');
+        expect(yearsWord(7, t)).toBe('7');
         expect(yearsWord(12, t)).toBe('12');
+    });
+});
+
+describe('imageLegend : date approchée', () => {
+    it('dit « environ » pour une année « vers »', () => {
+        expect(
+            imageLegend(
+                {
+                    type: 'photo',
+                    depicted_year: 1840,
+                    date_precision: 'circa',
+                    gap_years: -3,
+                    gap_years_min: -5,
+                    gap_years_max: -1,
+                },
+                t,
+            ),
+        ).toBe('Photo des environs de 1840, environ trois ans avant');
+        expect(gapPhrase(0, t, false, true)).toBe('à peu près la même année');
+        expect(gapPhrase(1, t, false, true)).toBe('environ un an après');
+    });
+
+    it('donne l’intervalle d’une décennie ou d’une fourchette', () => {
+        expect(
+            imageLegend(
+                {
+                    type: 'photo',
+                    depicted_year: 1840,
+                    date_precision: 'decade',
+                    gap_years: -3,
+                    gap_years_min: -3,
+                    gap_years_max: 6,
+                },
+                t,
+            ),
+        ).toBe('Photo des années 1840, de trois ans avant à six ans après');
+        expect(
+            imageLegend(
+                {
+                    type: 'postcard',
+                    depicted_year: 1840,
+                    date_precision: 'range',
+                    gap_years: -3,
+                    gap_years_min: -3,
+                    gap_years_max: 2,
+                },
+                t,
+            ),
+        ).toBe('Carte postale de 1840-1845, de trois ans avant à deux ans après');
+        // Année exacte : l'écart reste sûr.
+        expect(
+            imageLegend(
+                {
+                    type: 'photo',
+                    depicted_year: 1846,
+                    date_precision: 'day',
+                    gap_years: 3,
+                    gap_years_min: 3,
+                    gap_years_max: 3,
+                },
+                t,
+            ),
+        ).toBe('Photo de 1846, trois ans après');
     });
 });
 
@@ -85,7 +158,7 @@ describe('imageLegend', () => {
                 { type: 'postcard', depicted_year: 1905, date_precision: 'circa', gap_years: -2 },
                 t,
             ),
-        ).toBe('Carte postale des environs de 1905, deux ans avant');
+        ).toBe('Carte postale des environs de 1905, environ deux ans avant');
         expect(imageLegend({ type: 'photo', depicted_year: null, attached: true }, t)).toBe(
             'Photo sans date, image rattachée à l’événement',
         );

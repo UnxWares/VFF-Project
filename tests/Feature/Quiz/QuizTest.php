@@ -126,6 +126,24 @@ class QuizTest extends TestCase
         return app(QuizSeries::class);
     }
 
+    /** Version actuelle d'une série (paramètre `v` de l'adresse). */
+    private function v(string $game, string $level = 'easy', string $seed = 'abcd1234'): string
+    {
+        return QuizSeries::version($this->series()->picks(QuizGame::from($game), QuizLevel::from($level), $seed));
+    }
+
+    /** Ajoute au vivier une ligne de plus, voisine de la ligne n° `$near` de la grille, et vide le cache. */
+    private function addPoolLine(string $name, int $near = 0): Line
+    {
+        $lng = 0.5 + ($near % 4) * 1.5 + 0.05;
+        $lat = 44.0 + intdiv($near, 4) * 1.5 + 0.05;
+        $line = $this->line($name, "La {$name} est une ligne de test ajoutée au vivier.");
+        $this->segment($line, $this->current, 'osm', [[$lng, $lat], [$lng + 0.2, $lat + 0.1]], 20000);
+        Cache::flush();
+
+        return $line;
+    }
+
     public function test_line_pool_keeps_only_redistributable_traces(): void
     {
         $pool = collect(app(LineQuiz::class)->pool());
@@ -145,7 +163,8 @@ class QuizTest extends TestCase
 
     public function test_no_withheld_geometry_leaves_in_questions(): void
     {
-        $questions = $this->series()->questions(QuizGame::Lines, QuizLevel::Easy, 'abcd1234');
+        $picks = $this->series()->picks(QuizGame::Lines, QuizLevel::Easy, 'abcd1234');
+        $questions = $this->series()->questions(QuizGame::Lines, QuizLevel::Easy, 'abcd1234', $picks);
 
         $this->assertCount(QuizSeries::LENGTH, $questions);
         foreach ($questions as $q) {
@@ -232,15 +251,18 @@ class QuizTest extends TestCase
         $response = $this->get('/quiz?game=lines');
 
         $response->assertRedirect();
-        $this->assertMatchesRegularExpression('#/quiz\?game=lines&level=easy&seed=[a-f0-9]{8}$#', (string) $response->headers->get('Location'));
+        $this->assertMatchesRegularExpression('#/quiz\?game=lines&level=easy&seed=[a-f0-9]{8}&v=[a-f0-9]{8}$#', (string) $response->headers->get('Location'));
         $this->get('/quiz?game=lines&level=hard&seed=BAD!')->assertRedirectContains('level=hard');
+        // Adresse sans version (lien antérieur à la version) : la version actuelle est ajoutée.
+        $this->get('/quiz?game=lines&level=easy&seed=abcd1234')
+            ->assertRedirect('/quiz?game=lines&level=easy&seed=abcd1234&v='.$this->v('lines'));
     }
 
     public function test_page_never_reveals_the_answer_before_the_choice(): void
     {
         $this->seedMaterials();
         foreach (['lines', 'materials'] as $game) {
-            $response = $this->get("/quiz?game={$game}&level=easy&seed=abcd1234")
+            $response = $this->get("/quiz?game={$game}&level=easy&seed=abcd1234&v=".$this->v($game))
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page->component('Quiz')->where('game', $game)->has('questions'));
             $questions = $response->viewData('page')['props']['questions'];
@@ -263,7 +285,7 @@ class QuizTest extends TestCase
         $pick = $this->series()->pick(QuizGame::Lines, QuizLevel::Easy, 'abcd1234', 2);
         $this->assertNotNull($pick);
         $wrong = collect($pick->optionKeys())->first(fn (string $k): bool => $k !== $pick->subject['key']);
-        $base = '/quiz/answer?game=lines&level=easy&seed=abcd1234&q=2';
+        $base = '/quiz/answer?game=lines&level=easy&seed=abcd1234&v='.$this->v('lines').'&q=2';
 
         $this->getJson($base)->assertUnprocessable()->assertJsonValidationErrors('choice');
         $this->getJson("{$base}&choice=not-an-option")->assertUnprocessable();
@@ -284,9 +306,13 @@ class QuizTest extends TestCase
     public function test_answer_rejects_unknown_questions(): void
     {
         $this->seedMaterials();
-        $this->getJson('/quiz/answer?game=materials&level=easy&seed=abcd1234&q=7&choice=x')->assertNotFound();
-        $this->getJson('/quiz/answer?game=lines&level=easy&seed=abcd1234&q=10&choice=x')->assertUnprocessable();
-        $this->getJson('/quiz/answer?game=trains&level=easy&seed=abcd1234&q=0&choice=x')->assertUnprocessable();
+        $vm = $this->v('materials');
+        $vl = $this->v('lines');
+        $this->getJson("/quiz/answer?game=materials&level=easy&seed=abcd1234&v={$vm}&q=7&choice=x")->assertNotFound();
+        $this->getJson("/quiz/answer?game=lines&level=easy&seed=abcd1234&v={$vl}&q=10&choice=x")->assertUnprocessable();
+        $this->getJson("/quiz/answer?game=trains&level=easy&seed=abcd1234&v={$vl}&q=0&choice=x")->assertUnprocessable();
+        // Sans version : erreur de validation.
+        $this->getJson('/quiz/answer?game=lines&level=easy&seed=abcd1234&q=0&choice=x')->assertJsonValidationErrors('v');
     }
 
     public function test_material_photo_goes_through_a_redirect(): void
@@ -295,10 +321,11 @@ class QuizTest extends TestCase
         $pick = $this->series()->pick(QuizGame::Materials, QuizLevel::Easy, 'abcd1234', 0);
         $this->assertNotNull($pick);
 
-        $this->get('/quiz/photo?game=materials&level=easy&seed=abcd1234&q=0')
+        $v = $this->v('materials');
+        $this->get("/quiz/photo?game=materials&level=easy&seed=abcd1234&v={$v}&q=0")
             ->assertRedirect($pick->subject['photo']['url']);
-        $this->get('/quiz/photo?game=lines&level=easy&seed=abcd1234&q=0')->assertNotFound();
-        $this->getJson("/quiz/answer?game=materials&level=easy&seed=abcd1234&q=0&choice={$pick->subject['key']}")
+        $this->get('/quiz/photo?game=lines&level=easy&seed=abcd1234&v='.$this->v('lines').'&q=0')->assertNotFound();
+        $this->getJson("/quiz/answer?game=materials&level=easy&seed=abcd1234&v={$v}&q=0&choice={$pick->subject['key']}")
             ->assertOk()
             ->assertJsonPath('fact.source.name', 'Wikidata')
             ->assertJsonPath('photo_source_url', $pick->subject['photo']['source_url']);
@@ -308,7 +335,7 @@ class QuizTest extends TestCase
     {
         $pick = $this->series()->pick(QuizGame::Lines, QuizLevel::Easy, 'abcd1234', 0);
         $this->assertNotNull($pick);
-        $url = "/quiz/answer?game=lines&level=easy&seed=abcd1234&q=0&choice={$pick->subject['key']}";
+        $url = '/quiz/answer?game=lines&level=easy&seed=abcd1234&v='.$this->v('lines')."&q=0&choice={$pick->subject['key']}";
         for ($i = 0; $i < 60; $i++) {
             $this->getJson($url)->assertOk();
         }
@@ -325,6 +352,96 @@ class QuizTest extends TestCase
                 ->where('game', null)
                 ->where('available.lines', false)
                 ->where('available.materials', false));
+    }
+
+    public function test_parameters_passed_as_arrays_never_give_a_server_error(): void
+    {
+        $this->seedMaterials();
+        $v = $this->v('lines');
+        // Page : valeur par défaut (choix du jeu, ou redirection vers une adresse complète).
+        $this->get('/quiz?game[]=lines')->assertOk()->assertInertia(fn (Assert $page) => $page->where('game', null));
+        $this->get('/quiz?game=lines&level[]=easy&seed=abcd1234')->assertRedirectContains('level=easy');
+        $this->get('/quiz?game=lines&level=easy&seed[]=abcd1234')->assertRedirect();
+        $this->get('/quiz?game=lines&level=easy&seed=abcd1234&v[]=x')->assertRedirect("/quiz?game=lines&level=easy&seed=abcd1234&v={$v}");
+        // Réponse et photo : erreur de validation.
+        $base = ['game' => 'lines', 'level' => 'easy', 'seed' => 'abcd1234', 'v' => $v, 'q' => '0', 'choice' => 'x'];
+        foreach (['game', 'level', 'seed', 'v', 'q', 'choice'] as $key) {
+            $query = http_build_query([$key => [$base[$key]]] + $base);
+            $this->getJson("/quiz/answer?{$query}")->assertUnprocessable()->assertJsonValidationErrors($key);
+        }
+        $photo = ['game' => 'materials', 'level' => 'easy', 'seed' => 'abcd1234', 'v' => $this->v('materials'), 'q' => '0'];
+        foreach (['game', 'level', 'seed', 'v', 'q', 'index'] as $key) {
+            $query = http_build_query([$key => [$photo[$key] ?? '0']] + $photo);
+            $status = $this->get("/quiz/photo?{$query}")->getStatusCode();
+            $this->assertLessThan(500, $status, $key);
+        }
+    }
+
+    public function test_a_shared_address_survives_a_pool_change_that_does_not_touch_its_questions(): void
+    {
+        $picks = fn (): array => array_map(
+            fn (QuizPick $p): array => [$p->subject['key'], $p->optionKeys()],
+            $this->series()->picks(QuizGame::Lines, QuizLevel::Hard, 'abcd1234'),
+        );
+        $before = $picks();
+        $this->assertCount(QuizSeries::LENGTH, $before);
+        $askedKeys = array_column($before, 0);
+
+        // Une ligne entre dans le vivier, voisine d'une ligne qui n'est pas dans la série s'il y en a une.
+        $outside = collect($this->lines)->first(fn (Line $l): bool => ! in_array($l->slug, $askedKeys, true));
+        $this->addPoolLine('Ligne ajoutée', $outside === null ? 0 : array_search($outside, $this->lines, true));
+        $after = $picks();
+
+        // Chaque sujet garde son rang : les sujets d'avant restent dans le même ordre.
+        $kept = array_values(array_filter(array_column($after, 0), fn (string $k): bool => in_array($k, $askedKeys, true)));
+        $this->assertSame(array_values(array_intersect($askedKeys, $kept)), $kept);
+        $this->assertGreaterThanOrEqual(QuizSeries::LENGTH - 1, count($kept));
+    }
+
+    public function test_a_changed_series_is_never_judged_and_the_page_says_so(): void
+    {
+        $old = $this->v('lines', 'hard');
+        // Première question dont le sujet est une ligne de la grille.
+        $slugs = array_map(fn (Line $l): string => $l->slug, $this->lines);
+        $pick = collect($this->series()->picks(QuizGame::Lines, QuizLevel::Hard, 'abcd1234'))
+            ->first(fn (QuizPick $p): bool => in_array($p->subject['key'], $slugs, true));
+        $this->assertNotNull($pick);
+
+        // La ligne ajoutée est la plus proche de ce sujet : ses propositions changent.
+        $this->addPoolLine('Ligne ajoutée', (int) array_search($pick->subject['key'], $slugs, true));
+        $this->assertNotSame($old, $this->v('lines', 'hard'));
+
+        // Réponse à une question de l'ancienne série : jamais jugée, même avec l'ancienne bonne réponse.
+        $this->getJson("/quiz/answer?game=lines&level=hard&seed=abcd1234&v={$old}&q={$pick->index}&choice={$pick->subject['key']}")
+            ->assertStatus(409)
+            ->assertJsonPath('stale', true)
+            ->assertJsonMissingPath('correct')
+            ->assertJsonMissingPath('answer');
+        // Page : message et nouvelle série proposée, aucune question.
+        $this->get("/quiz?game=lines&level=hard&seed=abcd1234&v={$old}")
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('Quiz')
+                ->where('stale', true)
+                ->where('game', 'lines')
+                ->where('level', 'hard')
+                ->missing('questions'));
+        // La version actuelle, elle, est jouée normalement.
+        $this->get('/quiz?game=lines&level=hard&seed=abcd1234&v='.$this->v('lines', 'hard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->has('questions', QuizSeries::LENGTH));
+    }
+
+    public function test_a_hand_written_text_is_never_attributed_to_wikipedia(): void
+    {
+        // Ligne déclarée avec un texte rédigé à la main (database/data/lignes_hors_rfn.php) qui a gardé
+        // sa source Wikipédia : hors du vivier.
+        $slug = LineQuiz::handWrittenSlugs()[0];
+        $line = $this->line('Ligne au texte rédigé', 'Texte rédigé à la main pour cette ligne de test, sans Wikipédia.');
+        $line->update(['slug' => $slug]);
+        $this->segment($line, $this->current, 'osm', [[1.0, 49.0], [1.2, 49.1]], 20000);
+        Cache::flush();
+
+        $this->assertFalse(collect(app(LineQuiz::class)->pool())->contains('id', $line->id));
     }
 
     public function test_first_sentence_and_frame(): void

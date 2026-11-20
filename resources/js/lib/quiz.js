@@ -47,18 +47,28 @@ export function scaleBar(mPerUnit, width) {
     return { km, units: Math.round((km * 1000) / mPerUnit) };
 }
 
-/** Adresse d'une série : sans graine, le serveur en tire une et redirige vers l'adresse complète. */
-export function quizHref(game, level, seed = null) {
+/**
+ * Adresse d'une série : graine et version de la série (empreinte de ses questions, calculée par le
+ * serveur). Sans graine, le serveur en tire une et redirige vers l'adresse complète.
+ */
+export function quizHref(game, level, seed = null, version = null) {
     const p = new URLSearchParams({ game, level });
     if (seed) p.set('seed', seed);
+    if (seed && version) p.set('v', version);
     return `/quiz?${p.toString()}`;
 }
 
-/** Adresse de vérification d'une réponse (question `index`, proposition `choice`). */
-export function answerHref({ game, level, seed }, index, choice) {
-    const p = new URLSearchParams({ game, level, seed, q: String(index), choice });
+/**
+ * Adresse de vérification d'une réponse (question `index`, proposition `choice`). La version de la série
+ * accompagne la question : si la base a changé entre-temps, le serveur refuse de juger (409).
+ */
+export function answerHref({ game, level, seed, version }, index, choice) {
+    const p = new URLSearchParams({ game, level, seed, v: version, q: String(index), choice });
     return `/quiz/answer?${p.toString()}`;
 }
+
+/** Statut HTTP d'une réponse refusée parce que la série a changé depuis l'affichage de la page. */
+export const STALE_STATUS = 409;
 
 /** Nombre au format de la langue (« 152,8 »), une décimale au plus. */
 function decimal(n, lang) {

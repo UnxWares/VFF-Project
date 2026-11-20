@@ -10,10 +10,16 @@ use Random\Randomizer;
 /**
  * Série de questions du quiz (/quiz), tirée d'une graine.
  *
- * Le tirage ne dépend que du jeu, du niveau, de la graine et du vivier (trié par identifiant) : la même
- * adresse redonne la même série tant que la base ne change pas, ce qui permet de la partager. Rien n'est
- * gardé côté serveur ; pour vérifier une réponse, la série est tirée de nouveau (le vivier est en cache,
- * le tirage ne lit pas la base).
+ * Le tirage ne dépend que du jeu, du niveau, de la graine et du vivier. Chaque sujet a son rang propre
+ * (hachage de la graine et de sa clé) et son propre générateur pour les propositions : un sujet entré
+ * dans le vivier ou sorti de lui ne déplace pas les autres questions, et une adresse partagée redonne la
+ * même série tant que ses dix questions n'ont pas changé.
+ *
+ * Rien n'est gardé côté serveur ; pour vérifier une réponse, la série est tirée de nouveau (le vivier est
+ * en cache, le tirage ne lit pas la base). L'adresse porte donc aussi la version de la série (version() :
+ * empreinte des sujets et des propositions). Si la base a changé au point de modifier la série, la
+ * version ne correspond plus : la page le dit et propose une nouvelle série, et une réponse n'est jamais
+ * jugée sur une autre question que celle qui a été affichée (QuizController).
  *
  * La page reçoit les questions sans la réponse (questions()) ; la réponse sort seulement par reveal(),
  * appelée après le choix du joueur.
@@ -32,6 +38,9 @@ final class QuizSeries
     /** Forme d'une graine lue dans l'adresse. */
     public const SEED_PATTERN = '/^[a-z0-9]{4,16}$/';
 
+    /** Forme de la version d'une série (version()) lue dans l'adresse. */
+    public const VERSION_PATTERN = '/^[a-f0-9]{8}$/';
+
     public function __construct(
         private readonly LineQuiz $lines,
         private readonly MaterialQuiz $materials,
@@ -46,6 +55,19 @@ final class QuizSeries
     public static function validSeed(string $seed): bool
     {
         return preg_match(self::SEED_PATTERN, $seed) === 1;
+    }
+
+    /**
+     * Version d'une série : empreinte courte de ses sujets et de ses propositions, dans l'ordre. Deux tirages
+     * de même version posent exactement les mêmes questions avec les mêmes réponses.
+     *
+     * @param  list<QuizPick>  $picks
+     */
+    public static function version(array $picks): string
+    {
+        $shape = array_map(fn (QuizPick $p): array => [(string) $p->subject['key'], $p->optionKeys()], $picks);
+
+        return substr(hash('sha256', (string) json_encode($shape)), 0, 8);
     }
 
     public function source(QuizGame $game): QuizSource
@@ -74,10 +96,13 @@ final class QuizSeries
         if (count($pool) < self::OPTIONS) {
             return [];
         }
-        $rng = new Randomizer(new Xoshiro256StarStar(hash('sha256', "{$game->value}|{$level->value}|{$seed}", true)));
+        $prefix = "{$game->value}|{$level->value}|{$seed}|";
+        // Rang de chaque sujet : il ne dépend que de la graine et de la clé du sujet, pas du reste du vivier.
+        $ranked = array_map(fn (array $s): array => [hash('xxh128', $prefix.$s['key']), $s], $pool);
+        usort($ranked, fn (array $a, array $b): int => [$a[0], $a[1]['id']] <=> [$b[0], $b[1]['id']]);
 
         $picks = [];
-        foreach ($rng->shuffleArray($pool) as $subject) {
+        foreach (array_column($ranked, 1) as $subject) {
             if (count($picks) === self::LENGTH) {
                 break;
             }
@@ -85,6 +110,8 @@ final class QuizSeries
             if (count($others) < self::OPTIONS - 1) {
                 continue;
             }
+            // Générateur propre au sujet : ses propositions ne dépendent pas des questions précédentes.
+            $rng = new Randomizer(new Xoshiro256StarStar(hash('sha256', $prefix.$subject['key'], true)));
             $chosen = match ($level) {
                 QuizLevel::Hard => array_slice($others, 0, self::OPTIONS - 1),
                 QuizLevel::Easy => $this->sample($rng, array_slice($others, 0, self::EASY_SPREAD), self::OPTIONS - 1),
@@ -96,24 +123,27 @@ final class QuizSeries
     }
 
     /**
-     * Questions de la série, telles que la page les reçoit (sans la réponse).
+     * Questions d'un tirage (picks()), telles que la page les reçoit (sans la réponse).
      *
+     * @param  list<QuizPick>  $picks
      * @return list<array<string, mixed>>
      */
-    public function questions(QuizGame $game, QuizLevel $level, string $seed): array
+    public function questions(QuizGame $game, QuizLevel $level, string $seed, array $picks): array
     {
         $source = $this->source($game);
+        $version = self::version($picks);
 
-        return array_map(function (QuizPick $pick) use ($source, $game, $level, $seed): array {
+        return array_map(function (QuizPick $pick) use ($source, $game, $level, $seed, $version): array {
             $question = ['index' => $pick->index, 'options' => $pick->publicOptions()] + $source->question($pick);
             if (isset($question['photo']) && is_array($question['photo'])) {
-                // L'adresse de l'image Commons contient souvent le nom de la série : la page passe par
-                // une redirection du site, qui ne la montre pas dans la question.
-                $question['photo']['url'] = route('quiz.photo', ['game' => $game->value, 'level' => $level->value, 'seed' => $seed, 'q' => $pick->index], false);
+                // L'adresse de l'image Commons contient souvent le nom de la série : la question donne celle
+                // d'une redirection du site, pour que le nom ne figure ni dans la page ni dans ses données.
+                // Le navigateur suit la redirection : l'adresse finale reste visible dans ses outils.
+                $question['photo']['url'] = route('quiz.photo', ['game' => $game->value, 'level' => $level->value, 'seed' => $seed, 'v' => $version, 'q' => $pick->index], false);
             }
 
             return $question;
-        }, $this->picks($game, $level, $seed));
+        }, $picks);
     }
 
     /** Question n° `$index` de la série, ou null si elle n'existe pas. */

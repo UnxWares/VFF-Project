@@ -5,7 +5,12 @@
      *
      * Accessibilité : propositions en boutons radio dans un fieldset, version texte de chaque question
      * (indices), résultat annoncé par une région `aria-live` présente dès le départ, focus posé sur le
-     * titre de la question suivante, puis sur le résultat final. Aucune minuterie.
+     * titre de la question suivante, puis sur le résultat final. Aucune minuterie. Le tracé ou la photo
+     * est décrit par les indices (`aria-describedby`), même repliés au niveau difficile : pour un
+     * lecteur d'écran, ils sont la seule version texte de la question.
+     *
+     * La version de la série (`version`) accompagne chaque réponse : si la base a changé depuis
+     * l'affichage de la page, le serveur refuse de juger (409) et la page propose une nouvelle série.
      */
     import { Link } from '@inertiajs/svelte';
     import { tick } from 'svelte';
@@ -19,13 +24,14 @@
         saveBest,
         scaleBar,
         scoreOf,
+        STALE_STATUS,
         tracePath,
         traceViewBox,
         TRACE_MARGIN,
     } from '$lib/quiz.js';
 
-    /** @type {{ game: string, level: string, seed: string, questions: any[] }} */
-    let { game, level, seed, questions } = $props();
+    /** @type {{ game: string, level: string, seed: string, version: string, questions: any[] }} */
+    let { game, level, seed, version, questions } = $props();
 
     const t = (key, opts) => String($i18n.t(key, opts));
     const lang = $derived($i18n.language ?? 'fr');
@@ -38,6 +44,8 @@
     let pending = $state(false);
     let live = $state('');
     let errorText = $state('');
+    /** La série a changé côté serveur depuis l'affichage : plus aucune réponse n'est jugée. */
+    let stale = $state(false);
     // Indices visibles d'emblée au niveau facile ; repliés (un bouton les ouvre) au niveau difficile.
     // svelte-ignore state_referenced_locally
     let hintsOpen = $state(level === 'easy');
@@ -61,10 +69,12 @@
     const trace = $derived(question?.trace ?? null);
     const bar = $derived(trace ? scaleBar(trace.m_per_unit, trace.width) : null);
     const photo = $derived(question?.photo ?? null);
+    // Description du tracé ou de la photo : les indices affichés, ou leur copie pour les lecteurs d'écran.
+    const hintsId = $derived(hintsOpen ? 'quiz-hints' : 'quiz-hints-text');
     const shareUrl = $derived(
         typeof location === 'undefined'
-            ? quizHref(game, level, seed)
-            : `${location.origin}${quizHref(game, level, seed)}`,
+            ? quizHref(game, level, seed, version)
+            : `${location.origin}${quizHref(game, level, seed, version)}`,
     );
 
     function photoLicense(p) {
@@ -73,19 +83,35 @@
             : mediaLicenseLabel(p, t);
     }
 
+    /**
+     * Annonce dans la région polie. Elle est vidée d'abord : un même message (deuxième « choisissez
+     * d'abord », même erreur) est annoncé de nouveau.
+     */
+    async function announce(text) {
+        live = '';
+        await tick();
+        live = text;
+    }
+
     async function submit(event) {
         event.preventDefault();
-        if (result || pending) return;
+        if (result || pending || stale) return;
         if (!choice) {
-            live = t('quiz.play.choose_first');
+            await announce(t('quiz.play.choose_first'));
             return;
         }
         pending = true;
         errorText = '';
         try {
-            const res = await fetch(answerHref({ game, level, seed }, index, choice), {
+            const res = await fetch(answerHref({ game, level, seed, version }, index, choice), {
                 headers: { Accept: 'application/json' },
             });
+            if (res.status === STALE_STATUS) {
+                stale = true;
+                errorText = t('quiz.play.stale');
+                await announce(errorText);
+                return;
+            }
             if (!res.ok) throw new Error(String(res.status));
             const data = await res.json();
             results = { ...results, [index]: data };
@@ -96,7 +122,7 @@
             nextButton?.focus();
         } catch {
             errorText = t('quiz.play.error');
-            live = errorText;
+            await announce(errorText);
         } finally {
             pending = false;
         }
@@ -221,6 +247,7 @@
                                     viewBox={traceViewBox(trace)}
                                     role="img"
                                     aria-label={t('quiz.play.trace_alt')}
+                                    aria-describedby={hintsId}
                                     preserveAspectRatio="xMidYMid meet"
                                 >
                                     <path class="line" d={tracePath(trace.paths)} />
@@ -251,6 +278,7 @@
                             <img
                                 src={photo.url}
                                 alt={t('quiz.play.photo_alt')}
+                                aria-describedby={hintsId}
                                 width={photo.width ?? 1280}
                                 height={photo.height ?? 853}
                             />
@@ -289,23 +317,31 @@
                             {t(hintsOpen ? 'quiz.hints.hide' : 'quiz.hints.show')}
                         </button>
                         <div id="quiz-hints" hidden={!hintsOpen}>
-                            {#if hints.length}
-                                <dl>
-                                    {#each hints as h (h.id)}
-                                        <div>
-                                            <dt>{h.label}</dt>
-                                            <dd lang={h.lang}>{h.value}</dd>
-                                        </div>
-                                    {/each}
-                                </dl>
-                            {:else}
-                                <p>{t('quiz.hints.none')}</p>
-                            {/if}
+                            {@render hintList()}
                         </div>
+                        {#if !hintsOpen}
+                            <!-- Indices repliés : copie pour les lecteurs d'écran, qui décrit le tracé ou la photo. -->
+                            <div id="quiz-hints-text" class="vff-sr-only">{@render hintList()}</div>
+                        {/if}
                     </div>
 
+                    {#snippet hintList()}
+                        {#if hints.length}
+                            <dl>
+                                {#each hints as h (h.id)}
+                                    <div>
+                                        <dt>{h.label}</dt>
+                                        <dd lang={h.lang}>{h.value}</dd>
+                                    </div>
+                                {/each}
+                            </dl>
+                        {:else}
+                            <p>{t('quiz.hints.none')}</p>
+                        {/if}
+                    {/snippet}
+
                     <form onsubmit={submit} novalidate>
-                        <fieldset disabled={!!result}>
+                        <fieldset disabled={!!result || stale}>
                             <legend>{t(`quiz.play.question_${game}`)}</legend>
                             <ul class="options">
                                 {#each question.options as o (o.key)}
@@ -335,7 +371,12 @@
                                 {/each}
                             </ul>
                         </fieldset>
-                        {#if !result}
+                        {#if stale}
+                            <p id="quiz-error" class="error">{errorText}</p>
+                            <Link href={quizHref(game, level)} class="vff-btn primary"
+                                >{t('quiz.result.again')}</Link
+                            >
+                        {:else if !result}
                             <button
                                 type="submit"
                                 class="vff-btn primary"

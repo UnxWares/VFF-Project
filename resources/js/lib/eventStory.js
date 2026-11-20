@@ -4,7 +4,7 @@
 // Fonctions pures, testées par tests/js/eventStory.test.js ; `t` est la fonction de traduction de la page.
 
 import { formatEventDate } from './linePhases.js';
-import { formatLocale } from './typo.js';
+import { decadeOf, formatLocale } from './typo.js';
 
 const MEDIA_TYPES = ['photo', 'postcard', 'map', 'plan', 'document'];
 
@@ -17,17 +17,23 @@ export function yearsWord(n, t) {
 
 /**
  * Écart avec l'événement en toutes lettres : « la même année », « un an après », « quatre ans avant » ;
- * null pour une image sans date (`attached` : « image rattachée à l'événement »).
+ * « environ quatre ans avant » pour une date approchée (`approx`) ; null pour une image sans date
+ * (`attached` : « image rattachée à l'événement »).
  * @param {number|null} gap écart signé en années
  * @param {(key: string, opts?: object) => string} t
  * @param {boolean} [attached]
+ * @param {boolean} [approx]
  * @returns {string|null}
  */
-export function gapPhrase(gap, t, attached = false) {
+export function gapPhrase(gap, t, attached = false, approx = false) {
     if (gap === null || gap === undefined) return attached ? t('stories.gap.attached') : null;
-    if (gap === 0) return t('stories.gap.same_year');
+    const about = approx ? 'about_' : '';
+    if (gap === 0) return t(`stories.gap.${about}same_year`);
     const n = Math.abs(gap);
-    return t(`stories.gap.${gap > 0 ? 'after' : 'before'}`, { count: n, years: yearsWord(n, t) });
+    return t(`stories.gap.${about}${gap > 0 ? 'after' : 'before'}`, {
+        count: n,
+        years: yearsWord(n, t),
+    });
 }
 
 /** Nature d'un média au singulier (« Photo », « Carte postale »), photo par défaut. */
@@ -36,21 +42,40 @@ export function mediaTypeLabel(type, t) {
 }
 
 /**
- * Légende datée d'une image : « Photo de 1934, quatre ans après », « Carte des environs de 1850, la même
- * année », « Photo sans date, image rattachée à l'événement ».
- * @param {{ type?: string, depicted_year?: number|null, date_precision?: string|null, gap_years?: number|null, attached?: boolean }} m
+ * Légende datée d'une image, qui dit l'incertitude de sa date : « Photo de 1934, quatre ans après »,
+ * « Carte des environs de 1840, environ trois ans avant », « Photo des années 1840, de trois ans avant à
+ * six ans après », « Photo datée de 1840 à 1845, de trois ans avant à deux ans après », « Photo sans date,
+ * image rattachée à l'événement ».
+ * @param {{ type?: string, depicted_year?: number|null, date_precision?: string|null, gap_years?: number|null, gap_years_min?: number|null, gap_years_max?: number|null, attached?: boolean }} m
+ * @param {(key: string, opts?: object) => string} t
+ * @param {string} [lang]
  */
-export function imageLegend(m, t) {
+export function imageLegend(m, t, lang = 'fr') {
     const type = mediaTypeLabel(m.type, t);
     const year = m.depicted_year ?? null;
-    const dated =
-        year === null
-            ? t('stories.undated', { type })
-            : t(m.date_precision === 'circa' ? 'stories.dated_circa' : 'stories.dated', {
-                  type,
-                  year,
-              });
-    const gap = gapPhrase(year === null ? null : (m.gap_years ?? null), t, m.attached === true);
+    if (year === null) {
+        const gap = gapPhrase(null, t, m.attached === true);
+        const undated = t('stories.undated', { type });
+        return gap ? `${undated}, ${gap}` : undated;
+    }
+    const min = m.gap_years_min;
+    const max = m.gap_years_max;
+    const span = Number.isInteger(min) && Number.isInteger(max) && min !== max;
+    let dated;
+    let gap;
+    if (m.date_precision === 'circa') {
+        dated = t('stories.dated_circa', { type, year });
+        gap = gapPhrase(m.gap_years ?? null, t, false, true);
+    } else if (span) {
+        dated =
+            m.date_precision === 'decade'
+                ? t('stories.dated_decade', { type, decade: decadeOf(year - (year % 10), lang) })
+                : t('stories.dated_range', { type, from: year, to: year + (max - min) });
+        gap = t('stories.gap.between', { from: gapPhrase(min, t), to: gapPhrase(max, t) });
+    } else {
+        dated = t('stories.dated', { type, year });
+        gap = gapPhrase(m.gap_years ?? null, t);
+    }
     return gap ? `${dated}, ${gap}` : dated;
 }
 

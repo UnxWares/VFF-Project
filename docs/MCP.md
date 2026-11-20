@@ -811,7 +811,7 @@ Aucun texte n'est rédigé : celui de l'événement vient de sa source.
 | Règle | Valeur |
 |---|---|
 | Événements concernés | ouvertures, réouvertures, fermetures (tous services, voyageurs, fret), déclassements, déposes, reconversions, électrifications, modernisations, débuts et fins d'exploitation associative, accidents ; pas les concessions ni `other` |
-| Image retenue | image de la ligne dont l'année représentée est à 5 ans au plus de l'événement, datée au moins à l'année près (`day`, `month`, `year`, `circa`), droits connus (`public_domain`, `open_license`, `permission`) ; plus les images rattachées à l'événement, quelle que soit leur date |
+| Image retenue | image de la ligne dont toutes les années possibles sont à 5 ans au plus de l'événement : date exacte (`day`, `month`, `year`), année « vers » (`circa`, comptée à 2 ans près), décennie (`decade`), fourchette (`range`) ; jamais une borne seule (`before`, `after`). Domaine public ou licence ouverte (`public_domain`, `open_license`) : les images que le site montre avec une simple autorisation (`permission`) ne sont pas diffusées par l'API ni par cet outil. Plus les images rattachées à l'événement, quelle que soit leur date |
 | Document retenu | notice de Gallica de la ligne datée au moins à l'année près (`day`, `month`, `year`, `circa`, `range`) dans la même fenêtre |
 | Seuil | 3 images et documents au moins, dont 2 images |
 | Carrousel | les 24 images les plus proches de la date, rangées dans l'ordre chronologique |
@@ -824,13 +824,15 @@ Aucun texte n'est rédigé : celui de l'événement vient de sa source.
 
 Sans `event` : `line`, `rules` (fenêtre, seuils, limite), `total` et `stories` (pour chacune : `event`, nombre
 d'`images` et de `documents`, `vff_url` de la page). Avec `event` : `line`, `event` (avec `provenance`), `window`
-(`years`, `from`, `to`), `images_total`, `images` (champs de l'outil `media`, plus `gap_years` et `attached`),
+(`years`, `from`, `to`), `images_total`, `images` (champs de l'outil `media`, plus `gap_years`, `gap_years_min`, `gap_years_max`, `gap_exact` et `attached`),
 `documents` (champs de `line_archives`, plus `gap_years`), `stations` (gares de la portion : nom et slug), `rules`,
 `archives_mention` et `vff_url`.
 
 `gap_years` est l'écart signé avec l'année de l'événement : 4 = quatre ans après, -2 = deux ans avant, 0 = la même
 année, nul pour une image de l'événement sans date. Dites-le au lecteur : une photo de 1934 n'est pas une photo de
-l'ouverture de 1930. Erreurs : `line_not_found`, `event_not_on_line` (l'événement est celui d'une autre ligne),
+l'ouverture de 1930. Quand `gap_exact` est faux, la date de l'image est approximative : `gap_years_min` et
+`gap_years_max` bornent l'écart possible, à dire « environ trois ans avant » ou « de trois ans avant à deux ans
+après ». Erreurs : `line_not_found`, `event_not_on_line` (l'événement est celui d'une autre ligne),
 `no_story` (sous le seuil, ou type sans histoire).
 
 Droits : montrez chaque image avec son auteur, sa licence et sa source ; citez la source de l'événement. Gallica :

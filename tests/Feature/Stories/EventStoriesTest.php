@@ -246,6 +246,143 @@ class EventStoriesTest extends TestCase
         $this->assertNull($res->json('data.b.story'));
     }
 
+    public function test_an_imprecise_date_is_kept_only_when_its_whole_interval_is_in_the_window(): void
+    {
+        // Précisions réellement présentes dans `media` sur vff (20/11/2026) ; fenêtre 1838 à 1848.
+        $kept = [
+            $this->image(1840, ['provider_meta' => ['date_precision' => 'circa']])->id => [-5, -1],
+            $this->image(1840, ['provider_meta' => ['date_precision' => 'range', 'year_to' => 1845]])->id => [-3, 2],
+            $this->image(1844, ['provider_meta' => ['date_precision' => 'year', 'year_to' => 1845]])->id => [1, 2],
+            $this->image(1845, ['provider_meta' => ['date_precision' => 'month']])->id => [2, 2],
+            $this->image(1846, ['provider_meta' => ['date_precision' => 'day']])->id => [3, 3],
+        ];
+        // « Vers 1838 » peut être 1836 : hors de la fenêtre, comme une borne seule, une décennie qui déborde,
+        // une fourchette trop large ou sans fin, une année tirée d'une catégorie ou d'un titre.
+        foreach ([
+            [1838, ['date_precision' => 'circa']],
+            [1847, ['date_precision' => 'circa']],
+            [1835, ['date_precision' => 'range', 'year_to' => 1845]],
+            [1840, ['date_precision' => 'range']],
+            [1846, ['date_precision' => 'before']],
+            [1840, ['date_precision' => 'after']],
+            [1830, ['date_precision' => 'decade']],
+            [1843, ['date_precision' => 'category']],
+            [1843, ['date_precision' => 'title']],
+        ] as [$year, $meta]) {
+            $this->image($year, ['provider_meta' => $meta]);
+        }
+
+        $story = app(EventStories::class)->story($this->line, $this->opening);
+        $this->assertNotNull($story);
+        $byId = collect($story['images'])->keyBy('id');
+        $this->assertSame(3 + count($kept), $story['images_total']);
+        foreach ($kept as $id => [$min, $max]) {
+            $this->assertTrue($byId->has($id), "image {$id}");
+            $this->assertSame([$min, $max], [$byId[$id]['gap_years_min'], $byId[$id]['gap_years_max']]);
+            $this->assertSame($min === $max, $byId[$id]['gap_exact']);
+        }
+        $circa = $byId[array_key_first($kept)];
+        $this->assertSame(-3, $circa['gap_years']);
+        $this->assertSame('circa', $circa['date_precision']);
+        // Le décompte de la fiche ligne suit la même règle que l'histoire.
+        $this->assertSame($story['images_total'], app(EventStories::class)->available($this->line)[$this->opening->id]['images']);
+    }
+
+    public function test_the_interval_rule_covers_every_precision(): void
+    {
+        $this->assertSame([1843, 1843], EventStories::imageInterval(1843, 'day'));
+        $this->assertSame([1843, 1843], EventStories::imageInterval(1843, null));
+        $this->assertSame([1843, 1845], EventStories::imageInterval(1843, 'year', '1845'));
+        $this->assertSame([1841, 1845], EventStories::imageInterval(1843, 'circa'));
+        $this->assertSame([1840, 1849], EventStories::imageInterval(1843, 'decade'));
+        $this->assertSame([1840, 1850], EventStories::imageInterval(1840, 'range', 1850));
+        foreach (['before', 'after', 'category', 'title'] as $precision) {
+            $this->assertNull(EventStories::imageInterval(1843, $precision), $precision);
+        }
+        $this->assertNull(EventStories::imageInterval(1843, 'range'));
+        $this->assertNull(EventStories::imageInterval(null, 'day'));
+    }
+
+    public function test_the_line_page_count_matches_every_story(): void
+    {
+        $electrification = $this->event('electrification', '1967-06-01');
+        $this->image(1966, ['provider_meta' => ['date_precision' => 'circa']]);
+        $this->image(1960, ['provider_meta' => ['date_precision' => 'decade']]);
+        $this->image(1968, ['rights_status' => 'permission']);
+        $this->image(1930, [], $electrification);
+        $this->event('closure', '1849-01-01');
+        $this->event('opening', '1965-01-01');
+
+        $stories = app(EventStories::class);
+        foreach ([false, true] as $api) {
+            $available = $stories->available($this->line, $api);
+            foreach (LineEvent::query()->where('line_id', $this->line->id)->get() as $event) {
+                $story = $stories->story($this->line, $event, $api);
+                $this->assertSame(isset($available[$event->id]), $story !== null, "{$event->id} api={$api}");
+                if ($story !== null) {
+                    $this->assertSame($available[$event->id]['images'], $story['images_total']);
+                }
+            }
+        }
+    }
+
+    public function test_images_shown_with_a_mere_permission_stay_off_the_api(): void
+    {
+        $permission = $this->image(1842, ['rights_status' => 'permission', 'license' => null]);
+
+        $page = app(EventStories::class)->story($this->line, $this->opening);
+        $this->assertContains($permission->id, array_column($page['images'], 'id'));
+
+        $rest = $this->getJson('/api/v1/lines/rfn-340000/stories/'.$this->opening->id)->assertOk();
+        $this->assertNotContains($permission->id, array_column($rest->json('images'), 'id'));
+        $this->assertSame(3, $rest->json('images_total'));
+        $this->assertSame(3, $this->getJson('/api/v1/lines/rfn-340000/stories')->json('stories.0.images'));
+
+        $gql = $this->graphQL('query($id: ID!) { lineEvent(id: $id) { story { images { media { id } } } } }', ['id' => $this->opening->id]);
+        $this->assertNotContains((string) $permission->id, array_column(array_column($gql->json('data.lineEvent.story.images'), 'media'), 'id'));
+
+        [$mcp] = $this->tool('line_stories', ['line' => 'rfn-340000', 'event' => $this->opening->id]);
+        $this->assertNotContains($permission->id, array_column($mcp['images'], 'id'));
+    }
+
+    public function test_graphql_refuses_stories_inside_a_list_and_caps_them_per_request(): void
+    {
+        for ($i = 0; $i < 20; $i++) {
+            $this->event('closure', '184'.($i % 9).'-01-01');
+        }
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $res = $this->graphQL('{ line(slug: "rfn-340000") { events { id story { images_total } } } }');
+        $queries = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        // 21 événements : aucune histoire calculée, une erreur par événement, une poignée de requêtes SQL.
+        $res->assertOk();
+        $this->assertCount(21, $res->json('data.line.events'));
+        $this->assertSame([], array_filter(array_column($res->json('data.line.events'), 'story')));
+        $this->assertStringContainsString('not inside a list', (string) $res->json('errors.0.message'));
+        $this->assertLessThan(10, $queries);
+
+        // Alias : trois histoires au plus par requête.
+        $ids = LineEvent::query()->where('line_id', $this->line->id)->orderBy('id')->limit(4)->pluck('id')->all();
+        $aliased = $this->graphQL('{ '.implode(' ', array_map(fn (int $id, int $i): string => "e{$i}: lineEvent(id: {$id}) { id story { images_total } }", $ids, array_keys($ids))).' }');
+        $this->assertCount(1, $aliased->json('errors'));
+        $this->assertStringContainsString('at most per request', (string) $aliased->json('errors.0.message'));
+        $this->assertSame(['e3', 'story'], $aliased->json('errors.0.path'));
+    }
+
+    public function test_the_carousel_buttons_name_contains_their_visible_text(): void
+    {
+        // WCAG 2.5.3 : le nom accessible d'un bouton contient le texte affiché, dans chaque langue.
+        foreach (['fr', 'en', 'de'] as $locale) {
+            foreach (['carousel.previous', 'carousel.next', 'link'] as $key) {
+                $visible = (string) __("stories.{$key}", [], $locale);
+                $name = (string) __("stories.{$key}_label", [], $locale);
+                $this->assertStringContainsStringIgnoringCase($visible, $name, "{$locale} {$key}");
+            }
+        }
+    }
+
     public function test_the_mcp_tool_gives_the_same_content_and_clear_errors(): void
     {
         $rest = $this->getJson('/api/v1/lines/rfn-340000/stories/'.$this->opening->id)->json();

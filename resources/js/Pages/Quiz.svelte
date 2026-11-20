@@ -1,8 +1,11 @@
 <script>
     /**
      * Quiz du rail (/quiz). Sans jeu choisi : choix du jeu et du niveau. Avec un jeu : la série tirée
-     * par le serveur (graine dans l'adresse, à partager), jouée par QuizRun.
+     * par le serveur (graine et version de la série dans l'adresse, à partager), jouée par QuizRun.
+     * Adresse dont la série a changé depuis (`stale` : la base a été mise à jour) : un message et une
+     * nouvelle série au même jeu et au même niveau.
      */
+    import { Link } from '@inertiajs/svelte';
     import { router } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
     import PageHero from '$components/PageHero.svelte';
@@ -10,9 +13,17 @@
     import EmptyState from '$components/ui/EmptyState.svelte';
     import QuizRun from '$components/Quiz/QuizRun.svelte';
     import { i18n } from '$lib/i18n.js';
-    import { GAMES, LEVELS } from '$lib/quiz.js';
+    import { GAMES, LEVELS, quizHref } from '$lib/quiz.js';
 
-    let { available = {}, game = null, level = 'easy', seed = null, questions = [] } = $props();
+    let {
+        available = {},
+        game = null,
+        level = 'easy',
+        seed = null,
+        version = null,
+        questions = [],
+        stale = false,
+    } = $props();
 
     const t = (key, opts) => String($i18n.t(key, opts));
     const playable = $derived(GAMES.filter((g) => available[g]));
@@ -38,9 +49,20 @@
         <PageHero title={t('quiz.title')} subtitle={t('quiz.subtitle')} />
 
         <div class="vff-container quiz">
-            {#if game && questions.length}
-                {#key `${game}-${level}-${seed}`}
-                    <QuizRun {game} {level} {seed} {questions} />
+            {#if game && stale}
+                <section class="stale" aria-labelledby="quiz-stale-title">
+                    <h2 id="quiz-stale-title">{t('quiz.stale.title')}</h2>
+                    <p>{t('quiz.stale.text')}</p>
+                    <div class="actions">
+                        <Link href={quizHref(game, level)} class="vff-btn primary"
+                            >{t('quiz.result.again')}</Link
+                        >
+                        <Link href="/quiz" class="vff-btn secondary">{t('quiz.play.change')}</Link>
+                    </div>
+                </section>
+            {:else if game && questions.length}
+                {#key `${game}-${level}-${seed}-${version}`}
+                    <QuizRun {game} {level} {seed} {version} {questions} />
                 {/key}
             {:else if playable.length === 0}
                 <EmptyState
@@ -112,6 +134,29 @@
 <style>
     .quiz {
         padding-block: var(--vff-section-space);
+    }
+
+    .stale {
+        max-width: 760px;
+    }
+
+    .stale h2 {
+        margin: 0 0 var(--vff-space-3);
+        font-size: var(--vff-fs-h2);
+    }
+
+    .stale p {
+        margin: 0;
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-body);
+        text-wrap: pretty;
+    }
+
+    .stale .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--vff-space-3);
+        margin-top: var(--vff-block-space);
     }
 
     .setup {

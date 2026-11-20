@@ -33,6 +33,7 @@
 
     const uid = $props.id();
     const t = (key, opts) => String($i18n.t(key, opts));
+    const lang = $derived($i18n.language ?? 'fr');
     const count = $derived(images.length);
     const active = $derived(images[Math.min(index, count - 1)] ?? null);
     const disabled = $derived(navDisabled(index, count, false));
@@ -98,7 +99,7 @@
                 >
             </a>
             <figcaption>
-                <p class="legend" id="{uid}-legend">{imageLegend(active, t)}</p>
+                <p class="legend" id="{uid}-legend">{imageLegend(active, t, lang)}</p>
                 <p class="title">{mediaHeading(active)}</p>
                 <p class="credit">
                     <span class="author">{active.author ?? t('media.author_unknown')}</span>,
@@ -172,7 +173,7 @@
                             <span class="vff-sr-only"
                                 >{t('stories.carousel.choose', {
                                     number: i + 1,
-                                    title: imageLegend(m, t),
+                                    title: imageLegend(m, t, lang),
                                 })}</span
                             >
                         </button>
