@@ -3,6 +3,7 @@
     import { i18n } from '$lib/i18n.js';
     import { firstOfMonth, formatLocale } from '$lib/typo.js';
     import { mediaHeading, mediaLicenseHref, mediaLicenseLabel } from '$lib/mediaCredits.js';
+    import { conciseAlt } from '$lib/altText.js';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
 
     /**
@@ -407,7 +408,8 @@
                     rel="noopener noreferrer"
                     title={t('media.lightbox.open_original')}
                 >
-                    <img src={active.display_url} alt={heading(active)} />
+                    <!-- Alternative courte (RGAA 1.3.9) : le titre complet est juste dessous (#lb-title). -->
+                    <img src={active.display_url} alt={conciseAlt(heading(active))} />
                     <span class="vff-sr-only">
                         {t('media.lightbox.open_original')} ({t('common.new_tab')})</span
                     >

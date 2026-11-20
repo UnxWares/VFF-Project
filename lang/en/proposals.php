@@ -20,6 +20,8 @@ return [
         'results' => 'Search results',
         'searching' => 'Searching…',
         'none' => 'No results for this search.',
+        'count_one' => ':count result in the list below.',
+        'count_other' => ':count results in the list below.',
         'failed' => 'The search did not go through. Try again in a moment.',
         'chosen_line' => 'Chosen line',
         'chosen_station' => 'Chosen station',

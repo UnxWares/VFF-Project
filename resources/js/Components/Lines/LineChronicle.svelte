@@ -3,6 +3,7 @@
     import { formatEventDate } from '$lib/linePhases.js';
     import { firstOfMonth, formatLocale, formatNumber, tieUnits } from '$lib/typo.js';
     import { mediaHeading, mediaLicenseHref, mediaLicenseLabel } from '$lib/mediaCredits.js';
+    import { conciseAlt } from '$lib/altText.js';
 
     /**
      * Chronologie détaillée, portion par portion : TOUS les événements de la ligne (rien
@@ -88,7 +89,7 @@
                     rel="noopener noreferrer"
                     ><img
                         src={m.thumb_url}
-                        alt={t('media.event_open', { title: mediaHeading(m) })}
+                        alt={t('media.event_open', { title: conciseAlt(mediaHeading(m), 100) })}
                         loading="lazy"
                         decoding="async"
                         width="120"

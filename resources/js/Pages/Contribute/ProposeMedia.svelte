@@ -17,6 +17,7 @@
     import { i18n } from '$lib/i18n.js';
     import { formatStationDate } from '$lib/stationDates.js';
     import { colon, formatLocale } from '$lib/typo.js';
+    import { figureLabel } from '$lib/altText.js';
     import {
         IMAGE_MIMES,
         LIMITS,
@@ -447,7 +448,8 @@
                             >
                                 {$i18n.t('proposals.media.commons_check')}
                             </button>
-                            <p class="status" aria-live="polite">
+                            <!-- Zone d'annonce présente même vide : le premier message est lu (RGAA 7.5). -->
+                            <p class="status" role="status">
                                 {#if commonsStatus === 'checking'}
                                     {$i18n.t('proposals.media.commons_checking')}
                                 {:else if commonsStatus === 'ok'}
@@ -457,7 +459,18 @@
                             </p>
                         </div>
                         {#if commonsStatus === 'ok' && commonsFile}
-                            <figure class="preview">
+                            <!-- Image légendée : la figure reprend sa légende (RGAA 1.9). -->
+                            <figure
+                                class="preview"
+                                role="group"
+                                aria-label={figureLabel([
+                                    commonsFile.title,
+                                    commonsFile.author
+                                        ? `${$i18n.t('proposals.review.author')}${colon($i18n.language)}${commonsFile.author}`
+                                        : null,
+                                    `${$i18n.t('proposals.review.license')}${colon($i18n.language)}${commonsFile.license}`,
+                                ])}
+                            >
                                 {#if commonsFile.thumb_url}
                                     <img
                                         src={commonsFile.thumb_url}
@@ -504,7 +517,11 @@
                             {/snippet}
                         </Field>
                         {#if previewUrl}
-                            <figure class="preview">
+                            <figure
+                                class="preview"
+                                role={fileFacts ? 'group' : undefined}
+                                aria-label={fileFacts ?? undefined}
+                            >
                                 <img
                                     src={previewUrl}
                                     alt={$i18n.t('proposals.media.preview_alt')}
@@ -666,7 +683,11 @@
                                     aria-describedby="media-rights-error"
                                     bind:checked={form.rights_confirmed}
                                 />
-                                <span>{$i18n.t('proposals.media.rights_confirmed')}</span>
+                                <span
+                                    >{$i18n.t('proposals.media.rights_confirmed')}<span
+                                        class="required">{` (${$i18n.t('common.required')})`}</span
+                                    ></span
+                                >
                             </label>
                             <p class="vff-error" id="media-rights-error" aria-live="polite">
                                 {#if errorFor('rights_confirmed')}<i
@@ -802,9 +823,6 @@
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
-    }
-    .status:empty {
-        display: none;
     }
     .ok {
         color: var(--vff-success);

@@ -333,8 +333,12 @@
                                     role="group"
                                     aria-labelledby="event-pk-{bound}-label"
                                 >
+                                    <!-- Kilomètres ou mètres : l'un des deux suffit, la borne reste obligatoire (RGAA 11.10). -->
                                     <p class="vff-label" id="event-pk-{bound}-label">
-                                        {$i18n.t(`proposals.event.pk_${bound}`)}
+                                        {$i18n.t(`proposals.event.pk_${bound}`)}<span
+                                            class="required"
+                                            >{` (${$i18n.t('common.required')})`}</span
+                                        >
                                     </p>
                                     <div class="pk-inputs">
                                         <label class="pk-part">
@@ -509,6 +513,10 @@
     }
     .pk .vff-label {
         margin: 0 0 var(--vff-space-2);
+    }
+    .required {
+        font-weight: 400;
+        color: var(--vff-text-muted);
     }
     .pk-inputs {
         display: flex;

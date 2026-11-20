@@ -218,7 +218,8 @@
                         onchange={runCheck}
                         error={errorFor('material_slug')}
                     />
-                    <div class="check" aria-live="polite">
+                    <!-- Zone d'annonce présente même vide : le premier message est lu (RGAA 7.5). -->
+                    <div class="check" role="status">
                         {#if checkStatus === 'checking'}
                             <p class="intro">{$i18n.t('proposals.line_material.checking')}</p>
                         {:else if checkStatus === 'failed'}
@@ -441,8 +442,9 @@
         flex-direction: column;
         gap: var(--vff-space-3);
     }
+    /* Vide : pas d'espace en plus au bas du panneau (écart de .group). */
     .check:empty {
-        display: none;
+        margin-top: calc(-1 * var(--vff-space-4));
     }
     .check p {
         margin: 0;

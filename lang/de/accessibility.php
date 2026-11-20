@@ -4,7 +4,8 @@
 // Elle repose sur l'audit interne RGAA 4.1.2 du 2026-11-19 (106 critères, 28 pages) et sur sa revue du soir
 // (écrans changés dans la journée, 32 pages), puis sur la correction des deux documentations de l'API : rapports
 // storage/app/reports/agents/nuit/audit-rgaa.md, storage/app/reports/agents/soir/accessibilite-soir.md et
-// storage/app/reports/agents/soir/docs-accessibles.md, grille publiée public/rgaa/grille-audit-rgaa-2026-11-19.csv,
+// storage/app/reports/agents/soir/docs-accessibles.md, enfin sur la revue du 2026-11-20 (37 pages,
+// storage/app/reports/agents/matin/rgaa-ecrans-2011.md) ; grille publiée public/rgaa/grille-audit-rgaa-2026-11-19.csv,
 // calcul refait par storage/app/data/rgaa/grille.py. Seuils officiels : conforme à 100 %, partiellement
 // conforme à partir de 50 % de critères respectés, non conforme en dessous ou sans audit en cours de validité.
 // À mettre à jour à chaque correction ; la date est dans resources/js/Pages/Accessibility.svelte
@@ -27,17 +28,17 @@ return [
     'status' => [
         'title' => 'Konformitätsstatus',
         'paragraph' => '<p><strong>Die Website vff-project.org entspricht vollständig dem RGAA 4.1.2.</strong></p>'
-            .'<p>Dieser Stand beruht auf dem internen Audit, das UnxWares am 19. November 2026 nach der Methode des RGAA 4.1.2 durchgeführt hat: Alle 106 Kriterien wurden an einer Stichprobe von 28 Seiten geprüft, am Abend desselben Tages dann an den tagsüber hinzugefügten oder geänderten Ansichten und an vier neuen Seiten, insgesamt 32 Seiten. Danach wurden die beiden API-Referenzen, Swagger UI und Magidoc, korrigiert und erneut geprüft. Das Audit wurde nicht von einer externen Stelle durchgeführt.</p>',
+            .'<p>Dieser Stand beruht auf dem internen Audit, das UnxWares am 19. November 2026 nach der Methode des RGAA 4.1.2 durchgeführt hat: Alle 106 Kriterien wurden an einer Stichprobe von 28 Seiten geprüft, am Abend desselben Tages dann an den tagsüber hinzugefügten oder geänderten Ansichten und an vier neuen Seiten, insgesamt 32 Seiten. Danach wurden die beiden API-Referenzen, Swagger UI und Magidoc, korrigiert und erneut geprüft. Am 20. November 2026 wurden die an diesem Tag hinzugekommenen Ansichten nach derselben Methode geprüft: die Formulare für den Vorschlag eines datierten Ereignisses, eines Bildes, eines Fahrzeugs auf einer Strecke und einer Baureihe, ihre Prüfung durch die Prüfer, der Netzgraph für Administratoren, die Gallica-Archive auf der Seite einer Strecke und die Galerien der Bahnhofs- und Baureihenseiten. Die Stichprobe umfasst nun 37 Seiten. Das Audit wurde nicht von einer externen Stelle durchgeführt.</p>',
     ],
 
     'results' => [
         'title' => 'Testergebnisse',
         'paragraph' => '<p>Das interne Konformitätsaudit ergibt:</p>'
             .'<ul>'
-            .'<li>100 % der RGAA-Kriterien sind erfüllt (alle 73 Kriterien, die auf die Website zutreffen);</li>'
-            .'<li>die durchschnittliche Konformitätsrate des Online-Dienstes beträgt 100 % (Mittelwert der Raten der 32 Seiten).</li>'
+            .'<li>100 % der RGAA-Kriterien sind erfüllt (alle 75 Kriterien, die auf die Website zutreffen);</li>'
+            .'<li>die durchschnittliche Konformitätsrate des Online-Dienstes beträgt 100 % (Mittelwert der Raten der 37 Seiten).</li>'
             .'</ul>'
-            .'<p>Alle 32 Seiten erfüllen alle Kriterien, die für sie gelten. Die Oberflächen von Swagger UI und Magidoc sind weiterhin englisch, auf als englisch ausgezeichneten Seiten; die Seite <a href="/api">Zugang zur API</a> stellt dieselben APIs vor. Das vollständige Prüfraster (Status und Begründung jedes Kriteriums auf jeder Seite) können Sie herunterladen: <a href="/rgaa/grille-audit-rgaa-2026-11-19.csv" download>RGAA-Prüfraster (CSV-Datei, 894 KB, auf Französisch)</a>.</p>'
+            .'<p>Alle 37 Seiten erfüllen alle Kriterien, die für sie gelten. Die Oberflächen von Swagger UI und Magidoc sind weiterhin englisch, auf als englisch ausgezeichneten Seiten; die Seite <a href="/api">Zugang zur API</a> stellt dieselben APIs vor. Das vollständige Prüfraster (Status und Begründung jedes Kriteriums auf jeder Seite) können Sie herunterladen: <a href="/rgaa/grille-audit-rgaa-2026-11-19.csv" download>RGAA-Prüfraster (CSV-Datei, 1 107 KB, auf Französisch)</a>.</p>'
             .'<p>Die Website wurde nicht mit einem Screenreader getestet. Name, Rolle und Zustand der Bedienelemente wurden im Code und im Barrierefreiheitsbaum des Browsers geprüft; wie NVDA, JAWS, VoiceOver oder TalkBack sie tatsächlich ausgeben, ist noch zu prüfen.</p>',
     ],
 
@@ -57,12 +58,12 @@ return [
 
     'establishment' => [
         'title' => 'Erstellung dieser Erklärung',
-        'paragraph' => '<p>Diese Erklärung wurde am 19. November 2026 nach dem internen RGAA-Audit erstellt und am Abend desselben Tages aktualisiert, nachdem die tagsüber hinzugefügten Ansichten geprüft und die API-Referenzen in Swagger UI und Magidoc korrigiert worden waren.</p>'
+        'paragraph' => '<p>Diese Erklärung wurde am 19. November 2026 nach dem internen RGAA-Audit erstellt und am Abend desselben Tages aktualisiert, nachdem die tagsüber hinzugefügten Ansichten geprüft und die API-Referenzen in Swagger UI und Magidoc korrigiert worden waren. Am 20. November 2026 wurde sie aktualisiert, nachdem die an diesem Tag hinzugekommenen Ansichten geprüft worden waren.</p>'
             .'<ul>'
             .'<li><strong>Verwendete Technologien</strong>: HTML5, CSS, JavaScript (Svelte, MapLibre GL), SVG, WAI-ARIA.</li>'
-            .'<li><strong>Testumgebung</strong>: Browser Chromium unter Linux, für das Audit 320 bis 1 280 Pixel breit im hellen Design (das dunkle Design wurde am selben Tag gemessen), für die am Abend geprüften Ansichten 320 bis 2 560 Pixel breit im hellen und im dunklen Design (320 und 1 280 Pixel für die Prüfung der API-Referenzen); auf Französisch. Die tagsüber hinzugefügten Seiten für die Prüfung und die Verwaltung wurden mit Testdaten angezeigt. Es wurde keine assistive Technologie eingesetzt.</li>'
+            .'<li><strong>Testumgebung</strong>: Browser Chromium unter Linux, für das Audit 320 bis 1 280 Pixel breit im hellen Design (das dunkle Design wurde am selben Tag gemessen), für die am Abend geprüften Ansichten 320 bis 2 560 Pixel breit im hellen und im dunklen Design (320 und 1 280 Pixel für die Prüfung der API-Referenzen); auf Französisch. Die tagsüber hinzugefügten Seiten für die Prüfung und die Verwaltung wurden mit Testdaten angezeigt. Am 20. November wurden die Vorschlagsformulare, ihre Prüfung und der Netzgraph auf einer Testdatenbank angezeigt, 320 bis 1 280 Pixel breit, im hellen und im dunklen Design. Es wurde keine assistive Technologie eingesetzt.</li>'
             .'<li><strong>Werkzeuge</strong>: Prüfung des erzeugten Codes und des Barrierefreiheitsbaums (Skripte des Projekts), Berechnung der Kontraste, Tastaturdurchgang mit 45 Tabulatorschritten je Seite, Bildschirmfotos ohne Stylesheets, bei 320 Pixeln Breite und mit vergrößerten Textabständen, Durchsicht des Codes der Komponenten.</li>'
-            .'<li><strong>Geprüfte Seiten</strong>: Startseite; Impressum, das auch die Kontaktangaben enthält (die Website hat keine Kontaktseite); Erklärung zur Barrierefreiheit; Mitmachen, das als Hilfeseite dient; Anmeldung; Registrierung; Passwort vergessen; Karte; Verzeichnisse der Strecken, Bahnhöfe, Fahrzeuge und Unfälle; je eine Seite zu einer Strecke (610000), einem Bahnhof (Angoulême), einem Fahrzeug (PLM 1-30) und einem Unfall (Meudon, 1842); Zugang zur API; Referenzen REST (Swagger UI) und GraphQL (Magidoc); die Fehlerseite „Seite nicht gefunden“; das Suchfenster; Profil; Trassen-Editor; meine Beiträge; Prüfung der Beiträge; dazu, ausgelost, die Datenschutzerklärung, die Nutzungsbedingungen und die technischen Credits. Am Abend kamen vier Seiten hinzu: die Reputation der Mitglieder, die Moderation der Konten, die Bearbeitung der Fehlermeldungen und die Benachrichtigungen. Die Website hat keine Sitemap-Seite. Die REST-Referenz in Scalar (/docs/api) gehörte nicht zur Stichprobe.</li>'
+            .'<li><strong>Geprüfte Seiten</strong>: Startseite; Impressum, das auch die Kontaktangaben enthält (die Website hat keine Kontaktseite); Erklärung zur Barrierefreiheit; Mitmachen, das als Hilfeseite dient; Anmeldung; Registrierung; Passwort vergessen; Karte; Verzeichnisse der Strecken, Bahnhöfe, Fahrzeuge und Unfälle; je eine Seite zu einer Strecke (610000), einem Bahnhof (Angoulême), einem Fahrzeug (PLM 1-30) und einem Unfall (Meudon, 1842); Zugang zur API; Referenzen REST (Swagger UI) und GraphQL (Magidoc); die Fehlerseite „Seite nicht gefunden“; das Suchfenster; Profil; Trassen-Editor; meine Beiträge; Prüfung der Beiträge; dazu, ausgelost, die Datenschutzerklärung, die Nutzungsbedingungen und die technischen Credits. Am Abend kamen vier Seiten hinzu: die Reputation der Mitglieder, die Moderation der Konten, die Bearbeitung der Fehlermeldungen und die Benachrichtigungen. Am 20. November kamen fünf Seiten hinzu: die Formulare für den Vorschlag eines datierten Ereignisses, eines Bildes, eines Fahrzeugs auf einer Strecke und einer Baureihe sowie der Netzgraph. Die Website hat keine Sitemap-Seite. Die REST-Referenz in Scalar (/docs/api) gehörte nicht zur Stichprobe.</li>'
             .'</ul>',
     ],
 

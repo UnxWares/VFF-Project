@@ -20,6 +20,8 @@ return [
         'results' => 'Suchergebnisse',
         'searching' => 'Suche läuft…',
         'none' => 'Keine Ergebnisse für diese Suche.',
+        'count_one' => ':count Ergebnis in der Liste unten.',
+        'count_other' => ':count Ergebnisse in der Liste unten.',
         'failed' => 'Die Suche ist fehlgeschlagen. Versuchen Sie es gleich noch einmal.',
         'chosen_line' => 'Gewählte Strecke',
         'chosen_station' => 'Gewählter Bahnhof',
