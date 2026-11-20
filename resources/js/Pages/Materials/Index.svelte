@@ -123,7 +123,15 @@
             subtitle={overall > 0
                 ? t('materials.subtitle', { total: fmt(overall) })
                 : t('materials.subtitle_empty')}
-        />
+        >
+            {#if overall > 0}
+                <p class="quiz-link">
+                    <Link href="/quiz?game=materials" class="vff-link"
+                        >{t('quiz.links.materials')}</Link
+                    >
+                </p>
+            {/if}
+        </PageHero>
 
         <div class="vff-container directory">
             {#if overall === 0}
@@ -280,6 +288,11 @@
 </Layout>
 
 <style>
+    /* Lien vers le quiz du matériel, sous le chapeau du bandeau. */
+    .quiz-link {
+        margin: var(--vff-space-4) 0 0;
+    }
+
     main {
         background-color: var(--vff-bg);
     }

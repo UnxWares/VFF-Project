@@ -1,5 +1,5 @@
 <script>
-    import { router } from '@inertiajs/svelte';
+    import { Link, router } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
     import PageHero from '$components/PageHero.svelte';
     import Pagination from '$components/Directory/Pagination.svelte';
@@ -128,7 +128,11 @@
                 closed: fmt(overview.closed),
                 unknown: fmt(overview.unknown),
             })}
-        />
+        >
+            <p class="quiz-link">
+                <Link href="/quiz?game=lines" class="vff-link">{$i18n.t('quiz.links.lines')}</Link>
+            </p>
+        </PageHero>
 
         <div class="vff-container directory">
             <DirectoryFilters
@@ -305,6 +309,11 @@
 </Layout>
 
 <style>
+    /* Lien vers le quiz des lignes, sous le chapeau du bandeau. */
+    .quiz-link {
+        margin: var(--vff-space-4) 0 0;
+    }
+
     main {
         background-color: var(--vff-bg);
     }

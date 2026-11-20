@@ -25,6 +25,7 @@ use App\Http\Controllers\MediaContributionController;
 use App\Http\Controllers\NetworkGraphAdminController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuizController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\TraceEditorController;
 use App\Http\Controllers\WebhookSubscriptionController;
@@ -67,6 +68,11 @@ Route::get('/materials', [MaterialController::class, 'index'])->name('materials.
 Route::get('/materials/{material:slug}', [MaterialController::class, 'show'])->name('materials.show');
 Route::get('/accidents', [AccidentController::class, 'index'])->name('accidents.index');
 Route::get('/accidents/{accident:slug}', [AccidentController::class, 'show'])->name('accidents.show');
+// Quiz du rail : dix questions tirées d'une graine (adresse partageable), réponse vérifiée par le serveur
+// après le choix, photo du matériel par une redirection ; rien n'est enregistré.
+Route::get('/quiz', [QuizController::class, 'index'])->middleware('throttle:30,1')->name('quiz');
+Route::get('/quiz/answer', [QuizController::class, 'answer'])->middleware('throttle:60,1')->name('quiz.answer');
+Route::get('/quiz/photo', [QuizController::class, 'photo'])->middleware('throttle:60,1')->name('quiz.photo');
 // Signalement d'une erreur depuis une fiche (visiteurs et membres) : jeton d'ouverture du
 // formulaire (durée minimale de remplissage), puis envoi limité en fréquence (AppServiceProvider).
 Route::get('/reports/token', [ErrorReportController::class, 'token'])->middleware('throttle:30,1')->name('reports.token');
