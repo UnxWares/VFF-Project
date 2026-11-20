@@ -5,6 +5,7 @@ namespace App\Mcp\Tools;
 use App\Http\Resources\MaterialDetailResource;
 use App\Mcp\Support\VffTool;
 use App\Models\Material;
+use App\Services\Api\MediaGallery;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Description(<<<'TXT'
 Fiche complète d'une série de matériel roulant (même contenu que l'API REST GET /api/v1/materials/{slug}) : tous les champs de la liste `materials`, plus `field_sources` (provenance de chaque champ : source, référence précise comme "Q746572#P729", adresse, licence, valeur d'origine quand VFF a converti une unité) et `lines` (lignes parcourues, une entrée par lien attesté : ligne, période si la source la date, `evidence` = preuves du lien, avec l'article, la révision lue, la section et le permalien `url` à citer, `confidence`). Aucune phrase des articles n'est recopiée : lisez-la à l'adresse du permalien.
 Les liens avec les lignes ne viennent que d'une source explicite, jamais d'un nom approchant : Wikidata « véhicule habituellement utilisé » (`source` wikidata), section d'article Wikipédia (wikipedia), ou contribution relue par deux validateurs de VFF (contrib : chaque preuve `kind` contribution donne le titre, la nature et la licence de la source citée et son adresse `url`, nulle pour un ouvrage papier). Une ligne reliée par plusieurs sources a une entrée par source ; `lines_count` compte les lignes. Un champ de `field_sources` de source contrib vient d'une correction validée (référence contribution:<id>).
+`media_count` : nombre d'images de la série publiées après validation d'une contribution ; lisez-les (auteur, licence, lien) avec l'outil media et {"material": "<slug>"}.
 Identifiant : `material` = slug renvoyé par search ou materials (ex. "bb-15000").
 Exemple : {"material": "bb-15000"}.
 TXT)]
@@ -64,7 +66,7 @@ class MaterialSheetTool extends VffTool
         ];
 
         return $this->respond(
-            ['material' => MaterialDetailResource::make($material)->resolve()],
+            ['material' => MaterialDetailResource::make($material)->resolve(), 'media_count' => app(MediaGallery::class)->count($material)],
             $providers,
             $lang,
             self::url('/materials/'.$material->slug),

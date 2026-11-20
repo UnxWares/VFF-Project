@@ -9,6 +9,7 @@ use App\Models\LineMaterial;
 use App\Models\LineMaterialPeriod;
 use App\Models\Material;
 use App\Services\Api\MaterialQuery;
+use App\Services\Api\MediaGallery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Inertia\Inertia;
@@ -101,7 +102,7 @@ class MaterialController extends Controller
      * lignes : slug, name, code) sont inchangées ; les autres sont des ajouts pour la fiche enrichie
      * (caractéristiques Wikidata, image Commons et ses droits, preuve de chaque lien).
      */
-    public function show(Material $material): Response
+    public function show(Material $material, MediaGallery $gallery): Response
     {
         $links = $material->lineLinks()
             ->with(['line:id,slug,code,name', 'shownPeriods'])
@@ -158,6 +159,8 @@ class MaterialController extends Controller
             })->values(),
             // Nombre total de lignes parcourues (la liste est bornée à MAX_LINES).
             'lines_total' => $material->lineLinks()->distinct()->count('line_id'),
+            // Nombre d'images publiées : la galerie (chargée par l'API) n'est posée que s'il y en a.
+            'media_count' => $gallery->count($material),
         ]);
     }
 

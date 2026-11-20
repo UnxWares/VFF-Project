@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ReadsListFilters;
 use App\Models\Era;
 use App\Models\Station;
+use App\Services\Api\MediaGallery;
 use App\Services\StationDirectory;
 use App\Services\StationSheet;
 use Illuminate\Database\Query\Builder;
@@ -102,8 +103,12 @@ class StationController extends Controller
         $builder->orderByRaw("{$name}, s.id");
     }
 
-    public function show(Station $station, StationSheet $sheet): Response
+    public function show(Station $station, StationSheet $sheet, MediaGallery $gallery): Response
     {
-        return Inertia::render('Stations/Show', $sheet->page($station));
+        return Inertia::render('Stations/Show', [
+            ...$sheet->page($station),
+            // Nombre d'images publiées : la galerie (chargée par l'API) n'est posée que s'il y en a.
+            'media_count' => $gallery->count($station),
+        ]);
     }
 }

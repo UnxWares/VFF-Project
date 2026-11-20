@@ -4,12 +4,14 @@ namespace App\Services\Api;
 
 use App\Enums\MediaType;
 use App\Models\Line;
+use App\Models\LineEvent;
 use App\Models\Material;
 use App\Models\Media;
 use App\Models\Station;
 use App\Support\QueryBoolean;
 use App\Support\RangeRule;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -39,9 +41,10 @@ final class MediaQuery
     public static function rules(): array
     {
         return [
-            'line' => ['nullable', 'string', 'max:255', 'exists:lines,slug', 'prohibits:station,material'],
-            'station' => ['nullable', 'string', 'max:255', 'exists:stations,slug', 'prohibits:line,material'],
-            'material' => ['nullable', 'string', 'max:255', 'exists:materials,slug', 'prohibits:line,station'],
+            'line' => ['nullable', 'string', 'max:255', 'exists:lines,slug', 'prohibits:station,material,event'],
+            'station' => ['nullable', 'string', 'max:255', 'exists:stations,slug', 'prohibits:line,material,event'],
+            'material' => ['nullable', 'string', 'max:255', 'exists:materials,slug', 'prohibits:line,station,event'],
+            'event' => ['nullable', 'integer', 'min:1', 'max:999999999999999999', 'exists:line_events,id', 'prohibits:line,station,material'],
             'type' => ['nullable', Rule::enum(MediaType::class)],
             'provider' => ['nullable', 'string', 'max:20'],
             'license' => ['nullable', 'string', 'max:191'],
@@ -111,6 +114,9 @@ final class MediaQuery
             $query->where('media.mediable_type', Material::class)
                 ->whereIn('media.mediable_id', Material::query()->select('id')->where('slug', $filters['material']));
         }
+        if (filled($filters['event'] ?? null)) {
+            $query->where('media.mediable_type', LineEvent::class)->where('media.mediable_id', (int) $filters['event']);
+        }
         foreach (['type', 'provider', 'rights_status'] as $column) {
             if (filled($filters[$column] ?? null)) {
                 $query->where("media.{$column}", $filters[$column]);
@@ -179,6 +185,19 @@ final class MediaQuery
         return Media::query()
             ->where('mediable_type', Line::class)
             ->where('mediable_id', $lineId);
+    }
+
+    /**
+     * Médias d'une fiche quelconque (ligne, gare, série de matériel, événement), sans ordre : base de
+     * MediaGallery, à compléter comme forLine().
+     *
+     * @return Builder<Media>
+     */
+    public function forSubject(Model $subject): Builder
+    {
+        return Media::query()
+            ->where('mediable_type', $subject::class)
+            ->where('mediable_id', $subject->getKey());
     }
 
     /**

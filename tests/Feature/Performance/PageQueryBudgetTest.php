@@ -92,7 +92,8 @@ class PageQueryBudgetTest extends TestCase
     {
         $queries = $this->queriesOf('/stations/'.$this->origin->slug);
 
-        $this->assertLessThanOrEqual(7, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // 8 depuis le 20/11 : un comptage indexé des images publiées (la galerie n'est posée que s'il y en a).
+        $this->assertLessThanOrEqual(8, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
     }
 
     public function test_the_last_segment_update_is_read_through_an_index(): void

@@ -71,6 +71,8 @@ class MediaResource extends JsonResource
             'share_alike' => $this->share_alike,
             'attribution_required' => $meta['attribution_required'] ?? null,
             'featured' => $this->is_featured,
+            // Contribution validée qui a publié le média (Commons ou fichier déposé), nulle pour un import.
+            'contribution_id' => is_numeric($meta['contribution_id'] ?? null) ? (int) $meta['contribution_id'] : null,
             'location' => $lat !== null ? ['lat' => (float) $lat, 'lng' => (float) $this->getAttribute('lng')] : null,
             'subject' => $this->whenLoaded('mediable', fn (): ?array => $this->subject()),
         ];

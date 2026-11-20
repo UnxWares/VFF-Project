@@ -248,13 +248,15 @@ class MaterialResource extends JsonResource
              */
             'provenance' => app(Provenance::class)->for('materials', $this->source),
             /**
-             * Adresses de la fiche : `api` (cette ressource) et `page` (fiche du site).
+             * Adresses de la fiche : `api` (cette ressource), `page` (fiche du site) et `media` (images de la
+             * série publiées après validation, avec leurs droits : galerie paginée de la fiche).
              *
-             * @var array{api: string, page: string}
+             * @var array{api: string, page: string, media: string}
              */
             'links' => [
                 'api' => route('api.materials.show', $this->slug),
                 'page' => route('materials.show', $this->slug),
+                'media' => route('api.materials.media', $this->slug),
             ],
         ];
     }

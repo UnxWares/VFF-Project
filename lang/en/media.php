@@ -3,6 +3,8 @@
 return [
     'title' => 'Photos & archives',
     'subtitle' => 'Photographs, postcards, plans and archive documents of the line.',
+    'subtitle_station' => 'Photographs, postcards, plans and archive documents of the station.',
+    'subtitle_material' => 'Photographs, plans and documents of the series.',
     'loading' => 'Loading images…',
     'error' => 'Images could not be loaded right now.',
     'retry' => 'Try again',
@@ -64,6 +66,12 @@ return [
     'hosted_notice' => 'Images hosted by :provider and hotlinked: VFF does not copy them. Each image keeps its own licence; reuse is possible provided you credit the author, licence and link shown.',
     'open' => 'Enlarge: :title',
     'file_name' => 'File: :name',
+    // Image publiée après validation d'une contribution (crédit de la vignette, badge de la visionneuse).
+    'contributed' => 'approved contribution',
+    'contributed_badge' => 'Approved contribution',
+    // Images d'un événement dans la chronologie de la fiche ligne.
+    'event_images' => 'Images of this event',
+    'event_open' => 'Open the image: :title',
 
     'lightbox' => [
         'close' => 'Close',

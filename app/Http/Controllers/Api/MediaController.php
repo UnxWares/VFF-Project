@@ -65,6 +65,12 @@ class MediaController extends Controller
      * (`line`, `station`, `material` ou `event`) avec `slug` et `name` (ou
      * `id` pour un événement).
      *
+     * **Contributions** : `contribution_id` donne le numéro de la contribution
+     * validée qui a publié le média (fichier de Wikimedia Commons ou fichier
+     * déposé, `provider` = `upload`), `null` pour un média importé par VFF.
+     * Une image proposée n'entre dans la liste qu'après sa validation : celles
+     * qui attendent encore n'y sont jamais.
+     *
      * **Mis en avant** : `featured=true` donne les images que l'accueil peut
      * montrer (champ `featured`), `featured=false` les autres.
      *
@@ -74,9 +80,10 @@ class MediaController extends Controller
      * déclarée, `null` = inconnue, les plus fréquentes d'abord) et `authors`
      * (les 30 auteurs les plus représentés).
      */
-    #[QueryParameter('line', "Identifiant (slug) d'une ligne : ses médias seulement. Exclusif avec `station` et `material`. Une ligne inconnue donne HTTP 422.", type: 'string', example: 'rfn-447000')]
-    #[QueryParameter('station', "Identifiant (slug) d'une gare : ses médias seulement. Exclusif avec `line` et `material`. Une gare inconnue donne HTTP 422.", type: 'string', example: 'brest')]
-    #[QueryParameter('material', "Identifiant (slug) d'une série de matériel roulant : ses médias seulement (images proposées pour sa fiche et publiées). Exclusif avec `line` et `station`. Une série inconnue donne HTTP 422.", type: 'string', example: 'x-73500')]
+    #[QueryParameter('line', "Identifiant (slug) d'une ligne : ses médias seulement. Exclusif avec `station`, `material` et `event`. Une ligne inconnue donne HTTP 422.", type: 'string', example: 'rfn-447000')]
+    #[QueryParameter('station', "Identifiant (slug) d'une gare : ses médias seulement. Exclusif avec `line`, `material` et `event`. Une gare inconnue donne HTTP 422.", type: 'string', example: 'brest')]
+    #[QueryParameter('material', "Identifiant (slug) d'une série de matériel roulant : ses médias seulement (images proposées pour sa fiche et publiées). Exclusif avec `line`, `station` et `event`. Une série inconnue donne HTTP 422.", type: 'string', example: 'x-73500')]
+    #[QueryParameter('event', "Identifiant d'un événement daté d'une ligne (`id` de `/events`) : ses images seulement (proposées pour cet événement et publiées). Exclusif avec `line`, `station` et `material`. Un événement inconnu donne HTTP 422.", type: 'int', example: 120394)]
     #[QueryParameter('type', 'Type de média : `photo`, `postcard` (carte postale), `map` (carte), `plan`, `document`.', type: 'string', example: 'postcard')]
     #[QueryParameter('provider', 'Fournisseur du média, 20 caractères au plus : `commons` (Wikimedia Commons), `upload` (hébergé par VFF), `argentanwebferro`…', type: 'string', example: 'commons')]
     #[QueryParameter('license', 'Licence telle que déclarée par la source, sans tenir compte de la casse, correspondance exacte (ex. `CC BY-SA 4.0`, `Public domain`). 191 caractères au plus.', type: 'string', example: 'CC BY-SA 4.0')]
@@ -101,7 +108,7 @@ class MediaController extends Controller
             'width' => 5152, 'height' => 3864, 'depicted_year' => 2018, 'depicted_year_to' => null, 'date_precision' => 'day',
             'captured_at' => '2018-06-07', 'author' => 'Spendeau', 'attribution' => 'Spendeau, CC BY-SA 4.0, via Wikimedia Commons',
             'license' => 'CC BY-SA 4.0', 'license_url' => 'https://creativecommons.org/licenses/by-sa/4.0', 'rights_status' => 'open_license',
-            'commercial_ok' => true, 'share_alike' => true, 'attribution_required' => true, 'featured' => false,
+            'commercial_ok' => true, 'share_alike' => true, 'attribution_required' => true, 'featured' => false, 'contribution_id' => null,
             'location' => ['lat' => 48.561166, 'lng' => -3.866779],
             'subject' => ['type' => 'line', 'slug' => 'rfn-447000', 'name' => 'Ligne de Morlaix à Roscoff'],
         ]],
@@ -114,7 +121,7 @@ class MediaController extends Controller
             ],
         ],
     ]])]
-    #[ApiResponse(422, 'Filtre ou curseur invalide : type inconnu, deux filtres parmi `line`, `station` et `material` ensemble, ligne, gare ou série inconnue, `to_year` avant `from_year`, `per_page` hors de 1 à 60. Le corps donne `message` et, par paramètre, la liste des erreurs dans `errors`.', examples: [ErrorExamples::MEDIA_INVALID])]
+    #[ApiResponse(422, 'Filtre ou curseur invalide : type inconnu, deux filtres parmi `line`, `station`, `material` et `event` ensemble, ligne, gare, série ou événement inconnu, `to_year` avant `from_year`, `per_page` hors de 1 à 60. Le corps donne `message` et, par paramètre, la liste des erreurs dans `errors`.', examples: [ErrorExamples::MEDIA_INVALID])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
     public function index(ListMediaRequest $request, MediaQuery $query): JsonResponse
     {
@@ -154,7 +161,7 @@ class MediaController extends Controller
         'width' => 5152, 'height' => 3864, 'depicted_year' => 2018, 'depicted_year_to' => null, 'date_precision' => 'day',
         'captured_at' => '2018-06-07', 'author' => 'Spendeau', 'attribution' => 'Spendeau, CC BY-SA 4.0, via Wikimedia Commons',
         'license' => 'CC BY-SA 4.0', 'license_url' => 'https://creativecommons.org/licenses/by-sa/4.0', 'rights_status' => 'open_license',
-        'commercial_ok' => true, 'share_alike' => true, 'attribution_required' => true, 'featured' => false,
+        'commercial_ok' => true, 'share_alike' => true, 'attribution_required' => true, 'featured' => false, 'contribution_id' => null,
         'location' => ['lat' => 48.561166, 'lng' => -3.866779],
         'subject' => ['type' => 'line', 'slug' => 'rfn-447000', 'name' => 'Ligne de Morlaix à Roscoff'],
     ]]])]

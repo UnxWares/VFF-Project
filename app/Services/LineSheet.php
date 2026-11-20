@@ -58,7 +58,7 @@ final class LineSheet
      */
     public function build(Line $line, bool $forPage = false): array
     {
-        // Médias (envois locaux, Commons…) servis paginés par GET /api/v1/lines/{slug}/media (LineGallery).
+        // Médias (envois locaux, Commons…) servis paginés par GET /api/v1/lines/{slug}/media (SheetGallery).
         $line->load('materials');
         $materialPeriods = LineMaterialPeriod::query()
             ->with('link:id,material_id')

@@ -5,6 +5,8 @@
 return [
     'title' => 'Photos & archives',
     'subtitle' => 'Photographies, cartes postales, plans et documents d’archive de la ligne.',
+    'subtitle_station' => 'Photographies, cartes postales, plans et documents d’archive de la gare.',
+    'subtitle_material' => 'Photographies, plans et documents de la série.',
     'loading' => 'Chargement des images…',
     'error' => 'Impossible de charger les images pour le moment.',
     'retry' => 'Réessayer',
@@ -66,6 +68,12 @@ return [
     'hosted_notice' => 'Images hébergées par :provider et affichées par lien direct : VFF ne les copie pas. Chaque image conserve sa propre licence ; réutilisation possible en respectant l’auteur, la licence et le lien indiqués.',
     'open' => 'Agrandir : :title',
     'file_name' => 'Fichier : :name',
+    // Image publiée après validation d'une contribution (crédit de la vignette, badge de la visionneuse).
+    'contributed' => 'contribution validée',
+    'contributed_badge' => 'Contribution validée',
+    // Images d'un événement dans la chronologie de la fiche ligne.
+    'event_images' => 'Images de l’événement',
+    'event_open' => 'Agrandir l’image : :title',
 
     'lightbox' => [
         'close' => 'Fermer',

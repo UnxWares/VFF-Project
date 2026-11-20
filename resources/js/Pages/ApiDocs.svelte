@@ -110,6 +110,7 @@
                 { path: '/api/v1/stations', key: 'stations' },
                 { path: '/api/v1/stations/{station}', key: 'station' },
                 { path: '/api/v1/stations/{station}/events', key: 'station_events' },
+                { path: '/api/v1/stations/{station}/media', key: 'station_media' },
             ],
         },
         {
@@ -135,6 +136,7 @@
             items: [
                 { path: '/api/v1/materials', key: 'materials' },
                 { path: '/api/v1/materials/{material}', key: 'material' },
+                { path: '/api/v1/materials/{material}/media', key: 'material_media' },
                 { path: '/api/v1/accidents', key: 'accidents' },
                 { path: '/api/v1/accidents.geojson', key: 'accidents_map' },
                 { path: '/api/v1/accidents/{accident}', key: 'accident' },

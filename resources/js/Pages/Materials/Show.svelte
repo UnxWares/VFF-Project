@@ -3,6 +3,7 @@
     import Layout from '$components/Layout.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
+    import SheetGallery from '$components/Sheet/SheetGallery.svelte';
     import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SeoHead from '$components/SeoHead.svelte';
@@ -19,7 +20,8 @@
     import { periodText } from '$lib/materialPeriods.js';
     import { formatLocale } from '$lib/typo.js';
 
-    let { material, lines = [], lines_total = 0 } = $props();
+    // Images : `media_count` seul, la galerie les charge par l'API.
+    let { material, lines = [], lines_total = 0, media_count = 0 } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (key, opts) => String($i18n.t(key, opts));
@@ -478,6 +480,14 @@
                 </EmptyState>
             {/if}
         </SheetSection>
+
+        {#if media_count > 0}
+            <SheetGallery
+                endpoint="/api/v1/materials/{encodeURIComponent(material.slug)}/media"
+                intro={t('media.subtitle_material')}
+                count={media_count}
+            />
+        {/if}
 
         <ReportError
             type="material"

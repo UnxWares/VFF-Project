@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
     groupLicenses,
     licenseUrl,
+    mediaHeading,
+    mediaLicenseHref,
+    mediaLicenseLabel,
     mergeAuthors,
     normalizeLicense,
 } from '../../resources/js/lib/mediaCredits.js';
@@ -78,5 +81,40 @@ describe('mergeAuthors', () => {
         ]);
         expect(merged[0]).toEqual({ author: 'Poudou99', count: 3849 });
         expect(merged[1].author).toBe('Autre auteur');
+    });
+});
+
+describe('crédit d’une image publiée', () => {
+    const t = (key) => `t:${key}`;
+
+    it('préfère une légende courte au titre du fichier', () => {
+        expect(mediaHeading({ title: 'IMG_0042.jpg', caption: 'Gare de Brest en 1930' })).toBe(
+            'Gare de Brest en 1930',
+        );
+        expect(mediaHeading({ title: 'Gare de Brest', caption: 'x'.repeat(161) })).toBe(
+            'Gare de Brest',
+        );
+        expect(mediaHeading({ title: null, caption: null })).toBe('');
+    });
+
+    it('affiche la licence de la source, sinon le statut des droits', () => {
+        expect(mediaLicenseLabel({ license: 'CC BY 4.0', rights_status: 'open_license' }, t)).toBe(
+            'CC BY 4.0',
+        );
+        expect(mediaLicenseLabel({ license: null, rights_status: 'public_domain' }, t)).toBe(
+            't:media.rights.public_domain',
+        );
+        expect(mediaLicenseLabel({ license: null }, t)).toBe('t:media.rights.unknown');
+    });
+
+    it('lie le texte de la licence, sinon la source, sinon rien', () => {
+        expect(mediaLicenseHref({ license_url: 'https://lic', source_url: 'https://src' })).toBe(
+            'https://lic',
+        );
+        expect(mediaLicenseHref({ license_url: null, source_url: 'https://src' })).toBe(
+            'https://src',
+        );
+        // Fichier déposé dans le domaine public : ni texte de licence ni page de source.
+        expect(mediaLicenseHref({ license_url: null, source_url: null })).toBeNull();
     });
 });
