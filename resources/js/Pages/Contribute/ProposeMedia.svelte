@@ -2,7 +2,7 @@
     /**
      * « Proposer une image » : un fichier de Wikimedia Commons (vérifié sur Commons avant l'envoi)
      * ou un fichier déposé (aperçu, contrôles de type, taille et dimensions), rattaché à une ligne,
-     * une gare ou un événement daté d'une ligne. Le serveur retire les métadonnées du fichier et le
+     * une gare, un événement daté d'une ligne ou une série de matériel. Le serveur retire les métadonnées du fichier et le
      * garde privé jusqu'à sa publication (MediaContributionController).
      */
     import { Link, useForm } from '@inertiajs/svelte';
@@ -28,9 +28,9 @@
         mediaErrors,
     } from '$components/Contribute/proposals.js';
 
-    /** @type {{ preselected?: { line: { slug: string, code: string|null, name: string }|null, station: { slug: string, name: string, city: string|null }|null, eventId: number|null }, mediaTypes?: string[], licenses?: { value: string, name: string, url: string|null }[], precisions?: string[], limits?: { max_bytes: number, min_side: number, max_side: number } }} */
+    /** @type {{ preselected?: { line: { slug: string, code: string|null, name: string }|null, station: { slug: string, name: string, city: string|null }|null, material?: { slug: string, name: string, type: string|null }|null, eventId: number|null }, mediaTypes?: string[], licenses?: { value: string, name: string, url: string|null }[], precisions?: string[], limits?: { max_bytes: number, min_side: number, max_side: number } }} */
     let {
-        preselected = { line: null, station: null, eventId: null },
+        preselected = { line: null, station: null, material: null, eventId: null },
         mediaTypes = [],
         licenses = [],
         precisions = ['day', 'month', 'year'],
@@ -39,16 +39,23 @@
 
     /** Traduction passée aux fonctions de proposals.js. */
     const tr = (key, opts) => String($i18n.t(key, opts));
-    const TARGETS = ['line', 'station', 'event'];
+    const TARGETS = ['line', 'station', 'event', 'material'];
     const SOURCES = ['commons', 'upload'];
 
     // Fiche présélectionnée depuis sa page (valeurs initiales voulues).
     const initial = untrack(() => preselected);
     let targetType = $state(
-        initial.eventId ? 'event' : initial.station && !initial.line ? 'station' : 'line',
+        initial.eventId
+            ? 'event'
+            : initial.station && !initial.line
+              ? 'station'
+              : initial.material && !initial.line
+                ? 'material'
+                : 'line',
     );
     let line = $state(initial.line);
     let station = $state(initial.station);
+    let material = $state(initial.material ?? null);
     let eventId = $state(initial.eventId ? String(initial.eventId) : '');
 
     let capturedPrecision = $state('');
@@ -177,8 +184,10 @@
     function values() {
         const target = {
             target_type: targetType,
-            line_slug: targetType === 'station' ? null : (line?.slug ?? ''),
+            line_slug:
+                targetType === 'station' || targetType === 'material' ? null : (line?.slug ?? ''),
             station_slug: targetType === 'station' ? (station?.slug ?? '') : null,
+            material_slug: targetType === 'material' ? (material?.slug ?? '') : null,
             event_id: targetType === 'event' ? eventId : null,
             notes: form.notes.trim() || null,
         };
@@ -211,6 +220,7 @@
             ...values(),
             station_slug: station?.slug ?? '',
             line_slug: line?.slug ?? '',
+            material_slug: material?.slug ?? '',
             lat: form.lat,
             lng: form.lng,
         };
@@ -223,6 +233,7 @@
         target_type: 'media-target-line',
         line_slug: 'media-line',
         station_slug: 'media-station',
+        material_slug: 'media-material',
         event_id: 'media-event',
         source: 'media-source-upload',
         commons_url: 'media-commons-url',
@@ -322,6 +333,13 @@
                             id="media-station"
                             bind:selected={station}
                             error={errorFor('station_slug')}
+                        />
+                    {:else if targetType === 'material'}
+                        <EntityPicker
+                            kind="material"
+                            id="media-material"
+                            bind:selected={material}
+                            error={errorFor('material_slug')}
                         />
                     {:else}
                         <EntityPicker

@@ -5,12 +5,16 @@ namespace App\Services\Archives;
 /**
  * Date d'un document d'archives, telle que la notice de la BnF la donne : texte imprimé (`label`),
  * année (`year`), dernière année d'un intervalle (`yearTo`), jour ou mois exacts (`exact`, AAAA-MM-JJ) et
- * précision : day, month, year, circa (date approchée), range (entre year et yearTo) ou unknown.
+ * précision : day, month, year, circa (date approchée), range (entre year et yearTo), before (au plus tard
+ * year : « Avant 1885 »), after (au plus tôt year : « Après 1900 ») ou unknown.
  */
 final readonly class ArchiveDate
 {
     /** Date approchée dans le texte imprimé : « [ca 1850] », « circa 1869 », « vers 1880 », « env. 1900 », « 1910? ». */
     private const APPROX = '/\b(ca|circa|vers|env)\b\.?|\?/iu';
+
+    /** Borne imprimée en tête du texte : « Avant 1885 », « [avant 1900] », « Après 1871 », « before 1850 ». */
+    private const BOUND = '/^\[?\s*(avant|before|apr[eè]s|after)\b/iu';
 
     /** Mois en français (avec et sans accents) et en anglais, numérotés. */
     private const MONTHS = [
@@ -44,6 +48,8 @@ final readonly class ArchiveDate
      *   u : inconnue.
      * Un chiffre inconnu (« 189. ») donne la décennie (intervalle) ; deux ou plus (« 18.. ») : date inconnue.
      * « ca », « circa », « vers », « env. » ou « ? » dans le texte imprimé : date approchée (circa).
+     * « Avant 1885 » (code f, une seule année) : borne haute (before) ; « Après 1871 » : borne basse (after).
+     * Ce ne sont pas des dates approchées : le document date au plus tard (ou au plus tôt) de cette année.
      * Une seule année codée : le jour ou le mois imprimés de la même année sont gardés (« 21 juin 1926 »,
      * « 10/05/1874 », « [Mai 1923] », « August 6, 1870 ») ; si le texte imprimé n'est qu'une autre année
      * (« 1854 » pour 1864 codé), cette année l'emporte, en date approchée : la notice se contredit.
@@ -88,6 +94,9 @@ final readonly class ArchiveDate
         }
 
         $year = $from['from'];
+        if (($bound = self::bound($label, $year)) !== null) {
+            return new self($label, $year, null, null, $bound);
+        }
         if ($kind === 'd' && $label !== null && preg_match('/^\[?(\d{4})\]?$/', $label, $m) === 1 && self::year($m[1]) !== null && (int) $m[1] !== $year) {
             return new self($label, (int) $m[1], null, null, 'circa');
         }
@@ -132,11 +141,24 @@ final readonly class ArchiveDate
         return checkdate($month, $day, $year) ? [sprintf('%04d-%02d-%02d', $year, $month, $day), 'day'] : null;
     }
 
+    /** `before` ou `after` quand le texte imprimé commence par une borne de l'année `$year`, sinon null. */
+    private static function bound(?string $label, int $year): ?string
+    {
+        if ($label === null || preg_match(self::BOUND, $label, $m) !== 1 || ! str_contains($label, (string) $year)) {
+            return null;
+        }
+
+        return in_array(mb_strtolower($m[1]), ['avant', 'before'], true) ? 'before' : 'after';
+    }
+
     /** Sans zone 100 exploitable : une année à quatre chiffres lue dans le texte (et son jour), sinon inconnue. */
     private static function fromLabel(?string $label): self
     {
         if ($label !== null && preg_match('/\b(1[6-9]\d\d|20[0-4]\d)\b/', $label, $m) === 1) {
             $year = (int) $m[1];
+            if (($bound = self::bound($label, $year)) !== null) {
+                return new self($label, $year, null, null, $bound);
+            }
             if (preg_match(self::APPROX, $label) === 1) {
                 return new self($label, $year, null, null, 'circa');
             }

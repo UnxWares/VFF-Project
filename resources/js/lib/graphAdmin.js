@@ -122,9 +122,36 @@ export function tileUrl(origin, year, layer) {
     return `${origin}/validate/graph/${year}/tiles/${layer}/{z}/{x}/{y}.mvt`;
 }
 
-/** Adresse JSON d'une page d'une liste de diagnostics. */
-export function checkUrl(year, check, page = 1) {
-    return `/validate/graph/${year}/diagnostics/${check}?page=${page}`;
+/** Types de jonctions, dans l'ordre du filtre. */
+export const JUNCTION_TYPES = ['spread', 'connector', 'jump'];
+
+/**
+ * Paramètres du filtre d'une liste : seules les jonctions se filtrent (type, ligne).
+ *
+ * @param {string} check
+ * @param {{ type?: string, line?: string } | null | undefined} filters
+ * @returns {[string, string][]}
+ */
+function filterParams(check, filters) {
+    if (check !== 'junctions' || !filters) return [];
+    /** @type {[string, string][]} */
+    const params = [];
+    if (filters.type && JUNCTION_TYPES.includes(filters.type)) params.push(['type', filters.type]);
+    const line = (filters.line ?? '').trim();
+    if (line) params.push(['line', line]);
+    return params;
+}
+
+/** Adresse JSON d'une page d'une liste de diagnostics, avec le filtre des jonctions. */
+export function checkUrl(year, check, page = 1, filters = null) {
+    const params = new URLSearchParams([['page', String(page)], ...filterParams(check, filters)]);
+    return `/validate/graph/${year}/diagnostics/${check}?${params}`;
+}
+
+/** Adresse de l'export CSV de toute une liste, avec le même filtre. */
+export function exportUrl(year, check, filters = null) {
+    const params = new URLSearchParams(filterParams(check, filters)).toString();
+    return `/validate/graph/${year}/diagnostics/${check}.csv${params ? `?${params}` : ''}`;
 }
 
 /** Adresse JSON des attributs d'un élément. */

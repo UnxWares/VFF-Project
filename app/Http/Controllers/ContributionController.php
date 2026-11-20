@@ -165,7 +165,8 @@ class ContributionController extends Controller
                         'code' => $c->target->code,
                         'network' => $c->target->network,
                     ] : null,
-                    // Série corrigée : sa fiche actuelle (la proposition garde aussi les valeurs « avant »).
+                    // Série corrigée, ou série d'une image : sa fiche actuelle (une correction garde aussi les
+                    // valeurs « avant »).
                     'material' => $c->target instanceof Material ? [
                         'slug' => $c->target->slug,
                         'name' => $c->target->name,

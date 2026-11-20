@@ -28,7 +28,7 @@ use Throwable;
  *   - `line_trace` (TraceContributionService::TYPE) : tracé dessiné, ligne disparue ou correction ;
  *   - `line_event` (EventContributions::TYPE) : événement daté d'une ligne existante ;
  *   - `media` (MediaContributions::TYPE) : image de Commons ou fichier déposé, rattaché à une ligne,
- *     une gare ou un événement ;
+ *     une gare, un événement ou une série de matériel ;
  *   - `line_material` (LineMaterialContributions::TYPE) : une série de matériel a circulé sur une ligne ;
  *   - `material_series` (MaterialSeriesContributions::TYPE) : nouvelle série ou correction d'une série.
  *

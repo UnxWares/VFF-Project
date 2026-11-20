@@ -38,10 +38,10 @@ final class ErrorExamples
     ];
 
     public const MEDIA_INVALID = [
-        'message' => 'The line field prohibits station from being present. (and 1 more error)',
+        'message' => 'The line field prohibits station / material from being present. (and 1 more error)',
         'errors' => [
-            'line' => ['The line field prohibits station from being present.'],
-            'station' => ['The station field prohibits line from being present.'],
+            'line' => ['The line field prohibits station / material from being present.'],
+            'station' => ['The station field prohibits line / material from being present.'],
         ],
     ];
 

@@ -8,6 +8,8 @@ return [
         'intro' => 'Documents numérisés dans Gallica, la bibliothèque numérique de la BnF, dont le titre désigne cette ligne. Chaque lien ouvre le document sur le site de la BnF.',
         'undated' => 'Sans date',
         'circa' => 'vers :year',
+        'before' => 'avant :year',
+        'after' => 'après :year',
         'types' => [
             'monograph' => 'Texte imprimé',
             'map' => 'Carte ou plan',

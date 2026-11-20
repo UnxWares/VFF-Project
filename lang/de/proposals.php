@@ -120,12 +120,13 @@ return [
     'media' => [
         'meta_title' => 'Bild vorschlagen',
         'title' => 'Bild vorschlagen',
-        'subtitle' => 'Ein Foto, eine Postkarte, ein Plan oder ein Dokument, gemeinfrei oder unter offener Lizenz, für die Seite einer Strecke, eines Bahnhofs oder eines Ereignisses. Zwei Prüfer sichten jeden Vorschlag vor der Veröffentlichung.',
+        'subtitle' => 'Ein Foto, eine Postkarte, ein Plan oder ein Dokument, gemeinfrei oder unter offener Lizenz, für die Seite einer Strecke, eines Bahnhofs, eines Ereignisses oder einer Fahrzeugbaureihe. Zwei Prüfer sichten jeden Vorschlag vor der Veröffentlichung.',
         'target_legend' => 'Betroffene Seite',
         'targets' => [
             'line' => 'Eine Strecke',
             'station' => 'Ein Bahnhof',
             'event' => 'Ein datiertes Ereignis einer Strecke',
+            'material' => 'Eine Fahrzeugbaureihe',
         ],
         'event' => 'Ereignis',
         'event_choose' => 'Ereignis wählen',
@@ -278,7 +279,8 @@ return [
         'stale_title' => 'Die Seite hat sich seit dem Senden geändert',
         'stale_text' => 'Aktueller Wert von „:field“: :now. Die Veröffentlichung wird fehlschlagen, weil sich der Vorschlag auf einen anderen Wert bezieht.',
         'impact_title' => 'Verbindungen, die den Regeln widersprächen',
-        'impact_text' => 'Veröffentlicht würde diese Korrektur :count Verbindung(en) der Baureihe in Widerspruch zur Regel zu Spurweite oder Elektrifizierung bringen. Die Veröffentlichung wird abgelehnt, solange diese Verbindungen bestehen.',
+        'impact_text_one' => 'Veröffentlicht würde diese Korrektur :count Verbindung der Baureihe in Widerspruch zur Regel zu Spurweite oder Elektrifizierung bringen. Die Veröffentlichung wird abgelehnt, solange diese Verbindung besteht.',
+        'impact_text_other' => 'Veröffentlicht würde diese Korrektur :count Verbindungen der Baureihe in Widerspruch zur Regel zu Spurweite oder Elektrifizierung bringen. Die Veröffentlichung wird abgelehnt, solange diese Verbindungen bestehen.',
         'fields' => [
             'name' => 'Name',
             'type' => 'Kategorie',
@@ -432,7 +434,8 @@ return [
         'wikidata_use' => ':final verwenden',
         'impact_checking' => 'Die Strecken der Baureihe werden geprüft…',
         'impact_title' => 'Diese Korrektur widerspräche Verbindungen der Baureihe',
-        'impact_text' => 'Mit diesen Werten würden :count Verbindung(en) der Baureihe mit einer Strecke der Regel zu Spurweite oder Elektrifizierung widersprechen. Sie können den Vorschlag senden, er wird aber erst veröffentlicht, wenn diese Verbindungen entfernt oder begründet sind.',
+        'impact_text_one' => 'Mit diesen Werten würde :count Verbindung der Baureihe mit einer Strecke der Regel zu Spurweite oder Elektrifizierung widersprechen. Sie können den Vorschlag senden, er wird aber erst veröffentlicht, wenn diese Verbindung entfernt oder begründet ist.',
+        'impact_text_other' => 'Mit diesen Werten würden :count Verbindungen der Baureihe mit einer Strecke der Regel zu Spurweite oder Elektrifizierung widersprechen. Sie können den Vorschlag senden, er wird aber erst veröffentlicht, wenn diese Verbindungen entfernt oder begründet sind.',
         'impact_link' => ':line (Quelle: :source): :reason',
         'gauges' => [
             1435 => '1435 mm (Normalspur)',

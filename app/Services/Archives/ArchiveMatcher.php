@@ -19,7 +19,9 @@ namespace App\Services\Archives;
  *   rail_route 4     : le titre décrit une voie ferrée entre deux lieux de la ligne qui se suivent (« chemin de
  *                      fer de X à Y », « ligne de X à Y », « la ligne X à Y », « chemins de fer à voie étroite de
  *                      X à Y », « chemin de fer de X à Z et à Y », « de X à Z, W et Y ») ;
- *   route 3          : à défaut, un trajet entre ces deux lieux (« de X à Y », « entre X et Y ») ;
+ *   route 3          : à défaut, un trajet entre ces deux lieux (« de X à Y », « entre X et Y », deux lieux qui
+ *                      se suivent dans « entre X, Y, Z et W », une étape et un bout de « entre X et Y en passant
+ *                      par Z » ou de « de X à Y par Z ») ;
  *   two_places 1     : à défaut, il nomme seulement deux lieux de la ligne ;
  *   only_line_places 1 : sans trajet, tous les lieux reconnus dans le titre sont sur la ligne (« Lignes de chemin
  *                      de fer de Paris à Rouen, au Mans, à Tours » nomme Paris et Rouen : ce n'est pas la ligne
@@ -275,8 +277,10 @@ final class ArchiveMatcher
     /**
      * Trajet entre deux lieux reconnus (a avant b), les deux lieux se suivant : « de X à Y », « du X au Y »,
      * « d'X à la Y », « entre X et Y », « la ligne X à Y », « Paris - Bordeaux », ou une énumération de destinations depuis X
-     * (« de X à Z, au W et à Y » relie X à chacun). « de Paris au Havre, de Bordeaux à La Teste » ne relie donc
-     * pas Paris à Bordeaux. Renvoie `secondary` quand une marque de simple mention précède le trajet, `rail`
+     * (« de X à Z, au W et à Y » relie X à chacun), deux lieux qui se suivent dans une liste ouverte par « entre »
+     * (« entre Paris, Rouen, Le Havre et Dieppe » relie Paris à Rouen, Rouen au Havre, Le Havre à Dieppe), ou une
+     * étape et l'un des bouts (« entre X et Y en passant par Z », « de X à Y par Z » relient Z à X et à Y).
+     * « de Paris au Havre, de Bordeaux à La Teste » ne relie donc pas Paris à Bordeaux. Renvoie `secondary` quand une marque de simple mention précède le trajet, `rail`
      * quand un mot du rail le précède de cinq mots au plus (« chemin de fer de X à Y », « ligne X à Y »),
      * `route` sinon.
      *
@@ -292,24 +296,26 @@ final class ArchiveMatcher
         if (self::spacedDash($tokens[$a['end']]['sep'] ?? '') && array_diff(array_column($gap, 'lower'), self::ARTICLES) === []) {
             return 'route';
         }
-        $from = $a['start'] - 1;
-        if ($from >= 0 && in_array($tokens[$from]['lower'], self::ARTICLES, true)) {
-            $from--;
-        }
-        if ($from < 0) {
+        $start = $this->routeStart($tokens, $found, $a, $b);
+        if ($start === null) {
             return null;
         }
-        $opener = $tokens[$from]['lower'];
-        $lineWord = in_array($opener, self::LINE_WORDS, true);
-        if (! $lineWord && ! in_array($opener, self::ROUTE_FROM, true)) {
-            return null;
-        }
-        if (! $this->leadsTo($tokens, $found, $a['end'], $b['start'], $opener === 'entre')) {
-            return null;
-        }
+        [$from, $via] = $start;
+        $lineWord = in_array($tokens[$from]['lower'], self::LINE_WORDS, true);
         $context = array_column(array_slice($tokens, max(0, $from - self::SECONDARY_WINDOW), min(self::SECONDARY_WINDOW, $from)), 'lower');
-        if (array_intersect($context, self::SECONDARY_MARKERS) !== []) {
+        // « avec » ne compte que juste avant le trajet (« raccordement avec la ligne de X à Y ») : plus loin, il
+        // ouvre souvent autre chose (« carte [...] avec les indications des tracés entre X, Y et Z »).
+        $markers = array_merge(
+            array_diff(array_slice($context, 0, -3), ['avec']),
+            array_slice($context, -3),
+        );
+        if (array_intersect($markers, self::SECONDARY_MARKERS) !== []) {
             return 'secondary';
+        }
+        // Le bout d'un trajet et son étape ne sont qu'une partie du trajet décrit : un simple trajet, qui ne passe
+        // le seuil que si ce sont les extrémités de la ligne.
+        if ($via) {
+            return 'route';
         }
         $before = array_slice($context, -5);
 
@@ -375,6 +381,166 @@ final class ArchiveMatcher
         }
 
         return true;
+    }
+
+    /**
+     * Mot qui ouvre le trajet de $a à $b, et s'il passe par une étape : [position, étape], ou null.
+     *
+     * @param  list<array{lower: string, upper: bool, sep: string}>  $tokens
+     * @param  list<array{key: string, start: int, end: int}>  $found
+     * @param  array{key: string, start: int, end: int}  $a
+     * @param  array{key: string, start: int, end: int}  $b
+     * @return array{0: int, 1: bool}|null
+     */
+    private function routeStart(array $tokens, array $found, array $a, array $b): ?array
+    {
+        // Un seul article permis entre le mot qui ouvre le trajet et le lieu (« de la Teste »).
+        $from = $a['start'] - 1;
+        if ($from >= 0 && in_array($tokens[$from]['lower'], self::ARTICLES, true)) {
+            $from--;
+        }
+        $opener = $from >= 0 ? $tokens[$from]['lower'] : null;
+        if ($opener !== null && (in_array($opener, self::LINE_WORDS, true) || in_array($opener, self::ROUTE_FROM, true))
+            && $this->leadsTo($tokens, $found, $a['end'], $b['start'], $opener === 'entre')) {
+            return [$from, false];
+        }
+        // « entre Paris, Rouen, Le Havre et Dieppe » : deux lieux qui se suivent dans une liste ouverte par « entre ».
+        $list = $this->betweenListOpener($tokens, $found, $a['start']);
+        if ($list !== null && $this->nextInList($tokens, $a['end'], $b['start'])) {
+            return [$list, false];
+        }
+        // « entre X et Y en passant par Z », « de X à Y par Z » : Z est une étape, reliée à X comme à Y.
+        $via = $this->viaOpener($tokens, $found, $a, $b);
+
+        return $via !== null ? [$via, true] : null;
+    }
+
+    /**
+     * Mot « entre » qui ouvre la liste dont fait partie le lieu commençant au mot $start (« entre Paris, Rouen,
+     * Le Havre et Dieppe » pour Rouen), ou null. Les lieux de la liste sont séparés par des virgules ; chacun est
+     * un lieu connu ou un nom à majuscule de trois mots au plus.
+     *
+     * @param  list<array{lower: string, upper: bool, sep: string}>  $tokens
+     * @param  list<array{key: string, start: int, end: int}>  $found
+     */
+    private function betweenListOpener(array $tokens, array $found, int $start): ?int
+    {
+        $i = $start;
+        for ($items = 0; $items <= self::MAX_LISTED; $items++) {
+            $p = $this->skipArticlesBack($tokens, $i - 1);
+            if ($p < 0) {
+                return null;
+            }
+            if ($tokens[$p]['lower'] === 'entre') {
+                return $p;
+            }
+            // Le lieu précédent de la liste est séparé de celui-ci par une virgule.
+            if (! str_contains($tokens[$p + 1]['sep'], ',')) {
+                return null;
+            }
+            $previous = $this->placeStart($tokens, $found, $p + 1);
+            if ($previous === null) {
+                return null;
+            }
+            $i = $previous;
+        }
+
+        return null;
+    }
+
+    /**
+     * Le lieu qui commence au mot $end suit-il directement celui qui finit au mot $start dans une liste (virgule,
+     * ou « et », articles permis) ?
+     *
+     * @param  list<array{lower: string, upper: bool, sep: string}>  $tokens
+     */
+    private function nextInList(array $tokens, int $start, int $end): bool
+    {
+        $gap = array_column(array_slice($tokens, $start, $end - $start), 'lower');
+        $words = array_values(array_diff($gap, self::ARTICLES));
+        if ($words === []) {
+            return str_contains($tokens[$start]['sep'] ?? '', ',');
+        }
+
+        return $words === ['et'];
+    }
+
+    /**
+     * Trajet avec une étape (« entre X et Y en passant par Z », « de X à Y par Z », « de X à Y via Z ») : quand
+     * $b est l'étape Z et $a l'un des deux bouts X ou Y, rend la position du mot qui ouvre le trajet, sinon null.
+     *
+     * @param  list<array{lower: string, upper: bool, sep: string}>  $tokens
+     * @param  list<array{key: string, start: int, end: int}>  $found
+     * @param  array{key: string, start: int, end: int}  $a
+     * @param  array{key: string, start: int, end: int}  $b
+     */
+    private function viaOpener(array $tokens, array $found, array $a, array $b): ?int
+    {
+        $m = $this->skipArticlesBack($tokens, $b['start'] - 1);
+        if ($m < 0 || ! in_array($tokens[$m]['lower'], ['par', 'via'], true)) {
+            return null;
+        }
+        if ($tokens[$m]['lower'] === 'par' && ($tokens[$m - 1]['lower'] ?? null) === 'passant') {
+            $m -= ($tokens[$m - 2]['lower'] ?? null) === 'en' ? 2 : 1;
+        }
+        // Y, puis le mot de liaison, puis X, puis le mot qui ouvre le trajet.
+        $toStart = $this->placeStart($tokens, $found, $m);
+        $link = $toStart === null ? -1 : $this->skipArticlesBack($tokens, $toStart - 1);
+        if ($link < 0 || ! in_array($tokens[$link]['lower'], ['et', ...self::ROUTE_TO], true)) {
+            return null;
+        }
+        $fromStart = $this->placeStart($tokens, $found, $link);
+        $opener = $fromStart === null ? -1 : $this->skipArticlesBack($tokens, $fromStart - 1);
+        if ($opener < 0) {
+            return null;
+        }
+        $word = $tokens[$opener]['lower'];
+        $opens = $tokens[$link]['lower'] === 'et'
+            ? $word === 'entre'
+            : $word !== 'entre' && (in_array($word, self::ROUTE_FROM, true) || in_array($word, self::LINE_WORDS, true));
+        if (! $opens || ($a['end'] !== $link && $a['end'] !== $m && ! ($a['start'] >= $toStart && $a['end'] <= $m))) {
+            return null;
+        }
+
+        return $opener;
+    }
+
+    /**
+     * Premier mot du lieu qui finit juste avant le mot $end (articles de tête compris) : lieu connu, ou nom à
+     * majuscule de trois mots au plus (« Le Bourget »). null si aucun lieu n'y finit.
+     *
+     * @param  list<array{lower: string, upper: bool, sep: string}>  $tokens
+     * @param  list<array{key: string, start: int, end: int}>  $found
+     */
+    private function placeStart(array $tokens, array $found, int $end): ?int
+    {
+        $starts = array_column(array_filter($found, fn (array $f): bool => $f['end'] === $end), 'start');
+        if ($starts !== []) {
+            $start = min($starts);
+        } else {
+            $start = $end - 1;
+            if ($start < 0 || ! $tokens[$start]['upper']) {
+                return null;
+            }
+            while ($start > 0 && $end - $start < 3 && $tokens[$start - 1]['upper'] && ! str_contains($tokens[$start]['sep'], ',')) {
+                $start--;
+            }
+        }
+        while ($start > 0 && in_array($tokens[$start - 1]['lower'], self::ARTICLES, true) && ! str_contains($tokens[$start]['sep'], ',')) {
+            $start--;
+        }
+
+        return $start;
+    }
+
+    /** Position du premier mot qui n'est pas un article, en remontant depuis $i (−1 s'il n'y en a pas). */
+    private function skipArticlesBack(array $tokens, int $i): int
+    {
+        while ($i >= 0 && in_array($tokens[$i]['lower'], self::ARTICLES, true)) {
+            $i--;
+        }
+
+        return $i;
     }
 
     /** Tiret entouré d'espaces (« Paris - Bordeaux ») : pas un trait d'union collé (« Paris-Lyon-Méditerranée »). */

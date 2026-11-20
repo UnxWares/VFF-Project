@@ -4,6 +4,7 @@ namespace Tests\Feature\GraphQL;
 
 use App\Models\Contribution;
 use App\Models\LineEvent;
+use App\Models\Material;
 use App\Models\Media;
 use App\Models\User;
 use App\Services\Api\ApiTokens;
@@ -38,6 +39,7 @@ class EventMediaContributionMutationsTest extends TestCase
             id type action status approvals approvals_required payload
             line { slug }
             station { slug name }
+            material { slug name }
         }
     }';
 
@@ -158,6 +160,46 @@ class EventMediaContributionMutationsTest extends TestCase
             ->assertJsonPath('data.submitContribution.station.slug', $this->origin->slug)
             ->assertJsonPath('data.submitContribution.payload.commons.page_id', 777)
             ->assertJsonPath('data.submitContribution.payload.commons.rights_status', 'public_domain');
+    }
+
+    public function test_a_commons_image_is_proposed_for_a_rolling_stock_series(): void
+    {
+        Http::fake(['commons.wikimedia.org/*' => Http::response(['query' => ['pages' => [[
+            'pageid' => 778,
+            'title' => 'File:X 73500.jpg',
+            'imageinfo' => [[
+                'url' => 'https://upload.wikimedia.org/wikipedia/commons/a/ab/X73500.jpg',
+                'thumburl' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/X73500.jpg/500px-X73500.jpg',
+                'descriptionurl' => 'https://commons.wikimedia.org/wiki/File:X_73500.jpg',
+                'width' => 2000, 'height' => 1500, 'mime' => 'image/jpeg',
+                'extmetadata' => ['LicenseShortName' => ['value' => 'CC0'], 'License' => ['value' => 'cc0'], 'Artist' => ['value' => 'Anonyme']],
+            ]],
+        ]]]])]);
+        $material = Material::factory()->create(['slug' => 'x-73500', 'name' => 'X 73500']);
+
+        $id = $this->submit($this->token($this->member()), ['media' => [
+            'source' => 'commons',
+            'target_type' => 'material',
+            'material_slug' => 'x-73500',
+            'commons_url' => 'https://commons.wikimedia.org/wiki/File:X_73500.jpg',
+        ]])
+            ->assertJsonPath('data.submitContribution.type', 'MEDIA')
+            ->assertJsonPath('data.submitContribution.line', null)
+            ->assertJsonPath('data.submitContribution.material.slug', 'x-73500')
+            ->assertJsonPath('data.submitContribution.payload.material_name', 'X 73500')
+            ->json('data.submitContribution.id');
+
+        $this->approveTwice($id)->assertJsonPath('data.validateContribution.contribution.status', 'APPLIED');
+        $this->assertSame(1, Media::query()->where('mediable_type', Material::class)->where('mediable_id', $material->id)->count());
+        $this->graphQL('{ media(first: 5, filter: { material: "x-73500" }) { edges { node { source_url } } } }')
+            ->assertGraphQLErrorFree()
+            ->assertJsonPath('data.media.edges.0.node.source_url', 'https://commons.wikimedia.org/wiki/File:X_73500.jpg')
+            ->assertJsonCount(1, 'data.media.edges');
+
+        $this->submit($this->token($this->member()), ['media' => [
+            'source' => 'commons', 'target_type' => 'material', 'material_slug' => 'inconnue',
+            'commons_url' => 'https://commons.wikimedia.org/wiki/File:X_73500.jpg',
+        ]])->assertGraphQLValidationKeys(['input.media.material_slug']);
     }
 
     public function test_an_uploaded_image_goes_through_a_multipart_request_without_its_metadata(): void

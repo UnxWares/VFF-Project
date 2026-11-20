@@ -492,6 +492,10 @@
                     href: `/contribute/series?material=${material.slug}`,
                     label: t('proposals.sheet.series'),
                 },
+                {
+                    href: `/contribute/media?material=${material.slug}`,
+                    label: t('proposals.sheet.media'),
+                },
             ]}
         />
     </main>

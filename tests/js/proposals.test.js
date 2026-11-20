@@ -30,6 +30,7 @@ const DICT = {
     'editor.event_types.conversion': 'Reconversion de l’emprise',
     'proposals.errors.line_required': 'Ligne ?',
     'proposals.errors.station_required': 'Gare ?',
+    'proposals.errors.material_required': 'Série ?',
     'proposals.event.errors.places': 'Deux extrémités',
     'proposals.event.errors.places_same': 'Extrémités identiques',
     'proposals.event.errors.pk': 'Deux PK',
@@ -248,6 +249,19 @@ describe('formulaire « Proposer une image »', () => {
         expect(mediaErrors({ ...upload, target_type: 'event' }, LIMITS, t)).toEqual({
             event_id: 'Événement ?',
         });
+        // Une série de matériel : la série est demandée, pas la ligne.
+        expect(
+            mediaErrors({ ...upload, target_type: 'material', line_slug: '' }, LIMITS, t),
+        ).toEqual({ material_slug: 'Série ?' });
+        expect(
+            mediaErrors(
+                { ...upload, target_type: 'material', line_slug: '', material_slug: 'x-73500' },
+                LIMITS,
+                t,
+                { width: 1600, height: 1200 },
+                NOW,
+            ),
+        ).toEqual({});
         expect(mediaErrors(upload, LIMITS, t, { width: 200, height: 1200 })).toEqual({
             file: 'De 400 à 12000 pixels',
         });
@@ -386,6 +400,13 @@ describe('affichage des propositions', () => {
         expect(mediaTargetText(upload, t, 'fr')).toBe(
             'Ligne de Paris à Versailles 999000, Ouverture du 2 août 1839',
         );
+        expect(
+            mediaTargetText(
+                { target_type: 'material', material_slug: 'x-73500', material_name: 'X 73500' },
+                t,
+                'fr',
+            ),
+        ).toBe('X 73500');
         const facts = Object.fromEntries(mediaFacts(upload, t, 'fr').map((f) => [f.id, f]));
         expect(facts.origin.text).toBe('Image déposée');
         expect(facts.license.href).toBe('https://creativecommons.org/licenses/by-sa/4.0/');

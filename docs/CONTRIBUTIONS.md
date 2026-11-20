@@ -55,7 +55,10 @@ proposée (`EventContributions::similarEvents`).
 
 ## Image (`media`)
 
-Rattachement : une ligne, une gare, ou un événement daté d'une ligne (`LineEvent`). Deux origines :
+Rattachement : une ligne, une gare, un événement daté d'une ligne (`LineEvent`) ou une série de matériel
+roulant (`Material`, lien « Proposer une image » de la fiche série, `/contribute/media?material=<slug>`).
+L'image publiée entre dans `media` rattachée à la série ; l'API la donne avec `GET /api/v1/media?material=<slug>`
+(GraphQL : `media(filter: { material })`). Deux origines :
 
 - **Wikimedia Commons** (`source` = `commons`) : adresse du fichier. `CommonsFileResolver` lit le
   titre, l'auteur, la licence et la miniature par l'API publique de Commons (une requête, User-Agent

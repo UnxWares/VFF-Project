@@ -8,6 +8,7 @@ use App\Enums\MediaType;
 use App\Models\Contribution;
 use App\Models\Line;
 use App\Models\LineEvent;
+use App\Models\Material;
 use App\Models\Media;
 use App\Models\Station;
 use App\Services\Media\CommonsFileResolver;
@@ -30,8 +31,8 @@ use RuntimeException;
 use Throwable;
 
 /**
- * Contributions « média » (type `media`) : une image rattachée à une ligne, à une gare ou à un
- * événement daté d'une ligne. Deux origines :
+ * Contributions « média » (type `media`) : une image rattachée à une ligne, à une gare, à un
+ * événement daté d'une ligne ou à une série de matériel roulant. Deux origines :
  *
  *   - `commons` : un fichier de Wikimedia Commons désigné par son adresse. Ses métadonnées (auteur,
  *     licence, miniature) sont lues sur Commons (CommonsFileResolver) ; une licence non libre ou
@@ -54,8 +55,8 @@ final readonly class MediaContributions
 
     public const SOURCES = ['commons', 'upload'];
 
-    /** Rattachement : une ligne, une gare, ou un événement daté d'une ligne. */
-    public const TARGETS = ['line', 'station', 'event'];
+    /** Rattachement : une ligne, une gare, un événement daté d'une ligne, ou une série de matériel. */
+    public const TARGETS = ['line', 'station', 'event', 'material'];
 
     /** Taille maximale d'un fichier déposé, en kilo-octets (10 Mo). */
     public const MAX_KILOBYTES = 10240;
@@ -100,8 +101,9 @@ final readonly class MediaContributions
         return [
             'source' => ['required', 'string', Rule::in(self::SOURCES)],
             'target_type' => ['required', 'string', Rule::in(self::TARGETS)],
-            'line_slug' => ['exclude_if:target_type,station', 'required', 'string', 'max:191', 'exists:lines,slug'],
+            'line_slug' => ['exclude_if:target_type,station,material', 'required', 'string', 'max:191', 'exists:lines,slug'],
             'station_slug' => ['exclude_unless:target_type,station', 'required', 'string', 'max:191', 'exists:stations,slug'],
+            'material_slug' => ['exclude_unless:target_type,material', 'required', 'string', 'max:191', 'exists:materials,slug'],
             'event_id' => ['exclude_unless:target_type,event', 'required', 'integer', 'min:1'],
             'commons_url' => ['exclude_unless:source,commons', 'required', 'string', 'max:500'],
             'file' => ['exclude_unless:source,upload', 'required', 'file', 'mimetypes:'.implode(',', ImageSanitizer::MIMES),
@@ -132,6 +134,8 @@ final readonly class MediaContributions
             'line_slug.exists' => __('proposals.errors.line_required'),
             'station_slug.required' => __('proposals.errors.station_required'),
             'station_slug.exists' => __('proposals.errors.station_required'),
+            'material_slug.required' => __('proposals.errors.material_required'),
+            'material_slug.exists' => __('proposals.errors.material_required'),
             'event_id.required' => __('proposals.media.errors.event'),
             'event_id.integer' => __('proposals.media.errors.event'),
             'commons_url.required' => __('proposals.media.errors.commons_url'),
@@ -161,10 +165,10 @@ final readonly class MediaContributions
      * (pas encore enregistrée : voir storePrivate()).
      *
      * @param  array<string, mixed>  $data
-     * @return array{payload: array<string, mixed>, target: Line|Station, image: ?SanitizedImage}
+     * @return array{payload: array<string, mixed>, target: Line|Station|Material, image: ?SanitizedImage}
      *
      * @throws ValidationException adresse Commons illisible, fichier refusé, doublon, événement d'une autre ligne
-     * @throws ModelNotFoundException ligne ou gare inconnue
+     * @throws ModelNotFoundException ligne, gare ou série inconnue
      */
     public function prepare(array $data): array
     {
@@ -398,10 +402,19 @@ final readonly class MediaContributions
 
     /**
      * @param  array<string, mixed>  $data
-     * @return array{model: Line|Station, payload: array<string, mixed>, mediable: array{0: class-string, 1: int}}
+     * @return array{model: Line|Station|Material, payload: array<string, mixed>, mediable: array{0: class-string, 1: int}}
      */
     private function target(array $data): array
     {
+        if ($data['target_type'] === 'material') {
+            $material = Material::query()->where('slug', $data['material_slug'])->firstOrFail();
+
+            return [
+                'model' => $material,
+                'payload' => ['target_type' => 'material', 'material_slug' => $material->slug, 'material_name' => $material->name],
+                'mediable' => [Material::class, $material->id],
+            ];
+        }
         if ($data['target_type'] === 'station') {
             $station = Station::query()->where('slug', $data['station_slug'])->firstOrFail();
 
@@ -438,7 +451,7 @@ final readonly class MediaContributions
      *
      * @return array{0: class-string, 1: int}
      *
-     * @throws ContributionNotPublishable la ligne, la gare ou l'événement a disparu
+     * @throws ContributionNotPublishable la ligne, la gare, l'événement ou la série a disparu
      */
     private function publishedTarget(Contribution $contribution): array
     {
@@ -447,6 +460,7 @@ final readonly class MediaContributions
         [$type, $id, $exists] = match (true) {
             $eventId !== null => [LineEvent::class, $eventId, LineEvent::query()->whereKey($eventId)->exists()],
             $contribution->target_type === Station::class => [Station::class, (int) $contribution->target_id, Station::query()->whereKey($contribution->target_id)->exists()],
+            $contribution->target_type === Material::class => [Material::class, (int) $contribution->target_id, Material::query()->whereKey($contribution->target_id)->exists()],
             default => [Line::class, (int) $contribution->target_id, Line::query()->whereKey($contribution->target_id)->exists()],
         };
         if (! $exists) {
@@ -502,6 +516,7 @@ final readonly class MediaContributions
     {
         $existing = match ($payload['target_type'] ?? null) {
             'station' => [Station::class, Station::query()->where('slug', $payload['station_slug'] ?? '')->value('id')],
+            'material' => [Material::class, Material::query()->where('slug', $payload['material_slug'] ?? '')->value('id')],
             'event' => [LineEvent::class, $payload['event']['id'] ?? null],
             default => [Line::class, Line::query()->where('slug', $payload['line_slug'] ?? '')->value('id')],
         };

@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mcp\Support\Lookup;
 use App\Models\User;
+use App\Services\NetworkGraph\DiagnosticsFilter;
 use App\Services\NetworkGraph\GraphDiagnostics;
+use App\Services\NetworkGraph\GraphDiagnosticsCsv;
 use App\Services\NetworkGraph\GraphFeatureDetails;
 use App\Services\NetworkGraph\GraphTiles;
 use App\Support\MapTiles;
@@ -13,14 +16,17 @@ use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Graphe ferroviaire d'une ère dans l'espace d'administration (/validate/graph), réservé aux
  * administrateurs (UserPolicy::viewNetworkGraph) : carte des trois couches (tuiles MVT), attributs
  * d'un élément au clic, diagnostics (îles, nœuds isolés, arêtes anormales, jonctions écartées,
- * gares sans arête, lignes en plusieurs morceaux). Documentation : docs/GRAPHE-ADMIN.md.
+ * gares sans arête, lignes en plusieurs morceaux), filtre des jonctions par type et par ligne,
+ * export CSV de chaque liste. Documentation : docs/GRAPHE-ADMIN.md.
  * Ces points d'accès ne font pas partie de l'API publique.
  */
 class NetworkGraphAdminController extends Controller
@@ -78,16 +84,85 @@ class NetworkGraphAdminController extends Controller
         ]);
     }
 
-    /** Une page d'une liste de diagnostics (JSON), le plus grave d'abord. */
+    /**
+     * Une page d'une liste de diagnostics (JSON), le plus grave d'abord. Jonctions : filtres `type`
+     * et `line` (slug ou numéro à 6 chiffres) ; chaque élément reçoit `line_refs` (ses lignes).
+     */
     public function check(Request $request, int $year, string $check, GraphDiagnostics $diagnostics): JsonResponse
     {
         Gate::authorize('viewNetworkGraph', User::class);
         [$eraId] = $this->era($year);
         $report = $diagnostics->report($eraId);
         abort_if($report === null, 404);
-        $page = max(1, min(10_000, (int) $request->query('page', '1')));
+        $page = max(1, min(100_000, (int) $request->query('page', '1')));
+        [$filter, $line, $unknownLine] = $this->filter($request, $check);
 
-        return response()->json(['era' => $year, ...GraphDiagnostics::page($report, $check, $page)]);
+        $result = $unknownLine !== null
+            ? ['check' => $check, 'total' => $report['lists'][$check]['total'] ?? 0, 'filtered' => 0, 'page' => 1,
+                'per_page' => GraphDiagnostics::PER_PAGE, 'last_page' => 1, 'items' => []]
+            : GraphDiagnostics::page($report, $check, $page, filter: $filter);
+        if ($check === 'junctions') {
+            $refs = $diagnostics->lineRefs(array_merge([], ...array_map(fn (array $i): array => (array) ($i['line_ids'] ?? []), $result['items'])));
+            $result['items'] = array_map(fn (array $i): array => [
+                ...$i,
+                'line_refs' => array_values(array_filter(array_map(fn (int $id): ?array => $refs[$id] ?? null, (array) ($i['line_ids'] ?? [])))),
+            ], $result['items']);
+        }
+
+        return response()->json([
+            'era' => $year,
+            ...$result,
+            'filters' => ['type' => $filter->type, 'line' => $line, 'unknown_line' => $unknownLine],
+        ]);
+    }
+
+    /**
+     * Toute une liste de diagnostics en CSV, écrite au fil de la réponse (mêmes filtres que la
+     * liste JSON ; format décrit dans GraphDiagnosticsCsv).
+     */
+    public function export(Request $request, int $year, string $check, GraphDiagnostics $diagnostics, GraphDiagnosticsCsv $csv): StreamedResponse
+    {
+        Gate::authorize('viewNetworkGraph', User::class);
+        [$eraId] = $this->era($year);
+        $report = $diagnostics->report($eraId);
+        abort_if($report === null, 404);
+        [$filter, $line, $unknownLine] = $this->filter($request, $check);
+        abort_if($unknownLine !== null, 404);
+
+        return response()->streamDownload(function () use ($csv, $report, $check, $filter): void {
+            $out = fopen('php://output', 'wb');
+            if ($out === false) {
+                return;
+            }
+            $csv->write($out, $report, $check, $filter);
+            fclose($out);
+        }, GraphDiagnosticsCsv::fileName($year, $check, $filter, $line['slug'] ?? null), [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            // Réservé aux administrateurs : jamais dans un cache partagé.
+            'Cache-Control' => 'private, no-store',
+        ]);
+    }
+
+    /**
+     * Filtre demandé (`type`, `line`) : [filtre, ligne trouvée, texte de la ligne introuvable].
+     *
+     * @return array{0: DiagnosticsFilter, 1: array{id: int, slug: string, name: string, code: string|null}|null, 2: string|null}
+     */
+    private function filter(Request $request, string $check): array
+    {
+        $valid = $request->validate([
+            'type' => ['nullable', 'string', Rule::in(GraphDiagnostics::JUNCTION_TYPES)],
+            'line' => ['nullable', 'string', 'max:100'],
+        ]);
+        $type = $valid['type'] ?? null;
+        $query = trim((string) ($valid['line'] ?? ''));
+        $found = $query !== '' && $check === 'junctions' ? Lookup::line($query) : null;
+        $line = $found !== null
+            ? ['id' => (int) $found->id, 'slug' => (string) $found->slug, 'name' => (string) $found->name, 'code' => $found->code]
+            : null;
+        $unknown = $query !== '' && $check === 'junctions' && $found === null ? $query : null;
+
+        return [new DiagnosticsFilter($check, is_string($type) ? $type : null, $line['id'] ?? null), $line, $unknown];
     }
 
     /** Tuile MVT d'une couche du graphe (calques `edges` et `nodes`). */
@@ -146,7 +221,6 @@ class NetworkGraphAdminController extends Controller
             'length_tolerance_ratio' => GraphDiagnostics::LENGTH_TOLERANCE_RATIO,
             'detour_ratio' => GraphDiagnostics::DETOUR_RATIO,
             'detour_min_m' => GraphDiagnostics::DETOUR_MIN_M,
-            'list_cap' => GraphDiagnostics::LIST_CAP,
         ];
     }
 }

@@ -313,7 +313,7 @@ type Query {
   """
   Médias (photos, cartes postales, plans, cartes, documents) de toutes les lignes et gares,
   page par page (20 par défaut, 100 au plus), dans l'ordre de leurs identifiants, filtrables
-  par ligne, gare, nature, fournisseur, licence, droits et époque. Chaque média porte son auteur,
+  par ligne, gare, série de matériel, nature, fournisseur, licence, droits et époque. Chaque média porte son auteur,
   sa licence et le lien vers sa source : affichez `attribution` avec l'image.
   """
   media(
@@ -1204,11 +1204,14 @@ input MaterialFilter {
 
 "Filtres de la requête `media`. Tous sont facultatifs et se combinent (ET)."
 input MediaFilter {
-  "Slug d'une ligne : ses médias seulement. Exclusif avec `station`."
+  "Slug d'une ligne : ses médias seulement. Exclusif avec `station` et `material`."
   line: String
 
-  "Slug d'une gare : ses médias seulement. Exclusif avec `line`."
+  "Slug d'une gare : ses médias seulement. Exclusif avec `line` et `material`."
   station: String
+
+  "Slug d'une série de matériel roulant : ses médias seulement (images proposées pour sa fiche). Exclusif avec `line` et `station`."
+  material: String
 
   "Nature du média : `photo`, `postcard`, `map`, `plan` ou `document`."
   type: String
@@ -2291,7 +2294,7 @@ type LineArchiveDocument {
   "Jour exact (précision `day`) ou premier jour du mois (précision `month`), quand la notice le donne."
   exact_date: Date
 
-  "Précision de la date : `day`, `month`, `year`, `circa` (date approchée), `range` (entre `year` et `year_to`) ou `unknown`."
+  "Précision de la date : `day`, `month`, `year`, `circa` (date approchée), `range` (entre `year` et `year_to`), `before` (au plus tard `year`, « Avant 1885 »), `after` (au plus tôt `year`) ou `unknown`."
   date_precision: String!
 
   "Cote de l'original à la BnF (ex. `V-54984`, `GE C-4520`), nulle si la notice n'en donne pas."
@@ -4112,7 +4115,7 @@ input ContributionInput {
   "Événement daté d'une ligne existante (ouverture, fermeture, électrification…), avec sa source."
   event: EventContributionInput
 
-  "Image rattachée à une ligne, une gare ou un événement : fichier de Wikimedia Commons ou fichier déposé."
+  "Image rattachée à une ligne, une gare, un événement ou une série de matériel : fichier de Wikimedia Commons ou fichier déposé."
   media: MediaContributionInput
 
   "Série de matériel qui a circulé sur une ligne, avec sa source et sa période de service."
@@ -4363,7 +4366,7 @@ input EventContributionInput {
 }
 
 """
-Image rattachée à une ligne, une gare ou un événement daté, comme dans le formulaire « Proposer une
+Image rattachée à une ligne, une gare, un événement daté ou une série de matériel, comme dans le formulaire « Proposer une
 image » du site (`/contribute/media`). Deux origines :
 - `commons` : un fichier de Wikimedia Commons (`commons_url`). Auteur, licence et miniature sont lus
   sur Commons ; une licence non libre ou qui interdit l'usage commercial est refusée. L'image reste
@@ -4379,7 +4382,7 @@ input MediaContributionInput {
   "Origine : `commons` (fichier de Wikimedia Commons) ou `upload` (fichier déposé)."
   source: String!
 
-  "Rattachement : `line` (une ligne), `station` (une gare) ou `event` (un événement daté d'une ligne)."
+  "Rattachement : `line` (une ligne), `station` (une gare), `event` (un événement daté d'une ligne) ou `material` (une série de matériel roulant)."
   target_type: String!
 
   "Identifiant d'URL de la ligne, avec `line` et `event` (ex. `rfn-610000`)."
@@ -4387,6 +4390,9 @@ input MediaContributionInput {
 
   "Identifiant d'URL de la gare, avec `station` (ex. `nontron`)."
   station_slug: String
+
+  "Identifiant d'URL de la série de matériel, avec `material` (ex. `x-73500`)."
+  material_slug: String
 
   "Identifiant de l'événement (`LineEvent.id`), avec `event` : il doit appartenir à la ligne `line_slug`."
   event_id: ID
@@ -4684,7 +4690,7 @@ type Contribution {
   "Gare visée par une image rattachée à une gare ; nulle sinon."
   station: Station
 
-  "Série visée : série corrigée, série créée une fois publiée, ou série d'un lien `LINE_MATERIAL` ; nulle sinon."
+  "Série visée : série corrigée, série créée une fois publiée, série d'un lien `LINE_MATERIAL`, ou série à laquelle une image `MEDIA` est rattachée ; nulle sinon."
   material: Material
 
   """

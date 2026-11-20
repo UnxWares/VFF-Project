@@ -341,6 +341,8 @@ export function mediaErrors(f, limits, t, dimensions = null, now = new Date()) {
     const e = {};
     if (f.target_type === 'station') {
         if (!f.station_slug) e.station_slug = t('proposals.errors.station_required');
+    } else if (f.target_type === 'material') {
+        if (!f.material_slug) e.material_slug = t('proposals.errors.material_required');
     } else if (!f.line_slug) {
         e.line_slug = t('proposals.errors.line_required');
     } else if (f.target_type === 'event' && !f.event_id) {
@@ -479,13 +481,14 @@ export function eventFacts(p, t, lang) {
 }
 
 /**
- * Fiche à laquelle se rattache une image : la ligne, la gare, ou l'événement de la ligne.
+ * Fiche à laquelle se rattache une image : la ligne, la gare, l'événement de la ligne ou la série.
  * @param {object} p charge utile
  * @param {(key: string, opts?: object) => any} t
  * @param {string} lang
  */
 export function mediaTargetText(p, t, lang) {
     if (p.target_type === 'station') return p.station_name ?? '';
+    if (p.target_type === 'material') return p.material_name ?? '';
     const line = [p.line_name, p.line_code].filter(Boolean).join(' ');
     if (p.target_type !== 'event' || !p.event) return line;
     const event = t('proposals.review.event_of', {

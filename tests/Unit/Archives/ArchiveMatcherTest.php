@@ -247,6 +247,62 @@ class ArchiveMatcherTest extends TestCase
         $this->assertSame('route', self::codes($list)[0]);
     }
 
+    /**
+     * Juge un titre sur une seule ligne donnée (nom, gares [nom, commune], première année).
+     *
+     * @param  list<array{0: string, 1: string}>  $stations
+     */
+    private function judgeOn(string $title, int $year, string $name, array $stations, int $first, string $type = 'monograph'): ArchiveMatch
+    {
+        $index = new LinePlaceIndex([1 => LinePlaceIndex::linePlaces([
+            'id' => 1, 'slug' => 'ligne', 'name' => $name, 'first_year' => $first, 'open_today' => false, 'last_year' => 1950,
+            'stations' => array_map(fn (array $s, int $k) => ['name' => $s[0], 'city' => $s[1], 'pk_m' => $k * 10000], $stations, array_keys($stations)),
+        ])]);
+        $record = new ArchiveRecord('ark:/12148/btv1b'.substr(md5($title), 0, 9), null, $title, $title, $type, [],
+            new ArchiveDate((string) $year, $year, null, null, 'year'), null, null);
+        $judged = (new ArchiveMatcher)->candidates($record, $index);
+        $this->assertCount(1, $judged);
+
+        return $judged[0];
+    }
+
+    public function test_a_waypoint_is_a_route_to_each_end_of_the_described_route(): void
+    {
+        // Document perdu de la ligne de Senlis à Verberie (gallica-corrections) : Senlis est une étape.
+        $senlis = $this->judgeOn("Projet d'une ligne de chemin de fer entre Le Bourget et Verberie en passant par Senlis", 1900,
+            'Ligne de Senlis à Verberie', [['Senlis', 'Senlis'], ['Verberie', 'Verberie']], 1884, 'map');
+        $this->assertSame(['route', 'ends', 'rail_word', 'date_in_life', 'doc_type'], self::codes($senlis));
+        $this->assertTrue($senlis->passes(ArchiveMatcher::THRESHOLD));
+
+        // « de X à Y par Z » relie aussi Z au départ X.
+        $colmar = $this->judgeOn('Projet de chemin de fer de Colmar au Rhin par Neuf-Brisach', 1869,
+            'Ligne de Colmar à Neuf-Brisach', [['Colmar', 'Colmar'], ['Neuf-Brisach', 'Neuf-Brisach']], 1878);
+        $this->assertSame('route', self::codes($colmar)[0]);
+        $this->assertContains('ends', self::codes($colmar));
+
+        // L'étape et un bout ne sont qu'une partie du trajet : sans les extrémités de la ligne, sous le seuil.
+        $brest = $this->judgeOn('Plan et profil du chemin de fer de Paris à Bordeaux passant par Chartres, Tours', 1838,
+            'Ligne de Paris-Montparnasse à Brest', [['Paris-Montparnasse', 'Paris'], ['Chartres', 'Chartres'], ['Brest', 'Brest']], 1840);
+        $this->assertSame('route', self::codes($brest)[0]);
+        $this->assertFalse($brest->passes(ArchiveMatcher::THRESHOLD), (string) $brest->score);
+    }
+
+    public function test_places_that_follow_each_other_in_a_between_list_are_a_route(): void
+    {
+        // Document perdu de Paris - Le Havre : « avec » loin du trajet n'en fait plus une simple mention.
+        $map = $this->judge($this->record("Carte d'une partie du bassin de la Seine entre Paris et la mer avec les indications de plusieurs tracés de chemins de fer entre Paris, Rouen, Le Hâvre et Dieppe [...]", 1837, 'map'))['rfn-340000'];
+        $this->assertSame(['rail_route', 'ends', 'rail_word', 'date_project', 'doc_type'], self::codes($map));
+        $this->assertTrue($map->passes(ArchiveMatcher::THRESHOLD));
+
+        // Deux lieux de la liste qui ne se suivent pas ne forment pas un trajet.
+        $apart = $this->judge($this->record('Tracés de chemins de fer entre Paris, Orléans et Rouen', 1850))['rfn-340000'];
+        $this->assertSame('two_places', self::codes($apart)[0]);
+
+        // « avec » juste avant le trajet reste une marque de simple mention.
+        $mention = $this->judge($this->record('Chemin de fer de Gisors, avec la ligne de Paris au Havre', 1870))['rfn-340000'];
+        $this->assertContains('secondary_mention', self::codes($mention));
+    }
+
     public function test_two_places_separated_by_a_spaced_dash_are_a_route(): void
     {
         $m = $this->judge($this->record('Catastrophe de chemin de fer [déraillement du rapide Paris - Le Havre, près de Tours]', 1926, 'image'))['rfn-340000'];

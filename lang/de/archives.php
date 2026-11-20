@@ -7,6 +7,8 @@ return [
         'intro' => 'Digitalisierte Dokumente aus Gallica, der digitalen Bibliothek der BnF (Französische Nationalbibliothek), deren Titel diese Strecke nennt. Jeder Link öffnet das Dokument auf der Website der BnF.',
         'undated' => 'Ohne Datum',
         'circa' => 'um :year',
+        'before' => 'vor :year',
+        'after' => 'nach :year',
         'types' => [
             'monograph' => 'Druckschrift',
             'map' => 'Karte oder Plan',

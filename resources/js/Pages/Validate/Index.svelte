@@ -176,7 +176,8 @@
                         {@const materialSlug = c.material?.slug ?? c.payload.material_slug}
                         {@const sheetHref = c.payload.station_slug
                             ? `/stations/${c.payload.station_slug}`
-                            : c.type === SERIES_TYPE && materialSlug
+                            : (c.type === SERIES_TYPE || c.payload.target_type === 'material') &&
+                                materialSlug
                               ? `/materials/${materialSlug}`
                               : lineSlug
                                 ? `/lines/${lineSlug}`

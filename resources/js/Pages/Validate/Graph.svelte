@@ -13,8 +13,10 @@
     import {
         CHECKS_BY_LAYER,
         EDGE_STYLES,
+        JUNCTION_TYPES,
         NODE_STYLES,
         checkUrl,
+        exportUrl,
         detailRows,
         detailTitle,
         featureUrl,
@@ -70,6 +72,11 @@
     let chosen = $state(null);
     const check = $derived(chosen && checks.includes(chosen) ? chosen : checks[0]);
     let listPage = $state(1);
+    // Filtre des jonctions : `filters` est celui de la liste affichée, les deux autres sont les
+    // champs du formulaire, appliqués par « Filtrer ».
+    let filters = $state({ type: '', line: '' });
+    let typeChoice = $state('');
+    let lineChoice = $state('');
     let list = $state(null);
     let listState = $state('idle');
     // Choix du formulaire, appliqués par « Afficher » ; ils suivent l'ère et la couche montrées.
@@ -89,7 +96,7 @@
         if (!year || !check) return;
         const controller = new AbortController();
         listState = 'loading';
-        fetch(checkUrl(year, check, listPage), {
+        fetch(checkUrl(year, check, listPage, filters), {
             headers: { Accept: 'application/json' },
             signal: controller.signal,
         })
@@ -150,6 +157,22 @@
         chosen = c;
         listPage = 1;
     }
+
+    function applyFilters() {
+        filters = { type: typeChoice, line: lineChoice.trim() };
+        listPage = 1;
+    }
+
+    function clearFilters() {
+        typeChoice = '';
+        lineChoice = '';
+        applyFilters();
+    }
+
+    const filtering = $derived(check === 'junctions' && Boolean(filters.type || filters.line));
+    const unknownLine = $derived(
+        check === 'junctions' ? (shownList?.filters?.unknown_line ?? null) : null,
+    );
 
     // Fiche en cours : un nouveau choix l'abandonne, sa réponse ne s'affiche jamais.
     const detailRequest = latestRequest();
@@ -462,6 +485,66 @@
                     <h3>{t(`graph_admin.checks.${check}.title`)}</h3>
                     <p class="note">{checkText(check)}</p>
 
+                    {#if check === 'junctions'}
+                        <form
+                            class="filters"
+                            aria-label={t('graph_admin.filters.label')}
+                            onsubmit={(e) => {
+                                e.preventDefault();
+                                applyFilters();
+                            }}
+                        >
+                            <Field id="graph-junction-type" label={t('graph_admin.filters.type')}>
+                                {#snippet children(attrs)}
+                                    <select {...attrs} class="vff-select" bind:value={typeChoice}>
+                                        <option value=""
+                                            >{t('graph_admin.filters.all_types')}</option
+                                        >
+                                        {#each JUNCTION_TYPES as type (type)}
+                                            <option value={type}
+                                                >{t(`graph_admin.checks.types.${type}`)}</option
+                                            >
+                                        {/each}
+                                    </select>
+                                {/snippet}
+                            </Field>
+                            <Field
+                                id="graph-junction-line"
+                                label={t('graph_admin.filters.line')}
+                                hint={t('graph_admin.filters.line_hint')}
+                                error={unknownLine
+                                    ? t('graph_admin.filters.unknown_line', { line: unknownLine })
+                                    : null}
+                            >
+                                {#snippet children(attrs)}
+                                    <input
+                                        {...attrs}
+                                        class="vff-input"
+                                        type="search"
+                                        autocomplete="off"
+                                        spellcheck="false"
+                                        maxlength="100"
+                                        bind:value={lineChoice}
+                                    />
+                                {/snippet}
+                            </Field>
+                            <div class="filter-actions">
+                                <button type="submit" class="vff-btn primary">
+                                    {t('graph_admin.filters.apply')}
+                                </button>
+                                {#if filtering}
+                                    <button
+                                        type="button"
+                                        class="vff-btn secondary"
+                                        onclick={clearFilters}
+                                    >
+                                        {t('graph_admin.filters.clear')}
+                                    </button>
+                                {/if}
+                            </div>
+                        </form>
+                    {/if}
+
                     <!-- État de la liste annoncé aux lecteurs d'écran (chargement, puis total). -->
                     <p class="vff-sr-only" role="status">
                         {#if listBusy}
@@ -475,16 +558,36 @@
                     {:else if !shownList}
                         <p class="muted">{t('graph_admin.checks.loading')}</p>
                     {:else}
-                        <p class="count">
-                            {t('graph_admin.checks.total', { total: num(shownList.total) })}
-                            {#if shownList.listed < shownList.total}
-                                {t('graph_admin.checks.capped', { count: num(shownList.listed) })}
+                        <div class="list-head">
+                            <p class="count">
+                                {#if filtering}
+                                    {t('graph_admin.checks.filtered', {
+                                        count: num(shownList.filtered),
+                                        total: num(shownList.total),
+                                    })}
+                                {:else}
+                                    {t('graph_admin.checks.total', { total: num(shownList.total) })}
+                                {/if}
+                            </p>
+                            {#if shownList.filtered > 0}
+                                <a
+                                    class="vff-btn secondary small"
+                                    href={exportUrl(year, check, filters)}
+                                    download
+                                >
+                                    <i class="bi bi-download" aria-hidden="true"></i>
+                                    {t('graph_admin.checks.export')}<span class="vff-sr-only"
+                                        >&nbsp;: {t(`graph_admin.checks.${check}.title`)}</span
+                                    >
+                                </a>
                             {/if}
-                        </p>
+                        </div>
                         {#if items.length === 0}
                             <EmptyState
                                 icon="bi-check2-circle"
-                                title={t('graph_admin.checks.empty')}
+                                title={filtering
+                                    ? t('graph_admin.checks.empty_filtered')
+                                    : t('graph_admin.checks.empty')}
                             />
                         {:else}
                             <!-- Cadre défilant focalisable : tableau lisible au clavier sur téléphone (WCAG 2.1.1). -->
@@ -565,6 +668,9 @@
                                                 >
                                                 <th scope="col" class="num"
                                                     >{t('graph_admin.checks.columns.ends')}</th
+                                                >
+                                                <th scope="col"
+                                                    >{t('graph_admin.checks.columns.lines')}</th
                                                 >
                                             {:else if check === 'fragmented_lines'}
                                                 <th scope="col"
@@ -672,6 +778,15 @@
                                                     </td>
                                                     <td class="num">{dist(item.distance_m)}</td>
                                                     <td class="num">{num(item.ends)}</td>
+                                                    <td>
+                                                        {#each item.line_refs ?? [] as l (l.id)}
+                                                            <a
+                                                                class="cell-link"
+                                                                href="/lines/{l.slug}"
+                                                                >{lineLabel(l)}</a
+                                                            >
+                                                        {/each}
+                                                    </td>
                                                 {:else if check === 'fragmented_lines'}
                                                     <td>
                                                         {#if item.line}
@@ -951,6 +1066,31 @@
         border-color: var(--vff-text);
         background-color: var(--vff-bg-accent);
         font-weight: 600;
+    }
+    .filters {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: var(--vff-space-4) var(--vff-space-5);
+    }
+    .filters :global(.vff-field) {
+        flex: 1 1 14rem;
+        max-width: 22rem;
+    }
+    .filter-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--vff-space-2);
+    }
+    .filter-actions button {
+        min-height: 44px;
+    }
+    .list-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--vff-space-2) var(--vff-space-4);
     }
     .count {
         margin: 0;
