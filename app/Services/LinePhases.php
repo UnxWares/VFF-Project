@@ -723,21 +723,27 @@ final class LinePhases
         // témoins (5, répartis le long de la portion) sont à moins de COVER_TOL_M de sa section.
         $cover = [];
         if ($localized) {
-            // Sections des événements découpées en morceaux de 32 sommets au plus et indexées : chaque point
+            // Sections des événements découpées en morceaux de 128 sommets au plus et indexées : chaque point
             // témoin n'est comparé qu'aux morceaux proches (même résultat, la réunion des morceaux est la
-            // section). Avant : chaque point contre chaque section entière, 0,4 à 1,5 s sur une LGV.
+            // section). Avant : chaque point contre chaque section entière, 0,4 à 1,5 s sur une LGV ; avec des
+            // morceaux de 32 sommets, le découpage seul prenait 110 à 160 ms sur la LGV Sud-Est.
             DB::statement('DROP TABLE IF EXISTS tmp_line_event_pieces');
             DB::statement('CREATE TEMP TABLE tmp_line_event_pieces AS
-                SELECT id, ST_Subdivide(ST_Transform(section_geom, 2154), 32) AS g
+                SELECT id, ST_Subdivide(ST_Transform(section_geom, 2154), 128) AS g
                 FROM line_events WHERE id = ANY(CAST(? AS bigint[]))', ['{'.implode(',', $localized).'}']);
             DB::statement('CREATE INDEX ON tmp_line_event_pieces USING GIST (g)');
             DB::statement('ANALYZE tmp_line_event_pieces');
+            // Points témoins repérés par l'adresse de leur portion dans la table temporaire (ctid, stable :
+            // la table n'est jamais modifiée) plutôt que par sa clé texte : le dédoublonnage des touches
+            // (point, événement) se fait sur des valeurs courtes, la clé n'est relue qu'à la fin. Même
+            // résultat, environ 90 ms de moins sur la LGV Sud-Est.
             foreach (DB::select('WITH pts AS MATERIALIZED (
-                        SELECT t.k, f.n, ST_Transform(ST_LineInterpolatePoint(t.geom, f.f), 2154) AS p
-                        FROM tmp_line_portions t, unnest(ARRAY[0.1, 0.3, 0.5, 0.7, 0.9]) WITH ORDINALITY AS f(f, n))
-                    SELECT id, k FROM (
-                        SELECT DISTINCT e.id, pts.k, pts.n FROM pts JOIN tmp_line_event_pieces e ON ST_DWithin(e.g, pts.p, ?)) hit
-                    GROUP BY id, k HAVING COUNT(*) >= ? ORDER BY id, k',
+                        SELECT t.ctid AS r, f.n, ST_Transform(ST_LineInterpolatePoint(t.geom, f.f), 2154) AS p
+                        FROM tmp_line_portions t, unnest(ARRAY[0.1, 0.3, 0.5, 0.7, 0.9]) WITH ORDINALITY AS f(f, n)),
+                    hit AS (SELECT e.id, pts.r FROM pts JOIN tmp_line_event_pieces e ON ST_DWithin(e.g, pts.p, ?)
+                        GROUP BY e.id, pts.r, pts.n)
+                    SELECT hit.id, t.k FROM hit JOIN tmp_line_portions t ON t.ctid = hit.r
+                    GROUP BY hit.id, t.k HAVING COUNT(*) >= ? ORDER BY hit.id, t.k',
                 [self::COVER_TOL_M, (int) ceil(5 * self::COVER_RATIO)]) as $r) {
                 $cover[(int) $r->id][] = $r->k;
             }
