@@ -21,12 +21,16 @@ use App\Http\Controllers\MapController;
 use App\Http\Controllers\MapRouteController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MediaContributionController;
+use App\Http\Controllers\NetworkGraphAdminController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\TraceEditorController;
 use App\Http\Controllers\WebhookSubscriptionController;
 use App\Http\Middleware\SetLocale;
+use App\Services\NetworkGraph\GraphDiagnostics;
+use App\Services\NetworkGraph\GraphFeatureDetails;
+use App\Services\NetworkGraph\GraphTiles;
 use App\Services\Reputation\ReputationLevels;
 use App\Services\Webhooks\WebhookSubscriptions;
 use Illuminate\Http\Request;
@@ -208,4 +212,17 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/validate/accounts', [AccountModerationController::class, 'index'])->middleware('not.suspended')->name('validate.accounts.index');
     Route::post('/validate/accounts/{user}/suspension', [AccountModerationController::class, 'suspend'])->whereNumber('user')->middleware('not.suspended')->name('validate.accounts.suspend');
     Route::delete('/validate/accounts/{user}/suspension', [AccountModerationController::class, 'lift'])->whereNumber('user')->middleware('not.suspended')->name('validate.accounts.lift');
+    // Graphe ferroviaire d'une ère et ses diagnostics (administrateurs, UserPolicy::viewNetworkGraph ;
+    // pas dans l'API publique, voir docs/GRAPHE-ADMIN.md).
+    Route::prefix('validate/graph')->name('validate.graph.')->controller(NetworkGraphAdminController::class)->middleware('not.suspended')->group(function (): void {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{year}/diagnostics', 'diagnostics')->where('year', '[0-9]{1,4}')->name('diagnostics');
+        Route::get('/{year}/diagnostics/{check}', 'check')->where('year', '[0-9]{1,4}')
+            ->whereIn('check', GraphDiagnostics::CHECKS)->name('check');
+        Route::get('/{year}/tiles/{layer}/{z}/{x}/{y}.mvt', 'tile')
+            ->where(['year' => '[0-9]{1,4}', 'z' => '[0-9]{1,2}', 'x' => '[0-9]{1,7}', 'y' => '[0-9]{1,7}'])
+            ->whereIn('layer', GraphTiles::LAYERS)->name('tiles');
+        Route::get('/{year}/features/{kind}/{id}', 'feature')->where('year', '[0-9]{1,4}')
+            ->whereIn('kind', GraphFeatureDetails::KINDS)->whereNumber('id')->name('feature');
+    });
 });
