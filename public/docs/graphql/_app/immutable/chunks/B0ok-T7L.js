@@ -1,4 +1,4 @@
-import{$ as e,B as t,D as n,Dt as r,F as i,G as a,H as o,K as s,L as c,M as l,N as u,P as d,Q as f,R as p,S as m,Y as h,Z as g,_,at as v,bt as y,ct as b,f as x,it as S,j as C,k as ee,kt as te,l as w,o as ne,ot as re,st as ie,ut as ae,w as oe,wt as se,x as ce,yt as T,z as le}from"./WhYXVPzS.js";import{i as ue}from"./BVJEu_vt.js";import"./v_jBEYI6.js";import"./CL7zaV3M.js";var de=t(`<pre><code> </code></pre>`);function fe(t,n){y(n,!1);let r=w(n,`token`,8);var i={options:void 0,renderers:void 0};x();var o=de(),s=S(o),l=S(s,!0);return se(s),se(o),e(()=>{oe(s,1,(a(r()),h(()=>`lang-${r().lang}`))),c(l,(a(r()),h(()=>r().text)))}),p(t,o),_(n,`options`,void 0),_(n,`renderers`,void 0),T(i)}var pe=t(`<code> </code>`);function me(t,n){y(n,!1);let r=w(n,`token`,8);var i={options:void 0,renderers:void 0};x();var o=pe(),s=S(o,!0);return se(o),e(e=>c(s,e),[()=>(a(r()),h(()=>r().raw.slice(1,r().raw.length-1)))]),p(t,o),_(n,`options`,void 0),_(n,`renderers`,void 0),T(i)}function he(e,t){let n=w(t,`tokens`,8),r=w(t,`renderers`,8),a=w(t,`options`,8);var o=le(),c=v(o),l=e=>{var t=le();u(v(t),1,n,d,(e,t)=>{ge(e,{get token(){return s(t)},get renderers(){return r()},get options(){return a()}})}),p(e,t)};i(c,e=>{n()&&e(l)}),p(e,o)}function ge(t,n){y(n,!1);let r=w(n,`token`,8),s=w(n,`renderers`,8),l=w(n,`options`,8);x();var u=le(),d=v(u),f=t=>{var n=le();ee(v(n),()=>s()[r().type],(t,n)=>{n(t,{get token(){return r()},get options(){return l()},get renderers(){return s()},children:(t,n)=>{var u=le(),d=v(u),f=e=>{he(e,{get tokens(){return a(r()),h(()=>r().tokens)},get renderers(){return s()},get options(){return l()}})},m=t=>{var n=o();e(()=>c(n,(a(r()),h(()=>r().raw)))),p(t,n)};i(d,e=>{a(r()),h(()=>`tokens`in r()&&r().tokens)?e(f):e(m,-1)}),p(t,u)},$$slots:{default:!0}})}),p(t,n)};i(d,e=>{a(s()),a(r()),h(()=>s()[r().type])&&e(f)}),p(t,u),T()}function _e(e,t){y(t,!1);let r=w(t,`token`,8),i=w(t,`options`,8),o=w(t,`renderers`,8),c=ie();g(()=>a(r()),()=>{b(c,r().ordered?`ol`:`ul`)}),f(),x();var l=le();n(v(l),()=>s(c),!1,(e,t)=>{ce(e,()=>({start:(a(r()),h(()=>r().start||1))}));var n=le();u(v(n),1,()=>(a(r()),h(()=>r().items)),d,(e,t)=>{{let n=ae(()=>(s(t),h(()=>({...s(t)}))));ge(e,{get token(){return s(n)},get options(){return i()},get renderers(){return o()}})}}),p(t,n)}),p(e,l),T()}var ve=t(`<li><!></li>`);function ye(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=ve();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var be=t(`<blockquote><!></blockquote>`);function xe(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=be();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Se=t(`<br/>`);function Ce(e,t){return y(t,!1),p(e,Se()),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T({token:void 0,options:void 0,renderers:void 0})}var we=t(`<del><!></del>`);function Te(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=we();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Ee=t(`<dfn><!></dfn>`);function De(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=Ee();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Oe=t(`<em><!></em>`);function ke(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=Oe();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function Ae(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=le();return C(v(r),t,`default`,{},null),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function je(...e){return`/${e.flatMap(e=>e.split(`/`)).filter(e=>!!e).join(`/`)}`}function Me(e){return e.startsWith(`/`)||e.startsWith(`#`)}function Ne(e,t){return t.slug(e).replace(/--+/g,`-`)}function Pe(e,t){y(t,!1);let r=w(t,`token`,8),i=w(t,`options`,8),o=ie();g(()=>(a(r()),a(i())),()=>{b(o,Ne(r().text,i().slugger))}),f();var c={renderers:void 0};x();var l=le();return n(v(l),()=>`h${r().depth}`,!1,(e,n)=>{ce(e,()=>({id:s(o)}));var r=le();C(v(r),t,`default`,{},null),p(n,r)}),p(e,l),_(t,`renderers`,void 0),T(c)}var Fe=t(`<hr/>`);function Ie(e,t){return y(t,!1),p(e,Fe()),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T({token:void 0,options:void 0,renderers:void 0})}function Le(e,t){y(t,!1);let n=w(t,`token`,8);var r={options:void 0,renderers:void 0};x();var i=le();return l(v(i),()=>(a(n()),h(()=>n().text))),p(e,i),_(t,`options`,void 0),_(t,`renderers`,void 0),T(r)}var Re=t(`<img class="markdown-image svelte-n6q0or"/>`);function ze(t,n){y(n,!1);let r=w(n,`token`,8),i=w(n,`options`,8);var o={renderers:void 0};x();var s=Re();return e(e=>{m(s,`src`,e),m(s,`title`,(a(r()),h(()=>r().title))),m(s,`alt`,(a(r()),h(()=>r().text)))},[()=>(a(Me),a(r()),a(je),a(i()),h(()=>Me(r().href)?je(i().baseUrl,r().href):r().href))]),p(t,s),_(n,`renderers`,void 0),T(o)}var Be=t(`<a><!></a>`);function Ve(t,n){y(n,!1);let r=w(n,`token`,8),i=w(n,`options`,8);var o={renderers:void 0};x();var s=Be();return C(S(s),n,`default`,{},null),se(s),e(e=>{m(s,`href`,e),m(s,`title`,(a(r()),h(()=>r().title)))},[()=>(a(Me),a(r()),a(je),a(i()),h(()=>Me(r().href)?je(i().baseUrl,r().href):r().href))]),p(t,s),_(n,`renderers`,void 0),T(o)}var He=t(`<div><!></div>`);function Ue(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=He();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function We(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=le();return C(v(r),t,`default`,{},null),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Ge=t(`<strong><!></strong>`);function Ke(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=Ge();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function qe(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=le();return C(v(r),t,`default`,{},null),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Je=t(`<th scope="col"><!></th>`),Ye=t(`<td><!></td>`),Xe=t(`<tr></tr>`),Ze=t(`<table><thead><tr></tr></thead><tbody></tbody></table>`);function Qe(e,t){y(t,!1);let n=w(t,`token`,8),r=w(t,`options`,8),i=w(t,`renderers`,8);x();var o=Ze(),c=S(o),l=S(c);u(l,5,()=>(a(n()),h(()=>n().header)),d,(e,t)=>{var n=Je();he(S(n),{get tokens(){return s(t),h(()=>s(t).tokens)},get options(){return r()},get renderers(){return i()}}),se(n),p(e,n)}),se(l),se(c);var f=re(c);u(f,5,()=>(a(n()),h(()=>n().rows)),d,(e,t)=>{var n=Xe();u(n,5,()=>s(t),d,(e,t)=>{var n=Ye();he(S(n),{get tokens(){return s(t),h(()=>s(t).tokens)},get options(){return r()},get renderers(){return i()}}),se(n),p(e,n)}),se(n),p(e,n)}),se(f),se(o),p(e,o),T()}function $e(e){return{name:`container`,level:`block`,start(e){return e.match(/^:::[^:\n]/)?.index},tokenizer(t){let n=/^:::[\s]?(?<type>[a-z0-9-]+)(?<options>.*)?\n(?<content>(?:.|\n)*)\n:::(?:\n|$)/i,r=et(t);if(!r)return;let i=n.exec(r);if(!i?.groups)return;let a=i.groups.type.toLocaleLowerCase(),o=tt(i.groups.options||``),s=i.groups.content||``,c=e({type:a,content:s,raw:i[0],options:o,lexer:this.lexer});return c?.tokens&&this.lexer.blockTokens(s,c.tokens),c}}}function et(e){if(!e.startsWith(`:::`))return;let t=e.split(`
+import{$ as e,B as t,D as n,Dt as r,F as i,G as a,H as o,K as s,L as c,M as l,N as u,P as d,Q as f,R as p,S as m,Y as h,Z as g,_,at as v,bt as y,ct as b,f as x,it as S,j as C,k as ee,kt as te,l as w,o as ne,ot as re,st as ie,ut as ae,w as oe,wt as se,x as ce,yt as T,z as le}from"./WhYXVPzS.js";import{i as ue}from"./DfQK7xuE.js";import"./v_jBEYI6.js";import"./CL7zaV3M.js";var de=t(`<pre><code> </code></pre>`);function fe(t,n){y(n,!1);let r=w(n,`token`,8);var i={options:void 0,renderers:void 0};x();var o=de(),s=S(o),l=S(s,!0);return se(s),se(o),e(()=>{oe(s,1,(a(r()),h(()=>`lang-${r().lang}`))),c(l,(a(r()),h(()=>r().text)))}),p(t,o),_(n,`options`,void 0),_(n,`renderers`,void 0),T(i)}var pe=t(`<code> </code>`);function me(t,n){y(n,!1);let r=w(n,`token`,8);var i={options:void 0,renderers:void 0};x();var o=pe(),s=S(o,!0);return se(o),e(e=>c(s,e),[()=>(a(r()),h(()=>r().raw.slice(1,r().raw.length-1)))]),p(t,o),_(n,`options`,void 0),_(n,`renderers`,void 0),T(i)}function he(e,t){let n=w(t,`tokens`,8),r=w(t,`renderers`,8),a=w(t,`options`,8);var o=le(),c=v(o),l=e=>{var t=le();u(v(t),1,n,d,(e,t)=>{ge(e,{get token(){return s(t)},get renderers(){return r()},get options(){return a()}})}),p(e,t)};i(c,e=>{n()&&e(l)}),p(e,o)}function ge(t,n){y(n,!1);let r=w(n,`token`,8),s=w(n,`renderers`,8),l=w(n,`options`,8);x();var u=le(),d=v(u),f=t=>{var n=le();ee(v(n),()=>s()[r().type],(t,n)=>{n(t,{get token(){return r()},get options(){return l()},get renderers(){return s()},children:(t,n)=>{var u=le(),d=v(u),f=e=>{he(e,{get tokens(){return a(r()),h(()=>r().tokens)},get renderers(){return s()},get options(){return l()}})},m=t=>{var n=o();e(()=>c(n,(a(r()),h(()=>r().raw)))),p(t,n)};i(d,e=>{a(r()),h(()=>`tokens`in r()&&r().tokens)?e(f):e(m,-1)}),p(t,u)},$$slots:{default:!0}})}),p(t,n)};i(d,e=>{a(s()),a(r()),h(()=>s()[r().type])&&e(f)}),p(t,u),T()}function _e(e,t){y(t,!1);let r=w(t,`token`,8),i=w(t,`options`,8),o=w(t,`renderers`,8),c=ie();g(()=>a(r()),()=>{b(c,r().ordered?`ol`:`ul`)}),f(),x();var l=le();n(v(l),()=>s(c),!1,(e,t)=>{ce(e,()=>({start:(a(r()),h(()=>r().start||1))}));var n=le();u(v(n),1,()=>(a(r()),h(()=>r().items)),d,(e,t)=>{{let n=ae(()=>(s(t),h(()=>({...s(t)}))));ge(e,{get token(){return s(n)},get options(){return i()},get renderers(){return o()}})}}),p(t,n)}),p(e,l),T()}var ve=t(`<li><!></li>`);function ye(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=ve();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var be=t(`<blockquote><!></blockquote>`);function xe(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=be();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Se=t(`<br/>`);function Ce(e,t){return y(t,!1),p(e,Se()),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T({token:void 0,options:void 0,renderers:void 0})}var we=t(`<del><!></del>`);function Te(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=we();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Ee=t(`<dfn><!></dfn>`);function De(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=Ee();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Oe=t(`<em><!></em>`);function ke(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=Oe();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function Ae(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=le();return C(v(r),t,`default`,{},null),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function je(...e){return`/${e.flatMap(e=>e.split(`/`)).filter(e=>!!e).join(`/`)}`}function Me(e){return e.startsWith(`/`)||e.startsWith(`#`)}function Ne(e,t){return t.slug(e).replace(/--+/g,`-`)}function Pe(e,t){y(t,!1);let r=w(t,`token`,8),i=w(t,`options`,8),o=ie();g(()=>(a(r()),a(i())),()=>{b(o,Ne(r().text,i().slugger))}),f();var c={renderers:void 0};x();var l=le();return n(v(l),()=>`h${r().depth}`,!1,(e,n)=>{ce(e,()=>({id:s(o)}));var r=le();C(v(r),t,`default`,{},null),p(n,r)}),p(e,l),_(t,`renderers`,void 0),T(c)}var Fe=t(`<hr/>`);function Ie(e,t){return y(t,!1),p(e,Fe()),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T({token:void 0,options:void 0,renderers:void 0})}function Le(e,t){y(t,!1);let n=w(t,`token`,8);var r={options:void 0,renderers:void 0};x();var i=le();return l(v(i),()=>(a(n()),h(()=>n().text))),p(e,i),_(t,`options`,void 0),_(t,`renderers`,void 0),T(r)}var Re=t(`<img class="markdown-image svelte-n6q0or"/>`);function ze(t,n){y(n,!1);let r=w(n,`token`,8),i=w(n,`options`,8);var o={renderers:void 0};x();var s=Re();return e(e=>{m(s,`src`,e),m(s,`title`,(a(r()),h(()=>r().title))),m(s,`alt`,(a(r()),h(()=>r().text)))},[()=>(a(Me),a(r()),a(je),a(i()),h(()=>Me(r().href)?je(i().baseUrl,r().href):r().href))]),p(t,s),_(n,`renderers`,void 0),T(o)}var Be=t(`<a><!></a>`);function Ve(t,n){y(n,!1);let r=w(n,`token`,8),i=w(n,`options`,8);var o={renderers:void 0};x();var s=Be();return C(S(s),n,`default`,{},null),se(s),e(e=>{m(s,`href`,e),m(s,`title`,(a(r()),h(()=>r().title)))},[()=>(a(Me),a(r()),a(je),a(i()),h(()=>Me(r().href)?je(i().baseUrl,r().href):r().href))]),p(t,s),_(n,`renderers`,void 0),T(o)}var He=t(`<div><!></div>`);function Ue(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=He();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function We(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=le();return C(v(r),t,`default`,{},null),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Ge=t(`<strong><!></strong>`);function Ke(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=Ge();return C(S(r),t,`default`,{},null),se(r),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}function qe(e,t){y(t,!1);var n={token:void 0,options:void 0,renderers:void 0},r=le();return C(v(r),t,`default`,{},null),p(e,r),_(t,`token`,void 0),_(t,`options`,void 0),_(t,`renderers`,void 0),T(n)}var Je=t(`<th scope="col"><!></th>`),Ye=t(`<td><!></td>`),Xe=t(`<tr></tr>`),Ze=t(`<table><thead><tr></tr></thead><tbody></tbody></table>`);function Qe(e,t){y(t,!1);let n=w(t,`token`,8),r=w(t,`options`,8),i=w(t,`renderers`,8);x();var o=Ze(),c=S(o),l=S(c);u(l,5,()=>(a(n()),h(()=>n().header)),d,(e,t)=>{var n=Je();he(S(n),{get tokens(){return s(t),h(()=>s(t).tokens)},get options(){return r()},get renderers(){return i()}}),se(n),p(e,n)}),se(l),se(c);var f=re(c);u(f,5,()=>(a(n()),h(()=>n().rows)),d,(e,t)=>{var n=Xe();u(n,5,()=>s(t),d,(e,t)=>{var n=Ye();he(S(n),{get tokens(){return s(t),h(()=>s(t).tokens)},get options(){return r()},get renderers(){return i()}}),se(n),p(e,n)}),se(n),p(e,n)}),se(f),se(o),p(e,o),T()}function $e(e){return{name:`container`,level:`block`,start(e){return e.match(/^:::[^:\n]/)?.index},tokenizer(t){let n=/^:::[\s]?(?<type>[a-z0-9-]+)(?<options>.*)?\n(?<content>(?:.|\n)*)\n:::(?:\n|$)/i,r=et(t);if(!r)return;let i=n.exec(r);if(!i?.groups)return;let a=i.groups.type.toLocaleLowerCase(),o=tt(i.groups.options||``),s=i.groups.content||``,c=e({type:a,content:s,raw:i[0],options:o,lexer:this.lexer});return c?.tokens&&this.lexer.blockTokens(s,c.tokens),c}}}function et(e){if(!e.startsWith(`:::`))return;let t=e.split(`
 `),n=1,r=1;for(r=1;r<t.length;r++){let e=t[r];if(e.startsWith(`:::`)&&(/:::[^:\n\s]/.test(e)?n++:/^:::(\n|$)/.test(e)&&--n),n===0)break}return t.slice(0,r+1).join(`
 `)}function tt(e){let t={},n=e;for(;;){let e=/(?<name>[a-z0-9]+)(?:="(?<value>(?:.*?))")?/i.exec(n);if(!e)break;let r=e?.groups?.name;r&&(t[r]=e?.groups?.value??!0),n=n.slice(e.index+e[0].length)}return t}var nt={containerExtension:$e},rt=/[\0-\x1F!-,\.\/:-@\[-\^`\{-\xA9\xAB-\xB4\xB6-\xB9\xBB-\xBF\xD7\xF7\u02C2-\u02C5\u02D2-\u02DF\u02E5-\u02EB\u02ED\u02EF-\u02FF\u0375\u0378\u0379\u037E\u0380-\u0385\u0387\u038B\u038D\u03A2\u03F6\u0482\u0530\u0557\u0558\u055A-\u055F\u0589-\u0590\u05BE\u05C0\u05C3\u05C6\u05C8-\u05CF\u05EB-\u05EE\u05F3-\u060F\u061B-\u061F\u066A-\u066D\u06D4\u06DD\u06DE\u06E9\u06FD\u06FE\u0700-\u070F\u074B\u074C\u07B2-\u07BF\u07F6-\u07F9\u07FB\u07FC\u07FE\u07FF\u082E-\u083F\u085C-\u085F\u086B-\u089F\u08B5\u08C8-\u08D2\u08E2\u0964\u0965\u0970\u0984\u098D\u098E\u0991\u0992\u09A9\u09B1\u09B3-\u09B5\u09BA\u09BB\u09C5\u09C6\u09C9\u09CA\u09CF-\u09D6\u09D8-\u09DB\u09DE\u09E4\u09E5\u09F2-\u09FB\u09FD\u09FF\u0A00\u0A04\u0A0B-\u0A0E\u0A11\u0A12\u0A29\u0A31\u0A34\u0A37\u0A3A\u0A3B\u0A3D\u0A43-\u0A46\u0A49\u0A4A\u0A4E-\u0A50\u0A52-\u0A58\u0A5D\u0A5F-\u0A65\u0A76-\u0A80\u0A84\u0A8E\u0A92\u0AA9\u0AB1\u0AB4\u0ABA\u0ABB\u0AC6\u0ACA\u0ACE\u0ACF\u0AD1-\u0ADF\u0AE4\u0AE5\u0AF0-\u0AF8\u0B00\u0B04\u0B0D\u0B0E\u0B11\u0B12\u0B29\u0B31\u0B34\u0B3A\u0B3B\u0B45\u0B46\u0B49\u0B4A\u0B4E-\u0B54\u0B58-\u0B5B\u0B5E\u0B64\u0B65\u0B70\u0B72-\u0B81\u0B84\u0B8B-\u0B8D\u0B91\u0B96-\u0B98\u0B9B\u0B9D\u0BA0-\u0BA2\u0BA5-\u0BA7\u0BAB-\u0BAD\u0BBA-\u0BBD\u0BC3-\u0BC5\u0BC9\u0BCE\u0BCF\u0BD1-\u0BD6\u0BD8-\u0BE5\u0BF0-\u0BFF\u0C0D\u0C11\u0C29\u0C3A-\u0C3C\u0C45\u0C49\u0C4E-\u0C54\u0C57\u0C5B-\u0C5F\u0C64\u0C65\u0C70-\u0C7F\u0C84\u0C8D\u0C91\u0CA9\u0CB4\u0CBA\u0CBB\u0CC5\u0CC9\u0CCE-\u0CD4\u0CD7-\u0CDD\u0CDF\u0CE4\u0CE5\u0CF0\u0CF3-\u0CFF\u0D0D\u0D11\u0D45\u0D49\u0D4F-\u0D53\u0D58-\u0D5E\u0D64\u0D65\u0D70-\u0D79\u0D80\u0D84\u0D97-\u0D99\u0DB2\u0DBC\u0DBE\u0DBF\u0DC7-\u0DC9\u0DCB-\u0DCE\u0DD5\u0DD7\u0DE0-\u0DE5\u0DF0\u0DF1\u0DF4-\u0E00\u0E3B-\u0E3F\u0E4F\u0E5A-\u0E80\u0E83\u0E85\u0E8B\u0EA4\u0EA6\u0EBE\u0EBF\u0EC5\u0EC7\u0ECE\u0ECF\u0EDA\u0EDB\u0EE0-\u0EFF\u0F01-\u0F17\u0F1A-\u0F1F\u0F2A-\u0F34\u0F36\u0F38\u0F3A-\u0F3D\u0F48\u0F6D-\u0F70\u0F85\u0F98\u0FBD-\u0FC5\u0FC7-\u0FFF\u104A-\u104F\u109E\u109F\u10C6\u10C8-\u10CC\u10CE\u10CF\u10FB\u1249\u124E\u124F\u1257\u1259\u125E\u125F\u1289\u128E\u128F\u12B1\u12B6\u12B7\u12BF\u12C1\u12C6\u12C7\u12D7\u1311\u1316\u1317\u135B\u135C\u1360-\u137F\u1390-\u139F\u13F6\u13F7\u13FE-\u1400\u166D\u166E\u1680\u169B-\u169F\u16EB-\u16ED\u16F9-\u16FF\u170D\u1715-\u171F\u1735-\u173F\u1754-\u175F\u176D\u1771\u1774-\u177F\u17D4-\u17D6\u17D8-\u17DB\u17DE\u17DF\u17EA-\u180A\u180E\u180F\u181A-\u181F\u1879-\u187F\u18AB-\u18AF\u18F6-\u18FF\u191F\u192C-\u192F\u193C-\u1945\u196E\u196F\u1975-\u197F\u19AC-\u19AF\u19CA-\u19CF\u19DA-\u19FF\u1A1C-\u1A1F\u1A5F\u1A7D\u1A7E\u1A8A-\u1A8F\u1A9A-\u1AA6\u1AA8-\u1AAF\u1AC1-\u1AFF\u1B4C-\u1B4F\u1B5A-\u1B6A\u1B74-\u1B7F\u1BF4-\u1BFF\u1C38-\u1C3F\u1C4A-\u1C4C\u1C7E\u1C7F\u1C89-\u1C8F\u1CBB\u1CBC\u1CC0-\u1CCF\u1CD3\u1CFB-\u1CFF\u1DFA\u1F16\u1F17\u1F1E\u1F1F\u1F46\u1F47\u1F4E\u1F4F\u1F58\u1F5A\u1F5C\u1F5E\u1F7E\u1F7F\u1FB5\u1FBD\u1FBF-\u1FC1\u1FC5\u1FCD-\u1FCF\u1FD4\u1FD5\u1FDC-\u1FDF\u1FED-\u1FF1\u1FF5\u1FFD-\u203E\u2041-\u2053\u2055-\u2070\u2072-\u207E\u2080-\u208F\u209D-\u20CF\u20F1-\u2101\u2103-\u2106\u2108\u2109\u2114\u2116-\u2118\u211E-\u2123\u2125\u2127\u2129\u212E\u213A\u213B\u2140-\u2144\u214A-\u214D\u214F-\u215F\u2189-\u24B5\u24EA-\u2BFF\u2C2F\u2C5F\u2CE5-\u2CEA\u2CF4-\u2CFF\u2D26\u2D28-\u2D2C\u2D2E\u2D2F\u2D68-\u2D6E\u2D70-\u2D7E\u2D97-\u2D9F\u2DA7\u2DAF\u2DB7\u2DBF\u2DC7\u2DCF\u2DD7\u2DDF\u2E00-\u2E2E\u2E30-\u3004\u3008-\u3020\u3030\u3036\u3037\u303D-\u3040\u3097\u3098\u309B\u309C\u30A0\u30FB\u3100-\u3104\u3130\u318F-\u319F\u31C0-\u31EF\u3200-\u33FF\u4DC0-\u4DFF\u9FFD-\u9FFF\uA48D-\uA4CF\uA4FE\uA4FF\uA60D-\uA60F\uA62C-\uA63F\uA673\uA67E\uA6F2-\uA716\uA720\uA721\uA789\uA78A\uA7C0\uA7C1\uA7CB-\uA7F4\uA828-\uA82B\uA82D-\uA83F\uA874-\uA87F\uA8C6-\uA8CF\uA8DA-\uA8DF\uA8F8-\uA8FA\uA8FC\uA92E\uA92F\uA954-\uA95F\uA97D-\uA97F\uA9C1-\uA9CE\uA9DA-\uA9DF\uA9FF\uAA37-\uAA3F\uAA4E\uAA4F\uAA5A-\uAA5F\uAA77-\uAA79\uAAC3-\uAADA\uAADE\uAADF\uAAF0\uAAF1\uAAF7-\uAB00\uAB07\uAB08\uAB0F\uAB10\uAB17-\uAB1F\uAB27\uAB2F\uAB5B\uAB6A-\uAB6F\uABEB\uABEE\uABEF\uABFA-\uABFF\uD7A4-\uD7AF\uD7C7-\uD7CA\uD7FC-\uD7FF\uE000-\uF8FF\uFA6E\uFA6F\uFADA-\uFAFF\uFB07-\uFB12\uFB18-\uFB1C\uFB29\uFB37\uFB3D\uFB3F\uFB42\uFB45\uFBB2-\uFBD2\uFD3E-\uFD4F\uFD90\uFD91\uFDC8-\uFDEF\uFDFC-\uFDFF\uFE10-\uFE1F\uFE30-\uFE32\uFE35-\uFE4C\uFE50-\uFE6F\uFE75\uFEFD-\uFF0F\uFF1A-\uFF20\uFF3B-\uFF3E\uFF40\uFF5B-\uFF65\uFFBF-\uFFC1\uFFC8\uFFC9\uFFD0\uFFD1\uFFD8\uFFD9\uFFDD-\uFFFF]|\uD800[\uDC0C\uDC27\uDC3B\uDC3E\uDC4E\uDC4F\uDC5E-\uDC7F\uDCFB-\uDD3F\uDD75-\uDDFC\uDDFE-\uDE7F\uDE9D-\uDE9F\uDED1-\uDEDF\uDEE1-\uDEFF\uDF20-\uDF2C\uDF4B-\uDF4F\uDF7B-\uDF7F\uDF9E\uDF9F\uDFC4-\uDFC7\uDFD0\uDFD6-\uDFFF]|\uD801[\uDC9E\uDC9F\uDCAA-\uDCAF\uDCD4-\uDCD7\uDCFC-\uDCFF\uDD28-\uDD2F\uDD64-\uDDFF\uDF37-\uDF3F\uDF56-\uDF5F\uDF68-\uDFFF]|\uD802[\uDC06\uDC07\uDC09\uDC36\uDC39-\uDC3B\uDC3D\uDC3E\uDC56-\uDC5F\uDC77-\uDC7F\uDC9F-\uDCDF\uDCF3\uDCF6-\uDCFF\uDD16-\uDD1F\uDD3A-\uDD7F\uDDB8-\uDDBD\uDDC0-\uDDFF\uDE04\uDE07-\uDE0B\uDE14\uDE18\uDE36\uDE37\uDE3B-\uDE3E\uDE40-\uDE5F\uDE7D-\uDE7F\uDE9D-\uDEBF\uDEC8\uDEE7-\uDEFF\uDF36-\uDF3F\uDF56-\uDF5F\uDF73-\uDF7F\uDF92-\uDFFF]|\uD803[\uDC49-\uDC7F\uDCB3-\uDCBF\uDCF3-\uDCFF\uDD28-\uDD2F\uDD3A-\uDE7F\uDEAA\uDEAD-\uDEAF\uDEB2-\uDEFF\uDF1D-\uDF26\uDF28-\uDF2F\uDF51-\uDFAF\uDFC5-\uDFDF\uDFF7-\uDFFF]|\uD804[\uDC47-\uDC65\uDC70-\uDC7E\uDCBB-\uDCCF\uDCE9-\uDCEF\uDCFA-\uDCFF\uDD35\uDD40-\uDD43\uDD48-\uDD4F\uDD74\uDD75\uDD77-\uDD7F\uDDC5-\uDDC8\uDDCD\uDDDB\uDDDD-\uDDFF\uDE12\uDE38-\uDE3D\uDE3F-\uDE7F\uDE87\uDE89\uDE8E\uDE9E\uDEA9-\uDEAF\uDEEB-\uDEEF\uDEFA-\uDEFF\uDF04\uDF0D\uDF0E\uDF11\uDF12\uDF29\uDF31\uDF34\uDF3A\uDF45\uDF46\uDF49\uDF4A\uDF4E\uDF4F\uDF51-\uDF56\uDF58-\uDF5C\uDF64\uDF65\uDF6D-\uDF6F\uDF75-\uDFFF]|\uD805[\uDC4B-\uDC4F\uDC5A-\uDC5D\uDC62-\uDC7F\uDCC6\uDCC8-\uDCCF\uDCDA-\uDD7F\uDDB6\uDDB7\uDDC1-\uDDD7\uDDDE-\uDDFF\uDE41-\uDE43\uDE45-\uDE4F\uDE5A-\uDE7F\uDEB9-\uDEBF\uDECA-\uDEFF\uDF1B\uDF1C\uDF2C-\uDF2F\uDF3A-\uDFFF]|\uD806[\uDC3B-\uDC9F\uDCEA-\uDCFE\uDD07\uDD08\uDD0A\uDD0B\uDD14\uDD17\uDD36\uDD39\uDD3A\uDD44-\uDD4F\uDD5A-\uDD9F\uDDA8\uDDA9\uDDD8\uDDD9\uDDE2\uDDE5-\uDDFF\uDE3F-\uDE46\uDE48-\uDE4F\uDE9A-\uDE9C\uDE9E-\uDEBF\uDEF9-\uDFFF]|\uD807[\uDC09\uDC37\uDC41-\uDC4F\uDC5A-\uDC71\uDC90\uDC91\uDCA8\uDCB7-\uDCFF\uDD07\uDD0A\uDD37-\uDD39\uDD3B\uDD3E\uDD48-\uDD4F\uDD5A-\uDD5F\uDD66\uDD69\uDD8F\uDD92\uDD99-\uDD9F\uDDAA-\uDEDF\uDEF7-\uDFAF\uDFB1-\uDFFF]|\uD808[\uDF9A-\uDFFF]|\uD809[\uDC6F-\uDC7F\uDD44-\uDFFF]|[\uD80A\uD80B\uD80E-\uD810\uD812-\uD819\uD824-\uD82B\uD82D\uD82E\uD830-\uD833\uD837\uD839\uD83D\uD83F\uD87B-\uD87D\uD87F\uD885-\uDB3F\uDB41-\uDBFF][\uDC00-\uDFFF]|\uD80D[\uDC2F-\uDFFF]|\uD811[\uDE47-\uDFFF]|\uD81A[\uDE39-\uDE3F\uDE5F\uDE6A-\uDECF\uDEEE\uDEEF\uDEF5-\uDEFF\uDF37-\uDF3F\uDF44-\uDF4F\uDF5A-\uDF62\uDF78-\uDF7C\uDF90-\uDFFF]|\uD81B[\uDC00-\uDE3F\uDE80-\uDEFF\uDF4B-\uDF4E\uDF88-\uDF8E\uDFA0-\uDFDF\uDFE2\uDFE5-\uDFEF\uDFF2-\uDFFF]|\uD821[\uDFF8-\uDFFF]|\uD823[\uDCD6-\uDCFF\uDD09-\uDFFF]|\uD82C[\uDD1F-\uDD4F\uDD53-\uDD63\uDD68-\uDD6F\uDEFC-\uDFFF]|\uD82F[\uDC6B-\uDC6F\uDC7D-\uDC7F\uDC89-\uDC8F\uDC9A-\uDC9C\uDC9F-\uDFFF]|\uD834[\uDC00-\uDD64\uDD6A-\uDD6C\uDD73-\uDD7A\uDD83\uDD84\uDD8C-\uDDA9\uDDAE-\uDE41\uDE45-\uDFFF]|\uD835[\uDC55\uDC9D\uDCA0\uDCA1\uDCA3\uDCA4\uDCA7\uDCA8\uDCAD\uDCBA\uDCBC\uDCC4\uDD06\uDD0B\uDD0C\uDD15\uDD1D\uDD3A\uDD3F\uDD45\uDD47-\uDD49\uDD51\uDEA6\uDEA7\uDEC1\uDEDB\uDEFB\uDF15\uDF35\uDF4F\uDF6F\uDF89\uDFA9\uDFC3\uDFCC\uDFCD]|\uD836[\uDC00-\uDDFF\uDE37-\uDE3A\uDE6D-\uDE74\uDE76-\uDE83\uDE85-\uDE9A\uDEA0\uDEB0-\uDFFF]|\uD838[\uDC07\uDC19\uDC1A\uDC22\uDC25\uDC2B-\uDCFF\uDD2D-\uDD2F\uDD3E\uDD3F\uDD4A-\uDD4D\uDD4F-\uDEBF\uDEFA-\uDFFF]|\uD83A[\uDCC5-\uDCCF\uDCD7-\uDCFF\uDD4C-\uDD4F\uDD5A-\uDFFF]|\uD83B[\uDC00-\uDDFF\uDE04\uDE20\uDE23\uDE25\uDE26\uDE28\uDE33\uDE38\uDE3A\uDE3C-\uDE41\uDE43-\uDE46\uDE48\uDE4A\uDE4C\uDE50\uDE53\uDE55\uDE56\uDE58\uDE5A\uDE5C\uDE5E\uDE60\uDE63\uDE65\uDE66\uDE6B\uDE73\uDE78\uDE7D\uDE7F\uDE8A\uDE9C-\uDEA0\uDEA4\uDEAA\uDEBC-\uDFFF]|\uD83C[\uDC00-\uDD2F\uDD4A-\uDD4F\uDD6A-\uDD6F\uDD8A-\uDFFF]|\uD83E[\uDC00-\uDFEF\uDFFA-\uDFFF]|\uD869[\uDEDE-\uDEFF]|\uD86D[\uDF35-\uDF3F]|\uD86E[\uDC1E\uDC1F]|\uD873[\uDEA2-\uDEAF]|\uD87A[\uDFE1-\uDFFF]|\uD87E[\uDE1E-\uDFFF]|\uD884[\uDF4B-\uDFFF]|\uDB40[\uDC00-\uDCFF\uDDF0-\uDFFF]/g,it=Object.hasOwnProperty,at=class{constructor(){this.occurrences,this.reset()}slug(e,t){let n=this,r=ot(e,t===!0),i=r;for(;it.call(n.occurrences,r);)n.occurrences[i]++,r=i+`-`+n.occurrences[i];return n.occurrences[r]=0,r}reset(){this.occurrences=Object.create(null)}};function ot(e,t){return typeof e==`string`?(t||(e=e.toLowerCase()),e.replace(rt,``).replace(/ /g,`-`)):``}function st(){return{async:!1,breaks:!1,extensions:null,gfm:!0,hooks:null,pedantic:!1,renderer:null,silent:!1,tokenizer:null,walkTokens:null}}var ct=st();function lt(e){ct=e}var ut={exec:()=>null};function E(e,t=``){let n=typeof e==`string`?e:e.source,r={replace:(e,t)=>{let i=typeof t==`string`?t:t.source;return i=i.replace(ft.caret,`$1`),n=n.replace(e,i),r},getRegex:()=>new RegExp(n,t)};return r}var dt=((e=``)=>{try{return!!RegExp(`(?<=1)(?<!1)`+e)}catch{return!1}})(),ft={codeRemoveIndent:/^(?: {1,4}| {0,3}\t)/gm,outputLinkReplace:/\\([\[\]])/g,indentCodeCompensation:/^(\s+)(?:```)/,beginningSpace:/^\s+/,endingHash:/#$/,startingSpaceChar:/^ /,endingSpaceChar:/ $/,nonSpaceChar:/[^ ]/,newLineCharGlobal:/\n/g,tabCharGlobal:/\t/g,multipleSpaceGlobal:/\s+/g,blankLine:/^[ \t]*$/,doubleBlankLine:/\n[ \t]*\n[ \t]*$/,blockquoteStart:/^ {0,3}>/,blockquoteSetextReplace:/\n {0,3}((?:=+|-+) *)(?=\n|$)/g,blockquoteSetextReplace2:/^ {0,3}>[ \t]?/gm,listReplaceNesting:/^ {1,4}(?=( {4})*[^ ])/g,listIsTask:/^\[[ xX]\] +\S/,listReplaceTask:/^\[[ xX]\] +/,listTaskCheckbox:/\[[ xX]\]/,anyLine:/\n.*\n/,hrefBrackets:/^<(.*)>$/,tableDelimiter:/[:|]/,tableAlignChars:/^\||\| *$/g,tableRowBlankLine:/\n[ \t]*$/,tableAlignRight:/^ *-+: *$/,tableAlignCenter:/^ *:-+: *$/,tableAlignLeft:/^ *:-+ *$/,startATag:/^<a /i,endATag:/^<\/a>/i,startPreScriptTag:/^<(pre|code|kbd|script)(\s|>)/i,endPreScriptTag:/^<\/(pre|code|kbd|script)(\s|>)/i,startAngleBracket:/^</,endAngleBracket:/>$/,pedanticHrefTitle:/^([^'"]*[^\s])\s+(['"])(.*)\2/,unicodeAlphaNumeric:/[\p{L}\p{N}]/u,escapeTest:/[&<>"']/,escapeReplace:/[&<>"']/g,escapeTestNoEncode:/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/,escapeReplaceNoEncode:/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/g,caret:/(^|[^\[])\^/g,percentDecode:/%25/g,findPipe:/\|/g,splitPipe:/ \|/,slashPipe:/\\\|/g,carriageReturn:/\r\n|\r/g,spaceLine:/^ +$/gm,notSpaceStart:/^\S*/,endingNewline:/\n$/,listItemRegex:e=>RegExp(`^( {0,3}${e})((?:[	 ][^\\n]*)?(?:\\n|$))`),nextBulletRegex:e=>RegExp(`^ {0,${Math.min(3,e-1)}}(?:[*+-]|\\d{1,9}[.)])((?:[ 	][^\\n]*)?(?:\\n|$))`),hrRegex:e=>RegExp(`^ {0,${Math.min(3,e-1)}}((?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$)`),fencesBeginRegex:e=>RegExp(`^ {0,${Math.min(3,e-1)}}(?:\`\`\`|~~~)`),headingBeginRegex:e=>RegExp(`^ {0,${Math.min(3,e-1)}}#`),htmlBeginRegex:e=>RegExp(`^ {0,${Math.min(3,e-1)}}<(?:[a-z].*>|!--)`,`i`),blockquoteBeginRegex:e=>RegExp(`^ {0,${Math.min(3,e-1)}}>`)},pt=/^(?:[ \t]*(?:\n|$))+/,mt=/^((?: {4}| {0,3}\t)[^\n]+(?:\n(?:[ \t]*(?:\n|$))*)?)+/,ht=/^ {0,3}(`{3,}(?=[^`\n]*(?:\n|$))|~{3,})([^\n]*)(?:\n|$)(?:|([\s\S]*?)(?:\n|$))(?: {0,3}\1[~`]* *(?=\n|$)|$)/,gt=/^ {0,3}((?:-[\t ]*){3,}|(?:_[ \t]*){3,}|(?:\*[ \t]*){3,})(?:\n+|$)/,_t=/^ {0,3}(#{1,6})(?=\s|$)(.*)(?:\n+|$)/,vt=/ {0,3}(?:[*+-]|\d{1,9}[.)])/,yt=/^(?!bull |blockCode|fences|blockquote|heading|html|table)((?:.|\n(?!\s*?\n|bull |blockCode|fences|blockquote|heading|html|table))+?)\n {0,3}(=+|-+) *(?:\n+|$)/,bt=E(yt).replace(/bull/g,vt).replace(/blockCode/g,/(?: {4}| {0,3}\t)/).replace(/fences/g,/ {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g,/ {0,3}>/).replace(/heading/g,/ {0,3}#{1,6}/).replace(/html/g,/ {0,3}<[^\n>]+>\n/).replace(/\|table/g,``).getRegex(),xt=E(yt).replace(/bull/g,vt).replace(/blockCode/g,/(?: {4}| {0,3}\t)/).replace(/fences/g,/ {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g,/ {0,3}>/).replace(/heading/g,/ {0,3}#{1,6}/).replace(/html/g,/ {0,3}<[^\n>]+>\n/).replace(/table/g,/ {0,3}\|?(?:[:\- ]*\|)+[\:\- ]*\n/).getRegex(),St=/^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html|table| +\n)[^\n]+)*)/,Ct=/^[^\n]+/,wt=/(?!\s*\])(?:\\[\s\S]|[^\[\]\\])+/,Tt=E(/^ {0,3}\[(label)\]: *(?:\n[ \t]*)?([^<\s][^\s]*|<.*?>)(?:(?: +(?:\n[ \t]*)?| *\n[ \t]*)(title))? *(?:\n+|$)/).replace(`label`,wt).replace(`title`,/(?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))/).getRegex(),Et=E(/^(bull)([ \t][^\n]+?)?(?:\n|$)/).replace(/bull/g,vt).getRegex(),Dt=`address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|meta|nav|noframes|ol|optgroup|option|p|param|search|section|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul`,Ot=/<!--(?:-?>|[\s\S]*?(?:-->|$))/,kt=E(`^ {0,3}(?:<(script|pre|style|textarea)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n+|$)|comment[^\\n]*(\\n+|$)|<\\?[\\s\\S]*?(?:\\?>\\n*|$)|<![A-Z][\\s\\S]*?(?:>\\n*|$)|<!\\[CDATA\\[[\\s\\S]*?(?:\\]\\]>\\n*|$)|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|<(?!script|pre|style|textarea)([a-z][\\w-]*)(?:attribute)*? */?>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|</(?!script|pre|style|textarea)[a-z][\\w-]*\\s*>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$))`,`i`).replace(`comment`,Ot).replace(`tag`,Dt).replace(`attribute`,/ +[a-zA-Z:_][\w.:-]*(?: *= *"[^"\n]*"| *= *'[^'\n]*'| *= *[^\s"'=<>`]+)?/).getRegex(),D=E(St).replace(`hr`,gt).replace(`heading`,` {0,3}#{1,6}(?:\\s|$)`).replace(`|lheading`,``).replace(`|table`,``).replace(`blockquote`,` {0,3}>`).replace(`fences`," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace(`list`,` {0,3}(?:[*+-]|1[.)])[ \\t]`).replace(`html`,`</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)`).replace(`tag`,Dt).getRegex(),At={blockquote:E(/^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/).replace(`paragraph`,D).getRegex(),code:mt,def:Tt,fences:ht,heading:_t,hr:gt,html:kt,lheading:bt,list:Et,newline:pt,paragraph:D,table:ut,text:Ct},jt=E(`^ *([^\\n ].*)\\n {0,3}((?:\\| *)?:?-+:? *(?:\\| *:?-+:? *)*(?:\\| *)?)(?:\\n((?:(?! *\\n|hr|heading|blockquote|code|fences|list|html).*(?:\\n|$))*)\\n*|$)`).replace(`hr`,gt).replace(`heading`,` {0,3}#{1,6}(?:\\s|$)`).replace(`blockquote`,` {0,3}>`).replace(`code`,`(?: {4}| {0,3}	)[^\\n]`).replace(`fences`," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace(`list`,` {0,3}(?:[*+-]|1[.)])[ \\t]`).replace(`html`,`</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)`).replace(`tag`,Dt).getRegex(),Mt={...At,lheading:xt,table:jt,paragraph:E(St).replace(`hr`,gt).replace(`heading`,` {0,3}#{1,6}(?:\\s|$)`).replace(`|lheading`,``).replace(`table`,jt).replace(`blockquote`,` {0,3}>`).replace(`fences`," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace(`list`,` {0,3}(?:[*+-]|1[.)])[ \\t]`).replace(`html`,`</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)`).replace(`tag`,Dt).getRegex()},Nt={...At,html:E(`^ *(?:comment *(?:\\n|\\s*$)|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)|<tag(?:"[^"]*"|'[^']*'|\\s[^'"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))`).replace(`comment`,Ot).replace(/tag/g,`(?!(?:a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)\\b)\\w+(?!:|[^\\w\\s@]*@)\\b`).getRegex(),def:/^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/,heading:/^(#{1,6})(.*)(?:\n+|$)/,fences:ut,lheading:/^(.+?)\n {0,3}(=+|-+) *(?:\n+|$)/,paragraph:E(St).replace(`hr`,gt).replace(`heading`,` *#{1,6} *[^
 ]`).replace(`lheading`,bt).replace(`|table`,``).replace(`blockquote`,` {0,3}>`).replace(`|fences`,``).replace(`|list`,``).replace(`|html`,``).replace(`|tag`,``).getRegex()},Pt=/^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/,Ft=/^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/,It=/^( {2,}|\\)\n(?!\s*$)/,Lt=/^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*_]|\b_|$)|[^ ](?= {2,}\n)))/,O=/[\p{P}\p{S}]/u,Rt=/[\s\p{P}\p{S}]/u,zt=/[^\s\p{P}\p{S}]/u,Bt=E(/^((?![*_])punctSpace)/,`u`).replace(/punctSpace/g,Rt).getRegex(),Vt=/(?!~)[\p{P}\p{S}]/u,Ht=/(?!~)[\s\p{P}\p{S}]/u,Ut=/(?:[^\s\p{P}\p{S}]|~)/u,Wt=E(/link|precode-code|html/,`g`).replace(`link`,/\[(?:[^\[\]`]|(?<a>`+)[^`]+\k<a>(?!`))*?\]\((?:\\[\s\S]|[^\\\(\)]|\((?:\\[\s\S]|[^\\\(\)])*\))*\)/).replace(`precode-`,dt?"(?<!`)()":"(^^|[^`])").replace(`code`,/(?<b>`+)[^`]+\k<b>(?!`)/).replace(`html`,/<(?! )[^<>]*?>/).getRegex(),Gt=/^(?:\*+(?:((?!\*)punct)|([^\s*]))?)|^_+(?:((?!_)punct)|([^\s_]))?/,Kt=E(Gt,`u`).replace(/punct/g,O).getRegex(),qt=E(Gt,`u`).replace(/punct/g,Vt).getRegex(),Jt=`^[^_*]*?__[^_*]*?\\*[^_*]*?(?=__)|[^*]+(?=[^*])|(?!\\*)punct(\\*+)(?=[\\s]|$)|notPunctSpace(\\*+)(?!\\*)(?=punctSpace|$)|(?!\\*)punctSpace(\\*+)(?=notPunctSpace)|[\\s](\\*+)(?!\\*)(?=punct)|(?!\\*)punct(\\*+)(?!\\*)(?=punct)|notPunctSpace(\\*+)(?=notPunctSpace)`,Yt=E(Jt,`gu`).replace(/notPunctSpace/g,zt).replace(/punctSpace/g,Rt).replace(/punct/g,O).getRegex(),Xt=E(Jt,`gu`).replace(/notPunctSpace/g,Ut).replace(/punctSpace/g,Ht).replace(/punct/g,Vt).getRegex(),Zt=E(`^[^_*]*?\\*\\*[^_*]*?_[^_*]*?(?=\\*\\*)|[^_]+(?=[^_])|(?!_)punct(_+)(?=[\\s]|$)|notPunctSpace(_+)(?!_)(?=punctSpace|$)|(?!_)punctSpace(_+)(?=notPunctSpace)|[\\s](_+)(?!_)(?=punct)|(?!_)punct(_+)(?!_)(?=punct)`,`gu`).replace(/notPunctSpace/g,zt).replace(/punctSpace/g,Rt).replace(/punct/g,O).getRegex(),Qt=E(/^~~?(?:((?!~)punct)|[^\s~])/,`u`).replace(/punct/g,O).getRegex(),$t=E(`^[^~]+(?=[^~])|(?!~)punct(~~?)(?=[\\s]|$)|notPunctSpace(~~?)(?!~)(?=punctSpace|$)|(?!~)punctSpace(~~?)(?=notPunctSpace)|[\\s](~~?)(?!~)(?=punct)|(?!~)punct(~~?)(?!~)(?=punct)|notPunctSpace(~~?)(?=notPunctSpace)`,`gu`).replace(/notPunctSpace/g,zt).replace(/punctSpace/g,Rt).replace(/punct/g,O).getRegex(),en=E(/\\(punct)/,`gu`).replace(/punct/g,O).getRegex(),tn=E(/^<(scheme:[^\s\x00-\x1f<>]*|email)>/).replace(`scheme`,/[a-zA-Z][a-zA-Z0-9+.-]{1,31}/).replace(`email`,/[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(@)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(?![-_])/).getRegex(),nn=E(Ot).replace(`(?:-->|$)`,`-->`).getRegex(),rn=E(`^comment|^</[a-zA-Z][\\w:-]*\\s*>|^<[a-zA-Z][\\w-]*(?:attribute)*?\\s*/?>|^<\\?[\\s\\S]*?\\?>|^<![a-zA-Z]+\\s[\\s\\S]*?>|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>`).replace(`comment`,nn).replace(`attribute`,/\s+[a-zA-Z:_][\w.:-]*(?:\s*=\s*"[^"]*"|\s*=\s*'[^']*'|\s*=\s*[^\s"'=<>`]+)?/).getRegex(),an=/(?:\[(?:\\[\s\S]|[^\[\]\\])*\]|\\[\s\S]|`+(?!`)[^`]*?`+(?!`)|``+(?=\])|[^\[\]\\`])*?/,on=E(/^!?\[(label)\]\(\s*(href)(?:(?:[ \t]+(?:\n[ \t]*)?|\n[ \t]*)(title))?\s*\)/).replace(`label`,an).replace(`href`,/<(?:\\.|[^\n<>\\])+>|[^ \t\n\x00-\x1f]*/).replace(`title`,/"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/).getRegex(),sn=E(/^!?\[(label)\]\[(ref)\]/).replace(`label`,an).replace(`ref`,wt).getRegex(),cn=E(/^!?\[(ref)\](?:\[\])?/).replace(`ref`,wt).getRegex(),ln=E(`reflink|nolink(?!\\()`,`g`).replace(`reflink`,sn).replace(`nolink`,cn).getRegex(),un=/[hH][tT][tT][pP][sS]?|[fF][tT][pP]/,dn={_backpedal:ut,anyPunctuation:en,autolink:tn,blockSkip:Wt,br:It,code:Ft,del:ut,delLDelim:ut,delRDelim:ut,emStrongLDelim:Kt,emStrongRDelimAst:Yt,emStrongRDelimUnd:Zt,escape:Pt,link:on,nolink:cn,punctuation:Bt,reflink:sn,reflinkSearch:ln,tag:rn,text:Lt,url:ut},fn={...dn,link:E(/^!?\[(label)\]\((.*?)\)/).replace(`label`,an).getRegex(),reflink:E(/^!?\[(label)\]\s*\[([^\]]*)\]/).replace(`label`,an).getRegex()},pn={...dn,emStrongRDelimAst:Xt,emStrongLDelim:qt,delLDelim:Qt,delRDelim:$t,url:E(/^((?:protocol):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/).replace(`protocol`,un).replace(`email`,/[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/).getRegex(),_backpedal:/(?:[^?!.,:;*_'"~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_'"~)]+(?!$))+/,del:/^(~~?)(?=[^\s~])((?:\\[\s\S]|[^\\])*?(?:\\[\s\S]|[^\s~\\]))\1(?=[^~]|$)/,text:E(/^([`~]+|[^`~])(?:(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)|[\s\S]*?(?:(?=[\\<!\[`*~_]|\b_|protocol:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)))/).replace(`protocol`,un).getRegex()},mn={...pn,br:E(It).replace(`{2,}`,`*`).getRegex(),text:E(pn.text).replace(`\\b_`,`\\b_| {2,}\\n`).replace(/\{2,\}/g,`*`).getRegex()},hn={normal:At,gfm:Mt,pedantic:Nt},gn={normal:dn,gfm:pn,breaks:mn,pedantic:fn},_n={"&":`&amp;`,"<":`&lt;`,">":`&gt;`,'"':`&quot;`,"'":`&#39;`},k=e=>_n[e];function A(e,t){if(t){if(ft.escapeTest.test(e))return e.replace(ft.escapeReplace,k)}else if(ft.escapeTestNoEncode.test(e))return e.replace(ft.escapeReplaceNoEncode,k);return e}function vn(e){try{e=encodeURI(e).replace(ft.percentDecode,`%`)}catch{return null}return e}function yn(e,t){let n=e.replace(ft.findPipe,(e,t,n)=>{let r=!1,i=t;for(;--i>=0&&n[i]===`\\`;)r=!r;return r?`|`:` |`}).split(ft.splitPipe),r=0;if(n[0].trim()||n.shift(),n.length>0&&!n.at(-1)?.trim()&&n.pop(),t)if(n.length>t)n.splice(t);else for(;n.length<t;)n.push(``);for(;r<n.length;r++)n[r]=n[r].trim().replace(ft.slashPipe,`|`);return n}function bn(e,t,n){let r=e.length;if(r===0)return``;let i=0;for(;i<r;){let a=e.charAt(r-i-1);if(a===t&&!n)i++;else if(a!==t&&n)i++;else break}return e.slice(0,r-i)}function xn(e){let t=e.split(`
@@ -414,9 +414,10 @@ type Query {
 
 
 """
-Mutations de contribution : proposer une modification, un événement daté ou une image, puis la
-relire, avec les mêmes règles que le site (\`/contribute\`, éditeur de tracé, formulaires
-\`/contribute/event\` et \`/contribute/media\`, espace de validation \`/validate\`).
+Mutations de contribution : proposer une modification, un événement daté, une image, le matériel
+d'une ligne ou une série de matériel, puis la relire, avec les mêmes règles que le site
+(\`/contribute\`, éditeur de tracé, formulaires \`/contribute/event\`, \`/contribute/media\`,
+\`/contribute/material\` et \`/contribute/series\`, espace de validation \`/validate\`).
 
 **Authentification**, l'une ou l'autre :
 - jeton personnel dans l'en-tête \`Authorization: Bearer <jeton>\`, créé dans le profil avec la case
@@ -451,10 +452,16 @@ dans \`extensions.code\` (messages en anglais) :
 - \`application_failed\` : la publication a échoué, rien n'est écrit et l'approbation est annulée ;
   \`extensions.reason\` donne la raison stable : \`no_geometry\` (la ligne n'a pas de tracé à l'ère de la
   contribution), \`line_not_found\` (la ligne que corrige le tracé n'existe plus), \`target_not_found\`
-  (la ligne, la gare ou l'événement d'un événement daté ou d'une image n'existe plus),
-  \`already_present\` (le fichier Commons a été rattaché entre-temps à la même fiche), \`file_missing\`
-  (le fichier déposé n'est plus dans la réserve privée) ou \`internal_error\` (erreur inattendue,
-  consignée dans le journal du site ; son détail n'est jamais renvoyé).
+  (la ligne, la gare, l'événement ou la série visée n'existe plus), \`already_present\` (le fichier
+  Commons a été rattaché entre-temps à la même fiche, ou une série du même nom ou du même identifiant
+  Wikidata a été ajoutée entre-temps), \`file_missing\` (le fichier déposé n'est plus dans la réserve
+  privée), \`incompatible\` (le lien entre la série et la ligne contredit maintenant la règle
+  d'écartement ou d'électrification, et la phrase citée ne suffit plus ; ou la correction d'une série
+  rendrait des liens de cette série contraires à ces règles), \`stale\` (la série corrigée a changé
+  depuis l'envoi), \`inconsistent\` (avec la correction, le retrait viendrait avant la mise en service)
+  ou \`internal_error\` (erreur inattendue, consignée dans le journal du site ; son détail n'est jamais
+  renvoyé). \`extensions.details\` donne les précisions utiles au validateur (champs changés, liens
+  concernés), vide sinon.
 
 Une saisie refusée donne une erreur de validation : \`extensions.validation\` associe le chemin du
 champ (par exemple \`input.segment.pk_end_m\`) à ses messages.
@@ -467,13 +474,14 @@ type Mutation {
   Propose une contribution, enregistrée « en attente » (\`PENDING\`) puis annoncée aux validateurs.
   Elle est publiée après deux approbations indépendantes (\`validateContribution\`).
   
-  Renseignez exactement un des quatre champs de \`input\` : \`segment\` (modification d'une portion de
+  Renseignez exactement un des six champs de \`input\` : \`segment\` (modification d'une portion de
   ligne entre deux PK), \`trace\` (tracé dessiné : ligne disparue ou correction d'une ligne), \`event\`
-  (événement daté d'une ligne) ou \`media\` (image de Wikimedia Commons ou fichier déposé, en requête
-  multipart). Le compte doit être connecté et non suspendu.
+  (événement daté d'une ligne), \`media\` (image de Wikimedia Commons ou fichier déposé, en requête
+  multipart), \`line_material\` (série de matériel qui a circulé sur une ligne) ou \`series\` (nouvelle
+  série de matériel ou correction d'une série). Le compte doit être connecté et non suspendu.
   """
   submitContribution(
-    "La proposition : un seul de ses quatre champs."
+    "La proposition : un seul de ses six champs."
     input: ContributionInput!
   ): Contribution!
   """
@@ -649,6 +657,19 @@ type Line {
   greenways: [LineGreenway!]!
   "Longueur totale, en mètres, des voies vertes qui suivent l'ancienne emprise de la ligne (0 s'il n'y en a pas)."
   greenway_length_m: Int!
+  """
+  Documents d'archives numérisés dans Gallica (Bibliothèque nationale de France) dont le titre parle
+  de la ligne, du plus ancien au plus récent (sans date en dernier), comme
+  \`GET /api/v1/lines/{line}/archives\` : projets, plans et cartes du tracé, mémoires, guides,
+  photographies. Rattachement par un score explicable calculé sur le seul titre de la notice
+  (\`LineArchiveDocument.score_reasons\`), retenu à partir de 9 points sur 11 ; liste vide si aucun
+  document n'est sûr. Métadonnées des notices de la BnF sous Licence Ouverte : reprenez la mention
+  \`LineArchiveDocument.attribution\`. Aucune image ni vignette n'est servie : suivez \`gallica_url\`.
+  """
+  archives(
+    "Ne garder qu'un type de document. Par défaut : tous."
+    type: ArchiveDocumentType
+  ): [LineArchiveDocument!]!
   """
   Mises en service de signalisation datées (BAL, BAPR, block manuel, cantonnement téléphonique, TVM,
   ETCS, KVB), relevées dans l'article Wikipédia de la ligne (texte, listes, tableaux, infobox), du plus
@@ -1303,7 +1324,7 @@ type Material {
   wikipedia_en_url: String
   "Nombre de lignes de VFF que la série a parcourues d'après une source (voir \`line_links\`)."
   lines_count: Int!
-  "Provenance de la fiche : \`wikidata\`, ou nulle pour une fiche saisie dans VFF."
+  "Provenance de la fiche : \`wikidata\`, \`contrib\` (série proposée par un contributeur et validée), ou nulle pour une fiche saisie dans VFF."
   source: String
   "Fournisseur de la fiche et sa licence (Wikidata : CC0). L'image a sa propre licence (\`image\`)."
   provenance: Provenance!
@@ -1424,7 +1445,7 @@ type MaterialImage {
 type MaterialFieldSource {
   "Nom du champ (ex. \`in_service_from\`, \`max_speed_kmh\`, \`image\`)."
   field: String!
-  "Source : \`wikidata\`, \`commons\` (image) ou \`wikipedia\` (catégorie ou infobox de l'article : catégorie « bimode », effectif en service ; ou circulation en France d'une série non rattachée)."
+  "Source : \`wikidata\`, \`commons\` (image), \`wikipedia\` (catégorie ou infobox de l'article : catégorie « bimode », effectif en service ; ou circulation en France d'une série non rattachée) ou \`contrib\` (valeur proposée par un contributeur et validée, référence \`contribution:<id>\`, \`url\` : source qu'il cite)."
   source: String!
   "Référence précise : élément et propriété Wikidata (ex. \`Q746572#P729\`), fichier Commons, catégorie Wikipédia, ou article et paramètre de l'infobox (ex. \`Régiolis#infobox:Type\`)."
   reference: String
@@ -1456,14 +1477,20 @@ type LineMaterialLink {
   line: Line!
   "La série de matériel."
   material: Material!
-  "Provenance du lien : \`wikidata\`, \`wikipedia\`, ou nulle pour un lien saisi dans VFF."
+  """
+  Provenance du lien : \`wikidata\`, \`wikipedia\`, \`contrib\` (proposé par des contributeurs avec leur
+  source et validé par deux relecteurs), ou nulle pour un lien saisi dans VFF. Un même couple ligne ×
+  série peut avoir un lien par provenance.
+  """
   source: String
   "Permalien de la source la plus forte (révision Wikipédia \`oldid\` ou élément Wikidata) : à citer."
   source_url: String
   """
   Fiabilité : \`high\` (Wikidata, ou section « Matériel roulant » de l'article de la ligne),
   \`medium\` (autre section), \`low\` (à confirmer : article qui décrit plusieurs lignes de VFF à la
-  fois, ou preuves qui portent toutes un doute, voir \`LineMaterialEvidence.doubt\`).
+  fois, ou preuves qui portent toutes un doute, voir \`LineMaterialEvidence.doubt\`). Lien \`contrib\` :
+  \`high\` dès qu'une contribution déclare un service régulier, \`low\` si toutes parlent d'une
+  circulation exceptionnelle, d'essais ou d'un train de musée.
   """
   confidence: String
   "Ère VFF à laquelle le lien est rattaché, quand la source la date. Souvent nulle."
@@ -1508,16 +1535,16 @@ type LineMaterialPeriod {
   section_to: String
   "Fiabilité : \`high\` (chaque date au jour ou au mois) ou \`medium\` (une date à l'année). Les périodes \`low\` ne sont jamais servies."
   confidence: String!
-  "Où le fait a été lu : \`line_article\` (article de la ligne), \`material_article\` (article de la série) ou \`wikidata\`."
+  "Où le fait a été lu : \`line_article\` (article de la ligne), \`material_article\` (article de la série), \`wikidata\` ou \`contribution\` (proposée par un contributeur avec sa source, validée par deux relecteurs)."
   origin: String!
-  "Fournisseur de la source : \`wikipedia\` ou \`wikidata\`."
+  "Fournisseur de la source : \`wikipedia\`, \`wikidata\` ou \`contrib\` (contribution validée)."
   source: String!
-  "Titre de l'article Wikipédia lu, ou élément Wikidata de la ligne (\`Q…\`)."
+  "Titre de l'article Wikipédia lu, élément Wikidata de la ligne (\`Q…\`), ou titre et licence de la source d'une contribution."
   source_title: String
-  "Révision de l'article lue (\`oldid\`), nulle pour Wikidata."
+  "Révision de l'article lue (\`oldid\`), nulle pour Wikidata et les contributions."
   source_revision: Int
-  "Permalien de la source (révision Wikipédia ou élément Wikidata) : à citer."
-  source_url: String!
+  "Permalien de la source (révision Wikipédia, élément Wikidata, adresse citée par le contributeur) : à citer. Nul seulement pour une contribution qui cite un ouvrage ou une archive papier par sa référence (\`source_title\`)."
+  source_url: String
   "Fournisseur et licence de la source."
   provenance: Provenance!
 }
@@ -1528,8 +1555,16 @@ Une preuve d'un lien ligne × matériel. Les phrases citées sont des extraits d
 (CC BY-SA 4.0) : citez l'article avec le permalien \`url\`.
 """
 type LineMaterialEvidence {
-  "\`wikipedia_line_article\` (lien vers la série dans l'article de la ligne), \`wikipedia_material_article\` (lien vers la ligne dans l'article de la série) ou \`wikidata\`."
+  "\`wikipedia_line_article\` (lien vers la série dans l'article de la ligne), \`wikipedia_material_article\` (lien vers la ligne dans l'article de la série), \`wikidata\` ou \`contribution\` (contribution validée)."
   kind: String!
+  "Provenance d'une preuve \`contribution\` : \`contribution:<id>\`."
+  contribution: String
+  "Titre ou référence de la source citée par une contribution (ex. « Livret Chaix d'été 1938, p. 112 »)."
+  title: String
+  "Nature de la source citée par une contribution : \`web\`, \`document\` (document numérisé) ou \`print\` (ouvrage ou archive papier)."
+  source_kind: String
+  "Licence du document cité par une contribution (\`public_domain\`, \`cc-by-sa-4.0\`, \`all_rights_reserved\`…), nulle pour une page web ou un ouvrage papier."
+  license: String
   "Titre de l'article Wikipédia lu."
   article: String
   "Révision de l'article lue (identifiant \`oldid\`)."
@@ -1555,7 +1590,9 @@ type LineMaterialEvidence {
   \`positioning\` (acheminement vers un atelier), \`diverted\` (coupure, détournement), \`restricted\`
   (matériel réservé à une autre ligne), \`component\` (pièce reprise de la série), \`footnote\` (lien
   posé dans une note ou un passage sans source), \`section\` (section d'essais, de records ou de
-  préservation). Un lien dont toutes les preuves portent un doute est en fiabilité \`low\`.
+  préservation). Un lien dont toutes les preuves portent un doute est en fiabilité \`low\`. Pour une
+  contribution, la circulation déclarée : \`one_off\` (exceptionnelle), \`trial\` (essais), \`preserved\`
+  (train de musée ou touristique), nul pour un service régulier.
   """
   doubt: String
   "Permalien de la preuve."
@@ -1927,6 +1964,79 @@ type LineGreenway {
   attribution: String!
   "Fournisseur et licence de la donnée (OpenStreetMap, ODbL)."
   provenance: Provenance!
+}
+
+
+"Type d'un document d'archives, d'après la notice de la BnF."
+enum ArchiveDocumentType {
+  "Texte imprimé : livre, brochure, mémoire, rapport, guide."
+  MONOGRAPH
+  "Document cartographique : carte, plan, profil en long."
+  MAP
+  "Image fixe : photographie, estampe, affiche, carte postale."
+  IMAGE
+  "Manuscrit."
+  MANUSCRIPT
+}
+
+
+"""
+Document d'archives numérisé en accès libre dans Gallica, rattaché à une ligne d'après le titre de sa
+notice au catalogue général de la BnF (\`vff:import-gallica\`). Seules les métadonnées de la notice
+(Licence Ouverte) sont gardées par VFF, avec les identifiants ark ; le document lui-même se consulte
+dans Gallica, et sa réutilisation suit les conditions d'utilisation de Gallica (non commerciale libre
+avec la mention « Source gallica.bnf.fr / BnF », commerciale soumise à redevance).
+"""
+type LineArchiveDocument {
+  "Identifiant ark du document numérisé dans Gallica (ex. \`ark:/12148/bpt6k1192344q\`)."
+  gallica_ark: String!
+  "Lien vers le document dans Gallica."
+  gallica_url: String!
+  "Identifiant ark de la notice au catalogue général de la BnF (ex. \`ark:/12148/cb315821610\`), nul s'il manque."
+  catalogue_ark: String
+  "Lien vers la notice au catalogue général de la BnF."
+  catalogue_url: String
+  "Titre propre de la notice, suivi de son premier complément après « : »."
+  title: String!
+  "Type de document : \`monograph\` (texte imprimé), \`map\` (carte, plan), \`image\` (image fixe) ou \`manuscript\`."
+  type: String!
+  "Auteurs, illustrateurs, éditeurs scientifiques ou collectivités, tels que la notice les écrit (« Villemandy, Alfred de ») ; quatre au plus."
+  authors: [String!]!
+  "Date telle que la notice l'imprime (« 1860 », « [ca 1850] », « 1er novembre 1873 »), nulle si la notice n'en donne pas."
+  date_label: String
+  "Année du document (première année d'un intervalle), nulle si elle est inconnue."
+  year: Int
+  "Dernière année d'un intervalle (\`date_precision\` = \`range\`), nulle sinon."
+  year_to: Int
+  "Jour exact (précision \`day\`) ou premier jour du mois (précision \`month\`), quand la notice le donne."
+  exact_date: Date
+  "Précision de la date : \`day\`, \`month\`, \`year\`, \`circa\` (date approchée), \`range\` (entre \`year\` et \`year_to\`) ou \`unknown\`."
+  date_precision: String!
+  "Cote de l'original à la BnF (ex. \`V-54984\`, \`GE C-4520\`), nulle si la notice n'en donne pas."
+  shelfmark: String
+  "Score de rattachement à la ligne, de 9 (seuil) à 11."
+  score: Int!
+  "Raisons du score, point par point : \`rail_route\` (4), \`route\` (3) ou \`two_places\` (1, plus \`only_line_places\` (1) si le titre ne nomme aucun lieu hors de la ligne), \`ends\` (2) ou \`secondary_mention\` (0), \`rail_word\` (2) ou \`rail_hint\` (1), \`date_in_life\` (2), \`date_project\` (1), \`date_after_closure\` (1), \`date_unknown\` (0) ou \`date_doubtful\` (0, année imprimée dans le titre à plus de 40 ans de la date de la notice), \`doc_type\` (1)."
+  score_reasons: [ArchiveMatchReason!]!
+  "Lieux de la ligne reconnus dans le titre."
+  matched_places: [String!]!
+  "Dernière mise à jour de la notice à la BnF."
+  record_updated_on: Date
+  "Date de récupération de la notice par VFF (à citer avec la source)."
+  fetched_at: DateTime!
+  "Mention de source à reproduire : « Source : gallica.bnf.fr / BnF », Licence Ouverte pour les métadonnées."
+  attribution: String!
+  "Fournisseur et licence de la donnée (Gallica, BnF)."
+  provenance: Provenance!
+}
+
+
+"Une raison du score de rattachement d'un document d'archives."
+type ArchiveMatchReason {
+  "Code de la raison : \`rail_route\` (voie ferrée « de X à Y »), \`route\` (trajet « de X à Y »), \`two_places\`, \`only_line_places\`, \`ends\`, \`secondary_mention\`, \`rail_word\`, \`rail_hint\`, \`date_in_life\`, \`date_project\`, \`date_after_closure\`, \`date_unknown\`, \`date_doubtful\` ou \`doc_type\`."
+  code: String!
+  "Points apportés au score."
+  points: Int!
 }
 
 
@@ -3351,7 +3461,7 @@ type TerritoryCounts {
 }
 
 
-"Une proposition de contribution : renseignez exactement un des quatre champs."
+"Une proposition de contribution : renseignez exactement un des six champs."
 input ContributionInput {
   "Modification d'attributs d'une portion de ligne entre deux PK, à une ère."
   segment: SegmentContributionInput
@@ -3361,6 +3471,150 @@ input ContributionInput {
   event: EventContributionInput
   "Image rattachée à une ligne, une gare ou un événement : fichier de Wikimedia Commons ou fichier déposé."
   media: MediaContributionInput
+  "Série de matériel qui a circulé sur une ligne, avec sa source et sa période de service."
+  line_material: LineMaterialContributionInput
+  "Nouvelle série de matériel, ou correction d'une série de VFF, avec sa source."
+  series: MaterialSeriesContributionInput
+}
+
+
+"""
+Série de matériel qui a circulé sur une ligne, comme dans le formulaire « Proposer un matériel sur
+une ligne » du site (\`/contribute/material\`).
+
+À l'envoi, les règles d'écartement et d'électrification de l'import s'appliquent : une série dont
+l'écartement couvre moins du quart de la ligne, ou une série électrique dont aucun système n'a
+couvert 5 % de la ligne pendant son service, est refusée (erreur sur \`quote\`, qui explique le
+conflit). Le lien n'est accepté que si \`quote\` cite une phrase de la source qui nomme l'écartement
+(« voie normale », « 1 435 mm ») ou la tension de la série (« 750 V »), comme les automotrices
+Z 1200 sur la ligne des Moulineaux (troisième rail en 750 V). L'exception est alors signalée aux
+validateurs. Un lien déjà sûr dans VFF n'est accepté qu'avec une période de service.
+
+À la publication, le lien entre dans \`LineMaterialLink\` (source \`contrib\`, preuve \`contribution\`,
+provenance \`contribution:<id>\`) et la période dans \`LineMaterialPeriod\` (origine \`contribution\`).
+Aucun import n'est relancé.
+"""
+input LineMaterialContributionInput {
+  "Identifiant d'URL de la ligne (ex. \`rfn-972000\`)."
+  line_slug: String!
+  "Identifiant d'URL de la série (ex. \`z-1200\`, voir \`Material.slug\`)."
+  material_slug: String!
+  """
+  Nature de la circulation d'après la source : \`regular\` (service régulier), \`occasional\`
+  (circulation exceptionnelle ou spéciale), \`trial\` (essais) ou \`heritage\` (train de musée ou
+  touristique). Hors service régulier, le lien est publié en fiabilité \`low\` (à confirmer).
+  """
+  circulation: String!
+  "Précision du début de la période de service : \`day\`, \`month\` ou \`year\` ; à donner avec \`start_date\`."
+  start_precision: String
+  "Début de la période selon sa précision : \`AAAA-MM-JJ\`, \`AAAA-MM\` ou \`AAAA\` (années 1750 et suivantes)."
+  start_date: String
+  "Précision de la fin de la période : \`day\`, \`month\` ou \`year\` ; à donner avec \`end_date\`."
+  end_precision: String
+  "Fin de la période selon sa précision, au plus tôt le début. Sans début ni fin, aucune période n'est publiée."
+  end_date: String
+  "Début de la portion parcourue, quand la source la précise (gare, commune), 250 caractères au plus ; à donner avec \`section_to\` et une date."
+  section_from: String
+  "Fin de la portion parcourue, différente de \`section_from\`."
+  section_to: String
+  "Nature de la source : \`web\` (page web), \`document\` (document numérisé) ou \`print\` (ouvrage ou archive papier)."
+  source_kind: String!
+  "Titre ou référence de la source, de 3 à 300 caractères (ex. « Livret Chaix d'été 1938, p. 112 »)."
+  source_title: String!
+  "Adresse de la source, en http ou https, 500 caractères au plus : obligatoire sauf avec \`print\`."
+  source_url: String
+  """
+  Licence du document, obligatoire avec \`document\` et ignorée sinon : \`public_domain\`, \`cc0-1.0\`,
+  \`cc-by-4.0\`, \`cc-by-sa-4.0\`, \`etalab-2.0\`, \`all_rights_reserved\` ou \`unknown\`.
+  """
+  source_license: String
+  """
+  Phrase de la source qui montre la circulation, de 10 à 600 caractères (comptés après la réduction
+  des espaces). Facultative, sauf quand le lien contredit la règle d'écartement ou d'électrification :
+  elle doit alors nommer la série (nom ou désignation) et son écartement ou sa tension, en français,
+  en anglais ou en allemand, sans négation autour (« jamais », « pas », « sans », « aucun », « never »,
+  « not », « nicht », « kein »…). Publiée avec le lien (\`LineMaterialEvidence.quote\`). Un couple
+  écarté après relecture (exclusion relue de VFF) est refusé, comme une période déjà publiée pour
+  le couple par une contribution.
+  """
+  quote: String
+  "Note pour les validateurs, non publiée, 2 000 caractères au plus."
+  notes: String
+}
+
+
+"""
+Nouvelle série de matériel (\`new\`) ou correction d'une série de VFF (\`correction\`), comme dans le
+formulaire « Proposer une série » du site (\`/contribute/series\`).
+
+\`wikidata_id\` est vérifié auprès de Wikidata, seulement s'il change : un élément qui n'existe pas, ou
+qui n'est pas une série de matériel roulant, est refusé. Une nouvelle série prend l'identifiant final
+d'un élément fusionné ; une correction refuse un élément fusionné en donnant son identifiant final, à
+saisir s'il convient (l'identifiant d'une série ne change jamais sans qu'on le demande). Une nouvelle
+série déjà présente dans VFF (même identifiant Wikidata, même nom) est refusée : proposez la
+correction de sa fiche. Pour une correction, un champ absent ou nul ne change pas, \`clear\` efface
+une valeur fausse, et seuls les champs qui changent sont gardés (\`payload.changes\`, \`after\` nul pour
+un effacement). \`payload.impact\` liste les liens de la série qui deviendraient contraires à la règle
+d'écartement ou d'électrification (\`line_slug\`, \`line_code\`, \`line_name\`, \`source\`, \`rule\`, \`reason\`).
+
+À la publication, la série est créée ou corrigée ; chaque champ écrit a la provenance \`contrib\`
+(\`Material.field_sources\`), que l'import de Wikidata ne remplace pas (ni ne remplit de nouveau après
+un effacement). Une correction échoue (\`application_failed\`) si un champ a changé depuis l'envoi
+(\`stale\`), si le retrait viendrait avant la mise en service (\`inconsistent\`) ou si elle rendrait des
+liens de la série contraires aux règles (\`incompatible\`, liens dans \`extensions.details\`).
+Limite propre : 10 propositions de série par minute et par compte, communes avec le site
+(\`too_many_requests\` au-delà).
+"""
+input MaterialSeriesContributionInput {
+  "\`new\` (nouvelle série) ou \`correction\` (série de VFF désignée par \`material_slug\`)."
+  mode: String!
+  "Avec \`correction\` : identifiant d'URL de la série à corriger (ex. \`z-1200\`)."
+  material_slug: String
+  "Nom d'usage de la série, de 2 à 120 caractères (ex. « Z 1200 ») ; obligatoire avec \`new\`."
+  name: String
+  """
+  Catégorie, qui dit aussi la traction : \`locomotive_electrique\`, \`locomotive_diesel\`,
+  \`locomotive_vapeur\`, \`automotrice\`, \`bimode\`, \`autorail\`, \`rame_tgv\`, \`voiture\`, \`wagon\`,
+  \`tramway\` ou \`engin_service\` ; obligatoire avec \`new\`.
+  """
+  type: String
+  """
+  Systèmes d'électrification de la série, sans doublon : \`dc_600\`, \`dc_750\`, \`dc_850\`, \`dc_1500\`,
+  \`dc_3000\` (courant continu, en volts), \`ac_15k\` (15 kV 16,7 Hz), \`ac_20k\` (20 kV 50 Hz) ou
+  \`ac_25k\` (25 kV 50 Hz). Vide ou absent : inchangé pour une correction.
+  """
+  electrification: [String!]
+  """
+  Écartements de la série en millimètres, sans doublon, quatre au plus (ex. \`[1435, 1668]\` pour une
+  série à deux écartements) : \`1435\`, \`1000\`, \`600\`, \`1668\`, \`1520\`, ou un écartement que porte déjà
+  une série de VFF (\`891\`, \`1588\`…). Vide ou absent : inchangé pour une correction.
+  """
+  gauges: [Int!]
+  "Forme courte d'un seul écartement (\`gauges\` = \`[gauge_mm]\`), mêmes valeurs ; jamais avec \`gauges\`."
+  gauge_mm: Int
+  "Constructeurs, séparés par des virgules (ex. « Alsthom, Francorail-MTE »), de 2 à 255 caractères."
+  builder: String
+  "Année de mise en service, de 1800 à l'année en cours plus 30."
+  in_service_from: Int
+  "Année de retrait du service, au plus tôt celle de la mise en service."
+  in_service_to: Int
+  "Identifiant Wikidata de la série (\`Q3574398\`) ou adresse de l'élément, facultatif, vérifié auprès de Wikidata s'il change."
+  wikidata_id: String
+  """
+  Avec \`correction\` : champs à effacer, sans valeur donnée à côté : \`builder\`, \`in_service_from\`,
+  \`in_service_to\`, \`gauges\` ou \`electrification\`.
+  """
+  clear: [String!]
+  "Nature de la source : \`web\` (page web), \`document\` (document numérisé) ou \`print\` (ouvrage ou archive papier)."
+  source_kind: String!
+  "Titre ou référence de la source, de 3 à 300 caractères."
+  source_title: String!
+  "Adresse de la source, en http ou https, 500 caractères au plus : obligatoire sauf avec \`print\`."
+  source_url: String
+  "Licence du document, obligatoire avec \`document\` et ignorée sinon (mêmes valeurs que \`EventContributionInput.source_license\`)."
+  source_license: String
+  "Note pour les validateurs, non publiée, 2 000 caractères au plus."
+  notes: String
 }
 
 
@@ -3625,14 +3879,18 @@ enum ContributionType {
   LINE_EVENT
   "Image (fichier de Wikimedia Commons ou fichier déposé)."
   MEDIA
+  "Série de matériel qui a circulé sur une ligne."
+  LINE_MATERIAL
+  "Nouvelle série de matériel ou correction d'une série."
+  MATERIAL_SERIES
 }
 
 
 "Nature d'une contribution."
 enum ContributionAction {
-  "Création (nouvelle ligne, événement daté, image)."
+  "Création (nouvelle ligne, événement daté, image, lien de matériel, nouvelle série)."
   CREATE
-  "Modification d'une ligne existante."
+  "Modification d'une ligne ou d'une série existante."
   UPDATE
   "Suppression."
   DELETE
@@ -3681,6 +3939,8 @@ type Contribution {
   line: Line
   "Gare visée par une image rattachée à une gare ; nulle sinon."
   station: Station
+  "Série visée : série corrigée, série créée une fois publiée, ou série d'un lien \`LINE_MATERIAL\` ; nulle sinon."
+  material: Material
   """
   Proposition enregistrée, normalisée par le serveur (mêmes clés que sur le site) : pour
   \`LINE_SEGMENT\`, \`line_code\`, \`line_name\`, \`era_year\`, \`pk_start_m\`, \`pk_end_m\`, \`changes\`,
@@ -3692,7 +3952,16 @@ type Contribution {
   \`target_type\` et la fiche, puis \`commons\` (métadonnées lues sur Commons) ou, pour un fichier
   déposé, \`title\`, \`author\`, \`license\`, \`captured\`, \`place\`, \`location\` et \`file\` (type,
   dimensions, empreinte SHA-256, métadonnées retirées, jamais d'adresse publique avant la
-  publication) et, une fois publiée, \`applied.media_id\`.
+  publication) et, une fois publiée, \`applied.media_id\` ; pour \`LINE_MATERIAL\`, \`line_slug\`,
+  \`material_id\`, \`material_slug\`, \`material_name\`, \`circulation\`, \`period\` (\`start\` et \`end\` avec
+  \`date\` et \`precision\`, \`from\`, \`to\`, ou nulle), \`source\`, \`quote\`, \`exception\` (règle levée par
+  la phrase citée : \`rule\` \`gauge\` ou \`traction\`, \`reason\`), \`excluded\` (lien écarté à la relecture
+  de l'import, motif), \`existing_link\`, \`notes\` et, une fois publiée, \`applied.line_material_id\` et
+  \`applied.period_id\` ; pour \`MATERIAL_SERIES\`, \`mode\`, \`material_name\`, \`values\` (nouvelle série)
+  ou \`changes\` (correction : \`before\`, \`after\` par champ, \`after\` nul pour une valeur effacée),
+  \`impact\` (correction : liens que la correction rendrait contraires aux règles), \`wikidata\`
+  (élément vérifié : \`id\`, \`label\`, \`description\`), \`source\`, \`notes\` et, une fois publiée,
+  \`applied.material_id\`.
   """
   payload: JSON!
   "Motif du refus, transmis à l'auteur ; nul sinon."
