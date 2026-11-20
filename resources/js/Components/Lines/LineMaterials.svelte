@@ -41,7 +41,9 @@
                             >{t('materials.periods.on_line', { periods: onLine })}</span
                         >{/if}
                     {#if relations.length}<span class="on-line"
-                            >{t('materials.relations.on_line', { relations: relations.join(' ; ') })}</span
+                            >{t('materials.relations.on_line', {
+                                relations: relations.join(' ; '),
+                            })}</span
                         >{/if}
                 </Link>
             </li>

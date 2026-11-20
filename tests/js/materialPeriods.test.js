@@ -127,7 +127,10 @@ describe('relationsList', () => {
             { label: 'Argentan - Granville', service: null },
         ];
         const periods = [
-            { ...range('1990-01-01', '2009-01-01'), relation: { label: 'Paris-Montparnasse - Granville', service: 'TER' } },
+            {
+                ...range('1990-01-01', '2009-01-01'),
+                relation: { label: 'Paris-Montparnasse - Granville', service: 'TER' },
+            },
             { ...range(null, '1977-01-01'), relation: { label: 'Dreux - Granville' } },
             range('1950-01-01', '1960-01-01'),
         ];

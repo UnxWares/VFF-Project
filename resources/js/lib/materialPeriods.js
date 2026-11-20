@@ -80,13 +80,23 @@ export function periodYears(p, t) {
 export function relationsList(relations, periods, t) {
     const byLabel = new Map();
     for (const r of relations ?? []) {
-        byLabel.set(r.label, { label: r.label, service: r.service ?? null, periods: [...(r.periods ?? [])] });
+        byLabel.set(r.label, {
+            label: r.label,
+            service: r.service ?? null,
+            periods: [...(r.periods ?? [])],
+        });
     }
     for (const p of periods ?? []) {
         const r = p.relation;
         if (!r?.label) continue;
-        const entry = byLabel.get(r.label) ?? { label: r.label, service: r.service ?? null, periods: [] };
-        if (!entry.periods.some((q) => q.start_date === p.start_date && q.end_date === p.end_date)) {
+        const entry = byLabel.get(r.label) ?? {
+            label: r.label,
+            service: r.service ?? null,
+            periods: [],
+        };
+        if (
+            !entry.periods.some((q) => q.start_date === p.start_date && q.end_date === p.end_date)
+        ) {
             entry.periods.push(p);
         }
         byLabel.set(r.label, entry);
