@@ -2,23 +2,29 @@
     import { onMount, tick } from 'svelte';
     import { i18n } from '$lib/i18n.js';
     import { firstOfMonth, formatLocale } from '$lib/typo.js';
+    import { mediaHeading, mediaLicenseHref, mediaLicenseLabel } from '$lib/mediaCredits.js';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
 
     /**
-     * Galerie « Photos & archives » d'une ligne.
+     * Galerie « Photos & archives » d'une fiche : ligne, gare ou série de matériel.
      *
-     * Données : GET /api/v1/lines/{slug}/media (paginé, trié par époque).
+     * Données : `endpoint`, l'un des points d'accès de galerie de l'API (paginés, triés par
+     * époque, même réponse) : /api/v1/lines/{slug}/media, /stations/{slug}/media,
+     * /materials/{slug}/media. Seuls les médias publiés y figurent : une image proposée et
+     * pas encore validée n'est jamais dans la table `media`.
      * Les images externes (Wikimedia Commons…) sont affichées par lien direct,
      * jamais copiées : chaque vignette porte SON crédit (auteur, licence telle
-     * que déclarée par la source + lien, lien vers la page du fichier). Le
+     * que déclarée par la source + lien, lien vers la page du fichier, mention
+     * « contribution validée » pour une image proposée par un contributeur). Le
      * domaine public est aussi crédité (source citée).
      *
      * Titre affiché : la légende de la source quand elle existe (le titre de Commons est
      * souvent un nom de fichier). Filtres et tri seulement quand ils servent (plusieurs
-     * images, plusieurs types ou époques). Se masque entièrement si la ligne n'a aucun média.
+     * images, plusieurs types ou époques). Se masque entièrement si la fiche n'a aucun média ;
+     * `count` (nombre connu du serveur) à 0 : rien n'est chargé ni affiché.
      */
-    // `onitems` : reçoit les images chargées (données structurées de la fiche, SeoHead).
-    let { slug, perPage = 24, onitems = null } = $props();
+    // `intro` : phrase sous le titre ; `onitems` : reçoit les images chargées (données structurées, SeoHead).
+    let { endpoint, intro = null, count = null, perPage = 24, onitems = null } = $props();
 
     let items = $state.raw([]);
     let total = $state(0);
@@ -70,7 +76,7 @@
         if (period) query.period = period;
         const params = new URLSearchParams(query);
         try {
-            const res = await fetch(`/api/v1/lines/${encodeURIComponent(slug)}/media?${params}`, {
+            const res = await fetch(`${endpoint}?${params}`, {
                 headers: { Accept: 'application/json' },
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -96,7 +102,9 @@
         load(true);
     }
 
-    onMount(() => load(true));
+    onMount(() => {
+        if (count !== 0) load(true);
+    });
 
     function formatDay(iso) {
         try {
@@ -139,12 +147,10 @@
         }
     }
 
-    /** Titre lisible : la légende de la source (phrase), sinon le titre du fichier. */
-    const heading = (m) => (m.caption && m.caption.length <= 160 ? m.caption : (m.title ?? ''));
-
-    // Licence affichée TELLE QUE fournie par la source ; à défaut, statut de droits.
-    const licenseLabel = (m) => m.license ?? t(`media.rights.${m.rights_status ?? 'unknown'}`);
-    const licenseHref = (m) => m.license_url ?? m.source_url;
+    // Titre, licence et lien de la licence : règles communes (lib/mediaCredits.js).
+    const heading = mediaHeading;
+    const licenseLabel = (m) => mediaLicenseLabel(m, t);
+    const licenseHref = mediaLicenseHref;
     const rightsLabel = (m) => t(`media.rights.${m.rights_status ?? 'unknown'}`);
 
     async function open(i) {
@@ -190,6 +196,13 @@
         ({t('common.new_tab')})</span
     >{/snippet}
 
+<!-- Licence : lien vers son texte quand il est connu (domaine public déposé : texte seul). -->
+{#snippet license(m)}{#if licenseHref(m)}<a
+            href={licenseHref(m)}
+            target="_blank"
+            rel="noopener noreferrer license">{licenseLabel(m)}{@render ext()}</a
+        >{:else}<span>{licenseLabel(m)}</span>{/if}{/snippet}
+
 {#if loading && !facets}
     <SheetSection id="gallery" title={t('media.title')}>
         <p class="status" aria-busy="true">{t('media.loading')}</p>
@@ -209,7 +222,7 @@
         </p>
     </SheetSection>
 {:else if grandTotal > 0}
-    <SheetSection id="gallery" title={t('media.title')} intro={t('media.subtitle')}>
+    <SheetSection id="gallery" title={t('media.title')} {intro}>
         {#snippet actions()}
             {#if showSort}
                 <label class="sort">
@@ -302,17 +315,13 @@
                             <p class="title">{heading(m)}</p>
                             <p class="credit">
                                 <span class="author">{m.author ?? t('media.author_unknown')}</span>,
-                                <a
-                                    href={licenseHref(m)}
-                                    target="_blank"
-                                    rel="noopener noreferrer license"
-                                    >{licenseLabel(m)}{@render ext()}</a
-                                >{#if m.source_url},
+                                {@render license(m)}{#if m.source_url},
                                     <a href={m.source_url} target="_blank" rel="noopener noreferrer"
                                         >{t('media.via', {
                                             provider: m.provider_label,
                                         })}{@render ext()}</a
-                                    >{/if}
+                                    >{/if}{#if m.contribution_id},
+                                    {t('media.contributed')}{/if}
                             </p>
                         </div>
                     </li>
@@ -426,9 +435,7 @@
                     </p>{/if}
                 <p class="lb-credit">
                     <strong>{active.author ?? t('media.author_unknown')}</strong>
-                    <a href={licenseHref(active)} target="_blank" rel="noopener noreferrer license"
-                        >{licenseLabel(active)}{@render ext()}</a
-                    >
+                    {@render license(active)}
                     {#if rightsLabel(active).toLowerCase() !== licenseLabel(active).toLowerCase()}
                         <span class="vff-badge muted">{rightsLabel(active)}</span>
                     {/if}
@@ -437,6 +444,9 @@
                         >{/if}
                     {#if active.commercial_ok === false}<span class="vff-badge warning"
                             >{t('media.no_commercial')}</span
+                        >{/if}
+                    {#if active.contribution_id}<span class="vff-badge muted"
+                            >{t('media.contributed_badge')}</span
                         >{/if}
                 </p>
                 {#if active.title && heading(active) !== active.title}
@@ -756,6 +766,12 @@
         flex-wrap: wrap;
         align-items: center;
         gap: 6px 10px;
+    }
+    /* Lien de la licence : cible de 24 px au moins. */
+    .lb-credit a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
     }
 
     @media (max-width: 600px) {

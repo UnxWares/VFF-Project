@@ -3,6 +3,8 @@
 return [
     'title' => 'Fotos & Archiv',
     'subtitle' => 'Fotografien, Postkarten, Pläne und Archivdokumente der Strecke.',
+    'subtitle_station' => 'Fotografien, Postkarten, Pläne und Archivdokumente des Bahnhofs.',
+    'subtitle_material' => 'Fotografien, Pläne und Dokumente der Baureihe.',
     'loading' => 'Bilder werden geladen…',
     'error' => 'Die Bilder konnten gerade nicht geladen werden.',
     'retry' => 'Erneut versuchen',
@@ -64,6 +66,12 @@ return [
     'hosted_notice' => 'Bilder werden von :provider bereitgestellt und direkt eingebunden: VFF kopiert sie nicht. Jedes Bild behält seine eigene Lizenz; eine Weiterverwendung ist unter Nennung von Urheber, Lizenz und Link möglich.',
     'open' => 'Vergrößern: :title',
     'file_name' => 'Datei: :name',
+    // Image publiée après validation d'une contribution (crédit de la vignette, badge de la visionneuse).
+    'contributed' => 'geprüfter Beitrag',
+    'contributed_badge' => 'Geprüfter Beitrag',
+    // Images d'un événement dans la chronologie de la fiche ligne.
+    'event_images' => 'Bilder zu diesem Ereignis',
+    'event_open' => 'Bild öffnen: :title',
 
     'lightbox' => [
         'close' => 'Schließen',

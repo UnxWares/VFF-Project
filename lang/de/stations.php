@@ -294,5 +294,6 @@ return [
         'lines' => 'Strecken',
         'location' => 'Lage',
         'sources' => 'Quellen',
+        'gallery' => 'Fotos',
     ],
 ];

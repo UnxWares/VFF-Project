@@ -9,6 +9,7 @@
     import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SheetToc from '$components/Sheet/SheetToc.svelte';
+    import SheetGallery from '$components/Sheet/SheetGallery.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import SeoHead from '$components/SeoHead.svelte';
@@ -19,14 +20,22 @@
     } from '$components/Stations/stationStatus.js';
     import { i18n } from '$lib/i18n.js';
 
-    /** Props de StationController::show. */
-    let { station, eras = [], events = [], lines = [], sources = [], neighbors = [] } = $props();
+    /** Props de StationController::show (images : `media_count` seul, la galerie les charge par l'API). */
+    let {
+        station,
+        eras = [],
+        events = [],
+        lines = [],
+        sources = [],
+        neighbors = [],
+        media_count = 0,
+    } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (key, opts) => String($i18n.t(key, opts));
 
     // Sommaire collant : SheetToc n'affiche que les sections présentes.
-    const TOC = ['about', 'eras', 'history', 'lines', 'location', 'sources'];
+    const TOC = ['about', 'eras', 'history', 'lines', 'location', 'gallery', 'sources'];
     const tocItems = $derived(TOC.map((id) => ({ id, label: t(`stations.toc.${id}`) })));
     /** Espace insécable entre un nombre et son unité (« 5,2 km », « à 74 m ») et après « PK ». */
     const nb = (s) => s.replace(/(\d) (?=(?:km|m)(?![\p{L}]))/gu, '$1 ').replace(/^PK /, 'PK ');
@@ -390,6 +399,14 @@
                 {/if}
             </div>
         </SheetSection>
+
+        {#if media_count > 0}
+            <SheetGallery
+                endpoint="/api/v1/stations/{encodeURIComponent(station.slug)}/media"
+                intro={t('media.subtitle_station')}
+                count={media_count}
+            />
+        {/if}
 
         <SheetSection
             title={$i18n.t('stations.sections.sources')}

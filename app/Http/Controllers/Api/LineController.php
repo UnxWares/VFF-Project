@@ -224,7 +224,10 @@ class LineController extends Controller
      * (`retained`, `context`, `superseded`, `conflict`…), accords et
      * désaccords entre sources (`agrees_with`, `conflicts_with`,
      * `conflicts`) et notes de source numérotées (`notes`). Textes en
-     * français.
+     * français. Chaque événement porte `media` : ses images publiées après
+     * validation d'une contribution (liste vide le plus souvent), avec leurs
+     * crédits (`author`, `license`, `license_url`, `attribution`,
+     * `source_url`, `contribution_id`, mêmes champs que `/media`).
      *
      * **Gares** (`stations`) : toutes les gares de la ligne, toutes ères, dans
      * l'ordre du tracé : `pk_m`/`pk_label`, dates (`opened_at`, `closed_at` et

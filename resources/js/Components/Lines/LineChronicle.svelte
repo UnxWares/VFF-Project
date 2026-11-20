@@ -2,6 +2,7 @@
     import { i18n } from '$lib/i18n.js';
     import { formatEventDate } from '$lib/linePhases.js';
     import { firstOfMonth, formatLocale, formatNumber, tieUnits } from '$lib/typo.js';
+    import { mediaHeading, mediaLicenseHref, mediaLicenseLabel } from '$lib/mediaCredits.js';
 
     /**
      * Chronologie détaillée, portion par portion : TOUS les événements de la ligne (rien
@@ -9,6 +10,8 @@
      * effet, écarté, non localisé) et leur appel de note. Données : App\Services\LineChronicle.
      * Description et citation arrivent dans la langue de la page (App\Support\EventText) ;
      * description_lang / quote_lang = « fr » pour ce qui reste une citation en français.
+     * Images d'un événement (`e.media`, publiées après validation) : petite vignette chargée au
+     * besoin (groupes repliés, `loading="lazy"`), lien vers l'image en grand et crédit complet.
      */
     let { chronicle } = $props();
 
@@ -64,7 +67,52 @@
         const label = $i18n.t(key);
         return label === key ? type : label;
     }
+
+    const t = (key, opts) => String($i18n.t(key, opts));
 </script>
+
+{#snippet ext()}<i class="bi bi-box-arrow-up-right vff-ext" aria-hidden="true"></i><span
+        class="vff-sr-only"
+    >
+        ({t('common.new_tab')})</span
+    >{/snippet}
+
+{#snippet eventMedia(list)}
+    <ul class="ev-media" aria-label={t('media.event_images')}>
+        {#each list as m (m.id)}
+            <li>
+                <a
+                    class="ev-thumb"
+                    href={m.display_url ?? m.thumb_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    ><img
+                        src={m.thumb_url}
+                        alt={t('media.event_open', { title: mediaHeading(m) })}
+                        loading="lazy"
+                        decoding="async"
+                        width="120"
+                        height="90"
+                    /><span class="vff-sr-only"> ({t('common.new_tab')})</span></a
+                >
+                <span class="ev-credit">
+                    <span class="ev-title">{mediaHeading(m)}</span>
+                    {m.author ?? t('media.author_unknown')},
+                    {#if mediaLicenseHref(m)}<a
+                            href={mediaLicenseHref(m)}
+                            target="_blank"
+                            rel="noopener noreferrer license"
+                            >{mediaLicenseLabel(m, t)}{@render ext()}</a
+                        >{:else}{mediaLicenseLabel(m, t)}{/if}{#if m.source_url},
+                        <a href={m.source_url} target="_blank" rel="noopener noreferrer"
+                            >{t('media.via', { provider: m.provider_label })}{@render ext()}</a
+                        >{/if}{#if m.contribution_id},
+                        {t('media.contributed')}{/if}
+                </span>
+            </li>
+        {/each}
+    </ul>
+{/snippet}
 
 <div class="chronicle">
     <p class="intro">{$i18n.t('lines.chronicle.intro')}</p>
@@ -155,6 +203,7 @@
                                             {/each}
                                         </span>
                                     {/if}
+                                    {#if e.media?.length}{@render eventMedia(e.media)}{/if}
                                 </td>
                                 <td
                                     ><span class="vff-badge {BADGE[e.status] ?? 'muted'}"
@@ -341,6 +390,58 @@
         font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
+    /* Images d'un événement : vignette de 120 px et crédit à côté (dessous sur téléphone). */
+    .ev-media {
+        display: grid;
+        gap: 12px;
+        margin: 10px 0 2px;
+        padding: 0;
+        list-style: none;
+    }
+    .ev-media li {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        min-width: 0;
+    }
+    .ev-thumb {
+        flex: none;
+        display: block;
+        width: 120px;
+        aspect-ratio: 4 / 3;
+        overflow: hidden;
+        border-radius: var(--vff-radius-sm);
+        background: var(--vff-bg-muted);
+    }
+    .ev-thumb img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .ev-thumb:hover img {
+        filter: brightness(0.92);
+    }
+    .ev-credit {
+        min-width: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        line-height: 1.45;
+        color: var(--vff-text-muted);
+        overflow-wrap: anywhere;
+    }
+    .ev-title {
+        display: block;
+        color: var(--vff-text);
+        font-weight: 600;
+    }
+    .ev-credit a {
+        color: inherit;
+        text-decoration-color: var(--vff-border-strong);
+    }
+    .ev-credit a:hover {
+        color: var(--vff-accent-ink);
+    }
     .vs {
         display: block;
         margin-top: 2px;
@@ -389,6 +490,10 @@
         .nums {
             flex-basis: 100%;
             margin-left: 25px;
+        }
+        .ev-media li {
+            flex-direction: column;
+            gap: 6px;
         }
     }
 </style>

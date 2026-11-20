@@ -294,5 +294,6 @@ return [
         'lines' => 'Lines',
         'location' => 'Location',
         'sources' => 'Sources',
+        'gallery' => 'Photos',
     ],
 ];

@@ -159,6 +159,7 @@ final class LineSheetExample
                         'scope' => 'whole',
                         'other_line' => false,
                         'pk_hint' => 13145,
+                        'media' => [],
                         'family' => 'other',
                         'portion_key' => 'whole',
                         'note' => 1,

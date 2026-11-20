@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Http\Resources\MediaResource;
+use App\Models\LineEvent;
+use App\Models\Media;
 use App\Support\EventText;
 use App\Support\FrenchGrammar;
 use Illuminate\Support\Facades\DB;
@@ -375,8 +378,36 @@ final class LineChronicle
         return substr($a['date'], 0, $prec) === substr($b['date'], 0, $prec);
     }
 
+    /** Champs d'une image d'événement gardés dans la chronique (crédits complets, rien de plus). */
+    public const EVENT_MEDIA_FIELDS = [
+        'id', 'provider', 'provider_label', 'type', 'title', 'caption', 'thumb_url', 'display_url', 'source_url',
+        'width', 'height', 'author', 'attribution', 'license', 'license_url', 'rights_status', 'contribution_id',
+    ];
+
     /**
-     * Lecture en base : événements complets de la ligne, portée (LinePhases::events).
+     * Images publiées des événements d'une ligne, en une requête, rangées par événement (dans l'ordre
+     * de leur publication). Une image en attente de validation n'est pas dans `media`.
+     *
+     * @return array<int, list<array<string, mixed>>>
+     */
+    public static function eventMedia(int $lineId): array
+    {
+        $out = [];
+        $rows = Media::query()
+            ->where('mediable_type', LineEvent::class)
+            ->whereIn('mediable_id', LineEvent::query()->select('id')->where('line_id', $lineId))
+            ->orderBy('id')
+            ->get();
+        foreach ($rows as $m) {
+            $out[(int) $m->mediable_id][] = array_intersect_key(MediaResource::make($m)->resolve(), array_flip(self::EVENT_MEDIA_FIELDS));
+        }
+
+        return $out;
+    }
+
+    /**
+     * Lecture en base : événements complets de la ligne, portée (LinePhases::events), images publiées
+     * de chaque événement (`media`).
      *
      * @param  list<int>  $used
      * @param  list<array{name: string, pk_m: ?int}>  $stations  gares de la ligne (LineStations) : noms et PK
@@ -413,6 +444,7 @@ final class LineChronicle
                 $pkHints[(int) $h->id] = (int) $h->pk;
             }
         }
+        $media = self::eventMedia((int) $line->id);
         $events = [];
         foreach (DB::select('SELECT id, type, event_date, date_precision, description, source, source_url, source_quote, confidence,
                     section_from, section_to, section_length_m, heritage_kind, reuse
@@ -453,6 +485,7 @@ final class LineChronicle
                 'scope' => $scopes[(int) $r->id]['scope'] ?? 'unlocated',
                 'other_line' => self::isOtherLine((string) $r->type, $raw, $line->code ?? null),
                 'pk_hint' => $pkHints[(int) $r->id] ?? null,
+                'media' => $media[(int) $r->id] ?? [],
             ];
         }
 

@@ -76,3 +76,21 @@ export function mergeAuthors(rows) {
         }))
         .sort((a, b) => b.count - a.count);
 }
+
+// Crédit d'une image publiée (galerie des fiches, images des événements de la chronologie) :
+// mêmes règles partout, d'après les champs de MediaResource.
+
+/** Titre lisible : la légende de la source quand elle est courte (phrase), sinon le titre du fichier. */
+export function mediaHeading(m) {
+    return m?.caption && m.caption.length <= 160 ? m.caption : (m?.title ?? '');
+}
+
+/** Licence affichée telle que fournie par la source ; à défaut, le statut des droits traduit. */
+export function mediaLicenseLabel(m, t) {
+    return m?.license ?? t(`media.rights.${m?.rights_status ?? 'unknown'}`);
+}
+
+/** Adresse du texte de la licence, sinon la page de la source ; null quand aucune n'est connue. */
+export function mediaLicenseHref(m) {
+    return m?.license_url ?? m?.source_url ?? null;
+}

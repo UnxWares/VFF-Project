@@ -105,6 +105,7 @@ final class MaterialExamples
         'links' => [
             'api' => 'https://vff-project.org/api/v1/materials/bb-15000',
             'page' => 'https://vff-project.org/materials/bb-15000',
+            'media' => 'https://vff-project.org/api/v1/materials/bb-15000/media',
         ],
     ];
 

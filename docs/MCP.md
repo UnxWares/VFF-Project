@@ -128,7 +128,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `historical_route` | Itinéraire entre deux gares sur le réseau d'une époque, ou le même trajet comparé à deux époques. |
 | `sources_and_licences` | Fournisseurs de données et licences. |
 | `network_events` | Événements de toutes les lignes (département, type, période), paginés. |
-| `media` | Photos, cartes postales, plans d'une ligne ou d'une gare, avec leurs droits. |
+| `media` | Photos, cartes postales, plans d'une ligne, d'une gare, d'une série de matériel ou d'un événement, avec leurs droits. |
 | `list_lines` | Annuaire des lignes (réseau, état, trafic, département, époque). |
 | `list_stations` | Annuaire des gares (statut, département, époque). |
 | `materials` | Séries de matériel roulant filtrées et triées. |
@@ -282,7 +282,8 @@ lecture seule : `source`, `ref` = identifiant dans la source, `name`, `url`, `di
 position retenue, `match_method` = comment la source a été rapprochée de la gare, `fetched_at` = date
 de lecture par VFF, `raw` = attributs bruts reçus de la source, de forme variable). `station` porte
 aussi `attribute_sources` (quelle source a fourni chaque attribut, recalage de la position compris)
-et `position` (`source`, `spread_m`, `flagged` = position à vérifier).
+et `position` (`source`, `spread_m`, `flagged` = position à vérifier). `media_count` donne le nombre
+d'images publiées de la gare : l'outil `media` avec `station` les renvoie, avec leurs crédits.
 
 Dates de desserte (`lines[].service_start` et `service_end` de `get_station`, `stations[]` de
 `get_line`) : la date de l'événement de ligne qui ouvre ou termine la desserte de la gare, avec
@@ -424,7 +425,8 @@ Chaque événement : `id`, `when` (date rédigée), `type`, `date`, `date_precis
 
 | Paramètre | Type | Obligatoire | Description |
 |---|---|---|---|
-| `line`, `station` ou `material` | slug | non | Médias d'une ligne, d'une gare ou d'une série de matériel (un seul des trois). |
+| `line`, `station` ou `material` | slug | non | Médias d'une ligne, d'une gare ou d'une série de matériel (un seul des quatre filtres de rattachement). |
+| `event` | entier | non | Images d'un événement daté d'une ligne (`id` des événements de `get_line` ou `line_events`). Exclusif avec les trois autres. |
 | `type` | `photo`, `postcard`, `plan`, `map`, `document` | non | Nature. |
 | `provider` | chaîne | non | `commons`, `upload`, `argentanwebferro`… |
 | `license` | chaîne | non | Licence exacte, casse ignorée (`CC BY-SA 4.0`). |
@@ -438,7 +440,9 @@ Chaque événement : `id`, `when` (date rédigée), `type`, `date`, `date_precis
 
 Chaque média : `title`, `caption`, `thumb_url`, `display_url`, `source_url` (page d'origine),
 dimensions, `depicted_year`, `author`, `license`, `license_url`, `attribution`, `rights_status`,
-`commercial_ok`, `share_alike`, `location`, `subject` (ligne, gare ou série). **Affichez toujours
+`commercial_ok`, `share_alike`, `location`, `subject` (ligne, gare, série ou événement) et
+`contribution_id` (numéro de la contribution validée qui a publié l'image, `null` pour un import).
+Une image proposée et encore en attente de validation n'est jamais renvoyée. **Affichez toujours
 `attribution` et le lien `source_url` avec l'image.**
 
 ```json
@@ -532,7 +536,8 @@ Renvoie `material` : la fiche de l'API REST `/api/v1/materials/{slug}`, avec `fi
 (provenance de chaque champ ; `contrib` pour une valeur corrigée par une contribution validée, référence
 `contribution:<id>`) et `lines` (lignes parcourues, une entrée par lien et par source, chaque lien avec sa `source`
 telle quelle (`wikidata`, `wikipedia` ou `contrib`), sa preuve `evidence` et sa fiabilité `confidence`, et `periods`,
-ses périodes de circulation datées : voir `line_materials`). `lines_count` compte les lignes, pas les liens. Série
+ses périodes de circulation datées : voir `line_materials`). `lines_count` compte les lignes, pas les liens.
+`media_count` donne le nombre d'images publiées de la série : l'outil `media` avec `material` les renvoie. Série
 inconnue : erreur `material_not_found` avec `suggestions`.
 
 Chaque preuve donne l'article, la révision lue (`revid`), la section et le permalien `url`, mais pas la

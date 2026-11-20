@@ -139,7 +139,7 @@ Chaque ligne devient une vraie page d'encyclopédie.
 - [x] Page `/lines/{slug}` avec :
   - [x] Carte du tracé par période (`LinePhaseMap`, `LinePhaseSelector`)
   - [x] Chronologie des événements (`LineChronicle`) et frise par décennie (`LineDecades`)
-  - [x] Galerie des médias triés par date
+  - [x] Galerie des médias triés par date (même galerie sur les fiches gare et série de matériel quand elles ont des images ; images des événements dans la chronologie)
   - [x] Liste des gares par époque
   - [x] Longueur, électrification, vitesses, signalisation
   - [x] Sources et notes de sources

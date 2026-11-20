@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ListMaterialsRequest;
+use App\Http\Requests\Api\SheetMediaRequest;
 use App\Http\Resources\MaterialDetailResource;
 use App\Http\Resources\MaterialResource;
 use App\Models\Material;
 use App\Services\Api\MaterialQuery;
+use App\Services\Api\MediaGallery;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
@@ -118,6 +120,59 @@ class MaterialController extends Controller
             ->select('line_materials.*')]);
 
         return MaterialDetailResource::make($material)->response()->header('Cache-Control', 'public, max-age=600');
+    }
+
+    /**
+     * Médias d'une série.
+     *
+     * Photos, plans et documents rattachés à la série, paginés et triés par
+     * époque représentée, comme la galerie de la fiche `/materials/{slug}` :
+     * mêmes champs, mêmes filtres et même réponse que `/lines/{line}/media`
+     * (voir ce point d'accès pour le sens de chaque champ et des compteurs
+     * `facets`). L'image principale de la fiche (`image` de la série) n'en
+     * fait pas partie : elle vient de Wikidata.
+     *
+     * Ces images viennent des contributions validées : un fichier de
+     * Wikimedia Commons (hébergé chez Wikimedia, `source_url` = sa page) ou un
+     * fichier déposé (`provider` = `upload`, servi par VFF sous `/storage`).
+     * `contribution_id` donne le numéro de la contribution. Une image proposée
+     * et pas encore validée n'apparaît jamais. Affichez toujours
+     * `attribution` (ou `author` et `license`) avec l'image.
+     *
+     * L'exemple montre la forme d'une réponse ; aucune image de série n'était
+     * encore publiée quand il a été écrit.
+     */
+    #[PathParameter('material', 'Slug de la série, tel que renvoyé par la liste (`slug`).', example: 'bb-15000')]
+    #[ApiResponse(200, 'Une page de médias, avec la pagination et les compteurs par filtre.', examples: [[
+        'material' => ['slug' => 'bb-15000', 'name' => 'BB 15000'],
+        'data' => [[
+            'id' => 71501, 'provider' => 'upload', 'provider_label' => 'VFF', 'type' => 'photo',
+            'title' => 'BB 15000 en gare', 'caption' => null,
+            'thumb_url' => '/storage/media/contributions/12-4kq9z2m1x8c7b6v5.jpg',
+            'display_url' => '/storage/media/contributions/12-4kq9z2m1x8c7b6v5.jpg',
+            'source_url' => null,
+            'width' => 2400, 'height' => 1600, 'depicted_year' => 2025, 'depicted_year_to' => null, 'date_precision' => 'month',
+            'captured_at' => '2025-06-01', 'author' => 'A. Contributeur', 'attribution' => 'A. Contributeur, CC BY 4.0',
+            'license' => 'CC BY 4.0', 'license_url' => 'https://creativecommons.org/licenses/by/4.0/', 'rights_status' => 'open_license',
+            'commercial_ok' => true, 'share_alike' => false, 'attribution_required' => true, 'featured' => false, 'contribution_id' => 12, 'location' => null,
+        ]],
+        'meta' => ['current_page' => 1, 'per_page' => 24, 'total' => 1, 'last_page' => 1, 'sort' => 'oldest'],
+        'facets' => [
+            'types' => ['photo' => 1],
+            'periods' => ['pre1900' => 0, '1900_1944' => 0, '1945_1969' => 0, '1970_1999' => 0, 'since2000' => 1, 'undated' => 0],
+            'rights' => ['open_license' => 1],
+            'providers' => ['upload' => 1],
+        ],
+    ]])]
+    #[ApiResponse(422, 'Paramètre invalide (`per_page` hors de 1 à 60, `sort`, `type` ou `period` inconnu). Le corps donne `message` et, par paramètre, la liste des erreurs dans `errors`.')]
+    #[ApiResponse(404, 'Série inconnue (slug introuvable).', examples: [MaterialExamples::MATERIAL_NOT_FOUND])]
+    #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
+    public function media(Material $material, SheetMediaRequest $request, MediaGallery $gallery): JsonResponse
+    {
+        return response()->json([
+            'material' => ['slug' => $material->slug, 'name' => $material->name],
+            ...$gallery->page($material, $request->validated()),
+        ])->header('Cache-Control', 'public, max-age=300');
     }
 
     /** Exemple de réponse de la liste, tiré de la base (vff:import-materials du 19/11/2026, curseur réel). */

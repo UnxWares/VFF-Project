@@ -526,6 +526,13 @@ type LineEvent {
 
     "La ligne concernée."
     line: Line! @belongsTo
+
+    """
+    Images rattachées à cet événement (photo du jour de l'ouverture, affiche, avis de fermeture…),
+    publiées après validation d'une contribution, page par page (20 par défaut, 100 au plus), dans
+    l'ordre de leurs identifiants. Chaque média porte ses droits. Liste vide le plus souvent.
+    """
+    media: [Media!]! @morphMany(type: CONNECTION, defaultCount: 20, maxCount: 100) @builder(method: "App\\GraphQL\\Builders\\MediaBuilder@inOrder")
 }
 
 """
@@ -594,7 +601,8 @@ type StationEvent {
 }
 
 """
-Un média : photo, carte postale, plan, carte ou document d'archive lié à une ligne ou à une gare.
+Un média : photo, carte postale, plan, carte ou document d'archive lié à une ligne, à une gare, à
+un événement daté d'une ligne ou à une série de matériel roulant.
 
 Les médias externes (Wikimedia Commons…) ne sont pas hébergés par VFF : les adresses d'images
 pointent chez le fournisseur. Chaque média porte ses propres droits, à afficher avec l'image :
@@ -676,6 +684,12 @@ type Media {
     "Vrai si le média est mis en avant sur la fiche de son entité."
     featured: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\MediaField")
 
+    """
+    Numéro de la contribution validée qui a publié ce média (image proposée par un contributeur,
+    fichier de Wikimedia Commons ou fichier déposé). Nul pour un média importé par VFF.
+    """
+    contribution_id: Int @field(resolver: "App\\GraphQL\\Resolvers\\MediaField")
+
     "Latitude WGS 84 du lieu de prise de vue, en degrés décimaux, quand elle est connue."
     lat: Float @field(resolver: "App\\GraphQL\\Resolvers\\MediaField")
 
@@ -687,6 +701,12 @@ type Media {
 
     "La gare à laquelle le média est rattaché, si c'est une gare."
     station: Station @field(resolver: "App\\GraphQL\\Resolvers\\MediaSubjectResolver")
+
+    "La série de matériel roulant à laquelle le média est rattaché, si c'en est une."
+    material: Material @field(resolver: "App\\GraphQL\\Resolvers\\MediaSubjectResolver")
+
+    "L'événement daté d'une ligne auquel le média est rattaché, si c'en est un."
+    event: LineEvent @field(resolver: "App\\GraphQL\\Resolvers\\MediaSubjectResolver")
 }
 
 "Sens d'un tri."
@@ -775,14 +795,17 @@ input MaterialFilter {
 
 "Filtres de la requête `media`. Tous sont facultatifs et se combinent (ET)."
 input MediaFilter {
-    "Slug d'une ligne : ses médias seulement. Exclusif avec `station` et `material`."
+    "Slug d'une ligne : ses médias seulement. Exclusif avec `station`, `material` et `event`."
     line: String
 
-    "Slug d'une gare : ses médias seulement. Exclusif avec `line` et `material`."
+    "Slug d'une gare : ses médias seulement. Exclusif avec `line`, `material` et `event`."
     station: String
 
-    "Slug d'une série de matériel roulant : ses médias seulement (images proposées pour sa fiche). Exclusif avec `line` et `station`."
+    "Slug d'une série de matériel roulant : ses médias seulement (images proposées pour sa fiche). Exclusif avec `line`, `station` et `event`."
     material: String
+
+    "Identifiant d'un événement daté d'une ligne (`LineEvent.id`) : ses images seulement. Exclusif avec `line`, `station` et `material`."
+    event: Int
 
     "Nature du média : `photo`, `postcard`, `map`, `plan` ou `document`."
     type: String
@@ -1015,6 +1038,13 @@ type Material {
 
     "Lignes parcourues, avec la preuve de chaque lien (source, citation, fiabilité)."
     line_links: [LineMaterialLink!]! @hasMany(relation: "lineLinks")
+
+    """
+    Médias (photos, plans, documents) rattachés à la série, publiés après validation d'une
+    contribution, page par page (20 par défaut, 100 au plus), dans l'ordre de leurs identifiants.
+    Chaque média porte ses droits. L'image principale de la fiche reste dans `image`.
+    """
+    media: [Media!]! @morphMany(type: CONNECTION, defaultCount: 20, maxCount: 100) @builder(method: "App\\GraphQL\\Builders\\MediaBuilder@inOrder")
 }
 
 """

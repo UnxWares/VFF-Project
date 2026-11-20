@@ -82,6 +82,7 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/kml', [LineTraceController::class, 'kml'])->name('api.lines.kml');
     Route::get('/v1/stations', [StationController::class, 'index'])->name('api.stations.index');
     Route::get('/v1/stations/{station:slug}', [StationController::class, 'show'])->name('api.stations.show');
+    Route::get('/v1/stations/{station:slug}/media', [StationController::class, 'media'])->name('api.stations.media');
     Route::get('/v1/sources', [SourceController::class, 'index'])->name('api.sources.index');
     Route::get('/v1/sources/{provider}', [SourceController::class, 'show'])->where('provider', '[a-z0-9_-]{1,64}')->name('api.sources.show');
     // Liste de référence des départements et des régions (valeurs des filtres department et region, INSEE).
@@ -111,6 +112,7 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     // Matériel roulant (fiches Wikidata, liens avec les lignes attestés par une source).
     Route::get('/v1/materials', [MaterialController::class, 'index'])->name('api.materials.index');
     Route::get('/v1/materials/{material:slug}', [MaterialController::class, 'show'])->where('material', '[a-z0-9-]{1,255}')->name('api.materials.show');
+    Route::get('/v1/materials/{material:slug}/media', [MaterialController::class, 'media'])->where('material', '[a-z0-9-]{1,255}')->name('api.materials.media');
     Route::get('/v1/lines/{line:slug}/materials', [LineMaterialController::class, 'index'])->name('api.lines.materials');
 
     // Accidents et événements graves (Wikidata, Wikipédia, BEA-TT ; slug = date puis commune).

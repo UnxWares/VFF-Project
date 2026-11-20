@@ -21,7 +21,7 @@
     import LineDecades from '$components/Lines/LineDecades.svelte';
     import LineStations from '$components/Lines/LineStations.svelte';
     import LineSourceNotes from '$components/Lines/LineSourceNotes.svelte';
-    import LineGallery from '$components/Lines/LineGallery.svelte';
+    import SheetGallery from '$components/Sheet/SheetGallery.svelte';
     import LineAccidents from '$components/Lines/LineAccidents.svelte';
     import LineLevelCrossings from '$components/Lines/LineLevelCrossings.svelte';
     import LineGreenways from '$components/Lines/LineGreenways.svelte';
@@ -51,7 +51,7 @@
         stageNotes,
     } from '$lib/linePhases.js';
 
-    /** Props de LineController::show (les médias sont chargés à part par LineGallery, via l'API).
+    /** Props de LineController::show (les médias sont chargés à part par SheetGallery, via l'API).
      * @type {{
      *   line: Record<string, any>, stats: Record<string, any>, segments: Array<any>, stations: Array<any>,
      *   events: Array<any>, materials: Array<any>, signalling?: Array<any>, sections?: Array<any>,
@@ -172,7 +172,7 @@
             ? line.description.slice(0, 300)
             : t('lines.meta_description', { name: line.name }),
     );
-    // Premières images de la galerie (chargées par LineGallery) pour les données structurées.
+    // Premières images de la galerie (chargées par SheetGallery) pour les données structurées.
     let seoImages = $state.raw([]);
 
     let mapSection = $state();
@@ -1222,7 +1222,11 @@
         {/if}
 
         <!-- Photos, cartes postales, plans : chargés à la demande (API paginée), crédits par image. -->
-        <LineGallery slug={line.slug} onitems={(list) => (seoImages = list.slice(0, 4))} />
+        <SheetGallery
+            endpoint="/api/v1/lines/{encodeURIComponent(line.slug)}/media"
+            intro={t('media.subtitle')}
+            onitems={(list) => (seoImages = list.slice(0, 4))}
+        />
 
         {#if chronicle?.notes?.length || sources.length}
             <SheetSection title={t('lines.section.notes')} id="notes">
