@@ -23,7 +23,14 @@ const bin = join(dirname(require.resolve('svelte-check/package.json')), 'bin', '
 const run = spawnSync(
     process.execPath,
     [bin, '--workspace', root, '--tsconfig', './jsconfig.json', '--output', 'machine-verbose'],
-    { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
+    {
+        cwd: root,
+        encoding: 'utf8',
+        maxBuffer: 64 * 1024 * 1024,
+        // svelte-check charge vite.config.js en mode serveur ; avec CI défini (GitHub Actions), le
+        // greffon Laravel refuse ce mode et chaque page Svelte remonte une fausse erreur.
+        env: { ...process.env, LARAVEL_BYPASS_ENV_CHECK: '1' },
+    },
 );
 if (run.error) throw run.error;
 
