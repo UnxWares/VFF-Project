@@ -2,6 +2,7 @@ import { createInertiaApp, router } from '@inertiajs/svelte';
 import i18next from 'i18next';
 import { mount } from 'svelte';
 import { setupI18n } from './lib/i18n.js';
+import { installPatrick } from './lib/patrick.js';
 import { dropStaleServerSeo } from './lib/serverSeo.js';
 import { ogLocale } from './lib/structuredData.js';
 
@@ -57,6 +58,9 @@ createInertiaApp({
         });
 
         mount(App, { target: el, props });
+
+        // Clin d'œil « patrick » : seul le guetteur de clavier est chargé ici, le dessin à la demande.
+        installPatrick({ t: (key) => String(i18next.t(key)) });
 
         // Application web installable : service worker et bandeau de mise à jour, chargés après le montage.
         import('./pwa/index.js').then(({ initPwa }) => initPwa());
