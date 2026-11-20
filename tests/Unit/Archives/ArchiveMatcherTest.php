@@ -95,10 +95,10 @@ class ArchiveMatcherTest extends TestCase
 
         $this->assertSame(9, $judged['rfn-340000']->score);
         $this->assertContains('date_in_life', self::codes($judged['rfn-340000']));
-        // Pour Gisors, 1843 est un projet (25 ans avant) : meilleur score grâce aux extrémités, mais la ligne
-        // qui existait à cette date passe avant.
-        $this->assertSame(['rail_route', 'ends', 'rail_word', 'date_project', 'doc_type'], self::codes($judged['rfn-335000']));
-        $this->assertSame(10, $judged['rfn-335000']->score);
+        // Pour Gisors, 1843 est un projet (25 ans avant), et ses extrémités ne comptent pas : c'est une variante
+        // (« par Gisors ») que le titre ne nomme pas, et la ligne du Havre passe aussi par Paris et Rouen.
+        $this->assertSame(['rail_route', 'rail_word', 'date_project', 'doc_type'], self::codes($judged['rfn-335000']));
+        $this->assertSame(8, $judged['rfn-335000']->score);
 
         $winners = (new ArchiveMatcher)->winners(array_values($judged));
         $this->assertSame([1], array_map(fn (ArchiveMatch $m) => $m->lineId, $winners));
@@ -432,6 +432,61 @@ class ArchiveMatcherTest extends TestCase
             new ArchiveMatch(2, 9, $reason('two_places'), [], null, ['lannemezan', 'arreau']),
             new ArchiveMatch(1, 9, $reason('rail_route'), [], null, ['auch', 'lannemezan']),
         ])));
+    }
+
+    public function test_a_variant_by_a_waypoint_does_not_take_the_route_of_another_line(): void
+    {
+        $rhone = LinePlaceIndex::linePlaces([
+            'id' => 10, 'slug' => 'rfn-830000', 'name' => 'Ligne de Paris-Gare-de-Lyon à Marseille-St-Charles',
+            'stations' => [['name' => 'Paris-Gare-de-Lyon', 'city' => 'Paris', 'pk_m' => 0], ['name' => 'Lyon-Perrache', 'city' => 'Lyon', 'pk_m' => 512000],
+                ['name' => 'Avignon-Centre', 'city' => 'Avignon', 'pk_m' => 742000], ['name' => 'Marseille-St-Charles', 'city' => 'Marseille', 'pk_m' => 862000]],
+            'first_year' => 1847, 'open_today' => true,
+        ]);
+        $grenoble = LinePlaceIndex::linePlaces([
+            'id' => 11, 'slug' => 'rfn-905000', 'name' => 'Ligne de Lyon-Perrache P1 à Marseille-St-Charles (via Grenoble)',
+            'stations' => [['name' => 'Lyon-Perrache', 'city' => 'Lyon', 'pk_m' => 0], ['name' => 'Grenoble', 'city' => 'Grenoble', 'pk_m' => 129000],
+                ['name' => 'Marseille-St-Charles', 'city' => 'Marseille', 'pk_m' => 440000]],
+            'first_year' => 1858, 'open_today' => true,
+        ]);
+        $barcares = LinePlaceIndex::linePlaces([
+            'id' => 12, 'slug' => 'archeo-perpignan-barcares', 'name' => 'Ligne de Perpignan au Barcares par Pia',
+            'stations' => [['name' => 'Perpignan', 'city' => 'Perpignan', 'pk_m' => 0], ['name' => 'Pia', 'city' => 'Pia', 'pk_m' => 6000],
+                ['name' => 'Le Barcarès', 'city' => 'Le Barcarès', 'pk_m' => 20000]],
+            'first_year' => 1901, 'open_today' => false, 'last_year' => 1950,
+        ]);
+        $this->assertSame(['grenoble'], $grenoble->via);
+        $this->assertSame(['corbion', 'bouillon'], LinePlaceIndex::viaKeys('Ligne de Sedan à Paliseul par Corbion et Bouillon'));
+        $this->assertSame([], LinePlaceIndex::viaKeys('Ligne de Paris-St-Lazare au Havre'));
+        $index = new LinePlaceIndex([10 => $rhone, 11 => $grenoble, 12 => $barcares]);
+        $matcher = new ArchiveMatcher;
+        $judge = function (string $title, int $year) use ($matcher, $index): array {
+            $out = [];
+            foreach ($matcher->candidates($this->record($title, $year), $index) as $m) {
+                $out[$index->line($m->lineId)->slug ?? '?'] = $m;
+            }
+
+            return $out;
+        };
+
+        // Titre réel (Gallica, 1837) : le projet de la ligne du Rhône, pas la ligne par Grenoble, que la notice
+        // rattachait avec 10 points. Lyon et Marseille sont aussi sur la ligne du Rhône : pas d'extrémités pour la
+        // variante, qui reste sous le seuil ; la ligne du Rhône n'a pas non plus le seuil (projet entre deux gares
+        // intermédiaires), le document n'est rattaché à aucune ligne.
+        $lyon = $judge("Mémoire sur le projet d'un chemin de fer de Lyon à Marseille", 1837);
+        $this->assertSame(['rail_route', 'rail_word', 'date_project', 'doc_type'], self::codes($lyon['rfn-905000']));
+        $this->assertFalse($lyon['rfn-905000']->passes(ArchiveMatcher::THRESHOLD));
+        $this->assertSame([], $matcher->winners(array_values($lyon)));
+
+        // Le lieu de passage est nommé : la variante garde ses extrémités.
+        $via = $judge('Chemin de fer de Lyon à Marseille par Grenoble', 1860);
+        $this->assertContains('ends', self::codes($via['rfn-905000']));
+        $this->assertSame([11], array_map(fn (ArchiveMatch $m) => $m->lineId, $matcher->winners(array_values($via))));
+
+        // Aucune autre ligne ne relie Perpignan au Barcarès : la variante reste désignée par ses extrémités
+        // (titre réel, rattaché à raison).
+        $pia = $judge('Chemin de fer de Perpignan au Barcarès, Pyrénées-Orientales, son utilité, situation actuelle', 1896);
+        $this->assertContains('ends', self::codes($pia['archeo-perpignan-barcares']));
+        $this->assertTrue($pia['archeo-perpignan-barcares']->passes(ArchiveMatcher::THRESHOLD));
     }
 
     public function test_a_horse_tramway_is_not_the_railway(): void

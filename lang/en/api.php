@@ -129,7 +129,7 @@ return [
             'level_crossings_tiles' => 'Vector tile (MVT) of level crossings, from zoom 9.',
             'line_greenways' => 'OpenStreetMap greenways on the former trackbed of a line, with the shared length, the OSM link, provenance and ODbL licence.',
             'line_archives' => 'Documents digitised in Gallica (BnF) whose title refers to the line: title, date and its precision, type, authors, shelfmark, Gallica link and the reasons for the match. BnF metadata under the Open Licence, no images.',
-            'line_stories' => 'Stories of a line’s events: the event and its source, pictures of the line dated within 5 years (gap in years, author, licence) and Gallica documents from the period.',
+            'line_stories' => 'Stories of a line’s events: the event and every source that reports it, pictures of the line dated within 5 years (gap in years, author, licence) and Gallica documents from the period.',
             'greenways_tiles' => 'Vector tile (MVT) of greenways on former trackbeds, from zoom 4.',
             'signalling_tiles' => 'Vector tile (MVT) of signalling sections placed on the route, for today’s network.',
             'stations' => 'Directory of stations, halts and stops, current and closed.',

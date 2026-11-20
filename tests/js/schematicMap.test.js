@@ -5,6 +5,7 @@ import { mapViews, readViewParams, writeViewParams, VIEWS } from '$lib/epochView
 import { mapControlsLocale } from '$lib/mapControls.js';
 import { HERITAGE_COLOR, LGV_COLOR, TRAFFIC_COLOR } from '$lib/railStyle.js';
 import {
+    LABEL_ANCHORS,
     LABEL_MIN_ZOOM,
     NARROW_LABEL_ZOOM,
     SCHEMA_CATEGORIES,
@@ -13,11 +14,15 @@ import {
     SCHEMA_NODE_LAYERS,
     SCHEMA_PALETTES,
     SCHEMA_STATION_LAYERS,
+    STATION_NAMES_ZOOM,
+    anchorOffsets,
     axisColorExpr,
     axisFilter,
     categoryColors,
     cityLabelMinZoom,
     drawerLine,
+    labelAnchorExpr,
+    labelTextExpr,
     lineIdOf,
     paletteFor,
     schematicLayers,
@@ -26,6 +31,7 @@ import {
     stationPosition,
     summaryParts,
     tickImage,
+    withLabelOffsets,
 } from '$lib/schematicMap.js';
 import { stationPopupHtml } from '../../resources/js/Components/Map/lineInfo.js';
 
@@ -165,7 +171,83 @@ describe('couches du plan', () => {
             expect(layer.layout['symbol-sort-key']).toEqual(['-', 0, ['get', 'rank']]);
             expect(layer.paint['text-halo-color']).toBe(SCHEMA_PALETTES.dark.background);
         }
-        expect(labels.map((l) => l.minzoom)).toEqual(LABEL_MIN_ZOOM);
+        // MapLibre place d'abord le calque du dessus : les grandes villes (niveau 0) en dernier.
+        expect(labels.map((l) => l.minzoom)).toEqual([...LABEL_MIN_ZOOM].reverse());
+        expect(labels.at(-1).id).toBe(SCHEMA_LABEL_LAYERS[0]);
+    });
+
+    it('écrit le nom de la ville sur un nœud de ville, puis celui de sa gare en zoomant', () => {
+        expect(labelTextExpr(0)).toEqual([
+            'step',
+            ['zoom'],
+            ['coalesce', ['get', 'city_label'], ['get', 'name']],
+            STATION_NAMES_ZOOM,
+            ['get', 'name'],
+        ]);
+        expect(labelTextExpr(1)[3]).toBe(LABEL_MIN_ZOOM[2]);
+        expect(labelTextExpr(2)).toEqual(['get', 'name']);
+        const layers = schematicLayers({ dark: false });
+        expect(layers.find((l) => l.id === SCHEMA_LABEL_LAYERS[3]).layout['text-field']).toEqual([
+            'get',
+            'name',
+        ]);
+    });
+
+    it('pose le nom du côté choisi par le serveur, puis essaie les autres côtés', () => {
+        expect(anchorOffsets()).toEqual(LABEL_ANCHORS.flat());
+        const offsets = anchorOffsets(['top', 'bottom-left', 'inconnu', 'top']);
+        expect(offsets.filter((v) => typeof v === 'string')).toEqual([
+            'top',
+            'bottom-left',
+            'left',
+            'right',
+            'bottom',
+            'top-left',
+            'top-right',
+            'bottom-right',
+        ]);
+        expect(offsets.slice(0, 2)).toEqual(['top', [0, 0.6]]);
+        // Le nom à droite du point (ancrage `left`) est décalé vers la droite, et inversement.
+        expect(anchorOffsets(['left'])[1][0]).toBeGreaterThan(0);
+        expect(anchorOffsets(['right'])[1][0]).toBeLessThan(0);
+
+        const plan = {
+            features: [
+                { properties: { kind: 'station', label_anchors: ['bottom', 'top'] } },
+                { properties: { kind: 'station' } },
+                { properties: { kind: 'axis' } },
+            ],
+        };
+        expect(withLabelOffsets(plan)).toBe(plan);
+        expect(plan.features[0].properties.label_offsets.slice(0, 4)).toEqual([
+            'bottom',
+            [0, -0.6],
+            'top',
+            [0, 0.6],
+        ]);
+        expect(plan.features[1].properties.label_offsets).toEqual(anchorOffsets());
+        expect(plan.features[2].properties.label_offsets).toBeUndefined();
+        expect(withLabelOffsets(null)).toBeNull();
+
+        const label = schematicLayers({ dark: false }).find((l) => l.id === SCHEMA_LABEL_LAYERS[1]);
+        expect(label.layout['text-variable-anchor-offset']).toEqual(labelAnchorExpr());
+        expect(labelAnchorExpr()).toEqual([
+            'coalesce',
+            ['get', 'label_offsets'],
+            ['literal', anchorOffsets()],
+        ]);
+    });
+
+    it('donne un cercle aux villes nommées, même gares intermédiaires, et pas de trait en plus', () => {
+        const layers = schematicLayers({ dark: false });
+        const nodes = layers.find((l) => l.id === SCHEMA_NODE_LAYERS[0]);
+        expect(nodes.filter).toContainEqual([
+            'any',
+            ['!=', ['get', 'role'], 'stop'],
+            ['<', ['get', 'tier'], 2],
+        ]);
+        const stops = layers.find((l) => l.id === SCHEMA_LAYERS.stops);
+        expect(stops.filter).toContainEqual(['>=', ['get', 'tier'], 2]);
     });
 
     it('attend le premier zoom pour les noms des grandes villes sur un plan étroit', () => {

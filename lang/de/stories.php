@@ -30,6 +30,7 @@ return [
     'event' => [
         'title' => 'Das Ereignis',
         'source' => 'Quelle:',
+        'sources' => 'Quellen:',
         'stations' => 'Bahnhöfe des Abschnitts:',
     ],
     'images' => [

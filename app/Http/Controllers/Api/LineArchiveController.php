@@ -61,7 +61,9 @@ class LineArchiveController extends Controller
      *   destinations) ; à
      *   défaut `two_places` (1) : il nomme deux lieux de la ligne (communes ou gares, extrémités de son nom actuel
      *   ou de ses anciens noms), et `only_line_places` (1) s'il ne nomme aucun lieu situé hors de la ligne ;
-     * - `ends` (2) : ces deux lieux sont les extrémités de la ligne ;
+     * - `ends` (2) : ces deux lieux sont les extrémités de la ligne ; pas pour une variante dont le nom donne un
+     *   lieu de passage (« via Grenoble », « par Gisors ») quand le titre ne nomme pas ce lieu et qu'une autre
+     *   ligne passe aussi par les lieux nommés ;
      * - `rail_word` (2) : chemin de fer, voie ferrée, tramway, railway, embranchement, ferroviaire, « ligne de
      *   X à Y » ; ou `rail_hint` (1) : seulement gare, train, locomotive ou wagon ;
      * - date : `date_in_life` (2) entre la première date connue de la ligne et sa fermeture ; `date_project`

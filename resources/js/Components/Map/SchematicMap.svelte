@@ -28,6 +28,7 @@
         stationPosition,
         summaryParts,
         tickImage,
+        withLabelOffsets,
     } from '$lib/schematicMap.js';
     import { escapeHtml, stationPopupHtml } from './lineInfo.js';
 
@@ -262,7 +263,7 @@
                 return response.json();
             })
             .then((json) => {
-                data = json;
+                data = withLabelOffsets(json);
                 phase = 'ready';
             })
             .catch((error) => {

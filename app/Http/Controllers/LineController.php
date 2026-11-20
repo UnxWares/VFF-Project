@@ -164,8 +164,9 @@ class LineController extends Controller
             'profile' => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS),
             'trace_export_eras' => $traceExport->exportableEraYears($line),
             'archives' => $archives->forSheet($line),
-            // Événements qui ont une histoire (lien « Voir l'histoire » de la chronologie ; API : /api/v1/lines/{slug}/stories).
-            'story_events' => array_keys($stories->available($line)),
+            // Histoires de la ligne (lien « Voir l'histoire » de la chronologie ; API : /api/v1/lines/{slug}/stories) :
+            // une liste d'événements par fait, celui de l'adresse de l'histoire d'abord, puis ses autres sources.
+            'story_events' => array_column($stories->available($line), 'event_ids'),
         ]);
     }
 }

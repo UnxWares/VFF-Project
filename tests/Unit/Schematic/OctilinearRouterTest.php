@@ -9,7 +9,8 @@ use PHPUnit\Framework\TestCase;
 /**
  * Routage des axes sur la grille octilinéaire (OctilinearRouter) : chemins droits quand le tracé
  * l'est, pas de superposition ni de passage par un autre nœud quand un autre chemin existe, tracé de
- * secours à un coude quand la recherche est trop longue.
+ * secours à un coude quand la recherche est trop longue, croisements gardés seulement quand ils
+ * existent sur le terrain, reprise d'un axe déjà routé.
  */
 class OctilinearRouterTest extends TestCase
 {
@@ -88,6 +89,90 @@ class OctilinearRouterTest extends TestCase
         $this->assertCount(3, $path);
         $this->assertSame([0, 0], $path[0]);
         $this->assertSame([6, 2], $path[2]);
+    }
+
+    /**
+     * Un axe horizontal (0, 0) - (4, 0), extrémités occupées par des nœuds, puis un axe vertical qui
+     * doit le traverser ou le contourner.
+     *
+     * @return array{0: OctilinearRouter, 1: list<array{0: int, 1: int}>}
+     */
+    private function crossing(bool $real): array
+    {
+        $router = $this->router();
+        $router->occupy(0, 0, 100);
+        $router->occupy(4, 0, 101);
+        $router->realCrossings($real ? [0 => [1 => true], 1 => [0 => true]] : []);
+        $router->route([0, 0], [4, 0], [[0.0, 0.0], [4.0, 0.0]], 0.0, 0.0, 0);
+
+        return [$router, $router->route([2, -3], [2, 3], [[2.0, -3.0], [2.0, 3.0]], 90.0, 90.0, 1)];
+    }
+
+    public function test_a_crossing_that_exists_on_the_ground_is_drawn_straight(): void
+    {
+        [$router, $path] = $this->crossing(true);
+
+        $this->assertSame([[2, -3], [2, 3]], $path);
+        $this->assertSame(1, $router->crossingCount());
+        $this->assertSame(1, $router->crossingCount(true));
+        $this->assertSame(0, $router->crossingCount(false));
+    }
+
+    public function test_a_crossing_that_only_the_plan_would_have_is_avoided(): void
+    {
+        [$router, $path] = $this->crossing(false);
+
+        $this->assertNotContains([2, 0], OctilinearRouter::cells($path));
+        $this->assertSame(0, $router->crossingCount());
+        $this->assertSame(0, $router->conflicts($path));
+        $this->assertSame(0, $router->nodePasses());
+    }
+
+    public function test_rerouting_an_axis_frees_its_old_path_and_avoids_an_axis_routed_after_it(): void
+    {
+        $router = $this->router();
+        foreach ([[0, 0], [6, 0], [3, -2], [3, 2]] as $k => [$i, $j]) {
+            $router->occupy($i, $j, 100 + $k);
+        }
+        $guide = [[0.0, 0.0], [6.0, 0.0]];
+        $first = $router->route([0, 0], [6, 0], $guide, 0.0, 0.0, 0);
+        // Le second axe croise le premier : croisement réel, tracé droit.
+        $router->realCrossings([0 => [1 => true], 1 => [0 => true]]);
+        $router->route([3, -2], [3, 2], [[3.0, -2.0], [3.0, 2.0]], 90.0, 90.0, 1);
+        $this->assertSame([[0, 0], [6, 0]], $first);
+        $this->assertSame(1, $router->conflicts($first));
+
+        // Le croisement n'existe plus sur le terrain : repris, le premier axe contourne le second.
+        $router->realCrossings([]);
+        $second = $router->reroute($first, $guide, 0.0, 0.0, 0);
+
+        $this->assertNotSame($first, $second);
+        $this->assertSame([0, 0], $second[0]);
+        $this->assertSame([6, 0], $second[count($second) - 1]);
+        $this->assertSame(0, $router->conflicts($second));
+        $this->assertSame(0, $router->crossingCount());
+        $this->assertSame(0, $router->overlaps());
+    }
+
+    public function test_rerouting_keeps_the_old_path_when_the_search_gives_up(): void
+    {
+        $router = $this->router(new SchematicOptions(maxExpansions: 1, lenses: []));
+        $router->occupy(3, 0, 99);
+        $path = $router->route([0, 0], [6, 0], [[0.0, 0.0], [6.0, 0.0]], 0.0, 0.0, 0);
+
+        // Tracé de secours droit, à travers le nœud : un défaut, que la reprise ne peut pas corriger.
+        $this->assertSame([[0, 0], [6, 0]], $path);
+        $this->assertSame(1, $router->conflicts($path));
+        $this->assertSame(1, $router->nodePasses());
+        $this->assertSame($path, $router->reroute($path, [[0.0, 0.0], [6.0, 0.0]], 0.0, 0.0, 0));
+        $this->assertSame(1, $router->nodePasses());
+        $this->assertSame(0, $router->overlaps());
+    }
+
+    public function test_cells_expand_the_corners_of_a_path(): void
+    {
+        $this->assertSame([[0, 0], [1, 0], [2, 0], [3, 1]], OctilinearRouter::cells([[0, 0], [2, 0], [3, 1]]));
+        $this->assertSame([], OctilinearRouter::cells([]));
     }
 
     public function test_corners_keep_only_the_direction_changes(): void

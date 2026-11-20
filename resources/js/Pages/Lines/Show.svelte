@@ -65,7 +65,7 @@
      *   signalling_history?: Array<any>,
      *   profile?: any, trace_export_eras?: Array<number>,
      *   archives?: { total: number, fetched_on: string|null, items: Array<any> },
-     *   story_events?: Array<number>,
+     *   story_events?: Array<Array<number>>,
      * }} */
     let {
         line,

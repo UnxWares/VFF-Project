@@ -219,7 +219,33 @@ final class LinePlaceIndex
             firstYear: $firstYear === null ? null : (int) $firstYear,
             lastYear: $lastYear === null ? null : (int) $lastYear,
             openToday: $openToday,
+            via: self::viaKeys($row['name']),
         );
+    }
+
+    /**
+     * Lieux de passage nommés par un nom de ligne, en clés de lieu : « Ligne de Lyon-Perrache à
+     * Marseille-St-Charles (via Grenoble) » → [grenoble], « Ligne de Sedan à Paliseul par Corbion et Bouillon »
+     * → [corbion, bouillon]. Liste vide quand le nom n'en donne pas.
+     *
+     * @return list<string>
+     */
+    public static function viaKeys(string $name): array
+    {
+        $n = str_replace('’', "'", $name);
+        if (preg_match('/\((?:via|par)\s+([^)]+)\)/iu', $n, $m) !== 1
+            && preg_match('/\s(?:par|via)\s+(\p{Lu}[^()]*?)\s*(?:\(.*)?$/u', $n, $m) !== 1) {
+            return [];
+        }
+        $keys = [];
+        foreach (preg_split('/\s*(?:,|\bet\b)\s*/u', trim($m[1])) ?: [] as $part) {
+            $key = TitlePlaces::key($part);
+            if ($key !== null) {
+                $keys[] = $key;
+            }
+        }
+
+        return array_values(array_unique($keys));
     }
 
     /**

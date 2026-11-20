@@ -23,16 +23,27 @@ use Illuminate\Support\Facades\DB;
 final class SchematicMap
 {
     /** Version du contenu : à changer quand la forme de la réponse ou le calcul change. */
-    public const FORMAT = 1;
+    public const FORMAT = 3;
 
     /** Seuils des niveaux d'étiquettes : 0 (France entière), 1, 2, puis 3 (toutes). */
     public const LABEL_TIERS = [24, 120, 600];
+
+    /**
+     * Écart minimal sur le plan (m Web Mercator) entre deux villes nommées au niveau 0, puis au
+     * niveau 1 : la France entière nomme des villes éloignées les unes des autres, pas Paris et
+     * trois communes de sa banlieue.
+     */
+    public const CITY_SPACING_M = [80000.0, 30000.0];
+
+    /** Côtés du nom d'une gare envoyés, du meilleur au moins bon (SchematicLabels). */
+    public const LABEL_ANCHORS = 4;
 
     private const TTL_SECONDS = 30 * 24 * 3600;
 
     public function __construct(
         private readonly SchematicGraphLoader $loader,
         private readonly SchematicLayout $layout,
+        private readonly SchematicLabels $labels,
         private readonly SchematicOptions $options = new SchematicOptions,
     ) {}
 
@@ -121,11 +132,19 @@ final class SchematicMap
                 $usedLines[$piece['line']] = true;
             }
         }
-        foreach ($this->rankStations($plan->stations, $data['stations']) as $row) {
-            $info = $data['stations'][$row['station']] ?? null;
-            if ($info === null) {
-                continue;
-            }
+        $rows = array_values(array_filter(
+            $this->rankStations($plan->stations, $data['stations']),
+            fn (array $row): bool => isset($data['stations'][$row['station']]),
+        ));
+        $sides = $this->labels->rankings($plan->pieces, array_map(fn (array $row): array => [
+            'x' => $row['x'],
+            'y' => $row['y'],
+            'tier' => $row['tier'],
+            'name' => (string) $data['stations'][$row['station']]['name'],
+            'city' => $row['city_label'],
+        ], $rows));
+        foreach ($rows as $k => $row) {
+            $info = $data['stations'][$row['station']];
             $features[] = [
                 'type' => 'Feature',
                 'geometry' => ['type' => 'Point', 'coordinates' => self::lngLat([$row['x'], $row['y']])],
@@ -142,6 +161,8 @@ final class SchematicMap
                     'angle' => $row['angle'],
                     'rank' => $row['rank'],
                     'tier' => $row['tier'],
+                    'city_label' => $row['city_label'],
+                    'label_anchors' => array_slice($sides[$k], 0, self::LABEL_ANCHORS),
                 ],
             ];
         }
@@ -174,51 +195,129 @@ final class SchematicMap
     }
 
     /**
-     * Rang (importance) et niveau d'étiquette de chaque gare. Rang : poids de la gare (population de
-     * sa commune, gare plutôt que halte) puis rôle (nœud de plusieurs axes, terminus). Niveaux : les
-     * LABEL_TIERS premières gares qui nomment un nœud, une seule par commune aux niveaux 0 et 1, pour
-     * que la France entière montre des villes différentes ; les autres gares au dernier niveau.
+     * Rang (importance), niveau d'étiquette et nom de ville de chaque gare.
+     *
+     * Rang : poids de la gare (population de sa commune, puis gare plutôt que halte, gare
+     * principale : voir SchematicGraphLoader) et rôle (nœud de plusieurs axes, terminus).
+     *
+     * Niveaux 0 et 1 (France entière, puis une région) : des villes. Les communes sont prises par
+     * population décroissante, une gare chacune, à CITY_SPACING_M au moins des villes déjà nommées
+     * (la France entière nomme des villes éloignées, pas Paris et trois communes de sa banlieue).
+     * Chaque ville est représentée par sa gare principale (`representative`), et son nœud porte le
+     * nom de la commune (`city_label` : « Nantes », « Marseille ») jusqu'à ce que le plan montre les
+     * noms des gares (SchematicLabels::STATION_NAMES_ZOOM). Niveau 2 : les gares suivantes par rang ;
+     * niveau 3 : toutes les autres.
      *
      * @param  list<array{station: int, x: float, y: float, angle: int, kind: string, main: bool, degree: int}>  $stations
      * @param  array<int, array<string, mixed>>  $info
-     * @return list<array{station: int, x: float, y: float, angle: int, kind: string, main: bool, degree: int, rank: int, tier: int}>
+     * @return list<array{station: int, x: float, y: float, angle: int, kind: string, main: bool, degree: int, rank: int, tier: int, city_label: ?string}>
      */
     private function rankStations(array $stations, array $info): array
     {
         foreach ($stations as $k => $row) {
             $weight = (float) ($info[$row['station']]['weight'] ?? 0.0);
-            $role = match ($row['kind']) {
-                'hub' => min($row['degree'], 4),
-                'end' => 2,
-                default => 0,
-            };
-            $stations[$k]['rank'] = (int) round(10 * $weight) + $role + ($row['main'] ? 0 : -20);
+            $stations[$k]['rank'] = (int) round(10 * $weight) + self::role($row) + ($row['main'] ? 0 : -20);
+            $stations[$k]['tier'] = count(self::LABEL_TIERS);
+            $stations[$k]['city_label'] = null;
         }
-        $order = array_keys($stations);
-        usort($order, fn (int $a, int $b): int => [$stations[$b]['rank'], $stations[$a]['station']] <=> [$stations[$a]['rank'], $stations[$b]['station']]);
+
+        // Villes : gares qui nomment un nœud, groupées par commune ; la gare représentante de chacune.
         $cities = [];
-        $filled = array_fill(0, count(self::LABEL_TIERS), 0);
-        foreach ($order as $k) {
-            $row = $stations[$k];
-            $tier = count(self::LABEL_TIERS);
-            if ($row['main']) {
-                $city = mb_strtolower((string) ($info[$row['station']]['commune'] ?? $row['station'])).'|'.($info[$row['station']]['department_code'] ?? '');
-                foreach (self::LABEL_TIERS as $level => $limit) {
-                    $room = $limit - ($level > 0 ? self::LABEL_TIERS[$level - 1] : 0);
-                    if ($filled[$level] < $room && ($level >= 2 || ! isset($cities[$city]))) {
-                        $tier = $level;
-                        $filled[$level]++;
-                        break;
-                    }
-                }
-                if ($tier < 2) {
-                    $cities[$city] = true;
+        foreach ($stations as $k => $row) {
+            $commune = $info[$row['station']]['commune'] ?? null;
+            if ($row['main'] && is_string($commune) && $commune !== '') {
+                $cities[mb_strtolower($commune).'|'.($info[$row['station']]['department_code'] ?? '')][] = $k;
+            }
+        }
+        $representatives = [];
+        foreach ($cities as $list) {
+            usort($list, fn (int $a, int $b): int => self::representative($stations[$b], $info) <=> self::representative($stations[$a], $info));
+            $representatives[] = $list[0];
+        }
+        usort($representatives, fn (int $a, int $b): int => [
+            (int) ($info[$stations[$b]['station']]['population'] ?? 0), $stations[$b]['rank'], $stations[$a]['station'],
+        ] <=> [
+            (int) ($info[$stations[$a]['station']]['population'] ?? 0), $stations[$a]['rank'], $stations[$b]['station'],
+        ]);
+        $named = [];
+        $filled = [0, 0];
+        foreach ($representatives as $k) {
+            foreach ([0, 1] as $level) {
+                $room = self::LABEL_TIERS[$level] - ($level > 0 ? self::LABEL_TIERS[$level - 1] : 0);
+                if ($filled[$level] < $room && self::spaced($stations[$k], $named, $level)) {
+                    $stations[$k]['tier'] = $level;
+                    $stations[$k]['city_label'] = (string) $info[$stations[$k]['station']]['commune'];
+                    $named[] = [$stations[$k]['x'], $stations[$k]['y'], $level];
+                    $filled[$level]++;
+                    break;
                 }
             }
-            $stations[$k]['tier'] = $tier;
+        }
+
+        // Niveau 2 : les gares suivantes qui nomment un nœud, par rang.
+        $order = array_keys($stations);
+        usort($order, fn (int $a, int $b): int => [$stations[$b]['rank'], $stations[$a]['station']] <=> [$stations[$a]['rank'], $stations[$b]['station']]);
+        $room = self::LABEL_TIERS[2] - self::LABEL_TIERS[1];
+        foreach ($order as $k) {
+            if ($room === 0) {
+                break;
+            }
+            if ($stations[$k]['main'] && $stations[$k]['tier'] > 1) {
+                $stations[$k]['tier'] = 2;
+                $room--;
+            }
         }
 
         return $stations;
+    }
+
+    /** Part du rôle dans le rang : nœud de plusieurs axes (jusqu'à 4), terminus (2), gare intermédiaire (0). */
+    private static function role(array $row): int
+    {
+        return match ($row['kind']) {
+            'hub' => min($row['degree'], 4),
+            'end' => 2,
+            default => 0,
+        };
+    }
+
+    /**
+     * Ordre des gares d'une ville pour choisir celle qui la représente : la gare qui porte le nom de
+     * la ville seul ou suivi de « Ville » ou « Centre » (« Nantes », « Metz-Ville »), puis une gare
+     * dont le nom commence par celui de la ville (« Marseille-St-Charles » avant « L'Estaque »), une
+     * gare avant une halte, un nœud du plan avant une gare intermédiaire, le nœud où se rejoignent
+     * le plus d'axes, le rang.
+     *
+     * @param  array{station: int, kind: string, degree: int, rank: int}  $row
+     * @param  array<int, array<string, mixed>>  $info
+     * @return list<int>
+     */
+    private static function representative(array $row, array $info): array
+    {
+        $station = $info[$row['station']];
+
+        return [
+            (int) ($station['principal'] ?? false),
+            (int) ($station['named_after'] ?? false),
+            (int) (($station['type'] ?? null) === 'gare'),
+            (int) ($row['kind'] !== 'stop'),
+            $row['degree'],
+            $row['rank'],
+            -$row['station'],
+        ];
+    }
+
+    /**
+     * La gare est-elle assez loin, sur le plan, des villes déjà nommées aux niveaux 0 à `$level` ?
+     *
+     * @param  array{x: float, y: float}  $row
+     * @param  list<array{0: float, 1: float, 2: int}>  $named
+     */
+    private static function spaced(array $row, array $named, int $level): bool
+    {
+        $min = self::CITY_SPACING_M[$level];
+
+        return ! array_any($named, fn (array $c): bool => $c[2] <= $level && hypot($c[0] - $row['x'], $c[1] - $row['y']) < $min);
     }
 
     /**

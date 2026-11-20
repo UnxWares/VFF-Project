@@ -9,6 +9,7 @@ import {
     gapPhrase,
     imageLegend,
     stepIndex,
+    storyLinks,
     storyTitle,
     yearsWord,
 } from '$lib/eventStory.js';
@@ -242,5 +243,35 @@ describe('documentMeta', () => {
         ).toBe('Carte ou plan · Alfred de Villemandy · cotes A, B');
         expect(documentMeta({ type: 'map', authors: [], shelfmarks: [] }, t)).toBe('Carte ou plan');
         expect(authorName('Agence Rol')).toBe('Agence Rol');
+    });
+});
+
+describe('storyLinks', () => {
+    const events = [
+        { id: 1, status: 'retained' },
+        { id: 2, status: 'agrees' },
+        { id: 3, status: 'unused' },
+        { id: 4, status: 'other_line' },
+        { id: 5, status: 'agrees' },
+        { id: 6, status: 'conflict' },
+    ];
+
+    it('puts one link per story, under the event of its address when it is shown', () => {
+        const links = storyLinks(events, [[3, 1, 2], [6]]);
+        expect([...links]).toEqual([
+            [3, 3],
+            [6, 6],
+        ]);
+    });
+
+    it('moves the link to another source of the fact when the address is a duplicate', () => {
+        // L'adresse (2) est un doublon d'un fait retenu : le lien va sous le premier autre événement
+        // montré du fait, dans l'ordre de la chronologie, et mène toujours à l'adresse.
+        expect([...storyLinks(events, [[2, 3, 1]])]).toEqual([[1, 2]]);
+    });
+
+    it('never links a duplicate, another line or an unknown event', () => {
+        expect(storyLinks(events, [[2, 5], [4], [99], []]).size).toBe(0);
+        expect(storyLinks(events, null).size).toBe(0);
     });
 });

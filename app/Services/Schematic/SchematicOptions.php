@@ -19,6 +19,9 @@ final readonly class SchematicOptions
         public float $cellM = 6000.0,
         // Antenne (axe sans issue) sans gare plus courte que cela : retirée (bout de voie, faisceau).
         public float $spurM = 3000.0,
+        // Tronçon isolé (relié au reste du réseau par aucune voie en service) sans gare et plus court
+        // que cela : retiré. Un bout de voie isolé à moins de mergeCells pas d'un nœud y est raccordé.
+        public float $isolatedM = 5000.0,
         // Deux nœuds reliés par un axe plus court que cela sont fondus en un seul, en pas de grille.
         public float $mergeCells = 0.45,
         // Deux nœuds qui tombent sur le même point et sont reliés par un axe de moins de mergeSameCells
@@ -42,12 +45,18 @@ final readonly class SchematicOptions
         public float $portWeight = 0.9,
         // Pas déjà pris par un autre axe (axes superposés).
         public float $overlapCost = 30.0,
-        // Croisement d'un autre axe (diagonales qui se coupent, passage par un point déjà traversé).
+        // Croisement d'un autre axe (diagonales qui se coupent, passage par un point déjà traversé) :
+        // crossCost quand les deux voies se croisent aussi sur le terrain (pont, saut-de-mouton),
+        // falseCrossCost sinon (le croisement n'existe que sur le plan).
         public float $crossCost = 6.0,
+        public float $falseCrossCost = 60.0,
         // Passage par un nœud du plan qui n'est pas une extrémité de l'axe (fausse correspondance).
-        public float $placeCost = 80.0,
+        public float $placeCost = 150.0,
         // Recherche d'un axe : états explorés au plus avant de se rabattre sur un tracé à un coude.
         public int $maxExpansions = 60000,
+        // Reprise des croisements : passes au plus où chaque axe qui en croise un autre est routé de
+        // nouveau, tous les autres axes en place.
+        public int $rerouteRounds = 3,
         // Gares intermédiaires : part de l'espacement régulier (1) face à la position réelle (0).
         public float $evenSpacing = 0.5,
         // Loupes : grandes agglomérations agrandies, comme sur les plans de réseau, pour que leurs gares

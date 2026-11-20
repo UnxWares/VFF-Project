@@ -20,14 +20,17 @@
 
     /**
      * Histoire d'un événement de ligne (`/lines/{slug}/stories/{event}`, LineStoryController) :
-     * l'événement tel que la base le rapporte (texte, citation, source), un carrousel des images de la
+     * l'événement tel que la base le rapporte (texte, citation, sources), un carrousel des images de la
      * ligne datées à quelques années près et les documents de Gallica de la période (liens seulement).
+     * Un fait rapporté par plusieurs sources n'a qu'une histoire : texte de la source la plus sûre
+     * (`event`), et toutes les sources citées (`sources`, celle de `event` d'abord).
      * Rien n'est rédigé ici : textes de l'événement (App\Services\Stories\EventStories::text), légendes
      * et crédits des médias, notices de la BnF.
      *
      * @type {{ story: {
      *   line: { slug: string, code: string|null, name: string },
      *   event: Record<string, any>,
+     *   sources: Array<Record<string, any>>,
      *   text: { description: string|null, description_lang: string|null, correction: string|null,
      *     quote: string|null, quote_lang: string|null, quote_kind: string|null, section_text: string|null },
      *   window: { years: number, from: number, to: number },
@@ -44,6 +47,7 @@
 
     const line = $derived(story.line);
     const event = $derived(story.event);
+    const sources = $derived(story.sources ?? [event]);
     const text = $derived(story.text);
     const lineHref = $derived(`/lines/${line.slug}`);
     const path = $derived(`/lines/${line.slug}/stories/${event.id}`);
@@ -86,6 +90,11 @@
     ]}
 />
 
+{#snippet source(s)}{sourceLabel(s.source)}{#if s.source_url},
+        <a href={cleanUrl(s.source_url)} target="_blank" rel="noopener noreferrer"
+            >{linkLabel(s.source_url, 40, lang)}{@render ext()}</a
+        >{/if}{#if s.provenance?.license}{` (${s.provenance.license})`}{/if}{/snippet}
+
 {#snippet ext()}<i class="bi bi-box-arrow-up-right vff-ext" aria-hidden="true"></i><span
         class="vff-sr-only"
     >
@@ -120,16 +129,19 @@
                 {#if text.correction}
                     <p class="note" lang={lang === 'fr' ? undefined : 'fr'}>{text.correction}</p>
                 {/if}
-                <p class="note">
-                    {t('stories.event.source')}
-                    {sourceLabel(event.source)}{#if event.source_url},
-                        <a
-                            href={cleanUrl(event.source_url)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            >{linkLabel(event.source_url, 40, lang)}{@render ext()}</a
-                        >{/if}{#if event.provenance?.license}{` (${event.provenance.license})`}{/if}
-                </p>
+                {#if sources.length > 1}
+                    <p class="note sources-title">{t('stories.event.sources')}</p>
+                    <ul class="note sources">
+                        {#each sources as s (s.id)}
+                            <li>{@render source(s)}</li>
+                        {/each}
+                    </ul>
+                {:else}
+                    <p class="note">
+                        {t('stories.event.source')}
+                        {@render source(event)}
+                    </p>
+                {/if}
                 {#if story.stations.length}
                     <p class="note">
                         {t('stories.event.stations')}
@@ -242,6 +254,12 @@
     .event .note {
         margin: 0 0 var(--vff-space-2);
     }
+    .event .sources-title {
+        margin-bottom: var(--vff-space-1);
+    }
+    .sources {
+        padding-left: 1.25rem;
+    }
 
     /* Registre daté à filets, comme « Dans les archives » de la fiche : date et écart à gauche. */
     .docs {
@@ -279,6 +297,10 @@
     .body a {
         font-size: var(--vff-fs-md);
         overflow-wrap: anywhere;
+    }
+    /* Titre d'un document sur une ligne : cible d'au moins 24 px de haut (WCAG 2.5.8), comme le reste du site. */
+    .body > a {
+        min-height: 24px;
     }
     .meta {
         color: var(--vff-text-muted);

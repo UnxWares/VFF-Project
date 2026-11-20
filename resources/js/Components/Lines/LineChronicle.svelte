@@ -9,6 +9,7 @@
         mediaSourceHref,
     } from '$lib/mediaCredits.js';
     import { conciseAlt } from '$lib/altText.js';
+    import { storyLinks } from '$lib/eventStory.js';
 
     /**
      * Chronologie détaillée, portion par portion : TOUS les événements de la ligne (rien
@@ -18,13 +19,13 @@
      * description_lang / quote_lang = « fr » pour ce qui reste une citation en français.
      * Images d'un événement (`e.media`, publiées après validation) : petite vignette chargée au
      * besoin (groupes repliés, `loading="lazy"`), lien vers l'image en grand et crédit complet.
-     * `stories` : événements qui ont une histoire (App\Services\Stories\EventStories), lien « Voir
-     * l'histoire » sous chacun, sauf pour un doublon d'un fait retenu (statut agrees) ou le fait d'une
-     * autre ligne ; `lineSlug` construit l'adresse /lines/{slug}/stories/{id}.
+     * `stories` : histoires de la ligne (App\Services\Stories\EventStories), une liste d'événements par
+     * fait, celui de l'adresse d'abord. Un seul lien « Voir l'histoire » par histoire, même quand
+     * plusieurs sources rapportent le fait (storyLinks) ; jamais sous un doublon d'un fait retenu (statut
+     * agrees) ni sous le fait d'une autre ligne. `lineSlug` construit l'adresse /lines/{slug}/stories/{id}.
      */
     let { chronicle, stories = [], lineSlug = null } = $props();
-    const withStory = $derived(new Set(lineSlug ? stories : []));
-    const hasStory = (e) => withStory.has(e.id) && !['agrees', 'other_line'].includes(e.status);
+    const storyOf = $derived(lineSlug ? storyLinks(chronicle?.events ?? [], stories) : new Map());
 
     const lang = $derived($i18n.language ?? 'fr');
     const dateOf = (iso, precision) =>
@@ -215,9 +216,9 @@
                                         </span>
                                     {/if}
                                     {#if e.media?.length}{@render eventMedia(e.media)}{/if}
-                                    {#if hasStory(e)}<a
+                                    {#if storyOf.has(e.id)}<a
                                             class="ev-story"
-                                            href="/lines/{lineSlug}/stories/{e.id}"
+                                            href="/lines/{lineSlug}/stories/{storyOf.get(e.id)}"
                                             aria-label={t('stories.link_label', {
                                                 event: eventLabel(e.type),
                                                 date: dateOf(e.date, e.precision),
@@ -410,8 +411,10 @@
         color: var(--vff-text-muted);
     }
     /* Lien vers l'histoire de l'événement (images de l'époque, archives), sous son texte. */
+    /* Cible d'au moins 24 px de haut (WCAG 2.5.8). */
     .ev-story {
         display: inline-block;
+        min-height: 24px;
         margin-top: 6px;
         font-weight: 600;
     }

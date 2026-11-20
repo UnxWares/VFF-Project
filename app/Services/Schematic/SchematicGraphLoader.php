@@ -119,8 +119,10 @@ final class SchematicGraphLoader
      * Gares ouvertes du plan, avec leur statut à l'ère et un poids qui choisit la gare qui nomme un
      * nœud et l'ordre des étiquettes : population de la commune (INSEE, dernier recensement importé),
      * puis, entre les gares d'une même ville, la gare (type « gare ») avant la halte, le nom qui
-     * commence par celui de la ville (« Toulouse-Matabiau » avant « St-Cyprien-Arènes »), le nombre
-     * de lignes desservies à l'ère, et une gare de voyageurs avant une gare de fret seul.
+     * commence par celui de la ville (« Toulouse-Matabiau » avant « St-Cyprien-Arènes »), la gare qui
+     * porte le nom de la ville seul ou suivi de « Ville » ou « Centre » (« Nantes », « Metz-Ville » :
+     * la gare principale), le nombre de lignes desservies à l'ère, et une gare de voyageurs avant une
+     * gare de fret seul.
      *
      * @param  list<int>  $ids
      * @return array<int, array<string, mixed>>
@@ -151,6 +153,8 @@ final class SchematicGraphLoader
                 SQL, [$eraId, $eraId, '{'.implode(',', $chunk).'}']);
             foreach ($rows as $row) {
                 $population = $row->population === null ? 0 : (int) $row->population;
+                $namedAfter = self::namedAfter((string) $row->name, $row->commune);
+                $principal = self::principal((string) $row->name, $row->commune);
                 $out[(int) $row->id] = [
                     'slug' => $row->slug,
                     'name' => $row->name,
@@ -158,10 +162,14 @@ final class SchematicGraphLoader
                     'commune' => $row->commune,
                     'department_code' => $row->department_code,
                     'status' => $row->status,
+                    'type' => $row->type,
                     'population' => $population,
+                    'named_after' => $namedAfter,
+                    'principal' => $principal,
                     'weight' => log10($population + 10)
                         + ($row->type === 'gare' ? 0.5 : 0.0)
-                        + (self::namedAfter((string) $row->name, $row->commune) ? 0.4 : 0.0)
+                        + ($namedAfter ? 0.4 : 0.0)
+                        + ($principal ? 0.4 : 0.0)
                         + 0.08 * min((int) $row->lines, 8)
                         - ($row->status === 'no_commercial' ? 0.5 : 0.0),
                 ];
@@ -178,8 +186,26 @@ final class SchematicGraphLoader
         if ($city === null || $city === '') {
             return false;
         }
-        $norm = fn (string $s): string => preg_replace('/\bsainte?(?=[\s-])/u', 'st', mb_strtolower($s)) ?? $s;
 
-        return str_starts_with($norm($name), $norm($city));
+        return str_starts_with(self::norm($name), self::norm($city));
+    }
+
+    /**
+     * La gare porte-t-elle le nom de sa commune seul, ou suivi de « Ville » ou « Centre » (« Nantes »,
+     * « Strasbourg-Ville », « Avignon-Centre ») : le nom de la gare principale d'une ville ?
+     */
+    public static function principal(string $name, ?string $city): bool
+    {
+        if ($city === null || $city === '') {
+            return false;
+        }
+        $rest = substr(self::norm($name), strlen(self::norm($city)));
+
+        return self::namedAfter($name, $city) && in_array(trim($rest, ' -'), ['', 'ville', 'centre'], true);
+    }
+
+    private static function norm(string $s): string
+    {
+        return preg_replace('/\bsainte?(?=[\s-])/u', 'st', mb_strtolower($s)) ?? $s;
     }
 }

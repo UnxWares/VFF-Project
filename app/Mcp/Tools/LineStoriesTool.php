@@ -23,6 +23,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Description(<<<'TXT'
 Histoire d'un événement d'une ligne (ouverture, fermeture, électrification, dépose…) : l'événement avec sa source, les images publiées de la ligne datées à 5 ans au plus de son année, et les documents de Gallica de la même période. Même contenu que l'API REST GET /api/v1/lines/{line}/stories (sans `event` : liste des événements qui ont une histoire, avec le nombre d'images et de documents) et GET /api/v1/lines/{line}/stories/{event} (avec `event` : l'histoire complète).
 Règles : événements concernés = ouvertures, réouvertures, fermetures, déclassements, déposes, reconversions, électrifications, modernisations, exploitation touristique, accidents (pas les concessions). Image retenue : toutes les années possibles de sa date à 5 ans au plus (date exacte, décennie, fourchette, ou année « vers » comptée à 2 ans près ; jamais une borne seule « avant » ou « après »), domaine public ou licence ouverte (pas les images montrées sur le site avec une simple autorisation) ; plus les images rattachées à l'événement. Seuil : 3 images et documents au moins, dont 2 images ; carrousel limité aux 24 images les plus proches de la date, dans l'ordre chronologique.
+Un même fait rapporté par plusieurs sources (même type, même date, même portion) n'a qu'une histoire : la liste donne l'événement de la source la plus sûre et `source_event_ids` (tous les événements du fait) ; l'histoire, demandée par n'importe lequel d'entre eux, donne `event` (celui de l'adresse `vff_url`) et `sources` (tous, à citer).
 Chaque image et chaque document porte `gap_years` : écart signé avec l'année de l'événement (4 = quatre ans après, -2 = deux ans avant, 0 = la même année, null = image de l'événement sans date). Dites toujours cet écart : une photo de 1934 n'est pas une photo de l'ouverture de 1930. Quand `gap_exact` est faux, la date de l'image est approximative : `gap_years_min` et `gap_years_max` bornent l'écart (« environ trois ans avant »).
 Droits : montrez chaque image avec son auteur, sa licence et sa source (`attribution`, `license`, `source_url`) ; citez la source de l'événement (`provenance`). Gallica : métadonnées de la BnF sous Licence Ouverte, jamais d'image ; renvoyez le lecteur vers `gallica_url`.
 Exemples : {"line": "rfn-340000"} ; {"line": "340000", "event": 12793, "lang": "en"}.
@@ -66,8 +67,13 @@ class LineStoriesTool extends VffTool
             foreach ($available as $id => $counts) {
                 $event = $events->get($id);
                 if ($event instanceof LineEvent) {
-                    $items[] = ['event' => LineEventResource::make($event)->resolve()] + $counts
-                        + ['vff_url' => self::url('/lines/'.$line->slug.'/stories/'.$id)];
+                    $items[] = [
+                        'event' => LineEventResource::make($event)->resolve(),
+                        'source_event_ids' => $counts['event_ids'],
+                        'images' => $counts['images'],
+                        'documents' => $counts['documents'],
+                        'vff_url' => self::url('/lines/'.$line->slug.'/stories/'.$id),
+                    ];
                 }
             }
 
@@ -93,6 +99,7 @@ class LineStoriesTool extends VffTool
             [
                 'line' => $lineData,
                 'event' => $story['event'],
+                'sources' => $story['sources'],
                 'window' => $story['window'],
                 'images_total' => $story['images_total'],
                 'images' => $story['images'],
@@ -102,12 +109,12 @@ class LineStoriesTool extends VffTool
                 'archives_mention' => $story['documents'] === [] ? null : LineArchives::ATTRIBUTION,
             ],
             [
-                $story['event']['provenance']['provider'] ?? null,
+                ...array_map(fn (array $e): ?string => $e['provenance']['provider'] ?? null, $story['sources']),
                 ...array_map(fn (array $m): ?string => $this->attribution->providerFor('media', $m['provider'] ?? null), $story['images']),
                 ...($story['documents'] === [] ? [] : ['gallica']),
             ],
             $lang,
-            self::url('/lines/'.$line->slug.'/stories/'.$event->id),
+            self::url('/lines/'.$line->slug.'/stories/'.$story['event']['id']),
             ['images', 'documents'],
         );
     }

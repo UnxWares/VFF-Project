@@ -233,7 +233,7 @@ return [
         'views_term' => 'Comparer les époques',
         'views_text' => 'Le choix « Vue », au-dessus de la carte, compare deux décennies (lignes ouvertes, fermées ou déposées entre les deux) ou superpose toutes les époques pour voir quand chaque ligne a quitté le service. L’adresse de la page garde ce choix : vous pouvez la partager.',
         'schema_term' => 'Vue ferroviaire',
-        'schema_text' => 'Le choix « Vue ferroviaire », dans « Vue », dessine le réseau en service à l’époque choisie comme un plan de transport, sans fond de carte. Les lignes y sont redressées à 45 ou 90 degrés ; bifurcations, correspondances et terminus sont des cercles, les autres gares de petits traits qui apparaissent en zoomant. Paris, Lyon, Lille et Marseille sont agrandies pour que leurs gares tiennent : les positions et les distances ne sont donc pas à l’échelle. Un clic sur une ligne ou une gare ouvre la même fiche que sur la carte.',
+        'schema_text' => 'Le choix « Vue ferroviaire », dans « Vue », dessine le réseau en service à l’époque choisie comme un plan de transport, sans fond de carte. Les lignes y sont redressées à 45 ou 90 degrés ; bifurcations, correspondances et terminus sont des cercles, les autres gares de petits traits qui apparaissent en zoomant. Sur la France entière, les grandes gares portent le nom de leur ville ; en zoomant, chaque gare retrouve le sien. Une ligne qu’aucune voie en service ne relie au reste du réseau (souvent un train touristique) est dessinée à sa place, sans trait vers les autres lignes. Paris, Lyon, Lille et Marseille sont agrandies pour que leurs gares tiennent : les positions et les distances ne sont donc pas à l’échelle. Un clic sur une ligne ou une gare ouvre la même fiche que sur la carte.',
     ],
 
     'tech' => [
@@ -266,7 +266,7 @@ return [
         'legend_title_current' => 'Vue ferroviaire, aujourd’hui',
         'legend_intro' => 'Plan schématique du réseau en service : les positions et les distances ne sont pas à l’échelle.',
         'stations_group' => 'Gares',
-        'node' => 'Bifurcation, correspondance ou terminus',
+        'node' => 'Ville, bifurcation, correspondance ou terminus',
         'stop' => 'Gare intermédiaire (en zoomant)',
         'loading' => 'Chargement du plan…',
         'error' => 'Le plan de cette époque ne peut pas être chargé pour le moment.',

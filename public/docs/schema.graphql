@@ -124,7 +124,7 @@ type Query {
     id: ID!
   ): LineEvent
 
-  "Un média, par son identifiant."
+  "Un média, par son identifiant (nul pour une image que l'API ne diffuse pas, voir `Media.rights_status`)."
   mediaItem(
     "Identifiant du média."
     id: ID!
@@ -963,7 +963,9 @@ type LineEvent {
   près), du domaine public ou sous licence ouverte (pas les images montrées sur le site avec une simple
   autorisation), plus les images rattachées à l'événement ; documents de Gallica de la même période, gares
   de la portion. Nulle quand l'événement n'en a pas : type sans histoire (concession, `other`), ou moins de
-  3 images et documents dont 2 images.
+  3 images et documents dont 2 images. Un fait rapporté par plusieurs sources (même type, même date, même
+  portion) n'a qu'une histoire : la même pour chacun de ses événements, avec `event_id` (événement de la
+  source la plus sûre, celui de l'adresse) et `sources`.
   
   Calculée seulement pour un événement demandé seul (`lineEvent(id: …) { story { … } }`), et pour 3
   événements au plus par requête : dans une liste (`line.events`, `lineEvents`, `media`), ou au-delà de 3,
@@ -992,6 +994,12 @@ chacun avec son écart en années. Dites toujours cet écart : une photo de 1934
 l'ouverture de 1930.
 """
 type LineEventStory {
+  "Identifiant de l'événement qui donne son adresse à l'histoire (`/lines/{line}/stories/{event_id}`) : celui de la source la plus sûre du fait, qui peut être un autre que l'événement demandé."
+  event_id: ID!
+
+  "Tous les événements du fait (une source chacun), celui de `event_id` d'abord, puis du plus sûr au moins sûr : à citer."
+  sources: [LineEvent!]!
+
   "Écart maximal retenu, en années, entre l'événement et une image ou un document (5)."
   window_years: Int!
 
@@ -1187,7 +1195,7 @@ type Media {
   "Lien vers le texte de la licence."
   license_url: String
 
-  "Statut des droits : `public_domain`, `open_license` (licence libre), `permission` (autorisation) ou `unknown`."
+  "Statut des droits : `public_domain`, `open_license` (licence libre) ou `unknown`. Les images que le site montre avec une simple autorisation de leur auteur (`permission`) ne sont jamais diffusées par l'API."
   rights_status: String!
 
   "Vrai si l'usage commercial est permis, faux s'il ne l'est pas, nul si inconnu."
@@ -1334,7 +1342,7 @@ input MediaFilter {
   "Licence telle que déclarée par la source, casse ignorée (ex. `CC BY-SA 4.0`)."
   license: String
 
-  "Statut des droits : `public_domain`, `open_license`, `permission` ou `unknown`."
+  "Statut des droits : `public_domain`, `open_license` ou `unknown` (les images `permission` ne sont pas diffusées par l'API)."
   rights_status: String
 
   "Vrai : seulement les médias d'usage commercial permis ; faux : les autres."

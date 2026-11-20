@@ -18,9 +18,13 @@ use SplPriorityQueue;
  *   - un départ ou une arrivée dans une autre direction que le tracé réel : l'ordre des axes autour
  *     d'un nœud reste celui de la carte ;
  *   - les pas déjà pris par un autre axe (superposition), les croisements, et le passage par un
- *     autre nœud (qui ferait croire à une correspondance).
+ *     autre nœud (qui ferait croire à une correspondance). Un croisement coûte peu quand les deux
+ *     voies se croisent aussi sur le terrain (pont, saut-de-mouton : `realCrossings`), beaucoup sinon.
  * Ces pénalités sont fortes mais finies : un axe trouve toujours un chemin, et un nœud de plus de
  * huit axes reste dessinable (les axes se rejoignent alors en faisceau).
+ *
+ * Un axe déjà routé peut être routé de nouveau (`reroute`) quand les axes tracés après lui lui
+ * laissent un meilleur chemin (SchematicLayout : reprise des axes qui en croisent d'autres).
  *
  * Coordonnées : entiers (i, j) de la grille, j vers le nord. Directions 0 à 7 : est, nord-est, nord,
  * nord-ouest, ouest, sud-ouest, sud, sud-est (angle = 45° × direction).
@@ -37,14 +41,20 @@ final class OctilinearRouter
     /** @var array<int, int> pas de grille pris (clé d'arête non orientée) → nombre d'axes */
     private array $edgeUse = [];
 
-    /** @var array<int, int> diagonales prises (case et orientation) → nombre d'axes */
+    /** @var array<int, array<int, int>> diagonales prises (case et orientation) → axes qui la prennent */
     private array $diagUse = [];
 
-    /** @var array<int, int> points traversés par un axe (hors extrémités) → nombre d'axes */
+    /** @var array<int, array<int, int>> points traversés par un axe (hors extrémités) → axes qui le traversent */
     private array $pointUse = [];
 
     /** @var array<int, int> point → nœud du plan qui l'occupe */
     private array $placeAt = [];
+
+    /** @var array<int, array<int, true>> axes dont la voie croise celle de chaque axe sur le terrain */
+    private array $realCrossings = [];
+
+    /** Axe en cours de routage (numéro donné par l'appelant). */
+    private int $axis = -1;
 
     /** Axes routés par le tracé de secours (recherche trop longue). */
     public int $fallbacks = 0;
@@ -66,10 +76,83 @@ final class OctilinearRouter
         return $this->placeAt[self::key($i, $j)] ?? null;
     }
 
+    /**
+     * Paires d'axes dont les voies se croisent sur le terrain (sans jonction) : leur croisement sur
+     * le plan coûte `crossCost`, celui de deux autres axes `falseCrossCost`.
+     *
+     * @param  array<int, array<int, true>>  $pairs  axe → axes qu'il croise
+     */
+    public function realCrossings(array $pairs): void
+    {
+        $this->realCrossings = $pairs;
+    }
+
     /** Nombre de pas de grille pris par plus d'un axe (superpositions). */
     public function overlaps(): int
     {
         return count(array_filter($this->edgeUse, fn (int $n): bool => $n > 1));
+    }
+
+    /**
+     * Croisements sans jonction du plan : points de la grille traversés par plusieurs axes (hors de
+     * leurs extrémités et des nœuds) et cases où les deux diagonales sont prises. Avec `$real`, ceux
+     * dont les deux voies se croisent aussi sur le terrain ; avec `$real` à faux, les autres.
+     */
+    public function crossingCount(?bool $real = null): int
+    {
+        $count = 0;
+        foreach ($this->pointUse as $key => $axes) {
+            if (count($axes) > 1 && ! isset($this->placeAt[$key]) && ($real === null || $this->allReal(array_keys($axes)) === $real)) {
+                $count++;
+            }
+        }
+        foreach ($this->diagUse as $key => $axes) {
+            if ($key % 2 === 0 && isset($this->diagUse[$key + 1])
+                && ($real === null || $this->allReal([...array_keys($axes), ...array_keys($this->diagUse[$key + 1])]) === $real)) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    /** @param  list<int>  $axes */
+    private function allReal(array $axes): bool
+    {
+        $n = count($axes);
+        for ($a = 0; $a < $n; $a++) {
+            for ($b = $a + 1; $b < $n; $b++) {
+                if (! isset($this->realCrossings[$axes[$a]][$axes[$b]])) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Coût de la traversée d'un point ou d'une diagonale déjà pris par d'autres axes.
+     *
+     * @param  array<int, int>  $owners  axe → nombre de passages
+     */
+    private function crossingCost(array $owners): float
+    {
+        $cost = 0.0;
+        $real = $this->realCrossings[$this->axis] ?? [];
+        foreach ($owners as $other => $n) {
+            if ($other !== $this->axis) {
+                $cost += $n * (isset($real[$other]) ? $this->options->crossCost : $this->options->falseCrossCost);
+            }
+        }
+
+        return $cost;
+    }
+
+    /** Points de nœuds du plan traversés par un axe qui n'y finit pas (fausses correspondances). */
+    public function nodePasses(): int
+    {
+        return count(array_intersect_key($this->pointUse, $this->placeAt));
     }
 
     /**
@@ -81,10 +164,12 @@ final class OctilinearRouter
      * @param  list<array{0: float, 1: float}>  $guide  tracé réel simplifié, en unités de grille, de $from à $to
      * @param  float  $startBearing  direction du tracé réel au départ (degrés, 0 = est, 90 = nord)
      * @param  float  $endBearing  direction du tracé réel à l'arrivée (sens de la marche)
+     * @param  int  $axis  numéro de l'axe (croisements réels, `realCrossings`)
      * @return list<array{0: int, 1: int}>
      */
-    public function route(array $from, array $to, array $guide, float $startBearing, float $endBearing): array
+    public function route(array $from, array $to, array $guide, float $startBearing, float $endBearing, int $axis = -1): array
     {
+        $this->axis = $axis;
         if ($from === $to) {
             return [$from];
         }
@@ -93,9 +178,89 @@ final class OctilinearRouter
             $this->fallbacks++;
             $cells = $this->elbow($from, $to, $guide);
         }
-        $this->reserve($cells);
+        $this->reserve($cells, 1);
 
         return self::corners($cells);
+    }
+
+    /**
+     * Nouveau chemin pour un axe déjà routé (`$corners`, son chemin actuel) : l'ancien chemin est
+     * libéré, puis l'axe est routé de nouveau avec les autres axes en place. Le chemin trouvé coûte au
+     * plus autant que l'ancien (A* donne le chemin le moins cher, l'ancien en fait partie) ; si la
+     * recherche n'aboutit pas, l'ancien chemin est gardé.
+     *
+     * @param  list<array{0: int, 1: int}>  $corners
+     * @param  list<array{0: float, 1: float}>  $guide
+     * @return list<array{0: int, 1: int}>
+     */
+    public function reroute(array $corners, array $guide, float $startBearing, float $endBearing, int $axis = -1): array
+    {
+        $this->axis = $axis;
+        $cells = self::cells($corners);
+        if (count($cells) < 2) {
+            return $corners;
+        }
+        $this->reserve($cells, -1);
+        $found = $this->search($cells[0], $cells[count($cells) - 1], $guide, $startBearing, $endBearing);
+        $this->reserve($found ?? $cells, 1);
+
+        return $found === null ? $corners : self::corners($found);
+    }
+
+    /**
+     * Défauts d'un axe routé : points de la grille qu'un autre axe traverse aussi (croisement ou
+     * superposition), nœuds traversés, cases dont l'autre diagonale est prise.
+     *
+     * @param  list<array{0: int, 1: int}>  $corners
+     */
+    public function conflicts(array $corners): int
+    {
+        $cells = self::cells($corners);
+        $count = 0;
+        $last = count($cells) - 1;
+        for ($k = 0; $k < $last; $k++) {
+            [$i, $j] = $cells[$k];
+            [$ni, $nj] = $cells[$k + 1];
+            if ($k > 0) {
+                $key = self::key($i, $j);
+                if (count($this->pointUse[$key] ?? []) > 1 || isset($this->placeAt[$key])) {
+                    $count++;
+                }
+            }
+            if ($i !== $ni && $j !== $nj) {
+                $cell = self::key(min($i, $ni), min($j, $nj)) * 2 + ($ni - $i === $nj - $j ? 1 : 0);
+                if (isset($this->diagUse[$cell])) {
+                    $count++;
+                }
+            }
+        }
+
+        return $count;
+    }
+
+    /**
+     * Points de la grille d'un chemin donné par ses sommets.
+     *
+     * @param  list<array{0: int, 1: int}>  $corners
+     * @return list<array{0: int, 1: int}>
+     */
+    public static function cells(array $corners): array
+    {
+        $cells = $corners === [] ? [] : [$corners[0]];
+        $n = count($corners);
+        for ($k = 1; $k < $n; $k++) {
+            [$i, $j] = $corners[$k - 1];
+            [$ti, $tj] = $corners[$k];
+            $di = $ti <=> $i;
+            $dj = $tj <=> $j;
+            while ($i !== $ti || $j !== $tj) {
+                $i += $di;
+                $j += $dj;
+                $cells[] = [$i, $j];
+            }
+        }
+
+        return $cells;
     }
 
     /**
@@ -199,10 +364,9 @@ final class OctilinearRouter
                     $cost += $o->overlapCost * $this->edgeUse[$edge];
                 }
                 if ($diagonal) {
-                    $cell = self::key(min($i, $ni), min($j, $nj)) * 2;
-                    $crossing = $cell + ($dx === $dy ? 1 : 0);
+                    $crossing = self::key(min($i, $ni), min($j, $nj)) * 2 + ($dx === $dy ? 1 : 0);
                     if (isset($this->diagUse[$crossing])) {
-                        $cost += $o->crossCost;
+                        $cost += $this->crossingCost($this->diagUse[$crossing]);
                     }
                 }
                 $nlocal = ($ni - $imin) * $h + ($nj - $jmin);
@@ -213,7 +377,7 @@ final class OctilinearRouter
                         $cost += $o->placeCost;
                     }
                     if (isset($this->pointUse[$nk])) {
-                        $cost += $o->crossCost * $this->pointUse[$nk];
+                        $cost += $this->crossingCost($this->pointUse[$nk]);
                     }
                 }
                 if (! isset($geo[$nlocal])) {
@@ -294,8 +458,12 @@ final class OctilinearRouter
         return $cells;
     }
 
-    /** @param  list<array{0: int, 1: int}>  $cells */
-    private function reserve(array $cells): void
+    /**
+     * Prend (`$sign` = 1) ou libère (-1) les pas, diagonales et points d'un chemin.
+     *
+     * @param  list<array{0: int, 1: int}>  $cells
+     */
+    private function reserve(array $cells, int $sign): void
     {
         $last = count($cells) - 1;
         for ($k = 0; $k < $last; $k++) {
@@ -310,13 +478,35 @@ final class OctilinearRouter
             $pk = self::key($i, $j);
             $nk = self::key($ni, $nj);
             $edge = $pk < $nk ? $pk * 8 + $d : $nk * 8 + (($d + 4) % 8);
-            $this->edgeUse[$edge] = ($this->edgeUse[$edge] ?? 0) + 1;
+            $n = ($this->edgeUse[$edge] ?? 0) + $sign;
+            if ($n > 0) {
+                $this->edgeUse[$edge] = $n;
+            } else {
+                unset($this->edgeUse[$edge]);
+            }
             if (($d & 1) === 1) {
-                $cell = self::key(min($i, $ni), min($j, $nj)) * 2 + ($dx === $dy ? 0 : 1);
-                $this->diagUse[$cell] = ($this->diagUse[$cell] ?? 0) + 1;
+                self::own($this->diagUse, self::key(min($i, $ni), min($j, $nj)) * 2 + ($dx === $dy ? 0 : 1), $this->axis, $sign);
             }
             if ($k > 0) {
-                $this->pointUse[$pk] = ($this->pointUse[$pk] ?? 0) + 1;
+                self::own($this->pointUse, $pk, $this->axis, $sign);
+            }
+        }
+    }
+
+    /**
+     * Ajoute (`$sign` = 1) ou retire (-1) un passage de l'axe `$axis` en `$key`.
+     *
+     * @param  array<int, array<int, int>>  $use
+     */
+    private static function own(array &$use, int $key, int $axis, int $sign): void
+    {
+        $n = ($use[$key][$axis] ?? 0) + $sign;
+        if ($n > 0) {
+            $use[$key][$axis] = $n;
+        } else {
+            unset($use[$key][$axis]);
+            if (($use[$key] ?? []) === []) {
+                unset($use[$key]);
             }
         }
     }

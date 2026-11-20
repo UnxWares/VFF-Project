@@ -11,6 +11,7 @@ use App\Models\Station;
 use App\Services\Archives\LineArchives;
 use App\Services\Stories\EventStories;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
@@ -139,7 +140,7 @@ class EventStoriesTest extends TestCase
         $this->document('ark:/12148/btv1b00000011', 1901, 'circa');
         $this->assertNull(app(EventStories::class)->story($this->line, $late));
         $this->assertArrayNotHasKey($late->id, app(EventStories::class)->available($this->line));
-        $this->assertSame(['images' => 3, 'documents' => 1], app(EventStories::class)->available($this->line)[$this->opening->id]);
+        $this->assertSame(['images' => 3, 'documents' => 1, 'event_ids' => [$this->opening->id]], app(EventStories::class)->available($this->line)[$this->opening->id]);
     }
 
     public function test_images_attached_to_the_event_count_whatever_their_date(): void
@@ -202,7 +203,110 @@ class EventStoriesTest extends TestCase
 
         $this->get('/lines/rfn-340000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Lines/Show')
-            ->where('story_events', [$this->opening->id]));
+            ->where('story_events', [[$this->opening->id]]));
+    }
+
+    public function test_a_fact_reported_by_several_sources_has_one_story_at_the_address_of_the_surest(): void
+    {
+        // Même ouverture, même jour, même portion (lieux dans l'autre sens, « St » pour « Saint ») : trois sources.
+        $wikipedia = $this->event('opening', '1843-05-03', ['section_from' => 'Port Villez', 'section_to' => 'Vernon-Giverny',
+            'source' => 'wikipedia', 'confidence' => 'high', 'description' => 'Ouverture de Vernon à Port-Villez.']);
+        $sure = $this->event('opening', '1843-05-03', ['section_from' => 'vernon giverny', 'section_to' => 'Port-Villez',
+            'source' => 'lignes-oubliees', 'confidence' => 'high', 'source_url' => 'https://www.lignes-oubliees.com/ligne/340000']);
+        // Autres faits : autre date, autre type, un seul lieu nommé (rien ne dit que c'est la même portion).
+        $otherDay = $this->event('opening', '1843-05-04', ['section_from' => 'Vernon-Giverny', 'section_to' => 'Port-Villez', 'source' => 'wikidata']);
+        $otherType = $this->event('opening_passenger', '1843-05-03', ['section_from' => 'Vernon-Giverny', 'section_to' => 'Port-Villez', 'source' => 'wikidata']);
+        $near = $this->event('opening', '1843-05-03', ['section_from' => 'Vernon-Giverny', 'section_resolution' => 'unresolved', 'source' => 'wikidata']);
+        $near2 = $this->event('opening', '1843-05-03', ['section_from' => 'Vernon-Giverny', 'section_resolution' => 'unresolved', 'source' => 'ohm']);
+        $stories = app(EventStories::class);
+
+        $available = $stories->available($this->line);
+        $this->assertSame([$sure->id, $wikipedia->id, $this->opening->id], $available[$sure->id]['event_ids']);
+        foreach ([$wikipedia, $this->opening] as $merged) {
+            $this->assertArrayNotHasKey($merged->id, $available);
+        }
+        foreach ([$otherDay, $otherType, $near, $near2] as $alone) {
+            $this->assertSame([$alone->id], $available[$alone->id]['event_ids']);
+        }
+
+        // Même histoire depuis chacune des sources : adresse et texte de la plus sûre, toutes les sources citées.
+        foreach ([$sure, $wikipedia, $this->opening] as $event) {
+            $story = $stories->story($this->line, $event);
+            $this->assertSame($sure->id, $story['event']['id']);
+            $this->assertSame([$sure->id, $wikipedia->id, $this->opening->id], array_column($story['sources'], 'id'));
+            $this->assertSame(['lignes-oubliees', 'wikipedia', 'ohm'], array_column(array_column($story['sources'], 'provenance'), 'provider'));
+        }
+
+        // Les autres adresses redirigent (301) vers celle de l'histoire, sur le site et dans l'API.
+        $this->get('/lines/rfn-340000/stories/'.$this->opening->id)->assertStatus(301)
+            ->assertRedirect(route('lines.stories.show', ['line' => 'rfn-340000', 'event' => $sure->id]));
+        $this->get('/lines/rfn-340000/stories/'.$sure->id)->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('story.event.id', $sure->id)->has('story.sources', 3));
+        $this->getJson('/api/v1/lines/rfn-340000/stories/'.$wikipedia->id)->assertStatus(301)
+            ->assertRedirect(route('api.lines.stories.show', ['line' => 'rfn-340000', 'event' => $sure->id]));
+        $show = $this->getJson('/api/v1/lines/rfn-340000/stories/'.$sure->id)->assertOk();
+        $this->assertSame([$sure->id, $wikipedia->id, $this->opening->id], array_column($show->json('sources'), 'id'));
+        $list = $this->getJson('/api/v1/lines/rfn-340000/stories')->assertOk();
+        /** @var list<array{event: array{id: int}, source_event_ids: list<int>}> $items */
+        $items = $list->json('stories');
+        $entry = array_values(array_filter($items, fn (array $i): bool => $i['event']['id'] === $sure->id))[0];
+        $this->assertSame([$sure->id, $wikipedia->id, $this->opening->id], $entry['source_event_ids']);
+        $this->assertNotContains($this->opening->id, array_column(array_column($list->json('stories'), 'event'), 'id'));
+
+        // GraphQL et MCP : la même histoire pour chaque source, avec l'adresse de la plus sûre.
+        $gql = $this->graphQL('query($id: ID!) { lineEvent(id: $id) { story { event_id sources { id source } } } }', ['id' => $this->opening->id]);
+        $this->assertSame((string) $sure->id, $gql->json('data.lineEvent.story.event_id'));
+        $this->assertSame([(string) $sure->id, (string) $wikipedia->id, (string) $this->opening->id], array_column($gql->json('data.lineEvent.story.sources'), 'id'));
+        [$mcp] = $this->tool('line_stories', ['line' => 'rfn-340000', 'event' => $this->opening->id]);
+        $this->assertSame($sure->id, $mcp['event']['id']);
+        $this->assertCount(3, $mcp['sources']);
+        [$mcpList] = $this->tool('line_stories', ['line' => 'rfn-340000']);
+        $this->assertNotContains($this->opening->id, array_column(array_column($mcpList['stories'], 'event'), 'id'));
+
+        // La fiche : un fait par liste, l'adresse d'abord (un seul lien « Voir l'histoire »).
+        $this->get('/lines/rfn-340000')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('story_events', function (Collection $facts) use ($sure, $wikipedia): bool {
+                /** @var list<list<int>> $all */
+                $all = $facts->all();
+                $ids = array_merge(...$all);
+
+                return in_array([$sure->id, $wikipedia->id, $this->opening->id], $all, true) && count($ids) === count(array_unique($ids));
+            }));
+    }
+
+    public function test_the_surest_source_is_ranked_by_source_then_confidence_then_date_precision(): void
+    {
+        $row = fn (int $id, ?string $source, string $confidence = 'medium', string $precision = 'day', ?string $url = null): array => [
+            'id' => $id, 'type' => 'closure', 'date' => '1938-01-01', 'precision' => $precision, 'source' => $source, 'source_url' => $url,
+            'confidence' => $confidence, 'section_from' => null, 'section_to' => null, 'section_resolution' => 'whole_line', 'section_pk_start_m' => null,
+        ];
+        // Toute la ligne : un seul fait. Tableau PDF de lignes-oubliees (décision administrative) après Wikipédia.
+        $this->assertSame([5 => [5, 3, 4, 2, 1, 6]], EventStories::facts([
+            $row(1, 'wikidata'), $row(2, 'lignes-oubliees', url: 'https://www.lignes-oubliees.com/IMG/pdf/x.pdf'),
+            $row(3, 'wikipedia', 'high'), $row(4, 'wikipedia', 'low'), $row(5, 'lignes-oubliees'), $row(6, null),
+        ]));
+        // Même date et même source, précisions différentes : jamais le même fait (la précision fait partie de la clé).
+        $this->assertCount(2, EventStories::facts([$row(1, 'wikipedia', precision: 'year'), $row(2, 'wikipedia')]));
+    }
+
+    public function test_the_same_commons_file_is_shown_once_in_a_story(): void
+    {
+        // Un même fichier de Commons rattaché à la ligne (dans la fenêtre) et à deux sources du même fait.
+        $wikipedia = $this->event('opening', '1843-05-03', ['section_from' => 'Vernon-Giverny', 'section_to' => 'Port-Villez', 'source' => 'wikipedia']);
+        $file = ['external_id' => 'File:Rouen 1843.jpg', 'source_url' => 'https://commons.wikimedia.org/wiki/File:Rouen_1843.jpg'];
+        $this->image(1843, $file);
+        $this->image(1843, $file, $this->opening);
+        $this->image(1843, $file, $wikipedia);
+        $stories = app(EventStories::class);
+
+        foreach ([false, true] as $api) {
+            $story = $stories->story($this->line, $this->opening, $api);
+            $this->assertSame(1, count(array_keys(array_column($story['images'], 'source_url'), $file['source_url'])), 'api='.($api ? '1' : '0'));
+            $this->assertSame(4, $story['images_total']);
+            // Gardée comme image de l'événement, et comptée une fois sur la fiche.
+            $this->assertCount(1, array_filter($story['images'], fn (array $i): bool => $i['attached']));
+            $this->assertSame(4, $stories->available($this->line, $api)[$story['event']['id']]['images']);
+        }
     }
 
     public function test_the_rest_api_lists_and_serves_stories(): void

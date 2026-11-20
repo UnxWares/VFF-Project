@@ -35,13 +35,11 @@ final class LineEventStoryField
     public function __construct(private readonly EventStories $stories) {}
 
     /**
-     * @return array{window_years: int, window_from: int, window_to: int, images_total: int,
+     * @param  array<string, mixed>  $args
+     * @return array{event_id: int, sources: list<LineEvent>, window_years: int, window_from: int, window_to: int, images_total: int,
      *     images: list<array{gap_years: ?int, gap_years_min: ?int, gap_years_max: ?int, gap_exact: bool, attached: bool, media: Media}>,
      *     documents: list<array{gap_years: int, document: LineArchiveDocument}>,
      *     stations: list<array{name: string, slug: string}>}|null
-     */
-    /**
-     * @param  array<string, mixed>  $args
      */
     public function __invoke(LineEvent $root, array $args, GraphQLContext $context, ResolveInfo $info): ?array
     {
@@ -80,7 +78,11 @@ final class LineEventStoryField
             }
         }
 
+        $sources = LineEvent::query()->whereIn('id', array_column($story['sources'], 'id'))->get()->keyBy('id');
+
         return [
+            'event_id' => (int) $story['event']['id'],
+            'sources' => array_values(array_filter(array_map(fn (array $e): ?LineEvent => $sources->get($e['id']), $story['sources']))),
             'window_years' => $story['window']['years'],
             'window_from' => $story['window']['from'],
             'window_to' => $story['window']['to'],

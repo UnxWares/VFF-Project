@@ -12,6 +12,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 
 #[Group('Lignes', "Une ligne en détail : chronologie, gares dans l'ordre des points kilométriques, conversion de coordonnées en PK, signalisation, médias.", weight: 2)]
 class LineStoryController extends Controller
@@ -23,12 +24,17 @@ class LineStoryController extends Controller
      *
      * Liste des événements de la ligne qui ont une histoire (page `/lines/{line}/stories/{event}` du site), dans
      * l'ordre des dates, avec le nombre d'images et de documents retenus avant la limite du carrousel (24 images).
-     * Liste vide pour une ligne sans histoire. Plusieurs sources peuvent rapporter le même fait (une
-     * ouverture lue dans Wikipédia et dans OpenHistoricalMap) : chacune a son événement, donc son histoire.
+     * Liste vide pour une ligne sans histoire.
+     *
+     * Un même fait rapporté par plusieurs sources (une ouverture lue dans Wikipédia et dans OpenHistoricalMap :
+     * événements de même type, même date et même précision, sur toute la ligne ou entre les deux mêmes lieux)
+     * n'a qu'une histoire. Elle porte l'identifiant de l'événement de la source la plus sûre (lignes-oubliees,
+     * puis Wikipédia, OpenHistoricalMap, Wikidata ; puis la confiance et la précision de la date), et
+     * `source_event_ids` liste tous les événements du fait, celui-ci d'abord.
      *
      * Chaque entrée : `event` (même forme que `GET /api/v1/events/{event}` en liste : type, date et sa
-     * précision, portion, description en français, source, lien, provenance), `images`, `documents`, et `url`
-     * (page du site).
+     * précision, portion, description en français, source, lien, provenance), `source_event_ids`, `images`,
+     * `documents`, et `url` (page du site).
      *
      * Règles de sélection :
      *
@@ -56,6 +62,7 @@ class LineStoryController extends Controller
                 'confidence' => 'medium', 'source' => 'ohm', 'source_url' => 'https://www.openhistoricalmap.org/way/200903673',
                 'provenance' => ['provider' => 'ohm', 'name' => 'OpenHistoricalMap', 'license' => 'CC0 1.0 (domaine public), sauf licence contraire indiquée par objet (tag license=*)', 'license_status' => 'verified'],
             ],
+            'source_event_ids' => [12793],
             'images' => 6,
             'documents' => 9,
             'url' => 'https://vff-project.org/lines/rfn-340000/stories/12793',
@@ -73,6 +80,7 @@ class LineStoryController extends Controller
             if ($event instanceof LineEvent) {
                 $items[] = [
                     'event' => $this->eventSummary($event),
+                    'source_event_ids' => $counts['event_ids'],
                     'images' => $counts['images'],
                     'documents' => $counts['documents'],
                     'url' => route('lines.stories.show', ['line' => $line->slug, 'event' => $id]),
@@ -92,7 +100,8 @@ class LineStoryController extends Controller
      * Histoire d'un événement : texte, images de l'époque, documents de Gallica.
      *
      * L'événement (`event`, même forme que `GET /api/v1/events/{event}` en liste : description en français
-     * telle que la source la donne, `source`, `source_url`, `provenance` avec la licence), la fenêtre de dates
+     * telle que la source la donne, `source`, `source_url`, `provenance` avec la licence), toutes les sources du
+     * même fait (`sources`, même forme, l'événement de l'histoire d'abord), la fenêtre de dates
      * (`window` : `years`, `from`, `to`, années incluses), les images retenues et les documents de Gallica de la
      * période, et les gares de la ligne nommées par la portion de l'événement (`stations` : nom et slug, pour
      * `GET /api/v1/stations/{station}`).
@@ -120,8 +129,11 @@ class LineStoryController extends Controller
      *   montrées sur le site avec une simple autorisation) ; plus celles rattachées à l'événement.
      * - Seuil : 3 images et documents au moins, dont 2 images ; sinon 404.
      *
+     * Un fait rapporté par plusieurs sources n'a qu'une histoire, à l'adresse de l'événement de la source la plus
+     * sûre : demandée par l'identifiant d'une autre source, l'histoire répond 301 vers cette adresse (`Location`).
+     *
      * **Droits** : affichez chaque image avec son auteur, sa licence (et son lien) et sa source, comme le fait le
-     * site ; citez la source de l'événement (`provenance`).
+     * site ; citez les sources de l'événement (`provenance` de chacune).
      */
     #[PathParameter('line', 'Identifiant (slug) de la ligne.', example: 'rfn-340000')]
     #[PathParameter('event', "Identifiant de l'événement (`id` des événements de `GET /api/v1/lines/{line}` ou de `GET /api/v1/lines/{line}/stories`). Il doit appartenir à la ligne.", type: 'integer', example: 12793)]
@@ -134,6 +146,13 @@ class LineStoryController extends Controller
             'confidence' => 'medium', 'source' => 'ohm', 'source_url' => 'https://www.openhistoricalmap.org/way/200903673',
             'provenance' => ['provider' => 'ohm', 'name' => 'OpenHistoricalMap', 'license' => 'CC0 1.0 (domaine public), sauf licence contraire indiquée par objet (tag license=*)', 'license_status' => 'verified'],
         ],
+        'sources' => [[
+            'id' => 12793, 'type' => 'opening', 'date' => '1843-05-03', 'date_precision' => 'day',
+            'section_from' => 'Vernon-Giverny', 'section_to' => 'Port-Villez',
+            'description' => "Ouverture de la portion Vernon-Giverny - Port-Villez (4,8 km), d'après OpenHistoricalMap.",
+            'confidence' => 'medium', 'source' => 'ohm', 'source_url' => 'https://www.openhistoricalmap.org/way/200903673',
+            'provenance' => ['provider' => 'ohm', 'name' => 'OpenHistoricalMap', 'license' => 'CC0 1.0 (domaine public), sauf licence contraire indiquée par objet (tag license=*)', 'license_status' => 'verified'],
+        ]],
         'window' => ['years' => 5, 'from' => 1838, 'to' => 1848],
         'images_total' => 6,
         'images' => [[
@@ -165,12 +184,13 @@ class LineStoryController extends Controller
         'attribution' => LineArchives::ATTRIBUTION,
         'url' => 'https://vff-project.org/lines/rfn-340000/stories/12793',
     ]])]
+    #[ApiResponse(301, "Événement d'une autre source d'un fait qui a déjà son histoire : l'en-tête `Location` donne l'adresse de l'histoire (identifiant de l'événement de la source la plus sûre).")]
     #[ApiResponse(404, "Ligne inconnue, événement d'une autre ligne, ou événement sans histoire (contenu sous le seuil, type sans histoire).", examples: [
         ErrorExamples::LINE_NOT_FOUND,
         ['message' => 'This event has no story: fewer than 3 dated images and documents (2 images at least) within 5 years.'],
     ])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
-    public function show(Line $line, int $event): JsonResponse
+    public function show(Line $line, int $event): JsonResponse|RedirectResponse
     {
         $model = LineEvent::query()->whereKey($event)->where('line_id', $line->id)->first();
         $story = $model === null ? null : $this->stories->story($line, $model, true);
@@ -180,10 +200,14 @@ class LineStoryController extends Controller
                 : sprintf('This event has no story: fewer than %d dated images and documents (%d images at least) within %d years.', EventStories::MIN_ITEMS, EventStories::MIN_IMAGES, EventStories::WINDOW_YEARS),
             ], 404);
         }
+        if ($story['event']['id'] !== $model->id) {
+            return redirect()->route('api.lines.stories.show', ['line' => $line->slug, 'event' => $story['event']['id']], 301);
+        }
 
         return response()->json([
             'line' => $story['line'],
             'event' => $story['event'],
+            'sources' => $story['sources'],
             'window' => $story['window'],
             'images_total' => $story['images_total'],
             'images' => $story['images'],

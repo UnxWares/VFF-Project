@@ -201,6 +201,84 @@ class SchematicLayoutTest extends TestCase
         $this->assertSame('end', self::stationsById($plan)[105]['kind']);
     }
 
+    public function test_a_track_that_stops_short_of_a_node_is_joined_to_it(): void
+    {
+        // Ligne isolée dont le bout de voie s'arrête à 330 m de B (moins de 0,45 pas) : lacune.
+        $this->nodes[20] = [24310.0, 250.0];
+        $this->nodes[21] = [24310.0, 8250.0];
+        $this->stations[21] = 121;
+        $this->edge(20, 21, 30, 'mixed');
+
+        $plan = $this->layout();
+        $stations = self::stationsById($plan);
+
+        $this->assertSame(1, $plan->stats['bridged']);
+        $this->assertSame(0, $plan->stats['isolated']);
+        // B devient une gare de passage, la ligne 30 finit en terminus à sa gare 121.
+        $this->assertSame('stop', $stations[105]['kind']);
+        $this->assertSame('end', $stations[121]['kind']);
+        $this->assertContains(30, array_column($plan->pieces, 'line'));
+        $this->assertSame(3, $plan->stats['axes']);
+    }
+
+    public function test_a_short_isolated_piece_without_station_is_dropped(): void
+    {
+        // 4 km de voie sans gare, loin de tout : plus long qu'une antenne retirée (3 km), moins que 5 km.
+        $this->nodes[40] = [60000.0, 40000.0];
+        $this->nodes[41] = [64000.0, 40000.0];
+        $this->edge(40, 41, 31, 'freight');
+
+        $plan = $this->layout();
+
+        $this->assertNotContains(31, array_column($plan->pieces, 'line'));
+        $this->assertSame(1, $plan->stats['dropped']);
+        $this->assertSame(0, $plan->stats['isolated']);
+    }
+
+    public function test_an_isolated_line_with_a_station_stays_where_it_is(): void
+    {
+        // Train touristique sans voie en service vers le réseau, à 30 km : gardé, sans raccord.
+        $this->nodes[50] = [40000.0, 30000.0];
+        $this->nodes[51] = [46000.0, 30000.0];
+        $this->stations[51] = 151;
+        $this->edge(50, 51, 32, 'heritage');
+
+        $plan = $this->layout();
+        $stations = self::stationsById($plan);
+
+        $this->assertContains(32, array_column($plan->pieces, 'line'));
+        $this->assertSame(1, $plan->stats['isolated']);
+        $this->assertSame(0, $plan->stats['bridged']);
+        $this->assertSame('end', $stations[151]['kind']);
+        $this->assertEqualsWithDelta(46000.0, $stations[151]['x'], 1000.0);
+    }
+
+    public function test_two_lines_that_cross_on_the_ground_cross_on_the_plan(): void
+    {
+        // Ligne nord-sud qui passe au-dessus de J - B sans jonction (pont).
+        $this->nodes[60] = [18100.0, -6100.0];
+        $this->nodes[61] = [18100.0, 6100.0];
+        $this->stations += [60 => 160, 61 => 161];
+        $this->edge(60, 61, 33, 'mixed');
+
+        $plan = $this->layout();
+        $vertical = array_values(array_filter($plan->pieces, fn (array $p): bool => $p['line'] === 33));
+
+        $this->assertSame(1, $plan->stats['crossings']);
+        $this->assertSame(1, $plan->stats['real_crossings']);
+        $this->assertCount(1, $vertical);
+        $this->assertCount(2, $vertical[0]['coords'], 'tracé droit, sans détour');
+    }
+
+    public function test_the_base_plan_has_no_crossing_and_no_isolated_piece(): void
+    {
+        $plan = $this->layout();
+
+        foreach (['crossings', 'node_passes', 'isolated', 'bridged', 'dropped', 'overlaps'] as $stat) {
+            $this->assertSame(0, $plan->stats[$stat], $stat);
+        }
+    }
+
     public function test_the_layout_is_deterministic(): void
     {
         $this->assertEquals($this->layout()->pieces, $this->layout()->pieces);
