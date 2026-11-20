@@ -6,6 +6,7 @@ use App\Services\JunctionRepair;
 use App\Services\SingleAxis;
 use App\Services\SourceAgreement;
 use App\Services\TraceConflation;
+use App\Support\TrackRounding;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -82,6 +83,12 @@ use Illuminate\Support\Facades\Storage;
  *    la portion qu'ils prolongent. Sans lui, le moteur décennal produit des
  *    tronçons en double et des tronçons de longueur nulle.
  *
+ * 6. Arrondi des sommets (App\Support\TrackRounding) : chaque sommet où le
+ *    tracé tourne de 6 à 35° devient un arc de cercle tangent aux deux segments
+ *    (cassures résiduelles de 3° au plus, au plus 2 m du sommet d'origine).
+ *    Les extrémités et les sommets où une autre portion (de cette ligne ou
+ *    d'une autre) se raccorde ne bougent pas : les jonctions restent à 0 m.
+ *
  * Rapport chiffré avant / après (km par provenance, écart à la meilleure
  * géométrie précise, cordes > 300 m). Calculs en Lambert-93. Idempotent.
  *
@@ -100,6 +107,7 @@ class BuildLineReferences extends Command
         {--no-agreement : sans croisement des sources (ni confiance ni divergences)}
         {--no-single-axis : garder les portions dédoublées d\'une même ligne (pas d\'étape « un seul axe »)}
         {--no-junction-repair : sans l\'étape de continuité sur les voies réelles (sauts, trous, jonctions)}
+        {--no-rounding : sans l\'arrondi des sommets (tracés gardés en segments droits)}
         {--report-only : mesurer la précision du tracé actuel et réécrire les rapports, sans rien reconstruire}
         {--shard= : i/n - ne traiter qu\'une ligne sur n (processus parallèles ; rapports avec --report-only ensuite)}';
 
@@ -152,6 +160,9 @@ class BuildLineReferences extends Command
 
     /** Continuité sur les voies réelles (JunctionRepair) : sauts, trous, changements de voie, prolongements, dépassements. */
     private array $repairStats = [];
+
+    /** Arrondi des sommets : sommets arrondis, points ajoutés. */
+    private array $roundingStats = [];
 
     /** Tronc commun aux jonctions (TraceConflation::junctionTrunk) de la ligne en cours : enregistré après « un seul axe ». */
     private array $junctionRecords = [];
@@ -237,9 +248,15 @@ class BuildLineReferences extends Command
             $this->line(sprintf('  continuité : %d sauts entre voies parallèles retirés (%d remis faute de voie réelle), %d trous comblés (%s km), %d changements de voie sur aiguillage réel (%s km), %s km de bouts et %s km de restes parallèles retirés, %d embranchements prolongés jusqu\'à la jonction (%s km), %s km de dépassements coupés',
                 $j['jog_removed'] ?? 0, $j['jog_restored'] ?? 0, $j['hole_filled'] ?? 0, $this->km($j['hole_filled_m'] ?? 0), $j['rerouted'] ?? 0, $this->km($j['rerouted_m'] ?? 0),
                 $this->km($j['stub_trimmed_m'] ?? 0), $this->km($j['remnant_removed_m'] ?? 0), $j['extended'] ?? 0, $this->km($j['extended_m'] ?? 0), $this->km($j['overshoot_trimmed_m'] ?? 0)));
-            $this->line(sprintf('  arrivées de tracés imprécis : %d refaites par la voie réelle (%s km), %d par une courbe lissée estimée « raccord-lisse » (%s km) ; %d bouts raccordés à la voie d\'une autre ligne (%s km), %d trous sans voie précise comblés (%s km), courbes estimées',
+            $this->line(sprintf('  arrivées de tracés imprécis : %d refaites par la voie réelle (%s km), %d par une courbe lissée estimée « raccord-lisse » (%s km) ; %d bouts raccordés à la voie d\'une autre ligne (%s km), %d trous comblés par une courbe faute de chemin sur les voies précises (%s km), courbes estimées',
                 $j['leg_rerouted'] ?? 0, $this->km($j['leg_rerouted_m'] ?? 0), $j['leg_smoothed'] ?? 0, $this->km($j['leg_smoothed_m'] ?? 0),
                 $j['end_joined'] ?? 0, $this->km($j['end_joined_m'] ?? 0), $j['hole_smoothed'] ?? 0, $this->km($j['hole_smoothed_m'] ?? 0)));
+            $this->line(sprintf('  escaliers et allers-retours : %d sauts remis lissés en changement de voie (%s km, courbes estimées), %d éperons en aller-retour retirés (%s km)',
+                $j['jog_smoothed'] ?? 0, $this->km($j['jog_smoothed_m'] ?? 0), $j['spur_removed'] ?? 0, $this->km($j['spur_removed_m'] ?? 0)));
+        }
+        if ($r = $this->roundingStats) {
+            $this->line(sprintf('  arrondi des sommets : %d sommets arrondis en arc de cercle (%d points ajoutés)',
+                $r['rounded'] ?? 0, $r['added_points'] ?? 0));
         }
         if ($n = $this->tidyStats) {
             $this->line(sprintf('  nettoyage : %s km de bouts de tracé superposés retirés, %s km de raccords en double (dont %s km de portions courtes presque confondues, à moins de 5 m), %d extrémités recollées, %d raccords courts fusionnés',
@@ -279,6 +296,80 @@ class BuildLineReferences extends Command
     }
 
     /** Emprise (WKT Lambert-93) des traces des lignes visées, élargie de 3 km. */
+    /**
+     * Étape 6 (cf. docblock) : sommets des morceaux de la ligne arrondis en arcs de cercle (TrackRounding). Un sommet
+     * sur lequel se pose une extrémité d'un autre morceau (de la ligne ou d'une autre ligne, à 5 cm près) ne bouge pas.
+     */
+    private function roundCorners(int $lineId): void
+    {
+        $parts = DB::select(<<<'SQL'
+            SELECT p.id, d.path[1] AS k, ST_AsText(d.geom) AS wkt
+            FROM line_reference_parts p, LATERAL ST_Dump(ST_Transform(p.geom, 2154)) d
+            WHERE p.line_id = ? ORDER BY p.id, d.path[1]
+            SQL, [$lineId]);
+        $byPart = [];
+        $candidates = [];
+        foreach ($parts as $row) {
+            $c = $this->lineCoords($row->wkt);
+            $byPart[(int) $row->id][] = $c;
+            foreach (TrackRounding::candidates($c) as $i) {
+                $candidates[] = [(int) $row->id, count($byPart[(int) $row->id]) - 1, $i, $c[$i]];
+            }
+        }
+        if (! $candidates) {
+            return;
+        }
+        // Sommets candidats où se pose l'extrémité d'un autre morceau : fixes.
+        $fixed = [];
+        foreach (array_chunk($candidates, 2000) as $chunk) {
+            $rows = DB::select(<<<'SQL'
+                WITH v AS (
+                    SELECT n, ST_SetSRID(ST_MakePoint(x, y), 2154) AS p
+                    FROM unnest(CAST(:n AS int[]), CAST(:x AS float8[]), CAST(:y AS float8[])) AS t(n, x, y)
+                )
+                SELECT v.n FROM v
+                WHERE EXISTS (
+                    SELECT 1 FROM line_reference_parts o, LATERAL ST_Dump(o.geom) d
+                    WHERE o.geom && ST_Expand(ST_Transform(v.p, 4326), 0.00001)
+                      AND (ST_DWithin(ST_Transform(ST_StartPoint(d.geom), 2154), v.p, 0.05) OR ST_DWithin(ST_Transform(ST_EndPoint(d.geom), 2154), v.p, 0.05))
+                )
+                SQL, ['n' => '{'.implode(',', array_keys($chunk)).'}',
+                'x' => '{'.implode(',', array_map(fn ($c) => sprintf('%.6F', $c[3][0]), $chunk)).'}',
+                'y' => '{'.implode(',', array_map(fn ($c) => sprintf('%.6F', $c[3][1]), $chunk)).'}']);
+            foreach ($rows as $r) {
+                [$pid, $k, $i] = $chunk[(int) $r->n];
+                $fixed[$pid][$k][$i] = true;
+            }
+        }
+        $touched = array_unique(array_column($candidates, 0));
+        foreach ($touched as $pid) {
+            $lines = [];
+            foreach ($byPart[$pid] as $k => $c) {
+                $before = count($c);
+                $r = TrackRounding::round($c, $fixed[$pid][$k] ?? []);
+                $this->roundingStats['added_points'] = ($this->roundingStats['added_points'] ?? 0) + count($r) - $before;
+                $lines[] = '('.implode(',', array_map(fn ($p) => sprintf('%.6F %.6F', $p[0], $p[1]), $r)).')';
+            }
+            DB::update(<<<'SQL'
+                UPDATE line_reference_parts SET geom = ST_Transform(ST_GeomFromText(?, 2154), 4326), length_m = ROUND(ST_Length(ST_GeomFromText(?, 2154)))::int,
+                       updated_at = NOW()
+                WHERE id = ?
+                SQL, ['MULTILINESTRING('.implode(',', $lines).')', 'MULTILINESTRING('.implode(',', $lines).')', $pid]);
+        }
+        $this->roundingStats['rounded'] = ($this->roundingStats['rounded'] ?? 0) + count($candidates) - array_sum(array_map(
+            fn ($p) => array_sum(array_map('count', $p)), $fixed));
+    }
+
+    /** @return list<array{0: float, 1: float}> */
+    private function lineCoords(string $wkt): array
+    {
+        if (! preg_match('/^LINESTRING\s*\((.*)\)$/', $wkt, $m)) {
+            return [];
+        }
+
+        return array_map(fn ($p) => array_map('floatval', preg_split('/\s+/', trim($p))), explode(',', $m[1]));
+    }
+
     private function envelope(array $lineIds): ?string
     {
         return DB::selectOne('SELECT ST_AsText(ST_Expand(ST_Extent(ST_Transform(geom, 2154))::geometry, 3000)) AS wkt FROM source_traces WHERE line_id = ANY(CAST(? AS bigint[]))',
@@ -407,6 +498,13 @@ class BuildLineReferences extends Command
                 $this->tidyStats[$k] = ($this->tidyStats[$k] ?? 0) + $v;
             }
             $this->timings['nettoyage'] = ($this->timings['nettoyage'] ?? 0) + microtime(true) - $t;
+        }
+
+        // Arrondi des sommets, une fois le tracé définitif (après le nettoyage qui recolle les extrémités).
+        if (! $this->option('no-rounding')) {
+            $t = microtime(true);
+            $this->roundCorners($lineId);
+            $this->timings['arrondi'] = ($this->timings['arrondi'] ?? 0) + microtime(true) - $t;
         }
 
         DB::insert(<<<'SQL'

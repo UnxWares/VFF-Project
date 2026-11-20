@@ -19,6 +19,11 @@ use Illuminate\Support\Facades\DB;
  *      voie ne tourne jamais à angle droit) : il est retiré provisoirement, et
  *      les extrémités qu'il reliait sont reliées autrement (2 et 3) ; sinon il
  *      est remis (jamais de trou créé).
+ *   1 bis. Saut remis entre deux voies presque parallèles (caps à moins de
+ *      JOG_PARALLEL_DEG) : la marche d'escalier devient un changement de voie
+ *      en S, courbe lissée tangente aux deux voies (rayon plausible du réseau,
+ *      reculs d'au plus JOG_TRIM_MAX_M de chaque côté, sans passer une autre
+ *      jonction), marquée « raccord-lisse » (estimée).
  *   2. Trous : deux extrémités libres de la ligne, face à face, à moins de
  *      HOLE_MAX_M (ponts, passages à niveau : morceaux BD TOPO courts non
  *      rattachés, résidu OSM trop court jeté) sont reliées par le chemin le
@@ -57,7 +62,17 @@ use Illuminate\Support\Facades\DB;
  *           AUTRE ligne et s'arrête à moins de END_GAP_M avant elle (cap vers
  *           elle, écartements et réseaux compatibles) : raccordé à cette voie ;
  *        d. trou de moins de HOLE_SMOOTH_MAX_M entre deux bouts de la ligne
- *           face à face (voie déposée, aucune voie précise) : comblé.
+ *           face à face (voie déposée, aucune voie précise) : comblé ; trou
+ *           de moins de HOLE_MAX_M sur une voie précise que l'étape 2 n'a pas
+ *           pu suivre : comblé si la courbe reste partout à moins de
+ *           HOLE_TRACK_M de cette voie (rayon d'au moins la moitié du minimum).
+ *   8. Allers-retours : le tracé dessiné ne revient jamais sur ses pas. Un
+ *      éperon sans issue d'au plus SPUR_MAX_M qui repart en arrière (virage de
+ *      plus de HAIRPIN_DEG au milieu d'une portion, ou départ à moins de
+ *      SPUR_DEG d'une autre portion de la ligne au même nœud) et longe la ligne
+ *      à moins de PARALLEL_M sur au moins SPUR_SHARE de sa longueur (autre voie
+ *      du faisceau, voie de gare) est retiré. Un vrai rebroussement, dont les
+ *      deux branches s'écartent, reste.
  *
  * Graphe des voies : morceaux du pool (TraceConflation::preparePool, table
  * temporaire cf_pool) dans une fenêtre, nœuds aux intersections (ST_Node, une
@@ -157,6 +172,23 @@ class JunctionRepair
 
     public const HOLE_SMOOTH_MAX_M = 100.0;
 
+    /** Trou sur une voie précise comblé par une courbe : écart max (m) de la courbe à cette voie. */
+    public const HOLE_TRACK_M = 5.0;
+
+    /** Saut entre deux voies presque parallèles (écart de cap max, °) et recul max de chaque côté pour la courbe en S (m). */
+    public const JOG_PARALLEL_DEG = 30.0;
+
+    public const JOG_TRIM_MAX_M = 150.0;
+
+    /** Éperon (aller-retour) : longueur max (m), virage d'un aller-retour (°), écart de cap au nœud (°), part qui longe la ligne. */
+    public const SPUR_MAX_M = 600.0;
+
+    public const HAIRPIN_DEG = 150.0;
+
+    public const SPUR_DEG = 30.0;
+
+    public const SPUR_SHARE = 0.8;
+
     /** Géométrie lissée estimée (matched_source). */
     public const SMOOTHED = 'raccord-lisse';
 
@@ -207,9 +239,9 @@ class JunctionRepair
     /**
      * Après « un seul axe » : répare le tracé de référence de la ligne (line_reference_parts réécrits).
      *
-     * @return array<string, float|int> jog_removed, jog_restored, hole_filled (+ _m), rerouted (+ _m), stub_trimmed_m,
+     * @return array<string, float|int> jog_removed, jog_restored, jog_smoothed (+ _m), hole_filled (+ _m), rerouted (+ _m), stub_trimmed_m,
      *                                  remnant_removed_m, extended (+ _m), overshoot_trimmed_m, leg_rerouted (+ _m), leg_smoothed (+ _m),
-     *                                  end_joined (+ _m), hole_smoothed (+ _m)
+     *                                  end_joined (+ _m), hole_smoothed (+ _m), spur_removed (+ _m)
      */
     public function repair(int $lineId): array
     {
@@ -217,10 +249,11 @@ class JunctionRepair
             return [];
         }
 
-        $stats = ['jog_removed' => 0, 'jog_restored' => 0, 'hole_filled' => 0, 'hole_filled_m' => 0.0, 'rerouted' => 0, 'rerouted_m' => 0.0,
+        $stats = ['jog_removed' => 0, 'jog_restored' => 0, 'jog_smoothed' => 0, 'jog_smoothed_m' => 0.0, 'hole_filled' => 0, 'hole_filled_m' => 0.0,
+            'rerouted' => 0, 'rerouted_m' => 0.0,
             'stub_trimmed_m' => 0.0, 'remnant_removed_m' => 0.0, 'extended' => 0, 'extended_m' => 0.0, 'overshoot_trimmed_m' => 0.0,
             'leg_rerouted' => 0, 'leg_rerouted_m' => 0.0, 'leg_smoothed' => 0, 'leg_smoothed_m' => 0.0,
-            'end_joined' => 0, 'end_joined_m' => 0.0, 'hole_smoothed' => 0, 'hole_smoothed_m' => 0.0];
+            'end_joined' => 0, 'end_joined_m' => 0.0, 'hole_smoothed' => 0, 'hole_smoothed_m' => 0.0, 'spur_removed' => 0, 'spur_removed_m' => 0.0];
 
         $jogs = $this->removeJogs();
         $stats['jog_removed'] = count($jogs);
@@ -238,10 +271,12 @@ class JunctionRepair
         $this->removeRemnants($stats);
         $stats['jog_restored'] = $this->restoreJogs($jogs);
         $stats['jog_removed'] -= $stats['jog_restored'];
+        $this->smoothJogs($jogs, $stats);
         $this->extendToOtherLines($stats);
         $this->trimOvershoots($stats);
         $this->smoothLegs($stats);
         $this->smoothEnds($stats);
+        $this->removeSpurs($stats);
 
         if (array_filter($stats)) {
             $this->write();
@@ -395,6 +430,298 @@ class JunctionRepair
         }
 
         return $n;
+    }
+
+    /**
+     * Règle 1 bis : saut remis (aucune voie réelle ne le remplace) entre deux portions presque parallèles : remplacé par
+     * un changement de voie en S, du point D de la portion A (en arrière du saut) au point J de la portion B (au-delà),
+     * tangent aux deux. Une portion qui s'arrête sur le saut est coupée à D (ou à J) ; une portion qui le dépasse (saut
+     * posé en son milieu) reste entière, la courbe s'y raccorde. Le recul de chaque
+     * côté est la moitié de la longueur qu'il faut pour décaler la ligne de l'écart y entre les deux voies au rayon
+     * minimal du réseau (S de Hermite : rayon ≈ L² / 6y), sans dépasser JOG_TRIM_MAX_M ni la jonction d'une autre portion.
+     * Un barreau entre deux voies qui continuent toutes les deux (aucune ne s'arrête sur le saut) reste tel quel.
+     */
+    private function smoothJogs(array $jogs, array &$stats): void
+    {
+        $net = DB::selectOne('SELECT network FROM lines WHERE id = ?', [$this->lineId])?->network;
+        $rmin = self::minRadius($net, $this->gauge);
+        foreach ($jogs as $j) {
+            [$e0, $e1] = $j['ends'];
+            $c = $this->subCoords($j['sid']);
+            $a = $this->subCoords($e0['sid']);
+            $b = $this->subCoords($e1['sid']);
+            // Barreau entre deux voies qui continuent toutes les deux : pas un changement de voie de la ligne.
+            if (! $c || ! $a || ! $b || (! $e0['end'] && ! $e1['end'])) {
+                continue;
+            }
+            $p = $c[0];
+            $q = end($c);
+            $la = $this->plen($a);
+            $lb = $this->plen($b);
+            if ($this->distToLine($a, $p) > 0.5 || $this->distToLine($b, $q) > 0.5 || $la < 20 || $lb < 20) {
+                continue;
+            }
+            // Sens de marche f : celui d'une portion qui s'arrête sur le saut (vers lui pour A, depuis lui pour B), sinon le cap de A.
+            [$sA0] = $this->projectOn($a, $p, [0.0, 1.0]);
+            [$sB0] = $this->projectOn($b, $q, [0.0, 1.0]);
+            $f = match (true) {
+                $e0['end'] => $sA0 > $la / 2 ? $this->unit($this->pointAlong($a, $la - 15), end($a)) : $this->unit($this->pointAlong($a, 15), $a[0]),
+                $e1['end'] => $sB0 < $lb / 2 ? $this->unit($b[0], $this->pointAlong($b, 15)) : $this->unit(end($b), $this->pointAlong($b, $lb - 15)),
+                default => $this->unit($this->pointAlong($a, $sA0 - 5), $this->pointAlong($a, $sA0 + 5)),
+            };
+            [$sA, $dA] = $this->projectOn($a, $p, $f);
+            [$sB, $dB] = $this->projectOn($b, $q, $f);
+            $ga = $this->unit($this->pointAlong($a, $sA - 10 * $dA), $this->pointAlong($a, $sA));
+            $gb = $this->unit($this->pointAlong($b, $sB), $this->pointAlong($b, $sB + 10 * $dB));
+            if ($this->angDiff(atan2($ga[0], $ga[1]), atan2($gb[0], $gb[1])) > deg2rad(self::JOG_PARALLEL_DEG)) {
+                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'cap'];
+
+                continue;
+            }
+            $y = abs($f[0] * ($q[1] - $p[1]) - $f[1] * ($q[0] - $p[0]));
+            $t = min(sqrt(6 * max($y, 0.5) * $rmin) / 2, self::JOG_TRIM_MAX_M,
+                ($dA > 0 ? $sA : $la - $sA) - 5, ($dB > 0 ? $lb - $sB : $sB) - 5);
+            // On ne recule pas au-delà d'une autre jonction sur la partie coupée.
+            if ($e0['end']) {
+                $t = min($t, $this->nextJunction($e0['sid'], $dA > 0 ? $a : array_reverse($a), [$j['sid'], $e1['sid']]) - 5);
+            }
+            if ($e1['end']) {
+                $t = min($t, $this->nextJunction($e1['sid'], $dB > 0 ? array_reverse($b) : $b, [$j['sid'], $e0['sid']]) - 5);
+            }
+            if ($t < 10) {
+                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'recul', 't' => round($t)];
+
+                continue;
+            }
+            $sD = $sA - $dA * $t;
+            $sJ = $sB + $dB * $t;
+            $curve = $this->hermite(
+                $this->pointAlong($a, $sD), $this->unit($this->pointAlong($a, $sD - 5 * $dA), $this->pointAlong($a, $sD + 5 * $dA)),
+                $this->pointAlong($b, $sJ), $this->unit($this->pointAlong($b, $sJ - 5 * $dB), $this->pointAlong($b, $sJ + 5 * $dB)));
+            $segA = $this->subLine($a, min($sA, $sD), max($sA, $sD));
+            $segB = $this->subLine($b, min($sB, $sJ), max($sB, $sJ));
+            $dev = max(array_map(fn ($pt) => min($this->distToLine($segA, $pt), $this->distToLine($c, $pt), $this->distToLine($segB, $pt)), $curve));
+            $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'y' => round($y, 1), 't' => round($t), 'r' => round($this->minCurveRadius($curve)), 'dev' => round($dev, 1)];
+            if ($this->minCurveRadius($curve) < 0.5 * $rmin || $dev > self::LEG_DEV_M) {
+                continue;
+            }
+            $path = ['coords' => $curve, 'len' => $this->plen($curve)];
+            if ($this->doubles($path, [$j['sid'], $e0['sid'], $e1['sid']])) {
+                continue;
+            }
+            if ($e0['end']) {
+                $dA > 0 ? $this->cutSub($e0['sid'], 0.0, $sD / $la) : $this->cutSub($e0['sid'], $sD / $la, 1.0);
+            }
+            if ($e1['end']) {
+                $dB > 0 ? $this->cutSub($e1['sid'], $sJ / $lb, 1.0) : $this->cutSub($e1['sid'], 0.0, $sJ / $lb);
+            }
+            DB::update('UPDATE jr_sub SET removed = TRUE WHERE sid = ?', [$j['sid']]);
+            $this->insertSmoothed($curve, $e0['sid']);
+            $stats['jog_smoothed']++;
+            $stats['jog_smoothed_m'] += $path['len'];
+        }
+    }
+
+    /**
+     * Distance (m) depuis le bout de $c (polyligne de la portion $sid, orientée vers ce bout) jusqu'au premier point où
+     * une autre portion de la ligne (hors $exclude) la touche : on ne recule pas au-delà d'une jonction.
+     */
+    private function nextJunction(int $sid, array $c, array $exclude): float
+    {
+        $len = $this->plen($c);
+        $best = INF;
+        foreach (DB::select(<<<'SQL'
+            SELECT ST_X(x.p) AS x, ST_Y(x.p) AS y
+            FROM jr_sub t, jr_sub o, LATERAL (VALUES (ST_StartPoint(o.g)), (ST_EndPoint(o.g))) x(p)
+            WHERE t.sid = :sid AND NOT o.removed AND o.sid <> :sid2 AND o.sid <> ALL(CAST(:ex AS int[])) AND ST_DWithin(t.g, x.p, 0.5)
+            SQL, ['sid' => $sid, 'sid2' => $sid, 'ex' => $this->ints($exclude)]) as $r) {
+            [$s] = $this->projectOn($c, [(float) $r->x, (float) $r->y], [0.0, 1.0]);
+            $best = min($best, $len - $s);
+        }
+
+        return $best;
+    }
+
+    // ─── 8. Allers-retours ─────────────────────────────────────────────
+
+    /**
+     * Règle 8 (cf. docblock) : éperons qui font faire un aller-retour au tracé. Deux formes :
+     *   a. virage de plus de HAIRPIN_DEG au milieu d'une portion : la branche la plus courte, sans issue, est retirée ;
+     *   b. bout sans issue qui part d'un nœud (autre bout de la portion, ou raccord d'une autre portion en son milieu) à
+     *      moins de SPUR_DEG d'une autre portion de la ligne : retiré jusqu'au nœud.
+     * Dans les deux cas l'éperon doit longer le reste de la ligne (PARALLEL_M, SPUR_SHARE de sa longueur).
+     */
+    private function removeSpurs(array &$stats): void
+    {
+        // a. Aller-retour à l'intérieur d'une portion.
+        foreach (DB::select('SELECT sid, ST_AsText(g) AS wkt FROM jr_sub WHERE NOT removed AND ST_Length(g) > 30 ORDER BY sid') as $r) {
+            $sid = (int) $r->sid;
+            $c = $this->parseWkt($r->wkt);
+            $s = $this->hairpin($c);
+            if ($s === null) {
+                continue;
+            }
+            $len = $this->plen($c);
+            // Branches depuis le sommet du virage : [polyligne, longueur, bout libre au loin, bout de la portion].
+            $legs = [
+                [array_reverse($this->subLine($c, 0, $s)), $s, $this->isFreeEnd($sid, 0), 0],
+                [$this->subLine($c, $s, $len), $len - $s, $this->isFreeEnd($sid, 1), 1],
+            ];
+            usort($legs, fn ($x, $y) => $x[1] <=> $y[1]);
+            [$leg, $legLen, $free, $k] = $legs[0];
+            if (! $free || $legLen > self::SPUR_MAX_M || $this->alongShare($leg, $sid, $legs[1][0]) < self::SPUR_SHARE) {
+                continue;
+            }
+            $k === 0 ? $this->cutSub($sid, $s / $len, 1.0) : $this->cutSub($sid, 0.0, $s / $len);
+            $stats['spur_removed']++;
+            $stats['spur_removed_m'] += $legLen;
+            $this->debug && $this->log[] = ['spur_hairpin' => $sid, 'm' => round($legLen)];
+        }
+
+        // b. Bout sans issue qui repart d'un nœud (autre bout de la portion, ou point où une autre portion s'y raccorde)
+        //    à moins de SPUR_DEG d'une autre portion de la ligne, et la longe.
+        foreach ($this->freeEnds() as $e) {
+            $full = $this->subCoords($e['sid']);
+            if (! $full) {
+                continue;
+            }
+            // Polyligne orientée vers le bout libre ; nœud le plus proche de ce bout.
+            $towardFree = $e['k'] === 1 ? $full : array_reverse($full);
+            $len = $this->plen($towardFree);
+            $j = $this->nextJunction($e['sid'], $towardFree, []);
+            if ($j < 1 || $j > self::SPUR_MAX_M) {
+                continue;
+            }
+            $spur = $this->subLine($towardFree, $len - $j, $len);
+            $n = $spur[0];
+            $u = $this->unit($n, $this->pointAlong($spur, min(15.0, $j)));
+            $parallel = false;
+            foreach (DB::select(<<<'SQL'
+                SELECT o.sid, ST_AsText(o.g) AS wkt FROM jr_sub o
+                WHERE NOT o.removed AND o.sid <> :sid AND ST_DWithin(o.g, ST_SetSRID(ST_MakePoint(:x, :y), 2154), 0.5)
+                SQL, ['sid' => $e['sid'], 'x' => $n[0], 'y' => $n[1]]) as $o) {
+                $oc = $this->parseWkt($o->wkt);
+                if (count($oc) < 2) {
+                    continue;
+                }
+                [$pos] = $this->projectOn($oc, $n, [0.0, 1.0]);
+                $olen = $this->plen($oc);
+                // L'autre portion part du nœud dans un sens ou dans l'autre (nœud en son milieu : les deux).
+                foreach ([min($olen, $pos + 15), max(0.0, $pos - 15)] as $to) {
+                    $v = $this->unit($n, $this->pointAlong($oc, $to));
+                    if (abs($to - $pos) > 1 && $this->angDiff(atan2($u[0], $u[1]), atan2($v[0], $v[1])) <= deg2rad(self::SPUR_DEG)) {
+                        $parallel = true;
+                    }
+                }
+            }
+            if (! $parallel || $this->alongShare($spur, $e['sid']) < self::SPUR_SHARE) {
+                continue;
+            }
+            if ($j >= $len - 0.01) {
+                DB::update('UPDATE jr_sub SET removed = TRUE WHERE sid = ?', [$e['sid']]);
+            } else {
+                // Bout libre au début de la portion : on garde la fin, et inversement.
+                $e['k'] === 0 ? $this->cutSub($e['sid'], $j / $len, 1.0) : $this->cutSub($e['sid'], 0.0, 1 - $j / $len);
+            }
+            $stats['spur_removed']++;
+            $stats['spur_removed_m'] += $j;
+            $this->debug && $this->log[] = ['spur_node' => $e['sid'], 'm' => round($j)];
+        }
+    }
+
+    /**
+     * Abscisse (m) du sommet d'un aller-retour dans la polyligne : point où le tracé tourne de plus de HAIRPIN_DEG
+     * entre les cordes des 10 m qui précèdent et des 10 m qui suivent (le plus fort), ou null.
+     */
+    private function hairpin(array $c): ?float
+    {
+        $len = $this->plen($c);
+        $best = null;
+        $max = deg2rad(self::HAIRPIN_DEG);
+        $acc = 0.0;
+        for ($i = 1; $i < count($c) - 1; $i++) {
+            $acc += hypot($c[$i][0] - $c[$i - 1][0], $c[$i][1] - $c[$i - 1][1]);
+            if ($acc < 10 || $len - $acc < 10) {
+                continue;
+            }
+            $a = $this->pointAlong($c, $acc - 10);
+            $b = $this->pointAlong($c, $acc + 10);
+            $turn = $this->angDiff(atan2($c[$i][0] - $a[0], $c[$i][1] - $a[1]), atan2($b[0] - $c[$i][0], $b[1] - $c[$i][1]));
+            if ($turn > $max) {
+                $max = $turn;
+                $best = $acc;
+            }
+        }
+
+        return $best;
+    }
+
+    /**
+     * Part de la polyligne $c (points tous les 5 m, hors 10 premiers mètres) à moins de PARALLEL_M des autres portions
+     * de la ligne (hors $sid) ou de la polyligne $also.
+     */
+    private function alongShare(array $c, int $sid, array $also = []): float
+    {
+        $len = $this->plen($c);
+        if ($len <= 10) {
+            return 0.0;
+        }
+        $pts = [];
+        for ($s = 10.0; $s <= $len; $s += 5.0) {
+            $pts[] = $this->pointAlong($c, $s);
+        }
+        $near = array_fill(0, count($pts), false);
+        if (count($also) >= 2) {
+            foreach ($pts as $i => $p) {
+                $near[$i] = $this->distToLine($also, $p) <= self::PARALLEL_M;
+            }
+        }
+        $rows = DB::select(<<<'SQL'
+            SELECT x.path[1] AS i
+            FROM ST_DumpPoints(ST_GeomFromText(:mp, 2154)) x
+            WHERE EXISTS (SELECT 1 FROM jr_sub o WHERE NOT o.removed AND o.sid <> :sid AND ST_DWithin(o.g, x.geom, :par))
+            SQL, ['mp' => 'MULTIPOINT('.implode(',', array_map(fn ($p) => sprintf('(%.17G %.17G)', $p[0], $p[1]), $pts)).')',
+            'sid' => $sid, 'par' => self::PARALLEL_M]);
+        foreach ($rows as $r) {
+            $near[(int) $r->i - 1] = true;
+        }
+
+        return count(array_filter($near)) / count($pts);
+    }
+
+    /** La polyligne (un point tous les 5 m) reste-t-elle partout à moins de HOLE_TRACK_M d'une voie précise du pool ? */
+    private function onPreciseTrack(array $c): bool
+    {
+        $len = $this->plen($c);
+        $pts = [];
+        for ($s = 0.0; $s <= $len; $s += 5.0) {
+            $pts[] = $this->pointAlong($c, $s);
+        }
+        $pts[] = end($c);
+
+        return (int) DB::selectOne(<<<'SQL'
+            SELECT COUNT(*) AS n
+            FROM ST_DumpPoints(ST_GeomFromText(:mp, 2154)) x
+            WHERE NOT EXISTS (SELECT 1 FROM cf_pool p WHERE p.cand AND p.family IN ('contrib', 'bdtopo', 'osm') AND ST_DWithin(p.g, x.geom, :tol))
+            SQL, ['mp' => 'MULTIPOINT('.implode(',', array_map(fn ($p) => sprintf('(%.17G %.17G)', $p[0], $p[1]), $pts)).')',
+            'tol' => self::HOLE_TRACK_M])->n === 0;
+    }
+
+    /** Polyligne d'une portion gardée (null si retirée ou vide). */
+    private function subCoords(int $sid): ?array
+    {
+        $r = DB::selectOne('SELECT ST_AsText(g) AS wkt FROM jr_sub WHERE sid = ? AND NOT removed', [$sid]);
+        $c = $r ? $this->parseWkt($r->wkt) : [];
+
+        return count($c) >= 2 ? $c : null;
+    }
+
+    /** Vecteur unitaire de $from vers $to ([dx, dy]). */
+    private function unit(array $from, array $to): array
+    {
+        $l = hypot($to[0] - $from[0], $to[1] - $from[1]);
+
+        return $l > 0 ? [($to[0] - $from[0]) / $l, ($to[1] - $from[1]) / $l] : [0.0, 1.0];
     }
 
     // ─── 2. Trous ──────────────────────────────────────────────────────
@@ -799,7 +1126,7 @@ class JunctionRepair
         }
     }
 
-    /** Règle 7 c et d : bouts imprécis arrêtés avant la voie d'une autre ligne, trous sans voie précise. */
+    /** Règle 7 c et d : bouts imprécis arrêtés avant la voie d'une autre ligne, trous que la voie précise ne permet pas de combler. */
     private function smoothEnds(array &$stats): void
     {
         $net = DB::selectOne('SELECT network FROM lines WHERE id = ?', [$this->lineId])?->network;
@@ -807,7 +1134,9 @@ class JunctionRepair
         $narrow = in_array($net, TraceConflation::JUNCTION_NARROW_NETWORKS, true);
         $used = [];
 
-        // d. Trous face à face (les trous couverts par une voie précise ont été comblés à l'étape 2).
+        // d. Trous face à face : sans voie précise (jusqu'à HOLE_SMOOTH_MAX_M), ou sur une voie précise que l'étape 2 n'a pas
+        // pu suivre (changement de voie sans aiguillage, bout à plus de SNAP_M de la voie) : jusqu'à HOLE_MAX_M, la courbe
+        // doit alors rester à moins de HOLE_TRACK_M d'une voie précise sur toute sa longueur.
         $ends = $this->freeEnds();
         $pairs = [];
         foreach ($ends as $i => $a) {
@@ -817,7 +1146,7 @@ class JunctionRepair
                 }
                 $d = hypot($b['x'] - $a['x'], $b['y'] - $a['y']);
                 $ab = atan2($b['x'] - $a['x'], $b['y'] - $a['y']);
-                if ($d <= 0.5 || $d > self::HOLE_SMOOTH_MAX_M
+                if ($d <= 0.5 || $d > self::HOLE_MAX_M
                     || $this->angDiff($ab, $a['az']) > deg2rad(self::FACE_DEG) || $this->angDiff($ab + M_PI, $b['az']) > deg2rad(self::FACE_DEG)) {
                     continue;
                 }
@@ -832,8 +1161,11 @@ class JunctionRepair
             $a = $ends[$i];
             $b = $ends[$j];
             $pts = $this->hermite([$a['x'], $a['y']], [sin($a['az']), cos($a['az'])], [$b['x'], $b['y']], [-sin($b['az']), -cos($b['az'])]);
-            if ($this->minCurveRadius($pts) < $rmin || max(array_map(fn ($p) => $this->distToLine([[$a['x'], $a['y']], [$b['x'], $b['y']]], $p), $pts)) > self::LEG_DEV_M) {
-                $this->debug && $this->log[] = ['hole_smooth' => [$a['sid'], $b['sid']], 'd' => round($d, 1), 'fit' => null];
+            $radius = $this->minCurveRadius($pts);
+            $free = $d <= self::HOLE_SMOOTH_MAX_M && $radius >= $rmin
+                && max(array_map(fn ($p) => $this->distToLine([[$a['x'], $a['y']], [$b['x'], $b['y']]], $p), $pts)) <= self::LEG_DEV_M;
+            if (! $free && ($radius < 0.5 * $rmin || ! $this->onPreciseTrack($pts))) {
+                $this->debug && $this->log[] = ['hole_smooth' => [$a['sid'], $b['sid']], 'd' => round($d, 1), 'r' => round($radius), 'fit' => null];
 
                 continue;
             }

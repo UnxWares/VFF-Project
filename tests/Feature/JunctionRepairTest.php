@@ -139,6 +139,31 @@ class JunctionRepairTest extends TestCase
         $this->assertContains($bridge, json_decode($added->source_trace_ids, true));
     }
 
+    public function test_long_hole_on_a_precise_track_the_route_cannot_follow_is_bridged_along_it(): void
+    {
+        // Trou de 150 m : les deux bouts sont à 4 m de la voie qui le traverse (au-delà de SNAP_M, l'étape 2 ne la prend pas).
+        $this->part('osm', [[[0, 0], [1000, 0]], [[1150, 8], [2000, 8]]]);
+        $this->trace(null, 'bdtopo', [[900, 4], [1300, 4]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['hole_filled']);
+        $this->assertSame(1, $stats['hole_smoothed']);
+        $this->assertSame([[0.0, 0.0], [2000.0, 8.0]], $this->freeEnds());
+        $this->assertLessThan(10, $this->maxKink());
+    }
+
+    public function test_long_hole_away_from_any_precise_track_stays_open(): void
+    {
+        $this->part('osm', [[[0, 0], [1000, 0]], [[1150, 8], [2000, 8]]]);
+        $this->trace(null, 'bdtopo', [[900, 40], [1300, 40]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['hole_smoothed']);
+        $this->assertCount(4, $this->freeEnds());
+    }
+
     public function test_hole_without_precise_track_is_left_open(): void
     {
         $this->part('bdtopo', [[[0, 0], [1000, 0]], [[1040, 0], [2000, 0]]]);
@@ -228,18 +253,25 @@ class JunctionRepairTest extends TestCase
         $this->assertEqualsWithDelta(1000 + 200 + hypot(120, 15) + 680, $this->totalLength(), 0.5);
     }
 
-    public function test_jog_without_real_crossover_is_kept(): void
+    public function test_jog_without_real_crossover_becomes_a_smoothed_track_change(): void
     {
         $this->jogNetwork(crossover: false);
-        $before = $this->totalLength();
 
         $stats = $this->repair();
 
+        // Aucune communication réelle : le saut est remis, puis la marche d'escalier devient un S tangent aux deux voies.
         $this->assertSame(0, $stats['jog_removed']);
         $this->assertSame(1, $stats['jog_restored']);
-        $this->assertEqualsWithDelta(15, $this->totalLength('connector'), 0.01);
-        $this->assertEqualsWithDelta($before, $this->totalLength(), 0.01);
+        $this->assertSame(1, $stats['jog_smoothed']);
+        $this->assertEqualsWithDelta(0, $this->totalLength('connector'), 0.01);
         $this->assertSame([[0.0, 0.0], [2000.0, 15.0]], $this->freeEnds());
+        $this->assertLessThan(10, $this->maxKink());
+        $curve = DB::table('line_reference_parts')->where('line_id', $this->line->id)->where('matched_source', JunctionRepair::SMOOTHED)->first();
+        $this->assertNotNull($curve);
+        // Recul de chaque côté : moitié de √(6 × 15 m × rayon minimal) ; rien n'est inventé au-delà.
+        $t = sqrt(6 * 15 * JunctionRepair::minRadius($this->line->network, 1435)) / 2;
+        $this->assertEqualsWithDelta(2 * (1000 - $t), $this->totalLength() - (float) DB::selectOne(
+            'SELECT ST_Length(ST_Transform(geom, 2154)) AS m FROM line_reference_parts WHERE id = ?', [$curve->id])->m, 0.5);
     }
 
     public function test_staircase_through_a_short_parallel_piece_becomes_a_straight_track(): void
@@ -271,9 +303,81 @@ class JunctionRepairTest extends TestCase
 
         $stats = $this->repair();
 
+        // Raccord en T vers la voie qui continue : la voie parallèle reste, son arrivée devient une courbe tangente.
         $this->assertSame(1, $stats['jog_restored']);
+        $this->assertSame(1, $stats['jog_smoothed']);
         $this->assertEqualsWithDelta(0, $stats['remnant_removed_m'], 0.01);
-        $this->assertEqualsWithDelta(3020, $this->totalLength(), 0.5);
+        $this->assertEqualsWithDelta(0, $this->totalLength('connector'), 0.01);
+        $this->assertEqualsWithDelta(2000, (float) DB::selectOne("SELECT SUM(ST_Length(ST_Transform(geom, 2154))) AS m FROM line_reference_parts WHERE line_id = ? AND source = 'bdtopo' AND matched_source IS NULL", [$this->line->id])->m, 0.5);
+        $this->assertLessThan(10, $this->maxKink());
+    }
+
+    // ─── Allers-retours ─────────────────────────────────────────────────
+
+    public function test_dead_end_spur_running_along_the_line_from_a_node_is_removed(): void
+    {
+        // La Ferté-Macé (434000) : la ligne est dessinée sur sa voie et, depuis l'aiguille, sur l'autre voie du faisceau
+        // qui s'en écarte doucement jusqu'à 25 m puis s'arrête : un aller-retour en V à l'écran.
+        $this->part('bdtopo', [[[0, 0], [1000, 0]], [[1000, 0], [2000, 0]]]);
+        $this->part('osm', [[[1000, 0], [1200, 15], [1400, 25]]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['spur_removed']);
+        $this->assertEqualsWithDelta(hypot(200, 15) + hypot(200, 10), $stats['spur_removed_m'], 0.5);
+        $this->assertEqualsWithDelta(2000, $this->totalLength(), 0.5);
+    }
+
+    public function test_parallel_dead_end_track_continuing_a_portion_past_a_fork_is_cut_at_the_fork(): void
+    {
+        // La voie est de La Ferté-Macé : la portion part de la gare (terminus), passe l'aiguille puis continue sur la voie
+        // de faisceau jusqu'à un butoir ; la voie de la ligne part de l'aiguille, raccordée au milieu de cette portion.
+        $this->part('osm', [[[0, 0], [200, 0], [400, 15], [650, 25]]]);
+        $this->part('osm', [[[200, 0], [2000, 0]]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['spur_removed']);
+        $this->assertEqualsWithDelta(hypot(200, 15) + hypot(250, 10), $stats['spur_removed_m'], 0.5);
+        $this->assertEqualsWithDelta(2000, $this->totalLength(), 0.5);
+        $this->assertSame([[0.0, 0.0], [2000.0, 0.0]], $this->freeEnds());
+    }
+
+    public function test_dead_end_branch_that_leaves_the_line_is_kept(): void
+    {
+        $this->part('bdtopo', [[[0, 0], [1000, 0]], [[1000, 0], [2000, 0]]]);
+        // 20° : à 30 m de la ligne dès 90 m, ce n'est pas une voie du même faisceau.
+        $this->part('osm', [[[1000, 0], [1400, 400 * tan(deg2rad(20))]]]);
+        // 40° : trop ouvert pour un éperon.
+        $this->part('osm', [[[500, 0], [700, 200 * tan(deg2rad(40))]]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['spur_removed']);
+    }
+
+    public function test_hairpin_coming_back_along_the_same_portion_is_cut(): void
+    {
+        // Le tracé dépasse la gare de 300 m puis revient 200 m en arrière à 10 m de lui-même et s'arrête.
+        $this->part('osm', [[[0, 0], [1300, 0], [1100, 10]]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['spur_removed']);
+        $this->assertEqualsWithDelta(1300, $this->totalLength(), 1.0);
+        $this->assertSame([[0.0, 0.0], [1300.0, 0.0]], $this->freeEnds());
+    }
+
+    public function test_real_reversal_whose_branches_part_is_kept(): void
+    {
+        // Rebroussement : la seconde branche repart à 153° et s'écarte de la première (gare en impasse).
+        $this->part('osm', [[[0, 0], [1000, 0], [700, 150]]]);
+        $before = $this->totalLength();
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['spur_removed']);
+        $this->assertEqualsWithDelta($before, $this->totalLength(), 0.01);
     }
 
     public function test_long_bubble_held_by_two_jogs_is_removed(): void
@@ -576,5 +680,58 @@ class JunctionRepairTest extends TestCase
         $this->artisan('vff:build-line-references', ['--line' => [(string) $this->line->id], '--no-junction-repair' => true])->assertSuccessful();
 
         $this->assertCount(4, $this->freeEnds());
+    }
+
+    // ─── Arrondi des sommets ────────────────────────────────────────────
+
+    /** Courbe OSM échantillonnée tous les 50 m, qui tourne de 8° à chaque sommet (voie de montagne). */
+    private function polygonalCurve(): array
+    {
+        $c = [[0.0, 0.0]];
+        $az = 0.0;
+        for ($i = 0; $i < 10; $i++) {
+            $c[] = [round(end($c)[0] + 50 * cos($az), 3), round(end($c)[1] + 50 * sin($az), 3)];
+            $az += deg2rad(8);
+        }
+
+        return $c;
+    }
+
+    /** Sommets du tracé de référence d'une ligne. */
+    private function vertexCount(Line $line): int
+    {
+        return (int) DB::selectOne('SELECT SUM(ST_NPoints(geom)) AS n FROM line_reference_parts WHERE line_id = ?', [$line->id])->n;
+    }
+
+    public function test_build_line_references_rounds_curve_vertices_but_not_where_another_line_joins(): void
+    {
+        $curve = $this->polygonalCurve();
+        $this->trace($this->line, 'osm', $curve);
+        // Une autre ligne se raccorde sur le 4e sommet : il ne bouge pas (jonction à 0 m).
+        $other = Line::factory()->create(['code' => '430000', 'gauge_mm_default' => 1435]);
+        $joint = $curve[4];
+        $this->part('osm', [[[$joint[0], $joint[1] - 500], $joint]], [], null, $other);
+
+        $this->artisan('vff:build-line-references', ['--line' => [(string) $this->line->id]])
+            ->expectsOutputToContain('arrondi des sommets : 8 sommets arrondis')
+            ->assertSuccessful();
+
+        $this->assertGreaterThan(count($curve), $this->vertexCount($this->line));
+        $this->assertSame([[0.0, 0.0], [round(end($curve)[0], 1), round(end($curve)[1], 1)]], $this->freeEnds());
+        $this->assertEqualsWithDelta(0.0, (float) DB::selectOne(
+            'SELECT MIN(ST_Distance(ST_Transform(d.geom, 2154), ST_SetSRID(ST_MakePoint(?, ?), 2154))) AS d FROM line_reference_parts p, LATERAL ST_DumpPoints(p.geom) d WHERE p.line_id = ?',
+            [self::X0 + $joint[0], self::Y0 + $joint[1], $this->line->id])->d, 0.01);
+        // Plus aucune cassure visible : 3° au plus entre deux segments (cordes de ± 10 m : quelques pas d'arc).
+        $this->assertLessThan(10, $this->maxKink());
+    }
+
+    public function test_build_line_references_without_rounding_keeps_the_source_vertices(): void
+    {
+        $curve = $this->polygonalCurve();
+        $this->trace($this->line, 'osm', $curve);
+
+        $this->artisan('vff:build-line-references', ['--line' => [(string) $this->line->id], '--no-rounding' => true])->assertSuccessful();
+
+        $this->assertSame(count($curve), $this->vertexCount($this->line));
     }
 }
