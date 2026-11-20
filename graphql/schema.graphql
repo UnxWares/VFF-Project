@@ -4110,6 +4110,8 @@ dans `extensions.code` (messages en anglais) :
 - `account_suspended` : compte suspendu (`extensions.suspended_until`, ISO 8601, nul si sans fin) ;
 - `too_many_requests` : limite de débit atteinte par les mutations de la requête
   (`extensions.retry_after` : secondes à attendre) ;
+- `daily_limit_reached` : le compte a déjà envoyé 30 propositions aujourd'hui (site et API ensemble ;
+  validateurs et administrateurs exemptés ; `extensions.limit` : 30), rien n'est enregistré ;
 - `forbidden` : relecture demandée par un compte qui n'est ni validateur ni administrateur ;
 - `not_found` : contribution inconnue, ou retirée par un administrateur ;
 - `own_contribution` : relecture de sa propre contribution ;

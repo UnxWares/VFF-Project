@@ -5,6 +5,7 @@ namespace App\Services\Contributions;
 use App\Enums\LineEventType;
 use App\Models\Contribution;
 use App\Models\Line;
+use App\Services\EraTimeline;
 use App\Services\TraceContributionService;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -175,7 +176,8 @@ final readonly class EventContributions
             'source' => self::SOURCE,
             'source_url' => $p['source']['url'] ?? null,
             'source_quote' => SourceCitation::reference($p['source'] ?? []),
-            'confidence' => 'high',
+            // La confiance suit la source citée (ouvrage, archive ou site officiel : haute ; page web secondaire : moyenne).
+            'confidence' => EraTimeline::citedConfidence((string) ($p['source']['kind'] ?? 'web'), $p['source']['url'] ?? null),
             'section_from' => $portion['from'] ?? null,
             'section_to' => $portion['to'] ?? null,
             'section_pk_start_m' => $portion['pk_start_m'] ?? null,

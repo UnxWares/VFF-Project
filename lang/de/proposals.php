@@ -10,6 +10,7 @@ return [
         'station_required' => 'Wählen Sie den Bahnhof aus den Suchergebnissen.',
         'summary_one' => ':count Feld vor dem Senden korrigieren',
         'summary_other' => ':count Felder vor dem Senden korrigieren',
+        'daily_limit' => 'Sie haben heute :max Vorschläge gesendet, die Höchstzahl pro Tag. Ab morgen können Sie weitere senden; so haben die Prüfer Zeit, alle durchzusehen.',
     ],
 
     'picker' => [

@@ -172,6 +172,7 @@ Route::middleware('auth')->group(function (): void {
 
     // Jetons d'API personnels (lecture seule) : création refusée à un compte suspendu, révocation toujours possible.
     Route::post('/profile/api-tokens', [ApiTokenController::class, 'store'])->middleware(['not.suspended', 'throttle:10,1'])->name('profile.api-tokens.store');
+    Route::post('/profile/api-tokens/{token}/renew', [ApiTokenController::class, 'renew'])->whereNumber('token')->middleware(['not.suspended', 'throttle:30,1'])->name('profile.api-tokens.renew');
     Route::delete('/profile/api-tokens/{token}', [ApiTokenController::class, 'destroy'])->whereNumber('token')->middleware('throttle:30,1')->name('profile.api-tokens.destroy');
 
     // Webhooks de l'API : création et réactivation refusées à un compte suspendu, suppression toujours possible.

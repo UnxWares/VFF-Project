@@ -983,8 +983,10 @@ donnent l'erreur JSON-RPC `-32602`. Complétion : `lang`, `region` (codes et nom
 
 Le serveur s'utilise sans compte ni jeton. Un **jeton personnel** de l'API, facultatif, relève la
 limite de débit : un membre le crée depuis son profil (section « Jetons d'accès à l'API » de
-`/profile`). Il ne sert qu'à lire, comme l'accès anonyme, et n'est affiché qu'une fois. Le serveur
-MCP lit le même en-tête que l'API REST et GraphQL : `Authorization: Bearer <jeton>`.
+`/profile`). Il ne sert qu'à lire, comme l'accès anonyme, et n'est affiché qu'une fois. Il est
+valable un an : un courriel prévient son titulaire 30 jours avant l'échéance, et le profil le
+renouvelle d'un clic sans changer son secret. Le serveur MCP lit le même en-tête que l'API REST et
+GraphQL : `Authorization: Bearer <jeton>`.
 
 | Profil | Limite (valeurs par défaut) | Compteur |
 | --- | --- | --- |

@@ -180,7 +180,8 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] Accès libre sans clé, limité à 300 requêtes par minute et par adresse IP (davantage avec un jeton personnel)
 - [x] Exemples intégrés : curl, JavaScript (`fetch`) et Python (`requests`) sur la page `/api` et, pour les principaux points d'accès, dans la référence Scalar (`x-codeSamples`)
 - [x] Points d'accès des annuaires, fiches complètes, tronçons, époques, sources, événements, médias, matériel et accidents
-- [x] Jetons API (Sanctum, lecture seule, créés depuis le profil) et quotas par profil (anonyme 300, membre 1 200, partenaire 6 000 requêtes par minute, `config/api.php`), compteur commun à REST, GraphQL et MCP
+- [x] Jetons API (Sanctum, lecture seule, créés depuis le profil) et quotas par profil (anonyme 300, membre 1 200, partenaire 6 000 requêtes par minute, `config/api.php`), compteur commun à REST, GraphQL et MCP ; échéance à un an, rappel par courriel 30 jours avant et renouvellement d'un clic depuis le profil
+- [~] Politique de sécurité du contenu en observation (`Content-Security-Policy-Report-Only`, rapports sans donnée personnelle) ; reste à la rendre bloquante après deux semaines de rapports en production (`docs/SECURITE-CSP.md`)
 - [x] Webhooks pour notifier les changements : abonnement depuis le profil (adresse HTTPS, événements `contribution.applied`, `current_era.refreshed`, `accident.published`, `material.published`), messages JSON signés HMAC-SHA256 avec horodatage, envoi par la file avec essais espacés et désactivation après échecs répétés, protection SSRF à chaque envoi
 
 ---
@@ -246,7 +247,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [~] Partenariats : soutien à la campagne AngouLim (réouverture Angoulême - Limoges, lien d'intérêts déclaré)
 - [~] Page de dons : en place, plateforme finale (Patreon ou HelloAsso) selon le statut juridique de l'association ESS « UnxWares Opensource », à créer
 - [ ] Blog / journal de bord du projet (articles longs sur des lignes emblématiques)
-- [ ] Programme de partenariat avec les associations ferroviaires locales (CFTA, AAATV, MFCF…)
+- [ ] Programme de partenariat avec des associations ferroviaires locales (aucun partenariat à ce jour)
 - [ ] Présence dans les conférences open data / patrimoine
 - [x] Application installable (PWA), avec page hors ligne
 - [x] Mode hors ligne : pages publiques déjà consultées sans être connecté (HTML et Inertia, 60 au plus, 30 jours) et tuiles vectorielles de VFF déjà affichées (500 au plus, 7 jours), avec la date de la copie ; jamais les pages de compte, de contribution ni de validation, ni les tuiles OpenStreetMap

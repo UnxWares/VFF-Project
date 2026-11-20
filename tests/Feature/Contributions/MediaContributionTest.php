@@ -382,6 +382,31 @@ class MediaContributionTest extends TestCase
             ->assertJsonPath('data.license', 'CC BY-SA 4.0');
     }
 
+    public function test_publication_creates_webp_thumbnails_served_by_the_api(): void
+    {
+        $contribution = $this->submit($this->member(), $this->upload(['file' => $this->uploaded($this->realJpeg(1600, 1200, 6))]));
+        $this->actingAs($this->member('validator'))->post("/validate/{$contribution->id}/approve");
+        $this->actingAs($this->member('validator'))->post("/validate/{$contribution->id}/approve")->assertSessionHas('success');
+
+        $media = Media::query()->findOrFail($contribution->fresh()->payload['applied']['media_id']);
+        $thumbs = $media->provider_meta['thumbs'];
+        $this->assertSame([320, 1280], array_keys($thumbs));
+        $disk = Storage::disk(MediaContributions::PUBLIC_DISK);
+        foreach ($thumbs as $width => $path) {
+            $bytes = (string) $disk->get($path);
+            $size = getimagesizefromstring($bytes);
+            // Orientation 6 appliquée : la photo 1 600 × 1 200 s'affiche en portrait (1 200 × 1 600).
+            $this->assertSame(['image/webp', min($width, 1200)], [$size['mime'], $size[0]]);
+            $this->assertStringNotContainsString(self::TEST_GPS_MARK, $bytes);
+            $this->assertFalse(ImageSanitizer::metadataLeft($bytes, 'webp'));
+        }
+
+        $this->getJson("/api/v1/media/{$media->id}")
+            ->assertOk()
+            ->assertJsonPath('data.thumb_url', Storage::disk(MediaContributions::PUBLIC_DISK)->url($thumbs[320]))
+            ->assertJsonPath('data.display_url', Storage::disk(MediaContributions::PUBLIC_DISK)->url($thumbs[1280]));
+    }
+
     public function test_an_image_can_be_attached_to_an_event_of_the_line(): void
     {
         $event = LineEvent::query()->where('line_id', $this->line->id)->firstOrFail();

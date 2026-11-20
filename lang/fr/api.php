@@ -35,7 +35,7 @@ return [
     // Section « Authentification et quotas » (ancre #auth) : jeton facultatif, limites par profil (config/api.php).
     'auth' => [
         'title' => 'Authentification et quotas',
-        'intro' => 'L’API s’appelle sans jeton. Si la limite de l’accès anonyme ne vous suffit pas, créez un jeton personnel depuis votre profil : il lit les données comme l’accès anonyme et n’est affiché qu’une fois. Pour contribuer par GraphQL, cochez la case des contributions en le créant.',
+        'intro' => 'L’API s’appelle sans jeton. Si la limite de l’accès anonyme ne vous suffit pas, créez un jeton personnel depuis votre profil : il lit les données comme l’accès anonyme et n’est affiché qu’une fois. Pour contribuer par GraphQL, cochez la case des contributions en le créant. Un jeton est valable un an : un courriel vous prévient 30 jours avant son échéance, et le bouton « Renouveler » du profil le prolonge d’un an sans changer son secret.',
         'table_caption' => 'Limites de requêtes selon le profil de l’appelant',
         'col_profile' => 'Profil',
         'col_limit' => 'Limite',
@@ -205,6 +205,7 @@ return [
             'insufficient_scope' => 'le jeton n’a pas la capacité de contribuer.',
             'csrf_token_mismatch' => 'session du site sans jeton CSRF valide.',
             'account_suspended' => 'compte suspendu ; extensions.suspended_until donne la date de fin, s’il y en a une.',
+            'daily_limit_reached' => 'le compte a déjà envoyé 30 propositions aujourd’hui, site et API ensemble (extensions.limit). Les validateurs et les administrateurs n’ont pas cette limite.',
             'forbidden' => 'relecture demandée par un compte qui n’est ni validateur ni administrateur.',
             'not_found' => 'contribution inconnue, ou retirée par un administrateur.',
             'own_contribution' => 'relecture de sa propre contribution.',

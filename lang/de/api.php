@@ -34,7 +34,7 @@ return [
     // Abschnitt „Authentifizierung und Kontingente“ (Anker #auth): freiwilliges Token, Grenzen je Profil (config/api.php).
     'auth' => [
         'title' => 'Authentifizierung und Kontingente',
-        'intro' => 'Die API funktioniert ohne Token. Reicht Ihnen die Grenze des anonymen Zugangs nicht, erstellen Sie in Ihrem Profil ein persönliches Token. Es liest die Daten wie der anonyme Zugang und wird nur einmal angezeigt. Um über GraphQL beizutragen, kreuzen Sie beim Erstellen das Kästchen für Beiträge an.',
+        'intro' => 'Die API funktioniert ohne Token. Reicht Ihnen die Grenze des anonymen Zugangs nicht, erstellen Sie in Ihrem Profil ein persönliches Token. Es liest die Daten wie der anonyme Zugang und wird nur einmal angezeigt. Um über GraphQL beizutragen, kreuzen Sie beim Erstellen das Kästchen für Beiträge an. Ein Token gilt ein Jahr: 30 Tage vor dem Ablauf erhalten Sie eine E-Mail, und die Schaltfläche „Verlängern“ im Profil verlängert es um ein Jahr, ohne sein Geheimnis zu ändern.',
         'table_caption' => 'Anfragegrenzen je nach Profil des Aufrufers',
         'col_profile' => 'Profil',
         'col_limit' => 'Grenze',
@@ -204,6 +204,7 @@ return [
             'insufficient_scope' => 'Das Token darf keine Beiträge senden.',
             'csrf_token_mismatch' => 'Sitzung der Website ohne gültiges CSRF-Token.',
             'account_suspended' => 'Konto gesperrt; extensions.suspended_until nennt das Ende, falls es eines gibt.',
+            'daily_limit_reached' => 'Das Konto hat heute bereits 30 Vorschläge gesendet, Website und API zusammen (extensions.limit). Für Prüfer und Administratoren gilt diese Grenze nicht.',
             'forbidden' => 'Sichtung durch ein Konto, das weder Prüfer noch Administrator ist.',
             'not_found' => 'unbekannter oder von einem Administrator entfernter Beitrag.',
             'own_contribution' => 'Sichtung des eigenen Beitrags.',

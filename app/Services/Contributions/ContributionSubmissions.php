@@ -53,6 +53,19 @@ final readonly class ContributionSubmissions
     ) {}
 
     /**
+     * Plafond quotidien des propositions (ContributionLimits::DAILY), vérifié avant tout contrôle ou
+     * enregistrement de fichier. L'API GraphQL le vérifie aussi en amont, avec son propre code d'erreur.
+     *
+     * @throws ValidationException 30 propositions déjà faites aujourd'hui par ce compte
+     */
+    public static function ensureDailyQuota(User $author): void
+    {
+        if (ContributionLimits::dailyLimitReached($author)) {
+            throw ValidationException::withMessages(['daily_limit' => __('proposals.errors.daily_limit', ['max' => ContributionLimits::DAILY])]);
+        }
+    }
+
+    /**
      * Règles d'une modification par PK. Comme toute contribution sourcée, elle cite au moins une
      * source (adresse ou référence) : les validateurs ne relisent pas une affirmation sans pièce.
      *
@@ -102,6 +115,7 @@ final readonly class ContributionSubmissions
      */
     public function submitSegment(User $author, array $data): Contribution
     {
+        self::ensureDailyQuota($author);
         // Le navigateur bloque déjà un envoi vide ; ici le serveur le refuse aussi (champs laissés
         // sur « Inchangé » ou vides, ou clés inconnues seules) : rien à relire pour les validateurs.
         $changes = array_filter(
@@ -149,6 +163,7 @@ final readonly class ContributionSubmissions
      */
     public function submitTrace(User $author, array $data): Contribution
     {
+        self::ensureDailyQuota($author);
         ['payload' => $payload, 'line' => $line] = $this->traces->normalize($data);
 
         $contribution = Contribution::create([
@@ -175,6 +190,7 @@ final readonly class ContributionSubmissions
      */
     public function submitEvent(User $author, array $data): Contribution
     {
+        self::ensureDailyQuota($author);
         ['payload' => $payload, 'line' => $line] = $this->events->normalize($data);
 
         $contribution = Contribution::create([
@@ -203,6 +219,7 @@ final readonly class ContributionSubmissions
      */
     public function submitMedia(User $author, array $data): Contribution
     {
+        self::ensureDailyQuota($author);
         ['payload' => $payload, 'target' => $target, 'image' => $image] = $this->media->prepare($data);
         $path = $image !== null ? $this->media->storePrivate($image) : null;
         if ($path !== null) {
@@ -240,6 +257,7 @@ final readonly class ContributionSubmissions
      */
     public function submitLineMaterial(User $author, array $data): Contribution
     {
+        self::ensureDailyQuota($author);
         ['payload' => $payload, 'line' => $line] = $this->lineMaterials->normalize($data);
 
         $contribution = Contribution::create([
@@ -267,6 +285,7 @@ final readonly class ContributionSubmissions
      */
     public function submitMaterialSeries(User $author, array $data): Contribution
     {
+        self::ensureDailyQuota($author);
         ['payload' => $payload, 'material' => $material] = $this->series->normalize($data);
 
         $contribution = Contribution::create([

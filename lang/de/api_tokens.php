@@ -17,6 +17,13 @@ return [
     'created_at' => 'Erstellt am :date',
     'last_used' => 'Zuletzt verwendet am :date',
     'never_used' => 'Noch nie verwendet',
+    'expires_on' => 'Läuft am :date ab',
+    'expired_on' => 'Abgelaufen am :date',
+    'expires_soon' => 'Läuft bald ab',
+    'expired' => 'Abgelaufen',
+    'lifetime' => 'Ein Token ist :days Tage gültig. 30 Tage vor dem Ablauf erhalten Sie eine E-Mail, und die Schaltfläche „Verlängern“ verlängert es um ein Jahr, ohne sein Geheimnis zu ändern.',
+    'renew' => 'Verlängern',
+    'renew_label' => 'Token „:name“ um ein Jahr verlängern',
     'revoke' => 'Widerrufen',
     'revoke_label' => 'Token „:name“ widerrufen',
     'revoke_confirm_title' => 'Token „:name“ widerrufen?',
@@ -51,5 +58,17 @@ return [
     'flash' => [
         'created' => 'Das Token wurde erstellt.',
         'revoked' => 'Das Token wurde widerrufen.',
+        'renewed' => 'Das Token wurde um ein Jahr verlängert. Programme, die es nutzen, müssen nichts ändern.',
+    ],
+
+    'mail' => [
+        'subject_one' => 'Ihr API-Token für Französische Bahnstrecken läuft bald ab',
+        'subject_other' => 'Ihre API-Token für Französische Bahnstrecken laufen bald ab',
+        'intro_one' => 'Eines Ihrer API-Zugriffstoken läuft in höchstens :days Tagen ab:',
+        'intro_other' => 'Mehrere Ihrer API-Zugriffstoken laufen in höchstens :days Tagen ab:',
+        'item' => '„:name“: läuft am :date ab.',
+        'renew' => 'Um es weiter zu nutzen, öffnen Sie Ihr Profil und klicken Sie auf „Verlängern“: Das Token bleibt dasselbe und gilt ein weiteres Jahr. Nach dem Ablauf lehnt die API es ab (Fehler 401), Sie können es aber weiterhin im Profil verlängern.',
+        'action' => 'Mein Profil öffnen',
+        'ignore' => 'Wenn Sie dieses Token nicht mehr nutzen, können Sie diese Nachricht ignorieren.',
     ],
 ];

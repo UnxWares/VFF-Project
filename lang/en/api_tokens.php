@@ -17,6 +17,13 @@ return [
     'created_at' => 'Created on :date',
     'last_used' => 'Last used on :date',
     'never_used' => 'Never used',
+    'expires_on' => 'Expires on :date',
+    'expired_on' => 'Expired on :date',
+    'expires_soon' => 'Expires soon',
+    'expired' => 'Expired',
+    'lifetime' => 'A token is valid for :days days. An email reminds you 30 days before it expires, and the "Renew" button extends it by a year without changing its secret.',
+    'renew' => 'Renew',
+    'renew_label' => 'Renew the token ":name" for a year',
     'revoke' => 'Revoke',
     'revoke_label' => 'Revoke the token “:name”',
     'revoke_confirm_title' => 'Revoke the token “:name”?',
@@ -51,5 +58,17 @@ return [
     'flash' => [
         'created' => 'The token has been created.',
         'revoked' => 'The token has been revoked.',
+        'renewed' => 'The token has been renewed for a year. Programs that use it need no change.',
+    ],
+
+    'mail' => [
+        'subject_one' => 'Your French Railway Lines API token expires soon',
+        'subject_other' => 'Your French Railway Lines API tokens expire soon',
+        'intro_one' => 'One of your API access tokens expires in :days days or less:',
+        'intro_other' => 'Several of your API access tokens expire in :days days or less:',
+        'item' => '":name": expires on :date.',
+        'renew' => 'To keep using it, open your profile and click "Renew": the token stays the same and is valid for another year. After it expires, the API refuses it (error 401), but you can still renew it from your profile.',
+        'action' => 'Open my profile',
+        'ignore' => 'If you no longer use this token, you can ignore this message.',
     ],
 ];

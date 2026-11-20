@@ -43,6 +43,7 @@ const ACCESS = {
     per_minute: 600,
     anonymous_per_minute: 300,
     max_tokens: 5,
+    lifetime_days: 365,
     can_create: true,
     suspended: false,
     new_token: { id: 1, plain: '1|secret' },

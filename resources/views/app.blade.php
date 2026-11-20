@@ -10,7 +10,7 @@
             existe, sinon préférence du système. Repris ensuite par lib/stores/theme.svelte.js.
             Même règle que resources/views/docs/_head.blade.php.
         --}}
-        <script data-theme-init>
+        <script data-theme-init nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
             (function () {
                 var root = document.documentElement;
                 var saved = document.cookie.match(/(?:^|; )theme=(dark|light)(?:;|$)/);

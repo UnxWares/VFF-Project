@@ -6,6 +6,7 @@ use App\Enums\ApiAccessProfile;
 use App\Enums\AuditAction;
 use App\Models\User;
 use App\Services\AuditLog;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\NewAccessToken;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -17,8 +18,12 @@ use Laravel\Sanctum\PersonalAccessToken;
  * son compte (ApiAccessProfile). Coché à la création, il reçoit aussi la capacité `contribute`
  * (CONTRIBUTE) : les mutations GraphQL de contribution et de validation, avec les droits du compte.
  * Son secret n'est montré qu'une fois, à la création : la base n'en garde que l'empreinte SHA-256.
- * La création et la révocation sont consignées dans le journal d'audit (identifiant du jeton et
- * capacité de contribution, jamais son nom ni son secret).
+ * La création, le renouvellement et la révocation sont consignés dans le journal d'audit
+ * (identifiant du jeton et capacité de contribution, jamais son nom ni son secret).
+ *
+ * Un jeton expire un an après sa création (lifetimeDays()). Son titulaire reçoit un rappel par
+ * courriel 30 jours avant (vff:remind-expiring-api-tokens) et le renouvelle d'un clic depuis son
+ * profil : un an de plus à partir du jour du renouvellement, même secret.
  */
 final readonly class ApiTokens
 {
@@ -49,6 +54,24 @@ final readonly class ApiTokens
         return max(1, (int) config('api.tokens.max_per_account', 10));
     }
 
+    /** Durée de validité d'un jeton, en jours (config/api.php). */
+    public static function lifetimeDays(): int
+    {
+        return max(1, (int) config('api.tokens.lifetime_days', 365));
+    }
+
+    /** Délai du rappel avant l'échéance, en jours (config/api.php). */
+    public static function reminderDays(): int
+    {
+        return max(1, (int) config('api.tokens.reminder_days', 30));
+    }
+
+    /** Échéance d'un jeton créé ou renouvelé maintenant. */
+    public static function expiryFromNow(): CarbonImmutable
+    {
+        return CarbonImmutable::now()->addDays(self::lifetimeDays());
+    }
+
     /** Le compte peut-il créer un jeton maintenant ? */
     public function canCreate(User $user): bool
     {
@@ -75,7 +98,7 @@ final readonly class ApiTokens
                 throw ApiTokenRefused::tooMany(self::maxPerAccount());
             }
 
-            $token = $user->createToken(trim($name), self::abilities($contribute ? [self::CONTRIBUTE] : []));
+            $token = $user->createToken(trim($name), self::abilities($contribute ? [self::CONTRIBUTE] : []), self::expiryFromNow());
             // Capacité de contribution notée seulement quand elle est accordée.
             $this->audit->record(AuditAction::ApiTokenCreated, $user, context: [
                 'token_id' => $token->accessToken->id,
@@ -83,6 +106,28 @@ final readonly class ApiTokens
             ]);
 
             return $token;
+        });
+    }
+
+    /**
+     * Renouvelle un jeton du compte : échéance repoussée à un an à partir d'aujourd'hui, rappel remis
+     * à zéro, même secret (les programmes qui l'utilisent n'ont rien à changer). Un jeton déjà échu se
+     * renouvelle aussi. Faux si le jeton n'existe pas, appartient à un autre compte, ou si le compte est
+     * suspendu.
+     */
+    public function renew(User $user, int $tokenId): bool
+    {
+        if ($user->isSuspended()) {
+            return false;
+        }
+
+        return DB::transaction(function () use ($user, $tokenId): bool {
+            $renewed = $user->tokens()->whereKey($tokenId)->update(['expires_at' => self::expiryFromNow(), 'expiry_reminded_at' => null]) > 0;
+            if ($renewed) {
+                $this->audit->record(AuditAction::ApiTokenRenewed, $user, context: ['token_id' => $tokenId]);
+            }
+
+            return $renewed;
         });
     }
 
@@ -103,7 +148,7 @@ final readonly class ApiTokens
      * Ce que montre la section « Jetons d'accès à l'API » du profil : jetons (sans secret), quota du
      * compte, nombre maximal, et le jeton tout juste créé (secret en clair, une seule fois).
      *
-     * @return array{tokens: list<array{id: int, name: string, contribute: bool, created_at: ?string, last_used_at: ?string}>, profile: string, per_minute: int, anonymous_per_minute: int, max_tokens: int, can_create: bool, suspended: bool, new_token: ?array{id: int, plain: string}}
+     * @return array{tokens: list<array{id: int, name: string, contribute: bool, created_at: ?string, last_used_at: ?string, expires_at: ?string, expired: bool, expires_soon: bool}>, profile: string, per_minute: int, anonymous_per_minute: int, max_tokens: int, lifetime_days: int, can_create: bool, suspended: bool, new_token: ?array{id: int, plain: string}}
      */
     public function forProfile(User $user, mixed $justCreated = null): array
     {
@@ -114,6 +159,9 @@ final readonly class ApiTokens
                 'contribute' => $t->can(self::CONTRIBUTE),
                 'created_at' => $t->created_at?->toIso8601String(),
                 'last_used_at' => $t->last_used_at?->toIso8601String(),
+                'expires_at' => $t->expires_at?->toIso8601String(),
+                'expired' => $t->expires_at !== null && $t->expires_at->isPast(),
+                'expires_soon' => $t->expires_at !== null && ! $t->expires_at->isPast() && $t->expires_at->lte(now()->addDays(self::reminderDays())),
             ])->values()->all();
 
         $profile = ApiAccessProfile::for($user);
@@ -128,6 +176,7 @@ final readonly class ApiTokens
             'per_minute' => $profile->perMinute(),
             'anonymous_per_minute' => ApiAccessProfile::Anonymous->perMinute(),
             'max_tokens' => self::maxPerAccount(),
+            'lifetime_days' => self::lifetimeDays(),
             'can_create' => ! $user->isSuspended() && count($tokens) < self::maxPerAccount(),
             'suspended' => $user->isSuspended(),
             'new_token' => $new,

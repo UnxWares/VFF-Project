@@ -36,7 +36,6 @@
             icon: 'bi-instagram',
             key: 'footer.instagram',
         },
-        { href: 'https://www.x.com/vff-project', icon: 'bi-twitter-x', key: 'footer.twitter' },
         {
             href: 'https://github.com/UnxWares/VFF-Project',
             icon: 'bi-github',
@@ -107,7 +106,7 @@
                     {/each}
                     <li class="unxwares">
                         <a
-                            href="https://www.unxwares.studio/vff-project"
+                            href="https://www.unxwares.com"
                             rel="noopener noreferrer"
                             target="_blank"
                         >

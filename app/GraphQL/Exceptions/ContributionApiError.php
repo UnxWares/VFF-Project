@@ -79,6 +79,14 @@ final class ContributionApiError extends \Exception implements ClientAware, Prov
         ]);
     }
 
+    /** Plafond quotidien des propositions (ContributionLimits::DAILY), commun avec le site. */
+    public static function dailyLimit(int $max): self
+    {
+        return new self("Daily limit reached: an account can send {$max} proposals per day (website and API together). Validators and administrators are exempt. Try again tomorrow.", 'daily_limit_reached', [
+            'limit' => $max,
+        ]);
+    }
+
     public static function forbidden(): self
     {
         return new self('Only validators and administrators can review contributions.', 'forbidden');

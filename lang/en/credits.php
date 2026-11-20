@@ -123,8 +123,6 @@ return [
             'gallica_text' => 'Digitised documents about a line: project reports, plans, photographs. VFF only reuses their catalogue record (title, date, shelfmark; Open Licence) and links to Gallica to view them. The documents themselves can be reused under the BnF’s conditions.',
             'commons_title' => 'Wikipedia and Wikimedia Commons',
             'commons_text' => 'Archive photographs and illustrations, each under its own licence (most often CC BY-SA).',
-            'assoc_title' => 'Regional railway associations',
-            'assoc_text' => 'CFTA, AAATV, MFCF and other associations that share their photo archives.',
             'contributors_title' => 'VFF contributors',
             'contributors_text' => 'Photographs and documents submitted by our community, under CC BY-SA 4.0.',
             'contributors_link' => 'Become a contributor',

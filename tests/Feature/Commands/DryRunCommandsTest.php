@@ -38,7 +38,7 @@ class DryRunCommandsTest extends TestCase
         'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-material-periods', 'vff:import-materials', 'vff:import-secondary-network-dates', 'vff:import-signalling-history',
         'vff:import-station-closures', 'vff:import-station-sources', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology',
         'vff:import-wikipedia-line', 'vff:link-greenways', 'vff:link-traces', 'vff:match-current-network', 'vff:merge-split-lines', 'vff:ohm-events',
-        'vff:place-listed-stations', 'vff:prune-inactive-accounts', 'vff:recalculate-reputation', 'vff:reclassify-status', 'vff:refresh-current-era',
+        'vff:place-listed-stations', 'vff:prune-inactive-accounts', 'vff:recalculate-reputation', 'vff:reclassify-status', 'vff:refresh-current-era', 'vff:remind-expiring-api-tokens',
         'vff:resolve-event-sections', 'vff:seed-off-network-lines', 'vff:snap-stations', 'vff:verify-accidents',
     ];
 

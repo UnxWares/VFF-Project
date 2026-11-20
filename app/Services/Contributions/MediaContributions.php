@@ -14,6 +14,7 @@ use App\Models\Station;
 use App\Services\Media\CommonsFileResolver;
 use App\Services\Media\ImageSanitizer;
 use App\Services\Media\SanitizedImage;
+use App\Services\Media\ThumbnailGenerator;
 use App\Services\Media\UnsupportedImage;
 use App\Services\TraceContributionService;
 use App\Support\WebUrl;
@@ -83,6 +84,7 @@ final readonly class MediaContributions
         private ImageSanitizer $images,
         private CommonsFileResolver $commons,
         private TraceContributionService $traces,
+        private ThumbnailGenerator $thumbnails,
     ) {}
 
     /** @return list<string> */
@@ -296,7 +298,7 @@ final readonly class MediaContributions
         $id = DB::table('media')->where('provider', Media::PROVIDER_UPLOAD)->where('external_id', $external)->value('id')
             ?? DB::table('media')->insertGetId($this->uploadRow($contribution, $p, $public, $mediableType, $mediableId));
 
-        DB::afterCommit(fn () => $this->publishFile($private, $public));
+        DB::afterCommit(fn () => $this->publishFile($private, $public, (int) $id));
 
         return ['media_id' => (int) $id, 'file_path' => $public];
     }
@@ -657,8 +659,11 @@ final readonly class MediaContributions
         ];
     }
 
-    /** Copie le fichier vers le disque public, puis l'efface de la réserve privée (après la transaction). */
-    private function publishFile(string $private, string $public): void
+    /**
+     * Copie le fichier vers le disque public, l'efface de la réserve privée, puis crée ses miniatures
+     * (après la transaction). Sans miniature, l'original reste servi ; `vff:media-thumbnails` les refait.
+     */
+    private function publishFile(string $private, string $public, int $mediaId): void
     {
         try {
             $bytes = Storage::disk(self::PRIVATE_DISK)->get($private);
@@ -669,6 +674,12 @@ final readonly class MediaContributions
         } catch (Throwable $e) {
             // Le média est enregistré : le fichier reste dans la réserve privée pour une nouvelle copie.
             report($e);
+
+            return;
+        }
+        $media = Media::query()->find($mediaId);
+        if ($media !== null) {
+            $this->thumbnails->forMedia($media);
         }
     }
 

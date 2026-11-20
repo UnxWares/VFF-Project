@@ -69,6 +69,9 @@ return [
             personnel**, facultatif, relève la limite de débit : un membre le crée depuis son profil (section
             « Jetons d'accès à l'API » de [/profile](/profile)). Il ne sert qu'à lire, comme l'accès anonyme, et
             n'est affiché qu'une fois, à sa création. Il s'envoie dans l'en-tête `Authorization: Bearer <jeton>`.
+            Un jeton est valable **un an** (champ `expires_at` du profil) : un courriel prévient son titulaire
+            30 jours avant l'échéance, et le bouton « Renouveler » du profil le prolonge d'un an sans changer
+            son secret. Un jeton échu donne **HTTP 401** (`invalid_token`) jusqu'à son renouvellement.
 
             | Profil | Limite | Compteur |
             | --- | --- | --- |

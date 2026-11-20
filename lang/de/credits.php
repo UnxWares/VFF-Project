@@ -123,8 +123,6 @@ return [
             'gallica_text' => 'Digitalisierte Dokumente zu einer Strecke: Projekte, Pläne, Fotografien. VFF übernimmt nur ihre Katalogdaten (Titel, Datum, Signatur; Licence Ouverte) und verweist zum Ansehen auf Gallica. Die Dokumente selbst sind nach den Bedingungen der BnF nutzbar.',
             'commons_title' => 'Wikipedia und Wikimedia Commons',
             'commons_text' => 'Archivfotos und Illustrationen, jeweils unter ihrer eigenen Lizenz (meist CC BY-SA).',
-            'assoc_title' => 'Regionale Eisenbahnvereine',
-            'assoc_text' => 'CFTA, AAATV, MFCF und weitere Vereine, die ihre Fotoarchive teilen.',
             'contributors_title' => 'Mitwirkende bei VFF',
             'contributors_text' => 'Fotos und Dokumente aus unserer Gemeinschaft, unter CC BY-SA 4.0.',
             'contributors_link' => 'Mitwirkende werden',

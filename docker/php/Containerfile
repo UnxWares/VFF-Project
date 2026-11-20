@@ -4,6 +4,7 @@
 # Usage        : bin/php artisan …  /  bin/composer …   (cf. bin/php)
 #
 # poppler-utils fournit pdftohtml, utilisé par vff:import-accidents pour lire le bilan du BEA-TT (PDF).
+# gd (avec JPEG, PNG et WebP) produit les miniatures des images déposées (vff:media-thumbnails).
 
 FROM docker.io/library/php:8.5-cli
 
@@ -12,7 +13,7 @@ COPY --from=docker.io/library/composer:2 /usr/bin/composer /usr/local/bin/compos
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git unzip poppler-utils \
-    && install-php-extensions pdo_pgsql pgsql intl zip bcmath pcntl opcache pcov \
+    && install-php-extensions pdo_pgsql pgsql intl zip bcmath pcntl opcache pcov gd \
     && rm -rf /var/lib/apt/lists/*
 
 RUN { echo 'memory_limit=1G'; echo 'date.timezone=Europe/Paris'; } > /usr/local/etc/php/conf.d/vff.ini

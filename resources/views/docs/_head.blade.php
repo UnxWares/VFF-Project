@@ -11,7 +11,7 @@
 <link rel="icon" href="{{ asset('favicon.ico') }}" />
 {{-- Thème posé avant le premier rendu (pas de flash) : cookie `theme` du site (dark | light) s'il existe,
      sinon préférence du système. Même règle que resources/views/app.blade.php. --}}
-<script>
+<script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
     (function () {
         var root = document.documentElement;
         var saved = document.cookie.match(/(?:^|; )theme=(dark|light)(?:;|$)/);

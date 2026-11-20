@@ -437,7 +437,6 @@ return [
             'osm' => 'osm',
             'sncf' => 'sncf',
             'jorf' => 'jorf',
-            'contrib' => 'vff',
             'lignes-oubliees' => 'lignes-oubliees',
             // Années tirées du NOM des tracés archeo (« 14-18 », « 30-40 »…).
             'archeoferroviaire' => 'archeoferroviaire',
@@ -533,6 +532,9 @@ return [
             'manual' => 'vff',
             // Exploitations associatives (BD TOPO, OSM, Wikipédia, Wikidata, lignes-oubliees) : le lien cité décide.
             'heritage' => 'vff',
+            // Événements contribués et validés (EventContributions, dates des tracés contribués) : le lien
+            // cité décide, comme pour les corrections manuelles ; VFF pour un ouvrage ou une archive papier.
+            'contrib' => 'vff',
         ],
         'station_events' => [
             // Corrections sourcées des dates de gares : le lien cité décide.

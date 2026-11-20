@@ -475,6 +475,7 @@ JSON`;
         'insufficient_scope',
         'csrf_token_mismatch',
         'account_suspended',
+        'daily_limit_reached',
         'forbidden',
         'not_found',
         'own_contribution',

@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Storage;
  *
  * Les médias externes (Wikimedia Commons…) ne sont pas hébergés par VFF : `thumb_url` et `display_url`
  * pointent chez le fournisseur, `source_url` vers la page d'origine (Commons pour les fichiers Commons).
+ * Une image déposée (provider `upload`) est servie par ses miniatures de 320 et 1 280 px
+ * (`provider_meta.thumbs`, ThumbnailGenerator), sinon par le fichier d'origine.
  * `lat` / `lng` ne sont lus que si la requête les a sélectionnés (voir MediaQuery).
  *
  * @mixin Media
@@ -42,7 +44,11 @@ class MediaResource extends JsonResource
     public function toArray(Request $request): array
     {
         $meta = $this->provider_meta ?? [];
-        $thumb = $this->thumb_url ?? ($this->file_path ? Storage::url($this->file_path) : null);
+        $file = $this->file_path ? Storage::url($this->file_path) : null;
+        // Fichier déposé : miniatures de 320 et 1 280 px (ThumbnailGenerator), sinon l'original.
+        $thumbs = is_array($meta['thumbs'] ?? null) ? $meta['thumbs'] : [];
+        $thumb = $this->thumb_url ?? self::stored($thumbs[320] ?? null) ?? $file;
+        $display = $this->display_url ?? self::stored($thumbs[1280] ?? null) ?? $file;
         $lat = $this->getAttribute('lat');
 
         return [
@@ -54,7 +60,7 @@ class MediaResource extends JsonResource
             'title' => $this->title,
             'caption' => $this->caption,
             'thumb_url' => $thumb,
-            'display_url' => $this->display_url ?? $thumb,
+            'display_url' => $display ?? $thumb,
             'source_url' => $this->source_url,
             'width' => $this->width,
             'height' => $this->height,
@@ -83,6 +89,12 @@ class MediaResource extends JsonResource
      *
      * @return array{type: string, slug?: string, id?: int, name?: string}|null
      */
+    /** Adresse publique d'une miniature rangée dans `provider_meta.thumbs`, null si le chemin est absent. */
+    private static function stored(mixed $path): ?string
+    {
+        return is_string($path) && $path !== '' ? Storage::url($path) : null;
+    }
+
     private function subject(): ?array
     {
         $subject = $this->mediable;

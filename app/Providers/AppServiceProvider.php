@@ -96,6 +96,11 @@ class AppServiceProvider extends ServiceProvider
         // Propositions qui font appeler Wikidata (série, vérification d'identifiant) : site et GraphQL.
         ContributionLimits::register();
 
+        // Rapports de violation de la CSP (CspReportController), envoyés par les navigateurs : par adresse IP.
+        RateLimiter::for('csp-reports', fn (Request $request): Limit => Limit::perMinute(max(1, (int) config('csp.reports_per_minute', 30)))
+            ->by('ip:'.$request->ip())
+            ->response(fn () => response()->noContent(429)));
+
         RateLimiter::for('error-reports', function (Request $request): array {
             $who = $request->user()?->id ? 'user:'.$request->user()->id : 'ip:'.$request->ip();
             $refuse = fn () => back()->withErrors(['form' => __('reports.errors.too_many')]);

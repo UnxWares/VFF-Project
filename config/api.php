@@ -26,6 +26,10 @@ return [
     'tokens' => [
         // Jetons actifs par compte au plus.
         'max_per_account' => (int) env('API_TOKENS_MAX_PER_ACCOUNT', 10),
+        // Durée de validité d'un jeton (jours), depuis sa création ou son dernier renouvellement ;
+        // rappel par courriel ce nombre de jours avant l'échéance (vff:remind-expiring-api-tokens).
+        'lifetime_days' => (int) env('API_TOKENS_LIFETIME_DAYS', 365),
+        'reminder_days' => (int) env('API_TOKENS_REMINDER_DAYS', 30),
         // Capacité de tout jeton : lecture de l'API publique.
         'abilities' => ['read'],
         // Capacités facultatives, cochées par le membre à la création du jeton (décochées par

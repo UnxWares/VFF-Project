@@ -34,7 +34,7 @@ return [
     // "Authentication and rate limits" section (#auth anchor): optional token, limits per profile (config/api.php).
     'auth' => [
         'title' => 'Authentication and rate limits',
-        'intro' => 'The API works without a token. If the anonymous limit is not enough, create a personal token from your profile. It reads data like anonymous access and is shown only once. To contribute through GraphQL, tick the contributions box when creating it.',
+        'intro' => 'The API works without a token. If the anonymous limit is not enough, create a personal token from your profile. It reads data like anonymous access and is shown only once. To contribute through GraphQL, tick the contributions box when creating it. A token is valid for one year: an email reminds you 30 days before it expires, and the "Renew" button in your profile extends it by a year without changing its secret.',
         'table_caption' => 'Request limits by caller profile',
         'col_profile' => 'Profile',
         'col_limit' => 'Limit',
@@ -204,6 +204,7 @@ return [
             'insufficient_scope' => 'the token cannot contribute.',
             'csrf_token_mismatch' => 'site session without a valid CSRF token.',
             'account_suspended' => 'suspended account; extensions.suspended_until gives the end date, if there is one.',
+            'daily_limit_reached' => 'the account has already sent 30 proposals today, website and API together (extensions.limit). Validators and administrators have no such limit.',
             'forbidden' => 'review requested by an account that is neither a validator nor an administrator.',
             'not_found' => 'unknown contribution, or one removed by an administrator.',
             'own_contribution' => 'reviewing your own contribution.',

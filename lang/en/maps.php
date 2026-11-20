@@ -233,7 +233,7 @@ return [
         'views_term' => 'Comparing eras',
         'views_text' => 'The "View" choice above the map compares two decades (lines opened, closed or lifted in between) or stacks every era to show when each line left service. The page address keeps this choice, so you can share it.',
         'schema_term' => 'Railway view',
-        'schema_text' => 'The "Railway view" option under "View" draws the network in service at the chosen era as a transport diagram, with no background map. Lines are straightened to 45 or 90 degrees; junctions, interchanges and termini are circles, and other stations are short ticks that appear as you zoom in. When the whole of France is shown, the main stations carry the name of their city; zoom in and each station shows its own name. A line that no track in service links to the rest of the network (often a heritage railway) is drawn where it is, with no line joining it to the others. Paris, Lyon, Lille and Marseille are enlarged so that their stations fit, which means positions and distances are not to scale. Clicking a line or a station opens the same panel as on the map.',
+        'schema_text' => 'The "Schematic" option under "View" opens the railway view: the network in service at the chosen era, drawn as a transport diagram with no background map. Lines are straightened to 45 or 90 degrees; junctions, interchanges and termini are circles, and other stations are short ticks that appear as you zoom in. When the whole of France is shown, the main stations carry the name of their city; zoom in and each station shows its own name. A line that no track in service links to the rest of the network (often a heritage railway) is drawn where it is, with no line joining it to the others. Paris, Lyon, Lille and Marseille are enlarged so that their stations fit, which means positions and distances are not to scale. Clicking a line or a station opens the same panel as on the map.',
     ],
 
     'tech' => [
@@ -256,7 +256,7 @@ return [
         'era' => 'One era',
         'compare' => 'Compare',
         'stack' => 'All eras',
-        'schema' => 'Railway view',
+        'schema' => 'Schematic',
     ],
 
     // Railway view: schematic diagram of an era (SchematicMap, legend, summary read by screen readers).

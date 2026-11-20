@@ -123,8 +123,6 @@ return [
             'gallica_text' => 'Documents numérisés qui parlent d’une ligne : projets, plans, photographies. VFF reprend seulement leur notice (titre, date, cote ; Licence Ouverte) et renvoie vers Gallica pour les consulter. Le document lui-même se réutilise selon les conditions de la BnF.',
             'commons_title' => 'Wikipédia et Wikimedia Commons',
             'commons_text' => 'Photographies d’archives et illustrations, chacune sous sa propre licence (le plus souvent CC BY-SA).',
-            'assoc_title' => 'Associations ferroviaires régionales',
-            'assoc_text' => 'CFTA, AAATV, MFCF et d’autres associations qui partagent leurs archives photographiques.',
             'contributors_title' => 'Contributeurs VFF',
             'contributors_text' => 'Photographies et documents proposés par notre communauté, sous CC BY-SA 4.0.',
             'contributors_link' => 'Devenir contributeur',

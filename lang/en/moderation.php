@@ -36,7 +36,7 @@ return [
             'title' => 'The suspension of your account is lifted',
             'body' => 'You can propose contributions and report errors again, and review them if your role allows it.',
         ],
-        'contest' => 'To contest this decision, write to contact@vff-project.org: it will be looked at again, as far as possible by someone other than the person who made it.',
+        'contest' => 'To contest this decision, write to contact@vff-project.org: it will be looked at again, as far as possible by someone other than the person who made it. You will receive a reply within 15 days.',
     ],
     'mail' => [
         'action' => 'Open my profile',
@@ -49,7 +49,7 @@ return [
         'since' => 'It began on :date.',
         'reason' => 'Reason: :reason',
         'effect' => 'You can no longer propose contributions, review them or report errors. Your data stays available below: you can download it or delete your account.',
-        'contest' => 'To contest this decision, write to contact@vff-project.org.',
+        'contest' => 'To contest this decision, write to contact@vff-project.org: you will receive a reply within 15 days.',
     ],
 
     'report' => [

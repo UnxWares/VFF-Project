@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Support\SourceRights;
+
 /**
  * Chronologie d'UNE portion de ligne : rejoue ses événements datés et donne
  * son état à une date donnée (snapshot d'une ère décennale).
@@ -43,6 +45,9 @@ class EraTimeline
         'lignes-oubliees' => 2,
         'sncf' => 3,
         'wikipedia' => 4,
+        // Événement contribué qui cite une page web secondaire hors des sources ci-dessus (blog,
+        // site d'association…) : rangé comme Wikipédia (cf. rankedSource).
+        'contrib-web' => 4,
         // Articles Wikipédia des réseaux secondaires (une fiche par réseau, lignes en tableau).
         'wikipedia-reseaux' => 5,
         'ohm' => 6,
@@ -53,6 +58,20 @@ class EraTimeline
         'wikidata' => 8,
         // Dates ESTIMÉES d'après la compagnie (vff:import-secondary-network-dates) : jamais une date sûre.
         'estimation-reseau' => 9,
+    ];
+
+    /**
+     * Fournisseur du lien cité par un événement contribué (registre des droits) → source du moteur
+     * dont il prend le rang : un contributeur qui cite Wikipédia ne pèse pas plus que Wikipédia.
+     */
+    public const CITED_SOURCES = [
+        'lignes-oubliees' => 'lignes-oubliees',
+        'sncf' => 'sncf',
+        'wikipedia' => 'wikipedia',
+        'ohm' => 'ohm',
+        'osm' => 'osm',
+        'wikidata' => 'wikidata',
+        'archeoferroviaire' => 'archeoferroviaire',
     ];
 
     public const DEDUPE_WINDOW_YEARS = 3;
@@ -750,6 +769,46 @@ class EraTimeline
             str_starts_with($type, 'opening') => 'opening',
             str_starts_with($type, 'closure') => 'closure',
             default => $type,
+        };
+    }
+
+    /**
+     * Source sous laquelle le moteur range un événement (clé de SOURCE_PRIORITY) :
+     *   - tableau PDF de lignes-oubliees : `lignes-oubliees-pdf` (décision administrative) ;
+     *   - événement contribué (`contrib`) : la confiance suit la source citée, comme pour les
+     *     corrections `manual` dans le registre des droits. Un lien vers une source que le moteur
+     *     connaît (CITED_SOURCES) prend son rang ; une autre page web citée avec une confiance
+     *     moyenne ou basse devient `contrib-web` ; un ouvrage, une archive, un document numérisé ou
+     *     un site officiel (confiance haute) gardent le rang de `contrib`.
+     */
+    public static function rankedSource(?string $source, ?string $url, ?string $confidence = null): ?string
+    {
+        if ($source === 'contrib') {
+            $cited = self::CITED_SOURCES[app(SourceRights::class)->providerForUrl($url) ?? ''] ?? null;
+            if ($cited !== null) {
+                return self::rankedSource($cited, $url);
+            }
+
+            return in_array($confidence, [null, 'high'], true) ? 'contrib' : 'contrib-web';
+        }
+
+        return $source === 'lignes-oubliees' && str_contains((string) $url, '.pdf') ? 'lignes-oubliees-pdf' : $source;
+    }
+
+    /** Confiance d'un événement contribué d'après la source citée (cf. rankedSource). */
+    public static function citedConfidence(string $kind, ?string $url): string
+    {
+        if ($kind !== 'web') {
+            return 'high';
+        }
+        $rights = app(SourceRights::class);
+        $provider = $rights->providerForUrl($url);
+
+        return match (true) {
+            $provider === 'wikidata' => 'low',
+            isset(self::CITED_SOURCES[$provider ?? '']) => 'medium',
+            $provider !== null && $rights->status($provider) === SourceRights::SAFE => 'high',
+            default => 'medium',
         };
     }
 

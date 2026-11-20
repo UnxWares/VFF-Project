@@ -813,8 +813,8 @@ final class LinePhases
                 in_array($e->section_resolution, self::USABLE_RESOLUTIONS, true) && $e->has_geom => 'localized',
                 default => 'unlocated',
             };
-            // Tableaux PDF lignes-oubliees = décisions administratives (priorité basse, cf. EraTimeline).
-            $source = $e->source === 'lignes-oubliees' && str_contains((string) $e->source_url, '.pdf') ? 'lignes-oubliees-pdf' : $e->source;
+            // Tableaux PDF lignes-oubliees = décisions administratives ; contribution rangée selon la source citée (EraTimeline::rankedSource).
+            $source = EraTimeline::rankedSource($e->source, $e->source_url, $e->confidence);
             $out[(int) $e->id] = ['id' => (int) $e->id, 'type' => $e->type, 'date' => $date,
                 'precision' => in_array($e->date_precision, ['day', 'month', 'year'], true) ? $e->date_precision : 'day',
                 'source' => $source, 'confidence' => $e->confidence, 'scope' => $scope];
