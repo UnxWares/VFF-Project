@@ -15,7 +15,7 @@ namespace App\Services\Traction;
  */
 final class TractionCuration
 {
-    /** @var array<string, array{replace: bool, events: array<int, array{0: string, 1: string, 2: ?int}>, note: string}> */
+    /** @var array<int, array{replace: bool, events: list<array{0: string, 1: string, 2: ?int}>, note: string}> code RFN (clé entière en PHP) => chronologie */
     public const ELECTRIFICATION = [
         // Ligne de Cerdagne (« Train jaune ») : construite électrique, troisième rail 850 V
         // continu, ouverte de Villefranche à Mont-Louis en 1910 (Wikipédia « Ligne de Cerdagne »).
@@ -39,6 +39,16 @@ final class TractionCuration
             ['1928-07-18', 'electrification', 1500],
             ['2008-09-01', 'deelectrification', null],
         ], 'note' => 'Wikipédia, Ligne de Pau à Canfranc (frontière)'],
+        // Puteaux - Issy-Plaine (ligne des Moulineaux) : troisième rail latéral en 650 V continu le
+        // 22 juillet 1928, « porté à 750 volts CC après 1933 » (année exacte non donnée : 1934 est la
+        // première année possible), exploitation ferroviaire arrêtée le 21 mai 1993, troisième rail
+        // déposé pour le tramway T2. La SNCF ne connaît plus ce troisième rail (« non électrifiée »).
+        // Wikipédia, Ligne de Puteaux à Issy-Plaine, rév. 241186256, § Électrification et Desserte.
+        '972000' => ['replace' => true, 'events' => [
+            ['1928-07-22', 'electrification', 650],
+            ['1934-01-01', 'electrification', 750],
+            ['1993-05-21', 'deelectrification', null],
+        ], 'note' => 'Wikipédia, Ligne de Puteaux à Issy-Plaine (rév. 241186256) : troisième rail 650 V (1928), 750 V après 1933, fin en 1993'],
     ];
 
     /** @var array<string, array{year: int, from_mm: int, to_mm: int, note: string}> code RFN => conversion */

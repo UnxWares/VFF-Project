@@ -781,12 +781,6 @@ parameters:
 			path: app/Services/Traction/Gauge.php
 
 		-
-			message: '#^PHPDoc tag @var for constant App\\Services\\Traction\\TractionCuration\:\:ELECTRIFICATION with type array\<string, array\{replace\: bool, events\: array\<int, array\{string, string, int\|null\}\>, note\: string\}\> is incompatible with value array\{669000\: array\{replace\: true, events\: array\{array\{''1910\-01\-01'', ''electrification'', 850\}\}, note\: ''Wikipédia, Ligne de…''\}, 679000\: array\{replace\: true, events\: array\{array\{''1912\-01\-01'', ''electrification'', 12000\}, array\{''1971\-01\-01'', ''deelectrification'', null\}, array\{''1984\-05\-24'', ''electrification'', 1500\}\}, note\: ''Wikipédia, Ligne de…''\}, 944000\: array\{replace\: false, events\: array\{array\{''1914\-12\-31'', ''deelectrification'', null\}\}, note\: ''Wikipédia, Ligne de…''\}, 664000\: array\{replace\: false, events\: array\{array\{''1928\-07\-18'', ''electrification'', 1500\}, array\{''2008\-09\-01'', ''deelectrification'', null\}\}, note\: ''Wikipédia, Ligne de…''\}\}\.$#'
-			identifier: classConstant.phpDocType
-			count: 1
-			path: app/Services/Traction/TractionCuration.php
-
-		-
 			message: '#^PHPDoc tag @var for constant App\\Services\\Traction\\TractionCuration\:\:GAUGE_CONVERSIONS with type array\<string, array\{year\: int, from_mm\: int, to_mm\: int, note\: string\}\> is incompatible with value array\{485000\: array\{year\: 1967, from_mm\: 1000, to_mm\: 1435, note\: ''Wikipédia, Réseau…''\}, 486000\: array\{year\: 1924, from_mm\: 1000, to_mm\: 1435, note\: ''Wikipédia, Ligne de…''\}\}\.$#'
 			identifier: classConstant.phpDocType
 			count: 1
