@@ -63,7 +63,7 @@ final class MaterialPeriodCollector
                 }
             }
         }
-        $materials = DB::table('materials')->get(['id', 'wikidata_id', 'wikipedia_fr', 'type', 'max_speed_kmh', 'in_service_from', 'in_service_to'])->keyBy('id');
+        $materials = DB::table('materials')->get(['id', 'name', 'wikidata_id', 'wikipedia_fr', 'type', 'max_speed_kmh', 'in_service_from', 'in_service_to'])->keyBy('id');
         $lines = DB::table('lines')->whereNotNull('wikipedia_title')->get(['id', 'wikipedia_title', 'is_lgv'])->keyBy('id');
 
         $materialsByTitle = $this->materialTitles($materials->pluck('wikipedia_fr', 'id')->filter()->all());
@@ -128,6 +128,10 @@ final class MaterialPeriodCollector
                     $today,
                 );
                 foreach ($facts as $fact) {
+                    // Comme les liens : un article partagé (redirection) ne vaut que pour la série qu'il nomme.
+                    if (! WikipediaMaterialSections::speaksOf((string) $requested, (string) $page['title'], (string) ($materials[(int) $materialId]->name ?? $requested), $fact['excerpt'])) {
+                        continue;
+                    }
                     // Comme les liens : sur une LGV, seuls les engins de grande vitesse.
                     if ($lines->has($fact['id']) && (bool) $lines[$fact['id']]->is_lgv && ! isset($fast[(int) $materialId])) {
                         continue;

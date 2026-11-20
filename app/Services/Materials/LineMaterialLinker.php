@@ -347,6 +347,9 @@ final class LineMaterialLinker
                     continue;
                 }
                 foreach (WikipediaMaterialSections::links($section['text']) as $link) {
+                    if (! $this->speaksOf((string) $requested, $page, $link['quote'])) {
+                        continue;
+                    }
                     $lineIds = array_values(array_unique($linesByTitle[$link['target']] ?? []));
                     foreach ($lineIds as $lineId) {
                         if (isset($lgv[$lineId]) && ! isset($fast[(int) $materials[$requested]])) {
@@ -357,6 +360,24 @@ final class LineMaterialLinker
                 }
             }
         }
+    }
+
+    /** @var array<string, string>|null titre de l'article demandé → nom de la série */
+    private ?array $seriesNames = null;
+
+    /**
+     * La phrase vaut-elle pour la série dont l'article a été demandé ? Oui si l'article est le sien (titre
+     * demandé = titre final). Une série dont le titre renvoie vers l'article d'une autre (Coradia Liner vers
+     * Régiolis, Z 56500 vers Regio 2N) ne reçoit que les phrases qui la nomment (« Z 56500 ») : le reste de
+     * l'article décrit l'autre série. Règle partagée avec MaterialPeriodCollector.
+     *
+     * @param  array{title: string}  $page
+     */
+    private function speaksOf(string $requested, array $page, string $quote): bool
+    {
+        $this->seriesNames ??= DB::table('materials')->whereNotNull('wikipedia_fr')->pluck('name', 'wikipedia_fr')->map(fn ($n): string => (string) $n)->all();
+
+        return WikipediaMaterialSections::speaksOf($requested, $page['title'], $this->seriesNames[$requested] ?? $requested, $quote);
     }
 
     /**
@@ -390,6 +411,9 @@ final class LineMaterialLinker
                     'to' => $row->in_service_to !== null ? (int) $row->in_service_to : null,
                 ];
                 foreach ($this->relations->links($page, $material) as $link) {
+                    if (! $this->speaksOf((string) $requested, $page, (string) ($link['evidence']['quote'] ?? ''))) {
+                        continue;
+                    }
                     if (! isset($lgv[$link['line_id']]) || $material['fast']) {
                         $add($link['line_id'], (int) $row->id, $link['evidence']);
                     }

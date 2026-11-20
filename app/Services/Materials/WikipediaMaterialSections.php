@@ -185,6 +185,23 @@ final class WikipediaMaterialSections
     }
 
     /**
+     * Une phrase de l'article `$finalTitle`, demandé sous `$requested` pour la série `$name`, vaut-elle pour
+     * cette série ? Toujours si l'article est le sien ; sinon (titre redirigé vers l'article d'une autre série,
+     * qui le partage), seulement si la phrase nomme la série, espaces entre lettres et chiffres facultatifs
+     * (« Z 56500 », « Z56500 »).
+     */
+    public static function speaksOf(string $requested, string $finalTitle, string $name, string $quote): bool
+    {
+        if (self::normalizeTitle($requested) === self::normalizeTitle($finalTitle)) {
+            return true;
+        }
+        $parts = preg_split('/\s+|(?<=\p{L})(?=\d)/u', trim($name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $pattern = implode('\s*', array_map(fn (string $p): string => preg_quote($p, '/'), $parts));
+
+        return preg_match('/(?<![\p{L}\d])'.$pattern.'(?![\p{L}\d])/iu', $quote) === 1;
+    }
+
+    /**
      * Section consacrée à des projets ou à l'avenir (« Dessertes réalisées ou prévues »,
      * « Projets ») : ses liens ne prouvent pas une circulation. Le titre inclut celui de la
      * section parente (« Parent > Sous-section »).

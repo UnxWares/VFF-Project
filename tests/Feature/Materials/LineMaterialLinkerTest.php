@@ -71,6 +71,8 @@ class LineMaterialLinkerTest extends TestCase
                     ],
                     'wikipedia_materials' => [
                         'BB 15000' => ['title' => 'BB 15000', 'revid' => 2, 'wikitext' => "== Services effectués ==\nLa mise en service de la [[LGV Est européenne]] libère les BB 15000.\nElles circulent sur la [[ligne de Lunéville à Saint-Dié]]."],
+                        // Sous-série dont le titre renvoie vers l'article d'une autre (comme Z 56500 vers Regio 2N).
+                        'BB 15055' => ['title' => 'BB 15000', 'revid' => 2, 'wikitext' => "== Services effectués ==\nElles circulent sur la [[ligne de Lunéville à Saint-Dié]].\nLa BB15055 roule sur la [[ligne de Paris à Strasbourg]]."],
                     ],
                 ][$cacheName];
                 $out = [];
@@ -240,6 +242,18 @@ class LineMaterialLinkerTest extends TestCase
         $this->assertSame(['wikipedia_material_article'], array_column($bb15000['evidence'], 'kind'));
         $this->assertArrayNotHasKey("{$this->luneville->id}:{$this->x73500->id}", $links);
         $this->assertSame('exclusion relue : couple entier', $linker->rejected()["{$this->luneville->id}:{$this->x73500->id}"]['reason']);
+    }
+
+    public function test_a_series_sharing_another_article_only_gets_the_sentences_that_name_it(): void
+    {
+        $strasbourg = Line::factory()->create(['slug' => 'rfn-70000', 'name' => 'Ligne de Paris à Strasbourg', 'wikipedia_title' => 'Ligne de Paris à Strasbourg']);
+        $bb15055 = Material::factory()->create(['slug' => 'bb-15055', 'name' => 'BB 15055', 'type' => 'locomotive_electrique', 'wikidata_id' => 'Q2', 'wikipedia_fr' => 'BB 15055', 'max_speed_kmh' => 160]);
+
+        $links = $this->linker()->collect();
+
+        $this->assertArrayHasKey("{$this->luneville->id}:{$this->bb15000->id}", $links, 'l\'article est celui de la BB 15000 : toutes ses phrases valent pour elle');
+        $this->assertArrayNotHasKey("{$this->luneville->id}:{$bb15055->id}", $links, 'phrase qui ne nomme pas la BB 15055');
+        $this->assertArrayHasKey("{$strasbourg->id}:{$bb15055->id}", $links, 'phrase qui nomme la BB 15055 (« BB15055 »)');
     }
 
     public function test_diff_lists_what_writing_would_change_without_writing(): void
