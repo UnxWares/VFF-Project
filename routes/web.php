@@ -16,6 +16,7 @@ use App\Http\Controllers\ErrorReportReviewController;
 use App\Http\Controllers\EventContributionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LineController;
+use App\Http\Controllers\LineStoryController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\MapRouteController;
@@ -52,6 +53,9 @@ Route::middleware('throttle:public-api')->group(function (): void {
 });
 Route::get('/lines', [LineController::class, 'index'])->name('lines.index');
 Route::get('/lines/{line:slug}', [LineController::class, 'show'])->name('lines.show');
+// Histoire d'un événement de la ligne : images de l'époque et documents de Gallica (EventStories).
+Route::get('/lines/{line:slug}/stories/{event}', [LineStoryController::class, 'show'])
+    ->where('event', '[0-9]{1,18}')->name('lines.stories.show');
 Route::get('/stations', [StationController::class, 'index'])->name('stations.index');
 Route::get('/stations/{station:slug}', [StationController::class, 'show'])
     ->name('stations.show')

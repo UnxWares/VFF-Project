@@ -5,12 +5,13 @@ namespace App\Support\Seo;
 use App\Http\Resources\MediaResource;
 use App\Models\Media;
 use App\Services\Api\MediaQuery;
+use App\Support\EventText;
 use Illuminate\Http\Request;
 
 /**
  * Métadonnées de partage d'une page publique, calculées côté serveur d'après la page Inertia que le
  * contrôleur vient de construire (composant et propriétés) : accueil, fiches ligne, gare, matériel
- * et accident. Les autres pages gardent le `<head>` générique du gabarit.
+ * et accident, histoires d'événements. Les autres pages gardent le `<head>` générique du gabarit.
  *
  * Titres, descriptions et images suivent exactement ceux que les composants Svelte posent dans le
  * navigateur (Components/SeoHead.svelte) : le serveur écrit les balises une fois pour les robots
@@ -43,6 +44,7 @@ final class PageMetadata
             'Stations/Show' => isset($props['station']['slug']) ? $this->station($origin, $props['station']) : null,
             'Materials/Show' => isset($props['material']['slug']) ? $this->material($origin, $props['material']) : null,
             'Accidents/Show' => isset($props['accident']['slug']) ? $this->accident($origin, $props['accident']) : null,
+            'Lines/Story' => isset($props['story']['line']['slug'], $props['story']['event']['id']) ? $this->story($origin, $props['story']) : null,
             default => null,
         };
     }
@@ -90,6 +92,37 @@ final class PageMetadata
                     ['name' => $line['name'], 'path' => '/lines/'.$line['slug']],
                 ]),
             ],
+        );
+    }
+
+    /**
+     * Histoire d'un événement de ligne (Pages/Lines/Story.svelte) : même titre que la page (« Ouverture de
+     * Vernon-Giverny à Port-Villez, 3 mai 1843 »), première image du carrousel.
+     *
+     * @param  array<string, mixed>  $story
+     */
+    private function story(string $origin, array $story): ShareMetadata
+    {
+        $line = (array) $story['line'];
+        $event = (array) $story['event'];
+        $type = (string) ($event['type'] ?? '');
+        $label = __('stories.titles.'.$type);
+        $section = $story['text']['section_text'] ?? null;
+        $title = $section ? __('stories.title_section', ['event' => $label, 'section' => $section]) : $label;
+        $date = EventText::isoDate((string) ($event['date'] ?? ''), $event['date_precision'] ?? 'day', $this->lang());
+        $path = '/lines/'.$line['slug'].'/stories/'.$event['id'];
+        $first = $story['images'][0] ?? null;
+        $url = is_array($first) ? StructuredData::imageUrl($first) : null;
+
+        return $this->build($origin, $path, $title.', '.$date.' - '.$line['name'].' - VFF', $title.', '.$date,
+            __('stories.meta_description', ['event' => $title, 'date' => $date, 'line' => $line['name']]), 'article',
+            $url === null ? null : ['url' => $url, 'alt' => $first['caption'] ?? null],
+            [StructuredData::breadcrumb($origin, [
+                ['name' => __('common.app_full'), 'path' => '/'],
+                ['name' => __('nav.lines'), 'path' => '/lines'],
+                ['name' => $line['name'], 'path' => '/lines/'.$line['slug']],
+                ['name' => $title, 'path' => $path],
+            ])],
         );
     }
 

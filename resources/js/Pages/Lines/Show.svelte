@@ -65,6 +65,7 @@
      *   signalling_history?: Array<any>,
      *   profile?: any, trace_export_eras?: Array<number>,
      *   archives?: { total: number, fetched_on: string|null, items: Array<any> },
+     *   story_events?: Array<number>,
      * }} */
     let {
         line,
@@ -95,6 +96,8 @@
         trace_export_eras = [],
         // Documents de Gallica qui parlent de la ligne (App\Services\Archives\LineArchives::forSheet).
         archives = { total: 0, fetched_on: null, items: [] },
+        // Événements qui ont une histoire (App\Services\Stories\EventStories::available) : lien de la chronologie.
+        story_events = [],
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
@@ -1205,7 +1208,7 @@
 
         {#if chronicle?.events?.length}
             <SheetSection title={t('lines.section.chronicle')} id="chronicle">
-                <LineChronicle {chronicle} />
+                <LineChronicle {chronicle} stories={story_events} lineSlug={line.slug} />
             </SheetSection>
         {/if}
 

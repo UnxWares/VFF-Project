@@ -18,8 +18,13 @@
      * description_lang / quote_lang = « fr » pour ce qui reste une citation en français.
      * Images d'un événement (`e.media`, publiées après validation) : petite vignette chargée au
      * besoin (groupes repliés, `loading="lazy"`), lien vers l'image en grand et crédit complet.
+     * `stories` : événements qui ont une histoire (App\Services\Stories\EventStories), lien « Voir
+     * l'histoire » sous chacun, sauf pour un doublon d'un fait retenu (statut agrees) ou le fait d'une
+     * autre ligne ; `lineSlug` construit l'adresse /lines/{slug}/stories/{id}.
      */
-    let { chronicle } = $props();
+    let { chronicle, stories = [], lineSlug = null } = $props();
+    const withStory = $derived(new Set(lineSlug ? stories : []));
+    const hasStory = (e) => withStory.has(e.id) && !['agrees', 'other_line'].includes(e.status);
 
     const lang = $derived($i18n.language ?? 'fr');
     const dateOf = (iso, precision) =>
@@ -210,6 +215,14 @@
                                         </span>
                                     {/if}
                                     {#if e.media?.length}{@render eventMedia(e.media)}{/if}
+                                    {#if hasStory(e)}<a
+                                            class="ev-story"
+                                            href="/lines/{lineSlug}/stories/{e.id}"
+                                            aria-label={t('stories.link_label', {
+                                                event: eventLabel(e.type),
+                                                date: dateOf(e.date, e.precision),
+                                            })}>{t('stories.link')}</a
+                                        >{/if}
                                 </td>
                                 <td
                                     ><span class="vff-badge {BADGE[e.status] ?? 'muted'}"
@@ -395,6 +408,12 @@
         margin-top: 4px;
         font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
+    }
+    /* Lien vers l'histoire de l'événement (images de l'époque, archives), sous son texte. */
+    .ev-story {
+        display: inline-block;
+        margin-top: 6px;
+        font-weight: 600;
     }
     /* Images d'un événement : vignette de 120 px et crédit à côté (dessous sur téléphone). */
     .ev-media {

@@ -13,6 +13,7 @@ use App\Services\LineSheet;
 use App\Services\LineStats;
 use App\Services\Profiles\LineProfiles;
 use App\Services\Signalling\LineSignallingHistory;
+use App\Services\Stories\EventStories;
 use App\Services\TraceExport\LineTraceExport;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -148,9 +149,10 @@ class LineController extends Controller
      * « Profil en long » ; profil complet : `/api/v1/lines/{slug}/profile`), et les ères dont le tracé peut
      * être téléchargé en GPX, KML ou GeoJSON (`trace_export_eras` : seules les sources à licence ouverte
      * comptent ; API : `/api/v1/lines/{slug}/gpx`), et les documents de Gallica qui en parlent (section « Dans
-     * les archives » ; API : `/api/v1/lines/{slug}/archives`).
+     * les archives » ; API : `/api/v1/lines/{slug}/archives`), et les événements qui ont une histoire (lien
+     * de la chronologie vers `/lines/{slug}/stories/{event}` ; API : `/api/v1/lines/{slug}/stories`).
      */
-    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineTraceExport $traceExport, LineArchives $archives): Response
+    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories): Response
     {
         return Inertia::render('Lines/Show', [
             // Sans ce que la page n'affiche pas (LineSheet::PAGE_OMITTED, données complètes dans l'API).
@@ -162,6 +164,8 @@ class LineController extends Controller
             'profile' => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS),
             'trace_export_eras' => $traceExport->exportableEraYears($line),
             'archives' => $archives->forSheet($line),
+            // Événements qui ont une histoire (lien « Voir l'histoire » de la chronologie ; API : /api/v1/lines/{slug}/stories).
+            'story_events' => array_keys($stories->available($line)),
         ]);
     }
 }

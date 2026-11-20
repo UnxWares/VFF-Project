@@ -72,7 +72,8 @@ class PageQueryBudgetTest extends TestCase
     {
         $queries = $this->queriesOf('/lines/'.$this->line->slug);
 
-        $this->assertLessThanOrEqual(52, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // 53 : une requête de plus le 20/11 pour les événements qui ont une histoire (EventStories::available).
+        $this->assertLessThanOrEqual(53, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
         // La page ne lit plus la géométrie de l'ère affichée (LineSheet::PAGE_OMITTED).
         $this->assertEmpty(array_filter($queries, fn (string $sql): bool => str_contains($sql, 'ST_AsGeoJSON(ls.geom, 6)')));
     }

@@ -42,6 +42,8 @@ return [
         'station_not_in_network' => 'One of the stations is not served by the network in operation at that time.',
         'no_path' => 'No route between :from and :to on the network in operation at that time.',
         'invalid_uri' => 'Invalid resource address: expected vff://{lang}/lines/{slug}, lang = fr, en or de.',
+        'event_not_on_line' => 'Event :event does not belong to line :line. Use an id given by line_events, or by line_stories without `event`.',
+        'no_story' => 'Event :event has no story: fewer than 3 images and documents dated within 5 years (2 images at least), or an event type without stories.',
     ],
 
     'truncated' => 'Answer shortened to stay under the maximum size: narrow the request (period, types, limit).',

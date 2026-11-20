@@ -288,7 +288,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [x] Recensement des passages à niveau (carte, fiches et API, phase 13)
 - [ ] Mode « vue ferroviaire » : carte simplifiée façon schéma
 - [x] Comparaison de deux époques (superposition, phase 3)
-- [ ] Stories d'archives (carrousel de photos sur un événement précis)
+- [x] Stories d'archives (carrousel de photos sur un événement précis) : page `/lines/{slug}/stories/{event}` ouverte depuis la chronologie (« Voir l'histoire »), images de la ligne datées à 5 ans au plus avec leur écart et leurs crédits, documents de Gallica de la période ; seuil de 3 images et documents dont 2 images (983 événements sur 264 lignes) ; API REST `/api/v1/lines/{slug}/stories`, GraphQL `LineEvent.story`, outil MCP `line_stories`
 - [x] Quiz / mini-jeu : reconnaître la ligne / le matériel (`/quiz` : dix questions tirées d'une graine partageable, tracés redistribuables seulement, photos Commons créditées, réponse vérifiée par le serveur, rien d'enregistré)
 - [x] Export GPX/KML d'un tracé (`/api/v1/lines/{slug}/gpx` et `/kml`, sauf les géométries que l'API retient)
 - [x] Voies vertes sur d'anciennes lignes (données OSM importées) : rattachement mesuré (vff:link-greenways), section de la fiche ligne, calque de la carte, API REST et GraphQL

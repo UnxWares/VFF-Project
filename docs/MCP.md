@@ -141,6 +141,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `line_profile` | Profil en long d'une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte, altitude des gares (IGN). |
 | `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
 | `line_archives` | Documents numérisés dans Gallica (BnF) dont le titre désigne une ligne : titre, date et précision, type, auteurs, cote, lien vers Gallica, score de rattachement. |
+| `line_stories` | Histoire d'un événement d'une ligne : images de la ligne datées à 5 ans au plus et documents de Gallica de la période, chacun avec son écart en années. |
 | `locate_on_line` | Point kilométrique d'un lieu (latitude, longitude) sur le tracé d'une ligne. |
 | `signalling_history` | Mises en service datées de signalisation d'une ligne (Wikipédia), et faits en vigueur à une époque, ceux que montre la carte. |
 | `list_departments` | Régions et départements (codes INSEE et noms) à passer dans `department` et `region`, avec le nombre de lignes, de gares et d'accidents de chacun. |
@@ -798,6 +799,45 @@ d'utilisation de Gallica (non commerciale libre avec la mention de source, comme
 
 ```json
 {"line": "rfn-340000", "type": "map"}
+```
+
+### `line_stories` : histoires d'événements d'une ligne
+
+Même contenu que `GET /api/v1/lines/{line}/stories` et `GET /api/v1/lines/{line}/stories/{event}` (service
+`EventStories`), et que la page `/lines/{line}/stories/{event}` du site. Une histoire réunit un événement de la ligne,
+les images publiées de la ligne datées à 5 ans au plus de son année et les documents de Gallica de la même période.
+Aucun texte n'est rédigé : celui de l'événement vient de sa source.
+
+| Règle | Valeur |
+|---|---|
+| Événements concernés | ouvertures, réouvertures, fermetures (tous services, voyageurs, fret), déclassements, déposes, reconversions, électrifications, modernisations, débuts et fins d'exploitation associative, accidents ; pas les concessions ni `other` |
+| Image retenue | image de la ligne dont l'année représentée est à 5 ans au plus de l'événement, datée au moins à l'année près (`day`, `month`, `year`, `circa`), droits connus (`public_domain`, `open_license`, `permission`) ; plus les images rattachées à l'événement, quelle que soit leur date |
+| Document retenu | notice de Gallica de la ligne datée au moins à l'année près (`day`, `month`, `year`, `circa`, `range`) dans la même fenêtre |
+| Seuil | 3 images et documents au moins, dont 2 images |
+| Carrousel | les 24 images les plus proches de la date, rangées dans l'ordre chronologique |
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `event` | entier | non | Identifiant d'un événement de la ligne. Sans lui : la liste des événements qui ont une histoire. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Sans `event` : `line`, `rules` (fenêtre, seuils, limite), `total` et `stories` (pour chacune : `event`, nombre
+d'`images` et de `documents`, `vff_url` de la page). Avec `event` : `line`, `event` (avec `provenance`), `window`
+(`years`, `from`, `to`), `images_total`, `images` (champs de l'outil `media`, plus `gap_years` et `attached`),
+`documents` (champs de `line_archives`, plus `gap_years`), `stations` (gares de la portion : nom et slug), `rules`,
+`archives_mention` et `vff_url`.
+
+`gap_years` est l'écart signé avec l'année de l'événement : 4 = quatre ans après, -2 = deux ans avant, 0 = la même
+année, nul pour une image de l'événement sans date. Dites-le au lecteur : une photo de 1934 n'est pas une photo de
+l'ouverture de 1930. Erreurs : `line_not_found`, `event_not_on_line` (l'événement est celui d'une autre ligne),
+`no_story` (sous le seuil, ou type sans histoire).
+
+Droits : montrez chaque image avec son auteur, sa licence et sa source ; citez la source de l'événement. Gallica :
+métadonnées sous Licence Ouverte, jamais d'image, renvoyez le lecteur vers `gallica_url`.
+
+```json
+{"line": "rfn-340000", "event": 12793}
 ```
 
 ### `locate_on_line` : point kilométrique d'un lieu
