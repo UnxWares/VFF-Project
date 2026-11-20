@@ -13,6 +13,8 @@ import {
     proposalHeading,
     proposalKindKey,
     seriesChanges,
+    seriesCorrection,
+    gaugeLabel,
     seriesErrors,
     seriesFacts,
     seriesValueText,
@@ -63,7 +65,10 @@ const DICT = {
     'proposals.review.wikidata_item': 'Élément Wikidata',
     'proposals.review.fields.name': 'Nom',
     'proposals.review.fields.type': 'Catégorie',
-    'proposals.review.fields.gauge_mm': 'Écartement',
+    'proposals.review.fields.gauges': 'Écartements',
+    'proposals.review.fields.builder': 'Constructeurs',
+    'proposals.review.cleared': 'effacé',
+    'proposals.series.gauge_other': '{mm} mm',
     'proposals.review.fields.electrification': 'Électrification',
     'proposals.review.fields.in_service_from': 'Mise en service',
 };
@@ -287,18 +292,25 @@ describe('affichage des propositions', () => {
             seriesChanges(
                 {
                     mode: 'new',
-                    values: { name: 'Z 1200', type: 'automotrice', gauge_mm: 1435 },
+                    values: { name: 'Z 1200', type: 'automotrice', gauges: [1435, 891] },
                 },
                 t,
             ),
         ).toEqual([
-            { field: 'name', label: 'Nom', before: null, after: 'Z 1200' },
-            { field: 'type', label: 'Catégorie', before: null, after: 'Automotrice' },
+            { field: 'name', label: 'Nom', before: null, after: 'Z 1200', cleared: false },
             {
-                field: 'gauge_mm',
-                label: 'Écartement',
+                field: 'type',
+                label: 'Catégorie',
                 before: null,
-                after: '1 435 mm (voie normale)',
+                after: 'Automotrice',
+                cleared: false,
+            },
+            {
+                field: 'gauges',
+                label: 'Écartements',
+                before: null,
+                after: '1 435 mm (voie normale), 891 mm',
+                cleared: false,
             },
         ]);
         expect(
@@ -313,12 +325,33 @@ describe('affichage des propositions', () => {
                 t,
             ),
         ).toEqual([
-            { field: 'in_service_from', label: 'Mise en service', before: '1920', after: '1913' },
+            {
+                field: 'in_service_from',
+                label: 'Mise en service',
+                before: '1920',
+                after: '1913',
+                cleared: false,
+            },
             {
                 field: 'electrification',
                 label: 'Électrification',
                 before: 'non renseigné',
                 after: '1 500 V continu, 25 kV 50 Hz',
+                cleared: false,
+            },
+        ]);
+        expect(
+            seriesChanges(
+                { mode: 'correction', changes: { builder: { before: 'Faux', after: null } } },
+                t,
+            ),
+        ).toEqual([
+            {
+                field: 'builder',
+                label: 'Constructeurs',
+                before: 'Faux',
+                after: 'effacé',
+                cleared: true,
             },
         ]);
         expect(seriesValueText('builder', '', t)).toBe('non renseigné');
@@ -354,6 +387,47 @@ describe('affichage des propositions', () => {
         expect(
             proposalFacts({ type: LINE_MATERIAL_TYPE, payload: linkPayload }, t, 'fr'),
         ).toHaveLength(7);
+    });
+});
+
+describe('correction d’une série', () => {
+    const current = {
+        name: 'Traxx',
+        type: 'locomotive_electrique',
+        builder: 'Bombardier',
+        in_service_from: 2000,
+        in_service_to: null,
+        gauges: [1435, 1668],
+        electrification: ['dc_1500', 'ac_25k'],
+        wikidata_id: 'Q99000001',
+    };
+
+    it('n’envoie que les champs changés, sans l’identifiant Wikidata inchangé', () => {
+        expect(
+            seriesCorrection(current, {
+                ...current,
+                name: 'Traxx (Alstom)',
+                gauges: [1668, 1435],
+                electrification: ['ac_25k', 'dc_1500'],
+            }),
+        ).toEqual({ values: { name: 'Traxx (Alstom)' }, clear: [] });
+    });
+
+    it('efface explicitement une valeur vidée, jamais le nom ni l’identifiant', () => {
+        expect(
+            seriesCorrection(current, {
+                ...current,
+                builder: null,
+                electrification: [],
+                name: null,
+                wikidata_id: null,
+            }),
+        ).toEqual({ values: {}, clear: ['builder', 'electrification'] });
+    });
+
+    it('donne le libellé d’un écartement hors de la liste courante', () => {
+        expect(gaugeLabel(891, t)).toBe('891 mm');
+        expect(gaugeLabel(1435, t)).toBe('1 435 mm (voie normale)');
     });
 });
 

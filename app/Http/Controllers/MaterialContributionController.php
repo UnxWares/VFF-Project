@@ -16,13 +16,15 @@ use App\Services\TraceContributionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
  * Formulaires « Proposer un matériel sur une ligne » et « Proposer une série » (nouvelle série ou
  * correction) de l'espace Contribuer, et leurs contrôles avant l'envoi : compatibilité d'une série
- * avec une ligne (écartement, électrification), vérification d'un identifiant Wikidata.
+ * avec une ligne (écartement, électrification), effet d'une correction de série sur ses liens,
+ * vérification d'un identifiant Wikidata.
  */
 class MaterialContributionController extends Controller
 {
@@ -82,13 +84,14 @@ class MaterialContributionController extends Controller
                 'builder' => $material->getRawOriginal('builder'),
                 'in_service_from' => $material->in_service_from,
                 'in_service_to' => $material->in_service_to,
-                'gauge_mm' => $material->gauge_mm,
+                'gauges' => MaterialSeriesContributions::gaugesOf($material) ?? [],
                 'electrification' => MaterialSeriesContributions::systemKeys($material->electrification ?? []),
                 'wikidata_id' => $material->wikidata_id,
+                'links_count' => $material->lineLinks()->count(),
             ] : null,
             'types' => array_map(fn (MaterialType $t): string => $t->value, MaterialType::cases()),
             'systems' => array_keys(MaterialSeriesContributions::ELECTRIFICATION),
-            'gauges' => array_keys(MaterialSeriesContributions::GAUGES),
+            'gauges' => MaterialSeriesContributions::knownGauges(),
             'sourceKinds' => SourceCitation::KINDS,
             'licenses' => self::licenses(),
             'minYear' => MaterialSeriesContributions::MIN_YEAR,
@@ -103,8 +106,27 @@ class MaterialContributionController extends Controller
     }
 
     /**
-     * Vérification d'un identifiant Wikidata avant l'envoi : l'élément (identifiant final, libellé,
-     * description) et la série de VFF qui le porte déjà, ou une erreur 422 sur `qid`.
+     * Effet d'une correction de série sur ses liens, avant l'envoi : les liens qui deviendraient
+     * contraires à la règle d'écartement ou d'électrification avec les valeurs saisies (`links`). Une
+     * correction qui en casse ne pourra pas être publiée tant qu'ils existent.
+     */
+    public function seriesImpact(Request $request, MaterialSeriesContributions $series): JsonResponse
+    {
+        $data = $request->validate([
+            'material' => ['required', 'string', 'max:191'],
+            ...Arr::only(MaterialSeriesContributions::rules(), ['type', 'in_service_from', 'in_service_to', 'gauges', 'gauges.*', 'electrification', 'electrification.*']),
+            'clear' => ['nullable', 'array'],
+            'clear.*' => ['string', 'in:'.implode(',', MaterialSeriesContributions::CLEARABLE)],
+        ], MaterialSeriesContributions::messages());
+        $material = Material::query()->where('slug', $data['material'])->firstOrFail();
+
+        return response()->json(['links' => $series->previewImpact($material, $data)]);
+    }
+
+    /**
+     * Vérification d'un identifiant Wikidata avant l'envoi : l'identifiant lu (`requested`), l'élément
+     * (identifiant final, différent pour un élément fusionné ; libellé, description) et la série de VFF
+     * qui le porte déjà, ou une erreur 422 sur `qid`.
      */
     public function wikidata(Request $request, MaterialSeriesContributions $series): JsonResponse
     {

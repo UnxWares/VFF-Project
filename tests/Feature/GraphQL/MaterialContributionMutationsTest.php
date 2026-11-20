@@ -144,12 +144,37 @@ class MaterialContributionMutationsTest extends TestCase
         ]])
             ->assertJsonPath('data.submitContribution.type', 'MATERIAL_SERIES')
             ->assertJsonPath('data.submitContribution.material', null)
-            ->assertJsonPath('data.submitContribution.payload.values.gauge_mm', 1000);
+            ->assertJsonPath('data.submitContribution.payload.values.gauges', [1000]);
 
         $this->approveTwice($response->json('data.submitContribution.id'))
             ->assertJsonPath('data.validateContribution.outcome', 'APPLIED')
             ->assertJsonPath('data.validateContribution.contribution.material.slug', 'x-9999');
         $this->assertSame('contrib', Material::query()->where('slug', 'x-9999')->value('source'));
+    }
+
+    public function test_series_proposals_share_the_site_limit_of_ten_per_minute(): void
+    {
+        $member = $this->member();
+        $token = $this->token($member);
+        $input = ['series' => ['mode' => 'new', 'name' => 'X 9999', 'type' => 'autorail', 'source_kind' => 'print', 'source_title' => 'Ré']];
+
+        // Cinq envois par le site, cinq par l'API (refusés pour leur saisie, mais comptés) : la limite est atteinte.
+        for ($i = 0; $i < 5; $i++) {
+            $this->actingAs($member)->post('/contribute/series', $input['series'])->assertSessionHasErrors('source_title');
+        }
+        for ($i = 0; $i < 5; $i++) {
+            $this->submit($token, $input)->assertJsonPath('errors.0.extensions.validation', fn (array $v) => isset($v['input.series.source_title']));
+        }
+
+        $this->submit($token, $input)
+            ->assertJsonPath('data.submitContribution', null)
+            ->assertJsonPath('errors.0.extensions.code', 'too_many_requests')
+            ->assertJsonPath('errors.0.extensions.retry_after', fn (int $s) => $s >= 1 && $s <= 60);
+        $this->actingAs($member)->post('/contribute/series', $input['series'])->assertStatus(429);
+
+        // Un lien ligne × série n'appelle pas Wikidata : il n'entre pas dans cette limite.
+        $this->submit($token, ['line_material' => ['line_slug' => $this->line->slug, 'material_slug' => $this->material->slug, 'circulation' => 'regular', 'source_kind' => 'print', 'source_title' => 'Ré']])
+            ->assertJsonMissingPath('errors.0.extensions.code');
     }
 
     public function test_exactly_one_kind_of_proposal_is_accepted(): void

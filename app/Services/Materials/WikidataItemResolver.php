@@ -14,14 +14,22 @@ use RuntimeException;
  * série », mutation GraphQL) : l'élément existe-t-il, sous quel identifiant (un élément fusionné
  * redirige vers un autre), avec quel libellé ?
  *
- * Une seule requête à l'API publique de Wikidata (wbgetentities, libellés et nature P31), faite par
- * le serveur pendant la requête du site : pas de reprise longue, délai de 10 s, User-Agent générique
- * de VFF (CommonsClient::USER_AGENT). Le résultat reste une heure en cache, un élément absent aussi :
- * vérifier puis envoyer le formulaire ne coûte qu'un appel.
+ * Une seule requête à l'API publique de Wikidata (wbgetentities, libellés, nature P31 et sous-classe
+ * P279), faite par le serveur pendant la requête du site : pas de reprise longue, délai de 10 s,
+ * User-Agent générique de VFF (CommonsClient::USER_AGENT). Le résultat reste une heure en cache, un
+ * élément absent aussi : vérifier puis envoyer le formulaire ne coûte qu'un appel.
+ *
+ * Nature de l'élément (isRollingStock) : une ville ou une personne ne devient pas l'identifiant d'une
+ * série. Les classes de l'élément (P31, P279) sont comparées à celles que l'import accepte
+ * (database/data/materiel_wikidata.php) ; si aucune ne s'y trouve, une requête SPARQL ASK pose la
+ * question de l'import (l'élément descend-il de « classe de matériel roulant ferroviaire » ?), avec le
+ * même cache d'une heure.
  */
 final class WikidataItemResolver
 {
     public const API = 'https://www.wikidata.org/w/api.php';
+
+    public const SPARQL = 'https://query.wikidata.org/sparql';
 
     private const CACHE_SECONDS = 3600;
 
@@ -47,9 +55,10 @@ final class WikidataItemResolver
     /**
      * L'élément, ou null s'il n'existe pas (jamais créé ou supprimé). `id` est l'identifiant final,
      * différent de celui demandé quand l'élément a été fusionné ; `label` le libellé français, sinon
-     * anglais ; `instance_of` les valeurs de « nature de l'élément » (P31).
+     * anglais ; `instance_of` les valeurs de « nature de l'élément » (P31), `subclass_of` celles de
+     * « sous-classe de » (P279).
      *
-     * @return array{id: string, label: ?string, description: ?string, instance_of: list<string>}|null
+     * @return array{id: string, label: ?string, description: ?string, instance_of: list<string>, subclass_of: list<string>}|null
      *
      * @throws RuntimeException Wikidata injoignable ou en erreur
      */
@@ -96,17 +105,63 @@ final class WikidataItemResolver
             return null;
         }
 
+        $claims = fn (string $property): array => array_values(array_filter(array_map(
+            fn (mixed $claim): ?string => is_array($claim) ? ($claim['mainsnak']['datavalue']['value']['id'] ?? null) : null,
+            $entity['claims'][$property] ?? [],
+        )));
         $item = [
             'id' => $entity['id'],
             'label' => $entity['labels']['fr']['value'] ?? $entity['labels']['en']['value'] ?? null,
             'description' => $entity['descriptions']['fr']['value'] ?? $entity['descriptions']['en']['value'] ?? null,
-            'instance_of' => array_values(array_filter(array_map(
-                fn (mixed $claim): ?string => is_array($claim) ? ($claim['mainsnak']['datavalue']['value']['id'] ?? null) : null,
-                $entity['claims']['P31'] ?? [],
-            ))),
+            'instance_of' => $claims('P31'),
+            'subclass_of' => $claims('P279'),
         ];
         Cache::put($key, $item, self::CACHE_SECONDS);
 
         return $item;
+    }
+
+    /**
+     * L'élément désigne-t-il une série de matériel roulant ? Oui si une de ses classes (P31, P279) est
+     * une classe que l'import accepte, non si c'est une classe qu'il écarte (métro) ; sinon, la
+     * question de l'import est posée à Wikidata : l'élément descend-il de « classe de matériel roulant
+     * ferroviaire » (P31 ou P279, puis P279 transitif) ?
+     *
+     * @param  array{id: string, instance_of: list<string>, subclass_of?: list<string>}  $item  élément rendu par lookup()
+     *
+     * @throws RuntimeException Wikidata injoignable ou en erreur
+     */
+    public function isRollingStock(array $item): bool
+    {
+        $rules = WikidataMaterialRules::default();
+        $classes = [...$item['instance_of'], ...($item['subclass_of'] ?? [])];
+        if ($rules->excludedRoot($classes) !== null) {
+            return false;
+        }
+        if (array_intersect($classes, [$rules->rollingStockClass(), ...$rules->roots()]) !== []) {
+            return true;
+        }
+
+        $key = 'wikidata-rolling-stock:'.$item['id'];
+        $cached = Cache::get($key);
+        if (is_bool($cached)) {
+            return $cached;
+        }
+        $query = "ASK { wd:{$item['id']} (wdt:P31|wdt:P279)/wdt:P279* wd:{$rules->rollingStockClass()} . }";
+        try {
+            $response = Http::withHeaders(['User-Agent' => CommonsClient::USER_AGENT, 'Accept' => 'application/sparql-results+json'])
+                ->timeout(10)
+                ->get(self::SPARQL, ['query' => $query, 'format' => 'json'])
+                ->throw();
+        } catch (ConnectionException|RequestException $e) {
+            throw new RuntimeException('Wikidata (SPARQL) injoignable : '.$e->getMessage(), previous: $e);
+        }
+        $answer = $response->json('boolean');
+        if (! is_bool($answer)) {
+            throw new RuntimeException('Wikidata (SPARQL) : réponse illisible');
+        }
+        Cache::put($key, $answer, self::CACHE_SECONDS);
+
+        return $answer;
     }
 }

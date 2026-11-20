@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -15,6 +17,24 @@ class LineMaterialPeriod extends Model
 {
     /** Fiabilités montrées sur le site et servies par défaut. */
     public const SHOWN_CONFIDENCES = ['high', 'medium'];
+
+    /**
+     * Sources des périodes que l'import des périodes (vff:import-material-periods) ne touche jamais :
+     * les contributions validées. Toute autre source, même inconnue, est une période importée, que
+     * l'import remplace ou efface quand ses sources ne la portent plus.
+     */
+    public const CONTRIBUTED_SOURCES = ['contrib'];
+
+    /**
+     * Périodes que l'import gère : toutes sauf les contributions (une source nulle ou inconnue comprise).
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function imported(Builder $query): void
+    {
+        $query->where(fn (Builder $q) => $q->whereNull('source')->orWhereNotIn('source', self::CONTRIBUTED_SOURCES));
+    }
 
     protected $guarded = ['id'];
 

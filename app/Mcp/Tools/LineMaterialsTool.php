@@ -9,6 +9,7 @@ use App\Mcp\Support\VffTool;
 use App\Models\LineMaterial;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -21,9 +22,9 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Name('line_materials')]
 #[Title("Matériel roulant d'une ligne et périodes de circulation")]
 #[Description(<<<'TXT'
-Séries de matériel roulant qui ont circulé (ou circulent) sur une ligne, d'après une source citée, avec leurs périodes de circulation datées : même liste que l'API REST GET /api/v1/lines/{line}/materials, sans les phrases citées.
-Chaque entrée : `material` (slug à passer à get_material, nom, catégorie), `confidence` du lien (high, medium, low), `source` et `source_url` (permalien de la révision lue ou élément Wikidata), `periods` (début `start_date` et fin `end_date` avec leur précision day, month ou year, portion `section` si l'article la nomme, `confidence` high ou medium, `origin`, `source`). Une date à l'année s'écrit au 1er janvier : lisez la précision. Une fin nulle ne veut pas dire que la série circule encore. Seules les périodes sûres sont données ; une série sans période datée a une liste vide.
-Sources : Wikipédia (faits relevés dans les articles des lignes et des séries, CC BY-SA 4.0 : citez l'article avec le permalien) et Wikidata (P3438, CC0).
+Séries de matériel roulant qui ont circulé (ou circulent) sur une ligne, d'après une source citée, avec leurs périodes de circulation datées : mêmes liens que l'API REST GET /api/v1/lines/{line}/materials, sans les phrases citées, regroupés par série (une série reliée par plusieurs sources n'apparaît qu'une fois ; `total` compte les séries).
+Chaque entrée : `material` (slug à passer à get_material, nom, catégorie), `confidence`, `source` et `source_url` du lien le plus sûr, `links` (chaque lien de la série : `source`, `confidence`, `source_url`), `periods` (périodes de tous ses liens : début `start_date` et fin `end_date` avec leur précision day, month ou year, portion `section` si la source la nomme, `confidence` high ou medium, `origin`, `source`). Une date à l'année s'écrit au 1er janvier : lisez la précision. Une fin nulle ne veut pas dire que la série circule encore. Seules les périodes sûres sont données ; une série sans période datée a une liste vide.
+Sources d'un lien (`source`) : `wikipedia` (faits relevés dans les articles des lignes et des séries, CC BY-SA 4.0 : citez l'article avec le permalien `source_url`), `wikidata` (P3438, CC0) ou `contrib` (contribution relue par deux validateurs de VFF ; `source_url` est l'adresse de la source citée par le contributeur, nulle pour un ouvrage papier ; ODbL comme la base).
 Exemples : {"line": "rfn-890000"} ; {"line": "909000", "type": "locomotive_diesel", "lang": "en"}.
 TXT)]
 #[IsReadOnly]
@@ -31,6 +32,9 @@ TXT)]
 #[IsOpenWorld(false)]
 class LineMaterialsTool extends VffTool
 {
+    /** Ordre des fiabilités : le lien le plus sûr d'une série d'abord. */
+    private const CONFIDENCE_RANK = ['high' => 0, 'medium' => 1, 'low' => 2];
+
     protected function rules(): array
     {
         return [
@@ -65,18 +69,32 @@ class LineMaterialsTool extends VffTool
             ->get();
         $request = new Request;
 
-        $items = $links->map(fn (LineMaterial $link): array => [
-            'material' => [
-                'slug' => $link->material->slug,
-                'name' => $link->material->name,
-                'type' => $type = $link->material->getRawOriginal('type'),
-                'type_label' => (string) trans("materials.type.{$type}", [], $lang),
-            ],
-            'confidence' => $link->confidence,
-            'source' => $link->source,
-            'source_url' => $link->source_url,
-            'periods' => LineMaterialPeriodResource::collection($link->shownPeriods)->resolve($request),
-        ])->all();
+        // Une entrée par série : le lien le plus sûr en tête, les périodes de tous ses liens (import, contribution).
+        $items = $links->groupBy('material_id')->map(function (Collection $group) use ($request, $lang): array {
+            $sorted = $group->sortBy(fn (LineMaterial $l): array => [self::CONFIDENCE_RANK[$l->confidence] ?? 3, $l->id])->values();
+            $best = $sorted->first();
+            $material = $best->material;
+            $periods = $group->flatMap(fn (LineMaterial $l) => $l->shownPeriods)
+                ->sortBy(fn ($p): string => ($p->start_date ?? $p->end_date)?->toDateString() ?? '9999')->values();
+
+            return [
+                'material' => [
+                    'slug' => $material->slug,
+                    'name' => $material->name,
+                    'type' => $type = $material->getRawOriginal('type'),
+                    'type_label' => (string) trans("materials.type.{$type}", [], $lang),
+                ],
+                'confidence' => $best->confidence,
+                'source' => $best->source,
+                'source_url' => $best->source_url,
+                'links' => $sorted->map(fn (LineMaterial $l): array => [
+                    'source' => $l->source,
+                    'confidence' => $l->confidence,
+                    'source_url' => $l->source_url,
+                ])->all(),
+                'periods' => LineMaterialPeriodResource::collection($periods)->resolve($request),
+            ];
+        })->values()->all();
 
         return $this->respond(
             [
@@ -85,7 +103,7 @@ class LineMaterialsTool extends VffTool
                 'dated' => count(array_filter($items, fn (array $i): bool => $i['periods'] !== [])),
                 'materials' => $items,
             ],
-            ['wikidata', 'wikipedia'],
+            $links->map(fn (LineMaterial $l): ?string => $this->attribution->providerFor('line_materials', $l->source))->unique()->values()->all(),
             $lang,
             self::url('/lines/'.$line->slug.'#materials'),
             ['materials'],

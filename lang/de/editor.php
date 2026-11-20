@@ -298,6 +298,7 @@ return [
             'partial' => 'Freigabe gespeichert (:count von :threshold): Der Beitrag wartet auf einen weiteren Prüfer.',
             'rejected' => 'Beitrag abgelehnt.',
             'failed' => 'Veröffentlichung fehlgeschlagen: :message',
+            'failure_details' => 'Einzelheiten: :list.',
             'failures' => [
                 'no_geometry' => 'Die Strecke hat zur Zeit dieses Beitrags keinen Verlauf. Es wurde nichts gespeichert.',
                 'line_not_found' => 'Die Strecke, die dieser Verlauf korrigiert, gibt es nicht mehr. Es wurde nichts gespeichert.',
@@ -305,7 +306,9 @@ return [
                 'target_not_found' => 'Die betroffene Strecke, der Bahnhof, das Ereignis oder die Baureihe existiert nicht mehr. Es wurde nichts gespeichert.',
                 'already_present' => 'Diese Commons-Datei ist dieser Seite bereits zugeordnet, oder diese Baureihe gibt es bereits. Es wurde nichts gespeichert.',
                 'file_missing' => 'Die hochgeladene Datei liegt nicht mehr im privaten Speicher. Es wurde nichts gespeichert.',
-                'incompatible' => 'Die Verbindung widerspricht jetzt der Regel zu Spurweite oder Elektrifizierung, und der zitierte Satz reicht nicht mehr aus. Es wurde nichts gespeichert.',
+                'incompatible' => 'Die Verbindung widerspricht jetzt der Regel zu Spurweite oder Elektrifizierung, und der zitierte Satz reicht nicht mehr aus, oder die Korrektur der Baureihe würde Verbindungen in Widerspruch zu diesen Regeln bringen. Es wurde nichts gespeichert.',
+                'stale' => 'Die Baureihe hat sich seit dem Senden der Korrektur geändert. Es wurde nichts gespeichert.',
+                'inconsistent' => 'Mit dieser Korrektur läge die Ausmusterung vor der Inbetriebnahme. Es wurde nichts gespeichert.',
             ],
         ],
         'errors' => [

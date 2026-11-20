@@ -97,7 +97,7 @@ Saisie : ligne et série existantes (recherche du site), nature de la circulatio
 régulier, `occasional` circulation exceptionnelle, `trial` essais, `heritage` train de musée ou
 touristique), période de service facultative (début et fin, chacun à sa précision `day`, `month`,
 `year`, ou inconnu), portion parcourue facultative (deux lieux, avec une date), source obligatoire,
-phrase de la source (`quote`, 10 à 600 caractères), note pour les validateurs. Les fiches ligne
+phrase de la source (`quote`, 10 à 600 caractères comptés après la réduction des espaces), note pour les validateurs. Les fiches ligne
 (« Proposer un matériel ») et série (« Proposer une ligne où cette série a circulé ») ouvrent le
 formulaire avec la fiche choisie (`?line=<slug>`, `?material=<slug>`).
 
@@ -108,18 +108,25 @@ Règles d'écartement et d'électrification, les mêmes que l'import (`MaterialG
 - un lien incompatible est refusé, avec un message qui donne les chiffres (écartement de la série
   et de la ligne, ou tensions de la série et part de la ligne électrifiée) ;
 - il passe quand même si `quote` cite une phrase de la source qui nomme l'écartement (« voie
-  normale », « 1 435 mm ») ou la tension de la série (« 750 V ») : c'est la preuve qu'accepte
-  déjà la règle pour un lien importé. Pour une série électrique, seule une circulation régulière
-  lève le conflit. La charge utile garde alors `exception` (`rule`, `reason`), que l'espace de
+  normale », « standard gauge », « Meterspur », « 1 435 mm ») ou la tension de la série (« 750 V »,
+  « 1,500 V ») : c'est la preuve qu'accepte déjà la règle pour un lien importé. Une phrase tapée par
+  un contributeur doit en plus nommer la série (nom ou désignation) et ne pas nier la valeur
+  (« jamais », « pas », « sans », « aucun », « never », « not », « nicht », « kein »… à six mots ou
+  moins, dans la même phrase) : `ExceptionQuote`. Pour une série électrique, seule une circulation
+  régulière lève le conflit. La charge utile garde alors `exception` (`rule`, `reason`), que l'espace de
   validation affiche en tête de la proposition. Exemple : les Z 1200 sur la ligne des Moulineaux
   (972000), électrifiée par troisième rail en 750 V, que VFF ne connaît pas.
 
 Le formulaire contrôle le couple dès que la ligne et la série sont choisies
 (`GET /contribute/material/check?line=…&material=…`, 30 par minute) : conflit, lien déjà connu,
-exclusion relue de `database/data/line_material_exclusions.php` (signalée, pas bloquante).
+exclusion relue de `database/data/line_material_exclusions.php`. Un couple exclu est refusé à l'envoi,
+avec le motif : une contribution ne lève pas une exclusion relue, en attendant la décision de
+l'éditeur (`QUESTIONS.md`).
 
 Doublons : un lien déjà sûr (`high` ou `medium`, toutes sources) n'est accepté qu'avec une
-période ; la même proposition (couple et période) en attente est refusée.
+période ; la même proposition (couple et période) en attente est refusée, comme une période déjà
+publiée pour le couple par une contribution (mêmes bornes, précisions et portion). Publier deux
+fois la même période ne crée pas de doublon.
 
 À la publication (`LineMaterialContributions::apply`) :
 
@@ -135,8 +142,9 @@ période ; la même proposition (couple et période) en attente est refusée.
 - la règle est relue avec la phrase citée : un lien devenu incompatible entre-temps échoue
   (`incompatible`).
 
-Aucun import n'est relancé. `vff:import-material-periods` ne remplace plus que les périodes des
-sources importées (`wikidata`, `wikipedia`) et garde celles des contributions. Les fiches ligne et
+Aucun import n'est relancé. `vff:import-material-periods` garde les périodes des contributions
+(`LineMaterialPeriod::CONTRIBUTED_SOURCES`) et remplace toutes les autres, même d'une source qu'il ne
+connaît pas. Les fiches ligne et
 série montrent une série ou une ligne une seule fois même si plusieurs sources les relient.
 
 ## Série de matériel (`material_series`)
@@ -145,22 +153,37 @@ Deux modes : `new` (série absente de VFF) et `correction` (`material_slug`, for
 avec les valeurs actuelles : `/contribute/series?material=<slug>`). Champs : nom, catégorie
 (`MaterialType`, qui dit la traction), systèmes d'électrification (liste fermée
 `MaterialSeriesContributions::ELECTRIFICATION`, mêmes libellés et éléments Wikidata que l'import),
-écartement (1 435, 1 000, 600, 1 668 ou 1 520 mm), constructeurs, années de mise en service et de
-retrait, identifiant Wikidata facultatif, source obligatoire.
+écartements (`gauges`, liste : 1 435, 1 000, 600, 1 668, 1 520 mm et tous ceux que portent déjà les
+séries de VFF, 891 mm par exemple ; une série peut en avoir plusieurs), constructeurs, années de mise
+en service et de retrait, identifiant Wikidata facultatif, source obligatoire.
 
-- L'identifiant Wikidata est vérifié (`WikidataItemResolver` : une requête `wbgetentities`,
-  User-Agent générique, 10 s, cache d'une heure) : un élément inconnu est refusé, un élément
-  fusionné prend son identifiant final, Wikidata injoignable donne un message clair. Bouton
-  « Vérifier » : `GET /contribute/series/wikidata?qid=…` (30 par minute).
+- L'identifiant Wikidata est vérifié s'il change (`WikidataItemResolver` : une requête
+  `wbgetentities`, User-Agent générique, 10 s, cache d'une heure) : un élément inconnu est refusé,
+  comme un élément qui n'est pas une série de matériel roulant (classes P31 et P279 comparées à
+  celles de l'import, sinon une requête SPARQL ASK). Une nouvelle série prend l'identifiant final
+  d'un élément fusionné ; une correction refuse l'élément fusionné en donnant l'identifiant final, à
+  saisir si l'auteur le veut. Wikidata injoignable donne un message clair. Bouton « Vérifier » :
+  `GET /contribute/series/wikidata?qid=…` (30 par minute et par compte, `requested` et `item.id`
+  différents pour un élément fusionné, erreurs sous `qid`). Envoi d'une série : 10 par minute et par
+  compte, compteur commun au site et à GraphQL (`ContributionLimits`).
 - Doublons : une série de même identifiant Wikidata ou de même nom (casse et accents ignorés) est
   refusée, avec l'invitation à corriger sa fiche ; une proposition semblable en attente aussi.
 - Correction : seuls les champs qui changent sont gardés (`changes` : `before`, `after`) ; un champ
-  vide ne change rien (pour retirer une valeur, « Signaler une erreur »).
+  vide ne change rien, `clear` efface une valeur fausse (`after` nul, montré comme un effacement à la
+  relecture ; l'import ne remplit pas de nouveau un champ effacé ainsi).
+- Effet sur les liens : `impact` liste les liens de la série qui deviendraient contraires aux règles
+  d'écartement ou d'électrification. Le formulaire le montre avant l'envoi
+  (`GET /contribute/series/impact`), l'espace de validation le recalcule (`series_context`).
 
 À la publication (`MaterialSeriesContributions::apply`), la série est créée (`source` = `contrib`,
 adresse tirée du nom) ou corrigée ; chaque champ écrit prend la provenance `{source: contrib, ref:
 contribution:<id>, url}`. `MaterialImporter` ne remplace jamais un champ dont la provenance n'est
-pas importée : une valeur validée reste. La série créée devient la cible de la contribution.
+pas importée : une valeur validée reste. La série créée devient la cible de la contribution. Une
+correction échoue si un champ n'a plus sa valeur « avant » (`stale`), si le retrait viendrait avant
+la mise en service (`inconsistent`) ou si elle rendrait des liens de la série contraires aux règles
+(`incompatible`, liens cités au validateur). Ce dernier refus est voulu : publier laisserait
+`vff:check-invariants` au rouge pour les liens contribués, et le prochain import retirerait en
+silence les liens importés ; les liens fautifs se retirent d'abord (exclusion relue, signalement).
 
 ## Raisons d'échec d'une publication
 
@@ -168,5 +191,8 @@ pas importée : une valeur validée reste. La série créée devient la cible de
 `line_not_found`, `target_not_found` (ligne, gare, événement ou série disparu), `already_present` (fichier
 Commons rattaché entre-temps à la même fiche, ou série de même nom ou de même identifiant Wikidata
 ajoutée entre-temps), `file_missing` (fichier déposé absent de la réserve privée), `incompatible`
-(lien de matériel devenu contraire à la règle d'écartement ou d'électrification), `internal_error`.
+(lien de matériel devenu contraire à la règle d'écartement ou d'électrification, ou correction de série
+qui en rendrait), `stale` (série changée depuis l'envoi), `inconsistent` (années dans le désordre),
+`internal_error`. Les précisions utiles au validateur (champs, liens) suivent le message sur le site et
+sont dans `extensions.details` dans l'API.
 Rien n'est écrit et l'approbation est annulée.

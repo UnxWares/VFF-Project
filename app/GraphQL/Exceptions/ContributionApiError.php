@@ -71,6 +71,14 @@ final class ContributionApiError extends \Exception implements ClientAware, Prov
         ]);
     }
 
+    /** Limite propre aux propositions de série (ContributionLimits::SERIES), commune avec le site. */
+    public static function tooManySeries(int $retryAfter): self
+    {
+        return new self('Rate limit reached for rolling stock series proposals (10 per minute per account, shared with the website). Retry after the delay in "retry_after" (seconds).', 'too_many_requests', [
+            'retry_after' => $retryAfter,
+        ]);
+    }
+
     public static function forbidden(): self
     {
         return new self('Only validators and administrators can review contributions.', 'forbidden');
@@ -96,11 +104,18 @@ final class ContributionApiError extends \Exception implements ClientAware, Prov
         return new self('You have already approved this contribution.', 'already_approved');
     }
 
-    /** Raison stable dans `extensions.reason` ; le détail de l'erreur reste dans le journal du site. */
-    public static function applicationFailed(PublicationFailure $failure): self
+    /**
+     * Raison stable dans `extensions.reason`, précisions pour le validateur dans `extensions.details`
+     * (champs changés depuis l'envoi, liens rendus contraires aux règles) ; le détail technique de
+     * l'erreur reste dans le journal du site.
+     *
+     * @param  list<string>  $details
+     */
+    public static function applicationFailed(PublicationFailure $failure, array $details = []): self
     {
         return new self('The contribution could not be published; nothing was written and your approval was cancelled.', 'application_failed', [
             'reason' => $failure->value,
+            'details' => $details,
         ]);
     }
 

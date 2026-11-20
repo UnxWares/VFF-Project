@@ -59,7 +59,7 @@ final readonly class ValidateContribution
                 throw match ($result->outcome) {
                     ReviewOutcome::Own => ContributionApiError::own(),
                     ReviewOutcome::AlreadyApproved => ContributionApiError::alreadyApproved(),
-                    ReviewOutcome::Failed => ContributionApiError::applicationFailed($result->failure ?? PublicationFailure::InternalError),
+                    ReviewOutcome::Failed => ContributionApiError::applicationFailed($result->failure ?? PublicationFailure::InternalError, $result->failureDetails),
                     default => ContributionApiError::closed(),
                 };
             }

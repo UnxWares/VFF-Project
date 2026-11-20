@@ -11,7 +11,8 @@ use Illuminate\Support\Str;
  *
  * Une fiche est retrouvée par son `wikidata_id`. Un champ n'est remplacé que s'il vient déjà de
  * Wikidata ou de Commons (provenance) ou s'il est vide : une valeur saisie ou corrigée dans VFF
- * n'est jamais écrasée. Un champ importé que la source ne donne plus est vidé. Le slug d'une fiche
+ * n'est jamais écrasée, et un champ qu'une contribution validée a effacé (provenance `contrib`) n'est
+ * pas rempli de nouveau. Un champ importé que la source ne donne plus est vidé. Le slug d'une fiche
  * existante ne change jamais (adresses stables) ; une nouvelle fiche prend le slug de son nom,
  * suffixé de l'identifiant Wikidata en cas d'homonymie.
  */
@@ -81,7 +82,9 @@ final class MaterialImporter
             // Le périmètre est toujours calculé par l'import (jamais saisi dans VFF).
             $owned = $field === 'scope' || in_array($original[$owner]['source'] ?? null, self::IMPORTED, true);
             $empty = $current === null || $current === [] || $current === '';
-            if (! $owned && ! $empty) {
+            // Une valeur effacée par une contribution validée (vide, provenance `contrib`) reste vide.
+            $contributed = ($original[$owner]['source'] ?? null) === 'contrib';
+            if ($contributed || (! $owned && ! $empty)) {
                 continue;
             }
             $value = $record[$field] ?? ($field === 'scope' ? 'france' : null);

@@ -95,7 +95,8 @@ final readonly class ContributionReview
             report($e);
 
             return new ReviewResult(ReviewOutcome::Failed, $contribution->fresh(),
-                failure: $e instanceof ContributionNotPublishable ? $e->failure : PublicationFailure::InternalError);
+                failure: $e instanceof ContributionNotPublishable ? $e->failure : PublicationFailure::InternalError,
+                failureDetails: $e instanceof ContributionNotPublishable ? $e->details : []);
         }
     }
 

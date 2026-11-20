@@ -29,6 +29,7 @@ use App\Http\Controllers\StationController;
 use App\Http\Controllers\TraceEditorController;
 use App\Http\Controllers\WebhookSubscriptionController;
 use App\Http\Middleware\SetLocale;
+use App\Services\Contributions\ContributionLimits;
 use App\Services\NetworkGraph\GraphDiagnostics;
 use App\Services\NetworkGraph\GraphFeatureDetails;
 use App\Services\NetworkGraph\GraphTiles;
@@ -189,13 +190,15 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/contribute/media/commons', [MediaContributionController::class, 'commons'])->middleware(['not.suspended', 'throttle:30,1'])->name('contribute.media.commons');
     Route::get('/contribute/media/{contribution}/file', [MediaContributionController::class, 'file'])->whereNumber('contribution')->name('contribute.media.file');
     // Matériel sur une ligne et série de matériel (nouvelle ou corrigée), publiés après deux approbations ;
-    // contrôles avant l'envoi : compatibilité ligne × série (base seulement), identifiant Wikidata (une requête à Wikidata).
+    // contrôles avant l'envoi : compatibilité ligne × série et effet d'une correction de série sur ses liens (base
+    // seulement), identifiant Wikidata (une requête à Wikidata). Série et vérification : limites communes avec GraphQL.
     Route::get('/contribute/material', [MaterialContributionController::class, 'createLink'])->middleware('not.suspended')->name('contribute.material.create');
     Route::post('/contribute/material', [MaterialContributionController::class, 'storeLink'])->middleware(['not.suspended', 'throttle:20,1'])->name('contribute.material.store');
     Route::get('/contribute/material/check', [MaterialContributionController::class, 'checkLink'])->middleware(['not.suspended', 'throttle:30,1'])->name('contribute.material.check');
     Route::get('/contribute/series', [MaterialContributionController::class, 'createSeries'])->middleware('not.suspended')->name('contribute.series.create');
-    Route::post('/contribute/series', [MaterialContributionController::class, 'storeSeries'])->middleware(['not.suspended', 'throttle:10,1'])->name('contribute.series.store');
-    Route::get('/contribute/series/wikidata', [MaterialContributionController::class, 'wikidata'])->middleware(['not.suspended', 'throttle:30,1'])->name('contribute.series.wikidata');
+    Route::post('/contribute/series', [MaterialContributionController::class, 'storeSeries'])->middleware(['not.suspended', 'throttle:'.ContributionLimits::SERIES])->name('contribute.series.store');
+    Route::get('/contribute/series/wikidata', [MaterialContributionController::class, 'wikidata'])->middleware(['not.suspended', 'throttle:'.ContributionLimits::WIKIDATA_LOOKUP])->name('contribute.series.wikidata');
+    Route::get('/contribute/series/impact', [MaterialContributionController::class, 'seriesImpact'])->middleware(['not.suspended', 'throttle:30,1'])->name('contribute.series.impact');
 
     // Éditeur de tracé sur fonds historiques IGN (lignes disparues / corrections)
     Route::prefix('contribute/trace')->name('contribute.trace.')->controller(TraceEditorController::class)->middleware('not.suspended')->group(function (): void {

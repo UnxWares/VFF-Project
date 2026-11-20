@@ -3998,8 +3998,12 @@ dans `extensions.code` (messages en anglais) :
   Commons a été rattaché entre-temps à la même fiche, ou une série du même nom ou du même identifiant
   Wikidata a été ajoutée entre-temps), `file_missing` (le fichier déposé n'est plus dans la réserve
   privée), `incompatible` (le lien entre la série et la ligne contredit maintenant la règle
-  d'écartement ou d'électrification, et la phrase citée ne suffit plus) ou `internal_error` (erreur
-  inattendue, consignée dans le journal du site ; son détail n'est jamais renvoyé).
+  d'écartement ou d'électrification, et la phrase citée ne suffit plus ; ou la correction d'une série
+  rendrait des liens de cette série contraires à ces règles), `stale` (la série corrigée a changé
+  depuis l'envoi), `inconsistent` (avec la correction, le retrait viendrait avant la mise en service)
+  ou `internal_error` (erreur inattendue, consignée dans le journal du site ; son détail n'est jamais
+  renvoyé). `extensions.details` donne les précisions utiles au validateur (champs changés, liens
+  concernés), vide sinon.
 
 Une saisie refusée donne une erreur de validation : `extensions.validation` associe le chemin du
 champ (par exemple `input.segment.pk_end_m`) à ses messages.
@@ -4131,9 +4135,13 @@ input LineMaterialContributionInput {
     source_license: String
 
     """
-    Phrase de la source qui montre la circulation, de 10 à 600 caractères. Facultative, sauf quand le
-    lien contredit la règle d'écartement ou d'électrification : elle doit alors nommer l'écartement ou
-    la tension de la série. Publiée avec le lien (`LineMaterialEvidence.quote`).
+    Phrase de la source qui montre la circulation, de 10 à 600 caractères (comptés après la réduction
+    des espaces). Facultative, sauf quand le lien contredit la règle d'écartement ou d'électrification :
+    elle doit alors nommer la série (nom ou désignation) et son écartement ou sa tension, en français,
+    en anglais ou en allemand, sans négation autour (« jamais », « pas », « sans », « aucun », « never »,
+    « not », « nicht », « kein »…). Publiée avec le lien (`LineMaterialEvidence.quote`). Un couple
+    écarté après relecture (exclusion relue de VFF) est refusé, comme une période déjà publiée pour
+    le couple par une contribution.
     """
     quote: String
 
@@ -4145,13 +4153,23 @@ input LineMaterialContributionInput {
 Nouvelle série de matériel (`new`) ou correction d'une série de VFF (`correction`), comme dans le
 formulaire « Proposer une série » du site (`/contribute/series`).
 
-`wikidata_id` est vérifié auprès de Wikidata : un élément qui n'existe pas est refusé, un élément
-fusionné prend son identifiant final. Une nouvelle série déjà présente dans VFF (même identifiant
-Wikidata, même nom) est refusée : proposez la correction de sa fiche. Pour une correction, un champ
-absent ou nul ne change pas, et seuls les champs qui changent sont gardés (`payload.changes`).
+`wikidata_id` est vérifié auprès de Wikidata, seulement s'il change : un élément qui n'existe pas, ou
+qui n'est pas une série de matériel roulant, est refusé. Une nouvelle série prend l'identifiant final
+d'un élément fusionné ; une correction refuse un élément fusionné en donnant son identifiant final, à
+saisir s'il convient (l'identifiant d'une série ne change jamais sans qu'on le demande). Une nouvelle
+série déjà présente dans VFF (même identifiant Wikidata, même nom) est refusée : proposez la
+correction de sa fiche. Pour une correction, un champ absent ou nul ne change pas, `clear` efface
+une valeur fausse, et seuls les champs qui changent sont gardés (`payload.changes`, `after` nul pour
+un effacement). `payload.impact` liste les liens de la série qui deviendraient contraires à la règle
+d'écartement ou d'électrification (`line_slug`, `line_code`, `line_name`, `source`, `rule`, `reason`).
 
 À la publication, la série est créée ou corrigée ; chaque champ écrit a la provenance `contrib`
-(`Material.field_sources`), que l'import de Wikidata ne remplace pas.
+(`Material.field_sources`), que l'import de Wikidata ne remplace pas (ni ne remplit de nouveau après
+un effacement). Une correction échoue (`application_failed`) si un champ a changé depuis l'envoi
+(`stale`), si le retrait viendrait avant la mise en service (`inconsistent`) ou si elle rendrait des
+liens de la série contraires aux règles (`incompatible`, liens dans `extensions.details`).
+Limite propre : 10 propositions de série par minute et par compte, communes avec le site
+(`too_many_requests` au-delà).
 """
 input MaterialSeriesContributionInput {
     "`new` (nouvelle série) ou `correction` (série de VFF désignée par `material_slug`)."
@@ -4177,7 +4195,14 @@ input MaterialSeriesContributionInput {
     """
     electrification: [String!]
 
-    "Écartement en millimètres : `1435`, `1000`, `600`, `1668` ou `1520`."
+    """
+    Écartements de la série en millimètres, sans doublon, quatre au plus (ex. `[1435, 1668]` pour une
+    série à deux écartements) : `1435`, `1000`, `600`, `1668`, `1520`, ou un écartement que porte déjà
+    une série de VFF (`891`, `1588`…). Vide ou absent : inchangé pour une correction.
+    """
+    gauges: [Int!]
+
+    "Forme courte d'un seul écartement (`gauges` = `[gauge_mm]`), mêmes valeurs ; jamais avec `gauges`."
     gauge_mm: Int
 
     "Constructeurs, séparés par des virgules (ex. « Alsthom, Francorail-MTE »), de 2 à 255 caractères."
@@ -4189,8 +4214,14 @@ input MaterialSeriesContributionInput {
     "Année de retrait du service, au plus tôt celle de la mise en service."
     in_service_to: Int
 
-    "Identifiant Wikidata de la série (`Q3574398`) ou adresse de l'élément, facultatif, vérifié auprès de Wikidata."
+    "Identifiant Wikidata de la série (`Q3574398`) ou adresse de l'élément, facultatif, vérifié auprès de Wikidata s'il change."
     wikidata_id: String
+
+    """
+    Avec `correction` : champs à effacer, sans valeur donnée à côté : `builder`, `in_service_from`,
+    `in_service_to`, `gauges` ou `electrification`.
+    """
+    clear: [String!]
 
     "Nature de la source : `web` (page web), `document` (document numérisé) ou `print` (ouvrage ou archive papier)."
     source_kind: String!
@@ -4622,8 +4653,10 @@ type Contribution {
     la phrase citée : `rule` `gauge` ou `traction`, `reason`), `excluded` (lien écarté à la relecture
     de l'import, motif), `existing_link`, `notes` et, une fois publiée, `applied.line_material_id` et
     `applied.period_id` ; pour `MATERIAL_SERIES`, `mode`, `material_name`, `values` (nouvelle série)
-    ou `changes` (correction : `before`, `after` par champ), `wikidata` (élément vérifié : `id`,
-    `label`, `description`), `source`, `notes` et, une fois publiée, `applied.material_id`.
+    ou `changes` (correction : `before`, `after` par champ, `after` nul pour une valeur effacée),
+    `impact` (correction : liens que la correction rendrait contraires aux règles), `wikidata`
+    (élément vérifié : `id`, `label`, `description`), `source`, `notes` et, une fois publiée,
+    `applied.material_id`.
     """
     payload: JSON!
 

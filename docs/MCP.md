@@ -529,8 +529,10 @@ renseigné par la source : VFF n'estime aucune valeur.
 | `material` | slug | oui | Slug renvoyé par `search` ou `materials` (ex. `bb-15000`). |
 
 Renvoie `material` : la fiche de l'API REST `/api/v1/materials/{slug}`, avec `field_sources`
-(provenance de chaque champ) et `lines` (lignes parcourues, chaque lien avec sa preuve `evidence`
-et sa fiabilité `confidence`, et `periods`, ses périodes de circulation datées : voir `line_materials`). Série
+(provenance de chaque champ ; `contrib` pour une valeur corrigée par une contribution validée, référence
+`contribution:<id>`) et `lines` (lignes parcourues, une entrée par lien et par source, chaque lien avec sa `source`
+telle quelle (`wikidata`, `wikipedia` ou `contrib`), sa preuve `evidence` et sa fiabilité `confidence`, et `periods`,
+ses périodes de circulation datées : voir `line_materials`). `lines_count` compte les lignes, pas les liens. Série
 inconnue : erreur `material_not_found` avec `suggestions`.
 
 Chaque preuve donne l'article, la révision lue (`revid`), la section et le permalien `url`, mais pas la
@@ -554,13 +556,16 @@ et de fin des déclarations Wikidata P3438 (CC0).
 | `type` | catégorie | non | Catégorie de matériel (`autorail`, `locomotive_diesel`…). Toutes par défaut. |
 | `lang` | `fr`, `en`, `de` | non | Langue des libellés et des messages. |
 
-Renvoie `line`, `total` (séries attestées), `dated` (séries qui ont au moins une période datée) et `materials` : pour
-chaque série, `material` (`slug` à passer à `get_material`, `name`, `type`, `type_label`), `confidence` du lien,
-`source`, `source_url` (permalien de la révision lue ou élément Wikidata) et `periods`. Une période donne `start_date`
+Renvoie `line`, `total` (séries attestées), `dated` (séries qui ont au moins une période datée) et `materials` : une
+entrée par série, même reliée par plusieurs sources, avec `material` (`slug` à passer à `get_material`, `name`,
+`type`, `type_label`), `confidence`, `source` et `source_url` du lien le plus sûr (permalien de la révision lue,
+élément Wikidata, ou adresse de la source citée par un contributeur, nulle pour un ouvrage papier), `links` (chaque
+lien de la série : `source` `wikipedia`, `wikidata` ou `contrib`, `confidence`, `source_url`) et `periods` (celles de
+tous ses liens). Une période donne `start_date`
 et `end_date` (`AAAA-MM-JJ`, l'une peut être nulle) avec `start_precision` et `end_precision` (`day`, `month` : date au
 1er du mois, `year` : date au 1er janvier), `section` (portion nommée par le titre de section de l'article, sinon
 nulle), `confidence` (`high` : jour ou mois, `medium` : année), `origin` (`line_article`, `material_article`,
-`wikidata`), `source` (`title`, `revision`, `url`) et `provenance`. Seules les périodes sûres sont données ; une fin
+`wikidata`, `contribution`), `source` (`title`, `revision`, `url`) et `provenance`. Seules les périodes sûres sont données ; une fin
 nulle ne veut pas dire que la série circule encore. Exemple réel : sur la ligne de Grenoble à Montmélian
 (`rfn-909000`), les CC 72000 ont une période du 20 août 1982 au 30 mai 1986 (`high`), les BB 67300 une fin au
 2 mai 2016 (`high`). Ligne inconnue : erreur `line_not_found` avec `suggestions`.

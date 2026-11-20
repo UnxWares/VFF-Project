@@ -5,7 +5,8 @@
      * image, l'image elle-même (miniature de Commons, ou fichier déposé lu par son adresse privée) et
      * les métadonnées retirées ; pour un matériel sur une ligne, l'exception aux règles d'écartement ou
      * d'électrification en évidence et les liens déjà connus ; pour une série, les valeurs proposées
-     * (avant, après).
+     * (avant, après ; une valeur effacée est montrée comme telle), les champs changés depuis l'envoi et
+     * les liens que la correction rendrait contraires aux règles.
      *
      * Props : `contribution` (élément de ContributionController::validateList).
      */
@@ -24,6 +25,7 @@
         proposalFacts,
         removedMetadataText,
         seriesChanges,
+        seriesValueText,
     } from './proposals.js';
 
     /** @type {{ contribution: any }} */
@@ -42,6 +44,7 @@
     const commons = $derived(isMedia && p.source === 'commons' ? (p.commons ?? {}) : null);
     const changes = $derived(isSeries ? seriesChanges(p, tr) : []);
     const context = $derived(contribution.material_context ?? { links: [], conflict_now: null });
+    const seriesContext = $derived(contribution.series_context ?? { stale: [], impact: [] });
 
     /** Libellé d'une provenance ou d'une fiabilité de lien (repli : la valeur brute). */
     function linkLabel(group, value) {
@@ -89,6 +92,39 @@
         {#if p.excluded}
             <Notice tone="warning" live="off" title={$i18n.t('proposals.review.excluded_title')}>
                 <p>{p.excluded}</p>
+            </Notice>
+        {/if}
+    {/if}
+
+    {#if isSeries}
+        {#each seriesContext.stale as st (st.field)}
+            <Notice tone="danger" live="off" title={$i18n.t('proposals.review.stale_title')}>
+                <p>
+                    {$i18n.t('proposals.review.stale_text', {
+                        field: tr(`proposals.review.fields.${st.field}`),
+                        now: seriesValueText(st.field, st.now, tr),
+                    })}
+                </p>
+            </Notice>
+        {/each}
+        {#if seriesContext.impact.length}
+            <Notice tone="danger" live="off" title={$i18n.t('proposals.review.impact_title')}>
+                <p>
+                    {$i18n.t('proposals.review.impact_text', {
+                        count: seriesContext.impact.length,
+                    })}
+                </p>
+                <ul class="impact">
+                    {#each seriesContext.impact as l, i (i)}
+                        <li>
+                            {$i18n.t('proposals.series.impact_link', {
+                                line: [l.line_code, l.line_name].filter(Boolean).join(' '),
+                                source: linkLabel('sources', l.source),
+                                reason: l.reason,
+                            })}
+                        </li>
+                    {/each}
+                </ul>
             </Notice>
         {/if}
     {/if}
@@ -167,7 +203,12 @@
                             <tr>
                                 <th scope="row">{ch.label}</th>
                                 {#if p.mode !== 'new'}<td class="wrap">{ch.before}</td>{/if}
-                                <td class="wrap">{ch.after}</td>
+                                <td class="wrap">
+                                    {#if ch.cleared}<span class="cleared"
+                                            ><i class="bi bi-eraser" aria-hidden="true"></i>
+                                            {ch.after}</span
+                                        >{:else}{ch.after}{/if}
+                                </td>
                             </tr>
                         {/each}
                     </tbody>
@@ -362,6 +403,15 @@
     }
     .note {
         color: var(--vff-text-muted);
+    }
+    .cleared {
+        font-weight: 600;
+        color: var(--vff-danger);
+    }
+    .impact {
+        margin: var(--vff-space-2) 0 0;
+        padding-left: var(--vff-space-5);
+        overflow-wrap: anywhere;
     }
     .nowrap {
         white-space: nowrap;

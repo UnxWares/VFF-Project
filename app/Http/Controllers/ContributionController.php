@@ -119,7 +119,7 @@ class ContributionController extends Controller
      * (approved = 1 approbation sur 2) : segments PK, tracés, événements datés, médias, matériel sur
      * une ligne et séries de matériel.
      */
-    public function validateList(TraceContributionService $traces, EventContributions $events, MediaContributions $media, LineMaterialContributions $lineMaterials, ReputationLevels $levels): Response
+    public function validateList(TraceContributionService $traces, EventContributions $events, MediaContributions $media, LineMaterialContributions $lineMaterials, MaterialSeriesContributions $series, ReputationLevels $levels): Response
     {
         $this->ensureValidator();
         $me = Auth::id();
@@ -139,7 +139,7 @@ class ContributionController extends Controller
 
         return Inertia::render('Validate/Index', [
             'threshold' => self::APPROVAL_THRESHOLD,
-            'contributions' => $pending->map(function ($c) use ($approvals, $me, $traces, $events, $media, $lineMaterials, $levels) {
+            'contributions' => $pending->map(function ($c) use ($approvals, $me, $traces, $events, $media, $lineMaterials, $series, $levels) {
                 $mine = $approvals->get($c->id, collect());
                 $item = [
                     'id' => $c->id,
@@ -183,6 +183,10 @@ class ContributionController extends Controller
                 if ($c->type === LineMaterialContributions::TYPE) {
                     // Liens déjà connus du couple et règle relue maintenant avec la phrase citée.
                     $item['material_context'] = $lineMaterials->reviewContext($c);
+                }
+                if ($c->type === MaterialSeriesContributions::TYPE) {
+                    // « Avant » vivant (champs changés depuis l'envoi) et liens que la correction rendrait contraires aux règles.
+                    $item['series_context'] = $series->reviewContext($c);
                 }
                 if ($c->type === MediaContributions::TYPE) {
                     // Fichier déposé : lu par une adresse réservée à l'auteur et aux validateurs, jamais publique.
@@ -292,9 +296,9 @@ class ContributionController extends Controller
             ReviewOutcome::Closed => back()->with('error', __('editor.validate.flash.closed')),
             ReviewOutcome::AlreadyApproved => back()->with('error', __('editor.validate.flash.already')),
             // Raison stable, jamais le message brut de l'erreur (journal du site seulement).
-            ReviewOutcome::Failed => back()->with('error', __('editor.validate.flash.failed', [
+            ReviewOutcome::Failed => back()->with('error', trim(__('editor.validate.flash.failed', [
                 'message' => __('editor.validate.flash.failures.'.($result->failure ?? PublicationFailure::InternalError)->value),
-            ])),
+            ]).($result->failureDetails !== [] ? ' '.__('editor.validate.flash.failure_details', ['list' => implode(' ; ', $result->failureDetails)]) : ''))),
         };
     }
 

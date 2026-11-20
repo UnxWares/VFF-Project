@@ -237,7 +237,7 @@
                             {/if}
                             {#if check.excluded}
                                 <Notice
-                                    tone="warning"
+                                    tone="danger"
                                     live="off"
                                     title={$i18n.t('proposals.line_material.excluded_title')}
                                 >

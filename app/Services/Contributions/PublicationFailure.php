@@ -33,9 +33,19 @@ enum PublicationFailure: string
     /**
      * Le lien entre une série et une ligne contredit maintenant la règle d'écartement ou
      * d'électrification (tronçons de la ligne ou fiche de la série changés depuis l'envoi), et la
-     * phrase citée ne suffit plus à le justifier.
+     * phrase citée ne suffit plus à le justifier ; ou la correction d'une série rendrait des liens de
+     * cette série contraires à ces règles (liste dans les précisions de l'échec).
      */
     case Incompatible = 'incompatible';
+
+    /**
+     * La série corrigée a changé depuis l'envoi : un champ de la correction n'a plus la valeur « avant »
+     * relue par les validateurs (autre correction publiée, import). Champs dans les précisions.
+     */
+    case Stale = 'stale';
+
+    /** La correction, écrite sur l'état actuel de la série, mettrait le retrait avant la mise en service. */
+    case Inconsistent = 'inconsistent';
 
     /** Erreur inattendue (base de données, programme) : le détail est dans le journal. */
     case InternalError = 'internal_error';

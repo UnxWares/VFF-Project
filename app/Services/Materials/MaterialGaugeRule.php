@@ -18,8 +18,9 @@ use Illuminate\Support\Facades\DB;
  * Une ligne sans écartement connu, ou une série sans écartement, ne sont pas jugées.
  *
  * Sauf source explicite :
- *   - une phrase de preuve qui nomme l'écartement de la série (« sur la section à voie normale »,
- *     « 1 435 mm ») : la source a vu la différence et l'explique ;
+ *   - une phrase de preuve qui nomme l'écartement de la série, en français, en anglais ou en allemand
+ *     (« sur la section à voie normale », « standard gauge », « Meterspur », « 1 435 mm ») : la source a
+ *     vu la différence et l'explique ;
  *   - une exception relue à la main, avec sa source, dans database/data/line_material_gauge_exceptions.php
  *     (ligne par code RFN ou par slug, comme les autres fichiers relus : LineMaterialExclusions::keyed).
  */
@@ -28,11 +29,16 @@ final class MaterialGaugeRule
     /** Part minimale de la longueur de la ligne à l'écartement de la série. */
     public const MIN_SHARE = 0.25;
 
-    /** Nom de l'écartement en toutes lettres, par largeur (mm). */
+    /**
+     * Nom de l'écartement en toutes lettres, par largeur (mm), en français, en anglais et en allemand
+     * (une source citée par un contributeur peut être dans l'une des trois langues du site).
+     */
     private const GAUGE_NAMES = [
-        1435 => 'voie\s+normale|écartement\s+(?:standard|normal)',
-        1000 => 'voie\s+métrique|écartement\s+métrique',
+        1435 => 'voie\s+normale|écartement\s+(?:standard|normal)|standard[\s-]+gauge|normalspur\w*|regelspur\w*',
+        1000 => 'voie\s+métrique|écartement\s+métrique|met(?:re|er)[\s-]+gauge|meterspur\w*',
         600 => 'voie\s+de\s+(?:60|0,60)\b',
+        1668 => 'voie\s+ibérique|écartement\s+ibérique|iberian[\s-]+gauge|iberische[nr]?\s+spur\w*',
+        1520 => 'voie\s+russe|écartement\s+russe|russian[\s-]+gauge|russische[nr]?\s+spur\w*',
     ];
 
     /**
@@ -59,12 +65,14 @@ final class MaterialGaugeRule
      *
      * @param  list<array{line: string, material: string, source: string, reason: string}>|null  $exceptions  null : le fichier de données
      * @param  int|null  $lineId  une seule ligne (contrôle d'une proposition), null : toutes
+     * @param  list<int>|null  $lineIds  quelques lignes (liens d'une série à corriger), null : toutes
      */
-    public static function fromDatabase(?array $exceptions = null, ?int $lineId = null): self
+    public static function fromDatabase(?array $exceptions = null, ?int $lineId = null, ?array $lineIds = null): self
     {
         $profiles = [];
         $rows = DB::table('line_segments')->whereNotNull('gauge_mm')
             ->when($lineId !== null, fn ($q) => $q->where('line_id', $lineId))
+            ->when($lineIds !== null, fn ($q) => $q->whereIn('line_id', $lineIds))
             ->groupBy('line_id', 'gauge_mm')
             ->selectRaw('line_id, gauge_mm, SUM(COALESCE(length_meters, ST_Length(geom::geography))) AS meters')
             ->get();
@@ -77,6 +85,21 @@ final class MaterialGaugeRule
 
         return new self($profiles, $gauges, LineMaterialExclusions::keyed($exceptions),
             LineMaterialExclusions::unresolved($exceptions, 'line_material_gauge_exceptions.php'));
+    }
+
+    /**
+     * La même règle, avec un autre écartement pour une série (null : écartement inconnu, non jugé) :
+     * sert à mesurer ce que changerait la correction d'une série avant de la publier.
+     */
+    public function withMaterialGauge(int $materialId, ?int $gauge): self
+    {
+        $gauges = $this->materialGauges;
+        unset($gauges[$materialId]);
+        if ($gauge !== null) {
+            $gauges[$materialId] = $gauge;
+        }
+
+        return new self($this->profiles, $gauges, $this->exceptions, $this->unresolved);
     }
 
     /**
@@ -125,15 +148,27 @@ final class MaterialGaugeRule
         return ['series_mm' => $gauge, 'line_mm' => (int) array_key_first($profile), 'share' => (int) round($share * 100)];
     }
 
-    /** La phrase nomme-t-elle cet écartement (« voie normale », « 1 435 mm ») ? */
+    /** La phrase nomme-t-elle cet écartement (« voie normale », « standard gauge », « 1 435 mm ») ? */
     public static function namesGauge(string $text, int $gauge): bool
     {
-        $digits = (string) $gauge;
-        // « 1435 mm », « 1 435 mm », « 1.435 mm » (espace fine ou insécable comprise).
-        $millimetres = strlen($digits) === 4 ? $digits[0].'[\s\x{00A0}\x{202F}.]?'.substr($digits, 1) : $digits;
-        $pattern = '(?<!\d)'.$millimetres.'\s*mm\b'.(isset(self::GAUGE_NAMES[$gauge]) ? '|'.self::GAUGE_NAMES[$gauge] : '');
+        return self::gaugeMentions($text, $gauge) !== [];
+    }
 
-        return preg_match('/'.$pattern.'/iu', $text) === 1;
+    /**
+     * Endroits de la phrase qui nomment cet écartement : position (en octets) et longueur de chaque
+     * mention, pour juger les mots qui l'entourent (une négation, par exemple).
+     *
+     * @return list<array{0: int, 1: int}>
+     */
+    public static function gaugeMentions(string $text, int $gauge): array
+    {
+        $digits = (string) $gauge;
+        // « 1435 mm », « 1 435 mm », « 1.435 mm », « 1,435 mm » (espace fine ou insécable comprise).
+        $millimetres = strlen($digits) === 4 ? $digits[0].'[\s\x{00A0}\x{202F}.,]?'.substr($digits, 1) : $digits;
+        $pattern = '(?<!\d)'.$millimetres.'\s*mm\b'.(isset(self::GAUGE_NAMES[$gauge]) ? '|'.self::GAUGE_NAMES[$gauge] : '');
+        preg_match_all('/'.$pattern.'/iu', $text, $matches, PREG_OFFSET_CAPTURE);
+
+        return array_map(fn (array $m): array => [(int) $m[1], strlen((string) $m[0])], $matches[0]);
     }
 
     /**

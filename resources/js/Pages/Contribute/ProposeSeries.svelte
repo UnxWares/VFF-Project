@@ -3,8 +3,12 @@
      * « Proposer une série de matériel » : une série absente de VFF, ou la correction d'une série de
      * VFF (`?material=<slug>` : le formulaire reprend ses valeurs actuelles). L'identifiant Wikidata se
      * vérifie avant l'envoi (/contribute/series/wikidata) : un élément déjà rattaché à une série de VFF
-     * renvoie vers la correction de sa fiche, plutôt qu'un doublon. Contrôles avant l'envoi
-     * (proposals.js), puis MaterialContributionController::storeSeries.
+     * renvoie vers la correction de sa fiche, plutôt qu'un doublon ; un élément fusionné est montré,
+     * et l'auteur choisit s'il prend l'identifiant final. Une correction n'envoie que les champs
+     * changés, et efface une valeur que l'auteur a vidée (`clear`) ; dès qu'elle touche un champ lu
+     * par les règles des liens (catégorie, années, écartements, électrification), le formulaire montre
+     * les liens de la série qu'elle rendrait contraires (/contribute/series/impact). Contrôles avant
+     * l'envoi (proposals.js), puis MaterialContributionController::storeSeries.
      */
     import { Link, router, useForm } from '@inertiajs/svelte';
     import Layout from '$components/Layout.svelte';
@@ -15,7 +19,13 @@
     import ProposalForm from '$components/Contribute/ProposalForm.svelte';
     import SourceFields from '$components/Contribute/SourceFields.svelte';
     import { i18n } from '$lib/i18n.js';
-    import { LIMITS, normalizeQid, seriesErrors } from '$components/Contribute/proposals.js';
+    import {
+        LIMITS,
+        gaugeLabel,
+        normalizeQid,
+        seriesCorrection,
+        seriesErrors,
+    } from '$components/Contribute/proposals.js';
 
     let {
         material = null,
@@ -29,6 +39,13 @@
 
     /** Traduction passée aux fonctions de proposals.js. */
     const tr = (key, opts) => $i18n.t(key, opts);
+
+    /** Libellé de la source d'un lien (repli : la valeur brute). */
+    function sourceLabel(/** @type {string|null} */ value) {
+        const key = `proposals.line_material.sources.${value ?? 'none'}`;
+        const text = String($i18n.t(key));
+        return text === key ? (value ?? '') : text;
+    }
     const yearText = (y) => (y === null || y === undefined ? '' : String(y));
 
     // Série à corriger chargée par la page (valeurs initiales voulues : la page est rechargée pour une autre).
@@ -41,9 +58,15 @@
 
     /** idle | checking | done | failed */
     let qidStatus = $state('idle');
-    /** @type {{ item: { id: string, label: string|null, description: string|null }|null, existing: { slug: string, name: string }|null }|null} */
+    /** @type {{ requested: string, item: { id: string, label: string|null, description: string|null }|null, existing: { slug: string, name: string }|null }|null} */
     let qidResult = $state.raw(null);
     let qidError = $state(null);
+
+    /** Effet de la correction sur les liens de la série : idle | checking | done | failed */
+    let impactStatus = $state('idle');
+    /** @type {{ line_slug: string, line_code: string|null, line_name: string, source: string|null, rule: string, reason: string }[]} */
+    let impact = $state.raw([]);
+    let impactRequest = 0;
 
     // svelte-ignore state_referenced_locally
     const form = useForm({
@@ -52,7 +75,7 @@
         builder: material?.builder ?? '',
         in_service_from: yearText(material?.in_service_from),
         in_service_to: yearText(material?.in_service_to),
-        gauge_mm: material?.gauge_mm ? String(material.gauge_mm) : '',
+        gauges: (material?.gauges ?? []).map(String),
         electrification: [...(material?.electrification ?? [])],
         wikidata_id: material?.wikidata_id ?? '',
         source_kind: 'web',
@@ -78,19 +101,38 @@
     /** @param {string} value */
     const year = (value) => (value.trim() === '' ? null : Number(value.trim()));
 
-    /** Proposition telle qu'elle part au serveur. */
-    function values() {
+    /** Valeurs de la série telles que saisies (vides : null ou liste vide). */
+    function entered() {
+        const qid = form.wikidata_id.trim();
         return {
-            mode,
-            material_slug: mode === 'correction' ? (material?.slug ?? '') : null,
             name: form.name.trim() || null,
             type: form.type || null,
             builder: form.builder.trim() || null,
             in_service_from: year(form.in_service_from),
             in_service_to: year(form.in_service_to),
-            gauge_mm: form.gauge_mm ? Number(form.gauge_mm) : null,
-            electrification: form.electrification.length ? form.electrification : null,
-            wikidata_id: form.wikidata_id.trim() || null,
+            gauges: form.gauges.map(Number),
+            electrification: [...form.electrification],
+            wikidata_id: qid ? (normalizeQid(qid) ?? qid) : null,
+        };
+    }
+
+    /** Proposition telle qu'elle part au serveur : une correction ne porte que ce qui change. */
+    function values() {
+        const series = entered();
+        const correction =
+            mode === 'correction' && material ? seriesCorrection(material, series) : null;
+        return {
+            mode,
+            material_slug: mode === 'correction' ? (material?.slug ?? '') : null,
+            ...(correction
+                ? { ...correction.values, clear: correction.clear }
+                : {
+                      ...series,
+                      gauges: series.gauges.length ? series.gauges : null,
+                      electrification: series.electrification.length
+                          ? series.electrification
+                          : null,
+                  }),
             source_kind: form.source_kind,
             source_title: form.source_title.trim(),
             source_url: form.source_url.trim() || null,
@@ -99,10 +141,11 @@
         };
     }
 
-    /** Valeurs des contrôles : années gardées en texte, comme la saisie. */
+    /** Valeurs des contrôles : toute la saisie, années gardées en texte. */
     function checked() {
         return {
             ...values(),
+            ...entered(),
             in_service_from: form.in_service_from,
             in_service_to: form.in_service_to,
         };
@@ -118,7 +161,10 @@
         name: 'series-name',
         type: 'series-type',
         electrification: 'series-system-0',
-        gauge_mm: 'series-gauge',
+        'electrification.0': 'series-system-0',
+        gauges: 'series-gauge-0',
+        'gauges.0': 'series-gauge-0',
+        clear: 'series-name',
         builder: 'series-builder',
         in_service_from: 'series-from',
         in_service_to: 'series-to',
@@ -134,6 +180,63 @@
     function errorFor(key) {
         const e = errors[key];
         return Array.isArray(e) ? e.join(' ') : (e ?? null);
+    }
+
+    /** Erreur d'un champ liste (`gauges`) ou de l'un de ses éléments (`gauges.0`). */
+    function listError(/** @type {string} */ key) {
+        const found = Object.keys(errors).find((k) => k === key || k.startsWith(`${key}.`));
+        return found ? errorFor(found) : null;
+    }
+
+    /**
+     * Liens de la série que la correction rendrait contraires aux règles, relus quand un champ de
+     * ces règles change (catégorie, années, écartements, électrification).
+     */
+    async function refreshImpact() {
+        if (mode !== 'correction' || !material?.links_count) return;
+        const { values: changed, clear } = seriesCorrection(material, entered());
+        const fields = ['type', 'in_service_from', 'in_service_to', 'gauges', 'electrification'];
+        const touched = fields.filter((f) => f in changed || clear.includes(f));
+        const request = ++impactRequest;
+        if (!touched.length) {
+            impact = [];
+            impactStatus = 'idle';
+            return;
+        }
+        /** @type {[string, string][]} */
+        const pairs = [['material', material.slug]];
+        for (const f of touched) {
+            const value = changed[f];
+            if (Array.isArray(value)) value.forEach((v) => pairs.push([`${f}[]`, String(v)]));
+            else if (value !== undefined && value !== null) pairs.push([f, String(value)]);
+        }
+        clear.forEach((f) => pairs.push(['clear[]', f]));
+        const query = pairs.map((pair) => pair.map(encodeURIComponent).join('=')).join('&');
+        impactStatus = 'checking';
+        try {
+            const res = await fetch(`/contribute/series/impact?${query}`, {
+                headers: { Accept: 'application/json' },
+                credentials: 'same-origin',
+            });
+            if (request !== impactRequest) return;
+            if (res.status === 422) {
+                impact = [];
+                impactStatus = 'idle';
+                return;
+            }
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            impact = (await res.json()).links ?? [];
+            impactStatus = 'done';
+        } catch {
+            if (request === impactRequest) impactStatus = 'failed';
+        }
+    }
+
+    /** L'auteur choisit l'identifiant final d'un élément fusionné. */
+    function useFinalQid() {
+        if (!qidResult?.item) return;
+        form.wikidata_id = qidResult.item.id;
+        checkQid();
     }
 
     async function checkQid() {
@@ -274,6 +377,7 @@
                                         class="vff-select"
                                         required={mode === 'new'}
                                         bind:value={form.type}
+                                        onchange={refreshImpact}
                                     >
                                         <option value=""
                                             >{$i18n.t('proposals.series.choose_type')}</option
@@ -325,6 +429,7 @@
                                             autocomplete="off"
                                             maxlength="4"
                                             bind:value={form.in_service_from}
+                                            onchange={refreshImpact}
                                         />
                                     {/snippet}
                                 </Field>
@@ -342,6 +447,7 @@
                                             autocomplete="off"
                                             maxlength="4"
                                             bind:value={form.in_service_to}
+                                            onchange={refreshImpact}
                                         />
                                     {/snippet}
                                 </Field>
@@ -393,6 +499,25 @@
                                         >
                                     </p>
                                 </Notice>
+                            {:else if qidResult?.item && qidResult.item.id !== qidResult.requested}
+                                <Notice tone="info" live="off">
+                                    <p>
+                                        {$i18n.t('proposals.series.wikidata_merged', {
+                                            requested: qidResult.requested,
+                                            final: qidResult.item.id,
+                                        })}
+                                        {#if qidResult.item.label}({qidResult.item.label}){/if}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        class="vff-btn secondary"
+                                        onclick={useFinalQid}
+                                    >
+                                        {$i18n.t('proposals.series.wikidata_use', {
+                                            final: qidResult.item.id,
+                                        })}
+                                    </button>
+                                </Notice>
                             {:else if qidResult?.item}
                                 <Notice tone="success" live="off">
                                     <p>
@@ -434,30 +559,78 @@
                                             type="checkbox"
                                             value={system}
                                             bind:group={form.electrification}
+                                            onchange={refreshImpact}
                                         />
                                         {$i18n.t(`proposals.series.systems.${system}`)}
                                     </label>
                                 {/each}
                             </div>
+                            <p class="vff-error" aria-live="polite">
+                                {#if listError('electrification')}<i
+                                        class="bi bi-exclamation-circle"
+                                        aria-hidden="true"
+                                    ></i><span>{listError('electrification')}</span>{/if}
+                            </p>
                         </fieldset>
-                        <Field
-                            id="series-gauge"
-                            label={$i18n.t('proposals.series.gauge')}
-                            error={errorFor('gauge_mm')}
-                        >
-                            {#snippet children(attrs)}
-                                <select {...attrs} class="vff-select" bind:value={form.gauge_mm}>
-                                    <option value=""
-                                        >{$i18n.t('proposals.series.gauge_unknown')}</option
-                                    >
-                                    {#each gauges as g (g)}
-                                        <option value={String(g)}
-                                            >{$i18n.t(`proposals.series.gauges.${g}`)}</option
-                                        >
-                                    {/each}
-                                </select>
-                            {/snippet}
-                        </Field>
+                        <fieldset class="choices" aria-describedby="series-gauges-hint">
+                            <legend class="vff-label"
+                                >{$i18n.t('proposals.series.gauges_legend')}</legend
+                            >
+                            <p class="vff-hint" id="series-gauges-hint">
+                                {$i18n.t('proposals.series.gauges_hint')}
+                            </p>
+                            <div class="choice-list systems">
+                                {#each gauges as g, i (g)}
+                                    <label class="vff-check">
+                                        <input
+                                            id="series-gauge-{i}"
+                                            type="checkbox"
+                                            value={String(g)}
+                                            bind:group={form.gauges}
+                                            onchange={refreshImpact}
+                                        />
+                                        {gaugeLabel(g, tr)}
+                                    </label>
+                                {/each}
+                            </div>
+                            <p class="vff-error" aria-live="polite">
+                                {#if listError('gauges') ?? errorFor('gauge_mm')}<i
+                                        class="bi bi-exclamation-circle"
+                                        aria-hidden="true"
+                                    ></i><span>{listError('gauges') ?? errorFor('gauge_mm')}</span
+                                    >{/if}
+                            </p>
+                        </fieldset>
+                        <div class="impact" aria-live="polite">
+                            {#if impactStatus === 'checking'}
+                                <p class="intro">{$i18n.t('proposals.series.impact_checking')}</p>
+                            {:else if impactStatus === 'done' && impact.length}
+                                <Notice
+                                    tone="warning"
+                                    live="off"
+                                    title={$i18n.t('proposals.series.impact_title')}
+                                >
+                                    <p>
+                                        {$i18n.t('proposals.series.impact_text', {
+                                            count: impact.length,
+                                        })}
+                                    </p>
+                                    <ul class="impact-list">
+                                        {#each impact as l, i (i)}
+                                            <li>
+                                                {$i18n.t('proposals.series.impact_link', {
+                                                    line: [l.line_code, l.line_name]
+                                                        .filter(Boolean)
+                                                        .join(' '),
+                                                    source: sourceLabel(l.source),
+                                                    reason: l.reason,
+                                                })}
+                                            </li>
+                                        {/each}
+                                    </ul>
+                                </Notice>
+                            {/if}
+                        </div>
                     </fieldset>
 
                     <SourceFields
@@ -544,6 +717,20 @@
         display: none;
     }
     .qid-result p {
+        margin: 0 0 var(--vff-space-2);
+    }
+    .qid-result p:last-child {
+        margin-bottom: 0;
+    }
+    .impact:empty {
+        display: none;
+    }
+    .impact p {
+        margin: 0 0 var(--vff-space-2);
+    }
+    .impact-list {
         margin: 0;
+        padding-left: var(--vff-space-5);
+        overflow-wrap: anywhere;
     }
 </style>

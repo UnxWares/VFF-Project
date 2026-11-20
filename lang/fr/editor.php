@@ -298,6 +298,7 @@ return [
             'partial' => 'Approbation enregistrée (:count sur :threshold) : la contribution attend un autre validateur.',
             'rejected' => 'Contribution refusée.',
             'failed' => 'Échec de la publication : :message',
+            'failure_details' => 'Détail : :list.',
             'failures' => [
                 'no_geometry' => 'la ligne n’a pas de tracé à l’époque de cette contribution. Rien n’a été écrit.',
                 'line_not_found' => 'la ligne que corrige ce tracé n’existe plus. Rien n’a été écrit.',
@@ -305,7 +306,9 @@ return [
                 'target_not_found' => 'la ligne, la gare, l’événement ou la série visée n’existe plus. Rien n’a été écrit.',
                 'already_present' => 'ce fichier Commons est déjà rattaché à cette fiche, ou cette série existe déjà. Rien n’a été écrit.',
                 'file_missing' => 'le fichier déposé n’est plus dans la réserve privée. Rien n’a été écrit.',
-                'incompatible' => 'le lien contredit maintenant la règle d’écartement ou d’électrification, et la phrase citée ne suffit plus. Rien n’a été écrit.',
+                'incompatible' => 'le lien contredit maintenant la règle d’écartement ou d’électrification, et la phrase citée ne suffit plus, ou la correction de la série rendrait des liens contraires à ces règles. Rien n’a été écrit.',
+                'stale' => 'la série a changé depuis l’envoi de la correction. Rien n’a été écrit.',
+                'inconsistent' => 'avec cette correction, le retrait viendrait avant la mise en service. Rien n’a été écrit.',
             ],
         ],
         'errors' => [

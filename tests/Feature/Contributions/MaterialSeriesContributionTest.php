@@ -46,7 +46,7 @@ class MaterialSeriesContributionTest extends TestCase
                     'claims' => ['P31' => [['mainsnak' => ['datavalue' => ['value' => ['id' => 'Q811704']]]]]],
                 ]]]),
                 // Élément fusionné : wbgetentities suit la redirection vers l'élément final.
-                'Q99000001' => Http::response(['entities' => ['Q3574398' => ['id' => 'Q3574398', 'labels' => [], 'claims' => []]]]),
+                'Q99000001' => Http::response(['entities' => ['Q3574398' => ['id' => 'Q3574398', 'labels' => [], 'claims' => ['P31' => [['mainsnak' => ['datavalue' => ['value' => ['id' => 'Q811704']]]]]]]]]),
                 'Q4000000' => Http::response(['error' => ['code' => 'unknown-error', 'info' => 'Serveur occupé']], 200),
                 default => Http::response(['error' => ['code' => 'no-such-entity', 'info' => "Could not find an entity with the ID \"{$id}\"."]]),
             };
@@ -113,7 +113,7 @@ class MaterialSeriesContributionTest extends TestCase
                 ->component('Contribute/ProposeSeries')
                 ->where('material.slug', $this->material->slug)
                 ->where('material.electrification', ['dc_1500'])
-                ->where('material.gauge_mm', 1435)
+                ->where('material.gauges', [1435])
                 ->where('systems', array_keys(MaterialSeriesContributions::ELECTRIFICATION)));
     }
 

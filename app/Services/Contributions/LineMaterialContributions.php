@@ -24,15 +24,18 @@ use Illuminate\Validation\ValidationException;
  * Cycle de vie (mêmes services que les autres contributions) :
  *   1. normalize() : saisie validée par rules(), puis règles d'écartement (MaterialGaugeRule) et
  *      d'électrification (MaterialTractionRule), les mêmes que l'import : un lien incompatible est
- *      refusé, sauf si le contributeur cite la phrase de sa source qui nomme l'écartement ou la tension
- *      de la série (comme la preuve d'un lien importé). L'exception est alors gardée dans la charge
- *      utile (`exception`) et signalée en évidence aux validateurs ;
+ *      refusé, sauf si le contributeur cite la phrase de sa source qui nomme la série et son
+ *      écartement ou sa tension, sans négation autour (ExceptionQuote). L'exception est alors gardée
+ *      dans la charge utile (`exception`) et signalée en évidence aux validateurs. Un couple écarté
+ *      après relecture (database/data/line_material_exclusions.php) est refusé : une contribution ne
+ *      lève pas une exclusion relue (en attente de la décision de l'éditeur, QUESTIONS.md). Une
+ *      période déjà publiée pour le couple par une contribution est refusée ;
  *   2. relecture par deux validateurs (ContributionReview) ;
  *   3. apply() : le lien entre dans `line_materials` avec la source `contrib` (un lien par couple
  *      ligne × série pour toutes les contributions, à côté des liens importés que l'import gère seul) et
  *      une preuve `kind` = `contribution` (provenance `contribution:<id>`) ; la période, s'il y en a
- *      une, entre dans `line_material_periods` (empreinte `contribution:<id>`). Aucun import n'est
- *      relancé.
+ *      une, entre dans `line_material_periods` (empreinte `contribution:<id>`, sans doublon d'une
+ *      période contribuée identique). Aucun import n'est relancé.
  *
  * Fiabilité, comme pour les liens importés (LineMaterialLinker::attributes) : `high` pour une preuve
  * sans doute (service régulier, source relue par deux validateurs), `low` quand la circulation déclarée
@@ -66,7 +69,7 @@ final readonly class LineMaterialContributions
         'heritage' => 'preserved',
     ];
 
-    /** Longueur de la phrase citée, en caractères. */
+    /** Longueur de la phrase citée, en caractères, mesurée après la réduction des espaces. */
     public const QUOTE_MIN = 10;
 
     public const QUOTE_MAX = 600;
@@ -135,7 +138,15 @@ final readonly class LineMaterialContributions
         $period = $this->period($data);
         $circulation = (string) $data['circulation'];
         $quote = SourceCitation::clean($data['quote'] ?? null);
+        // « 1      500 V » passerait la règle `min` avant la réduction des espaces.
+        if ($quote !== null && mb_strlen($quote) < self::QUOTE_MIN) {
+            throw ValidationException::withMessages(['quote' => __('proposals.line_material.errors.quote_length', ['min' => self::QUOTE_MIN, 'max' => self::QUOTE_MAX])]);
+        }
 
+        $excluded = $this->exclusion($line->id, $material->id);
+        if ($excluded !== null) {
+            throw ValidationException::withMessages(['material_slug' => __('proposals.line_material.errors.excluded', ['reason' => $excluded])]);
+        }
         $existing = self::existingLink($line->id, $material->id);
         $this->refuseDuplicates($line, $material, $period, $existing);
 
@@ -145,6 +156,10 @@ final readonly class LineMaterialContributions
             $proof = [['quote' => $quote, 'doubt' => self::CIRCULATIONS[$circulation]]];
             if ($quote === null || $this->compatibility($line, $material, $proof) !== null) {
                 throw ValidationException::withMessages(['quote' => self::conflictMessage($raw, $material, $quote !== null, $circulation)]);
+            }
+            $problem = ExceptionQuote::problem($quote, $material, $raw);
+            if ($problem !== null) {
+                throw ValidationException::withMessages(['quote' => __("proposals.line_material.conflict.quote_{$problem}", ['series' => $material->name])]);
             }
             $exception = ['rule' => $raw['rule'], 'reason' => $raw['reason']];
         }
@@ -164,7 +179,7 @@ final readonly class LineMaterialContributions
                 'source' => SourceCitation::fromInput($data),
                 'quote' => $quote,
                 'exception' => $exception,
-                'excluded' => $this->exclusion($line->id, $material->id),
+                'excluded' => null,
                 'existing_link' => $existing,
                 'notes' => SourceCitation::trimmed($data['notes'] ?? null),
             ],
@@ -352,7 +367,8 @@ final readonly class LineMaterialContributions
 
     /**
      * Refuse une proposition sans apport : le lien est déjà sûr dans VFF et la proposition ne date
-     * rien, ou la même proposition (couple et dates) attend déjà sa relecture.
+     * rien, la même proposition (couple et dates) attend déjà sa relecture, ou la même période est
+     * déjà publiée pour le couple par une contribution.
      *
      * @param  array<string, mixed>|null  $period
      * @param  array<string, mixed>|null  $existing
@@ -373,6 +389,34 @@ final readonly class LineMaterialContributions
                 throw ValidationException::withMessages(['material_slug' => __('proposals.line_material.errors.pending_duplicate')]);
             }
         }
+        if ($period !== null && self::publishedPeriod($line->id, $material->id, $period) !== null) {
+            throw ValidationException::withMessages(['material_slug' => __('proposals.line_material.errors.period_published')]);
+        }
+    }
+
+    /**
+     * Période contribuée déjà publiée pour le couple avec les mêmes bornes, précisions et portion, ou
+     * null.
+     *
+     * @param  array{start: array{date: string, precision: string}|null, end: array{date: string, precision: string}|null, from: ?string, to: ?string}  $period
+     */
+    private static function publishedPeriod(int $lineId, int $materialId, array $period): ?LineMaterialPeriod
+    {
+        $same = function ($q, string $column, mixed $value): void {
+            $value === null ? $q->whereNull($column) : $q->where($column, $value);
+        };
+
+        return LineMaterialPeriod::query()
+            ->where('source', self::SOURCE)
+            ->whereHas('link', fn ($q) => $q->where('line_id', $lineId)->where('material_id', $materialId))
+            ->where(fn ($q) => $same($q, 'start_date', $period['start']['date'] ?? null))
+            ->where(fn ($q) => $same($q, 'start_precision', $period['start']['precision'] ?? null))
+            ->where(fn ($q) => $same($q, 'end_date', $period['end']['date'] ?? null))
+            ->where(fn ($q) => $same($q, 'end_precision', $period['end']['precision'] ?? null))
+            ->where(fn ($q) => $same($q, 'section_from', $period['from'] ?? null))
+            ->where(fn ($q) => $same($q, 'section_to', $period['to'] ?? null))
+            ->orderBy('id')
+            ->first();
     }
 
     /**
@@ -473,7 +517,15 @@ final readonly class LineMaterialContributions
             'source_url' => $p['source']['url'] ?? null,
             'source_excerpt' => isset($p['quote']) ? mb_strimwidth((string) $p['quote'], 0, 255, '…') : null,
         ];
-        $row = LineMaterialPeriod::query()->updateOrCreate(['fingerprint' => self::fingerprint($contribution->id)], $values);
+        $fingerprint = self::fingerprint($contribution->id);
+        // Une période identique déjà publiée par une autre contribution suffit : pas de doublon sur la fiche.
+        if (! LineMaterialPeriod::query()->where('fingerprint', $fingerprint)->exists()) {
+            $twin = self::publishedPeriod((int) $link->line_id, (int) $link->material_id, $period);
+            if ($twin !== null) {
+                return (int) $twin->id;
+            }
+        }
+        $row = LineMaterialPeriod::query()->updateOrCreate(['fingerprint' => $fingerprint], $values);
 
         return (int) $row->id;
     }

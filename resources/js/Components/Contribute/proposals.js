@@ -658,7 +658,21 @@ export function lineMaterialFacts(p, t, lang) {
 }
 
 /**
- * Valeur d'un champ de série en clair : catégorie, écartement, systèmes d'électrification.
+ * Libellé d'un écartement : celui de la liste courante (« 1 435 mm (voie normale) »), sinon la
+ * largeur seule (« 891 mm »).
+ * @param {number|string} mm
+ * @param {(key: string, opts?: object) => any} t
+ */
+export function gaugeLabel(mm, t) {
+    return translated(
+        t,
+        `proposals.series.gauges.${mm}`,
+        String(t('proposals.series.gauge_other', { mm })),
+    );
+}
+
+/**
+ * Valeur d'un champ de série en clair : catégorie, écartements, systèmes d'électrification.
  * @param {string} field
  * @param {any} value
  * @param {(key: string, opts?: object) => any} t
@@ -672,8 +686,8 @@ export function seriesValueText(field, value, t) {
     )
         return t('proposals.series.none');
     if (field === 'type') return translated(t, `materials.type.${value}`, value);
-    if (field === 'gauge_mm')
-        return translated(t, `proposals.series.gauges.${value}`, `${value} mm`);
+    if (field === 'gauge_mm') return gaugeLabel(value, t);
+    if (field === 'gauges') return value.map((mm) => gaugeLabel(mm, t)).join(', ');
     if (field === 'electrification')
         return value.map((k) => translated(t, `proposals.series.systems.${k}`, k)).join(', ');
     return String(value);
@@ -686,27 +700,84 @@ export const SERIES_FIELDS = [
     'builder',
     'in_service_from',
     'in_service_to',
-    'gauge_mm',
+    'gauges',
     'electrification',
     'wikidata_id',
 ];
+
+/** Champs qu'une correction peut effacer (MaterialSeriesContributions::CLEARABLE). */
+export const SERIES_CLEARABLE = [
+    'builder',
+    'in_service_from',
+    'in_service_to',
+    'gauges',
+    'electrification',
+];
+
+/**
+ * Comparaison de deux valeurs de série (listes comprises, sans tenir compte de l'ordre).
+ * @param {any} a
+ * @param {any} b
+ */
+function sameValue(a, b) {
+    if (Array.isArray(a) || Array.isArray(b)) {
+        const left = [...(a ?? [])].map(String).sort();
+        const right = [...(b ?? [])].map(String).sort();
+        return left.length === right.length && left.every((v, i) => v === right[i]);
+    }
+    return (a ?? null) === (b ?? null);
+}
+
+/**
+ * Ce que le formulaire envoie pour une correction : seulement les champs changés, et dans `clear`
+ * les champs que l'auteur a vidés alors que la fiche avait une valeur (effacement explicite). Un
+ * champ inchangé n'est pas renvoyé : l'identifiant Wikidata de la fiche, par exemple, ne fait pas
+ * appeler Wikidata.
+ * @param {Record<string, any>} current valeurs actuelles de la fiche
+ * @param {Record<string, any>} entered valeurs saisies (vides : null ou liste vide)
+ * @returns {{ values: Record<string, any>, clear: string[] }}
+ */
+export function seriesCorrection(current, entered) {
+    /** @type {Record<string, any>} */
+    const values = {};
+    const clear = [];
+    for (const field of SERIES_FIELDS) {
+        const now = current[field] ?? null;
+        const next = entered[field] ?? null;
+        const empty = next === null || (Array.isArray(next) && !next.length);
+        const hadValue = now !== null && !(Array.isArray(now) && !now.length);
+        if (empty) {
+            if (hadValue && SERIES_CLEARABLE.includes(field)) clear.push(field);
+        } else if (!sameValue(now, next)) {
+            values[field] = next;
+        }
+    }
+    return { values, clear };
+}
 
 /**
  * Lignes « champ, avant, après » d'une proposition de série : les valeurs données pour une
  * nouvelle série (avant vide), les changements d'une correction.
  * @param {object} p charge utile
  * @param {(key: string, opts?: object) => any} t
- * @returns {{ field: string, label: string, before: string|null, after: string }[]}
+ * @returns {{ field: string, label: string, before: string|null, after: string, cleared: boolean }[]}
  */
 export function seriesChanges(p, t) {
     const isNew = p.mode === 'new';
     const source = isNew ? (p.values ?? {}) : (p.changes ?? {});
-    return SERIES_FIELDS.filter((f) => source[f] !== undefined).map((field) => ({
-        field,
-        label: t(`proposals.review.fields.${field}`),
-        before: isNew ? null : seriesValueText(field, source[field].before, t),
-        after: seriesValueText(field, isNew ? source[field] : source[field].after, t),
-    }));
+    return SERIES_FIELDS.filter((f) => source[f] !== undefined).map((field) => {
+        // Correction qui efface une valeur : montrée comme un effacement, pas comme « non renseigné ».
+        const cleared = !isNew && source[field].after === null;
+        return {
+            field,
+            label: t(`proposals.review.fields.${field}`),
+            before: isNew ? null : seriesValueText(field, source[field].before, t),
+            after: cleared
+                ? String(t('proposals.review.cleared'))
+                : seriesValueText(field, isNew ? source[field] : source[field].after, t),
+            cleared,
+        };
+    });
 }
 
 /**
