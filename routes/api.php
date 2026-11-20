@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\EraController;
 use App\Http\Controllers\Api\GeoController;
 use App\Http\Controllers\Api\GtfsController;
 use App\Http\Controllers\Api\LevelCrossingController;
+use App\Http\Controllers\Api\LineArchiveController;
 use App\Http\Controllers\Api\LineController;
 use App\Http\Controllers\Api\LineEventController;
 use App\Http\Controllers\Api\LineGreenwayController;
@@ -94,6 +95,7 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/signalling', [LineSignallingController::class, 'index'])->name('api.lines.signalling');
     Route::get('/v1/lines/{line:slug}/signalling-history', [LineSignallingController::class, 'history'])->name('api.lines.signalling-history');
     Route::get('/v1/lines/{line:slug}/greenways', [LineGreenwayController::class, 'index'])->name('api.lines.greenways');
+    Route::get('/v1/lines/{line:slug}/archives', [LineArchiveController::class, 'index'])->name('api.lines.archives');
     Route::get('/v1/lines/{line:slug}/profile', [LineProfileController::class, 'show'])->name('api.lines.profile');
     Route::get('/v1/lines/{line:slug}/media', [LineMediaController::class, 'index'])->name('api.lines.media');
     Route::get('/v1/route', [RouteController::class, 'route'])->name('api.route');

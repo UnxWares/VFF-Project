@@ -60,7 +60,7 @@ return [
             'archeo' => 'J. Randé, F. Librini, K. Moreau; Streckenverläufe von F. Hespert und Y. Zwartjes',
             'lignes_oubliees' => 'L. Dagallier: Daten und PK verschwundener Strecken',
             'wikipedia' => 'Geschichte der Strecken und Fahrzeuge',
-            'gallica' => 'Historische Archive',
+            'gallica' => 'Katalogdaten digitalisierter Dokumente zu einer Strecke (Licence Ouverte), mit Link zu Gallica; keine Bilder übernommen',
         ],
         'ai' => [
             'title' => 'Von einem neuronalen Netz ausgerichtete Streckenverläufe',
@@ -120,7 +120,7 @@ return [
             'home_map_title' => 'Hintergrund der Startseite',
             'home_map_text' => 'Zugeschnittener, sepiagetönter Ausschnitt der „Carte spéciale des chemins de fer de la France et de l’Allemagne à l’usage des voyageurs“ (Eisenbahnkarte Frankreichs und Deutschlands für Reisende), gezeichnet von Alexandre Vuillemin und herausgegeben von A. Logerot (Paris, 1865). Exemplar der Library of Congress (Washington), gemeinfrei.',
             'gallica_title' => 'BnF Gallica',
-            'gallica_text' => 'Historische IGN-Karten, Cassini- und État-Major-Karten, alte Fahrpläne. Jedes Dokument ist nach den Bedingungen der BnF nutzbar, die auf Gallica nachzulesen sind.',
+            'gallica_text' => 'Digitalisierte Dokumente zu einer Strecke: Projekte, Pläne, Fotografien. VFF übernimmt nur ihre Katalogdaten (Titel, Datum, Signatur; Licence Ouverte) und verweist zum Ansehen auf Gallica. Die Dokumente selbst sind nach den Bedingungen der BnF nutzbar.',
             'commons_title' => 'Wikipedia und Wikimedia Commons',
             'commons_text' => 'Archivfotos und Illustrationen, jeweils unter ihrer eigenen Lizenz (meist CC BY-SA).',
             'assoc_title' => 'Regionale Eisenbahnvereine',

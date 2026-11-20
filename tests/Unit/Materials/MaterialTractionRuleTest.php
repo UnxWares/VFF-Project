@@ -150,6 +150,10 @@ class MaterialTractionRuleTest extends TestCase
         yield 'vitesse' => ['à 160 km/h', [1500], false];
         yield 'nombre dans un autre nombre' => ['21 500 V', [1500], false];
         yield 'série seule' => ['les BB 7200', [1500], false];
+        yield 'milliers à l’anglaise' => ['electrified at 1,500 V DC', [1500], true];
+        yield 'décimale à l’anglaise' => ['the 1.5 kV network', [1500], true];
+        yield 'milliers à l’allemande' => ['mit 1.500 V Gleichstrom', [1500], true];
+        yield 'kilovolt allemand' => ['mit 15 Kilovolt Wechselstrom', [15000], true];
     }
 
     #[DataProvider('voltageNames')]

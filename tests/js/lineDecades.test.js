@@ -6,7 +6,8 @@ import { describe, expect, it } from 'vitest';
 describe('LineDecades (rendu serveur)', async () => {
     const { render } = await import('svelte/server');
     const { setupI18n } = await import('$lib/i18n.js');
-    const LineDecades = (await import('../../resources/js/Components/Lines/LineDecades.svelte')).default;
+    const LineDecades = (await import('../../resources/js/Components/Lines/LineDecades.svelte'))
+        .default;
     setupI18n({
         locale: 'fr',
         translations: {
@@ -26,14 +27,27 @@ describe('LineDecades (rendu serveur)', async () => {
 
     const stations = (open, closed, closures = []) => ({ open, closed, uncertain: 0, closures });
     const DECADES = [
-        { year: 1930, is_current: false, length_by_category: { mixed: 13871 }, active_m: 13871, stations: stations(3, 0) },
+        {
+            year: 1930,
+            is_current: false,
+            length_by_category: { mixed: 13871 },
+            active_m: 13871,
+            stations: stations(3, 0),
+        },
         {
             year: 1940,
             is_current: false,
             length_by_category: { mixed: 13871 },
             active_m: 13871,
             stations: stations(2, 1, [
-                { slug: 'nogent', name: 'Nogent', closed_at: '1940-12-31', closed_precision: 'range', closed_after: 1930, reopened: true },
+                {
+                    slug: 'nogent',
+                    name: 'Nogent',
+                    closed_at: '1940-12-31',
+                    closed_precision: 'range',
+                    closed_after: 1930,
+                    reopened: true,
+                },
             ]),
         },
         {
@@ -42,7 +56,14 @@ describe('LineDecades (rendu serveur)', async () => {
             length_by_category: { freight: 7000, closed: 6871 },
             active_m: 7000,
             stations: stations(1, 2, [
-                { slug: 'lonlay', name: 'Lonlay-le-Tesson', closed_at: '1991-05-26', closed_precision: 'day', closed_after: null, reopened: false },
+                {
+                    slug: 'lonlay',
+                    name: 'Lonlay-le-Tesson',
+                    closed_at: '1991-05-26',
+                    closed_precision: 'day',
+                    closed_after: null,
+                    reopened: false,
+                },
             ]),
         },
     ];

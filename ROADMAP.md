@@ -58,8 +58,8 @@ Base technique propre, sur laquelle tout le reste repose.
 - [x] Perf : hero background PNG 2.7 MB → WebP 179 KB desktop / 117 KB tablet / 63 KB mobile (-93 %)
 - [x] CI GitHub Actions : Pint, traductions, PHPStan + Larastan, contrôles statiques (tirets, clés i18n, palette carte, routes), PHPUnit, Prettier, ESLint, svelte-check, build Vite
 - [x] Suites de tests parallèles, une base par suite (`VFF_TEST_DB=vff_xxx_test`)
-- [~] Tests de mutation (Infection installé, pas encore exploité)
-- [~] Mise au format Prettier de tout le dépôt (environ 70 fichiers encore non conformes, contrôle bloquant seulement sur les fichiers modifiés)
+- [x] Tests de mutation : services purs (`make mutation`) et règles métier critiques (`make mutation-critical` : moteur de la carte historique, desserte des gares, validation à deux, dates partielles, énumérations, matériel, images), 93 % des mutants tués, seuil de 92 % qui bloque les régressions ; hors CI bloquante (un quart d'heure)
+- [x] Mise au format de tout le dépôt : Pint (PHP) et Prettier (front, tests JS, scripts, configuration JS) contrôlent tout le dépôt et bloquent en CI
 - [ ] Suivi des erreurs et de la disponibilité (Sentry ou équivalent auto-hébergé, Uptime Kuma)
 - [~] Hooks avant commit (Lefthook) : configuration prête, alignée sur la CI, à installer
 
@@ -161,7 +161,7 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] Correction d'un segment existant (`/contribute/edit-segment`)
 - [x] Page « Mes contributions »
 - [x] Validation : toute contribution est en attente jusqu'à **deux approbations** de validateurs
-- [~] Formulaires d'ajout : tracés, segments, événements datés (`/contribute/event`, publiés dans `line_events` avec leur provenance `contribution:<id>`, portion résolue ensuite par `vff:resolve-event-sections`) et images (`/contribute/media` : fichier de Wikimedia Commons ou fichier déposé, métadonnées et position GPS retirées avant l'enregistrement, fichier privé jusqu'à la publication) faits, aussi par la mutation GraphQL `submitContribution` ; matériel à faire
+- [x] Formulaires d'ajout : tracés, segments, événements datés (`/contribute/event`, publiés dans `line_events` avec leur provenance `contribution:<id>`, portion résolue ensuite par `vff:resolve-event-sections`), images (`/contribute/media` : fichier de Wikimedia Commons ou fichier déposé, métadonnées et position GPS retirées avant l'enregistrement, fichier privé jusqu'à la publication), matériel sur une ligne (`/contribute/material` : règles d'écartement et d'électrification de l'import, exception acceptée seulement avec la phrase de la source qui nomme l'écartement ou la tension ; lien et période publiés dans `line_materials` et `line_material_periods` avec la provenance `contribution:<id>`) et séries de matériel (`/contribute/series` : nouvelle série ou correction, identifiant Wikidata vérifié, doublon renvoyé vers la correction), aussi par la mutation GraphQL `submitContribution` ; liens « Proposer » sur les fiches ligne, gare et matériel
 - [x] Notifications (sur le site + courriel) d'acceptation ou de refus
 - [x] Réputation : trois chiffres (contributions acceptées, refusées, relectures faites) et un niveau tiré de seuils en configuration (`config/reputation.php`), recalculés à chaque décision de validation et par `vff:recalculate-reputation`, affichés sur le profil et dans l'espace de validation, expliqués sur `/contribute/reputation`, jamais dans l'API ; pas de badges
 - [x] Modération : journal d'audit, retrait d'une contribution par un administrateur, suspension d'un compte (motif, fin facultative, levée, notification, export) faits
@@ -203,7 +203,7 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] Export du graphe au format GTFS
 - [ ] [Apache AGE](https://age.apache.org/) et requêtes Cypher : pas activé, le graphe en tables suffit pour l'instant ; à réévaluer pour les requêtes complexes
 - [x] **Comparaison d'un trajet entre deux époques** : « Angoulême - Limoges en 1930 et aujourd'hui » (`RouteComparison`, `/api/v1/route/compare`, champ GraphQL `routeComparison`, `compare_year` de l'outil MCP `historical_route`, choix « Comparer avec une autre époque » du planificateur)
-- [ ] Visualisation du graphe en mode administration
+- [x] **Visualisation du graphe en mode administration** : carte des trois couches par époque, attributs au clic, diagnostics (îles, nœuds isolés, arêtes anormales, jonctions écartées, gares sans arête, lignes en morceaux) sur `/validate/graph`, réservée aux administrateurs (`docs/GRAPHE-ADMIN.md`)
 
 ---
 
@@ -232,7 +232,8 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [x] Jonctions entre lignes : 0 m d'écart à chaque jonction sur les 21 époques, raccords en courbe
 - [~] Jonctions : réduire les coudes et crochets restants (phase « escaliers »)
 - [ ] Modèle : fusion de plusieurs dates de prises de vue (calcul GPU, sur accord), publication des poids complets
-- [ ] Gallica (BnF) et fonds d'archives (SNCF, associations régionales)
+- [~] Gallica (BnF) : 233 documents numérisés rattachés à 60 lignes par le titre de leur notice (score expliqué, seuil prudent, précision mesurée à 95 % sur 40 documents tirés au hasard après la relecture du 20/11), section « Dans les archives » de la fiche ligne, `GET /api/v1/lines/{slug}/archives`, `Line.archives` en GraphQL et outil MCP `line_archives` ; seules les métadonnées de la BnF (Licence Ouverte) et le lien vers Gallica sont repris, aucune image. Reste : la presse, les documents des bibliothèques partenaires et l'API de Gallica elle-même (refusée à la machine de développement)
+- [ ] Fonds d'archives (SNCF, associations régionales)
 - [x] Distinction visuelle des époques anciennes sur la carte : fond pâli et teinté de sépia selon l'ère (rien aujourd'hui), réglage « Teinte des époques anciennes » et `?tint=off`
 
 ---

@@ -14,10 +14,20 @@
     } from '$components/Contribute/segmentChanges.js';
     import {
         EVENT_TYPE,
-        MEDIA_TYPE,
-        eventFacts,
-        mediaFacts,
+        LINE_MATERIAL_TYPE,
+        PROPOSAL_TYPES,
+        SERIES_TYPE,
+        proposalFacts,
+        proposalKindKey,
     } from '$components/Contribute/proposals.js';
+
+    /** Faits résumés d'une proposition sourcée dans la liste, par type. */
+    const SUMMARY_FACTS = {
+        line_event: ['type', 'date', 'portion'],
+        media: ['title', 'license'],
+        line_material: ['series', 'start', 'end'],
+        material_series: ['series'],
+    };
 
     let { contributions = [] } = $props();
 
@@ -51,6 +61,7 @@
         if (c.payload?.line_name) return c.payload.line_name;
         if (c.payload?.new_line_name) return c.payload.new_line_name;
         if (c.payload?.station_name) return c.payload.station_name;
+        if (c.payload?.material_name) return c.payload.material_name;
         return $i18n.t(
             c.payload?.kind === 'new_line'
                 ? 'editor.validate.kind_new'
@@ -80,6 +91,10 @@
                 <Link href="/contribute/media" class="vff-btn secondary">
                     <i class="bi bi-image" aria-hidden="true"></i>
                     {$i18n.t('proposals.mine.new_media')}
+                </Link>
+                <Link href="/contribute/material" class="vff-btn secondary">
+                    <i class="bi bi-train-front" aria-hidden="true"></i>
+                    {$i18n.t('proposals.mine.new_material')}
                 </Link>
             </div>
         </PageHero>
@@ -143,25 +158,14 @@
                                         >
                                     {/if}
                                 </p>
-                            {:else if c.type === EVENT_TYPE || c.type === MEDIA_TYPE}
-                                {@const facts =
-                                    c.type === EVENT_TYPE
-                                        ? eventFacts(c.payload, tr, $i18n.language).filter((f) =>
-                                              ['type', 'date', 'portion'].includes(f.id),
-                                          )
-                                        : mediaFacts(c.payload, tr, $i18n.language).filter((f) =>
-                                              ['title', 'license'].includes(f.id),
-                                          )}
+                            {:else if PROPOSAL_TYPES.includes(c.type)}
+                                {@const facts = proposalFacts(c, tr, $i18n.language).filter((f) =>
+                                    SUMMARY_FACTS[c.type].includes(f.id),
+                                )}
+                                {@const materialSlug =
+                                    c.payload.applied?.material_slug ?? c.payload.material_slug}
                                 <p class="facts">
-                                    <span
-                                        >{$i18n.t(
-                                            c.type === EVENT_TYPE
-                                                ? 'proposals.review.kind_event'
-                                                : c.payload.source === 'commons'
-                                                  ? 'proposals.review.kind_media_commons'
-                                                  : 'proposals.review.kind_media_upload',
-                                        )}</span
-                                    >
+                                    <span>{$i18n.t(proposalKindKey(c))}</span>
                                     {#each facts as fact (fact.id)}
                                         <span
                                             >{fact.label}{colon($i18n.language)}<span class="value"
@@ -172,6 +176,10 @@
                                     {#if c.type === EVENT_TYPE && c.payload.applied && c.payload.line_slug}
                                         <Link href="/lines/{c.payload.line_slug}" class="vff-link"
                                             >{$i18n.t('proposals.mine.view_event')}</Link
+                                        >
+                                    {:else if (c.type === LINE_MATERIAL_TYPE || c.type === SERIES_TYPE) && c.payload.applied && materialSlug}
+                                        <Link href="/materials/{materialSlug}" class="vff-link"
+                                            >{$i18n.t('proposals.mine.view_material')}</Link
                                         >
                                     {/if}
                                 </p>

@@ -12,7 +12,7 @@ return [
     'ways' => [
         'title' => 'Drei Möglichkeiten mitzuwirken',
         'data_title' => 'Bahnstrecken dokumentieren',
-        'data_text' => 'Nach der Registrierung können Sie eine Strecke oder einen Streckenabschnitt neu zeichnen und jedes Ereignis (Eröffnung, Stilllegung, Gleisabbau) mit Quellenangabe datieren. Zwei Prüfer sichten jeden Vorschlag vor der Veröffentlichung.',
+        'data_text' => 'Nach der Registrierung können Sie eine Strecke oder einen Streckenabschnitt neu zeichnen und jedes Ereignis (Eröffnung, Stilllegung, Gleisabbau) datieren oder angeben, welche Fahrzeuge auf einer Strecke fuhren, jeweils mit Quellenangabe. Zwei Prüfer sichten jeden Vorschlag vor der Veröffentlichung.',
         'data_status' => 'Ein Konto ist erforderlich',
 
         'media_title' => 'Archivmedien beisteuern',

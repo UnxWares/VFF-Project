@@ -138,6 +138,7 @@ return [
         'revision' => 'version citée',
         'license' => 'texte sous licence CC BY-SA 4.0',
         'wikidata' => 'Wikidata, propriété « matériel roulant utilisé » de la ligne',
+        'contribution' => 'Contribution validée, source : :title',
     ],
     'confidence' => [
         'high' => [
@@ -147,6 +148,14 @@ return [
         'high_wikidata' => [
             'label' => 'Source directe',
             'text' => 'Déclarée dans Wikidata.',
+        ],
+        'high_contribution' => [
+            'label' => 'Source directe',
+            'text' => 'Proposé par un contributeur avec sa source, puis relu par deux validateurs.',
+        ],
+        'low_contribution' => [
+            'label' => 'À confirmer',
+            'text' => 'Proposé par un contributeur pour une circulation exceptionnelle, des essais ou un train de musée : la série n’a peut-être pas roulé en service sur cette ligne.',
         ],
         'medium' => [
             'label' => 'Source indirecte',

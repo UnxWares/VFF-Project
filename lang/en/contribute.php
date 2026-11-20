@@ -12,7 +12,7 @@ return [
     'ways' => [
         'title' => 'Three ways to contribute',
         'data_title' => 'Document lines',
-        'data_text' => 'Once you have signed up, you can retrace a line or a line section and date each event (opening, closure, track removal), citing your sources. Two validators review each proposal before publication.',
+        'data_text' => 'Once you have signed up, you can retrace a line or a line section and date each event (opening, closure, track removal), or say which rolling stock ran on a line, citing your sources. Two validators review each proposal before publication.',
         'data_status' => 'An account is required',
 
         'media_title' => 'Offer archival media',

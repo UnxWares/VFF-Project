@@ -82,6 +82,7 @@
                 { path: '/api/v1/lines/{line}/materials', key: 'line_materials' },
                 { path: '/api/v1/lines/{line}/media', key: 'media' },
                 { path: '/api/v1/lines/{line}/greenways', key: 'line_greenways' },
+                { path: '/api/v1/lines/{line}/archives', key: 'line_archives' },
                 {
                     path: '/api/v1/greenways/tiles/{z}/{x}/{y}.mvt',
                     key: 'greenways_tiles',
@@ -175,6 +176,7 @@
         'level_crossings',
         'line_profile',
         'line_greenways',
+        'line_archives',
         'line_materials',
         'locate_on_line',
         'signalling_history',
@@ -423,6 +425,30 @@ JSON`;
   -F operations='{"query": "mutation ($input: ContributionInput!) { submitContribution(input: $input) { id status } }", "variables": {"input": {"media": {"source": "upload", "target_type": "line", "line_slug": "rfn-610000", "file": null, "media_type": "photo", "title": "Gare de Nontron, côté quai", "author": "Prénom Nom", "license": "cc-by-sa-4.0", "rights_confirmed": true}}}}' \\
   -F map='{"0": ["variables.input.media.file"]}' \\
   -F 0=@gare-de-nontron.jpg`;
+    // Matériel sur une ligne : la phrase citée (quote) lève la règle d'électrification (Z 1200, 750 V).
+    const materialCurl = `curl -X POST https://vff-project.org/graphql \\
+  -H "Authorization: Bearer $VFF_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d @- <<'JSON'
+{
+  "query": "mutation ($input: ContributionInput!) { submitContribution(input: $input) { id status material { name } } }",
+  "variables": {
+    "input": {
+      "line_material": {
+        "line_slug": "rfn-972000",
+        "material_slug": "z-1200",
+        "circulation": "regular",
+        "end_precision": "year",
+        "end_date": "1965",
+        "source_kind": "web",
+        "source_title": "Ligne de Puteaux à Issy-Plaine, Wikipédia",
+        "source_url": "https://fr.wikipedia.org/w/index.php?title=Ligne_de_Puteaux_%C3%A0_Issy-Plaine&oldid=241186256",
+        "quote": "La ligne est électrifiée par troisième rail en 750 V ; tous les mouvements sont assurés par les automotrices Z 1200."
+      }
+    }
+  }
+}
+JSON`;
     const reviewCurl = `curl -X POST https://vff-project.org/graphql \\
   -H "Authorization: Bearer $VFF_TOKEN" \\
   -H "Content-Type: application/json" \\
@@ -768,6 +794,15 @@ JSON`;
                 role="region"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{mediaCurl}</code></pre>
+
+            <h3 class="group-title">{$i18n.t('api.contribute.material_title')}</h3>
+            <p class="caption">{$i18n.t('api.contribute.material_intro')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
+            <pre
+                class="code"
+                role="region"
+                tabindex="0"
+                aria-label={$i18n.t('api.example.code_label')}><code>{materialCurl}</code></pre>
 
             <h3 class="group-title">{$i18n.t('api.contribute.review_title')}</h3>
             <p class="caption">{$i18n.t('api.contribute.review_intro')}</p>

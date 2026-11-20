@@ -127,6 +127,7 @@ return [
             'line_level_crossings' => 'Bahnübergänge einer Strecke in der Reihenfolge der Streckenkilometer, mit ihrer Anzahl je Art.',
             'level_crossings_tiles' => 'Vektorkachel (MVT) der Bahnübergänge, ab Zoomstufe 9.',
             'line_greenways' => 'OpenStreetMap-Radwege auf der früheren Trasse einer Strecke, mit gemeinsamer Länge, OSM-Link, Herkunft und ODbL-Lizenz.',
+            'line_archives' => 'In Gallica (BnF) digitalisierte Dokumente, deren Titel die Strecke nennt: Titel, Datum und seine Genauigkeit, Art, Urheber, Signatur, Link zu Gallica und Gründe der Zuordnung. Metadaten der BnF unter Licence Ouverte, keine Bilder.',
             'greenways_tiles' => 'Vektorkachel (MVT) der Radwege auf früheren Trassen, ab Zoomstufe 4.',
             'signalling_tiles' => 'Vektorkachel (MVT) der Blockabschnitte auf dem Streckenverlauf, für das heutige Netz.',
             'stations' => 'Verzeichnis der Bahnhöfe, Haltepunkte und Haltestellen, bestehender und verschwundener.',
@@ -175,7 +176,7 @@ return [
     // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).
     'contribute' => [
         'title' => 'Über GraphQL beitragen',
-        'intro' => 'Zwei Mutationen entsprechen den Formularen der Website. submitContribution sendet einen Vorschlag: einen zwischen zwei Kilometerpunkten geänderten Streckenabschnitt, einen gezeichneten Streckenverlauf, ein datiertes Ereignis oder ein Bild. validateContribution gibt ihn frei oder lehnt ihn ab. Sie brauchen ein Konto, und es gelten die Regeln der Website: zwei Freigaben verschiedener Prüfer zur Veröffentlichung, eine Begründung für jede Ablehnung, und niemand sichtet seinen eigenen Beitrag.',
+        'intro' => 'Zwei Mutationen entsprechen den Formularen der Website. submitContribution sendet einen Vorschlag: einen zwischen zwei Kilometerpunkten geänderten Streckenabschnitt, einen gezeichneten Streckenverlauf, ein datiertes Ereignis, ein Bild, die Fahrzeuge einer Strecke oder eine Fahrzeugbaureihe. validateContribution gibt ihn frei oder lehnt ihn ab. Sie brauchen ein Konto, und es gelten die Regeln der Website: zwei Freigaben verschiedener Prüfer zur Veröffentlichung, eine Begründung für jede Ablehnung, und niemand sichtet seinen eigenen Beitrag.',
         'auth_title' => 'Authentifizierung',
         'auth' => [
             'token' => 'Mit einem persönlichen Token, das Sie in Ihrem Profil mit angekreuztem Kästchen „Beiträge über die API erlauben“ erstellen. Ein Token ohne dieses Kästchen erhält den Fehler insufficient_scope.',
@@ -187,6 +188,8 @@ return [
         'response_caption' => 'Antwort',
         'media_title' => 'Ein Ereignis oder ein Bild vorschlagen',
         'media_intro' => 'Ein datiertes Ereignis geht über input.event, ein Bild über input.media. Ein Bild aus Wikimedia Commons braucht nur seine Adresse (commons_url). Eine hochgeladene Datei wird als multipart/form-data nach der Spezifikation GraphQL multipart request gesendet: Das Feld operations enthält die Abfrage mit file auf null, das Feld map nennt die Variable, die die Datei erhält, danach folgt die Datei. VFF entfernt ihre Metadaten vor dem Speichern.',
+        'material_title' => 'Fahrzeuge vorschlagen',
+        'material_intro' => 'input.line_material verknüpft eine Baureihe mit einer Strecke, mit Quelle und, wenn die Quelle ihn nennt, dem Einsatzzeitraum. Widerspricht die Verbindung der Regel zu Spurweite oder Elektrifizierung, muss quote den Satz aus der Quelle zitieren, der die Spurweite oder die Spannung nennt: Ohne ihn wird die Eingabe abgelehnt, und die Meldung erklärt den Widerspruch. input.series schlägt eine neue Baureihe vor (mode new) oder korrigiert eine Baureihe (mode correction); die Wikidata-Kennung wird geprüft, und eine bereits vorhandene Baureihe verweist auf ihre Korrektur.',
         'review_title' => 'Einen Beitrag sichten',
         'review_intro' => 'Nur für Prüfer und Administratoren. Eine Ablehnung braucht eine Begründung von mindestens 5 Zeichen, die der Autor erhält. Mit APPROVE veröffentlicht die zweite Freigabe den Beitrag und löst den Webhook contribution.applied aus.',
         'errors_title' => 'Fehler',
@@ -246,6 +249,7 @@ return [
             'level_crossings' => 'Bahnübergänge laut SNCF Réseau, nach Strecke, Art, Gemeinde oder Ausschnitt, mit Klasse und Streckenkilometer.',
             'line_profile' => 'Höhenprofil einer Strecke: Höhen entlang der Trasse, Anstieg und Gefälle, größte Neigung und Höhe der Bahnhöfe.',
             'line_greenways' => 'Bahntrassenradwege aus OpenStreetMap auf der früheren Trasse einer stillgelegten oder abgebauten Strecke, mit der auf der Trasse gemessenen Länge und der Quelle.',
+            'line_archives' => 'In Gallica digitalisierte Dokumente, deren Titel eine Strecke nennt, mit Link zu Gallica, Datum, Art und Zuordnungswert.',
             'line_materials' => 'Baureihen einer Strecke mit den Jahren ihres Einsatzes, wenn eine Quelle sie datiert, und dem Link zu dieser Quelle.',
             'locate_on_line' => 'Kilometerpunkt eines Ortes aus seinen Koordinaten auf der Trasse einer Strecke.',
             'signalling_history' => 'Datierte Inbetriebnahmen der Signalisierung einer Strecke aus Wikipedia und die in einem Zeitraum geltenden Systeme, wie auf der Karte.',

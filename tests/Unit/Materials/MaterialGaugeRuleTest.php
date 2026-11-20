@@ -94,6 +94,28 @@ class MaterialGaugeRuleTest extends TestCase
         yield 'autre écartement' => ['la ligne à voie métrique', 1435, false];
         yield 'nombre dans un autre nombre' => ['21 435 mm', 1435, false];
         yield 'série seule' => ['les autorails X 73500', 1435, false];
+        yield 'anglais' => ['laid to standard gauge in 1960', 1435, true];
+        yield 'anglais, voie métrique' => ['the metre-gauge network', 1000, true];
+        yield 'anglais, milliers' => ['a 1,435 mm track', 1435, true];
+        yield 'allemand' => ['auf Normalspur umgebaut', 1435, true];
+        yield 'allemand, mot composé' => ['das Meterspurgleis', 1000, true];
+        yield 'voie ibérique' => ['en voie ibérique', 1668, true];
+    }
+
+    public function test_a_corrected_gauge_is_judged_with_the_new_value(): void
+    {
+        $rule = $this->rule()->withMaterialGauge(self::X_74500, 1435);
+
+        $this->assertNotNull($rule->conflict(self::SALBRIS_ARGENT, self::X_74500), 'série passée à 1 435 mm sur une ligne métrique');
+        $this->assertNull($this->rule()->conflict(self::SALBRIS_ARGENT, self::X_74500), 'la règle d’origine ne change pas');
+        $this->assertNull($rule->withMaterialGauge(self::X_74500, null)->conflict(self::SALBRIS_ARGENT, self::X_74500), 'écartement inconnu : pas jugé');
+    }
+
+    public function test_mentions_give_their_position(): void
+    {
+        // Position en octets (« à » en compte deux) et longueur de « voie normale ».
+        $this->assertSame([[16, 12]], MaterialGaugeRule::gaugeMentions('la ligne est à voie normale', 1435));
+        $this->assertSame([], MaterialGaugeRule::gaugeMentions('voie métrique', 1435));
     }
 
     #[DataProvider('gaugeNames')]

@@ -128,6 +128,7 @@ return [
             'line_level_crossings' => 'Passages à niveau d’une ligne dans l’ordre des points kilométriques, avec leur nombre par type.',
             'level_crossings_tiles' => 'Tuile vectorielle (MVT) des passages à niveau, à partir du zoom 9.',
             'line_greenways' => 'Voies vertes d’OpenStreetMap sur l’ancienne emprise d’une ligne, avec la longueur commune, le lien OSM, la provenance et la licence ODbL.',
+            'line_archives' => 'Documents numérisés dans Gallica (BnF) dont le titre désigne la ligne : titre, date et sa précision, type, auteurs, cote, lien vers Gallica et raisons du rattachement. Métadonnées de la BnF sous Licence Ouverte, aucune image.',
             'greenways_tiles' => 'Tuile vectorielle (MVT) des voies vertes sur d’anciennes emprises, à partir du zoom 4.',
             'signalling_tiles' => 'Tuile vectorielle (MVT) des tranches de signalisation placées sur le tracé, pour le réseau d’aujourd’hui.',
             'stations' => 'Annuaire des gares, haltes et points d’arrêt, actuels et disparus.',
@@ -176,7 +177,7 @@ return [
     // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).
     'contribute' => [
         'title' => 'Contribuer par GraphQL',
-        'intro' => 'Deux mutations reprennent les formulaires du site. submitContribution envoie une proposition : une portion de ligne modifiée entre deux PK, un tracé dessiné, un événement daté ou une image. validateContribution l’approuve ou la refuse. Il faut un compte, et les règles sont celles du site : deux approbations de validateurs différents pour publier, un motif pour chaque refus, et personne ne relit sa propre contribution.',
+        'intro' => 'Deux mutations reprennent les formulaires du site. submitContribution envoie une proposition : une portion de ligne modifiée entre deux PK, un tracé dessiné, un événement daté, une image, le matériel d’une ligne ou une série de matériel. validateContribution l’approuve ou la refuse. Il faut un compte, et les règles sont celles du site : deux approbations de validateurs différents pour publier, un motif pour chaque refus, et personne ne relit sa propre contribution.',
         'auth_title' => 'Authentification',
         'auth' => [
             'token' => 'Avec un jeton personnel, créé dans votre profil avec la case « Autoriser les contributions par l’API » cochée. Un jeton sans cette case reçoit l’erreur insufficient_scope.',
@@ -188,6 +189,8 @@ return [
         'response_caption' => 'Réponse',
         'media_title' => 'Proposer un événement ou une image',
         'media_intro' => 'Un événement daté passe par input.event, une image par input.media. Une image de Wikimedia Commons ne demande que son adresse (commons_url). Un fichier déposé part en multipart/form-data, selon la spécification GraphQL multipart request : le champ operations porte la requête avec file à null, le champ map indique la variable qui reçoit le fichier, et le fichier suit. VFF retire ses métadonnées avant de l’enregistrer.',
+        'material_title' => 'Proposer du matériel',
+        'material_intro' => 'input.line_material relie une série à une ligne, avec la source et, si elle la donne, la période de service. Quand le lien contredit la règle d’écartement ou d’électrification, quote doit citer la phrase de la source qui nomme l’écartement ou la tension : sans elle, la saisie est refusée et le message explique le conflit. input.series propose une nouvelle série (mode new) ou corrige une série (mode correction) ; son identifiant Wikidata est vérifié, et une série déjà présente renvoie vers sa correction.',
         'review_title' => 'Relire une contribution',
         'review_intro' => 'Réservé aux validateurs et aux administrateurs. Un refus demande un motif de 5 caractères au moins, transmis à l’auteur. Avec APPROVE, la deuxième approbation publie la contribution et déclenche le webhook contribution.applied.',
         'errors_title' => 'Erreurs',
@@ -247,6 +250,7 @@ return [
             'level_crossings' => 'Passages à niveau publiés par SNCF Réseau, par ligne, type, commune ou emprise, avec leur classe et leur point kilométrique.',
             'line_profile' => 'Profil en long d’une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte et altitude des gares.',
             'line_greenways' => 'Voies vertes d’OpenStreetMap sur l’ancienne emprise d’une ligne fermée ou disparue, avec la longueur mesurée sur l’emprise et la source.',
+            'line_archives' => 'Documents numérisés dans Gallica dont le titre désigne une ligne, avec le lien vers Gallica, la date, le type et le score de rattachement.',
             'line_materials' => 'Séries de matériel roulant d’une ligne, avec leurs années de circulation quand une source les date, et le lien vers cette source.',
             'locate_on_line' => 'Point kilométrique d’un lieu donné par ses coordonnées, sur le tracé d’une ligne.',
             'signalling_history' => 'Mises en service de signalisation datées d’une ligne, relevées dans Wikipédia, et celles en vigueur à une époque, comme sur la carte.',

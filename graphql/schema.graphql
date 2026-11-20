@@ -182,6 +182,20 @@ type Line {
     greenway_length_m: Int! @field(resolver: "App\\GraphQL\\Resolvers\\LineGreenwayField@length")
 
     """
+    Documents d'archives numérisés dans Gallica (Bibliothèque nationale de France) dont le titre parle
+    de la ligne, du plus ancien au plus récent (sans date en dernier), comme
+    `GET /api/v1/lines/{line}/archives` : projets, plans et cartes du tracé, mémoires, guides,
+    photographies. Rattachement par un score explicable calculé sur le seul titre de la notice
+    (`LineArchiveDocument.score_reasons`), retenu à partir de 9 points sur 11 ; liste vide si aucun
+    document n'est sûr. Métadonnées des notices de la BnF sous Licence Ouverte : reprenez la mention
+    `LineArchiveDocument.attribution`. Aucune image ni vignette n'est servie : suivez `gallica_url`.
+    """
+    archives(
+        "Ne garder qu'un type de document. Par défaut : tous."
+        type: ArchiveDocumentType @where(key: "doc_type")
+    ): [LineArchiveDocument!]! @hasMany(relation: "archiveDocuments")
+
+    """
     Mises en service de signalisation datées (BAL, BAPR, block manuel, cantonnement téléphonique, TVM,
     ETCS, KVB), relevées dans l'article Wikipédia de la ligne (texte, listes, tableaux, infobox), du plus
     ancien au plus récent. C'est un historique à part : l'état actuel de la ligne (SNCF Réseau) est donné
@@ -984,7 +998,7 @@ type Material {
     "Nombre de lignes de VFF que la série a parcourues d'après une source (voir `line_links`)."
     lines_count: Int! @field(resolver: "App\\GraphQL\\Resolvers\\MaterialField")
 
-    "Provenance de la fiche : `wikidata`, ou nulle pour une fiche saisie dans VFF."
+    "Provenance de la fiche : `wikidata`, `contrib` (série proposée par un contributeur et validée), ou nulle pour une fiche saisie dans VFF."
     source: String
 
     "Fournisseur de la fiche et sa licence (Wikidata : CC0). L'image a sa propre licence (`image`)."
@@ -1131,7 +1145,7 @@ type MaterialFieldSource {
     "Nom du champ (ex. `in_service_from`, `max_speed_kmh`, `image`)."
     field: String!
 
-    "Source : `wikidata`, `commons` (image) ou `wikipedia` (catégorie ou infobox de l'article : catégorie « bimode », effectif en service ; ou circulation en France d'une série non rattachée)."
+    "Source : `wikidata`, `commons` (image), `wikipedia` (catégorie ou infobox de l'article : catégorie « bimode », effectif en service ; ou circulation en France d'une série non rattachée) ou `contrib` (valeur proposée par un contributeur et validée, référence `contribution:<id>`, `url` : source qu'il cite)."
     source: String!
 
     "Référence précise : élément et propriété Wikidata (ex. `Q746572#P729`), fichier Commons, catégorie Wikipédia, ou article et paramètre de l'infobox (ex. `Régiolis#infobox:Type`)."
@@ -1172,7 +1186,11 @@ type LineMaterialLink {
     "La série de matériel."
     material: Material! @belongsTo
 
-    "Provenance du lien : `wikidata`, `wikipedia`, ou nulle pour un lien saisi dans VFF."
+    """
+    Provenance du lien : `wikidata`, `wikipedia`, `contrib` (proposé par des contributeurs avec leur
+    source et validé par deux relecteurs), ou nulle pour un lien saisi dans VFF. Un même couple ligne ×
+    série peut avoir un lien par provenance.
+    """
     source: String
 
     "Permalien de la source la plus forte (révision Wikipédia `oldid` ou élément Wikidata) : à citer."
@@ -1181,7 +1199,9 @@ type LineMaterialLink {
     """
     Fiabilité : `high` (Wikidata, ou section « Matériel roulant » de l'article de la ligne),
     `medium` (autre section), `low` (à confirmer : article qui décrit plusieurs lignes de VFF à la
-    fois, ou preuves qui portent toutes un doute, voir `LineMaterialEvidence.doubt`).
+    fois, ou preuves qui portent toutes un doute, voir `LineMaterialEvidence.doubt`). Lien `contrib` :
+    `high` dès qu'une contribution déclare un service régulier, `low` si toutes parlent d'une
+    circulation exceptionnelle, d'essais ou d'un train de musée.
     """
     confidence: String
 
@@ -1239,20 +1259,20 @@ type LineMaterialPeriod {
     "Fiabilité : `high` (chaque date au jour ou au mois) ou `medium` (une date à l'année). Les périodes `low` ne sont jamais servies."
     confidence: String!
 
-    "Où le fait a été lu : `line_article` (article de la ligne), `material_article` (article de la série) ou `wikidata`."
+    "Où le fait a été lu : `line_article` (article de la ligne), `material_article` (article de la série), `wikidata` ou `contribution` (proposée par un contributeur avec sa source, validée par deux relecteurs)."
     origin: String!
 
-    "Fournisseur de la source : `wikipedia` ou `wikidata`."
+    "Fournisseur de la source : `wikipedia`, `wikidata` ou `contrib` (contribution validée)."
     source: String!
 
-    "Titre de l'article Wikipédia lu, ou élément Wikidata de la ligne (`Q…`)."
+    "Titre de l'article Wikipédia lu, élément Wikidata de la ligne (`Q…`), ou titre et licence de la source d'une contribution."
     source_title: String
 
-    "Révision de l'article lue (`oldid`), nulle pour Wikidata."
+    "Révision de l'article lue (`oldid`), nulle pour Wikidata et les contributions."
     source_revision: Int
 
-    "Permalien de la source (révision Wikipédia ou élément Wikidata) : à citer."
-    source_url: String!
+    "Permalien de la source (révision Wikipédia, élément Wikidata, adresse citée par le contributeur) : à citer. Nul seulement pour une contribution qui cite un ouvrage ou une archive papier par sa référence (`source_title`)."
+    source_url: String
 
     "Fournisseur et licence de la source."
     provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialPeriodField")
@@ -1263,8 +1283,20 @@ Une preuve d'un lien ligne × matériel. Les phrases citées sont des extraits d
 (CC BY-SA 4.0) : citez l'article avec le permalien `url`.
 """
 type LineMaterialEvidence {
-    "`wikipedia_line_article` (lien vers la série dans l'article de la ligne), `wikipedia_material_article` (lien vers la ligne dans l'article de la série) ou `wikidata`."
+    "`wikipedia_line_article` (lien vers la série dans l'article de la ligne), `wikipedia_material_article` (lien vers la ligne dans l'article de la série), `wikidata` ou `contribution` (contribution validée)."
     kind: String!
+
+    "Provenance d'une preuve `contribution` : `contribution:<id>`."
+    contribution: String
+
+    "Titre ou référence de la source citée par une contribution (ex. « Livret Chaix d'été 1938, p. 112 »)."
+    title: String
+
+    "Nature de la source citée par une contribution : `web`, `document` (document numérisé) ou `print` (ouvrage ou archive papier)."
+    source_kind: String
+
+    "Licence du document cité par une contribution (`public_domain`, `cc-by-sa-4.0`, `all_rights_reserved`…), nulle pour une page web ou un ouvrage papier."
+    license: String
 
     "Titre de l'article Wikipédia lu."
     article: String
@@ -1300,7 +1332,9 @@ type LineMaterialEvidence {
     `positioning` (acheminement vers un atelier), `diverted` (coupure, détournement), `restricted`
     (matériel réservé à une autre ligne), `component` (pièce reprise de la série), `footnote` (lien
     posé dans une note ou un passage sans source), `section` (section d'essais, de records ou de
-    préservation). Un lien dont toutes les preuves portent un doute est en fiabilité `low`.
+    préservation). Un lien dont toutes les preuves portent un doute est en fiabilité `low`. Pour une
+    contribution, la circulation déclarée : `one_off` (exceptionnelle), `trial` (essais), `preserved`
+    (train de musée ou touristique), nul pour un service régulier.
     """
     doubt: String
 
@@ -1764,6 +1798,99 @@ type LineGreenway {
 
     "Fournisseur et licence de la donnée (OpenStreetMap, ODbL)."
     provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineGreenwayField@provenance")
+}
+
+"Type d'un document d'archives, d'après la notice de la BnF."
+enum ArchiveDocumentType {
+    "Texte imprimé : livre, brochure, mémoire, rapport, guide."
+    MONOGRAPH @enum(value: "monograph")
+
+    "Document cartographique : carte, plan, profil en long."
+    MAP @enum(value: "map")
+
+    "Image fixe : photographie, estampe, affiche, carte postale."
+    IMAGE @enum(value: "image")
+
+    "Manuscrit."
+    MANUSCRIPT @enum(value: "manuscript")
+}
+
+"""
+Document d'archives numérisé en accès libre dans Gallica, rattaché à une ligne d'après le titre de sa
+notice au catalogue général de la BnF (`vff:import-gallica`). Seules les métadonnées de la notice
+(Licence Ouverte) sont gardées par VFF, avec les identifiants ark ; le document lui-même se consulte
+dans Gallica, et sa réutilisation suit les conditions d'utilisation de Gallica (non commerciale libre
+avec la mention « Source gallica.bnf.fr / BnF », commerciale soumise à redevance).
+"""
+type LineArchiveDocument {
+    "Identifiant ark du document numérisé dans Gallica (ex. `ark:/12148/bpt6k1192344q`)."
+    gallica_ark: String!
+
+    "Lien vers le document dans Gallica."
+    gallica_url: String!
+
+    "Identifiant ark de la notice au catalogue général de la BnF (ex. `ark:/12148/cb315821610`), nul s'il manque."
+    catalogue_ark: String
+
+    "Lien vers la notice au catalogue général de la BnF."
+    catalogue_url: String
+
+    "Titre propre de la notice, suivi de son premier complément après « : »."
+    title: String!
+
+    "Type de document : `monograph` (texte imprimé), `map` (carte, plan), `image` (image fixe) ou `manuscript`."
+    type: String! @rename(attribute: "doc_type")
+
+    "Auteurs, illustrateurs, éditeurs scientifiques ou collectivités, tels que la notice les écrit (« Villemandy, Alfred de ») ; quatre au plus."
+    authors: [String!]!
+
+    "Date telle que la notice l'imprime (« 1860 », « [ca 1850] », « 1er novembre 1873 »), nulle si la notice n'en donne pas."
+    date_label: String
+
+    "Année du document (première année d'un intervalle), nulle si elle est inconnue."
+    year: Int
+
+    "Dernière année d'un intervalle (`date_precision` = `range`), nulle sinon."
+    year_to: Int
+
+    "Jour exact (précision `day`) ou premier jour du mois (précision `month`), quand la notice le donne."
+    exact_date: Date
+
+    "Précision de la date : `day`, `month`, `year`, `circa` (date approchée), `range` (entre `year` et `year_to`) ou `unknown`."
+    date_precision: String!
+
+    "Cote de l'original à la BnF (ex. `V-54984`, `GE C-4520`), nulle si la notice n'en donne pas."
+    shelfmark: String
+
+    "Score de rattachement à la ligne, de 9 (seuil) à 11."
+    score: Int!
+
+    "Raisons du score, point par point : `rail_route` (4), `route` (3) ou `two_places` (1, plus `only_line_places` (1) si le titre ne nomme aucun lieu hors de la ligne), `ends` (2) ou `secondary_mention` (0), `rail_word` (2) ou `rail_hint` (1), `date_in_life` (2), `date_project` (1), `date_after_closure` (1), `date_unknown` (0) ou `date_doubtful` (0, année imprimée dans le titre à plus de 40 ans de la date de la notice), `doc_type` (1)."
+    score_reasons: [ArchiveMatchReason!]!
+
+    "Lieux de la ligne reconnus dans le titre."
+    matched_places: [String!]!
+
+    "Dernière mise à jour de la notice à la BnF."
+    record_updated_on: Date
+
+    "Date de récupération de la notice par VFF (à citer avec la source)."
+    fetched_at: DateTime!
+
+    "Mention de source à reproduire : « Source : gallica.bnf.fr / BnF », Licence Ouverte pour les métadonnées."
+    attribution: String! @field(resolver: "App\\GraphQL\\Resolvers\\LineArchiveField@attribution")
+
+    "Fournisseur et licence de la donnée (Gallica, BnF)."
+    provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineArchiveField@provenance")
+}
+
+"Une raison du score de rattachement d'un document d'archives."
+type ArchiveMatchReason {
+    "Code de la raison : `rail_route` (voie ferrée « de X à Y »), `route` (trajet « de X à Y »), `two_places`, `only_line_places`, `ends`, `secondary_mention`, `rail_word`, `rail_hint`, `date_in_life`, `date_project`, `date_after_closure`, `date_unknown`, `date_doubtful` ou `doc_type`."
+    code: String!
+
+    "Points apportés au score."
+    points: Int!
 }
 
 "Un way OpenStreetMap d'une voie verte, avec sa part sur l'ancienne emprise de la ligne."
@@ -3829,9 +3956,10 @@ type TerritoryCounts {
 #
 
 """
-Mutations de contribution : proposer une modification, un événement daté ou une image, puis la
-relire, avec les mêmes règles que le site (`/contribute`, éditeur de tracé, formulaires
-`/contribute/event` et `/contribute/media`, espace de validation `/validate`).
+Mutations de contribution : proposer une modification, un événement daté, une image, le matériel
+d'une ligne ou une série de matériel, puis la relire, avec les mêmes règles que le site
+(`/contribute`, éditeur de tracé, formulaires `/contribute/event`, `/contribute/media`,
+`/contribute/material` et `/contribute/series`, espace de validation `/validate`).
 
 **Authentification**, l'une ou l'autre :
 - jeton personnel dans l'en-tête `Authorization: Bearer <jeton>`, créé dans le profil avec la case
@@ -3866,10 +3994,16 @@ dans `extensions.code` (messages en anglais) :
 - `application_failed` : la publication a échoué, rien n'est écrit et l'approbation est annulée ;
   `extensions.reason` donne la raison stable : `no_geometry` (la ligne n'a pas de tracé à l'ère de la
   contribution), `line_not_found` (la ligne que corrige le tracé n'existe plus), `target_not_found`
-  (la ligne, la gare ou l'événement d'un événement daté ou d'une image n'existe plus),
-  `already_present` (le fichier Commons a été rattaché entre-temps à la même fiche), `file_missing`
-  (le fichier déposé n'est plus dans la réserve privée) ou `internal_error` (erreur inattendue,
-  consignée dans le journal du site ; son détail n'est jamais renvoyé).
+  (la ligne, la gare, l'événement ou la série visée n'existe plus), `already_present` (le fichier
+  Commons a été rattaché entre-temps à la même fiche, ou une série du même nom ou du même identifiant
+  Wikidata a été ajoutée entre-temps), `file_missing` (le fichier déposé n'est plus dans la réserve
+  privée), `incompatible` (le lien entre la série et la ligne contredit maintenant la règle
+  d'écartement ou d'électrification, et la phrase citée ne suffit plus ; ou la correction d'une série
+  rendrait des liens de cette série contraires à ces règles), `stale` (la série corrigée a changé
+  depuis l'envoi), `inconsistent` (avec la correction, le retrait viendrait avant la mise en service)
+  ou `internal_error` (erreur inattendue, consignée dans le journal du site ; son détail n'est jamais
+  renvoyé). `extensions.details` donne les précisions utiles au validateur (champs changés, liens
+  concernés), vide sinon.
 
 Une saisie refusée donne une erreur de validation : `extensions.validation` associe le chemin du
 champ (par exemple `input.segment.pk_end_m`) à ses messages.
@@ -3882,13 +4016,14 @@ type Mutation {
     Propose une contribution, enregistrée « en attente » (`PENDING`) puis annoncée aux validateurs.
     Elle est publiée après deux approbations indépendantes (`validateContribution`).
 
-    Renseignez exactement un des quatre champs de `input` : `segment` (modification d'une portion de
+    Renseignez exactement un des six champs de `input` : `segment` (modification d'une portion de
     ligne entre deux PK), `trace` (tracé dessiné : ligne disparue ou correction d'une ligne), `event`
-    (événement daté d'une ligne) ou `media` (image de Wikimedia Commons ou fichier déposé, en requête
-    multipart). Le compte doit être connecté et non suspendu.
+    (événement daté d'une ligne), `media` (image de Wikimedia Commons ou fichier déposé, en requête
+    multipart), `line_material` (série de matériel qui a circulé sur une ligne) ou `series` (nouvelle
+    série de matériel ou correction d'une série). Le compte doit être connecté et non suspendu.
     """
     submitContribution(
-        "La proposition : un seul de ses quatre champs."
+        "La proposition : un seul de ses six champs."
         input: ContributionInput!
     ): Contribution! @field(resolver: "App\\GraphQL\\Mutations\\SubmitContribution")
 
@@ -3915,7 +4050,7 @@ type Mutation {
     ): ContributionReview! @field(resolver: "App\\GraphQL\\Mutations\\ValidateContribution")
 }
 
-"Une proposition de contribution : renseignez exactement un des quatre champs."
+"Une proposition de contribution : renseignez exactement un des six champs."
 input ContributionInput {
     "Modification d'attributs d'une portion de ligne entre deux PK, à une ère."
     segment: SegmentContributionInput
@@ -3928,6 +4063,180 @@ input ContributionInput {
 
     "Image rattachée à une ligne, une gare ou un événement : fichier de Wikimedia Commons ou fichier déposé."
     media: MediaContributionInput
+
+    "Série de matériel qui a circulé sur une ligne, avec sa source et sa période de service."
+    line_material: LineMaterialContributionInput
+
+    "Nouvelle série de matériel, ou correction d'une série de VFF, avec sa source."
+    series: MaterialSeriesContributionInput
+}
+
+"""
+Série de matériel qui a circulé sur une ligne, comme dans le formulaire « Proposer un matériel sur
+une ligne » du site (`/contribute/material`).
+
+À l'envoi, les règles d'écartement et d'électrification de l'import s'appliquent : une série dont
+l'écartement couvre moins du quart de la ligne, ou une série électrique dont aucun système n'a
+couvert 5 % de la ligne pendant son service, est refusée (erreur sur `quote`, qui explique le
+conflit). Le lien n'est accepté que si `quote` cite une phrase de la source qui nomme l'écartement
+(« voie normale », « 1 435 mm ») ou la tension de la série (« 750 V »), comme les automotrices
+Z 1200 sur la ligne des Moulineaux (troisième rail en 750 V). L'exception est alors signalée aux
+validateurs. Un lien déjà sûr dans VFF n'est accepté qu'avec une période de service.
+
+À la publication, le lien entre dans `LineMaterialLink` (source `contrib`, preuve `contribution`,
+provenance `contribution:<id>`) et la période dans `LineMaterialPeriod` (origine `contribution`).
+Aucun import n'est relancé.
+"""
+input LineMaterialContributionInput {
+    "Identifiant d'URL de la ligne (ex. `rfn-972000`)."
+    line_slug: String!
+
+    "Identifiant d'URL de la série (ex. `z-1200`, voir `Material.slug`)."
+    material_slug: String!
+
+    """
+    Nature de la circulation d'après la source : `regular` (service régulier), `occasional`
+    (circulation exceptionnelle ou spéciale), `trial` (essais) ou `heritage` (train de musée ou
+    touristique). Hors service régulier, le lien est publié en fiabilité `low` (à confirmer).
+    """
+    circulation: String!
+
+    "Précision du début de la période de service : `day`, `month` ou `year` ; à donner avec `start_date`."
+    start_precision: String
+
+    "Début de la période selon sa précision : `AAAA-MM-JJ`, `AAAA-MM` ou `AAAA` (années 1750 et suivantes)."
+    start_date: String
+
+    "Précision de la fin de la période : `day`, `month` ou `year` ; à donner avec `end_date`."
+    end_precision: String
+
+    "Fin de la période selon sa précision, au plus tôt le début. Sans début ni fin, aucune période n'est publiée."
+    end_date: String
+
+    "Début de la portion parcourue, quand la source la précise (gare, commune), 250 caractères au plus ; à donner avec `section_to` et une date."
+    section_from: String
+
+    "Fin de la portion parcourue, différente de `section_from`."
+    section_to: String
+
+    "Nature de la source : `web` (page web), `document` (document numérisé) ou `print` (ouvrage ou archive papier)."
+    source_kind: String!
+
+    "Titre ou référence de la source, de 3 à 300 caractères (ex. « Livret Chaix d'été 1938, p. 112 »)."
+    source_title: String!
+
+    "Adresse de la source, en http ou https, 500 caractères au plus : obligatoire sauf avec `print`."
+    source_url: String
+
+    """
+    Licence du document, obligatoire avec `document` et ignorée sinon : `public_domain`, `cc0-1.0`,
+    `cc-by-4.0`, `cc-by-sa-4.0`, `etalab-2.0`, `all_rights_reserved` ou `unknown`.
+    """
+    source_license: String
+
+    """
+    Phrase de la source qui montre la circulation, de 10 à 600 caractères (comptés après la réduction
+    des espaces). Facultative, sauf quand le lien contredit la règle d'écartement ou d'électrification :
+    elle doit alors nommer la série (nom ou désignation) et son écartement ou sa tension, en français,
+    en anglais ou en allemand, sans négation autour (« jamais », « pas », « sans », « aucun », « never »,
+    « not », « nicht », « kein »…). Publiée avec le lien (`LineMaterialEvidence.quote`). Un couple
+    écarté après relecture (exclusion relue de VFF) est refusé, comme une période déjà publiée pour
+    le couple par une contribution.
+    """
+    quote: String
+
+    "Note pour les validateurs, non publiée, 2 000 caractères au plus."
+    notes: String
+}
+
+"""
+Nouvelle série de matériel (`new`) ou correction d'une série de VFF (`correction`), comme dans le
+formulaire « Proposer une série » du site (`/contribute/series`).
+
+`wikidata_id` est vérifié auprès de Wikidata, seulement s'il change : un élément qui n'existe pas, ou
+qui n'est pas une série de matériel roulant, est refusé. Une nouvelle série prend l'identifiant final
+d'un élément fusionné ; une correction refuse un élément fusionné en donnant son identifiant final, à
+saisir s'il convient (l'identifiant d'une série ne change jamais sans qu'on le demande). Une nouvelle
+série déjà présente dans VFF (même identifiant Wikidata, même nom) est refusée : proposez la
+correction de sa fiche. Pour une correction, un champ absent ou nul ne change pas, `clear` efface
+une valeur fausse, et seuls les champs qui changent sont gardés (`payload.changes`, `after` nul pour
+un effacement). `payload.impact` liste les liens de la série qui deviendraient contraires à la règle
+d'écartement ou d'électrification (`line_slug`, `line_code`, `line_name`, `source`, `rule`, `reason`).
+
+À la publication, la série est créée ou corrigée ; chaque champ écrit a la provenance `contrib`
+(`Material.field_sources`), que l'import de Wikidata ne remplace pas (ni ne remplit de nouveau après
+un effacement). Une correction échoue (`application_failed`) si un champ a changé depuis l'envoi
+(`stale`), si le retrait viendrait avant la mise en service (`inconsistent`) ou si elle rendrait des
+liens de la série contraires aux règles (`incompatible`, liens dans `extensions.details`).
+Limite propre : 10 propositions de série par minute et par compte, communes avec le site
+(`too_many_requests` au-delà).
+"""
+input MaterialSeriesContributionInput {
+    "`new` (nouvelle série) ou `correction` (série de VFF désignée par `material_slug`)."
+    mode: String!
+
+    "Avec `correction` : identifiant d'URL de la série à corriger (ex. `z-1200`)."
+    material_slug: String
+
+    "Nom d'usage de la série, de 2 à 120 caractères (ex. « Z 1200 ») ; obligatoire avec `new`."
+    name: String
+
+    """
+    Catégorie, qui dit aussi la traction : `locomotive_electrique`, `locomotive_diesel`,
+    `locomotive_vapeur`, `automotrice`, `bimode`, `autorail`, `rame_tgv`, `voiture`, `wagon`,
+    `tramway` ou `engin_service` ; obligatoire avec `new`.
+    """
+    type: String
+
+    """
+    Systèmes d'électrification de la série, sans doublon : `dc_600`, `dc_750`, `dc_850`, `dc_1500`,
+    `dc_3000` (courant continu, en volts), `ac_15k` (15 kV 16,7 Hz), `ac_20k` (20 kV 50 Hz) ou
+    `ac_25k` (25 kV 50 Hz). Vide ou absent : inchangé pour une correction.
+    """
+    electrification: [String!]
+
+    """
+    Écartements de la série en millimètres, sans doublon, quatre au plus (ex. `[1435, 1668]` pour une
+    série à deux écartements) : `1435`, `1000`, `600`, `1668`, `1520`, ou un écartement que porte déjà
+    une série de VFF (`891`, `1588`…). Vide ou absent : inchangé pour une correction.
+    """
+    gauges: [Int!]
+
+    "Forme courte d'un seul écartement (`gauges` = `[gauge_mm]`), mêmes valeurs ; jamais avec `gauges`."
+    gauge_mm: Int
+
+    "Constructeurs, séparés par des virgules (ex. « Alsthom, Francorail-MTE »), de 2 à 255 caractères."
+    builder: String
+
+    "Année de mise en service, de 1800 à l'année en cours plus 30."
+    in_service_from: Int
+
+    "Année de retrait du service, au plus tôt celle de la mise en service."
+    in_service_to: Int
+
+    "Identifiant Wikidata de la série (`Q3574398`) ou adresse de l'élément, facultatif, vérifié auprès de Wikidata s'il change."
+    wikidata_id: String
+
+    """
+    Avec `correction` : champs à effacer, sans valeur donnée à côté : `builder`, `in_service_from`,
+    `in_service_to`, `gauges` ou `electrification`.
+    """
+    clear: [String!]
+
+    "Nature de la source : `web` (page web), `document` (document numérisé) ou `print` (ouvrage ou archive papier)."
+    source_kind: String!
+
+    "Titre ou référence de la source, de 3 à 300 caractères."
+    source_title: String!
+
+    "Adresse de la source, en http ou https, 500 caractères au plus : obligatoire sauf avec `print`."
+    source_url: String
+
+    "Licence du document, obligatoire avec `document` et ignorée sinon (mêmes valeurs que `EventContributionInput.source_license`)."
+    source_license: String
+
+    "Note pour les validateurs, non publiée, 2 000 caractères au plus."
+    notes: String
 }
 
 """
@@ -4251,14 +4560,20 @@ enum ContributionType {
 
     "Image (fichier de Wikimedia Commons ou fichier déposé)."
     MEDIA @enum(value: "media")
+
+    "Série de matériel qui a circulé sur une ligne."
+    LINE_MATERIAL @enum(value: "line_material")
+
+    "Nouvelle série de matériel ou correction d'une série."
+    MATERIAL_SERIES @enum(value: "material_series")
 }
 
 "Nature d'une contribution."
 enum ContributionAction {
-    "Création (nouvelle ligne, événement daté, image)."
+    "Création (nouvelle ligne, événement daté, image, lien de matériel, nouvelle série)."
     CREATE @enum(value: "create")
 
-    "Modification d'une ligne existante."
+    "Modification d'une ligne ou d'une série existante."
     UPDATE @enum(value: "update")
 
     "Suppression."
@@ -4318,6 +4633,9 @@ type Contribution {
     "Gare visée par une image rattachée à une gare ; nulle sinon."
     station: Station
 
+    "Série visée : série corrigée, série créée une fois publiée, ou série d'un lien `LINE_MATERIAL` ; nulle sinon."
+    material: Material
+
     """
     Proposition enregistrée, normalisée par le serveur (mêmes clés que sur le site) : pour
     `LINE_SEGMENT`, `line_code`, `line_name`, `era_year`, `pk_start_m`, `pk_end_m`, `changes`,
@@ -4329,7 +4647,16 @@ type Contribution {
     `target_type` et la fiche, puis `commons` (métadonnées lues sur Commons) ou, pour un fichier
     déposé, `title`, `author`, `license`, `captured`, `place`, `location` et `file` (type,
     dimensions, empreinte SHA-256, métadonnées retirées, jamais d'adresse publique avant la
-    publication) et, une fois publiée, `applied.media_id`.
+    publication) et, une fois publiée, `applied.media_id` ; pour `LINE_MATERIAL`, `line_slug`,
+    `material_id`, `material_slug`, `material_name`, `circulation`, `period` (`start` et `end` avec
+    `date` et `precision`, `from`, `to`, ou nulle), `source`, `quote`, `exception` (règle levée par
+    la phrase citée : `rule` `gauge` ou `traction`, `reason`), `excluded` (lien écarté à la relecture
+    de l'import, motif), `existing_link`, `notes` et, une fois publiée, `applied.line_material_id` et
+    `applied.period_id` ; pour `MATERIAL_SERIES`, `mode`, `material_name`, `values` (nouvelle série)
+    ou `changes` (correction : `before`, `after` par champ, `after` nul pour une valeur effacée),
+    `impact` (correction : liens que la correction rendrait contraires aux règles), `wikidata`
+    (élément vérifié : `id`, `label`, `description`), `source`, `notes` et, une fois publiée,
+    `applied.material_id`.
     """
     payload: JSON!
 

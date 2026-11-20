@@ -19,14 +19,20 @@ use App\Http\Controllers\LineController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\MapRouteController;
+use App\Http\Controllers\MaterialContributionController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MediaContributionController;
+use App\Http\Controllers\NetworkGraphAdminController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\TraceEditorController;
 use App\Http\Controllers\WebhookSubscriptionController;
 use App\Http\Middleware\SetLocale;
+use App\Services\Contributions\ContributionLimits;
+use App\Services\NetworkGraph\GraphDiagnostics;
+use App\Services\NetworkGraph\GraphFeatureDetails;
+use App\Services\NetworkGraph\GraphTiles;
 use App\Services\Reputation\ReputationLevels;
 use App\Services\Webhooks\WebhookSubscriptions;
 use Illuminate\Http\Request;
@@ -183,6 +189,16 @@ Route::middleware('auth')->group(function (): void {
     // Aperçu d'un fichier Commons (une requête à l'API de Commons) et fichier déposé en attente (auteur et validateurs).
     Route::get('/contribute/media/commons', [MediaContributionController::class, 'commons'])->middleware(['not.suspended', 'throttle:30,1'])->name('contribute.media.commons');
     Route::get('/contribute/media/{contribution}/file', [MediaContributionController::class, 'file'])->whereNumber('contribution')->name('contribute.media.file');
+    // Matériel sur une ligne et série de matériel (nouvelle ou corrigée), publiés après deux approbations ;
+    // contrôles avant l'envoi : compatibilité ligne × série et effet d'une correction de série sur ses liens (base
+    // seulement), identifiant Wikidata (une requête à Wikidata). Série et vérification : limites communes avec GraphQL.
+    Route::get('/contribute/material', [MaterialContributionController::class, 'createLink'])->middleware('not.suspended')->name('contribute.material.create');
+    Route::post('/contribute/material', [MaterialContributionController::class, 'storeLink'])->middleware(['not.suspended', 'throttle:20,1'])->name('contribute.material.store');
+    Route::get('/contribute/material/check', [MaterialContributionController::class, 'checkLink'])->middleware(['not.suspended', 'throttle:30,1'])->name('contribute.material.check');
+    Route::get('/contribute/series', [MaterialContributionController::class, 'createSeries'])->middleware('not.suspended')->name('contribute.series.create');
+    Route::post('/contribute/series', [MaterialContributionController::class, 'storeSeries'])->middleware(['not.suspended', 'throttle:'.ContributionLimits::SERIES])->name('contribute.series.store');
+    Route::get('/contribute/series/wikidata', [MaterialContributionController::class, 'wikidata'])->middleware(['not.suspended', 'throttle:'.ContributionLimits::WIKIDATA_LOOKUP])->name('contribute.series.wikidata');
+    Route::get('/contribute/series/impact', [MaterialContributionController::class, 'seriesImpact'])->middleware(['not.suspended', 'throttle:30,1'])->name('contribute.series.impact');
 
     // Éditeur de tracé sur fonds historiques IGN (lignes disparues / corrections)
     Route::prefix('contribute/trace')->name('contribute.trace.')->controller(TraceEditorController::class)->middleware('not.suspended')->group(function (): void {
@@ -208,4 +224,18 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/validate/accounts', [AccountModerationController::class, 'index'])->middleware('not.suspended')->name('validate.accounts.index');
     Route::post('/validate/accounts/{user}/suspension', [AccountModerationController::class, 'suspend'])->whereNumber('user')->middleware('not.suspended')->name('validate.accounts.suspend');
     Route::delete('/validate/accounts/{user}/suspension', [AccountModerationController::class, 'lift'])->whereNumber('user')->middleware('not.suspended')->name('validate.accounts.lift');
+    // Graphe ferroviaire d'une ère et ses diagnostics (administrateurs, UserPolicy::viewNetworkGraph ;
+    // pas dans l'API publique, voir docs/GRAPHE-ADMIN.md).
+    Route::prefix('validate/graph')->name('validate.graph.')->controller(NetworkGraphAdminController::class)->middleware('not.suspended')->group(function (): void {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{year}/diagnostics', 'diagnostics')->where('year', '[0-9]{1,4}')->name('diagnostics');
+        Route::get('/{year}/diagnostics/{check}', 'check')->where('year', '[0-9]{1,4}')
+            ->whereIn('check', GraphDiagnostics::CHECKS)->name('check');
+        Route::get('/{year}/tiles/{layer}/{z}/{x}/{y}.mvt', 'tile')
+            ->where(['year' => '[0-9]{1,4}', 'z' => '[0-9]{1,2}', 'x' => '[0-9]{1,7}', 'y' => '[0-9]{1,7}'])
+            ->whereIn('layer', GraphTiles::LAYERS)->name('tiles');
+        // Identifiant borné à 18 chiffres : au-delà, il ne tient plus dans un entier PHP (erreur 500).
+        Route::get('/{year}/features/{kind}/{id}', 'feature')->where(['year' => '[0-9]{1,4}', 'id' => '[0-9]{1,18}'])
+            ->whereIn('kind', GraphFeatureDetails::KINDS)->name('feature');
+    });
 });

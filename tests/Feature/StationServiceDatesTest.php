@@ -63,9 +63,11 @@ class StationServiceDatesTest extends TestCase
      */
     private function station(string $slug, int $pk, array $station, array $link): Station
     {
+        // Sans date d'ouverture donnée, la gare n'en a pas : la fabrique en tire une au hasard entre 1876 et 1976,
+        // et une année 1879 (celle de la ligne) annulait à bon droit le début de desserte, au hasard des tirages.
         $s = Station::factory()->create($station + [
             'slug' => $slug, 'name' => ucfirst($slug), 'type' => 'gare', 'geom' => Point::makeGeodetic(47.50, 2.00 + $pk / 100_000),
-            'status' => 'declassified', 'provenance' => [],
+            'status' => 'declassified', 'provenance' => [], 'opened_at' => null, 'opened_precision' => null,
         ]);
         DB::table('station_lines')->insert($link + ['station_id' => $s->id, 'line_id' => $this->line->id, 'method' => 'sncf_pk', 'pk_m' => $pk,
             'pk_source' => 'sncf', 'distance_m' => 0, 'years_source' => 'line_events', 'created_at' => now(), 'updated_at' => now()]);

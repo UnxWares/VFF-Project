@@ -167,6 +167,12 @@ mutation: ## Tests de mutation Infection (services purs critiques, 4 threads) : 
 		$(PHP) scripts/mutation-summary.php storage/app/reports/infection/infection.json; \
 		exit $$status
 
+.PHONY: mutation-critical
+mutation-critical: ## Tests de mutation des règles métier critiques (historique, gares, validation, matériel, images) : long, hors make check
+	@$(COMPOSER) test:mutation:critical; status=$$?; \
+		$(PHP) scripts/mutation-summary.php storage/app/reports/infection/critical/infection.json; \
+		exit $$status
+
 .PHONY: i18n
 i18n: ## Vérifie que chaque clé FR existe en EN et DE
 	$(PHP) artisan vff:i18n-check

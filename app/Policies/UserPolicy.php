@@ -14,6 +14,15 @@ class UserPolicy
     }
 
     /**
+     * Visualisation et diagnostics du graphe ferroviaire (/validate/graph) : administrateurs
+     * seulement, comme la liste des comptes. Les diagnostics ne sont pas publics.
+     */
+    public function viewNetworkGraph(User $actor): bool
+    {
+        return $actor->isAdmin() && ! $actor->isSuspended();
+    }
+
+    /**
      * Suppression d'un compte par son titulaire uniquement. Le dernier administrateur ne peut pas
      * supprimer le sien : le site resterait sans personne pour attribuer les rôles. Un compte
      * suspendu peut être supprimé (droit à l'effacement).

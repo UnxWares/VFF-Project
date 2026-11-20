@@ -224,6 +224,27 @@ php artisan test --parallel         # exécution parallèle
 - Les tests géo utilisent une vraie base Postgres+PostGIS (pas de mock) - voir `tests/TestCase.php`
 - Garder les tests rapides : factories légères, pas de seed massif
 
+### Tests de mutation
+
+Infection modifie le code (une condition inversée, une borne décalée…) et vérifie qu'au moins un test
+échoue. Deux périmètres, lancés à la main (longs, hors `make check` et hors CI bloquante) :
+
+```bash
+make mutation            # services purs de géométrie, de texte et de dates (infection.json5)
+make mutation-critical   # règles métier critiques (tests/Mutation/Critical/infection.json5)
+```
+
+`make mutation-critical` couvre le moteur de la carte historique (`EraTimeline`), la desserte des gares
+(`StationServiceClassifier`, `ServicePatternDetector`, `StationServiceDates`), la validation à deux des
+contributions (`ContributionReview`), les dates partielles (`PartialDate`), les énumérations, les règles
+du matériel (`MaterialGaugeRule`, `MaterialTractionRule`) et le nettoyage des images (`ImageSanitizer`).
+Compter un quart d'heure environ avec 4 fils. Les seuils `minMsi` et `minCoveredMsi` du fichier de
+configuration font échouer la commande si le score baisse : un nouveau test va dans `tests/Unit/Mutation`
+ou `tests/Feature/Mutation`, et un nouveau fichier de test d'une classe du périmètre s'ajoute à
+`tests/Mutation/Critical/phpunit.xml`. Un lot seul : `bin/composer test:mutation:critical -- --filter=Services/EraTimeline.php`.
+Base de test dédiée conseillée : `VFF_TEST_DB=vff_<sujet>_test make mutation-critical`. Rapports dans
+`storage/app/reports/infection/critical/`.
+
 ---
 
 ## Médias & archives

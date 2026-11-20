@@ -322,7 +322,8 @@ final class LineSheet
             'heritage' => $this->heritageOperations($line->id),
             // Par nom, dans l'ordre naturel (« BB 9200 » avant « BB 15000 », accents ignorés) ; périodes de
             // circulation sur la ligne datées par une source (vff:import-material-periods), les plus anciennes d'abord.
-            'materials' => $line->materials->sortBy(fn ($m): string => Str::ascii($m->name), SORT_NATURAL | SORT_FLAG_CASE)->values()->map(fn ($m) => [
+            // Une série reliée par plusieurs sources (import et contribution validée) n'apparaît qu'une fois.
+            'materials' => $line->materials->unique('id')->sortBy(fn ($m): string => Str::ascii($m->name), SORT_NATURAL | SORT_FLAG_CASE)->values()->map(fn ($m) => [
                 'slug' => $m->slug,
                 'name' => $m->name,
                 'type' => $m->type,

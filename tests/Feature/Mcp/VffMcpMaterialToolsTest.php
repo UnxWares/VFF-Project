@@ -4,6 +4,7 @@ namespace Tests\Feature\Mcp;
 
 use App\Models\Line;
 use App\Models\LineMaterial;
+use App\Models\LineMaterialPeriod;
 use App\Models\Material;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -45,6 +46,33 @@ class VffMcpMaterialToolsTest extends TestCase
         $text = $result['content'][0]['text'];
 
         return [json_decode($text, true) ?? ['raw' => $text], (bool) $result['isError']];
+    }
+
+    public function test_line_materials_lists_a_series_once_with_its_contributed_link_as_is(): void
+    {
+        $bb = Material::query()->where('slug', 'bb-15000')->firstOrFail();
+        $line = Line::query()->where('slug', 'rfn-67000')->firstOrFail();
+        $contributed = LineMaterial::create([
+            'line_id' => $line->id, 'material_id' => $bb->id, 'source' => 'contrib', 'confidence' => 'high', 'source_url' => null,
+            'evidence' => [['kind' => 'contribution', 'contribution' => 'contribution:7', 'title' => 'La Vie du Rail, n° 640', 'source_kind' => 'print', 'quote' => 'Les BB 15000 en tête des Corail.', 'doubt' => null, 'url' => null]],
+        ]);
+        LineMaterialPeriod::query()->create(['line_material_id' => $contributed->id, 'fingerprint' => 'contribution:7', 'start_date' => '1975-01-01', 'start_precision' => 'year',
+            'confidence' => 'medium', 'origin' => 'contribution', 'source' => 'contrib', 'source_title' => 'La Vie du Rail, n° 640', 'source_url' => null]);
+
+        [$data, $error] = $this->tool('line_materials', ['line' => 'rfn-67000']);
+
+        $this->assertFalse($error);
+        $this->assertSame(1, $data['total'], 'une série reliée par deux sources compte une fois');
+        $this->assertSame(1, $data['dated']);
+        $this->assertSame(['bb-15000'], array_column(array_column($data['materials'], 'material'), 'slug'));
+        $this->assertEqualsCanonicalizing(['wikipedia', 'contrib'], array_column($data['materials'][0]['links'], 'source'));
+        $this->assertSame('contribution', $data['materials'][0]['periods'][0]['origin'], 'période du lien contribué, à côté de celles de l’import');
+        $this->assertStringNotContainsString('Les BB 15000 en tête', json_encode($data, JSON_UNESCAPED_UNICODE), 'aucune phrase citée');
+
+        [$sheet] = $this->tool('get_material', ['material' => 'bb-15000']);
+        $this->assertSame(1, $sheet['material']['lines_count']);
+        $this->assertContains('contrib', array_column($sheet['material']['lines'], 'source'));
+        $this->assertContains('vff', array_column($sheet['attribution']['sources'], 'provider'));
     }
 
     public function test_materials_filter_by_bimode_category_service_state_and_scope(): void

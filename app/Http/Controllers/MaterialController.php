@@ -27,6 +27,9 @@ class MaterialController extends Controller
     /** Lignes parcourues lues au plus sur une fiche (la série la plus citée en compte 43). */
     private const MAX_LINES = 100;
 
+    /** Ordre des fiabilités, du lien le plus sûr au moins sûr. */
+    private const CONFIDENCE_RANK = ['high' => 0, 'medium' => 1, 'low' => 2];
+
     /** Largeur des vignettes de l'annuaire : taille standard des miniatures Commons (affichées à 120 px). */
     private const THUMB_WIDTH = 250;
 
@@ -128,20 +131,31 @@ class MaterialController extends Controller
                 'electrification', 'gauge_mm', 'gauges', 'wheel_arrangement', 'fleet_numbers', 'image',
                 'commons_category_url', 'wikidata_url', 'wikipedia', 'field_sources', 'service', 'scope',
             ]),
-            'lines' => $links->map(fn (LineMaterial $link) => [
-                'slug' => $link->line->slug,
-                'name' => $link->line->name,
-                'code' => $link->line->code,
-                'confidence' => $link->confidence,
-                'source_url' => $link->source_url,
-                // Première preuve (la plus forte) : nature, article cité, section et phrase.
-                'kind' => $link->evidence[0]['kind'] ?? null,
-                'article' => $link->evidence[0]['article'] ?? null,
-                'section' => $link->evidence[0]['section'] ?? null,
-                'quote' => $link->evidence[0]['quote'] ?? null,
-                // Périodes de circulation sur la ligne datées par une source (sûres seulement).
-                'periods' => $link->shownPeriods->map(fn (LineMaterialPeriod $p): array => $p->toSheet())->values()->all(),
-            ]),
+            // Une ligne par entrée : quand plusieurs sources relient la série à la même ligne (import et
+            // contribution validée), le lien le plus sûr est montré, avec les périodes de tous les liens.
+            'lines' => $links->groupBy('line_id')->map(function ($group) {
+                /** @var LineMaterial $link */
+                $link = $group->sortBy(fn (LineMaterial $l): int => self::CONFIDENCE_RANK[$l->confidence] ?? 3)->first();
+                $periods = $group->flatMap(fn (LineMaterial $l) => $l->shownPeriods)
+                    ->sortBy(fn (LineMaterialPeriod $p): string => ($p->start_date ?? $p->end_date)?->toDateString() ?? '');
+
+                return [
+                    'slug' => $link->line->slug,
+                    'name' => $link->line->name,
+                    'code' => $link->line->code,
+                    'confidence' => $link->confidence,
+                    'source_url' => $link->source_url,
+                    // Première preuve (la plus forte) : nature, article cité, section et phrase ; pour une
+                    // contribution validée, titre de la source citée.
+                    'kind' => $link->evidence[0]['kind'] ?? null,
+                    'article' => $link->evidence[0]['article'] ?? null,
+                    'section' => $link->evidence[0]['section'] ?? null,
+                    'quote' => $link->evidence[0]['quote'] ?? null,
+                    'source_title' => $link->evidence[0]['title'] ?? null,
+                    // Périodes de circulation sur la ligne datées par une source (sûres seulement).
+                    'periods' => $periods->map(fn (LineMaterialPeriod $p): array => $p->toSheet())->values()->all(),
+                ];
+            })->values(),
             // Nombre total de lignes parcourues (la liste est bornée à MAX_LINES).
             'lines_total' => $material->lineLinks()->distinct()->count('line_id'),
         ]);

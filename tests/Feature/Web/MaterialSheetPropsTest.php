@@ -65,6 +65,8 @@ class MaterialSheetPropsTest extends TestCase
                     ->where('confidence', 'medium')
                     ->where('section', 'Exploitation')
                     ->whereType('quote', 'string')
+                    // Titre de la source d'une contribution validée : nul pour un lien importé.
+                    ->where('source_title', null)
                     ->whereType('periods', 'array')));
     }
 }

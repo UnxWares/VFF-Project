@@ -21,6 +21,7 @@ use App\Services\Api\MediaQuery;
 use App\Services\Api\PublicApiRateLimit;
 use App\Services\Api\StationDirectoryQuery;
 use App\Services\Api\StationEventQuery;
+use App\Services\Contributions\ContributionLimits;
 use App\Services\Reputation\ReputationLevels;
 use App\Support\ApiAuthDocumentation;
 use App\Support\ApiCodeSamples;
@@ -91,6 +92,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // API publique (REST, GraphQL, MCP) : limite par profil, anonyme, membre ou partenaire.
         RateLimiter::for(PublicApiRateLimit::NAME, PublicApiRateLimit::for(...));
+
+        // Propositions qui font appeler Wikidata (série, vérification d'identifiant) : site et GraphQL.
+        ContributionLimits::register();
 
         RateLimiter::for('error-reports', function (Request $request): array {
             $who = $request->user()?->id ? 'user:'.$request->user()->id : 'ip:'.$request->ip();

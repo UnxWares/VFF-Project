@@ -552,6 +552,7 @@ return [
         'materials' => 'Fahrzeuge',
         'accidents' => 'Unfälle',
         'gallery' => 'Fotos',
+        'archives' => 'Archive',
         'notes' => 'Quellen',
     ],
 ];

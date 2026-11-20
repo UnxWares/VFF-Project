@@ -25,6 +25,7 @@
     import LineAccidents from '$components/Lines/LineAccidents.svelte';
     import LineLevelCrossings from '$components/Lines/LineLevelCrossings.svelte';
     import LineGreenways from '$components/Lines/LineGreenways.svelte';
+    import LineArchives from '$components/Lines/LineArchives.svelte';
     import LineSignallingHistory from '$components/Lines/LineSignallingHistory.svelte';
     import LineMaterials from '$components/Lines/LineMaterials.svelte';
     import LineProfile from '$components/Lines/LineProfile.svelte';
@@ -63,6 +64,7 @@
      *   greenways?: { total_length_m: number, osm_date: string|null, items: Array<any> },
      *   signalling_history?: Array<any>,
      *   profile?: any, trace_export_eras?: Array<number>,
+     *   archives?: { total: number, fetched_on: string|null, items: Array<any> },
      * }} */
     let {
         line,
@@ -91,6 +93,8 @@
         profile = null,
         // Années des ères dont le tracé peut être téléchargé (App\Services\TraceExport\LineTraceExport).
         trace_export_eras = [],
+        // Documents de Gallica qui parlent de la ligne (App\Services\Archives\LineArchives::forSheet).
+        archives = { total: 0, fetched_on: null, items: [] },
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
@@ -113,6 +117,7 @@
         'chronicle',
         'materials',
         'accidents',
+        'archives',
         'gallery',
         'notes',
     ];
@@ -1212,6 +1217,10 @@
             <LineAccidents {accidents} lineSlug={line.slug} />
         {/if}
 
+        {#if archives.items.length}
+            <LineArchives {archives} />
+        {/if}
+
         <!-- Photos, cartes postales, plans : chargés à la demande (API paginée), crédits par image. -->
         <LineGallery slug={line.slug} onitems={(list) => (seoImages = list.slice(0, 4))} />
 
@@ -1244,7 +1253,19 @@
             </SheetSection>
         {/if}
 
-        <ReportError type="line" slug={line.slug} name={line.name} />
+        <ReportError
+            type="line"
+            slug={line.slug}
+            name={line.name}
+            proposals={[
+                { href: `/contribute/event?line=${line.slug}`, label: t('proposals.sheet.event') },
+                { href: `/contribute/media?line=${line.slug}`, label: t('proposals.sheet.media') },
+                {
+                    href: `/contribute/material?line=${line.slug}`,
+                    label: t('proposals.sheet.material'),
+                },
+            ]}
+        />
     </main>
 </Layout>
 

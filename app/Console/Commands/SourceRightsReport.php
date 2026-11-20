@@ -64,6 +64,7 @@ class SourceRightsReport extends Command
         'sncf_level_crossings' => "SELECT DISTINCT 'sncf' AS v FROM sncf_level_crossings",
         'line_signalling' => "SELECT DISTINCT 'sncf' AS v FROM line_signalling",
         'line_signalling_events' => 'SELECT DISTINCT source AS v FROM line_signalling_events',
+        'line_archive_documents' => 'SELECT DISTINCT source AS v FROM line_archive_documents',
     ];
 
     public function handle(): int

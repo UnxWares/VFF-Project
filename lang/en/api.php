@@ -127,6 +127,7 @@ return [
             'line_level_crossings' => 'Level crossings on a line in kilometre post order, with the number of each type.',
             'level_crossings_tiles' => 'Vector tile (MVT) of level crossings, from zoom 9.',
             'line_greenways' => 'OpenStreetMap greenways on the former trackbed of a line, with the shared length, the OSM link, provenance and ODbL licence.',
+            'line_archives' => 'Documents digitised in Gallica (BnF) whose title refers to the line: title, date and its precision, type, authors, shelfmark, Gallica link and the reasons for the match. BnF metadata under the Open Licence, no images.',
             'greenways_tiles' => 'Vector tile (MVT) of greenways on former trackbeds, from zoom 4.',
             'signalling_tiles' => 'Vector tile (MVT) of signalling sections placed on the route, for today’s network.',
             'stations' => 'Directory of stations, halts and stops, current and closed.',
@@ -175,7 +176,7 @@ return [
     // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).
     'contribute' => [
         'title' => 'Contributing through GraphQL',
-        'intro' => 'Two mutations follow the site’s forms. submitContribution sends a proposal: a line portion changed between two kilometre points, a drawn route, a dated event or an image. validateContribution approves or rejects it. You need an account, and the site’s rules apply: two approvals from different validators to publish, a reason for every rejection, and nobody reviews their own contribution.',
+        'intro' => 'Two mutations follow the site’s forms. submitContribution sends a proposal: a line portion changed between two kilometre points, a drawn route, a dated event, an image, the rolling stock of a line or a rolling stock series. validateContribution approves or rejects it. You need an account, and the site’s rules apply: two approvals from different validators to publish, a reason for every rejection, and nobody reviews their own contribution.',
         'auth_title' => 'Authentication',
         'auth' => [
             'token' => 'With a personal token created in your profile with the “Allow contributions through the API” box ticked. A token without it gets the insufficient_scope error.',
@@ -187,6 +188,8 @@ return [
         'response_caption' => 'Response',
         'media_title' => 'Proposing an event or an image',
         'media_intro' => 'A dated event goes through input.event, an image through input.media. An image from Wikimedia Commons only needs its address (commons_url). An uploaded file is sent as multipart/form-data, following the GraphQL multipart request specification: the operations field holds the query with file set to null, the map field names the variable that receives the file, and the file follows. VFF removes its metadata before saving it.',
+        'material_title' => 'Propose rolling stock',
+        'material_intro' => 'input.line_material links a series to a line, with the source and, if it gives one, the period of service. When the link goes against the gauge or electrification rule, quote must cite the sentence from the source that names the gauge or the voltage: without it, the input is refused and the message explains the conflict. input.series proposes a new series (mode new) or corrects a series (mode correction); its Wikidata identifier is checked, and a series already in VFF points to a correction instead.',
         'review_title' => 'Reviewing a contribution',
         'review_intro' => 'For validators and administrators only. A rejection needs a reason of at least 5 characters, sent to the author. With APPROVE, the second approval publishes the contribution and fires the contribution.applied webhook.',
         'errors_title' => 'Errors',
@@ -246,6 +249,7 @@ return [
             'level_crossings' => 'Level crossings published by SNCF Réseau, by line, type, municipality or bounding box, with their class and kilometre post.',
             'line_profile' => 'Gradient profile of a line: heights along the route, total climb and descent, steepest gradient and station heights.',
             'line_greenways' => 'Greenways from OpenStreetMap on the former trackbed of a closed or removed line, with the length measured on the trackbed and the source.',
+            'line_archives' => 'Documents digitised in Gallica whose title refers to a line, with the Gallica link, the date, the type and the match score.',
             'line_materials' => 'Rolling stock classes of a line, with the years they ran there when a source dates them, and a link to that source.',
             'locate_on_line' => 'Kilometre point of a place given by its coordinates, on a line’s route.',
             'signalling_history' => 'Dated commissioning of signalling on a line, taken from Wikipedia, and the systems in force at a given period, as on the map.',

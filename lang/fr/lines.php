@@ -553,6 +553,7 @@ return [
         'materials' => 'Matériel',
         'accidents' => 'Accidents',
         'gallery' => 'Photos',
+        'archives' => 'Archives',
         'notes' => 'Sources',
     ],
 ];

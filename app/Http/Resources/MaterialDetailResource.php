@@ -28,8 +28,9 @@ class MaterialDetailResource extends MaterialResource
             ...parent::toArray($request),
             /**
              * Provenance de chaque champ renseigné : `field` (nom du champ), `source` (`wikidata`, `commons`,
-             * `wikipedia`), `reference` (élément et propriété Wikidata, ex. `Q746572#P729` ; fichier Commons ;
-             * catégorie Wikipédia), `url` (page de la source), `original` (valeur d'origine et unité Wikidata
+             * `wikipedia`, ou `contrib` pour une valeur proposée par un contributeur et validée), `reference`
+             * (élément et propriété Wikidata, ex. `Q746572#P729` ; fichier Commons ; catégorie Wikipédia ;
+             * `contribution:<id>`), `url` (page de la source), `original` (valeur d'origine et unité Wikidata
              * quand VFF l'a convertie, sinon nul), et la licence de la source (`provider`, `name`, `license`,
              * `license_status`).
              *
@@ -60,7 +61,8 @@ class MaterialDetailResource extends MaterialResource
                 'field' => (string) $field,
                 'source' => $source,
                 'reference' => $ref,
-                'url' => self::sourceUrl($source, $ref, $entry['revid'] ?? null),
+                // Contribution validée : l'adresse de la source citée par le contributeur, gardée avec la provenance.
+                'url' => $entry['url'] ?? self::sourceUrl($source, $ref, $entry['revid'] ?? null),
                 'original' => $entry['original'] ?? null,
                 ...$provenance->for('materials.fields', $source),
             ];

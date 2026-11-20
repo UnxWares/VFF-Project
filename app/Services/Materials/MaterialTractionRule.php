@@ -34,7 +34,7 @@ use Illuminate\Support\Facades\DB;
  *
  * Sauf source explicite :
  *   - une phrase de preuve sans doute (`doubt`) qui nomme une tension de la série (« 1 500 V »,
- *     « 25 kV », « 750 volts ») : la source a vu la question et y répond ;
+ *     « 25 kV », « 750 volts », en anglais « 1,500 V ») : la source a vu la question et y répond ;
  *   - une exception relue à la main, avec sa source, dans database/data/line_material_traction_exceptions.php
  *     (ligne électrifiée dont VFF ne connaît pas encore l'électrification, par exemple).
  */
@@ -78,13 +78,17 @@ final class MaterialTractionRule
      * Règle chargée depuis la base : électrification des lignes par ère, systèmes des séries, exceptions.
      *
      * @param  list<array{line: string, material: string, source: string, reason: string}>|null  $exceptions  null : le fichier de données
+     * @param  int|null  $lineId  une seule ligne (contrôle d'une proposition), null : toutes
+     * @param  list<int>|null  $lineIds  quelques lignes (liens d'une série à corriger), null : toutes
      */
-    public static function fromDatabase(?array $exceptions = null): self
+    public static function fromDatabase(?array $exceptions = null, ?int $lineId = null, ?array $lineIds = null): self
     {
         /** @var array<int, array<int, array{total: float, volts: array<int, float>}>> $profiles */
         $profiles = [];
         $rows = DB::table('line_segments')
             ->join('eras', 'eras.id', '=', 'line_segments.era_id')
+            ->when($lineId !== null, fn ($q) => $q->where('line_segments.line_id', $lineId))
+            ->when($lineIds !== null, fn ($q) => $q->whereIn('line_segments.line_id', $lineIds))
             ->whereNotNull('line_segments.electrification_source')
             ->whereNotIn('line_segments.electrification_source', self::UNKNOWN_SOURCES)
             ->groupBy('line_segments.line_id', 'eras.year', 'line_segments.electrified', 'line_segments.voltage_v')
@@ -103,16 +107,14 @@ final class MaterialTractionRule
 
         $materials = [];
         $rows = DB::table('materials')->whereNotNull('electrification')->whereNotIn('type', self::NOT_JUDGED_TYPES)
-            ->get(['id', 'electrification', 'in_service_from', 'in_service_to']);
+            ->get(['id', 'type', 'electrification', 'in_service_from', 'in_service_to']);
         foreach ($rows as $row) {
             $systems = json_decode((string) $row->electrification, true);
-            $volts = self::voltages(is_array($systems) ? $systems : []);
-            if ($volts !== []) {
-                $materials[(int) $row->id] = [
-                    'volts' => $volts,
-                    'from' => $row->in_service_from !== null ? (int) $row->in_service_from : null,
-                    'to' => $row->in_service_to !== null ? (int) $row->in_service_to : null,
-                ];
+            $entry = self::entry(is_array($systems) ? $systems : null, (string) $row->type,
+                $row->in_service_from !== null ? (int) $row->in_service_from : null,
+                $row->in_service_to !== null ? (int) $row->in_service_to : null);
+            if ($entry !== null) {
+                $materials[(int) $row->id] = $entry;
             }
         }
 
@@ -120,6 +122,41 @@ final class MaterialTractionRule
 
         return new self($profiles, $materials, LineMaterialExclusions::keyed($exceptions),
             LineMaterialExclusions::unresolved($exceptions, 'line_material_traction_exceptions.php'));
+    }
+
+    /**
+     * La même règle, avec d'autres valeurs pour une série (systèmes, catégorie, années de service) :
+     * sert à mesurer ce que changerait la correction d'une série avant de la publier.
+     *
+     * @param  array<int, mixed>|null  $systems  systèmes d'électrification (libellés Wikidata)
+     */
+    public function withMaterial(int $materialId, ?array $systems, ?string $type, ?int $from, ?int $to): self
+    {
+        $materials = $this->materials;
+        unset($materials[$materialId]);
+        $entry = self::entry($systems, $type, $from, $to);
+        if ($entry !== null) {
+            $materials[$materialId] = $entry;
+        }
+
+        return new self($this->profiles, $materials, $this->exceptions, $this->unresolved);
+    }
+
+    /**
+     * Ce que la règle retient d'une série, ou null si elle n'est pas jugée (catégorie qui roule sans
+     * caténaire, aucun système de tension connue).
+     *
+     * @param  array<int, mixed>|null  $systems
+     * @return array{volts: list<int>, from: ?int, to: ?int}|null
+     */
+    private static function entry(?array $systems, ?string $type, ?int $from, ?int $to): ?array
+    {
+        if ($type === null || in_array($type, self::NOT_JUDGED_TYPES, true)) {
+            return null;
+        }
+        $volts = self::voltages($systems ?? []);
+
+        return $volts !== [] ? ['volts' => $volts, 'from' => $from, 'to' => $to] : null;
     }
 
     /**
@@ -155,6 +192,28 @@ final class MaterialTractionRule
      */
     public function conflict(int $lineId, int $materialId, array $evidence = []): ?string
     {
+        $details = $this->details($lineId, $materialId, $evidence);
+        if ($details === null) {
+            return null;
+        }
+        $systems = implode(', ', array_map(self::format(...), $details['volts']));
+
+        return $details['partial']
+            ? sprintf('série à %s, ligne au plus à %d %% de sa longueur sous un courant compatible', $systems, $details['share'])
+            : sprintf('série à %s, ligne jamais électrifiée dans un système compatible', $systems);
+    }
+
+    /**
+     * Le conflit en chiffres, ou null si le lien est compatible (ou non jugé) : tensions de la série (V),
+     * meilleure part de la ligne sous un courant compatible (pour cent, arrondi) et `partial`, vrai si une
+     * partie de la ligne l'a été (même moins de 1 %). Sert au motif de conflict() et aux messages traduits
+     * du formulaire de contribution.
+     *
+     * @param  list<array<string, mixed>>  $evidence  preuves du lien (phrases citées)
+     * @return array{volts: list<int>, share: int, partial: bool}|null
+     */
+    public function details(int $lineId, int $materialId, array $evidence = []): ?array
+    {
         $material = $this->materials[$materialId] ?? null;
         if ($material === null || isset($this->exceptions["{$lineId}:{$materialId}"])) {
             return null;
@@ -181,11 +240,7 @@ final class MaterialTractionRule
             }
         }
 
-        $systems = implode(', ', array_map(self::format(...), $material['volts']));
-
-        return $best > 0
-            ? sprintf('série à %s, ligne au plus à %d %% de sa longueur sous un courant compatible', $systems, (int) round($best * 100))
-            : sprintf('série à %s, ligne jamais électrifiée dans un système compatible', $systems);
+        return ['volts' => $material['volts'], 'share' => (int) round($best * 100), 'partial' => $best > 0];
     }
 
     /**
@@ -195,18 +250,42 @@ final class MaterialTractionRule
      */
     public static function namesVoltage(string $text, array $volts): bool
     {
-        preg_match_all('/(?<![\d,.])(\d{1,3}(?:[\s\x{00A0}\x{202F}.]\d{3})*|\d+)(?:,(\d+))?\s*(kV|kilovolts?|V|volts?)\b/iu', $text, $matches, PREG_SET_ORDER);
+        return self::voltageMentions($text, $volts) !== [];
+    }
+
+    /**
+     * Endroits de la phrase qui nomment une de ces tensions : position (en octets) et longueur de
+     * chaque mention, pour juger les mots qui l'entourent (une négation, par exemple). Lit les
+     * écritures française, anglaise et allemande : « 1 500 V », « 1,500 V » et « 1.500 V » (milliers),
+     * « 1,5 kV » et « 1.5 kV » (décimales), « 750 volts », « 15 Kilovolt ».
+     *
+     * @param  list<int>  $volts
+     * @return list<array{0: int, 1: int}>
+     */
+    public static function voltageMentions(string $text, array $volts): array
+    {
+        $out = [];
+        // Milliers (groupes de trois chiffres après un séparateur) d'abord, puis nombre décimal.
+        preg_match_all('/(?<![\d,.])(?:(\d{1,3}(?:[\s\x{00A0}\x{202F}.,]\d{3})+)|(\d+)(?:[.,](\d+))?)\s*(kV|kilovolts?|V|volts?)\b/iu', $text, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE | PREG_UNMATCHED_AS_NULL);
         foreach ($matches as $m) {
-            $value = (float) (preg_replace('/\D/u', '', $m[1]).($m[2] !== '' ? '.'.$m[2] : ''));
-            $named = (int) round(str_starts_with(strtolower($m[3]), 'k') ? $value * 1000 : $value);
+            $kilo = str_starts_with(strtolower((string) $m[4][0]), 'k');
+            $value = match (true) {
+                // En kilovolts, une virgule ou un point sépare les décimales (« 1,005 kV », « 1.5 kV »).
+                $m[1][0] !== null && $kilo => (float) str_replace(',', '.', (string) preg_replace('/[\s\x{00A0}\x{202F}]/u', '', $m[1][0])),
+                $m[1][0] !== null => (float) preg_replace('/\D/u', '', $m[1][0]),
+                default => (float) ($m[2][0].($m[3][0] !== null ? '.'.$m[3][0] : '')),
+            };
+            $named = (int) round($kilo ? $value * 1000 : $value);
             foreach ($volts as $volt) {
                 if ($named > 0 && self::compatible($volt, $named)) {
-                    return true;
+                    $out[] = [(int) $m[0][1], strlen((string) $m[0][0])];
+
+                    break;
                 }
             }
         }
 
-        return false;
+        return $out;
     }
 
     /** « 1 500 V », « 25 kV ». */

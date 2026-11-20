@@ -140,6 +140,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `level_crossings` | Passages à niveau publiés par SNCF Réseau (classe, PK, commune), par ligne, groupe, commune ou emprise, paginés. |
 | `line_profile` | Profil en long d'une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte, altitude des gares (IGN). |
 | `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
+| `line_archives` | Documents numérisés dans Gallica (BnF) dont le titre désigne une ligne : titre, date et précision, type, auteurs, cote, lien vers Gallica, score de rattachement. |
 | `locate_on_line` | Point kilométrique d'un lieu (latitude, longitude) sur le tracé d'une ligne. |
 | `signalling_history` | Mises en service datées de signalisation d'une ligne (Wikipédia), et faits en vigueur à une époque, ceux que montre la carte. |
 | `list_departments` | Régions et départements (codes INSEE et noms) à passer dans `department` et `region`, avec le nombre de lignes, de gares et d'accidents de chacun. |
@@ -528,8 +529,10 @@ renseigné par la source : VFF n'estime aucune valeur.
 | `material` | slug | oui | Slug renvoyé par `search` ou `materials` (ex. `bb-15000`). |
 
 Renvoie `material` : la fiche de l'API REST `/api/v1/materials/{slug}`, avec `field_sources`
-(provenance de chaque champ) et `lines` (lignes parcourues, chaque lien avec sa preuve `evidence`
-et sa fiabilité `confidence`, et `periods`, ses périodes de circulation datées : voir `line_materials`). Série
+(provenance de chaque champ ; `contrib` pour une valeur corrigée par une contribution validée, référence
+`contribution:<id>`) et `lines` (lignes parcourues, une entrée par lien et par source, chaque lien avec sa `source`
+telle quelle (`wikidata`, `wikipedia` ou `contrib`), sa preuve `evidence` et sa fiabilité `confidence`, et `periods`,
+ses périodes de circulation datées : voir `line_materials`). `lines_count` compte les lignes, pas les liens. Série
 inconnue : erreur `material_not_found` avec `suggestions`.
 
 Chaque preuve donne l'article, la révision lue (`revid`), la section et le permalien `url`, mais pas la
@@ -553,13 +556,16 @@ et de fin des déclarations Wikidata P3438 (CC0).
 | `type` | catégorie | non | Catégorie de matériel (`autorail`, `locomotive_diesel`…). Toutes par défaut. |
 | `lang` | `fr`, `en`, `de` | non | Langue des libellés et des messages. |
 
-Renvoie `line`, `total` (séries attestées), `dated` (séries qui ont au moins une période datée) et `materials` : pour
-chaque série, `material` (`slug` à passer à `get_material`, `name`, `type`, `type_label`), `confidence` du lien,
-`source`, `source_url` (permalien de la révision lue ou élément Wikidata) et `periods`. Une période donne `start_date`
+Renvoie `line`, `total` (séries attestées), `dated` (séries qui ont au moins une période datée) et `materials` : une
+entrée par série, même reliée par plusieurs sources, avec `material` (`slug` à passer à `get_material`, `name`,
+`type`, `type_label`), `confidence`, `source` et `source_url` du lien le plus sûr (permalien de la révision lue,
+élément Wikidata, ou adresse de la source citée par un contributeur, nulle pour un ouvrage papier), `links` (chaque
+lien de la série : `source` `wikipedia`, `wikidata` ou `contrib`, `confidence`, `source_url`) et `periods` (celles de
+tous ses liens). Une période donne `start_date`
 et `end_date` (`AAAA-MM-JJ`, l'une peut être nulle) avec `start_precision` et `end_precision` (`day`, `month` : date au
 1er du mois, `year` : date au 1er janvier), `section` (portion nommée par le titre de section de l'article, sinon
 nulle), `confidence` (`high` : jour ou mois, `medium` : année), `origin` (`line_article`, `material_article`,
-`wikidata`), `source` (`title`, `revision`, `url`) et `provenance`. Seules les périodes sûres sont données ; une fin
+`wikidata`, `contribution`), `source` (`title`, `revision`, `url`) et `provenance`. Seules les périodes sûres sont données ; une fin
 nulle ne veut pas dire que la série circule encore. Exemple réel : sur la ligne de Grenoble à Montmélian
 (`rfn-909000`), les CC 72000 ont une période du 20 août 1982 au 30 mai 1986 (`high`), les BB 67300 une fin au
 2 mai 2016 (`high`). Ligne inconnue : erreur `line_not_found` avec `suggestions`.
@@ -737,6 +743,57 @@ Provenance et licence : OpenStreetMap, ODbL 1.0. `provenance` donne le fournisse
 {"line": "rfn-436000", "include_ways": true}
 ```
 
+### `line_archives` : documents d'archives d'une ligne (Gallica)
+
+Même contenu que `GET /api/v1/lines/{line}/archives` (service `LineArchives`). Documents numérisés en accès libre dans
+Gallica, la bibliothèque numérique de la BnF, dont le titre désigne la ligne : projets, plans et cartes du tracé,
+mémoires, guides, photographies. Ils sont trouvés par `vff:import-gallica` dans le catalogue général de la BnF, puis
+rattachés à la ligne par un score calculé sur le seul titre de la notice (`ArchiveMatcher`) :
+
+| Raison | Points | Condition |
+|---|---|---|
+| `rail_route` | 4 | le titre décrit une voie ferrée entre deux lieux de la ligne qui se suivent (« chemin de fer de X à Y », « ligne de X à Y », « la ligne X à Y », « chemin de fer de X à Z et à Y ») |
+| `route` | 3 | à défaut, un trajet entre ces deux lieux (« de X à Y », « entre X et Y », « rapide Paris - Bordeaux ») |
+| `two_places` | 1 | à défaut, le titre nomme deux lieux de la ligne (communes, gares, extrémités de ses noms) |
+| `only_line_places` | 1 | sans trajet, tous les lieux reconnus dans le titre sont sur la ligne |
+| `ends` | 2 | ces deux lieux sont les extrémités de la ligne (nom actuel, ancien nom ou gares terminus) |
+| `rail_word` / `rail_hint` | 2 / 1 | chemin de fer, voie ferrée, tramway, railway, embranchement, ferroviaire, « ligne de X à Y » ; ou seulement gare, train, locomotive, wagon |
+| `date_in_life` | 2 | date entre la première date connue de la ligne et sa fermeture (ou aujourd'hui) |
+| `date_project` / `date_after_closure` | 1 | dans les 40 ans avant la première date ; après la fermeture |
+| `date_unknown` | 0 | document sans date, ou ligne sans date connue |
+| `date_doubtful` | 0 | le titre imprime une année à plus de 40 ans de la date de la notice : la date ne compte pas |
+| `doc_type` | 1 | texte imprimé, carte, image fixe ou manuscrit |
+| `secondary_mention` | 0 | la ligne n'est citée que comme raccordement d'une autre : ses extrémités ne comptent pas |
+
+Un document est retenu à partir de 9 points sur 11, avec un mot du rail, sans autre transport dans le titre (métro,
+canal, bateaux à vapeur, autocar, téléphone) sauf « chemin de fer de X à Y », et jamais avant 1820 ni plus de 40 ans avant la
+première date de la ligne. Deux lieux nommés sans trajet ne suffisent que s'ils sont les extrémités de la ligne, que le titre
+ne cite aucun autre lieu connu et que la date tombe dans la vie de la ligne. Seul le meilleur score garde le document ; à
+égalité, une ligne reliée par un trajet passe avant une ligne seulement nommée. Un titre qui convient aussi bien à plus de
+deux lignes n'est rattaché à aucune. La presse
+n'est pas cherchée. Une liste vide ne veut pas dire que Gallica n'a rien sur la ligne.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `type` | `monograph`, `map`, `image`, `manuscript` | non | Ne garder qu'un type de document. Tous par défaut. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `total`, `documents` (du plus ancien au plus récent, sans date en dernier : `gallica_ark`,
+`gallica_url`, `catalogue_ark`, `catalogue_url`, `title`, `type`, `authors`, `date` avec `label`, `year`, `year_to`,
+`exact` et `precision` (`day`, `month`, `year`, `circa`, `range`, `unknown`), `shelfmark`, `match` avec le score, le
+seuil, les raisons et les lieux reconnus, `record_updated_on`, `fetched_at`), `provenance`, `method` (seuil et points)
+et `vff_url` (section de la fiche).
+
+Droits : les métadonnées des notices de la BnF sont sous Licence Ouverte ; reprenez la mention « Source :
+gallica.bnf.fr / BnF » avec la date de récupération (`fetched_at`). VFF ne sert aucune image, vignette ni texte
+numérisé : renvoyez le lecteur vers `gallica_url`. La réutilisation des documents eux-mêmes suit les conditions
+d'utilisation de Gallica (non commerciale libre avec la mention de source, commerciale soumise à redevance).
+
+```json
+{"line": "rfn-340000", "type": "map"}
+```
+
 ### `locate_on_line` : point kilométrique d'un lieu
 
 Même résultat que `GET /api/v1/lines/{line}/pk` (service `LinePk`) : le point est projeté sur le tracé de la ligne à
@@ -868,6 +925,7 @@ donnent l'erreur JSON-RPC `-32602`. Complétion : `lang`, `region` (codes et nom
 | « Combien de kilomètres ont fermé entre 1930 et 1980 ? » | `compare_eras {"from": 1930, "to": 1980}` : lire `changes.closed` et `changes.removed` |
 | « À quel PK de Paris - Brest est ce point (48,10 ; -1,67) ? » | `locate_on_line {"line": "rfn-420000", "lat": 48.10, "lng": -1.67}` |
 | « Une voie verte a-t-elle remplacé la ligne de La Chapelle-Anthenaise à Flers ? » | `line_greenways {"line": "rfn-436000"}` : citer la mention de `provenance` |
+| « Gallica a-t-il des plans du chemin de fer de Paris au Havre ? » | `line_archives {"line": "rfn-340000", "type": "map"}` : donner `gallica_url` et la mention « Source : gallica.bnf.fr / BnF » |
 | « Quel matériel a circulé sur Lunéville - Saint-Dié ? » | `search {"query": "Lunéville"}` puis `materials {"line": "<slug>"}` et `get_material` pour la preuve |
 | « Jusqu'à quand les X 4300 ont-ils roulé sur Lunéville - Saint-Dié ? » | `line_materials {"line": "rfn-67000", "type": "autorail"}` : période de chaque série |
 

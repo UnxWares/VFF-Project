@@ -46,8 +46,9 @@ class LineMaterialLinkResource extends JsonResource
             ]),
             /**
              * Provenance du lien : `wikidata` (déclaration « véhicule habituellement utilisé », P3438),
-             * `wikipedia` (lien posé dans une section d'article, voir `evidence`), ou nulle pour un lien saisi
-             * dans VFF.
+             * `wikipedia` (lien posé dans une section d'article, voir `evidence`), `contrib` (proposé par des
+             * contributeurs avec leur source et validé par deux relecteurs, une preuve par contribution), ou nulle
+             * pour un lien saisi dans VFF. Un même couple ligne × série peut avoir un lien par provenance.
              *
              * @example wikipedia
              */
@@ -63,7 +64,9 @@ class LineMaterialLinkResource extends JsonResource
              * Fiabilité du lien : `high` (Wikidata, ou section « Matériel roulant » de l'article de la ligne),
              * `medium` (autre section : exploitation, desserte de la ligne ; utilisation, services de la série),
              * `low` (à confirmer : article qui décrit plusieurs lignes de VFF à la fois, ou preuves qui portent
-             * toutes un doute, voir `evidence[].doubt`). La preuve la plus forte décide.
+             * toutes un doute, voir `evidence[].doubt`). Lien `contrib` : `high` dès qu'une contribution déclare
+             * un service régulier, `low` si toutes parlent d'une circulation exceptionnelle, d'essais ou d'un
+             * train de musée. La preuve la plus forte décide.
              *
              * @example high
              */
@@ -106,7 +109,12 @@ class LineMaterialLinkResource extends JsonResource
              * matériel réservé à une autre ligne, `component` pièce reprise de la série, `footnote` lien posé
              * dans une note ou un passage sans source, `section` section d'essais, de records ou de
              * préservation). Pour Wikidata : `property` (`P3438`), `subject` (élément de la ligne),
-             * `from_year` / `to_year` (période déclarée), `url`.
+             * `from_year` / `to_year` (période déclarée), `url`. Pour une contribution validée (`kind` =
+             * `contribution`) : `contribution` (provenance, `contribution:<id>`), `title` (titre ou référence de
+             * la source), `source_kind` (`web`, `document` ou `print`), `license` (licence d'un document cité),
+             * `quote` (phrase de la source citée par le contributeur, nulle s'il n'en a pas donné), `doubt`
+             * (`one_off`, `trial`, `preserved` ou nul selon la circulation déclarée), `url` (adresse de la
+             * source, nulle pour un ouvrage papier).
              *
              * @var list<array<string, mixed>>
              */
@@ -138,7 +146,7 @@ class LineMaterialLinkResource extends JsonResource
      */
     private static function evidence(array $evidence): array
     {
-        $keys = ['kind', 'article', 'revid', 'section', 'quote', 'property', 'subject', 'from_year', 'to_year', 'shared_article', 'doubt', 'url'];
+        $keys = ['kind', 'contribution', 'article', 'revid', 'section', 'title', 'source_kind', 'license', 'quote', 'property', 'subject', 'from_year', 'to_year', 'shared_article', 'doubt', 'url'];
 
         return array_filter(array_replace(array_flip($keys), $evidence), fn (mixed $v, string $k): bool => array_key_exists($k, $evidence), ARRAY_FILTER_USE_BOTH);
     }

@@ -29,7 +29,7 @@ describe('couleurs des portions', () => {
 });
 
 describe('distances', () => {
-    it('haversine : Paris - Lyon à vol d\'oiseau ≈ 392 km', () => {
+    it("haversine : Paris - Lyon à vol d'oiseau ≈ 392 km", () => {
         expect(distanceM(PARIS, LYON) / 1000).toBeCloseTo(391.5, 0);
     });
 
@@ -45,9 +45,12 @@ describe('distances', () => {
         expect(d).toBeCloseTo(Math.PI * 6371008.8, 0);
     });
 
-    it('longueur d\'une polyligne = somme de ses arêtes', () => {
+    it("longueur d'une polyligne = somme de ses arêtes", () => {
         const mid = [3.5, 47.3];
-        expect(lengthM([PARIS, mid, LYON])).toBeCloseTo(distanceM(PARIS, mid) + distanceM(mid, LYON), 6);
+        expect(lengthM([PARIS, mid, LYON])).toBeCloseTo(
+            distanceM(PARIS, mid) + distanceM(mid, LYON),
+            6,
+        );
         expect(lengthM([PARIS])).toBe(0);
         expect(lengthM([])).toBe(0);
     });
@@ -91,7 +94,11 @@ describe('accrochage (nearestOnLine)', () => {
     ];
 
     it('accroche le sommet le plus proche dans le rayon', () => {
-        expect(nearestOnLine(line, { x: 98, y: 3 }, identity, 10)).toMatchObject({ type: 'vertex', index: 1, coord: [100, 0] });
+        expect(nearestOnLine(line, { x: 98, y: 3 }, identity, 10)).toMatchObject({
+            type: 'vertex',
+            index: 1,
+            coord: [100, 0],
+        });
     });
 
     it('accroche une arête, avec interpolation du point', () => {
@@ -100,14 +107,14 @@ describe('accrochage (nearestOnLine)', () => {
         expect(hit.coord).toEqual([40, 0]);
     });
 
-    it('un sommet un peu plus loin qu\'une arête l\'emporte quand même (gares, aiguilles)', () => {
+    it("un sommet un peu plus loin qu'une arête l'emporte quand même (gares, aiguilles)", () => {
         // Sommet à 6 px, arête à 2 px : 6 <= 2 + 10 × 0,5.
         const hit = nearestOnLine(line, { x: 94, y: 2 }, identity, 10);
         expect(hit.type).toBe('vertex');
         expect(hit.index).toBe(1);
     });
 
-    it('arête nettement plus proche qu\'un sommet : l\'arête', () => {
+    it("arête nettement plus proche qu'un sommet : l'arête", () => {
         // Sommet (0,0) à 9 px, arête à 1 px : 9 > 1 + 10 × 0,5.
         const hit = nearestOnLine(line, { x: 9, y: 1 }, identity, 10);
         expect(hit.type).toBe('edge');
@@ -137,7 +144,18 @@ describe('utilitaires de coordonnées', () => {
     });
 
     it('dedupe : retire seulement les sommets CONSÉCUTIFS identiques', () => {
-        expect(dedupe([[1, 1], [1, 1], [2, 2], [1, 1]])).toEqual([[1, 1], [2, 2], [1, 1]]);
+        expect(
+            dedupe([
+                [1, 1],
+                [1, 1],
+                [2, 2],
+                [1, 1],
+            ]),
+        ).toEqual([
+            [1, 1],
+            [2, 2],
+            [1, 1],
+        ]);
         expect(dedupe([])).toEqual([]);
     });
 

@@ -9,6 +9,7 @@ use App\Enums\TrafficType;
 use App\Models\Contribution;
 use App\Models\Era;
 use App\Models\Line;
+use App\Models\Material;
 use App\Models\User;
 use App\Services\Notifications\ContributionNotifier;
 use App\Services\TraceContributionService;
@@ -27,10 +28,13 @@ use Throwable;
  *   - `line_trace` (TraceContributionService::TYPE) : tracé dessiné, ligne disparue ou correction ;
  *   - `line_event` (EventContributions::TYPE) : événement daté d'une ligne existante ;
  *   - `media` (MediaContributions::TYPE) : image de Commons ou fichier déposé, rattaché à une ligne,
- *     une gare ou un événement.
+ *     une gare ou un événement ;
+ *   - `line_material` (LineMaterialContributions::TYPE) : une série de matériel a circulé sur une ligne ;
+ *   - `material_series` (MaterialSeriesContributions::TYPE) : nouvelle série ou correction d'une série.
  *
  * Les données arrivent déjà validées par les règles de ce service (segmentRules) ou de
- * TraceContributionService, EventContributions et MediaContributions (rules()). Les contrôles
+ * TraceContributionService, EventContributions, MediaContributions, LineMaterialContributions et
+ * MaterialSeriesContributions (rules()). Les contrôles
  * d'accès (compte connecté, non suspendu) restent à l'appelant : middleware `auth` et
  * `not.suspended` sur le site, ContributionApiAccess dans l'API.
  */
@@ -43,6 +47,8 @@ final readonly class ContributionSubmissions
         private TraceContributionService $traces,
         private EventContributions $events,
         private MediaContributions $media,
+        private LineMaterialContributions $lineMaterials,
+        private MaterialSeriesContributions $series,
         private ContributionNotifier $notifier,
     ) {}
 
@@ -219,6 +225,59 @@ final readonly class ContributionSubmissions
             }
             throw $e;
         }
+        $this->notifier->submitted($contribution);
+
+        return $contribution;
+    }
+
+    /**
+     * Enregistre un lien « matériel sur une ligne » validé par LineMaterialContributions::rules().
+     *
+     * @param  array<string, mixed>  $data
+     *
+     * @throws ValidationException date illisible, doublon, lien incompatible sans phrase qui le justifie
+     * @throws ModelNotFoundException ligne ou série inconnue
+     */
+    public function submitLineMaterial(User $author, array $data): Contribution
+    {
+        ['payload' => $payload, 'line' => $line] = $this->lineMaterials->normalize($data);
+
+        $contribution = Contribution::create([
+            'user_id' => $author->id,
+            'type' => LineMaterialContributions::TYPE,
+            'action' => ContributionAction::Create->value,
+            'target_type' => Line::class,
+            'target_id' => $line->id,
+            'status' => ContributionStatus::Pending->value,
+            'payload' => $payload,
+        ]);
+        $this->notifier->submitted($contribution);
+
+        return $contribution;
+    }
+
+    /**
+     * Enregistre une nouvelle série ou la correction d'une série, validée par
+     * MaterialSeriesContributions::rules(). Une nouvelle série n'a pas de cible avant sa publication.
+     *
+     * @param  array<string, mixed>  $data
+     *
+     * @throws ValidationException identifiant Wikidata inconnu ou déjà pris, doublon, rien à corriger
+     * @throws ModelNotFoundException série à corriger inconnue
+     */
+    public function submitMaterialSeries(User $author, array $data): Contribution
+    {
+        ['payload' => $payload, 'material' => $material] = $this->series->normalize($data);
+
+        $contribution = Contribution::create([
+            'user_id' => $author->id,
+            'type' => MaterialSeriesContributions::TYPE,
+            'action' => $material !== null ? ContributionAction::Update->value : ContributionAction::Create->value,
+            'target_type' => $material !== null ? Material::class : null,
+            'target_id' => $material?->id,
+            'status' => ContributionStatus::Pending->value,
+            'payload' => $payload,
+        ]);
         $this->notifier->submitted($contribution);
 
         return $contribution;

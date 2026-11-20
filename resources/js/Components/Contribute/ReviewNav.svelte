@@ -2,13 +2,13 @@
     /**
      * Passage entre les listes de l'espace de validation : contributions à relire (/validate),
      * signalements d'erreur (/validate/reports) et, pour les administrateurs, comptes
-     * (/validate/accounts). La page courante est marquée par `aria-current` et soulignée (jamais
-     * par la seule couleur).
+     * (/validate/accounts) et graphe du réseau (/validate/graph). La page courante est marquée
+     * par `aria-current` et soulignée (jamais par la seule couleur).
      */
     import { Link, page } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
 
-    /** @type {{ current: 'contributions'|'reports'|'accounts' }} */
+    /** @type {{ current: 'contributions'|'reports'|'accounts'|'graph' }} */
     let { current } = $props();
 
     const isAdmin = $derived(page.props.auth?.user?.role === 'admin');
@@ -16,7 +16,10 @@
         { id: 'contributions', href: '/validate', key: 'reports.review.contributions_link' },
         { id: 'reports', href: '/validate/reports', key: 'reports.review.reports_link' },
         ...(isAdmin
-            ? [{ id: 'accounts', href: '/validate/accounts', key: 'moderation.admin.nav_link' }]
+            ? [
+                  { id: 'accounts', href: '/validate/accounts', key: 'moderation.admin.nav_link' },
+                  { id: 'graph', href: '/validate/graph', key: 'graph_admin.nav_link' },
+              ]
             : []),
     ]);
 </script>

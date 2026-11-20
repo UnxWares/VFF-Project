@@ -34,7 +34,7 @@ class DryRunCommandsTest extends TestCase
     public const COVERED = [
         'vff:apply-event-corrections', 'vff:attach-stations', 'vff:audit-and-fix-lines', 'vff:canonicalize-station-slugs', 'vff:classify-lines', 'vff:compute-line-profiles',
         'vff:consolidate-stations', 'vff:dates-from-trace-names', 'vff:detect-present-states', 'vff:fill-missing-geometry',
-        'vff:import-accidents', 'vff:import-argentanwebferro', 'vff:import-commons-media', 'vff:import-heritage-lines', 'vff:import-lignes-oubliees',
+        'vff:import-accidents', 'vff:import-argentanwebferro', 'vff:import-commons-media', 'vff:import-gallica', 'vff:import-heritage-lines', 'vff:import-lignes-oubliees',
         'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-material-periods', 'vff:import-materials', 'vff:import-secondary-network-dates', 'vff:import-signalling-history',
         'vff:import-station-closures', 'vff:import-station-sources', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology',
         'vff:import-wikipedia-line', 'vff:link-greenways', 'vff:link-traces', 'vff:match-current-network', 'vff:merge-split-lines', 'vff:ohm-events',
@@ -58,12 +58,13 @@ class DryRunCommandsTest extends TestCase
         'vff:place-listed-stations' => ['--no-places' => true],
         'vff:import-signalling-history' => ['--offline' => true],
         'vff:import-material-periods' => ['--offline' => true],
+        'vff:import-gallica' => ['--offline' => true],
     ];
 
     /** Tables des sources, des comptes, du matériel et des accidents : hors du moteur, mais qu'un --dry-run ne doit pas toucher non plus. */
     private const OTHER_TABLES = [
         'users', 'contributions', 'contribution_approvals', 'audit_events', 'materials', 'line_materials', 'line_material_periods', 'line_greenways', 'line_signalling_events', 'line_signalling_history_map', 'accidents', 'accident_lines', 'accident_sources',
-        'argentanwebferro_articles', 'argentanwebferro_facts', 'argentanwebferro_photos',
+        'argentanwebferro_articles', 'argentanwebferro_facts', 'argentanwebferro_photos', 'line_archive_documents',
     ];
 
     private Era $past;

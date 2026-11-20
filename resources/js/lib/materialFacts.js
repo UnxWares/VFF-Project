@@ -85,6 +85,10 @@ export function buildersText(names, fallback, t) {
  * @returns {string} clé de traduction
  */
 export function confidenceKey(confidence, kind) {
+    if (kind === 'contribution')
+        return confidence === 'low'
+            ? 'materials.confidence.low_contribution'
+            : 'materials.confidence.high_contribution';
     if (confidence === 'high') {
         return kind === 'wikidata'
             ? 'materials.confidence.high_wikidata'

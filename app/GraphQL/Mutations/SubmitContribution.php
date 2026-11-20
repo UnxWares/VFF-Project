@@ -2,12 +2,17 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\GraphQL\Exceptions\ContributionApiError;
 use App\GraphQL\Support\ContributionApiAccess;
 use App\GraphQL\Support\ContributionPresenter;
 use App\Models\Era;
+use App\Models\Material;
 use App\Models\Station;
+use App\Services\Contributions\ContributionLimits;
 use App\Services\Contributions\ContributionSubmissions;
 use App\Services\Contributions\EventContributions;
+use App\Services\Contributions\LineMaterialContributions;
+use App\Services\Contributions\MaterialSeriesContributions;
 use App\Services\Contributions\MediaContributions;
 use App\Services\TraceContributionService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -18,10 +23,12 @@ use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
  * Mutation `submitContribution` : la même proposition que sur le site (modification d'une portion
- * par PK, tracé dessiné, événement daté, image), mêmes règles de saisie, même enregistrement
+ * par PK, tracé dessiné, événement daté, image, matériel sur une ligne, série de matériel), mêmes
+ * règles de saisie, même enregistrement
  * (ContributionSubmissions) et même annonce aux validateurs. Erreurs de saisie en anglais, comme le
  * reste de l'API, avec le chemin du champ (`input.segment.pk_end_m`) dans `extensions.validation`.
- * Une image déposée arrive en requête multipart (scalaire `Upload`, UploadedFile).
+ * Une image déposée arrive en requête multipart (scalaire `Upload`, UploadedFile). Une série compte
+ * aussi dans la limite des séries du site (ContributionLimits::SERIES, 10 par minute et par compte).
  */
 final readonly class SubmitContribution
 {
@@ -45,12 +52,16 @@ final readonly class SubmitContribution
             $input = array_filter($args['input'], fn ($value) => $value !== null);
             if (count($input) !== 1) {
                 throw ValidationException::withMessages([
-                    'input' => 'Provide exactly one of "segment", "trace", "event" or "media".',
+                    'input' => 'Provide exactly one of "segment", "trace", "event", "media", "line_material" or "series".',
                 ]);
             }
 
             $kind = array_key_first($input);
             $prefix = "input.$kind.";
+            // Une série fait appeler Wikidata par le serveur : même limite que le formulaire du site, même compteur.
+            if ($kind === 'series' && ($retryAfter = ContributionLimits::hit(ContributionLimits::SERIES, $author)) !== null) {
+                throw ContributionApiError::tooManySeries($retryAfter);
+            }
             try {
                 $data = $input[$kind];
                 $contribution = match ($kind) {
@@ -63,8 +74,14 @@ final readonly class SubmitContribution
                     'event' => $this->submissions->submitEvent($author, Validator::make(
                         $data, EventContributions::rules(), EventContributions::messages(),
                     )->validate()),
-                    default => $this->submissions->submitMedia($author, Validator::make(
+                    'media' => $this->submissions->submitMedia($author, Validator::make(
                         $data, MediaContributions::rules(), MediaContributions::messages(),
+                    )->validate()),
+                    'line_material' => $this->submissions->submitLineMaterial($author, Validator::make(
+                        $data, LineMaterialContributions::rules(), LineMaterialContributions::messages(),
+                    )->validate()),
+                    default => $this->submissions->submitMaterialSeries($author, Validator::make(
+                        $data, MaterialSeriesContributions::rules(), MaterialSeriesContributions::messages(),
                     )->validate()),
                 };
             } catch (ValidationException $e) {
@@ -74,6 +91,7 @@ final readonly class SubmitContribution
                 throw ValidationException::withMessages(match (true) {
                     $e->getModel() === Era::class => [$prefix.'era_year' => 'Unknown era: use a decade from 1830 to 2030.'],
                     $e->getModel() === Station::class => [$prefix.'station_slug' => 'Unknown station.'],
+                    $e->getModel() === Material::class => [$prefix.'material_slug' => 'Unknown rolling stock series.'],
                     default => [$prefix.($kind === 'segment' ? 'line_code' : 'line_slug') => 'Unknown line.'],
                 });
             }

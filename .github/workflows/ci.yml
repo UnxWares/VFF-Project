@@ -7,9 +7,8 @@
 # Analyse statique (PHPStan, svelte-check) : la dette existante est gelée dans
 # phpstan-baseline.neon et svelte-check-baseline.json ; toute NOUVELLE erreur bloque.
 #
-# Style (Pint / Prettier) : sur une pull request, seuls les fichiers modifiés
-# sont BLOQUANTS (cliquet). Sur main, le contrôle complet est informatif tant
-# que le reformatage global du dépôt n'a pas été fait (cf. README › Qualité).
+# Style (Pint / Prettier) : contrôle complet et bloquant, le dépôt entier est
+# au format depuis le 20/11/2026 (cf. README › Qualité).
 
 name: CI
 
@@ -58,7 +57,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          fetch-depth: 0 # nécessaire à `pint --diff` (comparaison avec la branche de base)
+          fetch-depth: 0
 
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
@@ -83,13 +82,7 @@ jobs:
           cp .env.example .env
           php artisan key:generate --ansi
 
-      - name: Pint (fichiers modifiés par la PR)
-        if: github.event_name == 'pull_request'
-        run: vendor/bin/pint --test --diff=origin/${{ github.base_ref }}
-
-      - name: Pint (dépôt complet, informatif)
-        if: github.event_name != 'pull_request'
-        continue-on-error: true
+      - name: Pint
         run: vendor/bin/pint --test
 
       - name: Traductions (FR → EN, DE)
@@ -141,16 +134,7 @@ jobs:
       - name: pnpm install
         run: pnpm install --frozen-lockfile
 
-      - name: Prettier (fichiers modifiés par la PR)
-        if: github.event_name == 'pull_request'
-        run: |
-          git diff --name-only --diff-filter=AMR "origin/${{ github.base_ref }}...HEAD" -- resources/js resources/css \
-            | grep -E '\.(js|svelte|css)$' \
-            | xargs -r pnpm exec prettier --check
-
-      - name: Prettier (dépôt complet, informatif)
-        if: github.event_name != 'pull_request'
-        continue-on-error: true
+      - name: Prettier
         run: pnpm lint
 
       - name: ESLint (bugs JS / Svelte)

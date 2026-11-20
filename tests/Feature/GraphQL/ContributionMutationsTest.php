@@ -328,7 +328,7 @@ class ContributionMutationsTest extends TestCase
 
         foreach ([[], ['segment' => $this->segment(), 'trace' => $this->trace()]] as $input) {
             $this->submitWithToken($token, $input)
-                ->assertGraphQLValidationError('input', 'Provide exactly one of "segment", "trace", "event" or "media".');
+                ->assertGraphQLValidationError('input', 'Provide exactly one of "segment", "trace", "event", "media", "line_material" or "series".');
         }
         $this->assertSame(0, Contribution::count());
     }

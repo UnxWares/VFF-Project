@@ -15,8 +15,9 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * Série de matériel roulant (BB 15000, X 73500, TGV Atlantique…).
  *
  * Fiches importées de Wikidata (`source` = wikidata, `wikidata_id`) par vff:import-materials ;
- * `provenance` garde la source de chaque champ ({champ: {source, ref}}), `image` les droits du
- * fichier Commons (auteur, licence, attribution).
+ * `provenance` garde la source de chaque champ ({champ: {source, ref}} ; source `contrib` pour une
+ * valeur proposée par un contributeur et validée : ref `contribution:<id>`, url de la source citée),
+ * `image` les droits du fichier Commons (auteur, licence, attribution).
  *
  * @property list<string>|null $designations
  * @property list<array{name: string, wikidata_id: ?string, units: ?int}>|null $builders
@@ -24,7 +25,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property list<array{label: string, wikidata_id: ?string}>|null $electrification
  * @property list<array{label: string, mm: ?int, wikidata_id: ?string}>|null $gauges
  * @property array<string, mixed>|null $image
- * @property array<string, array{source: string, ref?: string|null, original?: array{amount: float, unit: string}, via?: string, revid?: int, value?: string, units?: int, as_of?: string}>|null $provenance
+ * @property array<string, array{source: string, ref?: string|null, url?: string, original?: array{amount: float, unit: string}, via?: string, revid?: int, value?: string, units?: int, as_of?: string}>|null $provenance
  * @property string|null $service_status `in_service` ou `withdrawn` quand une source le dit (Wikidata P5817, effectif de l'infobox Wikipédia), nul sinon
  * @property string|null $service_status_checked_at date de lecture de la source (AAAA-MM-JJ)
  * @property string $scope `france` (rattachée à la France dans Wikidata) ou `attested` (circulation en France attestée par une ligne citée)

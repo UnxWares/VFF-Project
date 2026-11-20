@@ -6,6 +6,9 @@
      *
      *   <ReportError type="line" slug={line.slug} name={line.name} />
      *
+     * `proposals` (facultatif) : liens discrets vers les formulaires de contribution, sous le bouton
+     * (« Proposer un événement », « Proposer une image »…), [{ href, label }].
+     *
      * Anti-abus sans service externe : à l'ouverture, la fenêtre demande un jeton daté
      * (GET /reports/token) qui impose une durée minimale de remplissage ; un champ piège caché
      * (`homepage`) et une limite de débit côté serveur complètent le dispositif. Aucun traceur.
@@ -18,8 +21,8 @@
     import { i18n } from '$lib/i18n.js';
     import { colon } from '$lib/typo.js';
 
-    /** @type {{ type: 'line'|'station'|'material'|'accident', slug: string, name: string }} */
-    let { type, slug, name } = $props();
+    /** @type {{ type: 'line'|'station'|'material'|'accident', slug: string, name: string, proposals?: { href: string, label: string }[] }} */
+    let { type, slug, name, proposals = [] } = $props();
 
     const FIELDS = ['report-description', 'report-source', 'report-contact'];
     /** Champs contrôlés avant l'envoi (reportErrors), dans l'ordre d'affichage. */
@@ -105,6 +108,14 @@
             {t('reports.button')}
         </button>
     </div>
+    {#if proposals.length}
+        <p class="propose">
+            <span>{t('proposals.sheet.prompt')}</span>
+            {#each proposals as p (p.href)}
+                <Link href={p.href} class="vff-link">{p.label}</Link>
+            {/each}
+        </p>
+    {/if}
 </div>
 
 <dialog
@@ -268,6 +279,13 @@
         font-family: var(--vff-font-body);
         font-size: var(--vff-fs-md);
         color: var(--vff-text-muted);
+    }
+    .report-error .propose {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: var(--vff-space-1) var(--vff-space-4);
+        margin-top: var(--vff-space-3);
     }
 
     .report-dialog {
