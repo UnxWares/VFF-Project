@@ -6,6 +6,7 @@ use App\Models\Line;
 use App\Models\Media;
 use App\Services\SiteStats;
 use App\Support\Advocacy;
+use App\Support\WebUrl;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -96,10 +97,11 @@ class HomeController extends Controller
                 'caption' => $m->caption,
                 'author' => $m->author,
                 'license' => $m->license,
-                'license_url' => $m->license_url,
-                'source_url' => $m->source_url,
-                'thumb_url' => $m->thumb_url,
-                'display_url' => $m->display_url,
+                // Adresses venues de Commons : http(s) seulement (WebUrl).
+                'license_url' => WebUrl::safe($m->license_url),
+                'source_url' => WebUrl::safe($m->source_url),
+                'thumb_url' => WebUrl::safe($m->thumb_url),
+                'display_url' => WebUrl::safe($m->display_url),
                 'width' => (int) $m->width,
                 'height' => (int) $m->height,
                 'line' => ['slug' => $m->line_slug, 'name' => $m->line_name],

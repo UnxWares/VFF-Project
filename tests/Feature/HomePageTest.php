@@ -10,6 +10,7 @@ use App\Models\Media;
 use Clickbar\Magellan\Data\Geometries\LineString;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Support\BuildsRailNetwork;
 use Tests\TestCase;
@@ -138,6 +139,19 @@ class HomePageTest extends TestCase
         $this->get('/')->assertInertia(fn (Assert $page) => $page
             ->has('archives', 1)
             ->where('archives.0.decade', true));
+    }
+
+    /** Adresses enregistrées avant le contrôle de l'import : nulles si elles ne sont pas en http(s). */
+    public function test_archives_never_link_to_an_address_that_is_not_http(): void
+    {
+        $media = $this->commonsImage();
+        DB::table('media')->where('id', $media->id)->update(['license_url' => ' javascript:alert(1)', 'source_url' => 'JaVaScRiPt:alert(1)']);
+
+        $this->get('/')->assertInertia(fn (Assert $page) => $page
+            ->has('archives', 1)
+            ->where('archives.0.license', 'CC BY-SA 4.0')
+            ->where('archives.0.license_url', null)
+            ->where('archives.0.source_url', null));
     }
 
     public function test_home_without_featured_images_has_empty_archives(): void

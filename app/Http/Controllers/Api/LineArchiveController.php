@@ -56,7 +56,9 @@ class LineArchiveController extends Controller
      *
      * - `rail_route` (4 points) : le titre décrit une voie ferrée entre deux lieux de la ligne qui se suivent
      *   (« chemin de fer de Limoges à Angoulême », « ligne de Toulouse à Bayonne ») ; à défaut `route` (3) : un
-     *   trajet entre eux (« de Paris au Havre », « entre Paris et Le Havre », « rapide Paris - Bordeaux ») ; à
+     *   trajet entre eux (« de Paris au Havre », « entre Paris et Le Havre », « rapide Paris - Bordeaux », deux
+     *   villes voisines d'une liste « entre Paris, Rouen, Le Havre et Dieppe », qui n'est souvent qu'une étoile de
+     *   destinations) ; à
      *   défaut `two_places` (1) : il nomme deux lieux de la ligne (communes ou gares, extrémités de son nom actuel
      *   ou de ses anciens noms), et `only_line_places` (1) s'il ne nomme aucun lieu situé hors de la ligne ;
      * - `ends` (2) : ces deux lieux sont les extrémités de la ligne ;

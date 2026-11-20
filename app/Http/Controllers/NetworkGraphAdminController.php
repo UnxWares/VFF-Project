@@ -46,7 +46,7 @@ class NetworkGraphAdminController extends Controller
         $missing = $requested > 0 && $era === null ? $requested : null;
         $era ??= $eras->firstWhere('is_current', true) ?? $eras->last();
         $layer = in_array($request->query('layer'), GraphTiles::LAYERS, true) ? (string) $request->query('layer') : 'topology';
-        $report = $era !== null ? $diagnostics->report((int) $era->id) : null;
+        $report = $era !== null ? $diagnostics->head((int) $era->id) : null;
 
         return Inertia::render('Validate/Graph', [
             'eras' => $eras->map(fn (object $e): array => [
@@ -72,7 +72,7 @@ class NetworkGraphAdminController extends Controller
     {
         Gate::authorize('viewNetworkGraph', User::class);
         [$eraId] = $this->era($year);
-        $report = $diagnostics->report($eraId);
+        $report = $diagnostics->head($eraId);
         abort_if($report === null, 404);
 
         return response()->json([
@@ -92,8 +92,8 @@ class NetworkGraphAdminController extends Controller
     {
         Gate::authorize('viewNetworkGraph', User::class);
         [$eraId] = $this->era($year);
-        $report = $diagnostics->report($eraId);
-        abort_if($report === null, 404);
+        // Seule la liste demandée est lue dans le cache, pas tout le rapport.
+        $report = $this->listReport($diagnostics, $eraId, $check);
         $page = max(1, min(100_000, (int) $request->query('page', '1')));
         [$filter, $line, $unknownLine] = $this->filter($request, $check);
 
@@ -124,8 +124,7 @@ class NetworkGraphAdminController extends Controller
     {
         Gate::authorize('viewNetworkGraph', User::class);
         [$eraId] = $this->era($year);
-        $report = $diagnostics->report($eraId);
-        abort_if($report === null, 404);
+        $report = $this->listReport($diagnostics, $eraId, $check);
         [$filter, $line, $unknownLine] = $this->filter($request, $check);
         abort_if($unknownLine !== null, 404);
 
@@ -141,6 +140,20 @@ class NetworkGraphAdminController extends Controller
             // Réservé aux administrateurs : jamais dans un cache partagé.
             'Cache-Control' => 'private, no-store',
         ]);
+    }
+
+    /**
+     * Rapport réduit à la liste demandée (forme attendue par GraphDiagnostics::page et GraphDiagnosticsCsv).
+     * 404 si le graphe de l'ère n'est pas construit.
+     *
+     * @return array{lists: array<string, array{total: int, items: list<array<string, mixed>>}>}
+     */
+    private function listReport(GraphDiagnostics $diagnostics, int $eraId, string $check): array
+    {
+        $list = $diagnostics->list($eraId, $check);
+        abort_if($list === null, 404);
+
+        return ['lists' => [$check => $list]];
     }
 
     /**

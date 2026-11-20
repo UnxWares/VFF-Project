@@ -2,7 +2,12 @@
     import { i18n } from '$lib/i18n.js';
     import { formatEventDate } from '$lib/linePhases.js';
     import { firstOfMonth, formatLocale, formatNumber, tieUnits } from '$lib/typo.js';
-    import { mediaHeading, mediaLicenseHref, mediaLicenseLabel } from '$lib/mediaCredits.js';
+    import {
+        mediaHeading,
+        mediaLicenseHref,
+        mediaLicenseLabel,
+        mediaSourceHref,
+    } from '$lib/mediaCredits.js';
     import { conciseAlt } from '$lib/altText.js';
 
     /**
@@ -104,8 +109,8 @@
                             target="_blank"
                             rel="noopener noreferrer license"
                             >{mediaLicenseLabel(m, t)}{@render ext()}</a
-                        >{:else}{mediaLicenseLabel(m, t)}{/if}{#if m.source_url},
-                        <a href={m.source_url} target="_blank" rel="noopener noreferrer"
+                        >{:else}{mediaLicenseLabel(m, t)}{/if}{#if mediaSourceHref(m)},
+                        <a href={mediaSourceHref(m)} target="_blank" rel="noopener noreferrer"
                             >{t('media.via', { provider: m.provider_label })}{@render ext()}</a
                         >{/if}{#if m.contribution_id},
                         {t('media.contributed')}{/if}

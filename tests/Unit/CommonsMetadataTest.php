@@ -99,4 +99,45 @@ class CommonsMetadataTest extends TestCase
         $this->assertSame(1928, $m['depicted_year']);
         $this->assertSame('Public domain, via Wikimedia Commons', $m['attribution']);
     }
+
+    /** @return array<string, array{0: string}> */
+    public static function unsafeLicenseUrls(): array
+    {
+        return [
+            'javascript' => ['javascript:fetch(\'/validate/accounts\')'],
+            'casse mélangée' => ['JaVaScRiPt:alert(1)'],
+            'espaces en tête' => ['   javascript:alert(1)'],
+            'data' => ['data:text/html,<b>x</b>'],
+            'balise autour' => ['<span class="licensetpl_link">javascript:alert(1)</span>'],
+        ];
+    }
+
+    /** Une adresse de licence Commons qui n'est pas en http(s) est nulle ; le nom de la licence reste. */
+    #[DataProvider('unsafeLicenseUrls')]
+    public function test_a_license_url_that_is_not_http_is_dropped(string $url): void
+    {
+        $rights = CommonsMetadata::rights(['LicenseShortName' => 'CC BY-SA 4.0', 'LicenseUrl' => $url]);
+
+        $this->assertNull($rights['license_url']);
+        $this->assertSame('CC BY-SA 4.0', $rights['license']);
+        $this->assertSame(Media::RIGHTS_OPEN_LICENSE, $rights['rights_status']);
+        $this->assertSame('https://creativecommons.org/licenses/by-sa/4.0', CommonsMetadata::rights([
+            'LicenseShortName' => 'CC BY-SA 4.0', 'LicenseUrl' => ' https://creativecommons.org/licenses/by-sa/4.0 ',
+        ])['license_url']);
+    }
+
+    public function test_file_addresses_that_are_not_http_are_dropped(): void
+    {
+        $meta = CommonsMetadata::normalize(['title' => 'File:Gare.jpg', 'info' => [
+            'mime' => 'image/jpeg', 'width' => 800, 'height' => 600,
+            'url' => 'javascript:alert(1)', 'thumburl' => 'data:image/png;base64,AAAA', 'descriptionurl' => 'JaVaScRiPt:alert(1)',
+            'extmetadata' => ['LicenseShortName' => ['value' => 'CC BY 4.0'], 'LicenseUrl' => ['value' => 'javascript:alert(1)']],
+        ]]);
+
+        $this->assertNull($meta['license_url']);
+        $this->assertNull($meta['thumb_url']);
+        $this->assertNull($meta['display_url']);
+        // La page du fichier est refaite à partir de son nom.
+        $this->assertSame('https://commons.wikimedia.org/wiki/File%3AGare.jpg', $meta['source_url']);
+    }
 }

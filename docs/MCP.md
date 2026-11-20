@@ -758,7 +758,7 @@ rattachés à la ligne par un score calculé sur le seul titre de la notice (`Ar
 | Raison | Points | Condition |
 |---|---|---|
 | `rail_route` | 4 | le titre décrit une voie ferrée entre deux lieux de la ligne qui se suivent (« chemin de fer de X à Y », « ligne de X à Y », « la ligne X à Y », « chemin de fer de X à Z et à Y ») |
-| `route` | 3 | à défaut, un trajet entre ces deux lieux (« de X à Y », « entre X et Y », « rapide Paris - Bordeaux ») |
+| `route` | 3 | à défaut, un trajet entre ces deux lieux (« de X à Y », « entre X et Y », « rapide Paris - Bordeaux ») ; aussi deux lieux voisins d'une liste « entre X, Y, Z » et une énumération « de X à Z, W et Y » sans « chemin de fer » ou « ligne » juste avant |
 | `two_places` | 1 | à défaut, le titre nomme deux lieux de la ligne (communes, gares, extrémités de ses noms) |
 | `only_line_places` | 1 | sans trajet, tous les lieux reconnus dans le titre sont sur la ligne |
 | `ends` | 2 | ces deux lieux sont les extrémités de la ligne (nom actuel, ancien nom ou gares terminus) |

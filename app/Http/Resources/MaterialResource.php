@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\Material;
 use App\Services\Api\Provenance;
+use App\Support\WebUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -192,7 +193,7 @@ class MaterialResource extends JsonResource
              *
              * @var array{provider: string, file: string, thumb_url: string|null, display_url: string|null, source_url: string, width: int|null, height: int|null, author: string|null, license: string|null, license_url: string|null, rights_status: string, commercial_ok: bool|null, share_alike: bool|null, attribution_required: bool|null, attribution: string}|null
              */
-            'image' => $this->image !== null ? self::shape([$this->image], self::IMAGE_KEYS)[0] : null,
+            'image' => $this->image !== null ? self::image($this->image) : null,
             /**
              * Catégorie Wikimedia Commons de la série (autres photos), nulle si inconnue.
              *
@@ -278,6 +279,22 @@ class MaterialResource extends JsonResource
             'source' => $entry['source'] ?? null,
             'url' => $entry !== null ? MaterialDetailResource::sourceUrl($entry['source'], $entry['ref'] ?? null, $entry['revid'] ?? null) : null,
         ];
+    }
+
+    /**
+     * Image Commons de la série, dans l'ordre de IMAGE_KEYS ; adresses en http(s) seulement (WebUrl).
+     *
+     * @param  array<string, mixed>  $image
+     * @return array<string, mixed>
+     */
+    private static function image(array $image): array
+    {
+        $shaped = self::shape([$image], self::IMAGE_KEYS)[0];
+        foreach (['thumb_url', 'display_url', 'source_url', 'license_url'] as $key) {
+            $shaped[$key] = WebUrl::safe($shaped[$key]);
+        }
+
+        return $shaped;
     }
 
     /**
