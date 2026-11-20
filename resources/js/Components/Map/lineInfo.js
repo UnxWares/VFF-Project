@@ -92,3 +92,21 @@ export function escapeHtml(text) {
         (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
     );
 }
+
+/**
+ * Bulle d'une gare (carte et vue ferroviaire) : nom, puis commune et département quand la commune
+ * n'est pas le nom de la gare ; `linkHtml` = lien vers la fiche, déjà échappé par l'appelant.
+ *
+ * @param {{ name: string, city?: string | null, department_code?: string | null }} props
+ * @param {string} linkHtml
+ */
+export function stationPopupHtml(props, linkHtml) {
+    const place = [props.city, props.department_code ? `(${props.department_code})` : '']
+        .filter(Boolean)
+        .join(' ');
+    const placeHtml =
+        place && props.city !== props.name
+            ? `<p class="rail-popup-place">${escapeHtml(place)}</p>`
+            : '';
+    return `<div class="rail-popup"><p class="rail-popup-title">${escapeHtml(props.name)}</p>${placeHtml}${linkHtml}</div>`;
+}

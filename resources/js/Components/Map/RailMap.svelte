@@ -9,11 +9,13 @@
     import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
     import { theme } from '$lib/stores/theme.svelte.js';
     import { colon, formatNumber } from '$lib/typo.js';
+    import { mapControlsLocale } from '$lib/mapControls.js';
     import { ROUTE_STYLES } from '$lib/routeCompare.js';
     import {
         electrificationInfo,
         escapeHtml,
         isTrue,
+        stationPopupHtml,
         statusLabel,
         trafficInfo,
     } from './lineInfo.js';
@@ -896,10 +898,7 @@
             if (!e.features?.length || accidentAt(e.point) || levelCrossingAt(e.point)) return;
             const props = e.features[0].properties;
             const href = props.slug ? `/stations/${encodeURIComponent(props.slug)}` : null;
-            const place = [props.city, props.department_code ? `(${props.department_code})` : '']
-                .filter(Boolean)
-                .join(' ');
-            const html = `<div class="rail-popup"><p class="rail-popup-title">${escapeHtml(props.name)}</p>${place && props.city !== props.name ? `<p class="rail-popup-place">${escapeHtml(place)}</p>` : ''}${popupLink(href, 'maps.drawer.view_station')}</div>`;
+            const html = stationPopupHtml(props, popupLink(href, 'maps.drawer.view_station'));
             openPopup(e.lngLat, html, href);
         });
         map.on(
@@ -919,20 +918,7 @@
 
     // Libellés des boutons de MapLibre dans la langue de la page (sinon « Zoom in »…).
     function controlsLocale() {
-        const t = get(i18n).t;
-        return {
-            'Map.Title': t('maps.controls.map'),
-            'NavigationControl.ZoomIn': t('maps.controls.zoom_in'),
-            'NavigationControl.ZoomOut': t('maps.controls.zoom_out'),
-            'NavigationControl.ResetBearing': t('maps.controls.reset_bearing'),
-            'FullscreenControl.Enter': t('maps.controls.fullscreen_enter'),
-            'FullscreenControl.Exit': t('maps.controls.fullscreen_exit'),
-            'AttributionControl.ToggleAttribution': t('maps.controls.attribution'),
-            'AttributionControl.MapFeedback': t('maps.controls.map_feedback'),
-            'Popup.Close': t('maps.controls.popup_close'),
-            'GeolocateControl.FindMyLocation': t('maps.controls.locate'),
-            'GeolocateControl.LocationNotAvailable': t('maps.controls.locate_unavailable'),
-        };
+        return mapControlsLocale(get(i18n).t);
     }
 
     // « Me localiser » : la position n'est demandée qu'au clic, une seule fois (pas de suivi),

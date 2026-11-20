@@ -52,6 +52,7 @@
                 { path: '/api/v1/eras/{year}', key: 'era' },
                 { path: '/api/v1/eras/{year}/lines.geojson', key: 'lines_geojson' },
                 { path: '/api/v1/eras/{year}/stations.geojson', key: 'stations_geojson' },
+                { path: '/api/v1/eras/{year}/schematic.geojson', key: 'schematic' },
                 { path: '/api/v1/eras/{year}/tiles/{z}/{x}/{y}.mvt', key: 'tiles' },
                 { path: '/api/v1/eras/{year}/gtfs.zip', key: 'gtfs' },
             ],

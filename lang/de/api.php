@@ -110,6 +110,7 @@ return [
             'era' => 'Eine Epoche und der Zustand des Netzes zu diesem Datum: Kilometer in Betrieb, stillgelegt, abgebaut und elektrifiziert.',
             'lines_geojson' => 'Streckenverläufe des Netzes zu einer Epoche, als GeoJSON (FeatureCollection von Abschnitten). Ein Abschnitt, dessen Quelle keine Weitergabe erlaubt, behält seine Eigenschaften, aber keine Geometrie.',
             'stations_geojson' => 'Bahnhöfe zu einer Epoche, als GeoJSON. Geschlossene Bahnhöfe erscheinen, solange in der Nähe ein Gleis liegt, mit ihrem Status.',
+            'schematic' => 'Schematischer Netzplan einer Epoche (der Netzplan der Karte), als GeoJSON: Achsen in 0, 45 oder 90 Grad, Bahnhöfe und Strecken. Die Lage ist nicht die tatsächliche.',
             'tiles' => 'Vektorkachel (MVT) einer Epoche, für eine MapLibre- oder OpenLayers-Quelle. Sie dient der Anzeige der Karte und ist kein Datenexport.',
             'gtfs' => 'Netz einer Epoche im Format GTFS Static (ZIP-Archiv), mit Shapes nur für Strecken, deren gesamter Verlauf weitergegeben werden darf.',
             'lines' => 'Verzeichnis der Strecken, bestehender und verschwundener, mit denselben Filtern wie die Seite Strecken.',
