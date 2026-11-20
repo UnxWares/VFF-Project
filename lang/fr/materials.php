@@ -128,6 +128,10 @@ return [
         'source' => 'source',
         'note' => 'Les années de circulation viennent des articles Wikipédia de la ligne et des séries, ou de Wikidata. Une fin absente ne veut pas dire que la série circule encore. La source de chaque période figure sur la fiche de la série.',
     ],
+    'relations' => [
+        'on_line' => "Assurait\u{a0}: :relations",
+        'label' => 'Relations assurées',
+    ],
     'section_lines' => [
         'intro' => 'Chaque ligne est citée par une source. La phrase est reprise telle quelle, avec un lien vers la version de l’article consultée. Quand une source les date, les années de circulation sur la ligne sont indiquées.',
         'partial' => ':shown premières lignes affichées sur :total.',

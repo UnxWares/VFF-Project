@@ -102,7 +102,10 @@ class LineMaterialLinkResource extends JsonResource
              * l'article de la série) ou `wikidata`. Pour Wikipédia : `article`, `revid` (révision lue), `section`
              * (titre de la section, « Section > Sous-section »), `quote` (phrase qui porte le lien, extrait sous
              * CC BY-SA 4.0 : citez l'article), `url` (permalien), `shared_article` (vrai si l'article décrit
-             * plusieurs lignes), `doubt` (absent si rien ne met la circulation en doute ; sinon la raison :
+             * plusieurs lignes), `route` (preuve tirée d'une relation ou d'un itinéraire cité par l'article de la
+             * série, voir `relations` : `kind`, `label`, `from`, `to`, `service`, `title`, `source` (article de
+             * l'itinéraire), `stops` (arrêts de la relation, `id` et `name`), `era_year` (époque du graphe qui a
+             * donné le plus court chemin)), `doubt` (absent si rien ne met la circulation en doute ; sinon la raison :
              * `order` commande ou contrat, `trial` essai ou record, `one_off` circulation exceptionnelle,
              * spéciale ou présentation, `preserved` musée ou préservation, `possible` simple possibilité,
              * `positioning` acheminement vers un atelier, `diverted` coupure ou détournement, `restricted`
@@ -129,6 +132,19 @@ class LineMaterialLinkResource extends JsonResource
              */
             'periods' => LineMaterialPeriodResource::collection($this->shownPeriods)->resolve($request),
             /**
+             * Relations que la série assurait sur la ligne, lues dans l'article Wikipédia de la série (relation
+             * entre deux gares, ou itinéraire comme « Ligne de Paris à Granville ») : `kind` (`relation` ou
+             * `itinerary`), `label` (« Paris-Montparnasse - Granville »), `from` et `to` (gares d'extrémité,
+             * `id` et `name` tels qu'en base, `id` nul si la gare n'a pas été identifiée), `service` (type de
+             * service cité : `TER`, `Intercités`, `TGV`, `grandes lignes`, `express`, `omnibus`, `fret`, ou
+             * nul), `title` (article de l'itinéraire, nul pour une relation), `periods` (périodes montrées qui
+             * datent cette relation : `start_date`, `start_precision`, `end_date`, `end_precision`). Liste vide
+             * quand aucune preuve ne cite de relation. Les preuves qui portent un doute ne sont pas reprises.
+             *
+             * @var list<array<string, mixed>>
+             */
+            'relations' => $this->resource->relations($this->resource->relationLoaded('shownPeriods') ? $this->shownPeriods : null),
+            /**
              * Fournisseur et licence de la source du lien (`provider`, `name`, `license`, `license_status`).
              *
              * @var array{provider: string|null, name: string|null, license: string|null, license_status: string|null}
@@ -146,7 +162,7 @@ class LineMaterialLinkResource extends JsonResource
      */
     private static function evidence(array $evidence): array
     {
-        $keys = ['kind', 'contribution', 'article', 'revid', 'section', 'title', 'source_kind', 'license', 'quote', 'property', 'subject', 'from_year', 'to_year', 'shared_article', 'doubt', 'url'];
+        $keys = ['kind', 'contribution', 'article', 'revid', 'section', 'title', 'source_kind', 'license', 'quote', 'property', 'subject', 'from_year', 'to_year', 'shared_article', 'route', 'doubt', 'url'];
 
         return array_filter(array_replace(array_flip($keys), $evidence), fn (mixed $v, string $k): bool => array_key_exists($k, $evidence), ARRAY_FILTER_USE_BOTH);
     }

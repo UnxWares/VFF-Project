@@ -127,6 +127,10 @@ return [
         'source' => 'source',
         'note' => 'The years come from the Wikipedia articles on the line and on each class, or from Wikidata. A missing end date does not mean the class still runs here. The source of each period is on the class page.',
     ],
+    'relations' => [
+        'on_line' => 'Services run: :relations',
+        'label' => 'Services run on the line',
+    ],
     'section_lines' => [
         'intro' => 'Each line is backed by a source. The sentence is quoted as written, in French, with a link to the version of the article we read. When a source dates them, the years the class ran on the line are given.',
         'partial' => 'First :shown lines shown out of :total.',

@@ -2,7 +2,7 @@
     import { Link } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { buildersText, servicePeriodText } from '$lib/materialFacts.js';
-    import { periodsSummary, sortByFirstPeriod } from '$lib/materialPeriods.js';
+    import { periodsSummary, relationsList, sortByFirstPeriod } from '$lib/materialPeriods.js';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
 
     /**
@@ -15,7 +15,7 @@
      * sur la fiche de la série.
      *
      * @type {{ materials: Array<{ slug: string, name: string, type: string, builder: string|null,
-     *   builders?: string[], in_service_from: number|null, in_service_to: number|null, periods?: Array<any> }> }}
+     *   builders?: string[], in_service_from: number|null, in_service_to: number|null, periods?: Array<any>, relations?: Array<any> }> }}
      */
     let { materials } = $props();
 
@@ -30,6 +30,7 @@
             {@const service = servicePeriodText(m.in_service_from, m.in_service_to, t)}
             {@const builders = buildersText(m.builders, m.builder, t)}
             {@const onLine = m.periods?.length ? periodsSummary(m.periods, t) : null}
+            {@const relations = relationsList(m.relations, m.periods, t)}
             <li>
                 <Link class="vff-tile material-card" href="/materials/{m.slug}">
                     <strong>{m.name}</strong>
@@ -38,6 +39,9 @@
                     {#if service}<span class="meta">{service}</span>{/if}
                     {#if onLine}<span class="on-line"
                             >{t('materials.periods.on_line', { periods: onLine })}</span
+                        >{/if}
+                    {#if relations.length}<span class="on-line"
+                            >{t('materials.relations.on_line', { relations: relations.join(' ; ') })}</span
                         >{/if}
                 </Link>
             </li>

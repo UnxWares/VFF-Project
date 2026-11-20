@@ -1348,6 +1348,14 @@ type LineMaterialLink {
     "Note libre (liens saisis dans VFF)."
     notes: String
 
+    """
+    Relations que la série assurait sur la ligne, lues dans l'article Wikipédia de la série (relation entre
+    deux gares, ou itinéraire comme « Ligne de Paris à Granville »), une par libellé, avec les périodes qui
+    les datent. Liste vide quand aucune preuve ne cite de relation ; les preuves qui portent un doute ne
+    sont pas reprises.
+    """
+    relations: [LineMaterialRelation!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField")
+
     "Preuves du lien, les plus fortes d'abord (cinq au plus)."
     evidence: [LineMaterialEvidence!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField")
 
@@ -1380,6 +1388,9 @@ type LineMaterialPeriod {
     "Fin de la portion parcourue (voir `section_from`)."
     section_to: String
 
+    "Relation assurée pendant cette période, quand la phrase datée cite une relation ou un itinéraire (sans `kind`, `title` ni `periods`). Nulle sinon."
+    relation: LineMaterialRelation
+
     "Fiabilité : `high` (chaque date au jour ou au mois) ou `medium` (une date à l'année). Les périodes `low` ne sont jamais servies."
     confidence: String!
 
@@ -1400,6 +1411,58 @@ type LineMaterialPeriod {
 
     "Fournisseur et licence de la source."
     provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialPeriodField")
+}
+
+"""
+Relation assurée par une série sur une ligne (« Paris-Montparnasse - Granville »), lue dans l'article
+Wikipédia de la série : relation entre deux gares, rattachée aux lignes du plus court chemin du graphe de
+l'époque quand il est sans ambiguïté, ou lien vers un article d'itinéraire qui enchaîne plusieurs lignes.
+"""
+type LineMaterialRelation {
+    "`relation` (gares citées par la phrase) ou `itinerary` (article d'itinéraire, voir `title`). Nul dans `LineMaterialPeriod.relation`."
+    kind: String
+
+    "Libellé : gares d'extrémité (et arrêts cités) séparées par « - », noms tels qu'en base."
+    label: String!
+
+    "Gare de départ."
+    from: LineMaterialRelationStop
+
+    "Gare d'arrivée."
+    to: LineMaterialRelationStop
+
+    "Type de service cité par la phrase ou la section : `TER`, `Intercités`, `TGV`, `grandes lignes`, `express`, `omnibus`, `fret`, ou nul."
+    service: String
+
+    "Titre de l'article Wikipédia de l'itinéraire (`kind` = `itinerary`), nul pour une relation."
+    title: String
+
+    "Périodes montrées qui datent cette relation (dans `LineMaterialLink.relations` seulement)."
+    periods: [LineMaterialRelationPeriod!]
+}
+
+"Gare d'extrémité d'une relation."
+type LineMaterialRelationStop {
+    "Identifiant de la gare dans VFF, nul si le nom n'a pas été identifié."
+    id: Int
+
+    "Nom de la gare tel qu'en base (ou tel qu'écrit par la source si `id` est nul)."
+    name: String!
+}
+
+"Période qui date une relation (forme courte de `LineMaterialPeriod`)."
+type LineMaterialRelationPeriod {
+    "Début (`AAAA-MM-JJ`), nul si seule la fin est connue."
+    start_date: String
+
+    "Précision du début : `day`, `month` ou `year`."
+    start_precision: String
+
+    "Fin (`AAAA-MM-JJ`), nulle si la source ne la donne pas."
+    end_date: String
+
+    "Précision de la fin : `day`, `month` ou `year`."
+    end_precision: String
 }
 
 """
@@ -1461,6 +1524,9 @@ type LineMaterialEvidence {
     (train de musée ou touristique), nul pour un service régulier.
     """
     doubt: String
+
+    "Relation ou itinéraire cité par l'article de la série qui a donné cette preuve (voir `LineMaterialLink.relations`), nul pour une preuve tirée d'un lien direct vers la ligne."
+    route: LineMaterialRelation
 
     "Permalien de la preuve."
     url: String
@@ -3135,6 +3201,9 @@ type LineSheetMaterialPeriod {
 
     "Fin de la portion parcourue."
     section_to: String
+
+    "Relation assurée pendant la période (`label`, `from`, `to`, `service`), nulle si la phrase datée n'en cite pas."
+    relation: LineMaterialRelation
 
     "Fournisseur de la source : `wikipedia` ou `wikidata`."
     source: String!

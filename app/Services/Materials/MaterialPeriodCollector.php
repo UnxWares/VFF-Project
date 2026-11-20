@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\DB;
  *      citent une série par un lien (MaterialPeriodExtractor) ;
  *   2. articles Wikipédia des SÉRIES : phrases des sections « Utilisation », « Services »… qui citent une
  *      ligne par un lien ;
- *   3. Wikidata : qualificatifs de début (P580) et de fin (P582) des déclarations P3438, avec leur précision.
+ *   3. relations et itinéraires cités par les articles des séries (MaterialRelations) : période lue dans la
+ *      phrase et gardée dans la preuve du lien, avec la relation assurée (colonne `relation`) ;
+ *   4. Wikidata : qualificatifs de début (P580) et de fin (P582) des déclarations P3438, avec leur précision.
  *
  * Les articles sont ceux que l'import du matériel a mis en cache (SourceCache, storage/app/data/materiel/,
  * mêmes révisions que les preuves des liens) : aucune requête vers Wikipédia ici. Wikidata : une requête,
@@ -52,8 +54,14 @@ final class MaterialPeriodCollector
     public function collect(bool $offline = false, ?\DateTimeInterface $today = null): array
     {
         $links = [];
-        foreach (LineMaterial::query()->whereIn('source', LineMaterial::IMPORTED_SOURCES)->orderBy('id')->get(['id', 'line_id', 'material_id']) as $link) {
+        $routed = [];
+        foreach (LineMaterial::query()->whereIn('source', LineMaterial::IMPORTED_SOURCES)->orderBy('id')->get(['id', 'line_id', 'material_id', 'evidence']) as $link) {
             $links["{$link->line_id}:{$link->material_id}"] ??= (int) $link->id;
+            foreach ($link->evidence ?? [] as $evidence) {
+                if (isset($evidence['route'], $evidence['period']) && is_array($evidence['period'])) {
+                    $routed[] = [$link, $evidence];
+                }
+            }
         }
         $materials = DB::table('materials')->get(['id', 'wikidata_id', 'wikipedia_fr', 'type', 'max_speed_kmh', 'in_service_from', 'in_service_to'])->keyBy('id');
         $lines = DB::table('lines')->whereNotNull('wikipedia_title')->get(['id', 'wikipedia_title', 'is_lgv'])->keyBy('id');
@@ -129,7 +137,18 @@ final class MaterialPeriodCollector
             }
         }
 
-        // 3. Wikidata : P3438 daté.
+        // 3. Relations et itinéraires cités par les articles des séries (MaterialRelations) : la période lue par
+        //    l'import des liens est gardée dans la preuve, avec la relation assurée.
+        foreach ($routed as [$link, $evidence]) {
+            $route = $evidence['route'];
+            $candidates[] = [
+                'line_id' => (int) $link->line_id, 'material_id' => (int) $link->material_id, 'origin' => MaterialPeriodExtractor::MODE_MATERIAL_ARTICLE,
+                'page' => ['title' => $evidence['article'], 'revid' => $evidence['revid']], 'heading' => (string) ($evidence['section'] ?? ''),
+                'relation' => array_intersect_key($route, array_flip(['label', 'from', 'to', 'service'])),
+            ] + $evidence['period'];
+        }
+
+        // 4. Wikidata : P3438 daté.
         if ($this->wikidata !== null) {
             $materialsByQid = $materials->filter(fn ($m): bool => $m->wikidata_id !== null)->pluck('id', 'wikidata_id')->all();
             $linesByQid = [];
@@ -255,6 +274,7 @@ final class MaterialPeriodCollector
             'section_to' => $sectionTo,
             'confidence' => $confidence,
             'origin' => $c['origin'],
+            'relation' => $c['relation'] ?? null,
         ];
         if ($c['origin'] === 'wikidata') {
             $values += [
@@ -274,7 +294,8 @@ final class MaterialPeriodCollector
                 'source_excerpt' => $c['excerpt'],
             ];
         }
-        $values['fingerprint'] = sha1(implode('|', [$linkId, $values['start_date'], $values['end_date'], $sectionFrom, $sectionTo]));
+        // Le libellé de la relation n'entre dans l'empreinte que s'il existe (empreintes antérieures inchangées).
+        $values['fingerprint'] = sha1(implode('|', [$linkId, $values['start_date'], $values['end_date'], $sectionFrom, $sectionTo, ...(isset($c['relation']['label']) ? [$c['relation']['label']] : [])]));
 
         return $values;
     }

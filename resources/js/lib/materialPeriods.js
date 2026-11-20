@@ -67,6 +67,36 @@ export function periodYears(p, t) {
     return String(t('materials.periods.until', { year: year(p.end_date) }));
 }
 
+/**
+ * Relations assurées par une série sur une ligne, en texte court : « TER Paris-Montparnasse - Granville
+ * (1990-2009) ». Réunit les relations de la fiche (`relations`, LineMaterial::relations(), avec leurs
+ * périodes) et celles que portent les périodes (`relation` de LineMaterialPeriod::toSheet()), une par libellé.
+ *
+ * @param {Array<{label: string, service?: ?string, periods?: Array<any>}>|undefined} relations
+ * @param {Array<{start_date: ?string, end_date: ?string, relation?: ?{label: string, service?: ?string}}>|undefined} periods
+ * @param {(key: string, opts?: object) => string} t traduction
+ * @returns {string[]}
+ */
+export function relationsList(relations, periods, t) {
+    const byLabel = new Map();
+    for (const r of relations ?? []) {
+        byLabel.set(r.label, { label: r.label, service: r.service ?? null, periods: [...(r.periods ?? [])] });
+    }
+    for (const p of periods ?? []) {
+        const r = p.relation;
+        if (!r?.label) continue;
+        const entry = byLabel.get(r.label) ?? { label: r.label, service: r.service ?? null, periods: [] };
+        if (!entry.periods.some((q) => q.start_date === p.start_date && q.end_date === p.end_date)) {
+            entry.periods.push(p);
+        }
+        byLabel.set(r.label, entry);
+    }
+    return [...byLabel.values()].map((e) => {
+        const years = e.periods.length ? periodsSummary(e.periods, t) : '';
+        return `${e.service ? `${e.service} ` : ''}${e.label}${years ? ` (${years})` : ''}`;
+    });
+}
+
 /** Toutes les périodes d'une série sur la ligne, en années et regroupées : « 1924-1958, à partir de 1963 ». */
 export function periodsSummary(periods, t) {
     return mergedPeriods(periods)

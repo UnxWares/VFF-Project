@@ -41,8 +41,14 @@ final class WikipediaMaterialSections
     /** Sections d'un article de MATÉRIEL qui décrivent ses services et ses lignes. */
     public const MATERIAL_SECTIONS = '/^(?:utilisations?|services?|service\s+commercial|affectations?|lignes?\s+(?:parcourues|desservies|exploit[ée]es)|dessertes?|exploitation|carri[èe]res?|parcours|missions?|engagements?|en\s+service)\b/iu';
 
+    /**
+     * Sections d'un article de MATÉRIEL qui listent ses relations (« Relations assurées », « Relations
+     * effectuées ») : lues en plus, pour les seuls articles dont aucune section ne répond à MATERIAL_SECTIONS.
+     */
+    public const RELATION_SECTIONS = '/^(?:relations?|liaisons?)\b/iu';
+
     /** Longueur maximale d'une phrase citée comme preuve. */
-    private const QUOTE_WIDTH = 300;
+    public const QUOTE_WIDTH = 300;
 
     /**
      * Futur, conditionnel, projet ou négation de la circulation : la phrase ne crée aucun lien.
@@ -426,7 +432,7 @@ final class WikipediaMaterialSections
     }
 
     /** Commentaires, références, balises et galeries retirés (ils ne sont pas du texte lu). */
-    private static function stripNoise(string $text): string
+    public static function stripNoise(string $text): string
     {
         $text = (string) preg_replace('/<!--.*?-->/su', ' ', $text);
         $text = (string) preg_replace('/<ref[^>\/]*\/>|<ref[^>]*>.*?<\/ref>/su', ' ', $text);
@@ -441,7 +447,7 @@ final class WikipediaMaterialSections
      *
      * @return list<array{sentence: string, previous: ?string}>
      */
-    private static function units(string $text): array
+    public static function units(string $text): array
     {
         $out = [];
         foreach (preg_split('/\n+/u', $text) ?: [] as $line) {

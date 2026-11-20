@@ -537,7 +537,8 @@ Renvoie `material` : la fiche de l'API REST `/api/v1/materials/{slug}`, avec `fi
 (provenance de chaque champ ; `contrib` pour une valeur corrigée par une contribution validée, référence
 `contribution:<id>`) et `lines` (lignes parcourues, une entrée par lien et par source, chaque lien avec sa `source`
 telle quelle (`wikidata`, `wikipedia` ou `contrib`), sa preuve `evidence` et sa fiabilité `confidence`, et `periods`,
-ses périodes de circulation datées : voir `line_materials`). `lines_count` compte les lignes, pas les liens.
+ses périodes de circulation datées : voir `line_materials`, et `relations`, les relations que la série assurait sur
+la ligne, décrites dans `line_materials`). `lines_count` compte les lignes, pas les liens.
 `media_count` donne le nombre d'images publiées de la série : l'outil `media` avec `material` les renvoie. Série
 inconnue : erreur `material_not_found` avec `suggestions`.
 
@@ -571,8 +572,19 @@ tous ses liens). Une période donne `start_date`
 et `end_date` (`AAAA-MM-JJ`, l'une peut être nulle) avec `start_precision` et `end_precision` (`day`, `month` : date au
 1er du mois, `year` : date au 1er janvier), `section` (portion nommée par le titre de section de l'article, sinon
 nulle), `confidence` (`high` : jour ou mois, `medium` : année), `origin` (`line_article`, `material_article`,
-`wikidata`, `contribution`), `source` (`title`, `revision`, `url`) et `provenance`. Seules les périodes sûres sont données ; une fin
-nulle ne veut pas dire que la série circule encore. Exemple réel : sur la ligne de Grenoble à Montmélian
+`wikidata`, `contribution`), `relation` (relation assurée pendant la période quand la phrase datée en cite une :
+`label` comme « Paris-Montparnasse - Granville », gares d'extrémité `from` et `to` avec leur `id` et leur `name` tels
+qu'en base, `service` comme `TER`, `Intercités`, `express`, `omnibus` ou `fret`, sinon nulle), `source` (`title`,
+`revision`, `url`) et `provenance`. Seules les périodes sûres sont données ; une fin
+nulle ne veut pas dire que la série circule encore.
+
+Chaque série porte aussi `relations` : les relations qu'elle assurait sur la ligne, lues dans l'article Wikipédia de
+la série. Une relation entre deux gares (« Relation Argentan - Granville ») est rattachée aux lignes du plus court
+chemin du graphe de l'époque, seulement s'il n'existe pas d'autre itinéraire raisonnable ; un lien vers un article
+d'itinéraire (« Ligne de Paris à Granville ») est rattaché aux lignes qu'il enchaîne
+(`database/data/wikipedia_itineraries.php`). Chaque entrée donne `kind` (`relation` ou `itinerary`), `label`,
+`from`, `to`, `service`, `title` (article de l'itinéraire) et `periods` (début, fin et précision des périodes qui la
+datent). Liste vide si aucune relation n'est citée. Exemple réel : sur la ligne de Grenoble à Montmélian
 (`rfn-909000`), les CC 72000 ont une période du 20 août 1982 au 30 mai 1986 (`high`), les BB 67300 une fin au
 2 mai 2016 (`high`). Ligne inconnue : erreur `line_not_found` avec `suggestions`.
 

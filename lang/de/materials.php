@@ -127,6 +127,10 @@ return [
         'source' => 'Quelle',
         'note' => 'Die Jahre stammen aus den Wikipedia-Artikeln über die Strecke und die Baureihen oder aus Wikidata. Fehlt das Ende, heißt das nicht, dass die Baureihe hier noch fährt. Die Quelle jedes Zeitraums steht auf der Seite der Baureihe.',
     ],
+    'relations' => [
+        'on_line' => 'Verbindungen: :relations',
+        'label' => 'Gefahrene Verbindungen',
+    ],
     'section_lines' => [
         'intro' => 'Jede Strecke ist durch eine Quelle belegt. Der Satz wird unverändert auf Französisch zitiert, mit einem Link auf die gelesene Fassung des Artikels. Wenn eine Quelle sie datiert, sind die Jahre angegeben, in denen die Baureihe auf der Strecke fuhr.',
         'partial' => 'Die ersten :shown von :total Strecken werden angezeigt.',

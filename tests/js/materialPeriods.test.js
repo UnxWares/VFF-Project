@@ -4,6 +4,7 @@ import {
     periodText,
     periodYears,
     periodsSummary,
+    relationsList,
     sortByFirstPeriod,
 } from '$lib/materialPeriods.js';
 
@@ -116,5 +117,28 @@ describe('sortByFirstPeriod', () => {
             { slug: 'd', periods: [range(null, '1972-01-01'), range('1953-01-01', '1972-01-01')] },
         ]);
         expect(sorted.map((m) => m.slug)).toEqual(['d', 'b', 'a', 'c']);
+    });
+});
+
+describe('relationsList', () => {
+    it('réunit les relations de la fiche et celles des périodes, une par libellé', () => {
+        const relations = [
+            { label: 'Paris-Montparnasse - Granville', service: 'TER', periods: [] },
+            { label: 'Argentan - Granville', service: null },
+        ];
+        const periods = [
+            { ...range('1990-01-01', '2009-01-01'), relation: { label: 'Paris-Montparnasse - Granville', service: 'TER' } },
+            { ...range(null, '1977-01-01'), relation: { label: 'Dreux - Granville' } },
+            range('1950-01-01', '1960-01-01'),
+        ];
+        expect(relationsList(relations, periods, t)).toEqual([
+            'TER Paris-Montparnasse - Granville (1990-2009)',
+            'Argentan - Granville',
+            'Dreux - Granville (jusqu’en 1977)',
+        ]);
+    });
+
+    it('ne renvoie rien sans relation', () => {
+        expect(relationsList(undefined, [range('1950-01-01', '1960-01-01')], t)).toEqual([]);
     });
 });

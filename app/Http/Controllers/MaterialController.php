@@ -155,6 +155,8 @@ class MaterialController extends Controller
                     'source_title' => $link->evidence[0]['title'] ?? null,
                     // Périodes de circulation sur la ligne datées par une source (sûres seulement).
                     'periods' => $periods->map(fn (LineMaterialPeriod $p): array => $p->toSheet())->values()->all(),
+                    // Relations assurées sur la ligne (LineMaterial::relations), une par libellé, tous liens réunis.
+                    'relations' => array_values($group->flatMap(fn (LineMaterial $l): array => $l->relations($l->shownPeriods))->keyBy('label')->all()),
                 ];
             })->values(),
             // Nombre total de lignes parcourues (la liste est bornée à MAX_LINES).

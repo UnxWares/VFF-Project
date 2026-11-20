@@ -42,13 +42,15 @@ class LineMaterialPeriod extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'source_revision' => 'integer',
+        'relation' => 'array',
     ];
 
     /**
      * Forme courte servie aux fiches du site (ligne, série) et à la fiche REST d'une ligne : dates et
-     * précision, portion, lien vers la source. Jamais la phrase lue.
+     * précision, portion, relation assurée (`relation` : `label`, `from` / `to` {`id`, `name`}, `service`, ou
+     * null), lien vers la source. Jamais la phrase lue.
      *
-     * @return array{start_date: ?string, start_precision: ?string, end_date: ?string, end_precision: ?string, section_from: ?string, section_to: ?string, source: string, source_url: string}
+     * @return array{start_date: ?string, start_precision: ?string, end_date: ?string, end_precision: ?string, section_from: ?string, section_to: ?string, relation: ?array<string, mixed>, source: string, source_url: string}
      */
     public function toSheet(): array
     {
@@ -59,6 +61,7 @@ class LineMaterialPeriod extends Model
             'end_precision' => $this->end_precision,
             'section_from' => $this->section_from,
             'section_to' => $this->section_to,
+            'relation' => $this->relation,
             'source' => $this->source,
             'source_url' => $this->source_url,
         ];

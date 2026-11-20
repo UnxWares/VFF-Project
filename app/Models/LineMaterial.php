@@ -71,4 +71,48 @@ class LineMaterial extends Model
     {
         return $this->periods()->whereIn('confidence', LineMaterialPeriod::SHOWN_CONFIDENCES);
     }
+
+    /**
+     * Relations assurées par la série sur la ligne, d'après les preuves qui citent une relation ou un
+     * itinéraire (`route`, MaterialRelations) : une entrée par libellé, avec les périodes montrées qui la
+     * datent. Les preuves qui portent un doute ne comptent pas.
+     *
+     * @param  iterable<LineMaterialPeriod>|null  $periods  périodes montrées déjà chargées (sinon lues)
+     * @return list<array{kind: string, label: string, from: ?array{id: ?int, name: string}, to: ?array{id: ?int, name: string}, service: ?string, title: ?string, periods: list<array{start_date: ?string, start_precision: ?string, end_date: ?string, end_precision: ?string}>}>
+     */
+    public function relations(?iterable $periods = null): array
+    {
+        $out = [];
+        foreach ($this->evidence ?? [] as $evidence) {
+            $route = $evidence['route'] ?? null;
+            if (! is_array($route) || ! isset($route['label']) || isset($evidence['doubt'])) {
+                continue;
+            }
+            $out[$route['label']] ??= [
+                'kind' => (string) $route['kind'],
+                'label' => (string) $route['label'],
+                'from' => $route['from'] ?? null,
+                'to' => $route['to'] ?? null,
+                'service' => $route['service'] ?? null,
+                'title' => $route['title'] ?? null,
+                'periods' => [],
+            ];
+        }
+        if ($out === []) {
+            return [];
+        }
+        foreach ($periods ?? ($this->relationLoaded('shownPeriods') ? $this->shownPeriods : $this->shownPeriods()->get()) as $period) {
+            $label = $period->relation['label'] ?? null;
+            if (is_string($label) && isset($out[$label])) {
+                $out[$label]['periods'][] = [
+                    'start_date' => $period->start_date?->toDateString(),
+                    'start_precision' => $period->start_precision,
+                    'end_date' => $period->end_date?->toDateString(),
+                    'end_precision' => $period->end_precision,
+                ];
+            }
+        }
+
+        return array_values($out);
+    }
 }

@@ -17,7 +17,7 @@
         serviceState,
         splitArrows,
     } from '$lib/materialFacts.js';
-    import { periodText } from '$lib/materialPeriods.js';
+    import { periodText, relationsList } from '$lib/materialPeriods.js';
     import { formatLocale } from '$lib/typo.js';
 
     // Images : `media_count` seul, la galerie les charge par l'API.
@@ -241,6 +241,7 @@
 
 {#snippet lineItem(l)}
     {@const key = confidenceKey(l.confidence, l.kind)}
+    {@const relations = relationsList(l.relations, l.periods, t)}
     <li class="line-item">
         <div class="line-head">
             <Link class="line-name" href="/lines/{l.slug}"
@@ -251,6 +252,14 @@
             >
         </div>
         <p class="confidence">{t(`${key}.text`)}</p>
+        {#if relations.length}
+            <div class="periods">
+                <p class="periods-label">{t('materials.relations.label')}</p>
+                <ul>
+                    {#each relations as r (r)}<li>{r}</li>{/each}
+                </ul>
+            </div>
+        {/if}
         {#if l.periods?.length}
             <div class="periods">
                 <p class="periods-label">{t('materials.periods.label')}</p>

@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Services\Materials\AttestedSeriesFinder;
 use App\Services\Materials\LineMaterialLinker;
 use App\Services\Materials\MaterialImporter;
+use App\Services\Materials\MaterialRelations;
 use App\Services\Materials\SourceCache;
 use App\Services\Materials\WikidataMaterialMapper;
 use App\Services\Materials\WikidataMaterialRules;
@@ -61,7 +62,7 @@ class ImportMaterials extends Command
             $this->importMaterials($source, $wikipedia, $rules, $cache, $refresh, $dryRun);
         }
         if (! $this->option('no-links')) {
-            $linker = new LineMaterialLinker($source, $wikipedia);
+            $linker = new LineMaterialLinker($source, $wikipedia, relations: MaterialRelations::fromDatabase());
             $links = $linker->collect($refresh);
             $byKind = [];
             foreach ($links as $link) {
@@ -71,6 +72,9 @@ class ImportMaterials extends Command
             }
             $this->info(count($links).' lien(s) matériel ↔ ligne attesté(s).');
             $this->table(['preuve', 'liens'], collect($byKind)->map(fn (int $n, string $k): array => [$k, $n])->values()->all());
+            $relations = $linker->relationStats();
+            $this->line(sprintf('  Itinéraires cités : %d (%d écartés, arrêt intermédiaire nommé) ; paires de gares : %d (%d ambiguës, %d sans chemin), arrêts introuvables : %d.',
+                $relations['itineraries'], $relations['itineraries_partial'], $relations['pairs'], $relations['pairs_ambiguous'], $relations['pairs_without_path'], $relations['stops_unresolved']));
             $this->report($linker, $links);
             if ($dryRun) {
                 $this->warn('--dry-run : rien n\'est écrit.');
