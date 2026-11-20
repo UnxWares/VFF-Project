@@ -195,4 +195,14 @@ return [
         'tramway' => 'Straßenbahn',
         'engin_service' => 'Dienstfahrzeug',
     ],
+    // Rames remarquables d'une série (database/data/material_notable_units.php).
+    'notable' => [
+        'title' => 'Besondere Triebzüge',
+        'intro' => 'Triebzüge dieser Baureihe mit eigener Geschichte. Jede Angabe verweist auf die Seite, die sie berichtet.',
+        'unit' => 'Triebzug :number „:nickname“',
+        'unit_plain' => 'Triebzug :number',
+        'source' => 'Quelle: :publisher',
+        'reported' => ':publisher, nach :reported',
+        'range' => ':from bis :to',
+    ],
 ];

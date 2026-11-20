@@ -539,6 +539,13 @@ Renvoie `material` : la fiche de l'API REST `/api/v1/materials/{slug}`, avec `fi
 telle quelle (`wikidata`, `wikipedia` ou `contrib`), sa preuve `evidence` et sa fiabilité `confidence`, et `periods`,
 ses périodes de circulation datées : voir `line_materials`, et `relations`, les relations que la série assurait sur
 la ligne, décrites dans `line_materials`). `lines_count` compte les lignes, pas les liens.
+`notable_units` liste les rames ou engins remarquables de la série (par exemple la rame 01 « Patrick » du TGV
+Sud-Est ; liste vide pour la plupart des séries) : `number`, `nickname`, `facts` et `unknown`. Chaque fait donne
+`kind`, `date` et `date_to` (AAAA-MM-JJ, au 1er du mois ou de l'année selon `precision` : `day`, `month`, `year`, nulle
+sans date), `text` (le fait reformulé en français) et `source` (`publisher`, `reported_by` quand la page rapporte un
+autre média, `date` de publication, `url` à citer, `provider`, `license`, `license_status`). La citation courte que
+donne l'API REST (`quote`) n'est pas renvoyée. `unknown` dit ce que les sources ne disent pas : n'y suppléez pas.
+`search {"query": "Patrick"}` trouve la série, avec `notable_unit` (numéro et surnom de la rame).
 `media_count` donne le nombre d'images publiées de la série : l'outil `media` avec `material` les renvoie. Série
 inconnue : erreur `material_not_found` avec `suggestions`.
 

@@ -5,6 +5,7 @@ namespace App\GraphQL\Resolvers;
 use App\Http\Resources\MaterialDetailResource;
 use App\Http\Resources\MaterialResource;
 use App\Models\Material;
+use App\Services\Materials\NotableUnits;
 use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +32,7 @@ final class MaterialField
             'wikipedia_fr_url' => $material->wikipediaUrl('fr'),
             'wikipedia_en_url' => $material->wikipediaUrl('en'),
             'lines_count' => $this->linesCount($material),
+            'notable_units' => app(NotableUnits::class)->forMaterial($material->slug, (string) ($args['lang'] ?? 'fr')),
             'field_sources' => array_map(fn (array $s): array => $s + [
                 'original_amount' => $s['original']['amount'] ?? null,
                 'original_unit' => $s['original']['unit'] ?? null,

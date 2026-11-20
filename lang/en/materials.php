@@ -195,4 +195,14 @@ return [
         'tramway' => 'Tram',
         'engin_service' => 'Departmental vehicle',
     ],
+    // Rames remarquables d'une série (database/data/material_notable_units.php).
+    'notable' => [
+        'title' => 'Notable sets',
+        'intro' => 'Sets of this series with a story of their own. Each fact links to the page that reports it.',
+        'unit' => 'Set :number, “:nickname”',
+        'unit_plain' => 'Set :number',
+        'source' => 'Source: :publisher',
+        'reported' => ':publisher, citing :reported',
+        'range' => ':from to :to',
+    ],
 ];

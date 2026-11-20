@@ -358,6 +358,9 @@ return [
             'domaines' => [
                 'parcdescombes.com', 'marc-andre-dubout.org', 'mejanes-camargue.fr', 'assemblee-nationale.fr',
                 'cftr.evolutive.org', 'rail.lu', 'cftanse.fr', 'amitram.fr', 'minieresbunn.lu',
+                // Rames remarquables du matériel (database/data/material_notable_units.php) : LyonMag (27/02/2020),
+                // forum JNS rapportant France Bleu (06/02/2020) ; faits datés, courte citation, lien.
+                'lyonmag.com', 'jnsforum.com',
             ],
             'lu_le' => '2026-10-20',
         ],

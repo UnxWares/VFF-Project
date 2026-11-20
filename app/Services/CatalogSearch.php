@@ -6,6 +6,7 @@ use App\Models\Accident;
 use App\Models\Era;
 use App\Models\Line;
 use App\Models\Material;
+use App\Services\Materials\NotableUnits;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -28,9 +29,11 @@ final class CatalogSearch
     /** Longueur minimale de la requête (caractères) : en dessous, listes vides. */
     public const MIN_LENGTH = 2;
 
+    public function __construct(private readonly NotableUnits $notableUnits) {}
+
     /**
      * Lignes : type, slug, name, code ; gares : type, slug, name, city, department_code, lat, lng ;
-     * matériels : type, slug, name, kind, builder ; accidents : type, slug, name (français), names (fr,
+     * matériels : type, slug, name, kind, builder, notable_unit (rame remarquable trouvée par son surnom, sinon nul) ; accidents : type, slug, name (français), names (fr,
      * en, de), date, date_precision, kind, commune, department_code, lat, lng (nuls sans position).
      *
      * @return array{lines: list<array<string, mixed>>, stations: list<array<string, mixed>>, materials: list<array<string, mixed>>, accidents: list<array<string, mixed>>}
@@ -103,8 +106,14 @@ final class CatalogSearch
             [$like, $exact, $prefix, ...$words, $stationLimit],
         );
 
+        // Surnom d'une rame remarquable (« Patrick », « TGV Patrick ») : sa série vient en tête, avec la rame.
+        $notable = $materialLimit <= 0 ? [] : $this->notableUnits->matching($q);
         $materials = $materialLimit <= 0 ? [] : Material::query()
-            ->whereRaw('unaccent(name) ILIKE unaccent(?)', [$like])
+            ->where(function ($w) use ($like, $notable): void {
+                $w->whereRaw('unaccent(name) ILIKE unaccent(?)', [$like])->orWhereIn('slug', array_keys($notable));
+            })
+            ->orderByRaw('CASE WHEN slug IN ('.implode(',', array_fill(0, max(1, count($notable)), '?')).') THEN 0 ELSE 1 END', array_keys($notable) ?: [''])
+            ->orderBy('id')
             ->limit($materialLimit)
             ->get(['slug', 'name', 'type', 'builder'])
             ->map(fn ($m) => [
@@ -113,6 +122,7 @@ final class CatalogSearch
                 'name' => (string) $m->name,
                 'kind' => $m->type,
                 'builder' => $m->builder,
+                'notable_unit' => $notable[$m->slug] ?? null,
             ])->values()->all();
 
         $accidents = $accidentLimit <= 0 ? [] : $this->accidents($q, $needle, $accidentLimit);

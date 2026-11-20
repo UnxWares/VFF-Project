@@ -1124,6 +1124,16 @@ type Material {
     "Provenance de chaque champ renseigné : source, référence précise, adresse, licence."
     field_sources: [MaterialFieldSource!]! @field(resolver: "App\\GraphQL\\Resolvers\\MaterialField")
 
+    """
+    Rames ou engins remarquables de la série (ex. rame 01 « Patrick » du TGV Sud-Est), avec leurs faits datés,
+    chacun avec sa source et sa courte citation. Liste vide si aucun. Mêmes données que `notable_units` de
+    l'API REST `GET /api/v1/materials/{slug}`.
+    """
+    notable_units(
+        "Langue des textes : `fr` (par défaut), `en` ou `de`. Une autre valeur donne le français."
+        lang: String = "fr"
+    ): [MaterialNotableUnit!]! @field(resolver: "App\\GraphQL\\Resolvers\\MaterialField")
+
     "Lignes sur lesquelles ce matériel a circulé ou circule (sans la preuve : voir `line_links`)."
     lines: [Line!]! @belongsToMany
 
@@ -1136,6 +1146,72 @@ type Material {
     Chaque média porte ses droits. L'image principale de la fiche reste dans `image`.
     """
     media: [Media!]! @morphMany(type: CONNECTION, defaultCount: 20, maxCount: 100, scopes: ["redistributable"]) @builder(method: "App\\GraphQL\\Builders\\MediaBuilder@inOrder")
+}
+
+"Rame ou engin remarquable d'une série, relu à la main (database/data/material_notable_units.php)."
+type MaterialNotableUnit {
+    "Numéro de la rame ou de l'engin (ex. `01`)."
+    number: String!
+
+    "Surnom (ex. `Patrick`), nul s'il n'en a pas."
+    nickname: String
+
+    "Faits datés, dans l'ordre du récit."
+    facts: [MaterialNotableFact!]!
+
+    "Ce que les sources ne disent pas (ex. ce qu'est devenue la rame), nul si rien n'est signalé."
+    unknown: String
+}
+
+"Fait daté sur une rame remarquable, avec sa source."
+type MaterialNotableFact {
+    "Nature du fait : `nickname`, `first_of_series`, `built`, `service`, `livery`, `series_withdrawn`, `farewell_livery`, `farewell_paris`, `farewell_lyon`…"
+    kind: String!
+
+    "Date (AAAA-MM-JJ), au 1er du mois ou de l'année quand `precision` vaut `month` ou `year` ; nulle pour un fait sans date."
+    date: String
+
+    "Fin d'une période (AAAA-MM-JJ), nulle pour une date unique."
+    date_to: String
+
+    "Précision de la date : `day`, `month` ou `year` ; nulle sans date."
+    precision: String
+
+    "Le fait, reformulé dans la langue demandée."
+    text: String!
+
+    "Courte citation exacte de la source, dans sa langue ; nulle quand le fait est reformulé sans phrase à citer."
+    quote: String
+
+    "Page citée et ses droits."
+    source: MaterialNotableSource!
+}
+
+"Source d'un fait sur une rame remarquable."
+type MaterialNotableSource {
+    "Identifiant de la source dans le fichier de données (ex. `lyonmag-2020-02-27`)."
+    id: String!
+
+    "Média ou site qui publie la page (ex. `LyonMag`)."
+    publisher: String!
+
+    "Média dont la page rapporte les propos (ex. `France Bleu`), nul si la page parle d'elle-même."
+    reported_by: String
+
+    "Date de publication (AAAA-MM-JJ), nulle si inconnue."
+    date: String
+
+    "Adresse de la page à citer."
+    url: String!
+
+    "Fournisseur dans le registre des droits (`tiers-cites`, `wikipedia-en`)."
+    provider: String!
+
+    "Licence ou conditions de réutilisation de la source."
+    license: String
+
+    "Statut des droits : `verified`, `uncertain` ou `forbidden`."
+    license_status: String
 }
 
 """
@@ -3891,7 +3967,7 @@ type SearchResults {
     "Gares dont le nom correspond."
     stations: [SearchStation!]!
 
-    "Matériels roulants dont le nom ou la désignation correspond."
+    "Matériels roulants dont le nom, ou le surnom d'une rame remarquable (`notable_unit`), correspond."
     materials: [SearchMaterial!]!
 
     "Accidents publiés dont le nom (dans l'une des trois langues), la commune ou la date correspond."
@@ -3944,6 +4020,18 @@ type SearchMaterial {
 
     "Constructeur, nul s'il n'est pas connu."
     builder: String
+
+    "Rame remarquable dont le surnom correspond à la recherche (« Patrick » : rame 01 du TGV Sud-Est), nulle sinon."
+    notable_unit: SearchNotableUnit
+}
+
+"Rame remarquable trouvée par son surnom ; détail dans `material(slug:) { notable_units }`."
+type SearchNotableUnit {
+    "Numéro de la rame (ex. `01`)."
+    number: String!
+
+    "Surnom (ex. `Patrick`)."
+    nickname: String
 }
 
 "Un accident trouvé par la recherche."

@@ -196,4 +196,14 @@ return [
         'tramway' => 'Tramway',
         'engin_service' => 'Engin de service',
     ],
+    // Rames remarquables d'une série (database/data/material_notable_units.php).
+    'notable' => [
+        'title' => 'Rames remarquables',
+        'intro' => 'Rames de la série qui ont leur propre histoire. Chaque fait renvoie à la page qui le rapporte.',
+        'unit' => 'Rame :number, « :nickname »',
+        'unit_plain' => 'Rame :number',
+        'source' => 'Source : :publisher',
+        'reported' => ':publisher, d’après :reported',
+        'range' => ':from au :to',
+    ],
 ];

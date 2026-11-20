@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\Material;
 use App\Services\Api\Provenance;
+use App\Services\Materials\NotableUnits;
 use Illuminate\Http\Request;
 
 /**
@@ -37,6 +38,18 @@ class MaterialDetailResource extends MaterialResource
              * @var list<array{field: string, source: string, reference: string|null, url: string|null, original: array{amount: float, unit: string}|null, provider: string|null, name: string|null, license: string|null, license_status: string|null}>
              */
             'field_sources' => self::fieldSourcesOf($this->resource),
+            /**
+             * Rames ou engins remarquables de la série (ex. rame 01 « Patrick » du TGV Sud-Est), liste vide si aucun :
+             * `number` (numéro), `nickname` (surnom ou nul), `facts` (faits datés : `kind`, `date` au format
+             * AAAA-MM-JJ et `date_to` pour une période, au 1er du mois ou de l'année selon `precision` = `day`,
+             * `month`, `year` ou nulle sans date ; `text` en français, reformulé ; `quote`, courte citation exacte de
+             * la source ou nulle ; `source` : `publisher`, `reported_by` quand la page rapporte un autre média,
+             * `date` de publication, `url` à citer, `provider`, `license`, `license_status`), et `unknown` (ce que
+             * les sources ne disent pas, ou nul). Données relues à la main (database/data/material_notable_units.php).
+             *
+             * @var list<array{number: string, nickname: string|null, facts: list<array<string, mixed>>, unknown: string|null}>
+             */
+            'notable_units' => app(NotableUnits::class)->forMaterial($this->slug),
             /**
              * Lignes parcourues, une entrée par lien attesté (voir `GET /api/v1/lines/{line}/materials` pour le
              * détail des champs d'un lien, dont `periods`, les périodes de circulation datées), triées par nom de ligne.
