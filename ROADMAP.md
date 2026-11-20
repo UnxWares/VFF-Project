@@ -36,7 +36,8 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 1. Préparer la mise en ligne (phase 12) : messagerie de vff-project.org, hébergement.
 2. Trancher les questions ouvertes (`storage/app/reports/agents/QUESTIONS.md`) : comptes et domaines, Argentan Web Ferroviaire, partenaires, consentement du cache hors ligne, formes GTFS.
 3. Jonctions : phase « escaliers » (coudes et crochets restants).
-4. Historique de la signalisation par époque (phase 13) : carte par ère branchée sur les dates des articles Wikipédia ; d'autres sources datées restent à trouver.
+4. Audit de chaque tronçon (classement, placement, exactitude, tracé) et de chaque gare (dates d'ouverture, de fermeture et de service trouvées ou estimées, placement), après la géométrie propre : méthodes dans [docs/AUDIT-TRONCONS.md](docs/AUDIT-TRONCONS.md) et [docs/AUDIT-GARES.md](docs/AUDIT-GARES.md).
+5. Historique de la signalisation par époque (phase 13) : carte par ère branchée sur les dates des articles Wikipédia ; d'autres sources datées restent à trouver.
 
 ---
 
@@ -233,6 +234,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [x] Jonctions entre lignes : 0 m d'écart à chaque jonction sur les 21 époques, raccords en courbe
 - [~] Jonctions : réduire les coudes et crochets restants (phase « escaliers »)
 - [ ] Audit de chaque tronçon de VFF, à chaque époque : classement, placement, exactitude et tracé, notés avec leurs preuves, contrôle à la main sur un tirage stratifié, corrections rejouables (méthode : `docs/AUDIT-TRONCONS.md`)
+- [ ] Audit de chaque gare : dates d'ouverture, de fermeture, voyageurs et fret trouvées dans les sources ou, à défaut, estimées avec une précision honnête ; placement vérifié sur toutes les sources et les photographies anciennes, avec une file de relecture (méthode : `docs/AUDIT-GARES.md`)
 - [ ] Modèle : fusion de plusieurs dates de prises de vue (calcul GPU, sur accord), publication des poids complets
 - [~] Gallica (BnF) : 236 documents numérisés rattachés à 61 lignes par le titre de leur notice (score expliqué, seuil prudent ; trajets avec étape « en passant par » et listes « entre X, Y et Z » lus ; précision mesurée sur 40 documents tirés au hasard : 95 % après la relecture du 20/11, puis 36 justes, 4 douteux et aucun faux au second et au troisième tirage, après le retrait du projet Lyon - Marseille de 1837 donné à la ligne par Grenoble), section « Dans les archives » de la fiche ligne, `GET /api/v1/lines/{slug}/archives`, `Line.archives` en GraphQL et outil MCP `line_archives` ; seules les métadonnées de la BnF (Licence Ouverte) et le lien vers Gallica sont repris, aucune image. Reste : la presse, les documents des bibliothèques partenaires et l'API de Gallica elle-même (refusée à la machine de développement)
 - [ ] Fonds d'archives (SNCF, associations régionales)
