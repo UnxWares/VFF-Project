@@ -21,8 +21,15 @@ use Illuminate\Support\Facades\DB;
  *
  * Jonction écartée : nœud dont les extrémités des arêtes qui s'y rejoignent ne sont pas au même
  * point (plus de JUNCTION_TOLERANCE_M entre les deux plus éloignées : seuil du bruit des
- * reprojections), et raccord de lacune (arête « connector » posée par le constructeur pour franchir
- * un trou entre deux tracés). Sur la carte, deux lignes doivent se toucher à 0 m.
+ * reprojections), raccord de lacune (arête « connector » posée par le constructeur pour franchir
+ * un trou entre deux tracés), et saut (arête sans tracé dont les deux nœuds sont à plus de
+ * JUNCTION_TOLERANCE_M l'un de l'autre : rien n'est dessiné entre eux). Sur la carte, deux lignes
+ * doivent se toucher à 0 m.
+ *
+ * Composantes connexes : une arête sans tracé compte comme une liaison, comme un raccord de
+ * lacune. Le graphe de l'ère la suit pour les itinéraires ; une île est donc une partie que ces
+ * itinéraires ne peuvent pas atteindre. L'écart qu'elle laisse sur la carte est mesuré à part,
+ * dans les jonctions (type `jump`). Rien n'est écrit dans le graphe : c'est un diagnostic.
  *
  * Le rapport d'une ère est calculé en une fois (quelques secondes sur une ère de 50 000 arêtes),
  * gardé en cache sous la date de construction du graphe (une reconstruction change la clé) ; les
@@ -31,7 +38,7 @@ use Illuminate\Support\Facades\DB;
 final class GraphDiagnostics
 {
     /** Version du rapport, dans la clé du cache : à changer quand son contenu change. */
-    public const FORMAT = 1;
+    public const FORMAT = 2;
 
     public const TTL_SECONDS = 7 * 24 * 3600;
 
@@ -113,8 +120,22 @@ final class GraphDiagnostics
      */
     private function compute(int $eraId, string $stationsSource): array
     {
-        DB::statement("SET work_mem = '64MB'");
+        // Plus de mémoire de tri pour ce calcul seulement : la valeur d'origine est remise après,
+        // pour ne pas la laisser à une connexion réutilisée (worker de file, Octane).
+        $workMem = (string) DB::scalar("SELECT current_setting('work_mem')");
+        DB::select("SELECT set_config('work_mem', '64MB', false)");
+        try {
+            return $this->computeReport($eraId, $stationsSource);
+        } finally {
+            DB::select("SELECT set_config('work_mem', ?, false)", [$workMem]);
+        }
+    }
 
+    /**
+     * @return array{summary: array<string, array<string, mixed>>, lists: array<string, array{total: int, items: list<array<string, mixed>>}>}
+     */
+    private function computeReport(int $eraId, string $stationsSource): array
+    {
         // ── Topologie ────────────────────────────────────────────────────────
         $nodes = [];
         $nodeKinds = [];
@@ -184,6 +205,7 @@ final class GraphDiagnostics
         $edges = array_map(fn (array $i): array => $this->withLines($i, $lines), $edges);
 
         $spread = array_values(array_filter($junctions, fn (array $j): bool => $j['type'] === 'spread'));
+        $jumps = array_values(array_filter($junctions, fn (array $j): bool => $j['type'] === 'jump'));
 
         return [
             'summary' => [
@@ -198,10 +220,13 @@ final class GraphDiagnostics
                     'isolated_nodes' => count($isolated),
                     'edge_anomalies' => count(array_filter($edges, fn (array $e): bool => $e['layer'] === 'topology')),
                     'zero_length_edges' => count(array_filter($edges, fn (array $e): bool => $e['reason'] === 'zero_length' && $e['layer'] === 'topology')),
+                    'no_geometry_edges' => count(array_filter($edges, fn (array $e): bool => $e['reason'] === 'no_geometry' && $e['layer'] === 'topology')),
                     'spread_junctions' => count($spread),
                     'spread_over_1m' => count(array_filter($spread, fn (array $j): bool => $j['distance_m'] > 1)),
                     'spread_over_5m' => count(array_filter($spread, fn (array $j): bool => $j['distance_m'] > 5)),
                     'max_spread_m' => $spread === [] ? 0.0 : max(array_column($spread, 'distance_m')),
+                    'jumps' => count($jumps),
+                    'max_jump_m' => $jumps === [] ? 0.0 : max(array_column($jumps, 'distance_m')),
                 ],
                 'stations' => [
                     'stations' => $stationNodes,
@@ -310,6 +335,10 @@ final class GraphDiagnostics
     /**
      * Arêtes de longueur nulle ou anormale, topologie puis gare-à-gare.
      *
+     * Une arête de la topologie sans tracé est classée `no_geometry` quelle que soit sa longueur
+     * enregistrée (le constructeur y écrit 0) ; `measured_m` donne alors la distance entre ses deux
+     * nœuds, l'écart qu'elle fait sauter sur la carte.
+     *
      * @return list<array<string, mixed>>
      */
     private function edgeAnomalies(int $eraId): array
@@ -319,11 +348,13 @@ final class GraphDiagnostics
         $rows = DB::select(<<<SQL
             SELECT x.*, ST_X(x.p) AS lng, ST_Y(x.p) AS lat
             FROM (
-                SELECT e.id, e.line_id, e.length_m, e.is_connector, e.from_node_id, e.to_node_id,
-                       CASE WHEN e.geom IS NULL THEN NULL ELSE ST_Length(e.geom::geography) END AS measured_m,
-                       COALESCE(ST_LineInterpolatePoint(e.geom, 0.5), n.geom) AS p
+                SELECT e.id, e.line_id, e.length_m, e.is_connector, e.from_node_id, e.to_node_id, e.geom IS NULL AS no_geom,
+                       CASE WHEN e.geom IS NOT NULL THEN ST_Length(e.geom::geography)
+                            ELSE ST_Distance(a.geom::geography, b.geom::geography) END AS measured_m,
+                       COALESCE(ST_LineInterpolatePoint(e.geom, 0.5), ST_Centroid(ST_MakeLine(a.geom, b.geom)), a.geom) AS p
                 FROM network_edges e
-                LEFT JOIN network_nodes n ON n.id = e.from_node_id
+                LEFT JOIN network_nodes a ON a.id = e.from_node_id
+                LEFT JOIN network_nodes b ON b.id = e.to_node_id
                 WHERE e.era_id = ?
                   AND (e.length_m <= 0 OR e.geom IS NULL OR e.from_node_id = e.to_node_id
                        OR abs(e.length_m - ST_Length(e.geom::geography)) > greatest({$tol}, {$ratio} * e.length_m))
@@ -332,9 +363,10 @@ final class GraphDiagnostics
 
         $items = [];
         foreach ($rows as $r) {
+            // L'absence de tracé passe avant la longueur : une arête sans tracé a une longueur enregistrée nulle.
             $reason = match (true) {
+                (bool) $r->no_geom => 'no_geometry',
                 (int) $r->length_m <= 0 => 'zero_length',
-                $r->measured_m === null => 'no_geometry',
                 (int) $r->from_node_id === (int) $r->to_node_id => 'loop',
                 default => 'length_mismatch',
             };
@@ -396,7 +428,8 @@ final class GraphDiagnostics
     }
 
     /**
-     * Jonctions écartées : nœuds dont les extrémités d'arêtes ne coïncident pas, et raccords de lacunes.
+     * Jonctions écartées : nœuds dont les extrémités d'arêtes ne coïncident pas, raccords de lacunes,
+     * et sauts (arêtes sans tracé entre deux nœuds distants de plus de JUNCTION_TOLERANCE_M).
      *
      * @param  array<int, array{0: float, 1: float, 2: int|null, 3: string}>  $nodes
      * @return list<array<string, mixed>>
@@ -452,6 +485,34 @@ final class GraphDiagnostics
                 'lines' => 0,
                 'lng' => $r->lng !== null ? (float) $r->lng : ($node[0] ?? null),
                 'lat' => $r->lat !== null ? (float) $r->lat : ($node[1] ?? null),
+            ];
+        }
+        // Sauts : la distance se mesure sur l'ellipsoïde (comme la longueur des arêtes), le point
+        // montré est le milieu des deux nœuds.
+        $rows = DB::select(<<<SQL
+            SELECT x.id, x.from_node_id, x.line_id, x.gap, ST_X(x.p) AS lng, ST_Y(x.p) AS lat
+            FROM (
+                SELECT e.id, e.from_node_id, e.line_id, ST_Distance(a.geom::geography, b.geom::geography) AS gap,
+                       ST_Centroid(ST_MakeLine(a.geom, b.geom)) AS p
+                FROM network_edges e
+                JOIN network_nodes a ON a.id = e.from_node_id
+                JOIN network_nodes b ON b.id = e.to_node_id
+                WHERE e.era_id = ? AND e.geom IS NULL
+            ) x
+            WHERE x.gap > {$tol}
+            SQL, [$eraId]);
+        foreach ($rows as $r) {
+            $node = $nodes[(int) $r->from_node_id] ?? null;
+            $items[] = [
+                'type' => 'jump',
+                'id' => (int) $r->id,
+                'distance_m' => round((float) $r->gap, 2),
+                'kind' => $node[3] ?? null,
+                'station_id' => $node[2] ?? null,
+                'ends' => 2,
+                'lines' => $r->line_id !== null ? 1 : 0,
+                'lng' => (float) $r->lng,
+                'lat' => (float) $r->lat,
             ];
         }
         usort($items, fn (array $a, array $b): int => [$b['distance_m'], $a['type'], $a['id']] <=> [$a['distance_m'], $b['type'], $b['id']]);

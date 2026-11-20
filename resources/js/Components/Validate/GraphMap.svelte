@@ -34,6 +34,8 @@
     let failed = $state(false);
     let zoom = $state(5.2);
     let destroyed = false;
+    /** Ère et couche des tuiles affichées (« 1930:topology ») : évite de recréer la source pour rien. */
+    let shownKey = '';
 
     const EMPTY = { type: 'FeatureCollection', features: [] };
 
@@ -69,6 +71,7 @@
 
     /** (Re)crée la source de tuiles et les calques de la couche choisie. */
     function addGraph() {
+        shownKey = `${year}:${layer}`;
         for (const id of ['graph-nodes', 'graph-edges']) {
             if (map.getLayer(id)) map.removeLayer(id);
         }
@@ -248,10 +251,11 @@
         map.on('mouseleave', 'graph-nodes', () => (map.getCanvas().style.cursor = ''));
     });
 
-    // Ère ou couche changée : nouvelles tuiles, même cadrage.
+    // Ère ou couche changée (la page garde son état, donc la carte et son cadrage) : nouvelles
+    // tuiles seulement. Au premier chargement, addGraph() vient de map.on('load') : rien à refaire.
     $effect(() => {
         const key = `${year}:${layer}`;
-        if (!loaded || !map || !key) return;
+        if (!loaded || !map || key === shownKey) return;
         addGraph();
     });
 

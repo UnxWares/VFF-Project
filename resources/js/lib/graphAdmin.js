@@ -185,12 +185,68 @@ export function itemTarget(check, item) {
                 feature: { kind: item.layer === 'stations' ? 'station_edge' : 'edge', id: item.id },
             };
         case 'junctions':
+            // Raccord et saut sont des arêtes ; une extrémité écartée est un nœud.
             return {
                 point,
-                feature: { kind: item.type === 'connector' ? 'edge' : 'node', id: item.id },
+                feature: { kind: item.type === 'spread' ? 'node' : 'edge', id: item.id },
             };
         default:
             return {};
+    }
+}
+
+/**
+ * Résumé d'un élément de liste qui n'a pas de fiche (île, île des gares, ligne en morceaux),
+ * affiché dans le panneau après « Voir sur la carte » : titre et lignes, comme detailRows.
+ *
+ * @param {string} check
+ * @param {Record<string, any>} item
+ * @param {(key: string, opts?: Record<string, unknown>) => string} t
+ * @param {string} lang
+ * @returns {{ title: string, rows: DetailRow[] } | null}
+ */
+export function itemSummary(check, item, t, lang) {
+    const L = (key) => t(`graph_admin.details.${key}`);
+    const num = (n) => (n == null ? '' : Number(n).toLocaleString(lang));
+    const d = (m) => formatDistance(m, lang);
+    /** @type {DetailRow[]} */
+    const rows = [];
+    const add = (key, parts) => {
+        const list = parts.filter((p) => p && p.text !== '' && p.text != null);
+        if (list.length) rows.push({ label: L(key), parts: list });
+    };
+    const lineLinks = (lines) =>
+        (lines ?? []).map((l) => ({ text: lineText(l), href: lineHref(l) }));
+    switch (check) {
+        case 'islands':
+            add('nodes', [{ text: num(item.nodes) }]);
+            add('edges', [{ text: num(item.edges) }]);
+            add('length', [{ text: d(item.length_m) }]);
+            add('stations_count', [{ text: num(item.stations) }]);
+            add('lines', lineLinks(item.lines));
+            return { title: t('graph_admin.details.kinds.island', { id: item.id }), rows };
+        case 'station_islands':
+            add('stations_count', [{ text: num(item.stations) }]);
+            add('edges', [{ text: num(item.edges) }]);
+            add('length', [{ text: d(item.length_m) }]);
+            add(
+                'station',
+                (item.sample ?? []).map((s) => ({ text: s.name, href: stationHref(s) })),
+            );
+            return { title: t('graph_admin.details.kinds.station_island', { id: item.id }), rows };
+        case 'fragmented_lines':
+            if (item.line) add('line', [{ text: lineText(item.line), href: lineHref(item.line) }]);
+            add('pieces', [{ text: num(item.pieces) }]);
+            add('edges', [{ text: num(item.edges) }]);
+            add('length', [{ text: d(item.length_m) }]);
+            return {
+                title: t('graph_admin.details.kinds.fragmented_line', {
+                    name: item.line ? lineText(item.line) : item.line_id,
+                }),
+                rows,
+            };
+        default:
+            return null;
     }
 }
 
@@ -235,6 +291,56 @@ export function formatPk(meters, lang) {
         minimumFractionDigits: 3,
         maximumFractionDigits: 3,
     });
+}
+
+/**
+ * Options de la visite Inertia qui change l'ère ou la couche : la page garde son état (carte,
+ * cadrage, fiche, liste choisie) et ne recharge que les propriétés qui changent.
+ */
+export const VISIT_OPTIONS = Object.freeze({
+    preserveState: true,
+    preserveScroll: true,
+    only: ['year', 'missing_era', 'layer', 'summary'],
+});
+
+/**
+ * Ce que montre la zone de la liste : `error`, `loading` (rien encore à montrer pour cette
+ * liste) ou `table` ; `busy` quand une autre page se charge alors que la précédente reste
+ * affichée (le bouton de pagination garde ainsi le focus).
+ *
+ * @param {{ check: string } | null} list dernière page reçue
+ * @param {string} check liste choisie
+ * @param {string} state idle, loading, ready ou error
+ * @returns {{ view: 'error' | 'loading' | 'table', busy: boolean }}
+ */
+export function listView(list, check, state) {
+    if (state === 'error') return { view: 'error', busy: false };
+    if (!list || list.check !== check) return { view: 'loading', busy: state === 'loading' };
+    return { view: 'table', busy: state === 'loading' };
+}
+
+/**
+ * Requêtes dont seule la dernière compte (fiches d'éléments) : `next()` abandonne la précédente
+ * et rend le signal de la nouvelle ; `isCurrent(signal)` dit si une réponse est encore attendue.
+ */
+export function latestRequest() {
+    /** @type {AbortController | null} */
+    let current = null;
+    return {
+        next() {
+            current?.abort();
+            current = new AbortController();
+            return current.signal;
+        },
+        cancel() {
+            current?.abort();
+            current = null;
+        },
+        /** @param {AbortSignal} signal */
+        isCurrent(signal) {
+            return current !== null && current.signal === signal && !signal.aborted;
+        },
+    };
 }
 
 /** Paramètres d'adresse de la page (ère et couche choisies), pour un lien partageable. */
@@ -326,6 +432,8 @@ export function detailRows(f, t, lang) {
             );
             add('length', text(d(f.length_m)));
             if (f.measured_m != null) add('measured', text(d(f.measured_m)));
+            // Sans tracé : l'écart que l'arête fait sauter entre ses deux nœuds.
+            if (f.nodes_gap_m != null) add('nodes_gap', text(d(f.nodes_gap_m)));
             if (f.segment_id != null) {
                 add(
                     'pk',

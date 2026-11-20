@@ -19,8 +19,12 @@
         detailTitle,
         featureUrl,
         formatDistance,
+        VISIT_OPTIONS,
+        itemSummary,
         itemTarget,
+        latestRequest,
         layerFigures,
+        listView,
         lineColor,
         pageQuery,
     } from '$lib/graphAdmin.js';
@@ -31,11 +35,16 @@
      * de l'ère et de la couche, chiffres clés, carte (tuiles MVT) avec les attributs de l'élément
      * cliqué, et diagnostics en tableau paginé (JSON), du plus grave au moins grave. Le tableau
      * est l'équivalent accessible de la carte : « Voir sur la carte » recadre la carte et affiche
-     * les attributs dans le panneau.
+     * les attributs dans le panneau (ou le résumé d'une île, d'une ligne en morceaux).
+     *
+     * Changer d'ère ou de couche se fait par le bouton « Afficher » (une flèche sur les boutons
+     * radio ne recharge rien, WCAG 3.2.2) et garde l'état de la page : la carte, son cadrage et la
+     * fiche affichée restent en place.
      */
     let {
         eras = [],
         year = null,
+        missing_era: missingEra = null,
         layer = 'topology',
         layers = [],
         summary = null,
@@ -63,7 +72,13 @@
     let listPage = $state(1);
     let list = $state(null);
     let listState = $state('idle');
+    // Choix du formulaire, appliqués par « Afficher » ; ils suivent l'ère et la couche montrées.
+    let eraChoice = $derived(year);
+    let layerChoice = $derived(layer);
+
     let selected = $state(null);
+    /** Élément de liste sans fiche (île, ligne en morceaux) montré dans le panneau. */
+    let picked = $state(null);
     let detailState = $state('idle');
     let focus = $state(null);
     let announce = $state('');
@@ -89,7 +104,12 @@
         return () => controller.abort();
     });
 
-    const items = $derived(listState === 'ready' ? (list?.items ?? []) : []);
+    // La page précédente reste affichée pendant le chargement de la suivante (le bouton de
+    // pagination garde le focus) ; une liste d'une autre sorte attend la sienne.
+    const listShown = $derived(listView(list, check, listState));
+    const shownList = $derived(listShown.view === 'table' ? list : null);
+    const items = $derived(shownList?.items ?? []);
+    const listBusy = $derived(listShown.busy);
     const markers = $derived(
         items
             .map((i) => itemTarget(check, i))
@@ -106,11 +126,23 @@
             .filter(Boolean),
     );
 
-    function visit(params) {
+    /** Montre l'ère et la couche choisies sans recréer la page (carte, cadrage et fiche gardés). */
+    function apply() {
+        const eraChanged = eraChoice !== year;
         router.get(
-            pageQuery(params.year ?? year, params.layer ?? layer),
+            pageQuery(eraChoice, layerChoice),
             {},
-            { preserveScroll: true },
+            {
+                ...VISIT_OPTIONS,
+                onSuccess: () => {
+                    if (!eraChanged) return;
+                    listPage = 1;
+                    // Une île ou une ligne d'une autre ère n'a plus de sens ; un élément est recherché
+                    // dans la nouvelle ère (une gare garde son identifiant, une arête non).
+                    picked = null;
+                    if (selected) select({ kind: selected.kind, id: selected.id });
+                },
+            },
         );
     }
 
@@ -119,17 +151,33 @@
         listPage = 1;
     }
 
+    // Fiche en cours : un nouveau choix l'abandonne, sa réponse ne s'affiche jamais.
+    const detailRequest = latestRequest();
+
     async function select(request) {
+        const signal = detailRequest.next();
+        picked = null;
         detailState = 'loading';
         try {
             const r = await fetch(featureUrl(year, request.kind, request.id), {
                 headers: { Accept: 'application/json' },
+                signal,
             });
+            if (!detailRequest.isCurrent(signal)) return;
+            if (r.status === 404) {
+                selected = null;
+                detailState = 'missing';
+                announce = t('graph_admin.details.missing', { year });
+                return;
+            }
             if (!r.ok) throw new Error(String(r.status));
-            selected = await r.json();
+            const data = await r.json();
+            if (!detailRequest.isCurrent(signal)) return;
+            selected = data;
             detailState = 'ready';
             announce = t('graph_admin.details.shown', { name: detailTitle(selected, t) });
         } catch {
+            if (!detailRequest.isCurrent(signal)) return;
             selected = null;
             detailState = 'error';
         }
@@ -140,12 +188,32 @@
         focus = { ...target };
         if (target.feature) {
             await select(target.feature);
+        } else {
+            // Île ou ligne en morceaux : pas de fiche, un résumé de l'élément dans le panneau.
+            detailRequest.cancel();
+            selected = null;
+            picked = itemSummary(check, item, t, lang);
+            detailState = picked ? 'summary' : 'idle';
+            if (picked) announce = t('graph_admin.map.framed', { name: picked.title });
         }
         await tick();
         detailHeading?.focus();
     }
 
-    const rows = $derived(selected ? detailRows(selected, t, lang) : []);
+    const rows = $derived(
+        detailState === 'summary' && picked
+            ? picked.rows
+            : selected
+              ? detailRows(selected, t, lang)
+              : [],
+    );
+    const detailHeadingText = $derived(
+        detailState === 'summary' && picked
+            ? picked.title
+            : selected && detailState === 'ready'
+              ? detailTitle(selected, t)
+              : t('graph_admin.map.selection'),
+    );
 
     /** Texte explicatif d'une liste, avec ses seuils. */
     function checkText(c) {
@@ -181,12 +249,15 @@
             ['topology', L('islands'), num(s.topology.islands)],
             ['topology', L('isolated_nodes'), num(s.topology.isolated_nodes)],
             ['topology', L('zero_length'), num(s.topology.zero_length_edges)],
+            ['topology', L('no_geometry'), num(s.topology.no_geometry_edges)],
             ['topology', L('edge_anomalies'), num(s.topology.edge_anomalies)],
             ['topology', L('connectors'), num(s.topology.connectors)],
             ['topology', L('spread'), num(s.topology.spread_junctions)],
             ['topology', L('spread_1m'), num(s.topology.spread_over_1m)],
             ['topology', L('spread_5m'), num(s.topology.spread_over_5m)],
             ['topology', L('max_spread'), dist(s.topology.max_spread_m)],
+            ['topology', L('jumps'), num(s.topology.jumps)],
+            ['topology', L('max_jump'), dist(s.topology.max_jump_m)],
             ['stations', L('stations'), num(s.stations.stations)],
             ['stations', L('station_edges'), num(s.stations.edges)],
             ['stations', L('components'), num(s.stations.components)],
@@ -235,18 +306,26 @@
                     headingLevel={2}
                 />
             {:else}
+                {#if missingEra}
+                    <p class="notice" role="status">
+                        {t('graph_admin.missing_era', { requested: missingEra, year })}
+                    </p>
+                {/if}
                 <form
                     class="controls"
                     aria-label={t('graph_admin.controls_label')}
-                    onsubmit={(e) => e.preventDefault()}
+                    onsubmit={(e) => {
+                        e.preventDefault();
+                        apply();
+                    }}
                 >
                     <Field id="graph-era" label={t('graph_admin.era_label')}>
                         {#snippet children(attrs)}
                             <select
                                 {...attrs}
                                 class="vff-select"
-                                value={year}
-                                onchange={(e) => visit({ year: Number(e.currentTarget.value) })}
+                                value={eraChoice}
+                                onchange={(e) => (eraChoice = Number(e.currentTarget.value))}
                             >
                                 {#each eras as e (e.year)}
                                     <option value={e.year}>{eraName(e)}</option>
@@ -258,19 +337,22 @@
                         <legend>{t('graph_admin.layer_legend')}</legend>
                         <div class="pills">
                             {#each layers as l (l)}
-                                <label class={['pill', { active: l === layer }]}>
+                                <label class={['pill', { active: l === layerChoice }]}>
                                     <input
                                         type="radio"
                                         name="layer"
                                         value={l}
-                                        checked={l === layer}
-                                        onchange={() => visit({ layer: l })}
+                                        checked={l === layerChoice}
+                                        onchange={() => (layerChoice = l)}
                                     />
                                     {t(`graph_admin.layers.${l}`)}
                                 </label>
                             {/each}
                         </div>
                     </fieldset>
+                    <button type="submit" class="vff-btn primary">
+                        {t('graph_admin.apply')}
+                    </button>
                 </form>
                 <p class="note">
                     {t(`graph_admin.layer_hints.${layer}`)}
@@ -293,15 +375,15 @@
 
                     <aside class="panel" aria-labelledby="graph-detail-title">
                         <h2 id="graph-detail-title" tabindex="-1" bind:this={detailHeading}>
-                            {selected && detailState === 'ready'
-                                ? detailTitle(selected, t)
-                                : t('graph_admin.map.selection')}
+                            {detailHeadingText}
                         </h2>
                         {#if detailState === 'loading'}
                             <p class="muted">{t('graph_admin.details.loading')}</p>
                         {:else if detailState === 'error'}
                             <p class="error">{t('graph_admin.details.error')}</p>
-                        {:else if selected}
+                        {:else if detailState === 'missing'}
+                            <p class="muted">{t('graph_admin.details.missing', { year })}</p>
+                        {:else if rows.length}
                             <dl class="attrs">
                                 {#each rows as row, i (i)}
                                     <div>
@@ -380,15 +462,23 @@
                     <h3>{t(`graph_admin.checks.${check}.title`)}</h3>
                     <p class="note">{checkText(check)}</p>
 
-                    {#if listState === 'loading' && !list}
-                        <p class="muted" role="status">{t('graph_admin.checks.loading')}</p>
-                    {:else if listState === 'error'}
-                        <p class="error" role="status">{t('graph_admin.checks.error')}</p>
-                    {:else if listState === 'ready' && list}
-                        <p class="count" role="status">
-                            {t('graph_admin.checks.total', { total: num(list.total) })}
-                            {#if list.listed < list.total}
-                                {t('graph_admin.checks.capped', { count: num(list.listed) })}
+                    <!-- État de la liste annoncé aux lecteurs d'écran (chargement, puis total). -->
+                    <p class="vff-sr-only" role="status">
+                        {#if listBusy}
+                            {t('graph_admin.checks.loading_page', { page: listPage })}
+                        {:else if listState === 'error'}
+                            {t('graph_admin.checks.error')}
+                        {/if}
+                    </p>
+                    {#if listShown.view === 'error'}
+                        <p class="error">{t('graph_admin.checks.error')}</p>
+                    {:else if !shownList}
+                        <p class="muted">{t('graph_admin.checks.loading')}</p>
+                    {:else}
+                        <p class="count">
+                            {t('graph_admin.checks.total', { total: num(shownList.total) })}
+                            {#if shownList.listed < shownList.total}
+                                {t('graph_admin.checks.capped', { count: num(shownList.listed) })}
                             {/if}
                         </p>
                         {#if items.length === 0}
@@ -400,17 +490,18 @@
                             <!-- Cadre défilant focalisable : tableau lisible au clavier sur téléphone (WCAG 2.1.1). -->
                             <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
                             <div
-                                class="vff-table-wrap"
+                                class="vff-table-wrap list-wrap"
                                 role="region"
                                 aria-labelledby="graph-table-caption"
+                                aria-busy={listBusy}
                                 tabindex="0"
                             >
                                 <table class="vff-table">
                                     <caption id="graph-table-caption" class="vff-sr-only">
                                         {t('graph_admin.checks.caption', {
                                             title: t(`graph_admin.checks.${check}.title`),
-                                            page: list.page,
-                                            last: list.last_page,
+                                            page: shownList.page,
+                                            last: shownList.last_page,
                                         })}
                                     </caption>
                                     <thead>
@@ -542,12 +633,15 @@
                                                         {t(
                                                             `graph_admin.checks.reasons.${item.reason}`,
                                                         )}
-                                                        {#if item.measured_m != null && item.reason !== 'no_geometry'}
+                                                        {#if item.measured_m != null && !(item.layer === 'topology' && item.reason === 'no_geometry' && item.measured_m === 0)}
                                                             <span class="sub">
                                                                 {t(
                                                                     item.layer === 'stations'
                                                                         ? 'graph_admin.checks.direct'
-                                                                        : 'graph_admin.checks.measured',
+                                                                        : item.reason ===
+                                                                            'no_geometry'
+                                                                          ? 'graph_admin.checks.nodes_gap'
+                                                                          : 'graph_admin.checks.measured',
                                                                     {
                                                                         distance: dist(
                                                                             item.measured_m,
@@ -606,11 +700,11 @@
                                     </tbody>
                                 </table>
                             </div>
-                            {#if list.last_page > 1}
+                            {#if shownList.last_page > 1}
                                 <div class="pager">
                                     <Pagination
-                                        current={list.page}
-                                        last={list.last_page}
+                                        current={shownList.page}
+                                        last={shownList.last_page}
                                         onpage={(n) => (listPage = n)}
                                     />
                                 </div>
@@ -672,6 +766,9 @@
     }
     .controls :global(.vff-select) {
         min-width: 14rem;
+    }
+    .controls button {
+        min-height: 44px;
     }
     .layers {
         margin: 0;
@@ -871,6 +968,19 @@
     }
     .pager {
         margin-top: var(--vff-space-2);
+    }
+    /* Page suivante en chargement : la page affichée pâlit sans disparaître. */
+    .list-wrap[aria-busy='true'] {
+        opacity: 0.6;
+        transition: opacity var(--vff-transition);
+    }
+    .notice {
+        max-width: var(--vff-measure);
+        margin: 0;
+        padding: var(--vff-space-3) var(--vff-space-4);
+        border: 1px solid var(--vff-border-strong);
+        border-radius: var(--vff-radius-md);
+        background-color: var(--vff-bg-subtle);
     }
     .all-figures summary {
         cursor: pointer;

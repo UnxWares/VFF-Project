@@ -10,9 +10,11 @@ use Illuminate\Support\Facades\DB;
  *
  *   - node : nœud de la topologie, avec ses arêtes et l'écart entre leurs extrémités ;
  *   - edge : arête de la topologie, avec le tronçon d'origine (line_segments) : PK de ses deux
- *     bouts interpolés sur le tronçon quand celui-ci en a, source du tracé ;
+ *     bouts interpolés sur le tronçon quand celui-ci en a, source du tracé ; sans tracé, la
+ *     distance entre ses deux nœuds (`nodes_gap_m`) ;
  *   - station_edge : arête gare-à-gare, avec les lignes empruntées dans l'ordre ;
- *   - station : gare de l'ère, avec son nœud et ses voisines ;
+ *   - station : gare de l'ère (une ligne dans station_eras ou un nœud du graphe de l'ère, sinon
+ *     rien), avec son nœud et ses voisines ;
  *   - stop : arrêt d'une ligne (line_stops : rang, PK, statut).
  */
 final class GraphFeatureDetails
@@ -91,6 +93,9 @@ final class GraphFeatureDetails
             SELECT e.id, e.from_node_id, e.to_node_id, e.segment_id, e.length_m, e.status, e.is_connector, e.is_heritage,
                    e.traffic_type, e.network, e.gauge_mm,
                    CASE WHEN e.geom IS NULL THEN NULL ELSE ST_Length(e.geom::geography) END AS measured_m,
+                   CASE WHEN e.geom IS NULL
+                        THEN (SELECT ST_Distance(a.geom::geography, b.geom::geography)
+                              FROM network_nodes a, network_nodes b WHERE a.id = e.from_node_id AND b.id = e.to_node_id) END AS nodes_gap_m,
                    l.id AS line_id, l.slug, l.name, l.code,
                    ls.source, ls.source_trace_id, ls.osm_way_id, ls.pk_start_m, ls.pk_end_m,
                    CASE WHEN ls.geom IS NOT NULL AND e.geom IS NOT NULL
@@ -115,6 +120,7 @@ final class GraphFeatureDetails
             'line' => self::line($e),
             'length_m' => (int) $e->length_m,
             'measured_m' => $e->measured_m !== null ? round((float) $e->measured_m, 1) : null,
+            'nodes_gap_m' => $e->nodes_gap_m !== null ? round((float) $e->nodes_gap_m, 2) : null,
             'status' => $e->status,
             'connector' => (bool) $e->is_connector,
             'heritage' => (bool) $e->is_heritage,
@@ -175,13 +181,14 @@ final class GraphFeatureDetails
     {
         $s = DB::selectOne(<<<'SQL'
             SELECT s.id, s.slug, s.name, s.uic_code, s.provenance, s.position_source, s.sources_count,
-                   ST_X(s.geom) AS lng, ST_Y(s.geom) AS lat, se.status, se.uncertain,
+                   ST_X(s.geom) AS lng, ST_Y(s.geom) AS lat, se.status, se.uncertain, se.station_id IS NOT NULL AS in_era,
                    (SELECT n.id FROM network_nodes n WHERE n.era_id = ? AND n.station_id = s.id ORDER BY n.id LIMIT 1) AS node_id
             FROM stations s
             LEFT JOIN station_eras se ON se.station_id = s.id AND se.era_id = ?
             WHERE s.id = ?
             SQL, [$eraId, $eraId, $id]);
-        if ($s === null) {
+        // Une gare qui n'existe pas à cette ère (ni statut, ni nœud) n'a pas de fiche ici.
+        if ($s === null || (! $s->in_era && $s->node_id === null)) {
             return null;
         }
         $neighbours = DB::select(<<<'SQL'

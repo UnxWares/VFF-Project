@@ -21,7 +21,10 @@ use Illuminate\Support\Facades\DB;
  *     et arrêts de line_stops (ordre, PK, statut).
  *
  * Chaque élément porte son identifiant : la fiche détaillée vient de GraphFeatureDetails au clic.
- * Tuiles gardées en cache sous la date de construction du graphe, jusqu'au zoom CACHED_MAX_ZOOM.
+ * Pas de tuile sous MIN_ZOOM (une tuile nationale pèse plus d'un mégaoctet). Tuiles gardées en
+ * cache sous la date de construction du graphe, jusqu'au zoom CACHED_MAX_ZOOM ; au-delà, l'index
+ * GiST des tracés les calcule en quelques millisecondes (mesures dans docs/GRAPHE-ADMIN.md) et un
+ * cache serveur multiplierait les clés (quatre fois plus à chaque zoom) pour un gain négligeable.
  */
 final class GraphTiles
 {
@@ -31,7 +34,10 @@ final class GraphTiles
 
     public const LINK_NODES_FROM = 11;
 
-    private const CACHED_MAX_ZOOM = 12;
+    /** Plus petit zoom servi (même valeur que GRAPH_MIN_ZOOM côté client, resources/js/lib/graphAdmin.js). */
+    public const MIN_ZOOM = 8;
+
+    public const CACHED_MAX_ZOOM = 12;
 
     private const TTL_SECONDS = 7 * 24 * 3600;
 

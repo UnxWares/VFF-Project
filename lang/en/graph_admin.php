@@ -27,6 +27,8 @@ return [
         'lines' => 'The tracks of each line and its stops in order, with their kilometre points.',
     ],
     'built_at' => 'Graph built on :date.',
+    'missing_era' => 'No graph has been built for the era :requested. The page shows the one for :year.',
+    'apply' => 'Show',
     'not_built' => 'No graph has been built yet.',
     'not_built_text' => 'The graph is computed with the vff:build-network-graph command, after the decade engine.',
 
@@ -51,6 +53,9 @@ return [
         'spread_1m' => 'Junctions split by more than 1 m',
         'spread_5m' => 'Junctions split by more than 5 m',
         'max_spread' => 'Largest gap at a junction',
+        'no_geometry' => 'Edges without a trace',
+        'jumps' => 'Edges without a trace between two distant nodes',
+        'max_jump' => 'Largest gap jumped without a trace',
         'stations' => 'Stations in the graph',
         'station_edges' => 'Station-to-station edges',
         'without_edge' => 'Open stations without an edge',
@@ -75,6 +80,7 @@ return [
         'fullscreen_enter' => 'Show the map full screen',
         'fullscreen_exit' => 'Exit full screen',
         'attribution' => 'Map sources',
+        'framed' => 'Map framed on: :name',
     ],
 
     'edge' => [
@@ -105,6 +111,7 @@ return [
         'empty' => 'Click an edge or a node on the map, or “Show on the map” in the diagnostics, to see its attributes.',
         'loading' => 'Loading the attributes…',
         'error' => 'The attributes of this item could not be loaded.',
+        'missing' => 'This item does not exist in the graph of era :year.',
         'shown' => 'Attributes shown: :name',
         'kinds' => [
             'node' => 'Node :id',
@@ -112,6 +119,9 @@ return [
             'station_edge' => 'Station-to-station edge :id',
             'station' => 'Station :name',
             'stop' => 'Stop :name',
+            'island' => 'Island :id',
+            'station_island' => 'Station island :id',
+            'fragmented_line' => 'Line in pieces: :name',
         ],
         'era' => 'Era',
         'id' => 'Identifier',
@@ -121,6 +131,7 @@ return [
         'edges_at_node' => 'Edges meeting here',
         'length' => 'Recorded length',
         'measured' => 'Length of the trace',
+        'nodes_gap' => 'Gap between the two nodes',
         'direct' => 'As the crow flies',
         'pk' => 'Kilometre point',
         'pk_range' => 'from km :from to km :to',
@@ -128,6 +139,9 @@ return [
         'nodes' => 'Nodes',
         'nodes_value' => 'from :from to :to',
         'segment' => 'Source section',
+        'edges' => 'Edges',
+        'stations_count' => 'Stations',
+        'pieces' => 'Pieces',
         'source' => 'Trace source',
         'osm_way' => 'OpenStreetMap way',
         'trace' => 'Contributed trace',
@@ -189,7 +203,7 @@ return [
         ],
         'junctions' => [
             'title' => 'Split junctions',
-            'text' => 'Nodes where the meeting tracks do not touch (more than :tol m between their ends), and connectors drawn to bridge a gap. On the map, two lines must meet at 0 m.',
+            'text' => 'Nodes where the meeting tracks do not touch (more than :tol m between their ends), connectors drawn to bridge a gap, and edges without a trace whose two nodes are more than :tol m apart (nothing is drawn between them). On the map, two lines must meet at 0 m.',
         ],
         'fragmented_lines' => [
             'title' => 'Lines in several pieces',
@@ -200,6 +214,7 @@ return [
         'capped' => 'The first :count cases are listed.',
         'empty' => 'Nothing to report for this era.',
         'loading' => 'Loading the list…',
+        'loading_page' => 'Loading page :page…',
         'error' => 'The list could not be loaded.',
         'show' => 'Show on the map',
         'columns' => [
@@ -231,8 +246,10 @@ return [
         'types' => [
             'spread' => 'Ends apart',
             'connector' => 'Gap connector',
+            'jump' => 'Jump without trace',
         ],
         'measured' => 'trace: :distance',
+        'nodes_gap' => 'between the nodes: :distance',
         'direct' => 'straight line: :distance',
     ],
 ];

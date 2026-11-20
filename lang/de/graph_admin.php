@@ -27,6 +27,8 @@ return [
         'lines' => 'Die Gleise jeder Strecke und ihre Halte in Reihenfolge, mit Streckenkilometer.',
     ],
     'built_at' => 'Graph berechnet am :date.',
+    'missing_era' => 'Für die Epoche :requested ist kein Graph berechnet. Die Seite zeigt den Graphen für :year.',
+    'apply' => 'Anzeigen',
     'not_built' => 'Es ist noch kein Graph berechnet.',
     'not_built_text' => 'Der Graph wird mit dem Befehl vff:build-network-graph berechnet, nach dem Jahrzehnt-Modul.',
 
@@ -51,6 +53,9 @@ return [
         'spread_1m' => 'Verzweigungen mit mehr als 1 m Abstand',
         'spread_5m' => 'Verzweigungen mit mehr als 5 m Abstand',
         'max_spread' => 'Größter Abstand an einer Verzweigung',
+        'no_geometry' => 'Kanten ohne Verlauf',
+        'jumps' => 'Kanten ohne Verlauf zwischen zwei entfernten Knoten',
+        'max_jump' => 'Größter ohne Verlauf übersprungener Abstand',
         'stations' => 'Bahnhöfe im Graphen',
         'station_edges' => 'Kanten von Bahnhof zu Bahnhof',
         'without_edge' => 'Offene Bahnhöfe ohne Kante',
@@ -75,6 +80,7 @@ return [
         'fullscreen_enter' => 'Karte im Vollbild anzeigen',
         'fullscreen_exit' => 'Vollbild verlassen',
         'attribution' => 'Kartenquellen',
+        'framed' => 'Karte auf das Element ausgerichtet: :name',
     ],
 
     'edge' => [
@@ -105,6 +111,7 @@ return [
         'empty' => 'Klicken Sie auf eine Kante oder einen Knoten der Karte oder in den Diagnosen auf „Auf der Karte zeigen“, um die Attribute zu sehen.',
         'loading' => 'Attribute werden geladen …',
         'error' => 'Die Attribute dieses Elements konnten nicht geladen werden.',
+        'missing' => 'Dieses Element gibt es im Graphen der Epoche :year nicht.',
         'shown' => 'Angezeigte Attribute: :name',
         'kinds' => [
             'node' => 'Knoten :id',
@@ -112,6 +119,9 @@ return [
             'station_edge' => 'Kante von Bahnhof zu Bahnhof :id',
             'station' => 'Bahnhof :name',
             'stop' => 'Halt :name',
+            'island' => 'Insel :id',
+            'station_island' => 'Bahnhofsinsel :id',
+            'fragmented_line' => 'Strecke in Stücken: :name',
         ],
         'era' => 'Epoche',
         'id' => 'Kennung',
@@ -121,6 +131,7 @@ return [
         'edges_at_node' => 'Hier zusammentreffende Kanten',
         'length' => 'Gespeicherte Länge',
         'measured' => 'Länge des Verlaufs',
+        'nodes_gap' => 'Abstand zwischen den beiden Knoten',
         'direct' => 'Luftlinie',
         'pk' => 'Streckenkilometer',
         'pk_range' => 'von km :from bis km :to',
@@ -128,6 +139,9 @@ return [
         'nodes' => 'Knoten',
         'nodes_value' => 'von :from bis :to',
         'segment' => 'Ursprungsabschnitt',
+        'edges' => 'Kanten',
+        'stations_count' => 'Bahnhöfe',
+        'pieces' => 'Stücke',
         'source' => 'Quelle des Verlaufs',
         'osm_way' => 'OpenStreetMap-Weg',
         'trace' => 'Beigetragener Verlauf',
@@ -189,7 +203,7 @@ return [
         ],
         'junctions' => [
             'title' => 'Auseinanderliegende Verzweigungen',
-            'text' => 'Knoten, an denen sich die zusammentreffenden Gleise nicht berühren (mehr als :tol m zwischen ihren Enden), und Verbindungen, die eine Lücke überbrücken. Auf der Karte müssen sich zwei Strecken bei 0 m treffen.',
+            'text' => 'Knoten, an denen sich die zusammentreffenden Gleise nicht berühren (mehr als :tol m zwischen ihren Enden), Verbindungen, die eine Lücke überbrücken, und Kanten ohne Verlauf, deren Knoten mehr als :tol m auseinanderliegen (dazwischen ist nichts gezeichnet). Auf der Karte müssen sich zwei Strecken bei 0 m treffen.',
         ],
         'fragmented_lines' => [
             'title' => 'Strecken in mehreren Teilen',
@@ -200,6 +214,7 @@ return [
         'capped' => 'Die ersten :count Fälle sind aufgeführt.',
         'empty' => 'Für diese Epoche gibt es nichts zu melden.',
         'loading' => 'Liste wird geladen …',
+        'loading_page' => 'Seite :page wird geladen …',
         'error' => 'Die Liste konnte nicht geladen werden.',
         'show' => 'Auf der Karte zeigen',
         'columns' => [
@@ -231,8 +246,10 @@ return [
         'types' => [
             'spread' => 'Enden auseinander',
             'connector' => 'Lückenverbindung',
+            'jump' => 'Sprung ohne Verlauf',
         ],
         'measured' => 'Verlauf: :distance',
+        'nodes_gap' => 'zwischen den Knoten: :distance',
         'direct' => 'Luftlinie: :distance',
     ],
 ];

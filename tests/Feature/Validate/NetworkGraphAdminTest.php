@@ -6,8 +6,10 @@ use App\Models\Era;
 use App\Models\Line;
 use App\Models\Station;
 use App\Services\NetworkGraph\GraphDiagnostics;
+use App\Services\NetworkGraph\GraphTiles;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -140,6 +142,23 @@ class NetworkGraphAdminTest extends TestCase
         return $report;
     }
 
+    /**
+     * Premier élément d'une liste du rapport dont `$key` vaut `$value`.
+     *
+     * @param  list<array<string, mixed>>  $items
+     * @return array<string, mixed>|null
+     */
+    private function firstWhere(array $items, string $key, mixed $value): ?array
+    {
+        foreach ($items as $item) {
+            if (($item[$key] ?? null) === $value) {
+                return $item;
+            }
+        }
+
+        return null;
+    }
+
     // ---- Accès ----------------------------------------------------------------------------------
 
     /** @return array<string, array{0: string}> */
@@ -175,6 +194,19 @@ class NetworkGraphAdminTest extends TestCase
         $this->actingAs($admin)->get('/validate/graph')->assertForbidden();
     }
 
+    public function test_a_suspended_admin_is_refused_on_json_routes_and_tiles(): void
+    {
+        $admin = $this->member('admin', ['suspended_at' => now()->subDay(), 'suspension_reason' => 'Motif de test suffisamment long.']);
+        foreach ([
+            '/validate/graph/1930/diagnostics',
+            '/validate/graph/1930/diagnostics/junctions?page=1',
+            '/validate/graph/1930/tiles/topology/8/129/88.mvt',
+            "/validate/graph/1930/features/node/{$this->n['N1']}",
+        ] as $uri) {
+            $this->actingAs($admin)->getJson($uri)->assertForbidden();
+        }
+    }
+
     public function test_an_admin_sees_the_page_with_the_summary_of_the_chosen_era(): void
     {
         $this->actingAs($this->member('admin'))->get('/validate/graph?era=1930&layer=stations')
@@ -191,7 +223,15 @@ class NetworkGraphAdminTest extends TestCase
     public function test_an_unknown_layer_falls_back_to_the_topology(): void
     {
         $this->actingAs($this->member('admin'))->get('/validate/graph?layer=autre')
-            ->assertInertia(fn (Assert $page) => $page->where('layer', 'topology')->where('year', 1930));
+            ->assertInertia(fn (Assert $page) => $page->where('layer', 'topology')->where('year', 1930)->where('missing_era', null));
+    }
+
+    public function test_an_era_without_graph_in_the_address_is_announced(): void
+    {
+        // L'ère actuelle est montrée, mais la page sait que 1855 a été demandée et le dit.
+        $this->actingAs($this->member('admin'))->get('/validate/graph?era=1855')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('year', 1930)->where('missing_era', 1855));
     }
 
     public function test_an_era_without_graph_answers_404(): void
@@ -215,15 +255,21 @@ class NetworkGraphAdminTest extends TestCase
         $this->assertSame(3, $t['islands']);
         $this->assertSame(5, $t['largest']['nodes']);
         $this->assertSame(1, $t['isolated_nodes']);
-        $this->assertSame(1, $t['zero_length_edges']);
+        // E5 n'a pas de tracé : elle est classée « sans tracé », pas « longueur nulle ».
+        $this->assertSame(0, $t['zero_length_edges']);
+        $this->assertSame(1, $t['no_geometry_edges']);
 
         $lists = $this->report()['lists'];
         $this->assertSame([$this->n['N7']], array_column($lists['isolated_nodes']['items'], 'id'));
-        // E5 (longueur nulle) d'abord ; puis l'arête gare à gare A - D, écrite ici sans tracé.
-        $this->assertSame([['topology', $this->e['E5'], 'zero_length'], ['stations', null, 'no_geometry']], array_map(
+        // E5 (sans tracé, nœuds au même point) et l'arête gare à gare A - D, écrite ici sans tracé.
+        $edges = array_map(
             fn (array $i): array => [$i['layer'], $i['layer'] === 'topology' ? $i['id'] : null, $i['reason']],
             $lists['edges']['items'],
-        ));
+        );
+        $this->assertEqualsCanonicalizing([['topology', $this->e['E5'], 'no_geometry'], ['stations', null, 'no_geometry']], $edges);
+        $e5 = $this->firstWhere($lists['edges']['items'], 'id', $this->e['E5']);
+        $this->assertNotNull($e5);
+        $this->assertSame(0.0, $e5['measured_m'], 'distance entre les deux nœuds de E5');
         // Les îles sont listées de la plus longue à la plus courte, avec leur emprise et leurs lignes.
         $island = $lists['islands']['items'][0];
         $this->assertSame(2, $island['nodes']);
@@ -244,6 +290,65 @@ class NetworkGraphAdminTest extends TestCase
         $this->assertEqualsWithDelta(7.45, $junction['distance_m'], 0.1);
         $this->assertSame(2, $junction['ends']);
         $this->assertSame(2, $junction['lines']);
+    }
+
+    public function test_a_topology_edge_without_trace_between_distant_nodes_is_a_jump(): void
+    {
+        // N11 et N12 sont à 0,00067° de longitude l'un de l'autre à 48° N, environ 49,9 m.
+        $this->n['N11'] = $this->node(2.10, 48.0, 'junction');
+        $this->n['N12'] = $this->node(2.10067, 48.0, 'gap');
+        $this->e['E8'] = $this->edge('N11', 'N12', 'L3', null);
+
+        $report = app(GraphDiagnostics::class)->report($this->era->id, fresh: true);
+        $this->assertNotNull($report);
+
+        $edge = $this->firstWhere($report['lists']['edges']['items'], 'id', $this->e['E8']);
+        $this->assertNotNull($edge);
+        $this->assertSame('no_geometry', $edge['reason']);
+        $this->assertSame(0, $edge['length_m']);
+        $this->assertEqualsWithDelta(49.9, $edge['measured_m'], 0.3);
+
+        $jump = $this->firstWhere($report['lists']['junctions']['items'], 'type', 'jump');
+        $this->assertNotNull($jump, 'le saut figure dans les jonctions');
+        $this->assertSame($this->e['E8'], $jump['id']);
+        $this->assertEqualsWithDelta(49.9, $jump['distance_m'], 0.3);
+        // Trié avec les autres jonctions par écart : 49,9 m passe avant les 7,45 m de N1.
+        $this->assertSame('jump', $report['lists']['junctions']['items'][0]['type']);
+        // E5 (sans tracé, nœuds au même point) n'est pas un saut.
+        $this->assertSame(1, $report['summary']['topology']['jumps']);
+        $this->assertEqualsWithDelta(49.9, $report['summary']['topology']['max_jump_m'], 0.3);
+        // L'arête sans tracé relie quand même ses deux nœuds : une composante de plus, pas deux.
+        $this->assertSame(5, $report['summary']['topology']['components']);
+
+        $this->actingAs($this->member('admin'))->getJson("/validate/graph/1930/features/edge/{$this->e['E8']}")
+            ->assertOk()
+            ->assertJsonPath('measured_m', null)
+            ->assertJsonPath('nodes_gap_m', fn (float $gap): bool => abs($gap - 49.9) < 0.3);
+    }
+
+    public function test_the_computation_gives_back_the_original_work_mem(): void
+    {
+        DB::statement("SET work_mem = '4MB'");
+        app(GraphDiagnostics::class)->report($this->era->id, fresh: true);
+
+        $this->assertSame('4MB', DB::scalar("SELECT current_setting('work_mem')"));
+    }
+
+    public function test_stations_without_edge_follow_station_dates_when_the_graph_was_built_from_them(): void
+    {
+        DB::table('network_graph_builds')->where('era_id', $this->era->id)->update(['stations_source' => 'stations']);
+        Station::query()->update(['opened_at' => '1900-01-01', 'closed_at' => null]);
+        // B ferme en 1925 : plus ouverte en 1930. E ouvre en 1935 : pas encore ouverte.
+        Station::where('slug', 'b')->update(['closed_at' => '1925-06-01']);
+        Station::factory()->create(['slug' => 'e', 'name' => 'Gare E', 'opened_at' => '1935-01-01', 'closed_at' => null,
+            'geom' => Point::makeGeodetic(44.0, 1.0)]);
+        Station::factory()->create(['slug' => 'f', 'name' => 'Gare F', 'opened_at' => '1928-01-01', 'closed_at' => '1931-03-01',
+            'geom' => Point::makeGeodetic(44.0, 1.5)]);
+
+        $without = app(GraphDiagnostics::class)->report($this->era->id, fresh: true)['lists']['stations_without_edge']['items'] ?? [];
+
+        $this->assertSame(['f', 'c'], array_column($without, 'slug'));
+        $this->assertSame(['unattached', 'no_neighbour'], array_column($without, 'reason'));
     }
 
     public function test_station_layer_finds_islands_and_stations_without_edge(): void
@@ -320,6 +425,34 @@ class NetworkGraphAdminTest extends TestCase
         $this->actingAs($admin)->get('/validate/graph/1930/tiles/topology/20/1/1.mvt')->assertNotFound();
     }
 
+    public function test_tiles_below_zoom_8_are_refused(): void
+    {
+        $admin = $this->member('admin');
+        foreach (['0/0/0', '5/16/11', '7/64/44'] as $zxy) {
+            $this->actingAs($admin)->get("/validate/graph/1930/tiles/topology/{$zxy}.mvt")->assertNotFound();
+        }
+        $this->assertSame(8, GraphTiles::MIN_ZOOM);
+    }
+
+    public function test_tiles_beyond_zoom_12_are_computed_without_server_cache(): void
+    {
+        $admin = $this->member('admin');
+        // Tuile du zoom 13 qui contient N1 (2,0° E, 48,0° N).
+        $first = $this->actingAs($admin)->get('/validate/graph/1930/tiles/topology/13/4141/2847.mvt')->assertOk()->getContent();
+        $this->assertStringContainsString('edges', (string) $first);
+
+        // Le graphe change sans nouvelle date de construction : seule une tuile recalculée le voit.
+        DB::table('network_edges')->where('era_id', $this->era->id)->delete();
+        $second = $this->actingAs($admin)->get('/validate/graph/1930/tiles/topology/13/4141/2847.mvt')->assertOk()->getContent();
+        $this->assertStringNotContainsString('edges', (string) $second);
+
+        // Au zoom 8, la tuile reste en cache.
+        $this->actingAs($admin)->get('/validate/graph/1930/tiles/topology/8/129/88.mvt')->assertOk();
+        $key = fn (int $z, int $x, int $y): string => sprintf('graph-tiles:%d:%d:20261120080000:topology:%d:%d:%d', GraphTiles::FORMAT, $this->era->id, $z, $x, $y);
+        $this->assertTrue(Cache::has($key(8, 129, 88)));
+        $this->assertFalse(Cache::has($key(13, 4141, 2847)));
+    }
+
     public function test_an_element_shows_its_attributes(): void
     {
         $admin = $this->member('admin');
@@ -339,5 +472,45 @@ class NetworkGraphAdminTest extends TestCase
             ->assertJsonPath('neighbours.0.slug', 'd');
 
         $this->actingAs($admin)->getJson('/validate/graph/1930/features/edge/999999999')->assertNotFound();
+    }
+
+    public function test_an_identifier_too_large_for_an_integer_answers_404(): void
+    {
+        $this->actingAs($this->member('admin'))->getJson('/validate/graph/1930/features/edge/99999999999999999999')->assertNotFound();
+    }
+
+    public function test_an_element_of_another_era_is_not_found(): void
+    {
+        $era1970 = Era::factory()->create(['year' => 1970]);
+        $node = (int) DB::scalar(
+            "INSERT INTO network_nodes (era_id, kind, geom, created_at, updated_at)
+             VALUES (?, 'end', ST_SetSRID(ST_MakePoint(2.5, 48.5), 4326), now(), now()) RETURNING id",
+            [$era1970->id],
+        );
+        $edge = (int) DB::scalar(
+            "INSERT INTO network_edges (era_id, from_node_id, to_node_id, length_m, status, created_at, updated_at)
+             VALUES (?, ?, ?, 0, 'in_service', now(), now()) RETURNING id",
+            [$era1970->id, $node, $node],
+        );
+        DB::table('network_graph_builds')->insert([
+            'era_id' => $era1970->id, 'built_at' => '2026-11-20 08:00:00', 'duration_ms' => 1, 'stations_source' => 'station_eras',
+            'segments' => 1, 'nodes' => 1, 'edges' => 1, 'station_nodes' => 0, 'closed_station_nodes' => 0, 'station_edges' => 0,
+            'heritage_station_edges' => 0, 'gap_joins' => 0, 'open_stations' => 0, 'unattached_stations' => 0,
+            'isolated_stations' => 0, 'components' => 1, 'largest_component' => 1, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $admin = $this->member('admin');
+
+        $this->actingAs($admin)->getJson("/validate/graph/1970/features/edge/{$edge}")->assertOk();
+        $this->actingAs($admin)->getJson("/validate/graph/1930/features/edge/{$edge}")->assertNotFound();
+        $this->actingAs($admin)->getJson("/validate/graph/1930/features/node/{$node}")->assertNotFound();
+        $this->actingAs($admin)->getJson("/validate/graph/1970/features/edge/{$this->e['E1']}")->assertNotFound();
+    }
+
+    public function test_a_station_absent_from_the_era_has_no_sheet(): void
+    {
+        // Gare sans statut à l'ère 1930 ni nœud dans son graphe.
+        $absent = Station::factory()->create(['slug' => 'z', 'name' => 'Gare Z', 'geom' => Point::makeGeodetic(45.5, 4.5)]);
+
+        $this->actingAs($this->member('admin'))->getJson("/validate/graph/1930/features/station/{$absent->id}")->assertNotFound();
     }
 }

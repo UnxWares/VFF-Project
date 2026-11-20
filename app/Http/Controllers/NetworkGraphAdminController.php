@@ -35,9 +35,10 @@ class NetworkGraphAdminController extends Controller
             ->get(['e.id', 'e.year', 'e.is_current', 'b.built_at', 'b.nodes', 'b.edges', 'b.station_edges']);
 
         $requested = (int) $request->query('era', '0');
-        $era = $eras->firstWhere('year', $requested)
-            ?? $eras->firstWhere('is_current', true)
-            ?? $eras->last();
+        $era = $eras->firstWhere('year', $requested);
+        // Ère demandée sans graphe : l'ère actuelle est montrée, et la page le dit (`missing_era`).
+        $missing = $requested > 0 && $era === null ? $requested : null;
+        $era ??= $eras->firstWhere('is_current', true) ?? $eras->last();
         $layer = in_array($request->query('layer'), GraphTiles::LAYERS, true) ? (string) $request->query('layer') : 'topology';
         $report = $era !== null ? $diagnostics->report((int) $era->id) : null;
 
@@ -51,6 +52,7 @@ class NetworkGraphAdminController extends Controller
                 'station_edges' => (int) $e->station_edges,
             ])->values(),
             'year' => $era !== null ? (int) $era->year : null,
+            'missing_era' => $missing,
             'layer' => $layer,
             'layers' => GraphTiles::LAYERS,
             'checks' => GraphDiagnostics::CHECKS,
@@ -92,7 +94,8 @@ class NetworkGraphAdminController extends Controller
     public function tile(int $year, string $layer, int $z, int $x, int $y, GraphTiles $tiles): HttpResponse
     {
         Gate::authorize('viewNetworkGraph', User::class);
-        abort_unless(MapTiles::onGrid($z, $x, $y), 404);
+        // Jamais toute la France en une réponse : pas de tuile sous GraphTiles::MIN_ZOOM.
+        abort_unless($z >= GraphTiles::MIN_ZOOM && MapTiles::onGrid($z, $x, $y), 404);
         [$eraId, $builtAt] = $this->era($year);
 
         return response($tiles->tile($eraId, $builtAt, $layer, $z, $x, $y), 200, [

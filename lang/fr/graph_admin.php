@@ -27,6 +27,8 @@ return [
         'lines' => 'Les voies de chaque ligne et ses arrêts dans l’ordre, avec leur PK.',
     ],
     'built_at' => 'Graphe construit le :date.',
+    'missing_era' => 'Aucun graphe n’est construit pour l’époque :requested. La page montre celui de :year.',
+    'apply' => 'Afficher',
     'not_built' => 'Aucun graphe n’est construit pour le moment.',
     'not_built_text' => 'Le graphe se calcule avec la commande vff:build-network-graph, après le moteur décennal.',
 
@@ -51,6 +53,9 @@ return [
         'spread_1m' => 'Jonctions écartées de plus de 1 m',
         'spread_5m' => 'Jonctions écartées de plus de 5 m',
         'max_spread' => 'Plus grand écart à une jonction',
+        'no_geometry' => 'Arêtes sans tracé',
+        'jumps' => 'Arêtes sans tracé entre deux nœuds distants',
+        'max_jump' => 'Plus grand écart sauté sans tracé',
         'stations' => 'Gares reliées au graphe',
         'station_edges' => 'Arêtes de gare à gare',
         'without_edge' => 'Gares ouvertes sans arête',
@@ -75,6 +80,7 @@ return [
         'fullscreen_enter' => 'Afficher la carte en plein écran',
         'fullscreen_exit' => 'Quitter le plein écran',
         'attribution' => 'Sources de la carte',
+        'framed' => 'Carte recadrée sur l’élément : :name',
     ],
 
     'edge' => [
@@ -105,6 +111,7 @@ return [
         'empty' => 'Cliquez sur une arête ou un nœud de la carte, ou sur « Voir sur la carte » dans les diagnostics, pour afficher ses attributs.',
         'loading' => 'Chargement des attributs…',
         'error' => 'Les attributs de cet élément n’ont pas pu être chargés.',
+        'missing' => 'Cet élément n’existe pas dans le graphe de l’époque :year.',
         'shown' => 'Attributs affichés : :name',
         'kinds' => [
             'node' => 'Nœud :id',
@@ -112,6 +119,9 @@ return [
             'station_edge' => 'Arête de gare à gare :id',
             'station' => 'Gare :name',
             'stop' => 'Arrêt :name',
+            'island' => 'Île :id',
+            'station_island' => 'Île de gares :id',
+            'fragmented_line' => 'Ligne en morceaux : :name',
         ],
         'era' => 'Époque',
         'id' => 'Identifiant',
@@ -121,6 +131,7 @@ return [
         'edges_at_node' => 'Arêtes qui s’y rejoignent',
         'length' => 'Longueur enregistrée',
         'measured' => 'Longueur du tracé',
+        'nodes_gap' => 'Écart entre les deux nœuds',
         'direct' => 'À vol d’oiseau',
         'pk' => 'PK',
         'pk_range' => 'du PK :from au PK :to',
@@ -128,6 +139,9 @@ return [
         'nodes' => 'Nœuds',
         'nodes_value' => 'de :from à :to',
         'segment' => 'Tronçon d’origine',
+        'edges' => 'Arêtes',
+        'stations_count' => 'Gares',
+        'pieces' => 'Morceaux',
         'source' => 'Source du tracé',
         'osm_way' => 'Voie OpenStreetMap',
         'trace' => 'Tracé contribué',
@@ -189,7 +203,7 @@ return [
         ],
         'junctions' => [
             'title' => 'Jonctions écartées',
-            'text' => 'Nœuds où les voies qui se rejoignent ne se touchent pas (plus de :tol m entre leurs extrémités), et raccords tracés pour franchir une lacune. Sur la carte, deux lignes doivent se toucher à 0 m.',
+            'text' => 'Nœuds où les voies qui se rejoignent ne se touchent pas (plus de :tol m entre leurs extrémités), raccords tracés pour franchir une lacune, et arêtes sans tracé dont les deux nœuds sont à plus de :tol m l’un de l’autre (rien n’est dessiné entre eux). Sur la carte, deux lignes doivent se toucher à 0 m.',
         ],
         'fragmented_lines' => [
             'title' => 'Lignes en plusieurs morceaux',
@@ -200,6 +214,7 @@ return [
         'capped' => 'Les :count premiers cas sont listés.',
         'empty' => 'Rien à signaler pour cette époque.',
         'loading' => 'Chargement de la liste…',
+        'loading_page' => 'Chargement de la page :page…',
         'error' => 'La liste n’a pas pu être chargée.',
         'show' => 'Voir sur la carte',
         'columns' => [
@@ -231,8 +246,10 @@ return [
         'types' => [
             'spread' => 'Extrémités écartées',
             'connector' => 'Raccord de lacune',
+            'jump' => 'Saut sans tracé',
         ],
         'measured' => 'tracé : :distance',
+        'nodes_gap' => 'entre les nœuds : :distance',
         'direct' => 'à vol d’oiseau : :distance',
     ],
 ];

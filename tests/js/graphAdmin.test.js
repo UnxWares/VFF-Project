@@ -10,8 +10,12 @@ import {
     featureUrl,
     formatDistance,
     formatPk,
+    VISIT_OPTIONS,
+    itemSummary,
     itemTarget,
+    latestRequest,
     layerFigures,
+    listView,
     lineColor,
     nodeColorExpr,
     pageQuery,
@@ -226,5 +230,118 @@ describe('chiffres clés', () => {
         expect(layerFigures(summary, 'stations').map((f) => f.key)).toContain('without_edge');
         expect(layerFigures(summary, 'lines')).toHaveLength(4);
         expect(layerFigures(null, 'topology')).toEqual([]);
+    });
+});
+
+describe('corrections de la relecture', () => {
+    it('un saut sans tracé montre son arête', () => {
+        expect(itemTarget('junctions', { type: 'jump', id: 21, lng: 2, lat: 48 })).toEqual({
+            point: [2, 48],
+            feature: { kind: 'edge', id: 21 },
+        });
+    });
+
+    it('la fiche d’une arête sans tracé donne l’écart entre ses nœuds', () => {
+        const rows = detailRows(
+            {
+                kind: 'edge',
+                id: 5,
+                from_node_id: 1,
+                to_node_id: 2,
+                length_m: 0,
+                measured_m: null,
+                nodes_gap_m: 311.3,
+            },
+            t,
+            'fr',
+        );
+        const gap = rows.find((r) => r.label === 'graph_admin.details.nodes_gap');
+        expect(gap?.parts[0].text).toBe('311 m');
+        expect(rows.some((r) => r.label === 'graph_admin.details.measured')).toBe(false);
+    });
+
+    it('résume une île, une île de gares et une ligne en morceaux pour le panneau', () => {
+        const island = itemSummary(
+            'islands',
+            {
+                id: 7,
+                nodes: 12,
+                edges: 11,
+                length_m: 4200,
+                stations: 2,
+                lines: [{ id: 3, slug: 'l3', name: 'Ligne 3', code: 'L3' }],
+            },
+            t,
+            'fr',
+        );
+        expect(island.title).toBe('graph_admin.details.kinds.island {"id":7}');
+        expect(island.rows.map((r) => r.label)).toEqual([
+            'graph_admin.details.nodes',
+            'graph_admin.details.edges',
+            'graph_admin.details.length',
+            'graph_admin.details.stations_count',
+            'graph_admin.details.lines',
+        ]);
+        expect(island.rows.at(-1).parts[0]).toEqual({ text: 'Ligne 3 (L3)', href: '/lines/l3' });
+
+        const stations = itemSummary(
+            'station_islands',
+            {
+                id: 4,
+                stations: 2,
+                edges: 1,
+                length_m: 800,
+                sample: [{ id: 4, slug: 'c', name: 'Gare C' }],
+            },
+            t,
+            'fr',
+        );
+        expect(stations.title).toContain('station_island');
+        expect(stations.rows.at(-1).parts[0]).toEqual({ text: 'Gare C', href: '/stations/c' });
+
+        const line = itemSummary(
+            'fragmented_lines',
+            {
+                line_id: 9,
+                pieces: 3,
+                edges: 8,
+                length_m: 12000,
+                line: { id: 9, slug: 'l9', name: 'Ligne 9', code: null },
+            },
+            t,
+            'fr',
+        );
+        expect(line.title).toBe('graph_admin.details.kinds.fragmented_line {"name":"Ligne 9"}');
+        expect(line.rows[0].parts[0].href).toBe('/lines/l9');
+
+        expect(itemSummary('edges', { id: 1 }, t, 'fr')).toBeNull();
+    });
+
+    it('garde la page affichée pendant le chargement de la suivante', () => {
+        const page1 = { check: 'junctions', page: 1, items: [] };
+        expect(listView(page1, 'junctions', 'loading')).toEqual({ view: 'table', busy: true });
+        expect(listView(page1, 'junctions', 'ready')).toEqual({ view: 'table', busy: false });
+        // Une liste d'une autre sorte n'est pas montrée sous les colonnes de la nouvelle.
+        expect(listView(page1, 'islands', 'loading')).toEqual({ view: 'loading', busy: true });
+        expect(listView(null, 'islands', 'loading').view).toBe('loading');
+        expect(listView(page1, 'junctions', 'error').view).toBe('error');
+    });
+
+    it('change d’ère ou de couche sans recréer la page', () => {
+        expect(VISIT_OPTIONS.preserveState).toBe(true);
+        expect(VISIT_OPTIONS.preserveScroll).toBe(true);
+        expect(VISIT_OPTIONS.only).toEqual(['year', 'missing_era', 'layer', 'summary']);
+    });
+
+    it('ne garde que la dernière demande de fiche', () => {
+        const requests = latestRequest();
+        const first = requests.next();
+        const second = requests.next();
+        expect(first.aborted).toBe(true);
+        expect(requests.isCurrent(first)).toBe(false);
+        expect(requests.isCurrent(second)).toBe(true);
+        requests.cancel();
+        expect(second.aborted).toBe(true);
+        expect(requests.isCurrent(second)).toBe(false);
     });
 });
