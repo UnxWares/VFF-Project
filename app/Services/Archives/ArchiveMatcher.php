@@ -29,6 +29,10 @@ namespace App\Services\Archives;
  *                      de fer de Paris à Rouen, au Mans, à Tours » nomme Paris et Rouen : ce n'est pas la ligne
  *                      de Tours au Mans) ;
  *   ends 2           : ces deux lieux sont les extrémités de la ligne (nom actuel, ancien nom ou gares terminus) ;
+ *                      pas pour une variante dont le nom donne un lieu de passage (« Ligne de Lyon à Marseille (via
+ *                      Grenoble) ») quand le titre ne nomme pas ce lieu et qu'une autre ligne passe par tous les lieux
+ *                      reconnus (la ligne du Rhône relie aussi Lyon à Marseille : « chemin de fer de Lyon à Marseille »
+ *                      en 1837 ne désigne pas la ligne par Grenoble) ;
  *   rail_word 2      : « chemin de fer », « voie ferrée », « tramway », « railway », « embranchement »,
  *                      « ferroviaire », ou « ligne de X à Y » ;
  *   rail_hint 1      : seulement « gare », « train », « locomotive » ou « wagon » ;
@@ -149,11 +153,35 @@ final class ArchiveMatcher
         foreach ($lineIds as $id => $count) {
             $line = $index->line($id);
             if ($count >= 2 && $line !== null) {
-                $out[] = $this->judge($record, $line, $tokens, $found, $text);
+                $out[] = $this->judge($record, $line, $tokens, $found, $text, self::endsSharedByAnotherLine($line, $found, array_keys($lineIds), $index));
             }
         }
 
         return $out;
+    }
+
+    /**
+     * Variante dont les extrémités ne suffisent pas à la désigner : son nom donne un lieu de passage (LinePlaces::via),
+     * le titre ne le nomme pas, et une autre ligne passe par tous les lieux de la variante reconnus dans le titre.
+     *
+     * @param  list<array{key: string, start: int, end: int}>  $found
+     * @param  list<int>  $lineIds  lignes dont le titre nomme au moins un lieu
+     */
+    private static function endsSharedByAnotherLine(LinePlaces $line, array $found, array $lineIds, LinePlaceIndex $index): bool
+    {
+        $named = array_column($found, 'key');
+        if ($line->via === [] || array_intersect($line->via, $named) !== []) {
+            return false;
+        }
+        $mine = array_values(array_unique(array_filter($named, fn (string $k): bool => isset($line->places[$k]))));
+        foreach ($lineIds as $id) {
+            $other = $index->line($id);
+            if ($id !== $line->id && $other !== null && array_diff($mine, array_keys($other->places)) === []) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -210,8 +238,9 @@ final class ArchiveMatcher
     /**
      * @param  list<array{lower: string, upper: bool, sep: string}>  $tokens
      * @param  list<array{key: string, start: int, end: int}>  $found
+     * @param  bool  $sharedEnds  variante dont les extrémités ne comptent pas (endsSharedByAnotherLine())
      */
-    public function judge(ArchiveRecord $record, LinePlaces $line, array $tokens, array $found, string $text): ArchiveMatch
+    public function judge(ArchiveRecord $record, LinePlaces $line, array $tokens, array $found, string $text, bool $sharedEnds = false): ArchiveMatch
     {
         $mine = array_values(array_filter($found, fn (array $f): bool => isset($line->places[$f['key']])));
         $names = array_values(array_unique(array_map(fn (array $f): string => $line->places[$f['key']], $mine)));
@@ -245,7 +274,7 @@ final class ArchiveMatcher
             if (! $route && array_diff(array_column($found, 'key'), array_keys($line->places)) === []) {
                 $reasons[] = 'only_line_places';
             }
-            if ($ends) {
+            if ($ends && ! $sharedEnds) {
                 $reasons[] = 'ends';
             }
         }

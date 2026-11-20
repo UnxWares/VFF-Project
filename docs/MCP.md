@@ -431,7 +431,7 @@ Chaque événement : `id`, `when` (date rédigée), `type`, `date`, `date_precis
 | `type` | `photo`, `postcard`, `plan`, `map`, `document` | non | Nature. |
 | `provider` | chaîne | non | `commons`, `upload`, `argentanwebferro`… |
 | `license` | chaîne | non | Licence exacte, casse ignorée (`CC BY-SA 4.0`). |
-| `rights_status` | `public_domain`, `open_license`, `permission`, `unknown` | non | État des droits. |
+| `rights_status` | `public_domain`, `open_license`, `unknown` | non | État des droits. Les images que le site montre avec une simple autorisation de leur auteur (`permission`) ne sont jamais servies par cet outil, ni par `GET /api/v1/media` ni par GraphQL. |
 | `commercial_ok` | booléen | non | Réutilisation commerciale permise ou non. |
 | `period` | `pre1900`, `1900_1944`, `1945_1969`, `1970_1999`, `since2000`, `undated` | non | Époque représentée. |
 | `from_year`, `to_year` | entiers | non | Année représentée, bornes incluses. |
@@ -762,7 +762,7 @@ rattachés à la ligne par un score calculé sur le seul titre de la notice (`Ar
 | `route` | 3 | à défaut, un trajet entre ces deux lieux (« de X à Y », « entre X et Y », « rapide Paris - Bordeaux ») ; aussi deux lieux voisins d'une liste « entre X, Y, Z » et une énumération « de X à Z, W et Y » sans « chemin de fer » ou « ligne » juste avant |
 | `two_places` | 1 | à défaut, le titre nomme deux lieux de la ligne (communes, gares, extrémités de ses noms) |
 | `only_line_places` | 1 | sans trajet, tous les lieux reconnus dans le titre sont sur la ligne |
-| `ends` | 2 | ces deux lieux sont les extrémités de la ligne (nom actuel, ancien nom ou gares terminus) |
+| `ends` | 2 | ces deux lieux sont les extrémités de la ligne (nom actuel, ancien nom ou gares terminus) ; pas pour une variante dont le nom donne un lieu de passage (« via Grenoble ») quand le titre ne le nomme pas et qu'une autre ligne passe aussi par les lieux nommés |
 | `rail_word` / `rail_hint` | 2 / 1 | chemin de fer, voie ferrée, tramway, railway, embranchement, ferroviaire, « ligne de X à Y » ; ou seulement gare, train, locomotive, wagon |
 | `date_in_life` | 2 | date entre la première date connue de la ligne et sa fermeture (ou aujourd'hui) |
 | `date_project` / `date_after_closure` | 1 | dans les 40 ans avant la première date ; après la fermeture |
@@ -814,7 +814,8 @@ Aucun texte n'est rédigé : celui de l'événement vient de sa source.
 | Image retenue | image de la ligne dont toutes les années possibles sont à 5 ans au plus de l'événement : date exacte (`day`, `month`, `year`), année « vers » (`circa`, comptée à 2 ans près), décennie (`decade`), fourchette (`range`) ; jamais une borne seule (`before`, `after`). Domaine public ou licence ouverte (`public_domain`, `open_license`) : les images que le site montre avec une simple autorisation (`permission`) ne sont pas diffusées par l'API ni par cet outil. Plus les images rattachées à l'événement, quelle que soit leur date |
 | Document retenu | notice de Gallica de la ligne datée au moins à l'année près (`day`, `month`, `year`, `circa`, `range`) dans la même fenêtre |
 | Seuil | 3 images et documents au moins, dont 2 images |
-| Carrousel | les 24 images les plus proches de la date, rangées dans l'ordre chronologique |
+| Carrousel | les 24 images les plus proches de la date, rangées dans l'ordre chronologique ; un même fichier (rattaché à la ligne et à l'événement) n'y figure qu'une fois |
+| Plusieurs sources | un même fait (même type, même date et même précision, même portion : toute la ligne ou les deux mêmes lieux) n'a qu'une histoire, à l'identifiant de la source la plus sûre (lignes-oubliees, puis Wikipédia, OpenHistoricalMap, Wikidata ; puis la confiance et la précision de la date) ; demandée par une autre source, l'outil donne la même histoire |
 
 | Paramètre | Type | Obligatoire | Description |
 |---|---|---|---|
@@ -822,8 +823,9 @@ Aucun texte n'est rédigé : celui de l'événement vient de sa source.
 | `event` | entier | non | Identifiant d'un événement de la ligne. Sans lui : la liste des événements qui ont une histoire. |
 | `lang` | `fr`, `en`, `de` | non | Langue des messages. |
 
-Sans `event` : `line`, `rules` (fenêtre, seuils, limite), `total` et `stories` (pour chacune : `event`, nombre
-d'`images` et de `documents`, `vff_url` de la page). Avec `event` : `line`, `event` (avec `provenance`), `window`
+Sans `event` : `line`, `rules` (fenêtre, seuils, limite), `total` et `stories` (pour chacune : `event`, `source_event_ids`
+(événements du même fait, celui-ci d'abord), nombre d'`images` et de `documents`, `vff_url` de la page). Avec `event` :
+`line`, `event` (celui de l'adresse de l'histoire, avec `provenance`), `sources` (tous les événements du fait, à citer), `window`
 (`years`, `from`, `to`), `images_total`, `images` (champs de l'outil `media`, plus `gap_years`, `gap_years_min`, `gap_years_max`, `gap_exact` et `attached`),
 `documents` (champs de `line_archives`, plus `gap_years`), `stations` (gares de la portion : nom et slug), `rules`,
 `archives_mention` et `vff_url`.

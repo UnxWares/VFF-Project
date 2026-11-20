@@ -115,6 +115,32 @@ export function storyTitle(type, sectionText, t) {
     return sectionText ? t('stories.title_section', { event, section: sectionText }) : event;
 }
 
+/** Statuts de la chronologie sous lesquels le lien « Voir l'histoire » n'est jamais posé. */
+const NO_STORY_LINK = ['agrees', 'other_line'];
+
+/**
+ * Liens « Voir l'histoire » de la chronologie, un seul par histoire. `facts` : une liste d'identifiants par
+ * fait, celui de l'adresse de l'histoire d'abord (`story_events` de la fiche, EventStories::available). Le lien
+ * va sous cet événement-là, sinon (doublon d'un fait retenu, statut `agrees`) sous le premier autre événement
+ * du fait dans l'ordre de la chronologie ; jamais sous un doublon ni sous le fait d'une autre ligne.
+ * @param {Array<{ id: number, status: string }>} events événements de la chronologie, dans leur ordre
+ * @param {Array<Array<number>>} facts
+ * @returns {Map<number, number>} événement qui porte le lien → identifiant de l'adresse de l'histoire
+ */
+export function storyLinks(events, facts) {
+    const order = new Map(events.map((e, i) => [e.id, i]));
+    const linkable = (id) => order.has(id) && !NO_STORY_LINK.includes(events[order.get(id)].status);
+    const out = new Map();
+    for (const ids of facts ?? []) {
+        if (!ids?.length) continue;
+        const holder = linkable(ids[0])
+            ? ids[0]
+            : ids.filter(linkable).sort((a, b) => order.get(a) - order.get(b))[0];
+        if (holder !== undefined) out.set(holder, ids[0]);
+    }
+    return out;
+}
+
 /** Index après un pas de `delta` dans un carrousel de `count` images, borné (pas de retour au début). */
 export function stepIndex(index, delta, count) {
     if (count <= 0) return 0;

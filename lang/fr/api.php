@@ -130,7 +130,7 @@ return [
             'level_crossings_tiles' => 'Tuile vectorielle (MVT) des passages à niveau, à partir du zoom 9.',
             'line_greenways' => 'Voies vertes d’OpenStreetMap sur l’ancienne emprise d’une ligne, avec la longueur commune, le lien OSM, la provenance et la licence ODbL.',
             'line_archives' => 'Documents numérisés dans Gallica (BnF) dont le titre désigne la ligne : titre, date et sa précision, type, auteurs, cote, lien vers Gallica et raisons du rattachement. Métadonnées de la BnF sous Licence Ouverte, aucune image.',
-            'line_stories' => 'Histoires d’événements d’une ligne : l’événement et sa source, les images de la ligne datées à 5 ans au plus (écart en années, auteur, licence) et les documents de Gallica de la période.',
+            'line_stories' => 'Histoires d’événements d’une ligne : l’événement et toutes les sources qui le rapportent, les images de la ligne datées à 5 ans au plus (écart en années, auteur, licence) et les documents de Gallica de la période.',
             'greenways_tiles' => 'Tuile vectorielle (MVT) des voies vertes sur d’anciennes emprises, à partir du zoom 4.',
             'signalling_tiles' => 'Tuile vectorielle (MVT) des tranches de signalisation placées sur le tracé, pour le réseau d’aujourd’hui.',
             'stations' => 'Annuaire des gares, haltes et points d’arrêt, actuels et disparus.',

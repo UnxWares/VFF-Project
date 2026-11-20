@@ -129,7 +129,7 @@ return [
             'level_crossings_tiles' => 'Vektorkachel (MVT) der Bahnübergänge, ab Zoomstufe 9.',
             'line_greenways' => 'OpenStreetMap-Radwege auf der früheren Trasse einer Strecke, mit gemeinsamer Länge, OSM-Link, Herkunft und ODbL-Lizenz.',
             'line_archives' => 'In Gallica (BnF) digitalisierte Dokumente, deren Titel die Strecke nennt: Titel, Datum und seine Genauigkeit, Art, Urheber, Signatur, Link zu Gallica und Gründe der Zuordnung. Metadaten der BnF unter Licence Ouverte, keine Bilder.',
-            'line_stories' => 'Geschichten zu Ereignissen einer Strecke: das Ereignis mit seiner Quelle, Bilder der Strecke, höchstens 5 Jahre entfernt datiert (Abstand in Jahren, Urheber, Lizenz), und Gallica-Dokumente aus der Zeit.',
+            'line_stories' => 'Geschichten zu Ereignissen einer Strecke: das Ereignis mit allen Quellen, die es belegen, Bilder der Strecke, höchstens 5 Jahre entfernt datiert (Abstand in Jahren, Urheber, Lizenz), und Gallica-Dokumente aus der Zeit.',
             'greenways_tiles' => 'Vektorkachel (MVT) der Radwege auf früheren Trassen, ab Zoomstufe 4.',
             'signalling_tiles' => 'Vektorkachel (MVT) der Blockabschnitte auf dem Streckenverlauf, für das heutige Netz.',
             'stations' => 'Verzeichnis der Bahnhöfe, Haltepunkte und Haltestellen, bestehender und verschwundener.',

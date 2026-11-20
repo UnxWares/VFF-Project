@@ -30,6 +30,7 @@ return [
     'event' => [
         'title' => 'The event',
         'source' => 'Source:',
+        'sources' => 'Sources:',
         'stations' => 'Stations on the section:',
     ],
     'images' => [

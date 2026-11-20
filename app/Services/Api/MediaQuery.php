@@ -19,7 +19,9 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Filtres de la liste des médias, communs à l'API REST (`GET /api/v1/media`) et à GraphQL (`media`).
+ * Filtres de la liste des médias, communs à l'API REST (`GET /api/v1/media`), à GraphQL (`media`) et à l'outil
+ * MCP `media`. Ces trois points d'accès ne diffusent jamais une image montrée sur le site avec une simple
+ * autorisation de son auteur (Media::RIGHTS_NOT_REDISTRIBUTED, comme les histoires d'événements).
  */
 final class MediaQuery
 {
@@ -32,7 +34,8 @@ final class MediaQuery
         'since2000' => [2000, null],
     ];
 
-    public const RIGHTS = [Media::RIGHTS_PUBLIC_DOMAIN, Media::RIGHTS_OPEN_LICENSE, Media::RIGHTS_PERMISSION, Media::RIGHTS_UNKNOWN];
+    /** Valeurs du filtre `rights_status` : les droits des médias que l'API diffuse (sans `permission`). */
+    public const RIGHTS = [Media::RIGHTS_PUBLIC_DOMAIN, Media::RIGHTS_OPEN_LICENSE, Media::RIGHTS_UNKNOWN];
 
     /** Position du média (`lat`, `lng`), à sélectionner avec `media.*`. */
     public const POSITION = 'ST_Y(media.location) AS lat, ST_X(media.location) AS lng';
@@ -92,7 +95,8 @@ final class MediaQuery
 
     /**
      * Applique des filtres déjà validés ; ordre des identifiants (curseur stable, la date représentée
-     * étant souvent absente). Ajoute la position `lat` / `lng` du média.
+     * étant souvent absente). Ajoute la position `lat` / `lng` du média. Jamais de média que l'API ne diffuse
+     * pas (Media::scopeRedistributable).
      *
      * @param  Builder<Media>  $query
      * @param  array<string, mixed>  $filters
@@ -100,7 +104,7 @@ final class MediaQuery
      */
     public function apply(Builder $query, array $filters): Builder
     {
-        $query->select('media.*')->selectRaw(self::POSITION);
+        $query->select('media.*')->selectRaw(self::POSITION)->whereNotIn('media.rights_status', Media::RIGHTS_NOT_REDISTRIBUTED);
 
         if (filled($filters['line'] ?? null)) {
             $query->where('media.mediable_type', Line::class)

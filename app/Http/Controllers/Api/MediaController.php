@@ -48,10 +48,14 @@ class MediaController extends Controller
      * l'emploi), `author`, `license` (telle que déclarée par la source,
      * `null` si inconnue : aucune licence n'est présumée), `license_url`,
      * `rights_status` (`public_domain` domaine public, `open_license` licence
-     * libre, `permission` autorisation, `unknown` inconnu), `commercial_ok`
+     * libre, `unknown` inconnu), `commercial_ok`
      * (usage commercial permis, `null` si inconnu), `share_alike` (partage
      * dans les mêmes conditions exigé), `attribution_required` (mention de
-     * l'auteur obligatoire).
+     * l'auteur obligatoire). Une image que le site montre avec une simple
+     * autorisation de son auteur (`permission`) n'est jamais diffusée par
+     * l'API : elle n'est ni dans la liste ni dans les compteurs, et sa fiche
+     * répond 404 (même règle que GraphQL, l'outil MCP `media` et les
+     * histoires d'événements).
      *
      * **Datation** : `depicted_year` est l'année représentée par le média (pas
      * celle de sa mise en ligne), `depicted_year_to` la fin d'une fourchette et
@@ -87,7 +91,7 @@ class MediaController extends Controller
     #[QueryParameter('type', 'Type de média : `photo`, `postcard` (carte postale), `map` (carte), `plan`, `document`.', type: 'string', example: 'postcard')]
     #[QueryParameter('provider', 'Fournisseur du média, 20 caractères au plus : `commons` (Wikimedia Commons), `upload` (hébergé par VFF), `argentanwebferro`…', type: 'string', example: 'commons')]
     #[QueryParameter('license', 'Licence telle que déclarée par la source, sans tenir compte de la casse, correspondance exacte (ex. `CC BY-SA 4.0`, `Public domain`). 191 caractères au plus.', type: 'string', example: 'CC BY-SA 4.0')]
-    #[QueryParameter('rights_status', 'Statut des droits : `public_domain` (domaine public), `open_license` (licence libre), `permission` (autorisation), `unknown` (inconnu).', type: 'string', example: 'public_domain')]
+    #[QueryParameter('rights_status', 'Statut des droits : `public_domain` (domaine public), `open_license` (licence libre), `unknown` (inconnu). `permission` (simple autorisation de l\'auteur, images jamais diffusées par l\'API) donne HTTP 422.', type: 'string', example: 'public_domain')]
     #[QueryParameter('commercial_ok', "`true` : seulement les médias dont l'usage commercial est permis ; `false` : ceux dont il ne l'est pas. Les médias dont on l'ignore ne sont dans aucun des deux. Valeurs acceptées : `true`, `false`, `1`, `0`.", type: 'boolean', example: true)]
     #[QueryParameter('period', 'Époque représentée : `pre1900` (jusqu\'à 1899), `1900_1944`, `1945_1969`, `1970_1999`, `since2000` (depuis 2000), `undated` (année inconnue). Bornes incluses.', type: 'string', example: '1900_1944')]
     #[QueryParameter('from_year', 'Année représentée minimale, de 1 à 2100, incluse. Exclut les médias non datés.', type: 'int', example: 1900)]
@@ -165,7 +169,7 @@ class MediaController extends Controller
         'location' => ['lat' => 48.561166, 'lng' => -3.866779],
         'subject' => ['type' => 'line', 'slug' => 'rfn-447000', 'name' => 'Ligne de Morlaix à Roscoff'],
     ]]])]
-    #[ApiResponse(404, 'Média inconnu (ou identifiant qui n\'est pas un entier de 1 à 18 chiffres).', examples: [ErrorExamples::MEDIA_NOT_FOUND])]
+    #[ApiResponse(404, 'Média inconnu, image que l\'API ne diffuse pas (droits `permission`), ou identifiant qui n\'est pas un entier de 1 à 18 chiffres.', examples: [ErrorExamples::MEDIA_NOT_FOUND])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
     public function show(int $media, MediaQuery $query): JsonResponse
     {

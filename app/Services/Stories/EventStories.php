@@ -9,6 +9,7 @@ use App\Models\LineArchiveDocument;
 use App\Models\LineEvent;
 use App\Models\Media;
 use App\Services\Archives\LineArchives;
+use App\Services\EraTimeline;
 use App\Services\LineChronicle;
 use App\Support\EventText;
 use Illuminate\Database\Eloquent\Builder;
@@ -33,7 +34,13 @@ use Illuminate\Support\Str;
  *     même fenêtre, datée à l'année près au moins (DOCUMENT_PRECISIONS) ;
  *   - seuil : au moins MIN_ITEMS images et documents, dont MIN_IMAGES images. En dessous, pas d'histoire
  *     (pas de page vide) ;
- *   - carrousel : les MAX_IMAGES images les plus proches de la date, remises dans l'ordre chronologique.
+ *   - carrousel : les MAX_IMAGES images les plus proches de la date, remises dans l'ordre chronologique ;
+ *     une même image (même fichier du fournisseur) n'y figure qu'une fois, de préférence rattachée à
+ *     l'événement ;
+ *   - un même fait rapporté par plusieurs sources (événements de même type, même date et même précision,
+ *     même portion : toute la ligne, ou les deux mêmes lieux nommés) n'a qu'une histoire (facts()). Elle cite
+ *     toutes ses sources ; son adresse est celle de l'événement de la source la plus sûre (canonical()), les
+ *     adresses des autres événements y renvoient.
  *
  * Chaque image et chaque document porte son écart signé en années (`gap_years` : 4 = quatre ans après,
  * -2 = deux ans avant, null = image de l'événement sans date). Une image datée moins précisément que l'année
@@ -85,6 +92,15 @@ final readonly class EventStories
     /** Droits d'une image diffusée par l'API : jamais une image montrée avec une simple autorisation. */
     public const API_RIGHTS = [Media::RIGHTS_PUBLIC_DOMAIN, Media::RIGHTS_OPEN_LICENSE];
 
+    /** Rang de confiance d'un événement (plus petit = plus sûr), comme LinePhases. */
+    private const CONFIDENCE_RANK = ['high' => 0, 'medium' => 1, 'low' => 2];
+
+    /** Rang de précision d'une date (plus petit = plus précis). */
+    private const PRECISION_RANK = ['day' => 0, 'month' => 1, 'year' => 2];
+
+    /** Colonnes d'un événement lues pour regrouper les faits (facts()). */
+    private const FACT_COLUMNS = 'id, type, event_date, date_precision, source, source_url, confidence, section_from, section_to, section_resolution, section_pk_start_m';
+
     /**
      * Intervalle possible de l'année représentée d'une image (SQL, table `media`) : colonnes `lo` et `hi`,
      * nulles quand il n'est pas borné. Même règle que imageInterval().
@@ -108,22 +124,147 @@ final readonly class EventStories
     public function __construct(private LineArchives $archives) {}
 
     /**
-     * Événements de la ligne qui ont une histoire, en une requête : identifiant → nombre d'images et de
-     * documents retenus (avant la limite du carrousel), dans l'ordre des dates. `$api` : pour l'API, sans
-     * les images montrées avec une simple autorisation (API_RIGHTS).
+     * Histoires de la ligne, en une requête : identifiant de l'événement qui donne son adresse à l'histoire →
+     * nombre d'images et de documents retenus (avant la limite du carrousel) et `event_ids`, les événements du
+     * même fait (celui de l'adresse d'abord, puis les autres sources de la plus sûre à la moins sûre), dans
+     * l'ordre des dates. `$api` : pour l'API, sans les images montrées avec une simple autorisation
+     * (API_RIGHTS).
      *
-     * @return array<int, array{images: int, documents: int}>
+     * @return array<int, array{images: int, documents: int, event_ids: list<int>}>
      */
     public function available(Line $line, bool $api = false): array
     {
+        $rows = $this->counts($line->id, $api ? self::API_RIGHTS : self::RIGHTS);
+        $facts = self::facts(array_values(array_map(fn (array $r): array => $r['event'], $rows)));
         $out = [];
-        foreach ($this->counts($line->id, $api ? self::API_RIGHTS : self::RIGHTS) as $id => $c) {
-            if (self::meetsThreshold($c['images'], $c['documents'])) {
-                $out[$id] = $c;
+        foreach ($rows as $id => $r) {
+            $members = $facts[$id] ?? null;
+            if ($members === null) {
+                continue;
+            }
+            // Images rattachées à l'un des événements du fait : comptées une fois par fichier.
+            $attached = [];
+            foreach ($members as $m) {
+                foreach ($rows[$m]['attached'] ?? [] as $key) {
+                    $attached[$key] = true;
+                }
+            }
+            $images = $r['window'] + count($attached);
+            if (self::meetsThreshold($images, $r['documents'])) {
+                $out[$id] = ['images' => $images, 'documents' => $r['documents'], 'event_ids' => $members];
             }
         }
 
         return $out;
+    }
+
+    /**
+     * Faits de la ligne : événement de l'adresse → événements du même fait, celui de l'adresse d'abord, puis
+     * les autres de la source la plus sûre à la moins sûre (canonical()). Même fait : même type, même date et
+     * même précision, même portion (toute la ligne, ou les deux mêmes lieux nommés quel que soit leur ordre,
+     * écrits à la casse, aux accents et à « St- / Saint- » près, comme la chronologie). Un événement dont la
+     * portion n'est pas désignée par deux lieux (un seul lieu, tracé sans nom, portion non localisée) reste
+     * un fait à lui seul : rien ne dit que deux sources parlent du même tronçon. Calcul pur.
+     *
+     * @param  list<array{id: int, type: string, date: string, precision: string, source: ?string, source_url: ?string,
+     *     confidence: ?string, section_from: ?string, section_to: ?string, section_resolution: ?string, section_pk_start_m: ?int}>  $events
+     * @return array<int, list<int>>
+     */
+    public static function facts(array $events): array
+    {
+        $byKey = [];
+        foreach ($events as $e) {
+            $portion = self::portion($e);
+            $key = $portion === null ? '#'.$e['id'] : implode('#', [$e['type'], substr($e['date'], 0, 10), $e['precision'], $portion]);
+            $byKey[$key][] = $e;
+        }
+        $out = [];
+        foreach ($byKey as $group) {
+            usort($group, fn (array $a, array $b): int => self::rank($a) <=> self::rank($b));
+            $out[(int) $group[0]['id']] = array_map(fn (array $e): int => (int) $e['id'], $group);
+        }
+
+        return $out;
+    }
+
+    /**
+     * Portion d'un événement pour facts() : `whole` (toute la ligne : aucune portion citée, ou résolue « toute
+     * la ligne », comme LinePhases::events), les deux lieux triés, ou null.
+     *
+     * @param  array{section_from: ?string, section_to: ?string, section_resolution: ?string, section_pk_start_m: ?int}  $e
+     */
+    private static function portion(array $e): ?string
+    {
+        if ($e['section_resolution'] === 'whole_line'
+            || ($e['section_resolution'] === null && $e['section_from'] === null && $e['section_to'] === null && $e['section_pk_start_m'] === null)) {
+            return 'whole';
+        }
+        $places = array_values(array_unique(array_filter([LineChronicle::placeKey($e['section_from']), LineChronicle::placeKey($e['section_to'])])));
+        if (count($places) !== 2) {
+            return null;
+        }
+        sort($places);
+
+        return implode('|', $places);
+    }
+
+    /**
+     * Rang d'une source pour l'adresse d'une histoire (plus petit = plus sûr) : fiabilité de la source
+     * (EraTimeline::SOURCE_PRIORITY ; les tableaux PDF de lignes-oubliees sont des décisions administratives),
+     * confiance de l'événement, précision de sa date, puis le plus ancien identifiant.
+     *
+     * @param  array{id: int, precision: string, source: ?string, source_url: ?string, confidence: ?string}  $e
+     * @return list<int>
+     */
+    private static function rank(array $e): array
+    {
+        $source = $e['source'] === 'lignes-oubliees' && str_contains((string) $e['source_url'], '.pdf') ? 'lignes-oubliees-pdf' : (string) $e['source'];
+
+        return [
+            EraTimeline::SOURCE_PRIORITY[$source] ?? 10,
+            self::CONFIDENCE_RANK[$e['confidence'] ?? 'medium'] ?? 1,
+            self::PRECISION_RANK[$e['precision']] ?? 0,
+            (int) $e['id'],
+        ];
+    }
+
+    /**
+     * Événements du même fait que `$event` (facts()), celui de l'adresse de l'histoire d'abord.
+     *
+     * @return list<int>
+     */
+    public function factOf(LineEvent $event): array
+    {
+        $rows = DB::select('SELECT '.self::FACT_COLUMNS.' FROM line_events WHERE line_id = ? AND event_date = ? AND type = ? ORDER BY id',
+            [$event->line_id, $event->event_date->format('Y-m-d'), $event->getRawOriginal('type')]);
+        foreach (self::facts(array_map(self::factRow(...), $rows)) as $members) {
+            if (in_array((int) $event->id, $members, true)) {
+                return $members;
+            }
+        }
+
+        return [(int) $event->id];
+    }
+
+    /**
+     * @return array{id: int, type: string, date: string, precision: string, source: ?string, source_url: ?string,
+     *     confidence: ?string, section_from: ?string, section_to: ?string, section_resolution: ?string, section_pk_start_m: ?int}
+     */
+    private static function factRow(object $r): array
+    {
+        return [
+            'id' => (int) $r->id,
+            'type' => (string) $r->type,
+            'date' => substr((string) $r->event_date, 0, 10),
+            'precision' => (string) $r->date_precision,
+            'source' => $r->source,
+            'source_url' => $r->source_url,
+            'confidence' => $r->confidence,
+            'section_from' => $r->section_from,
+            'section_to' => $r->section_to,
+            'section_resolution' => $r->section_resolution,
+            'section_pk_start_m' => $r->section_pk_start_m === null ? null : (int) $r->section_pk_start_m,
+        ];
     }
 
     /** Seuil d'une histoire (règle unique, aussi lue par les tests). */
@@ -133,10 +274,12 @@ final readonly class EventStories
     }
 
     /**
-     * Histoire d'un événement de la ligne, ou null quand il n'en a pas (type sans histoire, événement d'une
-     * autre ligne, contenu sous le seuil). `$api` : comme available().
+     * Histoire du fait de l'événement (facts()), ou null quand il n'en a pas (type sans histoire, événement
+     * d'une autre ligne, contenu sous le seuil). `event` est l'événement de l'adresse de l'histoire, qui peut
+     * être un autre que `$event` (une autre source du même fait) ; `sources` donne tous les événements du fait,
+     * celui de l'adresse d'abord. `$api` : comme available().
      *
-     * @return array{event: array<string, mixed>, line: array{slug: string, code: ?string, name: string},
+     * @return array{event: array<string, mixed>, sources: list<array<string, mixed>>, line: array{slug: string, code: ?string, name: string},
      *     window: array{years: int, from: int, to: int}, images: list<array<string, mixed>>, images_total: int,
      *     documents: list<array<string, mixed>>, stations: list<array{name: string, slug: string}>}|null
      */
@@ -147,9 +290,14 @@ final readonly class EventStories
         }
         $year = (int) $event->event_date->format('Y');
         $rights = $api ? self::API_RIGHTS : self::RIGHTS;
+        $memberIds = $this->factOf($event);
+        $members = LineEvent::query()->whereIn('id', $memberIds)->get()->keyBy('id');
+        $canonical = $members->get($memberIds[0]) ?? $event;
 
-        $windowImages = $this->windowImages($line->id, $year, $rights);
-        $attached = $this->attachedImages($event->id, $year, $rights);
+        // Une même image (même fichier du fournisseur) une seule fois : rattachée à l'événement d'abord.
+        $attachedByFile = $this->attachedImages($memberIds, $year, $rights);
+        $windowImages = array_values(array_diff_key($this->windowImages($line->id, $year, $rights), $attachedByFile));
+        $attached = array_values($attachedByFile);
         $documents = $this->documents($line, $year);
         if (! self::meetsThreshold(count($windowImages) + count($attached), count($documents))) {
             return null;
@@ -165,13 +313,17 @@ final readonly class EventStories
             <=> [$b['depicted_year'] === null ? 1 : 0, $b['depicted_year'] ?? 0, $b['id']]);
 
         return [
-            'event' => LineEventResource::make($event)->resolve(),
+            'event' => LineEventResource::make($canonical)->resolve(),
+            'sources' => array_values(array_filter(array_map(
+                fn (int $id): ?array => ($m = $members->get($id)) instanceof LineEvent ? LineEventResource::make($m)->resolve() : null,
+                $memberIds,
+            ))),
             'line' => ['slug' => (string) $line->slug, 'code' => $line->code, 'name' => (string) $line->name],
             'window' => ['years' => self::WINDOW_YEARS, 'from' => $year - self::WINDOW_YEARS, 'to' => $year + self::WINDOW_YEARS],
             'images' => $kept,
             'images_total' => count($windowImages) + count($attached),
             'documents' => $documents,
-            'stations' => $this->stations($line, $event),
+            'stations' => $this->stations($line, $canonical),
         ];
     }
 
@@ -209,14 +361,13 @@ final readonly class EventStories
     }
 
     /**
-     * Nombre d'images (fenêtre et images de l'événement) et de documents de chaque événement concerné de la
-     * ligne, en une requête.
+     * Pour chaque événement concerné de la ligne, en une requête : ses colonnes de fait (facts()), le nombre
+     * d'images de la ligne dans sa fenêtre (`window`), les fichiers des images rattachées à lui qui ne sont pas
+     * déjà parmi elles (`attached`, clés de fileKey()) et le nombre de documents (`documents`), dans l'ordre
+     * des dates.
      *
-     * @return array<int, array{images: int, documents: int}>
-     */
-    /**
      * @param  list<string>  $allowedRights
-     * @return array<int, array{images: int, documents: int}>
+     * @return array<int, array{event: array<string, mixed>, window: int, attached: list<string>, documents: int}>
      */
     private function counts(int $lineId, array $allowedRights): array
     {
@@ -229,13 +380,14 @@ final readonly class EventStories
 
         // `m` est matérialisée : sans cela, PostgreSQL l'intègre à la sous-requête corrélée et relit les
         // images de la ligne pour chaque événement (58 ms au lieu de 11 ms pour rfn-956000, 20/11/2026).
+        // `a` : fichiers rattachés aux événements, sauf ceux que la fenêtre compte déjà (même fichier de la ligne).
         $rows = DB::select(
-            "WITH e AS (
-                SELECT id, EXTRACT(YEAR FROM event_date)::int AS y FROM line_events
+            'WITH e AS (
+                SELECT '.self::FACT_COLUMNS.", EXTRACT(YEAR FROM event_date)::int AS y FROM line_events
                 WHERE line_id = ? AND type IN ({$types})
              ), m AS MATERIALIZED (
                 SELECT * FROM (
-                    SELECT {$interval} FROM media
+                    SELECT provider, external_id, {$interval} FROM media
                     WHERE mediable_type = ? AND mediable_id = ? AND depicted_year IS NOT NULL AND rights_status IN ({$rights})
                       AND COALESCE(provider_meta->>'date_precision', 'year') IN ({$mediaPrec})
                 ) i WHERE lo IS NOT NULL AND hi IS NOT NULL
@@ -243,14 +395,18 @@ final readonly class EventStories
                 SELECT year AS y, COALESCE(year_to, year) AS y2 FROM line_archive_documents
                 WHERE line_id = ? AND year IS NOT NULL AND date_precision IN ({$docPrec})
              ), a AS (
-                SELECT mediable_id AS id, COUNT(*) AS n FROM media
-                WHERE mediable_type = ? AND rights_status IN ({$rights})
-                  AND mediable_id IN (SELECT id FROM e)
-                GROUP BY mediable_id
+                SELECT am.mediable_id AS id,
+                    json_agg(DISTINCT am.provider || ':' || COALESCE(NULLIF(am.external_id, ''), '#' || am.id::text)) AS files
+                FROM media am JOIN e ON e.id = am.mediable_id
+                WHERE am.mediable_type = ? AND am.rights_status IN ({$rights})
+                  AND NOT EXISTS (SELECT 1 FROM m WHERE m.provider = am.provider AND m.external_id = am.external_id
+                      AND m.lo >= e.y - {$w} AND m.hi <= e.y + {$w})
+                GROUP BY am.mediable_id
              )
-             SELECT e.id,
-                (SELECT COUNT(*) FROM m WHERE m.lo >= e.y - {$w} AND m.hi <= e.y + {$w}) + COALESCE(a.n, 0) AS images,
-                (SELECT COUNT(*) FROM d WHERE d.y <= e.y + {$w} AND d.y2 >= e.y - {$w}) AS documents
+             SELECT e.*,
+                (SELECT COUNT(*) FROM m WHERE m.lo >= e.y - {$w} AND m.hi <= e.y + {$w}) AS window_images,
+                (SELECT COUNT(*) FROM d WHERE d.y <= e.y + {$w} AND d.y2 >= e.y - {$w}) AS documents,
+                a.files
              FROM e LEFT JOIN a ON a.id = e.id
              ORDER BY e.y, e.id",
             [$lineId, ...self::EVENT_TYPES, Line::class, $lineId, ...$allowedRights, ...self::MEDIA_PRECISIONS,
@@ -259,7 +415,13 @@ final readonly class EventStories
 
         $out = [];
         foreach ($rows as $r) {
-            $out[(int) $r->id] = ['images' => (int) $r->images, 'documents' => (int) $r->documents];
+            $files = is_string($r->files) ? json_decode($r->files, true) : [];
+            $out[(int) $r->id] = [
+                'event' => self::factRow($r),
+                'window' => (int) $r->window_images,
+                'attached' => is_array($files) ? array_values(array_map('strval', $files)) : [],
+                'documents' => (int) $r->documents,
+            ];
         }
 
         return $out;
@@ -290,10 +452,11 @@ final readonly class EventStories
     }
 
     /**
-     * Images de la ligne dont tout l'intervalle possible tombe dans la fenêtre, avec leur écart.
+     * Images de la ligne dont tout l'intervalle possible tombe dans la fenêtre, avec leur écart, par fichier
+     * (fileKey()).
      *
      * @param  list<string>  $rights
-     * @return list<array<string, mixed>>
+     * @return array<string, array<string, mixed>>
      */
     private function windowImages(int $lineId, int $year, array $rights): array
     {
@@ -312,41 +475,52 @@ final readonly class EventStories
     }
 
     /**
-     * Images rattachées à l'événement lui-même (proposées puis validées pour lui), quelle que soit leur date.
+     * Images rattachées aux événements du fait (proposées puis validées pour eux), quelle que soit leur date,
+     * par fichier (fileKey()) : un même fichier proposé pour deux sources du fait n'est gardé qu'une fois.
      *
+     * @param  list<int>  $eventIds
      * @param  list<string>  $rights
-     * @return list<array<string, mixed>>
+     * @return array<string, array<string, mixed>>
      */
-    private function attachedImages(int $eventId, int $year, array $rights): array
+    private function attachedImages(array $eventIds, int $year, array $rights): array
     {
-        return $this->published(Media::query()->where('mediable_type', LineEvent::class)->where('mediable_id', $eventId), $year, true, $rights);
+        return $this->published(Media::query()->where('mediable_type', LineEvent::class)->whereIn('mediable_id', $eventIds), $year, true, $rights);
     }
 
     /**
+     * Images publiées avec leur écart, par fichier (fileKey()), la plus ancienne ligne de `media` d'abord.
+     *
      * @param  Builder<Media>  $query
      * @param  list<string>  $rights
-     * @return list<array<string, mixed>>
+     * @return array<string, array<string, mixed>>
      */
     private function published(Builder $query, int $year, bool $attached, array $rights): array
     {
-        return $query->whereIn('rights_status', $rights)
-            ->orderBy('id')
-            ->get()
-            ->map(function (Media $m) use ($year, $attached): array {
-                $meta = is_array($m->provider_meta) ? $m->provider_meta : [];
-                $precision = isset($meta['date_precision']) ? (string) $meta['date_precision'] : null;
-                $span = self::imageInterval($m->depicted_year === null ? null : (int) $m->depicted_year, $precision, $meta['year_to'] ?? null);
+        $out = [];
+        foreach ($query->whereIn('rights_status', $rights)->orderBy('id')->get() as $m) {
+            $meta = is_array($m->provider_meta) ? $m->provider_meta : [];
+            $precision = isset($meta['date_precision']) ? (string) $meta['date_precision'] : null;
+            $span = self::imageInterval($m->depicted_year === null ? null : (int) $m->depicted_year, $precision, $meta['year_to'] ?? null);
+            $out[self::fileKey($m)] ??= MediaResource::make($m)->resolve() + [
+                'gap_years' => $m->depicted_year === null ? null : (int) $m->depicted_year - $year,
+                'gap_years_min' => $span === null ? null : $span[0] - $year,
+                'gap_years_max' => $span === null ? null : $span[1] - $year,
+                'gap_exact' => $span !== null && $span[0] === $span[1],
+                'attached' => $attached,
+            ];
+        }
 
-                return MediaResource::make($m)->resolve() + [
-                    'gap_years' => $m->depicted_year === null ? null : (int) $m->depicted_year - $year,
-                    'gap_years_min' => $span === null ? null : $span[0] - $year,
-                    'gap_years_max' => $span === null ? null : $span[1] - $year,
-                    'gap_exact' => $span !== null && $span[0] === $span[1],
-                    'attached' => $attached,
-                ];
-            })
-            ->values()
-            ->all();
+        return $out;
+    }
+
+    /**
+     * Fichier d'une image : fournisseur et identifiant chez lui (un même fichier de Wikimedia Commons peut
+     * avoir deux lignes dans `media`, l'une rattachée à la ligne, l'autre à l'événement), sinon la ligne de
+     * `media` (fichier déposé). Même clé que la requête de counts().
+     */
+    private static function fileKey(Media $m): string
+    {
+        return $m->external_id === null || $m->external_id === '' ? $m->provider.':#'.$m->id : $m->provider.':'.$m->external_id;
     }
 
     /**

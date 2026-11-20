@@ -45,6 +45,12 @@ class Media extends Model
 
     public const RIGHTS_UNKNOWN = 'unknown';
 
+    /**
+     * Droits d'une image que l'API (REST, GraphQL, serveur MCP) ne diffuse pas : une simple autorisation de
+     * l'auteur vaut pour le site, pas pour une redistribution. Le site garde ces images.
+     */
+    public const RIGHTS_NOT_REDISTRIBUTED = [self::RIGHTS_PERMISSION];
+
     protected $table = 'media';
 
     protected $guarded = ['id'];
@@ -109,5 +115,15 @@ class Media extends Model
     public function scopeExternal(Builder $query): void
     {
         $query->where('provider', '<>', self::PROVIDER_UPLOAD);
+    }
+
+    /**
+     * Médias que l'API peut diffuser (sans RIGHTS_NOT_REDISTRIBUTED).
+     *
+     * @param  Builder<Media>  $query
+     */
+    public function scopeRedistributable(Builder $query): void
+    {
+        $query->whereNotIn($query->qualifyColumn('rights_status'), self::RIGHTS_NOT_REDISTRIBUTED);
     }
 }
