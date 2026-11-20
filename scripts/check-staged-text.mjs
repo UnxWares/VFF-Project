@@ -36,8 +36,10 @@ const ATTRIBUTION = new RegExp(
 );
 
 // Fichiers hors périmètre : ce script, la configuration des crochets, les consignes d'agents.
-const IGNORED = /^(scripts\/check-staged-text\.mjs|lefthook\.yml|CLAUDE\.md|\.claude\/|pnpm-lock\.yaml|composer\.lock)/u;
-const BINARY = /\.(png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf|pdf|zip|gz|mp4|webm|geojson|json|neon)$/iu;
+const IGNORED =
+    /^(scripts\/check-staged-text\.mjs|lefthook\.yml|CLAUDE\.md|\.claude\/|pnpm-lock\.yaml|composer\.lock)/u;
+const BINARY =
+    /\.(png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf|pdf|zip|gz|mp4|webm|geojson|json|neon)$/iu;
 
 // Périmètre de la règle des tirets : celui de TypographicDashTest (les tests, eux, citent les tirets).
 const DASH_SCOPE =
@@ -70,7 +72,9 @@ for (const path of files) {
     }
     content.split('\n').forEach((line, index) => {
         const bad =
-            mode === 'dashes' ? dashViolation(path, line) : mode === 'attribution' && ATTRIBUTION.test(line);
+            mode === 'dashes'
+                ? dashViolation(path, line)
+                : mode === 'attribution' && ATTRIBUTION.test(line);
         if (bad) {
             failures++;
             console.error(`${path}:${index + 1} : ${line.trim().slice(0, 140)}`);

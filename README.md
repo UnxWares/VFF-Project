@@ -316,7 +316,7 @@ make test-db                 # crée la base vff_test + PostGIS si absente
 make i18n                    # php artisan vff:i18n-check (clés FR manquantes en EN/DE)
 make pint-dirty              # formater les fichiers PHP modifiés
 make pint                    # formater TOUT le PHP (éviter pendant des chantiers parallèles)
-make format                  # formater JS/Svelte/CSS (Prettier)
+make format                  # formater JS/Svelte/CSS, tests JS et scripts (Prettier)
 make lint                    # vérifier le formatage
 make tools                   # outils détectés (hôte ou bin/*)
 
@@ -385,10 +385,9 @@ signalés ; `--strict` les rend bloquants.
 
 `.github/workflows/ci.yml` : PHP 8.5 (Pint, `vff:i18n-check`, PHPStan, contrôles statiques,
 PHPUnit sur un service `postgis/postgis:18-3.6`, registre des sources `vff:source-rights --check`) et
-front (pnpm, Prettier, ESLint, vitest, svelte-check, build Vite). Sur une pull request, Pint et
-Prettier ne bloquent que sur les **fichiers modifiés** ; sur `main`, le contrôle complet est
-informatif tant que le dépôt n'a pas été reformaté d'un bloc (`make pint` + `make format`, à
-faire quand aucun chantier parallèle n'est en cours).
+front (pnpm, Prettier, ESLint, vitest, svelte-check, build Vite). Pint et Prettier contrôlent tout
+le dépôt et bloquent à la moindre différence : le code PHP, le front (`resources/js`,
+`resources/css`), les tests JS, les scripts et les fichiers de configuration JS sont au format.
 
 ---
 

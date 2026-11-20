@@ -26,34 +26,135 @@ import { HERITAGE_COLOR, LGV_COLOR, TRAFFIC_COLOR } from '$lib/railStyle.js';
 
 const line = (coords) => ({ type: 'LineString', coordinates: coords });
 const PORTIONS = [
-    { length_m: 10000, geometry: line([[0, 45], [0.1, 45]]) },
-    { length_m: 5000, geometry: line([[0.1, 45], [0.2, 45.05]]) },
-    { length_m: 2000, geometry: line([[0.2, 45.05], [0.25, 45.1]]) },
+    {
+        length_m: 10000,
+        geometry: line([
+            [0, 45],
+            [0.1, 45],
+        ]),
+    },
+    {
+        length_m: 5000,
+        geometry: line([
+            [0.1, 45],
+            [0.2, 45.05],
+        ]),
+    },
+    {
+        length_m: 2000,
+        geometry: line([
+            [0.2, 45.05],
+            [0.25, 45.1],
+        ]),
+    },
 ];
 const PHASES = [
     {
-        date: '1869-12-06', precision: 'day', from_year: 1861, to_year: 1870, is_current: false, kind: 'growth',
-        changes: [{ from: 'none', to: 'mixed', portions: [0, 1], length_m: 15000, event_id: 1, mode: 'localized', inconsistent: false }],
-        state: ['mixed', 'mixed', 'none'], length_by_category: { mixed: 15000 }, active_m: 15000,
-    },
-    {
-        date: '1881-03-15', precision: 'day', from_year: 1881, to_year: 1890, is_current: false, kind: 'growth',
-        changes: [{ from: 'none', to: 'mixed', portions: [2], length_m: 2000, event_id: 2, mode: 'neighbor', inconsistent: false }],
-        state: ['mixed', 'mixed', 'mixed'], length_by_category: { mixed: 17000 }, active_m: 17000,
-    },
-    {
-        date: '1950-12-31', precision: 'range', from_year: 1941, to_year: 1950, is_current: false, kind: 'decline',
+        date: '1869-12-06',
+        precision: 'day',
+        from_year: 1861,
+        to_year: 1870,
+        is_current: false,
+        kind: 'growth',
         changes: [
-            { from: 'mixed', to: 'closed', portions: [2], length_m: 2000, event_id: null, mode: null, inconsistent: false },
-            { from: 'mixed', to: 'freight', portions: [1], length_m: 5000, event_id: 3, mode: 'whole_line', inconsistent: false },
-            { from: 'mixed', to: 'mixed', portions: [], length_m: 150, event_id: null, mode: null, minor: true, inconsistent: false },
+            {
+                from: 'none',
+                to: 'mixed',
+                portions: [0, 1],
+                length_m: 15000,
+                event_id: 1,
+                mode: 'localized',
+                inconsistent: false,
+            },
         ],
-        state: ['mixed', 'freight', 'closed'], length_by_category: { closed: 2000, freight: 5000, mixed: 10000 }, active_m: 15000,
+        state: ['mixed', 'mixed', 'none'],
+        length_by_category: { mixed: 15000 },
+        active_m: 15000,
     },
     {
-        date: '2026-10-19', precision: 'range', from_year: 2021, to_year: 2030, is_current: true, kind: 'removal',
-        changes: [{ from: 'closed', to: 'dismantled', portions: [2], length_m: 2000, event_id: null, mode: null, inconsistent: false }],
-        state: ['mixed', 'freight', 'dismantled'], length_by_category: { dismantled: 2000, freight: 5000, mixed: 10000 }, active_m: 15000,
+        date: '1881-03-15',
+        precision: 'day',
+        from_year: 1881,
+        to_year: 1890,
+        is_current: false,
+        kind: 'growth',
+        changes: [
+            {
+                from: 'none',
+                to: 'mixed',
+                portions: [2],
+                length_m: 2000,
+                event_id: 2,
+                mode: 'neighbor',
+                inconsistent: false,
+            },
+        ],
+        state: ['mixed', 'mixed', 'mixed'],
+        length_by_category: { mixed: 17000 },
+        active_m: 17000,
+    },
+    {
+        date: '1950-12-31',
+        precision: 'range',
+        from_year: 1941,
+        to_year: 1950,
+        is_current: false,
+        kind: 'decline',
+        changes: [
+            {
+                from: 'mixed',
+                to: 'closed',
+                portions: [2],
+                length_m: 2000,
+                event_id: null,
+                mode: null,
+                inconsistent: false,
+            },
+            {
+                from: 'mixed',
+                to: 'freight',
+                portions: [1],
+                length_m: 5000,
+                event_id: 3,
+                mode: 'whole_line',
+                inconsistent: false,
+            },
+            {
+                from: 'mixed',
+                to: 'mixed',
+                portions: [],
+                length_m: 150,
+                event_id: null,
+                mode: null,
+                minor: true,
+                inconsistent: false,
+            },
+        ],
+        state: ['mixed', 'freight', 'closed'],
+        length_by_category: { closed: 2000, freight: 5000, mixed: 10000 },
+        active_m: 15000,
+    },
+    {
+        date: '2026-10-19',
+        precision: 'range',
+        from_year: 2021,
+        to_year: 2030,
+        is_current: true,
+        kind: 'removal',
+        changes: [
+            {
+                from: 'closed',
+                to: 'dismantled',
+                portions: [2],
+                length_m: 2000,
+                event_id: null,
+                mode: null,
+                inconsistent: false,
+            },
+        ],
+        state: ['mixed', 'freight', 'dismantled'],
+        length_by_category: { dismantled: 2000, freight: 5000, mixed: 10000 },
+        active_m: 15000,
     },
 ];
 // Fonction de traduction minimale : renvoie la clé et ses paramètres.
@@ -71,7 +172,20 @@ describe('catégories', () => {
     });
 
     it('chaque catégorie du moteur a un style, un libellé lines.categories.* et une place dans le ruban', () => {
-        const php = ['lgv', 'mixed', 'freight', 'unknown', 'heritage', 'velorail', 'service_track', 'construction', 'closed', 'dismantled', 'razed', 'gone'];
+        const php = [
+            'lgv',
+            'mixed',
+            'freight',
+            'unknown',
+            'heritage',
+            'velorail',
+            'service_track',
+            'construction',
+            'closed',
+            'dismantled',
+            'razed',
+            'gone',
+        ];
         for (const cat of php) {
             expect(CATEGORY_STYLES[cat], cat).toBeDefined();
             expect(CATEGORY_STYLES[cat].labelKey).toBe(`lines.categories.${cat}`);
@@ -81,14 +195,22 @@ describe('catégories', () => {
     });
 
     it('mêmes catégories en service que le serveur (LinePhases::ACTIVE)', () => {
-        const php = readFileSync(new URL('../../app/Services/LinePhases.php', import.meta.url), 'utf8');
-        const active = [...php.match(/const ACTIVE = \[([^\]]*)\]/)[1].matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
+        const php = readFileSync(
+            new URL('../../app/Services/LinePhases.php', import.meta.url),
+            'utf8',
+        );
+        const active = [
+            ...php.match(/const ACTIVE = \[([^\]]*)\]/)[1].matchAll(/'([a-z_]+)'/g),
+        ].map((m) => m[1]);
         expect(ACTIVE_CATEGORIES).toEqual(active);
     });
 
     it('les libellés existent en fr, en et de', () => {
         for (const lang of ['fr', 'en', 'de']) {
-            const php = readFileSync(new URL(`../../lang/${lang}/lines.php`, import.meta.url), 'utf8');
+            const php = readFileSync(
+                new URL(`../../lang/${lang}/lines.php`, import.meta.url),
+                'utf8',
+            );
             const block = php.slice(php.indexOf("'categories' => ["));
             for (const cat of STRIP_ORDER) expect(block, `${lang}:${cat}`).toContain(`'${cat}' =>`);
         }
@@ -107,7 +229,11 @@ describe('carte d’une phase', () => {
         expect(fc.type).toBe('FeatureCollection');
         expect(fc.features.map((f) => f.id)).toEqual([0, 1]);
         expect(fc.features.every((f) => f.properties.changed)).toBe(true);
-        expect(fc.features[0].properties).toMatchObject({ cat: 'mixed', color: '#ff6500', layer: 'solid' });
+        expect(fc.features[0].properties).toMatchObject({
+            cat: 'mixed',
+            color: '#ff6500',
+            layer: 'solid',
+        });
     });
 
     it('fermé et déposé vont dans leurs couches (motifs de tirets)', () => {
@@ -126,9 +252,29 @@ describe('carte d’une phase', () => {
     });
 
     it('emprise de toute la ligne (stable d’une phase à l’autre)', () => {
-        expect(portionsBounds(PORTIONS)).toEqual([[0, 45], [0.25, 45.1]]);
+        expect(portionsBounds(PORTIONS)).toEqual([
+            [0, 45],
+            [0.25, 45.1],
+        ]);
         expect(portionsBounds([])).toBeNull();
-        expect(portionsBounds([{ geometry: { type: 'MultiLineString', coordinates: [[[1, 2], [3, 4]]] } }])).toEqual([[1, 2], [3, 4]]);
+        expect(
+            portionsBounds([
+                {
+                    geometry: {
+                        type: 'MultiLineString',
+                        coordinates: [
+                            [
+                                [1, 2],
+                                [3, 4],
+                            ],
+                        ],
+                    },
+                },
+            ]),
+        ).toEqual([
+            [1, 2],
+            [3, 4],
+        ]);
     });
 });
 
@@ -175,9 +321,13 @@ describe('libellés', () => {
 
     it('date d’une phase : événement daté, sinon intervalle de décennie', () => {
         expect(phaseDateLabel(PHASES[0], t, 'fr')).toBe('6 décembre 1869');
-        expect(phaseDateLabel(PHASES[2], t, 'fr')).toBe('lines.phases.between{"from":1941,"to":1950}');
+        expect(phaseDateLabel(PHASES[2], t, 'fr')).toBe(
+            'lines.phases.between{"from":1941,"to":1950}',
+        );
         expect(phaseDateLabel(PHASES[3], t, 'fr')).toBe('lines.phases.between_today{"from":2021}');
-        expect(phaseDateLabel({ precision: 'range', from_year: null, to_year: 1830 }, t)).toBe('lines.phases.before{"year":1830}');
+        expect(phaseDateLabel({ precision: 'range', from_year: null, to_year: 1830 }, t)).toBe(
+            'lines.phases.before{"year":1830}',
+        );
         expect(phaseDateLabel(null, t)).toBe('');
     });
 
@@ -195,9 +345,24 @@ describe('libellés', () => {
     });
 
     it('les clés de changement existent en fr, en et de', () => {
-        const keys = ['opening', 'reopening', 'passenger_end', 'passenger_start', 'traffic', 'closure', 'closure_removal', 'removal', 'heritage', 'construction', 'appears_closed'];
+        const keys = [
+            'opening',
+            'reopening',
+            'passenger_end',
+            'passenger_start',
+            'traffic',
+            'closure',
+            'closure_removal',
+            'removal',
+            'heritage',
+            'construction',
+            'appears_closed',
+        ];
         for (const lang of ['fr', 'en', 'de']) {
-            const php = readFileSync(new URL(`../../lang/${lang}/lines.php`, import.meta.url), 'utf8');
+            const php = readFileSync(
+                new URL(`../../lang/${lang}/lines.php`, import.meta.url),
+                'utf8',
+            );
             const block = php.slice(php.indexOf("'changes' => ["));
             for (const k of keys) expect(block, `${lang}:${k}`).toContain(`'${k}' =>`);
         }
@@ -205,7 +370,10 @@ describe('libellés', () => {
 
     it('aucun tiret long dans les textes de la fiche', () => {
         for (const lang of ['fr', 'en', 'de']) {
-            const php = readFileSync(new URL(`../../lang/${lang}/lines.php`, import.meta.url), 'utf8');
+            const php = readFileSync(
+                new URL(`../../lang/${lang}/lines.php`, import.meta.url),
+                'utf8',
+            );
             const strings = [...php.matchAll(/=> '((?:[^'\\]|\\.)*)'/g)].map((m) => m[1]);
             for (const s of strings) {
                 expect(s, `${lang}: ${s}`).not.toMatch(/—|--/);
@@ -226,9 +394,30 @@ describe('résumé d’une phase', () => {
     it('cumule les portions d’un même changement datées par plusieurs événements', () => {
         const { changes } = summarizeChanges({
             changes: [
-                { from: 'none', to: 'lgv', length_m: 100, event_id: 7, mode: 'localized', portions: [0] },
-                { from: 'none', to: 'lgv', length_m: 50, event_id: 8, mode: 'neighbor', portions: [1] },
-                { from: 'none', to: 'lgv', length_m: 25, event_id: 7, mode: 'neighbor', portions: [2] },
+                {
+                    from: 'none',
+                    to: 'lgv',
+                    length_m: 100,
+                    event_id: 7,
+                    mode: 'localized',
+                    portions: [0],
+                },
+                {
+                    from: 'none',
+                    to: 'lgv',
+                    length_m: 50,
+                    event_id: 8,
+                    mode: 'neighbor',
+                    portions: [1],
+                },
+                {
+                    from: 'none',
+                    to: 'lgv',
+                    length_m: 25,
+                    event_id: 7,
+                    mode: 'neighbor',
+                    portions: [2],
+                },
             ],
         });
         expect(changes).toHaveLength(1);
@@ -237,7 +426,18 @@ describe('résumé d’une phase', () => {
     });
 
     it('signale une incohérence du moteur', () => {
-        const { changes } = summarizeChanges({ changes: [{ from: 'dismantled', to: 'closed', length_m: 10, event_id: null, inconsistent: true, portions: [0] }] });
+        const { changes } = summarizeChanges({
+            changes: [
+                {
+                    from: 'dismantled',
+                    to: 'closed',
+                    length_m: 10,
+                    event_id: null,
+                    inconsistent: true,
+                    portions: [0],
+                },
+            ],
+        });
         expect(changes[0].inconsistent).toBe(true);
     });
 });
@@ -256,7 +456,9 @@ describe('légende des décennies et notes des étapes', () => {
 
     it('notes d’une étape : numéros des sources de ses événements, sans doublon, triés', () => {
         const eventsById = { 13490: { note: 3 }, 13491: { note: 3 }, 11154: { note: 1 }, 99: {} };
-        expect(stageNotes({ event_ids: [13490, 13491, 11154, 99, 404] }, eventsById)).toEqual([1, 3]);
+        expect(stageNotes({ event_ids: [13490, 13491, 11154, 99, 404] }, eventsById)).toEqual([
+            1, 3,
+        ]);
         expect(stageNotes({ event_ids: [] }, eventsById)).toEqual([]);
         expect(stageNotes(null)).toEqual([]);
     });
@@ -275,7 +477,9 @@ describe('navigation au clavier', () => {
 describe('LinePhaseSelector (rendu serveur)', async () => {
     const { render } = await import('svelte/server');
     const { setupI18n } = await import('$lib/i18n.js');
-    const LinePhaseSelector = (await import('../../resources/js/Components/Lines/LinePhaseSelector.svelte')).default;
+    const LinePhaseSelector = (
+        await import('../../resources/js/Components/Lines/LinePhaseSelector.svelte')
+    ).default;
     setupI18n({
         locale: 'fr',
         translations: {
@@ -293,7 +497,9 @@ describe('LinePhaseSelector (rendu serveur)', async () => {
     });
 
     it('une option par phase, la phase choisie sélectionnée, la meilleure signalée', () => {
-        const { body } = render(LinePhaseSelector, { props: { phases: PHASES, selected: 1, best: 1 } });
+        const { body } = render(LinePhaseSelector, {
+            props: { phases: PHASES, selected: 1, best: 1 },
+        });
         expect((body.match(/role="option"/g) ?? []).length).toBe(4);
         expect((body.match(/aria-selected="true"/g) ?? []).length).toBe(1);
         expect(body).toContain('Longueur maximale');
@@ -308,7 +514,9 @@ describe('LinePhaseSelector (rendu serveur)', async () => {
     });
 
     it('sans phase : liste vide, sans erreur', () => {
-        const { body } = render(LinePhaseSelector, { props: { phases: [], selected: null, best: null } });
+        const { body } = render(LinePhaseSelector, {
+            props: { phases: [], selected: null, best: null },
+        });
         expect(body).not.toContain('role="option"');
     });
 });

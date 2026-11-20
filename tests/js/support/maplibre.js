@@ -15,7 +15,9 @@ export function spec(group, property) {
 export function compile(expression, propertySpec) {
     const parsed = createExpression(expression, propertySpec);
     if (parsed.result !== 'success') {
-        throw new Error(`Expression invalide : ${parsed.value.map((e) => `${e.key}: ${e.message}`).join(' ; ')}`);
+        throw new Error(
+            `Expression invalide : ${parsed.value.map((e) => `${e.key}: ${e.message}`).join(' ; ')}`,
+        );
     }
     return parsed.value;
 }
@@ -32,7 +34,10 @@ export function colorOf(expression, properties, propertySpec = spec('paint_line'
 
 export function toHex(color) {
     if (typeof color === 'string') return color.toLowerCase();
-    const channel = (v) => Math.round(v * 255).toString(16).padStart(2, '0');
+    const channel = (v) =>
+        Math.round(v * 255)
+            .toString(16)
+            .padStart(2, '0');
     return `#${channel(color.r)}${channel(color.g)}${channel(color.b)}`;
 }
 

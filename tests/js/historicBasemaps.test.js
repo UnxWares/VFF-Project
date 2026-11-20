@@ -54,12 +54,13 @@ describe('catalogue des fonds historiques IGN', () => {
         for (const key of HISTORIC_KEYS) expect(key).toMatch(/^ign-[a-z0-9-]+$/);
     });
 
-    it('le SCAN 25 (non libre) n\'est jamais proposé', () => {
+    it("le SCAN 25 (non libre) n'est jamais proposé", () => {
         for (const def of HISTORIC_BASEMAPS) expect(def.layer).not.toMatch(/SCAN25/i);
     });
 
     it('classées de la plus ancienne à la plus récente, périodes cohérentes', () => {
-        for (const def of HISTORIC_BASEMAPS) expect(def.period[0]).toBeLessThanOrEqual(def.period[1]);
+        for (const def of HISTORIC_BASEMAPS)
+            expect(def.period[0]).toBeLessThanOrEqual(def.period[1]);
         const starts = HISTORIC_BASEMAPS.map((b) => b.period[0]);
         expect(starts).toEqual([...starts].sort((a, b) => a - b));
     });
@@ -76,7 +77,12 @@ describe('catalogue des fonds historiques IGN', () => {
                 const [w, s, e, n] = def.bounds;
                 expect(w).toBeLessThan(e);
                 expect(s).toBeLessThan(n);
-                expect(Math.abs(w) <= 180 && Math.abs(e) <= 180 && Math.abs(s) <= 90 && Math.abs(n) <= 90).toBe(true);
+                expect(
+                    Math.abs(w) <= 180 &&
+                        Math.abs(e) <= 180 &&
+                        Math.abs(s) <= 90 &&
+                        Math.abs(n) <= 90,
+                ).toBe(true);
                 // L'emprise couvre la France métropolitaine (Paris).
                 expect(w < 2.35 && e > 2.35 && s < 48.85 && n > 48.85).toBe(true);
             }
@@ -84,7 +90,9 @@ describe('catalogue des fonds historiques IGN', () => {
     });
 
     it('findHistoricBasemap : définition par clé, null pour « none » ou une clé inconnue', () => {
-        expect(findHistoricBasemap('ign-cassini')?.layer).toBe('BNF-IGNF_GEOGRAPHICALGRIDSYSTEMS.CASSINI');
+        expect(findHistoricBasemap('ign-cassini')?.layer).toBe(
+            'BNF-IGNF_GEOGRAPHICALGRIDSYSTEMS.CASSINI',
+        );
         expect(findHistoricBasemap('none')).toBeNull();
         expect(findHistoricBasemap('ign-scan25')).toBeNull();
         expect(findHistoricBasemap(undefined)).toBeNull();
@@ -95,14 +103,16 @@ describe('URL des tuiles WMTS et attribution', () => {
     it('requête GetTile Géoplateforme en Pseudo-Mercator, gabarits {z}/{y}/{x} MapLibre', () => {
         const def = findHistoricBasemap('ign-etatmajor40');
         const url = historicTileUrl(def);
-        expect(url.startsWith('https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0')).toBe(true);
+        expect(
+            url.startsWith('https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0'),
+        ).toBe(true);
         expect(url).toContain('LAYER=GEOGRAPHICALGRIDSYSTEMS.ETATMAJOR40');
         expect(url).toContain('&STYLE=normal');
         expect(url).toContain('&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}');
         expect(url.endsWith('&FORMAT=image%2Fjpeg')).toBe(true);
     });
 
-    it('chaque URL ne contient qu\'un jeu de gabarits et aucun espace', () => {
+    it("chaque URL ne contient qu'un jeu de gabarits et aucun espace", () => {
         for (const def of HISTORIC_BASEMAPS) {
             const url = historicTileUrl(def);
             expect(url.match(/\{z\}/g)).toHaveLength(1);
@@ -140,11 +150,20 @@ describe('applyHistoricBasemap', () => {
     });
 
     it('ajoute le fond raster juste sous la première couche de données VFF', () => {
-        const map = fakeMap({ layers: ['background', 'osm', 'vff-lines', 'ref-trace', 'vff-stations'] });
+        const map = fakeMap({
+            layers: ['background', 'osm', 'vff-lines', 'ref-trace', 'vff-stations'],
+        });
 
         applyHistoricBasemap(map, 'ign-cassini');
 
-        expect(map.layerIds()).toEqual(['background', 'osm', HISTORIC_LAYER_ID, 'vff-lines', 'ref-trace', 'vff-stations']);
+        expect(map.layerIds()).toEqual([
+            'background',
+            'osm',
+            HISTORIC_LAYER_ID,
+            'vff-lines',
+            'ref-trace',
+            'vff-stations',
+        ]);
         const def = findHistoricBasemap('ign-cassini');
         expect(map.sources.get(HISTORIC_SOURCE_ID)).toEqual({
             type: 'raster',
@@ -156,7 +175,11 @@ describe('applyHistoricBasemap', () => {
             attribution: historicAttribution(def),
         });
         const layer = map.getLayer(HISTORIC_LAYER_ID);
-        expect(layer).toMatchObject({ type: 'raster', source: HISTORIC_SOURCE_ID, metadata: { 'vff:key': 'ign-cassini' } });
+        expect(layer).toMatchObject({
+            type: 'raster',
+            source: HISTORIC_SOURCE_ID,
+            metadata: { 'vff:key': 'ign-cassini' },
+        });
         expect(layer.paint['raster-opacity']).toBe(0.8);
     });
 
@@ -168,7 +191,7 @@ describe('applyHistoricBasemap', () => {
         expect(map.layerIds()).toEqual(['osm', HISTORIC_LAYER_ID]);
     });
 
-    it('idempotent : même fond rappelé = seule l\'opacité change', () => {
+    it("idempotent : même fond rappelé = seule l'opacité change", () => {
         const map = fakeMap({ layers: ['osm', 'vff-lines'] });
         applyHistoricBasemap(map, 'ign-etatmajor40', 0.8);
         applyHistoricBasemap(map, 'ign-etatmajor40', 0.5);
@@ -179,7 +202,7 @@ describe('applyHistoricBasemap', () => {
         expect(map.layerIds()).toEqual(['osm', HISTORIC_LAYER_ID, 'vff-lines']);
     });
 
-    it('changement de fond : l\'ancien est retiré, le nouveau reste sous les tracés', () => {
+    it("changement de fond : l'ancien est retiré, le nouveau reste sous les tracés", () => {
         const map = fakeMap({ layers: ['osm', 'vff-lines'] });
         applyHistoricBasemap(map, 'ign-cassini');
         applyHistoricBasemap(map, 'ign-ortho-1950-1965');
@@ -188,10 +211,12 @@ describe('applyHistoricBasemap', () => {
         expect(map.removeSource).toHaveBeenCalledWith(HISTORIC_SOURCE_ID);
         expect(map.layerIds()).toEqual(['osm', HISTORIC_LAYER_ID, 'vff-lines']);
         expect(map.getLayer(HISTORIC_LAYER_ID).metadata['vff:key']).toBe('ign-ortho-1950-1965');
-        expect(map.sources.get(HISTORIC_SOURCE_ID).tiles[0]).toContain('ORTHOIMAGERY.ORTHOPHOTOS.1950-1965');
+        expect(map.sources.get(HISTORIC_SOURCE_ID).tiles[0]).toContain(
+            'ORTHOIMAGERY.ORTHOPHOTOS.1950-1965',
+        );
     });
 
-    it('« none » retire le fond (et ne plante pas s\'il n\'y en a pas)', () => {
+    it("« none » retire le fond (et ne plante pas s'il n'y en a pas)", () => {
         const map = fakeMap({ layers: ['osm', 'vff-lines'] });
         applyHistoricBasemap(map, 'none');
         expect(map.removeLayer).not.toHaveBeenCalled();

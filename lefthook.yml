@@ -24,7 +24,7 @@ pre-commit:
           run: bin/php vendor/bin/pint --test {staged_files}
 
         - name: prettier
-          glob: 'resources/{js,css}/**/*.{js,svelte,css}'
+          glob: '{resources/{js,css}/**/*.{js,svelte,css},tests/js/**/*.js,scripts/**/*.{js,mjs},*.config.js}'
           run: bin/pnpm exec prettier --check {staged_files}
 
         - name: eslint
