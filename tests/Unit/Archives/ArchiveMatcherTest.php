@@ -290,8 +290,10 @@ class ArchiveMatcherTest extends TestCase
     public function test_places_that_follow_each_other_in_a_between_list_are_a_route(): void
     {
         // Document perdu de Paris - Le Havre : « avec » loin du trajet n'en fait plus une simple mention.
+        // Deux lieux voisins d'une liste « entre » : un simple trajet (relecture du 20/11), qui passe le seuil entre
+        // les extrémités de la ligne.
         $map = $this->judge($this->record("Carte d'une partie du bassin de la Seine entre Paris et la mer avec les indications de plusieurs tracés de chemins de fer entre Paris, Rouen, Le Hâvre et Dieppe [...]", 1837, 'map'))['rfn-340000'];
-        $this->assertSame(['rail_route', 'ends', 'rail_word', 'date_project', 'doc_type'], self::codes($map));
+        $this->assertSame(['route', 'ends', 'rail_word', 'date_project', 'doc_type'], self::codes($map));
         $this->assertTrue($map->passes(ArchiveMatcher::THRESHOLD));
 
         // Deux lieux de la liste qui ne se suivent pas ne forment pas un trajet.
@@ -301,6 +303,100 @@ class ArchiveMatcherTest extends TestCase
         // « avec » juste avant le trajet reste une marque de simple mention.
         $mention = $this->judge($this->record('Chemin de fer de Gisors, avec la ligne de Paris au Havre', 1870))['rfn-340000'];
         $this->assertContains('secondary_mention', self::codes($mention));
+    }
+
+    /**
+     * Juge un titre réel sur des lignes nommées comme dans `vff` : slug => [nom, gares [nom, commune], première année].
+     *
+     * @param  array<string, array{0: string, 1: list<array{0: string, 1: string}>, 2: int}>  $lines
+     * @return array<string, ArchiveMatch> par slug
+     */
+    private function judgeOnLines(string $title, int $year, string $type, array $lines): array
+    {
+        $places = [];
+        $id = 0;
+        foreach ($lines as $slug => [$name, $stations, $first]) {
+            $id++;
+            $places[$id] = LinePlaceIndex::linePlaces([
+                'id' => $id, 'slug' => $slug, 'name' => $name, 'first_year' => $first, 'open_today' => true,
+                'stations' => array_map(fn (array $st, int $k) => ['name' => $st[0], 'city' => $st[1], 'pk_m' => $k * 10000], $stations, array_keys($stations)),
+            ]);
+        }
+        $index = new LinePlaceIndex($places);
+        $record = new ArchiveRecord('ark:/12148/btv1b'.substr(md5($title), 0, 9), null, $title, $title, $type, [],
+            new ArchiveDate((string) $year, $year, null, null, 'year'), null, null);
+        $out = [];
+        foreach ((new ArchiveMatcher)->candidates($record, $index) as $m) {
+            $out[$index->line($m->lineId)->slug ?? '?'] = $m;
+        }
+
+        return $out;
+    }
+
+    public function test_neighbours_in_a_between_list_are_not_a_railway_of_the_line(): void
+    {
+        // Relecture du 20/11, point A : une étoile de destinations depuis Paris. Valenciennes et Lille, voisines dans
+        // la liste, ne décrivent pas la ligne de Fives à Hirson : simple trajet entre deux gares intermédiaires, sous
+        // le seuil même avec une date dans la vie de la ligne (9 avec `rail_route`).
+        $title = 'Étude des chemins de fer ; 2e ligne Chemins entre Paris, Valenciennes, Lille, Dunkerque, Calais & Boulogne : Carte générale et profil en long';
+        $judged = $this->judgeOnLines($title, 1835, 'map', [
+            'rfn-267000' => ['Ligne de Fives à Hirson', [['Fives', 'Lille'], ['Valenciennes', 'Valenciennes'], ['Hirson', 'Hirson']], 1830],
+            'rfn-304000' => ['Ligne de Coudekerque-Branche aux Fontinettes', [['Coudekerque-Branche', 'Coudekerque-Branche'], ['Dunkerque', 'Dunkerque'], ['Calais-Ville', 'Calais'], ['Les Fontinettes', 'Calais']], 1830],
+        ]);
+        foreach (['rfn-267000', 'rfn-304000'] as $slug) {
+            $this->assertSame(['route', 'rail_word', 'date_in_life', 'doc_type'], self::codes($judged[$slug]), $slug);
+            $this->assertFalse($judged[$slug]->passes(ArchiveMatcher::THRESHOLD), $slug);
+        }
+
+        // « entre Paris, Versailles, St Germain et Poissy » : plus de voie ferrée de Saint-Germain à Poissy.
+        $poissy = $this->judgeOnLines('[Projet de tracé de chemins de fer entre Paris, Versailles, St Germain et Poissy]', 1836, 'map', [
+            'archeo-saint-germain-gency' => ['Ligne de Saint-Germain à Gency par Poissy', [['Saint-Germain', 'Saint-Germain'], ['Poissy', 'Poissy'], ['Gency', 'Gency']], 1830],
+        ])['archeo-saint-germain-gency'];
+        $this->assertSame('route', self::codes($poissy)[0]);
+        $this->assertFalse($poissy->passes(ArchiveMatcher::THRESHOLD), (string) $poissy->score);
+    }
+
+    public function test_an_enumeration_is_a_railway_only_right_after_railway_or_line(): void
+    {
+        $line = ['rfn-340000' => ['Ligne de Paris-St-Lazare au Havre', [['Paris-St-Lazare', 'Paris'], ['Rouen-Rive-Droite', 'Rouen'], ['Yvetot', 'Yvetot'], ['Le Havre', 'Le Havre']], 1840]];
+
+        // « chemin de fer de X à Z, W et Y » : une voie ferrée vers chaque destination.
+        $rail = $this->judgeOnLines('Chemin de fer de Paris à Dieppe, Rouen et Yvetot', 1850, 'monograph', $line)['rfn-340000'];
+        $this->assertSame('rail_route', self::codes($rail)[0]);
+
+        // Le mot du rail plus loin, pas juste avant le « de » : un simple trajet, sous le seuil entre deux gares qui
+        // ne sont pas les extrémités.
+        $plain = $this->judgeOnLines('Chemins de fer. Service des voitures de Paris à Dieppe, Rouen et Yvetot', 1850, 'monograph', $line)['rfn-340000'];
+        $this->assertSame(['route', 'rail_word', 'date_in_life', 'doc_type'], self::codes($plain));
+        $this->assertFalse($plain->passes(ArchiveMatcher::THRESHOLD));
+    }
+
+    public function test_with_far_from_the_route_still_marks_another_planned_line(): void
+    {
+        // Relecture du 20/11, point B : « pour former avec le chemin projeté entre Marseille et Lyon » cite la ligne de
+        // Lyon à Marseille comme le prolongement d'un projet de Paris à Lyon de 1833 : une simple mention.
+        $title = "Projet de formation d'une société pour l'établissement d'un chemin de fer entre Paris et Lyon par Troyes et Dijon... proposé par M. Arnollet,... pour former avec le chemin projeté entre Marseille et Lyon, et avec celui projeté entre le Havre et Paris la grande communication de l'Océan à la Méditerranée";
+        $judged = $this->judgeOnLines($title, 1833, 'monograph', [
+            'rfn-830000' => ['Ligne de Paris-Lyon à Marseille-St-Charles', [['Paris-Gare-de-Lyon', 'Paris'], ['Dijon-Ville', 'Dijon'], ['Lyon-Perrache', 'Lyon'], ['Marseille-St-Charles', 'Marseille']], 1847],
+            'rfn-905000' => ['Ligne de Lyon-Perrache P1 à Marseille-St-Charles (via Grenoble)', [['Lyon-Perrache', 'Lyon'], ['Grenoble', 'Grenoble'], ['Marseille-St-Charles', 'Marseille']], 1858],
+        ]);
+
+        $this->assertContains('secondary_mention', self::codes($judged['rfn-905000']));
+        $this->assertFalse($judged['rfn-905000']->passes(ArchiveMatcher::THRESHOLD), (string) $judged['rfn-905000']->score);
+        // Le trajet décrit, de Paris à Lyon par Dijon, reste à la ligne de Paris à Marseille.
+        $this->assertSame('rail_route', self::codes($judged['rfn-830000'])[0]);
+        $winners = (new ArchiveMatcher)->winners(array_values($judged));
+        $this->assertSame([$judged['rfn-830000']->lineId], array_map(fn (ArchiveMatch $m) => $m->lineId, $winners));
+
+        // Même sans la ligne principale, le document ne part pas sur la ligne de Grenoble.
+        $alone = $this->judgeOnLines($title, 1833, 'monograph', ['rfn-905000' => [
+            'Ligne de Lyon-Perrache P1 à Marseille-St-Charles (via Grenoble)', [['Lyon-Perrache', 'Lyon'], ['Grenoble', 'Grenoble'], ['Marseille-St-Charles', 'Marseille']], 1858,
+        ]]);
+        $this->assertSame([], (new ArchiveMatcher)->winners(array_values($alone)));
+
+        // « avec » loin du trajet et suivi d'autre chose qu'une voie (« avec les indications ») ne marque rien.
+        $map = $this->judge($this->record("Carte d'une partie du bassin de la Seine entre Paris et la mer avec les indications de plusieurs tracés de chemins de fer entre Paris, Rouen, Le Hâvre et Dieppe [...]", 1837, 'map'))['rfn-340000'];
+        $this->assertNotContains('secondary_mention', self::codes($map));
     }
 
     public function test_two_places_separated_by_a_spaced_dash_are_a_route(): void

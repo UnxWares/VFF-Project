@@ -16,6 +16,7 @@ use App\Http\Controllers\ErrorReportReviewController;
 use App\Http\Controllers\EventContributionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LineController;
+use App\Http\Controllers\LineStoryController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\MapRouteController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\MediaContributionController;
 use App\Http\Controllers\NetworkGraphAdminController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuizController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\TraceEditorController;
 use App\Http\Controllers\WebhookSubscriptionController;
@@ -51,6 +53,9 @@ Route::middleware('throttle:public-api')->group(function (): void {
 });
 Route::get('/lines', [LineController::class, 'index'])->name('lines.index');
 Route::get('/lines/{line:slug}', [LineController::class, 'show'])->name('lines.show');
+// Histoire d'un événement de la ligne : images de l'époque et documents de Gallica (EventStories).
+Route::get('/lines/{line:slug}/stories/{event}', [LineStoryController::class, 'show'])
+    ->where('event', '[0-9]{1,18}')->name('lines.stories.show');
 Route::get('/stations', [StationController::class, 'index'])->name('stations.index');
 Route::get('/stations/{station:slug}', [StationController::class, 'show'])
     ->name('stations.show')
@@ -67,6 +72,11 @@ Route::get('/materials', [MaterialController::class, 'index'])->name('materials.
 Route::get('/materials/{material:slug}', [MaterialController::class, 'show'])->name('materials.show');
 Route::get('/accidents', [AccidentController::class, 'index'])->name('accidents.index');
 Route::get('/accidents/{accident:slug}', [AccidentController::class, 'show'])->name('accidents.show');
+// Quiz du rail : dix questions tirées d'une graine (adresse partageable), réponse vérifiée par le serveur
+// après le choix, photo du matériel par une redirection ; rien n'est enregistré.
+Route::get('/quiz', [QuizController::class, 'index'])->middleware('throttle:30,1')->name('quiz');
+Route::get('/quiz/answer', [QuizController::class, 'answer'])->middleware('throttle:60,1')->name('quiz.answer');
+Route::get('/quiz/photo', [QuizController::class, 'photo'])->middleware('throttle:60,1')->name('quiz.photo');
 // Signalement d'une erreur depuis une fiche (visiteurs et membres) : jeton d'ouverture du
 // formulaire (durée minimale de remplissage), puis envoi limité en fréquence (AppServiceProvider).
 Route::get('/reports/token', [ErrorReportController::class, 'token'])->middleware('throttle:30,1')->name('reports.token');

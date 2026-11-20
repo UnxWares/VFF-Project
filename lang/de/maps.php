@@ -232,6 +232,8 @@ return [
         'layers_text' => 'Die Schaltfläche Ebenen über der Karte zeigt mehrere Ebenen zugleich. Ein Hintergrund von OpenRailwayMap (jeweils einer) blendet die heutige Infrastruktur ein: Signale, Geschwindigkeiten, Elektrifizierung. Die Schaltfläche mit der Uhr oben rechts auf der Karte zeigt alte Karten des IGN. Die Ebene Unfälle zeigt die Unfälle bis zur angezeigten Epoche; ein blasser Kreis bedeutet, dass nur die Gemeinde bekannt ist. Die Ebene Bahnübergänge zeigt die von SNCF Réseau veröffentlichten Übergänge, ab dem Maßstab eines Départements. Die Ebene Streckenblock färbt die heutigen Strecken nach ihrem Blocksystem. Die Ebene Bahntrassenradwege zeichnet Radwege von OpenStreetMap auf der Trasse stillgelegter oder abgebauter Strecken; sie lässt sich über jede Epoche legen.',
         'views_term' => 'Epochen vergleichen',
         'views_text' => 'Die Auswahl „Ansicht“ über der Karte vergleicht zwei Jahrzehnte (dazwischen eröffnete, stillgelegte oder abgebaute Strecken) oder legt alle Epochen übereinander, damit Sie sehen, wann jede Strecke den Betrieb verlor. Die Adresse der Seite behält diese Auswahl: Sie können sie teilen.',
+        'schema_term' => 'Netzplan',
+        'schema_text' => 'Die Auswahl „Netzplan“ unter „Ansicht“ zeigt das Netz, das in der gewählten Epoche in Betrieb war, als schematischen Verkehrsplan ohne Hintergrundkarte. Die Strecken sind auf 45 oder 90 Grad begradigt; Abzweige, Umsteige- und Endbahnhöfe erscheinen als Kreise, die übrigen Bahnhöfe als kurze Striche, die beim Hineinzoomen sichtbar werden. Paris, Lyon, Lille und Marseille sind vergrößert, damit ihre Bahnhöfe Platz finden; Lage und Entfernungen sind daher nicht maßstabsgetreu. Ein Klick auf eine Strecke oder einen Bahnhof öffnet dieselbe Seitenleiste wie auf der Karte.',
     ],
 
     'tech' => [
@@ -254,6 +256,32 @@ return [
         'era' => 'Eine Epoche',
         'compare' => 'Vergleichen',
         'stack' => 'Alle Epochen',
+        'schema' => 'Netzplan',
+    ],
+
+    // Netzplan: schematischer Plan einer Epoche (SchematicMap, Legende, Zusammenfassung für Screenreader).
+    'schema' => [
+        'map_label' => 'Netzplan des Bahnnetzes (schematisch)',
+        'legend_title' => 'Netzplan :year',
+        'legend_title_current' => 'Netzplan heute',
+        'legend_intro' => 'Schematischer Plan des Netzes in Betrieb: Lage und Entfernungen sind nicht maßstabsgetreu.',
+        'stations_group' => 'Bahnhöfe',
+        'node' => 'Abzweig, Umsteige- oder Endbahnhof',
+        'stop' => 'Unterwegsbahnhof (beim Hineinzoomen)',
+        'loading' => 'Der Plan wird geladen…',
+        'error' => 'Der Plan dieser Epoche kann derzeit nicht geladen werden.',
+        'attribution' => 'VFF-Plan nach den Quellen der Karte',
+        'summary' => ':when zeigt der Plan :km km Strecken in Betrieb (:parts) und :stations geöffnete Bahnhöfe. Lage und Entfernungen sind nicht maßstabsgetreu.',
+        'summary_at' => 'Im Jahr :year',
+        'summary_today' => 'Heute',
+        'summary_part' => ':km km :category',
+        'categories' => [
+            'lgv' => 'Hochgeschwindigkeit',
+            'mixed' => 'für Personen- und Güterverkehr',
+            'freight' => 'nur Güterverkehr',
+            'unknown' => 'mit unbekanntem Verkehr',
+            'heritage' => 'von Vereinen betrieben',
+        ],
     ],
 
     // Vergleich zweier Jahrzehnte (Leiste unter der Karte, Legende, Popups).

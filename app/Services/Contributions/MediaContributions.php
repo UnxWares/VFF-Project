@@ -16,6 +16,7 @@ use App\Services\Media\ImageSanitizer;
 use App\Services\Media\SanitizedImage;
 use App\Services\Media\UnsupportedImage;
 use App\Services\TraceContributionService;
+use App\Support\WebUrl;
 use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\Builder;
@@ -276,7 +277,7 @@ final readonly class MediaContributions
         [$mediableType, $mediableId] = $this->publishedTarget($contribution);
 
         if (($p['source'] ?? null) === 'commons') {
-            $meta = $p['commons'];
+            $meta = self::safeUrls($p['commons']);
             if ($this->commonsAttached((int) $meta['page_id'], $mediableType, $mediableId)) {
                 throw new ContributionNotPublishable(PublicationFailure::AlreadyPresent, "Fichier Commons {$meta['page_id']} déjà rattaché (contribution {$contribution->id})");
             }
@@ -339,7 +340,8 @@ final readonly class MediaContributions
 
     /**
      * Charge utile montrée hors du serveur (API, pages du site) : sans le chemin du fichier dans la
-     * réserve privée, qui ne sert qu'au serveur.
+     * réserve privée, qui ne sert qu'au serveur, et avec les adresses Commons relues (http(s) seulement,
+     * pour une proposition enregistrée avant ce contrôle).
      *
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
@@ -348,6 +350,9 @@ final readonly class MediaContributions
     {
         if (is_array($payload['file'] ?? null)) {
             unset($payload['file']['path']);
+        }
+        if (is_array($payload['commons'] ?? null)) {
+            $payload['commons'] = self::safeUrls($payload['commons']);
         }
 
         return $payload;
@@ -390,12 +395,29 @@ final readonly class MediaContributions
      */
     public static function commonsSummary(array $meta): array
     {
-        return array_intersect_key($meta, array_flip([
+        return self::safeUrls(array_intersect_key($meta, array_flip([
             'page_id', 'file_title', 'title', 'caption', 'type', 'mime', 'width', 'height', 'source_url', 'thumb_url',
             'display_url', 'author', 'credit', 'attribution', 'attribution_required', 'license', 'license_url',
             'rights_status', 'commercial_ok', 'share_alike', 'depicted_year', 'captured_at', 'date_precision', 'date_raw',
             'lat', 'lon',
-        ]));
+        ])));
+    }
+
+    /**
+     * Adresses d'un résumé Commons rendues en lien ou en image : http(s) seulement, nulles sinon (WebUrl).
+     *
+     * @param  array<string, mixed>  $meta
+     * @return array<string, mixed>
+     */
+    private static function safeUrls(array $meta): array
+    {
+        foreach (['source_url', 'thumb_url', 'display_url', 'license_url'] as $key) {
+            if (array_key_exists($key, $meta)) {
+                $meta[$key] = WebUrl::safe($meta[$key]);
+            }
+        }
+
+        return $meta;
     }
 
     // ─── Rattachement ───────────────────────────────────────────────────────

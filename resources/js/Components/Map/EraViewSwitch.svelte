@@ -3,12 +3,13 @@
     import { VIEWS } from '$lib/epochViews.js';
 
     /**
-     * Choix de la vue de la carte : une décennie, deux décennies comparées, toutes les époques.
+     * Choix de la vue de la carte : une décennie, deux décennies comparées, toutes les époques, et la
+     * vue ferroviaire (plan schématique) quand la page la propose.
      * Boutons radio natifs (une tabulation, flèches pour changer), dessinés en segments.
      *
-     * Props : view (bindable) : 'era' | 'compare' | 'stack'
+     * Props : view (bindable) : 'era' | 'compare' | 'stack' | 'schema' ; views : vues proposées
      */
-    let { view = $bindable('era') } = $props();
+    let { view = $bindable('era'), views = VIEWS } = $props();
 
     const uid = $props.id();
 </script>
@@ -16,7 +17,7 @@
 <fieldset class="view-switch">
     <legend class="view-label">{$i18n.t('maps.view.label')}</legend>
     <div class="segments">
-        {#each VIEWS as v (v)}
+        {#each views as v (v)}
             <label class="segment">
                 <input type="radio" name={`${uid}-view`} value={v} bind:group={view} />
                 <span>{$i18n.t(`maps.view.${v}`)}</span>

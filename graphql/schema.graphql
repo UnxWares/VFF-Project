@@ -533,6 +533,89 @@ type LineEvent {
     l'ordre de leurs identifiants. Chaque média porte ses droits. Liste vide le plus souvent.
     """
     media: [Media!]! @morphMany(type: CONNECTION, defaultCount: 20, maxCount: 100) @builder(method: "App\\GraphQL\\Builders\\MediaBuilder@inOrder")
+
+    """
+    Histoire de l'événement, comme `GET /api/v1/lines/{line}/stories/{event}` et la page
+    `/lines/{line}/stories/{event}` du site : images publiées de la ligne dont toutes les années possibles
+    sont à 5 ans au plus de l'événement (date exacte, décennie, fourchette, ou année « vers » comptée à 2 ans
+    près), du domaine public ou sous licence ouverte (pas les images montrées sur le site avec une simple
+    autorisation), plus les images rattachées à l'événement ; documents de Gallica de la même période, gares
+    de la portion. Nulle quand l'événement n'en a pas : type sans histoire (concession, `other`), ou moins de
+    3 images et documents dont 2 images.
+
+    Calculée seulement pour un événement demandé seul (`lineEvent(id: …) { story { … } }`), et pour 3
+    événements au plus par requête : dans une liste (`line.events`, `lineEvents`, `media`), ou au-delà de 3,
+    le champ vaut null avec une erreur. Pour toutes les histoires d'une ligne, utilisez
+    `GET /api/v1/lines/{line}/stories`.
+    """
+    story: LineEventStory @field(resolver: "App\\GraphQL\\Resolvers\\LineEventStoryField")
+}
+
+"""
+Histoire d'un événement de ligne : les images de l'époque et les documents d'archives de la période,
+chacun avec son écart en années. Dites toujours cet écart : une photo de 1934 n'est pas une photo de
+l'ouverture de 1930.
+"""
+type LineEventStory {
+    "Écart maximal retenu, en années, entre l'événement et une image ou un document (5)."
+    window_years: Int!
+
+    "Première année de la fenêtre (année de l'événement moins `window_years`)."
+    window_from: Int!
+
+    "Dernière année de la fenêtre (année de l'événement plus `window_years`)."
+    window_to: Int!
+
+    "Nombre d'images retenues avant la limite du carrousel (24)."
+    images_total: Int!
+
+    "Images retenues, au plus 24, les plus proches de la date, rangées dans l'ordre chronologique (sans date en dernier)."
+    images: [LineEventStoryImage!]!
+
+    "Documents de Gallica de la ligne datés dans la fenêtre, du plus ancien au plus récent."
+    documents: [LineEventStoryDocument!]!
+
+    "Gares de la ligne nommées par la portion de l'événement (début, fin)."
+    stations: [LineEventStoryStation!]!
+}
+
+"Une image d'une histoire d'événement."
+type LineEventStoryImage {
+    "Écart signé entre l'année représentée (`Media.depicted_year`) et l'année de l'événement : 4 = quatre ans après, -2 = deux ans avant, 0 = la même année, nul = image de l'événement sans date."
+    gap_years: Int
+
+    "Plus petit écart possible d'après la précision de la date (-5 pour une photo « vers 1840 » d'un événement de 1843) ; égal à `gap_years` pour une date exacte, nul quand la date n'est pas bornée."
+    gap_years_min: Int
+
+    "Plus grand écart possible (-1 dans le même exemple)."
+    gap_years_max: Int
+
+    "Vrai quand l'écart est sûr (date exacte, à l'année près). Faux : dites-le approximatif (« environ trois ans avant ») ou comme un intervalle."
+    gap_exact: Boolean!
+
+    "Vrai pour une image rattachée à l'événement lui-même (proposée puis validée pour lui)."
+    attached: Boolean!
+
+    "Le média, avec son auteur, sa licence et sa source : à afficher avec l'image."
+    media: Media!
+}
+
+"Un document d'archives d'une histoire d'événement."
+type LineEventStoryDocument {
+    "Écart signé avec l'année de l'événement (0 quand l'intervalle du document contient cette année)."
+    gap_years: Int!
+
+    "Le document (métadonnées de la notice de la BnF, lien vers Gallica ; jamais d'image)."
+    document: LineArchiveDocument!
+}
+
+"Une gare nommée par la portion d'un événement."
+type LineEventStoryStation {
+    "Nom de la gare, tel que la liste des gares de la ligne l'écrit."
+    name: String!
+
+    "Identifiant (slug) de la gare, pour `station(slug:)` et `GET /api/v1/stations/{station}`."
+    slug: String!
 }
 
 """

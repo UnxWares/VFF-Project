@@ -18,10 +18,12 @@ namespace App\Services\Archives;
  * Points :
  *   rail_route 4     : le titre décrit une voie ferrée entre deux lieux de la ligne qui se suivent (« chemin de
  *                      fer de X à Y », « ligne de X à Y », « la ligne X à Y », « chemins de fer à voie étroite de
- *                      X à Y », « chemin de fer de X à Z et à Y », « de X à Z, W et Y ») ;
- *   route 3          : à défaut, un trajet entre ces deux lieux (« de X à Y », « entre X et Y », deux lieux qui
- *                      se suivent dans « entre X, Y, Z et W », une étape et un bout de « entre X et Y en passant
- *                      par Z » ou de « de X à Y par Z ») ;
+ *                      X à Y ») ; pour une énumération de destinations, seulement juste après « chemin de fer »
+ *                      ou « ligne » (« chemin de fer de X à Z et à Y », « ligne de X à Z, W et Y ») ;
+ *   route 3          : à défaut, un trajet entre ces deux lieux (« de X à Y », « entre X et Y », « de X à Z, W
+ *                      et Y » sans mot du rail juste avant, deux lieux qui se suivent dans « entre X, Y, Z et W »,
+ *                      qui est souvent une étoile de destinations et pas un trajet, une étape et un bout de
+ *                      « entre X et Y en passant par Z » ou de « de X à Y par Z ») ;
  *   two_places 1     : à défaut, il nomme seulement deux lieux de la ligne ;
  *   only_line_places 1 : sans trajet, tous les lieux reconnus dans le titre sont sur la ligne (« Lignes de chemin
  *                      de fer de Paris à Rouen, au Mans, à Tours » nomme Paris et Rouen : ce n'est pas la ligne
@@ -38,7 +40,8 @@ namespace App\Services\Archives;
  *                      le 5 avril 1858 » daté de 1978) : la date ne compte pas ;
  *   doc_type 1       : type retenu ;
  *   secondary_mention 0 : la ligne n'est citée que comme raccordement d'une autre (« raccordement avec la
- *                      ligne de X à Y ») : ni trajet ni extrémités ne comptent, le document reste sous le seuil.
+ *                      ligne de X à Y », « pour former avec le chemin projeté entre X et Y ») : ni trajet ni
+ *                      extrémités ne comptent, le document reste sous le seuil.
  * Seuil : THRESHOLD (9 sur 11). Une voie ferrée entre deux gares intermédiaires n'est donc retenue que si la
  * date tombe dans la vie de la ligne ; un simple trajet, seulement entre ses extrémités ; deux lieux nommés sans
  * trajet, seulement s'ils sont ses extrémités, que la date tombe dans sa vie, que le titre parle de chemin de fer
@@ -100,6 +103,18 @@ final class ArchiveMatcher
      * […] et la ligne de Paris à Versailles »), pas le sujet du document.
      */
     private const SECONDARY_MARKERS = ['avec', 'raccordement', 'raccordements', 'jonction', 'rattacher', 'rattachement', 'comprise', 'compris'];
+
+    /**
+     * Mots qui, juste après « avec » (articles sautés), en font une marque de simple mention même loin du trajet :
+     * « pour former avec le chemin projeté entre Marseille et Lyon », « avec celui projeté entre Le Havre et Paris ».
+     */
+    private const MENTION_AFTER_AVEC = ['chemin', 'chemins', 'ligne', 'lignes', 'voie', 'voies', 'celui', 'celle', 'ceux', 'celles', 'embranchement', 'embranchements'];
+
+    /**
+     * Mots du rail qui, juste avant le « de » d'une énumération de destinations, en font des voies ferrées
+     * (« chemin de fer de X à Z, W et Y », « ligne de X à Z et à Y »).
+     */
+    private const RAIL_BEFORE_LIST = ['fer', 'ferree', 'ferrees', 'ligne', 'lignes', 'tramway', 'tramways', 'railway', 'railways', 'embranchement', 'embranchements'];
 
     /** Le « chemin de fer américain » est un tramway à chevaux, pas une voie ferrée. */
     private const NOT_RAIL = ['americain', 'americains'];
@@ -280,9 +295,11 @@ final class ArchiveMatcher
      * (« de X à Z, au W et à Y » relie X à chacun), deux lieux qui se suivent dans une liste ouverte par « entre »
      * (« entre Paris, Rouen, Le Havre et Dieppe » relie Paris à Rouen, Rouen au Havre, Le Havre à Dieppe), ou une
      * étape et l'un des bouts (« entre X et Y en passant par Z », « de X à Y par Z » relient Z à X et à Y).
-     * « de Paris au Havre, de Bordeaux à La Teste » ne relie donc pas Paris à Bordeaux. Renvoie `secondary` quand une marque de simple mention précède le trajet, `rail`
-     * quand un mot du rail le précède de cinq mots au plus (« chemin de fer de X à Y », « ligne X à Y »),
-     * `route` sinon.
+     * « de Paris au Havre, de Bordeaux à La Teste » ne relie donc pas Paris à Bordeaux. Renvoie `secondary` quand une
+     * marque de simple mention précède le trajet, `rail` quand un mot du rail le précède de cinq mots au plus
+     * (« chemin de fer de X à Y », « ligne X à Y »), `route` sinon. Une liste « entre X, Y, Z » et une énumération
+     * de destinations sans « chemin de fer » ou « ligne » juste avant le « de » ne donnent qu'un simple trajet :
+     * deux villes voisines d'une liste ne sont pas forcément reliées par la ligne.
      *
      * @param  list<array{lower: string, upper: bool, sep: string}>  $tokens
      * @param  list<array{key: string, start: int, end: int}>  $found  tous les lieux connus nommés dans le titre
@@ -300,22 +317,21 @@ final class ArchiveMatcher
         if ($start === null) {
             return null;
         }
-        [$from, $via] = $start;
+        [$from, $form] = $start;
         $lineWord = in_array($tokens[$from]['lower'], self::LINE_WORDS, true);
         $context = array_column(array_slice($tokens, max(0, $from - self::SECONDARY_WINDOW), min(self::SECONDARY_WINDOW, $from)), 'lower');
-        // « avec » ne compte que juste avant le trajet (« raccordement avec la ligne de X à Y ») : plus loin, il
-        // ouvre souvent autre chose (« carte [...] avec les indications des tracés entre X, Y et Z »).
-        $markers = array_merge(
-            array_diff(array_slice($context, 0, -3), ['avec']),
-            array_slice($context, -3),
-        );
-        if (array_intersect($markers, self::SECONDARY_MARKERS) !== []) {
+        if (self::mentionMarked($context)) {
             return 'secondary';
         }
-        // Le bout d'un trajet et son étape ne sont qu'une partie du trajet décrit : un simple trajet, qui ne passe
-        // le seuil que si ce sont les extrémités de la ligne.
-        if ($via) {
+        // Le bout d'un trajet et son étape ne sont qu'une partie du trajet décrit, et deux lieux voisins d'une liste
+        // « entre X, Y, Z » sont souvent deux destinations d'une étoile : un simple trajet, qui ne passe le seuil que
+        // si ce sont les extrémités de la ligne.
+        if ($form === 'via' || $form === 'between_list') {
             return 'route';
+        }
+        // « de X à Z, W et Y » : voie ferrée vers chaque destination seulement après « chemin de fer » ou « ligne ».
+        if ($form === 'enumeration') {
+            return $lineWord || in_array(end($context), self::RAIL_BEFORE_LIST, true) ? 'rail' : 'route';
         }
         $before = array_slice($context, -5);
 
@@ -324,15 +340,46 @@ final class ArchiveMatcher
     }
 
     /**
+     * Les mots qui précèdent un trajet en font-ils une simple mention (SECONDARY_MARKERS) ? « avec » ne compte que
+     * dans les trois derniers mots (« raccordement avec la ligne de X à Y ») ou suivi d'un mot qui désigne une autre
+     * voie (« pour former avec le chemin projeté entre X et Y ») : ailleurs, il ouvre souvent autre chose (« carte
+     * [...] avec les indications des tracés entre X, Y et Z »).
+     *
+     * @param  list<string>  $context  mots en minuscules avant le trajet
+     */
+    private static function mentionMarked(array $context): bool
+    {
+        $near = count($context) - 3;
+        foreach ($context as $k => $word) {
+            if (! in_array($word, self::SECONDARY_MARKERS, true)) {
+                continue;
+            }
+            if ($word !== 'avec' || $k >= $near) {
+                return true;
+            }
+            $next = $k + 1;
+            while (isset($context[$next]) && in_array($context[$next], self::ARTICLES, true)) {
+                $next++;
+            }
+            if (in_array($context[$next] ?? null, self::MENTION_AFTER_AVEC, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Les mots de $start à $end (exclu), entre deux lieux, mènent-ils du premier au second ? Un seul mot de
      * liaison (« à », « au », « aux », ou « et » après « entre »), articles permis ; après « de X à », une
      * énumération de lieux séparés par des virgules, « et », « à », « au » ou « aux » (« à Rouen, au Mans, à »).
      * Un lieu d'une énumération est un lieu connu, ou un seul nom à majuscule suivi d'une liaison (« Cologne et à »).
+     * Rend le nombre de lieux de l'énumération passés avant le second (0 pour un trajet direct), ou null.
      *
      * @param  list<array{lower: string, upper: bool, sep: string}>  $tokens
      * @param  list<array{key: string, start: int, end: int}>  $found
      */
-    private function leadsTo(array $tokens, array $found, int $start, int $end, bool $between): bool
+    private function leadsTo(array $tokens, array $found, int $start, int $end, bool $between): ?int
     {
         $i = $start;
         $skipArticles = function () use (&$i, $end, $tokens): void {
@@ -342,15 +389,15 @@ final class ArchiveMatcher
         };
         $skipArticles();
         if ($i >= $end || ! in_array($tokens[$i]['lower'], $between ? ['et'] : self::ROUTE_TO, true)) {
-            return false;
+            return null;
         }
         $i++;
         $skipArticles();
         if ($i === $end) {
-            return true;
+            return 0;
         }
         if ($between) {
-            return false;
+            return null;
         }
         $starts = array_column($found, 'end', 'start');
         $listed = 0;
@@ -363,10 +410,10 @@ final class ArchiveMatcher
                     $next++;
                 }
             } else {
-                return false;
+                return null;
             }
             if (++$listed > self::MAX_LISTED || $next > $end) {
-                return false;
+                return null;
             }
             // Un lieu de l'énumération est suivi d'une virgule ou d'un mot de liaison.
             $linked = str_contains($tokens[$next]['sep'] ?? '', ',');
@@ -376,21 +423,23 @@ final class ArchiveMatcher
                 $i++;
             }
             if (! $linked) {
-                return false;
+                return null;
             }
         }
 
-        return true;
+        return $listed;
     }
 
     /**
-     * Mot qui ouvre le trajet de $a à $b, et s'il passe par une étape : [position, étape], ou null.
+     * Mot qui ouvre le trajet de $a à $b et sa forme : [position, forme], ou null. Formes : `direct` (« de X à Y »,
+     * « entre X et Y »), `enumeration` (« de X à Z, W et Y »), `between_list` (« entre X, Y, Z et W »), `via`
+     * (une étape et un bout, « de X à Y par Z »).
      *
      * @param  list<array{lower: string, upper: bool, sep: string}>  $tokens
      * @param  list<array{key: string, start: int, end: int}>  $found
      * @param  array{key: string, start: int, end: int}  $a
      * @param  array{key: string, start: int, end: int}  $b
-     * @return array{0: int, 1: bool}|null
+     * @return array{0: int, 1: string}|null
      */
     private function routeStart(array $tokens, array $found, array $a, array $b): ?array
     {
@@ -400,19 +449,20 @@ final class ArchiveMatcher
             $from--;
         }
         $opener = $from >= 0 ? $tokens[$from]['lower'] : null;
-        if ($opener !== null && (in_array($opener, self::LINE_WORDS, true) || in_array($opener, self::ROUTE_FROM, true))
-            && $this->leadsTo($tokens, $found, $a['end'], $b['start'], $opener === 'entre')) {
-            return [$from, false];
+        $listed = $opener !== null && (in_array($opener, self::LINE_WORDS, true) || in_array($opener, self::ROUTE_FROM, true))
+            ? $this->leadsTo($tokens, $found, $a['end'], $b['start'], $opener === 'entre') : null;
+        if ($listed !== null) {
+            return [$from, $listed > 0 ? 'enumeration' : 'direct'];
         }
         // « entre Paris, Rouen, Le Havre et Dieppe » : deux lieux qui se suivent dans une liste ouverte par « entre ».
         $list = $this->betweenListOpener($tokens, $found, $a['start']);
         if ($list !== null && $this->nextInList($tokens, $a['end'], $b['start'])) {
-            return [$list, false];
+            return [$list, 'between_list'];
         }
         // « entre X et Y en passant par Z », « de X à Y par Z » : Z est une étape, reliée à X comme à Y.
         $via = $this->viaOpener($tokens, $found, $a, $b);
 
-        return $via !== null ? [$via, true] : null;
+        return $via !== null ? [$via, 'via'] : null;
     }
 
     /**

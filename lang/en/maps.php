@@ -232,6 +232,8 @@ return [
         'layers_text' => 'The Layers button, above the map, shows several overlays at once. An OpenRailwayMap background (one at a time) adds today\'s infrastructure: signals, speeds, electrification. The clock button, at the top right of the map, shows old IGN maps. The Accidents overlay shows the accidents that happened up to the period displayed; a pale circle means only the municipality is known. The Level crossings overlay shows the crossings published by SNCF Réseau, from the scale of a département. The Signalling overlay colours today’s lines by block system. The Greenways overlay draws OpenStreetMap greenways on the trackbed of closed or dismantled lines; it can be added to any period.',
         'views_term' => 'Comparing eras',
         'views_text' => 'The "View" choice above the map compares two decades (lines opened, closed or lifted in between) or stacks every era to show when each line left service. The page address keeps this choice, so you can share it.',
+        'schema_term' => 'Railway view',
+        'schema_text' => 'The "Railway view" option under "View" draws the network in service at the chosen era as a transport diagram, with no background map. Lines are straightened to 45 or 90 degrees; junctions, interchanges and termini are circles, and other stations are short ticks that appear as you zoom in. Paris, Lyon, Lille and Marseille are enlarged so that their stations fit, which means positions and distances are not to scale. Clicking a line or a station opens the same panel as on the map.',
     ],
 
     'tech' => [
@@ -254,6 +256,32 @@ return [
         'era' => 'One era',
         'compare' => 'Compare',
         'stack' => 'All eras',
+        'schema' => 'Railway view',
+    ],
+
+    // Railway view: schematic diagram of an era (SchematicMap, legend, summary read by screen readers).
+    'schema' => [
+        'map_label' => 'Railway view of the network (schematic diagram)',
+        'legend_title' => 'Railway view, :year',
+        'legend_title_current' => 'Railway view, today',
+        'legend_intro' => 'Schematic diagram of the network in service: positions and distances are not to scale.',
+        'stations_group' => 'Stations',
+        'node' => 'Junction, interchange or terminus',
+        'stop' => 'Intermediate station (zoom in)',
+        'loading' => 'Loading the diagram…',
+        'error' => 'The diagram for this era cannot be loaded at the moment.',
+        'attribution' => 'VFF diagram based on the map’s sources',
+        'summary' => ':when, the diagram shows :km km of line in service (:parts) and :stations open stations. Positions and distances are not to scale.',
+        'summary_at' => 'In :year',
+        'summary_today' => 'Today',
+        'summary_part' => ':km km :category',
+        'categories' => [
+            'lgv' => 'high-speed',
+            'mixed' => 'open to passengers and freight',
+            'freight' => 'freight only',
+            'unknown' => 'with unrecorded traffic',
+            'heritage' => 'run by heritage associations',
+        ],
     ],
 
     // Comparison of two decades (bar under the map, legend, popups).

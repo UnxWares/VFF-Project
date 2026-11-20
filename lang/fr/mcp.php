@@ -43,6 +43,8 @@ return [
         'station_not_in_network' => 'Une des gares n’est pas desservie par le réseau en service à cette époque.',
         'no_path' => 'Aucun itinéraire entre :from et :to sur le réseau en service à cette époque.',
         'invalid_uri' => 'Adresse de ressource invalide : attendu vff://{lang}/lines/{slug}, lang = fr, en ou de.',
+        'event_not_on_line' => 'L’événement :event n’appartient pas à la ligne :line. Prenez un identifiant donné par line_events ou par line_stories sans `event`.',
+        'no_story' => 'L’événement :event n’a pas d’histoire : moins de 3 images et documents datés à 5 ans près (dont 2 images), ou type d’événement sans histoire.',
     ],
 
     'truncated' => 'Réponse raccourcie pour rester sous la taille maximale : affinez la demande (période, types, limite).',

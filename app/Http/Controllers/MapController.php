@@ -32,7 +32,9 @@ class MapController extends Controller
      * sur chaque décennie. `has_data` / `segment_count` permettent au front de
      * signaler les décennies pas encore reconstituées plutôt que de les masquer.
      *
-     * @return array{eras: Collection, currentEraYear: int, dataVersion: string}
+     * `schematic` : la vue ferroviaire (plan schématique, config maps.schematic) est proposée.
+     *
+     * @return array{eras: Collection, currentEraYear: int, dataVersion: string, schematic: bool}
      */
     private function mapProps(): array
     {
@@ -72,6 +74,7 @@ class MapController extends Controller
             'eras' => $eras,
             'currentEraYear' => $current['year'] ?? 2030,
             'dataVersion' => $dataVersion,
+            'schematic' => (bool) config('maps.schematic'),
         ];
     }
 }

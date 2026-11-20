@@ -2,8 +2,14 @@
     import { onMount, tick } from 'svelte';
     import { i18n } from '$lib/i18n.js';
     import { firstOfMonth, formatLocale } from '$lib/typo.js';
-    import { mediaHeading, mediaLicenseHref, mediaLicenseLabel } from '$lib/mediaCredits.js';
+    import {
+        mediaHeading,
+        mediaLicenseHref,
+        mediaLicenseLabel,
+        mediaSourceHref,
+    } from '$lib/mediaCredits.js';
     import { conciseAlt } from '$lib/altText.js';
+    import { focusAfterStep, navDisabled } from '$lib/galleryNav.js';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
 
     /**
@@ -41,6 +47,9 @@
 
     let current = $state(null); // index dans items de l'image ouverte
     let dialogEl = $state(null);
+    let previousBtn = $state(null);
+    let nextBtn = $state(null);
+    let imageLink = $state(null);
 
     const TYPES = ['photo', 'postcard', 'map', 'plan', 'document'];
     const PERIODS = ['pre1900', '1900_1944', '1945_1969', '1970_1999', 'since2000', 'undated'];
@@ -66,6 +75,11 @@
     const hasMore = $derived(page < lastPage);
     const active = $derived(current !== null ? items[current] : null);
     const single = $derived(total <= 1);
+    const disabled = $derived(
+        current !== null
+            ? navDisabled(current, items.length, hasMore)
+            : { previous: true, next: true },
+    );
 
     async function load(reset = false) {
         if (loading) return;
@@ -167,12 +181,20 @@
 
     async function step(delta) {
         if (current === null) return;
+        const focused = document.activeElement;
         const next = current + delta;
         if (next >= items.length && hasMore) {
             await load(false);
         }
-        if (next < 0 || next >= items.length) return;
-        current = next;
+        if (next >= 0 && next < items.length) current = next;
+        // Le bouton activé se désactive (première ou dernière image) : le focus passe à l'autre bouton,
+        // ou à l'image, au lieu de retomber sur la page (RGAA 12.8).
+        await tick();
+        const target =
+            current !== null ? focusAfterStep(delta, current, items.length, hasMore) : null;
+        if (target && focused === (delta < 0 ? previousBtn : nextBtn)) {
+            ({ previous: previousBtn, next: nextBtn, image: imageLink })[target]?.focus();
+        }
     }
 
     function onKey(e) {
@@ -316,8 +338,11 @@
                             <p class="title">{heading(m)}</p>
                             <p class="credit">
                                 <span class="author">{m.author ?? t('media.author_unknown')}</span>,
-                                {@render license(m)}{#if m.source_url},
-                                    <a href={m.source_url} target="_blank" rel="noopener noreferrer"
+                                {@render license(m)}{#if mediaSourceHref(m)},
+                                    <a
+                                        href={mediaSourceHref(m)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         >{t('media.via', {
                                             provider: m.provider_label,
                                         })}{@render ext()}</a
@@ -395,14 +420,16 @@
                     <button
                         type="button"
                         class="lb-btn"
+                        bind:this={previousBtn}
                         onclick={() => step(-1)}
-                        disabled={current === 0}
+                        disabled={disabled.previous}
                         aria-label={t('media.lightbox.previous')}
                     >
                         <i class="bi bi-chevron-left" aria-hidden="true"></i>
                     </button>
                 {/if}
                 <a
+                    bind:this={imageLink}
                     href={active.display_url}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -418,8 +445,9 @@
                     <button
                         type="button"
                         class="lb-btn"
+                        bind:this={nextBtn}
                         onclick={() => step(1)}
-                        disabled={current >= items.length - 1 && !hasMore}
+                        disabled={disabled.next}
                         aria-label={t('media.lightbox.next')}
                     >
                         <i class="bi bi-chevron-right" aria-hidden="true"></i>
@@ -454,11 +482,11 @@
                 {#if active.title && heading(active) !== active.title}
                     <p class="lb-file">{t('media.file_name', { name: active.title })}</p>
                 {/if}
-                {#if active.source_url}
+                {#if mediaSourceHref(active)}
                     <p class="lb-source">
                         <a
                             class="vff-link"
-                            href={active.source_url}
+                            href={mediaSourceHref(active)}
                             target="_blank"
                             rel="noopener noreferrer"
                         >

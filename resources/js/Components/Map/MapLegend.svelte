@@ -20,6 +20,8 @@
     import { SIGNALLING_FAMILIES, SIGNALLING_UNKNOWN_OPACITY } from '$lib/signallingMap.js';
     import { GREENWAY_COLOR } from '$lib/greenwayMap.js';
     import { OVERLAY_HALO } from '$lib/overlayPalette.js';
+    import { SCHEMA_CATEGORIES, categoryColors, paletteFor } from '$lib/schematicMap.js';
+    import { theme } from '$lib/stores/theme.svelte.js';
 
     /**
      * Légende de la carte VFF : COULEUR = trafic des portions en service à la
@@ -36,8 +38,9 @@
      *   currentEra  : décennie actuelle ; les halos de campagne (menacée,
      *                 réouverture) n'existent qu'à cette décennie (cf. RailMap)
      *   mode        : couleur des tracés (bindable) : 'traffic' | 'electrification' | 'gauge'
-     *   view        : 'era' (une décennie), 'compare' (changements de `era` à `compareEra`) ou
-     *                 'stack' (toutes les époques) ; hors 'era', la légende décrit le calque de la vue
+     *   view        : 'era' (une décennie), 'compare' (changements de `era` à `compareEra`),
+     *                 'stack' (toutes les époques) ou 'schema' (vue ferroviaire : catégories masquables
+     *                 et symboles des gares du plan) ; hors 'era', la légende décrit le calque de la vue
      *   accidents   : calque « Accidents » affiché ({ state: 'loading'|'error'|'ready', count, from,
      *                 to } : années montrées, cf. accidentYears) ou null ; ses symboles, la période,
      *                 le nombre d'accidents localisés et le lien vers la liste ouvrent la légende
@@ -74,6 +77,11 @@
         if (view === 'compare' && compareEra !== null)
             return $i18n.t('maps.compare.legend_title', { from: era, to: inline(compareEra) });
         if (view === 'stack') return $i18n.t('maps.stack.legend_title');
+        if (view === 'schema') {
+            return era === currentEra
+                ? $i18n.t('maps.schema.legend_title_current')
+                : $i18n.t('maps.schema.legend_title', { year: era });
+        }
         if (era === null || era === undefined) return $i18n.t('maps.legend.expand');
         return era === currentEra
             ? $i18n.t('maps.legend.title_current')
@@ -167,6 +175,18 @@
     // Gares : ouvertes (voyageurs, touristique, fret seul) et fermées.
     const stationRows = STATION_STYLES;
 
+    // Vue ferroviaire : mêmes catégories masquables que la carte, couleurs du plan selon le thème
+    // (le gris du trafic inconnu est éclairci sur fond sombre, lib/schematicMap.js).
+    const schemaInk = $derived(paletteFor(theme.isDark).ink);
+    const schemaRows = $derived.by(() => {
+        const colors = categoryColors(theme.isDark);
+        return SCHEMA_CATEGORIES.map((key) => ({
+            key,
+            labelKey: key === 'heritage' ? 'maps.legend.heritage_train' : `maps.traffic.${key}`,
+            swatch: swatchStyle(colors[key], null, true),
+        }));
+    });
+
     // Période des accidents montrés (« Survenus jusqu'en 1950 », « de 1931 à 1980 »).
     const accidentPeriod = $derived.by(() => {
         if (!accidents) return '';
@@ -253,6 +273,35 @@
                         </span>
                     </li>
                 {/each}
+            </ul>
+        {:else if view === 'schema'}
+            <p class="legend-hint">{$i18n.t('maps.schema.legend_intro')}</p>
+            <p class="legend-group" id={`${uid}-schema`}>{$i18n.t('maps.traffic.title')}</p>
+            <ul aria-labelledby={`${uid}-schema`}>
+                {#each schemaRows as r (r.key)}
+                    {@render row(r)}
+                {/each}
+            </ul>
+            {#if interactive}
+                <p class="legend-hint">{$i18n.t('maps.legend.hint')}</p>
+            {/if}
+            <p class="legend-group" id={`${uid}-schema-stations`}>
+                {$i18n.t('maps.schema.stations_group')}
+            </p>
+            <ul aria-labelledby={`${uid}-schema-stations`}>
+                <li>
+                    <span class="legend-row">
+                        <i class="swatch station" style:border-color={schemaInk} aria-hidden="true"
+                        ></i>
+                        <span>{$i18n.t('maps.schema.node')}</span>
+                    </span>
+                </li>
+                <li>
+                    <span class="legend-row">
+                        <i class="swatch tick" style:--ink={schemaInk} aria-hidden="true"></i>
+                        <span>{$i18n.t('maps.schema.stop')}</span>
+                    </span>
+                </li>
             </ul>
         {:else if view === 'stack'}
             <p class="legend-hint">{$i18n.t('maps.stack.intro')}</p>
@@ -782,5 +831,21 @@
         margin: 0 6px;
         border: 2px solid;
         border-radius: 50%;
+    }
+    /* Vue ferroviaire : gare intermédiaire, trait court en travers d'un axe (comme sur le plan). */
+    .swatch.tick {
+        position: relative;
+        height: 6px;
+        border-radius: 3px;
+        background-color: var(--vff-text-muted);
+    }
+    .swatch.tick::after {
+        content: '';
+        position: absolute;
+        top: -4px;
+        left: 10px;
+        width: 2px;
+        height: 14px;
+        background-color: var(--ink);
     }
 </style>

@@ -112,7 +112,10 @@ d'oiseau).
   connexion.
 - Le rapport d'une époque est calculé en une fois (1 à 2 s sur `vff`), gardé 7 jours en cache sous la
   date de construction du graphe : une reconstruction de l'époque change la clé et le rapport est
-  recalculé à la visite suivante.
+  recalculé à la visite suivante. Chaque liste a sa propre entrée de cache, à côté d'un en-tête (résumé
+  chiffré) : une page de 25 lignes ne relit que sa liste. Mesuré en 1930 : une page des jonctions passe
+  de 21 ms (rapport entier de 3 Mo relu) à 15 ms (2,3 Mo), une page des îles à 0,5 ms (22 Ko), l'en-tête
+  à 0,4 ms (1,2 Ko).
 - Page : changer d'époque ou de couche se fait par le bouton « Afficher » (une flèche sur les boutons
   radio ne recharge rien) ; la page garde alors son état (carte, cadrage, fiche affichée). Pendant le
   chargement d'une page du tableau, la précédente reste affichée et le chargement est annoncé aux

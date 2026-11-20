@@ -10,9 +10,12 @@ use App\Services\NetworkGraph\GraphDiagnostics;
 use App\Services\NetworkGraph\GraphDiagnosticsCsv;
 use App\Services\NetworkGraph\GraphTiles;
 use Clickbar\Magellan\Data\Geometries\Point;
+use Illuminate\Cache\Events\CacheHit;
+use Illuminate\Cache\Events\CacheMissed;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\ActsAsRoles;
@@ -390,6 +393,37 @@ class NetworkGraphAdminTest extends TestCase
 
         $this->build('2026-11-20 09:00:00');
         $this->assertSame(0, $this->report()['summary']['topology']['isolated_nodes'], 'nouvelle construction, nouveau calcul');
+    }
+
+    /** Relecture du 20/11 : une page ne relit que sa liste dans le cache, pas tout le rapport (3 Mo en 1930). */
+    public function test_a_page_reads_only_its_own_list_from_the_cache(): void
+    {
+        $admin = $this->member('admin');
+        $this->actingAs($admin)->getJson('/validate/graph/1930/diagnostics/islands?page=1')->assertOk();
+
+        $read = [];
+        Event::listen(CacheHit::class, function (CacheHit $e) use (&$read): void {
+            $read[] = $e->key;
+        });
+        Event::listen(CacheMissed::class, function (CacheMissed $e) use (&$read): void {
+            $read[] = $e->key;
+        });
+        $this->actingAs($admin)->getJson('/validate/graph/1930/diagnostics/islands?page=1')
+            ->assertOk()->assertJsonPath('total', 3);
+        $diagnostics = array_values(array_filter($read, fn (string $key): bool => str_starts_with($key, 'graph-diagnostics:')));
+
+        $this->assertNotSame([], $diagnostics);
+        foreach ($diagnostics as $key) {
+            $this->assertDoesNotMatchRegularExpression('/:(junctions|edges|station_islands|isolated_nodes|stations_without_edge|fragmented_lines)$/', $key);
+        }
+        $this->assertNotSame([], array_filter($diagnostics, fn (string $key): bool => str_ends_with($key, ':islands')));
+
+        // La page d'accueil du graphe ne lit que l'en-tête (résumé chiffré).
+        $before = count($read);
+        $this->actingAs($admin)->get('/validate/graph?era=1930')->assertOk();
+        foreach (array_filter(array_slice($read, $before), fn (string $key): bool => str_starts_with($key, 'graph-diagnostics:')) as $key) {
+            $this->assertMatchesRegularExpression('/^graph-diagnostics:\d+:\d+:\d+$/', $key);
+        }
     }
 
     public function test_lists_are_served_by_pages(): void

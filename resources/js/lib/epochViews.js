@@ -12,6 +12,16 @@
 export const VIEWS = ['era', 'compare', 'stack'];
 
 /**
+ * Vues de la page /maps : celles de la carte, plus la vue ferroviaire (plan schématique,
+ * lib/schematicMap.js) quand le serveur la propose (config `maps.schematic`).
+ *
+ * @param {boolean} schematic
+ */
+export function mapViews(schematic) {
+    return schematic ? [...VIEWS, 'schema'] : VIEWS;
+}
+
+/**
  * Changements entre deux décennies (couche `vff-compare`, propriété `change`), dans l'ordre de la
  * légende et du résumé. `dash` : motif MapLibre en largeurs de trait (null = trait plein) ;
  * `width` : facteur de largeur ; les tronçons restés en service restent discrets (contexte).
@@ -77,18 +87,23 @@ export function defaultPair(selected, eras, currentEra) {
 
 /**
  * Lit la vue dans l'adresse : `?era=1930&compare=1980` (comparaison), `?view=stack` (toutes les
- * époques), sinon `?era=1930` (une décennie). Les valeurs inconnues sont ignorées.
+ * époques), `?view=schema&era=1930` (vue ferroviaire, si `views` la contient), sinon `?era=1930`
+ * (une décennie). Les valeurs inconnues sont ignorées.
  *
  * @param {string} search partie « ?… » de l'adresse
  * @param {number[]} eras décennies disponibles, croissantes
- * @returns {{ view: 'era' | 'compare' | 'stack', era: number | null, compare: number | null }}
+ * @param {string[]} [views] vues proposées (VIEWS par défaut)
+ * @returns {{ view: 'era' | 'compare' | 'stack' | 'schema', era: number | null, compare: number | null }}
  */
-export function readViewParams(search, eras) {
+export function readViewParams(search, eras, views = VIEWS) {
     const params = new URLSearchParams(search);
     const era = toYear(params.get('era'));
     const compare = toYear(params.get('compare'));
     const eraKnown = era !== null && eras.includes(era) ? era : null;
     if (params.get('view') === 'stack') return { view: 'stack', era: eraKnown, compare: null };
+    if (params.get('view') === 'schema' && views.includes('schema')) {
+        return { view: 'schema', era: eraKnown, compare: null };
+    }
     if (compare !== null && eras.includes(compare)) {
         const pair = orderPair(eraKnown ?? eras[eras.length - 1], compare, eras);
         if (pair) return { view: 'compare', era: pair[0], compare: pair[1] };
@@ -98,7 +113,7 @@ export function readViewParams(search, eras) {
 
 /**
  * Écrit la vue dans l'adresse (les autres paramètres sont gardés). La décennie la plus récente
- * n'est pas écrite en vue « une décennie » (adresse courte du réseau actuel).
+ * n'est pas écrite en vue « une décennie » ni en vue ferroviaire (adresse courte du réseau actuel).
  *
  * @param {string} href adresse actuelle
  * @param {{ view: string, era: number, compare?: number | null }} state
@@ -113,6 +128,9 @@ export function writeViewParams(href, { view, era, compare = null }, latest) {
     params.delete('era');
     if (view === 'stack') {
         params.set('view', 'stack');
+    } else if (view === 'schema') {
+        params.set('view', 'schema');
+        if (era !== latest) params.set('era', String(era));
     } else if (view === 'compare' && compare !== null) {
         params.set('era', String(era));
         params.set('compare', String(compare));

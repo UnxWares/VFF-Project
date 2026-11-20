@@ -33,14 +33,19 @@ use Illuminate\Support\Facades\DB;
  *
  * Le rapport d'une ère est calculé en une fois (quelques secondes sur une ère de 50 000 arêtes),
  * gardé en cache sous la date de construction du graphe (une reconstruction change la clé) ; les
- * listes sont triées (le plus grave d'abord) et gardées en entier (3 Mo de cache pour l'ère 1930
- * et ses 8 992 jonctions), servies par pages et exportées en CSV (GraphDiagnosticsCsv). Les jonctions se
+ * listes sont triées (le plus grave d'abord) et gardées en entier (3 Mo pour l'ère 1930 et ses
+ * 8 992 jonctions), servies par pages et exportées en CSV (GraphDiagnosticsCsv). Les jonctions se
  * filtrent par type et par ligne (DiagnosticsFilter).
+ *
+ * Cache en plusieurs entrées : l'en-tête (ère, date, résumé chiffré) et une entrée par liste. Une page
+ * de 25 lignes ne relit que sa liste (une page d'îles ne relit pas les 9 000 jonctions), et la page
+ * d'accueil du graphe que l'en-tête. L'en-tête est écrit en dernier : présent, les listes le sont aussi ;
+ * une liste sortie du cache seule fait recalculer le rapport.
  */
 final class GraphDiagnostics
 {
     /** Version du rapport, dans la clé du cache : à changer quand son contenu change. */
-    public const FORMAT = 3;
+    public const FORMAT = 4;
 
     public const TTL_SECONDS = 7 * 24 * 3600;
 
@@ -71,26 +76,90 @@ final class GraphDiagnostics
     private const OPEN_STATUSES = ['active', 'tourist', 'no_commercial'];
 
     /**
-     * Rapport de l'ère, ou null si son graphe n'est pas construit.
+     * Rapport complet de l'ère (en-tête et toutes les listes), ou null si son graphe n'est pas construit.
+     * `$fresh` : recalculé même s'il est en cache.
      *
      * @return array{era_id: int, built_at: string, summary: array<string, array<string, mixed>>, lists: array<string, array{total: int, items: list<array<string, mixed>>}>}|null
      */
     public function report(int $eraId, bool $fresh = false): ?array
     {
+        $head = $this->head($eraId, $fresh);
+        if ($head === null) {
+            return null;
+        }
+        $lists = [];
+        foreach (self::CHECKS as $check) {
+            $lists[$check] = $this->list($eraId, $check) ?? self::listed([]);
+        }
+
+        return [...$head, 'lists' => $lists];
+    }
+
+    /**
+     * En-tête du rapport : ère, date de construction du graphe et résumé chiffré, sans les listes.
+     * Null si le graphe de l'ère n'est pas construit.
+     *
+     * @return array{era_id: int, built_at: string, summary: array<string, array<string, mixed>>}|null
+     */
+    public function head(int $eraId, bool $fresh = false): ?array
+    {
         $build = DB::table('network_graph_builds')->where('era_id', $eraId)->first(['built_at', 'stations_source']);
         if ($build === null) {
             return null;
         }
-        $key = sprintf('graph-diagnostics:%d:%d:%s', self::FORMAT, $eraId, preg_replace('/\D/', '', (string) $build->built_at));
-        if ($fresh) {
-            Cache::forget($key);
+        $key = self::cacheKey($eraId, (string) $build->built_at);
+        $head = $fresh ? null : Cache::get($key);
+
+        return is_array($head) ? $head : $this->store($eraId, $build, $key);
+    }
+
+    /**
+     * Une liste du rapport (`total` et `items`, triés), lue seule dans le cache. Null si le graphe de
+     * l'ère n'est pas construit ou si la liste est inconnue.
+     *
+     * @return array{total: int, items: list<array<string, mixed>>}|null
+     */
+    public function list(int $eraId, string $check): ?array
+    {
+        if (! in_array($check, self::CHECKS, true)) {
+            return null;
+        }
+        $build = DB::table('network_graph_builds')->where('era_id', $eraId)->first(['built_at', 'stations_source']);
+        if ($build === null) {
+            return null;
+        }
+        $key = self::cacheKey($eraId, (string) $build->built_at);
+        $list = Cache::get("{$key}:{$check}");
+        if (! is_array($list) || ! Cache::has($key)) {
+            // Liste absente (première lecture, ou sortie du cache seule) : tout le rapport est recalculé.
+            $this->store($eraId, $build, $key);
+            $list = Cache::get("{$key}:{$check}");
         }
 
-        return Cache::remember($key, self::TTL_SECONDS, fn (): array => [
-            'era_id' => $eraId,
-            'built_at' => (string) $build->built_at,
-            ...$this->compute($eraId, (string) $build->stations_source),
-        ]);
+        return is_array($list) ? $list : null;
+    }
+
+    /**
+     * Calcule le rapport et l'écrit en cache : une entrée par liste, puis l'en-tête.
+     *
+     * @return array{era_id: int, built_at: string, summary: array<string, array<string, mixed>>}
+     */
+    private function store(int $eraId, object $build, string $key): array
+    {
+        $report = $this->compute($eraId, (string) $build->stations_source);
+        foreach ($report['lists'] as $check => $list) {
+            Cache::put("{$key}:{$check}", $list, self::TTL_SECONDS);
+        }
+        $head = ['era_id' => $eraId, 'built_at' => (string) $build->built_at, 'summary' => $report['summary']];
+        Cache::put($key, $head, self::TTL_SECONDS);
+
+        return $head;
+    }
+
+    /** Clé de l'en-tête ; chaque liste est sous « clé:liste ». La date de construction change la clé. */
+    private static function cacheKey(int $eraId, string $builtAt): string
+    {
+        return sprintf('graph-diagnostics:%d:%d:%s', self::FORMAT, $eraId, preg_replace('/\D/', '', $builtAt));
     }
 
     /**

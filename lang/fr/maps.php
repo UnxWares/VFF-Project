@@ -232,6 +232,8 @@ return [
         'layers_text' => 'Le bouton Calques, au-dessus de la carte, en affiche plusieurs à la fois. Un fond OpenRailwayMap (un seul à la fois) superpose l’infrastructure actuelle : signaux, vitesses, électrification. Le bouton à l’horloge, en haut à droite de la carte, affiche des cartes anciennes de l’IGN. Le calque Accidents place les accidents survenus jusqu’à l’époque affichée ; un cercle pâle signale que seule la commune est connue. Le calque Passages à niveau montre les passages publiés par SNCF Réseau, à partir de l’échelle d’un département. Le calque Signalisation colore les lignes d’aujourd’hui selon leur mode de cantonnement. Le calque Voies vertes dessine, sur l’emprise de lignes disparues ou fermées, les voies vertes d’OpenStreetMap ; il se superpose à toutes les époques.',
         'views_term' => 'Comparer les époques',
         'views_text' => 'Le choix « Vue », au-dessus de la carte, compare deux décennies (lignes ouvertes, fermées ou déposées entre les deux) ou superpose toutes les époques pour voir quand chaque ligne a quitté le service. L’adresse de la page garde ce choix : vous pouvez la partager.',
+        'schema_term' => 'Vue ferroviaire',
+        'schema_text' => 'Le choix « Vue ferroviaire », dans « Vue », dessine le réseau en service à l’époque choisie comme un plan de transport, sans fond de carte. Les lignes y sont redressées à 45 ou 90 degrés ; bifurcations, correspondances et terminus sont des cercles, les autres gares de petits traits qui apparaissent en zoomant. Paris, Lyon, Lille et Marseille sont agrandies pour que leurs gares tiennent : les positions et les distances ne sont donc pas à l’échelle. Un clic sur une ligne ou une gare ouvre la même fiche que sur la carte.',
     ],
 
     'tech' => [
@@ -254,6 +256,32 @@ return [
         'era' => 'Une époque',
         'compare' => 'Comparer',
         'stack' => 'Toutes les époques',
+        'schema' => 'Vue ferroviaire',
+    ],
+
+    // Vue ferroviaire : plan schématique d'une époque (SchematicMap, légende, résumé lu par les lecteurs d'écran).
+    'schema' => [
+        'map_label' => 'Vue ferroviaire du réseau (plan schématique)',
+        'legend_title' => 'Vue ferroviaire, :year',
+        'legend_title_current' => 'Vue ferroviaire, aujourd’hui',
+        'legend_intro' => 'Plan schématique du réseau en service : les positions et les distances ne sont pas à l’échelle.',
+        'stations_group' => 'Gares',
+        'node' => 'Bifurcation, correspondance ou terminus',
+        'stop' => 'Gare intermédiaire (en zoomant)',
+        'loading' => 'Chargement du plan…',
+        'error' => 'Le plan de cette époque ne peut pas être chargé pour le moment.',
+        'attribution' => 'Plan VFF d’après les sources de la carte',
+        'summary' => ':when, le plan montre :km km de voies en service (:parts) et :stations gares ouvertes. Les positions et les distances n’y sont pas à l’échelle.',
+        'summary_at' => 'En :year',
+        'summary_today' => 'Aujourd’hui',
+        'summary_part' => ':km km :category',
+        'categories' => [
+            'lgv' => 'à grande vitesse',
+            'mixed' => 'ouverts aux voyageurs et au fret',
+            'freight' => 'réservés au fret',
+            'unknown' => 'au trafic non renseigné',
+            'heritage' => 'exploités par une association',
+        ],
     ],
 
     // Comparaison de deux décennies (barre sous la carte, légende, bulles).

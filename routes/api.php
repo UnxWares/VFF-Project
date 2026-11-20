@@ -17,10 +17,12 @@ use App\Http\Controllers\Api\LinePkController;
 use App\Http\Controllers\Api\LineProfileController;
 use App\Http\Controllers\Api\LineSignallingController;
 use App\Http\Controllers\Api\LineStopsController;
+use App\Http\Controllers\Api\LineStoryController;
 use App\Http\Controllers\Api\LineTraceController;
 use App\Http\Controllers\Api\MaterialController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\RouteController;
+use App\Http\Controllers\Api\SchematicMapController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\SignallingMapController;
 use App\Http\Controllers\Api\SourceController;
@@ -46,6 +48,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
         ->group(function (): void {
             Route::get('/lines.geojson', [GeoController::class, 'lines'])->name('api.eras.lines');
             Route::get('/stations.geojson', [GeoController::class, 'stations'])->name('api.eras.stations');
+            // Plan schématique (vue ferroviaire de /maps), calculé une fois par graphe de l'ère.
+            Route::get('/schematic.geojson', [SchematicMapController::class, 'show'])->name('api.eras.schematic');
             Route::get('/tiles/{z}/{x}/{y}.mvt', [GeoController::class, 'tile'])
                 ->where(['z' => '[0-9]{1,2}', 'x' => '[0-9]{1,7}', 'y' => '[0-9]{1,7}'])
                 ->name('api.eras.tiles');
@@ -97,6 +101,9 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/signalling-history', [LineSignallingController::class, 'history'])->name('api.lines.signalling-history');
     Route::get('/v1/lines/{line:slug}/greenways', [LineGreenwayController::class, 'index'])->name('api.lines.greenways');
     Route::get('/v1/lines/{line:slug}/archives', [LineArchiveController::class, 'index'])->name('api.lines.archives');
+    // Histoires d'événements : images de l'époque et documents de Gallica (App\Services\Stories\EventStories).
+    Route::get('/v1/lines/{line:slug}/stories', [LineStoryController::class, 'index'])->name('api.lines.stories');
+    Route::get('/v1/lines/{line:slug}/stories/{event}', [LineStoryController::class, 'show'])->where('event', '[0-9]{1,18}')->name('api.lines.stories.show');
     Route::get('/v1/lines/{line:slug}/profile', [LineProfileController::class, 'show'])->name('api.lines.profile');
     Route::get('/v1/lines/{line:slug}/media', [LineMediaController::class, 'index'])->name('api.lines.media');
     Route::get('/v1/route', [RouteController::class, 'route'])->name('api.route');

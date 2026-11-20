@@ -347,6 +347,40 @@ export function listView(list, check, state) {
 }
 
 /**
+ * Compte de la liste affichée : « 18 sur 25 correspondent au filtre » (pluriel choisi sur le nombre
+ * lui-même, `value` est le nombre mis en forme) ou « 25 au total ».
+ * @param {{ total: number, filtered: number }} list
+ * @param {boolean} filtering
+ * @param {(key: string, opts?: Record<string, unknown>) => string} t
+ * @param {(n: number) => string} num
+ */
+export function listCount(list, filtering, t, num) {
+    return filtering
+        ? t('graph_admin.checks.filtered', {
+              count: list.filtered,
+              value: num(list.filtered),
+              total: num(list.total),
+          })
+        : t('graph_admin.checks.total', { total: num(list.total) });
+}
+
+/**
+ * Texte de la zone d'état (role="status") de la liste : chargement de la page, erreur, puis le compte
+ * ou le message de liste vide, pour qu'un lecteur d'écran entende le résultat du filtre (RGAA 7.5).
+ * @param {{ busy: boolean, error: boolean, page: number, list: { total: number, filtered: number, items: unknown[] } | null, filtering: boolean }} state
+ * @param {(key: string, opts?: Record<string, unknown>) => string} t
+ * @param {(n: number) => string} num
+ */
+export function listStatus({ busy, error, page, list, filtering }, t, num) {
+    if (busy) return t('graph_admin.checks.loading_page', { page });
+    if (error) return t('graph_admin.checks.error');
+    if (!list) return '';
+    if ((list.items ?? []).length === 0)
+        return t(filtering ? 'graph_admin.checks.empty_filtered' : 'graph_admin.checks.empty');
+    return listCount(list, filtering, t, num);
+}
+
+/**
  * Requêtes dont seule la dernière compte (fiches d'éléments) : `next()` abandonne la précédente
  * et rend le signal de la nouvelle ; `isCurrent(signal)` dit si une réponse est encore attendue.
  */

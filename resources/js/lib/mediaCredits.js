@@ -2,6 +2,8 @@
 // importées de Wikimedia Commons : « CC BY-SA 2.0 fr », « Public domain », « poudou99 » et « Poudou99 »).
 // Aucune donnée n'est modifiée : seul l'affichage regroupe les variantes d'une même licence ou d'un même auteur.
 
+import { webHref } from './webUrl.js';
+
 /**
  * Licence normalisée d'une valeur brute.
  * @param {string|null|undefined} raw
@@ -90,7 +92,15 @@ export function mediaLicenseLabel(m, t) {
     return m?.license ?? t(`media.rights.${m?.rights_status ?? 'unknown'}`);
 }
 
-/** Adresse du texte de la licence, sinon la page de la source ; null quand aucune n'est connue. */
+/**
+ * Adresse du texte de la licence, sinon la page de la source ; null quand aucune n'est connue ou
+ * qu'elle n'est pas en http(s) (la licence reste alors affichée sans lien).
+ */
 export function mediaLicenseHref(m) {
-    return m?.license_url ?? m?.source_url ?? null;
+    return webHref(m?.license_url) ?? webHref(m?.source_url);
+}
+
+/** Page d'origine du média (« via Wikimedia Commons »), null si elle n'est pas en http(s). */
+export function mediaSourceHref(m) {
+    return webHref(m?.source_url);
 }

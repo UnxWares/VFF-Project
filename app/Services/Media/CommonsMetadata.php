@@ -3,6 +3,7 @@
 namespace App\Services\Media;
 
 use App\Models\Media;
+use App\Support\WebUrl;
 
 /**
  * Normalisation des métadonnées d'un fichier Wikimedia Commons (imageinfo +
@@ -15,7 +16,9 @@ use App\Models\Media;
  *   - domaine public / CC0 → `public_domain` : on cite quand même la source ;
  *   - l'année représentée vient de « DateTimeOriginal » (date de l'œuvre selon
  *     les conventions Commons - pas la date de téléversement), à défaut d'une
- *     catégorie datée (« 1931 photographs of Paris »).
+ *     catégorie datée (« 1931 photographs of Paris ») ;
+ *   - les adresses (page du fichier, licence, images) ne sont gardées qu'en http(s) (WebUrl) : `LicenseUrl`
+ *     vient du HTML de la page Commons, modifiable par tous, et une adresse `javascript:` y deviendrait un lien.
  */
 class CommonsMetadata
 {
@@ -68,8 +71,8 @@ class CommonsMetadata
 
         $rights = self::rights($ext);
         $author = self::author($ext['Artist'] ?? null);
-        $thumb = self::stripQuery($info['thumburl'] ?? null);
-        $original = self::stripQuery($info['url'] ?? null);
+        $thumb = WebUrl::safe(self::stripQuery($info['thumburl'] ?? null));
+        $original = WebUrl::safe(self::stripQuery($info['url'] ?? null));
 
         $lat = is_numeric($ext['GPSLatitude'] ?? null) ? (float) $ext['GPSLatitude'] : null;
         $lon = is_numeric($ext['GPSLongitude'] ?? null) ? (float) $ext['GPSLongitude'] : null;
@@ -81,7 +84,8 @@ class CommonsMetadata
             'mime' => $mime,
             'width' => $width,
             'height' => $height,
-            'source_url' => $info['descriptionurl'] ?? ('https://commons.wikimedia.org/wiki/'.rawurlencode(str_replace(' ', '_', $fileTitle))),
+            'source_url' => WebUrl::safe($info['descriptionurl'] ?? null)
+                ?? 'https://commons.wikimedia.org/wiki/'.rawurlencode(str_replace(' ', '_', $fileTitle)),
             'thumb_url' => $thumb ?: $original,
             'display_url' => self::displayUrl($thumb, $original, $width, $mime),
             'author' => $author,
@@ -115,7 +119,8 @@ class CommonsMetadata
     {
         $short = self::clean($ext['LicenseShortName'] ?? null, 180);
         $code = strtolower(trim((string) ($ext['License'] ?? '')));
-        $url = self::stripQuery(self::clean($ext['LicenseUrl'] ?? null)) ?: null;
+        // Adresse lue dans le HTML de la page du fichier : rien d'autre que http(s), sinon la licence reste sans lien.
+        $url = WebUrl::safe(self::stripQuery(self::clean($ext['LicenseUrl'] ?? null)));
         $haystack = $short.' '.$code.' '.self::clean($ext['UsageTerms'] ?? null);
         $nonFree = filter_var($ext['NonFree'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $copyrighted = strtolower((string) ($ext['Copyrighted'] ?? ''));

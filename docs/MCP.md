@@ -141,6 +141,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `line_profile` | Profil en long d'une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte, altitude des gares (IGN). |
 | `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
 | `line_archives` | Documents numérisés dans Gallica (BnF) dont le titre désigne une ligne : titre, date et précision, type, auteurs, cote, lien vers Gallica, score de rattachement. |
+| `line_stories` | Histoire d'un événement d'une ligne : images de la ligne datées à 5 ans au plus et documents de Gallica de la période, chacun avec son écart en années. |
 | `locate_on_line` | Point kilométrique d'un lieu (latitude, longitude) sur le tracé d'une ligne. |
 | `signalling_history` | Mises en service datées de signalisation d'une ligne (Wikipédia), et faits en vigueur à une époque, ceux que montre la carte. |
 | `list_departments` | Régions et départements (codes INSEE et noms) à passer dans `department` et `region`, avec le nombre de lignes, de gares et d'accidents de chacun. |
@@ -758,7 +759,7 @@ rattachés à la ligne par un score calculé sur le seul titre de la notice (`Ar
 | Raison | Points | Condition |
 |---|---|---|
 | `rail_route` | 4 | le titre décrit une voie ferrée entre deux lieux de la ligne qui se suivent (« chemin de fer de X à Y », « ligne de X à Y », « la ligne X à Y », « chemin de fer de X à Z et à Y ») |
-| `route` | 3 | à défaut, un trajet entre ces deux lieux (« de X à Y », « entre X et Y », « rapide Paris - Bordeaux ») |
+| `route` | 3 | à défaut, un trajet entre ces deux lieux (« de X à Y », « entre X et Y », « rapide Paris - Bordeaux ») ; aussi deux lieux voisins d'une liste « entre X, Y, Z » et une énumération « de X à Z, W et Y » sans « chemin de fer » ou « ligne » juste avant |
 | `two_places` | 1 | à défaut, le titre nomme deux lieux de la ligne (communes, gares, extrémités de ses noms) |
 | `only_line_places` | 1 | sans trajet, tous les lieux reconnus dans le titre sont sur la ligne |
 | `ends` | 2 | ces deux lieux sont les extrémités de la ligne (nom actuel, ancien nom ou gares terminus) |
@@ -798,6 +799,47 @@ d'utilisation de Gallica (non commerciale libre avec la mention de source, comme
 
 ```json
 {"line": "rfn-340000", "type": "map"}
+```
+
+### `line_stories` : histoires d'événements d'une ligne
+
+Même contenu que `GET /api/v1/lines/{line}/stories` et `GET /api/v1/lines/{line}/stories/{event}` (service
+`EventStories`), et que la page `/lines/{line}/stories/{event}` du site. Une histoire réunit un événement de la ligne,
+les images publiées de la ligne datées à 5 ans au plus de son année et les documents de Gallica de la même période.
+Aucun texte n'est rédigé : celui de l'événement vient de sa source.
+
+| Règle | Valeur |
+|---|---|
+| Événements concernés | ouvertures, réouvertures, fermetures (tous services, voyageurs, fret), déclassements, déposes, reconversions, électrifications, modernisations, débuts et fins d'exploitation associative, accidents ; pas les concessions ni `other` |
+| Image retenue | image de la ligne dont toutes les années possibles sont à 5 ans au plus de l'événement : date exacte (`day`, `month`, `year`), année « vers » (`circa`, comptée à 2 ans près), décennie (`decade`), fourchette (`range`) ; jamais une borne seule (`before`, `after`). Domaine public ou licence ouverte (`public_domain`, `open_license`) : les images que le site montre avec une simple autorisation (`permission`) ne sont pas diffusées par l'API ni par cet outil. Plus les images rattachées à l'événement, quelle que soit leur date |
+| Document retenu | notice de Gallica de la ligne datée au moins à l'année près (`day`, `month`, `year`, `circa`, `range`) dans la même fenêtre |
+| Seuil | 3 images et documents au moins, dont 2 images |
+| Carrousel | les 24 images les plus proches de la date, rangées dans l'ordre chronologique |
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `event` | entier | non | Identifiant d'un événement de la ligne. Sans lui : la liste des événements qui ont une histoire. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Sans `event` : `line`, `rules` (fenêtre, seuils, limite), `total` et `stories` (pour chacune : `event`, nombre
+d'`images` et de `documents`, `vff_url` de la page). Avec `event` : `line`, `event` (avec `provenance`), `window`
+(`years`, `from`, `to`), `images_total`, `images` (champs de l'outil `media`, plus `gap_years`, `gap_years_min`, `gap_years_max`, `gap_exact` et `attached`),
+`documents` (champs de `line_archives`, plus `gap_years`), `stations` (gares de la portion : nom et slug), `rules`,
+`archives_mention` et `vff_url`.
+
+`gap_years` est l'écart signé avec l'année de l'événement : 4 = quatre ans après, -2 = deux ans avant, 0 = la même
+année, nul pour une image de l'événement sans date. Dites-le au lecteur : une photo de 1934 n'est pas une photo de
+l'ouverture de 1930. Quand `gap_exact` est faux, la date de l'image est approximative : `gap_years_min` et
+`gap_years_max` bornent l'écart possible, à dire « environ trois ans avant » ou « de trois ans avant à deux ans
+après ». Erreurs : `line_not_found`, `event_not_on_line` (l'événement est celui d'une autre ligne),
+`no_story` (sous le seuil, ou type sans histoire).
+
+Droits : montrez chaque image avec son auteur, sa licence et sa source ; citez la source de l'événement. Gallica :
+métadonnées sous Licence Ouverte, jamais d'image, renvoyez le lecteur vers `gallica_url`.
+
+```json
+{"line": "rfn-340000", "event": 12793}
 ```
 
 ### `locate_on_line` : point kilométrique d'un lieu

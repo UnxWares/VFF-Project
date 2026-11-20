@@ -2,7 +2,12 @@
     import { i18n } from '$lib/i18n.js';
     import { formatEventDate } from '$lib/linePhases.js';
     import { firstOfMonth, formatLocale, formatNumber, tieUnits } from '$lib/typo.js';
-    import { mediaHeading, mediaLicenseHref, mediaLicenseLabel } from '$lib/mediaCredits.js';
+    import {
+        mediaHeading,
+        mediaLicenseHref,
+        mediaLicenseLabel,
+        mediaSourceHref,
+    } from '$lib/mediaCredits.js';
     import { conciseAlt } from '$lib/altText.js';
 
     /**
@@ -13,8 +18,13 @@
      * description_lang / quote_lang = « fr » pour ce qui reste une citation en français.
      * Images d'un événement (`e.media`, publiées après validation) : petite vignette chargée au
      * besoin (groupes repliés, `loading="lazy"`), lien vers l'image en grand et crédit complet.
+     * `stories` : événements qui ont une histoire (App\Services\Stories\EventStories), lien « Voir
+     * l'histoire » sous chacun, sauf pour un doublon d'un fait retenu (statut agrees) ou le fait d'une
+     * autre ligne ; `lineSlug` construit l'adresse /lines/{slug}/stories/{id}.
      */
-    let { chronicle } = $props();
+    let { chronicle, stories = [], lineSlug = null } = $props();
+    const withStory = $derived(new Set(lineSlug ? stories : []));
+    const hasStory = (e) => withStory.has(e.id) && !['agrees', 'other_line'].includes(e.status);
 
     const lang = $derived($i18n.language ?? 'fr');
     const dateOf = (iso, precision) =>
@@ -104,8 +114,8 @@
                             target="_blank"
                             rel="noopener noreferrer license"
                             >{mediaLicenseLabel(m, t)}{@render ext()}</a
-                        >{:else}{mediaLicenseLabel(m, t)}{/if}{#if m.source_url},
-                        <a href={m.source_url} target="_blank" rel="noopener noreferrer"
+                        >{:else}{mediaLicenseLabel(m, t)}{/if}{#if mediaSourceHref(m)},
+                        <a href={mediaSourceHref(m)} target="_blank" rel="noopener noreferrer"
                             >{t('media.via', { provider: m.provider_label })}{@render ext()}</a
                         >{/if}{#if m.contribution_id},
                         {t('media.contributed')}{/if}
@@ -205,6 +215,14 @@
                                         </span>
                                     {/if}
                                     {#if e.media?.length}{@render eventMedia(e.media)}{/if}
+                                    {#if hasStory(e)}<a
+                                            class="ev-story"
+                                            href="/lines/{lineSlug}/stories/{e.id}"
+                                            aria-label={t('stories.link_label', {
+                                                event: eventLabel(e.type),
+                                                date: dateOf(e.date, e.precision),
+                                            })}>{t('stories.link')}</a
+                                        >{/if}
                                 </td>
                                 <td
                                     ><span class="vff-badge {BADGE[e.status] ?? 'muted'}"
@@ -390,6 +408,12 @@
         margin-top: 4px;
         font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
+    }
+    /* Lien vers l'histoire de l'événement (images de l'époque, archives), sous son texte. */
+    .ev-story {
+        display: inline-block;
+        margin-top: 6px;
+        font-weight: 600;
     }
     /* Images d'un événement : vignette de 120 px et crédit à côté (dessous sur téléphone). */
     .ev-media {

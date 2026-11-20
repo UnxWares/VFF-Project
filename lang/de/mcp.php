@@ -42,6 +42,8 @@ return [
         'station_not_in_network' => 'Einer der Bahnhöfe wird vom damals betriebenen Netz nicht bedient.',
         'no_path' => 'Keine Route zwischen :from und :to im damals betriebenen Netz.',
         'invalid_uri' => 'Ungültige Ressourcenadresse: erwartet vff://{lang}/lines/{slug}, lang = fr, en oder de.',
+        'event_not_on_line' => 'Das Ereignis :event gehört nicht zur Strecke :line. Verwenden Sie eine ID aus line_events oder aus line_stories ohne `event`.',
+        'no_story' => 'Das Ereignis :event hat keine Geschichte: weniger als 3 Bilder und Dokumente, die höchstens 5 Jahre entfernt datiert sind (davon 2 Bilder), oder ein Ereignistyp ohne Geschichte.',
     ],
 
     'truncated' => 'Antwort gekürzt, um unter der Höchstgröße zu bleiben: Grenzen Sie die Anfrage ein (Zeitraum, Typen, Limit).',

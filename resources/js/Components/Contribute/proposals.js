@@ -7,6 +7,7 @@
 
 import { formatStationDate } from '$lib/stationDates.js';
 import { NBSP, formatLocale } from '$lib/typo.js';
+import { webHref } from '$lib/webUrl.js';
 import { formatPk } from './segmentChanges.js';
 
 export const EVENT_TYPE = 'line_event';
@@ -515,7 +516,7 @@ export function mediaFacts(p, t, lang) {
                     ? 'proposals.review.kind_media_commons'
                     : 'proposals.review.kind_media_upload',
             ),
-            href: commons?.source_url ?? null,
+            href: webHref(commons?.source_url),
         },
         {
             id: 'target',
@@ -537,7 +538,8 @@ export function mediaFacts(p, t, lang) {
             id: 'license',
             label: t('proposals.review.license'),
             text: commons?.license ?? p.license_name ?? '',
-            href: commons?.license_url ?? p.license_url ?? null,
+            // Adresse venue de Commons (ou de la licence choisie) : http(s) seulement, sinon le nom sans lien.
+            href: webHref(commons?.license_url ?? p.license_url),
         },
     ];
     if (!commons && p.captured)

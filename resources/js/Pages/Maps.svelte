@@ -4,6 +4,7 @@
     import Layout from '$components/Layout.svelte';
     import SectionBlock from '$components/SectionBlock.svelte';
     import RailMap from '$components/Map/RailMap.svelte';
+    import SchematicMap from '$components/Map/SchematicMap.svelte';
     import TimelineSlider from '$components/Map/TimelineSlider.svelte';
     import EmbedCodeModal from '$components/Map/EmbedCodeModal.svelte';
     import LineDrawer from '$components/Map/LineDrawer.svelte';
@@ -15,7 +16,7 @@
     import EraCompareBar from '$components/Map/EraCompareBar.svelte';
     import LayerPicker from '$components/Map/LayerPicker.svelte';
     import { i18n } from '$lib/i18n.js';
-    import { defaultPair, readViewParams, writeViewParams } from '$lib/epochViews.js';
+    import { defaultPair, mapViews, readViewParams, writeViewParams } from '$lib/epochViews.js';
     import { accidentYears, countAccidents, fetchAccidents } from '$lib/accidentMap.js';
     import { LEVEL_CROSSING_MIN_ZOOM } from '$lib/levelCrossingMap.js';
     import { NO_ORM, activeLayers, layerNotices, readLayers, writeLayers } from '$lib/mapLayers.js';
@@ -24,7 +25,18 @@
     // « Lire la carte » : ce que montre la carte, au présent (vocabulaire de la légende).
     const READING = ['era', 'views', 'color', 'line', 'sheet', 'route', 'layers'];
 
-    let { eras: erasProp = null, currentEraYear = 2030, dataVersion = 'v0' } = $props();
+    // `schematic` : vue ferroviaire proposée (config maps.schematic, MapController).
+    let {
+        eras: erasProp = null,
+        currentEraYear = 2030,
+        dataVersion = 'v0',
+        schematic = false,
+    } = $props();
+    // Vues du choix « Vue » ; la vue ferroviaire vient après celles de la carte.
+    const views = $derived(mapViews(schematic));
+    const reading = $derived(
+        schematic ? [...READING.slice(0, 2), 'schema', ...READING.slice(2)] : READING,
+    );
     // TOUTES les décennies sont sélectionnables (1830 → 2030) ; celles sans
     // tracé reconstitué sont signalées (marqueur en pointillé + bandeau) au lieu
     // d'être masquées. Repli sur 5 ères si pas de prop.
@@ -65,7 +77,8 @@
     // alors le trajet le plus récent, `earlierRoute` le plus ancien (dessiné dessous).
     let routeComparison = $state.raw(null);
     let earlierRoute = $state.raw(null);
-    // Vue : une décennie ('era'), deux décennies comparées ('compare'), toutes ('stack').
+    // Vue : une décennie ('era'), deux décennies comparées ('compare'), toutes ('stack'), plan
+    // schématique d'une décennie ('schema', vue ferroviaire).
     let view = $state('era');
     // Décennies comparées (compareFrom < compareTo), choisies au passage à la comparaison.
     let compareFrom = $state(null);
@@ -75,8 +88,11 @@
         if (next === 'compare' && compareFrom === null) {
             [compareFrom, compareTo] = defaultPair(selectedEra, eras, currentEraYear) ?? [];
         }
-        // La fiche latérale décrit une ligne à UNE décennie : elle se ferme hors de cette vue.
-        if (next !== 'era') drawerLine = null;
+        // La fiche latérale décrit une ligne à UNE décennie : elle reste ouverte entre la carte et la
+        // vue ferroviaire (même décennie), et se ferme dans les autres vues.
+        if (next !== 'era' && next !== 'schema') drawerLine = null;
+        // Une gare cherchée avant de changer de vue n'est pas rejointe de nouveau par la carte qui s'ouvre.
+        if (next !== view) flyTarget = null;
         view = next;
     }
 
@@ -109,7 +125,14 @@
             return;
         }
         if (picked.type === 'station') {
-            flyTarget = { lng: picked.lng, lat: picked.lat, zoom: 13, key: Date.now() };
+            // `slug` : la vue ferroviaire vole vers la place de la gare sur le plan.
+            flyTarget = {
+                lng: picked.lng,
+                lat: picked.lat,
+                zoom: 13,
+                key: Date.now(),
+                slug: picked.slug,
+            };
         }
     }
 
@@ -200,19 +223,22 @@
 
     // Messages des calques posés sur la carte : échec des accidents, calques connus seulement
     // aujourd'hui (une phrase pour un ou deux calques), aide au zoom des passages à niveau.
+    // La vue ferroviaire ne dessine pas les calques : aucun message de calque.
     const mapNotices = $derived(
-        layerNotices(drawn, {
-            showingToday,
-            accidentsFailed: accidentsState === 'error',
-            zoom: mapZoom,
-            minZoom: LEVEL_CROSSING_MIN_ZOOM,
-        }).map((n) => ({ ...n, text: $i18n.t(n.textKey) })),
+        view === 'schema'
+            ? []
+            : layerNotices(drawn, {
+                  showingToday,
+                  accidentsFailed: accidentsState === 'error',
+                  zoom: mapZoom,
+                  minZoom: LEVEL_CROSSING_MIN_ZOOM,
+              }).map((n) => ({ ...n, text: $i18n.t(n.textKey) })),
     );
 
-    // Adresse partageable : ?era=1930, ?era=1930&compare=1980, ?view=stack, et ?layer=… pour
-    // chaque calque (lue au montage).
+    // Adresse partageable : ?era=1930, ?era=1930&compare=1980, ?view=stack, ?view=schema&era=1930
+    // (vue ferroviaire), et ?layer=… pour chaque calque (lue au montage).
     onMount(() => {
-        const fromUrl = readViewParams(window.location.search, eras);
+        const fromUrl = readViewParams(window.location.search, eras, views);
         if (fromUrl.era !== null) selectedEra = fromUrl.era;
         if (fromUrl.view === 'compare') {
             compareFrom = fromUrl.era;
@@ -276,14 +302,17 @@
                             <SearchBox onPick={onSearchPick} />
                         </div>
                         <div class="toolbar-view">
-                            <EraViewSwitch bind:view={() => view, setView} />
+                            <EraViewSwitch bind:view={() => view, setView} {views} />
                         </div>
                         <div class="toolbar-tools">
-                            <LayerPicker
-                                bind:data={() => dataLayers, setDataLayers}
-                                bind:orm={() => ormLayer, setOrmLayer}
-                                bind:tint={() => tintOn, setTint}
-                            />
+                            <!-- Les calques se posent sur la carte géographique : pas sur le plan. -->
+                            {#if view !== 'schema'}
+                                <LayerPicker
+                                    bind:data={() => dataLayers, setDataLayers}
+                                    bind:orm={() => ormLayer, setOrmLayer}
+                                    bind:tint={() => tintOn, setTint}
+                                />
+                            {/if}
                             <button
                                 type="button"
                                 class="vff-btn secondary embed-btn"
@@ -296,32 +325,8 @@
                         </div>
                     </div>
 
-                    <RailMap
-                        era={view === 'compare' ? compareFrom : selectedEra}
-                        {view}
-                        compareEra={compareTo}
-                        geolocate
-                        currentEra={currentEraYear}
-                        {hidden}
-                        mode={colorMode}
-                        overlay={ormLayer}
-                        tint={tintOn}
-                        accidents={showAccidents ? accidentData : null}
-                        levelCrossings={showLevelCrossings}
-                        signalling={showSignalling}
-                        greenways={drawn.greenways}
-                        onZoomChange={(z) => (mapZoom = z)}
-                        {dataVersion}
-                        {flyTarget}
-                        {route}
-                        {earlierRoute}
-                        height="100%"
-                        fitBounds={FRANCE_BOUNDS}
-                        {fitPadding}
-                        selectedLine={drawerLine?.slug ?? null}
-                        fullscreenContainer={mapFrameEl}
-                        onLineClick={(props) => (drawerLine = props)}
-                    >
+                    <!-- Légende, messages, fiche latérale : posés sur la carte comme sur le plan. -->
+                    {#snippet mapOverlays()}
                         <div class="legend-slot">
                             <MapLegend
                                 era={view === 'compare' ? compareFrom : selectedEra}
@@ -368,8 +373,8 @@
                             </div>
                         {/if}
                         <!-- Chargement ou échec du calque « Accidents », calques du réseau d'aujourd'hui,
-                             aide au zoom des passages à niveau : annoncés aussi quand la légende est
-                             repliée (téléphone). -->
+                         aide au zoom des passages à niveau : annoncés aussi quand la légende est
+                         repliée (téléphone). -->
                         <p class="vff-sr-only" role="status">
                             {[
                                 showAccidents && accidentsState === 'loading'
@@ -390,7 +395,52 @@
                             </div>
                         {/if}
                         <LineDrawer bind:line={drawerLine} currentEra={currentEraYear} />
-                    </RailMap>
+                    {/snippet}
+
+                    {#if view === 'schema'}
+                        <SchematicMap
+                            era={selectedEra}
+                            currentEra={currentEraYear}
+                            {hidden}
+                            selectedLine={drawerLine?.slug ?? null}
+                            onLineClick={(props) => (drawerLine = props)}
+                            {flyTarget}
+                            fitBounds={FRANCE_BOUNDS}
+                            {fitPadding}
+                            fullscreenContainer={mapFrameEl}
+                        >
+                            {@render mapOverlays()}
+                        </SchematicMap>
+                    {:else}
+                        <RailMap
+                            era={view === 'compare' ? compareFrom : selectedEra}
+                            {view}
+                            compareEra={compareTo}
+                            geolocate
+                            currentEra={currentEraYear}
+                            {hidden}
+                            mode={colorMode}
+                            overlay={ormLayer}
+                            tint={tintOn}
+                            accidents={showAccidents ? accidentData : null}
+                            levelCrossings={showLevelCrossings}
+                            signalling={showSignalling}
+                            greenways={drawn.greenways}
+                            onZoomChange={(z) => (mapZoom = z)}
+                            {dataVersion}
+                            {flyTarget}
+                            {route}
+                            {earlierRoute}
+                            height="100%"
+                            fitBounds={FRANCE_BOUNDS}
+                            {fitPadding}
+                            selectedLine={drawerLine?.slug ?? null}
+                            fullscreenContainer={mapFrameEl}
+                            onLineClick={(props) => (drawerLine = props)}
+                        >
+                            {@render mapOverlays()}
+                        </RailMap>
+                    {/if}
 
                     {#if view === 'compare'}
                         <EraCompareBar
@@ -399,7 +449,7 @@
                             bind:from={compareFrom}
                             bind:to={compareTo}
                         />
-                    {:else if view === 'era'}
+                    {:else if view === 'era' || view === 'schema'}
                         <TimelineSlider
                             {eras}
                             {emptyYears}
@@ -452,7 +502,7 @@
             maxWidth="1100px"
         >
             <dl class="reading">
-                {#each READING as key (key)}
+                {#each reading as key (key)}
                     <div class="reading-item">
                         <dt>{$i18n.t(`maps.read.${key}_term`)}</dt>
                         <dd>{$i18n.t(`maps.read.${key}_text`)}</dd>

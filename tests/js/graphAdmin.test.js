@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import i18next from 'i18next';
 import { describe, expect, it } from 'vitest';
 import {
     CHECKS_BY_LAYER,
@@ -16,6 +18,8 @@ import {
     itemTarget,
     latestRequest,
     layerFigures,
+    listCount,
+    listStatus,
     listView,
     lineColor,
     nodeColorExpr,
@@ -364,5 +368,95 @@ describe('corrections de la relecture', () => {
         requests.cancel();
         expect(second.aborted).toBe(true);
         expect(requests.isCurrent(second)).toBe(false);
+    });
+});
+
+/** Chaînes réelles de `checks.*` d'une langue (lang/<lang>/graph_admin.php), dans une instance i18next à part. */
+function realT(lang) {
+    const php = readFileSync(
+        new URL(`../../lang/${lang}/graph_admin.php`, import.meta.url),
+        'utf8',
+    );
+    const checks = php.slice(php.indexOf("'checks' =>"));
+    const translation = {};
+    for (const key of ['filtered_one', 'filtered_other', 'total', 'empty_filtered']) {
+        const value = checks.match(new RegExp(`'${key}' => '([^']*)'`))[1];
+        translation[`graph_admin.checks.${key}`] = value.replace(/:(\w+)/g, '{{$1}}');
+    }
+    const instance = i18next.createInstance();
+    instance.init({
+        lng: lang,
+        resources: { [lang]: { translation } },
+        keySeparator: false,
+        nsSeparator: false,
+        initAsync: false,
+        interpolation: { escapeValue: false },
+    });
+    return (key, opts) => instance.t(key, opts);
+}
+
+describe('compte de la liste filtrée', () => {
+    const num = (n) => String(n);
+
+    it.each([
+        ['fr', '1 sur 25 correspond au filtre', '18 sur 25 correspondent au filtre'],
+        ['en', '1 of 25 matches the filter', '18 of 25 match the filter'],
+        ['de', '1 von 25 entspricht dem Filter', '18 von 25 entsprechen dem Filter'],
+    ])('accorde le verbe au nombre retenu (%s)', (lang, one, other) => {
+        const tr = realT(lang);
+        expect(listCount({ total: 25, filtered: 1 }, true, tr, num)).toBe(one);
+        expect(listCount({ total: 25, filtered: 18 }, true, tr, num)).toBe(other);
+    });
+
+    it('passe le nombre brut pour le pluriel et le nombre mis en forme pour l’affichage', () => {
+        const fmt = (n) => Number(n).toLocaleString('fr');
+        expect(listCount({ total: 2500, filtered: 1200 }, true, t, fmt)).toBe(
+            `graph_admin.checks.filtered ${JSON.stringify({ count: 1200, value: fmt(1200), total: fmt(2500) })}`,
+        );
+        expect(listCount({ total: 25, filtered: 25 }, false, t, num)).toBe(
+            'graph_admin.checks.total {"total":"25"}',
+        );
+    });
+});
+
+describe('zone d’état de la liste (role="status")', () => {
+    const num = (n) => String(n);
+    const list = (filtered, total = 25) => ({
+        total,
+        filtered,
+        items: Array.from({ length: Math.min(filtered, 25) }, (_, i) => ({ id: i })),
+    });
+    const state = (over) => ({
+        busy: false,
+        error: false,
+        page: 1,
+        list: null,
+        filtering: false,
+        ...over,
+    });
+
+    it('annonce le chargement, puis le nombre d’éléments retenus par le filtre', () => {
+        expect(listStatus(state({ busy: true, page: 2 }), t, num)).toBe(
+            'graph_admin.checks.loading_page {"page":2}',
+        );
+        expect(listStatus(state({ list: list(18), filtering: true }), t, num)).toBe(
+            'graph_admin.checks.filtered {"count":18,"value":"18","total":"25"}',
+        );
+        expect(listStatus(state({ list: list(25) }), t, num)).toBe(
+            'graph_admin.checks.total {"total":"25"}',
+        );
+    });
+
+    it('annonce « aucune ne correspond » quand le filtre ne retient rien', () => {
+        const tr = realT('fr');
+        expect(listStatus(state({ list: list(0), filtering: true }), tr, num)).toBe(
+            'Aucune jonction ne correspond au filtre.',
+        );
+        expect(listStatus(state({ list: list(0) }), t, num)).toBe('graph_admin.checks.empty');
+    });
+
+    it('annonce l’erreur, et rien tant qu’aucune liste n’est arrivée', () => {
+        expect(listStatus(state({ error: true }), t, num)).toBe('graph_admin.checks.error');
+        expect(listStatus(state({}), t, num)).toBe('');
     });
 });

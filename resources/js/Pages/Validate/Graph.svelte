@@ -28,6 +28,8 @@
         layerFigures,
         listView,
         lineColor,
+        listCount,
+        listStatus,
         pageQuery,
     } from '$lib/graphAdmin.js';
     import { i18n } from '$lib/i18n.js';
@@ -545,13 +547,20 @@
                         </form>
                     {/if}
 
-                    <!-- État de la liste annoncé aux lecteurs d'écran (chargement, puis total). -->
+                    <!-- État de la liste annoncé aux lecteurs d'écran : chargement, puis le compte (filtré
+                         ou total) ou « aucune ne correspond ». -->
                     <p class="vff-sr-only" role="status">
-                        {#if listBusy}
-                            {t('graph_admin.checks.loading_page', { page: listPage })}
-                        {:else if listState === 'error'}
-                            {t('graph_admin.checks.error')}
-                        {/if}
+                        {listStatus(
+                            {
+                                busy: listBusy,
+                                error: listState === 'error',
+                                page: listPage,
+                                list: shownList,
+                                filtering,
+                            },
+                            t,
+                            num,
+                        )}
                     </p>
                     {#if listShown.view === 'error'}
                         <p class="error">{t('graph_admin.checks.error')}</p>
@@ -559,16 +568,7 @@
                         <p class="muted">{t('graph_admin.checks.loading')}</p>
                     {:else}
                         <div class="list-head">
-                            <p class="count">
-                                {#if filtering}
-                                    {t('graph_admin.checks.filtered', {
-                                        count: num(shownList.filtered),
-                                        total: num(shownList.total),
-                                    })}
-                                {:else}
-                                    {t('graph_admin.checks.total', { total: num(shownList.total) })}
-                                {/if}
-                            </p>
+                            <p class="count">{listCount(shownList, filtering, t, num)}</p>
                             {#if shownList.filtered > 0}
                                 <a
                                     class="vff-btn secondary small"

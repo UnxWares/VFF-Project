@@ -31,6 +31,7 @@ class ApiDocsTest extends TestCase
         '/stats', '/eras', '/eras/{year}',
         '/eras/{year}/lines.geojson',
         '/eras/{year}/stations.geojson',
+        '/eras/{year}/schematic.geojson',
         '/eras/{year}/tiles/{z}/{x}/{y}.mvt',
         '/eras/{year}/gtfs.zip',
         '/lines', '/lines/{line}', '/lines/{line}/segments', '/lines/{line}/geojson',
