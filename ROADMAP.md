@@ -61,7 +61,7 @@ Base technique propre, sur laquelle tout le reste repose.
 - [x] Tests de mutation : services purs (`make mutation`) et règles métier critiques (`make mutation-critical` : moteur de la carte historique, desserte des gares, validation à deux, dates partielles, énumérations, matériel, images), 93 % des mutants tués, seuil de 92 % qui bloque les régressions ; hors CI bloquante (un quart d'heure)
 - [x] Mise au format de tout le dépôt : Pint (PHP) et Prettier (front, tests JS, scripts, configuration JS) contrôlent tout le dépôt et bloquent en CI
 - [ ] Suivi des erreurs et de la disponibilité (Sentry ou équivalent auto-hébergé, Uptime Kuma)
-- [~] Hooks avant commit (Lefthook) : configuration prête, alignée sur la CI, à installer
+- [x] Hooks avant commit (Lefthook) : installés (`node_modules/.bin/lefthook install --force` avec un `core.hooksPath` local au dépôt ; `lefthook-local.yml`, non suivi, relance les crochets globaux de chaque poste)
 
 🎯 **Jalon "Foundations Done"** : atteint.
 
