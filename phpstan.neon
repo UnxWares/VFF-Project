@@ -1,0 +1,45 @@
+# PHPStan + Larastan : analyse statique du code PHP (sans base de données).
+#
+#   composer analyse                 # ou : make analyse
+#   composer analyse:baseline        # régénère phpstan-baseline.neon (dette existante)
+#
+# Niveau 6 : types incohérents, méthodes / propriétés inexistantes, code mort,
+# conditions toujours vraies, PHPDoc faux, paramètres et retours non typés.
+# On n'exige pas encore le type des valeurs des tableaux (`array<string, int>`) :
+# ~600 signatures à annoter, sans bug à la clé.
+#
+# La baseline (phpstan-baseline.neon) gèle la dette existante : toute NOUVELLE
+# erreur fait échouer l'analyse. On la réduit en corrigeant, on ne l'allonge
+# qu'en régénérant (après revue), jamais pour masquer un bug.
+
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    level: 6
+
+    paths:
+        - app/
+        - database/
+        - routes/
+        - tests/
+
+    ignoreErrors:
+        - identifier: missingType.iterableValue
+
+    # Larastan : vérifie les noms de colonnes passés à where(), orderBy(), create()…
+    # d'après les migrations.
+    checkModelProperties: true
+
+    # Cache persistant (bin/php tourne dans un conteneur éphémère : /tmp est perdu).
+    tmpDir: storage/framework/cache/phpstan
+
+    # Machine partagée (plafond 80 % CPU) : 4 workers suffisent largement.
+    parallel:
+        maximumNumberOfProcesses: 4
+
+    # Plusieurs chantiers modifient le code en parallèle : une entrée de baseline
+    # devenue sans objet (erreur corrigée) ne fait pas échouer l'analyse.
+    # Penser à régénérer la baseline de temps en temps pour la faire maigrir.
+    reportUnmatchedIgnoredErrors: false

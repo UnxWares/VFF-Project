@@ -1,0 +1,383 @@
+/* Référence GraphQL (Magidoc, gabarit carbon-multi-page) aux couleurs de VFF.
+   Copié tel quel dans public/docs/graphql/ par `bin/pnpm docs:graphql`.
+   Le thème est celui du site : cookie `theme` (dark | light) s'il existe, sinon réglage du système
+   (script de public/docs/graphql/*.html corrigé par resources/docs/graphql/postbuild.mjs ; le gabarit
+   pose l'attribut theme="white" ou theme="g100" sur <html>).
+   Les polices du site (WOFF2 copiées de @fontsource, OFL) remplacent IBM Plex : aucune police n'est chargée chez un tiers. */
+
+@font-face {
+    font-family: Lato;
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('lato-latin-400-normal.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+        U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: Lato;
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('lato-latin-ext-400-normal.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: Lato;
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('lato-latin-700-normal.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+        U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: Lato;
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('lato-latin-ext-700-normal.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: Inter;
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('inter-latin-400-normal.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+        U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: Inter;
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('inter-latin-ext-400-normal.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: Inter;
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('inter-latin-600-normal.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+        U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: Inter;
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('inter-latin-ext-600-normal.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: Inter;
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('inter-latin-700-normal.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+        U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: Inter;
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('inter-latin-ext-700-normal.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: Gabarito;
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('gabarito-latin-400-normal.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+        U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: Gabarito;
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('gabarito-latin-ext-400-normal.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: Gabarito;
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('gabarito-latin-700-normal.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+        U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: Gabarito;
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('gabarito-latin-ext-700-normal.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+        U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+    --vff-font-body: Lato, 'Helvetica Neue', Arial, sans-serif;
+    --vff-font-heading: Inter, 'Helvetica Neue', Arial, sans-serif;
+    --vff-font-display: Gabarito, 'Helvetica Neue', Arial, sans-serif;
+    --vff-font-mono:
+        'SF Mono', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Liberation Mono', monospace;
+}
+
+/* ─── Polices ─────────────────────────────────────────────────────────── */
+
+html body,
+html body *:not(code):not(pre):not(kbd):not(samp):not(code *):not(pre *) {
+    font-family: var(--vff-font-body) !important;
+}
+html body h1,
+html body h2,
+html body h3,
+html body h4,
+html body .bx--side-nav__submenu-title,
+html body .bx--side-nav__link-text {
+    font-family: var(--vff-font-heading) !important;
+}
+html body h1 {
+    font-family: var(--vff-font-display) !important;
+}
+html body code,
+html body pre,
+html body kbd,
+html body samp,
+html body code *,
+html body pre * {
+    font-family: var(--vff-font-mono) !important;
+}
+
+/* ─── Couleurs : orange VFF à la place du bleu Carbon ─────────────────── */
+
+:root,
+[theme='white'],
+[theme='g10'] {
+    --cds-interactive: #b84800 !important;
+    --cds-interactive-01: #b84800 !important;
+    --cds-interactive-03: #b84800 !important;
+    --cds-interactive-04: #b84800 !important;
+    --cds-brand-01: #b84800 !important;
+    --cds-brand-03: #b84800 !important;
+    --cds-background-brand: #ff6500 !important;
+    --cds-button-primary: #b84800 !important;
+    --cds-button-primary-active: #8f3800 !important;
+    --cds-button-tertiary: #b84800 !important;
+    --cds-active-primary: #8f3800 !important;
+    --cds-border-interactive: #ff6500 !important;
+    --cds-focus: #ff6500 !important;
+    --cds-highlight: #ffe3cf !important;
+    --cds-link-01: #b84800 !important;
+    --cds-link-02: #8f3800 !important;
+    --cds-link-primary: #b84800 !important;
+    --cds-link-primary-hover: #8f3800 !important;
+    --cds-hover-primary-text: #8f3800 !important;
+    --sidenav-bg-light: #fcfcfd;
+    --code-span-light: #f1f3f5;
+}
+
+@media all {
+    :root[theme='g90'],
+    :root[theme='g100'],
+    [theme='g90'],
+    [theme='g100'] {
+        --cds-interactive: #ff8a3d !important;
+        --cds-interactive-01: #ff6500 !important;
+        --cds-interactive-03: #ff8a3d !important;
+        --cds-interactive-04: #ff8a3d !important;
+        --cds-brand-01: #ff6500 !important;
+        --cds-brand-03: #ff8a3d !important;
+        --cds-background-brand: #ff6500 !important;
+        --cds-button-primary: #ff6500 !important;
+        --cds-button-primary-active: #b84800 !important;
+        --cds-button-tertiary: #ff8a3d !important;
+        --cds-active-primary: #b84800 !important;
+        --cds-border-interactive: #ff8a3d !important;
+        --cds-focus: #ff8a3d !important;
+        --cds-highlight: #4a2a14 !important;
+        --cds-link-01: #ff8a3d !important;
+        --cds-link-02: #ffae75 !important;
+        --cds-link-primary: #ff8a3d !important;
+        --cds-link-primary-hover: #ffae75 !important;
+        --cds-hover-primary-text: #ffae75 !important;
+        --cds-ui-background: #0f1419 !important;
+        --cds-background: #0f1419 !important;
+        --cds-ui-01: #181f29 !important;
+        --cds-layer: #181f29 !important;
+        --cds-layer-01: #181f29 !important;
+        --cds-field: #181f29 !important;
+        --cds-field-01: #181f29 !important;
+        --cds-ui-03: #2a3441 !important;
+        --cds-border-subtle: #2a3441 !important;
+        --cds-border-subtle-01: #2a3441 !important;
+        --sidenav-bg-dark: #121820;
+        --code-span-dark: #232c39;
+    }
+}
+
+/* Menu latéral et code en ligne : le gabarit les colore d'après prefers-color-scheme (le système), pas
+   d'après l'attribut theme ; on les fixe selon le thème du site. */
+:root[theme='white'] {
+    --sidenav-bg: #fcfcfd;
+    --sidenav-text: #000000;
+    --sidenav-l: #161616;
+    --code-span: #e8ecec;
+}
+:root[theme='g100'] {
+    --sidenav-bg: #121820;
+    --sidenav-text: #e8ecec;
+    --sidenav-l: #cbd5e1;
+    --code-span: #232c39;
+}
+html body .code-span {
+    color: inherit;
+}
+/* Code en ligne long (« GET /api/v1/eras/{year}/compare/{other} ») : coupé dans la ligne plutôt que
+   d'élargir la page. Sans cela, à 320 px, la page faisait 360 px et l'en-tête fixe aussi (RGAA 10.11). */
+html body .code-span {
+    overflow-wrap: anywhere;
+}
+
+/* Icônes de l'en-tête : orange du site, pas le bleu Carbon. */
+html body .bx--header__action,
+html body .bx--header__action svg,
+html body .bx--header .bx--btn--primary {
+    color: var(--cds-link-primary) !important;
+    fill: currentColor !important;
+}
+html body .bx--header .bx--btn--primary {
+    background-color: transparent !important;
+}
+
+/* Blocs de code (fond #282c34) : noms de champs et symboles en rose clair, 6,5:1 (le #e06c75 d'origine
+   n'atteint que 4,4:1). */
+html body .token.property,
+html body .token.tag,
+html body .token.symbol,
+html body .token.deleted,
+html body .token.important {
+    color: #f19aa1 !important;
+}
+
+/* Bandeau supérieur : filet orange comme sur le site. */
+html body .bx--header {
+    border-bottom: 3px solid #ff6500 !important;
+}
+
+/* Élément sélectionné du menu latéral. */
+html body .bx--side-nav__link[aria-current='page'],
+html body .bx--side-nav__link--current {
+    background-color: var(--cds-highlight) !important;
+}
+html body .bx--side-nav__link[aria-current='page']::before,
+html body .bx--side-nav__link--current::before {
+    background-color: #ff6500 !important;
+}
+
+/* Entrée courante du menu latéral : texte du menu (noir ou clair), lisible sur le fond orange pâle. */
+html body .bx--side-nav__link[aria-current='page'] .bx--side-nav__link-text,
+html body .bx--side-nav__link--current .bx--side-nav__link-text {
+    color: var(--sidenav-text) !important;
+    font-weight: 600;
+}
+
+/* Liens du contenu. */
+html body main a:not(.bx--btn) {
+    color: var(--cds-link-primary);
+}
+
+/* Titres : pas de coupure au milieu d'un mot (le gabarit coupe n'importe où : « V / FF ») ; taille
+   réduite sur téléphone. Sélecteur plus précis que `.header.svelte-xxx` du gabarit. */
+html body h1.header.header-base,
+html body h2.header.header-base {
+    overflow-wrap: normal;
+    word-break: normal;
+}
+@media (max-width: 640px) {
+    html body h1.header {
+        font-size: 2.25rem;
+        line-height: 1.2;
+    }
+}
+
+/* Coloration des exemples de code (thème sombre de Prism, fond #282c34) : jetons trop pâles relevés à
+   4,5:1 au moins (RGAA 3.2). Ponctuation des gabarits « ${ } » : 5,8:1 ; commentaires : 5,4:1. */
+html body [class*='language-'] .token.interpolation-punctuation {
+    color: #ef8a92 !important;
+}
+html body [class*='language-'] .token.comment,
+html body [class*='language-'] .token.prolog,
+html body [class*='language-'] .token.cdata {
+    color: #9aa1ad !important;
+}
+
+/* Lien d'évitement (RGAA 12.7), ajouté en tête de chaque page par postbuild.mjs : caché hors de
+   l'écran, il apparaît au premier appui sur Tab, par-dessus l'en-tête. */
+.vff-skip-link {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 10000;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #8f3800;
+    font-weight: 700;
+    text-decoration: underline;
+    transform: translateY(-200%);
+}
+.vff-skip-link:focus {
+    transform: none;
+    outline: 3px solid #ff6500;
+    outline-offset: 2px;
+}
+:root[theme='g100'] .vff-skip-link {
+    background: #181f29;
+    color: #ffae75;
+}
+
+/* Liens « # » des intertitres : visibles au survol dans le gabarit, aussi au clavier (RGAA 10.7). */
+html body .hashtag:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--cds-focus);
+    outline-offset: 2px;
+}

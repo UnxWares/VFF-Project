@@ -20,21 +20,24 @@ export const SUPPORTED = ['fr', 'en', 'de'];
 export const CANONICAL = 'fr';
 
 export const LOCALES = [
-    { code: 'fr', name: 'Français', flag: '🇫🇷' },
-    { code: 'en', name: 'English', flag: '🇬🇧' },
-    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+    { code: 'fr', name: 'Français' },
+    { code: 'en', name: 'English' },
+    { code: 'de', name: 'Deutsch' },
 ];
 
 /**
  * Convertit les placeholders style Laravel `:name` en style i18next `{{name}}`
  * pour rester compatible avec la même source côté back.
+ * Un deux-points collé à un mot (`mailto:contact@…`, `10:30`) n'introduit pas
+ * de placeholder : il est laissé tel quel (sinon les liens mailto: des pages
+ * légales devenaient `mailto{{contact}}@…`).
  */
 function normalize(dict) {
     const out = {};
     for (const [key, value] of Object.entries(dict)) {
         out[key] =
             typeof value === 'string'
-                ? value.replace(/:([a-zA-Z_][a-zA-Z0-9_]*)/g, '{{$1}}')
+                ? value.replace(/(^|[^A-Za-z0-9_]):([a-zA-Z_][a-zA-Z0-9_]*)/g, '$1{{$2}}')
                 : value;
     }
     return out;
@@ -54,6 +57,9 @@ export function setupI18n({ locale, translations }) {
             fallbackLng: CANONICAL,
             supportedLngs: SUPPORTED,
             resources,
+            // Un seul espace de noms (`translation`) : « : » fait partie des clés Laravel
+            // (ex. stations.sources.names.inferred:line_event), ce n'est pas un séparateur.
+            nsSeparator: false,
             interpolation: {
                 escapeValue: false, // Svelte échappe déjà ; on autorise le HTML dans certaines clés `legal.*`
             },

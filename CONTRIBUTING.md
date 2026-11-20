@@ -43,7 +43,7 @@ Voir [Workflow Git](#workflow-git) et [Conventions de code](#conventions-de-code
 
 ### 📝 Documentation
 
-Améliorations du README, ROADMAP, traductions, tutoriels — toutes les PR sur les `.md` sont les bienvenues.
+Améliorations du README, ROADMAP, traductions, tutoriels - toutes les PR sur les `.md` sont les bienvenues.
 
 ### 🐛 Bugs & idées
 
@@ -69,11 +69,11 @@ git switch -c feat/timeline-slider
 ```
 
 **Convention de nommage des branches** :
-- `feat/<short-slug>` — nouvelle fonctionnalité
-- `fix/<short-slug>` — correction de bug
-- `refactor/<short-slug>` — refactoring sans changement de comportement
-- `docs/<short-slug>` — documentation uniquement
-- `chore/<short-slug>` — outillage, deps, CI
+- `feat/<short-slug>` - nouvelle fonctionnalité
+- `fix/<short-slug>` - correction de bug
+- `refactor/<short-slug>` - refactoring sans changement de comportement
+- `docs/<short-slug>` - documentation uniquement
+- `chore/<short-slug>` - outillage, deps, CI
 
 ### 3. Commits
 
@@ -142,23 +142,23 @@ gh pr create --base main
 
 - **ESLint** + **Prettier** (config dans `.eslintrc.cjs` et `.prettierrc`)
 - Composants Svelte : **PascalCase** (`TimelineSlider.svelte`)
-- Pas de jQuery, pas de Vue, pas de React — uniquement Svelte 5
+- Pas de jQuery, pas de Vue, pas de React - uniquement Svelte 5
 - Préférer les **runes** Svelte 5 (`$state`, `$derived`, `$effect`) à l'ancienne syntaxe
 - Stores partagés dans `resources/js/lib/stores/`
 
 #### ⚠ Pièges Svelte 5 spécifiques à VFF
 
-1. **`bind:this` doit utiliser `$state()`** — sinon Svelte 5 émet un warning « not reactive ». Exemple :
+1. **`bind:this` doit utiliser `$state()`** - sinon Svelte 5 émet un warning « not reactive ». Exemple :
    ```svelte
    let headerEl = $state();  // ✅ correct
    let headerEl;             // ❌ warning
    ```
 
-2. **Pas de `<header>` dans les sections internes** — le CSS d'origine a un sélecteur bare `header { height: 200vh }` pour le hero parallax. Toute balise `<header>` ailleurs hérite des 200vh et casse le layout. Utiliser `<div>` ou `<hgroup>`.
+2. **Pas de `<header>` dans les sections internes** - le CSS d'origine a un sélecteur bare `header { height: 200vh }` pour le hero parallax. Toute balise `<header>` ailleurs hérite des 200vh et casse le layout. Utiliser `<div>` ou `<hgroup>`.
 
-3. **Classes globales pour les boutons** — les `<Link>` Inertia rendent leur `<a>` dans le scope d'un sous-composant. Les rules `.vff-btn` scopées dans une page ne s'y appliquent pas. Toujours utiliser les classes globales `.vff-btn` / `.vff-btn.primary` / `.vff-btn.on-cta` / `.vff-btn.ghost-on-cta` définies dans `general.css`.
+3. **Classes globales pour les boutons** - les `<Link>` Inertia rendent leur `<a>` dans le scope d'un sous-composant. Les rules `.vff-btn` scopées dans une page ne s'y appliquent pas. Toujours utiliser les classes globales `.vff-btn` / `.vff-btn.primary` / `.vff-btn.on-cta` / `.vff-btn.ghost-on-cta` définies dans `general.css`.
 
-4. **`all: unset` pour les `<button>` icônes** — sinon ils héritent du style natif du navigateur (bordure grise). Voir `LanguageSwitcher.svelte` pour le pattern.
+4. **`all: unset` pour les `<button>` icônes** - sinon ils héritent du style natif du navigateur (bordure grise). Voir `LanguageSwitcher.svelte` pour le pattern.
 
 ### CSS
 
@@ -166,12 +166,12 @@ gh pr create --base main
 - Préférer les **CSS custom properties** (`--vff-accent`, `--vff-font-display`, `--vff-bg`, `--vff-text`…) pour que le dark mode bascule automatiquement
 - Scoped CSS dans les composants Svelte par défaut, CSS global uniquement pour ce qui s'applique vraiment globalement (`general.css`, `header.css`, `footer.css`)
 - BEM facultatif mais cohérent : `.maps-container > .maps-box > .maps-box__title`
-- **Ne pas modifier** `header.css`, `footer.css`, `whoarewe.css`, `maps.css` (CSS historique du site — uniquement écrit du CSS additif dans `general.css` ou scoped Svelte)
+- **Ne pas modifier** `header.css`, `footer.css`, `whoarewe.css`, `maps.css` (CSS historique du site - uniquement écrit du CSS additif dans `general.css` ou scoped Svelte)
 - Dark mode : ajouter les overrides dans `general.css` sous `[data-theme="dark"]` (cascade additive, pas de `!important` sauf cas extrême)
 
 ### Nommage
 
-- **Anglais** pour les identifiants (variables, fonctions, classes, tables) — convention universelle
+- **Anglais** pour les identifiants (variables, fonctions, classes, tables) - convention universelle
 - **Français** pour les libellés UI et les commentaires inline expliquant un *pourquoi*
 - Slugs URL en kebab-case anglais : `/lines/paris-brest` (mais on peut accepter des alias français)
 
@@ -184,6 +184,32 @@ gh pr create --base main
 
 ---
 
+### Contrôles avant commit (Lefthook)
+
+[Lefthook](https://lefthook.dev) (`lefthook.yml`, dépendance de développement) rejoue localement
+une partie de la CI, sur les seuls fichiers indexés :
+
+| Crochet | Contrôles |
+|---|---|
+| `pre-commit` (en parallèle) | Pint `--test` (PHP), Prettier `--check` et ESLint (JS, Svelte, CSS), tirets interdits (tiret long, demi-cadratin, double tiret de ponctuation ; même règle que `TypographicDashTest`), mentions d'attribution à un outil d'IA, `vff:i18n-check --strict` si un fichier de `lang/` est indexé |
+| `commit-msg` | pas de co-auteur ni de mention d'outil d'IA dans le message |
+| `pre-push` (plus long) | `bin/pnpm check` (svelte-check) et `tests/Unit/Static` |
+
+Tout passe par les enveloppes Podman (`bin/php`, `bin/pnpm`). Le conteneur `bin/pnpm` n'a pas
+git : installer les crochets **depuis l'hôte**, une fois :
+
+```bash
+bin/pnpm install                          # récupère le binaire lefthook
+node_modules/.bin/lefthook install        # écrit les crochets dans .git/hooks
+```
+
+Si `core.hooksPath` est défini globalement (cas de certains postes), Lefthook refuse d'installer :
+exécuter d'abord `git config --local core.hooksPath .git/hooks` dans le dépôt, puis relancer
+l'installation. Lancement manuel, sans commit : `node_modules/.bin/lefthook run pre-commit`
+(ajouter `--all-files` pour tout le dépôt : la dette de style existante, notamment Pint, y apparaît)
+ou `node_modules/.bin/lefthook run pre-push`. Pour sauter exceptionnellement les crochets :
+`LEFTHOOK=0 git commit`. La CI reste l'arbitre.
+
 ## Tests
 
 ```bash
@@ -195,8 +221,29 @@ php artisan test --parallel         # exécution parallèle
 **Règles** :
 - Toute action métier nouvelle → test feature
 - Tout bug fix → test de non-régression d'abord
-- Les tests géo utilisent une vraie base Postgres+PostGIS (pas de mock) — voir `tests/TestCase.php`
+- Les tests géo utilisent une vraie base Postgres+PostGIS (pas de mock) - voir `tests/TestCase.php`
 - Garder les tests rapides : factories légères, pas de seed massif
+
+### Tests de mutation
+
+Infection modifie le code (une condition inversée, une borne décalée…) et vérifie qu'au moins un test
+échoue. Deux périmètres, lancés à la main (longs, hors `make check` et hors CI bloquante) :
+
+```bash
+make mutation            # services purs de géométrie, de texte et de dates (infection.json5)
+make mutation-critical   # règles métier critiques (tests/Mutation/Critical/infection.json5)
+```
+
+`make mutation-critical` couvre le moteur de la carte historique (`EraTimeline`), la desserte des gares
+(`StationServiceClassifier`, `ServicePatternDetector`, `StationServiceDates`), la validation à deux des
+contributions (`ContributionReview`), les dates partielles (`PartialDate`), les énumérations, les règles
+du matériel (`MaterialGaugeRule`, `MaterialTractionRule`) et le nettoyage des images (`ImageSanitizer`).
+Compter un quart d'heure environ avec 4 fils. Les seuils `minMsi` et `minCoveredMsi` du fichier de
+configuration font échouer la commande si le score baisse : un nouveau test va dans `tests/Unit/Mutation`
+ou `tests/Feature/Mutation`, et un nouveau fichier de test d'une classe du périmètre s'ajoute à
+`tests/Mutation/Critical/phpunit.xml`. Un lot seul : `bin/composer test:mutation:critical -- --filter=Services/EraTimeline.php`.
+Base de test dédiée conseillée : `VFF_TEST_DB=vff_<sujet>_test make mutation-critical`. Rapports dans
+`storage/app/reports/infection/critical/`.
 
 ---
 
@@ -207,7 +254,7 @@ Les photos et documents apportés à VFF doivent respecter :
 1. **Licence claire** : domaine public, CC, ou droits cédés explicitement par l'auteur
 2. **Métadonnées** : date de prise de vue (au moins année), lieu (au moins commune), auteur si connu
 3. **Format** : JPEG / PNG pour photos, PDF pour documents, max 10 Mo par fichier
-4. **Pas de filigrane intrusif** — un crédit discret en coin est OK
+4. **Pas de filigrane intrusif** - un crédit discret en coin est OK
 
 Si tu apportes un fonds important (>50 documents), contacte-nous d'abord sur Discord pour qu'on organise l'import.
 
@@ -217,7 +264,7 @@ Si tu apportes un fonds important (>50 documents), contacte-nous d'abord sur Dis
 
 ### Bug
 
-Ouvre une [issue](https://github.com/vff-project/vff/issues/new) avec le template `bug` :
+Ouvre une [issue](https://github.com/UnxWares/VFF-Project/issues/new) avec le template `bug` :
 - Comportement attendu
 - Comportement observé
 - Étapes de reproduction
@@ -230,7 +277,7 @@ Issue avec le template `idea`. Avant de coder, **discute-la d'abord** : c'est pl
 
 ### Question / aide
 
-Plutôt sur [Discord](https://discord.com/invite/6SwTfXBx4h) — réponse plus rapide que sur GitHub.
+Plutôt sur [Discord](https://discord.com/invite/6SwTfXBx4h) - réponse plus rapide que sur GitHub.
 
 ---
 

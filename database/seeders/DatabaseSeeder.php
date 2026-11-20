@@ -10,8 +10,10 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             EraSeeder::class,
-            // ParisBrestSeeder::class,   // à venir : 1 ligne complète seed pour tests
-            // OsmImportSeeder::class,    // à venir : import bulk OSM
+            HistoricalErasSeeder::class,
+            // ParisBrestSeeder retiré : tracé de démonstration à 5 points (lignes
+            // droites entre villes), remplacé par les vrais tracés importés.
+            // AdvocacySeeder se lance APRÈS les imports (il lui faut les lignes).
         ]);
     }
 }

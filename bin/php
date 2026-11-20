@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Lance PHP (ou composer, si appelé via bin/composer) dans l'image localhost/vff-php:8.5,
+# pour les machines sans PHP sur l'hôte. Réseau hôte : la DB reste sur 127.0.0.1:5432.
+#   bin/php artisan migrate
+#   bin/composer install
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ENGINE="${CONTAINER_ENGINE:-$(command -v podman || command -v docker)}"
+IMAGE="${VFF_PHP_IMAGE:-localhost/vff-php:8.5}"
+CMD="php"
+[ "$(basename "$0")" = "composer" ] && CMD="composer"
+
+if [[ "$ENGINE" == *podman ]]; then
+    USER_OPTS=(--userns=keep-id --security-opt label=disable)
+else
+    USER_OPTS=(--user "$(id -u):$(id -g)")
+fi
+TTY_OPTS=(-i)
+# Base de test parallèle (cf. tests/CreatesApplication.php) : VFF_TEST_DB=vff_unit_test bin/php artisan test
+ENV_OPTS=(-e HOME=/tmp)
+[ -n "${VFF_TEST_DB:-}" ] && ENV_OPTS+=(-e "VFF_TEST_DB=$VFF_TEST_DB")
+# Une base choisie sur l'hôte (DB_DATABASE=vff_x_test bin/php artisan …) doit l'être aussi dans le conteneur :
+# sans cela, `.env` désigne la base de développement (incident du 19/11/2026).
+[ -n "${DB_DATABASE:-}" ] && ENV_OPTS+=(-e "DB_DATABASE=$DB_DATABASE")
+[ -t 0 ] && [ -t 1 ] && TTY_OPTS+=(-t)
+
+exec "$ENGINE" run --rm "${TTY_OPTS[@]}" "${USER_OPTS[@]}" --network host \
+    -v "$ROOT":/app -w /app "${ENV_OPTS[@]}" "$IMAGE" "$CMD" "$@"

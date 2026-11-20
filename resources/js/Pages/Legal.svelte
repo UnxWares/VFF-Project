@@ -4,6 +4,18 @@
 
 <LegalPage
     namespace="legal"
-    sections={['editor', 'hosting', 'ip', 'liability', 'contact']}
-    updated="11 mai 2026"
+    sections={[
+        'editor',
+        'publication',
+        'hosting',
+        'nature',
+        'accessibility',
+        'licences',
+        'sources',
+        'interests',
+        'liability',
+        'report',
+        'contact',
+    ]}
+    updated="2026-10-21"
 />

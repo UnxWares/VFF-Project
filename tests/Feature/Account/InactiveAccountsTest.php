@@ -1,0 +1,274 @@
+<?php
+
+namespace Tests\Feature\Account;
+
+use App\Enums\AuditAction;
+use App\Enums\ContributionStatus;
+use App\Enums\UserRole;
+use App\Models\AuditEvent;
+use App\Models\Contribution;
+use App\Models\User;
+use App\Notifications\InactiveAccountWarning;
+use App\Notifications\LastAdminInactive;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Notifications\AnonymousNotifiable;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Notification;
+use Tests\TestCase;
+
+/**
+ * « Un compte inutilisé pendant 3 ans est supprimé, après un avertissement envoyé par courriel
+ * un mois avant » (politique de confidentialité) : suivi des visites, avertissement, suppression.
+ */
+class InactiveAccountsTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->travelTo(now()->setDate(2026, 11, 19)->setTime(5, 15));
+    }
+
+    private function memberLastSeen(?string $lastSeen, array $attributes = []): User
+    {
+        $user = User::factory()->create($attributes + ['created_at' => '2020-01-01 10:00:00']);
+        $user->forceFill(['last_seen_at' => $lastSeen])->saveQuietly();
+
+        return $user->fresh();
+    }
+
+    public function test_a_visit_records_the_day_once_and_cancels_a_warning(): void
+    {
+        $user = $this->memberLastSeen('2024-01-01 08:00:00', ['inactivity_warned_at' => null]);
+        $user->forceFill(['inactivity_warned_at' => '2026-11-01 05:15:00'])->saveQuietly();
+        $updatedAt = $user->fresh()->updated_at;
+
+        $this->actingAs($user)->get('/profile')->assertOk();
+
+        $user->refresh();
+        $this->assertTrue($user->last_seen_at->isToday());
+        $this->assertNull($user->inactivity_warned_at);
+        $this->assertEquals($updatedAt, $user->updated_at, 'Une visite ne modifie pas le profil');
+
+        // Deuxième visite le même jour : pas de nouvelle écriture.
+        $this->travel(2)->hours();
+        $this->actingAs($user)->get('/profile');
+        $this->assertSame('2026-11-19 05:15:00', $user->fresh()->last_seen_at->format('Y-m-d H:i:s'));
+    }
+
+    public function test_login_counts_as_a_visit(): void
+    {
+        $user = User::factory()->create(['password' => 'secret-password']);
+        $user->forceFill(['last_seen_at' => null])->saveQuietly();
+
+        $this->post('/login', ['email' => $user->email, 'password' => 'secret-password'])->assertRedirect();
+
+        $this->assertTrue($user->fresh()->last_seen_at->isToday());
+    }
+
+    public function test_an_api_call_with_a_token_counts_as_a_visit_once_a_day(): void
+    {
+        $user = $this->memberLastSeen('2024-01-01 08:00:00');
+        $user->forceFill(['inactivity_warned_at' => '2026-11-01 05:15:00'])->saveQuietly();
+        $token = $user->createToken('script')->plainTextToken;
+
+        $this->withToken($token)->getJson('/api/user')->assertOk();
+
+        $user->refresh();
+        $this->assertTrue($user->last_seen_at->isToday());
+        $this->assertNull($user->inactivity_warned_at, 'Un membre qui utilise ses jetons n\'est pas supprimé');
+
+        // Deuxième appel le même jour : pas de nouvelle écriture.
+        $this->travel(2)->hours();
+        $this->app['auth']->forgetGuards();
+        $this->withToken($token)->getJson('/api/user')->assertOk();
+        $this->assertSame('2026-11-19 05:15:00', $user->fresh()->last_seen_at->format('Y-m-d H:i:s'));
+    }
+
+    public function test_anonymous_or_invalid_token_calls_record_nothing(): void
+    {
+        $user = $this->memberLastSeen('2024-01-01 08:00:00');
+        $user->createToken('script');
+
+        $this->getJson('/api/user')->assertUnauthorized();
+        $this->withToken('1|faux-jeton')->getJson('/api/user')->assertUnauthorized();
+
+        $this->assertSame('2024-01-01 08:00:00', $user->fresh()->last_seen_at->format('Y-m-d H:i:s'));
+    }
+
+    public function test_dry_run_counts_without_sending_or_deleting(): void
+    {
+        Notification::fake();
+        $this->memberLastSeen('2023-11-01 00:00:00');
+
+        $this->artisan('vff:prune-inactive-accounts', ['--dry-run' => true])
+            ->expectsOutputToContain('0 compte(s) à supprimer, 1 compte(s) à avertir')
+            ->assertSuccessful();
+
+        Notification::assertNothingSent();
+        $this->assertSame(0, AuditEvent::count());
+    }
+
+    public function test_accounts_reaching_three_years_within_a_month_are_warned(): void
+    {
+        Notification::fake();
+        $due = $this->memberLastSeen('2023-12-15 00:00:00');      // 3 ans le 15/12/2026
+        $notYet = $this->memberLastSeen('2024-01-01 00:00:00');   // 3 ans le 01/01/2027
+        $neverSeenOld = $this->memberLastSeen(null);               // créé en 2020, jamais revu
+        $recent = $this->memberLastSeen('2026-11-01 00:00:00');
+
+        $this->artisan('vff:prune-inactive-accounts')
+            ->expectsOutputToContain('0 compte(s) supprimé(s), 2 averti(s)')
+            ->assertSuccessful();
+
+        Notification::assertSentTo($due, InactiveAccountWarning::class,
+            fn (InactiveAccountWarning $n) => $n->deletionDate->format('Y-m-d') === '2026-12-19');
+        Notification::assertSentTo($neverSeenOld, InactiveAccountWarning::class);
+        Notification::assertNotSentTo([$notYet, $recent], InactiveAccountWarning::class);
+        $this->assertNotNull($due->fresh()->inactivity_warned_at);
+        $this->assertNull($notYet->fresh()->inactivity_warned_at);
+
+        $event = AuditEvent::sole();
+        $this->assertSame(AuditAction::InactivityWarningsSent, $event->action);
+        $this->assertEquals(['warned' => 2, 'failed' => 0], $event->context, 'Contexte du journal (ordre des clés jsonb indifférent)');
+
+        // Un second passage n'avertit pas deux fois.
+        $this->artisan('vff:prune-inactive-accounts')->expectsOutputToContain('0 averti(s)');
+        Notification::assertSentToTimes($due, InactiveAccountWarning::class, 1);
+    }
+
+    public function test_warned_accounts_are_deleted_one_month_later_unless_the_member_came_back(): void
+    {
+        Notification::fake();
+        $gone = $this->memberLastSeen('2023-10-01 00:00:00');
+        $back = $this->memberLastSeen('2023-10-01 00:00:00');
+        $published = Contribution::factory()->for($gone)->create(['status' => ContributionStatus::Applied->value]);
+
+        $this->artisan('vff:prune-inactive-accounts')->assertSuccessful();
+        $this->assertNotNull($gone->fresh()->inactivity_warned_at);
+
+        // Trois semaines plus tard : rien n'est supprimé, le second membre revient.
+        $this->travel(21)->days();
+        $this->actingAs($back)->get('/profile');
+        $this->artisan('vff:prune-inactive-accounts')->expectsOutputToContain('0 compte(s) supprimé(s)');
+
+        // Un mois après l'avertissement : seul le compte resté inutilisé disparaît.
+        $this->travel(10)->days();
+        $this->artisan('vff:prune-inactive-accounts')->expectsOutputToContain('1 compte(s) supprimé(s)');
+
+        $this->assertModelMissing($gone);
+        $this->assertModelExists($back);
+        $this->assertNull($published->fresh()->user_id);
+        $deleted = AuditEvent::where('action', AuditAction::AccountDeleted)->sole();
+        $this->assertSame('inactivity', $deleted->context['reason']);
+    }
+
+    public function test_the_last_administrator_is_never_deleted_for_inactivity(): void
+    {
+        Notification::fake();
+        $warnings = [];
+        Event::listen(MessageLogged::class, function (MessageLogged $log) use (&$warnings): void {
+            if ($log->level === 'warning') {
+                $warnings[] = [$log->message, $log->context];
+            }
+        });
+        $first = $this->memberLastSeen('2023-10-01 00:00:00', ['role' => UserRole::Admin->value]);
+        $second = $this->memberLastSeen('2023-10-01 00:00:00', ['role' => UserRole::Admin->value]);
+        $this->artisan('vff:prune-inactive-accounts')->assertSuccessful();
+
+        // Deux administrateurs inactifs : le premier part, le second est le dernier et reste.
+        $this->travel(31)->days();
+        $this->artisan('vff:prune-inactive-accounts')->expectsOutputToContain('1 compte(s) supprimé(s)');
+
+        $this->assertModelMissing($first);
+        $this->assertModelExists($second);
+        $this->assertSame(1, AuditEvent::where('action', AuditAction::AccountDeleted)->count());
+        $this->assertCount(1, $warnings);
+        $this->assertStringContainsString('dernier administrateur', $warnings[0][0]);
+        $this->assertSame(['user_id' => $second->id], $warnings[0][1]);
+    }
+
+    public function test_the_contact_address_is_told_once_when_the_last_administrator_is_inactive(): void
+    {
+        Notification::fake();
+        config(['mail.contact.address' => 'contact@vff-project.org']);
+        $admin = $this->memberLastSeen('2023-10-01 00:00:00', ['role' => UserRole::Admin->value]);
+        $this->artisan('vff:prune-inactive-accounts')->assertSuccessful();
+
+        $this->travel(31)->days();
+        $this->artisan('vff:prune-inactive-accounts')->assertSuccessful();
+        // Passages suivants : toujours dans le journal de l'application, mais plus de courriel.
+        $this->travel(1)->day();
+        $this->artisan('vff:prune-inactive-accounts')->assertSuccessful();
+
+        $this->assertModelExists($admin);
+        Notification::assertSentOnDemandTimes(LastAdminInactive::class, 1);
+        Notification::assertSentOnDemand(LastAdminInactive::class, function (LastAdminInactive $n, array $channels, AnonymousNotifiable $to) use ($admin): bool {
+            $mail = $n->toMail($to);
+            $text = implode(' ', $mail->introLines);
+
+            return $to->routes['mail'] === 'contact@vff-project.org'
+                && $n->userId === $admin->id
+                && str_contains($text, '1 octobre 2023')
+                && ! str_contains($text, $admin->email)
+                && ! str_contains($text, $admin->name);
+        });
+        $this->assertContains(ShouldQueue::class, class_implements(LastAdminInactive::class), 'Courriel mis en file d\'attente');
+        $this->assertEquals(['user_id' => $admin->id], AuditEvent::where('action', AuditAction::LastAdminInactive)->sole()->context);
+
+        // Revenu puis de nouveau inactif 3 ans : nouvel avertissement, nouvelle alerte.
+        $this->actingAs($admin->fresh())->get('/profile')->assertOk();
+        $this->travel(3)->years();
+        $this->artisan('vff:prune-inactive-accounts')->assertSuccessful();
+        $this->travel(31)->days();
+        $this->artisan('vff:prune-inactive-accounts')->assertSuccessful();
+        Notification::assertSentOnDemandTimes(LastAdminInactive::class, 2);
+    }
+
+    public function test_a_failed_email_does_not_start_the_notice_period(): void
+    {
+        // Serveur SMTP injoignable (port fermé) : l'envoi lève une exception.
+        config([
+            'mail.default' => 'unreachable',
+            'mail.mailers.unreachable' => ['transport' => 'smtp', 'host' => '127.0.0.1', 'port' => 1, 'timeout' => 2],
+        ]);
+        $user = $this->memberLastSeen('2023-10-01 00:00:00');
+
+        $this->artisan('vff:prune-inactive-accounts')
+            ->expectsOutputToContain('1 avertissement(s) non envoyé(s)')
+            ->assertFailed();
+
+        $this->assertNull($user->fresh()->inactivity_warned_at);
+        $this->assertEquals(['warned' => 0, 'failed' => 1], AuditEvent::sole()->context, 'Contexte du journal (ordre des clés jsonb indifférent)');
+    }
+
+    public function test_warning_email_is_written_in_the_member_language(): void
+    {
+        $user = User::factory()->make(['name' => 'Hans', 'locale_preference' => 'de']);
+        $notification = new InactiveAccountWarning(now()->addMonth());
+
+        // Laravel passe dans la langue du membre (preferredLocale) avant d'appeler toMail.
+        $this->app->setLocale('de');
+        $mail = $notification->toMail($user);
+
+        $this->assertSame('Ihr Konto bei Französische Bahnstrecken wird am 19. Dezember 2026 gelöscht', $mail->subject);
+        $this->assertSame('Guten Tag Hans,', $mail->greeting);
+        $this->assertSame(route('login'), $mail->actionUrl);
+        $this->assertSame('de', $user->preferredLocale());
+    }
+
+    public function test_the_task_is_scheduled_for_production_only(): void
+    {
+        $this->artisan('schedule:list')->expectsOutputToContain('vff:prune-inactive-accounts');
+
+        $event = collect(app(Schedule::class)->events())
+            ->first(fn ($e) => str_contains((string) $e->command, 'vff:prune-inactive-accounts'));
+        $this->assertNotNull($event);
+        $this->assertSame(['production'], $event->environments);
+        $this->assertFalse($event->runsInEnvironment('local'));
+    }
+}

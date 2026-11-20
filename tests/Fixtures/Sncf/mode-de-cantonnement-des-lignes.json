@@ -1,0 +1,9 @@
+{
+    "total_count": 4,
+    "results": [
+        {"code_ligne": "100000", "lib_ligne": "Ligne de Alpha à Bravo"},
+        {"code_ligne": "100000", "lib_ligne": "Ligne de Alpha à Bravo"},
+        {"code_ligne": "700000", "lib_ligne": "Ligne de Juliet à Kilo"},
+        {"code_ligne": "800000", "lib_ligne": "800000"}
+    ]
+}

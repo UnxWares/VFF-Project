@@ -1,68 +1,75 @@
 <script>
-    let { icon = 'bi-circle', title, text, status = null } = $props();
+    /**
+     * Point d'une liste (valeurs, raisons, règles, façons de participer) : titre, phrase, état
+     * facultatif, complément facultatif (`children` : un lien). Dessin de document, pas de carte :
+     * une rangée par point, filet au-dessus, titre à gauche et phrase à droite sur grand écran
+     * (l'un sous l'autre sur téléphone). Pas d'icône décorative, pas de fond, rien au survol.
+     * Se range dans une liste `.vff-points` (general.css), jamais dans une grille de trois blocs.
+     *
+     * `headingLevel` : 3 par défaut (sous le h2 d'une SectionBlock) ; 2 si la section n'a pas de titre.
+     */
+    /** @type {{ title: string, text: string, status?: string|null, headingLevel?: 2|3|4, children?: import('svelte').Snippet }} */
+    let { title, text, status = null, headingLevel = 3, children } = $props();
 </script>
 
-<article class="icon-card">
-    <div class="icon">
-        <i class="bi {icon}"></i>
+<div class="icon-card">
+    <div class="row">
+        <svelte:element this={`h${headingLevel}`} class="title">{title}</svelte:element>
+        <div class="body">
+            <p class="text">{text}</p>
+            {#if status}
+                <p class="status"><span class="vff-badge muted">{status}</span></p>
+            {/if}
+            {@render children?.()}
+        </div>
     </div>
-    <h3>{title}</h3>
-    <p>{text}</p>
-    {#if status}
-        <span class="status">{status}</span>
-    {/if}
-</article>
+</div>
 
 <style>
     .icon-card {
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: var(--vff-radius-md);
-        padding: 28px 24px;
+        container-type: inline-size;
+        padding: var(--vff-space-5) 0;
+        border-top: 1px solid var(--vff-border);
         text-align: left;
-        transition: transform var(--vff-transition), box-shadow var(--vff-transition);
-        height: 100%;
+    }
+    .row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--vff-space-2);
+    }
+    .title {
+        margin: 0;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-h3);
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--vff-text);
+        text-wrap: balance;
+    }
+    .body {
         display: flex;
         flex-direction: column;
+        align-items: flex-start;
+        gap: var(--vff-space-3);
+        min-width: 0;
     }
-    .icon-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 32px var(--vff-shadow);
-    }
-    .icon {
-        width: 48px;
-        height: 48px;
-        border-radius: var(--vff-radius-md);
-        background-color: var(--vff-accent-soft);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 16px;
-    }
-    .icon i {
-        font-size: 24px;
-        color: var(--vff-accent);
-    }
-    h3 {
-        margin: 0 0 8px;
+    .text {
+        max-width: var(--vff-measure);
+        margin: 0;
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-body);
+        line-height: var(--vff-lh-body);
         color: var(--vff-text);
     }
-    p {
-        margin: 0;
-        flex: 1;
-        font-size: 16px;
-        color: var(--vff-text-muted);
-        line-height: 1.55;
-    }
     .status {
-        display: inline-block;
-        margin-top: 16px;
-        padding: 4px 10px;
-        font-size: 12px;
-        font-family: var(--vff-font-display);
-        background-color: var(--vff-bg-muted);
-        color: var(--vff-text-muted);
-        border-radius: var(--vff-radius-pill);
-        align-self: flex-start;
+        margin: 0;
+    }
+    /* Assez de place (selon la colonne, pas l'écran) : titre et phrase sur la même rangée, comme
+       une fiche. */
+    @container (min-width: 560px) {
+        .row {
+            grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+            column-gap: var(--vff-space-6);
+        }
     }
 </style>

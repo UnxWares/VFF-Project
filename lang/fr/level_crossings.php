@@ -1,0 +1,60 @@
+<?php
+
+// Passages à niveau (SNCF Réseau, jeu « liste-des-passages-a-niveau ») : classes, groupes,
+// section de la fiche ligne. Définitions des classes d'après la description officielle du jeu.
+return [
+    'classes' => [
+        0 => 'PN secondaire, déjà compté sur une autre ligne',
+        10 => 'Public pour voitures, sans barrières, protégé par un agent',
+        11 => 'Public pour voitures, gardé, barrières manœuvrées sur place, sans passage piéton accolé',
+        12 => 'Public pour voitures, gardé, barrières manœuvrées à distance, sans passage piéton accolé',
+        13 => 'Public pour voitures, gardé, barrières manœuvrées sur place et à distance, sans passage piéton accolé',
+        14 => 'Public pour voitures, gardé, barrières manœuvrées sur place, avec passage piéton accolé',
+        15 => 'Public pour voitures, gardé, barrières manœuvrées à distance, avec passage piéton accolé',
+        16 => 'Public pour voitures, gardé, barrières manœuvrées sur place et à distance, avec passage piéton accolé',
+        17 => 'Public pour voitures, barrières ou demi-barrières automatiques, signalisation lumineuse SAL 2 ou SAL 2B',
+        18 => 'Public pour voitures, barrières ou demi-barrières automatiques, signalisation lumineuse SAL 2 et îlot séparateur',
+        19 => 'Public pour voitures, barrières ou demi-barrières automatiques, signalisation lumineuse SAL 4',
+        20 => 'Public pour voitures, sans barrières ni signalisation lumineuse',
+        21 => 'Public pour voitures, sans barrières, avec signalisation lumineuse SAL 0',
+        31 => 'Public pour piétons, sans portillons',
+        32 => 'Public pour piétons, avec portillons',
+        41 => 'Privé pour voitures, sans barrières',
+        42 => 'Privé pour voitures, avec barrières, sans passage piéton accolé',
+        43 => 'Privé pour voitures, avec barrières et passage piéton public accolé',
+        44 => 'Privé pour voitures, avec barrières et passage piéton privé accolé',
+        45 => 'Privé pour piétons, sans portillons',
+        46 => 'Privé pour piétons, avec portillons',
+    ],
+
+    'groups' => [
+        'automatic' => 'Barrières automatiques',
+        'guarded' => 'Gardés',
+        'no_barrier' => 'Sans barrières',
+        'pedestrian' => 'Piétons',
+        'private' => 'Privés',
+        'secondary' => 'Secondaires',
+        'unknown' => 'Classe inconnue',
+    ],
+
+    // Section « Passages à niveau » de la fiche ligne.
+    'line' => [
+        'title' => 'Passages à niveau',
+        'intro_one' => 'Un passage à niveau sur cette ligne aujourd’hui, d’après SNCF Réseau.',
+        'intro_other' => ':count passages à niveau sur cette ligne aujourd’hui, d’après SNCF Réseau.',
+        'secondary_note' => 'Les PN secondaires croisent aussi une autre ligne, sur laquelle ils sont comptés.',
+        'summary_caption' => 'Nombre de passages à niveau par type',
+        'type' => 'Type',
+        'count' => 'Nombre',
+        'show_list_one' => 'Voir le passage à niveau',
+        'show_list_other' => 'Voir les :count passages à niveau',
+        'list_caption' => 'Passages à niveau dans l’ordre des points kilométriques',
+        'pk' => 'PK',
+        'name' => 'Nom',
+        'commune' => 'Commune',
+        'crossed_way' => 'Voie franchie',
+        'class' => 'Classe',
+        'unknown' => 'non renseigné',
+        'source' => 'Source : SNCF Réseau, liste des passages à niveau (ODbL). État publié par SNCF Réseau, sans date d’ouverture ni de suppression.',
+    ],
+];

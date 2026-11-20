@@ -1,147 +1,788 @@
-header{
+/* En-tête du site (Header.svelte). Accueil : 200 vh avec le héros TGV, barre fixe qui apparaît
+   en quittant le héros. Pages internes (classe compact) : barre seule, de hauteur --vff-header-h
+   (88 px, 72 px sous 1 180 px, 64 px sous 600 px). Sous 1 180 px, le projet et les outils passent
+   dans un panneau ouvert par le bouton « Menu » ; sous 900 px, les quatre entrées aussi.
+   Les sélecteurs commencent par header:where(.site-header) : les autres <header> (galerie, fiches)
+   ne sont pas touchés, et la spécificité reste celle d'origine. */
+:root {
+    --vff-header-h: 88px;
+}
+@media (max-width: 1180px) {
+    :root {
+        --vff-header-h: 72px;
+    }
+}
+@media (max-width: 600px) {
+    :root {
+        --vff-header-h: 64px;
+    }
+}
+header:where(.site-header) {
     height: 200vh;
 }
-header .header-background{
+header:where(.site-header) .header-background {
     position: sticky;
-    height: 100vh;
-    background-image: url("../../images/background.png");
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position-x: center;
     top: 0;
+    /* Contexte d'empilement au-dessus du contenu : les menus de langue et de compte ne passent
+       plus sous les bandeaux des pages. */
+    z-index: var(--vff-z-nav);
+    height: 100vh;
 }
-header .header-background nav{
+
+/* Pages internes : barre seule, sans héros, toujours visible (navbarFade ne pose plus que des
+   classes : nav-hidden, nav-shown ; aucune opacité en ligne à contrer). */
+/* Hauteurs minimales (et non fixes) : si l'utilisateur agrandit les espacements du texte
+   (WCAG 1.4.12), la barre passe sur deux rangées au lieu de pousser « Connexion » hors de l'écran. */
+header:where(.site-header).compact {
+    height: auto;
+    min-height: var(--vff-header-h);
+}
+header:where(.site-header).compact .header-background {
+    height: auto;
+    min-height: var(--vff-header-h);
+    background-image: none;
+    background-color: var(--vff-bg);
+}
+header:where(.site-header).compact .header-background nav {
+    opacity: 1;
+    position: relative;
+}
+
+/* ─── Barre ───────────────────────────────────────────────────────────────── */
+header:where(.site-header) .header-background nav {
     opacity: 0;
     position: fixed;
-    z-index: 2;
-    height: 130px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
     top: 0;
-    transition: opacity 1s ease;
-    background-color: white;
-    color: black;
-    box-shadow: 0 2px 8px #D3D3D3;
+    /* Au-dessus du grand visuel de l'accueil (sa flèche passait sur la barre en quittant le héros). */
+    z-index: 4;
+    width: 100%;
+    min-height: var(--vff-header-h);
+    background-color: var(--vff-bg);
+    color: var(--vff-text);
+    box-shadow:
+        0 1px 0 var(--vff-border),
+        0 2px 8px var(--vff-shadow);
+    transition: opacity 250ms ease;
 }
-header .header-background nav .nav-title{
+/* Accueil : la barre est invisible (opacité 0) tant que le héros est à l'écran. Invisible, elle ne
+   capte pas les clics ; au clavier, elle réapparaît dès qu'un de ses éléments a le focus. */
+header:where(.site-header):not(.compact) .header-background nav.nav-hidden:not(:focus-within) {
+    pointer-events: none;
+}
+header:where(.site-header) .header-background nav.nav-shown,
+header:where(.site-header):not(.compact) .header-background nav.nav-hidden:focus-within {
+    opacity: 1;
+}
+
+/* Rangée de la barre : sur la grille commune (même bord gauche que le contenu et le pied de page). */
+header:where(.site-header) nav .nav-inner {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 var(--vff-space-6);
+    min-height: var(--vff-header-h);
+    max-width: calc(var(--vff-container) + 2 * var(--vff-gutter));
+    margin: 0 auto;
+    padding-inline: var(--vff-gutter);
+}
+
+/* Titre du site : logo et nom (un <span>, pas un titre : le seul h1 est celui de la page). Le nom
+   tient sur deux lignes (« Voies Ferrées / de France ») pour laisser la place aux entrées. */
+header:where(.site-header) nav .nav-title {
+    display: flex;
+    flex-shrink: 0;
     flex-direction: row;
     align-items: center;
-    margin-left: 10px;
-}
-header .header-background nav .nav-title h2{
-    margin-left: 15px;
-}
-header .header-background nav .nav-title figure img{
-    width: 100px;
-    height: 100px;
-}
-header .header-background nav .links li, header .header-background nav .links .user{
-    display: inline-flex;
-    margin: 0 10px;
-}
-header .header-background nav ul li a{
+    gap: 12px;
+    color: inherit;
     text-decoration: none;
-    color: black;
+    border-radius: var(--vff-radius-sm);
 }
-header .header-background .header-images{
-    height: 100vh;
+header:where(.site-header) nav .nav-logo {
+    display: block;
+    flex-shrink: 0;
+}
+header:where(.site-header) nav .nav-logo img {
+    display: block;
+    width: 64px;
+    height: 64px;
+}
+header:where(.site-header) nav .nav-title-text {
+    max-width: 7.2em;
+    font-family: var(--vff-font-heading);
+    font-size: 1.375rem;
+    font-weight: 700;
+    line-height: 1.1;
+    text-wrap: balance;
+    transition: color var(--vff-transition);
+}
+header:where(.site-header) nav .nav-title:hover .nav-title-text {
+    color: var(--vff-accent-ink);
+}
+
+/* Entrées de l'encyclopédie (Carte, Lignes, Gares, Matériel roulant) et bouton « Le projet » :
+   Lato 18 px, page courante soulignée (pas seulement colorée). */
+header:where(.site-header) nav .nav-main {
     display: flex;
     align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(9px);
+    gap: 0 22px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
-header .header-background .header-images figure {
-    width: 20vw;
+header:where(.site-header) nav .nav-main > li {
+    display: inline-flex;
+    margin: 0;
+    font-family: var(--vff-font-body);
+    font-size: 1.125rem;
 }
-header .header-background .header-images figure img{
-    width: 100%;
+header:where(.site-header) nav .nav-main > li > a,
+header:where(.site-header) nav .project-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    color: inherit;
+    text-decoration: none;
+    text-underline-offset: 8px;
+    white-space: nowrap;
+    transition: color var(--vff-transition);
 }
-.left-tgv{
-    transform: translateX(-1vw);
-}
-.right-tgv{
-    transform: translateX(1vw);
-}
-header .header-background .bottom-container .scroll-button{
-    position: absolute;
-    z-index: 3;
-    bottom: 25px;
-    left: 50%;
+header:where(.site-header) nav .project-trigger {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-family: var(--vff-font-body);
+    font-size: 1.125rem;
     cursor: pointer;
-    animation-name: go-to-bottom-anim;
-    animation-duration: 3.5s;
-    animation-iteration-count: infinite;
-    padding: 0 15px;
-    border-radius: 16px;
-    border: 3px solid #ffffff;
 }
-header .header-background .bottom-container .scroll-button i{
-    color: #ffffff;
-    font-size: 30px;
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    height: 66px;
-    align-items: center;
-    transition: all 0.3s ease-in-out;
+header:where(.site-header) nav .nav-main > li > a:hover,
+header:where(.site-header) nav .project-trigger:hover,
+header:where(.site-header) nav .project-trigger[aria-expanded='true'] {
+    color: var(--vff-accent-ink);
 }
-@keyframes go-to-bottom-anim {
-    0% {
-        transform: scale(1) translateX(-50%);
-    }
-    50% {
-        transform: translate3d(0, -12px, 0) scale(1.01) translateX(-50%);
-    }
-    100% {
-        transform: scale(1) translateX(-50%);
-    }
+header:where(.site-header) nav .nav-main > li > a[aria-current='page'],
+header:where(.site-header) nav .project-trigger.current {
+    color: var(--vff-accent-ink);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
 }
-.hidden-button{
+/* Libellés de groupe : seulement dans le panneau (sous 1 180 px). */
+header:where(.site-header) nav .panel-label,
+header:where(.site-header) nav .nav-main.in-panel {
     display: none;
 }
 
-/* ─── Reset additif des boutons icônes de la navbar ─────────────────────────
-   Le markup d'origine utilisait <button class="theme-change"> et de simples <i>
-   pour lang/account. Avec Svelte + LanguageSwitcher en sous-composant, les
-   éléments interactifs sont désormais des <button> et héritent du style natif
-   du navigateur (bordure grise). On les remet en boutons-icônes neutres.
-   Ces règles n'altèrent rien de l'existant — elles ajoutent juste des resets
-   pour des sélecteurs qui n'étaient pas couverts. */
-header .header-background nav .user button,
-header .header-background nav .user .theme-change {
-    background: transparent;
-    border: 0;
+/* Projet, puis recherche et outils, poussés à droite. */
+header:where(.site-header) nav .links {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 var(--vff-space-5);
+    min-width: 0;
+}
+header:where(.site-header) nav .tools {
+    display: flex;
+    align-items: center;
+    gap: 0 var(--vff-space-3);
+    margin-left: auto;
+}
+header:where(.site-header) nav .user {
+    display: flex;
+    align-items: center;
+    gap: 0 var(--vff-space-1);
+    margin: 0;
     padding: 0;
+    list-style: none;
+}
+
+/* Bouton de recherche : un champ à l'œil (loupe + « Rechercher »), qui ouvre la fenêtre de
+   recherche. Dans la barre sous 1 180 px, dans les outils au-dessus. */
+header:where(.site-header) nav .search-trigger {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 18px 0 14px;
+    border: 1px solid var(--vff-border-control);
+    border-radius: var(--vff-radius-pill);
+    background-color: var(--vff-bg);
+    color: var(--vff-text-muted);
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-md);
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        border-color var(--vff-transition),
+        color var(--vff-transition);
+}
+header:where(.site-header) nav .search-trigger .bi {
+    font-size: 17px;
+}
+header:where(.site-header) nav .search-trigger:hover {
+    border-color: var(--vff-text-muted);
+    color: var(--vff-text);
+}
+header:where(.site-header) nav .search-trigger.in-bar {
+    display: none;
+}
+/* Petits ordinateurs (1 181 à 1 259 px) : la recherche se réduit à sa loupe (nom lu, infobulle) ;
+   les entrées gardent leur taille de lecture. */
+@media (min-width: 1181px) and (max-width: 1259px) {
+    header:where(.site-header) nav .search-trigger {
+        justify-content: center;
+        width: 44px;
+        padding: 0;
+    }
+    header:where(.site-header) nav .search-trigger .search-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+}
+header:where(.site-header) nav .user > li {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-sm);
+}
+/* Boutons icônes de la barre (thème, langue, compte) : cible de 40 px. */
+header:where(.site-header) nav .user > li > button,
+header:where(.site-header) nav .user .lang-trigger,
+header:where(.site-header) nav .user .account-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: var(--vff-radius-sm);
+    background: transparent;
     color: inherit;
     font: inherit;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
+    transition:
+        color var(--vff-transition),
+        background-color var(--vff-transition);
 }
-header .header-background nav .user button:disabled {
+header:where(.site-header) nav .user > li > button:hover,
+header:where(.site-header) nav .user .lang-trigger:hover,
+header:where(.site-header) nav .user .account-trigger:hover,
+header:where(.site-header) nav .user [aria-expanded='true'] {
+    background-color: var(--vff-accent-soft);
+    color: var(--vff-accent-ink);
+}
+header:where(.site-header) nav .user .theme-change i {
+    font-size: 20px;
+}
+header:where(.site-header) nav .user button:disabled {
     cursor: not-allowed;
     opacity: 0.55;
 }
-header .header-background nav .user button i {
-    font-size: 20px;
+
+/* Bouton « Menu » : seulement sous 1 180 px. */
+header:where(.site-header) nav .nav-toggle {
+    display: none;
 }
 
-/* `.nav-title` est maintenant un <a> (Link Inertia) cliquable vers l'accueil.
-   On neutralise le style natif de lien (underline, couleur bleue) et on ajoute
-   un léger hover pour signaler l'interactivité. */
-header .header-background nav a.nav-title,
-header .header-background nav .nav-title {
+/* Le texte du bouton « Menu » est lu partout, affiché dès 601 px (cf. plus bas). */
+header:where(.site-header) nav .nav-toggle .toggle-label {
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-md);
+}
+
+/* ─── Héros de l'accueil (HomeHero.svelte) ────────────────────────────────────
+   Fond : carte ancienne des chemins de fer (Vuillemin, 1865, domaine public), nette, déjà passée
+   en sépia sombre dans le fichier : le papier, sa partie la plus claire, laisse au blanc au moins
+   5:1 partout ; aucun voile n'est nécessaire (léger voile en thème sombre seulement). Disque VFF
+   entre deux TGV, phrase en blanc, deux actions, flèche vers le contenu, crédit du fond en bas.
+   Disque, phrase et actions sont séparés par le même espace (--hero-space) ; le groupe est centré
+   entre la barre (affichée ou non) et la flèche, un peu au-dessus du milieu de l'écran.
+   Écartement des TGV : --tgv-progress (0 : contre le disque, 1 : au bord de l'écran) fois
+   --tgv-travel. Navigateurs qui lient une animation au défilement : animation CSS sur la première
+   hauteur d'écran, hors du fil principal ; les autres : lib/actions/parallaxTGV.js écrit la
+   variable ; mouvement réduit : rames immobiles, déjà écartées.
+   Couleurs propres au fond (texte clair posé sur une image sombre, GUIDE section 2) : variables
+   --hero-*, identiques dans les deux thèmes sauf le voile. */
+header:where(.site-header) .hero {
+    --hero-ink: #ffffff;
+    --hero-ring: #000000;
+    --hero-veil: transparent;
+    --hero-hover: rgb(16 20 24 / 0.4);
+    /* Teinte moyenne de la carte, le temps qu'elle arrive (le blanc y fait 8:1). */
+    --hero-placeholder: #5e4d39;
+    --hero-space: clamp(24px, 4.2vh, 44px);
+    /* Hauteur réservée au crédit sous la flèche (téléphone et tablette, cf. plus bas). */
+    --hero-credit-h: 0px;
+    /* Disque et rames : 20 % de la largeur, jamais plus que la taille d'origine des TGV (465 px),
+       ni plus que 42 % de la hauteur (fenêtres larges et basses). */
+    --hero-disc: min(20vw, 465px, 42vh);
+    --hero-tgv: var(--hero-disc);
+    --tgv-gap: 1vw;
+    --tgv-travel: calc(49.5vw - var(--hero-disc) / 2 - var(--hero-tgv) - var(--tgv-gap));
+    --hero-arrow: 52px;
+    --hero-arrow-gap: clamp(20px, 4vh, 40px);
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--hero-space);
+    height: 100%;
+    padding: calc(var(--vff-header-h) + 16px) var(--vff-gutter)
+        calc(var(--hero-arrow) + 2 * var(--hero-arrow-gap) + var(--hero-credit-h));
+    overflow: clip;
+    background-color: var(--hero-placeholder);
+    color: var(--hero-ink);
+}
+header:where(.site-header) .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--hero-veil);
+}
+header:where(.site-header) .hero-photo,
+header:where(.site-header) .hero-photo img {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+header:where(.site-header) .hero-photo img {
+    object-fit: cover;
+}
+
+/* Disque entre les deux rames, sur une même ligne. */
+header:where(.site-header) .hero-rail {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--tgv-gap);
+    width: 100%;
+}
+header:where(.site-header) .hero-disc {
+    flex: none;
+    width: var(--hero-disc);
+    height: auto;
+}
+header:where(.site-header) .hero-tgv {
+    --tgv-direction: -1;
+    flex: none;
+    width: var(--hero-tgv);
+    height: auto;
+    transform: translateX(calc(var(--tgv-direction) * var(--tgv-progress, 0) * var(--tgv-travel)));
+}
+header:where(.site-header) .hero-tgv.right {
+    --tgv-direction: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+    header:where(.site-header) .hero {
+        --tgv-progress: 1;
+    }
+}
+/* Même condition que TGV_TIMELINE dans lib/actions/parallaxTGV.js. */
+@supports (animation-timeline: scroll()) and (animation-range: 0 100vh) {
+    @media (prefers-reduced-motion: no-preference) {
+        header:where(.site-header) .hero-tgv {
+            animation: hero-tgv-spread linear both;
+            animation-timeline: scroll(root block);
+            animation-range: 0 100vh;
+        }
+    }
+}
+@keyframes hero-tgv-spread {
+    to {
+        transform: translateX(calc(var(--tgv-direction) * var(--tgv-travel)));
+    }
+}
+
+/* Phrase de présentation : Gabarito blanc, centré, lignes équilibrées (deux sur ordinateur). */
+header:where(.site-header) .hero-tagline {
+    max-width: min(24em, 100%);
+    margin: 0;
+    color: var(--hero-ink);
+    font-family: var(--vff-font-display);
+    font-size: clamp(1.375rem, 1rem + 1vw, 2rem);
+    font-weight: 600;
+    line-height: 1.25;
+    text-align: center;
+    text-wrap: balance;
+}
+
+/* Actions : la carte (orange plein) et la recherche de tout le site (contour blanc). Largeur selon
+   le libellé (rembourrage généreux), même hauteur, même rayon, même graisse ; 17 à 20 px. */
+header:where(.site-header) .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 16px;
+}
+header:where(.site-header) .hero-actions .vff-btn {
+    min-height: 50px;
+    padding: 0.5em 1.6em;
+    font-size: clamp(1.0625rem, 0.85rem + 0.4vw, 1.25rem);
+    text-wrap: balance;
+}
+header:where(.site-header) .hero-actions .vff-btn.secondary {
+    border-color: var(--hero-ink);
+    background-color: transparent;
+    color: var(--hero-ink);
+}
+/* Survol : le fond s'assombrit sous le bouton (le blanc garde son contraste). */
+header:where(.site-header) .hero-actions .vff-btn.secondary:hover {
+    background-color: var(--hero-hover);
+}
+
+/* Flèche vers le contenu : rond à filet blanc, comme le bouton de recherche. */
+header:where(.site-header) .hero-scroll {
+    position: absolute;
+    bottom: var(--hero-arrow-gap);
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: var(--hero-arrow);
+    height: var(--hero-arrow);
+    border: 2px solid var(--hero-ink);
+    border-radius: 50%;
+    background-color: transparent;
+    color: var(--hero-ink);
     text-decoration: none;
+    translate: -50% 0;
+    transition: background-color var(--vff-transition);
+}
+header:where(.site-header) .hero-scroll:hover {
+    background-color: var(--hero-hover);
+}
+header:where(.site-header) .hero-scroll .bi {
+    font-size: 24px;
+    line-height: 1;
+}
+/* Invitation à défiler : trois rebonds après le chargement, puis immobile (moins de 5 s). */
+@media (prefers-reduced-motion: no-preference) {
+    header:where(.site-header) .hero-scroll {
+        animation: hero-scroll-hint 1.4s ease-in-out 1s 3;
+    }
+}
+@keyframes hero-scroll-hint {
+    50% {
+        translate: -50% 8px;
+    }
+}
+
+/* Crédit du fond : en bas à droite, sur la grille ; lien vers la page des crédits. */
+header:where(.site-header) .hero-credit {
+    position: absolute;
+    right: var(--vff-gutter);
+    bottom: 14px;
+    max-width: calc(50% - var(--hero-arrow));
+    margin: 0;
+    color: var(--hero-ink);
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-xs);
+    line-height: 1.4;
+    text-align: right;
+}
+header:where(.site-header) .hero-credit a {
+    display: inline-block;
+    padding-block: 3px;
     color: inherit;
-    cursor: pointer;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
 }
-header .header-background nav .nav-title h2 {
-    transition: color 200ms ease;
+header:where(.site-header) .hero-credit a:hover {
+    text-decoration-thickness: 2px;
 }
-header .header-background nav .nav-title:hover h2 {
-    color: var(--vff-accent);
+
+/* Focus sur le fond : double contour blanc et noir, visible sur toutes les teintes. */
+header:where(.site-header) .hero :is(a, button):focus-visible {
+    outline: 3px solid var(--hero-ink);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--hero-ring);
+}
+
+[data-theme='dark'] header:where(.site-header) .hero {
+    --hero-veil: rgb(16 20 24 / 0.2);
+}
+
+/* Tablette et téléphone : crédit centré sous la flèche. */
+@media (max-width: 900px) {
+    header:where(.site-header) .hero {
+        --hero-credit-h: 40px;
+    }
+    header:where(.site-header) .hero-scroll {
+        bottom: calc(var(--hero-arrow-gap) + var(--hero-credit-h));
+    }
+    header:where(.site-header) .hero-credit {
+        left: var(--vff-gutter);
+        bottom: 10px;
+        max-width: none;
+        text-align: center;
+        text-wrap: balance;
+    }
+}
+/* Téléphone : disque plus grand que les rames. */
+@media (max-width: 700px) {
+    header:where(.site-header) .hero {
+        --hero-disc: min(38vw, 30svh);
+        --hero-tgv: 25vw;
+        --hero-arrow: 48px;
+    }
+}
+/* Petits téléphones : le crédit peut prendre trois lignes. */
+@media (max-width: 400px) {
+    header:where(.site-header) .hero {
+        --hero-credit-h: 64px;
+    }
+}
+/* Petits téléphones bas (600 px et moins) : disque et espaces resserrés, flèche à distance. */
+@media (max-width: 600px) and (max-height: 600px) {
+    header:where(.site-header) .hero {
+        --hero-disc: min(30vw, 22svh);
+        --hero-space: 16px;
+        --hero-arrow: 44px;
+    }
+}
+/* Fenêtres basses (téléphone en paysage) : tout tient dans l'écran, sans la flèche. */
+@media (max-height: 520px) {
+    header:where(.site-header) .hero {
+        --hero-disc: min(20vw, 26svh);
+        --hero-tgv: var(--hero-disc);
+        --hero-space: 14px;
+        --hero-credit-h: 24px;
+        padding-bottom: calc(var(--hero-credit-h) + 16px);
+    }
+    header:where(.site-header) .hero-tagline {
+        max-width: min(36em, 100%);
+        font-size: 1.25rem;
+    }
+    header:where(.site-header) .hero-scroll {
+        display: none;
+    }
+    header:where(.site-header) .hero-credit {
+        bottom: 8px;
+    }
+}
+
+/* ─── Thème sombre ────────────────────────────────────────────────────────── */
+[data-theme='dark'] header:where(.site-header) .header-background nav {
+    background-color: var(--vff-bg-elevated);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+}
+
+/* ─── Sous 1 180 px : barre de 72 px, projet et outils dans un panneau ───── */
+@media (max-width: 1180px) {
+    /* Accueil : la barre reste visible dès le chargement (sinon aucun menu pendant deux écrans). */
+    header:where(.site-header):not(.compact) .header-background nav,
+    header:where(.site-header):not(.compact) .header-background nav.nav-hidden,
+    header:where(.site-header):not(.compact) .header-background nav.nav-hidden:not(:focus-within) {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    header:where(.site-header) nav .nav-inner {
+        flex-wrap: nowrap;
+        gap: 0 var(--vff-space-5);
+    }
+    header:where(.site-header) nav .nav-title {
+        gap: 10px;
+    }
+    header:where(.site-header) nav .nav-logo img {
+        width: 52px;
+        height: 52px;
+    }
+    header:where(.site-header) nav .nav-title-text {
+        font-size: 1.25rem;
+    }
+    /* La recherche et le bouton « Menu » restent dans la barre, à droite. */
+    header:where(.site-header) nav .search-trigger.in-bar {
+        display: inline-flex;
+        margin-left: auto;
+    }
+    header:where(.site-header) nav .search-trigger.in-tools,
+    header:where(.site-header) nav .project-trigger {
+        display: none;
+    }
+    header:where(.site-header) nav .nav-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        gap: 8px;
+        min-width: 44px;
+        min-height: 44px;
+        margin-left: calc(-1 * var(--vff-space-3));
+        padding: 0 10px;
+        border: 0;
+        border-radius: var(--vff-radius-sm);
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        transition:
+            color var(--vff-transition),
+            background-color var(--vff-transition);
+    }
+    header:where(.site-header) nav .nav-toggle .bi {
+        font-size: 26px;
+        line-height: 1;
+    }
+    header:where(.site-header) nav .nav-toggle:hover,
+    header:where(.site-header) nav .nav-toggle[aria-expanded='true'] {
+        background-color: var(--vff-accent-soft);
+        color: var(--vff-accent-ink);
+    }
+    header:where(.site-header) nav .links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        gap: 0;
+        margin: 0;
+        padding: 8px var(--vff-gutter) 20px;
+        max-height: calc(100vh - var(--vff-header-h));
+        max-height: calc(100dvh - var(--vff-header-h));
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        background-color: var(--vff-bg);
+        border-top: 1px solid var(--vff-border);
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.14);
+    }
+    header:where(.site-header) nav .links.open {
+        display: flex;
+    }
+    /* Panneau : groupes nommés (Encyclopédie, Le projet), entrées en rangées de 48 px. */
+    header:where(.site-header) nav .links .panel-label {
+        display: block;
+        margin: 12px 6px 4px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        font-weight: 600;
+        color: var(--vff-text-muted);
+    }
+    header:where(.site-header) nav .links > .panel-label {
+        display: none;
+    }
+    header:where(.site-header) nav .tools {
+        flex-direction: column;
+        align-items: stretch;
+        margin: 0;
+    }
+    header:where(.site-header) nav .user {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        margin: 0;
+        padding: 16px 0 0;
+    }
+    header:where(.site-header) nav .user > li {
+        display: block;
+        font-size: var(--vff-fs-md);
+    }
+    header:where(.site-header) nav .user > li > button,
+    header:where(.site-header) nav .user .lang-trigger,
+    header:where(.site-header) nav .user .account-trigger {
+        width: 100%;
+        min-height: 44px;
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 0 6px;
+    }
+    [data-theme='dark'] header:where(.site-header) nav .links {
+        background-color: var(--vff-bg-elevated);
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.55);
+    }
+}
+@media (min-width: 701px) and (max-width: 1180px) {
+    header:where(.site-header) nav .links {
+        left: auto;
+        width: 380px;
+        padding-inline: 20px;
+        border-left: 1px solid var(--vff-border);
+        border-radius: 0 0 0 var(--vff-radius-md);
+    }
+}
+/* Tablette en portrait et téléphone (900 px et moins) : les quatre entrées passent aussi dans le
+   panneau, en tête, sous « Encyclopédie ». */
+@media (max-width: 900px) {
+    header:where(.site-header) nav .nav-main.in-bar {
+        display: none;
+    }
+    header:where(.site-header) nav .links > .panel-label,
+    header:where(.site-header) nav .nav-main.in-panel {
+        display: flex;
+    }
+    header:where(.site-header) nav .links > .panel-label {
+        display: block;
+    }
+    header:where(.site-header) nav .nav-main.in-panel {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+    }
+    header:where(.site-header) nav .nav-main.in-panel > li {
+        display: flex;
+        border-bottom: 1px solid var(--vff-border);
+    }
+    header:where(.site-header) nav .nav-main.in-panel > li > a {
+        width: 100%;
+        min-height: 48px;
+        padding: 0 6px;
+    }
+}
+/* Téléphone : barre de 64 px, logo de 44 px, boutons réduits à leur icône (nom lu). */
+@media (max-width: 600px) {
+    header:where(.site-header) nav .nav-inner {
+        gap: 0 var(--vff-space-2);
+    }
+    header:where(.site-header) nav .nav-logo img {
+        width: 44px;
+        height: 44px;
+    }
+    header:where(.site-header) nav .nav-title-text {
+        font-size: 1.0625rem;
+    }
+    header:where(.site-header) nav .search-trigger.in-bar {
+        justify-content: center;
+        width: 44px;
+        padding: 0;
+    }
+    header:where(.site-header) nav .search-trigger.in-bar .search-label,
+    header:where(.site-header) nav .nav-toggle .toggle-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+    header:where(.site-header) nav .nav-toggle {
+        margin-left: 0;
+        padding: 0;
+    }
+}
+/* Petits téléphones : héros sur un seul écran (deux écrans presque vides sinon). */
+@media (max-width: 700px) {
+    header:where(.site-header):not(.compact) {
+        height: 100vh;
+        height: 100svh;
+    }
+    header:where(.site-header):not(.compact) .header-background {
+        height: 100vh;
+        height: 100svh;
+    }
 }

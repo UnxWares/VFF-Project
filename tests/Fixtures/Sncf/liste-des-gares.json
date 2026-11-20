@@ -1,0 +1,6 @@
+[
+    {"code_uic": "87000001", "code_ligne": "100000", "fret": "O", "voyageurs": "O", "libelle": "Alpha", "rg_troncon": 1, "pk": "000+000", "commune": "Alpha", "departemen": "Paris", "x_wgs84": 2.30, "y_wgs84": 48.80},
+    {"code_uic": "87000002", "code_ligne": "100000", "fret": "N", "voyageurs": "O", "libelle": "Bravo", "rg_troncon": 1, "pk": "017+250", "commune": "Bravo", "departemen": "Yvelines", "x_wgs84": 2.40, "y_wgs84": 48.90},
+    {"code_uic": "87000003", "code_ligne": "200000", "fret": "O", "voyageurs": "N", "libelle": "Charlie-Fret", "pk": "003-200", "x_wgs84": 3.0, "y_wgs84": 47.0},
+    {"code_uic": "87000004", "code_ligne": "", "fret": "O", "voyageurs": "O", "libelle": "Sans ligne"}
+]

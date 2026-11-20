@@ -1,0 +1,10 @@
+{
+    "source": {"directories": ["../../../app"], "excludes": ["#^(?!Console/Commands/MergeSplitLines\\.php$)#"]},
+    "phpUnit": {"configDir": "."},
+    "initialTestsPhpOptions": "-d pcov.enabled=1",
+    "timeout": 60,
+    "tmpDir": "../../../storage/app/reports/infection/tmp-cov",
+    "logs": {"text": "../../../storage/app/reports/agents/couverture-tests/inf-MergeSplitLines.log",
+             "json": "../../../storage/app/reports/agents/couverture-tests/inf-MergeSplitLines.json"},
+    "mutators": {"@default": true, "ProtectedVisibility": false}
+}

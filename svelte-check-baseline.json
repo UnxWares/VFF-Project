@@ -1,0 +1,15 @@
+{
+    "resources/js/app.js": {
+        "No overload matches this call.": 1
+    },
+    "resources/js/Components/Contribute/EditMap.svelte": {
+        "Type 'string | { version: number; sources: { 'osm-raster': { type: string; tiles: string[]; tileSize: number; maxzoom: number; attribution: string; }; }; layers: { id: string; type: string; source: string; }[]; }' is not assignable to type 'string | StyleSpecification'.": 1
+    },
+    "resources/js/Components/Contribute/TraceEditorMap.svelte": {
+        "Property '__vffTraceMap' does not exist on type 'Window & typeof globalThis'.": 1,
+        "Type '{ version: number; sources: { 'osm-raster': { type: string; tiles: string[]; tileSize: number; maxzoom: number; attribution: string; }; }; layers: { id: string; type: string; source: string; }[]; }' is not assignable to type 'string | StyleSpecification'.": 1
+    },
+    "resources/js/Components/Map/RailMap.svelte": {
+        "Type 'any[]' is not assignable to type 'LngLatLike'.": 1
+    }
+}

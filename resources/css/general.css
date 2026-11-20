@@ -1,378 +1,379 @@
+@import url('@fontsource/lato/300.css');
+@import url('@fontsource/lato/300-italic.css');
+@import url('@fontsource/lato/400.css');
+@import url('@fontsource/lato/700.css');
+@import url('@fontsource/gabarito/400.css');
+@import url('@fontsource/gabarito/600.css');
+@import url('@fontsource/gabarito/700.css');
+@import url('@fontsource/inter/400.css');
+@import url('@fontsource/inter/500.css');
+@import url('@fontsource/inter/600.css');
+@import url('@fontsource/inter/700.css');
+@import url('@fontsource/montserrat/400.css');
+@import url('@fontsource/montserrat/600.css');
+@import url('@fontsource/montserrat/700.css');
 @import url('bootstrap-icons/font/bootstrap-icons.min.css');
 @import url('./header/header.css');
 @import url('./footer/footer.css');
 
-@font-face {
-    font-family: Lato;
-    src: url("../fonts/Lato-Light.ttf");
-}
-@font-face {
-    font-family: Gabarito;
-    src: url("../fonts/Gabarito-Regular.ttf");
-}
-@font-face {
-    font-family: Inter;
-    src: url("../fonts/Inter-Regular.ttf");
-}
-@font-face {
-    font-family: Montserrat;
-    src: url("../fonts/Montserrat-Regular.ttf");
-}
-::-webkit-scrollbar {
-    width: 5px;
-    /* for vertical scrollbars */
+/* Feuille commune du site. Mode d'emploi : storage/app/reports/agents/ui-unifiee/GUIDE.md.
+   1. Polices  2. Variables (clair, sombre)  3. Base  4. Accessibilité  5. Mise en page
+   6. Classes communes (boutons, liens, champs, tableaux, badges, plaques, messages, état vide)
+   7. Thème sombre de la page, cartes MapLibre (fond du grand visuel de l'accueil : header.css) */
 
-    height: 5px;
-    /* for horizontal scrollbars */
+/* ─── 1. Polices (WOFF2 auto-hébergées via @fontsource, OFL ; graisses réellement utilisées ; chaque
+   fichier NNN.css déclare ses sous-ensembles avec unicode-range : seul celui dont la page a besoin est chargé) ─── */
+/* ─── 2. Variables ──────────────────────────────────────────────────────────
+   Contrastes calculés (WCAG 2.1) sur --vff-bg sauf mention : texte >= 4,5:1, grand texte et
+   composants >= 3:1. L'orange de la charte (#ff6500) ne sert jamais au petit texte sur fond clair
+   (2,7:1) : texte orange = --vff-accent-ink. Points de rupture (les variables CSS ne marchent pas
+   dans @media, valeurs à recopier) : 600 px téléphone, 900 px tablette, 1180 px en-tête replié.
+   Thème clair « papier » (« le white mode fait mal aux yeux », utilisateur, 19/11) : fond blanc
+   cassé chaud, texte gris très foncé chaud, filets doux ; plus de blanc pur ni de noir pur. */
+:root {
+    color-scheme: light;
+
+    /* Marque */
+    --vff-accent: #ff6500; /* aplats, rail, sélection ; jamais en texte < 24 px sur clair */
+    --vff-accent-hover: #e85a00;
+    --vff-accent-soft: rgba(255, 101, 0, 0.12); /* fond teinté (survol, sélection) */
+    --vff-accent-ink: #a94300; /* texte orange : 5,6:1 ; 5,2:1 sur -subtle ; 4,7:1 sur -muted */
+    --vff-accent-strong: #d65000; /* grand texte orange >= 24 px : 3,9:1 */
+    --vff-on-accent: #1c1a17; /* texte posé sur l'aplat orange : 5,9:1 (4,9:1 au survol) */
+
+    /* Fonds */
+    --vff-bg: #f8f6f1; /* papier : blanc cassé chaud */
+    --vff-bg-elevated: #fcfbf8; /* panneaux, menus, tableaux : à peine plus clair que la page */
+    --vff-bg-subtle: #f0ede6; /* bandeaux de page, sections alternées, en-têtes de tableau */
+    --vff-bg-muted: #e7e3da; /* survol, pastilles neutres */
+    --vff-bg-accent: #fbe9da; /* ligne ou filtre sélectionné (orange très pâle) */
+
+    /* Texte */
+    --vff-text: #25221e; /* gris très foncé chaud : 14,7:1 (au lieu de 21:1, moins dur) */
+    --vff-text-muted: #57524a; /* 7,2:1 ; 6,0:1 sur --vff-bg-muted */
+    --vff-text-inverse: #fcfbf8;
+    --vff-link: var(--vff-accent-ink);
+
+    /* Filets et contours */
+    --vff-border: #e3ded4; /* filet de séparation (décor : pas de seuil) */
+    --vff-border-strong: #cfc8bb; /* filet appuyé (décor) */
+    --vff-border-control: #80796e; /* contour des champs et cases : 4,0:1 ; 3,4:1 sur -muted */
+
+    /* États (texte >= 4,5:1 sur leur fond -bg et sur --vff-bg) */
+    --vff-focus: #a94300; /* contour de focus : 5,6:1 */
+    --vff-danger: #b42318; /* 6,1:1 ; 5,6:1 sur -bg */
+    --vff-danger-bg: #fbe9e6;
+    --vff-success: #166534; /* 6,6:1 ; 6,1:1 sur -bg */
+    --vff-success-bg: #e6f1e6;
+    --vff-warning: #8a3c00; /* 7,1:1 ; 6,8:1 sur -bg */
+    --vff-warning-bg: #fbefdc;
+    --vff-info: #1f4e79; /* 8,0:1 ; 7,3:1 sur -bg */
+    --vff-info-bg: #e6edf3;
+
+    /* Ombres (rares : menus et fenêtres seulement) */
+    --vff-shadow: rgba(0, 0, 0, 0.08);
+    --vff-shadow-strong: rgba(0, 0, 0, 0.18);
+    --vff-shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.14);
+
+    /* Polices : rôles */
+    --vff-font-display:
+        Gabarito, 'Helvetica Neue', Arial, sans-serif; /* titres, grands chiffres, boutons */
+    --vff-font-heading:
+        Inter, 'Helvetica Neue', Arial, sans-serif; /* interface, libellés, h3, tableaux */
+    --vff-font-body: Lato, 'Helvetica Neue', Arial, sans-serif; /* texte courant */
+    --vff-font-secondary: Montserrat, 'Helvetica Neue', Arial, sans-serif;
+
+    /* Échelle typographique fluide : rem (suit le réglage de taille du navigateur) + un peu de vw
+       (grandit légèrement sur grand écran), bornée par clamp(). Seuils de lisibilité : texte courant
+       >= 17 px ; textes secondaires (chapeaux, notes, métadonnées) >= 15 px ; libellés, légendes,
+       badges, cellules >= 14 px ; rien en dessous. Valeurs à 375 / 1 280 / 1 920 px. */
+    /* xs 14 / 14,4 / 14,7 : badges, légendes, codes, cellules denses (minimum) */
+    --vff-fs-xs: clamp(0.875rem, 0.86rem + 0.05vw, 0.9375rem);
+    /* sm 15 / 15,4 / 15,7 : libellés, notes, métadonnées, sources, tableaux */
+    --vff-fs-sm: clamp(0.9375rem, 0.92rem + 0.05vw, 1rem);
+    /* md 16 / 16,5 / 16,8 : interface, boutons, champs */
+    --vff-fs-md: clamp(1rem, 0.98rem + 0.06vw, 1.0625rem);
+    /* body 17 / 17,9 / 18,6 : texte courant (Lato 400) */
+    --vff-fs-body: clamp(1.0625rem, 1.04rem + 0.1vw, 1.1875rem);
+    /* lead 18 / 21,3 / 22 : chapeau */
+    --vff-fs-lead: clamp(1.125rem, 1.05rem + 0.35vw, 1.375rem);
+    /* h3 18 / 18,8 / 19,6 (Inter 600), h2 24 / 29,3 / 32 et h1 30 / 46,7 / 52 (Gabarito) */
+    --vff-fs-h3: clamp(1.125rem, 1.08rem + 0.12vw, 1.25rem);
+    --vff-fs-h2: clamp(1.5rem, 1.35rem + 0.6vw, 2rem);
+    --vff-fs-h1: clamp(1.875rem, 1.4rem + 1.9vw, 3.25rem);
+    /* chiffres clés 28 / 31,7 / 35,5 */
+    --vff-fs-figure: clamp(1.75rem, 1.5rem + 0.6vw, 2.25rem);
+    --vff-lh-tight: 1.1;
+    --vff-lh-heading: 1.2;
+    --vff-lh-ui: 1.4;
+    --vff-lh-body: 1.6;
+    --vff-measure: 60ch; /* texte courant : 60ch = 590 px à 17 px, environ 70 à 75 caractères par ligne */
+
+    /* Espacements */
+    --vff-space-1: 4px;
+    --vff-space-2: 8px;
+    --vff-space-3: 12px;
+    --vff-space-4: 16px;
+    --vff-space-5: 24px;
+    --vff-space-6: 32px;
+    --vff-space-7: 52px;
+    --vff-space-8: 72px;
+    /* Rythme vertical, fluide (« trop peu de marge », utilisateur, 18/11) : entre deux sections
+       64 / 80 / 96 px (375 / 1 280 / 1 920) > entre deux blocs d'une section 32 / 36 / 40 px > entre
+       un titre et son contenu (16 à 24 px). Rembourrage intérieur des encarts, panneaux et cadres :
+       20 px sur téléphone, 24 px sur tablette, 32 px sur ordinateur ; jamais un texte ni un bouton à
+       moins de 20 px du bord d'un cadre. */
+    --vff-section-space: clamp(64px, 48px + 2.5vw, 96px);
+    --vff-block-space: clamp(32px, 28px + 0.6vw, 40px);
+    --vff-pad-box: clamp(20px, 12px + 1.6vw, 32px);
+
+    /* Largeurs : contenu de 1 180 px au plus ; gouttières latérales identiques sur toutes les pages
+       (32 px au-dessus de 1 180 px, 24 px jusqu'à 1 180 px, 16 px sur téléphone). */
+    --vff-container: 1180px;
+    --vff-gutter: 32px;
+
+    /* Rayons : un rayon par type d'objet, partout (guide, section 2). Arrondis nets, jamais « bulle ». */
+    --vff-radius-xs: 4px; /* petits repères : touches, code en ligne, barres de défilement */
+    --vff-radius-sm: 8px; /* boutons, champs, badges, plaques, onglets, entrées de menu */
+    --vff-radius-md: 12px; /* panneaux, encarts, messages, tableaux, images, tuiles, menus, cartes */
+    --vff-radius-lg: 16px; /* fenêtres, tiroirs, panneau de connexion */
+    --vff-radius-pill: 999px; /* petites étiquettes, filtres, périodes, pastilles de statut */
+
+    /* Mouvement */
+    --vff-transition: 150ms ease;
+    --vff-transition-slow: 300ms ease;
+
+    /* Focus */
+    --vff-focus-width: 2px;
+    --vff-focus-offset: 2px;
+
+    /* Empilement */
+    --vff-z-raised: 1;
+    --vff-z-sticky: 10;
+    --vff-z-nav: 50; /* en-tête et ses menus */
+    --vff-z-overlay: 100; /* tiroirs, panneaux par-dessus la page */
+    --vff-z-modal: 1000;
+    --vff-z-toast: 1100;
+    --vff-z-progress: 1200;
+    --vff-z-skip: 1300;
+
+    accent-color: var(--vff-accent-ink);
+}
+@media (max-width: 1180px) {
+    :root {
+        --vff-gutter: 24px;
+    }
+}
+@media (max-width: 600px) {
+    :root {
+        --vff-gutter: 16px;
+        --vff-space-7: 40px;
+    }
+}
+/* Très grand écran : contenu un peu plus large, toujours centré (pas de lignes de 200 caractères :
+   le texte garde sa mesure de 60ch) ; le rythme vertical grandit seul (clamp ci-dessus). */
+@media (min-width: 1800px) {
+    :root {
+        --vff-container: 1280px;
+        --vff-gutter: 40px;
+    }
 }
 
-::-webkit-scrollbar-thumb {
-    height: 10px;
-    background-color: #BBB;
+:root[data-theme='dark'] {
+    color-scheme: dark;
+    --vff-accent-ink: #ff7a26; /* 7,1:1 sur --vff-bg, 5,4:1 sur --vff-bg-muted */
+    --vff-accent-strong: #ff6500;
+    --vff-accent-soft: rgba(255, 101, 0, 0.16);
+    --vff-bg: #0f1419;
+    --vff-bg-elevated: #181f29;
+    --vff-bg-subtle: #151b23;
+    --vff-bg-muted: #232c39;
+    --vff-bg-accent: #2a1d14;
+    --vff-text: #e8ecec; /* 15,6:1 */
+    --vff-text-muted: #94a3b8; /* 7,2:1 ; 5,5:1 sur --vff-bg-muted */
+    --vff-text-inverse: #0f1419;
+    --vff-border: #2a3441;
+    --vff-border-strong: #3a4655;
+    --vff-border-control: #66727f; /* 3,8:1 ; 3,4:1 sur --vff-bg-elevated */
+    --vff-focus: #ff7a26;
+    --vff-danger: #f87171; /* 6,7:1 */
+    --vff-danger-bg: #2c1618;
+    --vff-success: #4ade80;
+    --vff-success-bg: #11251a;
+    --vff-warning: #fbbf24;
+    --vff-warning-bg: #2a2111;
+    --vff-info: #93c5fd;
+    --vff-info-bg: #142233;
+    --vff-shadow: rgba(0, 0, 0, 0.45);
+    --vff-shadow-strong: rgba(0, 0, 0, 0.65);
+    --vff-shadow-popover: 0 10px 28px rgba(0, 0, 0, 0.6);
 }
 
-::-webkit-scrollbar-track-piece {
-    height: 30px;
+/* ─── 3. Base ─────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
 }
-
-body{
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+body {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    font-family: var(--vff-font-body);
+    color: var(--vff-text);
+    background-color: var(--vff-bg);
+    -webkit-font-smoothing: antialiased;
 }
-ul{
+/* Mode embed iframe - basculé via JS dans Pages/Embed/*.svelte uniquement. */
+html.vff-embed-mode,
+html.vff-embed-mode body {
+    height: 100%;
+    overflow: hidden;
+}
+html.vff-embed-mode #app {
+    height: 100%;
+}
+ul {
     margin: 0;
 }
-figure{
+figure {
     margin: 0;
 }
-h1{
-    font-family: Gabarito, cursive;
-    font-size: 36px;
+hr {
+    margin: 0;
 }
-h2{
-    font-family: Inter, sans-serif;
-    font-size: 32px;
+/* Titres : échelle de référence (section 3 du guide). Les composants (PageHero, SectionBlock,
+   SheetSection...) la reprennent ; une page qui ne style pas ses titres l'obtient par défaut. */
+h1 {
+    font-family: var(--vff-font-display);
+    font-size: var(--vff-fs-h1);
+    line-height: var(--vff-lh-tight);
 }
-h3{
-    font-family: Gabarito, cursive;
-    font-size: 20px;
+h2 {
+    font-family: var(--vff-font-display);
+    font-size: var(--vff-fs-h2);
+    line-height: var(--vff-lh-heading);
 }
-h1:after{
-    display: table;
-    width: 40px;
-    height: 5px;
-    border-radius: 2px;
-    background-color: #DDDDDD;
-    content: "";
-    margin: 4px auto 0 auto;
+h3 {
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-h3);
+    font-weight: 600;
+    line-height: 1.35;
 }
-p{
-    font-family: Lato, sans-serif;
-    font-size: 22px;
+/* Paragraphes et listes : police du texte courant, taille HÉRITÉE du conteneur (avant le 18/11 :
+   22 px et 20 px imposés partout, ce qui écrasait la taille voulue par les pages). Texte courant :
+   classe .vff-prose (17 px). */
+p {
+    font-family: var(--vff-font-body);
     margin: 1em 0;
 }
-li{
-    font-family: Lato, sans-serif;
-    font-size: 20px;
+li {
+    font-family: var(--vff-font-body);
 }
-.noTranslate > *{
-    transform: translateX(0) !important;
+/* Bords de texte soignés : texte aligné à gauche partout, JAMAIS justifié (décision de l'utilisateur,
+   19/11). Paragraphes et listes : pas de mot seul en dernière ligne ; titres : lignes équilibrées,
+   jamais de césure. Navigateur sans text-wrap : retour à la coupure ordinaire. */
+:where(p, li, dd, figcaption, blockquote) {
+    text-wrap: pretty;
 }
-hr{
-    margin: 0;
+:where(h1, h2, h3, h4, h5, h6) {
+    text-wrap: balance;
+    hyphens: manual;
 }
-
-/* ─── Tokens exposés pour les nouvelles pages internes uniquement ─────────
-   Ces variables ne modifient AUCUNE règle CSS existante (home, header,
-   footer) — elles servent juste à `PageHero`, `IconCard`, `SectionBlock`,
-   `LanguageSwitcher`, et aux pages /whoarewe, /maps, /contribute, /donate,
-   /legal, /privacy, /use-conditions, /api. */
-:root {
-    --vff-accent: #ff6500;
-    --vff-accent-hover: #e85a00;
-    --vff-accent-soft: rgba(255, 101, 0, 0.12);
-    --vff-bg: #ffffff;
-    --vff-bg-elevated: #fcfcfd;
-    --vff-bg-muted: #e8ecec;
-    --vff-text: #000000;
-    --vff-text-muted: #555a64;
-    --vff-text-inverse: #ffffff;
-    --vff-border: #e2e6ea;
-    --vff-border-strong: #c8ced4;
-    --vff-shadow: rgba(0, 0, 0, 0.08);
-    --vff-shadow-strong: rgba(0, 0, 0, 0.18);
-    --vff-font-display: Gabarito, cursive;
-    --vff-font-heading: Inter, sans-serif;
-    --vff-font-body: Lato, sans-serif;
-    --vff-font-secondary: Montserrat, sans-serif;
-    --vff-radius-sm: 6px;
-    --vff-radius-md: 10px;
-    --vff-radius-lg: 16px;
-    --vff-radius-pill: 999px;
-    --vff-transition: 200ms ease;
-    --vff-transition-slow: 500ms ease;
-    --vff-z-nav: 50;
-    --vff-z-overlay: 100;
-    --vff-z-modal: 1000;
+/* Césure automatique du texte courant long (paragraphes et listes de .vff-prose, des pages légales,
+   des descriptions de fiche : classe .vff-hyphenate), dans la langue de l'élément (attribut lang de
+   la page ou du passage). Jamais dans les titres, boutons, libellés, tableaux ni noms de lieux ; pour
+   une URL ou un code long : overflow-wrap: anywhere, sur cet élément seulement. */
+.vff-prose :is(p, li),
+.vff-hyphenate :is(p, li),
+p.vff-hyphenate {
+    hyphens: auto;
+    /* Seulement les mots longs (10 lettres et plus, 4 de chaque côté) : pas de « dé-livré » ni de
+       nom propre court coupé (« Unx-Wares »). */
+    hyphenate-limit-chars: 10 4 4;
 }
-.hidden-button{
-    display: none;
+/* Liens : orange lisible et soulignés par défaut ; :where() laisse la main aux composants. */
+:where(a) {
+    color: var(--vff-link);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
 }
-
-/* ─── Boutons CTA partagés (pages internes uniquement) ─────────────────────
-   Ces classes ne sont utilisées que sur les nouvelles pages internes (whoarewe,
-   donate, contribute, maps, api). Elles n'apparaissent nulle part sur la home. */
-
-.vff-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    border-radius: var(--vff-radius-md);
-    text-decoration: none;
-    font-family: var(--vff-font-display);
-    font-size: 15px;
-    text-transform: uppercase;
-    transition: transform var(--vff-transition), background-color var(--vff-transition);
-    white-space: nowrap;
-    cursor: pointer;
+:where(a):hover {
+    text-decoration-thickness: 2px;
 }
-.vff-btn:hover {
-    transform: scale(0.96);
-    text-decoration: none;
+/* Les contrôles de formulaire prennent la police de la page (sinon Arial 13 px du navigateur). */
+:where(button, input, select, textarea) {
+    font-family: inherit;
 }
-.vff-btn:focus-visible {
-    outline: 3px solid var(--vff-accent);
-    outline-offset: 2px;
+:where(input, select, textarea) {
+    font-size: max(16px, 1em); /* 16 px minimum : pas de zoom forcé sur téléphone */
 }
-
-/* Variante "primary" : utilisée sur fond clair (couleur orange) */
-.vff-btn.primary {
+/* Focus visible partout : contour de 2 px (--vff-focus) décalé de 2 px. */
+:focus-visible {
+    outline: var(--vff-focus-width) solid var(--vff-focus);
+    outline-offset: var(--vff-focus-offset);
+}
+/* Cible d'un lien d'évitement ou d'un focus programmé : pas de contour sur toute la zone. */
+[tabindex='-1']:focus {
+    outline: none;
+}
+::selection {
     background-color: var(--vff-accent);
-    color: var(--vff-text-inverse);
+    color: var(--vff-on-accent);
 }
-.vff-btn.primary:hover {
-    background-color: var(--vff-accent-hover);
+:root {
+    /* Barres de défilement : pouce de la couleur des contours de champ (>= 3:1, suit le thème). */
+    scrollbar-color: var(--vff-border-control) transparent;
 }
-
-/* Variante "on-cta" : utilisée sur le fond orange dégradé (couleur blanche) */
-.vff-btn.on-cta {
-    background-color: #ffffff;
-    color: var(--vff-accent);
-}
-.vff-btn.on-cta:hover {
-    background-color: #f5f5f5;
-}
-
-/* Variante "ghost" : transparent avec bordure */
-.vff-btn.ghost {
-    background-color: transparent;
-    color: var(--vff-accent);
-    border: 2px solid var(--vff-accent);
-}
-.vff-btn.ghost:hover {
-    background-color: var(--vff-accent-soft);
-}
-
-/* Variante "ghost-on-cta" : transparent avec bordure blanche, sur fond orange */
-.vff-btn.ghost-on-cta {
-    background-color: transparent;
-    color: #ffffff;
-    border: 2px solid #ffffff;
-}
-.vff-btn.ghost-on-cta:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-}
-
-/* ─── Dark mode (overrides additifs) ─────────────────────────────────────
-   Activé via <html data-theme="dark"> posé par le store theme. Toutes les
-   règles ici sont ADDITIVES : aucune règle existante n'est modifiée, juste
-   surchargée quand l'attribut [data-theme="dark"] est présent. */
-
-:root[data-theme='dark'] {
-    --vff-bg: #0f1419;
-    --vff-bg-elevated: #181f29;
-    --vff-bg-muted: #232c39;
-    --vff-text: #e8ecec;
-    --vff-text-muted: #94a3b8;
-    --vff-border: #2a3441;
-    --vff-border-strong: #3a4655;
-    --vff-shadow: rgba(0, 0, 0, 0.45);
-    --vff-shadow-strong: rgba(0, 0, 0, 0.65);
-    color-scheme: dark;
-}
-
-[data-theme='dark'] body {
-    background-color: #0f1419;
-    color: #e8ecec;
-    transition: background-color 200ms ease, color 200ms ease;
-}
-
-/* Navbar sticky */
-[data-theme='dark'] header .header-background nav {
-    background-color: #181f29;
-    color: #e8ecec;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
-}
-[data-theme='dark'] header .header-background nav ul li a {
-    color: #e8ecec;
-}
-
-/* Footer */
-[data-theme='dark'] footer {
-    background-color: #0f1419;
-    color: #e8ecec;
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
-}
-[data-theme='dark'] footer .footer-infos .footer-links ul li a {
-    color: #94a3b8;
-}
-[data-theme='dark'] footer .footer-infos .footer-links ul li a:hover {
-    color: #ff6500;
-}
-[data-theme='dark'] footer .footer-infos .footer-links .general-links hr,
-[data-theme='dark'] footer hr {
-    border-top-color: #2a3441;
-}
-[data-theme='dark'] footer .copyright p {
-    color: #94a3b8;
-}
-[data-theme='dark'] footer .copyright p a {
-    color: #e8ecec;
-}
-[data-theme='dark'] footer .copyright p a:hover {
-    color: #ff6500;
-}
-[data-theme='dark'] footer .footer-infos .banner p {
-    color: #94a3b8;
-}
-
-/* Section WhoAreWe (home) */
-[data-theme='dark'] main #whoarewe p {
-    color: #e8ecec;
-}
-[data-theme='dark'] main #whoarewe h1 {
-    color: #ffffff;
-}
-[data-theme='dark'] main #whoarewe h1:after {
-    background-color: #3a4655;
-}
-
-/* Section Maps (home — 3 boîtes) */
-[data-theme='dark'] main #maps .maps-container .maps-box > div {
-    background-color: #181f29;
-    box-shadow: -1px 8px 18px rgba(0, 0, 0, 0.4);
-}
-[data-theme='dark'] main #maps .maps-container .maps-box > div h2 {
-    color: #ffffff;
-    background-color: #232c39;
-}
-[data-theme='dark'] main #maps .maps-container .maps-box > div p {
-    color: #94a3b8;
-}
-[data-theme='dark'] main #maps .maps-container .maps-box > div figure {
-    background-color: #181f29;
-}
-
-/* Sections nouvelles (Features, ContributeTeaser) — identifiées par ID */
-[data-theme='dark'] #features,
-[data-theme='dark'] #contribute-teaser {
-    background-color: #0f1419;
-}
-[data-theme='dark'] #features h2,
-[data-theme='dark'] #features h3,
-[data-theme='dark'] #contribute-teaser h2,
-[data-theme='dark'] #contribute-teaser h3 {
-    color: #ffffff;
-}
-[data-theme='dark'] #features p,
-[data-theme='dark'] #contribute-teaser p {
-    color: #94a3b8;
-}
-[data-theme='dark'] #features .feature {
-    background-color: #181f29;
-    border-color: #2a3441;
-}
-[data-theme='dark'] #features .feature:hover {
-    border-color: #ff6500;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
-}
-
-/* Pages internes (whoarewe, donate, contribute, maps, api, légales) */
-[data-theme='dark'] .page-hero {
-    background: linear-gradient(180deg, rgba(255, 101, 0, 0.15) 0%, transparent 100%);
-}
-[data-theme='dark'] .section-block.alt {
-    background-color: #181f29;
-}
-[data-theme='dark'] .icon-card,
-[data-theme='dark'] .endpoints li,
-[data-theme='dark'] .format,
-[data-theme='dark'] .methods li,
-[data-theme='dark'] .tier,
-[data-theme='dark'] .progress-card,
-[data-theme='dark'] .toc {
-    background-color: #181f29;
-    border-color: #2a3441;
-}
-[data-theme='dark'] .icon-card h3,
-[data-theme='dark'] .tier .label {
-    color: #ffffff;
-}
-[data-theme='dark'] .icon-card p,
-[data-theme='dark'] .tier p,
-[data-theme='dark'] .toc a {
-    color: #94a3b8;
-}
-
-/* LanguageSwitcher dropdown */
-[data-theme='dark'] .lang-menu {
-    background-color: #181f29;
-    border-color: #2a3441;
-}
-[data-theme='dark'] .lang-menu button {
-    color: #e8ecec;
-}
-[data-theme='dark'] .lang-menu button:hover {
-    background-color: #232c39;
-}
-
-/* Scrollbar */
-[data-theme='dark'] ::-webkit-scrollbar-thumb {
-    background-color: #4a5565;
-}
-
-/* ─── Perf : override additif du background hero en WebP ────────────────
-   header.css charge la PNG 2.6 MB. On override avec image-set() pour servir
-   WebP (179 KB desktop, 117 KB tablet, 64 KB mobile) aux browsers compatibles
-   (>97% global). PNG conservée en fallback automatique via type().
-   N'altère AUCUNE règle existante — surcharge en cascade uniquement. */
-
-header .header-background {
-    background-image: image-set(
-        url("../images/background.webp") type("image/webp"),
-        url("../images/background.png") type("image/png")
-    );
-}
-@media (max-width: 1280px) {
-    header .header-background {
-        background-image: image-set(
-            url("../images/background-tablet.webp") type("image/webp"),
-            url("../images/background.png") type("image/png")
-        );
+@supports not (scrollbar-color: auto) {
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
     }
-}
-@media (max-width: 768px) {
-    header .header-background {
-        background-image: image-set(
-            url("../images/background-mobile.webp") type("image/webp"),
-            url("../images/background.png") type("image/png")
-        );
+    ::-webkit-scrollbar-thumb {
+        background-color: var(--vff-border-control);
+        border-radius: var(--vff-radius-xs);
     }
 }
 
-/* ─── Accessibilité : respect du prefers-reduced-motion ─────────────────── */
+/* ─── 4. Accessibilité ────────────────────────────────────────────────────── */
+/* Lien d'évitement (Layout.svelte) : invisible tant qu'il n'a pas le focus. */
+.vff-skip-link {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: var(--vff-z-skip);
+    padding: 12px 18px;
+    border: 2px solid var(--vff-focus);
+    border-radius: var(--vff-radius-sm);
+    background-color: var(--vff-bg);
+    color: var(--vff-text);
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-md);
+    text-decoration: underline;
+    transform: translateY(-160%);
+}
+.vff-skip-link:focus,
+.vff-skip-link:focus-visible {
+    transform: none;
+    outline: none;
+}
+/* Texte lu par les lecteurs d'écran seulement. */
+.vff-sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -382,4 +383,688 @@ header .header-background {
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
+}
+@media (forced-colors: active) {
+    .vff-btn,
+    .vff-badge,
+    .vff-plate,
+    .vff-notice {
+        border: 1px solid CanvasText;
+    }
+}
+
+/* ─── 5. Mise en page ─────────────────────────────────────────────────────── */
+/* Conteneur : 1 180 px, gouttières du site (--vff-gutter). Décalage sous la barre fixe : section
+   « Accès rapide » (.vff-content, --vff-header-h). */
+.vff-container {
+    width: 100%;
+    max-width: calc(var(--vff-container) + 2 * var(--vff-gutter));
+    margin-inline: auto;
+    padding-inline: var(--vff-gutter);
+}
+/* Texte courant (pages de contenu, textes légaux, descriptions). */
+.vff-prose {
+    max-width: var(--vff-measure);
+    font-family: var(--vff-font-body);
+    font-size: var(--vff-fs-body);
+    line-height: var(--vff-lh-body);
+    color: var(--vff-text);
+}
+.vff-prose :is(p, li) {
+    font-size: inherit;
+    line-height: inherit;
+}
+.vff-prose p {
+    margin: 0 0 1em;
+}
+.vff-prose :is(ul, ol) {
+    margin: 0 0 1em;
+    padding-left: 1.4em;
+}
+.vff-prose li + li {
+    margin-top: 0.35em;
+}
+.vff-prose a {
+    color: var(--vff-link);
+    text-decoration: underline;
+}
+.vff-prose :is(h2, h3) {
+    margin: 1.6em 0 0.5em;
+}
+/* Section de page hors SectionBlock / SheetSection : même rythme vertical. alt = bande grise,
+   tinted = bande orange très pâle (une par page au plus, pour l'invitation à agir). */
+.vff-section {
+    padding-block: var(--vff-section-space);
+}
+.vff-section.alt {
+    background-color: var(--vff-bg-subtle);
+    border-block: 1px solid var(--vff-border);
+}
+.vff-section.tinted {
+    background-color: var(--vff-bg-accent);
+}
+/* Blocs empilés dans une section : espacement régulier (--vff-block-space). */
+.vff-stack > * + * {
+    margin-top: var(--vff-block-space);
+}
+/* Titre de section hors SectionBlock / SheetSection : même dessin qu'eux, sans repère décoratif
+   au-dessus (le titre, l'espace et le rythme suffisent à ouvrir une section). */
+.vff-section-title {
+    margin: 0 0 var(--vff-space-4);
+    font-family: var(--vff-font-display);
+    font-size: var(--vff-fs-h2);
+    font-weight: 700;
+    line-height: var(--vff-lh-heading);
+    color: var(--vff-text);
+    text-wrap: balance;
+}
+/* Photo (Wikimedia Commons) : cadrage fixe, jamais déformée, crédit lisible dessous. */
+.vff-figure {
+    margin: 0;
+}
+.vff-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: var(--ratio, 3 / 2);
+    object-fit: cover;
+    border-radius: var(--vff-radius-md);
+    background-color: var(--vff-bg-muted);
+}
+.vff-figure figcaption {
+    margin-top: 8px;
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-xs);
+    line-height: var(--vff-lh-ui);
+    color: var(--vff-text-muted);
+}
+.vff-figure figcaption a {
+    color: inherit;
+}
+/* Entrée cliquable d'une liste (ligne, gare, contribution) : tout le bloc est le lien. Survol et focus :
+   filet orange et fond teinté, sans mouvement. */
+.vff-tile {
+    display: block;
+    padding: 20px 24px;
+    border: 1px solid var(--vff-border);
+    border-radius: var(--vff-radius-md);
+    background-color: var(--vff-bg-elevated);
+    color: var(--vff-text);
+    text-decoration: none;
+    transition:
+        border-color var(--vff-transition),
+        background-color var(--vff-transition);
+}
+a.vff-tile:hover,
+.vff-tile:has(a:hover) {
+    border-color: var(--vff-accent-ink);
+    background-color: var(--vff-bg-accent);
+}
+.vff-lead {
+    max-width: 60ch;
+    margin: 0;
+    font-family: var(--vff-font-body);
+    font-size: var(--vff-fs-lead);
+    line-height: 1.5;
+    color: var(--vff-text-muted);
+}
+/* Liste de points (IconCard) : une rangée par point, filets entre les rangées, titre à gauche et
+   phrase à droite quand la colonne est assez large. Remplace les grilles de trois blocs identiques. */
+.vff-points {
+    display: grid;
+    max-width: 960px;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--vff-border);
+    list-style: none;
+}
+/* Panneau à filet (filtres, formulaires) : pas d'ombre. */
+.vff-panel {
+    padding: var(--vff-pad-box);
+    border: 1px solid var(--vff-border);
+    border-radius: var(--vff-radius-md);
+    background-color: var(--vff-bg-elevated);
+}
+
+/* ─── 6. Classes communes ─────────────────────────────────────────────────── */
+
+/* Boutons. Variantes : primary (action principale, une par zone), secondary (= ghost),
+   quiet (bouton texte), small (barres d'outils, filtres). Cible de 44 px (36 px en small). */
+/* Classes communes : modèle de boîte écrit en toutes lettres (elles servent aussi dans les sections de
+   l'accueil, restées en content-box). */
+.vff-btn,
+.vff-link,
+.vff-tile,
+.vff-figure,
+.vff-section,
+.vff-input,
+.vff-select,
+.vff-textarea,
+.vff-check,
+.vff-table-wrap,
+.vff-badge,
+.vff-plate,
+.vff-notice,
+.vff-empty,
+.vff-panel,
+.vff-container,
+.vff-prose {
+    box-sizing: border-box;
+}
+.vff-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 20px;
+    border: 2px solid transparent;
+    border-radius: var(--vff-radius-sm);
+    background-color: var(--vff-bg);
+    color: var(--vff-text);
+    font-family: var(--vff-font-display);
+    font-size: var(--vff-fs-md);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: normal;
+    text-align: center;
+    text-decoration: none;
+    text-transform: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        background-color var(--vff-transition),
+        border-color var(--vff-transition),
+        color var(--vff-transition);
+}
+.vff-btn:hover {
+    text-decoration: none;
+}
+.vff-btn :is(i, .bi) {
+    font-size: 1.05em;
+    line-height: 1;
+}
+.vff-btn:disabled,
+.vff-btn[aria-disabled='true'] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+/* Téléphone : un libellé long (souvent en allemand) va à la ligne au lieu de sortir de l'écran. */
+@media (max-width: 600px) {
+    .vff-btn {
+        white-space: normal;
+    }
+}
+.vff-btn.primary {
+    background-color: var(--vff-accent);
+    border-color: var(--vff-accent);
+    color: var(--vff-on-accent);
+}
+.vff-btn.primary:hover:not(:disabled) {
+    background-color: var(--vff-accent-hover);
+    border-color: var(--vff-accent-hover);
+}
+.vff-btn.secondary,
+.vff-btn.ghost {
+    background-color: transparent;
+    border-color: var(--vff-accent-ink);
+    color: var(--vff-accent-ink);
+}
+.vff-btn.secondary:hover:not(:disabled),
+.vff-btn.ghost:hover:not(:disabled) {
+    background-color: var(--vff-accent-soft);
+}
+.vff-btn.quiet {
+    min-height: 36px;
+    padding: 6px 8px;
+    background-color: transparent;
+    color: var(--vff-accent-ink);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+.vff-btn.quiet:hover:not(:disabled) {
+    background-color: var(--vff-accent-soft);
+}
+.vff-btn.small {
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: var(--vff-fs-sm);
+}
+/* Téléphone : les petits boutons retrouvent une cible tactile de 44 px (36 px suffisent à la souris). */
+@media (max-width: 600px) {
+    .vff-btn.small,
+    .vff-btn.quiet {
+        min-height: 44px;
+    }
+}
+.vff-btn.block {
+    display: flex;
+    width: 100%;
+}
+/* Action destructive (refuser, supprimer) : contour et texte en couleur d'erreur, jamais en aplat. */
+.vff-btn.danger {
+    background-color: transparent;
+    border-color: var(--vff-danger);
+    color: var(--vff-danger);
+}
+.vff-btn.danger:hover:not(:disabled) {
+    background-color: var(--vff-danger-bg);
+}
+
+/* Lien d'action isolé (« Voir sur la carte ») : cible de 24 px, flèche ou icône facultative. */
+.vff-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 24px;
+    color: var(--vff-link);
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-sm);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+.vff-link:hover {
+    text-decoration-thickness: 2px;
+}
+/* Indication « nouvel onglet » après un lien externe (icône + texte masqué common.new_tab). */
+.vff-ext {
+    margin-left: 0.25em;
+    font-size: 0.75em;
+    vertical-align: 0.05em;
+}
+/* Glyphe en ligne (bootstrap-icons le pose en inline-block, que le navigateur peut renvoyer seul à
+   la ligne) : l'icône reste collée au dernier mot du lien. */
+.vff-ext::before {
+    display: inline;
+}
+
+/* Champs (Components/ui/Field.svelte). */
+.vff-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+.vff-label {
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-sm);
+    font-weight: 600;
+    line-height: var(--vff-lh-ui);
+    color: var(--vff-text);
+}
+.vff-hint {
+    margin: 0;
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-sm);
+    line-height: var(--vff-lh-ui);
+    color: var(--vff-text-muted);
+}
+.vff-error {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin: 0;
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-sm);
+    font-weight: 600;
+    line-height: var(--vff-lh-ui);
+    color: var(--vff-danger);
+}
+.vff-error:empty {
+    /* Zone d'annonce gardée dans la page (aria-live) mais sans place quand elle est vide. */
+    margin-top: -6px;
+}
+.vff-input,
+.vff-select,
+.vff-textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 12px;
+    border: 1px solid var(--vff-border-control);
+    border-radius: var(--vff-radius-sm);
+    background-color: var(--vff-bg);
+    color: var(--vff-text);
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-md);
+    line-height: var(--vff-lh-ui);
+}
+.vff-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+.vff-input::placeholder,
+.vff-textarea::placeholder {
+    color: var(--vff-text-muted);
+    opacity: 1;
+}
+/* Champ étroit : texte d'exemple coupé par des points de suspension, jamais au milieu d'un mot. */
+.vff-input {
+    text-overflow: ellipsis;
+}
+.vff-input:focus-visible,
+.vff-select:focus-visible,
+.vff-textarea:focus-visible {
+    outline: var(--vff-focus-width) solid var(--vff-focus);
+    outline-offset: 0;
+    border-color: var(--vff-focus);
+}
+.vff-input[aria-invalid='true'],
+.vff-select[aria-invalid='true'],
+.vff-textarea[aria-invalid='true'] {
+    border-color: var(--vff-danger);
+    box-shadow: 0 0 0 1px var(--vff-danger);
+}
+.vff-input:disabled,
+.vff-select:disabled,
+.vff-textarea:disabled {
+    background-color: var(--vff-bg-muted);
+    cursor: not-allowed;
+}
+/* Case à cocher ou bouton radio avec son libellé cliquable (cible >= 24 px). */
+.vff-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 24px;
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-sm);
+    line-height: var(--vff-lh-ui);
+    color: var(--vff-text);
+    cursor: pointer;
+}
+.vff-check input {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    accent-color: var(--vff-accent-ink);
+}
+@media (max-width: 600px) {
+    .vff-check {
+        min-height: 44px;
+    }
+}
+
+/* Tableaux. Envelopper dans .vff-table-wrap (défilement horizontal), avec tabindex="0",
+   role="region" et aria-label quand le tableau peut déborder (accès au clavier). */
+/* position: relative : les textes masqués (.vff-sr-only, en position absolue) des cellules restent
+   dans le cadre qui défile ; sinon ils dépassent de la page et la font défiler en largeur (gares à
+   768 px et au zoom 200 %). */
+.vff-table-wrap {
+    position: relative;
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--vff-border);
+    border-radius: var(--vff-radius-md);
+}
+.vff-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-sm);
+    line-height: var(--vff-lh-ui);
+    color: var(--vff-text);
+}
+.vff-table caption {
+    padding: 0 0 var(--vff-space-2);
+    text-align: left;
+    color: var(--vff-text-muted);
+    caption-side: top;
+}
+.vff-table th,
+.vff-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--vff-border);
+    text-align: left;
+    vertical-align: top;
+}
+/* Première et dernière colonnes : 20 px au moins entre le texte et le cadre arrondi. */
+.vff-table-wrap .vff-table :is(th, td):first-child {
+    padding-left: 20px;
+}
+.vff-table-wrap .vff-table :is(th, td):last-child {
+    padding-right: 20px;
+}
+.vff-table thead th {
+    background-color: var(--vff-bg-subtle);
+    font-weight: 600;
+    color: var(--vff-text-muted);
+    white-space: nowrap;
+}
+.vff-table tbody tr:last-child > * {
+    border-bottom: 0;
+}
+.vff-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* Badges (statuts, licences, compteurs) : casse de phrase, texte >= 13 px, jamais la couleur seule. */
+.vff-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    border: 1px solid var(--vff-border-strong);
+    border-radius: var(--vff-radius-sm);
+    background-color: var(--vff-bg);
+    color: var(--vff-text);
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-xs);
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+.vff-badge.muted {
+    background-color: var(--vff-bg-muted);
+    border-color: transparent;
+    color: var(--vff-text-muted);
+}
+.vff-badge.accent {
+    background-color: var(--vff-bg-accent);
+    border-color: var(--vff-accent);
+    color: var(--vff-accent-ink);
+}
+.vff-badge.success {
+    background-color: var(--vff-success-bg);
+    border-color: transparent;
+    color: var(--vff-success);
+}
+.vff-badge.danger {
+    background-color: var(--vff-danger-bg);
+    border-color: transparent;
+    color: var(--vff-danger);
+}
+.vff-badge.warning {
+    background-color: var(--vff-warning-bg);
+    border-color: transparent;
+    color: var(--vff-warning);
+}
+.vff-badge.info {
+    background-color: var(--vff-info-bg);
+    border-color: transparent;
+    color: var(--vff-info);
+}
+/* Pastille de couleur (catégorie de la carte) placée devant le texte d'un badge ou d'une ligne. */
+.vff-swatch {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 14px;
+    height: 4px;
+    border-radius: 2px;
+    background-color: var(--swatch, var(--vff-accent));
+}
+/* Plaque : code de ligne ou type de gare, comme la plaque d'un poteau kilométrique. */
+.vff-plate {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    border: 1.5px solid var(--vff-text);
+    border-radius: var(--vff-radius-sm);
+    background-color: var(--vff-bg);
+    color: var(--vff-text);
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-sm);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+/* Messages (Components/ui/Notice.svelte) : fond teinté du ton, filet fin de la même teinte, icône et
+   texte. Pas de barre épaisse sur le bord gauche. */
+.vff-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px 24px;
+    border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+    border-radius: var(--vff-radius-md);
+    font-family: var(--vff-font-heading);
+    font-size: var(--vff-fs-sm);
+    line-height: var(--vff-lh-ui);
+}
+.vff-notice > .bi {
+    flex-shrink: 0;
+    font-size: 1.15em;
+    line-height: 1.25;
+}
+.vff-notice .vff-notice-body {
+    min-width: 0;
+    color: var(--vff-text);
+}
+.vff-notice .vff-notice-body :is(p, li) {
+    margin: 0;
+    font-size: inherit;
+    line-height: inherit;
+}
+.vff-notice .vff-notice-title {
+    margin: 0 0 2px;
+    font-weight: 600;
+}
+.vff-notice.info {
+    color: var(--vff-info);
+    background-color: var(--vff-info-bg);
+}
+.vff-notice.success {
+    color: var(--vff-success);
+    background-color: var(--vff-success-bg);
+}
+.vff-notice.warning {
+    color: var(--vff-warning);
+    background-color: var(--vff-warning-bg);
+}
+.vff-notice.danger {
+    color: var(--vff-danger);
+    background-color: var(--vff-danger-bg);
+}
+
+/* État vide (Components/ui/EmptyState.svelte). */
+/* Encart sur fond teinté et coins arrondis (pas de barre sur le bord gauche). */
+.vff-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--vff-space-2);
+    max-width: 68ch;
+    padding: var(--vff-pad-box);
+    border: 1px solid var(--vff-border);
+    border-radius: var(--vff-radius-md);
+    background-color: var(--vff-bg-subtle);
+}
+.vff-empty > .bi {
+    margin-bottom: var(--vff-space-1);
+    font-size: 28px;
+    line-height: 1;
+    color: var(--vff-text-muted);
+}
+.vff-empty .vff-empty-title {
+    margin: 0;
+    font-family: var(--vff-font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: var(--vff-lh-heading);
+    color: var(--vff-text);
+}
+.vff-empty .vff-empty-text {
+    margin: 0;
+    font-family: var(--vff-font-body);
+    font-size: var(--vff-fs-body);
+    line-height: var(--vff-lh-body);
+    color: var(--vff-text-muted);
+}
+.vff-empty .vff-empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--vff-space-3);
+    margin-top: var(--vff-space-2);
+}
+
+/* Barre de progression des navigations Inertia (app.js) : aplat, sans lueur. */
+.vff-route-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 3px;
+    background-color: var(--vff-accent);
+    z-index: var(--vff-z-progress);
+    pointer-events: none;
+    animation: vff-route-progress-grow 8s cubic-bezier(0.1, 0.6, 0.3, 1) forwards;
+}
+@keyframes vff-route-progress-grow {
+    0% {
+        width: 0;
+    }
+    30% {
+        width: 35%;
+    }
+    70% {
+        width: 80%;
+    }
+    100% {
+        width: 95%;
+    }
+}
+
+/* ─── 7. Thème sombre de la page et cartes MapLibre ─────────────────────────
+   (Les anciennes règles de compatibilité de l'accueil ont été retirées le 18/11 : les sections
+   définissent elles-mêmes leur modèle de boîte, leurs tailles et leurs couleurs.) */
+[data-theme='dark'] body {
+    transition:
+        background-color 200ms ease,
+        color 200ms ease;
+}
+/* Contrôles des cartes MapLibre (toutes les cartes du site) : coins des boutons et des bulles au
+   rayon du site. */
+:root .maplibregl-ctrl.maplibregl-ctrl-group {
+    border-radius: var(--vff-radius-sm);
+}
+:root .maplibregl-ctrl-group button:first-child {
+    border-radius: var(--vff-radius-sm) var(--vff-radius-sm) 0 0;
+}
+:root .maplibregl-ctrl-group button:last-child {
+    border-radius: 0 0 var(--vff-radius-sm) var(--vff-radius-sm);
+}
+:root .maplibregl-ctrl-group button:only-child {
+    border-radius: var(--vff-radius-sm);
+}
+:root .maplibregl-popup-content {
+    border-radius: var(--vff-radius-md);
+}
+/* Liens des crédits de la carte : soulignés, comme dans le texte (MapLibre ne les distingue que
+   par la couleur, 2,2:1 en thème sombre : WCAG 1.4.1). */
+:root .maplibregl-ctrl-attrib a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/* ─── Accès rapide (agent acces, vague 3) ────────────────────────────────────
+   La barre de l'en-tête a désormais la hauteur --vff-header-h (header.css : 88, 72, 64 px) : la
+   zone de contenu s'arrête juste sous la barre fixe de l'accueil (lien d'évitement, bouton du héros). */
+.vff-content {
+    scroll-margin-top: var(--vff-header-h);
 }

@@ -1,0 +1,66 @@
+# Contrôles avant commit et avant push, alignés sur la CI (.github/workflows/ci.yml).
+# Tout passe par les enveloppes Podman : bin/php, bin/pnpm (aucun PHP ni Node requis sur l'hôte).
+#
+# Installation (une fois, depuis l'hôte, car le conteneur pnpm n'a pas git) :
+#   node_modules/.bin/lefthook install
+# Lancement manuel :
+#   node_modules/.bin/lefthook run pre-commit --all-files
+#   node_modules/.bin/lefthook run pre-push
+# Passer un crochet exceptionnellement : LEFTHOOK=0 git commit ... (à éviter).
+
+output:
+    - failure
+    - summary
+
+pre-commit:
+    parallel: true
+    jobs:
+        - name: pint
+          glob: '*.php'
+          exclude:
+              - 'resources/images/vendor/**'
+              - 'vendor/**'
+              - 'storage/**'
+          run: bin/php vendor/bin/pint --test {staged_files}
+
+        - name: prettier
+          glob: '{resources/{js,css}/**/*.{js,svelte,css},tests/js/**/*.js,scripts/**/*.{js,mjs},*.config.js}'
+          run: bin/pnpm exec prettier --check {staged_files}
+
+        - name: eslint
+          glob: '*.{js,mjs,svelte}'
+          exclude:
+              - 'public/**'
+              - 'vendor/**'
+              - 'storage/**'
+              - 'resources/images/vendor/**'
+          run: bin/pnpm exec eslint {staged_files}
+
+        - name: tirets-interdits
+          exclude:
+              - 'resources/images/vendor/**'
+              - 'vendor/**'
+              - 'storage/**'
+              - 'public/**'
+          run: bin/pnpm exec node scripts/check-staged-text.mjs dashes {staged_files}
+
+        - name: attribution-ia
+          run: bin/pnpm exec node scripts/check-staged-text.mjs attribution {staged_files}
+
+        - name: i18n
+          glob: 'lang/**/*.php'
+          run: bin/php artisan vff:i18n-check --strict
+
+commit-msg:
+    jobs:
+        - name: attribution-ia
+          # Pas de co-auteur ni de mention d'outil d'IA dans le message.
+          run: "! grep -qiE 'co-authored-by|generated with|made with claude|anthropic|claude code' {1}"
+
+pre-push:
+    jobs:
+        - name: svelte-check
+          run: bin/pnpm check
+
+        - name: controles-statiques
+          run: bin/php artisan test tests/Unit/Static

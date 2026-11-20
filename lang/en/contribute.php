@@ -1,54 +1,56 @@
 <?php
 
 return [
-    'meta_title' => 'Contribute',
-    'meta_description' => 'How to contribute to VFF: data, archival media, code.',
+    'meta_title' => 'Your contribution',
+    'meta_description' => 'How to contribute to VFF: line routes and dates, archival media, code.',
 
     'hero' => [
-        'eyebrow' => 'Contribute',
-        'title' => 'The French rail network needs you',
-        'subtitle' => "VFF is a collaborative project. Without contributors, no encyclopedia. Here are three ways to bring your piece.",
+        'title' => 'Take part in the encyclopaedia',
+        'subtitle' => 'VFF relies on its contributors. There are three ways to take part, and every contribution is checked before it is published.',
     ],
 
     'ways' => [
+        'title' => 'Three ways to contribute',
         'data_title' => 'Document lines',
-        'data_text' => "When the editing interface opens, you'll be able to document the lines you know directly: exact route, key dates, rolling stock. Every contribution is validated by two peers before publication.",
-        'data_status' => 'Phase 5 — Sign-ups coming',
+        'data_text' => 'Once you have signed up, you can retrace a line or a line section and date each event (opening, closure, track removal), or say which rolling stock ran on a line, citing your sources. Two validators review each proposal before publication.',
+        'data_status' => 'An account is required',
 
-        'media_title' => 'Bring archival media',
-        'media_text' => "Do you own old photos, plans, dated documents? With your consent and a clear license, they can enrich the pages of the corresponding lines. For large collections (>50 documents), please contact us first.",
-        'media_status' => 'Discord open',
+        'media_title' => 'Offer archival media',
+        'media_text' => 'An old photograph, a postcard, a plan or a dated document that is copyright-free or under an open licence can illustrate the page of a line, a station or an event. Upload the file or give its address on Wikimedia Commons. For a collection of more than 50 documents, please contact us first.',
+        'media_status' => 'An account is required',
 
         'code_title' => 'Contribute to the code',
-        'code_text' => 'VFF is open-source. Bugs, feature ideas, translations, cartographic performance — all PRs are welcome. See CONTRIBUTING.md for conventions.',
-        'code_status' => 'GitHub open',
+        'code_text' => 'The VFF code is published under the MIT licence. Bug reports, ideas, translations, map performance: submit them on GitHub. The conventions are described in CONTRIBUTING.md.',
+        'code_status' => 'On GitHub',
     ],
 
     'process' => [
-        'title' => 'The validation process',
+        'title' => 'How a contribution is checked',
         'step1_title' => 'You submit',
-        'step1_text' => 'Via the editing interface or a GitHub PR, you submit a contribution (data, media, code).',
-        'step2_title' => 'Two peers validate',
-        'step2_text' => 'At least two recognized validators review your contribution, check sources and consistency.',
+        'step1_text' => 'From your account, you submit a route, a change to a line, a dated event or an image. For code, you open a pull request on GitHub.',
+        'step2_title' => 'Two validators review',
+        'step2_text' => 'Two validators examine your proposal and check the sources and the consistency with existing data.',
         'step3_title' => 'Publication',
-        'step3_text' => 'Once validated, your contribution is published and credited to your profile. Your badge / reputation grows.',
+        'step3_text' => 'Once validated, the contribution is published and credited to your display name.',
     ],
 
     'rules' => [
         'title' => 'A few rules',
         'sources_title' => 'Cite your sources',
-        'sources_text' => 'Dates, places, historical facts: always indicate where you found the information.',
+        'sources_text' => 'Dates, places, historical facts: always say where you found the information.',
         'license_title' => 'Clear licensing',
-        'license_text' => 'Media must be royalty-free, under Creative Commons, or explicitly granted by their author.',
+        'license_text' => 'Your contributions are published under ODbL (data) and CC BY-SA 4.0 (texts, photos, documents). Only submit what you have the right to share.',
+        'license_link' => 'Terms of use',
         'respect_title' => 'Respect',
-        'respect_text' => 'Kindness between contributors, factuality in exchanges. No political debate.',
+        'respect_text' => 'Kindness between contributors, factual exchanges, no political debate.',
     ],
 
     'cta' => [
-        'title' => 'Ready to board?',
-        'text' => 'Discord to talk, GitHub to code, form coming soon to document.',
+        'title' => 'Where to start?',
+        'text' => 'Create an account to propose a route or a date, or join the discussion on Discord.',
+        'register' => 'Create an account',
+        'edit_segment' => 'Edit a line section',
         'discord' => 'Discord',
         'github' => 'GitHub',
-        'newsletter' => 'Get notified',
     ],
 ];

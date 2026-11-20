@@ -2,53 +2,55 @@
 
 return [
     'meta_title' => 'Votre contribution',
-    'meta_description' => "Comment contribuer à VFF : données, médias d'archives, code.",
+    'meta_description' => 'Comment contribuer à VFF : tracés et dates des lignes, médias d’archives, code.',
 
     'hero' => [
-        'eyebrow' => 'Contribuer',
-        'title' => 'Le rail français a besoin de vous',
-        'subtitle' => "VFF est un projet collaboratif. Sans contributeurs, pas d'encyclopédie. Voici trois façons d'apporter votre pierre.",
+        'title' => 'Participez à l’encyclopédie',
+        'subtitle' => 'VFF repose sur ses contributeurs. Il y a trois façons de participer, et chaque apport est vérifié avant d’être publié.',
     ],
 
     'ways' => [
+        'title' => 'Trois façons de contribuer',
         'data_title' => 'Documenter des lignes',
-        'data_text' => "Dès l'ouverture de l'interface d'édition, vous pourrez documenter directement les lignes que vous connaissez : tracé exact, dates clés, matériel roulant. Toute contribution est validée par deux pairs avant publication.",
-        'data_status' => 'Phase 5 — Inscriptions à venir',
+        'data_text' => 'Après inscription, vous pouvez retracer une ligne ou une portion de ligne et dater chaque événement (ouverture, fermeture, dépose), ou dire quel matériel a roulé sur une ligne, en citant vos sources. Deux validateurs relisent chaque proposition avant publication.',
+        'data_status' => 'Un compte est nécessaire',
 
-        'media_title' => "Apporter des médias d'archives",
-        'media_text' => "Vous détenez des photos anciennes, des plans, des documents datés ? Avec votre accord et une licence claire, ils peuvent enrichir les fiches des lignes correspondantes. Pour les fonds importants (>50 documents), contactez-nous d'abord.",
-        'media_status' => 'Discord ouvert',
+        'media_title' => 'Apporter des médias d’archives',
+        'media_text' => 'Une photo ancienne, une carte postale, un plan ou un document daté, libre de droits ou sous licence ouverte, peut illustrer la fiche d’une ligne, d’une gare ou d’un événement. Déposez le fichier ou indiquez son adresse sur Wikimedia Commons. Pour un fonds de plus de 50 documents, contactez-nous d’abord.',
+        'media_status' => 'Un compte est nécessaire',
 
         'code_title' => 'Contribuer au code',
-        'code_text' => "VFF est open-source. Bugs, idées de fonctionnalités, traductions, performances cartographiques — toutes les PRs sont les bienvenues. Consultez CONTRIBUTING.md pour les conventions.",
-        'code_status' => 'GitHub ouvert',
+        'code_text' => 'Le code de VFF est publié sous licence MIT. Signalements de bogues, idées, traductions, performances de la carte : proposez-les sur GitHub. Les conventions sont décrites dans CONTRIBUTING.md.',
+        'code_status' => 'Sur GitHub',
     ],
 
     'process' => [
-        'title' => 'Le processus de validation',
+        'title' => 'Comment une contribution est vérifiée',
         'step1_title' => 'Vous proposez',
-        'step1_text' => "Via l'interface d'édition ou une PR sur GitHub, vous soumettez une contribution (donnée, média, code).",
-        'step2_title' => 'Deux pairs valident',
-        'step2_text' => "Au moins deux validateurs reconnus relisent votre apport, vérifient sources et cohérence.",
+        'step1_text' => 'Depuis votre compte, vous soumettez un tracé, une modification de ligne, un événement daté ou une image. Pour le code, vous ouvrez une pull request sur GitHub.',
+        'step2_title' => 'Deux validateurs relisent',
+        'step2_text' => 'Deux validateurs examinent votre proposition, vérifient les sources et la cohérence avec les données existantes.',
         'step3_title' => 'Publication',
-        'step3_text' => "Une fois validée, votre contribution est publiée et créditée à votre profil. Votre badge / réputation grandit.",
+        'step3_text' => 'Une fois validée, la contribution est publiée et créditée à votre nom d’affichage.',
     ],
 
     'rules' => [
         'title' => 'Quelques règles',
         'sources_title' => 'Citez vos sources',
-        'sources_text' => 'Dates, lieux, faits historiques : indiquez toujours où vous avez trouvé l\'information.',
+        'sources_text' => 'Dates, lieux, faits historiques : indiquez toujours où vous avez trouvé l’information.',
         'license_title' => 'Licences claires',
-        'license_text' => 'Les médias doivent être libres de droits, sous CC, ou explicitement cédés par leur auteur.',
+        'license_text' => 'Vos contributions sont publiées sous ODbL (données) et CC BY-SA 4.0 (textes, photos, documents). N’envoyez que ce que vous avez le droit de partager.',
+        'license_link' => 'Conditions d’utilisation',
         'respect_title' => 'Respect',
-        'respect_text' => 'Bienveillance entre contributeurs, factualité dans les échanges. Pas de débat politique.',
+        'respect_text' => 'Bienveillance entre contributeurs, échanges factuels, pas de débat politique.',
     ],
 
     'cta' => [
-        'title' => 'Prêt·e à embarquer ?',
-        'text' => 'Discord pour discuter, GitHub pour coder, formulaire bientôt pour documenter.',
+        'title' => 'Par où commencer ?',
+        'text' => 'Créez un compte pour proposer un tracé ou une date, ou rejoignez la discussion sur Discord.',
+        'register' => 'Créer un compte',
+        'edit_segment' => 'Éditer une portion de ligne',
         'discord' => 'Discord',
         'github' => 'GitHub',
-        'newsletter' => 'Être prévenu·e',
     ],
 ];

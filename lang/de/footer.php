@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'banner' => "Erkunden Sie die Welt der französischen Eisenbahn, tauchen Sie ein in die reiche und vielfältige Geschichte dieser Strecken, die unser Land durchqueren, und entdecken Sie die kleinsten Details über die darauf verkehrenden Züge. Wir sind begeistert vom französischen Eisenbahnerbe und unser Ziel ist es, diese Leidenschaft mit Ihnen zu teilen.",
+    'banner' => 'VFF dokumentiert das französische Eisenbahnnetz von 1830 bis heute: die betriebenen und die verschwundenen Strecken, ihre Bahnhöfe, ihre Daten und ihre Quellen. Eine gemeinschaftliche Enzyklopädie, die jeder lesen und ergänzen kann, gepflegt von Liebhabern des Eisenbahnerbes.',
 
     'quick_links' => 'Schnellzugriff',
     'contact_us' => 'Kontakt',
@@ -9,11 +9,17 @@ return [
 
     'discord' => 'Discord',
     'instagram' => 'Instagram',
-    'twitter' => 'Twitter',
+    'twitter' => 'X (Twitter)',
     'github' => 'GitHub',
     'unxwares' => 'UnxWares',
+    'uwosc' => 'UnxWares Open Source & Community (UWOSC)',
 
-    'copyright' => 'Voies Ferrées de France — VFF © :start–:end — Alle Rechte vorbehalten',
-    'powered_by' => 'Bereitgestellt von',
-    'made_by' => 'Entwickelt von :name',
+    'copyright' => 'Voies Ferrées de France - VFF © :start-:end',
+    'project_by' => 'Ein Projekt von',
+
+    // Konformitätsangabe nach dem RGAA (Artikel 47 des französischen Gesetzes Nr. 2005-102), verlinkt auf die Erklärung.
+    'accessibility_status' => 'Barrierefreiheit: vollständig konform',
+
+    // Name der Fußzeilen-Navigation (Bildschirmleser).
+    'nav_label' => 'Links der Fußzeile',
 ];

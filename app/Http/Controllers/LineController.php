@@ -1,0 +1,172 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Concerns\ReadsListFilters;
+use App\Models\Line;
+use App\Services\Accidents\LineAccidents;
+use App\Services\Archives\LineArchives;
+use App\Services\Greenways\LineGreenways;
+use App\Services\LevelCrossings\LineLevelCrossings;
+use App\Services\LineDirectory;
+use App\Services\LineSheet;
+use App\Services\LineStats;
+use App\Services\Profiles\LineProfiles;
+use App\Services\Signalling\LineSignallingHistory;
+use App\Services\Stories\EventStories;
+use App\Services\TraceExport\LineTraceExport;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class LineController extends Controller
+{
+    use ReadsListFilters;
+
+    /** Catégories de réseau (contrat `lines.network`). */
+    public const NETWORKS = LineDirectory::NETWORKS;
+
+    /** Types de trafic d'une portion (`line_segments.traffic_type`). */
+    public const TRAFFICS = LineDirectory::TRAFFICS;
+
+    /** Part électrifiée (%) sous laquelle une ligne n'est électrifiée qu'à la marge (voies d'une gare, raccordement). */
+    public const MARGINAL_ELECTRIFIED_PCT = LineStats::MARGINAL_ELECTRIFIED_PCT;
+
+    /**
+     * Liste paginée et filtrée des lignes.
+     *
+     * Filtres acceptés :
+     *   ?q=…                         nom, code, opérateur
+     *   ?network=principal|secondaire|militaire|particulier|none
+     *   ?traffic=passenger|mixed|freight|unknown   trafic ACTUEL (segments en
+     *        service de l'ère courante) - `?type=` accepté comme alias historique
+     *   ?status=open|closed          au moins une portion en service / aucune
+     *   ?heritage=1                  au moins une portion patrimoniale
+     *
+     * Avant : le filtre et les compteurs reposaient sur `lines.type`, colonne non
+     * curée (NULL partout) → « 0 voyageurs · 0 fret · 0 mixtes » (audit STATS-01).
+     */
+    public function index(Request $request, LineDirectory $directory): Response
+    {
+        $q = $this->filterString($request, 'q', trim: true);
+        $network = $this->filterString($request, 'network');
+        $traffic = $this->filterString($request, 'traffic') ?: $this->filterString($request, 'type');
+        if ($traffic === 'passengers') {
+            $traffic = 'passenger';
+        }
+        $status = $this->filterString($request, 'status');
+        $heritage = $request->boolean('heritage');
+        $eraId = $directory->eraId();
+
+        $network = in_array($network, [...self::NETWORKS, 'none'], true) ? $network : '';
+        $traffic = in_array($traffic, self::TRAFFICS, true) ? $traffic : '';
+        $status = in_array($status, ['open', 'closed'], true) ? $status : '';
+
+        // Filtres appliqués À LA FOIS à la liste paginée ET aux compteurs de l'en-tête (LineDirectory),
+        // pour que les compteurs reflètent la recherche en cours.
+        $filters = ['q' => $q, 'network' => $network, 'traffic' => $traffic, 'status' => $status, 'heritage' => $heritage];
+
+        $sort = $this->filterString($request, 'sort');
+        $sort = in_array($sort, ['name', 'name-desc', 'code'], true) ? $sort : 'name';
+
+        $lines = $this->applyIndexOrder(
+            $directory->apply(Line::query()->select('id', 'slug', 'code', 'name', 'network', 'historical_operator'), $filters, $eraId),
+            $sort,
+            $q,
+        )->paginate(40)->appends($request->query());
+
+        // Trafic dominant (au km) et état actuel des seules lignes de la page.
+        $summaries = $directory->summaries(collect($lines->items())->pluck('id')->all(), $eraId);
+        $items = collect($lines->items())->map(fn ($l) => [
+            'slug' => $l->slug,
+            'code' => $l->code,
+            'name' => $l->name,
+            'network' => $l->network,
+            'historical_operator' => $l->historical_operator,
+            'traffic' => $summaries[$l->id]['traffic'] ?? null,
+            'state' => $summaries[$l->id]['state'] ?? 'unknown',
+            'heritage' => $summaries[$l->id]['heritage'] ?? false,
+        ])->values();
+
+        return Inertia::render('Lines/Index', [
+            // Aperçu de l'encyclopédie entière (sans filtre) : le chapeau de la page ne change pas avec la recherche.
+            'overview' => $directory->overview($eraId),
+            'lines' => [
+                'data' => $items,
+                'current_page' => $lines->currentPage(),
+                'last_page' => $lines->lastPage(),
+                'total' => $lines->total(),
+            ],
+            'filters' => [
+                'q' => $q,
+                'network' => $network,
+                'traffic' => $traffic,
+                'status' => $status,
+                'heritage' => $heritage,
+                'sort' => $sort,
+            ],
+            // Compteurs : chaque facette est calculée sans son propre filtre (cf. LineDirectory::facets).
+            'stats' => $directory->facets($filters, $eraId),
+        ]);
+    }
+
+    /**
+     * Ordre de l'annuaire : alphabétique FRANÇAIS (accents et capitales sans effet sur le rang, collation ICU),
+     * et, pour le tri par nom avec une recherche, le nom exact puis les noms qui commencent par le terme.
+     *
+     * @param  Builder<Line>  $builder
+     * @return Builder<Line>
+     */
+    private function applyIndexOrder($builder, string $sort, string $q)
+    {
+        $name = 'name COLLATE "fr-x-icu"';
+
+        if ($sort === 'code') {
+            return $builder->orderByRaw("code IS NULL, code COLLATE \"fr-x-icu\", {$name}, id");
+        }
+        if ($sort === 'name-desc') {
+            return $builder->orderByRaw("{$name} DESC, id");
+        }
+        if ($q !== '') {
+            $builder->orderByRaw(
+                'CASE WHEN lower(name) = lower(?) THEN 0 WHEN name ILIKE ? THEN 1 ELSE 2 END',
+                [$q, $this->prefixPattern($q)],
+            );
+        }
+
+        return $builder->orderByRaw("{$name}, id");
+    }
+
+    /**
+     * Fiche détaillée d'une ligne ferroviaire (construction partagée avec l'API : App\Services\LineSheet),
+     * plus les accidents rattachés à la ligne (section « Accidents » ; API : `/api/v1/accidents?line=`)
+     * ses passages à niveau (section « Passages à niveau » ; API : `/api/v1/lines/{slug}/level-crossings`),
+     * ses voies vertes sur l'ancienne emprise (section « Voie verte » ; API : `/api/v1/lines/{slug}/greenways`),
+     * la frise des mises en service de signalisation lues dans Wikipédia (section « Signalisation » ; API :
+     * `/api/v1/lines/{slug}/signalling-history`)
+     * et son profil en long s'il est calculé, allégé à LineProfiles::SHEET_MAX_POINTS points (section
+     * « Profil en long » ; profil complet : `/api/v1/lines/{slug}/profile`), et les ères dont le tracé peut
+     * être téléchargé en GPX, KML ou GeoJSON (`trace_export_eras` : seules les sources à licence ouverte
+     * comptent ; API : `/api/v1/lines/{slug}/gpx`), et les documents de Gallica qui en parlent (section « Dans
+     * les archives » ; API : `/api/v1/lines/{slug}/archives`), et les événements qui ont une histoire (lien
+     * de la chronologie vers `/lines/{slug}/stories/{event}` ; API : `/api/v1/lines/{slug}/stories`).
+     */
+    public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories): Response
+    {
+        return Inertia::render('Lines/Show', [
+            // Sans ce que la page n'affiche pas (LineSheet::PAGE_OMITTED, données complètes dans l'API).
+            ...$sheet->build($line, forPage: true),
+            'accidents' => $accidents->forLine($line, app()->getLocale()),
+            'level_crossings' => $crossings->forSheet($line),
+            'greenways' => $greenways->forSheet($line),
+            'signalling_history' => $signallingHistory->forSheet($line),
+            'profile' => $profiles->forLine($line, LineProfiles::SHEET_MAX_POINTS),
+            'trace_export_eras' => $traceExport->exportableEraYears($line),
+            'archives' => $archives->forSheet($line),
+            // Histoires de la ligne (lien « Voir l'histoire » de la chronologie ; API : /api/v1/lines/{slug}/stories) :
+            // une liste d'événements par fait, celui de l'adresse de l'histoire d'abord, puis ses autres sources.
+            'story_events' => array_column($stories->available($line), 'event_ids'),
+        ]);
+    }
+}

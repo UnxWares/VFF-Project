@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Repli quand Overpass est saturé : télécharge les extraits Geofabrik (anciennes régions)
+# et produit storage/app/sources/osm/greenways-<ISO>-<date>.json (format Overpass),
+# puis : bin/php artisan vff:import-osm-greenways --from-cache
+#   bin/osm-geofabrik                 # 13 régions métropolitaines
+#   bin/osm-geofabrik FR-BRE FR-NOR
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ENGINE="${CONTAINER_ENGINE:-$(command -v podman || command -v docker)}"
+IMAGE="${VFF_PYTHON_IMAGE:-docker.io/library/python:3.12}"
+OUT="$ROOT/storage/app/sources/osm"
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
+mkdir -p "$OUT" "$WORK/pbf" "$WORK/pyenv"
+UA="VFF-Bot/1.0 (+https://vff-project.org)"
+D="$(date +%F)"
+declare -A R=(
+ [FR-ARA]="auvergne rhone-alpes" [FR-BFC]="bourgogne franche-comte" [FR-BRE]="bretagne" [FR-CVL]="centre"
+ [FR-20R]="corse" [FR-GES]="alsace lorraine champagne-ardenne" [FR-HDF]="nord-pas-de-calais picardie"
+ [FR-IDF]="ile-de-france" [FR-NOR]="basse-normandie haute-normandie" [FR-NAQ]="aquitaine limousin poitou-charentes"
+ [FR-OCC]="languedoc-roussillon midi-pyrenees" [FR-PDL]="pays-de-la-loire" [FR-PAC]="provence-alpes-cote-d-azur"
+)
+if [[ "$ENGINE" == *podman ]]; then USER_OPTS=(--userns=keep-id --security-opt label=disable); else USER_OPTS=(--user "$(id -u):$(id -g)"); fi
+run() { "$ENGINE" run --rm "${USER_OPTS[@]}" -e HOME=/tmp -v "$WORK":/work -v "$ROOT/docker/osm":/scripts:ro -v "$OUT":/out "$IMAGE" "$@"; }
+
+run pip install --quiet --target /work/pyenv osmium
+for iso in "${@:-${!R[@]}}"; do
+  args=()
+  for g in ${R[$iso]}; do
+    curl -sfL -A "$UA" -o "$WORK/pbf/$g.osm.pbf" "https://download.geofabrik.de/europe/france/$g-latest.osm.pbf"
+    args+=("/work/pbf/$g.osm.pbf")
+    sleep 5
+  done
+  run python -I /scripts/pbf2overpass.py /work/pyenv "${args[@]}" "/out/greenways-$iso-$D.json"
+  rm -f "$WORK"/pbf/*.osm.pbf
+done

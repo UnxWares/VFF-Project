@@ -1,7 +1,2 @@
-<script>
-    import { scrollReveal } from '$lib/actions/scrollReveal.js';
-</script>
-
-<section id="contribute" class="noTranslate" use:scrollReveal>
-
-</section>
+<!-- Composant inutilisé depuis le 18/11/2026 (accueil remanié : chiffres dans le sommaire Features,
+     invitation unique dans ContributeTeaser). Plus importé nulle part : fichier à supprimer. -->

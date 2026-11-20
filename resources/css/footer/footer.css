@@ -1,88 +1,247 @@
-footer{
+/* Pied de page du site (Footer.svelte), dessin d'origine gardé : bandeau (logo + texte) à gauche, trois
+   colonnes de liens à icône à droite, filet avant « Accès à l'API », mentions dessous. Corrigé le 19/11 :
+   sur la grille commune (même bord gauche que le contenu), tout part d'une même ligne en haut (logo,
+   texte, titres), présentation plus large, liens plus aérés, pas de bande entre la page et le pied,
+   couleurs du thème. Sous 1 180 px, le bandeau passe au-dessus des liens ; sous 600 px, tout s'empile.
+   Sélecteurs en footer:where(.site-footer) : les autres <footer> (fiches, galerie) ne sont pas
+   touchés, la spécificité reste celle d'origine. */
+footer:where(.site-footer) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 30px;
-    box-shadow: 0 0 8px #D3D3D3;
+    /* Accolé à la dernière section : aucune bande d'une autre teinte entre les deux. */
+    margin: 0;
+    background-color: var(--vff-bg);
+    color: var(--vff-text);
+    border-top: 1px solid var(--vff-border);
+    box-shadow: 0 0 8px var(--vff-shadow);
 }
-footer > *{
-    width: 80%;
-}
-footer .footer-infos{
-    display: flex;
-    justify-content: space-between;
-    margin: 30px 0;
-    align-items: center;
-}
-footer .footer-infos .banner{
-    display: flex;
-    align-items: center;
-    width: 35%;
-}
-footer .footer-infos .banner p{
-    text-align: justify;
-    font-size: 18px;
-    margin-left: 15px;
-}
-footer .footer-infos .banner figure img{
-    height: 100px;
-}
-footer .footer-infos .footer-links{
-    display: flex;
-    width: 50%;
-    justify-content: space-between;
-}
-footer .footer-infos .footer-links ul{
-    padding: 0;
-}
-footer .footer-infos .footer-links ul h3 {
-    margin: 0 0 10px 0;
-}
-footer .footer-infos .footer-links ul li{
-    display: block;
-}
-footer .footer-infos .footer-links ul li a{
-    text-decoration: none;
-    color: black;
-}
-footer .footer-infos .footer-links .general-links hr{
+/* Grille commune : même largeur et même bord gauche que le contenu des pages. */
+footer:where(.site-footer) > * {
     width: 100%;
+    max-width: calc(var(--vff-container) + 2 * var(--vff-gutter));
+    padding-inline: var(--vff-gutter);
 }
-footer .footer-infos .footer-links .contact-links .unxwares a{
+footer:where(.site-footer) .footer-infos {
     display: flex;
-    align-items: center;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px 64px;
+    margin: var(--vff-space-7) 0 var(--vff-space-6);
 }
 
-footer .footer-infos .footer-links .contact-links .unxwares a img{
-    width: 20px;
-    height: 20px;
-    margin-right: 5px;
-}
-footer hr{
-    margin: 3px 0;
-    width: 80%;
-    border: none;
-    border-top: 1px double #333;
-    color: #333;
-}
-footer .copyright{
+/* Bandeau : logo VFF et présentation. */
+footer:where(.site-footer) .banner {
     display: flex;
+    align-items: flex-start;
+    flex: 0 1 42%;
+    min-width: 0;
+}
+footer:where(.site-footer) .banner img {
+    flex-shrink: 0;
+    width: 100px;
+    height: 100px;
+}
+footer:where(.site-footer) .banner p {
+    /* Première ligne au niveau des titres de colonne (même ligne de départ que le logo). */
+    margin: -0.2em 0 0 20px;
+    font-family: var(--vff-font-body);
+    font-size: 18px;
+    line-height: 1.55;
+    text-align: left;
+    color: var(--vff-text);
+}
+
+/* Colonnes de liens. */
+/* Au moins la moitié de la largeur (dessin d'origine), davantage si les trois colonnes ne tiennent
+   pas : 40 px au moins entre deux colonnes (elles se touchaient vers 1 280 px). */
+footer:where(.site-footer) .footer-links {
+    display: flex;
+    flex: 0 0 auto;
+    justify-content: space-between;
+    gap: 16px 40px;
+    min-width: 50%;
+}
+footer:where(.site-footer) .footer-title {
+    margin: 0 0 10px;
+    font-family: var(--vff-font-display);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--vff-text);
+}
+footer:where(.site-footer) .footer-links ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+footer:where(.site-footer) .footer-links li {
+    display: block;
+    font-family: var(--vff-font-body);
+    font-size: 20px;
+    line-height: 1.6;
+}
+footer:where(.site-footer) .footer-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    color: var(--vff-text);
+    text-decoration: none;
+    text-underline-offset: 0.2em;
+    transition: color var(--vff-transition);
+}
+footer:where(.site-footer) .footer-links a:hover {
+    color: var(--vff-accent-ink);
+    text-decoration: underline;
+}
+/* Filet entre les liens du site et l'API (même dessin que l'ancien <hr>). */
+footer:where(.site-footer) .footer-links li.api {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--vff-border-strong);
+}
+footer:where(.site-footer) .unx-insigne {
+    width: 24px;
+    height: 24px;
+}
+footer:where(.site-footer) .vff-ext {
+    color: var(--vff-text-muted);
+}
+
+/* Logos UnxWares : version claire ou sombre selon le thème. */
+footer:where(.site-footer) .theme-dark {
+    display: none;
+}
+[data-theme='dark'] footer:where(.site-footer) .theme-light {
+    display: none;
+}
+[data-theme='dark'] footer:where(.site-footer) .theme-dark {
+    display: inline-block;
+}
+
+/* Filet et mentions. */
+/* Le filet n'a pas de marge intérieure : largeur du contenu de la grille, gouttières déduites. */
+footer:where(.site-footer) hr {
+    width: calc(100% - 2 * var(--vff-gutter));
+    max-width: var(--vff-container);
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-top: 1px solid var(--vff-border-strong);
+}
+footer:where(.site-footer) .copyright {
+    display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    column-gap: 24px;
 }
-footer .copyright p{
+footer:where(.site-footer) .copyright p {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    column-gap: 18px;
+    margin: 16px 0;
+    font-family: var(--vff-font-body);
     font-size: 16px;
+    line-height: 1.5;
+    color: var(--vff-text);
 }
-footer .copyright p a{
-    text-decoration: none;
-    display: flex;
+/* Mention d'accessibilité (RGAA) : lien souligné, cible de 24 px au moins. */
+footer:where(.site-footer) .copyright .a11y-status {
+    display: inline-flex;
     align-items: center;
-    color: black;
+    min-height: 24px;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
-footer .copyright p a img{
-    width: 25px;
-    height: 25px;
-    margin: 0 4px;
+footer:where(.site-footer) .copyright .a11y-status:hover {
+    color: var(--vff-accent-ink);
+}
+
+/* Logo UWOSC (insigne et nom) : 220 px de large (taille minimale de la charte), zone de protection d'au
+   moins la hauteur du « U » (environ 26 px à cette taille) autour, le texte compris. */
+/* Mesures du fichier (PNG officiel de 1 500 px rendu depuis le SVG) : dessin de x 30 à 1 494 sur 1 500,
+   ligne de base du mot « UnxWares » à 247 sur 363. À 220 px de large (53 px de haut) : 4 px de marge
+   intérieure à gauche, ligne de base à 17 px du bas. Le texte et le logo sont en ligne : décaler le logo
+   de 17 px sous la ligne de base pose « Un projet de » sur la ligne de base de « UnxWares », et une marge
+   de 22 px laisse un vide visible de 26 px (la zone de protection) jusqu'à l'insigne. */
+footer:where(.site-footer) .copyright .powered {
+    display: inline-block;
+    padding-block: 12px;
+}
+footer:where(.site-footer) .copyright .uwosc-logo {
+    width: 220px;
+    height: auto;
+    margin-left: 22px;
+    vertical-align: -17px;
+}
+
+/* ─── Thème sombre ────────────────────────────────────────────────────────── */
+[data-theme='dark'] footer:where(.site-footer) {
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+}
+[data-theme='dark'] footer:where(.site-footer) .banner p,
+[data-theme='dark'] footer:where(.site-footer) .copyright p,
+[data-theme='dark'] footer:where(.site-footer) .footer-links a {
+    color: var(--vff-text-muted);
+}
+[data-theme='dark'] footer:where(.site-footer) .footer-links a:hover {
+    color: var(--vff-accent-ink);
+}
+
+/* ─── Sous 1 180 px : bandeau au-dessus des liens ─────────────────────────── */
+@media (max-width: 1180px) {
+    footer:where(.site-footer) .footer-infos {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--vff-block-space);
+    }
+    footer:where(.site-footer) .banner {
+        flex: none;
+        width: 100%;
+    }
+    footer:where(.site-footer) .footer-links {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 20px 56px;
+        min-width: 0;
+    }
+}
+@media (max-width: 600px) {
+    footer:where(.site-footer) .banner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    footer:where(.site-footer) .banner img {
+        width: 80px;
+        height: 80px;
+    }
+    footer:where(.site-footer) .banner p {
+        margin: 12px 0 0;
+        font-size: 17px;
+    }
+    footer:where(.site-footer) .footer-links {
+        gap: 20px 32px;
+    }
+    footer:where(.site-footer) .footer-col {
+        flex: 1 1 135px;
+    }
+    footer:where(.site-footer) .footer-links li {
+        font-size: 18px;
+    }
+    footer:where(.site-footer) .footer-links a {
+        min-height: 44px;
+    }
+    footer:where(.site-footer) .copyright {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    footer:where(.site-footer) .copyright p {
+        margin: 12px 0;
+        font-size: 15px;
+        row-gap: 8px;
+    }
 }

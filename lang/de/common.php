@@ -1,21 +1,24 @@
 <?php
 
 return [
-    'tagline' => 'An der Kreuzung der Schienen.',
-    'app_short' => 'VFF',
     'app_full' => 'Französische Bahnstrecken',
-    'app_description' => 'Die größte kollaborative Enzyklopädie des französischen Schienennetzes.',
+    'app_description' => 'Gemeinschaftliche Enzyklopädie der französischen Eisenbahn von 1830 bis heute: Strecken, Bahnhöfe, Karten und Quellen.',
 
-    'read_more' => 'Mehr erfahren',
-    'discover' => 'Entdecken',
-    'back' => 'Zurück',
-    'back_home' => 'Zur Startseite',
-    'learn_more' => 'Mehr erfahren',
-    'submit' => 'Absenden',
     'save' => 'Speichern',
-    'cancel' => 'Abbrechen',
     'close' => 'Schließen',
-    'soon' => 'Bald',
-    'in_progress' => 'In Bearbeitung',
-    'wip_subtitle' => 'Dieser Bereich befindet sich im Aufbau und kommt in einer späteren Projektphase.',
+    'toc' => 'Inhaltsverzeichnis',
+    'osm_attribution' => '© :link-Mitwirkende',
+
+    // Gemeinsame Texte der Komponenten (Seitennavigation, externe Links).
+    'new_tab' => 'öffnet in einem neuen Tab',
+    'note_ref' => 'Anmerkung',
+    'required' => 'Pflichtfeld',
+    'pagination' => 'Seitennavigation',
+    'previous' => 'Zurück',
+    'next' => 'Weiter',
+    'page_of' => 'Seite :current von :last',
+    // Verzeichnisse auf dem Telefon: Schaltfläche, die die Filter aufklappt (aktive Einstellungen).
+    'filters' => 'Filter',
+    'filters_active_one' => ':count aktiv',
+    'filters_active_other' => ':count aktiv',
 ];

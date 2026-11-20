@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "allowJs": true,
+        "checkJs": true,
+        "strict": false,
+        "strict": false,
+        "noEmit": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "types": ["vite/client"],
+        "paths": {
+            "$lib/*": ["./resources/js/lib/*"],
+            "$components/*": ["./resources/js/Components/*"],
+            "$pages/*": ["./resources/js/Pages/*"],
+            "$images/*": ["./resources/images/*"],
+            "$css/*": ["./resources/css/*"]
+        }
+    },
+    "include": ["resources/js/**/*.js", "resources/js/**/*.svelte", "resources/js/**/*.d.ts"],
+    "exclude": ["node_modules", "public", "vendor", "resources/images/vendor"]
+}

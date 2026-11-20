@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Configuration PHPUnit des tests de mutation des règles métier critiques
+    (Infection, cf. infection.json5 à côté) : moteur d'historique, classification
+    des gares, validation à deux des contributions, dates partielles, énumérations,
+    règles du matériel, dates de desserte des gares, nettoyage des images.
+
+    Seulement les tests qui exercent ces classes, nommés un par un : la suite initiale
+    reste courte, et un test en chantier ailleurs ne bloque pas Infection. Nouveaux tests
+    de ce périmètre : tests/Unit/Mutation et tests/Feature/Mutation.
+    Bases : chaque thread Infection reçoit TEST_TOKEN=<n> ; avec
+    LARAVEL_PARALLEL_TESTING, Laravel crée et migre « <base>_test_<n> » (garde-fou
+    de tests/CreatesApplication.php : suffixe _test ou _test_<n> seulement).
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../../../vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="../../../vendor/autoload.php"
+         colors="false"
+>
+    <testsuites>
+        <testsuite name="Critique">
+            <directory>../../Unit/Mutation</directory>
+            <directory>../../Unit/Enums</directory>
+            <directory>../../Unit/Materials</directory>
+            <directory>../../Unit/Media</directory>
+            <directory>../../Unit/StationService</directory>
+            <file>../../Unit/EraTimelineFirstPassengersTest.php</file>
+            <file>../../Unit/EraTimelineHeritageWholeTest.php</file>
+            <file>../../Unit/EraTimelineRulesTest.php</file>
+            <file>../../Unit/EraTimelineTest.php</file>
+            <file>../../Unit/WikipediaFalseClosureRulesTest.php</file>
+            <file>../../Unit/BusinessRulesTest.php</file>
+            <file>../../Unit/ClassificationTest.php</file>
+            <file>../../Unit/EnumContractsTest.php</file>
+            <file>../../Unit/ServiceEndTest.php</file>
+            <file>../../Unit/ServiceYearChangeTest.php</file>
+            <file>../../Unit/StationCoverageRulesTest.php</file>
+            <file>../../Unit/RouteComparisonTest.php</file>
+            <file>../../Unit/Api/ApiSupportTest.php</file>
+            <file>../../Feature/BuildEraSegmentsTest.php</file>
+            <file>../../Feature/StationServiceDatesTest.php</file>
+            <file>../../Feature/StationServiceEndTest.php</file>
+            <file>../../Feature/Materials/MaterialGaugeInvariantTest.php</file>
+            <file>../../Feature/Materials/MaterialTractionInvariantTest.php</file>
+            <file>../../Feature/GraphQL/ContributionMutationsTest.php</file>
+            <file>../../Feature/Web/ContributeTokenAndSharedRulesTest.php</file>
+            <file>../../Feature/GraphQL/EventMediaContributionMutationsTest.php</file>
+            <file>../../Feature/TraceContributionTest.php</file>
+            <directory>../../Feature/Contributions</directory>
+            <directory>../../Feature/Mutation</directory>
+        </testsuite>
+    </testsuites>
+    <groups>
+        <exclude>
+            <group>known-bug</group>
+        </exclude>
+    </groups>
+    <source>
+        <include>
+            <file>../../../app/Services/EraTimeline.php</file>
+            <file>../../../app/Services/StationService/StationServiceClassifier.php</file>
+            <file>../../../app/Services/StationService/ServicePatternDetector.php</file>
+            <file>../../../app/Services/StationService/Ymd.php</file>
+            <file>../../../app/Services/Contributions/ContributionReview.php</file>
+            <file>../../../app/Rules/PartialDate.php</file>
+            <directory>../../../app/Enums</directory>
+            <file>../../../app/Services/Materials/MaterialGaugeRule.php</file>
+            <file>../../../app/Services/Materials/MaterialTractionRule.php</file>
+            <file>../../../app/Services/StationServiceDates.php</file>
+            <file>../../../app/Services/Media/ImageSanitizer.php</file>
+        </include>
+    </source>
+    <php>
+        <server name="LARAVEL_PARALLEL_TESTING" value="1"/>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="DB_DATABASE" value="vff_test" force="true"/>
+        <env name="LIGHTHOUSE_SCHEMA_CACHE_ENABLE" value="false"/>
+        <env name="INERTIA_SSR_ENABLED" value="false"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+    </php>
+</phpunit>

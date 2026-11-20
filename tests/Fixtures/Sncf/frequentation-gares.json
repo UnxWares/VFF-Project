@@ -1,0 +1,10 @@
+{
+    "total_count": 5,
+    "results": [
+        {"nom_gare": "Saint-Étienne-Châteaucreux", "code_postal": "42000", "total_voyageurs_2024": 3200000, "total_voyageurs_2023": 3100000},
+        {"nom_gare": "Montreuil", "code_postal": "62170", "total_voyageurs_2024": 0, "total_voyageurs_2023": 0, "total_voyageurs_2022": 0},
+        {"nom_gare": "Saint-Germain", "code_postal": "78100", "total_voyageurs_2024": 15000},
+        {"nom_gare": "Gare inconnue", "code_postal": "75001", "total_voyageurs_2024": 10},
+        {"nom_gare": "Neuilly", "total_voyageurs_2024": 500}
+    ]
+}

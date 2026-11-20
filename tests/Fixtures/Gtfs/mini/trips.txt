@@ -1,0 +1,7 @@
+﻿route_id,service_id,trip_id,trip_headsign
+R1,DAILY,t1,Bravo
+R1,DAILY,t2,Alpha /car
+B1,DAILY,t3,Charlie
+T1,WEEKEND,t4,Delta
+T2,DAILY,t5,Charlie
+R1,ONEDAY,t6,Bravo

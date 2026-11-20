@@ -1,0 +1,57 @@
+<?php
+
+// Jetons d'API personnels (section du profil, App\Http\Controllers\ApiTokenController,
+// App\Services\Api\ApiTokens). Vocabulaire : « jeton » (pas « token »), « limite » de requêtes.
+return [
+    'title' => 'Jetons d’accès à l’API',
+    'intro' => 'L’API de VFF s’utilise sans jeton, avec :anonymous requêtes par minute au plus pour chaque adresse IP. Un jeton personnel relève cette limite pour votre compte. Il sert à lire les données. Si vous cochez la case prévue à sa création, il permet aussi de contribuer par l’API GraphQL. Il ne donne jamais accès à votre profil.',
+    'docs_link' => 'Mode d’emploi et exemples sur la page Accès à l’API',
+    'quota_label' => 'Votre limite avec un jeton',
+    'quota_value' => ':count requêtes par minute',
+    'quota_shared' => 'Tous vos jetons partagent ce compteur, pour REST, GraphQL et le serveur MCP.',
+    'profiles' => [
+        'member' => 'Compte membre',
+        'partner' => 'Compte partenaire',
+    ],
+    'list_title' => 'Vos jetons',
+    'count' => ':count sur :max',
+    'empty' => 'Vous n’avez pas encore de jeton.',
+    'created_at' => 'Créé le :date',
+    'last_used' => 'Dernière utilisation le :date',
+    'never_used' => 'Jamais utilisé',
+    'revoke' => 'Révoquer',
+    'revoke_label' => 'Révoquer le jeton « :name »',
+    'revoke_confirm_title' => 'Révoquer le jeton « :name » ?',
+    'revoke_confirm_text' => 'Les programmes qui l’utilisent recevront une erreur 401 dès leur prochaine requête. Un jeton révoqué ne peut pas être rétabli.',
+    'revoke_confirm_button' => 'Révoquer le jeton',
+    'cancel' => 'Annuler',
+    'create_title' => 'Créer un jeton',
+    'name_label' => 'Nom du jeton',
+    'name_hint' => 'Pour le reconnaître plus tard, par exemple le nom du programme qui s’en servira.',
+    'create_button' => 'Créer le jeton',
+    'contribute_label' => 'Autoriser les contributions par l’API',
+    'contribute_hint' => 'Le jeton pourra proposer des modifications et, si votre compte est validateur, approuver ou refuser celles des autres, avec les règles du site. Laissez la case vide si le programme n’a besoin que de lire.',
+    'scope_read' => 'Lecture',
+    'scope_contribute' => 'Lecture et contributions',
+    'blocked_suspended' => 'Votre compte est suspendu : vous ne pouvez pas créer de jeton, et l’API refuse vos jetons jusqu’à la fin de la suspension.',
+    'blocked_max' => 'Vous avez :max jetons, le nombre maximal. Révoquez-en un pour en créer un autre.',
+    'new_title' => 'Copiez votre jeton maintenant',
+    'new_text' => 'Il ne sera plus affiché. Gardez-le comme un mot de passe : la personne qui le détient utilise votre limite.',
+    'new_label' => 'Nouveau jeton',
+    'new_usage' => 'Envoyez-le dans l’en-tête de chaque requête : Authorization: Bearer suivi du jeton.',
+    'copy' => 'Copier le jeton',
+    'copied' => 'Jeton copié.',
+    'copy_failed' => 'La copie a échoué : sélectionnez le jeton et copiez-le à la main.',
+
+    'errors' => [
+        'name_required' => 'Donnez un nom au jeton.',
+        'name_max' => 'Le nom du jeton fait :max caractères au plus.',
+        'suspended' => 'Votre compte est suspendu : vous ne pouvez pas créer de jeton.',
+        'too_many' => 'Vous avez déjà :max jetons, le nombre maximal. Révoquez-en un pour en créer un autre.',
+    ],
+
+    'flash' => [
+        'created' => 'Le jeton a été créé.',
+        'revoked' => 'Le jeton a été révoqué.',
+    ],
+];

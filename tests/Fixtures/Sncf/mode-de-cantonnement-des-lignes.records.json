@@ -1,0 +1,10 @@
+{
+    "total_count": 5,
+    "results": [
+        {"code_ligne": "100000", "lib_ligne": "Ligne de Alpha à Bravo", "libelle": "Block automatique lumineux", "pkd": "000+000", "pkf": "010+000"},
+        {"code_ligne": "100000", "libelle": "Block manuel de voie unique de type SNCF", "pkd": "017+250", "pkf": "010+000"},
+        {"code_ligne": "100000", "libelle": "Sans cantonnement", "pkd": "017+250", "pkf": "018+000"},
+        {"code_ligne": "752000", "libelle": "Transmission voie-machine 430", "pkd": "000+000", "pkf": "409+000"},
+        {"code_ligne": "999999", "libelle": "Block automatique lumineux", "pkd": "000+000", "pkf": "001+000"}
+    ]
+}

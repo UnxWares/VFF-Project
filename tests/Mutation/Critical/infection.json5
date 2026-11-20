@@ -1,0 +1,42 @@
+// Tests de mutation (Infection) des règles métier critiques, en complément de
+// infection.json5 à la racine (services purs de géométrie, de texte et de dates).
+//   composer test:mutation:critical     (ou : make mutation-critical)
+// Un seul lot : ajouter --filter=<chemin relatif à app/>, ex. --filter=Services/EraTimeline.php.
+// Long (une dizaine de minutes) : hors `make check`. 4 threads maximum (machine partagée).
+// Base : VFF_TEST_DB=vff_<sujet>_test (chaque thread migre sa copie <base>_test_<n>).
+// Rapports : storage/app/reports/infection/critical/ (texte, JSON, HTML, résumé, par mutateur).
+{
+    "$schema": "../../../vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": ["../../../app"],
+        // Tout app/ est exclu SAUF les classes ciblées (regex à anticipation
+        // négative, appliquée au chemin relatif à app/).
+        "excludes": [
+            "#^(?!(Services/(EraTimeline|StationServiceDates|StationService/(StationServiceClassifier|ServicePatternDetector|Ymd)|Contributions/ContributionReview|Materials/(MaterialGaugeRule|MaterialTractionRule)|Media/ImageSanitizer)|Rules/PartialDate|Enums/[A-Za-z]+)\\.php$)#"
+        ]
+    },
+    "phpUnit": {
+        "configDir": "."
+    },
+    // pcov n'est actif que pour la mesure de couverture initiale.
+    "initialTestsPhpOptions": "-d pcov.enabled=1",
+    "threads": 4,
+    "timeout": 60,
+    "tmpDir": "../../../storage/app/reports/infection/critical/tmp",
+    "logs": {
+        "text": "../../../storage/app/reports/infection/critical/infection.log",
+        "json": "../../../storage/app/reports/infection/critical/infection.json",
+        "html": "../../../storage/app/reports/infection/critical/infection.html",
+        "summary": "../../../storage/app/reports/infection/critical/summary.log",
+        "perMutator": "../../../storage/app/reports/infection/critical/per-mutator.md"
+    },
+    "mutators": {
+        "@default": true,
+        // protected → private : sans sous-classe, toujours équivalent (bruit).
+        "ProtectedVisibility": false
+    },
+    // Mesurés le 20/11/2026 : 2 422 mutants, MSI 93 %, tous couverts. Seuils juste en dessous ; les
+    // mutants restants sont équivalents (liste : storage/app/reports/agents/matin/mutation-infection.md).
+    "minMsi": 92,
+    "minCoveredMsi": 92
+}

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Lance pnpm (version figée par package.json/packageManager, via corepack) dans node:24,
+# pour les machines sans Node sur l'hôte. Réseau hôte : Vite sert sur localhost:5173.
+#   bin/pnpm install
+#   bin/pnpm dev
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ENGINE="${CONTAINER_ENGINE:-$(command -v podman || command -v docker)}"
+IMAGE="${VFF_NODE_IMAGE:-docker.io/library/node:24-slim}"
+
+if [[ "$ENGINE" == *podman ]]; then
+    USER_OPTS=(--userns=keep-id --security-opt label=disable)
+else
+    USER_OPTS=(--user "$(id -u):$(id -g)")
+fi
+TTY_OPTS=(-i)
+[ -t 0 ] && [ -t 1 ] && TTY_OPTS+=(-t)
+
+exec "$ENGINE" run --rm "${TTY_OPTS[@]}" "${USER_OPTS[@]}" --network host \
+    -v "$ROOT":/app -w /app -e HOME=/tmp -e COREPACK_HOME=/tmp/corepack \
+    -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 "$IMAGE" corepack pnpm "$@"

@@ -14,6 +14,15 @@ class Translations
     public const CANONICAL = 'fr';
 
     /**
+     * Fichiers de `lang/<locale>/` lus uniquement par le serveur (messages de
+     * validation, statuts du broker de mots de passe, pagination, messages
+     * HTTP). Le front ne les utilise pas : les erreurs arrivent déjà traduites
+     * dans les props Inertia (`errors`). Les exclure évite d'alourdir chaque page.
+     * `mcp` : réponses du serveur MCP (app/Mcp), jamais affichées par les pages.
+     */
+    public const SERVER_ONLY = ['validation', 'passwords', 'pagination', 'messages', 'mcp'];
+
+    /**
      * Charge la map plate des traductions pour `$locale`, avec fallback sur
      * la locale canonique (`fr`) pour les clés manquantes.
      *
@@ -59,6 +68,9 @@ class Translations
         $namespaces = [];
         foreach (glob($path.'/*.php') ?: [] as $file) {
             $namespace = basename($file, '.php');
+            if (in_array($namespace, self::SERVER_ONLY, true)) {
+                continue;
+            }
             /** @var array<string, mixed> $contents */
             $contents = require $file;
             $namespaces[$namespace] = $contents;

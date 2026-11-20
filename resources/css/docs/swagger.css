@@ -1,0 +1,296 @@
+/* Swagger UI (/docs/swagger) aux couleurs de VFF, thème clair et sombre.
+   Swagger UI 5 a un thème sombre natif, activé par la classe `dark-mode` sur <html> (posée par
+   js/docs/swagger.js d'après <html data-theme>). Ici : grille et polices du site, orange VFF à la place
+   du bleu et du vert de Swagger, texte noir sur les aplats orange (7,1:1 ; le blanc ne fait que 2,95:1),
+   et fonds repris des variables --vff-* de docs.css. */
+
+.vff-docs--swagger .swagger-ui {
+    max-width: calc(1180px + 2 * var(--vff-gutter));
+    margin: 0 auto;
+    padding: 24px var(--vff-gutter) 64px;
+    font-family: var(--vff-font-body);
+    color: var(--vff-text);
+}
+.vff-docs--swagger .swagger-ui .wrapper {
+    max-width: none;
+    padding: 0;
+}
+.vff-docs--swagger .swagger-ui .info .title,
+.vff-docs--swagger .swagger-ui .opblock-tag {
+    font-family: var(--vff-font-display);
+    color: var(--vff-text);
+}
+.vff-docs--swagger .swagger-ui .info,
+.vff-docs--swagger .swagger-ui .opblock-summary-description,
+.vff-docs--swagger .swagger-ui .opblock-tag small,
+.vff-docs--swagger .swagger-ui .markdown p,
+.vff-docs--swagger .swagger-ui .markdown li,
+.vff-docs--swagger .swagger-ui .renderedMarkdown p,
+.vff-docs--swagger .swagger-ui .renderedMarkdown li,
+.vff-docs--swagger .swagger-ui table thead tr th,
+.vff-docs--swagger .swagger-ui .parameter__name,
+.vff-docs--swagger .swagger-ui .response-col_status,
+.vff-docs--swagger .swagger-ui .response-col_description {
+    font-family: var(--vff-font-body);
+    color: var(--vff-text);
+}
+.vff-docs--swagger .swagger-ui .opblock-summary-description,
+.vff-docs--swagger .swagger-ui .opblock-tag small {
+    color: var(--vff-text-muted);
+}
+/* Pastilles de version : gris du site pour la version, orange pour OAS ; texte lisible (4,5:1 au moins). */
+.vff-docs--swagger .swagger-ui .info .title small {
+    background-color: var(--vff-text-muted);
+}
+.vff-docs--swagger .swagger-ui .info .title small pre {
+    color: var(--vff-bg);
+}
+.vff-docs--swagger .swagger-ui .info .title small.version-stamp {
+    background-color: var(--vff-accent);
+}
+.vff-docs--swagger .swagger-ui .info .title small.version-stamp pre {
+    color: var(--vff-on-accent);
+}
+/* Liens courts (adresse de la spécification, chemins des opérations) : cible de 24 px au moins. */
+.vff-docs--swagger .swagger-ui .info a.link,
+.vff-docs--swagger .swagger-ui .opblock-summary-path a.nostyle {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+}
+/* Bouton « Schemas » (20 px de haut) : même cible, sans changer sa largeur. */
+.vff-docs--swagger .swagger-ui .models-control {
+    min-height: 24px;
+}
+.vff-docs--swagger .swagger-ui a,
+.vff-docs--swagger .swagger-ui .info a {
+    color: var(--vff-accent-ink);
+}
+
+/* Description générale : texte de 16 px, intertitres du site (le gris-bleu de Swagger n'est pas celui de VFF). */
+.vff-docs--swagger .swagger-ui .info .markdown h1,
+.vff-docs--swagger .swagger-ui .info .markdown h2,
+.vff-docs--swagger .swagger-ui .info .markdown h3,
+.vff-docs--swagger .swagger-ui .info .markdown h4,
+.vff-docs--swagger .swagger-ui .info .markdown h5 {
+    margin: 1.4em 0 0.5em;
+    font-family: var(--vff-font-display);
+    font-size: 1.4rem;
+    line-height: 1.2;
+    color: var(--vff-text);
+}
+.vff-docs--swagger .swagger-ui .info .markdown p,
+.vff-docs--swagger .swagger-ui .info .markdown li {
+    max-width: 75ch;
+    font-size: 1rem;
+    line-height: 1.65;
+}
+.vff-docs--swagger .swagger-ui .info .markdown li + li {
+    margin-top: 0.25em;
+}
+
+/* Code en ligne : sobre, de la taille du texte (il était orange gras sur fond gris). */
+.vff-docs--swagger .swagger-ui .markdown code,
+.vff-docs--swagger .swagger-ui .renderedMarkdown code,
+.vff-docs--swagger .swagger-ui .info code {
+    padding: 1px 5px;
+    border-radius: var(--vff-radius-xs);
+    background: var(--vff-bg-muted);
+    color: var(--vff-text);
+    font-family: var(--vff-font-mono);
+    font-size: 0.9em;
+    font-weight: 400;
+}
+
+/* Boutons et méthode GET : orange VFF, texte noir sur l'aplat. */
+.vff-docs--swagger .swagger-ui .btn.execute {
+    background-color: var(--vff-accent);
+    border-color: var(--vff-accent);
+    color: var(--vff-on-accent);
+}
+.vff-docs--swagger .swagger-ui .btn.authorize,
+.vff-docs--swagger .swagger-ui .btn.try-out__btn {
+    border-color: var(--vff-accent-ink);
+    color: var(--vff-accent-ink);
+}
+.vff-docs--swagger .swagger-ui .opblock.opblock-get {
+    border-color: var(--vff-accent);
+    background: var(--vff-accent-soft);
+}
+.vff-docs--swagger .swagger-ui .opblock.opblock-get .opblock-summary {
+    border-color: var(--vff-accent);
+}
+.vff-docs--swagger .swagger-ui .opblock.opblock-get .opblock-summary-method {
+    background: var(--vff-accent);
+    color: var(--vff-on-accent);
+}
+.vff-docs--swagger .swagger-ui .opblock.opblock-get .tab-header .tab-item.active h4 span::after {
+    background: var(--vff-accent);
+}
+.vff-docs--swagger .swagger-ui .operation-filter-input {
+    border-color: var(--vff-border-control);
+}
+.vff-docs--swagger .swagger-ui .scheme-container {
+    background: transparent;
+    box-shadow: none;
+    padding: 12px 0;
+}
+.vff-docs--swagger .swagger-ui .opblock-tag {
+    border-bottom-color: var(--vff-border-strong);
+}
+/* Chevrons des rubriques et des opérations : couleur du texte dans les deux thèmes. */
+.vff-docs--swagger .swagger-ui .expand-operation,
+.vff-docs--swagger .swagger-ui .expand-methods,
+.vff-docs--swagger .swagger-ui .opblock-control-arrow {
+    color: var(--vff-text);
+}
+.vff-docs--swagger .swagger-ui .expand-operation svg,
+.vff-docs--swagger .swagger-ui .expand-methods svg,
+.vff-docs--swagger .swagger-ui .opblock-control-arrow svg,
+.vff-docs--swagger .swagger-ui .arrow {
+    fill: currentColor;
+    color: var(--vff-text);
+    opacity: 1;
+}
+
+/* Thème sombre natif de Swagger UI (html.dark-mode) : fonds et textes du site. */
+html.dark-mode,
+html.dark-mode .swagger-ui {
+    background: var(--vff-bg);
+    color: var(--vff-text);
+}
+html.dark-mode .swagger-ui .opblock .opblock-section-header,
+html.dark-mode .swagger-ui section.models,
+html.dark-mode .swagger-ui section.models .model-container,
+html.dark-mode .swagger-ui .model-box,
+html.dark-mode .swagger-ui .dialog-ux .modal-ux {
+    background: var(--vff-bg-elevated);
+    box-shadow: none;
+}
+html.dark-mode .swagger-ui .opblock-tag,
+html.dark-mode .swagger-ui .opblock .opblock-section-header,
+html.dark-mode .swagger-ui section.models,
+html.dark-mode .swagger-ui table thead tr td,
+html.dark-mode .swagger-ui table thead tr th {
+    border-color: var(--vff-border-strong);
+}
+html.dark-mode .swagger-ui input,
+html.dark-mode .swagger-ui select {
+    background-color: var(--vff-bg-muted);
+    border-color: var(--vff-border-control);
+    color: var(--vff-text);
+}
+html.dark-mode .swagger-ui .markdown code,
+html.dark-mode .swagger-ui .renderedMarkdown code,
+html.dark-mode .swagger-ui .info code {
+    background: var(--vff-bg-muted);
+    color: var(--vff-text);
+}
+html.dark-mode .swagger-ui .btn {
+    color: var(--vff-text);
+    border-color: var(--vff-border-control);
+}
+html.dark-mode .swagger-ui .btn.execute {
+    color: var(--vff-on-accent);
+    border-color: var(--vff-accent);
+}
+html.dark-mode .swagger-ui .btn.authorize,
+html.dark-mode .swagger-ui .btn.try-out__btn {
+    color: var(--vff-accent-ink);
+    border-color: var(--vff-accent-ink);
+}
+html.dark-mode .swagger-ui .opblock.opblock-get .opblock-summary-method {
+    color: var(--vff-on-accent);
+}
+html.dark-mode .swagger-ui .info .title small {
+    background-color: var(--vff-text-muted);
+}
+html.dark-mode .swagger-ui .info .title small.version-stamp {
+    background-color: var(--vff-accent);
+}
+html.dark-mode .swagger-ui .info .title small.version-stamp pre {
+    color: var(--vff-on-accent);
+}
+
+/* Focus visible (2 px) sur les commandes de Swagger UI. */
+.vff-docs--swagger .swagger-ui :is(a, button, input, select, textarea, summary):focus-visible {
+    outline: 2px solid var(--vff-focus);
+    outline-offset: 2px;
+}
+
+/* Tablette et téléphone : rubriques et opérations en colonne, pas de débordement horizontal. */
+@media (max-width: 900px) {
+    .vff-docs--swagger .swagger-ui .opblock-tag {
+        flex-wrap: wrap;
+        row-gap: 4px;
+    }
+    .vff-docs--swagger .swagger-ui .opblock-tag small {
+        flex: 1 1 100%;
+        order: 3;
+        padding: 0;
+    }
+    .vff-docs--swagger .swagger-ui .opblock-tag > div:last-child {
+        margin-inline-start: auto;
+    }
+}
+@media (max-width: 600px) {
+    .vff-docs--swagger .swagger-ui {
+        padding-top: 16px;
+    }
+    .vff-docs--swagger .swagger-ui .opblock .opblock-summary {
+        flex-wrap: wrap;
+    }
+    .vff-docs--swagger .swagger-ui .opblock .opblock-summary-path {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+    .vff-docs--swagger .swagger-ui .opblock-body pre,
+    .vff-docs--swagger .swagger-ui .highlight-code,
+    .vff-docs--swagger .swagger-ui .model-box,
+    .vff-docs--swagger .swagger-ui table {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+    .vff-docs--swagger .swagger-ui .info .title {
+        font-size: 28px;
+    }
+}
+
+/* Bouton « copier le chemin » : Swagger UI ne l'ouvre qu'au survol (largeur 0 sinon) ; il reçoit
+   pourtant le focus. Ouvert aussi quand le résumé contient le focus (RGAA 10.7 et 10.14). */
+.vff-docs--swagger .swagger-ui .opblock .opblock-summary:focus-within .view-line-link {
+    margin: 0 5px;
+    width: 18px;
+}
+.vff-docs--swagger
+    .swagger-ui
+    .opblock
+    .opblock-summary:focus-within
+    .view-line-link.copy-to-clipboard {
+    width: 24px;
+}
+
+/* Étiquette du champ « Filter by tag » (ajoutée par js/docs/swaggerAccessibility.js, RGAA 11.1), collée
+   à son champ : la marge haute de 20 px du champ passe au-dessus de l'étiquette. */
+.vff-docs--swagger .swagger-ui .vff-swagger-filter-label {
+    display: block;
+    margin: 20px 0 6px;
+    font-family: var(--vff-font-body);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--vff-text);
+}
+.vff-docs--swagger .swagger-ui .filter .vff-swagger-filter-label + .operation-filter-input {
+    margin-top: 0;
+}
+
+/* Tableaux des descriptions (markdown de la spécification) : à 320 px, les cellules de code dépassaient
+   de l'écran (372 px). Les mots longs se coupent dans la cellule (RGAA 10.11). */
+.vff-docs--swagger .swagger-ui .renderedMarkdown table,
+.vff-docs--swagger .swagger-ui .markdown table {
+    width: 100%;
+}
+.vff-docs--swagger .swagger-ui .renderedMarkdown :is(th, td, code),
+.vff-docs--swagger .swagger-ui .markdown :is(th, td, code) {
+    overflow-wrap: anywhere;
+}

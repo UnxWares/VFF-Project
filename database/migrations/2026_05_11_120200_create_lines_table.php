@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('name');
             $table->jsonb('alt_names')->nullable()->comment('Variantes/anciennes appellations');
             $table->string('code')->nullable()->index()->comment('Code administratif RFF/SNCF (ex: 420 000)');
-            $table->string('type')->default('passengers')->comment('passengers | freight | mixed');
+            $table->string('type')->default('passenger')->comment('passengers | freight | mixed');
             $table->string('historical_operator')->nullable()->comment('Cie de l\'Ouest, État, SNCF, …');
             $table->text('description')->nullable();
             $table->timestamps();

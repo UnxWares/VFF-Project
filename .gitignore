@@ -1,6 +1,8 @@
 /.phpunit.cache
 /node_modules
 /public/build
+# Service worker compilé par le build (resources/js/pwa/vite-plugin-sw.js)
+/public/sw.js
 /public/hot
 /public/storage
 # RTK / Next.js artifact créé par mégarde lors d'un build (filtre RTK qui se prend pour Next.js)
@@ -26,3 +28,30 @@ yarn-error.log
 Thumbs.db
 docker-compose.override.yml
 docker-compose.override.yaml
+
+# Modèle neuronal : dépôt séparé (https://github.com/UnxWares/VFF-Rail-Extraction), jamais poussé ici.
+# Code dans ml/, poids et tuiles dans storage/app/ml (déjà ignoré par storage/app/.gitignore).
+/ml/
+*.safetensors
+*.onnx
+*.pt
+*.pth
+*.ckpt
+
+# Cache pnpm et réglages locaux des outils de développement
+/.pnpm-store
+/.claude/
+# Instantanés des plugins de navigateur (Playwright MCP)
+/.playwright-mcp/
+
+# Documents de travail de tiers (poster du réseau ferré national) : jamais dans le dépôt public
+/posterrfn_*
+
+# Registre des accords oraux avec des sites tiers et courriers : internes, jamais dans le dépôt public
+/docs/AUTORISATIONS-SOURCES.md
+/docs/courrier-*.txt
+# Journal de passation entre sessions de travail (détails de la machine) : interne
+/docs/REPRISE.md
+
+# Configuration Lefthook propre à chaque poste
+/lefthook-local.yml

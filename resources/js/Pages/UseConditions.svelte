@@ -1,9 +1,29 @@
 <script>
     import LegalPage from '$components/LegalPage.svelte';
+
+    /** `updated` : date de la version en vigueur (config/legal.php). */
+    let { updated } = $props();
 </script>
 
 <LegalPage
     namespace="use_conditions"
-    sections={['acceptance', 'access', 'content', 'moderation', 'liability', 'changes', 'contact']}
-    updated="11 mai 2026"
+    sections={[
+        'purpose',
+        'acceptance',
+        'access',
+        'account',
+        'contributing',
+        'licence',
+        'moderation',
+        'conduct',
+        'safety',
+        'reuse',
+        'liability',
+        'property',
+        'suspension',
+        'changes',
+        'law',
+        'contact',
+    ]}
+    {updated}
 />

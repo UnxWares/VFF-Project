@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\VerifyCsrfToken;
 use Laravel\Sanctum\Sanctum;
 
 return [
@@ -49,6 +51,18 @@ return [
     'expiration' => null,
 
     /*
+    | Préfixe des jetons d'API personnels (« vff_ ») : un jeton publié par erreur dans un dépôt de
+    | code se repère par les outils de détection de secrets.
+    */
+    'token_prefix' => env('SANCTUM_TOKEN_PREFIX', 'vff_'),
+
+    /*
+    | Date de dernière utilisation : écrite par App\Listeners\RecordApiTokenUse au plus une fois
+    | par minute (config api.tokens.last_used_resolution), pas à chaque requête comme le ferait Sanctum.
+    */
+    'last_used_at' => false,
+
+    /*
     |--------------------------------------------------------------------------
     | Sanctum Middleware
     |--------------------------------------------------------------------------
@@ -60,8 +74,8 @@ return [
     */
 
     'middleware' => [
-        'verify_csrf_token' => App\Http\Middleware\VerifyCsrfToken::class,
-        'encrypt_cookies' => App\Http\Middleware\EncryptCookies::class,
+        'verify_csrf_token' => VerifyCsrfToken::class,
+        'encrypt_cookies' => EncryptCookies::class,
     ],
 
 ];

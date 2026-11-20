@@ -66,7 +66,7 @@ VFF est une **application web Laravel + Inertia + Svelte**, adossée à une **ba
 
 ## Couches
 
-### 1. Présentation — Svelte 5
+### 1. Présentation - Svelte 5
 
 - Toutes les pages sont des **composants Svelte** dans `resources/js/Pages/`.
 - Inertia.js fait le mapping `route → page` côté serveur.
@@ -76,15 +76,15 @@ VFF est une **application web Laravel + Inertia + Svelte**, adossée à une **ba
 
 **Pourquoi Svelte ?** Compilé, zéro runtime, syntaxe lisible, parfait pour des UIs riches (sélecteur temporel, panneau d'édition de tracé) sans la lourdeur d'un React/Vue.
 
-### 2. Pont — Inertia.js
+### 2. Pont - Inertia.js
 
 - Une seule route Blade : `resources/views/app.blade.php` (le shell).
 - Chaque contrôleur retourne `Inertia::render('PageName', $props)`.
 - Navigation gérée côté client par le router Inertia (pas de full page reload).
 
-**Pourquoi Inertia ?** On garde le routage Laravel, le middleware, les form requests, l'auth — mais on a une UX SPA. Pas de duplication d'API pour le rendu.
+**Pourquoi Inertia ?** On garde le routage Laravel, le middleware, les form requests, l'auth - mais on a une UX SPA. Pas de duplication d'API pour le rendu.
 
-### 3. Application — Laravel 12
+### 3. Application - Laravel 12
 
 Structure suivant les principes Laravel 11+ (plus de `Http/Kernel.php`, tout dans `bootstrap/app.php`).
 
@@ -95,28 +95,28 @@ Structure suivant les principes Laravel 11+ (plus de `Http/Kernel.php`, tout dan
 - **Policies** : autorisation par modèle.
 - **Jobs** : tâches asynchrones (import OSM, génération de tuiles MVT, traitements 3D IA).
 
-### 4. Domaine — Modèles Eloquent
+### 4. Domaine - Modèles Eloquent
 
 Modèles principaux (voir [migrations](database/migrations/) pour le détail) :
 
 | Modèle | Description | Géométrie |
 |---|---|---|
-| `Era` | Décennie de référence (1990, 2000, 2010, 2020, 2030) | — |
-| `Line` | Ligne ferroviaire (concept, agnostique de l'époque) | — |
+| `Era` | Décennie de référence (1990, 2000, 2010, 2020, 2030) | - |
+| `Line` | Ligne ferroviaire (concept, agnostique de l'époque) | - |
 | `LineSegment` | Tronçon d'une ligne à une époque donnée, avec statut | `LINESTRING(4326)` |
 | `Station` | Gare / halte / passage à niveau | `POINT(4326)` |
-| `Material` | Matériel roulant (locomotive, automotrice, rame) | — |
-| `LineMaterial` | Pivot : quel matériel sur quelle ligne, quand | — |
-| `LineEvent` | Date clé d'une ligne (inauguration, fermeture…) | — |
-| `Media` | Photo / document, polymorphe (sur ligne / gare / matériel / event) | — |
-| `Contribution` | Édit collaboratif en attente de validation | — |
-| `User` | Utilisateur + rôle + réputation | — |
+| `Material` | Matériel roulant (locomotive, automotrice, rame) | - |
+| `LineMaterial` | Pivot : quel matériel sur quelle ligne, quand | - |
+| `LineEvent` | Date clé d'une ligne (inauguration, fermeture…) | - |
+| `Media` | Photo / document, polymorphe (sur ligne / gare / matériel / event) | - |
+| `Contribution` | Édit collaboratif en attente de validation | - |
+| `User` | Utilisateur + rôle + réputation | - |
 
 **Casts spatiaux custom** dans `app/Casts/` :
 - `LineStringCast` : convertit WKT/WKB ↔ tableau de coordonnées
 - `PointCast` : idem pour les points
 
-### 5. Données — PostgreSQL 18 + PostGIS 3.6 + Apache AGE
+### 5. Données - PostgreSQL 18 + PostGIS 3.6 + Apache AGE
 
 **Pourquoi PostGIS** (spatial) :
 - Stockage natif `geometry(LINESTRING, 4326)` + index GIST
@@ -125,7 +125,7 @@ Modèles principaux (voir [migrations](database/migrations/) pour le détail) :
 - Permet l'historisation propre via une colonne `era_id` sur les `line_segments`
 
 **Pourquoi [Apache AGE](https://age.apache.org/)** (graphe, Phase 8) :
-- Extension officielle Apache qui ajoute le support graphe (Cypher) à PostgreSQL — **dans la même base**
+- Extension officielle Apache qui ajoute le support graphe (Cypher) à PostgreSQL - **dans la même base**
 - VFF a une structure naturellement graphe : stations = nœuds, segments = arêtes, lignes×matériels temporel
 - Permet le pathfinding élégant via Cypher : « comment aller de A à B en 1950 ? »
 - Évite la duplication multi-DB (pas de Neo4j séparé à synchroniser)
@@ -133,7 +133,7 @@ Modèles principaux (voir [migrations](database/migrations/) pour le détail) :
 
 **Pourquoi Valkey** (cache/queue) plutôt que Redis :
 - Fork BSD-3-Clause maintenu par la Linux Foundation depuis le pivot SSPL de Redis Labs en 2024
-- 100 % protocole-compatible (RESP) — Laravel utilise la connexion `redis` standard
+- 100 % protocole-compatible (RESP) - Laravel utilise la connexion `redis` standard
 - Choix éthique + souveraineté ouverte
 
 Migrations :
@@ -172,11 +172,11 @@ Migrations :
 | Layer | Fournisseur | Toujours actif ? | Donnée |
 |---|---|---|---|
 | Fond | MapTiler / Stadia | Oui | Tuiles vectorielles OSM (relief, villes, routes) |
-| OpenRailwayMap | tiles.openrailwaymap.org | Non (toggle) | Tuiles raster CC-BY-SA 2.0 — infrastructure ferroviaire détaillée (signaux, électrification, vitesses, écartement) |
+| OpenRailwayMap | tiles.openrailwaymap.org | Non (toggle) | Tuiles raster CC-BY-SA 2.0 - infrastructure ferroviaire détaillée (signaux, électrification, vitesses, écartement) |
 | VFF tracés | Notre Postgres+PostGIS | Oui | MVT générés à la volée par `ST_AsMVT`, filtrés par `era_id`, stylisés selon statut |
 | VFF stations | Idem | Oui | POINTs en pastilles, taille selon zoom |
 
-L'utilisateur peut activer **OpenRailwayMap** en overlay quand il veut comparer notre tracé historique au rendu OSM contemporain — révélateur pour identifier visuellement les portions disparues.
+L'utilisateur peut activer **OpenRailwayMap** en overlay quand il veut comparer notre tracé historique au rendu OSM contemporain - révélateur pour identifier visuellement les portions disparues.
 
 ### Import du réseau depuis OSM
 
@@ -209,7 +209,7 @@ L'utilisateur peut activer **OpenRailwayMap** en overlay quand il veut comparer 
 
 ## Performance
 
-- **Tuiles MVT** plutôt que GeoJSON pour la carte : 10–100× plus léger
+- **Tuiles MVT** plutôt que GeoJSON pour la carte : 10-100× plus léger
 - **Cache HTTP** sur les MVT (`Cache-Control: public, max-age=3600`)
 - **CDN** devant les assets statiques (photos, tuiles cachées)
 - **Queue Redis** pour les jobs lourds (import OSM, génération 3D)
@@ -232,7 +232,7 @@ L'utilisateur peut activer **OpenRailwayMap** en overlay quand il veut comparer 
 
 ## Déploiement (cible)
 
-- **Hébergement** : [UnxWares — Division Cloud](https://www.unxwares.com), infrastructure souveraine française
+- **Hébergement** : [UnxWares - Division Cloud](https://www.unxwares.com), infrastructure souveraine française
 - **Domaine** : `vff-project.org`
 - **Docker Compose** : nginx + php-fpm + postgres-postgis(+age) + valkey
 - **Reverse proxy** Cloudflare devant pour la cache et l'anti-DDoS
@@ -245,9 +245,9 @@ L'utilisateur peut activer **OpenRailwayMap** en overlay quand il veut comparer 
 
 ## API publique (Phase 6+)
 
-### REST en premier (phases 1–6)
+### REST en premier (phases 1-6)
 
-- Endpoints documentés via [Scramble](https://scramble.dedoc.co/) — génération OpenAPI auto depuis le code Laravel, sans annotations verbeuses
+- Endpoints documentés via [Scramble](https://scramble.dedoc.co/) - génération OpenAPI auto depuis le code Laravel, sans annotations verbeuses
 - Documentation publique servie via [Stoplight Elements](https://stoplight.io/open-source/elements) (composant web open-source TypeScript) embarqué dans une page Svelte avec branding VFF complet (orange `#ff6500`, fonts Lato/Gabarito, dark mode)
 - Page d'accès : `/api`
 - Formats : JSON (REST), GeoJSON (cartographie), MVT (`ST_AsMVT` Mapbox Vector Tiles pour MapLibre/Leaflet)
@@ -264,7 +264,7 @@ L'utilisateur peut activer **OpenRailwayMap** en overlay quand il veut comparer 
 ## Modèle économique / structure juridique
 
 - **Hébergement & infrastructure** : [UnxWares](https://www.unxwares.com), studio porteur initial
-- **Association ESS** (Économie Sociale et Solidaire) en cours de constitution sous le nom de travail **« UnxWares Opensource »** — portera juridiquement et financièrement VFF et les autres projets open-source d'UnxWares
+- **Association ESS** (Économie Sociale et Solidaire) en cours de constitution sous le nom de travail **« UnxWares Opensource »** - portera juridiquement et financièrement VFF et les autres projets open-source d'UnxWares
 - **Plateforme de dons** : à arbitrer entre **Patreon** (récurrent, sans statut associatif requis) et **HelloAsso** (déductibilité fiscale possible une fois l'asso reconnue d'intérêt général)
 
 ---

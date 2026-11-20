@@ -1,0 +1,5 @@
+[
+    {"code_ligne": "100000", "rg_troncon": 1, "pkd": "000+000", "pkf": "017+250", "type_ligne": "Ligne"},
+    {"code_ligne": "990000", "rg_troncon": 1, "pkd": "000+000", "pkf": "001+100", "type_ligne": "Rac"},
+    {"code_ligne": "200000", "type_ligne": ""}
+]

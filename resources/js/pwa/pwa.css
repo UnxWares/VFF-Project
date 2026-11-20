@@ -1,0 +1,43 @@
+/* Bandeau « Nouvelle version disponible » (updateNotice.js). Couleurs et rayons : variables de general.css. */
+.vff-pwa-notice {
+    position: fixed;
+    inset-inline: var(--vff-gutter, 16px);
+    inset-block-end: max(var(--vff-gutter, 16px), env(safe-area-inset-bottom));
+    z-index: var(--vff-z-toast, 1100);
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vff-space-2, 8px) var(--vff-space-4, 16px);
+    max-width: 36rem;
+    margin-inline: auto;
+    padding: var(--vff-space-3, 12px) var(--vff-space-4, 16px);
+    border: 1px solid var(--vff-border-strong);
+    border-radius: var(--vff-radius-md, 12px);
+    background-color: var(--vff-bg-elevated);
+    box-shadow: var(--vff-shadow-popover);
+    color: var(--vff-text);
+}
+.vff-pwa-notice-text {
+    flex: 1 1 14rem;
+    margin: 0;
+    font-size: var(--vff-fs-sm);
+}
+.vff-pwa-notice-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vff-space-2, 8px);
+}
+@media (prefers-reduced-motion: no-preference) {
+    .vff-pwa-notice {
+        animation: vff-pwa-notice-in 0.25s ease-out;
+    }
+}
+@keyframes vff-pwa-notice-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+}

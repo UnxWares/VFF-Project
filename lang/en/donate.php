@@ -2,60 +2,42 @@
 
 return [
     'meta_title' => 'Donate',
-    'meta_description' => 'Support VFF, the open project mapping France\'s railway heritage.',
+    'meta_description' => 'Support VFF, the open project documenting France\'s railway heritage: where donations stand and what they will be used for.',
 
     'hero' => [
-        'eyebrow' => 'Support',
-        'title' => 'Keep the project alive',
-        'subtitle' => "VFF is entirely free, open-source and ad-free. Your donations cover hosting, map tiles, and the time spent on the project.",
+        'title' => 'Keep the project going',
+        'subtitle' => 'VFF is free, ad-free and has no third-party trackers, and its code is open. Donations will cover hosting, map backgrounds and the time spent on the project.',
     ],
 
-    'why' => [
-        'title' => 'Why donate?',
-        'item1_title' => 'No ads, no tracking',
-        'item1_text' => 'No advertising monetization, no third-party trackers. Donations are our only business model.',
-        'item2_title' => 'Stable infrastructure',
-        'item2_text' => 'A decent server, quality map tiles, good backups — it has a recurring cost.',
-        'item3_title' => 'Time invested',
-        'item3_text' => "Documenting thousands of lines, validating contributions, processing media — it's a part-time job.",
-    ],
-
-    'tiers' => [
-        'title' => 'Your tiers',
-        'tier1_amount' => '€5',
-        'tier1_label' => 'Pointsman',
-        'tier1_text' => "You pay for 2 days of hosting. Thanks!",
-        'tier2_amount' => '€15',
-        'tier2_label' => 'Stationmaster',
-        'tier2_text' => 'You fund 1 week of map tiles for all our visitors.',
-        'tier3_amount' => '€50',
-        'tier3_label' => 'Engine driver',
-        'tier3_text' => 'You pay the server + tiles for a whole month. Your name appears in our credits.',
-        'tier_custom_label' => 'Free amount',
-        'tier_custom_text' => 'Choose the amount that suits you. Every euro counts.',
-    ],
-
-    'methods' => [
-        'title' => 'Payment methods',
-        'stripe' => 'Credit card (Stripe)',
-        'paypal' => 'PayPal',
-        'helloasso' => 'HelloAsso (potentially tax-deductible once the ESS association is recognized)',
-        'soon' => 'Coming soon',
+    'status' => [
+        'title' => 'Donations are not open yet',
+        'text' => 'No payment method is available today, and no tax receipt can be issued. This page describes what is planned; it will be updated when donations open.',
     ],
 
     'org' => [
-        'title' => 'Who collects?',
-        'paragraph' => "An <strong>association registered in the Social and Solidarity Economy (ESS)</strong>, working name « UnxWares Opensource », is being formed. It will legally and financially host UnxWares' open-source projects — including VFF. Until its official registration, donations remain symbolic and do not give rise to tax deductions.",
+        'title' => 'Who will collect the donations?',
+        'paragraph' => 'An <strong>association in the French social and solidarity economy</strong>, working name “UnxWares Opensource”, is being set up. It will legally and financially support UnxWares\' open projects, including VFF. Until it is registered, no donation can be received. The payment platforms have not been chosen yet.',
+    ],
+
+    'why' => [
+        'title' => 'What donations would pay for',
+        'intro' => 'VFF has regular costs and receives no advertising revenue.',
+        'item1_title' => 'Hosting and backups',
+        'item1_text' => 'A server, a database and backups: a recurring cost.',
+        'item2_title' => 'Map backgrounds and data',
+        'item2_text' => 'Map backgrounds (map tiles) and storage of historical data.',
+        'item3_title' => 'Working time',
+        'item3_text' => 'Documenting thousands of lines, reviewing contributions, processing media: part-time work.',
     ],
 
     'transparency' => [
         'title' => 'Transparency',
-        'paragraph' => 'Once a year, we publish a public summary: total amount of donations, detailed expenses (UnxWares Cloud servers, map tiles, archive trips, etc.), number of active contributors. You will know exactly what your money is used for.',
+        'paragraph' => 'Once donations are received, we plan to publish every year the amount collected and a breakdown of expenses (hosting, map backgrounds, archive visits). You will then be able to see what your money is used for.',
     ],
 
     'cta' => [
-        'title' => 'Another way to help?',
-        'text' => "Can't afford to donate? Contribute through data, sharing, or good vibes on social media.",
-        'contribute' => 'Contribute differently',
+        'title' => 'Another way to help',
+        'text' => 'You can help without donating: correct a date, add a source, report an error or spread the word.',
+        'contribute' => 'See how to contribute',
     ],
 ];

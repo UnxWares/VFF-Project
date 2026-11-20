@@ -1,272 +1,420 @@
 <script>
+    /**
+     * Profil du réseau : longueur des lignes ouvertes au 31 décembre de chaque décennie (données de la
+     * base, prop `profile` de HomeController), dessiné comme un profil en long : une colonne par
+     * décennie, le filet orange du haut forme la ligne du réseau. Chaque colonne ouvre la carte de sa
+     * décennie. Toutes les valeurs restent lisibles sans survol : nom complet de chaque lien, tableau
+     * dépliable, barres horizontales chiffrées sur tablette et téléphone.
+     * Sous le profil, six repères datés (faits validés de HistoricalErasSeeder).
+     */
     import { Link } from '@inertiajs/svelte';
+    import SectionBlock from '$components/SectionBlock.svelte';
     import { i18n } from '$lib/i18n.js';
-    import { scrollReveal } from '$lib/actions/scrollReveal.js';
 
-    const eras = ['1990', '2000', '2010', '2020', '2030'];
-    let selected = $state('2030');
+    /** @type {{ profile?: Array<{ year: number, km: number, lines: number, current: boolean }> }} */
+    let { profile = [] } = $props();
+
+    const milestones = ['1827', '1842', '1879', '1930', '1938', '1981'];
+
+    const nf = $derived(new Intl.NumberFormat($i18n.language));
+    const rows = $derived(profile.filter((r) => r.km > 0));
+    const peak = $derived(rows.reduce((best, r) => (best && best.km >= r.km ? best : r), null));
+    // Graduation tous les 20 000 km (10 000 pour un petit réseau, en test ou en développement).
+    const step = $derived(peak && peak.km > 30000 ? 20000 : 10000);
+    const scaleMax = $derived(peak ? Math.max(step, Math.ceil(peak.km / step) * step) : step);
+    const ticks = $derived(Array.from({ length: scaleMax / step }, (_, i) => (i + 1) * step));
+    const firstYear = $derived(rows[0]?.year ?? 0);
+
+    function km(n) {
+        return $i18n.t('home.network.km', { value: nf.format(n) });
+    }
+    function lineCount(n) {
+        return $i18n.t('home.network.lines', { count: n, value: nf.format(n) });
+    }
+    function barLabel(r) {
+        return r.current
+            ? $i18n.t('home.network.bar_today', { km: km(r.km), lines: lineCount(r.lines) })
+            : $i18n.t('home.network.bar', {
+                  year: r.year,
+                  km: km(r.km),
+                  lines: lineCount(r.lines),
+              });
+    }
 </script>
 
-<section id="timeline" class="timeline-section" use:scrollReveal={{ threshold: 0.15 }}>
-    <div class="timeline-inner">
-        <div class="timeline-head">
-            <span class="eyebrow">{$i18n.t('home.timeline.eyebrow')}</span>
-            <h2>{$i18n.t('home.timeline.title')}</h2>
-            <p class="lead">{$i18n.t('home.timeline.subtitle')}</p>
-        </div>
-
-        <div class="rail-line" aria-hidden="true">
-            <div class="rail-track"></div>
-            <div class="ties">
-                {#each Array(20) as _, i (i)}
-                    <span class="tie"></span>
-                {/each}
+<SectionBlock
+    id="reseau"
+    kind="alt"
+    title={$i18n.t('home.network.title')}
+    intro={$i18n.t('home.network.intro')}
+    maxWidth="1180px"
+>
+    {#if rows.length > 1}
+        <figure class="profile" style:--max={scaleMax} style:--n={rows.length}>
+            <figcaption>{$i18n.t('home.network.chart_caption')}</figcaption>
+            <div class="plot">
+                <div class="ticks" aria-hidden="true">
+                    {#each ticks as t (t)}
+                        <span class="tick" style:--v={t}
+                            ><span class="tick-label">{nf.format(t)}</span></span
+                        >
+                    {/each}
+                </div>
+                <ol class="bars">
+                    {#each rows as r (r.year)}
+                        <li
+                            class={[
+                                'decade',
+                                {
+                                    peak: r === peak,
+                                    today: r.current,
+                                    alternate: ((r.year - firstYear) / 10) % 2 === 1,
+                                },
+                            ]}
+                            style:--km={r.km}
+                        >
+                            <Link href={`/maps?era=${r.year}`} class="bar-link">
+                                <span class="vff-sr-only">{barLabel(r)}</span>
+                                <span class="col" aria-hidden="true">
+                                    <span class="bar"></span>
+                                    <span class="value">{nf.format(r.km)}</span>
+                                </span>
+                                <span class="year" aria-hidden="true"
+                                    >{r.current ? $i18n.t('home.network.today') : r.year}</span
+                                >
+                            </Link>
+                        </li>
+                    {/each}
+                </ol>
             </div>
-        </div>
+        </figure>
 
-        <ul class="era-list" role="tablist" aria-label="Sélecteur d'époque">
-            {#each eras as era}
-                <li>
-                    <button
-                        type="button"
-                        role="tab"
-                        aria-selected={selected === era}
-                        class:active={selected === era}
-                        onclick={() => (selected = era)}
-                    >
-                        <span class="dot"></span>
-                        <span class="year">{era}</span>
-                    </button>
-                </li>
-            {/each}
-        </ul>
+        <details class="figures">
+            <summary>{$i18n.t('home.network.table_toggle')}</summary>
+            <!-- Trois colonnes courtes : le tableau tient à 320 px, pas de défilement à rendre focalisable. -->
+            <div class="vff-table-wrap">
+                <table class="vff-table">
+                    <caption class="vff-sr-only">{$i18n.t('home.network.table_caption')}</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">{$i18n.t('home.network.col_decade')}</th>
+                            <th scope="col" class="num">{$i18n.t('home.network.col_length')}</th>
+                            <th scope="col" class="num">{$i18n.t('home.network.col_lines')}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each rows as r (r.year)}
+                            <tr>
+                                <th scope="row"
+                                    >{r.current ? $i18n.t('home.network.today') : r.year}</th
+                                >
+                                <td class="num">{km(r.km)}</td>
+                                <td class="num">{nf.format(r.lines)}</td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    {/if}
 
-        <div class="era-panel" role="tabpanel" aria-live="polite">
-            {#each eras as era}
-                {#if selected === era}
-                    <div class="era-card">
-                        <div class="era-header">
-                            <span class="big-year">{era}</span>
-                            <h3>{$i18n.t(`home.timeline.era${era}_title`)}</h3>
-                            {#if era === '2030'}
-                                <span class="pill">{$i18n.t('home.timeline.current_badge')}</span>
-                            {/if}
-                        </div>
-                        <p>{$i18n.t(`home.timeline.era${era}_text`)}</p>
-                        <Link href="/maps" class="vff-btn primary">
-                            <i class="bi bi-map"></i> {$i18n.t('home.timeline.cta')}
-                        </Link>
-                    </div>
-                {/if}
-            {/each}
-        </div>
-    </div>
-</section>
+    <h3 class="milestones-title">{$i18n.t('home.network.milestones_title')}</h3>
+    <ol class="milestones">
+        {#each milestones as year (year)}
+            <li>
+                <span class="m-year">{year}</span>
+                <p>{$i18n.t(`home.network.m${year}`)}</p>
+            </li>
+        {/each}
+    </ol>
+
+    {#snippet actions()}
+        <Link href="/maps" class="vff-btn primary">
+            <i class="bi bi-map" aria-hidden="true"></i>
+            {$i18n.t('home.network.cta')}
+        </Link>
+    {/snippet}
+</SectionBlock>
 
 <style>
-    .timeline-section {
-        padding: 80px 16px;
-        background-color: var(--vff-bg);
-        position: relative;
-        overflow: hidden;
+    .profile {
+        margin: 0;
     }
-    .timeline-inner {
-        max-width: 980px;
-        margin: 0 auto;
-    }
-    .timeline-head {
-        text-align: center;
-        margin-bottom: 48px;
-    }
-    .eyebrow {
-        display: inline-block;
-        font-family: var(--vff-font-display);
-        font-size: 14px;
-        font-weight: 600;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--vff-accent);
-        margin-bottom: 12px;
-    }
-    .timeline-head h2 {
-        margin: 0 0 16px;
+    figcaption {
+        max-width: var(--vff-measure);
+        margin: 0 0 var(--vff-space-4);
         font-family: var(--vff-font-heading);
-        font-size: clamp(28px, 3.5vw, 36px);
-        color: var(--vff-text);
-    }
-    .lead {
-        font-family: var(--vff-font-body);
-        font-size: 18px;
-        line-height: 1.55;
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
         color: var(--vff-text-muted);
-        margin: 0 auto;
-        max-width: 640px;
     }
 
-    /* Rail visuel décoratif */
-    .rail-line {
+    /* Ordinateur : colonnes verticales, graduations à gauche. */
+    .plot {
+        --year-row: 32px;
         position: relative;
-        height: 24px;
-        margin: 0 8% 6px;
+        padding: 36px 0 0 64px;
     }
-    .rail-track {
+    .ticks {
         position: absolute;
-        top: 50%;
-        left: 0;
+        top: 36px;
+        bottom: var(--year-row);
+        left: 64px;
         right: 0;
-        height: 4px;
-        background: linear-gradient(
-            to right,
-            transparent 0%,
-            var(--vff-accent) 12%,
-            var(--vff-accent) 88%,
-            transparent 100%
-        );
-        transform: translateY(-50%);
-        border-radius: 2px;
+        pointer-events: none;
     }
-    .ties {
+    .ticks::after {
+        /* Ligne de base du profil. */
+        content: '';
         position: absolute;
-        top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        display: flex;
-        justify-content: space-between;
-        padding: 0 12%;
-        align-items: center;
+        border-top: 1px solid var(--vff-border-control);
     }
-    .tie {
-        width: 2px;
-        height: 16px;
-        background-color: var(--vff-border-strong);
-        border-radius: 1px;
-        opacity: 0.6;
+    .tick {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: calc(var(--v) / var(--max) * 100%);
+        border-top: 1px dashed var(--vff-border-strong);
     }
-
-    /* Sélecteur d'époques */
-    .era-list {
-        list-style: none;
+    .tick-label {
+        position: absolute;
+        right: calc(100% + 10px);
+        top: 0;
+        transform: translateY(-50%);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+        white-space: nowrap;
+        color: var(--vff-text-muted);
+    }
+    .bars {
+        display: grid;
+        grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+        gap: 0 6px;
+        height: 300px;
+        margin: 0;
         padding: 0;
-        margin: 0 0 48px;
-        display: flex;
-        justify-content: space-between;
-        padding: 0 8%;
+        list-style: none;
     }
-    .era-list li {
+    .decade {
+        min-width: 0;
         margin: 0;
     }
-    .era-list button {
-        all: unset;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        padding: 4px;
-        cursor: pointer;
-        transition: transform 200ms ease;
+    .bars :global(.bar-link) {
+        display: grid;
+        /* Colonne fixe : le libellé « Aujourd'hui », plus large que la colonne, déborde sans
+           élargir la barre. */
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) var(--year-row);
+        height: 100%;
+        color: inherit;
+        text-decoration: none;
+        border-radius: var(--vff-radius-sm);
     }
-    .era-list button:hover {
-        transform: translateY(-2px);
+    .col {
+        position: relative;
     }
-    .era-list button:focus-visible {
-        outline: 2px solid var(--vff-accent);
-        outline-offset: 4px;
-        border-radius: 4px;
+    .bar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: calc(var(--km) / var(--max) * 100%);
+        background-color: var(--vff-accent-soft);
+        border-top: 3px solid var(--vff-accent-strong);
+        transition: background-color var(--vff-transition);
     }
-    .dot {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background-color: var(--vff-bg);
-        border: 3px solid var(--vff-border-strong);
-        transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+    .value {
+        position: absolute;
+        left: 50%;
+        bottom: calc(var(--km) / var(--max) * 100% + 6px);
+        transform: translateX(-50%);
+        padding: 0 3px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-xs);
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.3;
+        white-space: nowrap;
+        color: var(--vff-text);
+        background-color: var(--vff-bg-subtle);
+        visibility: hidden;
     }
-    .era-list button.active .dot {
-        background-color: var(--vff-accent);
-        border-color: var(--vff-accent);
-        box-shadow: 0 0 0 6px var(--vff-accent-soft);
+    .peak .value,
+    .today .value,
+    .decade:hover .value,
+    .decade:has(:focus-visible) .value {
+        visibility: visible;
+    }
+    .decade:hover .bar,
+    .decade:has(:focus-visible) .bar {
+        background-color: var(--vff-accent-strong);
     }
     .year {
-        font-family: var(--vff-font-display);
-        font-size: 17px;
-        font-weight: 600;
-        color: var(--vff-text-muted);
-        transition: color 200ms ease;
-    }
-    .era-list button.active .year {
-        color: var(--vff-accent);
-    }
-
-    /* Panneau de l'époque sélectionnée */
-    .era-panel {
-        background-color: var(--vff-bg-elevated);
-        border: 1px solid var(--vff-border);
-        border-radius: 16px;
-        padding: 40px 32px;
-        min-height: 220px;
-        text-align: center;
-    }
-    .era-card {
-        max-width: 560px;
-        margin: 0 auto;
-    }
-    .era-header {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 14px;
-        flex-wrap: wrap;
-        margin-bottom: 16px;
-    }
-    .big-year {
-        font-family: var(--vff-font-display);
-        font-size: clamp(40px, 5vw, 56px);
-        font-weight: 600;
-        color: var(--vff-accent);
-        line-height: 1;
-    }
-    .era-header h3 {
+        align-self: center;
+        overflow: hidden;
         font-family: var(--vff-font-heading);
-        font-size: clamp(20px, 2.5vw, 24px);
-        margin: 0;
+        font-size: var(--vff-fs-xs);
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+        white-space: nowrap;
+        color: var(--vff-text-muted);
+    }
+    /* « Aujourd'hui », plus large que sa colonne : calé sur le bord droit de la dernière barre, il
+       déborde vers la gauche, sur l'année précédente (masquée : la décennie en cours est celle
+       d'aujourd'hui), et jamais hors de la page (avant : défilement horizontal à 1 024 px). */
+    .today .year {
+        justify-self: end;
+        overflow: visible;
+        font-weight: 600;
+        color: var(--vff-accent-ink);
+    }
+    .decade:has(+ .today) .year {
+        visibility: hidden;
+    }
+    .decade:hover .year {
         color: var(--vff-text);
     }
-    .pill {
-        font-family: var(--vff-font-display);
-        font-size: 11px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        background-color: var(--vff-accent-soft);
-        color: var(--vff-accent);
-        padding: 4px 10px;
-        border-radius: var(--vff-radius-pill);
+
+    /* Petit ordinateur : une année sur deux sous les colonnes (les autres restent lues). */
+    @media (max-width: 1180px) {
+        .alternate:not(.today) .year {
+            visibility: hidden;
+        }
     }
-    .era-card p {
+
+    /* Tablette et téléphone : barres horizontales, toutes chiffrées. */
+    @media (max-width: 900px) {
+        .plot {
+            padding: 0;
+        }
+        .ticks {
+            display: none;
+        }
+        .bars {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 2px;
+            height: auto;
+        }
+        .bars :global(.bar-link) {
+            grid-template-columns: 6.5rem minmax(0, 1fr);
+            grid-template-rows: none;
+            grid-template-areas: 'year col';
+            align-items: center;
+            column-gap: var(--vff-space-3);
+            min-height: 32px;
+        }
+        .year,
+        .alternate:not(.today) .year,
+        .decade:has(+ .today) .year {
+            grid-area: year;
+            justify-self: start;
+            text-align: left;
+            visibility: visible;
+        }
+        .col {
+            grid-area: col;
+            height: 18px;
+        }
+        .bar {
+            top: 0;
+            right: auto;
+            width: calc(var(--km) / var(--max) * (100% - 4.5rem));
+            height: auto;
+            border-top: 0;
+            border-right: 3px solid var(--vff-accent-strong);
+        }
+        .value {
+            top: 50%;
+            bottom: auto;
+            left: calc(var(--km) / var(--max) * (100% - 4.5rem) + 8px);
+            transform: translateY(-50%);
+            padding: 0;
+            font-weight: 400;
+            background: none;
+            visibility: visible;
+        }
+        .peak .value,
+        .today .value {
+            font-weight: 600;
+        }
+    }
+
+    .figures {
+        margin-top: var(--vff-space-5);
+    }
+    .figures summary {
+        display: list-item;
+        width: fit-content;
+        min-height: 24px;
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-sm);
+        line-height: 24px;
+        color: var(--vff-link);
+        text-decoration: underline;
+        text-underline-offset: 0.18em;
+        cursor: pointer;
+    }
+    .figures .vff-table-wrap {
+        max-width: 560px;
+        margin-top: var(--vff-space-3);
+    }
+
+    .milestones-title {
+        margin: var(--vff-section-space) 0 var(--vff-space-5);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-h3);
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--vff-text);
+    }
+    .milestones {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--vff-space-5) var(--vff-space-6);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .milestones li {
+        min-width: 0;
+        margin: 0;
+        padding-top: var(--vff-space-3);
+        border-top: 1px solid var(--vff-border-strong);
+    }
+    .m-year {
+        display: block;
+        margin-bottom: 6px;
+        font-family: var(--vff-font-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.1;
+        color: var(--vff-text);
+    }
+    .milestones p {
+        margin: 0;
         font-family: var(--vff-font-body);
-        font-size: 17px;
+        font-size: var(--vff-fs-body);
         line-height: 1.6;
         color: var(--vff-text-muted);
-        margin: 0 0 24px;
     }
-
-    @media (max-width: 700px) {
-        .era-list {
-            padding: 0 4%;
-        }
-        .year {
-            font-size: 14px;
-        }
-        .era-panel {
-            padding: 28px 20px;
+    @media (max-width: 900px) {
+        .milestones {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
-
-    @media (prefers-reduced-motion: reduce) {
-        .era-list button,
-        .dot,
-        .year {
-            transition: none;
+    @media (max-width: 600px) {
+        .milestones {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        /* Cible tactile de 44 px pour « Afficher les chiffres par décennie ». */
+        .figures summary {
+            padding-block: 10px;
         }
     }
 </style>

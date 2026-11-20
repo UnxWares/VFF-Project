@@ -1,0 +1,40 @@
+// Tests de mutation (Infection) des services purs les plus critiques (+ LineMerger, base de test).
+// Commandes Artisan : mutation ciblée par tests/Mutation/Commands/generate.sh (une classe à la fois).
+// Hors périmètre tant qu'ils sont en réécriture par d'autres chantiers (2026-10-19) :
+// LineClassifier et DataInvariants (trafic par portion), TraceSplitter (LinkTraces).
+//   composer test:mutation     (ou : make mutation)
+// Long (plusieurs minutes) : hors `make check`. 4 threads maximum (machine partagée).
+// Rapports : storage/app/reports/infection/ (texte, HTML, résumé, par mutateur).
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": ["app"],
+        // Tout app/ est exclu SAUF les classes ciblées (regex à anticipation
+        // négative, appliquée au chemin relatif à app/).
+        "excludes": [
+            "#^(?!(Services/(GeoJsonXDecoder|GeoExporter|PlaceNames|HeritageText|StationTimeline|OhmDate|EraContinuity|SecondaryNetworkParser|LineMerger|Traction/(Gauge|ElectrificationTimeline|ElectrificationText))|Support/(StationNames|Lgv|I18nChecker|TrackPriority))\\.php$)#"
+        ]
+    },
+    "phpUnit": {
+        "configDir": "tests/Mutation"
+    },
+    // pcov n'est actif que pour la mesure de couverture initiale.
+    "initialTestsPhpOptions": "-d pcov.enabled=1",
+    "threads": 4,
+    "timeout": 25,
+    "tmpDir": "storage/app/reports/infection/tmp",
+    "logs": {
+        "text": "storage/app/reports/infection/infection.log",
+        "json": "storage/app/reports/infection/infection.json",
+        "html": "storage/app/reports/infection/infection.html",
+        "summary": "storage/app/reports/infection/summary.log",
+        "perMutator": "storage/app/reports/infection/per-mutator.md"
+    },
+    "mutators": {
+        "@default": true,
+        // protected → private : sans sous-classe, toujours équivalent (bruit).
+        "ProtectedVisibility": false
+    },
+    "minMsi": 70,
+    "minCoveredMsi": 80
+}

@@ -1,0 +1,343 @@
+/* Polices du site (WOFF2 auto-hébergées via @fontsource, OFL), seulement les graisses utilisées ici. Fichiers
+   à plages unicode : le navigateur ne télécharge que les sous-ensembles dont la page a besoin. */
+@import url('@fontsource/lato/400.css');
+@import url('@fontsource/lato/700.css');
+@import url('@fontsource/gabarito/400.css');
+@import url('@fontsource/gabarito/700.css');
+@import url('@fontsource/inter/400.css');
+@import url('@fontsource/inter/500.css');
+@import url('@fontsource/inter/600.css');
+@import url('@fontsource/inter/700.css');
+
+/* Pages de documentation de l'API (/docs/api Scalar, /docs/swagger Swagger UI, /graphiql GraphiQL).
+   Identité VFF : orange #ff6500, polices du site, thème clair et sombre piloté par <html data-theme>
+   (cookie `theme` partagé avec le site ; sans cookie, réglage du système). Ces pages ne chargent pas
+   general.css : les variables ci-dessous reprennent, sous les mêmes noms et avec les mêmes valeurs,
+   celles de la section 2 de resources/css/general.css (contrastes calculés là-bas). */
+
+:root {
+    color-scheme: light;
+    --vff-accent: #ff6500;
+    --vff-accent-hover: #e85a00;
+    --vff-accent-soft: rgba(255, 101, 0, 0.12);
+    --vff-accent-ink: #b84800; /* texte orange : 5,3:1 sur blanc */
+    --vff-on-accent: #000000;
+    --vff-bg: #ffffff;
+    --vff-bg-elevated: #fcfcfd;
+    --vff-bg-subtle: #f3f5f6;
+    --vff-bg-muted: #e8ecec;
+    --vff-bg-accent: #fff1e6;
+    --vff-text: #000000;
+    --vff-text-muted: #555a64;
+    --vff-border: #e2e6ea;
+    --vff-border-strong: #c8ced4;
+    --vff-border-control: #7c838c;
+    --vff-focus: #b84800;
+    --vff-shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.14);
+    /* Rayons : mêmes valeurs et mêmes rôles que le site (general.css). */
+    --vff-radius-xs: 4px;
+    --vff-radius-sm: 8px; /* boutons, champs, entrées de menu */
+    --vff-radius-md: 12px; /* panneaux, menus */
+    --vff-radius-lg: 16px; /* fenêtres */
+    --vff-radius-pill: 999px;
+    --vff-transition: 150ms ease;
+    --vff-font-display: Gabarito, 'Helvetica Neue', Arial, sans-serif;
+    --vff-font-heading: Inter, 'Helvetica Neue', Arial, sans-serif;
+    --vff-font-body: Lato, 'Helvetica Neue', Arial, sans-serif;
+    --vff-font-mono:
+        'SF Mono', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Liberation Mono', monospace;
+    --vff-gutter: 24px;
+    --vff-docs-bar-height: 56px;
+}
+@media (max-width: 600px) {
+    :root {
+        --vff-gutter: 16px;
+    }
+}
+
+:root[data-theme='dark'] {
+    color-scheme: dark;
+    --vff-accent-ink: #ff7a26;
+    --vff-accent-soft: rgba(255, 101, 0, 0.16);
+    --vff-bg: #0f1419;
+    --vff-bg-elevated: #181f29;
+    --vff-bg-subtle: #151b23;
+    --vff-bg-muted: #232c39;
+    --vff-bg-accent: #2a1d14;
+    --vff-text: #e8ecec;
+    --vff-text-muted: #94a3b8;
+    --vff-border: #2a3441;
+    --vff-border-strong: #3a4655;
+    --vff-border-control: #66727f;
+    --vff-focus: #ff7a26;
+    --vff-shadow-popover: 0 10px 28px rgba(0, 0, 0, 0.6);
+}
+
+* {
+    box-sizing: border-box;
+}
+html,
+body {
+    margin: 0;
+    background-color: var(--vff-bg);
+    color: var(--vff-text);
+    font-family: var(--vff-font-body);
+}
+
+/* Focus visible partout (2 px), comme sur le site. */
+.vff-docs a:focus-visible,
+.vff-docs button:focus-visible {
+    outline: 2px solid var(--vff-focus);
+    outline-offset: 2px;
+}
+
+/* Lien d'évitement : apparaît au premier Tab. */
+.vff-docs-skip {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2000;
+    padding: 10px 16px;
+    border-radius: var(--vff-radius-sm);
+    background: var(--vff-bg);
+    color: var(--vff-accent-ink);
+    font-family: var(--vff-font-heading);
+    font-size: 15px;
+    transform: translateY(-200%);
+}
+.vff-docs-skip:focus {
+    transform: none;
+}
+
+/* ─── Barre de navigation ─────────────────────────────────────────────── */
+
+.vff-docs-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: var(--vff-docs-bar-height);
+    padding: 0 var(--vff-gutter);
+    background-color: var(--vff-bg);
+    border-bottom: 3px solid var(--vff-accent);
+}
+
+.vff-docs-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+    min-height: 44px;
+    color: var(--vff-text);
+    text-decoration: none;
+    font-family: var(--vff-font-display);
+    font-size: 19px;
+    font-weight: 700;
+}
+.vff-docs-brand img {
+    display: block;
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+.vff-docs-brand .short {
+    display: none;
+}
+
+.vff-docs-nav {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-inline-start: auto;
+}
+
+/* Étroit : bouton + liste dans un popover natif. */
+.vff-docs-menu-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--vff-border-control);
+    border-radius: var(--vff-radius-sm);
+    background: transparent;
+    color: var(--vff-text);
+    font-family: var(--vff-font-heading);
+    font-size: 15px;
+    cursor: pointer;
+}
+.vff-docs-menu-button:hover,
+.vff-docs-menu-button:has(+ :popover-open) {
+    background: var(--vff-bg-muted);
+}
+.vff-docs-menu {
+    position: fixed;
+    inset: calc(var(--vff-docs-bar-height) + 3px + 6px) var(--vff-gutter) auto auto;
+    width: min(20rem, calc(100vw - 2 * var(--vff-gutter)));
+    max-height: calc(100dvh - var(--vff-docs-bar-height) - 24px);
+    margin: 0;
+    padding: 8px;
+    overflow: auto;
+    list-style: none;
+    border: 1px solid var(--vff-border-strong);
+    border-radius: var(--vff-radius-md);
+    background: var(--vff-bg-elevated);
+    color: var(--vff-text);
+    box-shadow: var(--vff-shadow-popover);
+}
+.vff-docs-menu li {
+    margin: 0;
+}
+.vff-docs-menu a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: var(--vff-radius-sm);
+    color: var(--vff-text);
+    text-decoration: none;
+    font-family: var(--vff-font-heading);
+    font-size: 15px;
+    transition:
+        color var(--vff-transition),
+        background-color var(--vff-transition);
+}
+.vff-docs-menu a:hover {
+    background-color: var(--vff-bg-muted);
+}
+.vff-docs-menu a[aria-current] {
+    background-color: var(--vff-bg-accent);
+    color: var(--vff-accent-ink);
+    font-weight: 600;
+}
+/* Langues : une rangée sous les liens, séparée par un filet. */
+.vff-docs-menu .langs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    padding: 8px 4px 0;
+    border-top: 1px solid var(--vff-border);
+}
+.vff-docs-lang-label {
+    flex: 1 1 auto;
+    padding-inline-start: 8px;
+    color: var(--vff-text-muted);
+    font-family: var(--vff-font-heading);
+    font-size: 14px;
+}
+.vff-docs-menu .langs a {
+    justify-content: center;
+    min-width: 48px;
+    padding: 0 8px;
+}
+
+.vff-docs-theme {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--vff-border-control);
+    border-radius: var(--vff-radius-pill);
+    background: transparent;
+    color: var(--vff-text);
+    cursor: pointer;
+    transition:
+        border-color var(--vff-transition),
+        color var(--vff-transition);
+}
+.vff-docs-theme:hover {
+    border-color: var(--vff-accent-ink);
+    color: var(--vff-accent-ink);
+}
+.vff-docs-theme .sun,
+:root[data-theme='dark'] .vff-docs-theme .moon {
+    display: none;
+}
+:root[data-theme='dark'] .vff-docs-theme .sun {
+    display: block;
+}
+
+/* Téléphone : le nom du site passe en sigle. */
+@media (max-width: 600px) {
+    .vff-docs-brand .long {
+        display: none;
+    }
+    .vff-docs-brand .short {
+        display: inline;
+    }
+}
+/* 320 px : la barre tient sans défilement horizontal (RGAA 10.11). */
+@media (max-width: 380px) {
+    .vff-docs-bar {
+        gap: 8px;
+    }
+    .vff-docs-menu-button {
+        padding: 0 10px;
+    }
+}
+
+/* Large : les liens et les langues en ligne dans la barre. */
+@media (min-width: 1400px) {
+    .vff-docs-nav {
+        flex: 1 1 auto;
+        margin-inline-start: 24px;
+    }
+    .vff-docs-menu-button {
+        display: none;
+    }
+    .vff-docs-menu {
+        position: static;
+        display: flex;
+        align-items: center;
+        flex: 1 1 auto;
+        gap: 2px;
+        width: auto;
+        max-height: none;
+        padding: 0;
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+    .vff-docs-menu a {
+        min-height: 40px;
+        white-space: nowrap;
+    }
+    .vff-docs-menu a[aria-current='page'] {
+        box-shadow: inset 0 -2px 0 var(--vff-accent);
+    }
+    .vff-docs-menu .langs {
+        margin: 0 0 0 auto;
+        padding: 0 0 0 12px;
+        border: 0;
+    }
+    .vff-docs-lang-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+    .vff-docs-menu .langs a {
+        min-width: 40px;
+    }
+}
+
+.vff-docs-loading,
+.vff-docs-noscript {
+    max-width: 720px;
+    margin: 48px auto;
+    padding: 0 var(--vff-gutter);
+    color: var(--vff-text-muted);
+    font-size: 17px;
+}
+.vff-docs-noscript a {
+    color: var(--vff-accent-ink);
+}

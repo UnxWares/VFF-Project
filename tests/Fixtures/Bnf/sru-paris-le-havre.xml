@@ -1,0 +1,815 @@
+<?xml version="1.0" encoding="UTF-8"?><srw:searchRetrieveResponse xmlns:srw="http://www.loc.gov/zing/srw/" xmlns="http://catalogue.bnf.fr/namespaces/InterXMarc" xmlns:ixm="http://catalogue.bnf.fr/namespaces/InterXMarc" xmlns:mn="http://catalogue.bnf.fr/namespaces/motsnotices" xmlns:sd="http://www.loc.gov/zing/srw/diagnostic/">
+<srw:version>1.2</srw:version>
+<srw:echoedSearchRetrieveRequest>
+<srw:version>1.2</srw:version>
+<srw:query>bib.title all "Paris" and bib.title all "Havre" and bib.title any "chemin chemins fer ferree ferrees ligne lignes tramway tramways railway embranchement gare gares voie voies train trains" and bib.digitized any "freeAccess" and bib.recordtype any "mon" and bib.doctype any "a e i t"</srw:query>
+</srw:echoedSearchRetrieveRequest>
+<srw:numberOfRecords>6</srw:numberOfRecords>
+<srw:records>
+<srw:record>
+<srw:recordSchema>marcxchange</srw:recordSchema>
+<srw:recordPacking>xml</srw:recordPacking>
+<srw:recordData>
+<mxc:record xmlns:mxc="info:lc/xmlns/marcxchange-v2" format="UNIMARC" id="ark:/12148/cb425386313" type="Bibliographic">
+<mxc:leader>     cem  22        450 </mxc:leader>
+<mxc:controlfield tag="001">FRBNF425386310000008</mxc:controlfield>
+<mxc:controlfield tag="003">http://catalogue.bnf.fr/ark:/12148/cb425386313</mxc:controlfield>
+<mxc:datafield tag="100" ind1=" " ind2=" ">
+<mxc:subfield code="a">20111026d1838    u  y0frey50      ba</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="101" ind1="0" ind2=" ">
+<mxc:subfield code="a">fre</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="102" ind1=" " ind2=" ">
+<mxc:subfield code="a">FR</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="120" ind1=" " ind2=" ">
+<mxc:subfield code="a">b||d   ||    </mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="121" ind1=" " ind2=" ">
+<mxc:subfield code="b">||||||||</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="121" ind1=" " ind2=" ">
+<mxc:subfield code="a">a||aab|||</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="123" ind1="0" ind2=" ">
+<mxc:subfield code="a">a</mxc:subfield>
+<mxc:subfield code="b">3090000</mxc:subfield>
+<mxc:subfield code="d">E0002200</mxc:subfield>
+<mxc:subfield code="e">E0022100</mxc:subfield>
+<mxc:subfield code="f">N0495500</mxc:subfield>
+<mxc:subfield code="g">N0485100</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="124" ind1=" " ind2=" ">
+<mxc:subfield code="b">d</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="181" ind1=" " ind2="0">
+<mxc:subfield code="6">01</mxc:subfield>
+<mxc:subfield code="a">b </mxc:subfield>
+<mxc:subfield code="b">cb2e  </mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="181" ind1=" " ind2=" ">
+<mxc:subfield code="6">02</mxc:subfield>
+<mxc:subfield code="c">cri</mxc:subfield>
+<mxc:subfield code="2">rdacontent</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="182" ind1=" " ind2="0">
+<mxc:subfield code="6">01</mxc:subfield>
+<mxc:subfield code="a">n</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="182" ind1=" " ind2=" ">
+<mxc:subfield code="6">02</mxc:subfield>
+<mxc:subfield code="c">n</mxc:subfield>
+<mxc:subfield code="2">rdamedia</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="200" ind1="1" ind2=" ">
+<mxc:subfield code="a">Chemin de fer de Paris au Hâvre</mxc:subfield>
+<mxc:subfield code="b">Document cartographique</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="206" ind1="0" ind2=" ">
+<mxc:subfield code="b">[ca 1:400 000], 20 mille Mètres [= 5 cm]</mxc:subfield>
+<mxc:subfield code="d">E 22' - E 2°21' / N 49°55' - N 48°51'</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="210" ind1=" " ind2=" ">
+<mxc:subfield code="a">[Paris]</mxc:subfield>
+<mxc:subfield code="b">r[ue] N[otr]e D[am]e des Victoires 16</mxc:subfield>
+<mxc:subfield code="c">Delarue</mxc:subfield>
+<mxc:subfield code="d">1838</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="215" ind1=" " ind2=" ">
+<mxc:subfield code="a">1 carte</mxc:subfield>
+<mxc:subfield code="c">col., ill.</mxc:subfield>
+<mxc:subfield code="d">31 x 48,5 cm, sur flle 41,5 x 53,5 cm</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="300" ind1=" " ind2=" ">
+<mxc:subfield code="a">Titre liminaire</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="300" ind1=" " ind2=" ">
+<mxc:subfield code="a">En bas au milieu "À Paris, chez les principaux libraires"</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="312" ind1=" " ind2=" ">
+<mxc:subfield code="a">Autre forme de titre : Plan du Tracé du Chemin de Fer par les Plateaux de Paris au Hâvre le seul dressé par la Compagnie &amp; Adopté par les Chambres</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="517" ind1="1" ind2=" ">
+<mxc:subfield code="a">Plan du Tracé du Chemin de Fer par les Plateaux de Paris au Hâvre le seul dressé par la Compagnie &amp; Adopté par les Chambres</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="606" ind1=" " ind2=" ">
+<mxc:subfield code="3">11934482</mxc:subfield>
+<mxc:subfield code="a">Transports ferroviaires</mxc:subfield>
+<mxc:subfield code="2">rameau</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="607" ind1=" " ind2=" ">
+<mxc:subfield code="3">15325882</mxc:subfield>
+<mxc:subfield code="a">Normandie, Province de (France)</mxc:subfield>
+<mxc:subfield code="3">15224122</mxc:subfield>
+<mxc:subfield code="x">Chemins de fer</mxc:subfield>
+<mxc:subfield code="2">AFNOR NF Z 44-081</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="607" ind1=" " ind2=" ">
+<mxc:subfield code="3">15329772</mxc:subfield>
+<mxc:subfield code="a">Seine-et-Oise, Département de la (France, 1790-1964)</mxc:subfield>
+<mxc:subfield code="3">15224122</mxc:subfield>
+<mxc:subfield code="x">Chemins de fer</mxc:subfield>
+<mxc:subfield code="2">AFNOR NF Z 44-081</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="608" ind1=" " ind2=" ">
+<mxc:subfield code="a">Carte thématique</mxc:subfield>
+<mxc:subfield code="2">frTCP</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="615" ind1=" " ind2=" ">
+<mxc:subfield code="3">15224122</mxc:subfield>
+<mxc:subfield code="a">Chemins de fer</mxc:subfield>
+<mxc:subfield code="2">BnF Cartes et plans</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="660" ind1=" " ind2=" ">
+<mxc:subfield code="a">e-fr</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="700" ind1=" " ind2="|">
+<mxc:subfield code="3">15366862</mxc:subfield>
+<mxc:subfield code="a">Delarue</mxc:subfield>
+<mxc:subfield code="f">17..-18.. </mxc:subfield>
+<mxc:subfield code="c">lithographe</mxc:subfield>
+<mxc:subfield code="4">180</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="702" ind1=" " ind2="|">
+<mxc:subfield code="3">15366862</mxc:subfield>
+<mxc:subfield code="a">Delarue</mxc:subfield>
+<mxc:subfield code="f">17..-18.. </mxc:subfield>
+<mxc:subfield code="c">lithographe</mxc:subfield>
+<mxc:subfield code="4">650</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="801" ind1=" " ind2="0">
+<mxc:subfield code="a">FR</mxc:subfield>
+<mxc:subfield code="b">FR-751131015</mxc:subfield>
+<mxc:subfield code="c">20111026</mxc:subfield>
+<mxc:subfield code="g">AFNOR</mxc:subfield>
+<mxc:subfield code="h">FRBNF425386310000008</mxc:subfield>
+<mxc:subfield code="2">intermrc</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="856" ind1="4" ind2=" ">
+<mxc:subfield code="u">http://gallica.bnf.fr/ark:/12148/btv1b53035187p</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="930" ind1=" " ind2=" ">
+<mxc:subfield code="5">FR-751021004:42538631001001</mxc:subfield>
+<mxc:subfield code="a">GE DL 1838-38</mxc:subfield>
+<mxc:subfield code="b">759999999</mxc:subfield>
+<mxc:subfield code="c">Richelieu - Cartes et plans - Magasin</mxc:subfield>
+<mxc:subfield code="d">N</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="930" ind1=" " ind2=" ">
+<mxc:subfield code="5">FR-759999999:42538631002001</mxc:subfield>
+<mxc:subfield code="a">IFN-53035187</mxc:subfield>
+<mxc:subfield code="b">759999999</mxc:subfield>
+<mxc:subfield code="c">Document numérisé</mxc:subfield>
+<mxc:subfield code="d">N</mxc:subfield>
+</mxc:datafield>
+</mxc:record>      </srw:recordData>
+<srw:recordIdentifier>ark:/12148/cb425386313</srw:recordIdentifier>
+<srw:recordPosition>7</srw:recordPosition>
+<srw:extraRecordData>
+<ixm:attr name="CreationDate">20111026</ixm:attr>
+<ixm:attr name="LastModificationDate">20210315</ixm:attr>
+<mn:score>13.844798</mn:score>
+</srw:extraRecordData>
+</srw:record>
+<srw:record>
+<srw:recordSchema>marcxchange</srw:recordSchema>
+<srw:recordPacking>xml</srw:recordPacking>
+<srw:recordData>
+<mxc:record xmlns:mxc="info:lc/xmlns/marcxchange-v2" format="UNIMARC" id="ark:/12148/cb45930229m" type="Bibliographic">
+<mxc:leader>     nkm  22     3  450 </mxc:leader>
+<mxc:controlfield tag="001">FRBNF459302290000008</mxc:controlfield>
+<mxc:controlfield tag="003">http://catalogue.bnf.fr/ark:/12148/cb45930229m</mxc:controlfield>
+<mxc:datafield tag="035" ind1=" " ind2=" ">
+<mxc:subfield code="a">Le Havre, Bibliothèque Municipale000640140</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="100" ind1=" " ind2=" ">
+<mxc:subfield code="a">20180720f1900    u  y0frea50      ba</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="101" ind1="0" ind2=" ">
+<mxc:subfield code="a">fre</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="102" ind1=" " ind2=" ">
+<mxc:subfield code="a">XX</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="116" ind1=" " ind2=" ">
+<mxc:subfield code="a">|||bxx||||xx||||zz</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="181" ind1=" " ind2="0">
+<mxc:subfield code="6">01</mxc:subfield>
+<mxc:subfield code="a">b </mxc:subfield>
+<mxc:subfield code="b">xb2e  </mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="181" ind1=" " ind2=" ">
+<mxc:subfield code="6">02</mxc:subfield>
+<mxc:subfield code="c">sti</mxc:subfield>
+<mxc:subfield code="2">rdacontent</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="182" ind1=" " ind2="0">
+<mxc:subfield code="6">01</mxc:subfield>
+<mxc:subfield code="a">n</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="182" ind1=" " ind2=" ">
+<mxc:subfield code="6">02</mxc:subfield>
+<mxc:subfield code="c">n</mxc:subfield>
+<mxc:subfield code="2">rdamedia</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="200" ind1="1" ind2=" ">
+<mxc:subfield code="a">[Tramway n° 17 dans la rue de Paris, devant l'hôtel d'Angleterre, arrivant place Gambetta au Havre]</mxc:subfield>
+<mxc:subfield code="b">image fixe</mxc:subfield>
+<mxc:subfield code="e">[photographie]</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="214" ind1=" " ind2="0">
+<mxc:subfield code="a">[Le Havre]</mxc:subfield>
+<mxc:subfield code="c">[s.n.]</mxc:subfield>
+<mxc:subfield code="d">[vers 1900]</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="215" ind1=" " ind2=" ">
+<mxc:subfield code="a">1 photographie</mxc:subfield>
+<mxc:subfield code="d">17 x 12 cm</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="461" ind1=" " ind2="0">
+<mxc:subfield code="0">45786128</mxc:subfield>
+<mxc:subfield code="t">[Collection André Baly]</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="606" ind1=" " ind2=" ">
+<mxc:subfield code="3">11933792</mxc:subfield>
+<mxc:subfield code="a">Villes</mxc:subfield>
+<mxc:subfield code="2">rameau</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="607" ind1=" " ind2=" ">
+<mxc:subfield code="3">11937490</mxc:subfield>
+<mxc:subfield code="a">Le Havre (Seine-Maritime, France)</mxc:subfield>
+<mxc:subfield code="2">rameau</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="703" ind1=" " ind2="|">
+<mxc:subfield code="3">16499820</mxc:subfield>
+<mxc:subfield code="o">ISNI0000000493423730</mxc:subfield>
+<mxc:subfield code="a">Baly</mxc:subfield>
+<mxc:subfield code="b">André</mxc:subfield>
+<mxc:subfield code="4">390</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="801" ind1=" " ind2="3">
+<mxc:subfield code="c">20180720</mxc:subfield>
+<mxc:subfield code="b">Le Havre, Bibliothèque Municipale</mxc:subfield>
+<mxc:subfield code="h">000640140</mxc:subfield>
+<mxc:subfield code="c">20210125</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="856" ind1="4" ind2=" ">
+<mxc:subfield code="u">http://gallica.bnf.fr/ark:/12148/btv1b106792044</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="930" ind1=" " ind2=" ">
+<mxc:subfield code="5">FR-759999999:45930229002001</mxc:subfield>
+<mxc:subfield code="a">IFN-10679204</mxc:subfield>
+<mxc:subfield code="b">759999999</mxc:subfield>
+<mxc:subfield code="c">Document numérisé</mxc:subfield>
+<mxc:subfield code="d">N</mxc:subfield>
+</mxc:datafield>
+</mxc:record>      </srw:recordData>
+<srw:recordIdentifier>ark:/12148/cb45930229m</srw:recordIdentifier>
+<srw:recordPosition>24</srw:recordPosition>
+<srw:extraRecordData>
+<ixm:attr name="CreationDate">20210125</ixm:attr>
+<ixm:attr name="LastModificationDate">20210315</ixm:attr>
+<mn:score>9.498159</mn:score>
+</srw:extraRecordData>
+</srw:record>
+<srw:record>
+<srw:recordSchema>marcxchange</srw:recordSchema>
+<srw:recordPacking>xml</srw:recordPacking>
+<srw:recordData>
+<mxc:record xmlns:mxc="info:lc/xmlns/marcxchange-v2" format="UNIMARC" id="ark:/12148/cb436382737" type="Bibliographic">
+<mxc:leader>     cem  22     3  450 </mxc:leader>
+<mxc:controlfield tag="001">FRBNF436382730000000</mxc:controlfield>
+<mxc:controlfield tag="003">http://catalogue.bnf.fr/ark:/12148/cb436382737</mxc:controlfield>
+<mxc:datafield tag="100" ind1=" " ind2=" ">
+<mxc:subfield code="a">20130722f1846    u  y0frey50      ba</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="101" ind1="0" ind2=" ">
+<mxc:subfield code="a">fre</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="102" ind1=" " ind2=" ">
+<mxc:subfield code="a">FR</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="121" ind1=" " ind2=" ">
+<mxc:subfield code="b">||||||||</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="121" ind1=" " ind2=" ">
+<mxc:subfield code="a">a||aab|||</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="123" ind1="0" ind2=" ">
+<mxc:subfield code="a">a</mxc:subfield>
+<mxc:subfield code="d">E0001200</mxc:subfield>
+<mxc:subfield code="e">E0022100</mxc:subfield>
+<mxc:subfield code="f">N0494500</mxc:subfield>
+<mxc:subfield code="g">N0485100</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="124" ind1=" " ind2=" ">
+<mxc:subfield code="b">d</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="181" ind1=" " ind2="0">
+<mxc:subfield code="6">01</mxc:subfield>
+<mxc:subfield code="a">b </mxc:subfield>
+<mxc:subfield code="b">cb2e  </mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="181" ind1=" " ind2=" ">
+<mxc:subfield code="6">02</mxc:subfield>
+<mxc:subfield code="c">cri</mxc:subfield>
+<mxc:subfield code="2">rdacontent</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="182" ind1=" " ind2="0">
+<mxc:subfield code="6">01</mxc:subfield>
+<mxc:subfield code="a">n</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="182" ind1=" " ind2=" ">
+<mxc:subfield code="6">02</mxc:subfield>
+<mxc:subfield code="c">n</mxc:subfield>
+<mxc:subfield code="2">rdamedia</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="200" ind1="1" ind2=" ">
+<mxc:subfield code="a">Chemin de fer de Paris à Rouen et au Havre</mxc:subfield>
+<mxc:subfield code="b">Document cartographique</mxc:subfield>
+<mxc:subfield code="f">cours de la Seine par A. M. Perrot</mxc:subfield>
+<mxc:subfield code="g">revu et augmenté du tracé des chemins de fer par V. Levasseur ingénieur géomètre du Service du plan de Paris</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="206" ind1="0" ind2=" ">
+<mxc:subfield code="b">[Échelle non déterminable]</mxc:subfield>
+<mxc:subfield code="d">E 12' - E 2°21' / N 49°45' - N 48°51'</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="210" ind1=" " ind2=" ">
+<mxc:subfield code="a">Paris</mxc:subfield>
+<mxc:subfield code="b">24 place St Germain l'Auxerrois</mxc:subfield>
+<mxc:subfield code="c">Leroi</mxc:subfield>
+<mxc:subfield code="d">[1846]</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="215" ind1=" " ind2=" ">
+<mxc:subfield code="a">1 carte</mxc:subfield>
+<mxc:subfield code="d">19,5 x 98 cm, sur flle 28,5 x 118,5 cm</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="300" ind1=" " ind2=" ">
+<mxc:subfield code="a">Date d'après le dépôt légal</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="300" ind1=" " ind2=" ">
+<mxc:subfield code="a">À droite : Table des heures des départs et prix des places</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="300" ind1=" " ind2=" ">
+<mxc:subfield code="a">À droite : Notice sur les bateaux à vapeur de Paris à St Cloud</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="607" ind1=" " ind2=" ">
+<mxc:subfield code="3">15282156</mxc:subfield>
+<mxc:subfield code="a">Paris (France, Seine-Maritime, France)</mxc:subfield>
+<mxc:subfield code="3">15224122</mxc:subfield>
+<mxc:subfield code="x">Chemins de fer</mxc:subfield>
+<mxc:subfield code="3">15275126</mxc:subfield>
+<mxc:subfield code="y">Rouen</mxc:subfield>
+<mxc:subfield code="2">AFNOR NF Z 44-081</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="607" ind1=" " ind2=" ">
+<mxc:subfield code="3">15282156</mxc:subfield>
+<mxc:subfield code="a">Paris (France, Seine-Maritime, France)</mxc:subfield>
+<mxc:subfield code="3">15224122</mxc:subfield>
+<mxc:subfield code="x">Chemins de fer</mxc:subfield>
+<mxc:subfield code="3">15274937</mxc:subfield>
+<mxc:subfield code="y">Le Havre</mxc:subfield>
+<mxc:subfield code="2">AFNOR NF Z 44-081</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="608" ind1=" " ind2=" ">
+<mxc:subfield code="a">Carte</mxc:subfield>
+<mxc:subfield code="2">frTCP</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="615" ind1=" " ind2=" ">
+<mxc:subfield code="3">15224122</mxc:subfield>
+<mxc:subfield code="a">Chemins de fer</mxc:subfield>
+<mxc:subfield code="2">BnF Cartes et plans</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="660" ind1=" " ind2=" ">
+<mxc:subfield code="a">e-fr</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="700" ind1=" " ind2="|">
+<mxc:subfield code="3">15373284</mxc:subfield>
+<mxc:subfield code="o">ISNI0000000108372499</mxc:subfield>
+<mxc:subfield code="a">Perrot</mxc:subfield>
+<mxc:subfield code="b">Aristide-Michel</mxc:subfield>
+<mxc:subfield code="f">1793-1879</mxc:subfield>
+<mxc:subfield code="4">180</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="702" ind1=" " ind2="|">
+<mxc:subfield code="3">15369550</mxc:subfield>
+<mxc:subfield code="o">ISNI0000000448953230</mxc:subfield>
+<mxc:subfield code="a">Levasseur</mxc:subfield>
+<mxc:subfield code="b">Victor</mxc:subfield>
+<mxc:subfield code="f">1800-1870</mxc:subfield>
+<mxc:subfield code="4">180</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="702" ind1=" " ind2="|">
+<mxc:subfield code="3">15369335</mxc:subfield>
+<mxc:subfield code="a">Le Roi</mxc:subfield>
+<mxc:subfield code="f">17..-18..</mxc:subfield>
+<mxc:subfield code="c">éditeur</mxc:subfield>
+<mxc:subfield code="4">650</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="801" ind1=" " ind2="0">
+<mxc:subfield code="a">FR</mxc:subfield>
+<mxc:subfield code="b">FR-751131015</mxc:subfield>
+<mxc:subfield code="c">20130722</mxc:subfield>
+<mxc:subfield code="g">AFNOR</mxc:subfield>
+<mxc:subfield code="h">FRBNF436382730000000</mxc:subfield>
+<mxc:subfield code="2">intermrc</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="856" ind1="4" ind2=" ">
+<mxc:subfield code="u">http://gallica.bnf.fr/ark:/12148/btv1b530880549</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="930" ind1=" " ind2=" ">
+<mxc:subfield code="5">FR-751021004:43638273001001</mxc:subfield>
+<mxc:subfield code="a">GE DL 1846-62</mxc:subfield>
+<mxc:subfield code="b">759999999</mxc:subfield>
+<mxc:subfield code="c">Richelieu - Cartes et plans - Magasin</mxc:subfield>
+<mxc:subfield code="d">N</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="930" ind1=" " ind2=" ">
+<mxc:subfield code="5">FR-759999999:43638273002001</mxc:subfield>
+<mxc:subfield code="a">IFN-53088054</mxc:subfield>
+<mxc:subfield code="b">759999999</mxc:subfield>
+<mxc:subfield code="c">Document numérisé</mxc:subfield>
+<mxc:subfield code="d">N</mxc:subfield>
+</mxc:datafield>
+</mxc:record>      </srw:recordData>
+<srw:recordIdentifier>ark:/12148/cb436382737</srw:recordIdentifier>
+<srw:recordPosition>5</srw:recordPosition>
+<srw:extraRecordData>
+<ixm:attr name="CreationDate">20130722</ixm:attr>
+<ixm:attr name="LastModificationDate">20210315</ixm:attr>
+<mn:score>14.536815</mn:score>
+</srw:extraRecordData>
+</srw:record>
+<srw:record>
+<srw:recordSchema>marcxchange</srw:recordSchema>
+<srw:recordPacking>xml</srw:recordPacking>
+<srw:recordData>
+<mxc:record xmlns:mxc="info:lc/xmlns/marcxchange-v2" format="UNIMARC" id="ark:/12148/cb45909264p" type="Bibliographic">
+<mxc:leader>     nkm  22     3  450 </mxc:leader>
+<mxc:controlfield tag="001">FRBNF459092640000007</mxc:controlfield>
+<mxc:controlfield tag="003">http://catalogue.bnf.fr/ark:/12148/cb45909264p</mxc:controlfield>
+<mxc:datafield tag="035" ind1=" " ind2=" ">
+<mxc:subfield code="a">Ecole nationale des ponts et chausséesXLS2020A002292</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="100" ind1=" " ind2=" ">
+<mxc:subfield code="a">20200928u        u  y0frey50        </mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="101" ind1="0" ind2=" ">
+<mxc:subfield code="a">fre</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="102" ind1=" " ind2=" ">
+<mxc:subfield code="a">FR</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="116" ind1=" " ind2=" ">
+<mxc:subfield code="a">fi|uxx||||xx||||zz</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="181" ind1=" " ind2="0">
+<mxc:subfield code="6">01</mxc:subfield>
+<mxc:subfield code="a">b </mxc:subfield>
+<mxc:subfield code="b">xb2e  </mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="181" ind1=" " ind2=" ">
+<mxc:subfield code="6">02</mxc:subfield>
+<mxc:subfield code="c">sti</mxc:subfield>
+<mxc:subfield code="2">rdacontent</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="182" ind1=" " ind2="0">
+<mxc:subfield code="6">01</mxc:subfield>
+<mxc:subfield code="a">n</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="182" ind1=" " ind2=" ">
+<mxc:subfield code="6">02</mxc:subfield>
+<mxc:subfield code="c">n</mxc:subfield>
+<mxc:subfield code="2">rdamedia</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="200" ind1="1" ind2=" ">
+<mxc:subfield code="a">Pont sur la ligne de Paris au Havre à Poissy</mxc:subfield>
+<mxc:subfield code="e">Compagnie du Chemin de Fer de Grande Ceinture de Paris</mxc:subfield>
+<mxc:subfield code="f">Fernique, Albert</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="214" ind1=" " ind2="0">
+<mxc:subfield code="a">[S.l.]</mxc:subfield>
+<mxc:subfield code="c">[s.n.]</mxc:subfield>
+<mxc:subfield code="d">[s.d.]</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="215" ind1=" " ind2=" ">
+<mxc:subfield code="a">1 épreuve</mxc:subfield>
+<mxc:subfield code="d">44.0 x 54.0 cm</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="601" ind1="|" ind2="|">
+<mxc:subfield code="3">13079426</mxc:subfield>
+<mxc:subfield code="a">Compagnie du chemin de fer de grande ceinture de Paris</mxc:subfield>
+<mxc:subfield code="2">rameau</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="606" ind1=" " ind2=" ">
+<mxc:subfield code="3">11931173</mxc:subfield>
+<mxc:subfield code="a">Chemins de fer</mxc:subfield>
+<mxc:subfield code="2">rameau</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="606" ind1=" " ind2=" ">
+<mxc:subfield code="3">11942808</mxc:subfield>
+<mxc:subfield code="a">Ponts métalliques</mxc:subfield>
+<mxc:subfield code="2">rameau</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="607" ind1=" " ind2=" ">
+<mxc:subfield code="3">11957281</mxc:subfield>
+<mxc:subfield code="a">Poissy (Yvelines, France)</mxc:subfield>
+<mxc:subfield code="2">rameau</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="610" ind1="0" ind2=" ">
+<mxc:subfield code="a">Arnaud, Jacques (1821-1902)</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="610" ind1="0" ind2=" ">
+<mxc:subfield code="a">Geoffroy, Charles (1843-1916)</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="700" ind1=" " ind2="|">
+<mxc:subfield code="3">14057787</mxc:subfield>
+<mxc:subfield code="o">ISNI0000000109661014</mxc:subfield>
+<mxc:subfield code="a">Fernique</mxc:subfield>
+<mxc:subfield code="b">Albert</mxc:subfield>
+<mxc:subfield code="4">070</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="801" ind1=" " ind2="3">
+<mxc:subfield code="c">20200928</mxc:subfield>
+<mxc:subfield code="b">Ecole nationale des ponts et chaussées</mxc:subfield>
+<mxc:subfield code="h">XLS2020A002292</mxc:subfield>
+<mxc:subfield code="c">20200928</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="856" ind1="4" ind2=" ">
+<mxc:subfield code="u">http://gallica.bnf.fr/ark:/12148/btv1b104834123</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="930" ind1=" " ind2=" ">
+<mxc:subfield code="5">FR-759999999:45909264002001</mxc:subfield>
+<mxc:subfield code="a">IFN-10483412</mxc:subfield>
+<mxc:subfield code="b">759999999</mxc:subfield>
+<mxc:subfield code="c">Document numérisé</mxc:subfield>
+<mxc:subfield code="d">N</mxc:subfield>
+</mxc:datafield>
+</mxc:record>      </srw:recordData>
+<srw:recordIdentifier>ark:/12148/cb45909264p</srw:recordIdentifier>
+<srw:recordPosition>4</srw:recordPosition>
+<srw:extraRecordData>
+<ixm:attr name="CreationDate">20200928</ixm:attr>
+<ixm:attr name="LastModificationDate">20200928</ixm:attr>
+<mn:score>14.620424</mn:score>
+</srw:extraRecordData>
+</srw:record>
+<srw:record>
+<srw:recordSchema>marcxchange</srw:recordSchema>
+<srw:recordPacking>xml</srw:recordPacking>
+<srw:recordData>
+<mxc:record xmlns:mxc="info:lc/xmlns/marcxchange-v2" format="UNIMARC" id="ark:/12148/cb41580200p" type="Bibliographic">
+<mxc:leader>     ckm  22     3  450 </mxc:leader>
+<mxc:controlfield tag="001">FRBNF41580200000000X</mxc:controlfield>
+<mxc:controlfield tag="003">http://catalogue.bnf.fr/ark:/12148/cb41580200p</mxc:controlfield>
+<mxc:datafield tag="039" ind1=" " ind2=" ">
+<mxc:subfield code="o">EST</mxc:subfield>
+<mxc:subfield code="a">MM00639000150001E</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="071" ind1="5" ind2="1">
+<mxc:subfield code="a">93245</mxc:subfield>
+<mxc:subfield code="b">Meurisse</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="100" ind1=" " ind2=" ">
+<mxc:subfield code="a">20080101d1921    u  y0frey50      ba</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="101" ind1="0" ind2=" ">
+<mxc:subfield code="a">fre</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="102" ind1=" " ind2=" ">
+<mxc:subfield code="a">FR</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="116" ind1=" " ind2=" ">
+<mxc:subfield code="a">ed|bxx||||xx||||zz</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="122" ind1="0" ind2=" ">
+<mxc:subfield code="a">d19211025</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="181" ind1=" " ind2="0">
+<mxc:subfield code="6">01</mxc:subfield>
+<mxc:subfield code="a">b </mxc:subfield>
+<mxc:subfield code="b">xb2e  </mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="181" ind1=" " ind2=" ">
+<mxc:subfield code="6">02</mxc:subfield>
+<mxc:subfield code="c">sti</mxc:subfield>
+<mxc:subfield code="2">rdacontent</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="182" ind1=" " ind2="0">
+<mxc:subfield code="6">01</mxc:subfield>
+<mxc:subfield code="a">n</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="182" ind1=" " ind2=" ">
+<mxc:subfield code="6">02</mxc:subfield>
+<mxc:subfield code="c">n</mxc:subfield>
+<mxc:subfield code="2">rdamedia</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="200" ind1="1" ind2=" ">
+<mxc:subfield code="a">[Départ du Soldat inconnu américain pour les États-Unis]</mxc:subfield>
+<mxc:subfield code="b">Image fixe</mxc:subfield>
+<mxc:subfield code="e">Arrivés de Paris, gare du Havre, des soldats américains portent le cercueil à la descente du train</mxc:subfield>
+<mxc:subfield code="e">[photographie de presse]</mxc:subfield>
+<mxc:subfield code="f">Agence Meurisse</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="210" ind1=" " ind2=" ">
+<mxc:subfield code="a">Paris</mxc:subfield>
+<mxc:subfield code="c">diff. par l'Agence Meurisse</mxc:subfield>
+<mxc:subfield code="d">1921</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="215" ind1=" " ind2=" ">
+<mxc:subfield code="a">1 photogr. nég. sur verre</mxc:subfield>
+<mxc:subfield code="d">13 x 18 cm (sup.) ou moins</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="321" ind1="1" ind2=" ">
+<mxc:subfield code="c">Meurisse, 93245</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="461" ind1=" " ind2="0">
+<mxc:subfield code="0">40499428</mxc:subfield>
+<mxc:subfield code="t">[Recueil. Actualités 1921-09-28**1922-05-02. Agence Meurisse MEU 92603-97030]</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="517" ind1="1" ind2=" ">
+<mxc:subfield code="a">Départ du Poilu américain au Havre</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="608" ind1=" " ind2=" ">
+<mxc:subfield code="a">Scènes historiques</mxc:subfield>
+<mxc:subfield code="z">1914-1945</mxc:subfield>
+<mxc:subfield code="2">frTICO</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="608" ind1=" " ind2=" ">
+<mxc:subfield code="a">Image de presse</mxc:subfield>
+<mxc:subfield code="2">frTICO</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="710" ind1="|" ind2="|">
+<mxc:subfield code="3">15566077</mxc:subfield>
+<mxc:subfield code="a">Agence de presse Meurisse</mxc:subfield>
+<mxc:subfield code="4">560</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="712" ind1="0" ind2="2">
+<mxc:subfield code="3">15566077</mxc:subfield>
+<mxc:subfield code="a">Agence de presse Meurisse</mxc:subfield>
+<mxc:subfield code="4">650</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="713" ind1="|" ind2="|">
+<mxc:subfield code="3">15566077</mxc:subfield>
+<mxc:subfield code="a">Agence de presse Meurisse</mxc:subfield>
+<mxc:subfield code="4">390</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="801" ind1=" " ind2="0">
+<mxc:subfield code="a">FR</mxc:subfield>
+<mxc:subfield code="b">FR-751131015</mxc:subfield>
+<mxc:subfield code="c">20080101</mxc:subfield>
+<mxc:subfield code="g">AFNOR</mxc:subfield>
+<mxc:subfield code="h">FRBNF41580200000000X</mxc:subfield>
+<mxc:subfield code="2">intermrc</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="856" ind1="4" ind2=" ">
+<mxc:subfield code="u">http://gallica.bnf.fr/ark:/12148/btv1b9053299f</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="930" ind1=" " ind2=" ">
+<mxc:subfield code="5">FR-751021001:41580200001001</mxc:subfield>
+<mxc:subfield code="a">EI-13 (2695)</mxc:subfield>
+<mxc:subfield code="b">759999999</mxc:subfield>
+<mxc:subfield code="c">Richelieu - Estampes et photographie - Magasin</mxc:subfield>
+<mxc:subfield code="d">N</mxc:subfield>
+<mxc:subfield code="v">Voir : MFILM C-20640</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="930" ind1=" " ind2=" ">
+<mxc:subfield code="5">FR-751021001:41580200002001</mxc:subfield>
+<mxc:subfield code="a">MFILM C-20640</mxc:subfield>
+<mxc:subfield code="b">759999999</mxc:subfield>
+<mxc:subfield code="c">Richelieu - Estampes et photographie - Magasin</mxc:subfield>
+<mxc:subfield code="d">N</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="930" ind1=" " ind2=" ">
+<mxc:subfield code="5">FR-759999999:41580200003001</mxc:subfield>
+<mxc:subfield code="a">IFN-9053299</mxc:subfield>
+<mxc:subfield code="b">759999999</mxc:subfield>
+<mxc:subfield code="c">Document numérisé</mxc:subfield>
+<mxc:subfield code="d">N</mxc:subfield>
+</mxc:datafield>
+</mxc:record>      </srw:recordData>
+<srw:recordIdentifier>ark:/12148/cb41580200p</srw:recordIdentifier>
+<srw:recordPosition>23</srw:recordPosition>
+<srw:extraRecordData>
+<ixm:attr name="CreationDate">20100119</ixm:attr>
+<ixm:attr name="LastModificationDate">20210315</ixm:attr>
+<mn:score>9.530211</mn:score>
+</srw:extraRecordData>
+</srw:record>
+<srw:record>
+<srw:recordSchema>marcxchange</srw:recordSchema>
+<srw:recordPacking>xml</srw:recordPacking>
+<srw:recordData>
+<mxc:record xmlns:mxc="info:lc/xmlns/marcxchange-v2" format="UNIMARC" id="ark:/12148/cb30310272h" type="Bibliographic">
+<mxc:leader>     cam  22        450 </mxc:leader>
+<mxc:controlfield tag="001">FRBNF303102720000005</mxc:controlfield>
+<mxc:controlfield tag="003">http://catalogue.bnf.fr/ark:/12148/cb30310272h</mxc:controlfield>
+<mxc:datafield tag="039" ind1=" " ind2=" ">
+<mxc:subfield code="o">CRI</mxc:subfield>
+<mxc:subfield code="a">CG003610690505P</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="100" ind1=" " ind2=" ">
+<mxc:subfield code="a">19970701d1839    m  y0frey50      ba</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="101" ind1="0" ind2=" ">
+<mxc:subfield code="a">fre</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="102" ind1=" " ind2=" ">
+<mxc:subfield code="a">FR</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="105" ind1=" " ind2=" ">
+<mxc:subfield code="a">||||z   00|||</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="106" ind1=" " ind2=" ">
+<mxc:subfield code="a">r</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="181" ind1=" " ind2="0">
+<mxc:subfield code="6">01</mxc:subfield>
+<mxc:subfield code="a">i </mxc:subfield>
+<mxc:subfield code="b">xxxe  </mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="181" ind1=" " ind2=" ">
+<mxc:subfield code="6">02</mxc:subfield>
+<mxc:subfield code="c">txt</mxc:subfield>
+<mxc:subfield code="2">rdacontent</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="182" ind1=" " ind2="0">
+<mxc:subfield code="6">01</mxc:subfield>
+<mxc:subfield code="a">n</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="182" ind1=" " ind2=" ">
+<mxc:subfield code="6">02</mxc:subfield>
+<mxc:subfield code="c">n</mxc:subfield>
+<mxc:subfield code="2">rdamedia</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="200" ind1="1" ind2=" ">
+<mxc:subfield code="a">Examen des résultats à espérer du chemin de fer de Paris à la mer lié avec un grand port de commerce européen au Havre...</mxc:subfield>
+<mxc:subfield code="b">Texte imprimé</mxc:subfield>
+<mxc:subfield code="f">par Vor Dégenétais...</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="210" ind1=" " ind2=" ">
+<mxc:subfield code="a">Ingouville</mxc:subfield>
+<mxc:subfield code="c">impr. de Lepetit</mxc:subfield>
+<mxc:subfield code="d">1839</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="215" ind1=" " ind2=" ">
+<mxc:subfield code="a">39 p.</mxc:subfield>
+<mxc:subfield code="d">in-8</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="686" ind1=" " ind2=" ">
+<mxc:subfield code="a">600</mxc:subfield>
+<mxc:subfield code="2">Cadre de classement de la Bibliographie nationale française</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="700" ind1=" " ind2="|">
+<mxc:subfield code="3">10468171</mxc:subfield>
+<mxc:subfield code="o">ISNI000000003966629X</mxc:subfield>
+<mxc:subfield code="a">Dégenétais</mxc:subfield>
+<mxc:subfield code="b">Victor</mxc:subfield>
+<mxc:subfield code="f">18..-1865</mxc:subfield>
+<mxc:subfield code="4">070</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="801" ind1=" " ind2="0">
+<mxc:subfield code="a">FR</mxc:subfield>
+<mxc:subfield code="b">FR-751131015</mxc:subfield>
+<mxc:subfield code="c">19970701</mxc:subfield>
+<mxc:subfield code="g">AFNOR</mxc:subfield>
+<mxc:subfield code="h">FRBNF303102720000005</mxc:subfield>
+<mxc:subfield code="2">intermrc</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="856" ind1="4" ind2=" ">
+<mxc:subfield code="u">http://gallica.bnf.fr/ark:/12148/bpt6k433015k</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="930" ind1=" " ind2=" ">
+<mxc:subfield code="5">FR-751131010:30310272001001</mxc:subfield>
+<mxc:subfield code="a">V-36096</mxc:subfield>
+<mxc:subfield code="b">759999999</mxc:subfield>
+<mxc:subfield code="c">Tolbiac - Rez de Jardin - Littérature et art - Magasin</mxc:subfield>
+<mxc:subfield code="d">O</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="930" ind1=" " ind2=" ">
+<mxc:subfield code="5">FR-751131010:30310272002001</mxc:subfield>
+<mxc:subfield code="a">VP-4666</mxc:subfield>
+<mxc:subfield code="b">759999999</mxc:subfield>
+<mxc:subfield code="c">Tolbiac - Rez de Jardin - Littérature et art - Magasin</mxc:subfield>
+<mxc:subfield code="d">O</mxc:subfield>
+</mxc:datafield>
+<mxc:datafield tag="930" ind1=" " ind2=" ">
+<mxc:subfield code="5">FR-759999999:30310272003001</mxc:subfield>
+<mxc:subfield code="a">NUMM-433015</mxc:subfield>
+<mxc:subfield code="b">759999999</mxc:subfield>
+<mxc:subfield code="c">Document numérisé</mxc:subfield>
+<mxc:subfield code="d">N</mxc:subfield>
+</mxc:datafield>
+</mxc:record>      </srw:recordData>
+<srw:recordIdentifier>ark:/12148/cb30310272h</srw:recordIdentifier>
+<srw:recordPosition>22</srw:recordPosition>
+<srw:extraRecordData>
+<ixm:attr name="CreationDate">19970701</ixm:attr>
+<ixm:attr name="LastModificationDate">20140213</ixm:attr>
+<mn:score>9.690582</mn:score>
+</srw:extraRecordData>
+</srw:record>
+</srw:records>
+</srw:searchRetrieveResponse>

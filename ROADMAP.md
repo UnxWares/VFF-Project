@@ -4,233 +4,297 @@
 
 Ce document détaille les phases de développement de VFF. Les phases sont **indicatives, pas strictement séquentielles** : certaines tâches peuvent être menées en parallèle. Les cases cochées reflètent l'état réel du dépôt.
 
-**Légende** : `[x]` fait · `[ ]` à faire · `[~]` en cours · `🎯` jalon majeur · `🧪` expérimentation
+**Légende** : `[x]` fait · `[ ]` à faire · `[~]` en cours ou partiel · `🎯` jalon majeur · `🧪` expérimentation
 
 ---
 
-## 🟢 Phase 0 — Fondations (largement faite)
+## 📍 Où en est-on ? (2026-11-19)
+
+| Phase | État |
+|:-|:-|
+| 0 - Fondations | ✅ faite, reste le suivi des erreurs |
+| 1 - Modèle de données | ✅ faite, jalon atteint |
+| 2 - Carte interactive | ✅ faite, géolocalisation comprise |
+| 3 - Sélecteur temporel | ✅ faite (21 époques de 1830 à 2030), comparaison de deux époques et vue empilée comprises |
+| 4 - Fiches détaillées | 🟡 lignes, gares, matériel, accidents, JSON-LD, profil en long (1 523 lignes), étapes datées des sections et périodes du matériel faits ; profils des lignes restantes à calculer |
+| 5 - Contribution | 🟡 comptes, éditeur de tracé, validation à deux, notifications, réputation, modération, signalements, suppression et export du compte faits ; formulaires d'événement et de média à faire |
+| 6 - API REST | ✅ API publique documentée, jetons et quotas, webhooks, exemples curl, JavaScript et Python, départements et régions ; tracés retenus quand leur licence ne permet pas la redistribution |
+| 7 - GraphQL | 🟡 lecture publique et mutations de contribution faites ; subscriptions à faire |
+| 8 - Graphe & itinéraires | 🟡 itinéraires historiques faits sur un graphe PostgreSQL ; Apache AGE pas activé |
+| 9 - Reconstitutions 3D 🧪 | ⬜ pas commencée |
+| 10 - Extension historique | ✅ couverture 1830-2030 ; modèle d'extraction des voies publié |
+| 11 - Communauté | 🟡 trilingue, carte intégrable, application installable et lisible hors ligne ; dons et blog à faire |
+| 12 - Mise en production | 🟡 pages légales, engagements RGPD et audit RGAA (100 %, totalement conforme) faits ; messagerie et hébergement final à faire |
+| 13 - Nouveaux domaines | 🟡 matériel roulant, accidents, serveur MCP, signalisation et passages à niveau (carte, fiches, API) faits ; historique de la signalisation fait, relevé partiel à compléter |
+
+**En base (développement)** : 2 705 lignes, 9 363 gares, 15 525 événements datés, 71 438 médias, 21 époques, 727 séries de matériel roulant (1 013 liens avec les lignes, 126 périodes de circulation datées), 928 fiches d'accidents publiées, 9 138 rattachements de voies vertes, 50 mises en service de signalisation datées montrées.
+
+**Qualité** : plus de 5 300 tests PHPUnit et 700 tests vitest, Larastan sans erreur, contrôle des invariants de données (`vff:check-invariants`), des traductions (`vff:i18n-check`) et des droits des sources (`vff:source-rights`), le tout en CI ; contrôles avant commit Lefthook (à installer) ; audit RGAA 4.1.2 interne : 100 % (totalement conforme, 32 pages).
+
+**Priorités du moment** :
+
+1. Préparer la mise en ligne (phase 12) : messagerie de vff-project.org, hébergement.
+2. Trancher les questions ouvertes (`storage/app/reports/agents/QUESTIONS.md`) : comptes et domaines, Argentan Web Ferroviaire, partenaires, consentement du cache hors ligne, formes GTFS.
+3. Jonctions : phase « escaliers » (coudes et crochets restants).
+4. Historique de la signalisation par époque (phase 13) : carte par ère branchée sur les dates des articles Wikipédia ; d'autres sources datées restent à trouver.
+
+---
+
+## 🟢 Phase 0 - Fondations (faite)
 
 Base technique propre, sur laquelle tout le reste repose.
 
 - [x] Page d'accueil avec identité visuelle (header parallax TGV, footer, dark mode)
 - [x] Routes de base + pages internes (whoarewe, maps, contribute, donate, légales, api)
 - [x] Structure CSS modulaire (general / header / footer / sections)
-- [x] **Upgrade Laravel 10 → 12** (nouvelle structure `bootstrap/app.php`)
-- [x] **Migration vers Inertia 2 + Svelte 5** (toutes pages portées)
-- [x] **Bascule MySQL → PostgreSQL 18 + PostGIS 3.6** (en Docker)
-- [x] **Valkey 8** (en remplacement de Redis, fork BSD-3 — souveraineté)
-- [x] Setup Docker Compose pour services data (postgis + valkey + adminer)
-- [x] Rédaction des documents projet (README, ROADMAP, CONTRIBUTING, ARCHITECTURE)
-- [x] i18n complet (FR canonique, EN complet, DE partiel) — `lang/*` + middleware SetLocale + i18next côté front + LanguageSwitcher minimaliste
+- [x] **Laravel 13** (structure `bootstrap/app.php`)
+- [x] **Inertia 3 + Svelte 5** (toutes pages portées)
+- [x] **PostgreSQL 18 + PostGIS 3.6**
+- [x] **Valkey 8** (en remplacement de Redis, fork BSD-3 - souveraineté)
+- [x] Environnement de développement en conteneurs **Podman sans sudo** (`bin/php`, `bin/composer`, `bin/pnpm`), base et Valkey en conteneurs
+- [x] Rédaction des documents projet (README, ROADMAP, CONTRIBUTING, ARCHITECTURE, `docs/`)
+- [x] i18n FR (langue de référence), EN et DE - `lang/*` + middleware SetLocale + i18next côté front + LanguageSwitcher ; clés vérifiées par `vff:i18n-check`
 - [x] Dark mode fonctionnel (toggle persisté en cookie)
 - [x] Perf : hero background PNG 2.7 MB → WebP 179 KB desktop / 117 KB tablet / 63 KB mobile (-93 %)
-- [ ] CI GitHub Actions (Pint, ESLint, Prettier, PHPUnit, build Vite)
-- [ ] Configuration Sentry / log aggregator pour monitoring d'erreurs
-- [ ] Pre-commit hooks (Lefthook ou Husky)
+- [x] CI GitHub Actions : Pint, traductions, PHPStan + Larastan, contrôles statiques (tirets, clés i18n, palette carte, routes), PHPUnit, Prettier, ESLint, svelte-check, build Vite
+- [x] Suites de tests parallèles, une base par suite (`VFF_TEST_DB=vff_xxx_test`)
+- [x] Tests de mutation : services purs (`make mutation`) et règles métier critiques (`make mutation-critical` : moteur de la carte historique, desserte des gares, validation à deux, dates partielles, énumérations, matériel, images), 93 % des mutants tués, seuil de 92 % qui bloque les régressions ; hors CI bloquante (un quart d'heure)
+- [x] Mise au format de tout le dépôt : Pint (PHP) et Prettier (front, tests JS, scripts, configuration JS) contrôlent tout le dépôt et bloquent en CI
+- [ ] Suivi des erreurs et de la disponibilité (Sentry ou équivalent auto-hébergé, Uptime Kuma)
+- [x] Hooks avant commit (Lefthook) : installés (`node_modules/.bin/lefthook install --force` avec un `core.hooksPath` local au dépôt ; `lefthook-local.yml`, non suivi, relance les crochets globaux de chaque poste)
 
-🎯 **Jalon "Foundations Done"** : `make setup && composer run dev` suffit à voir le site complet, sans aucune étape manuelle.
+🎯 **Jalon "Foundations Done"** : atteint.
 
 ---
 
-## 🟡 Phase 1 — Modèle de données & couche métier
+## 🟡 Phase 1 - Modèle de données & couche métier (faite)
 
 Définir et implémenter le cœur du domaine ferroviaire.
 
 ### Schéma
 
-- [ ] Table `eras` (décennies de référence : 1990, 2000, 2010, 2020, 2030 — la 2030 mutable)
-- [ ] Table `lines` (ligne ferroviaire : nom officiel + populaires, code, gestionnaire historique, type)
-- [ ] Table `line_segments` (`geometry(LINESTRING, 4326)` PostGIS, lien `line_id` + `era_id`, statut : en_service / voie_unique / fermée / déposée / rasée)
-- [ ] Table `stations` (gare/halte/PN, `geometry(POINT, 4326)`, statut historique)
-- [ ] Table `materials` (matériel roulant : locomotives, automotrices, rames — fiche, périodes d'exploitation)
-- [ ] Table `line_materials` (pivot : quel matériel a roulé sur quelle ligne, à quelles dates)
-- [ ] Table `line_events` (dates clés : inauguration, électrification, fermeture, démantèlement, transfert)
-- [ ] Table `media` (photos, documents, plans — métadonnées EXIF, date capture, copyright, lien polymorphe)
-- [ ] Table `contributions` (édit collaboratif : qui, quand, quoi, état de validation)
-- [ ] Table `users` (extension du défaut : rôle, badge contributeur, réputation)
+- [x] Table `eras` : **21 époques, une par décennie de 1830 à 2030**. Les époques passées montrent le réseau au 31/12 de leur année ; l'époque 2030 montre le réseau **au jour même**
+- [x] Table `lines` (nom officiel + populaires, code, gestionnaire historique, type, LGV, champs encyclopédiques)
+- [x] Table `line_segments` (`geometry(LINESTRING, 4326)`, lien `line_id` + `era_id`, statut, trafic, électrification, vitesse, signalisation, PK, provenance de chaque attribut)
+- [x] Table `stations` (gare/halte, `geometry(POINT, 4326)`, statut historique, provenance) + `station_eras`, `station_events`, `station_lines`, redirections de slugs
+- [x] Table `materials` (matériel roulant)
+- [x] Table `line_materials` (pivot matériel ↔ ligne, avec dates)
+- [x] Table `line_events` : dates réelles au jour près (jj/mm/aaaa), précision de la date, sections de ligne concernées, source et citation
+- [x] Table `media` (photos, documents, plans, y compris sources externes comme Wikimedia Commons)
+- [x] Table `contributions` + `contribution_approvals`
+- [x] Table `users` (rôle, réputation, présentation, avatar, langue préférée)
+- [x] Tables de sources brutes pour le croisement : SNCF Réseau (lignes, électrification, signalisation, vitesses, PN, gares), Wikidata, Wikipédia, OpenHistoricalMap, IGN BD TOPO, communes et contours
+- [x] Tables de géométrie de référence par ligne (`line_geometries`, `line_reference_*`, `line_sections`, `line_stops`, `line_signalling`)
 
 ### Couche applicative
 
-- [ ] Modèles Eloquent avec casts spatiaux (custom `LineStringCast`, `PointCast`)
-- [ ] Repositories ou query objects pour les requêtes géo complexes
-- [ ] Service `OsmImporter` (Overpass API → mapping vers nos tables)
-- [ ] Service `GeoExporter` (export en GeoJSON / MVT)
-- [ ] Factories + seeders réalistes pour le dev
+- [x] Modèles Eloquent avec types spatiaux (Magellan)
+- [x] Services de requêtes géo (résolution des sections, PK d'un point, axes uniques, portions voyageurs…)
+- [x] Service `OsmImporter` et importeurs pour chaque source (plus de 50 commandes `vff:import-*`)
+- [x] Service `GeoExporter` (GeoJSON, tuiles MVT, GTFS)
+- [x] Factories pour chaque modèle
+- [x] Pipeline de reconstruction de la carte historique (`vff:rebuild-history`) : segments par époque, classification du trafic, voies partagées, graphe, contrôles de cohérence
+- [x] Recalcul quotidien de l'époque courante (`vff:refresh-current-era`, déclaré dans le planificateur Laravel)
 
-🎯 **Jalon "Domain Ready"** : une ligne complète (Paris-Brest par ex.) est entièrement modélisée et requêtable via Tinker.
-
----
-
-## 🟠 Phase 2 — Carte interactive (MVP)
-
-Première version fonctionnelle de la carte, sans encore le sélecteur temporel.
-
-- [ ] Page `/maps` portée en Svelte
-- [ ] Intégration MapLibre GL JS dans un composant `<RailMap>`
-- [ ] Choix et configuration du fournisseur de tuiles (MapTiler vs Stadia — tester les deux)
-- [ ] Endpoint API `GET /api/lines.geojson` qui sert toutes les lignes en service de l'ère courante
-- [ ] Style cartographique custom : rails en orange `#ff6500`, gares en pastilles blanches
-- [ ] Toggle overlay [OpenRailwayMap](https://www.openrailwaymap.org/) (infrastructure / électrification / vitesses) en raster CC-BY-SA
-- [ ] Clic sur une ligne → panneau latéral avec fiche minimale
-- [ ] Recherche par nom de ligne / gare (autocomplete)
-- [ ] Géolocalisation utilisateur
-- [ ] Légende dynamique (statut des lignes : en service / fermée / déposée…)
-- [ ] Performances : chargement progressif des tuiles vectorielles MVT (`/api/tiles/{z}/{x}/{y}.mvt`)
-
-🎯 **Jalon "Map MVP"** : on peut voir la totalité du réseau français en service en 2030, cliquer sur n'importe quelle ligne, lire sa fiche.
+🎯 **Jalon "Domain Ready"** : atteint (réseau national complet, requêtable, avec ses sources).
 
 ---
 
-## 🔵 Phase 3 — Sélecteur temporel & couches d'époque
+## 🟠 Phase 2 - Carte interactive (faite)
 
-Le cœur de l'identité VFF : remonter le temps.
+- [x] Page `/maps` en Svelte
+- [x] Intégration MapLibre GL JS dans un composant `<RailMap>`
+- [x] Fournisseur de tuiles : fond OpenStreetMap par défaut, MapTiler en option (clé facultative)
+- [x] Endpoint `GET /api/v1/eras/{year}/lines.geojson` (et `stations.geojson`)
+- [x] Style cartographique custom : rails en orange `#ff6500`, gares en pastilles, statuts et trafics différenciés
+- [x] Calques facultatifs OpenRailwayMap et Carto Tchoo
+- [x] Calques superposés (bouton « Calques ») : accidents, passages à niveau et signalisation cochés ensemble, un fond OpenRailwayMap au plus, état gardé dans l'adresse (`?layer=…&layer=…`)
+- [x] Clic sur une ligne → panneau latéral (`LineDrawer`) avec fiche minimale
+- [x] Recherche par nom de ligne / gare (`/api/v1/search`, autocomplétion)
+- [x] Légende dynamique (`MapLegend`)
+- [x] Tuiles vectorielles MVT (`/api/v1/eras/{year}/tiles/{z}/{x}/{y}.mvt`)
+- [x] Géolocalisation de l'utilisateur (sur demande, position jamais envoyée)
 
-- [ ] Composant `<TimelineSlider>` (Svelte) : positions 1990 / 2000 / 2010 / 2020 / 2030
-- [ ] Animation de transition fluide entre époques (fade des polylignes obsolètes, apparition des nouvelles)
-- [ ] Endpoint API `GET /api/lines.geojson?era=2000`
-- [ ] Calque "lignes disparues" superposable, faded en gris sur l'époque courante
-- [ ] Bouton "voir tout en empilé" : toutes les époques en transparence pour visualiser l'érosion du réseau
-- [ ] URL `?era=2000` partageable / bookmarkable
-- [ ] Snapshot 2030 marqué `editable=true` (modifiable jusqu'au 31/12/2029 puis figé automatiquement)
-
-🎯 **Jalon "Time Travel"** : on peut comparer visuellement le réseau de 1990 et 2020 d'un mouvement de slider.
+🎯 **Jalon "Map MVP"** : atteint.
 
 ---
 
-## 🟣 Phase 4 — Fiches détaillées
+## 🔵 Phase 3 - Sélecteur temporel & couches d'époque (faite)
+
+- [x] Composant `<TimelineSlider>` : 21 positions, de 1830 à 2030
+- [x] Transition entre époques
+- [x] URL `?era=` partageable
+- [x] Époque 2030 = état du réseau au jour même, recalculée chaque jour à partir des événements datés
+- [x] Vue « toutes les époques » : chaque tronçon teinté par sa dernière décennie en service (érosion du réseau)
+- [x] Comparaison de deux époques (différences superposées, kilomètres par changement, adresse partageable)
+
+🎯 **Jalon "Time Travel"** : atteint.
+
+---
+
+## 🟣 Phase 4 - Fiches détaillées (en cours)
 
 Chaque ligne devient une vraie page d'encyclopédie.
 
-- [ ] Page `/lines/{slug}` avec :
-  - [ ] Mini-carte du tracé
-  - [ ] Chronologie verticale des `line_events`
-  - [ ] Galerie des `media` triés par date
-  - [ ] Liste du matériel roulant historique (cartes cliquables → fiche matériel)
-  - [ ] Statistiques (longueur, dénivelé via PostGIS `ST_Length`/`ST_Z`, nombre de gares)
-  - [ ] Bibliographie / sources
-- [ ] Page `/materials/{slug}` (fiche matériel : photos, périodes, lignes parcourues)
-- [ ] Page `/stations/{slug}` (fiche gare : ouverture/fermeture, lignes desservies, photos)
-- [ ] Schéma JSON-LD pour SEO (BreadcrumbList, ImageObject, Place)
+- [x] Page `/lines/{slug}` avec :
+  - [x] Carte du tracé par période (`LinePhaseMap`, `LinePhaseSelector`)
+  - [x] Chronologie des événements (`LineChronicle`) et frise par décennie (`LineDecades`)
+  - [x] Galerie des médias triés par date (même galerie sur les fiches gare et série de matériel quand elles ont des images ; images des événements dans la chronologie)
+  - [x] Liste des gares par époque
+  - [x] Longueur, électrification, vitesses, signalisation
+  - [x] Sources et notes de sources
+  - [x] Matériel roulant historique : 1 013 liens ligne × série attestés, avec les années de circulation quand une source les date (`vff:import-material-periods`) ; séries datées en tête, de la plus ancienne à la plus récente
+  - [x] Dénivelé : profil en long (altitudes IGN BD TOPO et RGE ALTI, `vff:compute-line-profiles`, section de la fiche, `GET /api/v1/lines/{line}/profile`, GraphQL `Line.profile`, outil MCP `line_profile`) ; 17 lignes calculées, les autres à lancer
+- [x] Page `/stations/{slug}` (ouverture, fermeture, lignes desservies, frise par époque, mini-carte)
+- [x] Pages `/materials` et `/materials/{slug}` avec 687 séries (voir phase 13)
+- [x] Schéma JSON-LD pour le référencement (WebSite, Place, BreadcrumbList, ImageObject, TrainStation) ; à rendre côté serveur pour les aperçus de partage
 
 ---
 
-## 🟤 Phase 5 — Contribution communautaire
+## 🟤 Phase 5 - Contribution communautaire (en cours)
 
 Ouvrir l'édition aux passionnés extérieurs.
 
-- [ ] Inscription / connexion (Laravel Breeze ou Fortify + UI Svelte)
-- [ ] Système de rôles : `visitor`, `contributor`, `validator`, `admin`
-- [ ] Éditeur de tracé dans la carte (digitalisation à la souris, snap sur OSM)
-- [ ] Formulaire d'ajout d'événement / média / matériel
-- [ ] Workflow de validation : toute contribution = `contribution` en `pending`, validée par ≥ 2 validators
-- [ ] Notifications (in-app + email) sur acceptation/refus
-- [ ] Système de réputation / badges (mérite, ancienneté, qualité des contribs)
-- [ ] Modération : signalement, blacklist, journal d'audit
+- [x] Inscription, connexion, mot de passe oublié, profil (interface Svelte)
+- [x] Rôles `visitor`, `contributor`, `validator`, `admin`
+- [x] Éditeur de tracé sur la carte, avec fonds historiques IGN (cartes et photographies aériennes anciennes) et brouillon conservé dans le navigateur
+- [x] Correction d'un segment existant (`/contribute/edit-segment`)
+- [x] Page « Mes contributions »
+- [x] Validation : toute contribution est en attente jusqu'à **deux approbations** de validateurs
+- [x] Formulaires d'ajout : tracés, segments, événements datés (`/contribute/event`, publiés dans `line_events` avec leur provenance `contribution:<id>`, portion résolue ensuite par `vff:resolve-event-sections`), images (`/contribute/media` : fichier de Wikimedia Commons ou fichier déposé pour une ligne, une gare, un événement ou une série de matériel, métadonnées et position GPS retirées avant l'enregistrement, fichier privé jusqu'à la publication ; images d'une série dans `GET /api/v1/media?material=<slug>`), matériel sur une ligne (`/contribute/material` : règles d'écartement et d'électrification de l'import, exception acceptée seulement avec la phrase de la source qui nomme l'écartement ou la tension ; lien et période publiés dans `line_materials` et `line_material_periods` avec la provenance `contribution:<id>`) et séries de matériel (`/contribute/series` : nouvelle série ou correction, identifiant Wikidata vérifié, doublon renvoyé vers la correction), aussi par la mutation GraphQL `submitContribution` ; liens « Proposer » sur les fiches ligne, gare et matériel
+- [x] Notifications (sur le site + courriel) d'acceptation ou de refus
+- [x] Réputation : trois chiffres (contributions acceptées, refusées, relectures faites) et un niveau tiré de seuils en configuration (`config/reputation.php`), recalculés à chaque décision de validation et par `vff:recalculate-reputation`, affichés sur le profil et dans l'espace de validation, expliqués sur `/contribute/reputation`, jamais dans l'API ; pas de badges
+- [x] Modération : journal d'audit, retrait d'une contribution par un administrateur, suspension d'un compte (motif, fin facultative, levée, notification, export) faits
+- [x] Signalement d'une erreur depuis le site : bouton « Signaler une erreur » en bas des fiches ligne, gare, matériel et accident (visiteurs et membres, sans traceur ni service externe), liste des signalements dans l'espace de validation (`/validate/reports`), notification des validateurs, journal d'audit, purge 12 mois après le traitement
+- [x] Suppression du compte par l'utilisateur, avec anonymisation des contributions, et export de ses données
 
-🎯 **Jalon "Open Encyclopedia"** : un visiteur peut s'inscrire et soumettre sa première contribution en moins de 3 minutes.
-
----
-
-## 🌐 Phase 6 — API REST publique
-
-Ouvrir les données VFF à l'écosystème, en REST canonique.
-
-- [ ] OpenAPI 3 auto-généré via [Scramble](https://scramble.dedoc.co/) (sans annotations verbeuses)
-- [ ] Endpoints REST documentés : lignes, gares, matériels, événements, médias
-- [ ] Format GeoJSON et MVT (`ST_AsMVT`) pour les couches spatiales
-- [ ] Tokens API gérés par Sanctum, quotas par tier (anon / inscrit / partenaire)
-- [ ] Webhooks pour notifier les changements
-- [ ] Page `/api` avec rendu [Stoplight Elements](https://stoplight.io/open-source/elements) custom — branding VFF (orange `#ff6500`, fonts Lato/Gabarito, dark mode auto)
-- [ ] Exemples curl, JS, Python intégrés
+🎯 **Jalon "Open Encyclopedia"** : un visiteur peut s'inscrire et soumettre sa première contribution en moins de 3 minutes. Atteint : notifications sur le site faites, le courriel attend la messagerie de vff-project.org.
 
 ---
 
-## 🔮 Phase 7 — GraphQL pour l'admin
+## 🌐 Phase 6 - API REST publique (en cours)
 
-Compléter l'API REST par du GraphQL pour les écrans riches d'administration et d'édition.
-
-- [ ] [Lighthouse](https://lighthouse-php.com/) installé
-- [ ] Schema GraphQL pour les entités principales (Line, LineSegment, Station, Material, Event, Media, Contribution)
-- [ ] Endpoint `/graphql` accessible aux utilisateurs authentifiés avec rôle `validator` ou `admin`
-- [ ] Mutations pour édition : `submitContribution`, `validateContribution`
-- [ ] Subscriptions optionnelles (WebSocket) pour notifications temps réel des contributions
-- [ ] **REST reste canonique** pour les consommateurs externes — GraphQL est un complément interne
-
----
-
-## 🕸️ Phase 8 — Apache AGE & pathfinding historique
-
-Activer la dimension graphe sur la base PostgreSQL existante.
-
-- [ ] Installation de [Apache AGE](https://age.apache.org/) sur le conteneur Postgres (`CREATE EXTENSION age`)
-- [ ] Construction du graphe : stations = nœuds, segments (par époque) = arêtes étiquetées avec statut, distance, durée
-- [ ] Requêtes Cypher exposées via service Laravel
-- [ ] **Pathfinding historique** : « comment aller de Paris à Brest en 1950 ? » → algorithme Dijkstra sur le sous-graphe `era=1950`, statut `en_service`
-- [ ] Comparaison de trajets entre époques (split-screen / timeline)
-- [ ] Visualisation du graphe (force-directed) en mode admin pour explorer les connexions
+- [x] OpenAPI 3 généré par [Scramble](https://scramble.dedoc.co/)
+- [x] Endpoints : lignes et gares par époque (GeoJSON), tuiles MVT, export GTFS par époque, recherche, historique, PK, arrêts, signalisation et médias d'une ligne, itinéraire, passages à niveau (liste, par ligne, tuiles), tuiles de la signalisation
+- [x] Documentation : page `/api`, référence [Scalar](https://scalar.com/) sur `/docs/api`, Swagger UI sur `/docs/swagger`
+- [x] Accès libre sans clé, limité à 300 requêtes par minute et par adresse IP (davantage avec un jeton personnel)
+- [x] Exemples intégrés : curl, JavaScript (`fetch`) et Python (`requests`) sur la page `/api` et, pour les principaux points d'accès, dans la référence Scalar (`x-codeSamples`)
+- [x] Points d'accès des annuaires, fiches complètes, tronçons, époques, sources, événements, médias, matériel et accidents
+- [x] Jetons API (Sanctum, lecture seule, créés depuis le profil) et quotas par profil (anonyme 300, membre 1 200, partenaire 6 000 requêtes par minute, `config/api.php`), compteur commun à REST, GraphQL et MCP
+- [x] Webhooks pour notifier les changements : abonnement depuis le profil (adresse HTTPS, événements `contribution.applied`, `current_era.refreshed`, `accident.published`, `material.published`), messages JSON signés HMAC-SHA256 avec horodatage, envoi par la file avec essais espacés et désactivation après échecs répétés, protection SSRF à chaque envoi
 
 ---
 
-## 🧠 Phase 9 — Reconstitutions 3D assistées par IA 🧪
+## 🔮 Phase 7 - GraphQL (en cours)
 
-Le pari ambitieux : redonner vie aux lieux disparus.
+- [x] [Lighthouse](https://lighthouse-php.com/) installé
+- [x] Schéma en lecture : Era, Line, LineSegment, LineEvent, LineStop, LineSignallingRange, LevelCrossing, Station, Material, Route
+- [x] Documentation [Magidoc](https://magidoc.js.org/) sur `/docs/graphql` + GraphiQL
+- [x] Mutations pour l'édition (`submitContribution`, `validateContribution`), réservées aux comptes connectés : jeton personnel avec la capacité `contribute` (case du profil, décochée par défaut) ou session du site avec contrôle CSRF ; mêmes règles et même code que l'espace de validation du site (`App\Services\Contributions`)
+- [ ] Subscriptions (WebSocket) pour suivre les contributions en temps réel (demande un serveur temps réel en production, par exemple Laravel Reverb ; les webhooks `contribution.applied` couvrent le besoin en attendant)
+- [x] **REST reste la référence** pour les consommateurs externes, GraphQL est un complément
+
+---
+
+## 🕸️ Phase 8 - Graphe & itinéraires historiques (en cours)
+
+- [x] Graphe du réseau **par époque**, en trois couches (topologie, gares, lignes), construit par `vff:build-network-graph` dans des tables PostgreSQL
+- [x] **Itinéraire historique** : « comment aller de Paris à Brest en 1950 ? » (`PathfindingService`, `/api/v1/route`, planificateur sur la carte)
+- [x] Export du graphe au format GTFS
+- [ ] [Apache AGE](https://age.apache.org/) et requêtes Cypher : pas activé, le graphe en tables suffit pour l'instant ; à réévaluer pour les requêtes complexes
+- [x] **Comparaison d'un trajet entre deux époques** : « Angoulême - Limoges en 1930 et aujourd'hui » (`RouteComparison`, `/api/v1/route/compare`, champ GraphQL `routeComparison`, `compare_year` de l'outil MCP `historical_route`, choix « Comparer avec une autre époque » du planificateur)
+- [x] **Visualisation du graphe en mode administration** : carte des trois couches par époque, attributs au clic, diagnostics (îles, nœuds isolés, arêtes anormales, jonctions écartées, gares sans arête, lignes en morceaux), jonctions filtrées par type et par ligne, export CSV de chaque liste, sur `/validate/graph`, réservée aux administrateurs (`docs/GRAPHE-ADMIN.md`)
+
+---
+
+## 🧠 Phase 9 - Reconstitutions 3D assistées par IA 🧪 (pas commencée)
 
 - [ ] Recherche : NeRF, Gaussian Splatting, Stable Diffusion 3D
-- [ ] POC : reconstruire une gare désaffectée à partir de 5–10 photos d'archive
+- [ ] POC : reconstruire une gare désaffectée à partir de 5-10 photos d'archive
 - [ ] Pipeline batch : photos → preprocessing (calibration EXIF) → modèle 3D → mesh exportable
-- [ ] Visualiseur 3D embed dans la fiche ligne/gare (three.js ou model-viewer)
+- [ ] Visualiseur 3D dans la fiche ligne/gare (three.js ou model-viewer)
 - [ ] Annotations 3D collaboratives (placement d'objets disparus)
-- [ ] Possibilité de visite "first-person" du lieu reconstitué
+- [ ] Visite « à la première personne » du lieu reconstitué
 - [ ] Microservice Python isolé (pipeline GPU séparé de l'app Laravel)
 
 ⚠️ **Cette phase est exploratoire** : faisabilité à confirmer selon la qualité des archives disponibles. Probable partenariat avec un labo / une école.
 
 ---
 
-## 📜 Phase 10 — Extension historique (1900 → 1980)
+## 📜 Phase 10 - Extension historique (faite pour 1830-2030)
 
-Étendre la couverture temporelle du périmètre actuel (1990–2030) vers le début du XXe siècle.
+L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 2030**.
 
-- [ ] Seeder `HistoricalErasSeeder` : ajout des époques 1900, 1910, …, 1980 dans la table `eras` (le schéma supporte déjà n'importe quel `year`, aucune migration nécessaire)
-- [ ] UI Timeline home : adapter pour 14 époques (slider continu avec marqueurs décennaux, OU pagination horizontale)
-- [ ] Sources d'archive primaires :
-  - Fonds Réseau Ferré de France (héritage de RFN)
-  - Cartes IGN historiques (cartes Cassini, État-Major, etc.)
-  - BNF Gallica (numérisation cartes/plans/horaires)
-  - Associations ferroviaires régionales
-- [ ] Pipeline d'import semi-automatique depuis cartes scannées (géoréférencement + tracé manuel/AI-assisté)
-- [ ] Distinction visuelle des époques anciennes sur la carte (sépia, dégradé temporel)
-
-⚠️ **Cette phase est massive** : OSM ne contient quasiment pas de données historiques avant 1990. Le gros du travail est de la **numérisation et géoréférencement d'archives papier**. Requiert un partenariat institutionnel.
+- [x] 21 époques décennales, sans changement de schéma
+- [x] UI Timeline adaptée (21 positions)
+- [x] Sources historiques croisées : lignes-oubliées (dates et PK), Wikidata, Wikipédia, OpenHistoricalMap, IGN (BD TOPO, cartes et photographies aériennes anciennes), SNCF Open Data ; licences et conditions dans `database/data/source_rights.php`
+- [x] **Modèle neuronal d'extraction des voies** sur les photographies aériennes anciennes de l'IGN, publié sous licence MIT : [UnxWares/VFF-Rail-Extraction](https://github.com/UnxWares/VFF-Rail-Extraction) (version `ortho-v1`)
+- [x] Jonctions entre lignes : 0 m d'écart à chaque jonction sur les 21 époques, raccords en courbe
+- [~] Jonctions : réduire les coudes et crochets restants (phase « escaliers »)
+- [ ] Modèle : fusion de plusieurs dates de prises de vue (calcul GPU, sur accord), publication des poids complets
+- [~] Gallica (BnF) : 236 documents numérisés rattachés à 61 lignes par le titre de leur notice (score expliqué, seuil prudent ; trajets avec étape « en passant par » et listes « entre X, Y et Z » lus ; précision mesurée sur 40 documents tirés au hasard : 95 % après la relecture du 20/11, puis 36 justes, 4 douteux et aucun faux au second et au troisième tirage, après le retrait du projet Lyon - Marseille de 1837 donné à la ligne par Grenoble), section « Dans les archives » de la fiche ligne, `GET /api/v1/lines/{slug}/archives`, `Line.archives` en GraphQL et outil MCP `line_archives` ; seules les métadonnées de la BnF (Licence Ouverte) et le lien vers Gallica sont repris, aucune image. Reste : la presse, les documents des bibliothèques partenaires et l'API de Gallica elle-même (refusée à la machine de développement)
+- [ ] Fonds d'archives (SNCF, associations régionales)
+- [x] Distinction visuelle des époques anciennes sur la carte : fond pâli et teinté de sépia selon l'ère (rien aujourd'hui), réglage « Teinte des époques anciennes » et `?tint=off`
 
 ---
 
-## 🎓 Phase 11 — Communauté & rayonnement
+## 🎓 Phase 11 - Communauté & rayonnement (en cours)
 
+- [x] Multilingue : FR, EN, DE
+- [x] Carte intégrable sur d'autres sites (`/maps` en iframe, code d'intégration fourni)
+- [x] Pages de crédits (techniques et médias)
+- [~] Partenariats : soutien à la campagne AngouLim (réouverture Angoulême - Limoges, lien d'intérêts déclaré)
+- [~] Page de dons : en place, plateforme finale (Patreon ou HelloAsso) selon le statut juridique de l'association ESS « UnxWares Opensource », à créer
 - [ ] Blog / journal de bord du projet (articles longs sur des lignes emblématiques)
-- [ ] Programme partenariat avec associations ferroviaires locales (CFTA, AAATV, MFCF…)
+- [ ] Programme de partenariat avec les associations ferroviaires locales (CFTA, AAATV, MFCF…)
 - [ ] Présence dans les conférences open data / patrimoine
-- [ ] Application mobile (PWA en première intention, app native si demandée)
-- [ ] Mode hors-ligne (cache de tuiles + données)
-- [ ] Multilingue (FR ✓, EN ✓, DE partiel — à compléter)
-- [ ] Page de dons activée — plateforme finale (Patreon ou HelloAsso) selon le statut juridique de l'asso ESS UnxWares Opensource
+- [x] Application installable (PWA), avec page hors ligne
+- [x] Mode hors ligne : pages publiques déjà consultées sans être connecté (HTML et Inertia, 60 au plus, 30 jours) et tuiles vectorielles de VFF déjà affichées (500 au plus, 7 jours), avec la date de la copie ; jamais les pages de compte, de contribution ni de validation, ni les tuiles OpenStreetMap
+- [x] Mode hors ligne, suite : données de la carte déjà affichées (gares d'une ère, accidents : 8 fichiers au plus, 7 jours) ; hors ligne, les cartes montrent les tracés de VFF sur un fond neutre et le signal de copie le dit (style écrit dans le code, noms de gares en police locale, aucune ressource tierce gardée)
+- [ ] Mode hors ligne, fin : fond de carte libre auto-hébergé (PMTiles), images déjà vues
+
+---
+
+## 🚀 Phase 12 - Mise en production (en cours)
+
+- [x] Domaine officiel `vff-project.org`
+- [x] Pages légales complètes (2026-10-21) : mentions légales, politique de confidentialité, conditions générales d'utilisation, déclaration d'accessibilité
+- [ ] Messagerie de `vff-project.org` : aucun enregistrement MX à ce jour, `contact@` et `privacy@` ne reçoivent rien
+- [ ] Hébergement sur l'infrastructure d'UnxWares (le domaine pointe aujourd'hui sur un serveur Hetzner Cloud à Helsinki)
+- [ ] Planificateur Laravel en production (recalcul quotidien de l'époque 2030)
+- [x] Engagements des pages légales : journaux conservés 12 mois au plus, suppression des comptes inactifs depuis 3 ans (avec avertissement), suppression de compte (phase 5), information des membres avant un changement des CGU
+- [x] Correction des défauts de l'audit de l'interface (interface unifiée, contrastes, cibles, clavier : novembre 2026)
+- [x] Audit de conformité RGAA interne complet (100 % après la correction de Swagger UI et Magidoc le soir du 19/11, totalement conforme), taux publié dans la déclaration
+- [ ] Suivi des erreurs et de la disponibilité (phase 0)
+
+---
+
+## 🧭 Phase 13 - Nouveaux domaines de l'encyclopédie (en cours)
+
+- [x] **Signalisation** : données SNCF Réseau importées (`line_signalling`, `/api/v1/lines/{slug}/signalling`), fiche ligne (cantonnement et contrôle de vitesse par PK, trous des données signalés, lien vers la carte), calque « Signalisation » sur `/maps` (tranches placées sur les formes SNCF Réseau, PK calés sur les passages à niveau, tuiles `/api/v1/eras/{year}/signalling/tiles/…`) ; tranches à deux systèmes (ETCS niveau 2 et TVM sur les LGV Est, BPL et SEA) gardées entières (`signalling_systems`)
+  - [x] Historique par époque : 66 mises en service datées relevées dans les articles Wikipédia des lignes (texte, listes, tableaux, infobox ; TVM des LGV datée de l'ouverture), 50 montrées sur 43 lignes (BAL, BAPR, block manuel, cantonnement téléphonique, TVM, ETCS ; le seul fait KVB est peu sûr et caché), portions placées par leurs gares d'extrémité et leurs PK calés (`vff:import-signalling-history`, table `line_signalling_events`, CC BY-SA, faits et permalien de la révision), frise « Signalisation au fil du temps » sur la fiche ligne, calque « Signalisation » de `/maps` aux époques passées (faits en vigueur à la fin de l'ère ; l'état actuel de SNCF Réseau reste celui d'aujourd'hui), API REST (`/lines/{slug}/signalling-history?era=`, tuiles par ère), GraphQL (`Line.signalling_history(era:)`, `sheet.signalling.history`) et outil MCP `signalling_history`
+  - [ ] Historique par époque : d'autres sources datées (aucun tableau d'article ne date un système aujourd'hui, et un remplacement que l'article ne date pas reste invisible)
+- [x] **Passages à niveau** : 16 801 PN de SNCF Réseau (ODbL), calque « Passages à niveau » sur `/maps` (à partir du zoom 9), section de la fiche ligne (nombre par type, liste repliable), API REST (`/api/v1/level-crossings`, `/api/v1/lines/{slug}/level-crossings`, tuiles), GraphQL (`Line.level_crossings`, `levelCrossings`) et outil MCP `level_crossings`
+- [x] **Matériel roulant** : 687 séries importées de Wikidata (CC0) avec leur image Commons et la provenance de chaque champ (`vff:import-materials`), 969 liens ligne × matériel attestés par Wikidata ou par les articles Wikipédia (phrase citée, permalien, fiabilité), API REST (`/api/v1/materials`, `/api/v1/lines/{slug}/materials`) et GraphQL ; fiches enrichies sur le site ; périodes de circulation datées (`vff:import-material-periods`, table `line_material_periods` : 126 périodes sûres sur 62 lignes et 69 séries, lues dans les articles Wikipédia des lignes et des séries, permalien de la révision, fiabilité ; jamais de phrase sur le site ni dans le MCP), sur les fiches ligne et série, en REST, GraphQL (`LineMaterialLink.periods`) et MCP (`line_materials`) ; à faire : lire les tableaux des articles, rattacher les périodes aux portions du tracé, dates Wikidata quand les lignes auront des déclarations P3438 datées
+- [x] **Accidents** : 202 fiches (Wikidata, Wikipédia, BEA-TT), pages, API, calque de carte
+- [x] **Serveur MCP** pour que les assistants IA interrogent l'encyclopédie avec ses sources (23 outils dont accidents, comparaison d'ères, passages à niveau, historique de la signalisation et matériel par ligne, 3 invites, lecture seule, `docs/MCP.md`)
 
 ---
 
 ## 🌱 Idées en vrac (backlog non priorisé)
 
-- [ ] Mode "vue ferroviaire" : carte simplifiée à la BD-RGE style schéma
-- [ ] Comparaison de deux époques en split-screen
-- [ ] Calcul d'itinéraire historique : "comment serais-je allé de A à B en 1950 ?"
-- [ ] Stories d'archives (carrousel de photos sur un événement précis)
-- [ ] Quiz / mini-jeu : reconnaître la ligne / le matériel
-- [ ] Export GPX/KML d'un tracé
-- [ ] Intégration STRAVA pour les cyclistes parcourant les voies vertes ex-ferroviaires
-- [ ] Recensement des passages à niveau (avec ou sans annonceur)
-- [ ] Couches thématiques : électrification, écartement, types de signalisation
+- [x] Calcul d'itinéraire historique : « comment serais-je allé de A à B en 1950 ? » (phase 8)
+- [x] Couches thématiques : électrification, signalisation, écartement
+- [x] Recensement des passages à niveau (carte, fiches et API, phase 13)
+- [x] Mode « vue ferroviaire » : carte simplifiée façon schéma (choix « Vue ferroviaire » de `/maps`, `?view=schema&era=1930` : axes à 0, 45 ou 90 degrés routés sur une grille, grandes villes agrandies, gares en traits ; plan calculé par le serveur depuis le graphe de l'époque et gardé en cache, `vff:build-schematic-maps`, `/api/v1/eras/{year}/schematic.geojson`, `docs/VUE-FERROVIAIRE.md`)
+- [x] Comparaison de deux époques (superposition, phase 3)
+- [x] Stories d'archives (carrousel de photos sur un événement précis) : page `/lines/{slug}/stories/{event}` ouverte depuis la chronologie (« Voir l'histoire »), images de la ligne datées à 5 ans au plus avec leur écart et leurs crédits, documents de Gallica de la période ; seuil de 3 images et documents dont 2 images (983 événements sur 264 lignes) ; API REST `/api/v1/lines/{slug}/stories`, GraphQL `LineEvent.story`, outil MCP `line_stories`
+- [x] Quiz / mini-jeu : reconnaître la ligne / le matériel (`/quiz` : dix questions tirées d'une graine partageable, tracés redistribuables seulement, photos Commons créditées, réponse vérifiée par le serveur, rien d'enregistré)
+- [x] Export GPX/KML d'un tracé (`/api/v1/lines/{slug}/gpx` et `/kml`, sauf les géométries que l'API retient)
+- [x] Voies vertes sur d'anciennes lignes (données OSM importées) : rattachement mesuré (vff:link-greenways), section de la fiche ligne, calque de la carte, API REST et GraphQL
 
 ---
 
-*Cette roadmap est un document vivant. Toute proposition est bienvenue : ouvre une [issue](https://github.com/vff-project/vff/issues) avec le label `roadmap`.*
+*Cette roadmap est un document vivant. Toute proposition est bienvenue : ouvre une [issue](https://github.com/UnxWares/VFF-Project/issues) avec le label `roadmap`.*
 
-*À jour : 2026-05-11.*
+*À jour : 2026-11-19.*

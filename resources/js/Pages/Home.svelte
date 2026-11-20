@@ -1,34 +1,70 @@
 <script>
     import Layout from '$components/Layout.svelte';
+    import QuickAccess from '$components/Sections/QuickAccess.svelte';
     import WhoAreWe from '$components/Sections/WhoAreWe.svelte';
-    import Genesis from '$components/Sections/Genesis.svelte';
+    import Advocacy from '$components/Sections/Advocacy.svelte';
     import Maps from '$components/Sections/Maps.svelte';
-    import Features from '$components/Sections/Features.svelte';
+    import Genesis from '$components/Sections/Genesis.svelte';
     import Timeline from '$components/Sections/Timeline.svelte';
     import ArchiveGallery from '$components/Sections/ArchiveGallery.svelte';
-    import Stats from '$components/Sections/Stats.svelte';
+    import Features from '$components/Sections/Features.svelte';
     import ContributeTeaser from '$components/Sections/ContributeTeaser.svelte';
-    import FinalCTA from '$components/Sections/FinalCTA.svelte';
+    import SeoHead from '$components/SeoHead.svelte';
+    import FlashToast from '$components/ui/FlashToast.svelte';
     import { i18n } from '$lib/i18n.js';
+    import { websiteSchema } from '$lib/structuredData.js';
 
     import '$css/index/index.css';
+
+    let {
+        stats = null,
+        threatened = [],
+        profile = [],
+        archives = [],
+        mediaCount = null,
+    } = $props();
+
+    // Sept images au plus, rangées par année : la plus ancienne illustre la Genèse, les six autres
+    // forment la galerie. Avec moins de sept images, toutes vont à la galerie.
+    const genesisImage = $derived(archives.length > 6 ? archives[0] : null);
+    const gallery = $derived(genesisImage ? archives.slice(1) : archives);
 </script>
 
 <svelte:head>
     <title>{$i18n.t('home.meta_title')}</title>
-    <meta name="description" content={$i18n.t('home.meta_description')} />
 </svelte:head>
 
+<!-- Partage et données structurées : le site, sa recherche (annuaire des lignes) et son éditeur. -->
+<SeoHead
+    title={$i18n.t('home.meta_title')}
+    description={$i18n.t('home.meta_description')}
+    path="/"
+    image={{ url: '/share/accueil-1200x630.jpg', alt: $i18n.t('home.share_image_alt') }}
+    jsonLd={(origin) =>
+        websiteSchema({
+            origin,
+            name: $i18n.t('common.app_full'),
+            alternateName: 'VFF',
+            description: $i18n.t('home.meta_description'),
+            lang: $i18n.language,
+        })}
+/>
+
+<!-- Ordre : accès rapide (recherche et rubriques, juste après le grand en-tête), présentation, lignes
+     soutenues, trois portes d'entrée (bande orange), genèse, profil du réseau par décennie (l'élément
+     marquant de la page), images d'archives, sommaire, invitation. -->
 <Layout>
-    <main>
+    <main class="home">
+        <QuickAccess {stats} />
         <WhoAreWe />
-        <Genesis />
+        <Advocacy lines={threatened} />
         <Maps />
-        <Features />
-        <Timeline />
-        <ArchiveGallery />
-        <Stats />
+        <Genesis image={genesisImage} />
+        <Timeline {profile} />
+        <ArchiveGallery archives={gallery} />
+        <Features {stats} {mediaCount} />
         <ContributeTeaser />
-        <FinalCTA />
     </main>
+    <!-- Confirmation venue du serveur (par exemple après la suppression du compte). -->
+    <FlashToast />
 </Layout>

@@ -1,0 +1,3741 @@
+{
+ "generated": "2026-10-19",
+ "about": "Gares témoins (dates de fermeture connues et sourcées), extraites de la base vff le 2026-10-19 : sources, événements, état des lignes à 500 m par ère. « expected » = date attendue partout (carte, fiche gare, fiche ligne). Utilisé par tests/Feature/StationWitnessesTest.php (reconstruction) et vff:check-station-witnesses (base réelle, lecture seule).",
+ "stations": [
+  {
+   "name": "Ballersdorf",
+   "category": "gare fermée, ligne en service",
+   "expected": {
+    "closed_at": "2011-12-11",
+    "closed_precision": "day",
+    "source_url": "https://fr.wikipedia.org/wiki/Gare_de_Ballersdorf"
+   },
+   "type": "gare",
+   "source_status": "declassified",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "sncf",
+     "lifecycle": "disused",
+     "passenger": false,
+     "freight": false
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "closure",
+     "date": "2011-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q2591887"
+    },
+    {
+     "type": "closure",
+     "date": "2011-12-11",
+     "precision": "day",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_Ballersdorf&oldid=235030669"
+    },
+    {
+     "type": "closure",
+     "date": "2013-12-30",
+     "precision": "day",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q2591887"
+    }
+   ],
+   "lines": [
+    {
+     "code": "001000",
+     "name": "Ligne de Paris-Est à Mulhouse-Ville",
+     "pk_m": 467502,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1848-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1856-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "opening",
+       "date": "1857-10-15",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Dannemarie",
+       "to": "Mulhouse-Ville",
+       "source": "ohm",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1860": "in_service/mixed",
+      "1870": "in_service/mixed",
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "in_service/mixed",
+      "2010": "in_service/mixed",
+      "2020": "in_service/mixed",
+      "2030": "in_service/mixed"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Bantzenheim",
+   "category": "gare rouverte",
+   "expected": {
+    "closed_at": null,
+    "closed_precision": null,
+    "source_url": "https://fr.wikipedia.org/wiki/Ligne_de_Mulhouse_à_Müllheim"
+   },
+   "type": "gare",
+   "source_status": "active",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "osm",
+     "lifecycle": "active",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "sncf",
+     "lifecycle": "active",
+     "passenger": true,
+     "freight": true
+    },
+    {
+     "source": "sncf_voyageurs",
+     "lifecycle": "active",
+     "passenger": true,
+     "freight": null
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "active",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "opening",
+     "date": "1878-02-06",
+     "precision": "day",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q3095900"
+    },
+    {
+     "type": "closure",
+     "date": "1980-05-31",
+     "precision": "day",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q3095900"
+    }
+   ],
+   "lines": [
+    {
+     "code": "123000",
+     "name": "Ligne de Neuf-Brisach à Bantzenheim",
+     "pk_m": 24917,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1917-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1917-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "opening",
+       "date": "1917-08-01",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Bantzenheim",
+       "to": "Neuf-Brisach",
+       "source": "ohm",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1923-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "1967-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "closure",
+       "date": "1994-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      }
+     ],
+     "eras": {
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "in_service/mixed",
+      "2010": "in_service/mixed",
+      "2020": "in_service/mixed",
+      "2030": "in_service/freight"
+     }
+    },
+    {
+     "code": "124000",
+     "name": "Ligne de Mulhouse-Ville à Chalampé",
+     "pk_m": 14330,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1878-02-06",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1878-02-06",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Mulhouse-Ville",
+       "to": "Chalampé",
+       "source": "ohm",
+       "near_geom": true
+      },
+      {
+       "type": "reopening_passenger",
+       "date": "2012-12-09",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      }
+     ],
+     "eras": {
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "in_service/mixed",
+      "2010": "in_service/mixed",
+      "2020": "in_service/mixed",
+      "2030": "in_service/mixed"
+     }
+    },
+    {
+     "code": "X2800",
+     "name": "Ligne militaire de Bantzenheim à Bartenheim",
+     "pk_m": 21732,
+     "events": null,
+     "eras": {
+      "2030": "abandoned/unknown"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Belleville-Villette",
+   "category": "gare sur ligne fermée",
+   "expected": {
+    "closed_at": "1934-07-23",
+    "closed_precision": "day",
+    "source_url": "https://fr.wikipedia.org/wiki/Gare_de_Belleville-Villette"
+   },
+   "type": "gare",
+   "source_status": "declassified",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "sncf",
+     "lifecycle": "disused",
+     "passenger": false,
+     "freight": false
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "closure",
+     "date": "1934-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q16507940"
+    },
+    {
+     "type": "closure_passenger",
+     "date": "1934-01-01",
+     "precision": "year",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_Belleville-Villette&oldid=235030726"
+    },
+    {
+     "type": "closure",
+     "date": "1934-04-01",
+     "precision": "day",
+     "source": "wikidata:qualifiers",
+     "url": "https://www.wikidata.org/wiki/Q16507940"
+    },
+    {
+     "type": "closure_passenger",
+     "date": "1934-07-23",
+     "precision": "day",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_Belleville-Villette&oldid=235030726"
+    }
+   ],
+   "lines": [
+    {
+     "code": "955000",
+     "name": "Ligne de La Râpée à Batignolles (petite ceinture de Paris)",
+     "pk_m": 26418,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1854-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "La Chapelle",
+       "to": "Bercy",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1862-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1869-03-25",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "closure",
+       "date": "1934-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "1993-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "2019-08-01",
+       "precision": "month",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      }
+     ],
+     "eras": {
+      "1860": "in_service/mixed",
+      "1870": "in_service/mixed",
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "abandoned/unknown",
+      "1950": "abandoned/unknown",
+      "1960": "abandoned/unknown",
+      "1970": "abandoned/unknown",
+      "1980": "abandoned/unknown",
+      "1990": "abandoned/unknown",
+      "2000": "abandoned/unknown",
+      "2010": "abandoned/unknown",
+      "2020": "abandoned/unknown",
+      "2030": "abandoned/unknown"
+     }
+    },
+    {
+     "code": "980000",
+     "name": "Ligne d'Auteuil-Boulogne à La Râpée (petite ceinture de Paris)",
+     "pk_m": 18874,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1854-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "from": "La Chapelle",
+       "to": "Bercy",
+       "source": "wikipedia"
+      },
+      {
+       "type": "opening",
+       "date": "1869-03-25",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "opening",
+       "date": "2019-08-01",
+       "precision": "month",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      }
+     ],
+     "eras": null
+    }
+   ]
+  },
+  {
+   "name": "Berre",
+   "category": "halte supprimée",
+   "expected": {
+    "closed_at": "2013-12-15",
+    "closed_precision": "day",
+    "source_url": "https://fr.wikipedia.org/wiki/Gare_de_Berre"
+   },
+   "type": "halte",
+   "source_status": "no_commercial",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "osm",
+     "lifecycle": "active",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "sncf",
+     "lifecycle": "active",
+     "passenger": false,
+     "freight": true
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "opening",
+     "date": "1847-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q2310408"
+    },
+    {
+     "type": "closure",
+     "date": "2013-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q2310408"
+    },
+    {
+     "type": "closure_passenger",
+     "date": "2013-01-01",
+     "precision": "year",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_Berre&oldid=200542195"
+    },
+    {
+     "type": "closure_passenger",
+     "date": "2013-09-15",
+     "precision": "day",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_Berre&oldid=200542195"
+    },
+    {
+     "type": "closure_passenger",
+     "date": "2013-12-15",
+     "precision": "day",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_Berre&oldid=200542195"
+    },
+    {
+     "type": "closure",
+     "date": "2017-12-08",
+     "precision": "day",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q2310408"
+    }
+   ],
+   "lines": [
+    {
+     "code": "830000",
+     "name": "Ligne de Paris-Lyon à Marseille-St-Charles",
+     "pk_m": 828609,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1847-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1847-10-18",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Barbentane-Rognonas",
+       "to": "Rognac",
+       "source": "ohm",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1850": "in_service/mixed",
+      "1860": "in_service/mixed",
+      "1870": "in_service/mixed",
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "in_service/mixed",
+      "2010": "in_service/mixed",
+      "2020": "in_service/mixed",
+      "2030": "in_service/mixed"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Boulevard-Masséna",
+   "category": "gare fermée, ligne en service",
+   "expected": {
+    "closed_at": "2000-12-03",
+    "closed_precision": "day",
+    "source_url": "https://fr.wikipedia.org/wiki/Gare_du_boulevard_Masséna"
+   },
+   "type": "gare",
+   "source_status": "declassified",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "osm",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "sncf",
+     "lifecycle": "disused",
+     "passenger": false,
+     "freight": false
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "opening",
+     "date": "1867-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q3098250"
+    },
+    {
+     "type": "closure",
+     "date": "1934-04-01",
+     "precision": "day",
+     "source": "wikidata:qualifiers",
+     "url": "https://www.wikidata.org/wiki/Q3098250"
+    },
+    {
+     "type": "closure",
+     "date": "2000-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q3098250"
+    },
+    {
+     "type": "closure",
+     "date": "2000-01-01",
+     "precision": "year",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_du_boulevard_Mass%C3%A9na&oldid=235252232"
+    },
+    {
+     "type": "closure",
+     "date": "2000-12-03",
+     "precision": "day",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_du_boulevard_Mass%C3%A9na&oldid=235252232"
+    },
+    {
+     "type": "closure_passenger",
+     "date": "2000-12-03",
+     "precision": "day",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_du_boulevard_Mass%C3%A9na&oldid=235252232"
+    }
+   ],
+   "lines": [
+    {
+     "code": "570000",
+     "name": "Ligne de Paris-Austerlitz à Bordeaux-St-Jean",
+     "pk_m": 2116,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1840-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1840-09-20",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "from": "Juvisy",
+       "to": "Corbeil",
+       "source": "wikipedia"
+      },
+      {
+       "type": "opening",
+       "date": "1840-09-20",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Paris-Austerlitz",
+       "to": "Juvisy",
+       "source": "manual",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1852-10-10",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1840": "in_service/mixed",
+      "1850": "in_service/mixed",
+      "1860": "in_service/mixed",
+      "1870": "in_service/mixed",
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "in_service/mixed",
+      "2010": "in_service/mixed",
+      "2020": "in_service/mixed",
+      "2030": "in_service/mixed"
+     }
+    },
+    {
+     "code": "570306",
+     "name": "Raccordement de Paris-Tolbiac",
+     "pk_m": 172,
+     "events": null,
+     "eras": {
+      "2030": "abandoned/unknown"
+     }
+    },
+    {
+     "code": "980000",
+     "name": "Ligne d'Auteuil-Boulogne à La Râpée (petite ceinture de Paris)",
+     "pk_m": 18527,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1854-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "from": "La Chapelle",
+       "to": "Bercy",
+       "source": "wikipedia"
+      },
+      {
+       "type": "opening",
+       "date": "1862-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1869-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1869-03-25",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "closure",
+       "date": "1934-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "1934-04-01",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "1993-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "2019-08-01",
+       "precision": "month",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      }
+     ],
+     "eras": {
+      "1870": "in_service/mixed",
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "abandoned/unknown",
+      "1950": "abandoned/unknown",
+      "1960": "abandoned/unknown",
+      "1970": "abandoned/unknown",
+      "1980": "abandoned/unknown",
+      "1990": "abandoned/unknown",
+      "2000": "abandoned/unknown",
+      "2010": "abandoned/unknown",
+      "2020": "abandoned/unknown",
+      "2030": "abandoned/unknown"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Cabariot",
+   "category": "gare fermée, ligne en service",
+   "expected": {
+    "closed_at": "1971-09-26",
+    "closed_precision": "day",
+    "source_url": "https://fr.wikipedia.org/wiki/Gare_de_Cabariot"
+   },
+   "type": "gare",
+   "source_status": "gone",
+   "status_source": "wikidata",
+   "sources": [
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "wikipedia_schema",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "closure",
+     "date": "1971-01-01",
+     "precision": "year",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_Cabariot&oldid=235031132"
+    },
+    {
+     "type": "closure",
+     "date": "1971-09-26",
+     "precision": "day",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_Cabariot&oldid=235031132"
+    },
+    {
+     "type": "closure_passenger",
+     "date": "1971-09-26",
+     "precision": "day",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_Cabariot&oldid=235031132"
+    }
+   ],
+   "lines": [
+    {
+     "code": "530000",
+     "name": "Ligne de Nantes-Orléans à Saintes",
+     "pk_m": 218485,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1866-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1866-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "opening",
+       "date": "1867-04-15",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Rochefort",
+       "to": "Saintes",
+       "source": "ohm",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1873-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1870": "in_service/mixed",
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "in_service/mixed",
+      "2010": "in_service/mixed",
+      "2020": "in_service/mixed",
+      "2030": "in_service/mixed"
+     }
+    },
+    {
+     "code": "542000",
+     "name": "Ligne de Cabariot au Chapus",
+     "pk_m": 0,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1889-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1889-02-17",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1971-09-26",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure_freight",
+       "date": "1986-09-28",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "declassification",
+       "date": "1991-09-20",
+       "precision": "day",
+       "pk_start": 0,
+       "pk_end": 30563,
+       "resolution": "pk",
+       "source": "wikipedia"
+      }
+     ],
+     "eras": {
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/freight",
+      "1990": "abandoned/unknown",
+      "2000": "dismantled/unknown"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Casson",
+   "category": "gare fermée, ligne rouverte",
+   "expected": {
+    "closed_at": "1980-05-31",
+    "closed_precision": "day",
+    "source_url": "https://fr.wikipedia.org/wiki/Gare_de_Casson"
+   },
+   "type": "gare",
+   "source_status": "declassified",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "sncf",
+     "lifecycle": "disused",
+     "passenger": false,
+     "freight": false
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "opening",
+     "date": "1908-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q18214291"
+    },
+    {
+     "type": "closure",
+     "date": "1980-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q18214291"
+    },
+    {
+     "type": "closure",
+     "date": "1980-05-31",
+     "precision": "day",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_Casson&oldid=235082593"
+    }
+   ],
+   "lines": [
+    {
+     "code": "519000",
+     "name": "Ligne de Nantes-Orléans à Châteaubriant",
+     "pk_m": 450938,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1877-12-23",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Doulon",
+       "to": "Châteaubriant",
+       "source": "ohm",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1938-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1939-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "reopening",
+       "date": "1948-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "reopening_passenger",
+       "date": "1948-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "closure",
+       "date": "1977-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening_passenger",
+       "date": "1980-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "to": "Issé",
+       "source": "wikipedia"
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1980-05-31",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1980-06-01",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "2008-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Doulon",
+       "to": "Châteaubriant",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "reopening",
+       "date": "2008-11-01",
+       "precision": "month",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "dismantling",
+       "date": "2014-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "opening",
+       "date": "2014-02-28",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "2014-02-28",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/freight",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/freight",
+      "1990": "in_service/freight",
+      "2000": "in_service/freight",
+      "2010": "in_service/mixed",
+      "2020": "in_service/mixed",
+      "2030": "in_service/mixed"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Eyheralde",
+   "category": "gare sur ligne déposée",
+   "expected": {
+    "closed_at": "1950-10-08",
+    "closed_precision": "day",
+    "source_url": "https://fr.wikipedia.org/wiki/Gare_d'Eyheralde"
+   },
+   "type": "gare",
+   "source_status": "gone",
+   "status_source": "wikidata",
+   "sources": [
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "wikipedia_schema",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "opening",
+     "date": "1898-06-26",
+     "precision": "day",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q22248425"
+    },
+    {
+     "type": "closure",
+     "date": "1950-10-08",
+     "precision": "day",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_d%27Eyheralde&oldid=238472560"
+    }
+   ],
+   "lines": [
+    {
+     "code": "661000",
+     "name": "Ligne d'Ossès - Saint-Martin-d'Arrossa à Saint-Étienne-de-Baïgorry",
+     "pk_m": 243094,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1898-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1898-06-26",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1950-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "2014-02-06",
+       "precision": "day",
+       "pk_start": 243345,
+       "pk_end": 247355,
+       "resolution": "pk",
+       "from": "Saint-Etienne-de-Baïgorry",
+       "to": "Saint-Etienne-de-Baïgorry",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "closure",
+       "date": "2023-01-09",
+       "precision": "day",
+       "pk_start": 238538,
+       "pk_end": 243345,
+       "resolution": "pk",
+       "from": "Saint-Martin-d'Arrossa",
+       "to": "Eyheralde",
+       "source": "lignes-oubliees"
+      }
+     ],
+     "eras": {
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/freight",
+      "1960": "in_service/freight",
+      "1970": "in_service/freight",
+      "1980": "in_service/freight",
+      "1990": "in_service/freight",
+      "2000": "in_service/freight",
+      "2010": "in_service/freight",
+      "2020": "abandoned/unknown",
+      "2030": "abandoned/unknown"
+     }
+    }
+   ]
+  },
+  {
+   "name": "L'Isle-sur-Serein",
+   "category": "gare sur ligne déposée",
+   "expected": {
+    "closed_at": "1945-05-01",
+    "closed_precision": "month",
+    "source_url": "https://www.lignes-oubliees.com/"
+   },
+   "type": "gare",
+   "source_status": "gone",
+   "status_source": "lignes-oubliees",
+   "sources": [
+    {
+     "source": "lignes-oubliees",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "wikipedia_schema",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "wikipedia_schema",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [],
+   "lines": [
+    {
+     "code": "756000",
+     "name": "Ligne d'Avallon à Nuits-sous-Ravières",
+     "pk_m": 242579,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1888-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1888-11-20",
+       "precision": "day",
+       "pk_start": 228674,
+       "pk_end": 272199,
+       "resolution": "pk",
+       "from": "Avallon",
+       "to": "Nuits-sous-Ravières",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "opening",
+       "date": "1888-11-25",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1934-01-15",
+       "precision": "day",
+       "pk_start": 228674,
+       "pk_end": 272199,
+       "resolution": "pk",
+       "from": "Avallon",
+       "to": "Nuits-sous-Ravières",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "dismantling",
+       "date": "1942-01-01",
+       "precision": "year",
+       "pk_start": 242579,
+       "pk_end": 272199,
+       "resolution": "pk",
+       "from": "L'Isle-sur-Serein",
+       "to": "Nuits-sous-Ravières",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "closure_freight",
+       "date": "1942-08-01",
+       "precision": "month",
+       "pk_start": 242579,
+       "pk_end": 272199,
+       "resolution": "pk",
+       "from": "L'Isle-sur-Serein",
+       "to": "Nuits-sous-Ravières",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "dismantling",
+       "date": "1945-01-01",
+       "precision": "year",
+       "pk_start": 241622,
+       "pk_end": 242579,
+       "resolution": "pk",
+       "from": "L'Isle-Angély",
+       "to": "L'Isle-sur-Serein",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "closure_freight",
+       "date": "1945-05-01",
+       "precision": "month",
+       "pk_start": 241622,
+       "pk_end": 242579,
+       "resolution": "pk",
+       "from": "L'Isle-Angély",
+       "to": "L'Isle-sur-Serein",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "closure",
+       "date": "1952-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "declassification",
+       "date": "1954-11-12",
+       "precision": "day",
+       "pk_start": 231000,
+       "pk_end": 271490,
+       "resolution": "pk",
+       "from": "Avallon",
+       "to": "Nuits-sous-R.",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "declassification",
+       "date": "1954-11-12",
+       "precision": "day",
+       "pk_start": 231000,
+       "pk_end": 271490,
+       "resolution": "pk",
+       "source": "wikipedia"
+      }
+     ],
+     "eras": {
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/freight",
+      "1950": "dismantled/unknown"
+     }
+    },
+    {
+     "code": "X3747",
+     "name": "Ligne de Laroche-Migennes à L’Isle-Angély",
+     "pk_m": 74301,
+     "events": null,
+     "eras": null
+    }
+   ]
+  },
+  {
+   "name": "La Bachellerie",
+   "category": "halte supprimée",
+   "expected": {
+    "closed_at": "2020-12-13",
+    "closed_precision": "day",
+    "source_url": "https://www.openstreetmap.org/"
+   },
+   "type": "gare",
+   "source_status": "active",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "osm",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "osm",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "sncf",
+     "lifecycle": "active",
+     "passenger": true,
+     "freight": false
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "opening",
+     "date": "1860-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q3096746"
+    },
+    {
+     "type": "closure",
+     "date": "2020-12-13",
+     "precision": "day",
+     "source": "osm",
+     "url": "https://www.openstreetmap.org/node/13482584759"
+    }
+   ],
+   "lines": [
+    {
+     "code": "621000",
+     "name": "Ligne de Coutras à Tulle",
+     "pk_m": 116441,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1857-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1860-09-17",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Périgueux",
+       "to": "Brive",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1860-09-17",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Périgueux",
+       "to": "Brive-la-Gaillarde",
+       "source": "ohm",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1860": "in_service/mixed",
+      "1870": "in_service/mixed",
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "in_service/mixed",
+      "2010": "in_service/mixed",
+      "2020": "in_service/mixed",
+      "2030": "in_service/mixed"
+     }
+    }
+   ]
+  },
+  {
+   "name": "La Ferté-Macé",
+   "category": "gare sur ligne fermée puis déposée",
+   "expected": {
+    "closed_at": "1992-01-01",
+    "closed_precision": "year",
+    "source_url": "https://fr.wikipedia.org/wiki/Gare_de_La_Ferté-Macé"
+   },
+   "type": "gare",
+   "source_status": "declassified",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "sncf",
+     "lifecycle": "disused",
+     "passenger": false,
+     "freight": false
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "wikipedia_schema",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "wikipedia_schema",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "opening",
+     "date": "1869-12-06",
+     "precision": "day",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q2159732"
+    },
+    {
+     "type": "closure",
+     "date": "1992-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q2159732"
+    },
+    {
+     "type": "closure",
+     "date": "1992-01-01",
+     "precision": "year",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_La_Fert%C3%A9-Mac%C3%A9&oldid=229305164"
+    }
+   ],
+   "lines": [
+    {
+     "code": "433000",
+     "name": "Ligne de Couterne à La Ferté-Macé",
+     "pk_m": 15685,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1881-03-15",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "La Ferté-Macé",
+       "to": "Couterne",
+       "source": "manual",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1991-05-26",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "La Ferté-Macé",
+       "to": "Bagnoles-de-l'Orne",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "1992-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "La Ferté-Macé",
+       "to": "Bagnoles-de-l'Orne",
+       "source": "wikipedia",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "abandoned/unknown",
+      "2010": "dismantled/unknown"
+     }
+    },
+    {
+     "code": "434000",
+     "name": "Ligne de Briouze à La Ferté-Macé",
+     "pk_m": 13724,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1869-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "opening",
+       "date": "1869-12-06",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Briouze",
+       "to": "La Ferté-Macé",
+       "source": "manual",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1991-05-26",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Briouze",
+       "to": "La Ferté-Macé",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "1992-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Briouze",
+       "to": "La Ferté-Macé",
+       "source": "wikipedia",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1870": "in_service/mixed",
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "abandoned/unknown",
+      "2010": "dismantled/unknown"
+     }
+    }
+   ]
+  },
+  {
+   "name": "La Traverserie",
+   "category": "gare sur ligne fermée",
+   "expected": {
+    "closed_at": "1939-05-15",
+    "closed_precision": "day",
+    "source_url": "https://fr.wikipedia.org/wiki/Gare_de_la_Traverserie"
+   },
+   "type": "gare",
+   "source_status": "declassified",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "sncf",
+     "lifecycle": "disused",
+     "passenger": false,
+     "freight": false
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "opening",
+     "date": "1875-08-28",
+     "precision": "day",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q24939452"
+    },
+    {
+     "type": "closure",
+     "date": "1939-05-15",
+     "precision": "day",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_la_Traverserie&oldid=235035214"
+    },
+    {
+     "type": "closure",
+     "date": "2000-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q24939452"
+    },
+    {
+     "type": "closure_freight",
+     "date": "2000-01-01",
+     "precision": "year",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_la_Traverserie&oldid=235035214"
+    }
+   ],
+   "lines": [
+    {
+     "code": "546000",
+     "name": "Ligne de Pons à Saujon",
+     "pk_m": 29462,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1874-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1875-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1875-08-28",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Pons",
+       "to": "Royan",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1875-08-29",
+       "precision": "day",
+       "pk_start": -1383,
+       "pk_end": 36800,
+       "resolution": "pk",
+       "from": "Pons",
+       "to": "Saujon",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1939-05-15",
+       "precision": "day",
+       "pk_start": -1383,
+       "pk_end": 36800,
+       "resolution": "pk",
+       "from": "Pons",
+       "to": "Saujon",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "closure_freight",
+       "date": "2000-01-01",
+       "precision": "year",
+       "pk_start": 10528,
+       "pk_end": 36800,
+       "resolution": "pk",
+       "from": "Gémozac",
+       "to": "Saujon",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "closure_freight",
+       "date": "2004-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Saujon",
+       "to": "Gémozac",
+       "source": "wikipedia",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/freight",
+      "1950": "in_service/freight",
+      "1960": "in_service/freight",
+      "1970": "in_service/freight",
+      "1980": "in_service/freight",
+      "1990": "in_service/freight",
+      "2000": "abandoned/unknown",
+      "2010": "abandoned/unknown",
+      "2020": "abandoned/unknown",
+      "2030": "abandoned/unknown"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Le Merlerault",
+   "category": "halte supprimée",
+   "expected": {
+    "closed_at": "2019-12-13",
+    "closed_precision": "day",
+    "source_url": "https://www.wikidata.org/"
+   },
+   "type": "halte",
+   "source_status": "active",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "osm",
+     "lifecycle": "active",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "sncf",
+     "lifecycle": "active",
+     "passenger": true,
+     "freight": false
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "opening",
+     "date": "1867-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q679334"
+    },
+    {
+     "type": "closure",
+     "date": "2019-12-13",
+     "precision": "day",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q679334"
+    }
+   ],
+   "lines": [
+    {
+     "code": "395000",
+     "name": "Ligne de St-Cyr à Surdon",
+     "pk_m": 167619,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1858-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1864-06-15",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1866-10-01",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1867-08-05",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1867-08-05",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Surdon",
+       "to": "L'Aigle",
+       "source": "ohm",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1870": "in_service/mixed",
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "in_service/mixed",
+      "2010": "in_service/mixed",
+      "2020": "in_service/mixed",
+      "2030": "in_service/mixed"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Les Mazes-le-Crès",
+   "category": "gare fermée, ligne en service",
+   "expected": {
+    "closed_at": "2011-12-11",
+    "closed_precision": "day",
+    "source_url": "https://fr.wikipedia.org/wiki/Gare_des_Mazes_-_Le_Crès"
+   },
+   "type": "gare",
+   "source_status": "declassified",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "osm",
+     "lifecycle": "abandoned",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "osm",
+     "lifecycle": "abandoned",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "osm",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "osm",
+     "lifecycle": "historic",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "sncf",
+     "lifecycle": "disused",
+     "passenger": false,
+     "freight": false
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "wikipedia_schema",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "opening",
+     "date": "1845-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q3098159"
+    },
+    {
+     "type": "closure",
+     "date": "2011-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q3098159"
+    },
+    {
+     "type": "closure",
+     "date": "2011-12-11",
+     "precision": "day",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_des_Mazes_-_Le_Cr%C3%A8s&oldid=239104797"
+    },
+    {
+     "type": "demolition",
+     "date": "2011-12-11",
+     "precision": "day",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q3098159"
+    },
+    {
+     "type": "closure",
+     "date": "2013-12-30",
+     "precision": "day",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q3098159"
+    }
+   ],
+   "lines": [
+    {
+     "code": "810000",
+     "name": "Ligne de Tarascon à Sète-Ville",
+     "pk_m": 70413,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1839-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening_passenger",
+       "date": "1839-03-08",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening_freight",
+       "date": "1840-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "from": "Alais",
+       "to": "Beaucaire",
+       "source": "wikipedia"
+      },
+      {
+       "type": "opening",
+       "date": "1845-01-09",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Montpellier",
+       "to": "Nîmes",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1845-01-09",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Nîmes",
+       "to": "Montpellier-St-Roch",
+       "source": "ohm",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "1847-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1850": "in_service/mixed",
+      "1860": "in_service/mixed",
+      "1870": "in_service/mixed",
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "in_service/mixed",
+      "2010": "in_service/mixed",
+      "2020": "in_service/mixed",
+      "2030": "in_service/mixed"
+     }
+    },
+    {
+     "code": "814000",
+     "name": "Ligne de Mas-des-Gardies aux Mazes-le-Crès",
+     "pk_m": 746505,
+     "events": [
+      {
+       "type": "closure",
+       "date": "1991-12-16",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "2023-10-17",
+       "precision": "day",
+       "pk_start": 742930,
+       "pk_end": 746505,
+       "resolution": "pk",
+       "from": "Vendargues",
+       "to": "Le Crès",
+       "source": "lignes-oubliees"
+      }
+     ],
+     "eras": {
+      "2030": "abandoned/unknown"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Lesches-Beaumont",
+   "category": "gare fermée, ligne en service",
+   "expected": {
+    "closed_at": "1972-03-06",
+    "closed_precision": "day",
+    "source_url": "https://fr.wikipedia.org/wiki/Gare_de_Lesches_-_Beaumont"
+   },
+   "type": "gare",
+   "source_status": "declassified",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "sncf",
+     "lifecycle": "disused",
+     "passenger": false,
+     "freight": false
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "closure",
+     "date": "1972-01-01",
+     "precision": "year",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_Lesches_-_Beaumont&oldid=183566768"
+    },
+    {
+     "type": "closure",
+     "date": "1972-03-06",
+     "precision": "day",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_Lesches_-_Beaumont&oldid=183566768"
+    }
+   ],
+   "lines": [
+    {
+     "code": "912000",
+     "name": "Ligne de Livron à Aspres-sur-Buëch",
+     "pk_m": 79084,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1871-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1894-06-01",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Die",
+       "to": "Aspres-sur-Buëch",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1894-06-01",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Die",
+       "to": "La Beaume",
+       "source": "ohm",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "in_service/mixed",
+      "2010": "in_service/mixed",
+      "2020": "in_service/mixed",
+      "2030": "in_service/mixed"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Lonlay-le-Tesson",
+   "category": "halte sur ligne fermée puis déposée",
+   "expected": {
+    "closed_at": "1991-05-26",
+    "closed_precision": "day",
+    "source_url": "https://fr.wikipedia.org/wiki/Ligne_de_Briouze_à_Couterne"
+   },
+   "type": "gare",
+   "source_status": "declassified",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "sncf",
+     "lifecycle": "disused",
+     "passenger": false,
+     "freight": false
+    },
+    {
+     "source": "wikipedia_schema",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [],
+   "lines": [
+    {
+     "code": "434000",
+     "name": "Ligne de Briouze à La Ferté-Macé",
+     "pk_m": 7735,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1869-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "opening",
+       "date": "1869-12-06",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Briouze",
+       "to": "La Ferté-Macé",
+       "source": "manual",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1991-05-26",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Briouze",
+       "to": "La Ferté-Macé",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "1992-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Briouze",
+       "to": "La Ferté-Macé",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1991-05-26",
+       "precision": "day",
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "1992-01-01",
+       "precision": "year",
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1870": "in_service/mixed",
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "abandoned/unknown",
+      "2010": "dismantled/unknown"
+     }
+    }
+   ],
+   "note": "Fermetures de la ligne 434000 absentes de line_events (données) : ajoutées d'après l'article Wikipédia de la ligne (voyageurs Briouze - Bagnoles-de-l'Orne le 26/05/1991, exploitation jusqu'en 1992). Halte : la fermeture aux voyageurs est la fermeture."
+  },
+  {
+   "name": "Manduel-Redessan",
+   "category": "gare fermée, ligne en service",
+   "expected": {
+    "closed_at": "2019-12-13",
+    "closed_precision": "day",
+    "source_url": "https://www.wikidata.org/"
+   },
+   "type": "gare",
+   "source_status": "active",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "sncf",
+     "lifecycle": "active",
+     "passenger": true,
+     "freight": false
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "opening",
+     "date": "1839-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q3096965"
+    },
+    {
+     "type": "closure",
+     "date": "2019-12-13",
+     "precision": "day",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q3096965"
+    }
+   ],
+   "lines": [
+    {
+     "code": "800390",
+     "name": "Raccordement de Saint-Gervasy",
+     "pk_m": 5553,
+     "events": [
+      {
+       "type": "opening",
+       "date": "2016-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Manduel-Redessan",
+       "to": "Nîmes-Pont du Gard",
+       "source": "ohm",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "2020": "in_service/passenger",
+      "2030": "in_service/passenger"
+     }
+    },
+    {
+     "code": "810000",
+     "name": "Ligne de Tarascon à Sète-Ville",
+     "pk_m": 16814,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1839-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening_passenger",
+       "date": "1839-03-08",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening_freight",
+       "date": "1840-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "from": "Alais",
+       "to": "Beaucaire",
+       "source": "wikipedia"
+      },
+      {
+       "type": "opening",
+       "date": "1840-08-19",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Nîmes",
+       "to": "Beaucaire",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1840-08-19",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Beaucaire",
+       "to": "Nîmes",
+       "source": "ohm",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "1847-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1840": "in_service/mixed",
+      "1850": "in_service/mixed",
+      "1860": "in_service/mixed",
+      "1870": "in_service/mixed",
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "in_service/mixed",
+      "2010": "in_service/mixed",
+      "2020": "in_service/mixed",
+      "2030": "in_service/mixed"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Mayenne",
+   "category": "gare sur ligne déposée",
+   "expected": {
+    "closed_at": "1970-05-30",
+    "closed_precision": "day",
+    "source_url": "https://fr.wikipedia.org/wiki/Gare_de_Mayenne"
+   },
+   "type": "gare",
+   "source_status": "declassified",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "lignes-oubliees",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "sncf",
+     "lifecycle": "disused",
+     "passenger": false,
+     "freight": false
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "wikipedia_schema",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "wikipedia_schema",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "wikipedia_schema",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "closure",
+     "date": "1970-05-30",
+     "precision": "day",
+     "source": "wikipedia",
+     "url": "https://fr.wikipedia.org/w/index.php?title=Gare_de_Mayenne&oldid=235033038"
+    },
+    {
+     "type": "closure",
+     "date": "2017-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q64459533"
+    }
+   ],
+   "lines": [
+    {
+     "code": "435000",
+     "name": "Ligne de Pré-en-Pail à Mayenne",
+     "pk_m": 46418,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1881-09-15",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/mixed",
+      "1990": "in_service/mixed",
+      "2000": "abandoned/unknown",
+      "2010": "dismantled/unknown"
+     }
+    },
+    {
+     "code": "436000",
+     "name": "Ligne de La Chapelle-Anthenaise à Flers",
+     "pk_m": 308549,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1866-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1866-05-06",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "La Chapelle-Anthenaise",
+       "to": "Mayenne",
+       "source": "ohm",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1866-11-06",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "La Chapelle-Anthenaise",
+       "to": "Mayenne",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1874-09-21",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Domfront",
+       "to": "Mayenne",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1874-09-21",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Mayenne",
+       "to": "Domfront (Orne)",
+       "source": "ohm",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1970-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure_freight",
+       "date": "1987-03-01",
+       "precision": "month",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Ambrières",
+       "to": "Mayenne",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "1987-04-06",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Mayenne",
+       "to": "Ambrières-Centre",
+       "source": "ohm",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "1992-01-26",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "La Chapelle-Anthenaise",
+       "to": "Mayenne",
+       "source": "ohm",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "2018-03-27",
+       "precision": "day",
+       "pk_start": 288882,
+       "pk_end": 323315,
+       "resolution": "pk",
+       "from": "La Chapelle-Anthenaise",
+       "to": "Ambrières-Les-Vallées",
+       "source": "lignes-oubliees"
+      }
+     ],
+     "eras": {
+      "1870": "in_service/mixed",
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/freight",
+      "1980": "in_service/freight",
+      "1990": "in_service/freight",
+      "2000": "abandoned/unknown",
+      "2010": "dismantled/unknown"
+     }
+    },
+    {
+     "code": "438000",
+     "name": "Ligne de Mayenne à Selle-en-Luitré",
+     "pk_m": 0,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1881-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1881-10-23",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Mayenne",
+       "to": "Selle-en-Luitré",
+       "source": "lignes-oubliees",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1881-10-23",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1938-03-01",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Mayenne",
+       "to": "Selle-en-Luitré",
+       "source": "lignes-oubliees",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1938-03-01",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure_freight",
+       "date": "1987-03-01",
+       "precision": "month",
+       "pk_start": 0,
+       "pk_end": 29657,
+       "resolution": "pk",
+       "from": "Mayenne",
+       "to": "Ernée",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "closure_freight",
+       "date": "1987-03-01",
+       "precision": "month",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Mayenne",
+       "to": "Ernée",
+       "source": "wikipedia",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/freight",
+      "1950": "in_service/freight",
+      "1960": "in_service/freight",
+      "1970": "in_service/freight",
+      "1980": "in_service/freight",
+      "1990": "abandoned/unknown",
+      "2000": "dismantled/unknown"
+     }
+    },
+    {
+     "code": "X3803",
+     "name": "Ligne de Mayenne à Landivy",
+     "pk_m": 47494,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1901-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "to": "Mayenne",
+       "source": "ohm",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "1947-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Brécé",
+       "to": "Mayenne",
+       "source": "ohm",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/mixed",
+      "1950": "abandoned/unknown",
+      "1960": "dismantled/unknown"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Nort-sur-Erdre",
+   "category": "gare rouverte",
+   "expected": {
+    "closed_at": null,
+    "closed_precision": null,
+    "source_url": "https://fr.wikipedia.org/wiki/Ligne_de_Nantes_à_Châteaubriant"
+   },
+   "type": "halte",
+   "source_status": "active",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "osm",
+     "lifecycle": "active",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "osm",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "sncf",
+     "lifecycle": "active",
+     "passenger": true,
+     "freight": false
+    },
+    {
+     "source": "sncf_voyageurs",
+     "lifecycle": "active",
+     "passenger": true,
+     "freight": null
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "active",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "opening",
+     "date": "1877-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q933600"
+    },
+    {
+     "type": "reopening",
+     "date": "2014-02-28",
+     "precision": "day",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q933600"
+    }
+   ],
+   "lines": [
+    {
+     "code": "519000",
+     "name": "Ligne de Nantes-Orléans à Châteaubriant",
+     "pk_m": 456500,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1877-12-23",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Doulon",
+       "to": "Châteaubriant",
+       "source": "ohm",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1938-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1939-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "reopening",
+       "date": "1948-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "reopening_passenger",
+       "date": "1948-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "closure",
+       "date": "1977-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening_passenger",
+       "date": "1980-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "to": "Issé",
+       "source": "wikipedia"
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1980-05-31",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1980-06-01",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "2008-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Doulon",
+       "to": "Châteaubriant",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "reopening",
+       "date": "2008-11-01",
+       "precision": "month",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "dismantling",
+       "date": "2014-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "opening",
+       "date": "2014-02-28",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "2014-02-28",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/freight",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/freight",
+      "1990": "in_service/freight",
+      "2000": "in_service/freight",
+      "2010": "in_service/mixed",
+      "2020": "in_service/mixed",
+      "2030": "in_service/mixed"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Sucé-sur-Erdre",
+   "category": "gare rouverte",
+   "expected": {
+    "closed_at": null,
+    "closed_precision": null,
+    "source_url": "https://fr.wikipedia.org/wiki/Ligne_de_Nantes_à_Châteaubriant"
+   },
+   "type": "halte",
+   "source_status": "active",
+   "status_source": "sncf",
+   "sources": [
+    {
+     "source": "osm",
+     "lifecycle": "active",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "sncf",
+     "lifecycle": "active",
+     "passenger": true,
+     "freight": false
+    },
+    {
+     "source": "sncf_voyageurs",
+     "lifecycle": "active",
+     "passenger": true,
+     "freight": null
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "active",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [
+    {
+     "type": "opening",
+     "date": "1877-01-01",
+     "precision": "year",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q3097782"
+    },
+    {
+     "type": "reopening",
+     "date": "2014-02-28",
+     "precision": "day",
+     "source": "wikidata",
+     "url": "https://www.wikidata.org/wiki/Q3097782"
+    }
+   ],
+   "lines": [
+    {
+     "code": "519000",
+     "name": "Ligne de Nantes-Orléans à Châteaubriant",
+     "pk_m": 444980,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1877-12-23",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "trace",
+       "from": "Doulon",
+       "to": "Châteaubriant",
+       "source": "ohm",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1938-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1939-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "reopening",
+       "date": "1948-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "reopening_passenger",
+       "date": "1948-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "closure",
+       "date": "1977-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening_passenger",
+       "date": "1980-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "to": "Issé",
+       "source": "wikipedia"
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1980-05-31",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1980-06-01",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "closure",
+       "date": "2008-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "places",
+       "from": "Doulon",
+       "to": "Châteaubriant",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "reopening",
+       "date": "2008-11-01",
+       "precision": "month",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "dismantling",
+       "date": "2014-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "opening",
+       "date": "2014-02-28",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "2014-02-28",
+       "precision": "day",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      }
+     ],
+     "eras": {
+      "1880": "in_service/mixed",
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/freight",
+      "1950": "in_service/mixed",
+      "1960": "in_service/mixed",
+      "1970": "in_service/mixed",
+      "1980": "in_service/freight",
+      "1990": "in_service/freight",
+      "2000": "in_service/freight",
+      "2010": "in_service/mixed",
+      "2020": "in_service/mixed",
+      "2030": "in_service/mixed"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Vuillafans",
+   "category": "gare sur ligne déposée",
+   "expected": {
+    "closed_at": "1956-06-11",
+    "closed_precision": "day",
+    "source_url": "https://www.lignes-oubliees.com/"
+   },
+   "type": "gare",
+   "source_status": "gone",
+   "status_source": "wikidata",
+   "sources": [
+    {
+     "source": "lignes-oubliees",
+     "lifecycle": "unknown",
+     "passenger": null,
+     "freight": null
+    },
+    {
+     "source": "wikidata",
+     "lifecycle": "disused",
+     "passenger": null,
+     "freight": null
+    }
+   ],
+   "events": [],
+   "lines": [
+    {
+     "code": "873000",
+     "name": "Ligne de L'Hôpital-du-Grosbois à Lods",
+     "pk_m": 449300,
+     "events": [
+      {
+       "type": "opening",
+       "date": "1885-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikidata",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1885-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "whole_line",
+       "source": "wikipedia",
+       "near_geom": true
+      },
+      {
+       "type": "opening",
+       "date": "1885-05-16",
+       "precision": "day",
+       "pk_start": 427950,
+       "pk_end": 452500,
+       "resolution": "pk",
+       "from": "L'Hôpital-du-Grosbois",
+       "to": "Lods",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "closure_passenger",
+       "date": "1932-05-22",
+       "precision": "day",
+       "pk_start": 427950,
+       "pk_end": 452500,
+       "resolution": "pk",
+       "from": "L'Hôpital-du-Grosbois",
+       "to": "Lods",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "closure",
+       "date": "1956-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      },
+      {
+       "type": "closure_freight",
+       "date": "1956-06-11",
+       "precision": "day",
+       "pk_start": 441450,
+       "pk_end": 452500,
+       "resolution": "pk",
+       "from": "Ornans",
+       "to": "Lods",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "dismantling",
+       "date": "1964-01-01",
+       "precision": "year",
+       "pk_start": 441450,
+       "pk_end": 452500,
+       "resolution": "pk",
+       "from": "Ornans",
+       "to": "Lods",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "declassification",
+       "date": "1964-02-13",
+       "precision": "day",
+       "pk_start": 441600,
+       "pk_end": 452566,
+       "resolution": "pk",
+       "from": "Ornans",
+       "to": "Lods",
+       "source": "lignes-oubliees"
+      },
+      {
+       "type": "closure",
+       "date": "1988-01-01",
+       "precision": "year",
+       "pk_start": null,
+       "pk_end": null,
+       "resolution": "unresolved",
+       "source": "wikipedia"
+      }
+     ],
+     "eras": {
+      "1890": "in_service/mixed",
+      "1900": "in_service/mixed",
+      "1910": "in_service/mixed",
+      "1920": "in_service/mixed",
+      "1930": "in_service/mixed",
+      "1940": "in_service/freight",
+      "1950": "in_service/freight",
+      "1960": "abandoned/unknown",
+      "1970": "dismantled/unknown"
+     }
+    }
+   ]
+  }
+ ]
+}

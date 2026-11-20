@@ -1,0 +1,7 @@
+[
+    {"id_if": "PN-1", "libelle": "PN 12", "mnemo": "PN", "obstacle": "Route départementale 7", "code_ligne": "100000", "rg_troncon": 1, "pk": "005+300", "x_wgs84": 2.33, "y_wgs84": 48.83, "saco_libelle_commune": "Saint-Cloud (92064)"},
+    {"id_if": "PN-1", "libelle": "PN 12 voie 2", "code_ligne": "100000", "pk": "005+302", "x_wgs84": 2.33, "y_wgs84": 48.83},
+    {"id_if": "PN-2", "libelle": "PN 13", "code_ligne": "100000", "pk": "000-150", "x_wgs84": 2.29, "y_wgs84": 48.79, "saco_libelle_commune": "Paris"},
+    {"id_if": "PN-3", "libelle": "PN sans position", "code_ligne": "100000", "pk": "009+000"},
+    {"id_if": "", "libelle": "PN sans identifiant", "code_ligne": "100000", "x_wgs84": 2.3, "y_wgs84": 48.8}
+]
