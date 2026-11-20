@@ -2,8 +2,8 @@
     /**
      * Date à la précision de sa source : jour, mois ou année (et « date inconnue » si `allowUnknown`).
      * Un groupe de boutons radio pour la précision, puis l'année, le mois (liste) et le jour selon
-     * la précision choisie. La date composée (« 1890 », « 1890-06 », « 1890-06-16 ») se lit avec
-     * composeDate() de proposals.js.
+     * la précision choisie, chacun marqué « (obligatoire) » quand il s'affiche. La date composée
+     * (« 1890 », « 1890-06 », « 1890-06-16 ») se lit avec composeDate() de proposals.js.
      *
      * Props : `id` (préfixe des id ; l'année reçoit `{id}-year`, cible du récapitulatif d'erreurs),
      * `legend`, `precision`, `year`, `month`, `day` (liables), `precisions`, `allowUnknown`,
@@ -33,6 +33,8 @@
             undefined,
     );
     const invalid = $derived(error ? 'true' : undefined);
+    // Année, mois et jour sont obligatoires dès qu'ils s'affichent : mention visible (RGAA 11.10).
+    const requiredMark = $derived(` (${$i18n.t('common.required')})`);
 </script>
 
 <fieldset class="date" aria-describedby={describedBy}>
@@ -59,8 +61,11 @@
 
     {#if precision}
         <div class="parts">
-            <label class="part">
-                <span class="vff-label">{$i18n.t('proposals.event.year')}</span>
+            <div class="part">
+                <label class="vff-label" for="{id}-year"
+                    >{$i18n.t('proposals.event.year')}<span class="required">{requiredMark}</span
+                    ></label
+                >
                 <input
                     id="{id}-year"
                     class="vff-input year"
@@ -73,11 +78,16 @@
                     aria-describedby={error ? `${id}-error` : undefined}
                     bind:value={year}
                 />
-            </label>
+            </div>
             {#if precision === 'month' || precision === 'day'}
-                <label class="part">
-                    <span class="vff-label">{$i18n.t('proposals.event.month')}</span>
+                <div class="part">
+                    <label class="vff-label" for="{id}-month"
+                        >{$i18n.t('proposals.event.month')}<span class="required"
+                            >{requiredMark}</span
+                        ></label
+                    >
                     <select
+                        id="{id}-month"
                         class="vff-select"
                         required
                         aria-invalid={invalid}
@@ -89,12 +99,16 @@
                             <option value={m.value}>{m.label}</option>
                         {/each}
                     </select>
-                </label>
+                </div>
             {/if}
             {#if precision === 'day'}
-                <label class="part">
-                    <span class="vff-label">{$i18n.t('proposals.event.day')}</span>
+                <div class="part">
+                    <label class="vff-label" for="{id}-day"
+                        >{$i18n.t('proposals.event.day')}<span class="required">{requiredMark}</span
+                        ></label
+                    >
                     <input
+                        id="{id}-day"
                         class="vff-input day"
                         type="text"
                         inputmode="numeric"
@@ -105,7 +119,7 @@
                         aria-describedby={error ? `${id}-error` : undefined}
                         bind:value={day}
                     />
-                </label>
+                </div>
             {/if}
         </div>
     {/if}
@@ -160,6 +174,10 @@
         flex-direction: column;
         gap: 6px;
         min-width: 0;
+    }
+    .required {
+        font-weight: 400;
+        color: var(--vff-text-muted);
     }
     .year {
         width: 7ch;

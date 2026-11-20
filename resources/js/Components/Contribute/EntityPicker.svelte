@@ -2,8 +2,9 @@
     /**
      * Choix d'une ligne, d'une gare ou d'une série de matériel existante par la recherche du site
      * (/api/v1/search) : un champ
-     * de recherche, puis une liste de résultats en boutons (Tab et Entrée au clavier). Une fois le
-     * choix fait, seul le nom choisi reste affiché, avec un bouton pour en choisir un autre.
+     * de recherche, puis une liste de résultats en boutons (Tab et Entrée au clavier). L'état de la
+     * recherche et le nombre de résultats sont annoncés (role="status"). Une fois le choix fait, seul
+     * le nom choisi reste affiché, avec un bouton pour en choisir un autre.
      *
      * Props : `kind` (`line`, `station` ou `material`), `id` (id du champ de recherche, cible des
      * liens du récapitulatif d'erreurs), `selected` (liable : { slug, name, code?, city?, type? } ou
@@ -42,6 +43,12 @@
               : status === 'done' && results.length === 0
                 ? $i18n.t('proposals.picker.none')
                 : '',
+    );
+    // Nombre de résultats : annoncé aux lecteurs d'écran seulement (la liste se voit juste dessous).
+    const countText = $derived(
+        status === 'done' && results.length
+            ? $i18n.t('proposals.picker.count', { count: results.length })
+            : '',
     );
 
     function onInput() {
@@ -140,7 +147,10 @@
                 />
             {/snippet}
         </Field>
-        <p class="status" aria-live="polite">{statusText}</p>
+        <!-- Zone d'annonce toujours présente (même vide) : un message qui y apparaît est lu (RGAA 7.5). -->
+        <p class="status" role="status">
+            {statusText}{#if countText}<span class="vff-sr-only">{countText}</span>{/if}
+        </p>
         {#if results.length}
             <ul class="results" aria-label={$i18n.t('proposals.picker.results')}>
                 {#each results as item (item.slug)}
@@ -176,8 +186,10 @@
         font-size: var(--vff-fs-sm);
         color: var(--vff-text-muted);
     }
-    .status:empty {
-        display: none;
+    /* Vide, ou avec le seul nombre de résultats (masqué) : pas d'espace en plus dans la colonne. */
+    .status:empty,
+    .status:has(> .vff-sr-only:only-child) {
+        margin-top: calc(-1 * var(--vff-space-2));
     }
     .results {
         display: flex;

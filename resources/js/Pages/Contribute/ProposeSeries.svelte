@@ -481,7 +481,7 @@
                                 {$i18n.t('proposals.series.wikidata_check')}
                             </button>
                         </div>
-                        <div class="qid-result" aria-live="polite">
+                        <div class="qid-result" role="status">
                             {#if qidStatus === 'checking'}
                                 <p class="intro">{$i18n.t('proposals.series.wikidata_checking')}</p>
                             {:else if duplicate}
@@ -601,7 +601,7 @@
                                     >{/if}
                             </p>
                         </fieldset>
-                        <div class="impact" aria-live="polite">
+                        <div class="impact" role="status">
                             {#if impactStatus === 'checking'}
                                 <p class="intro">{$i18n.t('proposals.series.impact_checking')}</p>
                             {:else if impactStatus === 'done' && impact.length}
@@ -713,17 +713,16 @@
         align-self: stretch;
         min-width: 0;
     }
-    .qid-result:empty {
-        display: none;
+    /* Zones d'annonce présentes même vides (RGAA 7.5) : vides, pas d'espace en plus (écart de .group). */
+    .qid-result:empty,
+    .impact:empty {
+        margin-top: calc(-1 * var(--vff-space-4));
     }
     .qid-result p {
         margin: 0 0 var(--vff-space-2);
     }
     .qid-result p:last-child {
         margin-bottom: 0;
-    }
-    .impact:empty {
-        display: none;
     }
     .impact p {
         margin: 0 0 var(--vff-space-2);

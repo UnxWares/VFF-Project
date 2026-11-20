@@ -6,7 +6,8 @@
      * les métadonnées retirées ; pour un matériel sur une ligne, l'exception aux règles d'écartement ou
      * d'électrification en évidence et les liens déjà connus ; pour une série, les valeurs proposées
      * (avant, après ; une valeur effacée est montrée comme telle), les champs changés depuis l'envoi et
-     * les liens que la correction rendrait contraires aux règles.
+     * les liens que la correction rendrait contraires aux règles. Chaque tableau a pour titre
+     * l'intertitre qui le précède (aria-labelledby, RGAA 5.4).
      *
      * Props : `contribution` (élément de ContributionController::validateList).
      */
@@ -15,6 +16,7 @@
     import { formatStationDate } from '$lib/stationDates.js';
     import { periodText } from '$lib/materialPeriods.js';
     import { formatLocale } from '$lib/typo.js';
+    import { conciseAlt } from '$lib/altText.js';
     import {
         EVENT_TYPE,
         LINE_MATERIAL_TYPE,
@@ -131,13 +133,16 @@
 
     {#if isMedia}
         {#if imageSrc}
-            <figure class="image">
+            <!-- Pas d'élément figure : le lien qui suit n'est pas une légende de l'image (RGAA 1.9). -->
+            <div class="image">
                 <img
                     src={imageSrc}
-                    alt={$i18n.t('proposals.review.image_alt', { title: imageTitle })}
+                    alt={$i18n.t('proposals.review.image_alt', {
+                        title: conciseAlt(imageTitle, 100),
+                    })}
                     loading="lazy"
                 />
-                <figcaption>
+                <p class="open">
                     <a class="vff-link" href={imageHref} target="_blank" rel="noopener noreferrer"
                         >{$i18n.t(
                             commons
@@ -148,8 +153,8 @@
                             aria-hidden="true"
                         ></i></a
                     >
-                </figcaption>
-            </figure>
+                </p>
+            </div>
         {:else}
             <p class="muted">{$i18n.t('proposals.review.file_unavailable')}</p>
         {/if}
@@ -188,7 +193,7 @@
                 aria-labelledby="changes-{contribution.id}"
                 tabindex="0"
             >
-                <table class="vff-table">
+                <table class="vff-table" aria-labelledby="changes-{contribution.id}">
                     <thead>
                         <tr>
                             <th scope="col">{$i18n.t('proposals.review.field')}</th>
@@ -241,7 +246,7 @@
                     aria-labelledby="links-{contribution.id}"
                     tabindex="0"
                 >
-                    <table class="vff-table">
+                    <table class="vff-table" aria-labelledby="links-{contribution.id}">
                         <thead>
                             <tr>
                                 <th scope="col">{$i18n.t('proposals.review.link_source')}</th>
@@ -302,7 +307,7 @@
                     aria-labelledby="similar-{contribution.id}"
                     tabindex="0"
                 >
-                    <table class="vff-table">
+                    <table class="vff-table" aria-labelledby="similar-{contribution.id}">
                         <thead>
                             <tr>
                                 <th scope="col">{$i18n.t('proposals.review.type')}</th>
@@ -374,7 +379,8 @@
         border-radius: var(--vff-radius-md);
         background-color: var(--vff-bg-muted);
     }
-    .image figcaption {
+    .image .open {
+        margin: 0;
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-sm);
     }

@@ -20,6 +20,8 @@ return [
         'results' => 'Résultats de la recherche',
         'searching' => 'Recherche en cours…',
         'none' => 'Aucun résultat pour cette recherche.',
+        'count_one' => ':count résultat dans la liste ci-dessous.',
+        'count_other' => ':count résultats dans la liste ci-dessous.',
         'failed' => 'La recherche n’a pas abouti. Réessayez dans un instant.',
         'chosen_line' => 'Ligne choisie',
         'chosen_station' => 'Gare choisie',

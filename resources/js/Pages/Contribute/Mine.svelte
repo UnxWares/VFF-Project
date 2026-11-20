@@ -21,6 +21,9 @@
         proposalKindKey,
     } from '$components/Contribute/proposals.js';
 
+    // Liste des changements : ceux d'un tronçon seulement. Ceux d'une série ({ before, after }) se relisent
+    // dans l'espace de validation ; ici, ils sortaient en JSON brut et débordaient à 320 px (RGAA 10.11, 13.5).
+
     /** Faits résumés d'une proposition sourcée dans la liste, par type. */
     const SUMMARY_FACTS = {
         line_event: ['type', 'date', 'portion'],
@@ -110,7 +113,9 @@
             {:else}
                 <ol class="list" aria-label={$i18n.t('editor.mine.list_label')}>
                     {#each contributions as c (c.id)}
-                        {@const changes = changeEntries(c.payload?.changes, tr, $i18n.language)}
+                        {@const changes = PROPOSAL_TYPES.includes(c.type)
+                            ? []
+                            : changeEntries(c.payload?.changes, tr, $i18n.language)}
                         <li class="item" id="contribution-{c.id}">
                             <div class="head">
                                 <h2>
