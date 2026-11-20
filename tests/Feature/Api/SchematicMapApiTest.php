@@ -136,6 +136,43 @@ class SchematicMapApiTest extends TestCase
         $this->assertGreaterThan(50, $plan['summary']['km']['mixed']);
     }
 
+    public function test_each_station_gets_the_sides_where_its_name_covers_the_fewest_axes(): void
+    {
+        $stations = self::stations($this->plan());
+
+        foreach ($stations as $slug => $station) {
+            $this->assertCount(4, $station['label_anchors'], $slug);
+            $this->assertSame([], array_diff($station['label_anchors'], ['left', 'right', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right']));
+        }
+        // Gare intermédiaire d'un axe ouest-est : son nom va dessous ou dessus, pas sur l'axe.
+        $this->assertContains($stations['s']['label_anchors'][0], ['top', 'bottom']);
+        // Toutes les gares sont à moins de 80 km sur le plan : une seule ville au niveau 0, nommée
+        // d'après sa commune ; les gares sans ville nommée gardent leur nom.
+        $topCities = array_filter($stations, fn (array $s): bool => $s['tier'] === 0);
+        $this->assertCount(1, $topCities);
+        $top = reset($topCities);
+        $this->assertSame($top['city'], $top['city_label']);
+        foreach ($stations as $station) {
+            if ($station['tier'] >= 2) {
+                $this->assertNull($station['city_label']);
+            }
+        }
+    }
+
+    public function test_a_city_is_named_on_the_node_of_its_principal_station(): void
+    {
+        // Deux gares de la commune « Ville J » : celle qui porte le nom de la ville seul la représente.
+        Station::where('slug', 'j')->update(['name' => 'Ville J']);
+        Station::where('slug', 'c')->update(['name' => 'Ville J-Nord', 'city' => 'Ville J']);
+
+        $stations = self::stations($this->plan());
+
+        $this->assertSame('Ville J', $stations['j']['city_label']);
+        $this->assertSame(0, $stations['j']['tier']);
+        $this->assertNull($stations['c']['city_label']);
+        $this->assertGreaterThanOrEqual(2, $stations['c']['tier']);
+    }
+
     public function test_axes_are_horizontal_vertical_or_at_45_degrees_in_web_mercator(): void
     {
         foreach (self::axes($this->plan()) as $axis) {

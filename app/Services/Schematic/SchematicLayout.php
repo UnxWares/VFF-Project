@@ -12,7 +12,9 @@ use App\Services\NetworkGraph\ConnectedComponents;
  * Étapes :
  *   1. Axes : les chaînes de voies entre deux nœuds du graphe qui ne sont pas de simple passage
  *      (jonction, extrémité) ; une antenne sans gare de moins de `spurM` est retirée (bout de voie,
- *      faisceau, tiroir).
+ *      faisceau, tiroir). Tronçons isolés (`isolatedPieces`) : un bout de voie à moins de
+ *      `mergeCells` pas d'un nœud du réseau y est raccordé ; un tronçon isolé sans gare de moins de
+ *      `isolatedM` est retiré ; les autres restent à leur place, sans raccord.
  *   2. Nœuds du plan : les extrémités d'axes très proches (moins de `mergeCells` pas) sont fondues,
  *      ainsi que celles qui tombent sur le même point de la grille et sont reliées par un axe court :
  *      un complexe de bifurcations devient un seul nœud. Les gares de ces axes intérieurs restent au
@@ -24,7 +26,9 @@ use App\Services\NetworkGraph\ConnectedComponents;
  *   5. Chaque nœud prend le point de grille le plus proche ; s'il est pris, un point libre à moins de
  *      `placeRadius` pas (les nœuds les plus importants d'abord).
  *   6. Routage des axes, les plus importants d'abord (LGV, réseau mixte, puis les plus longs) :
- *      OctilinearRouter.
+ *      OctilinearRouter. Un croisement coûte peu quand les deux voies se croisent aussi sur le
+ *      terrain (`realCrossings`), beaucoup sinon ; puis chaque axe qui en croise un autre, le longe
+ *      ou traverse un nœud est routé de nouveau, les autres en place (`reroute`).
  *   7. Gares intermédiaires réparties le long de l'axe, entre leur position réelle et un espacement
  *      régulier (`evenSpacing`), dans leur ordre ; les changements de ligne et de catégorie suivent.
  *
@@ -48,6 +52,7 @@ final class SchematicLayout
 
         $graph = $this->magnify($graph);
         $alive = $this->pruneSpurs($graph, $edges);
+        [$edges, $alive, $bridged, $dropped] = $this->isolatedPieces($graph, $edges, $alive);
         $chains = $this->chains($edges, $alive);
         [$placeOf, $placePos] = $this->places($graph, $chains);
 
@@ -66,15 +71,22 @@ final class SchematicLayout
 
         usort($corridors, fn (array $x, array $y): int => [$y['rank'], $y['length']] <=> [$x['rank'], $x['length']]);
 
-        $pieces = [];
-        $stations = [];
-        $endAngle = [];
-        foreach ($corridors as $c) {
+        $router->realCrossings($this->realCrossings($corridors, $placePos));
+        $routes = [];
+        foreach ($corridors as $k => $c) {
             $from = $points[$c['a']];
             $to = $points[$c['b']];
             $guide = $this->guide($c, $from, $to);
             [$startBearing, $endBearing] = self::bearings($guide);
-            $corners = $router->route($from, $to, $guide, $startBearing, $endBearing);
+            $routes[$k] = [$guide, $startBearing, $endBearing, $router->route($from, $to, $guide, $startBearing, $endBearing, $k)];
+        }
+        $rerouted = $this->reroute($router, $routes);
+
+        $pieces = [];
+        $stations = [];
+        $endAngle = [];
+        foreach ($corridors as $k => $c) {
+            $corners = $routes[$k][3];
             $path = array_map(fn (array $p): array => [$p[0] * $cell, $p[1] * $cell], $corners);
             if (count($path) < 2) {
                 continue;
@@ -118,6 +130,13 @@ final class SchematicLayout
             'stations' => count($allStations),
             'fallbacks' => $router->fallbacks,
             'overlaps' => $router->overlaps(),
+            'crossings' => $router->crossingCount(),
+            'real_crossings' => $router->crossingCount(true),
+            'node_passes' => $router->nodePasses(),
+            'rerouted' => $rerouted,
+            'bridged' => $bridged,
+            'dropped' => $dropped,
+            'isolated' => self::isolatedCount($corridors),
             'duration_ms' => (int) round((microtime(true) - $started) * 1000),
         ]);
     }
@@ -190,6 +209,270 @@ final class SchematicLayout
         }
 
         return $alive;
+    }
+
+    /**
+     * Tronçons isolés (voies en service qu'aucune autre voie en service ne relie au reste du réseau à
+     * l'ère : ligne coupée par une fermeture, train touristique, reste de voie de fret, réseau à part).
+     *
+     * 1. Chaque extrémité libre d'un tronçon (bout de voie) à moins de `mergeCells` pas d'un nœud
+     *    d'une composante plus grande est raccordée à ce nœud : à l'échelle du plan, c'est le même
+     *    point (les nœuds reliés par moins que cela sont fondus, étape 2), et l'écart vient presque
+     *    toujours d'une lacune des données, la voie s'arrêtant à quelques centaines de mètres de sa
+     *    jonction.
+     * 2. Un tronçon qui reste isolé, sans gare et plus court que `isolatedM`, est retiré : il n'y a
+     *    rien à y lire (bout de voie, embranchement, raccord coupé).
+     * Les autres restent à leur place, sans trait qui les relie au réseau : rien ne les y relie en
+     * service à l'ère (Corse, chemins de fer touristiques, lignes à voie métrique).
+     *
+     * Renvoie les arêtes (raccords ajoutés), les arêtes gardées, le nombre de raccords et le nombre de
+     * tronçons retirés.
+     *
+     * @param  list<array{u: int, v: int, length: float, line: ?int, category: string}>  $edges
+     * @param  array<int, true>  $alive
+     * @return array{0: list<array{u: int, v: int, length: float, line: ?int, category: string}>, 1: array<int, true>, 2: int, 3: int}
+     */
+    private function isolatedPieces(SchematicGraph $graph, array $edges, array $alive): array
+    {
+        $reach = $this->options->mergeCells * $this->options->cellM;
+        [$component, $size, $degree] = self::components($edges, $alive);
+        if (count($size) < 2) {
+            return [$edges, $alive, 0, 0];
+        }
+        // Nœuds de chaque case de `reach` mètres, pour chercher les voisins d'une extrémité.
+        $buckets = [];
+        foreach ($component as $node => $root) {
+            [$x, $y] = $graph->nodes[$node];
+            $buckets[(int) floor($x / $reach)][(int) floor($y / $reach)][] = $node;
+        }
+        $bridged = 0;
+        foreach ($component as $node => $root) {
+            if ($degree[$node] !== 1) {
+                continue;
+            }
+            // Nœud le plus proche d'une composante plus grande (jamais d'une plus petite : les raccords
+            // ne relient pas deux tronçons isolés l'un à l'autre en boucle).
+            [$x, $y] = $graph->nodes[$node];
+            $bx = (int) floor($x / $reach);
+            $by = (int) floor($y / $reach);
+            $best = null;
+            for ($i = $bx - 1; $i <= $bx + 1; $i++) {
+                for ($j = $by - 1; $j <= $by + 1; $j++) {
+                    foreach ($buckets[$i][$j] ?? [] as $other) {
+                        $or = $component[$other];
+                        if ($size[$or] < $size[$root] || ($size[$or] === $size[$root] && $or <= $root)) {
+                            continue;
+                        }
+                        $d = hypot($graph->nodes[$other][0] - $x, $graph->nodes[$other][1] - $y);
+                        if ($d < $reach && ($best === null || $d < $best[1])) {
+                            $best = [$other, $d];
+                        }
+                    }
+                }
+            }
+            if ($best !== null) {
+                $edges[] = ['u' => $node, 'v' => $best[0], 'length' => $best[1], 'line' => null, 'category' => 'connector'];
+                $alive[count($edges) - 1] = true;
+                $bridged++;
+            }
+        }
+
+        [$component, $size] = self::components($edges, $alive);
+        $largest = array_search(max($size), $size, true);
+        $hasStation = [];
+        foreach ($component as $node => $root) {
+            if (isset($graph->nodeStations[$node])) {
+                $hasStation[$root] = true;
+            }
+        }
+        $dropped = 0;
+        $drop = [];
+        foreach ($size as $root => $length) {
+            if ($root !== $largest && $length < $this->options->isolatedM && ! isset($hasStation[$root])) {
+                $drop[$root] = true;
+                $dropped++;
+            }
+        }
+        if ($drop !== []) {
+            foreach (array_keys($alive) as $e) {
+                if (isset($drop[$component[$edges[$e]['u']]])) {
+                    unset($alive[$e]);
+                }
+            }
+        }
+
+        return [$edges, $alive, $bridged, $dropped];
+    }
+
+    /**
+     * Composantes connexes des arêtes gardées : composante de chaque nœud, longueur de chaque
+     * composante, degré de chaque nœud.
+     *
+     * @param  list<array{u: int, v: int, length: float, line: ?int, category: string}>  $edges
+     * @param  array<int, true>  $alive
+     * @return array{0: array<int, int>, 1: array<int, float>, 2: array<int, int>}
+     */
+    private static function components(array $edges, array $alive): array
+    {
+        $uf = new ConnectedComponents;
+        $degree = [];
+        foreach (array_keys($alive) as $e) {
+            $uf->link($edges[$e]['u'], $edges[$e]['v']);
+            $degree[$edges[$e]['u']] = ($degree[$edges[$e]['u']] ?? 0) + 1;
+            $degree[$edges[$e]['v']] = ($degree[$edges[$e]['v']] ?? 0) + 1;
+        }
+        $component = [];
+        foreach (array_keys($degree) as $node) {
+            $component[$node] = $uf->find($node);
+        }
+        $size = [];
+        foreach (array_keys($alive) as $e) {
+            $root = $component[$edges[$e]['u']];
+            $size[$root] = ($size[$root] ?? 0.0) + $edges[$e]['length'];
+        }
+
+        return [$component, $size, $degree];
+    }
+
+    /**
+     * Reprise des défauts : chaque axe qui en croise un autre, le longe ou traverse un nœud est routé
+     * de nouveau, tous les autres en place (les axes tracés après lui n'existaient pas quand il a été
+     * routé). Jusqu'à `rerouteRounds` passes, tant qu'un chemin change.
+     *
+     * @param  array<int, array{0: list<array{0: float, 1: float}>, 1: float, 2: float, 3: list<array{0: int, 1: int}>}>  $routes
+     * @return int nombre de chemins changés
+     */
+    private function reroute(OctilinearRouter $router, array &$routes): int
+    {
+        $changed = 0;
+        for ($round = 0; $round < $this->options->rerouteRounds; $round++) {
+            $before = $changed;
+            foreach ($routes as $k => [$guide, $startBearing, $endBearing, $corners]) {
+                if ($router->conflicts($corners) === 0) {
+                    continue;
+                }
+                $new = $router->reroute($corners, $guide, $startBearing, $endBearing, $k);
+                if ($new !== $corners) {
+                    $routes[$k][3] = $new;
+                    $changed++;
+                }
+            }
+            if ($changed === $before) {
+                break;
+            }
+        }
+
+        return $changed;
+    }
+
+    /**
+     * Paires d'axes dont les voies se croisent sur le terrain ailleurs qu'à un nœud qu'ils partagent
+     * (pont, saut-de-mouton) : tracés réels (positions du plan, loupes comprises) simplifiés comme
+     * les guides du routage, coupés deux à deux. Le routeur les laisse se croiser à moindre coût.
+     *
+     * @param  list<array<string, mixed>>  $corridors
+     * @param  array<int, array{0: float, 1: float}>  $placePos
+     * @return array<int, array<int, true>>
+     */
+    private function realCrossings(array $corridors, array $placePos): array
+    {
+        $cell = $this->options->cellM;
+        $size = 4 * $cell;
+        $segments = [];
+        $buckets = [];
+        foreach ($corridors as $k => $c) {
+            $line = [$placePos[$c['a']]];
+            foreach ($c['pts'] as $pt) {
+                $line[] = [$pt['x'], $pt['y']];
+            }
+            $line[] = $placePos[$c['b']];
+            $line = self::simplify($line, $this->options->guideTolerance * $cell);
+            $n = count($line);
+            for ($s = 1; $s < $n; $s++) {
+                $id = count($segments);
+                $segments[] = [$k, $line[$s - 1], $line[$s]];
+                [$ax, $ay] = $line[$s - 1];
+                [$bx, $by] = $line[$s];
+                for ($i = (int) floor(min($ax, $bx) / $size); $i <= (int) floor(max($ax, $bx) / $size); $i++) {
+                    for ($j = (int) floor(min($ay, $by) / $size); $j <= (int) floor(max($ay, $by) / $size); $j++) {
+                        $buckets[$i][$j][] = $id;
+                    }
+                }
+            }
+        }
+        $pairs = [];
+        foreach ($buckets as $column) {
+            foreach ($column as $ids) {
+                $n = count($ids);
+                for ($p = 0; $p < $n; $p++) {
+                    [$k1, $a1, $b1] = $segments[$ids[$p]];
+                    for ($q = $p + 1; $q < $n; $q++) {
+                        [$k2, $a2, $b2] = $segments[$ids[$q]];
+                        if ($k1 === $k2 || isset($pairs[$k1][$k2])) {
+                            continue;
+                        }
+                        $hit = self::intersection($a1, $b1, $a2, $b2);
+                        if ($hit === null) {
+                            continue;
+                        }
+                        // Contact à un nœud partagé : une jonction, pas un croisement.
+                        $shared = array_intersect([$corridors[$k1]['a'], $corridors[$k1]['b']], [$corridors[$k2]['a'], $corridors[$k2]['b']]);
+                        if (array_any($shared, fn (int $place): bool => hypot($hit[0] - $placePos[$place][0], $hit[1] - $placePos[$place][1]) < $cell)) {
+                            continue;
+                        }
+                        $pairs[$k1][$k2] = true;
+                        $pairs[$k2][$k1] = true;
+                    }
+                }
+            }
+        }
+
+        return $pairs;
+    }
+
+    /**
+     * Point de rencontre de deux segments, ou null.
+     *
+     * @param  array{0: float, 1: float}  $p
+     * @param  array{0: float, 1: float}  $p2
+     * @param  array{0: float, 1: float}  $q
+     * @param  array{0: float, 1: float}  $q2
+     * @return array{0: float, 1: float}|null
+     */
+    private static function intersection(array $p, array $p2, array $q, array $q2): ?array
+    {
+        $rx = $p2[0] - $p[0];
+        $ry = $p2[1] - $p[1];
+        $sx = $q2[0] - $q[0];
+        $sy = $q2[1] - $q[1];
+        $den = $rx * $sy - $ry * $sx;
+        if (abs($den) < 1e-9) {
+            return null;
+        }
+        $qx = $q[0] - $p[0];
+        $qy = $q[1] - $p[1];
+        $t = ($qx * $sy - $qy * $sx) / $den;
+        $u = ($qx * $ry - $qy * $rx) / $den;
+        if ($t < 0 || $t > 1 || $u < 0 || $u > 1) {
+            return null;
+        }
+
+        return [$p[0] + $t * $rx, $p[1] + $t * $ry];
+    }
+
+    /**
+     * Tronçons isolés du plan : composantes reliées par les axes, hors de la plus grande.
+     *
+     * @param  list<array<string, mixed>>  $corridors
+     */
+    private static function isolatedCount(array $corridors): int
+    {
+        $uf = new ConnectedComponents;
+        foreach ($corridors as $c) {
+            $uf->link($c['a'], $c['b']);
+        }
+
+        return max(0, $uf->count() - 1);
     }
 
     /**

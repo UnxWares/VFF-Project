@@ -48,6 +48,84 @@ export const SCHEMA_PALETTES = {
 export const LABEL_MIN_ZOOM = [0, 6.3, 7.6, 9.2];
 
 /**
+ * Zoom à partir duquel un nœud de ville (niveaux 0 et 1) porte le nom de sa gare (« Nantes-Legé »)
+ * plutôt que celui de la ville (« Nantes », `city_label`) : celui où les noms des gares apparaissent
+ * (SchematicLabels::STATION_NAMES_ZOOM).
+ */
+export const STATION_NAMES_ZOOM = LABEL_MIN_ZOOM[2];
+
+/**
+ * Côtés possibles d'un nom autour de son point, dans l'ordre habituel, avec leur décalage en em
+ * (ancrages MapLibre : `left` pose le début du texte sur le point, donc le nom à droite). Le serveur
+ * classe pour chaque gare les côtés qui recouvrent le moins d'axes (`label_anchors`, les quatre
+ * meilleurs : App\Services\Schematic\SchematicLabels, mêmes valeurs) ; MapLibre les essaie dans
+ * cet ordre, puis les autres dans l'ordre habituel, et passe au suivant quand une autre étiquette
+ * occupe déjà la place.
+ *
+ * @type {[string, [number, number]][]}
+ */
+export const LABEL_ANCHORS = [
+    ['left', [0.7, 0]],
+    ['right', [-0.7, 0]],
+    ['top', [0, 0.6]],
+    ['bottom', [0, -0.6]],
+    ['top-left', [0.5, 0.4]],
+    ['top-right', [-0.5, 0.4]],
+    ['bottom-left', [0.5, -0.4]],
+    ['bottom-right', [-0.5, -0.4]],
+];
+
+/**
+ * Liste « ancrage, décalage » de `text-variable-anchor-offset` : les côtés de `first` dans leur
+ * ordre (inconnus ignorés), puis les autres dans l'ordre habituel.
+ *
+ * @param {string[]} [first]
+ */
+export function anchorOffsets(first = []) {
+    const offsets = new Map(LABEL_ANCHORS);
+    const order = [...new Set(first.filter((anchor) => offsets.has(anchor)))];
+    for (const [anchor] of LABEL_ANCHORS) if (!order.includes(anchor)) order.push(anchor);
+    return order.flatMap((anchor) => [anchor, offsets.get(anchor)]);
+}
+
+/**
+ * Ajoute à chaque gare du plan la liste de ses côtés pour MapLibre (`label_offsets`, tirée de
+ * `label_anchors`). Modifie le plan reçu et le renvoie.
+ *
+ * @template {{ features?: { properties?: Record<string, any> }[] } | null} T
+ * @param {T} data
+ * @returns {T}
+ */
+export function withLabelOffsets(data) {
+    for (const feature of data?.features ?? []) {
+        const props = feature.properties;
+        if (props?.kind === 'station')
+            props.label_offsets = anchorOffsets(props.label_anchors ?? []);
+    }
+    return data;
+}
+
+/** Expression MapLibre : côtés essayés pour le nom d'une gare, dans l'ordre choisi par le serveur. */
+export function labelAnchorExpr() {
+    return ['coalesce', ['get', 'label_offsets'], ['literal', anchorOffsets()]];
+}
+
+/**
+ * Texte d'une étiquette : le nom de la ville sur un nœud de ville (niveaux 0 et 1) tant que le plan
+ * montre la France ou une région, puis celui de la gare.
+ */
+export function labelTextExpr(tier) {
+    if (tier >= 2) return ['get', 'name'];
+    return [
+        'step',
+        ['zoom'],
+        ['coalesce', ['get', 'city_label'], ['get', 'name']],
+        STATION_NAMES_ZOOM,
+        ['get', 'name'],
+    ];
+}
+
+/**
  * Plan étroit (téléphone, moins de NARROW_PX de large) : la France entière y tient en 300 px, trop peu
  * pour les noms des grandes villes, coupés au bord ; ils viennent au premier zoom (NARROW_LABEL_ZOOM).
  */
@@ -159,7 +237,9 @@ export function selectedFilter(lineId) {
 
 /**
  * Couches MapLibre du plan, de bas en haut : liseré, ligne choisie, axes, traits des gares
- * intermédiaires, nœuds (cercles), noms par niveau d'importance.
+ * intermédiaires, nœuds (cercles), noms du niveau le moins important au plus important. MapLibre
+ * place d'abord les étiquettes du calque le plus haut : les grandes villes passent avant les petites
+ * gares quand deux noms se disputent la même place.
  *
  * @param {{ dark: boolean, hidden?: string[], selected?: number | null, width?: number }} options
  *   `width` : largeur du plan en pixels (noms des grandes villes, cityLabelMinZoom)
@@ -174,7 +254,8 @@ export function schematicLayers({ dark, hidden = [], selected = null, width = 12
         'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 4, 1.2, 9, 2],
     };
     // Un calque de nœuds par niveau : tier 0 (grandes villes) partout, les suivants en zoomant ; le
-    // dernier regroupe tous les autres nœuds (étiquettes de niveau 2 et 3).
+    // dernier regroupe tous les autres nœuds (étiquettes de niveau 2 et 3). Une ville nommée (niveaux
+    // 0 et 1) a son cercle même quand sa gare est une gare intermédiaire de l'axe (Toulon, Caen).
     const nodeLayers = NODE_MIN_ZOOM.map((minzoom, level) => ({
         id: SCHEMA_NODE_LAYERS[level],
         type: 'circle',
@@ -183,7 +264,7 @@ export function schematicLayers({ dark, hidden = [], selected = null, width = 12
         filter: [
             'all',
             isStation,
-            ['!=', ['get', 'role'], 'stop'],
+            ['any', ['!=', ['get', 'role'], 'stop'], ['<', ['get', 'tier'], 2]],
             ['get', 'main'],
             level < NODE_MIN_ZOOM.length - 1
                 ? ['==', ['get', 'tier'], level]
@@ -198,11 +279,10 @@ export function schematicLayers({ dark, hidden = [], selected = null, width = 12
         minzoom: tier === 0 ? cityLabelMinZoom(width) : minzoom,
         filter: ['all', isStation, ['==', ['get', 'tier'], tier]],
         layout: {
-            'text-field': ['get', 'name'],
+            'text-field': labelTextExpr(tier),
             'text-font': [tier < 2 ? 'Noto Sans Bold' : 'Noto Sans Regular'],
             'text-size': tier < 2 ? 14 : 13,
-            'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
-            'text-radial-offset': 0.7,
+            'text-variable-anchor-offset': labelAnchorExpr(),
             'text-justify': 'auto',
             'text-max-width': 12,
             'symbol-sort-key': ['-', 0, ['get', 'rank']],
@@ -250,7 +330,13 @@ export function schematicLayers({ dark, hidden = [], selected = null, width = 12
             type: 'symbol',
             source: SCHEMA_SOURCE,
             minzoom: STOP_MIN_ZOOM,
-            filter: ['all', isStation, ['==', ['get', 'role'], 'stop'], ['get', 'main']],
+            filter: [
+                'all',
+                isStation,
+                ['==', ['get', 'role'], 'stop'],
+                ['get', 'main'],
+                ['>=', ['get', 'tier'], 2],
+            ],
             layout: {
                 'icon-image': SCHEMA_TICK_IMAGE,
                 // Trait perpendiculaire à l'axe : `angle` est compté depuis l'est, sens direct ;
@@ -273,7 +359,7 @@ export function schematicLayers({ dark, hidden = [], selected = null, width = 12
             },
         },
         ...nodeLayers,
-        ...labelLayers,
+        ...labelLayers.reverse(),
     ];
 }
 

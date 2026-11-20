@@ -47,9 +47,23 @@ class SchematicMapController extends Controller
      *   dans le plan : `role` (`stop` gare intermédiaire, `hub` nœud d'au moins trois axes, `end`
      *   terminus), `main` (vrai pour la gare qui nomme son nœud ; les autres gares fondues dans le
      *   même nœud sont au même point), `angle` (direction de l'axe en degrés, 0 = est, 90 = nord : une gare intermédiaire se dessine
-     *   en trait perpendiculaire), `rank` (importance : population de la commune, rôle) et `tier`
-     *   (niveau d'étiquette : 0 pour les 24 premières villes, une gare par commune, 1 jusqu'à 120,
-     *   2 jusqu'à 600, 3 pour les autres).
+     *   en trait perpendiculaire), `rank` (importance : population de la commune, gare principale,
+     *   rôle) et `tier` (niveau d'étiquette : 0 pour 24 villes, les plus peuplées, à 80 km au moins
+     *   l'une de l'autre sur le plan ; 1 pour 96 villes de plus, à 30 km au moins ; une gare par
+     *   commune à ces deux niveaux ; 2 jusqu'à 600 gares ; 3 pour les autres).
+     *   `city_label` : pour la gare qui représente sa ville aux niveaux 0 et 1 (sa gare principale :
+     *   nom de la ville seul ou suivi de « Ville » ou « Centre », sinon nom qui commence par celui de
+     *   la ville), le nom de la commune, à afficher tant que le plan montre la France ou une région
+     *   (la vue ferroviaire passe au nom de la gare à partir du zoom 7,6) ; `null` pour les autres.
+     *   `label_anchors` : les quatre côtés où poser le nom, du meilleur au moins bon, ceux qui
+     *   recouvrent le moins d'axes (ancrages de `text-variable-anchor-offset` de MapLibre : `left`
+     *   pose le début du texte sur le point, donc le nom à droite ; aussi `right`, `top`, `bottom`,
+     *   `top-left`, `top-right`, `bottom-left`, `bottom-right`).
+     *
+     * Une ligne qu'aucune voie en service ne relie au reste du réseau à l'ère (souvent un train
+     * touristique, ou la Corse) est dessinée à sa place, sans raccord ; une telle ligne sans gare et
+     * de moins de 5 km n'est pas dessinée. Une voie qui s'arrête à moins de 0,45 pas de grille d'un
+     * nœud du réseau y est raccordée (lacune des données, invisible à l'échelle du plan).
      *
      * **Autres membres** : `era`, `is_current` (vrai pour le réseau d'aujourd'hui), `graph_built_at`,
      * `grid_m`, `summary` (`km` : longueur des voies en service du graphe par catégorie, en km
@@ -87,7 +101,7 @@ class SchematicMapController extends Controller
         'is_current' => false,
         'graph_built_at' => '2026-10-20T16:01:45+02:00',
         'grid_m' => 6000,
-        'summary' => ['km' => ['freight' => 168, 'mixed' => 58193, 'unknown' => 258], 'stations' => 8295, 'axes' => 2649, 'lines' => 1236],
+        'summary' => ['km' => ['freight' => 168, 'mixed' => 58193, 'unknown' => 258], 'stations' => 8295, 'axes' => 2649, 'lines' => 1235],
         'lines' => [
             '183' => [
                 'slug' => 'rfn-570000', 'name' => 'Ligne de Paris-Austerlitz à Bordeaux-St-Jean', 'code' => '570000',
@@ -106,7 +120,7 @@ class SchematicMapController extends Controller
                 'properties' => [
                     'kind' => 'station', 'id' => 16620, 'slug' => 'orleans', 'name' => 'Orléans', 'city' => 'Orléans',
                     'department_code' => '45', 'status' => 'active', 'role' => 'hub', 'main' => true, 'angle' => 0,
-                    'rank' => 65, 'tier' => 1,
+                    'rank' => 69, 'tier' => 1, 'city_label' => 'Orléans', 'label_anchors' => ['left', 'top-right', 'top-left', 'right'],
                 ],
             ],
         ],
