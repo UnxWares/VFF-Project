@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Facades\DB;
+
 /**
  * Tuiles vectorielles (MVT) de VFF : zoom servi et simplification des tracés pour l'affichage.
  *
@@ -12,12 +14,15 @@ namespace App\Support;
  * Chaque tracé (ère, comparaison de deux ères, superposition des ères, signalisation) est découpé dans la
  * grille de la tuile (ST_AsMVTGeom, 4 096 unités de côté : 153 m au zoom 6, 9,6 m au zoom 10, 0,6 m au
  * zoom 14, en mètres Web Mercator). À partir du zoom SIMPLIFIED_FROM, il est d'abord simplifié
- * (Douglas-Peucker, ST_Simplify) :
- *   - zooms 10 à 13 : tolérance d'un demi-pixel d'écran. MapLibre affiche une tuile de 512 pixels du zoom
- *     z au zoom z + 1, où cet écart vaut au plus un pixel ;
- *   - zoom 14 : tolérance d'une unité de la grille de la tuile (environ 0,6 m en Web Mercator, 0,4 m sur
- *     le terrain en France), la précision que la tuile a déjà. Une tolérance plus forte se verrait quand
- *     MapLibre agrandit la tuile 14 aux zooms 16 et plus.
+ * (Douglas-Peucker, ST_Simplify) à une unité de cette grille (9,6 m au zoom 10, 1,2 m au zoom 13, 0,6 m
+ * au zoom 14, soit 0,4 m sur le terrain en France) : la précision que la tuile a déjà.
+ *
+ * Jusqu'au 20/11/2026, les zooms 10 à 13 l'étaient à un demi-pixel d'écran (4,8 m au zoom 13). Les
+ * courbes y devenaient des cordes de 140 à 230 m coudées de 19 à 27° (mesuré sur la ligne des Cévennes
+ * vers Villefort et vers Chamonix), visibles en zoomant entre les zooms 10 et 14. Une unité de la grille
+ * garde les coudes du tracé lui-même, pour 6 à 12 % de poids en plus sur ces tuiles. La tuile 14 reste
+ * la plus précise servie : elle seule borne ce qu'on peut extraire des tuiles.
+ *
  * Sous le zoom 10, la grille suffit : à ces échelles, les tracés comptent des dizaines de sommets par
  * pixel, que MapLibre dessine plus épais. Simplifiés, même d'une seule unité de la grille, ils
  * retrouvent leur largeur nominale et la carte de la France entière change d'aspect (mesuré le
@@ -35,13 +40,10 @@ final class MapTiles
      * Version de la géométrie des tuiles, dans les clés du cache serveur (superposition des ères,
      * signalisation) : à changer quand la géométrie change, pour que les tuiles gardées soient recalculées.
      */
-    public const FORMAT = 2;
+    public const FORMAT = 3;
 
     /** Côté d'une tuile MVT, en unités de la grille (ST_AsMVTGeom). */
     public const EXTENT = 4096;
-
-    /** Côté d'une tuile vectorielle affichée par MapLibre, en pixels. */
-    private const TILE_PX = 512;
 
     /** Circonférence de la Terre à l'équateur en Web Mercator (EPSG:3857), en mètres : côté de la tuile 0. */
     private const WORLD_M = 40_075_016.686;
@@ -61,9 +63,8 @@ final class MapTiles
         if ($z < self::SIMPLIFIED_FROM) {
             return null;
         }
-        $tileM = self::WORLD_M / (2 ** $z);
 
-        return $z >= self::MAX_ZOOM ? $tileM / self::EXTENT : $tileM / self::TILE_PX / 2;
+        return self::WORLD_M / (2 ** $z) / self::EXTENT;
     }
 
     /**
@@ -77,5 +78,22 @@ final class MapTiles
         $tolerance = self::tolerance($z);
 
         return $tolerance === null ? $mercator : sprintf('ST_Simplify(%s, %.6F, true)', $mercator, $tolerance);
+    }
+
+    /**
+     * Exécute la requête d'une tuile (une ligne, colonne `tile`) et renvoie la tuile, sans compilation
+     * JIT de PostgreSQL. Le planificateur la déclenche sur les tuiles des petits zooms (des milliers de
+     * tracés) : 0,66 s de compilation pour une tuile qui s'exécute en 0,5 s (mesuré le 20/11/2026 sur la
+     * tuile 4/8/5 de l'ère actuelle). `SET LOCAL` ne vaut que pour la transaction de la tuile.
+     *
+     * @param  array<string, mixed>  $bindings
+     */
+    public static function query(string $sql, array $bindings): string
+    {
+        return DB::transaction(function () use ($sql, $bindings): string {
+            DB::statement('SET LOCAL jit = off');
+
+            return MvtBytes::from(DB::selectOne($sql, $bindings)?->tile);
+        });
     }
 }

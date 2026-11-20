@@ -94,13 +94,16 @@
         greenwayPopupHtml,
         greenwayTilesUrl,
     } from '$lib/greenwayMap.js';
+    // Gares : fichier de l'époque demandé seulement en approchant du zoom où elles se dessinent.
+    import { STATIONS_MIN_ZOOM, noStations, stationsToLoad } from '$lib/mapStations.js';
 
     /**
      * Composant carte interactive du réseau ferré VFF.
      *
      * Consomme les endpoints :
      *   GET /api/v1/eras/{era}/tiles/{z}/{x}/{y}.mvt   → tracés (couche `vff-lines`)
-     *   GET /api/v1/eras/{era}/stations.geojson        → gares (couche `vff-stations`)
+     *   GET /api/v1/eras/{era}/stations.geojson        → gares (couche `vff-stations`,
+     *                                                     chargée à l'approche du zoom 7, $lib/mapStations.js)
      *
      * Fond cartographique :
      *   - Si VITE_MAPTILER_KEY défini : MapTiler Basic (vectoriel)
@@ -464,6 +467,19 @@
         return `${TILES_BASE}/${year}/stations.geojson${bustParam()}`;
     }
 
+    // Dernier fichier des gares posé sur la source `vff-stations` (adresse), null tant qu'aucun.
+    let stationsLoaded = null;
+
+    // Pose le fichier des gares de l'époque `year` si la carte est assez proche et qu'il manque.
+    function syncStations(year = era) {
+        const source = map?.getSource('vff-stations');
+        if (!source) return;
+        const url = stationsToLoad(map.getZoom(), stationsUrlForEra(year), stationsLoaded);
+        if (!url) return;
+        stationsLoaded = url;
+        source.setData(url);
+    }
+
     function addVffLayers(year) {
         // ── Source tracés (MVT) ───────────────────────────────────────────
         map.addSource('vff-lines', {
@@ -473,11 +489,9 @@
             maxzoom: 14,
         });
 
-        // ── Source gares (GeoJSON) ────────────────────────────────────────
-        map.addSource('vff-stations', {
-            type: 'geojson',
-            data: stationsUrlForEra(year),
-        });
+        // ── Source gares (GeoJSON) : vide jusqu'à l'approche du zoom des gares ──
+        map.addSource('vff-stations', { type: 'geojson', data: noStations() });
+        syncStations(year);
 
         // ── Halo « campagne de réouverture » soutenue par VFF ──────────────
 
@@ -630,7 +644,7 @@
             id: 'vff-stations-points',
             type: 'circle',
             source: 'vff-stations',
-            minzoom: 7,
+            minzoom: STATIONS_MIN_ZOOM,
             paint: {
                 'circle-radius': [
                     'interpolate',
@@ -777,7 +791,7 @@
         setTimeout(() => {
             if (!map) return;
             map.getSource('vff-lines')?.setTiles([tilesUrlForEra(year)]);
-            map.getSource('vff-stations')?.setData(stationsUrlForEra(year));
+            syncStations(year);
             // Halos de campagne : seulement à la décennie actuelle.
             map.setFilter('vff-lines-threatened', buildThreatenedFilter(year));
             map.setFilter('vff-lines-reopening', buildReopeningFilter(year));
@@ -993,6 +1007,7 @@
             applyLevelCrossings(levelCrossings);
             applySignalling(signalling, signallingYear);
             applyGreenways(greenways);
+            map.on('zoomend', () => syncStations());
             if (typeof onZoomChange === 'function') {
                 onZoomChange(map.getZoom());
                 map.on('zoomend', () => onZoomChange(map.getZoom()));

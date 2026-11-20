@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Enums\EraChange;
 use App\Support\MapTiles;
-use App\Support\MvtBytes;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -95,13 +94,14 @@ class EraComparison
     {
         $pairs = $this->pairsSql('AND ls.geom && bounds.env_4326');
         $geom = MapTiles::displaySql('c.geom', $z);
-        $result = DB::selectOne(<<<SQL
+
+        return MapTiles::query(<<<SQL
             WITH bounds AS (
                 SELECT ST_TileEnvelope(:z, :x, :y) AS env_3857,
                        ST_Transform(ST_TileEnvelope(:z, :x, :y), 4326) AS env_4326
             ),
             {$pairs},
-            mvt_layer AS (
+            mvt_layer AS MATERIALIZED (
                 SELECT c.change,
                        l.slug AS line_slug,
                        l.name AS line_name,
@@ -114,8 +114,6 @@ class EraComparison
             )
             SELECT ST_AsMVT(mvt_layer.*, 'vff-compare') AS tile FROM mvt_layer WHERE geom IS NOT NULL
         SQL, ['from' => $fromEraId, 'to' => $toEraId, 'z' => $z, 'x' => $x, 'y' => $y]);
-
-        return MvtBytes::from($result->tile ?? '');
     }
 
     /** @return array{changes: array<string, array{km: int, lines: int}>, open_km: array{from: int, to: int}, sources: list<string|null>} */

@@ -187,8 +187,8 @@ return [
             par source, ou HTTP 451 quand rien n'est exportable. Les tuiles vectorielles (MVT) servent à
             l'affichage de la carte du site et de la carte intégrable : elles ne sont pas un export de
             données. Elles s'arrêtent au zoom 14, comme la carte ; leurs coordonnées sont arrondies à la
-            grille de la tuile et, à partir du zoom 10, les tracés sont simplifiés pour l'écran (un
-            demi-pixel aux zooms 10 à 13, une unité de la grille, environ 0,4 m sur le terrain, au zoom 14).
+            grille de la tuile et, à partir du zoom 10, les tracés sont simplifiés pour l'écran à une unité de
+            cette grille (9,6 m au zoom 10, environ 0,4 m sur le terrain au zoom 14).
             Chaque fichier porte la mention de la base VFF et celle de chaque source utilisée.
             Chaque média porte sa propre licence et son attribution.
 

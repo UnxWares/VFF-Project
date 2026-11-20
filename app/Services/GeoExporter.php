@@ -109,13 +109,16 @@ class GeoExporter
         $parts = TrackPriority::partsJoinSql('ls');
         // Tracés simplifiés à la tolérance d'affichage du zoom à partir du zoom 10 (MapTiles), puis découpés dans la tuile.
         $geom = MapTiles::displaySql('part.g', $z);
-        $result = DB::selectOne(<<<SQL
+
+        // MATERIALIZED : sans lui, PostgreSQL recopie ST_AsMVTGeom dans le filtre `geom IS NOT NULL` et
+        // découpe chaque tracé deux fois (10 % du temps de la tuile du zoom 4).
+        return MapTiles::query(<<<SQL
             WITH bounds AS (
                 SELECT
                     ST_TileEnvelope(:z, :x, :y) AS env_3857,
                     ST_Transform(ST_TileEnvelope(:z, :x, :y), 4326) AS env_4326
             ),
-            mvt_layer AS (
+            mvt_layer AS MATERIALIZED (
                 SELECT
                     ls.id,
                     ls.line_id,
@@ -181,16 +184,6 @@ class GeoExporter
             'x' => $x,
             'y' => $y,
         ]);
-
-        $tile = $result?->tile ?? '';
-
-        // PostgreSQL bytea peut être retourné comme resource (stream) ou string
-        // selon la config du driver. On normalise en string binaire.
-        if (is_resource($tile)) {
-            $tile = stream_get_contents($tile) ?: '';
-        }
-
-        return $tile;
     }
 
     /**
