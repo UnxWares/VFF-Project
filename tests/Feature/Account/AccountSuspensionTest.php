@@ -386,7 +386,8 @@ class AccountSuspensionTest extends TestCase
 
     public function test_search_matches_name_or_email_and_treats_wildcards_literally(): void
     {
-        $admin = $this->member('admin');
+        // Nom et adresse fixés : la fabrique tire des noms français, et un « Dupont » au hasard donnait deux résultats.
+        $admin = $this->member('admin', ['name' => 'Administratrice', 'email' => 'admin@vff.test']);
         $this->member('contributor', ['name' => 'Jean Dupont', 'email' => 'jd@exemple.fr']);
         $this->member('contributor', ['name' => 'Marie Curie', 'email' => 'mc@labo.fr']);
 
