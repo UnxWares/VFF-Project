@@ -175,4 +175,96 @@ return [
         'quote' => 'Le 22 septembre 1884, la Compagnie du PO est autorisée à ouvrir à l\'exploitation les 66,101 kilomètres de la section située entre La Châtre et Montluçon.',
         'reason' => 'ouverture de la seconde section de la ligne (infobox : mise en service 1882 et 1884)',
     ],
+
+    // Cohérence gares et lignes (chantier « coherence-gares-lignes », 21/11/2026, rapport
+    // storage/app/reports/agents/aprem-2111/coherence-gares-lignes.md). 598000 Port-de-Piles - Argenton-sur-Creuse :
+    // les deux fins du fret de la partie nord n'avaient pas de portion résolue (« La Haye - Descartes », « Tournon »
+    // ne sont pas les noms des gares), le fret du Grand-Pressigny (jusqu'en 2005) n'était porté par aucun événement placé.
+    [
+        'line' => '598000',
+        'action' => 'relocate',
+        'match' => ['source' => 'wikipedia', 'type' => 'closure_freight', 'date' => '2005-01-01'],
+        'from' => 'La Haye-Descartes',
+        'to' => 'Tournon-St-Martin',
+        'pk_start' => 289220,
+        'pk_end' => 331652,
+        'source_url' => $wp('Ligne de Port-de-Piles à Argenton-sur-Creuse', 224232794),
+        'quote' => 'En 2005, le trafic fret cesse entre La Haye - Descartes et Tournon',
+        'reason' => 'fin du fret de La Haye-Descartes (PK 289,220, où commence la partie fermée selon l\'article) à Tournon-Saint-Martin (PK 331,652, début de la partie déclassée en 1970)',
+    ],
+    [
+        'line' => '598000',
+        'action' => 'relocate',
+        'match' => ['source' => 'wikipedia', 'type' => 'closure_freight', 'date' => '1970-01-01'],
+        'from' => 'Tournon-St-Martin',
+        'to' => 'Le Blanc',
+        'pk_start' => 331652,
+        'pk_end' => 347094,
+        'source_url' => $wp('Ligne de Port-de-Piles à Argenton-sur-Creuse', 224232794),
+        'quote' => 'La ligne a été déclassée entre Tournon-Saint-Martin et Le Blanc (PK 331,652 à 347,094), le 29 octobre 1970',
+        'reason' => 'fin du fret de Tournon-Saint-Martin au Blanc, portion du déclassement de la même année (PK 331,652 à 347,094)',
+    ],
+
+    // Ligne de Nizan à Luxey (id 3873) : « la totalité de la ligne le 31 décembre 1954 » clôt la liste des fermetures
+    // aux voyageurs ; le fret continue de Saint-Symphorien à Luxey jusqu'au 31/12/1970 (déjà en base). Lue comme
+    // fermeture à tout trafic, elle fermait la ligne à Luxey seize ans trop tôt (fret de la gare jusqu'en 1970).
+    [
+        'line' => '3873',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'closure', 'date' => '1954-12-31'],
+        'label' => 'Fin du service des voyageurs sur toute la ligne',
+        'source_url' => $wp('Ligne du Nizan à Luxey', 221704329),
+        'quote' => 'La fermeture du service des voyageurs est effectuée par section en 1950 et 1954',
+        'reason' => 'fin des voyageurs (dernier tronçon Sore - Luxey), pas de tout trafic : le fret de Saint-Symphorien à Luxey dure jusqu\'au 31 décembre 1970',
+    ],
+    [
+        'line' => '3873',
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1954-12-31',
+        'precision' => 'day',
+        'from' => 'Sore',
+        'to' => 'Luxey',
+        'source_url' => $wp('Ligne du Nizan à Luxey', 221704329),
+        'quote' => 'la totalité de la ligne le 31 décembre 1954 avec la fermeture du dernier tronçon entre Sore et Luxey',
+        'reason' => 'fin du service des voyageurs du dernier tronçon, le fret continue',
+    ],
+
+    // Ligne d'Achiet à Marcoing (id 3374) : en 1969 les voyageurs passent sur route et la ligne ferme de Bapaume à
+    // Marcoing, mais Achiet - Bapaume reste ouverte au fret (GIE Exploitation ferroviaire de Bapaume) jusqu'en 1999.
+    // La fermeture OHM (tracé d'Achiet à Marcoing) fermait aussi Achiet - Bapaume en 1969.
+    [
+        'line' => '3374',
+        'action' => 'relocate',
+        'match' => ['source' => 'ohm', 'type' => 'closure', 'date' => '1969-01-01'],
+        'from' => 'Bapaume',
+        'to' => 'Marcoing',
+        'source_url' => $wp('Gare de Bapaume', 238680685),
+        'quote' => 'sur la seule section de ligne restant ouverte entre Achiet et Bapaume',
+        'reason' => 'en 1969 seule la partie Bapaume - Marcoing ferme à tout trafic ; Achiet - Bapaume reste au fret',
+    ],
+    [
+        'line' => '3374',
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1969-01-01',
+        'precision' => 'year',
+        'from' => 'Achiet',
+        'to' => 'Bapaume',
+        'source_url' => $wp('Gare de Bapaume', 238680685),
+        'quote' => 'Cette dernière transfère le service voyageurs sur route en 1969.',
+        'reason' => 'fin des voyageurs d\'Achiet à Bapaume, la section reste au fret',
+    ],
+    [
+        'line' => '3374',
+        'action' => 'add',
+        'type' => 'closure',
+        'date' => '1999-01-01',
+        'precision' => 'year',
+        'from' => 'Achiet',
+        'to' => 'Bapaume',
+        'source_url' => $wp('Gare de Bapaume', 238680685),
+        'quote' => 'Ce dernier exploitant cesse le trafic ferroviaire en 1999.',
+        'reason' => 'fin du trafic ferroviaire (fret du GIE Exploitation ferroviaire de Bapaume) d\'Achiet à Bapaume',
+    ],
 ];

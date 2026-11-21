@@ -90,9 +90,18 @@ final class StationTimeline
                     if (! $existsToday && ! $hasSequel) {
                         $exists = false;
                     }
+                    // Fret déjà fermé : plus aucun trafic, comme une fermeture totale.
+                    if (! $freight) {
+                        $exists = $existsToday || $reopensLater;
+                    }
                     break;
                 case 'closure_freight':
                     $freight = false;
+                    // Fin du fret après celle des voyageurs (Livarot : 1938 puis 30/09/1990) : plus
+                    // aucun trafic, la gare est fermée, et une gare disparue sort de la carte.
+                    if (! $passenger) {
+                        $exists = $existsToday || $reopensLater;
+                    }
                     break;
                 case 'closure':
                     [$passenger, $freight] = [false, false];
@@ -545,34 +554,63 @@ final class StationTimeline
     private const MASS_SOURCES = ['wikidata', 'osm', 'osm:note'];
 
     /**
-     * Gare fret seul aujourd'hui : une « fermeture » Wikidata / OSM (P3999 sans
-     * qualificatif de trafic) de la même année (à un an près) qu'une fermeture
-     * aux voyageurs d'une source plus sûre est la fin du service voyageurs, pas
-     * une fermeture totale (le fret a continué : Aniche 1992, Lumbres
-     * 15/07/1959, Baud 02/10/1949…). Sans cette règle, la frise montrait la
-     * gare fermée de cette date à 2020, puis « fret seul » en 2030. Retypée en
-     * closure_passenger (dedupeClosures garde ensuite la source la plus sûre).
-     * Une fermeture totale d'une source plus sûre (Paris-Tolbiac, démolie en
-     * 2001) empêche la règle.
+     * Sources en masse dont une fermeture peut être la fin des voyageurs quand une source mieux
+     * classée date le fret plus tard : celles de MASS_SOURCES, plus OHM (fin d'un objet sans portée).
+     */
+    private const MASS_SOURCES_FREIGHT_LATER = ['wikidata', 'osm', 'osm:note', 'ohm'];
+
+    /**
+     * Une « fermeture » Wikidata / OSM (P3999 sans qualificatif de trafic) de la
+     * même année (à un an près) qu'une fermeture aux voyageurs d'une source plus
+     * sûre est la fin du service voyageurs, pas une fermeture totale, dans deux cas :
+     *
+     * 1. gare fret seul aujourd'hui ($freightToday) : le fret a continué (Aniche
+     *    1992, Lumbres 15/07/1959, Baud 02/10/1949…). Sans cette règle, la frise
+     *    montrait la gare fermée de cette date à 2020, puis « fret seul » en 2030 ;
+     * 2. gare fermée ou disparue, quand une source plus sûre date aussi la fin du
+     *    fret (ou la fermeture totale) une année postérieure (Livarot : voyageurs
+     *    1938, marchandises 30/09/1990 selon l'infobox ; Wikidata « fermée en
+     *    1938 »). OHM compte ici comme source en masse (Pouilly-sous-Charlieu,
+     *    fin de l'objet le 20/05/1940, fret jusqu'en 2005), et une « démolition »
+     *    Wikidata (P576) de la même année aussi (Le Lion-d'Or, P576 = 1938, fret
+     *    jusqu'au 03/11/1969). Règle du 21/11/2026, qui remplace les corrections
+     *    une à une de la section 9 de gares_corrections.php.
+     *
+     * Retypée en closure_passenger (dedupeClosures garde ensuite la source la
+     * plus sûre). Une fermeture totale d'une source plus sûre de la même année
+     * (Paris-Tolbiac, démolie en 2001) empêche la règle. Les fins de desserte
+     * des lignes (candidats « line » de resolveClosure) ne comptent pas : seules
+     * les dates de la gare elle-même.
      *
      * @param  array<int, array<string, mixed>>  $events
      * @return array<int, array<string, mixed>>
      */
     public static function massClosureAsPassenger(array $events, bool $freightToday): array
     {
-        if (! $freightToday) {
-            return $events;
-        }
         $year = fn (array $e) => (int) substr((string) $e['date'], 0, 4);
+        $own = fn (array $x) => ! ($x['inferred'] ?? false) && ! ($x['line'] ?? false);
         foreach ($events as $i => $e) {
-            if ($e['type'] !== 'closure' || ($e['inferred'] ?? false) || ! in_array($e['source'] ?? null, self::MASS_SOURCES, true)) {
+            if (! $own($e)) {
                 continue;
             }
-            $rank = self::sourceRank($e['source']);
-            $better = fn (array $x, array $types) => in_array($x['type'], $types, true) && ! ($x['inferred'] ?? false)
-                && self::sourceRank($x['source'] ?? null) < $rank && abs($year($x) - $year($e)) <= 1;
-            if (array_filter($events, fn ($x) => $better($x, ['closure_passenger'])) !== []
-                && array_filter($events, fn ($x) => $better($x, ['closure', 'demolition'])) === []) {
+            $source = $e['source'] ?? null;
+            $today = $freightToday && $e['type'] === 'closure' && in_array($source, self::MASS_SOURCES, true);
+            $later = in_array($source, self::MASS_SOURCES_FREIGHT_LATER, true)
+                && ($e['type'] === 'closure' || ($e['type'] === 'demolition' && $source === 'wikidata'));
+            if (! $today && ! $later) {
+                continue;
+            }
+            $rank = self::sourceRank($source);
+            $better = fn (array $x, array $types) => in_array($x['type'], $types, true) && $own($x)
+                && self::sourceRank($x['source'] ?? null) < $rank;
+            $sameYear = fn (array $x, array $types) => $better($x, $types) && abs($year($x) - $year($e)) <= 1;
+            if (array_filter($events, fn ($x) => $sameYear($x, ['closure_passenger'])) === []
+                || array_filter($events, fn ($x) => $sameYear($x, ['closure', 'demolition'])) !== []) {
+                continue;
+            }
+            // Cas 2 : le fret (ou toute desserte) a continué au-delà de l'année de la fermeture en masse.
+            $freightLater = $later && array_filter($events, fn ($x) => $better($x, ['closure_freight', 'closure']) && $year($x) > $year($e)) !== [];
+            if ($today || $freightLater) {
                 $events[$i]['type'] = 'closure_passenger';
             }
         }

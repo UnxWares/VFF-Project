@@ -61,6 +61,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Compte rendu du conseil de guerre, cité par Wikipédia.',
         ],
+        'ddb-1916-03-03-reichsbote' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahnzusammenstoß in Frankreich',
+            'publisher' => 'Der Reichsbote (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1916-03-03',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/25N4DMD6H7OJ2JAOTCFIDGXWWPPYTUA4?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche datée de Paris le 3 mars : à la suite d\'un accident sur la ligne du Havre, les trains de la grande ligne Paris - Rouen étaient détournés par Serquigny ; deux de ces trains détournés se sont heurtés « hier » à l\'entrée de la gare de Serquigny, 3 morts et 18 blessés. Même dépêche dans le Schwäbischer Merkur du même jour (d\'après la Frankfurter Zeitung) et dans plusieurs journaux du 4 au 7 mars.',
+        ],
+        'ddb-1916-03-03-bielefelder' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Ein englischer General im Zug schwer verwundet',
+            'publisher' => 'Bielefelder General-Anzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1916-03-03',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/SDDKH52Z4NRHEWHR6FN7JOVZG2BABIXP?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Genève du 2 mars, d\'après Le Petit Parisien : un général anglais qui voyageait dans l\'un des trains tamponnés en gare de Serquigny a été grièvement blessé.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -78,6 +106,12 @@ return [
                 'de' => 'Ein Schnellzug mit demselben Ziel fuhr auf den stehenden Zug auf und zerdrückte dessen letzte Wagen der ersten Klasse, von denen einer Feuer fing. Beide Wikipedia-Einträge beschreiben einen Auffahrunfall.',
                 'sources' => ['wp-liste-1916', 'wp-gare-serquigny'],
             ],
+            [
+                'fr' => 'La dépêche de Paris reprise par la presse allemande décrit deux trains détournés par Serquigny à cause d\'un accident sur la ligne du Havre, qui se sont heurtés à l\'entrée de la gare.',
+                'en' => 'The Paris dispatch reprinted in the German press describes two trains diverted via Serquigny because of an accident on the Le Havre line, which collided at the entrance to the station.',
+                'de' => 'Die in der deutschen Presse abgedruckte Pariser Meldung beschreibt zwei wegen eines Unfalls auf der Linie nach Le Havre über Serquigny umgeleitete Züge, die bei der Einfahrt in den Bahnhof zusammenstießen.',
+                'sources' => ['ddb-1916-03-03-reichsbote'],
+            ],
         ],
         'victims' => [
             [
@@ -85,6 +119,12 @@ return [
                 'en' => 'The Wikipedia list counts three dead and about forty injured, ten of them seriously; the station article gives four dead and about twenty injured.',
                 'de' => 'Die Wikipedia-Liste zählt drei Tote und etwa vierzig Verletzte, davon zehn schwer; der Artikel zum Bahnhof nennt vier Tote und etwa zwanzig Verletzte.',
                 'sources' => ['wp-liste-1916', 'wp-gare-serquigny'],
+            ],
+            [
+                'fr' => 'La dépêche de Paris du 3 mars 1916 annonce 3 morts et 18 blessés. Selon Le Petit Parisien, cité par une dépêche de Genève, un général anglais qui voyageait dans l\'un des trains a été grièvement blessé.',
+                'en' => 'The Paris dispatch of 3 March 1916 reports 3 dead and 18 injured. According to Le Petit Parisien, quoted in a dispatch from Geneva, a British general travelling on one of the trains was seriously injured.',
+                'de' => 'Die Pariser Meldung vom 3. März 1916 nennt 3 Tote und 18 Verletzte. Nach dem Petit Parisien, zitiert in einer Genfer Meldung, wurde ein englischer General, der in einem der Züge reiste, schwer verletzt.',
+                'sources' => ['ddb-1916-03-03-reichsbote', 'ddb-1916-03-03-bielefelder'],
             ],
         ],
         'aftermath' => [
@@ -101,6 +141,12 @@ return [
                 'en' => 'The toll differs between the two Wikipedia entries: 3 dead and about forty injured in the list, 4 dead and about twenty injured in the station article.',
                 'de' => 'Die Bilanz unterscheidet sich zwischen den beiden Wikipedia-Einträgen: 3 Tote und etwa vierzig Verletzte in der Liste, 4 Tote und etwa zwanzig Verletzte im Artikel zum Bahnhof.',
                 'sources' => ['wp-liste-1916', 'wp-gare-serquigny'],
+            ],
+            [
+                'fr' => 'La dépêche de Paris du 3 mars confirme les 3 morts de la liste mais compte 18 blessés. Datée du 3 mars, elle place la collision « hier », alors que la liste la date du 29 février, et que les journaux allemands du 3 mars citent déjà Le Petit Parisien.',
+                'en' => 'The Paris dispatch of 3 March confirms the 3 dead of the list but counts 18 injured. Dated 3 March, it places the collision “yesterday”, whereas the list dates it to 29 February, and German papers of 3 March already quote Le Petit Parisien.',
+                'de' => 'Die Pariser Meldung vom 3. März bestätigt die 3 Toten der Liste, zählt aber 18 Verletzte. Sie ist vom 3. März datiert und verlegt den Zusammenstoß auf „gestern“, während die Liste ihn auf den 29. Februar datiert und deutsche Zeitungen vom 3. März bereits den Petit Parisien zitieren.',
+                'sources' => ['ddb-1916-03-03-reichsbote', 'ddb-1916-03-03-bielefelder', 'wp-liste-1916'],
             ],
         ],
     ],

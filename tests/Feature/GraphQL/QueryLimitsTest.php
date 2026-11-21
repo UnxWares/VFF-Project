@@ -56,7 +56,7 @@ class QueryLimitsTest extends TestCase
             '100 événements et 5 images chacun' => ['{ lineEvents(first: 100) { edges { node { id type event_date media(first: 5) { edges { node { title thumb_url } } } } } } }', 2601],
             'annuaire de 100 lignes' => ['{ lineDirectory(first: 100) { data { slug name regions departements } facets { networks { code count } traffics { code count } departments { code count } } } }', 1501],
             'page par défaut (20 lignes)' => ['{ lines { data { slug name } } }', 61],
-            'fiche, profil et audit d’une ligne' => ['{ line(slug: "rfn-405000") { sheet { names { name } } profile { stations { name } } audit { segments { worst_grade } } } }', 766],
+            'fiche, profil et audit d’une ligne' => ['{ line(slug: "rfn-405000") { sheet { names { name } } profile { stations { name } } audit { segments { worst_grade } } } }', 806],
         ];
     }
 
@@ -83,7 +83,7 @@ class QueryLimitsTest extends TestCase
     {
         return [
             '100 fiches de ligne' => ['{ lines(first: 100) { data { sheet(geometry: true) { names { name } } } } }', 25301],
-            '100 audits et profils (revue de nuit du 21/11)' => ['{ lines(first: 100) { data { audit { segments { evidence } } profile { samples { pk_m altitude_m } } } } }', 53301],
+            '100 audits et profils (revue de nuit du 21/11)' => ['{ lines(first: 100) { data { audit { segments { evidence } } profile { samples { pk_m altitude_m } } } } }', 57301],
             'listes multipliées (séries, lignes, séries…)' => ['{ materials(first: 100) { edges { node { lines { materials { lines { materials { name } } } } } } } }', 1111301],
             'tracés de 100 lignes, toutes ères' => ['{ lines(first: 100) { data { segments { geojson } } } }', 10201],
         ];
@@ -137,6 +137,27 @@ class QueryLimitsTest extends TestCase
         $this->assertSame('Query nested too deeply: 16 levels below the root, the limit is 15. Split it into several queries.', $errors[0]['message']);
     }
 
+    /** Le coût des pages d'audit suit `limit` (50 par défaut), sans dépasser le plafond à 200. */
+    public function test_audit_page_cost_follows_limit(): void
+    {
+        $this->graphQL('{ line(slug: "rfn-405000") { audit { segments(limit: 10) { worst_grade } } } }')->assertGraphQLErrorFree();
+        $ten = $this->complexity;
+        $this->graphQL('{ line(slug: "rfn-405000") { audit { segments(limit: 200) { worst_grade } } } }')->assertGraphQLErrorFree();
+        $this->assertSame($ten + 190, $this->complexity);
+
+        $this->graphQL('{ segmentAudits { items { segment_id } } }')->assertGraphQLErrorFree();
+        $this->assertSame(1 + 2 * 50, $this->complexity);
+        $this->graphQL('{ segmentAudits(limit: 7) { total items { segment_id } } }')->assertGraphQLErrorFree();
+        $this->assertSame(1 + 3 * 7, $this->complexity);
+        $this->graphQL('{ stationAudits(limit: 200) { items { slug name placement_grade checks } } }')->assertGraphQLErrorFree();
+        $this->assertSame(1 + 5 * 200, $this->complexity);
+
+        // Tous les champs d'une page de 200 tronçons restent sous le plafond de 5 000.
+        $this->graphQL('{ segmentAudits(limit: 200) { era_year total limit offset items { line_slug line_code line_name segment_id status traffic_type trace_source length_m grades { classification placement accuracy trace } worst_grade score reasons audited_at } } }')->assertGraphQLErrorFree();
+        $this->assertLessThan(config('lighthouse.security.max_query_complexity'), $this->complexity);
+        $this->assertSame(1 + 22 * 200, $this->complexity);
+    }
+
     public function test_other_validation_errors_are_left_untouched(): void
     {
         $this->graphQL('{ lines { data { unknown_field } } }')
@@ -152,6 +173,11 @@ class QueryLimitsTest extends TestCase
         $this->assertSame(1 + 3 * QueryCost::LIST_SIZE, $cost->paginated(3, []));
         $this->assertSame(QueryCost::COMPUTED + 3, $cost->computed(3, []));
         $this->assertSame(QueryCost::HEAVY + 3, $cost->heavy(3, []));
+        // Pages d'audit : le coût suit `limit` (50 par défaut), borné à 200 comme la validation.
+        $this->assertSame(1 + 3 * 50, $cost->limited(3, []));
+        $this->assertSame(1 + 3 * 7, $cost->limited(3, ['limit' => 7]));
+        $this->assertSame(1 + 3 * 200, $cost->limited(3, ['limit' => 200]));
+        $this->assertSame(1 + 3 * 200, $cost->limited(3, ['limit' => 100000]));
     }
 
     /**

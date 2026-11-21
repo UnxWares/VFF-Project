@@ -52,8 +52,8 @@ return [
         'circumstances' => [
             [
                 'fr' => 'Le 15 janvier 1982, vers 7 h 30, en pleine heure de pointe, une rame de banlieue Saint-Gratien - Paris, poussée par sa locomotive, heurte à environ 60 km/h un camion benne arrêté sur la voie près de la gare d\'Épinay-sur-Seine. La nuit, la neige et le verglas gênent la visibilité et la circulation.',
-                'en' => 'On 15 January 1982, at about 7.30 am, in the rush hour, a Saint-Gratien to Paris suburban train, pushed by its locomotive, struck a skip lorry standing on the track near Épinay-sur-Seine station at about 60 km/h. Darkness, snow and ice hampered visibility and traffic.',
-                'de' => 'Am 15. Januar 1982 prallte gegen 7.30 Uhr, mitten im Berufsverkehr, ein von seiner Lokomotive geschobener Vorortzug Saint-Gratien - Paris mit etwa 60 km/h nahe dem Bahnhof Épinay-sur-Seine auf einen auf dem Gleis stehenden Müllwagen. Dunkelheit, Schnee und Glätte behinderten Sicht und Verkehr.',
+                'en' => 'On 15 January 1982, at about 7.30 am, in the rush hour, a Saint-Gratien to Paris suburban train, pushed by its locomotive, struck a tipper lorry standing on the track near Épinay-sur-Seine station at about 60 km/h. Darkness, snow and ice hampered visibility and traffic.',
+                'de' => 'Am 15. Januar 1982 prallte gegen 7.30 Uhr, mitten im Berufsverkehr, ein von seiner Lokomotive geschobener Vorortzug Saint-Gratien - Paris mit etwa 60 km/h nahe dem Bahnhof Épinay-sur-Seine auf einen auf dem Gleis stehenden Kipper-Lkw. Dunkelheit, Schnee und Glätte behinderten Sicht und Verkehr.',
                 'sources' => ['wp-liste-1980s', 'delpher-1982-01-16-nrc'],
             ],
         ],

@@ -47,6 +47,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Bulletin cité par la liste de Wikipédia à l\'appui de l\'entrée ; page 5.',
         ],
+        'ddb-1919-07-18-westdeutsche-landeszeitung' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Meldung aus Paris vom 18. Juli (Zug von Gray nach Chalindrey)',
+            'publisher' => 'Westdeutsche Landeszeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1919-07-18',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/SHQNRYOCNGXL2U47SUVFMRA22CB6PS7L?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Paris datée du 18 juillet : un train allant de Gray vers Chalindrey a déraillé, 5 morts et 20 blessés, dégâts matériels importants.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -64,6 +78,12 @@ return [
                 'de' => 'Die Wikipedia-Liste nennt fünf Tote und etwa zwanzig Verletzte.',
                 'sources' => ['wp-liste-1919'],
             ],
+            [
+                'fr' => 'Une brève allemande datée de Paris le 18 juillet 1919 donne elle aussi cinq morts et vingt blessés.',
+                'en' => 'A German item datelined Paris, 18 July 1919, also gives five dead and twenty injured.',
+                'de' => 'Eine deutsche Meldung aus Paris vom 18. Juli 1919 nennt ebenfalls fünf Tote und zwanzig Verletzte.',
+                'sources' => ['ddb-1919-07-18-westdeutsche-landeszeitung'],
+            ],
         ],
         'disagreements' => [
             [
@@ -71,6 +91,12 @@ return [
                 'en' => 'The exact place is not established: the list entry places the collision between Gray and Chargey-lès-Gray stations, without saying in which commune it happened.',
                 'de' => 'Der genaue Ort ist nicht belegt: Der Listeneintrag verortet den Zusammenstoß zwischen den Bahnhöfen Gray und Chargey-lès-Gray, ohne die Gemeinde zu nennen.',
                 'sources' => ['wp-liste-1919'],
+            ],
+            [
+                'fr' => 'La brève allemande parle d\'un déraillement du train de Gray vers Chalindrey, alors que la liste de Wikipédia décrit une collision avec un train de permissionnaires ; la nature exacte n\'est pas établie.',
+                'en' => 'The German item speaks of a derailment of the train from Gray to Chalindrey, whereas the Wikipedia list describes a collision with a train of soldiers on leave; the exact nature is not established.',
+                'de' => 'Die deutsche Meldung spricht von einer Entgleisung des Zuges von Gray nach Chalindrey, während die Wikipedia-Liste einen Zusammenstoß mit einem Urlauberzug beschreibt; die genaue Art ist nicht belegt.',
+                'sources' => ['wp-liste-1919', 'ddb-1919-07-18-westdeutsche-landeszeitung'],
             ],
         ],
     ],

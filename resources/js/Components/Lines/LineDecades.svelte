@@ -108,7 +108,7 @@
 
 <!-- Cadre défilant focalisable : le tableau reste lisible au clavier sur téléphone (WCAG 2.1.1). -->
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-<div class="table-wrap" role="region" aria-labelledby="decades-title" tabindex="0">
+<div class="table-wrap" role="group" aria-labelledby="decades-title" tabindex="0">
     <table class="decades">
         <thead>
             <tr>

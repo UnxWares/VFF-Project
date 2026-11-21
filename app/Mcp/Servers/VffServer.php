@@ -30,8 +30,10 @@ use App\Mcp\Tools\MediaTool;
 use App\Mcp\Tools\NetworkAtEraTool;
 use App\Mcp\Tools\NetworkEventsTool;
 use App\Mcp\Tools\SearchTool;
+use App\Mcp\Tools\SegmentAuditsTool;
 use App\Mcp\Tools\SignallingHistoryTool;
 use App\Mcp\Tools\SourcesTool;
+use App\Mcp\Tools\StationAuditsTool;
 use App\Mcp\Tools\StationSheetTool;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
@@ -86,6 +88,8 @@ class VffServer extends Server
         LevelCrossingsTool::class,
         LineProfileTool::class,
         LineAuditTool::class,
+        SegmentAuditsTool::class,
+        StationAuditsTool::class,
         LineGreenwaysTool::class,
         LineArchivesTool::class,
         LineStoriesTool::class,

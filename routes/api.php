@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\LineStoryController;
 use App\Http\Controllers\Api\LineTraceController;
 use App\Http\Controllers\Api\MaterialController;
 use App\Http\Controllers\Api\MediaController;
+use App\Http\Controllers\Api\NetworkAuditController;
 use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Api\SchematicMapController;
 use App\Http\Controllers\Api\SearchController;
@@ -119,6 +120,9 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/altitude', [LineProfileController::class, 'altitude'])->name('api.lines.altitude');
     // Audit des tronçons d'une ligne (notes de vff:audit-segments, docs/AUDIT-TRONCONS.md).
     Route::get('/v1/lines/{line:slug}/audit', [LineAuditController::class, 'show'])->name('api.lines.audit');
+    // Audits à l'échelle du réseau : tronçons (par ère) et gares, filtres, tri, limit et offset.
+    Route::get('/v1/audits/segments', [NetworkAuditController::class, 'segments'])->name('api.audits.segments');
+    Route::get('/v1/audits/stations', [NetworkAuditController::class, 'stations'])->name('api.audits.stations');
     Route::get('/v1/lines/{line:slug}/media', [LineMediaController::class, 'index'])->name('api.lines.media');
     Route::get('/v1/route', [RouteController::class, 'route'])->name('api.route');
     Route::get('/v1/route/compare', [RouteController::class, 'compare'])->name('api.route.compare');

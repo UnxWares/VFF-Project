@@ -169,7 +169,7 @@ final class SegmentAuditor
 
             $precise = max(AuditGrader::coverage($refs['bdtopo'] ?? ['points' => 0, 'found' => 0]), AuditGrader::coverage($refs['osm'] ?? ['points' => 0, 'found' => 0]));
             $unusedInGap = array_filter($segEnds['holes'], fn (array $h): bool => $h['unused_traces'] !== []) !== [];
-            $trace = AuditGrader::trace($s->source, $precise, $place['grade'] === AuditGrade::Good, $unusedInGap, AuditGrader::confirmedBy($refs, $s->source));
+            $trace = AuditGrader::trace($s->source, $precise, AuditGrader::alignedOnOwnTrack($place), $unusedInGap, AuditGrader::confirmedBy($refs, $s->source));
 
             $grades = [$classification['grade'], $place['grade'], $accuracy['grade'], $trace['grade']];
             $rows[] = [

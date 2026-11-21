@@ -89,7 +89,7 @@ class AuditReglagesPathsTest extends TestCase
 
     // ─── T1 : voie d'une autre ligne ─────────────────────────────────────
 
-    public function test_t1_a_segment_in_service_on_another_line_track_is_to_review(): void
+    public function test_t1_a_segment_in_service_on_another_line_track_stays_good_but_is_flagged(): void
     {
         $this->auditTrack('bdtopo', self::TRACK, $this->neighbour->id);
         $this->auditTrack('bdtopo', self::BESIDE, $this->audited->id);
@@ -97,7 +97,8 @@ class AuditReglagesPathsTest extends TestCase
 
         $row = $this->audit($segment);
 
-        $this->assertSame(['fair', ['on_other_line_track']], self::grade($row, 'placement'));
+        // T1d (règles .7) : « à revoir » avant, « sûr » avec la raison depuis.
+        $this->assertSame(['good', ['on_other_line_track']], self::grade($row, 'placement'));
         $this->assertSame('bdtopo', $row['evidence']['placement']['reference']);
         $this->assertEqualsWithDelta(20.0, $row['evidence']['placement']['median_m'], 0.5);
         $this->assertSame(1.0, $row['evidence']['placement']['coverage']);
@@ -196,7 +197,8 @@ class AuditReglagesPathsTest extends TestCase
         $row = $this->audit($segment);
 
         $this->assertSame(['fair', ['medium_source']], self::grade($row, 'trace'));
-        $this->assertSame(['fair', ['on_other_line_track']], self::grade($row, 'placement'));
+        // T1d : placement sûr avec la raison, mais il ne recale pas le tracé.
+        $this->assertSame(['good', ['on_other_line_track']], self::grade($row, 'placement'));
     }
 
     public function test_t2_the_trace_source_never_confirms_itself(): void

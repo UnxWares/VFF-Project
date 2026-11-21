@@ -109,7 +109,8 @@ class LineAuditController extends Controller
      * `within_tolerance`, `p95_over_tolerance`, `median_over_tolerance`, `partial_coverage`,
      * `no_track_nearby`, `no_reference`, `abroad`, `only_same_source`, et pour un tronçon qui ne colle
      * qu'à la voie d'une autre ligne : `on_other_line_track` (sa propre voie passe à 8 à 60 m :
-     * `poor` pour un tronçon fermé ou déposé, `fair` pour un tronçon en service), `shared_track`
+     * `poor` pour un tronçon fermé ou déposé ou à une ère passée, `good` pour un tronçon en service
+     * aujourd'hui, la raison signalant le cas à relire), `shared_track`
      * (`good`, aucune voie propre à côté : tronc commun ou embranchement posé sur la voie de départ).
      *
      * **Exactitude** (`accuracy`) : virage le plus fort sur 40 m (`max_turn_deg`), allers-retours

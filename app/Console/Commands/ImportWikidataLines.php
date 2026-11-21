@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\CsvSafe;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -2182,7 +2183,7 @@ class ImportWikidataLines extends Command
         if ($rows !== []) {
             fputcsv($h, array_keys($rows[0]), ',', '"', '');
             foreach ($rows as $r) {
-                fputcsv($h, array_map(fn ($v) => is_bool($v) ? ($v ? 'oui' : 'non') : $v, $r), ',', '"', '');
+                fputcsv($h, CsvSafe::row(array_map(fn ($v) => is_bool($v) ? ($v ? 'oui' : 'non') : $v, $r)), ',', '"', '');
             }
         }
         fclose($h);

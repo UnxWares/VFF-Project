@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Services\LineMerger;
 use App\Services\PlaceNames;
 use App\Services\TraceSplitter;
+use App\Support\CsvSafe;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -2459,16 +2460,16 @@ class LinkTraces extends Command
             $secondary = implode(' ', array_map(fn ($c) => $c['line_id'].':'.round($c['share'], 2),
                 array_filter($t['sncf'] ?? [], fn ($c) => $c['line_id'] !== $lid && $c['share'] >= 0.1)));
             if (isset($this->splits[$id])) {
-                fputcsv($fh, [$id, $t['layer'], $t['name'], $t['len'], 'split', '', '', $this->splits[$id]['chain'], '', '', $secondary, '']);
+                fputcsv($fh, CsvSafe::row([$id, $t['layer'], $t['name'], $t['len'], 'split', '', '', $this->splits[$id]['chain'], '', '', $secondary, '']));
 
                 continue;
             }
-            fputcsv($fh, [
+            fputcsv($fh, CsvSafe::row([
                 $id, $t['layer'], $t['name'], $t['len'], $a['method'] ?? ($t['mine'] ? '' : 'externe'), $a['score'] ?? '',
                 $planned ? '' : $lid, $planned ? $this->planned[$lid]['name'] : ($names[$lid] ?? ''),
                 $planned ? $this->planned[$lid]['network'] : ($nets[$lid] ?? ''), $planned ? 'oui' : '', $secondary,
                 $planned ? (($this->planned[$lid]['code'] ?? '').' '.($this->planned[$lid]['wikidata'] ?? '')) : '',
-            ]);
+            ]));
         }
         fclose($fh);
         $this->line('  détail : '.$path);
@@ -2478,7 +2479,7 @@ class LinkTraces extends Command
         $fh = fopen($path, 'w');
         fputcsv($fh, ['trace_id', 'label', 'length_m', 'avant', 'chaines', 'decision', 'detail']);
         foreach ($this->splitLog as $l) {
-            fputcsv($fh, [$l['trace_id'], $l['label'], $l['length_m'], $l['before'], $l['chains'], $l['decision'], $l['detail']]);
+            fputcsv($fh, CsvSafe::row([$l['trace_id'], $l['label'], $l['length_m'], $l['before'], $l['chains'], $l['decision'], $l['detail']]));
         }
         fclose($fh);
         $this->line('  découpes : '.$path);

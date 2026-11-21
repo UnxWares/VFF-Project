@@ -112,7 +112,7 @@ return [
         'bdtopo' => 'IGN',
         'wikidata' => 'Wikidata',
         'ohm' => 'OpenHistoricalMap',
-        'pk' => 'Chainage',
+        'pk' => 'Kilometre point',
         'correction' => 'Correction',
     ],
 
@@ -248,7 +248,7 @@ return [
 
     'lines' => [
         'title' => 'Lines serving it',
-        'pk' => 'Chainage :pk',
+        'pk' => 'PK :pk',
         'none' => 'No line linked.',
     ],
 
@@ -297,7 +297,7 @@ return [
     'help' => [
         'title' => 'How to read the grades',
         'placement' => 'Placement grades',
-        'placement_intro' => 'A source is precise if it places the station to within a few metres (SNCF, OpenStreetMap, IGN), and coarse otherwise (municipality, estimated chainage). Two sources from the same family do not count as independent.',
+        'placement_intro' => 'A source is precise if it places the station to within a few metres (SNCF, OpenStreetMap, IGN), and coarse otherwise (municipality, estimated kilometre point). Two sources from the same family do not count as independent.',
         'dates' => 'Date grades',
         'checks' => 'Cross-checks',
     ],

@@ -39,7 +39,7 @@ return [
             [
                 'fr' => 'Le passage à niveau n° 40 d\'Amilly, en Eure-et-Loir, se trouve sur la ligne entre Le Mans et Chartres. Le 27 octobre 2012, un train composé de deux locomotives haut le pied, circulant donc sans wagons ni voyageurs, y est arrivé alors que les barrières s\'étaient relevées prématurément.',
                 'en' => 'Level crossing no. 40 at Amilly, in Eure-et-Loir, lies on the line between Le Mans and Chartres. On 27 October 2012, a train made up of two light-running locomotives, with no wagons or passengers, reached it while the barriers had lifted prematurely.',
-                'de' => 'Der Bahnübergang Nr. 40 in Amilly im Département Eure-et-Loir liegt an der Strecke zwischen Le Mans und Chartres. Am 27. Oktober 2012 erreichte ihn ein aus zwei Leerfahrt-Lokomotiven bestehender Zug, also ohne Wagen und Reisende, als sich die Schranken vorzeitig gehoben hatten.',
+                'de' => 'Der Bahnübergang Nr. 40 in Amilly im Département Eure-et-Loir liegt an der Strecke zwischen Le Mans und Chartres. Am 27. Oktober 2012 erreichte ihn ein aus zwei Lokomotiven bestehender Zug, also ohne Wagen und Reisende, als sich die Schranken vorzeitig gehoben hatten.',
                 'sources' => ['bea-tt-page-amilly'],
             ],
         ],

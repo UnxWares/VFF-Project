@@ -81,7 +81,7 @@ return [
         'circumstances' => [
             [
                 'fr' => 'Le 16 octobre 1953, vers 6 h 30, une locomotive haut-le-pied (circulant sans train) a percuté en gare de Sérézin, dans le Rhône, l\'omnibus 3462 de Saint-Rambert-d\'Albon à Lyon, arrêté à quai et rempli d\'ouvriers qui se rendaient à leur travail. La gare est située sur la ligne de Paris-Lyon à Marseille-Saint-Charles, sur le territoire de Sérézin-du-Rhône.',
-                'en' => 'On 16 October 1953, at about 6.30 am, a light locomotive (running without a train) struck the stationary 3462 stopping service from Saint-Rambert-d\'Albon to Lyon at Sérézin station, in the Rhône département. The train was full of workers on their way to work. The station is on the Paris-Lyon to Marseille-Saint-Charles line, in the commune of Sérézin-du-Rhône.',
+                'en' => 'On 16 October 1953, at about 6.30 am, a light engine (running without a train) struck the stationary 3462 stopping service from Saint-Rambert-d\'Albon to Lyon at Sérézin station, in the Rhône département. The train was full of workers on their way to work. The station is on the Paris-Lyon to Marseille-Saint-Charles line, in the commune of Sérézin-du-Rhône.',
                 'de' => 'Am 16. Oktober 1953 gegen 6.30 Uhr fuhr im Bahnhof Sérézin im Département Rhône eine Lokomotive ohne Zug auf den haltenden Personenzug 3462 von Saint-Rambert-d\'Albon nach Lyon auf, der mit Arbeitern auf dem Weg zur Arbeit besetzt war. Der Bahnhof liegt an der Strecke Paris-Lyon - Marseille-Saint-Charles auf dem Gebiet von Sérézin-du-Rhône.',
                 'sources' => ['wp-liste-1950', 'wp-gare-serezin', 'wp-commune-serezin'],
             ],

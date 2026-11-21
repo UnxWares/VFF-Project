@@ -90,6 +90,12 @@ final class RelationRouter
     public const MIN_LINE_M = 5000;
 
     /**
+     * Relation ambiguë : distance à vol d'oiseau (km) dont une ligne commune à tous les itinéraires proches doit
+     * s'éloigner des deux arrêts pour être rattachée ; en deçà, ligne de sortie d'une grande gare.
+     */
+    public const EXIT_KM = 15.0;
+
+    /**
      * Chemin sans la ligne directe plus long que ce rapport à la distance à vol d'oiseau : le graphe est troué
      * sur la ligne directe (un vrai chemin de fer dépasse rarement 1,5 fois la distance à vol d'oiseau).
      */
@@ -453,8 +459,43 @@ final class RelationRouter
         foreach ($this->alternative($graph, $path, $onPath, true)[1] as $other) {
             $lines = array_values(array_filter($lines, fn (int $line): bool => ($other[$line] ?? 0) >= self::MIN_LINE_M));
         }
+        // Sans les lignes de sortie de gare : une ligne commune dont toute la part reste à moins de EXIT_KM d'un
+        // des deux arrêts (Fives - Abbeville au départ de Lille, Lens - Don-Sainghin pour Paris - Lille) n'est pas
+        // l'axe de la relation.
+        $reach = $this->reachFromEnds($graph, $path);
+        $lines = array_values(array_filter($lines, fn (int $line): bool => ($reach[$line] ?? 0.0) >= self::EXIT_KM));
 
         return ['status' => 'ambiguous', 'lines' => $lines, 'ratio' => round($ratio, 3)] + $ends;
+    }
+
+    /**
+     * Pour chaque ligne du chemin, la plus grande distance à vol d'oiseau (km) entre une gare d'une arête qu'elle
+     * porte et le plus proche des deux arrêts de la relation : une ligne qui ne s'éloigne jamais de plus de
+     * EXIT_KM d'un arrêt n'est qu'une sortie de gare.
+     *
+     * @param  Graph  $graph
+     * @param  array{cost: float, stations: list<int>, edges: list<int>}  $path
+     * @return array<int, float>
+     */
+    private function reachFromEnds(array $graph, array $path): array
+    {
+        $this->loadStations();
+        $first = $path['stations'][0];
+        $last = $path['stations'][count($path['stations']) - 1];
+        $reach = [];
+        foreach ($path['edges'] as $k => $eid) {
+            $far = 0.0;
+            foreach ([$path['stations'][$k], $path['stations'][$k + 1]] as $station) {
+                if (isset($this->stations[$station], $this->stations[$first], $this->stations[$last])) {
+                    $far = max($far, min($this->distanceKm($first, $station), $this->distanceKm($last, $station)));
+                }
+            }
+            foreach ($graph['parts'][$eid] as [$line]) {
+                $reach[$line] = max($reach[$line] ?? 0.0, $far);
+            }
+        }
+
+        return $reach;
     }
 
     /**

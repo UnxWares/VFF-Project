@@ -138,7 +138,12 @@ class RouteAccessInvariantsTest extends TestCase
             $uri = $this->concreteUri($route);
 
             $web = $this->call($method, $uri);
-            if (! str_starts_with((string) $web->headers->get('Location'), url('/login')) || $web->getStatusCode() !== 302) {
+            if (str_starts_with($route->uri(), 'api/')) {
+                // L'API répond toujours en JSON, même sans en-tête Accept : 401, jamais de redirection.
+                if ($web->getStatusCode() !== 401) {
+                    $failures[] = "{$method} {$uri} : sans Accept, un visiteur reçoit {$web->getStatusCode()} au lieu de 401";
+                }
+            } elseif (! str_starts_with((string) $web->headers->get('Location'), url('/login')) || $web->getStatusCode() !== 302) {
                 $failures[] = "{$method} {$uri} : un visiteur reçoit {$web->getStatusCode()} au lieu d'une redirection vers /login";
             }
             $json = $this->json($method, $uri);

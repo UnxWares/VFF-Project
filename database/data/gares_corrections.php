@@ -1187,4 +1187,82 @@ return [
         ['Santeny - Servon', 'Q3097670', 'Gare de Santeny - Servon', 231601559, '1947-01-01', 'year', '1969-12-14', 'before',
             'L\'activité de cette section est dès lors limitée au trafic de marchandises, avec passage en voie unique en 1963-1964.', 'wikidata', '1947-01-01'],
     ])),
+
+    // ── 10. Gares desservies notées fermées par la fermeture d'une autre gare (chantier « coherence-gares-lignes », 21/11/2026) ──
+    // Contrôle : gare déclassée à une ère où un tronçon voyageurs ou mixte en service de ses lignes passe à moins de
+    // 150 m, et ouverte aujourd'hui (rapport storage/app/reports/agents/aprem-2111/coherence-gares-lignes.md).
+    // 10 a. L'objet OHM rapproché par le nom (name_near) est la gare homonyme d'un autre réseau (chemin de fer
+    // départemental, tramway à vapeur, Nyon - Saint-Cergue - Morez, première ligne de Saint-Étienne à Andrézieux)
+    // ou un ancien bâtiment : sa date de fin n'est pas celle de la gare du réseau principal, desservie sans
+    // interruption (Sens, Montereau, Nogent-sur-Seine, Souppes : ligne de Paris à Marseille, de Paris à Mulhouse,
+    // du Bourbonnais).
+    // L'ouverture du même objet OHM est retirée aussi (gare homonyme) : Montereau et Souppes n'avaient qu'elle
+    // (1888), leur ouverture vient alors de leurs lignes (1849, 1860).
+    ...array_merge(...array_map(fn (array $g) => array_filter([
+        [
+            'station' => ['name' => $g[0], $g[1] => $g[2]],
+            'action' => 'neutralize',
+            'match' => ['source' => 'ohm', 'type' => 'closure', 'date' => $g[3]],
+            'source_url' => 'https://www.openhistoricalmap.org/'.['n' => 'node', 'w' => 'way', 'r' => 'relation'][$g[4][0]].'/'.substr($g[4], 1),
+            'reason' => $g[5],
+        ],
+        isset($g[6]) ? [
+            'station' => ['name' => $g[0], $g[1] => $g[2]],
+            'action' => 'neutralize',
+            'match' => ['source' => 'ohm', 'type' => 'opening', 'date' => $g[6]],
+            'source_url' => 'https://www.openhistoricalmap.org/'.['n' => 'node', 'w' => 'way', 'r' => 'relation'][$g[4][0]].'/'.substr($g[4], 1),
+            'reason' => 'ouverture de la même gare homonyme : '.$g[5],
+        ] : null,
+    ]), [
+        // gare, clé, identifiant, date OHM retirée, objet OHM, raison, ouverture OHM retirée (gare homonyme)
+        ['Sens', 'wikidata', 'Q2545246', '1948-03-31', 'n2181759785',
+            'l\'objet OHM « Sens (CFD) » (1901 à 1948) est la gare des chemins de fer départementaux, pas la gare de la ligne de Paris à Marseille', '1901-11-10'],
+        ['Montereau', 'wikidata', 'Q2117756', '1959-01-01', 'n2181778995',
+            'l\'objet OHM « Montereau » (halte de 1888 à 1959) est l\'arrêt du chemin de fer départemental, pas la gare de la ligne de Paris à Marseille', '1888-10-01'],
+        ['Nogent-sur-Seine', 'wikidata', 'Q2424780', '1939-01-01', 'n2181732475',
+            'l\'objet OHM « Nogent sur Seine (CFD) » (1925 à 1939) est la gare des chemins de fer départementaux, pas la gare de la ligne de Paris à Mulhouse', '1925-09-21'],
+        ['Souppes-Château-Landon', 'wikidata', 'Q2010209', '1959-01-01', 'n2181780573',
+            'l\'objet OHM « Souppes (CFD) » (1888 à 1959) est la gare des chemins de fer départementaux, pas la gare de la ligne du Bourbonnais', '1888-10-01'],
+        ['Morez', 'wikidata', 'Q2314163', '1958-09-27', 'n2087817589',
+            'l\'objet OHM « Morez PLM » (exploitant NStCM, 1921 à 1958) est le terminus du Nyon - Saint-Cergue - Morez, fermé en 1958 ; la gare de la ligne d\'Andelot à La Cluse reste desservie', '1921-03-07'],
+        ['Lavaur', 'wikidata', 'Q3096865', '1937-06-30', 'n2134788821',
+            'l\'objet OHM « Lavaur » (exploitant TVT, voie de 60 cm, 1903 à 1937) est la gare des tramways à vapeur du Tarn, pas la gare SNCF, toujours desservie', '1903-05-26'],
+        ['St-Sulpice', 'wikidata', 'Q3097624', '1931-01-01', 'n2134788832',
+            'l\'objet OHM « Saint-Sulpice » (1925 à 1931) est la gare des tramways à vapeur du Tarn, pas la gare SNCF de Saint-Sulpice-la-Pointe, toujours desservie', '1925-04-11'],
+        ['Andrézieux', 'wikidata', 'Q3095632', '1864-06-15', 'n2125380187',
+            'l\'objet OHM « Gare d\'Andrézieux » (1827 à 1864) est la gare de la première ligne de Saint-Étienne à Andrézieux, remplacée par la gare actuelle'],
+        ['Maubeuge', 'wikidata', 'Q2559978', '1976-06-30', 'r2892705',
+            'l\'objet OHM est un bâtiment (multipolygone building=train_station) dont la fin date le bâtiment ; la gare de la ligne de Creil à Jeumont reste desservie'],
+        ['Lourches', 'wikidata', 'Q1845098', '1975-06-30', 'r2897405',
+            'l\'objet OHM est un bâtiment (multipolygone building=train_station) à date de fin notée arbitraire (end_date:fixme) ; la halte reste desservie'],
+    ])),
+    // 10 b. Gare d'Orsay : en 1939, seules les grandes lignes partent pour Austerlitz, la banlieue reste ; la gare
+    // devient Musée d'Orsay sur le RER C en 1979.
+    [
+        'station' => ['name' => 'Musée-d\'Orsay', 'wikidata' => 'Q15260427'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'closure', 'date' => '1939-01-01'],
+        'source_url' => $wp('Gare du Musée d\'Orsay', 240941106),
+        'quote' => 'Le trafic grandes lignes est alors reporté à la gare de Paris-Austerlitz.',
+        'reason' => 'fin des grandes lignes, pas de la gare : fonction limitée au trafic de banlieue en 1939, puis station du RER C en 1979',
+    ],
+    // 10 c. Dates d'inauguration d'un nouveau bâtiment voyageurs lues comme réouvertures (Wikidata P1619) : la règle
+    // « réouverture sans fermeture antérieure » (vff:build-station-eras, étape g) leur prêtait la fermeture d'une
+    // ligne voisine (683000 en 1969 à Orléans, 884000 en 1990 à Bellegarde) alors que la gare restait desservie.
+    [
+        'station' => ['name' => 'Orléans', 'wikidata' => 'Q1965397'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'reopening', 'date' => '2007-01-01'],
+        'source_url' => $wp('Gare d\'Orléans', 235030555),
+        'quote' => 'De 2005 à 2007, la gare est en travaux',
+        'reason' => 'travaux de la quatrième gare (inaugurée le 18 janvier 2008), pas une réouverture : la gare n\'a pas fermé',
+    ],
+    [
+        'station' => ['name' => 'Bellegarde', 'wikidata' => 'Q3095950'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'reopening', 'date' => '2010-05-21'],
+        'source_url' => $wp('Gare de Bellegarde', 241398952),
+        'quote' => 'Les services qu\'il regroupe sont ceux précédemment offerts par les anciennes installations',
+        'reason' => 'inauguration du nouveau bâtiment voyageurs le 21 mai 2010, pas une réouverture : la gare de la ligne de Lyon à Genève est restée desservie',
+    ],
 ];

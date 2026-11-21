@@ -71,10 +71,11 @@ class AuditReglagesTest extends TestCase
         $this->assertSame([AuditGrade::Good, ['shared_track'], 'osm'], [$r['grade'], $r['reasons'], $r['reference']]);
     }
 
-    public function test_t1_a_section_in_service_next_to_its_own_track_is_only_fair(): void
+    public function test_t1_a_section_in_service_next_to_its_own_track_stays_good_but_is_flagged(): void
     {
+        // T1d (règles .7) : « à revoir » avant, « sûr » avec la raison depuis.
         $r = AuditGrader::placement(['bdtopo' => self::ref(0, null, null, all: [10, 0.0, 0.3], own: [10, 12.0])], 'osm', true);
-        $this->assertSame([AuditGrade::Fair, ['on_other_line_track']], [$r['grade'], $r['reasons']]);
+        $this->assertSame([AuditGrade::Good, ['on_other_line_track']], [$r['grade'], $r['reasons']]);
     }
 
     public function test_t1_without_an_own_track_the_section_keeps_its_grade_but_is_flagged(): void

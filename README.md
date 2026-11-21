@@ -67,15 +67,22 @@ entre lignes.
 ### Fiches
 
 - Lignes (`/lines/{slug}`) : tracé par période, chronologie datée, frise par décennie, gares par époque, longueur,
-  électrification, vitesses, signalisation par PK, profil en long, passages à niveau, voies vertes, archives de
+  électrification, vitesses, signalisation par PK, profil en long de toute la ligne (altitudes de l'IGN, déclivité
+  maximale mesurée sur la voie, crémaillères), matériel roulant avec photos, passages à niveau, voies vertes, archives de
   Gallica, galerie de médias crédités, sources, et « histoires » d'archives sur un événement.
-- Gares (`/stations/{slug}`) : ouverture, fermeture, lignes desservies et années de desserte, frise, mini-carte.
+- Gares (`/stations/{slug}`) : ouverture, fermeture, lignes desservies et années de desserte, frise, mini-carte ;
+  une date déduite de la ligne ou connue à la décennie seulement est dite telle quelle.
 - Matériel roulant (`/materials`) : plus de 700 séries tirées de Wikidata, avec photo Commons créditée. Le matériel
   d'une ligne vient de liens attestés (Wikidata, articles cités) et, depuis le 21/11/2026, des relations
   (Intercités, TER) qui la parcourent : la ligne d'Argentan à Granville affiche ainsi les X 72500, l'AGC et le
-  Régiolis. Les périodes de circulation sont datées quand une source le dit.
+  Régiolis. Les périodes de circulation sont datées quand une source le dit ; la fiche d'une série garde ses rames
+  remarquables (le TGV Sud-Est 01 « Patrick », qui traverse l'écran quand on tape son nom hors d'un champ de saisie).
 - Accidents (`/accidents`) : fiches tirées de Wikidata, de Wikipédia et des rapports du BEA-TT, avec la confiance
-  de chaque fiche, une page de liste filtrable et un calque de carte.
+  de chaque fiche, une page de liste filtrable et un calque de carte. Pour 359 fiches, un contexte sourcé (archives,
+  enquêtes, presse de l'époque, images de Commons) et les corrections de lieu, de date et de bilan que ces sources
+  imposent, chacune avec sa référence.
+- Accueil : une image d'archive du rail renouvelée toutes les 30 minutes (« Le rail en images »), les campagnes de
+  réouverture et de maintien d'une ligne avec leurs sources chiffrées (AngouLim, Hirondelles, Argentan - Granville).
 - Quiz (`/quiz`) : reconnaître une ligne ou un matériel.
 
 ### Contributions
@@ -98,12 +105,16 @@ entre lignes.
 - Serveur MCP en lecture seule (`POST /mcp`, ou `php artisan mcp:start vff` en local) pour que les assistants IA
   interrogent l'encyclopédie avec ses sources et ses licences ([docs/MCP.md](docs/MCP.md)).
 - Une réponse de l'API donne la provenance et la licence de chaque donnée ; un tracé dont la licence interdit la
-  redistribution n'est pas exporté.
+  redistribution n'est pas exporté, et le profil en long ne publie pas non plus ses positions.
+- Les audits (notes des tronçons et des gares avec leurs preuves), le profil en long point par point et l'altitude à
+  un PK sont lus par les trois interfaces, avec la même pagination ([docs/API.md](docs/API.md)). GraphQL refuse une
+  requête au-delà de 5 000 points de complexité ou de 15 niveaux.
 
 ### Site
 
 - Interface en français, anglais et allemand ; thème sombre ; application installable (PWA) qui garde lisibles hors
-  ligne les pages publiques et les tuiles déjà consultées.
+  ligne les pages publiques, les images et les tuiles déjà consultées ; un fond de carte libre (OpenStreetMap, PMTiles,
+  6,2 Go pour toute la France) sert les cartes hors ligne ([docs/FOND-DE-CARTE.md](docs/FOND-DE-CARTE.md)).
 - Accessibilité : audit RGAA 4.1.2 interne de 32 pages, totalement conforme, publié dans la déclaration
   d'accessibilité.
 
@@ -111,10 +122,12 @@ entre lignes.
 
 Le détail est dans [ROADMAP.md](ROADMAP.md).
 
-- Audits des données : contrôle automatique des tronçons (`vff:audit-segments`) et des gares
-  (`vff:audit-stations`), avec des pages de relecture pour les validateurs et une API.
-- Relecture des liens de matériel tirés des relations, puis règles resserrées.
-- Subscriptions GraphQL (temps réel), fond de carte libre auto-hébergé pour le mode hors ligne.
+- Audits des données : le contrôle automatique des tronçons (`vff:audit-segments`) et des gares
+  (`vff:audit-stations`), avec leurs pages de relecture et leur API, est écrit et réglé sur des contrôles à la main
+  ([docs/AUDIT-TRONCONS.md](docs/AUDIT-TRONCONS.md), [docs/AUDIT-GARES.md](docs/AUDIT-GARES.md)) ; reste à repasser
+  les ères passées et les gares sur la base complète.
+- Matériel : les relations ambiguës dont aucun itinéraire proche ne tranche, et le retrait de deux liens de Z 20500 jugés faux à la relecture.
+- Subscriptions GraphQL (temps réel) ; décision sur le fond de carte libre en ligne (`VFF_BASEMAP_ONLINE`).
 - Mise en production : messagerie de `vff-project.org`, hébergement sur l'infrastructure d'UnxWares, suivi des
   erreurs et de la disponibilité.
 - Reconstitutions 3D de lieux disparus à partir de photos d'archives (recherche, pas commencée).
@@ -217,6 +230,7 @@ make tinker                  # REPL Laravel
 make migrate                 # migrations
 make docs-graphql            # après une modification du schéma GraphQL : référence Magidoc
 bin/php artisan list vff     # commandes du projet (imports, moteur de la carte, audits, contrôles)
+# options et ordre des commandes de données : docs/COMMANDES.md
 ```
 
 La documentation de l'API REST (`/docs/api`, `/docs/swagger`, `/docs/api.json`) se met à jour toute seule à

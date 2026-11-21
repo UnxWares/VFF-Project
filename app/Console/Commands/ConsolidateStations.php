@@ -273,6 +273,13 @@ class ConsolidateStations extends Command
         if ($byId || ! in_array($r->source, ['osm', 'ohm'], true)) {
             return true;
         }
+        // Objet OHM terminé d'un autre réseau (chemin de fer départemental, tramway, exploitant secondaire) :
+        // gare distincte, jamais rattachée par son nom à la gare SNCF homonyme (« Sens (CFD) », « Morez PLM »
+        // du NStCM, Lavaur des TVT : leur fin datée fermait la gare SNCF).
+        if ($r->source === 'ohm' && $r->closed_on && (isset($c['sources']['sncf']) || isset($c['sources']['sncf_voyageurs']))
+            && self::ohmOtherNetwork($r->props, $r->name)) {
+            return false;
+        }
         // Gare déplacée : l'ancien bâtiment (OSM/OHM désaffecté, rasé…) à
         // > 150 m de la gare en service est une gare distincte.
         if (in_array($r->lifecycle, self::CLOSED_STATES, true) && $c['active'] && $d > 150) {
@@ -283,6 +290,48 @@ class ConsolidateStations extends Command
         }
 
         return true;
+    }
+
+    /**
+     * Objet OHM d'un autre réseau que le grand réseau : nom « (CFD) » ou « tram… », gabarit de tramway,
+     * ou exploitant (operator) qui n'est pas une grande compagnie ni la SNCF (TVT, NStCM, CFSO, CFHF…).
+     *
+     * @param  array<string, mixed>  $props  propriétés de l'objet OHM (station_sources.properties)
+     */
+    public static function ohmOtherNetwork(array $props, ?string $name): bool
+    {
+        if (preg_match('/\bCFD\b|\btram/iu', (string) $name) || ($props['railway'] ?? null) === 'tram_stop' || isset($props['tram'])) {
+            return true;
+        }
+        $operator = trim((string) ($props['operator'] ?? ''));
+
+        // Grande compagnie, pas « Sud-Ouest » (CFSO). Train touristique (AGRIVAP, Chemin de fer du Haut-Forez,
+        // du Tarn) : il roule sur la ligne et dans la gare du grand réseau (Ambert, La Chaise-Dieu), même gare.
+        return $operator !== '' && ! preg_match('/(?<![-\w])(SNCF|PLM|PO|Midi|Nord|Est|Ouest|[EÉ]tat|RFF|AGRIVAP|CFHF|CFTT)\b/u', $operator)
+            && ! preg_match('/touristique|d[ée]couverte/iu', $operator);
+    }
+
+    /**
+     * Fermeture OHM retenue ? Quand la SNCF dit la gare ouverte aux voyageurs aujourd'hui, la fin datée de
+     * tous ses objets OHM n'est une fermeture que si une réouverture d'une autre source la suit ; sinon c'est la fin d'un objet voisin (bâtiment remplacé à
+     * Maubeuge et Lourches, première gare d'Andrézieux, halte du départemental à Montereau). Une gare fret
+     * seul ou une gare d'un train touristique (OSM en service) garde sa fermeture OHM : c'est la fin des
+     * voyageurs SNCF (Bavay, Courpière, Puy-Guillaume).
+     *
+     * @param  list<array<string, mixed>>  $events  événements déjà retenus (Wikidata : type, event_date)
+     */
+    public static function keepsOhmClosure(string $closedOn, bool $servedToday, array $events): bool
+    {
+        if (! $servedToday) {
+            return true;
+        }
+        foreach ($events as $e) {
+            if (($e['type'] ?? null) === 'reopening' && (string) $e['event_date'] > $closedOn) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -642,7 +691,8 @@ class ConsolidateStations extends Command
             }
             // Fermeture OHM : seulement si TOUS les objets OHM de la gare sont terminés
             // (une fin suivie d'un autre objet = changement de nom, pas une fermeture).
-            if (collect($ohm)->every(fn ($r) => $r->closed_on)) {
+            if (collect($ohm)->every(fn ($r) => $r->closed_on)
+                && self::keepsOhmClosure((string) collect($ohm)->max('closed_on'), $status === 'active' && in_array($statusSrc, ['sncf', 'sncf_voyageurs'], true), $events)) {
                 $last = collect($ohm)->sortByDesc('closed_on')->first();
                 $events[] = ['type' => 'closure', 'event_date' => $last->closed_on, 'date_precision' => $last->closed_precision,
                     'source' => 'ohm', 'source_ref' => $last->source_ref, 'source_url' => $url($last), 'note' => null];

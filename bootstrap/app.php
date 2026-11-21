@@ -84,6 +84,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prependToPriorityList(AuthenticatesRequests::class, AuthenticateApiToken::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // L'API REST répond toujours en JSON (validation 422, 404, 429, 500), quel que soit l'en-tête
+        // Accept : sans cela, un paramètre invalide sans `Accept: application/json` redirigeait vers l'accueil.
+        // Les pages web, /graphql et /mcp ne sont pas concernés.
+        $exceptions->shouldRenderJsonWhen(fn (Request $request, Throwable $e): bool => $request->is('api/*') || $request->expectsJson());
+
         // Page d'erreur d'une URL inconnue (404) ou d'une méthode non autorisée (405) :
         // aucune route n'a été trouvée, le groupe web (SetLocale) n'a pas tourné.
         // On pose la langue ici, puis le rendu par défaut continue (retour null).

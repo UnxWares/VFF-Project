@@ -53,7 +53,7 @@ return [
             [
                 'fr' => 'Le 27 août 1904, à la sortie du tunnel des Cabrils, un train spécial de vendangeurs est entré en collision frontale avec une machine haut-le-pied (locomotive seule).',
                 'en' => 'On 27 August 1904, at the exit of the Cabrils tunnel, a special train carrying grape-pickers collided head-on with a light engine (a locomotive running on its own).',
-                'de' => 'Am 27. August 1904 stieß am Ausgang des Tunnels von Les Cabrils ein Sonderzug mit Weinlesearbeitern frontal mit einer Leerfahrt-Lokomotive (einer allein fahrenden Lokomotive) zusammen.',
+                'de' => 'Am 27. August 1904 stieß am Ausgang des Tunnels von Les Cabrils ein Sonderzug mit Weinlesearbeitern frontal mit einer allein fahrenden Lokomotive zusammen.',
                 'sources' => ['wp-liste-1904'],
             ],
         ],

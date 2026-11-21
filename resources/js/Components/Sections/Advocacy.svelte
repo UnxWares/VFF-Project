@@ -34,7 +34,7 @@
         {#if cards.length}
             <div class={['advocacy-grid', { single: cards.length === 1 }]}>
                 {#each cards as item (item.slug)}
-                    <aside class="plea {item.kind}" aria-labelledby="{uid}-{item.slug}">
+                    <section class="plea {item.kind}" aria-labelledby="{uid}-{item.slug}">
                         <p class="kind">
                             <i
                                 class="bi {item.kind === 'reopening'
@@ -79,7 +79,7 @@
                                 </a>
                             {/if}
                         </div>
-                    </aside>
+                    </section>
                 {/each}
             </div>
         {/if}

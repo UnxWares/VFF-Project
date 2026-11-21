@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Services\StationPositioning\ListedPlacement;
 use App\Services\StationPositioning\ListedStationPlacer;
+use App\Support\CsvSafe;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -115,7 +116,7 @@ class PlaceListedStations extends Command
             if ($f !== false) {
                 fputcsv($f, ['ligne_id', 'gare', 'pk_m', 'ecart_robuste_m', 'ecart_naif_m'], escape: '');
                 foreach ($rows as $r) {
-                    fputcsv($f, array_values($r), escape: '');
+                    fputcsv($f, CsvSafe::row($r), escape: '');
                 }
                 fclose($f);
                 $this->line("  CSV : {$path}");
@@ -236,7 +237,7 @@ class PlaceListedStations extends Command
         fputcsv($f, ['station_id', 'gare', 'ligne_id', 'pk_m', 'ancienne_lon', 'ancienne_lat', 'nouvelle_lon', 'nouvelle_lat', 'deplacement_m',
             'precision_avant_m', 'precision_m', 'placement', 'calage'], escape: '');
         foreach ($rows as $r) {
-            fputcsv($f, $r, escape: '');
+            fputcsv($f, CsvSafe::row($r), escape: '');
         }
         fclose($f);
         $this->line("  CSV : {$path}");

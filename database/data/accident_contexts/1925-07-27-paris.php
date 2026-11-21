@@ -53,7 +53,7 @@ return [
             [
                 'fr' => 'Dans la nuit du lundi 27 au mardi 28 juillet 1925, vers minuit, l\'express venant de Bâle est entré à la gare de l\'Est, à Paris, dans une locomotive isolée. La liste de Wikipédia précise que l\'express roulait à 80 km/h sous le pont de l\'Aqueduc, en panne de freins, et que la machine était une haut-le-pied qui regagnait le dépôt de La Villette.',
                 'en' => 'In the night from Monday 27 to Tuesday 28 July 1925, at about midnight, the express from Basel ran into a loose locomotive at the Gare de l\'Est in Paris. The Wikipedia list adds that the express was travelling at 80 km/h under the Aqueduc bridge with failed brakes, and that the engine was a light engine returning to La Villette depot.',
-                'de' => 'In der Nacht von Montag, dem 27., auf Dienstag, den 28. Juli 1925, gegen Mitternacht fuhr der Schnellzug aus Basel im Pariser Gare de l\'Est auf eine einzelne Lokomotive auf. Die Wikipedia-Liste ergänzt, der Schnellzug sei mit 80 km/h unter der Brücke de l\'Aqueduc und mit ausgefallenen Bremsen gefahren, die Maschine sei eine Leerfahrt-Lokomotive auf dem Weg zum Depot La Villette gewesen.',
+                'de' => 'In der Nacht von Montag, dem 27., auf Dienstag, den 28. Juli 1925, gegen Mitternacht fuhr der Schnellzug aus Basel im Pariser Gare de l\'Est auf eine einzelne Lokomotive auf. Die Wikipedia-Liste ergänzt, der Schnellzug sei mit 80 km/h unter der Brücke de l\'Aqueduc und mit ausgefallenen Bremsen gefahren, die Maschine sei eine allein fahrende Lokomotive auf dem Weg zum Depot La Villette gewesen.',
                 'sources' => ['delpher-1925-07-28', 'delpher-1925-07-29', 'wp-liste-1925'],
             ],
         ],
