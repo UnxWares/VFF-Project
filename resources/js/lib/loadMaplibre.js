@@ -8,17 +8,19 @@
 let pending = null;
 
 /**
- * @param {() => Promise<any>} [importer] chargeur du module (remplacé dans les tests)
+ * Rend MapLibre réglé par `./maplibre.js` (adresse du worker comprise), comme `import maplibregl from
+ * '$lib/maplibre.js'` dans les grandes cartes.
+ *
+ * @param {() => Promise<MapLibre>} [importer] chargeur du module (remplacé dans les tests)
  * @returns {Promise<MapLibre>}
  */
-export function loadMaplibre(importer = () => import('maplibre-gl')) {
-    pending ??= importer()
-        // Le paquet est publié en CommonJS : l'objet MapLibre est l'export par défaut une fois empaqueté.
-        .then((module) => module.default ?? module)
-        .catch((error) => {
-            // Échec réseau : la prochaine carte retentera le téléchargement.
-            pending = null;
-            throw error;
-        });
+export function loadMaplibre(
+    importer = () => import('./maplibre.js').then((module) => module.default),
+) {
+    pending ??= importer().catch((error) => {
+        // Échec réseau : la prochaine carte retentera le téléchargement.
+        pending = null;
+        throw error;
+    });
     return pending;
 }

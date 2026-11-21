@@ -44,7 +44,7 @@
                     note: 'maplibre',
                 },
                 {
-                    name: 'i18next + svelte-i18next',
+                    name: 'i18next',
                     url: 'https://www.i18next.com',
                     license: 'MIT',
                 },
