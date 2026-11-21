@@ -87,6 +87,10 @@
     .advocacy-grid.single {
         grid-template-columns: minmax(0, 760px);
     }
+    /* Nombre impair d'encarts : le dernier prend toute la largeur au lieu de laisser un trou. */
+    .advocacy-grid:not(.single) > .plea:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+    }
 
     /* Couleur de campagne (railStyle.js : THREATENED_COLOR, REOPENING_COLOR) sur l'icône et le type de
        campagne seulement, assombrie pour le texte sur fond clair (>= 4,5:1) et éclaircie en thème

@@ -150,12 +150,18 @@ final class LineFacts
 
         return Cache::remember("line-facts:departments:{$lineId}:{$sig->n}:{$sig->t}", now()->addDays(7), function () use ($lineId) {
             $out = [];
+            // Un contour de commune invalide (anneau qui se recoupe : 18 sur 35 014 à l'import) faisait
+            // échouer ST_Intersection (GEOS TopologyException, erreur 500 sur la fiche de 750000) : il est
+            // réparé à la volée ; les contours valides sont pris tels quels, leur résultat ne change pas.
             foreach (DB::select(<<<'SQL'
                 WITH seg AS (SELECT DISTINCT geom FROM line_segments WHERE line_id = ?),
-                     u AS (SELECT ST_LineMerge(ST_Collect(geom)) AS g FROM seg)
+                     u AS (SELECT ST_LineMerge(ST_Collect(geom)) AS g FROM seg),
+                     c AS (SELECT cc.departement,
+                                  CASE WHEN ST_IsValid(cc.geom) THEN cc.geom ELSE ST_MakeValid(cc.geom) END AS geom
+                           FROM commune_contours cc, u
+                           WHERE cc.departement IS NOT NULL AND ST_Intersects(cc.geom, u.g))
                 SELECT c.departement AS code, ROUND(SUM(ST_Length(ST_Intersection(c.geom, u.g)::geography)))::int AS m
-                FROM commune_contours c, u
-                WHERE c.departement IS NOT NULL AND ST_Intersects(c.geom, u.g)
+                FROM c, u
                 GROUP BY c.departement
                 HAVING SUM(ST_Length(ST_Intersection(c.geom, u.g)::geography)) >= ?
                 ORDER BY 2 DESC

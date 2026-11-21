@@ -30,8 +30,10 @@ use App\Support\SourceRights;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\FormRequestParametersExtractor;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -53,6 +55,17 @@ class AppServiceProvider extends ServiceProvider
         // Les commandes qui vident la base ne tournent que sur une base de test (voir DatabaseGuard).
         $connection = config('database.default');
         DB::prohibitDestructiveCommands(! DatabaseGuard::isDisposable(config("database.connections.{$connection}.database")));
+
+        // Pas de compilation JIT de PostgreSQL pour les pages et l'API : le planificateur surestime les
+        // fonctions PostGIS (ST_Dump, ST_Subdivide…) et compile des requêtes de quelques dizaines de ms
+        // (169 ms de JIT pour 70 ms de travail aux terminus d'une fiche ligne, 0,66 s sur une tuile du
+        // zoom 5). Les commandes du moteur, longues, gardent le réglage du serveur.
+        Event::listen(ConnectionEstablished::class, function (ConnectionEstablished $event): void {
+            if ($event->connection->getDriverName() === 'pgsql'
+                && (! $this->app->runningInConsole() || config('database.web_jit_off_in_console'))) {
+                $event->connection->statement('SET jit = off');
+            }
+        });
 
         // Les paramètres de ces listes sont décrits à la main (attributs QueryParameter des contrôleurs : description,
         // bornes, exemple) ; Scramble ne doit pas les redéduire des règles de validation, sans description.
@@ -95,6 +108,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Propositions qui font appeler Wikidata (série, vérification d'identifiant) : site et GraphQL.
         ContributionLimits::register();
+
+        // Rapports de violation de la CSP (CspReportController), envoyés par les navigateurs : par adresse IP.
+        RateLimiter::for('csp-reports', fn (Request $request): Limit => Limit::perMinute(max(1, (int) config('csp.reports_per_minute', 30)))
+            ->by('ip:'.$request->ip())
+            ->response(fn () => response()->noContent(429)));
 
         RateLimiter::for('error-reports', function (Request $request): array {
             $who = $request->user()?->id ? 'user:'.$request->user()->id : 'ip:'.$request->ip();

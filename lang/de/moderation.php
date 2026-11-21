@@ -36,7 +36,7 @@ return [
             'title' => 'Die Sperrung Ihres Kontos ist aufgehoben',
             'body' => 'Sie können wieder Beiträge vorschlagen und Fehler melden, und Beiträge prüfen, sofern Ihre Rolle das erlaubt.',
         ],
-        'contest' => 'Um diese Entscheidung anzufechten, schreiben Sie an contact@vff-project.org: Sie wird erneut geprüft, nach Möglichkeit von einer anderen Person als der, die sie getroffen hat.',
+        'contest' => 'Um diese Entscheidung anzufechten, schreiben Sie an contact@vff-project.org: Sie wird erneut geprüft, nach Möglichkeit von einer anderen Person als der, die sie getroffen hat. Sie erhalten innerhalb von 15 Tagen eine Antwort.',
     ],
     'mail' => [
         'action' => 'Mein Profil öffnen',
@@ -49,7 +49,7 @@ return [
         'since' => 'Sie begann am :date.',
         'reason' => 'Begründung: :reason',
         'effect' => 'Sie können keine Beiträge mehr vorschlagen, prüfen oder Fehler melden. Ihre Daten bleiben unten zugänglich: Sie können sie herunterladen oder Ihr Konto löschen.',
-        'contest' => 'Um diese Entscheidung anzufechten, schreiben Sie an contact@vff-project.org.',
+        'contest' => 'Um diese Entscheidung anzufechten, schreiben Sie an contact@vff-project.org: Sie erhalten innerhalb von 15 Tagen eine Antwort.',
     ],
 
     'report' => [

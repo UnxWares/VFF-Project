@@ -4,6 +4,7 @@
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import SheetGallery from '$components/Sheet/SheetGallery.svelte';
+    import NotableUnits from '$components/Sheet/NotableUnits.svelte';
     import ReportError from '$components/Sheet/ReportError.svelte';
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SeoHead from '$components/SeoHead.svelte';
@@ -17,14 +18,16 @@
         serviceState,
         splitArrows,
     } from '$lib/materialFacts.js';
-    import { periodText } from '$lib/materialPeriods.js';
+    import { periodText, relationNotes, relationsList } from '$lib/materialPeriods.js';
     import { formatLocale } from '$lib/typo.js';
 
     // Images : `media_count` seul, la galerie les charge par l'API.
-    let { material, lines = [], lines_total = 0, media_count = 0 } = $props();
+    let { material, lines = [], lines_total = 0, media_count = 0, notable_units = [] } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (key, opts) => String($i18n.t(key, opts));
+    // Séparateur des sources d'une note : Svelte retire l'espace qui borde un bloc {#if}.
+    const LIST_SEPARATOR = ', ';
     const num = (n) => Number(n).toLocaleString(lang);
 
     // Lignes visibles d'emblée ; la suite se déplie (la série la plus citée en compte 43).
@@ -241,6 +244,8 @@
 
 {#snippet lineItem(l)}
     {@const key = confidenceKey(l.confidence, l.kind)}
+    {@const relations = relationsList(l.relations, l.periods, t)}
+    {@const notes = relationNotes(l.relations, t, formatLocale(lang))}
     <li class="line-item">
         <div class="line-head">
             <Link class="line-name" href="/lines/{l.slug}"
@@ -251,6 +256,25 @@
             >
         </div>
         <p class="confidence">{t(`${key}.text`)}</p>
+        {#if relations.length}
+            <div class="periods">
+                <p class="periods-label">{t('materials.relations.label')}</p>
+                <ul>
+                    {#each relations as r (r)}<li>{r}</li>{/each}
+                </ul>
+                {#each notes as n (n.label + n.text)}
+                    <p class="relation-fact">
+                        {t('materials.relations.notes.line', { label: n.label, text: n.text })}
+                        ({t('materials.relations.notes.sources')}
+                        {#each n.sources as s, j (s.url)}{#if j > 0}{LIST_SEPARATOR}{/if}<a
+                                href={s.url}
+                                target="_blank"
+                                rel="noopener noreferrer">{s.publisher}{@render ext()}</a
+                            >{/each})
+                    </p>
+                {/each}
+            </div>
+        {/if}
         {#if l.periods?.length}
             <div class="periods">
                 <p class="periods-label">{t('materials.periods.label')}</p>
@@ -439,6 +463,10 @@
                 </aside>
             </div>
         </SheetSection>
+
+        {#if notable_units.length}
+            <NotableUnits units={notable_units} series={material.slug} />
+        {/if}
 
         <SheetSection
             id="lines"
@@ -683,6 +711,12 @@
         text-decoration: underline;
         text-decoration-color: var(--vff-accent);
         text-underline-offset: 3px;
+    }
+    .relation-fact {
+        margin: 4px 0 0;
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
+        overflow-wrap: anywhere;
     }
     .periods-label {
         margin: 0;

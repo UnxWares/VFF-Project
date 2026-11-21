@@ -82,6 +82,17 @@ class MaterialPeriodExtractorTest extends TestCase
         );
     }
 
+    public function test_a_sentence_framed_by_its_range_stays_medium_despite_another_date_inside(): void
+    {
+        // Ligne de Paris à Granville : « fin 2007 » date un achat de rames, dans l'intervalle.
+        $this->assertSame(
+            [2 => [['1999-01-01', 'year', '2015-01-01', 'year', 'medium']]],
+            $this->lineFacts('De 1999 à 2015, le matériel utilisé est constitué de 15 rames [[X 72500]], complété par quatre rames acquises fin 2007.'),
+        );
+        // Une date hors de l'intervalle rend la phrase ambiguë, comme avant.
+        $this->assertSame('low', $this->lineFacts('De 1999 à 2015, le matériel est constitué de [[X 72500]], arrivés en 1997.')[2][0][4]);
+    }
+
     public function test_numeric_day_dates_are_read(): void
     {
         $this->assertSame(

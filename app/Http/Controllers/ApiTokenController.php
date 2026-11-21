@@ -32,6 +32,14 @@ class ApiTokenController extends Controller
             ->with(self::FLASH, ['id' => (int) $token->accessToken->id, 'plain' => $token->plainTextToken]);
     }
 
+    /** Renouvellement d'un clic : un an de plus à partir d'aujourd'hui, même secret. */
+    public function renew(Request $request, int $token): RedirectResponse
+    {
+        abort_unless($this->tokens->renew($request->user(), $token), 404);
+
+        return back()->with('success', __('api_tokens.flash.renewed'));
+    }
+
     public function destroy(Request $request, int $token): RedirectResponse
     {
         abort_unless($this->tokens->revoke($request->user(), $token), 404);

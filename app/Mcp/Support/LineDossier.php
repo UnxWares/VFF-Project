@@ -93,6 +93,9 @@ final class LineDossier
             'name' => $line->name,
             'network' => $encyclopedia->network ?? null,
             'is_lgv' => (bool) ($line->is_lgv ?? false) || Lgv::nameIsLgv((string) $line->name),
+            // Ligne menacée de fermeture et soutenue par VFF (halo rouge de la carte), comme `is_threatened`
+            // de l'API REST ; le message de soutien lui-même n'est jamais publié (AdvocacyNotPublishedTest).
+            'is_threatened' => (bool) ($line->is_threatened ?? false),
             'today' => $today === null ? null : [
                 'state' => $activeTodayM > 0 ? 'open' : 'closed_or_gone',
                 'by_category_km' => self::categoriesKm($today['length_by_category'], $lang),

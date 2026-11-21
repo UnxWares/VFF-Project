@@ -10,6 +10,7 @@ return [
         'station_required' => 'Choose the station from the search results.',
         'summary_one' => ':count field to correct before sending',
         'summary_other' => ':count fields to correct before sending',
+        'daily_limit' => 'You have sent :max proposals today, the daily maximum. You can send more tomorrow, which gives validators time to review them all.',
     ],
 
     'picker' => [

@@ -56,6 +56,11 @@ final readonly class SubmitContribution
                 ]);
             }
 
+            // Plafond quotidien (30 propositions par compte, site et API ensemble) : son propre code d'erreur.
+            if (ContributionLimits::dailyLimitReached($author)) {
+                throw ContributionApiError::dailyLimit(ContributionLimits::DAILY);
+            }
+
             $kind = array_key_first($input);
             $prefix = "input.$kind.";
             // Une série fait appeler Wikidata par le serveur : même limite que le formulaire du site, même compteur.

@@ -43,7 +43,11 @@ class MediaController extends Controller
      * hébergés par VFF ; `thumb_url` (vignette d'environ 500 px) et
      * `display_url` (grande taille) pointent chez le fournisseur, et
      * `source_url` vers la page d'origine (la page Wikimedia Commons du
-     * fichier, pour un média Commons). Chaque média porte ses propres droits,
+     * fichier, pour un média Commons). Une image déposée par un contributeur
+     * (`provider` = `upload`) est hébergée par VFF : `thumb_url` est sa
+     * miniature WebP de 320 px de large et `display_url` celle de 1 280 px
+     * (jamais agrandies, sans métadonnées), ou le fichier d'origine tant
+     * qu'elles n'existent pas. Chaque média porte ses propres droits,
      * à afficher avec l'image : `attribution` (ligne de crédit prête à
      * l'emploi), `author`, `license` (telle que déclarée par la source,
      * `null` si inconnue : aucune licence n'est présumée), `license_url`,

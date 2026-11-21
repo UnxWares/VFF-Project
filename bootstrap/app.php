@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\BasemapArchiveController;
+use App\Http\Controllers\TranslationsController;
 use App\Http\Middleware\AllowIframeEmbed;
 use App\Http\Middleware\ApiLocale;
 use App\Http\Middleware\AuthenticateApiToken;
@@ -9,6 +11,7 @@ use App\Http\Middleware\MarkOfflineReadable;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackLastSeen;
+use App\Support\Basemap\BasemapArchive;
 use App\Support\Translations;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
@@ -16,6 +19,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -26,6 +30,18 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        // Dictionnaire de l'interface d'une langue, hors du groupe web (ni session ni cookie) : la même
+        // réponse pour tous, gardée en cache par le navigateur (App\Http\Controllers\TranslationsController).
+        then: function (): void {
+            Route::get('/i18n/{locale}/{version}.json', TranslationsController::class)
+                ->where(['locale' => '[a-z]{2}', 'version' => '[0-9a-f]{12}'])
+                ->name('i18n.translations');
+            // Fond de carte libre (archive PMTiles), lu par plages d'octets, lui aussi sans session ni cookie
+            // (App\Http\Controllers\BasemapArchiveController).
+            Route::get('/basemap/{archive}', BasemapArchiveController::class)
+                ->where('archive', BasemapArchive::NAME_PATTERN)
+                ->name('basemap.archive');
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [

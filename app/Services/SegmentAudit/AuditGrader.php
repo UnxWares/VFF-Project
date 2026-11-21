@@ -1,0 +1,456 @@
+<?php
+
+namespace App\Services\SegmentAudit;
+
+use App\Enums\AuditGrade;
+
+/**
+ * Règles de notation de l'audit des tronçons (docs/AUDIT-TRONCONS.md), sans base de données : les
+ * faits sont mesurés par SegmentAuditor, ces fonctions les transforment en notes et en preuves.
+ * Les codes de `reasons` sont stables (traduits dans lang/{fr,en,de}/audit_segments.php, clé
+ * `reasons.<code>`) ; les seuils sont les constantes ci-dessous.
+ *
+ * Classement (état du tronçon comparé à chaque source datée) :
+ *   classes : open (en service, voie unique, voie de service), closed (fermé, voie en place),
+ *             gone (déposé, rasé), not_open (pas encore ouvert, en construction) ; une source peut
+ *             aussi dire in_place (voie en place, ouverte ou fermée) ou closed_in_place (fermée avec
+ *             la voie maintenue en place, selon SNCF Réseau : un tronçon déposé la contredit).
+ *   un train touristique (is_heritage) n'est pas contredit par une source qui dit la ligne fermée ;
+ *   ère courante : quand deux observations de l'état actuel sont d'accord et qu'aucune ne contredit,
+ *   l'avis contraire d'une chronologie devient faible ; un tronçon « fermé, voie en place » sans
+ *   aucune observation de voie, fermé depuis plus de OLD_CLOSURE_YEARS ans, est « à revoir »
+ *   (règle track_unconfirmed : dépose probable).
+ *   un avis « contredit » est faible quand il change à ±NEAR_DATE_YEARS ans de la date de l'ère
+ *   (la date d'un événement voisin suffit à l'expliquer), qu'il vient d'une source faible (WEAK_SOURCES)
+ *   ou d'une observation qui n'est pas rattachée à la ligne (voie OSM d'une autre ligne, état
+ *   relevé par lignes-oubliées).
+ *   good    : au moins une source d'accord (hors sources faibles), aucune contradiction forte, et
+ *             aucun avis faible contraire d'une source mieux classée que celles qui sont d'accord ;
+ *   poor    : une contradiction forte d'une source fiable, sans accord d'une source au moins aussi
+ *             fiable ; ou une règle métier violée (voyageurs seuls hors LGV) ;
+ *   fair    : le reste (accord et contradiction mêlés, contradictions faibles, accord de sources faibles) ;
+ *   unknown : aucune source ne parle de ce tronçon à cette date.
+ *
+ * Placement (écart du tracé à la voie réelle, points tous les SAMPLE_STEP_M mètres) :
+ *   voie de référence : BD TOPO, OSM ou tracé relevé sur les photographies aériennes de l'IGN, à
+ *   moins de REFERENCE_RADIUS_M, en prenant une source DIFFÉRENTE de celle du tracé ;
+ *   good : médiane et 95e centile ≤ TOLERANCE_M (cible : médiane ≤ TARGET_M) sur au moins
+ *          FULL_COVERAGE des points ; fair : médiane ≤ TOLERANCE_M, ou couverture partielle ;
+ *   poor : médiane > TOLERANCE_M, ou tronçon en service à l'ère courante sans aucune voie de référence proche ;
+ *   unknown : tronçon fermé ou déposé sans référence, tronçon hors de France (abroad), ou seule la
+ *             source du tracé elle-même. Ère passée : la référence indépendante la plus proche est
+ *             retenue (la voie a pu être déplacée depuis).
+ *
+ * Exactitude (défauts de géométrie, gares) :
+ *   poor : aller-retour (virage > HAIRPIN_DEG sur 40 m), écart de jonction > JUNCTION_POOR_M,
+ *          trou non couvert, gare à plus de STATION_FAR_M de sa ligne ;
+ *   fair : coude (virage > KINK_DEG sur 40 m), écart de jonction entre JUNCTION_MIN_M et
+ *          JUNCTION_POOR_M, gare entre STATION_NEAR_M et STATION_FAR_M ;
+ *   good : aucun défaut.
+ *
+ * Tracé (source retenue et précision connue) :
+ *   good : source précise (BD TOPO 2,5 m, OSM environ 2 m), ou tracé d'une autre source déjà calé sur
+ *          la voie réelle (placement « sûr ») ;
+ *   fair : précision moyenne (OHM, tracé déclaré ou contribué), ou source peu précise sans meilleure
+ *          trace connue, ou trace inutilisée dans un trou voisin ;
+ *   poor : source peu précise (formes SNCF généralisées, archeoferroviaire non recalé) alors qu'une voie
+ *          BD TOPO ou OSM suit le tronçon sur au moins MIN_COVERAGE des points ;
+ *   unknown : source inconnue.
+ */
+final class AuditGrader
+{
+    /** Version des règles, recopiée dans chaque ligne d'audit (à changer avec les seuils). */
+    public const RULE_VERSION = '2026-11-21.3';
+
+    /** Ancienneté (ans) d'une fermeture au-delà de laquelle une voie « en place » non observée est suspecte. */
+    public const OLD_CLOSURE_YEARS = 50;
+
+    public const NEAR_DATE_YEARS = 3;
+
+    /** Règles métier qui ne font qu'un doute (note « à revoir » au plus). */
+    public const SOFT_RULES = ['track_unconfirmed'];
+
+    /** Sources de dates faibles : estimations, décisions administratives tardives, Wikidata. */
+    public const WEAK_SOURCES = ['estimation-reseau', 'lignes-oubliees-pdf', 'wikidata'];
+
+    public const SAMPLE_STEP_M = 50.0;
+
+    public const MAX_SAMPLES = 200;
+
+    public const REFERENCE_RADIUS_M = 50.0;
+
+    public const TARGET_M = 1.0;
+
+    public const TOLERANCE_M = 5.0;
+
+    public const MIN_COVERAGE = 0.5;
+
+    public const FULL_COVERAGE = 0.8;
+
+    public const HAIRPIN_DEG = 150.0;
+
+    public const KINK_DEG = 60.0;
+
+    public const JUNCTION_MIN_M = 0.05;
+
+    public const JUNCTION_POOR_M = 1.0;
+
+    public const JUNCTION_MAX_M = 10.0;
+
+    public const HOLE_MIN_M = 0.5;
+
+    public const HOLE_MAX_M = 500.0;
+
+    public const STATION_NEAR_M = 150.0;
+
+    public const STATION_FAR_M = 500.0;
+
+    /** Écart relatif toléré entre la longueur du tracé de référence et la longueur officielle. */
+    public const LENGTH_FAIR = 0.1;
+
+    public const LENGTH_POOR = 0.25;
+
+    /** Part de longueur au-delà de laquelle une note de tronçon devient celle de la ligne. */
+    public const LINE_SHARE = 0.1;
+
+    /** Ordre de préférence des voies de référence du placement. */
+    public const REFERENCES = ['bdtopo', 'osm', 'ign-historique'];
+
+    /**
+     * Précision connue des sources de tracé (mètres, null si inconnue) et sa classe.
+     *
+     * @var array<string, array{0: ?float, 1: 'high'|'medium'|'low'}>
+     */
+    public const TRACE_PRECISION = [
+        'bdtopo' => [2.5, 'high'],
+        'osm' => [2.0, 'high'],
+        'ohm' => [null, 'medium'],
+        'ign-historique' => [null, 'medium'],
+        'declared' => [null, 'medium'],
+        'manual' => [null, 'medium'],
+        'contrib' => [null, 'medium'],
+        'sncf' => [165.0, 'low'],
+        'archeoferroviaire' => [null, 'low'],
+        'model' => [null, 'low'],
+    ];
+
+    /** Classe d'état d'un statut de tronçon (line_segments.status). */
+    public static function statusClass(string $status): string
+    {
+        return match ($status) {
+            'in_service', 'single_track', 'service_track' => 'open',
+            'construction' => 'not_open',
+            'abandoned' => 'closed',
+            default => 'gone', // dismantled, razed
+        };
+    }
+
+    /**
+     * État attendu par une chronologie (EraTimeline::stateAt) : null veut dire « pas encore
+     * ouverte » si la première ouverture de la source est postérieure, « disparue » sinon.
+     *
+     * @param  array{status: string, traffic: string}|null  $state
+     * @return array{class: string, traffic: ?string}
+     */
+    public static function expectedFromState(?array $state, ?int $firstOpeningYear, int $year): array
+    {
+        if ($state === null) {
+            return ['class' => $firstOpeningYear !== null && $firstOpeningYear > $year ? 'not_open' : 'gone', 'traffic' => null];
+        }
+        $class = self::statusClass($state['status']);
+
+        return ['class' => $class, 'traffic' => $class === 'open' && $state['traffic'] !== 'unknown' ? $state['traffic'] : null];
+    }
+
+    /**
+     * Avis d'une source sur l'état réel : true (d'accord) ou false (contredit), et la raison.
+     *
+     * @param  array{class: string, traffic?: ?string}  $expected
+     * @return array{0: bool, 1: ?string} [d'accord, code de la contradiction]
+     */
+    public static function compare(string $status, string $traffic, array $expected): array
+    {
+        $actual = self::statusClass($status);
+        $want = $expected['class'];
+        $agrees = match ($want) {
+            'in_place' => in_array($actual, ['open', 'closed'], true),
+            'closed_in_place' => $actual === 'closed',
+            // Une source qui dit « fermée » sans parler de dépose ne contredit pas une voie déposée.
+            'closed' => in_array($actual, ['closed', 'gone'], true),
+            default => $actual === $want,
+        };
+        if (! $agrees) {
+            return [false, 'expected_'.$want];
+        }
+        $wantTraffic = $expected['traffic'] ?? null;
+        if ($actual === 'open' && $wantTraffic !== null && $traffic !== 'unknown') {
+            $wantFreight = $wantTraffic === 'freight';
+            if ($wantFreight !== ($traffic === 'freight')) {
+                return [false, $wantFreight ? 'expected_freight_only' : 'expected_passengers'];
+            }
+        }
+
+        return [true, null];
+    }
+
+    /**
+     * Note de classement à partir des avis des sources et des règles métier.
+     *
+     * @param  list<array{source: string, agrees: bool, weak?: bool, near_date?: bool, priority?: int}>  $verdicts
+     * @param  list<string>  $violatedRules
+     * @return array{grade: AuditGrade, reasons: list<string>}
+     */
+    public static function classification(array $verdicts, array $violatedRules = []): array
+    {
+        // « Dépose probable » n'est qu'un doute : à revoir, jamais faux à lui seul.
+        $softRules = array_values(array_intersect($violatedRules, self::SOFT_RULES));
+        $violatedRules = array_values(array_diff($violatedRules, self::SOFT_RULES));
+        $reasons = array_map(fn (string $r): string => 'rule_'.$r, [...$violatedRules, ...$softRules]);
+        if ($verdicts === []) {
+            $grade = $violatedRules ? AuditGrade::Poor : ($softRules ? AuditGrade::Fair : AuditGrade::Unknown);
+
+            return ['grade' => $grade, 'reasons' => [...$reasons, 'no_source']];
+        }
+        $strongAgree = array_filter($verdicts, fn (array $v): bool => $v['agrees'] && ! ($v['weak'] ?? false));
+        $strongContra = array_filter($verdicts, fn (array $v): bool => ! $v['agrees'] && ! ($v['weak'] ?? false) && ! ($v['near_date'] ?? false));
+        $softContra = array_filter($verdicts, fn (array $v): bool => ! $v['agrees'] && (($v['weak'] ?? false) || ($v['near_date'] ?? false)));
+        $best = fn (array $list): int => min(array_map(fn (array $v): int => $v['priority'] ?? 50, $list) ?: [PHP_INT_MAX]);
+        $bestAgree = $best($strongAgree);
+        $bestContra = $best($strongContra);
+
+        if ($violatedRules !== []) {
+            $grade = AuditGrade::Poor;
+        } elseif ($strongContra !== [] && $bestContra < $bestAgree) {
+            $grade = AuditGrade::Poor;
+            $reasons[] = 'source_contradicts';
+        } elseif ($strongContra !== []) {
+            $grade = AuditGrade::Fair;
+            $reasons[] = 'sources_disagree';
+        } elseif ($strongAgree === []) {
+            $grade = AuditGrade::Fair;
+            $reasons[] = $softContra !== [] ? 'weak_contradiction' : 'weak_sources_only';
+        } elseif ($softContra !== [] && $best($softContra) < $bestAgree) {
+            // Avis faible, mais d'une source mieux classée que toutes celles qui sont d'accord.
+            $grade = AuditGrade::Fair;
+            $reasons[] = 'weak_contradiction';
+        } else {
+            $grade = AuditGrade::Good;
+            $reasons[] = 'sources_agree';
+        }
+        if ($softRules !== [] && $grade === AuditGrade::Good) {
+            $grade = AuditGrade::Fair;
+        }
+
+        return ['grade' => $grade, 'reasons' => $reasons];
+    }
+
+    /**
+     * Note de placement.
+     *
+     * @param  array<string, array{points: int, found: int, median_m: ?float, p95_m: ?float}>  $refs  par voie de référence
+     * @return array{grade: AuditGrade, reasons: list<string>, reference: ?string, same_source: bool, coverage: float, median_m: ?float, p95_m: ?float}
+     */
+    public static function placement(array $refs, ?string $source, bool $activeToday, bool $abroad = false, bool $bestMatch = false): array
+    {
+        $pick = null;
+        $sameSource = false;
+        foreach (self::REFERENCES as $name) {
+            $r = $refs[$name] ?? null;
+            if ($name === $source || $r === null || self::coverage($r) < self::MIN_COVERAGE) {
+                continue;
+            }
+            // Ère passée : la voie a pu être déplacée depuis (gare reconstruite, rectification) ;
+            // la référence la plus proche (souvent le relevé sur photographies anciennes) compte.
+            if ($pick === null || ($bestMatch && ($r['median_m'] ?? INF) < ($refs[$pick]['median_m'] ?? INF))) {
+                $pick = $name;
+            }
+            if (! $bestMatch) {
+                break;
+            }
+        }
+        if ($pick === null && $source !== null && isset($refs[$source]) && self::coverage($refs[$source]) >= self::MIN_COVERAGE) {
+            $pick = $source;
+            $sameSource = true;
+        }
+        $empty = ['reference' => $pick, 'same_source' => $sameSource, 'coverage' => $pick ? round(self::coverage($refs[$pick]), 3) : 0.0, 'median_m' => null, 'p95_m' => null];
+        if ($pick === null) {
+            $poor = $activeToday && ! $abroad;
+
+            return ['grade' => $poor ? AuditGrade::Poor : AuditGrade::Unknown, 'reasons' => [$poor ? 'no_track_nearby' : ($abroad ? 'abroad' : 'no_reference')]] + $empty;
+        }
+        if ($sameSource) {
+            return ['grade' => AuditGrade::Unknown, 'reasons' => ['only_same_source']] + $empty;
+        }
+        $r = $refs[$pick];
+        $median = $r['median_m'];
+        $p95 = $r['p95_m'];
+        $coverage = self::coverage($r);
+        $reasons = [];
+        if ($median > self::TOLERANCE_M) {
+            $grade = AuditGrade::Poor;
+            $reasons[] = 'median_over_tolerance';
+        } elseif ($p95 > self::TOLERANCE_M) {
+            $grade = AuditGrade::Fair;
+            $reasons[] = 'p95_over_tolerance';
+        } else {
+            $grade = AuditGrade::Good;
+            $reasons[] = $median <= self::TARGET_M ? 'within_target' : 'within_tolerance';
+        }
+        if ($coverage < self::FULL_COVERAGE) {
+            $reasons[] = 'partial_coverage';
+            if ($grade === AuditGrade::Good) {
+                $grade = AuditGrade::Fair;
+            }
+        }
+
+        return ['grade' => $grade, 'reasons' => $reasons, 'median_m' => $median, 'p95_m' => $p95, 'coverage' => round($coverage, 3)] + $empty;
+    }
+
+    /** @param  array{points: int, found: int}  $r */
+    public static function coverage(array $r): float
+    {
+        return $r['points'] > 0 ? $r['found'] / $r['points'] : 0.0;
+    }
+
+    /**
+     * Note d'exactitude d'un tronçon.
+     *
+     * @param  array{max_turn_deg: ?float, hairpins: int, kinks: int, junction_gaps: list<array{m: float}>, holes: list<array{m: float}>, stations: list<array{distance_m: float}>}  $facts
+     * @return array{grade: AuditGrade, reasons: list<string>}
+     */
+    public static function accuracy(array $facts): array
+    {
+        $poor = [];
+        $fair = [];
+        if ($facts['hairpins'] > 0) {
+            $poor[] = 'hairpin';
+        } elseif ($facts['kinks'] > 0) {
+            $fair[] = 'kink';
+        }
+        foreach ($facts['junction_gaps'] as $gap) {
+            if ($gap['m'] > self::JUNCTION_POOR_M) {
+                $poor[] = 'junction_gap';
+            } elseif ($gap['m'] > self::JUNCTION_MIN_M) {
+                $fair[] = 'junction_gap_small';
+            }
+        }
+        if ($facts['holes'] !== []) {
+            $poor[] = 'hole';
+        }
+        foreach ($facts['stations'] as $station) {
+            if ($station['distance_m'] > self::STATION_FAR_M) {
+                $poor[] = 'station_far';
+            } elseif ($station['distance_m'] > self::STATION_NEAR_M) {
+                $fair[] = 'station_off_track';
+            }
+        }
+        $reasons = array_values(array_unique([...$poor, ...$fair]));
+
+        return [
+            'grade' => $poor !== [] ? AuditGrade::Poor : ($fair !== [] ? AuditGrade::Fair : AuditGrade::Good),
+            'reasons' => $reasons ?: ['no_defect'],
+        ];
+    }
+
+    /**
+     * Note du tracé : précision de la source retenue et meilleures traces disponibles.
+     *
+     * @param  float  $preciseCoverage  part des points suivis par une voie BD TOPO ou OSM (0 à 1)
+     * @param  bool  $aligned  placement « sûr » sur une voie de référence indépendante
+     * @param  bool  $unusedTraceInGap  une trace non rattachée passe dans un trou voisin
+     * @return array{grade: AuditGrade, reasons: list<string>, precision_m: ?float, precision_class: ?string}
+     */
+    public static function trace(?string $source, float $preciseCoverage, bool $aligned = false, bool $unusedTraceInGap = false): array
+    {
+        [$precision, $class] = self::TRACE_PRECISION[$source ?? ''] ?? [null, null];
+        $reasons = [];
+        // Source peu précise, mais tracé déjà calé sur la voie réelle (placement « sûr ») : recalé.
+        $recalibrated = $class !== 'high' && $class !== null && $aligned;
+        $available = $preciseCoverage >= self::MIN_COVERAGE;
+        $grade = match (true) {
+            $class === 'high', $recalibrated => AuditGrade::Good,
+            $class === 'medium' => AuditGrade::Fair,
+            $class === 'low' => $available ? AuditGrade::Poor : AuditGrade::Fair,
+            default => AuditGrade::Unknown,
+        };
+        $reasons[] = match (true) {
+            $class === 'high' => 'precise_source',
+            $recalibrated => 'recalibrated',
+            $class === 'medium' => 'medium_source',
+            $class === 'low' => $available ? 'precise_trace_available' : 'best_available',
+            default => 'unknown_source',
+        };
+        if ($unusedTraceInGap) {
+            $reasons[] = 'unused_trace_in_gap';
+            if ($grade === AuditGrade::Good) {
+                $grade = AuditGrade::Fair;
+            }
+        }
+
+        return ['grade' => $grade, 'reasons' => $reasons, 'precision_m' => $precision, 'precision_class' => $class];
+    }
+
+    /**
+     * Note d'exactitude propre à la ligne : longueur du tracé de référence comparée à la longueur
+     * officielle (ou à l'étendue des PK de lignes-oubliées, qui n'est qu'un minimum : $lowerBound),
+     * ordre des gares le long des PK.
+     *
+     * @return array{grade: AuditGrade, reasons: list<string>, length_ratio: ?float}
+     */
+    public static function lineAccuracy(?int $traceLength, ?int $officialLength, int $orderInversions, bool $lowerBound = false): array
+    {
+        $reasons = [];
+        $grade = AuditGrade::Good;
+        $ratio = null;
+        if ($traceLength !== null && $officialLength !== null && $officialLength > 0) {
+            $ratio = round($traceLength / $officialLength, 3);
+            // Étendue des PK cités par lignes-oubliées : une partie de la ligne seulement, donc un
+            // minimum ; seul un tracé plus court qu'elle est suspect.
+            $delta = $lowerBound ? max(0.0, 1 - $ratio) : abs($ratio - 1);
+            if ($delta > self::LENGTH_POOR) {
+                $grade = AuditGrade::Poor;
+                $reasons[] = 'length_mismatch';
+            } elseif ($delta > self::LENGTH_FAIR) {
+                $grade = AuditGrade::Fair;
+                $reasons[] = 'length_off';
+            }
+        }
+        if ($orderInversions > 0) {
+            $grade = AuditGrade::Poor;
+            $reasons[] = 'station_order';
+        }
+
+        return ['grade' => $grade, 'reasons' => $reasons ?: ['no_defect'], 'length_ratio' => $ratio];
+    }
+
+    /**
+     * Note d'une ligne sur un contrôle, d'après les longueurs de ses tronçons par note : poor dès
+     * que LINE_SHARE de la longueur est faux, fair dès que LINE_SHARE est faux ou à revoir,
+     * unknown si la moitié est inconnue, good sinon.
+     *
+     * @param  array<string, int>  $lengthByGrade  longueur (m) par valeur de note
+     */
+    public static function lineGrade(array $lengthByGrade): AuditGrade
+    {
+        $total = array_sum($lengthByGrade);
+        if ($total <= 0) {
+            return AuditGrade::Unknown;
+        }
+        $share = fn (string $g): float => ($lengthByGrade[$g] ?? 0) / $total;
+
+        return match (true) {
+            $share('poor') >= self::LINE_SHARE => AuditGrade::Poor,
+            $share('poor') + $share('fair') >= self::LINE_SHARE => AuditGrade::Fair,
+            $share('unknown') >= 0.5 => AuditGrade::Unknown,
+            default => AuditGrade::Good,
+        };
+    }
+
+    /** Score 0 (tout sûr) à 100 (tout faux) de quatre notes. */
+    public static function score(AuditGrade ...$grades): int
+    {
+        $max = count($grades) * AuditGrade::Poor->points();
+
+        return $max > 0 ? (int) round(100 * array_sum(array_map(fn (AuditGrade $g): int => $g->points(), $grades)) / $max) : 0;
+    }
+}

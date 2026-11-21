@@ -7,6 +7,8 @@
     import { page, router } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
+    import { applyBasemapTheme, basemapStyle, usesBasemap } from '$lib/basemap.js';
+    import { registerPmtilesProtocol } from '$lib/pmtilesProtocol.js';
     import { theme } from '$lib/stores/theme.svelte.js';
     import { colon, formatNumber } from '$lib/typo.js';
     import { mapControlsLocale } from '$lib/mapControls.js';
@@ -94,13 +96,16 @@
         greenwayPopupHtml,
         greenwayTilesUrl,
     } from '$lib/greenwayMap.js';
+    // Gares : fichier de l'époque demandé seulement en approchant du zoom où elles se dessinent.
+    import { STATIONS_MIN_ZOOM, noStations, stationsToLoad } from '$lib/mapStations.js';
 
     /**
      * Composant carte interactive du réseau ferré VFF.
      *
      * Consomme les endpoints :
      *   GET /api/v1/eras/{era}/tiles/{z}/{x}/{y}.mvt   → tracés (couche `vff-lines`)
-     *   GET /api/v1/eras/{era}/stations.geojson        → gares (couche `vff-stations`)
+     *   GET /api/v1/eras/{era}/stations.geojson        → gares (couche `vff-stations`,
+     *                                                     chargée à l'approche du zoom 7, $lib/mapStations.js)
      *
      * Fond cartographique :
      *   - Si VITE_MAPTILER_KEY défini : MapTiler Basic (vectoriel)
@@ -411,12 +416,25 @@
     // Fin du signal « carte sur fond neutre » (lib/offlineMap.svelte.js), appelée quand la carte disparaît.
     let releasePartialMap = null;
 
+    // Carte dessinée sur le fond de carte libre de VFF (lib/basemap.js) : ses couleurs suivent le thème.
+    let onBasemap = $state(false);
+
     /**
-     * @param {boolean} offline page lue sans réseau : fond neutre, aucune tuile ni style d'un tiers
+     * @param {boolean} offline page lue sans réseau : fond libre de VFF ou fond neutre, rien d'un tiers
      * @returns {string | import('maplibre-gl').StyleSpecification}
      */
     function buildStyle(offline) {
-        if (offline) return neutralMapStyle({ dark: theme.isDark });
+        if (offline) return neutralMapStyle({ dark: theme.isDark, lang: get(i18n).language });
+        // Fond libre de VFF en ligne, si l'option maps.basemap.online est active.
+        const basemap = page.props.basemap;
+        if (usesBasemap(basemap, false)) {
+            return basemapStyle({
+                url: basemap.url,
+                attribution: basemap.attribution,
+                dark: theme.isDark,
+                lang: get(i18n).language,
+            });
+        }
         const key = import.meta.env.VITE_MAPTILER_KEY;
         if (key) {
             return `https://api.maptiler.com/maps/basic-v2/style.json?key=${key}`;
@@ -464,6 +482,19 @@
         return `${TILES_BASE}/${year}/stations.geojson${bustParam()}`;
     }
 
+    // Dernier fichier des gares posé sur la source `vff-stations` (adresse), null tant qu'aucun.
+    let stationsLoaded = null;
+
+    // Pose le fichier des gares de l'époque `year` si la carte est assez proche et qu'il manque.
+    function syncStations(year = era) {
+        const source = map?.getSource('vff-stations');
+        if (!source) return;
+        const url = stationsToLoad(map.getZoom(), stationsUrlForEra(year), stationsLoaded);
+        if (!url) return;
+        stationsLoaded = url;
+        source.setData(url);
+    }
+
     function addVffLayers(year) {
         // ── Source tracés (MVT) ───────────────────────────────────────────
         map.addSource('vff-lines', {
@@ -473,11 +504,9 @@
             maxzoom: 14,
         });
 
-        // ── Source gares (GeoJSON) ────────────────────────────────────────
-        map.addSource('vff-stations', {
-            type: 'geojson',
-            data: stationsUrlForEra(year),
-        });
+        // ── Source gares (GeoJSON) : vide jusqu'à l'approche du zoom des gares ──
+        map.addSource('vff-stations', { type: 'geojson', data: noStations() });
+        syncStations(year);
 
         // ── Halo « campagne de réouverture » soutenue par VFF ──────────────
 
@@ -630,7 +659,7 @@
             id: 'vff-stations-points',
             type: 'circle',
             source: 'vff-stations',
-            minzoom: 7,
+            minzoom: STATIONS_MIN_ZOOM,
             paint: {
                 'circle-radius': [
                     'interpolate',
@@ -777,7 +806,7 @@
         setTimeout(() => {
             if (!map) return;
             map.getSource('vff-lines')?.setTiles([tilesUrlForEra(year)]);
-            map.getSource('vff-stations')?.setData(stationsUrlForEra(year));
+            syncStations(year);
             // Halos de campagne : seulement à la décennie actuelle.
             map.setFilter('vff-lines-threatened', buildThreatenedFilter(year));
             map.setFilter('vff-lines-reopening', buildReopeningFilter(year));
@@ -957,6 +986,7 @@
         appliedView = viewKey(center, zoom);
         const offline = isOfflineView(page.props);
         if (offline) releasePartialMap = reportPartialMap();
+        onBasemap = registerPmtilesProtocol(maplibregl) && usesBasemap(page.props.basemap, offline);
         map = new maplibregl.Map({
             container: mapContainer,
             style: buildStyle(offline),
@@ -993,6 +1023,7 @@
             applyLevelCrossings(levelCrossings);
             applySignalling(signalling, signallingYear);
             applyGreenways(greenways);
+            map.on('zoomend', () => syncStations());
             if (typeof onZoomChange === 'function') {
                 onZoomChange(map.getZoom());
                 map.on('zoomend', () => onZoomChange(map.getZoom()));
@@ -1015,6 +1046,14 @@
     }
 
     $effect(() => applyMode(mode));
+
+    // Thème clair ou sombre du fond libre, changé sur place (les calques de VFF ne bougent pas).
+    $effect(() => {
+        const dark = theme.isDark;
+        if (onBasemap && map && layersReady) {
+            applyBasemapTheme(map, { dark, lang: get(i18n).language });
+        }
+    });
 
     // Réactif : ère, vue, réglage ou préférences changés → teinte du fond mise à jour.
     $effect(() => applyTint(tintSettings, reducedMotion.current));

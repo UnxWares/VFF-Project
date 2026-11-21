@@ -9,7 +9,7 @@
 */
 return [
     'versions' => [
-        'use-conditions' => '2026-10-21',
-        'privacy' => '2026-11-19',
+        'use-conditions' => '2026-11-20',
+        'privacy' => '2026-11-20',
     ],
 ];

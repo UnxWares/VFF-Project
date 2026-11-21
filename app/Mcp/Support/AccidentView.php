@@ -2,7 +2,9 @@
 
 namespace App\Mcp\Support;
 
+use App\Services\Accidents\Context\AccidentContextView;
 use App\Support\EventText;
+use App\Support\SourceRights;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -32,18 +34,29 @@ final class AccidentView
             ] + $n, $data['review']['notes']);
         }
 
+        // Contexte sourcé dans la seule langue demandée, sans citation (décision Q22).
+        if (isset($data['context']) && is_array($data['context'])) {
+            $data['context'] = AccidentContextView::forMcp($data['context'], $lang);
+        }
+
         return $data;
     }
 
     /**
-     * Fournisseurs des sources lues pour ces accidents (Wikidata, Wikipédia, BEA-TT), pour l'attribution.
+     * Fournisseurs des sources lues pour ces accidents (Wikidata, Wikipédia, BEA-TT) et des documents et images de leur contexte, pour l'attribution.
      *
      * @param  list<int>  $accidentIds
      * @return list<string>
      */
     public static function providers(array $accidentIds): array
     {
+        $rights = new SourceRights;
+        $context = DB::table('accident_references')->whereIn('accident_id', $accidentIds)->distinct()->pluck('provider')
+            ->map(fn ($p) => $rights->providerFor('accident_references', (string) $p))
+            ->merge(DB::table('accident_images')->whereIn('accident_id', $accidentIds)->exists() ? ['commons'] : []);
+
         return DB::table('accident_sources')->whereIn('accident_id', $accidentIds)
-            ->distinct()->orderBy('provider')->pluck('provider')->map(fn ($p) => (string) $p)->all();
+            ->distinct()->orderBy('provider')->pluck('provider')->map(fn ($p) => (string) $p)
+            ->merge($context)->filter()->unique()->values()->all();
     }
 }

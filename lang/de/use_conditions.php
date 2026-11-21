@@ -103,7 +103,7 @@ return [
 
     'suspension' => [
         'title' => 'Sperrung und Löschung eines Kontos',
-        'paragraph' => 'Bei einem Verstoß gegen die Nutzungsbedingungen kann UnxWares ein Konto sperren oder löschen, nach einer Warnung, außer in dringenden Fällen oder bei einem schweren Verstoß. Die Entscheidung wird begründet und kann unter <a href="mailto:contact@vff-project.org">contact@vff-project.org</a> angefochten werden.',
+        'paragraph' => 'Bei einem Verstoß gegen die Nutzungsbedingungen kann UnxWares ein Konto sperren oder löschen, nach einer Warnung, außer in dringenden Fällen oder bei einem schweren Verstoß. Die Entscheidung wird begründet und kann unter <a href="mailto:contact@vff-project.org">contact@vff-project.org</a> angefochten werden. UnxWares beantwortet die Anfechtung innerhalb von 15 Tagen nach ihrem Eingang.',
     ],
 
     'changes' => [

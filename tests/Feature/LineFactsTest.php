@@ -97,6 +97,23 @@ class LineFactsTest extends TestCase
         $this->assertSame([71, 69], array_map(fn ($d) => (int) $d['code'], LineFacts::departments($line->id)), 'du plus long parcours au plus court');
     }
 
+    public function test_an_invalid_commune_contour_is_repaired_instead_of_failing(): void
+    {
+        $era = Era::factory()->current()->create(['year' => 2030]);
+        $line = Line::factory()->create();
+        LineSegment::factory()->create(['line_id' => $line->id, 'era_id' => $era->id,
+            'geom' => LineString::make([Point::makeGeodetic(46.50, 2.00), Point::makeGeodetic(46.50, 2.30)])]);
+        // Contour en nœud papillon (anneau qui se recoupe), comme les 18 contours invalides de l'import : ST_Intersection
+        // levait une GEOS TopologyException et la fiche de la ligne 750000 répondait 500.
+        DB::table('commune_contours')->insert(['code_insee' => '42001', 'nom' => 'Commune 42001', 'departement' => '42',
+            'geom' => DB::raw("ST_Multi(ST_GeomFromText('POLYGON((1.99 46.4, 2.31 46.6, 2.31 46.4, 1.99 46.6, 1.99 46.4))', 4326))"),
+            'created_at' => now(), 'updated_at' => now()]);
+        Cache::flush();
+        $this->assertFalse((bool) DB::selectOne("SELECT ST_IsValid(geom) AS v FROM commune_contours WHERE code_insee = '42001'")->v);
+
+        $this->assertSame(['42'], array_column(LineFacts::departments($line->id), 'code'));
+    }
+
     public function test_without_track_regions_of_the_item_are_attributed_to_it(): void
     {
         $line = Line::factory()->create();

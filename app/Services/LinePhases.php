@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Support\Lgv;
+use App\Support\LineDataSignature;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -637,6 +639,40 @@ final class LinePhases
     public static function forLine(object $line, ?string $today = null): array
     {
         $today ??= now()->toDateString();
+        // Lectures et calculs géographiques (100 à 330 ms sur une LGV) gardés en cache tant que les tronçons,
+        // les événements, la ligne et les ères ne changent pas (LineDataSignature). Le calcul des phases
+        // lui-même dépend du jour ($today) : il est refait à chaque appel.
+        $key = 'line-phases:'.$line->id.':'.LineDataSignature::segmentsEventsAndEras((int) $line->id)
+            .':'.md5(((bool) ($line->is_lgv ?? false) ? '1' : '0').'|'.($line->name ?? ''));
+        $in = Cache::remember($key, self::CACHE_TTL, fn (): ?array => self::inputs($line));
+        if ($in === null) {
+            return ['portions' => [], 'phases' => [], 'best' => null, 'used_events' => [], 'decades' => [], 'unexplained' => []];
+        }
+        $portions = $in['portions'];
+
+        $result = self::compute($in['eras'], $portions, $in['events'], $in['cover'], $in['adjacency'], $today, $in['near'], $in['adjacency_loose']);
+
+        return [
+            'portions' => array_map(fn ($p) => ['length_m' => $p['length_m'], 'geometry' => $p['geometry'], 'sources' => $p['sources']], $portions),
+            'phases' => $result['phases'],
+            'best' => $result['best'],
+            'used_events' => $result['used_events'],
+            'decades' => $result['decades'],
+            'unexplained' => $result['unexplained'],
+        ];
+    }
+
+    /** Durée de vie des lectures gardées par forLine() (s) : la signature les invalide avant. */
+    public const CACHE_TTL = 86_400;
+
+    /**
+     * Ce que forLine() lit en base pour une ligne : ères, portions et leur état, voisinages, événements et
+     * portions qu'ils couvrent. Null si la ligne n'a aucun tronçon.
+     *
+     * @return array{eras: list<array{year: int, is_current: bool}>, portions: list<array<string, mixed>>, events: array<int, array<string, mixed>>, cover: array<int, list<string>>, adjacency: array<string, list<string>>, near: array<string, list<list<string>>>, adjacency_loose: array<string, list<string>>}|null
+     */
+    private static function inputs(object $line): ?array
+    {
         $eras = array_map(fn ($e) => ['year' => (int) $e->year, 'is_current' => (bool) $e->is_current],
             DB::select('SELECT year, is_current FROM eras ORDER BY year'));
 
@@ -645,7 +681,7 @@ final class LinePhases
             FROM line_segments ls JOIN eras e ON e.id = ls.era_id JOIN lines l ON l.id = ls.line_id
             WHERE ls.line_id = ?', [$line->id]);
         if (! $rows) {
-            return ['portions' => [], 'phases' => [], 'best' => null, 'used_events' => [], 'decades' => [], 'unexplained' => []];
+            return null;
         }
         $states = [];
         // Provenance de la géométrie de chaque portion (toutes ères confondues) : l'API ne la
@@ -723,21 +759,27 @@ final class LinePhases
         // témoins (5, répartis le long de la portion) sont à moins de COVER_TOL_M de sa section.
         $cover = [];
         if ($localized) {
-            // Sections des événements découpées en morceaux de 32 sommets au plus et indexées : chaque point
+            // Sections des événements découpées en morceaux de 128 sommets au plus et indexées : chaque point
             // témoin n'est comparé qu'aux morceaux proches (même résultat, la réunion des morceaux est la
-            // section). Avant : chaque point contre chaque section entière, 0,4 à 1,5 s sur une LGV.
+            // section). Avant : chaque point contre chaque section entière, 0,4 à 1,5 s sur une LGV ; avec des
+            // morceaux de 32 sommets, le découpage seul prenait 110 à 160 ms sur la LGV Sud-Est.
             DB::statement('DROP TABLE IF EXISTS tmp_line_event_pieces');
             DB::statement('CREATE TEMP TABLE tmp_line_event_pieces AS
-                SELECT id, ST_Subdivide(ST_Transform(section_geom, 2154), 32) AS g
+                SELECT id, ST_Subdivide(ST_Transform(section_geom, 2154), 128) AS g
                 FROM line_events WHERE id = ANY(CAST(? AS bigint[]))', ['{'.implode(',', $localized).'}']);
             DB::statement('CREATE INDEX ON tmp_line_event_pieces USING GIST (g)');
             DB::statement('ANALYZE tmp_line_event_pieces');
+            // Points témoins repérés par l'adresse de leur portion dans la table temporaire (ctid, stable :
+            // la table n'est jamais modifiée) plutôt que par sa clé texte : le dédoublonnage des touches
+            // (point, événement) se fait sur des valeurs courtes, la clé n'est relue qu'à la fin. Même
+            // résultat, environ 90 ms de moins sur la LGV Sud-Est.
             foreach (DB::select('WITH pts AS MATERIALIZED (
-                        SELECT t.k, f.n, ST_Transform(ST_LineInterpolatePoint(t.geom, f.f), 2154) AS p
-                        FROM tmp_line_portions t, unnest(ARRAY[0.1, 0.3, 0.5, 0.7, 0.9]) WITH ORDINALITY AS f(f, n))
-                    SELECT id, k FROM (
-                        SELECT DISTINCT e.id, pts.k, pts.n FROM pts JOIN tmp_line_event_pieces e ON ST_DWithin(e.g, pts.p, ?)) hit
-                    GROUP BY id, k HAVING COUNT(*) >= ? ORDER BY id, k',
+                        SELECT t.ctid AS r, f.n, ST_Transform(ST_LineInterpolatePoint(t.geom, f.f), 2154) AS p
+                        FROM tmp_line_portions t, unnest(ARRAY[0.1, 0.3, 0.5, 0.7, 0.9]) WITH ORDINALITY AS f(f, n)),
+                    hit AS (SELECT e.id, pts.r FROM pts JOIN tmp_line_event_pieces e ON ST_DWithin(e.g, pts.p, ?)
+                        GROUP BY e.id, pts.r, pts.n)
+                    SELECT hit.id, t.k FROM hit JOIN tmp_line_portions t ON t.ctid = hit.r
+                    GROUP BY hit.id, t.k HAVING COUNT(*) >= ? ORDER BY hit.id, t.k',
                 [self::COVER_TOL_M, (int) ceil(5 * self::COVER_RATIO)]) as $r) {
                 $cover[(int) $r->id][] = $r->k;
             }
@@ -745,16 +787,8 @@ final class LinePhases
         }
         DB::statement('DROP TABLE IF EXISTS tmp_line_portions');
 
-        $result = self::compute($eras, $portions, $events, $cover, $adjacency, $today, $near, $adjacencyLoose);
-
-        return [
-            'portions' => array_map(fn ($p) => ['length_m' => $p['length_m'], 'geometry' => $p['geometry'], 'sources' => $p['sources']], $portions),
-            'phases' => $result['phases'],
-            'best' => $result['best'],
-            'used_events' => $result['used_events'],
-            'decades' => $result['decades'],
-            'unexplained' => $result['unexplained'],
-        ];
+        return ['eras' => $eras, 'portions' => $portions, 'events' => $events, 'cover' => $cover,
+            'adjacency' => $adjacency, 'near' => $near, 'adjacency_loose' => $adjacencyLoose];
     }
 
     /**
@@ -813,8 +847,8 @@ final class LinePhases
                 in_array($e->section_resolution, self::USABLE_RESOLUTIONS, true) && $e->has_geom => 'localized',
                 default => 'unlocated',
             };
-            // Tableaux PDF lignes-oubliees = décisions administratives (priorité basse, cf. EraTimeline).
-            $source = $e->source === 'lignes-oubliees' && str_contains((string) $e->source_url, '.pdf') ? 'lignes-oubliees-pdf' : $e->source;
+            // Tableaux PDF lignes-oubliees = décisions administratives ; contribution rangée selon la source citée (EraTimeline::rankedSource).
+            $source = EraTimeline::rankedSource($e->source, $e->source_url, $e->confidence);
             $out[(int) $e->id] = ['id' => (int) $e->id, 'type' => $e->type, 'date' => $date,
                 'precision' => in_array($e->date_precision, ['day', 'month', 'year'], true) ? $e->date_precision : 'day',
                 'source' => $source, 'confidence' => $e->confidence, 'scope' => $scope];

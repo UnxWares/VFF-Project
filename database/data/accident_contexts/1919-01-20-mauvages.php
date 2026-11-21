@@ -1,0 +1,93 @@
+<?php
+
+// Contexte sourcé de l'accident de Mauvages du 20 janvier 1919 (recherche du 21/11/2026).
+return [
+    'slug' => '1919-01-20-mauvages',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1919' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1919',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1919&oldid=241133344#Janvier',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 20 janvier 1919 ; elle renvoie à Le Petit Parisien du 23 janvier 1919, p. 2. Seule source lisible sur cet accident.',
+        ],
+        'wp-ligne' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Ligne de Jessains à Sorcy',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://fr.wikipedia.org/wiki/Ligne_de_Jessains_%C3%A0_Sorcy',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'L\'historique de la ligne cite les quais militaires de Mauvages ; aucune mention de l\'accident.',
+        ],
+        'petit-parisien-1919' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Petit Parisien, 23 janvier 1919',
+            'publisher' => 'Gallica (BnF)',
+            'author' => null,
+            'published' => '1919-01-23',
+            'locator' => 'p. 2',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k566784j/f2.image.r=tamponne.langFR',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article de presse cité par Wikipédia ; non lisible depuis la machine de recherche, à consulter.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 20 janvier 1919, sur la ligne de Jessains à Sorcy, près de la gare de Mauvages (Meuse), un train mixte de permissionnaires en direction de Sauvoy heurte un train sanitaire arrêté à la suite d\'une rupture d\'attelage.',
+                'en' => 'On 20 January 1919, on the Jessains to Sorcy line near Mauvages station (Meuse), a mixed train of soldiers on leave bound for Sauvoy ran into a hospital train that had stopped after a coupling failure.',
+                'de' => 'Am 20. Januar 1919 prallte auf der Strecke von Jessains nach Sorcy bei der Station Mauvages (Maas) ein gemischter Urlauberzug in Richtung Sauvoy auf einen Lazarettzug, der nach einem Kupplungsbruch stehen geblieben war.',
+                'sources' => ['wp-liste-1919'],
+            ],
+            [
+                'fr' => 'L\'historique de la ligne mentionne des quais militaires installés notamment à Mauvages.',
+                'en' => 'The history of the line mentions military platforms built at several places, Mauvages among them.',
+                'de' => 'In der Geschichte der Strecke werden Militärbahnsteige erwähnt, die unter anderem in Mauvages eingerichtet wurden.',
+                'sources' => ['wp-ligne'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'La collision fait quinze morts et quarante et un blessés.',
+                'en' => 'The collision left fifteen people dead and forty-one injured.',
+                'de' => 'Bei dem Zusammenstoß starben fünfzehn Menschen, einundvierzig wurden verletzt.',
+                'sources' => ['wp-liste-1919'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Le train sanitaire était à l\'arrêt après une rupture d\'attelage ; le train de permissionnaires l\'a heurté. L\'entrée consultée n\'en dit pas plus sur les causes de la collision (signalisation, vitesse, responsabilités).',
+                'en' => 'The hospital train was standing still after a coupling failure, and the leave train ran into it. The entry consulted says nothing more on why the collision happened (signalling, speed, responsibility).',
+                'de' => 'Der Lazarettzug stand nach einem Kupplungsbruch still, der Urlauberzug fuhr auf ihn auf. Der eingesehene Eintrag sagt nichts weiter zu den Ursachen des Zusammenstoßes (Signalisierung, Geschwindigkeit, Verantwortlichkeit).',
+                'sources' => ['wp-liste-1919'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'collision',
+            'sources' => ['wp-liste-1919'],
+            'fr' => 'La liste de Wikipédia, seule source de la fiche, décrit une collision entre deux trains ; la nature « rupture d\'ouvrage » venait d\'une mauvaise lecture de cette liste.',
+            'en' => 'The Wikipedia list, the only source of the record, describes a collision between two trains; the "structural failure" type came from a misreading of that list.',
+            'de' => 'Die Wikipedia-Liste, einzige Quelle des Eintrags, beschreibt einen Zusammenstoß zweier Züge; die Art „Bauwerksversagen“ beruhte auf einer Fehllesung dieser Liste.',
+        ],
+    ],
+];

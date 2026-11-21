@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\ServiceEnd;
+use App\Support\LineDataSignature;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -43,6 +45,7 @@ final class LineStations
      * desserte par CETTE ligne, station_lines), served_until_kind (ServiceEnd :
      * year, upper_bound, undated), years_source, service_start / service_end
      * (date, précision et événement de ligne, StationServiceDates::bounds), opened_at / opened_precision,
+     * opened_source (provenance de la date d'ouverture, « inferred:… » si déduite des lignes),
      * closed_at / closed_precision / closed_after / closed_year (date retenue,
      * null si ouverte aujourd'hui), status_today (statut affiché à l'ère
      * courante, null : n'existe plus), eras : année → {status (active,
@@ -58,7 +61,8 @@ final class LineStations
             SELECT s.id, s.slug, s.name, s.type, s.city, s.department_code,
                    ST_X(s.geom) AS lng, ST_Y(s.geom) AS lat,
                    sl.pk_m, sl.method, sl.first_year, sl.last_year, sl.years_source, {$dates},
-                   s.opened_at, s.opened_precision, s.closed_at, s.closed_precision,
+                   s.opened_at, s.opened_precision, s.provenance->>'opened_at' AS opened_source,
+                   s.closed_at, s.closed_precision,
                    s.provenance->>'closed_after' AS closed_after, s.provenance->>'closed_at' AS closed_source,
                    s.provenance->>'kind' AS kind
             FROM station_lines sl JOIN stations s ON s.id = sl.station_id
@@ -129,6 +133,9 @@ final class LineStations
                 'service_end' => $bounds['end'],
                 'opened_at' => $r->opened_at,
                 'opened_precision' => $r->opened_precision,
+                // Provenance de la date d'ouverture (wikidata, inferred:line_event…) : une date déduite de
+                // la ligne (« inferred:… ») est signalée comme telle dans la liste des gares.
+                'opened_source' => $r->opened_source,
                 'closed_at' => $r->closed_at,
                 'closed_precision' => $r->closed_precision,
                 'closed_after' => is_numeric($r->closed_after) ? (int) $r->closed_after : null,
@@ -144,6 +151,9 @@ final class LineStations
 
     /** Distance maximale (m) entre une extrémité du tracé et la gare qui en est le terminus. */
     public const TERMINUS_MAX_M = 3000;
+
+    /** Durée de vie des extrémités gardées par terminals() (s) : la signature des tronçons les invalide avant. */
+    public const ENDS_CACHE_TTL = 86_400;
 
     /**
      * Terminus = gare la plus proche de chacune des deux extrémités de la ligne (les deux bouts de
@@ -163,19 +173,30 @@ final class LineStations
         if ($rows === []) {
             return [];
         }
-        $ends = DB::selectOne(<<<'SQL'
-            WITH parts AS (SELECT (ST_Dump(ST_LineMerge(ST_Collect(geom)))).geom AS g
-                           FROM (SELECT DISTINCT geom FROM line_segments WHERE line_id = ?) x),
-                 ends AS (SELECT ST_StartPoint(g) AS p FROM parts UNION ALL SELECT ST_EndPoint(g) FROM parts)
-            SELECT ST_X(a.p) AS x1, ST_Y(a.p) AS y1, ST_X(b.p) AS x2, ST_Y(b.p) AS y2
-            FROM ends a CROSS JOIN ends b
-            ORDER BY ST_DistanceSphere(a.p, b.p) DESC LIMIT 1
-        SQL, [$lineId]);
-        if ($ends === null || $ends->x1 === null) {
+        // Les deux bouts ne dépendent que des tronçons de la ligne : gardés en cache tant qu'ils ne changent
+        // pas (LineDataSignature), le calcul prenait 170 ms sur la LGV Sud-Est. Liste vide : aucun tracé.
+        $ends = Cache::remember(
+            "line-stations:ends:{$lineId}:".LineDataSignature::segments($lineId),
+            self::ENDS_CACHE_TTL,
+            function () use ($lineId): array {
+                $row = DB::selectOne(<<<'SQL'
+                    WITH parts AS (SELECT (ST_Dump(ST_LineMerge(ST_Collect(geom)))).geom AS g
+                                   FROM (SELECT DISTINCT geom FROM line_segments WHERE line_id = ?) x),
+                         ends AS (SELECT ST_StartPoint(g) AS p FROM parts UNION ALL SELECT ST_EndPoint(g) FROM parts)
+                    SELECT ST_X(a.p) AS x1, ST_Y(a.p) AS y1, ST_X(b.p) AS x2, ST_Y(b.p) AS y2
+                    FROM ends a CROSS JOIN ends b
+                    ORDER BY ST_DistanceSphere(a.p, b.p) DESC LIMIT 1
+                SQL, [$lineId]);
+
+                return $row === null || $row->x1 === null ? []
+                    : [[(float) $row->x1, (float) $row->y1], [(float) $row->x2, (float) $row->y2]];
+            },
+        );
+        if ($ends === []) {
             return [];
         }
         $out = [];
-        foreach ([[(float) $ends->x1, (float) $ends->y1], [(float) $ends->x2, (float) $ends->y2]] as [$x, $y]) {
+        foreach ($ends as [$x, $y]) {
             $best = null;
             $bestKey = null;
             foreach ($rows as $r) {

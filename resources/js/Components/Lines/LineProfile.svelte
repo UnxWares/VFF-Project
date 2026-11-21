@@ -12,24 +12,31 @@
         labelledStations,
         linePath,
         nearestIndex,
+        nearestStation,
         ticks,
     } from '$lib/lineProfile.js';
 
     /**
      * Section « Profil en long » de la fiche ligne (App\Services\Profiles\LineProfiles) : chiffres
-     * du profil, courbe de l'altitude le long du parcours avec les gares et les tunnels, lecture au
-     * survol (distance, altitude, déclivité locale), puis le tableau des altitudes des gares
-     * (alternative au graphique pour les lecteurs d'écran et au clavier) et la source.
+     * du profil, courbe de l'altitude le long du tracé de référence (toutes époques) avec toutes les
+     * gares de la ligne, fermées comprises, les tunnels et les trous du tracé (bandes, la courbe s'y
+     * interrompt), lecture au survol (distance, PK estimé, altitude, déclivité locale, gare proche),
+     * gares atteignables au clavier, puis le tableau des altitudes des gares (alternative au
+     * graphique) et la source.
      *
      * @type {{ profile: {
-     *   era_year: number, step_m: number, length_m: number,
+     *   era_year: number|null, step_m: number, length_m: number,
      *   summary: { min_altitude_m: number, max_altitude_m: number, ascent_m: number, descent_m: number,
-     *     max_grade_permil: number, max_grade_from_m: number, max_grade_to_m: number, max_grade_direction: 'up'|'down' },
-     *   points: Array<[number, number|null]>,
+     *     max_grade_permil: number|null, max_grade_from_m: number|null, max_grade_to_m: number|null,
+     *     max_grade_direction: 'up'|'down'|null, max_grade_withheld?: 'terrain_only'|'tunnel'|'interpolated'|null },
+     *   points: Array<[number, number|null, (number|null)?]>,
      *   structures: Array<{ from_m: number, to_m: number, kind: 'tunnel'|'bridge' }>,
      *   altitude_sources: { bdtopo: number, rge_alti: number, interpolated: number, missing: number },
      *   gaps: Array<{ from_m: number, to_m: number }>,
-     *   stations: Array<{ slug: string, name: string, distance_m: number, altitude_m: number|null, pk_m: number|null }>,
+     *   branches?: Array<{ from_m: number, to_m: number }>,
+     *   terrain_ranges?: Array<{ from_m: number, to_m: number }>,
+     *   stations: Array<{ slug: string, name: string, distance_m: number, altitude_m: number|null, pk_m: number|null,
+     *     status?: string }>,
      *   computed_at: string,
      * } }}
      */
@@ -45,12 +52,23 @@
         });
     const permil = (g) =>
         formatNumber(g, lang, { minimumFractionDigits: 0, maximumFractionDigits: 1 });
-    const pkLabel = (m) =>
-        m === null ? '-' : `${Math.floor(m / 1000)}+${String(m % 1000).padStart(3, '0')}`;
+    const pkLabel = (m) => {
+        if (m === null || m === undefined) return '-';
+        const a = Math.abs(m);
+        return `${m < 0 ? '-' : ''}${Math.floor(a / 1000)}+${String(a % 1000).padStart(3, '0')}`;
+    };
+    const closed = (st) => st.status === 'declassified';
 
     const s = $derived(profile.summary);
-    const first = $derived(profile.stations[0] ?? null);
-    const last = $derived(profile.stations.at(-1) ?? null);
+    const branches = $derived(profile.branches ?? []);
+    // Gares de la ligne principale (avant le premier embranchement) : départ et arrivée de l'intro.
+    const mainStations = $derived(
+        branches.length
+            ? profile.stations.filter((st) => st.distance_m < branches[0].from_m)
+            : profile.stations,
+    );
+    const first = $derived(mainStations[0] ?? null);
+    const last = $derived(mainStations.at(-1) ?? null);
     const intro = $derived(
         first && last && first !== last
             ? t('profile.intro', { from: first.name, to: last.name })
@@ -61,16 +79,27 @@
         { value: metres(s.max_altitude_m), label: t('profile.max') },
         { value: metres(s.ascent_m), label: t('profile.ascent') },
         { value: metres(s.descent_m), label: t('profile.descent') },
-        { value: `${permil(s.max_grade_permil)}${NBSP}‰`, label: t('profile.grade') },
+        {
+            value:
+                s.max_grade_permil === null
+                    ? t('profile.grade_unpublished')
+                    : `${permil(s.max_grade_permil)}${NBSP}‰`,
+            label: t('profile.grade'),
+        },
     ]);
+    // Déclivité publiée : son endroit ; sinon, le motif (altitude du terrain seulement, tunnel…).
     const gradeWhere = $derived(
-        t(s.max_grade_direction === 'up' ? 'profile.grade_up' : 'profile.grade_down', {
-            from: km(s.max_grade_from_m),
-            to: km(s.max_grade_to_m),
-        }),
+        s.max_grade_permil === null
+            ? null
+            : t(s.max_grade_direction === 'up' ? 'profile.grade_up' : 'profile.grade_down', {
+                  from: km(s.max_grade_from_m),
+                  to: km(s.max_grade_to_m),
+              }),
     );
+    const terrain = $derived(profile.terrain_ranges ?? []);
     const tunnels = $derived(profile.structures.filter((x) => x.kind === 'tunnel'));
     const hasBreaks = $derived(profile.altitude_sources.missing > 0 || profile.gaps.length > 0);
+    const hasClosed = $derived(profile.stations.some(closed));
     const computedOn = $derived(
         new Date(profile.computed_at).toLocaleDateString(formatLocale(lang), {
             day: 'numeric',
@@ -108,21 +137,31 @@
             left: 0,
             right: width,
             labelWidth: (name) => name.length * 7.6,
+            principal: (st) => !closed(st),
         }),
     );
 
-    // Ligne aux gares serrées (plus d'une tous les 14 px) : seules les gares nommées ont leur point,
-    // pour que la courbe reste lisible ; toutes restent dans le tableau.
+    // Ligne aux gares serrées (plus d'une tous les 14 px) : points plus petits, pour que la courbe
+    // reste lisible ; toutes les gares gardent leur point, leur nom au survol et au clavier.
     const dense = $derived(profile.stations.length > plotW / 14);
+    // Gare dans un trou (altitude inconnue) : son point est posé sur la ligne de base.
+    const stationY = (st) => (st.altitude_m === null ? baseY : y(st.altitude_m));
 
     // Lecture au survol (souris, stylet, doigt) : point le plus proche du pointeur ; rien dans une
     // lacune du parcours, où aucune altitude n'est connue.
     let hover = $state(/** @type {number|null} */ (null));
+    // Gare lue : sous le pointeur (à 8 px près) ou qui a le focus clavier.
+    let station = $state(/** @type {any} */ (null));
     function onPointer(event) {
         const box = event.currentTarget.getBoundingClientRect();
         const d = ((event.clientX - box.left) / box.width) * profile.length_m;
         const i = crossesGap(profile.gaps, d, d) ? -1 : nearestIndex(profile.points, d);
         hover = i >= 0 && profile.points[i][1] !== null ? i : null;
+        station = nearestStation(profile.stations, x, x(d));
+    }
+    function leave() {
+        hover = null;
+        station = null;
     }
     // Fenêtre de la déclivité locale : 1 km, élargie à quatre intervalles moyens (deux de part et
     // d'autre) quand les points reçus sont plus espacés (profil allégé d'une longue ligne), pour
@@ -131,13 +170,17 @@
         Math.max(GRADE_WINDOW_M, (4 * profile.length_m) / Math.max(1, profile.points.length - 1)),
     );
     const reading = $derived.by(() => {
-        if (hover === null) return null;
-        const [d, z] = profile.points[hover];
+        if (hover === null && station === null) return null;
+        // Gare au focus clavier sans point survolé : lecture à la gare elle-même.
+        const [d, z, pk] =
+            hover !== null ? profile.points[hover] : [station.distance_m, station.altitude_m, null];
         return {
             d,
             z,
-            grade: gradeAt(profile.points, d, profile.gaps, gradeWindow),
+            pk: pk ?? null,
+            grade: z === null ? null : gradeAt(profile.points, d, profile.gaps, gradeWindow),
             tunnel: tunnels.some((tu) => d >= tu.from_m && d <= tu.to_m),
+            station,
             left: x(d) > pad.left + plotW / 2,
         };
     });
@@ -146,7 +189,13 @@
 <SheetSection id="profile" title={t('profile.title')} {intro}>
     <div class="profile">
         <StatStrip items={statItems} label={t('profile.stats_label')} size="sm" />
-        <p class="grade-where">{t('profile.grade')}{colon(lang)}{gradeWhere}</p>
+        {#if gradeWhere}
+            <p class="grade-where">{t('profile.grade')}{colon(lang)}{gradeWhere}</p>
+        {:else}
+            <p class="grade-where">
+                {t(`profile.grade_withheld_${s.max_grade_withheld ?? 'terrain_only'}`)}
+            </p>
+        {/if}
 
         <figure class="chart">
             <div class="plot" bind:clientWidth={width}>
@@ -163,6 +212,15 @@
                         })}
                     >
                         <defs>
+                            <pattern
+                                id="profile-gap"
+                                width="8"
+                                height="8"
+                                patternUnits="userSpaceOnUse"
+                                patternTransform="rotate(-45)"
+                            >
+                                <line x1="0" y1="0" x2="0" y2="8" class="gap-hatch" />
+                            </pattern>
                             <pattern
                                 id="profile-tunnel"
                                 width="6"
@@ -199,6 +257,17 @@
                             >{t('profile.axis_distance')}</text
                         >
 
+                        <!-- Trous du tracé : bande hachurée sur toute la hauteur, aucune courbe dedans. -->
+                        {#each profile.gaps as g (g.from_m)}
+                            <rect
+                                class="gap"
+                                x={x(g.from_m)}
+                                y={pad.top}
+                                width={Math.max(3, x(g.to_m) - x(g.from_m))}
+                                height={plotH}
+                            />
+                        {/each}
+
                         {#each tunnels as tu (tu.from_m)}
                             <rect
                                 class="tunnel"
@@ -210,31 +279,16 @@
                             />
                         {/each}
 
-                        <path class="area" d={area} />
-                        <path class="line" d={line} />
-
                         {#each profile.stations as st (st.slug)}
-                            {#if st.altitude_m !== null}
-                                <!-- Trait vers le nom pour les seules gares nommées ; les autres ont leur point. -->
-                                {#if named.has(st)}
-                                    <line
-                                        class="station-tick"
-                                        x1={x(st.distance_m)}
-                                        x2={x(st.distance_m)}
-                                        y1={pad.top - 6}
-                                        y2={y(st.altitude_m)}
-                                    />
-                                {/if}
-                                {#if !dense || named.has(st)}
-                                    <circle
-                                        class="station-dot"
-                                        cx={x(st.distance_m)}
-                                        cy={y(st.altitude_m)}
-                                        r="3.5"
-                                    />
-                                {/if}
-                            {/if}
+                            <!-- Trait vers le nom pour les seules gares nommées. -->
                             {#if named.has(st)}
+                                <line
+                                    class="station-tick"
+                                    x1={x(st.distance_m)}
+                                    x2={x(st.distance_m)}
+                                    y1={pad.top - 6}
+                                    y2={stationY(st)}
+                                />
                                 <text
                                     class="station-name"
                                     x={x(st.distance_m)}
@@ -242,6 +296,20 @@
                                     text-anchor={named.get(st)}>{st.name}</text
                                 >
                             {/if}
+                        {/each}
+
+                        <path class="area" d={area} />
+                        <path class="line" d={line} />
+
+                        <!-- Parties à l'altitude du terrain (RGE ALTI) : trait pointillé au pied de la courbe. -->
+                        {#each terrain as r (r.from_m)}
+                            <line
+                                class="terrain"
+                                x1={x(r.from_m)}
+                                x2={Math.max(x(r.from_m) + 3, x(r.to_m))}
+                                y1={baseY - 3}
+                                y2={baseY - 3}
+                            />
                         {/each}
 
                         {#if reading}
@@ -252,7 +320,14 @@
                                 y1={pad.top}
                                 y2={baseY}
                             />
-                            <circle class="cursor-dot" cx={x(reading.d)} cy={y(reading.z)} r="5" />
+                            {#if reading.z !== null}
+                                <circle
+                                    class="cursor-dot"
+                                    cx={x(reading.d)}
+                                    cy={y(reading.z)}
+                                    r="5"
+                                />
+                            {/if}
                         {/if}
 
                         <!-- Zone de survol : lecture visuelle seulement, le tableau des gares donne les valeurs. -->
@@ -265,8 +340,34 @@
                             height={plotH}
                             onpointermove={onPointer}
                             onpointerdown={onPointer}
-                            onpointerleave={() => (hover = null)}
+                            onpointerleave={leave}
                         />
+
+                        <!-- Points des gares, au-dessus de la zone de survol : atteignables au clavier,
+                             nom, PK et altitude lus au focus et dans le tableau. -->
+                        <g aria-label={t('profile.stations_label')} role="list">
+                            {#each profile.stations as st (st.slug)}
+                                <!-- Focalisable pour lire au clavier le nom d'une gare non nommée à l'écran. -->
+                                <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+                                <circle
+                                    role="listitem"
+                                    tabindex="0"
+                                    class={['station-dot', { closed: closed(st) }]}
+                                    cx={x(st.distance_m)}
+                                    cy={stationY(st)}
+                                    r={dense && !named.has(st) ? 2.5 : 3.5}
+                                    aria-label={[
+                                        st.name,
+                                        closed(st) ? t('profile.closed') : null,
+                                        st.altitude_m === null ? null : metres(st.altitude_m),
+                                    ]
+                                        .filter(Boolean)
+                                        .join(', ')}
+                                    onfocus={() => (station = st)}
+                                    onblur={() => (station = null)}
+                                />
+                            {/each}
+                        </g>
                     </svg>
 
                     {#if reading}
@@ -275,8 +376,18 @@
                             style:--at="{x(reading.d)}px"
                             aria-hidden="true"
                         >
+                            {#if reading.station}<strong
+                                    >{reading.station.name}{#if closed(reading.station)}<span
+                                            class="muted"
+                                        >
+                                            ({t('profile.closed')})</span
+                                        >{/if}</strong
+                                >{/if}
                             <strong>{t('profile.at_km', { km: km(reading.d) })}</strong>
-                            <span>{metres(reading.z)}</span>
+                            {#if reading.pk !== null}<span
+                                    >{t('profile.at_pk', { pk: pkLabel(reading.pk) })}</span
+                                >{/if}
+                            {#if reading.z !== null}<span>{metres(reading.z)}</span>{/if}
                             {#if reading.grade !== null}<span
                                     >{t('profile.local_grade', {
                                         grade: permil(reading.grade),
@@ -288,11 +399,39 @@
                     {/if}
                 {/if}
             </div>
-            {#if tunnels.length}
+            {#if tunnels.length || profile.gaps.length || hasClosed || branches.length || terrain.length}
                 <figcaption>
-                    <span class="legend-swatch" aria-hidden="true"></span>{t(
-                        'profile.tunnel_legend',
-                    )}
+                    {#if tunnels.length}
+                        <span class="legend-item"
+                            ><span class="legend-swatch" aria-hidden="true"></span>{t(
+                                'profile.tunnel_legend',
+                            )}</span
+                        >
+                    {/if}
+                    {#if profile.gaps.length}
+                        <span class="legend-item"
+                            ><span class="legend-swatch gap-swatch" aria-hidden="true"></span>{t(
+                                'profile.gap_legend',
+                            )}</span
+                        >
+                    {/if}
+                    {#if terrain.length}
+                        <span class="legend-item"
+                            ><span class="legend-terrain" aria-hidden="true"></span>{t(
+                                'profile.terrain_legend',
+                            )}</span
+                        >
+                    {/if}
+                    {#if hasClosed}
+                        <span class="legend-item"
+                            ><span class="legend-dot" aria-hidden="true"></span>{t(
+                                'profile.closed_legend',
+                            )}</span
+                        >
+                    {/if}
+                    {#if branches.length}
+                        <span class="legend-item">{t('profile.branch_legend')}</span>
+                    {/if}
                 </figcaption>
             {/if}
         </figure>
@@ -323,7 +462,11 @@
                         <tbody>
                             {#each profile.stations as st (st.slug)}
                                 <tr>
-                                    <th scope="row">{st.name}</th>
+                                    <th scope="row"
+                                        >{st.name}{#if closed(st)}<span class="muted">
+                                                ({t('profile.closed')})</span
+                                            >{/if}</th
+                                    >
                                     <td class="num">{pkLabel(st.pk_m)}</td>
                                     <td class="num">{km(st.distance_m)}{NBSP}km</td>
                                     <td class="num"
@@ -415,10 +558,39 @@
         stroke-width: 1;
         stroke-dasharray: 2 3;
     }
+    /* Le survol passe par la zone .hit (gare la plus proche à 8 px) ; le point garde le focus clavier. */
     .station-dot {
         fill: var(--vff-bg-elevated);
         stroke: var(--vff-text);
         stroke-width: 1.5;
+        pointer-events: none;
+    }
+    /* Gare fermée : point plein gris, distinct du point creux des gares ouvertes. */
+    .station-dot.closed {
+        fill: var(--vff-text-muted);
+        stroke: var(--vff-bg-elevated);
+    }
+    .station-dot:focus-visible {
+        outline: none;
+        stroke: var(--vff-accent-strong);
+        stroke-width: 3;
+    }
+    .gap {
+        fill: url(#profile-gap);
+    }
+    .terrain {
+        stroke: var(--vff-text-muted);
+        stroke-width: 2;
+        stroke-dasharray: 2 4;
+        stroke-linecap: round;
+    }
+    .legend-terrain {
+        width: 24px;
+        border-top: 2px dotted var(--vff-text-muted);
+    }
+    .gap-hatch {
+        stroke: var(--vff-border);
+        stroke-width: 2;
     }
     .station-name {
         font-family: Inter, sans-serif;
@@ -464,10 +636,30 @@
     }
     figcaption {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 8px;
+        gap: 8px 20px;
         margin-top: var(--vff-space-2);
         font-size: var(--vff-fs-xs);
+        color: var(--vff-text-muted);
+    }
+    .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .legend-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--vff-text-muted);
+    }
+    .gap-swatch {
+        background: repeating-linear-gradient(-45deg, var(--vff-border) 0 2px, transparent 2px 6px);
+        border-color: var(--vff-border);
+    }
+    th .muted {
+        font-weight: 400;
         color: var(--vff-text-muted);
     }
     .legend-swatch {

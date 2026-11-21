@@ -187,6 +187,9 @@ importers:
       '@fontsource/montserrat':
         specifier: 5.3.0
         version: 5.3.0
+      '@protomaps/basemaps':
+        specifier: 5.7.2
+        version: 5.7.2
       bootstrap-icons:
         specifier: ^1.13.2
         version: 1.13.2
@@ -196,6 +199,9 @@ importers:
       maplibre-gl:
         specifier: ^6.19.0
         version: 6.19.0
+      pmtiles:
+        specifier: 4.5.0
+        version: 4.5.0
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -608,6 +614,10 @@ packages:
 
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
+
+  '@protomaps/basemaps@5.7.2':
+    resolution: {integrity: sha512-K1Yk6bWdULulYg+R2QRVXx4NzJZan5YQhpejEG0c1/sXruJrfPIPZuakpf3jwAgVmjIRVQwAv+yRafDeN0aaUQ==}
+    hasBin: true
 
   '@rolldown/binding-android-arm-eabi@1.2.19':
     resolution: {integrity: sha512-e+Ebe0WT+9tbXmNKPIiC8YrWAHYwug3m6i4p3rZGGulfZri1jtI4HslT+OZnFf/OIHowWF71DTlHwXBP2SiA7A==}
@@ -2172,6 +2182,9 @@ packages:
     resolution: {integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==}
     engines: {node: '>=12'}
 
+  pmtiles@4.5.0:
+    resolution: {integrity: sha512-CBeD4SoUluFziGdy/8k7FOjQxQy486n+929W/tWophauvMICpkZ26vGBWhDt/6b1FZQWNaf4jFdT/5+q0Wii5w==}
+
   pnpm@11.28.11:
     resolution: {integrity: sha512-dAGE0Q+B9dWxZb6IVg7numJAbEE0iWq8J6WAEJ7sL0fB5B2RJRyUTCyrq8scIkYXmeu3LeLsYlryAwsONsc1ow==}
     engines: {node: '>=22.13'}
@@ -3273,6 +3286,8 @@ snapshots:
   '@phosphor-icons/core@2.1.1': {}
 
   '@polka/url@1.0.0-next.29': {}
+
+  '@protomaps/basemaps@5.7.2': {}
 
   '@rolldown/binding-android-arm-eabi@1.2.19':
     optional: true
@@ -5265,6 +5280,10 @@ snapshots:
   picomatch@2.3.2: {}
 
   picomatch@4.0.7: {}
+
+  pmtiles@4.5.0:
+    dependencies:
+      fflate: 0.8.3
 
   pnpm@11.28.11: {}
 

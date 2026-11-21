@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Http\Middleware\SetLocale;
+use InvalidArgumentException;
 
 /**
  * Message de soutien de VFF à une ligne (lines.advocacy), en français, anglais et
@@ -13,7 +14,12 @@ use App\Http\Middleware\SetLocale;
  * anciens lecteurs) ; `translations` = {en: {title, message, cta_label}, de: {…}}.
  *
  *   {"kind": "reopening", "title": "Rouvrons…", "message": "…", "cta_label": "…",
- *    "cta_url": "https://…", "translations": {"en": {"title": "…", …}, "de": {…}}}
+ *    "cta_url": "https://…", "translations": {"en": {"title": "…", …}, "de": {…}},
+ *    "sources": [{"label": "France 3 Normandie", "date": "2026-07-23", "url": "https://…"}]}
+ *
+ * Sources (facultatives, clé absente sinon) : articles et documents qui étayent le message, nom
+ * du média ou de l'auteur (non traduit) et date de publication, rédigée dans la langue de la page
+ * à la lecture.
  *
  * Lecture (localized) : le texte de la langue de la page ; à défaut, le texte par
  * défaut traduit quand le français est le texte par défaut de vff:flag-threatened
@@ -27,6 +33,24 @@ final class Advocacy
     public const FIELDS = ['title', 'message', 'cta_label'];
 
     public const KINDS = ['threatened', 'reopening'];
+
+    /**
+     * Lit une source donnée en ligne de commande : « Libellé|AAAA-MM-JJ|https://… ».
+     *
+     * @return array{label: string, date: string, url: string}
+     *
+     * @throws InvalidArgumentException format invalide
+     */
+    public static function parseSource(string $raw): array
+    {
+        $parts = array_map('trim', explode('|', $raw));
+        if (count($parts) !== 3 || $parts[0] === '' || ! preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $parts[1], $m)
+            || ! checkdate((int) $m[2], (int) $m[3], (int) $m[1]) || ! preg_match('#^https://\S+$#', $parts[2])) {
+            throw new InvalidArgumentException("source invalide « {$raw} » (attendu : Libellé|AAAA-MM-JJ|https://…)");
+        }
+
+        return ['label' => $parts[0], 'date' => $parts[1], 'url' => $parts[2]];
+    }
 
     /** Clé de langue (home.advocacy.*) du texte par défaut d'un champ. */
     public static function defaultKey(string $kind, string $field): string
@@ -48,9 +72,10 @@ final class Advocacy
      * Construit la valeur stockée.
      *
      * @param  array<string, array<string, ?string>>  $texts  champ → [langue → texte] (null ou vide : défaut)
+     * @param  list<array{label: string, date: string, url: string}>  $sources  sources du message (parseSource)
      * @return array<string, mixed>
      */
-    public static function build(string $kind, array $texts, ?string $url): array
+    public static function build(string $kind, array $texts, ?string $url, array $sources = []): array
     {
         $out = ['kind' => $kind];
         foreach (self::FIELDS as $field) {
@@ -70,6 +95,9 @@ final class Advocacy
         if ($translations !== []) {
             $out['translations'] = $translations;
         }
+        if ($sources !== []) {
+            $out['sources'] = $sources;
+        }
 
         return $out;
     }
@@ -78,8 +106,8 @@ final class Advocacy
      * Message dans la langue de la page.
      *
      * @param  array<string, mixed>|null  $advocacy  valeur stockée
-     * @return array{kind: ?string, title: ?string, message: ?string, cta_label: ?string, cta_url: ?string, lang: array<string, ?string>}|null
-     *                                                                                                                                         lang : langue réelle de chaque champ (fr si repli, null si absent)
+     * @return array{kind: ?string, title: ?string, message: ?string, cta_label: ?string, cta_url: ?string, lang: array<string, ?string>, sources?: list<array{label: string, date: string, url: string}>}|null
+     *                                                                                                                                                                                                          lang : langue réelle de chaque champ (fr si repli, null si absent)
      */
     public static function localized(?array $advocacy, string $locale): ?array
     {
@@ -106,6 +134,16 @@ final class Advocacy
         }
         $out['cta_url'] = isset($advocacy['cta_url']) && $advocacy['cta_url'] !== '' ? (string) $advocacy['cta_url'] : null;
         $out['lang'] = $lang;
+        // Sources : date de publication rédigée dans la langue de la page ; une entrée incomplète est ignorée.
+        if (is_array($advocacy['sources'] ?? null)) {
+            $out['sources'] = [];
+            foreach ($advocacy['sources'] as $source) {
+                if (is_array($source) && isset($source['label'], $source['date'], $source['url'])) {
+                    $out['sources'][] = ['label' => (string) $source['label'],
+                        'date' => EventText::isoDate((string) $source['date'], 'day', $locale), 'url' => (string) $source['url']];
+                }
+            }
+        }
 
         return $out;
     }

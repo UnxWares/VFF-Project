@@ -85,10 +85,13 @@ return [
                 'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/lignes-equipees-de-kvb',
                 'https://transport.data.gouv.fr/datasets/horaires-sncf',
                 'https://transport.data.gouv.fr/datasets/horaires-des-lignes-transilien-1',
+                'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/frequentation-gares',
+                'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/frequentation-gares-archive',
             ],
             'citation' => '"license": "Open Database License (ODbL)" (métadonnées des 12 jeux utilisés, lues le 2026-10-20) ; '
                 .'« licence » : « odc-odbl » pour horaires-sncf et horaires-des-lignes-transilien-1 (API transport.data.gouv.fr, lue le 2026-11-18) ; '
-                .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour liste-des-passages-a-niveau, mode-de-cantonnement-des-lignes et lignes-equipees-de-kvb (lus le 2026-11-20)',
+                .'"license": "Open Database License (ODbL)", "publisher": "SNCF Réseau" pour liste-des-passages-a-niveau, mode-de-cantonnement-des-lignes et lignes-equipees-de-kvb (lus le 2026-11-20) ; '
+                .'"license": "Open Data Commons Open Database License (ODbL)", "publisher": "Gares & Connexions" pour frequentation-gares (2025) et frequentation-gares-archive (2015-2024), lus le 2026-11-21 (database/data/frequentation_gares_405000.php ; les deux jeux ne sont pas comparables entre eux, avertissement de SNCF)',
             'obligations' => 'Attribution (SNCF Réseau / SNCF Gares & Connexions / SNCF Voyageurs) ; partage à l\'identique des bases dérivées publiquement utilisées.',
             'domaines' => ['sncf.com', 'transport.data.gouv.fr'],
             'lu_le' => '2026-10-20',
@@ -246,7 +249,8 @@ return [
                 .'Cartes postales anciennes, archives et photos créditées à d\'autres photographes exclues.',
             'remarques' => 'Décision de l\'utilisateur du 2026-11-19 : lecture de tout le site pour en tirer les faits. Risque résiduel : extraction systématique (droit des bases de données) '
                 .'et liens profonds (les mentions légales demandent d\'écrire avant d\'en poser) ; courriel de confirmation à l\'auteur proposé (storage/app/reports/agents/source-argentan.md). '
-                .'Faits en tables de source (argentanwebferro_*), non appliqués au moteur.',
+                .'Faits relus appliqués au moteur depuis le 2026-11-21 (décision de l\'utilisateur sur la question 19) : line_events et source_stations, source « argentanwebferro », '
+                .'rangée après Wikipédia et avant OpenHistoricalMap, avec le lien de l\'article et une phrase citée au plus (vff:apply-argentanwebferro).',
             'domaines' => ['argentanwebferro.fr'],
             'lu_le' => '2026-11-19',
         ],
@@ -356,8 +360,15 @@ return [
             'citation' => '(faits isolés : une date par site, lien vers la page citée)',
             'obligations' => 'Lien vers la page citée ; citation courte. Risque faible (faits), à remplacer par une source sûre quand elle existe.',
             'domaines' => [
-                'parcdescombes.com', 'marc-andre-dubout.org', 'mejanes-camargue.fr', 'assemblee-nationale.fr',
+                'parcdescombes.com', 'marc-andre-dubout.org', 'mejanes-camargue.fr',
                 'cftr.evolutive.org', 'rail.lu', 'cftanse.fr', 'amitram.fr', 'minieresbunn.lu',
+                // Rames remarquables du matériel (database/data/material_notable_units.php) : LyonMag (27/02/2020),
+                // forum JNS rapportant France Bleu (06/02/2020) ; faits datés, courte citation, lien.
+                'lyonmag.com', 'jnsforum.com',
+                // Faits sur les relations du matériel (database/data/material_relation_notes.php) : communiqué
+                // Région Normandie, SNCF Voyageurs et Saipol du 17/01/2023 (hébergé par Oleo100), article de la
+                // Banque des Territoires avec l'AFP du 14/04/2021 ; Régiolis au B100 sur Paris - Granville.
+                'oleo100.com', 'banquedesterritoires.fr',
             ],
             'lu_le' => '2026-10-20',
         ],
@@ -416,6 +427,118 @@ return [
             'domaines' => ['gallica.bnf.fr', 'catalogue.bnf.fr'],
             'lu_le' => '2026-11-20',
         ],
+        // Fournisseurs des documents cités par le contexte des accidents (vff:enrich-accidents), conditions lues le
+        // 2026-11-21 (rapport storage/app/reports/agents/nuit-2111/accidents-archives.md). Faits seulement, avec lien.
+        'retronews' => [
+            'nom' => 'RetroNews (presse ancienne, BnF-Partenariats)',
+            'statut' => 'incertain',
+            'licence' => 'Aucune réutilisation autorisée : contenus protégés, accès pour un usage personnel et non commercial (CGU du 09/07/2026)',
+            'accord' => null,
+            'preuve' => ['https://www.retronews.fr/pages/cgu'],
+            'citation' => 'Les Contenus sont protégés par des droits de propriété intellectuelle. Leur consultation ne vaut pas autorisation de réutilisation. [...] Aucun téléchargement n\'est autorisé.',
+            'obligations' => 'Lien vers l\'article seulement (titre du journal, date, page) ; aucun texte, aucune image, aucune extraction automatique. Accès payant : un article RetroNews n\'appuie aucun énoncé (accès paywall).',
+            'remarques' => 'Les CGU ne disent rien des liens hypertextes. Interdits notamment : téléchargement, reproduction, extraction, réutilisation à des fins commerciales.',
+            'domaines' => ['retronews.fr'],
+            'lu_le' => '2026-11-21',
+        ],
+        'assemblee-nationale' => [
+            'nom' => 'Assemblée nationale (débats, questions écrites et réponses des ministres, données ouvertes)',
+            'statut' => 'sur',
+            'licence' => 'Documents parlementaires non protégés par le droit d\'auteur (art. L. 122-5 du CPI) ; données de data.assemblee-nationale.fr sous Licence Ouverte (exploitation commerciale permise)',
+            'accord' => null,
+            'preuve' => [
+                'https://data.assemblee-nationale.fr/licence-ouverte-open-licence',
+                'https://www.assemblee-nationale.fr/dyn/langues/welcome-to-the-english-website-of-the-french-national-assembly/contact',
+            ],
+            'citation' => 'Depuis novembre 2011, la "Licence Ouverte / Open Licence" s\'applique à l\'ensemble des réutilisations libres gratuites de données publiques [...] autorisant la reproduction, la redistribution, l\'adaptation et l\'exploitation commerciale des données.',
+            'obligations' => 'Faits seulement, avec la date de la séance ou le numéro de la question et un lien vers le document. Aucune citation : les pages du site interdisent la reproduction à des fins commerciales (« Any use or reproduction for commercial purposes is forbidden »), alors que les données ouvertes l\'autorisent ; VFF étant édité par une société, la prudence l\'emporte.',
+            'remarques' => 'Mentions légales en français non trouvées (404). Le domaine assemblee-nationale.fr, rangé avant chez tiers-cites pour les corrections de lignes, est rattaché ici depuis le 21/11/2026 : mêmes documents, conditions lues.',
+            'domaines' => ['assemblee-nationale.fr'],
+            'lu_le' => '2026-11-21',
+        ],
+        'senat' => [
+            'nom' => 'Sénat (comptes rendus des débats, questions, rapports ; données de data.senat.fr)',
+            'statut' => 'sur',
+            'licence' => 'Travaux parlementaires sans droit d\'auteur (art. L. 122-5 du CPI), reproduction sous réserve de gratuité de la diffusion ; données de data.senat.fr sous licence de réutilisation gratuite, exploitation commerciale permise',
+            'accord' => null,
+            'preuve' => ['https://www.senat.fr/mentions-legales.html', 'https://data.senat.fr/licence/'],
+            'citation' => 'Les travaux parlementaires ne sont couverts par aucun droit d\'auteur (article L.122-5 du code de la propriété intellectuelle).',
+            'obligations' => 'Faits seulement, avec la date de la séance et un lien ; mention « sur le site du Sénat ». Aucune citation ni reproduction (réserve de gratuité de la diffusion, VFF étant édité par une société). Aucun fichier audio ou vidéo.',
+            'remarques' => 'La page des mentions légales demande d\'informer le webmestre des liens vers le site et les réserve aux usages non commerciaux : question posée à Baptiste (rapport accidents-archives).',
+            'domaines' => ['senat.fr'],
+            'lu_le' => '2026-11-21',
+        ],
+        'archives-nationales' => [
+            'nom' => 'Archives nationales (France)',
+            'statut' => 'sur',
+            'licence' => 'Réutilisation gratuite des informations publiques, commerciale ou non, avec mention de l\'origine (CGU de la salle des inventaires virtuelle)',
+            'accord' => null,
+            'preuve' => [
+                'https://www.archives-nationales.culture.gouv.fr/quelles-sont-les-modalites-de-reproduction-et-de-reutilisation',
+                'https://www.siv.archives-nationales.culture.gouv.fr/siv/conditions-generales-d-utilisation',
+            ],
+            'citation' => 'La réutilisation des « informations publiques » contenues dans les documents produits ou reçus par les Archives nationales est gratuite. [...] La seule obligation est de mentionner l\'origine des documents.',
+            'obligations' => 'Mention « Archives nationales (France) », cote ou intitulé, lien vers l\'instrument de recherche. Exclus : documents non librement communicables, archives privées, œuvres protégées.',
+            'domaines' => ['archives-nationales.culture.gouv.fr'],
+            'lu_le' => '2026-11-21',
+        ],
+        'francearchives' => [
+            'nom' => 'FranceArchives (portail national des archives)',
+            'statut' => 'incertain',
+            'licence' => 'Jeux de données annoncés sous Licence Ouverte ; conditions propres à chaque service d\'archives pour les documents',
+            'accord' => null,
+            'preuve' => ['https://francearchives.gouv.fr/article/28204488'],
+            'citation' => '(page non lue directement : défi JavaScript ; conditions relevées par recherche)',
+            'obligations' => 'Lien vers la notice et faits seulement ; règles du service d\'archives qui conserve le document.',
+            'domaines' => ['francearchives.gouv.fr'],
+            'lu_le' => '2026-11-21',
+        ],
+        'archives-departementales' => [
+            'nom' => 'Archives départementales (services en ligne de chaque département)',
+            'statut' => 'incertain',
+            'licence' => 'Variable selon le département : Licence Ouverte (Paris, Haute-Savoie), redevance au-delà d\'un seuil (Lot-et-Garonne), tous droits réservés (Savoie)',
+            'accord' => null,
+            'preuve' => [
+                'https://patrimoines.savoie.fr/web/dsp_6171/mentions-legales',
+                'https://archivesdepartementales.lotetgaronne.fr/fileadmin/cru-1769607006/mediatheque/mediatheque_archives/01-Documents/tarifs-reutilisation.pdf',
+            ],
+            'citation' => 'Savoie : « Tous les droits de reproduction sont réservés ». Lot-et-Garonne : « 0,005 € par image par an et signature d\'une licence de réutilisation commerciale avec redevance » (de 5 001 à 300 000 images).',
+            'obligations' => 'Faits et cote avec lien seulement ; aucune image. Lire la page « réutilisation » du département avant toute reprise d\'image.',
+            'lu_le' => '2026-11-21',
+        ],
+        'persee' => [
+            'nom' => 'Persée (revues savantes numérisées)',
+            'statut' => 'incertain',
+            'licence' => 'Usage privé, scientifique ou pédagogique, à l\'exclusion de toute finalité commerciale ; liens permis vers toute page',
+            'accord' => null,
+            'preuve' => ['https://www.persee.fr/cgu'],
+            'citation' => 'Persée autorise la création de liens vers toute page du Site.',
+            'obligations' => 'Référence bibliographique (faits) et lien vers l\'article seulement ; aucun texte ni métadonnée reprise en masse sans accord (information@persee.fr).',
+            'domaines' => ['persee.fr'],
+            'lu_le' => '2026-11-21',
+        ],
+        'europeana' => [
+            'nom' => 'Europeana',
+            'statut' => 'sur',
+            'licence' => 'Métadonnées sous CC0 1.0 ; objets selon la déclaration de droits de chacun',
+            'accord' => null,
+            'preuve' => ['https://www.europeana.eu/en/rights/usage-guidelines-for-metadata', 'https://www.europeana.eu/en/rights/terms-of-use'],
+            'citation' => 'available free of restriction under the Creative Commons CC0 1.0 Universal Public Domain Dedication',
+            'obligations' => 'Attribution des sources des métadonnées ; objet repris seulement si sa déclaration de droits le permet, sinon lien.',
+            'domaines' => ['europeana.eu'],
+            'lu_le' => '2026-11-21',
+        ],
+        'ina' => [
+            'nom' => 'INA (archives audiovisuelles)',
+            'statut' => 'incertain',
+            'licence' => 'Usage privé et non commercial ; reproduction et diffusion interdites sans accord écrit ; liens libres sous conditions, sans transclusion',
+            'accord' => null,
+            'preuve' => ['https://www.ina.fr/conditions-generales-d-utilisation'],
+            'citation' => 'Toute reproduction, diffusion, communication publique [...] (section 1.2 : interdites sauf accord écrit et préalable de l\'Editeur)',
+            'obligations' => 'Lien simple vers la page de la vidéo, sans lecteur incrusté ni image ; une vidéo n\'appuie aucun énoncé (accès link_only).',
+            'domaines' => ['ina.fr'],
+            'lu_le' => '2026-11-21',
+        ],
     ],
 
     'sources' => [
@@ -437,10 +560,11 @@ return [
             'osm' => 'osm',
             'sncf' => 'sncf',
             'jorf' => 'jorf',
-            'contrib' => 'vff',
             'lignes-oubliees' => 'lignes-oubliees',
             // Années tirées du NOM des tracés archeo (« 14-18 », « 30-40 »…).
             'archeoferroviaire' => 'archeoferroviaire',
+            // Faits relus des articles d'Argentan Web Ferroviaire (vff:apply-argentanwebferro) : fait, lien, une phrase citée.
+            'argentanwebferro' => 'argentanwebferro',
         ],
         'source_traces' => [
             'osm' => 'osm',
@@ -465,9 +589,23 @@ return [
         'station_sources' => [
             'sncf' => 'sncf', 'sncf_voyageurs' => 'sncf', 'osm' => 'osm', 'ohm' => 'ohm', 'wikidata' => 'wikidata',
             'communes' => 'communes', 'wikipedia_schema' => 'wikipedia', 'lignes-oubliees' => 'lignes-oubliees',
+            'argentanwebferro' => 'argentanwebferro',
+        ],
+        // Audit des gares (vff:audit-stations) : source de chaque position comparée (station_audits.positions),
+        // dont les zones de gare de la BD TOPO (WFS de la Géoplateforme, Licence Ouverte 2.0).
+        'station_audits' => [
+            'sncf' => 'sncf', 'sncf_voyageurs' => 'sncf', 'osm' => 'osm', 'ohm' => 'ohm', 'wikidata' => 'wikidata',
+            'bdtopo' => 'ign', 'wikipedia_schema' => 'wikipedia', 'lignes-oubliees' => 'lignes-oubliees',
+            'argentanwebferro' => 'argentanwebferro', 'correction' => 'vff',
+        ],
+        // Dates candidates des gares (vff:import-station-wikidata-dates), comparées aux dates de VFF sans les remplacer.
+        'station_date_candidates' => [
+            'wikidata' => 'wikidata',
         ],
         'source_stations' => [
             'lignes-oubliees' => 'lignes-oubliees', 'wikipedia' => 'wikipedia',
+            // Arrêts des articles d'Argentan Web Ferroviaire (nom et PK), connus de VFF ou confirmés par une autre source.
+            'argentanwebferro' => 'argentanwebferro',
         ],
         'station_events' => [
             'wikidata' => 'wikidata', 'wikidata:qualifiers' => 'wikidata', 'wikipedia' => 'wikipedia', 'ohm' => 'ohm',
@@ -503,9 +641,26 @@ return [
         'line_signalling_events' => ['wikipedia' => 'wikipedia'],
         // Profils en long (vff:compute-line-profiles) : altitude de la voie BD TOPO, à défaut RGE ALTI (line_profiles.source).
         'line_profiles' => ['bdtopo-rge-alti' => 'ign'],
+        // Points du profil (line_profile_points.source) : altitude de la voie (BD TOPO) ou du terrain (RGE ALTI).
+        'line_profile_points' => ['bdtopo' => 'ign', 'rge_alti' => 'ign'],
         // Documents d'archives de Gallica rattachés aux lignes (vff:import-gallica) : métadonnées des notices de la BnF
         // (Licence Ouverte) et lien vers Gallica, jamais l'image ni le texte numérisés.
         'line_archive_documents' => ['gallica' => 'gallica'],
+        // Contexte sourcé des accidents (vff:enrich-accidents, database/data/accident_contexts/*.php) :
+        // accident_references.provider. Énoncés rédigés par VFF, faits seulement avec lien ; une courte citation
+        // exacte au plus par fiche, et seulement d'un rapport du BEA-TT ou d'un texte du Journal officiel (Licence
+        // Ouverte). Presse, ouvrages, sites d'histoire locale, débats parlementaires : faits seulement, lien.
+        // wikipedia-it : même licence que les autres éditions (CC BY-SA 4.0), faits seulement.
+        'accident_references' => [
+            'bea-tt' => 'bea-tt', 'legifrance' => 'jorf', 'gallica' => 'gallica', 'commons' => 'commons',
+            'wikipedia' => 'wikipedia', 'wikipedia-en' => 'wikipedia-en', 'wikipedia-de' => 'wikipedia-de', 'wikipedia-it' => 'wikipedia',
+            'wikidata' => 'wikidata', 'presse' => 'tiers-cites', 'ouvrages' => 'tiers-cites', 'sites-web' => 'tiers-cites',
+            'retronews' => 'retronews', 'assemblee-nationale' => 'assemblee-nationale', 'senat' => 'senat',
+            'archives-nationales' => 'archives-nationales', 'francearchives' => 'francearchives',
+            'archives-departementales' => 'archives-departementales', 'persee' => 'persee', 'europeana' => 'europeana', 'ina' => 'ina',
+        ],
+        // Images d'archives des accidents : fichiers de Wikimedia Commons, licence relue sur chaque fichier.
+        'accident_images' => ['commons' => 'commons'],
         // Matériel roulant (vff:import-materials) : fiches Wikidata, champ par champ (provenance),
         // image Commons (licence propre à chaque fichier), liens matériel ↔ ligne attestés.
         // `contrib` : séries, champs, liens et périodes proposés par les contributeurs et validés (LineMaterialContributions,
@@ -533,6 +688,9 @@ return [
             'manual' => 'vff',
             // Exploitations associatives (BD TOPO, OSM, Wikipédia, Wikidata, lignes-oubliees) : le lien cité décide.
             'heritage' => 'vff',
+            // Événements contribués et validés (EventContributions, dates des tracés contribués) : le lien
+            // cité décide, comme pour les corrections manuelles ; VFF pour un ouvrage ou une archive papier.
+            'contrib' => 'vff',
         ],
         'station_events' => [
             // Corrections sourcées des dates de gares : le lien cité décide.

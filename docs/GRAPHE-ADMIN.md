@@ -91,8 +91,9 @@ précédé d'une apostrophe, pour qu'un tableur ne l'exécute pas comme une form
 
 Défauts des arêtes (`reason`) : `no_geometry` (pas de tracé, testé en premier : le constructeur écrit
 une longueur nulle pour ces arêtes), `zero_length` (tracé de longueur nulle), `loop`
-(même nœud aux deux bouts), `length_mismatch` (longueur enregistrée éloignée du tracé de plus de 5 m et
-de plus de 1 %), `detour` (arête de gare à gare de plus de 5 km, plus de 4 fois plus longue qu'à vol
+(même nœud aux deux bouts), `length_mismatch` (longueur enregistrée éloignée du tracé de plus de 30 m et
+de plus de 1 % ; le constructeur recolle chaque bout d'arête sur son nœud, jusqu'à 15 m, sans changer la
+longueur mesurée sur la voie d'origine), `detour` (arête de gare à gare de plus de 5 km, plus de 4 fois plus longue qu'à vol
 d'oiseau).
 
 ## Méthode
@@ -140,6 +141,19 @@ Arêtes de la topologie sans tracé (mesures du 20/11/2026, SELECT en lecture se
 | 1930 | 1 415 | 235 | 126 | 311,3 m | 21 |
 | 1970 | 992 | 174 | 103 | 278,8 m | 16 |
 | 2030 | 1 080 | 217 | 134 | 279,2 m | 24 |
+
+Après la reconstruction du 20/11/2026 au soir (21 époques), avec le recollage des extrémités et la fusion des
+arêtes de longueur nulle dans `EraGraphBuilder` :
+
+| Époque | Îles (topologie) | Jonctions écartées (dont > 5 m) | Jonctions écartées de 15 m au plus | Arêtes de longueur nulle (sans tracé) | Sauts | Arêtes anormales |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1930 | 57 | 1 267 (1 267) | 1 | 17 (17) | 7 | 79 |
+| 1970 | 61 | 704 (704) | 0 | 14 (14) | 4 | 68 |
+| 2030 | 113 | 632 (632) | 0 | 15 (14) | 5 | 77 |
+
+Les jonctions écartées qui restent sont des gares rattachées à des voies de lignes différentes, à plus de
+15 m l'une de l'autre (jusqu'à 597 m) : il faut corriger les tracés. Les arêtes de longueur nulle qui
+restent relient deux gares distinctes, que le constructeur ne fusionne jamais.
 
 ## Index des tracés et temps des tuiles
 

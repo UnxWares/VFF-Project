@@ -10,6 +10,7 @@ return [
         'station_required' => 'Choisissez la gare dans les résultats de la recherche.',
         'summary_one' => ':count champ à corriger avant l’envoi',
         'summary_other' => ':count champs à corriger avant l’envoi',
+        'daily_limit' => 'Vous avez envoyé :max propositions aujourd’hui, le maximum par jour. Vous pourrez en envoyer d’autres demain : les validateurs ont ainsi le temps de toutes les relire.',
     ],
 
     'picker' => [

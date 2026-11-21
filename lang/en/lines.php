@@ -345,6 +345,7 @@ return [
         'estimation-reseau' => 'Estimate from the operating company (uncertain date)',
         'heritage' => 'List of heritage railways',
         'archeoferroviaire' => 'archeoferroviaire',
+        'argentanwebferro' => 'Argentan Web Ferroviaire (argentanwebferro.fr)',
         'vff' => 'VFF (merged pages)',
         'unknown' => 'Unspecified source',
         'bdtopo' => 'IGN, BD TOPO',
@@ -379,6 +380,8 @@ return [
         'empty' => 'No station is attached to this line yet. Stations are attached by their kilometre point or their position on the route; if you know the stations of this line, you can contribute.',
         'intro' => 'Every station and halt of the line, in route order, including those that closed or stand on a lifted section. The row of boxes shows the state of each station decade by decade.',
         'opened' => 'opened: :date',
+        // Date d'ouverture déduite de la ligne (provenance inferred:…), pas d'une source sur la gare.
+        'opened_inferred' => 'opened: :date (date of the line)',
         'closed' => 'closed: :date',
         'life' => 'State of the station in each decade',
         'status' => [
@@ -443,6 +446,7 @@ return [
         'also_known_more' => 'and :count more',
         'names_source' => 'Source of the names',
         'advocacy_label' => 'Campaign for this line',
+        'advocacy_sources' => 'Sources',
         'stats' => [
             'km_line' => 'km of line',
             'km_greatest' => 'km at its greatest extent',
@@ -502,7 +506,9 @@ return [
         ],
         'stations' => [
             'legend_title' => 'Reading the decade strip',
-            'legend_text' => 'Under each station, one box per decade, from :from to today.',
+            'legend_text' => 'Under each station, one box per decade, from :from to today: the state of the station on that year’s map, at 31 December.',
+            'dots_text' => 'Dot on the line: state of the station today; solid dot: terminus.',
+            'dots_label' => 'Dots on the line',
             'life_label' => 'State by decade: :text',
             'run' => ':from to :to: :state',
             'single' => ':year: :state',

@@ -9,8 +9,10 @@
     import HomeHero from './HomeHero.svelte';
     import { isSearchShortcut, shortcutLabel } from '$lib/siteSearch.js';
 
-    // Logo de la barre et du disque du grand visuel : un seul fichier.
-    import vffLogo from '$images/vff.png';
+    // Logo : 320 px pour la barre (64 px à l'écran), 1 024 px pour le disque du grand visuel (465 px au plus).
+    // WebP sans perte (le 1 024 px garde les pixels de vff.png) : 53 Ko et 251 Ko au lieu de 491 Ko par page.
+    import vffLogo from '$images/vff-320.webp';
+    import vffHero from '$images/vff.webp';
 
     /**
      * En-tête du site. `compact` : pages internes (barre seule) ; sinon accueil (en-tête de 200 vh
@@ -408,7 +410,7 @@
         <!-- Hors de la barre : la barre de l'accueil est transparente tant que le héros est à l'écran. -->
         <GlobalSearch bind:open={searchOpen} {shortcut} />
         {#if !compact}
-            <HomeHero logo={vffLogo} onsearch={openSearch} />
+            <HomeHero logo={vffHero} onsearch={openSearch} />
         {/if}
     </div>
 </header>

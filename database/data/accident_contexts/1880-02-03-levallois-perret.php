@@ -1,0 +1,133 @@
+<?php
+
+// Contexte sourcé de la collision de Clichy-Levallois du 3 février 1880 (recherche du 21/11/2026).
+return [
+    'slug' => '1880-02-03-levallois-perret',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-fr' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Collision ferroviaire de Clichy-Levallois',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Collision_ferroviaire_de_Clichy-Levallois&oldid=239902984',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article très détaillé (environ 48 notes) appuyé sur la presse de 1880, les Annales de la Chambre des députés et le rapport de la commission de Nerville ; source principale.',
+        ],
+        'gallica-annales-1880' => [
+            'provider' => 'gallica',
+            'kind' => 'parliament',
+            'reliability' => 'official',
+            'title' => 'Annales du Sénat et de la Chambre des députés, séance du 26 février 1880',
+            'publisher' => 'Gallica (BnF)',
+            'author' => null,
+            'published' => '1880-02-26',
+            'locator' => null,
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k63251827',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Lien cité par Wikipédia, non lu (Gallica inaccessible depuis la machine).',
+        ],
+        'gallica-liberte-1880' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'La Liberté, 11 juillet 1880, p. 3 (détail de l\'instruction et des responsabilités)',
+            'publisher' => 'Gallica (BnF)',
+            'author' => null,
+            'published' => '1880-07-11',
+            'locator' => 'p. 3',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k47817205/f3.item.r=Clichy.zoom',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Lien cité par Wikipédia, non lu.',
+        ],
+        'gallica-grison' => [
+            'provider' => 'gallica',
+            'kind' => 'book',
+            'reliability' => 'press',
+            'title' => 'Les Accidents de chemins de fer, grandes catastrophes (Georges Grison)',
+            'publisher' => 'Gallica (BnF)',
+            'author' => 'Georges Grison',
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k6260485t.texteBrut',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Ouvrage contemporain trouvé dans un résultat de recherche, non lu (Gallica inaccessible).',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Entre Paris et Asnières, les trains de la Compagnie des chemins de fer de l\'Ouest partagent le groupe de voies de Saint-Germain, très chargé, avec des trains du Nord. Un brouillard présent depuis plusieurs jours provoque des retards généralisés le 3 février 1880.',
+                'en' => 'Between Paris and Asnières, trains of the Compagnie des chemins de fer de l\'Ouest shared the heavily used Saint-Germain group of tracks with Nord trains. A fog that had lasted several days caused widespread delays on 3 February 1880.',
+                'de' => 'Zwischen Paris und Asnières teilten sich die Züge der Compagnie des chemins de fer de l\'Ouest das stark belastete Gleisbündel von Saint-Germain mit Zügen der Nordbahn. Ein seit mehreren Tagen anhaltender Nebel verursachte am 3. Februar 1880 allgemeine Verspätungen.',
+                'sources' => ['wp-fr'],
+            ],
+            [
+                'fr' => 'Les départs de Saint-Lazare prévus à 17 h 55, 18 h et 18 h 15 ont lieu vers 18 h 13 (train n° 55), 18 h 18 (omnibus n° 127) et une dizaine de minutes plus tard (train n° 23, dit circulaire). Le train 127 progresse lentement, arrêté à plusieurs reprises par des pétards, puis pour laisser passer un train de marchandises.',
+                'en' => 'The departures from Saint-Lazare scheduled for 5.55, 6.00 and 6.15 p.m. took place at about 6.13 p.m. (train no. 55), 6.18 p.m. (omnibus no. 127) and some ten minutes later (train no. 23, known as the circular). Train 127 advanced slowly, stopped several times by detonators and then to let a goods train pass.',
+                'de' => 'Die für 17.55, 18.00 und 18.15 Uhr vorgesehenen Abfahrten ab Saint-Lazare erfolgten gegen 18.13 Uhr (Zug Nr. 55), 18.18 Uhr (Personenzug Nr. 127) und etwa zehn Minuten später (Zug Nr. 23, genannt Ringzug). Der Zug 127 kam nur langsam voran, mehrfach durch Knallkapseln aufgehalten, dann um einen Güterzug vorbeizulassen.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'À environ 250 mètres avant la gare de Clichy-Levallois, alors que le train 127 repart au pas, il est rattrapé par le train 23, qui roule à plus de 40 km/h. Selon l\'instruction, le choc a lieu à 2 929 mètres du fond de la gare Saint-Lazare. La locomotive du train 23, une machine-tender du Nord, se couche sur le flanc et obstrue la voie vers Paris ; le fourgon de queue et les dernières voitures du train 127 sont détruits.',
+                'en' => 'About 250 metres before Clichy-Levallois station, as train 127 was setting off again at walking pace, it was overtaken by train 23, running at more than 40 km/h. According to the inquiry, the impact took place 2,929 metres from the end of Saint-Lazare station. The locomotive of train 23, a Nord tank engine, fell on its side and blocked the line towards Paris; the rear brake van and the last carriages of train 127 were destroyed.',
+                'de' => 'Etwa 250 Meter vor dem Bahnhof Clichy-Levallois, als der Zug 127 gerade wieder im Schritttempo anfuhr, wurde er vom Zug 23 eingeholt, der mit mehr als 40 km/h fuhr. Nach der Untersuchung erfolgte der Aufprall 2 929 Meter vom Ende des Bahnhofs Saint-Lazare entfernt. Die Lokomotive des Zuges 23, eine Tenderlokomotive der Nordbahn, kippte zur Seite und versperrte das Gleis in Richtung Paris; der Schlusswagen und die letzten Wagen des Zuges 127 wurden zerstört.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'À l\'ouverture du procès, le bilan annoncé est de 16 morts et 94 blessés ; plusieurs blessés graves sont morts dans les semaines suivant l\'accident. Les voyageurs indemnes organisent les premiers soins avec des moyens de fortune, rejoints par des habitants de Clichy, d\'Asnières et de Levallois. Les blessés les plus graves sont soignés sur place ou transportés à Bois-Colombes ou à Paris, notamment à l\'hôpital Beaujon.',
+                'en' => 'At the opening of the trial the announced toll was 16 dead and 94 injured; several seriously injured people died in the weeks after the accident. Uninjured passengers organised first aid with makeshift means, joined by residents of Clichy, Asnières and Levallois. The most seriously injured were treated on the spot or taken to Bois-Colombes or Paris, notably the Beaujon hospital.',
+                'de' => 'Bei Prozessbeginn wurde eine Bilanz von 16 Toten und 94 Verletzten genannt; mehrere Schwerverletzte starben in den Wochen nach dem Unglück. Unverletzte Reisende organisierten mit behelfsmäßigen Mitteln die erste Hilfe, unterstützt von Einwohnern aus Clichy, Asnières und Levallois. Die Schwerverletzten wurden vor Ort versorgt oder nach Bois-Colombes oder Paris gebracht, besonders ins Hôpital Beaujon.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Le brouillard est la cause principale, mais les enquêtes judiciaire et administrative relèvent aussi des défaillances. Le conducteur du premier train roulait trop vite pour la visibilité, et celui du train tamponné n\'avait pas posté de pétards pour couvrir son train à l\'arrêt comme le règlement l\'exigeait ; tous deux sont morts dans l\'accident.',
+                'en' => 'Fog was the main cause, but the judicial and administrative inquiries also identified failings. The driver of the first train was going too fast for the visibility, and the crew of the struck train had not placed detonators to protect their stationary train as the regulations required; both men died in the accident.',
+                'de' => 'Der Nebel war die Hauptursache, doch die gerichtliche und die behördliche Untersuchung stellten auch Mängel fest. Der Lokführer des ersten Zuges fuhr für die Sichtverhältnisse zu schnell, und die Besatzung des aufgefahrenen Zuges hatte keine Knallkapseln gelegt, um ihren stehenden Zug zu decken, wie es die Vorschrift verlangte; beide Männer kamen bei dem Unglück ums Leben.',
+                'sources' => ['wp-fr'],
+            ],
+            [
+                'fr' => 'Les rapports relèvent aussi des freins incompatibles entre voitures du Nord et de l\'Ouest, des durées de travail excessives, et l\'absence de dédoublement des voies et de block-système sur un tronçon surchargé.',
+                'en' => 'The reports also noted incompatible brakes between Nord and Ouest carriages, excessive working hours, and the lack of additional tracks and of a block system on an overloaded section.',
+                'de' => 'Die Berichte nennen außerdem unverträgliche Bremsen zwischen Wagen der Nord- und der Westbahn, übermäßige Arbeitszeiten sowie das Fehlen zusätzlicher Gleise und eines Blocksystems auf einem überlasteten Abschnitt.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Le tribunal correctionnel de la Seine juge l\'affaire le 10 juillet 1880 : les deux aiguilleurs poursuivis sont condamnés à quatre mois de prison et 50 francs d\'amende, le chef du train tamponné est relaxé, et la Compagnie de l\'Ouest est déclarée civilement responsable de ses agents. Les cadres de l\'exploitation n\'ont pas été poursuivis.',
+                'en' => 'The Seine criminal court tried the case on 10 July 1880: the two pointsmen prosecuted were sentenced to four months in prison and a 50-franc fine, the head of the struck train was acquitted, and the Ouest company was held civilly liable for its staff. Operating managers were not prosecuted.',
+                'de' => 'Das Strafgericht der Seine verhandelte den Fall am 10. Juli 1880: Die beiden angeklagten Weichensteller wurden zu vier Monaten Haft und 50 Francs Geldstrafe verurteilt, der Zugführer des aufgefahrenen Zuges wurde freigesprochen, und die Westbahngesellschaft wurde für ihre Bediensteten zivilrechtlich haftbar erklärt. Die leitenden Betriebsbeamten wurden nicht verfolgt.',
+                'sources' => ['wp-fr'],
+            ],
+            [
+                'fr' => 'La Chambre des députés débat de l\'accident le 26 février 1880, en présence du ministre des Travaux publics. Dans les mois suivants, la section est divisée en six cantons et équipée d\'un block-système, changement que la commission de Nerville, dans son rapport du 8 juillet 1880, juge indispensable.',
+                'en' => 'The Chamber of Deputies debated the accident on 26 February 1880 in the presence of the Minister of Public Works. In the following months the section was divided into six blocks and fitted with a block system, a change that the Nerville commission, in its report of 8 July 1880, judged indispensable.',
+                'de' => 'Die Abgeordnetenkammer debattierte den Unfall am 26. Februar 1880 im Beisein des Ministers für öffentliche Arbeiten. In den folgenden Monaten wurde der Abschnitt in sechs Blockstrecken unterteilt und mit einem Blocksystem ausgestattet, eine Änderung, die die Kommission von Nerville in ihrem Bericht vom 8. Juli 1880 für unerlässlich hielt.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le nombre de blessés varie : de 36 à 69 dans les premiers communiqués, puis 94 à l\'ouverture du procès. La fiche de VFF et Wikidata retiennent 69, qui correspond aux premières annonces.',
+                'en' => 'The number of injured varies: from 36 to 69 in the first communiqués, then 94 at the opening of the trial. The VFF record and Wikidata give 69, which matches the early announcements.',
+                'de' => 'Die Zahl der Verletzten schwankt: von 36 bis 69 in den ersten Meldungen, dann 94 bei Prozessbeginn. Der VFF-Datensatz und Wikidata nennen 69, was den ersten Meldungen entspricht.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+    ],
+];

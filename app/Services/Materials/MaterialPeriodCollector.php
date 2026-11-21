@@ -11,10 +11,14 @@ use Illuminate\Support\Facades\DB;
  * ligne × matériel importés par `vff:import-materials` :
  *
  *   1. articles Wikipédia des LIGNES : phrases des sections « Matériel roulant », « Exploitation »… qui
- *      citent une série par un lien (MaterialPeriodExtractor) ;
+ *      citent une série par un lien (MaterialPeriodExtractor), et articles des ITINÉRAIRES qui enchaînent
+ *      plusieurs lignes (database/data/wikipedia_itineraries.php, « Ligne de Paris à Granville ») : la période
+ *      vaut pour chacune de leurs lignes, avec la relation de l'itinéraire ;
  *   2. articles Wikipédia des SÉRIES : phrases des sections « Utilisation », « Services »… qui citent une
  *      ligne par un lien ;
- *   3. Wikidata : qualificatifs de début (P580) et de fin (P582) des déclarations P3438, avec leur précision.
+ *   3. relations et itinéraires cités par les articles des séries (MaterialRelations) : période lue dans la
+ *      phrase et gardée dans la preuve du lien, avec la relation assurée (colonne `relation`) ;
+ *   4. Wikidata : qualificatifs de début (P580) et de fin (P582) des déclarations P3438, avec leur précision.
  *
  * Les articles sont ceux que l'import du matériel a mis en cache (SourceCache, storage/app/data/materiel/,
  * mêmes révisions que les preuves des liens) : aucune requête vers Wikipédia ici. Wikidata : une requête,
@@ -27,6 +31,9 @@ use Illuminate\Support\Facades\DB;
  */
 final class MaterialPeriodCollector
 {
+    /** Cache des articles d'itinéraires (database/data/wikipedia_itineraries.php), rempli par vff:import-materials. */
+    public const ITINERARY_CACHE = 'wikipedia_itineraries';
+
     /** Titre de section qui nomme une portion (« Section de Saint-Just-en-Chaussée à Cambrai »). */
     private const SECTION_HEADING = '/^(?:section|tronçon|portion|partie)\s+(?:de\s+la\s+|de\s+l[’\']|du\s+|des\s+|de\s+|d[’\'])(.+?)\s+(?:à|au|aux)\s+(?:la\s+|l[’\'])?(.+)$|^(?:section|tronçon|portion|partie)\s+entre\s+(.+?)\s+et\s+(.+)$/iu';
 
@@ -52,10 +59,16 @@ final class MaterialPeriodCollector
     public function collect(bool $offline = false, ?\DateTimeInterface $today = null): array
     {
         $links = [];
-        foreach (LineMaterial::query()->whereIn('source', LineMaterial::IMPORTED_SOURCES)->orderBy('id')->get(['id', 'line_id', 'material_id']) as $link) {
+        $routed = [];
+        foreach (LineMaterial::query()->whereIn('source', LineMaterial::IMPORTED_SOURCES)->orderBy('id')->get(['id', 'line_id', 'material_id', 'evidence']) as $link) {
             $links["{$link->line_id}:{$link->material_id}"] ??= (int) $link->id;
+            foreach ($link->evidence ?? [] as $evidence) {
+                if (isset($evidence['route'], $evidence['period']) && is_array($evidence['period'])) {
+                    $routed[] = [$link, $evidence];
+                }
+            }
         }
-        $materials = DB::table('materials')->get(['id', 'wikidata_id', 'wikipedia_fr', 'type', 'max_speed_kmh', 'in_service_from', 'in_service_to'])->keyBy('id');
+        $materials = DB::table('materials')->get(['id', 'name', 'wikidata_id', 'wikipedia_fr', 'type', 'max_speed_kmh', 'in_service_from', 'in_service_to'])->keyBy('id');
         $lines = DB::table('lines')->whereNotNull('wikipedia_title')->get(['id', 'wikipedia_title', 'is_lgv'])->keyBy('id');
 
         $materialsByTitle = $this->materialTitles($materials->pluck('wikipedia_fr', 'id')->filter()->all());
@@ -99,6 +112,42 @@ final class MaterialPeriodCollector
             }
         }
 
+        // 1 bis. Articles d'itinéraires (« Ligne de Paris à Granville ») : ils datent le matériel de la relation,
+        //    donc sur chacune des lignes qu'elle enchaîne (« De 1999 à 2015, … X 72500 », « À partir du 16 juillet
+        //    2014, … Régiolis »). La période porte la relation de l'itinéraire.
+        $itineraries = require database_path('data/wikipedia_itineraries.php');
+        $idsByCode = [];
+        foreach (DB::table('lines')->whereIn('code', array_merge(...array_column($itineraries, 'lines')))->get(['id', 'code']) as $row) {
+            $idsByCode[(string) $row->code][] = (int) $row->id;
+        }
+        foreach ($this->cache->load(self::ITINERARY_CACHE) as $requested => $page) {
+            $itinerary = $itineraries[(string) $requested] ?? null;
+            if (! is_array($page) || $itinerary === null) {
+                continue;
+            }
+            $lineIds = array_merge(...array_map(fn (string $code): array => $idsByCode[$code] ?? [], $itinerary['lines']));
+            [$first, $last] = [$itinerary['stops'][0], $itinerary['stops'][count($itinerary['stops']) - 1]];
+            $relation = ['label' => RelationRouter::readable($first).' - '.RelationRouter::readable($last), 'from' => ['id' => null, 'name' => $first], 'to' => ['id' => null, 'name' => $last]];
+            $stats['line_articles']++;
+            foreach ($page['sections'] ?? [] as $section) {
+                if (WikipediaMaterialSections::isDoubtfulSection($section['title'])) {
+                    continue;
+                }
+                $facts = $this->extractor->extract(
+                    $section['text'],
+                    fn (string $target): array => array_values(array_unique($materialsByTitle[$target] ?? [])),
+                    fn (string $target): bool => array_diff($linesByTitle[$target] ?? [], $lineIds) !== [],
+                    MaterialPeriodExtractor::MODE_LINE_ARTICLE,
+                    $today,
+                );
+                foreach ($facts as $fact) {
+                    foreach ($lineIds as $lineId) {
+                        $candidates[] = ['line_id' => $lineId, 'material_id' => $fact['id'], 'origin' => MaterialPeriodExtractor::MODE_LINE_ARTICLE, 'page' => $page, 'heading' => $section['title'], 'relation' => $relation] + $fact;
+                    }
+                }
+            }
+        }
+
         // 2. Articles des séries : les liens désignent des lignes.
         $fast = $materials->filter(fn ($m): bool => $m->type === 'rame_tgv' || (int) $m->max_speed_kmh >= self::LGV_MIN_SPEED_KMH)->keys()->flip()->all();
         $byArticle = $materials->filter(fn ($m): bool => $m->wikipedia_fr !== null)->pluck('id', 'wikipedia_fr')->all();
@@ -120,6 +169,10 @@ final class MaterialPeriodCollector
                     $today,
                 );
                 foreach ($facts as $fact) {
+                    // Comme les liens : un article partagé (redirection) ne vaut que pour la série qu'il nomme.
+                    if (! WikipediaMaterialSections::speaksOf((string) $requested, (string) $page['title'], (string) ($materials[(int) $materialId]->name ?? $requested), $fact['excerpt'])) {
+                        continue;
+                    }
                     // Comme les liens : sur une LGV, seuls les engins de grande vitesse.
                     if ($lines->has($fact['id']) && (bool) $lines[$fact['id']]->is_lgv && ! isset($fast[(int) $materialId])) {
                         continue;
@@ -129,7 +182,18 @@ final class MaterialPeriodCollector
             }
         }
 
-        // 3. Wikidata : P3438 daté.
+        // 3. Relations et itinéraires cités par les articles des séries (MaterialRelations) : la période lue par
+        //    l'import des liens est gardée dans la preuve, avec la relation assurée.
+        foreach ($routed as [$link, $evidence]) {
+            $route = $evidence['route'];
+            $candidates[] = [
+                'line_id' => (int) $link->line_id, 'material_id' => (int) $link->material_id, 'origin' => MaterialPeriodExtractor::MODE_MATERIAL_ARTICLE,
+                'page' => ['title' => $evidence['article'], 'revid' => $evidence['revid']], 'heading' => (string) ($evidence['section'] ?? ''),
+                'relation' => array_intersect_key($route, array_flip(['label', 'from', 'to', 'service'])),
+            ] + $evidence['period'];
+        }
+
+        // 4. Wikidata : P3438 daté.
         if ($this->wikidata !== null) {
             $materialsByQid = $materials->filter(fn ($m): bool => $m->wikidata_id !== null)->pluck('id', 'wikidata_id')->all();
             $linesByQid = [];
@@ -231,8 +295,11 @@ final class MaterialPeriodCollector
             $confidence = 'low';
         }
         // Hors de la vie de la série : erreur de lecture probable (date d'une autre série, d'une autre action).
+        // Exception : l'article de la série elle-même qui la fait rouler après son retrait déclaré (« la CC 80001
+        // rejoint la ligne Paris - Argentan - Granville jusqu'en 1977 », retrait Wikidata 1964) contredit ce
+        // retrait ; la phrase précise passe avant la date de la fiche, que LineSheet ne montre plus sur la ligne.
         $from = $material?->in_service_from !== null ? (int) $material->in_service_from : null;
-        $to = $material?->in_service_to !== null ? (int) $material->in_service_to : null;
+        $to = $material?->in_service_to !== null && $c['origin'] !== MaterialPeriodExtractor::MODE_MATERIAL_ARTICLE ? (int) $material->in_service_to : null;
         $startYear = $c['from'] !== null ? (int) substr($c['from']['date'], 0, 4) : null;
         $endYear = $c['to'] !== null ? (int) substr($c['to']['date'], 0, 4) : null;
         if (($from !== null && $startYear !== null && $startYear < $from) || ($from !== null && $endYear !== null && $endYear < $from)
@@ -255,6 +322,7 @@ final class MaterialPeriodCollector
             'section_to' => $sectionTo,
             'confidence' => $confidence,
             'origin' => $c['origin'],
+            'relation' => $c['relation'] ?? null,
         ];
         if ($c['origin'] === 'wikidata') {
             $values += [
@@ -274,7 +342,8 @@ final class MaterialPeriodCollector
                 'source_excerpt' => $c['excerpt'],
             ];
         }
-        $values['fingerprint'] = sha1(implode('|', [$linkId, $values['start_date'], $values['end_date'], $sectionFrom, $sectionTo]));
+        // Le libellé de la relation n'entre dans l'empreinte que s'il existe (empreintes antérieures inchangées).
+        $values['fingerprint'] = sha1(implode('|', [$linkId, $values['start_date'], $values['end_date'], $sectionFrom, $sectionTo, ...(isset($c['relation']['label']) ? [$c['relation']['label']] : [])]));
 
         return $values;
     }

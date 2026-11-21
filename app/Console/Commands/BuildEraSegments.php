@@ -409,7 +409,7 @@ class BuildEraSegments extends Command
         $orphanClosures = [];
         $sectionLen = [];
         $hasOpening = false;
-        foreach (DB::select('SELECT id, type, reuse, heritage_kind, event_date, source, source_url, section_resolution, section_from, section_to, section_pk_start_m,
+        foreach (DB::select('SELECT id, type, reuse, heritage_kind, event_date, source, source_url, confidence, section_resolution, section_from, section_to, section_pk_start_m,
                                     COALESCE(section_length_m, ROUND(ST_Length(section_geom::geography))) AS section_len
                              FROM line_events WHERE line_id = ?', [$line->id]) as $e) {
             // LGV ou raccordement LGV : rien avant la grande vitesse (une date du XIXe siècle vient
@@ -424,22 +424,22 @@ class BuildEraSegments extends Command
                 // général. Elle s'applique aux portions encore exploitées (cf. piece()).
                 if (str_starts_with($e->type, 'reopening') && $e->section_from === null
                     && $e->section_to === null && $e->section_pk_start_m === null) {
-                    $orphanReopenings[$e->id] = ['type' => $e->type, 'date' => $e->event_date, 'source' => $e->source,
+                    $orphanReopenings[$e->id] = ['type' => $e->type, 'date' => $e->event_date, 'source' => EraTimeline::rankedSource($e->source, $e->source_url, $e->confidence),
                         'reuse' => null, 'heritage_kind' => null, 'whole' => true];
                 }
                 // Fermeture dont la portion n'a pas pu être localisée : servira aux portions
                 // fermées ou disparues aujourd'hui qui n'ont aucune fermeture propre (cf. piece()).
                 if (str_starts_with($e->type, 'closure') || in_array($e->type, ['declassification', 'dismantling'], true)) {
                     $orphanClosures[$e->id] = ['type' => $e->type, 'date' => $e->event_date,
-                        'source' => $e->source === 'lignes-oubliees' && str_contains((string) $e->source_url, '.pdf') ? 'lignes-oubliees-pdf' : $e->source,
+                        'source' => EraTimeline::rankedSource($e->source, $e->source_url, $e->confidence),
                         'reuse' => null, 'heritage_kind' => null, 'whole' => true];
                 }
                 $this->stats['skipped_events']++;
 
                 continue;
             }
-            // Tableaux PDF lignes-oubliees = décisions administratives (priorité basse, cf. EraTimeline).
-            $source = $e->source === 'lignes-oubliees' && str_contains((string) $e->source_url, '.pdf') ? 'lignes-oubliees-pdf' : $e->source;
+            // Rang de la source : tableau PDF lignes-oubliees (décision administrative), contribution selon la source citée.
+            $source = EraTimeline::rankedSource($e->source, $e->source_url, $e->confidence);
             $events[$e->id] = ['type' => $e->type, 'date' => $e->event_date, 'source' => $source, 'reuse' => $e->reuse,
                 'heritage_kind' => $e->heritage_kind, 'whole' => $whole || $e->section_resolution === 'whole_line'];
             if (! $events[$e->id]['whole'] && $e->section_len !== null && (self::isEnd($e->type) || preg_match('/^(re)?opening|^heritage/', $e->type))) {

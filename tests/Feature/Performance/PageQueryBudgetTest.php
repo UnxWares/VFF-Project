@@ -6,7 +6,6 @@ use App\Services\LineSheet;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\BuildsRailNetwork;
 use Tests\TestCase;
@@ -73,7 +72,14 @@ class PageQueryBudgetTest extends TestCase
         $queries = $this->queriesOf('/lines/'.$this->line->slug);
 
         // 53 : une requête de plus le 20/11 pour les événements qui ont une histoire (EventStories::available).
-        $this->assertLessThanOrEqual(53, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // 56 : trois petites lectures de signature le 21/11 (LineDataSignature : phases, extrémités, longueurs),
+        // qui évitent les calculs géographiques à la visite suivante (voir plus bas).
+        // 57 : une lecture de plus après les chantiers de la nuit du 21/11 (matériel, profil en long, contexte des
+        // accidents) ; aucune requête par élément, la seconde visite reste plus courte.
+        $this->assertLessThanOrEqual(57, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        $warm = $this->queriesOf('/lines/'.$this->line->slug);
+        $this->assertLessThan(count($queries), count($warm), 'seconde visite : calculs lus dans le cache');
+        $this->assertEmpty(array_filter($warm, fn (string $sql): bool => str_contains($sql, 'CREATE TEMP TABLE')));
         // La page ne lit plus la géométrie de l'ère affichée (LineSheet::PAGE_OMITTED).
         $this->assertEmpty(array_filter($queries, fn (string $sql): bool => str_contains($sql, 'ST_AsGeoJSON(ls.geom, 6)')));
     }
@@ -114,24 +120,21 @@ class PageQueryBudgetTest extends TestCase
         $this->assertSame(1, $grouped($this->queriesOf('/maps')), 'segments modifiés : comptes recalculés');
     }
 
-    public function test_translations_are_sent_once_then_kept_by_the_browser(): void
+    public function test_translations_are_not_copied_into_each_page(): void
     {
-        $this->get('/materials')->assertInertia(fn (Assert $page) => $page->has('translations'));
-
         $first = $this->get('/materials')->viewData('page');
-        $version = $first['version'];
-        $key = 'translations.'.$first['props']['locale'];
-        $this->assertSame('translations', $first['onceProps'][$key]['prop']);
-        $headers = ['X-Inertia' => 'true', 'X-Inertia-Version' => (string) $version, 'X-Requested-With' => 'XMLHttpRequest'];
+        $this->assertArrayNotHasKey('translations', $first['props']);
+        $this->assertArrayNotHasKey('translations.'.$first['props']['locale'], $first['onceProps'] ?? []);
+        $this->assertMatchesRegularExpression('#^/i18n/[a-z]{2}/[0-9a-f]{12}\.json$#', $first['props']['translations_url']);
 
-        // Navigation Inertia : le navigateur annonce les chaînes qu'il a déjà, le serveur ne les renvoie pas.
-        $page = $this->get('/materials', $headers + ['X-Inertia-Except-Once-Props' => $key])->assertOk()->json();
-        $this->assertArrayNotHasKey('translations', $page['props']);
-        $this->assertSame('translations', $page['onceProps'][$key]['prop']);
+        // La page annonce le dictionnaire dans son en-tête : le navigateur le demande avec les scripts.
+        $this->get('/materials')->assertSee('<link rel="preload" href="'.$first['props']['translations_url'].'" as="fetch" crossorigin="anonymous" />', false);
 
-        // Sans elles (premier passage, autre langue), elles sont envoyées.
+        // Navigation Inertia : seulement l'adresse, quelques dizaines d'octets.
+        $headers = ['X-Inertia' => 'true', 'X-Inertia-Version' => (string) $first['version'], 'X-Requested-With' => 'XMLHttpRequest'];
         $page = $this->get('/materials', $headers)->assertOk()->json();
-        $this->assertArrayHasKey('translations', $page['props']);
+        $this->assertArrayNotHasKey('translations', $page['props']);
+        $this->assertSame($first['props']['translations_url'], $page['props']['translations_url']);
     }
 
     public function test_the_api_keeps_the_complete_line_sheet(): void

@@ -8,6 +8,7 @@
     import Notice from '$components/ui/Notice.svelte';
     import SeoHead from '$components/SeoHead.svelte';
     import AccidentMiniMap from '$components/Accidents/AccidentMiniMap.svelte';
+    import AccidentContext from '$components/Accidents/AccidentContext.svelte';
     import { i18n } from '$lib/i18n.js';
     import {
         CONFIDENCE_TONE,
@@ -214,6 +215,10 @@
             </div>
         </SheetSection>
 
+        {#if accident.context}
+            <AccidentContext context={accident.context} />
+        {/if}
+
         <SheetSection id="place" title={$i18n.t('accidents.show.place_title')}>
             <div class={['place', { located }]}>
                 {#if located}
@@ -414,6 +419,10 @@
                     {/each}
                 </ul>
             </SheetSection>
+        {/if}
+
+        {#if accident.context}
+            <AccidentContext context={accident.context} part="references" />
         {/if}
 
         <SheetSection

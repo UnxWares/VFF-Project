@@ -4,9 +4,7 @@ namespace App\Services;
 
 use App\Enums\EraChange;
 use App\Support\MapTiles;
-use App\Support\MvtBytes;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Toutes les ères empilées : chaque tronçon qui a été en service à au moins une décennie, avec
@@ -39,8 +37,10 @@ class NetworkErosion
     private function computeTile(int $z, int $x, int $y): string
     {
         $open = EraChange::openStatusesSql();
-        $geom = MapTiles::displaySql('s.geom', $z);
-        $result = DB::selectOne(<<<SQL
+        $geom = MapTiles::lineGeomSql('s.geom', $z);
+        $extent = MapTiles::extent($z);
+
+        return MapTiles::query(<<<SQL
             WITH bounds AS (
                 SELECT ST_TileEnvelope(:z, :x, :y) AS env_3857,
                        ST_Transform(ST_TileEnvelope(:z, :x, :y), 4326) AS env_4326
@@ -56,20 +56,18 @@ class NetworkErosion
                 WHERE ls.geom && bounds.env_4326 AND ls.status IN ({$open})
                 GROUP BY ls.line_id, md5(ST_AsBinary(ls.geom))
             ),
-            mvt_layer AS (
+            mvt_layer AS MATERIALIZED (
                 SELECT s.first_year,
                        s.last_year,
                        l.slug AS line_slug,
                        l.name AS line_name,
                        l.code AS line_code,
-                       ST_AsMVTGeom({$geom}, bounds.env_3857, 4096, 256, true) AS geom
+                       {$geom} AS geom
                 FROM spans s
                 JOIN lines l ON l.id = s.line_id
                 CROSS JOIN bounds
             )
-            SELECT ST_AsMVT(mvt_layer.*, 'vff-stack') AS tile FROM mvt_layer WHERE geom IS NOT NULL
+            SELECT ST_AsMVT(mvt_layer.*, 'vff-stack', {$extent}) AS tile FROM mvt_layer WHERE geom IS NOT NULL
         SQL, ['z' => $z, 'x' => $x, 'y' => $y]);
-
-        return MvtBytes::from($result->tile ?? '');
     }
 }

@@ -1,7 +1,7 @@
 <script>
     import { Link } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
-    import vffLogo from '$images/vff.png';
+    import vffLogo from '$images/vff-320.webp';
 </script>
 
 <!-- Présentation de l'accueil (dessin d'origine, styles dans css/index/main/whoarewe.css). Le logo

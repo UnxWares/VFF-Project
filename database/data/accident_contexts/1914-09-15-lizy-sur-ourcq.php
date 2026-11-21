@@ -1,0 +1,132 @@
+<?php
+
+// Contexte sourcé de l'accident de Lizy-sur-Ourcq (Mary-sur-Marne) du 14-15 septembre 1914 (recherche du 21/11/2026).
+return [
+    'slug' => '1914-09-15-lizy-sur-ourcq',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1914' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1914',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Septembre 1914, Lizy-sur-Ourcq',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1914&oldid=239623136',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Cite Le Petit Journal du 17 septembre 1914 et un dossier des archives historiques de la SNCF pour le bilan de quarante morts.',
+        ],
+        'rail4402' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'association',
+            'title' => 'Lizy-sur-Ourcq : le pont de Mary-sur-Marne',
+            'publisher' => 'rail4402.fr',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://rail4402.fr/PAGES/L_53/L_53_LIZY_000.htm',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Reprend un récit du Gaulois du 17 septembre 1914 ; ne donne pas de bilan chiffré.',
+        ],
+        'lette-2014' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'association',
+            'title' => 'Schweres Eisenbahnunglück nach der Ersten Marneschlacht',
+            'publisher' => 'Eisenbahnmuseum Alter Bahnhof Lette',
+            'author' => 'D. Hörnemann',
+            'published' => '2014-04',
+            'locator' => 'p. 1-6',
+            'url' => 'https://www.bahnhof-lette.de/fileadmin/files/Monatsgeschichte_April_2014/2014-4_Eisenbahnunglueck_Marneschlacht.pdf',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article d\'un musée ferroviaire allemand, qui ne cite pas ses sources pour le bilan de 70 morts.',
+        ],
+        'archives-sncf' => [
+            'provider' => 'sites-web',
+            'kind' => 'archive',
+            'reliability' => 'official',
+            'title' => 'Archives historiques de la SNCF, dossier 0018LM0035 (p. 234-766)',
+            'publisher' => 'SNCF, archives historiques',
+            'author' => null,
+            'published' => null,
+            'locator' => 'p. 234-766',
+            'url' => 'http://www.archives-historiques.sncf.fr/pdf/0018LM0035-001.pdf',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Document cité par Wikipédia pour le bilan de quarante morts ; le serveur n\'a pas répondu, il n\'a pas pu être lu.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Pendant la première bataille de la Marne, un train de blessés circulait de nuit sur la ligne de Trilport à Bazoches. Il a été dirigé vers le pont de Mary-sur-Marne, à environ 1,4 km de Lizy-sur-Ourcq, que des combats récents avaient détruit.',
+                'en' => 'During the First Battle of the Marne, a train of wounded soldiers was running at night on the Trilport to Bazoches line. It was sent towards the bridge at Mary-sur-Marne, about 1.4 km from Lizy-sur-Ourcq, which recent fighting had destroyed.',
+                'de' => 'Während der ersten Marneschlacht fuhr ein Verwundetenzug nachts auf der Strecke von Trilport nach Bazoches. Er wurde auf die Brücke von Mary-sur-Marne geleitet, rund 1,4 km von Lizy-sur-Ourcq entfernt, die bei den jüngsten Kämpfen zerstört worden war.',
+                'sources' => ['wp-liste-1914', 'rail4402', 'lette-2014'],
+            ],
+            [
+                'fr' => 'Le musée allemand situe le départ du train à la gare de Mareuil-sur-Ourcq, à 18,7 km, et attribue l\'erreur d\'aiguillage soit à un défaut du personnel, soit à l\'ignorance de la destruction du pont. Cette hypothèse n\'est pas confirmée par une autre source.',
+                'en' => 'The German museum places the train\'s departure at Mareuil-sur-Ourcq station, 18.7 km away, and attributes the misrouting either to staff error or to ignorance of the bridge\'s destruction. No other source confirms this.',
+                'de' => 'Das deutsche Museum nennt als Ausgangspunkt des Zuges den Bahnhof Mareuil-sur-Ourcq in 18,7 km Entfernung und führt die Fehlleitung entweder auf einen Fehler des Stellwerkspersonals oder auf Unkenntnis der Brückenzerstörung zurück. Keine andere Quelle bestätigt dies.',
+                'sources' => ['lette-2014'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Dans l\'obscurité, le convoi n\'a pas pu s\'arrêter avant la coupure : la locomotive, son tender et les premières voitures sont tombés dans la rivière. Un médecin-major, des médecins militaires et des habitants ont installé les rescapés dans des maisons voisines et dans une ambulance de la Croix-Rouge ; des charpentiers ont découpé les voitures pour dégager les personnes prises dedans, puis un train de secours et des ambulances venues de Paris ont évacué les blessés.',
+                'en' => 'In the dark the train could not stop before the gap: the locomotive, its tender and the leading coaches fell into the river. An army medical officer, military doctors and local residents placed survivors in nearby houses and in a Red Cross ambulance; carpenters cut up the coaches to free those trapped, then a relief train and ambulances from Paris took the wounded away.',
+                'de' => 'In der Dunkelheit konnte der Zug nicht mehr vor der Lücke anhalten: Lokomotive, Tender und die ersten Wagen stürzten in den Fluss. Ein Stabsarzt, Militärärzte und Anwohner brachten die Überlebenden in nahe Häuser und in einen Krankenwagen des Roten Kreuzes; Zimmerleute zerlegten die Wagen, um Eingeklemmte zu befreien, danach holten ein Hilfszug und Krankenwagen aus Paris die Verwundeten ab.',
+                'sources' => ['rail4402', 'lette-2014'],
+            ],
+            [
+                'fr' => 'Selon le musée allemand, 13 des 15 voitures du train seraient tombées à l\'eau. Selon le récit repris par rail4402, ce sont la locomotive, le tender et les voitures de tête.',
+                'en' => 'According to the German museum, 13 of the train\'s 15 coaches fell into the water. According to the account reproduced by rail4402, it was the locomotive, tender and leading coaches.',
+                'de' => 'Laut dem deutschen Museum stürzten 13 der 15 Wagen des Zuges ins Wasser. Nach dem von rail4402 wiedergegebenen Bericht waren es Lokomotive, Tender und die vorderen Wagen.',
+                'sources' => ['lette-2014', 'rail4402'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les archives historiques de la SNCF font état de quarante morts, d\'après Wikipédia, alors que la presse de l\'époque n\'avait publié qu\'un bref entrefilet rassurant, dans Le Petit Journal du 17 septembre 1914. Les victimes étaient des soldats blessés à la bataille de la Marne.',
+                'en' => 'According to Wikipedia, the SNCF historical archives report forty dead, whereas the press of the day had published only a brief reassuring note, in Le Petit Journal of 17 September 1914. The victims were soldiers wounded in the Battle of the Marne.',
+                'de' => 'Laut Wikipedia nennen die historischen Archive der SNCF vierzig Tote, während die damalige Presse nur eine kurze beruhigende Notiz brachte, im Petit Journal vom 17. September 1914. Die Opfer waren in der Marneschlacht verwundete Soldaten.',
+                'sources' => ['wp-liste-1914', 'rail4402'],
+            ],
+        ],
+        'memory' => [
+            [
+                'fr' => 'Des cartes postales de l\'époque montrent la locomotive dans la rivière et le pont détruit, sous les légendes « Mary-sur-Marne » ou « Lizy-sur-Ourcq ». Une locomotive de la série 230 du Nord (numéro 3642 selon La Vie du Rail, 1976, citée par le musée allemand) serait concernée ; l\'identification reste incertaine.',
+                'en' => 'Period postcards show the locomotive in the river and the destroyed bridge, captioned either "Mary-sur-Marne" or "Lizy-sur-Ourcq". A Nord 230 series locomotive (number 3642 according to La Vie du Rail, 1976, cited by the German museum) is said to be involved; the identification remains uncertain.',
+                'de' => 'Zeitgenössische Postkarten zeigen die Lokomotive im Fluss und die zerstörte Brücke, beschriftet mit „Mary-sur-Marne“ oder „Lizy-sur-Ourcq“. Beteiligt sein soll eine Lokomotive der Baureihe 230 der Nord (Nummer 3642 laut La Vie du Rail, 1976, zitiert vom deutschen Museum); die Zuordnung bleibt unsicher.',
+                'sources' => ['lette-2014', 'rail4402'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le bilan diffère : quarante morts d\'après les archives de la SNCF citées par Wikipédia, environ 70 morts sur 700 personnes d\'après le musée allemand, qui ne cite pas de source. La fiche de la base retient 40.',
+                'en' => 'The toll differs: forty dead according to the SNCF archives cited by Wikipedia, about 70 dead out of 700 people according to the German museum, which cites no source. The database record uses 40.',
+                'de' => 'Die Opferzahl weicht ab: vierzig Tote laut den von Wikipedia zitierten SNCF-Archiven, etwa 70 Tote unter 700 Personen laut dem deutschen Museum, das keine Quelle nennt. Der Datensatz verwendet 40.',
+                'sources' => ['wp-liste-1914', 'lette-2014'],
+            ],
+            [
+                'fr' => 'La date et l\'heure varient aussi : vers minuit et demi dans la nuit du 14 au 15 septembre 1914 d\'après le récit du Gaulois repris par rail4402, vers 23 h 45 le 14 septembre d\'après le musée allemand, et le 15 septembre d\'après la liste de Wikipédia.',
+                'en' => 'The date and time also vary: around half past midnight in the night of 14 to 15 September 1914 according to the Le Gaulois account reproduced by rail4402, around 11.45 pm on 14 September according to the German museum, and 15 September according to the Wikipedia list.',
+                'de' => 'Auch Datum und Uhrzeit weichen ab: gegen 0.30 Uhr in der Nacht vom 14. auf den 15. September 1914 laut dem von rail4402 wiedergegebenen Bericht des Gaulois, gegen 23.45 Uhr am 14. September laut dem deutschen Museum und der 15. September laut der Wikipedia-Liste.',
+                'sources' => ['rail4402', 'lette-2014', 'wp-liste-1914'],
+            ],
+            [
+                'fr' => 'Des légendes britanniques de l\'époque attribuaient la destruction du pont aux Allemands en retraite ; le musée allemand indique que le pont avait été détruit par les Français pour retarder l\'avance allemande, et qu\'il s\'agissait d\'une erreur d\'aiguillage et non d\'un acte délibéré contre le train.',
+                'en' => 'British accounts of the time blamed the Germans in retreat for destroying the bridge; the German museum states that the bridge had been destroyed by the French to slow the German advance, and that the cause was a misrouting rather than a deliberate act against the train.',
+                'de' => 'Britische Darstellungen der Zeit machten die zurückweichenden Deutschen für die Zerstörung der Brücke verantwortlich; das deutsche Museum gibt an, die Brücke sei von den Franzosen zerstört worden, um den deutschen Vormarsch zu verzögern, und es habe sich um eine Fehlleitung gehandelt, nicht um eine gezielte Tat gegen den Zug.',
+                'sources' => ['lette-2014'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

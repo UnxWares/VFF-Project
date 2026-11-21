@@ -60,6 +60,9 @@ final class MaterialPeriodExtractor
     private const DOUBTFUL = '/\b(?:'.WikipediaMaterialSections::DOUBT_WORDS.'|'.WikipediaMaterialSections::UNCERTAIN_WORDS
         .'|destiné\w*|command\w*|livr(?:é|ée|és|ées|aison\w*)|construit\w*|exceptionnel\w*|spécial\w*|étudi\w*)\b/iu';
 
+    /** Intervalle en tête de phrase : « De 1999 à 2015, », « Entre 1950 et 1972, ». */
+    private const FRAMING_RANGE = '/^\W*(?:de|entre)\s+(?:\p{L}+\s+){0,2}?\d{4}\s+(?:à|au|et)\s+(?:\p{L}+\s+){0,2}?\d{4}\s*,/iu';
+
     /** Chiffres de trafic : la date porte sur la fréquentation, pas sur le matériel. */
     private const STATISTIC = '/%|\bfréquentation\b|\bvoyageurs\s+par\b|\bproportion\b|\b\d+\s+trains\b/iu';
 
@@ -157,7 +160,12 @@ final class MaterialPeriodExtractor
         [$from, $to, $verbPos] = $reading;
         $replacement = $this->replacement($clause);
         $distinct = count(array_unique(array_column($dates, 'date')));
-        $low = $distinct > 2 || ($distinct === 2 && ($from === null || $to === null))
+        // Phrase ouverte par l'intervalle qu'elle date (« De 1999 à 2015, le matériel utilisé est constitué de
+        // X 72500…, complété par quatre rames acquises fin 2007 ») : une date de plus, dans l'intervalle, dit autre
+        // chose (un achat) sans rendre la période ambiguë.
+        $framed = $from !== null && $to !== null && preg_match(self::FRAMING_RANGE, $clause) === 1
+            && array_filter($dates, fn (array $d): bool => $d['date'] < $from['date'] || $d['date'] > $to['date']) === [];
+        $low = ($distinct > 2 && ! $framed) || ($distinct === 2 && ($from === null || $to === null))
             || $ambiguous || preg_match(self::STATISTIC, $clause) === 1
             || ($replacement !== null && $from !== null && $to !== null)
             || array_filter([$from, $to], fn (?array $d): bool => $d !== null && ($d['approximate'] || $d['other_action'])) !== [];

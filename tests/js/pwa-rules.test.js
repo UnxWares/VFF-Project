@@ -40,6 +40,10 @@ describe('classify', () => {
         expect(classify(get('/icons/icon-192.png'), ORIGIN)).toBe('static');
     });
 
+    it('garde « cache d abord » le dictionnaire de l interface (adresse à empreinte)', () => {
+        expect(classify(get('/i18n/fr/0123456789ab.json'), ORIGIN)).toBe('static');
+    });
+
     it('traite une navigation HTML en « réseau d abord » avec repli hors ligne', () => {
         const page = get('/lines/paris-lyon', { mode: 'navigate', destination: 'document' });
         expect(classify(page, ORIGIN)).toBe('navigation');

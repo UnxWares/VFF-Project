@@ -103,7 +103,7 @@ return [
 
     'suspension' => [
         'title' => 'Suspension and deletion of an account',
-        'paragraph' => 'In the event of a breach of the terms of use, UnxWares may suspend or delete an account, after a warning except in urgent cases or serious breaches. The decision is reasoned and can be challenged at <a href="mailto:contact@vff-project.org">contact@vff-project.org</a>.',
+        'paragraph' => 'In the event of a breach of the terms of use, UnxWares may suspend or delete an account, after a warning except in urgent cases or serious breaches. The decision is reasoned and can be challenged at <a href="mailto:contact@vff-project.org">contact@vff-project.org</a>. UnxWares replies to the challenge within 15 days of receiving it.',
     ],
 
     'changes' => [

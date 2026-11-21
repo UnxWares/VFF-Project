@@ -10,7 +10,15 @@ import {
     readPageFromHtml,
 } from './offlineCopy.js';
 import {
+    BASEMAP_MAX_AGE_MS,
+    IMAGE_MAX_AGE_MS,
     MAP_DATA_MAX_AGE_MS,
+    MAX_BASEMAP_BYTES,
+    MAX_BASEMAP_ENTRIES,
+    MAX_BASEMAP_ENTRY_BYTES,
+    MAX_IMAGE_BYTES,
+    MAX_IMAGE_ENTRIES,
+    MAX_IMAGE_ENTRY_BYTES,
     MAX_MAP_DATA_ENTRIES,
     MAX_PAGE_ENTRIES,
     MAX_STATIC_ENTRIES,
@@ -19,15 +27,21 @@ import {
     OFFLINE_KEY,
     PAGE_MAX_AGE_MS,
     SAVED_AT_HEADER,
+    SIZE_HEADER,
     TILE_MAX_AGE_MS,
+    allowsImageCopy,
+    basemapCacheKey,
     hasStorageRoom,
     isCacheable,
     isExpired,
     isOfflinePageRequest,
+    isStorableBasemapRange,
+    isStorableImage,
     isStorableMapData,
     isStorablePage,
     isStorableTile,
     pageCacheKey,
+    parseByteRange,
     shouldHardVisitOnFailure,
 } from './rules.js';
 
@@ -39,6 +53,11 @@ import {
  * @property {string} [pagesCache] cache des pages
  * @property {string} [tilesCache] cache des tuiles
  * @property {string} [mapDataCache] cache des données GeoJSON de la carte
+ * @property {string} [imagesCache] cache des images des fiches
+ * @property {string} [basemapCache] cache des morceaux du fond de carte libre
+ * @property {string} [origin] origine du site
+ * @property {() => Promise<string | null | undefined>} [clientUrl] adresse de la page qui fait la requête
+ * @property {number} [sizeCheckEvery] contrôle du plafond en octets toutes les N copies (10 par défaut)
  * @property {(p: Promise<unknown>) => void} waitUntil
  * @property {() => number} [now]
  * @property {() => Promise<{usage?: number, quota?: number} | undefined>} [estimate]
@@ -51,6 +70,41 @@ export async function trimCache(cache, max = MAX_STATIC_ENTRIES) {
     await Promise.all(
         keys.slice(0, Math.max(0, keys.length - max)).map((key) => cache.delete(key)),
     );
+}
+
+/**
+ * Tient le plafond en octets d'un cache : garde les copies les plus récentes tant que leur taille cumulée
+ * (en-tête X-VFF-Size, posé au rangement) reste sous `maxBytes`, supprime les autres. Une copie sans taille
+ * lisible part aussi.
+ */
+export async function trimCacheBytes(cache, maxBytes) {
+    const keys = await cache.keys();
+    let total = 0;
+    for (const key of [...keys].reverse()) {
+        const copy = await cache.match(key);
+        const size = Number(copy?.headers.get(SIZE_HEADER) ?? Number.NaN);
+        if (Number.isFinite(size) && size >= 0 && total + size <= maxBytes) {
+            total += size;
+        } else {
+            await cache.delete(key);
+        }
+    }
+}
+
+/**
+ * Compte des copies rangées depuis le dernier contrôle de taille, par stockage de caches puis par cache.
+ * Relire toutes les tailles à chaque tuile serait trop lourd : le contrôle a lieu toutes les N copies, et
+ * le plafond peut être dépassé d'au plus N copies entre deux contrôles.
+ * @type {WeakMap<object, Map<string, number>>}
+ */
+const putsSinceSizeCheck = new WeakMap();
+
+function sizeCheckDue(caches, cacheName, every) {
+    let counts = putsSinceSizeCheck.get(caches);
+    if (!counts) putsSinceSizeCheck.set(caches, (counts = new Map()));
+    const count = (counts.get(cacheName) ?? 0) + 1;
+    counts.set(cacheName, count >= every ? 0 : count);
+    return count >= every;
 }
 
 /** Supprime les copies trop anciennes d'un cache (à l'activation du service worker). */
@@ -68,26 +122,39 @@ export async function pruneExpired(cache, maxAge, now) {
  * Range une copie datée, en arrière-plan, si le quota le permet ; puis applique le plafond. Une erreur
  * (quota dépassé, cache indisponible) ne touche jamais la réponse déjà rendue à la page.
  *
+ * Plafond : un nombre d'entrées, ou `{ max, maxBytes, maxEntryBytes, status }` : plafond en octets du cache
+ * (taille de chaque copie dans X-VFF-Size), taille au-delà de laquelle une réponse n'est pas gardée, et
+ * statut de la copie (la Cache API refuse les réponses partielles 206 : elles sont rangées en 200).
+ *
  * @param {Deps} deps
  * @param {string} cacheName
  * @param {string} key
  * @param {Response} response copie (clone) de la réponse du réseau
- * @param {number} max
+ * @param {number | {max: number, maxBytes?: number, maxEntryBytes?: number, status?: number}} limits
  */
-function remember({ caches, waitUntil, now = Date.now, estimate }, cacheName, key, response, max) {
+function remember(deps, cacheName, key, response, limits) {
+    const { caches, waitUntil, now = Date.now, estimate, sizeCheckEvery = 10 } = deps;
+    const { max, maxBytes, maxEntryBytes, status } =
+        typeof limits === 'number' ? { max: limits } : limits;
     waitUntil(
         (async () => {
             if (!hasStorageRoom(await estimate?.())) return;
+            const body = await response.arrayBuffer();
+            if (maxEntryBytes !== undefined && body.byteLength > maxEntryBytes) return;
             const headers = new Headers(response.headers);
             headers.set(SAVED_AT_HEADER, new Date(now()).toISOString());
-            const copy = new Response(await response.arrayBuffer(), {
-                status: response.status,
-                statusText: response.statusText,
+            headers.set(SIZE_HEADER, String(body.byteLength));
+            const copy = new Response(body, {
+                status: status ?? response.status,
+                statusText: status ? '' : response.statusText,
                 headers,
             });
             const cache = await caches.open(cacheName);
             await cache.put(key, copy);
             await trimCache(cache, max);
+            if (maxBytes !== undefined && sizeCheckDue(caches, cacheName, sizeCheckEvery)) {
+                await trimCacheBytes(cache, maxBytes);
+            }
         })().catch(() => {}),
     );
 }
@@ -358,4 +425,87 @@ export function mapData(request, deps) {
         max: MAX_MAP_DATA_ENTRIES,
         maxAge: MAP_DATA_MAX_AGE_MS,
     });
+}
+
+/**
+ * Image d'une fiche (vignette de Commons, média publié par VFF) : « réseau d'abord », et une copie gardée
+ * pour la relire sans réseau, seulement si la page qui l'affiche est publique (jamais une page de compte,
+ * de contribution ni de validation). Une vignette de Commons est demandée en CORS (Commons l'autorise) :
+ * une réponse « opaque » compterait plusieurs Mo dans le quota du navigateur, quelle que soit sa taille.
+ *
+ * @param {Request} request
+ * @param {Deps} deps
+ */
+export async function image(request, deps) {
+    const { caches, fetch, imagesCache, origin, clientUrl, now = Date.now } = deps;
+    if (!imagesCache || !origin || !allowsImageCopy(await clientUrl?.(), origin)) {
+        return fetch(request);
+    }
+
+    const corsInstead = new URL(request.url).origin !== origin && request.mode === 'no-cors';
+    try {
+        const response = await fetch(
+            corsInstead ? new Request(request.url, { mode: 'cors', credentials: 'omit' }) : request,
+        );
+        if (isStorableImage(response)) {
+            remember(deps, imagesCache, request.url, response.clone(), {
+                max: MAX_IMAGE_ENTRIES,
+                maxBytes: MAX_IMAGE_BYTES,
+                maxEntryBytes: MAX_IMAGE_ENTRY_BYTES,
+            });
+        }
+        return response;
+    } catch (error) {
+        const copy = await readCopy(
+            await caches.open(imagesCache),
+            request.url,
+            now(),
+            IMAGE_MAX_AGE_MS,
+        );
+        if (copy) return copy;
+        // Serveur qui refuserait le CORS : l'image comme sans service worker (rien n'est gardé).
+        if (corsInstead) return fetch(request);
+        throw error;
+    }
+}
+
+/**
+ * Morceau du fond de carte libre (plage d'octets de l'archive PMTiles) : « réseau d'abord ». Chaque plage
+ * reçue est gardée sous sa propre clé (basemapCacheKey) ; sans réseau, la même plage, déjà lue, est rendue
+ * en réponse partielle 206 avec ses en-têtes d'origine (Content-Range, ETag), comme le serveur l'aurait
+ * fait. Le lecteur PMTiles demande toujours les mêmes plages pour une même tuile : la carte retrouve son
+ * fond sur les zones déjà vues, et seulement celles-là.
+ *
+ * @param {Request} request
+ * @param {Deps} deps
+ */
+export async function basemap(request, deps) {
+    const { caches, fetch, basemapCache, now = Date.now } = deps;
+    const range = parseByteRange(request.headers.get('Range'));
+    if (!basemapCache || !range) return fetch(request);
+
+    const key = basemapCacheKey(request.url, range);
+    try {
+        const response = await fetch(request);
+        if (isStorableBasemapRange(response)) {
+            remember(deps, basemapCache, key, response.clone(), {
+                max: MAX_BASEMAP_ENTRIES,
+                maxBytes: MAX_BASEMAP_BYTES,
+                maxEntryBytes: MAX_BASEMAP_ENTRY_BYTES,
+                status: 200,
+            });
+        }
+        return response;
+    } catch (error) {
+        const copy = await readCopy(
+            await caches.open(basemapCache),
+            key,
+            now(),
+            BASEMAP_MAX_AGE_MS,
+        );
+        if (!copy) throw error;
+        const headers = new Headers(copy.headers);
+        headers.set('Cache-Control', 'no-store');
+        return new Response(await copy.arrayBuffer(), { status: 206, headers });
+    }
 }

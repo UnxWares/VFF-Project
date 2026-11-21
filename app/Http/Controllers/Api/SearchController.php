@@ -29,12 +29,13 @@ class SearchController extends Controller
      * la casse et aux accents (« saint-etienne » trouve « Saint-Étienne »).
      * Moins de 2 caractères : listes vides. Les `slug` renvoyés servent
      * d'identifiants dans les autres endpoints (`/lines/{line}/…`, `from` et
-     * `to` de l'itinéraire).
+     * `to` de l'itinéraire). Le surnom d'une rame remarquable (« Patrick », « TGV Patrick ») trouve sa série,
+     * placée en tête avec `notable_unit` (numéro et surnom de la rame) ; `notable_unit` est nul sinon.
      *
      * @response array{
      *     lines: array<array{type: 'line', slug: string, name: string, code: ?string}>,
      *     stations: array<array{type: 'station', slug: string, name: string, city: ?string, department_code: ?string, lat: float, lng: float}>,
-     *     materials: array<array{type: 'material', slug: string, name: string, kind: string, builder: ?string}>,
+     *     materials: array<array{type: 'material', slug: string, name: string, kind: string, builder: ?string, notable_unit: ?array{number: string, nickname: ?string}}>,
      *     accidents: array<array{type: 'accident', slug: string, name: string, names: array{fr: string, en: string, de: string}, date: string, date_precision: 'day'|'month'|'year', kind: string, commune: ?string, department_code: ?string, lat: ?float, lng: ?float}>
      * }
      */

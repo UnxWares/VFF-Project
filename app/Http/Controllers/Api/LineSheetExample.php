@@ -249,6 +249,9 @@ final class LineSheetExample
                     'in_service_from' => 1951,
                     'in_service_to' => 1989,
                     'periods' => [],
+                    'relations' => [],
+                    'image' => null,
+                    'end' => ['kind' => 'series_withdrawn', 'year' => 1989, 'source' => 'wikidata', 'source_url' => 'https://www.wikidata.org/wiki/Q567809#P730'],
                 ],
             ],
             'sources' => [

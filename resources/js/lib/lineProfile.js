@@ -1,7 +1,7 @@
 // Calculs du graphique « Profil en long » de la fiche ligne (LineProfile.svelte) : graduations,
 // tracé SVG coupé aux trous et aux lacunes du parcours, point le plus proche du pointeur,
-// déclivité locale et choix des gares nommées sans chevauchement. Données : App\Services\Profiles\LineProfiles (points
-// [distance_m, altitude_m|null] dans l'ordre du parcours).
+// déclivité locale, gare la plus proche et choix des gares nommées sans chevauchement. Données :
+// App\Services\Profiles\LineProfiles (points [distance_m, altitude_m|null, pk_m|null] dans l'ordre du parcours).
 
 /** Fenêtre de la déclivité locale, comme la déclivité maximale calculée côté serveur. */
 export const GRADE_WINDOW_M = 1000;
@@ -40,7 +40,7 @@ export function ticks(min, max, count) {
 /**
  * Bornes de l'axe des altitudes : altitudes extrêmes élargies au pas rond, avec au moins
  * 40 m d'amplitude (une ligne de plaine n'est pas dessinée comme une montagne).
- * @param {Array<[number, number|null]>} points
+ * @param {Array<[number, number|null, ...unknown[]]>} points
  * @param {number} [count]
  * @returns {[number, number]}
  */
@@ -75,9 +75,9 @@ export function crossesGap(gaps, a, b) {
 /**
  * Séries continues de la courbe : coupées là où l'altitude manque (trou, hors de France) et
  * là où une lacune du parcours sépare deux points voisins.
- * @param {Array<[number, number|null]>} points
+ * @param {Array<[number, number|null, ...unknown[]]>} points
  * @param {Array<{ from_m: number, to_m: number }>} gaps
- * @returns {Array<Array<[number, number]>>}
+ * @returns {Array<Array<[number, number, ...unknown[]]>>}
  */
 export function runs(points, gaps = []) {
     const out = [];
@@ -97,7 +97,7 @@ export function runs(points, gaps = []) {
 
 /**
  * Tracé SVG de la courbe, coupé aux trous et aux lacunes : un nouveau `M` repart après chacun.
- * @param {Array<[number, number|null]>} points
+ * @param {Array<[number, number|null, ...unknown[]]>} points
  * @param {(d: number) => number} x
  * @param {(z: number) => number} y
  * @param {Array<{ from_m: number, to_m: number }>} [gaps]
@@ -115,7 +115,7 @@ export function linePath(points, x, y, gaps = []) {
 /**
  * Surface sous la courbe jusqu'à la ligne de base, une forme fermée par série continue (une
  * série d'un seul point n'en a pas).
- * @param {Array<[number, number|null]>} points
+ * @param {Array<[number, number|null, ...unknown[]]>} points
  * @param {(d: number) => number} x
  * @param {(z: number) => number} y
  * @param {number} baseY ordonnée de la ligne de base, en pixels
@@ -135,7 +135,7 @@ export function areaPath(points, x, y, baseY, gaps = []) {
 
 /**
  * Indice du point le plus proche d'une distance (recherche dichotomique, points triés).
- * @param {Array<[number, number|null]>} points
+ * @param {Array<[number, number|null, ...unknown[]]>} points
  * @param {number} d
  */
 export function nearestIndex(points, d) {
@@ -155,7 +155,7 @@ export function nearestIndex(points, d) {
  * points d'une fenêtre de 1 km centrée (même méthode que la déclivité maximale du serveur).
  * Positive quand la ligne monte dans le sens du parcours. Null s'il manque une altitude dans
  * la fenêtre, si une lacune du parcours la traverse ou s'il y a moins de trois points.
- * @param {Array<[number, number|null]>} points
+ * @param {Array<[number, number|null, ...unknown[]]>} points
  * @param {number} d
  * @param {Array<{ from_m: number, to_m: number }>} [gaps]
  * @param {number} [window]
@@ -179,22 +179,34 @@ export function gradeAt(points, d, gaps = [], window = GRADE_WINDOW_M) {
 
 /**
  * Gares dont le nom tient sur le graphique sans en chevaucher un autre : les deux extrémités
- * d'abord, puis les autres dans l'ordre du parcours. Chaque nom occupe une boîte de la largeur
+ * d'abord, puis les gares principales (`principal`, par défaut toutes), puis les autres, chaque
+ * groupe dans l'ordre du parcours. Chaque nom occupe une boîte de la largeur
  * donnée par `labelWidth`, centrée sur la gare, ou alignée sur elle (`start`, `end`) près des
  * bords du graphique ; une boîte doit rester à `gap` pixels des boîtes déjà posées. Les autres
  * gares restent marquées d'un point, et toutes sont dans le tableau.
  * @template {{ distance_m: number, name: string }} S
  * @param {S[]} stations triées par distance
  * @param {(d: number) => number} x
- * @param {{ left: number, right: number, labelWidth: (name: string) => number, gap?: number }} frame
+ * @param {{ left: number, right: number, labelWidth: (name: string) => number, gap?: number,
+ *   principal?: (s: S) => boolean }} frame
  * @returns {Map<S, 'start'|'middle'|'end'>} gares nommées et alignement de leur nom
  */
-export function labelledStations(stations, x, { left, right, labelWidth, gap = 12 }) {
+export function labelledStations(
+    stations,
+    x,
+    { left, right, labelWidth, gap = 12, principal = () => true },
+) {
     const kept = new Map();
     const boxes = [];
+    const middle = stations.slice(1, -1);
     const order =
         stations.length > 1
-            ? [stations[0], stations[stations.length - 1], ...stations.slice(1, -1)]
+            ? [
+                  stations[0],
+                  stations[stations.length - 1],
+                  ...middle.filter((s) => principal(s)),
+                  ...middle.filter((s) => !principal(s)),
+              ]
             : stations;
     for (const s of order) {
         const px = x(s.distance_m);
@@ -208,4 +220,26 @@ export function labelledStations(stations, x, { left, right, labelWidth, gap = 1
         }
     }
     return kept;
+}
+
+/**
+ * Gare la plus proche d'une abscisse en pixels, à `reach` pixels au plus ; null sinon.
+ * @template {{ distance_m: number }} S
+ * @param {S[]} stations
+ * @param {(d: number) => number} x
+ * @param {number} px
+ * @param {number} [reach]
+ * @returns {S|null}
+ */
+export function nearestStation(stations, x, px, reach = 8) {
+    let best = null;
+    let bestGap = reach;
+    for (const s of stations) {
+        const gap = Math.abs(x(s.distance_m) - px);
+        if (gap <= bestGap) {
+            best = s;
+            bestGap = gap;
+        }
+    }
+    return best;
 }

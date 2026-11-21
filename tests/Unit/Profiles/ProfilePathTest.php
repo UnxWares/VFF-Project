@@ -65,4 +65,15 @@ class ProfilePathTest extends TestCase
         $this->assertEqualsWithDelta($path->length() - 300, $back->gaps[0][0], 1e-6);
         $this->assertEqualsWithDelta($path->length() - 100, $back->gaps[0][1], 1e-6);
     }
+
+    public function test_imposed_jump_lengths_survive_reversal(): void
+    {
+        // Saut imposé de 500 m vers le troisième sommet, au lieu des 11,1 km à vol d'oiseau.
+        $path = new ProfilePath([[2.0, 45.0], [2.0, 45.01], [2.0, 45.11], [2.0, 45.12]], [], [2 => 500.0]);
+
+        $this->assertEqualsWithDelta(1_112 + 500 + 1_112, $path->length(), 2);
+        $reversed = $path->reversed();
+        $this->assertEqualsWithDelta($path->length(), $reversed->length(), 0.01);
+        $this->assertEqualsWithDelta(1_112 + 500, $reversed->cumulative[2], 2);
+    }
 }

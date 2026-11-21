@@ -59,12 +59,17 @@ class SourceRightsReport extends Command
         'line_materials' => 'SELECT DISTINCT source AS v FROM line_materials WHERE source IS NOT NULL',
         'line_material_periods' => 'SELECT DISTINCT source AS v FROM line_material_periods',
         'accident_sources' => 'SELECT DISTINCT provider AS v FROM accident_sources',
+        'accident_references' => 'SELECT DISTINCT provider AS v FROM accident_references',
+        'accident_images' => "SELECT DISTINCT 'commons' AS v FROM accident_images",
         'line_profiles' => 'SELECT DISTINCT source AS v FROM line_profiles',
+        'line_profile_points' => 'SELECT DISTINCT source AS v FROM line_profile_points WHERE source IS NOT NULL',
         'line_greenways' => 'SELECT DISTINCT source AS v FROM line_greenways',
         'sncf_level_crossings' => "SELECT DISTINCT 'sncf' AS v FROM sncf_level_crossings",
         'line_signalling' => "SELECT DISTINCT 'sncf' AS v FROM line_signalling",
         'line_signalling_events' => 'SELECT DISTINCT source AS v FROM line_signalling_events',
         'line_archive_documents' => 'SELECT DISTINCT source AS v FROM line_archive_documents',
+        'station_audits' => "SELECT DISTINCT p->>'source' AS v FROM station_audits, jsonb_array_elements(positions) AS p",
+        'station_date_candidates' => 'SELECT DISTINCT source AS v FROM station_date_candidates',
     ];
 
     public function handle(): int

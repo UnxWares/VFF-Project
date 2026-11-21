@@ -27,6 +27,12 @@ final class ProfileStats
      */
     public const MAX_PLAUSIBLE_GRADE = 0.12;
 
+    /**
+     * Pente au-delà de laquelle un pas touchant un point en tunnel ou interpolé est un artefact
+     * (70 ‰ : plus que toute ligne française en tunnel ; 60 ‰ au plus sur la ligne de Cerdagne).
+     */
+    public const MAX_TUNNEL_STEP_GRADE = 0.07;
+
     /** Demi-largeur (en points) de la fenêtre de la médiane locale. */
     private const SPIKE_HALF_WINDOW = 5;
 
@@ -251,16 +257,22 @@ final class ProfileStats
      * chaque lacune) et déclivité la plus forte sur GRADE_WINDOW_M (ou sur toute la longueur pour
      * un parcours plus court), en ‰ : un mètre de dénivelé sur un kilomètre fait 1 ‰.
      *
+     * La déclivité n'est publiée que pour une fenêtre mesurée sur la voie (décision du 21/11/2026 :
+     * pas de valeur plutôt qu'une valeur fausse) : au moins les trois quarts des points pris dans la
+     * BD TOPO, au plus un quart en tunnel (altitude reconstituée, fausse près des têtes) et au plus
+     * un quart interpolés, et la moitié au moins des points de la ligne mesurés sur la voie ; jamais à travers une lacune ; jamais au-delà de MAX_PLAUSIBLE_GRADE.
+     * Sans fenêtre admise, `max_grade_permil` et ses bornes sont nuls et `max_grade_withheld` dit
+     * pourquoi : `terrain_only` (altitude du terrain seulement), `tunnel` ou `interpolated`.
+     *
      * @param  list<array{0: float, 1: float|null}>  $points
      * @param  list<array{0: float, 1: float}>  $gaps  lacunes [début, fin] : aucune fenêtre ne les traverse
-     * @param  list<bool>  $interpolated  points à l'altitude interpolée (un drapeau par point) : une
-     *                                    fenêtre dont plus du quart des points le sont n'entre pas dans la déclivité maximale
-     *                                    (dans un tunnel, la pente réelle est inconnue, et un tracé simplifié d'une boucle
-     *                                    hélicoïdale la ferait paraître bien plus forte)
+     * @param  list<array{track: bool, tunnel: bool, interpolated: bool}>  $flags  un par point : altitude
+     *                                                                             de la voie (BD TOPO), en tunnel, interpolée. Sans drapeaux, tous les points comptent comme mesurés sur la voie.
      * @return array{min_altitude_m: float, max_altitude_m: float, ascent_m: float, descent_m: float,
-     *     max_grade_permil: float, max_grade_from_m: int, max_grade_to_m: int, max_grade_direction: string}|null
+     *     max_grade_permil: float|null, max_grade_from_m: int|null, max_grade_to_m: int|null,
+     *     max_grade_direction: string|null, max_grade_withheld: string|null}|null
      */
-    public static function summarize(array $points, array $gaps = [], array $interpolated = []): ?array
+    public static function summarize(array $points, array $gaps = [], array $flags = []): ?array
     {
         $valid = array_values(array_filter($points, fn (array $p): bool => $p[1] !== null));
         if (count($valid) < 2) {
@@ -269,17 +281,19 @@ final class ProfileStats
         $zs = array_column($valid, 1);
 
         [$ascent, $descent] = self::climbs($points, $gaps);
-        $grade = self::maxGrade($points, $gaps, $interpolated);
+        $grade = self::maxGrade($points, $gaps, $flags);
+        $found = $grade['withheld'] === null;
 
         return [
             'min_altitude_m' => round(min($zs), 1),
             'max_altitude_m' => round(max($zs), 1),
             'ascent_m' => round($ascent),
             'descent_m' => round($descent),
-            'max_grade_permil' => round(abs($grade['permil']), 1),
-            'max_grade_from_m' => (int) round($grade['from']),
-            'max_grade_to_m' => (int) round($grade['to']),
-            'max_grade_direction' => $grade['permil'] >= 0 ? 'up' : 'down',
+            'max_grade_permil' => $found ? round(abs($grade['permil']), 1) : null,
+            'max_grade_from_m' => $found ? (int) round($grade['from']) : null,
+            'max_grade_to_m' => $found ? (int) round($grade['to']) : null,
+            'max_grade_direction' => $found ? ($grade['permil'] >= 0 ? 'up' : 'down') : null,
+            'max_grade_withheld' => $grade['withheld'],
         ];
     }
 
@@ -324,45 +338,114 @@ final class ProfileStats
      * points de la fenêtre (et non l'écart entre ses deux bouts, trop sensible au bruit de
      * quelques mètres des altitudes). Signe positif pour une rampe dans le sens du parcours,
      * négatif pour une pente. Une fenêtre qui traverse une lacune ou un point sans altitude, qui
-     * compte moins de trois points ou qui finit avant la fin du parcours, est ignorée.
+     * compte moins de trois points ou qui finit avant la fin du parcours, est ignorée ; une fenêtre
+     * qui ne remplit pas les conditions de summarize() aussi. Sans fenêtre admise, `withheld` donne
+     * le motif qui a écarté le plus de fenêtres complètes (à égalité : terrain, tunnel, interpolé).
      *
      * @param  list<array{0: float, 1: float|null}>  $points
      * @param  list<array{0: float, 1: float}>  $gaps
-     * @param  list<bool>  $interpolated
-     * @return array{permil: float, from: float, to: float}
+     * @param  list<array{track: bool, tunnel: bool, interpolated: bool}>  $flags
+     * @return array{permil: float, from: float, to: float, withheld: string|null}
      */
-    private static function maxGrade(array $points, array $gaps, array $interpolated): array
+    private static function maxGrade(array $points, array $gaps, array $flags): array
     {
         $n = count($points);
         $first = $points[0][0];
         $window = min(self::GRADE_WINDOW_M, $points[$n - 1][0] - $first);
-        $best = ['permil' => 0.0, 'from' => $first, 'to' => $first + $window];
-        if ($window <= 0) {
+        $best = null;
+        $refused = ['terrain_only' => 0, 'tunnel' => 0, 'interpolated' => 0];
+        if ($window > 0) {
+            for ($i = 0; $i < $n; $i++) {
+                $end = $points[$i][0] + $window;
+                $slice = [];
+                $doubtful = [];
+                $count = ['track' => 0, 'tunnel' => 0, 'interpolated' => 0];
+                for ($j = $i; $j < $n && $points[$j][0] <= $end + 0.01; $j++) {
+                    $slice[] = $points[$j];
+                    $f = $flags[$j] ?? ['track' => true, 'tunnel' => false, 'interpolated' => false];
+                    $doubtful[] = $f['tunnel'] || $f['interpolated'];
+                    foreach ($count as $k => $v) {
+                        $count[$k] = $v + ($f[$k] ? 1 : 0);
+                    }
+                }
+                // Fenêtre complète : son dernier point à moins d'un quart de fenêtre de la fin (pas de
+                // 150 m : le dernier point tombe à 900 m).
+                if ($points[$j - 1][0] - $points[$i][0] < 0.75 * $window || self::crossesGap($gaps, $points[$i][0], $end)) {
+                    continue;
+                }
+                $size = count($slice);
+                $reason = match (true) {
+                    $size * 3 > $count['track'] * 4 => 'terrain_only',
+                    $size < $count['tunnel'] * 4 => 'tunnel',
+                    $size < $count['interpolated'] * 4 => 'interpolated',
+                    self::hasImplausibleStep($slice, $doubtful) => 'interpolated',
+                    default => null,
+                };
+                if ($reason !== null) {
+                    $refused[$reason]++;
+
+                    continue;
+                }
+                $permil = self::slope($slice);
+                // Au-delà de MAX_PLAUSIBLE_GRADE (120 ‰, plus que toute ligne à adhérence française),
+                // la pente vient d'un artefact (voie d'un autre niveau) : la fenêtre est écartée.
+                if ($permil !== null && abs($permil) <= self::MAX_PLAUSIBLE_GRADE * 1000 && ($best === null || abs($permil) > abs($best['permil']))) {
+                    $best = ['permil' => $permil, 'from' => $points[$i][0], 'to' => $points[$j - 1][0], 'withheld' => null];
+                }
+            }
+        }
+        // Ligne mesurée sur la voie pour moins de la moitié de ses points (ligne déposée dont seul un
+        // bout de gare reste dans la BD TOPO) : la plus forte fenêtre admise ne dirait rien de la
+        // ligne (0,4 ‰ sur 1 km en gare de Bordeaux pour Bordeaux - La Sauvetat-du-Dropt, 98 km).
+        if ($best !== null && $flags !== []) {
+            $known = array_filter($flags, fn (array $f, int $k): bool => $points[$k][1] !== null, ARRAY_FILTER_USE_BOTH);
+            $track = count(array_filter($known, fn (array $f): bool => $f['track']));
+            if ($track * 2 < count($known)) {
+                return ['permil' => 0.0, 'from' => $first, 'to' => $first, 'withheld' => 'terrain_only'];
+            }
+        }
+        if ($best !== null) {
             return $best;
         }
-        for ($i = 0; $i < $n; $i++) {
-            $end = $points[$i][0] + $window;
-            $slice = [];
-            $guessed = 0;
-            for ($j = $i; $j < $n && $points[$j][0] <= $end + 0.01; $j++) {
-                $slice[] = $points[$j];
-                $guessed += ($interpolated[$j] ?? false) ? 1 : 0;
-            }
-            if ($guessed * 4 > count($slice)) {
+        arsort($refused);
+        $reason = max($refused) > 0 ? (string) array_key_first($refused) : 'terrain_only';
+        // Aucune fenêtre complète : parcours trop court ou tout en morceaux ; motif d'après l'ensemble.
+        if (max($refused) === 0 && $flags !== []) {
+            $track = count(array_filter($flags, fn (array $f): bool => $f['track']));
+            $reason = $track * 4 < count($flags) * 3 ? 'terrain_only' : 'interpolated';
+        }
+
+        return ['permil' => 0.0, 'from' => $first, 'to' => $first, 'withheld' => ($flags === [] && max($refused) === 0) ? null : $reason];
+    }
+
+    /**
+     * Vrai si deux points voisins de la fenêtre sont séparés par une pente de plus de
+     * MAX_PLAUSIBLE_GRADE (aucune voie à adhérence ne fait cela sur 100 à 250 m), ou de plus de
+     * MAX_TUNNEL_STEP_GRADE quand l'un des deux est en tunnel ou interpolé : à la tête d'un tunnel,
+     * l'altitude reconstituée par l'IGN peut sauter de 20 m (sortie sud du tunnel de la LGV
+     * Sud-Est près de 45,23 N, `rfn-752000` : 86 ‰ sur 250 m, puis 33 ‰ sur la voie). Cas vus le
+     * 21/11/2026 : tunnels hélicoïdaux de Pau - Canfranc (`rfn-664000`, près de 42,85 N) et de
+     * Portet - Puigcerda (`rfn-672000`, près de 42,61 N), dont le tracé simplifié coupe la boucle :
+     * l'altitude interpolée y monte de 29 m tous les 100 m, et la fenêtre donnait 112 à 119 ‰ pour
+     * des rampes réelles de 40 à 43 ‰, mesurées juste avant et juste après.
+     *
+     * @param  list<array{0: float, 1: float|null}>  $slice
+     * @param  list<bool>  $doubtful  un drapeau par point : en tunnel ou interpolé
+     */
+    private static function hasImplausibleStep(array $slice, array $doubtful = []): bool
+    {
+        for ($k = 1, $n = count($slice); $k < $n; $k++) {
+            $run = $slice[$k][0] - $slice[$k - 1][0];
+            if ($run <= 0 || $slice[$k][1] === null || $slice[$k - 1][1] === null) {
                 continue;
             }
-            // Fenêtre complète : son dernier point à moins d'un quart de fenêtre de la fin (pas de
-            // 150 m : le dernier point tombe à 900 m).
-            if ($points[$j - 1][0] - $points[$i][0] < 0.75 * $window || self::crossesGap($gaps, $points[$i][0], $end)) {
-                continue;
-            }
-            $permil = self::slope($slice);
-            if ($permil !== null && abs($permil) > abs($best['permil'])) {
-                $best = ['permil' => $permil, 'from' => $points[$i][0], 'to' => $points[$j - 1][0]];
+            $limit = ($doubtful[$k] ?? false) || ($doubtful[$k - 1] ?? false) ? self::MAX_TUNNEL_STEP_GRADE : self::MAX_PLAUSIBLE_GRADE;
+            if (abs($slice[$k][1] - $slice[$k - 1][1]) / $run > $limit) {
+                return true;
             }
         }
 
-        return $best;
+        return false;
     }
 
     /**

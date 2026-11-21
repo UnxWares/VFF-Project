@@ -108,14 +108,18 @@ class GeoExporter
         $drawRank = TrackPriority::drawRankSql($lgv, 'l', 'ls');
         $parts = TrackPriority::partsJoinSql('ls');
         // Tracés simplifiés à la tolérance d'affichage du zoom à partir du zoom 10 (MapTiles), puis découpés dans la tuile.
-        $geom = MapTiles::displaySql('part.g', $z);
-        $result = DB::selectOne(<<<SQL
+        $geom = MapTiles::lineGeomSql('part.g', $z);
+        $extent = MapTiles::extent($z);
+
+        // MATERIALIZED : sans lui, PostgreSQL recopie ST_AsMVTGeom dans le filtre `geom IS NOT NULL` et
+        // découpe chaque tracé deux fois (10 % du temps de la tuile du zoom 4).
+        return MapTiles::query(<<<SQL
             WITH bounds AS (
                 SELECT
                     ST_TileEnvelope(:z, :x, :y) AS env_3857,
                     ST_Transform(ST_TileEnvelope(:z, :x, :y), 4326) AS env_4326
             ),
-            mvt_layer AS (
+            mvt_layer AS MATERIALIZED (
                 SELECT
                     ls.id,
                     ls.line_id,
@@ -159,13 +163,7 @@ class GeoExporter
                     -- partie recouverte par une ligne plus active (non dessinée).
                     {$drawRank} AS draw_rank,
                     part.covered,
-                    ST_AsMVTGeom(
-                        {$geom},
-                        bounds.env_3857,
-                        4096,
-                        256,
-                        true
-                    ) AS geom
+                    {$geom} AS geom
                 FROM line_segments ls
                 INNER JOIN lines l ON l.id = ls.line_id
                 CROSS JOIN bounds
@@ -173,7 +171,7 @@ class GeoExporter
                 WHERE ls.era_id = :era_id
                   AND ls.geom && bounds.env_4326
             )
-            SELECT ST_AsMVT(mvt_layer.*, 'vff-lines') AS tile FROM mvt_layer
+            SELECT ST_AsMVT(mvt_layer.*, 'vff-lines', {$extent}) AS tile FROM mvt_layer
             WHERE geom IS NOT NULL
         SQL, [
             'era_id' => $era->id,
@@ -181,16 +179,6 @@ class GeoExporter
             'x' => $x,
             'y' => $y,
         ]);
-
-        $tile = $result?->tile ?? '';
-
-        // PostgreSQL bytea peut être retourné comme resource (stream) ou string
-        // selon la config du driver. On normalise en string binaire.
-        if (is_resource($tile)) {
-            $tile = stream_get_contents($tile) ?: '';
-        }
-
-        return $tile;
     }
 
     /**
