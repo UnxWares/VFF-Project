@@ -1,9 +1,10 @@
-# Audit de chaque gare : plan (à lancer plus tard)
+# Audit de chaque gare : méthode et état
 
 Demande de Baptiste du 21/11/2026 : pour chaque gare, trouver ou estimer les données d'ouverture, de fermeture et de
 service (voyageurs, fret), et vérifier parfaitement son placement. Même calendrier que l'audit des tronçons
 (`docs/AUDIT-TRONCONS.md`) : après la remise à zéro du quota de la semaine et après la géométrie propre, les deux
-audits se renforçant (une gare bien placée sert à caler les PK d'un tronçon, et l'inverse).
+audits se renforçant (une gare bien placée sert à caler les PK d'un tronçon, et l'inverse). La passe automatique est écrite, réglée et passée
+sur `vff` ; l'état des mesures est en fin de document.
 
 ## Point de départ (21/11/2026)
 
@@ -87,3 +88,28 @@ Tirés du second contrôle à la main de 100 gares (`storage/app/reports/agents/
   la règle de rang proposée est dans `SourceRank`.
 - Relecture : `/validate/audit/stations` (administrateurs), export CSV. Lecture publique :
   `GET /api/v1/stations/{station}/audit`, champ GraphQL `Station.audit`, clé `audit` de l'outil MCP `get_station`.
+
+## État des mesures (21/11/2026, fin d'après-midi)
+
+- Première passe sur les 9 389 gares : placement « d'accord » 31 %, « proche » 14 %, « isolé » 51 %, « en désaccord »
+  4 % (342 gares) ; ouvertures sourcées 35 %, estimées 59 %, inconnues 5 % ; 3 750 dates de Wikidata comparées pour
+  3 097 gares, sans rien remplacer. Après les réglages `2026-11-21.2` : 217 gares en désaccord.
+- Contrôles à la main sur orthophotos : nuit, 50 gares sur 50 justes pour « d'accord » et « proche », mais 15 justes,
+  5 douteuses et 5 fausses sur 25 « en désaccord » ; après-midi, « agree » juste 10 fois sur 10, « close » 7 sur 10,
+  « isolated » 9 sur 10, et 13 alertes fondées sur 20 « disagree » (65 %, contre 36 % et 40 % avant les réglages),
+  ouvertures « sourced » justes à l'année 21 fois sur 22.
+- Fins des voyageurs : 552 gares passaient de « voyageurs » à « fret seul » sur la frise sans date.
+  `vff:import-station-passenger-ends` lit la fin des voyageurs explicite de l'infobox Wikipédia de la gare (342 dates),
+  `vff:build-station-eras` la lit au prochain calcul ; pour 80 gares que Wikidata fermait à la fin des voyageurs alors
+  que le fret a continué, la fin du fret (infobox, article de la ligne, lignes-oubliées) est posée dans
+  `database/data/gares_corrections.php` (207 ères « fret seul » de plus attendues). Les 38 gares restantes, sans date de
+  fin du fret trouvée, gardent la fermeture de Wikidata.
+- Règles du moteur corrigées d'après le contrôle de cohérence entre gares et lignes :
+  - `vff:build-station-eras` : une gare rouverte n'est fermée avant sa réouverture que si toutes ses lignes l'étaient
+    (Orléans et Bellegarde ne sont plus fermées par une ligne voisine) ;
+  - `vff:consolidate-stations` : un objet OHM d'un autre réseau (chemin de fer départemental, tramway, exploitant
+    secondaire) n'est plus rattaché par son nom à la gare SNCF homonyme, et une fin OHM ne ferme pas une gare que la SNCF
+    dit ouverte aux voyageurs (Sens, Montereau, Nogent-sur-Seine, Morez, Lavaur, Maubeuge, Lourches).
+- Corrections sourcées des contrôles (`database/data/gares_corrections.php`, section 8) : 27 gares (3 exclusions, dates, fins des voyageurs ou du fret, 6 positions). Elles sont lues au prochain calcul des
+  gares, avec les règles ci-dessus : `vff:consolidate-stations` puis `vff:stations-pipeline --from-attach --from-cache`.
+- Commandes et options : [COMMANDES.md](COMMANDES.md).

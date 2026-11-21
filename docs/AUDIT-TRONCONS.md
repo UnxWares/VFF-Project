@@ -1,9 +1,10 @@
-# Audit de chaque tronçon : plan (à lancer plus tard)
+# Audit de chaque tronçon : méthode et état
 
 Demande de Baptiste du 21/11/2026 : vérifier chaque tronçon de VFF, son classement (ouvert, fret seul, fermé,
 déposé…), son placement, son exactitude et son tracé. Ce document fixe la méthode ; le travail se fera par vagues
 d'agents, après la remise à zéro du quota de la semaine et après l'application du chantier « géométrie propre »
-(raccords, allers-retours, trous, voies OSM non rattachées).
+(raccords, allers-retours, trous, voies OSM non rattachées). La passe automatique est écrite et réglée
+(section « Passe automatique »), l'état des mesures est en fin de document.
 
 ## Ce qu'il y a à vérifier
 
@@ -97,9 +98,13 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
       celle d'une autre ligne) est noté à part :
       - raison `on_other_line_track` quand une voie rattachée à sa propre ligne suit au moins la moitié des points
         entre 8 et 60 m ; la médiane donnée est l'écart à cette voie propre. `poor` pour un tronçon fermé ou
-        déposé (voie-mère ou embranchement recalé sur la ligne voisine : Vitrolles, Saint-Amand, Kerpont), `fair`
-        pour un tronçon en service à l'ère courante (surtout de courts morceaux dans les faisceaux de gare et les
-        voies parallèles, où le rattachement des voies voisines est moins sûr) ;
+        déposé (voie-mère ou embranchement recalé sur la ligne voisine : Vitrolles, Saint-Amand, Kerpont), et à toute
+        ère passée ; `good` pour un tronçon en service à l'ère courante, avec la raison affichée (règle T1d, règles
+        `.7`). Les règles `.4` à `.6` le notaient `fair`, mais le troisième contrôle à la main n'y a trouvé que 4
+        alertes fondées sur 12 : les 8 autres sont des doubles voies dont chaque voie est rattachée à une ligne
+        différente dans la BD TOPO ou OSM (pont de Toulouse). Les alertes fondées restent repérables par la raison.
+        Ce « sûr » ne recale pas le tracé : la note de tracé ne compte pas une voie d'une autre ligne comme la
+        sienne (`recalibrated` exclu) ;
       - sinon `good`, raison `shared_track` : tronc commun, voie de la ligne elle-même à moins de 8 m (même dans la
         source du tracé : la voie de l'autre ligne qui le confirme est alors un rattachement douteux), ou
         embranchement posé sur la voie de la ligne dont il part sans voie propre connue (la note d'avant les réglages, signalée pour la relecture). Une première version
@@ -132,3 +137,24 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
     juste sur 13 aux ères passées) train touristique muet avant son début (R1), fin des voyageurs seule qui n'est pas
     une fermeture (R3), référence BD TOPO lointaine d'un tracé OSM de la ligne (R4). L'élargissement de la
     continuité (R2) n'est pas appliqué : voir `storage/app/reports/agents/aprem-2111/audit-eres-passees.md`.
+
+## État des mesures (21/11/2026, fin d'après-midi)
+
+- Passe de la nuit sur `vff` : 381 731 tronçons sur 21 ères, 19 201 synthèses de ligne. En 2030, 81,6 % des kilomètres
+  sont « sûrs » sur les quatre notes ; la ligne 405000 est sûre de bout en bout. Après les réglages `.4` du matin :
+  83,4 %. Les règles `.5` et `.6` ne sont pas encore passées sur `vff`.
+- Trois contrôles à la main, chacun suivi d'un réglage des règles (rapports `matin-2111/controle-main.md`,
+  `aprem-2111/controle-main-3.md`) :
+  1. nuit, 100 tronçons : 93 % des classements « sûr » justes ;
+  2. matinée, 100 tronçons et 100 gares : réglages `.4`, gares en désaccord 342 puis 217 ;
+  3. après-midi, 60 tronçons de 2030 aux nœuds, 40 des ères passées, 50 gares : « sûr » juste à 93 % (classement),
+     98 % (exactitude) et 91 % (tracé) en 2030 ; le placement reste le point faible (« sûr » juste 30 fois sur 34).
+     Aux ères passées, « sûr » juste à 90 %, et aucune des 13 alertes de classement et de placement jugées n'était
+     fondée, d'où les règles `.6` (R1, R3, R4).
+- Réglage proposé et pas encore appliqué : T1d, garder la note d'un tronçon en service posé sur la voie d'une autre
+  ligne avec sa raison au lieu de « à revoir » (4 sur 12 seulement étaient justes), T1b et T1c pour les voies propres
+  non rattachées, et R2 (continuité élargie aux ères passées).
+- Tests : couverture de `SegmentAuditor` de 91 à 99,5 %, mutation de `AuditGrader` de 92 à 97 % et de
+  `DateComparison` de 66 à 84 %.
+- À lancer sur `vff` quand le moteur sera rejoué : `vff:audit-segments --era=2030` (6 minutes environ), puis les ères
+  passées (plus d'une heure, en `--shard=i/4`).
