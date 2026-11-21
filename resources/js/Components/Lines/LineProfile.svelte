@@ -214,7 +214,8 @@
             </p>
         {/if}
 
-        <figure class="chart">
+        <!-- Nom de la figure : le titre de la section, pas la légende (figcaption) qui ne liste que les motifs. -->
+        <figure class="chart" aria-labelledby="profile-title">
             <div class="plot" bind:clientWidth={width}>
                 {#if width > 0}
                     <svg

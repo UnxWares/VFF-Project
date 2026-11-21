@@ -12,6 +12,7 @@
     import { reportDate } from '$lib/errorReport.js';
     import { formatDistance, formatPk, latestRequest } from '$lib/graphAdmin.js';
     import { i18n } from '$lib/i18n.js';
+    import { formatNumber } from '$lib/typo.js';
     import {
         BASE_URL,
         DATE_GRADE_TONES,
@@ -52,9 +53,9 @@
      */
     const t = (key, opts) => String($i18n.t(key, opts));
     const A = (key, opts) => t(`audit_stations.${key}`, opts);
-    const num = (n) => (n == null ? '' : Number(n).toLocaleString(lang));
+    const num = (n) => (n == null ? '' : formatNumber(n, lang));
     const dist = (m) => formatDistance(m, lang) || A('queue.no_value');
-    const pct = (v) => v.toLocaleString(lang, { style: 'percent', maximumFractionDigits: 1 });
+    const pct = (v) => formatNumber(v, lang, { style: 'percent', maximumFractionDigits: 1 });
     const date = (iso, precision) => auditDate(iso, precision, t, lang);
     const sourceName = (s) => A(`sources.${s}`, { defaultValue: s ?? '' });
     const dateSourceName = (s) => t(`stations.sources.names.${s}`, { defaultValue: s ?? '' });

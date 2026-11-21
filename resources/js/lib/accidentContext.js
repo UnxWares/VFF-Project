@@ -26,3 +26,20 @@ export function correctionValue(field, value, lang = 'fr') {
     if (field === 'occurred_at_time') return timeText(String(value), lang);
     return formatNumber(Number(value), lang);
 }
+
+/**
+ * Langue du titre d'un document de la liste « Documents et archives » (RGAA 8.7) : pour un article
+ * d'encyclopédie, celle de l'édition de Wikipédia d'après l'adresse (`en.wikipedia.org` : anglais) ; sinon
+ * le français, langue de presque tous les documents cités (un ouvrage peut renvoyer à la bibliographie d'un
+ * article en anglais sans être en anglais). Un champ `lang` du document, s'il existe un jour, l'emporte.
+ *
+ * @param {{ lang?: string|null, kind?: string|null, url?: string|null }} ref
+ * @returns {string}
+ */
+export function referenceLang(ref) {
+    if (ref?.lang) return ref.lang;
+    if (ref?.kind !== 'encyclopedia') return 'fr';
+    const match = /^https?:\/\/([a-z]{2,3})\.(?:m\.)?wikipedia\.org\//i.exec(ref?.url ?? '');
+
+    return match ? match[1].toLowerCase() : 'fr';
+}
