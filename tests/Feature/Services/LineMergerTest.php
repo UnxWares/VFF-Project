@@ -150,6 +150,7 @@ class LineMergerTest extends TestCase
         $this->assertSame(['events_moved' => 4, 'events_dropped' => 2], $r);
         $this->assertDatabaseMissing('line_events', ['id' => $dupWp]);
         $this->assertDatabaseMissing('line_events', ['id' => $dup]);
+        /** @var \stdClass $e */
         $e = DB::table('line_events')->find($newWp);
         $this->assertSame([$into->id, 'unresolved', 'Portion non précisée'], [$e->line_id, $e->section_resolution, $e->section_resolution_note]);
         $this->assertSame($this->merger->wikipediaFingerprint($into->id, $e), $e->fingerprint);

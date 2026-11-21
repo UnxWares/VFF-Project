@@ -37,7 +37,7 @@ class NamingAndTrafficCommandsTest extends TestCase
         ]);
     }
 
-    /** @return array<string, array{string, string|null}> code => [nom, provenance] */
+    /** @return array<int|string, array{string, string|null}> code => [nom, provenance] */
     private function names(): array
     {
         return DB::table('lines')->orderBy('code')->get(['code', 'name', 'alt_names'])

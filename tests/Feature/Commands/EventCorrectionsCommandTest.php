@@ -108,6 +108,7 @@ class EventCorrectionsCommandTest extends TestCase
         $this->assertSame('closure_passenger', DB::table('line_events')->where('id', $closure)->value('type'));
 
         $this->artisan('vff:apply-event-corrections')->expectsOutputToContain('neutralisé (1)')->assertSuccessful();
+        /** @var \stdClass $event */
         $event = DB::table('line_events')->find($closure);
         $this->assertSame('other', $event->type);
         $this->assertSame('Réduction de la desserte voyageurs (correction sourcée : fin du service omnibus, trains d’été maintenus)', $event->description);
@@ -129,6 +130,7 @@ class EventCorrectionsCommandTest extends TestCase
         $this->useDataFile('line_event_corrections.php', [$correction]);
 
         $this->artisan('vff:apply-event-corrections')->expectsOutputToContain('déplacé (1)')->assertSuccessful();
+        /** @var \stdClass $event */
         $event = DB::table('line_events')->find($id);
         $this->assertSame(['Calais', 'Marquise', 280_000, 296_000, 'pending', null],
             [$event->section_from, $event->section_to, $event->section_pk_start_m, $event->section_pk_end_m, $event->section_resolution, $event->section_length_m]);

@@ -24,7 +24,7 @@ class CanonicalizeStationSlugs extends Command
         $dry = (bool) $this->option('dry-run');
 
         // Ensemble des slugs déjà utilisés (gares non-osm + futurs canoniques).
-        $used = DB::table('stations')->where('slug', 'not like', 'osm-%')->pluck('slug')->flip();
+        $used = DB::table('stations')->where('slug', 'not like', 'osm-%')->pluck('slug')->flip()->map(fn (): bool => true);
 
         $stations = DB::table('stations')->where('slug', 'like', 'osm-%')
             ->orderBy('id')->get(['id', 'name', 'slug', 'department_code']);

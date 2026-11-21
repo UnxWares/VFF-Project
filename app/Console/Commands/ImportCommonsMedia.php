@@ -691,6 +691,9 @@ class ImportCommonsMedia extends Command
 
     /**
      * @param  array{qids: list<string>, cats: list<string>, images: list<string>}|null  $entry
+     *
+     * @param-out array{qids: list<string>, cats: list<string>, images: list<string>}  $entry
+     *
      * @param  array<string, mixed>  $r
      */
     private function addWikidata(?array &$entry, array $r): void

@@ -155,6 +155,7 @@ class WikipediaCommandsTest extends TestCase
             ->expectsOutputToContain('✓ 1 lignes enrichies, 0 non trouvées (2 événements repérés')
             ->assertSuccessful();
 
+        /** @var \stdClass $row */
         $row = DB::table('lines')->find($line->id);
         $this->assertSame(['Ligne de Montsecret à Vassy', 12_000, 1435, 1, 70, 1886], [$row->wikipedia_title, $row->length_official_m, $row->gauge_mm_default, $row->nb_voies_default, $row->max_speed_kmh_official, $row->concession_year]);
         $this->assertSame(['Normandie'], json_decode($row->regions, true));

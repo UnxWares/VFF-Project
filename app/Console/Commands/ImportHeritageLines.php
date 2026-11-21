@@ -481,7 +481,7 @@ class ImportHeritageLines extends Command
         $this->line(sprintf('    %d articles, %d items Wikidata', count($this->articles), count($this->entities)));
     }
 
-    /** @var array<string, true> titres d'articles de lignes VFF */
+    /** @var array<int|string, int> titres d'articles de lignes VFF (clé = titre) */
     private array $lineTitlesAvailable = [];
 
     /** @var array<string, ?string> items Wikidata hors catalogue (QID → article) */

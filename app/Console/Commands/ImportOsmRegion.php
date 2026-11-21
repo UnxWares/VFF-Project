@@ -42,10 +42,10 @@ class ImportOsmRegion extends Command
             return self::FAILURE;
         }
 
-        $count = count($payload['elements'] ?? []);
+        $count = count($payload['elements']);
         $this->line("→ {$count} éléments reçus.");
 
-        $created = $importer->persist($payload['elements'] ?? [], $era, $skipWithoutRef, $strictExisting);
+        $created = $importer->persist($payload['elements'], $era, $skipWithoutRef, $strictExisting);
 
         $this->info("✓ {$created} tronçons créés.");
 

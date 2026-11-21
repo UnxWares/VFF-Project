@@ -255,7 +255,7 @@ class ImportGtfsVoyageurs extends Command
             $cols = count($header);
 
             while (($row = fgetcsv($h, 0, ',', '"', '\\')) !== false) {
-                if ($row === [null] || $row === false) {
+                if ($row === [null]) {
                     continue;
                 }
                 $assoc = [];

@@ -93,6 +93,7 @@ class ModelsTest extends TestCase
             'era_id' => $this->currentEra->id, 'from_date' => '1985-01-01', 'to_date' => '2010-12-31', 'notes' => 'Banlieue Ouest',
         ]);
 
+        /** @var object{era_id: int, notes: string, from_date: mixed, created_at: mixed} $pivot */
         $pivot = $this->line->materials()->first()->pivot;
         $this->assertSame($this->currentEra->id, (int) $pivot->era_id);
         $this->assertSame('Banlieue Ouest', $pivot->notes);
@@ -209,6 +210,7 @@ class ModelsTest extends TestCase
 
         $station->lines()->attach($this->line->id, ['method' => 'pk', 'pk_m' => 0, 'pk_source' => 'sncf', 'distance_m' => 3,
             'first_year' => 1837, 'last_year' => null, 'years_source' => 'wikipedia']);
+        /** @var object{method: string, first_year: mixed, distance_m: mixed, updated_at: mixed} $pivot */
         $pivot = $station->lines()->first()->pivot;
         $this->assertSame('pk', $pivot->method);
         $this->assertSame(1837, (int) $pivot->first_year);

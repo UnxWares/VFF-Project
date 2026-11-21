@@ -148,7 +148,7 @@ class StationWitnessesTest extends TestCase
 
             // Fiche gare.
             $page = $this->get('/stations/'.$station->slug)->assertOk()->viewData('page')['props'];
-            $sheet = collect($page['eras'])->mapWithKeys(fn ($e) => [$e['year'] => $e['status']])->all();
+            $sheet = collect((array) $page['eras'])->mapWithKeys(fn ($e) => [$e['year'] => $e['status']])->all();
             if ($page['station']['closed_at'] !== $closedAt) {
                 $errors[] = "{$name} : fiche gare {$page['station']['closed_at']} ≠ {$closedAt}";
             }

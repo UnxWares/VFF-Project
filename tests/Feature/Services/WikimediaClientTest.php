@@ -31,7 +31,7 @@ class WikimediaClientTest extends TestCase
         $this->wiki = new WikimediaClient;
     }
 
-    /** @param  array<string, mixed>  $page */
+    /** @return array<string, mixed> */
     private static function page(string $title, int $revid, string $content): array
     {
         return ['title' => $title, 'revisions' => [['revid' => $revid, 'slots' => ['main' => ['content' => $content]]]]];

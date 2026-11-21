@@ -60,7 +60,9 @@ class EraGeoContractTest extends TestCase
                 'note' => $status === 'tourist' ? 'Train touristique' : null, 'created_at' => now(), 'updated_at' => now()]);
         }
 
-        $features = collect($this->getJson('/api/v1/eras/2030/stations.geojson')->assertOk()->json('features'))
+        /** @var list<array<string, mixed>> $rawFeatures */
+        $rawFeatures = $this->getJson('/api/v1/eras/2030/stations.geojson')->assertOk()->json('features');
+        $features = collect($rawFeatures)
             ->keyBy('properties.slug');
 
         // Ère calculée : seules les gares de station_eras (pas Saint-Lazare ni Versailles).
@@ -89,7 +91,9 @@ class EraGeoContractTest extends TestCase
     {
         Station::factory()->create(['slug' => 'gare-fermee', 'status' => 'declassified', 'geom' => Point::makeGeodetic(47.0, 1.0)]);
 
-        $slugs = collect($this->getJson('/api/v1/eras/2030/stations.geojson')->json('features'))->pluck('properties.slug')->sort()->values()->all();
+        /** @var list<array<string, mixed>> $rawFeatures */
+        $rawFeatures = $this->getJson('/api/v1/eras/2030/stations.geojson')->json('features');
+        $slugs = collect($rawFeatures)->pluck('properties.slug')->sort()->values()->all();
 
         $this->assertSame(['paris-saint-lazare', 'versailles-rive-droite'], $slugs);
     }

@@ -37,7 +37,7 @@ class StationSourcesCommandTest extends TestCase
         File::put($path, json_encode($data, JSON_UNESCAPED_UNICODE));
     }
 
-    /** @return array<string, array<string, mixed>> */
+    /** @return array<int|string, array<string, mixed>> */
     private function sources(string $source): array
     {
         return DB::table('station_sources')->where('source', $source)->orderBy('source_ref')->get()

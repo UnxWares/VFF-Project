@@ -166,9 +166,6 @@ class ImportSecondaryNetworkDates extends Command
     /** Titres retenus (doivent parler d'une ligne ou d'un réseau). */
     private const INCLUDE_TITLES = '/\b(chemins? de fer|tramways?|ligne|lignes|réseau|voies? ferrées?|compagnie|société|régie|CFD|CEN|VFD|VFDM|SE\b|tacot|train|transcorrézien|PO-Corrèze|petit anjou|raccordement|embranchement|voie-mère|électrique|meusien|argonnenbahn)/iu';
 
-    /** Lieu de la fiche « sur » le tracé (m). */
-    private const ON_LINE_M = 3500;
-
     /** Extrémité du tracé « à » un lieu de la fiche (m). */
     private const END_M = 4000;
 

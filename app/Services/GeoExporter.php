@@ -186,18 +186,6 @@ class GeoExporter
      *
      * @return array{type: 'FeatureCollection', features: array<int, array<string, mixed>>}
      */
-    /**
-     * Pour les ères non-courantes, on n'affiche QUE les gares ayant un
-     * `station_eras` explicite à cette ère (INNER JOIN). Pour l'ère
-     * courante (2030), on affiche toutes les gares actives (LEFT JOIN).
-     */
-    private function stationEraJoin(bool $strict): string
-    {
-        return $strict
-            ? 'INNER JOIN station_eras se ON se.station_id = s.id AND se.era_id = :era_id'
-            : 'LEFT JOIN station_eras se ON se.station_id = s.id AND se.era_id = :era_id';
-    }
-
     public function stationsAsGeoJson(int $eraYear): array
     {
         // Présence et statut par décennie = `station_eras`, matérialisé par

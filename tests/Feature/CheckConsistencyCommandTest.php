@@ -80,7 +80,9 @@ class CheckConsistencyCommandTest extends TestCase
             ->expectsOutputToContain('stations.open_on_closed_lines')
             ->assertFailed();
 
-        $findings = collect(json_decode(file_get_contents($json), true)['findings'])->keyBy('key');
+        /** @var array{findings: list<array<string, mixed>>} $report */
+        $report = json_decode(file_get_contents($json), true);
+        $findings = collect($report['findings'])->keyBy('key');
 
         // R2 : gare « fret » de la ligne fermée (ère 2030 seulement), signalée aussi via le drapeau SNCF.
         $this->assertSame(1, $findings['stations.open_on_closed_lines']['count']);
@@ -128,7 +130,7 @@ class CheckConsistencyCommandTest extends TestCase
         $this->assertSame(5, DB::table('line_events')->where('line_id', $this->lines['B']->id)->count());
 
         // La carte montre la gare de la ligne fermée comme fermée (gris), la gare de la ligne fret en fret seul (bleu).
-        $geo = collect(app(GeoExporter::class)->stationsAsGeoJson(2030)['features'])->keyBy(fn ($f) => $f['properties']['name']);
+        $geo = collect(app(GeoExporter::class)->stationsAsGeoJson(2030)['features'])->keyBy(fn (array $f): string => $f['properties']['name']);
         $this->assertNotContains($geo['Gare Charlie']['properties']['status'] ?? 'declassified', ConsistencyChecker::OPEN_STATIONS);
         $this->assertSame('no_commercial', $geo['Gare Echo']['properties']['status']);
 
@@ -252,7 +254,7 @@ class CheckConsistencyCommandTest extends TestCase
 
         // Jauge km : 4 lignes en service de 7,3 km en 1960, très loin des ~38 000 km historiques.
         $gauge = $findings['completeness.network_km'];
-        $row1960 = collect($gauge['table'])->firstWhere('era', 1960);
+        $row1960 = collect((array) $gauge['table'])->firstWhere('era', 1960);
         $this->assertEqualsWithDelta(29, $row1960['principal'], 1);
         $this->assertContains(1960, array_keys($gauge['by_era']));
     }
@@ -312,7 +314,7 @@ class CheckConsistencyCommandTest extends TestCase
         ]);
     }
 
-    /** @param  array<string, string>  $statusByEra */
+    /** @param  array<int|string, string>  $statusByEra ère (année) => statut */
     private function station(string $name, float $lat, array $statusByEra, ?string $uic = null): Station
     {
         $current = $statusByEra[(string) $this->current->year];

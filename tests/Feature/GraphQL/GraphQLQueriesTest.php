@@ -314,7 +314,7 @@ class GraphQLQueriesTest extends TestCase
 
         $this->graphQL('query ($s: String!) { line(slug: $s) { events { type event_date } } }', ['s' => $this->line->slug])
             ->assertGraphQLErrorFree()
-            ->assertJsonPath('data.line.events.*.type', fn ($types) => collect($types)->sort()->values()->all() === ['opening', 'transfer']);
+            ->assertJsonPath('data.line.events.*.type', fn (array $types) => collect($types)->sort()->values()->all() === ['opening', 'transfer']);
     }
 
     public function test_get_requests_and_introspection_work(): void
@@ -346,7 +346,7 @@ class GraphQLQueriesTest extends TestCase
         // Profondeur comptée sous la racine : 2 × 7 = 14, sous la limite ; 2 × 8 = 16, refusé avant toute
         // requête SQL. Ces listes imbriquées dépassent aussi la limite de complexité (QueryLimitsTest) :
         // seule l'erreur de profondeur est regardée ici.
-        $depthErrors = fn (int $pairs) => collect($this->graphQL($nested($pairs))->json('errors'))
+        $depthErrors = fn (int $pairs) => collect((array) $this->graphQL($nested($pairs))->json('errors'))
             ->where('extensions.code', 'query_too_deep')->values();
 
         $this->assertCount(0, $depthErrors(7));

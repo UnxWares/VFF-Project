@@ -331,7 +331,9 @@ class StationErasTest extends TestCase
                 ->etc()
             );
 
-        $features = collect($this->getJson('/api/v1/eras/2030/stations.geojson')->assertOk()->json('features'));
+        /** @var list<array<string, mixed>> $rawFeatures */
+        $rawFeatures = $this->getJson('/api/v1/eras/2030/stations.geojson')->assertOk()->json('features');
+        $features = collect($rawFeatures);
         $this->assertSame('closed', $features->firstWhere('properties.name', 'Gare fermée')['properties']['service']);
         $this->assertSame('passenger', $features->firstWhere('properties.name', 'Gare ouverte')['properties']['service']);
     }

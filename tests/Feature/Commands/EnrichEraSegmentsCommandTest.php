@@ -78,9 +78,9 @@ class EnrichEraSegmentsCommandTest extends TestCase
     }
 
     /** @param  array<string, mixed>  $properties */
-    private function trace(string $source, string $ref, string $wkt, array $properties, string $layer = 'rail', ?string $name = null, ?int $lineId = null): void
+    private function trace(string $source, string $ref, string $wkt, array $properties, string $layer = 'rail', ?string $name = null, ?int $lineId = null): bool
     {
-        DB::insert('INSERT INTO source_traces (source, source_ref, layer, name, line_id, properties, length_m, seen_at, geom)
+        return DB::insert('INSERT INTO source_traces (source, source_ref, layer, name, line_id, properties, length_m, seen_at, geom)
             VALUES (?, ?, ?, ?, ?, ?::jsonb, 1000, now(), ST_Multi(ST_GeomFromText(?, 4326)))',
             [$source, $ref, $layer, $name, $lineId, json_encode($properties), $wkt]);
     }
