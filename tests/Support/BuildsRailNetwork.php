@@ -80,6 +80,8 @@ trait BuildsRailNetwork
             'type' => StationType::Gare->value,
             'geom' => Point::makeGeodetic(48.8763, 2.3253),
             'city' => 'Paris',
+            // Département fixé : la fabrique le tire au hasard, un filtre par département échouerait une fois sur cinquante.
+            'department_code' => '75',
             'opened_at' => '1837-08-26',
             'closed_at' => null,
             'status' => 'active',
@@ -90,6 +92,7 @@ trait BuildsRailNetwork
             'type' => StationType::Gare->value,
             'geom' => Point::makeGeodetic(48.8091, 2.1347),
             'city' => 'Versailles',
+            'department_code' => '78',
             'opened_at' => '1839-08-02',
             'closed_at' => null,
             'status' => 'active',
