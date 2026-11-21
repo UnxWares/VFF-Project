@@ -147,7 +147,7 @@
     // carte est sous la ligne de flottaison et ses tâches longues ne bloquent plus l'ouverture. Le tracé,
     // simple lecture réseau, part tout de suite.
     let destroyed = false;
-    /** @type {{ cancel: () => void } | null} */
+    /** @type {ReturnType<typeof whenNear> | null} */
     let near = null;
 
     onMount(async () => {
