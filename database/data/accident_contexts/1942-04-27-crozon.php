@@ -66,8 +66,8 @@ return [
         'circumstances' => [
             [
                 'fr' => 'L\'accident s\'est produit sur la ligne de Carhaix à Camaret-sur-Mer : une locomotive haut-le-pied et un train de marchandises se sont tamponnés entre les gares de Crozon et de Tal-ar-Groas.',
-                'en' => 'The accident took place on the line from Carhaix to Camaret-sur-Mer: a light locomotive and a goods train collided between Crozon and Tal-ar-Groas stations.',
-                'de' => 'Der Unfall ereignete sich auf der Strecke von Carhaix nach Camaret-sur-Mer: Eine Leerfahrt-Lokomotive und ein Güterzug stießen zwischen den Bahnhöfen Crozon und Tal-ar-Groas zusammen.',
+                'en' => 'The accident took place on the line from Carhaix to Camaret-sur-Mer: a light engine and a goods train collided between Crozon and Tal-ar-Groas stations.',
+                'de' => 'Der Unfall ereignete sich auf der Strecke von Carhaix nach Camaret-sur-Mer: Eine allein fahrende Lokomotive und ein Güterzug stießen zwischen den Bahnhöfen Crozon und Tal-ar-Groas zusammen.',
                 'sources' => ['wp-crozon', 'wp-liste-1940'],
             ],
         ],

@@ -108,7 +108,7 @@
 
 <!-- Cadre défilant focalisable : le tableau reste lisible au clavier sur téléphone (WCAG 2.1.1). -->
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-<div class="table-wrap" role="region" aria-labelledby="decades-title" tabindex="0">
+<div class="table-wrap" role="group" aria-labelledby="decades-title" tabindex="0">
     <table class="decades">
         <thead>
             <tr>
@@ -206,6 +206,9 @@
         position: relative;
         max-width: 100%;
         overflow-x: auto;
+        /* La première colonne reste collée à gauche : sans cette marge, le défilement vers un lien
+           focalisé le laisse sous elle (WCAG 2.4.11). */
+        scroll-padding-inline-start: 8rem;
         border-top: 1px solid var(--vff-border-strong);
     }
     table {

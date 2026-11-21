@@ -20,6 +20,7 @@ sur `/docs/api.json` : elle est calculée à chaque requête, rien à régénér
 - Pagination : par curseur (`cursor`, `next_cursor`) pour les annuaires, les événements, les médias et le matériel ;
   par page (`page`) pour les accidents et les passages à niveau ; par `limit` et `offset` pour l'audit des tronçons
   (50 par défaut, 200 au plus, la même règle dans les trois interfaces : `App\Services\SegmentAudit\AuditPage`).
+  Les listes d'audit du réseau (`App\Services\SegmentAudit\NetworkAudits`) suivent la même règle et rendent `total`, `limit`, `offset`, `items`. Coût GraphQL des pages d'audit : sous-champs multipliés par `limit`.
 - Un message de soutien d'une ligne (`lines.advocacy`, encarts de l'accueil) n'est publié par aucune interface :
   c'est une position éditoriale du site, pas une donnée (test `AdvocacyNotPublishedTest`).
 
@@ -29,6 +30,8 @@ sur `/docs/api.json` : elle est calculée à chaque requête, rien à régénér
 |---|---|---|---|
 | Audit des tronçons d'une ligne (4 notes, preuves) | `GET /lines/{line}/audit?era&grade&limit&offset` | `Line.audit(era)` : `segments(grade, limit, offset)`, `segments_total(grade)` | `line_audit` (`era`, `grade`, `limit`, `offset`) |
 | Audit d'une gare (placement, dates, services) | `GET /stations/{station}/audit` | `Station.audit` | clé `audit` de `get_station` |
+| Audit des tronçons de tout le réseau (liste, filtres, tri, total) | `GET /audits/segments?era&grade&check&reason&status&department&region&line&q&sort&limit&offset` | `segmentAudits(...)` : `total`, `items` | `segment_audits` (mêmes paramètres) |
+| Audit des gares de tout le réseau (liste, filtres, tri, total) | `GET /audits/stations?grade&check&opening&closure&department&region&line&q&sort&limit&offset` | `stationAudits(...)` : `total`, `items` | `station_audits` (mêmes paramètres) |
 | Profil en long | `GET /lines/{line}/profile?max_points` | `Line.profile(max_points)` | `line_profile` (`max_points`) |
 | Référentiel d'altitude entre deux PK | `GET /lines/{line}/profile/points?pk_from_m&pk_to_m&max_points` | `LineProfile.samples(pk_from_m, pk_to_m, max_points)` | `line_profile` (`pk_from_m`, `pk_to_m`, résultat `samples`) |
 | Altitude à un PK | `GET /lines/{line}/altitude?pk_m` | `LineProfile.altitude_at(pk_m)` | `line_profile` (`pk_m`, résultat `altitude_at_pk`) |

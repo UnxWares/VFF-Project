@@ -225,7 +225,7 @@
                         viewBox="0 0 {width} {height}"
                         {width}
                         {height}
-                        role="img"
+                        role="group"
                         aria-label={t('profile.chart_label', {
                             min: formatNumber(Math.round(s.min_altitude_m), lang),
                             max: formatNumber(Math.round(s.max_altitude_m), lang),

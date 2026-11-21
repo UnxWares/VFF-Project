@@ -285,7 +285,8 @@ final class MaterialRelations
                     $this->stats['pairs_without_path']++;
                 }
                 // Relation ambiguë : rien, même si RelationRouter::route() donne les lignes communes à tous les
-                // itinéraires proches (essai du 21/11 : 322 liens créés, dont des faux, non relus).
+                // itinéraires proches, sans les sorties de gare (essais du 21/11 : 322 puis 283 liens créés, dont
+                // encore des faux, comme BB 22200 sur Lens - Don-Sainghin pour Paris - Lille - Calais).
                 if ($route['status'] === 'ok') {
                     array_push($lines, ...$route['lines']);
                     $chosen[$k] = $route['from'];

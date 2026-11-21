@@ -52,8 +52,8 @@ return [
         'circumstances' => [
             [
                 'fr' => 'Le lundi précédant la parution du 18 mai 1922 selon Het Volk, et le 14 mai selon la liste de Wikipédia, une machine haut-le-pied de la ligne de Perpignan à Arles-sur-Tech a heurté un train de voyageurs entre les stations de Céret et d\'Amélie-les-Bains.',
-                'en' => 'On the Monday according to Het Volk, but 14 May according to the Wikipedia list, a light engine of the Perpignan to Arles-sur-Tech line struck a passenger train between Céret and Amélie-les-Bains stations.',
-                'de' => 'Am Montag laut Het Volk, aber am 14. Mai laut der Wikipedia-Liste, stieß eine Leerfahrt-Maschine der Strecke Perpignan-Arles-sur-Tech zwischen den Stationen Céret und Amélie-les-Bains mit einem Reisezug zusammen.',
+                'en' => 'On the Monday before the issue of 18 May 1922 according to Het Volk, but 14 May according to the Wikipedia list, a light engine of the Perpignan to Arles-sur-Tech line struck a passenger train between Céret and Amélie-les-Bains stations.',
+                'de' => 'Am Montag vor der Ausgabe vom 18. Mai 1922 laut Het Volk, aber am 14. Mai laut der Wikipedia-Liste, stieß eine allein fahrende Maschine der Strecke Perpignan-Arles-sur-Tech zwischen den Stationen Céret und Amélie-les-Bains mit einem Reisezug zusammen.',
                 'sources' => ['volk-1922-05-18', 'wp-liste-1922'],
             ],
         ],
@@ -69,14 +69,14 @@ return [
             [
                 'fr' => 'L\'enquête a montré que le mécanicien de la machine haut-le-pied avait agi contre les ordres des chefs de gare d\'Arles et d\'Amélie-les-Bains et avait franchi tous les signaux.',
                 'en' => 'The inquiry showed that the driver of the light engine had acted against the orders of the station masters at Arles and Amélie-les-Bains and had run through all the signals.',
-                'de' => 'Die Untersuchung ergab, dass der Lokführer der Leerfahrt-Maschine entgegen den Anweisungen der Bahnhofsvorsteher von Arles und Amélie-les-Bains gehandelt und alle Signale überfahren hatte.',
+                'de' => 'Die Untersuchung ergab, dass der Lokführer der allein fahrenden Maschine entgegen den Anweisungen der Bahnhofsvorsteher von Arles und Amélie-les-Bains gehandelt und alle Signale überfahren hatte.',
                 'sources' => ['volk-1922-05-18'],
             ],
         ],
         'aftermath' => [
             [
                 'fr' => 'Selon la liste de Wikipédia, six mois plus tard, le mécanicien de la locomotive tamponneuse et le chef de gare d\'Amélie-les-Bains ont été condamnés respectivement à un an et à un mois de prison avec sursis par le tribunal correctionnel de Céret.',
-                'en' => 'According to the Wikipedia list, six months later the driver of the colliding locomotive and the station master of Amélie-les-Bains were sentenced to one year and one month of suspended prison respectively by the Céret criminal court.',
+                'en' => 'According to the Wikipedia list, six months later the driver of the colliding locomotive and the station master of Amélie-les-Bains were sentenced by the Céret criminal court to suspended prison terms of one year and one month respectively.',
                 'de' => 'Laut der Wikipedia-Liste wurden sechs Monate später der Lokführer der auffahrenden Lokomotive und der Bahnhofsvorsteher von Amélie-les-Bains vom Strafgericht Céret zu einem Jahr beziehungsweise einem Monat Haft auf Bewährung verurteilt.',
                 'sources' => ['wp-liste-1922'],
             ],

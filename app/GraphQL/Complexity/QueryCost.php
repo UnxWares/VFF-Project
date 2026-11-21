@@ -15,7 +15,8 @@ namespace App\GraphQL\Complexity;
  *     sous-champs comptés pour LIST_SIZE éléments, la taille courante d'une telle liste ;
  *   - les relations paginées `@morphMany(type: CONNECTION)` et les annuaires : sous-champs
  *     multipliés par `first` (Lighthouse ne le fait pas pour elles) ;
- *   - les champs calculés (géométrie, arrêts, recherche, histoire d'un événement…) : COMPUTED ;
+ *   - les pages d'audit à `limit` : sous-champs multipliés par `limit` ;
+  - les champs calculés (géométrie, arrêts, recherche, histoire d'un événement…) : COMPUTED ;
  *   - les champs lourds (fiche complète, profil en long, audit, itinéraires, comparaison d'ères),
  *     qui demandent chacun de quelques dizaines de millisecondes à quelques secondes : HEAVY.
  *
@@ -25,6 +26,11 @@ final class QueryCost
 {
     /** Nombre d'éléments compté pour une liste sans pagination. */
     public const int LIST_SIZE = 10;
+
+    /** Taille de page par défaut et au plus des pages d'audit (App\Services\SegmentAudit\AuditPage). */
+    public const int DEFAULT_PAGE = 50;
+
+    public const int MAX_PAGE = 200;
 
     /** Coût propre d'un champ calculé à la demande. */
     public const int COMPUTED = 10;
@@ -49,6 +55,19 @@ final class QueryCost
         $first = $args['first'] ?? null;
 
         return 1 + $childrenComplexity * (is_int($first) && $first > 0 ? $first : self::LIST_SIZE);
+    }
+
+    /**
+     * Page à `limit` (audits) : sous-champs comptés pour `limit` éléments (50 par défaut, 200 au plus,
+     * même borne que la validation), pour que le coût suive la taille de page demandée.
+     *
+     * @param  array<string, mixed>  $args
+     */
+    public function limited(int $childrenComplexity, array $args): int
+    {
+        $limit = $args['limit'] ?? null;
+
+        return 1 + $childrenComplexity * (is_int($limit) && $limit > 0 ? min($limit, self::MAX_PAGE) : self::DEFAULT_PAGE);
     }
 
     /** @param  array<string, mixed>  $args */

@@ -408,7 +408,7 @@
                     {/if}
                 </div>
 
-                <aside class="infobox" aria-labelledby="fiche-title">
+                <section class="infobox" aria-labelledby="fiche-title">
                     <h2 id="fiche-title">{t('materials.facts.title')}</h2>
                     <dl>
                         {#each facts as row (row.id)}
@@ -460,7 +460,7 @@
                                 : ''}
                         </p>
                     {/if}
-                </aside>
+                </section>
             </div>
         </SheetSection>
 

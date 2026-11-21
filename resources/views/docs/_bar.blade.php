@@ -19,7 +19,7 @@
 <a class="vff-docs-skip" href="#vff-docs-app"@isset($lang) lang="{{ $lang }}"@endisset>{{ __('nav.skip_to_content') }}</a>
 <header class="vff-docs-bar"@isset($lang) lang="{{ $lang }}"@endisset>
     <a class="vff-docs-brand" href="/">
-        <img src="{{ Vite::asset('resources/images/vff.png') }}" alt="" width="32" height="32" />
+        <img src="{{ Vite::asset('resources/images/vff-320.webp') }}" alt="" width="32" height="32" />
         <span class="long">{{ __('common.app_full') }}</span>
         {{-- Un seul des deux noms est affiché selon la largeur (docs.css) : l'autre, en display: none, sort
              aussi de l'arbre d'accessibilité, et le lien garde un nom (RGAA 6.2) à 320 px. --}}

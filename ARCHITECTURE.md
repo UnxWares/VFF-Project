@@ -19,7 +19,7 @@ VFF est une **application web Laravel + Inertia + Svelte**, adossée à une **ba
           │ Inertia JSON    │ MVT/GeoJSON       │
           ▼                 ▼                   ▼
 ┌──────────────────────────────────────────────────────────┐
-│                     Laravel 12                            │
+│                     Laravel 13                            │
 │  ┌─────────────┐  ┌──────────────┐  ┌────────────────┐   │
 │  │ HTTP        │  │ Actions /    │  │ API publique   │   │
 │  │ Controllers │  │ Services     │  │ /api/* (REST)  │   │
@@ -60,7 +60,7 @@ VFF est une **application web Laravel + Inertia + Svelte**, adossée à une **ba
 
 ## Stack en une phrase
 
-> Laravel 12 sert des pages Inertia rendues côté client par Svelte 5 ; la carte MapLibre GL JS consomme des données spatiales servies par Laravel depuis Postgres/PostGIS, sur fond de tuiles vectorielles OSM.
+> Laravel 13 sert des pages Inertia rendues côté client par Svelte 5 ; la carte MapLibre GL JS consomme des données spatiales servies par Laravel depuis Postgres/PostGIS, sur fond de tuiles vectorielles OSM.
 
 ---
 
@@ -84,7 +84,7 @@ VFF est une **application web Laravel + Inertia + Svelte**, adossée à une **ba
 
 **Pourquoi Inertia ?** On garde le routage Laravel, le middleware, les form requests, l'auth - mais on a une UX SPA. Pas de duplication d'API pour le rendu.
 
-### 3. Application - Laravel 12
+### 3. Application - Laravel 13
 
 Structure suivant les principes Laravel 11+ (plus de `Http/Kernel.php`, tout dans `bootstrap/app.php`).
 
@@ -191,6 +191,23 @@ L'utilisateur peut activer **OpenRailwayMap** en overlay quand il veut comparer 
      - Détermine le statut depuis les tags OSM
 6. → Indexation GIST déjà en place
 ```
+
+### Audits, profils en long et fond de carte libre
+
+Trois chaînes de calcul qui ne touchent pas au moteur de la carte (voir [docs/COMMANDES.md](docs/COMMANDES.md)) :
+
+```
+Audit des tronçons : vff:audit-segments → SegmentAuditor + AuditGrader → segment_audits
+                     → /validate/audit/segments, GET /api/v1/lines/{line}/audit, Line.audit, outil MCP line_audit
+Audit des gares    : vff:audit-stations → StationAuditor (PlacementGrader, DateAuditor) → station_audits
+                     → /validate/audit/stations, GET /api/v1/stations/{station}/audit, Station.audit
+Profil en long     : vff:compute-line-profiles → LineProfileBuilder (BD TOPO + RGE ALTI de l'IGN)
+                     → line_profiles + line_profile_points → /profile, /profile/points, /altitude, outil MCP line_profile
+```
+
+Le fond de carte libre est une archive PMTiles servie par `BasemapArchiveController` (plages d'octets bornées, débit
+limité) et gardée par le service worker pour le mode hors ligne ([docs/FOND-DE-CARTE.md](docs/FOND-DE-CARTE.md)). Les
+trois interfaces de données (REST, GraphQL, MCP) lisent les mêmes services ([docs/API.md](docs/API.md)).
 
 ### Contribution communautaire
 

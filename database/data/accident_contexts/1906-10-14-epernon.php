@@ -66,8 +66,8 @@ return [
         'circumstances' => [
             [
                 'fr' => 'Le dimanche 14 octobre 1906, vers 17 h 17 (vers 17 h selon la liste), en gare d\'Épernon (Eure-et-Loir), sur la ligne de Paris à Brest de la Compagnie de l\'Ouest, un omnibus 510 quittant sa voie de garage pour rejoindre la voie principale en direction de Paris-Montparnasse a été heurté de flanc par une locomotive haut-le-pied qui rentrait au dépôt de Vaugirard.',
-                'en' => 'On Sunday 14 October 1906, at about 5.17 pm (about 5 pm according to the list), at Épernon station (Eure-et-Loir), on the Paris - Brest line of the Compagnie de l\'Ouest, stopping train 510, leaving its siding to join the main line towards Paris-Montparnasse, was struck on its side by a light locomotive returning to the Vaugirard depot.',
-                'de' => 'Am Sonntag, dem 14. Oktober 1906, gegen 17.17 Uhr (laut Liste gegen 17 Uhr), wurde im Bahnhof Épernon (Eure-et-Loir) auf der Strecke Paris - Brest der Compagnie de l\'Ouest der Nahverkehrszug 510, der sein Abstellgleis verließ, um auf das Hauptgleis Richtung Paris-Montparnasse einzufahren, von einer Leerfahrt-Lokomotive auf dem Rückweg zum Depot Vaugirard seitlich gerammt.',
+                'en' => 'On Sunday 14 October 1906, at about 5.17 pm (about 5 pm according to the list), at Épernon station (Eure-et-Loir), on the Paris - Brest line of the Compagnie de l\'Ouest, stopping train 510, leaving its siding to join the main line towards Paris-Montparnasse, was struck on its side by a light engine returning to the Vaugirard depot.',
+                'de' => 'Am Sonntag, dem 14. Oktober 1906, gegen 17.17 Uhr (laut Liste gegen 17 Uhr), wurde im Bahnhof Épernon (Eure-et-Loir) auf der Strecke Paris - Brest der Compagnie de l\'Ouest der Nahverkehrszug 510, der sein Abstellgleis verließ, um auf das Hauptgleis Richtung Paris-Montparnasse einzufahren, von einer allein fahrenden Lokomotive auf dem Rückweg zum Depot Vaugirard seitlich gerammt.',
                 'sources' => ['wp-epernon', 'wp-liste-1906'],
             ],
             [

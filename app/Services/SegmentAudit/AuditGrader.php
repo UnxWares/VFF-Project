@@ -49,13 +49,16 @@ use App\Enums\AuditGrade;
  *   libres ou de la ligne de la même source) :
  *     on_other_line_track si une voie rattachée à sa propre ligne suit le tronçon entre OWN_TRACK_MIN_M
  *          et OWN_TRACK_MAX_M : poor pour un tronçon fermé ou déposé (voie-mère ou embranchement recalé
- *          sur la ligne voisine), fair pour un tronçon en service à l'ère courante (faisceaux de gare, voies
- *          parallèles : le rattachement des voies voisines est moins sûr) ;
+ *          sur la ligne voisine) ; good pour un tronçon en service à l'ère courante, comme shared_track,
+ *          la raison restant affichée (règle T1d, règles `.7` : dans les doubles voies et les faisceaux, chaque
+ *          voie est souvent rattachée à une ligne différente, 8 alertes sur 12 étaient fausses au contrôle à
+ *          la main) ; ce « sûr » ne recale pas le tracé (la note de tracé ne le compte pas comme calé) ;
  *     good (shared_track) sinon : tronc commun, voie de la ligne elle-même à moins de OWN_TRACK_MIN_M
  *          (même dans la source du tracé), ou embranchement posé sur la voie de départ sans voie propre
  *          connue (la note d'avant les réglages, mais signalée) ;
  *   good : médiane et 95e centile ≤ TOLERANCE_M (cible : médiane ≤ TARGET_M) sur au moins
- *          FULL_COVERAGE des points ; fair : médiane ≤ TOLERANCE_M, ou couverture partielle ;
+ *          FULL_COVERAGE des points ; à l'ère courante, une autre référence indépendante qui colle ainsi suffit
+ *          quand la première retenue (BD TOPO) est loin (règles `.7`) ; fair : médiane ≤ TOLERANCE_M, ou couverture partielle ;
  *   poor : médiane > TOLERANCE_M, ou tronçon en service à l'ère courante sans aucune voie de référence proche ;
  *   unknown : tronçon fermé ou déposé sans référence, tronçon hors de France (abroad), ou seule la
  *             source du tracé elle-même. Ère passée : la référence indépendante la plus proche est
@@ -72,7 +75,7 @@ use App\Enums\AuditGrade;
  *
  * Tracé (source retenue et précision connue) :
  *   good : source précise (BD TOPO 2,5 m, OSM environ 2 m), ou tracé d'une autre source déjà calé sur
- *          la voie réelle (placement « sûr »), ou confirmé par une voie BD TOPO ou OSM indépendante qui
+ *          la voie réelle (placement « sûr », hors on_other_line_track), ou confirmé par une voie BD TOPO ou OSM indépendante qui
  *          n'est pas celle d'une autre ligne (CONFIRM_COVERAGE des points, médiane ≤ TARGET_M,
  *          95e centile ≤ TOLERANCE_M : confirmed_by_precise_source) ;
  *   fair : précision moyenne (OHM, tracé déclaré ou contribué), ou source peu précise sans meilleure
@@ -84,7 +87,7 @@ use App\Enums\AuditGrade;
 final class AuditGrader
 {
     /** Version des règles, recopiée dans chaque ligne d'audit (à changer avec les seuils). */
-    public const RULE_VERSION = '2026-11-21.6';
+    public const RULE_VERSION = '2026-11-21.7';
 
     /** Ancienneté (ans) d'une fermeture au-delà de laquelle une voie « en place » non observée est suspecte. */
     public const OLD_CLOSURE_YEARS = 50;
@@ -309,6 +312,9 @@ final class AuditGrader
             return $result;
         }
         $other = self::onOtherLine($refs, $source);
+        if ($other === null && ! $bestMatch && ($fit = self::fittingReference($refs, $source)) !== null) {
+            return $fit;
+        }
         if ($other === null) {
             return $bestMatch && $result['grade'] === AuditGrade::Poor && self::ownOsmTraceFarFromBdtopo($refs, $source, $result)
                 ? ['grade' => AuditGrade::Unknown, 'reasons' => ['distant_reference_only']] + $result
@@ -319,11 +325,60 @@ final class AuditGrader
         $measured = ['reference' => $name, 'same_source' => false, 'coverage' => round($all['found'] / max(1, $points), 3),
             'median_m' => $all['median_m'], 'p95_m' => $all['p95_m']];
         if ($own !== null) {
-            // Voie-mère ou embranchement recalé sur la ligne voisine, sa propre voie passe à côté.
-            return ['grade' => $activeToday ? AuditGrade::Fair : AuditGrade::Poor, 'reasons' => ['on_other_line_track'], 'median_m' => $own] + $measured;
+            // Voie-mère ou embranchement recalé sur la ligne voisine, sa propre voie passe à côté. En service
+            // aujourd'hui (T1d) : le plus souvent une double voie dont chaque voie est rattachée à une ligne
+            // différente ; la note reste sûre, la raison signale le cas.
+            return ['grade' => $activeToday ? AuditGrade::Good : AuditGrade::Poor, 'reasons' => ['on_other_line_track'], 'median_m' => $own] + $measured;
         }
 
         return ['grade' => AuditGrade::Good, 'reasons' => ['shared_track']] + $measured;
+    }
+
+    /**
+     * Ère courante (règles `.7`) : la première référence retenue (BD TOPO avant OSM) ne colle pas, mais une
+     * autre voie BD TOPO ou OSM indépendante colle au tronçon sur ses voies libres ou de la ligne (FULL_COVERAGE
+     * des points, médiane et 95e centile ≤ TOLERANCE_M), et aucune voie rattachée à la ligne ne passe à côté
+     * entre OWN_TRACK_MIN_M et OWN_TRACK_MAX_M (sinon la voie libre est peut-être celle d'une autre ligne :
+     * cas T1b, non tranché). Le tronçon est sur une voie réelle : placement « sûr » sur cette référence. Avant les règles `.5`, ces cas sortaient `shared_track` (sûr) ; les règles `.5`
+     * les laissaient « faux » sur la BD TOPO lointaine (43 tronçons mesurés en 2030, cas 33 et 34 du
+     * troisième contrôle à la main).
+     *
+     * @param  array<string, array<string, mixed>>  $refs
+     * @return array{grade: AuditGrade, reasons: list<string>, reference: string, same_source: bool, coverage: float, median_m: float, p95_m: float}|null
+     */
+    private static function fittingReference(array $refs, ?string $source): ?array
+    {
+        foreach (self::REFERENCES as $name) {
+            $o = $refs[$name]['own'] ?? null;
+            if ($o !== null && $refs[$name]['points'] > 0 && $o['found'] / $refs[$name]['points'] >= self::MIN_COVERAGE
+                && $o['median_m'] !== null && $o['median_m'] >= self::OWN_TRACK_MIN_M && $o['median_m'] <= self::OWN_TRACK_MAX_M) {
+                return null;
+            }
+        }
+        foreach (['bdtopo', 'osm'] as $name) {
+            $r = $refs[$name] ?? null;
+            if ($name === $source || $r === null || ! self::fits($r['found'], $r['points'], $r['median_m'], $r['p95_m'])) {
+                continue;
+            }
+
+            return ['grade' => AuditGrade::Good, 'reasons' => [$r['median_m'] <= self::TARGET_M ? 'within_target' : 'within_tolerance'],
+                'reference' => $name, 'same_source' => false, 'coverage' => round(self::coverage($r), 3),
+                'median_m' => $r['median_m'], 'p95_m' => $r['p95_m']];
+        }
+
+        return null;
+    }
+
+    /**
+     * Le placement « sûr » cale-t-il le tracé sur sa voie réelle (note de tracé `recalibrated`) ? Pas
+     * quand il est posé sur la voie d'une autre ligne (`on_other_line_track`, T1d) : la voie qui le
+     * confirme n'est pas la sienne.
+     *
+     * @param  array{grade: AuditGrade, reasons: list<string>}  $placement
+     */
+    public static function alignedOnOwnTrack(array $placement): bool
+    {
+        return $placement['grade'] === AuditGrade::Good && ! in_array('on_other_line_track', $placement['reasons'], true);
     }
 
     /**

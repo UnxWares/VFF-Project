@@ -1187,4 +1187,553 @@ return [
         ['Santeny - Servon', 'Q3097670', 'Gare de Santeny - Servon', 231601559, '1947-01-01', 'year', '1969-12-14', 'before',
             'L\'activité de cette section est dès lors limitée au trafic de marchandises, avec passage en voie unique en 1963-1964.', 'wikidata', '1947-01-01'],
     ])),
+
+    // ── 10. Gares desservies notées fermées par la fermeture d'une autre gare (chantier « coherence-gares-lignes », 21/11/2026) ──
+    // Contrôle : gare déclassée à une ère où un tronçon voyageurs ou mixte en service de ses lignes passe à moins de
+    // 150 m, et ouverte aujourd'hui (rapport storage/app/reports/agents/aprem-2111/coherence-gares-lignes.md).
+    // 10 a. L'objet OHM rapproché par le nom (name_near) est la gare homonyme d'un autre réseau (chemin de fer
+    // départemental, tramway à vapeur, Nyon - Saint-Cergue - Morez, première ligne de Saint-Étienne à Andrézieux)
+    // ou un ancien bâtiment : sa date de fin n'est pas celle de la gare du réseau principal, desservie sans
+    // interruption (Sens, Montereau, Nogent-sur-Seine, Souppes : ligne de Paris à Marseille, de Paris à Mulhouse,
+    // du Bourbonnais).
+    // L'ouverture du même objet OHM est retirée aussi (gare homonyme) : Montereau et Souppes n'avaient qu'elle
+    // (1888), leur ouverture vient alors de leurs lignes (1849, 1860).
+    ...array_merge(...array_map(fn (array $g) => array_filter([
+        [
+            'station' => ['name' => $g[0], $g[1] => $g[2]],
+            'action' => 'neutralize',
+            'match' => ['source' => 'ohm', 'type' => 'closure', 'date' => $g[3]],
+            'source_url' => 'https://www.openhistoricalmap.org/'.['n' => 'node', 'w' => 'way', 'r' => 'relation'][$g[4][0]].'/'.substr($g[4], 1),
+            'reason' => $g[5],
+        ],
+        isset($g[6]) ? [
+            'station' => ['name' => $g[0], $g[1] => $g[2]],
+            'action' => 'neutralize',
+            'match' => ['source' => 'ohm', 'type' => 'opening', 'date' => $g[6]],
+            'source_url' => 'https://www.openhistoricalmap.org/'.['n' => 'node', 'w' => 'way', 'r' => 'relation'][$g[4][0]].'/'.substr($g[4], 1),
+            'reason' => 'ouverture de la même gare homonyme : '.$g[5],
+        ] : null,
+    ]), [
+        // gare, clé, identifiant, date OHM retirée, objet OHM, raison, ouverture OHM retirée (gare homonyme)
+        ['Sens', 'wikidata', 'Q2545246', '1948-03-31', 'n2181759785',
+            'l\'objet OHM « Sens (CFD) » (1901 à 1948) est la gare des chemins de fer départementaux, pas la gare de la ligne de Paris à Marseille', '1901-11-10'],
+        ['Montereau', 'wikidata', 'Q2117756', '1959-01-01', 'n2181778995',
+            'l\'objet OHM « Montereau » (halte de 1888 à 1959) est l\'arrêt du chemin de fer départemental, pas la gare de la ligne de Paris à Marseille', '1888-10-01'],
+        ['Nogent-sur-Seine', 'wikidata', 'Q2424780', '1939-01-01', 'n2181732475',
+            'l\'objet OHM « Nogent sur Seine (CFD) » (1925 à 1939) est la gare des chemins de fer départementaux, pas la gare de la ligne de Paris à Mulhouse', '1925-09-21'],
+        ['Souppes-Château-Landon', 'wikidata', 'Q2010209', '1959-01-01', 'n2181780573',
+            'l\'objet OHM « Souppes (CFD) » (1888 à 1959) est la gare des chemins de fer départementaux, pas la gare de la ligne du Bourbonnais', '1888-10-01'],
+        ['Morez', 'wikidata', 'Q2314163', '1958-09-27', 'n2087817589',
+            'l\'objet OHM « Morez PLM » (exploitant NStCM, 1921 à 1958) est le terminus du Nyon - Saint-Cergue - Morez, fermé en 1958 ; la gare de la ligne d\'Andelot à La Cluse reste desservie', '1921-03-07'],
+        ['Lavaur', 'wikidata', 'Q3096865', '1937-06-30', 'n2134788821',
+            'l\'objet OHM « Lavaur » (exploitant TVT, voie de 60 cm, 1903 à 1937) est la gare des tramways à vapeur du Tarn, pas la gare SNCF, toujours desservie', '1903-05-26'],
+        ['St-Sulpice', 'wikidata', 'Q3097624', '1931-01-01', 'n2134788832',
+            'l\'objet OHM « Saint-Sulpice » (1925 à 1931) est la gare des tramways à vapeur du Tarn, pas la gare SNCF de Saint-Sulpice-la-Pointe, toujours desservie', '1925-04-11'],
+        ['Andrézieux', 'wikidata', 'Q3095632', '1864-06-15', 'n2125380187',
+            'l\'objet OHM « Gare d\'Andrézieux » (1827 à 1864) est la gare de la première ligne de Saint-Étienne à Andrézieux, remplacée par la gare actuelle'],
+        ['Maubeuge', 'wikidata', 'Q2559978', '1976-06-30', 'r2892705',
+            'l\'objet OHM est un bâtiment (multipolygone building=train_station) dont la fin date le bâtiment ; la gare de la ligne de Creil à Jeumont reste desservie'],
+        ['Lourches', 'wikidata', 'Q1845098', '1975-06-30', 'r2897405',
+            'l\'objet OHM est un bâtiment (multipolygone building=train_station) à date de fin notée arbitraire (end_date:fixme) ; la halte reste desservie'],
+    ])),
+    // 10 b. Gare d'Orsay : en 1939, seules les grandes lignes partent pour Austerlitz, la banlieue reste ; la gare
+    // devient Musée d'Orsay sur le RER C en 1979.
+    [
+        'station' => ['name' => 'Musée-d\'Orsay', 'wikidata' => 'Q15260427'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'closure', 'date' => '1939-01-01'],
+        'source_url' => $wp('Gare du Musée d\'Orsay', 240941106),
+        'quote' => 'Le trafic grandes lignes est alors reporté à la gare de Paris-Austerlitz.',
+        'reason' => 'fin des grandes lignes, pas de la gare : fonction limitée au trafic de banlieue en 1939, puis station du RER C en 1979',
+    ],
+    // 10 c. Dates d'inauguration d'un nouveau bâtiment voyageurs lues comme réouvertures (Wikidata P1619) : la règle
+    // « réouverture sans fermeture antérieure » (vff:build-station-eras, étape g) leur prêtait la fermeture d'une
+    // ligne voisine (683000 en 1969 à Orléans, 884000 en 1990 à Bellegarde) alors que la gare restait desservie.
+    [
+        'station' => ['name' => 'Orléans', 'wikidata' => 'Q1965397'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'reopening', 'date' => '2007-01-01'],
+        'source_url' => $wp('Gare d\'Orléans', 235030555),
+        'quote' => 'De 2005 à 2007, la gare est en travaux',
+        'reason' => 'travaux de la quatrième gare (inaugurée le 18 janvier 2008), pas une réouverture : la gare n\'a pas fermé',
+    ],
+    [
+        'station' => ['name' => 'Bellegarde', 'wikidata' => 'Q3095950'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikidata', 'type' => 'reopening', 'date' => '2010-05-21'],
+        'source_url' => $wp('Gare de Bellegarde', 241398952),
+        'quote' => 'Les services qu\'il regroupe sont ceux précédemment offerts par les anciennes installations',
+        'reason' => 'inauguration du nouveau bâtiment voyageurs le 21 mai 2010, pas une réouverture : la gare de la ligne de Lyon à Genève est restée desservie',
+    ],
+
+    // ── 11. Gares minoritaires et dates de rang (chantier « gares-g1-g2 », 21/11/2026) ─────────────────────
+    // Dossiers G1 et G2 relus le 21/11/2026 (rapports storage/app/reports/agents/matin-2111/audit-gares-suite.md et
+    // aprem-2111/gares-planches.md, planches d'orthophotos IGN BD ORTHO dans matin-2111/audit-gares-suite/ortho/).
+    // G1 : positions des gares « minoritaires » (contrôle retained_outvoted de vff:audit-stations), recopiées de
+    // matin-2111/audit-gares-suite/gares_corrections_minoritaires.php, sections 1, 2 et 2 bis ; la section 3 (position
+    // retenue juste, les deux dans la gare, source insuffisante) n'est pas reprise.
+    // 11 a. Vérifiées sur l'orthophoto le matin : la position proposée est la gare (14).
+    // 01. Trévoux (id 20379)
+    [
+        'station' => ['name' => 'Trévoux', 'uic' => '87723858'],
+        'action' => 'position',
+        'lng' => 4.7822449,
+        'lat' => 45.9383748,
+        'source_url' => $osm('n13395208775'),
+        'quote' => 'Ancienne gare de Trévoux (SNCF) : lat = 45.9383748, lon = 4.7822449',
+        'reason' => 'orthophoto relue le 21/11/2026 : position proposée au bâtiment voyageurs ou aux quais ; groupe majoritaire : osm à 452 m, wikidata à 475 m (dispersion 22 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 12 m de la voie ; planche 01',
+    ],
+    // 04. St-Gérand-le-Puy-Magnet (id 20446)
+    [
+        'station' => ['name' => 'St-Gérand-le-Puy-Magnet', 'uic' => '87732602'],
+        'action' => 'position',
+        'lng' => 3.5047959,
+        'lat' => 46.2110922,
+        'source_url' => $osm('n11432231106'),
+        'quote' => 'Saint-Gérand-le-Puy - Magnet : lat = 46.2110922, lon = 3.5047959',
+        'reason' => 'orthophoto relue le 21/11/2026 : position proposée au bâtiment voyageurs ou aux quais ; groupe majoritaire : osm à 335 m, wikidata à 259 m (dispersion 75 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 17 m de la voie ; planche 04',
+    ],
+    // 05. St-Louis-les-Aygalades (id 17979)
+    [
+        'station' => ['name' => 'St-Louis-les-Aygalades', 'uic' => '87751644'],
+        'action' => 'position',
+        'lng' => 5.3651173,
+        'lat' => 43.3461208,
+        'source_url' => $osm('w159889768'),
+        'quote' => 'Saint-Louis-les-Aygalades : lat = 43.3461208, lon = 5.3651173',
+        'reason' => 'orthophoto relue le 21/11/2026 : position proposée au bâtiment voyageurs ou aux quais ; groupe majoritaire : osm à 281 m, bdtopo à 278 m, wikidata à 286 m (dispersion 8 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 26 m de la voie ; planche 05',
+    ],
+    // 07. Clion-sur-Seugne (id 16588)
+    [
+        'station' => ['name' => 'Clion-sur-Seugne', 'uic' => '87491134'],
+        'action' => 'position',
+        'lng' => -0.5021032,
+        'lat' => 45.4783195,
+        'source_url' => $osm('w120165553'),
+        'quote' => 'Clion-sur-Seugne : lat = 45.4783195, lon = -0.5021032',
+        'reason' => 'orthophoto relue le 21/11/2026 : position proposée au bâtiment voyageurs ou aux quais ; groupe majoritaire : osm à 145 m, wikidata à 220 m (dispersion 75 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 11 m de la voie ; planche 07',
+    ],
+    // 12. Fenouillet-St-Alban (id 17161)
+    [
+        'station' => ['name' => 'Fenouillet-St-Alban', 'uic' => '87611962'],
+        'action' => 'position',
+        'lng' => 1.4018148,
+        'lat' => 43.6840474,
+        'source_url' => $osm('n6121183551'),
+        'quote' => 'Fenouillet-Saint-Alban : lat = 43.6840474, lon = 1.4018148',
+        'reason' => 'orthophoto relue le 21/11/2026 : position proposée au bâtiment voyageurs ou aux quais ; groupe majoritaire : osm à 410 m, bdtopo à 416 m, wikidata à 375 m (dispersion 59 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 7 m de la voie ; planche 12',
+    ],
+    // 16. Montpellier Sud-de-France (id 17435)
+    [
+        'station' => ['name' => 'Montpellier Sud-de-France', 'uic' => '87688887'],
+        'action' => 'position',
+        'lng' => 3.9239637,
+        'lat' => 43.595115,
+        'source_url' => $osm('n8096578751'),
+        'quote' => 'Montpellier-Sud-de-France : lat = 43.595115, lon = 3.9239637',
+        'reason' => 'orthophoto relue le 21/11/2026 : position proposée au bâtiment voyageurs ou aux quais ; groupe majoritaire : osm à 983 m, bdtopo à 974 m (dispersion 28 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 22 m de la voie ; planche 16',
+    ],
+    // 17. Montpellier-St-Roch (id 18151)
+    [
+        'station' => ['name' => 'Montpellier-St-Roch', 'uic' => '87773002'],
+        'action' => 'position',
+        'lng' => 3.8804316,
+        'lat' => 43.6044803,
+        'source_url' => $osm('r6022885'),
+        'quote' => 'Gare de Montpellier Saint-Roch : lat = 43.6044803, lon = 3.8804316',
+        'reason' => 'orthophoto relue le 21/11/2026 : position proposée au bâtiment voyageurs ou aux quais ; groupe majoritaire : osm à 259 m, bdtopo à 123 m, wikidata à 213 m (dispersion 52 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 2 m de la voie ; planche 17',
+    ],
+    // 22. Doulon (id 16460)
+    [
+        'station' => ['name' => 'Doulon', 'uic' => '87481085'],
+        'action' => 'position',
+        'lng' => -1.5181611,
+        'lat' => 47.2274844,
+        'source_url' => $osm('n14140081221'),
+        'quote' => 'Doulon : lat = 47.2274844, lon = -1.5181611',
+        'reason' => 'orthophoto relue le 21/11/2026 : position proposée au bâtiment voyageurs ou aux quais ; groupe majoritaire : osm à 465 m, wikidata à 461 m (dispersion 8 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 0 m de la voie ; planche 22',
+    ],
+    // 24. Carteret (id 19343)
+    [
+        'station' => ['name' => 'Carteret', 'uic' => '87447490'],
+        'action' => 'position',
+        'lng' => -1.7842443,
+        'lat' => 49.3801073,
+        'source_url' => $osm('n11047708545'),
+        'quote' => 'Carteret : lat = 49.3801073, lon = -1.7842443',
+        'reason' => 'orthophoto relue le 21/11/2026 : position proposée au bâtiment voyageurs ou aux quais ; groupe majoritaire : osm à 870 m, wikidata à 941 m (dispersion 77 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 2 m de la voie ; planche 24',
+    ],
+    // 30. Geispolsheim (id 15362)
+    [
+        'station' => ['name' => 'Geispolsheim', 'uic' => '87212258'],
+        'action' => 'position',
+        'lng' => 7.6849513,
+        'lat' => 48.5209867,
+        'source_url' => 'https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=BDTOPO_V3:equipement_de_transport&FEATUREID=EQ_RESEA0000000048606956',
+        'quote' => 'Halte Ferroviaire de Geispolsheim : lat = 48.5209867, lon = 7.6849513',
+        'reason' => 'orthophoto relue le 21/11/2026 : position proposée au bâtiment voyageurs ou aux quais ; groupe majoritaire : bdtopo à 206 m, wikidata à 214 m (dispersion 5 m) ; familles d\'accord avec la position retenue : sncf ; proposée à 0 m de la voie ; planche 30',
+    ],
+    // 40. Paris-Bercy (id 17434)
+    [
+        'station' => ['name' => 'Paris-Bercy', 'uic' => '87686667'],
+        'action' => 'position',
+        'lng' => 2.38278,
+        'lat' => 48.83917,
+        'source_url' => 'https://ressources.data.sncf.com/explore/dataset/liste-des-gares/table/?q=87686667',
+        'quote' => 'Paris Bercy Bourgogne - Pays d\'Auvergne : lat = 48.83917, lon = 2.38278',
+        'reason' => 'orthophoto relue le 21/11/2026 : position proposée au bâtiment voyageurs ou aux quais ; groupe majoritaire : sncf à 133 m, wikidata à 145 m (dispersion 26 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 134 m de la voie ; planche 40',
+    ],
+    // 44. Petit-Jouy-Les Loges (id 16109)
+    [
+        'station' => ['name' => 'Petit-Jouy-Les Loges', 'uic' => '87393504'],
+        'action' => 'position',
+        'lng' => 2.1464323,
+        'lat' => 48.7703929,
+        'source_url' => $osm('w253795589'),
+        'quote' => 'Petit Jouy - Les Loges : lat = 48.7703929, lon = 2.1464323',
+        'reason' => 'orthophoto relue le 21/11/2026 : position proposée au bâtiment voyageurs ou aux quais ; groupe majoritaire : osm à 233 m, bdtopo à 225 m, wikidata à 273 m (dispersion 52 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 30 m de la voie ; planche 44',
+    ],
+    // 52. Grigny-Centre (id 17348)
+    [
+        'station' => ['name' => 'Grigny-Centre', 'uic' => '87681379'],
+        'action' => 'position',
+        'lng' => 2.3958644,
+        'lat' => 48.6534796,
+        'source_url' => $osm('w993685345'),
+        'quote' => 'Grigny-Centre : lat = 48.6534796, lon = 2.3958644',
+        'reason' => 'orthophoto relue le 21/11/2026 : position proposée au bâtiment voyageurs ou aux quais ; groupe majoritaire : osm à 284 m, bdtopo à 268 m, wikidata à 260 m (dispersion 108 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 1 m de la voie ; planche 52',
+    ],
+    // 53. Massy-Palaiseau (id 16116)
+    [
+        'station' => ['name' => 'Massy-Palaiseau', 'uic' => '87393579'],
+        'action' => 'position',
+        'lng' => 2.2577783,
+        'lat' => 48.7265363,
+        'source_url' => $osm('w417349787'),
+        'quote' => 'Massy Palaiseau RER C : lat = 48.7265363, lon = 2.2577783',
+        'reason' => 'orthophoto relue le 21/11/2026 : position proposée au bâtiment voyageurs ou aux quais ; groupe majoritaire : osm à 297 m, bdtopo à 283 m (dispersion 0 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 74 m de la voie ; planche 53',
+    ],
+
+    // 11 b. Relues sur l'orthophoto l'après-midi : la position proposée est juste (24 ; Senozan et
+    // St-Cergues-les-Voirons, déjà posées sur leur bâtiment en 8 e, ne sont pas reprises).
+    // 02. Crézancy (id 18310)
+    [
+        'station' => ['name' => 'Crézancy', 'uic' => '87116798'],
+        'action' => 'position',
+        'lng' => 3.5161343,
+        'lat' => 49.0496661,
+        'source_url' => 'https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=BDTOPO_V3:equipement_de_transport&FEATUREID=EQ_RESEA0000000358024719',
+        'quote' => 'Gare de Crézancy (Association Touristique Ferroviaire) : lat = 49.0496661, lon = 3.5161343',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : petit bâtiment voyageurs au passage à niveau, à côté de la voie ; la position retenue est dans un champ derrière un hangar ; groupe majoritaire : bdtopo à 134 m, wikidata à 145 m (dispersion 8 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 14 m de la voie ; planche 02',
+    ],
+    // 06. Séon-St-Henry (id 17978)
+    [
+        'station' => ['name' => 'Séon-St-Henry', 'uic' => '87751636'],
+        'action' => 'position',
+        'lng' => 5.3399592,
+        'lat' => 43.362419,
+        'source_url' => $osm('w69630228'),
+        'quote' => 'Séon-Saint-Henri : lat = 43.362419, lon = 5.3399592',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : bâtiment voyageurs et quais (OSM w69630228, quais w312396571 et w312396572) ; la position retenue est sous l\'échangeur autoroutier ; groupe majoritaire : osm à 253 m, wikidata à 255 m (dispersion 3 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 12 m de la voie ; planche 06',
+    ],
+    // 08. Aubusson (id 17093)
+    [
+        'station' => ['name' => 'Aubusson', 'uic' => '87597823'],
+        'action' => 'position',
+        'lng' => 2.1616888,
+        'lat' => 45.9598728,
+        'source_url' => $osm('n9006547004'),
+        'quote' => 'Aubusson : lat = 45.9598728, lon = 2.1616888',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : bâtiment voyageurs et parking le long de la voie, quai OSM à 23 m ; la position retenue est dans les arbres ; groupe majoritaire : osm à 103 m, wikidata à 109 m (dispersion 6 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 11 m de la voie ; planche 08',
+    ],
+    // 10. Louviers (id 19281)
+    [
+        'station' => ['name' => 'Louviers', 'uic' => '87415851'],
+        'action' => 'position',
+        'lng' => 1.177345,
+        'lat' => 49.2159366,
+        'source_url' => $osm('w73067310'),
+        'quote' => 'La Gare aux Musiques : lat = 49.2159366, lon = 1.177345',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : ancien bâtiment voyageurs, aujourd\'hui La Gare aux Musiques (OSM, start_date 1867) ; la position retenue est sur une casse ; groupe majoritaire : osm à 190 m, wikidata à 191 m (dispersion 2 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 16 m de la voie ; planche 10',
+    ],
+    // 11. Casamozza (id 20710)
+    [
+        'station' => ['name' => 'Casamozza', 'uic' => '87762005'],
+        'action' => 'position',
+        'lng' => 9.4410912,
+        'lat' => 42.5218272,
+        'source_url' => $osm('n1082754108'),
+        'quote' => 'Casamozza : lat = 42.5218272, lon = 9.4410912',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : bâtiment voyageurs devant les quais ; la position retenue est 200 m au sud, sur le gril ; groupe majoritaire : osm à 200 m, bdtopo à 189 m (dispersion 8 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 2 m de la voie ; planche 11',
+    ],
+    // 14. Pointe-de-Grave (id 16853)
+    [
+        'station' => ['name' => 'Pointe-de-Grave', 'uic' => '87581397'],
+        'action' => 'position',
+        'lng' => -1.0655868,
+        'lat' => 45.5666681,
+        'source_url' => 'https://ressources.data.sncf.com/explore/dataset/liste-des-gares/table/?q=87581397',
+        'quote' => 'Pointe-de-Grave : lat = 45.5666681, lon = -1.0655868',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : zone de la gare SNCF au débarcadère du bac, à 31 m du quai OSM w508758759 ; la position retenue est le dépôt du petit train touristique de la Pointe de Grave (OSM w508757688) ; réserve : le point est sur le parking, pas sur le quai ; groupe majoritaire : sncf à 128 m, bdtopo à 127 m (dispersion 46 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 38 m de la voie ; planche 14',
+    ],
+    // 15. Colombiers (id 18200)
+    [
+        'station' => ['name' => 'Colombiers', 'uic' => '87781187'],
+        'action' => 'position',
+        'lng' => 3.1396847,
+        'lat' => 43.3190567,
+        'source_url' => $osm('n61082760'),
+        'quote' => 'Colombiers : lat = 43.3190567, lon = 3.1396847',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : bâtiment voyageurs au bord du faisceau de Colombiers ; la position retenue est 380 m plus loin, sur la ligne près du pont ; groupe majoritaire : osm à 378 m, wikidata à 377 m (dispersion 3 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 29 m de la voie ; planche 15',
+    ],
+    // 21. Sembadel (id 20471)
+    [
+        'station' => ['name' => 'Sembadel', 'uic' => '87734640'],
+        'action' => 'position',
+        'lng' => 3.7195031,
+        'lat' => 45.2763252,
+        'source_url' => 'https://www.openhistoricalmap.org/node/2135479570',
+        'quote' => 'Gare de Sembadel : lat = 45.2763252, lon = 3.7195031',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : bâtiment voyageurs au bord des voies, dans le village ; la position retenue est 180 m à l\'est, vers la bifurcation ; groupe majoritaire : ohm à 184 m, wikidata à 226 m (dispersion 43 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 12 m de la voie ; planche 21',
+    ],
+    // 25. Bouvines (id 15668)
+    [
+        'station' => ['name' => 'Bouvines', 'uic' => '87287235'],
+        'action' => 'position',
+        'lng' => 3.2022205,
+        'lat' => 50.5738094,
+        'source_url' => $osm('n392132874'),
+        'quote' => 'Bouvines : lat = 50.5738094, lon = 3.2022205',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : halte au passage à niveau de la ligne fermée (OSM disused halt, quai à 35 m) ; la position retenue est sur le pont de la ligne Lille - Tournai ; groupe majoritaire : osm à 120 m, wikidata à 113 m (dispersion 8 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 1 m de la voie ; planche 25',
+    ],
+    // 26. Surdon (id 16281)
+    [
+        'station' => ['name' => 'Surdon', 'uic' => '87444562'],
+        'action' => 'position',
+        'lng' => 0.1333975,
+        'lat' => 48.6653453,
+        'source_url' => $osm('n2351574817'),
+        'quote' => 'Surdon : lat = 48.6653453, lon = 0.1333975',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : bâtiment voyageurs (OSM w494883491) ; la position retenue est 175 m à l\'est, au-delà du bâtiment, à plus de 300 m des quais ; groupe majoritaire : osm à 176 m, bdtopo à 162 m (dispersion 8 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 22 m de la voie ; planche 26',
+    ],
+    // 27. Conchil-le-Temple (id 15820)
+    [
+        'station' => ['name' => 'Conchil-le-Temple', 'uic' => '87317040'],
+        'action' => 'position',
+        'lng' => 1.6608308,
+        'lat' => 50.3616834,
+        'source_url' => 'https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=BDTOPO_V3:equipement_de_transport&FEATUREID=EQ_RESEA0000000117906233',
+        'quote' => 'Gare de Conchil-le-Temple : lat = 50.3616834, lon = 1.6608308',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : position la plus proche du bâtiment probable (60 m, rue de la Gare) ; la position retenue est au sud du faisceau, à 220 m ; réserve : pas de quai lisible ; groupe majoritaire : bdtopo à 167 m, wikidata à 220 m (dispersion 50 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 0 m de la voie ; planche 27',
+    ],
+    // 34. Jussey (id 15261)
+    [
+        'station' => ['name' => 'Jussey', 'uic' => '87185355'],
+        'action' => 'position',
+        'lng' => 5.903379,
+        'lat' => 47.8368862,
+        'source_url' => 'https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=BDTOPO_V3:equipement_de_transport&FEATUREID=EQ_RESEA0000000243543424',
+        'quote' => 'Gare de Jussey : lat = 47.8368862, lon = 5.903379',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : bâtiment voyageurs ; la position retenue est 100 m à l\'est sur les voies principales ; groupe majoritaire : bdtopo à 101 m, wikidata à 101 m (dispersion 13 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 12 m de la voie ; planche 34',
+    ],
+    // 36. St-Yan (id 20229)
+    [
+        'station' => ['name' => 'St-Yan', 'uic' => '87694802'],
+        'action' => 'position',
+        'lng' => 4.0351072,
+        'lat' => 46.413162,
+        'source_url' => 'https://www.openhistoricalmap.org/node/2137419318',
+        'quote' => 'Gare de Saint-Yan : lat = 46.413162, lon = 4.0351072',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : bâtiment voyageurs à 19 m de la plateforme de la ligne du Coteau à Montchanin (OSM) ; la position retenue est au croisement de la route et des deux lignes ; groupe majoritaire : ohm à 124 m, wikidata à 118 m (dispersion 15 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 12 m de la voie ; planche 36',
+    ],
+    // 42. St-Aubin-sur-Scie (id 16236)
+    [
+        'station' => ['name' => 'St-Aubin-sur-Scie', 'uic' => '87415125'],
+        'action' => 'position',
+        'lng' => 1.0667322,
+        'lat' => 49.8708348,
+        'source_url' => $osm('n3470363595'),
+        'quote' => 'Saint-Aubin-sur-Scie : lat = 49.8708348, lon = 1.0667322',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : abri sur le quai unique, côté est ; la position retenue est au sud, après la fin du quai ; groupe majoritaire : osm à 112 m, bdtopo à 192 m, wikidata à 204 m (dispersion 93 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 5 m de la voie ; planche 42',
+    ],
+    // 43. Le Mée (id 17372)
+    [
+        'station' => ['name' => 'Le Mée', 'uic' => '87682179'],
+        'action' => 'position',
+        'lng' => 2.6240913,
+        'lat' => 48.5400705,
+        'source_url' => $osm('w113477650'),
+        'quote' => 'Gare de Le Mée : lat = 48.5400705, lon = 2.6240913',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : bâtiment voyageurs au pont routier (OSM w113477650) ; la position retenue est 170 m au nord-ouest, hors des quais (à 320 m) ; groupe majoritaire : osm à 176 m, wikidata à 142 m (dispersion 50 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 45 m de la voie ; planche 43',
+    ],
+    // 45. Mazières-Verruyes (id 16551)
+    [
+        'station' => ['name' => 'Mazières-Verruyes', 'uic' => '87485714'],
+        'action' => 'position',
+        'lng' => -0.3083996,
+        'lat' => 46.5328303,
+        'source_url' => $osm('n237289468'),
+        'quote' => 'Mazières en Gâtine : lat = 46.5328303, lon = -0.3083996',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : halte OSM au passage de la route, au bord du bourg ; la position retenue est en pleine voie dans les champs ; réserve : aucun bâtiment lisible ; groupe majoritaire : osm à 251 m, wikidata à 240 m (dispersion 11 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 3 m de la voie ; planche 45',
+    ],
+    // 46. St-Varent (id 16567)
+    [
+        'station' => ['name' => 'St-Varent', 'uic' => '87487116'],
+        'action' => 'position',
+        'lng' => -0.2242533,
+        'lat' => 46.8890003,
+        'source_url' => 'https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=BDTOPO_V3:equipement_de_transport&FEATUREID=EQ_RESEA0000000109256344',
+        'quote' => 'Saint-Varent : lat = 46.8890003, lon = -0.2242533',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : bâtiment et quais (OSM, quais à 21 et 23 m) ; la position retenue est 240 m au nord, en pleine voie ; groupe majoritaire : bdtopo à 240 m, wikidata à 224 m (dispersion 20 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 11 m de la voie ; planche 46',
+    ],
+    // 48. Malause (id 17156)
+    [
+        'station' => ['name' => 'Malause', 'uic' => '87611871'],
+        'action' => 'position',
+        'lng' => 0.9716252,
+        'lat' => 44.0881773,
+        'source_url' => $osm('n9353112089'),
+        'quote' => 'Gare de Malause : lat = 44.0881773, lon = 0.9716252',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : bâtiment voyageurs et quais (OSM, quais à 5 et 14 m) ; la position retenue est 180 m au sud-est, le long du canal ; groupe majoritaire : osm à 180 m, wikidata à 168 m (dispersion 14 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 2 m de la voie ; planche 48',
+    ],
+    // 50. Hymont-Mattaincourt (id 15046)
+    [
+        'station' => ['name' => 'Hymont-Mattaincourt', 'uic' => '87144220'],
+        'action' => 'position',
+        'lng' => 6.1402279,
+        'lat' => 48.2707868,
+        'source_url' => $osm('n2297588288'),
+        'quote' => 'Hymont : lat = 48.2707868, lon = 6.1402279',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : halte OSM et quais à 7 et 13 m, près de la route ; la position retenue est en pleine voie dans les champs ; groupe majoritaire : osm à 235 m, wikidata à 235 m (dispersion 5 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 2 m de la voie ; planche 50',
+    ],
+    // 51. Laveline-devant-Bruyères (id 15041)
+    [
+        'station' => ['name' => 'Laveline-devant-Bruyères', 'uic' => '87144162'],
+        'action' => 'position',
+        'lng' => 6.7512453,
+        'lat' => 48.1856049,
+        'source_url' => $osm('n512070535'),
+        'quote' => 'Laveline-devant-Bruyères : lat = 48.1856049, lon = 6.7512453',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : ancien bâtiment voyageurs au passage à niveau, quai à 38 m ; la position retenue est dans les bois à l\'est ; groupe majoritaire : osm à 296 m, wikidata à 281 m (dispersion 15 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 1 m de la voie ; planche 51',
+    ],
+    // 55. Nanterre-Université (id 16047)
+    [
+        'station' => ['name' => 'Nanterre-Université', 'uic' => '87386318'],
+        'action' => 'position',
+        'lng' => 2.2134323,
+        'lat' => 48.9011561,
+        'source_url' => $osm('w386283983'),
+        'quote' => 'Gare de Nanterre - Université : lat = 48.9011561, lon = 2.2134323',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : bâtiment voyageurs et point OSM de la gare (13 m) ; la position retenue est 200 m à l\'est, sous la dalle ; réserve : quais non cartographiés dans OSM ; groupe majoritaire : osm à 206 m, bdtopo à 178 m, wikidata à 109 m (dispersion 98 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 5 m de la voie ; planche 55',
+    ],
+    // 57. Gros-Noyer-St-Prix (id 15564)
+    [
+        'station' => ['name' => 'Gros-Noyer-St-Prix', 'uic' => '87276592'],
+        'action' => 'position',
+        'lng' => 2.2595198,
+        'lat' => 48.9962878,
+        'source_url' => $osm('n90700748'),
+        'quote' => 'Gros Noyer - Saint-Prix : lat = 48.9962878, lon = 2.2595198',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : point OSM de la gare, quai voie 1 à 11 m ; la position retenue est 130 m au sud, après la fin des quais ; groupe majoritaire : osm à 132 m, bdtopo à 190 m, wikidata à 229 m (dispersion 99 m) ; familles d\'accord avec la position retenue : aucune ; proposée à 1 m de la voie ; planche 57',
+    ],
+    // 13. Bordeaux-Bastide (id 16844)
+    [
+        'station' => ['name' => 'Bordeaux-Bastide', 'uic' => '87581017'],
+        'action' => 'position',
+        'lng' => -0.562075,
+        'lat' => 44.8416245,
+        'source_url' => $osm('w219626597'),
+        'quote' => 'Gare de Bordeaux-Bastide : lat = 44.8416245, lon = -0.562075',
+        'reason' => 'relue le 21/11/2026 (après-midi) : ancienne gare d\'Orléans, quai des Queyries (article Gare de Bordeaux-Bastide, oldid 235030961, mêmes coordonnées que Wikidata) ; le point SNCF retenu est à Cenon, 2,7 km au nord-est, près de l\'origine de la ligne de Lormont à Bordeaux-Bastide ; groupe majoritaire : osm à 2670 m, wikidata à 2669 m ; planche 13',
+    ],
+    // 23. Angers-St-Serge (id 19450)
+    [
+        'station' => ['name' => 'Angers-St-Serge', 'uic' => '87484022'],
+        'action' => 'position',
+        'lng' => -0.5511239,
+        'lat' => 47.4776343,
+        'source_url' => 'https://www.openhistoricalmap.org/node/2130086691',
+        'quote' => 'Gare d\'Angers-Saint-Serge : lat = 47.4776343, lon = -0.5511239',
+        'reason' => 'relue le 21/11/2026 (après-midi) : gare rasée en 1992, place Saint-Serge (actuelle place François-Mitterrand), coordonnées de l\'article Gare d\'Angers-Saint-Serge (oldid 231419269) à 30 m ; le point SNCF retenu est 3,2 km au nord-est, sur les embranchements de Pomanjou le long de l\'A11 ; groupe majoritaire : ohm à 3164 m, wikidata à 3184 m ; planche 23',
+    ],
+
+    // 11 c. Relues : ni la retenue ni la proposée, position posée sur une autre source (2).
+    // 28. Saléchan-Siradan (id 17235)
+    [
+        'station' => ['name' => 'Saléchan-Siradan', 'uic' => '87618710'],
+        'action' => 'position',
+        'lng' => 0.6335163,
+        'lat' => 42.9586135,
+        'source_url' => $osm('n12862385491'),
+        'quote' => 'Saléchan - Siradan : lat = 42.9586135, lon = 0.6335163 ; note OSM : « Gare déplacée en 2025 de 500 mètres au sud de la ligne ferroviaire. »',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : la gare a été déplacée en 2025 à 500 m au sud (note de l\'objet OSM n12862385491, uic_ref 8761871, quai w1389278196) ; la position proposée (OSM w309136442) est l\'ancien bâtiment, désaffecté, et la position retenue est entre les deux, dans un champ ; position posée sur la halte en service ; planche 28',
+    ],
+    // 47. St-Sulpice (id 17211)
+    [
+        'station' => ['name' => 'St-Sulpice', 'uic' => '87615344'],
+        'action' => 'position',
+        'lng' => 1.6806679,
+        'lat' => 43.7750301,
+        'source_url' => $osm('w63891176'),
+        'quote' => 'Gare de Saint-Sulpice (building=train_station) : lat = 43.7750301, lon = 1.6806679 (centre du bâtiment)',
+        'reason' => 'orthophoto relue le 21/11/2026 (après-midi) : la position proposée (OHM n2134788832) tombe sur un bâtiment du parking, 65 m au sud du bâtiment voyageurs ; la position retenue est sur le faisceau, à 90 m ; position posée sur le bâtiment voyageurs d\'OSM (w63891176), à 30 m du point Wikidata ; planche 47',
+    ],
+
+    // 11 d. Règle de rang (G2), retenue pour 5 dates seulement : ouverture estimée par la ligne (ou absente) et
+    // Wikidata (P1619, rang normal, élément vérifié : c'est bien la gare) donne une date postérieure, cohérente
+    // avec l'article ou la ligne. Les autres dates de la règle restent en relecture (regle-rang.csv).
+    ...array_map(fn (array $g) => [
+        'station' => ['name' => $g[0], $g[1] => $g[2]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => $g[3],
+        'precision' => $g[4],
+        'source_url' => 'https://www.wikidata.org/wiki/'.$g[5].'#P1619',
+        'quote' => $g[6],
+        'reason' => $g[7],
+    ], [
+        // gare, clé, identifiant, date, précision, élément Wikidata, citation, raison
+        ['La Gorp', 'uic', '87584755', '1852-01-01', 'year', 'Q675874', 'date de mise en service (P1619) : 1852',
+            'ouverture estimée à 1840 par la ligne, antérieure à la section Bordeaux - Libourne (1852) ; Q675874 est bien la gare ; date de ligne, précision année'],
+        ['Les Clairières-de-Verneuil', 'uic', '87386664', '1974-05-01', 'month', 'Q3098151', 'date de mise en service (P1619) : mai 1974',
+            'ouverture estimée à 1843 par la ligne ; halte mise en service en mai 1974 (Wikidata, et infobox de l\'article Gare des Clairières de Verneuil, oldid 236348200)'],
+        ['Montauban-de-Bretagne', 'uic', '87471086', '1863-01-01', 'year', 'Q2270053', 'date de mise en service (P1619) : 1863',
+            'ouverture estimée à 1840 par la ligne ; 1863, ouverture de la section Rennes - Guingamp (l\'article Gare de Montauban-de-Bretagne, oldid 238688642, donne le 07/09/1863)'],
+        ['Raedersheim', 'uic', '87182717', '1841-01-01', 'year', 'Q631405', 'date de mise en service (P1619) : 1841',
+            'ouverture estimée à 1840 par la ligne, antérieure à la ligne de Strasbourg à Bâle (1841) ; Q631405 est bien la gare'],
+        ['Gare embarcadère de Sceaux', 'wikidata', 'Q96605529', '1846-01-01', 'year', 'Q3097699', 'date de mise en service (P1619) : 1846',
+            'aucune ouverture dans VFF ; mise en service en 1846 (Wikidata Q3097699, et infobox de l\'article Gare de Sceaux (ancienne), oldid 241389426)'],
+    ]),
+
+    // 11 e. Liens Wikidata faux (G2) : l'objet OHM de la gare porte le Q-id d'une autre gare (tag wikidata), la
+    // fiche le prenait. Défaits au rattachement des sources (vff:consolidate-stations, action « unlink ») ; les
+    // dates tirées de ces Q-id sont déjà retirées en 8 b.
+    [
+        'station' => ['name' => 'St-Vidal', 'uic' => '87731844'],
+        'action' => 'unlink',
+        'source' => 'wikidata',
+        'ref' => 'Q1891124',
+        'source_url' => 'https://www.wikidata.org/wiki/Q1891124',
+        'quote' => 'Le Puy-en-Velay, gare ferroviaire française',
+        'reason' => 'Q1891124 est la gare du Puy-en-Velay, à 8 km ; le tag vient de l\'objet OHM n2125740909 (Gare du Saint-Vidal)',
+    ],
+    [
+        'station' => ['name' => 'Néronde-sur-Dore', 'uic' => '87731653'],
+        'action' => 'unlink',
+        'source' => 'wikidata',
+        'ref' => 'Q13406478',
+        'source_url' => 'https://www.wikidata.org/wiki/Q13406478',
+        'quote' => 'Ambert, gare ferroviaire française',
+        'reason' => 'Q13406478 est la gare d\'Ambert, à 32 km ; le tag vient de l\'objet OHM n2135529387 (Halte de Néronde-sur-Dore)',
+    ],
+    // Même tag faux sur l'objet OHM de Courpière, relevé en vérifiant celui de Néronde-sur-Dore.
+    [
+        'station' => ['name' => 'Courpière', 'uic' => '87734525'],
+        'action' => 'unlink',
+        'source' => 'wikidata',
+        'ref' => 'Q13406478',
+        'source_url' => 'https://www.wikidata.org/wiki/Q13406478',
+        'quote' => 'Ambert, gare ferroviaire française',
+        'reason' => 'Q13406478 est la gare d\'Ambert, à 28 km ; le tag vient de l\'objet OHM n2135527207 (Gare de Courpière)',
+    ],
 ];

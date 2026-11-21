@@ -680,7 +680,7 @@
                     {/if}
                 </div>
 
-                <aside class="infobox" id="fiche" aria-labelledby="fiche-title">
+                <section class="infobox" id="fiche" aria-labelledby="fiche-title">
                     <h2 id="fiche-title">{t('lines.facts.title')}</h2>
                     <dl>
                         {#if names.length}
@@ -846,10 +846,10 @@
                             </dd>
                         </div>
                     </dl>
-                </aside>
+                </section>
                 {#if line.advocacy}
                     <!-- Campagne : après le texte et la fiche (sous le texte sur grand écran, après la fiche sur téléphone), jamais avant les faits. -->
-                    <aside
+                    <section
                         class={[
                             'advocacy',
                             line.advocacy.kind === 'reopening' ? 'reopening' : 'alert',
@@ -896,7 +896,7 @@
                                 {line.advocacy.cta_label || t('lines.act')}{@render ext()}
                             </a>
                         {/if}
-                    </aside>
+                    </section>
                 {/if}
             </div>
         </SheetSection>
@@ -1300,6 +1300,15 @@
     main {
         padding-bottom: var(--vff-section-space);
         background-color: var(--vff-bg);
+    }
+    /* Sections sous la carte (gares, profil, chronique…) : mises en page seulement quand elles approchent
+       de l'écran. Le rendu ne change pas ; la première mise en page de la fiche, qui couvrait ses 3 000
+       éléments, ne porte plus que le haut de la page. `auto` garde la hauteur réelle une fois vue. La marge
+       de découpe laisse passer les anneaux de focus au bord ; les notes, en bas, dépassent de 3 px. */
+    main :global(.sheet-section:not(#trace, #about, #notes)) {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 900px;
+        overflow-clip-margin: 16px;
     }
     .meta {
         font-family: var(--vff-font-heading);
@@ -1843,9 +1852,6 @@
         padding: 5px 6px;
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-xs);
-        text-decoration: none;
-    }
-    .st-what sup a:hover {
         text-decoration: underline;
     }
 

@@ -125,6 +125,8 @@ return [
             'profile_points' => 'Höhe Punkt für Punkt entlang der Strecke: geschätzter Streckenkilometer, Herkunft der Messung, Interpolation, Bauwerk und Lage, nach Streckenkilometer filterbar.',
             'altitude' => 'Höhe einer Strecke an einem Streckenkilometer.',
             'line_audit' => 'Prüfung der Abschnitte einer Strecke für eine Epoche: Einstufung, Lage, Genauigkeit und Verlauf jedes Abschnitts, mit Belegen; 50 Abschnitte pro Seite (limit bis 200, offset), Gesamtzahl in segments_total.',
+            'segment_audits' => 'Prüfung der Abschnitte des gesamten Netzes für eine Epoche, schlechteste zuerst; Filter nach Note, Kontrolle, Grund, Zustand, Département, Region, Strecke, Name; Sortierung, limit (bis 200), offset, total.',
+            'station_audits' => 'Prüfung der Bahnhöfe des gesamten Netzes: Lagenote, Abweichungen, Datumsnoten, fehlgeschlagene Kontrollen; Filter nach Note, Kontrolle, Département, Region, Strecke, Name; Sortierung, limit (bis 200), offset, total.',
             'line_materials' => 'Baureihen, die auf der Strecke verkehrt sind, jeweils mit der belegenden Quelle.',
             'media' => 'Fotos, Postkarten und Pläne zu einer Strecke, mit ihren Rechten.',
             'level_crossings' => 'Bahnübergänge des nationalen Schienennetzes laut SNCF Réseau: Klasse, Streckenkilometer, Gemeinde; filterbar nach Strecke, Art, Gemeinde oder Ausschnitt.',
@@ -178,7 +180,7 @@ return [
         'text' => 'Für umfangreichere Abfragen liefert ein einziger GraphQL-Endpunkt, POST /graphql, eine Strecke mit ihren Segmenten und Ereignissen auf einmal. Das Schema steht in der Referenz; Ihre Abfragen können Sie in GraphiQL ausprobieren.',
         'links' => 'GraphQL-Dokumentation',
         'example_comment' => 'Eine Strecke mit ihren Ereignissen',
-        'limits' => 'Jede Abfrage hat Kosten, die vor ihrer Ausführung berechnet werden: höchstens 5.000 Punkte und 15 Verschachtelungsebenen. Ein Feld zählt 1 Punkt, eine paginierte Liste multipliziert ihre Unterfelder mit first, eine Liste ohne Paginierung zählt sie für 10 Einträge, und ein Steckbrief, ein Höhenprofil, ein Strecken-Audit oder eine Route zählen 250 Punkte. Hundert Strecken mit ihrem Namen passen in eine Abfrage (301 Punkte), hundert Strecken-Steckbriefe nicht (25.301). Eine zu aufwendige Abfrage wird vor der Ausführung abgelehnt, mit dem Code query_too_complex (oder query_too_deep) und einer Meldung, was zu ändern ist. Die vollständige Bewertung steht in der GraphQL-Referenz beim Typ Query.',
+        'limits' => 'Jede Abfrage hat Kosten, die vor ihrer Ausführung berechnet werden: höchstens 5.000 Punkte und 15 Verschachtelungsebenen. Ein Feld zählt 1 Punkt, eine paginierte Liste multipliziert ihre Unterfelder mit first, eine Liste ohne Paginierung zählt sie für 10 Einträge, und ein Steckbrief, ein Höhenprofil, eine Abschnittsprüfung oder eine Route zählen 250 Punkte. Hundert Strecken mit ihrem Namen passen in eine Abfrage (301 Punkte), hundert Strecken-Steckbriefe nicht (25.301). Eine zu aufwendige Abfrage wird vor der Ausführung abgelehnt, mit dem Code query_too_complex (oder query_too_deep) und einer Meldung, was zu ändern ist. Die vollständige Punktetabelle steht in der GraphQL-Referenz beim Typ Query.',
     ],
 
     // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).
@@ -258,6 +260,8 @@ return [
             'level_crossings' => 'Bahnübergänge laut SNCF Réseau, nach Strecke, Art, Gemeinde oder Ausschnitt, mit Klasse und Streckenkilometer.',
             'line_profile' => 'Höhenprofil einer Strecke: Höhen entlang der Trasse, Anstieg und Gefälle, größte Neigung und Höhe der Bahnhöfe; zwischen zwei Kilometerpunkten die Punkt-für-Punkt-Referenz.',
             'line_audit' => 'Prüfung der Abschnitte einer Strecke für eine Epoche: Einstufung, Lage, Genauigkeit und Verlauf jedes Abschnitts, mit Belegen, in Seiten zu 50 Abschnitten (höchstens 200, offset für die nächste Seite).',
+            'segment_audits' => 'Prüfung der Abschnitte des gesamten Netzes für eine Epoche, schlechteste zuerst, gefiltert nach Note, Kontrolle, Grund, Zustand, Département, Region oder Strecke, in Seiten zu 50 (höchstens 200, offset für die nächste Seite).',
+            'station_audits' => 'Prüfung der Bahnhöfe des gesamten Netzes: Lagenote, Abweichungen, Daten und fehlgeschlagene Kontrollen, gefiltert nach Note, Département, Region oder Strecke, in Seiten zu 50 (höchstens 200, offset für die nächste Seite).',
             'line_greenways' => 'Bahntrassenradwege aus OpenStreetMap auf der früheren Trasse einer stillgelegten oder abgebauten Strecke, mit der auf der Trasse gemessenen Länge und der Quelle.',
             'line_archives' => 'In Gallica digitalisierte Dokumente, deren Titel eine Strecke nennt, mit Link zu Gallica, Datum, Art und Zuordnungswert.',
             'line_stories' => 'Geschichte eines Streckenereignisses: höchstens 5 Jahre entfernt datierte Bilder und Gallica-Dokumente aus der Zeit, jeweils mit Abstand in Jahren.',

@@ -141,3 +141,18 @@ servie directement, elle laisserait télécharger toute l'archive sans aucune li
 - `resources/js/lib/offlineMap.svelte.js` : `neutralMapStyle` rend le fond libre quand la page en décrit un.
 - `resources/js/pwa/` : le service worker garde chaque plage déjà lue sous sa propre clé
   (`basemapCacheKey`), la rend en 206 sans réseau, et garde les polices « cache d'abord ».
+
+## Images gardées hors ligne (service worker)
+
+Le même service worker garde les images des fiches déjà affichées, dans le cache `vff-images-v1` (réglages dans
+`resources/js/pwa/rules.js`) :
+
+- sont gardés les médias publiés par VFF (`/storage/media/…`) et les vignettes de Wikimedia Commons
+  (`thumb.wikimedia.org`, `upload.wikimedia.org`) ;
+- limites : 300 images au plus, 40 Mo en tout, 2 Mo chacune, 30 jours ; la plus ancienne part la première ;
+- jamais gardées : les images demandées par une page de compte, de contribution ou de validation (la page qui
+  demande l'image est vérifiée), les avatars, ni les documents de Gallica (lien seulement) ;
+- hors ligne, l'accueil garde ses 16 images du « Rail en images » sur 16 quand elles ont été vues en ligne.
+
+Le cache des images et celui du fond de carte ne changent pas à chaque déploiement : leurs noms portent un numéro de
+format, pas la version du site.

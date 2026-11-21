@@ -20,6 +20,17 @@ return [
      */
     'export_path' => 'api.json',
 
+    /*
+     * Cache de la spécification OpenAPI. Sans lui, /docs/api et /docs/api.json l'analysent à chaque
+     * requête (près de 3 s). En production : SCRAMBLE_CACHE_STORE=file, `php artisan scramble:cache` à chaque
+     * déploiement (et `scramble:clear` pour l'invalider). Sans la variable (développement, tests), rien
+     * n'est gardé : la documentation suit toujours le code.
+     */
+    'cache' => [
+        'key' => 'scramble.openapi',
+        'store' => env('SCRAMBLE_CACHE_STORE'),
+    ],
+
     'info' => [
         'version' => env('API_VERSION', '1.0.0'),
         // {limit.anonymous|member|partner} : limites de config/api.php, posées par App\Support\ApiAuthDocumentation.

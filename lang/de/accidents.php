@@ -323,7 +323,7 @@ return [
             'press' => 'Presse',
             'local_history' => 'Ortsgeschichte',
             'association' => 'Verein',
-            'encyclopedia' => 'Gemeinschaftliche Enzyklopädie',
+            'encyclopedia' => 'Gemeinschaftlich erstellte Enzyklopädie',
             'forum' => 'Forum, mit Vorsicht zu lesen',
         ],
         'access' => [

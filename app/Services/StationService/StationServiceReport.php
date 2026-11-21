@@ -3,6 +3,7 @@
 namespace App\Services\StationService;
 
 use App\Enums\StationStatus;
+use App\Support\CsvSafe;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -122,7 +123,7 @@ final class StationServiceReport
         $handle = fopen($path, 'wb') ?: throw new RuntimeException("Écriture impossible : {$path}");
         fputcsv($handle, $header, ',', '"', '');
         foreach ($lines as $line) {
-            fputcsv($handle, array_map(fn (string $column): string => (string) ($line[$column] ?? ''), $header), ',', '"', '');
+            fputcsv($handle, CsvSafe::row(array_map(fn (string $column): string => (string) ($line[$column] ?? ''), $header)), ',', '"', '');
         }
         fclose($handle);
 

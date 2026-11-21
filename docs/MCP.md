@@ -140,6 +140,8 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `level_crossings` | Passages à niveau publiés par SNCF Réseau (classe, PK, commune), par ligne, groupe, commune ou emprise, paginés. |
 | `line_profile` | Profil en long d'une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte, altitude des gares (IGN). |
 | `line_audit` | Audit des tronçons d'une ligne à une époque : classement, placement, exactitude et tracé de chaque tronçon, avec leurs preuves. |
+| `segment_audits` | Audit des tronçons de tout le réseau à une époque, les plus mal notés d'abord, filtrés par note, contrôle, raison, état, département, région, ligne ; paginés par `limit` et `offset`. |
+| `station_audits` | Audit des gares de tout le réseau : note de placement, écarts, notes des dates, contrôles en échec, filtrés par note, contrôle, département, région, ligne ; paginés par `limit` et `offset`. |
 | `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
 | `line_archives` | Documents numérisés dans Gallica (BnF) dont le titre désigne une ligne : titre, date et précision, type, auteurs, cote, lien vers Gallica, score de rattachement. |
 | `line_stories` | Histoire d'un événement d'une ligne : images de la ligne datées à 5 ans au plus et documents de Gallica de la période, chacun avec son écart en années. |
@@ -799,11 +801,62 @@ renvoie l'erreur `audit_not_computed`.
 Renvoie `line`, `era_year`, `audited_at`, `rule_version`, `grades` (classement, placement, exactitude, tracé),
 `worst_grade`, `score` (0 à 100), `shares` (part de la longueur par note), `line_checks` (longueur comparée à la
 longueur officielle, ordre des gares), `segments_total` (après le filtre `grade`), `limit`, `offset` et `segments` (une page, chacun avec ses notes et `evidence`, codes
-`reasons` stables) et `vff_url`. Codes de raisons récents : `on_other_line_track` (tronçon posé sur la voie d'une autre ligne alors que sa propre voie passe à 8 à 60 m), `shared_track` (tronc commun ou embranchement sur la voie de départ, sans voie propre : sûr), `confirmed_by_precise_source` (tracé confirmé par une voie BD TOPO ou OSM indépendante), `observation_outvoted` (une seule observation actuelle contre deux d'accord) et `continuous_service` (ère passée : ligne sans fin datée, tronçon sûr aujourd'hui). Attribution : SNCF Réseau et OpenStreetMap (ODbL), IGN (Licence Ouverte 2.0) pour
+`reasons` stables) et `vff_url`. Codes de raisons récents : `on_other_line_track` (tronçon posé sur la voie d'une autre ligne alors que sa propre voie passe à 8 à 60 m : sûr en service aujourd'hui, faux s'il est fermé, déposé ou à une ère passée), `shared_track` (tronc commun ou embranchement sur la voie de départ, sans voie propre : sûr), `confirmed_by_precise_source` (tracé confirmé par une voie BD TOPO ou OSM indépendante), `observation_outvoted` (une seule observation actuelle contre deux d'accord) et `continuous_service` (ère passée : ligne sans fin datée, tronçon sûr aujourd'hui). Attribution : SNCF Réseau et OpenStreetMap (ODbL), IGN (Licence Ouverte 2.0) pour
 les états observés cités dans les preuves.
 
 ```json
 {"line": "rfn-405000", "era": 2030, "grade": "poor"}
+```
+
+### `segment_audits` : audit des tronçons de tout le réseau
+
+Même contenu que `GET /api/v1/audits/segments` et que la requête GraphQL `segmentAudits` (service `NetworkAudits`) : les tronçons audités d'une ère, toutes lignes ensemble, les plus mal notés d'abord. Les preuves complètes d'un tronçon restent dans `line_audit`. Notes calculées par `vff:audit-segments` (`docs/AUDIT-TRONCONS.md`). Pas d'erreur pour une ère sans audit : `total` vaut 0.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `era` | entier 1830 à 2030 | non | Année de l'ère (2030 par défaut). |
+| `grade` | `good`, `fair`, `poor`, `unknown` | non | Note à garder : celle du contrôle `check`, ou la plus mauvaise des quatre sans `check`. |
+| `check` | `classification`, `placement`, `accuracy`, `trace` | non | Contrôle dont on filtre la note ; limite aussi `reason` à ce contrôle. |
+| `reason` | chaîne, 60 caractères au plus | non | Code de raison (`on_other_line_track`, `median_over_tolerance`, `source_contradicts`…). |
+| `status` | `in_service`, `single_track`, `service_track`, `construction`, `abandoned`, `dismantled`, `razed` | non | État du tronçon. |
+| `department` | code INSEE en majuscules | non | Tronçons des lignes qui passent dans ce département (liste : `list_departments`). |
+| `region` | code INSEE | non | Tronçons des lignes de la région. |
+| `line` | slug ou code à 6 chiffres | non | Une seule ligne. |
+| `q` | chaîne, 120 caractères au plus | non | Texte cherché dans le nom de la ligne, casse et accents ignorés. |
+| `sort` | `worst`, `length`, `line` | non | Tri : le plus mal noté d'abord (défaut), le plus long d'abord, code de ligne. |
+| `limit` | entier 1 à 200 | non | Nombre de tronçons au plus (50 par défaut). |
+| `offset` | entier, 0 ou plus | non | Rang du premier tronçon rendu (0 par défaut) ; page suivante : `offset + limit` tant que ce rang est inférieur à `total`. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `era_year`, `total` (après les filtres), `limit`, `offset` et `items` : par tronçon `line_slug`, `line_code`, `line_name`, `segment_id`, `status`, `traffic_type`, `trace_source`, `length_m`, `grades` (quatre notes), `worst_grade`, `score` (0 à 100), `reasons` (codes de chaque contrôle), `audited_at` ; puis `vff_url` et l'attribution. Une réponse trop volumineuse est raccourcie par la fin : `truncated.items` donne le nombre de tronçons retirés, reprendre à `offset + limit - truncated.items`.
+
+```json
+{"grade": "poor", "check": "placement", "department": "61", "limit": 20}
+```
+
+### `station_audits` : audit des gares de tout le réseau
+
+Même contenu que `GET /api/v1/audits/stations` et que la requête GraphQL `stationAudits` (service `NetworkAudits`) : les gares auditées par `vff:audit-stations` (`docs/AUDIT-GARES.md`), les plus éloignées de leurs sources d'abord. Une passe par gare, sans ère. Aucune coordonnée : le détail d'une gare (positions des sources redistribuables, dates candidates) est dans la clé `audit` de `get_station`.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `grade` | `agree`, `close`, `isolated`, `disagree`, `none` | non | Note de placement (toutes par défaut). |
+| `check` | code d'un contrôle croisé | non | Contrôle en échec (`far_from_track`, `wikidata_differs`, `closure_before_opening`, `outlier_source`…). |
+| `opening` | `sourced`, `estimated`, `unknown`, `not_applicable` | non | Note de la date d'ouverture. |
+| `closure` | `sourced`, `estimated`, `unknown`, `not_applicable` | non | Note de la date de fermeture. |
+| `department` | code INSEE en majuscules | non | Département de la gare. |
+| `region` | code INSEE | non | Région de la gare. |
+| `line` | slug ou code à 6 chiffres | non | Gares desservies par cette ligne. |
+| `q` | chaîne, 120 caractères au plus | non | Texte cherché dans le nom de la gare, casse et accents ignorés. |
+| `sort` | `spread`, `track`, `name` | non | Tri : écart à la source précise la plus éloignée (défaut), écart à la voie, nom. |
+| `limit` | entier 1 à 200 | non | Nombre de gares au plus (50 par défaut). |
+| `offset` | entier, 0 ou plus | non | Rang de la première gare rendue (0 par défaut) ; page suivante : `offset + limit` tant que ce rang est inférieur à `total`. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `total` (après les filtres), `limit`, `offset` et `items` : par gare `station_id`, `slug`, `name`, `department`, `region`, `status`, `position_source`, `placement_grade`, `families`, `nearest_agreeing_m`, `farthest_precise_m`, `track_offset_m`, `opening_grade`, `closure_grade`, `passenger`, `freight`, `checks`, `sources` ; puis `vff_url` et l'attribution. Raccourcissement : comme `segment_audits`.
+
+```json
+{"grade": "disagree", "region": "28", "limit": 20}
 ```
 
 ### `line_greenways` : voies vertes d'une ancienne ligne

@@ -89,6 +89,14 @@
                     path: '/api/v1/lines/{line}/audit?era={year}&limit={n}&offset={n}',
                     key: 'line_audit',
                 },
+                {
+                    path: '/api/v1/audits/segments?era={year}&grade={grade}&department={code}&limit={n}&offset={n}',
+                    key: 'segment_audits',
+                },
+                {
+                    path: '/api/v1/audits/stations?grade={grade}&department={code}&limit={n}&offset={n}',
+                    key: 'station_audits',
+                },
                 { path: '/api/v1/lines/{line}/materials', key: 'line_materials' },
                 { path: '/api/v1/lines/{line}/media', key: 'media' },
                 { path: '/api/v1/lines/{line}/greenways', key: 'line_greenways' },
@@ -189,6 +197,8 @@
         'level_crossings',
         'line_profile',
         'line_audit',
+        'segment_audits',
+        'station_audits',
         'line_greenways',
         'line_archives',
         'line_stories',
@@ -590,28 +600,28 @@ JSON`;
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{authCurl}</code></pre>
             <p class="caption">{$i18n.t('api.auth.response_caption')}</p>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{authResponse}</code></pre>
             <p class="caption">{$i18n.t('api.auth.js_caption')}</p>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{authJs}</code></pre>
             <p class="caption">{$i18n.t('api.auth.py_caption')}</p>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{authPy}</code></pre>
         </SectionBlock>
@@ -643,7 +653,7 @@ JSON`;
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{webhookPayload}</code></pre>
             <p class="caption">{$i18n.t('api.webhooks.payload_intro')}</p>
@@ -663,14 +673,14 @@ JSON`;
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{webhookJs}</code></pre>
             <p class="caption">{$i18n.t('api.webhooks.py_caption')}</p>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{webhookPy}</code></pre>
 
@@ -721,28 +731,28 @@ JSON`;
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{curlExample}</code></pre>
             <p class="caption">{$i18n.t('api.example.js_caption')}</p>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{jsExample}</code></pre>
             <p class="caption">{$i18n.t('api.example.py_caption')}</p>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{pyExample}</code></pre>
             <p class="caption">{$i18n.t('api.example.response')}</p>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{responseExample}</code></pre>
         </SectionBlock>
@@ -755,13 +765,13 @@ JSON`;
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{graphqlExample}</code></pre>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{graphqlCurl}</code></pre>
             <p>{$i18n.t('api.graphql.limits')}</p>
@@ -791,14 +801,14 @@ JSON`;
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{contributeCurl}</code></pre>
             <p class="caption">{$i18n.t('api.contribute.response_caption')}</p>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{contributeResponse}</code
                 ></pre>
@@ -808,7 +818,7 @@ JSON`;
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{mediaCurl}</code></pre>
 
@@ -817,7 +827,7 @@ JSON`;
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{materialCurl}</code></pre>
 
@@ -826,7 +836,7 @@ JSON`;
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{reviewCurl}</code></pre>
 
@@ -837,7 +847,7 @@ JSON`;
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{contributeError}</code></pre>
             <ul class="endpoints tools" aria-labelledby="contribute-errors">
@@ -889,14 +899,14 @@ JSON`;
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{mcpCli}</code></pre>
             <p class="caption">{$i18n.t('api.mcp.install_config')}</p>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (zone défilable : atteignable au clavier) -->
             <pre
                 class="code"
-                role="region"
+                role="group"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{mcpConfig}</code></pre>
             <p class="caption">{$i18n.t('api.mcp.install_relay')}</p>

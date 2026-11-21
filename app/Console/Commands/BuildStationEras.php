@@ -538,7 +538,8 @@ class BuildStationEras extends Command
     private function canonicalEvents(array $evs, array $hints = []): array
     {
         // Fermetures des sources en masse contredites par la desserte actuelle, puis « fermeture »
-        // Wikidata d'une gare fret seul = fin des voyageurs (StationTimeline, règles du 2026-10-20).
+        // Wikidata d'une gare fret seul, ou d'une gare dont le fret a continué plus tard, = fin des voyageurs
+        // (StationTimeline, règles du 2026-10-20 et du 2026-11-21).
         $evs = StationTimeline::dropContradictedClosures($evs, $hints['served_seen'] ?? null);
         $evs = StationTimeline::massClosureAsPassenger($evs, (bool) ($hints['freight_today'] ?? false));
         $explicit = array_values(array_filter($evs, fn ($e) => ! $e['inferred']));
@@ -704,7 +705,13 @@ class BuildStationEras extends Command
             ORDER BY x.station_id, x.event_date DESC, x.id
         SQL);
         // g. Gare rouverte (réouverture connue) sans fermeture antérieure connue :
-        //    dernière fermeture de ses lignes (aux voyageurs ou totale) avant la réouverture.
+        //    dernière fermeture de ses lignes (aux voyageurs ou totale) avant la réouverture,
+        //    seulement si TOUTES ses lignes sont fermées avant cette réouverture (même règle que e,
+        //    lignes rattachées par leur terminus mises à part). Une seule ligne fermée ne ferme pas
+        //    une gare de bifurcation : Orléans, « rouverte » en 2007 (nouveau bâtiment, Wikidata P1619),
+        //    était fermée de 1969 à 2007 par la fin des voyageurs des Aubrais - Malesherbes (683000)
+        //    alors que Paris - Bordeaux la dessert ; Bellegarde de même par La Cluse - Bellegarde (884000).
+        $coverG = str_replace(['le.', 'sl.pk_m'], ['lg.', 'slg.pk_m'], $cover);
         $g = DB::affectingStatement(<<<SQL
             INSERT INTO station_events (station_id, type, event_date, date_precision, source, source_ref, source_url, is_inferred, note, created_at, updated_at)
             SELECT DISTINCT ON (s.id) s.id, 'closure_passenger', le.event_date, le.date_precision, 'inferred:line_event', 'line_event:'||le.id,
@@ -717,6 +724,10 @@ class BuildStationEras extends Command
              AND le.event_date < r.event_date AND {$cover}
             WHERE NOT EXISTS (SELECT 1 FROM station_events x WHERE x.station_id = s.id
                               AND x.type IN ('closure', 'closure_passenger', 'demolition') AND x.event_date < r.event_date)
+              AND NOT EXISTS (SELECT 1 FROM station_lines slg WHERE slg.station_id = s.id
+                              AND slg.method NOT IN ('terminus_name', 'terminus_reviewed')
+                              AND NOT EXISTS (SELECT 1 FROM line_events lg WHERE lg.line_id = slg.line_id
+                                              AND lg.type IN ('closure_passenger', 'closure') AND lg.event_date < r.event_date AND {$coverG}))
             ORDER BY s.id, le.event_date DESC, {$sameDay}
             ON CONFLICT DO NOTHING
         SQL);
@@ -907,7 +918,8 @@ class BuildStationEras extends Command
         $stations = DB::table('stations')->get(['id', 'closed_at', 'closed_precision', DB::raw("provenance->>'kind' AS kind"),
             DB::raw("provenance->>'closed_at' AS src"), DB::raw("provenance->>'closed_after' AS after"), 'source_status', 'status']);
         // Mêmes règles que la chronologie (canonicalEvents) : fermeture en masse contredite par la desserte
-        // actuelle, « fermeture » Wikidata d'une gare fret seul = fin des voyageurs (Layrac 1970).
+        // actuelle, « fermeture » Wikidata d'une gare fret seul = fin des voyageurs (Layrac 1970), de même
+        // quand une source plus sûre date le fret plus tard (Livarot 1938 / 1990).
         $evidence = $this->currentEvidence();
         $manual = fn ($st) => $st->closed_at !== null && ($st->src === null || in_array($st->src, ['manual', 'contribution'], true));
         foreach ($stations as $st) {

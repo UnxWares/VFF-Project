@@ -23,7 +23,7 @@ return [
     'check_help' => [
         'classification' => 'Zustand des Abschnitts (in Betrieb, nur Güterverkehr, stillgelegt, abgebaut …) im Vergleich mit datierten Quellen.',
         'placement' => 'Abstand der gezeichneten Linie zum tatsächlichen Gleis: Ziel :target m, Toleranz :tolerance m.',
-        'accuracy' => 'Anschlüsse ohne Lücke, keine Knicke, kein Hin und Zurück, keine Lücken, Bahnhöfe entlang der Strecke.',
+        'accuracy' => 'Anschlüsse ohne Versatz, keine Knicke, keine Umkehrungen, keine Lücken, Bahnhöfe entlang der Strecke.',
         'trace' => 'Für die Zeichnung verwendete Quelle und ihre bekannte Genauigkeit.',
     ],
     'grades' => [
@@ -39,7 +39,7 @@ return [
         'construction' => 'Im Bau',
         'abandoned' => 'Stillgelegt, Gleis vorhanden',
         'dismantled' => 'Abgebaut',
-        'razed' => 'Überbaut',
+        'razed' => 'Trasse beseitigt',
     ],
     'traffic' => [
         'passenger' => 'Personenverkehr',
@@ -129,8 +129,8 @@ return [
         'distances' => 'Median :median m, 95. Perzentil :p95 m, :coverage % der Punkte innerhalb von :radius m',
         'same_source' => 'dieselbe Quelle wie der Verlauf',
         'turn' => 'stärkste Richtungsänderung: :deg°',
-        'hairpins_one' => ':shown Hin und Zurück',
-        'hairpins_other' => ':shown Hin und Zurück',
+        'hairpins_one' => ':shown Umkehrung',
+        'hairpins_other' => ':shown Umkehrungen',
         'kinks_one' => ':shown Knick',
         'kinks_other' => ':shown Knicke',
         'junction_gap' => ':m m Abstand zu :line',

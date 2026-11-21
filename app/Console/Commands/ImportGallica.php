@@ -7,6 +7,7 @@ use App\Services\Archives\CatalogueSruClient;
 use App\Services\Archives\GallicaImporter;
 use App\Services\Archives\LinePlaceIndex;
 use App\Services\Archives\LinePlaces;
+use App\Support\CsvSafe;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
@@ -121,8 +122,8 @@ class ImportGallica extends Command
         }
         fputcsv($out, ['accepted', 'line', 'line_name', 'score', 'reasons', 'rejected', 'places', 'year', 'date', 'type', 'title', 'gallica_ark'], escape: '');
         foreach ($rows as $r) {
-            fputcsv($out, [$r['accepted'] ? 'oui' : 'non', $r['line'], $r['line_name'], $r['score'], $r['reasons'], $r['rejected'],
-                $r['places'], $r['year'], $r['date'], $r['type'], $r['title'], $r['gallica_ark']], escape: '');
+            fputcsv($out, CsvSafe::row([$r['accepted'] ? 'oui' : 'non', $r['line'], $r['line_name'], $r['score'], $r['reasons'], $r['rejected'],
+                $r['places'], $r['year'], $r['date'], $r['type'], $r['title'], $r['gallica_ark']]), escape: '');
         }
         fclose($out);
     }

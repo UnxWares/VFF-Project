@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Services\LineMerger;
 use App\Services\PlaceNames;
+use App\Support\CsvSafe;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -1093,7 +1094,7 @@ class MergeSplitLines extends Command
         $fh = fopen($path, 'w');
         fputcsv($fh, ['phase', 'decision', 'line_id', 'line_name', 'target_id', 'target_name', 'target_code', 'detail']);
         foreach ($this->rows as $r) {
-            fputcsv($fh, [$r['phase'], $r['decision'], $r['line_id'], $r['line_name'], $r['target_id'], $r['target_name'], $r['target_code'], $r['detail']]);
+            fputcsv($fh, CsvSafe::row([$r['phase'], $r['decision'], $r['line_id'], $r['line_name'], $r['target_id'], $r['target_name'], $r['target_code'], $r['detail']]));
         }
         fclose($fh);
         $counts = [];

@@ -496,7 +496,8 @@
         padding: 5px 6px;
         color: var(--vff-link);
         font-size: var(--vff-fs-xs);
-        text-decoration: none;
+        /* Soulignée : un lien noyé dans du texte ne se distingue pas par la seule couleur (RGAA 10.6). */
+        text-decoration: underline;
     }
     .vff-badge {
         white-space: normal;

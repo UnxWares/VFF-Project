@@ -114,7 +114,9 @@ class StationTimelineRulesTest extends TestCase
 
         $this->assertSame(T::FREIGHT, T::statusFromEvents($events, 1960, false), 'une suite est connue : la gare existe encore');
         $this->assertSame(T::CLOSED, T::statusFromEvents($events, 1980, true));
-        $this->assertSame(T::CLOSED, T::statusFromEvents($events, 1980, false));
+        // Plus aucun trafic après la fin du fret : comme une fermeture totale, une gare disparue sort de la carte
+        // (règle du 21/11/2026 ; avant, elle restait « fermée » à toutes les ères suivantes).
+        $this->assertNull(T::statusFromEvents($events, 1980, false));
     }
 
     public function test_passenger_closure_followed_by_a_reopening_keeps_the_station(): void

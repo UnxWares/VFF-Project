@@ -112,6 +112,22 @@ class StationCorrectionsTest extends TestCase
         $this->assertNotEmpty(StationCorrections::validate(array_merge($ok, ['action' => 'kind', 'kind' => 'technical'])));
     }
 
+    public function test_unlink_corrections_are_validated_and_listed_for_the_consolidation(): void
+    {
+        $ok = ['station' => ['name' => 'St-Vidal', 'uic' => '87731844'], 'action' => 'unlink', 'source' => 'wikidata', 'ref' => 'Q1891124',
+            'source_url' => 'https://www.wikidata.org/wiki/Q1891124', 'reason' => 'Q1891124 est la gare du Puy-en-Velay'];
+        $this->assertSame([], StationCorrections::validate($ok));
+        $this->assertNotEmpty(StationCorrections::validate(array_merge($ok, ['source' => 'osm'])));
+        $this->assertNotEmpty(StationCorrections::validate(array_merge($ok, ['ref' => '1891124'])));
+        $this->assertNotEmpty(StationCorrections::validate(array_merge($ok, ['ref' => null])));
+        // La consolidation lit les sources, pas les gares : un nom seul ou une position ne suffisent pas.
+        $this->assertNotEmpty(StationCorrections::validate(array_merge($ok, ['station' => ['name' => 'St-Vidal', 'near' => [3.8, 45.07, 1]]])));
+        $this->assertSame([], StationCorrections::validate(array_merge($ok, ['station' => ['name' => 'St-Vidal', 'osm' => 'n1']])));
+
+        $corrections = new StationCorrections([$ok, array_merge($ok, ['ref' => 'bad']), ['action' => 'kind'] + $ok + ['kind' => 'excluded']]);
+        $this->assertSame([['name' => 'St-Vidal', 'uic' => '87731844', 'osm' => null, 'source' => 'wikidata', 'ref' => 'Q1891124']], $corrections->unlinks());
+    }
+
     public function test_corrections_are_applied_idempotently_and_target_one_station(): void
     {
         $a = $this->station('Commequiers', 6.60, ['sncf' => ['disused', false, false]], 'declassified', '87486548');
