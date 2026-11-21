@@ -328,13 +328,13 @@
                     </tbody>
                 </DirectoryTable>
                 {#if showInferredNote || showUndatedNote || showStatusNote}
-                    <aside class="notes" aria-label={$i18n.t('stations.notes_title')}>
+                    <section class="notes" aria-label={$i18n.t('stations.notes_title')}>
                         <ul>
                             {#if showInferredNote}<li>{$i18n.t('stations.note_inferred')}</li>{/if}
                             {#if showUndatedNote}<li>{$i18n.t('stations.note_undated')}</li>{/if}
                             {#if showStatusNote}<li>{$i18n.t('stations.note_statuses')}</li>{/if}
                         </ul>
-                    </aside>
+                    </section>
                 {/if}
             {:else}
                 <EmptyState

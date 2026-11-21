@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\StationCorrections;
 use App\Services\StationTimeline;
 use App\Support\StationNames;
 use Illuminate\Console\Command;
@@ -34,6 +35,10 @@ use Illuminate\Support\Str;
  * Wikidata (sans « Gare de ») > OHM ; dates = meilleure précision puis
  * Wikidata > OHM > OSM. Écart de position > 100 m entre sources → signalé
  * (stations.position_flagged).
+ *
+ * Liens défaits (database/data/gares_corrections.php, action « unlink ») : une gare visée par son UIC
+ * ou son objet OSM ne prend pas le Q-id désigné (tag wikidata d'un objet OHM posé sur une autre gare),
+ * et l'élément Wikidata de ce Q-id ne la rejoint pas ; les objets qui portent le tag restent rattachés.
  *
  * Idempotent : une gare garde son id et son slug d'une exécution à l'autre
  * (via station_sources.station_id). --fresh repart de zéro (efface les gares,
@@ -71,7 +76,13 @@ class ConsolidateStations extends Command
     /** @var array<string, array<int, array{0: int, 1: int}>> cellule → [clusterId, recIdx] */
     private array $grid = [];
 
-    public function handle(): int
+    /** @var list<array{name: string, uic: ?string, osm: ?string, source: string, ref: string}> liens défaits (StationCorrections) */
+    private array $unlinks = [];
+
+    /** @var array<int, int> liens défaits : n° → objets sources qui désignent la gare */
+    private array $unlinkHits = [];
+
+    public function handle(StationCorrections $corrections): int
     {
         ini_set('memory_limit', '2G');
         // L'instance de la commande est réutilisée d'un appel à l'autre dans un même
@@ -80,6 +91,8 @@ class ConsolidateStations extends Command
         $this->recs = [];
         $this->clusters = [];
         $this->grid = [];
+        $this->unlinks = $corrections->unlinks();
+        $this->unlinkHits = array_fill(0, count($this->unlinks), 0);
         $this->loadRecords();
         $this->info(count($this->recs).' objets sources');
 
@@ -114,7 +127,7 @@ class ConsolidateStations extends Command
                 }
                 if ($cid === null) {
                     $cid = count($this->clusters);
-                    $this->clusters[$cid] = ['members' => [], 'sources' => [], 'names' => [], 'uic' => null, 'qid' => null, 'active' => false];
+                    $this->clusters[$cid] = ['members' => [], 'sources' => [], 'names' => [], 'uic' => null, 'qid' => null, 'active' => false, 'unlinked' => [], 'unlink_keys' => []];
                     [$method, $dist] = ['seed', 0];
                 }
                 $this->attach($cid, $i, $method, $dist);
@@ -125,6 +138,12 @@ class ConsolidateStations extends Command
         ksort($bySource);
         foreach ($bySource as $k => $v) {
             $this->line("  {$k} : {$v}");
+        }
+        foreach ($this->unlinks as $k => $u) {
+            $hit = array_values(array_filter($this->clusters, fn ($c) => isset($c['unlink_keys'][$k])));
+            $line = sprintf('  lien défait %s / %s %s : %d gare(s)%s', $u['name'], $u['source'], $u['ref'], count($hit),
+                $hit ? ' ('.implode(', ', array_map(fn ($c) => $this->recs[$c['members'][0]]->name.', Q-id retenu : '.($c['qid'] ?? 'aucun'), $hit)).')' : '');
+            $this->unlinkHits[$k] === 0 ? $this->warn($line.' : gare introuvable dans les sources') : $this->line($line);
         }
         if ($this->option('dry-run')) {
             return self::SUCCESS;
@@ -165,8 +184,32 @@ class ConsolidateStations extends Command
                 array_map([StationNames::class, 'normalize'], $r->props['aliases'] ?? []),
                 array_map([StationNames::class, 'normalize'], array_filter([$r->props['old_name'] ?? null, $r->props['official_name'] ?? null, $r->props['uic_name'] ?? null])),
             ))));
+            $r->unlink = $this->unlinksOf($r);
             $this->recs[] = $r;
         }
+    }
+
+    /**
+     * Q-id à ignorer pour la gare que désigne cet objet (action « unlink » : UIC sur 7 chiffres ou objet OSM,
+     * et nom de la correction parmi les noms de l'objet).
+     *
+     * @return array<string, true>
+     */
+    private function unlinksOf(object $r): array
+    {
+        $out = [];
+        $r->unlinkKeys = [];
+        foreach ($this->unlinks as $k => $u) {
+            $byId = ($u['uic'] !== null && $r->uic7 !== null && $r->uic7 === substr($u['uic'], 0, 7))
+                || ($u['osm'] !== null && $r->source === 'osm' && $r->source_ref === $u['osm']);
+            if ($byId && in_array(StationNames::normalize($u['name']), $r->names, true)) {
+                $out[$u['ref']] = true;
+                $r->unlinkKeys[$k] = true;
+                $this->unlinkHits[$k]++;
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -260,6 +303,10 @@ class ConsolidateStations extends Command
             return false;
         }
         if ($r->source === 'wikidata' && isset($c['sources']['wikidata']) && ! ($sim >= 0.85 && $d <= 100)) {
+            return false;
+        }
+        // Lien défait (action « unlink ») : l'élément Wikidata est celui d'une autre gare.
+        if ($r->source === 'wikidata' && isset($c['unlinked'][$r->source_ref])) {
             return false;
         }
         // UIC différents : gares distinctes, sauf homonymes à ≤ 500 m (code RATP
@@ -380,7 +427,22 @@ class ConsolidateStations extends Command
         }
         $c['names'] = array_values(array_unique($c['names']));
         $c['uic'] ??= $r->uic7;
-        $c['qid'] ??= $r->qid;
+        $c['unlinked'] = ($c['unlinked'] ?? []) + $r->unlink;
+        $c['unlink_keys'] = ($c['unlink_keys'] ?? []) + $r->unlinkKeys;
+        if ($r->qid !== null && ! isset($c['unlinked'][$r->qid])) {
+            $c['qid'] ??= $r->qid;
+        }
+        if ($c['qid'] !== null && isset($c['unlinked'][$c['qid']])) {
+            // Lien défait connu après coup (l'objet qui désigne la gare arrive après celui qui porte le tag).
+            $c['qid'] = null;
+            foreach ($c['members'] as $m) {
+                $q = $this->recs[$m]->qid;
+                if ($q !== null && ! isset($c['unlinked'][$q])) {
+                    $c['qid'] = $q;
+                    break;
+                }
+            }
+        }
         $isActive = (in_array($r->source, ['sncf', 'sncf_voyageurs'], true) && ($r->passenger || $r->freight)) || ($r->source === 'osm' && $r->lifecycle === 'active');
         $c['active'] = $c['active'] || $isActive;
         $c['closed_only'] = ! $c['active'] && collect($c['members'])->every(fn ($m) => in_array($this->recs[$m]->lifecycle, self::CLOSED_STATES, true));
@@ -638,7 +700,8 @@ class ConsolidateStations extends Command
         if ($uic) {
             $prov['uic_code'] = $sncf ? 'sncf' : ($sncfV ? 'sncf_voyageurs' : ($wd?->uic_code ? 'wikidata' : 'osm'));
         }
-        $qid = $wd?->wikidata_id ?? collect($members)->pluck('qid')->filter()->first();
+        // Q-id d'un lien défait (action « unlink ») ignoré : tag posé sur l'objet d'une autre gare.
+        $qid = $wd?->wikidata_id ?? collect($members)->pluck('qid')->filter(fn ($q) => $q && ! isset($c['unlinked'][$q]))->first();
         if ($qid) {
             $prov['wikidata_id'] = $wd ? 'wikidata' : 'osm';
         }

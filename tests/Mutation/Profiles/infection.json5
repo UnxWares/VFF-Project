@@ -1,0 +1,21 @@
+// Tests de mutation (Infection) du profil en long : app/Services/Profiles.
+//   bin/php vendor/bin/infection -c tests/Mutation/Profiles/infection.json5 --threads=4 --only-covering-test-cases --filter=Services/Profiles/ProfileOrientation.php
+// 4 threads maximum, sous flock /tmp/claude-1000/vff-check.lock. Base : VFF_TEST_DB=vff_<sujet>_test.
+// Rapports : storage/app/reports/infection/profiles/.
+{
+    "source": {
+        "directories": ["../../../app"],
+        "excludes": ["#^(?!Services/Profiles/[A-Za-z]+\\.php$)#"]
+    },
+    "phpUnit": {"configDir": "."},
+    "initialTestsPhpOptions": "-d pcov.enabled=1",
+    "threads": 4,
+    "timeout": 60,
+    "tmpDir": "../../../storage/app/reports/infection/profiles/tmp",
+    "logs": {
+        "text": "../../../storage/app/reports/infection/profiles/infection.log",
+        "json": "../../../storage/app/reports/infection/profiles/infection.json",
+        "summary": "../../../storage/app/reports/infection/profiles/summary.log"
+    },
+    "mutators": {"@default": true, "ProtectedVisibility": false}
+}

@@ -284,12 +284,12 @@
                         {/each}
                     </tbody>
                 </DirectoryTable>
-                <aside class="notes" aria-label={$i18n.t('accidents.index.notes_title')}>
+                <section class="notes" aria-label={$i18n.t('accidents.index.notes_title')}>
                     <ul>
                         <li>{$i18n.t('accidents.index.note_toll')}</li>
                         {#if showReviewNote}<li>{$i18n.t('accidents.index.note_review')}</li>{/if}
                     </ul>
-                </aside>
+                </section>
             {:else}
                 <EmptyState
                     icon="bi-search"

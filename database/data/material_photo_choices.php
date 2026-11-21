@@ -83,4 +83,16 @@ return [
         'found_in' => 'commons:Category:Charentaise railcars',
         'shows' => 'la Pauline prototype du Midi en ligne, de trois quarts, en 1931 (domaine public)',
     ],
+    [
+        'material' => 'Q125839929', // État 140-908 à 140-955
+        'file' => 'Bavarian G 4-5 H locomotive at Camp Williams, Is-sur-Tille, France, 9 June 1919 (111-SC-159688).jpg',
+        'found_in' => 'commons:Bavarian G 4-5 H locomotive (recherche par titre)',
+        'shows' => 'une G 4/5 H bavaroise (n° 5637), du type des 140-908 à 140-955, de trois quarts au camp Williams d\'Is-sur-Tille le 9 juin 1919, livrée au titre de l\'armistice (domaine public, US Army Signal Corps) ; réserve : ce n\'est pas une des 48 machines passées à l\'État',
+    ],
+    [
+        'material' => 'Q112686775', // Weidknecht C1t TA
+        'file' => 'Tramway de l\'Artois - Train d\'inauguration - Locomotive Weidknecht, Serie A1 a A3 (Collection J.-H. Renaud, FACS N° 77, 1966).webp',
+        'found_in' => 'commons:Category:Tramways de l\'Artois Class A1',
+        'shows' => 'une Weidknecht A1 à A3 en tête du train d\'inauguration de Béthune - Estaires, reproduction d\'un cliché ancien (domaine public) ; réserve : image granuleuse, vapeur devant la cabine, numéro illisible',
+    ],
 ];

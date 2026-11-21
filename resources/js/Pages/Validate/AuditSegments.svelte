@@ -217,7 +217,7 @@
                         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
                         <div
                             class="vff-table-wrap"
-                            role="region"
+                            role="group"
                             aria-labelledby="audit-summary-caption"
                             tabindex="0"
                         >
