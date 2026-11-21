@@ -1301,6 +1301,15 @@
         padding-bottom: var(--vff-section-space);
         background-color: var(--vff-bg);
     }
+    /* Sections sous la carte (gares, profil, chronique…) : mises en page seulement quand elles approchent
+       de l'écran. Le rendu ne change pas ; la première mise en page de la fiche, qui couvrait ses 3 000
+       éléments, ne porte plus que le haut de la page. `auto` garde la hauteur réelle une fois vue. La marge
+       de découpe laisse passer les anneaux de focus au bord ; les notes, en bas, dépassent de 3 px. */
+    main :global(.sheet-section:not(#trace, #about, #notes)) {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 900px;
+        overflow-clip-margin: 16px;
+    }
     .meta {
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-sm);

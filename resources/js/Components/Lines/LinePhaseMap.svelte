@@ -4,6 +4,7 @@
     import { page, router } from '@inertiajs/svelte';
     import { loadMaplibre } from '$lib/loadMaplibre.js';
     import { loadLinePortions } from '$lib/linePortions.js';
+    import { whenNear } from '$lib/whenNear.js';
     import { i18n } from '$lib/i18n.js';
     import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
     import { theme } from '$lib/stores/theme.svelte.js';
@@ -141,14 +142,20 @@
         base * 2.4,
     ];
 
-    // MapLibre (1 Mo) chargé après l'affichage de la fiche : le texte ne l'attend plus.
+    // MapLibre (1 Mo) chargé après l'affichage de la fiche : le texte ne l'attend plus. Il ne démarre que
+    // quand la carte entre à l'écran ou à la première interaction (lib/whenNear.js) : sur téléphone, la
+    // carte est sous la ligne de flottaison et ses tâches longues ne bloquent plus l'ouverture. Le tracé,
+    // simple lecture réseau, part tout de suite.
     let destroyed = false;
+    /** @type {{ cancel: () => void } | null} */
+    let near = null;
 
     onMount(async () => {
-        const [maplibregl, lineworks] = await Promise.all([
-            loadMaplibre(),
-            loadLinePortions(portionsUrl).catch(() => null),
-        ]);
+        const lineworksRequest = loadLinePortions(portionsUrl).catch(() => null);
+        near = whenNear(mapContainer);
+        await near.promise;
+        if (destroyed) return;
+        const [maplibregl, lineworks] = await Promise.all([loadMaplibre(), lineworksRequest]);
         if (destroyed || !mapContainer) return;
         if (!lineworks) {
             failed = true;
@@ -330,6 +337,7 @@
 
     onDestroy(() => {
         destroyed = true;
+        near?.cancel();
         releasePartialMap?.();
         map?.remove();
         map = null;
