@@ -346,4 +346,82 @@ class ProfileStatsTest extends TestCase
         $this->assertNull($stats['max_grade_permil']);
         $this->assertSame('terrain_only', $stats['max_grade_withheld']);
     }
+
+    public function test_terrain_noise_is_smoothed_before_the_climbs_are_added_up(): void
+    {
+        // Ligne plate sur le terrain : le modèle de terrain monte et descend de 8 m d'un point à
+        // l'autre (talus, versant voisin). Sans lissage, l'hystérésis de 3 m compterait chaque bosse.
+        $points = self::series(20000, fn (int $d): float => 100.0 + (intdiv($d, 100) % 2 === 0 ? 0.0 : 8.0));
+        $terrain = array_fill(0, count($points), ['track' => false, 'tunnel' => false, 'interpolated' => false]);
+
+        $raw = ProfileStats::summarize($points);
+        $smoothed = ProfileStats::summarize($points, [], $terrain);
+
+        $this->assertNotNull($raw);
+        $this->assertNotNull($smoothed);
+        $this->assertGreaterThan(700.0, $raw['ascent_m']);
+        $this->assertLessThanOrEqual(5.0, $smoothed['ascent_m']);
+        $this->assertLessThanOrEqual(5.0, $smoothed['descent_m']);
+        // Les altitudes extrêmes restent celles des points.
+        $this->assertSame(108.0, $smoothed['max_altitude_m']);
+    }
+
+    public function test_a_real_climb_on_the_terrain_is_kept_whole(): void
+    {
+        // Montée régulière de 1 250 m sur 9 km (chemin de fer du Revard) : la moyenne centrée, rétrécie
+        // aux deux bouts, garde toute la montée.
+        $points = self::series(9000, fn (int $d): float => 260.0 + 0.139 * $d);
+        $terrain = array_fill(0, count($points), ['track' => false, 'tunnel' => false, 'interpolated' => false]);
+
+        $stats = ProfileStats::summarize($points, [], $terrain);
+
+        $this->assertNotNull($stats);
+        $this->assertEqualsWithDelta(1251.0, $stats['ascent_m'], 3.0);
+        $this->assertSame(0.0, $stats['descent_m']);
+    }
+
+    public function test_track_heights_are_not_smoothed(): void
+    {
+        // Même série en dents de scie, mais mesurée sur la voie : les dénivelés ne changent pas.
+        $points = self::series(5000, fn (int $d): float => 100.0 + (intdiv($d, 100) % 2 === 0 ? 0.0 : 8.0));
+        $track = array_fill(0, count($points), ['track' => true, 'tunnel' => false, 'interpolated' => false]);
+
+        $this->assertSame(ProfileStats::summarize($points)['ascent_m'] ?? null, ProfileStats::summarize($points, [], $track)['ascent_m'] ?? null);
+        $this->assertSame($points, ProfileStats::smoothTerrain($points, [], $track));
+    }
+
+    public function test_terrain_smoothing_does_not_reach_across_a_gap(): void
+    {
+        // Deux morceaux à 100 m et 600 m d'altitude, séparés par une lacune : chaque morceau reste à
+        // son altitude, la moyenne ne mélange pas les deux côtés.
+        $points = array_merge(
+            self::series(2000, fn (int $d): float => 100.0),
+            array_map(fn (array $p): array => [$p[0] + 5000.0, 600.0], self::series(2000, fn (int $d): float => 600.0)),
+        );
+        $terrain = array_fill(0, count($points), ['track' => false, 'tunnel' => false, 'interpolated' => false]);
+
+        $smoothed = ProfileStats::smoothTerrain($points, [[2000.0, 5000.0]], $terrain);
+
+        $this->assertSame([100.0, 600.0], array_values(array_unique(array_column($smoothed, 1))));
+    }
+
+    public function test_grade_is_never_published_on_a_rack_railway(): void
+    {
+        // Rampe de 60 ‰ mesurée sur la voie : publiée sur une ligne à adhérence, jamais sur une
+        // ligne à crémaillère, où la règle des 120 ‰ ne garde que les pentes les plus douces.
+        $points = self::series(3000, fn (int $d): float => 1000.0 + 0.06 * $d);
+        $track = array_fill(0, count($points), ['track' => true, 'tunnel' => false, 'interpolated' => false]);
+
+        $adhesion = ProfileStats::summarize($points, [], $track);
+        $rack = ProfileStats::summarize($points, [], $track, rack: true);
+
+        $this->assertNotNull($adhesion);
+        $this->assertNotNull($rack);
+        $this->assertEqualsWithDelta(60.0, $adhesion['max_grade_permil'], 0.5);
+        $this->assertNull($rack['max_grade_permil']);
+        $this->assertNull($rack['max_grade_from_m']);
+        $this->assertNull($rack['max_grade_direction']);
+        $this->assertSame('rack', $rack['max_grade_withheld']);
+        $this->assertSame($adhesion['ascent_m'], $rack['ascent_m']);
+    }
 }

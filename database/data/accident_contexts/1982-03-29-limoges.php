@@ -1,0 +1,126 @@
+<?php
+
+// Contexte sourcé de l'attentat du train Le Capitole du 29 mars 1982 (recherche du 21/11/2026).
+return [
+    'slug' => '1982-03-29-limoges',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-fr' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Attentat du Capitole',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Résumé, enquête, procès',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Attentat_du_Capitole&oldid=240359052',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article détaillé : heure, lieu entre Ambazac et La Jonchère-Saint-Maurice, revendications, enquête ; ne donne ni verdict ni peines ; une note de presse cite 27 blessés au lieu de 28.',
+        ],
+        'wp-en' => [
+            'provider' => 'wikipedia-en',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Capitole train bombing',
+            'publisher' => 'Wikipedia (English)',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Attack, aftermath',
+            'url' => 'https://en.wikipedia.org/w/index.php?title=Capitole_train_bombing&oldid=1383086316',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article court : heure donnée vers 21 h 30, bilan 5 morts et 28 blessés avec des titres de presse divergents (6 morts, 14 blessés), condamnation de 2011 mentionnée sans la peine.',
+        ],
+        'aljazeera-2011' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => "'Carlos the Jackal' convicted in France",
+            'publisher' => 'Al Jazeera',
+            'author' => null,
+            'published' => '2011-12-16',
+            'locator' => null,
+            'url' => 'https://www.aljazeera.com/news/2011/12/16/carlos-the-jackal-convicted-in-france',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Compte rendu du verdict : perpétuité avec 18 ans de sûreté, quatre attentats de 1982-1983, deux coaccusés condamnés par défaut, une accusée acquittée ; ne cite pas nommément le Capitole.',
+        ],
+        'larousse-1982' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'encyclopedia',
+            'title' => 'Faits divers 1982 : attentat du Capitole',
+            'publisher' => 'Larousse, archives des journaux de l\'année',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Page « faits divers » de 1982',
+            'url' => 'https://www.larousse.fr/archives/journaux_annee/1982/339/faits_divers',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Notice d\'archive : explosion vers 21 h à environ 4 km d\'Ambazac, deuxième voiture, cinq morts et une vingtaine de blessés ; évoque les menaces de Carlos et la piste d\'Action directe sans revendication.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => "Le lundi 29 mars 1982, le train Le Capitole, qui relie Paris-Austerlitz à Toulouse-Matabiau avec environ 300 voyageurs, est touché par l'explosion d'une bombe dans la deuxième de ses dix voitures. L'explosion a lieu en Haute-Vienne, entre Ambazac et La Jonchère-Saint-Maurice, à une vingtaine de kilomètres au nord-est de Limoges, vers 20 h 40 selon l'article français.",
+                'en' => 'On Monday 29 March 1982, the Le Capitole train from Paris-Austerlitz to Toulouse-Matabiau, with about 300 passengers, was hit by a bomb in the second of its ten cars. The explosion took place in Haute-Vienne, between Ambazac and La Jonchère-Saint-Maurice, about twenty kilometres north-east of Limoges, at about 8.40 pm according to the French article.',
+                'de' => 'Am Montag, dem 29. März 1982, wurde der Zug Le Capitole von Paris-Austerlitz nach Toulouse-Matabiau mit etwa 300 Reisenden durch eine Bombe im zweiten seiner zehn Wagen getroffen. Die Explosion ereignete sich in der Haute-Vienne zwischen Ambazac und La Jonchère-Saint-Maurice, etwa zwanzig Kilometer nordöstlich von Limoges, nach dem französischen Artikel gegen 20.40 Uhr.',
+                'sources' => ['wp-fr', 'wp-en'],
+            ],
+            [
+                'fr' => 'Selon une notice d\'archive de 1982 reprise par Larousse, le train avait quitté Paris-Austerlitz à 18 h 02 et l\'explosion a eu lieu vers 21 h, à environ quatre kilomètres d\'Ambazac, dans la deuxième voiture, avant la voiture-restaurant. Le conducteur est parvenu à arrêter le convoi sans déraillement.',
+                'en' => 'According to a 1982 archive note reproduced by Larousse, the train had left Paris-Austerlitz at 6.02 pm and the explosion took place at about 9 pm, roughly four kilometres from Ambazac, in the second car ahead of the restaurant car. The driver managed to stop the train without a derailment.',
+                'de' => 'Nach einer von Larousse wiedergegebenen Archivnotiz von 1982 hatte der Zug Paris-Austerlitz um 18.02 Uhr verlassen, und die Explosion ereignete sich gegen 21 Uhr, etwa vier Kilometer von Ambazac entfernt, im zweiten Wagen vor dem Speisewagen. Der Lokführer konnte den Zug ohne Entgleisung anhalten.',
+                'sources' => ['larousse-1982'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => "La bombe était dissimulée dans une valise. Le train, lancé à environ 140 km/h, s'est arrêté à environ deux kilomètres de l'explosion sans dérailler ; plus de 200 sauveteurs ont mis plusieurs heures à dégager les voyageurs bloqués.",
+                'en' => 'The bomb was hidden in a suitcase. The train, travelling at about 140 km/h, stopped roughly two kilometres beyond the explosion without derailing; more than 200 rescuers took several hours to free trapped passengers.',
+                'de' => 'Die Bombe war in einem Koffer versteckt. Der mit etwa 140 km/h fahrende Zug kam rund zwei Kilometer hinter der Explosion zum Stehen, ohne zu entgleisen; mehr als 200 Helfer brauchten mehrere Stunden, um eingeschlossene Reisende zu befreien.',
+                'sources' => ['wp-fr', 'wp-en'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le bilan retenu est de cinq morts et 28 blessés.',
+                'en' => 'The accepted toll is five dead and 28 injured.',
+                'de' => 'Die anerkannte Bilanz lautet fünf Tote und 28 Verletzte.',
+                'sources' => ['wp-fr', 'wp-en'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => "Environ trois heures après, l'attentat est revendiqué auprès de l'AFP au nom des « amis de Carlos » ; une revendication d'un groupe basque, le 31 mars, a été jugée peu crédible. Le parquet de Limoges a ouvert une information judiciaire le 30 mars et écarté l'hypothèse d'un accident.",
+                'en' => "About three hours later the attack was claimed to AFP in the name of the \"friends of Carlos\"; a claim by a Basque group on 31 March was judged scarcely credible. The Limoges prosecutor's office opened a judicial investigation on 30 March and ruled out an accident.",
+                'de' => 'Etwa drei Stunden später wurde der Anschlag gegenüber AFP im Namen der "Freunde von Carlos" reklamiert; eine Bekennung einer baskischen Gruppe am 31. März wurde als wenig glaubwürdig eingestuft. Die Staatsanwaltschaft Limoges leitete am 30. März ein Ermittlungsverfahren ein und schloss einen Unfall aus.',
+                'sources' => ['wp-fr'],
+            ],
+            [
+                'fr' => "Le 15 décembre 2011, la cour d'assises de Paris a condamné Carlos, déjà détenu, à la réclusion criminelle à perpétuité avec une période de sûreté de 18 ans pour quatre attentats commis en 1982 et 1983, dont celui du Capitole selon l'article anglais. Deux coaccusés ont été condamnés par défaut à la perpétuité et une coaccusée a été acquittée. Carlos nie toute participation.",
+                'en' => 'On 15 December 2011 the Paris assize court sentenced Carlos, already in custody, to life imprisonment with an 18-year minimum term for four attacks committed in 1982 and 1983, including the Capitole one according to the English article. Two co-defendants were sentenced in absentia to life and one co-defendant was acquitted. Carlos denies any involvement.',
+                'de' => 'Am 15. Dezember 2011 verurteilte das Pariser Schwurgericht Carlos, der bereits inhaftiert war, zu lebenslanger Haft mit 18 Jahren Mindestverbüßungsdauer wegen vier in den Jahren 1982 und 1983 verübter Anschläge, darunter nach dem englischen Artikel der auf den Capitole. Zwei Mitangeklagte wurden in Abwesenheit zu lebenslanger Haft verurteilt, eine Mitangeklagte wurde freigesprochen. Carlos bestreitet jede Beteiligung.',
+                'sources' => ['wp-fr', 'wp-en', 'aljazeera-2011'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => "L'heure varie : vers 20 h 40 (article français) ou vers 21 h 30 (article anglais). Le nombre de blessés est de 28 dans les deux articles, mais une note de presse citée par l'article français indique 27 et des titres de 1982 cités par l'article anglais donnent 14 blessés ou six morts. Le lieu exact est situé entre Ambazac et La Jonchère-Saint-Maurice, et non à Limoges comme dans la fiche actuelle (commune rattachée à Limoges, à une vingtaine de kilomètres) ; la commune précise n'étant pas établie, aucune correction n'est appliquée.",
+                'en' => 'The time varies: about 8.40 pm (French article) or about 9.30 pm (English article). The number of injured is 28 in both articles, but a press note cited by the French article gives 27 and 1982 headlines cited by the English article give 14 injured or six dead. The exact site lies between Ambazac and La Jonchère-Saint-Maurice, not in Limoges as in the current record (commune attached to Limoges, about twenty kilometres away); since the precise commune is not established, no correction is applied.',
+                'de' => 'Die Uhrzeit schwankt: gegen 20.40 Uhr (französischer Artikel) oder gegen 21.30 Uhr (englischer Artikel). Die Zahl der Verletzten beträgt in beiden Artikeln 28, doch eine vom französischen Artikel zitierte Pressenotiz nennt 27, und vom englischen Artikel zitierte Schlagzeilen von 1982 nennen 14 Verletzte oder sechs Tote. Der genaue Ort liegt zwischen Ambazac und La Jonchère-Saint-Maurice und nicht in Limoges wie im aktuellen Datensatz (der Gemeinde Limoges zugeordnet, etwa zwanzig Kilometer entfernt); da die genaue Gemeinde nicht feststeht, wird keine Korrektur vorgenommen.',
+                'sources' => ['wp-fr', 'wp-en'],
+            ],
+            [
+                'fr' => 'L\'heure est donnée vers 20 h 40 (Wikipédia en français), vers 21 h (notice d\'archive de Larousse) et vers 21 h 30 (Wikipédia en anglais). Le nombre de blessés est de 28 dans les articles d\'encyclopédie, mais la notice de 1982 parle d\'une vingtaine. Le lieu, à environ quatre kilomètres d\'Ambazac selon cette notice, confirme que l\'explosion n\'a pas eu lieu à Limoges ; la commune précise reste incertaine et aucune correction n\'est appliquée.',
+                'en' => 'The time is given as about 8.40 pm (French Wikipedia), about 9 pm (Larousse archive note) and about 9.30 pm (English Wikipedia). The number of injured is 28 in the encyclopaedia articles, but the 1982 note speaks of about twenty. The site, about four kilometres from Ambazac according to that note, confirms that the explosion did not take place in Limoges; the precise commune remains uncertain and no correction is applied.',
+                'de' => 'Die Uhrzeit wird mit gegen 20.40 Uhr (französische Wikipedia), gegen 21 Uhr (Archivnotiz bei Larousse) und gegen 21.30 Uhr (englische Wikipedia) angegeben. Die Zahl der Verletzten beträgt in den Enzyklopädieartikeln 28, die Notiz von 1982 spricht dagegen von etwa zwanzig. Der Ort, nach dieser Notiz etwa vier Kilometer von Ambazac entfernt, bestätigt, dass die Explosion nicht in Limoges stattfand; die genaue Gemeinde bleibt unsicher, und es wird keine Korrektur vorgenommen.',
+                'sources' => ['larousse-1982', 'wp-fr', 'wp-en'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

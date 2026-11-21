@@ -31,7 +31,7 @@ return [
     [
         'material' => 'Q432769', // Régiolis
         'relation' => ['Paris', 'Granville'],
-        'lines' => ['420000', '990306', '395000', '430000', '405000'],
+        'lines' => ['420000', '395000', '430000', '405000'],
         'kind' => 'fuel',
         'fuel' => 'B100',
         'feedstock' => 'rapeseed',

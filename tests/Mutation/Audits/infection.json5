@@ -1,0 +1,38 @@
+// Tests de mutation (Infection) des audits automatiques (tronçons, gares, dates Wikidata) et des
+// services de l'accueil (archives, images, unités remarquables du matériel).
+//   bin/php vendor/bin/infection -c tests/Mutation/Audits/infection.json5 --threads=4 --only-covering-test-cases
+// Un seul lot : ajouter --filter=<chemin relatif à app/>, ex. --filter=Services/SegmentAudit/AuditGrader.php.
+// Long : hors `make check`. 4 threads maximum (machine partagée), sous flock /tmp/claude-1000/vff-check.lock.
+// Base : VFF_TEST_DB=vff_<sujet>_test (chaque thread migre sa copie <base>_test_<n>).
+// Rapports : storage/app/reports/infection/audits/.
+{
+    "$schema": "../../../vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": ["../../../app"],
+        // Tout app/ est exclu SAUF les classes ciblées (regex à anticipation
+        // négative, appliquée au chemin relatif à app/).
+        "excludes": [
+            "#^(?!(Services/(SegmentAudit/[A-Za-z]+|StationAudit/[A-Za-z]+|HomeArchives|Media/HomeImageSelector|Materials/NotableUnits))\\.php$)#"
+        ]
+    },
+    "phpUnit": {
+        "configDir": "."
+    },
+    // pcov n'est actif que pour la mesure de couverture initiale.
+    "initialTestsPhpOptions": "-d pcov.enabled=1",
+    "threads": 4,
+    "timeout": 60,
+    "tmpDir": "../../../storage/app/reports/infection/audits/tmp",
+    "logs": {
+        "text": "../../../storage/app/reports/infection/audits/infection.log",
+        "json": "../../../storage/app/reports/infection/audits/infection.json",
+        "html": "../../../storage/app/reports/infection/audits/infection.html",
+        "summary": "../../../storage/app/reports/infection/audits/summary.log",
+        "perMutator": "../../../storage/app/reports/infection/audits/per-mutator.md"
+    },
+    "mutators": {
+        "@default": true,
+        // protected → private : sans sous-classe, toujours équivalent (bruit).
+        "ProtectedVisibility": false
+    }
+}

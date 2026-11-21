@@ -12,6 +12,7 @@ import {
 import {
     BASEMAP_MAX_AGE_MS,
     IMAGE_MAX_AGE_MS,
+    LINE_DATA_MAX_AGE_MS,
     MAP_DATA_MAX_AGE_MS,
     MAX_BASEMAP_BYTES,
     MAX_BASEMAP_ENTRIES,
@@ -19,6 +20,7 @@ import {
     MAX_IMAGE_BYTES,
     MAX_IMAGE_ENTRIES,
     MAX_IMAGE_ENTRY_BYTES,
+    MAX_LINE_DATA_ENTRIES,
     MAX_MAP_DATA_ENTRIES,
     MAX_PAGE_ENTRIES,
     MAX_STATIC_ENTRIES,
@@ -53,6 +55,7 @@ import {
  * @property {string} [pagesCache] cache des pages
  * @property {string} [tilesCache] cache des tuiles
  * @property {string} [mapDataCache] cache des données GeoJSON de la carte
+ * @property {string} [lineDataCache] cache des tracés des cartes des fiches de ligne
  * @property {string} [imagesCache] cache des images des fiches
  * @property {string} [basemapCache] cache des morceaux du fond de carte libre
  * @property {string} [origin] origine du site
@@ -424,6 +427,22 @@ export function mapData(request, deps) {
         isStorable: isStorableMapData,
         max: MAX_MAP_DATA_ENTRIES,
         maxAge: MAP_DATA_MAX_AGE_MS,
+    });
+}
+
+/**
+ * Tracé de la carte d'une fiche de ligne : la copie d'un tracé déjà affiché sert sans réseau, avec la copie
+ * de la page (même durée de vie, autant d'entrées).
+ *
+ * @param {Request} request
+ * @param {Deps} deps
+ */
+export function lineData(request, deps) {
+    return networkFirstCopy(request, deps, {
+        cacheName: deps.lineDataCache,
+        isStorable: isStorableMapData,
+        max: MAX_LINE_DATA_ENTRIES,
+        maxAge: LINE_DATA_MAX_AGE_MS,
     });
 }
 

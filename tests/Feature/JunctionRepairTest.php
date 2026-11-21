@@ -275,6 +275,22 @@ class JunctionRepairTest extends TestCase
             'SELECT ST_Length(ST_Transform(geom, 2154)) AS m FROM line_reference_parts WHERE id = ?', [$curve->id])->m, 0.5);
     }
 
+    public function test_jog_where_another_line_ends_is_not_smoothed(): void
+    {
+        // 438 (2.79238, 48.73316) : la branche de 214 finit sur le raccord du saut ; la courbe en S retirait ce raccord et
+        // laissait la jonction à 3,9 m (rejeu du 21/11/2026). Le saut reste droit, la jonction à 0 m.
+        $this->jogNetwork(crossover: false);
+        $other = Line::factory()->create(['code' => '421000']);
+        $this->part('bdtopo', [[[1000, 400], [1000, 7.5]]], [], null, $other);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['jog_smoothed']);
+        $this->assertLessThan(0.01, (float) DB::selectOne(<<<'SQL'
+            SELECT ST_Distance(ST_SetSRID(ST_MakePoint(?, ?), 2154), ST_Collect(ST_Transform(geom, 2154))) AS d FROM line_reference_parts WHERE line_id = ?
+            SQL, [self::X0 + 1000, self::Y0 + 7.5, $this->line->id])->d);
+    }
+
     public function test_staircase_through_a_short_parallel_piece_becomes_a_straight_track(): void
     {
         $a = $this->trace($this->line, 'bdtopo', [[0, 0], [2000, 0]]);
@@ -333,6 +349,28 @@ class JunctionRepairTest extends TestCase
             SELECT COUNT(*) AS n FROM line_reference_parts p, inner_c
             WHERE p.line_id = ? AND p.matched_source IS DISTINCT FROM ? AND ST_Length(ST_Intersection(ST_Transform(p.geom, 2154), ST_Buffer(inner_c.g, 5))) > 1
             SQL, [$this->line->id, JunctionRepair::SMOOTHED, $this->line->id, JunctionRepair::SMOOTHED])->n);
+    }
+
+    public function test_dead_end_stub_past_a_jog_foot_is_cut_even_when_the_s_curve_is_refused(): void
+    {
+        // Strasbourg (523, au nord de la gare, état du 21/11/2026 relatif au point 7.73709, 48.58848) : la ligne suit la
+        // voie OSM A jusqu'à son bout, saute de 4,4 m sur la voie B, qui commence 20 m plus tôt (bout sans issue le long
+        // de A). La courbe en S est refusée (ses bouts longent les portions voisines) ; le saut reste droit, mais le
+        // bout de B est coupé : sinon le nettoyage final recolle A sur B et laisse un V de 20 m en double.
+        DB::table('lines')->where('id', $this->line->id)->update(['network' => 'principal']);
+        $this->part('bdtopo', [[[-185.3, -380.8], [-12.1, -20.7]]]);
+        $this->part('osm', [[[-12.1, -20.7], [-9.4, -21.7], [-6.5, -14.0], [-5.4, -11.3], [-4.6, -9.5], [-4.1, -8.2], [-2.1, -4.1], [2.8, 5.9],
+            [4.4, 9.6], [7.1, 15.3], [11.6, 24.0]]]);
+        $this->connector([[11.6, 24.0], [7.7, 26.0]], 'osm');
+        $this->part('osm', [[[-1.3, 8.4], [6.8, 24.2], [18.0, 46.4], [26.6, 61.8]]]);
+        $this->part('osm', [[[26.6, 61.8], [49.7, 104.4]]]);
+        $this->part('bdtopo', [[[49.7, 104.4], [191.2, 377.8]]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['jog_smoothed']);
+        $this->assertEqualsWithDelta(19.75, $stats['stub_trimmed_m'], 0.5);
+        $this->assertSame([[-185.3, -380.8], [191.2, 377.8]], $this->freeEnds());
     }
 
     /** La voie 2 part-elle toujours de (985, 12) et va-t-elle jusqu'au bout (x > 1 900) ? */
@@ -429,6 +467,21 @@ class JunctionRepairTest extends TestCase
         $this->assertSame(1, $stats['spur_removed']);
         $this->assertEqualsWithDelta(1300, $this->totalLength(), 1.0);
         $this->assertSame([[0.0, 0.0], [1300.0, 0.0]], $this->freeEnds());
+    }
+
+    public function test_hairpin_branch_holding_another_portion_of_the_line_is_kept(): void
+    {
+        // Même aller-retour, mais une autre portion de la ligne part de la branche de retour (x = 1 200) vers le nord :
+        // retirer la branche la laisserait détachée (règle 8 a, revue du 21/11/2026).
+        $this->part('osm', [[[0, 0], [1300, 0], [1100, 10]]]);
+        $this->part('bdtopo', [[[1200, 5], [1200, 500]]]);
+        $before = $this->totalLength();
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['spur_removed']);
+        $this->assertEqualsWithDelta($before, $this->totalLength(), 0.01);
+        $this->assertSame([[0.0, 0.0], [1100.0, 10.0], [1200.0, 500.0]], $this->freeEnds());
     }
 
     public function test_real_reversal_whose_branches_part_is_kept(): void
@@ -736,6 +789,32 @@ class JunctionRepairTest extends TestCase
         $this->station(3000, 170, 12300);
 
         $this->assertSame(1, $this->repair()['long_gap_filled']);
+    }
+
+    public function test_long_gap_path_along_a_track_in_service_is_refused(): void
+    {
+        // Revue du 21/11/2026 : l'ancien tracé abandonné passe à 200 m au plus d'une voie BD TOPO en service, non
+        // rattachée, qui traverse le trou tout droit. La ligne passait sans doute sur cette voie : pas de comblement.
+        $this->longGap();
+        $this->abandoned([[1000, 0], [2000, 150], [3000, 150], [4000, 0]]);
+        $this->trace(null, 'bdtopo', [[0, -50], [5000, -50]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['long_gap_filled']);
+        $this->assertGreaterThanOrEqual(1, $stats['long_gap_refused']);
+        $this->assertCount(4, $this->freeEnds());
+    }
+
+    public function test_long_gap_path_far_from_any_track_in_service_is_followed(): void
+    {
+        // Même trou, voie en service à 450 m au moins du chemin : elle ne dit rien du tracé de la ligne.
+        $this->longGap();
+        $this->abandoned([[1000, 0], [2000, 150], [3000, 150], [4000, 0]]);
+        $this->trace(null, 'bdtopo', [[0, -400], [5000, -400]]);
+
+        $this->assertSame(1, $this->repair()['long_gap_filled']);
+        $this->assertSame([[0.0, 0.0], [5000.0, 0.0]], $this->freeEnds());
     }
 
     // ─── Embranchement arrêté avant la jonction ─────────────────────────

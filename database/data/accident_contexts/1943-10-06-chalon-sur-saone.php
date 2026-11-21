@@ -136,4 +136,22 @@ return [
             ],
         ],
     ],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'attack',
+            'sources' => ['ahicf-1943', 'wp-liste-1940'],
+            'fr' => 'Le déraillement du train de marchandises, sur lequel le rapide est venu buter, est dû à un sabotage de la voie (rail déboulonné) selon l\'association Rails & histoire et la liste de Wikipédia : la fiche le classe désormais comme attentat, comme les autres sabotages de la voie de cette période.',
+            'en' => 'The derailment of the goods train, into which the express then ran, was caused by sabotage of the track (an unbolted rail) according to the Rails & histoire association and the Wikipedia list: the record now classes it as an attack, like the other track sabotages of the period.',
+            'de' => 'Die Entgleisung des Güterzugs, auf den der Schnellzug dann auffuhr, ging laut dem Verein Rails & histoire und der Wikipedia-Liste auf eine Sabotage am Gleis zurück (eine losgeschraubte Schiene): Der Eintrag führt sie nun als Anschlag, wie die anderen Gleissabotagen dieser Zeit.',
+        ],
+        [
+            'field' => 'commune_insee',
+            'value' => '71555',
+            'sources' => ['ahicf-1943', 'wp-liste-1940'],
+            'fr' => 'L\'association Rails & histoire, qui s\'appuie sur les renseignements hebdomadaires de la SNCF, place l\'accident après la gare de Varennes-le-Grand, à environ 8 km au sud de Chalon-sur-Saône ; la liste de Wikipédia dit seulement « près de Chalon-sur-Saône ».',
+            'en' => 'The Rails & histoire association, drawing on the SNCF weekly reports, places the accident beyond Varennes-le-Grand station, about 8 km south of Chalon-sur-Saône; the Wikipedia list only says "near Chalon-sur-Saône".',
+            'de' => 'Der Verein Rails & histoire, der sich auf die Wochenberichte der SNCF stützt, verortet den Unfall hinter dem Bahnhof Varennes-le-Grand, etwa 8 km südlich von Chalon-sur-Saône; die Wikipedia-Liste sagt nur „bei Chalon-sur-Saône“.',
+        ],
+    ],
 ];

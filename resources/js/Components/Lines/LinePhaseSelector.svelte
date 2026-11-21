@@ -337,7 +337,7 @@
     }
     .what {
         font-family: var(--vff-font-body);
-        font-size: 0.9375rem;
+        font-size: var(--vff-fs-sm);
         line-height: 1.4;
         color: var(--vff-text-muted);
     }

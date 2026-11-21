@@ -482,6 +482,7 @@ return [
         'map' => [
             'title' => 'Karte der Strecke :name',
             'loading' => 'Karte wird geladen…',
+            'unavailable' => 'Der Streckenverlauf konnte nicht geladen werden.',
             'zoom_in' => 'Vergrößern',
             'zoom_out' => 'Verkleinern',
             'fullscreen_enter' => 'Karte im Vollbild anzeigen',

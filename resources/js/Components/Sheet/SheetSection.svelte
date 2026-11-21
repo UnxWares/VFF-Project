@@ -70,7 +70,7 @@
     }
     .count {
         font-family: var(--vff-font-heading);
-        font-size: 15px;
+        font-size: var(--vff-fs-sm);
         font-weight: 400;
         color: var(--vff-text-muted);
         font-variant-numeric: tabular-nums;

@@ -122,7 +122,7 @@ return [
             'stops' => 'Gares d’une ligne dans l’ordre des points kilométriques, à une ère.',
             'signalling' => 'Tranches de points kilométriques homogènes en signalisation.',
             'signalling_history' => 'Mises en service de signalisation datées, relevées dans l’article Wikipédia de la ligne (système, date et sa précision, portion, source).',
-            'profile' => 'Profil en long : altitude le long du tracé de référence (toutes époques), gares placées dessus, dénivelés et déclivité la plus forte (IGN, Licence Ouverte 2.0).',
+            'profile' => 'Profil en long : altitude le long du tracé de référence (toutes époques), gares placées dessus, dénivelés et leur méthode de calcul, déclivité la plus forte (IGN, Licence Ouverte 2.0) ; pour une ligne à crémaillère, son type et la déclivité publiée par Wikipédia.',
             'profile_points' => 'Altitude point par point le long de la ligne : PK estimé, provenance de la mesure, interpolation, ouvrage et position, filtrable par PK.',
             'altitude' => 'Altitude d’une ligne à un point kilométrique.',
             'line_audit' => 'Audit des tronçons d’une ligne à une époque : classement, placement, exactitude et tracé de chaque tronçon, avec leurs preuves ; 50 tronçons par page (limit jusqu’à 200, offset), total dans segments_total.',
@@ -179,6 +179,7 @@ return [
         'text' => 'Pour les requêtes plus riches, un seul point d’accès GraphQL, POST /graphql, renvoie en une fois une ligne avec ses tronçons et ses événements. Lisez le schéma dans la référence, ou essayez vos requêtes dans GraphiQL.',
         'links' => 'Documentations GraphQL',
         'example_comment' => 'Une ligne avec ses événements',
+        'limits' => 'Chaque requête a un coût, calculé avant son exécution : 5 000 points et 15 niveaux d’imbrication au plus. Un champ vaut 1 point, une liste paginée multiplie ses sous-champs par first, une liste sans pagination les compte pour 10 éléments, et une fiche, un profil, un audit de ligne ou un itinéraire valent 250 points. Cent lignes avec leur nom tiennent dans une requête (301 points), cent fiches de ligne non (25 301). Une requête trop coûteuse est refusée avant d’être exécutée, avec le code query_too_complex (ou query_too_deep) et un message qui dit quoi changer. Le barème complet est dans la référence GraphQL, au type Query.',
     ],
 
     // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).

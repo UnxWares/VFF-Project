@@ -1,0 +1,108 @@
+<?php
+
+// Contexte sourcé de l'accident de Mareuil-le-Port (Port-à-Binson) du 18 février 1923 (recherche du 21/11/2026).
+return [
+    'slug' => '1923-02-18-mareuil-le-port',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1923' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1923',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Février, 18 février 1923',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1923&oldid=233501473',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée détaillée, qui s\'appuie sur Le Petit Parisien du 19 février 1923 et Le Figaro du 20 février 1923 (Gallica, non lus). Elle situe l\'accident en gare de Port-à-Binson, hameau de Mareuil-le-Port.',
+        ],
+        'gallica-petit-parisien-1923-02-19' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Petit Parisien du 19 février 1923, page 1',
+            'publisher' => 'Le Petit Parisien',
+            'author' => null,
+            'published' => '1923-02-19',
+            'locator' => 'page 1',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k605299q.langFR',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Compte rendu contemporain cité par la liste de Wikipédia ; non lu (Gallica).',
+        ],
+        'gallica-figaro-1923-02-20' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Figaro du 20 février 1923, page 2',
+            'publisher' => 'Le Figaro',
+            'author' => null,
+            'published' => '1923-02-20',
+            'locator' => 'page 2',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k293497c/f2.image.r=tamponne.langFR',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Compte rendu contemporain cité par la liste de Wikipédia ; non lu (Gallica).',
+        ],
+        'paperspast-1923-02-21' => [
+            'provider' => 'sites-web',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Train disaster (dépêche sur une collision d\'un rapide Paris - Strasbourg, février 1923)',
+            'publisher' => 'Southland Times (Papers Past, Nouvelle-Zélande)',
+            'author' => null,
+            'published' => '1923-02-21',
+            'locator' => 'article TRAIN DISASTER',
+            'url' => 'https://paperspast.natlib.govt.nz/newspapers/ST19230221.2.27',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Repéré, non lu (accès bloqué). Selon l\'extrait de recherche, une dépêche situerait la collision près d\'Épernay le 19 février 1923 et donnerait 15 à 16 morts et une trentaine de blessés : à confronter aux 13 morts de la liste. Le lien avec cet accident n\'est pas confirmé.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 18 février 1923, vers 19 h, en gare de Port-à-Binson (commune de Mareuil-le-Port, Marne), sur la ligne de Paris-Est à Strasbourg-Ville, un train de marchandises était encore en manœuvre : il était trop long pour la voie de garage disponible. Le rapide Paris - Strasbourg est arrivé à ce moment.',
+                'en' => 'On 18 February 1923, at about 7 pm, at Port-à-Binson station (in the commune of Mareuil-le-Port, Marne), on the Paris-Est to Strasbourg-Ville line, a freight train was still shunting because it was too long for the available siding. The Paris - Strasbourg express arrived at that moment.',
+                'de' => 'Am 18. Februar 1923, gegen 19 Uhr, wurde im Bahnhof Port-à-Binson (Gemeinde Mareuil-le-Port, Marne) an der Strecke Paris-Est - Strasbourg-Ville noch ein Güterzug rangiert, der für das verfügbare Abstellgleis zu lang war. In diesem Moment traf der Schnellzug Paris - Straßburg ein.',
+                'sources' => ['wp-liste-1923'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le rapide a pris le train de marchandises en écharpe. La locomotive s\'est couchée ; le fourgon et les deux premières voitures du rapide l\'ont télescopée et ont été disloquées.',
+                'en' => 'The express struck the freight train a glancing blow. The locomotive overturned; the luggage van and the first two coaches of the express piled into it and broke up.',
+                'de' => 'Der Schnellzug streifte den Güterzug seitlich. Die Lokomotive kippte um; der Packwagen und die ersten beiden Wagen des Schnellzugs schoben sich in sie hinein und wurden zerstört.',
+                'sources' => ['wp-liste-1923'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'L\'accident a fait treize morts et trente-cinq blessés selon la liste de Wikipédia, qui renvoie à la presse parisienne des 19 et 20 février 1923.',
+                'en' => 'The accident left thirteen dead and thirty-five injured according to the Wikipedia list, which refers to the Paris press of 19 and 20 February 1923.',
+                'de' => 'Der Unfall forderte laut der Wikipedia-Liste dreizehn Tote und fünfunddreißig Verletzte; sie verweist auf die Pariser Presse vom 19. und 20. Februar 1923.',
+                'sources' => ['wp-liste-1923'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'D\'après la liste, la cause directe est la présence sur la voie principale d\'un train de marchandises dont la longueur dépassait celle de la voie de garage. Aucune enquête officielle ni aucun jugement n\'ont été trouvés.',
+                'en' => 'According to the list, the direct cause was a freight train standing on the main line because it was longer than the available siding. No official inquiry or court ruling was found.',
+                'de' => 'Laut der Liste lag die unmittelbare Ursache darin, dass ein Güterzug, der länger war als das verfügbare Abstellgleis, noch auf dem Hauptgleis stand. Eine amtliche Untersuchung oder ein Urteil wurde nicht gefunden.',
+                'sources' => ['wp-liste-1923'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La fiche situe l\'accident à Mareuil-le-Port ; la liste de Wikipédia le situe en gare de Port-à-Binson, qui dépend de cette commune. Il s\'agit du même lieu. Toutes les données (date, bilan, circonstances) reposent sur une seule entrée de liste, dont les références (Gallica) n\'ont pas pu être lues ; l\'heure (vers 19 h) n\'est pas recoupée.',
+                'en' => 'The record places the accident at Mareuil-le-Port; the Wikipedia list places it at Port-à-Binson station, which belongs to that commune. It is the same place. All the data (date, toll, circumstances) rest on a single list entry whose references (Gallica) could not be read; the time (about 7 pm) is not cross-checked.',
+                'de' => 'Die Datensatz-Angabe nennt Mareuil-le-Port; die Wikipedia-Liste nennt den Bahnhof Port-à-Binson, der zu dieser Gemeinde gehört. Es ist derselbe Ort. Alle Angaben (Datum, Opferzahl, Hergang) beruhen auf einem einzigen Listeneintrag, dessen Belege (Gallica) nicht gelesen werden konnten; die Uhrzeit (gegen 19 Uhr) ist nicht gegengeprüft.',
+                'sources' => ['wp-liste-1923'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

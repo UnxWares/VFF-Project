@@ -223,7 +223,7 @@
         background-color: var(--vff-bg-elevated);
         color: var(--vff-text);
         font-family: var(--vff-font-heading);
-        font-size: 14px;
+        font-size: var(--vff-fs-xs);
         font-weight: 700;
         line-height: 1;
         font-variant-numeric: tabular-nums;

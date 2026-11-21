@@ -55,7 +55,7 @@
     .eyebrow {
         margin: 0 0 10px;
         font-family: var(--vff-font-heading);
-        font-size: 15px;
+        font-size: var(--vff-fs-sm);
         font-weight: 600;
         line-height: var(--vff-lh-ui);
         color: var(--vff-text-muted);

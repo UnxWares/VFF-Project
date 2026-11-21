@@ -343,9 +343,17 @@ class GraphQLQueriesTest extends TestCase
     {
         $nested = fn (int $pairs) => '{ material(slug: "z-6400-test") { '.str_repeat('lines { materials { ', $pairs).'slug'.str_repeat(' } }', $pairs).' } }';
 
-        // Profondeur comptée sous la racine : 2 × 7 = 14, accepté ; 2 × 8 = 16, refusé avant toute requête SQL.
-        $this->graphQL($nested(7))->assertGraphQLErrorFree();
-        $this->graphQL($nested(8))->assertGraphQLErrorMessage('Max query depth should be 15 but got 16.');
+        // Profondeur comptée sous la racine : 2 × 7 = 14, sous la limite ; 2 × 8 = 16, refusé avant toute
+        // requête SQL. Ces listes imbriquées dépassent aussi la limite de complexité (QueryLimitsTest) :
+        // seule l'erreur de profondeur est regardée ici.
+        $depthErrors = fn (int $pairs) => collect($this->graphQL($nested($pairs))->json('errors'))
+            ->where('extensions.code', 'query_too_deep')->values();
+
+        $this->assertCount(0, $depthErrors(7));
+        $this->assertSame(
+            [['code' => 'query_too_deep', 'depth' => 16, 'max_depth' => 15]],
+            $depthErrors(8)->pluck('extensions')->map(fn (array $e) => array_diff_key($e, ['file' => true, 'line' => true]))->all(),
+        );
     }
 
     public function test_full_graphiql_introspection_stays_within_the_depth_limit(): void

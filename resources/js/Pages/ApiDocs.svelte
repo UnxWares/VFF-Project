@@ -764,6 +764,7 @@ JSON`;
                 role="region"
                 tabindex="0"
                 aria-label={$i18n.t('api.example.code_label')}><code>{graphqlCurl}</code></pre>
+            <p>{$i18n.t('api.graphql.limits')}</p>
             <p class="links">
                 <a class="vff-link" href="/docs/graphql"
                     >{$i18n.t('api.docs.items.graphql.title')}</a

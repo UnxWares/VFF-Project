@@ -108,9 +108,12 @@ class LinePagesTest extends TestCase
                 ->where('line.name', $this->line->name)
                 ->where('line.code', '999 000')
                 ->where('line.is_threatened', false)
-                // La carte de la fiche dessine les portions (géométrie une fois) ; la géométrie brute de l'ère
-                // affichée, les événements et la synthèse par ère restent dans l'API (LineSheet::PAGE_OMITTED).
-                ->where('portions.0.geometry.type', 'LineString')
+                // La carte de la fiche lit les portions à part (portions_url, LinePortionsController) ; la
+                // géométrie brute de l'ère affichée, les événements et la synthèse par ère restent dans l'API
+                // (LineSheet::PAGE_OMITTED).
+                ->missing('portions')
+                ->where('portions_count', fn (int $count) => $count >= 1)
+                ->where('portions_url', fn (string $url) => (bool) preg_match('#^/lines/'.$this->line->slug.'/portions/[0-9a-f]{12}\.json$#', $url))
                 ->missing('segments')
                 ->missing('events')
                 ->missing('era_summary')
@@ -222,7 +225,7 @@ class LinePagesTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Lines/Show')
                 ->where('line.type', null)
-                ->has('portions', 0)
+                ->where('portions_count', 0)
                 ->has('stations', 0)
             );
     }

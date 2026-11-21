@@ -482,6 +482,7 @@ return [
         'map' => [
             'title' => 'Map of the line :name',
             'loading' => 'Loading the map…',
+            'unavailable' => 'The route of the line could not be loaded.',
             'zoom_in' => 'Zoom in',
             'zoom_out' => 'Zoom out',
             'fullscreen_enter' => 'Show the map full screen',

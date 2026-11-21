@@ -27,7 +27,23 @@ final readonly class LineProfiles
 
     public function find(Line $line): ?LineProfile
     {
-        return LineProfile::query()->with('era:id,year')->where('line_id', $line->id)->first();
+        return LineProfile::query()->with(['era:id,year', 'line:id,slug'])->where('line_id', $line->id)->first();
+    }
+
+    /**
+     * Méthode des dénivelés cumulés, rendue avec chaque profil : hystérésis (une variation de moins
+     * de `threshold_m` n'est pas comptée), après une moyenne glissante de `terrain_smoothing_m`
+     * appliquée aux seules altitudes du terrain (ProfileStats::TERRAIN_SMOOTHING_M).
+     *
+     * @return array{method: string, threshold_m: float, terrain_smoothing_m: float}
+     */
+    public static function climbMethod(): array
+    {
+        return [
+            'method' => 'hysteresis',
+            'threshold_m' => ProfileStats::CLIMB_THRESHOLD_M,
+            'terrain_smoothing_m' => ProfileStats::TERRAIN_SMOOTHING_M,
+        ];
     }
 
     /**
@@ -37,7 +53,10 @@ final readonly class LineProfiles
      *     basis: string, era_year: int|null, step_m: int, length_m: int, trace_length_m: int, covered_m: int|null, off_path_m: int|null, pk_anchors: int,
      *     summary: array{min_altitude_m: float, max_altitude_m: float, ascent_m: float, descent_m: float,
      *         max_grade_permil: float|null, max_grade_from_m: int|null, max_grade_to_m: int|null, max_grade_direction: string|null,
-     *         max_grade_withheld: string|null},
+     *         max_grade_withheld: string|null,
+     *         climb_method: array{method: string, threshold_m: float, terrain_smoothing_m: float}},
+     *     rack: array{system: string, extent: string|null, max_grade_permil: int, braking_only: bool,
+     *         source: array{provider: string, title: string, url: string, license: string}}|null,
      *     points: list<array{0: int, 1: float|null, 2: int|null}>,
      *     structures: list<array{from_m: int, to_m: int, kind: string}>,
      *     altitude_sources: array{bdtopo: int, rge_alti: int, interpolated: int, missing: int},
@@ -61,7 +80,10 @@ final readonly class LineProfiles
      *     basis: string, era_year: int|null, step_m: int, length_m: int, trace_length_m: int, covered_m: int|null, off_path_m: int|null, pk_anchors: int,
      *     summary: array{min_altitude_m: float, max_altitude_m: float, ascent_m: float, descent_m: float,
      *         max_grade_permil: float|null, max_grade_from_m: int|null, max_grade_to_m: int|null, max_grade_direction: string|null,
-     *         max_grade_withheld: string|null},
+     *         max_grade_withheld: string|null,
+     *         climb_method: array{method: string, threshold_m: float, terrain_smoothing_m: float}},
+     *     rack: array{system: string, extent: string|null, max_grade_permil: int, braking_only: bool,
+     *         source: array{provider: string, title: string, url: string, license: string}}|null,
      *     points: list<array{0: int, 1: float|null, 2: int|null}>,
      *     structures: list<array{from_m: int, to_m: int, kind: string}>,
      *     altitude_sources: array{bdtopo: int, rge_alti: int, interpolated: int, missing: int},
@@ -96,7 +118,9 @@ final readonly class LineProfiles
                 'max_grade_to_m' => $profile->max_grade_to_m,
                 'max_grade_direction' => $profile->max_grade_direction,
                 'max_grade_withheld' => $profile->max_grade_withheld,
+                'climb_method' => self::climbMethod(),
             ],
+            'rack' => RackRailways::present($profile->line->slug),
             'points' => $maxPoints === null ? $points : self::downsample($points, $maxPoints, $profile->gaps),
             'structures' => $profile->structures,
             'altitude_sources' => $profile->altitude_sources,

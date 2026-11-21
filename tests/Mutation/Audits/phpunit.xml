@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Configuration PHPUnit des tests de mutation des audits automatiques et de l'accueil
+    (Infection, cf. infection.json5 à côté) : audit des tronçons et des gares, dates
+    Wikidata des gares, archives et images de l'accueil, unités remarquables du matériel.
+
+    Couverture seule (sans Infection) : vendor/bin/phpunit avec ce fichier de configuration,
+    l'option coverage-text et PHP lancé avec pcov.enabled=1.
+    Bases : chaque thread Infection reçoit TEST_TOKEN=<n> ; avec LARAVEL_PARALLEL_TESTING,
+    Laravel crée et migre « <base>_test_<n> » (garde-fou de tests/CreatesApplication.php).
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../../../vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="../../../vendor/autoload.php"
+         colors="false"
+>
+    <testsuites>
+        <testsuite name="Audits">
+            <directory>../../Unit/SegmentAudit</directory>
+            <directory>../../Unit/StationAudit</directory>
+            <directory>../../Feature/SegmentAudit</directory>
+            <directory>../../Feature/StationAudit</directory>
+            <file>../../Feature/HomeArchivesRotationTest.php</file>
+            <file>../../Feature/Materials/NotableUnitsTest.php</file>
+            <directory>../../Unit/Home</directory>
+            <file>../../Unit/Materials/NotableUnitsTest.php</file>
+        </testsuite>
+    </testsuites>
+    <groups>
+        <exclude>
+            <group>known-bug</group>
+        </exclude>
+    </groups>
+    <source>
+        <include>
+            <directory>../../../app/Services/SegmentAudit</directory>
+            <directory>../../../app/Services/StationAudit</directory>
+            <file>../../../app/Services/HomeArchives.php</file>
+            <file>../../../app/Services/Media/HomeImageSelector.php</file>
+            <file>../../../app/Services/Materials/NotableUnits.php</file>
+            <file>../../../app/Console/Commands/AuditSegments.php</file>
+            <file>../../../app/Console/Commands/AuditStations.php</file>
+            <file>../../../app/Console/Commands/ImportStationWikidataDates.php</file>
+            <file>../../../app/Console/Commands/SelectHomeImages.php</file>
+        </include>
+    </source>
+    <php>
+        <server name="LARAVEL_PARALLEL_TESTING" value="1"/>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="DB_DATABASE" value="vff_test" force="true"/>
+        <env name="LIGHTHOUSE_SCHEMA_CACHE_ENABLE" value="false"/>
+        <env name="INERTIA_SSR_ENABLED" value="false"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+    </php>
+</phpunit>

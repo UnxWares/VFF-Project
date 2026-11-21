@@ -157,3 +157,47 @@ describe('recherche par surnom', async () => {
         expect(item.detail).toBe('Rame 01, « Patrick »');
     });
 });
+
+describe('branchement sur le document', async () => {
+    const { installPatrick } = await import('$lib/patrick.js');
+
+    it('ne fait rien sans document (rendu serveur)', () => {
+        expect(() => installPatrick({ t: (k) => k })).not.toThrow();
+    });
+
+    it('guette la séquence sur le document, jamais sur une page /embed', () => {
+        const listeners = [];
+        vi.stubGlobal('document', { addEventListener: (type, fn) => listeners.push([type, fn]) });
+        vi.stubGlobal('location', { pathname: '/embed/maps' });
+        try {
+            installPatrick({ t: (k) => k });
+            expect(listeners.map(([type]) => type)).toEqual(['keydown']);
+            // Page intégrée : la séquence complète ne charge pas le module d'affichage.
+            for (const k of 'patrick') listeners[0][1](key(k));
+        } finally {
+            vi.unstubAllGlobals();
+        }
+    });
+
+    it('la pause maximale entre deux touches est permise, pas une milliseconde de plus', () => {
+        const onMatch = vi.fn();
+        const clock = { t: 10_000 };
+        const handler = createSequenceWatcher({ onMatch, now: () => clock.t });
+        for (const k of 'patrick') {
+            clock.t += PATRICK_KEY_GAP_MS;
+            handler(key(k));
+        }
+        expect(onMatch).toHaveBeenCalledTimes(1);
+        // Une touche hors séquence (Maj, flèche) remet à zéro.
+        type(handler, 'pat', clock);
+        clock.t += 100;
+        handler(key('Shift'));
+        type(handler, 'rick', clock);
+        expect(onMatch).toHaveBeenCalledTimes(1);
+        // Un événement déjà traité ailleurs (defaultPrevented) aussi.
+        type(handler, 'patri', clock);
+        handler({ ...key('c'), defaultPrevented: true });
+        type(handler, 'k', clock);
+        expect(onMatch).toHaveBeenCalledTimes(1);
+    });
+});

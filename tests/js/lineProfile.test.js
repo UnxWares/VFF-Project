@@ -9,6 +9,7 @@ import {
     linePath,
     nearestIndex,
     niceStep,
+    rackSentence,
     ticks,
 } from '../../resources/js/lib/lineProfile.js';
 
@@ -204,5 +205,24 @@ describe('gares principales et gare la plus proche', () => {
         const stations = [{ distance_m: 1000 }, { distance_m: 5000 }];
         expect(nearestStation(stations, x, 14)).toBe(stations[0]);
         expect(nearestStation(stations, x, 30)).toBeNull();
+    });
+});
+
+describe('rackSentence', () => {
+    it('ne dit rien pour une ligne à adhérence', () => {
+        expect(rackSentence(null)).toBeNull();
+        expect(rackSentence(undefined)).toBeNull();
+    });
+
+    it("choisit la phrase selon l'étendue et nomme le système", () => {
+        expect(rackSentence({ system: 'strub', extent: 'full' })).toEqual({
+            key: 'profile.rack_full',
+            system: 'Strub',
+        });
+        expect(rackSentence({ system: 'abt', extent: 'partial' }).key).toBe('profile.rack_partial');
+        expect(rackSentence({ system: 'riggenbach', extent: null })).toEqual({
+            key: 'profile.rack_unknown',
+            system: 'Riggenbach',
+        });
     });
 });

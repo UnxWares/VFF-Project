@@ -15,6 +15,8 @@
 //     d'abord », avec un plafond plus bas (quelques Mo chacune) et la même durée de vie que les tuiles.
 //     Le style de la carte est écrit dans le code (aucune requête) ; les glyphes viennent d'un tiers
 //     (OpenFreeMap) et ne sont pas gardés : hors ligne, MapLibre dessine les noms avec une police locale ;
+//   - le tracé de la carte d'une fiche de ligne déjà affichée (/lines/{slug}/portions/{version}.json, que la
+//     page lit à part), « réseau d'abord » : la fiche relue hors ligne garde sa carte ;
 //   - les morceaux du fond de carte libre servi par VFF (archive PMTiles, lue par plages d'octets) déjà
 //     affichés, « réseau d'abord », et ses polices (« cache d'abord ») : la carte hors ligne garde son fond
 //     sur les zones déjà vues ;
@@ -37,6 +39,8 @@ export const PAGES_CACHE_PREFIX = 'vff-pages-';
 export const TILES_CACHE_PREFIX = 'vff-tiles-';
 /** Données GeoJSON de la carte déjà affichées (gares d'une ère, accidents). */
 export const MAP_DATA_CACHE_PREFIX = 'vff-mapdata-';
+/** Tracés des cartes des fiches de ligne déjà affichées. */
+export const LINE_DATA_CACHE_PREFIX = 'vff-linedata-';
 /** Images des fiches déjà affichées (numéro de format, pas de déploiement). */
 export const IMAGES_CACHE = 'vff-images-v1';
 /** Morceaux du fond de carte libre (archive PMTiles) déjà affichés. */
@@ -49,6 +53,7 @@ export const VERSIONED_CACHE_PREFIXES = [
     PAGES_CACHE_PREFIX,
     TILES_CACHE_PREFIX,
     MAP_DATA_CACHE_PREFIX,
+    LINE_DATA_CACHE_PREFIX,
 ];
 
 /** Page « hors ligne » traduite, rangée par la page elle-même (dans la langue de l'utilisateur). */
@@ -143,6 +148,13 @@ export const IMAGE_ORIGINS = ['https://thumb.wikimedia.org', 'https://upload.wik
  */
 const MAP_DATA_PATH = /^\/api\/v1\/(?:eras\/\d{1,4}\/stations|accidents)\.geojson$/;
 
+/**
+ * Tracé de la carte d'une fiche de ligne (App\Http\Controllers\LinePortionsController), lu par la page
+ * quand la carte s'affiche : l'adresse porte l'empreinte de sa version, donc un tracé mis à jour a une
+ * autre adresse.
+ */
+const LINE_DATA_PATH = /^\/lines\/[a-z0-9-]{1,100}\/portions\/[0-9a-f]{12}\.json$/;
+
 /** En-tête posé par le serveur sur une page lisible hors ligne (App\Http\Middleware\MarkOfflineReadable). */
 export const OFFLINE_HEADER = 'X-VFF-Offline';
 export const OFFLINE_HEADER_VALUE = 'allow';
@@ -164,6 +176,12 @@ export const TILE_MAX_AGE_MS = 7 * DAY_MS;
 /** Un fichier de gares d'une ère pèse 2,5 à 4 Mo : huit fichiers au plus (une quarantaine de Mo). */
 export const MAX_MAP_DATA_ENTRIES = 8;
 export const MAP_DATA_MAX_AGE_MS = 7 * DAY_MS;
+/**
+ * Tracés des fiches : autant que de pages gardées, et aussi longtemps (de quelques Ko à 150 Ko environ
+ * pour une grande ligne, moins de 10 Mo en tout).
+ */
+export const MAX_LINE_DATA_ENTRIES = 60;
+export const LINE_DATA_MAX_AGE_MS = 30 * DAY_MS;
 /** Images : 300 au plus, 40 Mo au plus en tout, 2 Mo au plus chacune, 30 jours. */
 export const MAX_IMAGE_ENTRIES = 300;
 export const MAX_IMAGE_BYTES = 40 * 1024 * 1024;
@@ -208,6 +226,10 @@ export function isTilePath(pathname) {
 
 export function isMapDataPath(pathname) {
     return MAP_DATA_PATH.test(pathname);
+}
+
+export function isLineDataPath(pathname) {
+    return LINE_DATA_PATH.test(pathname);
 }
 
 export function isBasemapPath(pathname) {
@@ -255,6 +277,7 @@ export function allowsImageCopy(clientUrl, origin) {
  *   - `static`     : fichier public versionné, « cache d'abord » ;
  *   - `tile`       : tuile vectorielle de VFF, « réseau d'abord », copie si le réseau manque ;
  *   - `mapdata`    : données GeoJSON de la carte, « réseau d'abord », copie si le réseau manque ;
+ *   - `linedata`   : tracé de la carte d'une fiche de ligne, « réseau d'abord », copie si le réseau manque ;
  *   - `basemap`    : plage d'octets du fond de carte libre (PMTiles), « réseau d'abord », copie ensuite ;
  *   - `image`      : image d'une fiche (Commons, médias publiés), « réseau d'abord », copie ensuite ;
  *   - `navigation` : page HTML, « réseau d'abord », copie ou page hors ligne si le réseau manque ;
@@ -263,7 +286,7 @@ export function allowsImageCopy(clientUrl, origin) {
  *
  * @param {Request} request
  * @param {string} origin origine du site (`self.location.origin`)
- * @returns {'static' | 'tile' | 'mapdata' | 'basemap' | 'image' | 'navigation' | 'inertia' | 'network'}
+ * @returns {'static' | 'tile' | 'mapdata' | 'linedata' | 'basemap' | 'image' | 'navigation' | 'inertia' | 'network'}
  */
 export function classify(request, origin) {
     if (request.method !== 'GET') return 'network';
@@ -286,6 +309,7 @@ export function classify(request, origin) {
     if (STATIC_PATHS.some((prefix) => url.pathname.startsWith(prefix))) return 'static';
     if (isTilePath(url.pathname)) return 'tile';
     if (isMapDataPath(url.pathname)) return 'mapdata';
+    if (isLineDataPath(url.pathname)) return 'linedata';
     if (isImage && isOfflineImageUrl(request.url, origin)) return 'image';
     if (NEVER_INTERCEPT.some((prefix) => matchesPath(url.pathname, prefix))) return 'network';
 
@@ -411,6 +435,10 @@ export function tilesCacheName(version) {
 
 export function mapDataCacheName(version) {
     return `${MAP_DATA_CACHE_PREFIX}${version}`;
+}
+
+export function lineDataCacheName(version) {
+    return `${LINE_DATA_CACHE_PREFIX}${version}`;
 }
 
 /** Image : réponse complète de notre origine, ou réponse CORS (Commons), sans `no-store`. */

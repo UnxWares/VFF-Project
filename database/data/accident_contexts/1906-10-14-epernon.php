@@ -1,0 +1,120 @@
+<?php
+
+// Contexte sourcé de l'accident d'Épernon du 14 octobre 1906 (recherche du 21/11/2026).
+return [
+    'slug' => '1906-10-14-epernon',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-epernon' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Accident ferroviaire d\'Épernon',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Accident_ferroviaire_d%27%C3%89pernon&oldid=240002103',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article détaillé, appuyé sur la presse de l\'époque et sur le Journal officiel (via Gallica, non relus) ; sans monument ni commémoration durable.',
+        ],
+        'wp-liste-1906' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1906',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Octobre, 14 octobre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1906&oldid=233590740#Octobre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée résumée, sourcée par Le Petit Parisien du 16 octobre 1906 et Le Figaro du 15 mars 1907 ; bilan de 9 morts.',
+        ],
+        'perche-gouet-epernon' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => 'Epernon : Gare d\'Epernon (ligne Paris-Le Mans)',
+            'publisher' => 'CRGPG (Cercle de recherches généalogiques et historiques du Perche-Gouët, perche-gouet.net)',
+            'author' => null,
+            'published' => null,
+            'locator' => 'accident du 14 octobre 1906',
+            'url' => 'https://www.perche-gouet.net/histoire/immeubles.php?immeuble=7656',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Fiche d\'histoire locale appuyée sur Le Petit Journal (15 et 16 octobre 1906) et Le Nogentais (1907) ; bilans successifs, cause, procès ; les listes de victimes diffèrent selon les journaux ; noms non repris.',
+        ],
+        'wikidata-q124858369' => [
+            'provider' => 'wikidata',
+            'kind' => 'data',
+            'reliability' => 'encyclopedia',
+            'title' => 'Accident ferroviaire d\'Épernon (Q124858369)',
+            'publisher' => 'Wikidata',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://www.wikidata.org/wiki/Q124858369',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Élément de données utilisé par l\'import (date, coordonnées) ; non relu.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le dimanche 14 octobre 1906, vers 17 h 17 (vers 17 h selon la liste), en gare d\'Épernon (Eure-et-Loir), sur la ligne de Paris à Brest de la Compagnie de l\'Ouest, un omnibus 510 quittant sa voie de garage pour rejoindre la voie principale en direction de Paris-Montparnasse a été heurté de flanc par une locomotive haut-le-pied qui rentrait au dépôt de Vaugirard.',
+                'en' => 'On Sunday 14 October 1906, at about 5.17 pm (about 5 pm according to the list), at Épernon station (Eure-et-Loir), on the Paris - Brest line of the Compagnie de l\'Ouest, stopping train 510, leaving its siding to join the main line towards Paris-Montparnasse, was struck on its side by a light locomotive returning to the Vaugirard depot.',
+                'de' => 'Am Sonntag, dem 14. Oktober 1906, gegen 17.17 Uhr (laut Liste gegen 17 Uhr), wurde im Bahnhof Épernon (Eure-et-Loir) auf der Strecke Paris - Brest der Compagnie de l\'Ouest der Nahverkehrszug 510, der sein Abstellgleis verließ, um auf das Hauptgleis Richtung Paris-Montparnasse einzufahren, von einer Leerfahrt-Lokomotive auf dem Rückweg zum Depot Vaugirard seitlich gerammt.',
+                'sources' => ['wp-epernon', 'wp-liste-1906'],
+            ],
+            [
+                'fr' => 'L\'omnibus, en retard, avait été expédié sans attendre la machine annoncée, afin de ne pas aggraver son retard. Quatre voitures ont été touchées, dont une mixte de première et deuxième classe très gravement détruite ; les deux voies vers Paris ont été coupées.',
+                'en' => 'The delayed stopping train had been despatched without waiting for the announced locomotive, so as not to increase its delay. Four coaches were hit, including a mixed first and second class one that was very badly destroyed; both tracks towards Paris were blocked.',
+                'de' => 'Der verspätete Nahverkehrszug war abgefertigt worden, ohne die angekündigte Lokomotive abzuwarten, um die Verspätung nicht zu vergrößern. Vier Wagen wurden getroffen, darunter ein gemischter Wagen erster und zweiter Klasse, der schwer zerstört wurde; beide Gleise Richtung Paris waren gesperrt.',
+                'sources' => ['wp-epernon'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'L\'article compte 12 morts (9 sur le coup, 3 après le transfert ou dans les jours suivants) et environ 60 à 65 blessés. La petite gare manquait de personnel : les secours ont été improvisés sous la direction du maire et des pompiers jusqu\'à l\'arrivée, vers 21 h, d\'un train de Paris avec médecins et matériel. Le ministre des Travaux publics, Louis Barthou, est arrivé vers 2 h du matin. Une cérémonie a accueilli à Montparnasse, le lendemain, les cercueils de sept victimes.',
+                'en' => 'The article counts 12 dead (9 on the spot, 3 after transfer or in the following days) and about 60 to 65 injured. The small station was short of staff: rescue was improvised under the mayor and the firemen until a train from Paris with doctors and equipment arrived at about 9 pm. The Minister of Public Works, Louis Barthou, arrived at about 2 am. A ceremony received the coffins of seven victims at Montparnasse the next day.',
+                'de' => 'Der Artikel zählt 12 Tote (9 an der Unfallstelle, 3 nach dem Transport oder in den folgenden Tagen) und etwa 60 bis 65 Verletzte. Dem kleinen Bahnhof fehlte es an Personal: Die Rettung wurde unter Leitung des Bürgermeisters und der Feuerwehr improvisiert, bis gegen 21 Uhr ein Zug aus Paris mit Ärzten und Material eintraf. Der Minister für öffentliche Arbeiten, Louis Barthou, kam gegen 2 Uhr morgens. Am folgenden Tag empfing eine Feier in Montparnasse die Särge von sieben Opfern.',
+                'sources' => ['wp-epernon'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Le départ de l\'omnibus alors qu\'un autre train était annoncé a été jugé contraire au règlement par un premier rapport d\'ingénieurs des Mines, mais le juge d\'instruction a estimé cette faute sans lien direct avec la collision et a rendu un non-lieu pour le chef de gare. La cause directe retenue par la justice est un défaut de la signalisation : l\'aiguillage devait fermer automatiquement le signal avancé, que le mécanicien et le chauffeur disaient avoir trouvé ouvert. Les doutes sur la cause sont restés forts.',
+                'en' => 'The departure of the stopping train while another train was announced was judged contrary to the rules by a first report by mining engineers, but the investigating judge considered this fault unrelated to the collision and ordered no prosecution of the stationmaster. The direct cause retained by the court was a signalling fault: the points were meant to close the distant signal automatically, which the driver and fireman said they had found open. Doubts about the cause remained strong.',
+                'de' => 'Die Abfahrt des Nahverkehrszuges bei angekündigtem anderem Zug wurde von einem ersten Bericht der Bergbauingenieure als regelwidrig beurteilt, doch der Untersuchungsrichter sah darin keinen unmittelbaren Zusammenhang mit dem Zusammenstoß und stellte das Verfahren gegen den Bahnhofsvorsteher ein. Als unmittelbare Ursache nahm die Justiz einen Signalfehler an: Die Weiche sollte das Vorsignal selbsttätig schließen, das Lokführer und Heizer offen vorgefunden haben wollten. Die Zweifel an der Ursache blieben groß.',
+                'sources' => ['wp-epernon'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Seuls le mécanicien et le chauffeur de la locomotive ont été poursuivis. En mars 1907, le tribunal correctionnel de Chartres a condamné le mécanicien à un an de prison ferme et le chauffeur à 50 francs d\'amende avec sursis. En novembre 1907, la cour d\'appel de Paris a ramené la peine du mécanicien à six mois avec sursis. Le député Gustave Lhopiteau a dénoncé le fait que le mécanicien soit seul poursuivi ; l\'accident a aussi relancé le débat sur le rachat de la Compagnie de l\'Ouest par l\'État, voté en juillet 1908.',
+                'en' => 'Only the locomotive driver and fireman were prosecuted. In March 1907 the Chartres criminal court sentenced the driver to one year in prison and the fireman to a 50-franc suspended fine. In November 1907 the Paris court of appeal reduced the driver\'s sentence to six months, suspended. Deputy Gustave Lhopiteau denounced the fact that the driver alone was prosecuted; the accident also revived the debate on the State\'s purchase of the Compagnie de l\'Ouest, voted in July 1908.',
+                'de' => 'Nur Lokführer und Heizer der Lokomotive wurden verfolgt. Im März 1907 verurteilte das Strafgericht Chartres den Lokführer zu einem Jahr Gefängnis ohne Bewährung und den Heizer zu 50 Francs Geldstrafe auf Bewährung. Im November 1907 setzte das Berufungsgericht Paris die Strafe des Lokführers auf sechs Monate auf Bewährung herab. Der Abgeordnete Gustave Lhopiteau prangerte an, dass nur der Lokführer verfolgt wurde; der Unfall belebte auch die Debatte über den Rückkauf der Compagnie de l\'Ouest durch den Staat, der im Juli 1908 beschlossen wurde.',
+                'sources' => ['wp-epernon', 'wp-liste-1906'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le bilan diffère : 12 morts et environ 60 à 65 blessés dans l\'article détaillé, 9 morts et une quarantaine de blessés dans la liste de Wikipédia (qui ajoute que trois blessés sont morts ensuite, ce qui rejoint 12). La fiche retient 12 morts et 60 blessés, en accord avec l\'article. La liste décrit l\'omnibus attendant plus d\'une heure le rapide Paris - Brest, l\'article le dit en retard et parti sans attendre une machine.',
+                'en' => 'The toll differs: 12 dead and about 60 to 65 injured in the detailed article, 9 dead and about forty injured in the Wikipedia list (which adds that three of the injured died later, matching 12). The record keeps 12 dead and 60 injured, in line with the article. The list describes the stopping train waiting over an hour for the Paris - Brest express, while the article says it was late and left without waiting for a locomotive.',
+                'de' => 'Die Bilanz weicht ab: 12 Tote und etwa 60 bis 65 Verletzte im ausführlichen Artikel, 9 Tote und rund vierzig Verletzte in der Wikipedia-Liste (die hinzufügt, dass drei Verletzte später starben, was 12 ergibt). Die Karteikarte übernimmt 12 Tote und 60 Verletzte entsprechend dem Artikel. Die Liste beschreibt den Nahverkehrszug als mehr als eine Stunde auf den Schnellzug Paris - Brest wartend, der Artikel als verspätet und ohne Abwarten einer Lokomotive abgefahren.',
+                'sources' => ['wp-epernon', 'wp-liste-1906'],
+            ],
+            [
+                'fr' => 'La fiche d\'histoire locale du Perche-Gouët donne l\'omnibus parti de Chartres avec 20 minutes de retard (l\'article de Wikipédia le fait venir de La Brohinière), la locomotive arrivant du Mans à environ 80 km/h et cinq voitures détruites (quatre selon l\'article), l\'heure vers 16 h 30 à 17 h. Les premières dépêches annonçaient 12 morts et une cinquantaine de blessés ; la Compagnie de l\'Ouest a ensuite avancé 9, puis 10 morts, et un journal local de 1907 retient 12 morts et 61 blessés. Le parquet de Chartres a écarté l\'affirmation du mécanicien selon laquelle les signaux étaient ouverts, et la cour d\'appel de Paris a confirmé en novembre 1907 la responsabilité civile de la compagnie.',
+                'en' => 'The Perche-Gouët local-history page has the stopping train leaving Chartres 20 minutes late (the Wikipedia article has it coming from La Brohinière), the locomotive arriving from Le Mans at about 80 km/h and five coaches destroyed (four according to the article), and the time as about 4.30 to 5 pm. The first dispatches announced 12 dead and about fifty injured; the Compagnie de l\'Ouest then put forward 9, then 10 dead, and a local newspaper of 1907 gives 12 dead and 61 injured. The Chartres prosecutor set aside the driver\'s claim that the signals were open, and the Paris court of appeal confirmed the company\'s civil liability in November 1907.',
+                'de' => 'Die Seite des Perche-Gouët zur Ortsgeschichte lässt den Nahverkehrszug mit 20 Minuten Verspätung aus Chartres abfahren (der Wikipedia-Artikel lässt ihn aus La Brohinière kommen), die Lokomotive mit etwa 80 km/h aus Le Mans eintreffen und fünf Wagen zerstört werden (laut Artikel vier); die Uhrzeit liege zwischen 16.30 und 17 Uhr. Die ersten Depeschen meldeten 12 Tote und etwa fünfzig Verletzte; die Compagnie de l\'Ouest nannte dann 9, später 10 Tote, und eine Lokalzeitung von 1907 nennt 12 Tote und 61 Verletzte. Die Staatsanwaltschaft Chartres wies die Behauptung des Lokführers zurück, die Signale seien offen gewesen, und das Berufungsgericht Paris bestätigte im November 1907 die zivilrechtliche Haftung der Gesellschaft.',
+                'sources' => ['perche-gouet-epernon'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

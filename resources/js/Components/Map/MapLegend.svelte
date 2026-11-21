@@ -596,7 +596,7 @@
     }
     .legend-title {
         font-family: var(--vff-font-display);
-        font-size: 0.9375rem;
+        font-size: var(--vff-fs-sm);
         font-weight: 700;
     }
     .legend-toggle .bi {

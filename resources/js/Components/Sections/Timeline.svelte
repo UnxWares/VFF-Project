@@ -285,6 +285,10 @@
         .alternate:not(.today) .year {
             visibility: hidden;
         }
+        /* Année en 17 px plus large que sa colonne : elle déborde sur les deux voisines, masquées. */
+        .year {
+            overflow: visible;
+        }
     }
 
     /* Tablette et téléphone : barres horizontales, toutes chiffrées. */

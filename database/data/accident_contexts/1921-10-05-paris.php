@@ -189,9 +189,9 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Le nombre de blessés varie : 30 selon l\'inventaire des tunnels, une quarantaine d\'hospitalisés et une soixantaine de blessés légers selon Wikipédia. La fiche actuelle en compte 10.',
-                'en' => 'The number of injured varies: 30 according to the tunnel inventory, about forty hospitalised and some sixty lightly injured according to Wikipedia. The current record shows 10.',
-                'de' => 'Die Zahl der Verletzten schwankt: 30 nach dem Tunnelinventar, etwa vierzig im Krankenhaus und rund sechzig Leichtverletzte nach Wikipedia. Der aktuelle Datensatz nennt 10.',
+                'fr' => 'Le nombre de blessés varie : 30 selon l\'inventaire des tunnels, une quarantaine d\'hospitalisés et une soixantaine de blessés légers selon Wikipédia. Le chiffre de 10, repris de Wikidata, n\'apparaît dans aucune source lue.',
+                'en' => 'The number of injured varies: 30 according to the tunnel inventory, about forty hospitalised and some sixty lightly injured according to Wikipedia. The figure of 10, taken from Wikidata, appears in none of the sources read.',
+                'de' => 'Die Zahl der Verletzten schwankt: 30 nach dem Tunnelinventar, etwa vierzig im Krankenhaus und rund sechzig Leichtverletzte nach Wikipedia. Die aus Wikidata übernommene Zahl 10 findet sich in keiner der gelesenen Quellen.',
                 'sources' => ['tunnels-ff', 'wp-fr'],
             ],
             [
@@ -208,7 +208,16 @@ return [
             ],
         ],
     ],
-    'corrections' => [],
+    'corrections' => [
+        [
+            'field' => 'injuries',
+            'value' => 40,
+            'sources' => ['wp-fr', 'tunnels-ff'],
+            'fr' => 'Une quarantaine de blessés ont été hospitalisés (Le Matin du 6 octobre 1921, cité par Wikipédia) et une soixantaine d\'autres soignés sur place ; l\'inventaire des tunnels compte 30 blessés. Le chiffre de 10, repris de Wikidata, n\'apparaît dans aucune source lue.',
+            'en' => 'About forty injured were taken to hospital (Le Matin of 6 October 1921, cited by Wikipedia) and some sixty more were treated on the spot; the tunnel inventory counts 30 injured. The figure of 10, taken from Wikidata, appears in none of the sources read.',
+            'de' => 'Etwa vierzig Verletzte kamen ins Krankenhaus (Le Matin vom 6. Oktober 1921, nach Wikipedia), rund sechzig weitere wurden vor Ort versorgt; das Tunnelinventar zählt 30 Verletzte. Die aus Wikidata übernommene Zahl 10 findet sich in keiner der gelesenen Quellen.',
+        ],
+    ],
     'images' => [
         [
             'file' => 'File:Accident du tunnel des Batignolles (Le Petit Journal illustré 16-10-1921).jpg',

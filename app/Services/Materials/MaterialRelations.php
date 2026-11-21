@@ -64,6 +64,14 @@ final class MaterialRelations
         'omnibus' => '/\bomnibus\b/iu', 'fret' => '/\bfret\b|\bmarchandises\b|\bmessageries?\b/iu',
     ];
 
+    /**
+     * Série qui en remplace une autre sur l'itinéraire cité, nommée par un lien juste après « remplacées par »
+     * (« les Pacific État continueront de circuler sur [[Ligne de Paris à Granville|Paris-Granville]] jusqu'en
+     * 1950, année où elles seront remplacées par des '''[[141 P]]''' ») : la série qui remplace a roulé sur le
+     * même itinéraire.
+     */
+    private const SUCCESSOR = '/\bremplac(?:é|ée|és|ées)\s+(?:\S+\s+){0,2}?par\s+(?:des|les|la|le|une|un|l[’\'])?\s*(?:\'{2,3})?\[\[([^\[\]|#]+)(?:#[^\[\]|]*)?(?:\|[^\[\]]*)?\]\]/u';
+
     /** @var array<string, int> */
     private array $stats = ['itineraries' => 0, 'itineraries_partial' => 0, 'pairs' => 0, 'pairs_ambiguous' => 0, 'pairs_without_path' => 0, 'stops_unresolved' => 0];
 
@@ -121,7 +129,8 @@ final class MaterialRelations
      *
      * @param  array{title: string, revid: int, sections: list<array{title: string, level: int, text: string}>}  $page
      * @param  array{fast: bool, from: ?int, to: ?int, electric?: bool}  $material  grande vitesse, années de service, traction électrique seule
-     * @return list<array{line_id: int, evidence: array<string, mixed>}>
+     * @return list<array{line_id: int, evidence: array<string, mixed>, successor?: string}> `successor` : titre de
+     *                                                                                       l'article d'une autre série, qui remplace celle de la page sur l'itinéraire (le lien est pour elle)
      */
     public function links(array $page, array $material, ?\DateTimeInterface $today = null): array
     {
@@ -145,7 +154,7 @@ final class MaterialRelations
 
     /**
      * @param  array{title: string, revid: int}  $page
-     * @return list<array{line_id: int, evidence: array<string, mixed>}>
+     * @return list<array{line_id: int, evidence: array<string, mixed>, successor?: string}>
      */
     private function itineraryLinks(array $page, string $section, string $sentence, ?\DateTimeInterface $today): array
     {
@@ -176,6 +185,24 @@ final class MaterialRelations
             $evidence = $this->evidence($page, $section, $link['quote'], $link['doubt'], array_filter($route, fn ($v): bool => $v !== null), $period);
             foreach ($itinerary['lines'] as $lineId) {
                 $out[] = ['line_id' => $lineId, 'evidence' => $evidence];
+            }
+            // Série qui la remplace sur l'itinéraire (SUCCESSOR) : même relation, période lue pour elle.
+            if (preg_match(self::SUCCESSOR, $sentence, $m, PREG_OFFSET_CAPTURE) === 1 && $m[0][1] > (int) strpos($sentence, $target)) {
+                $successor = WikipediaMaterialSections::normalizeTitle($m[1][0]);
+                if ($successor !== $target && ! isset($this->itineraries[$successor])) {
+                    // La fin de la série remplacée est l'arrivée de celle qui la remplace (« jusqu'en 1950, année où
+                    // elles seront remplacées par… »), lue par l'extracteur ou, à défaut, dans le « jusqu'en » qui
+                    // précède ; sa fin à elle n'est pas dite.
+                    $since = ($period['to'] ?? null) !== null ? ['from' => $period['to'], 'to' => null, 'confidence' => $period['confidence'], 'excerpt' => $period['excerpt']] : null;
+                    if ($since === null && preg_match('/\bjusqu[’\']\s*(?:en|à)\s+(?:\[\[[^\[\]|]*\|)?(1[89]\d\d|20[0-4]\d)\b/u', substr($sentence, 0, $m[0][1]), $until) === 1) {
+                        $since = ['from' => ['date' => $until[1].'-01-01', 'precision' => 'year'], 'to' => null, 'confidence' => 'medium',
+                            'excerpt' => mb_strimwidth(WikipediaMaterialSections::plain($sentence), 0, 250, '…')];
+                    }
+                    $evidence = $this->evidence($page, $section, $link['quote'], $link['doubt'], array_filter($route + ['replaces' => $page['title']], fn ($v): bool => $v !== null), $since);
+                    foreach ($itinerary['lines'] as $lineId) {
+                        $out[] = ['line_id' => $lineId, 'evidence' => $evidence, 'successor' => $successor];
+                    }
+                }
             }
         }
 

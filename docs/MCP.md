@@ -763,7 +763,9 @@ les morceaux séparés par un trou sont gardés, la courbe s'interrompt dans le 
 suivent bout à bout (`branches`). Renvoie `line`, `profile` (`basis`, `step_m`, `length_m`, `trace_length_m`,
 `covered_m`, `off_path_m`, `pk_anchors`, `summary` avec altitudes extrêmes, dénivelés et déclivité la plus forte en
 ‰ sur 1 km mesurée sur la voie (nulle quand elle n'est pas publiée, motif dans `max_grade_withheld` : `terrain_only`,
-`tunnel`, `interpolated`), `terrain_ranges` (parties à l'altitude du terrain), `points` = `[distance_m, altitude_m, pk_m]` le long du parcours, `structures`, `gaps`, `branches`,
+`tunnel`, `interpolated`, `rack`) et méthode des dénivelés (`climb_method` : altitudes du terrain moyennées sur 1 km,
+puis variations de moins de 3 m ignorées), `rack` (ligne à crémaillère : type, étendue, déclivité la plus forte
+publiée par la source et lien vers l'article de Wikipédia lu ; null pour une ligne à adhérence), `terrain_ranges` (parties à l'altitude du terrain), `points` = `[distance_m, altitude_m, pk_m]` le long du parcours, `structures`, `gaps`, `branches`,
 `stations` (toutes les gares de la ligne, fermées comprises, avec leur PK officiel, leur statut et leur écart au
 parcours), `altitude_sources`, et `altitude_at_pk` si `pk_m` est donné, sans position quand le tracé à cet endroit n'est pas
 redistribuable : `position_withheld`) et `vff_url` (section de la fiche). Le PK
