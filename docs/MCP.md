@@ -135,7 +135,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `get_material` | Fiche d'une série de matériel, avec les lignes parcourues, leurs preuves et leurs périodes de circulation. |
 | `line_materials` | Matériel roulant d'une ligne, avec les périodes de circulation de chaque série (début, fin, précision). |
 | `accidents` | Accidents et événements graves du rail (ligne, période, nature, département, bilan), paginés. |
-| `get_accident` | Fiche d'un accident : lignes rattachées, sources lues et leur licence, points à vérifier. |
+| `get_accident` | Fiche d'un accident : lignes rattachées, sources lues et leur licence, points à vérifier, contexte sourcé (archives, enquêtes, presse). |
 | `compare_eras` | Ce qui a changé sur le réseau entre deux ères : km ouverts, fermés, déposés, restés en service. |
 | `level_crossings` | Passages à niveau publiés par SNCF Réseau (classe, PK, commune), par ligne, groupe, commune ou emprise, paginés. |
 | `line_profile` | Profil en long d'une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte, altitude des gares (IGN). |
@@ -668,6 +668,16 @@ plus `lines` (lignes rattachées, la principale d'abord : `line`, `is_primary`, 
 `license`, `license_url`, `license_status`, `retrieved_at`, `facts` lus dans la source), `review` (`status` et
 `notes` : `code`, `label` dans la langue demandée, `detail`) et `provenance` (fournisseur de chaque fait retenu),
 avec `review_note` si la fiche est « à vérifier ». Accident inconnu : erreur `accident_not_found`.
+
+`context` : contexte sourcé (`vff:enrich-accidents`), rédigé par VFF à partir de documents lus, dans la langue
+demandée. `checked_on` (date de la recherche) ; `sections` (`circumstances`, `course`, `victims`, `causes`,
+`aftermath`, `memory`, `disagreements`), chaque énoncé avec `text` et `references` (clés des documents) ;
+`references` (documents : `key`, `provider`, `kind`, `reliability`, `title`, `publisher`, `author`, `published`,
+`locator`, `url`, `access` = `open`, `paywall` ou `link_only`, `consulted_on`, `note`, `license`, `license_status`) ;
+`images` (Wikimedia Commons : `image_url`, `author`, `license`, `caption`, `attribution`) ; `corrections` (champ,
+valeur d'avant, valeur retenue, raison). Les courtes citations servies par l'API REST et GraphQL (`quote`) ne le sont
+pas ici (décision Q22). Listes vides si la fiche n'a pas de contexte. Les fournisseurs de ces documents s'ajoutent au
+bloc d'attribution.
 
 ```json
 {"accident": "2013-07-12-bretigny-sur-orge", "lang": "en"}

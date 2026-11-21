@@ -55,6 +55,8 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $verification
  * @property Carbon|null $verified_at
  * @property int|null $alias_of_id
+ * @property list<array<string, mixed>>|null $context_corrections
+ * @property Carbon|null $context_checked_on
  * @property Point|null $geom
  * @property float|null $lat
  * @property float|null $lng
@@ -90,6 +92,8 @@ class Accident extends Model
             'verification' => 'array',
             'verified_at' => 'datetime',
             'alias_of_id' => 'integer',
+            'context_corrections' => 'array',
+            'context_checked_on' => 'date',
             'imported_at' => 'datetime',
             'lat' => 'float',
             'lng' => 'float',
@@ -134,6 +138,36 @@ class Accident extends Model
     public function sources(): HasMany
     {
         return $this->hasMany(AccidentSource::class);
+    }
+
+    /**
+     * Documents consultés pour le contexte (vff:enrich-accidents), dans l'ordre du fichier de données.
+     *
+     * @return HasMany<AccidentReference, $this>
+     */
+    public function references(): HasMany
+    {
+        return $this->hasMany(AccidentReference::class)->orderBy('position');
+    }
+
+    /**
+     * Énoncés du contexte, par section puis dans l'ordre du fichier de données.
+     *
+     * @return HasMany<AccidentContextEntry, $this>
+     */
+    public function contextEntries(): HasMany
+    {
+        return $this->hasMany(AccidentContextEntry::class)->orderBy('position');
+    }
+
+    /**
+     * Images de Wikimedia Commons (auteur et licence relus sur Commons).
+     *
+     * @return HasMany<AccidentImage, $this>
+     */
+    public function images(): HasMany
+    {
+        return $this->hasMany(AccidentImage::class)->orderBy('position');
     }
 
     /** @return BelongsTo<Station, $this> */

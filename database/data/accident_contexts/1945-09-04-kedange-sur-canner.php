@@ -1,0 +1,115 @@
+<?php
+
+// Contexte sourcé de l'accident de Kédange-sur-Canner du 4 septembre 1945 (recherche du 21/11/2026).
+return [
+    'slug' => '1945-09-04-kedange-sur-canner',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-de' => [
+            'provider' => 'wikipedia-de',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Eisenbahnunfall von Kédange',
+            'publisher' => 'Wikipedia',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://de.wikipedia.org/wiki/Eisenbahnunfall_von_Kédange',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Seul article dédié ; s\'appuie sur le livre de Semmens (1996, p. 116).',
+        ],
+        'wp-en-liste' => [
+            'provider' => 'wikipedia-en',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'List of rail accidents (1940-1949)',
+            'publisher' => 'Wikipedia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'entrée du 4 septembre 1945',
+            'url' => 'https://en.wikipedia.org/w/index.php?title=List_of_rail_accidents_%281940%E2%80%931949%29&oldid=1374993112#1945',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Reprend le même ouvrage de Semmens, donc pas indépendante de la source allemande.',
+        ],
+        'wikidata' => [
+            'provider' => 'wikidata',
+            'kind' => 'data',
+            'reliability' => 'encyclopedia',
+            'title' => 'Eisenbahnunfall von Kédange (Q28000518)',
+            'publisher' => 'Wikidata',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://www.wikidata.org/wiki/Q28000518',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Date et nombre de morts, sans référence.',
+        ],
+        'semmens' => [
+            'provider' => 'ouvrages',
+            'kind' => 'book',
+            'reliability' => 'scholarly',
+            'title' => 'Katastrophen auf Schienen',
+            'publisher' => null,
+            'author' => 'Peter W. B. Semmens',
+            'published' => '1996',
+            'locator' => 'p. 116',
+            'url' => 'https://de.wikipedia.org/wiki/Eisenbahnunfall_von_Kédange',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Source primaire des articles Wikipédia ; livre non lu, à consulter.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 4 septembre 1945, en gare de Kédange (aujourd\'hui Kédange-sur-Canner, Moselle), sur la section française de la ligne de Völklingen à Thionville, un train de marchandises stationne dans une voie d\'évitement pour laisser passer un train militaire.',
+                'en' => 'On 4 September 1945, at Kédange station (now Kédange-sur-Canner, Moselle), on the French section of the Völklingen to Thionville line, a freight train was standing in a passing loop to let a military train go by.',
+                'de' => 'Am 4. September 1945 stand im Bahnhof Kédange (heute Kédange-sur-Canner, Moselle) auf dem französischen Abschnitt der Strecke Völklingen-Thionville ein Güterzug in einem Überholgleis, um einen Militärzug vorbeizulassen.',
+                'sources' => ['wp-de', 'wp-en-liste'],
+            ],
+            [
+                'fr' => 'Le train militaire est un train mixte de huit voitures occupées, de quatre voitures vides et de wagons-citernes contenant probablement du carburant.',
+                'en' => 'The military train was a mixed train of eight occupied passenger coaches, four empty coaches and tank wagons probably carrying fuel.',
+                'de' => 'Der Militärzug war ein gemischter Zug aus acht besetzten Personenwagen, vier leeren Wagen und Kesselwagen mit wahrscheinlich Treibstoff.',
+                'sources' => ['wp-de', 'wp-en-liste'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Une erreur d\'aiguillage dirige le train militaire sur la voie d\'évitement déjà occupée. Les deux trains se heurtent et prennent feu. Les voitures vides placées en protection n\'empêchent pas l\'incendie de gagner les voitures occupées.',
+                'en' => 'A signalling error sent the military train onto the occupied loop. The two trains collided and caught fire. The empty protective coaches did not stop the fire from spreading to the occupied coaches.',
+                'de' => 'Ein Stellfehler leitete den Militärzug in das bereits besetzte Überholgleis. Die beiden Züge stießen zusammen und fingen Feuer. Die leeren Schutzwagen verhinderten nicht, dass das Feuer auf die besetzten Wagen übergriff.',
+                'sources' => ['wp-de', 'wp-en-liste'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'L\'accident fait 39 morts et 34 blessés.',
+                'en' => 'The accident killed 39 people and injured 34.',
+                'de' => 'Bei dem Unglück starben 39 Menschen, 34 wurden verletzt.',
+                'sources' => ['wp-de', 'wp-en-liste', 'wikidata'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'La cause retenue par les sources lues est une erreur d\'un agent du poste d\'aiguillage.',
+                'en' => 'The cause given by the sources read is an error by a signal box employee.',
+                'de' => 'Als Ursache nennen die gelesenen Quellen einen Fehler eines Stellwerksmitarbeiters.',
+                'sources' => ['wp-de', 'wp-en-liste'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Toutes les sources lues remontent au même ouvrage de Semmens, dont la pagination est donnée comme p. 116 (Wikipédia en allemand) ou p. 119 (d\'après le nom de la note de la liste anglaise, édition de 1994). Aucun document d\'archives ni article de presse n\'a été trouvé pour recouper les faits.',
+                'en' => 'All the sources read go back to the same book by Semmens, whose page is given as p. 116 (German Wikipedia) or p. 119 (judging by the footnote name in the English list, 1994 edition). No archive document or press article was found to cross-check the facts.',
+                'de' => 'Alle gelesenen Quellen gehen auf dasselbe Buch von Semmens zurück, dessen Seite mit S. 116 (deutsche Wikipedia) oder S. 119 (nach dem Fußnotennamen der englischen Liste, Ausgabe 1994) angegeben wird. Es wurde weder ein Archivdokument noch ein Presseartikel zum Gegenprüfen der Fakten gefunden.',
+                'sources' => ['wp-de', 'wp-en-liste'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+    'images' => [],
+];

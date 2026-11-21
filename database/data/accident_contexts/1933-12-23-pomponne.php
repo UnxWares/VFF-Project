@@ -1,0 +1,145 @@
+<?php
+
+// Contexte sourcé de l'accident de Pomponne (Lagny-Pomponne) du 23 décembre 1933 (recherche du 21/11/2026).
+return [
+    'slug' => '1933-12-23-pomponne',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-fr' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Accident ferroviaire de Lagny-Pomponne',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Accident_ferroviaire_de_Lagny-Pomponne&oldid=234962599',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article détaillé, appuyé sur la presse de l\'époque et le Journal officiel.',
+        ],
+        'wp-de' => [
+            'provider' => 'wikipedia-de',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Eisenbahnunfall von Lagny',
+            'publisher' => 'Wikipedia',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://de.wikipedia.org/wiki/Eisenbahnunfall_von_Lagny',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Donne un bilan plus bas (204 morts) et signale des sources à 230 morts.',
+        ],
+        'wp-en' => [
+            'provider' => 'wikipedia-en',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Lagny-Pomponne rail accident',
+            'publisher' => 'Wikipedia',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://en.wikipedia.org/wiki/Lagny-Pomponne_rail_accident',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article court : 204 morts, 120 blessés.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 23 décembre 1933, le soir, dans un brouillard très dense et par temps de gel, un rapide Paris-Strasbourg (n° 25 bis) rattrape à Pomponne (Seine-et-Marne), sur la ligne de Paris-Est à Strasbourg, un express de renfort Paris-Nancy (n° 55) qui redémarrait après un arrêt. La circulation, perturbée avant Noël, accumulait des retards pouvant atteindre deux heures.',
+                'en' => 'On the evening of 23 December 1933, in very thick fog and freezing weather, the Paris-Strasbourg fast train (no. 25 bis) ran into the back of the Paris-Nancy relief express (no. 55) at Pomponne (Seine-et-Marne), on the Paris-Est to Strasbourg line, as it was starting off again after a stop. Traffic, disrupted before Christmas, had built up delays of up to two hours.',
+                'de' => 'Am Abend des 23. Dezember 1933 fuhr bei sehr dichtem Nebel und Frost der Schnellzug Paris-Straßburg (Nr. 25 bis) in Pomponne (Seine-et-Marne) auf der Strecke Paris-Est-Straßburg auf den Verstärkungszug Paris-Nancy (Nr. 55) auf, der nach einem Halt gerade wieder anfuhr. Der Verkehr war vor Weihnachten gestört, die Verspätungen betrugen bis zu zwei Stunden.',
+                'sources' => ['wp-fr', 'wp-de'],
+            ],
+            [
+                'fr' => 'Le train 55 avait quitté Paris à 19 h 22 avec un retard important ; le rapide 25 bis le suivait de quelques minutes. Le train de Nancy avait des voitures à caisse en bois, le wagon-restaurant étant en queue. La compagnie exploitante était la Compagnie des chemins de fer de l\'Est.',
+                'en' => 'Train 55 had left Paris at 19:22, well behind schedule, and the fast train 25 bis followed a few minutes behind. The Nancy train had wooden-bodied carriages, with the restaurant car at the rear. The operator was the Compagnie des chemins de fer de l\'Est.',
+                'de' => 'Der Zug 55 hatte Paris um 19.22 Uhr mit erheblicher Verspätung verlassen, der Schnellzug 25 bis folgte wenige Minuten später. Der Nancy-Zug bestand aus Wagen mit Holzaufbauten, der Speisewagen lief am Schluss. Betreiberin war die Compagnie des chemins de fer de l\'Est.',
+                'sources' => ['wp-fr', 'wp-de'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le train 55 s\'était arrêté devant des signaux fermés protégeant une manœuvre d\'omnibus à l\'évitement de Pomponne. Au moment où il repartait, le rapide l\'a heurté à environ 110 km/h. La locomotive s\'est encastrée dans le fourgon et les quatre voitures de queue, dont les caisses en bois ont été écrasées.',
+                'en' => 'Train 55 had stopped at closed signals protecting a shunting movement of a local train at the Pomponne loop. As it set off again, the fast train struck it at about 110 km/h. The locomotive drove into the luggage van and the last four carriages, whose wooden bodies were crushed.',
+                'de' => 'Der Zug 55 hatte vor geschlossenen Signalen gehalten, die eine Rangierfahrt eines Personenzugs im Überholgleis von Pomponne deckten. Als er wieder anfuhr, prallte der Schnellzug mit rund 110 km/h auf ihn. Die Lokomotive schob sich in den Packwagen und die letzten vier Wagen, deren Holzkästen zerdrückt wurden.',
+                'sources' => ['wp-fr', 'wp-de'],
+            ],
+            [
+                'fr' => 'Les débris ont fermé les signaux de la voie opposée : un express venant de Châlons s\'est ainsi arrêté à 150 mètres du lieu de la collision, ce qui a évité un second choc.',
+                'en' => 'The wreckage set the signals on the opposite line to danger, so an express from Châlons stopped 150 metres short of the collision site, which avoided a second crash.',
+                'de' => 'Die Trümmer stellten die Signale des Gegengleises auf Halt, sodass ein Schnellzug aus Châlons 150 Meter vor der Unfallstelle zum Stehen kam und ein zweiter Zusammenstoß ausblieb.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le bilan retenu par la fiche et par l\'article français est de 214 morts et environ 300 blessés, chiffre donné à la Chambre des députés en mars 1934. La plupart des victimes se trouvaient dans les dernières voitures du train de Nancy. Des blessés ont attendu plusieurs heures dans le froid avant d\'être secourus.',
+                'en' => 'The toll used in the record and in the French article is 214 dead and about 300 injured, a figure given to the Chamber of Deputies in March 1934. Most victims were in the last carriages of the Nancy train. Some of the injured waited several hours in the cold before being rescued.',
+                'de' => 'Die Bilanz der Datenbank und des französischen Artikels lautet 214 Tote und etwa 300 Verletzte, eine im März 1934 der Abgeordnetenkammer genannte Zahl. Die meisten Opfer befanden sich in den letzten Wagen des Nancy-Zuges. Einige Verletzte warteten mehrere Stunden in der Kälte auf Hilfe.',
+                'sources' => ['wp-fr', 'wp-de'],
+            ],
+            [
+                'fr' => 'Parmi les morts figuraient des parlementaires. L\'accident est considéré comme le deuxième plus grave de l\'histoire ferroviaire française, après Saint-Michel-de-Maurienne (1917).',
+                'en' => 'Members of parliament were among the dead. The accident is regarded as the second worst in French railway history, after Saint-Michel-de-Maurienne (1917).',
+                'de' => 'Unter den Toten waren Parlamentarier. Der Unfall gilt als der zweitschwerste der französischen Eisenbahngeschichte nach Saint-Michel-de-Maurienne (1917).',
+                'sources' => ['wp-fr', 'wp-en'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Deux thèses s\'opposaient. La Compagnie et ses experts estimaient que le mécanicien du rapide n\'avait pas respecté des signaux fermés. Le mécanicien et son chauffeur affirmaient que les signaux indiquaient la voie libre.',
+                'en' => 'Two theories were opposed. The company and its experts held that the driver of the fast train had failed to observe closed signals. The driver and his fireman maintained that the signals showed clear.',
+                'de' => 'Zwei Thesen standen sich gegenüber. Die Gesellschaft und ihre Gutachter meinten, der Lokführer des Schnellzugs habe geschlossene Signale missachtet. Lokführer und Heizer erklärten, die Signale hätten freie Fahrt gezeigt.',
+                'sources' => ['wp-fr', 'wp-de'],
+            ],
+            [
+                'fr' => 'Plusieurs éléments laissent supposer un défaut de la signalisation : la présence de givre sur des contacts de répétition, l\'explosion des pétards sous le wagon-restaurant de queue plutôt qu\'au passage de la locomotive, et une nouvelle défaillance du même sémaphore cinq semaines plus tard. La commission d\'enquête n\'a pas établi de cause certaine.',
+                'en' => 'Several elements suggest a signalling fault: frost on the repeater contacts, detonators exploding under the rear restaurant car rather than as the locomotive passed, and a further failure of the same signal five weeks later. The commission of inquiry did not establish a definite cause.',
+                'de' => 'Mehrere Umstände deuten auf einen Signalfehler hin: Reif auf Kontakten der Signalwiederholung, Knallkapseln, die unter dem Speisewagen am Zugende statt beim Passieren der Lokomotive explodierten, und ein erneuter Ausfall desselben Signals fünf Wochen später. Die Untersuchungskommission stellte keine sichere Ursache fest.',
+                'sources' => ['wp-fr', 'wp-de'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Le mécanicien du rapide a été renvoyé devant le tribunal correctionnel de Meaux pour homicide involontaire et acquitté le 24 janvier 1935, le tribunal retenant un doute sur le fonctionnement des signaux. Son chauffeur avait bénéficié d\'un non-lieu.',
+                'en' => 'The driver of the fast train was sent before the criminal court of Meaux for involuntary manslaughter and acquitted on 24 January 1935, the court finding reasonable doubt about how the signals had worked. His fireman had been granted a dismissal of the case.',
+                'de' => 'Der Lokführer des Schnellzugs wurde vor das Strafgericht Meaux gestellt (fahrlässige Tötung) und am 24. Januar 1935 freigesprochen, weil das Gericht Zweifel an der Funktion der Signale hegte. Gegen seinen Heizer war das Verfahren eingestellt worden.',
+                'sources' => ['wp-fr', 'wp-de'],
+            ],
+            [
+                'fr' => 'La Chambre des députés a débattu de l\'accident les 19 et 26 janvier et en mars 1934. Les réformes sont restées limitées : l\'accident a surtout accéléré l\'application du code de signalisation Verlant, et le retrait des voitures à caisse en bois s\'est poursuivi jusque vers 1962.',
+                'en' => 'The Chamber of Deputies debated the accident on 19 and 26 January and in March 1934. Reforms remained limited: the accident mainly sped up the introduction of the Verlant signalling code, and wooden-bodied carriages were withdrawn gradually until about 1962.',
+                'de' => 'Die Abgeordnetenkammer debattierte den Unfall am 19. und 26. Januar sowie im März 1934. Die Reformen blieben begrenzt: Der Unfall beschleunigte vor allem die Einführung des Verlant-Signalcodes, Wagen mit Holzaufbauten wurden bis etwa 1962 schrittweise ausgemustert.',
+                'sources' => ['wp-fr', 'wp-de'],
+            ],
+        ],
+        'memory' => [
+            [
+                'fr' => 'La catastrophe a inspiré des romans : « La Charcutière de Pomponne » (Pierre Guy, 2022) et « L\'Étrange Destin de Marie » (Élise Fischer, 2015).',
+                'en' => 'The disaster inspired novels: "La Charcutière de Pomponne" (Pierre Guy, 2022) and "L\'Étrange Destin de Marie" (Élise Fischer, 2015).',
+                'de' => 'Die Katastrophe inspirierte Romane: "La Charcutière de Pomponne" (Pierre Guy, 2022) und "L\'Étrange Destin de Marie" (Élise Fischer, 2015).',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le bilan varie : 214 morts et environ 300 blessés (Wikipédia français), 204 morts et 120 blessés (Wikipedia anglais et allemand), 230 morts et 300 à 500 blessés (autres sources citées par l\'article allemand). Le chiffre de 214 est attribué à un discours à la Chambre ; un bilan provisoire proche de 200 a circulé dès le 24 décembre.',
+                'en' => 'The toll varies: 214 dead and about 300 injured (French Wikipedia), 204 dead and 120 injured (English and German Wikipedia), 230 dead and 300 to 500 injured (other sources cited by the German article). The figure of 214 is attributed to a speech in the Chamber; a provisional toll close to 200 circulated from 24 December.',
+                'de' => 'Die Bilanz schwankt: 214 Tote und etwa 300 Verletzte (französische Wikipedia), 204 Tote und 120 Verletzte (englische und deutsche Wikipedia), 230 Tote und 300 bis 500 Verletzte (weitere im deutschen Artikel genannte Quellen). Die Zahl 214 wird einer Rede in der Kammer zugeschrieben; schon am 24. Dezember kursierte eine vorläufige Bilanz von knapp 200.',
+                'sources' => ['wp-fr', 'wp-de', 'wp-en'],
+            ],
+            [
+                'fr' => 'L\'article allemand indique un départ du train de Nancy à 19 h 31 et du rapide deux minutes plus tard ; l\'article français donne 19 h 22 pour le train 55 et neuf minutes d\'écart.',
+                'en' => 'The German article gives 19:31 for the Nancy train and two minutes later for the fast train; the French article gives 19:22 for train 55 and a nine-minute gap.',
+                'de' => 'Der deutsche Artikel nennt 19.31 Uhr für den Nancy-Zug und zwei Minuten später für den Schnellzug; der französische Artikel nennt 19.22 Uhr für Zug 55 und neun Minuten Abstand.',
+                'sources' => ['wp-fr', 'wp-de'],
+            ],
+        ],
+    ],
+];

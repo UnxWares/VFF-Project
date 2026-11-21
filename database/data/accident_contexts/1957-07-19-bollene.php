@@ -1,0 +1,146 @@
+<?php
+
+// Contexte sourcé de l'accident de Bollène du 19 juillet 1957 (recherche du 21/11/2026).
+return [
+    'slug' => '1957-07-19-bollene',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'rev-tragedie' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => 'La catastrophe de Bollène (la tragédie)',
+            'publisher' => 'Rail en Vaucluse (blog)',
+            'author' => null,
+            'published' => '2008-01-29',
+            'locator' => null,
+            'url' => 'https://rail-en-vaucluse.blog4ever.com/la-catastrophe-de-bollene-la-tragedie',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Blog d\'histoire locale qui s\'appuie sur la presse de juillet 1957 (Le Figaro, Le Provençal, Paris Match) et sur le rapport d\'un délégué à la sécurité ; faits seulement.',
+        ],
+        'rev-polemique' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => 'La catastrophe de Bollène (la polémique)',
+            'publisher' => 'Rail en Vaucluse (blog)',
+            'author' => null,
+            'published' => '2008-02-01',
+            'locator' => null,
+            'url' => 'https://rail-en-vaucluse.blog4ever.com/la-catastrophe-de-bollene-la-polemique',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Suite du même blog : polémique sur la responsabilité, avec des extraits de La Marseillaise et du Provençal ; faits seulement.',
+        ],
+        'wp-liste-1950' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1950',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1957, Bollène',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1950&oldid=235357701',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée sans référence ; le bilan de vingt morts est marqué « référence nécessaire ».',
+        ],
+        'memoire-drome' => [
+            'provider' => 'sites-web',
+            'kind' => 'archive',
+            'reliability' => 'official',
+            'title' => 'Bollène / Accident de chemin de fer',
+            'publisher' => 'Mémoire de la Drôme',
+            'author' => null,
+            'published' => '1957-07',
+            'locator' => null,
+            'url' => 'https://www.memoire-drome.com/recherche-detail.html?id=199475',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Photographies de l\'accident classées à juillet 1957 ; non lues.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Dans la nuit du 18 au 19 juillet 1957, vers 1 h 07, le train 20, rapide « Côte d\'Azur - Paris » (ou Vintimille - Paris), remorqué par la locomotive à vapeur 241 P 22, a déraillé à l\'entrée de la gare de Bollène-la-Croisière (Vaucluse). La locomotive, neuf voitures et un fourgon ont quitté les rails ; la masse du train était d\'environ 750 tonnes.',
+                'en' => 'In the night of 18 to 19 July 1957, at about 1.07 am, train 20, the "Côte d\'Azur - Paris" express (or Ventimiglia - Paris), hauled by steam locomotive 241 P 22, derailed at the entrance to Bollène-la-Croisière station (Vaucluse). The locomotive, nine coaches and a van left the rails; the train weighed about 750 tonnes.',
+                'de' => 'In der Nacht vom 18. auf den 19. Juli 1957, gegen 1.07 Uhr, entgleiste der Zug 20, der Schnellzug „Côte d\'Azur - Paris“ (oder Ventimiglia - Paris), gezogen von der Dampflokomotive 241 P 22, bei der Einfahrt in den Bahnhof Bollène-la-Croisière (Vaucluse). Die Lokomotive, neun Wagen und ein Packwagen sprangen aus den Gleisen; der Zug wog etwa 750 Tonnen.',
+                'sources' => ['rev-tragedie', 'rev-polemique', 'wp-liste-1950'],
+            ],
+            [
+                'fr' => 'Le rapide avait été dirigé sur une voie de garage où la vitesse était limitée à 30 km/h ; il y est entré à une vitesse bien supérieure.',
+                'en' => 'The express had been diverted onto a siding where speed was limited to 30 km/h; it entered at a much higher speed.',
+                'de' => 'Der Schnellzug war auf ein Nebengleis geleitet worden, auf dem die Geschwindigkeit auf 30 km/h begrenzt war; er fuhr dort mit deutlich höherer Geschwindigkeit ein.',
+                'sources' => ['rev-polemique', 'rev-tragedie'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Un rail a percé la boîte à fumée de la locomotive déraillée, et la vapeur échappée a atteint la voiture voisine, immobilisée sur la voie adjacente. Plusieurs voyageurs, qui dormaient fenêtres ouvertes, sont morts ébouillantés.',
+                'en' => 'A rail pierced the smokebox of the derailed locomotive, and the escaping steam reached the neighbouring coach, stopped on the adjacent track. Several passengers, who were sleeping with the windows open, died of scalding.',
+                'de' => 'Eine Schiene durchstach die Rauchkammer der entgleisten Lokomotive, und der austretende Dampf erreichte den benachbarten Wagen, der auf dem Nebengleis stand. Mehrere Reisende, die bei geöffneten Fenstern schliefen, wurden verbrüht und starben.',
+                'sources' => ['rev-polemique', 'wp-liste-1950'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le rapport cité par le blog compte 23 morts au moment de sa rédaction ; un article du Provençal en cite ensuite 25, après le décès de deux grands brûlés. Le mécanicien de la locomotive est mort à l\'hôpital d\'Orange. Environ 100 blessés, dont beaucoup brûlés par la vapeur, ont été conduits dans les hôpitaux d\'Avignon, d\'Orange et de Marseille.',
+                'en' => 'The report quoted by the blog counts 23 dead at the time it was written; a later Le Provençal article gives 25, after two severely burned people died. The locomotive driver died in hospital in Orange. About 100 injured, many of them burned by steam, were taken to hospitals in Avignon, Orange and Marseille.',
+                'de' => 'Der vom Blog zitierte Bericht zählt zum Zeitpunkt seiner Abfassung 23 Tote; ein späterer Artikel des Provençal nennt 25, nachdem zwei Schwerverbrühte gestorben waren. Der Lokführer starb im Krankenhaus von Orange. Rund 100 Verletzte, viele davon durch Dampf verbrüht, kamen in die Krankenhäuser von Avignon, Orange und Marseille.',
+                'sources' => ['rev-tragedie'],
+            ],
+            [
+                'fr' => 'Les pompiers de Bollène, renforcés par ceux d\'Orange, des habitants et des automobilistes ont secouru les blessés ; les plus atteints ont été évacués en environ une heure, et des grands brûlés ont été transportés à Marseille par hélicoptère de l\'armée. Un agent muni d\'une lanterne aurait arrêté à temps le « Train Bleu » qui suivait.',
+                'en' => 'The Bollène fire brigade, reinforced by that of Orange, residents and motorists rescued the injured; the most seriously hurt were evacuated within about an hour, and severely burned people were flown to Marseille by army helicopter. A railwayman with a lantern is said to have stopped the following "Train Bleu" in time.',
+                'de' => 'Die Feuerwehr von Bollène, verstärkt durch die von Orange, sowie Anwohner und Autofahrer retteten die Verletzten; die Schwerverletzten wurden innerhalb von etwa einer Stunde abtransportiert, Schwerverbrühte per Armeehubschrauber nach Marseille geflogen. Ein Bahnbediensteter mit einer Laterne soll den nachfolgenden „Train Bleu“ rechtzeitig angehalten haben.',
+                'sources' => ['rev-tragedie'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Les causes restent discutées. Le président de la SNCF, Louis Armand, a imputé l\'accident au mécanicien, qui n\'aurait pas respecté les signaux ; il a ajouté que sans la fuite de vapeur le déraillement n\'aurait fait que trois ou quatre morts. Le Figaro évoquait aussi une erreur d\'aiguillage qui avait dirigé le rapide sur une voie occupée ou destinée à un train de marchandises.',
+                'en' => 'The causes remain disputed. The SNCF chairman, Louis Armand, blamed the driver, who he said had not obeyed the signals; he added that without the steam release the derailment would have caused only three or four deaths. Le Figaro also referred to a routing error that sent the express onto a track meant for a freight train.',
+                'de' => 'Die Ursachen sind weiterhin umstritten. Der Präsident der SNCF, Louis Armand, machte den Lokführer verantwortlich, der die Signale nicht beachtet habe; er fügte hinzu, ohne den Dampfaustritt hätte die Entgleisung nur drei oder vier Tote gefordert. Le Figaro erwähnte außerdem eine Fehlleitung, die den Schnellzug auf ein für einen Güterzug bestimmtes Gleis gelenkt habe.',
+                'sources' => ['rev-polemique', 'rev-tragedie'],
+            ],
+            [
+                'fr' => 'Les syndicats CGT et autonome ont fait valoir que l\'avertisseur sonore de la locomotive, signalé défectueux le 17 juillet, n\'avait pas été réparé, que le mécanicien n\'avait eu que 20 minutes de préparation au lieu des 55 réglementaires et que le dépôt manquait de personnel d\'entretien de nuit. Le rapport du délégué à la sécurité cité par le blog retient ces défauts, le repos insuffisant de l\'équipe et la pression sur les rotations ; il relève aussi des déclarations contradictoires entre le chef de gare de Bollène et le régulateur de Valence au sujet de l\'ordre de manœuvre.',
+                'en' => 'The CGT and an autonomous union argued that the locomotive\'s audible warning device, reported faulty on 17 July, had not been repaired, that the driver had only 20 minutes of preparation instead of the regulation 55, and that the depot lacked night maintenance staff. The safety delegate\'s report quoted by the blog retains these defects, the crew\'s insufficient rest and the pressure on train rotations; it also notes contradictory statements between the Bollène stationmaster and the Valence controller about the shunting order.',
+                'de' => 'Die Gewerkschaften CGT und eine autonome Gewerkschaft machten geltend, dass die akustische Warneinrichtung der Lokomotive, am 17. Juli als defekt gemeldet, nicht repariert worden war, dass der Lokführer nur 20 Minuten Vorbereitungszeit statt der vorgeschriebenen 55 gehabt hatte und dass dem Depot Nachtwartungspersonal fehlte. Der vom Blog zitierte Bericht des Sicherheitsbeauftragten führt diese Mängel, die unzureichende Ruhezeit der Besatzung und den Druck auf die Umläufe an; er vermerkt auch widersprüchliche Aussagen zwischen dem Vorsteher des Bahnhofs Bollène und dem Fahrdienstleiter in Valence zum Rangierbefehl.',
+                'sources' => ['rev-polemique', 'rev-tragedie'],
+            ],
+            [
+                'fr' => 'Selon la liste de Wikipédia, le mécanicien a mal interprété la signalisation : un seul feu jaune pouvait être compris comme un arrêt ou comme une réception à 30 km/h sur voie déviée. Cette explication n\'est pas sourcée dans la liste.',
+                'en' => 'According to the Wikipedia list, the driver misread the signalling: a single yellow light could be understood either as a stop or as reception at 30 km/h on a diverted track. This explanation is unsourced in the list.',
+                'de' => 'Laut der Wikipedia-Liste deutete der Lokführer die Signalgebung falsch: Ein einzelnes gelbes Licht konnte als Halt oder als Einfahrt mit 30 km/h auf ein abzweigendes Gleis verstanden werden. Diese Erklärung ist in der Liste nicht belegt.',
+                'sources' => ['wp-liste-1950'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Louis Armand a indiqué que des répétiteurs acoustiques de signaux avaient été installés trois mois plus tôt et a proposé plus de formation des mécaniciens, des contrôles de vigilance, des dispositifs de freinage automatique et l\'électrification de toutes les lignes principales en deux ans. La liste de Wikipédia ajoute qu\'un signal spécifique de ralentissement (deux feux jaunes horizontaux) a ensuite été introduit sur tout le réseau.',
+                'en' => 'Louis Armand said that audible signal repeaters had been installed three months earlier and proposed more driver training, vigilance checks, automatic braking systems and electrification of all main lines within two years. The Wikipedia list adds that a specific slowing signal (two horizontal yellow lights) was subsequently introduced across the network.',
+                'de' => 'Louis Armand erklärte, akustische Signalwiederholer seien drei Monate zuvor eingebaut worden, und schlug mehr Schulung der Lokführer, Wachsamkeitskontrollen, automatische Bremseinrichtungen und die Elektrifizierung aller Hauptstrecken binnen zwei Jahren vor. Die Wikipedia-Liste fügt hinzu, später sei netzweit ein besonderes Langsamfahrsignal (zwei waagerechte gelbe Lichter) eingeführt worden.',
+                'sources' => ['rev-polemique', 'wp-liste-1950'],
+            ],
+            [
+                'fr' => 'La veuve du mécanicien a saisi la commission de sécurité sociale d\'Avignon, alléguant une faute inexcusable de l\'employeur ; l\'issue n\'est pas connue.',
+                'en' => 'The driver\'s widow brought a claim before the Avignon social security commission alleging inexcusable fault by the employer; the outcome is not known.',
+                'de' => 'Die Witwe des Lokführers rief die Sozialversicherungskommission von Avignon an und machte ein unentschuldbares Verschulden des Arbeitgebers geltend; der Ausgang ist nicht bekannt.',
+                'sources' => ['rev-polemique'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le bilan varie : 20 morts selon la liste de Wikipédia, 23 (environ 80 blessés) dans le premier récit du blog, 25 après deux décès supplémentaires, selon un article du Provençal. La vitesse est de 80 km/h selon la liste, 95 km/h dans le rapport cité par le blog ; l\'heure, vers 1 h 07 selon le rapport.',
+                'en' => 'The toll varies: 20 dead according to the Wikipedia list, 23 (about 80 injured) in the blog\'s first account, 25 after two more deaths according to a Le Provençal article. The speed is 80 km/h according to the list, 95 km/h in the report quoted by the blog; the time is about 1.07 am according to the report.',
+                'de' => 'Die Opferzahl schwankt: 20 Tote laut der Wikipedia-Liste, 23 (etwa 80 Verletzte) im ersten Bericht des Blogs, 25 nach zwei weiteren Todesfällen laut einem Artikel des Provençal. Die Geschwindigkeit beträgt laut der Liste 80 km/h, im vom Blog zitierten Bericht 95 km/h; die Uhrzeit ist laut dem Bericht gegen 1.07 Uhr.',
+                'sources' => ['wp-liste-1950', 'rev-tragedie', 'rev-polemique'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

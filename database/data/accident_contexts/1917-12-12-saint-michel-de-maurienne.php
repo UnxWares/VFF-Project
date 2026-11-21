@@ -1,0 +1,175 @@
+<?php
+
+// Contexte sourcé de l'accident de Saint-Michel-de-Maurienne du 12 décembre 1917 (recherche du 21/11/2026).
+return [
+    'slug' => '1917-12-12-saint-michel-de-maurienne',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-fr' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Accident ferroviaire de Saint-Michel-de-Maurienne',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Accident_ferroviaire_de_Saint-Michel-de-Maurienne&oldid=240724464',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article détaillé qui s\'appuie surtout sur le livre d\'André Pallatier (2013) et sur le débat de la Chambre du 4 avril 1919.',
+        ],
+        'wp-en' => [
+            'provider' => 'wikipedia-en',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Saint-Michel-de-Maurienne derailment',
+            'publisher' => 'Wikipedia',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://en.wikipedia.org/wiki/Saint-Michel-de-Maurienne_derailment',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Reprend le bilan de 435 morts et les autres estimations (675, environ 800).',
+        ],
+        'pallatier-2013' => [
+            'provider' => 'ouvrages',
+            'kind' => 'book',
+            'reliability' => 'scholarly',
+            'title' => 'Le tragique destin d\'un train de permissionnaires',
+            'publisher' => 'L\'Harmattan',
+            'author' => 'André Pallatier',
+            'published' => '2013',
+            'locator' => null,
+            'url' => 'https://www.editions-harmattan.fr/media/106276/download/historail_juillet_tragique_destin.pdf',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Ouvrage de référence fondé sur les archives militaires ; le PDF lié (article d\'Historail) n\'a pas pu être lu.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le train, un convoi de permissionnaires français revenant du front italien, circulait sous le numéro ML 3874, un numéro de train de marchandises réutilisé. Il comptait une locomotive PLM 2592 avec tender, un fourgon de tête, 17 voitures et un fourgon de queue, pour environ 350 m de long.',
+                'en' => 'The train, a convoy of French soldiers on leave returning from the Italian front, ran as ML 3874, a reused freight train number. It consisted of PLM locomotive 2592 with tender, a head van, 17 coaches and a tail van, about 350 m long.',
+                'de' => 'Der Zug, ein Transport französischer Urlauber von der italienischen Front, verkehrte als ML 3874, einer wiederverwendeten Güterzugnummer. Er bestand aus der PLM-Lokomotive 2592 mit Tender, einem Packwagen an der Spitze, 17 Wagen und einem Packwagen am Zugschluss und war etwa 350 m lang.',
+                'sources' => ['wp-fr'],
+            ],
+            [
+                'fr' => 'Les voitures, en bois et de construction italienne, appartenaient aux chemins de fer italiens. Seuls le fourgon de tête et les deux premières voitures étaient équipés du frein continu automatique ; le reste du train dépendait du freinage à la main par des garde-freins, et l\'éclairage électrique des voitures ne fonctionnait pas.',
+                'en' => 'The wooden coaches were of Italian construction and belonged to the Italian state railways. Only the head van and the first two coaches had the automatic continuous brake; the rest of the train relied on hand braking by brakemen, and the electric lighting in the coaches did not work.',
+                'de' => 'Die hölzernen Wagen waren italienischer Bauart und gehörten den italienischen Staatsbahnen. Nur der vordere Packwagen und die ersten beiden Wagen besaßen die selbsttätige durchgehende Bremse; der übrige Zug war auf die Handbremsen der Bremser angewiesen, und die elektrische Beleuchtung der Wagen funktionierte nicht.',
+                'sources' => ['wp-fr', 'wp-en'],
+            ],
+            [
+                'fr' => 'Le convoi était parti de Bassano del Grappa le 11 décembre 1917 avec environ 1 000 soldats. Il a quitté Modane le 12 décembre au soir en direction de Chambéry, sur une descente de 15,6 km environ dont la pente moyenne atteint 22 pour mille et localement 30 pour mille.',
+                'en' => 'The convoy had left Bassano del Grappa on 11 December 1917 with about 1,000 soldiers. It left Modane on the evening of 12 December bound for Chambéry, on a descent of about 15.6 km whose average gradient is 22 per mille and reaches 30 per mille in places.',
+                'de' => 'Der Zug war am 11. Dezember 1917 mit etwa 1000 Soldaten aus Bassano del Grappa abgefahren. Er verließ Modane am Abend des 12. Dezember in Richtung Chambéry, auf einem Gefälle von rund 15,6 km, dessen mittlere Neigung 22 Promille beträgt und stellenweise 30 Promille erreicht.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Peu après Modane, le train a pris de la vitesse sans que le freinage parvienne à le retenir. L\'enregistreur de la locomotive a relevé 135 km/h au maximum ; la première voiture a déraillé à environ 100 km/h sur un tronçon limité à 40 km/h, près de La Saussaz (PK 222), à environ 1 300 m de la gare de Saint-Michel-Valloire.',
+                'en' => 'Shortly after Modane the train gathered speed and the brakes could not hold it. The locomotive\'s recorder showed a maximum of 135 km/h; the first coach derailed at about 100 km/h on a section limited to 40 km/h, near La Saussaz (km 222), about 1,300 m from Saint-Michel-Valloire station.',
+                'de' => 'Kurz nach Modane nahm der Zug Fahrt auf, ohne dass die Bremsen ihn halten konnten. Der Geschwindigkeitsschreiber der Lokomotive zeigte höchstens 135 km/h an; der erste Wagen entgleiste bei etwa 100 km/h auf einem auf 40 km/h begrenzten Abschnitt nahe La Saussaz (km 222), rund 1300 m vor dem Bahnhof Saint-Michel-Valloire.',
+                'sources' => ['wp-fr', 'wp-en'],
+            ],
+            [
+                'fr' => 'L\'attelage entre le tender et le premier fourgon s\'est rompu : la locomotive a poursuivi seule jusqu\'à la gare, où elle a déraillé, tandis que les voitures s\'entassaient contre le mur de soutènement d\'une tranchée et une pile de pont routier, sur une centaine de mètres.',
+                'en' => 'The coupling between the tender and the first van broke: the locomotive carried on alone to the station, where it also derailed, while the coaches piled up against a cutting retaining wall and a road bridge pier over about a hundred metres.',
+                'de' => 'Die Kupplung zwischen Tender und erstem Packwagen riss: Die Lokomotive fuhr allein bis zum Bahnhof, wo sie ebenfalls entgleiste, während sich die Wagen auf etwa hundert Metern an einer Stützmauer des Einschnitts und einem Pfeiler einer Straßenbrücke auftürmten.',
+                'sources' => ['wp-fr'],
+            ],
+            [
+                'fr' => 'Un incendie s\'est déclaré 30 à 45 minutes après le déraillement et a duré jusqu\'au soir suivant ; 14 voitures ont été entièrement détruites. Sa cause n\'a pas été établie : étincelles d\'essieux échauffés, bougies d\'éclairage ou autre. Cinq jours ont été nécessaires pour dégager les corps et rouvrir la ligne.',
+                'en' => 'A fire broke out 30 to 45 minutes after the derailment and burned until the following evening; 14 coaches were completely destroyed. Its cause was never established: sparks from overheated axles, lighting candles or something else. Five days were needed to recover the bodies and reopen the line.',
+                'de' => 'Etwa 30 bis 45 Minuten nach der Entgleisung brach ein Brand aus, der bis zum folgenden Abend dauerte; 14 Wagen wurden vollständig zerstört. Seine Ursache wurde nie geklärt: Funken überhitzter Achsen, Beleuchtungskerzen oder anderes. Fünf Tage waren nötig, um die Toten zu bergen und die Strecke wieder zu öffnen.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le bilan établi après l\'ouverture des archives militaires est de 435 morts : 433 militaires (dont 277 non identifiés, 148 identifiés et 8 décédés à l\'hôpital) et 2 agents civils du PLM. Environ 194 personnes ont été hospitalisées. Il s\'agit de l\'accident ferroviaire le plus meurtrier de l\'histoire de France.',
+                'en' => 'The toll established after the military archives were opened is 435 dead: 433 military personnel (277 unidentified, 148 identified and 8 who died in hospital) and 2 civilian PLM employees. About 194 people were hospitalised. It is the deadliest rail accident in French history.',
+                'de' => 'Die nach Öffnung der Militärarchive ermittelte Bilanz beträgt 435 Tote: 433 Militärangehörige (davon 277 nicht identifiziert, 148 identifiziert und 8 im Krankenhaus gestorben) und 2 zivile PLM-Bedienstete. Rund 194 Personen wurden ins Krankenhaus eingeliefert. Es ist das folgenschwerste Eisenbahnunglück der französischen Geschichte.',
+                'sources' => ['wp-fr', 'wp-en'],
+            ],
+            [
+                'fr' => 'Des soldats écossais en attente à la gare, le personnel de la gare et le mécanicien ont porté les premiers secours. Une usine de pâtes voisine a été réquisitionnée comme poste de secours et chapelle ardente, et les hôpitaux de Modane et de Saint-Michel ont servi de morgues improvisées.',
+                'en' => 'Scottish soldiers waiting at the station, station staff and the driver gave first aid. A nearby pasta factory was requisitioned as an aid post and temporary mortuary chapel, and the hospitals of Modane and Saint-Michel served as improvised morgues.',
+                'de' => 'Im Bahnhof wartende schottische Soldaten, das Bahnhofspersonal und der Lokführer leisteten erste Hilfe. Eine benachbarte Teigwarenfabrik wurde als Hilfsposten und Aufbahrungskapelle beschlagnahmt, und die Krankenhäuser von Modane und Saint-Michel dienten als provisorische Leichenhallen.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Les sources s\'accordent sur une combinaison de facteurs : une forte pente, un train trop lourd pour son freinage (seuls les premiers véhicules avaient le frein continu) et la dépendance à des garde-freins répartis dans le convoi. Le mécanicien, occupé par ses freins défaillants, n\'a pas remarqué la rupture d\'attelage au départ de la locomotive.',
+                'en' => 'The sources agree on a combination of factors: a steep gradient, a train too heavy for its braking system (only the first vehicles had the continuous brake) and dependence on brakemen spread along the train. The driver, busy with his failing brakes, did not notice the coupling break that released the locomotive.',
+                'de' => 'Die Quellen stimmen auf ein Zusammenwirken mehrerer Faktoren überein: ein starkes Gefälle, ein für seine Bremsen zu schwerer Zug (nur die vordersten Fahrzeuge hatten die durchgehende Bremse) und die Abhängigkeit von im Zug verteilten Bremsern. Der Lokführer, mit seinen versagenden Bremsen beschäftigt, bemerkte den Kupplungsbruch nicht.',
+                'sources' => ['wp-fr', 'wp-en'],
+            ],
+            [
+                'fr' => 'Selon l\'article anglophone, une seconde locomotive normalement exigée pour un tel train avait été affectée à un train de munitions et le mécanicien s\'était opposé au départ avec une seule machine ; cette affirmation n\'a pas pu être recoupée avec une source primaire.',
+                'en' => 'According to the English-language article, a second locomotive normally required for such a train had been assigned to a munitions train and the driver had objected to leaving with a single engine; this claim could not be checked against a primary source.',
+                'de' => 'Laut dem englischsprachigen Artikel war eine zweite, für einen solchen Zug üblicherweise vorgeschriebene Lokomotive einem Munitionszug zugeteilt worden, und der Lokführer hatte der Abfahrt mit nur einer Maschine widersprochen; diese Angabe konnte nicht an einer Primärquelle überprüft werden.',
+                'sources' => ['wp-en'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'L\'accident a été classé secret militaire et la presse française a reçu l\'ordre de se taire : Le Figaro lui a consacré 21 lignes le 17 décembre et Le Petit Journal une demi-colonne le 18. Le député Henri Fougère a évoqué cette censure à la Chambre le 4 avril 1919, ce qui a donné lieu à une réponse du ministre Albert-André Claveille.',
+                'en' => 'The accident was classed as a military secret and the French press was ordered to stay silent: Le Figaro gave it 21 lines on 17 December and Le Petit Journal half a column on 18 December. Deputy Henri Fougère raised the censorship in the Chamber on 4 April 1919, and Minister Albert-André Claveille replied.',
+                'de' => 'Das Unglück wurde als militärisches Geheimnis eingestuft, und der französischen Presse wurde Schweigen auferlegt: Le Figaro widmete ihm am 17. Dezember 21 Zeilen, Le Petit Journal am 18. Dezember eine halbe Spalte. Der Abgeordnete Henri Fougère sprach die Zensur am 4. April 1919 in der Kammer an, worauf Minister Albert-André Claveille antwortete.',
+                'sources' => ['wp-fr'],
+            ],
+            [
+                'fr' => 'Un conseil de guerre a jugé six agents du PLM, dont le mécanicien ; tous ont été acquittés. Les archives militaires sont restées fermées pendant 90 ans et ne se sont ouvertes aux chercheurs qu\'à partir de 2007.',
+                'en' => 'A court-martial tried six PLM employees, including the driver; all were acquitted. The military archives remained closed for 90 years and opened to researchers only from 2007.',
+                'de' => 'Ein Kriegsgericht stellte sechs PLM-Bedienstete vor Gericht, darunter den Lokführer; alle wurden freigesprochen. Die Militärarchive blieben 90 Jahre lang verschlossen und wurden Forschern erst ab 2007 zugänglich.',
+                'sources' => ['wp-fr', 'wp-en'],
+            ],
+        ],
+        'memory' => [
+            [
+                'fr' => 'Un monument a été inauguré au cimetière de Saint-Michel-de-Maurienne en juin 1923 par le ministre de la Guerre André Maginot. Les restes des victimes ont été transférés en 1961 à la nécropole nationale de La Doua, à Villeurbanne, et une stèle a été érigée à La Saussaz le 12 décembre 1998. Le centenaire a été commémoré en décembre 2017.',
+                'en' => 'A monument was unveiled in the Saint-Michel-de-Maurienne cemetery in June 1923 by War Minister André Maginot. The victims\' remains were moved in 1961 to the La Doua national necropolis in Villeurbanne, and a stele was erected at La Saussaz on 12 December 1998. The centenary was commemorated in December 2017.',
+                'de' => 'Im Juni 1923 weihte Kriegsminister André Maginot auf dem Friedhof von Saint-Michel-de-Maurienne ein Denkmal ein. Die sterblichen Überreste der Opfer wurden 1961 in die Nationalnekropole La Doua in Villeurbanne überführt, und am 12. Dezember 1998 wurde in La Saussaz eine Stele errichtet. Das hundertjährige Gedenken fand im Dezember 2017 statt.',
+                'sources' => ['wp-fr', 'wp-en'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le bilan varie selon les sources : 425 morts retenus par le tribunal de Saint-Jean-de-Maurienne en 1919 (militaires sur place seulement), 435 après les recherches en archives, 675 cité par franceinfo en 2017 et environ 800 dans des ouvrages anciens et la presse.',
+                'en' => 'The toll varies between sources: 425 dead accepted by the Saint-Jean-de-Maurienne court in 1919 (military dead at the site only), 435 after archival research, 675 cited by franceinfo in 2017 and about 800 in older books and the press.',
+                'de' => 'Die Opferzahl schwankt je nach Quelle: 425 Tote nach dem Urteil des Gerichts von Saint-Jean-de-Maurienne 1919 (nur Militärangehörige am Unfallort), 435 nach Archivrecherchen, 675 laut franceinfo 2017 und etwa 800 in älteren Büchern und in der Presse.',
+                'sources' => ['wp-fr', 'wp-en'],
+            ],
+            [
+                'fr' => 'L\'heure de départ de Modane diffère : 22 h 47 d\'après l\'article francophone, qui corrige la mention de 23 h donnée par la revue Historia, et 23 h 15 d\'après l\'article anglophone. La vitesse au déraillement est aussi discutée : 100 km/h, 120 km/h ou 150 km/h selon les auteurs, pour 135 km/h relevés à l\'enregistreur.',
+                'en' => 'The departure time from Modane differs: 10.47 pm according to the French article, which corrects the 11 pm given by the magazine Historia, and 11.15 pm according to the English article. The speed at derailment is also disputed: 100, 120 or 150 km/h depending on the author, against 135 km/h on the recorder.',
+                'de' => 'Die Abfahrtszeit in Modane weicht ab: 22.47 Uhr laut dem französischen Artikel, der die von der Zeitschrift Historia genannten 23 Uhr korrigiert, und 23.15 Uhr laut dem englischen Artikel. Auch die Geschwindigkeit bei der Entgleisung ist umstritten: 100, 120 oder 150 km/h je nach Autor, bei 135 km/h laut Schreiber.',
+                'sources' => ['wp-fr', 'wp-en'],
+            ],
+        ],
+    ],
+    'images' => [
+        [
+            'file' => 'File:Accident-Saint-Michel-de-Maurienne-Décembre-1917.jpg',
+            'caption' => [
+                'fr' => 'Opérations de déblaiement après l\'accident, décembre 1917.',
+                'en' => 'Clearing operations after the accident, December 1917.',
+                'de' => 'Räumungsarbeiten nach dem Unglück, Dezember 1917.',
+            ],
+        ],
+        [
+            'file' => 'File:Stèle Accident ferroviaire de Saint-Michel-de-Maurienne (2024) 1.JPG',
+            'caption' => [
+                'fr' => 'Stèle commémorative de l\'accident à La Saussaz.',
+                'en' => 'Commemorative stele for the accident at La Saussaz.',
+                'de' => 'Gedenkstele für das Unglück in La Saussaz.',
+            ],
+        ],
+    ],
+];

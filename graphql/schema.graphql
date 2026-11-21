@@ -1787,6 +1787,183 @@ type Accident {
 
     "Sources consultées, avec leur licence et les faits lus dans chacune."
     sources: [AccidentSource!]! @hasMany
+
+    """
+    Contexte sourcé (circonstances, déroulement, victimes, causes, suites, mémoire, contradictions entre
+    sources), rédigé par VFF à partir de documents lus, avec ces documents, les images de Wikimedia Commons et
+    les corrections faites d'après eux. Listes vides si la fiche n'a pas encore de contexte. Même contenu que
+    `context` de `GET /api/v1/accidents/{slug}`.
+    """
+    context: AccidentContext! @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@context")
+}
+
+"Contexte sourcé d'un accident (vff:enrich-accidents)."
+type AccidentContext {
+    "Date de la recherche documentaire (nulle si la fiche n'a pas de contexte)."
+    checked_on: Date
+
+    "Sections dans l'ordre de lecture ; une section sans énoncé est omise."
+    sections: [AccidentContextSection!]!
+
+    "Documents consultés. Un énoncé cite leurs `key`."
+    references: [AccidentReference!]!
+
+    "Images du domaine public ou sous licence libre (usage commercial permis), auteur et licence relus sur Commons."
+    images: [AccidentImage!]!
+
+    "Valeurs de la fiche corrigées d'après ces documents."
+    corrections: [AccidentCorrection!]!
+}
+
+"Section du contexte d'un accident."
+type AccidentContextSection {
+    """
+    `circumstances` (trains, horaires, lieu exact), `course` (déroulement), `victims` (bilan et secours, aucune
+    victime nommée), `causes` (causes établies par l'enquête), `aftermath` (procès, rapports, mesures de sécurité
+    adoptées), `memory` (monuments, commémorations), `disagreements` (contradictions entre les sources).
+    """
+    section: String!
+
+    "Énoncés, dans l'ordre."
+    entries: [AccidentContextEntry!]!
+}
+
+"Énoncé du contexte, rédigé par VFF et appuyé sur au moins un document lu."
+type AccidentContextEntry {
+    "Texte de l'énoncé."
+    text(
+        "Langue : `fr` (par défaut), `en` ou `de`."
+        lang: String = "fr"
+    ): String! @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@localized")
+
+    "Clés des documents (`AccidentReference.key`) qui appuient l'énoncé."
+    references: [String!]!
+
+    "Courte citation exacte d'un document sous Licence Ouverte (rapport du BEA-TT, Journal officiel) ; une au plus par fiche, nulle sinon."
+    quote: AccidentQuote
+}
+
+"Courte citation exacte (200 caractères au plus)."
+type AccidentQuote {
+    "Texte cité, tel quel."
+    text: String!
+
+    "Langue du texte cité (`fr`, `en` ou `de`)."
+    lang: String!
+
+    "Clé du document cité (`AccidentReference.key`)."
+    reference: String!
+}
+
+"Document consulté pour le contexte d'un accident."
+type AccidentReference {
+    "Clé du document dans la fiche."
+    key: String!
+
+    "Fournisseur selon le registre des droits de VFF (`bea-tt`, `legifrance`, `assemblee-nationale`, `senat`, `gallica`, `retronews`, `persee`, `archives-departementales`, `presse`, `ouvrages`, `sites-web`, `wikipedia`…)."
+    provider: String!
+
+    "`report`, `official`, `parliament`, `press`, `book`, `scholarly`, `archive`, `memorial`, `web`, `forum`, `encyclopedia`, `data` ou `video`."
+    kind: String!
+
+    "Fiabilité : `official`, `scholarly`, `press`, `local_history`, `association`, `encyclopedia` ou `forum`."
+    reliability: String!
+
+    "Titre du document."
+    title: String!
+
+    "Journal, site ou éditeur."
+    publisher: String
+
+    "Auteur, s'il est indiqué."
+    author: String
+
+    "Date du document : `AAAA`, `AAAA-MM` ou `AAAA-MM-JJ`."
+    published: String
+
+    "Page, numéro, section ou cote."
+    locator: String
+
+    "Lien vers le document."
+    url: String!
+
+    "`open` (lu), `paywall` (payant : lien seulement) ou `link_only` (repéré, non lu : aucun énoncé ne s'appuie dessus)."
+    access: String!
+
+    "Date de consultation."
+    consulted_on: Date!
+
+    "Ce que le document apporte ou sa limite (en français)."
+    note: String
+
+    "Licence ou conditions du fournisseur, selon le registre des droits."
+    license: String
+
+    "`verified` : licence ouverte écrite et prouvée ; autre valeur : faits seulement, avec lien."
+    license_status: String
+}
+
+"Image de Wikimedia Commons liée à un accident (gravure, photo de l'époque, lieu, monument)."
+type AccidentImage {
+    "Nom du fichier sur Commons (`File:…`)."
+    file: String!
+
+    "Page du fichier sur Commons."
+    page_url: String!
+
+    "Image à afficher."
+    image_url: String!
+
+    "Miniature (500 px de large)."
+    thumb_url: String
+
+    "Largeur de l'original, en pixels."
+    width: Int
+
+    "Hauteur de l'original, en pixels."
+    height: Int
+
+    "Auteur selon Commons (« Auteur inconnu » s'il ne l'est pas)."
+    author: String!
+
+    "Licence selon Commons."
+    license: String!
+
+    "Lien de la licence."
+    license_url: String
+
+    "Date de l'image selon Commons (texte libre)."
+    date: String
+
+    "Légende rédigée par VFF."
+    caption(
+        "Langue : `fr` (par défaut), `en` ou `de`."
+        lang: String = "fr"
+    ): String! @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@localized")
+
+    "Ligne de crédit à reprendre (auteur, licence, via Wikimedia Commons)."
+    attribution: String!
+}
+
+"Valeur de la fiche corrigée d'après les documents du contexte."
+type AccidentCorrection {
+    "`occurred_on`, `occurred_at_time`, `deaths` ou `injuries`."
+    field: String!
+
+    "Valeur d'avant, en texte (date `AAAA-MM-JJ`, heure `HH:MM` ou nombre)."
+    before: String @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@correctionValue")
+
+    "Valeur retenue, en texte."
+    value: String @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@correctionValue")
+
+    "Clés des documents qui l'établissent."
+    references: [String!]!
+
+    "Raison de la correction."
+    reason(
+        "Langue : `fr` (par défaut), `en` ou `de`."
+        lang: String = "fr"
+    ): String! @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@localized")
 }
 
 "Rattachement d'un accident à une ligne VFF, sur le tracé de l'époque de l'accident."

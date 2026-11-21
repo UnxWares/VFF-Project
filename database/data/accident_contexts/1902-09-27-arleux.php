@@ -1,0 +1,150 @@
+<?php
+
+// Contexte sourcé de l'accident d'Arleux du 27 septembre 1902 (recherche du 21/11/2026).
+return [
+    'slug' => '1902-09-27-arleux',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-fr' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Accident ferroviaire d\'Arleux',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Accident_ferroviaire_d%27Arleux&oldid=235829497',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article détaillé, appuyé sur la presse de 1902 (Le Matin, Le Petit Journal, Le XIXe Siècle, etc.) et sur les débats de la Chambre du 23 octobre 1902.',
+        ],
+        'wp-en-liste' => [
+            'provider' => 'wikipedia-en',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'List of rail accidents (1900-1909)',
+            'publisher' => 'Wikipedia',
+            'author' => null,
+            'published' => null,
+            'locator' => '27 September 1902',
+            'url' => 'https://en.wikipedia.org/w/index.php?title=List_of_rail_accidents_%281900%E2%80%931909%29&oldid=1381544995',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Donne 20 morts et 41 blessés, d\'après Semmens (1994).',
+        ],
+        'debats-1902' => [
+            'provider' => 'gallica',
+            'kind' => 'parliament',
+            'reliability' => 'official',
+            'title' => 'Chambre des députés, débats du 23 octobre 1902',
+            'publisher' => 'Journal officiel (Gallica)',
+            'author' => null,
+            'published' => '1902-10-23',
+            'locator' => 'p. 2463',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k62398766/f19.item.r=Arleux',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Débat cité par Wikipédia ; Gallica bloque la machine, non lu.',
+        ],
+        'le-matin-1902' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Matin, 28 septembre 1902',
+            'publisher' => 'Le Matin (Gallica)',
+            'author' => null,
+            'published' => '1902-09-28',
+            'locator' => 'p. 1 et 3',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k559006z/f1.image.r=Arleux?rk=21459;2',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Premier compte rendu de presse, cité par Wikipédia ; non lu.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le samedi 27 septembre 1902 vers 8 h 30, l\'express 2828 de la Compagnie du Nord, parti de Lille à 7 h 44 et de Douai à 8 h 11, est entré en gare d\'Arleux (Nord), sur la ligne de Saint-Just-en-Chaussée à Douai. Il n\'avait pas à s\'y arrêter.',
+                'en' => 'On Saturday 27 September 1902 at about 8.30 am, Compagnie du Nord express 2828, which had left Lille at 7.44 and Douai at 8.11, entered Arleux station (Nord), on the Saint-Just-en-Chaussée to Douai line. It was not due to stop there.',
+                'de' => 'Am Samstag, dem 27. September 1902 gegen 8.30 Uhr, fuhr der Schnellzug 2828 der Nordbahn, der um 7.44 Uhr in Lille und um 8.11 Uhr in Douai abgefahren war, in den Bahnhof Arleux (Nord) auf der Strecke von Saint-Just-en-Chaussée nach Douai ein. Er sollte dort nicht halten.',
+                'sources' => ['wp-fr'],
+            ],
+            [
+                'fr' => 'Le train, remorqué par la locomotive Nord 3.198 (type 230), comptait douze véhicules de la Compagnie de l\'Est (deux fourgons et dix voitures) et transportait 95 personnes. Il devait se scinder à Busigny pour desservir Reims par Laon d\'une part, Nancy et Dijon par Charleville-Mézières d\'autre part. Toutes les voitures avaient une caisse en bois.',
+                'en' => 'The train, hauled by Nord locomotive 3.198 (type 230), had twelve Compagnie de l\'Est vehicles (two vans and ten coaches) and carried 95 people. It was to split at Busigny to serve Reims via Laon on one hand, and Nancy and Dijon via Charleville-Mézières on the other. All the coaches had wooden bodies.',
+                'de' => 'Der Zug, gezogen von der Nord-Lokomotive 3.198 (Typ 230), bestand aus zwölf Fahrzeugen der Ostbahn (zwei Packwagen und zehn Wagen) und beförderte 95 Personen. Er sollte in Busigny geteilt werden, um einerseits Reims über Laon, andererseits Nancy und Dijon über Charleville-Mézières zu bedienen. Alle Wagen hatten einen Holzkasten.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'L\'express abordait la gare à environ 60 à 70 km/h lorsqu\'il a été aiguillé sur une voie secondaire par une aiguille mal positionnée, au PK 213 ; le mécanicien a tenté un freinage d\'urgence. La locomotive et la plupart des voitures ont déraillé et les caisses en bois ont été en grande partie broyées.',
+                'en' => 'The express was approaching the station at about 60 to 70 km/h when it was directed onto a siding by a wrongly set switch, at km 213; the driver attempted an emergency brake application. The locomotive and most of the coaches derailed and the wooden bodies were largely crushed.',
+                'de' => 'Der Schnellzug näherte sich dem Bahnhof mit etwa 60 bis 70 km/h, als er bei km 213 durch eine falsch stehende Weiche auf ein Nebengleis geleitet wurde; der Lokführer versuchte eine Schnellbremsung. Die Lokomotive und die meisten Wagen entgleisten, und die Holzkästen wurden größtenteils zerquetscht.',
+                'sources' => ['wp-fr', 'wp-en-liste'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les premiers secours ont été apportés par des cheminots, des mariniers du canal puis des habitants ; des médecins sont venus de Douai et de Lille. Deux trains de secours ont évacué les blessés vers les hôpitaux de Douai et de Lille vers 11 h et midi, et les morts ont été déposés dans la halle à marchandises de la gare.',
+                'en' => 'First aid was given by railway staff, canal bargemen and then residents; doctors came from Douai and Lille. Two relief trains took the injured to hospitals in Douai and Lille at about 11 am and noon, and the dead were laid in the station goods shed.',
+                'de' => 'Erste Hilfe leisteten Eisenbahner, Kanalschiffer und dann Anwohner; Ärzte kamen aus Douai und Lille. Zwei Hilfszüge brachten die Verletzten gegen 11 Uhr und mittags in die Krankenhäuser von Douai und Lille, und die Toten wurden in der Güterhalle des Bahnhofs aufgebahrt.',
+                'sources' => ['wp-fr'],
+            ],
+            [
+                'fr' => 'Selon l\'article francophone, l\'accident a fait 24 morts et 67 blessés ; le mécanicien, d\'abord considéré comme légèrement blessé, est mort deux jours plus tard. Seule une quinzaine des 95 occupants seraient sortis indemnes.',
+                'en' => 'According to the French article, the accident killed 24 and injured 67; the driver, at first thought to be lightly injured, died two days later. Only about fifteen of the 95 occupants are said to have been unhurt.',
+                'de' => 'Laut dem französischen Artikel forderte das Unglück 24 Tote und 67 Verletzte; der Lokführer, zunächst für leicht verletzt gehalten, starb zwei Tage später. Nur etwa fünfzehn der 95 Insassen sollen unverletzt geblieben sein.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'L\'aiguille de l\'embranchement se manœuvrait sur place par un levier, et la serrure Bourret qui la reliait aux signaux avait été provisoirement neutralisée pendant des travaux ; le signal placé à 1 800 m de la gare était ouvert. L\'enquête a constaté que le verrouillage de l\'aiguille était défectueux et avait été remplacé par un montage de fortune, que le juge de paix d\'Arleux avait dénoncé. La lame aurait bougé sous les vibrations du train qui approchait.',
+                'en' => 'The branch switch was operated on the spot by a lever, and the Bourret lock linking it to the signals had been temporarily neutralised during works; the signal 1,800 m before the station was clear. The inquiry found that the switch locking was defective and had been replaced by a makeshift arrangement, which the justice of the peace of Arleux had denounced. The blade is thought to have moved under the vibrations of the approaching train.',
+                'de' => 'Die Weiche des Abzweigs wurde vor Ort mit einem Hebel gestellt, und das Bourret-Schloss, das sie mit den Signalen verband, war während Bauarbeiten vorübergehend außer Kraft gesetzt; das Signal 1800 m vor dem Bahnhof zeigte freie Fahrt. Die Untersuchung stellte fest, dass die Weichenverriegelung defekt und durch eine Behelfslösung ersetzt worden war, was der Friedensrichter von Arleux angeprangert hatte. Die Weichenzunge soll sich unter den Erschütterungen des herannahenden Zuges bewegt haben.',
+                'sources' => ['wp-fr'],
+            ],
+            [
+                'fr' => 'La liste anglophone des accidents attribue l\'accident à une erreur d\'aiguilleur, qui a dévié l\'express vers une voie de garage.',
+                'en' => 'The English-language list of accidents attributes the accident to a signalman\'s error that diverted the express into a siding.',
+                'de' => 'Die englischsprachige Unfallliste führt das Unglück auf einen Fehler des Weichenstellers zurück, der den Schnellzug auf ein Abstellgleis lenkte.',
+                'sources' => ['wp-en-liste'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Deux enquêtes ont été menées : une enquête judiciaire par le parquet de Douai et une enquête administrative par le contrôle de l\'État. Le chef de gare et l\'aiguilleur ont été inculpés et remis en liberté sous caution, de même que quatre cadres de la Compagnie du Nord mis en cause pour négligence par le rapport administratif.',
+                'en' => 'Two inquiries were held: a judicial one by the Douai public prosecutor and an administrative one by the State railway inspectorate. The stationmaster and the signalman were charged and released on bail, as were four Compagnie du Nord managers blamed for negligence in the administrative report.',
+                'de' => 'Es gab zwei Untersuchungen: eine gerichtliche durch die Staatsanwaltschaft Douai und eine administrative durch die staatliche Eisenbahnaufsicht. Der Bahnhofsvorsteher und der Weichensteller wurden angeklagt und gegen Kaution freigelassen, ebenso vier Führungskräfte der Nordbahn, die der Verwaltungsbericht der Nachlässigkeit beschuldigte.',
+                'sources' => ['wp-fr'],
+            ],
+            [
+                'fr' => 'Jugés par le tribunal correctionnel de Douai les 11 et 12 décembre 1902, l\'aiguilleur a été condamné le 26 décembre à quatre mois de prison et 50 francs d\'amende, et le chef de gare à six mois et 200 francs. Un seul des quatre cadres de la Compagnie a été reconnu coupable, avec 1 000 francs d\'amende, et la Compagnie du Nord a été déclarée civilement responsable. En appel, la condamnation de l\'aiguilleur a été confirmée et celle du chef de gare assortie du sursis, avec une amende réduite à 50 francs.',
+                'en' => 'Tried by the Douai criminal court on 11 and 12 December 1902, the signalman was sentenced on 26 December to four months in prison and a 50-franc fine, and the stationmaster to six months and 200 francs. Only one of the four company managers was found guilty, with a 1,000-franc fine, and the Compagnie du Nord was held civilly liable. On appeal, the signalman\'s conviction was upheld and the stationmaster\'s sentence was suspended, with the fine reduced to 50 francs.',
+                'de' => 'Vor dem Strafgericht Douai am 11. und 12. Dezember 1902 verurteilt, erhielt der Weichensteller am 26. Dezember vier Monate Haft und 50 Franc Geldstrafe, der Bahnhofsvorsteher sechs Monate und 200 Franc. Nur einer der vier Führungskräfte der Gesellschaft wurde schuldig gesprochen, mit 1000 Franc Geldstrafe, und die Nordbahn wurde für zivilrechtlich haftbar erklärt. In der Berufung wurde die Verurteilung des Weichenstellers bestätigt, die des Bahnhofsvorstehers zur Bewährung ausgesetzt und die Geldstrafe auf 50 Franc gesenkt.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le bilan diffère selon les sources : 24 morts et 67 blessés dans le texte de l\'article francophone, 26 morts et 55 blessés dans sa fiche descriptive et sur Wikidata, 20 morts et 41 blessés dans la liste anglophone d\'après Semmens (1994).',
+                'en' => 'The toll differs between sources: 24 dead and 67 injured in the text of the French article, 26 dead and 55 injured in its infobox and on Wikidata, 20 dead and 41 injured in the English list citing Semmens (1994).',
+                'de' => 'Die Bilanz weicht je nach Quelle ab: 24 Tote und 67 Verletzte im Text des französischen Artikels, 26 Tote und 55 Verletzte in dessen Infobox und bei Wikidata, 20 Tote und 41 Verletzte in der englischsprachigen Liste nach Semmens (1994).',
+                'sources' => ['wp-fr', 'wp-en-liste'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+    'images' => [
+        [
+            'file' => 'File:THE ARLEUX DISASTER - First aid (L\'Illustration, 1902).jpg',
+            'caption' => [
+                'fr' => 'Les premiers secours à Arleux, gravure de L\'Illustration du 4 octobre 1902.',
+                'en' => 'First aid at Arleux, engraving from L\'Illustration of 4 October 1902.',
+                'de' => 'Erste Hilfe in Arleux, Stich aus L\'Illustration vom 4. Oktober 1902.',
+            ],
+        ],
+    ],
+];
