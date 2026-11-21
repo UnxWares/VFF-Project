@@ -50,7 +50,7 @@ final class MaterialTractionRule
     private const NOT_JUDGED_TYPES = ['bimode', 'autorail', 'locomotive_diesel', 'locomotive_vapeur', 'voiture', 'wagon'];
 
     /** Sources d'électrification qui ne disent rien de l'état à l'ère (voir la migration de line_segments). */
-    private const UNKNOWN_SOURCES = ['none', 'unknown', 'status'];
+    public const UNKNOWN_SOURCES = ['none', 'unknown', 'status'];
 
     /** Clé des tronçons électrifiés de tension inconnue dans un profil. */
     private const UNKNOWN_VOLTAGE = 0;

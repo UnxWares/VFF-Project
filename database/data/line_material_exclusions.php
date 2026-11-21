@@ -55,4 +55,25 @@ return [
         'source' => 'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_de_Rill%C3%A9&oldid=241314245',
         'reason' => 'une plateforme Péchot venue des Chanteraines, « en cours de remise en état historique » : pièce de collection en restauration, aucune circulation décrite',
     ],
+    [
+        'line' => '500000',
+        'material' => 'Q2815776', // 2D2 9100
+        'quote' => 'marches d\'essais sur Paris - Bordeaux',
+        'source' => 'https://fr.wikipedia.org/w/index.php?title=2D2_9100&oldid=237950236',
+        'reason' => 'essais de 1950 sur Paris - Bordeaux, par la ligne de Paris à Bordeaux (570000) ; le graphe d\'aujourd\'hui attribue à Chartres - Bordeaux les 9,5 km parallèles entre Saint-Loubès et Cenon',
+    ],
+    [
+        'line' => '782000',
+        'material' => 'Q3588105', // Élément à turbine à gaz
+        'quote' => 'par Saint-Étienne et Thiers ou par Roanne et Vichy',
+        'source' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_du_Coteau_%C3%A0_Saint-Germain-au-Mont-d%27Or&oldid=241352718',
+        'reason' => 'les trains Lyon - Roanne - Clermont-Ferrand passent par Tarare et Lozanne (783000) puis Saint-Germain-au-Mont-d\'Or ; la ligne de Lyon-Saint-Paul à Montbrison n\'est que « tangentée » à L\'Arbresle, le plus court chemin par Tassin n\'est pas leur itinéraire',
+    ],
+    [
+        'line' => '782000',
+        'material' => 'Q432769', // Régiolis
+        'quote' => 'Clermont-Ferrand - Lyon',
+        'source' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_du_Coteau_%C3%A0_Saint-Germain-au-Mont-d%27Or&oldid=241352718',
+        'reason' => 'les TER Clermont-Ferrand - Lyon passent par Tarare (« un unique arrêt à Tarare ») et Lozanne (783000), pas par la ligne de Lyon-Saint-Paul à Montbrison (Tassin - L\'Arbresle)',
+    ],
 ];

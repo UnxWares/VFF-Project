@@ -27,9 +27,11 @@ use SplPriorityQueue;
  * « Honfleur (IE) », « … Marchandises », « … Triage ») sont laissées de côté s'il reste une autre gare.
  *
  * Série électrique (rame TGV, locomotive électrique, automotrice dont les systèmes sont connus) : les arêtes
- * qui ne suivent que des lignes jamais électrifiées (ni `lines.electrified`, ni tronçon électrifié à une ère)
- * sont retirées du graphe. Sans cela, Paris-Nord - Arras - Boulogne-Ville en TGV passait par Saint-Pol et
- * Étaples, ligne jamais électrifiée.
+ * qui ne suivent que des lignes non électrifiées sont retirées (voir electrifiedLines() : moins de
+ * MaterialTractionRule::MIN_SHARE de la longueur connue sous caténaire à toutes les ères, ou, sans
+ * électrification connue par tronçon, ni `lines.electrified` ni tronçon électrifié). Sans cela,
+ * Paris-Nord - Arras - Boulogne-Ville en TGV passait par Saint-Pol et Étaples, ligne jamais électrifiée, et
+ * Paris - Toulouse passait pour ambigu à cause du kilomètre électrifié de Brive - Capdenac - Toulouse.
  *
  * Graphe d'une ère passée troué (morceau de ligne absent de `station_edges` à cette ère, comme le kilomètre
  * entre Vénissieux et Saint-Fons sur Lyon - Grenoble avant 2030) : quand le plus court chemin de l'époque
@@ -76,6 +78,9 @@ final class RelationRouter
 
     /** Écart maximal entre les gares d'une même ville. */
     private const CITY_SPREAD_KM = 30.0;
+
+    /** Part minimale des gares « <nom>-… » groupées dans une même ville quand d'autres sont loin. */
+    private const CITY_MAJORITY = 0.75;
 
     /** @var array<int, int>|null année de l'ère → identifiant */
     private ?array $eras = null;
@@ -149,7 +154,9 @@ final class RelationRouter
             return [];
         }
         $found = array_values(array_filter($this->byKey[$key] ?? [], fn (int $id): bool => isset($graph['adj'][$id])));
+        $prefixed = false;
         if ($found === [] && mb_strlen($key) >= 3) {
+            $prefixed = true;
             foreach ($this->stations as $id => $station) {
                 if (isset($graph['adj'][$id]) && (str_starts_with($station['key'], $key.'-') || str_starts_with($station['key'], $key.' '))) {
                     $found[] = $id;
@@ -157,7 +164,12 @@ final class RelationRouter
             }
         }
         if (count($found) > 1 && $this->spreadKm($found) > self::CITY_SPREAD_KM) {
-            return [];
+            // Gares « <nom>-… » : une commune lointaine au nom composé (Paris-l'Hôpital, en Saône-et-Loire,
+            // ouverte aux ères passées) ne retire pas « Paris » à toute une époque.
+            $found = $prefixed ? $this->mainCity($found) : [];
+            if ($found === []) {
+                return [];
+            }
         }
         if (count($found) > 1) {
             $public = array_values(array_filter($found, fn (int $id): bool => preg_match(self::TECHNICAL_STATION, $this->stations[$id]['name']) !== 1));
@@ -341,7 +353,10 @@ final class RelationRouter
             }
         }
         // Dans l'ordre du trajet, sans les bouts de jonction (quelques centaines de mètres d'une ligne voisine).
-        $lines = array_keys(array_filter($lengths, fn (int $len): bool => $len >= self::MIN_LINE_M));
+        // Série électrique : sans les lignes non électrifiées portées par une arête qu'elle partage avec une
+        // ligne électrifiée (tronc commun avant Cahors, où Monsempron-Libos - Cahors rejoint Paris - Toulouse).
+        $lines = array_keys(array_filter($lengths, fn (int $len, int $line): bool => $len >= self::MIN_LINE_M
+            && (! $electric || isset($this->electrified[$line])), ARRAY_FILTER_USE_BOTH));
         $ratio = $this->alternative($graph, $path, $onPath);
 
         $ends = ['from' => $path['stations'][0], 'to' => $path['stations'][count($path['stations']) - 1], 'cost' => (float) $path['cost']];
@@ -486,9 +501,7 @@ final class RelationRouter
             $this->junctions = DB::table('lines')->where('name', 'ilike', 'raccordement%')->pluck('id')->mapWithKeys(fn ($id): array => [(int) $id => true])->all();
         }
         if ($electric && $this->electrified === null) {
-            $this->electrified = DB::table('lines')->where('electrified', true)
-                ->orWhereExists(fn ($q) => $q->selectRaw('1')->from('line_segments')->whereColumn('line_segments.line_id', 'lines.id')->where('line_segments.electrified', true))
-                ->pluck('id')->mapWithKeys(fn ($id): array => [(int) $id => true])->all();
+            $this->electrified = self::electrifiedLines();
         }
         $graphKey = $eraYear * 4 + ($fast ? 1 : 0) + ($electric ? 2 : 0);
         if (! array_key_exists($graphKey, $this->graphs)) {
@@ -521,6 +534,47 @@ final class RelationRouter
         }
 
         return $this->graphs[$graphKey];
+    }
+
+    /**
+     * Lignes qu'une série électrique peut suivre, avec la mesure de MaterialTractionRule : au moins MIN_SHARE
+     * de la longueur connue sous caténaire à une ère au moins. Le bout électrifié d'une grande gare ne suffit
+     * pas : la ligne de Brive à Toulouse par Capdenac (718000, 1 km sur 249 à Toulouse) rendait Paris - Toulouse
+     * ambigu pour une BB 26000, et celle de Lyon à Bourg par la Dombes (886000) détournait les BB 22200 de
+     * Lyon - Bourg-en-Bresse. Ligne sans électrification connue par tronçon : `lines.electrified` ou un tronçon
+     * électrifié, comme avant.
+     *
+     * @return array<int, true>
+     */
+    private static function electrifiedLines(): array
+    {
+        $length = 'COALESCE(line_segments.length_meters, ST_Length(line_segments.geom::geography))';
+        $best = [];
+        $rows = DB::table('line_segments')
+            ->whereNotNull('electrification_source')->whereNotIn('electrification_source', MaterialTractionRule::UNKNOWN_SOURCES)
+            ->groupBy('line_id', 'era_id')
+            ->selectRaw("line_id, SUM({$length}) AS total, SUM(CASE WHEN electrified THEN {$length} ELSE 0 END) AS electrified")
+            ->get();
+        foreach ($rows as $row) {
+            $share = (float) $row->total > 0 ? (float) $row->electrified / (float) $row->total : 0.0;
+            $best[(int) $row->line_id] = max($best[(int) $row->line_id] ?? 0.0, $share);
+        }
+        $lines = [];
+        foreach ($best as $line => $share) {
+            if ($share >= MaterialTractionRule::MIN_SHARE) {
+                $lines[$line] = true;
+            }
+        }
+        $declared = DB::table('lines')->where('electrified', true)
+            ->orWhereExists(fn ($q) => $q->selectRaw('1')->from('line_segments')->whereColumn('line_segments.line_id', 'lines.id')->where('line_segments.electrified', true))
+            ->pluck('id');
+        foreach ($declared as $id) {
+            if (! isset($best[(int) $id])) {
+                $lines[(int) $id] = true;
+            }
+        }
+
+        return $lines;
     }
 
     private function loadEras(): void
@@ -584,6 +638,27 @@ final class RelationRouter
         }
 
         return $max;
+    }
+
+    /**
+     * Gares d'une même ville parmi des gares « <nom>-… » trop éloignées : celles à moins de CITY_SPREAD_KM de
+     * la gare qui a le plus de voisines, si elles restent groupées et font au moins CITY_MAJORITY du tout ;
+     * sinon aucune (deux villes de taille voisine : nom ambigu).
+     *
+     * @param  list<int>  $ids
+     * @return list<int>
+     */
+    private function mainCity(array $ids): array
+    {
+        $best = [];
+        foreach ($ids as $a) {
+            $near = array_values(array_filter($ids, fn (int $b): bool => $this->distanceKm($a, $b) <= self::CITY_SPREAD_KM));
+            if (count($near) > count($best)) {
+                $best = $near;
+            }
+        }
+
+        return count($best) >= self::CITY_MAJORITY * count($ids) && $this->spreadKm($best) <= self::CITY_SPREAD_KM ? $best : [];
     }
 
     /** Distance à vol d'oiseau entre deux gares, en kilomètres. */
