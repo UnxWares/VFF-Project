@@ -173,6 +173,49 @@ class LineProfilesTest extends TestCase
         $this->assertGreaterThan($points->first()->altitude_m, $points->last()->altitude_m);
     }
 
+    public function test_projected_pk_do_not_give_the_direction(): void
+    {
+        // PK projetés sur le tracé, numérotés depuis Paris : ils suivent la géométrie, pas la ligne, le sens
+        // d'assemblage (ici depuis Versailles) est gardé.
+        DB::table('station_lines')->where('line_id', $this->line->id)->update(['pk_source' => 'projected_raw']);
+        DB::table('station_lines')->where('station_id', $this->origin->id)->update(['pk_m' => 0]);
+        DB::table('station_lines')->where('station_id', $this->destination->id)->update(['pk_m' => 17_250]);
+        DB::table('lines')->where('id', $this->line->id)->update(['name' => 'Ligne sans destinations']);
+        $this->fakeIgn();
+
+        $this->artisan('vff:compute-line-profiles', ['--line' => [$this->line->slug]])->assertSuccessful();
+
+        $profile = LineProfile::where('line_id', $this->line->id)->firstOrFail();
+        $this->assertSame(['versailles-rive-droite', 'paris-saint-lazare'], array_column($profile->stations, 'slug'));
+    }
+
+    public function test_the_line_name_gives_the_direction_when_no_official_pk_exists(): void
+    {
+        DB::table('station_lines')->where('line_id', $this->line->id)->update(['pk_m' => null, 'pk_source' => null]);
+        $this->fakeIgn();
+        $names = DB::table('stations')->whereIn('id', [$this->origin->id, $this->destination->id])->pluck('name', 'id');
+        DB::table('lines')->where('id', $this->line->id)->update(['name' => 'Ligne de '.$names[$this->destination->id].' à '.$names[$this->origin->id]]);
+
+        $this->artisan('vff:compute-line-profiles', ['--line' => [$this->line->slug]])->assertSuccessful();
+
+        $profile = LineProfile::where('line_id', $this->line->id)->firstOrFail();
+        $this->assertSame(['versailles-rive-droite', 'paris-saint-lazare'], array_column($profile->stations, 'slug'));
+        $this->assertEquals(120, $profile->points()->orderBy('seq')->first()->altitude_m);
+    }
+
+    public function test_without_pk_or_a_usable_name_the_assembly_direction_is_kept(): void
+    {
+        DB::table('station_lines')->where('line_id', $this->line->id)->update(['pk_m' => null, 'pk_source' => null]);
+        DB::table('lines')->where('id', $this->line->id)->update(['name' => 'Ligne sans destinations']);
+        $this->fakeIgn();
+
+        $this->artisan('vff:compute-line-profiles', ['--line' => [$this->line->slug]])->assertSuccessful();
+
+        $profile = LineProfile::where('line_id', $this->line->id)->firstOrFail();
+        $this->assertSame(0, $profile->pk_anchors);
+        $this->assertEquals(120, $profile->points()->orderBy('seq')->first()->altitude_m);
+    }
+
     public function test_a_profile_that_can_no_longer_be_computed_is_removed(): void
     {
         $this->fakeIgn();
