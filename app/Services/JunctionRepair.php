@@ -571,7 +571,10 @@ class JunctionRepair
      * Un barreau entre deux voies qui continuent toutes les deux (aucune ne s'arrête sur le saut) reste tel quel.
      * Une portion qui ne dépasse le saut que d'un bout sans issue court (jogEnd) est coupée comme si elle s'y arrêtait :
      * sinon ce bout et la voie entre le saut et J doubleraient la courbe (tronçons en double, mesuré le 21/11 : 3283, 3786).
-     * De même pour le bras d'une boucle de deux sauts (802, 3614), dont le second raccord est retiré avec lui.
+     * De même pour le bras d'une boucle de deux sauts (802, 3614), dont le second raccord est retiré avec lui. Bout et bras
+     * sont coupés aussi quand la courbe est refusée (recul, autre ligne, rayon ou écart, doublon) et que le saut reste un
+     * raccord droit ; pas quand le sens ou le cap la refusent : la ligne fait alors demi-tour sur le saut, ou les deux
+     * voies divergent, et le bout ne longe pas l'autre voie.
      * Une portion qui continue vraiment au-delà du saut reste entière : la courbe s'y raccorde en Y, et ses derniers
      * mètres longent cette voie (fusion de deux voies, comme un aiguillage).
      */
@@ -611,14 +614,19 @@ class JunctionRepair
             [$sA, $dA] = $this->projectOn($a, $p, $f);
             [$sB, $dB] = $this->projectOn($b, $q, $f);
             // Le bout coupé doit être en aval de A et en amont de B dans le sens de marche (sinon la coupe emporterait le reste).
+            // Ni ce refus ni celui du cap ne coupent le bout sans issue : la ligne fait demi-tour sur le saut (le bout
+            // continue le sens d'arrivée) ou les deux voies divergent de plus de JOG_PARALLEL_DEG, et le bout ne longe pas
+            // l'autre voie (relevé du 21/11/2026 : sur tout le réseau, quatre bouts dans ces deux refus, 552, 891 et 4476
+            // pour le sens, 554 pour le cap, sans tronçon en double ; aucune boucle de deux sauts sur 148 lignes rejouées).
             if (($endA !== null && ($endA['k'] === 1) !== ($dA > 0)) || ($endB !== null && ($endB['k'] === 0) !== ($dB > 0))) {
-                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'sens'];
+                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'sens', 'stub' => [$endA['stub'] ?? null, $endB['stub'] ?? null], 'loop' => $loops];
 
                 continue;
             }
             // Courbe refusée plus bas (recul, autre ligne, rayon, doublon) : le saut reste un raccord droit, mais le bout
             // sans issue qui dépasse son pied est coupé quand même (sinon il longe l'autre voie et le nettoyage final en
-            // fait un V en double : Strasbourg, ligne 523, 20 m).
+            // fait un V en double : Strasbourg, ligne 523, 20 m), et le bras d'une boucle de deux sauts part avec son
+            // second raccord (sinon le triangle reste).
             $trimStubs = function () use ($endA, $endB, $e0, $e1, $sA0, $sB0, $la, $lb, $loops, &$stats): void {
                 foreach ([[$endA, $e0['sid'], $sA0, $la], [$endB, $e1['sid'], $sB0, $lb]] as [$end, $sid, $s0, $l]) {
                     if ($end !== null && $end['stub'] > 0) {
@@ -631,7 +639,7 @@ class JunctionRepair
             $ga = $this->unit($this->pointAlong($a, $sA - 10 * $dA), $this->pointAlong($a, $sA));
             $gb = $this->unit($this->pointAlong($b, $sB), $this->pointAlong($b, $sB + 10 * $dB));
             if ($this->angDiff(atan2($ga[0], $ga[1]), atan2($gb[0], $gb[1])) > deg2rad(self::JOG_PARALLEL_DEG)) {
-                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'cap'];
+                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'cap', 'stub' => [$endA['stub'] ?? null, $endB['stub'] ?? null], 'loop' => $loops];
 
                 continue;
             }

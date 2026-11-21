@@ -224,7 +224,7 @@ class SingleAxis
      * tracé source retirés sont listés dans line_reference_duplicates (cause
      * « superposition »). Idempotent.
      *
-     * @return array<string, float|int> superposed_m (tracés), connector_dup_m, near_m, crossed_m, snapped, folded
+     * @return array<string, float|int> superposed_m (tracés), connector_dup_m, near_m (compris dans les deux premiers), crossed_m (bouts croisés, à part), snapped, folded
      */
     public function tidy(int $lineId): array
     {
@@ -534,7 +534,7 @@ class SingleAxis
                 SQL, ['k' => (int) $c->k, 'xp' => $c->xp, 'a' => (int) $c->k === 0 ? (float) $c->f : 0.0, 'b' => (int) $c->k === 0 ? 1.0 : (float) $c->f,
                 'sid' => $sid, 'sid2' => $sid]);
             $cut[$sid] = true;
-            $stats['superposed_m'] += (float) $c->stub;
+            // Compté à part (pas dans superposed_m) : vff:build-line-references affiche les deux postes côte à côte.
             $stats['crossed_m'] = ($stats['crossed_m'] ?? 0) + (float) $c->stub;
         }
     }

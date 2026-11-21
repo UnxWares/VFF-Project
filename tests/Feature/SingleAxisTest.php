@@ -369,6 +369,8 @@ class SingleAxisTest extends TestCase
         $stats = app(SingleAxis::class)->tidy($this->line->id);
 
         $this->assertEqualsWithDelta(14.5, $stats['crossed_m'], 0.5);
+        // Le bout croisé n'est compté qu'une fois : pas aussi dans les bouts superposés (ligne « nettoyage » de la commande).
+        $this->assertSame(0.0, $stats['superposed_m']);
         $this->assertGreaterThan(1, $this->distToTrace(37.9, -41.8));
         // B part du croisement, posé exactement sur A (raccord en T, sommet de A) : restent les deux bouts de A et celui de B.
         $this->assertSame(3, $this->freeEnds());

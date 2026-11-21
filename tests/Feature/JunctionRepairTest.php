@@ -374,6 +374,53 @@ class JunctionRepairTest extends TestCase
         $this->assertSame([[-185.3, -380.8], [191.2, 377.8]], $this->freeEnds());
     }
 
+    public function test_jog_where_the_line_turns_back_keeps_the_dead_end_past_its_foot(): void
+    {
+        // Revigny (891, 019000 ; état du 21/11/2026 relatif au point 4.985808, 48.823967) : deux morceaux recalés sur la
+        // BD TOPO (1,2 km et 1 km), à 12 m l'un de l'autre, arrivent de l'ouest ; le second finit sur un saut de 13 m vers
+        // le premier, qui le dépasse de 11 m jusqu'à un bout libre. La ligne fait demi-tour sur le saut (refus « sens ») :
+        // le bout continue le sens d'arrivée et ne longe aucune voie, il reste.
+        DB::table('lines')->where('id', $this->line->id)->update(['network' => 'principal']);
+        $this->part('archeoferroviaire', [[[-1050.3, -568.4], [-1046.1, -565.4], [-1021.9, -550.0], [-917.8, -488.8], [-886.1, -469.4], [-877.1, -463.9],
+            [-813.1, -424.5], [-771.6, -397.4], [-723.9, -368.4], [-676.9, -345.6], [-610.2, -313.1], [-539.0, -282.3], [-492.0, -260.2], [-449.2, -239.5],
+            [-385.2, -203.3], [-328.6, -170.2], [-327.9, -169.7], [-294.7, -149.4], [-233.6, -113.6], [-188.6, -87.2], [-157.6, -71.8], [-134.1, -60.0],
+            [-101.0, -44.2], [-90.2, -39.1], [-73.2, -30.9], [-17.6, -7.6], [0.0, 0.0], [10.4, 4.6]]], [], 'bdtopo');
+        $this->part('archeoferroviaire', [[[-900.3, -420.6], [-880.4, -406.3], [-863.2, -394.0], [-817.0, -364.5], [-786.7, -345.3], [-744.6, -320.3],
+            [-696.6, -296.2], [-652.9, -275.2], [-615.6, -258.4], [-570.8, -237.4], [-504.7, -208.9], [-432.1, -176.5], [-387.5, -155.9], [-323.0, -125.7],
+            [-257.2, -97.2], [-243.8, -91.1], [-198.8, -70.8], [-169.9, -58.1], [-167.4, -57.0], [-141.0, -45.4], [-106.8, -31.4], [-85.7, -22.7],
+            [-6.3, 12.1], [-5.4, 12.4]]], [], 'bdtopo');
+        $this->connector([[-5.4, 12.4], [0.0, 0.0]], 'archeoferroviaire');
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['jog_smoothed']);
+        $this->assertSame(0.0, $stats['stub_trimmed_m']);
+        $this->assertContains([10.4, 4.6], $this->freeEnds());
+    }
+
+    public function test_jog_between_diverging_tracks_keeps_the_dead_end_past_its_foot(): void
+    {
+        // Saint-Denis (554 ; état du 21/11/2026 relatif au point 2.353591, 48.910094) : la ligne arrive du sud-est sur un
+        // tracé OHM recalé sur OSM, saute de 20 m vers une voie BD TOPO qui part vers le nord et la dépasse de 14 m vers le
+        // sud jusqu'à un bout libre. Les deux voies divergent de plus de 30° (refus « cap ») : le bout ne longe pas l'autre
+        // voie, il reste.
+        DB::table('lines')->where('id', $this->line->id)->update(['network' => 'principal']);
+        $this->part('bdtopo', [[[-67.6, 103.7], [-55.3, 73.5], [-51.5, 64.4], [-43.2, 59.1], [-39.6, 56.8], [-37.2, 55.3], [-34.9, 53.6], [-32.7, 51.8],
+            [-18.5, 39.9]]]);
+        $this->connector([[-18.5, 39.9], [-4.5, 19.4]]);
+        $this->part('bdtopo', [[[-4.5, 19.4], [-0.6, 3.0], [0.0, 0.0], [2.8, -13.7]]]);
+        $this->connector([[19.2, 3.9], [0.0, 0.0]], 'ohm');
+        $this->part('ohm', [[[102.3, -171.0], [100.8, -160.3], [97.4, -144.1], [94.1, -132.4], [90.9, -121.9], [84.1, -102.5], [80.1, -92.2],
+            [76.0, -82.0], [71.9, -72.5], [69.4, -67.0], [65.4, -58.2], [59.0, -46.7], [56.6, -42.8], [53.8, -38.5], [49.0, -31.7], [42.4, -23.1],
+            [41.0, -21.2], [39.4, -19.2], [30.4, -8.4], [23.2, -0.2], [19.2, 3.9]]], [], 'osm');
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['jog_smoothed']);
+        $this->assertSame(0.0, $stats['stub_trimmed_m']);
+        $this->assertContains([2.8, -13.7], $this->freeEnds());
+    }
+
     /**
      * Après la réparation puis le nettoyage final : longueur (m) de tracé qui longe à moins de 5 m un autre morceau de
      * la ligne, hors des 5 premiers et derniers mètres de chaque morceau (raccords en Y), et morceaux restants.
