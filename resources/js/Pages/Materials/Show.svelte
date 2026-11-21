@@ -26,6 +26,8 @@
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (key, opts) => String($i18n.t(key, opts));
+    // Séparateur des sources d'une note : Svelte retire l'espace qui borde un bloc {#if}.
+    const LIST_SEPARATOR = ', ';
     const num = (n) => Number(n).toLocaleString(lang);
 
     // Lignes visibles d'emblée ; la suite se déplie (la série la plus citée en compte 43).
@@ -264,7 +266,7 @@
                     <p class="relation-fact">
                         {t('materials.relations.notes.line', { label: n.label, text: n.text })}
                         ({t('materials.relations.notes.sources')}
-                        {#each n.sources as s, j (s.url)}{#if j > 0}{', '}{/if}<a
+                        {#each n.sources as s, j (s.url)}{#if j > 0}{LIST_SEPARATOR}{/if}<a
                                 href={s.url}
                                 target="_blank"
                                 rel="noopener noreferrer">{s.publisher}{@render ext()}</a
