@@ -25,6 +25,10 @@ use Illuminate\Support\Facades\Artisan;
  * choisie par l'utilisateur le 2026-10-20 : « Nous adhérons à AngouLim car nous
  * soutenons cette initiative. »
  *
+ * Accueil (décision de l'éditeur du 21/11/2026) : la ligne des Hirondelles puis Angoulême - Limoges en
+ * encarts complets, Argentan - Granville ensuite en mention courte (une phrase et le lien vers la fiche),
+ * dont l'encart complet reste sur la fiche de la ligne.
+ *
  * Langues : le français est la référence ; les traductions anglaise et allemande
  * lui sont fidèles (mêmes faits, même date, même durée annoncée, même mention du
  * lien d'intérêts) et sont affichées selon la langue de la page (App\Support\Advocacy).
@@ -45,6 +49,7 @@ class AdvocacySeeder extends Seeder
                 '--title-de' => 'Die Ligne des Hirondelles hat nur eine Gnadenfrist',
                 '--message-de' => 'Viadukte, Tunnel und Kehren im Hochjura: Die Ligne des Hirondelles von Andelot nach La Cluse über Champagnole, Morez und Saint-Claude ist eine der schönsten Strecken Frankreichs. Ihre Zukunft hängt von den Erneuerungsarbeiten ab: VFF setzt sich für ihren Erhalt ein.',
                 '--cta-de' => 'Für die Strecke aktiv werden',
+                '--home-rank' => '1',
             ],
             // Argentan - Granville : courrier du président de la Région Normandie au Premier ministre
             // (9 juillet 2026, France 3 Normandie du 23 juillet 2026) ; fréquentation des quatre gares
@@ -68,6 +73,12 @@ class AdvocacySeeder extends Seeder
                     'SNCF Gares & Connexions, Fréquentation en gares 2015-2024|2025-07-03|https://ressources.data.sncf.com/explore/dataset/frequentation-gares-archive/',
                     'Région Normandie, SNCF Voyageurs, Oleo100|2023-01-17|https://oleo100.com/oleo-assets/uploads/2023/01/2023-cp-bilan-des-18-mois-dutilisation-du-b100-vdef.pdf',
                 ],
+                // Accueil : mention courte après les deux encarts (mêmes sources que le message).
+                '--home-rank' => '3',
+                '--home' => 'mention',
+                '--home-summary' => 'En juillet 2026, la Région Normandie a alerté sur le financement de la ligne Argentan - Granville, qui gagne des voyageurs depuis 2021.',
+                '--home-summary-en' => 'In July 2026, the Normandy Region raised concerns about funding for the Argentan - Granville line, which has been gaining passengers since 2021.',
+                '--home-summary-de' => 'Im Juli 2026 hat die Region Normandie vor einer Finanzierungslücke bei der Strecke Argentan - Granville gewarnt. Die Strecke gewinnt seit 2021 Fahrgäste hinzu.',
             ],
             [
                 'code' => '610000',
@@ -82,6 +93,7 @@ class AdvocacySeeder extends Seeder
                 '--message-de' => 'Am 13. März 2018 zwischen Angoulême und Saillat-Chassenon für eine angekündigte Unterbrechung von drei Wochen geschlossen, wurde die Strecke nie wieder eröffnet. Ihre Wiedereröffnung würde ein ganzes Gebiet zwischen Charente und Haute-Vienne aus seiner Abgeschiedenheit holen. VFF unterstützt den Verein AngouLim, der sich für ihre vollständige Wiedereröffnung einsetzt. Wir sind Mitglied von AngouLim, weil wir diese Initiative unterstützen.',
                 '--cta-de' => 'AngouLim unterstützen',
                 '--url' => 'https://www.helloasso.com/associations/angoulim/adhesions/bulletin-d-adhesion-a-angoulim',
+                '--home-rank' => '2',
             ],
         ];
 

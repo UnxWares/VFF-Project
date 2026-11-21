@@ -114,7 +114,58 @@ class ArgentanGranvilleAdvocacyTest extends TestCase
             ->where('line.advocacy.sources.1.label', 'ICI Normandie')
             ->where('line.advocacy.sources.1.date', '19 January 2026'));
         $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->where('threatened.0.slug', 'rfn-405000'));
+            ->where('threatened.0.slug', 'rfn-405000')
+            ->where('threatened.0.home.display', 'mention'));
+    }
+
+    public function test_the_home_page_shows_hirondelles_and_angoulim_first_and_this_line_as_a_short_mention(): void
+    {
+        Line::factory()->create(['code' => '878000', 'slug' => 'rfn-878000']);
+        Line::factory()->create(['code' => '610000', 'slug' => 'rfn-610000']);
+        $this->seed(AdvocacySeeder::class);
+
+        // Requêtes de test en anglais : mention traduite, encart complet de la fiche inchangé.
+        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->has('threatened', 3)
+            ->where('threatened.0.slug', 'rfn-878000')
+            ->where('threatened.0.home.display', 'card')
+            ->where('threatened.1.slug', 'rfn-610000')
+            ->where('threatened.1.home.display', 'card')
+            ->where('threatened.2.slug', 'rfn-405000')
+            ->where('threatened.2.home', ['rank' => 3, 'display' => 'mention', 'lang' => 'en',
+                'summary' => 'In July 2026, the Normandy Region raised concerns about funding for the Argentan - Granville line, which has been gaining passengers since 2021.']));
+        $this->get('/lines/rfn-405000')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('line.advocacy.title', 'The Argentan - Granville line must stay open')
+            ->missing('line.advocacy.home'));
+
+        $advocacy = $this->line->fresh()->advocacy;
+        $this->assertSame('En juillet 2026, la Région Normandie a alerté sur le financement de la ligne Argentan - Granville, qui gagne des voyageurs depuis 2021.',
+            Advocacy::home($advocacy, 'fr')['summary']);
+        $this->assertSame('Im Juli 2026 hat die Region Normandie vor einer Finanzierungslücke bei der Strecke Argentan - Granville gewarnt. Die Strecke gewinnt seit 2021 Fahrgäste hinzu.',
+            Advocacy::home($advocacy, 'de')['summary']);
+        foreach (['fr', 'en', 'de'] as $locale) {
+            $summary = (string) Advocacy::home($advocacy, $locale)['summary'];
+            $this->assertStringContainsString('2021', $summary);
+            $this->assertStringNotContainsString('—', $summary);
+        }
+        // La hausse depuis 2021 dite par la mention est celle du relevé SNCF.
+        $this->assertGreaterThan($this->total(2021), $this->total(2024));
+    }
+
+    public function test_a_badly_written_home_placement_is_refused(): void
+    {
+        $this->artisan('vff:flag-threatened', ['code' => '405000', '--home' => 'mention'])
+            ->expectsOutputToContain('texte court en français')->assertFailed();
+        $this->artisan('vff:flag-threatened', ['code' => '405000', '--home' => 'bandeau'])
+            ->expectsOutputToContain('forme d\'accueil inconnue')->assertFailed();
+        $this->artisan('vff:flag-threatened', ['code' => '405000', '--home-rank' => 'deux'])
+            ->expectsOutputToContain('--home-rank doit être un entier')->assertFailed();
+        $this->artisan('vff:flag-threatened', ['code' => '405000', '--home-rank' => '0'])
+            ->expectsOutputToContain('commence à 1')->assertFailed();
+        $this->assertNull($this->line->fresh()->advocacy);
+
+        $this->assertNull(Advocacy::buildHome(null, 'card'), 'rien de précisé : pas de clé home');
+        $this->assertSame(['rank' => 2, 'display' => 'card'], Advocacy::buildHome(2, null));
     }
 
     public function test_apis_flag_the_line_without_publishing_the_message(): void
