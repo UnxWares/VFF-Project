@@ -124,7 +124,7 @@
                 </div>
             {/if}
             <div class="profile-grid">
-                <aside class="identity" aria-labelledby="identity-name">
+                <section class="identity" aria-labelledby="identity-name">
                     {#if profile.avatar_path}
                         <img
                             class="avatar"
@@ -161,7 +161,7 @@
                     <Link class="vff-link" href="/contribute/mine"
                         >{$i18n.t('auth.my_contributions')}</Link
                     >
-                </aside>
+                </section>
 
                 <section class="edit" aria-labelledby="edit-title">
                     <h2 id="edit-title" class="vff-section-title">{$i18n.t('auth.edit_title')}</h2>

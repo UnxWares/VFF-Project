@@ -206,6 +206,9 @@
         position: relative;
         max-width: 100%;
         overflow-x: auto;
+        /* La première colonne reste collée à gauche : sans cette marge, le défilement vers un lien
+           focalisé le laisse sous elle (WCAG 2.4.11). */
+        scroll-padding-inline-start: 8rem;
         border-top: 1px solid var(--vff-border-strong);
     }
     table {
