@@ -1544,7 +1544,7 @@ type StationDateCandidate {
   vff_precision: String
   "Source de la date de VFF."
   vff_source: String
-  "\`same\`, \`more_precise\`, \`less_precise\`, \`differs\`, \`new\` (VFF n'a pas de date)."
+  "\`same\`, \`more_precise\`, \`less_precise\`, \`close\` (date VFF bornée par les ères, candidate à moins d'un an de l'intervalle), \`differs\`, \`new\` (VFF n'a pas de date)."
   comparison: String!
   "Candidate moins VFF, en jours."
   delta_days: Int
