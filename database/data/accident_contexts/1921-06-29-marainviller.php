@@ -1,0 +1,92 @@
+<?php
+
+// Contexte sourcé de l'accident de Marainviller du 29 juin 1921 (recherche du 21/11/2026).
+return [
+    'slug' => '1921-06-29-marainviller',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1921' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1921',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '29 juin 1921, Marainviller',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1921&oldid=233501430#Juin',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Donne vers 8 h 30, un train spécial de soldats démobilisés revenant d\'Allemagne occupée prenant en écharpe un train de marchandises en manoeuvre, 4 morts et 28 blessés ; cite Le Matin du 30 juin 1921.',
+        ],
+        'het-volk-1921-06-30' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Het Volk du 30 juin 1921',
+            'publisher' => 'Het Volk',
+            'author' => null,
+            'published' => '1921-06-30',
+            'locator' => null,
+            'url' => 'https://resolver.kb.nl/resolve?urn=ddd:011081991:mpeg21:a0011',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Dépêche d\'agence ; le nom de la commune est mal orthographié (« Marinaillers »).',
+        ],
+        'limburgsch-dagblad-1921-07-01' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Limburgsch dagblad du 1 juillet 1921',
+            'publisher' => 'Limburgsch dagblad',
+            'author' => null,
+            'published' => '1921-07-01',
+            'locator' => null,
+            'url' => 'https://resolver.kb.nl/resolve?urn=ddd:010934674:mpeg21:a0013',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Même dépêche, publiée le surlendemain.',
+        ],
+        'matin-1921-06-30' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Matin du 30 juin 1921, page 1',
+            'publisher' => 'Le Matin (numérisé sur Gallica)',
+            'author' => null,
+            'published' => '1921-06-30',
+            'locator' => null,
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k5736503',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Référence citée par la liste de Wikipédia ; à consulter, non lue.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le mercredi 29 juin 1921 au matin, un train transportant des troupes revenant de Rhénanie est entré en collision, à Marainviller près de Lunéville (Meurthe-et-Moselle), avec un train en manoeuvre. La liste de Wikipédia précise qu\'il s\'agissait d\'un train spécial ramenant environ mille soldats pour leur démobilisation et d\'un train de marchandises, et attribue l\'accident à la négligence d\'un aiguilleur.',
+                'en' => 'On the morning of Wednesday 29 June 1921, a train carrying troops returning from the Rhineland collided at Marainviller near Lunéville (Meurthe-et-Moselle) with a shunting train. The Wikipedia list specifies that it was a special train bringing back about a thousand soldiers for demobilisation and a goods train, and blames the accident on a pointsman\'s negligence.',
+                'de' => 'Am Morgen des Mittwochs, 29. Juni 1921, stieß ein aus dem Rheinland zurückkehrender Truppentransport in Marainviller bei Lunéville (Meurthe-et-Moselle) mit einem rangierenden Zug zusammen. Die Wikipedia-Liste präzisiert, es sei ein Sonderzug mit etwa tausend Soldaten zur Demobilisierung und ein Güterzug gewesen, und führt das Unglück auf die Nachlässigkeit eines Weichenstellers zurück.',
+                'sources' => ['het-volk-1921-06-30', 'limburgsch-dagblad-1921-07-01', 'wp-liste-1921'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Selon la dépêche néerlandaise, trois soldats ont été tués et dix-sept blessés dont trois grièvement. La liste de Wikipédia donne quatre morts et vingt-huit blessés.',
+                'en' => 'According to the Dutch dispatch, three soldiers were killed and seventeen injured, three of them seriously. The Wikipedia list gives four dead and twenty-eight injured.',
+                'de' => 'Laut der niederländischen Depesche wurden drei Soldaten getötet und siebzehn verletzt, davon drei schwer. Die Wikipedia-Liste nennt vier Tote und achtundzwanzig Verletzte.',
+                'sources' => ['het-volk-1921-06-30', 'limburgsch-dagblad-1921-07-01', 'wp-liste-1921'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le bilan de la dépêche (3 morts, 17 blessés) est plus faible que celui de la liste (4 morts, 28 blessés), sans doute parce qu\'il est provisoire.',
+                'en' => 'The toll in the dispatch (3 dead, 17 injured) is lower than that of the list (4 dead, 28 injured), probably because it is provisional.',
+                'de' => 'Die Bilanz der Depesche (3 Tote, 17 Verletzte) ist niedriger als die der Liste (4 Tote, 28 Verletzte), vermutlich weil sie vorläufig ist.',
+                'sources' => ['het-volk-1921-06-30', 'wp-liste-1921'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

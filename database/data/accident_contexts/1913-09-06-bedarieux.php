@@ -1,0 +1,78 @@
+<?php
+
+// Contexte sourcé du déraillement d'un train de militaires à l'entrée de la gare de Bédarieux, le 6 septembre 1913 (recherche du 21/11/2026).
+return [
+    'slug' => '1913-09-06-bedarieux',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1913' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1913',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '6 et 7 septembre 1913, Bédarieux et Saint-Amans-Soult',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1913&oldid=233727923#Septembre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Le 6 septembre, déraillement de la queue d\'un train de militaires à l\'entrée de la gare de Bédarieux : 2 morts et 7 blessés ; le 7, collision à Saint-Amans-Soult (3 morts et 14 blessés) ; cite Le Petit Parisien du 8 septembre 1913.',
+        ],
+        'telegraaf-1913-09-08' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'De Telegraaf du 8 septembre 1913',
+            'publisher' => 'De Telegraaf',
+            'author' => null,
+            'published' => '1913-09-08',
+            'locator' => null,
+            'url' => 'https://resolver.kb.nl/resolve?urn=ddd:110547406:mpeg21:a0013',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Deux dépêches Reuter ; texte d\'OCR en partie altéré.',
+        ],
+        'petit-parisien-1913-09-08' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Petit Parisien du 8 septembre 1913, page 1',
+            'publisher' => 'Le Petit Parisien (numérisé sur Gallica)',
+            'author' => null,
+            'published' => '1913-09-08',
+            'locator' => null,
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k5648171',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Référence citée par la liste de Wikipédia ; à consulter, non lue.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, le 6 septembre 1913 vers 19 h 30, à l\'entrée de la gare de Bédarieux, sur la ligne de Béziers à Neussargues, la queue d\'un train de militaires partant aux grandes manoeuvres du Sud-Ouest a déraillé sur un aiguillage brutalement bloqué par une entretoise tombée d\'un wagon.',
+                'en' => 'According to the Wikipedia list, on 6 September 1913 at about 7.30 pm, at the entrance to Bédarieux station, on the Béziers to Neussargues line, the rear of a train of soldiers leaving for the south-west army manoeuvres derailed on points suddenly jammed by a spacer that had fallen from a wagon.',
+                'de' => 'Laut der Wikipedia-Liste entgleiste am 6. September 1913 gegen 19.30 Uhr bei der Einfahrt in den Bahnhof Bédarieux auf der Strecke von Béziers nach Neussargues das Ende eines Militärzugs, der zu den Manövern im Südwesten fuhr, auf einer Weiche, die durch ein von einem Wagen gefallenes Distanzstück plötzlich blockiert wurde.',
+                'sources' => ['wp-liste-1913'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Dans De Telegraaf du 8 septembre 1913, une dépêche Reuter de Béziers annonce qu\'un train militaire a déraillé, qu\'une personne a été tuée et douze blessées. La liste de Wikipédia donne deux morts et sept blessés.',
+                'en' => 'In De Telegraaf of 8 September 1913, a Reuters dispatch from Béziers announces that a military train derailed, that one person was killed and twelve injured. The Wikipedia list gives two dead and seven injured.',
+                'de' => 'In De Telegraaf vom 8. September 1913 meldet eine Reuter-Depesche aus Béziers, ein Militärzug sei entgleist, eine Person sei getötet und zwölf seien verletzt worden. Die Wikipedia-Liste nennt zwei Tote und sieben Verletzte.',
+                'sources' => ['telegraaf-1913-09-08', 'wp-liste-1913'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le même numéro rapporte aussi la collision de deux trains à Saint-Amans-Soult, le 7 septembre, avec trois morts et huit soldats gravement blessés, qui correspond à une autre entrée de la liste de Wikipédia (trois morts et quatorze blessés). Les deux événements des 6 et 7 septembre 1913 concernent des trains de militaires.',
+                'en' => 'The same issue also reports the collision of two trains at Saint-Amans-Soult on 7 September, with three dead and eight soldiers seriously injured, which corresponds to another entry in the Wikipedia list (three dead and fourteen injured). The two events of 6 and 7 September 1913 both involve military trains.',
+                'de' => 'Dieselbe Ausgabe berichtet auch über den Zusammenstoß zweier Züge in Saint-Amans-Soult am 7. September mit drei Toten und acht schwer verletzten Soldaten, was einem anderen Eintrag der Wikipedia-Liste entspricht (drei Tote und vierzehn Verletzte). Beide Ereignisse vom 6. und 7. September 1913 betreffen Militärzüge.',
+                'sources' => ['telegraaf-1913-09-08', 'wp-liste-1913'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

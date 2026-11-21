@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé de l'accident du tunnel de Vincennes du 8 mars 1911 (recherche du 21/11/2026).
+return [
+    'slug' => '1911-03-08-vincennes',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1911' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1911',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Mars',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1911&oldid=233727889#Mars',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Tunnel de Vincennes sur la ligne de la Bastille, vers 7 h, ouvriers de la voie surpris par un train arrivant en sens contraire, trois morts et sept blessés ; renvoie à Le Petit Parisien du 9 mars 1911 (non lu).',
+        ],
+        'delpher-delftsche-1911-03-10' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk in Frankrijk',
+            'publisher' => 'Delftsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1911-03-10',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB08:000134854:mpeg21:a0004',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Récit : tunnel de Vincennes à 50 m de la gare, ouvriers de la voie, deux trains presque simultanés, deux morts sur le coup et huit blessés graves.',
+        ],
+        'delpher-arnhemsche-1911-03-10' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Een spoorwegongeluk',
+            'publisher' => 'Arnhemsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1911-03-10',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB08:000100493:mpeg21:a0009',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même récit : train vers Nogent-sur-Marne, puis train vers Paris ; deux morts et sept blessés graves, corps transportés à la mairie de Vincennes.',
+        ],
+        'delpher-avondpost-1911-03-09' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève du 9 mars 1911',
+            'publisher' => 'De Avondpost (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1911-03-09',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB27:017857068:mpeg21:a00006',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Brève : plusieurs cantonniers surpris dans le tunnel de Vincennes par deux trains, deux morts et sept blessés graves.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le mercredi 8 mars 1911, un peu avant 7 h 30, des ouvriers de la voie réparaient la ligne dans le tunnel de Vincennes, à une cinquantaine de mètres de la gare, sur la ligne de la Bastille ; le tunnel est à double voie.',
+                'en' => 'On Wednesday 8 March 1911, shortly before 7.30 am, track workers were repairing the line in the Vincennes tunnel, about fifty metres from the station, on the Bastille line; the tunnel has two tracks.',
+                'de' => 'Am Mittwoch, dem 8. März 1911, kurz vor 7.30 Uhr, besserten Gleisarbeiter die Strecke im Tunnel von Vincennes, etwa fünfzig Meter vom Bahnhof entfernt, auf der Ligne de la Bastille aus; der Tunnel ist zweigleisig.',
+                'sources' => ['delpher-delftsche-1911-03-10', 'wp-liste-1911'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Les ouvriers se sont garés sur l\'autre voie au passage d\'un train, celui qui allait vers Nogent-sur-Marne ; presque au même instant, un train venant de Paris est entré dans le tunnel. Gênés par la vapeur et le bruit du premier train, ils n\'ont ni vu ni entendu le second.',
+                'en' => 'The workers stepped onto the other track as a train passed, the one going towards Nogent-sur-Marne; almost at the same moment, a train coming from Paris entered the tunnel. Hampered by the steam and noise of the first train, they neither saw nor heard the second.',
+                'de' => 'Die Arbeiter wichen beim Vorbeifahren eines Zuges, der Richtung Nogent-sur-Marne fuhr, auf das andere Gleis aus; fast im selben Augenblick fuhr ein Zug aus Paris in den Tunnel ein. Durch Dampf und Lärm des ersten Zuges behindert, sahen und hörten sie den zweiten nicht.',
+                'sources' => ['delpher-delftsche-1911-03-10', 'delpher-arnhemsche-1911-03-10', 'wp-liste-1911'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les journaux néerlandais comptent deux morts sur le coup et sept ou huit blessés graves, trois d\'entre eux sans espoir de survie. Les corps ont été transportés à la mairie de Vincennes et les blessés à l\'hôpital. La liste de Wikipédia compte trois morts et sept blessés.',
+                'en' => 'The Dutch newspapers count two killed outright and seven or eight seriously injured, three of them with almost no hope of survival. The bodies were taken to the town hall of Vincennes and the injured to hospital. The Wikipedia list counts three dead and seven injured.',
+                'de' => 'Die niederländischen Zeitungen zählen zwei sofort Getötete und sieben oder acht Schwerverletzte, drei davon fast ohne Überlebenschance. Die Leichen wurden ins Rathaus von Vincennes gebracht, die Verletzten ins Krankenhaus. Die Wikipedia-Liste zählt drei Tote und sieben Verletzte.',
+                'sources' => ['delpher-delftsche-1911-03-10', 'delpher-arnhemsche-1911-03-10', 'delpher-avondpost-1911-03-09', 'wp-liste-1911'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le nombre de morts passe de deux (presse du 9 et du 10 mars 1911) à trois (liste de Wikipédia), et celui des blessés de sept à huit selon les journaux. Les sources ne disent pas si le troisième mort est un blessé décédé ensuite.',
+                'en' => 'The number of dead goes from two (press of 9 and 10 March 1911) to three (Wikipedia list), and that of the injured from seven to eight depending on the newspaper. The sources do not say whether the third death was an injured man who died later.',
+                'de' => 'Die Zahl der Toten steigt von zwei (Presse vom 9. und 10. März 1911) auf drei (Wikipedia-Liste), die der Verletzten schwankt je nach Zeitung zwischen sieben und acht. Die Quellen sagen nicht, ob der dritte Tote ein später gestorbener Verletzter ist.',
+                'sources' => ['delpher-delftsche-1911-03-10', 'delpher-arnhemsche-1911-03-10', 'wp-liste-1911'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

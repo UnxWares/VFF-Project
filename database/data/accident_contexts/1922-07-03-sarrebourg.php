@@ -1,0 +1,108 @@
+<?php
+
+// Contexte sourcé du déraillement de Sarrebourg du 3 juillet 1922 (recherche du 21/11/2026).
+return [
+    'slug' => '1922-07-03-sarrebourg',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-gare-sarrebourg' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Gare de Sarrebourg',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Histoire, période de 1919 à 1933',
+            'url' => 'https://fr.wikipedia.org/wiki/Gare_de_Sarrebourg',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Donne l\'heure, l\'endroit du déraillement, la cause et un bilan de 4 morts et 37 blessés, sans citer de source précise pour l\'accident.',
+        ],
+        'wp-liste-1922' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1922',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '3 juillet 1922, Sarrebourg',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1922&oldid=236708402#Juillet',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Donne 4 morts et 23 blessés ; cite La Presse du 4 juillet 1922 et Le Matin du 5 juillet 1922.',
+        ],
+        'la-presse-1922-07-04' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'La Presse du 4 juillet 1922, page 1',
+            'publisher' => 'La Presse (numérisée sur Gallica)',
+            'author' => null,
+            'published' => '1922-07-04',
+            'locator' => 'page 1',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k6007851',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Référence citée par la liste de Wikipédia ; à consulter, non lue.',
+        ],
+        'le-matin-1922-07-05' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Matin du 5 juillet 1922, page 1',
+            'publisher' => 'Le Matin (numérisé sur Gallica)',
+            'author' => null,
+            'published' => '1922-07-05',
+            'locator' => 'page 1',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k574019j',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Référence citée par la liste de Wikipédia ; à consulter, non lue.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Depuis 1919, la gare de Sarrebourg (Moselle) était exploitée par l\'Administration des chemins de fer d\'Alsace et de Lorraine. En 1922, elle était en travaux : un pont métallique était construit au-dessus des voies et le nombre de voies passait de 6 à 24 ; la nouvelle gare a été inaugurée le 1er juin 1923.',
+                'en' => 'Since 1919, Sarrebourg station (Moselle) had been run by the Alsace-Lorraine railway administration. In 1922 it was a building site: a steel bridge was being built over the tracks and the number of tracks rose from 6 to 24; the new station was inaugurated on 1 June 1923.',
+                'de' => 'Seit 1919 wurde der Bahnhof Sarrebourg (Mosel) von der Eisenbahnverwaltung Elsass-Lothringen betrieben. 1922 war er eine Baustelle: Über den Gleisen wurde eine Stahlbrücke errichtet, und die Zahl der Gleise stieg von 6 auf 24; der neue Bahnhof wurde am 1. Juni 1923 eingeweiht.',
+                'sources' => ['wp-gare-sarrebourg'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le 3 juillet 1922, vers 23 heures, le train de nuit de Strasbourg à Paris a déraillé en face de la halle à marchandises de la gare de Sarrebourg. Selon la liste de Wikipédia, la locomotive et les voitures de tête se sont renversées.',
+                'en' => 'On 3 July 1922, at about 11 pm, the night train from Strasbourg to Paris derailed opposite the goods shed at Sarrebourg station. According to the Wikipedia list, the locomotive and the leading coaches overturned.',
+                'de' => 'Am 3. Juli 1922 gegen 23 Uhr entgleiste der Nachtzug von Straßburg nach Paris gegenüber der Güterhalle des Bahnhofs Sarrebourg. Laut der Wikipedia-Liste kippten die Lokomotive und die vorderen Wagen um.',
+                'sources' => ['wp-gare-sarrebourg', 'wp-liste-1922'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Les deux articles de Wikipédia attribuent le déraillement à une vitesse excessive : au passage d\'un aiguillage selon l\'article de la gare, dans la courbe de faible rayon d\'entrée en gare selon la liste.',
+                'en' => 'Both Wikipedia articles put the derailment down to excessive speed: over a set of points according to the station article, in the tight curve at the station entrance according to the list.',
+                'de' => 'Beide Wikipedia-Artikel führen die Entgleisung auf überhöhte Geschwindigkeit zurück: beim Befahren einer Weiche laut dem Bahnhofsartikel, in der engen Kurve bei der Bahnhofseinfahrt laut der Liste.',
+                'sources' => ['wp-gare-sarrebourg', 'wp-liste-1922'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'L\'accident a fait quatre morts. Les blessés sont au nombre de trente-sept selon l\'article de la gare et de vingt-trois selon la liste.',
+                'en' => 'The accident killed four people. The injured number thirty-seven according to the station article and twenty-three according to the list.',
+                'de' => 'Bei dem Unglück starben vier Menschen. Die Zahl der Verletzten beträgt laut dem Bahnhofsartikel siebenunddreißig und laut der Liste dreiundzwanzig.',
+                'sources' => ['wp-gare-sarrebourg', 'wp-liste-1922'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le nombre de blessés diffère (37 ou 23) et la liste parle du rapide Strasbourg-Paris alors que l\'article de la gare parle du train de nuit.',
+                'en' => 'The number of injured differs (37 or 23) and the list speaks of the Strasbourg to Paris express while the station article speaks of the night train.',
+                'de' => 'Die Zahl der Verletzten weicht ab (37 oder 23), und die Liste spricht vom Schnellzug Straßburg-Paris, der Bahnhofsartikel vom Nachtzug.',
+                'sources' => ['wp-gare-sarrebourg', 'wp-liste-1922'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

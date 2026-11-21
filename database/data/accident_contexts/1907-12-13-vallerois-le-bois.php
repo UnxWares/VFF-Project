@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé de la collision en gare de Vallerois-le-Bois de décembre 1907 (recherche du 21/11/2026).
+return [
+    'slug' => '1907-12-13-vallerois-le-bois',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1907' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1907',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Octobre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1907&oldid=238956681#Octobre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 13 décembre 1907 (vers 15 h 15) : omnibus pour Besançon à l\'arrêt en gare de Vallerois-le-Bois, ligne de Besançon-Viotte à Vesoul, percuté par un train de marchandises de même sens ; bilan finalement d\'un mort et sept blessés.',
+        ],
+        'delpher-courant-1907-12-13' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk in Frankrijk',
+            'publisher' => 'De Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1907-12-13',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:003512070:mpeg21:a00002',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Besançon du 12 décembre : deux trains se sont heurtés à Vallerois-le-Bois, cinq morts et quinze blessés.',
+        ],
+        'delpher-vaderland-1907-12-13' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Een treinbotsing',
+            'publisher' => 'Het Vaderland (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1907-12-13',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001479190:mpeg21:a00035',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche de Besançon du 12 décembre.',
+        ],
+        'delpher-courant-1907-12-14' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'De treinbotsing bij Vallerois-le-Bois',
+            'publisher' => 'De Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1907-12-14',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:003512075:mpeg21:a00006',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Détails : choc à 15 h 15, omnibus à l\'arrêt tamponné par l\'arrière par un train de marchandises en retard lancé à grande vitesse, quatre voitures de troisième classe détruites.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Un omnibus était à l\'arrêt, prêt à repartir, en gare de Vallerois-le-Bois, sur la ligne de Besançon à Vesoul de la Compagnie P.L.M., lorsqu\'il a été heurté par l\'arrière à 15 h 15, selon De Courant du 14 décembre 1907.',
+                'en' => 'A stopping train stood ready to leave at Vallerois-le-Bois station, on the Besançon to Vesoul line of the P.L.M. company, when it was struck from behind at 3.15 pm, according to De Courant of 14 December 1907.',
+                'de' => 'Ein Personenzug stand abfahrbereit im Bahnhof Vallerois-le-Bois auf der Strecke von Besançon nach Vesoul der PLM, als er nach De Courant vom 14. Dezember 1907 um 15.15 Uhr von hinten gerammt wurde.',
+                'sources' => ['delpher-courant-1907-12-14', 'wp-liste-1907'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Un train de marchandises en retard, qui roulait à très grande vitesse, a tamponné l\'omnibus par l\'arrière et détruit complètement quatre voitures de troisième classe. La liste de Wikipédia précise que son mécanicien, soucieux de rattraper son retard, n\'avait pas respecté un signal d\'arrêt. De Courant écrit que la cause n\'était pas encore établie.',
+                'en' => 'A late goods train, running at very high speed, ran into the stopping train from behind and completely destroyed four third-class coaches. The Wikipedia list adds that its driver, anxious to make up lost time, had not respected a stop signal. De Courant writes that the cause was not yet established.',
+                'de' => 'Ein verspäteter Güterzug, der mit sehr hoher Geschwindigkeit fuhr, fuhr von hinten auf den Personenzug auf und zerstörte vier Wagen dritter Klasse vollständig. Die Wikipedia-Liste ergänzt, sein Lokführer, der die Verspätung aufholen wollte, habe ein Haltsignal nicht beachtet. De Courant schreibt, die Ursache sei noch nicht geklärt.',
+                'sources' => ['delpher-courant-1907-12-14', 'wp-liste-1907'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les premières dépêches du 12 décembre parlaient de cinq morts et quinze blessés. La liste de Wikipédia écrit que le bilan, d\'abord incertain, a finalement été d\'un mort et sept blessés.',
+                'en' => 'The first dispatches of 12 December spoke of five dead and fifteen injured. The Wikipedia list writes that the toll, at first uncertain, finally came to one dead and seven injured.',
+                'de' => 'Die ersten Depeschen vom 12. Dezember sprachen von fünf Toten und fünfzehn Verletzten. Die Wikipedia-Liste schreibt, die zunächst unsichere Bilanz habe schließlich einen Toten und sieben Verletzte ergeben.',
+                'sources' => ['delpher-courant-1907-12-13', 'delpher-vaderland-1907-12-13', 'wp-liste-1907'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La date diffère : la liste de Wikipédia donne le 13 décembre 1907, alors que les journaux néerlandais datés du 13 décembre publient une dépêche de Besançon datée du 12 décembre, ce qui placerait l\'accident le 12. Le bilan diffère aussi, de cinq morts et quinze blessés (premières dépêches) à un mort et sept blessés (liste).',
+                'en' => 'The date differs: the Wikipedia list gives 13 December 1907, whereas the Dutch newspapers dated 13 December publish a dispatch from Besançon dated 12 December, which would place the accident on the 12th. The toll also differs, from five dead and fifteen injured (first dispatches) to one dead and seven injured (list).',
+                'de' => 'Das Datum weicht ab: Die Wikipedia-Liste nennt den 13. Dezember 1907, während die niederländischen Zeitungen vom 13. Dezember eine auf den 12. Dezember datierte Depesche aus Besançon veröffentlichen, was den Unfall auf den 12. legen würde. Auch die Bilanz weicht ab, von fünf Toten und fünfzehn Verletzten (erste Depeschen) zu einem Toten und sieben Verletzten (Liste).',
+                'sources' => ['wp-liste-1907', 'delpher-courant-1907-12-13', 'delpher-vaderland-1907-12-13'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

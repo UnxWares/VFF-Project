@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé du déraillement entre Roumazières et Exideuil du 29 décembre 1884 (recherche du 21/11/2026).
+return [
+    'slug' => '1884-12-29-roumazieres-loubert',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1880' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1880',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1884',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1880&oldid=236846064#1884',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Source de la fiche : entrée du 29 décembre 1884 (train de voyageurs pour Limoges déraillé entre Roumazières et Exideuil-sur-Vienne, 1 mort, 14 blessés) ; renvoie à Le Temps du 1er janvier 1885.',
+        ],
+        'vdr-roumazieres-1884' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => '1884 - Le train 1712, a déraillé entre les stations de Roumazières et Exideuil.',
+            'publisher' => 'Victimes du rail en France au XIXe siècle',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://www.victimesdurail.fr/1884-le-train-1712-a-deraille-entre-les-stations-de-roumazieres-et-exideuil/',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Site de généalogie ; transcrit La Démocratie du Cher du 4 janvier 1885 et L\'Écho rochelais du 3 janvier 1885.',
+        ],
+        'democratie-cher-1885-01-04' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'La Démocratie du Cher du 4 janvier 1885',
+            'publisher' => 'La Démocratie du Cher',
+            'author' => null,
+            'published' => '1885-01-04',
+            'locator' => null,
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k1690603d/f3',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Lu seulement dans sa transcription.',
+        ],
+        'echo-rochelais-1885-01-03' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'L\'Écho rochelais du 3 janvier 1885',
+            'publisher' => 'L\'Écho rochelais',
+            'author' => null,
+            'published' => '1885-01-03',
+            'locator' => 'p. 4',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k16225846/f4',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Lu seulement dans sa transcription.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le lundi 29 décembre 1884, le train 1712, parti d\'Angoulême pour Limoges en fin d\'après-midi (à 17 h selon La Démocratie du Cher, à 17 h 44 selon L\'Écho rochelais), a déraillé entre les stations de Roumazières et d\'Exideuil, à la sortie du pont qui franchit la Charente, sur un remblai.',
+                'en' => 'On Monday 29 December 1884, train 1712, which left Angoulême for Limoges in the late afternoon (at 5 pm according to La Démocratie du Cher, at 5.44 pm according to L\'Écho rochelais), derailed between the stations of Roumazières and Exideuil, at the end of the bridge over the Charente, on an embankment.',
+                'de' => 'Am Montag, dem 29. Dezember 1884, entgleiste der Zug 1712, der am späten Nachmittag in Angoulême nach Limoges abgefahren war (um 17 Uhr laut La Démocratie du Cher, um 17.44 Uhr laut L\'Écho rochelais), zwischen den Stationen Roumazières und Exideuil am Ausgang der Brücke über die Charente auf einem Damm.',
+                'sources' => ['vdr-roumazieres-1884', 'wp-liste-1880'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Un riverain situe l\'accident vers 19 h 30. Le train est tombé du remblai dans un ravin profond de 26 mètres : sept voitures éventrées, la locomotive les roues en l\'air, tournée vers Angoulême alors qu\'elle se dirigeait vers Limoges. Le mécanicien et le chauffeur, qui ont roulé avec leur machine, s\'en sont tirés sans blessure selon La Démocratie du Cher. Les habitants de Roumazières, d\'Exideuil et des fermes voisines ont organisé le sauvetage à la lueur de petites lanternes.',
+                'en' => 'A resident living by the line puts the accident at about 7.30 pm. The train fell from the embankment into a ravine 26 metres deep: seven coaches torn open, the locomotive with its wheels in the air, facing Angoulême although it had been heading for Limoges. The driver and fireman, who rolled down with their engine, escaped without injury according to La Démocratie du Cher. People from Roumazières, Exideuil and nearby farms organised the rescue by the light of small lanterns.',
+                'de' => 'Ein Anwohner der Strecke setzt den Unfall gegen 19.30 Uhr an. Der Zug stürzte vom Damm in eine 26 Meter tiefe Schlucht: sieben aufgerissene Wagen, die Lokomotive mit den Rädern nach oben, zu Angoulême gewandt, obwohl sie nach Limoges fuhr. Lokführer und Heizer, die mit ihrer Maschine hinabgerollt waren, blieben laut La Démocratie du Cher unverletzt. Einwohner von Roumazières, Exideuil und der umliegenden Gehöfte organisierten die Rettung im Licht kleiner Laternen.',
+                'sources' => ['vdr-roumazieres-1884'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le courrier-convoyeur des postes a été tué par le tender, qui a éventré son wagon de seconde classe. La Démocratie du Cher compte quatorze voyageurs blessés ; L\'Écho rochelais compte sept voyageurs légèrement blessés et sept employés blessés, dont trois assez sérieusement.',
+                'en' => 'The postal courier-escort was killed by the tender, which tore open his second-class carriage. La Démocratie du Cher counts fourteen injured passengers; L\'Écho rochelais counts seven passengers slightly injured and seven employees injured, three of them fairly seriously.',
+                'de' => 'Der Postbegleiter wurde vom Tender getötet, der seinen Wagen zweiter Klasse aufriss. La Démocratie du Cher zählt vierzehn verletzte Reisende; L\'Écho rochelais zählt sieben leicht verletzte Reisende und sieben verletzte Angestellte, davon drei ziemlich schwer.',
+                'sources' => ['vdr-roumazieres-1884', 'wp-liste-1880'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Selon La Démocratie du Cher, le déraillement aurait commencé sur le pont et serait dû à un écartement des rails : la tringle qui maintient les rails à l\'écartement réglementaire manquait. L\'Écho rochelais écrit que la cause n\'était pas encore connue.',
+                'en' => 'According to La Démocratie du Cher, the derailment began on the bridge and was due to spread rails: the tie rod that holds the rails at the regulation gauge was missing. L\'Écho rochelais writes that the cause was not yet known.',
+                'de' => 'Nach La Démocratie du Cher begann die Entgleisung auf der Brücke und ist auf eine Spurerweiterung zurückzuführen: Die Spurstange, die die Schienen auf der vorgeschriebenen Spurweite hält, fehlte. L\'Écho rochelais schreibt, die Ursache sei noch nicht bekannt.',
+                'sources' => ['vdr-roumazieres-1884'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

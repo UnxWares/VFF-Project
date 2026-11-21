@@ -1,0 +1,92 @@
+<?php
+
+// Contexte sourcé de la collision en gare d'Agen du 6 octobre 1921 (recherche du 21/11/2026).
+return [
+    'slug' => '1921-10-06-agen',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1921' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1921',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Octobre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1921&oldid=233501430#Octobre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste : 6 octobre, 13 h 05, train de marchandises 1105 venant de Bordeaux contre l\'omnibus Bordeaux-Toulouse à l\'arrêt en gare d\'Agen, erreur d\'aiguillage, bilan définitif de 3 morts et 11 blessés.',
+        ],
+        'delpher-1921-10-07a' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Weer een spoorwegongeluk in Frankrijk. Twee dooden en drie gewonden',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1921-10-07',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:011082076:mpeg21:a0006',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche : vers 13 h, un train de marchandises est entré dans un train à l\'arrêt en gare d\'Agen, 2 morts et 3 blessés graves.',
+        ],
+        'delpher-1921-10-07b' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Een nieuw spoorwegongeluk in Frankrijk',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1921-10-07',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:000961006:mpeg21:a00030',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Bordeaux du 6 octobre : 2 morts, 7 blessés graves et un grand nombre de blessés légers, dégâts matériels importants.',
+        ],
+        'delpher-1921-10-07c' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Weer een spoorwegongeluk',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1921-10-07',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001955230:mpeg21:a00006',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même information : 2 morts, 7 blessés graves et de nombreux blessés légers.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le jeudi 6 octobre 1921 vers 13 heures, en gare d\'Agen, un train de marchandises est entré dans un train à l\'arrêt. La liste de Wikipédia précise : le train de marchandises 1105 venant de Bordeaux a tamponné l\'omnibus Bordeaux-Toulouse à 13 h 05.',
+                'en' => 'On Thursday 6 October 1921 at about 1 p.m., at Agen station, a goods train ran into a train that was standing. The Wikipedia list adds: goods train 1105 from Bordeaux struck the Bordeaux-Toulouse stopping train at 1.05 p.m.',
+                'de' => 'Am Donnerstag, dem 6. Oktober 1921, gegen 13 Uhr fuhr im Bahnhof Agen ein Güterzug auf einen haltenden Zug auf. Die Wikipedia-Liste ergänzt: Der aus Bordeaux kommende Güterzug 1105 stieß um 13.05 Uhr auf den Personenzug Bordeaux-Toulouse.',
+                'sources' => ['delpher-1921-10-07a', 'delpher-1921-10-07b', 'wp-liste-1921'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, la collision résulte d\'une erreur d\'aiguillage.',
+                'en' => 'According to the Wikipedia list, the collision resulted from a points error.',
+                'de' => 'Laut Wikipedia-Liste war ein Weichenfehler die Ursache der Kollision.',
+                'sources' => ['wp-liste-1921'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les premières dépêches du 7 octobre comptent deux morts et trois blessés graves, puis deux morts, sept blessés graves et un grand nombre de blessés légers ; les dégâts matériels étaient importants. La liste de Wikipédia donne un bilan définitif de trois morts et onze blessés.',
+                'en' => 'The first dispatches of 7 October count two dead and three seriously injured, then two dead, seven seriously injured and a large number slightly injured; the material damage was considerable. The Wikipedia list gives a final toll of three dead and eleven injured.',
+                'de' => 'Die ersten Meldungen vom 7. Oktober zählen zwei Tote und drei Schwerverletzte, dann zwei Tote, sieben Schwerverletzte und eine große Zahl Leichtverletzter; der Sachschaden war erheblich. Die Wikipedia-Liste nennt eine endgültige Bilanz von drei Toten und elf Verletzten.',
+                'sources' => ['delpher-1921-10-07a', 'delpher-1921-10-07b', 'delpher-1921-10-07c', 'wp-liste-1921'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

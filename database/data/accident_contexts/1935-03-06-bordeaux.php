@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé du déraillement du 6 mars 1935 entre Libourne et Bordeaux (recherche du 21/11/2026).
+return [
+    'slug' => '1935-03-06-bordeaux',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1935' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1935',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Mars',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1935&oldid=236841665#Mars',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste : entre Libourne et Bordeaux, peu après la gare de Saint-Loubès, rupture d\'un bandage sur une voiture d\'un express venu d\'Angoulême, 4 morts et 20 blessés.',
+        ],
+        'delpher-1935-03-07' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinontsporing. D-trein op de lijn Bordeaux-Libourne uit de rails geloopen. 5 dooden en 12 gewonden',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1935-03-07',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB27:017936111:mpeg21:a00018',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Récit du 7 mars : mercredi vers 22 h, train direct Angoulême-Bordeaux, 62 voyageurs, voiture de troisième classe renversée, 5 morts et 12 blessés dont 2 graves, roue défectueuse puis essieu rompu.',
+        ],
+        'delpher-1935-03-08' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Expres-trein ontspoord. Vier dooden, zeven zwaar gewonden',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1935-03-08',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010230351:mpeg21:a0151',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche d\'agence du 7 mars : rupture d\'essieu, 4 morts et 7 blessés graves, à une quinzaine de kilomètres de Bordeaux.',
+        ],
+        'delpher-1935-03-09' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk bij Bordeaux',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1935-03-09',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010663729:mpeg21:a0137',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Brève : entre les stations « Ambes » et « St. Lonbes » (sic), éclatement d\'une roue, 5 morts.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le mercredi 6 mars 1935, vers 22 heures, le train direct Angoulême-Bordeaux, qui ne comptait que 62 voyageurs, a déraillé sur la ligne de Libourne à Bordeaux, entre deux gares que la presse néerlandaise nomme « Ambes » et « St. Loubes ». La liste de Wikipédia dit « peu après la gare de Saint-Loubès ».',
+                'en' => 'On Wednesday 6 March 1935, at about 10 p.m., the through train from Angoulême to Bordeaux, which carried only 62 passengers, derailed on the line from Libourne to Bordeaux, between two stations that the Dutch press calls "Ambes" and "St. Loubes". The Wikipedia list says "shortly after Saint-Loubès station".',
+                'de' => 'Am Mittwoch, dem 6. März 1935, gegen 22 Uhr entgleiste der Schnellzug Angoulême-Bordeaux, der nur 62 Reisende hatte, auf der Strecke von Libourne nach Bordeaux zwischen zwei Bahnhöfen, die die niederländische Presse „Ambes“ und „St. Loubes“ nennt. Die Wikipedia-Liste sagt „kurz nach dem Bahnhof Saint-Loubès“.',
+                'sources' => ['delpher-1935-03-07', 'delpher-1935-03-09', 'wp-liste-1935'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Une voiture de troisième classe s\'est renversée et la suivante s\'est encastrée dans elle. L\'enquête a conclu qu\'une roue de la première voiture s\'était rompue, puis qu\'un essieu avait cédé quelques centaines de mètres plus loin, ce qui a causé le déraillement. La liste de Wikipédia parle de la rupture d\'un bandage.',
+                'en' => 'A third-class coach overturned and the next one was driven into it. The inquiry found that a wheel of the first coach had failed and that an axle then broke a few hundred metres further on, causing the derailment. The Wikipedia list speaks of a broken tyre.',
+                'de' => 'Ein Wagen dritter Klasse kippte um, und der nächste schob sich in ihn hinein. Die Untersuchung ergab, dass ein Rad des ersten Wagens defekt geworden war und einige hundert Meter weiter eine Achse brach, was zur Entgleisung führte. Die Wikipedia-Liste spricht vom Bruch eines Radreifens.',
+                'sources' => ['delpher-1935-03-07', 'wp-liste-1935'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'La ligne de Paris à Bordeaux a été coupée dans les deux sens et le trafic détourné.',
+                'en' => 'The line from Paris to Bordeaux was blocked in both directions and traffic was diverted.',
+                'de' => 'Die Strecke Paris-Bordeaux war in beiden Richtungen gesperrt, der Verkehr wurde umgeleitet.',
+                'sources' => ['delpher-1935-03-07'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le bilan varie : 4 morts et 20 blessés (liste de Wikipédia), 5 morts et 12 blessés dont 2 graves (récit du 7 mars et brève du 9 mars), 4 morts et 7 blessés graves (dépêche d\'agence). Le lieu est entre deux gares de la ligne de Libourne, à une quinzaine de kilomètres de Bordeaux selon la dépêche, et non à Bordeaux .',
+                'en' => 'The toll varies: 4 dead and 20 injured (Wikipedia list), 5 dead and 12 injured, 2 of them seriously (account of 7 March and item of 9 March), 4 dead and 7 seriously injured (agency report). The place is between two stations on the Libourne line, about fifteen kilometres from Bordeaux according to the agency report, not at Bordeaux.',
+                'de' => 'Die Bilanz schwankt: 4 Tote und 20 Verletzte (Wikipedia-Liste), 5 Tote und 12 Verletzte, davon 2 schwer (Bericht vom 7. März und Meldung vom 9. März), 4 Tote und 7 Schwerverletzte (Agenturmeldung). Der Ort liegt zwischen zwei Bahnhöfen der Strecke nach Libourne, laut Agenturmeldung etwa fünfzehn Kilometer von Bordeaux entfernt, nicht in Bordeaux.',
+                'sources' => ['wp-liste-1935', 'delpher-1935-03-07', 'delpher-1935-03-08', 'delpher-1935-03-09'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

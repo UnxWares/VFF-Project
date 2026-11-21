@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé du déraillement de Rosult du 17 février 1903 (recherche du 21/11/2026).
+return [
+    'slug' => '1903-02-17-rosult',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1903' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1903',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Février',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1903&oldid=239810319#F%C3%A9vrier',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Gare de Rosult, ligne de Fives à Hirson, vers 9 h 30, changement d\'aiguillage sous la troisième voiture d\'un train de Valenciennes à Lille, queue du convoi heurtée par un train de marchandises, un mort et dix-huit blessés.',
+        ],
+        'delpher-noordbrabanter-1903-02-19' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegramp',
+            'publisher' => 'De Noord Brabanter (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1903-02-19',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUBTB04:210831043:mpeg21:a00005',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Train de Valenciennes à Lille déraillé entre Saint-Amand et Rosult, trois morts et treize blessés.',
+        ],
+        'delpher-noordbrabantsche-1903-02-19' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk',
+            'publisher' => 'Provinciale Noordbrabantsche en \'s Hertogenbossche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1903-02-19',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMSADB01:000012427:mpeg21:a0005',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Valenciennes : un mort et trente blessés, puis, selon des informations ultérieures, trois morts.',
+        ],
+        'delpher-utrecht-1903-02-19' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Verspreide berichten',
+            'publisher' => 'Utrechtsch Provinciaal en Stedelijk Dagblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1903-02-19',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUTRA04:253170102:mpeg21:a00007',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Train de voyageurs déraillé entre Saint-Amand et Rosult : un mort, treize blessés dont neuf légers.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le mardi 17 février 1903, un train de voyageurs allant de Valenciennes à Lille, sur la ligne de Fives à Hirson, a déraillé entre Saint-Amand et Rosult, selon la presse néerlandaise ; la liste de Wikipédia place l\'accident en gare de Rosult, vers 9 h 30.',
+                'en' => 'On Tuesday 17 February 1903, a passenger train from Valenciennes to Lille, on the Fives to Hirson line, derailed between Saint-Amand and Rosult, according to the Dutch press; the Wikipedia list places the accident in Rosult station, at about 9.30 am.',
+                'de' => 'Am Dienstag, dem 17. Februar 1903, entgleiste nach der niederländischen Presse ein Reisezug von Valenciennes nach Lille auf der Strecke von Fives nach Hirson zwischen Saint-Amand und Rosult; die Wikipedia-Liste verortet den Unfall im Bahnhof Rosult gegen 9.30 Uhr.',
+                'sources' => ['delpher-noordbrabanter-1903-02-19', 'delpher-utrecht-1903-02-19', 'wp-liste-1903'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, un changement d\'aiguillage intempestif sous la troisième voiture a fait dérailler la queue du convoi, qui a été heurtée par un train de marchandises arrivant en sens inverse.',
+                'en' => 'According to the Wikipedia list, an untimely change of the points under the third coach derailed the tail of the train, which was then struck by a goods train coming the other way.',
+                'de' => 'Nach der Wikipedia-Liste ließ eine unzeitige Weichenumstellung unter dem dritten Wagen das Zugende entgleisen, das dann von einem entgegenkommenden Güterzug gerammt wurde.',
+                'sources' => ['wp-liste-1903'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'La liste de Wikipédia compte un mort et dix-huit blessés. La presse néerlandaise du 19 février 1903 donne des bilans différents : un mort et treize blessés dont neuf légers, un mort et trente blessés, puis trois morts et treize blessés.',
+                'en' => 'The Wikipedia list counts one dead and eighteen injured. The Dutch press of 19 February 1903 gives different tolls: one dead and thirteen injured, nine of them slightly, one dead and thirty injured, then three dead and thirteen injured.',
+                'de' => 'Die Wikipedia-Liste zählt einen Toten und achtzehn Verletzte. Die niederländische Presse vom 19. Februar 1903 nennt unterschiedliche Bilanzen: ein Toter und dreizehn Verletzte, davon neun leicht, ein Toter und dreißig Verletzte, dann drei Tote und dreizehn Verletzte.',
+                'sources' => ['wp-liste-1903', 'delpher-utrecht-1903-02-19', 'delpher-noordbrabantsche-1903-02-19', 'delpher-noordbrabanter-1903-02-19'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le nombre de morts va de un à trois selon les dépêches du 19 février 1903, et la liste de Wikipédia retient un mort. Les dépêches parlent d\'un déraillement, la liste d\'un déraillement suivi d\'une collision avec un train de marchandises.',
+                'en' => 'The number of dead ranges from one to three according to the dispatches of 19 February 1903, and the Wikipedia list gives one. The dispatches speak of a derailment, the list of a derailment followed by a collision with a goods train.',
+                'de' => 'Die Zahl der Toten reicht nach den Depeschen vom 19. Februar 1903 von eins bis drei, und die Wikipedia-Liste nennt einen. Die Depeschen sprechen von einer Entgleisung, die Liste von einer Entgleisung mit anschließender Kollision mit einem Güterzug.',
+                'sources' => ['delpher-noordbrabanter-1903-02-19', 'delpher-noordbrabantsche-1903-02-19', 'delpher-utrecht-1903-02-19', 'wp-liste-1903'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

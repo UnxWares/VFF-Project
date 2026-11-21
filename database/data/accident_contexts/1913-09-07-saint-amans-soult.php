@@ -1,0 +1,92 @@
+<?php
+
+// Contexte sourcé de la collision de Saint-Amans-Soult du 7 septembre 1913 (recherche du 21/11/2026).
+return [
+    'slug' => '1913-09-07-saint-amans-soult',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1913' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1913',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Septembre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1913&oldid=233727923#Septembre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Ligne de Mazamet à Bédarieux, collision frontale entre un train de militaires pour les grandes manoeuvres et un train de vendangeurs lancé par erreur en sens contraire sur la voie unique, trois morts et quatorze blessés ; renvoie à Le Petit Parisien du 8 septembre 1913 (non lu).',
+        ],
+        'delpher-courant-1913-09-08' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinbotsing in Frankrijk',
+            'publisher' => 'De Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1913-09-08',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:003533211:mpeg21:a00002',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche Reuter de Mazamet du 7 septembre : deux trains se heurtent en gare de Saint-Amans-Soult, trois morts, six soldats grièvement blessés.',
+        ],
+        'delpher-maasbode-1913-09-08' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk in Frankrijk',
+            'publisher' => 'De Maasbode (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1913-09-08',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB04:000184981:mpeg21:a0016',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche, avec d\'autres voyageurs légèrement blessés.',
+        ],
+        'delpher-overijsselsche-1913-09-08' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Dépêches du 7 septembre',
+            'publisher' => 'Provinciale Overijsselsche en Zwolsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1913-09-08',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMHCO01:000079290:mpeg21:a0006',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche, avec un autre accident de train militaire signalé à Bédarieux.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le dimanche 7 septembre 1913, sur la ligne de Mazamet à Bédarieux, deux trains se sont heurtés en gare de Saint-Amans-Soult, d\'après une dépêche de Mazamet. La liste de Wikipédia précise qu\'il s\'agissait d\'une collision frontale sur la voie unique entre un train de militaires partant aux grandes manoeuvres du Sud-Ouest et un train de vendangeurs lancé par erreur en sens contraire.',
+                'en' => 'On Sunday 7 September 1913, on the Mazamet to Bédarieux line, two trains collided at Saint-Amans-Soult station, according to a dispatch from Mazamet. The Wikipedia list adds that it was a head-on collision on the single track between a train of soldiers leaving for the south-west army manoeuvres and a train of grape-pickers sent by mistake in the opposite direction.',
+                'de' => 'Am Sonntag, dem 7. September 1913, stießen auf der Strecke von Mazamet nach Bédarieux nach einer Depesche aus Mazamet zwei Züge im Bahnhof Saint-Amans-Soult zusammen. Die Wikipedia-Liste ergänzt, es habe sich um einen Frontalzusammenstoß auf dem eingleisigen Abschnitt gehandelt, und zwar zwischen einem Militärzug auf dem Weg zu den Manövern im Südwesten und einem irrtümlich in Gegenrichtung abgelassenen Zug mit Weinlesearbeitern.',
+                'sources' => ['delpher-courant-1913-09-08', 'wp-liste-1913'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Trois personnes ont été tuées et six soldats grièvement blessés, ainsi qu\'un certain nombre d\'autres voyageurs plus légèrement blessés, selon les dépêches néerlandaises. La liste de Wikipédia compte trois morts et quatorze blessés.',
+                'en' => 'Three people were killed and six soldiers seriously injured, together with a number of other passengers more lightly hurt, according to the Dutch dispatches. The Wikipedia list counts three dead and fourteen injured.',
+                'de' => 'Drei Menschen wurden getötet und sechs Soldaten schwer verletzt, dazu eine Anzahl weiterer, leichter verletzter Reisender, nach den niederländischen Depeschen. Die Wikipedia-Liste zählt drei Tote und vierzehn Verletzte.',
+                'sources' => ['delpher-courant-1913-09-08', 'delpher-maasbode-1913-09-08', 'wp-liste-1913'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Les dépêches néerlandaises ne parlent que de deux trains qui « se heurtent » et ne disent rien de leur nature ni de la cause ; la description de la collision frontale entre un train militaire et un train de vendangeurs vient de la seule liste de Wikipédia, qui renvoie à un article du Petit Parisien.',
+                'en' => 'The Dutch dispatches speak only of two trains that "ran into each other" and say nothing of their nature or of the cause; the description of the head-on collision between a military train and a grape-pickers\' train comes from the Wikipedia list alone, which refers to an article in Le Petit Parisien.',
+                'de' => 'Die niederländischen Depeschen sprechen nur von zwei Zügen, die aufeinander „auffuhren“, und sagen nichts über deren Art oder die Ursache; die Beschreibung des Frontalzusammenstoßes zwischen einem Militärzug und einem Zug mit Weinlesearbeitern stammt allein aus der Wikipedia-Liste, die auf einen Artikel des Petit Parisien verweist.',
+                'sources' => ['delpher-courant-1913-09-08', 'wp-liste-1913'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];
