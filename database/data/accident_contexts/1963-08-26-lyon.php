@@ -1,0 +1,108 @@
+<?php
+
+// Contexte sourcé de la collision dans le tunnel de Saint-Paul à Lyon du 26 août 1963 (recherche du 21/11/2026).
+return [
+    'slug' => '1963-08-26-lyon',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1960' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1960',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section 1963',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1960&oldid=238756394#1963',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste : 26 août 1963, collision de deux autorails dans le tunnel de Saint-Paul à Gorge-de-Loup, 8 morts et 3 blessés graves ; cite le SDIS du Rhône.',
+        ],
+        'delpher-1963-08-27a' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Acht doden, zestien gewonden. Treinbotsing in tunnel bij Lyon',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1963-08-27',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010616630:mpeg21:a0033',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article du 27 août : tunnel à 800 m de la gare terminus de Saint-Paul, 14 h 20, train de Charbonnières-les-Bains tamponné par une « Micheline », 8 morts, 3 blessés graves, 13 légers.',
+        ],
+        'delpher-1963-08-27b' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Acht doden bij botsing in Franse spoorwegtunnel',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1963-08-27',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010689204:mpeg21:a0001',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche AFP : 8 morts et 14 blessés, conduite de l\'automotrice jugée insuffisamment attentive, éclairage coupé, sauvetage dans l\'obscurité.',
+        ],
+        'delpher-1963-08-28' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Ravage bij treinramp in Lyon',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1963-08-28',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMCC01:048091028:mpeg21:a00163',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Légende de photographie : 8 morts et près de 20 blessés.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le lundi 26 août 1963 à 14 h 20, dans un tunnel à 800 mètres de la gare terminus de Saint-Paul, à Lyon, un train venu de Charbonnières-les-Bains qui entrait lentement dans Lyon a été tamponné par l\'arrière par une « Micheline », un autorail à pneumatiques à une seule voiture, plus rapide.',
+                'en' => 'On Monday 26 August 1963 at 2.20 p.m., in a tunnel 800 metres from the Saint-Paul terminus in Lyon, a train from Charbonnières-les-Bains that was slowly entering Lyon was struck from behind by a faster "Micheline", a single-car rubber-tyred railcar.',
+                'de' => 'Am Montag, dem 26. August 1963, um 14.20 Uhr wurde in einem Tunnel 800 Meter vor dem Endbahnhof Saint-Paul in Lyon ein aus Charbonnières-les-Bains kommender Zug, der langsam nach Lyon einfuhr, von hinten von einer schnelleren „Micheline“, einem einwagigen Gummireifen-Triebwagen, gerammt.',
+                'sources' => ['delpher-1963-08-27a', 'delpher-1963-08-28', 'wp-liste-1960'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'La première des deux voitures du train tamponné a été entièrement écrasée. L\'éclairage électrique s\'est éteint, la locomotive détruite ne fournissant plus de courant ; le personnel n\'a pas pu rétablir la lumière, et les secours ont d\'abord travaillé dans la pénombre jusqu\'à l\'arrivée d\'un train de secours avec des projecteurs.',
+                'en' => 'The first of the two coaches of the struck train was completely crushed. The electric lighting failed because the wrecked locomotive no longer supplied current; the staff could not restore the light, and rescuers first worked in the gloom until a relief train with floodlights arrived.',
+                'de' => 'Der erste der beiden Wagen des gerammten Zuges wurde völlig zerdrückt. Die elektrische Beleuchtung fiel aus, da die zerstörte Lokomotive keinen Strom mehr lieferte; das Personal konnte das Licht nicht wiederherstellen, und die Helfer arbeiteten zunächst im Halbdunkel, bis ein Hilfszug mit Scheinwerfern eintraf.',
+                'sources' => ['delpher-1963-08-27a', 'delpher-1963-08-27b'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Le signal d\'entrée du tunnel avait été mis à l\'arrêt dès que le premier train y était entré. Les premières dépêches supposent que le conducteur de la « Micheline », mort dans l\'accident, ne l\'a pas vu ; les autorités estimaient qu\'il avait manqué d\'attention. Seule une expertise technique pouvait trancher.',
+                'en' => 'The signal at the tunnel entrance had been set to danger as soon as the first train entered. The first reports suppose that the driver of the "Micheline", who died in the accident, did not see it; the authorities considered he had not been attentive enough. Only a technical expert inquiry could settle the matter.',
+                'de' => 'Das Signal am Tunneleingang war auf Halt gestellt worden, sobald der erste Zug eingefahren war. Die ersten Meldungen vermuten, dass der Fahrer der „Micheline“, der bei dem Unfall starb, es nicht sah; die Behörden hielten ihn für nicht aufmerksam genug. Nur eine technische Untersuchung konnte Klarheit bringen.',
+                'sources' => ['delpher-1963-08-27a', 'delpher-1963-08-27b'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Huit personnes sont mortes, dont le conducteur du train tamponné selon un article. Les blessés sont donnés pour 3 graves et 13 légers (article du 27 août), 14 (AFP) ou près de 20 (28 août). La liste de Wikipédia ne compte que trois blessés graves.',
+                'en' => 'Eight people died, including the driver of the struck train according to one article. The injured are given as 3 serious and 13 slight (article of 27 August), 14 (AFP) or nearly 20 (28 August). The Wikipedia list counts only three seriously injured.',
+                'de' => 'Acht Menschen starben, laut einem Artikel darunter der Fahrer des gerammten Zuges. Die Verletzten werden mit 3 schwer und 13 leicht (Artikel vom 27. August), 14 (AFP) oder fast 20 (28. August) angegeben. Die Wikipedia-Liste zählt nur drei Schwerverletzte.',
+                'sources' => ['delpher-1963-08-27a', 'delpher-1963-08-27b', 'delpher-1963-08-28', 'wp-liste-1960'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le nombre de blessés diffère selon les sources (3 graves seulement pour la liste ; 16, 14 ou près de 20 pour la presse). Une dépêche décrit un tunnel de trois kilomètres, un article le place à 800 m de la gare de Saint-Paul.',
+                'en' => 'The number of injured differs between sources (only 3 serious for the list; 16, 14 or nearly 20 for the press). One report describes a three-kilometre tunnel, one article places it 800 m from Saint-Paul station.',
+                'de' => 'Die Zahl der Verletzten weicht zwischen den Quellen ab (nur 3 Schwerverletzte laut Liste; 16, 14 oder fast 20 laut Presse). Eine Meldung beschreibt einen drei Kilometer langen Tunnel, ein Artikel verortet ihn 800 m vom Bahnhof Saint-Paul.',
+                'sources' => ['wp-liste-1960', 'delpher-1963-08-27a', 'delpher-1963-08-27b', 'delpher-1963-08-28'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

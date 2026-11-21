@@ -61,6 +61,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Ouvrage contemporain trouvé dans un résultat de recherche, non lu (Gallica inaccessible).',
         ],
+        'wp-liste-1880' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1880',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => '1880, 3 février',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1880&oldid=236846064#1880',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 3 février 1880 : 16 morts et 94 blessés, d\'après Le Figaro des 4 au 7 février 1880 ; jugement d\'après Le Figaro des 10 et 11 juillet et Le Petit Parisien du 15 juillet 1880.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -123,11 +137,21 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Le nombre de blessés varie : de 36 à 69 dans les premiers communiqués, puis 94 à l\'ouverture du procès. La fiche de VFF et Wikidata retiennent 69, qui correspond aux premières annonces.',
-                'en' => 'The number of injured varies: from 36 to 69 in the first communiqués, then 94 at the opening of the trial. The VFF record and Wikidata give 69, which matches the early announcements.',
-                'de' => 'Die Zahl der Verletzten schwankt: von 36 bis 69 in den ersten Meldungen, dann 94 bei Prozessbeginn. Der VFF-Datensatz und Wikidata nennen 69, was den ersten Meldungen entspricht.',
+                'fr' => 'Le nombre de blessés varie : de 36 à 69 dans les premiers communiqués, puis 94 à l\'ouverture du procès. Wikidata retient 69, qui correspond aux premières annonces.',
+                'en' => 'The number of injured varies: from 36 to 69 in the first communiqués, then 94 at the opening of the trial. Wikidata gives 69, which matches the early announcements.',
+                'de' => 'Die Zahl der Verletzten schwankt: von 36 bis 69 in den ersten Meldungen, dann 94 bei Prozessbeginn. Wikidata nennt 69, was den ersten Meldungen entspricht.',
                 'sources' => ['wp-fr'],
             ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'injuries',
+            'value' => 94,
+            'sources' => ['wp-fr', 'wp-liste-1880'],
+            'fr' => 'À l\'ouverture du procès, le bilan est de 16 morts et 94 blessés, chiffre donné aussi par la liste des accidents des années 1880 d\'après Le Figaro. Le chiffre de 69, repris de Wikidata, est celui des premières annonces.',
+            'en' => 'At the opening of the trial the toll stood at 16 dead and 94 injured, a figure also given by the list of accidents of the 1880s, based on Le Figaro. The figure of 69, taken from Wikidata, is that of the first announcements.',
+            'de' => 'Bei Prozessbeginn lag die Bilanz bei 16 Toten und 94 Verletzten; diese Zahl nennt auch die Liste der Unfälle der 1880er-Jahre nach Le Figaro. Die aus Wikidata übernommene Zahl 69 ist die der ersten Meldungen.',
         ],
     ],
 ];

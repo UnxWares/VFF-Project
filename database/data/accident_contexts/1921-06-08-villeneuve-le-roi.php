@@ -1,0 +1,92 @@
+<?php
+
+// Contexte sourcé du déraillement par sabotage près de Villeneuve-le-Roi, dans la nuit du 8 au 9 juin 1921 (recherche du 21/11/2026).
+return [
+    'slug' => '1921-06-08-villeneuve-le-roi',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1921' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1921',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '8 juin 1921, Villeneuve-le-Roi',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1921&oldid=233501430#Juin',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Déraillement d\'un train de messageries vers 23 h 30 par sabotage (deux rails déboulonnés) ; un train de marchandises percute les wagons renversés : un mort (le chef de train), douze blessés, tous cheminots ; prime de 10 000 francs de la Compagnie d\'Orléans ; cite Le Figaro du 10 juin 1921.',
+        ],
+        'nieuwe-tilburgsche-1921-06-10' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Nieuwe Tilburgsche Courant du 10 juin 1921',
+            'publisher' => 'Nieuwe Tilburgsche Courant',
+            'author' => null,
+            'published' => '1921-06-10',
+            'locator' => null,
+            'url' => 'https://resolver.kb.nl/resolve?urn=ddd:010233302:mpeg21:a0009',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Article « Spoorwegongeluk door sabotage ».',
+        ],
+        'ah-1921-06-10' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Algemeen Handelsblad du 10 juin 1921',
+            'publisher' => 'Algemeen Handelsblad',
+            'author' => null,
+            'published' => '1921-06-10',
+            'locator' => null,
+            'url' => 'https://resolver.kb.nl/resolve?urn=ddd:010654917:mpeg21:a0021',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Dépêche B.T.A. de Paris du 9 juin.',
+        ],
+        'figaro-1921-06-10' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Figaro du 10 juin 1921, page 3',
+            'publisher' => 'Le Figaro (numérisé sur Gallica)',
+            'author' => null,
+            'published' => '1921-06-10',
+            'locator' => null,
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k292875w',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Référence citée par la liste de Wikipédia ; à consulter, non lue.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Dans la nuit du 8 au 9 juin 1921, deux trains ont déraillé sur la ligne de Paris à Orléans, entre Choisy-le-Roi et Villeneuve-le-Roi, à la suite d\'un acte de sabotage, d\'après les journaux néerlandais. Ils parlent de deux trains de marchandises (Algemeen Handelsblad) ou de deux express quittant Paris vers 23 h pour le Sud (Nieuwe Tilburgsche Courant).',
+                'en' => 'In the night of 8 to 9 June 1921, two trains derailed on the Paris to Orléans line, between Choisy-le-Roi and Villeneuve-le-Roi, following an act of sabotage, according to the Dutch newspapers. They speak of two goods trains (Algemeen Handelsblad) or of two express trains leaving Paris at about 11 pm for the south (Nieuwe Tilburgsche Courant).',
+                'de' => 'In der Nacht vom 8. auf den 9. Juni 1921 entgleisten auf der Strecke Paris-Orléans zwischen Choisy-le-Roi und Villeneuve-le-Roi zwei Züge infolge eines Sabotageakts, laut den niederländischen Zeitungen. Sie sprechen von zwei Güterzügen (Algemeen Handelsblad) oder von zwei Schnellzügen, die gegen 23 Uhr Paris Richtung Süden verließen (Nieuwe Tilburgsche Courant).',
+                'sources' => ['nieuwe-tilburgsche-1921-06-10', 'ah-1921-06-10', 'wp-liste-1921'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Les rails avaient été desserrés sur de nombreux mètres, selon la Nieuwe Tilburgsche Courant ; la liste de Wikipédia parle de deux rails déboulonnés, et la Compagnie d\'Orléans a offert une prime de 10 000 francs pour obtenir des renseignements. Une enquête a été ouverte. Le journal ajoute qu\'un autre acte de sabotage a eu lieu près de Vaux, sur la ligne de Nantes, où le fil de liaison d\'un aiguillage avait été coupé.',
+                'en' => 'The rails had been loosened over many metres, according to the Nieuwe Tilburgsche Courant; the Wikipedia list speaks of two rails unbolted, and the Orléans company offered a reward of 10,000 francs for information. An inquiry was opened. The newspaper adds that another act of sabotage occurred near Vaux, on the Nantes line, where the connecting wire of a set of points had been cut.',
+                'de' => 'Die Schienen waren laut der Nieuwe Tilburgsche Courant auf viele Meter gelöst worden; die Wikipedia-Liste spricht von zwei losgeschraubten Schienen, und die Orléans-Gesellschaft setzte eine Belohnung von 10 000 Franken für Hinweise aus. Eine Untersuchung wurde eingeleitet. Die Zeitung fügt hinzu, ein weiterer Sabotageakt habe sich bei Vaux auf der Strecke nach Nantes ereignet, wo der Verbindungsdraht einer Weiche durchtrennt worden war.',
+                'sources' => ['nieuwe-tilburgsche-1921-06-10', 'wp-liste-1921'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Une personne est morte : le mécanicien de l\'un des trains selon la Nieuwe Tilburgsche Courant, un agent selon l\'Algemeen Handelsblad, le chef de train selon la liste de Wikipédia. Deux agents de l\'autre train ont été blessés selon la Nieuwe Tilburgsche Courant ; la liste donne douze blessés, tous cheminots.',
+                'en' => 'One person died: the driver of one of the trains according to the Nieuwe Tilburgsche Courant, a railwayman according to the Algemeen Handelsblad, the head guard according to the Wikipedia list. Two staff of the other train were injured according to the Nieuwe Tilburgsche Courant; the list gives twelve injured, all railwaymen.',
+                'de' => 'Eine Person starb: der Lokführer eines der Züge laut der Nieuwe Tilburgsche Courant, ein Bahnbediensteter laut dem Algemeen Handelsblad, der Zugführer laut der Wikipedia-Liste. Zwei Bedienstete des anderen Zuges wurden laut der Nieuwe Tilburgsche Courant verletzt; die Liste nennt zwölf Verletzte, alles Eisenbahner.',
+                'sources' => ['nieuwe-tilburgsche-1921-06-10', 'ah-1921-06-10', 'wp-liste-1921'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

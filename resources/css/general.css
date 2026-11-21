@@ -12,7 +12,8 @@
 @import url('@fontsource/montserrat/400.css');
 @import url('@fontsource/montserrat/600.css');
 @import url('@fontsource/montserrat/700.css');
-@import url('bootstrap-icons/font/bootstrap-icons.min.css');
+/* Icônes : seulement celles du site (scripts/bootstrap-icons/subset.sh), pas les 2 078 de la police complète. */
+@import url('./bootstrap-icons-subset.css');
 @import url('./header/header.css');
 @import url('./footer/footer.css');
 
@@ -84,15 +85,15 @@
     --vff-font-secondary: Montserrat, 'Helvetica Neue', Arial, sans-serif;
 
     /* Échelle typographique fluide : rem (suit le réglage de taille du navigateur) + un peu de vw
-       (grandit légèrement sur grand écran), bornée par clamp(). Seuils de lisibilité : texte courant
-       >= 17 px ; textes secondaires (chapeaux, notes, métadonnées) >= 15 px ; libellés, légendes,
-       badges, cellules >= 14 px ; rien en dessous. Valeurs à 375 / 1 280 / 1 920 px. */
-    /* xs 14 / 14,4 / 14,7 : badges, légendes, codes, cellules denses (minimum) */
-    --vff-fs-xs: clamp(0.875rem, 0.86rem + 0.05vw, 0.9375rem);
-    /* sm 15 / 15,4 / 15,7 : libellés, notes, métadonnées, sources, tableaux */
-    --vff-fs-sm: clamp(0.9375rem, 0.92rem + 0.05vw, 1rem);
-    /* md 16 / 16,5 / 16,8 : interface, boutons, champs */
-    --vff-fs-md: clamp(1rem, 0.98rem + 0.06vw, 1.0625rem);
+       (grandit légèrement sur grand écran), bornée par clamp(). Règle de Baptiste (21/11) : aucun
+       texte sous 17 px, de 320 à 2 560 px ; la hiérarchie passe par la graisse, la couleur et les
+       tailles au-dessus de 17 px. Valeurs à 375 / 1 280 / 1 920 px (plafond). */
+    /* xs 17 / 17,3 / 17,6 : badges, légendes, codes, cellules denses (minimum) */
+    --vff-fs-xs: clamp(1.0625rem, 1.04rem + 0.05vw, 1.1rem);
+    /* sm 17 / 17,4 / 17,8 (18) : libellés, notes, métadonnées, sources, tableaux */
+    --vff-fs-sm: clamp(1.0625rem, 1.03rem + 0.07vw, 1.125rem);
+    /* md 17 / 17,7 / 18,2 (18,4) : interface, boutons, champs */
+    --vff-fs-md: clamp(1.0625rem, 1.02rem + 0.1vw, 1.15rem);
     /* body 17 / 17,9 / 18,6 : texte courant (Lato 400) */
     --vff-fs-body: clamp(1.0625rem, 1.04rem + 0.1vw, 1.1875rem);
     /* lead 18 / 21,3 / 22 : chapeau */
@@ -158,6 +159,14 @@
     --vff-z-skip: 1300;
 
     accent-color: var(--vff-accent-ink);
+}
+/* En-tête et pied de page d'origine : ils gardent leurs tailles (consigne de Baptiste du 19/11, ils
+   ne changent pas). L'ancienne échelle (14 à 17 px) ne vaut que pour eux. */
+.site-header,
+.site-footer {
+    --vff-fs-xs: clamp(0.875rem, 0.86rem + 0.05vw, 0.9375rem);
+    --vff-fs-sm: clamp(0.9375rem, 0.92rem + 0.05vw, 1rem);
+    --vff-fs-md: clamp(1rem, 0.98rem + 0.06vw, 1.0625rem);
 }
 @media (max-width: 1180px) {
     :root {
@@ -1061,10 +1070,36 @@ a.vff-tile:hover,
     text-decoration: underline;
     text-underline-offset: 2px;
 }
+/* Thème sombre : MapLibre écrit les crédits en noir à 75 % (1,2:1 sur le fond sombre d'une carte qui
+   assombrit son cadre, comme l'audit des gares) ; même réglage pour toutes les cartes que RailMap. */
+:root[data-theme='dark'] .maplibregl-ctrl.maplibregl-ctrl-attrib,
+:root[data-theme='dark'] .maplibregl-ctrl-attrib.maplibregl-compact {
+    background-color: var(--vff-bg-elevated);
+    color: var(--vff-text-muted);
+}
+:root[data-theme='dark'] .maplibregl-ctrl-attrib a {
+    color: var(--vff-text);
+}
+/* Crédits et échelle des cartes : écrits dans la page (pas dans l'image de la carte), donc 17 px au
+   moins comme tout texte (MapLibre les met à 12 et 10 px). */
+:root .maplibregl-ctrl-attrib,
+:root .maplibregl-ctrl-scale {
+    font-size: var(--vff-fs-xs);
+}
+/* Message « deux doigts pour déplacer la carte » (16,8 px chez MapLibre). */
+:root .maplibregl-cooperative-gesture-screen {
+    font-size: var(--vff-fs-md);
+    /* Texte blanc sur un voile noir à 40 % chez MapLibre : 3,3:1 sur un fond de carte clair. À 65 %,
+       plus de 4,5:1 sur le fond le plus clair (WCAG 1.4.3). */
+    background: rgb(0 0 0 / 65%);
+}
 
 /* ─── Accès rapide (agent acces, vague 3) ────────────────────────────────────
    La barre de l'en-tête a désormais la hauteur --vff-header-h (header.css : 88, 72, 64 px) : la
    zone de contenu s'arrête juste sous la barre fixe de l'accueil (lien d'évitement, bouton du héros). */
 .vff-content {
     scroll-margin-top: var(--vff-header-h);
+    /* Taille héritée par tout texte sans taille propre (résumés, définitions, légendes) : 17 px au
+       moins, au lieu des 16 px du navigateur. L'en-tête et le pied de page sont hors de cette zone. */
+    font-size: var(--vff-fs-md);
 }

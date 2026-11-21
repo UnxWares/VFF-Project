@@ -450,4 +450,72 @@ class LineProfilesTest extends TestCase
         config(['api.withhold_unlicensed_geometry' => false]);
         $this->assertNotNull($this->getJson("{$base}/profile/points")->json('points.0.lat'));
     }
+
+    public function test_a_line_entirely_outside_france_gets_no_profile_and_says_why(): void
+    {
+        // Comme les réseaux militaires du front belge : le tracé ne touche aucune commune française,
+        // ni la BD TOPO ni le RGE ALTI n'y donnent d'altitude.
+        DB::table('commune_contours')->where('code_insee', '99999')->delete();
+        Http::fake([
+            'data.geopf.fr/wfs/*' => Http::response(['type' => 'FeatureCollection', 'features' => []]),
+            'data.geopf.fr/altimetrie/*' => Http::response(['elevations' => []]),
+        ]);
+
+        $this->artisan('vff:compute-line-profiles', ['--line' => [$this->line->slug]])
+            ->expectsOutputToContain('tracé entièrement hors de France')
+            ->assertSuccessful();
+        $this->assertSame(0, LineProfile::count());
+        Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'altimetrie'));
+    }
+
+    public function test_a_rack_railway_withholds_the_measured_grade_and_exposes_the_sourced_one(): void
+    {
+        // La ligne de test devient Chamonix - Montenvers, déclarée dans database/data/rack_railways.php.
+        DB::table('lines')->where('id', $this->line->id)->update(['slug' => 'archeo-ligne-de-chamonix-a-montenvers']);
+        $slug = 'archeo-ligne-de-chamonix-a-montenvers';
+        $this->fakeIgn();
+        $this->artisan('vff:compute-line-profiles', ['--line' => [$slug]])->assertSuccessful();
+
+        $profile = LineProfile::where('line_id', $this->line->id)->firstOrFail();
+        $this->assertNull($profile->max_grade_permil);
+        $this->assertSame('rack', $profile->max_grade_withheld);
+        // --stats-only garde le motif.
+        $this->artisan('vff:compute-line-profiles', ['--line' => [$slug], '--stats-only' => true])->assertSuccessful();
+        $this->assertSame('rack', $profile->refresh()->max_grade_withheld);
+
+        $this->getJson("/api/v1/lines/{$slug}/profile")->assertOk()
+            ->assertJsonPath('summary.max_grade_withheld', 'rack')
+            ->assertJsonPath('summary.climb_method.method', 'hysteresis')
+            ->assertJsonPath('summary.climb_method.threshold_m', 3)
+            ->assertJsonPath('summary.climb_method.terrain_smoothing_m', 1000)
+            ->assertJsonPath('rack.system', 'strub')
+            ->assertJsonPath('rack.extent', 'full')
+            ->assertJsonPath('rack.max_grade_permil', 220)
+            ->assertJsonPath('rack.braking_only', false)
+            ->assertJsonPath('rack.source.provider', 'wikipedia')
+            ->assertJsonPath('rack.source.license', 'CC BY-SA 4.0');
+
+        $data = $this->postJson('/graphql', ['query' => '{ line(slug: "'.$slug.'") { profile { summary { max_grade_withheld climb_method { method threshold_m terrain_smoothing_m } } rack { system extent max_grade_permil braking_only source { provider title url license } } } } }'])
+            ->assertOk()->json('data.line.profile');
+        $this->assertSame('rack', $data['summary']['max_grade_withheld']);
+        $this->assertSame(1000.0, (float) $data['summary']['climb_method']['terrain_smoothing_m']);
+        $this->assertSame('strub', $data['rack']['system']);
+        $this->assertSame(220, $data['rack']['max_grade_permil']);
+        $this->assertStringContainsString('oldid=', $data['rack']['source']['url']);
+
+        $result = $this->withHeaders(['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-06-18'])
+            ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => [
+                'name' => 'line_profile', 'arguments' => ['line' => $slug, 'max_points' => 10],
+            ]])->assertOk()->json('result');
+        $payload = json_decode($result['content'][0]['text'], true);
+        $this->assertSame('strub', $payload['profile']['rack']['system']);
+        $this->assertSame('rack', $payload['profile']['summary']['max_grade_withheld']);
+        $this->assertStringContainsString('Wikip', json_encode($payload['attribution'], JSON_UNESCAPED_UNICODE) ?: '');
+
+        // Une ligne à adhérence n'a pas de fiche de crémaillère.
+        DB::table('lines')->where('id', $this->line->id)->update(['slug' => 'ligne-a-adherence']);
+        $this->artisan('vff:compute-line-profiles', ['--line' => ['ligne-a-adherence'], '--stats-only' => true])->assertSuccessful();
+        $this->getJson('/api/v1/lines/ligne-a-adherence/profile')->assertOk()->assertJsonPath('rack', null);
+        $this->assertNotSame('rack', $profile->refresh()->max_grade_withheld);
+    }
 }

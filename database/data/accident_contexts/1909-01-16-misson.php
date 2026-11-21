@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé de la collision frontale près de Misson-Habas, le 16 janvier 1909 (recherche du 21/11/2026).
+return [
+    'slug' => '1909-01-16-misson',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1909' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1909',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '16 janvier 1909, Misson',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1909&oldid=241222447#Janvier',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Place la collision vers 6 h 40 sur la ligne de Dax à Puyoo, près de la gare de Misson-Habas, entre le rapide Paris-Pau et un train parti par erreur de Puyoo ; 2 morts et 9 blessés dont un succombera quatre jours plus tard ; cite Le Petit Journal du 17 janvier 1909 et Le Temps du 22 janvier 1909.',
+        ],
+        'tilburgsche-1909-01-19' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Tilburgsche courant du 19 janvier 1909',
+            'publisher' => 'Tilburgsche courant',
+            'author' => null,
+            'published' => '1909-01-19',
+            'locator' => null,
+            'url' => 'https://resolver.kb.nl/resolve?urn=ddd:010189644:mpeg21:a0005',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Reprend le récit publié par Le Matin.',
+        ],
+        'telegraaf-1909-01-18' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'De Telegraaf du 18 janvier 1909',
+            'publisher' => 'De Telegraaf',
+            'author' => null,
+            'published' => '1909-01-18',
+            'locator' => null,
+            'url' => 'https://resolver.kb.nl/resolve?urn=ddd:110556343:mpeg21:a0008',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Reprend le récit publié par Le Matin.',
+        ],
+        'petit-journal-1909-01-17' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Petit Journal du 17 janvier 1909, page 1',
+            'publisher' => 'Le Petit Journal (numérisé sur Gallica)',
+            'author' => null,
+            'published' => '1909-01-17',
+            'locator' => null,
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k618506g',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Référence citée par la liste de Wikipédia ; à consulter, non lue.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 16 janvier 1909, au petit matin, deux trains se sont heurtés de front sur la voie unique de Dax à Puyoo, près de Misson-Habas (Landes). La liste de Wikipédia parle du rapide Paris-Pau et d\'un train de sens contraire parti par erreur de Puyoo.',
+                'en' => 'On 16 January 1909, in the early morning, two trains collided head-on on the single track from Dax to Puyoo, near Misson-Habas (Landes). The Wikipedia list speaks of the Paris to Pau express and a train running in the opposite direction that left Puyoo by mistake.',
+                'de' => 'Am frühen Morgen des 16. Januar 1909 stießen auf der eingleisigen Strecke von Dax nach Puyoo bei Misson-Habas (Landes) zwei Züge frontal zusammen. Die Wikipedia-Liste spricht vom Schnellzug Paris-Pau und einem Gegenzug, der irrtümlich aus Puyoo abgefahren war.',
+                'sources' => ['tilburgsche-1909-01-19', 'telegraaf-1909-01-18', 'wp-liste-1909'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'D\'après Le Matin, cité par les journaux néerlandais, le chef de gare de Misson-Habas, l\'un des trains de Dax arrivant en retard, avait signalé que le train venant de l\'autre côté pouvait passer sans arrêt. Le mécanicien de l\'un des trains raconte avoir aperçu l\'autre à 600 mètres dans une courbe ; il a freiné, puis a sauté avec son chauffeur avant le choc.',
+                'en' => 'According to Le Matin, cited by the Dutch newspapers, the station master at Misson-Habas, one of the trains from Dax being late, had signalled that the train coming from the other side could run through without stopping. The driver of one of the trains says he saw the other at 600 metres in a curve; he braked, then jumped with his fireman before the impact.',
+                'de' => 'Laut Le Matin, zitiert von den niederländischen Zeitungen, hatte der Bahnhofsvorsteher von Misson-Habas, da einer der Züge aus Dax Verspätung hatte, signalisiert, der aus der anderen Richtung kommende Zug könne ohne Halt durchfahren. Der Lokführer eines der Züge berichtet, er habe den anderen in einer Kurve auf 600 Meter gesehen; er bremste und sprang dann mit seinem Heizer vor dem Aufprall ab.',
+                'sources' => ['tilburgsche-1909-01-19', 'telegraaf-1909-01-18'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les deux locomotives ont été écrasées. Le mécanicien de l\'autre train a été tué, son chauffeur sauvé. Les journaux néerlandais comptent deux morts et huit blessés ; la liste de Wikipédia donne deux morts et neuf blessés, dont un succombera quatre jours plus tard.',
+                'en' => 'Both locomotives were crushed. The driver of the other train was killed, his fireman saved. The Dutch newspapers count two dead and eight injured; the Wikipedia list gives two dead and nine injured, one of whom would die four days later.',
+                'de' => 'Beide Lokomotiven wurden zerdrückt. Der Lokführer des anderen Zuges wurde getötet, sein Heizer gerettet. Die niederländischen Zeitungen zählen zwei Tote und acht Verletzte; die Wikipedia-Liste nennt zwei Tote und neun Verletzte, von denen einer vier Tage später starb.',
+                'sources' => ['tilburgsche-1909-01-19', 'telegraaf-1909-01-18', 'wp-liste-1909'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La liste de Wikipédia attribue l\'erreur à l\'autorisation de départ donnée à Puyoo, alors que le récit repris par les journaux néerlandais met en cause le chef de gare de Misson-Habas.',
+                'en' => 'The Wikipedia list attributes the error to the departure authorisation given at Puyoo, whereas the account reproduced by the Dutch newspapers blames the station master at Misson-Habas.',
+                'de' => 'Die Wikipedia-Liste führt den Fehler auf die in Puyoo erteilte Abfahrtserlaubnis zurück, während der von den niederländischen Zeitungen übernommene Bericht den Bahnhofsvorsteher von Misson-Habas verantwortlich macht.',
+                'sources' => ['tilburgsche-1909-01-19', 'telegraaf-1909-01-18', 'wp-liste-1909'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

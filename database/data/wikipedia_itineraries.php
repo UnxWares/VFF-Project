@@ -22,9 +22,9 @@
 return [
     'Ligne de Paris à Granville' => [
         'stops' => ['Paris-Montparnasse', 'Versailles-Chantiers', 'Dreux', 'Surdon', 'Argentan', 'Flers', 'Vire', 'Folligny', 'Granville'],
-        'lines' => ['420000', '990306', '395000', '430000', '405000'],
+        'lines' => ['420000', '395000', '430000', '405000'],
         'source' => 'https://fr.wikipedia.org/wiki/Ligne_de_Paris_%C3%A0_Granville',
-        'checked' => '20/11/2026 : plus court chemin de Paris-Montparnasse à Granville sur le graphe de l\'époque actuelle (station_edges), par Dreux, Surdon, Argentan et Folligny, sans autre itinéraire à moins de 15 %.',
+        'checked' => '20/11/2026 : plus court chemin de Paris-Montparnasse à Granville sur le graphe de l\'époque actuelle (station_edges), par Dreux, Surdon, Argentan et Folligny, sans autre itinéraire à moins de 15 %. 21/11/2026 : raccordement de Versailles-Matelots (990306) retiré ; l\'article (révision 239953957) décrit la section de Paris-Montparnasse à Saint-Cyr de la ligne 420000 puis la ligne de Saint-Cyr à Surdon, sans raccordement ; les 148 m de 990306 lus dans le graphe sont des arêtes de la gare de Versailles-Chantiers partagées avec la ligne 420000.',
     ],
     'Ligne de Caen à Rennes' => [
         'stops' => ['Caen', 'Lison', 'Saint-Lô', 'Coutances', 'Folligny', 'Pontorson', 'Dol-de-Bretagne', 'Rennes'],

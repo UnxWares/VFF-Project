@@ -150,4 +150,14 @@ return [
             ],
         ],
     ],
+    'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '27189',
+            'sources' => ['wp-fr', 'lette'],
+            'fr' => 'Le déraillement s\'est produit au point kilométrique 121,700, sur le territoire de La Croisille (Eure), où un monument a été inauguré en 1936 ; la fiche le plaçait au Val-Doré.',
+            'en' => 'The derailment happened at kilometre point 121.700, within La Croisille (Eure), where a memorial was unveiled in 1936; the record placed it at Le Val-Doré.',
+            'de' => 'Die Entgleisung ereignete sich bei Kilometer 121,700 auf dem Gebiet von La Croisille (Eure), wo 1936 ein Denkmal eingeweiht wurde; der Eintrag verortete sie in Le Val-Doré.',
+        ],
+    ],
 ];

@@ -74,15 +74,33 @@ class TranslationsTest extends TestCase
         config(['app.debug' => false]);
 
         $first = Translations::load('de');
-        $this->assertSame($first, Cache::get('translations.de'));
-        $this->assertFalse(Cache::has('translations.fr'));
+        $this->assertSame($first, Cache::get(Translations::cacheKey('translations', 'de')));
+        $this->assertFalse(Cache::has(Translations::cacheKey('translations', 'fr')));
 
-        // Fichier modifié après coup : la valeur en cache est servie telle quelle.
-        File::put($this->langPath.'/de/nav.php', "<?php return ['maps' => 'Landkarten'];");
+        // Sans changement de fichier, la valeur vient du cache (le fichier n'est pas relu).
+        $this->assertSame($first, Translations::load('de'));
+    }
+
+    public function test_a_deployment_that_changes_a_language_file_is_served_without_clearing_the_cache(): void
+    {
+        config(['app.debug' => false]);
+
+        $before = Translations::payload('de');
         $this->assertSame('Karten', Translations::load('de')['nav.maps']);
+        $this->assertNotSame('', Translations::gzipped('de'));
 
-        // En debug, toujours relu sur disque.
-        config(['app.debug' => true]);
+        // Déploiement : un fichier change (allemand), puis un autre (français, langue de repli), sans cache:clear.
+        File::put($this->langPath.'/de/nav.php', "<?php return ['maps' => 'Landkarten'];");
         $this->assertSame('Landkarten', Translations::load('de')['nav.maps']);
+        $after = Translations::payload('de');
+        $this->assertNotSame($before['version'], $after['version'], 'nouvelle empreinte, donc nouvelle adresse du dictionnaire');
+        $this->assertSame($after['json'], gzdecode(Translations::gzipped('de')));
+
+        File::put($this->langPath.'/fr/home.php', "<?php return ['title' => 'Bonjour :name'];");
+        $this->assertSame('Bonjour :name', Translations::load('de')['home.title']);
+
+        // Fichier ajouté.
+        File::put($this->langPath.'/de/home.php', "<?php return ['title' => 'Willkommen :name'];");
+        $this->assertSame('Willkommen :name', Translations::load('de')['home.title']);
     }
 }

@@ -27,16 +27,24 @@ class HomeController extends Controller
 
         $archives = $homeArchives->current();
 
-        // Lignes soutenues par VFF (menacées, ou campagne de réouverture) → encart de mobilisation.
+        // Lignes soutenues par VFF (menacées, ou campagne de réouverture) → encarts de l'accueil. Ordre et
+        // forme (encart complet ou mention courte) viennent du message de soutien (Advocacy::home) : rang
+        // croissant, puis les lignes sans rang, menacées d'abord, par code.
+        $locale = app()->getLocale();
         $threatened = Line::whereNotNull('advocacy')
-            ->orderByDesc('is_threatened')
-            ->orderBy('code')
-            ->get(['slug', 'name', 'advocacy'])
-            ->map(fn ($l) => [
-                'slug' => $l->slug,
-                'name' => $l->name,
+            ->get(['slug', 'name', 'code', 'is_threatened', 'advocacy'])
+            ->map(fn (Line $l) => [
+                'line' => $l,
+                'home' => Advocacy::home($l->advocacy, $locale),
+            ])
+            ->sort(fn (array $a, array $b) => [$a['home']['rank'] ?? PHP_INT_MAX, ! $a['line']->is_threatened, $a['line']->code]
+                <=> [$b['home']['rank'] ?? PHP_INT_MAX, ! $b['line']->is_threatened, $b['line']->code])
+            ->map(fn (array $item) => [
+                'slug' => $item['line']->slug,
+                'name' => $item['line']->name,
                 // Titre, message et bouton dans la langue de la page (repli français signalé).
-                'advocacy' => Advocacy::localized($l->advocacy, app()->getLocale()),
+                'advocacy' => Advocacy::localized($item['line']->advocacy, $locale),
+                'home' => $item['home'],
             ])->values();
 
         return Inertia::render('Home', [

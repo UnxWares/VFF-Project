@@ -399,6 +399,7 @@ final class LineMaterialLinker
         $more = $bare === [] ? [] : $this->wikipedia->sections('wikipedia_material_relations', $bare, WikipediaMaterialSections::RELATION_SECTIONS, $refresh);
         $info = DB::table('materials')->whereIn('id', array_values($materials))->get(['id', 'type', 'max_speed_kmh', 'in_service_from', 'in_service_to', 'electrification'])->keyBy('id');
         $lgv = DB::table('lines')->where('is_lgv', true)->pluck('id')->flip()->all();
+        $titles = null;
         foreach ([$pages, $more] as $set) {
             foreach ($set as $requested => $page) {
                 $row = $info[(int) ($materials[$requested] ?? 0)] ?? null;
@@ -413,6 +414,17 @@ final class LineMaterialLinker
                 ];
                 foreach ($this->relations->links($page, $material) as $link) {
                     if (! $this->speaksOf((string) $requested, $page, (string) ($link['evidence']['quote'] ?? ''))) {
+                        continue;
+                    }
+                    // Série qui remplace celle de l'article sur un itinéraire : le lien est pour elle, si son
+                    // article désigne une seule série importée (pas sur une LGV : itinéraires classiques).
+                    if (isset($link['successor'])) {
+                        $titles ??= $this->materialTitles($refresh);
+                        $ids = array_values(array_unique($titles[$link['successor']] ?? []));
+                        if (count($ids) === 1 && $ids[0] !== (int) $row->id && ! isset($lgv[$link['line_id']])) {
+                            $add($link['line_id'], $ids[0], $link['evidence']);
+                        }
+
                         continue;
                     }
                     if (! isset($lgv[$link['line_id']]) || $material['fast']) {

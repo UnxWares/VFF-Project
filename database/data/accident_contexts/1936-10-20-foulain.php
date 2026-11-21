@@ -1,0 +1,92 @@
+<?php
+
+// Contexte sourcé de la collision de Foulain du 20 octobre 1936 (recherche du 21/11/2026).
+return [
+    'slug' => '1936-10-20-foulain',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1936' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1936',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Octobre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1936&oldid=233504399#Octobre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste : 20 octobre, à Foulain, le rapide Calais-Bâle percute à vitesse réduite le rapide Paris-Bâle arrêté en pleine voie, 2 morts (un voyageur et le mécanicien du train tamponné) et 5 blessés.',
+        ],
+        'delpher-1936-10-21a' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Ernstig treinongeluk in Frankrijk',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1936-10-21',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010854934:mpeg21:a0033',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Paris du 20 octobre : express Paris-Bâle parti à 22 h, arrêté à Foulain entre Langres et Chaumont, tamponné à 1 h 30 par le rapide Boulogne-Bâle, 2 morts, 4 blessés légers, 1 grave.',
+        ],
+        'delpher-1936-10-21b' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Express Parijs-Bazel verongelukt',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1936-10-21',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001986096:mpeg21:a00031',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même information : 2 morts dans l\'express arrêté, 4 blessés légers et 1 grave.',
+        ],
+        'delpher-1936-10-21c' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Botsing tusschen sneltreinen',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1936-10-21',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMGAHE01:234804009:mpeg21:a00144',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même information.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Dans la nuit du 19 au 20 octobre 1936, à 1 h 30, l\'express Paris-Bâle, parti de Paris à 22 heures, était arrêté à Foulain, entre Langres et Chaumont, sur la ligne de Paris à Belfort et Bâle. Le rapide Boulogne-Bâle (Calais-Bâle selon la liste de Wikipédia) est venu le percuter, à vitesse réduite d\'après la liste.',
+                'en' => 'In the night of 19 to 20 October 1936, at 1.30 a.m., the Paris-Basel express, which had left Paris at 10 p.m., was stopped at Foulain, between Langres and Chaumont, on the Paris-Belfort-Basel line. The Boulogne-Basel fast train (Calais-Basel according to the Wikipedia list) ran into it, at reduced speed according to the list.',
+                'de' => 'In der Nacht vom 19. auf den 20. Oktober 1936, um 1.30 Uhr, stand der um 22 Uhr in Paris abgefahrene Schnellzug Paris-Basel in Foulain zwischen Langres und Chaumont auf der Strecke Paris-Belfort-Basel. Der Schnellzug Boulogne-Basel (laut Wikipedia-Liste Calais-Basel) fuhr auf ihn auf, laut Liste mit verminderter Geschwindigkeit.',
+                'sources' => ['delpher-1936-10-21a', 'delpher-1936-10-21b', 'wp-liste-1936'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, le train tamponné s\'était arrêté en pleine voie à la suite d\'une panne ; son mécanicien effectuait une réparation sous sa machine.',
+                'en' => 'According to the Wikipedia list, the struck train had stopped in open country after a breakdown; its driver was carrying out a repair under his engine.',
+                'de' => 'Laut Wikipedia-Liste war der gerammte Zug nach einer Panne auf freier Strecke stehen geblieben; sein Lokführer führte unter der Maschine eine Reparatur durch.',
+                'sources' => ['wp-liste-1936'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Deux personnes sont mortes dans l\'express arrêté (un voyageur et le mécanicien selon la liste de Wikipédia), quatre ont été légèrement blessées et une grièvement, soit cinq blessés.',
+                'en' => 'Two people died in the stopped express (a traveller and the driver according to the Wikipedia list), four were slightly injured and one seriously, five injured in all.',
+                'de' => 'Zwei Menschen starben im haltenden Schnellzug (laut Wikipedia-Liste ein Reisender und der Lokführer), vier wurden leicht und einer schwer verletzt, insgesamt fünf Verletzte.',
+                'sources' => ['delpher-1936-10-21a', 'delpher-1936-10-21b', 'delpher-1936-10-21c', 'wp-liste-1936'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

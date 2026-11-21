@@ -1,0 +1,134 @@
+<?php
+
+// Contexte sourcé de l'accident du Sud-Express près de Dax du 15 novembre 1900 (recherche du 21/11/2026).
+return [
+    'slug' => '1900-11-15-dax',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1900' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1900',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Novembre, Dax',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1900&oldid=233589330#Novembre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée sourcée par Le Petit Journal (16/11/1900), Le Matin (17/11/1900 et 26/01/1901), journaux non lus ici. Donne 13 morts, 26 blessés, 11 h 40, et place l\'accident entre Saint-Geours-de-Maremne et Saubusse.',
+        ],
+        'wp-en-sud-express' => [
+            'provider' => 'wikipedia-en',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => '1900 Landes Sud Express disaster',
+            'publisher' => 'Wikipedia en anglais',
+            'author' => null,
+            'published' => null,
+            'locator' => 'article entier',
+            'url' => 'https://en.wikipedia.org/w/index.php?title=1900_Landes_Sud_Express_disaster&oldid=1370642619',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article détaillé, appuyé sur la presse de l\'époque, The Engineer et la Revue générale des chemins de fer ; 14 morts et 20 blessés dans l\'encadré, 11 h 46, enquête et suites judiciaires.',
+        ],
+        'rail4402-sud-express' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => 'Sud-Express, Paris-Quai d\'Orsay - Madrid / Lisbonne',
+            'publisher' => 'rail4402.fr',
+            'author' => null,
+            'published' => null,
+            'locator' => 'déraillement de novembre 1900',
+            'url' => 'https://rail4402.fr/PAGES/L_55/L_55_04_SUD_EXPRESS.htm',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Page d\'histoire du train qui reprend la presse de 1900 (Le Temps, Petit Temps, Petite Gironde) ; donne le point kilométrique, la vitesse, l\'enquête officielle ; liste nominative de victimes non reprise ici.',
+        ],
+        'trainsdumidi-sud-express' => [
+            'provider' => 'sites-web',
+            'kind' => 'forum',
+            'reliability' => 'forum',
+            'title' => 'Le Sud Express (message de forum du 28/09/2008)',
+            'publisher' => 'Trains du Midi (forum)',
+            'author' => null,
+            'published' => '2008-09',
+            'locator' => 'déraillement de 1900',
+            'url' => 'https://www.trainsdumidi.com/t2596-le-sud-express',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Message de forum sans source citée : Saint-Geours-de-Maremne, 15 novembre 1900, 14 morts ; ni heure ni cause.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 15 novembre 1900, vers 11 h 40 (11 h 46 selon Wikipédia en anglais), le Sud-Express, train de luxe de la Compagnie internationale des wagons-lits reliant Madrid à Paris sur le réseau de la Compagnie du Midi, a déraillé dans les Landes, entre les gares de Saint-Geours-de-Maremne et de Saubusse, c\'est-à-dire à une vingtaine ou une trentaine de kilomètres de Dax selon les sources. Il était tiré par la locomotive n° 1756.',
+                'en' => 'On 15 November 1900, at about 11.40 am (11.46 according to English Wikipedia), the Sud-Express, a luxury train of the Compagnie internationale des wagons-lits running from Madrid to Paris over the Compagnie du Midi network, derailed in the Landes, between Saint-Geours-de-Maremne and Saubusse stations, some 20 or 30 kilometres from Dax depending on the source. It was hauled by locomotive no. 1756.',
+                'de' => 'Am 15. November 1900, gegen 11.40 Uhr (11.46 Uhr laut der englischen Wikipedia), entgleiste der Sud-Express, ein Luxuszug der Compagnie internationale des wagons-lits von Madrid nach Paris auf dem Netz der Compagnie du Midi, in den Landes zwischen den Bahnhöfen Saint-Geours-de-Maremne und Saubusse, je nach Quelle etwa 20 oder 30 Kilometer von Dax entfernt. Er wurde von der Lokomotive Nr. 1756 gezogen.',
+                'sources' => ['wp-liste-1900', 'wp-en-sud-express'],
+            ],
+            [
+                'fr' => 'Selon une page d\'histoire du Sud-Express fondée sur la presse de l\'époque, le déraillement s\'est produit au point kilométrique 165,5, à 11 h 46, avec 34 voyageurs à bord dont 30 dans le wagon-restaurant.',
+                'en' => 'According to a history page on the Sud-Express based on contemporary press, the derailment happened at kilometre point 165.5 at 11.46 am, with 34 passengers aboard, 30 of them in the dining car.',
+                'de' => 'Nach einer auf der zeitgenössischen Presse beruhenden Geschichtsseite zum Sud-Express ereignete sich die Entgleisung bei Streckenkilometer 165,5 um 11.46 Uhr; an Bord waren 34 Reisende, 30 davon im Speisewagen.',
+                'sources' => ['rail4402-sud-express'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Dans une courbe de grand rayon, la locomotive a quitté les rails, a roulé une centaine de mètres sur le ballast, puis s\'est renversée dans le remblai. Le fourgon de tête et le wagon-restaurant ont été écrasés contre le tender ; les deux salons et le fourgon arrière sont restés sur la voie. Le conducteur et le chauffeur n\'ont eu que des contusions légères.',
+                'en' => 'In a large-radius curve the locomotive left the rails, ran about a hundred metres on the ballast and then overturned into the embankment. The leading van and the dining car were crushed against the tender; the two saloon cars and the rear van stayed on the track. The driver and the fireman suffered only slight bruising.',
+                'de' => 'In einer Kurve mit großem Radius verließ die Lokomotive die Schienen, rollte etwa hundert Meter auf dem Schotter und kippte dann in den Damm. Der vordere Packwagen und der Speisewagen wurden gegen den Tender gedrückt; die beiden Salonwagen und der hintere Packwagen blieben auf dem Gleis. Lokführer und Heizer erlitten nur leichte Prellungen.',
+                'sources' => ['wp-en-sud-express'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Selon Wikipédia en anglais, la plupart des victimes se trouvaient dans le wagon-restaurant, où une trentaine de voyageurs déjeunaient ; le train transportait 34 voyageurs et 13 membres du personnel. Le câble télégraphique étant coupé, la nouvelle n\'est parvenue à Dax qu\'à 15 h 30 ; les premiers secours sont venus de Bayonne, et des paysans avaient évacué entre-temps des blessés vers une ferme voisine. La circulation a repris vers 18 h sur une voie provisoire.',
+                'en' => 'According to English Wikipedia, most victims were in the dining car, where about thirty passengers were having lunch; the train carried 34 passengers and 13 staff. With the telegraph cable cut, news reached Dax only at 3.30 pm; the first relief came from Bayonne, and local farmers had meanwhile taken injured people to a nearby farm. Traffic resumed at about 6 pm on a temporary track.',
+                'de' => 'Laut der englischen Wikipedia befanden sich die meisten Opfer im Speisewagen, wo etwa dreißig Reisende zu Mittag aßen; der Zug beförderte 34 Reisende und 13 Bedienstete. Da das Telegrafenkabel unterbrochen war, erreichte die Nachricht Dax erst um 15.30 Uhr; die erste Hilfe kam aus Bayonne, und Bauern hatten inzwischen Verletzte zu einem nahen Hof gebracht. Gegen 18 Uhr wurde der Verkehr auf einem provisorischen Gleis wieder aufgenommen.',
+                'sources' => ['wp-en-sud-express'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Plusieurs explications se sont affrontées : un remblai argileux affaibli par des pluies torrentielles, la vitesse très élevée du train (environ 120 km/h selon l\'article anglais), ou la légèreté du fourgon de tête. L\'enquête administrative puis l\'expertise judiciaire ont jugé la voie irréprochable et ont attribué le déraillement au fourgon de tête, trop léger, ou à un objet tombé sur la voie, ce qui a écarté toute faute pénale de la compagnie.',
+                'en' => 'Several explanations competed: a clay embankment weakened by torrential rain, the train\'s very high speed (about 120 km/h according to the English article), or the lightness of the leading van. The administrative inquiry and then the court-appointed experts found the track faultless and blamed the leading van, judged too light, or an object fallen on the line, which ruled out any criminal fault by the company.',
+                'de' => 'Mehrere Erklärungen standen sich gegenüber: ein durch sintflutartige Regenfälle geschwächter Lehmdamm, die sehr hohe Geschwindigkeit des Zuges (nach dem englischen Artikel etwa 120 km/h) oder die Leichtigkeit des vorderen Packwagens. Die behördliche Untersuchung und danach das Gerichtsgutachten befanden das Gleis für einwandfrei und machten den zu leichten vorderen Packwagen oder einen auf das Gleis gefallenen Gegenstand verantwortlich; damit entfiel jedes strafrechtliche Verschulden der Gesellschaft.',
+                'sources' => ['wp-en-sud-express', 'wp-liste-1900'],
+            ],
+            [
+                'fr' => 'Selon la même page, le train roulait à environ 110 km/h, peut-être 120, les estimations de l\'enquête allant de 95 à 120 km/h. L\'enquête officielle a écarté l\'état de la voie, dont les photographies montraient un bon état au point de déraillement. L\'hypothèse retenue est que le fourgon placé derrière le tender, plus léger, a déraillé le premier et entraîné la locomotive, un de ses ressorts s\'étant brisé après un choc contre un rail soulevé. Le mécanicien, qui avait signalé des chocs lors du voyage précédent, n\'avait pas rédigé le rapport spécial prévu par le règlement.',
+                'en' => 'According to the same page, the train was running at about 110 km/h, perhaps 120, with estimates in the inquiry ranging from 95 to 120 km/h. The official inquiry ruled out the condition of the track, which photographs showed to be sound at the point of derailment. The explanation adopted is that the lighter van behind the tender derailed first and dragged the locomotive with it, one of its springs having broken after striking a raised rail. The driver, who had reported knocks on the previous journey, had not written the special report required by the regulations.',
+                'de' => 'Nach derselben Seite fuhr der Zug mit etwa 110 km/h, vielleicht 120; die Schätzungen der Untersuchung reichten von 95 bis 120 km/h. Die amtliche Untersuchung schloss den Zustand des Gleises aus, das auf Fotografien an der Entgleisungsstelle einwandfrei aussah. Angenommen wird, dass der leichtere Packwagen hinter dem Tender zuerst entgleiste und die Lokomotive mitriss, nachdem eine seiner Federn nach dem Stoß gegen eine hochgebogene Schiene gebrochen war. Der Lokführer, der auf der vorherigen Fahrt Schläge gemeldet hatte, hatte den vorgeschriebenen Sonderbericht nicht verfasst.',
+                'sources' => ['rail4402-sud-express'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Trois enquêtes ont été menées en parallèle : pénale (parquet de Pau), administrative et interne à la Compagnie du Midi. La presse a vivement critiqué la compagnie. Des indemnisations amiables ont été proposées, et en juillet 1901 le tribunal civil de Dax a accordé 290 000 francs à un voyageur contre la Compagnie du Midi.',
+                'en' => 'Three inquiries ran in parallel: criminal (Pau public prosecutor), administrative, and internal to the Compagnie du Midi. The press sharply criticised the company. Out-of-court compensation was offered, and in July 1901 the civil court of Dax awarded 290,000 francs against the Compagnie du Midi to one passenger.',
+                'de' => 'Drei Untersuchungen liefen parallel: eine strafrechtliche (Staatsanwaltschaft Pau), eine behördliche und eine interne der Compagnie du Midi. Die Presse kritisierte die Gesellschaft scharf. Es wurden außergerichtliche Entschädigungen angeboten, und im Juli 1901 sprach das Zivilgericht Dax einem Reisenden 290 000 Francs gegen die Compagnie du Midi zu.',
+                'sources' => ['wp-en-sud-express'],
+            ],
+            [
+                'fr' => 'Le graphique de marche du train Paris - Madrid a été modifié à partir du 2 décembre 1900 : vitesse réduite sur les réseaux français, augmentée sur le réseau espagnol.',
+                'en' => 'The running schedule of the Paris - Madrid train was changed from 2 December 1900: speed was reduced on the French networks and increased on the Spanish network.',
+                'de' => 'Der Fahrplan des Zuges Paris - Madrid wurde ab dem 2. Dezember 1900 geändert: Auf den französischen Netzen wurde die Geschwindigkeit verringert, auf dem spanischen erhöht.',
+                'sources' => ['rail4402-sud-express'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le lieu : la fiche, issue de la liste de Wikipédia, porte la commune de Dax, mais les deux sources placent l\'accident en rase campagne entre Saint-Geours-de-Maremne et Saubusse, à 20 km (liste) ou 30 km (article anglais) de Dax ; Dax n\'est que la ville où est parvenue la nouvelle. Le bilan : 13 morts et 26 blessés selon la liste, 14 morts et 20 blessés (dont 16 graves) selon l\'article anglais. L\'heure : 11 h 40 selon la liste, 11 h 46 selon l\'article anglais et la page rail4402. Un message de forum sans source donne 14 morts et la page rail4402 liste 12 victimes nommées et 2 corps non identifiés, tout en citant des chiffres plus élevés (16 corps, 18 morts selon un témoin). Cette page date d\'un article du 17 novembre qui parle de l\'accident de la veille, ce qui suggère le 16 ; les autres sources donnent le 15.',
+                'en' => 'The place: the record, taken from the Wikipedia list, uses the commune of Dax, but both sources place the accident in open country between Saint-Geours-de-Maremne and Saubusse, 20 km (list) or 30 km (English article) from Dax; Dax is merely the town where the news arrived. The toll: 13 dead and 26 injured according to the list, 14 dead and 20 injured (16 seriously) according to the English article. The time: 11.40 am according to the list, 11.46 am according to the English article and the rail4402 page. An unsourced forum post gives 14 dead and the rail4402 page lists 12 named victims and 2 unidentified bodies, while also quoting higher figures (16 bodies, 18 dead according to one witness). That page dates an article of 17 November that speaks of the previous day\'s accident, which suggests the 16th; the other sources give the 15th.',
+                'de' => 'Der Ort: Der Datensatz, aus der Wikipedia-Liste übernommen, nennt die Gemeinde Dax, doch beide Quellen verorten den Unfall auf freier Strecke zwischen Saint-Geours-de-Maremne und Saubusse, 20 km (Liste) oder 30 km (englischer Artikel) von Dax entfernt; Dax ist nur die Stadt, in der die Nachricht eintraf. Die Opferzahl: 13 Tote und 26 Verletzte laut Liste, 14 Tote und 20 Verletzte (16 schwer) laut englischem Artikel. Die Uhrzeit: 11.40 Uhr laut Liste, 11.46 Uhr laut englischem Artikel und der Seite rail4402. Ein Forumsbeitrag ohne Quelle nennt 14 Tote, und die Seite rail4402 führt 12 namentlich genannte Opfer und 2 nicht identifizierte Leichen auf, nennt aber auch höhere Zahlen (16 Leichen, 18 Tote nach einem Zeugen). Diese Seite datiert einen Artikel vom 17. November, der vom Unfall des Vortags spricht, was den 16. nahelegt; die anderen Quellen nennen den 15.',
+                'sources' => ['wp-liste-1900', 'wp-en-sud-express', 'rail4402-sud-express', 'trainsdumidi-sud-express'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

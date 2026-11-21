@@ -121,7 +121,7 @@ return [
             'stops' => 'Bahnhöfe einer Strecke in der Reihenfolge der Kilometerpunkte, zu einer Epoche.',
             'signalling' => 'Kilometerabschnitte mit einheitlicher Signalisierung.',
             'signalling_history' => 'Datierte Inbetriebnahmen von Signalisierungssystemen aus dem Wikipedia-Artikel der Strecke (System, Datum und seine Genauigkeit, Abschnitt, Quelle).',
-            'profile' => 'Höhenprofil: Höhe entlang der Referenztrasse (alle Epochen) mit den Bahnhöfen, Anstieg und Gefälle insgesamt, größte Neigung (IGN, Licence Ouverte 2.0).',
+            'profile' => 'Höhenprofil: Höhe entlang der Referenztrasse (alle Epochen) mit den Bahnhöfen, Anstieg und Gefälle insgesamt samt Berechnungsweise, größte Neigung (IGN, Licence Ouverte 2.0); bei einer Zahnradbahn das Zahnstangensystem und die Neigung laut Wikipedia.',
             'profile_points' => 'Höhe Punkt für Punkt entlang der Strecke: geschätzter Streckenkilometer, Herkunft der Messung, Interpolation, Bauwerk und Lage, nach Streckenkilometer filterbar.',
             'altitude' => 'Höhe einer Strecke an einem Streckenkilometer.',
             'line_audit' => 'Prüfung der Abschnitte einer Strecke für eine Epoche: Einstufung, Lage, Genauigkeit und Verlauf jedes Abschnitts, mit Belegen; 50 Abschnitte pro Seite (limit bis 200, offset), Gesamtzahl in segments_total.',
@@ -178,6 +178,7 @@ return [
         'text' => 'Für umfangreichere Abfragen liefert ein einziger GraphQL-Endpunkt, POST /graphql, eine Strecke mit ihren Segmenten und Ereignissen auf einmal. Das Schema steht in der Referenz; Ihre Abfragen können Sie in GraphiQL ausprobieren.',
         'links' => 'GraphQL-Dokumentation',
         'example_comment' => 'Eine Strecke mit ihren Ereignissen',
+        'limits' => 'Jede Abfrage hat Kosten, die vor ihrer Ausführung berechnet werden: höchstens 5.000 Punkte und 15 Verschachtelungsebenen. Ein Feld zählt 1 Punkt, eine paginierte Liste multipliziert ihre Unterfelder mit first, eine Liste ohne Paginierung zählt sie für 10 Einträge, und ein Steckbrief, ein Höhenprofil, ein Strecken-Audit oder eine Route zählen 250 Punkte. Hundert Strecken mit ihrem Namen passen in eine Abfrage (301 Punkte), hundert Strecken-Steckbriefe nicht (25.301). Eine zu aufwendige Abfrage wird vor der Ausführung abgelehnt, mit dem Code query_too_complex (oder query_too_deep) und einer Meldung, was zu ändern ist. Die vollständige Bewertung steht in der GraphQL-Referenz beim Typ Query.',
     ],
 
     // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).

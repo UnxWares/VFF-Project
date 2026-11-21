@@ -233,4 +233,42 @@ class HomeArchivesRotationTest extends TestCase
         $this->artisan('vff:select-home-images')->expectsOutputToContain('1 image(s) retenue(s) avant, 1 après')->assertSuccessful();
         $this->assertSame([$m->id], $this->flagged());
     }
+
+    public function test_selector_sees_the_same_title_with_another_extension_as_a_twin(): void
+    {
+        // Titre normalisé : extension et signes retirés (PostgreSQL prend la plus longue alternative : « .png » entier).
+        $jpg = $this->commons(['is_featured' => false, 'depicted_year' => 1905, 'title' => 'File:Gare de Vire.jpg', 'width' => 1800]);
+        $png = $this->commons(['is_featured' => false, 'depicted_year' => 1910, 'title' => 'File:Gare de Vire.PNG', 'author' => 'Autre', 'width' => 1600]);
+        $quay = $this->commons(['is_featured' => false, 'depicted_year' => 1912, 'title' => 'File:Gare de Vire.Quai.jpg', 'author' => 'Tiers', 'width' => 1500]);
+        (new HomeImageSelector)->apply(1970);
+        $flagged = $this->flagged();
+        $this->assertContains($jpg->id, $flagged);
+        $this->assertNotContains($png->id, $flagged);
+        $this->assertContains($quay->id, $flagged);
+    }
+
+    public function test_selector_thresholds_are_inclusive(): void
+    {
+        // Titres distincts : le titre normalisé ne garde que les lettres (un numéro ne distingue pas deux images).
+        $edge = [
+            'largeur minimale' => $this->commons(['is_featured' => false, 'title' => 'Gare aaa', 'depicted_year' => 1901, 'width' => 1200, 'height' => 900, 'author' => 'A1']),
+            'rapport 1,3 tout juste' => $this->commons(['is_featured' => false, 'title' => 'Gare bbb', 'depicted_year' => 1902, 'width' => 1300, 'height' => 1000, 'author' => 'A2']),
+            'légende de 12 caractères' => $this->commons(['is_featured' => false, 'title' => 'Gare ccc', 'depicted_year' => 1903, 'caption' => 'Gare de Vire', 'author' => 'A3']),
+            'année limite' => $this->commons(['is_featured' => false, 'title' => 'Gare ddd', 'depicted_year' => 1970, 'author' => 'A4']),
+        ];
+        $out = [
+            'trop étroite d’un pixel' => $this->commons(['is_featured' => false, 'title' => 'Gare eee', 'depicted_year' => 1904, 'width' => 1199, 'height' => 800, 'author' => 'B1']),
+            'légende de 11 caractères' => $this->commons(['is_featured' => false, 'title' => 'Gare fff', 'depicted_year' => 1905, 'caption' => 'Gare de Vir', 'author' => 'B2']),
+            'année suivante' => $this->commons(['is_featured' => false, 'title' => 'Gare ggg', 'depicted_year' => 1971, 'author' => 'B3']),
+            'auteur vide' => $this->commons(['is_featured' => false, 'title' => 'Gare hhh', 'depicted_year' => 1906, 'author' => '']),
+        ];
+        (new HomeImageSelector(10))->apply(1970);
+        $flagged = $this->flagged();
+        foreach ($edge as $label => $m) {
+            $this->assertContains($m->id, $flagged, $label);
+        }
+        foreach ($out as $label => $m) {
+            $this->assertNotContains($m->id, $flagged, $label);
+        }
+    }
 }

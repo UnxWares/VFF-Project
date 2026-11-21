@@ -7,7 +7,7 @@
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import { i18n } from '$lib/i18n.js';
-    import { documentDate, correctionValue } from '$lib/accidentContext.js';
+    import { documentDate, correctionValue, referenceLang } from '$lib/accidentContext.js';
     import { formatLocale } from '$lib/typo.js';
 
     /**
@@ -174,13 +174,10 @@
                             >
                         {/if}
                     </p>
-                    <a
-                        class="ref-title"
-                        href={r.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        lang="fr"
-                        >{r.title}<i class="bi bi-box-arrow-up-right vff-ext" aria-hidden="true"
+                    <a class="ref-title" href={r.url} target="_blank" rel="noopener noreferrer"
+                        ><span lang={referenceLang(r)}>{r.title}</span><i
+                            class="bi bi-box-arrow-up-right vff-ext"
+                            aria-hidden="true"
                         ></i><span class="vff-sr-only"> ({$i18n.t('common.new_tab')})</span></a
                     >
                     <p class="ref-meta">

@@ -1,6 +1,7 @@
 // Audit des tronçons (page /validate/audit/segments, SegmentAuditAdminController) : fonctions
 // pures de la page et de sa carte. Notes calculées par `vff:audit-segments`
 // (docs/AUDIT-TRONCONS.md) ; ordre de gravité repris d'App\Enums\AuditGrade::severity().
+import { firstOfMonth, formatLocale, formatNumber } from './typo.js';
 
 export const BASE_URL = '/validate/audit/segments';
 export const EXPORT_URL = `${BASE_URL}/export.csv`;
@@ -265,7 +266,7 @@ export function formatKm(meters, lang) {
     if (meters === null || meters === undefined || !Number.isFinite(Number(meters))) return '';
     const km = Number(meters) / 1000;
     const digits = km < 100 ? 1 : 0;
-    return `${km.toLocaleString(lang, { maximumFractionDigits: digits })}\u00a0km`;
+    return `${formatNumber(km, lang, { maximumFractionDigits: digits })}\u00a0km`;
 }
 
 /**
@@ -276,11 +277,12 @@ export function formatKm(meters, lang) {
  */
 export function percentNumber(ratio, lang) {
     if (ratio === null || ratio === undefined || !Number.isFinite(Number(ratio))) return '';
-    return (Number(ratio) * 100).toLocaleString(lang, { maximumFractionDigits: 1 });
+    return formatNumber(Number(ratio) * 100, lang, { maximumFractionDigits: 1 });
 }
 
 /**
- * Date d'un événement (« 1938-05-15 », « 1938-05 » ou « 1938 ») dans la langue de la page.
+ * Date d'un événement (« 1938-05-15 », « 1938-05 » ou « 1938 ») dans la langue de la page :
+ * anglais britannique, « 1er mars 1939 » en français.
  *
  * @param {string | null | undefined} iso
  * @param {string} lang
@@ -297,7 +299,10 @@ export function eventDate(iso, lang) {
         : mo
           ? { month: 'long', year: 'numeric' }
           : { year: 'numeric' };
-    return new Intl.DateTimeFormat(lang, { ...opts, timeZone: 'UTC' }).format(date);
+    return firstOfMonth(
+        new Intl.DateTimeFormat(formatLocale(lang), { ...opts, timeZone: 'UTC' }).format(date),
+        lang,
+    );
 }
 
 /**
@@ -313,8 +318,7 @@ export function eventDate(iso, lang) {
 export function evidenceText(check, evidence, ctx) {
     const { t, lang, thresholds = {} } = ctx;
     const A = (key, opts) => t(`audit_segments.${key}`, opts);
-    const num = (v, digits = 2) =>
-        Number(v ?? 0).toLocaleString(lang, { maximumFractionDigits: digits });
+    const num = (v, digits = 2) => formatNumber(v, lang, { maximumFractionDigits: digits });
     const source = (s) => A(`sources.${s}`, { defaultValue: String(s ?? '') });
     const ev = evidence ?? {};
     const reasons = (ev.reasons ?? []).map((r) => A(`reasons.${r}`, { defaultValue: r }));

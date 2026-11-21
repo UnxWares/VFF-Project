@@ -245,7 +245,8 @@
        reste centré sous le rond quelle que soit la largeur ou le zoom. Rond à 19 px du haut de la
        gare (9 px de marge + 3 px + moitié du rond). */
     .stations {
-        --pk-w: 64px;
+        /* PK « 245+123 » en 17 à 17,6 px : 80 px au plus. */
+        --pk-w: 84px;
         --dot-col: 32px;
         --col-gap: 8px;
         --dot-y: 19px;
@@ -401,7 +402,7 @@
     }
     @media (max-width: 600px) {
         .stations {
-            --pk-w: 52px;
+            --pk-w: 80px;
             --dot-col: 28px;
         }
         .stations > li {

@@ -29,7 +29,11 @@ namespace App\Services\StationAudit;
  *                            voyageurs après elle ;
  *   closed_without_date      gare fermée sans date de fermeture, ou avec un intervalle qui s'arrête au jour du
  *                            calcul (« fermée après sa dernière ère ouverte », 8 haltes de 405000) ;
- *   freight_only_undated     « fret seul » à une ère sans aucune fin des voyageurs datée.
+ *   freight_only_undated     « fret seul » à une ère sans aucune fin des voyageurs datée ;
+ *   closure_sncf_referential fermeture prise dans Wikidata, qui ne cite que le référentiel SNCF des gares de
+ *                            voyageurs (date de sortie du référentiel, souvent décalée : Longevilles 2011 au lieu
+ *                            de 2023, Rai-Aube 2018 au lieu de 2016) ; la fermeture est notée `estimated` et le
+ *                            détail donne les autres dates connues, à préférer (Wikipédia, autre valeur Wikidata).
  */
 final class DateAuditor
 {
@@ -49,6 +53,8 @@ final class DateAuditor
      *     track_offset_m: ?int,
      *     today_year: int,
      *     eras?: list<array{year: int, status: string}>,
+     *     closure_sncf_referential?: bool,
+     *     closure_alternatives?: list<string>,
      * }  $facts
      */
     public static function audit(array $facts): DatesResult
@@ -60,7 +66,7 @@ final class DateAuditor
         $closure = match (true) {
             ! $closedNow => DateGrade::NotApplicable,
             self::undatedClosure($facts) => DateGrade::Unknown,
-            default => DateGrade::of($facts['closed_at'], $facts['closed_source'], $facts['closed_precision']),
+            default => self::closureGrade($facts),
         };
 
         $services = [
@@ -102,6 +108,22 @@ final class DateAuditor
     }
 
     /**
+     * Note de la fermeture publiée : une date Wikidata qui ne cite que le référentiel SNCF des gares de
+     * voyageurs n'est qu'une estimation (date de sortie du référentiel).
+     */
+    private static function closureGrade(array $facts): DateGrade
+    {
+        $grade = DateGrade::of($facts['closed_at'], $facts['closed_source'], $facts['closed_precision']);
+
+        return $grade === DateGrade::Sourced && self::fromSncfReferential($facts) ? DateGrade::Estimated : $grade;
+    }
+
+    private static function fromSncfReferential(array $facts): bool
+    {
+        return ($facts['closure_sncf_referential'] ?? false) && $facts['closed_source'] === 'wikidata';
+    }
+
+    /**
      * Fermeture totale publiée (stations.closed_at), vue comme un événement.
      *
      * @return array{type: string, date: string, precision: ?string, source: string, inferred: bool}|null
@@ -115,7 +137,8 @@ final class DateAuditor
 
         return [
             'type' => 'closure', 'date' => $facts['closed_at'], 'precision' => $facts['closed_precision'],
-            'source' => $source, 'inferred' => $source === '' || $source === 'vff:eras' || str_starts_with($source, 'inferred:') || $facts['closed_precision'] === 'range',
+            'source' => $source, 'inferred' => $source === '' || $source === 'vff:eras' || str_starts_with($source, 'inferred:') || $facts['closed_precision'] === 'range'
+                || self::fromSncfReferential($facts),
         ];
     }
 
@@ -167,6 +190,10 @@ final class DateAuditor
         if ($facts['track_offset_m'] !== null && $facts['track_offset_m'] > PlacementGrader::TRACK_FAR_M) {
             $checks[] = ['code' => 'far_from_track', 'detail' => "{$facts['track_offset_m']} m"];
         }
+        if ($closedNow && $facts['closed_at'] !== null && self::fromSncfReferential($facts)) {
+            $others = $facts['closure_alternatives'] ?? [];
+            $checks[] = ['code' => 'closure_sncf_referential', 'detail' => $facts['closed_at'].($others !== [] ? ' ; '.implode(', ', $others) : '')];
+        }
         if ($closedNow && ($facts['closed_at'] === null || self::undatedClosure($facts))) {
             $checks[] = ['code' => 'closed_without_date', 'detail' => (string) $facts['status']];
         }
@@ -202,7 +229,7 @@ final class DateAuditor
         // Fin des voyageurs sourcée : événement closure_passenger relevé, sinon fermeture totale relevée.
         $end = self::firstEvent(array_values(array_filter($facts['events'], fn (array $e): bool => ! $e['inferred'])), 'closure_passenger');
         $endYear = self::year($end['date'] ?? null);
-        if ($endYear === null && DateGrade::of($facts['closed_at'], $facts['closed_source'], $facts['closed_precision']) === DateGrade::Sourced) {
+        if ($endYear === null && self::closureGrade($facts) === DateGrade::Sourced) {
             $endYear = self::year($facts['closed_at']);
         }
         // « Fret seul » sur la carte sans aucune fin des voyageurs datée (Messei en 1970 : Wikipédia la date de 1973).

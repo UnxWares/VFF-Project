@@ -321,4 +321,47 @@ class WikidataMaterialMapperTest extends TestCase
         // Une image Wikidata (P18) passe avant tout repli.
         $this->assertSame([], WikidataMaterialMapper::imageCandidates($this->bb15000(), $this->infobox(['image' => 'BB 15000 infobox.jpg']), $categories));
     }
+
+    /**
+     * CC 80000 : Wikidata donne le retrait des prototypes 060 GA (1964) ; l'article de la série dit que la
+     * CC 80001 reconstruite roule jusqu'en 1985 (database/data/material_date_corrections.php). La correction
+     * ne vaut que tant que Wikidata donne la valeur qu'elle remplace.
+     */
+    public function test_a_service_date_contradicted_by_a_read_source_is_corrected_with_its_provenance(): void
+    {
+        $year = fn (string $y): array => ['v' => ['time' => "+{$y}-02-25T00:00:00Z", 'precision' => 11], 'q' => [], 'rank' => 'normal'];
+        $entity = $this->bb15000(['P729' => [$year('1959')], 'P730' => [$year('1964')]]);
+
+        $sheet = $this->mapper->map('Q2931172', $entity, ['Q625151'], self::LABELS, [], self::COMMONS);
+        $this->assertSame([1959, 1985], [$sheet['in_service_from'], $sheet['in_service_to']]);
+        $this->assertSame(1964, $sheet['provenance']['in_service_to']['replaces']);
+        $this->assertStringContainsString('oldid=225162460', $sheet['provenance']['in_service_to']['ref']);
+        $this->assertSame('Q2931172#P729', $sheet['provenance']['in_service_from']['ref'], 'la mise en service reste celle de Wikidata');
+
+        $changed = $this->mapper->map('Q2931172', $this->bb15000(['P729' => [$year('1959')], 'P730' => [$year('1966')]]), ['Q625151'], self::LABELS, [], self::COMMONS);
+        $this->assertSame(1966, $changed['in_service_to'], 'Wikidata a changé : la correction ne s\'applique plus');
+
+        $other = $this->mapper->map('Q746572', $entity, ['Q625151'], self::LABELS, [], self::COMMONS);
+        $this->assertSame(1964, $other['in_service_to'], 'une autre série n\'est pas touchée');
+    }
+
+    /** Photo choisie après relecture (database/data/material_photo_choices.php) : avant l'infobox, licence revérifiée. */
+    public function test_a_reviewed_photo_choice_comes_first_and_keeps_its_provenance(): void
+    {
+        $entity = $this->bb15000(['P18' => [], 'P373' => []]);
+        $file = 'BB 75056 à Amiens - 17 avril 2010.jpg';
+        $meta = ['file_title' => 'File:'.$file, 'thumb_url' => 'https://upload.wikimedia.org/500px-x.jpg', 'display_url' => null,
+            'source_url' => 'https://commons.wikimedia.org/wiki/File:'.$file, 'width' => 1900, 'height' => 1066, 'author' => 'BB 22385',
+            'license' => 'CC BY-SA 4.0', 'license_url' => null, 'rights_status' => 'open_license', 'mime' => 'image/jpeg',
+            'commercial_ok' => true, 'share_alike' => true, 'attribution_required' => true, 'attribution' => null];
+        $infobox = $this->infobox(['image' => 'Autre.jpg']);
+
+        $this->assertSame([$file, 'commons:Category:SNCF Class BB 75000'], WikidataMaterialMapper::imageCandidates($entity, $infobox, [], null, 'Q432779')[0]);
+        $sheet = $this->mapper->map('Q432779', $entity, ['Q625151'], self::LABELS, [], [$file => $meta, 'Autre.jpg' => $meta], [], $infobox);
+        $this->assertSame('File:'.$file, $sheet['image']['file']);
+        $this->assertSame('commons:Category:SNCF Class BB 75000', $sheet['provenance']['image']['via']);
+
+        $sheet = $this->mapper->map('Q432779', $entity, ['Q625151'], self::LABELS, [], [$file => ['rights_status' => 'unknown'] + $meta], [], null);
+        $this->assertNull($sheet['image'], 'licence non libre : pas d\'image');
+    }
 }

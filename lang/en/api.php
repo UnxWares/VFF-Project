@@ -121,7 +121,7 @@ return [
             'stops' => 'Stations on a line in kilometre-point order, at an era.',
             'signalling' => 'Kilometre-point ranges with uniform signalling.',
             'signalling_history' => 'Dated commissioning of signalling systems, taken from the line’s Wikipedia article (system, date and its precision, section, source).',
-            'profile' => 'Gradient profile: height along the reference route (all periods) with the stations on it, total climb and descent, steepest gradient (IGN, Licence Ouverte 2.0).',
+            'profile' => 'Gradient profile: height along the reference route (all periods) with the stations on it, total climb and descent with how they are calculated, steepest gradient (IGN, Licence Ouverte 2.0); for a rack railway, its rack system and the gradient given by Wikipedia.',
             'profile_points' => 'Height point by point along the line: estimated kilometre point, source of the measurement, interpolation, structure and position, filterable by kilometre point.',
             'altitude' => 'Height of a line at a given kilometre point.',
             'line_audit' => 'Section audit of a line for a period: status, position, accuracy and trace of each section, with the evidence; 50 sections per page (limit up to 200, offset), total in segments_total.',
@@ -178,6 +178,7 @@ return [
         'text' => 'For richer queries, a single GraphQL endpoint, POST /graphql, returns a line with its segments and events in one go. Read the schema in the reference, or try your queries in GraphiQL.',
         'links' => 'GraphQL documentation',
         'example_comment' => 'A line with its events',
+        'limits' => 'Each query has a cost, worked out before it runs: 5,000 points and 15 levels of nesting at most. A field is worth 1 point, a paginated list multiplies its sub-fields by first, a list without pagination counts them for 10 items, and a sheet, a profile, a line audit or a route is worth 250 points. A hundred lines with their names fit in one query (301 points), a hundred line sheets do not (25,301). A query that costs too much is refused before it runs, with the code query_too_complex (or query_too_deep) and a message saying what to change. The full scale is in the GraphQL reference, on the Query type.',
     ],
 
     // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).

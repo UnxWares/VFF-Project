@@ -64,6 +64,10 @@ au-delà des frontières, Corse comprise) et `normandie.geojson`.
 | `VFF_BASEMAP_DIRECTORY` | `storage/app/data/pmtiles` | Dossier de l'archive |
 | `VFF_BASEMAP_ONLINE` | `false` | Fond libre aussi en ligne sur /maps |
 | `VFF_BASEMAP_MAX_AGE` | `2592000` (30 jours) | Durée de cache HTTP de l'archive |
+| `VFF_BASEMAP_MAX_RANGE_BYTES` | `1048576` (1 Mio) | Plus grande plage d'octets servie |
+| `VFF_BASEMAP_REQUESTS_PER_MINUTE` | `600` | Requêtes par minute et par adresse IP |
+| `VFF_BASEMAP_BYTES_PER_HOUR` | `536870912` (512 Mio) | Octets par heure et par adresse IP |
+| `VFF_BASEMAP_ACCEL_REDIRECT` | vide | Production derrière nginx : préfixe de la location interne (ex. `/_basemap/`) |
 
 Une nouvelle archive porte une nouvelle date dans son nom, donc une nouvelle adresse : les navigateurs ne
 mélangent jamais deux archives. Après le changement de nom, l'ancienne archive peut être retirée à la main.
@@ -71,16 +75,50 @@ mélangent jamais deux archives. Après le changement de nom, l'ancienne archive
 ## Service par VFF
 
 `GET /basemap/{archive}` (`BasemapArchiveController`, hors du groupe web : ni session ni cookie) sert
-seulement l'archive configurée, avec `Accept-Ranges: bytes`, réponses partielles 206 (et 416 pour une plage
-impossible), `Cache-Control: public, max-age=…` et un ETag tiré du nom, de la taille et de la date du
-fichier. Les pages reçoivent la propriété partagée `basemap` (`{ url, online, attribution }` ou `null`).
+seulement l'archive configurée, avec `Accept-Ranges: bytes`, réponses partielles 206,
+`Cache-Control: public, max-age=…` et un ETag tiré du nom, de la taille et de la date du fichier. Les pages
+reçoivent la propriété partagée `basemap` (`{ url, online, attribution }` ou `null`).
 
-En production, chaque tuile lue passe sinon par PHP. Mieux vaut laisser le serveur web servir le fichier
-lui-même, à la même adresse, par exemple avec nginx :
+L'archive pèse 6 Go et un client PMTiles n'en lit jamais que des morceaux. La route refuse donc :
+
+- en 416 (avec `Content-Range: bytes */<taille>` et un message en texte) une requête GET sans en-tête
+  `Range`, à plusieurs plages, dans une autre unité, mal formée, hors du fichier ou plus grande que
+  `VFF_BASEMAP_MAX_RANGE_BYTES` (formes admises : `bytes=a-b`, `bytes=a-`, `bytes=-n`). Une requête HEAD
+  passe sans plage ;
+- en 412 un `If-Range` qui ne correspond plus à l'archive (la réponse normale serait le fichier entier) ;
+- en 429 (avec `Retry-After`) au-delà de `VFF_BASEMAP_REQUESTS_PER_MINUTE` requêtes par minute ou de
+  `VFF_BASEMAP_BYTES_PER_HOUR` octets par heure pour une même adresse IP.
+
+Mesures qui fixent ces seuils (21/11/2026) :
+
+- archive France du 20/11 : plus grosse tuile 388 105 octets (99,9 % sous 97 040, médiane 2 512), plus gros
+  répertoire 11 088 octets ; le client lit d'abord 16 384 octets (en-tête et répertoire racine). Le plafond
+  de 1 Mio laisse donc plus du double de la plus grosse lecture ;
+- carte /maps à 1 440 px, fond libre en ligne, zooms et déplacements au clavier sans pause : 57 requêtes en
+  31 s (8 par seconde au plus, 30 en 10 s) au premier essai, 38 requêtes et 2,2 Mo en 55 s au second. La
+  limite de 600 requêtes par minute est environ cinq fois ce rythme ; 512 Mio par heure, plus de trois fois
+  le volume d'une heure entière de navigation de ce type (le service worker garde en plus les morceaux déjà
+  lus).
+
+En production, chaque tuile passe sinon par PHP. Avec `VFF_BASEMAP_ACCEL_REDIRECT=/_basemap/`, VFF applique
+les mêmes règles puis répond `X-Accel-Redirect` : nginx envoie les octets depuis une location interne, en
+respectant la plage demandée. Exemple :
 
 ```nginx
-location ~ ^/basemap/([a-z0-9-]+\.pmtiles)$ {
-    alias /srv/vff/storage/app/data/pmtiles/$1;
+# Bloc http : limite de secours devant PHP (10 requêtes par seconde, soit les 600 par minute de VFF).
+limit_req_zone $binary_remote_addr zone=vff_basemap:10m rate=10r/s;
+
+# Bloc server :
+location ~ ^/basemap/[a-z0-9-]+\.pmtiles$ {
+    limit_req zone=vff_basemap burst=60 nodelay;
+    limit_req_status 429;
+    # Passe par Laravel comme les autres routes (index.php), qui vérifie la plage et les limites.
+    try_files /index.php?$query_string =404;
+}
+
+location /_basemap/ {
+    internal;
+    alias /srv/vff/storage/app/data/pmtiles/;
     add_header Cache-Control "public, max-age=2592000";
     add_header X-Content-Type-Options nosniff;
     # Seulement si un autre site lit l'archive (inutile pour VFF lui-même) :
@@ -90,8 +128,9 @@ location ~ ^/basemap/([a-z0-9-]+\.pmtiles)$ {
 }
 ```
 
-nginx gère les plages d'octets seul. Garder la même liste de noms permis que la route
-(`[a-z0-9-]+\.pmtiles`).
+`VFF_BASEMAP_ACCEL_REDIRECT` doit correspondre à la location interne, et celle-ci rester `internal` :
+servie directement, elle laisserait télécharger toute l'archive sans aucune limite. Derrière nginx, tout
+`If-Range` reçoit 412, car nginx calcule sa propre empreinte ; les clients PMTiles n'en envoient pas.
 
 ## Côté navigateur
 

@@ -18,7 +18,9 @@ namespace App\Services\StationAudit;
  *   close    : la plus proche à moins de CLOSE_M (100 m), aucune contradiction ;
  *   isolated : aucune source indépendante, ou seulement des grossières à plus de 100 m et moins de 1 km ;
  *   disagree : une source précise à plus de DISAGREE_PRECISE_M (100 m), ou une grossière à plus de
- *              DISAGREE_COARSE_M (1 km) ;
+ *              DISAGREE_COARSE_M (1 km) ; mais une seule famille lointaine ne suffit pas quand une autre
+ *              famille est à OUTLIER_CONFIRM_M (50 m) au plus de la position retenue : la note se calcule
+ *              sans elle (agree ou close) et le contrôle `outlier_source` la signale (`outlier`) ;
  *   none     : aucune position.
  *
  * Position retenue mise en minorité (`outvoted`) : au moins deux autres familles, à plus de 100 m
@@ -40,6 +42,9 @@ final class PlacementGrader
     public const DISAGREE_COARSE_M = 1000;
 
     public const OUTVOTED_PAIR_M = 100;
+
+    /** Écart d'une autre famille qui suffit à écarter une seule source lointaine (source aberrante). */
+    public const OUTLIER_CONFIRM_M = 50;
 
     /** Précision annoncée en dessous de laquelle une position de liste (PK) compte comme précise. */
     public const PRECISE_LIST_M = 50;
@@ -103,16 +108,20 @@ final class PlacementGrader
         $nearest = min(array_map(fn (SourcePosition $p): int => (int) $p->distanceM, $best));
         $precise = array_filter($best, fn (SourcePosition $p): bool => $p->precise());
         $farthestPrecise = $precise === [] ? null : max(array_map(fn (SourcePosition $p): int => (int) $p->distanceM, $precise));
-        $coarseFar = array_filter($best, fn (SourcePosition $p): bool => ! $p->precise() && $p->distanceM > self::DISAGREE_COARSE_M);
+        $far = array_filter($best, fn (SourcePosition $p): bool => $p->precise()
+            ? $p->distanceM > self::DISAGREE_PRECISE_M : $p->distanceM > self::DISAGREE_COARSE_M);
+        // Une seule famille lointaine contre une autre famille proche de la position retenue : source aberrante.
+        $outlier = count($far) === 1 && array_filter($best, fn (SourcePosition $p): bool => $p->distanceM <= self::OUTLIER_CONFIRM_M) !== []
+            ? array_values($far)[0] : null;
 
         $grade = match (true) {
-            $farthestPrecise !== null && $farthestPrecise > self::DISAGREE_PRECISE_M, $coarseFar !== [] => PlacementGrade::Disagree,
+            $far !== [] && $outlier === null => PlacementGrade::Disagree,
             $nearest <= self::AGREE_M => PlacementGrade::Agree,
             $nearest <= self::CLOSE_M => PlacementGrade::Close,
             default => PlacementGrade::Isolated,
         };
 
-        return new PlacementResult($grade, $count, $nearest, $farthestPrecise, self::outvoted(array_values($best)));
+        return new PlacementResult($grade, $count, $nearest, $farthestPrecise, self::outvoted(array_values($best)), $outlier);
     }
 
     /** @param list<SourcePosition> $best une position par famille indépendante */

@@ -10,6 +10,7 @@
     import SegmentAuditMap from '$components/Validate/SegmentAuditMap.svelte';
     import { reportDate } from '$lib/errorReport.js';
     import { i18n } from '$lib/i18n.js';
+    import { formatNumber } from '$lib/typo.js';
     import {
         BASE_URL,
         CHECKS,
@@ -60,7 +61,7 @@
      */
     const t = (key, opts) => String($i18n.t(key, opts));
     const A = (key, opts) => t(`audit_segments.${key}`, opts);
-    const num = (n) => (n == null ? '' : Number(n).toLocaleString(lang));
+    const num = (n) => (n == null ? '' : formatNumber(n, lang));
     const km = (m) => formatKm(m, lang);
     const gradeName = (g) => A(`grades.${gradeKey(g)}`);
     const checkName = (c) => (c === 'worst' ? A('filters.check_any') : A(`checks.${c}`));
@@ -149,11 +150,11 @@
         const c = lineChecks;
         if (c.official_length_m == null || c.length_ratio == null) return A('line.length_unknown');
         return A('line.length_ratio', {
-            ratio: Number(c.length_ratio).toLocaleString(lang, {
+            ratio: formatNumber(c.length_ratio, lang, {
                 style: 'percent',
                 maximumFractionDigits: 1,
             }),
-            official: (Number(c.official_length_m) / 1000).toLocaleString(lang, {
+            official: formatNumber(Number(c.official_length_m) / 1000, lang, {
                 maximumFractionDigits: 1,
             }),
             source: A(`line.official_sources.${c.official_source}`, {
@@ -202,7 +203,7 @@
                             {A('summary_lines', {
                                 lines: num(summary.lines),
                                 segments: num(summary.segments),
-                                km: (Number(summary.length_m ?? 0) / 1000).toLocaleString(lang, {
+                                km: formatNumber(Number(summary.length_m ?? 0) / 1000, lang, {
                                     maximumFractionDigits: 0,
                                 }),
                             })}

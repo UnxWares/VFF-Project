@@ -205,7 +205,7 @@ describe('résumé et nombres', () => {
         expect(formatKm(512000, 'en')).toBe('512 km');
         expect(formatKm(null, 'fr')).toBe('');
         expect(percentNumber(0.934, 'fr')).toBe('93,4');
-        expect(eventDate('1939-03-01', 'fr')).toBe('1 mars 1939');
+        expect(eventDate('1939-03-01', 'fr')).toBe('1er mars 1939');
         expect(eventDate('1939', 'fr')).toBe('1939');
         expect(eventDate('inconnue', 'fr')).toBe('inconnue');
     });
@@ -251,7 +251,7 @@ describe('preuves en phrases', () => {
         expect(out.verdicts[0]).toContain('audit_segments.evidence.contradicts');
         expect(out.verdicts[0]).toContain('class=audit_segments.classes.closed');
         expect(out.verdicts[0]).toContain('audit_segments.evidence.near_date{years=5}');
-        expect(out.verdicts[0]).toContain('editor.event_types.closure 1 mars 1939');
+        expect(out.verdicts[0]).toContain('editor.event_types.closure 1er mars 1939');
         // « fermé » est déjà dit par « attend : fermé » : la raison n'est pas répétée.
         expect(out.verdicts[0]).not.toContain('reasons.expected_closed');
         expect(out.verdicts[1]).toContain('source=inconnue-x');
@@ -323,6 +323,189 @@ describe('preuves en phrases', () => {
     it('rien à dire sans preuve', () => {
         expect(evidenceText('placement', null, ctx)).toEqual({
             reasons: [],
+            facts: [],
+            verdicts: [],
+        });
+    });
+});
+
+describe('cas limites', () => {
+    it('départage les tronçons de même gravité : score, longueur, puis numéro', () => {
+        const sorted = sortSegments([
+            { segment_id: 5, worst_grade: 'fair', score: 10, length_m: 100 },
+            { segment_id: 2, worst_grade: 'fair', score: 10, length_m: 100 },
+            { segment_id: 9, worst_grade: 'fair', score: 10, length_m: 400 },
+            { segment_id: 1, worst_grade: 'fair', score: 30 },
+            { segment_id: 3, worst_grade: 'fair' },
+        ]);
+        expect(sorted.map((s) => s.segment_id)).toEqual([1, 9, 2, 5, 3]);
+        expect(sortSegments(null)).toEqual([]);
+    });
+
+    it('ne modifie pas la liste reçue', () => {
+        const list = [
+            { segment_id: 1, worst_grade: 'good' },
+            { segment_id: 2, worst_grade: 'poor' },
+        ];
+        sortSegments(list);
+        expect(list.map((s) => s.segment_id)).toEqual([1, 2]);
+    });
+
+    it('écarte les géométries inattendues et les coordonnées non finies', () => {
+        const fc = segmentCollection([
+            { segment_id: 1, geometry: { type: 'Point', coordinates: [1, 2] } },
+            { segment_id: 2, geometry: { type: 'LineString', coordinates: 'x' } },
+            null,
+        ]);
+        expect(fc).toEqual({ type: 'FeatureCollection', features: [] });
+        expect(segmentCollection(undefined).features).toEqual([]);
+        const bounds = collectionBounds({
+            features: [
+                {
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: [
+                            [Number.NaN, 45],
+                            [2, 46],
+                            [3, Infinity],
+                        ],
+                    },
+                },
+                { geometry: null },
+            ],
+        });
+        expect(bounds).toEqual([
+            [2, 46],
+            [2, 46],
+        ]);
+        expect(collectionBounds(null)).toBeNull();
+    });
+
+    it('un contrôle sans longueur a des parts nulles, jamais NaN', () => {
+        const [row] = checkShares({ classification: { good: { segments: 2, length_m: 0 } } });
+        expect(row.total_m).toBe(0);
+        expect(row.parts.every((p) => p.share === 0)).toBe(true);
+        expect(checkShares(null).map((r) => r.good_share)).toEqual([0, 0, 0, 0]);
+    });
+
+    it('kilomètres : une décimale sous 100 km, aucune au-delà, espace des milliers lisible', () => {
+        expect(formatKm(99_949, 'fr')).toBe('99,9\u00a0km');
+        expect(formatKm(100_000, 'fr')).toBe('100\u00a0km');
+        expect(formatKm(1_234_567, 'fr')).toBe('1\u00a0235\u00a0km');
+        expect(formatKm(1_234_567, 'en')).toBe('1,235\u00a0km');
+        expect(formatKm(0, 'fr')).toBe('0\u00a0km');
+        expect(formatKm('abc', 'fr')).toBe('');
+        expect(formatKm(undefined, 'fr')).toBe('');
+        expect(percentNumber(Number.NaN, 'fr')).toBe('');
+        expect(percentNumber(undefined, 'fr')).toBe('');
+        expect(percentNumber(0, 'fr')).toBe('0');
+    });
+
+    it('dates : mois seul, anglais britannique, allemand', () => {
+        expect(eventDate('1938-05', 'fr')).toBe('mai 1938');
+        expect(eventDate('1939-03-01', 'en')).toBe('1 March 1939');
+        expect(eventDate('1939-03-01', 'de')).toBe('1. März 1939');
+        expect(eventDate(null, 'fr')).toBe('');
+    });
+});
+
+describe('avis des sources : détails', () => {
+    const verdict = (v) =>
+        evidenceText(
+            'classification',
+            { verdicts: [{ source: 'wikipedia', kind: 'events', ...v }] },
+            ctx,
+        ).verdicts[0];
+
+    it('avis faible : la cause la plus précise seule (fin non localisée, puis supplanté, puis faible)', () => {
+        const all = verdict({ agrees: true, unlocated_end: true, outweighed: true, weak: true });
+        expect(all).toContain('audit_segments.evidence.unlocated_end');
+        expect(all).not.toContain('audit_segments.evidence.outweighed');
+        expect(all).not.toContain('audit_segments.evidence.weak');
+        const outweighed = verdict({ agrees: false, outweighed: true, weak: true });
+        expect(outweighed).toContain('audit_segments.evidence.outweighed');
+        expect(outweighed).not.toContain('audit_segments.evidence.weak');
+        expect(verdict({ agrees: false, weak: true })).toContain('audit_segments.evidence.weak');
+    });
+
+    it('raison de désaccord dite seulement quand « attend » ne la dit pas déjà', () => {
+        expect(
+            verdict({ agrees: false, expected: { class: 'open' }, why: 'traffic_mismatch' }),
+        ).toContain('traffic_mismatch');
+        expect(verdict({ agrees: true, why: 'traffic_mismatch' })).not.toContain(
+            'traffic_mismatch',
+        );
+        expect(verdict({ agrees: false, why: 'no_events' })).toContain('no_events');
+    });
+
+    it('seuil de date proche par défaut, réserve patrimoniale, sans attente ni événement', () => {
+        const out = evidenceText(
+            'classification',
+            {
+                verdicts: [
+                    {
+                        source: 'osm',
+                        kind: 'current',
+                        agrees: true,
+                        near_date: true,
+                        heritage: true,
+                    },
+                ],
+            },
+            { t, lang: 'fr' },
+        ).verdicts[0];
+        expect(out).toContain('audit_segments.evidence.near_date{years=3}');
+        expect(out).toContain('audit_segments.evidence.heritage');
+        expect(out).not.toContain('evidence.expects');
+        expect(out).not.toContain('evidence.events');
+        expect(out).not.toContain('evidence.observed');
+    });
+
+    it('état dans VFF sans trafic ni réserve patrimoniale', () => {
+        const out = evidenceText('classification', { actual: { status: 'closed' } }, ctx);
+        expect(out.facts).toEqual(['audit_segments.evidence.actual{value=closed}']);
+    });
+
+    it('placement sans référence ni distance ; rayon par défaut de 50 m', () => {
+        expect(evidenceText('placement', { median_m: null, references: {} }, ctx).facts).toEqual(
+            [],
+        );
+        const out = evidenceText(
+            'placement',
+            { reference: 'osm', same_source: false, median_m: 0, p95_m: 0, coverage: 0 },
+            { t, lang: 'fr' },
+        ).facts;
+        expect(out[0]).not.toContain('same_source');
+        expect(out[1]).toContain('median=0|p95=0|coverage=0|radius=50');
+    });
+
+    it('exactitude : aucun défaut, rien à dire ; nom de gare absent, son code', () => {
+        expect(
+            evidenceText('accuracy', { max_turn_deg: null, hairpins: 0, kinks: 0 }, ctx).facts,
+        ).toEqual([]);
+        expect(
+            evidenceText(
+                'accuracy',
+                {
+                    hairpins: 1,
+                    holes: [{ m: 80 }],
+                    junction_gaps: [{ m: 4 }],
+                    stations: [{ slug: 'x-gare', distance_m: 1500.4 }, { distance_m: 0 }],
+                },
+                ctx,
+            ).facts,
+        ).toEqual([
+            'audit_segments.evidence.hairpins{count=1}',
+            'audit_segments.evidence.junction_gap{m=4|line=}',
+            'audit_segments.evidence.hole{m=80}',
+            'audit_segments.evidence.station{name=x-gare|m=1\u00a0500}',
+            'audit_segments.evidence.station{name=|m=0}',
+        ]);
+    });
+
+    it('contrôle inconnu : seulement les raisons', () => {
+        expect(evidenceText('autre', { reasons: ['x'], source: 'osm' }, ctx)).toEqual({
+            reasons: ['x'],
             facts: [],
             verdicts: [],
         });

@@ -1,0 +1,115 @@
+<?php
+
+// Contexte sourcé de l'accident du chemin de fer de Montpellier à Cette près de Villeneuve-lès-Maguelone, en juillet 1844, et des procès en indemnité qui ont suivi (recherche du 21/11/2026).
+return [
+    'slug' => '1844-07-29-sete',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1840' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1840',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1844, 29 juillet',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1840&oldid=235357682#1844',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Source de la fiche (3 morts et 4 blessés), d\'après La Presse du 31 juillet 1844.',
+        ],
+        'vdr-montpellier' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => '1844, Choc dans une gare-impasse Montpellier (34)',
+            'publisher' => 'Victimes du rail en France au XIXe siècle',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://www.victimesdurail.fr/1844-choc-dans-une-gare-impasse-montpellier/',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Site de généalogie ; transcrit la lettre de Montpellier du 16 décembre 1844 publiée par le Journal des débats du 23 décembre 1844 (jugement du tribunal civil).',
+        ],
+        'la-presse-1844-07-31' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'La Presse du 31 juillet 1844',
+            'publisher' => 'La Presse',
+            'author' => null,
+            'published' => '1844-07-31',
+            'locator' => 'p. 1',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k429656m/f1.image',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Récit de l\'accident, cité par Wikipédia ; non lu.',
+        ],
+        'debats-1844-12-23' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Journal des débats politiques et littéraires du 23 décembre 1844',
+            'publisher' => 'Journal des débats',
+            'author' => null,
+            'published' => '1844-12-23',
+            'locator' => 'p. 2',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k446784v/f2',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Lu seulement dans sa transcription.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Selon Wikipédia, le 29 juillet 1844 à 6 h 15, sur le chemin de fer de Montpellier à Cette, un train pour Cette a été aiguillé par erreur sur une voie de garage peu avant la station de Villeneuve-lès-Maguelone et a heurté des wagons à l\'arrêt. Les attelages se sont rompus, et les voitures ont déraillé et dévalé le remblai.',
+                'en' => 'According to Wikipedia, on 29 July 1844 at 6.15 am, on the Montpellier to Cette railway, a train for Cette was wrongly switched into a siding shortly before Villeneuve-lès-Maguelone station and struck stationary wagons. The couplings broke, and the carriages derailed and rolled down the embankment.',
+                'de' => 'Laut Wikipedia wurde am 29. Juli 1844 um 6.15 Uhr auf der Bahn von Montpellier nach Cette ein Zug nach Cette kurz vor dem Bahnhof Villeneuve-lès-Maguelone irrtümlich auf ein Abstellgleis geleitet und prallte auf stehende Wagen. Die Kupplungen rissen, die Wagen entgleisten und stürzten die Böschung hinab.',
+                'sources' => ['wp-liste-1840'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'L\'accident a fait trois morts, dont un plâtrier et un conducteur du chemin de fer. Wikipédia compte quatre blessés ; le Journal des débats parle de blessures graves pour « un très grand nombre » d\'autres personnes.',
+                'en' => 'The accident killed three people, among them a plasterer and a railway guard. Wikipedia counts four injured; the Journal des débats speaks of serious injuries to "a very large number" of others.',
+                'de' => 'Der Unfall forderte drei Tote, darunter einen Gipser und einen Zugbegleiter der Bahn. Wikipedia zählt vier Verletzte; das Journal des débats spricht von schweren Verletzungen „einer sehr großen Zahl“ weiterer Personen.',
+                'sources' => ['vdr-montpellier', 'wp-liste-1840'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Le 15 décembre 1844, le tribunal civil de Montpellier a statué sur plusieurs demandes de dommages-intérêts contre l\'administration du chemin de fer de Montpellier à Cette. Il a accordé 6 000 francs à la mère du plâtrier tué, qui en réclamait 25 000, et 12 000 francs à la veuve et au fils du conducteur, la part de l\'enfant étant placée jusqu\'à sa majorité.',
+                'en' => 'On 15 December 1844 the Montpellier civil court ruled on several damages claims against the management of the Montpellier to Cette railway. It awarded 6,000 francs to the mother of the plasterer who was killed, who had claimed 25,000, and 12,000 francs to the guard\'s widow and son, the child\'s share being held until he came of age.',
+                'de' => 'Am 15. Dezember 1844 entschied das Zivilgericht von Montpellier über mehrere Schadenersatzklagen gegen die Verwaltung der Bahn von Montpellier nach Cette. Es sprach der Mutter des getöteten Gipsers, die 25.000 Francs gefordert hatte, 6.000 Francs zu und der Witwe und dem Sohn des Zugbegleiters 12.000 Francs, wobei der Anteil des Kindes bis zu seiner Volljährigkeit angelegt wurde.',
+                'sources' => ['vdr-montpellier'],
+            ],
+            [
+                'fr' => 'Les blessés ont obtenu des sommes bien inférieures à leurs demandes, de 4 000 francs à 250 francs, et plus de vingt autres demandes restaient à juger.',
+                'en' => 'The injured were awarded far less than they had claimed, from 4,000 francs down to 250 francs, and more than twenty other claims were still to be decided.',
+                'de' => 'Die Verletzten erhielten weit weniger als gefordert, zwischen 4.000 und 250 Francs, und mehr als zwanzig weitere Klagen standen noch aus.',
+                'sources' => ['vdr-montpellier'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La fiche place l\'accident à Sète (Cette), destination du train ; selon Wikipédia, il a eu lieu peu avant la station de Villeneuve-lès-Maguelone, sans que la commune soit précisée.',
+                'en' => 'The record places the accident at Sète (Cette), where the train was going; according to Wikipedia it happened shortly before Villeneuve-lès-Maguelone station, without the commune being specified.',
+                'de' => 'Der Eintrag verortet den Unfall in Sète (Cette), dem Ziel des Zuges; laut Wikipedia ereignete er sich kurz vor dem Bahnhof Villeneuve-lès-Maguelone, ohne dass die Gemeinde genannt wird.',
+                'sources' => ['wp-liste-1840'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'collision',
+            'sources' => ['wp-liste-1840'],
+            'fr' => 'Le train, aiguillé sur une voie de garage, a heurté des wagons à l\'arrêt avant de dérailler : c\'est une collision ; aucun ouvrage n\'a cédé.',
+            'en' => 'The train, switched into a siding, hit stationary wagons before derailing: this is a collision; no structure gave way.',
+            'de' => 'Der auf ein Abstellgleis geleitete Zug prallte auf stehende Wagen, bevor er entgleiste: Es handelt sich um einen Zusammenstoß; kein Bauwerk gab nach.',
+        ],
+    ],
+];

@@ -84,10 +84,10 @@ return [
             'author' => 'Pierre Mercier',
             'published' => '1993',
             'locator' => 'tome 44',
-            'url' => 'https://en.wikipedia.org/wiki/Versailles_rail_accident',
-            'access' => 'link_only',
+            'url' => 'https://cths.fr/ed/edition.php?id=1592',
+            'access' => 'paywall',
             'consulted_on' => '2026-11-21',
-            'note' => 'Article d\'histoire locale à consulter, cité par la bibliographie de Wikipédia ; texte introuvable en ligne.',
+            'note' => 'Notice de l\'éditeur (Comité des travaux historiques et scientifiques) : extrait de 22 pages, vendu en PDF ; cité par la bibliographie de Wikipédia, non lu.',
         ],
     ],
     'sections' => [

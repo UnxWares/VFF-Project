@@ -5,11 +5,13 @@
      * Le type de campagne est écrit en toutes lettres ; la couleur (rouge menacée, turquoise
      * réouverture, comme sur la carte) ne fait que le souligner.
      * Titre, message et bouton viennent de la base (App\Support\Advocacy), avec leur langue.
+     * Ordre et forme viennent aussi de la base (`home`, déjà triés par le contrôleur) : encarts complets,
+     * puis les mentions courtes (une phrase et le lien vers la fiche), plus discrètes.
      */
     import { Link } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
 
-    /** @type {{ lines?: Array<{ slug: string, name: string, advocacy?: { kind?: string|null, title?: string|null, message?: string|null, cta_label?: string|null, cta_url?: string|null, lang?: Record<string, string|null> } }> }} */
+    /** @type {{ lines?: Array<{ slug: string, name: string, advocacy?: { kind?: string|null, title?: string|null, message?: string|null, cta_label?: string|null, cta_url?: string|null, lang?: Record<string, string|null> }, home?: { rank?: number|null, display?: string, summary?: string|null, lang?: string|null } }> }} */
     let { lines = [] } = $props();
 
     const uid = $props.id();
@@ -20,12 +22,16 @@
             return { ...l, kind, a: l.advocacy ?? {} };
         }),
     );
+    const cards = $derived(items.filter((i) => i.home?.display !== 'mention' || !i.home?.summary));
+    const mentions = $derived(
+        items.filter((i) => i.home?.display === 'mention' && i.home?.summary),
+    );
 </script>
 
 {#if items.length}
     <section class="advocacy" aria-label={$i18n.t('home.advocacy.label')}>
-        <div class={['advocacy-grid', { single: items.length === 1 }]}>
-            {#each items as item (item.slug)}
+        <div class={['advocacy-grid', { single: cards.length === 1 }]}>
+            {#each cards as item (item.slug)}
                 <aside class="plea {item.kind}" aria-labelledby="{uid}-{item.slug}">
                     <p class="kind">
                         <i
@@ -68,6 +74,16 @@
                 </aside>
             {/each}
         </div>
+        {#each mentions as item (item.slug)}
+            <p class={['mention', { single: cards.length === 1 }]}>
+                <span lang={item.home?.lang ?? undefined}>{item.home?.summary}</span>
+                <Link class="vff-link" href={`/lines/${item.slug}`}>
+                    {$i18n.t('home.advocacy.see_line')}<span class="vff-sr-only">
+                        : {item.name}</span
+                    >
+                </Link>
+            </p>
+        {/each}
     </section>
 {/if}
 
@@ -147,6 +163,26 @@
         gap: var(--vff-space-3) var(--vff-space-5);
         margin-top: auto;
         padding-top: var(--vff-space-5);
+    }
+
+    /* Mention courte : sous les encarts, sans couleur de campagne ni icône, texte atténué. */
+    .mention {
+        max-width: var(--vff-measure);
+        margin: var(--vff-block-space) 0 0;
+        padding: var(--vff-space-3) var(--vff-space-5);
+        border: 1px solid var(--vff-border);
+        border-radius: var(--vff-radius-md);
+        font-family: var(--vff-font-body);
+        font-size: var(--vff-fs-sm);
+        line-height: 1.6;
+        color: var(--vff-text-muted);
+    }
+    .mention.single {
+        max-width: 760px;
+    }
+    /* Le lien suit la phrase après une espace ; renvoyé à la ligne, il reste au bord gauche. */
+    .mention :global(.vff-link) {
+        white-space: nowrap;
     }
 
     @media (max-width: 900px) {

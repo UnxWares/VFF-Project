@@ -22,8 +22,16 @@ class Translations
      * HTTP). Le front ne les utilise pas : les erreurs arrivent déjà traduites
      * dans les props Inertia (`errors`). Les exclure évite d'alourdir chaque page.
      * `mcp` : réponses du serveur MCP (app/Mcp), jamais affichées par les pages.
+     * `graphql` : erreurs de l'API GraphQL (App\GraphQL\Support\QueryLimitErrorHandler).
      */
-    public const SERVER_ONLY = ['validation', 'passwords', 'pagination', 'messages', 'mcp'];
+    public const SERVER_ONLY = ['validation', 'passwords', 'pagination', 'messages', 'mcp', 'graphql'];
+
+    /**
+     * Durée de vie des calculs en cache (s). Leur clé porte l'empreinte des fichiers de langue
+     * (fingerprint()) : après un déploiement, les entrées de l'ancienne version ne sont plus lues et
+     * disparaissent d'elles-mêmes au bout de ce délai.
+     */
+    public const CACHE_TTL = 2_592_000;
 
     /**
      * Charge la map plate des traductions pour `$locale`, avec fallback sur
@@ -37,10 +45,36 @@ class Translations
             return self::merged($locale);
         }
 
-        return Cache::rememberForever(
-            "translations.{$locale}",
+        return Cache::remember(
+            self::cacheKey('translations', $locale),
+            self::CACHE_TTL,
             fn () => self::merged($locale),
         );
+    }
+
+    /**
+     * Empreinte des fichiers de langue lus pour `$locale` (les siens et ceux du français, langue de
+     * repli) : chemin, date de modification et taille de chaque fichier. Elle change dès qu'un
+     * déploiement modifie, ajoute ou retire un fichier, sans relire leur contenu (un appel système
+     * par fichier, à chaque page).
+     */
+    public static function fingerprint(string $locale): string
+    {
+        clearstatcache();
+        $parts = [];
+        foreach (array_unique([self::CANONICAL, $locale]) as $directory) {
+            foreach (glob(lang_path($directory).'/*.php') ?: [] as $file) {
+                $parts[] = $file.':'.(int) filemtime($file).':'.(int) filesize($file);
+            }
+        }
+
+        return hash('xxh128', implode("\n", $parts));
+    }
+
+    /** Clé de cache d'un calcul pour `$locale`, liée à l'état des fichiers de langue. */
+    public static function cacheKey(string $name, string $locale): string
+    {
+        return "{$name}.{$locale}.".self::fingerprint($locale);
     }
 
     /**
@@ -61,7 +95,7 @@ class Translations
             return $build();
         }
 
-        return Cache::rememberForever("translations.payload.{$locale}", $build);
+        return Cache::remember(self::cacheKey('translations.payload', $locale), self::CACHE_TTL, $build);
     }
 
     /** Le même JSON compressé (gzip), pour les clients qui l'acceptent. Mis en cache comme load(). */
@@ -73,7 +107,7 @@ class Translations
             return $build();
         }
 
-        return Cache::rememberForever("translations.gzip.{$locale}", $build);
+        return Cache::remember(self::cacheKey('translations.gzip', $locale), self::CACHE_TTL, $build);
     }
 
     /** Adresse du dictionnaire d'une locale, avec son empreinte (elle change dès qu'une chaîne change). */

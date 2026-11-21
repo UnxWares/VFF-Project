@@ -47,6 +47,48 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Référence citée par la liste de Wikipédia ; Gallica non consultable depuis cette machine.',
         ],
+        'pvcasso-repetition-signaux' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'association',
+            'title' => 'Glossaire technique : Répétition des signaux',
+            'publisher' => 'Pacific Vapeur Club (pvcasso.fr)',
+            'author' => 'Gilbert Manévy (texte d\'origine) ; mise en ligne par Philippe Caron',
+            'published' => '2017-06-19',
+            'locator' => 'passage sur l\'accident de Perrigny et les circulaires de 1920',
+            'url' => 'https://pvcasso.fr/2017/06/19/repetition-des-signaux/',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Extrait d\'un bulletin d\'association tiré d\'articles de La Vie du Rail (1980). Date l\'accident de Perrigny du 5 février 1920 et rapporte deux circulaires ministérielles (10 avril et 19 août 1920) sur la répétition des signaux. Ne donne ni bilan ni cause.',
+        ],
+        'kb-1920-02-06-reuter' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinongeluk (dépêche Reuter de Dijon, 5 février 1920)',
+            'publisher' => 'Journal néerlandais (Drents Archief), numérisé sur Delpher',
+            'author' => null,
+            'published' => '1920-02-06',
+            'locator' => 'article « Treinongeluk », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMDA03:000109393:mpeg21:a0036:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche Reuter datée de Dijon le 5 février : l\'express de Lyon a heurté un train de marchandises à Perrigny ; premier bilan 15 morts et 30 blessés.',
+        ],
+        'kb-1920-02-06-sneltrein' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinbotsing in Frankrijk (dépêche de Lyon, 5 février 1920)',
+            'publisher' => 'Journal néerlandais numérisé (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1920-02-06',
+            'locator' => 'article « Treinbotsing in Frankrijk », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB15:000744061:mpeg21:a00023:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même nouvelle datée du 5 février : trois wagons de l\'express détruits, 15 morts, 30 blessés. Presse étrangère brève, titre du journal non relevé.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -57,6 +99,12 @@ return [
                 'sources' => [
                     'wp-liste-1920',
                 ],
+            ],
+            [
+                'fr' => 'Les dépêches du 5 février 1920 publiées le lendemain par la presse néerlandaise annoncent que l\'express de Lyon a heurté un train de marchandises à Perrigny. Une association ferroviaire date l\'accident du 5 février 1920, ce qui correspond à une collision peu après minuit.',
+                'en' => 'Dispatches of 5 February 1920 published the next day by the Dutch press report that the Lyon express ran into a goods train at Perrigny. A railway enthusiasts\' association dates the accident to 5 February 1920, which fits a collision shortly after midnight.',
+                'de' => 'Depeschen vom 5. Februar 1920, die die niederländische Presse am folgenden Tag brachte, melden, der Schnellzug aus Lyon sei bei Perrigny auf einen Güterzug aufgefahren. Ein Eisenbahnverein datiert den Unfall auf den 5. Februar 1920, was zu einem Zusammenstoß kurz nach Mitternacht passt.',
+                'sources' => ['kb-1920-02-06-reuter', 'kb-1920-02-06-sneltrein', 'pvcasso-repetition-signaux'],
             ],
         ],
         'course' => [
@@ -78,6 +126,12 @@ return [
                     'wp-liste-1920',
                 ],
             ],
+            [
+                'fr' => 'Les premières dépêches donnent quinze morts et trente blessés, soit moins que le bilan final de dix-huit morts et d\'une soixantaine de blessés de la liste de Wikipédia.',
+                'en' => 'The first dispatches give fifteen dead and thirty injured, less than the final toll of eighteen dead and about sixty injured in the Wikipedia list.',
+                'de' => 'Die ersten Depeschen nennen fünfzehn Tote und dreißig Verletzte, weniger als die endgültige Bilanz von achtzehn Toten und etwa sechzig Verletzten in der Wikipedia-Liste.',
+                'sources' => ['kb-1920-02-06-reuter', 'kb-1920-02-06-sneltrein'],
+            ],
         ],
         'causes' => [
             [
@@ -87,6 +141,22 @@ return [
                 'sources' => [
                     'wp-liste-1920',
                 ],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Selon un texte du Pacific Vapeur Club, l\'accident de Perrigny a fait réagir énergiquement le ministre des Travaux publics, Albert-André Claveille. Ses circulaires du 10 avril et du 19 août 1920 ont demandé aux réseaux d\'établir définitivement, pour le 1er août 1922, la répétition des signaux d\'arrêt et le damier vert et blanc sur les locomotives.',
+                'en' => 'According to a text from the Pacific Vapeur Club, the Perrigny accident prompted a strong reaction from the Minister of Public Works, Albert-André Claveille. His circulars of 10 April and 19 August 1920 asked the railway networks to put signal repetition of stop signals and the green and white chequerboard on locomotives in place for good by 1 August 1922.',
+                'de' => 'Nach einem Text des Pacific Vapeur Club löste der Unfall von Perrigny eine energische Reaktion des Ministers für öffentliche Arbeiten, Albert-André Claveille, aus. Seine Rundschreiben vom 10. April und 19. August 1920 verlangten von den Bahnnetzen, die Wiederholung der Haltsignale und das grün-weiße Schachbrett auf den Lokomotiven bis zum 1. August 1922 endgültig einzuführen.',
+                'sources' => ['pvcasso-repetition-signaux'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Date et bilan : la liste de Wikipédia place l\'accident le 4 février, vers minuit ; le texte du Pacific Vapeur Club et les dépêches du 5 février le datent du 5. Un choc juste après minuit expliquerait l\'écart. Bilan : quinze morts et trente blessés dans les premières dépêches, dix-huit morts et une soixantaine de blessés dans la liste. Les dépêches parlent de deux ou de trois voitures détruites, la liste de trois voitures écrasées.',
+                'en' => 'Date and toll: the Wikipedia list places the accident on 4 February at about midnight; the Pacific Vapeur Club text and the dispatches of 5 February date it to the 5th. A crash just after midnight would explain the gap. Toll: fifteen dead and thirty injured in the first dispatches, eighteen dead and about sixty injured in the list. The dispatches speak of two or three coaches destroyed, the list of three coaches crushed.',
+                'de' => 'Datum und Bilanz: Die Wikipedia-Liste setzt den Unfall auf den 4. Februar gegen Mitternacht; der Text des Pacific Vapeur Club und die Depeschen vom 5. Februar datieren ihn auf den 5. Ein Zusammenstoß kurz nach Mitternacht würde die Abweichung erklären. Bilanz: fünfzehn Tote und dreißig Verletzte in den ersten Depeschen, achtzehn Tote und etwa sechzig Verletzte in der Liste. Die Depeschen sprechen von zwei oder drei zerstörten Wagen, die Liste von drei zerdrückten Wagen.',
+                'sources' => ['wp-liste-1920', 'pvcasso-repetition-signaux', 'kb-1920-02-06-reuter', 'kb-1920-02-06-sneltrein'],
             ],
         ],
     ],

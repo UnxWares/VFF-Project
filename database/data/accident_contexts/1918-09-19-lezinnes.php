@@ -47,6 +47,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Fiche du wiki des chemins de fer PLM : le site n\'a pas pu être ouvert (certificat invalide) ; les extraits des résultats de recherche indiquent 20 septembre, 39 morts et 38 blessés ; à consulter.',
         ],
+        'structurae-pacy' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'association',
+            'title' => 'Tunnel de Pacy',
+            'publisher' => 'Structurae',
+            'author' => null,
+            'published' => null,
+            'locator' => 'fiche de l\'ouvrage',
+            'url' => 'https://structurae.net/en/structures/pacy-tunnel',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Base de données d\'ouvrages d\'art : tunnel ferroviaire en service, situé entre Lézinnes et Pacy-sur-Armançon (Yonne), sur la ligne Paris-Dijon, vers le PK 210,998, long d\'environ 1 001 m. Ne mentionne aucun accident.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -55,6 +69,12 @@ return [
                 'en' => 'On 19 September 1918 at 4.30 am, a Marseille to Paris express was running on the Paris to Lyon line between the stations of Lézinnes and Ancy-le-Franc, in the Yonne département. It came to a stop in the Pacy tunnel after a brake pipe broke.',
                 'de' => 'Am 19. September 1918 um 4.30 Uhr fuhr ein Schnellzug Marseille-Paris auf der Strecke Paris-Lyon zwischen den Bahnhöfen Lézinnes und Ancy-le-Franc im Département Yonne. Er blieb im Tunnel von Pacy stehen, nachdem eine Bremsleitung gerissen war.',
                 'sources' => ['wp-fr-liste-1918'],
+            ],
+            [
+                'fr' => 'Le tunnel de Pacy se situe sur la ligne de Paris à Dijon, entre les communes de Lézinnes et de Pacy-sur-Armançon (Yonne). Il mesure environ 1 000 m ; la commune exacte du point de collision à l\'intérieur du tunnel n\'est pas connue, la fiche l\'attribue à Lézinnes.',
+                'en' => 'The Pacy tunnel lies on the Paris to Dijon line between the communes of Lézinnes and Pacy-sur-Armançon (Yonne). It is about 1,000 m long; the exact commune of the collision point inside the tunnel is not known, and the record places it in Lézinnes.',
+                'de' => 'Der Tunnel von Pacy liegt an der Strecke Paris-Dijon zwischen den Gemeinden Lézinnes und Pacy-sur-Armançon (Yonne). Er ist rund 1 000 m lang; in welcher Gemeinde die Kollision im Tunnel genau stattfand, ist nicht bekannt, der Eintrag ordnet sie Lézinnes zu.',
+                'sources' => ['structurae-pacy'],
             ],
         ],
         'course' => [

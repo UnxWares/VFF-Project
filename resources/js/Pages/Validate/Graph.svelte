@@ -33,6 +33,7 @@
         pageQuery,
     } from '$lib/graphAdmin.js';
     import { i18n } from '$lib/i18n.js';
+    import { formatNumber } from '$lib/typo.js';
 
     /**
      * Graphe ferroviaire d'une ère (NetworkGraphAdminController), pour les administrateurs : choix
@@ -61,7 +62,7 @@
      * @param {Record<string, unknown>} [opts]
      */
     const t = (key, opts) => String($i18n.t(key, opts));
-    const num = (n) => (n == null ? '' : Number(n).toLocaleString(lang));
+    const num = (n) => (n == null ? '' : formatNumber(n, lang));
     const dist = (m) => formatDistance(m, lang);
 
     const era = $derived(eras.find((e) => e.year === year) ?? null);
@@ -245,10 +246,10 @@
         return t(`graph_admin.checks.${c}.text`, {
             tol:
                 c === 'junctions'
-                    ? Number(thresholds.junction_tolerance_m ?? 0.01).toLocaleString(lang)
-                    : Number(thresholds.length_tolerance_m ?? 5).toLocaleString(lang),
-            ratio: Number((thresholds.length_tolerance_ratio ?? 0.01) * 100).toLocaleString(lang),
-            detour: Number(thresholds.detour_ratio ?? 4).toLocaleString(lang),
+                    ? formatNumber(thresholds.junction_tolerance_m ?? 0.01, lang)
+                    : formatNumber(thresholds.length_tolerance_m ?? 5, lang),
+            ratio: formatNumber((thresholds.length_tolerance_ratio ?? 0.01) * 100, lang),
+            detour: formatNumber(thresholds.detour_ratio ?? 4, lang),
         });
     }
 
@@ -256,8 +257,7 @@
     const summaryRows = $derived.by(() => {
         if (!summary) return [];
         const s = summary;
-        const share = (v) =>
-            Number(v ?? 0).toLocaleString(lang, { style: 'percent', maximumFractionDigits: 1 });
+        const share = (v) => formatNumber(v, lang, { style: 'percent', maximumFractionDigits: 1 });
         const L = (k) => t(`graph_admin.summary.${k}`);
         return [
             ['topology', L('nodes'), num(s.topology.nodes)],

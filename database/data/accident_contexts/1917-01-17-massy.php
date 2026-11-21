@@ -61,6 +61,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Article de presse cité par Wikipédia ; non lisible depuis la machine de recherche, à consulter.',
         ],
+        'massystoric-2018' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => 'Massy 1914-1918, numéro spécial du 11 novembre 2018 (bulletin de l\'association Massy Storic)',
+            'publisher' => 'Massy Storic',
+            'author' => null,
+            'published' => '2018-11-11',
+            'locator' => 'p. 19-20, « La guerre vue au travers de souvenirs d\'enfance »',
+            'url' => 'https://massystoric.fr/revue/sp1418.pdf',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Bulletin PDF de 4 pages lu en entier par extraction de texte. Un souvenir d\'enfance rédigé bien après les faits évoque un train de permissionnaires déraillé près du pont de la Ceinture, sans date, sans bilan ni cause ; il n\'est pas certain qu\'il s\'agisse du même accident.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -101,6 +115,12 @@ return [
                 'en' => 'The English Wikipedia list, based on Semmens, gives ten dead and thirty injured and describes a forty-car train going from Paris to the front, whereas the French list gives fourteen dead, about forty injured and a journey from Le Havre to Marseille.',
                 'de' => 'Die englische Wikipedia-Liste nennt nach Semmens zehn Tote und dreißig Verletzte und beschreibt einen Zug aus vierzig Wagen von Paris an die Front, während die französische Liste vierzehn Tote, etwa vierzig Verletzte und eine Fahrt von Le Havre nach Marseille angibt.',
                 'sources' => ['wp-en-liste', 'wp-liste-1917'],
+            ],
+            [
+                'fr' => 'Le bulletin de l\'association Massy Storic rapporte le souvenir d\'une habitante, enfant pendant la guerre : un train de permissionnaires aurait déraillé près du pont de la Ceinture, laissant des wagons enchevêtrés, des morts et des blessés. Le texte ne donne ni date ni bilan et parle de déraillement, non de collision ; il n\'est donc pas sûr qu\'il s\'agisse de l\'accident du 17 janvier 1917.',
+                'en' => 'The bulletin of the Massy Storic association relays the memory of a woman who was a child during the war: a train of soldiers on leave is said to have derailed near the Ceinture bridge, leaving tangled wagons, dead and wounded. The text gives no date or toll and speaks of a derailment, not a collision, so it is not certain that it refers to the accident of 17 January 1917.',
+                'de' => 'Das Bulletin des Vereins Massy Storic gibt die Erinnerung einer Einwohnerin wieder, die im Krieg ein Kind war: Ein Urlauberzug sei nahe der Brücke der Ceinture entgleist, mit ineinander verkeilten Wagen, Toten und Verletzten. Der Text nennt weder Datum noch Bilanz und spricht von einer Entgleisung, nicht von einem Zusammenstoß; ob es sich um den Unfall vom 17. Januar 1917 handelt, ist daher nicht sicher.',
+                'sources' => ['massystoric-2018'],
             ],
         ],
     ],

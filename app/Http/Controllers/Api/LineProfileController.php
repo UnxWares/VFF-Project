@@ -27,10 +27,12 @@ class LineProfileController extends Controller
         'off_path_m' => 0,
         'pk_anchors' => 19,
         'summary' => [
-            'min_altitude_m' => 578.3, 'max_altitude_m' => 1379.3, 'ascent_m' => 804, 'descent_m' => 253,
+            'min_altitude_m' => 578.3, 'max_altitude_m' => 1379.3, 'ascent_m' => 799, 'descent_m' => 247,
             'max_grade_permil' => 90.8, 'max_grade_from_m' => 4600, 'max_grade_to_m' => 5600, 'max_grade_direction' => 'up',
             'max_grade_withheld' => null,
+            'climb_method' => ['method' => 'hysteresis', 'threshold_m' => 3.0, 'terrain_smoothing_m' => 1000.0],
         ],
+        'rack' => null,
         'points' => [[0, 578.9, -145], [100, 578.3, -45], [5200, 756.2, 5111], [10500, 958.6, 10425]],
         'structures' => [['from_m' => 700, 'to_m' => 900, 'kind' => 'bridge']],
         'altitude_sources' => ['bdtopo' => 339, 'rge_alti' => 5, 'interpolated' => 24, 'missing' => 0],
@@ -83,7 +85,12 @@ class LineProfileController extends Controller
      * `interpolated`, `missing`).
      *
      * **Chiffres** (`summary`) : `ascent_m` et `descent_m` = dénivelés positif et négatif cumulés
-     * dans le sens du parcours, sans compter les variations de moins de 3 m (bruit) ;
+     * dans le sens du parcours. Méthode (`climb_method`) : les altitudes du terrain (RGE ALTI) sont
+     * d'abord remplacées par leur moyenne sur 1 km (`terrain_smoothing_m`), puisque le terrain sous
+     * un tracé ancien suit les talus et les versants voisins ; celles de la voie restent telles
+     * quelles ; puis les variations de moins de 3 m (`threshold_m`) ne sont pas comptées
+     * (hystérésis, `method` = `hysteresis`). Mesuré sur 40 lignes dont on connaît l'altitude de la
+     * voie : sans la moyenne, le terrain donnait deux à trois fois leurs dénivelés ;
      * `max_grade_permil` = déclivité la plus forte en ‰ (mètres par kilomètre), pente moyenne par
      * moindres carrés sur une fenêtre de 1 km, entre `max_grade_from_m` et `max_grade_to_m`, mesurée à
      * l'intérieur d'un même morceau (jamais à travers un trou ni vers un embranchement), hors fenêtres
@@ -91,9 +98,18 @@ class LineProfileController extends Controller
      * mesurés sur la voie (BD TOPO), et hors pentes de plus de 120 ‰ (artefacts). Sans fenêtre
      * admise, la déclivité n'est pas publiée : `max_grade_permil`, ses bornes et sa direction sont
      * nuls, et `max_grade_withheld` en donne le motif (`terrain_only` : altitude du terrain
-     * seulement, ligne sans voie dans la BD TOPO ; `tunnel` ; `interpolated`) ;
+     * seulement, ligne sans voie dans la BD TOPO ; `tunnel` ; `interpolated` ; `rack` : ligne à
+     * crémaillère) ;
      * `max_grade_direction` : `up` (rampe dans le sens du parcours) ou `down` (pente). Valeurs
      * indicatives : quelques ‰ d'écart avec la déclivité officielle sont courants.
+     *
+     * **Crémaillère** (`rack`) : `null` pour une ligne à adhérence. Pour une ligne à crémaillère
+     * (liste versionnée `database/data/rack_railways.php`, d'après Wikipédia), la déclivité mesurée
+     * n'est pas publiée (`max_grade_withheld` = `rack`) et `rack` donne `system` (`strub`, `abt`,
+     * `riggenbach`), `extent` (`full` : tout le parcours ; `partial` : une partie ; `null` si la
+     * source ne le dit pas), `max_grade_permil` (déclivité la plus forte publiée par la source, en
+     * ‰), `braking_only` (vrai si la crémaillère ne servait qu'au freinage) et `source` (`provider`
+     * = `wikipedia`, `title`, `url` = permalien de la révision lue, `license` = `CC BY-SA 4.0`).
      *
      * **Autres listes** : `structures` = tunnels (`tunnel`) et ponts (`bridge`) de la BD TOPO sous
      * le parcours, en distances ; `gaps` = trous du tracé, sans altitude ; `terrain_ranges` = parties
@@ -111,7 +127,10 @@ class LineProfileController extends Controller
      *     covered_m: int|null, off_path_m: int|null, pk_anchors: int,
      *     summary: array{min_altitude_m: float, max_altitude_m: float, ascent_m: float, descent_m: float,
      *         max_grade_permil: float|null, max_grade_from_m: int|null, max_grade_to_m: int|null, max_grade_direction: string|null,
-     *         max_grade_withheld: string|null},
+     *         max_grade_withheld: string|null,
+     *         climb_method: array{method: string, threshold_m: float, terrain_smoothing_m: float}},
+     *     rack: array{system: string, extent: string|null, max_grade_permil: int, braking_only: bool,
+     *         source: array{provider: string, title: string, url: string, license: string}}|null,
      *     points: array<array{0: int, 1: float|null, 2: int|null}>,
      *     structures: array<array{from_m: int, to_m: int, kind: string}>,
      *     altitude_sources: array{bdtopo: int, rge_alti: int, interpolated: int, missing: int},

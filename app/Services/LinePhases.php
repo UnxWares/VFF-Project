@@ -634,32 +634,76 @@ final class LinePhases
      * Lecture en base puis calcul. Renvoie les portions (géométrie simplifiée), les
      * phases, l'index de la phase « au meilleur » et les événements qui datent une phase.
      *
-     * @return array{portions: list<array>, phases: list<array>, best: ?int, used_events: list<int>, decades: list<array>, unexplained: list<array>}
+     * `version` : empreinte (12 caractères hexadécimaux) des lectures dont viennent les portions et leur
+     * ordre ; elle change avec elles. La page web la met dans l'adresse du tracé (portions()).
+     *
+     * @return array{portions: list<array>, phases: list<array>, best: ?int, used_events: list<int>, decades: list<array>, unexplained: list<array>, version: string}
      */
     public static function forLine(object $line, ?string $today = null): array
     {
         $today ??= now()->toDateString();
-        // Lectures et calculs géographiques (100 à 330 ms sur une LGV) gardés en cache tant que les tronçons,
-        // les événements, la ligne et les ères ne changent pas (LineDataSignature). Le calcul des phases
-        // lui-même dépend du jour ($today) : il est refait à chaque appel.
-        $key = 'line-phases:'.$line->id.':'.LineDataSignature::segmentsEventsAndEras((int) $line->id)
-            .':'.md5(((bool) ($line->is_lgv ?? false) ? '1' : '0').'|'.($line->name ?? ''));
-        $in = Cache::remember($key, self::CACHE_TTL, fn (): ?array => self::inputs($line));
+        ['key' => $key, 'inputs' => $in] = self::cachedInputs($line);
+        $version = self::version($key);
         if ($in === null) {
-            return ['portions' => [], 'phases' => [], 'best' => null, 'used_events' => [], 'decades' => [], 'unexplained' => []];
+            return ['portions' => [], 'phases' => [], 'best' => null, 'used_events' => [], 'decades' => [], 'unexplained' => [], 'version' => $version];
         }
         $portions = $in['portions'];
 
         $result = self::compute($in['eras'], $portions, $in['events'], $in['cover'], $in['adjacency'], $today, $in['near'], $in['adjacency_loose']);
 
         return [
-            'portions' => array_map(fn ($p) => ['length_m' => $p['length_m'], 'geometry' => $p['geometry'], 'sources' => $p['sources']], $portions),
+            'portions' => self::publicPortions($portions),
+            'version' => $version,
             'phases' => $result['phases'],
             'best' => $result['best'],
             'used_events' => $result['used_events'],
             'decades' => $result['decades'],
             'unexplained' => $result['unexplained'],
         ];
+    }
+
+    /**
+     * Portions seules (géométrie simplifiée, longueur, sources), dans l'ordre que les phases de forLine()
+     * désignent par leur index, avec la même empreinte `version` : le tracé que la fiche lit à part
+     * (LinePortionsController), sans refaire le calcul des phases.
+     *
+     * @return array{version: string, portions: list<array{length_m: int, geometry: mixed, sources: mixed}>}
+     */
+    public static function portions(object $line): array
+    {
+        ['key' => $key, 'inputs' => $in] = self::cachedInputs($line);
+
+        return ['version' => self::version($key), 'portions' => $in === null ? [] : self::publicPortions($in['portions'])];
+    }
+
+    /**
+     * Lectures et calculs géographiques (100 à 330 ms sur une LGV) gardés en cache tant que les tronçons,
+     * les événements, la ligne et les ères ne changent pas (LineDataSignature). Le calcul des phases
+     * lui-même dépend du jour : forLine() le refait à chaque appel.
+     *
+     * @return array{key: string, inputs: array<string, mixed>|null}
+     */
+    private static function cachedInputs(object $line): array
+    {
+        $key = 'line-phases:'.$line->id.':'.LineDataSignature::segmentsEventsAndEras((int) $line->id)
+            .':'.md5(((bool) ($line->is_lgv ?? false) ? '1' : '0').'|'.($line->name ?? ''));
+
+        return ['key' => $key, 'inputs' => Cache::remember($key, self::CACHE_TTL, fn (): ?array => self::inputs($line))];
+    }
+
+    /** Empreinte courte d'une clé de cache des lectures (12 caractères hexadécimaux). */
+    private static function version(string $key): string
+    {
+        return substr(md5($key), 0, 12);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $portions
+     * @return list<array{length_m: int, geometry: mixed, sources: mixed}>
+     */
+    private static function publicPortions(array $portions): array
+    {
+        return array_map(fn ($p) => ['length_m' => $p['length_m'], 'geometry' => $p['geometry'], 'sources' => $p['sources']], $portions);
     }
 
     /** Durée de vie des lectures gardées par forLine() (s) : la signature les invalide avant. */

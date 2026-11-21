@@ -483,6 +483,7 @@ return [
         'map' => [
             'title' => 'Carte de la ligne :name',
             'loading' => 'Chargement de la carte…',
+            'unavailable' => 'Le tracé de la ligne n’a pas pu être chargé.',
             'zoom_in' => 'Zoomer',
             'zoom_out' => 'Dézoomer',
             'fullscreen_enter' => 'Afficher la carte en plein écran',

@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé de la collision en gare de Lumes de juillet 1909 (recherche du 21/11/2026).
+return [
+    'slug' => '1909-07-18-lumes',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1909' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1909',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Juillet',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1909&oldid=241222447#Juillet',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Gare de Lumes, ligne de Mohon à Thionville, vers midi, train d\'ouvriers du triage et des ateliers pris en écharpe par un train de marchandises en manoeuvre, un tué et six blessés sur 25 occupants.',
+        ],
+        'delpher-nieuwecourant-1909-07-20' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève sur l\'accident de Lumes',
+            'publisher' => 'De Nieuwe Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1909-07-20',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB15:000765033:mpeg21:a00002',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'À Lumes près de Mézières, un train de travailleurs et d\'agents de la Compagnie de l\'Est heurté par un autre ; sept blessés, un mort, un autre en danger de mort.',
+        ],
+        'delpher-vaderland-1909-07-20' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève sur l\'accident de Triage-Lumes',
+            'publisher' => 'Het Vaderland (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1909-07-20',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001487202:mpeg21:a00002',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Train de voyageurs heurtant un train de marchandises à Triage-Lumes par négligence d\'un aiguilleur : un voyageur tué, un mortellement blessé, cinq légers, trois voitures détruites.',
+        ],
+        'delpher-rotterdamsch-1909-07-21' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk',
+            'publisher' => 'Rotterdamsch Nieuwsblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1909-07-21',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010197942:mpeg21:a0093',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Mauvaise position d\'aiguille le samedi après-midi à Triage-Lumes près de Mézières, train d\'ouvriers contre train de marchandises, trois voitures écrasées, sept blessés graves.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le dimanche 18 juillet 1909 selon la liste de Wikipédia, vers midi, en gare de Lumes sur la ligne de Mohon à Thionville, un train transportant des ouvriers du triage et des ateliers du chemin de fer a été pris en écharpe par un train de marchandises en manoeuvre ; il y avait vingt-cinq personnes dans le convoi. La presse néerlandaise désigne la gare de Triage-Lumes, près de Mézières.',
+                'en' => 'On Sunday 18 July 1909 according to the Wikipedia list, at about noon, at Lumes station on the Mohon to Thionville line, a train carrying workers from the railway marshalling yard and workshops was struck a glancing blow by a goods train that was shunting; there were twenty-five people in the train. The Dutch press names the station as Triage-Lumes, near Mézières.',
+                'de' => 'Am Sonntag, dem 18. Juli 1909, laut der Wikipedia-Liste gegen Mittag, wurde im Bahnhof Lumes auf der Strecke von Mohon nach Thionville ein Zug mit Arbeitern des Verschiebebahnhofs und der Werkstätten von einem rangierenden Güterzug seitlich gestreift; im Zug befanden sich fünfundzwanzig Personen. Die niederländische Presse nennt den Bahnhof Triage-Lumes bei Mézières.',
+                'sources' => ['wp-liste-1909', 'delpher-rotterdamsch-1909-07-21', 'delpher-vaderland-1909-07-20'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'La presse néerlandaise attribue la collision à une mauvaise position d\'aiguille, due à la négligence d\'un aiguilleur selon un journal. Trois voitures du train d\'ouvriers ont été écrasées l\'une contre l\'autre, et sept blessés graves en ont été extraits.',
+                'en' => 'The Dutch press attributes the collision to wrongly set points, due to a pointsman\'s negligence according to one newspaper. Three coaches of the workers\' train were crushed into one another, and seven seriously injured people were pulled out of them.',
+                'de' => 'Die niederländische Presse führt die Kollision auf eine falsche Weichenstellung zurück, nach einer Zeitung infolge Nachlässigkeit eines Weichenwärters. Drei Wagen des Arbeiterzuges wurden ineinandergedrückt, und sieben Schwerverletzte wurden aus ihnen geborgen.',
+                'sources' => ['delpher-rotterdamsch-1909-07-21', 'delpher-vaderland-1909-07-20'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Un homme aux deux jambes écrasées est mort pendant son transport à l\'hôpital de Charleville ; un autre blessé était en danger de mort. La liste de Wikipédia compte un tué et six blessés ; De Nieuwe Courant compte sept blessés dont un mort, et De Vaderland un voyageur tué, un mortellement blessé et cinq blessés légers.',
+                'en' => 'A man whose legs were both crushed died while being taken to the hospital in Charleville; another injured man was in danger of death. The Wikipedia list counts one killed and six injured; De Nieuwe Courant counts seven injured, one of whom died, and Het Vaderland one passenger killed, one fatally injured and five slightly injured.',
+                'de' => 'Ein Mann mit zwei zerquetschten Beinen starb beim Transport ins Krankenhaus von Charleville; ein weiterer Verletzter schwebte in Lebensgefahr. Die Wikipedia-Liste zählt einen Getöteten und sechs Verletzte; De Nieuwe Courant zählt sieben Verletzte, von denen einer starb, und Het Vaderland einen getöteten Reisenden, einen tödlich Verletzten und fünf Leichtverletzte.',
+                'sources' => ['delpher-rotterdamsch-1909-07-21', 'delpher-nieuwecourant-1909-07-20', 'delpher-vaderland-1909-07-20', 'wp-liste-1909'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La date diffère : le journal néerlandais du 21 juillet 1909 place l\'accident le samedi après-midi, soit le 17 juillet, alors que la liste de Wikipédia donne le dimanche 18 juillet. Le nombre de morts pourrait aussi passer à deux, un blessé étant dit en danger de mort.',
+                'en' => 'The date differs: the Dutch newspaper of 21 July 1909 places the accident on Saturday afternoon, that is 17 July, whereas the Wikipedia list gives Sunday 18 July. The number of dead could also rise to two, as one injured man is said to be in danger of death.',
+                'de' => 'Das Datum weicht ab: Die niederländische Zeitung vom 21. Juli 1909 setzt den Unfall auf den Samstagnachmittag, also den 17. Juli, während die Wikipedia-Liste den Sonntag, 18. Juli, nennt. Die Zahl der Toten könnte auch auf zwei steigen, da ein Verletzter als in Lebensgefahr bezeichnet wird.',
+                'sources' => ['delpher-rotterdamsch-1909-07-21', 'wp-liste-1909', 'delpher-nieuwecourant-1909-07-20'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

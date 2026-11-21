@@ -27,11 +27,19 @@ final class LineSheet
     private const ACTIVE_STATUSES = "('in_service','single_track')";
 
     /**
-     * Clés de la fiche que la page web n'affiche pas (build($line, forPage: true)) : `segments` (la carte
-     * de la fiche dessine `portions`), `events` (la chronique les reprend, avec leur portion) et
-     * `era_summary` (le tableau des décennies lit `decades`). L'API REST et GraphQL les donnent toujours.
+     * Clés de la fiche que la page web ne reçoit pas (build($line, forPage: true)) : `segments` (la carte
+     * de la fiche dessine `portions`), `events` (la chronique les reprend, avec leur portion),
+     * `era_summary` (le tableau des décennies lit `decades`) et `portions` (géométrie de la carte, lue à part
+     * au moment où la carte s'affiche : LinePortionsController). L'API REST et GraphQL les donnent toujours.
      */
-    public const PAGE_OMITTED = ['segments', 'events', 'era_summary'];
+    public const PAGE_OMITTED = ['segments', 'events', 'era_summary', 'portions'];
+
+    /**
+     * Clés que seule la page web reçoit, à la place de `portions` : leur nombre (`portions_count`) et
+     * l'empreinte de leur version (`portions_version`, LinePhases::forLine), qui entre dans l'adresse du
+     * tracé (LinePortionsController::url).
+     */
+    public const PAGE_ADDED = ['portions_count', 'portions_version'];
 
     /** Gestionnaires d'infrastructure (Wikidata) : jamais « exploitants » des trains, avec leurs années d'existence. */
     public const INFRASTRUCTURE_MANAGERS = [
@@ -53,9 +61,10 @@ final class LineSheet
      *   - Événements lus bruts : type (nouveaux types tolérés), précision de
      *     date, portion (section_from → section_to), source.
      *
-     * `$forPage` : version de la page web (LineController::show), sans ce que la page n'affiche pas
-     * (PAGE_OMITTED : géométrie de l'ère affichée, liste brute des événements, synthèse par ère), soit
-     * environ 500 Ko de moins sur la LGV Sud-Est. L'API et GraphQL gardent la fiche complète.
+     * `$forPage` : version de la page web (LineController::show), sans ce que la page n'affiche pas ou lit
+     * à part (PAGE_OMITTED : géométrie de l'ère affichée, liste brute des événements, synthèse par ère,
+     * géométrie des portions), avec à la place le nombre et la version des portions (PAGE_ADDED). L'API et
+     * GraphQL gardent la fiche complète.
      *
      * @return array<string, mixed>
      */
@@ -354,7 +363,15 @@ final class LineSheet
             ])->all()),
         ];
 
-        return $forPage ? array_diff_key($sheet, array_flip(self::PAGE_OMITTED)) : $sheet;
+        if (! $forPage) {
+            return $sheet;
+        }
+
+        return [
+            ...array_diff_key($sheet, array_flip(self::PAGE_OMITTED)),
+            'portions_count' => count($phases['portions']),
+            'portions_version' => $phases['version'],
+        ];
     }
 
     /**

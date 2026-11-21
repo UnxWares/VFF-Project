@@ -61,6 +61,23 @@ Pour chaque gare, et pour chaque ligne qui la dessert (`station_lines`) :
   Wikidata, OHM, listes par PK (une position recopiée d'une gare connue est montrée, jamais comptée) et zones de gare
   de la BD TOPO (WFS de la Géoplateforme, cache `storage/app/data/gares-audit/`). Contrôle `retained_outvoted` : deux
   autres familles d'accord entre elles à plus de 100 m de la position retenue.
+
+## Réglages du 21/11/2026 (règles `2026-11-21.2`)
+
+Tirés du second contrôle à la main de 100 gares (`storage/app/reports/agents/matin-2111/controle-main.md`) :
+
+- **Source isolée** : une seule famille lointaine (précise à plus de 100 m, ou grossière à plus de 1 km) ne fait plus
+  `disagree` quand une autre famille, non recopiée, est à 50 m au plus de la position retenue
+  (`PlacementGrader::OUTLIER_CONFIRM_M`). La note se calcule sans elle (`agree` ou `close`) et le contrôle
+  `outlier_source` donne la source écartée et son écart. Deux familles lointaines, ou aucune famille proche : toujours
+  `disagree`.
+- **Fermetures du référentiel SNCF** : une fermeture prise dans Wikidata dont toutes les références renvoient au
+  référentiel SNCF des gares de voyageurs (`referentiel-gares-voyageurs`, date de sortie du référentiel, souvent
+  décalée de plusieurs années) est notée `estimated`, comme la fin des voyageurs qui en découle. Le contrôle
+  `closure_sncf_referential` donne la date et les autres dates de fermeture connues (autre valeur Wikidata, événement
+  d'une autre source), à préférer quand elles existent. Le moteur garde sa date : seul l'audit change.
+- **Inchangé** : la mesure du placement reste la distance directe (la mesure le long de la voie attend la décision de
+  Baptiste).
 - `vff:import-station-wikidata-dates` (`--station=`, `--line=`, `--from-cache`, `--refresh`, `--dry-run`) : P1619 et
   P3999 avec précision, rang, qualificatifs et références → `station_date_candidates`, comparées aux dates publiées
   (`same`, `more_precise`, `less_precise`, `differs`, `new`, `station_open`). Aucune date du moteur n'est remplacée ;

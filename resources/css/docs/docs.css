@@ -102,7 +102,7 @@ body {
     background: var(--vff-bg);
     color: var(--vff-accent-ink);
     font-family: var(--vff-font-heading);
-    font-size: 15px;
+    font-size: 17px;
     transform: translateY(-200%);
 }
 .vff-docs-skip:focus {
@@ -165,7 +165,7 @@ body {
     background: transparent;
     color: var(--vff-text);
     font-family: var(--vff-font-heading);
-    font-size: 15px;
+    font-size: 17px;
     cursor: pointer;
 }
 .vff-docs-menu-button:hover,
@@ -199,7 +199,7 @@ body {
     color: var(--vff-text);
     text-decoration: none;
     font-family: var(--vff-font-heading);
-    font-size: 15px;
+    font-size: 17px;
     transition:
         color var(--vff-transition),
         background-color var(--vff-transition);
@@ -226,7 +226,7 @@ body {
     padding-inline-start: 8px;
     color: var(--vff-text-muted);
     font-family: var(--vff-font-heading);
-    font-size: 14px;
+    font-size: 17px;
 }
 .vff-docs-menu .langs a {
     justify-content: center;

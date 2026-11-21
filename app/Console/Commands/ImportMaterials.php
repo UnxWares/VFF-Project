@@ -202,7 +202,7 @@ class ImportMaterials extends Command
         foreach ($qids as $qid) {
             if (($entity = $entities[$qid] ?? null) !== null) {
                 $infobox = isset($articles[$qid]) ? ($infoboxes[$articles[$qid]] ?? null) : null;
-                array_push($files, ...array_column(WikidataMaterialMapper::imageCandidates($entity, $infobox, $categoryFiles), 0));
+                array_push($files, ...array_column(WikidataMaterialMapper::imageCandidates($entity, $infobox, $categoryFiles, null, $qid), 0));
             }
         }
         $images = $source->commonsFiles(array_values(array_unique($files)), $refresh);

@@ -61,6 +61,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Article cité par Wikipédia, adresse exacte non retrouvée ; à consulter pour la mémoire locale.',
         ],
+        'ya30ans-1985-08-31' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => 'Samedi 31 août 1985 - Retour vers le passé',
+            'publisher' => 'ya30ans (blog)',
+            'author' => null,
+            'published' => '2015-08',
+            'locator' => null,
+            'url' => 'https://ya30ans.overblog.com/2015/08/samedi-31-aout-1985.html',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Billet de blog rétrospectif, sans sources citées : heure (0 h 12), 43 morts, 37 blessés graves dont 10 en urgence absolue, limite de 40 km/h, garde à vue du conducteur. Fiabilité limitée.',
+        ],
+        'an-qe-144-1988' => [
+            'provider' => 'assemblee-nationale',
+            'kind' => 'parliament',
+            'reliability' => 'official',
+            'title' => 'Question écrite n° 144 (9e législature) sur la sécurité ferroviaire, et réponse du ministre des transports',
+            'publisher' => 'Assemblée nationale',
+            'author' => null,
+            'published' => '1988',
+            'locator' => 'Texte de la question et texte de la réponse',
+            'url' => 'https://www.assemblee-nationale.fr/dyn/9/questions/QANR5L9QE144',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Un député cite Argenton-sur-Creuse, Flaujac, Saint-Pierre-du-Vauvray et Issy-les-Moulineaux dans un bilan de 125 morts depuis le contrat de plan SNCF-État ; la réponse annonce un programme de sécurité présenté au conseil d\'administration de la SNCF le 26 octobre 1988. Ne décrit pas l\'accident lui-même.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -109,6 +137,12 @@ return [
         ],
         'aftermath' => [
             [
+                'fr' => 'En 1988, après l\'accident de la gare de Lyon, une question écrite à l\'Assemblée nationale d\'un député communiste cite Argenton-sur-Creuse parmi quatre catastrophes qui portent à 125 morts le bilan des accidents depuis le début du contrat de plan entre la SNCF et l\'État, et les attribue notamment aux suppressions d\'emplois et au manque d\'entretien. Dans sa réponse, le ministre des transports indique qu\'un programme d\'action sur la sécurité, demandé à la SNCF, a été présenté à son conseil d\'administration le 26 octobre 1988.',
+                'en' => 'In 1988, after the Gare de Lyon accident, a written question in the National Assembly from a Communist deputy cited Argenton-sur-Creuse among four disasters bringing to 125 the number of deaths in accidents since the start of the SNCF-State planning contract, and blamed them partly on job cuts and lack of maintenance. In his reply the transport minister said that a safety action programme requested from SNCF had been presented to its board on 26 October 1988.',
+                'de' => 'Im Jahr 1988, nach dem Unfall im Gare de Lyon, nannte eine schriftliche Anfrage eines kommunistischen Abgeordneten in der Nationalversammlung Argenton-sur-Creuse unter vier Katastrophen, die seit Beginn des Planvertrags zwischen SNCF und Staat zusammen 125 Tote gefordert hätten, und führte sie unter anderem auf Stellenabbau und mangelnde Instandhaltung zurück. In seiner Antwort erklärte der Verkehrsminister, ein von der SNCF verlangtes Sicherheitsprogramm sei am 26. Oktober 1988 ihrem Verwaltungsrat vorgelegt worden.',
+                'sources' => ['an-qe-144-1988'],
+            ],
+            [
                 'fr' => 'En juillet 1988, le tribunal de Châteauroux condamne le conducteur pour homicides et blessures involontaires à un an de prison avec sursis et 15 000 francs d\'amende. Il retient contre lui de n\'avoir pas lu le dossier de ligne, d\'avoir négligé la feuille de limitation temporaire de vitesse et d\'avoir maintenu sa vitesse.',
                 'en' => 'In July 1988 the court at Châteauroux convicted the driver of involuntary manslaughter and injury, with a one-year suspended prison sentence and a fine of 15,000 francs. It held against him that he had not read the route file, had overlooked the temporary speed-restriction sheet and had kept up his speed.',
                 'de' => 'Im Juli 1988 verurteilte das Gericht in Châteauroux den Lokführer wegen fahrlässiger Tötung und Körperverletzung zu einem Jahr Haft auf Bewährung und 15 000 Franc Geldstrafe. Es lastete ihm an, die Streckenunterlagen nicht gelesen, das Blatt mit der vorübergehenden Geschwindigkeitsbeschränkung übersehen und seine Geschwindigkeit beibehalten zu haben.',
@@ -128,6 +162,12 @@ return [
             ],
         ],
         'disagreements' => [
+            [
+                'fr' => 'Un billet de blog rétrospectif (sans sources) donne 37 blessés graves, dont 10 en urgence absolue, 0 h 12 comme heure du déraillement (Wikipédia : 0 h 08) et 40 km/h comme limite de vitesse. Ces chiffres ne sont pas recoupés par un document officiel.',
+                'en' => 'A retrospective blog post (without cited sources) gives 37 seriously injured, 10 of them in critical condition, 12.12 am as the time of the derailment (Wikipedia: 12.08 am) and 40 km/h as the speed limit. These figures are not cross-checked by any official document.',
+                'de' => 'Ein rückblickender Blogeintrag (ohne Quellenangaben) nennt 37 Schwerverletzte, davon 10 in Lebensgefahr, 0.12 Uhr als Zeit der Entgleisung (Wikipedia: 0.08 Uhr) und 40 km/h als Geschwindigkeitsgrenze. Diese Angaben sind durch kein amtliches Dokument bestätigt.',
+                'sources' => ['ya30ans-1985-08-31', 'wp-fr'],
+            ],
             [
                 'fr' => 'Le nombre de blessés (40 ou 38) et la vitesse limite en zone de travaux (30 ou 40 km/h) diffèrent selon les versions de Wikipédia lues. Aucun rapport officiel n\'a pu être consulté pour trancher.',
                 'en' => 'The number of injured (40 or 38) and the speed limit in the work zone (30 or 40 km/h) differ between the Wikipedia versions read. No official report could be consulted to settle the matter.',

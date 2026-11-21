@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\DB;
  *    de la vallée. Mesure du 2026-11-19 sur Saint-Gervais - Vallorcine : 90 ‰ avec la BD TOPO
  *    (valeur publiée de la ligne), 110 ‰ avec le seul modèle de terrain. Rien hors de France ;
  * 4. aberrations effacées puis interpolées, extrêmes, dénivelés et déclivité la plus forte
- *    (ProfileStats) ;
+ *    (ProfileStats ; jamais publiée sur une ligne à crémaillère, RackRailways) ;
  * 5. PK de chaque point calé sur les PK officiels des gares (PkCalibration), toutes les gares de
  *    la ligne (fermées comprises) placées sur le profil, points enregistrés un par un dans
  *    `line_profile_points`.
@@ -66,6 +66,9 @@ final class LineProfileBuilder
 
     /** @var array<string, TrackIndex> tuiles chargées, la plus récente en dernier */
     private array $tiles = [];
+
+    /** Motif du dernier profil non calculé par compute() : no_trace, outside_france, no_altitude. */
+    private ?string $skipReason = null;
 
     public function __construct(private readonly GeoplateformeClient $client) {}
 
@@ -135,10 +138,23 @@ final class LineProfileBuilder
      * Calcule et enregistre le profil. Null si la ligne n'a aucun tracé exploitable ou aucune
      * altitude : l'ancien profil éventuel est alors supprimé, pour ne plus être servi.
      */
+    /**
+     * Pourquoi le dernier appel à compute() n'a pas donné de profil : `no_trace` (aucun tracé),
+     * `outside_france` (aucun point du parcours en France, où seules la BD TOPO et le RGE ALTI
+     * donnent une altitude), `no_altitude` (aucune altitude sur la partie française) ; null après
+     * un profil calculé.
+     */
+    public function skipReason(): ?string
+    {
+        return $this->skipReason;
+    }
+
     public function compute(Line $line): ?LineProfile
     {
+        $this->skipReason = null;
         $plan = $this->plan($line);
         if ($plan === null) {
+            $this->skipReason = 'no_trace';
             $this->discard($line);
 
             return null;
@@ -184,8 +200,9 @@ final class LineProfileBuilder
             fn (array $t): bool => $t['z'] === null && in_array($t['kind'], ['tunnel', 'bridge'], true),
             $track,
         ), gaps: $path->gaps);
-        $stats = ProfileStats::summarize($points, $path->gaps, self::gradeFlags($points, $measured, array_column($track, 'kind')));
+        $stats = ProfileStats::summarize($points, $path->gaps, self::gradeFlags($points, $measured, array_column($track, 'kind')), RackRailways::isRack($line->slug));
         if ($stats === null) {
+            $this->skipReason = in_array(true, $inFrance, true) ? 'no_altitude' : 'outside_france';
             $this->discard($line);
 
             return null;
@@ -306,7 +323,7 @@ final class LineProfileBuilder
             $points,
             array_map(fn (object $r): ?string => $r->source, $rows),
             array_map(fn (object $r): ?string => $r->structure, $rows),
-        ));
+        ), RackRailways::isRack($line->slug));
         if ($stats !== null) {
             $profile->update($stats);
         }

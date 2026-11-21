@@ -266,8 +266,8 @@ class BuildLineReferences extends Command
                 $r['rounded'] ?? 0, $r['added_points'] ?? 0));
         }
         if ($n = $this->tidyStats) {
-            $this->line(sprintf('  nettoyage : %s km de bouts de tracé superposés retirés, %s km de raccords en double (dont %s km de portions courtes presque confondues, à moins de 5 m), %d extrémités recollées, %d raccords courts fusionnés',
-                $this->km($n['superposed_m'] ?? 0), $this->km($n['connector_dup_m'] ?? 0), $this->km($n['near_m'] ?? 0), $n['snapped'] ?? 0, $n['folded'] ?? 0));
+            $this->line(sprintf('  nettoyage : %s km de bouts de tracé superposés retirés, %s km de raccords en double (dont %s km de portions courtes presque confondues, à moins de 5 m), %s m de bouts croisés coupés, %d extrémités recollées, %d raccords courts fusionnés',
+                $this->km($n['superposed_m'] ?? 0), $this->km($n['connector_dup_m'] ?? 0), $this->km($n['near_m'] ?? 0), number_format($n['crossed_m'] ?? 0, 0, ',', ' '), $n['snapped'] ?? 0, $n['folded'] ?? 0));
         }
 
         $t = microtime(true);

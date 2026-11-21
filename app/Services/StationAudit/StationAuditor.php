@@ -23,7 +23,10 @@ use Illuminate\Support\Facades\DB;
  */
 class StationAuditor
 {
-    public const RULE_VERSION = '2026-11-21';
+    public const RULE_VERSION = '2026-11-21.2';
+
+    /** Référence Wikidata d'une date tirée du référentiel SNCF des gares de voyageurs (date de sortie, peu sûre). */
+    public const SNCF_REFERENTIAL = 'referentiel-gares-voyageurs';
 
     /**
      * Rayon de recherche d'une zone BD TOPO homonyme. Réglé à 1 km sur le tirage du 21/11 : à 3 km, la gare
@@ -128,10 +131,14 @@ class StationAuditor
         $freight = DB::table('station_sources')->whereRaw('station_id = ANY(?::bigint[])', [$in])->where('source', 'sncf')
             ->whereNotNull('freight')->groupBy('station_id')->selectRaw('station_id, bool_or(freight) AS f')->pluck('f', 'station_id');
         $candidates = [];
+        $referential = [];
         foreach (DB::table('station_date_candidates')->whereRaw('station_id = ANY(?::bigint[])', [$in])
-            ->get(['station_id', 'kind', 'comparison', 'delta_days', 'date', 'precision']) as $c) {
+            ->get(['station_id', 'kind', 'source', 'comparison', 'delta_days', 'date', 'precision', 'references']) as $c) {
             $candidates[(int) $c->station_id][] = ['kind' => $c->kind, 'comparison' => $c->comparison,
                 'delta_days' => $c->delta_days !== null ? (int) $c->delta_days : null, 'date' => (string) $c->date, 'precision' => $c->precision];
+            if ($c->kind === 'closure' && $c->source === 'wikidata' && self::onlySncfReferential((string) $c->references)) {
+                $referential[(int) $c->station_id][] = (string) $c->date;
+            }
         }
 
         $now = now();
@@ -141,6 +148,7 @@ class StationAuditor
             $list = $positions[$id] ?? [];
             $placement = PlacementGrader::grade($list, $s->position_source);
             $trackM = isset($track[$id]) ? (int) $track[$id] : null;
+            $fromReferential = $s->closed_at !== null && in_array($s->closed_at, $referential[$id] ?? [], true);
             $dates = DateAuditor::audit([
                 'status' => (string) $s->status,
                 'opened_at' => $s->opened_at, 'opened_precision' => $s->opened_precision, 'opened_source' => $s->opened_source,
@@ -152,11 +160,16 @@ class StationAuditor
                 'track_offset_m' => $trackM,
                 'today_year' => (int) $now->year,
                 'eras' => $eras[$id] ?? [],
+                'closure_sncf_referential' => $fromReferential,
+                'closure_alternatives' => $fromReferential ? self::closureAlternatives($s->closed_at, $candidates[$id] ?? [], $events[$id] ?? []) : [],
             ]);
             $retainedFamily = PlacementGrader::family($s->position_source);
             $checks = $dates->checks;
             if ($placement->outvoted) {
                 $checks[] = ['code' => 'retained_outvoted', 'detail' => "{$placement->farthestPreciseM} m"];
+            }
+            if ($placement->outlier !== null) {
+                $checks[] = ['code' => 'outlier_source', 'detail' => "{$placement->outlier->source} {$placement->outlier->distanceM} m"];
             }
             $rows[] = [
                 'station_id' => $id,
@@ -178,6 +191,49 @@ class StationAuditor
         }
 
         return $rows;
+    }
+
+    /**
+     * Date Wikidata dont toutes les références renvoient au référentiel SNCF des gares de voyageurs.
+     */
+    public static function onlySncfReferential(string $referencesJson): bool
+    {
+        $refs = json_decode($referencesJson, true);
+        if (! is_array($refs) || $refs === []) {
+            return false;
+        }
+        foreach ($refs as $ref) {
+            if (! str_contains((string) json_encode($ref), self::SNCF_REFERENTIAL)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Autres dates de fermeture connues de la gare (autres valeurs Wikidata, événements relevés par une
+     * autre source), à préférer à celle du référentiel SNCF.
+     *
+     * @param  list<array{kind: string, date: string}>  $candidates
+     * @param  list<array{type: string, date: string, source: string, inferred: bool}>  $events
+     * @return list<string>
+     */
+    public static function closureAlternatives(string $closedAt, array $candidates, array $events): array
+    {
+        $out = [];
+        foreach ($candidates as $c) {
+            if ($c['kind'] === 'closure' && $c['date'] !== $closedAt) {
+                $out[] = "wikidata {$c['date']}";
+            }
+        }
+        foreach ($events as $e) {
+            if (str_starts_with($e['type'], 'closure') && ! $e['inferred'] && $e['source'] !== 'wikidata' && $e['date'] !== $closedAt) {
+                $out[] = "{$e['source']} {$e['date']}";
+            }
+        }
+
+        return array_values(array_unique($out));
     }
 
     /**

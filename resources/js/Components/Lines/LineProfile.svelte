@@ -13,6 +13,7 @@
         linePath,
         nearestIndex,
         nearestStation,
+        rackSentence,
         ticks,
     } from '$lib/lineProfile.js';
 
@@ -28,7 +29,9 @@
      *   era_year: number|null, step_m: number, length_m: number,
      *   summary: { min_altitude_m: number, max_altitude_m: number, ascent_m: number, descent_m: number,
      *     max_grade_permil: number|null, max_grade_from_m: number|null, max_grade_to_m: number|null,
-     *     max_grade_direction: 'up'|'down'|null, max_grade_withheld?: 'terrain_only'|'tunnel'|'interpolated'|null },
+     *     max_grade_direction: 'up'|'down'|null, max_grade_withheld?: 'terrain_only'|'tunnel'|'interpolated'|'rack'|null },
+     *   rack?: { system: string, extent: 'full'|'partial'|null, max_grade_permil: number, braking_only: boolean,
+     *     source: { title: string, url: string } } | null,
      *   points: Array<[number, number|null, (number|null)?]>,
      *   structures: Array<{ from_m: number, to_m: number, kind: 'tunnel'|'bridge' }>,
      *   altitude_sources: { bdtopo: number, rge_alti: number, interpolated: number, missing: number },
@@ -60,6 +63,9 @@
     const closed = (st) => st.status === 'declassified';
 
     const s = $derived(profile.summary);
+    // Ligne à crémaillère : déclivité publiée par la source, la mesure du profil n'en dit rien.
+    const rack = $derived(profile.rack ?? null);
+    const rackText = $derived(rackSentence(rack));
     const branches = $derived(profile.branches ?? []);
     // Gares de la ligne principale (avant le premier embranchement) : départ et arrivée de l'intro.
     const mainStations = $derived(
@@ -80,10 +86,11 @@
         { value: metres(s.ascent_m), label: t('profile.ascent') },
         { value: metres(s.descent_m), label: t('profile.descent') },
         {
-            value:
-                s.max_grade_permil === null
-                    ? t('profile.grade_unpublished')
-                    : `${permil(s.max_grade_permil)}${NBSP}‰`,
+            value: rack
+                ? `${permil(rack.max_grade_permil)}${NBSP}‰`
+                : s.max_grade_permil === null
+                  ? t('profile.grade_unpublished')
+                  : `${permil(s.max_grade_permil)}${NBSP}‰`,
             label: t('profile.grade'),
         },
     ]);
@@ -113,7 +120,8 @@
     let width = $state(0);
     const narrow = $derived(width > 0 && width < 600);
     const height = $derived(narrow ? 240 : 300);
-    const pad = $derived({ top: 34, right: 12, bottom: 44, left: narrow ? 64 : 76 });
+    // Marges en px pour des textes de 17 px (altitudes à gauche, kilomètres et légende de l'axe en bas).
+    const pad = $derived({ top: 36, right: 12, bottom: 50, left: narrow ? 72 : 84 });
     const plotW = $derived(Math.max(10, width - pad.left - pad.right));
     const plotH = $derived(height - pad.top - pad.bottom);
     const baseY = $derived(pad.top + plotH);
@@ -125,18 +133,18 @@
     );
     const yTicks = $derived(ticks(domain[0], domain[1], narrow ? 3 : 4));
     const xTicks = $derived(
-        ticks(0, profile.length_m / 1000, Math.max(3, Math.floor(plotW / 64))).filter(
+        ticks(0, profile.length_m / 1000, Math.max(3, Math.floor(plotW / 72))).filter(
             (k) => k * 1000 <= profile.length_m,
         ),
     );
     const line = $derived(linePath(profile.points, x, y, profile.gaps));
     const area = $derived(areaPath(profile.points, x, y, baseY, profile.gaps));
-    // Largeur d'un nom en Inter 14 px : 7,6 px par caractère en moyenne (mesuré sur les noms de gares).
+    // Largeur d'un nom en Inter 17 px : 9,2 px par caractère en moyenne (7,6 px mesurés à 14 px).
     const named = $derived(
         labelledStations(profile.stations, x, {
             left: 0,
             right: width,
-            labelWidth: (name) => name.length * 7.6,
+            labelWidth: (name) => name.length * 9.2,
             principal: (st) => !closed(st),
         }),
     );
@@ -189,7 +197,16 @@
 <SheetSection id="profile" title={t('profile.title')} {intro}>
     <div class="profile">
         <StatStrip items={statItems} label={t('profile.stats_label')} size="sm" />
-        {#if gradeWhere}
+        {#if rack && rackText}
+            <p class="grade-where">
+                {t(rackText.key, { system: rackText.system })}
+                {#if rack.braking_only}{t('profile.rack_braking')}{/if}
+                {t('profile.rack_not_measured')}
+                {t('profile.rack_source')}{colon(lang)}<a href={rack.source.url} rel="external"
+                    >{rack.source.title}</a
+                >.
+            </p>
+        {:else if gradeWhere}
             <p class="grade-where">{t('profile.grade')}{colon(lang)}{gradeWhere}</p>
         {:else}
             <p class="grade-where">
@@ -197,7 +214,8 @@
             </p>
         {/if}
 
-        <figure class="chart">
+        <!-- Nom de la figure : le titre de la section, pas la légende (figcaption) qui ne liste que les motifs. -->
+        <figure class="chart" aria-labelledby="profile-title">
             <div class="plot" bind:clientWidth={width}>
                 {#if width > 0}
                     <svg
@@ -249,11 +267,11 @@
                             >
                         {/each}
                         {#each xTicks as k (k)}
-                            <text class="tick" x={x(k * 1000)} y={baseY + 22} text-anchor="middle"
+                            <text class="tick" x={x(k * 1000)} y={baseY + 24} text-anchor="middle"
                                 >{formatNumber(k, lang)}</text
                             >
                         {/each}
-                        <text class="axis" x={pad.left + plotW} y={height - 4} text-anchor="end"
+                        <text class="axis" x={pad.left + plotW} y={height - 6} text-anchor="end"
                             >{t('profile.axis_distance')}</text
                         >
 
@@ -529,7 +547,7 @@
     .tick,
     .axis {
         font-family: Inter, sans-serif;
-        font-size: 14px;
+        font-size: 17px;
         font-variant-numeric: tabular-nums;
         fill: var(--vff-text-muted);
     }
@@ -594,7 +612,7 @@
     }
     .station-name {
         font-family: Inter, sans-serif;
-        font-size: 14px;
+        font-size: 17px;
         fill: var(--vff-text);
     }
     .cursor {

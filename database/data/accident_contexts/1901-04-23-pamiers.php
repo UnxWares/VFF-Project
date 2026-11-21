@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé de la collision en gare de Portet-Saint-Simon du 23 avril 1901 (recherche du 21/11/2026).
+return [
+    'slug' => '1901-04-23-pamiers',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1901' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1901',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '23 avril 1901, Portet-Saint-Simon',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1901&oldid=241345719#Avril',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Place la collision vers 23 h en gare de Portet-Saint-Simon, sur la ligne de Toulouse à Bayonne ; 2 morts et 4 blessés ; cite Le Petit Parisien du 25 avril 1901.',
+        ],
+        'nieuwe-tilburgsche-1901-04-26' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Nieuwe Tilburgsche Courant du 26 avril 1901',
+            'publisher' => 'Nieuwe Tilburgsche Courant',
+            'author' => null,
+            'published' => '1901-04-26',
+            'locator' => null,
+            'url' => 'https://resolver.kb.nl/resolve?urn=ddd:010156011:mpeg21:a0041',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Article « Treinbotsing van pelgrims naar Lourdes ».',
+        ],
+        'de-tijd-1901-04-27' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'De Tijd du 27 avril 1901',
+            'publisher' => 'De Tijd',
+            'author' => null,
+            'published' => '1901-04-27',
+            'locator' => null,
+            'url' => 'https://resolver.kb.nl/resolve?urn=ddd:010407930:mpeg21:a0007',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Texte d\'OCR en partie altéré.',
+        ],
+        'petit-parisien-1901-04-25' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Petit Parisien du 25 avril 1901, page 1',
+            'publisher' => 'Le Petit Parisien (numérisé sur Gallica)',
+            'author' => null,
+            'published' => '1901-04-25',
+            'locator' => null,
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k5603147',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Référence citée par la liste de Wikipédia ; à consulter, non lue.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 23 avril 1901 au soir, en gare de Portet-Saint-Simon, près de Toulouse, un train de pèlerins se rendant à Lourdes a été heurté par une locomotive. D\'après la liste de Wikipédia, ce train de 500 pèlerins venant de Pamiers changeait de sens pour quitter la ligne de l\'Ariège et prendre la direction de Lourdes.',
+                'en' => 'On the evening of 23 April 1901, at Portet-Saint-Simon station, near Toulouse, a train of pilgrims bound for Lourdes was struck by a locomotive. According to the Wikipedia list, this train of 500 pilgrims coming from Pamiers was reversing direction to leave the Ariège line and head for Lourdes.',
+                'de' => 'Am Abend des 23. April 1901 wurde im Bahnhof Portet-Saint-Simon bei Toulouse ein Pilgerzug nach Lourdes von einer Lokomotive gerammt. Laut der Wikipedia-Liste wechselte dieser Zug mit 500 Pilgern aus Pamiers gerade die Fahrtrichtung, um die Ariège-Strecke zu verlassen und Richtung Lourdes zu fahren.',
+                'sources' => ['nieuwe-tilburgsche-1901-04-26', 'de-tijd-1901-04-27', 'wp-liste-1901'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'La liste de Wikipédia précise que la locomotive était une machine haut-le-pied qui brûlait les signaux fermés ; elle a écrasé le fourgon et broyé cinq voitures. La plupart des voyageurs étant descendus pendant le long stationnement en gare, le bilan est resté limité.',
+                'en' => 'The Wikipedia list adds that the locomotive was a light engine running through closed signals; it crushed the van and smashed five carriages. Most passengers having got off during the long halt at the station, the toll stayed limited.',
+                'de' => 'Die Wikipedia-Liste fügt hinzu, die Lokomotive sei eine Leerfahrt-Maschine gewesen, die geschlossene Signale überfuhr; sie zerdrückte den Gepäckwagen und zertrümmerte fünf Wagen. Da die meisten Reisenden während des langen Aufenthalts im Bahnhof ausgestiegen waren, blieb die Bilanz begrenzt.',
+                'sources' => ['wp-liste-1901'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les journaux néerlandais comptent deux morts ; ils comptent quatre blessés dans la Nieuwe Tilburgsche Courant du 26 avril et 31 blessés dans De Tijd du 27 avril. La liste de Wikipédia donne deux morts et quatre blessés.',
+                'en' => 'The Dutch newspapers count two dead; they count four injured in the Nieuwe Tilburgsche Courant of 26 April and 31 injured in De Tijd of 27 April. The Wikipedia list gives two dead and four injured.',
+                'de' => 'Die niederländischen Zeitungen zählen zwei Tote; sie zählen vier Verletzte in der Nieuwe Tilburgsche Courant vom 26. April und 31 Verletzte in De Tijd vom 27. April. Die Wikipedia-Liste nennt zwei Tote und vier Verletzte.',
+                'sources' => ['nieuwe-tilburgsche-1901-04-26', 'de-tijd-1901-04-27', 'wp-liste-1901'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'L\'entrée est placé à Pamiers, d\'où venait le train, alors que l\'accident s\'est produit en gare de Portet-Saint-Simon selon la liste et les journaux. La distance de cette gare à Toulouse est de 42 km dans l\'un et de 12 km dans l\'autre, d\'après des textes d\'OCR peu fiables.',
+                'en' => 'The entry is placed at Pamiers, where the train came from, whereas the accident occurred at Portet-Saint-Simon station according to the list and the newspapers. The distance of this station from Toulouse is given as 42 km in one and 12 km in the other, from unreliable OCR texts.',
+                'de' => 'Der Eintrag ist in Pamiers verortet, woher der Zug kam, während sich das Unglück laut der Liste und den Zeitungen im Bahnhof Portet-Saint-Simon ereignete. Die Entfernung dieses Bahnhofs von Toulouse beträgt in der einen Zeitung 42 km, in der anderen 12 km, nach wenig verlässlichen OCR-Texten.',
+                'sources' => ['nieuwe-tilburgsche-1901-04-26', 'de-tijd-1901-04-27', 'wp-liste-1901'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

@@ -1,0 +1,106 @@
+<?php
+
+// Contexte sourcé de la collision de Saint-Benoît (Vienne) du 18 septembre 1853 (recherche du 21/11/2026).
+return [
+    'slug' => '1853-09-18-saint-benoit',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1850' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1850',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1853, 18 septembre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1850&oldid=233367195#1853',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Source de la fiche, d\'après La Presse du 30 novembre 1853 (jugement).',
+        ],
+        'vdr-saint-benoit' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => '1853, L\'accident de Saint-Benoît (86)',
+            'publisher' => 'Victimes du rail en France au XIXe siècle',
+            'author' => null,
+            'published' => '2026-08-15',
+            'locator' => null,
+            'url' => 'https://www.victimesdurail.fr/1853-l-accident-de-saint-benoit-poitiers/',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Site de généalogie ; transcrit le récit du Journal des faits du 21 septembre 1853.',
+        ],
+        'journal-des-faits-1853-09-21' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Journal des faits du 21 septembre 1853',
+            'publisher' => 'Journal des faits',
+            'author' => null,
+            'published' => '1853-09-21',
+            'locator' => 'p. 3-4',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bd6t510384v/f3.item',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Récit d\'origine, lu seulement dans sa transcription.',
+        ],
+        'la-presse-1853-11-30' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'La Presse du 30 novembre 1853',
+            'publisher' => 'La Presse',
+            'author' => null,
+            'published' => '1853-11-30',
+            'locator' => 'p. 3',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k476429g/f3.item',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Jugement du tribunal correctionnel de Poitiers, d\'après Wikipédia ; non lu.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 18 septembre 1853, la ligne de Poitiers à Bordeaux, ouverte depuis peu, était encore à voie unique. À Saint-Benoît, au sud de Poitiers, un train de marchandises venant de Bordeaux avec plusieurs dizaines d\'heures de retard a heurté de front le train des malles-postes venant de Paris.',
+                'en' => 'On 18 September 1853, the recently opened Poitiers to Bordeaux line was still single track. At Saint-Benoît, south of Poitiers, a freight train from Bordeaux running dozens of hours late collided head-on with the mail train from Paris.',
+                'de' => 'Am 18. September 1853 war die erst seit Kurzem eröffnete Strecke Poitiers-Bordeaux noch eingleisig. In Saint-Benoît südlich von Poitiers stieß ein Güterzug aus Bordeaux mit mehreren Dutzend Stunden Verspätung frontal mit dem Postzug aus Paris zusammen.',
+                'sources' => ['wp-liste-1850', 'vdr-saint-benoit'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Les deux locomotives du train de marchandises se sont renversées en travers de la voie, et celle de l\'express s\'est engagée sous ses deux premiers wagons. Presque toutes les voitures de l\'express ont été brisées ; une voiture de première classe a roulé au bas d\'un remblai de 7 à 8 m.',
+                'en' => 'The freight train\'s two locomotives overturned across the track, and the express engine ran under its first two wagons. Almost all the express coaches were smashed; a first-class carriage rolled down an embankment 7 to 8 m high.',
+                'de' => 'Die beiden Lokomotiven des Güterzugs stürzten quer über das Gleis, und die Lokomotive des Schnellzugs schob sich unter dessen erste zwei Wagen. Fast alle Wagen des Schnellzugs wurden zertrümmert; ein Wagen erster Klasse rollte eine 7 bis 8 m hohe Böschung hinab.',
+                'sources' => ['vdr-saint-benoit'],
+            ],
+            [
+                'fr' => 'Les habitants de Saint-Benoît, deux médecins qui voyageaient dans le train, trois compagnies du 23e léger et un détachement de dragons ont porté secours. Les blessés ont été transportés dans des maisons, un hôtel et la gare de Poitiers. Le ministre des Travaux publics, en route pour le Midi, était à bord et n\'a pas été blessé.',
+                'en' => 'Help came from the people of Saint-Benoît, two doctors travelling on the train, three companies of the 23rd light infantry and a detachment of dragoons. The injured were taken to houses, a hotel and Poitiers station. The Minister of Public Works, on his way to the south of France, was on board and was not hurt.',
+                'de' => 'Hilfe leisteten die Einwohner von Saint-Benoît, zwei mitreisende Ärzte, drei Kompanien des 23. leichten Infanterieregiments und eine Abteilung Dragoner. Die Verletzten wurden in Häuser, ein Hotel und den Bahnhof Poitiers gebracht. Der Minister für öffentliche Arbeiten, der auf dem Weg nach Südfrankreich war, saß im Zug und blieb unverletzt.',
+                'sources' => ['vdr-saint-benoit'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Cinq personnes ont été tuées sur place, dont deux chauffeurs retrouvés sous les locomotives renversées. Un mécanicien gravement blessé est mort quelques jours plus tard, ce qui porte le bilan à six morts. Il y a eu une vingtaine de blessés.',
+                'en' => 'Five people were killed on the spot, including two firemen found under the overturned locomotives. A seriously injured driver died a few days later, bringing the toll to six dead. About twenty people were injured.',
+                'de' => 'Fünf Menschen kamen an Ort und Stelle ums Leben, darunter zwei Heizer, die unter den umgestürzten Lokomotiven gefunden wurden. Ein schwer verletzter Lokführer starb einige Tage später, womit die Bilanz sechs Tote beträgt. Etwa zwanzig Menschen wurden verletzt.',
+                'sources' => ['vdr-saint-benoit', 'wp-liste-1850'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Quatre mandats d\'amener ont été lancés contre des agents de la compagnie et les dépêches télégraphiques ont été saisies. Le 28 novembre 1853, le tribunal correctionnel de Poitiers a condamné quatre responsables du trafic à des peines de six mois à deux ans de prison et à des amendes de 300 à 1 500 francs.',
+                'en' => 'Four warrants were issued against company employees and the telegraph messages were seized. On 28 November 1853, the Poitiers criminal court sentenced four traffic officials to between six months and two years in prison and to fines of 300 to 1,500 francs.',
+                'de' => 'Gegen vier Bedienstete der Gesellschaft wurden Vorführungsbefehle erlassen und die Telegramme beschlagnahmt. Am 28. November 1853 verurteilte das Strafgericht Poitiers vier für den Betrieb Verantwortliche zu sechs Monaten bis zwei Jahren Gefängnis und zu Geldstrafen von 300 bis 1.500 Franc.',
+                'sources' => ['vdr-saint-benoit', 'wp-liste-1850'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

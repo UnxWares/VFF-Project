@@ -6,6 +6,8 @@ use App\Enums\MaterialType;
 use App\Models\Material;
 use App\Models\Media;
 use App\Services\Media\CommonsMetadata;
+use App\Support\MaterialDateCorrections;
+use App\Support\MaterialPhotoChoices;
 use App\Support\MaterialPhotoExclusions;
 
 /**
@@ -115,6 +117,19 @@ final readonly class WikidataMaterialMapper
         if ($from !== null && $to !== null && $to < $from) {
             $to = null;
         }
+        // Date contredite par une source lue (database/data/material_date_corrections.php).
+        $corrected = [];
+        foreach (['in_service_from' => $from, 'in_service_to' => $to] as $field => $year) {
+            $correction = MaterialDateCorrections::for($qid, $field, $year);
+            if ($correction !== null) {
+                $corrected[$field] = ['source' => 'wikipedia', 'ref' => $correction['source'], 'quote' => $correction['quote'], 'replaces' => $year];
+                if ($field === 'in_service_from') {
+                    $from = $correction['year'];
+                } else {
+                    $to = $correction['year'];
+                }
+            }
+        }
 
         [$speed, $speedOrigin] = $this->maxConverted($claims['P2052'] ?? [], fn (float $a, string $u): ?int => $this->rules->speedKmh($a, $u), 'Q180154');
         [$power, $powerOrigin] = $this->maxConverted($claims['P2109'] ?? [], fn (float $a, string $u): ?int => $this->rules->powerKw($a, $u), 'Q3320608');
@@ -139,7 +154,7 @@ final readonly class WikidataMaterialMapper
         $image = $file !== null && is_array($images[$file] ?? null) ? self::image($images[$file]) : null;
         $imageVia = "{$qid}#P18";
         if ($file === null) {
-            foreach (self::imageCandidates($entity, $infobox, $categoryFiles, $name) as [$candidate, $via]) {
+            foreach (self::imageCandidates($entity, $infobox, $categoryFiles, $name, $qid) as [$candidate, $via]) {
                 if (is_array($images[$candidate] ?? null) && self::isFreeImage($images[$candidate]) && ! MaterialPhotoExclusions::excludes($candidate)) {
                     [$image, $imageVia] = [self::image($images[$candidate]), $via];
                     break;
@@ -191,6 +206,7 @@ final readonly class WikidataMaterialMapper
                 $provenance[$field] = $ref($what);
             }
         }
+        $provenance = array_replace($provenance, $corrected);
         if ($speedOrigin !== null && $speed !== null) {
             $provenance['max_speed_kmh']['original'] = $speedOrigin;
         }
@@ -293,19 +309,24 @@ final readonly class WikidataMaterialMapper
      * (« Pályaudvar. Fortepan 75574 » dans « U46 coaches ») : avec `$name`, un fichier de catégorie n'est
      * candidat que si son nom reprend un mot distinctif de la série (« Pauline », « 0543 », « PBA ») et ne
      * parle pas d'accident. Chaque candidat est gardé avec sa provenance (`via`) ; map() retient le premier
-     * dont Commons donne une licence libre et un auteur (isFreeImage()).
+     * dont Commons donne une licence libre et un auteur (isFreeImage()). Avec `$qid`, la photo choisie après
+     * relecture (database/data/material_photo_choices.php) passe en premier.
      *
      * @param  array<string, mixed>  $entity
      * @param  array{title: string, parameters: array<string, string>, shared?: bool}|null  $infobox
      * @param  array<string, list<string>|null>  $categoryFiles
      * @return list<array{0: string, 1: string}> nom de fichier (sans « File: ») et provenance
      */
-    public static function imageCandidates(array $entity, ?array $infobox, array $categoryFiles = [], ?string $name = null): array
+    public static function imageCandidates(array $entity, ?array $infobox, array $categoryFiles = [], ?string $name = null, ?string $qid = null): array
     {
         if (self::imageFile($entity) !== null) {
             return [];
         }
         $out = [];
+        $chosen = $qid === null ? null : MaterialPhotoChoices::for($qid);
+        if ($chosen !== null) {
+            $out[] = [$chosen['file'], $chosen['found_in']];
+        }
         $file = trim((string) preg_replace('/^(?:fichier|file|image)\s*:\s*/iu', '', (string) ($infobox['parameters']['image'] ?? '')));
         if ($infobox !== null && ($infobox['shared'] ?? false) !== true && $file !== ''
             && preg_match('/\.(?:jpe?g|png|tiff?|webp)$/iu', $file) === 1 && preg_match('/^d[ée]faut\b|\bplan\b|\bsch[ée]ma\b/iu', $file) !== 1) {

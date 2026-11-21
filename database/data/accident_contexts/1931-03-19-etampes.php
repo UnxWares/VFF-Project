@@ -1,0 +1,116 @@
+<?php
+
+// Contexte sourcé de l'accident d'Étampes du 19 mars 1931 (recherche du 21/11/2026).
+return [
+    'slug' => '1931-03-19-etampes',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-etampes' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Accident ferroviaire d\'Étampes',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'article entier',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Accident_ferroviaire_d%27%C3%89tampes&oldid=241290779',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article détaillé, appuyé sur une trentaine de numéros de journaux de mars à juin 1931 (Gallica, non lus ici) et sur les débats de la Chambre du 26 janvier 1934 ; sert de source principale, avec la réserve que la presse citée n\'a pas été relue.',
+        ],
+        'wp-liste-1931' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1931',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'mars, 19 mars, Étampes',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1931&oldid=235357732',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée sourcée par Le Matin du 20 mars 1931 : 20 h 20, rapide Paris-Hendaye, aiguillage changé de position, dix morts et une quarantaine de blessés. Ne cite pas de cause.',
+        ],
+        'gallica-matin-1931-03-20' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Matin du 20 mars 1931, page 1',
+            'publisher' => 'Le Matin (Gallica, BnF)',
+            'author' => null,
+            'published' => '1931-03-20',
+            'locator' => 'page 1',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k577197p/f1.item.zoom',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Compte rendu du lendemain cité par la liste de Wikipédia ; Gallica non lu (droits).',
+        ],
+        'gallica-debats-1934-01-26' => [
+            'provider' => 'gallica',
+            'kind' => 'parliament',
+            'reliability' => 'official',
+            'title' => 'Journal officiel, Débats de la Chambre des députés, séance du 26 janvier 1934, page 365',
+            'publisher' => 'Journal officiel (Gallica, BnF)',
+            'author' => null,
+            'published' => '1934-01-26',
+            'locator' => 'page 365',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k6428557q/f15.image.r=%22d%C3%A9raillement%20d\'Etampes%22?rk=21459;2',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Intervention d\'un député communiste citée par Wikipédia à propos des causes ; Gallica non lu (droits).',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 19 mars 1931, vers 20 h 20, le rapide 23 de Paris-Orsay à Bordeaux, Hendaye et Tarbes, de la Compagnie du Paris-Orléans, a déraillé à l\'entrée de la gare d\'Étampes (Seine-et-Oise), sur la ligne de Paris-Austerlitz à Bordeaux-Saint-Jean. Il comprenait sept voitures, une voiture-restaurant et un fourgon de queue, derrière une locomotive électrique 2D2. Une rame de banlieue vide était garée sur la voie voisine depuis une dizaine de minutes.',
+                'en' => 'On 19 March 1931, at about 8.20 pm, express 23 from Paris-Orsay to Bordeaux, Hendaye and Tarbes, run by the Paris-Orléans company, derailed at the entrance to Étampes station (Seine-et-Oise), on the Paris-Austerlitz to Bordeaux-Saint-Jean line. It consisted of seven coaches, a restaurant car and a rear van, behind an electric 2D2 locomotive. An empty suburban unit had been standing on the adjacent track for about ten minutes.',
+                'de' => 'Am 19. März 1931 gegen 20.20 Uhr entgleiste der Schnellzug 23 von Paris-Orsay nach Bordeaux, Hendaye und Tarbes der Gesellschaft Paris-Orléans bei der Einfahrt in den Bahnhof Étampes (Seine-et-Oise) auf der Strecke Paris-Austerlitz - Bordeaux-Saint-Jean. Er bestand aus sieben Wagen, einem Speisewagen und einem Packwagen am Zugende, hinter einer elektrischen 2D2-Lokomotive. Ein leerer Vorortzug stand seit etwa zehn Minuten auf dem Nachbargleis.',
+                'sources' => ['wp-etampes', 'wp-liste-1931'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le rapide abordait la gare à 80 ou 90 km/h. En passant un aiguillage qui mène à la voie voisine, la voiture-restaurant et le fourgon se sont séparés du reste du train et ont percuté de plein fouet l\'automotrice de banlieue vide. La tête du train a continué quelques centaines de mètres ; un freinage brutal a fait dérailler deux autres voitures avant l\'arrêt à la sortie de la gare.',
+                'en' => 'The express was entering the station at 80 to 90 km/h. As it passed a set of points leading to the adjacent track, the restaurant car and the van separated from the rest of the train and hit the empty suburban unit head-on. The front of the train carried on for a few hundred metres; sudden braking derailed two more coaches before it stopped at the far end of the station.',
+                'de' => 'Der Schnellzug fuhr mit 80 bis 90 km/h in den Bahnhof ein. Beim Befahren einer Weiche zum Nachbargleis lösten sich der Speisewagen und der Packwagen vom übrigen Zug und prallten frontal auf den leeren Vorortzug. Der Zugkopf fuhr noch einige hundert Meter weiter; durch die plötzliche Bremsung entgleisten zwei weitere Wagen, bevor der Zug am Bahnhofsende stand.',
+                'sources' => ['wp-etampes', 'wp-liste-1931'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'La voiture-restaurant, écrasée entre l\'automotrice et le fourgon, a concentré la plupart des victimes. Le bilan final est de dix morts et d\'une quarantaine de blessés. La compagnie avait d\'abord annoncé dix morts, puis un communiqué rectificatif en a donné cinq, avant que le décès de blessés graves ne ramène le chiffre à dix. Les cheminots, la gendarmerie, les pompiers et des militaires de la base aérienne d\'Étampes ont organisé les secours.',
+                'en' => 'The restaurant car, crushed between the suburban unit and the van, took most of the casualties. The final toll was ten dead and about forty injured. The company had first announced ten dead, then a corrective statement gave five, before the death of seriously injured people brought the figure back to ten. Railway staff, the gendarmerie, firefighters and soldiers from the Étampes air base organised the rescue.',
+                'de' => 'Der zwischen Triebwagen und Packwagen zerdrückte Speisewagen forderte die meisten Opfer. Die endgültige Bilanz lautet zehn Tote und etwa vierzig Verletzte. Die Gesellschaft hatte zunächst zehn Tote gemeldet, dann nannte eine berichtigende Mitteilung fünf, bevor der Tod Schwerverletzter die Zahl wieder auf zehn brachte. Eisenbahner, Gendarmerie, Feuerwehr und Soldaten des Fliegerstützpunkts Étampes organisierten die Rettung.',
+                'sources' => ['wp-etampes'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'L\'aiguillage a changé de position au passage du train pour des raisons restées inconnues. Les ingénieurs de la compagnie ont mis en cause l\'aiguilleur du poste voisin, qui a nié toute erreur ; une autre hypothèse, tirée des témoignages de secousses avant le choc et de l\'examen des commandes (forcées, cadenas intact), est qu\'un premier déraillement a forcé les lames d\'aiguille. L\'aiguille ayant été détruite, rien n\'a permis de trancher.',
+                'en' => 'The points changed position as the train passed, for reasons that were never established. The company\'s engineers blamed the signalman of the nearby box, who denied any error; another hypothesis, drawn from passengers\' accounts of jolts before the impact and from the examination of the controls (forced, padlock intact), is that an initial derailment forced the switch blades. With the points destroyed, nothing could settle the matter.',
+                'de' => 'Die Weiche stellte sich beim Durchfahren des Zuges aus nie geklärten Gründen um. Die Ingenieure der Gesellschaft beschuldigten den Weichensteller des nahen Stellwerks, der jeden Fehler bestritt; eine andere Hypothese, gestützt auf Berichte von Rucken vor dem Aufprall und auf die Untersuchung der Bedienelemente (aufgebrochen, Vorhängeschloss unversehrt), lautet, dass eine erste Entgleisung die Weichenzungen aufgedrückt hat. Da die Weiche zerstört war, ließ sich nichts entscheiden.',
+                'sources' => ['wp-etampes', 'wp-liste-1931'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Le ministre des Travaux publics, Maurice Deligne, s\'est rendu sur place. Une information judiciaire a été ouverte et trois experts ont été désignés. L\'aiguilleur est resté menacé d\'inculpation jusqu\'en juin 1931, puis l\'instruction a été close sans poursuites, l\'origine de l\'accident restant inexpliquée. En janvier 1934, un député communiste a attribué l\'accident à des défaillances du matériel liées aux économies des compagnies.',
+                'en' => 'The Minister of Public Works, Maurice Deligne, went to the scene. A judicial inquiry was opened and three experts were appointed. The signalman remained under threat of being charged until June 1931, then the inquiry was closed without prosecution, the origin of the accident remaining unexplained. In January 1934 a Communist deputy blamed the accident on equipment failures linked to the companies\' economies.',
+                'de' => 'Der Minister für öffentliche Arbeiten, Maurice Deligne, begab sich an die Unfallstelle. Es wurde ein gerichtliches Ermittlungsverfahren eröffnet und drei Gutachter wurden bestellt. Der Weichensteller blieb bis Juni 1931 von einer Anklage bedroht, dann wurde die Untersuchung ohne Strafverfolgung eingestellt; die Ursache blieb ungeklärt. Im Januar 1934 führte ein kommunistischer Abgeordneter den Unfall auf Materialmängel infolge der Sparmaßnahmen der Gesellschaften zurück.',
+                'sources' => ['wp-etampes'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Bilan : dix morts et une quarantaine de blessés selon l\'article de Wikipédia et la liste de 1931 ; l\'article note que les premiers communiqués de la compagnie parlaient de dix puis de cinq morts. La fiche ne porte pas de nombre de blessés, que ces deux pages fixent à une quarantaine (sans source primaire lue, donc sans correction). Cause : aucune source lue ne la tranche ; l\'erreur d\'aiguilleur et le déraillement préalable restent deux hypothèses.',
+                'en' => 'Toll: ten dead and about forty injured according to the Wikipedia article and the 1931 list; the article notes that the company\'s first statements gave ten, then five dead. The record has no injury figure, which these two pages put at about forty (no primary source was read, so no correction is made). Cause: no source read settles it; signalman error and a prior derailment remain two hypotheses.',
+                'de' => 'Opferzahl: zehn Tote und etwa vierzig Verletzte laut dem Wikipedia-Artikel und der Liste von 1931; der Artikel vermerkt, dass die ersten Mitteilungen der Gesellschaft zehn, dann fünf Tote nannten. Der Datensatz enthält keine Verletztenzahl; die beiden Seiten nennen etwa vierzig (keine Primärquelle gelesen, daher keine Korrektur). Ursache: Keine gelesene Quelle entscheidet; ein Fehler des Weichenstellers und eine vorausgehende Entgleisung bleiben zwei Hypothesen.',
+                'sources' => ['wp-etampes', 'wp-liste-1931'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

@@ -131,6 +131,9 @@ class SingleAxis
 
     public const NEAR_SHARE = 0.9;
 
+    /** Bout libre qui dépasse le croisement avec une autre portion de la ligne en la longeant (< NEAR_M) : longueur max coupée (m). */
+    public const CROSS_STUB_MAX_M = 30.0;
+
     private const PRECISE = ['contrib', 'bdtopo', 'osm'];
 
     private const HISTORICAL = ['archeoferroviaire', 'ohm'];
@@ -202,6 +205,10 @@ class SingleAxis
      *   1 bis. Portions courtes presque confondues (cf. dropNearDuplicates) :
      *      deux tracés de la même voie à 1-5 m, raccords superposés en V, petits
      *      côtés d'un rectangle de raccords.
+     *   1 ter. Bouts croisés (cf. trimCrossedStubs) : le bout libre d'une portion
+     *      qui dépasse de moins de CROSS_STUB_MAX_M le point où elle croise une
+     *      autre portion de la ligne, en la longeant à moins de NEAR_M, est coupé
+     *      au croisement (deux tracés de la même voie qui se croisent en biais).
      *   2. Recollage exact : les extrémités à moins de SNAP_M l'une de l'autre
      *      prennent les mêmes coordonnées, au bit près ; une extrémité posée sur
      *      une portion (raccord en T) devient un sommet de celle-ci. Sinon le
@@ -217,7 +224,7 @@ class SingleAxis
      * tracé source retirés sont listés dans line_reference_duplicates (cause
      * « superposition »). Idempotent.
      *
-     * @return array<string, float|int> superposed_m (tracés), connector_dup_m, near_m, snapped, folded
+     * @return array<string, float|int> superposed_m (tracés), connector_dup_m, near_m, crossed_m, snapped, folded
      */
     public function tidy(int $lineId): array
     {
@@ -241,6 +248,7 @@ class SingleAxis
         $stats = ['superposed_m' => 0.0, 'connector_dup_m' => 0.0, 'snapped' => 0, 'folded' => 0];
         $records = $this->trimCoincident($stats);
         $this->dropNearDuplicates($stats, $records);
+        $this->trimCrossedStubs($stats, $records);
         $stats['snapped'] = $this->snapEnds();
 
         // Portions dégénérées, puis doublons exacts (après recollage) : la moins fiable / la plus courte part.
@@ -459,6 +467,75 @@ class SingleAxis
             if (! $c->conn) {
                 $records[] = ['sid' => $sid, 'ksid' => null, 'ewkb' => null];
             }
+        }
+    }
+
+    /**
+     * Bouts croisés : une portion (hors raccords) dont une extrémité libre dépasse de 1 m à CROSS_STUB_MAX_M le point où
+     * elle croise une autre portion de la ligne, et dont tout ce bout reste à moins de NEAR_M de celle-ci, est coupée au
+     * croisement. C'est le même rail dessiné par deux sources qui se croisent en biais (Sucrerie de Toury, 3110 : tracé
+     * grossier et voie BD TOPO, bout de 14 m à 1-3 m ; sinon deux tronçons en double à chaque ère). La nouvelle
+     * extrémité est sur l'autre portion : le recollage (snapEnds) en fait un raccord en T. Le bout reste quand une
+     * autre portion de la ligne ou une autre ligne y finit (jonction), ou quand la portion ne garderait pas au moins
+     * deux fois sa longueur.
+     */
+    private function trimCrossedStubs(array &$stats, array &$records): void
+    {
+        $cands = DB::select(<<<'SQL'
+            WITH e AS (
+                SELECT t.sid, e.k, e.p, t.g, ST_Length(t.g) AS len FROM tx_sub t, LATERAL (VALUES (0, ST_StartPoint(t.g)), (1, ST_EndPoint(t.g))) e(k, p)
+                WHERE NOT t.removed AND NOT t.conn AND ST_Length(t.g) > 3 * :min
+                  AND NOT EXISTS (SELECT 1 FROM tx_sub o WHERE NOT o.removed AND o.sid <> t.sid AND ST_DWithin(o.g, e.p, :snap))
+            ),
+            x AS (
+                SELECT e.sid, e.k, e.len, o.sid AS osid, ST_LineLocatePoint(e.g, xp.geom) AS f, encode(ST_AsEWKB(xp.geom), 'hex') AS xp
+                FROM e JOIN tx_sub o ON NOT o.removed AND o.sid <> e.sid AND ST_DWithin(o.g, e.p, :near) AND ST_Intersects(o.g, e.g),
+                     LATERAL ST_Dump(ST_CollectionExtract(ST_Intersection(e.g, o.g), 1)) xp
+            )
+            SELECT DISTINCT ON (sid, k) sid, k, len, osid, f, xp, CASE WHEN k = 0 THEN f ELSE 1 - f END * len AS stub
+            FROM x
+            WHERE CASE WHEN k = 0 THEN f ELSE 1 - f END * len BETWEEN :min2 AND LEAST(:max, len / 3)
+            ORDER BY sid, k, CASE WHEN k = 0 THEN f ELSE 1 - f END
+            SQL, ['min' => 1.0, 'min2' => 1.0, 'max' => self::CROSS_STUB_MAX_M, 'snap' => self::SNAP_M, 'near' => self::NEAR_M]);
+        $cut = [];
+        foreach ($cands as $c) {
+            $sid = (int) $c->sid;
+            // Une coupe par portion et par passage : l'abscisse de l'autre bout ne vaut plus après la première.
+            if (isset($cut[$sid])) {
+                continue;
+            }
+            [$a, $b] = (int) $c->k === 0 ? [0.0, (float) $c->f] : [(float) $c->f, 1.0];
+            $ok = DB::selectOne(<<<'SQL'
+                WITH s AS (SELECT ST_LineSubstring(g, :a, :b) AS g FROM tx_sub WHERE sid = :sid AND NOT removed),
+                o AS (SELECT g FROM tx_sub WHERE sid = :osid AND NOT removed)
+                SELECT ST_Length(ST_Intersection(s.g, ST_Buffer(o.g, :near))) >= 0.99 * ST_Length(s.g)
+                   AND NOT EXISTS (
+                       SELECT 1 FROM tx_sub t, LATERAL (VALUES (ST_StartPoint(t.g)), (ST_EndPoint(t.g))) e(p)
+                       WHERE NOT t.removed AND t.sid <> :sid2 AND ST_DWithin(s.g, e.p, :snap)
+                         AND NOT ST_DWithin(e.p, ST_GeomFromEWKB(decode(:xp, 'hex')), :snap2))
+                   AND NOT EXISTS (
+                       SELECT 1 FROM line_reference_parts r, LATERAL ST_Dump(r.geom) d
+                       WHERE r.line_id <> (SELECT p.line_id FROM line_reference_parts p JOIN tx_sub t ON t.part_id = p.id WHERE t.sid = :sid3)
+                         AND r.geom && ST_Transform(ST_Expand(s.g, 2), 4326)
+                         AND (ST_DWithin(ST_Transform(ST_StartPoint(d.geom), 2154), s.g, 1) OR ST_DWithin(ST_Transform(ST_EndPoint(d.geom), 2154), s.g, 1))) AS ok
+                FROM s, o
+                SQL, ['a' => $a, 'b' => $b, 'sid' => $sid, 'sid2' => $sid, 'sid3' => $sid, 'osid' => (int) $c->osid, 'near' => self::NEAR_M,
+                'snap' => self::SNAP_M, 'snap2' => self::SNAP_M, 'xp' => $c->xp])?->ok;
+            if ($ok !== true) {
+                continue;
+            }
+            $records[] = ['sid' => $sid, 'ksid' => (int) $c->osid,
+                'ewkb' => DB::selectOne("SELECT encode(ST_AsEWKB(ST_LineSubstring(g, ?, ?)), 'hex') AS ewkb FROM tx_sub WHERE sid = ?", [$a, $b, $sid])->ewkb];
+            // Partie gardée, extrémité posée exactement au croisement.
+            DB::update(<<<'SQL'
+                UPDATE tx_sub SET g = ST_SetPoint(l.g, CASE WHEN :k = 0 THEN 0 ELSE ST_NPoints(l.g) - 1 END, ST_GeomFromEWKB(decode(:xp, 'hex')))
+                FROM (SELECT ST_LineSubstring(g, :a, :b) AS g FROM tx_sub WHERE sid = :sid) l
+                WHERE sid = :sid2
+                SQL, ['k' => (int) $c->k, 'xp' => $c->xp, 'a' => (int) $c->k === 0 ? (float) $c->f : 0.0, 'b' => (int) $c->k === 0 ? 1.0 : (float) $c->f,
+                'sid' => $sid, 'sid2' => $sid]);
+            $cut[$sid] = true;
+            $stats['superposed_m'] += (float) $c->stub;
+            $stats['crossed_m'] = ($stats['crossed_m'] ?? 0) + (float) $c->stub;
         }
     }
 

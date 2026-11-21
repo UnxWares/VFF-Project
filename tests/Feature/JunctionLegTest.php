@@ -123,6 +123,26 @@ class JunctionLegTest extends TestCase
         $this->part('archeoferroviaire', [[280, 25], [300, 0]], [$a], 'connector');
     }
 
+    public function test_stair_arrival_where_another_line_ends_is_kept(): void
+    {
+        // 438 (2.79238, 48.73316) : la branche de 214 finit sur le raccord droit de l'arrivée ; la courbe lissée la
+        // laissait à 3,9 m (rejeu du 21/11/2026). L'arrivée reste telle quelle, la jonction à 0 m.
+        $this->stair();
+        $other = Line::factory()->create(['code' => '421000', 'network' => 'principal', 'gauge_mm_default' => 1435]);
+        DB::table('line_reference_parts')->insert([
+            'line_id' => $other->id, 'source' => 'bdtopo', 'source_trace_ids' => '[]', 'length_m' => 0, 'created_at' => now(), 'updated_at' => now(),
+            'geom' => DB::raw("ST_Multi(ST_Transform(ST_GeomFromText('".$this->wkt([[290, 400], [290, 12.5]])."', 2154), 4326))"),
+        ]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['leg_smoothed']);
+        $this->assertNull($this->smoothed());
+        $this->assertLessThan(0.01, (float) DB::selectOne(<<<'SQL'
+            SELECT ST_Distance(ST_SetSRID(ST_MakePoint(?, ?), 2154), ST_Collect(ST_Transform(geom, 2154))) AS d FROM line_reference_parts WHERE line_id = ?
+            SQL, [self::X0 + 290, self::Y0 + 12.5, $this->line->id])->d);
+    }
+
     public function test_stair_arrival_is_replaced_by_a_smoothed_curve_marked_as_estimated(): void
     {
         $this->stair();

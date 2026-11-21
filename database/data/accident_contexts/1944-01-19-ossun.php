@@ -150,4 +150,22 @@ return [
             ],
         ],
     ],
+    'corrections' => [
+        [
+            'field' => 'injuries',
+            'value' => 47,
+            'sources' => ['loucrup-ossun', 'wp-liste-1940'],
+            'fr' => 'La page d\'histoire locale donne un bilan final de 27 morts et 47 blessés, et la liste de Wikipédia une cinquantaine de blessés ; la fiche n\'avait pas de nombre de blessés.',
+            'en' => 'The local history page gives a final toll of 27 dead and 47 injured, and the Wikipedia list about fifty injured; the record had no number of injured.',
+            'de' => 'Die Seite zur Ortsgeschichte nennt als endgültige Bilanz 27 Tote und 47 Verletzte, die Wikipedia-Liste etwa fünfzig Verletzte; der Eintrag hatte keine Verletztenzahl.',
+        ],
+        [
+            'field' => 'occurred_at_time',
+            'value' => '06:10',
+            'sources' => ['loucrup-ossun', 'wp-liste-1940'],
+            'fr' => 'Les deux sources lues placent le déraillement à 6 h 10, une heure après le départ de Pau.',
+            'en' => 'Both sources read place the derailment at 6.10 am, an hour after leaving Pau.',
+            'de' => 'Beide gelesenen Quellen setzen die Entgleisung auf 6.10 Uhr, eine Stunde nach der Abfahrt in Pau.',
+        ],
+    ],
 ];

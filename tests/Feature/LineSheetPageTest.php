@@ -123,8 +123,7 @@ class LineSheetPageTest extends TestCase
     {
         $this->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Lines/Show')
-            ->has('portions', 2)
-            ->where('portions.0.geometry.type', 'LineString')
+            ->where('portions_count', 2)
             ->where('phases', function ($phases) {
                 $dates = $this->rows($phases)->map(fn ($p) => [$p['date'], $p['precision']])->all();
                 $this->assertSame([
@@ -436,7 +435,7 @@ class LineSheetPageTest extends TestCase
     {
         $empty = Line::factory()->create(['type' => null, 'alt_names' => null, 'description' => null]);
         $this->get('/lines/'.$empty->slug)->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->has('phases', 0)->has('portions', 0)->where('best_phase', null)->has('decades', 0)
+            ->has('phases', 0)->where('portions_count', 0)->where('best_phase', null)->has('decades', 0)
             ->where('line.names', [])->where('line.description_source', null));
     }
 

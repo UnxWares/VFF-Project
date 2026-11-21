@@ -3,6 +3,7 @@
     import { onDestroy, onMount } from 'svelte';
     import { page, router } from '@inertiajs/svelte';
     import { loadMaplibre } from '$lib/loadMaplibre.js';
+    import { loadLinePortions } from '$lib/linePortions.js';
     import { i18n } from '$lib/i18n.js';
     import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
     import { theme } from '$lib/stores/theme.svelte.js';
@@ -24,13 +25,14 @@
 
     /**
      * Carte de la fiche ligne : la ligne ENTIÈRE à la phase choisie (LinePhases). Toutes
-     * les portions sont chargées une fois ; changer de phase ne fait que recolorer.
+     * les portions sont chargées une fois, depuis `portionsUrl` (LinePortionsController), en même
+     * temps que MapLibre ; changer de phase ne fait que recolorer.
      * Les portions modifiées par la phase sont soulignées d'un halo. Gares : leur état à
      * la décennie de la phase (station_eras), absentes si elles n'existaient pas encore.
      * La légende explique les traits ET les gares affichés.
      */
     let {
-        portions = [],
+        portionsUrl,
         phase = null,
         stations = [],
         name = '',
@@ -42,6 +44,10 @@
     let mapContainer = $state();
     let map = null;
     let loaded = $state(false);
+    // Portions lues à part (géométrie : jamais rendue profondément réactive) ; `failed` : tracé introuvable.
+    /** @type {Array<{ length_m: number, geometry: any }>} */
+    let portions = $state.raw([]);
+    let failed = $state(false);
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (k, o) => String($i18n.t(k, o));
@@ -139,8 +145,16 @@
     let destroyed = false;
 
     onMount(async () => {
-        const maplibregl = await loadMaplibre();
+        const [maplibregl, lineworks] = await Promise.all([
+            loadMaplibre(),
+            loadLinePortions(portionsUrl).catch(() => null),
+        ]);
         if (destroyed || !mapContainer) return;
+        if (!lineworks) {
+            failed = true;
+            return;
+        }
+        portions = lineworks;
         const offline = isOfflineView(page.props);
         if (offline) releasePartialMap = reportPartialMap();
         map = new maplibregl.Map({
@@ -325,7 +339,9 @@
 <div class="phase-map-wrap">
     <div class="phase-map" style:height>
         <div class="map" bind:this={mapContainer}></div>
-        {#if !loaded}
+        {#if failed}
+            <p class="loading" role="status">{t('lines.sheet.map.unavailable')}</p>
+        {:else if !loaded}
             <p class="loading" aria-hidden="true">{t('lines.sheet.map.loading')}</p>
         {/if}
     </div>

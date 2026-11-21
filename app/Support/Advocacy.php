@@ -17,6 +17,15 @@ use InvalidArgumentException;
  *    "cta_url": "https://…", "translations": {"en": {"title": "…", …}, "de": {…}},
  *    "sources": [{"label": "France 3 Normandie", "date": "2026-07-23", "url": "https://…"}]}
  *
+ * Place sur l'accueil (facultative, clé `home` absente sinon) : rang croissant (1 d'abord ; sans rang,
+ * après les lignes classées), forme `card` (encart complet, par défaut) ou `mention` (une phrase courte
+ * et un lien vers la fiche, après les encarts), texte court de la mention en français et ses traductions :
+ *
+ *   "home": {"rank": 3, "display": "mention", "summary": "En juillet 2026, …",
+ *            "translations": {"en": "In July 2026, …", "de": "Im Juli 2026 …"}}
+ *
+ * L'encart de la fiche de la ligne ne dépend pas de cette clé.
+ *
  * Sources (facultatives, clé absente sinon) : articles et documents qui étayent le message, nom
  * du média ou de l'auteur (non traduit) et date de publication, rédigée dans la langue de la page
  * à la lecture.
@@ -33,6 +42,9 @@ final class Advocacy
     public const FIELDS = ['title', 'message', 'cta_label'];
 
     public const KINDS = ['threatened', 'reopening'];
+
+    /** Formes d'une campagne sur l'accueil : encart complet ou mention courte. */
+    public const HOME_DISPLAYS = ['card', 'mention'];
 
     /**
      * Lit une source donnée en ligne de commande : « Libellé|AAAA-MM-JJ|https://… ».
@@ -73,9 +85,10 @@ final class Advocacy
      *
      * @param  array<string, array<string, ?string>>  $texts  champ → [langue → texte] (null ou vide : défaut)
      * @param  list<array{label: string, date: string, url: string}>  $sources  sources du message (parseSource)
+     * @param  array<string, mixed>|null  $home  place sur l'accueil (buildHome)
      * @return array<string, mixed>
      */
-    public static function build(string $kind, array $texts, ?string $url, array $sources = []): array
+    public static function build(string $kind, array $texts, ?string $url, array $sources = [], ?array $home = null): array
     {
         $out = ['kind' => $kind];
         foreach (self::FIELDS as $field) {
@@ -98,8 +111,71 @@ final class Advocacy
         if ($sources !== []) {
             $out['sources'] = $sources;
         }
+        if ($home !== null) {
+            $out['home'] = $home;
+        }
 
         return $out;
+    }
+
+    /**
+     * Construit la place sur l'accueil ; null quand rien n'est précisé (encart complet, sans rang).
+     *
+     * @param  array<string, ?string>  $summary  langue → texte court de la mention
+     * @return array{rank?: int, display: string, summary?: string, translations?: array<string, string>}|null
+     *
+     * @throws InvalidArgumentException forme inconnue, rang < 1, mention sans texte français
+     */
+    public static function buildHome(?int $rank, ?string $display, array $summary = []): ?array
+    {
+        $summary = array_filter(array_map(fn (?string $t) => trim((string) $t), $summary), fn (string $t) => $t !== '');
+        if ($rank === null && ($display === null || $display === 'card') && $summary === []) {
+            return null;
+        }
+        $display ??= 'card';
+        if (! in_array($display, self::HOME_DISPLAYS, true)) {
+            throw new InvalidArgumentException('forme d\'accueil inconnue « '.$display.' » (attendu : '.implode(' ou ', self::HOME_DISPLAYS).')');
+        }
+        if ($rank !== null && $rank < 1) {
+            throw new InvalidArgumentException('le rang d\'accueil commence à 1');
+        }
+        if ($display === 'mention' && ! isset($summary['fr'])) {
+            throw new InvalidArgumentException('une mention d\'accueil demande son texte court en français');
+        }
+        $home = $rank !== null ? ['rank' => $rank] : [];
+        $home['display'] = $display;
+        if (isset($summary['fr'])) {
+            $home['summary'] = $summary['fr'];
+        }
+        $translations = array_diff_key($summary, ['fr' => true]);
+        if ($translations !== []) {
+            $home['translations'] = $translations;
+        }
+
+        return $home;
+    }
+
+    /**
+     * Place sur l'accueil dans la langue de la page. Sans clé `home` : encart complet, sans rang.
+     * Mention sans texte (valeur abîmée) : rendue en encart, jamais en lien muet.
+     *
+     * @param  array<string, mixed>|null  $advocacy  valeur stockée
+     * @return array{rank: ?int, display: string, summary: ?string, lang: ?string}
+     */
+    public static function home(?array $advocacy, string $locale): array
+    {
+        $home = is_array($advocacy['home'] ?? null) ? $advocacy['home'] : [];
+        $rank = is_int($home['rank'] ?? null) && $home['rank'] >= 1 ? $home['rank'] : null;
+        $fr = trim((string) ($home['summary'] ?? ''));
+        $translated = $locale !== 'fr' ? trim((string) ($home['translations'][$locale] ?? '')) : '';
+        [$summary, $lang] = match (true) {
+            $translated !== '' => [$translated, $locale],
+            $fr !== '' => [$fr, 'fr'],
+            default => [null, null],
+        };
+        $display = ($home['display'] ?? null) === 'mention' && $summary !== null ? 'mention' : 'card';
+
+        return ['rank' => $rank, 'display' => $display, 'summary' => $summary, 'lang' => $lang];
     }
 
     /**

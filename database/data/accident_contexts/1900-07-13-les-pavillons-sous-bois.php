@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé du déraillement à l'entrée de la gare de Gargan du 13 juillet 1900 (recherche du 21/11/2026).
+return [
+    'slug' => '1900-07-13-les-pavillons-sous-bois',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1900' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1900',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Juillet',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1900&oldid=233589330#Juillet',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Ligne de Bondy à Aulnay-sous-Bois, entrée en gare de Gargan, vers 18 h 30, les trois dernières voitures déraillent après le déclenchement inopiné d\'un aiguillage, un mort et sept blessés ; l\'aiguilleur invoque un violent orage.',
+        ],
+        'delpher-noordbrabant-1900-07-16' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève sur le déraillement de Gargan',
+            'publisher' => 'Dagblad van Noord-Brabant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1900-07-16',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001943228:mpeg21:a00004',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Orage violent avec grêle, ligne coupée, train déraillé à Gargan, voyageurs sautant des voitures, un vieillard de 75 ans mort.',
+        ],
+        'delpher-noordbrabanter-1900-07-17' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève sur le déraillement de Gargan',
+            'publisher' => 'De Noord Brabanter (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1900-07-17',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUBTB04:210827017:mpeg21:a00004',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Train déraillé près de Gargan sur le réseau de l\'Est : un voyageur tué, cinq blessés graves.',
+        ],
+        'delpher-vaderland-1900-07-17' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève sur le déraillement de Gargan',
+            'publisher' => 'Het Vaderland (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1900-07-17',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001450014:mpeg21:a00038',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même information : un voyageur tué et cinq blessés graves à Gargan.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le vendredi 13 juillet 1900, vers 18 h 30, sur la ligne de Bondy à Aulnay-sous-Bois, à l\'entrée de la gare de Gargan, au nord-est de Paris, un train venant de Paris arrivait par temps d\'orage : la presse néerlandaise parle d\'un violent orage avec grêle qui avait coupé la ligne.',
+                'en' => 'On Friday 13 July 1900, at about 6.30 pm, on the Bondy to Aulnay-sous-Bois line, at the approach to Gargan station, north-east of Paris, a train from Paris was arriving in stormy weather: the Dutch press speaks of a violent thunderstorm with hail that had cut the line.',
+                'de' => 'Am Freitag, dem 13. Juli 1900, kam gegen 18.30 Uhr auf der Strecke von Bondy nach Aulnay-sous-Bois bei der Einfahrt in den Bahnhof Gargan nordöstlich von Paris ein Zug aus Paris bei Gewitter an: Die niederländische Presse spricht von einem heftigen Gewitter mit Hagel, das die Strecke unterbrochen hatte.',
+                'sources' => ['wp-liste-1900', 'delpher-noordbrabant-1900-07-16'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, les trois dernières voitures du train ont déraillé et se sont renversées après le déclenchement inopiné d\'un aiguillage. D\'après la presse néerlandaise, les voyageurs ont sauté des voitures et beaucoup ont été blessés.',
+                'en' => 'According to the Wikipedia list, the last three coaches of the train derailed and overturned after a set of points moved unexpectedly. According to the Dutch press, the passengers jumped from the coaches and many were injured.',
+                'de' => 'Nach der Wikipedia-Liste entgleisten die letzten drei Wagen des Zuges und kippten um, nachdem sich eine Weiche unerwartet umgestellt hatte. Nach der niederländischen Presse sprangen die Reisenden aus den Wagen, und viele wurden verletzt.',
+                'sources' => ['wp-liste-1900', 'delpher-noordbrabant-1900-07-16'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'La liste de Wikipédia compte un mort et sept blessés ; la presse néerlandaise parle d\'un voyageur tué, un vieillard de 75 ans selon l\'un des journaux, et de cinq blessés graves.',
+                'en' => 'The Wikipedia list counts one dead and seven injured; the Dutch press speaks of one passenger killed, an old man of 75 according to one newspaper, and five seriously injured.',
+                'de' => 'Die Wikipedia-Liste zählt einen Toten und sieben Verletzte; die niederländische Presse spricht von einem getöteten Reisenden, nach einer Zeitung ein 75-jähriger Mann, und fünf Schwerverletzten.',
+                'sources' => ['wp-liste-1900', 'delpher-noordbrabanter-1900-07-17', 'delpher-vaderland-1900-07-17', 'delpher-noordbrabant-1900-07-16'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'L\'aiguilleur a invoqué les perturbations causées au mécanisme de l\'aiguillage par le violent orage, selon la liste de Wikipédia.',
+                'en' => 'The pointsman pleaded that the violent storm had disturbed the points mechanism, according to the Wikipedia list.',
+                'de' => 'Der Weichenwärter machte geltend, das heftige Gewitter habe den Weichenmechanismus gestört, nach der Wikipedia-Liste.',
+                'sources' => ['wp-liste-1900'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

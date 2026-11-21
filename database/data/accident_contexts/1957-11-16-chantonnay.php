@@ -207,5 +207,21 @@ return [
             'en' => 'The sources describe a head-on collision between a railcar and a goods train on the single track, not a mere incident.',
             'de' => 'Die Quellen beschreiben einen Frontalzusammenstoß eines Triebwagens mit einem Güterzug auf der eingleisigen Strecke und keinen bloßen Zwischenfall.',
         ],
+        [
+            'field' => 'injuries',
+            'value' => 22,
+            'sources' => ['chouette-vendee', 'forum-railbreopdl', 'forum-picasso'],
+            'fr' => 'Le récit de La Chouette de Vendée, fondé sur la presse de 1957 et l\'enquête, et deux reprises de la presse locale sur des forums donnent 22 blessés ; la fiche n\'avait pas de nombre de blessés.',
+            'en' => 'The La Chouette de Vendée account, based on the 1957 press and the inquiry, and two reposts of the local press on forums give 22 injured; the record had no number of injured.',
+            'de' => 'Der Bericht von La Chouette de Vendée, gestützt auf die Presse von 1957 und die Untersuchung, sowie zwei in Foren wiedergegebene Artikel der Lokalpresse nennen 22 Verletzte; der Eintrag hatte keine Verletztenzahl.',
+        ],
+        [
+            'field' => 'occurred_at_time',
+            'value' => '12:58',
+            'sources' => ['chouette-vendee', 'forum-railbreopdl'],
+            'fr' => 'La Chouette de Vendée donne l\'heure du choc à 12 h 58 ; la presse reprise sur le forum dit « peu avant 13 h ».',
+            'en' => 'La Chouette de Vendée gives the time of the collision as 12.58 pm; the press reposted on the forum says "shortly before 1 pm".',
+            'de' => 'La Chouette de Vendée gibt als Zeitpunkt des Zusammenstoßes 12.58 Uhr an; die im Forum wiedergegebene Presse spricht von „kurz vor 13 Uhr“.',
+        ],
     ],
 ];

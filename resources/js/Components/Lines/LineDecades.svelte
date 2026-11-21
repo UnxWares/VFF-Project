@@ -237,7 +237,7 @@
     }
     tbody th {
         font-family: var(--vff-font-display);
-        font-size: 16px;
+        font-size: 17px;
         font-weight: 700;
         font-variant-numeric: tabular-nums;
     }

@@ -11,8 +11,22 @@ namespace App\Services\Profiles;
  */
 final class ProfileStats
 {
-    /** Seuil d'hystérésis des dénivelés cumulés : le bruit du modèle de terrain n'est pas compté. */
+    /** Seuil d'hystérésis des dénivelés cumulés : une variation plus petite n'est pas comptée. */
     public const CLIMB_THRESHOLD_M = 3.0;
+
+    /**
+     * Largeur de la moyenne glissante appliquée aux altitudes du TERRAIN (RGE ALTI) avant le cumul
+     * des dénivelés. Le terrain sous un tracé ancien suit les talus, les tranchées et les versants
+     * voisins : sans lissage, ce bruit s'additionne (1 236 m de montée pour Rosporden - Plouescat).
+     * Mesure du 21/11/2026 sur 40 lignes mesurées sur la voie (BD TOPO), le terrain pris aux mêmes
+     * points puis à 15 m et 30 m sur le côté : hystérésis de 3 m seule, 1,8 à 3,3 fois les dénivelés
+     * de la voie ; seuil de 20 m, 0,9 à 1,1 fois au total mais de 0,4 à 1,5 fois d'une ligne à
+     * l'autre (les petites rampes réelles disparaissent) ; moyenne sur 1 km puis 3 m, 1,0 à 1,13 fois
+     * (rapport médian 0,95 à 1,05, de 0,81 à 1,44 pour huit lignes sur dix à 15 m). Détail :
+     * storage/app/reports/agents/matin-2111/profil-finitions.md. Les altitudes de la voie ne sont
+     * pas lissées : les lignes mesurées sur la voie gardent leurs dénivelés.
+     */
+    public const TERRAIN_SMOOTHING_M = 1000.0;
 
     /** Fenêtre de la déclivité maximale (« rampe sur 1 km », pente moyenne par moindres carrés). */
     public const GRADE_WINDOW_M = 1000.0;
@@ -253,16 +267,19 @@ final class ProfileStats
     }
 
     /**
-     * Altitudes extrêmes, dénivelés cumulés (hystérésis de CLIMB_THRESHOLD_M, remise à zéro après
-     * chaque lacune) et déclivité la plus forte sur GRADE_WINDOW_M (ou sur toute la longueur pour
-     * un parcours plus court), en ‰ : un mètre de dénivelé sur un kilomètre fait 1 ‰.
+     * Altitudes extrêmes, dénivelés cumulés (altitudes du terrain lissées sur TERRAIN_SMOOTHING_M,
+     * puis hystérésis de CLIMB_THRESHOLD_M, remise à zéro après chaque lacune) et déclivité la plus
+     * forte sur GRADE_WINDOW_M (ou sur toute la longueur pour un parcours plus court), en ‰ : un
+     * mètre de dénivelé sur un kilomètre fait 1 ‰.
      *
      * La déclivité n'est publiée que pour une fenêtre mesurée sur la voie (décision du 21/11/2026 :
      * pas de valeur plutôt qu'une valeur fausse) : au moins les trois quarts des points pris dans la
      * BD TOPO, au plus un quart en tunnel (altitude reconstituée, fausse près des têtes) et au plus
      * un quart interpolés, et la moitié au moins des points de la ligne mesurés sur la voie ; jamais à travers une lacune ; jamais au-delà de MAX_PLAUSIBLE_GRADE.
      * Sans fenêtre admise, `max_grade_permil` et ses bornes sont nuls et `max_grade_withheld` dit
-     * pourquoi : `terrain_only` (altitude du terrain seulement), `tunnel` ou `interpolated`.
+     * pourquoi : `terrain_only` (altitude du terrain seulement), `tunnel` ou `interpolated`. Sur une
+     * ligne à crémaillère (`$rack`, RackRailways), elle n'est jamais publiée (motif `rack`) : la
+     * règle des 120 ‰ ne garde que les pentes d'une ligne à adhérence.
      *
      * @param  list<array{0: float, 1: float|null}>  $points
      * @param  list<array{0: float, 1: float}>  $gaps  lacunes [début, fin] : aucune fenêtre ne les traverse
@@ -272,7 +289,7 @@ final class ProfileStats
      *     max_grade_permil: float|null, max_grade_from_m: int|null, max_grade_to_m: int|null,
      *     max_grade_direction: string|null, max_grade_withheld: string|null}|null
      */
-    public static function summarize(array $points, array $gaps = [], array $flags = []): ?array
+    public static function summarize(array $points, array $gaps = [], array $flags = [], bool $rack = false): ?array
     {
         $valid = array_values(array_filter($points, fn (array $p): bool => $p[1] !== null));
         if (count($valid) < 2) {
@@ -280,8 +297,10 @@ final class ProfileStats
         }
         $zs = array_column($valid, 1);
 
-        [$ascent, $descent] = self::climbs($points, $gaps);
-        $grade = self::maxGrade($points, $gaps, $flags);
+        [$ascent, $descent] = self::climbs(self::smoothTerrain($points, $gaps, $flags), $gaps);
+        $grade = $rack
+            ? ['permil' => 0.0, 'from' => 0.0, 'to' => 0.0, 'withheld' => 'rack']
+            : self::maxGrade($points, $gaps, $flags);
         $found = $grade['withheld'] === null;
 
         return [
@@ -295,6 +314,54 @@ final class ProfileStats
             'max_grade_direction' => $found ? ($grade['permil'] >= 0 ? 'up' : 'down') : null,
             'max_grade_withheld' => $grade['withheld'],
         ];
+    }
+
+    /**
+     * Altitudes du terrain remplacées par leur moyenne sur TERRAIN_SMOOTHING_M centrée sur le point,
+     * calculée sur les points valides du même morceau (jamais à travers une lacune). Près d'un bout
+     * du morceau, la fenêtre rétrécit des deux côtés à la fois : une pente régulière garde ses
+     * altitudes, et la montée d'une ligne de montagne n'est pas rognée à ses extrémités. Un point
+     * est « terrain » s'il n'est ni mesuré sur la voie ni interpolé ; les autres gardent leur
+     * altitude. Sans drapeaux, rien n'est lissé.
+     *
+     * @param  list<array{0: float, 1: float|null}>  $points
+     * @param  list<array{0: float, 1: float}>  $gaps
+     * @param  list<array{track: bool, tunnel: bool, interpolated: bool}>  $flags
+     * @return list<array{0: float, 1: float|null}>
+     */
+    public static function smoothTerrain(array $points, array $gaps = [], array $flags = []): array
+    {
+        if ($flags === []) {
+            return $points;
+        }
+        $out = $points;
+        foreach (self::pieces($points, $gaps) as [$first, $last]) {
+            for ($i = $first; $i <= $last; $i++) {
+                $f = $flags[$i] ?? ['track' => true, 'tunnel' => false, 'interpolated' => false];
+                if ($points[$i][1] === null || $f['track'] || $f['interpolated']) {
+                    continue;
+                }
+                $d = $points[$i][0];
+                $half = min(self::TERRAIN_SMOOTHING_M / 2, $d - $points[$first][0], $points[$last][0] - $d);
+                $sum = 0.0;
+                $count = 0;
+                for ($k = $i; $k >= $first && $points[$k][0] >= $d - $half - 0.01; $k--) {
+                    if ($points[$k][1] !== null) {
+                        $sum += $points[$k][1];
+                        $count++;
+                    }
+                }
+                for ($k = $i + 1; $k <= $last && $points[$k][0] <= $d + $half + 0.01; $k++) {
+                    if ($points[$k][1] !== null) {
+                        $sum += $points[$k][1];
+                        $count++;
+                    }
+                }
+                $out[$i][1] = $sum / $count;
+            }
+        }
+
+        return $out;
     }
 
     /**

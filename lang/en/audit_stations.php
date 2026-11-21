@@ -69,6 +69,8 @@ return [
         'era_passenger_mismatch' => 'Era status contradicts passenger end',
         'closed_without_date' => 'Closed, no date',
         'freight_only_undated' => 'Freight only, passenger end undated',
+        'outlier_source' => 'Lone source set aside',
+        'closure_sncf_referential' => 'Closure from the SNCF register',
     ],
     'checks_text' => [
         'retained_outvoted' => 'At least two other sources, agreeing with each other, place the station more than :disagree m from the retained position. Review these first.',
@@ -83,6 +85,8 @@ return [
         'era_passenger_mismatch' => 'The status at one era contradicts the sourced end of passenger services (freight only before that date, or passengers after it).',
         'closed_without_date' => 'The station is closed, but no closing date is known.',
         'freight_only_undated' => 'The map shows the station as freight only at one era, but no end date for passenger services is known.',
+        'outlier_source' => 'A single source places the station far away, while another source is within 50 m of the retained position: it is left out of the grade.',
+        'closure_sncf_referential' => 'The closure date comes from Wikidata, which only cites the SNCF passenger station register: it counts as estimated.',
     ],
 
     'sorts' => [

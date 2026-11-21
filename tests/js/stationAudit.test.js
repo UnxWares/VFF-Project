@@ -200,3 +200,84 @@ describe('dates et chiffres', () => {
         expect(sourceFamilies({})).toEqual({ count: 0, list: [] });
     });
 });
+
+describe('cas limites', () => {
+    it('siècle : la date que le serveur range au début du siècle (1801 pour le XIXe)', () => {
+        // WikidataStationDates::time : « XIXe siècle » est enregistré au 1801-01-01.
+        expect(auditDate('1801-01-01', 'century', t, 'fr')).toBe(
+            'audit_stations.dates.century {"nth":"XIXe"}',
+        );
+        expect(auditDate('1901-01-01', 'century', t, 'en')).toBe(
+            'audit_stations.dates.century {"nth":"20th"}',
+        );
+        expect(auditDate('1701-01-01', 'century', t, 'de')).toBe(
+            'audit_stations.dates.century {"nth":"18."}',
+        );
+    });
+
+    it('ordinaux anglais de 11 à 13 et chiffres romains', () => {
+        expect(
+            ['1', '2', '3', '4', '11', '13', '22', '23', '111'].map((c) =>
+                centuryOrdinal(Number(c), 'en'),
+            ),
+        ).toEqual(['1st', '2nd', '3rd', '4th', '11th', '13th', '22nd', '23rd', '111th']);
+        expect([4, 9, 14, 18, 20, 21].map((c) => centuryOrdinal(c, 'fr'))).toEqual([
+            'IVe',
+            'IXe',
+            'XIVe',
+            'XVIIIe',
+            'XXe',
+            'XXIe',
+        ]);
+        expect(centuryOrdinal(19, null)).toBe('XIXe');
+        expect(centuryOrdinal(19, 'en-GB')).toBe('19th');
+    });
+
+    it('précision absente : la date au jour ; valeurs vides', () => {
+        expect(auditDate('1875-06-14', null, t, 'fr')).toBe('14 juin 1875');
+        expect(auditDate('', 'year', t, 'fr')).toBe('');
+        expect(deltaYears(Number.NaN)).toBeNull();
+        expect(deltaYears(0)).toBe(0);
+        expect(deltaYears(182)).toBe(0);
+        expect(deltaYears(183)).toBe(1);
+        expect(share(null, 10)).toBe(0);
+        expect(share(5, null)).toBe(0);
+        expect(share(Number.NaN, 10)).toBe(0);
+        expect(neighbourItem(null, 1, 1)).toBeNull();
+    });
+
+    it('le cadre ignore les coordonnées non finies et garde un écart déjà large', () => {
+        expect(auditBounds(null)).toBeNull();
+        expect(auditBounds({ lon: Number.NaN, lat: 45, positions: null })).toBeNull();
+        const [[w, s], [e, n]] = auditBounds({
+            lon: 0,
+            lat: 45,
+            positions: [{ lon: 0.01, lat: 45.01 }, null, { lon: '1', lat: 46 }],
+        });
+        expect([w, s, e, n]).toEqual([0, 45, 0.01, 45.01]);
+    });
+
+    it('tracés : code et nom vides par défaut, entrées nulles écartées', () => {
+        const geometry = { type: 'LineString', coordinates: [] };
+        expect(trackCollection([{ geometry }, null, { geometry: 'x' }]).features).toEqual([
+            { type: 'Feature', properties: { code: '', name: '' }, geometry },
+        ]);
+        expect(trackCollection(undefined).features).toEqual([]);
+    });
+
+    it('filtres : la valeur par défaut retirée, zéro gardé, page invalide ignorée', () => {
+        expect(filterQuery({ grade: ' disagree ', region: 0 }, 2.5)).toEqual({ region: '0' });
+        expect(filterQuery(null, 0)).toEqual({});
+        expect(
+            formFilters([
+                ['q', new Blob([])],
+                ['sort', 'name'],
+            ]),
+        ).toEqual({ sort: 'name' });
+        expect(detailUrl('a/b')).toBe('/validate/audit/stations/a%2Fb');
+    });
+
+    it('nom d’hôte vide : l’adresse telle quelle', () => {
+        expect(hostOf('mailto:contact@example.org')).toBe('mailto:contact@example.org');
+    });
+});

@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé de la collision de la halte des Combalets (ligne de Valence-d'Albigeois à Albi) du 30 mai 1911 (recherche du 21/11/2026).
+return [
+    'slug' => '1911-05-30-albi',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1911' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1911',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Mai',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1911&oldid=233727889#Mai',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Chemins de fer départementaux du Tarn, train spécial de 200 à 300 jeunes filles vers Notre-Dame de la Drèche arrêté à la halte des Combalets (Saussenac), percuté par le train régulier, trois morts, dix blessés ; renvoie à Le Matin du 31 mai 1911 (non lu).',
+        ],
+        'delpher-delftsche-1911-06-01' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk',
+            'publisher' => 'Delftsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1911-06-01',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB08:000134966:mpeg21:a0022',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Pèlerinage : collision à Combalets, ligne d\'Albi à Valence-d\'Albigeois, avec un train ordinaire ; surtout des jeunes filles, trois morts et quinze blessés graves.',
+        ],
+        'delpher-stichtsche-1911-06-01' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinongeluk',
+            'publisher' => 'De Stichtsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1911-06-01',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUTRA04:253367204:mpeg21:a00003',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche : trois morts et seize blessés graves.',
+        ],
+        'delpher-noordbrabantsche-1911-06-01' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongelukken',
+            'publisher' => 'Provinciale Noordbrabantsche en \'s Hertogenbossche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1911-06-01',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMSADB01:000007806:mpeg21:a0005',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche plus brève : train de pèlerins déraillé à Albi, deux enfants tués, six blessés.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le mardi 30 mai 1911, vers 8 h, un train spécial de 200 à 300 jeunes filles allant de Valence-d\'Albigeois au pèlerinage de Notre-Dame de la Drèche, sur la ligne de Valence-d\'Albigeois à Albi des Chemins de fer départementaux du Tarn, s\'est arrêté à la halte des Combalets pour prendre de l\'eau, selon la liste de Wikipédia.',
+                'en' => 'On Tuesday 30 May 1911, at about 8 am, a special train carrying 200 to 300 girls from Valence-d\'Albigeois to the pilgrimage of Notre-Dame de la Drèche, on the Valence-d\'Albigeois to Albi line of the Chemins de fer départementaux du Tarn, stopped at the Combalets halt to take on water, according to the Wikipedia list.',
+                'de' => 'Am Dienstag, dem 30. Mai 1911, hielt gegen 8 Uhr ein Sonderzug mit 200 bis 300 Mädchen auf dem Weg von Valence-d\'Albigeois zur Wallfahrt nach Notre-Dame de la Drèche auf der Strecke von Valence-d\'Albigeois nach Albi der Chemins de fer départementaux du Tarn nach der Wikipedia-Liste an der Haltestelle Les Combalets, um Wasser zu nehmen.',
+                'sources' => ['wp-liste-1911', 'delpher-delftsche-1911-06-01'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le train de pèlerins arrêté a été percuté par le train régulier qui le suivait. Dans le choc, une voiture du train tamponné a escaladé et écrasé celle qui la précédait, selon la liste de Wikipédia. La presse néerlandaise du 1er juin parle d\'un train de pèlerins entré en collision avec un train ordinaire à Combalets.',
+                'en' => 'The stationary pilgrim train was struck by the regular train following it. In the impact, a coach of the struck train rode up onto and crushed the one in front of it, according to the Wikipedia list. The Dutch press of 1 June speaks of a pilgrim train colliding with an ordinary train at Combalets.',
+                'de' => 'Der haltende Pilgerzug wurde vom nachfolgenden planmäßigen Zug gerammt. Beim Aufprall schob sich nach der Wikipedia-Liste ein Wagen des gerammten Zuges auf den davor stehenden und zerdrückte ihn. Die niederländische Presse vom 1. Juni spricht von einem Pilgerzug, der in Combalets mit einem gewöhnlichen Zug zusammenstieß.',
+                'sources' => ['wp-liste-1911', 'delpher-delftsche-1911-06-01', 'delpher-stichtsche-1911-06-01'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, l\'accident a fait trois morts et dix blessés, surtout de très jeunes enfants. Les dépêches néerlandaises parlent de trois morts et de quinze ou seize blessés graves, ou, dans une version plus brève, de deux enfants tués et de six blessés.',
+                'en' => 'According to the Wikipedia list, the accident killed three and injured ten, mostly very young children. The Dutch dispatches speak of three dead and fifteen or sixteen seriously injured or, in a shorter version, of two children killed and six injured.',
+                'de' => 'Nach der Wikipedia-Liste forderte der Unfall drei Tote und zehn Verletzte, überwiegend sehr kleine Kinder. Die niederländischen Depeschen sprechen von drei Toten und fünfzehn oder sechzehn Schwerverletzten oder, in einer kürzeren Fassung, von zwei getöteten Kindern und sechs Verletzten.',
+                'sources' => ['wp-liste-1911', 'delpher-delftsche-1911-06-01', 'delpher-stichtsche-1911-06-01', 'delpher-noordbrabantsche-1911-06-01'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le bilan varie : trois morts et dix blessés (liste de Wikipédia), trois morts et 15 ou 16 blessés graves, ou deux morts et six blessés (presse néerlandaise). Le lieu est la halte des Combalets, que la liste rattache à Saussenac ; les dépêches parlent de Combalets sur la ligne d\'Albi à Valence-d\'Albigeois, sans nommer la commune, et la fiche indique Albi, terminus de la ligne.',
+                'en' => 'The toll varies: three dead and ten injured (Wikipedia list), three dead and 15 or 16 seriously injured, or two dead and six injured (Dutch press). The place is the Combalets halt, which the list links to Saussenac; the dispatches speak of Combalets on the Albi to Valence-d\'Albigeois line, without naming the commune, and the record gives Albi, the terminus of the line.',
+                'de' => 'Die Bilanz schwankt: drei Tote und zehn Verletzte (Wikipedia-Liste), drei Tote und 15 oder 16 Schwerverletzte oder zwei Tote und sechs Verletzte (niederländische Presse). Der Ort ist die Haltestelle Les Combalets, die die Liste mit Saussenac verknüpft; die Depeschen sprechen von Combalets an der Strecke Albi-Valence-d\'Albigeois, ohne die Gemeinde zu nennen, und der Datensatz nennt Albi, den Endpunkt der Strecke.',
+                'sources' => ['wp-liste-1911', 'delpher-delftsche-1911-06-01', 'delpher-noordbrabantsche-1911-06-01'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

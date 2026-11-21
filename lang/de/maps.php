@@ -422,5 +422,15 @@ return [
         'popup_close' => 'Popup schließen',
         'locate' => 'Mich orten (Ihr Standort dient nur dazu, die Karte zu zentrieren: Er wird weder an VFF gesendet noch gespeichert)',
         'locate_unavailable' => 'Ortung nicht verfügbar: Zugriff verweigert oder vom Browser nicht unterstützt',
+        // MapLibre-Hinweis, wenn die Karte zwei Finger (Telefon) oder eine Taste (Computer) verlangt.
+        'gestures_windows' => 'Strg + Mausrad zum Zoomen der Karte',
+        'gestures_mac' => '⌘ + Mausrad zum Zoomen der Karte',
+        'gestures_mobile' => 'Verschieben Sie die Karte mit zwei Fingern',
+        'marker' => 'Kartenmarkierung',
+        'logo' => 'MapLibre-Logo',
+        'globe_enable' => 'Globus anzeigen',
+        'globe_disable' => 'Zurück zur flachen Karte',
+        'terrain_enable' => 'Gelände anzeigen',
+        'terrain_disable' => 'Gelände ausblenden',
     ],
 ];
