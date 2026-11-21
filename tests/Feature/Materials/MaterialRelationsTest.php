@@ -146,7 +146,7 @@ class MaterialRelationsTest extends TestCase
     /**
      * Lyon - Saint-Gervais, par Annecy ou par Annemasse : la relation reste ambiguë, et le routeur donne les lignes
      * que les deux itinéraires parcourent (ici Mézidon - Trouville) ; MaterialRelations ne les rattache pas encore
-     * (à relire).
+     * (des faux restent, voir le rapport materiel-ambigu).
      */
     public function test_an_ambiguous_relation_gives_the_lines_every_close_itinerary_follows(): void
     {
@@ -159,6 +159,23 @@ class MaterialRelationsTest extends TestCase
         $this->assertSame('ambiguous', $route['status']);
         $this->assertSame([$this->lines['379000']->id], $route['lines'], 'par Lisieux ou par la ligne directe, toujours Mézidon - Trouville');
         $this->assertSame([], $this->links($this->relations(), "* Caen - Trouville\n"));
+    }
+
+    /**
+     * Ligne commune à tous les itinéraires proches, mais qui ne s'éloigne jamais de plus de EXIT_KM d'un des deux
+     * arrêts : sortie de gare (Fives - Abbeville au départ de Lille pour Paris - Lille), jamais rattachée.
+     */
+    public function test_an_ambiguous_relation_drops_a_common_line_that_only_leaves_a_station(): void
+    {
+        $this->lines['X1'] = Line::factory()->create(['code' => 'X1', 'name' => 'Ligne X1', 'is_lgv' => false]);
+        $this->stations['Caen-Ouest'] = Station::factory()->create(['name' => 'Caen-Ouest', 'geom' => Point::makeGeodetic(49.18, -0.45)]);
+        $this->edge('Caen-Ouest', 'Caen', 'X1', 8);
+
+        $route = (new RelationRouter)->route([$this->stations['Caen-Ouest']->id], [$this->stations['Mézidon']->id], 2030);
+
+        $this->assertSame('ambiguous', $route['status']);
+        $this->assertSame([], $route['lines'], '8 km parcourus par les deux itinéraires, à moins de 15 km de Caen-Ouest');
+        $this->assertSame([], $this->links($this->relations(), "* Caen-Ouest - Mézidon\n"));
     }
 
     public function test_paris_dreux_never_reaches_argentan_granville(): void
