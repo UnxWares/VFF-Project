@@ -76,4 +76,19 @@ return [
         'source' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_du_Coteau_%C3%A0_Saint-Germain-au-Mont-d%27Or&oldid=241352718',
         'reason' => 'les TER Clermont-Ferrand - Lyon passent par Tarare (« un unique arrêt à Tarare ») et Lozanne (783000), pas par la ligne de Lyon-Saint-Paul à Montbrison (Tassin - L\'Arbresle)',
     ],
+    // Relecture du 21/11/2026 après-midi (rapport storage/app/reports/agents/aprem-2111/materiel-regles.md, M1).
+    [
+        'line' => '782000',
+        'material' => 'Q2157297', // CC 72000
+        'quote' => 'Le Ventadour ou train de nuit',
+        'source' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_du_Coteau_%C3%A0_Saint-Germain-au-Mont-d%27Or&oldid=241352718',
+        'reason' => 'Le Ventadour (Bordeaux - Clermont-Ferrand - Lyon-Part-Dieu - Lyon-Perrache, article CC 72000, révision 240796944) arrive de Roanne par Tarare et Lozanne (783000) ; la ligne de Lyon-Saint-Paul à Montbrison, seulement « tangentée » à L\'Arbresle, n\'atteint pas Lyon-Part-Dieu',
+    ],
+    [
+        'line' => '782000',
+        'material' => 'Q2157297', // CC 72000
+        'quote' => 'Saint-Germain-des-Fossés - Roanne - Lyon',
+        'source' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_du_Coteau_%C3%A0_Saint-Germain-au-Mont-d%27Or&oldid=241352718',
+        'reason' => 'les trains Nantes - Lyon par Roanne (article CC 72000, révision 240796944) gagnent Lyon par Tarare, Lozanne et Saint-Germain-au-Mont-d\'Or (783000), pas par Tassin et la ligne de Lyon-Saint-Paul à Montbrison',
+    ],
 ];
