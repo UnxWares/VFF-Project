@@ -246,8 +246,8 @@ final class RelationRouter
     /**
      * Lignes du plus court chemin entre deux arrêts, ou le motif du refus.
      *
-     * `status` : `ok`, `ambiguous` (autre itinéraire proche, `ratio` = sa longueur rapportée au plus court),
-     * `same` (même gare) ou `no_path`.
+     * `status` : `ok`, `ambiguous` (autre itinéraire proche, `ratio` = sa longueur rapportée au plus court ;
+     * `lines` = seulement les lignes que tous les itinéraires proches parcourent), `same` (même gare) ou `no_path`.
      *
      * `$fast` : la série roule à grande vitesse ; sinon les LGV sont retirées du graphe (comme LineMaterialLinker,
      * qui ne rattache à une LGV que les engins rapides). `$electric` : la série ne roule que sous caténaire ;
@@ -441,24 +441,33 @@ final class RelationRouter
         }
         // Deux gares d'une même ligne restées sur elle : la variante plus courte qu'elle écarte n'est pas une
         // ambiguïté.
-        $ratio = $stay === null ? $this->alternative($graph, $path, $onPath) : null;
+        $ratio = $stay === null ? $this->alternative($graph, $path, $onPath)[0] : null;
 
         $ends = ['from' => $path['stations'][0], 'to' => $path['stations'][count($path['stations']) - 1], 'cost' => (float) $path['cost']];
+        if ($ratio === null) {
+            return ['status' => 'ok', 'lines' => $lines, 'ratio' => null] + $ends;
+        }
+        // Relation ambiguë : seules restent les lignes que tous les itinéraires proches parcourent sur
+        // MIN_LINE_M au moins (Lyon - Saint-Gervais, par Annecy ou par Annemasse, passe toujours par
+        // Aix-les-Bains - Annemasse et La Roche-sur-Foron - Saint-Gervais).
+        foreach ($this->alternative($graph, $path, $onPath, true)[1] as $other) {
+            $lines = array_values(array_filter($lines, fn (int $line): bool => ($other[$line] ?? 0) >= self::MIN_LINE_M));
+        }
 
-        return $ratio !== null
-            ? ['status' => 'ambiguous', 'lines' => $lines, 'ratio' => round($ratio, 3)] + $ends
-            : ['status' => 'ok', 'lines' => $lines, 'ratio' => null] + $ends;
+        return ['status' => 'ambiguous', 'lines' => $lines, 'ratio' => round($ratio, 3)] + $ends;
     }
 
     /**
      * Rapport de longueur du meilleur autre itinéraire assez différent (voir DETOUR_TOLERANCE et
-     * LOCAL_TOLERANCE), ou null s'il n'y en a pas.
+     * LOCAL_TOLERANCE), ou null s'il n'y en a pas ; avec `$all`, aussi la longueur par ligne de chacun de ces
+     * itinéraires (pas seulement du meilleur).
      *
      * @param  Graph  $graph
      * @param  array{cost: float, stations: list<int>, edges: list<int>}  $path  plus court chemin (une gare de départ)
      * @param  array<int, true>  $onPath  lignes du plus court chemin
+     * @return array{0: ?float, 1: list<array<int, int>>}
      */
-    private function alternative(array $graph, array $path, array $onPath): ?float
+    private function alternative(array $graph, array $path, array $onPath, bool $all = false): array
     {
         $cost = $path['cost'];
         $limit = $cost * self::DETOUR_TOLERANCE;
@@ -480,10 +489,11 @@ final class RelationRouter
             }
         }
         $best = null;
+        $others = [];
         foreach ($ds as $u => $du) {
             foreach ($graph['adj'][$u] ?? [] as [$v, $w, $eid]) {
                 $total = isset($dt[$v]) ? $du + $w + $dt[$v] : INF;
-                if ($total > $limit || ($best !== null && $total >= $best)) {
+                if ($total > $limit || (! $all && $best !== null && $total >= $best)) {
                     continue;
                 }
                 $outside = $this->outside($graph['parts'][$eid], $onPath);
@@ -494,9 +504,11 @@ final class RelationRouter
                 // `$leave` / `$join` : gares où il quitte puis rejoint le plus court chemin.
                 $seen = [$u => true, $v => true];
                 $ends = [];
+                $edges = [$eid];
                 foreach ([[$u, $ps], [$v, $pt]] as $side => [$node, $pred]) {
                     $ends[$side] = isset($along[$node]) ? $node : null;
                     for ($n = $node; isset($pred[$n]); $n = $pred[$n][0]) {
+                        $edges[] = $pred[$n][1];
                         $outside += $this->outside($graph['parts'][$pred[$n][1]], $onPath);
                         $back = $pred[$n][0];
                         if (isset($seen[$back])) {
@@ -510,12 +522,23 @@ final class RelationRouter
                 $replaced = $along[$join] - $along[$leave];
                 $detour = $total - $cost + $replaced;
                 if ($outside >= self::MIN_ALTERNATIVE_M && $replaced > 0 && $detour <= $replaced * self::LOCAL_TOLERANCE) {
-                    $best = $total;
+                    $best = $best === null ? $total : min($best, $total);
+                    if ($all) {
+                        $lengths = [];
+                        foreach ($edges as $e) {
+                            // Parts brutes (sans trunkParts(), une requête par arête) : le filtre ne peut que garder
+                            // une ligne de plus, déjà retenue sur le plus court chemin.
+                            foreach ($graph['parts'][$e] as [$line, $len]) {
+                                $lengths[$line] = ($lengths[$line] ?? 0) + $len;
+                            }
+                        }
+                        $others[] = $lengths;
+                    }
                 }
             }
         }
 
-        return $best === null ? null : $best / $cost;
+        return [$best === null ? null : $best / $cost, $others];
     }
 
     /**

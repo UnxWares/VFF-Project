@@ -143,6 +143,24 @@ class MaterialRelationsTest extends TestCase
         $this->assertSame(1, $relations->stats()['pairs_ambiguous']);
     }
 
+    /**
+     * Lyon - Saint-Gervais, par Annecy ou par Annemasse : la relation reste ambiguë, et le routeur donne les lignes
+     * que les deux itinéraires parcourent (ici Mézidon - Trouville) ; MaterialRelations ne les rattache pas encore
+     * (à relire).
+     */
+    public function test_an_ambiguous_relation_gives_the_lines_every_close_itinerary_follows(): void
+    {
+        $this->lines['379000'] = Line::factory()->create(['code' => '379000', 'name' => 'Ligne 379000', 'is_lgv' => false]);
+        $this->stations['Trouville'] = Station::factory()->create(['name' => 'Trouville', 'geom' => Point::makeGeodetic(49.36, 0.08)]);
+        $this->edge('Mézidon', 'Trouville', '379000', 40);
+
+        $route = (new RelationRouter)->route([$this->stations['Caen']->id], [$this->stations['Trouville']->id], 2030);
+
+        $this->assertSame('ambiguous', $route['status']);
+        $this->assertSame([$this->lines['379000']->id], $route['lines'], 'par Lisieux ou par la ligne directe, toujours Mézidon - Trouville');
+        $this->assertSame([], $this->links($this->relations(), "* Caen - Trouville\n"));
+    }
+
     public function test_paris_dreux_never_reaches_argentan_granville(): void
     {
         $links = $this->links($this->relations(), "* Paris - Dreux\n", 'Services effectués > TER Basse-Normandie');
