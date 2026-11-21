@@ -27,6 +27,9 @@ use Illuminate\Support\Facades\DB;
  *      le saut que d'un bout sans issue de moins de JOG_STUB_MAX_M est coupée
  *      comme si elle s'y arrêtait (sinon ce bout double la courbe), même
  *      quand la courbe est refusée et que le saut reste un raccord droit.
+ *      Boucle de deux sauts : un bras de moins de JOG_LOOP_MAX_M qui revient
+ *      le long de l'autre voie et n'y tient que par un second raccord est
+ *      coupé de même, avec ce raccord.
  *   2. Trous : deux extrémités libres de la ligne, face à face, à moins de
  *      HOLE_MAX_M (ponts, passages à niveau : morceaux BD TOPO courts non
  *      rattachés, résidu OSM trop court jeté) sont reliées par le chemin le
@@ -200,6 +203,12 @@ class JunctionRepair
      * la portion est traitée comme si elle s'arrêtait sur le saut (le bout serait doublé par la courbe en S).
      */
     public const JOG_STUB_MAX_M = 50.0;
+
+    /**
+     * Boucle de deux sauts : le bras de la portion qui dépasse le saut revient le long de l'autre portion et n'est tenu,
+     * à son bout, que par un second raccord posé sur celle-ci (Batignolles, Dercy - Versigny). Longueur max du bras (m).
+     */
+    public const JOG_LOOP_MAX_M = 150.0;
 
     /** Éperon (aller-retour) : longueur max (m), virage d'un aller-retour (°), écart de cap au nœud (°), part qui longe la ligne. */
     public const SPUR_MAX_M = 600.0;
@@ -535,6 +544,7 @@ class JunctionRepair
      * Un barreau entre deux voies qui continuent toutes les deux (aucune ne s'arrête sur le saut) reste tel quel.
      * Une portion qui ne dépasse le saut que d'un bout sans issue court (jogEnd) est coupée comme si elle s'y arrêtait :
      * sinon ce bout et la voie entre le saut et J doubleraient la courbe (tronçons en double, mesuré le 21/11 : 3283, 3786).
+     * De même pour le bras d'une boucle de deux sauts (802, 3614), dont le second raccord est retiré avec lui.
      * Une portion qui continue vraiment au-delà du saut reste entière : la courbe s'y raccorde en Y, et ses derniers
      * mètres longent cette voie (fusion de deux voies, comme un aiguillage).
      */
@@ -559,8 +569,10 @@ class JunctionRepair
             }
             [$sA0] = $this->projectOn($a, $p, [0.0, 1.0]);
             [$sB0] = $this->projectOn($b, $q, [0.0, 1.0]);
-            $endA = $this->jogEnd($e0, $a, $sA0, [$j['sid'], $e1['sid']]);
-            $endB = $this->jogEnd($e1, $b, $sB0, [$j['sid'], $e0['sid']]);
+            $endA = $this->jogEnd($e0, $a, $sA0, [$j['sid'], $e1['sid']], $e1['sid']);
+            $endB = $this->jogEnd($e1, $b, $sB0, [$j['sid'], $e0['sid']], $e0['sid']);
+            // Second raccord d'une boucle de deux sauts (jogEnd) : retiré avec le bras qu'il tenait, et ignoré par les reculs.
+            $loops = array_values(array_filter([$endA['loop'] ?? null, $endB['loop'] ?? null]));
             // Barreau entre deux voies qui continuent toutes les deux : pas un changement de voie de la ligne.
             if ($endA === null && $endB === null) {
                 continue;
@@ -580,13 +592,14 @@ class JunctionRepair
             // Courbe refusée plus bas (recul, autre ligne, rayon, doublon) : le saut reste un raccord droit, mais le bout
             // sans issue qui dépasse son pied est coupé quand même (sinon il longe l'autre voie et le nettoyage final en
             // fait un V en double : Strasbourg, ligne 523, 20 m).
-            $trimStubs = function () use ($endA, $endB, $e0, $e1, $sA0, $sB0, $la, $lb, &$stats): void {
+            $trimStubs = function () use ($endA, $endB, $e0, $e1, $sA0, $sB0, $la, $lb, $loops, &$stats): void {
                 foreach ([[$endA, $e0['sid'], $sA0, $la], [$endB, $e1['sid'], $sB0, $lb]] as [$end, $sid, $s0, $l]) {
                     if ($end !== null && $end['stub'] > 0) {
                         $end['k'] === 1 ? $this->cutSub($sid, 0.0, $s0 / $l) : $this->cutSub($sid, $s0 / $l, 1.0);
                         $stats['stub_trimmed_m'] += $end['stub'];
                     }
                 }
+                $this->removeSubs($loops);
             };
             $ga = $this->unit($this->pointAlong($a, $sA - 10 * $dA), $this->pointAlong($a, $sA));
             $gb = $this->unit($this->pointAlong($b, $sB), $this->pointAlong($b, $sB + 10 * $dB));
@@ -600,10 +613,10 @@ class JunctionRepair
                 ($dA > 0 ? $sA : $la - $sA) - 5, ($dB > 0 ? $lb - $sB : $sB) - 5);
             // On ne recule pas au-delà d'une autre jonction sur la partie coupée (bout sans issue compris).
             if ($endA !== null) {
-                $t = min($t, $this->nextJunction($e0['sid'], $dA > 0 ? $a : array_reverse($a), [$j['sid'], $e1['sid']]) - $endA['stub'] - 5);
+                $t = min($t, $this->nextJunction($e0['sid'], $dA > 0 ? $a : array_reverse($a), [$j['sid'], $e1['sid'], ...$loops]) - $endA['stub'] - 5);
             }
             if ($endB !== null) {
-                $t = min($t, $this->nextJunction($e1['sid'], $dB > 0 ? array_reverse($b) : $b, [$j['sid'], $e0['sid']]) - $endB['stub'] - 5);
+                $t = min($t, $this->nextJunction($e1['sid'], $dB > 0 ? array_reverse($b) : $b, [$j['sid'], $e0['sid'], ...$loops]) - $endB['stub'] - 5);
             }
             if ($t < 10) {
                 $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'recul', 't' => round($t)];
@@ -632,7 +645,7 @@ class JunctionRepair
             $segB = $this->subLine($b, min($sB, $sJ), max($sB, $sJ));
             $dev = max(array_map(fn ($pt) => min($this->distToLine($segA, $pt), $this->distToLine($c, $pt), $this->distToLine($segB, $pt)), $curve));
             $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'y' => round($y, 1), 't' => round($t), 'r' => round($this->minCurveRadius($curve)), 'dev' => round($dev, 1),
-                'stub' => [$endA['stub'] ?? null, $endB['stub'] ?? null]];
+                'stub' => [$endA['stub'] ?? null, $endB['stub'] ?? null], 'loop' => $loops];
             if ($this->minCurveRadius($curve) < 0.5 * $rmin || $dev > self::LEG_DEV_M) {
                 $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'rayon ou écart'];
                 $trimStubs();
@@ -652,7 +665,7 @@ class JunctionRepair
             if ($endB !== null) {
                 $dB > 0 ? $this->cutSub($e1['sid'], $sJ / $lb, 1.0) : $this->cutSub($e1['sid'], 0.0, $sJ / $lb);
             }
-            DB::update('UPDATE jr_sub SET removed = TRUE WHERE sid = ?', [$j['sid']]);
+            $this->removeSubs([$j['sid'], ...$loops]);
             $this->insertSmoothed($curve, $e0['sid']);
             $stats['jog_smoothed']++;
             $stats['jog_smoothed_m'] += $path['len'];
@@ -684,28 +697,92 @@ class JunctionRepair
      * qui s'arrête sur le saut, et longueur du bout qui le dépasse (0 si l'extrémité est posée dessus). Une portion
      * qui passe le saut compte comme s'y arrêtant quand son bras le plus court est un bout sans issue d'au plus
      * JOG_STUB_MAX_M : extrémité libre, aucune autre portion de la ligne (hors $exclude) ni extrémité d'une autre
-     * ligne posée dessus. Sinon null : la portion continue vraiment au-delà du saut.
+     * ligne posée dessus. Même chose pour un bras d'au plus JOG_LOOP_MAX_M qui revient le long de l'autre portion du
+     * saut ($other) et dont le bout n'est tenu que par un second raccord posé sur elle (loopConnector) : les deux
+     * sauts, le bras et l'autre portion font une boucle, et le bras doublerait la courbe en S (Batignolles, 802 ;
+     * Dercy - Versigny, 3614 : le nettoyage final retirait la courbe et laissait un triangle en double). Le second
+     * raccord est rendu dans « loop », pour être retiré avec le bras. Sinon null : la portion continue vraiment
+     * au-delà du saut.
      *
      * @param  array{sid: int, k: int, end: bool}  $e
      * @param  list<array{0: float, 1: float}>  $c
      * @param  list<int>  $exclude
-     * @return array{k: int, stub: float}|null
+     * @return array{k: int, stub: float, loop: ?int}|null
      */
-    private function jogEnd(array $e, array $c, float $s0, array $exclude): ?array
+    private function jogEnd(array $e, array $c, float $s0, array $exclude, int $other): ?array
     {
         $len = $this->plen($c);
         if ($e['end']) {
-            return ['k' => $s0 > $len / 2 ? 1 : 0, 'stub' => 0.0];
+            return ['k' => $s0 > $len / 2 ? 1 : 0, 'stub' => 0.0, 'loop' => null];
         }
         $k = $s0 <= $len - $s0 ? 0 : 1;
         $stub = $k === 0 ? $s0 : $len - $s0;
-        if ($stub > self::JOG_STUB_MAX_M || ! $this->isFreeEnd($e['sid'], $k)
-            || $this->nextJunction($e['sid'], $k === 1 ? $c : array_reverse($c), $exclude) < $stub + 1) {
+        if ($stub > self::JOG_LOOP_MAX_M) {
             return null;
         }
         $arm = $k === 0 ? $this->subLine($c, 0.0, $s0) : $this->subLine($c, $s0, $len);
+        $free = $this->isFreeEnd($e['sid'], $k);
+        $loop = $free ? null : $this->loopConnector($e['sid'], $k, $other, $arm);
+        if ((! $free && $loop === null) || $stub > ($loop === null ? self::JOG_STUB_MAX_M : self::JOG_LOOP_MAX_M)
+            || $this->nextJunction($e['sid'], $k === 1 ? $c : array_reverse($c), $loop === null ? $exclude : [...$exclude, $loop]) < $stub + 1) {
+            return null;
+        }
+        if ($this->holdsOtherLine($arm) || ($loop !== null && $this->holdsOtherLine($this->subCoords($loop) ?? []))) {
+            return null;
+        }
 
-        return $this->holdsOtherLine($arm) ? null : ['k' => $k, 'stub' => $stub];
+        return ['k' => $k, 'stub' => $stub, 'loop' => $loop];
+    }
+
+    /**
+     * Boucle de deux sauts (cf. jogEnd) : l'extrémité k de la portion $sid n'est touchée que par un raccord droit d'au
+     * plus JOG_MAX_M dont l'autre bout est posé sur la portion $other et ne touche rien d'autre, et le bras $arm reste
+     * partout à moins de PARALLEL_M de $other (il la longe). Rend le raccord, sinon null.
+     *
+     * @param  list<array{0: float, 1: float}>  $arm
+     */
+    private function loopConnector(int $sid, int $k, int $other, array $arm): ?int
+    {
+        $r = DB::select(<<<'SQL'
+            WITH e AS (SELECT CASE WHEN CAST(:k AS int) = 0 THEN ST_StartPoint(g) ELSE ST_EndPoint(g) END AS p FROM jr_sub WHERE sid = :sid)
+            SELECT o.sid, o.conn, ST_Length(o.g) AS len,
+                   encode(ST_AsEWKB(CASE WHEN ST_DWithin(ST_StartPoint(o.g), e.p, 0.5) THEN ST_EndPoint(o.g) ELSE ST_StartPoint(o.g) END), 'hex') AS far
+            FROM e, jr_sub o
+            WHERE NOT o.removed AND o.sid <> :sid2 AND ST_DWithin(o.g, e.p, 0.5)
+            SQL, ['k' => $k, 'sid' => $sid, 'sid2' => $sid]);
+        if (count($r) !== 1 || ! $r[0]->conn || (float) $r[0]->len > self::JOG_MAX_M) {
+            return null;
+        }
+        $conn = (int) $r[0]->sid;
+        // L'autre bout du raccord : posé sur $other, et sur rien d'autre.
+        $held = DB::select(<<<'SQL'
+            SELECT t.sid FROM jr_sub t
+            WHERE NOT t.removed AND t.sid <> :conn AND t.sid <> :sid AND ST_DWithin(t.g, ST_GeomFromEWKB(decode(:far, 'hex')), 0.5)
+            ORDER BY t.sid
+            SQL, ['conn' => $conn, 'sid' => $sid, 'far' => $r[0]->far]);
+        if (array_map(fn ($h) => (int) $h->sid, $held) !== [$other]) {
+            return null;
+        }
+        $o = $this->subCoords($other);
+        if ($o === null) {
+            return null;
+        }
+        $len = $this->plen($arm);
+        for ($s = 0.0; $s <= $len; $s += 5.0) {
+            if ($this->distToLine($o, $this->pointAlong($arm, $s)) > self::PARALLEL_M) {
+                return null;
+            }
+        }
+
+        return $conn;
+    }
+
+    /** @param list<int> $sids portions retirées */
+    private function removeSubs(array $sids): void
+    {
+        if ($sids) {
+            DB::update('UPDATE jr_sub SET removed = TRUE WHERE sid = ANY(CAST(? AS int[]))', [$this->ints($sids)]);
+        }
     }
 
     /** Une autre ligne finit-elle sur la polyligne (à 1 m près) ? La retirer laisserait sa jonction en l'air. */

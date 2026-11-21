@@ -345,6 +345,64 @@ class SingleAxisTest extends TestCase
         $this->assertEqualsWithDelta(1000, $this->totalLength(), 0.1);
     }
 
+    /** Toury (3110, état du 21/11/2026 relatif au point 1.9424, 48.1971) : tracé grossier A, voie BD TOPO B qui le croise en biais. */
+    private function touryCrossing(): void
+    {
+        $this->part('archeoferroviaire', [[[-15.9, 85.2], [-18.5, 69.0], [-18.7, 51.4], [-16.7, 35.0], [-11.1, 19.3], [-3.9, 5.6], [6.4, -8.2],
+            [39.7, -39.9], [49.9, -51.4], [57.1, -63.9], [60.5, -78.3], [61.3, -92.0], [59.9, -103.4]]], []);
+        $this->part('archeoferroviaire', [[[37.9, -41.8], [44.3, -47.8], [53.8, -53.5], [89.7, -69.8], [95.2, -72.3]]], [], 'bdtopo');
+    }
+
+    /** Distance (m) du point (relatif) au tracé de la ligne. */
+    private function distToTrace(float $x, float $y): float
+    {
+        return (float) DB::selectOne(
+            'SELECT ST_Distance(ST_SetSRID(ST_MakePoint(?, ?), 2154), ST_Collect(ST_Transform(geom, 2154))) AS d FROM line_reference_parts WHERE line_id = ?',
+            [self::X0 + $x, self::Y0 + $y, $this->line->id])->d;
+    }
+
+    public function test_tidy_cuts_a_free_end_overshooting_a_shallow_crossing_with_the_same_line(): void
+    {
+        // La voie B commence 14 m avant de croiser A, à 1-3 m de lui : deux tronçons en double à chaque ère.
+        $this->touryCrossing();
+
+        $stats = app(SingleAxis::class)->tidy($this->line->id);
+
+        $this->assertEqualsWithDelta(14.5, $stats['crossed_m'], 0.5);
+        $this->assertGreaterThan(1, $this->distToTrace(37.9, -41.8));
+        // B part du croisement, posé exactement sur A (raccord en T, sommet de A) : restent les deux bouts de A et celui de B.
+        $this->assertSame(3, $this->freeEnds());
+        $this->assertSame(1, DB::table('line_reference_duplicates')->where('line_id', $this->line->id)->where('reason', 'superposition')->count());
+        $this->assertSame(3, count($this->engineLines()));
+    }
+
+    public function test_tidy_keeps_the_overshoot_of_a_crossing_where_another_line_ends(): void
+    {
+        $this->touryCrossing();
+        $other = Line::factory()->create();
+        DB::insert(<<<'SQL'
+            INSERT INTO line_reference_parts (line_id, source, source_trace_ids, length_m, geom, created_at, updated_at)
+            SELECT ?, 'bdtopo', '[]', 200, ST_Transform(ST_GeomFromText(?, 2154), 4326), NOW(), NOW()
+            SQL, [$other->id, 'MULTILINESTRING(('.(self::X0 + 41.1).' '.(self::Y0 - 44.8).','.(self::X0 + 41.1).' '.(self::Y0 - 244.8).'))']);
+
+        $stats = app(SingleAxis::class)->tidy($this->line->id);
+
+        $this->assertArrayNotHasKey('crossed_m', $stats);
+        $this->assertLessThan(0.01, $this->distToTrace(37.9, -41.8));
+    }
+
+    public function test_tidy_keeps_the_overshoot_of_a_square_crossing(): void
+    {
+        // Croisement à angle droit, bout de 20 m qui s'écarte de l'autre portion : une vraie fin de voie.
+        $this->part('bdtopo', [[[0, 0], [1000, 0]]], []);
+        $this->part('bdtopo', [[[500, -20], [500, 400]]], []);
+
+        $stats = app(SingleAxis::class)->tidy($this->line->id);
+
+        $this->assertArrayNotHasKey('crossed_m', $stats);
+        $this->assertEqualsWithDelta(1420, $this->totalLength(), 0.1);
+    }
+
     public function test_dated_old_alignment_is_kept_and_undated_coarse_duplicate_is_removed(): void
     {
         $main = $this->trace('bdtopo', [[0, 0], [6000, 0]]);
