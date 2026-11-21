@@ -134,6 +134,18 @@ class SingleAxis
     /** Bout libre qui dépasse le croisement avec une autre portion de la ligne en la longeant (< NEAR_M) : longueur max coupée (m). */
     public const CROSS_STUB_MAX_M = 30.0;
 
+    /** Fragment isolé (cf. dropIsolatedFragments) : longueur max retirée (m), = MIN_PART_M de vff:build-line-references. */
+    public const ISOLATED_MAX_M = 60.0;
+
+    /** Fragment dont une extrémité est à moins de cette distance d'un bout libre du reste de la ligne : morceau d'un trou, gardé (m). */
+    public const ISOLATED_HOLE_M = 100.0;
+
+    /** Fragment à moins de cette distance d'une gare : gardé (quai, voie de gare) (m). */
+    public const ISOLATED_STATION_M = 50.0;
+
+    /** Fragment posé sur une voie OSM en service pour au moins cette part de sa longueur : gardé. */
+    public const ISOLATED_OSM_SHARE = 0.5;
+
     private const PRECISE = ['contrib', 'bdtopo', 'osm'];
 
     private const HISTORICAL = ['archeoferroviaire', 'ohm'];
@@ -218,13 +230,17 @@ class SingleAxis
      *   4. Raccords de moins de FOLD_M fusionnés avec la portion qu'ils
      *      prolongent (extrémité partagée par elle seule) : plus de tronçon de
      *      quelques mètres isolé entre deux autres.
+     *   5. Fragments isolés (cf. dropIsolatedFragments) : polyligne de moins de
+     *      ISOLATED_MAX_M à plus de NEAR_M de tout le reste de la ligne, reliée
+     *      à rien (ni autre ligne, ni gare, ni bout de la ligne proche, ni voie
+     *      OSM en service sous elle) : reste d'un tracé source, retiré.
      *
      * Tous les morceaux de la ligne sont réécrits (même aller-retour Lambert-93
      * → WGS84 pour tous : les extrémités confondues le restent). Les bouts de
      * tracé source retirés sont listés dans line_reference_duplicates (cause
-     * « superposition »). Idempotent.
+     * « superposition », ou « fragment isolé »). Idempotent.
      *
-     * @return array<string, float|int> superposed_m (tracés), connector_dup_m, near_m (compris dans les deux premiers), crossed_m (bouts croisés, à part), snapped, folded
+     * @return array<string, float|int> superposed_m (tracés), connector_dup_m, near_m (compris dans les deux premiers), crossed_m (bouts croisés, à part), isolated_m (fragments isolés, à part), snapped, folded
      */
     public function tidy(int $lineId): array
     {
@@ -270,6 +286,7 @@ class SingleAxis
             }
         }
         $stats['folded'] = $this->foldShortConnectors();
+        $this->dropIsolatedFragments($lineId, $stats, $records);
 
         $this->storeTidyRecords($lineId, $records);
 
@@ -303,7 +320,7 @@ class SingleAxis
      * Glouton (fiabilité, longueur) : bouts de portion superposés (< COINCIDENT_M) à une
      * portion déjà gardée, retirés ; l'extrémité coupée est posée sur la portion gardée.
      *
-     * @return list<array{sid: int, ksid: ?int, ewkb: ?string}> bouts de tracé retirés
+     * @return list<array{sid: int, ksid: ?int, ewkb: ?string, reason?: string}> bouts de tracé retirés
      */
     private function trimCoincident(array &$stats): array
     {
@@ -674,14 +691,72 @@ class SingleAxis
         return $folded;
     }
 
-    /** Bouts de tracé retirés par le nettoyage (line_reference_duplicates, cause « superposition »). */
+    /**
+     * Fragments isolés : polyligne de moins de ISOLATED_MAX_M dont aucun point n'est à moins de NEAR_M
+     * du reste de la ligne (qui a d'autres portions). Retirée, sauf si quelque chose la relie au réseau :
+     *   - une extrémité à moins de ISOLATED_HOLE_M d'un bout libre du reste de la ligne (morceau d'un
+     *     trou de la ligne : Vallon-Pont-d'Arc 3994 à 33 m, bord du Rhône 3410 à 56 m, port de Colmar
+     *     3051 à 84 m) ;
+     *   - une extrémité posée sur une autre ligne, ou une autre ligne qui finit sur elle (amorce de
+     *     raccordement, 3709 sur 4043) ;
+     *   - une gare à moins de ISOLATED_STATION_M (quai, voie de gare : 4023 à Saint-Germain) ;
+     *   - au moins ISOLATED_OSM_SHARE de sa longueur à moins de NEAR_M d'une voie OSM en service
+     *     (bout de voie réelle : Longueau 45, 151).
+     * Relevé du 21/11/2026 sur tout le réseau : 31 fragments de moins de 60 m, 9 retirés (370 m), tous
+     * relus sur orthophoto (restes archeo, OHM : Marcq-Saint-Juvin - Autrecourt 2893, 34 et 35 m sur
+     * le dessin de la ligne 12). Listés dans line_reference_duplicates (cause « fragment isolé »).
+     */
+    private function dropIsolatedFragments(int $lineId, array &$stats, array &$records): void
+    {
+        foreach (DB::select(<<<'SQL'
+            WITH f AS (
+                SELECT t.sid, t.g, ST_Length(t.g) AS len FROM tx_sub t
+                WHERE NOT t.removed AND ST_Length(t.g) < :max
+                  AND NOT EXISTS (SELECT 1 FROM tx_sub o WHERE NOT o.removed AND o.sid <> t.sid AND ST_DWithin(o.g, t.g, :near))
+                  AND EXISTS (SELECT 1 FROM tx_sub o WHERE NOT o.removed AND o.sid <> t.sid)
+            ),
+            libres AS (
+                SELECT e.p FROM tx_sub o, LATERAL (VALUES (ST_StartPoint(o.g)), (ST_EndPoint(o.g))) e(p)
+                WHERE NOT o.removed AND o.sid NOT IN (SELECT sid FROM f)
+                  AND NOT EXISTS (SELECT 1 FROM tx_sub x WHERE NOT x.removed AND x.sid <> o.sid AND ST_DWithin(x.g, e.p, :snap))
+            )
+            SELECT f.sid, f.len FROM f
+            WHERE NOT EXISTS (SELECT 1 FROM libres l
+                              WHERE ST_DWithin(ST_StartPoint(f.g), l.p, :hole) OR ST_DWithin(ST_EndPoint(f.g), l.p, :hole2))
+              AND NOT EXISTS (
+                  SELECT 1 FROM line_reference_parts r, LATERAL ST_Dump(r.geom) d
+                  WHERE r.line_id <> :line AND r.geom && ST_Transform(ST_Expand(f.g, 2), 4326)
+                    AND (ST_DWithin(ST_Transform(d.geom, 2154), ST_StartPoint(f.g), :snap2) OR ST_DWithin(ST_Transform(d.geom, 2154), ST_EndPoint(f.g), :snap3)
+                         OR ST_DWithin(ST_Transform(ST_StartPoint(d.geom), 2154), f.g, :snap4) OR ST_DWithin(ST_Transform(ST_EndPoint(d.geom), 2154), f.g, :snap5)))
+              AND NOT EXISTS (
+                  SELECT 1 FROM stations st
+                  WHERE st.geom && ST_Transform(ST_Expand(f.g, :station), 4326) AND ST_DWithin(ST_Transform(st.geom, 2154), f.g, :station2))
+              AND COALESCE((
+                  SELECT ST_Length(ST_Intersection(f.g, ST_Buffer(ST_Union(ST_Transform(t.geom, 2154)), :near2)))
+                  FROM source_traces t
+                  WHERE t.source = 'osm' AND NOT (COALESCE(t.layer, '') = ANY(CAST(:life AS text[])))
+                    AND t.geom && ST_Transform(ST_Expand(f.g, :near3), 4326) AND ST_DWithin(ST_Transform(t.geom, 2154), f.g, :near4)
+              ), 0) < :share * f.len
+            ORDER BY f.sid
+            SQL, ['max' => self::ISOLATED_MAX_M, 'near' => self::NEAR_M, 'near2' => self::NEAR_M, 'near3' => self::NEAR_M, 'near4' => self::NEAR_M,
+            'snap' => self::SNAP_M, 'snap2' => self::SNAP_M, 'snap3' => self::SNAP_M, 'snap4' => self::SNAP_M, 'snap5' => self::SNAP_M,
+            'hole' => self::ISOLATED_HOLE_M, 'hole2' => self::ISOLATED_HOLE_M, 'line' => $lineId,
+            'station' => self::ISOLATED_STATION_M, 'station2' => self::ISOLATED_STATION_M, 'share' => self::ISOLATED_OSM_SHARE,
+            'life' => '{'.implode(',', array_map(fn ($l) => '"'.$l.'"', self::LIFECYCLE_LAYERS)).'}']) as $r) {
+            DB::update('UPDATE tx_sub SET removed = TRUE WHERE sid = ?', [(int) $r->sid]);
+            $stats['isolated_m'] = ($stats['isolated_m'] ?? 0) + (float) $r->len;
+            $records[] = ['sid' => (int) $r->sid, 'ksid' => null, 'ewkb' => null, 'reason' => 'fragment isolé'];
+        }
+    }
+
+    /** Bouts de tracé retirés par le nettoyage (line_reference_duplicates, cause « superposition » ou « fragment isolé »). */
     private function storeTidyRecords(int $lineId, array $records): void
     {
         foreach ($records as $r) {
             DB::insert(<<<'SQL'
                 INSERT INTO line_reference_duplicates (line_id, action, reason, source, matched_source, trace_ids, kept_source, kept_matched_source,
                     kept_trace_ids, length_m, gap_median_m, geom, created_at, updated_at)
-                SELECT :line, 'removed', 'superposition', p.source, p.matched_source,
+                SELECT :line, 'removed', :reason, p.source, p.matched_source,
                        CASE WHEN p.matched_source IN ('contrib', 'bdtopo', 'osm', 'ign-historique') THEN p.matched_trace_ids ELSE p.source_trace_ids END,
                        kp.source, kp.matched_source,
                        CASE WHEN kp.matched_source IN ('contrib', 'bdtopo', 'osm', 'ign-historique') THEN kp.matched_trace_ids ELSE kp.source_trace_ids END,
@@ -696,7 +771,7 @@ class SingleAxis
                 ) k ON TRUE
                 LEFT JOIN line_reference_parts kp ON kp.id = k.part_id
                 WHERE s.sid = :sid AND ST_GeometryType(x.g) = 'ST_LineString' AND ST_Length(x.g) > 0
-                SQL, ['line' => $lineId, 'ewkb' => $r['ewkb'], 'ksid' => $r['ksid'], 'ksid2' => $r['ksid'], 'sid' => $r['sid']]);
+                SQL, ['line' => $lineId, 'reason' => $r['reason'] ?? 'superposition', 'ewkb' => $r['ewkb'], 'ksid' => $r['ksid'], 'ksid2' => $r['ksid'], 'sid' => $r['sid']]);
         }
     }
 

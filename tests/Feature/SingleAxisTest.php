@@ -423,4 +423,102 @@ class SingleAxisTest extends TestCase
         $this->assertEqualsWithDelta(1102, $this->totalLength() - 6000, 5);
         $this->assertSame(['kept_distinct', 'removed'], DB::table('line_reference_duplicates')->where('line_id', $this->line->id)->orderBy('action')->pluck('action')->all());
     }
+
+    /** Morceau du tracé de référence en coordonnées Lambert-93 réelles (une polyligne WKT « x y, x y… » par élément). */
+    private function realPart(int $lineId, string $source, array $lines, ?string $matched = null): void
+    {
+        DB::insert(<<<'SQL'
+            INSERT INTO line_reference_parts (line_id, source, source_trace_ids, matched_source, length_m, geom, created_at, updated_at)
+            SELECT ?, ?, '[]', ?, ROUND(ST_Length(g)), ST_Transform(g, 4326), NOW(), NOW()
+            FROM (SELECT ST_GeomFromText(?, 2154) AS g) t
+            SQL, [$lineId, $source, $matched, 'MULTILINESTRING(('.implode('),(', $lines).'))']);
+    }
+
+    /**
+     * Ligne militaire de Marcq-Saint-Juvin à Autrecourt (2893), état du 21/11/2026 autour de
+     * (4.933, 49.326) : tracé archeo non recalé, deux fragments de 35 et 34 m à 153 et 292 m de ses bouts
+     * libres, posés à 1-7 m du dessin de la ligne 12 (Challerange - Apremont), sur une voie OSM déposée.
+     * Coordonnées réelles, découpées à 400 m des fragments (ligne 12 et voie OSM à 120 m).
+     */
+    private function marcqAutrecourt(): void
+    {
+        $id = $this->line->id;
+        $this->realPart($id, 'archeoferroviaire', [
+            '840126.6 6915941.1,840157.6 6915958.6,840191.7 6915984,840210.4 6916000.6,840221.8 6916012.8,840239.2 6916035.9,840256.1 6916065.2,840270 6916106.3,840281.4 6916155.3,840301 6916283.1',
+            '840126.6 6915770.6,840156 6915757.7,840245.6 6915725.4,840273.6 6915717.2,840344.6 6915700.8,840417.5 6915690.2,840708.2 6915664,840746.1 6915662,840798.9 6915663.7,840820.6 6915666.9,840836.2 6915671.7,840862 6915683.9,840879 6915694.1,840920.6 6915724.1,840975 6915769.2,841007.7 6915798.8,841039.1 6915819.9,841063 6915832.8,841081.3 6915841.8,841128.1 6915858.9,841152.7 6915863.2,841191.7 6915864.5,841218.4 6915860.6,841243.2 6915852.6,841267.6 6915839.3,841285 6915825.3,841303.8 6915801,841318.7 6915773.7,841325.9 6915754.1,841333.8 6915717.6',
+            '840279.2 6916144.8,840273.4 6916066.6',
+            '840296.8 6915948.7,840323.6 6915902.4,840353.9 6915857.2,840390.5 6915812.5',
+            '840526.6 6915742.3,840561.2 6915741.7',
+            '841334.7 6915724.3,841333.5 6915713.4,841335.1 6915685.1,841335 6915609.4,841328.1 6915540.6,841327.4 6915499.1,841330.1 6915451.8,841336 6915403.8,841348.1 6915341.5',
+            '841612.4 6915874.1,841580 6915883.1',
+        ]);
+        $this->realPart($id, 'archeoferroviaire', ['840273.4 6916066.6,840258.6 6916071.6'], 'connector');
+        $other = Line::factory()->create();
+        $this->realPart($other->id, 'archeoferroviaire', [
+            '840406.6 6915735.6,840463 6915733.6,840540 6915737.7,840640.1 6915750.5,840730.7 6915767.3,840742.2 6915769.4,840797.7 6915784.2,840999.8 6915838.2,841218.1 6915893.7,841245.7 6915900.8,841282.4 6915911.9,841340.3 6915922.2,841379.6 6915925.8,841482.9 6915921.6,841500.2 6915919.8,841525.7 6915913.6,841591.2 6915890.8,841613 6915881.3,841627.4 6915874.7,841679.4 6915845.5,841719.2 6915816.3,841732.4 6915804.7',
+        ]);
+        DB::table('source_traces')->insert([
+            'source' => 'osm', 'source_ref' => 'osm-'.uniqid(), 'layer' => 'abandoned', 'seen_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+            'geom' => DB::raw("ST_Multi(ST_Transform(ST_GeomFromText('LINESTRING(840466.6 6915733.8,840540 6915737.7,840640.1 6915750.5,840730.7 6915767.3,840738.5 6915768.4)', 2154), 4326))"),
+        ]);
+    }
+
+    /** Nombre de polylignes de la ligne qui passent à 1 m du point Lambert-93 réel. */
+    private function piecesAt(float $x, float $y): int
+    {
+        return (int) DB::selectOne(<<<'SQL'
+            SELECT COUNT(*) AS n FROM line_reference_parts p, LATERAL ST_Dump(ST_Transform(p.geom, 2154)) d
+            WHERE p.line_id = ? AND ST_DWithin(d.geom, ST_SetSRID(ST_MakePoint(?, ?), 2154), 1)
+            SQL, [$this->line->id, $x, $y])->n;
+    }
+
+    public function test_tidy_removes_isolated_fragments_left_from_a_source_trace(): void
+    {
+        $this->marcqAutrecourt();
+        $before = $this->totalLength();
+
+        $stats = app(SingleAxis::class)->tidy($this->line->id);
+
+        // Les deux fragments (35 et 34 m) partent, rien d'autre : la voie OSM déposée sous le premier ne les retient pas.
+        $this->assertEqualsWithDelta(68.2, $stats['isolated_m'], 0.2);
+        $this->assertEqualsWithDelta($before - 68.2, $this->totalLength(), 1);
+        $this->assertSame(0, $this->piecesAt(840543.9, 6915742.0));
+        $this->assertSame(0, $this->piecesAt(841596.2, 6915878.6));
+        $this->assertSame(1, $this->piecesAt(840390.5, 6915812.5), 'le morceau de 166 m qui finit à 153 m du premier fragment reste');
+        $this->assertSame(['fragment isolé', 'fragment isolé'], DB::table('line_reference_duplicates')->where('line_id', $this->line->id)->pluck('reason')->all());
+        // Idempotent.
+        $this->assertArrayNotHasKey('isolated_m', app(SingleAxis::class)->tidy($this->line->id));
+    }
+
+    public function test_tidy_keeps_a_short_fragment_continuing_a_free_end_of_the_line(): void
+    {
+        // Vallon (3994) : morceau de 53 m du tracé, séparé du bout de la ligne par un trou de 33 m.
+        $this->part('archeoferroviaire', [[[0, 0], [500, 0]], [[533, 0], [586, 0]]], []);
+
+        $stats = app(SingleAxis::class)->tidy($this->line->id);
+
+        $this->assertArrayNotHasKey('isolated_m', $stats);
+        $this->assertEqualsWithDelta(553, $this->totalLength(), 0.5);
+    }
+
+    public function test_tidy_keeps_isolated_fragments_tied_to_another_line_a_station_or_a_track_in_service(): void
+    {
+        // Trois fragments de 50 m à 300 m du bout de la ligne : un qui finit sur une autre ligne, un près d'une gare, un sur une voie OSM en service.
+        $this->part('archeoferroviaire', [[[0, 0], [1000, 0]], [[1300, 200], [1350, 200]], [[1300, 400], [1350, 400]], [[1300, 600], [1350, 600]]], []);
+        $other = Line::factory()->create();
+        $this->realPart($other->id, 'bdtopo', [(self::X0 + 1350).' '.(self::Y0 + 200).','.(self::X0 + 1350).' '.(self::Y0 - 500)]);
+        DB::table('stations')->insert([
+            'name' => 'Gare d\'essai', 'slug' => 'gare-d-essai-'.uniqid(), 'created_at' => now(), 'updated_at' => now(),
+            'geom' => DB::raw('ST_Transform(ST_SetSRID(ST_MakePoint('.(self::X0 + 1325).', '.(self::Y0 + 430).'), 2154), 4326)'),
+        ]);
+        $this->trace('osm', [[1250, 600], [1400, 600]], ['layer' => 'rail', 'line_id' => null]);
+
+        $stats = app(SingleAxis::class)->tidy($this->line->id);
+
+        $this->assertArrayNotHasKey('isolated_m', $stats);
+        $this->assertEqualsWithDelta(1150, $this->totalLength(), 0.5);
+        // Témoin : sans ces liens, le même fragment part.
+        $this->part('archeoferroviaire', [[[1300, 800], [1350, 800]]], []);
+        $this->assertEqualsWithDelta(50, app(SingleAxis::class)->tidy($this->line->id)['isolated_m'] ?? 0, 0.5);
+    }
 }
