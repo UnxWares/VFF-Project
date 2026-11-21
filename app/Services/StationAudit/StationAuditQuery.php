@@ -80,6 +80,23 @@ class StationAuditQuery
     }
 
     /**
+     * Une page de la liste des gares auditées, à partir du rang `offset` (API REST, GraphQL, MCP : NetworkAudits).
+     *
+     * @param  array{grade: string, region: ?string, department?: ?string, check: ?string, opening: ?string, closure: ?string, line: ?string, q: ?string, sort: string}  $filters
+     * @return array{total: int, items: list<array<string, mixed>>}
+     */
+    public function listing(array $filters, int $limit, int $offset): array
+    {
+        $base = $this->base($filters);
+
+        return [
+            'total' => (clone $base)->count(),
+            'items' => $this->sorted($base, $filters['sort'])->offset($offset)->limit($limit)->get()
+                ->map(fn (object $r): array => $this->row($r))->all(),
+        ];
+    }
+
+    /**
      * Bilan de la dernière passe : gares par note, par note de date, par contrôle en échec.
      *
      * @return array{audited: int, audited_at: ?string, placement: array<string, int>, opening: array<string, int>, closure: array<string, int>, checks: array<string, int>, candidates: array<string, int>}
@@ -245,7 +262,7 @@ class StationAuditQuery
         });
     }
 
-    /** @param array{grade: string, region: ?string, check: ?string, opening: ?string, closure: ?string, line: ?string, q: ?string, sort: string} $filters */
+    /** @param array{grade: string, region: ?string, department?: ?string, check: ?string, opening: ?string, closure: ?string, line: ?string, q: ?string, sort: string} $filters */
     private function base(array $filters): Builder
     {
         $q = DB::table('station_audits as a')->join('stations as s', 's.id', '=', 'a.station_id')
@@ -259,6 +276,9 @@ class StationAuditQuery
             if ($filters[$key] !== null) {
                 $q->where($col, $filters[$key]);
             }
+        }
+        if (($filters['department'] ?? null) !== null) {
+            $q->where('s.department_code', $filters['department']);
         }
         if ($filters['check'] !== null) {
             $q->whereRaw('a.checks @> ?::jsonb', [json_encode([['code' => $filters['check']]])]);

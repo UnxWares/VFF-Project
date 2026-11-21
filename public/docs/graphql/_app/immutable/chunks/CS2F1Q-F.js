@@ -145,12 +145,14 @@ par minute et par adresse IP. Point d'accès : \`POST /graphql\`.
 Chaque requête a un coût, calculé avant son exécution, de 5 000 points au plus, et une profondeur de
 15 niveaux au plus sous la racine. Un champ vaut 1 point plus ses sous-champs. Une liste paginée
 multiplie ses sous-champs par \`first\` (sa valeur par défaut si vous ne le donnez pas), une liste sans
-pagination (\`events\`, \`materials\`, \`lines\` d'une série…) les compte pour 10 éléments. Les champs calculés
+pagination (\`events\`, \`materials\`, \`lines\` d'une série…) les compte pour 10 éléments. Les pages de l'audit (\`segments\` d'un
+audit de ligne, \`segmentAudits\`, \`stationAudits\`) multiplient leurs sous-champs par \`limit\` (50 par défaut,
+200 au plus). Les champs calculés
 (\`geojson\`, \`stops\`, \`signalling\`, \`pk\`, \`story\`, \`audit\` d'une gare, \`context\`, \`search\`, \`stats\`,
-\`mediaFacets\`, \`end\` d'un lien de matériel)
+\`end\` d'un lien de matériel)
 valent 10 points de plus, les champs lourds (\`sheet\`, \`profile\`, \`audit\` d'une ligne, \`route\`,
-\`routeComparison\`, \`eraComparison\`) 250. Exemples : \`lines(first: 100) { data { slug name } }\` vaut
-301 points, la fiche, le profil et l'audit d'une ligne environ 770, mais la fiche de 100 lignes en une
+\`routeComparison\`, \`eraComparison\`, \`mediaFacets\`) 250. Exemples : \`lines(first: 100) { data { slug name } }\` vaut
+301 points, la fiche, le profil et l'audit d'une ligne (page de 50 tronçons) environ 810, mais la fiche de 100 lignes en une
 requête 25 301. Au-delà, la requête est refusée sans être exécutée : erreur \`query_too_complex\`
 (\`extensions.complexity\`, \`extensions.max_complexity\`) ou \`query_too_deep\` (\`extensions.depth\`,
 \`extensions.max_depth\`), avec un message en anglais, ou en français et en allemand selon l'en-tête
@@ -262,12 +264,76 @@ type Query {
   """
   Compteurs des médias pour les mêmes filtres que \`media\`, comme \`meta.facets\` de
   \`GET /api/v1/media?facets=true\` : total, nombre par nature, par licence et les 30 auteurs les plus
-  présents. Ce que montre la page \`/credits/media\`.
+  présents. Ce que montre la page \`/credits/media\`. Compté comme un champ lourd (250 points) : quatre
+  agrégats sur toute la table des médias.
   """
   mediaFacets(
     "Filtres facultatifs, combinés (ET) : ceux de \`media\`."
     filter: MediaFilter = {  }
   ): MediaFacets!
+  """
+  Audit des tronçons de tout le réseau à une ère, comme \`GET /api/v1/audits/segments\` : les tronçons
+  les plus mal notés d'abord, filtrables par note, contrôle, raison, état, département, région, ligne
+  et nom. Une page à la fois : \`limit\` (50 par défaut, 200 au plus), \`offset\`, \`total\` après les
+  filtres. Coût : la taille de page (\`limit\`) multiplie le coût des sous-champs demandés, au plus 5 000
+  points par requête.
+  """
+  segmentAudits(
+    "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante, 2030."
+    era: Int
+    "Note à garder : celle du contrôle \`check\`, ou la plus mauvaise des quatre sans \`check\`."
+    grade: AuditGrade
+    "Contrôle dont on filtre la note : \`classification\`, \`placement\`, \`accuracy\` ou \`trace\`. Sert à \`grade\` et à \`reason\`."
+    check: String
+    "Code de raison (ex. \`on_other_line_track\`), dans le contrôle \`check\` s'il est donné, sinon dans l'un des quatre."
+    reason: String
+    "État du tronçon : \`in_service\`, \`single_track\`, \`service_track\`, \`construction\`, \`abandoned\`, \`dismantled\` ou \`razed\`."
+    status: String
+    "Code INSEE du département (\`01\` à \`95\`, \`2A\`, \`2B\`, \`971\` à \`976\`, majuscules) : tronçons des lignes qui y passent."
+    department: String
+    "Code INSEE de la région : tronçons des lignes de ses départements."
+    region: String
+    "Une seule ligne : slug (\`rfn-405000\`) ou code à 6 chiffres."
+    line: String
+    "Texte cherché dans le nom de la ligne, casse et accents ignorés."
+    q: String
+    "Tri : \`worst\` (le plus mal noté d'abord, par défaut), \`length\` (le plus long d'abord) ou \`line\` (code de ligne)."
+    sort: String = "worst"
+    "Nombre de tronçons au plus, de 1 à 200 (50 par défaut)."
+    limit: Int = 50
+    "Rang du premier tronçon rendu, à partir de 0 (0 par défaut)."
+    offset: Int = 0
+  ): SegmentAuditPage!
+  """
+  Audit des gares de tout le réseau, comme \`GET /api/v1/audits/stations\` : une passe par gare (pas
+  d'ère), les plus éloignées de leurs sources d'abord, filtrables par note de placement, contrôle en
+  échec, notes des dates, département, région, ligne et nom. Une page à la fois : \`limit\` (50 par
+  défaut, 200 au plus), \`offset\`, \`total\` après les filtres. Même règle de coût que \`segmentAudits\`.
+  """
+  stationAudits(
+    "Note de placement : \`agree\`, \`close\`, \`isolated\`, \`disagree\` ou \`none\`. Par défaut : toutes."
+    grade: String
+    "Contrôle croisé en échec, ex. \`far_from_track\`, \`wikidata_differs\`, \`closure_before_opening\`."
+    check: String
+    "Note de la date d'ouverture : \`sourced\`, \`estimated\`, \`unknown\` ou \`not_applicable\`."
+    opening: String
+    "Note de la date de fermeture : \`sourced\`, \`estimated\`, \`unknown\` ou \`not_applicable\` (gare ouverte)."
+    closure: String
+    "Code INSEE du département de la gare (majuscules : \`2A\`)."
+    department: String
+    "Code INSEE de la région de la gare."
+    region: String
+    "Gares desservies par cette ligne : slug (\`rfn-405000\`) ou code à 6 chiffres."
+    line: String
+    "Texte cherché dans le nom de la gare, casse et accents ignorés."
+    q: String
+    "Tri : \`spread\` (écart à la source précise la plus éloignée, par défaut), \`track\` (écart à la voie) ou \`name\`."
+    sort: String = "spread"
+    "Nombre de gares au plus, de 1 à 200 (50 par défaut)."
+    limit: Int = 50
+    "Rang de la première gare rendue, à partir de 0 (0 par défaut)."
+    offset: Int = 0
+  ): StationAuditPage!
   "Un média, par son identifiant (nul pour une image que l'API ne diffuse pas, voir \`Media.rights_status\`)."
   mediaItem(
     "Identifiant du média."
@@ -2570,6 +2636,112 @@ type LineAudit {
     "Rang du premier tronçon rendu, à partir de 0 (0 par défaut)."
     offset: Int = 0
   ): [SegmentAudit!]!
+}
+
+
+"""
+Une page de l'audit des tronçons du réseau (\`segmentAudits\`), comme le corps de
+\`GET /api/v1/audits/segments\`.
+"""
+type SegmentAuditPage {
+  "Année de l'ère auditée."
+  era_year: Int!
+  "Nombre de tronçons après les filtres : la page suivante commence à \`offset + limit\` tant que ce rang est inférieur à ce nombre."
+  total: Int!
+  "Taille de page appliquée (1 à 200)."
+  limit: Int!
+  "Rang du premier tronçon de la page."
+  offset: Int!
+  "Tronçons de la page, dans l'ordre du tri."
+  items: [NetworkSegmentAudit!]!
+}
+
+
+"Un tronçon de la liste d'audit du réseau : sa ligne, ses notes et les codes de raison de chaque contrôle (preuves complètes : \`Line.audit\`)."
+type NetworkSegmentAudit {
+  "Slug de la ligne du tronçon."
+  line_slug: String!
+  "Code SNCF Réseau de la ligne, nul pour une ligne sans code."
+  line_code: String
+  "Nom de la ligne."
+  line_name: String!
+  "Identifiant du tronçon (\`LineSegment.id\`), tant que le moteur n'a pas recalculé la ligne."
+  segment_id: ID!
+  "État du tronçon audité : in_service, single_track, service_track, construction, abandoned, dismantled, razed."
+  status: String!
+  "Trafic du tronçon audité : passenger, freight, mixed, unknown."
+  traffic_type: String
+  "Source du dessin (bdtopo, osm, ohm, sncf, archeoferroviaire…), nulle si inconnue."
+  trace_source: String
+  "Longueur du tronçon, en mètres."
+  length_m: Int!
+  "Les quatre notes du tronçon."
+  grades: AuditGrades!
+  "La plus mauvaise des quatre notes."
+  worst_grade: AuditGrade!
+  "Score de 0 (tout sûr) à 100 (tout faux)."
+  score: Int!
+  "Codes de raison de chaque contrôle, ex. \`{\\"placement\\": [\\"median_over_tolerance\\"]}\`."
+  reasons: JSON!
+  "Date et heure de la passe d'audit (ISO 8601)."
+  audited_at: String
+}
+
+
+"""
+Une page de l'audit des gares du réseau (\`stationAudits\`), comme le corps de
+\`GET /api/v1/audits/stations\`.
+"""
+type StationAuditPage {
+  "Nombre de gares après les filtres : la page suivante commence à \`offset + limit\` tant que ce rang est inférieur à ce nombre."
+  total: Int!
+  "Taille de page appliquée (1 à 200)."
+  limit: Int!
+  "Rang de la première gare de la page."
+  offset: Int!
+  "Gares de la page, dans l'ordre du tri."
+  items: [NetworkStationAudit!]!
+}
+
+
+"Une gare de la liste d'audit du réseau : note de placement, écarts, notes des dates et contrôles en échec (détail et dates candidates : \`Station.audit\`)."
+type NetworkStationAudit {
+  "Identifiant de la gare."
+  station_id: ID!
+  "Slug de la gare."
+  slug: String!
+  "Nom de la gare."
+  name: String!
+  "Code INSEE du département, nul si inconnu."
+  department: String
+  "Nom de la région, nul si inconnue."
+  region: String
+  "État actuel de la gare : active, tourist, no_commercial, declassified, gone, planned."
+  status: String
+  "Source de la position retenue par VFF."
+  position_source: String
+  "Note de placement : agree, close, isolated, disagree ou none."
+  placement_grade: String!
+  "Nombre de familles de sources qui donnent une position."
+  families: Int!
+  "Écart en mètres à la source indépendante la plus proche, nul sans source."
+  nearest_agreeing_m: Int
+  "Écart en mètres à la source précise la plus éloignée, nul sans source précise."
+  farthest_precise_m: Int
+  "Écart en mètres à la voie la plus proche des lignes de la gare, nul sans tracé."
+  track_offset_m: Int
+  "Note de la date d'ouverture : sourced, estimated, unknown ou not_applicable."
+  opening_grade: String!
+  "Note de la date de fermeture : sourced, estimated, unknown ou not_applicable (gare ouverte)."
+  closure_grade: String!
+  "État voyageurs : open, closed ou unknown."
+  passenger: String
+  "État fret : open, closed ou unknown."
+  freight: String
+  "Codes des contrôles croisés en échec."
+  checks: [String!]!
+  "Familles de sources comptées (sncf, osm, bdtopo, wikidata…)."
+  sources: [String!]!
 }
 
 

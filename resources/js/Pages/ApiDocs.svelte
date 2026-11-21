@@ -89,6 +89,14 @@
                     path: '/api/v1/lines/{line}/audit?era={year}&limit={n}&offset={n}',
                     key: 'line_audit',
                 },
+                {
+                    path: '/api/v1/audits/segments?era={year}&grade={grade}&department={code}&limit={n}&offset={n}',
+                    key: 'segment_audits',
+                },
+                {
+                    path: '/api/v1/audits/stations?grade={grade}&department={code}&limit={n}&offset={n}',
+                    key: 'station_audits',
+                },
                 { path: '/api/v1/lines/{line}/materials', key: 'line_materials' },
                 { path: '/api/v1/lines/{line}/media', key: 'media' },
                 { path: '/api/v1/lines/{line}/greenways', key: 'line_greenways' },
@@ -189,6 +197,8 @@
         'level_crossings',
         'line_profile',
         'line_audit',
+        'segment_audits',
+        'station_audits',
         'line_greenways',
         'line_archives',
         'line_stories',
