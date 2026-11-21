@@ -239,9 +239,7 @@
         color: var(--vff-link);
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-xs);
-        text-decoration: none;
-    }
-    sup a:hover {
+        /* Soulignée : un lien noyé dans du texte ne se distingue pas par la seule couleur (RGAA 10.6). */
         text-decoration: underline;
     }
     .conflicts {

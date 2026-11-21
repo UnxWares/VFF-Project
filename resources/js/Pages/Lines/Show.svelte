@@ -680,7 +680,7 @@
                     {/if}
                 </div>
 
-                <aside class="infobox" id="fiche" aria-labelledby="fiche-title">
+                <section class="infobox" id="fiche" aria-labelledby="fiche-title">
                     <h2 id="fiche-title">{t('lines.facts.title')}</h2>
                     <dl>
                         {#if names.length}
@@ -846,10 +846,10 @@
                             </dd>
                         </div>
                     </dl>
-                </aside>
+                </section>
                 {#if line.advocacy}
                     <!-- Campagne : après le texte et la fiche (sous le texte sur grand écran, après la fiche sur téléphone), jamais avant les faits. -->
-                    <aside
+                    <section
                         class={[
                             'advocacy',
                             line.advocacy.kind === 'reopening' ? 'reopening' : 'alert',
@@ -896,7 +896,7 @@
                                 {line.advocacy.cta_label || t('lines.act')}{@render ext()}
                             </a>
                         {/if}
-                    </aside>
+                    </section>
                 {/if}
             </div>
         </SheetSection>
@@ -1843,9 +1843,6 @@
         padding: 5px 6px;
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-xs);
-        text-decoration: none;
-    }
-    .st-what sup a:hover {
         text-decoration: underline;
     }
 
