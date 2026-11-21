@@ -57,11 +57,11 @@ class MaterialRelationsTest extends TestCase
         $this->edge('Lisieux', 'Mézidon', 'L2b', 55);
     }
 
-    private function edge(string $from, string $to, string $line, int $km): void
+    private function edge(string $from, string $to, string $line, int $km, ?Era $era = null): void
     {
         $id = $this->lines[$line]->id;
         DB::table('station_edges')->insert([
-            'era_id' => $this->era->id, 'from_station_id' => $this->stations[$from]->id, 'to_station_id' => $this->stations[$to]->id,
+            'era_id' => ($era ?? $this->era)->id, 'from_station_id' => $this->stations[$from]->id, 'to_station_id' => $this->stations[$to]->id,
             'line_id' => $id, 'length_m' => $km * 1000, 'line_ids' => "{{$id}}", 'line_lengths' => '{'.($km * 1000).'}',
         ]);
     }
@@ -80,7 +80,7 @@ class MaterialRelationsTest extends TestCase
     /**
      * Codes des lignes rattachées par une section d'article.
      *
-     * @return list<array{line_id: int, evidence: array<string, mixed>}>
+     * @return list<array{line_id: int, evidence: array<string, mixed>, successor?: string}>
      */
     private function links(MaterialRelations $relations, string $text, string $section = 'Services effectués'): array
     {
@@ -234,6 +234,104 @@ class MaterialRelationsTest extends TestCase
         $this->assertSame('Metz', RelationRouter::readable('Metz-n° 2'));
         $this->assertSame('Bize (Aude)', RelationRouter::readable('Bize (Aude)'), 'une précision de lieu reste');
         $this->assertSame('Stade', RelationRouter::readable('Stade'));
+    }
+
+    /**
+     * Graphe d'une ère passée troué : en 1970, le kilomètre de la ligne 905 entre Vénissieux et Saint-Fons
+     * manque, et Lyon - Grenoble passait par Valence. Le chemin de l'époque actuelle, plus court et sur des
+     * lignes déjà là en 1970, est retenu ; pas quand il emprunte une ligne absente du graphe de l'ère.
+     */
+    public function test_a_gap_in_a_past_era_graph_is_bridged_by_the_current_graph(): void
+    {
+        $past = Era::factory()->create(['year' => 1970, 'is_current' => false]);
+        foreach (['830' => 'Ligne 830', '905' => 'Ligne 905', '908' => 'Ligne 908', 'NEW' => 'Ligne NEW'] as $code => $name) {
+            $this->lines[$code] = Line::factory()->create(['code' => $code, 'name' => $name, 'is_lgv' => false]);
+        }
+        $places = ['Lyon-Perrache' => [4.83, 45.75], 'Vénissieux' => [4.88, 45.71], 'St-Fons' => [4.86, 45.70], 'Valence' => [4.89, 44.93],
+            'Grenoble' => [5.71, 45.19], 'Moirans' => [5.57, 45.32], 'Chambéry' => [5.92, 45.57]];
+        foreach ($places as $name => [$lng, $lat]) {
+            $this->stations[$name] = Station::factory()->create(['name' => $name, 'geom' => Point::makeGeodetic($lat, $lng)]);
+        }
+        foreach ([$this->era, $past] as $era) {
+            $this->edge('Lyon-Perrache', 'St-Fons', '830', 6, $era);
+            $this->edge('St-Fons', 'Valence', '830', 95, $era);
+            $this->edge('Valence', 'Moirans', '908', 75, $era);
+            $this->edge('Moirans', 'Grenoble', '905', 20, $era);
+            $this->edge('Vénissieux', 'Moirans', '905', 95, $era);
+        }
+        $this->edge('St-Fons', 'Vénissieux', '905', 6);
+        $relations = $this->relations();
+
+        $links = $this->links($relations, "* [[Gare de Lyon-Perrache|Lyon]] - [[Gare de Grenoble|Grenoble]]\n");
+
+        $this->assertSame(['830', '905'], $this->codes($links), 'par Vénissieux, pas par Valence');
+        $this->assertSame(1970, $links[0]['evidence']['route']['era_year'], 'l\'ère de la phrase reste dans la preuve');
+
+        // Ligne nouvelle (absente en 1970) : le chemin actuel n'est pas repris.
+        DB::table('station_edges')->where('era_id', $this->era->id)->where('line_id', $this->lines['905']->id)
+            ->where('from_station_id', $this->stations['St-Fons']->id)->update(['line_id' => $this->lines['NEW']->id, 'line_ids' => '{'.$this->lines['NEW']->id.'}']);
+        $links = $this->links($this->relations(), "* [[Gare de Lyon-Perrache|Lyon]] - [[Gare de Grenoble|Grenoble]]\n");
+        $this->assertSame(['830', '905', '908'], $this->codes($links));
+    }
+
+    /**
+     * Ligne directe trouée dans le graphe : la ligne de Motteville à Montérolier-Buchy n'y a qu'un bout, et le
+     * plus court chemin faisait 250 km par Rouen pour 35 km à vol d'oiseau. Les deux arrêts sont les extrémités
+     * nommées de la ligne : elle seule est retenue. Une ligne nommée n'écarte pas un chemin normal.
+     */
+    public function test_a_relation_between_the_named_ends_of_a_line_follows_that_line(): void
+    {
+        $this->lines['354000'] = Line::factory()->create(['code' => '354000', 'name' => 'Ligne de Motteville à Montérolier-Buchy', 'is_lgv' => false]);
+        foreach (['R1' => 'Ligne R1', 'R2' => 'Ligne R2'] as $code => $name) {
+            $this->lines[$code] = Line::factory()->create(['code' => $code, 'name' => $name, 'is_lgv' => false]);
+        }
+        $places = ['Motteville' => [0.85, 49.63], 'St-Ouen-du-Breuil' => [0.99, 49.63], 'Montérolier-Buchy' => [1.33, 49.55], 'Rouen-Rive-Droite' => [1.09, 49.45]];
+        foreach ($places as $name => [$lng, $lat]) {
+            $this->stations[$name] = Station::factory()->create(['name' => $name, 'geom' => Point::makeGeodetic($lat, $lng)]);
+        }
+        $this->edge('Motteville', 'St-Ouen-du-Breuil', '354000', 12);
+        $this->edge('Motteville', 'Rouen-Rive-Droite', 'R1', 35);
+        $this->edge('Rouen-Rive-Droite', 'Montérolier-Buchy', 'R2', 35);
+
+        $links = $this->links($this->relations(), "* [[Gare de Montérolier - Buchy|Montérolier]] - [[Gare de Motteville|Motteville]]\n");
+
+        $this->assertSame(['354000'], $this->codes($links));
+        $this->assertSame($this->stations['Montérolier-Buchy']->id, $links[0]['evidence']['route']['from']['id']);
+        $this->assertSame(['motteville', 'monterolier-buchy'], RelationRouter::namedEnds('Ligne de Motteville à Montérolier-Buchy'));
+        $this->assertSame(['lyon-perrache p1', 'marseille-st-charles'], RelationRouter::namedEnds('Ligne de Lyon-Perrache P1 à Marseille-St-Charles (via Grenoble)'));
+        $this->assertNull(RelationRouter::namedEnds('Raccordement de Versailles-Matelots'));
+
+        // Chemin normal (70 km pour 35 km à vol d'oiseau) : la ligne nommée ne le remplace pas.
+        DB::table('station_edges')->where('line_id', $this->lines['R1']->id)->update(['length_m' => 20000, 'line_lengths' => '{20000}']);
+        DB::table('station_edges')->where('line_id', $this->lines['R2']->id)->update(['length_m' => 25000, 'line_lengths' => '{25000}']);
+        $links = $this->links($this->relations(), "* [[Gare de Montérolier - Buchy|Montérolier]] - [[Gare de Motteville|Motteville]]\n");
+        $this->assertSame(['R1', 'R2'], $this->codes($links));
+    }
+
+    /**
+     * « Les Pacific État continueront de circuler sur Paris-Granville jusqu'en 1950, année où elles seront
+     * remplacées par des 141 P » (article « 231 État 501 à 783 ») : la série qui remplace reçoit l'itinéraire,
+     * avec la période lue pour elle ; une série citée autrement (« comme les 141 P ») ne reçoit rien.
+     */
+    public function test_the_series_replacing_another_on_an_itinerary_gets_the_itinerary(): void
+    {
+        $text = "* Les Pacific État continueront de circuler sur [[Ligne de Paris à Granville|Paris-Granville]] jusqu'en [[1950 dans les chemins de fer|1950]], année où elles seront remplacées par des '''[[141 P]]'''.\n";
+        $links = $this->relations()->links(
+            ['title' => '231 État 501 à 783', 'revid' => 7, 'sections' => [['title' => 'Utilisation', 'level' => 2, 'text' => $text]]],
+            ['fast' => false, 'from' => 1914, 'to' => 1966],
+            new \DateTimeImmutable('2026-11-20'),
+        );
+
+        $successor = array_values(array_filter($links, fn (array $l): bool => ($l['successor'] ?? null) === '141 P'));
+        $own = array_values(array_filter($links, fn (array $l): bool => ! isset($l['successor'])));
+        $this->assertSame(['395000', '405000', '430000'], $this->codes($successor));
+        $this->assertSame(['395000', '405000', '430000'], $this->codes($own));
+        $this->assertSame('231 État 501 à 783', $successor[0]['evidence']['route']['replaces']);
+        $this->assertSame('1950-01-01', $successor[0]['evidence']['period']['from']['date'] ?? null, 'la série qui remplace arrive en 1950');
+        $this->assertNull($successor[0]['evidence']['period']['to'] ?? null);
+
+        $compared = $this->links($this->relations(), "* Elles roulent sur [[Ligne de Paris à Granville|Paris-Granville]], comme les [[141 P]].\n");
+        $this->assertSame([], array_filter($compared, fn (array $l): bool => isset($l['successor'])));
     }
 
     public function test_relations_are_served_with_their_periods(): void

@@ -30,6 +30,17 @@ use SplPriorityQueue;
  * qui ne suivent que des lignes jamais électrifiées (ni `lines.electrified`, ni tronçon électrifié à une ère)
  * sont retirées du graphe. Sans cela, Paris-Nord - Arras - Boulogne-Ville en TGV passait par Saint-Pol et
  * Étaples, ligne jamais électrifiée.
+ *
+ * Graphe d'une ère passée troué (morceau de ligne absent de `station_edges` à cette ère, comme le kilomètre
+ * entre Vénissieux et Saint-Fons sur Lyon - Grenoble avant 2030) : quand le plus court chemin de l'époque
+ * actuelle est nettement plus court (rapport DETOUR_TOLERANCE) et suit des lignes déjà présentes dans le
+ * graphe de l'ère, entre des gares qui y sont (une gare ouverte depuis est tolérée), c'est lui qui est retenu.
+ * Sinon Lyon - Grenoble passait par Valence.
+ *
+ * Ligne directe : quand les deux arrêts sont les extrémités nommées d'une ligne (« Ligne de Motteville à
+ * Montérolier-Buchy » pour Montérolier - Motteville) et que le graphe ne donne pas de chemin sûr, ou un
+ * chemin sans elle plus de DIRECT_DETOUR fois plus long que la distance à vol d'oiseau, la relation suit
+ * cette ligne seule (graphe troué sur la ligne directe elle-même).
  */
 final class RelationRouter
 {
@@ -53,6 +64,12 @@ final class RelationRouter
      * Rennes, la fin de Paris - Toulouse dans Montauban).
      */
     public const MIN_LINE_M = 5000;
+
+    /**
+     * Chemin sans la ligne directe plus long que ce rapport à la distance à vol d'oiseau : le graphe est troué
+     * sur la ligne directe (un vrai chemin de fer dépasse rarement 1,5 fois la distance à vol d'oiseau).
+     */
+    public const DIRECT_DETOUR = 1.5;
 
     /** Installation technique ou de fret dans un nom de gare : écartée quand la ville a une autre gare. */
     private const TECHNICAL_STATION = '/\((?:IE|MIN|ITE)\)|\bn°\s*\d|\b(?:marchandises|triage|fret|dépôt|atelier)\b|\s\d+$/iu';
@@ -85,6 +102,9 @@ final class RelationRouter
 
     /** @var array<int, bool>|null lignes électrifiées à une ère au moins (ou aujourd'hui) */
     private ?array $electrified = null;
+
+    /** @var array<int, array{0: string, 1: string}>|null ligne → extrémités nommées (« Ligne de A à B »), noms normalisés */
+    private ?array $namedEnds = null;
 
     /** Année de l'ère du graphe pour une année quelconque (null : aucune ère, ou graphe absent). */
     public function eraYear(int $year): ?int
@@ -167,15 +187,139 @@ final class RelationRouter
         sort($to);
         $memoKey = $eraYear.($fast ? 'f' : 's').($electric ? 'e' : 't').':'.implode(',', $from).'>'.implode(',', $to);
 
-        return $this->memo[$memoKey] ??= $this->computeRoute($from, $to, $eraYear, $fast, $electric);
+        if (! isset($this->memo[$memoKey])) {
+            $route = $this->computeRoute($from, $to, $eraYear, $fast, $electric);
+            unset($route['cost']);
+            $this->memo[$memoKey] = $route;
+        }
+
+        return $this->memo[$memoKey];
     }
 
     /**
      * @param  list<int>  $from
      * @param  list<int>  $to
-     * @return array{status: string, lines: list<int>, ratio: ?float, from: ?int, to: ?int}
+     * @return array{status: string, lines: list<int>, ratio: ?float, from: ?int, to: ?int, cost?: float}
      */
     private function computeRoute(array $from, array $to, int $eraYear, bool $fast, bool $electric): array
+    {
+        $result = $this->routeOn($from, $to, $eraYear, $fast, $electric);
+        $result = $this->bridgeGap($from, $to, $eraYear, $fast, $electric, $result);
+
+        return $this->directLine($from, $to, $eraYear, $fast, $electric, $result) ?? $result;
+    }
+
+    /**
+     * Graphe de l'ère troué : plus court chemin de l'époque actuelle s'il est plus court d'au moins
+     * DETOUR_TOLERANCE et s'il suit des lignes du graphe de l'ère (voir la classe).
+     *
+     * @param  list<int>  $from
+     * @param  list<int>  $to
+     * @param  array{status: string, lines: list<int>, ratio: ?float, from: ?int, to: ?int, cost?: float}  $result
+     * @return array{status: string, lines: list<int>, ratio: ?float, from: ?int, to: ?int, cost?: float}
+     */
+    private function bridgeGap(array $from, array $to, int $eraYear, bool $fast, bool $electric, array $result): array
+    {
+        $this->loadEras();
+        $current = $this->currentEraYear;
+        $graph = $this->graph($eraYear, $fast, $electric);
+        if ($current === null || $current === $eraYear || $graph === null || $result['status'] === 'same') {
+            return $result;
+        }
+        $now = $this->graph($current, $fast, $electric);
+        $path = $now === null ? null : PathfindingService::dijkstra($now['adj'], $from, $to);
+        if ($path === null || $path['edges'] === [] || (isset($result['cost']) && $result['cost'] < $path['cost'] * self::DETOUR_TOLERANCE)) {
+            return $result;
+        }
+        // Chaque arête : au moins une de ses gares dans le graphe de l'ère (une gare ouverte depuis, comme
+        // L'Isle-d'Abeau, passe ; un prolongement de plusieurs gares, non) et la plus grande part de sa longueur
+        // sur des lignes de l'ère ou des raccordements (Lyon-Guillotière, Grenay : bouts de raccordements récents).
+        $eraLines = $this->linesOf($graph);
+        foreach ($path['edges'] as $k => $eid) {
+            if (! isset($graph['adj'][$path['stations'][$k]]) && ! isset($graph['adj'][$path['stations'][$k + 1]])) {
+                return $result;
+            }
+            $known = 0;
+            $total = 0;
+            foreach ($now['parts'][$eid] as [$line, $len]) {
+                $known += isset($eraLines[$line]) || isset($this->junctions[$line]) ? $len : 0;
+                $total += $len;
+            }
+            if (2 * $known < $total) {
+                return $result;
+            }
+        }
+
+        return $this->routeOn($from, $to, $current, $fast, $electric);
+    }
+
+    /**
+     * Relation entre les deux extrémités nommées d'une ligne présente à l'ère, quand le graphe ne la fait
+     * pas passer par elle (voir la classe) ; null sinon.
+     *
+     * @param  list<int>  $from
+     * @param  list<int>  $to
+     * @param  array{status: string, lines: list<int>, ratio: ?float, from: ?int, to: ?int, cost?: float}  $result
+     * @return array{status: string, lines: list<int>, ratio: ?float, from: ?int, to: ?int, cost?: float}|null
+     */
+    private function directLine(array $from, array $to, int $eraYear, bool $fast, bool $electric, array $result): ?array
+    {
+        $graph = $this->graph($eraYear, $fast, $electric);
+        if ($graph === null || $result['status'] === 'same') {
+            return null;
+        }
+        $this->loadStations();
+        $this->loadNamedEnds();
+        $eraLines = $this->linesOf($graph);
+        $found = [];
+        foreach ($from as $a) {
+            foreach ($to as $b) {
+                $pair = [$this->stations[$a]['key'] ?? '', $this->stations[$b]['key'] ?? ''];
+                foreach ($this->namedEnds as $line => $ends) {
+                    if (isset($eraLines[$line]) && ($ends === $pair || $ends === [$pair[1], $pair[0]])) {
+                        $found[$line] = [$a, $b];
+                    }
+                }
+            }
+        }
+        if (count($found) !== 1) {
+            return null;
+        }
+        $line = (int) array_key_first($found);
+        [$a, $b] = $found[$line];
+        if ($result['status'] === 'ok' && (in_array($line, $result['lines'], true) || ($result['cost'] ?? 0.0) <= self::DIRECT_DETOUR * 1000 * $this->distanceKm($a, $b))) {
+            return null;
+        }
+
+        return ['status' => 'ok', 'lines' => [$line], 'ratio' => null, 'from' => $a, 'to' => $b];
+    }
+
+    /**
+     * Lignes portées par au moins une arête du graphe.
+     *
+     * @param  array{adj: array<int, list<array{0: int, 1: float, 2: int}>>, parts: array<int, list<array{0: int, 1: int}>>}  $graph
+     * @return array<int, true>
+     */
+    private function linesOf(array $graph): array
+    {
+        $lines = [];
+        foreach ($graph['parts'] as $parts) {
+            foreach ($parts as [$line]) {
+                $lines[$line] = true;
+            }
+        }
+
+        return $lines;
+    }
+
+    /**
+     * Plus court chemin sur le graphe d'une ère, avec son coût (`cost`, en mètres pondérés).
+     *
+     * @param  list<int>  $from
+     * @param  list<int>  $to
+     * @return array{status: string, lines: list<int>, ratio: ?float, from: ?int, to: ?int, cost?: float}
+     */
+    private function routeOn(array $from, array $to, int $eraYear, bool $fast, bool $electric): array
     {
         $graph = $this->graph($eraYear, $fast, $electric);
         if ($graph === null || $from === [] || $to === []) {
@@ -200,7 +344,7 @@ final class RelationRouter
         $lines = array_keys(array_filter($lengths, fn (int $len): bool => $len >= self::MIN_LINE_M));
         $ratio = $this->alternative($graph, $path, $onPath);
 
-        $ends = ['from' => $path['stations'][0], 'to' => $path['stations'][count($path['stations']) - 1]];
+        $ends = ['from' => $path['stations'][0], 'to' => $path['stations'][count($path['stations']) - 1], 'cost' => (float) $path['cost']];
 
         return $ratio !== null
             ? ['status' => 'ambiguous', 'lines' => $lines, 'ratio' => round($ratio, 3)] + $ends
@@ -435,15 +579,58 @@ final class RelationRouter
         $max = 0.0;
         foreach ($ids as $i => $a) {
             foreach (array_slice($ids, $i + 1) as $b) {
-                $sa = $this->stations[$a];
-                $sb = $this->stations[$b];
-                $dLat = deg2rad($sb['lat'] - $sa['lat']);
-                $dLng = deg2rad($sb['lng'] - $sa['lng']) * cos(deg2rad(($sa['lat'] + $sb['lat']) / 2));
-                $max = max($max, 6371.0 * sqrt($dLat ** 2 + $dLng ** 2));
+                $max = max($max, $this->distanceKm($a, $b));
             }
         }
 
         return $max;
+    }
+
+    /** Distance à vol d'oiseau entre deux gares, en kilomètres. */
+    private function distanceKm(int $a, int $b): float
+    {
+        $sa = $this->stations[$a];
+        $sb = $this->stations[$b];
+        $dLat = deg2rad($sb['lat'] - $sa['lat']);
+        $dLng = deg2rad($sb['lng'] - $sa['lng']) * cos(deg2rad(($sa['lat'] + $sb['lat']) / 2));
+
+        return 6371.0 * sqrt($dLat ** 2 + $dLng ** 2);
+    }
+
+    /** Extrémités nommées des lignes « Ligne de A à B » (précision finale entre parenthèses ignorée). */
+    private function loadNamedEnds(): void
+    {
+        if ($this->namedEnds !== null) {
+            return;
+        }
+        $this->namedEnds = [];
+        foreach (DB::table('lines')->where('name', 'ilike', 'ligne d%')->get(['id', 'name']) as $line) {
+            $ends = self::namedEnds((string) $line->name);
+            if ($ends !== null) {
+                $this->namedEnds[(int) $line->id] = $ends;
+            }
+        }
+    }
+
+    /**
+     * Extrémités d'un nom « Ligne de A à B », normalisées (key()) ; null si le nom n'a pas cette forme ou
+     * contient plusieurs « à ».
+     *
+     * @return array{0: string, 1: string}|null
+     */
+    public static function namedEnds(string $name): ?array
+    {
+        $name = trim((string) preg_replace('/\s*\([^)]*\)\s*$/u', '', $name));
+        if (preg_match('/^ligne\s+(?:de\s+la\s+|de\s+l[’\']|de\s+|d[’\']|du\s+|des\s+)(.+)$/iu', $name, $m) !== 1) {
+            return null;
+        }
+        $parts = preg_split('/\s+à\s+/u', $m[1]) ?: [];
+        if (count($parts) !== 2) {
+            return null;
+        }
+        [$a, $b] = [self::key($parts[0]), self::key($parts[1])];
+
+        return $a !== '' && $b !== '' && $a !== $b ? [$a, $b] : null;
     }
 
     /** @return list<int> */
