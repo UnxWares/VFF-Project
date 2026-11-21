@@ -58,6 +58,12 @@ final class WikipediaMaterialSections
 
     private const DOUBTFUL = '/\b(?:'.self::DOUBT_WORDS.')\b/iu';
 
+    /** Futur simple de récit (« année où elles seront remplacées ») : seul mot de DOUBT_WORDS qu'admet isProspective(). */
+    private const NARRATIVE_FUTURE = '/^(?:sera|seront)$/iu';
+
+    /** Écart minimal, en années, entre la plus récente année citée et aujourd'hui pour lire un futur de récit. */
+    public const NARRATIVE_FUTURE_GAP = 15;
+
     /**
      * Familles de doute sur la nature de la circulation, lues dans la partie de phrase qui porte le lien
      * (doubt()) : le lien est gardé, en fiabilité `low` sans autre preuve. Les mêmes mots écartent la
@@ -230,7 +236,7 @@ final class WikipediaMaterialSections
             }
             $quote = self::plain($unit['sentence']);
             // Phrase vide une fois les modèles retirés (« . ») : rien à citer.
-            if (! preg_match('/\p{L}/u', $quote) || preg_match(self::DOUBTFUL, $quote)) {
+            if (! preg_match('/\p{L}/u', $quote) || self::isProspective($quote)) {
                 continue;
             }
             $refersBack = preg_match(self::REFERS_BACK_REPLACEMENT, $quote) === 1;
@@ -266,6 +272,30 @@ final class WikipediaMaterialSections
         }
 
         return $out;
+    }
+
+    /**
+     * La phrase (en clair) parle-t-elle d'un projet, d'un futur, d'un conditionnel ou d'une négation de la
+     * circulation (DOUBT_WORDS) ? Exception, le futur de récit : « les Pacific État continueront de circuler
+     * sur Paris-Granville jusqu'en 1950, année où elles seront remplacées par des 141 P ». Quand les seuls mots
+     * de doute sont « sera » ou « seront » et que toutes les années citées ont au moins NARRATIVE_FUTURE_GAP
+     * ans, la phrase raconte le passé : elle n'est pas écartée. Sans année, le futur reste un doute.
+     */
+    public static function isProspective(string $quote, ?int $currentYear = null): bool
+    {
+        if (preg_match_all(self::DOUBTFUL, $quote, $words) < 1) {
+            return false;
+        }
+        foreach ($words[0] as $word) {
+            if (preg_match(self::NARRATIVE_FUTURE, $word) !== 1) {
+                return true;
+            }
+        }
+        if (preg_match_all('/(?<![\d\p{L}])(1[89]\d\d|20\d\d)(?![\d\p{L}])/u', $quote, $years) < 1) {
+            return true;
+        }
+
+        return max(array_map('intval', $years[1])) > ($currentYear ?? (int) date('Y')) - self::NARRATIVE_FUTURE_GAP;
     }
 
     /**

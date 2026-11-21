@@ -364,6 +364,10 @@ return [
                 // Rames remarquables du matériel (database/data/material_notable_units.php) : LyonMag (27/02/2020),
                 // forum JNS rapportant France Bleu (06/02/2020) ; faits datés, courte citation, lien.
                 'lyonmag.com', 'jnsforum.com',
+                // Faits sur les relations du matériel (database/data/material_relation_notes.php) : communiqué
+                // Région Normandie, SNCF Voyageurs et Saipol du 17/01/2023 (hébergé par Oleo100), article de la
+                // Banque des Territoires avec l'AFP du 14/04/2021 ; Régiolis au B100 sur Paris - Granville.
+                'oleo100.com', 'banquedesterritoires.fr',
             ],
             'lu_le' => '2026-10-20',
         ],

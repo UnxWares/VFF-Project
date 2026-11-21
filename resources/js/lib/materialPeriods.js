@@ -141,24 +141,67 @@ export function periodText(p, t, lang = 'fr') {
 }
 
 /**
- * Séries de la ligne, celles qui ont une période datée d'abord, de la plus ancienne à la plus récente ;
- * les autres ensuite, dans l'ordre reçu (par nom).
+ * Faits sourcés sur les relations d'une série (`notes` de LineMaterial::relations, fichier
+ * database/data/material_relation_notes.php), en phrases : « Paris-Montparnasse - Granville : au biodiesel
+ * B100 (colza) depuis avril 2021, bilan publié en janvier 2023 ». Une note commune à plusieurs relations
+ * (même carburant, même début) n'est donnée qu'une fois, avec la première relation qui la porte.
  *
- * @template {{ periods?: Array<any> }} M
- * @param {M[]} materials
- * @returns {M[]}
+ * @param {Array<{label: string, notes?: Array<any>}>|undefined} relations
+ * @param {(key: string, opts?: object) => string} t traduction
+ * @param {string} lang langue de l'interface (fr, en, de)
+ * @returns {Array<{label: string, text: string, sources: Array<{title: string, publisher: string, date: string, url: string}>}>}
  */
-export function sortByFirstPeriod(materials) {
-    const first = (m) => {
-        const dates = (m.periods ?? []).map(firstDate).filter(Boolean).sort();
-        return dates[0] ?? null;
-    };
-    return (materials ?? [])
-        .map((m, i) => ({ m, i, d: first(m) }))
-        .sort((a, b) => {
-            if (a.d && b.d) return a.d.localeCompare(b.d) || a.i - b.i;
-            if (a.d || b.d) return a.d ? -1 : 1;
-            return a.i - b.i;
-        })
-        .map(({ m }) => m);
+export function relationNotes(relations, t, lang = 'fr') {
+    const seen = new Set();
+    const out = [];
+    for (const r of relations ?? []) {
+        for (const n of r.notes ?? []) {
+            const key = `${n.kind}|${n.fuel}|${n.since}`;
+            if (n.kind !== 'fuel' || seen.has(key)) continue;
+            seen.add(key);
+            const text = String(
+                t('materials.relations.notes.fuel', {
+                    fuel: n.fuel,
+                    feedstock: t(`materials.relations.feedstock.${n.feedstock}`),
+                    since: formatEventDate(n.since, n.since_precision ?? 'year', lang),
+                }),
+            );
+            const reported = n.reported
+                ? String(
+                      t('materials.relations.notes.reported', {
+                          date: formatEventDate(n.reported, 'month', lang),
+                      }),
+                  )
+                : '';
+            out.push({
+                label: r.label,
+                text: reported ? `${text}, ${reported}` : text,
+                sources: n.sources ?? [],
+            });
+        }
+    }
+    return out;
+}
+
+/**
+ * Fin de circulation d'une série sur la ligne (`end` de LineSheet, LineMaterialEnd), en texte court :
+ * « Sur la ligne jusqu’en 2019 », « Série retirée en 2019 » (fin de la série, jamais présentée comme celle
+ * de la ligne), « Série encore en service », « Fin inconnue sur la ligne ».
+ *
+ * @param {{kind: string, year: ?number}} end
+ * @param {(key: string, opts?: object) => string} t traduction
+ */
+export function endText(end, t) {
+    switch (end?.kind) {
+        case 'line':
+            return String(t('materials.end.line', { year: end.year }));
+        case 'series_in_service':
+            return String(t('materials.end.series_in_service'));
+        case 'series_withdrawn':
+            return end.year
+                ? String(t('materials.end.series_withdrawn_year', { year: end.year }))
+                : String(t('materials.end.series_withdrawn'));
+        default:
+            return String(t('materials.end.unknown'));
+    }
 }

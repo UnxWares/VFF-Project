@@ -18,6 +18,18 @@ use Illuminate\Support\Facades\DB;
  *      reliée par le plus court chemin du graphe de l'époque (RelationRouter), seulement s'il est sans
  *      ambiguïté ; sinon rien n'est rattaché pour cette paire, et elle est comptée.
  *
+ *   3. relation écrite d'un seul mot à tiret collé après « relation », « ligne », « liaison »… (« sur la ligne
+ *      Paris-Granville ») : lue comme « Paris - Granville » quand le nom entier n'est pas une gare et qu'une
+ *      seule coupure au tiret donne deux gares connues (« Saint-Lô », « Paris-Est » restent entiers). Un nom
+ *      tiré du libellé d'un lien vers un autre article (« [[Ligne de Saint-Denis à Dieppe|Paris-Dieppe]] »),
+ *      un nom de ligne « de X à Y » (« la ligne de Nantes-Orléans à Saintes ») et une ligne citée pour ses
+ *      travaux (« l'électrification de la ligne Paris-Le Mans ») ne sont pas relus ainsi.
+ *
+ * Libellé (`route.label`) : les arrêts tels que la phrase les nomme quand elle désigne une ville (« Paris »
+ * plutôt que la gare choisie par le plus court chemin), sinon le nom de la gare en base rendu lisible
+ * (RelationRouter::readable : « Saint-Malo », sans « (IE) » ni « n° 2 ») ; `from`, `to` et `stops` gardent
+ * l'identifiant et le nom en base.
+ *
  * Époque : la première année citée par la phrase si elle tombe dans la vie de la série, sinon le milieu de
  * sa période de service, sinon l'époque actuelle. Preuve de confiance moyenne (comme un lien d'article de
  * série), avec la phrase citée, l'itinéraire (`route`) et la période quand la phrase en donne une
@@ -41,6 +53,9 @@ final class MaterialRelations
 
     /** Séparateur d'arrêts : tiret entouré d'espaces, tiret demi-cadratin ou cadratin ; entre deux liens, « - » collé ou « à ». */
     private const SEPARATOR = '(?:\s*[–—]\s*|\s+-\s+|(?<=\x{E011})\s*-\s*(?=\x{E010})|(?<=\x{E011})\s+à\s+(?=\x{E010}))';
+
+    /** Mot qui annonce une relation écrite d'un seul tenant (« la ligne Paris-Granville »). */
+    private const RELATION_WORD = '(?i:relations?|liaisons?|lignes?|trains?|dessertes?|services?|trajets?|axes?|rapides?|express|omnibus)';
 
     /** Type de service cité par la phrase ou le titre de section, dans sa graphie courante. */
     private const SERVICES = [
@@ -105,7 +120,7 @@ final class MaterialRelations
      * Lignes attestées par les relations d'un article de série, avec leur preuve.
      *
      * @param  array{title: string, revid: int, sections: list<array{title: string, level: int, text: string}>}  $page
-     * @param  array{fast: bool, from: ?int, to: ?int}  $material  grande vitesse, années de service
+     * @param  array{fast: bool, from: ?int, to: ?int, electric?: bool}  $material  grande vitesse, années de service, traction électrique seule
      * @return list<array{line_id: int, evidence: array<string, mixed>}>
      */
     public function links(array $page, array $material, ?\DateTimeInterface $today = null): array
@@ -151,10 +166,11 @@ final class MaterialRelations
             }
             $target = $link['target'];
             $period = $this->period($sentence, fn (string $t): bool => $t === $target, $today);
-            $ends = [$this->endpoint($itinerary['stops'][0]), $this->endpoint($itinerary['stops'][count($itinerary['stops']) - 1])];
+            [$first, $last] = [$itinerary['stops'][0], $itinerary['stops'][count($itinerary['stops']) - 1]];
+            $ends = [$this->endpoint($first), $this->endpoint($last)];
             $route = [
                 'kind' => 'itinerary', 'title' => $target, 'source' => $itinerary['source'],
-                'label' => $ends[0]['name'].' - '.$ends[1]['name'], 'from' => $ends[0], 'to' => $ends[1],
+                'label' => RelationRouter::readable($first).' - '.RelationRouter::readable($last), 'from' => $ends[0], 'to' => $ends[1],
                 'service' => self::service($link['quote'], $section),
             ];
             $evidence = $this->evidence($page, $section, $link['quote'], $link['doubt'], array_filter($route, fn ($v): bool => $v !== null), $period);
@@ -168,7 +184,7 @@ final class MaterialRelations
 
     /**
      * @param  array{title: string, revid: int}  $page
-     * @param  array{fast: bool, from: ?int, to: ?int}  $material
+     * @param  array{fast: bool, from: ?int, to: ?int, electric?: bool}  $material
      * @return list<array{line_id: int, evidence: array<string, mixed>}>
      */
     private function relationLinks(array $page, string $section, string $sentence, array $material, ?\DateTimeInterface $today): array
@@ -193,7 +209,7 @@ final class MaterialRelations
         $text = WikipediaMaterialSections::plain($marked);
         $readable = fn (string $s): string => (string) preg_replace_callback('/\x{E010}(\d+)\x{E011}/u', fn (array $m): string => $places[(int) $m[1]]['label'] ?? '', $s);
         $quote = $readable($text);
-        if (preg_match('/\b(?:'.WikipediaMaterialSections::DOUBT_WORDS.')\b/iu', $quote) === 1) {
+        if (WikipediaMaterialSections::isProspective($quote)) {
             return [];
         }
 
@@ -217,22 +233,25 @@ final class MaterialRelations
         if ($eraYear === null) {
             return [];
         }
+        array_push($chains, ...$this->joinedChains($text, $sentence, $chains, $eraYear));
         foreach ($chains as [$chain, $offset, $pieces]) {
             $stops = [];
+            $written = [];
             foreach ($pieces as $piece) {
-                $ids = $this->stop($piece, $places, $eraYear);
+                [$ids, $name] = $this->stop($piece, $places, $eraYear);
                 if ($ids === []) {
                     $this->stats['stops_unresolved']++;
 
                     continue 2;
                 }
                 $stops[] = $ids;
+                $written[] = $name;
             }
             $lines = [];
             $chosen = [];
             for ($k = 0; $k + 1 < count($stops); $k++) {
                 $this->stats['pairs']++;
-                $route = $this->router->route($stops[$k], $stops[$k + 1], $eraYear, $material['fast']);
+                $route = $this->router->route($stops[$k], $stops[$k + 1], $eraYear, $material['fast'], $material['electric'] ?? false);
                 if ($route['status'] === 'ambiguous') {
                     $this->stats['pairs_ambiguous']++;
                 } elseif ($route['status'] === 'no_path') {
@@ -247,11 +266,15 @@ final class MaterialRelations
             if ($lines === []) {
                 continue;
             }
-            // Arrêts : la gare retenue par le plus court chemin (celle d'une ville à plusieurs gares, « Paris »).
+            // Arrêts : la gare retenue par le plus court chemin (celle d'une ville à plusieurs gares, « Paris ») ;
+            // libellé : le nom écrit quand il désigne une ville ou un début de nom, sinon le nom en base lisible.
             $named = [];
+            $shown = [];
             foreach ($stops as $k => $ids) {
                 $id = $chosen[$k] ?? (count($ids) === 1 ? $ids[0] : null);
                 $named[] = $id !== null ? ['id' => $id, 'name' => $this->router->stationName($id)] : ['id' => null, 'name' => $readable(trim($pieces[$k]))];
+                $name = $id !== null ? $this->router->stationName($id) : $named[$k]['name'];
+                $shown[] = RelationRouter::readable(RelationRouter::key($name) === RelationRouter::key($written[$k]) ? $name : $written[$k]);
             }
             $before = $readable(substr($text, 0, $offset));
             $label = $readable($chain);
@@ -261,7 +284,7 @@ final class MaterialRelations
             $doubt = WikipediaMaterialSections::doubt($before, $label, $after) ?? self::doubtAnywhere($quote);
             $period = $this->period($before.'[['.self::RELATION_TARGET.'|'.$label.']]'.$after, fn (string $t): bool => $t === self::RELATION_TARGET, $today);
             $evidence = $this->evidence($page, $section, mb_strimwidth($quote, 0, WikipediaMaterialSections::QUOTE_WIDTH, '…'), $doubt, array_filter([
-                'kind' => 'relation', 'label' => implode(' - ', array_column($named, 'name')), 'from' => $named[0], 'to' => $named[count($named) - 1],
+                'kind' => 'relation', 'label' => implode(' - ', $shown), 'from' => $named[0], 'to' => $named[count($named) - 1],
                 'stops' => $named, 'service' => self::service($quote, $section), 'era_year' => $eraYear,
             ], fn ($v): bool => $v !== null), $period);
             foreach (array_unique($lines) as $lineId) {
@@ -313,26 +336,78 @@ final class MaterialRelations
 
     /**
      * Gares d'un arrêt de la relation : gare liée, sinon nom en clair, sans ses premiers mots au besoin
-     * (« Relation Argentan » → « Argentan »).
+     * (« Relation Argentan » → « Argentan »), avec le nom qui les a désignées.
      *
      * @param  list<array{name: string, label: string}>  $places
-     * @return list<int>
+     * @return array{0: list<int>, 1: string}
      */
     private function stop(string $piece, array $places, int $eraYear): array
     {
         $piece = trim($piece);
         if (preg_match('/^\x{E010}(\d+)\x{E011}$/u', $piece, $m) === 1) {
-            return $this->router->resolve($places[(int) $m[1]]['name'], $eraYear);
+            $name = $places[(int) $m[1]]['name'];
+
+            return [$this->router->resolve($name, $eraYear), $name];
         }
         $words = preg_split('/\s+/u', $piece) ?: [];
         for ($i = 0; $i < count($words); $i++) {
-            $ids = $this->router->resolve(implode(' ', array_slice($words, $i)), $eraYear);
+            $name = implode(' ', array_slice($words, $i));
+            $ids = $this->router->resolve($name, $eraYear);
             if ($ids !== []) {
-                return $ids;
+                return [$ids, $name];
             }
         }
 
-        return [];
+        return [[], $piece];
+    }
+
+    /**
+     * Relations écrites d'un seul tenant après un mot comme « ligne » ou « relation » (« la ligne
+     * Paris-Granville ») : coupées au seul tiret qui sépare deux gares connues, quand le nom entier n'en est
+     * pas une. Les chaînes déjà lues et les libellés de liens vers d'autres articles sont laissés de côté.
+     *
+     * @param  list<array{0: string, 1: int, 2: list<string>}>  $chains  chaînes déjà trouvées
+     * @return list<array{0: string, 1: int, 2: list<string>}>
+     */
+    private function joinedChains(string $text, string $sentence, array $chains, int $eraYear): array
+    {
+        if (preg_match_all('/\b'.self::RELATION_WORD.'\s+(?:(?:de|du|des|entre)\s+|d[’\']\s*)?('.self::NAME.')/u', $text, $found, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) < 1) {
+            return [];
+        }
+        $out = [];
+        foreach ($found as $m) {
+            [$name, $offset] = $m[1];
+            $name = rtrim($name, '.');
+            // Nom de ligne « de X à Y » (« la ligne de Nantes-Orléans à Saintes »), libellé d'un lien, ou ligne
+            // citée pour ses travaux (« l'électrification de la ligne Paris-Le Mans ») : pas une relation.
+            $before = substr($text, max(0, $m[0][1] - 60), min(60, $m[0][1]));
+            if (! str_contains($name, '-') || preg_match('/^\s+(?:à|au|aux)\s/u', substr($text, $offset + strlen($name))) === 1
+                || preg_match('/\[\[[^\]]*\|\s*'.preg_quote($name, '/').'\s*\]\]/u', $sentence) === 1
+                || preg_match('/(?:électrifi\w*|mise\s+sous\s+tension|travaux|construction|ouverture|fermeture|doublement)\b[^.;]*$/iu', $before) === 1) {
+                continue;
+            }
+            foreach ($chains as [$chain, $start]) {
+                if ($offset >= $start && $offset < $start + strlen($chain)) {
+                    continue 2;
+                }
+            }
+            if ($this->router->resolve($name, $eraYear) !== []) {
+                continue;
+            }
+            $parts = explode('-', $name);
+            $splits = [];
+            for ($k = 1; $k < count($parts); $k++) {
+                [$a, $b] = [implode('-', array_slice($parts, 0, $k)), implode('-', array_slice($parts, $k))];
+                if ($this->router->resolve($a, $eraYear) !== [] && $this->router->resolve($b, $eraYear) !== []) {
+                    $splits[] = [$a, $b];
+                }
+            }
+            if (count($splits) === 1) {
+                $out[] = [$name, $offset, $splits[0]];
+            }
+        }
+
+        return $out;
     }
 
     /**

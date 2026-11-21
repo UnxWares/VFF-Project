@@ -22,7 +22,14 @@ use SplPriorityQueue;
  * Arrêt désigné par son nom : nom exact de la gare (accents, « Saint » / « St » et espaces autour des
  * tirets ignorés), sinon gares « <nom>-… » d'une même ville (moins de CITY_SPREAD_KM d'écart, « Paris »).
  * Une ville à plusieurs gares part de celle que choisit le plus court chemin, et l'ambiguïté se mesure
- * depuis cette gare seule (sinon deux gares parisiennes voisines passeraient pour deux itinéraires).
+ * depuis cette gare seule (sinon deux gares parisiennes voisines passeraient pour deux itinéraires). Parmi
+ * les gares d'une ville, les installations techniques (« Lyon-Perrache (MIN) », « Metz-n° 2 »,
+ * « Honfleur (IE) », « … Marchandises », « … Triage ») sont laissées de côté s'il reste une autre gare.
+ *
+ * Série électrique (rame TGV, locomotive électrique, automotrice dont les systèmes sont connus) : les arêtes
+ * qui ne suivent que des lignes jamais électrifiées (ni `lines.electrified`, ni tronçon électrifié à une ère)
+ * sont retirées du graphe. Sans cela, Paris-Nord - Arras - Boulogne-Ville en TGV passait par Saint-Pol et
+ * Étaples, ligne jamais électrifiée.
  */
 final class RelationRouter
 {
@@ -46,6 +53,9 @@ final class RelationRouter
      * Rennes, la fin de Paris - Toulouse dans Montauban).
      */
     public const MIN_LINE_M = 5000;
+
+    /** Installation technique ou de fret dans un nom de gare : écartée quand la ville a une autre gare. */
+    private const TECHNICAL_STATION = '/\((?:IE|MIN|ITE)\)|\bn°\s*\d|\b(?:marchandises|triage|fret|dépôt|atelier)\b|\s\d+$/iu';
 
     /** Écart maximal entre les gares d'une même ville. */
     private const CITY_SPREAD_KM = 30.0;
@@ -72,6 +82,9 @@ final class RelationRouter
 
     /** @var array<int, bool>|null raccordements (nom « Raccordement … ») */
     private ?array $junctions = null;
+
+    /** @var array<int, bool>|null lignes électrifiées à une ère au moins (ou aujourd'hui) */
+    private ?array $electrified = null;
 
     /** Année de l'ère du graphe pour une année quelconque (null : aucune ère, ou graphe absent). */
     public function eraYear(int $year): ?int
@@ -126,6 +139,10 @@ final class RelationRouter
         if (count($found) > 1 && $this->spreadKm($found) > self::CITY_SPREAD_KM) {
             return [];
         }
+        if (count($found) > 1) {
+            $public = array_values(array_filter($found, fn (int $id): bool => preg_match(self::TECHNICAL_STATION, $this->stations[$id]['name']) !== 1));
+            $found = $public !== [] ? $public : $found;
+        }
 
         return $found;
     }
@@ -137,19 +154,20 @@ final class RelationRouter
      * `same` (même gare) ou `no_path`.
      *
      * `$fast` : la série roule à grande vitesse ; sinon les LGV sont retirées du graphe (comme LineMaterialLinker,
-     * qui ne rattache à une LGV que les engins rapides).
+     * qui ne rattache à une LGV que les engins rapides). `$electric` : la série ne roule que sous caténaire ;
+     * les arêtes des lignes jamais électrifiées sont retirées.
      *
      * @param  list<int>  $from
      * @param  list<int>  $to
      * @return array{status: string, lines: list<int>, ratio: ?float, from: ?int, to: ?int}
      */
-    public function route(array $from, array $to, int $eraYear, bool $fast = false): array
+    public function route(array $from, array $to, int $eraYear, bool $fast = false, bool $electric = false): array
     {
         sort($from);
         sort($to);
-        $memoKey = $eraYear.($fast ? 'f' : 's').':'.implode(',', $from).'>'.implode(',', $to);
+        $memoKey = $eraYear.($fast ? 'f' : 's').($electric ? 'e' : 't').':'.implode(',', $from).'>'.implode(',', $to);
 
-        return $this->memo[$memoKey] ??= $this->computeRoute($from, $to, $eraYear, $fast);
+        return $this->memo[$memoKey] ??= $this->computeRoute($from, $to, $eraYear, $fast, $electric);
     }
 
     /**
@@ -157,9 +175,9 @@ final class RelationRouter
      * @param  list<int>  $to
      * @return array{status: string, lines: list<int>, ratio: ?float, from: ?int, to: ?int}
      */
-    private function computeRoute(array $from, array $to, int $eraYear, bool $fast): array
+    private function computeRoute(array $from, array $to, int $eraYear, bool $fast, bool $electric): array
     {
-        $graph = $this->graph($eraYear, $fast);
+        $graph = $this->graph($eraYear, $fast, $electric);
         if ($graph === null || $from === [] || $to === []) {
             return ['status' => 'no_path', 'lines' => [], 'ratio' => null, 'from' => null, 'to' => null];
         }
@@ -307,11 +325,12 @@ final class RelationRouter
 
     /**
      * Graphe de l'ère (voies associatives exclues, voies sans voyageurs pénalisées comme dans
-     * PathfindingService), ou null s'il n'est pas construit.
+     * PathfindingService), ou null s'il n'est pas construit. Sans `$fast`, les arêtes surtout portées par
+     * une LGV sont retirées ; avec `$electric`, celles qui ne suivent que des lignes jamais électrifiées.
      *
      * @return array{adj: array<int, list<array{0: int, 1: float, 2: int}>>, parts: array<int, list<array{0: int, 1: int}>>}|null
      */
-    private function graph(int $eraYear, bool $fast = true): ?array
+    private function graph(int $eraYear, bool $fast = true, bool $electric = false): ?array
     {
         $this->loadEras();
         $eraId = $this->eras[$eraYear] ?? null;
@@ -322,7 +341,12 @@ final class RelationRouter
             $this->lgv = DB::table('lines')->where('is_lgv', true)->pluck('id')->mapWithKeys(fn ($id): array => [(int) $id => true])->all();
             $this->junctions = DB::table('lines')->where('name', 'ilike', 'raccordement%')->pluck('id')->mapWithKeys(fn ($id): array => [(int) $id => true])->all();
         }
-        $graphKey = $eraYear * 2 + ($fast ? 1 : 0);
+        if ($electric && $this->electrified === null) {
+            $this->electrified = DB::table('lines')->where('electrified', true)
+                ->orWhereExists(fn ($q) => $q->selectRaw('1')->from('line_segments')->whereColumn('line_segments.line_id', 'lines.id')->where('line_segments.electrified', true))
+                ->pluck('id')->mapWithKeys(fn ($id): array => [(int) $id => true])->all();
+        }
+        $graphKey = $eraYear * 4 + ($fast ? 1 : 0) + ($electric ? 2 : 0);
         if (! array_key_exists($graphKey, $this->graphs)) {
             $adj = [];
             $parts = [];
@@ -340,6 +364,10 @@ final class RelationRouter
                     : [[(int) $r->line_id, (int) $r->length_m]];
                 // Arête surtout portée par une LGV (pas un simple tronc commun en sortie de gare).
                 if (! $fast && 2 * array_sum(array_map(fn (array $p): int => isset($this->lgv[$p[0]]) ? $p[1] : 0, $parts[$eid])) > (int) $r->length_m) {
+                    continue;
+                }
+                // Arête qui ne suit que des lignes jamais électrifiées, pour une série électrique.
+                if ($electric && array_filter($parts[$eid], fn (array $p): bool => isset($this->electrified[$p[0]])) === []) {
                     continue;
                 }
                 $adj[$a][] = [$b, $w, $eid];
@@ -377,6 +405,19 @@ final class RelationRouter
             $this->stations[(int) $s->id] = ['name' => (string) $s->name, 'key' => $key, 'lat' => (float) $s->lat, 'lng' => (float) $s->lng];
             $this->byKey[$key][] = (int) $s->id;
         }
+    }
+
+    /**
+     * Nom de gare lisible pour un libellé de relation : abréviations développées (« St-Malo » → « Saint-Malo »,
+     * « Pontorson-Mont-St-Michel » → « Pontorson-Mont-Saint-Michel ») et codes techniques retirés
+     * (« Honfleur (IE) », « Lyon-Perrache (MIN) », « Metz-n° 2 »). Les précisions de lieu restent (« Bize (Aude) »).
+     */
+    public static function readable(string $name): string
+    {
+        $name = (string) preg_replace(['/\s*\((?:IE|MIN|ITE|Tram\/Train)\)\s*$/u', '/-?\s*n°\s*\d+\s*$/u'], '', trim($name));
+        $name = (string) preg_replace(['/\bSt(?=[- ]\p{Lu})/u', '/\bSte(?=[- ]\p{Lu})/u'], ['Saint', 'Sainte'], $name);
+
+        return trim($name);
     }
 
     /** Nom comparable : sans accents ni majuscules, « Saint » = « St », pas d'espace autour des tirets. */

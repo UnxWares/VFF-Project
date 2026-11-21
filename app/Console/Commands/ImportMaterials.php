@@ -156,7 +156,6 @@ class ImportMaterials extends Command
         }
         $labels = $source->labels(array_values(array_unique($referenced)), $refresh);
         $widths = $source->gaugeWidths(array_values(array_unique($gauges)), $refresh);
-        $images = $source->commonsFiles(array_values(array_unique($files)), $refresh);
 
         // Séries que Wikidata ne range dans aucune classe : catégories de leur article Wikipédia.
         $unranked = [];
@@ -184,13 +183,32 @@ class ImportMaterials extends Command
             }
         }
 
+        // Images : P18, sinon repli sur l'infobox de l'article puis sur la catégorie Commons (P373), licence
+        // libre vérifiée sur Commons (WikidataMaterialMapper::imageCandidates, isFreeImage).
+        $categoryFiles = [];
+        foreach ($qids as $qid) {
+            $entity = $entities[$qid] ?? null;
+            $category = $entity['claims']['P373'][0]['v'] ?? null;
+            if ($entity !== null && WikidataMaterialMapper::imageFile($entity) === null && is_string($category)) {
+                $categoryFiles[] = trim($category);
+            }
+        }
+        $categoryFiles = $categoryFiles === [] ? [] : $source->categoryFiles(array_values(array_unique($categoryFiles)), $refresh);
+        foreach ($qids as $qid) {
+            if (($entity = $entities[$qid] ?? null) !== null) {
+                $infobox = isset($articles[$qid]) ? ($infoboxes[$articles[$qid]] ?? null) : null;
+                array_push($files, ...array_column(WikidataMaterialMapper::imageCandidates($entity, $infobox, $categoryFiles), 0));
+            }
+        }
+        $images = $source->commonsFiles(array_values(array_unique($files)), $refresh);
+
         $mapper = new WikidataMaterialMapper($rules);
         $records = [];
         $skipped = [];
         foreach ($qids as $qid) {
             $result = $mapper->map($qid, $entities[$qid] ?? null, $ancestors[$qid] ?? [], $labels, $widths, $images,
                 isset($unranked[$qid]) ? ($categories[$unranked[$qid]] ?? []) : [],
-                isset($articles[$qid]) ? ($infoboxes[$articles[$qid]] ?? null) : null, $attested[$qid] ?? null);
+                isset($articles[$qid]) ? ($infoboxes[$articles[$qid]] ?? null) : null, $attested[$qid] ?? null, $categoryFiles);
             if (is_string($result)) {
                 $skipped[$result][] = $qid.' '.($entities[$qid]['labels']['fr'] ?? $entities[$qid]['labels']['en'] ?? '');
 
@@ -205,9 +223,10 @@ class ImportMaterials extends Command
         $this->table(['motif d\'exclusion', 'séries'], collect($skipped)->map(fn (array $q, string $k): array => [$k, count($q)])->values()->all());
         $this->table(['catégorie', 'fiches'], collect($records)->countBy('type')->map(fn (int $n, string $t): array => [$t, $n])->values()->all());
 
-        if (! $dryRun) {
-            $stats = (new MaterialImporter)->import($records);
-            $this->info("Fiches : {$stats['created']} créée(s), {$stats['updated']} mise(s) à jour, {$stats['unchanged']} inchangée(s).");
+        $stats = (new MaterialImporter)->import($records, $dryRun);
+        $this->info(($dryRun ? 'Fiches (à blanc) : ' : 'Fiches : ')."{$stats['created']} créée(s), {$stats['updated']} mise(s) à jour, {$stats['unchanged']} inchangée(s).");
+        if ($stats['fields'] !== []) {
+            $this->line('  Champs modifiés : '.implode(', ', array_map(fn (string $f, int $n): string => "{$f} ({$n})", array_keys($stats['fields']), $stats['fields'])));
         }
     }
 }

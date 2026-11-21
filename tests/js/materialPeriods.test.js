@@ -4,8 +4,9 @@ import {
     periodText,
     periodYears,
     periodsSummary,
+    endText,
+    relationNotes,
     relationsList,
-    sortByFirstPeriod,
 } from '$lib/materialPeriods.js';
 
 // Traduction de test : textes français des clés `materials.periods.*`.
@@ -15,6 +16,14 @@ const fr = {
     'materials.periods.start': 'début : :date',
     'materials.periods.end': 'fin : :date',
     'materials.periods.section': 'entre :from et :to',
+    'materials.end.line': 'Sur la ligne jusqu’en :year',
+    'materials.end.series_in_service': 'Série encore en service',
+    'materials.end.series_withdrawn': 'Série retirée',
+    'materials.end.series_withdrawn_year': 'Série retirée en :year',
+    'materials.end.unknown': 'Fin inconnue sur la ligne',
+    'materials.relations.notes.fuel': 'au biodiesel :fuel (:feedstock) depuis :since',
+    'materials.relations.notes.reported': 'bilan publié en :date',
+    'materials.relations.feedstock.rapeseed': 'colza',
 };
 const t = (key, opts = {}) =>
     Object.entries(opts).reduce((s, [k, v]) => s.replace(`:${k}`, String(v)), fr[key] ?? key);
@@ -108,18 +117,6 @@ describe('periodText', () => {
     });
 });
 
-describe('sortByFirstPeriod', () => {
-    it('met les séries datées d’abord, de la plus ancienne à la plus récente, puis les autres dans l’ordre reçu', () => {
-        const sorted = sortByFirstPeriod([
-            { slug: 'a', periods: [] },
-            { slug: 'b', periods: [range('2009-09-06', null)] },
-            { slug: 'c' },
-            { slug: 'd', periods: [range(null, '1972-01-01'), range('1953-01-01', '1972-01-01')] },
-        ]);
-        expect(sorted.map((m) => m.slug)).toEqual(['d', 'b', 'a', 'c']);
-    });
-});
-
 describe('relationsList', () => {
     it('réunit les relations de la fiche et celles des périodes, une par libellé', () => {
         const relations = [
@@ -143,5 +140,62 @@ describe('relationsList', () => {
 
     it('ne renvoie rien sans relation', () => {
         expect(relationsList(undefined, [range('1950-01-01', '1960-01-01')], t)).toEqual([]);
+    });
+});
+
+describe('endText', () => {
+    it('dit la fin sur la ligne, sinon celle de la série, sans jamais inventer de date', () => {
+        expect(endText({ kind: 'line', year: 2019 }, t)).toBe('Sur la ligne jusqu’en 2019');
+        expect(endText({ kind: 'series_withdrawn', year: 2019 }, t)).toBe('Série retirée en 2019');
+        expect(endText({ kind: 'series_withdrawn', year: null }, t)).toBe('Série retirée');
+        expect(endText({ kind: 'series_in_service', year: null }, t)).toBe(
+            'Série encore en service',
+        );
+        expect(endText({ kind: 'unknown', year: null }, t)).toBe('Fin inconnue sur la ligne');
+        expect(endText(undefined, t)).toBe('Fin inconnue sur la ligne');
+    });
+});
+
+describe('relationNotes', () => {
+    const b100 = {
+        kind: 'fuel',
+        fuel: 'B100',
+        feedstock: 'rapeseed',
+        since: '2021-04-01',
+        since_precision: 'month',
+        reported: '2023-01-17',
+        reported_precision: 'day',
+        sources: [
+            {
+                title: 'Bilan',
+                publisher: 'Région Normandie',
+                date: '2023-01-17',
+                url: 'https://oleo100.com/x.pdf',
+            },
+        ],
+    };
+
+    it('écrit le carburant, son début au mois et le mois du dernier bilan, une seule fois', () => {
+        const notes = relationNotes(
+            [
+                { label: 'Paris-Montparnasse - Granville', notes: [b100] },
+                { label: 'Paris - Granville', notes: [b100] },
+                { label: 'Argentan - Granville', notes: [] },
+            ],
+            t,
+            'fr',
+        );
+        expect(notes).toEqual([
+            {
+                label: 'Paris-Montparnasse - Granville',
+                text: 'au biodiesel B100 (colza) depuis avril 2021, bilan publié en janvier 2023',
+                sources: b100.sources,
+            },
+        ]);
+    });
+
+    it('ne renvoie rien sans note', () => {
+        expect(relationNotes(undefined, t)).toEqual([]);
+        expect(relationNotes([{ label: 'A - B' }], t)).toEqual([]);
     });
 });

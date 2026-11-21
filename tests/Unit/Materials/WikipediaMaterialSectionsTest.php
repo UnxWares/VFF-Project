@@ -336,4 +336,14 @@ class WikipediaMaterialSectionsTest extends TestCase
         // Famille « série confondue par un numéro » : seul un lien posé désigne une série.
         $this->assertSame([], WikipediaMaterialSections::links('La ligne accueille environ 2100 voyageurs par jour, et 73500 par an.'));
     }
+
+    public function test_a_narrative_future_in_an_old_story_is_not_a_project(): void
+    {
+        $this->assertFalse(WikipediaMaterialSections::isProspective('Elles circulent sur Paris-Granville jusqu\'en 1950, année où elles seront remplacées par des 141 P.', 2026));
+        $this->assertTrue(WikipediaMaterialSections::isProspective('Les rames seront redéployées sur la ligne.', 2026), 'futur sans année');
+        $this->assertTrue(WikipediaMaterialSections::isProspective('Livrées en 2019, elles seront engagées sur la ligne.', 2026), 'année trop récente');
+        $this->assertTrue(WikipediaMaterialSections::isProspective('En 1950, elles devraient être remplacées.', 2026), 'conditionnel');
+        $this->assertTrue(WikipediaMaterialSections::isProspective('En 1975, un projet seront lancé.', 2026), 'autre mot de doute');
+        $this->assertFalse(WikipediaMaterialSections::isProspective('Elles circulent sur la ligne.', 2026));
+    }
 }

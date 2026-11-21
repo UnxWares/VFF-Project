@@ -591,8 +591,17 @@ la série. Une relation entre deux gares (« Relation Argentan - Granville ») e
 chemin du graphe de l'époque, seulement s'il n'existe pas d'autre itinéraire raisonnable ; un lien vers un article
 d'itinéraire (« Ligne de Paris à Granville ») est rattaché aux lignes qu'il enchaîne
 (`database/data/wikipedia_itineraries.php`). Chaque entrée donne `kind` (`relation` ou `itinerary`), `label`,
-`from`, `to`, `service`, `title` (article de l'itinéraire) et `periods` (début, fin et précision des périodes qui la
-datent). Liste vide si aucune relation n'est citée. Exemple réel : sur la ligne de Grenoble à Montmélian
+`from`, `to`, `service`, `title` (article de l'itinéraire), `periods` (début, fin et précision des périodes qui la
+datent) et `notes` (faits sourcés sur la relation, hors Wikipédia, tirés de `database/data/material_relation_notes.php` :
+`kind` `fuel`, `fuel`, `feedstock`, `since`, `reported` avec leur précision, et `sources` avec `title`, `publisher`,
+`date`, `url` et les droits du fournisseur ; exemple réel : le Régiolis sur Paris - Granville, `fuel` `B100`,
+`feedstock` `rapeseed`, depuis avril 2021, bilan du 17 janvier 2023). Liste vide si aucune relation n'est citée.
+Les séries viennent de la plus récente à la plus ancienne (encore en service sans fin connue sur la ligne, puis fin
+la plus récente, puis début), comme sur la fiche de la ligne et dans l'API REST. `end` donne la fin telle que les
+sources la connaissent : `line` (fin datée sur la ligne, `year`), `series_in_service`, `series_withdrawn` (retrait de
+la série, jamais présenté comme la fin sur la ligne ; `year` nulle si seul l'état est connu) ou `unknown`, avec
+`source` et `source_url`. `material.image` : vignette Commons (`url`, `width`, `height`) et son crédit (`author`,
+`license`, `source_url`), nulle sans photo. Exemple réel : sur la ligne de Grenoble à Montmélian
 (`rfn-909000`), les CC 72000 ont une période du 20 août 1982 au 30 mai 1986 (`high`), les BB 67300 une fin au
 2 mai 2016 (`high`). Ligne inconnue : erreur `line_not_found` avec `suggestions`.
 

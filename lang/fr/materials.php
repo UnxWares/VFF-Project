@@ -108,6 +108,7 @@ return [
         'via' => 'via Wikimedia Commons',
         'file' => 'page du fichier',
         'more' => 'Autres photos sur Wikimedia Commons',
+        'alt' => "Photo\u{a0}: :name",
     ],
     'about' => [
         'title' => 'Présentation',
@@ -128,9 +129,26 @@ return [
         'source' => 'source',
         'note' => 'Les années de circulation viennent des articles Wikipédia de la ligne et des séries, ou de Wikidata. Une fin absente ne veut pas dire que la série circule encore. La source de chaque période figure sur la fiche de la série.',
     ],
+    'end' => [
+        'line' => 'Sur la ligne jusqu’en :year',
+        'series_in_service' => 'Série encore en service',
+        'series_withdrawn' => 'Série retirée',
+        'series_withdrawn_year' => 'Série retirée en :year',
+        'unknown' => 'Fin inconnue sur la ligne',
+        'source' => 'source',
+    ],
     'relations' => [
         'on_line' => "Assurait\u{a0}: :relations",
         'label' => 'Relations assurées',
+        'notes' => [
+            'fuel' => 'au biodiesel :fuel (:feedstock) depuis :since',
+            'reported' => 'bilan publié en :date',
+            'sources' => "Sources\u{a0}:",
+            'line' => ":label\u{a0}: :text",
+        ],
+        'feedstock' => [
+            'rapeseed' => 'colza',
+        ],
     ],
     'section_lines' => [
         'intro' => 'Chaque ligne est citée par une source. La phrase est reprise telle quelle, avec un lien vers la version de l’article consultée. Quand une source les date, les années de circulation sur la ligne sont indiquées.',

@@ -4,6 +4,7 @@ namespace App\Services\Materials;
 
 use App\Enums\MaterialType;
 use App\Models\Material;
+use App\Models\Media;
 use App\Services\Media\CommonsMetadata;
 
 /**
@@ -45,9 +46,10 @@ final readonly class WikidataMaterialMapper
      * @param  list<string>  $categories  catégories de l'article Wikipédia, repli quand Wikidata ne range pas la série
      * @param  array{title: string, revid: int, parameters: array<string, string>, read_on?: string, shared?: bool}|null  $infobox  infobox de l'article Wikipédia en français (`shared` : article commun à plusieurs séries, dont l'effectif est celui de la famille)
      * @param  array{source: string, ref: string}|null  $attestation  source qui atteste la circulation en France d'une série que Wikidata ne rattache pas à la France
+     * @param  array<string, list<string>|null>  $categoryFiles  premiers fichiers des catégories Commons (P373), repli d'image (imageCandidates())
      * @return array<string, mixed>|string attributs de la fiche, ou motif d'exclusion (constantes SKIP_*)
      */
-    public function map(string $qid, ?array $entity, array $ancestors, array $labels, array $gaugeWidths, array $images, array $categories = [], ?array $infobox = null, ?array $attestation = null): array|string
+    public function map(string $qid, ?array $entity, array $ancestors, array $labels, array $gaugeWidths, array $images, array $categories = [], ?array $infobox = null, ?array $attestation = null, array $categoryFiles = []): array|string
     {
         if ($entity === null) {
             return self::SKIP_NO_ENTITY;
@@ -134,6 +136,15 @@ final readonly class WikidataMaterialMapper
         $fleet = array_values(array_filter(array_map(fn (array $c): ?string => is_string($c['v']) ? self::plain($c['v']) : null, $claims['P2802'] ?? [])));
         $file = self::preferredString($claims['P18'] ?? []);
         $image = $file !== null && is_array($images[$file] ?? null) ? self::image($images[$file]) : null;
+        $imageVia = "{$qid}#P18";
+        if ($file === null) {
+            foreach (self::imageCandidates($entity, $infobox, $categoryFiles, $name) as [$candidate, $via]) {
+                if (is_array($images[$candidate] ?? null) && self::isFreeImage($images[$candidate])) {
+                    [$image, $imageVia] = [self::image($images[$candidate]), $via];
+                    break;
+                }
+            }
+        }
         $category = self::firstString($claims['P373'] ?? []);
 
         $attributes = [
@@ -191,7 +202,7 @@ final readonly class WikidataMaterialMapper
         // Périmètre : rattachée à la France par Wikidata (P17 ou exploitant français), ou attestée par une ligne citée.
         $provenance['scope'] = $attestation ?? $ref('P17|P137');
         if ($image !== null) {
-            $provenance['image'] = ['source' => 'commons', 'ref' => $image['file'], 'via' => "{$qid}#P18"];
+            $provenance['image'] = ['source' => 'commons', 'ref' => $image['file'], 'via' => $imageVia];
         }
         $attributes['provenance'] = $provenance;
 
@@ -271,6 +282,62 @@ final readonly class WikidataMaterialMapper
     public static function gaugeIds(array $entity): array
     {
         return array_values(array_unique(array_filter(array_map(fn (array $c): ?string => is_string($c['v']) ? $c['v'] : null, $entity['claims']['P1064'] ?? []))));
+    }
+
+    /**
+     * Images de repli d'une série sans image sur Wikidata (P18), dans l'ordre : image de l'infobox de son
+     * article Wikipédia en français (choisie par ses rédacteurs ; pas pour un article partagé par plusieurs
+     * séries, ni une image par défaut, un plan ou un dessin vectoriel), puis premiers fichiers de sa
+     * catégorie Commons (P373). Une catégorie range aussi des vues de gare, des accidents ou d'autres engins
+     * (« Pályaudvar. Fortepan 75574 » dans « U46 coaches ») : avec `$name`, un fichier de catégorie n'est
+     * candidat que si son nom reprend un mot distinctif de la série (« Pauline », « 0543 », « PBA ») et ne
+     * parle pas d'accident. Chaque candidat est gardé avec sa provenance (`via`) ; map() retient le premier
+     * dont Commons donne une licence libre et un auteur (isFreeImage()).
+     *
+     * @param  array<string, mixed>  $entity
+     * @param  array{title: string, parameters: array<string, string>, shared?: bool}|null  $infobox
+     * @param  array<string, list<string>|null>  $categoryFiles
+     * @return list<array{0: string, 1: string}> nom de fichier (sans « File: ») et provenance
+     */
+    public static function imageCandidates(array $entity, ?array $infobox, array $categoryFiles = [], ?string $name = null): array
+    {
+        if (self::preferredString($entity['claims']['P18'] ?? []) !== null) {
+            return [];
+        }
+        $out = [];
+        $file = trim((string) preg_replace('/^(?:fichier|file|image)\s*:\s*/iu', '', (string) ($infobox['parameters']['image'] ?? '')));
+        if ($infobox !== null && ($infobox['shared'] ?? false) !== true && $file !== ''
+            && preg_match('/\.(?:jpe?g|png|tiff?|webp)$/iu', $file) === 1 && preg_match('/^d[ée]faut\b|\bplan\b|\bsch[ée]ma\b/iu', $file) !== 1) {
+            $out[] = [str_replace('_', ' ', $file), 'frwiki:'.$infobox['title'].'#infobox'];
+        }
+        $category = self::firstString($entity['claims']['P373'] ?? []);
+        if ($category !== null) {
+            $words = $name === null ? [] : array_filter(preg_split('/[^\p{L}\d]+/u', $name) ?: [],
+                fn (string $w): bool => mb_strlen($w) >= 3 && ! in_array(mb_strtolower($w), ['voiture', 'voitures', 'and', 'des', 'les', 'type', 'série'], true));
+            foreach ($categoryFiles[$category] ?? [] as $candidate) {
+                $named = $name === null || array_filter($words, fn (string $w): bool => preg_match('/(?<![\p{L}\d])'.preg_quote($w, '/').'(?![\p{L}\d])/iu', $candidate) === 1) !== [];
+                if ($named && preg_match('/catastrophe|accident|d[ée]raill/iu', $candidate) !== 1) {
+                    $out[] = [$candidate, 'commons:Category:'.$category];
+                }
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Image de repli réutilisable : licence libre ou domaine public d'après Commons, auteur connu pour une
+     * licence libre, format affichable (pas de SVG ni de document).
+     *
+     * @param  array<string, mixed>  $meta  sortie de CommonsMetadata::normalize
+     */
+    public static function isFreeImage(array $meta): bool
+    {
+        return match ($meta['rights_status'] ?? null) {
+            Media::RIGHTS_PUBLIC_DOMAIN => true,
+            Media::RIGHTS_OPEN_LICENSE => trim((string) ($meta['author'] ?? '')) !== '',
+            default => false,
+        } && in_array($meta['mime'] ?? null, ['image/jpeg', 'image/png', 'image/tiff', 'image/webp'], true);
     }
 
     /** Nom de l'image principale (P18 de rang préféré, sinon le premier). */

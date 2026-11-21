@@ -10,6 +10,7 @@ use App\Models\Material;
 use App\Models\Station;
 use App\Services\Materials\LineMaterialLinker;
 use App\Services\Materials\MaterialRelations;
+use App\Services\Materials\RelationRouter;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -148,7 +149,8 @@ class MaterialRelationsTest extends TestCase
 
         $this->assertSame(['395000'], $this->codes($links));
         $this->assertSame('TER', $links[0]['evidence']['route']['service']);
-        $this->assertSame('Paris-Montparnasse - Dreux', $links[0]['evidence']['route']['label']);
+        $this->assertSame('Paris - Dreux', $links[0]['evidence']['route']['label'], 'la ville telle que la phrase la nomme');
+        $this->assertSame('Paris-Montparnasse', $links[0]['evidence']['route']['from']['name'], 'la gare retenue, telle qu\'en base');
     }
 
     public function test_a_future_relation_links_nothing(): void
@@ -163,8 +165,75 @@ class MaterialRelationsTest extends TestCase
         $this->assertSame(['395000', '405000', '430000'], $this->codes($links));
         $evidence = $links[0]['evidence'];
         $this->assertSame('1977-01-01', $evidence['period']['to']['date']);
-        $this->assertSame('Paris-Montparnasse - Argentan - Granville', $evidence['route']['label']);
+        $this->assertSame('Paris - Argentan - Granville', $evidence['route']['label']);
         $this->assertSame(2030, $evidence['route']['era_year'], 'année de la phrase (1977) avant la première ère : époque actuelle');
+    }
+
+    public function test_a_narrative_future_in_an_old_story_still_links(): void
+    {
+        $links = $this->links($this->relations(), "Les X 2800 continueront de circuler sur la relation Argentan - Granville jusqu'en 1950, année où elles seront remplacées par des autorails plus récents.\n");
+
+        $this->assertSame(['405000'], $this->codes($links), 'futur de récit : toutes les années citées ont plus de quinze ans');
+    }
+
+    public function test_a_relation_written_as_one_hyphenated_word_is_split_at_the_right_hyphen(): void
+    {
+        $links = $this->links($this->relations(), "Les autorails assurent la relation Argentan-Granville.\n");
+
+        $this->assertSame(['405000'], $this->codes($links));
+        $this->assertSame('Argentan - Granville', $links[0]['evidence']['route']['label']);
+    }
+
+    public function test_a_hyphenated_line_named_for_its_works_or_as_a_link_label_links_nothing(): void
+    {
+        $relations = $this->relations();
+
+        $this->assertSame([], $this->links($relations, "Après l'électrification de la ligne Argentan-Granville, les rames changent.\n"));
+        $this->assertSame([], $this->links($relations, "Elles roulent sur la ligne [[Ligne d'Argentan à Granville|Argentan-Granville]] et ailleurs.\n"), 'le lien direct est lu par LineMaterialLinker');
+    }
+
+    public function test_an_electric_series_is_not_routed_over_a_line_never_electrified(): void
+    {
+        foreach (['A1' => false, 'A2' => true, 'A3' => true] as $code => $electrified) {
+            $this->lines[$code] = Line::factory()->create(['code' => $code, 'name' => "Ligne {$code}", 'is_lgv' => false, 'electrified' => $electrified]);
+        }
+        foreach (['Arras' => [2.78, 50.29], 'Hazebrouck' => [2.54, 50.72], 'Boulogne-Ville' => [1.61, 50.72]] as $name => [$lng, $lat]) {
+            $this->stations[$name] = Station::factory()->create(['name' => $name, 'geom' => Point::makeGeodetic($lat, $lng)]);
+        }
+        // Par Saint-Pol (ligne jamais électrifiée) : 100 km ; par Hazebrouck (électrifiée) : 60 + 80 km.
+        $this->edge('Arras', 'Boulogne-Ville', 'A1', 100);
+        $this->edge('Arras', 'Hazebrouck', 'A2', 60);
+        $this->edge('Hazebrouck', 'Boulogne-Ville', 'A3', 80);
+        $relations = $this->relations();
+        $page = ['title' => 'TGV POS', 'revid' => 7, 'sections' => [['title' => 'Service', 'level' => 2, 'text' => "* Arras - Boulogne-Ville\n"]]];
+
+        $thermal = $relations->links($page, ['fast' => true, 'from' => 2007, 'to' => null], new \DateTimeImmutable('2026-11-20'));
+        $electric = $relations->links($page, ['fast' => true, 'from' => 2007, 'to' => null, 'electric' => true], new \DateTimeImmutable('2026-11-20'));
+
+        $this->assertSame(['A1'], $this->codes($thermal));
+        $this->assertSame(['A2', 'A3'], $this->codes($electric));
+        $this->assertTrue(LineMaterialLinker::isElectricOnly('rame_tgv', null));
+        $this->assertTrue(LineMaterialLinker::isElectricOnly('automotrice', '[{"label": "25 kV 50 Hz"}]'));
+        $this->assertFalse(LineMaterialLinker::isElectricOnly('automotrice', null), 'une « automotrice » sans système connu peut être thermique');
+        $this->assertFalse(LineMaterialLinker::isElectricOnly('bimode', '[{"label": "25 kV 50 Hz"}]'));
+    }
+
+    public function test_a_city_leaves_from_its_passenger_station_and_labels_are_readable(): void
+    {
+        $technical = $this->stations['Argentan (IE)'] = Station::factory()->create(['name' => 'Argentan (IE)', 'geom' => Point::makeGeodetic(48.75, -0.02)]);
+        $this->edge('Argentan', 'Argentan (IE)', '430000', 1);
+        $router = new RelationRouter;
+
+        $this->assertSame([$this->stations['Argentan']->id], $router->resolve('Argentan', 2030), 'l\'installation embranchée est laissée de côté');
+        $this->assertNotContains($technical->id, $router->resolve('Argentan', 2030));
+        $this->assertSame('Saint-Malo', RelationRouter::readable('St-Malo'));
+        $this->assertSame('Pontorson-Mont-Saint-Michel', RelationRouter::readable('Pontorson-Mont-St-Michel'));
+        $this->assertSame('Sainte-Pazanne', RelationRouter::readable('Ste-Pazanne'));
+        $this->assertSame('Honfleur', RelationRouter::readable('Honfleur (IE)'));
+        $this->assertSame('Lyon-Perrache', RelationRouter::readable('Lyon-Perrache (MIN)'));
+        $this->assertSame('Metz', RelationRouter::readable('Metz-n° 2'));
+        $this->assertSame('Bize (Aude)', RelationRouter::readable('Bize (Aude)'), 'une précision de lieu reste');
+        $this->assertSame('Stade', RelationRouter::readable('Stade'));
     }
 
     public function test_relations_are_served_with_their_periods(): void

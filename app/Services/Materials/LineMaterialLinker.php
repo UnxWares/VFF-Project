@@ -397,7 +397,7 @@ final class LineMaterialLinker
         $pages = $this->wikipedia->sections('wikipedia_materials', $titles, WikipediaMaterialSections::MATERIAL_SECTIONS, $refresh);
         $bare = array_values(array_filter($titles, fn (string $t): bool => ($pages[$t] ?? null) !== null && $pages[$t]['sections'] === []));
         $more = $bare === [] ? [] : $this->wikipedia->sections('wikipedia_material_relations', $bare, WikipediaMaterialSections::RELATION_SECTIONS, $refresh);
-        $info = DB::table('materials')->whereIn('id', array_values($materials))->get(['id', 'type', 'max_speed_kmh', 'in_service_from', 'in_service_to'])->keyBy('id');
+        $info = DB::table('materials')->whereIn('id', array_values($materials))->get(['id', 'type', 'max_speed_kmh', 'in_service_from', 'in_service_to', 'electrification'])->keyBy('id');
         $lgv = DB::table('lines')->where('is_lgv', true)->pluck('id')->flip()->all();
         foreach ([$pages, $more] as $set) {
             foreach ($set as $requested => $page) {
@@ -409,6 +409,7 @@ final class LineMaterialLinker
                     'fast' => $row->type === 'rame_tgv' || (int) $row->max_speed_kmh >= self::LGV_MIN_SPEED_KMH,
                     'from' => $row->in_service_from !== null ? (int) $row->in_service_from : null,
                     'to' => $row->in_service_to !== null ? (int) $row->in_service_to : null,
+                    'electric' => self::isElectricOnly((string) $row->type, $row->electrification),
                 ];
                 foreach ($this->relations->links($page, $material) as $link) {
                     if (! $this->speaksOf((string) $requested, $page, (string) ($link['evidence']['quote'] ?? ''))) {
@@ -420,6 +421,22 @@ final class LineMaterialLinker
                 }
             }
         }
+    }
+
+    /**
+     * Série qui ne roule que sous caténaire, pour le tracé des relations (RelationRouter) : rame TGV,
+     * locomotive électrique, ou automotrice dont Wikidata donne les systèmes d'alimentation (la catégorie
+     * « automotrice » range aussi des engins thermiques). Une bimode n'en est pas une.
+     */
+    public static function isElectricOnly(string $type, mixed $electrification): bool
+    {
+        $systems = is_string($electrification) ? json_decode($electrification, true) : $electrification;
+
+        return match ($type) {
+            'rame_tgv', 'locomotive_electrique' => true,
+            'automotrice' => is_array($systems) && $systems !== [],
+            default => false,
+        };
     }
 
     /**

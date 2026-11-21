@@ -137,4 +137,43 @@ class Material extends Model
     {
         return 'slug';
     }
+
+    /** Largeur des vignettes servies avec les fiches de ligne (palier de miniatures de Commons). */
+    public const THUMB_WIDTH = 330;
+
+    /**
+     * Vignette légère de l'image de la série (`image`, Commons) et son crédit, pour la section « Matériel
+     * roulant » de la fiche ligne : miniature ramenée à THUMB_WIDTH px quand l'original est plus large (celles
+     * de l'import font 500 px), dimensions pour réserver la place, auteur, licence et page du fichier. Null
+     * sans image.
+     *
+     * @param  array<string, mixed>|null  $image
+     * @return array{url: string, width: int, height: int, file: ?string, author: ?string, license: ?string, license_url: ?string, rights_status: ?string, source_url: ?string, provider: string}|null
+     */
+    public static function thumbnail(?array $image): ?array
+    {
+        $url = $image['thumb_url'] ?? null;
+        if (! is_string($url) || $url === '') {
+            return null;
+        }
+        $width = isset($image['width']) ? (int) $image['width'] : 0;
+        $height = isset($image['height']) ? (int) $image['height'] : 0;
+        if ($width > self::THUMB_WIDTH && substr_count($url, '/500px-') === 1) {
+            $url = str_replace('/500px-', '/'.self::THUMB_WIDTH.'px-', $url);
+        }
+        $shown = $width > 0 ? min($width, self::THUMB_WIDTH) : self::THUMB_WIDTH;
+
+        return [
+            'url' => $url,
+            'width' => $shown,
+            'height' => $width > 0 && $height > 0 ? (int) round($shown * $height / $width) : (int) round($shown * 2 / 3),
+            'file' => isset($image['file']) ? (string) $image['file'] : null,
+            'author' => isset($image['author']) && trim((string) $image['author']) !== '' ? (string) $image['author'] : null,
+            'license' => $image['license'] ?? null,
+            'license_url' => $image['license_url'] ?? null,
+            'rights_status' => $image['rights_status'] ?? null,
+            'source_url' => $image['source_url'] ?? null,
+            'provider' => (string) ($image['provider'] ?? 'commons'),
+        ];
+    }
 }

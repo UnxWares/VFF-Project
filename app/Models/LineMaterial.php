@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Materials\MaterialRelationNotes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -75,10 +76,11 @@ class LineMaterial extends Model
     /**
      * Relations assurées par la série sur la ligne, d'après les preuves qui citent une relation ou un
      * itinéraire (`route`, MaterialRelations) : une entrée par libellé, avec les périodes montrées qui la
-     * datent. Les preuves qui portent un doute ne comptent pas.
+     * datent. Les preuves qui portent un doute ne comptent pas. `notes` : faits sourcés sur la relation
+     * (database/data/material_relation_notes.php, MaterialRelationNotes), comme un carburant particulier.
      *
      * @param  iterable<LineMaterialPeriod>|null  $periods  périodes montrées déjà chargées (sinon lues)
-     * @return list<array{kind: string, label: string, from: ?array{id: ?int, name: string}, to: ?array{id: ?int, name: string}, service: ?string, title: ?string, periods: list<array{start_date: ?string, start_precision: ?string, end_date: ?string, end_precision: ?string}>}>
+     * @return list<array{kind: string, label: string, from: ?array{id: ?int, name: string}, to: ?array{id: ?int, name: string}, service: ?string, title: ?string, periods: list<array{start_date: ?string, start_precision: ?string, end_date: ?string, end_precision: ?string}>, notes: list<array<string, mixed>>}>
      */
     public function relations(?iterable $periods = null): array
     {
@@ -96,10 +98,15 @@ class LineMaterial extends Model
                 'service' => $route['service'] ?? null,
                 'title' => $route['title'] ?? null,
                 'periods' => [],
+                'notes' => [],
             ];
         }
         if ($out === []) {
             return [];
+        }
+        $notes = app(MaterialRelationNotes::class);
+        foreach ($out as $label => $relation) {
+            $out[$label]['notes'] = $notes->for((int) $this->line_id, (int) $this->material_id, $relation);
         }
         foreach ($periods ?? ($this->relationLoaded('shownPeriods') ? $this->shownPeriods : $this->shownPeriods()->get()) as $period) {
             $label = $period->relation['label'] ?? null;

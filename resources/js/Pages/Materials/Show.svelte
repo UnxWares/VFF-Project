@@ -18,7 +18,7 @@
         serviceState,
         splitArrows,
     } from '$lib/materialFacts.js';
-    import { periodText, relationsList } from '$lib/materialPeriods.js';
+    import { periodText, relationNotes, relationsList } from '$lib/materialPeriods.js';
     import { formatLocale } from '$lib/typo.js';
 
     // Images : `media_count` seul, la galerie les charge par l'API.
@@ -243,6 +243,7 @@
 {#snippet lineItem(l)}
     {@const key = confidenceKey(l.confidence, l.kind)}
     {@const relations = relationsList(l.relations, l.periods, t)}
+    {@const notes = relationNotes(l.relations, t, formatLocale(lang))}
     <li class="line-item">
         <div class="line-head">
             <Link class="line-name" href="/lines/{l.slug}"
@@ -259,6 +260,17 @@
                 <ul>
                     {#each relations as r (r)}<li>{r}</li>{/each}
                 </ul>
+                {#each notes as n (n.label + n.text)}
+                    <p class="relation-fact">
+                        {t('materials.relations.notes.line', { label: n.label, text: n.text })}
+                        ({t('materials.relations.notes.sources')}
+                        {#each n.sources as s, j (s.url)}{#if j > 0}{', '}{/if}<a
+                                href={s.url}
+                                target="_blank"
+                                rel="noopener noreferrer">{s.publisher}{@render ext()}</a
+                            >{/each})
+                    </p>
+                {/each}
             </div>
         {/if}
         {#if l.periods?.length}
@@ -697,6 +709,12 @@
         text-decoration: underline;
         text-decoration-color: var(--vff-accent);
         text-underline-offset: 3px;
+    }
+    .relation-fact {
+        margin: 4px 0 0;
+        font-size: var(--vff-fs-sm);
+        line-height: 1.5;
+        overflow-wrap: anywhere;
     }
     .periods-label {
         margin: 0;

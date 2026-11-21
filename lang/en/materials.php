@@ -107,6 +107,7 @@ return [
         'via' => 'via Wikimedia Commons',
         'file' => 'file page',
         'more' => 'More photos on Wikimedia Commons',
+        'alt' => 'Photo: :name',
     ],
     'about' => [
         'title' => 'Overview',
@@ -127,9 +128,26 @@ return [
         'source' => 'source',
         'note' => 'The years come from the Wikipedia articles on the line and on each class, or from Wikidata. A missing end date does not mean the class still runs here. The source of each period is on the class page.',
     ],
+    'end' => [
+        'line' => 'On the line until :year',
+        'series_in_service' => 'Series still in service',
+        'series_withdrawn' => 'Series withdrawn',
+        'series_withdrawn_year' => 'Series withdrawn in :year',
+        'unknown' => 'End on the line unknown',
+        'source' => 'source',
+    ],
     'relations' => [
         'on_line' => 'Services run: :relations',
         'label' => 'Services run on the line',
+        'notes' => [
+            'fuel' => 'running on :fuel biodiesel (:feedstock) since :since',
+            'reported' => 'report published in :date',
+            'sources' => 'Sources:',
+            'line' => ':label: :text',
+        ],
+        'feedstock' => [
+            'rapeseed' => 'rapeseed',
+        ],
     ],
     'section_lines' => [
         'intro' => 'Each line is backed by a source. The sentence is quoted as written, in French, with a link to the version of the article we read. When a source dates them, the years the class ran on the line are given.',

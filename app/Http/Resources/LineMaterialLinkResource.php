@@ -3,7 +3,9 @@
 namespace App\Http\Resources;
 
 use App\Models\LineMaterial;
+use App\Models\Material;
 use App\Services\Api\Provenance;
+use App\Services\Materials\LineMaterialEnd;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -30,9 +32,11 @@ class LineMaterialLinkResource extends JsonResource
             ]),
             /**
              * La série, présente dans la liste du matériel d'une ligne : champs principaux de la fiche (voir
-             * `GET /api/v1/materials/{material}` pour la fiche complète).
+             * `GET /api/v1/materials/{material}` pour la fiche complète). `thumb_url` : miniature de 500 px ;
+             * `image` : vignette de 330 px au plus avec ses dimensions et son crédit (`file`, `author`, `license`,
+             * `license_url`, `rights_status`, `source_url` à citer, `provider`), nulle sans photo.
              *
-             * @var array{slug: string, name: string, type: string, type_label: string, builder: string|null, in_service_from: int|null, in_service_to: int|null, thumb_url: string|null}
+             * @var array{slug: string, name: string, type: string, type_label: string, builder: string|null, in_service_from: int|null, in_service_to: int|null, thumb_url: string|null, image: array<string, mixed>|null}
              */
             'material' => $this->whenLoaded('material', fn (): array => [
                 'slug' => $this->material->slug,
@@ -43,6 +47,7 @@ class LineMaterialLinkResource extends JsonResource
                 'in_service_from' => $this->material->in_service_from,
                 'in_service_to' => $this->material->in_service_to,
                 'thumb_url' => $this->material->image['thumb_url'] ?? null,
+                'image' => Material::thumbnail($this->material->image),
             ]),
             /**
              * Provenance du lien : `wikidata` (déclaration « véhicule habituellement utilisé », P3438),
@@ -138,12 +143,29 @@ class LineMaterialLinkResource extends JsonResource
              * `id` et `name` tels qu'en base, `id` nul si la gare n'a pas été identifiée), `service` (type de
              * service cité : `TER`, `Intercités`, `TGV`, `grandes lignes`, `express`, `omnibus`, `fret`, ou
              * nul), `title` (article de l'itinéraire, nul pour une relation), `periods` (périodes montrées qui
-             * datent cette relation : `start_date`, `start_precision`, `end_date`, `end_precision`). Liste vide
-             * quand aucune preuve ne cite de relation. Les preuves qui portent un doute ne sont pas reprises.
+             * datent cette relation : `start_date`, `start_precision`, `end_date`, `end_precision`), `notes` (faits
+             * sourcés sur la relation, hors Wikipédia : `kind` `fuel`, `fuel` comme `B100`, `feedstock` comme
+             * `rapeseed`, `since` et `since_precision`, `reported` et `reported_precision` (date du dernier bilan
+             * connu, pas une fin), `sources` avec `title`, `publisher`, `date`, `url`, `provider`, `license`,
+             * `license_status`). Liste vide quand aucune preuve ne cite de relation. Les preuves qui portent un
+             * doute ne sont pas reprises.
              *
              * @var list<array<string, mixed>>
              */
             'relations' => $this->resource->relations($this->resource->relationLoaded('shownPeriods') ? $this->shownPeriods : null),
+            /**
+             * Fin de circulation, telle que les sources la connaissent (jamais déduite) : `kind` `line` (fin datée
+             * sur la ligne par la dernière période de ce lien, `year` et sa source), `series_in_service` (pas de
+             * fin sur la ligne, la série est encore en service : on ne sait pas si elle roule encore ici),
+             * `series_withdrawn` (pas de fin sur la ligne, la série est retirée : `year` est celle du retrait de
+             * la série, nulle si seul l'état est connu) ou `unknown`. `source` (`wikipedia`, `wikidata`) et
+             * `source_url` (permalien) disent d'où vient l'année. Présent quand la série est chargée.
+             *
+             * @var array{kind: string, year: int|null, source: string|null, source_url: string|null}|null
+             */
+            'end' => $this->resource->relationLoaded('material') && $this->resource->relationLoaded('shownPeriods')
+                ? LineMaterialEnd::of($this->material, $this->shownPeriods->map(fn ($p): array => $p->toSheet())->values()->all())
+                : null,
             /**
              * Fournisseur et licence de la source du lien (`provider`, `name`, `license`, `license_status`).
              *

@@ -1515,6 +1515,63 @@ type LineMaterialRelation {
 
     "Périodes montrées qui datent cette relation (dans `LineMaterialLink.relations` seulement)."
     periods: [LineMaterialRelationPeriod!]
+
+    "Faits sourcés sur cette relation (carburant…), lus dans `database/data/material_relation_notes.php` ; liste vide sans fait connu. Nul dans `LineMaterialPeriod.relation`."
+    notes: [LineMaterialRelationNote!]
+}
+
+"""
+Fait sourcé sur une relation assurée par une série, hors Wikipédia : par exemple le Régiolis sur
+Paris - Granville, au biodiesel B100 (colza) depuis avril 2021, d'après un communiqué de janvier 2023.
+"""
+type LineMaterialRelationNote {
+    "Nature du fait : `fuel` (carburant de la série sur cette relation)."
+    kind: String!
+
+    "Carburant (`kind` = `fuel`), tel que la source le nomme : `B100` (biodiesel 100 % d'origine végétale)."
+    fuel: String
+
+    "Matière première du carburant : `rapeseed` (colza)."
+    feedstock: String
+
+    "Début (`AAAA-MM-JJ`, au 1er du mois pour une date au mois : lisez `since_precision`)."
+    since: String
+
+    "Précision du début : `day`, `month` ou `year`."
+    since_precision: String
+
+    "Date de la source la plus récente qui atteste le fait (un bilan, pas une fin) : sans source plus récente, on ne sait pas si c'est toujours le cas."
+    reported: String
+
+    "Précision de `reported` : `day`, `month` ou `year`."
+    reported_precision: String
+
+    "Sources citées, la plus récente d'abord."
+    sources: [LineMaterialRelationNoteSource!]!
+}
+
+"Source d'un fait sur une relation (communiqué, dépêche) : fait isolé repris avec lien."
+type LineMaterialRelationNoteSource {
+    "Titre de la page ou du document."
+    title: String!
+
+    "Éditeur (« Région Normandie, SNCF Voyageurs et Saipol (Oleo100), communiqué de presse »)."
+    publisher: String!
+
+    "Date de publication (`AAAA-MM-JJ`)."
+    date: String!
+
+    "Adresse de la source : à citer."
+    url: String!
+
+    "Fournisseur déclaré dans le registre des droits (`tiers-cites` : sites cités ponctuellement), nul s'il n'est pas déclaré."
+    provider: String
+
+    "Conditions de reprise du fournisseur, telles que le registre les décrit."
+    license: String
+
+    "Statut des droits du fournisseur : `sur`, `incertain` ou `interdit`."
+    license_status: String
 }
 
 "Gare d'extrémité d'une relation."
@@ -3256,6 +3313,63 @@ type LineSheetMaterial {
 
     "Périodes de circulation sur cette ligne datées par une source (sûres seulement), les plus anciennes d'abord. Détail et fiabilité : `Line.material_links.periods`."
     periods: [LineSheetMaterialPeriod!]!
+
+    "Relations que la série assurait sur la ligne, datées ou non, avec leurs faits sourcés (`notes`) : voir `LineMaterialLink.relations`."
+    relations: [LineMaterialRelation!]!
+
+    "Vignette de la photo de la série (Commons, 330 px de large au plus) et son crédit, nulle sans photo. Image complète : `Material.image`."
+    image: LineSheetMaterialImage
+
+    "Fin de circulation telle que les sources la connaissent (jamais déduite). Les séries de `LineSheet.materials` viennent de la plus récente à la plus ancienne : encore en service sans fin connue sur la ligne, puis fin la plus récente, puis début, puis nom."
+    end: LineSheetMaterialEnd!
+}
+
+"Fin de circulation d'une série sur une ligne."
+type LineSheetMaterialEnd {
+    "`line` (fin datée sur la ligne par la dernière période, sans reprise après), `series_in_service` (pas de fin sur la ligne et série encore en service : on ne sait pas si elle roule encore ici), `series_withdrawn` (pas de fin sur la ligne, série retirée : l'année est celle de la série, pas de la ligne) ou `unknown`."
+    kind: String!
+
+    "Année de fin (sur la ligne pour `line`, retrait de la série pour `series_withdrawn`), nulle si inconnue."
+    year: Int
+
+    "Source de l'année : `wikipedia`, `wikidata` ou `contrib`."
+    source: String
+
+    "Permalien de la source : à citer."
+    source_url: String
+}
+
+"Vignette de la photo d'une série dans la fiche d'une ligne, avec ce qu'il faut pour la créditer."
+type LineSheetMaterialImage {
+    "Adresse de la vignette."
+    url: String!
+
+    "Largeur affichée, en pixels (330 au plus)."
+    width: Int!
+
+    "Hauteur affichée, en pixels, aux proportions de l'original."
+    height: Int!
+
+    "Nom du fichier Commons (« File:… »)."
+    file: String
+
+    "Auteur, nul si inconnu ou anonyme."
+    author: String
+
+    "Licence telle que déclarée par Commons, nulle si inconnue."
+    license: String
+
+    "Lien vers le texte de la licence."
+    license_url: String
+
+    "Statut des droits : `public_domain`, `open_license` ou `unknown`."
+    rights_status: String
+
+    "Page du fichier sur Commons : à citer."
+    source_url: String
+
+    "Fournisseur : `commons`."
+    provider: String!
 }
 
 "Période de circulation d'une série sur la ligne (forme courte de `LineMaterialPeriod`)."

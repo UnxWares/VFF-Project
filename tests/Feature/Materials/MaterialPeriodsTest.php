@@ -135,17 +135,21 @@ class MaterialPeriodsTest extends TestCase
     {
         $this->artisan('vff:import-material-periods', ['--offline' => true])->assertSuccessful();
 
+        // Le plus récent d'abord (LineMaterialEnd) : X 72500 jusqu'en 2009, CC 72000 jusqu'en 2001, puis le B 82500
+        // sans fin connue (ni sur la ligne, ni pour la série).
         $this->get('/lines/rfn-908000')->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->where('materials.0.slug', 'b-82500')
-            ->where('materials.0.periods', [[
+            ->where('materials.2.slug', 'b-82500')
+            ->where('materials.2.end.kind', 'unknown')
+            ->where('materials.2.periods', [[
                 'start_date' => '2009-09-06', 'start_precision' => 'day', 'end_date' => null, 'end_precision' => null,
                 'section_from' => null, 'section_to' => null, 'relation' => null, 'source' => 'wikipedia',
                 'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Valence_%C3%A0_Moirans&oldid=230000000',
             ]])
             ->where('materials.1.slug', 'cc-72000')
             ->has('materials.1.periods', 2)
-            ->where('materials.2.slug', 'x-72500')
-            ->has('materials.2.periods', 1));
+            ->where('materials.0.slug', 'x-72500')
+            ->where('materials.0.end', ['kind' => 'line', 'year' => 2009, 'source' => 'wikipedia', 'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Valence_%C3%A0_Moirans&oldid=230000000'])
+            ->has('materials.0.periods', 1));
     }
 
     public function test_material_sheet_lists_the_periods_of_each_line(): void
@@ -188,7 +192,7 @@ class MaterialPeriodsTest extends TestCase
         );
         $this->graphQL('{ line(slug: "rfn-908000") { sheet { materials { slug periods { start_date end_date source source_url } } } } }')
             ->assertGraphQLErrorFree()
-            ->assertJsonPath('data.line.sheet.materials.0.periods.0.start_date', '2009-09-06');
+            ->assertJsonPath('data.line.sheet.materials.2.periods.0.start_date', '2009-09-06');
 
         $mcp = $this->withHeaders(['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-06-18'])
             ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'line_materials', 'arguments' => ['line' => '908000']]])
