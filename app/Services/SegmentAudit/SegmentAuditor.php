@@ -28,6 +28,9 @@ final class SegmentAuditor
 {
     public const COVER_TOL_M = 30;
 
+    /** Statuts « en service » d'un tronçon de l'ère courante qui assure la continuité d'une ère passée (continuousToday). */
+    private const IN_SERVICE = ['in_service', 'single_track', 'service_track'];
+
     public const SNCF_TOL_M = 200;
 
     public const BDTOPO_TOL_M = 5;
@@ -80,13 +83,21 @@ final class SegmentAuditor
         $events = $this->events($line);
         $lineFacts = $this->lineFacts($line);
 
-        $out = [];
-        foreach ($eras as $era) {
-            $eraId = (int) $era->id;
-            if (! in_array($eraId, $withSegments, true) || ($eraYears !== null && ! in_array((int) $era->year, $eraYears, true))) {
-                continue;
+        $selected = array_values(array_filter($eras, fn (object $era): bool => in_array((int) $era->id, $withSegments, true)
+            && ($eraYears === null || in_array((int) $era->year, $eraYears, true))));
+        // L'ère courante d'abord : la continuité des ères passées (continuousToday) lit son classement de cette
+        // passe, pas celui qu'une passe précédente a enregistré. Sans elle dans la passe, l'audit enregistré sert.
+        $byEra = [];
+        $todayGood = null;
+        foreach ($selected as $era) {
+            if ((bool) $era->is_current) {
+                $byEra[(int) $era->id] = $this->auditEra($line, $era, $previous[(int) $era->id] ?? null, $events, $lineFacts, $asOf);
+                $todayGood = self::goodInService($byEra[(int) $era->id]['segments']);
             }
-            $out[] = $this->auditEra($line, $era, $previous[$eraId] ?? null, $events, $lineFacts, $asOf);
+        }
+        $out = [];
+        foreach ($selected as $era) {
+            $out[] = $byEra[(int) $era->id] ?? $this->auditEra($line, $era, $previous[(int) $era->id] ?? null, $events, $lineFacts, $asOf, $todayGood);
         }
 
         return $out;
@@ -95,9 +106,11 @@ final class SegmentAuditor
     /**
      * @param  array<int, array<string, mixed>>  $events
      * @param  array{reference_length_m: ?int, official_length_m: ?int, official_source: ?string}  $lineFacts
+     * @param  list<int>|null  $todayGood  ère passée : tronçons de l'ère courante en service et sûrs dans cette passe
+     *                                     (goodInService) ; null : ceux de l'audit enregistré
      * @return array{era_id: int, year: int, line: array<string, mixed>, segments: list<array<string, mixed>>}
      */
-    private function auditEra(object $line, object $era, ?int $prevYear, array $events, array $lineFacts, string $asOf): array
+    private function auditEra(object $line, object $era, ?int $prevYear, array $events, array $lineFacts, string $asOf, ?array $todayGood = null): array
     {
         $eraId = (int) $era->id;
         $year = (int) $era->year;
@@ -109,7 +122,7 @@ final class SegmentAuditor
         [$stations, $inversions] = $this->stations((int) $line->id, $eraId);
         $defaults = $line->is_lgv ? 'P' : (self::BUILD_DEFAULTS[$line->network ?? 'principal'] ?? 'PF');
         // Ère passée, ligne sans aucune fin datée : tronçons en service et sûrs à l'ère courante.
-        $continuous = ! $current && ! self::hasEnd($events) ? $this->continuousToday((int) $line->id, $eraId) : [];
+        $continuous = ! $current && ! self::hasEnd($events) ? $this->continuousToday((int) $line->id, $eraId, $todayGood) : [];
 
         $rows = [];
         foreach ($segments as $s) {
@@ -580,14 +593,39 @@ final class SegmentAuditor
     }
 
     /**
-     * Tronçons d'une ère passée dont le milieu est à moins de COVER_TOL_M d'un tronçon de la même
-     * ligne en service et noté sûr pour le classement à l'ère courante (audit déjà enregistré).
+     * Tronçons de l'ère courante en service et notés sûrs pour le classement, d'après les lignes d'audit d'une passe.
      *
+     * @param  list<array<string, mixed>>  $rows
+     * @return list<int>
+     */
+    public static function goodInService(array $rows): array
+    {
+        return array_values(array_map(fn (array $r): int => (int) $r['segment_id'], array_filter($rows,
+            fn (array $r): bool => $r['classification_grade'] === AuditGrade::Good->value && in_array($r['status'], self::IN_SERVICE, true))));
+    }
+
+    /**
+     * Tronçons d'une ère passée dont le milieu est à moins de COVER_TOL_M d'un tronçon de la même
+     * ligne en service et noté sûr pour le classement à l'ère courante : ceux de la même passe
+     * (`$todayGood`, goodInService), sinon ceux de l'audit déjà enregistré (passe limitée aux ères passées).
+     *
+     * @param  list<int>|null  $todayGood
      * @return array<int, true>
      */
-    private function continuousToday(int $lineId, int $eraId): array
+    private function continuousToday(int $lineId, int $eraId, ?array $todayGood = null): array
     {
-        $rows = DB::select(<<<'SQL'
+        if ($todayGood === []) {
+            return [];
+        }
+        $rows = $todayGood !== null ? DB::select(<<<'SQL'
+            SELECT s.id FROM line_segments s
+            WHERE s.line_id = :line AND s.era_id = :era
+              AND EXISTS (SELECT 1 FROM line_segments c
+                          WHERE c.id = ANY(CAST(:ids AS bigint[]))
+                            AND c.geom && ST_Expand(ST_LineInterpolatePoint(s.geom, 0.5), 0.0005)
+                            AND ST_DWithin(ST_Transform(c.geom, 2154), ST_Transform(ST_LineInterpolatePoint(s.geom, 0.5), 2154), :tol))
+            SQL, ['line' => $lineId, 'era' => $eraId, 'ids' => '{'.implode(',', $todayGood).'}', 'tol' => self::COVER_TOL_M])
+            : DB::select(<<<'SQL'
             SELECT s.id FROM line_segments s
             WHERE s.line_id = :line AND s.era_id = :era
               AND EXISTS (SELECT 1 FROM segment_audits a JOIN eras e ON e.id = a.era_id AND e.is_current
@@ -658,7 +696,8 @@ final class SegmentAuditor
             -- Voie BD TOPO sous le tronçon : celle de la ligne d'abord, comme pour OSM.
             LEFT JOIN LATERAL (
                 SELECT st.layer, st.properties->>'etat_de_l_objet' AS etat, NULLIF(st.properties->>'usage', '') AS usage,
-                       (st.line_id = :line5 OR EXISTS (SELECT 1 FROM source_trace_lines stl
+                       -- COALESCE : une voie sans line_id donne NULL, qu'un tri décroissant rangerait en tête.
+                       (COALESCE(st.line_id = :line5, false) OR EXISTS (SELECT 1 FROM source_trace_lines stl
                                                        WHERE stl.source_trace_id = st.id AND stl.line_id = :line6)) AS attached
                 FROM source_traces st
                 WHERE CAST(:current4 AS boolean) AND st.source = 'bdtopo' AND st.layer <> 'Funiculaire ou crémaillère' AND st.geom && ST_Expand(m.mid4, 0.0001)
@@ -667,7 +706,7 @@ final class SegmentAuditor
             ) bd ON true
             -- Voie OSM sous le tronçon : celle de la ligne d'abord (une voie voisine peut être d'une autre ligne).
             LEFT JOIN LATERAL (
-                SELECT st.layer, (st.line_id = :line3 OR EXISTS (SELECT 1 FROM source_trace_lines stl
+                SELECT st.layer, (COALESCE(st.line_id = :line3, false) OR EXISTS (SELECT 1 FROM source_trace_lines stl
                                                                 WHERE stl.source_trace_id = st.id AND stl.line_id = :line4)) AS attached
                 FROM source_traces st
                 WHERE CAST(:current2 AS boolean) AND st.source = 'osm' AND st.layer = ANY(CAST(:osm AS text[])) AND st.geom && ST_Expand(m.mid4, 0.0002)

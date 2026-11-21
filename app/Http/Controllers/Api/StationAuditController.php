@@ -67,7 +67,9 @@ class StationAuditController extends Controller
      * (P1619) et de fermeture (P3999) de Wikidata, avec `precision` (`day`,
      * `month`, `year`, `decade`, `century`), rang, qualificatifs et
      * références, comparées à la date publiée (`comparison` : `same`,
-     * `more_precise`, `less_precise`, `differs`, `new`, et `delta_days`).
+     * `more_precise`, `less_precise`, `close` (date VFF bornée par les ères,
+     * candidate à moins d'un an de l'intervalle), `differs`, `new`, et
+     * `delta_days`).
      * `would_replace` dit si la règle de rang proposée (texte officiel >
      * Wikipédia et Wikidata > lignes-oubliées, OHM, OSM > estimation) la
      * préférerait ; elle n'est pas appliquée.

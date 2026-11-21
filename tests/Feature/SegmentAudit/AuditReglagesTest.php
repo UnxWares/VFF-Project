@@ -125,4 +125,39 @@ class AuditReglagesTest extends TestCase
         $broken = self::row($auditor->auditLine($this->line->id, [2000]), $this->past->id, $p);
         $this->assertSame('fair', $broken['classification_grade']);
     }
+
+    /**
+     * Passe sur toutes les ères : la continuité lit la note de l'ère courante calculée dans la même passe, jamais
+     * celle qu'une passe précédente a enregistrée (anciennes règles, anciennes sources). Sinon la première passe
+     * après un changement de règles notait les ères passées d'après l'ancien classement de 2030.
+     */
+    public function test_continuity_follows_the_current_era_of_the_same_pass(): void
+    {
+        $wkt = 'LINESTRING(2.015 48.0, 2.025 48.0)';
+        $p = $this->segment($this->past, $wkt, 'in_service', 'mixed');
+        $now = $this->segment($this->current, $wkt, 'in_service', 'mixed');
+        $auditor = app(SegmentAuditor::class);
+        $stored = fn (string $grade) => DB::table('segment_audits')->updateOrInsert(
+            ['era_id' => $this->current->id, 'segment_id' => $now, 'scope' => 'segment'],
+            ['line_id' => $this->line->id, 'status' => 'in_service', 'length_m' => 740, 'classification_grade' => $grade,
+                'placement_grade' => 'good', 'accuracy_grade' => 'good', 'trace_grade' => 'good', 'worst_grade' => $grade,
+                'evidence' => '{}', 'rule_version' => 'ancienne', 'audited_at' => now(), 'geom' => DB::raw("ST_GeomFromText('{$wkt}', 4326)")],
+        );
+
+        // Ancien audit « sûr », mais 2030 n'a aujourd'hui que des sources faibles : pas de continuité.
+        $stored('good');
+        $audit = $auditor->auditLine($this->line->id);
+        $this->assertSame('fair', self::row($audit, $this->current->id, $now)['classification_grade']);
+        $this->assertSame(['fair', ['weak_sources_only']], [self::row($audit, $this->past->id, $p)['classification_grade'],
+            self::row($audit, $this->past->id, $p)['evidence']['classification']['reasons']]);
+
+        // Ancien audit « à revoir », mais une voie BD TOPO de la ligne, en service, confirme 2030 : continuité.
+        $stored('fair');
+        $this->trace('bdtopo', 'Voie ferrée principale', $wkt, $this->line->id);
+        $audit = $auditor->auditLine($this->line->id);
+        $this->assertSame('good', self::row($audit, $this->current->id, $now)['classification_grade']);
+        $this->assertSame(['good', ['continuous_service']], [self::row($audit, $this->past->id, $p)['classification_grade'],
+            self::row($audit, $this->past->id, $p)['evidence']['classification']['reasons']]);
+        $this->assertSame([$this->past->id, $this->current->id], array_column($audit, 'era_id'), 'ères rendues dans l’ordre des années');
+    }
 }

@@ -80,7 +80,10 @@ Tirés du second contrôle à la main de 100 gares (`storage/app/reports/agents/
   Baptiste).
 - `vff:import-station-wikidata-dates` (`--station=`, `--line=`, `--from-cache`, `--refresh`, `--dry-run`) : P1619 et
   P3999 avec précision, rang, qualificatifs et références → `station_date_candidates`, comparées aux dates publiées
-  (`same`, `more_precise`, `less_precise`, `differs`, `new`, `station_open`). Aucune date du moteur n'est remplacée ;
+  (`same`, `more_precise`, `less_precise`, `close`, `differs`, `new`, `station_open`). Une date VFF de précision
+  `range` (fermeture « entre 1951 et 1960 », bornée par les ères) se compare à tout l'intervalle : d'accord si la
+  candidate y tombe, `close` si elle en reste à moins d'un an, `differs` au-delà ; `delta_days` est alors l'écart à
+  la borne la plus proche (règle du 21/11 après-midi ; avant, la décennie de la borne haute). Aucune date du moteur n'est remplacée ;
   la règle de rang proposée est dans `SourceRank`.
 - Relecture : `/validate/audit/stations` (administrateurs), export CSV. Lecture publique :
   `GET /api/v1/stations/{station}/audit`, champ GraphQL `Station.audit`, clé `audit` de l'outil MCP `get_station`.

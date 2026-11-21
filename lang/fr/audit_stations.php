@@ -283,6 +283,7 @@ return [
             'same' => 'Identique',
             'more_precise' => 'Plus précise',
             'less_precise' => 'Moins précise',
+            'close' => 'Proche de l’intervalle',
             'differs' => 'Différente',
             'new' => 'Absente de VFF',
         ],

@@ -61,7 +61,8 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
   `unknown` (rien pour juger).
   - Classement : une chronologie `EraTimeline` par source d'événements (mêmes règles de portée que le moteur :
     toute la ligne, ou portion à 30 m du milieu du tronçon), et pour l'ère courante SNCF Réseau (200 m), BD TOPO
-    (5 m), OSM (10 m, voie de la ligne d'abord) et l'état relevé par lignes-oubliées (15 m). Un avis contraire est
+    (5 m) et OSM (10 m), voie de la ligne d'abord pour les deux (règles `.5` : une voie sans `line_id` passait
+    avant, 508 tronçons en 2030 pour la BD TOPO), et l'état relevé par lignes-oubliées (15 m). Un avis contraire est
     faible s'il change à 3 ans près de la date, s'il vient d'une estimation, d'une décision administrative
     tardive, de Wikidata ou d'une observation non rattachée à la ligne. Une source qui ne date que des ouvertures
     ne contredit pas une fermeture ; une fermeture datée mais non localisée vaut accord faible pour un tronçon
@@ -73,15 +74,18 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
     - Continuité (règles `.4`, ères passées) : un tronçon en service que seules des sources faibles datent reste
       `good` (raison `continuous_service`) quand la ligne n'a aucune fin datée (fermeture, déclassement, dépose,
       localisée ou non) et qu'un tronçon de la même ligne, à 30 m au plus de son milieu, est en service et `good`
-      pour le classement dans l'audit enregistré de l'ère courante. L'ère courante doit donc être auditée avant
-      les ères passées.
+      pour le classement à l'ère courante. Une passe qui comprend l'ère courante l'audite en premier et lit son
+      classement de la même passe ; une passe limitée aux ères passées (`--era=1990`) lit l'audit enregistré de
+      l'ère courante.
   - Placement : un point tous les 50 m (3 à 200 par tronçon), voie la plus proche à moins de 50 m d'une source
     différente de celle du tracé (BD TOPO, OSM, photographies aériennes anciennes de l'IGN) ; `good` si médiane et
     95e centile ≤ 5 m sur au moins 80 % des points, `poor` si médiane > 5 m ou tronçon en service aujourd'hui sans
     voie réelle à côté.
     - Voies d'une autre ligne (règles `.4`) : une voie rattachée à une autre ligne (`source_traces.line_id`) ne sert
       jamais de référence ; seules comptent les voies de la ligne et les voies non rattachées. Un tronçon qui ne
-      colle qu'à la voie d'une autre ligne (80 % des points, médiane et 95e centile ≤ 5 m) est noté à part :
+      colle qu'à la voie d'une autre ligne (80 % des points, médiane et 95e centile ≤ 5 m sur toutes les voies, mais
+      pas sur les voies libres ou de la ligne de la même source : règles `.5`, une voie libre qui colle n'est pas
+      celle d'une autre ligne) est noté à part :
       - raison `on_other_line_track` quand une voie rattachée à sa propre ligne suit au moins la moitié des points
         entre 8 et 60 m ; la médiane donnée est l'écart à cette voie propre. `poor` pour un tronçon fermé ou
         déposé (voie-mère ou embranchement recalé sur la ligne voisine : Vitrolles, Saint-Amand, Kerpont), `fair`
@@ -108,4 +112,6 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
     `fair`. Score de 0 (tout sûr) à 100 (tout faux), pondéré par la longueur.
   - Versions des règles (`rule_version`) : `.3` (nuit du 21/11) dépose probable, voies rattachées d'abord, train
     touristique ; `.4` (matin du 21/11, second contrôle à la main de 100 tronçons) voies d'une autre ligne, tracé
-    confirmé par une source précise, observation seule, continuité aux ères passées.
+    confirmé par une source précise, observation seule, continuité aux ères passées ; `.5` (après-midi du 21/11)
+    voie de la ligne vraiment d'abord pour l'état BD TOPO et OSM (`COALESCE` sur `attached`), et une voie libre
+    qui colle au tronçon n'est plus « la voie d'une autre ligne ».

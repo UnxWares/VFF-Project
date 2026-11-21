@@ -41,7 +41,8 @@ use App\Enums\AuditGrade;
  *   voie de référence : BD TOPO, OSM ou tracé relevé sur les photographies aériennes de l'IGN, à
  *   moins de REFERENCE_RADIUS_M, en prenant une source DIFFÉRENTE de celle du tracé, et jamais une
  *   voie rattachée à une autre ligne (elle passe souvent à quelques mètres d'une plate-forme propre) ;
- *   tronçon posé sur la voie d'une autre ligne (il ne colle qu'à elle, à TOLERANCE_M près) :
+ *   tronçon posé sur la voie d'une autre ligne (il ne colle qu'à elle, à TOLERANCE_M près, et pas aux voies
+ *   libres ou de la ligne de la même source) :
  *     on_other_line_track si une voie rattachée à sa propre ligne suit le tronçon entre OWN_TRACK_MIN_M
  *          et OWN_TRACK_MAX_M : poor pour un tronçon fermé ou déposé (voie-mère ou embranchement recalé
  *          sur la ligne voisine), fair pour un tronçon en service à l'ère courante (faisceaux de gare, voies
@@ -77,7 +78,7 @@ use App\Enums\AuditGrade;
 final class AuditGrader
 {
     /** Version des règles, recopiée dans chaque ligne d'audit (à changer avec les seuils). */
-    public const RULE_VERSION = '2026-11-21.4';
+    public const RULE_VERSION = '2026-11-21.5';
 
     /** Ancienneté (ans) d'une fermeture au-delà de laquelle une voie « en place » non observée est suspecte. */
     public const OLD_CLOSURE_YEARS = 50;
@@ -313,7 +314,7 @@ final class AuditGrader
 
     /**
      * Le tronçon ne colle qu'à la voie d'une autre ligne : référence (hors source du tracé) dont toutes
-     * les voies donnent un placement « sûr ». Rend [référence, mesure sur toutes les voies, médiane de
+     * les voies donnent un placement « sûr », mais pas ses voies libres ou de la ligne. Rend [référence, mesure sur toutes les voies, médiane de
      * l'écart à la propre voie de la ligne si elle suit le tronçon entre OWN_TRACK_MIN_M et OWN_TRACK_MAX_M].
      *
      * @param  array<string, array<string, mixed>>  $refs
@@ -343,13 +344,22 @@ final class AuditGrader
             if ($name === $source || $r === null || $all === null || $r['points'] <= 0) {
                 continue;
             }
-            if ($all['found'] / $r['points'] >= self::FULL_COVERAGE && $all['median_m'] !== null && $all['p95_m'] !== null
-                && $all['median_m'] <= self::TOLERANCE_M && $all['p95_m'] <= self::TOLERANCE_M) {
+            // La voie qui colle doit être celle d'une autre ligne : si les voies libres ou de la ligne de cette
+            // référence collent aussi, le tronçon est sur une voie libre, pas sur celle d'une autre ligne.
+            if (self::fits($all['found'], $r['points'], $all['median_m'], $all['p95_m'])
+                && ! self::fits($r['found'], $r['points'], $r['median_m'], $r['p95_m'])) {
                 return [$name, $all, $onOwnTrack ? null : $own];
             }
         }
 
         return null;
+    }
+
+    /** Placement « sûr » sur une mesure : FULL_COVERAGE des points, médiane et 95e centile ≤ TOLERANCE_M. */
+    private static function fits(int $found, int $points, ?float $median, ?float $p95): bool
+    {
+        return $points > 0 && $found / $points >= self::FULL_COVERAGE && $median !== null && $p95 !== null
+            && $median <= self::TOLERANCE_M && $p95 <= self::TOLERANCE_M;
     }
 
     /**
