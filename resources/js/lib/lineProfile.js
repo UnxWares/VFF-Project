@@ -260,3 +260,15 @@ export function rackSentence(rack) {
         system: RACK_SYSTEMS[rack.system] ?? rack.system,
     };
 }
+
+/**
+ * Langue du titre de la source d'une ligne à crémaillère (`profile.rack.source`, RGAA 8.7) : celle de
+ * l'édition de Wikipédia d'après l'adresse (`fr.wikipedia.org` : français) ; undefined pour une autre
+ * adresse (la langue de la page s'applique).
+ * @param {string | null | undefined} url
+ * @returns {string | undefined}
+ */
+export function sourceLang(url) {
+    const match = /^https?:\/\/([a-z]{2,3})\.(?:m\.)?wikipedia\.org\//i.exec(url ?? '');
+    return match ? match[1].toLowerCase() : undefined;
+}
