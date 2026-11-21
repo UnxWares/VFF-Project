@@ -68,6 +68,7 @@ return [
         'heritage_end' => 'Ende des Museumsbahnbetriebs',
         'tourist_start' => 'Beginn des touristischen Betriebs',
         'public_utility' => 'Erklärung der Gemeinnützigkeit',
+        'future_warning' => 'Warnung zur Zukunft der Strecke',
     ],
     'event' => [
         'between' => 'von :from nach :to',

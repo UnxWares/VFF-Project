@@ -445,6 +445,7 @@ return [
         'also_known_more' => 'und :count weitere',
         'names_source' => 'Quelle der Namen',
         'advocacy_label' => 'Kampagne für diese Strecke',
+        'advocacy_sources' => 'Quellen',
         'stats' => [
             'km_line' => 'km Strecke',
             'km_greatest' => 'km bei größter Ausdehnung',

@@ -30,6 +30,7 @@ class HomeController extends Controller
         // Lignes soutenues par VFF (menacées, ou campagne de réouverture) → encart de mobilisation.
         $threatened = Line::whereNotNull('advocacy')
             ->orderByDesc('is_threatened')
+            ->orderBy('code')
             ->get(['slug', 'name', 'advocacy'])
             ->map(fn ($l) => [
                 'slug' => $l->slug,

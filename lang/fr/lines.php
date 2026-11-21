@@ -446,6 +446,7 @@ return [
         'also_known_more' => 'et :count autres',
         'names_source' => 'Source des noms',
         'advocacy_label' => 'Campagne pour cette ligne',
+        'advocacy_sources' => 'Sources',
         'stats' => [
             'km_line' => 'km de ligne',
             'km_greatest' => 'km à son apogée',

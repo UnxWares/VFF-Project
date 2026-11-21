@@ -864,6 +864,23 @@
                                 {line.advocacy.title}
                             </p>
                             <p lang={line.advocacy.lang?.message}>{line.advocacy.message}</p>
+                            {#if line.advocacy.sources?.length}
+                                <p class="advocacy-sources-title">
+                                    {t('lines.sheet.advocacy_sources')}
+                                </p>
+                                <ul class="advocacy-sources">
+                                    {#each line.advocacy.sources as source (source.url)}
+                                        <li>
+                                            <a
+                                                href={source.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                >{source.label}, {source.date}{@render ext()}</a
+                                            >
+                                        </li>
+                                    {/each}
+                                </ul>
+                            {/if}
                         </div>
                         {#if line.advocacy.cta_url}
                             <a
@@ -1634,6 +1651,24 @@
     .advocacy-cta {
         grid-column: 2;
         justify-self: start;
+    }
+    /* Sources du message de soutien : sous le texte, plus petites, une par ligne. */
+    .advocacy-text .advocacy-sources-title {
+        margin-top: var(--vff-space-3);
+        font-family: var(--vff-font-heading);
+        font-size: var(--vff-fs-md);
+        font-weight: 600;
+    }
+    .advocacy-sources {
+        margin: 4px 0 0;
+        padding: 0;
+        list-style: none;
+        font-size: var(--vff-fs-md);
+        line-height: 1.5;
+    }
+    .advocacy-sources a {
+        display: inline-block;
+        padding: 3px 0;
     }
     .infobox .links a {
         display: inline-flex;

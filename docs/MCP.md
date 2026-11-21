@@ -184,7 +184,8 @@ d'abord, accidents du plus ancien au plus récent.
 Renvoie `line` :
 
 - identité : `slug`, `code`, `name`, `network` (`principal`, `secondaire`, `militaire`,
-  `particulier`), `is_lgv` ;
+  `particulier`), `is_lgv`, `is_threatened` (ligne menacée de fermeture que VFF soutient ; le message
+  de soutien n'est pas publié) ;
 - `today` : `state` (`open` ou `closed_or_gone`) et `by_category_km` (km par catégorie, avec
   libellé : `lgv` grande vitesse ou voyageurs seuls, `mixed`, `freight`, `unknown`, `heritage`,
   `velorail`, `service_track`, `construction`, `closed` voie en place, `dismantled`, `razed`) ;

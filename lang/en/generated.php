@@ -68,6 +68,7 @@ return [
         'heritage_end' => 'End of heritage operation',
         'tourist_start' => 'Start of tourist operation',
         'public_utility' => 'Declaration of public utility',
+        'future_warning' => 'Warning about the future of the line',
     ],
     'event' => [
         'between' => 'from :from to :to',

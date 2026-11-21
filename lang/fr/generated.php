@@ -80,6 +80,7 @@ return [
         'heritage_end' => 'Fin de l\'exploitation patrimoniale',
         'tourist_start' => 'Début de l\'exploitation touristique',
         'public_utility' => 'Déclaration d\'utilité publique',
+        'future_warning' => 'Alerte sur l\'avenir de la ligne',
     ],
     // Descriptions d'événements (line_events.description) et citations générées (source_quote)
     'event' => [
