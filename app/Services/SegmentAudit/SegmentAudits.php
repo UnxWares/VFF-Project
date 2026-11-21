@@ -5,6 +5,7 @@ namespace App\Services\SegmentAudit;
 use App\Enums\AuditGrade;
 use App\Models\Line;
 use App\Services\LineDirectory;
+use App\Support\CsvSafe;
 use App\Support\FrenchDepartments;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
@@ -212,8 +213,9 @@ final class SegmentAudits
         fputcsv($out, self::LINE_CSV_COLUMNS, escape: '');
         foreach ($this->lineQuery($eraId, $filters)->cursor() as $r) {
             $e = self::decode($r->evidence);
-            fputcsv($out, [$r->code, $r->slug, $r->name, $year, $e['segments'] ?? 0, $r->length_m, $r->classification_grade, $r->placement_grade,
-                $r->accuracy_grade, $r->trace_grade, $r->worst_grade, $r->score, self::iso($r->audited_at)], escape: '');
+            // Nom de ligne venu de sources ouvertes à tous : jamais lu comme une formule par le tableur.
+            fputcsv($out, CsvSafe::row([$r->code, $r->slug, $r->name, $year, $e['segments'] ?? 0, $r->length_m, $r->classification_grade, $r->placement_grade,
+                $r->accuracy_grade, $r->trace_grade, $r->worst_grade, $r->score, self::iso($r->audited_at)]), escape: '');
         }
     }
 

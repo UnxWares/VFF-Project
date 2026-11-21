@@ -16,7 +16,7 @@ namespace App\GraphQL\Complexity;
  *   - les relations paginées `@morphMany(type: CONNECTION)` et les annuaires : sous-champs
  *     multipliés par `first` (Lighthouse ne le fait pas pour elles) ;
  *   - les pages d'audit à `limit` : sous-champs multipliés par `limit` ;
-  - les champs calculés (géométrie, arrêts, recherche, histoire d'un événement…) : COMPUTED ;
+ *   - les champs calculés (géométrie, arrêts, recherche, histoire d'un événement…) : COMPUTED ;
  *   - les champs lourds (fiche complète, profil en long, audit, itinéraires, comparaison d'ères),
  *     qui demandent chacun de quelques dizaines de millisecondes à quelques secondes : HEAVY.
  *
