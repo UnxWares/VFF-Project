@@ -80,7 +80,7 @@ export function blockParagraphsToDivs(markup) {
     const opens = [];
     const pairs = [];
     const tag = /<(\/?)p(?=[\s>])([^>]*)>/g;
-    for (let m; (m = tag.exec(markup)); ) {
+    for (let m; (m = tag.exec(markup));) {
         if (m[1] === '') opens.push({ start: m.index, end: tag.lastIndex, attrs: m[2] });
         else {
             const open = opens.pop();
@@ -142,13 +142,16 @@ export function patchScript(code) {
     // RGAA 1.3 : le logo (lien vers l'accueil de la référence) s'appelait « Magidoc ».
     apply('logo', /alt:`Magidoc`/g, `alt:\`${LOGO_ALT}\``);
 
-    // RGAA 7.1 : bouton d'en-tête (HeaderAction de Carbon) sans nom ni état ; il ouvre le panneau des
-    // liens « Voir aussi ». Le nom et l'état ouvert ou fermé sont posés avant les attributs transmis.
+    // RGAA 7.1 : bouton d'en-tête (HeaderAction de Carbon) sans nom ; il ouvre le panneau des liens
+    // « Voir aussi », qui en tire aussi son nom (`role="region"` et `aria-labelledby` vers le bouton).
+    // Depuis Magidoc 9, Carbon expose lui-même l'état ouvert ou fermé (`aria-expanded`, `aria-controls`) :
+    // seuls le nom et la langue sont posés, avant les attributs transmis (un nom explicite reste
+    // prioritaire). Magidoc n'utilise ce composant que pour ce panneau (la recherche mobile passe par
+    // HeaderGlobalAction, déjà nommée « Search »).
     apply(
         'header-action',
-        /\(\{type:`button`,\.\.\.(\w+),class:(\w+\(\w+\)),\[(\w+)\]:\{"bx--header__action":!0,"bx--header__action--active":(\w+)\(\)/g,
-        (_, rest, cls, key, open) =>
-            `({type:\`button\`,lang:\`fr\`,"aria-label":\`${SEE_ALSO_LABEL}\`,"aria-expanded":String(!!${open}()),...${rest},class:${cls},[${key}]:{"bx--header__action":!0,"bx--header__action--active":${open}()`,
+        /\(\{type:`button`,("aria-expanded":\w+\(\)\?`true`:`false`,"aria-controls":)/g,
+        `({type:\`button\`,lang:\`fr\`,"aria-label":\`${SEE_ALSO_LABEL}\`,$1`,
     );
 
     // RGAA 11.1 : champ de recherche de l'en-tête sans étiquette (l'étiquette de Carbon était vide).
@@ -213,8 +216,8 @@ export function patchPage(html) {
     apply('logo', /alt="(?:Magidoc|VFF - Voies Ferrées de France)"/g, `alt="${LOGO_ALT}"`);
     apply(
         'header-action',
-        /<button type="button" class="bx--header__action">/g,
-        `<button type="button" lang="fr" aria-label="${SEE_ALSO_LABEL}" aria-expanded="false" class="bx--header__action">`,
+        /<button type="button" aria-expanded="(true|false)"( id="[^"]*")? class="bx--header__action">/g,
+        `<button type="button" lang="fr" aria-label="${SEE_ALSO_LABEL}" aria-expanded="$1"$2 class="bx--header__action">`,
     );
     apply(
         'hashtag-heading',
