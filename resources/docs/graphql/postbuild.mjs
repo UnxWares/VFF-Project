@@ -94,19 +94,26 @@ const LANG_SCRIPT = `<script ${LANG_MARKER}>
 </script>`;
 
 let patched = 0;
+let unthemed = 0;
 const pageTotals = {};
 for (const file of filesOf(root, '.html', '_app')) {
     const html = readFileSync(file, 'utf8');
     const accessible = patchPage(html);
     // La page d'accueil (/docs/graphql) n'est qu'une redirection vers le guide.
-    if (!html.includes('http-equiv="refresh"')) addCounts(pageTotals, accessible.counts);
+    const redirect = html.includes('http-equiv="refresh"');
+    if (!redirect) addCounts(pageTotals, accessible.counts);
+    // Magidoc 7 écrivait `lang="fr"` (langue du schéma), Magidoc 9 écrit déjà `lang="en"` : la langue
+    // de l'interface est posée dans les deux cas.
     const out = accessible.html
-        .replace('<html lang="fr">', '<html lang="en">')
         .replace(DARK_QUERY, COOKIE_THEME)
+        .replace(/<html lang="[^"]*">/, '<html lang="en">')
         .replace(
             /<title>\s*([^<]*?)\s*<\/title>/,
             (_, t) => `<title>${t.endsWith(TITLE_SUFFIX) ? t : t + TITLE_SUFFIX}</title>`,
         );
+    // Chaque page (hors redirection) doit lire le thème du site : sinon le script de détection du
+    // gabarit a changé et la page suivrait le système au lieu du réglage de VFF.
+    if (!redirect && !out.includes(COOKIE_THEME)) unthemed++;
     const withLang = out.includes(LANG_MARKER)
         ? out
         : out.replace('</head>', `${LANG_SCRIPT}</head>`);
@@ -123,5 +130,11 @@ requireAll('pages HTML', pageTotals, [
     'skip-link',
     'paragraphs',
 ]);
+if (unthemed) {
+    console.error(
+        `Thème du site introuvable : ${unthemed} page(s) gardent la détection du gabarit.`,
+    );
+    process.exit(1);
+}
 console.log(`Pages HTML corrigées (langue, thème du site, titre, accessibilité) : ${patched}.`);
 console.log('Pages HTML corrigées (accessibilité) :', JSON.stringify(pageTotals));

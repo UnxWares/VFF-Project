@@ -126,7 +126,7 @@ redistribuable. Le plan ne la contient pas : le tracé réel ne sert qu'à guide
 tracé simplifié à 0,35 pas, directions de départ et d'arrivée) et n'est jamais recopié. Les nœuds sont
 des points d'une grille de 6 km Web Mercator, parfois déplacés de quelques pas et grossis par les
 loupes ; les gares intermédiaires sont posées sur des segments redressés, à des positions recalculées.
-Le plan est donc moins précis que les tuiles de la carte (0,6 m au zoom 14, toutes sources comprises),
+Le plan est donc moins précis que les tuiles de la carte (0,3 m au zoom 14, grille de 8 192, toutes sources comprises),
 et il sort pour toutes les lignes, comme leurs fiches. Le réglage ne change rien au plan (test
 `SchematicMapApiTest`) ; `GeometryRightsInvariantTest` parcourt aussi ce point d'accès.
 

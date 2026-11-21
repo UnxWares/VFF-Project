@@ -78,6 +78,23 @@ class LineSheetCacheTest extends TestCase
         $this->assertNotSame($afterUpdate, LineDataSignature::segments($id), 'tronçon supprimé');
     }
 
+    public function test_signature_follows_the_sncf_line_categories(): void
+    {
+        $id = $this->line->id;
+        DB::update('UPDATE lines SET code = ? WHERE id = ?', ['999001', $id]);
+        $before = LineDataSignature::segmentsEventsAndEras($id);
+
+        // Catégorie d'une autre ligne : rien ne change.
+        DB::table('sncf_line_catlig')->insert(['code_ligne' => '999002', 'catlig' => 'Ligne à grande vitesse']);
+        $this->assertSame($before, LineDataSignature::segmentsEventsAndEras($id));
+
+        // Catégorie SNCF de la ligne (lue par Lgv::sql dans les phases) : ajoutée, puis modifiée.
+        DB::table('sncf_line_catlig')->insert(['code_ligne' => '999001', 'catlig' => 'Ligne à grande vitesse']);
+        $this->assertNotSame($before, $added = LineDataSignature::segmentsEventsAndEras($id), 'catégorie ajoutée');
+        DB::update("UPDATE sncf_line_catlig SET catlig = 'Ligne conventionnelle normale' WHERE code_ligne = '999001'");
+        $this->assertNotSame($added, LineDataSignature::segmentsEventsAndEras($id), 'catégorie modifiée');
+    }
+
     public function test_phases_are_read_once_and_recomputed_when_segments_change(): void
     {
         [$first, $q1] = $this->measure(fn () => LinePhases::forLine($this->line->fresh(), '2026-11-21'));

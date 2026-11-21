@@ -58,13 +58,29 @@ class ImportStationWikidataDates extends Command
         $this->line(sprintf('%d élément(s) Wikidata pour %d gare(s)', count($qids), count(array_unique(array_column($pairs, 'station_id')))));
 
         $claims = $reader->claims($qids, (bool) $this->option('from-cache'), (bool) $this->option('refresh'));
+        // Cache vide ou absent, ou Wikidata injoignable : ne jamais remplacer les candidats par un ensemble vide.
+        if ($qids !== [] && $claims === []) {
+            $this->error('aucun élément Wikidata relu (cache vide ou absent, ou Wikidata injoignable) : station_date_candidates n\'est pas modifiée');
+
+            return self::FAILURE;
+        }
+        // Gares dont un élément n'a pas été relu : leurs candidats actuels sont gardés tels quels.
+        $unread = [];
+        foreach ($pairs as $pair) {
+            if (! is_array($claims[$pair['qid']] ?? null)) {
+                $unread[$pair['station_id']] = true;
+            }
+        }
+        $keep = $unread;
+        $unread = array_keys($unread);
 
         $vff = $this->vffDates(array_values(array_unique(array_column($pairs, 'station_id'))));
         $now = now();
         $rows = [];
         foreach ($pairs as $pair) {
             $entity = $claims[$pair['qid']] ?? null;
-            if (! is_array($entity)) {
+            // Gare dont un autre élément n'a pas été relu : rien n'est réécrit pour elle.
+            if (! is_array($entity) || isset($keep[$pair['station_id']])) {
                 continue;
             }
             foreach (WikidataStationDates::parse($pair['qid'], $entity) as $c) {
@@ -104,10 +120,16 @@ class ImportStationWikidataDates extends Command
 
             return self::SUCCESS;
         }
-        DB::transaction(function () use ($rows, $restricted, $ids): void {
+        if ($unread !== []) {
+            $this->warn(sprintf('%d gare(s) dont un élément n\'a pas été relu : leurs dates candidates sont gardées', count($unread)));
+        }
+        DB::transaction(function () use ($rows, $restricted, $ids, $unread): void {
             $delete = DB::table('station_date_candidates')->where('source', 'wikidata');
             if ($restricted) {
                 $delete->whereIn('station_id', $ids);
+            }
+            if ($unread !== []) {
+                $delete->whereNotIn('station_id', $unread);
             }
             $delete->delete();
             foreach (array_chunk($rows, 500) as $chunk) {

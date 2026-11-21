@@ -85,7 +85,10 @@
                     key: 'profile_points',
                 },
                 { path: '/api/v1/lines/{line}/altitude?pk_m={pk}', key: 'altitude' },
-                { path: '/api/v1/lines/{line}/audit?era={year}', key: 'line_audit' },
+                {
+                    path: '/api/v1/lines/{line}/audit?era={year}&limit={n}&offset={n}',
+                    key: 'line_audit',
+                },
                 { path: '/api/v1/lines/{line}/materials', key: 'line_materials' },
                 { path: '/api/v1/lines/{line}/media', key: 'media' },
                 { path: '/api/v1/lines/{line}/greenways', key: 'line_greenways' },

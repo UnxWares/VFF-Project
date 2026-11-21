@@ -115,6 +115,33 @@ class HomeArchivesRotationTest extends TestCase
         Cache::flush();
     }
 
+    public function test_an_image_shown_is_never_shown_again_in_the_next_window(): void
+    {
+        // Réserve serrée : deux images par période, six images par fenêtre. Chaque fenêtre doit montrer
+        // l'autre image de chaque période ; un tirage précédent recalculé sans sa propre exclusion se
+        // tromperait une fois sur deux par période.
+        Cache::flush();
+        $this->travelTo(now()->startOfDay()->addMinutes(5));
+        foreach ([1890, 1900, 1920, 1930, 1950, 1960, 1975, 1985, 1995, 2005, 2015, 2020] as $i => $year) {
+            $this->commons(['depicted_year' => $year, 'external_id' => 'r'.$i]);
+        }
+        $archives = new HomeArchives(1800, 6);
+        $previous = array_column($archives->current(), 'id');
+        $this->assertCount(6, $previous);
+        foreach (range(1, 12) as $i) {
+            $this->travelTo(now()->startOfDay()->addMinutes(5 + 30 * $i));
+            $picks = $archives->current();
+            $ids = array_column($picks, 'id');
+            $this->assertSame([], array_values(array_intersect($previous, $ids)), "fenêtre {$i} : image répétée");
+            $years = array_column($picks, 'year');
+            $sorted = $years;
+            sort($sorted);
+            $this->assertSame($sorted, $years, 'ordre chronologique gardé');
+            $previous = $ids;
+        }
+        Cache::flush();
+    }
+
     /** @param  array<string, mixed>  $attributes */
     private function commons(array $attributes = []): Media
     {

@@ -10,6 +10,7 @@ import {
     formFilters,
     GRADE_TONES,
     hostOf,
+    linkedReferences,
     neighbourItem,
     numberedPositions,
     pageUrl,
@@ -17,6 +18,7 @@ import {
     sortChecks,
     sourceFamilies,
     trackCollection,
+    webUrl,
 } from '../../resources/js/lib/stationAudit.js';
 
 /** Traduction factice : la clé suivie des paramètres, pour vérifier ce qui est demandé. */
@@ -165,6 +167,28 @@ describe('dates et chiffres', () => {
     it('lit le nom d’hôte d’une référence', () => {
         expect(hostOf('https://www.wikidata.org/wiki/Q90')).toBe('www.wikidata.org');
         expect(hostOf('pas une adresse')).toBe('pas une adresse');
+    });
+
+    it('ne met en lien que les adresses http ou https', () => {
+        expect(webUrl('https://www.wikidata.org/wiki/Q90')).toBe(
+            'https://www.wikidata.org/wiki/Q90',
+        );
+        expect(webUrl(' http://example.org/a ')).toBe('http://example.org/a');
+        expect(webUrl('javascript:alert(1)')).toBeNull();
+        expect(webUrl('JavaScript:alert(1)')).toBeNull();
+        expect(webUrl('data:text/html,<b>x</b>')).toBeNull();
+        expect(webUrl('//example.org')).toBeNull();
+        expect(webUrl('pas une adresse')).toBeNull();
+        expect(webUrl(null)).toBeNull();
+        expect(
+            linkedReferences([
+                { url: 'https://gallica.bnf.fr/ark:/1', title: 'Gallica' },
+                { url: 'javascript:alert(1)' },
+                { url: '' },
+                null,
+            ]),
+        ).toEqual([{ url: 'https://gallica.bnf.fr/ark:/1', title: 'Gallica' }]);
+        expect(linkedReferences(null)).toEqual([]);
     });
 
     it('accorde le nombre de familles avec la liste affichée', () => {

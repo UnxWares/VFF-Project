@@ -125,7 +125,7 @@ return [
             'profile' => 'Profil en long : altitude le long du tracé de référence (toutes époques), gares placées dessus, dénivelés et déclivité la plus forte (IGN, Licence Ouverte 2.0).',
             'profile_points' => 'Altitude point par point le long de la ligne : PK estimé, provenance de la mesure, interpolation, ouvrage et position, filtrable par PK.',
             'altitude' => 'Altitude d’une ligne à un point kilométrique.',
-            'line_audit' => 'Audit des tronçons d’une ligne à une époque : classement, placement, exactitude et tracé de chaque tronçon, avec leurs preuves.',
+            'line_audit' => 'Audit des tronçons d’une ligne à une époque : classement, placement, exactitude et tracé de chaque tronçon, avec leurs preuves ; 50 tronçons par page (limit jusqu’à 200, offset), total dans segments_total.',
             'line_materials' => 'Séries de matériel roulant qui ont circulé sur la ligne, chacune avec la source qui l’atteste.',
             'media' => 'Photos, cartes postales et plans liés à une ligne, avec leurs droits.',
             'level_crossings' => 'Passages à niveau du réseau ferré national publiés par SNCF Réseau : classe, point kilométrique, commune, filtrables par ligne, type, commune ou emprise.',

@@ -75,6 +75,13 @@ class AuditSegments extends Command
         }
         $bar?->finish();
         $this->newLine();
+        if (! $dry) {
+            // Synthèses périmées : (ligne, ère) sans tronçon depuis la passe précédente.
+            $pruned = $auditor->pruneStale($this->option('line') !== [] ? $lineIds : null, $shard);
+            if ($pruned > 0) {
+                $this->info(sprintf('%d ligne(s) d\'audit périmée(s) retirée(s) (ère sans tronçon).', $pruned));
+            }
+        }
 
         $this->table(['Contrôle', ...AuditGrade::values()], array_map(fn (string $check): array => [
             $check, ...array_map(fn (string $g): int => $byGrade[$check][$g] ?? 0, AuditGrade::values()),

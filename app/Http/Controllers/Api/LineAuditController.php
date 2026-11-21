@@ -15,6 +15,11 @@ use Illuminate\Http\Request;
 #[Group('Lignes', "Une ligne en détail : chronologie, gares dans l'ordre des points kilométriques, conversion de coordonnées en PK, signalisation, médias.", weight: 2)]
 class LineAuditController extends Controller
 {
+    /** Tronçons rendus par défaut, et au plus (une ligne longue en compte plusieurs centaines, avec leurs preuves). */
+    public const DEFAULT_LIMIT = 50;
+
+    public const MAX_LIMIT = 200;
+
     /** Exemple réel (Argentan - Granville, ère 2030, audit du 2026-11-21), un tronçon et des avis raccourcis. */
     public const EXAMPLE = [
         'line' => ['slug' => 'rfn-405000', 'code' => '405000', 'name' => "Ligne d'Argentan à Granville"],
@@ -33,6 +38,9 @@ class LineAuditController extends Controller
         ],
         'line_checks' => ['reasons' => ['no_defect'], 'length_ratio' => 0.999, 'official_source' => 'line', 'official_length_m' => 131000,
             'reference_length_m' => 130888, 'station_order_inversions' => 0],
+        'segments_total' => 412,
+        'limit' => 1,
+        'offset' => 0,
         'segments' => [[
             'segment_id' => 8821806,
             'status' => 'in_service',
@@ -100,6 +108,12 @@ class LineAuditController extends Controller
      * **Tracé** (`trace`) : source du dessin et précision connue (`precision_m` : BD TOPO 2,5 m,
      * OpenStreetMap environ 2 m, formes SNCF généralisées jusqu'à 165 m).
      *
+     * **Pagination des tronçons** : `limit` tronçons au plus (50 par défaut, 200 au plus) à partir
+     * du rang `offset` (0 par défaut), dans l'ordre du plus mal noté au mieux noté. `segments_total`
+     * donne le nombre de tronçons après le filtre `grade` ; la page suivante commence à
+     * `offset + limit` tant que ce rang est inférieur à `segments_total`. La synthèse de la ligne
+     * (`grades`, `score`, `shares`, `line_checks`) porte toujours sur tous les tronçons.
+     *
      * Ère sans audit, ou ligne pas encore auditée : 404 avec `error` = `audit_not_computed`.
      *
      * @response array{
@@ -109,6 +123,7 @@ class LineAuditController extends Controller
      *     worst_grade: string, score: int, length_m: int,
      *     shares: array<string, array<string, float>>,
      *     line_checks: array<string, mixed>,
+     *     segments_total: int, limit: int, offset: int,
      *     segments: array<array{segment_id: int, status: string, traffic_type: string, trace_source: ?string, length_m: int,
      *         grades: array{classification: string, placement: string, accuracy: string, trace: string},
      *         worst_grade: string, score: int, evidence: array<string, mixed>}>
@@ -117,15 +132,19 @@ class LineAuditController extends Controller
     #[PathParameter('line', 'Identifiant (slug) de la ligne, tel que renvoyé par la recherche ou par les GeoJSON (`line_slug`). Les lignes du réseau ferré national sont nommées `rfn-` suivi de leur code à 6 chiffres.', example: 'rfn-405000')]
     #[QueryParameter('era', "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante, 2030.", type: 'int', example: 2030)]
     #[QueryParameter('grade', 'Ne garder que les tronçons dont la plus mauvaise note vaut `good`, `fair`, `poor` ou `unknown`. Par défaut : tous.', type: 'string', example: 'poor')]
-    #[ApiResponse(200, 'Audit de la ligne à cette ère.', examples: [self::EXAMPLE])]
+    #[QueryParameter('limit', 'Nombre de tronçons au plus (1 à 200), les plus mal notés d’abord.', type: 'int', default: 50, example: 50)]
+    #[QueryParameter('offset', 'Rang du premier tronçon rendu, à partir de 0 (page suivante : `offset + limit`).', type: 'int', default: 0, example: 0)]
+    #[ApiResponse(200, 'Audit de la ligne à cette ère, avec une page de tronçons.', examples: [self::EXAMPLE])]
     #[ApiResponse(404, 'Ligne inconnue, ou audit pas encore calculé pour cette ligne et cette ère (`error` = `audit_not_computed`).', examples: [ErrorExamples::LINE_NOT_FOUND, ['error' => 'audit_not_computed', 'message' => "L'audit de cette ligne n'est pas encore calculé pour cette ère."]])]
-    #[ApiResponse(422, 'Paramètre invalide (`era` hors de 1830 à 2030, `grade` inconnu).', examples: [['message' => 'The selected grade is invalid.', 'errors' => ['grade' => ['The selected grade is invalid.']]]])]
+    #[ApiResponse(422, 'Paramètre invalide (`era` hors de 1830 à 2030, `grade` inconnu, `limit` hors de 1 à 200, `offset` négatif).', examples: [['message' => 'The selected grade is invalid.', 'errors' => ['grade' => ['The selected grade is invalid.']]]])]
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
     public function show(Line $line, Request $request, SegmentAudits $audits): JsonResponse
     {
         $valid = $request->validate([
             'era' => ['nullable', 'integer', 'between:1830,2030'],
             'grade' => ['nullable', 'string', 'in:good,fair,poor,unknown'],
+            'limit' => ['nullable', 'integer', 'between:1,'.self::MAX_LIMIT],
+            'offset' => ['nullable', 'integer', 'min:0'],
         ]);
         $audit = $audits->forLine($line, (int) ($valid['era'] ?? 2030));
         if ($audit === null) {
@@ -134,9 +153,14 @@ class LineAuditController extends Controller
                 'message' => "L'audit de cette ligne n'est pas encore calculé pour cette ère.",
             ], 404);
         }
-        if (isset($valid['grade'])) {
-            $audit['segments'] = array_values(array_filter($audit['segments'], fn (array $s): bool => $s['worst_grade'] === $valid['grade']));
-        }
+        $segments = isset($valid['grade'])
+            ? array_values(array_filter($audit['segments'], fn (array $s): bool => $s['worst_grade'] === $valid['grade']))
+            : $audit['segments'];
+        $limit = (int) ($valid['limit'] ?? self::DEFAULT_LIMIT);
+        $offset = (int) ($valid['offset'] ?? 0);
+        unset($audit['segments']);
+        $audit += ['segments_total' => count($segments), 'limit' => $limit, 'offset' => $offset,
+            'segments' => array_slice($segments, $offset, $limit)];
 
         return response()->json($audit)->header('Cache-Control', 'public, max-age=3600');
     }

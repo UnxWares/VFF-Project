@@ -169,6 +169,30 @@ class StationAuditTest extends TestCase
         $this->assertSame(1, DB::table('station_date_candidates')->count());
     }
 
+    public function test_an_empty_cache_never_empties_the_candidates(): void
+    {
+        $this->fakeSources();
+        $this->artisan('vff:import-station-wikidata-dates')->assertSuccessful();
+        $this->assertSame(1, DB::table('station_date_candidates')->count());
+
+        // Cache absent : aucun élément relu, la table reste telle quelle.
+        $this->app->instance(WikidataStationDates::class, new WikidataStationDates(new WikimediaClient, new SourceCache($this->cacheDir.'-absent'), 0));
+        Http::fake(fn () => throw new \RuntimeException('aucune requête attendue'));
+        $this->artisan('vff:import-station-wikidata-dates', ['--from-cache' => true])
+            ->expectsOutputToContain('aucun élément Wikidata relu')->assertFailed();
+        $this->assertDatabaseCount('station_date_candidates', 1);
+
+        // Cache partiel (Q1 manquant) : les dates d'Argentan, non relues, sont gardées.
+        (new SourceCache($this->cacheDir.'-partiel'))->save('station-dates', ['Q8' => [], 'Q9' => []]);
+        try {
+            $this->app->instance(WikidataStationDates::class, new WikidataStationDates(new WikimediaClient, new SourceCache($this->cacheDir.'-partiel'), 0));
+            $this->artisan('vff:import-station-wikidata-dates', ['--from-cache' => true])->assertSuccessful();
+            $this->assertSame([$this->ids['Argentan']], DB::table('station_date_candidates')->pluck('station_id')->map(fn ($id): int => (int) $id)->all());
+        } finally {
+            File::deleteDirectory($this->cacheDir.'-partiel');
+        }
+    }
+
     public function test_scope_options(): void
     {
         $this->fakeSources();

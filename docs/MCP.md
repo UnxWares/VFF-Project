@@ -777,7 +777,7 @@ dans l'API REST `GET /api/v1/lines/{line}/profile/points`. Attribution : IGN (BD
 
 ### `line_audit` : audit des tronçons d'une ligne
 
-Même contenu que `GET /api/v1/lines/{line}/audit` (service `SegmentAudits`). Notes calculées à l'avance par
+Même contenu que `GET /api/v1/lines/{line}/audit` (service `SegmentAudits`) ; l'API REST pagine aussi les tronçons avec `limit` et `offset` (50 par défaut, 200 au plus), l'outil n'a que `limit`. Notes calculées à l'avance par
 `vff:audit-segments` (méthode et seuils : `docs/AUDIT-TRONCONS.md`) : une ligne pas encore auditée à l'époque demandée
 renvoie l'erreur `audit_not_computed`.
 

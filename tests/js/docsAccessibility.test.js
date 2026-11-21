@@ -31,16 +31,22 @@ describe('Magidoc : modules JS compilés', () => {
         expect(counts.logo).toBe(1);
     });
 
-    it('nomme le bouton « Voir aussi » et expose son état ouvert ou fermé', () => {
+    it('nomme le bouton « Voir aussi » sans toucher à l’état exposé par Carbon', () => {
         const source =
-            'q(I,()=>({type:`button`,...c,class:l(f),[de]:{"bx--header__action":!0,"bx--header__action--active":m(),"bx--header__action--text":y()}}))';
+            'j(xe,()=>({type:`button`,"aria-expanded":F()?`true`:`false`,"aria-controls":F()?`${J()}-panel`:void 0,id:J(),...s,class:k(N),[ne]:{"bx--header__action":!0,"bx--header__action--active":F(),"bx--header__action--text":ae()}}))';
         const { code, counts } = patchScript(source);
         expect(counts['header-action']).toBe(1);
         expect(code).toContain(`"aria-label":\`${SEE_ALSO_LABEL}\``);
         expect(code).toContain('lang:`fr`');
-        expect(code).toContain('"aria-expanded":String(!!m())');
+        expect(code).toContain('"aria-expanded":F()?`true`:`false`,"aria-controls":');
         // Les attributs transmis par l'appelant passent après : un nom explicite reste prioritaire.
-        expect(code.indexOf('"aria-label"')).toBeLessThan(code.indexOf('...c'));
+        expect(code.indexOf('"aria-label"')).toBeLessThan(code.indexOf('...s'));
+    });
+
+    it('laisse le bouton du menu mobile, déjà nommé, tel quel', () => {
+        const source =
+            'j(u,()=>({type:`button`,title:i(),"aria-label":i(),"aria-expanded":a()?`true`:`false`,...r,[ne]:{"bx--header__action":!0,"bx--header__menu-trigger":!0}}))';
+        expect(patchScript(source).counts['header-action']).toBe(0);
     });
 
     it("étiquette le champ de recherche de l'en-tête", () => {
@@ -97,7 +103,7 @@ describe('Magidoc : pages pré-rendues', () => {
         '<html lang="fr"><head></head><body>',
         '<div style="display: contents"><header>',
         '<img src="/docs/graphql/vff.png" alt="Magidoc"/>',
-        '<button type="button" class="bx--header__action"><svg></svg></button></header>',
+        '<button type="button" aria-expanded="false" id="ccs-2xef8np0v6r" class="bx--header__action"><svg></svg></button></header>',
         '<main id="main-content"><div class="parent svelte-xid2sy">',
         '<h2 id="arguments" class="header header-base svelte-xid2sy">Arguments</h2>',
         '<h2 class="header-base header-hashtag svelte-xid2sy"><a href="#arguments" class="hashtag svelte-xid2sy">#</a><!----></h2></div>',
@@ -111,7 +117,7 @@ describe('Magidoc : pages pré-rendues', () => {
         const { html, counts } = patchPage(page);
         expect(html).toContain(`alt="${LOGO_ALT}"`);
         expect(html).toContain(
-            `<button type="button" lang="fr" aria-label="${SEE_ALSO_LABEL}" aria-expanded="false" class="bx--header__action">`,
+            `<button type="button" lang="fr" aria-label="${SEE_ALSO_LABEL}" aria-expanded="false" id="ccs-2xef8np0v6r" class="bx--header__action">`,
         );
         expect(html).toContain('<h2 class="header-base header-hashtag svelte-xid2sy" role="none">');
         expect(html).toContain(
