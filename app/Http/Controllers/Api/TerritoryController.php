@@ -71,9 +71,11 @@ class TerritoryController extends Controller
     /**
      * Un département.
      *
-     * Les mêmes champs qu'un élément de `/departments`. Le code s'écrit comme
-     * dans le code officiel (`29`, `2A`, `971`) ; les minuscules sont
-     * acceptées (`2a`).
+     * Les mêmes champs qu'un élément de `/departments` : `code`, `name`, `region`
+     * (`code` et `name`), `counts` (lignes, gares et accidents recensés dans le
+     * département) et `links`, avec en plus le lien `region` vers sa région. Le
+     * code s'écrit comme dans le code officiel (`29`, `2A`, `971`) ; les
+     * minuscules sont acceptées (`2a`). Code inconnu : 404.
      */
     #[PathParameter('department', 'Code INSEE du département.', example: '29')]
     #[ApiResponse(200, 'Le Finistère.', examples: [[
@@ -143,7 +145,11 @@ class TerritoryController extends Controller
     /**
      * Une région.
      *
-     * Les mêmes champs qu'un élément de `/regions`.
+     * Les mêmes champs qu'un élément de `/regions` : `code`, `name`, `departments`
+     * (`code` et `name` de chacun), `counts` (lignes, gares et accidents recensés
+     * dans la région, une ligne qui traverse plusieurs de ses départements n'y
+     * compte qu'une fois) et `links`. Le code est celui de l'INSEE (`53` pour la
+     * Bretagne) ; un code inconnu donne 404.
      */
     #[PathParameter('region', 'Code INSEE de la région.', example: '53')]
     #[ApiResponse(200, 'La Bretagne.', examples: [[

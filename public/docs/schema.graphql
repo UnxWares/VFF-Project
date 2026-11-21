@@ -6,7 +6,8 @@ Chaque requête a un coût, calculé avant son exécution, de 5 000 points au pl
 15 niveaux au plus sous la racine. Un champ vaut 1 point plus ses sous-champs. Une liste paginée
 multiplie ses sous-champs par `first` (sa valeur par défaut si vous ne le donnez pas), une liste sans
 pagination (`events`, `materials`, `lines` d'une série…) les compte pour 10 éléments. Les champs calculés
-(`geojson`, `stops`, `signalling`, `pk`, `story`, `audit` d'une gare, `context`, `search`, `stats`)
+(`geojson`, `stops`, `signalling`, `pk`, `story`, `audit` d'une gare, `context`, `search`, `stats`,
+`mediaFacets`, `end` d'un lien de matériel)
 valent 10 points de plus, les champs lourds (`sheet`, `profile`, `audit` d'une ligne, `route`,
 `routeComparison`, `eraComparison`) 250. Exemples : `lines(first: 100) { data { slug name } }` vaut
 301 points, la fiche, le profil et l'audit d'une ligne environ 770, mais la fiche de 100 lignes en une
@@ -136,6 +137,16 @@ type Query {
     "Identifiant de l'événement."
     id: ID!
   ): LineEvent
+
+  """
+  Compteurs des médias pour les mêmes filtres que `media`, comme `meta.facets` de
+  `GET /api/v1/media?facets=true` : total, nombre par nature, par licence et les 30 auteurs les plus
+  présents. Ce que montre la page `/credits/media`.
+  """
+  mediaFacets(
+    "Filtres facultatifs, combinés (ET) : ceux de `media`."
+    filter: MediaFilter = {  }
+  ): MediaFacets!
 
   "Un média, par son identifiant (nul pour une image que l'API ne diffuse pas, voir `Media.rights_status`)."
   mediaItem(
@@ -723,6 +734,9 @@ type LineStop {
   Équivaut au `shape_dist_traveled` de GTFS.
   """
   pk_m: Int!
+
+  "Le même PK en notation ferroviaire `km+mmm` (ex. `373+450`), comme `pk_label` de `GET /api/v1/lines/{line}/stops`."
+  pk_label: String!
 
   """
   État de la gare à l'ère demandée : `active` (desservie par des trains de voyageurs),
@@ -1345,6 +1359,39 @@ input MaterialFilter {
   sort: String
 }
 
+"Compteurs des médias d'une recherche (`Query.mediaFacets`)."
+type MediaFacets {
+  "Nombre de médias de la recherche."
+  total: Int!
+
+  "Nombre de médias par nature (`photo`, `postcard`, `plan`, `map`, `document`) : `code` est la nature."
+  types: [CountByCode!]!
+
+  "Nombre de médias par licence, la plus présente d'abord ; `license` est nul pour les médias sans licence connue."
+  licenses: [MediaLicenseCount!]!
+
+  "Les 30 auteurs les plus présents, avec leur nombre de médias."
+  authors: [MediaAuthorCount!]!
+}
+
+"Nombre de médias sous une licence."
+type MediaLicenseCount {
+  "Licence telle que déclarée par la source ; nulle si inconnue."
+  license: String
+
+  "Nombre de médias."
+  count: Int!
+}
+
+"Nombre de médias d'un auteur."
+type MediaAuthorCount {
+  "Auteur tel que déclaré par la source."
+  author: String!
+
+  "Nombre de médias."
+  count: Int!
+}
+
 "Filtres de la requête `media`. Tous sont facultatifs et se combinent (ET)."
 input MediaFilter {
   "Slug d'une ligne : ses médias seulement. Exclusif avec `station`, `material` et `event`."
@@ -1591,7 +1638,10 @@ type StationAuditService {
 type StationAuditCheck {
   """
   `closure_before_opening`, `opening_before_lines`, `open_after_lines`,
-  `freight_closed_before_opening`, `passenger_after_closure`, `wikidata_differs`, `far_from_track`.
+  `freight_closed_before_opening`, `passenger_after_closure`, `wikidata_differs`, `far_from_track`,
+  `retained_outvoted`, `opening_before_map`, `era_passenger_mismatch`, `closed_without_date`,
+  `freight_only_undated`, `outlier_source` (seule source lointaine, écartée de la note),
+  `closure_sncf_referential` (fermeture Wikidata tirée du référentiel SNCF, notée estimée).
   """
   code: String!
 
@@ -2090,6 +2140,13 @@ type LineMaterialLink {
   notes: String
 
   """
+  Fin de circulation de la série sur la ligne, telle que les sources la connaissent (jamais déduite),
+  comme `end` de `GET /api/v1/lines/{line}/materials` et de `LineSheet.materials` : `kind`, `year`,
+  `since`, `source` et `source_url`.
+  """
+  end: LineSheetMaterialEnd!
+
+  """
   Relations que la série assurait sur la ligne, lues dans l'article Wikipédia de la série (relation entre
   deux gares, ou itinéraire comme « Ligne de Paris à Granville »), une par libellé, avec les périodes qui
   les datent. Liste vide quand aucune preuve ne cite de relation ; les preuves qui portent un doute ne
@@ -2434,6 +2491,26 @@ type Accident {
 
   "Date de la dernière vérification, nulle si la fiche n'a pas été vérifiée."
   verified_at: DateTime
+
+  """
+  Fournisseur de chaque fait retenu, comme `provenance` de `GET /api/v1/accidents/{slug}` : clés `date`,
+  `kind`, `location`, `deaths`, `injuries` et `name` (`vff` : nom construit par VFF) ; `kind` vaut `context`
+  quand la nature a été corrigée d'après les documents du contexte, `label` pour une nature tirée du seul
+  nom. Objet vide si aucun fait n'est attribué.
+  """
+  provenance: JSON!
+
+  "Date du dernier import de la fiche (ISO 8601)."
+  imported_at: DateTime!
+
+  "Nature en toutes lettres (« Déraillement »), comme `kind_label` de l'API REST."
+  kind_label(
+    "Langue : `fr` (par défaut), `en` ou `de`."
+    lang: String = "fr"
+  ): String!
+
+  "Nom du département actuel du lieu (« Hérault »), comme `place.department` de l'API REST ; nul si le département est inconnu."
+  department_name: String
 
   "Points incertains : bilans ou dates qui diffèrent selon les sources, lieu vague, ligne incertaine."
   review_notes: [AccidentReviewNote!]!
@@ -2860,10 +2937,30 @@ type LineAudit {
   "Contrôles propres à la ligne : `length_ratio` (tracé de référence / longueur officielle), `station_order_inversions`, `reasons`."
   line_checks: JSON!
 
-  "Tronçons audités, le plus mal noté d'abord."
+  """
+  Nombre de tronçons après le filtre `grade` (tous les tronçons sans filtre) : la page suivante de
+  `segments` commence à `offset + limit` tant que ce rang est inférieur à ce nombre. Même valeur que
+  `segments_total` de `GET /api/v1/lines/{line}/audit`.
+  """
+  segments_total(
+    "Ne compter que les tronçons dont la plus mauvaise note vaut celle-ci."
+    grade: AuditGrade
+  ): Int!
+
+  """
+  Tronçons audités, le plus mal noté d'abord, une page à la fois comme l'API REST : 50 par défaut,
+  200 au plus (`limit`), à partir du rang `offset`. La synthèse de la ligne (`grades`, `score`,
+  `shares`, `line_checks`) porte toujours sur tous les tronçons.
+  """
   segments(
     "Ne garder que les tronçons dont la plus mauvaise note vaut celle-ci."
     grade: AuditGrade
+
+    "Nombre de tronçons au plus, de 1 à 200 (50 par défaut)."
+    limit: Int = 50
+
+    "Rang du premier tronçon rendu, à partir de 0 (0 par défaut)."
+    offset: Int = 0
   ): [SegmentAudit!]!
 }
 
@@ -2884,6 +2981,7 @@ type SegmentAudit {
   "Longueur du tronçon, en mètres."
   length_m: Int!
 
+  "Les quatre notes du tronçon : classement, placement, exactitude, tracé."
   grades: AuditGrades!
 
   "La plus mauvaise des quatre notes."
@@ -2952,7 +3050,10 @@ type LineProfile {
   ): [LineProfileSample!]!
 
   "Altitude au PK donné (en mètres), comme `GET /api/v1/lines/{line}/altitude` : interpolée entre les deux points qui l'encadrent. Nulle hors du profil, dans un trou ou sans PK calé."
-  altitude_at(pk_m: Int!): LineProfileAltitude
+  altitude_at(
+    "PK en mètres (même numérotation que `LineProfilePoint.pk_m`)."
+    pk_m: Int!
+  ): LineProfileAltitude
 
   "Tunnels et ponts de la BD TOPO sous le parcours."
   structures: [LineProfileStructure!]!
