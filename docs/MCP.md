@@ -287,7 +287,7 @@ de lecture par VFF, `raw` = attributs bruts reçus de la source, de forme variab
 aussi `attribute_sources` (quelle source a fourni chaque attribut, recalage de la position compris)
 et `position` (`source`, `spread_m`, `flagged` = position à vérifier). `media_count` donne le nombre
 d'images publiées de la gare : l'outil `media` avec `station` les renvoie, avec leurs crédits.
-`audit` reprend `GET /api/v1/stations/{station}/audit` (nul tant que la gare n'a pas été auditée,
+`audit` reprend `GET /api/v1/stations/{station}/audit` (contrôles croisés `checks[].code`, dont `outlier_source`, une source précise isolée loin des autres, et `closure_sncf_referential`, fermeture tirée du référentiel SNCF) (nul tant que la gare n'a pas été auditée,
 voir docs/AUDIT-GARES.md) : `placement` (`grade` : `agree` une source indépendante à moins de
 20 m, `close` entre 20 et 100 m, `isolated` aucune source indépendante proche, `disagree` une
 source précise à plus de 100 m ou une grossière à plus de 1 km, `none` ; écarts en mètres et une
@@ -446,6 +446,8 @@ Chaque événement : `id`, `when` (date rédigée), `type`, `date`, `date_precis
 | `commercial_ok` | booléen | non | Réutilisation commerciale permise ou non. |
 | `period` | `pre1900`, `1900_1944`, `1945_1969`, `1970_1999`, `since2000`, `undated` | non | Époque représentée. |
 | `from_year`, `to_year` | entiers | non | Année représentée, bornes incluses. |
+| `featured` | booléen | non | `true` : seulement les médias mis en avant (images que l'accueil peut montrer) ; `false` : les autres. |
+| `facets` | booléen | non | `true` : ajoute `facets`, les compteurs de la recherche (`total`, `types` par nature, `licenses`, 30 premiers `authors`), comme `meta.facets` de `GET /api/v1/media?facets=true` et `mediaFacets` en GraphQL. |
 | `order` | `asc`, `desc` | non | Ordre des identifiants. |
 | `limit` | entier 1 à 60 | non | Médias par appel (20 par défaut). |
 | `cursor` | chaîne opaque | non | Page suivante. |
@@ -756,6 +758,7 @@ calculés à l'avance par `vff:compute-line-profiles` : une ligne sans profil re
 | `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
 | `max_points` | entier 10 à 2 000 | non | Nombre de points au plus (200 par défaut) ; les bouts, le point le plus bas et le plus haut restent. |
 | `pk_m` | entier | non | PK en mètres : ajoute `altitude_at_pk`, l'altitude de la ligne à ce PK (null si elle est inconnue). |
+| `pk_from_m`, `pk_to_m` | entiers | non | PK de début et de fin en mètres, bornes incluses (`pk_to_m` au moins égal à `pk_from_m`) : ajoute `samples`, le référentiel point par point entre ces PK, allégé à `max_points`. |
 | `lang` | `fr`, `en`, `de` | non | Langue des messages. |
 
 Le profil suit le tracé de référence de la ligne entière, toutes époques (lignes fermées et déposées comprises) ;
@@ -770,16 +773,17 @@ publiée par la source et lien vers l'article de Wikipédia lu ; null pour une l
 parcours), `altitude_sources`, et `altitude_at_pk` si `pk_m` est donné, sans position quand le tracé à cet endroit n'est pas
 redistribuable : `position_withheld`) et `vff_url` (section de la fiche). Le PK
 de chaque point est estimé à partir des PK officiels des gares. Le détail point par point (provenance, position) est
-dans l'API REST `GET /api/v1/lines/{line}/profile/points`. Attribution : IGN (BD TOPO, RGE ALTI), Licence Ouverte 2.0.
+donné par `samples` quand `pk_from_m` ou `pk_to_m` est fourni, comme par l'API REST `GET /api/v1/lines/{line}/profile/points` et `LineProfile.samples` en GraphQL. Attribution : IGN (BD TOPO, RGE ALTI), Licence Ouverte 2.0.
 
 ```json
 {"line": "rfn-896000", "max_points": 100}
 {"line": "rfn-405000", "pk_m": 45764}
+{"line": "rfn-405000", "pk_from_m": 45000, "pk_to_m": 46000, "max_points": 50}
 ```
 
 ### `line_audit` : audit des tronçons d'une ligne
 
-Même contenu que `GET /api/v1/lines/{line}/audit` (service `SegmentAudits`) ; l'API REST pagine aussi les tronçons avec `limit` et `offset` (50 par défaut, 200 au plus), l'outil n'a que `limit`. Notes calculées à l'avance par
+Même contenu que `GET /api/v1/lines/{line}/audit` (service `SegmentAudits`) ; les tronçons sont paginés de la même façon par l'API REST, GraphQL (`LineAudit.segments(limit, offset)`, `segments_total`) et l'outil : `limit` (50 par défaut, 200 au plus) et `offset`. Notes calculées à l'avance par
 `vff:audit-segments` (méthode et seuils : `docs/AUDIT-TRONCONS.md`) : une ligne pas encore auditée à l'époque demandée
 renvoie l'erreur `audit_not_computed`.
 
@@ -789,12 +793,13 @@ renvoie l'erreur `audit_not_computed`.
 | `era` | entier 1830 à 2030 | non | Année de l'ère (2030 par défaut, état du jour). |
 | `grade` | `good`, `fair`, `poor`, `unknown` | non | Ne garder que les tronçons dont la plus mauvaise note vaut celle-ci. |
 | `limit` | entier 1 à 200 | non | Nombre de tronçons au plus (50 par défaut), les plus mal notés d'abord. |
+| `offset` | entier, 0 ou plus | non | Rang du premier tronçon rendu (0 par défaut) ; page suivante : `offset + limit` tant que ce rang est inférieur à `segments_total`. |
 | `lang` | `fr`, `en`, `de` | non | Langue des messages. |
 
 Renvoie `line`, `era_year`, `audited_at`, `rule_version`, `grades` (classement, placement, exactitude, tracé),
 `worst_grade`, `score` (0 à 100), `shares` (part de la longueur par note), `line_checks` (longueur comparée à la
-longueur officielle, ordre des gares), `segments_total` et `segments` (chacun avec ses notes et `evidence`, codes
-`reasons` stables) et `vff_url`. Attribution : SNCF Réseau et OpenStreetMap (ODbL), IGN (Licence Ouverte 2.0) pour
+longueur officielle, ordre des gares), `segments_total` (après le filtre `grade`), `limit`, `offset` et `segments` (une page, chacun avec ses notes et `evidence`, codes
+`reasons` stables) et `vff_url`. Codes de raisons récents : `on_other_line_track` (tronçon posé sur la voie d'une autre ligne alors que sa propre voie passe à 8 à 60 m), `shared_track` (tronc commun ou embranchement sur la voie de départ, sans voie propre : sûr), `confirmed_by_precise_source` (tracé confirmé par une voie BD TOPO ou OSM indépendante), `observation_outvoted` (une seule observation actuelle contre deux d'accord) et `continuous_service` (ère passée : ligne sans fin datée, tronçon sûr aujourd'hui). Attribution : SNCF Réseau et OpenStreetMap (ODbL), IGN (Licence Ouverte 2.0) pour
 les états observés cités dans les preuves.
 
 ```json

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\StationArticleCache;
 use App\Services\StationClosureParser;
 use App\Services\WikimediaClient;
 use App\Support\StationNames;
@@ -73,7 +74,7 @@ class ImportStationClosures extends Command
     /** @var list<array<string, mixed>> */
     private array $unmatched = [];
 
-    public function __construct(private WikimediaClient $wiki, private StationClosureParser $parser)
+    public function __construct(private StationArticleCache $articles, private StationClosureParser $parser)
     {
         parent::__construct();
     }
@@ -445,42 +446,15 @@ class ImportStationClosures extends Command
      */
     private function pages(array $titles): array
     {
-        $dir = storage_path('app/sources/stations/wikipedia');
-        @mkdir($dir, 0775, true);
-        $path = fn (string $t) => $dir.'/'.sha1($t).'.json';
-        $out = [];
-        $missing = [];
-        foreach ($titles as $t) {
-            if (! $this->option('refresh') && is_file($path($t))) {
-                $data = json_decode((string) file_get_contents($path($t)), true);
-                if (! empty($data['content'])) {
-                    $out[$t] = $data;
-                }
-
-                continue;
-            }
-            $missing[] = $t;
+        $res = $this->articles->pages($titles, (bool) $this->option('from-cache'), (bool) $this->option('refresh'));
+        if ($res['uncached'] > 0) {
+            $this->warn("  {$res['uncached']} articles absents du cache (--from-cache)");
         }
-        if ($missing !== [] && $this->option('from-cache')) {
-            $this->warn('  '.count($missing).' articles absents du cache (--from-cache)');
-            $missing = [];
-        }
-        foreach (array_chunk($missing, 50) as $chunk) {
-            $fetched = $this->wiki->fetchPages($chunk);
-            foreach ($chunk as $t) {
-                $page = $fetched[$t] ?? ['title' => $t, 'missing' => true];
-                file_put_contents($path($t), json_encode($page + ['requested' => $t], JSON_UNESCAPED_UNICODE));
-                if (! empty($page['content'])) {
-                    $out[$t] = $page;
-                }
-            }
-            usleep(500_000);
-        }
-        if ($missing) {
-            $this->line(sprintf('  %d articles téléchargés', count($missing)));
+        if ($res['fetched'] > 0) {
+            $this->line("  {$res['fetched']} articles téléchargés");
         }
 
-        return $out;
+        return $res['pages'];
     }
 
     /** @param list<array<string, mixed>> $rows */

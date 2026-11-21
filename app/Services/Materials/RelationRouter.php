@@ -2,7 +2,10 @@
 
 namespace App\Services\Materials;
 
+use App\Services\JunctionRepair;
 use App\Services\PathfindingService;
+use App\Support\Lgv;
+use App\Support\TrackPriority;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use SplPriorityQueue;
@@ -43,6 +46,25 @@ use SplPriorityQueue;
  * Montérolier-Buchy » pour Montérolier - Motteville) et que le graphe ne donne pas de chemin sûr, ou un
  * chemin sans elle plus de DIRECT_DETOUR fois plus long que la distance à vol d'oiseau, la relation suit
  * cette ligne seule (graphe troué sur la ligne directe elle-même).
+ *
+ * Gare absente du graphe de l'ère (fermée aux voyageurs, comme Desvres après 1968 ou Neuville-sur-Saône
+ * après 1938 : `station_edges` ne relie que les gares ouvertes) : quand aucune gare ouverte ne porte ce nom,
+ * elle sert d'extrémité, rattachée aux gares du graphe les plus proches sur les voies en service de l'ère
+ * (`network_edges`), en partant d'une voie de l'une de ses lignes (`station_lines`) à moins de
+ * CLOSED_ATTACH_M (voir attach()). Une relation de fret « Hesdigneul - Desvres » se résout donc encore. Rien
+ * n'est écrit dans le graphe : le rattachement ne vit que dans ce routeur.
+ *
+ * Rester sur sa ligne : quand les deux arrêts sont des gares d'une même ligne du chemin (PK de source sûre,
+ * JunctionRepair::RELIABLE_PK_SOURCES) et que le chemin par cette ligne seule (raccordements tolérés) fait au
+ * plus LOCAL_TOLERANCE fois le plus court, c'est lui qui est retenu (voir stayOnLine()). Paris - Bordeaux
+ * passait par Chartres - Bordeaux entre Saint-Loubès et Cenon, 7 % plus court que Paris - Bordeaux.
+ *
+ * Tronc commun : sur une arête portée par deux lignes dont l'une suit la voie de l'autre (à moins de
+ * TrackPriority::TOLERANCE_M), la longueur commune revient à la ligne prioritaire au sens de TrackPriority
+ * (celle que montre la carte), si les deux gares de l'arête ont un PK sûr sur elle ; voir trunkParts(). Entre Espère-Caillac et Cahors, 5,3 km étaient comptés à
+ * Monsempron-Libos - Cahors, posée sur Paris - Toulouse.
+ *
+ * @phpstan-type Graph array{adj: array<int, list<array{0: int, 1: float, 2: int}>>, parts: array<int, list<array{0: int, 1: int}>>, major: array<int, int>}
  */
 final class RelationRouter
 {
@@ -73,6 +95,16 @@ final class RelationRouter
      */
     public const DIRECT_DETOUR = 1.5;
 
+    /**
+     * Gare absente du graphe : distance maximale (m) entre son point et une voie en service de l'une de ses
+     * lignes. Le point d'une gare est souvent posé sur le bâtiment voyageurs, à quelques dizaines de mètres de
+     * l'axe des voies (51 m à Versailles-Matelots).
+     */
+    public const CLOSED_ATTACH_M = 100;
+
+    /** Gare absente du graphe : parcours maximal sur les voies (m) jusqu'aux gares du graphe. */
+    public const CLOSED_WALK_M = 40000;
+
     /** Installation technique ou de fret dans un nom de gare : écartée quand la ville a une autre gare. */
     private const TECHNICAL_STATION = '/\((?:IE|MIN|ITE)\)|\bn°\s*\d|\b(?:marchandises|triage|fret|dépôt|atelier)\b|\s\d+$/iu';
 
@@ -87,8 +119,33 @@ final class RelationRouter
 
     private ?int $currentEraYear = null;
 
-    /** @var array<int, array{adj: array<int, list<array{0: int, 1: float, 2: int}>>, parts: array<int, list<array{0: int, 1: int}>>}|null> */
+    /** @var array<int, Graph|null> */
     private array $graphs = [];
+
+    /**
+     * Rattachements des gares absentes du graphe (voir attach()) : clé du graphe → gare → arêtes
+     * [gare du graphe, coût, arête] et leurs parts ; liste vide si rien ne la rattache.
+     *
+     * @var array<int, array<int, list<array{0: int, 1: float, 2: int, 3: list<array{0: int, 1: int}>}>>>
+     */
+    private array $attachments = [];
+
+    /** Compteur des arêtes de rattachement (identifiants négatifs, jamais dans `station_edges`). */
+    private int $attachEdges = 0;
+
+    /**
+     * Voies en service d'une ère (`network_edges`) : nœud → [[nœud voisin, longueur, ligne, hors voyageurs]],
+     * et gare de chaque nœud de gare.
+     *
+     * @var array<int, array{adj: array<int, list<array{0: int, 1: int, 2: ?int, 3: bool}>>, station: array<int, int>}>
+     */
+    private array $networks = [];
+
+    /** @var array<int, array<int, true>> gare → lignes où elle a un PK de source sûre */
+    private array $reliableLines = [];
+
+    /** @var array<int, list<array{0: int, 1: int}>> arête → parts, tronc commun rendu à la ligne prioritaire */
+    private array $trunks = [];
 
     /** @var array<int, array{name: string, key: string, lat: float, lng: float}>|null */
     private ?array $stations = null;
@@ -141,7 +198,8 @@ final class RelationRouter
 
     /**
      * Gares du graphe de l'ère désignées par ce nom ; vide si aucune ou si elles sont trop éloignées
-     * pour être une même ville.
+     * pour être une même ville. Sans gare ouverte de ce nom, la gare de ce nom fermée aux voyageurs à l'ère, si
+     * elle se rattache aux voies de l'ère (voir attach()) ; puis les gares « <nom>-… ».
      *
      * @return list<int>
      */
@@ -153,12 +211,18 @@ final class RelationRouter
         if ($key === '' || $graph === null) {
             return [];
         }
-        $found = array_values(array_filter($this->byKey[$key] ?? [], fn (int $id): bool => isset($graph['adj'][$id])));
+        $open = fn (int $id): bool => isset($graph['adj'][$id]);
+        $found = array_values(array_filter($this->byKey[$key] ?? [], $open));
+        // Gare de ce nom fermée aux voyageurs à l'ère : avant les gares « <nom>-… » (Sens, absente du graphe de
+        // 1970, partait sinon de Sens-Saint-Clément, sur la ligne de Coolus).
+        if ($found === []) {
+            $found = array_values(array_filter($this->byKey[$key] ?? [], fn (int $id): bool => $this->attach($id, $eraYear, true, false) !== []));
+        }
         $prefixed = false;
         if ($found === [] && mb_strlen($key) >= 3) {
             $prefixed = true;
             foreach ($this->stations as $id => $station) {
-                if (isset($graph['adj'][$id]) && (str_starts_with($station['key'], $key.'-') || str_starts_with($station['key'], $key.' '))) {
+                if ($open($id) && (str_starts_with($station['key'], $key.'-') || str_starts_with($station['key'], $key.' '))) {
                     $found[] = $id;
                 }
             }
@@ -182,8 +246,8 @@ final class RelationRouter
     /**
      * Lignes du plus court chemin entre deux arrêts, ou le motif du refus.
      *
-     * `status` : `ok`, `ambiguous` (autre itinéraire proche, `ratio` = sa longueur rapportée au plus court),
-     * `same` (même gare) ou `no_path`.
+     * `status` : `ok`, `ambiguous` (autre itinéraire proche, `ratio` = sa longueur rapportée au plus court ;
+     * `lines` = seulement les lignes que tous les itinéraires proches parcourent), `same` (même gare) ou `no_path`.
      *
      * `$fast` : la série roule à grande vitesse ; sinon les LGV sont retirées du graphe (comme LineMaterialLinker,
      * qui ne rattache à une LGV que les engins rapides). `$electric` : la série ne roule que sous caténaire ;
@@ -215,7 +279,12 @@ final class RelationRouter
      */
     private function computeRoute(array $from, array $to, int $eraYear, bool $fast, bool $electric): array
     {
-        $result = $this->routeOn($from, $to, $eraYear, $fast, $electric);
+        $this->loadEras();
+        // Rester sur sa ligne : aux ères passées seulement (et sur le graphe actuel repris pour elles par
+        // bridgeGap()). Aujourd'hui, une ligne plus courte en service peut être l'itinéraire réel : entre Cenon et
+        // Ambarès, rien ne dit encore si les trains de Bordeaux vers Libourne prennent les voies de Chartres -
+        // Bordeaux depuis 2017.
+        $result = $this->routeOn($from, $to, $eraYear, $fast, $electric, $eraYear !== $this->currentEraYear);
         $result = $this->bridgeGap($from, $to, $eraYear, $fast, $electric, $result);
 
         return $this->directLine($from, $to, $eraYear, $fast, $electric, $result) ?? $result;
@@ -309,7 +378,7 @@ final class RelationRouter
     /**
      * Lignes portées par au moins une arête du graphe.
      *
-     * @param  array{adj: array<int, list<array{0: int, 1: float, 2: int}>>, parts: array<int, list<array{0: int, 1: int}>>}  $graph
+     * @param  Graph  $graph
      * @return array<int, true>
      */
     private function linesOf(array $graph): array
@@ -331,12 +400,16 @@ final class RelationRouter
      * @param  list<int>  $to
      * @return array{status: string, lines: list<int>, ratio: ?float, from: ?int, to: ?int, cost?: float}
      */
-    private function routeOn(array $from, array $to, int $eraYear, bool $fast, bool $electric): array
+    private function routeOn(array $from, array $to, int $eraYear, bool $fast, bool $electric, bool $stayOnLine = true): array
     {
-        $graph = $this->graph($eraYear, $fast, $electric);
-        if ($graph === null || $from === [] || $to === []) {
+        if ($from === [] || $to === []) {
             return ['status' => 'no_path', 'lines' => [], 'ratio' => null, 'from' => null, 'to' => null];
         }
+        $graph = $this->graph($eraYear, $fast, $electric);
+        if ($graph === null) {
+            return ['status' => 'no_path', 'lines' => [], 'ratio' => null, 'from' => null, 'to' => null];
+        }
+        $graph = $this->withEnds($graph, array_merge($from, $to), $eraYear, $fast, $electric);
         if (array_intersect($from, $to) !== []) {
             return ['status' => 'same', 'lines' => [], 'ratio' => null, 'from' => null, 'to' => null];
         }
@@ -345,10 +418,16 @@ final class RelationRouter
             return ['status' => 'no_path', 'lines' => [], 'ratio' => null, 'from' => null, 'to' => null];
         }
         $onPath = [];
+        foreach ($path['edges'] as $eid) {
+            foreach ($graph['parts'][$eid] as [$line]) {
+                $onPath[$line] = true;
+            }
+        }
+        $stay = $stayOnLine ? $this->stayOnLine($graph, $path) : null;
+        $path = $stay ?? $path;
         $lengths = [];
         foreach ($path['edges'] as $eid) {
-            foreach ($graph['parts'][$eid] as [$line, $len]) {
-                $onPath[$line] = true;
+            foreach ($this->trunkParts($eid, $graph['parts'][$eid]) as [$line, $len]) {
                 $lengths[$line] = ($lengths[$line] ?? 0) + $len;
             }
         }
@@ -357,24 +436,38 @@ final class RelationRouter
         // ligne électrifiée (tronc commun avant Cahors, où Monsempron-Libos - Cahors rejoint Paris - Toulouse).
         $lines = array_keys(array_filter($lengths, fn (int $len, int $line): bool => $len >= self::MIN_LINE_M
             && (! $electric || isset($this->electrified[$line])), ARRAY_FILTER_USE_BOTH));
-        $ratio = $this->alternative($graph, $path, $onPath);
+        if ($this->crossesGap($graph, $path, $lines, $eraYear)) {
+            return ['status' => 'no_path', 'lines' => [], 'ratio' => null, 'from' => null, 'to' => null];
+        }
+        // Deux gares d'une même ligne restées sur elle : la variante plus courte qu'elle écarte n'est pas une
+        // ambiguïté.
+        $ratio = $stay === null ? $this->alternative($graph, $path, $onPath)[0] : null;
 
         $ends = ['from' => $path['stations'][0], 'to' => $path['stations'][count($path['stations']) - 1], 'cost' => (float) $path['cost']];
+        if ($ratio === null) {
+            return ['status' => 'ok', 'lines' => $lines, 'ratio' => null] + $ends;
+        }
+        // Relation ambiguë : seules restent les lignes que tous les itinéraires proches parcourent sur
+        // MIN_LINE_M au moins (Lyon - Saint-Gervais, par Annecy ou par Annemasse, passe toujours par
+        // Aix-les-Bains - Annemasse et La Roche-sur-Foron - Saint-Gervais).
+        foreach ($this->alternative($graph, $path, $onPath, true)[1] as $other) {
+            $lines = array_values(array_filter($lines, fn (int $line): bool => ($other[$line] ?? 0) >= self::MIN_LINE_M));
+        }
 
-        return $ratio !== null
-            ? ['status' => 'ambiguous', 'lines' => $lines, 'ratio' => round($ratio, 3)] + $ends
-            : ['status' => 'ok', 'lines' => $lines, 'ratio' => null] + $ends;
+        return ['status' => 'ambiguous', 'lines' => $lines, 'ratio' => round($ratio, 3)] + $ends;
     }
 
     /**
      * Rapport de longueur du meilleur autre itinéraire assez différent (voir DETOUR_TOLERANCE et
-     * LOCAL_TOLERANCE), ou null s'il n'y en a pas.
+     * LOCAL_TOLERANCE), ou null s'il n'y en a pas ; avec `$all`, aussi la longueur par ligne de chacun de ces
+     * itinéraires (pas seulement du meilleur).
      *
-     * @param  array{adj: array<int, list<array{0: int, 1: float, 2: int}>>, parts: array<int, list<array{0: int, 1: int}>>}  $graph
+     * @param  Graph  $graph
      * @param  array{cost: float, stations: list<int>, edges: list<int>}  $path  plus court chemin (une gare de départ)
      * @param  array<int, true>  $onPath  lignes du plus court chemin
+     * @return array{0: ?float, 1: list<array<int, int>>}
      */
-    private function alternative(array $graph, array $path, array $onPath): ?float
+    private function alternative(array $graph, array $path, array $onPath, bool $all = false): array
     {
         $cost = $path['cost'];
         $limit = $cost * self::DETOUR_TOLERANCE;
@@ -396,10 +489,11 @@ final class RelationRouter
             }
         }
         $best = null;
+        $others = [];
         foreach ($ds as $u => $du) {
             foreach ($graph['adj'][$u] ?? [] as [$v, $w, $eid]) {
                 $total = isset($dt[$v]) ? $du + $w + $dt[$v] : INF;
-                if ($total > $limit || ($best !== null && $total >= $best)) {
+                if ($total > $limit || (! $all && $best !== null && $total >= $best)) {
                     continue;
                 }
                 $outside = $this->outside($graph['parts'][$eid], $onPath);
@@ -410,9 +504,11 @@ final class RelationRouter
                 // `$leave` / `$join` : gares où il quitte puis rejoint le plus court chemin.
                 $seen = [$u => true, $v => true];
                 $ends = [];
+                $edges = [$eid];
                 foreach ([[$u, $ps], [$v, $pt]] as $side => [$node, $pred]) {
                     $ends[$side] = isset($along[$node]) ? $node : null;
                     for ($n = $node; isset($pred[$n]); $n = $pred[$n][0]) {
+                        $edges[] = $pred[$n][1];
                         $outside += $this->outside($graph['parts'][$pred[$n][1]], $onPath);
                         $back = $pred[$n][0];
                         if (isset($seen[$back])) {
@@ -426,12 +522,23 @@ final class RelationRouter
                 $replaced = $along[$join] - $along[$leave];
                 $detour = $total - $cost + $replaced;
                 if ($outside >= self::MIN_ALTERNATIVE_M && $replaced > 0 && $detour <= $replaced * self::LOCAL_TOLERANCE) {
-                    $best = $total;
+                    $best = $best === null ? $total : min($best, $total);
+                    if ($all) {
+                        $lengths = [];
+                        foreach ($edges as $e) {
+                            // Parts brutes (sans trunkParts(), une requête par arête) : le filtre ne peut que garder
+                            // une ligne de plus, déjà retenue sur le plus court chemin.
+                            foreach ($graph['parts'][$e] as [$line, $len]) {
+                                $lengths[$line] = ($lengths[$line] ?? 0) + $len;
+                            }
+                        }
+                        $others[] = $lengths;
+                    }
                 }
             }
         }
 
-        return $best === null ? null : $best / $cost;
+        return [$best === null ? null : $best / $cost, $others];
     }
 
     /**
@@ -446,6 +553,487 @@ final class RelationRouter
         }
 
         return $sum;
+    }
+
+    /**
+     * Relation qui part d'une gare rattachée (absente du graphe de l'ère) ou y arrive, et qui contourne un trou
+     * du graphe : chemin de plus de DIRECT_DETOUR fois la distance à vol d'oiseau (longueur réelle, sans la
+     * pénalité des voies sans voyageurs), ou ligne retenue où aucun des deux arrêts n'a de PK sûr. Elle est
+     * refusée plutôt que de lier une ligne voisine (Sens et Montereau, données fermées aux voyageurs en 1970,
+     * rejoignaient Paris - Marseille par Coolus - Sens et Saint-Julien - Saint-Florentin).
+     *
+     * @param  Graph  $graph
+     * @param  array{cost: float, stations: list<int>, edges: list<int>}  $path
+     * @param  list<int>  $lines  lignes retenues pour la relation
+     */
+    private function crossesGap(array $graph, array $path, array $lines, int $eraYear): bool
+    {
+        $full = $this->graph($eraYear);
+        $a = $path['stations'][0];
+        $b = $path['stations'][count($path['stations']) - 1];
+        if (isset($full['adj'][$a]) && isset($full['adj'][$b])) {
+            return false;
+        }
+        $length = 0;
+        foreach ($path['edges'] as $eid) {
+            foreach ($graph['parts'][$eid] as [, $len]) {
+                $length += $len;
+            }
+        }
+        $this->loadStations();
+        $own = $this->reliableLinesOf($a) + $this->reliableLinesOf($b);
+        foreach ($lines as $line) {
+            if (! isset($own[$line])) {
+                return true;
+            }
+        }
+
+        return $length > self::DIRECT_DETOUR * 1000 * $this->distanceKm($a, $b);
+    }
+
+    /**
+     * Rester sur sa ligne (voir la classe) : chemin entre les deux bouts du plus court chemin par les seules
+     * arêtes d'une ligne M (M majoritaire, ou deux gares à PK sûr sur M) dont les deux gares ont un PK de source sûre, s'il fait au plus LOCAL_TOLERANCE
+     * fois le plus court ; null si aucune ligne ne s'y prête ou si le plus court chemin la suit déjà.
+     * Pas de règle quand le plus court chemin emprunte une LGV : un TGV Paris - Lyon ne reprend pas la ligne
+     * classique, même si ses deux gares en sont.
+     *
+     * @param  Graph  $graph
+     * @param  array{cost: float, stations: list<int>, edges: list<int>}  $path
+     * @return array{cost: float, stations: list<int>, edges: list<int>}|null
+     */
+    private function stayOnLine(array $graph, array $path): ?array
+    {
+        $a = $path['stations'][0];
+        $b = $path['stations'][count($path['stations']) - 1];
+        $common = array_intersect_key($this->reliableLinesOf($a), $this->reliableLinesOf($b));
+        if ($common === []) {
+            return null;
+        }
+        $onPath = [];
+        foreach ($path['edges'] as $eid) {
+            if (isset($this->lgv[$graph['major'][$eid]])) {
+                return null;
+            }
+            foreach ($graph['parts'][$eid] as [$line]) {
+                $onPath[$line] = true;
+            }
+        }
+        $best = null;
+        foreach (array_keys($common) as $line) {
+            if (! isset($onPath[$line]) || isset($this->junctions[$line])) {
+                continue;
+            }
+            // Arête de M : M y porte la plus grande part, ou ses deux gares ont un PK sûr sur M (tronc commun
+            // Anor - Hirson, que Fives - Hirson partage avec La Plaine - Hirson) ; raccordements tolérés.
+            $allowed = fn (int $eid, int $u, int $v): bool => $graph['major'][$eid] === $line || isset($this->junctions[$graph['major'][$eid]])
+                || (isset($this->reliableLinesOf($u)[$line]) && isset($this->reliableLinesOf($v)[$line]));
+            $off = false;
+            foreach ($path['edges'] as $k => $eid) {
+                $off = $off || ! $allowed($eid, $path['stations'][$k], $path['stations'][$k + 1]);
+            }
+            if (! $off) {
+                return null;
+            }
+            $kept = self::search($graph['adj'], $a, $b, $path['cost'] * self::LOCAL_TOLERANCE, $allowed);
+            if ($kept !== null && ($best === null || $kept['cost'] < $best['cost'])) {
+                $best = $kept;
+            }
+        }
+
+        return $best;
+    }
+
+    /**
+     * Plus court chemin d'une gare à une autre par les seules arêtes permises, jusqu'à la borne de coût.
+     *
+     * @param  array<int, list<array{0: int, 1: float, 2: int}>>  $adj
+     * @param  callable(int, int, int): bool  $allowed  arête permise (arête, gare de départ, gare d'arrivée)
+     * @return array{cost: float, stations: list<int>, edges: list<int>}|null
+     */
+    private static function search(array $adj, int $source, int $target, float $limit, callable $allowed): ?array
+    {
+        $dist = [$source => 0.0];
+        $prev = [];
+        $pq = new SplPriorityQueue;
+        $pq->setExtractFlags(SplPriorityQueue::EXTR_BOTH);
+        $pq->insert($source, 0.0);
+        while (! $pq->isEmpty()) {
+            $item = $pq->extract();
+            $u = $item['data'];
+            if (-$item['priority'] > $dist[$u]) {
+                continue;
+            }
+            if ($u === $target) {
+                $stations = [$u];
+                $edges = [];
+                for ($n = $u; isset($prev[$n]); $n = $prev[$n][0]) {
+                    $edges[] = $prev[$n][1];
+                    $stations[] = $prev[$n][0];
+                }
+
+                return ['cost' => $dist[$u], 'stations' => array_reverse($stations), 'edges' => array_reverse($edges)];
+            }
+            foreach ($adj[$u] ?? [] as [$v, $w, $eid]) {
+                $alt = $dist[$u] + $w;
+                if ($alt <= $limit && $alt < ($dist[$v] ?? INF) && $allowed($eid, $u, $v)) {
+                    $dist[$v] = $alt;
+                    $prev[$v] = [$u, $eid];
+                    $pq->insert($v, -$alt);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Lignes où la gare a un PK de source sûre (JunctionRepair::RELIABLE_PK_SOURCES).
+     *
+     * @return array<int, true>
+     */
+    private function reliableLinesOf(int $station): array
+    {
+        if (! isset($this->reliableLines[$station])) {
+            $lines = DB::table('station_lines')->where('station_id', $station)
+                ->whereIn('pk_source', JunctionRepair::RELIABLE_PK_SOURCES)->whereNotNull('pk_m')->pluck('line_id')->all();
+            $this->reliableLines[$station] = array_fill_keys(array_map('intval', $lines), true);
+        }
+
+        return $this->reliableLines[$station];
+    }
+
+    /**
+     * Parts d'une arête du graphe, tronc commun rendu à la ligne prioritaire (voir la classe) : pour chaque
+     * ligne M de l'arête, la longueur de l'arête à moins de TrackPriority::TOLERANCE_M de ses voies en service,
+     * au-delà de sa propre part, est reprise aux lignes moins prioritaires de l'arête (la moins prioritaire
+     * d'abord), si elle atteint TrackPriority::MIN_SHARED_M. Raccordements et arêtes de rattachement
+     * (identifiant négatif) non touchés.
+     *
+     * @param  list<array{0: int, 1: int}>  $parts
+     * @return list<array{0: int, 1: int}>
+     */
+    private function trunkParts(int $eid, array $parts): array
+    {
+        $lengths = [];
+        foreach ($parts as [$line, $len]) {
+            if ($len > 0 && ! isset($this->junctions[$line])) {
+                $lengths[$line] = ($lengths[$line] ?? 0) + $len;
+            }
+        }
+        if ($eid < 0 || count($lengths) < 2) {
+            return $parts;
+        }
+        if (! isset($this->trunks[$eid])) {
+            [$near, $ends] = $this->trackNear($eid, array_keys($lengths));
+            // Seule une ligne dont les deux gares de l'arête ont un PK sûr reprend le tronc commun : dans un
+            // faisceau de plusieurs lignes parallèles (Paris-Est - Noisy-le-Sec), les voies voisines à moins de
+            // 10 m ne sont pas une même voie.
+            $receivers = $ends === [] ? [] : array_keys(array_intersect_key($this->reliableLinesOf($ends[0]), $this->reliableLinesOf($ends[1])));
+            // Une ligne garde sa part si l'une des gares de l'arête a un PK sûr sur elle sans en être une extrémité
+            // nommée : elle la traverse (Anor, sur La Plaine - Hirson et Anor). Cahors, extrémité de
+            // Monsempron-Libos - Cahors, ne protège pas cette ligne.
+            $kept = [];
+            $this->loadStations();
+            $this->loadNamedEnds();
+            foreach ($ends as $station) {
+                foreach (array_keys($this->reliableLinesOf($station)) as $line) {
+                    if (! in_array($this->stations[$station]['key'] ?? '', $this->namedEnds[$line] ?? [], true)) {
+                        $kept[] = $line;
+                    }
+                }
+            }
+            $this->trunks[$eid] = self::shareTrunk($parts, $lengths, $near, $receivers, $kept);
+        }
+
+        return $this->trunks[$eid];
+    }
+
+    /**
+     * Répartition des parts selon la voie suivie (fonction pure, voir trunkParts()).
+     *
+     * @param  list<array{0: int, 1: int}>  $parts
+     * @param  array<int, int>  $lengths  ligne (hors raccordements) → longueur sur l'arête
+     * @param  array<int, array{near: int, priority: int}>  $near  ligne → longueur de l'arête près de ses voies, priorité
+     * @param  list<int>  $receivers  lignes à PK sûr aux deux gares de l'arête : seules à reprendre une longueur, jamais reprises
+     * @param  list<int>  $kept  lignes qui gardent leur part (elles traversent une gare de l'arête)
+     * @return list<array{0: int, 1: int}>
+     */
+    public static function shareTrunk(array $parts, array $lengths, array $near, array $receivers, array $kept = []): array
+    {
+        $order = array_keys(array_intersect_key($lengths, $near));
+        // Plus prioritaire d'abord ; à égalité, la plus petite ligne (TrackPriority).
+        usort($order, fn (int $x, int $y): int => [$near[$y]['priority'], $x] <=> [$near[$x]['priority'], $y]);
+        $moved = false;
+        foreach ($order as $k => $line) {
+            if (! in_array($line, $receivers, true)) {
+                continue;
+            }
+            $excess = $near[$line]['near'] - $lengths[$line];
+            for ($j = count($order) - 1; $j > $k && $excess >= TrackPriority::MIN_SHARED_M; $j--) {
+                $lower = $order[$j];
+                $take = min($lengths[$lower], $excess);
+                // Une ligne dont les deux gares de l'arête ont aussi un PK sûr garde sa part (tronc Hirson -
+                // Origny-en-Thiérache, gare des deux lignes).
+                if ($take <= 0 || in_array($lower, $receivers, true) || in_array($lower, $kept, true)) {
+                    continue;
+                }
+                $lengths[$lower] -= $take;
+                $lengths[$line] += $take;
+                $excess -= $take;
+                $moved = true;
+            }
+        }
+        if (! $moved) {
+            return $parts;
+        }
+        $out = [];
+        foreach ($parts as [$line, $len]) {
+            if (! isset($lengths[$line])) {
+                $out[] = [$line, $len];
+            } elseif ($lengths[$line] !== -1) {
+                $out[] = [$line, $lengths[$line]];
+                $lengths[$line] = -1;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Pour chaque ligne, longueur de l'arête à moins de TrackPriority::TOLERANCE_M de ses voies en service à
+     * l'ère de l'arête, et priorité de ces voies (TrackPriority::drawRankSql, la meilleure).
+     *
+     * @param  list<int>  $lines
+     * @return array{0: array<int, array{near: int, priority: int}>, 1: list<int>} longueurs par ligne, gares de l'arête
+     */
+    private function trackNear(int $eid, array $lines): array
+    {
+        $priority = TrackPriority::drawRankSql(Lgv::sql('l', 'ls'), 'l', 'ls');
+        $tolerance = TrackPriority::TOLERANCE_M;
+        $rows = DB::select(<<<SQL
+            WITH e AS (SELECT geom, ST_Transform(geom, 2154) AS g, era_id, from_station_id, to_station_id FROM station_edges WHERE id = ? AND geom IS NOT NULL)
+            SELECT ls.line_id, MAX({$priority}) AS priority, MIN(e.from_station_id) AS a, MIN(e.to_station_id) AS b,
+                   ST_Length(ST_Intersection(e.g, ST_Buffer(ST_Union(ST_Transform(ls.geom, 2154)), {$tolerance}))) AS near_m
+            FROM e
+            JOIN line_segments ls ON ls.era_id = e.era_id AND ls.geom && ST_Expand(e.geom, 0.001)
+                 AND ls.status IN ('in_service', 'single_track')
+                 AND ST_DWithin(ST_Transform(ls.geom, 2154), e.g, {$tolerance})
+            JOIN lines l ON l.id = ls.line_id
+            WHERE ls.line_id = ANY (?::bigint[])
+            GROUP BY ls.line_id, e.g
+            SQL, [$eid, '{'.implode(',', $lines).'}']);
+        $near = [];
+        $ends = [];
+        foreach ($rows as $row) {
+            $near[(int) $row->line_id] = ['near' => (int) round((float) $row->near_m), 'priority' => (int) $row->priority];
+            $ends = [(int) $row->a, (int) $row->b];
+        }
+
+        return [$near, $ends];
+    }
+
+    /**
+     * Graphe de la relation : celui de l'ère, plus les arêtes de rattachement de ses arrêts absents du graphe
+     * de l'ère (gares fermées résolues par resolve()). Copie locale : une gare rattachée ne sert que
+     * d'extrémité à sa relation, jamais de passage à une autre (ses rattachements franchiraient les trous du
+     * graphe). Un arrêt présent dans le graphe de l'ère mais retiré de cette variante (ligne non électrifiée
+     * pour une série électrique, LGV pour une série lente) n'est pas rattaché.
+     *
+     * @param  Graph  $graph
+     * @param  list<int>  $stations
+     * @return Graph
+     */
+    private function withEnds(array $graph, array $stations, int $eraYear, bool $fast, bool $electric): array
+    {
+        $full = $this->graph($eraYear);
+        foreach (array_unique($stations) as $station) {
+            if (isset($graph['adj'][$station]) || isset($full['adj'][$station])) {
+                continue;
+            }
+            foreach ($this->attach($station, $eraYear, $fast, $electric) as [$open, $cost, $eid, $parts]) {
+                $graph['adj'][$station][] = [$open, $cost, $eid];
+                $graph['adj'][$open][] = [$station, $cost, $eid];
+                $graph['parts'][$eid] = $parts;
+                $graph['major'][$eid] = self::majorLine($parts);
+            }
+        }
+
+        return $graph;
+    }
+
+    /**
+     * Rattachement d'une gare absente du graphe (voir la classe) : depuis le point le plus proche d'une voie en
+     * service de l'une de ses lignes (celles où elle a un PK sûr, s'il y en a), à moins de CLOSED_ATTACH_M,
+     * parcours des voies de ces lignes et des raccordements à l'ère (`network_edges`, mêmes exclusions que le
+     * graphe : LGV sans `$fast`, lignes non électrifiées avec `$electric`, voies sans
+     * voyageurs pénalisées) jusqu'aux premières gares du graphe, à CLOSED_WALK_M au plus. Chaque gare atteinte
+     * donne une arête de rattachement (identifiant négatif), avec les lignes parcourues. Le parcours ne traverse
+     * pas une gare du graphe. Liste vide : rien ne la rattache.
+     *
+     * @return list<array{0: int, 1: float, 2: int, 3: list<array{0: int, 1: int}>}>
+     */
+    private function attach(int $station, int $eraYear, bool $fast, bool $electric): array
+    {
+        $graphKey = $eraYear * 4 + ($fast ? 1 : 0) + ($electric ? 2 : 0);
+        if (! isset($this->attachments[$graphKey][$station])) {
+            $graph = $this->graph($eraYear, $fast, $electric);
+            $edges = [];
+            if ($graph !== null && $this->closedAt($station, $eraYear)) {
+                foreach ($this->walkToGraph($station, (int) $this->eras[$eraYear], $graph, $fast, $electric) as $open => [$cost, $lines]) {
+                    $parts = [];
+                    foreach ($lines as $line => $len) {
+                        $parts[] = [$line, $len];
+                    }
+                    $edges[] = [$open, $cost, -(++$this->attachEdges), $parts];
+                }
+            }
+            $this->attachments[$graphKey][$station] = $edges;
+        }
+
+        return $this->attachments[$graphKey][$station];
+    }
+
+    /**
+     * La gare est-elle fermée aux voyageurs à l'ère (`station_eras.status` = `declassified`) ? Une gare ouverte que
+     * le graphe a perdue n'est pas rattachée : ce serait franchir un trou du graphe.
+     */
+    private function closedAt(int $station, int $eraYear): bool
+    {
+        return DB::table('station_eras')->where('station_id', $station)->where('era_id', $this->eras[$eraYear] ?? 0)
+            ->where('status', 'declassified')->exists();
+    }
+
+    /**
+     * Gares du graphe atteintes depuis une gare absente (voir attach()) : gare → [coût, longueur par ligne].
+     *
+     * @param  Graph  $graph
+     * @return array<int, array{0: float, 1: array<int, int>}>
+     */
+    private function walkToGraph(int $station, int $eraId, array $graph, bool $fast, bool $electric): array
+    {
+        // Voie de départ sur une ligne où la gare a un PK sûr, s'il y en a une : à Sens, la ligne de Coolus
+        // (PK projeté) passe plus près que Paris - Marseille.
+        $reliable = '{'.implode(',', JunctionRepair::RELIABLE_PK_SOURCES).'}';
+        $start = DB::selectOne(<<<'SQL'
+            WITH p AS (SELECT geom, ST_Transform(geom, 2154) AS g FROM stations WHERE id = ? AND geom IS NOT NULL)
+            SELECT ne.from_node_id, ne.to_node_id, ne.length_m, ne.line_id,
+                   CASE WHEN ST_Distance(ST_StartPoint(ne.geom), a.geom) <= ST_Distance(ST_EndPoint(ne.geom), a.geom)
+                        THEN ST_LineLocatePoint(ST_Transform(ne.geom, 2154), p.g)
+                        ELSE 1 - ST_LineLocatePoint(ST_Transform(ne.geom, 2154), p.g) END AS fraction
+            FROM p
+            JOIN network_edges ne ON ne.era_id = ? AND ne.geom && ST_Expand(p.geom, 0.002) AND NOT ne.is_heritage
+                 AND ST_DWithin(ST_Transform(ne.geom, 2154), p.g, ?)
+                 AND ne.line_id IN (SELECT line_id FROM station_lines WHERE station_id = ? AND (pk_source = ANY (?::text[])
+                     OR NOT EXISTS (SELECT 1 FROM station_lines r WHERE r.station_id = ? AND r.pk_source = ANY (?::text[]))))
+            JOIN network_nodes a ON a.id = ne.from_node_id
+            ORDER BY ST_Distance(ST_Transform(ne.geom, 2154), p.g)
+            LIMIT 1
+            SQL, [$station, $eraId, self::CLOSED_ATTACH_M, $station, $reliable, $station, $reliable]);
+        if ($start === null) {
+            return [];
+        }
+        $network = $this->network($eraId);
+        // Parcours sur les lignes de la gare (celles à PK sûr s'il y en a) et les raccordements : un graphe troué
+        // à l'ère (Sens et Montereau absents en 1970) ne fait pas passer la gare par une ligne voisine.
+        $own = $this->reliableLinesOf($station);
+        if ($own === []) {
+            $own = array_fill_keys(array_map('intval', DB::table('station_lines')->where('station_id', $station)->pluck('line_id')->all()), true);
+        }
+        $allowed = fn (?int $line): bool => $line === null || isset($this->junctions[$line])
+            || (isset($own[$line]) && ($fast || ! isset($this->lgv[$line])) && (! $electric || isset($this->electrified[$line])));
+        if (! $allowed($start->line_id === null ? null : (int) $start->line_id)) {
+            return [];
+        }
+        $length = (int) $start->length_m;
+        $fraction = (float) $start->fraction;
+        $line = $start->line_id === null ? null : (int) $start->line_id;
+        // Coût et lignes parcourues jusqu'à chaque nœud ; les deux bouts de la voie de départ.
+        $dist = [];
+        $lines = [];
+        $pq = new SplPriorityQueue;
+        $pq->setExtractFlags(SplPriorityQueue::EXTR_BOTH);
+        foreach ([[(int) $start->from_node_id, $fraction * $length], [(int) $start->to_node_id, (1 - $fraction) * $length]] as [$node, $len]) {
+            if ($len < ($dist[$node] ?? INF)) {
+                $dist[$node] = $len;
+                $lines[$node] = $line === null ? [] : [$line => (int) round($len)];
+                $pq->insert($node, -$len);
+            }
+        }
+        $reached = [];
+        $done = [];
+        while (! $pq->isEmpty()) {
+            $u = $pq->extract()['data'];
+            if (isset($done[$u])) {
+                continue;
+            }
+            $done[$u] = true;
+            $open = $network['station'][$u] ?? null;
+            if ($open !== null && $open !== $station && isset($graph['adj'][$open])) {
+                $reached[$open] = isset($reached[$open]) && $reached[$open][0] <= $dist[$u] ? $reached[$open] : [$dist[$u], $lines[$u]];
+
+                continue;
+            }
+            foreach ($network['adj'][$u] ?? [] as [$v, $len, $edgeLine, $nonPassenger]) {
+                if (! $allowed($edgeLine)) {
+                    continue;
+                }
+                $alt = $dist[$u] + $len * ($nonPassenger ? PathfindingService::NON_PASSENGER_FACTOR : 1.0);
+                if ($alt <= self::CLOSED_WALK_M && $alt < ($dist[$v] ?? INF)) {
+                    $dist[$v] = $alt;
+                    $lines[$v] = $lines[$u];
+                    if ($edgeLine !== null) {
+                        $lines[$v][$edgeLine] = ($lines[$v][$edgeLine] ?? 0) + $len;
+                    }
+                    $pq->insert($v, -$alt);
+                }
+            }
+        }
+
+        return $reached;
+    }
+
+    /**
+     * Voies en service d'une ère, pour attach().
+     *
+     * @return array{adj: array<int, list<array{0: int, 1: int, 2: ?int, 3: bool}>>, station: array<int, int>}
+     */
+    private function network(int $eraId): array
+    {
+        if (! isset($this->networks[$eraId])) {
+            $adj = [];
+            $rows = DB::table('network_edges')->where('era_id', $eraId)->where('is_heritage', false)
+                ->get(['from_node_id', 'to_node_id', 'length_m', 'line_id', 'traffic_type', 'network']);
+            foreach ($rows as $r) {
+                $line = $r->line_id === null ? null : (int) $r->line_id;
+                $nonPassenger = $r->traffic_type === 'freight' || in_array($r->network, ['militaire', 'particulier'], true);
+                $adj[(int) $r->from_node_id][] = [(int) $r->to_node_id, (int) $r->length_m, $line, $nonPassenger];
+                $adj[(int) $r->to_node_id][] = [(int) $r->from_node_id, (int) $r->length_m, $line, $nonPassenger];
+            }
+            $station = DB::table('network_nodes')->where('era_id', $eraId)->whereNotNull('station_id')
+                ->pluck('station_id', 'id')->mapWithKeys(fn ($s, $id): array => [(int) $id => (int) $s])->all();
+            $this->networks[$eraId] = ['adj' => $adj, 'station' => $station];
+        }
+
+        return $this->networks[$eraId];
+    }
+
+    /**
+     * Ligne qui porte la plus grande part d'une arête.
+     *
+     * @param  list<array{0: int, 1: int}>  $parts
+     */
+    private static function majorLine(array $parts): int
+    {
+        $best = $parts[0][0] ?? 0;
+        $max = -1;
+        foreach ($parts as [$line, $len]) {
+            if ($len > $max) {
+                [$best, $max] = [$line, $len];
+            }
+        }
+
+        return $best;
     }
 
     /**
@@ -487,7 +1075,7 @@ final class RelationRouter
      * PathfindingService), ou null s'il n'est pas construit. Sans `$fast`, les arêtes surtout portées par
      * une LGV sont retirées ; avec `$electric`, celles qui ne suivent que des lignes jamais électrifiées.
      *
-     * @return array{adj: array<int, list<array{0: int, 1: float, 2: int}>>, parts: array<int, list<array{0: int, 1: int}>>}|null
+     * @return Graph|null
      */
     private function graph(int $eraYear, bool $fast = true, bool $electric = false): ?array
     {
@@ -507,6 +1095,7 @@ final class RelationRouter
         if (! array_key_exists($graphKey, $this->graphs)) {
             $adj = [];
             $parts = [];
+            $major = [];
             $rows = DB::table('station_edges')->where('era_id', $eraId)->where('heritage_m', 0)
                 ->get(['id', 'from_station_id', 'to_station_id', 'line_id', 'length_m', 'non_passenger_m', 'line_ids', 'line_lengths']);
             foreach ($rows as $r) {
@@ -529,8 +1118,9 @@ final class RelationRouter
                 }
                 $adj[$a][] = [$b, $w, $eid];
                 $adj[$b][] = [$a, $w, $eid];
+                $major[$eid] = self::majorLine($parts[$eid]);
             }
-            $this->graphs[$graphKey] = $adj === [] ? null : ['adj' => $adj, 'parts' => $parts];
+            $this->graphs[$graphKey] = $adj === [] ? null : ['adj' => $adj, 'parts' => $parts, 'major' => $major];
         }
 
         return $this->graphs[$graphKey];

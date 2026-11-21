@@ -298,7 +298,7 @@ describe('preuves en phrases', () => {
         );
         expect(out.facts).toEqual([
             'audit_segments.evidence.turn{deg=32,3}',
-            'audit_segments.evidence.kinks{count=2}',
+            'audit_segments.evidence.kinks{count=2|shown=2}',
             'audit_segments.evidence.junction_gap{m=3,5|line=610000}',
             'audit_segments.evidence.hole{m=120}',
             'audit_segments.evidence.unused{list=osm:1, osm:2}',
@@ -495,7 +495,7 @@ describe('avis des sources : détails', () => {
                 ctx,
             ).facts,
         ).toEqual([
-            'audit_segments.evidence.hairpins{count=1}',
+            'audit_segments.evidence.hairpins{count=1|shown=1}',
             'audit_segments.evidence.junction_gap{m=4|line=}',
             'audit_segments.evidence.hole{m=80}',
             'audit_segments.evidence.station{name=x-gare|m=1\u00a0500}',

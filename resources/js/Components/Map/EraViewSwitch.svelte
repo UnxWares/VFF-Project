@@ -123,5 +123,32 @@
             padding-inline: 6px;
             white-space: normal;
         }
+        /* Quatre vues : deux rangées de deux (sur une rangée, « Schéma » sortait du cadre à 320 px
+           et « Toutes les époques » passait sur trois lignes). */
+        .segments:has(.segment:nth-child(4)) {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .segments:has(.segment:nth-child(4)) .segment:nth-child(odd) {
+            border-left: 0;
+        }
+        .segments:has(.segment:nth-child(4)) .segment:nth-child(n + 3) {
+            border-top: 1px solid var(--vff-border-control);
+        }
+        .segments:has(.segment:nth-child(4)) .segment span {
+            border-radius: 0;
+        }
+        .segments:has(.segment:nth-child(4)) .segment:nth-child(1) span {
+            border-top-left-radius: calc(var(--vff-radius-sm) - 1px);
+        }
+        .segments:has(.segment:nth-child(4)) .segment:nth-child(2) span {
+            border-top-right-radius: calc(var(--vff-radius-sm) - 1px);
+        }
+        .segments:has(.segment:nth-child(4)) .segment:nth-child(3) span {
+            border-bottom-left-radius: calc(var(--vff-radius-sm) - 1px);
+        }
+        .segments:has(.segment:nth-child(4)) .segment:nth-child(4) span {
+            border-bottom-right-radius: calc(var(--vff-radius-sm) - 1px);
+        }
     }
 </style>

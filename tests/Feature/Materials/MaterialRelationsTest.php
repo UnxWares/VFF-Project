@@ -143,6 +143,24 @@ class MaterialRelationsTest extends TestCase
         $this->assertSame(1, $relations->stats()['pairs_ambiguous']);
     }
 
+    /**
+     * Lyon - Saint-Gervais, par Annecy ou par Annemasse : la relation reste ambiguë, et le routeur donne les lignes
+     * que les deux itinéraires parcourent (ici Mézidon - Trouville) ; MaterialRelations ne les rattache pas encore
+     * (à relire).
+     */
+    public function test_an_ambiguous_relation_gives_the_lines_every_close_itinerary_follows(): void
+    {
+        $this->lines['379000'] = Line::factory()->create(['code' => '379000', 'name' => 'Ligne 379000', 'is_lgv' => false]);
+        $this->stations['Trouville'] = Station::factory()->create(['name' => 'Trouville', 'geom' => Point::makeGeodetic(49.36, 0.08)]);
+        $this->edge('Mézidon', 'Trouville', '379000', 40);
+
+        $route = (new RelationRouter)->route([$this->stations['Caen']->id], [$this->stations['Trouville']->id], 2030);
+
+        $this->assertSame('ambiguous', $route['status']);
+        $this->assertSame([$this->lines['379000']->id], $route['lines'], 'par Lisieux ou par la ligne directe, toujours Mézidon - Trouville');
+        $this->assertSame([], $this->links($this->relations(), "* Caen - Trouville\n"));
+    }
+
     public function test_paris_dreux_never_reaches_argentan_granville(): void
     {
         $links = $this->links($this->relations(), "* Paris - Dreux\n", 'Services effectués > TER Basse-Normandie');
@@ -380,6 +398,142 @@ class MaterialRelationsTest extends TestCase
         DB::table('station_edges')->where('line_id', $this->lines['R2']->id)->update(['length_m' => 25000, 'line_lengths' => '{25000}']);
         $links = $this->links($this->relations(), "* [[Gare de Montérolier - Buchy|Montérolier]] - [[Gare de Motteville|Motteville]]\n");
         $this->assertSame(['R1', 'R2'], $this->codes($links));
+    }
+
+    /**
+     * Gare fermée aux voyageurs, absente du graphe gare à gare (Desvres après 1968) : la relation de fret
+     * « Hesdigneul - Desvres » se résout par les voies en service de l'ère, sur la ligne de la gare. Une gare
+     * ouverte du même nom passe avant ; une gare fermée sans voie de sa ligne à proximité ne se résout pas.
+     */
+    public function test_a_freight_relation_reaches_a_station_closed_to_passengers(): void
+    {
+        $this->lines['310000'] = Line::factory()->create(['code' => '310000', 'name' => 'Ligne 310000', 'is_lgv' => false]);
+        foreach (['Hesdigneul' => [1.70, 50.66], 'Desvres' => [1.83, 50.67], 'Pont-de-Briques' => [1.63, 50.69]] as $name => [$lng, $lat]) {
+            $this->stations[$name] = Station::factory()->create(['name' => $name, 'geom' => Point::makeGeodetic($lat, $lng)]);
+        }
+        $this->edge('Pont-de-Briques', 'Hesdigneul', '310000', 6);
+        $hesdigneul = $this->node('Hesdigneul');
+        $desvres = $this->node('Desvres', 'closed_station');
+        DB::table('network_edges')->insert([
+            'era_id' => $this->era->id, 'from_node_id' => $hesdigneul, 'to_node_id' => $desvres, 'line_id' => $this->lines['310000']->id,
+            'length_m' => 10000, 'status' => 'in_service', 'traffic_type' => 'freight',
+            'geom' => DB::raw('ST_SetSRID(ST_MakeLine(ST_MakePoint(1.70, 50.66), ST_MakePoint(1.83, 50.67)), 4326)'),
+        ]);
+        DB::table('station_lines')->insert(['station_id' => $this->stations['Desvres']->id, 'line_id' => $this->lines['310000']->id, 'method' => 'test']);
+        $text = "* Trains de marchandises Hesdigneul - Desvres\n";
+
+        // Gare ouverte selon station_eras mais absente du graphe (trou du graphe) : pas rattachée.
+        DB::table('station_eras')->insert(['station_id' => $this->stations['Desvres']->id, 'era_id' => $this->era->id, 'status' => 'active']);
+        $this->assertSame([], (new RelationRouter)->resolve('Desvres', 2030));
+        DB::table('station_eras')->where('station_id', $this->stations['Desvres']->id)->update(['status' => 'declassified']);
+
+        // Ligne où aucun des deux arrêts n'a de PK sûr : la relation contourne peut-être un trou, elle est refusée.
+        $this->assertCount(0, $this->links($this->relations(), $text));
+        DB::table('station_lines')->insert(['station_id' => $this->stations['Hesdigneul']->id, 'line_id' => $this->lines['310000']->id, 'method' => 'test', 'pk_m' => 241000, 'pk_source' => 'sncf']);
+
+        $links = $this->links($this->relations(), $text);
+
+        $this->assertSame(['310000'], $this->codes($links));
+        $this->assertSame(['id' => $this->stations['Desvres']->id, 'name' => 'Desvres'], $links[0]['evidence']['route']['to']);
+        $router = new RelationRouter;
+        $this->assertSame([$this->stations['Desvres']->id], $router->resolve('Desvres', 2030));
+        $this->assertSame([], $router->resolve('Granville-Port', 2030), 'nom inconnu');
+
+        // Une gare ouverte du même nom passe avant la gare fermée.
+        $open = Station::factory()->create(['name' => 'Desvres', 'geom' => Point::makeGeodetic(48.70, -1.50)]);
+        DB::table('station_edges')->insert([
+            'era_id' => $this->era->id, 'from_station_id' => $open->id, 'to_station_id' => $this->stations['Granville']->id,
+            'line_id' => $this->lines['405000']->id, 'length_m' => 15000, 'line_ids' => '{'.$this->lines['405000']->id.'}', 'line_lengths' => '{15000}',
+        ]);
+        $this->assertSame([$open->id], (new RelationRouter)->resolve('Desvres', 2030));
+
+        // Sans voie de sa ligne à moins de CLOSED_ATTACH_M, la gare fermée ne se résout pas.
+        DB::table('station_edges')->where('from_station_id', $open->id)->delete();
+        DB::table('station_lines')->where('station_id', $this->stations['Desvres']->id)->update(['line_id' => $this->lines['405000']->id]);
+        $this->assertSame([], (new RelationRouter)->resolve('Desvres', 2030));
+    }
+
+    /** Nœud de la topologie de l'ère courante au point d'une gare. */
+    private function node(string $station, string $kind = 'station'): int
+    {
+        $s = $this->stations[$station];
+
+        return (int) DB::table('network_nodes')->insertGetId([
+            'era_id' => $this->era->id, 'station_id' => $s->id, 'kind' => $kind,
+            'geom' => DB::raw("(SELECT geom FROM stations WHERE id = {$s->id})"),
+        ]);
+    }
+
+    /**
+     * Rester sur sa ligne : Saint-Loubès et Cenon sont deux gares de Paris - Bordeaux (570000) ; le chemin par
+     * Chartres - Bordeaux (500000) et le raccordement d'Ambarès est 7 % plus court. La relation garde 570000.
+     * Sans PK sûr de l'une des gares sur 570000, le plus court chemin reste. Règle des ères passées seulement.
+     */
+    public function test_two_stops_of_the_same_line_stay_on_it_rather_than_a_shorter_parallel_line(): void
+    {
+        // Règle des ères passées : le graphe écrit ici devient celui d'une ère passée.
+        $this->era->update(['is_current' => false]);
+        Era::factory()->create(['year' => 2040, 'is_current' => true]);
+        $this->lines['570000'] = Line::factory()->create(['code' => '570000', 'name' => 'Ligne 570000', 'is_lgv' => false]);
+        $this->lines['500000'] = Line::factory()->create(['code' => '500000', 'name' => 'Ligne 500000', 'is_lgv' => false]);
+        $this->lines['570321'] = Line::factory()->create(['code' => '570321', 'name' => "Raccordement d'Ambarès", 'is_lgv' => false]);
+        foreach (['St-Loubès' => [-0.43, 44.91], 'Bassens' => [-0.52, 44.90], 'Ste-Eulalie' => [-0.47, 44.91], 'Cenon' => [-0.53, 44.86]] as $name => [$lng, $lat]) {
+            $this->stations[$name] = Station::factory()->create(['name' => $name, 'geom' => Point::makeGeodetic($lat, $lng)]);
+        }
+        $this->edge('St-Loubès', 'Bassens', '570000', 10);
+        $this->edge('Bassens', 'Cenon', '570000', 5);
+        [$m, $l, $j] = [$this->lines['570000']->id, $this->lines['500000']->id, $this->lines['570321']->id];
+        DB::table('station_edges')->insert([
+            'era_id' => $this->era->id, 'from_station_id' => $this->stations['St-Loubès']->id, 'to_station_id' => $this->stations['Ste-Eulalie']->id,
+            'line_id' => $l, 'length_m' => 8000, 'line_ids' => "{{$m},{$j},{$l}}", 'line_lengths' => '{3500,800,3700}',
+        ]);
+        $this->edge('Ste-Eulalie', 'Cenon', '500000', 6);
+        foreach (['St-Loubès' => 565014, 'Cenon' => 579950] as $station => $pk) {
+            DB::table('station_lines')->insert(['station_id' => $this->stations[$station]->id, 'line_id' => $m, 'method' => 'test', 'pk_m' => $pk, 'pk_source' => 'sncf']);
+        }
+        $route = fn (): array => (new RelationRouter)->route([$this->stations['St-Loubès']->id], [$this->stations['Cenon']->id], 2030)['lines'];
+
+        $this->assertSame([$m], $route(), 'par Bassens, sur sa ligne');
+
+        DB::table('station_lines')->where('station_id', $this->stations['Cenon']->id)->update(['pk_source' => 'projected_raw']);
+        $this->assertSame([$l], $route(), 'PK non sûr : le plus court chemin');
+    }
+
+    /**
+     * Tronc commun : l'arête Cahors - Espère-Caillac porte 5,3 km de Monsempron-Libos - Cahors (632000), posée
+     * sur la voie de Paris - Toulouse (590000, principale). Ces kilomètres reviennent à 590000, et 632000 n'est
+     * plus comptée dans la relation.
+     */
+    public function test_a_shared_trunk_is_counted_for_the_priority_line(): void
+    {
+        $this->lines['590000'] = Line::factory()->create(['code' => '590000', 'name' => 'Ligne 590000', 'is_lgv' => false, 'network' => 'principal']);
+        $this->lines['632000'] = Line::factory()->create(['code' => '632000', 'name' => 'Ligne 632000', 'is_lgv' => false, 'network' => 'secondaire']);
+        foreach (['Cahors' => [1.44, 44.45], 'Espère-Caillac' => [1.44, 44.525]] as $name => [$lng, $lat]) {
+            $this->stations[$name] = Station::factory()->create(['name' => $name, 'geom' => Point::makeGeodetic($lat, $lng)]);
+        }
+        [$m, $l] = [$this->lines['590000']->id, $this->lines['632000']->id];
+        $edge = 'ST_SetSRID(ST_MakeLine(ST_MakePoint(1.44, 44.45), ST_MakePoint(1.44, 44.525)), 4326)';
+        DB::table('station_edges')->insert([
+            'era_id' => $this->era->id, 'from_station_id' => $this->stations['Cahors']->id, 'to_station_id' => $this->stations['Espère-Caillac']->id,
+            'line_id' => $l, 'length_m' => 8340, 'line_ids' => "{{$l},{$m}}", 'line_lengths' => '{5268,3072}', 'geom' => DB::raw($edge),
+        ]);
+        foreach ([[$m, $edge], [$l, 'ST_SetSRID(ST_MakeLine(ST_MakePoint(1.44, 44.45), ST_MakePoint(1.44, 44.497)), 4326)']] as [$line, $geom]) {
+            DB::table('line_segments')->insert(['line_id' => $line, 'era_id' => $this->era->id, 'status' => 'in_service', 'traffic_type' => 'mixed', 'geom' => DB::raw($geom)]);
+        }
+        foreach (['Cahors' => 600084, 'Espère-Caillac' => 591588] as $station => $pk) {
+            DB::table('station_lines')->insert(['station_id' => $this->stations[$station]->id, 'line_id' => $m, 'method' => 'test', 'pk_m' => $pk, 'pk_source' => 'sncf']);
+        }
+        $text = "* Omnibus Cahors - Espère-Caillac\n";
+
+        $this->assertSame(['590000'], $this->codes($this->links($this->relations(), $text)));
+
+        $near = [$l => ['near' => 5220, 'priority' => 1], $m => ['near' => 8300, 'priority' => 2]];
+        $this->assertSame([[$l, 40], [$m, 8300]], RelationRouter::shareTrunk([[$l, 5268], [$m, 3072]], [$l => 5268, $m => 3072], $near, [$m]));
+        $apart = [[$l, 5268], [$m, 3072]];
+        $this->assertSame($apart, RelationRouter::shareTrunk($apart, [$l => 5268, $m => 3072], $near, []), 'ligne prioritaire sans PK sûr aux deux gares');
+        $this->assertSame($apart, RelationRouter::shareTrunk($apart, [$l => 5268, $m => 3072], $near, [$m, $l]), 'les deux lignes ont un PK sûr aux deux gares : chacune garde sa part');
+        $this->assertSame($apart, RelationRouter::shareTrunk($apart, [$l => 5268, $m => 3072], $near, [$m], [$l]), 'ligne qui traverse une gare de l\'arête : elle garde sa part');
+        $this->assertSame($apart, RelationRouter::shareTrunk($apart, [$l => 5268, $m => 3072], [$l => ['near' => 5268, 'priority' => 1], $m => ['near' => 3120, 'priority' => 2]], [$m]), 'voies séparées : rien ne bouge');
     }
 
     /**

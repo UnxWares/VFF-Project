@@ -284,6 +284,8 @@ final class MaterialRelations
                 } elseif ($route['status'] === 'no_path') {
                     $this->stats['pairs_without_path']++;
                 }
+                // Relation ambiguë : rien, même si RelationRouter::route() donne les lignes communes à tous les
+                // itinéraires proches (essai du 21/11 : 322 liens créés, dont des faux, non relus).
                 if ($route['status'] === 'ok') {
                     array_push($lines, ...$route['lines']);
                     $chosen[$k] = $route['from'];

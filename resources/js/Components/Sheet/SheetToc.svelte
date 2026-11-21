@@ -63,8 +63,15 @@
     function revealCurrent() {
         const link = listEl?.querySelector('[aria-current]');
         if (!link) return;
+        // Position dans la rangée (pas offsetLeft : le parent positionné est le bandeau collant, qui
+        // ajoute la gouttière et la marge de la page ; sur ordinateur, la rangée glissait au chargement
+        // et coupait le premier arrêt).
+        const offset =
+            link.getBoundingClientRect().left -
+            listEl.getBoundingClientRect().left +
+            listEl.scrollLeft;
         const left = revealScrollLeft(
-            { left: link.offsetLeft, width: link.offsetWidth },
+            { left: offset, width: link.offsetWidth },
             { scrollLeft: listEl.scrollLeft, clientWidth: listEl.clientWidth },
         );
         if (left === null) return;

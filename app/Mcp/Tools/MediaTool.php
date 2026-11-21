@@ -24,7 +24,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 Médias (photos, cartes postales, plans, cartes, documents d'archive) rattachés aux lignes, aux gares, aux séries de matériel et aux événements datés des lignes, avec leurs droits. Mêmes données et mêmes filtres que l'API REST GET /api/v1/media.
 Chaque média : `id`, `type` (photo, postcard, plan, map, document), `title`, `caption`, `thumb_url` et `display_url` (image, souvent hébergée chez le fournisseur, ex. Wikimedia Commons), `source_url` (page d'origine), `width`/`height` en pixels, `depicted_year` (année représentée, `depicted_year_to` pour une fourchette, `date_precision`), `author`, `license`, `license_url`, `attribution` (texte prêt à afficher), `rights_status` (public_domain, open_license, unknown ; les images montrées sur le site avec une simple autorisation de leur auteur ne sont jamais servies), `commercial_ok`, `share_alike`, `location` (lat, lng WGS 84), `subject` (ligne, gare, série ou événement rattaché) et `contribution_id` (numéro de la contribution validée qui a publié l'image, null pour un import ; une image encore en attente de validation n'est jamais renvoyée).
 Obligation : montrez toujours l'`attribution` (auteur et licence) et le lien `source_url` avec l'image ; une licence share_alike impose la même licence à l'œuvre dérivée.
-Filtres : `line`, `station` ou `material` (slug), ou `event` (identifiant d'un événement de get_line ou line_events), un seul des quatre, `type`, `provider` (commons, upload, argentanwebferro…), `license` (texte exact, ex. "CC BY-SA 4.0"), `rights_status`, `commercial_ok`, `period` (pre1900, 1900_1944, 1945_1969, 1970_1999, since2000, undated), `from_year`/`to_year` (année représentée), `order` (asc, desc : par identifiant).
+Filtres : `line`, `station` ou `material` (slug), ou `event` (identifiant d'un événement de get_line ou line_events), un seul des quatre, `type`, `provider` (commons, upload, argentanwebferro…), `license` (texte exact, ex. "CC BY-SA 4.0"), `rights_status`, `commercial_ok`, `period` (pre1900, 1900_1944, 1945_1969, 1970_1999, since2000, undated), `from_year`/`to_year` (année représentée), `featured` (true : images que l'accueil peut montrer, false : les autres), `order` (asc, desc : par identifiant). Avec `facets` à true, `facets` donne les compteurs de la recherche (total, `types` par nature, `licenses`, 30 premiers `authors`), ceux de `GET /api/v1/media?facets=true`.
 Pagination : `limit` médias par appel (1 à 60, 20 par défaut), puis `next_cursor` dans `cursor` tant que `has_more` vaut true  ; une page trop volumineuse est raccourcie (`truncated`) et `next_cursor` reprend au premier média non renvoyé.
 Exemple : {"station": "brest", "limit": 5} ; {"line": "rfn-610000", "period": "pre1900", "commercial_ok": true}.
 TXT)]
@@ -36,6 +36,7 @@ class MediaTool extends VffTool
     protected function rules(): array
     {
         return MediaQuery::rules() + [
+            'facets' => ['sometimes', 'boolean'],
             'limit' => ['sometimes', 'integer', 'min:1', 'max:60'],
             'cursor' => ['sometimes', 'string', 'max:512', new PaginationCursor(['media.id'])],
         ];
@@ -56,6 +57,8 @@ class MediaTool extends VffTool
             'period' => $schema->string()->enum([...array_keys(MediaQuery::PERIODS), 'undated'])->description('Tranche d\'époque représentée ; undated = année inconnue.'),
             'from_year' => $schema->integer()->min(1)->max(2100)->description('Année représentée minimale, incluse.'),
             'to_year' => $schema->integer()->min(1)->max(2100)->description('Année représentée maximale, incluse (au moins from_year).'),
+            'featured' => $schema->boolean()->description('true : seulement les médias mis en avant (images que l\'accueil peut montrer) ; false : les autres.'),
+            'facets' => $schema->boolean()->default(false)->description('true : ajoute `facets`, les compteurs de la recherche (total, nombre par nature, par licence, 30 premiers auteurs), sans tenir compte de la pagination.'),
             'order' => $schema->string()->enum(['asc', 'desc'])->default('asc')->description('Ordre des identifiants : asc (par défaut) ou desc (les plus récemment ajoutés d\'abord).'),
             'limit' => $schema->integer()->min(1)->max(60)->default(20)->description('Nombre de médias par appel, 1 à 60 (20 par défaut).'),
             'cursor' => $schema->string()->max(512)->description('Curseur opaque `next_cursor` d\'un appel précédent (mêmes filtres).'),
@@ -64,13 +67,18 @@ class MediaTool extends VffTool
 
     protected function answer(array $input, string $lang): Response
     {
-        $filters = MediaQuery::normalize(array_diff_key($input, array_flip(['limit', 'cursor', 'lang'])));
+        $filters = MediaQuery::normalize(array_diff_key($input, array_flip(['limit', 'cursor', 'lang', 'facets'])));
         $page = app(MediaQuery::class)->apply(Media::query()->with('mediable'), $filters)
             ->cursorPaginate((int) ($input['limit'] ?? 20), ['*'], 'cursor', CursorPage::cursor($input['cursor'] ?? null));
         $media = MediaResource::collection($page->items())->resolve();
 
+        $payload = ['filters' => $filters];
+        if (filter_var($input['facets'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+            $payload['facets'] = app(MediaQuery::class)->facets($filters);
+        }
+
         return $this->respondPage(
-            ['filters' => $filters], 'media', $page, $media,
+            $payload, 'media', $page, $media,
             array_map(fn (array $m) => $this->attribution->providerFor('media', $m['provider'] ?? null), $media),
             $lang,
             self::url(match (true) {

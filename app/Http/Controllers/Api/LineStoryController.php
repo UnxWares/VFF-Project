@@ -97,7 +97,7 @@ class LineStoryController extends Controller
     }
 
     /**
-     * Histoire d'un événement : texte, images de l'époque, documents de Gallica.
+     * Histoire d'un événement : texte, images, documents.
      *
      * L'événement (`event`, même forme que `GET /api/v1/events/{event}` en liste : description en français
      * telle que la source la donne, `source`, `source_url`, `provenance` avec la licence), toutes les sources du

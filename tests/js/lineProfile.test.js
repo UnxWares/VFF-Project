@@ -10,6 +10,7 @@ import {
     nearestIndex,
     niceStep,
     rackSentence,
+    sourceLang,
     ticks,
 } from '../../resources/js/lib/lineProfile.js';
 
@@ -224,5 +225,21 @@ describe('rackSentence', () => {
             key: 'profile.rack_unknown',
             system: 'Riggenbach',
         });
+    });
+});
+
+describe('sourceLang', () => {
+    it("donne la langue de l'édition de Wikipédia lue (RGAA 8.7)", () => {
+        expect(
+            sourceLang(
+                'https://fr.wikipedia.org/w/index.php?title=Chemin_de_fer_du_Montenvers&oldid=239685415',
+            ),
+        ).toBe('fr');
+        expect(sourceLang('https://de.m.wikipedia.org/wiki/Zahnradbahn')).toBe('de');
+    });
+
+    it("n'invente pas de langue pour une autre adresse", () => {
+        expect(sourceLang('https://example.org/fr/page')).toBeUndefined();
+        expect(sourceLang(null)).toBeUndefined();
     });
 });

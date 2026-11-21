@@ -37,6 +37,7 @@ class LineStopsResolver
         return array_map(fn ($r) => [
             'position' => (int) $r->position,
             'pk_m' => (int) $r->pk_m,
+            'pk_label' => sprintf('%d+%03d', intdiv((int) $r->pk_m, 1000), (int) $r->pk_m % 1000),
             'effective_status' => $r->effective_status,
             'is_terminal' => (bool) $r->is_terminal,
             'station' => $stations[$r->station_id] ?? null,

@@ -152,7 +152,20 @@
     }
     @media (max-width: 600px) {
         .strip {
-            grid-template-columns: repeat(var(--cols-phone, 7), minmax(0, 1fr));
+            /* --cols-phone colonnes, sauf si une case tombe sous 44 px (320 px : « 1830 » à 17 px ne
+               tient pas dans 37 px, les années se touchaient) : une colonne de moins alors. */
+            grid-template-columns: repeat(
+                auto-fill,
+                minmax(
+                    max(
+                        44px,
+                        calc(
+                            (100% - (var(--cols-phone, 7) - 1) * 4px) / var(--cols-phone, 7) - 0.5px
+                        )
+                    ),
+                    1fr
+                )
+            );
         }
     }
     .cell {

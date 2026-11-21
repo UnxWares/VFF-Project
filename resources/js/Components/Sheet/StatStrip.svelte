@@ -22,9 +22,14 @@
             >
                 <dt>{it.label}</dt>
                 <dd>
-                    {#if it.icon}<i class="bi {it.icon}" aria-hidden="true"></i>{/if}
+                    <!-- Valeur en phrase : l'icône entre dans le texte, qui repasse sous elle à la ligne
+                         au lieu de former un bloc décalé à droite de l'icône (téléphone). -->
+                    {#if it.icon && !it.text}<i class="bi {it.icon}" aria-hidden="true"></i>{/if}
                     {#if it.value != null}<span class="value">{it.value}</span>{/if}
-                    {#if it.text}<span class="text">{it.text}</span>{/if}
+                    {#if it.text}<span class="text"
+                            >{#if it.icon}<i class="bi {it.icon}" aria-hidden="true"
+                                ></i>{/if}{it.text}</span
+                        >{/if}
                     {#if it.note}<abbr class="note" title={it.noteHint}>{it.note}</abbr>{/if}
                 </dd>
             </div>
@@ -104,6 +109,10 @@
         line-height: 1;
         color: inherit;
     }
+    .text i {
+        margin-right: 8px;
+        vertical-align: -0.05em;
+    }
     .stat.accent dd i,
     .stat.accent .text {
         color: var(--vff-accent-ink);
@@ -140,6 +149,10 @@
         }
         .text {
             font-size: 19px;
+        }
+        /* Demi-largeur : l'icône (décorative) restait seule sur sa ligne au-dessus du texte. */
+        .text i {
+            display: none;
         }
     }
 </style>

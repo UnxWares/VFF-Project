@@ -62,19 +62,8 @@ final class StationClosureParser
     public function fromStationArticle(string $wikitext, string $title): array
     {
         $wikitext = self::expandCenturies($wikitext);
-        $out = [];
-        if (preg_match('/\{\{\s*Infobox\s+(Gare|Station)\b/iu', $wikitext)) {
-            $info = $this->wp->parseInfobox($wikitext);
-            foreach (['fermeture', 'fermeture2', 'fermeture3', 'date de fermeture'] as $k) {
-                if (! empty($info[$k])) {
-                    foreach ($this->closureValue($info[$k], $title) as $e) {
-                        $out[] = $e + ['origin' => 'infobox'];
-                    }
-                }
-            }
-        }
-        $isHalt = (bool) preg_match('/^Halte\b/iu', $title)
-            || (bool) preg_match('/\bc[\'’]est une (?:ancienne )?(?:petite )?halte\b|\best une halte\b/iu', mb_substr($wikitext, 0, 6000));
+        $out = $this->infoboxClosures($wikitext, $title);
+        $isHalt = self::isHalt($wikitext, $title);
 
         $text = $this->wp->toPlainText(self::withoutInfobox($wikitext), $title);
         $prev = '';
@@ -92,6 +81,45 @@ final class StationClosureParser
     }
 
     /**
+     * Infobox « Gare » seule (champs fermeture), sans les phrases de l'article
+     * (cf. vff:import-station-passenger-ends). Types tels qu'écrits : une
+     * halte fermée aux voyageurs reste closure_passenger ici (isHalt() permet à
+     * l'appelant d'appliquer la règle de fromStationArticle()).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function fromStationInfobox(string $wikitext, string $title): array
+    {
+        return self::dedupe($this->infoboxClosures(self::expandCenturies($wikitext), $title));
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function infoboxClosures(string $wikitext, string $title): array
+    {
+        if (! preg_match('/\{\{\s*Infobox\s+(Gare|Station)\b/iu', $wikitext)) {
+            return [];
+        }
+        $out = [];
+        $info = $this->wp->parseInfobox($wikitext);
+        foreach (['fermeture', 'fermeture2', 'fermeture3', 'date de fermeture'] as $k) {
+            if (! empty($info[$k])) {
+                foreach ($this->closureValue($info[$k], $title) as $e) {
+                    $out[] = $e + ['origin' => 'infobox'];
+                }
+            }
+        }
+
+        return $out;
+    }
+
+    /** Article d'une halte (service voyageurs seul) : titre « Halte de… » ou « c'est une halte » en tête. */
+    public static function isHalt(string $wikitext, string $title): bool
+    {
+        return (bool) preg_match('/^Halte\b/iu', $title)
+            || (bool) preg_match('/\bc[\'’]est une (?:ancienne )?(?:petite )?halte\b|\best une halte\b/iu', mb_substr($wikitext, 0, 6000));
+    }
+
+    /**
      * Valeur d'un champ « fermeture » d'infobox (déjà nettoyée) :
      * « 27 septembre 1969 (voyageurs) 30 novembre 1990 (marchandises) »,
      * « 1946 », « années 1980 », « deuxième moitié du XXe siècle »…
@@ -104,10 +132,17 @@ final class StationClosureParser
         if ($value === '') {
             return [];
         }
+        $raw = $value;
+        // Disposition du champ : portée avant la première année (« Voyageurs le 6 mars 1972 … ») ?
+        $qualifierFirst = preg_match('/^(.*?)(?:1[89]\d\d|20[0-3]\d)/u', $value, $head) === 1 && self::trafficType($head[1]) !== null;
+        // « 1939 voyageurs 1952 marchandises » : findDates prend « 1939 voyageurs » pour un nombre de
+        // voyageurs ; dans un champ fermeture dont la portée suit la date, c'est une année et sa portée.
+        if (! $qualifierFirst) {
+            $value = preg_replace('/\b(1[89]\d\d|20[0-3]\d)\s+(voyageurs?|marchandises?|frets?)\b/iu', '$1 ($2)', $value);
+        }
         $dates = array_values(array_filter($this->wp->findDates($value), fn ($d) => $d['year'] >= 1827 && $d['year'] <= (int) date('Y')));
         $out = [];
         $hedged = (bool) preg_match(self::HEDGE, $value);
-        $qualifierFirst = $dates !== [] && self::trafficType(mb_substr($value, 0, $dates[0]['pos'])) !== null;
         foreach ($dates as $i => $d) {
             $start = $d['pos'];
             $end = $dates[$i + 1]['pos'] ?? mb_strlen($value);
@@ -118,13 +153,15 @@ final class StationClosureParser
             // « 1973 (voyageurs) » : la parenthèse qui suit ; sinon « Voyageurs le 6 mars 1972 » : ce qui précède.
             $paren = preg_match('/^\s*\(([^)]*)\)/u', $after, $pm) ? $pm[1] : null;
             // Disposition du champ : « 1938 (voyageurs) 1988 … » (précision après la date) ou
-            // « Voyageurs le 6 mars 1972 Marchandises le … » (avant).
+            // « Voyageurs le 6 mars 1972 Marchandises le … » (avant). Précision après la date : le
+            // texte qui précède est celle de la date d'avant (« 15 mai 1939 (voyageurs) 1991 (ligne) » :
+            // 1991 n'est pas une fin des voyageurs).
             $type = ($paren !== null ? self::trafficType($paren) : null)
-                ?? ($qualifierFirst ? self::trafficType($before) ?? self::trafficType($after) : self::trafficType($after) ?? self::trafficType($before))
+                ?? ($qualifierFirst ? self::trafficType($before) ?? self::trafficType($after) : self::trafficType($after))
                 ?? 'closure';
             if (preg_match('/\bavant\s*$/iu', $before)) {
                 $out[] = ['type' => $type, 'date' => $d['date'], 'precision' => 'before',
-                    'quote' => 'Fermeture : '.$value];
+                    'quote' => 'Fermeture : '.$raw];
 
                 continue;
             }
@@ -133,10 +170,10 @@ final class StationClosureParser
                 continue;
             }
             $out[] = ['type' => $type, 'date' => $d['date'], 'precision' => $d['precision'] === 'decade' ? 'decade' : $d['precision'],
-                'quote' => 'Fermeture : '.$value.($hedged ? ' (date incertaine selon la source)' : '')];
+                'quote' => 'Fermeture : '.$raw.($hedged ? ' (date incertaine selon la source)' : '')];
         }
         if ($out === [] && ($y = self::centuryLowerBound($value)) !== null) {
-            $out[] = ['type' => 'closure', 'date' => sprintf('%04d-01-01', $y), 'precision' => 'after', 'quote' => 'Fermeture : '.$value];
+            $out[] = ['type' => 'closure', 'date' => sprintf('%04d-01-01', $y), 'precision' => 'after', 'quote' => 'Fermeture : '.$raw];
         }
 
         return $out;
@@ -629,7 +666,7 @@ final class StationClosureParser
     {
         $s = preg_replace('/\bbâtiments?\s+(?:des\s+)?voyageurs\b|\bhalles?\s+(?:aux|à)\s+marchandises\b/iu', ' ', $s);
         $passenger = (bool) preg_match('/voyageurs?|\bomnibus\b/iu', $s);
-        $freight = (bool) preg_match('/marchandises|\bfret\b|\bgrande vitesse\b|\bpetite vitesse\b/iu', $s);
+        $freight = (bool) preg_match('/marchandises?|\bfrets?\b|\bgrande vitesse\b|\bpetite vitesse\b/iu', $s);
         if (preg_match('/tout trafic|tous trafics|toutes? (?:les )?circulations?|à toute circulation/iu', $s) || ($passenger && $freight)) {
             return 'closure';
         }
