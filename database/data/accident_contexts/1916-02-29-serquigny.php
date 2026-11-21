@@ -1,0 +1,117 @@
+<?php
+
+// Contexte sourcé de la collision de Serquigny du 29 février 1916 (recherche du 21/11/2026).
+return [
+    'slug' => '1916-02-29-serquigny',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1916' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1916',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Février',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1916&oldid=241348251#F%C3%A9vrier',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste : vers 10 h, un rapide pour Le Havre arrêté à un signal fermé avant la gare de Serquigny est tamponné par un express, dernières voitures de première classe écrasées, 3 morts et une quarantaine de blessés dont dix graves ; conseil de guerre du 6 octobre 1916.',
+        ],
+        'wp-gare-serquigny' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Gare de Serquigny',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Histoire',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Gare_de_Serquigny&oldid=235034452',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Une phrase : le 29 février 1916, un rapide heurte l\'arrière d\'un express arrêté, 4 morts et une vingtaine de blessés.',
+        ],
+        'petit-parisien-1916-03-01' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Petit Parisien du 1er mars 1916',
+            'publisher' => 'Le Petit Parisien',
+            'author' => null,
+            'published' => '1916-03-01',
+            'locator' => 'p. 3',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k565725k/f3.image',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Récit de l\'accident, cité par Wikipédia.',
+        ],
+        'temps-1916-10-07' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Temps du 7 octobre 1916',
+            'publisher' => 'Le Temps',
+            'author' => null,
+            'published' => '1916-10-07',
+            'locator' => 'p. 4',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k2426875/f4.image',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Compte rendu du conseil de guerre, cité par Wikipédia.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 29 février 1916, vers 10 h, un rapide pour Le Havre, détourné à la suite de l\'interception de la ligne Paris-Rouen par un déraillement dans le tunnel du Roule, attendait à un signal fermé avant la gare de Serquigny de pouvoir prendre la bifurcation vers Rouen.',
+                'en' => 'On 29 February 1916, at about 10 am, an express for Le Havre, diverted after the Paris to Rouen line was blocked by a derailment in the Roule tunnel, was waiting at a closed signal before Serquigny station to take the junction towards Rouen.',
+                'de' => 'Am 29. Februar 1916 wartete gegen 10 Uhr ein Schnellzug nach Le Havre, der umgeleitet worden war, weil die Strecke Paris-Rouen durch eine Entgleisung im Roule-Tunnel gesperrt war, vor dem Bahnhof Serquigny an einem geschlossenen Signal auf die Einfahrt in die Abzweigung nach Rouen.',
+                'sources' => ['wp-liste-1916'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Un express pour la même destination a tamponné le rapide arrêté et écrasé ses dernières voitures de première classe, dont une a pris feu. Les deux entrées de Wikipédia décrivent une collision par l\'arrière.',
+                'en' => 'An express for the same destination ran into the stationary train and crushed its last first-class coaches, one of which caught fire. Both Wikipedia entries describe a rear-end collision.',
+                'de' => 'Ein Schnellzug mit demselben Ziel fuhr auf den stehenden Zug auf und zerdrückte dessen letzte Wagen der ersten Klasse, von denen einer Feuer fing. Beide Wikipedia-Einträge beschreiben einen Auffahrunfall.',
+                'sources' => ['wp-liste-1916', 'wp-gare-serquigny'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'La liste de Wikipédia compte trois morts et une quarantaine de blessés dont dix graves ; l\'article de la gare donne quatre morts et une vingtaine de blessés.',
+                'en' => 'The Wikipedia list counts three dead and about forty injured, ten of them seriously; the station article gives four dead and about twenty injured.',
+                'de' => 'Die Wikipedia-Liste zählt drei Tote und etwa vierzig Verletzte, davon zehn schwer; der Artikel zum Bahnhof nennt vier Tote und etwa zwanzig Verletzte.',
+                'sources' => ['wp-liste-1916', 'wp-gare-serquigny'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Le 6 octobre 1916, le conseil de guerre de la 3e région militaire a acquitté le mécanicien du train tamponneur et attribué la responsabilité de l\'accident à un garde-signaux et à un aiguilleur, condamnés à un an de prison et 50 francs d\'amende pour l\'un, à trois mois de prison pour l\'autre.',
+                'en' => 'On 6 October 1916, the court martial of the 3rd military region acquitted the driver of the striking train and placed responsibility for the accident on a signalman and a pointsman, sentenced to one year in prison and a fine of 50 francs for one, and three months in prison for the other.',
+                'de' => 'Am 6. Oktober 1916 sprach das Kriegsgericht der 3. Militärregion den Lokführer des auffahrenden Zuges frei und machte einen Signalwärter und einen Weichensteller verantwortlich, die zu einem Jahr Gefängnis und 50 Franc Geldstrafe bzw. drei Monaten Gefängnis verurteilt wurden.',
+                'sources' => ['wp-liste-1916'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le bilan varie selon les deux entrées de Wikipédia : 3 morts et une quarantaine de blessés dans la liste, 4 morts et une vingtaine de blessés dans l\'article de la gare.',
+                'en' => 'The toll differs between the two Wikipedia entries: 3 dead and about forty injured in the list, 4 dead and about twenty injured in the station article.',
+                'de' => 'Die Bilanz unterscheidet sich zwischen den beiden Wikipedia-Einträgen: 3 Tote und etwa vierzig Verletzte in der Liste, 4 Tote und etwa zwanzig Verletzte im Artikel zum Bahnhof.',
+                'sources' => ['wp-liste-1916', 'wp-gare-serquigny'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'collision',
+            'sources' => ['wp-liste-1916', 'wp-gare-serquigny'],
+            'fr' => 'Deux articles de Wikipédia décrivent un tamponnement par l\'arrière d\'un train arrêté à un signal ; la fiche indiquait un déraillement.',
+            'en' => 'Two Wikipedia articles describe a rear-end collision with a train stopped at a signal; the record said derailment.',
+            'de' => 'Zwei Wikipedia-Artikel beschreiben einen Auffahrunfall auf einen an einem Signal haltenden Zug; der Eintrag nannte eine Entgleisung.',
+        ],
+    ],
+];
