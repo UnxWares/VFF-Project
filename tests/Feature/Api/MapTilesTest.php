@@ -10,6 +10,7 @@ use Clickbar\Magellan\Data\Geometries\LineString;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\Support\DecodesMvt;
 use Tests\TestCase;
 
 /**
@@ -19,6 +20,7 @@ use Tests\TestCase;
  */
 class MapTilesTest extends TestCase
 {
+    use DecodesMvt;
     use RefreshDatabase;
 
     /** Point de départ du tracé témoin, près d'Altkirch (Haut-Rhin). */
@@ -79,6 +81,18 @@ class MapTilesTest extends TestCase
         $this->assertGreaterThan(strlen($this->tile(2030, 14)) + 200, strlen($this->tile(1930, 14)));
     }
 
+    public function test_line_tiles_declare_the_fine_grid_at_zoom_14(): void
+    {
+        // Arcs des tracés (TrackRounding) visibles en agrandissant la tuile 14 : grille de 8 192 unités, écrite dans
+        // la couche pour que MapLibre la lise ; les zooms plus petits gardent 4 096.
+        foreach ([[14, 8192], [13, 4096]] as [$z, $extent]) {
+            [$x, $y] = self::tileOf($z);
+            $this->assertSame(['vff-lines' => $extent], $this->mvtExtents($this->tile(1930, $z)));
+            $this->assertSame(['vff-compare' => $extent], $this->mvtExtents((string) $this->get("/api/v1/eras/1930/compare/2030/tiles/{$z}/{$x}/{$y}.mvt")->getContent()));
+            $this->assertSame(['vff-stack' => $extent], $this->mvtExtents((string) $this->get("/api/v1/eras/stacked/tiles/{$z}/{$x}/{$y}.mvt")->getContent()));
+        }
+    }
+
     /** @return array<string, array{0: string}> */
     public static function tileRoutes(): array
     {
@@ -112,6 +126,12 @@ class MapTilesTest extends TestCase
         $this->assertEqualsWithDelta(9.55, MapTiles::tolerance(10), 0.01);
         $this->assertEqualsWithDelta(1.19, MapTiles::tolerance(13), 0.01);
         $this->assertEqualsWithDelta(0.597, MapTiles::tolerance(14), 0.001);
+        // Tracés de lignes au zoom 14 : grille fine (0,3 m), tolérance d'une de ses unités.
+        $this->assertSame(4096, MapTiles::extent(13));
+        $this->assertSame(8192, MapTiles::extent(14));
+        $this->assertEqualsWithDelta(0.299, MapTiles::tolerance(14, MapTiles::extent(14)), 0.001);
+        $this->assertStringContainsString('bounds.env_3857, 8192, 512, true', MapTiles::lineGeomSql('ls.geom', 14));
+        $this->assertStringContainsString('bounds.env_3857, 4096, 256, true', MapTiles::lineGeomSql('ls.geom', 13));
         $this->assertTrue(MapTiles::onGrid(14, 16383, 16383));
         $this->assertFalse(MapTiles::onGrid(15, 0, 0));
         $this->assertFalse(MapTiles::onGrid(8, 256, 0));

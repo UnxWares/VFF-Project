@@ -93,7 +93,8 @@ class EraComparison
     public function tile(int $fromEraId, int $toEraId, int $z, int $x, int $y): string
     {
         $pairs = $this->pairsSql('AND ls.geom && bounds.env_4326');
-        $geom = MapTiles::displaySql('c.geom', $z);
+        $geom = MapTiles::lineGeomSql('c.geom', $z);
+        $extent = MapTiles::extent($z);
 
         return MapTiles::query(<<<SQL
             WITH bounds AS (
@@ -106,13 +107,13 @@ class EraComparison
                        l.slug AS line_slug,
                        l.name AS line_name,
                        l.code AS line_code,
-                       ST_AsMVTGeom({$geom}, bounds.env_3857, 4096, 256, true) AS geom
+                       {$geom} AS geom
                 FROM changes c
                 JOIN lines l ON l.id = c.line_id
                 CROSS JOIN bounds
                 WHERE c.change IS NOT NULL
             )
-            SELECT ST_AsMVT(mvt_layer.*, 'vff-compare') AS tile FROM mvt_layer WHERE geom IS NOT NULL
+            SELECT ST_AsMVT(mvt_layer.*, 'vff-compare', {$extent}) AS tile FROM mvt_layer WHERE geom IS NOT NULL
         SQL, ['from' => $fromEraId, 'to' => $toEraId, 'z' => $z, 'x' => $x, 'y' => $y]);
     }
 

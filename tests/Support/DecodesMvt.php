@@ -51,6 +51,33 @@ trait DecodesMvt
         return $layers;
     }
 
+    /**
+     * Grille de chaque couche (champ `extent`, 4 096 par défaut selon la spécification).
+     *
+     * @return array<string, int> nom de couche → nombre d'unités par côté
+     */
+    protected function mvtExtents(string $tile): array
+    {
+        $out = [];
+        foreach ($this->pbFields($tile) as [$field, $value]) {
+            if ($field !== 3) {
+                continue;
+            }
+            $name = '';
+            $extent = 4096;
+            foreach ($this->pbFields((string) $value) as [$f, $v]) {
+                match ($f) {
+                    1 => $name = (string) $v,
+                    5 => $extent = (int) $v,
+                    default => null,
+                };
+            }
+            $out[$name] = $extent;
+        }
+
+        return $out;
+    }
+
     private function mvtValue(string $buf): mixed
     {
         foreach ($this->pbFields($buf) as [$f, $v]) {

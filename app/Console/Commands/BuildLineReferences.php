@@ -69,6 +69,10 @@ use Illuminate\Support\Facades\Storage;
  *    exception, marquée : l'arrivée coudée d'un tracé imprécis sur une portion
  *    précise, sans voie réelle, est refaite par une courbe lissée de rayon
  *    plausible (matched_source « raccord-lisse », géométrie estimée).
+ *    Long trou d'une ligne disparue (300 m à 20 km) : suivi sur les voies
+ *    abandonnées non rattachées (OSM, BD TOPO « Sans objet ») quand le chemin
+ *    passe les contrôles (gares, PK, autres lignes) ; un chemin qui s'arrête à
+ *    moins d'1 km de l'autre bout laisse ce dernier trou visible.
  *
  * 4. Croisement des sources (App\Services\SourceAgreement) : chaque morceau
  *    est redécoupé par indice de confiance (high / medium / low) avec le
@@ -253,6 +257,9 @@ class BuildLineReferences extends Command
                 $j['end_joined'] ?? 0, $this->km($j['end_joined_m'] ?? 0), $j['hole_smoothed'] ?? 0, $this->km($j['hole_smoothed_m'] ?? 0)));
             $this->line(sprintf('  escaliers et allers-retours : %d sauts remis lissés en changement de voie (%s km, courbes estimées), %d éperons en aller-retour retirés (%s km)',
                 $j['jog_smoothed'] ?? 0, $this->km($j['jog_smoothed_m'] ?? 0), $j['spur_removed'] ?? 0, $this->km($j['spur_removed_m'] ?? 0)));
+            $this->line(sprintf('  longs trous : %d suivis sur une voie abandonnée (%s km), dont %d incomplets (%s km laissés visibles) ; %d refusés',
+                $j['long_gap_filled'] ?? 0, $this->km($j['long_gap_filled_m'] ?? 0), $j['long_gap_partial'] ?? 0, $this->km($j['long_gap_left_m'] ?? 0),
+                $j['long_gap_refused'] ?? 0));
         }
         if ($r = $this->roundingStats) {
             $this->line(sprintf('  arrondi des sommets : %d sommets arrondis en arc de cercle (%d points ajoutés)',

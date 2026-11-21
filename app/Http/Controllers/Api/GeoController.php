@@ -265,12 +265,13 @@ class GeoController extends Controller
      * Au-delà, HTTP 404.
      *
      * **Géométrie pour l'écran** : chaque tracé est découpé dans la grille de la
-     * tuile (4 096 unités de côté, plus une marge de 256), qui arrondit ses
-     * coordonnées : 153 m au zoom 6, 9,6 m au zoom 10, 0,6 m au zoom 14 (mètres Web
-     * Mercator ; environ deux tiers sur le terrain en France). À partir du zoom 10,
-     * il est d'abord simplifié (Douglas-Peucker) à une unité de cette grille
-     * (9,6 m au zoom 10, 1,2 m au zoom 13, 0,6 m Web Mercator au zoom 14, soit
-     * 0,4 m sur le terrain).
+     * tuile (4 096 unités de côté jusqu'au zoom 13, 8 192 au zoom 14, plus une marge
+     * d'un seizième), qui arrondit ses coordonnées : 153 m au zoom 6, 9,6 m au zoom 10,
+     * 0,3 m au zoom 14 (mètres Web Mercator ; environ deux tiers sur le terrain en
+     * France). La grille de chaque couche est écrite dans la tuile (champ `extent`),
+     * comme le prévoit la spécification MVT. À partir du zoom 10, le tracé est d'abord
+     * simplifié (Douglas-Peucker) à une unité de cette grille (9,6 m au zoom 10, 1,2 m
+     * au zoom 13, 0,3 m Web Mercator au zoom 14, soit 0,2 m sur le terrain).
      *
      * **Cache** : la réponse porte un `ETag` (requête conditionnelle `If-None-Match`
      * → 304 tant que les données n'ont pas changé) et arrive compressée (gzip) si

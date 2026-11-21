@@ -37,7 +37,8 @@ class NetworkErosion
     private function computeTile(int $z, int $x, int $y): string
     {
         $open = EraChange::openStatusesSql();
-        $geom = MapTiles::displaySql('s.geom', $z);
+        $geom = MapTiles::lineGeomSql('s.geom', $z);
+        $extent = MapTiles::extent($z);
 
         return MapTiles::query(<<<SQL
             WITH bounds AS (
@@ -61,12 +62,12 @@ class NetworkErosion
                        l.slug AS line_slug,
                        l.name AS line_name,
                        l.code AS line_code,
-                       ST_AsMVTGeom({$geom}, bounds.env_3857, 4096, 256, true) AS geom
+                       {$geom} AS geom
                 FROM spans s
                 JOIN lines l ON l.id = s.line_id
                 CROSS JOIN bounds
             )
-            SELECT ST_AsMVT(mvt_layer.*, 'vff-stack') AS tile FROM mvt_layer WHERE geom IS NOT NULL
+            SELECT ST_AsMVT(mvt_layer.*, 'vff-stack', {$extent}) AS tile FROM mvt_layer WHERE geom IS NOT NULL
         SQL, ['z' => $z, 'x' => $x, 'y' => $y]);
     }
 }
