@@ -30,50 +30,59 @@
 
 {#if items.length}
     <section class="advocacy" aria-label={$i18n.t('home.advocacy.label')}>
-        <div class={['advocacy-grid', { single: cards.length === 1 }]}>
-            {#each cards as item (item.slug)}
-                <aside class="plea {item.kind}" aria-labelledby="{uid}-{item.slug}">
-                    <p class="kind">
-                        <i
-                            class="bi {item.kind === 'reopening'
-                                ? 'bi-megaphone'
-                                : 'bi-exclamation-triangle'}"
-                            aria-hidden="true"
-                        ></i>
-                        {$i18n.t(`home.advocacy.kind_${item.kind}`)}
-                    </p>
-                    <p class="title" id="{uid}-{item.slug}" lang={item.a.lang?.title ?? undefined}>
-                        {item.a.title ?? $i18n.t(`home.advocacy.${item.kind}`)}
-                    </p>
-                    {#if item.a.message}
-                        <p class="message" lang={item.a.lang?.message ?? undefined}>
-                            {item.a.message}
+        <!-- Grille seulement s'il y a au moins un encart (sinon une grille vide gardait sa marge). -->
+        {#if cards.length}
+            <div class={['advocacy-grid', { single: cards.length === 1 }]}>
+                {#each cards as item (item.slug)}
+                    <aside class="plea {item.kind}" aria-labelledby="{uid}-{item.slug}">
+                        <p class="kind">
+                            <i
+                                class="bi {item.kind === 'reopening'
+                                    ? 'bi-megaphone'
+                                    : 'bi-exclamation-triangle'}"
+                                aria-hidden="true"
+                            ></i>
+                            {$i18n.t(`home.advocacy.kind_${item.kind}`)}
                         </p>
-                    {/if}
-                    <div class="actions">
-                        <Link class="vff-link" href={`/lines/${item.slug}`}>
-                            {$i18n.t('home.advocacy.see_line')}<span class="vff-sr-only">
-                                : {item.name}</span
-                            >
-                        </Link>
-                        {#if item.a.cta_url}
-                            <a
-                                class="vff-btn secondary small"
-                                href={item.a.cta_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                lang={item.a.lang?.cta_label ?? undefined}
-                            >
-                                {item.a.cta_label || $i18n.t('home.advocacy.act')}<i
-                                    class="bi bi-box-arrow-up-right vff-ext"
-                                    aria-hidden="true"
-                                ></i><span class="vff-sr-only"> ({$i18n.t('common.new_tab')})</span>
-                            </a>
+                        <p
+                            class="title"
+                            id="{uid}-{item.slug}"
+                            lang={item.a.lang?.title ?? undefined}
+                        >
+                            {item.a.title ?? $i18n.t(`home.advocacy.${item.kind}`)}
+                        </p>
+                        {#if item.a.message}
+                            <p class="message" lang={item.a.lang?.message ?? undefined}>
+                                {item.a.message}
+                            </p>
                         {/if}
-                    </div>
-                </aside>
-            {/each}
-        </div>
+                        <div class="actions">
+                            <Link class="vff-link" href={`/lines/${item.slug}`}>
+                                {$i18n.t('home.advocacy.see_line')}<span class="vff-sr-only">
+                                    : {item.name}</span
+                                >
+                            </Link>
+                            {#if item.a.cta_url}
+                                <a
+                                    class="vff-btn secondary small"
+                                    href={item.a.cta_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    lang={item.a.lang?.cta_label ?? undefined}
+                                >
+                                    {item.a.cta_label || $i18n.t('home.advocacy.act')}<i
+                                        class="bi bi-box-arrow-up-right vff-ext"
+                                        aria-hidden="true"
+                                    ></i><span class="vff-sr-only">
+                                        ({$i18n.t('common.new_tab')})</span
+                                    >
+                                </a>
+                            {/if}
+                        </div>
+                    </aside>
+                {/each}
+            </div>
+        {/if}
         {#each mentions as item (item.slug)}
             <p class={['mention', { single: cards.length === 1 }]}>
                 <span lang={item.home?.lang ?? undefined}>{item.home?.summary}</span>

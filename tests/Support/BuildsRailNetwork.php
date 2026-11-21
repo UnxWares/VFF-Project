@@ -197,6 +197,103 @@ trait BuildsRailNetwork
             ->value('traffic_type');
     }
 
+    // ─── Audit des tronçons (SegmentAuditor) ─────────────────────────────
+    //
+    // Réseau d'essai en WKT (longitude latitude, EPSG:4326), le plus souvent sur un parallèle :
+    // 0,0001° de latitude vaut environ 11 m. Aucune commune n'est posée par défaut, si bien que tout
+    // tronçon est « hors de France » pour le placement ; auditCommune() en pose une.
+
+    /**
+     * Voie d'une source (BD TOPO, OSM, relevé IGN historique) : rattachée directement à $lineId
+     * (colonne line_id), et en plus par source_trace_lines à $listedFor.
+     *
+     * @param  array<string, mixed>  $properties  attributs bruts (BD TOPO : etat_de_l_objet, usage)
+     */
+    protected function auditTrack(string $source, string $wkt, ?int $lineId = null, ?string $layer = null, array $properties = [], ?int $listedFor = null): int
+    {
+        static $n = 0;
+        $layer ??= match ($source) {
+            'bdtopo' => 'Voie ferrée principale',
+            'osm' => 'rail',
+            default => null,
+        };
+        if ($source === 'bdtopo') {
+            $properties += ['etat_de_l_objet' => 'En service'];
+        }
+        $id = (int) DB::table('source_traces')->insertGetId([
+            'source' => $source, 'source_ref' => sprintf('%s-audit-%d', $source, ++$n), 'layer' => $layer,
+            'properties' => json_encode($properties, JSON_UNESCAPED_UNICODE), 'line_id' => $lineId, 'seen_at' => now(),
+            'geom' => DB::raw(sprintf("ST_Multi(ST_GeomFromText('%s', 4326))", $wkt)),
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        if ($listedFor !== null) {
+            DB::table('source_trace_lines')->insert(['source_trace_id' => $id, 'line_id' => $listedFor, 'role' => 'secondary',
+                'method' => 'touching', 'created_at' => now(), 'updated_at' => now()]);
+        }
+
+        return $id;
+    }
+
+    /** Tronçon du moteur, longueur calculée sur l'ellipsoïde. */
+    protected function auditSegment(Line $line, Era $era, string $wkt, string $status, string $traffic = 'mixed', ?string $source = 'sncf', bool $heritage = false): int
+    {
+        return (int) DB::table('line_segments')->insertGetId([
+            'line_id' => $line->id, 'era_id' => $era->id, 'status' => $status, 'traffic_type' => $traffic, 'source' => $source,
+            'is_heritage' => $heritage, 'geom' => DB::raw(sprintf("ST_GeomFromText('%s', 4326)", $wkt)),
+            'length_meters' => (int) DB::selectOne('SELECT ST_Length(ST_GeomFromText(?, 4326)::geography) AS m', [$wkt])->m,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    /**
+     * Événement daté de la ligne : de toute la ligne (`whole_line`), localisé sur $wkt (`pk`), ou
+     * non localisé (`unresolved`, portion nommée mais introuvable).
+     */
+    protected function auditEvent(Line $line, string $type, string $date, string $source = 'wikipedia', string $resolution = 'whole_line', ?string $wkt = null, ?string $url = null): int
+    {
+        return (int) DB::table('line_events')->insertGetId([
+            'line_id' => $line->id, 'type' => $type, 'event_date' => $date, 'description' => "{$type} {$date}", 'source' => $source,
+            'source_url' => $url, 'section_resolution' => $resolution, 'section_from' => $resolution === 'whole_line' ? null : 'Lieu-dit',
+            'section_geom' => $wkt === null ? null : DB::raw(sprintf("ST_Multi(ST_GeomFromText('%s', 4326))", $wkt)),
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    /** État actuel relevé par lignes-oubliées (present_states). */
+    protected function auditPresentState(string $state, string $wkt): void
+    {
+        static $n = 0;
+        DB::table('present_states')->insert(['source' => 'lignes-oubliees', 'source_ref' => 'lo-audit-'.(++$n), 'state' => $state,
+            'geom' => DB::raw(sprintf("ST_Multi(ST_GeomFromText('%s', 4326))", $wkt)), 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    /** Commune française qui couvre la boîte [lon1, lat1, lon2, lat2] : les tronçons dedans ne sont plus « à l'étranger ». */
+    protected function auditCommune(float $lon1, float $lat1, float $lon2, float $lat2): void
+    {
+        DB::table('commune_contours')->insert(['code_insee' => '45999', 'nom' => 'Commune d’essai', 'departement' => '45',
+            'geom' => DB::raw(sprintf('ST_Multi(ST_MakeEnvelope(%F, %F, %F, %F, 4326))', $lon1, $lat1, $lon2, $lat2)),
+            'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    /**
+     * Ligne d'audit d'un tronçon dans le résultat de SegmentAuditor::auditLine.
+     *
+     * @param  list<array{era_id: int, segments: list<array<string, mixed>>}>  $audit
+     * @return array<string, mixed>
+     */
+    protected static function auditedSegment(array $audit, int $eraId, int $segmentId): array
+    {
+        foreach ($audit as $era) {
+            foreach ($era['era_id'] === $eraId ? $era['segments'] : [] as $s) {
+                if ($s['segment_id'] === $segmentId) {
+                    return $s;
+                }
+            }
+        }
+
+        throw new \RuntimeException("tronçon {$segmentId} absent de l'audit de l'ère {$eraId}");
+    }
+
     private function portionPk(float $lon): int
     {
         return (int) round(($lon - 2.0) * self::PORTION_PK_PER_DEG);

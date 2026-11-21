@@ -5,6 +5,7 @@ namespace App\GraphQL\Resolvers;
 use App\Models\Accident;
 use App\Models\AccidentLine;
 use App\Models\AccidentSource;
+use App\Support\FrenchDepartments;
 
 /**
  * Champs calculés des types GraphQL `Accident`, `AccidentLineLink` et `AccidentSource` : mêmes
@@ -30,6 +31,23 @@ final class AccidentField
     public function wikipediaUrl(Accident $accident, array $args): ?string
     {
         return $accident->wikipedia[$this->locale($args)]['url'] ?? null;
+    }
+
+    /** @return array<string, string> */
+    public function provenance(Accident $accident): array
+    {
+        return $accident->provenance ?? [];
+    }
+
+    /** @param array{lang?: string} $args */
+    public function kindLabel(Accident $accident, array $args): string
+    {
+        return (string) __('accidents.kinds.'.$accident->kind->value, [], $this->locale($args));
+    }
+
+    public function departmentName(Accident $accident): ?string
+    {
+        return $accident->department_code !== null ? (FrenchDepartments::find($accident->department_code)[0] ?? null) : null;
     }
 
     public function time(Accident $accident): ?string

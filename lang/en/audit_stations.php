@@ -281,6 +281,7 @@ return [
             'same' => 'Same',
             'more_precise' => 'More precise',
             'less_precise' => 'Less precise',
+            'close' => 'Close to the range',
             'differs' => 'Different',
             'new' => 'Missing from VFF',
         ],

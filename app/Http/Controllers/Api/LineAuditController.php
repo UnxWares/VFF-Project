@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Line;
+use App\Services\SegmentAudit\AuditPage;
 use App\Services\SegmentAudit\SegmentAudits;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
@@ -16,9 +17,9 @@ use Illuminate\Http\Request;
 class LineAuditController extends Controller
 {
     /** Tronçons rendus par défaut, et au plus (une ligne longue en compte plusieurs centaines, avec leurs preuves). */
-    public const DEFAULT_LIMIT = 50;
+    public const DEFAULT_LIMIT = AuditPage::DEFAULT_LIMIT;
 
-    public const MAX_LIMIT = 200;
+    public const MAX_LIMIT = AuditPage::MAX_LIMIT;
 
     /** Exemple réel (Argentan - Granville, ère 2030, audit du 2026-11-21), un tronçon et des avis raccourcis. */
     public const EXAMPLE = [
@@ -168,14 +169,7 @@ class LineAuditController extends Controller
                 'message' => "L'audit de cette ligne n'est pas encore calculé pour cette ère.",
             ], 404);
         }
-        $segments = isset($valid['grade'])
-            ? array_values(array_filter($audit['segments'], fn (array $s): bool => $s['worst_grade'] === $valid['grade']))
-            : $audit['segments'];
-        $limit = (int) ($valid['limit'] ?? self::DEFAULT_LIMIT);
-        $offset = (int) ($valid['offset'] ?? 0);
-        unset($audit['segments']);
-        $audit += ['segments_total' => count($segments), 'limit' => $limit, 'offset' => $offset,
-            'segments' => array_slice($segments, $offset, $limit)];
+        $audit = AuditPage::apply($audit, $valid['grade'] ?? null, isset($valid['limit']) ? (int) $valid['limit'] : null, isset($valid['offset']) ? (int) $valid['offset'] : null);
 
         return response()->json($audit)->header('Cache-Control', 'public, max-age=3600');
     }

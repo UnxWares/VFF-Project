@@ -1,6 +1,7 @@
 <script>
     import { router } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
+    import { fitWords } from '$lib/fitWords.js';
     import { searchGroups, stepIndex } from '$lib/siteSearch.js';
 
     /**
@@ -49,6 +50,31 @@
     /** Traduction (toujours une chaîne : i18next la type aussi en objet). */
     const t = (/** @type {string} */ key, /** @type {Record<string, unknown>} */ params = {}) =>
         String($i18n.t(key, params));
+
+    // Texte indicatif : sur un champ étroit, il s'arrête à la fin d'un mot au lieu d'être coupé net.
+    let inputEl = $state(null);
+    let inputWidth = $state(0);
+    const placeholderText = $derived.by(() => {
+        const full = t('nav.search.placeholder');
+        if (!inputEl || !inputWidth) return full;
+        const style = getComputedStyle(inputEl);
+        const ctx = document.createElement('canvas').getContext('2d');
+        if (!ctx) return full;
+        ctx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+        return fitWords(full, inputWidth, (text) => ctx.measureText(text).width);
+    });
+    $effect(() => {
+        if (!inputEl) return;
+        const observer = new ResizeObserver(() => {
+            const style = getComputedStyle(inputEl);
+            inputWidth =
+                inputEl.clientWidth -
+                parseFloat(style.paddingLeft) -
+                parseFloat(style.paddingRight);
+        });
+        observer.observe(inputEl);
+        return () => observer.disconnect();
+    });
 
     const query = $derived(q.trim());
     // Groupes affichés (rubriques, lignes, gares, matériel, annuaires) : lib/siteSearch.js.
@@ -215,7 +241,8 @@
             onfocus={() => (isOpen = true)}
             onblur={() => (isOpen = false)}
             onkeydown={onKeydown}
-            placeholder={t('nav.search.placeholder')}
+            placeholder={placeholderText}
+            bind:this={inputEl}
             autocomplete="off"
             spellcheck="false"
             enterkeyhint="go"

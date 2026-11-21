@@ -95,7 +95,7 @@ final class LineProfileBuilder
             return null;
         }
         $stops = $this->stops($line);
-        $main = $this->orient($chain['path'], $stops);
+        $main = $this->orient($chain['path'], $stops, $line->name);
         ['path' => $path, 'branches' => $branches] = ProfileChain::append($main, $chain['branches']);
         $step = ProfilePath::stepFor($path->length());
         $gapLength = array_sum(array_map(fn (array $g): float => $g[1] - $g[0], $path->gaps));
@@ -479,38 +479,35 @@ final class LineProfileBuilder
     }
 
     /**
-     * Sens du parcours : du plus petit PK officiel vers le plus grand, d'après les gares placées
-     * sur le parcours (à moins de STATION_MAX_OFFSET_M) qui ont un PK. Faute de deux PK distincts,
-     * le sens de l'assemblage est gardé.
+     * Sens du parcours : celui des PK croissants de la ligne. On lit les PK officiels des gares
+     * placées sur le parcours (à moins de STATION_MAX_OFFSET_M). Sans deux PK officiels distincts,
+     * le nom de la ligne (« Ligne de A à B ») : le parcours part de la gare A. Sinon, le sens de
+     * l'assemblage est gardé. Les PK projetés sur le tracé ne servent pas : ils suivent le sens où la
+     * géométrie est enregistrée, pas la numérotation de la ligne.
      *
      * @param  list<array{slug: string, name: string, pk_m: int|null, lon: float, lat: float, status: string}>  $stops
      */
-    private function orient(ProfilePath $path, array $stops): ProfilePath
+    private function orient(ProfilePath $path, array $stops, string $lineName = ''): ProfilePath
     {
-        $withPk = [];
+        $official = [];
+        $placed = [];
         foreach ($stops as $stop) {
-            if ($stop['pk_m'] === null) {
+            $at = $path->locate([$stop['lon'], $stop['lat']]);
+            if ($at['offset'] > self::STATION_MAX_OFFSET_M) {
                 continue;
             }
-            $at = $path->locate([$stop['lon'], $stop['lat']]);
-            if ($at['offset'] <= self::STATION_MAX_OFFSET_M) {
-                $withPk[] = [$at['distance'], $stop['pk_m']];
+            $placed[] = [$at['distance'], $stop['name']];
+            if ($stop['pk_m'] !== null) {
+                $official[] = [$at['distance'], $stop['pk_m']];
             }
         }
-        if (count($withPk) < 2) {
-            return $path;
-        }
-        // Pente de la droite des moindres carrés du PK selon la distance : plus robuste qu'une
-        // comparaison des deux gares extrêmes quand une gare est mal placée.
-        $n = count($withPk);
-        $md = array_sum(array_column($withPk, 0)) / $n;
-        $mp = array_sum(array_column($withPk, 1)) / $n;
-        $slope = 0.0;
-        foreach ($withPk as [$d, $pk]) {
-            $slope += ($d - $md) * ($pk - $mp);
+        $reverse = ProfileOrientation::shouldReverse($official);
+        if ($reverse === null && count($placed) >= 2) {
+            usort($placed, fn (array $x, array $y): int => $x[0] <=> $y[0]);
+            $reverse = ProfileOrientation::reverseByName($lineName, $placed[0][1], $placed[count($placed) - 1][1]);
         }
 
-        return $slope < 0 ? $path->reversed() : $path;
+        return $reverse === true ? $path->reversed() : $path;
     }
 
     /**

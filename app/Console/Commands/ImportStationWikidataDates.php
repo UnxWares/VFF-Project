@@ -217,7 +217,7 @@ class ImportStationWikidataDates extends Command
                 $stations[$r['station_id']] = true;
             }
         }
-        $kinds = ['same', 'more_precise', 'less_precise', 'differs', 'new', 'station_open'];
+        $kinds = ['same', 'more_precise', 'less_precise', 'close', 'differs', 'new', 'station_open'];
         $this->table(['Type', ...$kinds], array_map(fn (string $k): array => [$k, ...array_map(fn (string $c): int => $by[$k][$c] ?? 0, $kinds)], array_keys($by)));
         $this->line(sprintf('Règle de rang proposée : %d gare(s) changeraient au moins une date (rien n\'est remplacé).', count($stations)));
     }

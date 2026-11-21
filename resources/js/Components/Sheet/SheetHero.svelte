@@ -95,8 +95,9 @@
         font-family: var(--vff-font-heading);
         font-size: var(--vff-fs-sm);
     }
-    /* Séparateur décoratif : non lu (texte de remplacement vide). */
-    .crumbs li + li::before {
+    /* Séparateur décoratif : non lu (texte de remplacement vide). Posé après l'entrée, pas avant la
+       suivante : quand le fil passe à la ligne (téléphone), l'entrée suivante reste sur le bord gauche. */
+    .crumbs li:not(:last-child)::after {
         content: '›';
         content: '›' / '';
         margin: 0 10px;

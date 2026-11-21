@@ -189,7 +189,7 @@
         align-items: baseline;
         gap: 6px 16px;
         margin: 0 0 var(--vff-space-5);
-        padding: 12px 16px;
+        padding: 14px 20px;
         border-radius: var(--vff-radius-md);
         background: var(--vff-bg-subtle);
         font-family: var(--vff-font-heading);
@@ -198,6 +198,10 @@
     }
     .legend p {
         margin: 0;
+    }
+    /* La phrase des ronds ouvre sa propre rangée (elle suivait la dernière case, au milieu d'une ligne). */
+    .legend ul + .legend-text {
+        flex-basis: 100%;
     }
     .legend-title {
         font-weight: 600;

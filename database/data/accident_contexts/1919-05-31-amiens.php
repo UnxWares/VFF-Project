@@ -1,0 +1,91 @@
+<?php
+
+// Contexte sourcé du déraillement du train de soldats britanniques en gare d'Amiens du 31 mai 1919 (recherche du 21/11/2026).
+return [
+    'slug' => '1919-05-31-amiens',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1919' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1919',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Mai',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1919&oldid=241133344#Mai',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste : au matin, un train ramenant d\'Italie des soldats anglais déraille sur un aiguillage en gare d\'Amiens, deux voitures renversées, 3 morts, 5 blessés graves et des blessés légers.',
+        ],
+        'delpher-1919-06-06' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Buitenland. Overzicht.',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1919-06-06',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMRHCE01:000054435:mpeg21:a0003',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Brève de la revue de presse étrangère : un train militaire transportant des soldats anglais a déraillé en gare d\'Amiens, trois soldats tués, cinq grièvement blessés.',
+        ],
+        'delpher-1919-06-07' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Korte berichten',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1919-06-07',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUTRA04:253309133:mpeg21:a00037',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Brève de la rubrique des nouvelles courtes : même information, train militaire de soldats anglais sorti des rails en gare d\'Amiens, trois morts, cinq blessés graves.',
+        ],
+        'petit-parisien-1919-06-01' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Petit Parisien du 1er juin 1919',
+            'publisher' => 'Le Petit Parisien',
+            'author' => null,
+            'published' => '1919-06-01',
+            'locator' => 'p. 3',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k5669120/f3.image',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Récit de l\'accident, cité par Wikipédia.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le matin du 31 mai 1919, en gare d\'Amiens, un train militaire qui ramenait d\'Italie des soldats britanniques est sorti des rails.',
+                'en' => 'On the morning of 31 May 1919, in Amiens station, a military train bringing British soldiers back from Italy left the rails.',
+                'de' => 'Am Morgen des 31. Mai 1919 entgleiste im Bahnhof Amiens ein Militärzug, der britische Soldaten aus Italien zurückbrachte.',
+                'sources' => ['wp-liste-1919', 'delpher-1919-06-06', 'delpher-1919-06-07'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Selon Wikipédia, le déraillement a eu lieu sur un aiguillage ; deux voitures se sont renversées et brisées.',
+                'en' => 'According to Wikipedia, the derailment took place on a set of points; two coaches overturned and broke up.',
+                'de' => 'Laut Wikipedia ereignete sich die Entgleisung auf einer Weiche; zwei Wagen kippten um und zerbrachen.',
+                'sources' => ['wp-liste-1919'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les deux brèves néerlandaises des 6 et 7 juin et la liste de Wikipédia comptent trois soldats tués et cinq grièvement blessés ; la liste ajoute un certain nombre de blessés légers.',
+                'en' => 'The two Dutch items of 6 and 7 June and the Wikipedia list count three soldiers killed and five seriously injured; the list adds a number of slightly injured.',
+                'de' => 'Die beiden niederländischen Meldungen vom 6. und 7. Juni und die Wikipedia-Liste zählen drei getötete und fünf schwer verletzte Soldaten; die Liste nennt zusätzlich eine Anzahl Leichtverletzter.',
+                'sources' => ['delpher-1919-06-06', 'delpher-1919-06-07', 'wp-liste-1919'],
+            ],
+        ],
+    ],
+];

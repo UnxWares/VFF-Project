@@ -14,6 +14,7 @@
         nearestIndex,
         nearestStation,
         rackSentence,
+        sourceLang,
         ticks,
     } from '$lib/lineProfile.js';
 
@@ -202,8 +203,10 @@
                 {t(rackText.key, { system: rackText.system })}
                 {#if rack.braking_only}{t('profile.rack_braking')}{/if}
                 {t('profile.rack_not_measured')}
-                {t('profile.rack_source')}{colon(lang)}<a href={rack.source.url} rel="external"
-                    >{rack.source.title}</a
+                {t('profile.rack_source')}{colon(lang)}<a
+                    href={rack.source.url}
+                    rel="external"
+                    lang={sourceLang(rack.source.url)}>{rack.source.title}</a
                 >.
             </p>
         {:else if gradeWhere}
@@ -516,6 +519,8 @@
         margin: 0;
         max-width: var(--vff-measure);
         font-size: var(--vff-fs-sm);
+        /* Interligne du texte courant : la phrase de crémaillère tient sur trois ou quatre lignes. */
+        line-height: var(--vff-lh-body);
         color: var(--vff-text-muted);
     }
     .grade-where {

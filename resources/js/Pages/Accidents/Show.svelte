@@ -649,6 +649,17 @@
         font-weight: 600;
         color: var(--vff-text);
     }
+    /* Cible de 24 px au moins (WCAG 2.5.8) pour les liens seuls dans leur cellule. */
+    .facts dd :global(a),
+    .source-meta a,
+    .source-title {
+        display: inline-block;
+        padding-block: 2px;
+    }
+    .facts dd :global(a.osm) {
+        display: block;
+        width: fit-content;
+    }
     .source-title {
         font-family: var(--vff-font-body);
         font-size: var(--vff-fs-body);

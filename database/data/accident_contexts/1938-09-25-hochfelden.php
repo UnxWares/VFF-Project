@@ -1,0 +1,83 @@
+<?php
+
+// Contexte sourcé de la collision du passage à niveau de Hochfelden du 25 septembre 1938 (recherche du 21/11/2026).
+return [
+    'slug' => '1938-09-25-hochfelden',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1938' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1938',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Septembre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1938&oldid=233504441#Septembre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste : au passage à niveau de Hochfelden, ligne de Strasbourg à Sarrebourg, vers 2 heures, un train de réservistes percute un camion qui transporte aussi des réservistes ; 3 morts et 3 blessés graves.',
+        ],
+        'delpher-1938-10-04a' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Auto met soldaten door trein gegrepen',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1938-10-04',
+            'locator' => 'Limburger koerier',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010362901:mpeg21:a0076',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Brève : au passage à niveau de Hochfelden, entre Strasbourg et Saverne, un camion militaire chargé de soldats est heurté par un train de réservistes ; trois caporaux du 158e régiment d\'infanterie tués, trois soldats grièvement blessés, six indemnes.',
+        ],
+        'delpher-1938-10-04b' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Auto met soldaten door trein gegrepen',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1938-10-04',
+            'locator' => 'Dagblad van Noord-Brabant',
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:002003081:mpeg21:a00037',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même brève que dans le Limburger koerier du même jour : camion militaire broyé, trois morts, trois blessés graves.',
+        ],
+        'figaro-1938-09-26' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Figaro, 26 septembre 1938, p. 5',
+            'publisher' => 'Gallica (Bibliothèque nationale de France)',
+            'author' => null,
+            'published' => '1938-09-26',
+            'locator' => 'p. 5',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k409991j/f5.item',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article cité par la liste de Wikipédia.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 25 septembre 1938, vers 2 heures du matin, un train de réservistes heurte au passage à niveau de Hochfelden, sur la ligne de Strasbourg à Sarrebourg, un camion militaire qui transporte lui aussi des soldats. Le camion est broyé.',
+                'en' => 'On 25 September 1938, at about 2 am, a train carrying reservists struck a military lorry, also carrying soldiers, at the Hochfelden level crossing on the Strasbourg to Sarrebourg line. The lorry was crushed.',
+                'de' => 'Am 25. September 1938 erfasste gegen 2 Uhr morgens ein Zug mit Reservisten am Bahnübergang von Hochfelden an der Strecke Straßburg - Saarburg einen Militärlastwagen, der ebenfalls Soldaten beförderte. Der Lastwagen wurde zertrümmert.',
+                'sources' => ['wp-liste-1938', 'delpher-1938-10-04a'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Trois caporaux du 158e régiment d\'infanterie sont tués et trois soldats grièvement blessés ; six autres occupants du camion sortent indemnes.',
+                'en' => 'Three corporals of the 158th Infantry Regiment were killed and three soldiers seriously injured; six other occupants of the lorry escaped unhurt.',
+                'de' => 'Drei Korporale des 158. Infanterieregiments wurden getötet und drei Soldaten schwer verletzt; sechs weitere Insassen des Lastwagens blieben unverletzt.',
+                'sources' => ['delpher-1938-10-04a', 'delpher-1938-10-04b', 'wp-liste-1938'],
+            ],
+        ],
+    ],
+];

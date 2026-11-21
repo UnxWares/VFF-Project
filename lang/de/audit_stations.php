@@ -281,6 +281,7 @@ return [
             'same' => 'Gleich',
             'more_precise' => 'Genauer',
             'less_precise' => 'Ungenauer',
+            'close' => 'Nahe am Zeitraum',
             'differs' => 'Abweichend',
             'new' => 'Fehlt in VFF',
         ],
