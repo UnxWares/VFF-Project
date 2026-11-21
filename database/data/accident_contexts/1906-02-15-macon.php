@@ -1,0 +1,83 @@
+<?php
+
+// Contexte sourcé du déraillement près de la gare de Mâcon, ligne de Paris à Marseille, de février 1906 (recherche du 21/11/2026).
+return [
+    'slug' => '1906-02-15-macon',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1906' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1906',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Février',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1906&oldid=233590740#F%C3%A9vrier',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 15 février 1906, d\'après Le Matin du 16 février : sur la ligne Paris - Lyon, vers 11 h, peu avant la gare de Mâcon, les rails s\'écartent au passage d\'un train de marchandises venant de Lyon, dont la locomotive et les six wagons de tête se renversent ; le conducteur chef est tué dans son fourgon disloqué.',
+        ],
+        'ddb-1906-02-16-bielefeld' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Schwerer Eisenbahnunfall',
+            'publisher' => 'Bielefelder General-Anzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1906-02-16',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/WCFWC73GMYEZJOGWVVWQPAZWIS7PWPJO?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Lyon du 16 février : près de la station de Mâcon, l\'express de Lyon a déraillé ; le chef de train et le mécanicien ont été tués, plusieurs voyageurs grièvement blessés.',
+        ],
+        'ddb-1906-02-16-tagwacht' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Lyon, 16. Febr.',
+            'publisher' => 'Schwäbische Tagwacht (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1906-02-16',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/4VGTAP5GKO3VCG4UWPSX2RO3FO2JS7MM?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche de Lyon : l\'express Paris - Lyon a déraillé à la station de Mâcon ; le chef de train et le mécanicien tués, plusieurs voyageurs grièvement blessés.',
+        ],
+        'ddb-1906-02-17-allgemeine' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Zugsentgleisung',
+            'publisher' => 'Allgemeine Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1906-02-17',
+            'locator' => 'p. 5',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/2MIB74HPGD32IUFWSMBNJ6SUVL32UPTF?issuepage=5',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Version de la même dépêche de Lyon : l\'express de Lyon déraillé à la station de Mâcon, le chef de train et un mécanicien tués, un voyageur grièvement blessé.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Le 15 février 1906, vers 11 h, un train a déraillé peu avant la gare de Mâcon, sur la ligne de Paris à Lyon. Selon la liste de Wikipédia, les rails se sont écartés sous un train de marchandises venant de Lyon, dont la locomotive et les six premiers wagons se sont renversés.',
+                'en' => 'On 15 February 1906, at about 11 am, a train derailed shortly before Mâcon station on the Paris to Lyon line. According to the Wikipedia list the rails spread under a goods train coming from Lyon, and its engine and first six wagons overturned.',
+                'de' => 'Am 15. Februar 1906 gegen 11 Uhr entgleiste kurz vor dem Bahnhof Mâcon an der Strecke Paris-Lyon ein Zug. Nach der Wikipedia-Liste wichen die Schienen unter einem aus Lyon kommenden Güterzug auseinander; Lokomotive und die sechs ersten Wagen stürzten um.',
+                'sources' => ['wp-liste-1906', 'ddb-1906-02-16-bielefeld'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Les sources ne s\'accordent ni sur le train ni sur le bilan. La liste de Wikipédia décrit un train de marchandises et un seul mort, le conducteur chef, tué dans son fourgon. La dépêche de Lyon du 16 février, reprise par la presse allemande, parle de l\'express de Lyon, avec le chef de train et le mécanicien tués et plusieurs voyageurs grièvement blessés (un seul dans l\'Allgemeine Zeitung).',
+                'en' => 'The sources agree neither on the train nor on the toll. The Wikipedia list describes a goods train and a single death, the chief guard, killed in his van. The Lyon dispatch of 16 February, carried by the German press, speaks of the Lyon express, with the guard and the driver killed and several passengers seriously injured (only one in the Allgemeine Zeitung).',
+                'de' => 'Die Quellen stimmen weder über den Zug noch über die Bilanz überein. Die Wikipedia-Liste beschreibt einen Güterzug und einen einzigen Toten, den Zugführer, der in seinem Packwagen ums Leben kam. Die von der deutschen Presse übernommene Lyoner Meldung vom 16. Februar spricht vom Lyoner Schnellzug, vom Tod des Zugführers und des Lokomotivführers und von mehreren schwer verletzten Reisenden (in der Allgemeinen Zeitung nur einer).',
+                'sources' => ['wp-liste-1906', 'ddb-1906-02-16-bielefeld', 'ddb-1906-02-16-tagwacht', 'ddb-1906-02-17-allgemeine'],
+            ],
+        ],
+    ],
+];
