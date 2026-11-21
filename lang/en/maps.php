@@ -422,5 +422,15 @@ return [
         'popup_close' => 'Close popup',
         'locate' => 'Locate me (your position is only used to centre the map: it is neither sent to VFF nor stored)',
         'locate_unavailable' => 'Location unavailable: access refused, or not supported by this browser',
+        // MapLibre message when the map asks for two fingers (phone) or a key (computer).
+        'gestures_windows' => 'Use Ctrl + scroll to zoom the map',
+        'gestures_mac' => 'Use ⌘ + scroll to zoom the map',
+        'gestures_mobile' => 'Use two fingers to move the map',
+        'marker' => 'Map marker',
+        'logo' => 'MapLibre logo',
+        'globe_enable' => 'Show the globe',
+        'globe_disable' => 'Back to the flat map',
+        'terrain_enable' => 'Show terrain',
+        'terrain_disable' => 'Hide terrain',
     ],
 ];

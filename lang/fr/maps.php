@@ -422,5 +422,15 @@ return [
         'popup_close' => 'Fermer la bulle',
         'locate' => 'Me localiser (votre position sert seulement à centrer la carte : elle n’est ni envoyée à VFF ni enregistrée)',
         'locate_unavailable' => 'Localisation indisponible : accès refusé, ou non pris en charge par ce navigateur',
+        // Message de MapLibre quand la carte demande deux doigts (téléphone) ou une touche (ordinateur).
+        'gestures_windows' => 'Ctrl + molette pour zoomer sur la carte',
+        'gestures_mac' => '⌘ + molette pour zoomer sur la carte',
+        'gestures_mobile' => 'Utilisez deux doigts pour déplacer la carte',
+        'marker' => 'Repère sur la carte',
+        'logo' => 'Logo de MapLibre',
+        'globe_enable' => 'Afficher le globe',
+        'globe_disable' => 'Revenir à la carte à plat',
+        'terrain_enable' => 'Afficher le relief',
+        'terrain_disable' => 'Masquer le relief',
     ],
 ];

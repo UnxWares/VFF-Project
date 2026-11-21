@@ -1,0 +1,92 @@
+<?php
+
+// Contexte sourcé de la collision en gare de Caen du 4 juillet 1928 (recherche du 21/11/2026).
+return [
+    'slug' => '1928-07-04-caen',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1928' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1928',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Juillet',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1928&oldid=233501561#Juillet',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste : 4 juillet vers 12 h 45, en gare de Caen, train transatlantique de Cherbourg aux freins défaillants brûlant des signaux fermés, tamponne le train pour Flers et Laval, 1 mort (le chef de train) et un blessé, environ quinze blessés dans l\'autre train.',
+        ],
+        'delpher-1928-07-05a' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinbotsing te Caen. Een doode en verscheidene licht gewonden',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1928-07-05',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:110563463:mpeg21:a0026',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche B.T.A. du 4 juillet : en gare de Caen, train de Cherbourg en collision avec un train de chemin de fer vicinal, le chef de train tué, plusieurs blessés dont aucun grave.',
+        ],
+        'delpher-1928-07-05b' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinchef te Caen gedood',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1928-07-05',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:011114774:mpeg21:a0004',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche : le train postal de Cherbourg heurté en gare de Caen par un autre train, le chef de train tué, plusieurs voyageurs plus ou moins blessés.',
+        ],
+        'delpher-1928-07-05c' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Frankrijk. Treinbotsing. Een doode',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1928-07-05',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB04:000196908:mpeg21:a0016',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche B.T.A. : le train postal de Cherbourg a heurté un train local, le chef de train tué, plusieurs blessés dans le train heurté, aucun grave.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le mercredi 4 juillet 1928, en gare de Caen, le train de Cherbourg (le train transatlantique selon la liste de Wikipédia, un train postal selon les dépêches) est entré en collision avec un autre train, un train local ou un train pour Flers et Laval.',
+                'en' => 'On Wednesday 4 July 1928, at Caen station, the train from Cherbourg (the transatlantic boat train according to the Wikipedia list, a mail train according to the dispatches) collided with another train, a local train or a train for Flers and Laval.',
+                'de' => 'Am Mittwoch, dem 4. Juli 1928, stieß im Bahnhof Caen der Zug aus Cherbourg (laut Wikipedia-Liste der Transatlantikzug, laut den Meldungen ein Postzug) mit einem anderen Zug zusammen, einem Lokalzug oder einem Zug nach Flers und Laval.',
+                'sources' => ['delpher-1928-07-05a', 'delpher-1928-07-05b', 'delpher-1928-07-05c', 'wp-liste-1928'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, les freins du train de Cherbourg étaient défaillants et il a brûlé des signaux fermés vers 12 h 45.',
+                'en' => 'According to the Wikipedia list, the brakes of the Cherbourg train had failed and it ran closed signals at about 12.45 p.m.',
+                'de' => 'Laut Wikipedia-Liste versagten die Bremsen des Zuges aus Cherbourg, und er überfuhr gegen 12.45 Uhr geschlossene Signale.',
+                'sources' => ['wp-liste-1928'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le chef du train de Cherbourg a été tué. Plusieurs personnes ont été blessées, dont aucune grièvement selon les dépêches ; la liste de Wikipédia compte une quinzaine de blessés dans le train heurté et un blessé, le mécanicien, dans l\'autre.',
+                'en' => 'The guard of the Cherbourg train was killed. Several people were injured, none seriously according to the dispatches; the Wikipedia list counts about fifteen injured in the struck train and one injured, the driver, in the other.',
+                'de' => 'Der Zugführer des Zuges aus Cherbourg wurde getötet. Mehrere Personen wurden verletzt, laut den Meldungen keine schwer; die Wikipedia-Liste zählt etwa fünfzehn Verletzte im gerammten Zug und einen Verletzten, den Lokführer, im anderen.',
+                'sources' => ['delpher-1928-07-05a', 'delpher-1928-07-05b', 'delpher-1928-07-05c', 'wp-liste-1928'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

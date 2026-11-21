@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Line;
 use App\Models\Station;
 use App\Services\JunctionRepair;
+use App\Services\SingleAxis;
 use App\Services\TraceConflation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -371,6 +372,89 @@ class JunctionRepairTest extends TestCase
         $this->assertSame(0, $stats['jog_smoothed']);
         $this->assertEqualsWithDelta(19.75, $stats['stub_trimmed_m'], 0.5);
         $this->assertSame([[-185.3, -380.8], [191.2, 377.8]], $this->freeEnds());
+    }
+
+    /**
+     * Après la réparation puis le nettoyage final : longueur (m) de tracé qui longe à moins de 5 m un autre morceau de
+     * la ligne, hors des 5 premiers et derniers mètres de chaque morceau (raccords en Y), et morceaux restants.
+     *
+     * @return array{0: float, 1: int}
+     */
+    private function doubledAfterTidy(): array
+    {
+        (new SingleAxis)->tidy($this->line->id);
+        $r = DB::selectOne(<<<'SQL'
+            WITH s AS (SELECT row_number() OVER () AS i, d.geom AS g FROM line_reference_parts p, LATERAL ST_Dump(ST_Transform(p.geom, 2154)) d WHERE p.line_id = ?),
+            inner_s AS (SELECT i, ST_LineSubstring(g, LEAST(0.5, 5 / ST_Length(g)), GREATEST(0.5, 1 - 5 / ST_Length(g))) AS g FROM s)
+            SELECT COALESCE(SUM(ST_Length(ST_Intersection(a.g, ST_Buffer(b.g, 5)))), 0) AS m, (SELECT COUNT(*) FROM s) AS n
+            FROM inner_s a JOIN s b ON b.i <> a.i AND ST_DWithin(a.g, b.g, 5)
+            SQL, [$this->line->id]);
+
+        return [(float) $r->m, (int) $r->n];
+    }
+
+    public function test_two_jog_loop_at_batignolles_loses_its_doubled_arm(): void
+    {
+        // Batignolles (802, 334900 ; état du 21/11/2026 relatif au point 2.3096, 48.8905) : deux voies BD TOPO parallèles à
+        // 5 m. A finit sur un saut de 5 m vers le milieu de B ; la tête de B revient 65 m le long de A et n'est tenue que par
+        // un second saut de 6 m posé sur A. La courbe en S de A vers B était posée, B gardée entière : le nettoyage final
+        // retirait la courbe (à moins de 5 m de B) et laissait un triangle de 27 m en double (18 paires de tronçons).
+        DB::table('lines')->where('id', $this->line->id)->update(['network' => 'principal']);
+        $this->part('bdtopo', [[[-180.6, 172.2], [-163.4, 156.5], [-133.4, 129.7], [-103.8, 103.1], [-86.4, 87.5], [-71.4, 74.0], [-62.4, 66.0],
+            [-51.0, 56.3], [-38.1, 45.1], [-25.4, 33.7], [-16.2, 25.6], [-2.5, 13.6], [19.3, -6.2], [45.0, -27.9]]]);
+        $this->part('bdtopo', [[[-7.8, 9.9], [43.4, -33.2], [74.7, -60.6], [104.1, -86.1], [131.7, -109.1], [182.0, -152.3], [190.8, -159.7]]]);
+        $this->connector([[45.0, -27.9], [41.8, -31.8]]);
+        $this->connector([[-7.8, 9.9], [-3.6, 14.7]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['jog_smoothed']);
+        $this->assertEqualsWithDelta(0, $this->totalLength('connector'), 0.01);
+        $this->assertSame([[-180.6, 172.2], [190.8, -159.7]], $this->freeEnds());
+        $this->assertLessThan(10, $this->maxKink());
+        [$doubled, $n] = $this->doubledAfterTidy();
+        $this->assertLessThan(1, $doubled);
+        $this->assertSame(1, DB::table('line_reference_parts')->where('line_id', $this->line->id)->where('matched_source', JunctionRepair::SMOOTHED)->count());
+        $this->assertSame(3, $n);
+    }
+
+    public function test_two_jog_loop_at_dercy_versigny_loses_its_doubled_arm(): void
+    {
+        // Dercy - Versigny (3614 ; état du 21/11/2026 relatif au point 3.5810, 49.6868) : tracé archeo recalé sur OSM (A) puis
+        // sur la BD TOPO (B), à 3-4 m ; même boucle de deux sauts (3 et 4 m), bras de 35 m (16 paires de tronçons en double).
+        $this->part('archeoferroviaire', [[[-196.9, 31.2], [-173.5, 27.8], [19.2, -5.1]]], [], 'osm');
+        $this->part('archeoferroviaire', [[[-14.1, 5.1], [-6.2, 3.3], [67.2, -12.3], [180.2, -31.0], [196.7, -33.6]]], [], 'bdtopo');
+        $this->connector([[19.2, -5.1], [19.8, -2.3]], 'archeoferroviaire');
+        $this->connector([[-14.1, 5.1], [-14.8, 0.7]], 'archeoferroviaire');
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['jog_smoothed']);
+        $this->assertEqualsWithDelta(0, $this->totalLength('connector'), 0.01);
+        $this->assertSame([[-196.9, 31.2], [196.7, -33.6]], $this->freeEnds());
+        [$doubled, $n] = $this->doubledAfterTidy();
+        $this->assertLessThan(1, $doubled);
+        $this->assertSame(3, $n);
+    }
+
+    public function test_two_jog_loop_whose_arm_holds_another_line_is_kept(): void
+    {
+        // Même boucle, mais une autre ligne finit sur le bras : il reste, avec son raccord.
+        DB::table('lines')->where('id', $this->line->id)->update(['network' => 'principal']);
+        $this->part('bdtopo', [[[-180.6, 172.2], [-103.8, 103.1], [-51.0, 56.3], [-16.2, 25.6], [-2.5, 13.6], [19.3, -6.2], [45.0, -27.9]]]);
+        $this->part('bdtopo', [[[-7.8, 9.9], [43.4, -33.2], [104.1, -86.1], [190.8, -159.7]]]);
+        $this->connector([[45.0, -27.9], [41.8, -31.8]]);
+        $this->connector([[-7.8, 9.9], [-3.6, 14.7]]);
+        $other = Line::factory()->create(['code' => '421000', 'gauge_mm_default' => 1435]);
+        $this->part('bdtopo', [[[17.8, -11.6], [300, 100]]], [], null, $other);
+
+        $this->repair();
+
+        $this->assertGreaterThan(5, $this->totalLength('connector'));
+        $this->assertNotContains([-7.8, 9.9], $this->freeEnds());
+        $this->assertLessThan(0.1, (float) DB::selectOne(<<<'SQL'
+            SELECT ST_Distance(ST_SetSRID(ST_MakePoint(?, ?), 2154), ST_Collect(ST_Transform(geom, 2154))) AS d FROM line_reference_parts WHERE line_id = ?
+            SQL, [self::X0 + 17.8, self::Y0 - 11.6, $this->line->id])->d);
     }
 
     /** La voie 2 part-elle toujours de (985, 12) et va-t-elle jusqu'au bout (x > 1 900) ? */

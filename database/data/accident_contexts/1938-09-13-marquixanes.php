@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé de l'accident du passage à niveau de Marquixanes du 13 septembre 1938 (recherche du 21/11/2026).
+return [
+    'slug' => '1938-09-13-marquixanes',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1938' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1938',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Septembre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1938&oldid=233504441#Septembre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste : 13 septembre, 10 h 15, garde-barrière ayant rouvert la route, automotrice d\'essais contre un autobus venant de Bourg-Madame, 5 morts et 6 blessés graves.',
+        ],
+        'delpher-1938-09-14a' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Ook in Frankrijk: de overweg',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1938-09-14',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:110577942:mpeg21:a0088',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche Havas de Perpignan du 13 septembre : passage à niveau non gardé de « Marquizans » près de Prades, autobus saisi par un train, 4 morts et 9 blessés.',
+        ],
+        'delpher-1938-09-14b' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Trein grijpt autobus in Frankrijk. 4 doden en 9 gewonden',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1938-09-14',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB27:021092126:mpeg21:a00020',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche : autotrain contre un autobus sur la ligne Villefranche-Vernet-les-Bains, près de Prades, 4 morts et 9 blessés.',
+        ],
+        'delpher-1938-09-15' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Vier dooden op een onbewaakten overweg',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1938-09-15',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010238261:mpeg21:a0090',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Reprise de la dépêche : ligne électrique Villefranche-Vernet-les-Bains-Perpignan, passage à niveau non gardé, 4 morts et 9 blessés.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 13 septembre 1938 au passage à niveau de Marquixanes (écrit « Marquizans » par la presse néerlandaise, près de Prades), sur la ligne électrifiée de Perpignan à Villefranche-de-Conflent et Vernet-les-Bains, un train a heurté un autobus. La liste de Wikipédia précise : à 10 h 15, l\'autobus venait de Bourg-Madame.',
+                'en' => 'On 13 September 1938 at the Marquixanes level crossing (written "Marquizans" by the Dutch press, near Prades), on the electrified line from Perpignan to Villefranche-de-Conflent and Vernet-les-Bains, a train struck a bus. The Wikipedia list adds: at 10.15 am, the bus was coming from Bourg-Madame.',
+                'de' => 'Am 13. September 1938 stieß am Bahnübergang von Marquixanes (von der niederländischen Presse „Marquizans“ bei Prades geschrieben), auf der elektrifizierten Strecke von Perpignan nach Villefranche-de-Conflent und Vernet-les-Bains, ein Zug mit einem Autobus zusammen. Die Wikipedia-Liste ergänzt: um 10.15 Uhr, der Bus kam aus Bourg-Madame.',
+                'sources' => ['delpher-1938-09-14a', 'delpher-1938-09-15', 'wp-liste-1938'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, le garde-barrière avait rouvert la route nationale après le passage du train régulier vers Perpignan. Une automotrice électrique qui effectuait des essais en ligne, dont il ignorait la venue, a coupé l\'autobus en deux.',
+                'en' => 'According to the Wikipedia list, the crossing keeper had reopened the national road after the regular train to Perpignan had passed. An electric railcar running line tests, whose arrival he did not know of, cut the bus in two.',
+                'de' => 'Laut Wikipedia-Liste hatte der Bahnwärter die Nationalstraße nach der Durchfahrt des planmäßigen Zuges nach Perpignan wieder freigegeben. Ein elektrischer Triebwagen auf Probefahrt, von dem er nichts wusste, zerschnitt den Autobus in zwei Teile.',
+                'sources' => ['wp-liste-1938'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les dépêches du 14 septembre comptent quatre morts et neuf blessés ; la liste de Wikipédia donne cinq morts et six blessés graves.',
+                'en' => 'The reports of 14 September count four dead and nine injured; the Wikipedia list gives five dead and six seriously injured.',
+                'de' => 'Die Meldungen vom 14. September zählen vier Tote und neun Verletzte; die Wikipedia-Liste nennt fünf Tote und sechs Schwerverletzte.',
+                'sources' => ['delpher-1938-09-14a', 'delpher-1938-09-14b', 'delpher-1938-09-15', 'wp-liste-1938'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le passage à niveau est dit « non gardé » par la dépêche Havas, alors que la liste de Wikipédia parle d\'un garde-barrière qui a rouvert la route. Le bilan diffère : 4 morts et 9 blessés (dépêches), 5 morts et 6 blessés graves (liste).',
+                'en' => 'The crossing is described as "unguarded" by the Havas dispatch, whereas the Wikipedia list speaks of a crossing keeper who reopened the road. The toll differs: 4 dead and 9 injured (reports), 5 dead and 6 seriously injured (list).',
+                'de' => 'Der Bahnübergang wird von der Havas-Meldung als „unbewacht“ bezeichnet, während die Wikipedia-Liste von einem Bahnwärter spricht, der die Straße wieder freigab. Die Bilanz weicht ab: 4 Tote und 9 Verletzte (Meldungen), 5 Tote und 6 Schwerverletzte (Liste).',
+                'sources' => ['delpher-1938-09-14a', 'delpher-1938-09-15', 'wp-liste-1938'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

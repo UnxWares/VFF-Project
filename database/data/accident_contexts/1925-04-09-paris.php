@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé de la collision avec le butoir de la gare du Nord du 9 avril 1925 (recherche du 21/11/2026).
+return [
+    'slug' => '1925-04-09-paris',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1925' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1925',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'année 1925',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1925&oldid=235357727#1925',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste : 9 avril, 6 h 35, train de banlieue de Sevran-Livry contre le heurtoir de la gare du Nord, fourgon soulevé, première voiture encastrée, 2 morts et une vingtaine de blessés ; mécanicien inculpé d\'homicide.',
+        ],
+        'delpher-1925-04-10a' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Weer een spoorwegongeval in Frankrijk',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1925-04-10',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB23:001316020:mpeg21:a00036',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche du 9 avril : le sixième accident en quelques semaines, un train contre un butoir à la gare du Nord, 2 morts et 13 blessés.',
+        ],
+        'delpher-1925-04-10b' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Onveiligheid op de Fransche spoorwegen',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1925-04-10',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010347476:mpeg21:a0016',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche B.T.A. : train omnibus d\'Aulnay contre un butoir à la gare du Nord, 2 morts et 12 blessés.',
+        ],
+        'delpher-1925-04-11' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Frankrijk (rubrique sur les accidents ferroviaires)',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1925-04-11',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:011168497:mpeg21:a0098',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même information : 2 morts et 12 blessés, sixième accident en quelques semaines.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le jeudi 9 avril 1925 au matin (6 h 35 selon la liste de Wikipédia), un train omnibus de banlieue, venu de Sevran-Livry selon la liste et d\'Aulnay selon une dépêche, n\'a pas pu s\'arrêter à temps à la gare du Nord, à Paris, et a heurté le butoir.',
+                'en' => 'On the morning of Thursday 9 April 1925 (6.35 a.m. according to the Wikipedia list), a suburban stopping train, from Sevran-Livry according to the list and from Aulnay according to a dispatch, could not stop in time at the Gare du Nord in Paris and hit the buffer stop.',
+                'de' => 'Am Morgen des Donnerstags, 9. April 1925 (laut Wikipedia-Liste 6.35 Uhr), konnte ein Vorortpersonenzug, laut Liste aus Sevran-Livry und laut einer Meldung aus Aulnay, im Pariser Gare du Nord nicht rechtzeitig anhalten und fuhr gegen den Prellbock.',
+                'sources' => ['delpher-1925-04-10a', 'delpher-1925-04-10b', 'wp-liste-1925'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le fourgon de tête s\'est soulevé et la première voiture s\'y est encastrée, d\'après la liste de Wikipédia.',
+                'en' => 'The leading van lifted and the first coach was driven into it, according to the Wikipedia list.',
+                'de' => 'Der vordere Gepäckwagen hob sich, und der erste Wagen schob sich in ihn hinein, laut Wikipedia-Liste.',
+                'sources' => ['wp-liste-1925'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Le mécanicien a été inculpé d\'homicide : il n\'avait utilisé que le frein à air alors que les règlements prescrivaient le frein manuel, selon la liste de Wikipédia.',
+                'en' => 'The driver was charged with manslaughter: he had used only the air brake whereas the regulations required the hand brake, according to the Wikipedia list.',
+                'de' => 'Der Lokführer wurde wegen fahrlässiger Tötung angeklagt: Er hatte nur die Druckluftbremse benutzt, obwohl die Vorschriften die Handbremse verlangten, laut Wikipedia-Liste.',
+                'sources' => ['wp-liste-1925'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Deux personnes sont mortes. Les dépêches néerlandaises comptent douze ou treize blessés, la liste de Wikipédia une vingtaine. La presse néerlandaise y voit le sixième accident ferroviaire en quelques semaines en France.',
+                'en' => 'Two people died. The Dutch dispatches count twelve or thirteen injured, the Wikipedia list about twenty. The Dutch press sees it as the sixth rail accident in France within a few weeks.',
+                'de' => 'Zwei Menschen starben. Die niederländischen Meldungen zählen zwölf oder dreizehn Verletzte, die Wikipedia-Liste etwa zwanzig. Die niederländische Presse sieht darin den sechsten Eisenbahnunfall in Frankreich innerhalb weniger Wochen.',
+                'sources' => ['delpher-1925-04-10a', 'delpher-1925-04-10b', 'delpher-1925-04-11', 'wp-liste-1925'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé de l'accident entre Sèvres et Chaville du 6 mai 1900 (recherche du 21/11/2026).
+return [
+    'slug' => '1900-05-06-saint-malo',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1900' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1900',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Mai',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1900&oldid=233589330#Mai',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Express pour Saint-Malo arrêté entre Sèvres et Chaville et tamponné par le train-poste pour Brest, vers 21 h, un mort et une vingtaine de blessés dont deux morts ensuite.',
+        ],
+        'delpher-zuidholland-1900-05-08' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève : ongeluk tusschen Sèvres en Chaville',
+            'publisher' => 'Dagblad van Zuid-Holland en \'s Gravenhage (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1900-05-08',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB19:003439017:mpeg21:a00020',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Express de Paris-Brest parti de Montparnasse à 20 h 30, déraillement attribué à un glissement de terrain, train de marchandises qui le rattrape, 36 voyageurs blessés.',
+        ],
+        'delpher-utrecht-1900-05-08a' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève sur l\'accident de Sèvres-Chaville',
+            'publisher' => 'Utrechtsch Provinciaal en Stedelijk Dagblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1900-05-08',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUTRA04:253164124:mpeg21:a00011',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Express Paris-Brest déraillé, train-poste qui lui roule dessus ; travaux sur la voie entre Sèvres et Chaville.',
+        ],
+        'delpher-utrecht-1900-05-08b' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève rectificative (même numéro)',
+            'publisher' => 'Utrechtsch Provinciaal en Stedelijk Dagblad (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1900-05-08',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUTRA04:253164124:mpeg21:a00044',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Bilan donné plus tard : deux morts et douze blessés dont cinq graves.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le dimanche 6 mai 1900 au soir, sur la ligne de l\'Ouest de Paris-Montparnasse vers Brest, entre les gares de Sèvres et de Chaville, des travaux importants étaient en cours sur la voie. L\'express de Paris à Brest, parti de Montparnasse à 20 h 30 selon la presse néerlandaise, était bondé de soldats et de marins qui rentraient à Brest.',
+                'en' => 'On the evening of Sunday 6 May 1900, on the Ouest line from Paris-Montparnasse towards Brest, between Sèvres and Chaville stations, major works were under way on the track. The Paris to Brest express, which left Montparnasse at 8.30 pm according to the Dutch press, was packed with soldiers and sailors returning to Brest.',
+                'de' => 'Am Abend des Sonntags, 6. Mai 1900, wurden auf der Strecke der Westbahn von Paris-Montparnasse nach Brest zwischen den Bahnhöfen Sèvres und Chaville umfangreiche Gleisarbeiten ausgeführt. Der Schnellzug von Paris nach Brest, der nach der niederländischen Presse um 20.30 Uhr in Montparnasse abfuhr, war voll besetzt mit nach Brest zurückkehrenden Soldaten und Matrosen.',
+                'sources' => ['delpher-zuidholland-1900-05-08', 'delpher-utrecht-1900-05-08a', 'wp-liste-1900'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, un express pour Saint-Malo, arrêté à la suite de l\'avarie d\'un train qui le précédait, a été tamponné par le train-poste pour Brest, dont il était le dédoublement, à dix minutes d\'intervalle selon la pratique de la Compagnie de l\'Ouest. Les dernières voitures du train tamponné ont été écrasées. La presse néerlandaise écrit que l\'express a déraillé à la suite d\'un glissement de terrain dû à la pluie et qu\'un train de marchandises ou un train-poste l\'a ensuite heurté.',
+                'en' => 'According to the Wikipedia list, an express for Saint-Malo, stopped because of a breakdown on the train ahead, was run into by the mail train for Brest, of which it was a relief section, ten minutes behind according to the Compagnie de l\'Ouest\'s practice. The last coaches of the struck train were crushed. The Dutch press writes that the express derailed because of a landslip caused by rain and was then hit by a goods train or a mail train.',
+                'de' => 'Nach der Wikipedia-Liste wurde ein Schnellzug nach Saint-Malo, der wegen einer Panne des vorausfahrenden Zuges hielt, vom Postzug nach Brest gerammt, dessen Entlastungszug er war und der ihm nach der Praxis der Compagnie de l\'Ouest zehn Minuten folgte. Die letzten Wagen des gerammten Zuges wurden zerdrückt. Die niederländische Presse schreibt, der Schnellzug sei wegen eines regenbedingten Erdrutsches entgleist und dann von einem Güterzug oder Postzug getroffen worden.',
+                'sources' => ['wp-liste-1900', 'delpher-zuidholland-1900-05-08', 'delpher-utrecht-1900-05-08a'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, un mort et une vingtaine de blessés dont deux sont morts quelques jours plus tard. La presse néerlandaise du 8 mai 1900 parle d\'abord de 36 voyageurs blessés plus ou moins gravement, puis de deux morts et douze blessés dont cinq graves ; les blessés ont été transportés à Versailles et la circulation est restée interrompue toute la nuit.',
+                'en' => 'According to the Wikipedia list, one dead and about twenty injured, two of whom died a few days later. The Dutch press of 8 May 1900 first speaks of 36 passengers more or less seriously injured, then of two dead and twelve injured, five of them seriously; the injured were taken to Versailles and the line stayed blocked all night.',
+                'de' => 'Nach der Wikipedia-Liste ein Toter und etwa zwanzig Verletzte, von denen zwei einige Tage später starben. Die niederländische Presse vom 8. Mai 1900 spricht zunächst von 36 mehr oder weniger schwer verletzten Reisenden, dann von zwei Toten und zwölf Verletzten, davon fünf schwer; die Verletzten wurden nach Versailles gebracht, und die Strecke blieb die ganze Nacht gesperrt.',
+                'sources' => ['wp-liste-1900', 'delpher-zuidholland-1900-05-08', 'delpher-utrecht-1900-05-08b'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Les sources divergent sur la cause et sur le déroulement (tamponnement d\'un express arrêté, ou déraillement par glissement de terrain suivi d\'une collision), sur le nombre de blessés (une vingtaine, 12 ou 36) et sur le nombre de morts (un, ou deux). La fiche indique Saint-Malo, destination de l\'express ; l\'accident s\'est produit entre Sèvres et Chaville.',
+                'en' => 'The sources differ on the cause and course (a stationary express being run into, or a derailment from a landslip followed by a collision), on the number of injured (about twenty, 12 or 36) and on the number of dead (one, or two). The record gives Saint-Malo, the express\'s destination; the accident took place between Sèvres and Chaville.',
+                'de' => 'Die Quellen weichen bei Ursache und Hergang ab (Auffahren auf einen haltenden Schnellzug oder Entgleisung durch Erdrutsch mit anschließender Kollision), bei der Zahl der Verletzten (etwa zwanzig, 12 oder 36) und der Toten (einer oder zwei). Der Datensatz nennt Saint-Malo, das Fahrtziel des Schnellzugs; der Unfall ereignete sich zwischen Sèvres und Chaville.',
+                'sources' => ['wp-liste-1900', 'delpher-zuidholland-1900-05-08', 'delpher-utrecht-1900-05-08b'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

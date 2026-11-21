@@ -218,6 +218,80 @@ class MaterialRelationsTest extends TestCase
         $this->assertFalse(LineMaterialLinker::isElectricOnly('bimode', '[{"label": "25 kV 50 Hz"}]'));
     }
 
+    /**
+     * Ligne dont seul le bout d'une grande gare est sous caténaire (Brive - Toulouse par Capdenac : 1 km sur
+     * 249) : une série électrique ne la suit pas, et elle ne rend pas Paris - Toulouse ambigu. Une ligne non
+     * électrifiée qui partage une arête avec une ligne électrifiée (tronc commun avant Cahors) n'est pas
+     * comptée dans le trajet d'une série électrique.
+     */
+    public function test_an_electric_series_ignores_a_line_electrified_only_at_a_station_throat(): void
+    {
+        foreach (['B1' => true, 'B2' => true, 'B3' => true] as $code => $electrified) {
+            $this->lines[$code] = Line::factory()->create(['code' => $code, 'name' => "Ligne {$code}", 'is_lgv' => false, 'electrified' => $electrified]);
+        }
+        foreach (['Brive' => [1.52, 45.15], 'Capdenac' => [2.08, 44.58], 'Cahors' => [1.44, 44.45], 'Toulouse' => [1.45, 43.61]] as $name => [$lng, $lat]) {
+            $this->stations[$name] = Station::factory()->create(['name' => $name, 'geom' => Point::makeGeodetic($lat, $lng)]);
+        }
+        // Par Cahors (B1, électrifiée) : 100 + 110 km ; par Capdenac (B2, 1 km électrifié sur 220) : 110 + 110 km.
+        $this->edge('Brive', 'Cahors', 'B1', 100);
+        $this->edge('Cahors', 'Toulouse', 'B1', 110);
+        $this->edge('Brive', 'Capdenac', 'B2', 110);
+        $this->edge('Capdenac', 'Toulouse', 'B2', 110);
+        $this->segment('B1', 210, 210);
+        $this->segment('B2', 220, 1);
+        $page = ['title' => 'BB 26000', 'revid' => 7, 'sections' => [['title' => 'Service', 'level' => 2, 'text' => "* Brive - Toulouse\n"]]];
+        $material = ['fast' => false, 'from' => 1990, 'to' => null];
+
+        $this->assertSame([], $this->codes($this->relations()->links($page, $material, new \DateTimeImmutable('2026-11-20'))), 'en thermique : deux itinéraires proches');
+        $this->assertSame(['B1'], $this->codes($this->relations()->links($page, $material + ['electric' => true], new \DateTimeImmutable('2026-11-20'))));
+
+        // Tronc commun : l'arête Brive - Cahors porte aussi 6 km de B3, jamais électrifiée selon ses tronçons.
+        $this->segment('B3', 50, 0);
+        DB::table('station_edges')->where('from_station_id', $this->stations['Brive']->id)->where('line_id', $this->lines['B1']->id)
+            ->update(['line_ids' => '{'.$this->lines['B1']->id.','.$this->lines['B3']->id.'}', 'line_lengths' => '{94000,6000}']);
+        $this->assertSame(['B1'], $this->codes($this->relations()->links($page, $material + ['electric' => true], new \DateTimeImmutable('2026-11-20'))));
+    }
+
+    /** Tronçon de ligne à l'ère courante, électrification connue (source sncf) : longueur et part électrifiée en km. */
+    private function segment(string $line, int $km, int $electrifiedKm): void
+    {
+        foreach (array_filter([[$km - $electrifiedKm, false], [$electrifiedKm, true]], fn (array $s): bool => $s[0] > 0) as [$length, $electrified]) {
+            DB::table('line_segments')->insert([
+                'line_id' => $this->lines[$line]->id, 'era_id' => $this->era->id, 'status' => 'in_service',
+                'geom' => DB::raw("ST_GeomFromText('LINESTRING(1 44, 1.1 44.1)', 4326)"), 'length_meters' => $length * 1000,
+                'electrified' => $electrified, 'electrification_source' => 'sncf',
+            ]);
+        }
+    }
+
+    /**
+     * « Paris » : gares « Paris-… » du graphe. Une commune lointaine au nom composé (Paris-l'Hôpital, en
+     * Saône-et-Loire) ne rend pas le nom introuvable ; deux villes de taille voisine, si.
+     */
+    public function test_a_far_away_compound_town_name_does_not_hide_the_city(): void
+    {
+        foreach (['Paris-Austerlitz' => [2.37, 48.84], 'Paris-Est' => [2.36, 48.88], 'Paris-Nord' => [2.36, 48.88], "Paris-l'Hôpital" => [4.64, 46.91]] as $name => [$lng, $lat]) {
+            $this->stations[$name] = Station::factory()->create(['name' => $name, 'geom' => Point::makeGeodetic($lat, $lng)]);
+        }
+        $this->edge('Paris-Austerlitz', 'Dreux', '395000', 90);
+        $this->edge('Paris-Est', 'Paris-Nord', 'L1', 1);
+        $this->edge('Paris-Nord', 'Paris-Montparnasse', 'L1', 6);
+        $this->edge("Paris-l'Hôpital", 'Surdon', 'L1', 400);
+        $router = new RelationRouter;
+
+        $found = $router->resolve('Paris', 2030);
+        $this->assertNotContains($this->stations["Paris-l'Hôpital"]->id, $found);
+        $this->assertContains($this->stations['Paris-Montparnasse']->id, $found);
+        $this->assertCount(4, $found);
+
+        foreach (['Lille-Flandres' => [3.07, 50.64], 'Lille-Europe' => [3.08, 50.64], 'Lille-sur-Mer' => [-1.0, 46.0], 'Lille-Plage' => [-1.0, 46.01]] as $name => [$lng, $lat]) {
+            $this->stations[$name] = Station::factory()->create(['name' => $name, 'geom' => Point::makeGeodetic($lat, $lng)]);
+        }
+        $this->edge('Lille-Flandres', 'Lille-Europe', 'L1', 1);
+        $this->edge('Lille-sur-Mer', 'Lille-Plage', 'L1', 1);
+        $this->assertSame([], (new RelationRouter)->resolve('Lille', 2030), 'deux villes de taille voisine : nom ambigu');
+    }
+
     public function test_a_city_leaves_from_its_passenger_station_and_labels_are_readable(): void
     {
         $technical = $this->stations['Argentan (IE)'] = Station::factory()->create(['name' => 'Argentan (IE)', 'geom' => Point::makeGeodetic(48.75, -0.02)]);

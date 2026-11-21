@@ -69,6 +69,8 @@ return [
         'era_passenger_mismatch' => 'Epoche widerspricht dem Personenverkehr',
         'closed_without_date' => 'Geschlossen ohne Datum',
         'freight_only_undated' => 'Nur Güterverkehr ohne Datum für den Personenverkehr',
+        'outlier_source' => 'Einzelne Quelle ausgeschlossen',
+        'closure_sncf_referential' => 'Schließung aus dem SNCF-Verzeichnis',
     ],
     'checks_text' => [
         'retained_outvoted' => 'Mindestens zwei andere, untereinander übereinstimmende Quellen verorten den Bahnhof mehr als :disagree m von der gewählten Position entfernt. Zuerst prüfen.',
@@ -83,6 +85,8 @@ return [
         'era_passenger_mismatch' => 'Der Status einer Epoche widerspricht dem belegten Ende des Personenverkehrs (nur Güterverkehr vor diesem Datum oder Personenverkehr danach).',
         'closed_without_date' => 'Der Bahnhof ist geschlossen, ein Schließungsdatum ist aber nicht bekannt.',
         'freight_only_undated' => 'Die Karte zeigt den Bahnhof in einer Epoche nur mit Güterverkehr, ein Enddatum des Personenverkehrs ist aber nicht bekannt.',
+        'outlier_source' => 'Nur eine Quelle setzt den Bahnhof weit entfernt, während eine andere Quelle weniger als 50 m von der gewählten Position liegt: Sie wird bei der Bewertung nicht berücksichtigt.',
+        'closure_sncf_referential' => 'Das Schließungsdatum stammt aus Wikidata, das nur das SNCF-Verzeichnis der Personenbahnhöfe angibt: Es gilt als geschätzt.',
     ],
 
     'sorts' => [

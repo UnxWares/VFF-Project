@@ -29,7 +29,8 @@ class StationAuditController extends Controller
      * indépendante proche (une seule famille, ou seulement des positions
      * grossières) ; `disagree` : une source précise à plus de 100 m, ou une
      * source grossière (Wikidata, liste calée à plus de 50 m près) à plus de
-     * 1 km ; `none` : aucune position de source. Les écarts sont en mètres :
+     * 1 km, sauf si c'est la seule source lointaine et qu'une autre famille est
+     * à 50 m au plus (contrôle `outlier_source`) ; `none` : aucune position de source. Les écarts sont en mètres :
      * `nearest_agreeing_m` (source indépendante la plus proche),
      * `farthest_precise_m` (source précise la plus éloignée), `track_offset_m`
      * (écart à la voie la plus proche des lignes de la gare). Pour une zone de
@@ -54,7 +55,13 @@ class StationAuditController extends Controller
      * desserte de ses lignes), `open_after_lines`,
      * `freight_closed_before_opening`, `passenger_after_closure`,
      * `wikidata_differs` (une date Wikidata contredit VFF de plus d'un an),
-     * `far_from_track` (plus de 50 m de la voie), chacun avec un `detail`.
+     * `far_from_track` (plus de 50 m de la voie), `retained_outvoted`, `opening_before_map`,
+     * `era_passenger_mismatch`, `closed_without_date`, `freight_only_undated`,
+     * `outlier_source` (une seule source lointaine, écartée de la note parce qu'une autre
+     * famille est à 50 m au plus : sinon la gare serait `disagree`),
+     * `closure_sncf_referential` (fermeture Wikidata qui ne cite que le référentiel SNCF des
+     * gares de voyageurs, notée `estimated` ; le détail donne les autres dates connues),
+     * chacun avec un `detail`.
      *
      * **Dates candidates** (`date_candidates`) : dates de mise en service
      * (P1619) et de fermeture (P3999) de Wikidata, avec `precision` (`day`,

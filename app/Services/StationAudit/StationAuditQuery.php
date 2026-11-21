@@ -26,6 +26,7 @@ class StationAuditQuery
         'closure_before_opening', 'opening_before_lines', 'open_after_lines', 'freight_closed_before_opening',
         'passenger_after_closure', 'wikidata_differs', 'far_from_track', 'retained_outvoted',
         'opening_before_map', 'era_passenger_mismatch', 'closed_without_date', 'freight_only_undated',
+        'outlier_source', 'closure_sncf_referential',
     ];
 
     /** Tris : écart à la source précise la plus éloignée, écart à la voie, nom. */

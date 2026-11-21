@@ -19,6 +19,10 @@ use InvalidArgumentException;
  *   php artisan vff:flag-threatened 405000 --title="…" --source="France 3 Normandie|2026-07-23|https://…"
  *   php artisan vff:flag-threatened 878000 --off          # retire le message
  *
+ * Accueil (--home-rank, --home, --home-summary…) : rang de la campagne (1 d'abord) et forme, encart
+ * complet (card, défaut) ou mention courte (mention, texte --home-summary obligatoire) :
+ *   php artisan vff:flag-threatened 405000 … --home-rank=3 --home=mention --home-summary="En juillet 2026, …"
+ *
  * Sources (--source, répétable) : « Libellé|AAAA-MM-JJ|https://… », listées sous le message de la fiche.
  *
  * Langues : le texte français (--title, --message, --cta) est la référence ; ses
@@ -45,6 +49,11 @@ class FlagThreatenedLine extends Command
         {--cta-de= : libellé du bouton en allemand}
         {--url= : URL d\'action (pétition, association…)}
         {--source=* : source du message, « Libellé|AAAA-MM-JJ|https://… » (répétable)}
+        {--home-rank= : rang sur l\'accueil (1 d\'abord ; sans rang : après les lignes classées)}
+        {--home= : forme sur l\'accueil, card (encart complet, défaut) ou mention (phrase courte)}
+        {--home-summary= : texte court de la mention d\'accueil (français)}
+        {--home-summary-en= : texte court en anglais}
+        {--home-summary-de= : texte court en allemand}
         {--off : retire le message de soutien}';
 
     protected $description = 'Affiche le soutien de VFF à une ligne menacée ou à une campagne de réouverture.';
@@ -78,14 +87,23 @@ class FlagThreatenedLine extends Command
         foreach (['title' => 'title', 'message' => 'message', 'cta_label' => 'cta'] as $field => $option) {
             $texts[$field] = ['fr' => $this->option($option), 'en' => $this->option($option.'-en'), 'de' => $this->option($option.'-de')];
         }
+        $rank = $this->option('home-rank');
+        if ($rank !== null && ! ctype_digit((string) $rank)) {
+            $this->error('--home-rank doit être un entier à partir de 1');
+
+            return self::FAILURE;
+        }
         try {
             $sources = array_map(Advocacy::parseSource(...), array_values((array) $this->option('source')));
+            $home = Advocacy::buildHome($rank === null ? null : (int) $rank, $this->option('home') ?: null, [
+                'fr' => $this->option('home-summary'), 'en' => $this->option('home-summary-en'), 'de' => $this->option('home-summary-de'),
+            ]);
         } catch (InvalidArgumentException $e) {
             $this->error($e->getMessage());
 
             return self::FAILURE;
         }
-        $advocacy = Advocacy::build($kind, $texts, $this->option('url') ?: null, $sources);
+        $advocacy = Advocacy::build($kind, $texts, $this->option('url') ?: null, $sources, $home);
 
         DB::table('lines')->where('id', $line->id)->update([
             // is_threatened reste réservé aux lignes menacées (halo rouge, filtres).

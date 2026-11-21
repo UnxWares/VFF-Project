@@ -1,0 +1,101 @@
+<?php
+
+// Contexte sourcé du déraillement des Andelys du 18 août 1926 (recherche du 21/11/2026).
+return [
+    'slug' => '1926-08-18-saint-pierre-du-vauvray',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1926' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1926',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Août',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1926&oldid=233501524#Ao%C3%BBt',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste : 18 août vers 16 h 30, train mixte arrivant en gare des Andelys, déraillement sur une aiguille mal verrouillée, wagons de marchandises écrasant une voiture de voyageurs, 1 mort et 1 blessé grave.',
+        ],
+        'delpher-1926-08-19a' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Ernstige spoorwegongelukken. Ontsporing bij Andelys',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1926-08-19',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:011083775:mpeg21:a0097',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche : train de voyageurs déraillé près des Andelys, une fille de 14 ans tuée, 8 blessés dont plusieurs gravement, dégâts importants.',
+        ],
+        'delpher-1926-08-19b' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Nog een treinramp',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1926-08-19',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB12:000137041:mpeg21:a00048',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche.',
+        ],
+        'delpher-1926-08-20' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Weer een spoorwegongeluk. Een doode, acht gewonden',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1926-08-20',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010468742:mpeg21:a0011',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche, reprise le 20 août.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le mercredi 18 août 1926 dans l\'après-midi (vers 16 h 30 selon la liste de Wikipédia), un train de voyageurs a déraillé près des Andelys, dans l\'Eure. La liste précise qu\'il s\'agissait d\'un train mixte arrivant en gare des Andelys sur la ligne de Saint-Pierre-du-Vauvray, et que l\'aiguille était mal verrouillée.',
+                'en' => 'On the afternoon of Wednesday 18 August 1926 (at about 4.30 p.m. according to the Wikipedia list), a passenger train derailed near Les Andelys, in the Eure. The list specifies that it was a mixed train arriving at Les Andelys station on the Saint-Pierre-du-Vauvray line, and that the points were badly locked.',
+                'de' => 'Am Nachmittag des Mittwochs, 18. August 1926 (laut Wikipedia-Liste gegen 16.30 Uhr), entgleiste bei Les Andelys im Département Eure ein Reisezug. Die Liste präzisiert, es habe sich um einen gemischten Zug bei der Einfahrt in den Bahnhof Les Andelys auf der Strecke von Saint-Pierre-du-Vauvray gehandelt, und die Weiche sei schlecht verriegelt gewesen.',
+                'sources' => ['delpher-1926-08-19a', 'delpher-1926-08-19b', 'wp-liste-1926'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, les wagons de marchandises ont écrasé une voiture de voyageurs. Les dégâts matériels étaient importants.',
+                'en' => 'According to the Wikipedia list, the goods wagons crushed a passenger coach. The material damage was considerable.',
+                'de' => 'Laut Wikipedia-Liste zerdrückten die Güterwagen einen Reisezugwagen. Der Sachschaden war erheblich.',
+                'sources' => ['wp-liste-1926', 'delpher-1926-08-19a'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Une jeune fille de 14 ans a été tuée et huit personnes ont été blessées, dont plusieurs très gravement, selon les dépêches néerlandaises. La liste de Wikipédia compte un mort et un blessé grave.',
+                'en' => 'A 14-year-old girl was killed and eight people were injured, several of them very seriously, according to the Dutch dispatches. The Wikipedia list counts one dead and one seriously injured.',
+                'de' => 'Ein 14-jähriges Mädchen wurde getötet und acht Menschen wurden verletzt, mehrere davon sehr schwer, laut den niederländischen Meldungen. Die Wikipedia-Liste zählt einen Toten und einen Schwerverletzten.',
+                'sources' => ['delpher-1926-08-19a', 'delpher-1926-08-19b', 'delpher-1926-08-20', 'wp-liste-1926'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '27016',
+            'sources' => ['wp-liste-1926', 'delpher-1926-08-19a', 'delpher-1926-08-20'],
+            'fr' => 'Le déraillement a eu lieu en gare des Andelys, et non à Saint-Pierre-du-Vauvray, origine de la ligne.',
+            'en' => 'The derailment took place at Les Andelys station, not at Saint-Pierre-du-Vauvray, the start of the line.',
+            'de' => 'Die Entgleisung ereignete sich im Bahnhof Les Andelys, nicht in Saint-Pierre-du-Vauvray, dem Beginn der Strecke.',
+        ],
+    ],
+];

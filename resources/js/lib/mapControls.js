@@ -1,5 +1,6 @@
-// Libellés des boutons de MapLibre dans la langue de la page (sinon « Zoom in »…), partagés par la
-// carte (RailMap) et la vue ferroviaire (SchematicMap).
+// Textes de MapLibre dans la langue de la page (sinon « Zoom in », « Use two fingers to move the map »…).
+// `./maplibre.js` les donne à toutes les cartes du site ; une carte peut encore en remplacer quelques-uns
+// (nom de la carte…) par son option `locale`.
 
 /**
  * @param {(key: string) => string} t
@@ -19,6 +20,28 @@ export function mapControlsLocale(t, overrides = {}) {
         'Popup.Close': t('maps.controls.popup_close'),
         'GeolocateControl.FindMyLocation': t('maps.controls.locate'),
         'GeolocateControl.LocationNotAvailable': t('maps.controls.locate_unavailable'),
+        'CooperativeGesturesHandler.WindowsHelpText': t('maps.controls.gestures_windows'),
+        'CooperativeGesturesHandler.MacHelpText': t('maps.controls.gestures_mac'),
+        'CooperativeGesturesHandler.MobileHelpText': t('maps.controls.gestures_mobile'),
+        'Marker.Title': t('maps.controls.marker'),
+        'LogoControl.Title': t('maps.controls.logo'),
+        'GlobeControl.Enable': t('maps.controls.globe_enable'),
+        'GlobeControl.Disable': t('maps.controls.globe_disable'),
+        'TerrainControl.Enable': t('maps.controls.terrain_enable'),
+        'TerrainControl.Disable': t('maps.controls.terrain_disable'),
         ...overrides,
     };
+}
+
+/**
+ * Options d'une carte avec les textes de la page : ceux que la carte donne elle-même (`options.locale`)
+ * l'emportent.
+ *
+ * @template {{ locale?: Record<string, string> }} T
+ * @param {T} options options de maplibregl.Map
+ * @param {(key: string) => string} t
+ * @returns {T}
+ */
+export function withPageLocale(options, t) {
+    return { ...options, locale: mapControlsLocale(t, options?.locale ?? {}) };
 }

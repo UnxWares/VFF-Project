@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé de la collision de Glanges du 7 octobre 1905 (recherche du 21/11/2026).
+return [
+    'slug' => '1905-10-07-glanges',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1905' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1905',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Octobre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1905&oldid=233590727#Octobre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'À Glanges, entre Brive et Limoges, vers 5 h 20, un train de marchandises tamponne dans le brouillard le fourgon et une voiture de queue du rapide Toulouse-Paris arrêté à un sémaphore ; un mort, quatre blessés dont un député de la Corrèze.',
+        ],
+        'delpher-vlaardingsche-1905-10-11' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève sur la collision entre Glanges et Pierre-Buffière',
+            'publisher' => 'Nieuwe Vlaardingsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1905-10-11',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMSAVL02:000490164:mpeg21:a00001',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Express Toulouse-Paris parti le vendredi à 23 h 37, arrêté par une avarie, train de marchandises parti de Glanges à 2 h 33, erreur sur l\'aiguille ; un wagon renversé, une voyageuse tuée.',
+        ],
+        'delpher-nieuwsvandendag-1905-10-10' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Brève sur l\'accident de l\'Orléans',
+            'publisher' => 'Het Nieuws van den Dag (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1905-10-10',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010164095:mpeg21:a0142',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entre Glanges et Pierre-Buffière, un train arrêté est heurté par un autre : une femme tuée, plusieurs voyageurs blessés dont dix grièvement.',
+        ],
+        'delpher-haarlemsche-1905-10-11' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Treinongeluk',
+            'publisher' => 'Nieuwe Haarlemsche Courant (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1905-10-11',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMNHA03:178988204:mpeg21:a00005',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche : une femme tuée, dix voyageurs des voitures de queue grièvement blessés.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le samedi 7 octobre 1905, sur la ligne de l\'Orléans de Paris à Toulouse, entre les gares de Glanges et de Pierre-Buffière, l\'express de Toulouse à Paris, parti la veille à 23 h 37 et attendu à Paris à 10 h 33, s\'est arrêté en pleine voie à la suite d\'une avarie de la machine, selon la presse néerlandaise. La liste de Wikipédia précise qu\'il était arrêté à un sémaphore à cause de la panne de l\'omnibus qui le précédait.',
+                'en' => 'On Saturday 7 October 1905, on the Orléans line from Paris to Toulouse, between Glanges and Pierre-Buffière stations, the express from Toulouse to Paris, which had left the evening before at 11.37 pm and was due in Paris at 10.33 am, stopped on the open line after a breakdown of the engine, according to the Dutch press. The Wikipedia list adds that it was held at a semaphore because of the breakdown of the stopping train ahead of it.',
+                'de' => 'Am Samstag, dem 7. Oktober 1905, hielt auf der Orléans-Strecke von Paris nach Toulouse zwischen den Bahnhöfen Glanges und Pierre-Buffière der Schnellzug von Toulouse nach Paris, der am Vorabend um 23.37 Uhr abgefahren und um 10.33 Uhr in Paris erwartet worden war, nach der niederländischen Presse wegen einer Lokomotivpanne auf freier Strecke. Die Wikipedia-Liste ergänzt, er habe wegen der Panne des vorausfahrenden Personenzugs an einem Semaphor gestanden.',
+                'sources' => ['delpher-vlaardingsche-1905-10-11', 'wp-liste-1905'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Un train de marchandises parti de Glanges, qui devait croiser l\'express une fois celui-ci reparti, a franchi l\'aiguille : son mécanicien croyait que l\'express était déjà passé, et il est venu à pleine vitesse sur l\'express arrêté. La liste de Wikipédia place le choc vers 5 h 20, dans le brouillard, sur le fourgon et une voiture de queue de l\'express.',
+                'en' => 'A goods train that had left Glanges, which was to cross the express once it had restarted, went over the points: its driver thought the express had already passed, and he came at full speed onto the stationary express. The Wikipedia list places the impact at about 5.20 am, in fog, on the van and a rear coach of the express.',
+                'de' => 'Ein von Glanges abgefahrener Güterzug, der den Schnellzug nach dessen Weiterfahrt kreuzen sollte, fuhr über die Weiche: Sein Lokführer glaubte, der Schnellzug sei schon vorbei, und fuhr mit voller Geschwindigkeit auf den haltenden Schnellzug auf. Die Wikipedia-Liste setzt den Aufprall gegen 5.20 Uhr im Nebel auf den Packwagen und einen Wagen am Zugende des Schnellzugs.',
+                'sources' => ['delpher-vlaardingsche-1905-10-11', 'wp-liste-1905'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Un wagon a été renversé et une voyageuse a été tuée ; des voyageurs de deux wagons restés sur les rails ont été légèrement blessés, et dix occupants des voitures de queue renversées et détruites ont été grièvement blessés selon deux journaux. La liste de Wikipédia compte un mort et quatre blessés, dont un député de la Corrèze.',
+                'en' => 'One coach was overturned and a woman passenger was killed; passengers in two coaches that stayed on the rails were slightly injured, and ten occupants of the rear coaches, overturned and destroyed, were seriously injured according to two newspapers. The Wikipedia list counts one dead and four injured, one of them a deputy for the Corrèze.',
+                'de' => 'Ein Wagen kippte um, und eine Reisende wurde getötet; Reisende in zwei auf den Schienen gebliebenen Wagen wurden leicht verletzt, und zehn Insassen der umgestürzten und zerstörten hinteren Wagen wurden nach zwei Zeitungen schwer verletzt. Die Wikipedia-Liste zählt einen Toten und vier Verletzte, darunter einen Abgeordneten der Corrèze.',
+                'sources' => ['delpher-vlaardingsche-1905-10-11', 'delpher-nieuwsvandendag-1905-10-10', 'delpher-haarlemsche-1905-10-11', 'wp-liste-1905'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'L\'heure du choc diffère : le train de marchandises serait parti de Glanges à 2 h 33 selon la presse néerlandaise, alors que la liste de Wikipédia place l\'accident vers 5 h 20. Le nombre de blessés varie de quatre (liste) à une dizaine de blessés graves (presse).',
+                'en' => 'The time of the impact differs: the goods train is said to have left Glanges at 2.33 am according to the Dutch press, whereas the Wikipedia list places the accident at about 5.20 am. The number of injured ranges from four (list) to about ten seriously injured (press).',
+                'de' => 'Die Uhrzeit des Aufpralls weicht ab: Der Güterzug soll nach der niederländischen Presse um 2.33 Uhr von Glanges abgefahren sein, während die Wikipedia-Liste den Unfall gegen 5.20 Uhr ansetzt. Die Zahl der Verletzten reicht von vier (Liste) bis zu etwa zehn Schwerverletzten (Presse).',
+                'sources' => ['delpher-vlaardingsche-1905-10-11', 'delpher-haarlemsche-1905-10-11', 'wp-liste-1905'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

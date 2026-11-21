@@ -108,6 +108,8 @@ final class SegmentAuditor
         $ends = $this->ends((int) $line->id, $eraId);
         [$stations, $inversions] = $this->stations((int) $line->id, $eraId);
         $defaults = $line->is_lgv ? 'P' : (self::BUILD_DEFAULTS[$line->network ?? 'principal'] ?? 'PF');
+        // Ère passée, ligne sans aucune fin datée : tronçons en service et sûrs à l'ère courante.
+        $continuous = ! $current && ! self::hasEnd($events) ? $this->continuousToday((int) $line->id, $eraId) : [];
 
         $rows = [];
         foreach ($segments as $s) {
@@ -121,7 +123,7 @@ final class SegmentAuditor
             $observed = [];
             if ($current) {
                 $observed = $this->currentVerdicts($s);
-                $verdicts = [...self::outweighed($verdicts, $observed), ...$observed];
+                $verdicts = self::outvoted([...self::outweighed($verdicts, $observed), ...$observed]);
             }
             $rules = [];
             if ($current && $s->status === 'abandoned' && ! $s->is_heritage && self::oldClosureUnconfirmed($verdicts, $observed, $asOf)) {
@@ -132,7 +134,8 @@ final class SegmentAuditor
             }
             $classification = AuditGrader::classification(array_map(fn (array $v): array => [
                 'source' => $v['source'], 'agrees' => $v['agrees'], 'weak' => $v['weak'], 'near_date' => $v['near_date'], 'priority' => $v['priority'],
-            ], $verdicts), $rules);
+                'outvoted' => $v['outvoted'] ?? false,
+            ], $verdicts), $rules, isset($continuous[$id]) && AuditGrader::statusClass($s->status) === 'open');
 
             $refs = $placement[$id] ?? [];
             // Une voie en service aujourd'hui existe forcément : sans voie réelle à côté, le tracé
@@ -153,7 +156,7 @@ final class SegmentAuditor
 
             $precise = max(AuditGrader::coverage($refs['bdtopo'] ?? ['points' => 0, 'found' => 0]), AuditGrader::coverage($refs['osm'] ?? ['points' => 0, 'found' => 0]));
             $unusedInGap = array_filter($segEnds['holes'], fn (array $h): bool => $h['unused_traces'] !== []) !== [];
-            $trace = AuditGrader::trace($s->source, $precise, $place['grade'] === AuditGrade::Good, $unusedInGap);
+            $trace = AuditGrader::trace($s->source, $precise, $place['grade'] === AuditGrade::Good, $unusedInGap, AuditGrader::confirmedBy($refs, $s->source));
 
             $grades = [$classification['grade'], $place['grade'], $accuracy['grade'], $trace['grade']];
             $rows[] = [
@@ -178,7 +181,9 @@ final class SegmentAuditor
                     'placement' => ['reasons' => $place['reasons'], 'reference' => $place['reference'], 'same_source' => $place['same_source'],
                         'coverage' => $place['coverage'], 'median_m' => self::round($place['median_m']), 'p95_m' => self::round($place['p95_m']),
                         'references' => array_map(fn (array $r): array => ['points' => $r['points'], 'found' => $r['found'],
-                            'median_m' => self::round($r['median_m']), 'p95_m' => self::round($r['p95_m'])], $refs)],
+                            'median_m' => self::round($r['median_m']), 'p95_m' => self::round($r['p95_m']),
+                            'all' => ['found' => $r['all']['found'], 'median_m' => self::round($r['all']['median_m']), 'p95_m' => self::round($r['all']['p95_m'])],
+                            'own' => ['found' => $r['own']['found'], 'median_m' => self::round($r['own']['median_m'])]], $refs)],
                     'accuracy' => ['reasons' => $accuracy['reasons']] + $accFacts,
                     'trace' => ['reasons' => $trace['reasons'], 'source' => $s->source, 'precision_m' => $trace['precision_m'],
                         'precision_class' => $trace['precision_class'], 'precise_coverage' => round($precise, 3)],
@@ -533,6 +538,69 @@ final class SegmentAuditor
     }
 
     /**
+     * Ère courante (T3) : une seule contradiction forte, venue de la BD TOPO ou d'un statut SNCF
+     * « déclassée vendue » (voie cédée, par exemple à la RATP), alors qu'au moins deux observations
+     * actuelles fortes sont d'accord : elle devient un avis faible (`outvoted`). Une voie OSM
+     * « abandoned » ou « razed » reste une vraie contradiction.
+     *
+     * @param  list<array<string, mixed>>  $verdicts
+     * @return list<array<string, mixed>>
+     */
+    public static function outvoted(array $verdicts): array
+    {
+        $contra = array_keys(array_filter($verdicts, fn (array $v): bool => ! $v['agrees'] && ! $v['weak'] && ! $v['near_date']));
+        $agree = array_filter($verdicts, fn (array $v): bool => $v['kind'] === 'current' && $v['agrees'] && ! $v['weak']);
+        if (count($contra) !== 1 || count($agree) < 2) {
+            return $verdicts;
+        }
+        $v = $verdicts[$contra[0]];
+        $lone = $v['kind'] === 'current' && ($v['source'] === 'bdtopo'
+            || ($v['source'] === 'sncf' && str_contains(mb_strtolower((string) ($v['observed']['statut'] ?? '')), 'déclassée vendue')));
+        if ($lone) {
+            $verdicts[$contra[0]] = ['weak' => true, 'outvoted' => true] + $v;
+        }
+
+        return $verdicts;
+    }
+
+    /**
+     * La ligne a-t-elle une fin datée (fermeture, déclassement, dépose), localisée ou non ?
+     *
+     * @param  array<int, array<string, mixed>>  $events
+     */
+    public static function hasEnd(array $events): bool
+    {
+        foreach ($events as $e) {
+            if (preg_match('/^closure|^declassification|^dismantling/', (string) $e['type'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Tronçons d'une ère passée dont le milieu est à moins de COVER_TOL_M d'un tronçon de la même
+     * ligne en service et noté sûr pour le classement à l'ère courante (audit déjà enregistré).
+     *
+     * @return array<int, true>
+     */
+    private function continuousToday(int $lineId, int $eraId): array
+    {
+        $rows = DB::select(<<<'SQL'
+            SELECT s.id FROM line_segments s
+            WHERE s.line_id = :line AND s.era_id = :era
+              AND EXISTS (SELECT 1 FROM segment_audits a JOIN eras e ON e.id = a.era_id AND e.is_current
+                          WHERE a.line_id = :line2 AND a.scope = 'segment' AND a.classification_grade = 'good'
+                            AND a.status IN ('in_service', 'single_track', 'service_track')
+                            AND a.geom && ST_Expand(ST_LineInterpolatePoint(s.geom, 0.5), 0.0005)
+                            AND ST_DWithin(ST_Transform(a.geom, 2154), ST_Transform(ST_LineInterpolatePoint(s.geom, 0.5), 2154), :tol))
+            SQL, ['line' => $lineId, 'era' => $eraId, 'line2' => $lineId, 'tol' => self::COVER_TOL_M]);
+
+        return array_fill_keys(array_map(fn (object $r): int => (int) $r->id, $rows), true);
+    }
+
+    /**
      * Tronçon « fermé, voie en place » aujourd'hui sans aucune observation de voie en place, alors
      * que sa dernière fermeture datée remonte à plus de OLD_CLOSURE_YEARS ans : la dépose est probable.
      *
@@ -615,9 +683,11 @@ final class SegmentAuditor
     /**
      * Écart à la voie réelle : points répartis le long de chaque tronçon (un tous les
      * SAMPLE_STEP_M mètres, entre 3 et MAX_SAMPLES), distance à la voie la plus proche de chaque
-     * référence à moins de REFERENCE_RADIUS_M.
+     * référence à moins de REFERENCE_RADIUS_M, sans les voies rattachées à une autre ligne ; plus,
+     * sur les mêmes points, l'écart à toutes les voies (`all`) et aux voies de la ligne (`own`, à
+     * moins de OWN_TRACK_MAX_M), pour reconnaître un tronçon posé sur la voie d'une autre ligne.
      *
-     * @return array<int, array<string, array{points: int, found: int, median_m: ?float, p95_m: ?float}>>
+     * @return array<int, array<string, array{points: int, found: int, median_m: ?float, p95_m: ?float, all: array{found: int, median_m: ?float, p95_m: ?float}, own: array{found: int, median_m: ?float}}>>
      */
     private function placementSamples(int $lineId, int $eraId): array
     {
@@ -634,27 +704,45 @@ final class SegmentAuditor
                 CROSS JOIN LATERAL (SELECT ST_LineInterpolatePoint(seg.g, (i - 0.5) / k.n) AS q) p
             ),
             ref(name) AS (VALUES ('bdtopo'), ('osm'), ('ign-historique')),
+            -- Trois écarts par point : aux voies qui ne sont pas rattachées à une autre ligne (dist), à
+            -- toutes les voies (dist_all) et aux voies rattachées à la ligne (dist_own, jusqu'à 60 m).
             d AS (
-                SELECT pts.id, ref.name,
-                       (SELECT MIN(ST_Distance(ST_Transform(st.geom, 2154), pts.q)) FROM source_traces st
-                        WHERE st.source = ref.name AND st.geom && ST_Expand(pts.q4, 0.0008)
-                          AND (ref.name <> 'osm' OR st.layer = ANY(CAST(:osm AS text[])))
-                          AND (ref.name <> 'bdtopo' OR st.layer <> 'Funiculaire ou crémaillère')) AS dist
+                SELECT pts.id, ref.name, x.dist, x.dist_all, x.dist_own
                 FROM pts CROSS JOIN ref
+                CROSS JOIN LATERAL (
+                    SELECT MIN(t.m) FILTER (WHERE t.free) AS dist, MIN(t.m) AS dist_all, MIN(t.m) FILTER (WHERE t.own) AS dist_own
+                    FROM (SELECT ST_Distance(ST_Transform(st.geom, 2154), pts.q) AS m,
+                                 (st.line_id IS NULL OR st.line_id = :line3) AS free, COALESCE(st.line_id = :line4, false) AS own
+                          FROM source_traces st
+                          WHERE st.source = ref.name AND st.geom && ST_Expand(pts.q4, 0.001)
+                            AND (ref.name <> 'osm' OR st.layer = ANY(CAST(:osm AS text[])))
+                            AND (ref.name <> 'bdtopo' OR st.layer <> 'Funiculaire ou crémaillère')) t
+                ) x
             )
             SELECT id, name, COUNT(*) AS points, COUNT(*) FILTER (WHERE dist <= :radius) AS found,
                    percentile_cont(0.5) WITHIN GROUP (ORDER BY dist) FILTER (WHERE dist <= :radius2) AS median_m,
-                   percentile_cont(0.95) WITHIN GROUP (ORDER BY dist) FILTER (WHERE dist <= :radius3) AS p95_m
+                   percentile_cont(0.95) WITHIN GROUP (ORDER BY dist) FILTER (WHERE dist <= :radius3) AS p95_m,
+                   COUNT(*) FILTER (WHERE dist_all <= :radius4) AS found_all,
+                   percentile_cont(0.5) WITHIN GROUP (ORDER BY dist_all) FILTER (WHERE dist_all <= :radius5) AS median_all,
+                   percentile_cont(0.95) WITHIN GROUP (ORDER BY dist_all) FILTER (WHERE dist_all <= :radius6) AS p95_all,
+                   COUNT(*) FILTER (WHERE dist_own <= :own) AS found_own,
+                   percentile_cont(0.5) WITHIN GROUP (ORDER BY dist_own) FILTER (WHERE dist_own <= :own2) AS median_own
             FROM d GROUP BY id, name
             SQL, ['line' => $lineId, 'era' => $eraId, 'maxn' => AuditGrader::MAX_SAMPLES, 'step' => AuditGrader::SAMPLE_STEP_M,
-            'osm' => $osmLayers, 'radius' => AuditGrader::REFERENCE_RADIUS_M, 'radius2' => AuditGrader::REFERENCE_RADIUS_M, 'radius3' => AuditGrader::REFERENCE_RADIUS_M]);
+            'line3' => $lineId, 'line4' => $lineId,
+            'osm' => $osmLayers, 'radius' => AuditGrader::REFERENCE_RADIUS_M, 'radius2' => AuditGrader::REFERENCE_RADIUS_M, 'radius3' => AuditGrader::REFERENCE_RADIUS_M,
+            'radius4' => AuditGrader::REFERENCE_RADIUS_M, 'radius5' => AuditGrader::REFERENCE_RADIUS_M, 'radius6' => AuditGrader::REFERENCE_RADIUS_M,
+            'own' => AuditGrader::OWN_TRACK_MAX_M, 'own2' => AuditGrader::OWN_TRACK_MAX_M]);
+        $f = fn (mixed $v): ?float => $v !== null ? (float) $v : null;
         $out = [];
         foreach ($rows as $r) {
-            if ((int) $r->found === 0 && $r->name === 'ign-historique') {
+            if ((int) $r->found_all === 0 && (int) $r->found_own === 0 && $r->name === 'ign-historique') {
                 continue;
             }
             $out[(int) $r->id][$r->name] = ['points' => (int) $r->points, 'found' => (int) $r->found,
-                'median_m' => $r->median_m !== null ? (float) $r->median_m : null, 'p95_m' => $r->p95_m !== null ? (float) $r->p95_m : null];
+                'median_m' => $f($r->median_m), 'p95_m' => $f($r->p95_m),
+                'all' => ['found' => (int) $r->found_all, 'median_m' => $f($r->median_all), 'p95_m' => $f($r->p95_all)],
+                'own' => ['found' => (int) $r->found_own, 'median_m' => $f($r->median_own)]];
         }
 
         return $out;

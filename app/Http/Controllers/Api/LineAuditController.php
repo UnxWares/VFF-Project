@@ -90,14 +90,26 @@ class LineAuditController extends Controller
      * avis (`verdicts[]`) donne l'état attendu (`expected.class` : `open`, `closed`, `gone`,
      * `not_open`, `in_place`), s'il est d'accord, pourquoi il ne l'est pas (`why`), s'il change à
      * trois ans près de la date (`near_date`) et s'il est faible (`weak` : estimation, décision
-     * administrative tardive, Wikidata, observation non rattachée à la ligne). `poor` quand une
-     * source fiable contredit sans accord d'une source au moins aussi fiable, ou quand « voyageurs
-     * seuls » apparaît hors d'une LGV.
+     * administrative tardive, Wikidata, observation non rattachée à la ligne, ou observation seule
+     * contre deux autres, `outvoted`). `poor` quand une source fiable contredit sans accord d'une
+     * source au moins aussi fiable, ou quand « voyageurs seuls » apparaît hors d'une LGV. Raisons
+     * (`reasons`) : `sources_agree`, `source_contradicts`, `sources_disagree`, `weak_contradiction`,
+     * `weak_sources_only`, `no_source`, `rule_passenger_only_off_lgv`, `rule_track_unconfirmed`,
+     * `observation_outvoted` (une seule observation actuelle, BD TOPO ou SNCF « déclassée vendue »,
+     * contre deux d'accord), `continuous_service` (ère passée : ligne sans aucune fin datée, tronçon
+     * sûr aujourd'hui).
      *
      * **Placement** (`placement`) : un point tous les 50 m du tronçon, distance à la voie la plus
      * proche d'une source DIFFÉRENTE de celle du tracé (BD TOPO, OpenStreetMap, tracés relevés sur
      * les photographies aériennes anciennes de l'IGN) à moins de 50 m : médiane `median_m` et 95e
-     * centile `p95_m`, en mètres. Cible 1 m, tolérance 5 m.
+     * centile `p95_m`, en mètres. Cible 1 m, tolérance 5 m. Une voie rattachée à une autre ligne ne
+     * sert jamais de référence (`references.<source>.all` : même mesure sur toutes les voies,
+     * `references.<source>.own` : voies de la ligne seules, jusqu'à 60 m). Raisons : `within_target`,
+     * `within_tolerance`, `p95_over_tolerance`, `median_over_tolerance`, `partial_coverage`,
+     * `no_track_nearby`, `no_reference`, `abroad`, `only_same_source`, et pour un tronçon qui ne colle
+     * qu'à la voie d'une autre ligne : `on_other_line_track` (sa propre voie passe à 8 à 60 m :
+     * `poor` pour un tronçon fermé ou déposé, `fair` pour un tronçon en service), `shared_track`
+     * (`good`, aucune voie propre à côté : tronc commun ou embranchement posé sur la voie de départ).
      *
      * **Exactitude** (`accuracy`) : virage le plus fort sur 40 m (`max_turn_deg`), allers-retours
      * (plus de 150°), coudes (plus de 60°), écarts aux jonctions (bout libre à 0,05 à 10 m du tracé
@@ -106,7 +118,10 @@ class LineAuditController extends Controller
      * comparée à la longueur officielle et les inversions de l'ordre des gares le long des PK.
      *
      * **Tracé** (`trace`) : source du dessin et précision connue (`precision_m` : BD TOPO 2,5 m,
-     * OpenStreetMap environ 2 m, formes SNCF généralisées jusqu'à 165 m).
+     * OpenStreetMap environ 2 m, formes SNCF généralisées jusqu'à 165 m). Raisons : `precise_source`,
+     * `recalibrated` (placement sûr), `confirmed_by_precise_source` (une voie BD TOPO ou OSM
+     * indépendante le suit sur 80 % des points, médiane ≤ 1 m, 95e centile ≤ 5 m), `medium_source`,
+     * `precise_trace_available`, `best_available`, `unknown_source`, `unused_trace_in_gap`.
      *
      * **Pagination des tronçons** : `limit` tronçons au plus (50 par défaut, 200 au plus) à partir
      * du rang `offset` (0 par défaut), dans l'ordre du plus mal noté au mieux noté. `segments_total`

@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé de la collision de Laventie du 30 septembre 1923 (recherche du 21/11/2026).
+return [
+    'slug' => '1923-09-30-laventie',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1923' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1923',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section Septembre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1923&oldid=233501473#Septembre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste : 30 septembre, vers 19 h 30, près de la gare de Laventie, erreur d\'aiguillage, train de voyageurs de Saint-Omer contre l\'arrière d\'un train de marchandises à l\'arrêt, 2 morts et une vingtaine de blessés.',
+        ],
+        'delpher-1923-10-01' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Telegrammen (Spoorwegongeluk)',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1923-10-01',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMSADB01:000002304:mpeg21:a0002',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Lille du 30 septembre : train de voyageurs de Saint-Omer vers Armentières contre un train de marchandises à Laventie, 3 morts.',
+        ],
+        'delpher-1923-10-02a' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Gemengd nieuws (Treinbotsing)',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1923-10-02',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMKB15:000817002:mpeg21:a00016',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même information : 3 morts.',
+        ],
+        'delpher-1923-10-02b' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Korte berichten (Treinongeluk)',
+            'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
+            'author' => null,
+            'published' => '1923-10-02',
+            'locator' => null,
+            'url' => 'http://resolver.kb.nl/resolve?urn=MMUTRA04:253318080:mpeg21:a00014',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même information : 3 morts.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le dimanche 30 septembre 1923, un train de voyageurs allant de Saint-Omer vers Armentières est entré en collision, près de Laventie, avec un train de marchandises. La liste de Wikipédia précise : vers 19 h 30, sur l\'ancien réseau du Nord-Est, à la suite d\'une erreur d\'aiguillage, le train de voyageurs a percuté l\'arrière du train de marchandises à l\'arrêt.',
+                'en' => 'On Sunday 30 September 1923, a passenger train running from Saint-Omer towards Armentières collided with a goods train near Laventie. The Wikipedia list adds: at about 7.30 p.m., on the former Nord-Est network, after a points error, the passenger train struck the rear of the stationary goods train.',
+                'de' => 'Am Sonntag, dem 30. September 1923, stieß ein Reisezug von Saint-Omer in Richtung Armentières bei Laventie mit einem Güterzug zusammen. Die Wikipedia-Liste ergänzt: gegen 19.30 Uhr, auf dem ehemaligen Netz der Nord-Est, nach einem Weichenfehler, fuhr der Reisezug auf das Ende des haltenden Güterzugs auf.',
+                'sources' => ['delpher-1923-10-01', 'delpher-1923-10-02a', 'delpher-1923-10-02b', 'wp-liste-1923'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le fourgon de tête et la première voiture du train de voyageurs se sont disloqués contre la locomotive renversée, d\'après la liste de Wikipédia.',
+                'en' => 'The leading van and first coach of the passenger train broke up against the overturned locomotive, according to the Wikipedia list.',
+                'de' => 'Der vordere Gepäckwagen und der erste Wagen des Reisezugs zerbrachen laut Wikipedia-Liste an der umgestürzten Lokomotive.',
+                'sources' => ['wp-liste-1923'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les dépêches néerlandaises des 1er et 2 octobre comptent trois morts ; la liste de Wikipédia compte deux morts et une vingtaine de blessés.',
+                'en' => 'The Dutch dispatches of 1 and 2 October count three dead; the Wikipedia list counts two dead and about twenty injured.',
+                'de' => 'Die niederländischen Meldungen vom 1. und 2. Oktober zählen drei Tote; die Wikipedia-Liste zählt zwei Tote und etwa zwanzig Verletzte.',
+                'sources' => ['delpher-1923-10-01', 'delpher-1923-10-02a', 'delpher-1923-10-02b', 'wp-liste-1923'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le nombre de morts diffère : 3 dans les trois dépêches, 2 dans la liste de Wikipédia.',
+                'en' => 'The number of dead differs: 3 in the three dispatches, 2 in the Wikipedia list.',
+                'de' => 'Die Zahl der Toten weicht ab: 3 in den drei Meldungen, 2 in der Wikipedia-Liste.',
+                'sources' => ['delpher-1923-10-01', 'delpher-1923-10-02a', 'wp-liste-1923'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

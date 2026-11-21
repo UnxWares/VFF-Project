@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé du tamponnement de Crozon d'avril 1942 (recherche du 21/11/2026).
+return [
+    'slug' => '1942-04-27-crozon',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1940' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1940',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section 1942',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1940&oldid=239153903#1942',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée de la liste : 27 avril 1942, machine haut-le-pied de Crozon vers Châteaulin avec six passagers contre un train de marchandises vers Camaret, 4 morts et 10 blessés.',
+        ],
+        'wp-crozon' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Crozon',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section L\'accident ferroviaire du 23 avril 1942',
+            'url' => 'https://fr.wikipedia.org/wiki/Crozon',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Section de l\'article sur la commune : tamponnement entre Crozon et Tal-ar-Groas daté du 23 avril 1942, 4 morts et 10 blessés, avec renvoi à L\'Ouest-Éclair du 25 avril 1942.',
+        ],
+        'gallica-oe-1942-04-25' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'L\'Ouest-Éclair du 25 avril 1942, page 1',
+            'publisher' => 'Gallica, BnF',
+            'author' => null,
+            'published' => '1942-04-25',
+            'locator' => 'page 1',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k502767f/f1.image.r=Crozon?rk=1952799;2',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Numéro cité par l\'article Crozon de Wikipédia ; non lu, à consulter pour fixer la date.',
+        ],
+        'gallica-journal-1942-04-28' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Journal du 28 avril 1942, page 1',
+            'publisher' => 'Gallica, BnF',
+            'author' => null,
+            'published' => '1942-04-28',
+            'locator' => 'page 1',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k76321153/f1.item.r=tamponnement.zoom',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Numéro cité par la liste de Wikipédia ; non lu, à consulter.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'L\'accident s\'est produit sur la ligne de Carhaix à Camaret-sur-Mer : une locomotive haut-le-pied et un train de marchandises se sont tamponnés entre les gares de Crozon et de Tal-ar-Groas.',
+                'en' => 'The accident took place on the line from Carhaix to Camaret-sur-Mer: a light locomotive and a goods train collided between Crozon and Tal-ar-Groas stations.',
+                'de' => 'Der Unfall ereignete sich auf der Strecke von Carhaix nach Camaret-sur-Mer: Eine Leerfahrt-Lokomotive und ein Güterzug stießen zwischen den Bahnhöfen Crozon und Tal-ar-Groas zusammen.',
+                'sources' => ['wp-crozon', 'wp-liste-1940'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, la machine allait de Crozon vers Châteaulin et transportait six passagers ; le train de marchandises se dirigeait vers Camaret.',
+                'en' => 'According to the Wikipedia list, the locomotive was running from Crozon towards Châteaulin and carrying six passengers; the goods train was heading for Camaret.',
+                'de' => 'Laut Wikipedia-Liste fuhr die Lokomotive von Crozon nach Châteaulin und beförderte sechs Fahrgäste; der Güterzug fuhr in Richtung Camaret.',
+                'sources' => ['wp-liste-1940'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les deux sources comptent quatre morts et dix blessés.',
+                'en' => 'Both sources count four dead and ten injured.',
+                'de' => 'Beide Quellen zählen vier Tote und zehn Verletzte.',
+                'sources' => ['wp-crozon', 'wp-liste-1940'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La date diffère : 23 avril 1942 selon l\'article Crozon, 27 avril selon la liste de Wikipédia. L\'article Crozon renvoie à L\'Ouest-Éclair du 25 avril 1942, antérieur à la date de la liste ; la liste renvoie au Journal du 28 avril.',
+                'en' => 'The date differs: 23 April 1942 according to the Crozon article, 27 April according to the Wikipedia list. The Crozon article refers to L\'Ouest-Éclair of 25 April 1942, which is earlier than the list\'s date; the list refers to Le Journal of 28 April.',
+                'de' => 'Das Datum weicht ab: 23. April 1942 laut Artikel Crozon, 27. April laut Wikipedia-Liste. Der Artikel Crozon verweist auf L\'Ouest-Éclair vom 25. April 1942, das vor dem Datum der Liste liegt; die Liste verweist auf Le Journal vom 28. April.',
+                'sources' => ['wp-crozon', 'wp-liste-1940'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];

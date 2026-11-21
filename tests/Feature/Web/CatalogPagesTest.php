@@ -4,6 +4,7 @@ namespace Tests\Feature\Web;
 
 use App\Models\Line;
 use App\Models\Media;
+use App\Support\Advocacy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -93,10 +94,37 @@ class CatalogPagesTest extends TestCase
             // propre non traduit gardé en français et signalé ; champs absents laissés absents.
             ->where('threatened.0', ['slug' => $threatened->slug, 'name' => 'Ligne des Hirondelles', 'advocacy' => ['kind' => null,
                 'title' => 'Sauvons les Hirondelles', 'message' => null, 'cta_label' => null, 'cta_url' => null,
-                'lang' => ['title' => 'fr', 'message' => null, 'cta_label' => null]]])
+                'lang' => ['title' => 'fr', 'message' => null, 'cta_label' => null]],
+                // Sans place précisée : encart complet, sans rang.
+                'home' => ['rank' => null, 'display' => 'card', 'summary' => null, 'lang' => null]])
             ->where('threatened.1.slug', $reopening->slug)
             ->where('stats.lines_count', 3)
             ->where('stats.stations_count', 2));
+    }
+
+    public function test_home_order_and_form_come_from_the_advocacy_data(): void
+    {
+        // Rang explicite d'abord (même pour une ligne non menacée), puis les lignes sans rang ; une mention
+        // garde son texte court traduit, une mention sans texte reste un encart complet.
+        $mention = Line::factory()->create(['code' => '100001', 'slug' => 'mention', 'is_threatened' => true, 'advocacy' => ['title' => 'Menacée',
+            'home' => ['rank' => 3, 'display' => 'mention', 'summary' => 'Phrase courte.', 'translations' => ['en' => 'Short sentence.']]]]);
+        $reopening = Line::factory()->create(['code' => '900000', 'slug' => 'reouverture', 'is_threatened' => false, 'advocacy' => ['title' => 'Rouvrons',
+            'home' => ['rank' => 2, 'display' => 'card']]]);
+        $first = Line::factory()->create(['code' => '999999', 'slug' => 'premiere', 'is_threatened' => true, 'advocacy' => ['title' => 'Première',
+            'home' => ['rank' => 1]]]);
+        $unranked = Line::factory()->create(['code' => '100000', 'slug' => 'sans-rang', 'is_threatened' => true, 'advocacy' => ['title' => 'Sans rang',
+            'home' => ['display' => 'mention']]]);
+
+        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('threatened.0.slug', $first->slug)
+            ->where('threatened.1.slug', $reopening->slug)
+            ->where('threatened.2.slug', $mention->slug)
+            ->where('threatened.2.home', ['rank' => 3, 'display' => 'mention', 'summary' => 'Short sentence.', 'lang' => 'en'])
+            ->where('threatened.3.slug', $unranked->slug)
+            ->where('threatened.3.home.display', 'card'));
+
+        $this->assertSame(['rank' => 3, 'display' => 'mention', 'summary' => 'Phrase courte.', 'lang' => 'fr'],
+            Advocacy::home($mention->fresh()->advocacy, 'de'), 'repli français signalé');
     }
 
     public function test_home_stats_are_recomputed_when_data_changes(): void

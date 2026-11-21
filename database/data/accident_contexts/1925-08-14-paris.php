@@ -1,0 +1,100 @@
+<?php
+
+// Contexte sourcé de la collision de deux trains près de Saint-Denis, en août 1925 (recherche du 21/11/2026).
+return [
+    'slug' => '1925-08-14-paris',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1925' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1925',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '14 août 1925, Paris',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1925&oldid=235357727#1925',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Place la collision à 22 h 30 près de la gare de Saint-Denis, au lieudit Pont de la Révolte (express 318 de Lille et rapide 128) : 4 morts et 61 blessés ; cite Le Figaro du 16 août 1925.',
+        ],
+        'indische-courant-1925-08-17' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'De Indische courant du 17 août 1925',
+            'publisher' => 'De Indische courant',
+            'author' => null,
+            'published' => '1925-08-17',
+            'locator' => null,
+            'url' => 'https://resolver.kb.nl/resolve?urn=ddd:010277863:mpeg21:a0093',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence. Deux dépêches Reuter du 15 août.',
+        ],
+        'tribune-1925-08-17' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'De Tribune du 17 août 1925',
+            'publisher' => 'De Tribune',
+            'author' => null,
+            'published' => '1925-08-17',
+            'locator' => null,
+            'url' => 'https://resolver.kb.nl/resolve?urn=ddd:010465843:mpeg21:a0070',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; dépêche d\'agence.',
+        ],
+        'figaro-1925-08-16' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Figaro du 16 août 1925, page 1',
+            'publisher' => 'Le Figaro (numérisé sur Gallica)',
+            'author' => null,
+            'published' => '1925-08-16',
+            'locator' => null,
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k294478b',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Référence citée par la liste de Wikipédia ; à consulter, non lue.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Deux trains de voyageurs venant de Lille et de Cologne (via Bruxelles) sont entrés en collision à Saint-Denis, près de Paris, par la ligne du Nord, selon des dépêches du 15 août 1925. La liste de Wikipédia précise l\'express 318 de Lille et le rapide 128 comprenant des voitures de Cologne, Amsterdam et Bruxelles.',
+                'en' => 'Two passenger trains from Lille and from Cologne (via Brussels) collided at Saint-Denis, near Paris, on the Nord line, according to dispatches of 15 August 1925. The Wikipedia list specifies express 318 from Lille and rapide 128 including carriages from Cologne, Amsterdam and Brussels.',
+                'de' => 'Zwei Reisezüge aus Lille und aus Köln (über Brüssel) stießen laut Depeschen vom 15. August 1925 bei Saint-Denis nahe Paris auf der Nordstrecke zusammen. Die Wikipedia-Liste nennt den Express 318 aus Lille und den Schnellzug 128 mit Wagen aus Köln, Amsterdam und Brüssel.',
+                'sources' => ['indische-courant-1925-08-17', 'tribune-1925-08-17', 'wp-liste-1925'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le choc a été violent : le fourgon de tête a été mis en pièces et deux wagons se sont renversés, d\'après la dépêche Reuter.',
+                'en' => 'The impact was violent: the leading baggage van was smashed and two wagons overturned, according to the Reuters dispatch.',
+                'de' => 'Der Aufprall war heftig: Der vordere Gepäckwagen wurde zertrümmert und zwei Wagen kippten um, laut der Reuter-Depesche.',
+                'sources' => ['indische-courant-1925-08-17'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les premières dépêches donnent des bilans provisoires très différents : un mort et cinquante blessés, puis deux morts, puis trois morts et 31 blessés. La liste de Wikipédia retient quatre morts et soixante et un blessés.',
+                'en' => 'The first dispatches give very different provisional tolls: one dead and fifty injured, then two dead, then three dead and 31 injured. The Wikipedia list gives four dead and sixty-one injured.',
+                'de' => 'Die ersten Depeschen nennen sehr unterschiedliche vorläufige Bilanzen: ein Toter und fünfzig Verletzte, dann zwei Tote, dann drei Tote und 31 Verletzte. Die Wikipedia-Liste nennt vier Tote und einundsechzig Verletzte.',
+                'sources' => ['indische-courant-1925-08-17', 'tribune-1925-08-17', 'wp-liste-1925'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La fiche place l\'accident à Paris, alors que les dépêches et la liste le situent à Saint-Denis ou près de la gare de Saint-Denis (au lieudit Pont de la Révolte selon la liste), sans préciser la commune de ce lieudit.',
+                'en' => 'The record places the accident in Paris, whereas the dispatches and the list locate it at Saint-Denis or near Saint-Denis station (at the place called Pont de la Révolte according to the list), without giving the commune of that place.',
+                'de' => 'Der Eintrag verortet das Unglück in Paris, während die Depeschen und die Liste es in Saint-Denis oder nahe dem Bahnhof Saint-Denis (laut Liste am Ort Pont de la Révolte) verorten, ohne die Gemeinde dieses Ortes zu nennen.',
+                'sources' => ['indische-courant-1925-08-17', 'tribune-1925-08-17', 'wp-liste-1925'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+];
