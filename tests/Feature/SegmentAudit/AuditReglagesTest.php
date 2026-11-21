@@ -119,8 +119,14 @@ class AuditReglagesTest extends TestCase
         $after = self::row($auditor->auditLine($this->line->id, [2000]), $this->past->id, $p);
         $this->assertSame(['good', ['continuous_service']], [$after['classification_grade'], $after['evidence']['classification']['reasons']]);
 
-        // Une fin datée, même ailleurs sur la ligne, rompt la continuité.
+        // Une fin non localisée datée après l'ère ne dit rien de 2000 (règle R2, règles `.8`).
         DB::table('line_events')->insert(['line_id' => $this->line->id, 'type' => 'closure', 'event_date' => '2010-01-01', 'description' => 'fermeture',
+            'source' => 'wikidata', 'section_resolution' => 'pk', 'section_from' => 'Lima']);
+        $later = self::row($auditor->auditLine($this->line->id, [2000]), $this->past->id, $p);
+        $this->assertSame('good', $later['classification_grade']);
+
+        // Datée avant l'ère, une fin non localisée peut toucher le tronçon : elle rompt la continuité.
+        DB::table('line_events')->insert(['line_id' => $this->line->id, 'type' => 'closure', 'event_date' => '1990-01-01', 'description' => 'fermeture',
             'source' => 'wikidata', 'section_resolution' => 'pk', 'section_from' => 'Lima']);
         $broken = self::row($auditor->auditLine($this->line->id, [2000]), $this->past->id, $p);
         $this->assertSame('fair', $broken['classification_grade']);

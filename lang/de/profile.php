@@ -31,6 +31,7 @@ return [
     'grade_withheld_terrain_only' => 'Neigung nicht veröffentlicht: nur Geländehöhe bekannt.',
     'grade_withheld_tunnel' => 'Neigung nicht veröffentlicht: Die Strecke verläuft überwiegend im Tunnel, wo die Höhe unsicher ist.',
     'grade_withheld_interpolated' => 'Neigung nicht veröffentlicht: Die Höhen sind überwiegend interpoliert.',
+    'grade_withheld_none' => 'Neigung nicht gemessen: kein verwertbarer Abschnitt von 1 km.',
     'grade_withheld_rack' => 'Neigung nicht gemessen: Zahnradbahn.',
     'rack_full' => 'Zahnradbahn (System :system) auf der ganzen Strecke.',
     'rack_partial' => 'Zahnradbahn (System :system) auf einem Teil der Strecke.',

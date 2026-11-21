@@ -99,7 +99,8 @@ class LineProfileController extends Controller
      * admise, la déclivité n'est pas publiée : `max_grade_permil`, ses bornes et sa direction sont
      * nuls, et `max_grade_withheld` en donne le motif (`terrain_only` : altitude du terrain
      * seulement, ligne sans voie dans la BD TOPO ; `tunnel` ; `interpolated` ; `rack` : ligne à
-     * crémaillère) ;
+     * crémaillère) ; le motif est nul aussi quand aucune portion
+     * de 1 km n'est exploitable (parcours trop court) : rien n'est affirmé ;
      * `max_grade_direction` : `up` (rampe dans le sens du parcours) ou `down` (pente). Valeurs
      * indicatives : quelques ‰ d'écart avec la déclivité officielle sont courants.
      *

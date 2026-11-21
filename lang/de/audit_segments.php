@@ -189,7 +189,7 @@ return [
         'sources_disagree' => 'Die Quellen widersprechen sich.',
         'weak_contradiction' => 'Ein schwacher oder datumsnaher Beleg sagt etwas anderes.',
         'weak_sources_only' => 'Nur schwache Quellen stimmen überein.',
-        'continuous_service' => 'Nur schwache Quellen datieren ihn, aber die Strecke wurde nie stillgelegt und dieser Abschnitt ist heute sicher.',
+        'continuous_service' => 'Nur schwache Quellen datieren ihn, aber keine datierte Stilllegung betrifft ihn zu dieser Zeit, und dieser Abschnitt ist heute sicher.',
         'observation_outvoted' => 'Eine einzige heutige Beobachtung widerspricht; zwei andere stimmen überein.',
         'no_source' => 'Keine Quelle äußert sich zu diesem Abschnitt zu diesem Datum.',
         'rule_passenger_only_off_lgv' => '„Nur Personenverkehr“ außerhalb einer Schnellfahrstrecke: Eine Strecke mit Personenverkehr gilt als gemischt.',

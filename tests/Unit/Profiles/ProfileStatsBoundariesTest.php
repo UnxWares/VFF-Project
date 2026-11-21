@@ -104,9 +104,11 @@ class ProfileStatsBoundariesTest extends TestCase
         $this->assertSame(750, $ok['max_grade_to_m']);
         $this->assertGreaterThan(0.0, $ok['max_grade_permil']);
 
-        // 0 à 200 m seulement : trois points mais une fenêtre trop courte, aucune pente publiée.
+        // 0 à 200 m seulement : trois points mais une fenêtre trop courte, aucune pente publiée
+        // (corrigé le 21/11/2026 : null, et non plus 0,0 ‰ « up » qui figeait un défaut).
         $short = ProfileStats::summarize([[0.0, 100.0], [100.0, 105.0], [200.0, 110.0], [5000.0, 110.0]]);
-        $this->assertSame(0.0, $short['max_grade_permil']);
+        $this->assertNull($short['max_grade_permil']);
+        $this->assertNull($short['max_grade_direction']);
     }
 
     public function test_a_window_crossing_a_gap_is_ignored_but_the_next_one_is_kept(): void
@@ -118,7 +120,7 @@ class ProfileStatsBoundariesTest extends TestCase
         $this->assertSame(62.5, $s['max_grade_permil']);
 
         $all = ProfileStats::summarize($this->line(5, 250.0), [[400.0, 600.0]]);
-        $this->assertSame(0.0, $all['max_grade_permil']);
+        $this->assertNull($all['max_grade_permil']);
     }
 
     public function test_the_window_includes_a_point_exactly_at_its_end(): void

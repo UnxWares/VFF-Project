@@ -31,6 +31,7 @@ return [
     'grade_withheld_terrain_only' => 'Déclivité non publiée : altitude du terrain seulement.',
     'grade_withheld_tunnel' => 'Déclivité non publiée : la ligne est surtout en tunnel, où l’altitude est incertaine.',
     'grade_withheld_interpolated' => 'Déclivité non publiée : les altitudes sont surtout interpolées.',
+    'grade_withheld_none' => 'Déclivité non mesurée : aucune portion de 1 km exploitable.',
     'grade_withheld_rack' => 'Déclivité non mesurée : ligne à crémaillère.',
     'rack_full' => 'Ligne à crémaillère (système :system) sur tout le parcours.',
     'rack_partial' => 'Ligne à crémaillère (système :system) sur une partie du parcours.',

@@ -72,10 +72,14 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
       statut SNCF « déclassée vendue », devient un avis faible quand deux observations actuelles fortes (SNCF,
       BD TOPO, OSM rattachée) sont d'accord ; raison `observation_outvoted`. Une voie OSM « abandoned » ou
       « razed » reste une vraie contradiction.
-    - Continuité (règles `.4`, ères passées) : un tronçon en service que seules des sources faibles datent reste
-      `good` (raison `continuous_service`) quand la ligne n'a aucune fin datée (fermeture, déclassement, dépose,
-      localisée ou non) et qu'un tronçon de la même ligne, à 30 m au plus de son milieu, est en service et `good`
-      pour le classement à l'ère courante. Une passe qui comprend l'ère courante l'audite en premier et lit son
+    - Continuité (règles `.4`, élargie par la règle R2 des règles `.8`, ères passées) : un tronçon en service que
+      seules des sources faibles datent reste `good` (raison `continuous_service`) quand aucune fin datée ne le
+      touche à cette ère et qu'un tronçon de la même ligne, à 30 m au plus de son milieu, est en service et `good`
+      pour le classement à l'ère courante. Une fin (fermeture, fin des voyageurs ou du fret, déclassement, dépose)
+      touche le tronçon si elle est datée au plus tard le 31/12 de l'ère, sur toute la ligne, non localisée ou
+      localisée sur ce tronçon, et qu'aucune ouverture ou réouverture de toute la ligne ou de ce tronçon ne la suit
+      avant la fin de l'ère (`SegmentAuditor::blocksContinuity`). Avant `.8`, toute fin datée de la ligne, même
+      postérieure à l'ère ou localisée ailleurs, coupait la continuité. Une passe qui comprend l'ère courante l'audite en premier et lit son
       classement de la même passe ; une passe limitée aux ères passées (`--era=1990`) lit l'audit enregistré de
       l'ère courante.
     - Train touristique (règle R1, règles `.6`) : une exploitation associative (`heritage_start`, train
@@ -112,7 +116,7 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
     - Autre référence qui colle (règles `.7`, ère courante) : quand la BD TOPO, première référence retenue, ne colle
       pas, une voie OSM indépendante qui colle sur ses voies libres ou de la ligne (80 % des points, médiane et 95e
       centile ≤ 5 m) donne un placement `good` sur l'OSM, sauf si une voie rattachée à la ligne passe à 8 à 60 m
-      (cas T1b, non tranché). Les règles `.5` avaient laissé ces tronçons `poor` ou `fair` sur une BD TOPO lointaine
+      (cas T1b, écarté au contrôle de `.8` : la voie rattachée à 8-60 m est surtout la voisine d'une double voie). Les règles `.5` avaient laissé ces tronçons `poor` ou `fair` sur une BD TOPO lointaine
       ou à coude, alors que les règles `.4` les notaient `good` (`shared_track`) : 43 tronçons de 2030 mesurés, dont
       les cas 33 et 34 du troisième contrôle à la main, jugés justes en `good`.
     - Référence lointaine (règle R4, règles `.6`, ères passées seulement) : un tracé OSM que la voie OSM rattachée à
@@ -145,7 +149,10 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
     continuité (R2) n'est pas appliqué : voir `storage/app/reports/agents/aprem-2111/audit-eres-passees.md` ; `.7`
     (fin d'après-midi du 21/11) tronçon en service posé sur la voie d'une autre ligne noté « sûr » avec la raison
     `on_other_line_track` (T1d), et voie OSM qui colle préférée à une BD TOPO lointaine à l'ère courante
-    (`storage/app/reports/agents/aprem-2111/audit-t1d.md`).
+    (`storage/app/reports/agents/aprem-2111/audit-t1d.md`) ; `.8` (soir du 21/11) continuité élargie aux ères
+    passées (R2) : seules comptent les fins datées avant l'ère qui touchent le tronçon
+    (`storage/app/reports/agents/aprem-2111/audit-t1bc-r2.md`). T1b et T1c ne sont pas appliqués : jugés à la
+    main, ils se trompent plus souvent qu'ils n'ont raison (même rapport).
 
 ## État des mesures (21/11/2026, fin d'après-midi)
 
@@ -160,9 +167,9 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
      98 % (exactitude) et 91 % (tracé) en 2030 ; le placement reste le point faible (« sûr » juste 30 fois sur 34).
      Aux ères passées, « sûr » juste à 90 %, et aucune des 13 alertes de classement et de placement jugées n'était
      fondée, d'où les règles `.6` (R1, R3, R4).
-- T1d est appliqué dans le code (règles `.7`) : effet sur `vff` avec la prochaine passe de 2030. Réglages proposés et
-  pas encore appliqués : T1b et T1c pour les voies propres non rattachées (un seul cas vérifié chacun), et R2
-  (continuité élargie aux ères passées).
+- T1d est appliqué dans le code (règles `.7`), R2 aussi (règles `.8`) : effet sur `vff` avec les prochaines passes.
+  R2 jugée juste 30 fois sur 30 sur un tirage aux ères passées. T1b et T1c restent écartés : 2 justes sur 13 jugés
+  pour T1b, 7 sur 10 pour T1c, avec la moitié des cas illisibles dans les faisceaux (`aprem-2111/audit-t1bc-r2.md`).
 - Tests : couverture de `SegmentAuditor` de 91 à 99,5 %, mutation de `AuditGrader` de 92 à 97 % et de
   `DateComparison` de 66 à 84 %.
 - À lancer sur `vff` quand le moteur sera rejoué : `vff:audit-segments --era=2030` (6 minutes environ), puis les ères
