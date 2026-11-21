@@ -1,0 +1,161 @@
+<?php
+
+// Contexte sourcé de l'accident de Choisy-le-Roi du 20 décembre 2009 (recherche du 21/11/2026).
+return [
+    'slug' => '2009-12-20-choisy-le-roi',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'bea-rapport-2011' => [
+            'provider' => 'bea-tt',
+            'kind' => 'report',
+            'reliability' => 'official',
+            'title' => 'Rapport d\'enquête sur le déraillement d\'une rame du RER C le 20 décembre 2009 à Choisy-le-Roi (94)',
+            'publisher' => 'Bureau d\'enquêtes sur les accidents de transport terrestre (BEA-TT)',
+            'author' => null,
+            'published' => '2011-04',
+            'locator' => 'Résumé p. 11 ; § 1, 3, 4, 6',
+            'url' => 'https://www.bea-tt.developpement-durable.gouv.fr/IMG/pdf/vfrapport_beatt_2009_012_choisy-le-roy.pdf',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Rapport final (affaire BEATT-2009-012) : heure, bilan, déroulement, expertise de la voiture et du parapet, analyse des causes. Aucune recommandation particulière. Les résultats de toxicologie du conducteur de la voiture y sont détaillés (non repris ici).',
+        ],
+        'bea-page' => [
+            'provider' => 'bea-tt',
+            'kind' => 'official',
+            'reliability' => 'official',
+            'title' => 'Choisy-le-Roi (94) - 20/12/2009 - déraillement d\'un train du RER C',
+            'publisher' => 'Bureau d\'enquêtes sur les accidents de transport terrestre (BEA-TT)',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://www.bea-tt.developpement-durable.gouv.fr/choisy-le-roi-94-20-12-2009-deraillement-d-un-r135.html',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Page de présentation : 37 blessés dont 2 graves, tous dans la première voiture ; rapport du 7 avril 2011, résumé en anglais.',
+        ],
+        'wp-fr' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Accident ferroviaire de Choisy-le-Roi',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Déroulement, Suites, Procès',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Accident_ferroviaire_de_Choisy-le-Roi&oldid=238123698',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article court, source principale pour l\'interruption du trafic et le procès de 2013 (non recoupé avec la presse) ; il parle de « blocs de béton » et de 36 blessés, ce que le rapport du BEA-TT ne confirme pas.',
+        ],
+        'wikidata' => [
+            'provider' => 'wikidata',
+            'kind' => 'data',
+            'reliability' => 'encyclopedia',
+            'title' => 'Accident ferroviaire de Choisy-le-Roi (Q2822726)',
+            'publisher' => 'Wikidata',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://www.wikidata.org/wiki/Q2822726',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Élément repéré (37 blessés) ; non relu.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 20 décembre 2009 à 20 h 36, le train RER C n° 145867, en provenance de Paris, a percuté à Choisy-le-Roi (Val-de-Marne) un bloc de pierre tombé sur la voie. Le train, composé de deux éléments Z 20900, roulait à 118 km/h sur la ligne de Paris-Austerlitz à Orléans, dont il suivait la voie 1. La vitesse des trains de ce type est limitée à 130 km/h à cet endroit.',
+                'en' => 'On 20 December 2009 at 8.36 pm, RER C train no. 145867, coming from Paris, hit a block of stone that had fallen onto the track at Choisy-le-Roi (Val-de-Marne). The train, made up of two Z 20900 units, was travelling at 118 km/h on the Paris-Austerlitz to Orléans line, on track 1. Trains of this type are limited to 130 km/h at that point.',
+                'de' => 'Am 20. Dezember 2009 um 20.36 Uhr prallte der aus Paris kommende RER-C-Zug Nr. 145867 in Choisy-le-Roi (Val-de-Marne) auf einen auf das Gleis gestürzten Steinblock. Der aus zwei Einheiten Z 20900 bestehende Zug fuhr mit 118 km/h auf Gleis 1 der Strecke Paris-Austerlitz - Orléans. Für Züge dieser Bauart gilt an dieser Stelle eine Höchstgeschwindigkeit von 130 km/h.',
+                'sources' => ['bea-rapport-2011', 'wp-fr'],
+            ],
+            [
+                'fr' => 'Un épisode neigeux durait depuis plusieurs jours en Île-de-France, avec des températures négatives et des routes particulièrement glissantes. Vers 20 h 30, une automobile venant de Vitry-sur-Seine a perdu le contrôle sur le pont du quai Jules Guesde (RD 152) qui franchit les voies, heurté le parapet de pierre et en a projeté un bloc sur les rails.',
+                'en' => 'A spell of snow had lasted several days in the Île-de-France, with sub-zero temperatures and particularly slippery roads. At about 8.30 pm, a car coming from Vitry-sur-Seine lost control on the quai Jules Guesde bridge (RD 152) over the tracks, struck the stone parapet and sent a block of it onto the rails.',
+                'de' => 'In der Île-de-France herrschte seit mehreren Tagen Schneefall bei Frost und besonders glatten Straßen. Gegen 20.30 Uhr verlor ein aus Vitry-sur-Seine kommendes Auto auf der Brücke Quai Jules Guesde (RD 152) über die Gleise die Kontrolle, prallte gegen die steinerne Brüstung und schleuderte einen Block davon auf die Schienen.',
+                'sources' => ['bea-rapport-2011'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le train a heurté le bloc de pierre, s\'est soulevé et a déraillé sur trois voitures en engageant la voie adjacente. Il a arraché la voie 1 et les caténaires des quatre voies sur environ 500 m avant de s\'arrêter 500 m après le choc. Quatre personnes étaient dans la cabine de conduite : le conducteur et trois collègues, qui ont porté secours aux voyageurs et les ont empêchés de descendre sur des voies où pendaient des caténaires.',
+                'en' => 'The train struck the block of stone, was lifted and derailed on three cars, fouling the adjacent track. It tore up track 1 and the overhead lines of all four tracks over about 500 m before stopping 500 m after the impact. Four people were in the driving cab: the driver and three colleagues, who helped the passengers and stopped them from getting down onto tracks where overhead wires were hanging.',
+                'de' => 'Der Zug prallte gegen den Steinblock, hob sich an und entgleiste mit drei Wagen, wobei er in das Nachbargleis geriet. Er riss Gleis 1 und die Fahrleitungen aller vier Gleise auf etwa 500 m heraus und kam 500 m nach dem Aufprall zum Stehen. Im Führerstand befanden sich vier Personen: der Triebfahrzeugführer und drei Kollegen, die den Fahrgästen halfen und sie daran hinderten, auf Gleise mit herabhängenden Fahrleitungen zu steigen.',
+                'sources' => ['bea-rapport-2011'],
+            ],
+            [
+                'fr' => 'L\'automobiliste a quitté les lieux sans alerter les secours, un autre conducteur l\'ayant raccompagné. Un automobiliste de passage a appelé les pompiers puis la police, en indiquant qu\'il n\'y avait pas de blessé. Le signal d\'alerte radio, déclenché depuis la cabine, a arrêté les trains du même canton radio ; le train arrivant en sens inverse a été stoppé par le manque de courant et le train suivant par les signaux fermés.',
+                'en' => 'The car driver left the scene without alerting the emergency services, another driver having taken him home. A passing motorist called the fire brigade and then the police, saying that nobody was injured. The radio alert signal, triggered from the cab, stopped the trains in the same radio section; the train coming the other way was halted by the loss of power and the following train by closed signals.',
+                'de' => 'Der Autofahrer verließ die Unfallstelle, ohne die Rettungsdienste zu alarmieren; ein anderer Autofahrer brachte ihn nach Hause. Ein vorbeifahrender Autofahrer rief die Feuerwehr und danach die Polizei an und gab an, es gebe keine Verletzten. Das aus dem Führerstand ausgelöste Funkalarmsignal hielt die Züge im selben Funkabschnitt an; der Gegenzug kam wegen des Stromausfalls zum Stehen, der nachfolgende Zug an geschlossenen Signalen.',
+                'sources' => ['bea-rapport-2011'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Selon le BEA-TT, l\'accident a fait 37 blessés, dont 2 graves, tous situés dans la première voiture de la rame ; 32 ont été évacués vers des hôpitaux parisiens et les autres soignés sur place, une partie dans un théâtre voisin mis à disposition par la mairie. Pompiers, police et protection civile sont arrivés à 20 h 50. Il n\'y a pas eu de mort.',
+                'en' => 'According to the BEA-TT, the accident injured 37 people, 2 of them seriously, all in the first car of the train; 32 were taken to Paris hospitals and the others treated on site, some in a nearby theatre made available by the town hall. Firefighters, police and civil protection arrived at 8.50 pm. Nobody was killed.',
+                'de' => 'Nach Angaben des BEA-TT wurden 37 Menschen verletzt, 2 davon schwer, alle im ersten Wagen des Zuges; 32 kamen in Pariser Krankenhäuser, die übrigen wurden vor Ort versorgt, teils in einem nahen Theater, das die Gemeinde zur Verfügung gestellt hatte. Feuerwehr, Polizei und Zivilschutz trafen um 20.50 Uhr ein. Es gab keine Toten.',
+                'sources' => ['bea-rapport-2011', 'bea-page'],
+            ],
+            [
+                'fr' => 'Les dégâts matériels, estimés à environ 7 millions d\'euros, étaient importants : une motrice déraillée avec sa cabine partiellement détruite, 500 m de voie à remplacer, 1 200 m de caténaires détruits, quatre supports à changer et une potence de signalisation détruite. Le trafic a été totalement interrompu entre Paris-Austerlitz et Juvisy les 21 et 22 décembre.',
+                'en' => 'Material damage, estimated at about 7 million euros, was considerable: a derailed power car with its cab partly destroyed, 500 m of track to replace, 1,200 m of overhead wire destroyed, four supports to change and a signal gantry destroyed. Traffic was fully interrupted between Paris-Austerlitz and Juvisy on 21 and 22 December.',
+                'de' => 'Der Sachschaden, auf etwa 7 Millionen Euro geschätzt, war erheblich: ein entgleister Triebwagen mit teilweise zerstörtem Führerstand, 500 m zu erneuerndes Gleis, 1 200 m zerstörte Fahrleitung, vier auszutauschende Masten und ein zerstörter Signalausleger. Der Verkehr zwischen Paris-Austerlitz und Juvisy war am 21. und 22. Dezember vollständig unterbrochen.',
+                'sources' => ['bea-rapport-2011', 'wp-fr'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Pour le BEA-TT, la cause directe est la perte de contrôle d\'une automobile qui a heurté le parapet de pierre du pont et l\'a projeté sur la voie. L\'expertise estime la vitesse au début de la perte de contrôle entre 54 et 58 km/h, au-dessus de la limite de 50 km/h et manifestement excessive sur chaussée glissante, et la vitesse d\'impact contre le parapet à environ 40 km/h.',
+                'en' => 'For the BEA-TT, the direct cause is the loss of control of a car that hit the stone parapet of the bridge and threw it onto the track. The expert assessment puts the speed at the start of the loss of control at between 54 and 58 km/h, above the 50 km/h limit and clearly excessive on a slippery road, and the impact speed against the parapet at about 40 km/h.',
+                'de' => 'Für das BEA-TT ist die unmittelbare Ursache der Kontrollverlust eines Autos, das die steinerne Brüstung der Brücke traf und auf das Gleis schleuderte. Das Gutachten schätzt die Geschwindigkeit zu Beginn des Kontrollverlusts auf 54 bis 58 km/h, über der Grenze von 50 km/h und auf glatter Fahrbahn offensichtlich zu hoch, die Aufprallgeschwindigkeit gegen die Brüstung auf etwa 40 km/h.',
+                'sources' => ['bea-rapport-2011'],
+            ],
+            [
+                'fr' => 'Le rapport cite d\'autres facteurs possibles : un léger choc avec un véhicule venant en sens inverse, un système d\'antiblocage des roues défaillant sur la voiture, et les effets éventuels d\'une consommation d\'alcool et de stupéfiants par le conducteur, qu\'il n\'a pas pu établir. Il ajoute que le parapet, non conçu pour résister à un tel choc, n\'a pas retenu le bloc, et que l\'absence d\'alerte à l\'exploitant ferroviaire n\'a pas permis d\'arrêter le train à temps.',
+                'en' => 'The report cites other possible factors: a slight collision with a vehicle coming the other way, a faulty anti-lock braking system on the car, and the possible effects of alcohol and drugs taken by the driver, which it could not establish. It adds that the parapet, not designed to withstand such an impact, did not hold the block, and that the lack of an alert to the railway operator meant the train could not be stopped in time.',
+                'de' => 'Der Bericht nennt weitere mögliche Faktoren: eine leichte Kollision mit einem Gegenverkehrsfahrzeug, ein defektes Antiblockiersystem des Autos sowie mögliche Auswirkungen von Alkohol- und Drogenkonsum des Fahrers, die er nicht belegen konnte. Er fügt hinzu, dass die Brüstung, nicht für einen solchen Aufprall ausgelegt, den Block nicht hielt und dass der fehlende Alarm an den Bahnbetreiber verhinderte, den Zug rechtzeitig anzuhalten.',
+                'sources' => ['bea-rapport-2011'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Le BEA-TT a ouvert son enquête le 23 décembre 2009 et ne formule aucune recommandation particulière. Il invite les pouvoirs publics à poursuivre leur politique de lutte contre l\'insécurité routière, notamment sur l\'adaptation de la vitesse aux conditions météorologiques et à l\'état de la route, les excès de vitesse et la conduite sous l\'emprise d\'alcool ou de stupéfiants.',
+                'en' => 'The BEA-TT opened its investigation on 23 December 2009 and makes no specific recommendation. It invites the authorities to continue their road-safety policy, in particular on adapting speed to weather and road conditions, speeding, and driving under the influence of alcohol or drugs.',
+                'de' => 'Das BEA-TT eröffnete seine Untersuchung am 23. Dezember 2009 und gibt keine besondere Empfehlung ab. Es fordert die Behörden auf, ihre Verkehrssicherheitspolitik fortzusetzen, insbesondere bei der Anpassung der Geschwindigkeit an Wetter und Fahrbahnzustand, bei Geschwindigkeitsüberschreitungen und bei Fahrten unter Alkohol- oder Drogeneinfluss.',
+                'sources' => ['bea-rapport-2011'],
+            ],
+            [
+                'fr' => 'Selon l\'article français de Wikipédia, l\'automobiliste a fait quatre mois de détention provisoire. Lors du procès, en mars 2013, le tribunal n\'a pas retenu l\'alcoolémie et l\'a condamné à huit mois de prison ferme et dix mois avec sursis. Ces informations n\'ont pas été recoupées avec la presse.',
+                'en' => 'According to the French Wikipedia article, the car driver spent four months in pre-trial detention. At the trial in March 2013, the court did not retain the alcohol charge and sentenced him to eight months in prison and ten months suspended. This information was not cross-checked against the press.',
+                'de' => 'Laut dem französischen Wikipedia-Artikel verbrachte der Autofahrer vier Monate in Untersuchungshaft. Im Prozess im März 2013 berücksichtigte das Gericht die Alkoholisierung nicht und verurteilte ihn zu acht Monaten Haft ohne Bewährung und zehn Monaten auf Bewährung. Diese Angaben wurden nicht mit der Presse abgeglichen.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le nombre de blessés varie : le BEA-TT et Wikidata comptent 37 blessés, l\'article français de Wikipédia et sa liste des accidents des années 2000 en comptent 36. Le chiffre du rapport officiel est conservé.',
+                'en' => 'The number of injured varies: the BEA-TT and Wikidata count 37 injured, while the French Wikipedia article and its list of accidents of the 2000s count 36. The figure from the official report is kept.',
+                'de' => 'Die Zahl der Verletzten schwankt: Das BEA-TT und Wikidata zählen 37 Verletzte, der französische Wikipedia-Artikel und seine Liste der Unfälle der 2000er Jahre 36. Die Zahl des amtlichen Berichts bleibt bestehen.',
+                'sources' => ['bea-rapport-2011', 'wp-fr'],
+            ],
+            [
+                'fr' => 'Wikipédia décrit des « blocs de béton » tombés sur la voie et un départ de la gare des Invalides à 20 h 18, alors que le BEA-TT décrit un bloc de pierre provenant du parapet en pierre du pont. Le rapport du BEA-TT, fondé sur une expertise de la voiture et du parapet, fait foi.',
+                'en' => 'Wikipedia describes "concrete blocks" falling onto the track and a departure from Invalides station at 8.18 pm, whereas the BEA-TT describes a block of stone from the bridge\'s stone parapet. The BEA-TT report, based on an expert examination of the car and the parapet, is authoritative.',
+                'de' => 'Wikipedia beschreibt auf das Gleis gefallene „Betonblöcke“ und eine Abfahrt vom Bahnhof Invalides um 20.18 Uhr, während das BEA-TT von einem Steinblock aus der steinernen Brückenbrüstung spricht. Maßgeblich ist der BEA-TT-Bericht, der auf einer Begutachtung von Auto und Brüstung beruht.',
+                'sources' => ['bea-rapport-2011', 'wp-fr'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'occurred_at_time',
+            'value' => '20:36',
+            'sources' => ['bea-rapport-2011', 'wp-fr'],
+            'fr' => 'Le rapport du BEA-TT et l\'article de Wikipédia placent la collision du train avec le bloc de pierre à 20 h 36.',
+            'en' => 'The BEA-TT report and the Wikipedia article place the train\'s collision with the block of stone at 20:36.',
+            'de' => 'Der BEA-TT-Bericht und der Wikipedia-Artikel nennen 20:36 Uhr für den Zusammenstoß des Zuges mit dem Steinblock.',
+        ],
+    ],
+];

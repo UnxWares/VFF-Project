@@ -61,6 +61,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Livre cité pour 21 morts et 7 blessés ; référence complète à vérifier.',
         ],
+        'kb-1941-11-07-twintig-doden' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk eischt twintig dooden (dépêche, 7 novembre 1941)',
+            'publisher' => 'Journal néerlandais numérisé (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1941-11-07',
+            'locator' => 'article « Spoorwegongeluk eischt twintig dooden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010327759:mpeg21:a0170:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Le soir, accident en gare d\'Austerlitz : 20 voyageurs tués, 48 blessés, cinq voitures du train venu d\'Orléans déraillées, deux renversées, une brisée en deux. Presse néerlandaise sous l\'Occupation, courte, sans la date exacte ni l\'heure.',
+        ],
+        'kb-1941-11-08-twintig-doden' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Spoorwegongeluk eischt twintig dooden (dépêche, 8 novembre 1941)',
+            'publisher' => 'Journal néerlandais numérisé (Delpher, Koninklijke Bibliotheek)',
+            'author' => null,
+            'published' => '1941-11-08',
+            'locator' => 'article « Spoorwegongeluk eischt twintig dooden », texte OCR',
+            'url' => 'http://resolver.kb.nl/resolve?urn=ddd:010997778:mpeg21:a0055:ocr',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même texte, publié dans un autre journal le lendemain. Les deux articles semblent issus de la même dépêche et ne forment pas deux confirmations indépendantes.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -83,6 +111,12 @@ return [
                     'wp-liste-1940',
                 ],
             ],
+            [
+                'fr' => 'Une brève de presse néerlandaise des 7 et 8 novembre 1941 précise que, le soir de l\'accident, cinq voitures du train venu de la direction d\'Orléans ont déraillé dans la gare d\'Austerlitz, que deux se sont renversées et que l\'une d\'elles s\'est brisée en deux.',
+                'en' => 'A Dutch press item of 7 and 8 November 1941 states that on the evening of the accident five coaches of the train arriving from the direction of Orléans derailed in Austerlitz station, that two overturned and that one of them broke in two.',
+                'de' => 'Eine niederländische Pressemeldung vom 7. und 8. November 1941 gibt an, am Abend des Unfalls seien im Bahnhof Austerlitz fünf Wagen des aus Richtung Orléans kommenden Zuges entgleist, zwei seien umgekippt und einer davon in der Mitte durchgebrochen.',
+                'sources' => ['kb-1941-11-07-twintig-doden', 'kb-1941-11-08-twintig-doden'],
+            ],
         ],
         'victims' => [
             [
@@ -92,6 +126,12 @@ return [
                 'sources' => [
                     'wp-liste-1940',
                 ],
+            ],
+            [
+                'fr' => 'La même brève compte vingt voyageurs tués et quarante-huit blessés, dont plusieurs grièvement.',
+                'en' => 'The same item counts twenty passengers killed and forty-eight injured, several of them seriously.',
+                'de' => 'Dieselbe Meldung zählt zwanzig getötete Reisende und achtundvierzig Verletzte, mehrere davon schwer.',
+                'sources' => ['kb-1941-11-07-twintig-doden', 'kb-1941-11-08-twintig-doden'],
             ],
         ],
         'disagreements' => [
@@ -103,6 +143,12 @@ return [
                     'wp-liste-1940',
                     'wp-en-1940',
                 ],
+            ],
+            [
+                'fr' => 'Blessés : 48 selon la presse néerlandaise de novembre 1941, une centaine selon la liste française de Wikipédia, 7 selon la liste anglaise. Les vingt morts de la presse concordent avec la liste française. Ces articles, publiés sous l\'Occupation, sont brefs et ne s\'appuient pas sur un rapport d\'enquête ; ils ne mentionnent ni la rame vide en manœuvre ni la cause.',
+                'en' => 'Injured: 48 according to the Dutch press of November 1941, about a hundred in the French Wikipedia list, 7 in the English list. The twenty dead in the press match the French list. These articles, published under the Occupation, are brief and rest on no inquiry report; they mention neither the empty rake being shunted nor the cause.',
+                'de' => 'Verletzte: 48 laut der niederländischen Presse vom November 1941, etwa hundert nach der französischen Wikipedia-Liste, 7 nach der englischen Liste. Die zwanzig Toten der Presse stimmen mit der französischen Liste überein. Diese unter der Besatzung veröffentlichten Artikel sind kurz, stützen sich auf keinen Untersuchungsbericht und erwähnen weder die leere rangierende Wagengarnitur noch die Ursache.',
+                'sources' => ['wp-liste-1940', 'wp-en-1940', 'kb-1941-11-07-twintig-doden', 'kb-1941-11-08-twintig-doden'],
             ],
         ],
     ],

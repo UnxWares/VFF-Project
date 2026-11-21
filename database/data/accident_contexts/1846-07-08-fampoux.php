@@ -192,6 +192,16 @@ return [
             ],
         ],
     ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 14,
+            'sources' => ['wp-fr', 'wp-en'],
+            'fr' => 'Les autorités, puis le procureur au procès de Lille, retiennent 14 morts. Le chiffre de 17, repris par Wikidata, vient du Journal de la Somme ; il est rappelé dans les divergences.',
+            'en' => 'The authorities, then the prosecutor at the Lille trial, gave 14 dead. The figure of 17, used by Wikidata, comes from the Journal de la Somme; it is recorded under the disagreements.',
+            'de' => 'Die Behörden und später der Staatsanwalt im Prozess von Lille nannten 14 Tote. Die von Wikidata übernommene Zahl 17 stammt aus dem Journal de la Somme; sie steht bei den Abweichungen.',
+        ],
+    ],
     'images' => [
         [
             'file' => 'File:Catastrophe de Fampoux.jpg',

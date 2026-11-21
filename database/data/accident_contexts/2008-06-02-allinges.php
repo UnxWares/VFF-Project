@@ -1,0 +1,192 @@
+<?php
+
+// Contexte sourcé de l'accident d'Allinges du 2 juin 2008 (recherche du 21/11/2026).
+return [
+    'slug' => '2008-06-02-allinges',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'bea-rapport-2010' => [
+            'provider' => 'bea-tt',
+            'kind' => 'report',
+            'reliability' => 'official',
+            'title' => 'Rapport d\'enquête technique sur la collision entre un TER et un autocar le 2 juin 2008 à Allinges (Haute-Savoie)',
+            'publisher' => 'Bureau d\'enquêtes sur les accidents de transport terrestre (BEA-TT)',
+            'author' => null,
+            'published' => '2010-03',
+            'locator' => 'Résumé p. 9 ; § 1, 2, 4',
+            'url' => 'https://www.bea-tt.developpement-durable.gouv.fr/IMG/pdf/BEATT_2008-010_cle5e1455.pdf',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Rapport final (affaire BEATT-2008-010) : lieu, heures relevées, bilan, mesures des délais d\'annonce et de fermeture, géométrie du passage à niveau, trois recommandations. Il ne retient pas de cause unique pour l\'immobilisation de l\'autocar.',
+        ],
+        'bea-page' => [
+            'provider' => 'bea-tt',
+            'kind' => 'official',
+            'reliability' => 'official',
+            'title' => 'Allinges (74) - 2/06/2008 - collision entre un TER et un autocar',
+            'publisher' => 'Bureau d\'enquêtes sur les accidents de transport terrestre (BEA-TT)',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://www.bea-tt.developpement-durable.gouv.fr/allinges-74-2-06-2008-collision-entre-un-ter-et-un-r105.html',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Page de présentation : rapport du 4 mars 2010, recommandations et réponses des destinataires (25 mai 2010), résumé en anglais.',
+        ],
+        'wp-fr' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Accident d\'Allinges',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Déroulement, Enquête, Conséquences, Procès',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Accident_d%27Allinges&oldid=239932346',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article détaillé qui s\'appuie sur le rapport du BEA-TT et sur la presse (Le Dauphiné libéré, Le Figaro, Libération) ; seule source lue pour les suites judiciaires et la commémoration, jugement de 2013 non recoupé avec la presse. Son bilan (25 blessés) diffère de celui du BEA-TT.',
+        ],
+        'wikidata' => [
+            'provider' => 'wikidata',
+            'kind' => 'data',
+            'reliability' => 'encyclopedia',
+            'title' => 'Accident d\'Allinges (Q48755362)',
+            'publisher' => 'Wikidata',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://www.wikidata.org/wiki/Q48755362',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Élément repéré : 7 morts et 25 blessés ; non relu, il reprend le bilan de l\'article français.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le lundi 2 juin 2008, un autocar ramenant 50 collégiens et 5 accompagnateurs a été heurté par un train express régional au passage à niveau n° 68 d\'Allinges (Haute-Savoie), sur la ligne d\'Évian-les-Bains à Annemasse (Longeray-Léaz au Bouveret). Le passage à niveau croise la route départementale 233, entre Allinges et la RD 1005, non loin du lac Léman.',
+                'en' => 'On Monday 2 June 2008, a coach carrying 50 schoolchildren and 5 accompanying adults was hit by a regional express train at level crossing no. 68 in Allinges (Haute-Savoie), on the Évian-les-Bains to Annemasse line (Longeray-Léaz to Le Bouveret). The crossing is where departmental road 233, between Allinges and the RD 1005, meets the railway, not far from Lake Geneva.',
+                'de' => 'Am Montag, dem 2. Juni 2008, wurde ein Reisebus mit 50 Schülern und 5 Begleitpersonen am Bahnübergang Nr. 68 in Allinges (Haute-Savoie) auf der Strecke Évian-les-Bains - Annemasse (Longeray-Léaz - Le Bouveret) von einem Regionalzug erfasst. Der Übergang liegt an der Départementsstraße 233 zwischen Allinges und der RD 1005, nicht weit vom Genfersee.',
+                'sources' => ['bea-rapport-2010', 'wp-fr'],
+            ],
+            [
+                'fr' => 'Le TER n° 884328, une automotrice électrique à deux caisses de type Z 23500, circulait d\'Évian-les-Bains vers Genève-Eaux-Vives. La ligne est à voie unique, électrifiée, limitée à 100 km/h, avec 38 trains par jour. Le passage à niveau, au point kilométrique 196,167 entre Perrignier et Thonon-les-Bains, est équipé de demi-barrières automatiques et situé dans une courbe de 400 m de rayon, avec 125 m de visibilité environ depuis la cabine.',
+                'en' => 'TER no. 884328, a two-car Z 23500 electric multiple unit, was running from Évian-les-Bains towards Geneva-Eaux-Vives. The line is single-track, electrified, limited to 100 km/h, with 38 trains a day. The crossing, at km post 196.167 between Perrignier and Thonon-les-Bains, has automatic half-barriers and lies on a 400 m radius curve, with about 125 m of visibility from the cab.',
+                'de' => 'Der TER Nr. 884328, ein zweiteiliger elektrischer Triebzug der Reihe Z 23500, fuhr von Évian-les-Bains nach Genève-Eaux-Vives. Die Strecke ist eingleisig, elektrifiziert, auf 100 km/h begrenzt und wird täglich von 38 Zügen befahren. Der Übergang bei km 196,167 zwischen Perrignier und Thonon-les-Bains hat automatische Halbschranken und liegt in einer Kurve mit 400 m Radius; aus dem Führerstand reicht die Sicht etwa 125 m weit.',
+                'sources' => ['bea-rapport-2010'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le BEA-TT a reconstitué le déroulement : l\'autocar, très long et obligé de rouler à environ 5 km/h sur un passage à la géométrie délicate, s\'est engagé dès l\'allumage des feux rouges. Les demi-barrières se sont abaissées peu après, puis le véhicule s\'est immobilisé alors que son arrière était encore sur la voie. Le conducteur du train a aperçu l\'autocar à environ 125 m, déclenché le freinage d\'urgence à environ 100 m, et le train a heurté l\'autocar quatre secondes plus tard à 85 km/h.',
+                'en' => 'The BEA-TT reconstructed the sequence: the coach, very long and forced to travel at about 5 km/h over a crossing with a difficult geometry, entered as the red lights came on. The half-barriers came down shortly afterwards, then the vehicle stopped while its rear was still on the track. The train driver saw the coach at about 125 m and applied the emergency brake at about 100 m, and the train struck the coach four seconds later at 85 km/h.',
+                'de' => 'Das BEA-TT rekonstruierte den Ablauf: Der sehr lange Bus, der den schwierig geformten Übergang nur mit etwa 5 km/h befahren konnte, fuhr ein, als die roten Lichter angingen. Die Halbschranken senkten sich kurz darauf, dann blieb das Fahrzeug stehen, während sein Heck noch auf dem Gleis stand. Der Triebfahrzeugführer sah den Bus aus etwa 125 m Entfernung und löste die Schnellbremsung in etwa 100 m Entfernung aus; vier Sekunden später prallte der Zug mit 85 km/h auf den Bus.',
+                'sources' => ['bea-rapport-2010'],
+            ],
+            [
+                'fr' => 'Le choc a eu lieu à 1,10 m de l\'arrière de l\'autocar, dont la partie arrière en porte-à-faux a été arrachée sur 2 à 2,5 m. L\'autocar a pivoté de 80 à 90 degrés et s\'est arrêté à environ 18 m du point d\'impact ; le train s\'est immobilisé à 307,5 m. Le rapport relève 13 h 52 comme heure de l\'arrêt du train, alors que son résumé donne « vers 13 h 55 ».',
+                'en' => 'The impact was 1.10 m from the rear of the coach, whose overhanging rear section was torn off over 2 to 2.5 m. The coach swung round by 80 to 90 degrees and came to rest about 18 m from the point of impact; the train stopped 307.5 m away. The report gives 1.52 pm as the time the train came to rest, whereas its summary says "at about 1.55 pm".',
+                'de' => 'Der Aufprall lag 1,10 m vom Heck des Busses entfernt, dessen überstehender Hecküberhang auf 2 bis 2,5 m abgerissen wurde. Der Bus drehte sich um 80 bis 90 Grad und kam etwa 18 m vom Aufprallpunkt entfernt zum Stehen; der Zug hielt nach 307,5 m. Der Bericht nennt 13.52 Uhr als Zeitpunkt des Stillstands des Zuges, während seine Zusammenfassung „gegen 13.55 Uhr“ angibt.',
+                'sources' => ['bea-rapport-2010'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Selon le BEA-TT, l\'accident a fait 7 morts et 33 blessés, dont 3 grièvement, tous passagers de l\'autocar. Six passagers avaient été éjectés par l\'arrière arraché, cinq étaient morts à l\'arrivée des secours, comme un sixième resté dans le véhicule ; un élève blessé est mort plus tard à l\'hôpital de Genève. Les voyageurs du train ne comptaient pas de blessé, mais le conducteur et certains passagers étaient en état de choc.',
+                'en' => 'According to the BEA-TT, the accident killed 7 and injured 33, 3 of them seriously, all of them passengers on the coach. Six passengers had been thrown out through the torn-off rear, five were dead when rescuers arrived, as was a sixth who had remained in the vehicle; an injured pupil died later in hospital in Geneva. There were no injured among the train passengers, but the driver and some passengers were in shock.',
+                'de' => 'Nach Angaben des BEA-TT forderte der Unfall 7 Tote und 33 Verletzte, davon 3 schwer, alle Fahrgäste des Busses. Sechs Insassen waren durch das abgerissene Heck hinausgeschleudert worden, fünf waren beim Eintreffen der Retter tot, ebenso ein sechster, der im Fahrzeug geblieben war; ein verletzter Schüler starb später in einem Genfer Krankenhaus. Unter den Fahrgästen des Zuges gab es keine Verletzten, doch der Triebfahrzeugführer und einige Reisende standen unter Schock.',
+                'sources' => ['bea-rapport-2010', 'bea-page'],
+            ],
+            [
+                'fr' => 'L\'alerte a été reçue par le centre de secours à 13 h 53 ; les premiers véhicules sont arrivés sur place à 14 h 01 avec 6 sapeurs-pompiers. Le dispositif est monté jusqu\'à 28 véhicules et 73 sapeurs-pompiers, avec évacuation des blessés les plus graves par moyens aériens, une cellule de soutien psychologique et une chapelle ardente le soir même.',
+                'en' => 'The alert reached the emergency centre at 1.53 pm; the first vehicles arrived at 2.01 pm with 6 firefighters. The response grew to 28 vehicles and 73 firefighters, with the most seriously injured airlifted, a psychological support unit set up and a lying-in-state chapel installed that evening.',
+                'de' => 'Der Alarm ging um 13.53 Uhr bei der Leitstelle ein; die ersten Fahrzeuge trafen um 14.01 Uhr mit 6 Feuerwehrleuten ein. Der Einsatz wuchs auf 28 Fahrzeuge und 73 Feuerwehrleute an, die Schwerstverletzten wurden aus der Luft abtransportiert, am Abend wurden eine psychologische Betreuungsstelle und eine Trauerkapelle eingerichtet.',
+                'sources' => ['bea-rapport-2010'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Pour le BEA-TT, la cause immédiate est l\'immobilisation de l\'autocar sur le passage à niveau alors que son arrière engageait encore la voie. Les causes de cet arrêt n\'ont pas pu être établies précisément : des problèmes mécaniques (injection, boîte de vitesses) et des facteurs humains (panique du conducteur, mauvaise manœuvre) ont pu se combiner. L\'état mécanique du véhicule et le peu de pratique de ce modèle par son conducteur ont pu jouer.',
+                'en' => 'For the BEA-TT, the immediate cause is the coach coming to a stop on the level crossing while its rear was still on the track. The causes of the stop could not be established precisely: mechanical problems (fuel injection, gearbox) and human factors (the driver\'s panic, a wrong manoeuvre) may have combined. The mechanical state of the vehicle and the driver\'s limited experience with this model may have played a part.',
+                'de' => 'Für das BEA-TT besteht die unmittelbare Ursache im Stillstand des Busses auf dem Bahnübergang, während sein Heck noch im Gleis stand. Die Gründe des Stillstands ließen sich nicht genau klären: Mechanische Probleme (Einspritzung, Getriebe) und menschliche Faktoren (Panik des Fahrers, falsche Bedienung) können zusammengewirkt haben. Auch der mechanische Zustand des Fahrzeugs und die geringe Erfahrung des Fahrers mit diesem Modell können eine Rolle gespielt haben.',
+                'sources' => ['bea-rapport-2010'],
+            ],
+            [
+                'fr' => 'Deux facteurs liés au passage à niveau ont aussi joué : la géométrie difficile de la traversée routière, qui rend le franchissement long et délicat pour les véhicules lourds, et la marge de sécurité étroite laissée par les délais d\'annonce des trains à un véhicule qui s\'engage au moment du déclenchement des signaux. Le délai d\'annonce mesuré (26 secondes à 95 km/h) respectait la réglementation, et les barrières se sont fermées dans les délais prévus.',
+                'en' => 'Two factors related to the level crossing also played a role: the difficult geometry of the road crossing, which makes it long and delicate for heavy vehicles to get across, and the narrow safety margin left by the train warning times to a vehicle entering just as the signals start. The measured warning time (26 seconds at 95 km/h) complied with the regulations, and the barriers closed within the expected times.',
+                'de' => 'Zwei mit dem Bahnübergang verbundene Faktoren spielten ebenfalls eine Rolle: die schwierige Geometrie der Straßenquerung, die das Überqueren für schwere Fahrzeuge lang und heikel macht, und der knappe Sicherheitsspielraum der Ankündigungszeiten für ein Fahrzeug, das genau beim Einschalten der Signale einfährt. Die gemessene Ankündigungszeit (26 Sekunden bei 95 km/h) entsprach den Vorschriften, und die Schranken schlossen sich in den vorgesehenen Zeiten.',
+                'sources' => ['bea-rapport-2010'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Le BEA-TT a ouvert son enquête le 3 juin 2008 et publié son rapport le 4 mars 2010, avec trois recommandations : préciser les actions à mener quand les inspections de sécurité détectent des difficultés de franchissement pour certains véhicules routiers ; adapter les règles sur les délais d\'annonce des trains et de fermeture des barrières au temps réel de franchissement des véhicules autorisés ; préciser l\'emploi des feux rouges clignotants additionnels placés à l\'arrière des feux de droite.',
+                'en' => 'The BEA-TT opened its investigation on 3 June 2008 and published its report on 4 March 2010, with three recommendations: to specify what must be done when safety inspections detect crossing difficulties for certain road vehicles; to adapt the rules on train warning times and barrier closing to the actual crossing time of authorised road vehicles; and to specify the use of additional flashing red lights placed behind the right-hand lights.',
+                'de' => 'Das BEA-TT eröffnete seine Untersuchung am 3. Juni 2008 und veröffentlichte den Bericht am 4. März 2010 mit drei Empfehlungen: Festlegung der Maßnahmen, wenn Sicherheitsinspektionen Überfahrschwierigkeiten für bestimmte Straßenfahrzeuge feststellen; Anpassung der Regeln für die Ankündigungszeiten und das Schließen der Schranken an die tatsächliche Überfahrzeit zugelassener Straßenfahrzeuge; Klärung des Einsatzes zusätzlicher roter Blinklichter hinter den rechten Lichtern.',
+                'sources' => ['bea-rapport-2010', 'bea-page'],
+            ],
+            [
+                'fr' => 'Une reconstitution judiciaire a eu lieu le 16 juin 2009 sur place. Le procès s\'est tenu en avril 2013 à Thonon-les-Bains ; selon l\'article français de Wikipédia, le jugement du 26 juin 2013 a déclaré coupables d\'homicide involontaire le conducteur de l\'autocar (deux ans de prison avec sursis, cinq ans d\'interdiction de conduire des transports en commun), la SNCF et Réseau ferré de France, reprochant à ces derniers de ne pas avoir tenu compte de la dangerosité du passage. Ce jugement n\'a pas été recoupé avec la presse.',
+                'en' => 'A judicial reconstruction took place on site on 16 June 2009. The trial was held in April 2013 in Thonon-les-Bains; according to the French Wikipedia article, the judgment of 26 June 2013 found the coach driver (two years suspended prison, five years banned from driving public transport vehicles), SNCF and Réseau ferré de France guilty of involuntary manslaughter, the latter two for not taking account of the crossing\'s danger. This judgment was not cross-checked against the press.',
+                'de' => 'Am 16. Juni 2009 fand vor Ort eine gerichtliche Rekonstruktion statt. Der Prozess wurde im April 2013 in Thonon-les-Bains geführt; laut dem französischen Wikipedia-Artikel sprach das Urteil vom 26. Juni 2013 den Busfahrer (zwei Jahre Haft auf Bewährung, fünf Jahre Verbot, Personenverkehrsfahrzeuge zu führen), die SNCF und Réseau ferré de France der fahrlässigen Tötung schuldig; den beiden Letzteren wurde vorgeworfen, die Gefährlichkeit des Übergangs nicht berücksichtigt zu haben. Dieses Urteil wurde nicht mit der Presse abgeglichen.',
+                'sources' => ['wp-fr'],
+            ],
+            [
+                'fr' => 'Le passage à niveau n° 68 a été fermé à la circulation le 1er décembre 2015, après deux ans de travaux.',
+                'en' => 'Level crossing no. 68 was closed to traffic on 1 December 2015, after two years of works.',
+                'de' => 'Der Bahnübergang Nr. 68 wurde am 1. Dezember 2015 nach zweijährigen Arbeiten für den Verkehr gesperrt.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'memory' => [
+            [
+                'fr' => 'Un hommage aux victimes a réuni environ 4 000 personnes. Un mémorial a été installé près de l\'ancien passage à niveau, et l\'association « Sourire des Anges » y a organisé le 1er décembre 2015 une cérémonie pour les familles et inauguré une nouvelle plaque.',
+                'en' => 'A tribute to the victims drew about 4,000 people. A memorial was set up near the former level crossing, and the association "Sourire des Anges" held a ceremony there for the families on 1 December 2015 and unveiled a new plaque.',
+                'de' => 'Eine Gedenkfeier für die Opfer versammelte etwa 4 000 Menschen. In der Nähe des früheren Bahnübergangs wurde ein Mahnmal errichtet, und der Verein „Sourire des Anges“ veranstaltete dort am 1. Dezember 2015 eine Zeremonie für die Familien und weihte eine neue Gedenktafel ein.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le nombre de blessés diffère : le BEA-TT compte 33 blessés, dont 3 grièvement ; l\'article français de Wikipédia (et Wikidata) donne 25 blessés, dont 4 grièvement, tout en mentionnant le chiffre du BEA-TT. La fiche annonçait 25 : le chiffre du rapport officiel est retenu.',
+                'en' => 'The number of injured differs: the BEA-TT counts 33 injured, 3 seriously; the French Wikipedia article (and Wikidata) gives 25 injured, 4 seriously, while mentioning the BEA-TT figure. The record gave 25: the figure from the official report is used.',
+                'de' => 'Die Zahl der Verletzten weicht ab: Das BEA-TT zählt 33 Verletzte, davon 3 schwer; der französische Wikipedia-Artikel (und Wikidata) nennt 25 Verletzte, davon 4 schwer, und erwähnt die BEA-TT-Zahl. Der Datensatz nannte 25: Es gilt die Zahl des amtlichen Berichts.',
+                'sources' => ['bea-rapport-2010', 'wp-fr'],
+            ],
+            [
+                'fr' => 'L\'heure n\'est pas la même dans le rapport du BEA-TT : « vers 13 h 55 » dans le résumé, mais 13 h 52 pour l\'arrêt du train après le choc, et 13 h 52 en heure de l\'accident dans l\'article français de Wikipédia. La fiche ne portait pas d\'heure ; 13 h 52 est retenu.',
+                'en' => 'The time is not the same within the BEA-TT report: "at about 1.55 pm" in the summary, but 1.52 pm for the train coming to rest after the impact, and 1.52 pm as the time of the accident in the French Wikipedia article. The record had no time; 1.52 pm is used.',
+                'de' => 'Die Uhrzeit ist im BEA-TT-Bericht selbst nicht einheitlich: „gegen 13.55 Uhr“ in der Zusammenfassung, aber 13.52 Uhr für den Stillstand des Zuges nach dem Aufprall und 13.52 Uhr als Unfallzeit im französischen Wikipedia-Artikel. Der Datensatz hatte keine Uhrzeit; es gilt 13.52 Uhr.',
+                'sources' => ['bea-rapport-2010', 'wp-fr'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'injuries',
+            'value' => 33,
+            'sources' => ['bea-rapport-2010', 'bea-page'],
+            'fr' => 'Le BEA-TT, dans son rapport et sur sa page de présentation, compte 33 blessés (dont 3 grièvement) ; la fiche donnait 25.',
+            'en' => 'The BEA-TT, in its report and on its presentation page, counts 33 injured (3 of them seriously); the record gave 25.',
+            'de' => 'Das BEA-TT nennt in seinem Bericht und auf seiner Übersichtsseite 33 Verletzte (davon 3 schwer); der Datensatz nannte 25.',
+        ],
+        [
+            'field' => 'occurred_at_time',
+            'value' => '13:52',
+            'sources' => ['bea-rapport-2010', 'wp-fr'],
+            'fr' => 'Le rapport du BEA-TT (chronologie de la collision, train arrêté à 13 h 52) et l\'article de Wikipédia donnent 13 h 52 ; le résumé du rapport dit « vers 13 h 55 ».',
+            'en' => 'The BEA-TT report (collision timeline, train stopped at 13:52) and the Wikipedia article give 13:52; the report\'s summary says "about 13:55".',
+            'de' => 'Der BEA-TT-Bericht (Zeitablauf der Kollision, Zug um 13:52 Uhr zum Stehen gekommen) und der Wikipedia-Artikel nennen 13:52 Uhr; die Zusammenfassung des Berichts sagt „gegen 13:55 Uhr“.',
+        ],
+    ],
+    'aliases' => [
+        [
+            'slug' => '2008-06-02-annemasse',
+            'sources' => ['bea-rapport-2010', 'wp-fr'],
+            'fr' => 'La fiche « Annemasse » du 2 juin 2008 (7 morts) décrit la même collision : le TER Évian-les-Bains - Genève qui a heurté un car scolaire au passage à niveau de Mésinges, à Allinges, sur la ligne d\'Annemasse à Évian.',
+            'en' => 'The "Annemasse" record of 2 June 2008 (7 dead) describes the same collision: the Évian-les-Bains to Geneva regional train that struck a school coach at the Mésinges level crossing, in Allinges, on the Annemasse to Évian line.',
+            'de' => 'Der Eintrag „Annemasse“ vom 2. Juni 2008 (7 Tote) beschreibt denselben Zusammenstoß: den Regionalzug Évian-les-Bains - Genf, der am Bahnübergang Mésinges in Allinges auf der Strecke Annemasse - Évian einen Schulbus erfasste.',
+        ],
+    ],
+];

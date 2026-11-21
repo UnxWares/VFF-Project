@@ -61,6 +61,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Référence citée par la liste Wikipédia ; journal non retrouvé en ligne, à consulter aux archives.',
         ],
+        'cassation-1943-12-10' => [
+            'provider' => 'gallica',
+            'kind' => 'official',
+            'reliability' => 'official',
+            'title' => 'Arrêt de la Cour de cassation du 10 décembre 1943 (action en responsabilité de victimes contre la SNCF)',
+            'publisher' => 'Gallica',
+            'author' => null,
+            'published' => '1943-12-10',
+            'locator' => 'p. 335 du recueil numérisé',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k6526614x/f335.item.r=%22gare%20de%20Morgny%22.zoom',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Décision citée par l\'article Wikipédia de la gare de Morgny ; recueil non lu (Gallica). Seul document judiciaire connu sur cet accident.',
+        ],
     ],
     'sections' => [
         'circumstances' => [

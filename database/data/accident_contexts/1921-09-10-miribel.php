@@ -47,6 +47,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Situe la gare au PK 20,727 de la ligne de Lyon à Bourg-en-Bresse ; 39 morts, plus de 60 blessés.',
         ],
+        'chroniques-bresse' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => 'Nurieux, Les Échets : deux catastrophes ferroviaires',
+            'publisher' => 'Chroniques de Bresse',
+            'author' => 'Rémi Riche',
+            'published' => null,
+            'locator' => 'section Les Échets',
+            'url' => 'https://www.chroniquesdebresse.fr/NURIEUX-LES-ECHETS-DEUX-CATASTROPHES-FERROVIAIRES',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Page d\'histoire locale détaillée, appuyée sur le Courrier de l\'Ain, le Journal de l\'Ain et les archives départementales de l\'Ain (cote M1138) ; date de mise en ligne non indiquée ; quelques incohérences internes (59 ou 60 blessés).',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -60,7 +74,7 @@ return [
                 'fr' => 'Pendant la Première Guerre mondiale, l\'une des deux voies de la ligne avait été déposée pour les besoins du front. Les voies d\'évitement des gares utilisaient des aiguillages de récupération au rayon très serré, qui limitaient la vitesse à 20 km/h. Les anciens rapports de 1919 signalaient déjà les dangers de la section à voie unique.',
                 'en' => 'During the First World War, one of the line\'s two tracks had been lifted for the needs of the front. Station loops used salvaged points with a very tight radius, which limited speed to 20 km/h. Reports from 1919 had already pointed out the dangers of the single-track section.',
                 'de' => 'Im Ersten Weltkrieg war eines der beiden Gleise für die Front abgebaut worden. In den Bahnhöfen kamen Überholgleise mit wiederverwendeten Weichen von sehr engem Radius zum Einsatz, die die Geschwindigkeit auf 20 km/h begrenzten. Berichte von 1919 hatten bereits auf die Gefahren des eingleisigen Abschnitts hingewiesen.',
-                'sources' => ['wp-fr', 'wp-de'],
+                'sources' => ['wp-fr', 'wp-de', 'chroniques-bresse'],
             ],
         ],
         'course' => [
@@ -70,13 +84,25 @@ return [
                 'de' => 'Der Zug entgleiste an der Weiche, als er die Kurve mit weit über der Grenze von 20 km/h liegender Geschwindigkeit befuhr. Mehrere Wagen schoben sich ineinander, einige prallten gegen den Güterschuppen des Bahnhofs. Drei der Wagen mit Holzaufbau wurden zerstört.',
                 'sources' => ['wp-fr', 'wp-de'],
             ],
+            [
+                'fr' => 'L\'enregistreur de vitesse de la locomotive indiquait 85 km/h à l\'aiguillage qui précède la gare, pour une limite de 20 km/h. Le mécanicien cherchait à rattraper un retard, roulait de nuit et ne connaissait la ligne que pour l\'avoir parcourue quelques fois seulement.',
+                'en' => 'The locomotive\'s speed recorder showed 85 km/h at the points before the station, against a limit of 20 km/h. The driver was trying to make up lost time, was running at night and knew the line from only a few earlier trips.',
+                'de' => 'Der Geschwindigkeitsschreiber der Lokomotive zeigte an der Weiche vor dem Bahnhof 85 km/h an, bei einer Grenze von 20 km/h. Der Lokführer wollte eine Verspätung aufholen, fuhr nachts und kannte die Strecke nur von wenigen früheren Fahrten.',
+                'sources' => ['chroniques-bresse'],
+            ],
         ],
         'victims' => [
             [
                 'fr' => 'L\'accident a fait 39 morts, dont 18 militaires, et environ 60 blessés.',
                 'en' => 'The accident killed 39 people, 18 of them soldiers, and injured about 60.',
                 'de' => 'Bei dem Unfall starben 39 Menschen, darunter 18 Soldaten, und etwa 60 wurden verletzt.',
-                'sources' => ['wp-fr', 'wp-en-gare'],
+                'sources' => ['wp-fr', 'wp-en-gare', 'chroniques-bresse'],
+            ],
+            [
+                'fr' => 'La composition du train a aggravé le bilan : des voitures légères à deux essieux, placées entre des véhicules lourds, ont été écrasées.',
+                'en' => 'The make-up of the train made the toll worse: light two-axle carriages placed between heavy vehicles were crushed.',
+                'de' => 'Die Zugzusammenstellung verschlimmerte die Bilanz: leichte zweiachsige Wagen zwischen schweren Fahrzeugen wurden zerdrückt.',
+                'sources' => ['chroniques-bresse'],
             ],
         ],
         'causes' => [
@@ -86,13 +112,25 @@ return [
                 'de' => 'Die Ermittler stellten fest, dass die Signallampe des Bahnhofs nachts erloschen war, was dem Lokführer wahrscheinlich die rechtzeitige Sicht auf die Weiche verwehrte. Die Geschwindigkeitsaufzeichnung zeigte, dass der Zug an den vier vorigen Bahnhöfen die Grenzwerte eingehalten hatte.',
                 'sources' => ['wp-fr'],
             ],
+            [
+                'fr' => 'La voie était en mauvais état : l\'une des deux voies avait été déposée pour la reconstruction d\'après-guerre et une lame d\'aiguille en acier a été trouvée déjà en partie brisée. Après l\'accident, la compagnie a porté le nombre de signaux de 11 à 25.',
+                'en' => 'The track was in poor condition: one of the two tracks had been lifted for post-war reconstruction and a steel switch blade was found already partly broken. After the accident the company raised the number of signals from 11 to 25.',
+                'de' => 'Der Gleiszustand war schlecht: Eines der beiden Gleise war für den Wiederaufbau nach dem Krieg abgebaut worden, und eine Stahlzunge der Weiche war bereits teilweise gebrochen. Nach dem Unglück erhöhte die Gesellschaft die Zahl der Signale von 11 auf 25.',
+                'sources' => ['chroniques-bresse'],
+            ],
         ],
         'aftermath' => [
             [
                 'fr' => 'Le mécanicien a d\'abord été incarcéré puis libéré sur ordre du ministre en attendant son procès. Au tribunal de Trévoux, en 1922, il a été condamné à une amende symbolique de 50 francs avec sursis ; le ministère public a reconnu d\'importantes circonstances atténuantes et évoqué la responsabilité possible de la compagnie et de l\'administration. Le ministre n\'a pas fait appel.',
                 'en' => 'The driver was first jailed, then released on the minister\'s orders pending trial. At the Trévoux court in 1922 he was given a symbolic suspended fine of 50 francs; the prosecution acknowledged major mitigating circumstances and raised the possible responsibility of the company and the administration. The minister did not appeal.',
                 'de' => 'Der Lokführer wurde zunächst inhaftiert und dann auf Anordnung des Ministers bis zum Prozess freigelassen. Vor dem Gericht in Trévoux wurde er 1922 zu einer symbolischen Geldstrafe von 50 Franc auf Bewährung verurteilt; die Staatsanwaltschaft räumte erhebliche mildernde Umstände ein und verwies auf eine mögliche Verantwortung von Gesellschaft und Verwaltung. Der Minister legte keine Berufung ein.',
-                'sources' => ['wp-fr'],
+                'sources' => ['wp-fr', 'chroniques-bresse'],
+            ],
+            [
+                'fr' => 'Le procès devant le tribunal de Trévoux a duré plusieurs jours en mars 1922, suivi par la presse locale. Le jugement, mis en délibéré huit jours, a retenu l\'imprudence et l\'inobservation des règlements, avec des circonstances atténuantes (bons états de service, peu de parcours de la ligne, incertitude sur le signal, ligne déjà signalée comme dangereuse). La compagnie a été déclarée civilement responsable. Le tribunal a aussi relevé que la recherche des informations avait semblé entravée par les services de la compagnie, une circulaire interne ayant demandé aux inspecteurs de ne pas communiquer leurs conclusions aux magistrats.',
+                'en' => 'The trial before the Trévoux court lasted several days in March 1922 and was followed by the local press. The judgment, reserved for eight days, found carelessness and breach of regulations, with mitigating circumstances (a good service record, few trips over the line, uncertainty about the signal, a line already flagged as dangerous). The company was held civilly liable. The court also noted that the gathering of information appeared to have been obstructed by the company\'s own services, an internal circular having told inspectors not to share their conclusions with the magistrates.',
+                'de' => 'Der Prozess vor dem Gericht in Trévoux dauerte im März 1922 mehrere Tage und wurde von der Lokalpresse begleitet. Das nach acht Tagen verkündete Urteil stellte Unvorsichtigkeit und Verstoß gegen die Vorschriften fest, mit mildernden Umständen (gute Dienstführung, wenige Fahrten auf der Strecke, Unsicherheit über das Signal, eine bereits als gefährlich bezeichnete Strecke). Die Gesellschaft wurde für zivilrechtlich haftbar erklärt. Das Gericht merkte zudem an, die Informationsbeschaffung sei offenbar von den Diensten der Gesellschaft behindert worden; ein internes Rundschreiben habe die Inspektoren angewiesen, ihre Schlussfolgerungen nicht an die Richter weiterzugeben.',
+                'sources' => ['chroniques-bresse'],
             ],
             [
                 'fr' => 'Des débats parlementaires en 1921 et 1922 ont critiqué l\'organisation des secours de la PLM et le comportement de ses services de direction et de contrôle. Un décret du 14 avril 1922 a accordé la médaille d\'honneur des chemins de fer au chef de gare.',
@@ -107,6 +145,12 @@ return [
                 'en' => 'The toll varies: 39 dead and about 60 injured (French and English Wikipedia), 38 dead (German Wikipedia, after Semmens). The headline of a newspaper cited by the English page reported nearly 100 casualties including 38 dead.',
                 'de' => 'Die Bilanz schwankt: 39 Tote und etwa 60 Verletzte (französische und englische Wikipedia), 38 Tote (deutsche Wikipedia nach Semmens). Die Schlagzeile einer auf der englischen Seite zitierten Zeitung nannte fast 100 Opfer, darunter 38 Tote.',
                 'sources' => ['wp-fr', 'wp-en-gare', 'wp-de'],
+            ],
+            [
+                'fr' => 'Chroniques de Bresse donne 39 morts et 59 blessés (la même page écrit aussi « soixante »), et se contredit sur le nombre de trajets déjà faits par le mécanicien sur la ligne (troisième ou cinquième). Elle situe l\'accident à 23 h, contre 22 h 35 pour Wikipédia.',
+                'en' => 'Chroniques de Bresse gives 39 dead and 59 injured (the same page also writes "sixty"), and contradicts itself on how many trips the driver had already made on the line (third or fifth). It places the accident at 11 pm, against 10.35 pm for Wikipedia.',
+                'de' => 'Chroniques de Bresse nennt 39 Tote und 59 Verletzte (dieselbe Seite schreibt auch „sechzig“) und widerspricht sich bei der Zahl der Fahrten des Lokführers auf der Strecke (dritte oder fünfte). Sie nennt als Zeit 23 Uhr, die Wikipedia 22.35 Uhr.',
+                'sources' => ['chroniques-bresse', 'wp-fr'],
             ],
         ],
     ],
