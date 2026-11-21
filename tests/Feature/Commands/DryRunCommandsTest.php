@@ -36,7 +36,7 @@ class DryRunCommandsTest extends TestCase
         'vff:consolidate-stations', 'vff:dates-from-trace-names', 'vff:detect-present-states', 'vff:enrich-accidents', 'vff:fill-missing-geometry',
         'vff:import-accidents', 'vff:import-argentanwebferro', 'vff:import-commons-media', 'vff:import-gallica', 'vff:import-heritage-lines', 'vff:import-lignes-oubliees',
         'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-material-periods', 'vff:import-materials', 'vff:import-secondary-network-dates', 'vff:import-signalling-history',
-        'vff:import-station-closures', 'vff:import-station-sources', 'vff:import-station-wikidata-dates', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology',
+        'vff:import-station-closures', 'vff:import-station-passenger-ends', 'vff:import-station-sources', 'vff:import-station-wikidata-dates', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology',
         'vff:import-wikipedia-line', 'vff:link-greenways', 'vff:link-traces', 'vff:match-current-network', 'vff:merge-split-lines', 'vff:ohm-events',
         'vff:place-listed-stations', 'vff:prune-inactive-accounts', 'vff:recalculate-reputation', 'vff:reclassify-status', 'vff:refresh-current-era', 'vff:remind-expiring-api-tokens',
         'vff:resolve-event-sections', 'vff:seed-off-network-lines', 'vff:select-home-images', 'vff:snap-stations', 'vff:verify-accidents',
@@ -50,6 +50,7 @@ class DryRunCommandsTest extends TestCase
         'vff:import-secondary-network-dates' => ['--from-cache' => true],
         'vff:import-wikidata-lines' => ['--from-cache' => true],
         'vff:import-station-closures' => ['--from-cache' => true],
+        'vff:import-station-passenger-ends' => ['--from-cache' => true],
         'vff:import-line-descriptions' => ['--from-cache' => true],
         // Caches du bac à sable vides : aucune requête réseau.
         'vff:import-accidents' => ['--offline' => true],

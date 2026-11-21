@@ -99,6 +99,29 @@ class StationClosureParserTest extends TestCase
             $this->brief($this->parser()->closureValue('Voyageurs le 6 mars 1972 Marchandises le 1er février 1988')));
     }
 
+    /** Infobox relues le 21/11/2026 (Blain, Anderny, Aubignas-Alba, Coustelet). */
+    public function test_infobox_qualifier_after_the_date_belongs_to_that_date_only(): void
+    {
+        $this->assertSame(['closure_passenger 1939-01-01 year', 'closure_freight 1952-01-01 year'],
+            $this->brief($this->parser()->closureValue('1939 voyageurs 1952 marchandises')));
+        $this->assertSame(['closure_passenger 1939-05-15 day', 'closure 1991-01-01 year'],
+            $this->brief($this->parser()->closureValue('15 mai 1939 (voyageurs) 1991 (ligne)')));
+        $this->assertSame(['closure_passenger 1969-03-09 day', 'closure_freight 1971-12-01 day'],
+            $this->brief($this->parser()->closureValue('9 mars 1969 aux voyageurs 1 décembre 1971 aux frets')));
+        $this->assertSame(['closure_passenger 1938-01-01 year', 'closure 1988-01-01 year', 'closure 1991-01-01 year'],
+            $this->brief($this->parser()->closureValue('1938 fermeture voyageurs 1988 fermeture Cavaillon-Apt 1991 déclassement Cavaillon-Apt')));
+        // La citation garde le texte de la source.
+        $this->assertSame('Fermeture : 1939 voyageurs 1952 marchandises', $this->parser()->closureValue('1939 voyageurs 1952 marchandises')[0]['quote']);
+    }
+
+    public function test_infobox_alone_ignores_the_sentences_of_the_article(): void
+    {
+        $events = $this->parser()->fromStationInfobox("{{Infobox Gare\n | fermeture = 1938 (voyageurs)\n}}\nLa gare est fermée le {{date|3 mai 1960}}.", 'Halte de Lannoy');
+
+        $this->assertSame(['closure_passenger 1938-01-01 year'], $this->brief($events));
+        $this->assertTrue(StationClosureParser::isHalt('', 'Halte de Lannoy'));
+    }
+
     public function test_vague_closures_keep_their_precision(): void
     {
         $p = $this->parser();
