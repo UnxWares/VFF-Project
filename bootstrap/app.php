@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BasemapArchiveController;
 use App\Http\Controllers\TranslationsController;
 use App\Http\Middleware\AllowIframeEmbed;
 use App\Http\Middleware\ApiLocale;
@@ -10,6 +11,7 @@ use App\Http\Middleware\MarkOfflineReadable;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackLastSeen;
+use App\Support\Basemap\BasemapArchive;
 use App\Support\Translations;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
@@ -34,6 +36,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/i18n/{locale}/{version}.json', TranslationsController::class)
                 ->where(['locale' => '[a-z]{2}', 'version' => '[0-9a-f]{12}'])
                 ->name('i18n.translations');
+            // Fond de carte libre (archive PMTiles), lu par plages d'octets, lui aussi sans session ni cookie
+            // (App\Http\Controllers\BasemapArchiveController).
+            Route::get('/basemap/{archive}', BasemapArchiveController::class)
+                ->where('archive', BasemapArchive::NAME_PATTERN)
+                ->name('basemap.archive');
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

@@ -255,7 +255,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [x] Application installable (PWA), avec page hors ligne
 - [x] Mode hors ligne : pages publiques déjà consultées sans être connecté (HTML et Inertia, 60 au plus, 30 jours) et tuiles vectorielles de VFF déjà affichées (500 au plus, 7 jours), avec la date de la copie ; jamais les pages de compte, de contribution ni de validation, ni les tuiles OpenStreetMap
 - [x] Mode hors ligne, suite : données de la carte déjà affichées (gares d'une ère, accidents : 8 fichiers au plus, 7 jours) ; hors ligne, les cartes montrent les tracés de VFF sur un fond neutre et le signal de copie le dit (style écrit dans le code, noms de gares en police locale, aucune ressource tierce gardée)
-- [ ] Mode hors ligne, fin : fond de carte libre auto-hébergé (PMTiles), images déjà vues
+- [~] Mode hors ligne, fin : images des fiches déjà vues (vignettes de Commons, médias publiés : 300 au plus, 40 Mo, 30 jours, jamais pour une page de compte, de contribution ni de validation) ; fond de carte libre servi par VFF (PMTiles OpenStreetMap au schéma Protomaps, France et abords, zooms 0 à 15, 6,2 Go, style clair et sombre sans pictogramme, polices auto-hébergées), fond des cartes hors ligne sur les zones déjà vues (2 000 morceaux, 60 Mo, 30 jours). Reste : décider s'il devient le fond en ligne (`VFF_BASEMAP_ONLINE`, désactivé), le servir par nginx en production et le brancher sur les petites cartes des fiches (docs/FOND-DE-CARTE.md)
 
 ---
 

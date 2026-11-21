@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Basemap\BasemapArchive;
 use App\Support\Translations;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -31,6 +32,8 @@ class HandleInertiaRequests extends Middleware
             // dans chaque page (resources/js/lib/i18n.js). Les pages d'erreur rendues hors du groupe web
             // portent encore les chaînes elles-mêmes (`translations`, bootstrap/app.php).
             'translations_url' => fn () => Translations::url($locale),
+            // Fond de carte libre auto-hébergé (archive PMTiles), ou null : adresse, emploi en ligne, crédit.
+            'basemap' => fn () => BasemapArchive::fromConfig()->clientConfig(),
             'auth' => [
                 // Whitelist explicite : on n'expose JAMAIS le hash password ni
                 // remember_token au front. role est sérialisé en string (enum).

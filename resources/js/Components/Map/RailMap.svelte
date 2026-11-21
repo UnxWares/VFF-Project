@@ -7,6 +7,8 @@
     import { page, router } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { isOfflineView, neutralMapStyle, reportPartialMap } from '$lib/offlineMap.svelte.js';
+    import { applyBasemapTheme, basemapStyle, usesBasemap } from '$lib/basemap.js';
+    import { registerPmtilesProtocol } from '$lib/pmtilesProtocol.js';
     import { theme } from '$lib/stores/theme.svelte.js';
     import { colon, formatNumber } from '$lib/typo.js';
     import { mapControlsLocale } from '$lib/mapControls.js';
@@ -414,12 +416,25 @@
     // Fin du signal « carte sur fond neutre » (lib/offlineMap.svelte.js), appelée quand la carte disparaît.
     let releasePartialMap = null;
 
+    // Carte dessinée sur le fond de carte libre de VFF (lib/basemap.js) : ses couleurs suivent le thème.
+    let onBasemap = $state(false);
+
     /**
-     * @param {boolean} offline page lue sans réseau : fond neutre, aucune tuile ni style d'un tiers
+     * @param {boolean} offline page lue sans réseau : fond libre de VFF ou fond neutre, rien d'un tiers
      * @returns {string | import('maplibre-gl').StyleSpecification}
      */
     function buildStyle(offline) {
-        if (offline) return neutralMapStyle({ dark: theme.isDark });
+        if (offline) return neutralMapStyle({ dark: theme.isDark, lang: get(i18n).language });
+        // Fond libre de VFF en ligne, si l'option maps.basemap.online est active.
+        const basemap = page.props.basemap;
+        if (usesBasemap(basemap, false)) {
+            return basemapStyle({
+                url: basemap.url,
+                attribution: basemap.attribution,
+                dark: theme.isDark,
+                lang: get(i18n).language,
+            });
+        }
         const key = import.meta.env.VITE_MAPTILER_KEY;
         if (key) {
             return `https://api.maptiler.com/maps/basic-v2/style.json?key=${key}`;
@@ -971,6 +986,7 @@
         appliedView = viewKey(center, zoom);
         const offline = isOfflineView(page.props);
         if (offline) releasePartialMap = reportPartialMap();
+        onBasemap = registerPmtilesProtocol(maplibregl) && usesBasemap(page.props.basemap, offline);
         map = new maplibregl.Map({
             container: mapContainer,
             style: buildStyle(offline),
@@ -1030,6 +1046,14 @@
     }
 
     $effect(() => applyMode(mode));
+
+    // Thème clair ou sombre du fond libre, changé sur place (les calques de VFF ne bougent pas).
+    $effect(() => {
+        const dark = theme.isDark;
+        if (onBasemap && map && layersReady) {
+            applyBasemapTheme(map, { dark, lang: get(i18n).language });
+        }
+    });
 
     // Réactif : ère, vue, réglage ou préférences changés → teinte du fond mise à jour.
     $effect(() => applyTint(tintSettings, reducedMotion.current));

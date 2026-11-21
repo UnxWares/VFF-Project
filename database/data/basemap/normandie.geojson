@@ -1,0 +1,40 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Normandie et abords (essai)"
+   },
+   "geometry": {
+    "type": "MultiPolygon",
+    "coordinates": [
+     [
+      [
+       [
+        -2.1,
+        48.0
+       ],
+       [
+        2.0,
+        48.0
+       ],
+       [
+        2.0,
+        50.2
+       ],
+       [
+        -2.1,
+        50.2
+       ],
+       [
+        -2.1,
+        48.0
+       ]
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}
