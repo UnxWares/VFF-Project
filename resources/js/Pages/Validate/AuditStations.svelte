@@ -23,12 +23,14 @@
         exportUrl,
         formFilters,
         hostOf,
+        linkedReferences,
         neighbourItem,
         numberedPositions,
         pageUrl,
         share,
         sortChecks,
         sourceFamilies,
+        webUrl,
     } from '$lib/stationAudit.js';
 
     /**
@@ -1012,9 +1014,8 @@
                                             <tbody>
                                                 {#each detail.candidates as c, i (i)}
                                                     {@const years = deltaYears(c.delta_days)}
-                                                    {@const refs = (c.references ?? []).filter(
-                                                        (r) => r?.url,
-                                                    )}
+                                                    {@const refs = linkedReferences(c.references)}
+                                                    {@const sourceUrl = webUrl(c.source_url)}
                                                     <tr>
                                                         <th scope="row"
                                                             >{A(`candidates.kinds.${c.kind}`)}</th
@@ -1060,9 +1061,9 @@
                                                             {/if}
                                                         </td>
                                                         <td>
-                                                            {#if c.source_url}
+                                                            {#if sourceUrl}
                                                                 <a
-                                                                    href={c.source_url}
+                                                                    href={sourceUrl}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
                                                                     >{c.source_ref ?? 'Wikidata'}<i

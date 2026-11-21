@@ -301,6 +301,36 @@ export function hostOf(url) {
 }
 
 /**
+ * Adresse web sûre à mettre en lien : seulement http ou https (une adresse de référence Wikidata,
+ * P854, est saisie librement et peut porter `javascript:` ou `data:`). Rend null sinon.
+ *
+ * @param {unknown} url
+ * @returns {string | null}
+ */
+export function webUrl(url) {
+    if (typeof url !== 'string') return null;
+    try {
+        const parsed = new URL(url.trim());
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.href : null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Références d'une date candidate à afficher en lien : celles dont l'adresse est http ou https.
+ *
+ * @param {Array<{ url?: unknown }> | null | undefined} references
+ * @returns {Array<{ url: string }>}
+ */
+export function linkedReferences(references) {
+    return (references ?? []).flatMap((r) => {
+        const url = webUrl(r?.url);
+        return url ? [{ ...r, url }] : [];
+    });
+}
+
+/**
  * Familles de sources d'une gare de la file, telles qu'affichées : la liste vient du serveur
  * (positions recopiées exclues) et le nombre suit la liste quand elle est fournie, pour que le
  * libellé « 2 familles de sources : SNCF, OpenStreetMap » ne se contredise jamais.

@@ -124,7 +124,7 @@ return [
             'profile' => 'Gradient profile: height along the reference route (all periods) with the stations on it, total climb and descent, steepest gradient (IGN, Licence Ouverte 2.0).',
             'profile_points' => 'Height point by point along the line: estimated kilometre point, source of the measurement, interpolation, structure and position, filterable by kilometre point.',
             'altitude' => 'Height of a line at a given kilometre point.',
-            'line_audit' => 'Section audit of a line for a period: status, position, accuracy and trace of each section, with the evidence.',
+            'line_audit' => 'Section audit of a line for a period: status, position, accuracy and trace of each section, with the evidence; 50 sections per page (limit up to 200, offset), total in segments_total.',
             'line_materials' => 'Rolling stock classes that have run on the line, each with the source that attests it.',
             'media' => 'Photos, postcards and plans linked to a line, with their rights.',
             'level_crossings' => 'Level crossings on the national rail network as published by SNCF Réseau: class, kilometre post, municipality; filter by line, type, municipality or bounding box.',

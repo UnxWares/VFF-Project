@@ -278,6 +278,30 @@ final class SegmentAuditor
     }
 
     /**
+     * Retire les audits périmés : couples (ligne, ère) qui n'ont plus aucun tronçon, par exemple une
+     * ligne qui a perdu tous ses tronçons d'une ère depuis la passe précédente (synthèse et tronçons).
+     *
+     * @param  list<int>|null  $lineIds  lignes visées (toutes si null)
+     * @param  array{0: int, 1: int}|null  $shard  morceau [i, n] : lignes dont id % n = i - 1
+     */
+    public function pruneStale(?array $lineIds = null, ?array $shard = null): int
+    {
+        $sql = 'DELETE FROM segment_audits a WHERE NOT EXISTS (SELECT 1 FROM line_segments s WHERE s.line_id = a.line_id AND s.era_id = a.era_id)';
+        $bindings = [];
+        if ($lineIds !== null) {
+            $sql .= ' AND a.line_id = ANY(?::bigint[])';
+            $bindings[] = '{'.implode(',', $lineIds).'}';
+        }
+        if ($shard !== null) {
+            $sql .= ' AND a.line_id % ? = ?';
+            $bindings[] = $shard[1];
+            $bindings[] = $shard[0] - 1;
+        }
+
+        return DB::delete($sql, $bindings);
+    }
+
+    /**
      * Événements de la ligne retenus comme par le moteur (BuildEraSegments::lineEvents) : portée
      * « toute la ligne » ou portion localisée, rang de la source, rien avant la grande vitesse sur une
      * LGV. Les fins de service dont la portion n'a pas été localisée sont gardées à part (`unlocated`) :

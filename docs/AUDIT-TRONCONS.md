@@ -54,7 +54,7 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
   par ère, plus une synthèse par ligne et par ère ; l'état audité et la géométrie y sont recopiés).
 - Page : `/validate/audit/segments` (administrateurs, comme le graphe), filtres par note, état, région, époque et nom,
   carte des tronçons colorés par note, preuves, export CSV.
-- Lecture publique : `GET /api/v1/lines/{line}/audit?era=&grade=`, champ GraphQL `Line.audit(era:)`, outil MCP
+- Lecture publique : `GET /api/v1/lines/{line}/audit?era=&grade=&limit=&offset=` (50 tronçons par défaut, 200 au plus, total dans `segments_total`), champ GraphQL `Line.audit(era:)`, outil MCP
   `line_audit`.
 - Règles et seuils : `App\Services\SegmentAudit\AuditGrader` (version `RULE_VERSION`), mesures :
   `App\Services\SegmentAudit\SegmentAuditor`. Notes : `good` (sûr), `fair` (à revoir), `poor` (faux ou contredit),

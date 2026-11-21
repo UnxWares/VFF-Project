@@ -14,8 +14,9 @@ use Illuminate\Support\Facades\DB;
  *
  * Rotation : une fenêtre fixe de `config('home.archives.rotation_minutes')` minutes (30 par défaut). La graine est
  * le début de la fenêtre, donc le tirage est le même pour tous les visiteurs pendant la fenêtre (cache jusqu'à
- * sa fin) et change d'une fenêtre à l'autre. Les images de la fenêtre précédente (tirage recalculé, sans
- * récursion) sont écartées tant que la réserve de la période le permet.
+ * sa fin) et change d'une fenêtre à l'autre. Les images de la fenêtre précédente sont écartées tant que la
+ * réserve de la période le permet : celles qui ont été montrées, lues dans le cache (gardé une fenêtre de plus
+ * pour cela), ou à défaut (cache vide) le tirage de la fenêtre précédente recalculé sans sa propre exclusion.
  *
  * Choix : une image par période d'abord (avant 1915, 1915-1945, 1946-1970, 1971-1990, 1991-2010, après 2010),
  * puis complétées par un deuxième tour dans le même ordre de périodes, en évitant de répéter une année. Rangées
@@ -46,16 +47,30 @@ class HomeArchives
     {
         $now = now()->getTimestamp();
         $start = $this->windowStart($now);
-        $ttl = max(1, $start + $this->windowSeconds() - $now);
+        // Gardé jusqu'à la fin de la fenêtre suivante : celle-ci y lit les images vraiment montrées.
+        $ttl = max(1, $start + 2 * $this->windowSeconds() - $now);
 
-        return Cache::remember('home_archives:8:'.$this->windowSeconds().':'.$start, $ttl, fn () => $this->forWindow($start));
+        return Cache::remember($this->cacheKey($start), $ttl, function () use ($start): array {
+            $shown = Cache::get($this->cacheKey($start - $this->windowSeconds()));
+
+            return $this->forWindow($start, is_array($shown) ? array_values(array_filter(array_column($shown, 'id'), 'is_int')) : null);
+        });
     }
 
-    /** @return list<array<string, mixed>> */
-    public function forWindow(int $start): array
+    private function cacheKey(int $start): string
+    {
+        return 'home_archives:8:'.$this->windowSeconds().':'.$start;
+    }
+
+    /**
+     * @param  list<int>|null  $previous  images montrées dans la fenêtre précédente ; null si inconnues
+     *                                    (tirage précédent recalculé sans sa propre exclusion)
+     * @return list<array<string, mixed>>
+     */
+    public function forWindow(int $start, ?array $previous = null): array
     {
         $pool = $this->pool();
-        $previous = array_column($this->pick($pool, $start - $this->windowSeconds(), []), 'id');
+        $previous ??= array_column($this->pick($pool, $start - $this->windowSeconds(), []), 'id');
 
         return $this->pick($pool, $start, $previous);
     }

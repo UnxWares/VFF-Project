@@ -37,7 +37,10 @@ final class LineDataSignature
         return self::FORMAT.':'.(string) ($row->s ?? '');
     }
 
-    /** Tronçons et événements de la ligne, la ligne elle-même et la liste des ères. */
+    /**
+     * Tronçons et événements de la ligne, la ligne elle-même, ses catégories SNCF (`sncf_line_catlig`,
+     * lues par Lgv::sql) et la liste des ères.
+     */
     public static function segmentsEventsAndEras(int $lineId): string
     {
         $rows = self::ROWS;
@@ -46,8 +49,9 @@ final class LineDataSignature
                 (SELECT {$rows} FROM line_segments WHERE line_id = ?),
                 (SELECT {$rows} FROM line_events WHERE line_id = ?),
                 (SELECT {$rows} FROM lines WHERE id = ?),
+                (SELECT {$rows} FROM sncf_line_catlig WHERE code_ligne = (SELECT code FROM lines WHERE id = ?)),
                 (SELECT {$rows} FROM eras)) AS s
-        SQL, [$lineId, $lineId, $lineId]);
+        SQL, [$lineId, $lineId, $lineId, $lineId]);
 
         return self::FORMAT.':'.md5((string) ($row->s ?? ''));
     }

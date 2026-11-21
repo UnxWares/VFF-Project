@@ -150,6 +150,23 @@ class AuditSegmentsTest extends TestCase
         $this->assertDatabaseCount('segment_audits', 6);
     }
 
+    public function test_an_era_without_segments_loses_its_old_audit(): void
+    {
+        $this->runAudit();
+        $this->assertSame(3, DB::table('segment_audits')->where('era_id', $this->past->id)->count());
+
+        // La ligne perd tous ses tronçons de 2020 : la synthèse et les tronçons de 2020 disparaissent.
+        DB::table('line_segments')->where('era_id', $this->past->id)->delete();
+        $this->runAudit();
+        $this->assertSame(0, DB::table('segment_audits')->where('era_id', $this->past->id)->count());
+        $this->assertSame(3, DB::table('segment_audits')->where('era_id', $this->current->id)->count());
+
+        // Plus aucun tronçon : la passe complète, qui ne visite plus la ligne, retire le reste.
+        DB::table('line_segments')->where('line_id', $this->line->id)->delete();
+        $this->artisan('vff:audit-segments')->assertSuccessful();
+        $this->assertDatabaseCount('segment_audits', 0);
+    }
+
     public function test_invalid_options_are_refused(): void
     {
         $this->artisan('vff:audit-segments', ['--shard' => '3/2'])->assertFailed();
@@ -225,6 +242,35 @@ class AuditSegmentsTest extends TestCase
         $this->getJson('/api/v1/lines/rfn-123456/audit?grade=bad')->assertUnprocessable()->assertJsonValidationErrors('grade');
         $this->getJson('/api/v1/lines/rfn-123456/audit?era=1700')->assertUnprocessable();
         $this->getJson('/api/v1/lines/rfn-999999/audit')->assertNotFound();
+    }
+
+    public function test_rest_api_pages_the_segments(): void
+    {
+        $this->runAudit();
+        $all = $this->getJson('/api/v1/lines/rfn-123456/audit?era=2020')->assertOk()
+            ->assertJsonPath('segments_total', 2)->assertJsonPath('limit', 50)->assertJsonPath('offset', 0)->json('segments');
+        $this->assertCount(2, $all);
+
+        $first = $this->getJson('/api/v1/lines/rfn-123456/audit?era=2020&limit=1')->assertOk()
+            ->assertJsonPath('segments_total', 2)->assertJsonPath('limit', 1);
+        $this->assertSame([$all[0]['segment_id']], array_column($first->json('segments'), 'segment_id'));
+        $next = $this->getJson('/api/v1/lines/rfn-123456/audit?era=2020&limit=1&offset=1')->assertOk()->assertJsonPath('offset', 1);
+        $this->assertSame([$all[1]['segment_id']], array_column($next->json('segments'), 'segment_id'));
+        // Au-delà de la fin : aucune ligne, le total reste donné ; la synthèse porte sur tous les tronçons.
+        $this->getJson('/api/v1/lines/rfn-123456/audit?era=2020&offset=5')->assertOk()
+            ->assertJsonPath('segments', [])->assertJsonPath('segments_total', 2)->assertJsonPath('worst_grade', $first->json('worst_grade'));
+
+        $this->getJson('/api/v1/lines/rfn-123456/audit?limit=0')->assertUnprocessable()->assertJsonValidationErrors('limit');
+        $this->getJson('/api/v1/lines/rfn-123456/audit?limit=201')->assertUnprocessable()->assertJsonValidationErrors('limit');
+        $this->getJson('/api/v1/lines/rfn-123456/audit?offset=-1')->assertUnprocessable()->assertJsonValidationErrors('offset');
+
+        // Pagination documentée (Scramble lit les attributs du contrôleur).
+        $operation = $this->getJson('/docs/api.json')->assertOk()->json('paths./lines/{line}/audit.get');
+        /** @var array<string, array<string, mixed>> $parameters */
+        $parameters = array_column((array) $operation['parameters'], null, 'name');
+        $this->assertSame(50, $parameters['limit']['schema']['default'] ?? null);
+        $this->assertSame(0, $parameters['offset']['schema']['default'] ?? null);
+        $this->assertStringContainsString('segments_total', (string) $operation['description']);
     }
 
     public function test_graphql_and_mcp(): void

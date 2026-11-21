@@ -124,7 +124,7 @@ return [
             'profile' => 'Höhenprofil: Höhe entlang der Referenztrasse (alle Epochen) mit den Bahnhöfen, Anstieg und Gefälle insgesamt, größte Neigung (IGN, Licence Ouverte 2.0).',
             'profile_points' => 'Höhe Punkt für Punkt entlang der Strecke: geschätzter Streckenkilometer, Herkunft der Messung, Interpolation, Bauwerk und Lage, nach Streckenkilometer filterbar.',
             'altitude' => 'Höhe einer Strecke an einem Streckenkilometer.',
-            'line_audit' => 'Prüfung der Abschnitte einer Strecke für eine Epoche: Einstufung, Lage, Genauigkeit und Verlauf jedes Abschnitts, mit Belegen.',
+            'line_audit' => 'Prüfung der Abschnitte einer Strecke für eine Epoche: Einstufung, Lage, Genauigkeit und Verlauf jedes Abschnitts, mit Belegen; 50 Abschnitte pro Seite (limit bis 200, offset), Gesamtzahl in segments_total.',
             'line_materials' => 'Baureihen, die auf der Strecke verkehrt sind, jeweils mit der belegenden Quelle.',
             'media' => 'Fotos, Postkarten und Pläne zu einer Strecke, mit ihren Rechten.',
             'level_crossings' => 'Bahnübergänge des nationalen Schienennetzes laut SNCF Réseau: Klasse, Streckenkilometer, Gemeinde; filterbar nach Strecke, Art, Gemeinde oder Ausschnitt.',
