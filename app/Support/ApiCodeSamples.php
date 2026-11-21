@@ -89,9 +89,9 @@ final class ApiCodeSamples implements DocumentTransformer
         ],
         'media.index' => [
             'path' => '/media',
-            'query' => ['line' => 'rfn-420000', 'per_page' => 3],
-            'js' => 'for (const media of body.data) console.log(media.title, "-", media.attribution);',
-            'py' => "for media in body[\"data\"]:\n    print(media[\"title\"], \"-\", media[\"attribution\"])",
+            'query' => ['line' => 'rfn-420000', 'facets' => 'true', 'per_page' => 3],
+            'js' => 'for (const media of body.data) console.log(media.title, "-", media.attribution);'."\n".'// Compteurs de la recherche entière (facets=true) : total, types, licences, auteurs.'."\n".'const { total, types, licenses } = body.meta.facets;'."\n".'console.log(total, "images", types, licenses.slice(0, 3));',
+            'py' => "for media in body[\"data\"]:\n    print(media[\"title\"], \"-\", media[\"attribution\"])\n# Compteurs de la recherche entière (facets=true) : total, types, licences, auteurs.\nfacets = body[\"meta\"][\"facets\"]\nprint(facets[\"total\"], \"images\", facets[\"types\"], facets[\"licenses\"][:3])",
         ],
         'materials.index' => [
             'path' => '/materials',
@@ -122,6 +122,36 @@ final class ApiCodeSamples implements DocumentTransformer
             'query' => ['from' => 'angouleme', 'to' => 'limoges-benedictins', 'era' => 1930, 'compare' => 2026],
             'js' => 'const { earlier, later, differences } = body;'."\n".'console.log(differences.outcome, earlier.route?.distance_km, later.route?.distance_km, differences.lines_only_earlier.map((l) => [l.line_name, l.other_era]));',
             'py' => "earlier, later, diff = body[\"earlier\"], body[\"later\"], body[\"differences\"]\nprint(diff[\"outcome\"], (earlier[\"route\"] or {}).get(\"distance_km\"), (later[\"route\"] or {}).get(\"distance_km\"))\nfor line in diff[\"lines_only_earlier\"]:\n    print(line[\"line_name\"], line[\"other_era\"])",
+        ],
+        'audits.segments' => [
+            'path' => '/audits/segments',
+            'query' => ['era' => 2030, 'grade' => 'poor', 'department' => '29', 'limit' => 50, 'offset' => 0],
+            'js' => 'console.log(body.total, "tronçons à contrôler en", body.era_year);'."\n".'for (const s of body.items) console.log(s.line_slug, s.segment_id, s.worst_grade, s.length_m, "m", s.reasons);'."\n".'// Page suivante : offset + limit, jusqu\'à atteindre body.total.',
+            'py' => "print(body[\"total\"], \"tronçons à contrôler en\", body[\"era_year\"])\nfor s in body[\"items\"]:\n    print(s[\"line_slug\"], s[\"segment_id\"], s[\"worst_grade\"], s[\"length_m\"], \"m\", s[\"reasons\"])\n# Page suivante : offset + limit, jusqu'à atteindre body[\"total\"].",
+        ],
+        'audits.stations' => [
+            'path' => '/audits/stations',
+            'query' => ['grade' => 'disagree', 'department' => '57', 'limit' => 50, 'offset' => 0],
+            'js' => 'console.log(body.total, "gares dont les sources se contredisent");'."\n".'for (const s of body.items) console.log(s.slug, s.name, s.placement_grade, s.checks);',
+            'py' => "print(body[\"total\"], \"gares dont les sources se contredisent\")\nfor s in body[\"items\"]:\n    print(s[\"slug\"], s[\"name\"], s[\"placement_grade\"], s[\"checks\"])",
+        ],
+        'lines.audit' => [
+            'path' => '/lines/rfn-405000/audit',
+            'query' => ['era' => 2030, 'grade' => 'good', 'limit' => 10, 'offset' => 0],
+            'js' => 'console.log(body.worst_grade, body.score, `${body.segments.length} sur ${body.segments_total} tronçons`);'."\n".'for (const s of body.segments) console.log(s.segment_id, s.worst_grade, s.length_m, "m");',
+            'py' => "print(body[\"worst_grade\"], body[\"score\"], f\"{len(body['segments'])} sur {body['segments_total']} tronçons\")\nfor s in body[\"segments\"]:\n    print(s[\"segment_id\"], s[\"worst_grade\"], s[\"length_m\"], \"m\")",
+        ],
+        'lines.profile.points' => [
+            'path' => '/lines/rfn-420000/profile/points',
+            'query' => ['pk_from_m' => 249000, 'pk_to_m' => 250000, 'max_points' => 10],
+            'js' => 'for (const p of body.points) console.log(p.pk_m, p.altitude_m, p.source);'."\n".'console.log(body.provenance.name, body.provenance.license);',
+            'py' => "for p in body[\"points\"]:\n    print(p[\"pk_m\"], p[\"altitude_m\"], p[\"source\"])\nprint(body[\"provenance\"][\"name\"], body[\"provenance\"][\"license\"])",
+        ],
+        'accidents.show' => [
+            'path' => '/accidents/2017-12-14-millas',
+            'query' => [],
+            'js' => 'const accident = body.data;'."\n".'console.log(accident.name.fr, accident.date, accident.imported_at);'."\n".'// Origine de chaque champ (wikidata, bea-tt, presse...) : à citer avec la donnée.'."\n".'for (const [field, source] of Object.entries(accident.provenance)) console.log(field, source);',
+            'py' => "accident = body[\"data\"]\nprint(accident[\"name\"][\"fr\"], accident[\"date\"], accident[\"imported_at\"])\n# Origine de chaque champ (wikidata, bea-tt, presse...) : à citer avec la donnée.\nfor field, source in accident[\"provenance\"].items():\n    print(field, source)",
         ],
         'eras.compare' => [
             'path' => '/eras/1930/compare/1980',

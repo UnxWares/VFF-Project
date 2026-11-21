@@ -175,6 +175,33 @@ return [
         'code_label' => 'Code sample',
     ],
 
+    // Exemples des listes d'audit, de l'audit d'une ligne, du profil par tranche, des compteurs d'images et des accidents.
+    'audit_examples' => [
+        'title' => 'Audits, profiles, images and accidents',
+        'intro' => 'The same data is in all three interfaces: REST, GraphQL and MCP. The responses below come from the server, with "…" in place of long fields. An audit list returns 50 items by default and 200 at most (limit), the rest comes through offset, and total gives the count after the filters.',
+        'segments' => 'Segments to check across the whole network: the worst-graded ones in Finistère for the 2030 era, one per page here (grade, check, reason, status, department, region, line, q, sort, limit, offset).',
+        'segments_response' => 'Response: 26 segments in total, with grades and reason codes for each check.',
+        'segments_js' => 'The same call in JavaScript, with paging.',
+        'segments_py' => 'The same call in Python.',
+        'stations' => 'Stations across the network whose sources disagree about the position, in Moselle (same department, region and line filters, same paging; no era).',
+        'stations_response' => 'Response: 5 stations in total, offsets in metres and failed checks.',
+        'line_audit' => 'Audit of one line, a page of segments at a time (limit, offset, grade filter; segments_total gives the total after the filter).',
+        'line_audit_response' => 'Response: the line summary, then a page of segments; the evidence of each segment is shortened here.',
+        'profile' => 'Longitudinal profile of a line for a range of kilometre points: one elevation about every 250 m between PK 249,000 and 250,000 (elevation at a single PK: /altitude?pk_m=).',
+        'profile_response' => 'Response: the points of the range with their source; the IGN supplies them (licence in provenance).',
+        'media_facets' => 'Counts for the featured images (total, types, licences, authors): facets=true adds meta.facets to the list.',
+        'media_facets_response' => 'Response: 514 images, counted over the whole search and not the page.',
+        'accident' => 'Record of one accident: provenance tells where each field comes from, imported_at gives the import date.',
+        'accident_response' => 'Shortened response: date, kind and name come from Wikidata, the death toll from the BEA-TT.',
+        'graphql' => 'In GraphQL, one query covers all of this: segmentAudits, stationAudits, mediaFacets, the provenance of an accident and a slice of a profile.',
+        'graphql_response' => 'GraphQL response (segment grades are upper-case enums, station grades are strings).',
+        'mcp' => 'In MCP, the segment_audits tool (like station_audits, line_audit, line_profile, media and accident) takes the same parameters.',
+        'mcp_response' => 'Response: the tool JSON is in result.content[0].text, as text; a response that is too large is cut from the end (truncated.items).',
+        'errors' => 'Errors: a parameter outside its allowed values, here an unknown grade and a page of 500.',
+        'error_422' => '422, in JSON: errors gives one message per parameter.',
+        'error_429' => '429 when the per-minute limit is exceeded: Retry-After gives the wait in seconds. Wait before trying again.',
+    ],
+
     'graphql' => [
         'title' => 'GraphQL API',
         'text' => 'For richer queries, a single GraphQL endpoint, POST /graphql, returns a line with its segments and events in one go. Read the schema in the reference, or try your queries in GraphiQL.',

@@ -175,6 +175,33 @@ return [
         'code_label' => 'Codebeispiel',
     ],
 
+    // Exemples des listes d'audit, de l'audit d'une ligne, du profil par tranche, des compteurs d'images et des accidents.
+    'audit_examples' => [
+        'title' => 'Audits, Höhenprofile, Bilder und Unfälle',
+        'intro' => 'Dieselben Daten stehen in allen drei Schnittstellen: REST, GraphQL und MCP. Die Antworten unten stammen vom Server, lange Felder sind durch „…“ ersetzt. Eine Audit-Liste liefert standardmäßig 50 Einträge, höchstens 200 (limit), der Rest folgt über offset, und total nennt die Anzahl nach den Filtern.',
+        'segments' => 'Zu prüfende Abschnitte des gesamten Netzes: die schlechtesten im Finistère für die Epoche 2030, hier einer pro Seite (grade, check, reason, status, department, region, line, q, sort, limit, offset).',
+        'segments_response' => 'Antwort: insgesamt 26 Abschnitte, mit Noten und Grundcodes je Prüfung.',
+        'segments_js' => 'Derselbe Aufruf in JavaScript, mit Seitenwechsel.',
+        'segments_py' => 'Derselbe Aufruf in Python.',
+        'stations' => 'Bahnhöfe im ganzen Netz, deren Quellen bei der Lage nicht übereinstimmen, in der Moselle (gleiche Filter für Département, Region und Strecke, gleicher Seitenwechsel; keine Epoche).',
+        'stations_response' => 'Antwort: insgesamt 5 Bahnhöfe, Abweichungen in Metern und fehlgeschlagene Prüfungen.',
+        'line_audit' => 'Audit einer Strecke, jeweils eine Seite Abschnitte (limit, offset, Filter grade; segments_total nennt die Summe nach dem Filter).',
+        'line_audit_response' => 'Antwort: Zusammenfassung der Strecke, dann eine Seite Abschnitte; die Belege (evidence) jedes Abschnitts sind hier gekürzt.',
+        'profile' => 'Höhenprofil einer Strecke für einen Kilometerbereich: etwa alle 250 m eine Höhe zwischen PK 249 000 und 250 000 (Höhe an einem einzelnen PK: /altitude?pk_m=).',
+        'profile_response' => 'Antwort: die Punkte des Bereichs mit ihrer Quelle; geliefert vom IGN (Lizenz unter provenance).',
+        'media_facets' => 'Zähler der hervorgehobenen Bilder (Gesamtzahl, Arten, Lizenzen, Urheber): facets=true fügt der Liste meta.facets hinzu.',
+        'media_facets_response' => 'Antwort: 514 Bilder, gezählt über die ganze Suche und nicht nur über die Seite.',
+        'accident' => 'Datensatz eines Unfalls: provenance sagt, woher jedes Feld stammt, imported_at nennt das Importdatum.',
+        'accident_response' => 'Gekürzte Antwort: Datum, Art und Name stammen aus Wikidata, die Zahl der Toten vom BEA-TT.',
+        'graphql' => 'In GraphQL genügt eine Abfrage für all das: segmentAudits, stationAudits, mediaFacets, die Herkunft eines Unfalls und ein Ausschnitt eines Profils.',
+        'graphql_response' => 'GraphQL-Antwort (die Noten der Abschnitte sind Aufzählungen in Großbuchstaben, die der Bahnhöfe Zeichenketten).',
+        'mcp' => 'In MCP nimmt das Werkzeug segment_audits (wie station_audits, line_audit, line_profile, media und accident) dieselben Parameter.',
+        'mcp_response' => 'Antwort: das JSON des Werkzeugs steht als Text in result.content[0].text; eine zu große Antwort wird am Ende gekürzt (truncated.items).',
+        'errors' => 'Fehler: ein Parameter außerhalb der erlaubten Werte, hier eine unbekannte Note und eine Seite mit 500.',
+        'error_422' => '422, als JSON: errors nennt eine Meldung je Parameter.',
+        'error_429' => '429, wenn das Limit pro Minute überschritten ist: Retry-After nennt die Wartezeit in Sekunden. Vor dem nächsten Versuch warten.',
+    ],
+
     'graphql' => [
         'title' => 'GraphQL-API',
         'text' => 'Für umfangreichere Abfragen liefert ein einziger GraphQL-Endpunkt, POST /graphql, eine Strecke mit ihren Segmenten und Ereignissen auf einmal. Das Schema steht in der Referenz; Ihre Abfragen können Sie in GraphiQL ausprobieren.',

@@ -176,6 +176,33 @@ return [
         'code_label' => 'Exemple de code',
     ],
 
+    // Exemples des listes d'audit, de l'audit d'une ligne, du profil par tranche, des compteurs d'images et des accidents.
+    'audit_examples' => [
+        'title' => 'Audits, profils, images et accidents',
+        'intro' => 'Les mêmes données sont dans les trois interfaces : REST, GraphQL et MCP. Les réponses ci-dessous sont celles du serveur, avec « … » à la place des champs longs ; une liste d’audit rend 50 éléments par défaut, 200 au plus (limit), la suite par offset, et total donne le nombre après les filtres.',
+        'segments' => 'Tronçons à contrôler de tout le réseau : les plus mal notés du Finistère à l’ère 2030, un par page ici (grade, check, reason, status, department, region, line, q, sort, limit, offset).',
+        'segments_response' => 'Réponse : 26 tronçons au total, notes et codes de raison par contrôle.',
+        'segments_js' => 'Le même appel en JavaScript, avec la pagination.',
+        'segments_py' => 'Le même appel en Python.',
+        'stations' => 'Gares de tout le réseau dont les sources ne s’accordent pas sur la position, en Moselle (mêmes filtres de département, région, ligne et même pagination ; pas d’ère).',
+        'stations_response' => 'Réponse : 5 gares au total, écarts en mètres et contrôles en échec.',
+        'line_audit' => 'Audit d’une ligne, une page de tronçons à la fois (limit, offset, filtre grade ; segments_total donne le total après le filtre).',
+        'line_audit_response' => 'Réponse : synthèse de la ligne puis une page de tronçons ; les preuves de chaque tronçon (evidence) sont abrégées ici.',
+        'profile' => 'Profil en long d’une ligne par tranche de point kilométrique : une altitude tous les 250 m environ entre les PK 249 000 et 250 000 (altitude à un seul PK : /altitude?pk_m=).',
+        'profile_response' => 'Réponse : les points de la tranche, avec leur source ; l’IGN en est le fournisseur (licence dans provenance).',
+        'media_facets' => 'Compteurs des images mises en avant (total, natures, licences, auteurs) : facets=true ajoute meta.facets à la liste.',
+        'media_facets_response' => 'Réponse : 514 images, comptées sur toute la recherche et non sur la page.',
+        'accident' => 'Fiche d’un accident : provenance dit d’où vient chaque champ, imported_at la date de l’import.',
+        'accident_response' => 'Réponse abrégée : date, nature et nom viennent de Wikidata, le nombre de morts du BEA-TT.',
+        'graphql' => 'En GraphQL, une seule requête pour tout cela : segmentAudits, stationAudits, mediaFacets, la provenance d’un accident et une tranche de profil.',
+        'graphql_response' => 'Réponse GraphQL (les notes des tronçons sont des énumérations en majuscules, celles des gares des chaînes).',
+        'mcp' => 'En MCP, l’outil segment_audits (comme station_audits, line_audit, line_profile, media et accident) prend les mêmes paramètres.',
+        'mcp_response' => 'Réponse : le JSON de l’outil est dans result.content[0].text, sous forme de texte ; une réponse trop grosse est raccourcie par la fin (truncated.items).',
+        'errors' => 'Erreurs : un paramètre hors des valeurs permises, ici une note inconnue et une page de 500.',
+        'error_422' => '422, en JSON : errors donne un message par paramètre.',
+        'error_429' => '429 quand la limite par minute est dépassée : Retry-After donne l’attente en secondes. Attendez avant de recommencer.',
+    ],
+
     'graphql' => [
         'title' => 'API GraphQL',
         'text' => 'Pour les requêtes plus riches, un seul point d’accès GraphQL, POST /graphql, renvoie en une fois une ligne avec ses tronçons et ses événements. Lisez le schéma dans la référence, ou essayez vos requêtes dans GraphiQL.',
