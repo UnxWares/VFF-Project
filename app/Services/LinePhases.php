@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Support\Lgv;
+use App\Support\LineDataSignature;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -637,6 +639,40 @@ final class LinePhases
     public static function forLine(object $line, ?string $today = null): array
     {
         $today ??= now()->toDateString();
+        // Lectures et calculs géographiques (100 à 330 ms sur une LGV) gardés en cache tant que les tronçons,
+        // les événements, la ligne et les ères ne changent pas (LineDataSignature). Le calcul des phases
+        // lui-même dépend du jour ($today) : il est refait à chaque appel.
+        $key = 'line-phases:'.$line->id.':'.LineDataSignature::segmentsEventsAndEras((int) $line->id)
+            .':'.md5(((bool) ($line->is_lgv ?? false) ? '1' : '0').'|'.($line->name ?? ''));
+        $in = Cache::remember($key, self::CACHE_TTL, fn (): ?array => self::inputs($line));
+        if ($in === null) {
+            return ['portions' => [], 'phases' => [], 'best' => null, 'used_events' => [], 'decades' => [], 'unexplained' => []];
+        }
+        $portions = $in['portions'];
+
+        $result = self::compute($in['eras'], $portions, $in['events'], $in['cover'], $in['adjacency'], $today, $in['near'], $in['adjacency_loose']);
+
+        return [
+            'portions' => array_map(fn ($p) => ['length_m' => $p['length_m'], 'geometry' => $p['geometry'], 'sources' => $p['sources']], $portions),
+            'phases' => $result['phases'],
+            'best' => $result['best'],
+            'used_events' => $result['used_events'],
+            'decades' => $result['decades'],
+            'unexplained' => $result['unexplained'],
+        ];
+    }
+
+    /** Durée de vie des lectures gardées par forLine() (s) : la signature les invalide avant. */
+    public const CACHE_TTL = 86_400;
+
+    /**
+     * Ce que forLine() lit en base pour une ligne : ères, portions et leur état, voisinages, événements et
+     * portions qu'ils couvrent. Null si la ligne n'a aucun tronçon.
+     *
+     * @return array{eras: list<array{year: int, is_current: bool}>, portions: list<array<string, mixed>>, events: array<int, array<string, mixed>>, cover: array<int, list<string>>, adjacency: array<string, list<string>>, near: array<string, list<list<string>>>, adjacency_loose: array<string, list<string>>}|null
+     */
+    private static function inputs(object $line): ?array
+    {
         $eras = array_map(fn ($e) => ['year' => (int) $e->year, 'is_current' => (bool) $e->is_current],
             DB::select('SELECT year, is_current FROM eras ORDER BY year'));
 
@@ -645,7 +681,7 @@ final class LinePhases
             FROM line_segments ls JOIN eras e ON e.id = ls.era_id JOIN lines l ON l.id = ls.line_id
             WHERE ls.line_id = ?', [$line->id]);
         if (! $rows) {
-            return ['portions' => [], 'phases' => [], 'best' => null, 'used_events' => [], 'decades' => [], 'unexplained' => []];
+            return null;
         }
         $states = [];
         // Provenance de la géométrie de chaque portion (toutes ères confondues) : l'API ne la
@@ -751,16 +787,8 @@ final class LinePhases
         }
         DB::statement('DROP TABLE IF EXISTS tmp_line_portions');
 
-        $result = self::compute($eras, $portions, $events, $cover, $adjacency, $today, $near, $adjacencyLoose);
-
-        return [
-            'portions' => array_map(fn ($p) => ['length_m' => $p['length_m'], 'geometry' => $p['geometry'], 'sources' => $p['sources']], $portions),
-            'phases' => $result['phases'],
-            'best' => $result['best'],
-            'used_events' => $result['used_events'],
-            'decades' => $result['decades'],
-            'unexplained' => $result['unexplained'],
-        ];
+        return ['eras' => $eras, 'portions' => $portions, 'events' => $events, 'cover' => $cover,
+            'adjacency' => $adjacency, 'near' => $near, 'adjacency_loose' => $adjacencyLoose];
     }
 
     /**

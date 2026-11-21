@@ -6,8 +6,11 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * Aplatit toutes les chaînes de traduction d'une locale en une map plate
- * (`['home.title' => 'Bienvenue', 'common.save' => 'Enregistrer']`) prête à
- * être partagée à Inertia. Résultat mis en cache par locale.
+ * (`['home.title' => 'Bienvenue', 'common.save' => 'Enregistrer']`). Résultat mis en cache par locale.
+ *
+ * Le navigateur les reçoit dans un fichier JSON par langue (payload(), servi par TranslationsController à
+ * une adresse qui porte l'empreinte du contenu, url()) : gardé en cache par le navigateur et le service
+ * worker, il n'est plus recopié dans chaque page HTML (344 Ko sur 385 Ko pour l'accueil, mesure du 21/11/2026).
  */
 class Translations
 {
@@ -38,6 +41,45 @@ class Translations
             "translations.{$locale}",
             fn () => self::merged($locale),
         );
+    }
+
+    /**
+     * Dictionnaire d'une locale tel que le navigateur le reçoit : JSON (UTF-8 brut) et son empreinte
+     * (12 caractères hexadécimaux, tirés du contenu). Mis en cache comme load().
+     *
+     * @return array{json: string, version: string}
+     */
+    public static function payload(string $locale): array
+    {
+        $build = function () use ($locale): array {
+            $json = json_encode(self::load($locale), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+
+            return ['json' => $json, 'version' => substr(md5($json), 0, 12)];
+        };
+
+        if (config('app.debug')) {
+            return $build();
+        }
+
+        return Cache::rememberForever("translations.payload.{$locale}", $build);
+    }
+
+    /** Le même JSON compressé (gzip), pour les clients qui l'acceptent. Mis en cache comme load(). */
+    public static function gzipped(string $locale): string
+    {
+        $build = fn (): string => (string) gzencode(self::payload($locale)['json'], 9);
+
+        if (config('app.debug')) {
+            return $build();
+        }
+
+        return Cache::rememberForever("translations.gzip.{$locale}", $build);
+    }
+
+    /** Adresse du dictionnaire d'une locale, avec son empreinte (elle change dès qu'une chaîne change). */
+    public static function url(string $locale): string
+    {
+        return route('i18n.translations', ['locale' => $locale, 'version' => self::payload($locale)['version']], false);
     }
 
     /**

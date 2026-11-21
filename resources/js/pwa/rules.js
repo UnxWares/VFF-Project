@@ -2,7 +2,7 @@
 // testables (tests/js/pwa-rules.test.js) et partagées par le service worker (sw.js) et la page.
 //
 // Ce qui est gardé hors ligne, et seulement cela :
-//   - les fichiers publics versionnés (build Vite, icônes), « cache d'abord » ;
+//   - les fichiers publics versionnés (build Vite, dictionnaire de l'interface, icônes), « cache d'abord » ;
 //   - les pages déjà consultées (HTML et réponses Inertia), « réseau d'abord », quand le SERVEUR les a
 //     déclarées lisibles hors ligne (en-tête X-VFF-Offline, MarkOfflineReadable) : pages publiques vues
 //     par un visiteur non connecté, sans message de session. Jamais les pages de compte, de contribution,
@@ -40,8 +40,12 @@ export const VERSIONED_CACHE_PREFIXES = [
 export const OFFLINE_CACHE = 'vff-offline';
 export const OFFLINE_KEY = '/__hors-ligne';
 
-/** Fichiers servis « cache d'abord » : empreinte de contenu dans le nom (Vite) ou icônes de l'application. */
-export const STATIC_PATHS = ['/build/assets/', '/icons/'];
+/**
+ * Fichiers servis « cache d'abord » : empreinte de contenu dans le nom (Vite, dictionnaire de l'interface
+ * `/i18n/{langue}/{empreinte}.json`) ou icônes de l'application. Le dictionnaire gardé permet aux pages
+ * rangées de s'afficher hors ligne avec leurs textes.
+ */
+export const STATIC_PATHS = ['/build/assets/', '/icons/', '/i18n/'];
 
 /** Rangé à l'installation du service worker : l'icône que la page hors ligne affiche. */
 export const PRECACHE = ['/icons/icon-192.png'];

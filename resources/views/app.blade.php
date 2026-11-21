@@ -40,7 +40,19 @@
         <link rel="manifest" href="{{ asset('manifest.webmanifest') }}" />
         <meta name="apple-mobile-web-app-title" content="VFF" />
 
-        @vite(['resources/css/general.css', 'resources/js/app.js'])
+        {{--
+            Dictionnaire de l'interface (resources/js/lib/i18n.js, loadTranslations) demandé dès la lecture de
+            l'en-tête, en même temps que les scripts : la page n'attend pas la fin de app.js pour le réclamer.
+        --}}
+        @if (is_string($page['props']['translations_url'] ?? null))
+            <link rel="preload" href="{{ $page['props']['translations_url'] }}" as="fetch" crossorigin="anonymous" />
+        @endif
+        {{--
+            Composant de la page (et ses dépendances, CSS compris) annoncé avec les scripts communs : sans cela,
+            le navigateur ne le découvre qu'après avoir exécuté app.js (un aller-retour de plus).
+        --}}
+        @php($__pageEntry = 'resources/js/Pages/'.($page['component'] ?? '').'.svelte')
+        @vite(['resources/css/general.css', 'resources/js/app.js', ...(is_file(base_path($__pageEntry)) ? [$__pageEntry] : [])])
         @inertiaHead
     </head>
     <body>

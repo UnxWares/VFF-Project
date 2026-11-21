@@ -1,12 +1,16 @@
 // Bootstrap de l'i18n côté front avec i18next + svelte-i18next.
 //
 // Source canonique des traductions : Laravel `lang/{locale}/*.php`, aplaties
-// par `App\Support\Translations` et partagées à Inertia via HandleInertiaRequests.
+// par `App\Support\Translations` et servies dans un fichier JSON par langue
+// (`/i18n/{locale}/{empreinte}.json`) dont chaque page donne l'adresse
+// (prop `translations_url`, préchargée par app.blade.php). Le navigateur le
+// garde en cache : il n'est plus recopié dans chaque page.
 //
-// On initialise i18next au boot avec la locale courante + ses chaînes (pas de
-// fetch HTTP supplémentaire). À chaque changement de langue, on POST /locale
-// et Inertia recharge le bundle avec les nouvelles chaînes : on les réinjecte
-// dans i18next via `addResourceBundle` et on appelle `changeLanguage`.
+// Au démarrage puis à chaque navigation Inertia, applyPageTranslations() lit
+// ce fichier s'il n'est pas déjà chargé (même adresse : rien à faire), puis
+// le donne à i18next (`addResourceBundle`, `changeLanguage`). Les pages
+// d'erreur rendues hors du groupe web portent encore les chaînes elles-mêmes
+// (prop `translations`), utilisées telles quelles.
 //
 // Usage dans un composant :
 //   import { i18n } from '$lib/i18n.js';
@@ -70,16 +74,82 @@ export function setupI18n({ locale, translations }) {
         return;
     }
 
-    // Recharge après navigation Inertia ou changement de langue
-    i18next.addResourceBundle(
-        safeLocale,
-        'translation',
-        normalize(translations ?? {}),
-        true, // deep merge
-        true, // overwrite
-    );
+    // Recharge après navigation Inertia ou changement de langue (null : chaînes déjà chargées).
+    if (translations) {
+        i18next.addResourceBundle(
+            safeLocale,
+            'translation',
+            normalize(translations),
+            true, // deep merge
+            true, // overwrite
+        );
+    }
     if (i18next.language !== safeLocale) {
         i18next.changeLanguage(safeLocale);
+    }
+}
+
+/** Adresse du dictionnaire déjà donné à i18next (null : aucun, ou chaînes reçues dans la page). */
+let loadedUrl = null;
+
+/** Dictionnaires déjà demandés, par adresse : deux appels rapprochés ne lancent qu'une requête. */
+const pending = new Map();
+
+/**
+ * Lit le dictionnaire d'une adresse (JSON plat « clé » => « texte »). Même mode que la balise
+ * `<link rel="preload" as="fetch" crossorigin="anonymous">` de la page, pour que le navigateur
+ * réutilise la réponse préchargée. Deux essais : une coupure passagère ne laisse pas la page sans texte.
+ *
+ * @param {string} url
+ * @param {typeof fetch} fetchImpl
+ * @returns {Promise<Record<string, string>>}
+ */
+export function fetchTranslations(url, fetchImpl = fetch) {
+    if (!pending.has(url)) {
+        const once = () =>
+            fetchImpl(url, { credentials: 'same-origin' }).then((response) => {
+                if (!response.ok)
+                    throw new Error(`Traductions illisibles (${response.status}) : ${url}`);
+                return response.json();
+            });
+        const request = once()
+            .catch(once)
+            .finally(() => pending.delete(url));
+        pending.set(url, request);
+    }
+    return pending.get(url);
+}
+
+/**
+ * Donne à i18next les chaînes d'une page Inertia : celles qu'elle porte (`translations`, pages d'erreur),
+ * sinon le dictionnaire de son adresse (`translations_url`), lu seulement s'il change.
+ * Sans réseau ni copie en cache, i18next garde ce qu'il avait (au pire, les clés s'affichent).
+ *
+ * @param {{locale?: string, translations?: Record<string, string>, translations_url?: string, [key: string]: unknown}} props
+ * @param {typeof fetch} [fetchImpl]
+ */
+export async function applyPageTranslations(props, fetchImpl = fetch) {
+    const { locale, translations, translations_url: url } = props ?? {};
+    if (translations) {
+        setupI18n({ locale, translations });
+        loadedUrl = null;
+        return;
+    }
+    if (!url) {
+        setupI18n({ locale, translations: {} });
+        return;
+    }
+    if (url === loadedUrl) {
+        setupI18n({ locale, translations: null });
+        return;
+    }
+    try {
+        const dict = await fetchTranslations(url, fetchImpl);
+        setupI18n({ locale, translations: dict });
+        loadedUrl = url;
+    } catch (error) {
+        console.error(error);
+        setupI18n({ locale, translations: {} });
     }
 }
 

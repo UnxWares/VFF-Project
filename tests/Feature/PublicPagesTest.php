@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\BuildsRailNetwork;
+use Tests\Support\ReadsTranslations;
 use Tests\TestCase;
 
 /**
@@ -15,6 +16,7 @@ use Tests\TestCase;
 class PublicPagesTest extends TestCase
 {
     use BuildsRailNetwork;
+    use ReadsTranslations;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -57,7 +59,8 @@ class PublicPagesTest extends TestCase
                 ->component($component)
                 ->where('locale', 'fr')
                 ->has('available_locales', 3)
-                ->has('translations')
+                ->where('translations_url', fn (string $u) => str_starts_with($u, '/i18n/fr/'))
+                ->missing('translations')
                 ->has('auth')
                 ->where('auth.user', null)
             );
@@ -151,9 +154,9 @@ class PublicPagesTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('locale', 'de')
-                // `translations` est une map PLATE (« nav.maps » => …) : pas de notation pointée.
-                ->where('translations', fn ($t) => $t->get('nav.maps') === __('nav.maps', [], 'de')
-                    && $t->get('nav.maps') !== __('nav.maps', [], 'fr'))
+                // Le dictionnaire est une map PLATE (« nav.maps » => …) : pas de notation pointée.
+                ->where('translations_url', fn (string $u) => ($this->dictionary($u)['nav.maps'] ?? null) === __('nav.maps', [], 'de')
+                    && __('nav.maps', [], 'de') !== __('nav.maps', [], 'fr'))
             );
     }
 

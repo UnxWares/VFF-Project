@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\ServiceEnd;
+use App\Support\LineDataSignature;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -150,6 +152,9 @@ final class LineStations
     /** Distance maximale (m) entre une extrémité du tracé et la gare qui en est le terminus. */
     public const TERMINUS_MAX_M = 3000;
 
+    /** Durée de vie des extrémités gardées par terminals() (s) : la signature des tronçons les invalide avant. */
+    public const ENDS_CACHE_TTL = 86_400;
+
     /**
      * Terminus = gare la plus proche de chacune des deux extrémités de la ligne (les deux bouts de
      * tracé les plus éloignés l'un de l'autre, toutes ères confondues), à TERMINUS_MAX_M au plus.
@@ -168,19 +173,30 @@ final class LineStations
         if ($rows === []) {
             return [];
         }
-        $ends = DB::selectOne(<<<'SQL'
-            WITH parts AS (SELECT (ST_Dump(ST_LineMerge(ST_Collect(geom)))).geom AS g
-                           FROM (SELECT DISTINCT geom FROM line_segments WHERE line_id = ?) x),
-                 ends AS (SELECT ST_StartPoint(g) AS p FROM parts UNION ALL SELECT ST_EndPoint(g) FROM parts)
-            SELECT ST_X(a.p) AS x1, ST_Y(a.p) AS y1, ST_X(b.p) AS x2, ST_Y(b.p) AS y2
-            FROM ends a CROSS JOIN ends b
-            ORDER BY ST_DistanceSphere(a.p, b.p) DESC LIMIT 1
-        SQL, [$lineId]);
-        if ($ends === null || $ends->x1 === null) {
+        // Les deux bouts ne dépendent que des tronçons de la ligne : gardés en cache tant qu'ils ne changent
+        // pas (LineDataSignature), le calcul prenait 170 ms sur la LGV Sud-Est. Liste vide : aucun tracé.
+        $ends = Cache::remember(
+            "line-stations:ends:{$lineId}:".LineDataSignature::segments($lineId),
+            self::ENDS_CACHE_TTL,
+            function () use ($lineId): array {
+                $row = DB::selectOne(<<<'SQL'
+                    WITH parts AS (SELECT (ST_Dump(ST_LineMerge(ST_Collect(geom)))).geom AS g
+                                   FROM (SELECT DISTINCT geom FROM line_segments WHERE line_id = ?) x),
+                         ends AS (SELECT ST_StartPoint(g) AS p FROM parts UNION ALL SELECT ST_EndPoint(g) FROM parts)
+                    SELECT ST_X(a.p) AS x1, ST_Y(a.p) AS y1, ST_X(b.p) AS x2, ST_Y(b.p) AS y2
+                    FROM ends a CROSS JOIN ends b
+                    ORDER BY ST_DistanceSphere(a.p, b.p) DESC LIMIT 1
+                SQL, [$lineId]);
+
+                return $row === null || $row->x1 === null ? []
+                    : [[(float) $row->x1, (float) $row->y1], [(float) $row->x2, (float) $row->y2]];
+            },
+        );
+        if ($ends === []) {
             return [];
         }
         $out = [];
-        foreach ([[(float) $ends->x1, (float) $ends->y1], [(float) $ends->x2, (float) $ends->y2]] as [$x, $y]) {
+        foreach ($ends as [$x, $y]) {
             $best = null;
             $bestKey = null;
             foreach ($rows as $r) {

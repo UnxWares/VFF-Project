@@ -1,7 +1,7 @@
 <script>
     import { Link } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
-    import vffLogo from '$images/vff.png';
+    import vffLogo from '$images/vff-320.webp';
     // Fichiers officiels de la charte UnxWares (2026-11-02) : version en couleur sur fond clair,
     // version monochrome inversée (blanche) sur fond sombre. Jamais de nom retapé à côté.
     // Logo officiel de l'association UWOSC (insigne et nom, la version à privilégier ; charte du

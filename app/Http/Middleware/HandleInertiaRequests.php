@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use App\Support\Translations;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -27,10 +26,11 @@ class HandleInertiaRequests extends Middleware
             ],
             'locale' => $locale,
             'available_locales' => SetLocale::SUPPORTED,
-            // Toutes les chaînes de l'interface (environ 300 Ko) : envoyées au premier chargement, puis gardées
-            // par le navigateur d'une page à l'autre (prop « once » d'Inertia : le client annonce les props
-            // qu'il a déjà, X-Inertia-Except-Once-Props). La clé suit la langue : changer de langue les renvoie.
-            'translations' => Inertia::once(fn () => Translations::load($locale))->as("translations.{$locale}"),
+            // Adresse du dictionnaire de l'interface de la langue (344 Ko de chaînes) : le navigateur le lit
+            // une fois et le garde en cache (l'adresse porte l'empreinte du contenu) au lieu de le recevoir
+            // dans chaque page (resources/js/lib/i18n.js). Les pages d'erreur rendues hors du groupe web
+            // portent encore les chaînes elles-mêmes (`translations`, bootstrap/app.php).
+            'translations_url' => fn () => Translations::url($locale),
             'auth' => [
                 // Whitelist explicite : on n'expose JAMAIS le hash password ni
                 // remember_token au front. role est sérialisé en string (enum).
