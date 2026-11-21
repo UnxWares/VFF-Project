@@ -136,17 +136,19 @@ class LinePagesTest extends TestCase
             );
     }
 
-    public function test_show_lists_rolling_stock_by_name_in_natural_order(): void
+    public function test_show_lists_rolling_stock_by_name_in_natural_order_when_nothing_is_dated(): void
     {
+        // Sans aucune date ni état de service, l'ordre du plus récent (LineMaterialEnd) retombe sur le nom.
         foreach (['BB 15000', 'Élément à turbine à gaz', 'BB 9200', 'Autorail X 2800'] as $i => $name) {
-            $this->line->materials()->attach(Material::factory()->create(['slug' => "serie-{$i}", 'name' => $name])->id);
+            $this->line->materials()->attach(Material::factory()->create(['slug' => "serie-{$i}", 'name' => $name,
+                'in_service_from' => null, 'in_service_to' => null, 'service_status' => null])->id);
         }
 
         $this->get("/lines/{$this->line->slug}")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('materials', fn ($materials) => $this->rows($materials)->pluck('name')->all()
-                    === ['Autorail X 2800', 'BB 9200', 'BB 15000', 'Élément à turbine à gaz', 'Z 6400'])
+                ->where('materials', fn ($materials) => $this->rows($materials)->pluck('name')->reject(fn (string $n): bool => $n === 'Z 6400')->values()->all()
+                    === ['Autorail X 2800', 'BB 9200', 'BB 15000', 'Élément à turbine à gaz'])
             );
     }
 
@@ -169,7 +171,7 @@ class LinePagesTest extends TestCase
                 ->where('materials', fn ($materials) => $this->rows($materials)->firstWhere('slug', $series->slug)['builders'] === $names));
         $this->getJson("/api/v1/lines/{$this->line->slug}")
             ->assertOk()
-            ->assertJsonPath('data.materials.0.builders', $names);
+            ->assertJsonPath('data.materials', fn (array $materials): bool => collect($materials)->firstWhere('slug', $series->slug)['builders'] === $names);
     }
 
     /** Revue des PR #19 et #20 : « Henschel, Q529531, Krauss-Maffei » sur la carte de la BR 52 ; l'identifiant brut est écarté. */
@@ -193,8 +195,8 @@ class LinePagesTest extends TestCase
                 ->where('materials', fn ($materials) => $this->rows($materials)->firstWhere('slug', 'br-52')['builders'] === ['Henschel', 'Krauss-Maffei']));
         $this->getJson("/api/v1/lines/{$this->line->slug}")
             ->assertOk()
-            ->assertJsonPath('data.materials.0.builders', ['Henschel', 'Krauss-Maffei'])
-            ->assertJsonPath('data.materials.0.builder', 'Henschel, Krauss-Maffei');
+            ->assertJsonPath('data.materials', fn (array $materials): bool => collect($materials)->firstWhere('slug', 'br-52')['builders'] === ['Henschel', 'Krauss-Maffei']
+                && collect($materials)->firstWhere('slug', 'br-52')['builder'] === 'Henschel, Krauss-Maffei');
     }
 
     public function test_show_has_no_spatial_fallback_for_stations(): void

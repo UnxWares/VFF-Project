@@ -26,7 +26,7 @@
      * @type {{ materials: Array<{ slug: string, name: string, type: string, builder: string|null,
      *   builders?: string[], in_service_from: number|null, in_service_to: number|null, periods?: Array<any>,
      *   relations?: Array<any>, end?: { kind: string, year: ?number, source_url: ?string }, image?: ?{ url: string, width: number, height: number, file: ?string,
-     *   author: ?string, license: ?string, license_url: ?string, rights_status: ?string, source_url: ?string } }> }}
+     *   author: ?string, license: ?string, license_url: ?string, rights_status: ?string, source_url: ?string, fit?: string } }> }}
      */
     let { materials } = $props();
 

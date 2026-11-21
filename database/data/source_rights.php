@@ -359,7 +359,7 @@ return [
             'citation' => '(faits isolés : une date par site, lien vers la page citée)',
             'obligations' => 'Lien vers la page citée ; citation courte. Risque faible (faits), à remplacer par une source sûre quand elle existe.',
             'domaines' => [
-                'parcdescombes.com', 'marc-andre-dubout.org', 'mejanes-camargue.fr', 'assemblee-nationale.fr',
+                'parcdescombes.com', 'marc-andre-dubout.org', 'mejanes-camargue.fr',
                 'cftr.evolutive.org', 'rail.lu', 'cftanse.fr', 'amitram.fr', 'minieresbunn.lu',
                 // Rames remarquables du matériel (database/data/material_notable_units.php) : LyonMag (27/02/2020),
                 // forum JNS rapportant France Bleu (06/02/2020) ; faits datés, courte citation, lien.
@@ -451,7 +451,8 @@ return [
             ],
             'citation' => 'Depuis novembre 2011, la "Licence Ouverte / Open Licence" s\'applique à l\'ensemble des réutilisations libres gratuites de données publiques [...] autorisant la reproduction, la redistribution, l\'adaptation et l\'exploitation commerciale des données.',
             'obligations' => 'Faits seulement, avec la date de la séance ou le numéro de la question et un lien vers le document. Aucune citation : les pages du site interdisent la reproduction à des fins commerciales (« Any use or reproduction for commercial purposes is forbidden »), alors que les données ouvertes l\'autorisent ; VFF étant édité par une société, la prudence l\'emporte.',
-            'remarques' => 'Mentions légales en français non trouvées (404). Pas de domaine déclaré ici : assemblee-nationale.fr figure déjà dans tiers-cites pour les corrections de lignes.',
+            'remarques' => 'Mentions légales en français non trouvées (404). Le domaine assemblee-nationale.fr, rangé avant chez tiers-cites pour les corrections de lignes, est rattaché ici depuis le 21/11/2026 : mêmes documents, conditions lues.',
+            'domaines' => ['assemblee-nationale.fr'],
             'lu_le' => '2026-11-21',
         ],
         'senat' => [
