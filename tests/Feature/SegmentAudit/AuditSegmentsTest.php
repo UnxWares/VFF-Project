@@ -140,14 +140,14 @@ class AuditSegmentsTest extends TestCase
     public function test_dry_run_writes_nothing_and_a_new_pass_replaces_the_old_one(): void
     {
         $this->artisan('vff:audit-segments', ['--line' => ['rfn-123456'], '--dry-run' => true])->assertSuccessful();
-        $this->assertSame(0, DB::table('segment_audits')->count());
+        $this->assertDatabaseCount('segment_audits', 0);
 
         $this->runAudit();
         $this->runAudit();
-        $this->assertSame(6, DB::table('segment_audits')->count());
+        $this->assertDatabaseCount('segment_audits', 6);
 
         $this->artisan('vff:audit-segments', ['--line' => ['123456'], '--era' => [2030]])->assertSuccessful();
-        $this->assertSame(6, DB::table('segment_audits')->count());
+        $this->assertDatabaseCount('segment_audits', 6);
     }
 
     public function test_invalid_options_are_refused(): void

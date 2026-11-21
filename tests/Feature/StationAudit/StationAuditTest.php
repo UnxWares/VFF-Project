@@ -134,6 +134,7 @@ class StationAuditTest extends TestCase
         $this->assertStringContainsString('retained_outvoted', (string) $a[$this->ids['Doulon']]->checks);
         $this->assertStringNotContainsString('retained_outvoted', (string) $a[$this->ids['Messei']]->checks);
 
+        /** @var list<array<string, mixed>> $positions */
         $positions = json_decode((string) $a[$this->ids['Argentan']]->positions, true);
         $this->assertSame(['bdtopo', 'lignes-oubliees', 'osm', 'sncf'], collect($positions)->pluck('source')->sort()->values()->all());
         $copy = collect($positions)->firstWhere('source', 'lignes-oubliees');
@@ -242,6 +243,7 @@ class StationAuditTest extends TestCase
             ->assertJsonPath('data.date_candidates.0.date', '1866-05-21')
             ->assertJsonPath('data.date_candidates.0.provenance.provider', 'wikidata')
             ->json('data.placement.positions');
+        /** @var list<array<string, mixed>> $json */
         $byName = collect($json)->keyBy('source');
         // lignes-oubliées n'est pas redistribuable : écart donné, coordonnées retirées.
         $this->assertNull($byName['lignes-oubliees']['lon']);
