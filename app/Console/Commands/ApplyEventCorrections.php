@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Enums\LineEventType;
 use App\Services\WikipediaLineParser;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -223,8 +224,14 @@ class ApplyEventCorrections extends Command
         return [$todo->isEmpty() ? 'déjà appliqué' : ($dry ? 'à déplacer' : 'déplacé').' ('.$todo->count().')', $c['reason']];
     }
 
-    /** Événements visés : ligne, source, date, type (ou déjà neutralisé), départ facultatif. */
-    private function matching(object $line, array $m, array $types, ?string $alsoFrom = null)
+    /**
+     * Événements visés : ligne, source, date, type (ou déjà neutralisé), départ facultatif.
+     *
+     * @param  array<string, mixed>  $m
+     * @param  list<string>  $types
+     * @return Collection<int, \stdClass>
+     */
+    private function matching(object $line, array $m, array $types, ?string $alsoFrom = null): Collection
     {
         return DB::table('line_events')->where('line_id', $line->id)->where('source', $m['source'])
             ->where('event_date', $m['date'])->whereIn('type', $types)

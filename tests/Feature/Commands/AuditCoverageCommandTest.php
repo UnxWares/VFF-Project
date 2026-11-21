@@ -81,7 +81,7 @@ class AuditCoverageCommandTest extends TestCase
         return $rows;
     }
 
-    /** @return array<string, array<string, string>> lignes du CSV indexées par une colonne */
+    /** @return array<int|string, array<string, string>> lignes du CSV indexées par une colonne */
     private function csvBy(string $name, string $column): array
     {
         $out = [];

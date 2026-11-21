@@ -43,7 +43,7 @@ class ClassifyLines extends Command
         $this->line("  (dont LGV : {$s['lgv']}, raccordements hérités : {$s['raccordements']})");
 
         // Trafic par portion : lignes mixtes sur une partie seulement (fret ou moteur ailleurs).
-        $p = $s['portions'] ?? null;
+        $p = $s['portions'];
         if ($p) {
             $this->line(sprintf('  Portions : %d lignes mixtes en partie (%s km hors portion voyageurs), %d tronçons coupés aux gares, %d gares voyageurs périmées écartées',
                 $p['lines'], number_format($p['outside_km'], 1, ',', ' '), $p['split'], $p['stale_stations']));
@@ -54,7 +54,7 @@ class ClassifyLines extends Command
             }
         }
 
-        $report = $s['report'] ?? [];
+        $report = $s['report'];
         if ($report) {
             $this->warn('  '.count($report).' lignes à curer (fret par défaut en confiance faible, ou sans signal SNCF), ex. :');
             foreach (array_slice($report, 0, 10) as $r) {

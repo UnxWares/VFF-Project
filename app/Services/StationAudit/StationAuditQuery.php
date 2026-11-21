@@ -3,6 +3,7 @@
 namespace App\Services\StationAudit;
 
 use App\Services\Api\Provenance;
+use App\Support\CsvSafe;
 use App\Support\FrenchDepartments;
 use App\Support\SourceRights;
 use Illuminate\Database\Query\Builder;
@@ -250,14 +251,15 @@ class StationAuditQuery
         $this->sorted($this->base($filters), $filters['sort'])->chunk(1000, function ($rows) use ($out): void {
             foreach ($rows as $r) {
                 $services = $this->decode($r->services);
-                fputcsv($out, [
+                // Noms venus de sources ouvertes à tous : jamais lus comme une formule par le tableur.
+                fputcsv($out, CsvSafe::row([
                     $r->station_id, $r->slug, $r->name, $r->department_code, $r->region_code, $r->status, $r->position_source,
                     $r->placement_grade, $r->families, $r->nearest_agreeing_m, $r->farthest_precise_m, $r->track_offset_m,
                     $r->opening_grade, $r->closure_grade, $services['passenger']['state'] ?? '', $services['freight']['state'] ?? '',
                     implode(' ', array_column($this->decode($r->checks), 'code')),
                     implode(' ', array_map(fn (array $p): string => ($p['source'] ?? '?').':'.($p['distance_m'] ?? '?'), $this->decode($r->positions))),
                     $r->audited_at,
-                ], escape: '');
+                ]), escape: '');
             }
         });
     }

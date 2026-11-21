@@ -54,4 +54,37 @@ class ProfileOrientationTest extends TestCase
         $this->assertNull(ProfileOrientation::reverseByName('Ligne de Foo à Bar', 'Paris', 'Lyon'));
         $this->assertSame(['Saint-Agrève', 'Cheylard'], ProfileOrientation::lineEnds('Ligne de Saint-Agrève au Cheylard'));
     }
+
+    public function test_a_station_name_with_a_dash_does_not_move_the_cut_of_a_to_form(): void
+    {
+        // « à » prime : la gare « Moutiers - Salins » reste entière côté B.
+        $this->assertSame(['Bourg - Saint-Maurice', 'Moûtiers - Salins'], ProfileOrientation::lineEnds('Ligne de Bourg - Saint-Maurice à Moûtiers - Salins'));
+        $this->assertFalse(ProfileOrientation::reverseByName('Ligne de Bourg - Saint-Maurice à Moûtiers - Salins', 'Bourg-Saint-Maurice', 'Moûtiers - Salins - Brides'));
+        $this->assertTrue(ProfileOrientation::reverseByName('Ligne de Bourg - Saint-Maurice à Moûtiers - Salins', 'Moûtiers - Salins - Brides', 'Bourg-Saint-Maurice'));
+    }
+
+    public function test_a_dash_name_with_several_dashes_is_cut_only_where_both_pieces_are_stations(): void
+    {
+        $name = 'Ligne de Bourg-Saint-Maurice - Moûtiers - Salins';
+        $this->assertNull(ProfileOrientation::lineEnds($name));
+        $stations = ['Bourg-Saint-Maurice', 'Aime-la-Plagne', 'Moûtiers - Salins - Brides'];
+        $this->assertFalse(ProfileOrientation::reverseByName($name, 'Bourg-Saint-Maurice', 'Moûtiers - Salins - Brides', $stations));
+        $this->assertTrue(ProfileOrientation::reverseByName($name, 'Moûtiers - Salins - Brides', 'Bourg-Saint-Maurice', $stations));
+    }
+
+    public function test_a_dash_name_whose_pieces_are_not_stations_of_the_line_gives_nothing(): void
+    {
+        $this->assertNull(ProfileOrientation::reverseByName('X - Y', 'Paris', 'Lyon', ['Paris', 'Lyon']));
+        $this->assertNull(ProfileOrientation::reverseByName('Alpha - Bravo - Charlie', 'Paris', 'Lyon'));
+    }
+
+    public function test_ambiguous_cuts_that_disagree_give_nothing_and_those_that_agree_give_the_direction(): void
+    {
+        $stations = ['Alpha', 'Alpha - Bravo', 'Charlie', 'Bravo - Charlie'];
+        // Coupures « Alpha | Bravo - Charlie » et « Alpha - Bravo | Charlie » : même sens.
+        $this->assertFalse(ProfileOrientation::reverseByName('Alpha - Bravo - Charlie', 'Alpha', 'Charlie', $stations));
+        $this->assertTrue(ProfileOrientation::reverseByName('Alpha - Bravo - Charlie', 'Charlie', 'Alpha', $stations));
+        // Bouts qui ne départagent pas : rien.
+        $this->assertNull(ProfileOrientation::reverseByName('Alpha - Bravo - Charlie', 'Delta', 'Echo', $stations));
+    }
 }

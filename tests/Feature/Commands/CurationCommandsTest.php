@@ -260,6 +260,7 @@ class CurationCommandsTest extends TestCase
             ->expectsOutputToContain('→ https://example.org/petition')
             ->assertSuccessful();
 
+        /** @var \stdClass $line */
         $line = DB::table('lines')->find($this->line->id);
         $this->assertTrue($line->is_threatened);
         $this->assertSame([
@@ -276,6 +277,7 @@ class CurationCommandsTest extends TestCase
     {
         $this->artisan('vff:flag-threatened', ['code' => '100000', '--kind' => 'reopening'])->assertSuccessful();
 
+        /** @var \stdClass $line */
         $line = DB::table('lines')->find($this->line->id);
         $this->assertFalse($line->is_threatened);
         $this->assertSame([
@@ -293,6 +295,7 @@ class CurationCommandsTest extends TestCase
         $this->artisan('vff:flag-threatened', ['code' => '100000', '--off' => true])
             ->expectsOutputToContain('message de soutien retiré')->assertSuccessful();
 
+        /** @var \stdClass $line */
         $line = DB::table('lines')->find($this->line->id);
         $this->assertFalse($line->is_threatened);
         $this->assertNull($line->advocacy);

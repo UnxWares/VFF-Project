@@ -34,7 +34,7 @@ class MapController extends Controller
      *
      * `schematic` : la vue ferroviaire (plan schématique, config maps.schematic) est proposée.
      *
-     * @return array{eras: Collection, currentEraYear: int, dataVersion: string, schematic: bool}
+     * @return array{eras: Collection<int, array{year: int, label: string, is_current: bool, segment_count: int, has_data: bool}>, currentEraYear: int, dataVersion: string, schematic: bool}
      */
     private function mapProps(): array
     {

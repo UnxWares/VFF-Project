@@ -482,12 +482,17 @@ class BuildEraSegmentsTest extends TestCase
         return $rows->mapWithKeys(fn ($r) => [$r->k => round((float) $r->km, 2)])->all();
     }
 
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return Line&object{lat: float} ligne portant la latitude de son axe (attribut de test)
+     */
     private function line(string $name, array $attributes = []): Line
     {
         $this->lat += 0.05;
+        /** @var Line&object{lat: float} $line */
         $line = Line::factory()->create($attributes + ['name' => $name, 'code' => null, 'network' => 'principal', 'is_lgv' => false,
             'gauge_mm_default' => 1435]);
-        $line->lat = $this->lat;
+        $line->setAttribute('lat', $this->lat);
         $geom = $this->multi(2.00, 2.20, $this->lat);
         $now = now();
         DB::table('line_reference_geometries')->insert(['line_id' => $line->id, 'length_m' => 15200, 'sources' => '[]',

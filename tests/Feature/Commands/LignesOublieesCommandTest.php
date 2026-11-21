@@ -272,6 +272,7 @@ class LignesOublieesCommandTest extends TestCase
             ->expectsOutputToContain('nettoyage : 1 événement(s) et 1 gare(s) obsolètes supprimés')
             ->assertSuccessful();
 
+        /** @var \stdClass $opening */
         $opening = DB::table('line_events')->find($openingId);
         $this->assertSame([664900, 'pending'], [$opening->section_pk_start_m, $opening->section_resolution],
             'même empreinte, portion modifiée : section à recalculer');

@@ -45,8 +45,6 @@ use Illuminate\Support\Facades\DB;
  */
 class LineClassifier
 {
-    private const ACTIVE = ['in_service', 'single_track'];
-
     public function __construct(private ?PassengerPortions $portions = null)
     {
         $this->portions ??= new PassengerPortions;

@@ -204,7 +204,7 @@ final class Gauge
         //    voie la plus proche relevée aujourd'hui (gare commune avec une ligne à voie normale).
         if (! $conversions) {
             foreach ($line as $l) {
-                if (($l['source'] ?? null) === 'curated') {
+                if ($l['source'] === 'curated') {
                     return $pack($l['mm'] ?? null, $l['class'] ?? null, 'curated');
                 }
             }

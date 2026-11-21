@@ -94,11 +94,13 @@ class StationCurrentEraTest extends TestCase
         $this->assertSame(['2026-10-19', 'day', 'manual'], [$fresh->closed_at->format('Y-m-d'), $fresh->closed_precision, $fresh->provenance['closed_at']]);
 
         // Carte, fiche gare et fiche ligne : fermée, même date.
-        $feature = collect($this->getJson('/api/v1/eras/2030/stations.geojson')->assertOk()->json('features'))->firstWhere('properties.name', 'Gare fermée ce jour');
+        /** @var list<array<string, mixed>> $rawFeatures */
+        $rawFeatures = $this->getJson('/api/v1/eras/2030/stations.geojson')->assertOk()->json('features');
+        $feature = collect($rawFeatures)->firstWhere('properties.name', 'Gare fermée ce jour');
         $this->assertSame(['closed', '2026-10-19'], [$feature['properties']['service'], $feature['properties']['closed_at']]);
         $page = $this->get('/stations/'.$station->slug)->assertOk()->viewData('page')['props'];
         $this->assertSame('2026-10-19', $page['station']['closed_at']);
-        $this->assertSame('declassified', collect($page['eras'])->firstWhere('year', 2030)['status']);
+        $this->assertSame('declassified', collect((array) $page['eras'])->firstWhere('year', 2030)['status']);
         $row = collect((new LineStations)->forLine($this->line->id)['stations'])->firstWhere('id', $station->id);
         $this->assertSame(['2026-10-19', 'declassified'], [$row['closed_at'], $row['status_today']]);
     }

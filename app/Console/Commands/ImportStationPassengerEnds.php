@@ -64,10 +64,11 @@ class ImportStationPassengerEnds extends Command
         {--from-cache : Rejoue les articles déjà téléchargés, sans requête réseau}
         {--refresh : Re-télécharge les articles en cache}
         {--station= : Une gare (id ou slug)}
+        {--prune : Retire aussi les lignes des gares qui n\'ont plus d\'article lié (jamais celles d\'une gare dont l\'article est seulement absent du cache)}
         {--csv= : Écrit le bilan (une ligne par date, avec les dates déjà connues et la frise) dans ce fichier}
         {--dry-run : Lit et compare sans rien écrire dans la base}';
 
-    protected $description = 'Fins du service voyageurs et du fret des gares lues dans les infobox Wikipédia → station_events (closure_passenger, closure_freight)';
+    protected $description = 'Fins du service voyageurs et du fret des gares lues dans les infobox Wikipédia → station_events (closure_passenger, closure_freight) ; ne remplace que les gares dont l\'article a été lu';
 
     /** Suffixe des source_ref des fins des voyageurs écrites par cette commande (et seulement elles). */
     public const REF_SUFFIX = '#infobox-voyageurs';
@@ -122,10 +123,34 @@ class ImportStationPassengerEnds extends Command
             return self::SUCCESS;
         }
 
-        DB::transaction(function () use ($rows, $only) {
-            $deleted = DB::table('station_events')->where('source', 'wikipedia')->where('is_inferred', false)
+        $readIds = [];
+        $unreadIds = [];
+        foreach ($byTitle as $title => $stations) {
+            foreach ($stations as $st) {
+                if (isset($res['pages'][$title])) {
+                    $readIds[$st['id']] = $st['id'];
+                } else {
+                    $unreadIds[$st['id']] = $st['id'];
+                }
+            }
+        }
+        $prune = (bool) $this->option('prune');
+        $this->line(sprintf('%d gares dont l\'article a été lu (leurs lignes sont remplacées) ; %d gares dont l\'article n\'a pas été lu (leurs lignes sont gardées)%s',
+            count($readIds), count($unreadIds), $prune ? ' ; --prune : les lignes des gares sans article lié sont retirées' : ''));
+
+        DB::transaction(function () use ($rows, $only, $readIds, $unreadIds, $prune) {
+            $own = fn () => DB::table('station_events')->where('source', 'wikipedia')->where('is_inferred', false)
                 ->where(fn ($q) => $q->where('source_ref', 'like', 'gare:%'.self::REF_SUFFIX)->orWhere('source_ref', 'like', 'gare:%'.self::REF_SUFFIX_FREIGHT))
-                ->when($only, fn ($q) => $q->where('station_id', $only))->delete();
+                ->when($only, fn ($q) => $q->where('station_id', $only));
+            $deleted = 0;
+            foreach (array_chunk(array_values($readIds), 1000) as $chunk) {
+                $deleted += $own()->whereIn('station_id', $chunk)->delete();
+            }
+            $pruned = 0;
+            if ($prune) {
+                // Gares sans aucun article lié : ni lues ni « à lire ». Celles dont l'article manque au cache restent.
+                $pruned = $own()->whereNotIn('station_id', array_values($readIds + $unreadIds) ?: [0])->delete();
+            }
             $now = now();
             $inserted = 0;
             foreach (array_chunk($rows, 500) as $chunk) {
@@ -136,7 +161,7 @@ class ImportStationPassengerEnds extends Command
                 ], $chunk));
             }
             $freight = count(array_filter($rows, fn ($r) => $r['type'] === 'closure_freight'));
-            $this->info("{$inserted} fins de service écrites, dont {$freight} fins du fret ({$deleted} anciennes remplacées)");
+            $this->info("{$inserted} fins de service écrites, dont {$freight} fins du fret ({$deleted} anciennes remplacées".($prune ? ", {$pruned} retirées (gares sans article lié)" : '').')');
         });
 
         return self::SUCCESS;

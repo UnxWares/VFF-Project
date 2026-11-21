@@ -40,7 +40,7 @@ class ImportSncfOpenData extends Command
 
             return self::FAILURE;
         }
-        $featCount = count($geojson['features'] ?? []);
+        $featCount = count($geojson['features']);
         $this->line("→ {$featCount} features reçues.");
 
         $stats = $importer->persist($geojson, $era, $onlyExploitee);

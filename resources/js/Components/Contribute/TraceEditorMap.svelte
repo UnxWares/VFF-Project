@@ -664,6 +664,7 @@
     }
 
     // ── Initialisation ──────────────────────────────────────────────────────
+    /** @returns {import('maplibre-gl').StyleSpecification} */
     function buildStyle() {
         return {
             version: 8,
