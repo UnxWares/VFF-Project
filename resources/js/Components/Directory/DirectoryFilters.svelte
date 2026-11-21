@@ -100,9 +100,11 @@
         gap: var(--vff-space-4);
         padding: var(--vff-space-5) var(--vff-space-5) var(--vff-space-4);
     }
+    /* 260 px au moins par colonne : « Tous les départements » tient en entier, et le grand écran ne
+       crée pas une cinquième colonne vide qui rétrécit les listes (2 560 px). */
     .fields {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
         gap: var(--vff-space-4) var(--vff-space-5);
         align-items: end;
     }

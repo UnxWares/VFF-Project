@@ -83,11 +83,18 @@
             order: -1;
             font-size: var(--vff-fs-md);
         }
+        /* Intitulé dans une colonne à gauche (flottant dans la marge de la cellule) : une valeur qui
+           passe à la ligne (« Ouverte aux voyageurs », deuxième plaque de ligne) reste dans sa
+           colonne au lieu de repartir sous l'intitulé (320 px). */
+        .directory-table :global(.vff-table td[data-label]:not(.name, .blank)) {
+            display: flow-root;
+            padding-left: calc(9rem + var(--vff-space-2));
+        }
         .directory-table :global(.vff-table td[data-label]:not(.name)::before) {
             content: attr(data-label);
-            display: inline-block;
-            min-width: 9rem;
-            margin-right: var(--vff-space-2);
+            float: left;
+            width: 9rem;
+            margin-left: calc(-9rem - var(--vff-space-2));
             font-size: var(--vff-fs-xs);
             color: var(--vff-text-muted);
         }

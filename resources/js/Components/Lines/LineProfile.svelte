@@ -516,6 +516,8 @@
         margin: 0;
         max-width: var(--vff-measure);
         font-size: var(--vff-fs-sm);
+        /* Interligne du texte courant : la phrase de crémaillère tient sur trois ou quatre lignes. */
+        line-height: var(--vff-lh-body);
         color: var(--vff-text-muted);
     }
     .grade-where {

@@ -381,3 +381,45 @@ html body .hashtag:focus-visible {
     outline: 2px solid var(--cds-focus);
     outline-offset: 2px;
 }
+
+/* ─── Taille du texte : 17 px au moins (règle du site, 21/11) ────────────── */
+/* Le gabarit Carbon écrit 14 et 16 px (menu latéral, paragraphes, tableaux, listes, code). Les
+   intertitres gardent leur échelle. Le menu latéral passe à la ligne au lieu de couper les noms de
+   types longs par « … » (« OrderByRelationWithColumnAggregateFunction »). */
+html
+    body
+    :is(
+        p,
+        li,
+        td,
+        th,
+        dt,
+        dd,
+        label,
+        input,
+        button,
+        code,
+        pre,
+        strong,
+        .bx--structured-list-th,
+        .bx--structured-list-td,
+        .bx--side-nav__link-text,
+        .bx--side-nav__submenu-title,
+        .bx--assistive-text,
+        .bx--tag,
+        .vff-skip-link
+    ):not(:is(h1, h2, h3, h4) *) {
+    font-size: max(1.0625rem, 17px) !important;
+}
+html body .bx--side-nav__link {
+    height: auto !important;
+    min-height: 2rem;
+    padding-block: 4px;
+}
+html body .bx--side-nav__link-text {
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere;
+    line-height: 1.35 !important;
+}
