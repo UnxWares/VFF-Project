@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Services\StationArticleCache;
 use App\Services\StationClosureParser;
 use App\Services\WikimediaClient;
+use App\Support\CsvSafe;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -480,7 +481,7 @@ class ImportStationPassengerEnds extends Command
         foreach ($review as $r) {
             $r['passenger_eras_after'] = implode(' ', $r['passenger_eras_after'] ?? []);
             $r['uncertain_eras_before'] = implode(' ', $r['uncertain_eras_before'] ?? []);
-            fputcsv($fh, array_map(fn ($c) => $r[$c] ?? '', $cols), escape: '');
+            fputcsv($fh, CsvSafe::row(array_map(fn ($c) => $r[$c] ?? '', $cols)), escape: '');
         }
         fclose($fh);
         $this->line("Bilan : {$path}");
