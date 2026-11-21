@@ -487,7 +487,7 @@ final class AccidentImporter
     /**
      * Attributs à écrire : bilan retenu, nom, résumé, rattachements, état de relecture.
      *
-     * @return array{attributes: array<string, mixed>, links: list<array<string, mixed>>, station: ?array{id: int, distance_m: int}, review: bool}
+     * @return array{attributes: array<model-property<Accident>, mixed>, links: list<array<string, mixed>>, station: ?array{id: int, distance_m: int}, review: bool}
      */
     public function prepare(AccidentCandidate $c): array
     {
@@ -608,7 +608,7 @@ final class AccidentImporter
      * Une fiche que la vérification a déjà confirmée (règle gardée dans `verification`) reste « ok » si
      * l'import ne lui trouve aucun point à vérifier : rejouer l'import ne la fait pas osciller.
      *
-     * @param  array{attributes: array<string, mixed>, links: list<array<string, mixed>>, station: ?array{id: int, distance_m: int}, review: bool}  $prepared
+     * @param  array{attributes: array<model-property<Accident>, mixed>, links: list<array<string, mixed>>, station: ?array{id: int, distance_m: int}, review: bool}  $prepared
      */
     private function persist(AccidentCandidate $c, array $prepared, AccidentImportResult $result): Accident
     {
