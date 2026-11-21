@@ -1,0 +1,117 @@
+<?php
+
+// Contexte sourcé du déraillement d'un train venant de Tulle après la gare de Volvic, ligne de Clermont-Ferrand à Tulle, de juin 1881 (recherche du 21/11/2026).
+return [
+    'slug' => '1881-06-06-volvic',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1880' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1880',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1881',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1880&oldid=236846064#1881',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 6 juin 1881, d\'après Le Petit Journal et Le Figaro du 8 juin : le lendemain de l\'inauguration de la ligne de Tulle à Clermont-Ferrand, vers 9 h, après le départ de la gare de Volvic, le train venant de Tulle déraille dans une courbe de 250 m de rayon, abordée trop vite par un mécanicien qui connaissait mal la ligne ; le serre-frein est tué, 18 personnes blessées, dont 15 voyageurs.',
+        ],
+        'ddb-1881-06-07-koelnische' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 6. Juni. (Telegramm.)',
+            'publisher' => 'Kölnische Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1881-06-07',
+            'locator' => 'p. 6',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/TXQLTXE33PMBYU25P7CGBLTPKQAB4THA?issuepage=6',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Télégramme de Paris du 6 juin (même texte dans plusieurs journaux du 8 et du 9 juin) : ce matin, un déraillement a eu lieu près de Volvic sur la ligne de Clermont à Tulle, ouverte la veille ; le mécanicien a été tué et plusieurs personnes grièvement blessées.',
+        ],
+        'ddb-1881-06-09-solingen' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 6. Juni',
+            'publisher' => 'Solinger Kreis-Intelligenzblatt (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1881-06-09',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/GFTQ5AHYEQXHY2ZMP26BF4MFK5BB6552?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même télégramme de Paris : déraillement près de Volvic sur la ligne de Clermont à Tulle ouverte la veille, mécanicien tué, plusieurs personnes grièvement blessées.',
+        ],
+        'ddb-1881-06-11-duesseldorf' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 7. Juni',
+            'publisher' => 'Düsseldorfer Volksblatt (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1881-06-11',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/AMVXOZ2UQQIQVKSZOMGU7FTXBKTFXXDO?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Correspondance de Paris du 7 juin : le premier train parti après le train officiel d\'inauguration a déraillé près de Volvic ; un agent du chemin de fer tué, trois grièvement blessés, une quinzaine de voyageurs contusionnés ; l\'accident est attribué aux courbes trop serrées de la ligne ; le profil remis aux mécaniciens indiquerait une pente différente de la pente réelle ; le train roulait à toute vapeur, à 50 km/h.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'La ligne de Clermont-Ferrand à Tulle avait été inaugurée le dimanche 5 juin 1881 en présence de ministres. Le lendemain matin, le premier train parti après le train officiel, venant de Tulle, a quitté la gare de Volvic vers 9 h.',
+                'en' => 'The Clermont-Ferrand to Tulle line was opened on Sunday 5 June 1881 in the presence of ministers. The next morning the first train to run after the official one, coming from Tulle, left Volvic station at about 9 am.',
+                'de' => 'Die Strecke Clermont-Ferrand-Tulle war am Sonntag, dem 5. Juni 1881, in Anwesenheit von Ministern eröffnet worden. Am nächsten Morgen verließ der erste Zug nach dem offiziellen Eröffnungszug, aus Tulle kommend, gegen 9 Uhr den Bahnhof Volvic.',
+                'sources' => ['wp-liste-1880', 'ddb-1881-06-11-duesseldorf', 'ddb-1881-06-07-koelnische'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le train a déraillé en abordant à trop grande vitesse une courbe de 250 m de rayon. Selon la liste de Wikipédia, le mécanicien connaissait mal la ligne. Selon la presse allemande, il roulait à toute vapeur, à 50 km/h, l\'accident était attribué aux courbes trop serrées, et le profil remis aux mécaniciens donnait une pente différente de la pente réelle.',
+                'en' => 'The train derailed when it took a curve of 250 m radius too fast. According to the Wikipedia list the driver did not know the line well. According to the German press it was running at full steam, at 50 km/h, the accident was blamed on the over-tight curves, and the profile handed to the drivers gave a gradient different from the real one.',
+                'de' => 'Der Zug entgleiste, als er zu schnell in eine Kurve von 250 m Halbmesser fuhr. Nach der Wikipedia-Liste kannte der Lokführer die Strecke schlecht. Nach der deutschen Presse fuhr er mit vollem Dampf, mit 50 km/h; der Unfall wurde den übermäßig engen Kurven zugeschrieben, und der den Lokführern übergebene Plan gab eine andere als die wirkliche Steigung an.',
+                'sources' => ['wp-liste-1880', 'ddb-1881-06-11-duesseldorf'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Un agent du train a été tué. La liste de Wikipédia compte 18 blessés, dont 15 voyageurs ; la correspondance de Paris du 7 juin parle de trois agents grièvement blessés et d\'une quinzaine de voyageurs contusionnés.',
+                'en' => 'One member of the train crew was killed. The Wikipedia list counts 18 injured, 15 of them passengers; the Paris report of 7 June speaks of three railwaymen seriously injured and about fifteen passengers bruised.',
+                'de' => 'Ein Bediensteter des Zuges wurde getötet. Die Wikipedia-Liste zählt 18 Verletzte, darunter 15 Reisende; der Pariser Bericht vom 7. Juni nennt drei schwer verwundete Bedienstete und etwa fünfzehn Reisende mit Quetschungen.',
+                'sources' => ['wp-liste-1880', 'ddb-1881-06-11-duesseldorf'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le télégramme du 6 juin dit que le mécanicien a été tué ; la liste de Wikipédia nomme le serre-frein, la correspondance du 7 juin un agent du chemin de fer.',
+                'en' => 'The telegram of 6 June says the driver was killed; the Wikipedia list names the brakeman, the report of 7 June a railway employee.',
+                'de' => 'Das Telegramm vom 6. Juni meldet den Lokführer getötet; die Wikipedia-Liste nennt den Bremser, der Bericht vom 7. Juni einen Eisenbahnangestellten.',
+                'sources' => ['ddb-1881-06-07-koelnische', 'ddb-1881-06-09-solingen', 'wp-liste-1880', 'ddb-1881-06-11-duesseldorf'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 1,
+            'sources' => ['wp-liste-1880', 'ddb-1881-06-07-koelnische', 'ddb-1881-06-11-duesseldorf'],
+            'fr' => 'Un agent tué selon la liste de Wikipédia (Le Figaro du 8 juin 1881) et les dépêches de Paris des 6 et 7 juin ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'One railwayman killed according to the Wikipedia list (Le Figaro of 8 June 1881) and the Paris dispatches of 6 and 7 June; the record gave no number of deaths.',
+            'de' => 'Ein Bediensteter getötet nach der Wikipedia-Liste (Le Figaro vom 8. Juni 1881) und den Pariser Depeschen vom 6. und 7. Juni; der Eintrag nannte keine Zahl von Toten.',
+        ],
+        [
+            'field' => 'injuries',
+            'value' => 18,
+            'sources' => ['wp-liste-1880', 'ddb-1881-06-11-duesseldorf'],
+            'fr' => '18 blessés, dont 15 voyageurs, selon la liste de Wikipédia ; trois agents grièvement blessés et une quinzaine de voyageurs contusionnés selon la correspondance de Paris du 7 juin ; la fiche ne donnait pas de nombre de blessés.',
+            'en' => '18 injured, 15 of them passengers, according to the Wikipedia list; three railwaymen seriously injured and about fifteen passengers bruised according to the Paris report of 7 June; the record gave no number of injured.',
+            'de' => '18 Verletzte, darunter 15 Reisende, nach der Wikipedia-Liste; drei schwer verwundete Bedienstete und etwa fünfzehn Reisende mit Quetschungen nach dem Pariser Bericht vom 7. Juni; der Eintrag nannte keine Zahl von Verletzten.',
+        ],
+    ],
+];
