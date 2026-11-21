@@ -10,19 +10,20 @@
 let pending = null;
 
 /**
- * @param {() => Promise<any>} [importer] chargeur du module (remplacé dans les tests)
+ * Rend MapLibre réglé par `./maplibre.js` (adresse du worker comprise), comme `import maplibregl from
+ * '$lib/maplibre.js'` dans les grandes cartes, avec le protocole `pmtiles://` enregistré.
+ *
+ * @param {() => Promise<MapLibre>} [importer] chargeur du module (remplacé dans les tests)
  * @param {() => Promise<{ registerPmtilesProtocol: (maplibre: any) => boolean }>} [protocol] chargeur du
  *   protocole `pmtiles://` (remplacé dans les tests)
  * @returns {Promise<MapLibre>}
  */
 export function loadMaplibre(
-    importer = () => import('maplibre-gl'),
+    importer = () => import('./maplibre.js').then((module) => module.default),
     protocol = () => import('./pmtilesProtocol.js'),
 ) {
     pending ??= Promise.all([importer(), protocol().catch(() => null)])
-        // Le paquet est publié en CommonJS : l'objet MapLibre est l'export par défaut une fois empaqueté.
-        .then(([module, pmtiles]) => {
-            const maplibre = module.default ?? module;
+        .then(([maplibre, pmtiles]) => {
             pmtiles?.registerPmtilesProtocol(maplibre);
             return maplibre;
         })

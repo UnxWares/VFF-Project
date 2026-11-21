@@ -7,7 +7,6 @@
         "allowJs": true,
         "checkJs": true,
         "strict": false,
-        "strict": false,
         "noEmit": true,
         "skipLibCheck": true,
         "resolveJsonModule": true,

@@ -1,5 +1,5 @@
 <script>
-    import maplibregl from 'maplibre-gl';
+    import maplibregl from '$lib/maplibre.js';
     import 'maplibre-gl/dist/maplibre-gl.css';
     import { onDestroy, onMount } from 'svelte';
     import { i18n } from '$lib/i18n.js';

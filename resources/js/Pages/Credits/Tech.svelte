@@ -56,7 +56,7 @@
                     note: 'protomaps',
                 },
                 {
-                    name: 'i18next + svelte-i18next',
+                    name: 'i18next',
                     url: 'https://www.i18next.com',
                     license: 'MIT',
                 },
@@ -75,13 +75,13 @@
             items: [
                 { name: 'PostgreSQL 18', url: 'https://www.postgresql.org', license: 'PostgreSQL' },
                 {
-                    name: 'PostGIS 3.6',
+                    name: 'PostGIS 3.7',
                     url: 'https://postgis.net',
                     license: 'GPL-2.0+',
                     note: 'postgis',
                 },
                 {
-                    name: 'Valkey 8',
+                    name: 'Valkey 9',
                     url: 'https://valkey.io',
                     license: 'BSD-3-Clause',
                     note: 'valkey',

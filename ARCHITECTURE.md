@@ -34,14 +34,14 @@ VFF est une **application web Laravel + Inertia + Svelte**, adossée à une **ba
 └──────────────────────────┼──────────────────────────────┘
                            ▼
            ┌──────────────────────────────────────┐
-           │  PostgreSQL 18 + PostGIS 3.6         │
+           │  PostgreSQL 18 + PostGIS 3.7         │
            │  + Apache AGE (graphe, Cypher)       │
            │  LINESTRING + POINT en 4326          │
            │  Index GIST sur les géométries       │
            └──────────────────────────────────────┘
 
            ┌────────────────────────────────┐
-           │  Valkey 8 (cache + queue)      │
+           │  Valkey 9 (cache + queue)      │
            │  Compatible RESP / Redis       │
            └────────────────────────────────┘
 
@@ -116,7 +116,7 @@ Modèles principaux (voir [migrations](database/migrations/) pour le détail) :
 - `LineStringCast` : convertit WKT/WKB ↔ tableau de coordonnées
 - `PointCast` : idem pour les points
 
-### 5. Données - PostgreSQL 18 + PostGIS 3.6 + Apache AGE
+### 5. Données - PostgreSQL 18 + PostGIS 3.7 + Apache AGE
 
 **Pourquoi PostGIS** (spatial) :
 - Stockage natif `geometry(LINESTRING, 4326)` + index GIST

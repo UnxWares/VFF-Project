@@ -109,6 +109,26 @@ describe('setupI18n', () => {
     });
 });
 
+describe('store i18n', () => {
+    it('republie l’instance à chaque changement de langue ou ajout de chaînes', () => {
+        const seen = [];
+        const unsubscribe = i18n.subscribe((instance) => seen.push(instance.language));
+        const before = seen.length;
+
+        setupI18n({ locale: 'en', translations: { 'home.title': 'Hello :name' } });
+        expect(seen.length).toBeGreaterThan(before);
+        expect(get(i18n).t('home.title', { name: 'Ada' })).toBe('Hello Ada');
+        expect(seen.at(-1)).toBe('en');
+
+        unsubscribe();
+    });
+
+    it('ne se laisse pas écrire depuis un composant (store en lecture seule)', () => {
+        expect(i18n).not.toHaveProperty('set');
+        expect(i18n).not.toHaveProperty('update');
+    });
+});
+
 // Dictionnaire servi à part (/i18n/{locale}/{empreinte}.json, prop `translations_url`).
 describe('applyPageTranslations', () => {
     const json = (body, status = 200) => ({

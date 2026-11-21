@@ -1,4 +1,4 @@
-// Bootstrap de l'i18n côté front avec i18next + svelte-i18next.
+// Bootstrap de l'i18n côté front avec i18next, exposé aux composants par un store Svelte.
 //
 // Source canonique des traductions : Laravel `lang/{locale}/*.php`, aplaties
 // par `App\Support\Translations` et servies dans un fichier JSON par langue
@@ -18,7 +18,7 @@
 //   <p>{$i18n.t('hello', { name: 'Baptiste' })}</p>
 
 import i18next from 'i18next';
-import { createI18nStore } from 'svelte-i18next';
+import { writable } from 'svelte/store';
 
 export const SUPPORTED = ['fr', 'en', 'de'];
 export const CANONICAL = 'fr';
@@ -87,6 +87,24 @@ export function setupI18n({ locale, translations }) {
     if (i18next.language !== safeLocale) {
         i18next.changeLanguage(safeLocale);
     }
+}
+
+/**
+ * Store qui republie l'instance i18next à chaque initialisation, ajout de chaînes ou changement de
+ * langue : `$i18n.t(…)` se recalcule alors dans les composants. Un objet n'est jamais « égal » pour un
+ * store Svelte, donc `set(i18next)` notifie même si l'instance reste la même.
+ * (Remplace le paquet svelte-i18next, plus maintenu depuis 2023, qui ne faisait que cela.)
+ *
+ * @param {import('i18next').i18n} instance
+ * @returns {import('svelte/store').Readable<import('i18next').i18n>}
+ */
+export function createI18nStore(instance) {
+    const store = writable(instance);
+    const publish = () => store.set(instance);
+    for (const event of ['initialized', 'loaded', 'added', 'languageChanged']) {
+        instance.on(event, publish);
+    }
+    return { subscribe: store.subscribe };
 }
 
 /** Adresse du dictionnaire déjà donné à i18next (null : aucun, ou chaînes reçues dans la page). */
