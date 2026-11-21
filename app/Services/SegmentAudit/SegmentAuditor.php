@@ -121,8 +121,10 @@ final class SegmentAuditor
         $ends = $this->ends((int) $line->id, $eraId);
         [$stations, $inversions] = $this->stations((int) $line->id, $eraId);
         $defaults = $line->is_lgv ? 'P' : (self::BUILD_DEFAULTS[$line->network ?? 'principal'] ?? 'PF');
-        // Ère passée, ligne sans aucune fin datée : tronçons en service et sûrs à l'ère courante.
-        $continuous = ! $current && ! self::hasEnd($events) ? $this->continuousToday((int) $line->id, $eraId, $todayGood) : [];
+        // Ère passée : tronçons en service et sûrs à l'ère courante (la fin datée qui coupe la continuité se lit
+        // tronçon par tronçon, blocksContinuity).
+        $continuous = ! $current ? $this->continuousToday((int) $line->id, $eraId, $todayGood) : [];
+        $eraEnd = sprintf('%04d-12-31', $year);
 
         $rows = [];
         foreach ($segments as $s) {
@@ -148,7 +150,8 @@ final class SegmentAuditor
             $classification = AuditGrader::classification(array_map(fn (array $v): array => [
                 'source' => $v['source'], 'agrees' => $v['agrees'], 'weak' => $v['weak'], 'near_date' => $v['near_date'], 'priority' => $v['priority'],
                 'outvoted' => $v['outvoted'] ?? false,
-            ], $verdicts), $rules, isset($continuous[$id]) && AuditGrader::statusClass($s->status) === 'open');
+            ], $verdicts), $rules, isset($continuous[$id]) && AuditGrader::statusClass($s->status) === 'open'
+                && ! self::blocksContinuity($events, array_map('intval', array_filter(explode(',', trim((string) $s->evs, '{}')))), $eraEnd));
 
             $refs = $placement[$id] ?? [];
             // Une voie en service aujourd'hui existe forcément : sans voie réelle à côté, le tracé
@@ -603,14 +606,33 @@ final class SegmentAuditor
     }
 
     /**
-     * La ligne a-t-elle une fin datée (fermeture, déclassement, dépose), localisée ou non ?
+     * Une fin datée coupe-t-elle la continuité d'un tronçon d'une ère passée (règle R2, règles `.8`) ? Il faut une
+     * fermeture, un déclassement ou une dépose datée au plus tard à `$eraEnd`, sur toute la ligne, non localisée ou
+     * localisée sur ce tronçon (`$localIds`), et qu'aucune ouverture ou réouverture de toute la ligne ou de ce tronçon
+     * ne la suive avant `$eraEnd`. Une fin datée après l'ère, ou localisée ailleurs sur la ligne, ne dit rien de ce
+     * tronçon à cette ère.
      *
      * @param  array<int, array<string, mixed>>  $events
+     * @param  list<int>  $localIds
      */
-    public static function hasEnd(array $events): bool
+    public static function blocksContinuity(array $events, array $localIds, string $eraEnd): bool
     {
-        foreach ($events as $e) {
-            if (preg_match('/^closure|^declassification|^dismantling/', (string) $e['type'])) {
+        $local = array_flip($localIds);
+        $applies = fn (int $id, array $e): bool => (bool) $e['whole'] || isset($local[$id]);
+        foreach ($events as $id => $end) {
+            if (! preg_match('/^closure|^declassification|^dismantling/', (string) $end['type']) || $end['date'] > $eraEnd
+                || ! ($end['unlocated'] || $applies((int) $id, $end))) {
+                continue;
+            }
+            $reopened = false;
+            foreach ($events as $oid => $o) {
+                if (preg_match('/^opening|^reopening/', (string) $o['type']) && $o['date'] > $end['date'] && $o['date'] <= $eraEnd
+                    && $applies((int) $oid, $o)) {
+                    $reopened = true;
+                    break;
+                }
+            }
+            if (! $reopened) {
                 return true;
             }
         }

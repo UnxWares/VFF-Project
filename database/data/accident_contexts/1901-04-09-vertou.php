@@ -1,0 +1,117 @@
+<?php
+
+// Contexte sourcé du tamponnement en gare de Vertou, ligne de Nantes à La Roche-sur-Yon, d'avril 1901 (recherche du 21/11/2026).
+return [
+    'slug' => '1901-04-09-vertou',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1901' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1901',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Avril',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1901&oldid=241345719#Avril',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 9 avril 1901, d\'après Le Temps du 10 avril : vers 19 h 30, à environ 7 km de Nantes, un express venant de La Roche-sur-Yon entre trop vite en gare de Vertou malgré un signal d\'arrêt et percute un train-navette prêt à partir pour Nantes ; cinq voitures détruites, un homme d\'équipe qui attelait le train tamponné à sa machine est tué, neuf voyageurs blessés.',
+        ],
+        'ddb-1901-04-10-dortmunder' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Nantes, 9. April',
+            'publisher' => 'Dortmunder Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1901-04-10',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/Z3ZE2GA6VW6HALDSD55FEAFIYYNVGWLI?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Nantes du 9 avril : cet après-midi, trois trains se sont heurtés en gare de Vertou ; un agent du chemin de fer tué, neuf voyageurs blessés.',
+        ],
+        'ddb-1901-04-10-leipziger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Nantes, 9. April',
+            'publisher' => 'Leipziger Tageblatt und Anzeiger, édition du soir (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1901-04-10',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/SMRO3DQ7NUJGVLX4FBUIYNEPLLP6BEZM?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche de Nantes : trois trains en collision en gare de Vertou, un agent tué, neuf voyageurs blessés.',
+        ],
+        'ddb-1901-04-10-merkur' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris 9. April',
+            'publisher' => 'Schwäbischer Merkur (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1901-04-10',
+            'locator' => 'p. 7',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/NW5BODQUNENSSART4OQP7HUGKKS3IWXD?issuepage=7',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Récit de Paris du 9 avril : « hier », en gare de Vertou, près de Nantes, un train de voyageurs venant de La Roche-sur-Yon a heurté de plein fouet le train de voyageurs Nantes - Orléans arrêté en gare, qui changeait de machine ; l\'agent qui l\'attelait a été écrasé, dix personnes grièvement blessées, trois voitures de chaque train détruites ; causes encore mal connues.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 9 avril 1901, vers 19 h 30, un train venait de La Roche-sur-Yon vers Nantes. En gare de Vertou, à environ sept kilomètres de Nantes, un autre train de voyageurs attendait de partir pour Nantes pendant qu\'on lui attelait sa machine.',
+                'en' => 'On 9 April 1901, at about 7.30 pm, a train was running from La Roche-sur-Yon towards Nantes. At Vertou station, about seven kilometres from Nantes, another passenger train was waiting to leave for Nantes while its engine was being coupled.',
+                'de' => 'Am 9. April 1901 gegen 19.30 Uhr fuhr ein Zug von La Roche-sur-Yon in Richtung Nantes. Im Bahnhof Vertou, etwa sieben Kilometer vor Nantes, wartete ein anderer Personenzug auf die Abfahrt nach Nantes, während seine Lokomotive angekuppelt wurde.',
+                'sources' => ['wp-liste-1901', 'ddb-1901-04-10-merkur'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le train venant de La Roche-sur-Yon est entré en gare trop vite, malgré un signal d\'arrêt selon la liste de Wikipédia, et a percuté de plein fouet le train arrêté. Cinq voitures des deux trains ont été détruites (trois de chaque train selon un récit de Paris).',
+                'en' => 'The train from La Roche-sur-Yon entered the station too fast, past a stop signal according to the Wikipedia list, and ran full tilt into the standing train. Five coaches of the two trains were destroyed (three of each according to a Paris report).',
+                'de' => 'Der Zug aus La Roche-sur-Yon fuhr zu schnell in den Bahnhof ein, nach der Wikipedia-Liste trotz Haltsignal, und prallte mit voller Wucht auf den stehenden Zug. Fünf Wagen beider Züge wurden zerstört (nach einem Pariser Bericht je drei).',
+                'sources' => ['wp-liste-1901', 'ddb-1901-04-10-merkur'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'L\'homme d\'équipe qui attelait la machine au train arrêté a été tué. Neuf voyageurs ont été blessés selon la liste de Wikipédia et la dépêche de Nantes.',
+                'en' => 'The shunter coupling the engine to the standing train was killed. Nine passengers were injured according to the Wikipedia list and the Nantes dispatch.',
+                'de' => 'Der Rangierarbeiter, der die Lokomotive an den stehenden Zug kuppelte, wurde getötet. Neun Reisende wurden nach der Wikipedia-Liste und der Depesche aus Nantes verletzt.',
+                'sources' => ['wp-liste-1901', 'ddb-1901-04-10-dortmunder', 'ddb-1901-04-10-leipziger', 'ddb-1901-04-10-merkur'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La dépêche de Nantes parle de trois trains, le récit de Paris et la liste de Wikipédia de deux. Le récit de Paris compte dix blessés graves au lieu de neuf blessés, et, daté du 9 avril, place la collision la veille, alors que la dépêche de Nantes du 9 et la liste la datent du 9.',
+                'en' => 'The Nantes dispatch speaks of three trains, the Paris report and the Wikipedia list of two. The Paris report counts ten seriously injured instead of nine injured and, dated 9 April, puts the collision on the day before, whereas the Nantes dispatch of the 9th and the list date it to the 9th.',
+                'de' => 'Die Depesche aus Nantes spricht von drei Zügen, der Pariser Bericht und die Wikipedia-Liste von zweien. Der Pariser Bericht zählt zehn Schwerverletzte statt neun Verletzter und verlegt den Zusammenstoß, datiert vom 9. April, auf den Vortag, während die Depesche aus Nantes vom 9. und die Liste ihn auf den 9. datieren.',
+                'sources' => ['ddb-1901-04-10-dortmunder', 'ddb-1901-04-10-merkur', 'wp-liste-1901'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 1,
+            'sources' => ['wp-liste-1901', 'ddb-1901-04-10-dortmunder', 'ddb-1901-04-10-merkur'],
+            'fr' => 'Un agent tué selon la liste de Wikipédia et les dépêches du 9 avril 1901 ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'One railwayman killed according to the Wikipedia list and the dispatches of 9 April 1901; the record gave no number of deaths.',
+            'de' => 'Ein Bahnbediensteter getötet nach der Wikipedia-Liste und den Depeschen vom 9. April 1901; der Eintrag nannte keine Zahl von Toten.',
+        ],
+        [
+            'field' => 'injuries',
+            'value' => 9,
+            'sources' => ['wp-liste-1901', 'ddb-1901-04-10-dortmunder', 'ddb-1901-04-10-leipziger'],
+            'fr' => 'Neuf voyageurs blessés selon la liste de Wikipédia (Le Temps du 10 avril 1901) et la dépêche de Nantes du 9 avril ; la fiche ne donnait pas de nombre de blessés.',
+            'en' => 'Nine passengers injured according to the Wikipedia list (Le Temps of 10 April 1901) and the Nantes dispatch of 9 April; the record gave no number of injured.',
+            'de' => 'Neun verletzte Reisende nach der Wikipedia-Liste (Le Temps vom 10. April 1901) und der Depesche aus Nantes vom 9. April; der Eintrag nannte keine Zahl von Verletzten.',
+        ],
+    ],
+];

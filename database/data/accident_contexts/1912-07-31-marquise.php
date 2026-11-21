@@ -1,0 +1,101 @@
+<?php
+
+// Contexte sourcé de la collision de deux trains de marchandises en gare de Marquise, ligne de Boulogne à Calais, de juillet 1912 (recherche du 21/11/2026).
+return [
+    'slug' => '1912-07-31-marquise',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1912' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1912',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Juillet',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1912&oldid=233727902#Juillet',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 31 juillet 1912, d\'après La Presse du 1er août : à 7 h, en gare de Marquise, sur la ligne Boulogne - Calais, deux trains de marchandises entrent en collision ; une locomotive et six wagons déraillent ; le chauffeur du train tamponneur est tué en sautant de sa machine.',
+        ],
+        'ddb-1912-08-01-koeln' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Ein von Calais kommender Güterzug',
+            'publisher' => 'Kölnische Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1912-08-01',
+            'locator' => 'p. 10',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/R6WFBRKJCPNM5IZU6QNQVEUIQLUYE3R6?issuepage=10',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Brève : un train de marchandises venant de Calais a heurté en gare de Marquise un train venant de Boulogne en sens inverse ; l\'agent de conduite du premier train, qui avait sauté de sa machine au moment du choc, s\'est brisé la nuque.',
+        ],
+        'ddb-1912-08-01-wattenscheid' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 1. August',
+            'publisher' => 'Wattenscheider Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1912-08-01',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/7HAPQEGSZCC3DBMEIH3IREIWHBIP5FUF?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Paris du 1er août : même récit ; le train de marchandises venant de Calais heurte en gare de Marquise un train venant de Boulogne ; l\'agent de conduite du premier train, qui a sauté de sa machine, s\'est brisé la nuque.',
+        ],
+        'ddb-1912-08-05-centralvolksblatt' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahnunglück',
+            'publisher' => 'Central-Volksblatt für den Regierungsbezirk Arnsberg (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1912-08-05',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/SCCFLP36J7XLWEXQOHFDJM3UVUQC2EJX?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Brève, coupée par l\'OCR : sur la ligne Paris - Boulogne, deux trains de marchandises se sont heurtés près de Marquise-Rinxent.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Le 31 juillet 1912, vers 7 h, en gare de Marquise, sur la ligne de Boulogne à Calais, un train de marchandises venant de Calais a heurté un autre train de marchandises venant de Boulogne en sens inverse. Une locomotive et six wagons ont déraillé.',
+                'en' => 'On 31 July 1912, at about 7 am, in Marquise station on the Boulogne to Calais line, a goods train from Calais ran into another goods train coming the other way from Boulogne. An engine and six wagons derailed.',
+                'de' => 'Am 31. Juli 1912 gegen 7 Uhr stieß im Bahnhof Marquise an der Strecke Boulogne-Calais ein aus Calais kommender Güterzug mit einem in Gegenrichtung aus Boulogne kommenden Güterzug zusammen. Eine Lokomotive und sechs Wagen entgleisten.',
+                'sources' => ['wp-liste-1912', 'ddb-1912-08-01-koeln', 'ddb-1912-08-05-centralvolksblatt'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Un agent de la machine du train venant de Calais a sauté au moment du choc et a été tué.',
+                'en' => 'A member of the footplate crew of the train from Calais jumped off at the moment of impact and was killed.',
+                'de' => 'Ein Mann von der Lokomotive des aus Calais kommenden Zugs sprang im Augenblick des Zusammenstoßes ab und wurde getötet.',
+                'sources' => ['wp-liste-1912', 'ddb-1912-08-01-koeln', 'ddb-1912-08-01-wattenscheid'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La liste de Wikipédia nomme le mort chauffeur, la presse allemande « Führer » du premier train, mot qui désigne d\'ordinaire le mécanicien.',
+                'en' => 'The Wikipedia list calls the dead man the stoker, the German press the "Führer" of the first train, a word that usually means the driver.',
+                'de' => 'Die Wikipedia-Liste nennt den Toten Heizer, die deutsche Presse "Führer" des ersten Zugs, was gewöhnlich den Lokomotivführer meint.',
+                'sources' => ['wp-liste-1912', 'ddb-1912-08-01-koeln', 'ddb-1912-08-01-wattenscheid'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 1,
+            'sources' => ['wp-liste-1912', 'ddb-1912-08-01-koeln'],
+            'fr' => 'Un agent de la machine tué selon la liste de Wikipédia (La Presse du 1er août 1912) et la presse allemande ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'One footplate crew member killed according to the Wikipedia list (La Presse of 1 August 1912) and the German press; the record gave no number of deaths.',
+            'de' => 'Ein Mann des Lokomotivpersonals getötet nach der Wikipedia-Liste (La Presse vom 1. August 1912) und der deutschen Presse; der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];

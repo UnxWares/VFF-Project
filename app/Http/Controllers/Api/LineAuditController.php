@@ -97,8 +97,8 @@ class LineAuditController extends Controller
      * (`reasons`) : `sources_agree`, `source_contradicts`, `sources_disagree`, `weak_contradiction`,
      * `weak_sources_only`, `no_source`, `rule_passenger_only_off_lgv`, `rule_track_unconfirmed`,
      * `observation_outvoted` (une seule observation actuelle, BD TOPO ou SNCF « déclassée vendue »,
-     * contre deux d'accord), `continuous_service` (ère passée : ligne sans aucune fin datée, tronçon
-     * sûr aujourd'hui).
+     * contre deux d'accord), `continuous_service` (ère passée : aucune fin datée de la ligne ne touche le
+     * tronçon à cette ère, tronçon sûr aujourd'hui).
      *
      * **Placement** (`placement`) : un point tous les 50 m du tronçon, distance à la voie la plus
      * proche d'une source DIFFÉRENTE de celle du tracé (BD TOPO, OpenStreetMap, tracés relevés sur

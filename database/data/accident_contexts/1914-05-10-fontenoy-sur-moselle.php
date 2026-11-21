@@ -1,0 +1,83 @@
+<?php
+
+// Contexte sourcé de l'accident de l'express Avricourt - Paris entre Fontenoy-sur-Moselle et Liverdun, ligne de Paris à Strasbourg, de mai 1914 (recherche du 21/11/2026).
+return [
+    'slug' => '1914-05-10-fontenoy-sur-moselle',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1914' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1914',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Mai',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1914&oldid=239623136#Mai',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 10 mai 1914, d\'après le Journal de la Marne du 11 mai : entre Fontenoy-sur-Moselle et Liverdun, vers 16 h 30, un train de marchandises allant à Nancy déraille après une rupture d\'essieu ; ses wagons, en travers des deux voies, sont heurtés par l\'express 32 Avricourt - Paris ; locomotive et tender couchés, quatre voitures déraillées ; le chef de train grièvement blessé, quelques voyageurs contusionnés.',
+        ],
+        'ddb-1914-05-12-buerener' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Schwerer Eisenbahnunfall in Frankreich',
+            'publisher' => 'Bürener Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1914-05-12',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/MNUN6CJU5ETGS6RZRF2A26YAOQLK7RAG?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Brève : le dimanche, par une erreur, l\'express Nancy - Paris a heurté près de la station de Liverdun un train de marchandises arrêté sur la même voie ; le mécanicien a renversé la vapeur au dernier moment, la première voiture a été brisée ; le mécanicien est mourant, sept voyageurs grièvement blessés.',
+        ],
+        'ddb-1914-05-12-grafschafter' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 12. Mai',
+            'publisher' => 'Der Grafschafter (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1914-05-12',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/DIQF2CEYB423CVSUNJKVA4RC2QXBD6FL?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Paris du 12 mai : même récit, mais l\'express aurait heurté un train de voyageurs ; mécanicien mourant, sept voyageurs grièvement blessés.',
+        ],
+        'ddb-1914-05-13-castrop' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 12. Mai',
+            'publisher' => 'Castroper Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1914-05-13',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/U5YPPD5DPUDSZHVXQX65OAP4IAJYJWFW?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Paris du 12 mai : collision de l\'express Nancy - Paris et d\'un train de marchandises près de la station de Liverdun ; sept personnes grièvement blessées, le mécanicien de l\'express mourant.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Le dimanche 10 mai 1914, vers 16 h 30, l\'express 32 d\'Avricourt à Paris, passant par Nancy, a heurté entre les gares de Fontenoy-sur-Moselle et de Liverdun, sur la ligne de Paris à Strasbourg, des wagons d\'un train de marchandises qui barraient la voie. Le mécanicien a renversé la vapeur au dernier moment. La locomotive et le tender se sont couchés et plusieurs voitures ont déraillé.',
+                'en' => 'On Sunday 10 May 1914, at about 4.30 pm, express 32 from Avricourt to Paris via Nancy ran into goods wagons blocking the line between Fontenoy-sur-Moselle and Liverdun stations on the Paris to Strasbourg line. The driver reversed steam at the last moment. The engine and tender turned over and several coaches derailed.',
+                'de' => 'Am Sonntag, dem 10. Mai 1914, gegen 16.30 Uhr fuhr der Schnellzug 32 Avricourt-Paris über Nancy zwischen den Bahnhöfen Fontenoy-sur-Moselle und Liverdun an der Strecke Paris-Straßburg in Wagen eines Güterzugs, die das Gleis versperrten. Der Lokomotivführer gab im letzten Augenblick Gegendampf. Lokomotive und Tender stürzten um, mehrere Wagen entgleisten.',
+                'sources' => ['wp-liste-1914', 'ddb-1914-05-12-buerener', 'ddb-1914-05-13-castrop'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Selon la liste de Wikipédia, le train de marchandises avait déraillé après une rupture d\'essieu et ses wagons couvraient les deux voies ; selon la presse allemande, l\'express a heurté par erreur un train arrêté sur la même voie, de marchandises ou de voyageurs selon les journaux. Le bilan diffère aussi : chef de train grièvement blessé et quelques voyageurs contusionnés dans la liste, mécanicien mourant et sept voyageurs grièvement blessés dans les dépêches de Paris du 12 mai.',
+                'en' => 'According to the Wikipedia list the goods train had derailed after an axle broke and its wagons covered both tracks; according to the German press the express ran by mistake into a train standing on the same track, a goods train or a passenger train depending on the paper. The toll also differs: guard seriously injured and a few passengers bruised in the list, driver dying and seven passengers seriously injured in the Paris dispatches of 12 May.',
+                'de' => 'Nach der Wikipedia-Liste war der Güterzug nach einem Achsbruch entgleist und seine Wagen versperrten beide Gleise; nach der deutschen Presse fuhr der Schnellzug durch ein Versehen auf einen auf demselben Gleis stehenden Zug auf, je nach Blatt einen Güter- oder Personenzug. Auch die Bilanz weicht ab: in der Liste ein schwer verletzter Zugführer und einige Reisende mit Prellungen, in den Pariser Meldungen vom 12. Mai ein sterbender Lokomotivführer und sieben schwer verletzte Reisende.',
+                'sources' => ['wp-liste-1914', 'ddb-1914-05-12-buerener', 'ddb-1914-05-12-grafschafter', 'ddb-1914-05-13-castrop'],
+            ],
+        ],
+    ],
+];

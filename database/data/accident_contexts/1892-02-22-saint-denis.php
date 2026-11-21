@@ -1,0 +1,107 @@
+<?php
+
+// Contexte sourcé de la collision d'un train de voyageurs pour Pontoise et d'un train de matériel vide au Landy, à Saint-Denis, ligne de Paris-Nord, de février 1892 (recherche du 21/11/2026).
+return [
+    'slug' => '1892-02-22-saint-denis',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1890' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1890',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1892',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1890&oldid=235357698#1892',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 22 février 1892, d\'après La Presse du 25 février : peu après la gare du Nord, vers 19 h 45, au lieu-dit Le Landy, à Saint-Denis, un train pour Pontoise et Valmondois prend en écharpe un train de matériel vide après un signal non respecté ; le mécanicien du train tamponneur est tué, son chauffeur et une quinzaine de voyageurs blessés.',
+        ],
+        'ddb-1892-02-24-oldenburg' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 23. Febr.',
+            'publisher' => 'Nachrichten für Stadt und Land (Oldenburg) (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1892-02-24',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/PQA534KWLHFMPUF2DLVB2WWPMXFLEODE?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Paris du 23 février (même texte dans le Jeversches Wochenblatt du 25) : le train de voyageurs pour Pontoise parti à 19 h 25 a tamponné, à 4 km de Paris, un train de matériel vide qui attendait à la halte du Landy ; la locomotive est montée sur les derniers wagons, qui ont pris feu ; le mécanicien tué, le chauffeur grièvement blessé, 20 autres blessés dont 3 graves.',
+        ],
+        'ddb-1892-02-24-rundschau' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Aus Paris meldet unser Berichterstatter',
+            'publisher' => 'Tägliche Rundschau (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1892-02-24',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/MXECREZ34S7AY5EGP4V2J4W7JIEZKCV5?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche du correspondant à Paris du 23 février : le train parti de la gare du Nord à 7 h 25 a heurté à pleine vapeur un train de marchandises arrêté au Landy ; le dernier wagon de ce train écrasé, deux wagons en feu, les deux premières voitures du train de voyageurs, peu occupées, brisées ; le mécanicien est mort, 37 blessés, dont trois dans un état désespéré.',
+        ],
+        'ddb-1892-02-27-reform' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris',
+            'publisher' => 'Die Reform (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1892-02-27',
+            'locator' => 'p. 6',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/32CHPHSODUFZSIQ4K7XXJJGCIQY52XDF?issuepage=6',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Récit de Paris : l\'accident a eu lieu lundi soir vers 19 h 30 sur la ligne du Nord, près de la halte du Landy, où sont formés les trains qui partent de Paris ; le train de voyageurs 99, parti de Paris à 19 h 25, a heurté un train de marchandises vide après avoir passé le pont du Landy.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Le lundi 22 février 1892, vers 19 h 30 ou 19 h 45, le train de voyageurs 99, parti de la gare du Nord à 19 h 25 pour Pontoise et Valmondois, a heurté un train de matériel vide qui attendait au Landy, à Saint-Denis, à 4 km de Paris. Selon la liste de Wikipédia, un signal n\'avait pas été respecté.',
+                'en' => 'On Monday 22 February 1892, at about 7.30 or 7.45 pm, passenger train 99, which had left the Gare du Nord at 7.25 pm for Pontoise and Valmondois, ran into a train of empty stock waiting at Le Landy, in Saint-Denis, 4 km from Paris. According to the Wikipedia list a signal had been passed.',
+                'de' => 'Am Montag, dem 22. Februar 1892, gegen 19.30 oder 19.45 Uhr fuhr der um 19.25 Uhr am Pariser Nordbahnhof nach Pontoise und Valmondois abgefahrene Personenzug 99 auf einen leeren Materialzug, der bei Le Landy in Saint-Denis, 4 km von Paris, wartete. Nach der Wikipedia-Liste war ein Signal missachtet worden.',
+                'sources' => ['wp-liste-1890', 'ddb-1892-02-24-oldenburg', 'ddb-1892-02-27-reform'],
+            ],
+            [
+                'fr' => 'La locomotive du train de voyageurs est montée sur les derniers wagons du train heurté, qui ont pris feu. Les deux premières voitures du train de voyageurs, peu occupées, ont été brisées.',
+                'en' => 'The passenger engine climbed onto the last wagons of the train it hit, which caught fire. The first two coaches of the passenger train, lightly occupied, were smashed.',
+                'de' => 'Die Lokomotive des Personenzugs schob sich auf die letzten Wagen des getroffenen Zuges, die in Brand gerieten. Die beiden vorderen, schwach besetzten Wagen des Personenzugs wurden zertrümmert.',
+                'sources' => ['ddb-1892-02-24-oldenburg', 'ddb-1892-02-24-rundschau'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le mécanicien du train de voyageurs a été tué et son chauffeur grièvement blessé. La liste de Wikipédia compte une quinzaine de voyageurs blessés ; les dépêches de Paris parlent de 20 blessés, dont 3 graves, ou de 37 blessés.',
+                'en' => 'The driver of the passenger train was killed and his stoker seriously injured. The Wikipedia list counts about fifteen passengers injured; the Paris dispatches speak of 20 injured, 3 of them seriously, or of 37 injured.',
+                'de' => 'Der Lokführer des Personenzugs wurde getötet, sein Heizer schwer verletzt. Die Wikipedia-Liste zählt etwa fünfzehn verletzte Reisende; die Pariser Depeschen sprechen von 20 Verletzten, davon 3 schwer, oder von 37 Verletzten.',
+                'sources' => ['wp-liste-1890', 'ddb-1892-02-24-oldenburg', 'ddb-1892-02-24-rundschau'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le nombre de blessés varie de quinze à 37 selon les sources. La Tägliche Rundschau situe le départ du train à 7 h 25 du matin ; les autres sources parlent du soir.',
+                'en' => 'The number of injured varies from fifteen to 37 depending on the source. The Tägliche Rundschau has the train leaving at 7.25 in the morning; the other sources speak of the evening.',
+                'de' => 'Die Zahl der Verletzten schwankt je nach Quelle zwischen fünfzehn und 37. Die Tägliche Rundschau lässt den Zug um 7.25 Uhr morgens abfahren; die übrigen Quellen sprechen vom Abend.',
+                'sources' => ['wp-liste-1890', 'ddb-1892-02-24-oldenburg', 'ddb-1892-02-24-rundschau', 'ddb-1892-02-27-reform'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 1,
+            'sources' => ['wp-liste-1890', 'ddb-1892-02-24-oldenburg', 'ddb-1892-02-24-rundschau'],
+            'fr' => 'Mécanicien tué selon la liste de Wikipédia (La Presse du 25 février 1892) et les dépêches de Paris du 23 février ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'Driver killed according to the Wikipedia list (La Presse of 25 February 1892) and the Paris dispatches of 23 February; the record gave no number of deaths.',
+            'de' => 'Lokführer getötet nach der Wikipedia-Liste (La Presse vom 25. Februar 1892) und den Pariser Depeschen vom 23. Februar; der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];

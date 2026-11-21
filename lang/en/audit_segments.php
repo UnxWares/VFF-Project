@@ -189,7 +189,7 @@ return [
         'sources_disagree' => 'The sources disagree with each other.',
         'weak_contradiction' => 'Weak evidence, or evidence close to the date, says otherwise.',
         'weak_sources_only' => 'Only weak sources agree.',
-        'continuous_service' => 'Only weak sources date it, but the line never closed and this section is reliable today.',
+        'continuous_service' => 'Only weak sources date it, but no dated closure affects it at this time and this section is reliable today.',
         'observation_outvoted' => 'A single current observation says otherwise; two others agree.',
         'no_source' => 'No source covers this section at this date.',
         'rule_passenger_only_off_lgv' => '“Passengers only” off a high-speed line: a line open to passengers is mixed.',

@@ -1,0 +1,101 @@
+<?php
+
+// Contexte sourcé du déraillement d'un train de marchandises venant d'Amiens à l'entrée du triage du Bourget, d'août 1892 (recherche du 21/11/2026).
+return [
+    'slug' => '1892-08-20-le-bourget',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1890' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1890',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1892',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1890&oldid=235357698#1892',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 20 août 1892, d\'après Le Figaro et Le Matin du 21 août : vers 17 h, à son entrée au triage du Bourget, un train de marchandises venant d\'Amiens déraille à la suite du déplacement d\'un rail ; le mécanicien et le chauffeur sont tués, le garde-frein et le conducteur blessés.',
+        ],
+        'ddb-1892-08-22-koelnische' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 21. Aug. (Telegr.)',
+            'publisher' => 'Kölnische Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1892-08-22',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/RUC52XTY5I2PP3GEG7PWE3TKXVWFXQRR?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Télégramme de Paris du 21 août : hier, un train de marchandises a déraillé près du Bourget ; le mécanicien et le chauffeur tués, le chef de train blessé.',
+        ],
+        'ddb-1892-08-22-solingen' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris',
+            'publisher' => 'Solinger Kreis-Intelligenzblatt (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1892-08-22',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/6LGXWONJE4ZXB6HM2S4EQU5UVQN244G7?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même nouvelle : avant-hier, un train de marchandises a déraillé près du Bourget ; le mécanicien et le chauffeur tués, le chef de train blessé.',
+        ],
+        'ddb-1892-08-24-echo' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahnunglück. Paris, 21. August',
+            'publisher' => 'Hamburger Echo (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1892-08-24',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/HPMJQLLFX74EASP2HK6JINJZKWLGNY4T?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Récit de Paris du 21 août : hier vers le soir, près de la gare du Bourget, un train de marchandises a déraillé si violemment que la locomotive et deux wagons ont été renversés ; le chauffeur et le mécanicien, qui avaient vu le danger et sauté, ont été écrasés par les wagons ; on a retiré leurs corps des débris.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Le 20 août 1892, vers 17 h, un train de marchandises venant d\'Amiens a déraillé à son entrée au triage du Bourget, près de Paris, à la suite du déplacement d\'un rail selon la liste de Wikipédia. La locomotive et deux wagons ont été renversés.',
+                'en' => 'On 20 August 1892, at about 5 pm, a goods train from Amiens derailed as it entered the Le Bourget yard near Paris, after a rail had shifted according to the Wikipedia list. The engine and two wagons overturned.',
+                'de' => 'Am 20. August 1892 gegen 17 Uhr entgleiste ein Güterzug aus Amiens bei der Einfahrt in den Rangierbahnhof Le Bourget bei Paris, nach der Wikipedia-Liste wegen einer verschobenen Schiene. Die Lokomotive und zwei Güterwagen stürzten um.',
+                'sources' => ['wp-liste-1890', 'ddb-1892-08-24-echo'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le mécanicien et le chauffeur, qui avaient sauté de la machine, ont été écrasés par les wagons et tués. La presse allemande cite le chef de train blessé ; la liste de Wikipédia nomme le garde-frein et le conducteur.',
+                'en' => 'The driver and the stoker, who had jumped from the engine, were crushed by the wagons and killed. The German press reports the guard injured; the Wikipedia list names the brakeman and the conductor.',
+                'de' => 'Lokführer und Heizer, die von der Lokomotive abgesprungen waren, wurden von den Wagen erdrückt und getötet. Die deutsche Presse meldet den Zugführer verletzt; die Wikipedia-Liste nennt den Bremser und den Zugbegleiter.',
+                'sources' => ['ddb-1892-08-24-echo', 'ddb-1892-08-22-koelnische', 'ddb-1892-08-22-solingen', 'wp-liste-1890'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Un blessé selon les dépêches de Paris, deux selon la liste de Wikipédia.',
+                'en' => 'One injured according to the Paris dispatches, two according to the Wikipedia list.',
+                'de' => 'Ein Verletzter nach den Pariser Depeschen, zwei nach der Wikipedia-Liste.',
+                'sources' => ['ddb-1892-08-22-koelnische', 'wp-liste-1890'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 2,
+            'sources' => ['wp-liste-1890', 'ddb-1892-08-22-koelnische', 'ddb-1892-08-24-echo'],
+            'fr' => 'Mécanicien et chauffeur tués selon la liste de Wikipédia (Le Matin du 21 août 1892) et les dépêches de Paris du 21 août ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'Driver and stoker killed according to the Wikipedia list (Le Matin of 21 August 1892) and the Paris dispatches of 21 August; the record gave no number of deaths.',
+            'de' => 'Lokführer und Heizer getötet nach der Wikipedia-Liste (Le Matin vom 21. August 1892) und den Pariser Depeschen vom 21. August; der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];

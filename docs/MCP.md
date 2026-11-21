@@ -768,7 +768,7 @@ les morceaux séparés par un trou sont gardés, la courbe s'interrompt dans le 
 suivent bout à bout (`branches`). Renvoie `line`, `profile` (`basis`, `step_m`, `length_m`, `trace_length_m`,
 `covered_m`, `off_path_m`, `pk_anchors`, `summary` avec altitudes extrêmes, dénivelés et déclivité la plus forte en
 ‰ sur 1 km mesurée sur la voie (nulle quand elle n'est pas publiée, motif dans `max_grade_withheld` : `terrain_only`,
-`tunnel`, `interpolated`, `rack`) et méthode des dénivelés (`climb_method` : altitudes du terrain moyennées sur 1 km,
+`tunnel`, `interpolated`, `rack` ; motif nul aussi si aucune portion de 1 km n'est exploitable) et méthode des dénivelés (`climb_method` : altitudes du terrain moyennées sur 1 km,
 puis variations de moins de 3 m ignorées), `rack` (ligne à crémaillère : type, étendue, déclivité la plus forte
 publiée par la source et lien vers l'article de Wikipédia lu ; null pour une ligne à adhérence), `terrain_ranges` (parties à l'altitude du terrain), `points` = `[distance_m, altitude_m, pk_m]` le long du parcours, `structures`, `gaps`, `branches`,
 `stations` (toutes les gares de la ligne, fermées comprises, avec leur PK officiel, leur statut et leur écart au
@@ -801,7 +801,7 @@ renvoie l'erreur `audit_not_computed`.
 Renvoie `line`, `era_year`, `audited_at`, `rule_version`, `grades` (classement, placement, exactitude, tracé),
 `worst_grade`, `score` (0 à 100), `shares` (part de la longueur par note), `line_checks` (longueur comparée à la
 longueur officielle, ordre des gares), `segments_total` (après le filtre `grade`), `limit`, `offset` et `segments` (une page, chacun avec ses notes et `evidence`, codes
-`reasons` stables) et `vff_url`. Codes de raisons récents : `on_other_line_track` (tronçon posé sur la voie d'une autre ligne alors que sa propre voie passe à 8 à 60 m : sûr en service aujourd'hui, faux s'il est fermé, déposé ou à une ère passée), `shared_track` (tronc commun ou embranchement sur la voie de départ, sans voie propre : sûr), `confirmed_by_precise_source` (tracé confirmé par une voie BD TOPO ou OSM indépendante), `observation_outvoted` (une seule observation actuelle contre deux d'accord) et `continuous_service` (ère passée : ligne sans fin datée, tronçon sûr aujourd'hui). Attribution : SNCF Réseau et OpenStreetMap (ODbL), IGN (Licence Ouverte 2.0) pour
+`reasons` stables) et `vff_url`. Codes de raisons récents : `on_other_line_track` (tronçon posé sur la voie d'une autre ligne alors que sa propre voie passe à 8 à 60 m : sûr en service aujourd'hui, faux s'il est fermé, déposé ou à une ère passée), `shared_track` (tronc commun ou embranchement sur la voie de départ, sans voie propre : sûr), `confirmed_by_precise_source` (tracé confirmé par une voie BD TOPO ou OSM indépendante), `observation_outvoted` (une seule observation actuelle contre deux d'accord) et `continuous_service` (ère passée : aucune fin datée ne touche le tronçon à cette ère, tronçon sûr aujourd'hui). Attribution : SNCF Réseau et OpenStreetMap (ODbL), IGN (Licence Ouverte 2.0) pour
 les états observés cités dans les preuves.
 
 ```json

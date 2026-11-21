@@ -1,0 +1,117 @@
+<?php
+
+// Contexte sourcé de la collision dans un tunnel près d'Olliergues, ligne de Saint-Germain-des-Fossés à Darsac, de décembre 1911 (recherche du 21/11/2026).
+return [
+    'slug' => '1911-12-04-olliergues',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1911' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1911',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Décembre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1911&oldid=241541118#D%C3%A9cembre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 4 décembre 1911, d\'après Le Petit Journal, Le Figaro et Le Petit Parisien du 5 décembre : vers 9 h, dans un tunnel après la gare d\'Olliergues, rencontre frontale entre un train omnibus allant à Ambert et une locomotive haut-le-pied venant de Vertolaye ; le chauffeur et le mécanicien de la machine sont tués, sept blessés dont un mourra peu après ; le chef de gare d\'Olliergues aurait ouvert la voie au train de voyageurs en retard alors que la machine y était engagée.',
+        ],
+        'ddb-1911-12-05-vorwaerts' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahnunglück im Tunnel von Olliergues',
+            'publisher' => 'Vorwärts (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1911-12-05',
+            'locator' => 'p. 4',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/GXRDV52JHUCI3NV7FF7LFSWVFEZJ2YQ7?issuepage=4',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche W. T. B. de Paris du 4 décembre : dans un tunnel près d\'Olliergues (Puy-de-Dôme), un train de voyageurs est entré en collision avec une locomotive ; le mécanicien et le chauffeur ont été tués, dix voyageurs grièvement blessés.',
+        ],
+        'ddb-1911-12-05-reichsanzeiger' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 4. Dezember (W. T. B.)',
+            'publisher' => 'Deutscher Reichsanzeiger und Preußischer Staatsanzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1911-12-05',
+            'locator' => 'p. 4',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/TC4JB3P7TBZELIL5NCMZWIRGXXAHTEFK?issuepage=4',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche W. T. B. : collision d\'un train de voyageurs et d\'une locomotive dans un tunnel près d\'Olliergues, mécanicien et chauffeur de la locomotive tués, dix voyageurs grièvement blessés.',
+        ],
+        'ddb-1911-12-09-niederrhein' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Zugzusammenstoß im Tunnel',
+            'publisher' => 'Niederrheinisches Tageblatt (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1911-12-09',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/PPLH74OUIKMWT5HK34736DXP43UGWE6L?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Brève : le lundi, dans un tunnel près de la station d\'Olliergues, une locomotive a heurté un train de voyageurs allant à Ambert ; deux morts sur le coup, dix blessés, en partie gravement.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le lundi 4 décembre 1911, vers 9 h, un train omnibus allant à Ambert circulait sur la ligne de Saint-Germain-des-Fossés à Darsac, à la sortie de la gare d\'Olliergues. Une locomotive haut-le-pied venant de Vertolaye roulait sur la même voie en sens inverse.',
+                'en' => 'On Monday 4 December 1911, at about 9 am, a stopping train bound for Ambert was running on the Saint-Germain-des-Fossés to Darsac line, just beyond Olliergues station. A light engine coming from Vertolaye was on the same track in the opposite direction.',
+                'de' => 'Am Montag, dem 4. Dezember 1911, gegen 9 Uhr fuhr ein Personenzug nach Ambert auf der Strecke Saint-Germain-des-Fossés-Darsac hinter dem Bahnhof Olliergues. Eine Lokomotive als Leerfahrt aus Vertolaye befand sich in Gegenrichtung auf demselben Gleis.',
+                'sources' => ['wp-liste-1911', 'ddb-1911-12-09-niederrhein'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le train et la locomotive se sont heurtés de front dans un tunnel. Selon la liste de Wikipédia, la presse française a reproché au chef de gare d\'Olliergues d\'avoir laissé partir le train de voyageurs, qui était en retard, alors que la machine était déjà engagée sur la voie.',
+                'en' => 'The train and the engine met head-on in a tunnel. According to the Wikipedia list, the French press blamed the Olliergues stationmaster for letting the late-running passenger train leave while the engine was already on the line.',
+                'de' => 'Zug und Lokomotive stießen in einem Tunnel frontal zusammen. Nach der Wikipedia-Liste warf die französische Presse dem Bahnhofsvorsteher von Olliergues vor, den verspäteten Personenzug abgelassen zu haben, obwohl die Lokomotive schon auf der Strecke war.',
+                'sources' => ['ddb-1911-12-05-vorwaerts', 'ddb-1911-12-05-reichsanzeiger', 'wp-liste-1911'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le mécanicien et le chauffeur de la locomotive ont été tués. La dépêche de l\'agence Wolff compte dix voyageurs grièvement blessés ; la liste de Wikipédia parle de sept blessés, dont un est mort peu après.',
+                'en' => 'The driver and the stoker of the engine were killed. The Wolff agency dispatch counts ten passengers seriously injured; the Wikipedia list gives seven injured, one of whom died shortly afterwards.',
+                'de' => 'Lokführer und Heizer der Lokomotive wurden getötet. Die Depesche des Wolffschen Bureaus zählt zehn schwer verletzte Reisende; die Wikipedia-Liste nennt sieben Verletzte, von denen einer kurz darauf starb.',
+                'sources' => ['ddb-1911-12-05-vorwaerts', 'ddb-1911-12-05-reichsanzeiger', 'wp-liste-1911'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le bilan diffère : dix blessés graves dans la presse allemande, sept blessés dans la liste de Wikipédia. Si le blessé mort peu après, que mentionne la liste, est compté, l\'accident a fait trois morts au lieu de deux.',
+                'en' => 'The toll differs: ten seriously injured in the German press, seven injured in the Wikipedia list. Counting the injured person who, according to the list, died shortly afterwards, the accident killed three people rather than two.',
+                'de' => 'Die Bilanz weicht ab: zehn Schwerverletzte in der deutschen Presse, sieben Verletzte in der Wikipedia-Liste. Rechnet man den Verletzten hinzu, der nach der Liste kurz darauf starb, forderte der Unfall drei statt zwei Tote.',
+                'sources' => ['ddb-1911-12-05-vorwaerts', 'wp-liste-1911'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'collision',
+            'sources' => ['wp-liste-1911', 'ddb-1911-12-05-vorwaerts'],
+            'fr' => 'Rencontre frontale d\'un train et d\'une locomotive selon la liste de Wikipédia et la dépêche de l\'agence Wolff du 4 décembre 1911 ; la fiche classait l\'accident dans les autres accidents.',
+            'en' => 'Head-on meeting of a train and an engine according to the Wikipedia list and the Wolff agency dispatch of 4 December 1911; the record listed it as another kind of accident.',
+            'de' => 'Frontaler Zusammenstoß eines Zuges mit einer Lokomotive nach der Wikipedia-Liste und der Depesche des Wolffschen Bureaus vom 4. Dezember 1911; der Eintrag führte den Unfall unter sonstigen Unfällen.',
+        ],
+        [
+            'field' => 'deaths',
+            'value' => 3,
+            'sources' => ['wp-liste-1911', 'ddb-1911-12-05-vorwaerts', 'ddb-1911-12-05-reichsanzeiger'],
+            'fr' => 'Mécanicien et chauffeur tués selon la dépêche de l\'agence Wolff et la liste de Wikipédia, et un blessé mort peu après selon la liste (Le Petit Journal du 5 décembre 1911) ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'Driver and stoker killed according to the Wolff agency dispatch and the Wikipedia list, and one injured person who died shortly afterwards according to the list (Le Petit Journal of 5 December 1911); the record gave no number of deaths.',
+            'de' => 'Lokführer und Heizer getötet nach der Depesche des Wolffschen Bureaus und der Wikipedia-Liste, dazu ein Verletzter, der nach der Liste kurz darauf starb (Le Petit Journal vom 5. Dezember 1911); der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];

@@ -1,0 +1,87 @@
+<?php
+
+// Contexte sourcé du heurtoir enfoncé par un express venant de Paris en gare du Havre, de juin 1907 (recherche du 21/11/2026).
+return [
+    'slug' => '1907-06-17-le-havre',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1907' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1907',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Juin',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1907&oldid=238956681#Juin',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 17 juin 1907, d\'après Paris-Normandie (2021) : en gare du Havre, une locomotive tractant dix voitures enfonce le heurtoir au bout de sa voie et finit sa course contre les parois du bureau de l\'octroi, près de la sortie des voyageurs ; importants dégâts, des employés et des voyageurs blessés sans gravité.',
+        ],
+        'ddb-1907-06-21-koeln' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Havre, 20. Juni',
+            'publisher' => 'Kölnische Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1907-06-21',
+            'locator' => 'p. 10',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/TMRZWR5TFGU4CRH3JPLJY6JHO53JIRZU?issuepage=10',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche du Havre datée du 20 juin : la nuit précédente, les freins d\'un train venant de Paris ont lâché à l\'entrée en gare ; la locomotive a enfoncé le heurtoir, traversé le quai et s\'est enfoncée dans les locaux de la douane ; dix voyageurs légèrement blessés.',
+        ],
+        'ddb-1907-06-22-hamburg' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Havre, 21. Juni',
+            'publisher' => 'Hamburger Fremdenblatt (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1907-06-22',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/VGYZMJIJ7CX6SEQQBA7GVKG7QYC276XY?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche, datée du 21 juin : l\'express n° 145 arrivant de Paris, freins défaillants « la nuit dernière », heurtoir détruit, locomotive enfoncée dans les locaux de la douane, dix voyageurs blessés.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'À l\'arrivée en gare du Havre, de nuit, les freins de l\'express n° 145 venant de Paris n\'ont pas tenu. La locomotive a enfoncé le heurtoir, traversé le quai et fini sa course dans le bureau de l\'octroi, près de la sortie des voyageurs. Les dégâts ont été importants.',
+                'en' => 'As it ran into Le Havre station at night, the brakes of express no. 145 from Paris failed. The engine broke through the buffer stop, crossed the platform and ended up in the toll office near the passenger exit. The damage was heavy.',
+                'de' => 'Bei der nächtlichen Einfahrt in den Bahnhof Le Havre versagten die Bremsen des Eilzugs Nr. 145 aus Paris. Die Lokomotive durchbrach den Prellbock, fuhr über den Bahnsteig und kam im Gebäude des Stadtzolls nahe dem Ausgang zum Stehen. Der Sachschaden war groß.',
+                'sources' => ['wp-liste-1907', 'ddb-1907-06-21-koeln', 'ddb-1907-06-22-hamburg'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Personne n\'a été tué. La presse allemande compte dix voyageurs légèrement blessés ; la liste de Wikipédia parle d\'employés et de voyageurs blessés sans gravité.',
+                'en' => 'Nobody was killed. The German press counts ten passengers slightly hurt; the Wikipedia list speaks of staff and passengers with minor injuries.',
+                'de' => 'Niemand wurde getötet. Die deutsche Presse zählt zehn leicht verletzte Reisende, die Wikipedia-Liste spricht von leicht verletzten Bahnbediensteten und Reisenden.',
+                'sources' => ['ddb-1907-06-21-koeln', 'wp-liste-1907'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Date : la liste de Wikipédia donne le 17 juin 1907. Les dépêches allemandes, datées du Havre les 20 et 21 juin, placent l\'accident « la nuit dernière », donc dans la nuit du 19 au 20 ou du 20 au 21 juin.',
+                'en' => 'Date: the Wikipedia list gives 17 June 1907. The German dispatches, datelined Le Havre on 20 and 21 June, place the accident "last night", so in the night of 19 to 20 or 20 to 21 June.',
+                'de' => 'Datum: Die Wikipedia-Liste nennt den 17. Juni 1907. Die deutschen Meldungen aus Le Havre vom 20. und 21. Juni legen den Unfall in die „vergangene Nacht“, also in die Nacht zum 20. oder zum 21. Juni.',
+                'sources' => ['wp-liste-1907', 'ddb-1907-06-21-koeln', 'ddb-1907-06-22-hamburg'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 0,
+            'sources' => ['wp-liste-1907', 'ddb-1907-06-21-koeln'],
+            'fr' => 'Aucun mort : blessés sans gravité selon la liste de Wikipédia, dix voyageurs légèrement blessés selon la dépêche allemande ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'No deaths: minor injuries according to the Wikipedia list, ten passengers slightly hurt according to the German dispatch; the record gave no number of deaths.',
+            'de' => 'Keine Toten: leicht Verletzte nach der Wikipedia-Liste, zehn leicht verletzte Reisende nach der deutschen Meldung; der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];

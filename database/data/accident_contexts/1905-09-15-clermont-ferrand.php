@@ -1,0 +1,101 @@
+<?php
+
+// Contexte sourcé de la collision d'un train de marchandises parti en dérive dans la rampe de Volvic avec un convoi en manœuvre en gare de Clermont-Ferrand, de septembre 1905 (recherche du 21/11/2026).
+return [
+    'slug' => '1905-09-15-clermont-ferrand',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1905' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1905',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Septembre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1905&oldid=233590727#Septembre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 15 septembre 1905, d\'après Le Matin du 16 septembre : sur la ligne de Laqueuille à Clermont-Ferrand, après la gare de Volvic, vers 3 h, sur le rail mouillé par la pluie, un train de marchandises patine et dévale tous freins serrés la rampe de 25 pour 1000 qui descend vers Clermont-Ferrand, où il heurte un convoi vide en manœuvre ; le mécanicien, le chauffeur et un homme d\'équipe sont tués.',
+        ],
+        'ddb-1905-09-16-riesa' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Clermont-Ferrand',
+            'publisher' => 'Riesaer Tageblatt und Anzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1905-09-16',
+            'locator' => 'p. 13',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/IJUT2VML7ICPIEWISPBAWL47Z53YQSJB?issuepage=13',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Brève : à Clermont-Ferrand, un train de marchandises dont les freins ne fonctionnaient pas a heurté pendant la nuit un train de manœuvre vide arrêté en gare ; le mécanicien, le chauffeur et un ouvrier ont été tués, plusieurs wagons brisés.',
+        ],
+        'ddb-1905-09-16-muenchen' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahnunfall',
+            'publisher' => 'Münchner neueste Nachrichten (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1905-09-16',
+            'locator' => 'p. 4',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/BFFW4ZPPBKLEHM2QH2XMMEQN7YWZ5PLR?issuepage=4',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Clermont-Ferrand : un train de marchandises aux freins défaillants a heurté pendant la nuit un train de manœuvre vide en gare ; mécanicien, chauffeur et un ouvrier tués, plusieurs wagons détruits.',
+        ],
+        'ddb-1905-09-16-dortmund' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahn-Unfall',
+            'publisher' => 'Dortmunder Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1905-09-16',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/PTZ43WASWZ24TGJZDB24PVE27C6KXOII?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Télégramme de Clermont-Ferrand du 16 septembre : un train de marchandises lancé à grande vitesse a pris en écharpe un train qui entrait en gare ; trois agents du train de marchandises ont été tués ; dégâts matériels importants.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Dans la nuit du 15 septembre 1905, vers 3 h, un train de marchandises de la ligne de Laqueuille à Clermont-Ferrand a patiné sur le rail mouillé après la gare de Volvic. Ses freins n\'ont pas suffi à le retenir dans la rampe de 25 pour 1000 qui descend vers Clermont-Ferrand. En gare de Clermont-Ferrand, il a heurté un convoi vide en manœuvre. Plusieurs wagons ont été brisés.',
+                'en' => 'During the night of 15 September 1905, at about 3 am, a goods train on the Laqueuille to Clermont-Ferrand line slipped on the wet rail after Volvic station. Its brakes could not hold it on the 25 in 1000 gradient that runs down to Clermont-Ferrand. In Clermont-Ferrand station it ran into an empty train being shunted. Several wagons were wrecked.',
+                'de' => 'In der Nacht zum 15. September 1905 gegen 3 Uhr kam ein Güterzug der Strecke Laqueuille-Clermont-Ferrand hinter dem Bahnhof Volvic auf den nassen Schienen ins Rutschen. Seine Bremsen hielten ihn auf dem Gefälle von 25 Promille hinab nach Clermont-Ferrand nicht. Im Bahnhof Clermont-Ferrand fuhr er auf einen leeren Rangierzug. Mehrere Wagen wurden zertrümmert.',
+                'sources' => ['wp-liste-1905', 'ddb-1905-09-16-riesa', 'ddb-1905-09-16-muenchen'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le mécanicien, le chauffeur et un homme d\'équipe ont été tués.',
+                'en' => 'The driver, the stoker and a station worker were killed.',
+                'de' => 'Der Lokomotivführer, der Heizer und ein Bahnarbeiter wurden getötet.',
+                'sources' => ['wp-liste-1905', 'ddb-1905-09-16-riesa', 'ddb-1905-09-16-muenchen'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La Dortmunder Zeitung compte les trois morts parmi les agents du train de marchandises et dit que celui-ci a pris en écharpe un train qui entrait en gare ; la liste de Wikipédia et les autres dépêches parlent d\'un convoi vide en manœuvre.',
+                'en' => 'The Dortmunder Zeitung counts all three dead among the goods train crew and says the train struck the side of a train entering the station; the Wikipedia list and the other dispatches speak of an empty train being shunted.',
+                'de' => 'Die Dortmunder Zeitung zählt alle drei Toten zum Personal des Güterzugs und lässt ihn einem einfahrenden Zug in die Flanke fahren; die Wikipedia-Liste und die übrigen Meldungen sprechen von einem leeren Rangierzug.',
+                'sources' => ['ddb-1905-09-16-dortmund', 'wp-liste-1905', 'ddb-1905-09-16-riesa'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 3,
+            'sources' => ['wp-liste-1905', 'ddb-1905-09-16-riesa'],
+            'fr' => 'Mécanicien, chauffeur et homme d\'équipe tués selon la liste de Wikipédia (Le Matin du 16 septembre 1905) et la presse allemande ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'Driver, stoker and a station worker killed according to the Wikipedia list (Le Matin of 16 September 1905) and the German press; the record gave no number of deaths.',
+            'de' => 'Lokomotivführer, Heizer und ein Bahnarbeiter getötet nach der Wikipedia-Liste (Le Matin vom 16. September 1905) und der deutschen Presse; der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];

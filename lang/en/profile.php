@@ -31,6 +31,7 @@ return [
     'grade_withheld_terrain_only' => 'Gradient not published: ground height only.',
     'grade_withheld_tunnel' => 'Gradient not published: the line runs mostly in tunnels, where the height is uncertain.',
     'grade_withheld_interpolated' => 'Gradient not published: the heights are mostly interpolated.',
+    'grade_withheld_none' => 'Gradient not measured: no usable 1 km stretch.',
     'grade_withheld_rack' => 'Gradient not measured: rack railway.',
     'rack_full' => 'Rack railway (:system system) along the whole line.',
     'rack_partial' => 'Rack railway (:system system) on part of the line.',

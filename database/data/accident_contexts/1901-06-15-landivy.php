@@ -1,0 +1,95 @@
+<?php
+
+// Contexte sourcé du déraillement d'un train de ballast sur la ligne en construction de Laval à Landivy, de juin 1901 (recherche du 21/11/2026).
+return [
+    'slug' => '1901-06-15-landivy',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1901' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1901',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Juin',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1901&oldid=241345719#Juin',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 15 juin 1901, d\'après Le Matin du 16 juin : à 6 h, près de Chailland, sur la ligne en construction de Laval à Landivy (voie métrique des chemins de fer départementaux de la Mayenne), un train de ballast venant de Laval s\'emballe dans une pente sur le rail humide, déraille et s\'écrase contre une maison ; sur vingt occupants, sept seront tués et six grièvement blessés.',
+        ],
+        'ddb-1901-06-17-berliner' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 16. Juni',
+            'publisher' => 'Berliner Neueste Nachrichten (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1901-06-17',
+            'locator' => 'p. 6',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/SD2F4TOHGXYOKTSSAQG74NBI7TZTHK3P?issuepage=6',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Paris du 16 juin : sur la ligne à voie étroite en construction de Laval à Landivy, un train de chantier mal freiné a pris de la vitesse dans une forte pente, déraillé et s\'est brisé contre une maison ; vingt ouvriers ensevelis, six tués sur le coup, sept grièvement blessés.',
+        ],
+        'ddb-1901-06-17-merkur' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 16. Juni',
+            'publisher' => 'Schwäbischer Merkur (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1901-06-17',
+            'locator' => 'p. 7',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/Q7AJOXHRAGGQZOTMUALF74KGNEH7UOW7?issuepage=7',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche de Paris du 16 juin, reprise aussi par la Cannstatter Zeitung et le Filder-Bote du 18 juin : train de chantier emballé faute de freinage suffisant, déraillé contre une maison, vingt ouvriers sous les décombres, six morts sur place, sept blessés graves.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 15 juin 1901, vers 6 h, un train de ballast venant de Laval roulait sur la ligne à voie métrique de Laval à Landivy, alors en construction pour les chemins de fer départementaux de la Mayenne. Il transportait une vingtaine d\'ouvriers. La liste de Wikipédia situe l\'accident près de Chailland.',
+                'en' => 'On 15 June 1901, at about 6 am, a ballast train from Laval was running on the metre-gauge Laval to Landivy line, then under construction for the Mayenne departmental railways. It carried about twenty workmen. The Wikipedia list places the accident near Chailland.',
+                'de' => 'Am 15. Juni 1901 gegen 6 Uhr fuhr ein Schotterzug aus Laval auf der damals im Bau befindlichen meterspurigen Strecke Laval-Landivy der Departementsbahnen der Mayenne. Er beförderte etwa zwanzig Arbeiter. Die Wikipedia-Liste verortet den Unfall bei Chailland.',
+                'sources' => ['wp-liste-1901', 'ddb-1901-06-17-berliner', 'ddb-1901-06-17-merkur'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Dans une forte pente, le train, insuffisamment freiné sur un rail humide, s\'est emballé. Il a déraillé et s\'est écrasé contre une maison.',
+                'en' => 'On a steep gradient the train, not braked enough on a wet rail, ran away. It derailed and smashed into a house.',
+                'de' => 'Auf einem starken Gefälle geriet der Zug, auf nassen Schienen ungenügend gebremst, ins Rollen. Er entgleiste und zerschellte an einem Haus.',
+                'sources' => ['ddb-1901-06-17-berliner', 'ddb-1901-06-17-merkur', 'wp-liste-1901'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'La dépêche de Paris du 16 juin compte six ouvriers tués sur le coup et sept grièvement blessés. La liste de Wikipédia, d\'après Le Matin, donne sept morts et six blessés graves.',
+                'en' => 'The Paris dispatch of 16 June counts six workmen killed outright and seven seriously injured. The Wikipedia list, citing Le Matin, gives seven dead and six seriously injured.',
+                'de' => 'Die Pariser Depesche vom 16. Juni zählt sechs sofort getötete und sieben schwer verletzte Arbeiter. Die Wikipedia-Liste nennt nach Le Matin sieben Tote und sechs Schwerverletzte.',
+                'sources' => ['ddb-1901-06-17-berliner', 'wp-liste-1901'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le nombre de morts diffère : six tués sur le coup selon la dépêche allemande, sept selon la liste de Wikipédia. Le lieu aussi : la fiche porte sur Landivy, terminus de la ligne, alors que la liste place l\'accident près de Chailland ; la dépêche ne donne que le nom de la ligne.',
+                'en' => 'The number of dead differs: six killed outright according to the German dispatch, seven according to the Wikipedia list. So does the place: the record is set at Landivy, the end of the line, while the list places the accident near Chailland; the dispatch only names the line.',
+                'de' => 'Die Zahl der Toten weicht ab: sechs sofort Getötete nach der deutschen Depesche, sieben nach der Wikipedia-Liste. Ebenso der Ort: Der Eintrag liegt in Landivy, dem Endpunkt der Strecke, die Liste verortet den Unfall dagegen bei Chailland; die Depesche nennt nur die Strecke.',
+                'sources' => ['ddb-1901-06-17-berliner', 'wp-liste-1901'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 7,
+            'sources' => ['wp-liste-1901', 'ddb-1901-06-17-berliner'],
+            'fr' => 'Sept morts selon la liste de Wikipédia (Le Matin du 16 juin 1901), dont six tués sur le coup selon la dépêche de Paris du même jour ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'Seven dead according to the Wikipedia list (Le Matin of 16 June 1901), six of them killed outright according to the Paris dispatch of the same day; the record gave no number of deaths.',
+            'de' => 'Sieben Tote nach der Wikipedia-Liste (Le Matin vom 16. Juni 1901), davon sechs sofort getötet nach der Pariser Depesche vom selben Tag; der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];

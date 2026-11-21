@@ -1,0 +1,101 @@
+<?php
+
+// Contexte sourcé du tamponnement d'un train de marchandises par l'express Vintimille - Paris dans le tunnel de Cassis, ligne de Marseille à Vintimille, d'avril 1906 (recherche du 21/11/2026).
+return [
+    'slug' => '1906-04-16-aubagne',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1906' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1906',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Avril',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1906&oldid=233590740#Avril',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 16 avril 1906, d\'après Le Figaro du 17 et La Presse du 18 avril : vers 3 h, sur la ligne Marseille - Vintimille, à Aubagne, dans le tunnel dit de Cassis, l\'express Vintimille - Paris heurte le train de marchandises qui le précède, arrêté par une avarie de machine ; un conducteur (agent d\'accompagnement) du train heurté est tué, un wagonnier blessé.',
+        ],
+        'ddb-1906-04-17-boersen' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Marseille, 17. April',
+            'publisher' => 'Berliner Börsen-Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1906-04-17',
+            'locator' => 'p. 5',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/QWHDQHTYAJFQ53KEVH3SD4PYKE4YAA5T?issuepage=5',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Marseille du 17 avril : près d\'Aubagne, un express a heurté un train de marchandises ; un agent de train tué, un autre agent et de nombreux voyageurs blessés.',
+        ],
+        'ddb-1906-04-18-duisburg' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Was das Leben bringt',
+            'publisher' => 'General-Anzeiger für Duisburg, Ruhrort, Meiderich und Umgegend (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1906-04-18',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/J7DIRORV3EF75U7ESKBY2VB654KBV7MR?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Télégramme privé de Marseille : dans le tunnel entre Cassis et Aubagne, collision d\'un express venant de Nice et d\'un train de marchandises dont la machine était tombée en panne ; le chef du train de marchandises tué, un autre agent grièvement blessé, de nombreux voyageurs blessés.',
+        ],
+        'ddb-1906-04-19-centralvolksblatt' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Marseille, 18. April',
+            'publisher' => 'Central-Volksblatt für den Regierungsbezirk Arnsberg (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1906-04-19',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/IJHUCKA7Q5TXIP4AIESLPQRFE47DDYBM?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche : un express et un train de marchandises se sont heurtés près d\'Aubagne ; un agent de train tué, d\'autres agents et de nombreux voyageurs blessés.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Le 16 avril 1906, vers 3 h, un train de marchandises était arrêté par une avarie de sa machine dans le tunnel de Cassis, entre Cassis et Aubagne, sur la ligne de Marseille à Vintimille. L\'express de Vintimille à Paris, qui le suivait, l\'a heurté.',
+                'en' => 'On 16 April 1906, at about 3 am, a goods train had stopped with an engine failure in the Cassis tunnel, between Cassis and Aubagne, on the Marseille to Ventimiglia line. The Ventimiglia to Paris express, following it, ran into it.',
+                'de' => 'Am 16. April 1906 gegen 3 Uhr stand ein Güterzug wegen eines Maschinenschadens im Tunnel von Cassis zwischen Cassis und Aubagne an der Strecke Marseille-Ventimiglia. Der nachfolgende Schnellzug Ventimiglia-Paris fuhr auf.',
+                'sources' => ['wp-liste-1906', 'ddb-1906-04-18-duisburg'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Un agent du train de marchandises a été tué et un autre cheminot blessé.',
+                'en' => 'A member of the goods train crew was killed and another railwayman injured.',
+                'de' => 'Ein Bediensteter des Güterzugs wurde getötet, ein weiterer Eisenbahner verletzt.',
+                'sources' => ['wp-liste-1906', 'ddb-1906-04-17-boersen', 'ddb-1906-04-18-duisburg'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Selon la presse allemande, de nombreux voyageurs ont aussi été blessés ; la liste de Wikipédia ne compte qu\'un wagonnier blessé. Les dépêches allemandes nomment le mort agent de train ou chef du train de marchandises, la liste conducteur.',
+                'en' => 'According to the German press many passengers were also injured; the Wikipedia list counts only one injured wagon examiner. The German dispatches call the dead man a train attendant or the goods train\'s chief, the list a guard.',
+                'de' => 'Nach der deutschen Presse wurden auch zahlreiche Reisende verletzt; die Wikipedia-Liste zählt nur einen verletzten Wagenmeister. Die deutschen Meldungen nennen den Toten Schaffner oder Führer des Güterzugs, die Liste Zugbegleiter.',
+                'sources' => ['wp-liste-1906', 'ddb-1906-04-17-boersen', 'ddb-1906-04-18-duisburg', 'ddb-1906-04-19-centralvolksblatt'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 1,
+            'sources' => ['wp-liste-1906', 'ddb-1906-04-17-boersen'],
+            'fr' => 'Un agent du train de marchandises tué selon la liste de Wikipédia (Le Figaro du 17 avril 1906) et la presse allemande ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'One goods train crew member killed according to the Wikipedia list (Le Figaro of 17 April 1906) and the German press; the record gave no number of deaths.',
+            'de' => 'Ein Bediensteter des Güterzugs getötet nach der Wikipedia-Liste (Le Figaro vom 17. April 1906) und der deutschen Presse; der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];

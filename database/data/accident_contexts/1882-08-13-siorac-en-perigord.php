@@ -1,0 +1,93 @@
+<?php
+
+// Contexte sourcé de la collision de deux trains entre Le Buisson et Siorac, ligne de Périgueux à Agen, d'août 1882 (recherche du 21/11/2026).
+return [
+    'slug' => '1882-08-13-siorac-en-perigord',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1880' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1880',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1882',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1880&oldid=236846064#1882',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 13 août 1882 : sur la ligne d\'Agen à Périgueux, vers 8 h, rencontre de deux trains de sens contraire entre les gares du Buisson et de Siorac ; un mécanicien, un chef de train et un garde-frein tués.',
+        ],
+        'ddb-1882-08-18-emscher' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 14. August. (Zusammenstoß.)',
+            'publisher' => 'Emscher Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1882-08-18',
+            'locator' => 'p. 4',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/CIT74HUAGW3W5EVXI7BLBSYSPFTVJATN?issuepage=4',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Paris du 14 août : hier, sur la ligne de Périgueux à Agen (réseau d\'Orléans), deux trains se sont heurtés ; trois agents du chemin de fer tués et six blessés ; quatre voyageurs blessés.',
+        ],
+        'ddb-1882-08-18-coburg' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Auf der Eisenbahn von Perigueux nach Agen',
+            'publisher' => 'Coburger Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1882-08-18',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/3DKDU5YAHD4MXYPYBQQXROOZ23NUJAD6?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche : collision de deux trains sur la ligne de Périgueux à Agen, trois agents tués, six blessés, quatre voyageurs blessés.',
+        ],
+        'ddb-1882-08-18-saale' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahnunglück',
+            'publisher' => 'Saale-Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1882-08-18',
+            'locator' => 'p. 1',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/47P4OL34DIJUXCFY3UZODZAZU6HBXPMD?issuepage=1',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même nouvelle, datée du 13 août : collision de deux trains sur la ligne de Périgueux à Agen, trois agents tués, six blessés, quatre voyageurs blessés.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Le 13 août 1882, vers 8 h, deux trains de sens contraire se sont heurtés entre les gares du Buisson et de Siorac, sur la ligne de Périgueux à Agen, exploitée par la Compagnie d\'Orléans.',
+                'en' => 'On 13 August 1882, at about 8 am, two trains running in opposite directions collided between Le Buisson and Siorac stations on the Périgueux to Agen line, worked by the Orléans company.',
+                'de' => 'Am 13. August 1882 gegen 8 Uhr stießen zwei Züge in Gegenrichtung zwischen den Bahnhöfen Le Buisson und Siorac an der Strecke Périgueux-Agen der Orléans-Bahn zusammen.',
+                'sources' => ['wp-liste-1880', 'ddb-1882-08-18-emscher'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Trois agents ont été tués, un mécanicien, un chef de train et un garde-frein selon la liste de Wikipédia. La dépêche de Paris compte aussi six agents et quatre voyageurs blessés.',
+                'en' => 'Three railwaymen were killed, a driver, a guard and a brakeman according to the Wikipedia list. The Paris dispatch also counts six railwaymen and four passengers injured.',
+                'de' => 'Drei Bedienstete wurden getötet, nach der Wikipedia-Liste ein Lokführer, ein Zugführer und ein Bremser. Die Pariser Depesche zählt außerdem sechs verletzte Bedienstete und vier verletzte Reisende.',
+                'sources' => ['wp-liste-1880', 'ddb-1882-08-18-emscher', 'ddb-1882-08-18-coburg', 'ddb-1882-08-18-saale'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 3,
+            'sources' => ['wp-liste-1880', 'ddb-1882-08-18-emscher', 'ddb-1882-08-18-coburg'],
+            'fr' => 'Trois agents tués selon la liste de Wikipédia et la dépêche de Paris du 14 août 1882 ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'Three railwaymen killed according to the Wikipedia list and the Paris dispatch of 14 August 1882; the record gave no number of deaths.',
+            'de' => 'Drei Bedienstete getötet nach der Wikipedia-Liste und der Pariser Depesche vom 14. August 1882; der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];
