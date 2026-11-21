@@ -32,6 +32,7 @@
     let startPk = $state(null);
     let endPk = $state(null);
 
+    /** @returns {string | import('maplibre-gl').StyleSpecification} */
     function buildStyle() {
         const key = import.meta.env.VITE_MAPTILER_KEY;
         if (key) return `https://api.maptiler.com/maps/basic-v2/style.json?key=${key}`;
