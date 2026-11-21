@@ -74,6 +74,21 @@ describe('formatStationDate', () => {
         expect(formatStationDate('1981-09-27', 'day', null, t, 'en-GB')).toBe('27 September 1981');
     });
 
+    it('cas limites : traduction par défaut, mois seul, horodatage, date partielle', () => {
+        // Sans traduction fournie : la clé (jamais une erreur).
+        expect(formatStationDate('1960-12-31', 'range', null)).toBe('stations.dates.range_upper');
+        // Le mois seul ne prend jamais « 1er ».
+        expect(formatStationDate('1945-05-01', 'month', null, t, 'fr')).toBe('mai 1945');
+        expect(formatStationDate('1867-11-01', 'day', null, t, 'de')).toBe('1. November 1867');
+        // Horodatage complet : seule la date compte, quel que soit le fuseau.
+        expect(formatStationDate('1954-11-12T23:30:00+01:00', 'day', null, t, 'fr')).toBe(
+            '12 novembre 1954',
+        );
+        expect(formatStationDate('1954', 'day', null, t, 'fr')).toBe('1er janvier 1954');
+        // Intervalle dont la borne basse dépasse la borne haute (données incohérentes) : l'année seule.
+        expect(formatStationDate('1950-12-31', 'range', 1960, t, 'fr', 2026)).toBe('1950');
+    });
+
     it('sans date', () => {
         expect(formatStationDate(null)).toBeNull();
         expect(formatStationDate('')).toBeNull();

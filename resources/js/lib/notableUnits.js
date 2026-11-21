@@ -29,7 +29,8 @@ export function notableDate(iso, precision, lang = 'fr') {
 
 /**
  * Date d'un fait, période comprise : `range` met en forme « :from au :to ». La première date perd son année
- * quand les deux tombent la même année (« 29 février au 1er mars 2020 »).
+ * quand les deux tombent la même année (« 29 février au 1er mars 2020 »). Deux bornes qui s'écrivent de même à
+ * cette précision (même mois, même année) ou un début inconnu : la date de fin seule.
  * @param {{ date: string|null, date_to?: string|null, precision: 'day'|'month'|'year'|null }} fact
  * @param {(key: string, opts?: object) => string} t
  * @param {string} [lang]
@@ -38,7 +39,8 @@ export function notableFactDate(fact, t, lang = 'fr') {
     const end = notableDate(fact.date_to ?? null, fact.precision, lang);
     if (!end) return notableDate(fact.date, fact.precision, lang);
     let start = notableDate(fact.date, fact.precision, lang);
-    if (start && fact.date?.slice(0, 4) === fact.date_to?.slice(0, 4)) {
+    if (!start || start === end) return end;
+    if (fact.date?.slice(0, 4) === fact.date_to?.slice(0, 4)) {
         start = start.replace(new RegExp(`\\s*${fact.date.slice(0, 4)}$`), '');
     }
 

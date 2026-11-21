@@ -137,7 +137,9 @@ class WikidataStationDates
             'month' => sprintf('%04d-%02d-01', $y, max(1, $mo)),
             'year' => sprintf('%04d-01-01', $y),
             'decade' => sprintf('%04d-01-01', intdiv($y, 10) * 10),
-            'century' => sprintf('%04d-01-01', intdiv($y, 100) * 100),
+            // Siècle à la manière de Wikidata (année / 100 arrondie au-dessus : +1850 et +1900 sont le XIXe) :
+            // rangé à sa première année, 1801-01-01.
+            'century' => sprintf('%04d-01-01', intdiv($y - 1, 100) * 100 + 1),
         };
         if ($precision === 'day' && ! checkdate(max(1, $mo), max(1, $d), $y)) {
             return null;

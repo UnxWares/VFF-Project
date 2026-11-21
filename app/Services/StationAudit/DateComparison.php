@@ -43,7 +43,8 @@ final class DateComparison
     private static function truncate(string $date, int $level): string
     {
         return match ($level) {
-            0 => substr($date, 0, 2),
+            // Numéro du siècle (1801 à 1900 : XIXe), comme WikidataStationDates::time.
+            0 => (string) intdiv((int) substr($date, 0, 4) - 1, 100),
             1 => substr($date, 0, 3),
             2 => substr($date, 0, 4),
             3 => substr($date, 0, 7),

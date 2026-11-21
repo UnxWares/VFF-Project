@@ -43,7 +43,9 @@ export function formatStationDate(
         return t('stations.dates.decade', { year: y, decade: decadeOf(y, lang) });
     if (precision === 'after' || precision === 'before')
         return t(`stations.dates.${precision}`, { year: y });
-    const date = new Date(Date.UTC(y, (m || 1) - 1, d || 1));
+    // Date partielle (« 1954 », « 1954-05 ») : complétée au premier du mois ou de l'année.
+    const day = d || 1;
+    const date = new Date(Date.UTC(y, (m || 1) - 1, day));
     /** @type {Intl.DateTimeFormatOptions} */
     const opts =
         precision === 'month'
@@ -53,7 +55,7 @@ export function formatStationDate(
     const locale = formatLocale(lang);
     const text = date.toLocaleDateString(locale, { ...opts, timeZone: 'UTC' });
     // Français : « 1er janvier 1867 » (le premier du mois prend l'ordinal).
-    if (precision === 'day' && d === 1 && locale.startsWith('fr')) {
+    if (precision === 'day' && day === 1 && locale.startsWith('fr')) {
         return text.replace(/^1(?=\s)/, '1er');
     }
 
