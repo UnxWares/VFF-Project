@@ -3,7 +3,8 @@
 /**
  * Corrections sourcées d'événements de lignes relevées par la relecture des données des fiches
  * (question 18 de QUESTIONS.md, rapport storage/app/reports/agents/ui-donnees-fiches.md ; chantier
- * « donnees-corrections », 21/11/2026). Format : voir line_event_corrections.php.
+ * « donnees-corrections », 21/11/2026), ou par l'audit des tronçons (vff:audit-segments). Format : voir
+ * line_event_corrections.php.
  *
  * Pas de tiret long dans les textes.
  *
@@ -24,5 +25,21 @@ return [
         'source_url' => $wp('Ligne de Vire à Romagny', 226857304),
         'quote' => 'Section de Vire aux Maures : le 18 décembre 1887',
         'reason' => 'concédée le 17 juillet 1883 à la Compagnie de l\'Ouest, la ligne ouvre le 18 décembre 1887',
+    ],
+
+    // Audit des tronçons (storage/app/reports/agents/nuit-2111/audit-troncons.md) : 900000 Culoz - Modane.
+    // La « fermeture de toute la ligne » du 19/09/1871, lue dans la section sur le PLM de l'article, est
+    // celle du chemin de fer du Mont-Cenis : ligne provisoire de Saint-Michel-de-Maurienne à Suse par le
+    // col, proposée en 1865 par M. Brassey et l'ingénieur Fell, fermée quand le tunnel du Fréjus ouvre. La
+    // ligne de Culoz à Modane n'a pas fermé : la même page date du 20/10/1871 la section de Saint-Michel
+    // à Modane. Cette date contredisait tous les tronçons en service de 1880 à 2030 dans l'audit.
+    [
+        'line' => '900000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'closure', 'date' => '1871-09-19'],
+        'label' => 'Fermeture du chemin de fer du Mont-Cenis (Saint-Michel-de-Maurienne - Suse)',
+        'source_url' => $wp('Ligne de Culoz à Modane (frontière)', 238204405),
+        'quote' => 'Cette ligne est mise en service le 15 juin 1868 et fermée le 19 septembre 1871 à l\'ouverture du tunnel ferroviaire du Fréjus.',
+        'reason' => 'fermeture de la ligne provisoire du Mont-Cenis par le col, remplacée par le tunnel du Fréjus ; Culoz - Modane reste ouverte (section Saint-Michel - Modane ouverte le 20 octobre 1871)',
     ],
 ];
