@@ -40,6 +40,8 @@ return [
             'https://api.maptiler.com',
             'https://data.geopf.fr',
             'https://upload.wikimedia.org',
+            // Vignettes de Commons servies par le nouveau domaine des miniatures (accidents, matériel, histoires).
+            'https://thumb.wikimedia.org',
             'https://commons.wikimedia.org',
             'https://gallica.bnf.fr',
         ],
