@@ -42,13 +42,22 @@ use Illuminate\Support\Facades\DB;
  *   - pk         : PK de la gare sur une ligne (« line » : code SNCF, « pk_m » : mètres), d'après
  *                  un schéma ou un article (PK interpolé faux : Troyes sur Troyes - Brienne) ;
  *                  réécrit station_lines.pk_m (pk_source « correction ») avant les dates déduites
- *                  et les arrêts (line_stops), à chaque passage.
+ *                  et les arrêts (line_stops), à chaque passage ;
+ *   - unlink     : lien faux vers un élément Wikidata (« source » wikidata, « ref » Q-id) : l'objet porte
+ *                  le Q-id d'une autre gare (tag wikidata d'un objet OHM ou OSM, élément Wikidata rattaché).
+ *                  Lu par vff:consolidate-stations au rattachement : la gare ne prend pas ce Q-id et
+ *                  l'élément Wikidata ne la rejoint pas ; les objets qui portent le tag restent rattachés
+ *                  (seul le Q-id est ignoré). Gare visée par « uic » ou « osm » (lue sur les sources, avant
+ *                  la consolidation), « name » en contrôle ; sans effet dans vff:build-station-eras.
  *
  * Champs communs : source_url, quote (citation courte), reason. Pas de tiret long.
  */
 final class StationCorrections
 {
-    public const ACTIONS = ['add', 'neutralize', 'kind', 'tourist', 'current', 'position', 'pk'];
+    public const ACTIONS = ['add', 'neutralize', 'kind', 'tourist', 'current', 'position', 'pk', 'unlink'];
+
+    /** Sources dont un lien peut être défait (action « unlink »). */
+    public const UNLINK_SOURCES = ['wikidata'];
 
     /** États du jour admis par l'action « current ». */
     public const CURRENT_STATUSES = [StationTimeline::ACTIVE, StationTimeline::TOURIST, StationTimeline::CLOSED];
@@ -111,6 +120,10 @@ final class StationCorrections
         if ($action === 'pk' && (preg_match('/^\d{6}$/', (string) ($c['line'] ?? '')) !== 1 || ! is_int($c['pk_m'] ?? null) || $c['pk_m'] < 0)) {
             $errors[] = 'pk : line (code SNCF), pk_m (entier, mètres)';
         }
+        if ($action === 'unlink' && (! in_array($c['source'] ?? null, self::UNLINK_SOURCES, true)
+            || preg_match('/^Q\d+$/', (string) ($c['ref'] ?? '')) !== 1 || ! is_array($st) || (! isset($st['uic']) && ! isset($st['osm'])))) {
+            $errors[] = 'unlink : source wikidata, ref (Q-id), gare visée par uic ou osm';
+        }
         foreach (['reason', 'quote'] as $k) {
             if (isset($c[$k]) && (str_contains((string) $c[$k], "\u{2014}") || str_contains((string) $c[$k], '--'))) {
                 $errors[] = "{$k} : tiret long";
@@ -149,6 +162,29 @@ final class StationCorrections
         }
 
         return $q->pluck('s.id')->map(fn ($id) => (int) $id)->all();
+    }
+
+    /**
+     * Liens défaits (action « unlink »), valides, pour vff:consolidate-stations.
+     *
+     * @return list<array{name: string, uic: ?string, osm: ?string, source: string, ref: string}>
+     */
+    public function unlinks(): array
+    {
+        $out = [];
+        foreach ($this->corrections as $c) {
+            if (($c['action'] ?? null) === 'unlink' && self::validate($c) === []) {
+                $out[] = [
+                    'name' => (string) $c['station']['name'],
+                    'uic' => isset($c['station']['uic']) ? (string) $c['station']['uic'] : null,
+                    'osm' => isset($c['station']['osm']) ? (string) $c['station']['osm'] : null,
+                    'source' => (string) $c['source'],
+                    'ref' => (string) $c['ref'],
+                ];
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -230,6 +266,8 @@ final class StationCorrections
                     'kind' => (bool) ($out['kinds'][$sid] = $c['kind']),
                     'tourist' => $out['tourist'][$sid] = true,
                     'current' => (bool) ($out['current'][$sid] = (string) $c['status']),
+                    // Appliquée au rattachement des sources (vff:consolidate-stations) : rien à écrire ici.
+                    'unlink' => true,
                     'pk' => DB::update(<<<'SQL'
                         UPDATE station_lines SET pk_m = ?, pk_source = 'correction', updated_at = NOW()
                         WHERE station_id = ? AND line_id IN (SELECT id FROM lines WHERE code = ?)
