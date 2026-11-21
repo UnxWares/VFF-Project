@@ -75,9 +75,43 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Lien cité par Wikipédia ; non lu.',
         ],
+        'houilles-org' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => 'Les trains dans la gare de Houilles et ses abords (rubrique sur l\'accident d\'octobre 1920)',
+            'publisher' => 'houilles.org (site d\'histoire locale)',
+            'author' => null,
+            'published' => null,
+            'locator' => 'section « L\'accident en gare de Houilles en octobre 1920 »',
+            'url' => 'http://houilles.org/gare.htm',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Page d\'histoire locale reproduisant des extraits de presse de l\'époque (hebdomadaire belge Le Patriote illustré) ; liste de victimes non reprise ici.',
+        ],
+        'memoire-maisons-laffitte' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => 'Accidents et accidentés à Maisons-Laffitte',
+            'publisher' => 'Mémoire de Maisons-Laffitte',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://www.memoire-de-maisons-laffitte.fr/insolite/accidents/',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Confirme que des habitants de Maisons-Laffitte comptent parmi les victimes et cite L\'Excelsior du 10 octobre 1920.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'Selon un extrait de l\'hebdomadaire belge Le Patriote illustré reproduit par un site d\'histoire locale, le train de marchandises, lourdement chargé de houille et de métaux, avait quitté Maisons-Laffitte vers 19 h pour Paris. Son attelage s\'est rompu au septième wagon et la partie libérée l\'a rattrapé à faible distance, avant que l\'incident signalé à Houilles ait pu être traité. Le train de voyageurs venant de Paris roulait à 50 km/h et ne devait pas s\'arrêter à Houilles.',
+                'en' => 'According to an extract from the Belgian weekly Le Patriote illustré reproduced by a local history site, the goods train, heavily loaded with coal and metals, had left Maisons-Laffitte for Paris at about 7 pm. Its coupling broke at the seventh wagon and the freed part caught up with it a short distance away, before the incident reported to Houilles could be dealt with. The passenger train from Paris was running at 50 km/h and was not due to stop at Houilles.',
+                'de' => 'Nach einem auf einer lokalgeschichtlichen Seite wiedergegebenen Auszug aus der belgischen Wochenzeitung Le Patriote illustré war der mit Kohle und Metallen schwer beladene Güterzug gegen 19 Uhr in Maisons-Laffitte Richtung Paris abgefahren. Seine Kupplung riss am siebten Wagen, und der losgelöste Teil holte ihn in geringem Abstand ein, bevor der nach Houilles gemeldete Vorfall behandelt werden konnte. Der Reisezug aus Paris fuhr mit 50 km/h und sollte in Houilles nicht halten.',
+                'sources' => ['houilles-org'],
+            ],
             [
                 'fr' => 'Le 9 octobre 1920 dans la soirée, à Houilles (alors en Seine-et-Oise), sur la ligne de Paris-Saint-Lazare à Mantes par Poissy, le train de marchandises D. 264 circule de Vernouillet-Verneuil vers Paris. Il compte 49 wagons chargés de ferraille et de charbon, pour environ 1 081 tonnes.',
                 'en' => 'On the evening of 9 October 1920, at Houilles (then in Seine-et-Oise), on the line from Paris-Saint-Lazare to Mantes via Poissy, goods train D. 264 was running from Vernouillet-Verneuil towards Paris. It had 49 wagons loaded with scrap iron and coal, weighing about 1,081 tonnes.',
@@ -92,6 +126,12 @@ return [
             ],
         ],
         'course' => [
+            [
+                'fr' => 'Le même récit indique que les agents de la gare et des voyageurs sur le quai ont couru à la rencontre du train de voyageurs en faisant des signaux d\'arrêt. Le mécanicien a serré les freins, dont l\'effet ne s\'est fait sentir que sur les premières voitures, qui ont escaladé les wagons renversés avant que les suivantes ne s\'écrasent contre elles.',
+                'en' => 'The same account says that station staff and passengers on the platform ran towards the passenger train giving stop signals. The driver applied the brakes, which only took effect on the first carriages; these climbed over the overturned wagons before the following ones crashed into them.',
+                'de' => 'Derselbe Bericht gibt an, dass Bahnhofspersonal und Reisende auf dem Bahnsteig dem Reisezug entgegenliefen und Haltsignale gaben. Der Lokführer bremste, doch die Bremse wirkte nur auf die ersten Wagen, die über die umgestürzten Güterwagen hinaufkletterten, bevor die folgenden auf sie aufprallten.',
+                'sources' => ['houilles-org'],
+            ],
             [
                 'fr' => 'Près de Sartrouville, le train de marchandises s\'est rompu après son septième wagon. Le mécanicien ne s\'en est pas aperçu et la queue du train, une quarantaine de véhicules, a continué à faible allure. La tête a été arrêtée en gare de Houilles, où l\'on a décidé de refouler les sept premiers wagons sur une voie de garage.',
                 'en' => 'Near Sartrouville, the goods train broke apart after its seventh wagon. The driver did not notice and the tail of the train, about forty vehicles, carried on slowly. The front part was stopped at Houilles station, where it was decided to push the first seven wagons back onto a siding.',
@@ -112,6 +152,12 @@ return [
             ],
         ],
         'victims' => [
+            [
+                'fr' => 'L\'hebdomadaire belge comptait plus de 40 morts au moment de la rédaction. Le site local indique que le président de la République Alexandre Millerand et le ministre se sont rendus sur place. Le site Mémoire de Maisons-Laffitte confirme que de nombreux habitants de la commune figurent parmi les victimes et publie une photographie des funérailles de ces victimes ; L\'Excelsior a relaté la catastrophe dans son numéro du 10 octobre 1920.',
+                'en' => 'The Belgian weekly counted more than 40 dead at the time of writing. The local site states that President of the Republic Alexandre Millerand and the minister went to the scene. The Mémoire de Maisons-Laffitte site confirms that many residents of that town were among the victims and publishes a photograph of the funeral of these victims; L\'Excelsior reported the disaster in its issue of 10 October 1920.',
+                'de' => 'Die belgische Wochenzeitung zählte zum Zeitpunkt des Schreibens mehr als 40 Tote. Die lokale Seite gibt an, dass Staatspräsident Alexandre Millerand und der Minister zur Unfallstelle reisten. Die Seite Mémoire de Maisons-Laffitte bestätigt, dass viele Einwohner der Stadt unter den Opfern waren, und zeigt ein Foto der Beerdigung dieser Opfer; L\'Excelsior berichtete in seiner Ausgabe vom 10. Oktober 1920 über die Katastrophe.',
+                'sources' => ['houilles-org', 'memoire-maisons-laffitte'],
+            ],
             [
                 'fr' => 'L\'accident fait 44 morts et environ 100 blessés, dont une cinquantaine de graves selon l\'article français. Les blessés ont été installés dans la salle d\'attente de la gare et dans des locaux voisins, et 23 blessés graves ont été conduits à Paris par un train de secours vers minuit et demi, puis hospitalisés.',
                 'en' => 'The accident killed 44 people and injured about 100, of whom roughly fifty seriously according to the French article. The injured were placed in the station waiting room and nearby premises, and 23 seriously injured people were taken to Paris by relief train at about half past midnight, then admitted to hospital.',
@@ -142,6 +188,12 @@ return [
             ],
         ],
         'disagreements' => [
+            [
+                'fr' => 'Pour l\'heure, le site local donne 19 h 25 pour le train de marchandises et 19 h 06 pour le départ du train de voyageurs de Paris-Saint-Lazare, et l\'hebdomadaire belge « vers 7 heures du soir », ce qui s\'accorde avec le texte de l\'article de Wikipédia plutôt qu\'avec son encadré indiquant 18 h. Le site local parle de « 40 morts » et l\'hebdomadaire belge de « plus de 40 », contre 44 et 47 ailleurs ; les chiffres provisoires de la presse précèdent le bilan définitif.',
+                'en' => 'As for the time, the local site gives 7.25 pm for the goods train and 7.06 pm for the departure of the passenger train from Paris-Saint-Lazare, and the Belgian weekly says \'about 7 in the evening\', which agrees with the text of the Wikipedia article rather than with its infobox giving 6 pm. The local site speaks of \'40 dead\' and the Belgian weekly of \'more than 40\', against 44 and 47 elsewhere; provisional press figures precede the final toll.',
+                'de' => 'Zur Uhrzeit nennt die lokale Seite 19.25 Uhr für den Güterzug und 19.06 Uhr für die Abfahrt des Reisezugs in Paris-Saint-Lazare, die belgische Wochenzeitung »gegen 7 Uhr abends«, was mit dem Text des Wikipedia-Artikels übereinstimmt und nicht mit dessen Infobox mit 18 Uhr. Die lokale Seite spricht von »40 Toten« und die belgische Wochenzeitung von »mehr als 40«, gegenüber 44 und 47 anderswo; vorläufige Pressezahlen gehen der endgültigen Bilanz voraus.',
+                'sources' => ['houilles-org'],
+            ],
             [
                 'fr' => 'Le bilan est de 44 morts selon l\'article français et de 47 selon l\'article allemand. La rampe où le train s\'est rompu est dite de 2 pour mille par le premier et de 10 pour mille par le second.',
                 'en' => 'The death toll is 44 according to the French article and 47 according to the German one. The gradient where the train broke apart is given as 2 per thousand by the former and 10 per thousand by the latter.',

@@ -102,4 +102,14 @@ return [
             ],
         ],
     ],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'collision',
+            'sources' => ['wp-fr-liste-1918', 'wp-en-liste-1910'],
+            'fr' => 'Les deux listes décrivent une collision entre deux trains dans le tunnel de Pacy, et non la rupture d\'un ouvrage.',
+            'en' => 'Both lists describe a collision between two trains in the Pacy tunnel, not a structural failure.',
+            'de' => 'Beide Listen beschreiben einen Zusammenstoß zweier Züge im Tunnel von Pacy und kein Versagen eines Bauwerks.',
+        ],
+    ],
 ];

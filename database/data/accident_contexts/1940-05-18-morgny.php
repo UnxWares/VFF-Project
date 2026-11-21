@@ -104,4 +104,14 @@ return [
             ],
         ],
     ],
+    'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '76453',
+            'sources' => ['gare-morgny', 'commune-morgny'],
+            'fr' => 'La gare de Morgny, sur la ligne d\'Amiens à Rouen, est à Morgny-la-Pommeraye (Seine-Maritime), et non à Morgny dans l\'Eure.',
+            'en' => 'Morgny station, on the Amiens to Rouen line, is in Morgny-la-Pommeraye (Seine-Maritime), not in Morgny in the Eure.',
+            'de' => 'Der Bahnhof Morgny an der Strecke Amiens-Rouen liegt in Morgny-la-Pommeraye (Seine-Maritime) und nicht in Morgny im Département Eure.',
+        ],
+    ],
 ];

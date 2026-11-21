@@ -21,9 +21,11 @@ use RuntimeException;
  *   - chaque fichier est contrôlé (AccidentContextValidator) ; un fichier en erreur n'écrit rien ;
  *   - pour chaque fiche, documents, énoncés et images sont remplacés en entier (rejouable, idempotent) ;
  *   - images : auteur et licence relus sur Commons (AccidentImageResolver), fichier non libre écarté ;
- *   - corrections de date, d'heure ou de bilan : appliquées à la fiche, valeur d'avant gardée dans
+ *   - corrections de date, d'heure, de bilan, de nature ou de commune : appliquées à la fiche (une commune
+ *     corrigée replace la fiche au centre de la commune et refait le rattachement aux lignes), valeur d'avant gardée dans
  *     accidents.context_corrections ; une correction retirée du fichier rend la valeur d'avant ; le résumé
  *     construit est réécrit avec les faits corrigés ;
+ *   - doublons (`aliases`) : la fiche en double devient un alias de la fiche du fichier (alias_of_id) ;
  *   - passage complet (sans --only) : une fiche dont le fichier a disparu perd son contexte et ses corrections.
  *
  * vff:import-accidents réécrit date et bilan depuis ses sources : rejouer cette commande après un import.
@@ -33,6 +35,7 @@ final class AccidentContextImporter
     public function __construct(
         private readonly AccidentContextValidator $validator,
         private readonly AccidentSummary $summary,
+        private readonly AccidentRecordCorrector $corrector,
     ) {}
 
     public static function defaultDirectory(): string
@@ -59,6 +62,14 @@ final class AccidentContextImporter
             } elseif (in_array($accident->kind->value, AccidentKind::HIDDEN, true)) {
                 $errors[] = "la fiche « {$slug} » n'est pas publiée (nature masquée)";
             }
+            foreach (is_array($data) ? ($data['aliases'] ?? []) : [] as $alias) {
+                $target = is_array($alias) ? Accident::withoutGlobalScopes()->where('slug', $alias['slug'] ?? '')->first() : null;
+                if ($target === null || $target->slug === $slug) {
+                    $errors[] = 'alias « '.(is_array($alias) ? ($alias['slug'] ?? '') : '').' » : fiche inconnue ou fiche elle-même';
+                } elseif ($target->alias_of_id !== null && $target->alias_of_id !== $accident?->id) {
+                    $errors[] = "alias « {$target->slug} » : déjà alias d'une autre fiche";
+                }
+            }
             if ($errors !== []) {
                 $result->invalid[$slug] = $errors;
 
@@ -75,10 +86,15 @@ final class AccidentContextImporter
 
         DB::beginTransaction();
         try {
+            $aliases = [];
             foreach ($valid as $slug => [$accident, $data]) {
                 $this->write($accident, $data, $images, $result);
                 $result->written[] = $slug;
+                foreach ($data['aliases'] ?? [] as $alias) {
+                    $aliases[$alias['slug']] = ['keep' => $accident, 'alias' => $alias];
+                }
             }
+            $this->syncAliases($aliases, $only === [], $result);
             if ($only === []) {
                 $this->removeOrphans(array_keys($files), $result);
             }
@@ -219,7 +235,9 @@ final class AccidentContextImporter
      */
     private function applyCorrections(Accident $accident, array $corrections, array $urls, AccidentContextResult $result): void
     {
-        $previous = collect($accident->context_corrections ?? [])->keyBy('field')->all();
+        // Les entrées « alias_of » (fiche déclarée alias par une autre) sont gérées par syncAliases().
+        $kept = array_values(array_filter($accident->context_corrections ?? [], fn (array $c) => $c['field'] === 'alias_of'));
+        $previous = collect($accident->context_corrections ?? [])->reject(fn (array $c) => $c['field'] === 'alias_of')->keyBy('field')->all();
         $applied = [];
         $changed = false;
         foreach ($corrections as $c) {
@@ -235,6 +253,8 @@ final class AccidentContextImporter
                 $accident->toll_source = 'context';
                 $accident->toll_source_url = $urls[$c['sources'][0]];
                 $accident->provenance = [...($accident->provenance ?? []), $field => 'context'];
+            } elseif (in_array($field, ['kind', 'commune_insee'], true)) {
+                $accident->provenance = [...($accident->provenance ?? []), ($field === 'kind' ? 'kind' : 'location') => 'context'];
             }
             $applied[] = [
                 'field' => $field,
@@ -249,12 +269,18 @@ final class AccidentContextImporter
         // Correction retirée du fichier : la valeur d'avant revient, si personne ne l'a changée depuis.
         foreach (array_diff_key($previous, array_flip(array_column($corrections, 'field'))) as $field => $old) {
             if ($this->value($accident, $field) === $old['value']) {
-                $this->set($accident, $field, $old['before']);
-                $this->restoreMeta($accident, $field, $old['before_meta'] ?? []);
+                if ($field === 'commune_insee') {
+                    $this->corrector->restore($accident, $old['before'], $old['before_meta'] ?? []);
+                    $this->restoreProvenance($accident, 'location', $old['before_meta']['provenance'] ?? null);
+                } else {
+                    $this->set($accident, $field, $old['before']);
+                    $this->restoreMeta($accident, $field, $old['before_meta'] ?? []);
+                }
                 $changed = true;
             }
         }
-        $accident->context_corrections = $applied !== [] ? $applied : null;
+        $all = [...$applied, ...$kept];
+        $accident->context_corrections = $all !== [] ? $all : null;
         if ($changed) {
             $this->rewriteSummary($accident, array_column($applied, 'field'));
         }
@@ -267,6 +293,8 @@ final class AccidentContextImporter
             'occurred_at_time' => $a->occurred_at_time !== null ? substr($a->occurred_at_time, 0, 5) : null,
             'deaths' => $a->deaths,
             'injuries' => $a->injuries,
+            'kind' => $a->kind->value,
+            'commune_insee' => $a->commune_insee,
             default => throw new RuntimeException("champ {$field}"),
         };
     }
@@ -278,6 +306,8 @@ final class AccidentContextImporter
             'occurred_at_time' => $a->occurred_at_time = $value !== null ? $value.':00' : null,
             'deaths' => $a->deaths = $value !== null ? (int) $value : null,
             'injuries' => $a->injuries = $value !== null ? (int) $value : null,
+            'kind' => $a->kind = AccidentKind::from((string) $value),
+            'commune_insee' => $this->corrector->moveToCommune($a, (string) $value),
             default => throw new RuntimeException("champ {$field}"),
         };
     }
@@ -285,17 +315,38 @@ final class AccidentContextImporter
     /** @return array<string, mixed> */
     private function meta(Accident $a, string $field): array
     {
-        return in_array($field, ['deaths', 'injuries'], true) ? [
-            'toll_source' => $a->toll_source,
-            'toll_source_url' => $a->toll_source_url,
-            'provenance' => $a->provenance[$field] ?? null,
-        ] : [];
+        return match ($field) {
+            'deaths', 'injuries' => [
+                'toll_source' => $a->toll_source,
+                'toll_source_url' => $a->toll_source_url,
+                'provenance' => $a->provenance[$field] ?? null,
+            ],
+            'kind' => ['kind_provenance' => $a->provenance['kind'] ?? null],
+            'commune_insee' => [...$this->corrector->snapshot($a), 'provenance' => $a->provenance['location'] ?? null],
+            default => [],
+        };
+    }
+
+    private function restoreProvenance(Accident $a, string $key, ?string $value): void
+    {
+        $provenance = $a->provenance ?? [];
+        if ($value !== null) {
+            $provenance[$key] = $value;
+        } else {
+            unset($provenance[$key]);
+        }
+        $a->provenance = $provenance;
     }
 
     /** @param  array<string, mixed>  $meta */
     private function restoreMeta(Accident $a, string $field, array $meta): void
     {
         if ($meta === []) {
+            return;
+        }
+        if ($field === 'kind') {
+            $this->restoreProvenance($a, 'kind', $meta['kind_provenance'] ?? null);
+
             return;
         }
         $a->toll_source = $meta['toll_source'];
@@ -314,6 +365,10 @@ final class AccidentContextImporter
     {
         $tollCorrected = array_intersect($correctedFields, ['deaths', 'injuries']) !== [];
         $mismatch = collect($a->review_notes ?? [])->contains(fn (array $n) => $n['code'] === 'toll_mismatch');
+        // Nom construit par VFF (nature et commune) : refait avec la nature et la commune corrigées.
+        if (($a->provenance['name'] ?? null) === 'vff') {
+            $a->name = $this->summary->names([], $a->kind, $a->commune_name);
+        }
         $a->summary = $this->summary->write([
             'date' => $a->occurred_on->toDateString(),
             'precision' => $a->date_precision,
@@ -330,6 +385,47 @@ final class AccidentContextImporter
         ]);
     }
 
+    /**
+     * Doublons déclarés par les fichiers (`aliases`) : la fiche en double devient un alias de la fiche retenue
+     * (alias_of_id, même mécanisme que vff:verify-accidents : gardée avec ses sources, jamais publiée). Passage
+     * complet : un alias que plus aucun fichier ne déclare redevient une fiche publiée.
+     *
+     * @param  array<string, array{keep: Accident, alias: array<string, mixed>}>  $declared
+     */
+    private function syncAliases(array $declared, bool $complete, AccidentContextResult $result): void
+    {
+        foreach ($declared as $slug => $d) {
+            $alias = Accident::withoutGlobalScopes()->where('slug', $slug)->sole();
+            $entries = array_values(array_filter($alias->context_corrections ?? [], fn (array $c) => $c['field'] !== 'alias_of'));
+            $previous = collect($alias->context_corrections ?? [])->firstWhere('field', 'alias_of');
+            $entries[] = [
+                'field' => 'alias_of',
+                'before' => $previous['before'] ?? null,
+                'value' => $d['keep']->slug,
+                'references' => array_values($d['alias']['sources']),
+                'reason' => ['fr' => self::typography($d['alias']['fr']), 'en' => self::typography($d['alias']['en']), 'de' => self::typography($d['alias']['de'])],
+            ];
+            if ($alias->alias_of_id !== $d['keep']->id) {
+                $result->corrections[] = "{$slug} : alias de {$d['keep']->slug}";
+            }
+            $alias->alias_of_id = $d['keep']->id;
+            $alias->context_corrections = $entries;
+            $alias->save();
+        }
+        if (! $complete) {
+            return;
+        }
+        $stale = Accident::withoutGlobalScopes()->whereNotNull('context_corrections')->get()
+            ->filter(fn (Accident $a) => collect($a->context_corrections)->contains('field', 'alias_of') && ! isset($declared[$a->slug]));
+        foreach ($stale as $alias) {
+            $alias->alias_of_id = null;
+            $rest = array_values(array_filter($alias->context_corrections ?? [], fn (array $c) => $c['field'] !== 'alias_of'));
+            $alias->context_corrections = $rest !== [] ? $rest : null;
+            $alias->save();
+            $result->corrections[] = "{$alias->slug} : n'est plus un alias";
+        }
+    }
+
     /** @param  list<string>  $present  slugs des fichiers présents */
     private function removeOrphans(array $present, AccidentContextResult $result): void
     {
@@ -337,7 +433,7 @@ final class AccidentContextImporter
             ->merge(AccidentContextEntry::query()->distinct()->pluck('accident_id'))
             ->merge(Accident::withoutGlobalScopes()->where(fn ($q) => $q->whereNotNull('context_checked_on')->orWhereNotNull('context_corrections'))->pluck('id'))
             ->unique()->all();
-        $orphans = Accident::withoutGlobalScopes()->whereIn('id', $ids)->whereNotIn('slug', $present)->get();
+        $orphans = Accident::withoutGlobalScopes()->whereIn('id', $ids)->whereNotIn('slug', $present)->whereNull('alias_of_id')->get();
         foreach ($orphans as $accident) {
             AccidentReference::query()->where('accident_id', $accident->id)->delete();
             AccidentContextEntry::query()->where('accident_id', $accident->id)->delete();

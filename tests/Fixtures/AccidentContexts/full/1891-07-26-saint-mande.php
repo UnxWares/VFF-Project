@@ -40,6 +40,8 @@ return [
     'corrections' => [
         ['field' => 'deaths', 'value' => 49, 'sources' => ['rapport'], 'fr' => 'Bilan du rapport.', 'en' => 'Toll in the report.', 'de' => 'Bilanz des Berichts.'],
         ['field' => 'occurred_at_time', 'value' => '21:18', 'sources' => ['rapport', 'journal'], 'fr' => 'Heure du rapport.', 'en' => 'Time in the report.', 'de' => 'Uhrzeit des Berichts.'],
+        ['field' => 'kind', 'value' => 'derailment', 'sources' => ['rapport'], 'fr' => 'Déraillement selon le rapport.', 'en' => 'Derailment in the report.', 'de' => 'Entgleisung laut Bericht.'],
+        ['field' => 'commune_insee', 'value' => '94080', 'sources' => ['rapport'], 'fr' => 'Commune voisine selon le rapport.', 'en' => 'Neighbouring commune in the report.', 'de' => 'Nachbargemeinde laut Bericht.'],
     ],
     'images' => [
         ['file' => 'File:Saint-Mandé essai.jpg', 'caption' => ['fr' => 'Gravure de 1891', 'en' => 'Engraving, 1891', 'de' => 'Stich von 1891']],

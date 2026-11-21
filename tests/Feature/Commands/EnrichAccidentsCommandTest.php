@@ -40,6 +40,9 @@ class EnrichAccidentsCommandTest extends TestCase
             'provenance' => ['deaths' => 'wikidata'],
         ]);
         Accident::factory()->on('2013-07-12')->create(['slug' => '2013-07-12-bretigny-sur-orge', 'kind' => 'derailment', 'deaths' => 7]);
+        Accident::factory()->on('2013-07-12')->create(['slug' => '2013-07-12-doublon', 'kind' => 'derailment', 'deaths' => 7]);
+        DB::statement("INSERT INTO communes (code_insee, type, nom, nom_norm, departement, geom, created_at, updated_at)
+            VALUES ('94080', 'commune-actuelle', 'Vincennes', 'vincennes', '94', ST_SetSRID(ST_MakePoint(2.44, 48.85), 4326), now(), now())");
         $this->fakeCommons();
     }
 
@@ -87,6 +90,17 @@ class EnrichAccidentsCommandTest extends TestCase
         $this->assertSame('2026-11-21', $mande->context_checked_on?->toDateString());
         $this->assertSame(43, $mande->context_corrections[0]['before']);
         $this->assertStringContainsString('49', $mande->summary['fr']);
+        // Nature et commune corrigées : fiche placée au centre de la commune, provenance « context », nom refait.
+        $this->assertSame('derailment', $mande->kind->value);
+        $this->assertSame(['94080', 'Vincennes', '94', 'commune', 'context'], [$mande->commune_insee, $mande->commune_name, $mande->department_code, $mande->location_precision?->value, $mande->location_source]);
+        $this->assertSame('context', $mande->provenance['location']);
+        $point = DB::selectOne('SELECT ST_X(geom) AS lng FROM accidents WHERE id = ?', [$mande->id]);
+        $this->assertEqualsWithDelta(2.44, (float) $point->lng, 0.0001);
+
+        // Doublon déclaré : la fiche devient un alias de Brétigny, jamais publiée.
+        $doublon = Accident::withoutGlobalScopes()->where('slug', '2013-07-12-doublon')->sole();
+        $this->assertSame(Accident::query()->where('slug', '2013-07-12-bretigny-sur-orge')->value('id'), $doublon->alias_of_id);
+        $this->assertNull(Accident::query()->where('slug', '2013-07-12-doublon')->first());
 
         // Politesse : User-Agent générique de VFF.
         Http::assertSent(fn (Request $r) => $r->hasHeader('User-Agent', 'VFF-Bot/1.0 (+https://vff-project.org)'));
@@ -114,6 +128,10 @@ class EnrichAccidentsCommandTest extends TestCase
         $this->assertSame('wikidata', $mande->toll_source);
         $this->assertSame('wikidata', $mande->provenance['deaths']);
         $this->assertNull($mande->context_corrections);
+        $this->assertSame('collision', $mande->kind->value);
+        $this->assertSame('Saint-Mandé', $mande->commune_name);
+        // Le doublon n'est plus déclaré : il redevient une fiche publiée.
+        $this->assertNull(Accident::withoutGlobalScopes()->where('slug', '2013-07-12-doublon')->value('alias_of_id'));
         $this->assertSame(0, AccidentImage::query()->count());
 
         // La fiche de Brétigny n'a plus de fichier dans ce dossier : son contexte est retiré.

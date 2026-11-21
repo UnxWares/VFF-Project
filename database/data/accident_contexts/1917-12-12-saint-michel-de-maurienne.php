@@ -47,9 +47,57 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Ouvrage de référence fondé sur les archives militaires ; le PDF lié (article d\'Historail) n\'a pas pu être lu.',
         ],
+        'historail-2013' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le tragique destin d\'un train de permissionnaires (compte rendu du livre d\'André Pallatier)',
+            'publisher' => 'Historail',
+            'author' => 'Georges Ribeill',
+            'published' => '2013-07',
+            'locator' => 'p. 103-104',
+            'url' => 'https://www.editions-harmattan.fr/media/106276/download/historail_juillet_tragique_destin.pdf',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Compte rendu détaillé du livre de Pallatier par un historien du rail : dossier du conseil de guerre, chiffres, légendes écartées.',
+        ],
+        'rfgenealogie-geneanet' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Accident ferroviaire de Saint-Michel de Maurienne : Geneanet a terminé l\'arbre généalogique des 435 victimes',
+            'publisher' => 'La Revue française de généalogie',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://www.rfgenealogie.com/infos/accident-ferroviaire-de-saint-michel-de-maurienne-geneanet-a-termine-l-arbre-genealogique-des',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Présente le projet collaboratif Geneanet sur les victimes ; faits seulement, aucun nom repris.',
+        ],
+        'cityzeum-2017' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => 'Commémoration de la catastrophe ferroviaire de Saint-Michel-de-Maurienne',
+            'publisher' => 'Cityzeum (programme du centenaire)',
+            'author' => null,
+            'published' => '2017',
+            'locator' => null,
+            'url' => 'https://www.cityzeum.com/ar/commemoration-de-la-catastrophe-ferroviaire-de-saint-michel-de-maurienne',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Programme des commémorations du centenaire ; la page est incohérente sur le nombre de communes et une FAQ situe à tort l\'accident à Saint-Jean-de-Maurienne.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'Une instruction du PLM datée du 30 novembre 1917 régissait les trains de permissionnaires, qui ne devaient pas dépasser 20 à 25 km/h sur cette descente, la vitesse maximale étant de 40 km/h sur la ligne. Dès la première déclivité, la vitesse du train est passée de 9 à 49 km/h en moins d\'un kilomètre.',
+                'en' => 'A PLM instruction dated 30 November 1917 governed leave trains, which were not supposed to exceed 20 to 25 km/h on this descent, the maximum speed on the line being 40 km/h. At the first downhill stretch the train\'s speed rose from 9 to 49 km/h in less than a kilometre.',
+                'de' => 'Eine PLM-Anweisung vom 30. November 1917 regelte die Urlauberzüge, die auf diesem Gefälle höchstens 20 bis 25 km/h fahren sollten; die Höchstgeschwindigkeit der Strecke betrug 40 km/h. Auf dem ersten Gefällestück stieg die Geschwindigkeit des Zuges in weniger als einem Kilometer von 9 auf 49 km/h.',
+                'sources' => ['historail-2013'],
+            ],
             [
                 'fr' => 'Le train, un convoi de permissionnaires français revenant du front italien, circulait sous le numéro ML 3874, un numéro de train de marchandises réutilisé. Il comptait une locomotive PLM 2592 avec tender, un fourgon de tête, 17 voitures et un fourgon de queue, pour environ 350 m de long.',
                 'en' => 'The train, a convoy of French soldiers on leave returning from the Italian front, ran as ML 3874, a reused freight train number. It consisted of PLM locomotive 2592 with tender, a head van, 17 coaches and a tail van, about 350 m long.',
@@ -91,6 +139,12 @@ return [
         ],
         'victims' => [
             [
+                'fr' => 'Le chiffre arrêté officiellement au printemps 1919 est de 425 hommes, dont 277 non identifiés, auxquels s\'ajoutent huit soldats morts après hospitalisation et deux agents du PLM, soit 435 au total. Un projet collaboratif de Geneanet, achevé pour le 105e anniversaire, a reconstitué un arbre d\'environ 33 000 personnes et a repéré un survivant compté par erreur parmi les morts, ce qui ramènerait le bilan à 434.',
+                'en' => 'The figure officially fixed in spring 1919 is 425 men, 277 of them unidentified, to which are added eight soldiers who died after being hospitalised and two PLM employees, 435 in all. A collaborative Geneanet project, completed for the 105th anniversary, built a tree of about 33,000 people and found one survivor wrongly counted among the dead, which would bring the toll to 434.',
+                'de' => 'Die im Frühjahr 1919 amtlich festgelegte Zahl beträgt 425 Männer, davon 277 nicht identifiziert, hinzu kommen acht nach der Einlieferung ins Krankenhaus gestorbene Soldaten und zwei PLM-Bedienstete, insgesamt 435. Ein gemeinschaftliches Geneanet-Projekt, abgeschlossen zum 105. Jahrestag, erstellte einen Stammbaum von rund 33 000 Personen und fand einen Überlebenden, der irrtümlich unter den Toten gezählt wurde, womit sich die Bilanz auf 434 verringern würde.',
+                'sources' => ['historail-2013', 'rfgenealogie-geneanet'],
+            ],
+            [
                 'fr' => 'Le bilan établi après l\'ouverture des archives militaires est de 435 morts : 433 militaires (dont 277 non identifiés, 148 identifiés et 8 décédés à l\'hôpital) et 2 agents civils du PLM. Environ 194 personnes ont été hospitalisées. Il s\'agit de l\'accident ferroviaire le plus meurtrier de l\'histoire de France.',
                 'en' => 'The toll established after the military archives were opened is 435 dead: 433 military personnel (277 unidentified, 148 identified and 8 who died in hospital) and 2 civilian PLM employees. About 194 people were hospitalised. It is the deadliest rail accident in French history.',
                 'de' => 'Die nach Öffnung der Militärarchive ermittelte Bilanz beträgt 435 Tote: 433 Militärangehörige (davon 277 nicht identifiziert, 148 identifiziert und 8 im Krankenhaus gestorben) und 2 zivile PLM-Bedienstete. Rund 194 Personen wurden ins Krankenhaus eingeliefert. Es ist das folgenschwerste Eisenbahnunglück der französischen Geschichte.',
@@ -119,6 +173,18 @@ return [
         ],
         'aftermath' => [
             [
+                'fr' => 'Le dossier du jugement du conseil de guerre, conservé au Service historique de la Défense, compte 228 pièces. Les six agents inculpés l\'étaient pour méconnaissance et inobservation des règlements, dans un contexte de règlements empilés et contradictoires (le PLM assimilait ces trains à des trains de voyageurs, l\'armée à des trains de marchandises). Selon l\'auteur du livre, l\'union sacrée ne permettait pas d\'opposer l\'armée et le PLM devant un tribunal.',
+                'en' => 'The court-martial judgment file, held by the Service historique de la Défense, contains 228 documents. The six employees charged faced the offence of ignoring and failing to observe the regulations, in a context of piled-up and contradictory rules (the PLM treated these trains as passenger trains, the army as goods trains). According to the book\'s author, the wartime national unity left no room for setting the army against the PLM before a court.',
+                'de' => 'Die Akte des Kriegsgerichtsurteils, im Service historique de la Défense aufbewahrt, umfasst 228 Stücke. Die sechs angeklagten Bediensteten wurden wegen Nichtkenntnis und Nichtbeachtung der Vorschriften verfolgt, in einem Umfeld aufeinandergehäufter und widersprüchlicher Regeln (die PLM behandelte diese Züge als Reisezüge, die Armee als Güterzüge). Nach Ansicht des Buchautors erlaubte die Union sacrée im Krieg nicht, Armee und PLM vor einem Gericht gegeneinander zu stellen.',
+                'sources' => ['historail-2013'],
+            ],
+            [
+                'fr' => 'La censure militaire a imposé un silence total dans la presse nationale ; le communiqué de l\'agence Havas ne donnait ni le lieu ni le nombre de victimes. La Gazette de Lausanne a publié une dépêche faisant état de 800 à 900 morts, reprise par la presse suisse ; ce chiffre, faux, a été repris par la presse locale en 1937 puis par divers auteurs.',
+                'en' => 'Military censorship imposed total silence on the national press; the Havas agency statement gave neither the place nor the number of victims. The Gazette de Lausanne published a dispatch reporting 800 to 900 dead, relayed by the Swiss press; this wrong figure was repeated by the local press in 1937 and then by various authors.',
+                'de' => 'Die Militärzensur verhängte völliges Schweigen in der nationalen Presse; die Mitteilung der Agentur Havas nannte weder den Ort noch die Zahl der Opfer. Die Gazette de Lausanne veröffentlichte eine Depesche mit 800 bis 900 Toten, die von der Schweizer Presse übernommen wurde; diese falsche Zahl wurde 1937 von der Lokalpresse und danach von verschiedenen Autoren wiederholt.',
+                'sources' => ['historail-2013'],
+            ],
+            [
                 'fr' => 'L\'accident a été classé secret militaire et la presse française a reçu l\'ordre de se taire : Le Figaro lui a consacré 21 lignes le 17 décembre et Le Petit Journal une demi-colonne le 18. Le député Henri Fougère a évoqué cette censure à la Chambre le 4 avril 1919, ce qui a donné lieu à une réponse du ministre Albert-André Claveille.',
                 'en' => 'The accident was classed as a military secret and the French press was ordered to stay silent: Le Figaro gave it 21 lines on 17 December and Le Petit Journal half a column on 18 December. Deputy Henri Fougère raised the censorship in the Chamber on 4 April 1919, and Minister Albert-André Claveille replied.',
                 'de' => 'Das Unglück wurde als militärisches Geheimnis eingestuft, und der französischen Presse wurde Schweigen auferlegt: Le Figaro widmete ihm am 17. Dezember 21 Zeilen, Le Petit Journal am 18. Dezember eine halbe Spalte. Der Abgeordnete Henri Fougère sprach die Zensur am 4. April 1919 in der Kammer an, worauf Minister Albert-André Claveille antwortete.',
@@ -133,6 +199,12 @@ return [
         ],
         'memory' => [
             [
+                'fr' => 'Des recherches d\'archives approfondies n\'ont commencé qu\'en 2007, à la demande d\'André Pallatier, natif de Saint-Michel-de-Maurienne, qui en a tiré en 2013 un livre de 324 pages chez L\'Harmattan. Pour le centenaire, des commémorations ont eu lieu du 2 au 18 décembre 2017 dans plusieurs communes de la Maurienne, avec des visites du site du déraillement et des monuments.',
+                'en' => 'In-depth archival research began only in 2007, at the request of André Pallatier, a native of Saint-Michel-de-Maurienne, who drew from it a 324-page book published by L\'Harmattan in 2013. For the centenary, commemorations took place from 2 to 18 December 2017 in several Maurienne communes, with visits to the derailment site and the monuments.',
+                'de' => 'Eingehende Archivrecherchen begannen erst 2007 auf Anregung von André Pallatier, der aus Saint-Michel-de-Maurienne stammt und 2013 daraus ein Buch von 324 Seiten bei L\'Harmattan veröffentlichte. Zum hundertsten Jahrestag fanden vom 2. bis 18. Dezember 2017 in mehreren Gemeinden der Maurienne Gedenkveranstaltungen statt, mit Besuchen der Entgleisungsstelle und der Denkmäler.',
+                'sources' => ['rfgenealogie-geneanet', 'historail-2013', 'cityzeum-2017'],
+            ],
+            [
                 'fr' => 'Un monument a été inauguré au cimetière de Saint-Michel-de-Maurienne en juin 1923 par le ministre de la Guerre André Maginot. Les restes des victimes ont été transférés en 1961 à la nécropole nationale de La Doua, à Villeurbanne, et une stèle a été érigée à La Saussaz le 12 décembre 1998. Le centenaire a été commémoré en décembre 2017.',
                 'en' => 'A monument was unveiled in the Saint-Michel-de-Maurienne cemetery in June 1923 by War Minister André Maginot. The victims\' remains were moved in 1961 to the La Doua national necropolis in Villeurbanne, and a stele was erected at La Saussaz on 12 December 1998. The centenary was commemorated in December 2017.',
                 'de' => 'Im Juni 1923 weihte Kriegsminister André Maginot auf dem Friedhof von Saint-Michel-de-Maurienne ein Denkmal ein. Die sterblichen Überreste der Opfer wurden 1961 in die Nationalnekropole La Doua in Villeurbanne überführt, und am 12. Dezember 1998 wurde in La Saussaz eine Stele errichtet. Das hundertjährige Gedenken fand im Dezember 2017 statt.',
@@ -140,6 +212,12 @@ return [
             ],
         ],
         'disagreements' => [
+            [
+                'fr' => 'Pour le bilan officiel, les sources lues concordent sur 425 morts retenus en 1919 plus huit morts à l\'hôpital et deux cheminots, soit 435 ; Geneanet signale toutefois un survivant compté à tort (434). Pour l\'heure de départ, Historail indique « vers 23 h ».',
+                'en' => 'For the official toll, the sources read agree on 425 dead accepted in 1919 plus eight hospital deaths and two railwaymen, 435 in all; Geneanet nevertheless reports one survivor counted in error (434). For the departure time, Historail says "around 11 pm".',
+                'de' => 'Zur amtlichen Bilanz stimmen die gelesenen Quellen auf 425 im Jahr 1919 festgestellte Tote plus acht Tote im Krankenhaus und zwei Eisenbahner überein, insgesamt 435; Geneanet meldet jedoch einen irrtümlich mitgezählten Überlebenden (434). Als Abfahrtszeit nennt Historail »gegen 23 Uhr«.',
+                'sources' => ['historail-2013', 'rfgenealogie-geneanet'],
+            ],
             [
                 'fr' => 'Le bilan varie selon les sources : 425 morts retenus par le tribunal de Saint-Jean-de-Maurienne en 1919 (militaires sur place seulement), 435 après les recherches en archives, 675 cité par franceinfo en 2017 et environ 800 dans des ouvrages anciens et la presse.',
                 'en' => 'The toll varies between sources: 425 dead accepted by the Saint-Jean-de-Maurienne court in 1919 (military dead at the site only), 435 after archival research, 675 cited by franceinfo in 2017 and about 800 in older books and the press.',

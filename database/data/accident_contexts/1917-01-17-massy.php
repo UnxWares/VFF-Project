@@ -1,0 +1,117 @@
+<?php
+
+// Contexte sourcé de l'accident de Massy-Palaiseau du 17 janvier 1917 (recherche du 21/11/2026).
+return [
+    'slug' => '1917-01-17-massy',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1917' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1917',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1917&oldid=235357718#Janvier',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 17 janvier 1917 ; elle renvoie à Le Temps (19 janvier 1917, p. 3) et à Le Petit Parisien (18 janvier 1917, p. 1).',
+        ],
+        'wp-en-liste' => [
+            'provider' => 'wikipedia-en',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'List of rail accidents (1910-1919)',
+            'publisher' => 'Wikipedia',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://en.wikipedia.org/w/index.php?title=List_of_rail_accidents_%281910%E2%80%931919%29&oldid=1384234959#1917',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 17 janvier 1917 (10 morts, 30 blessés) d\'après Semmens, 1994, p. 53.',
+        ],
+        'temps-1917' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Temps, 19 janvier 1917',
+            'publisher' => 'Gallica (BnF)',
+            'author' => null,
+            'published' => '1917-01-19',
+            'locator' => 'p. 3',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k2427939/f3.image.r=tamponnement.langFR',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article de presse cité par Wikipédia ; non lisible depuis la machine de recherche, à consulter.',
+        ],
+        'petit-parisien-1917' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Petit Parisien, 18 janvier 1917',
+            'publisher' => 'Gallica (BnF)',
+            'author' => null,
+            'published' => '1917-01-18',
+            'locator' => 'p. 1',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k566048h/f1.item.r=Massy-Palaiseau.zoom',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article de presse cité par Wikipédia ; non lisible depuis la machine de recherche, à consulter.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 17 janvier 1917, vers 11 h 20, sur la ligne de Grande Ceinture, un train transportant plus de 1 600 permissionnaires britanniques du Havre vers Marseille vient de s\'arrêter en gare de Massy-Palaiseau (Essonne).',
+                'en' => 'On 17 January 1917, at about 11.20 a.m., on the Grande Ceinture line, a train carrying more than 1,600 British soldiers on leave from Le Havre to Marseille had just stopped at Massy-Palaiseau station (Essonne).',
+                'de' => 'Am 17. Januar 1917 gegen 11.20 Uhr war auf der Strecke der Grande Ceinture ein Zug mit mehr als 1600 britischen Urlaubern von Le Havre nach Marseille gerade im Bahnhof Massy-Palaiseau (Essonne) zum Halten gekommen.',
+                'sources' => ['wp-liste-1917'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Les dernières voitures, séparées du reste du convoi quelque temps plus tôt après une rupture d\'attelage dans une légère rampe, franchissent le sommet, reprennent de la vitesse dans la descente suivante et heurtent le train arrêté. Deux voitures sont disloquées.',
+                'en' => 'The last coaches, which had come away from the rest of the train some time earlier after a coupling failure on a slight incline, crossed the summit, picked up speed on the next downhill stretch and ran into the stationary train. Two coaches were wrecked.',
+                'de' => 'Die letzten Wagen, die sich einige Zeit zuvor nach einem Kupplungsbruch in einer leichten Steigung vom übrigen Zug getrennt hatten, überwanden die Kuppe, gewannen im folgenden Gefälle wieder an Fahrt und fuhren auf den haltenden Zug auf. Zwei Wagen wurden zertrümmert.',
+                'sources' => ['wp-liste-1917', 'wp-en-liste'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Selon la liste française, l\'accident fait quatorze morts et une quarantaine de blessés.',
+                'en' => 'According to the French list, the accident killed fourteen people and injured about forty.',
+                'de' => 'Nach der französischen Liste starben bei dem Unfall vierzehn Menschen, etwa vierzig wurden verletzt.',
+                'sources' => ['wp-liste-1917'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'La rupture d\'attelage est à l\'origine de la séparation du train. L\'enquête a jugé les causes fortuites.',
+                'en' => 'A coupling failure caused the train to split. The inquiry judged the causes to be accidental.',
+                'de' => 'Ein Kupplungsbruch war die Ursache der Zugtrennung. Die Untersuchung bewertete die Ursachen als zufällig.',
+                'sources' => ['wp-liste-1917'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La liste anglaise de Wikipédia, d\'après Semmens, donne dix morts et trente blessés et évoque un train de quarante voitures allant de Paris au front, là où la liste française donne quatorze morts, une quarantaine de blessés et un trajet du Havre à Marseille.',
+                'en' => 'The English Wikipedia list, based on Semmens, gives ten dead and thirty injured and describes a forty-car train going from Paris to the front, whereas the French list gives fourteen dead, about forty injured and a journey from Le Havre to Marseille.',
+                'de' => 'Die englische Wikipedia-Liste nennt nach Semmens zehn Tote und dreißig Verletzte und beschreibt einen Zug aus vierzig Wagen von Paris an die Front, während die französische Liste vierzehn Tote, etwa vierzig Verletzte und eine Fahrt von Le Havre nach Marseille angibt.',
+                'sources' => ['wp-en-liste', 'wp-liste-1917'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'collision',
+            'sources' => ['wp-liste-1917', 'wp-en-liste'],
+            'fr' => 'Les deux listes décrivent une collision entre deux fractions d\'un même train après une rupture d\'attelage, et non la défaillance d\'un ouvrage.',
+            'en' => 'Both lists describe a collision between two portions of one train after a coupling failure, not the failure of a structure.',
+            'de' => 'Beide Listen beschreiben einen Zusammenstoß zwischen zwei Teilen desselben Zuges nach einem Kupplungsbruch, nicht das Versagen eines Bauwerks.',
+        ],
+    ],
+];

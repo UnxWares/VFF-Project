@@ -1,0 +1,162 @@
+<?php
+
+// Contexte sourcé de l'accident de Saint-Antoine-du-Rocher du 29 juillet 1925 (recherche du 21/11/2026).
+return [
+    'slug' => '1925-07-29-saint-antoine-du-rocher',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1925' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1925',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Saint-Antoine-du-Rocher',
+            'url' => 'https://fr.wikipedia.org/wiki/Liste_d\'accidents_ferroviaires_en_France_en_1925',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Donne la nuit du 29 juillet, la gare, l\'express Le Mans-Tours, la vitesse, 19 morts dont le mécanicien et 30 blessés ; renvoie à Le Figaro et Le Petit Parisien du 31 juillet 1925 et à l\'analyse de F. Maison (Annales des Mines, 1927).',
+        ],
+        'turonensis' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => 'Saint-Antoine-du-Rocher',
+            'publisher' => 'Turonensis - Écrits sur la Touraine',
+            'author' => null,
+            'published' => null,
+            'locator' => 'passage sur la catastrophe ferroviaire',
+            'url' => 'https://turonensis.fr/categories/communes-de-touraine/saint-antoine-du-rocher',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Indique le 29 juillet 1925, 19 morts et une vitesse de 90 km/h au lieu de 30 ; aucune source citée ; mentionne de nombreuses cartes postales.',
+        ],
+        'cheminots-forum' => [
+            'provider' => 'sites-web',
+            'kind' => 'forum',
+            'reliability' => 'forum',
+            'title' => 'Les catastrophes ferroviaires (fil de discussion, page 7)',
+            'publisher' => 'Le Web des Cheminots (cheminots.net)',
+            'author' => null,
+            'published' => null,
+            'locator' => 'message du 2 juin 2018 sur Saint-Antoine-du-Rocher',
+            'url' => 'https://www.cheminots.net/topic/22490-les-catastrophes-ferroviaires/page/7',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Donne le 30 juillet 1925 vers 0 h 10, 19 morts dont le mécanicien et 30 blessés dont le chauffeur gravement brûlé ; le message s\'appuie lui-même sur la liste de Wikipédia.',
+        ],
+        'figaro-1925-07-31' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Figaro, 31 juillet 1925',
+            'publisher' => 'Le Figaro',
+            'author' => null,
+            'published' => '1925-07-31',
+            'locator' => 'p. 1',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k294460z.r=d%C3%A9raille.langFR',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Référence citée par la liste de Wikipédia ; Gallica non consultable depuis cette machine.',
+        ],
+        'petit-parisien-1925-07-31' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Petit Parisien, 31 juillet 1925',
+            'publisher' => 'Le Petit Parisien',
+            'author' => null,
+            'published' => '1925-07-31',
+            'locator' => 'p. 1',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k606193d.langFR',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Référence citée par la liste de Wikipédia ; non lue.',
+        ],
+        'maison-annales-mines' => [
+            'provider' => 'gallica',
+            'kind' => 'scholarly',
+            'reliability' => 'scholarly',
+            'title' => 'Analyse annuelle des accidents de chemins de fer (F. Maison), Annales des Mines, 1927',
+            'publisher' => 'Annales des Mines',
+            'author' => 'F. Maison',
+            'published' => '1927',
+            'locator' => 'gare de Saint-Antoine-du-Rocher',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k96115240/f133.item.r=%22gare%20de%20Saint%20Antoine%20du%20Rocher%22',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Analyse officielle annuelle des accidents, citée par Wikipédia ; à consulter pour les causes établies.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'L\'accident a lieu dans la nuit du 29 au 30 juillet 1925, vers minuit, en gare de Saint-Antoine-du-Rocher (Indre-et-Loire), sur la ligne de Tours au Mans. Le train concerné est l\'express Le Mans-Tours.',
+                'en' => 'The accident took place in the night of 29 to 30 July 1925, at about midnight, at Saint-Antoine-du-Rocher station (Indre-et-Loire), on the Tours-Le Mans line. The train involved was the Le Mans-Tours express.',
+                'de' => 'Der Unfall ereignete sich in der Nacht vom 29. auf den 30. Juli 1925 gegen Mitternacht im Bahnhof Saint-Antoine-du-Rocher (Indre-et-Loire) auf der Strecke Tours-Le Mans. Betroffen war der Schnellzug Le Mans-Tours.',
+                'sources' => [
+                    'wp-liste-1925',
+                    'cheminots-forum',
+                ],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'L\'express déraille en abordant une aiguille. La locomotive se renverse et cinq voitures à caisse en bois se télescopent et sont broyées.',
+                'en' => 'The express derailed as it entered a set of points. The locomotive overturned and five wooden-bodied coaches telescoped and were crushed.',
+                'de' => 'Der Schnellzug entgleiste beim Befahren einer Weiche. Die Lokomotive kippte um, und fünf Wagen mit Holzkasten schoben sich ineinander und wurden zerdrückt.',
+                'sources' => [
+                    'wp-liste-1925',
+                ],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le bilan est de 19 morts, dont le mécanicien, et de 30 blessés. Le chauffeur est grièvement brûlé.',
+                'en' => 'The toll is 19 dead, including the driver, and 30 injured. The fireman was seriously burned.',
+                'de' => 'Die Bilanz beträgt 19 Tote, darunter der Lokführer, und 30 Verletzte. Der Heizer wurde schwer verbrannt.',
+                'sources' => [
+                    'wp-liste-1925',
+                    'turonensis',
+                    'cheminots-forum',
+                ],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Le train aborde l\'aiguille à vitesse excessive, environ 90 km/h au lieu de 30 km/h. Les pages lues n\'indiquent ni enquête officielle ni conclusion sur les responsabilités.',
+                'en' => 'The train entered the points at excessive speed, about 90 km/h instead of 30 km/h. The pages read mention neither an official inquiry nor any conclusion on responsibility.',
+                'de' => 'Der Zug befuhr die Weiche mit überhöhter Geschwindigkeit, etwa 90 km/h statt 30 km/h. Die gelesenen Seiten erwähnen weder eine amtliche Untersuchung noch ein Ergebnis zur Verantwortlichkeit.',
+                'sources' => [
+                    'wp-liste-1925',
+                    'turonensis',
+                    'cheminots-forum',
+                ],
+            ],
+        ],
+        'memory' => [
+            [
+                'fr' => 'De nombreuses cartes postales de l\'époque illustrent la catastrophe.',
+                'en' => 'Many postcards of the period illustrate the disaster.',
+                'de' => 'Zahlreiche zeitgenössische Postkarten illustrieren die Katastrophe.',
+                'sources' => [
+                    'turonensis',
+                ],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La date varie : le 29 juillet vers minuit pour la liste de Wikipédia et le site Turonensis, le 30 juillet vers 0 h 10 pour un message du forum des cheminots. Les trois sources donnent le même bilan de 19 morts.',
+                'en' => 'The date varies: 29 July at about midnight for Wikipedia\'s list and the Turonensis site, 30 July at about 12.10 am for a message on the railwaymen\'s forum. All three sources give the same toll of 19 dead.',
+                'de' => 'Das Datum variiert: der 29. Juli gegen Mitternacht in der Wikipedia-Liste und auf der Seite Turonensis, der 30. Juli gegen 0.10 Uhr in einem Beitrag des Eisenbahnerforums. Alle drei Quellen nennen dieselbe Bilanz von 19 Toten.',
+                'sources' => [
+                    'wp-liste-1925',
+                    'turonensis',
+                    'cheminots-forum',
+                ],
+            ],
+        ],
+    ],
+];

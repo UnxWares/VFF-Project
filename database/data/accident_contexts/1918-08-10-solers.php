@@ -131,6 +131,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Article du centenaire cité par Wikipédia ; non lisible depuis la machine de recherche.',
         ],
+        'wp-de-barneau' => [
+            'provider' => 'wikipedia-de',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Eisenbahnunfall von Barneau',
+            'publisher' => 'Wikipedia (de)',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://de.wikipedia.org/wiki/Eisenbahnunfall_von_Barneau',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même accident daté du 13 août 1918 (20 morts, 30 blessés) : pont sur l\'Yerres entre Solers et Barneau, trois trains.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -223,6 +237,15 @@ return [
                 'en' => 'Commemorative plaque of the railway disaster of 10 August 1918, on the chemin des Roses bridge over the Yerres.',
                 'de' => 'Gedenktafel für das Eisenbahnunglück vom 10. August 1918 auf der Brücke des chemin des Roses über die Yerres.',
             ],
+        ],
+    ],
+    'aliases' => [
+        [
+            'slug' => '1918-08-13-soignolles-en-brie',
+            'sources' => ['wp-de-barneau', 'wp-fr'],
+            'fr' => 'La fiche « Soignolles-en-Brie » du 13 août 1918 décrit le même accident : trois trains sur le pont de l\'Yerres entre Solers et Barneau. La date du 13 août, reprise par Wikidata et l\'article allemand, contredit la presse du 11 août.',
+            'en' => 'The "Soignolles-en-Brie" record of 13 August 1918 describes the same accident: three trains on the bridge over the Yerres between Solers and Barneau. The date of 13 August, used by Wikidata and the German article, conflicts with the press of 11 August.',
+            'de' => 'Der Eintrag „Soignolles-en-Brie“ vom 13. August 1918 beschreibt denselben Unfall: drei Züge auf der Brücke über die Yerres zwischen Solers und Barneau. Das Datum 13. August aus Wikidata und dem deutschen Artikel widerspricht der Presse vom 11. August.',
         ],
     ],
 ];

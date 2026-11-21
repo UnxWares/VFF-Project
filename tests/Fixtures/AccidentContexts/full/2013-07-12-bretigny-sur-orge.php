@@ -16,4 +16,7 @@ return [
             ['fr' => 'Une stèle rappelle l\'accident.', 'en' => 'A memorial recalls the accident.', 'de' => 'Ein Gedenkstein erinnert an den Unfall.', 'sources' => ['page']],
         ],
     ],
+    'aliases' => [
+        ['slug' => '2013-07-12-doublon', 'sources' => ['page'], 'fr' => 'Même accident.', 'en' => 'Same accident.', 'de' => 'Derselbe Unfall.'],
+    ],
 ];

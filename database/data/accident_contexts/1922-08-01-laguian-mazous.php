@@ -162,4 +162,13 @@ return [
     ],
     'corrections' => [],
     'images' => [],
+    'aliases' => [
+        [
+            'slug' => '1922-08-01-lourdes',
+            'sources' => ['wp-fr', 'journal-gers'],
+            'fr' => 'La fiche « Lourdes » du même jour décrit le même accident : le train de pèlerins de Moulins se rendait à Lourdes et a été heurté à Laguian-Mazous, dans le Gers, avec le même bilan de 33 morts.',
+            'en' => 'The "Lourdes" record of the same day describes the same accident: the pilgrim train from Moulins was bound for Lourdes and was struck at Laguian-Mazous, in the Gers, with the same toll of 33 dead.',
+            'de' => 'Der Eintrag „Lourdes“ vom selben Tag beschreibt denselben Unfall: Der Pilgerzug aus Moulins war nach Lourdes unterwegs und wurde in Laguian-Mazous im Département Gers getroffen, mit derselben Bilanz von 33 Toten.',
+        ],
+    ],
 ];

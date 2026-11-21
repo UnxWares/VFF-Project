@@ -47,6 +47,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Reprend le même message de forum ; donne 37 morts dont 2 décédés ensuite et près de 50 blessés.',
         ],
+        'wp-fr-liste-1950' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1950',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => '3 juillet 1954',
+            'url' => 'https://fr.wikipedia.org/wiki/Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1950',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Situe la collision à Châteaubourg (Ardèche), d\'après Le Progrès (30/07/2019) et Le Monde (07/07/1954).',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -98,4 +112,14 @@ return [
     ],
     'corrections' => [],
     'images' => [],
+    'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '07059',
+            'sources' => ['wp-fr-liste-1950', 'cheminots-forum'],
+            'fr' => 'La liste française des accidents (appuyée sur Le Progrès et Le Monde) et les messages des cheminots situent la collision à Châteaubourg, au nord de Tournon-sur-Rhône.',
+            'en' => 'The French list of accidents (based on Le Progrès and Le Monde) and the railway workers\' posts place the collision at Châteaubourg, north of Tournon-sur-Rhône.',
+            'de' => 'Die französische Unfallliste (gestützt auf Le Progrès und Le Monde) und die Beiträge der Eisenbahner verorten den Zusammenstoß in Châteaubourg nördlich von Tournon-sur-Rhône.',
+        ],
+    ],
 ];

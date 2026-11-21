@@ -96,4 +96,14 @@ return [
             ],
         ],
     ],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'collision',
+            'sources' => ['wp-liste-1940', 'blog-patricketsonvelo'],
+            'fr' => 'Les sources décrivent une collision frontale entre deux trains de voyageurs sur la voie unique, près d\'un passage à niveau, et non un accident de passage à niveau.',
+            'en' => 'The sources describe a head-on collision between two passenger trains on the single track near a level crossing, not a level crossing accident.',
+            'de' => 'Die Quellen beschreiben einen Frontalzusammenstoß zweier Personenzüge auf der eingleisigen Strecke nahe einem Bahnübergang und keinen Bahnübergangsunfall.',
+        ],
+    ],
 ];

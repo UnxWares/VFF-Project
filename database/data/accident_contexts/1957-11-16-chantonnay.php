@@ -198,4 +198,14 @@ return [
             ],
         ],
     ],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'collision',
+            'sources' => ['chouette-vendee', 'wp-fr-liste-1950'],
+            'fr' => 'Les sources décrivent une collision frontale entre un autorail et un train de marchandises sur la voie unique, et non un simple incident.',
+            'en' => 'The sources describe a head-on collision between a railcar and a goods train on the single track, not a mere incident.',
+            'de' => 'Die Quellen beschreiben einen Frontalzusammenstoß eines Triebwagens mit einem Güterzug auf der eingleisigen Strecke und keinen bloßen Zwischenfall.',
+        ],
+    ],
 ];

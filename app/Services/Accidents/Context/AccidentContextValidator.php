@@ -3,6 +3,7 @@
 namespace App\Services\Accidents\Context;
 
 use App\Enums\AccidentContextSection;
+use App\Enums\AccidentKind;
 use App\Enums\AccidentReferenceAccess;
 use App\Enums\AccidentReferenceKind;
 use App\Enums\AccidentReferenceReliability;
@@ -20,7 +21,9 @@ use App\Support\SourceRights;
  *   - une seule citation par fichier, de 200 caractères au plus, tirée d'une source ouverte dont la licence
  *     permet la citation : rapport du BEA-TT ou texte du Journal officiel (Licence Ouverte 2.0 ; les pages du site de
  *     l'Assemblée nationale et du Sénat restreignent la réutilisation commerciale ou payante : faits seulement) ;
- *   - corrections : champ permis, valeur du bon type, raison en trois langues, documents lus ;
+ *   - corrections : champ permis (date, heure, morts, blessés, nature publiée, commune par code INSEE), valeur du
+ *     bon type, raison en trois langues, documents lus ;
+ *   - doublons (`aliases`) : slug d'une autre fiche, raison en trois langues, documents lus ;
  *   - images : 3 au plus, fichier de Commons (`File:…`), légende en trois langues.
  */
 final class AccidentContextValidator
@@ -35,9 +38,9 @@ final class AccidentContextValidator
     public const MAX_IMAGES = 3;
 
     /** Champs de la fiche qu'une correction peut changer. */
-    public const CORRECTABLE = ['occurred_on', 'occurred_at_time', 'deaths', 'injuries'];
+    public const CORRECTABLE = ['occurred_on', 'occurred_at_time', 'deaths', 'injuries', 'kind', 'commune_insee'];
 
-    private const TOP_KEYS = ['slug', 'checked_on', 'sources', 'sections', 'corrections', 'images'];
+    private const TOP_KEYS = ['slug', 'checked_on', 'sources', 'sections', 'corrections', 'aliases', 'images'];
 
     private const SOURCE_KEYS = ['provider', 'kind', 'reliability', 'title', 'publisher', 'author', 'published', 'locator', 'url', 'access', 'consulted_on', 'note'];
 
@@ -126,6 +129,17 @@ final class AccidentContextValidator
         $fields = array_map(fn ($c) => is_array($c) ? ($c['field'] ?? null) : null, (array) ($data['corrections'] ?? []));
         if (count($fields) !== count(array_unique($fields))) {
             $errors[] = 'corrections : un même champ corrigé deux fois';
+        }
+
+        foreach ((array) ($data['aliases'] ?? []) as $i => $alias) {
+            $where = "aliases[{$i}]";
+            if (! is_array($alias) || ! is_string($alias['slug'] ?? null) || $alias['slug'] === $expectedSlug) {
+                $errors[] = "{$where} : slug d'une autre fiche attendu";
+
+                continue;
+            }
+            $errors = [...$errors, ...$this->textErrors($alias, $where)];
+            $errors = [...$errors, ...$this->citedErrors($alias['sources'] ?? null, $open, $sources, $where)];
         }
 
         $images = (array) ($data['images'] ?? []);
@@ -289,6 +303,8 @@ final class AccidentContextValidator
         $ok = match ($field) {
             'occurred_on' => $this->isDay($value),
             'occurred_at_time' => is_string($value) && preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $value) === 1,
+            'kind' => is_string($value) && AccidentKind::tryFrom($value) !== null && ! in_array($value, AccidentKind::HIDDEN, true),
+            'commune_insee' => is_string($value) && preg_match('/^(\d{5}|2[AB]\d{3})$/', $value) === 1,
             default => is_int($value) && $value >= 0 && $value < 10000,
         };
         $errors = $ok ? [] : ["{$where} : valeur invalide pour {$field}"];

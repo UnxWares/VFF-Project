@@ -112,4 +112,14 @@ return [
     ],
     'corrections' => [],
     'images' => [],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'collision',
+            'sources' => ['wp-de', 'wp-en-liste'],
+            'fr' => 'Les deux articles décrivent la collision d\'un train militaire, dirigé par erreur sur une voie occupée, avec un train de marchandises, suivie d\'un incendie.',
+            'en' => 'Both articles describe a military train sent by mistake onto an occupied track, colliding with a goods train, followed by a fire.',
+            'de' => 'Beide Artikel beschreiben einen Militärzug, der irrtümlich auf ein besetztes Gleis geleitet wurde und mit einem Güterzug zusammenstieß, gefolgt von einem Brand.',
+        ],
+    ],
 ];

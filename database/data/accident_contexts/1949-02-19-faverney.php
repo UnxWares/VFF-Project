@@ -75,9 +75,57 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Dossier d\'inventaire qui mentionnerait l\'accident (18 février, 42 morts) ; page redirigée, non lue.',
         ],
+        'inventaire-ia70000545' => [
+            'provider' => 'archives-departementales',
+            'kind' => 'archive',
+            'reliability' => 'official',
+            'title' => 'Ensemble du génie civil (les ouvrages ferroviaires situés sur la commune de Faverney), dossier IA70000545',
+            'publisher' => 'Inventaire du patrimoine, Région Bourgogne-Franche-Comté',
+            'author' => 'Carole Josso, Liliane Hamelin',
+            'published' => '2014',
+            'locator' => 'dossier IA70000545',
+            'url' => 'https://patrimoine.bourgognefranchecomte.fr/dossier/pdf/IA70000545',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dossier d\'inventaire (2012, revu en 2014) : date, bilan, PK et plaque commémorative.',
+        ],
+        'inventaire-ia70000547' => [
+            'provider' => 'archives-departementales',
+            'kind' => 'archive',
+            'reliability' => 'official',
+            'title' => 'Église du Sacré-Coeur, Port-d\'Atelier-Amance, dossier IA70000547',
+            'publisher' => 'Inventaire du patrimoine, Région Bourgogne-Franche-Comté',
+            'author' => 'Liliane Hamelin',
+            'published' => '2014',
+            'locator' => 'dossier IA70000547',
+            'url' => 'https://patrimoine.bourgognefranchecomte.fr/dossier/pdf/IA70000547',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Mentionne la plaque commémorative apposée à l\'entrée de l\'église ; la bibliographie cite le livre de Max François (2005).',
+        ],
+        'francois-2005' => [
+            'provider' => 'ouvrages',
+            'kind' => 'book',
+            'reliability' => 'local_history',
+            'title' => 'Port d\'Atelier : mémoire et témoignages. Récits de Madame Marcelle Garret',
+            'publisher' => 'Association Animation et Loisirs de Port-d\'Atelier',
+            'author' => 'Max François',
+            'published' => '2005',
+            'locator' => '98 p.',
+            'url' => 'https://patrimoine.bourgognefranchecomte.fr/dossier/pdf/IA70000547',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Livre de témoignages locaux, non lu ; cité dans la bibliographie du dossier d\'inventaire (Bibliothèque municipale de Besançon, BR.A.184.15).',
+        ],
     ],
     'sections' => [
         'circumstances' => [
+            [
+                'fr' => 'L\'Inventaire du patrimoine de Bourgogne-Franche-Comté situe l\'accident dans la nuit du 18 février 1949, à 1 500 m au sud-est de la gare de Port-d\'Atelier, au point kilométrique 123,090.',
+                'en' => 'The Bourgogne-Franche-Comté heritage inventory places the accident in the night of 18 February 1949, 1,500 m south-east of Port-d\'Atelier station, at kilometre point 123.090.',
+                'de' => 'Das Inventar des Kulturerbes der Region Bourgogne-Franche-Comté verortet den Unfall in der Nacht des 18. Februar 1949, 1500 m südöstlich des Bahnhofs Port-d\'Atelier, bei Kilometerpunkt 123,090.',
+                'sources' => ['inventaire-ia70000545'],
+            ],
             [
                 'fr' => 'Le soir du vendredi 18 février 1949 (le 19 selon une source), un express Nancy-Dijon entre en collision avec une locomotive haut-le-pied près de la gare de Port-d\'Atelier-Amance, dans le hameau de Port d\'Atelier (Haute-Saône), sur la ligne de Paris-Est à Mulhouse-Ville.',
                 'en' => 'On the evening of Friday 18 February 1949 (the 19th according to one source), a Nancy-Dijon express collided with a light locomotive near Port-d\'Atelier-Amance station, in the hamlet of Port d\'Atelier (Haute-Saône), on the Paris-Est to Mulhouse-Ville line.',
@@ -101,6 +149,12 @@ return [
         ],
         'victims' => [
             [
+                'fr' => 'Le dossier d\'inventaire de la commune de Faverney, réalisé en 2012 et revu en 2014, donne pour cet accident 42 morts et 33 blessés.',
+                'en' => 'The inventory file for the commune of Faverney, produced in 2012 and revised in 2014, gives 42 dead and 33 injured for this accident.',
+                'de' => 'Die 2012 erstellte und 2014 überarbeitete Inventarakte der Gemeinde Faverney nennt für diesen Unfall 42 Tote und 33 Verletzte.',
+                'sources' => ['inventaire-ia70000545'],
+            ],
+            [
                 'fr' => 'Le bilan le plus souvent donné est de 43 morts et de plus d\'une centaine de blessés. La page consacrée à la gare et celle du hameau citent aussi 41 morts dans leur texte, mais 43 victimes sur la stèle.',
                 'en' => 'The most commonly given toll is 43 dead and more than a hundred injured. The station page and the hamlet page also give 41 dead in their text, but 43 victims on the memorial.',
                 'de' => 'Am häufigsten wird eine Bilanz von 43 Toten und mehr als hundert Verletzten genannt. Die Seiten zum Bahnhof und zum Weiler nennen im Text auch 41 Tote, auf der Gedenkstele jedoch 43 Opfer.',
@@ -109,6 +163,12 @@ return [
         ],
         'memory' => [
             [
+                'fr' => 'Une plaque commémorative a été apposée sur le mur de l\'entrée de l\'église du Sacré-Coeur de Port-d\'Atelier, en mémoire des victimes de la catastrophe de la nuit du 18 février 1949. Un livre de témoignages locaux, Port d\'Atelier : mémoire et témoignages, a été publié en 2005 par l\'association Animation et Loisirs de Port-d\'Atelier.',
+                'en' => 'A commemorative plaque was fixed to the entrance wall of the Sacré-Coeur church at Port-d\'Atelier in memory of the victims of the disaster of the night of 18 February 1949. A book of local testimonies, Port d\'Atelier : mémoire et témoignages, was published in 2005 by the association Animation et Loisirs de Port-d\'Atelier.',
+                'de' => 'Am Eingang der Kirche Sacré-Coeur in Port-d\'Atelier wurde eine Gedenktafel zur Erinnerung an die Opfer des Unglücks in der Nacht zum 18. Februar 1949 angebracht. 2005 erschien ein Buch lokaler Zeitzeugenberichte, Port d\'Atelier : mémoire et témoignages, herausgegeben vom Verein Animation et Loisirs de Port-d\'Atelier.',
+                'sources' => ['inventaire-ia70000547'],
+            ],
+            [
                 'fr' => 'Une stèle à la mémoire des victimes a été inaugurée à Port d\'Atelier le 11 mai 2014.',
                 'en' => 'A memorial stele to the victims was unveiled at Port d\'Atelier on 11 May 2014.',
                 'de' => 'Am 11. Mai 2014 wurde in Port d\'Atelier eine Gedenkstele für die Opfer eingeweiht.',
@@ -116,6 +176,12 @@ return [
             ],
         ],
         'disagreements' => [
+            [
+                'fr' => 'L\'Inventaire du patrimoine (source officielle régionale) date l\'accident de la nuit du 18 février 1949 et compte 42 morts, là où Wikipédia retient 43 morts et une source donne le 19 février. Il situe en outre l\'accident sur la ligne Nancy-Gray, alors que les autres pages le rattachent à la ligne de Paris-Est à Mulhouse-Ville près de la gare de Port-d\'Atelier-Amance ; cette différence de ligne reste à vérifier. L\'Inventaire mentionne une plaque dans l\'église, alors que les pages de Wikipédia évoquent une stèle inaugurée en 2014 ; il peut s\'agir de deux monuments, ce que les sources lues ne permettent pas de trancher.',
+                'en' => 'The heritage inventory (the regional official source) dates the accident to the night of 18 February 1949 and counts 42 dead, whereas Wikipedia gives 43 dead and one source gives 19 February. It also places the accident on the Nancy-Gray line, while the other pages tie it to the Paris-Est to Mulhouse-Ville line near Port-d\'Atelier-Amance station; this difference in line remains to be checked. The inventory mentions a plaque in the church, whereas the Wikipedia pages mention a stele unveiled in 2014; these may be two monuments, which the sources read do not settle.',
+                'de' => 'Das Inventar des Kulturerbes (amtliche regionale Quelle) datiert den Unfall auf die Nacht des 18. Februar 1949 und zählt 42 Tote, während Wikipedia 43 Tote angibt und eine Quelle den 19. Februar nennt. Es verortet den Unfall zudem auf der Strecke Nancy-Gray, während die übrigen Seiten ihn der Strecke Paris-Est-Mulhouse-Ville nahe dem Bahnhof Port-d\'Atelier-Amance zuordnen; dieser Streckenunterschied bleibt zu prüfen. Das Inventar erwähnt eine Tafel in der Kirche, die Wikipedia-Seiten dagegen eine 2014 eingeweihte Stele; es kann sich um zwei Denkmäler handeln, was die gelesenen Quellen nicht entscheiden.',
+                'sources' => ['inventaire-ia70000545', 'inventaire-ia70000547'],
+            ],
             [
                 'fr' => 'La date varie : 18 février 1949 (pages Wikipédia français sur la gare, le hameau et la liste) contre 19 février (Wikipedia allemand, d\'après Semmens). Le 18 février 1949 était un vendredi, ce qui concorde avec un accident du vendredi soir. La fiche porte le 19.',
                 'en' => 'The date varies: 18 February 1949 (French Wikipedia pages on the station, the hamlet and the list) against 19 February (German Wikipedia, after Semmens). 18 February 1949 was a Friday, which fits an accident on Friday evening. The record gives the 19th.',
