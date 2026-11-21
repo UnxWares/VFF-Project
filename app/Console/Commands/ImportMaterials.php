@@ -5,12 +5,14 @@ namespace App\Console\Commands;
 use App\Services\Materials\AttestedSeriesFinder;
 use App\Services\Materials\LineMaterialLinker;
 use App\Services\Materials\MaterialImporter;
+use App\Services\Materials\MaterialPeriodCollector;
 use App\Services\Materials\MaterialRelations;
 use App\Services\Materials\SourceCache;
 use App\Services\Materials\WikidataMaterialMapper;
 use App\Services\Materials\WikidataMaterialRules;
 use App\Services\Materials\WikidataMaterialSource;
 use App\Services\Materials\WikipediaArticleSource;
+use App\Services\Materials\WikipediaMaterialSections;
 use App\Services\Media\CommonsClient;
 use App\Services\WikimediaClient;
 use Illuminate\Console\Command;
@@ -63,6 +65,9 @@ class ImportMaterials extends Command
         }
         if (! $this->option('no-links')) {
             $linker = new LineMaterialLinker($source, $wikipedia, relations: MaterialRelations::fromDatabase());
+            // Articles d'itinéraires (database/data/wikipedia_itineraries.php), mis en cache pour les périodes
+            // qu'ils datent sur leurs lignes (vff:import-material-periods, MaterialPeriodCollector).
+            $wikipedia->sections(MaterialPeriodCollector::ITINERARY_CACHE, array_keys(require database_path('data/wikipedia_itineraries.php')), WikipediaMaterialSections::LINE_SECTIONS, $refresh);
             $links = $linker->collect($refresh);
             $byKind = [];
             foreach ($links as $link) {

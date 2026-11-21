@@ -21,9 +21,10 @@ class LineMaterialController extends Controller
      * Matériel roulant d'une ligne.
      *
      * Les séries qui ont circulé (ou circulent) sur la ligne, d'après une source citée, la plus
-     * récente d'abord, comme sur la fiche de la ligne : séries encore en service sans fin connue
-     * sur la ligne, puis fin la plus récente (fin datée sur la ligne, sinon retrait de la série),
-     * puis début le plus récent, puis nom ; séries sans aucune date en dernier. Chaque entrée
+     * récente d'abord, comme sur la fiche de la ligne : d'abord les séries datées sur la ligne, par
+     * dernière année de présence (une période ouverte vaut jusqu'au retrait de la série, ou
+     * aujourd'hui si elle est encore en service), puis les autres d'après l'état de la série
+     * (en service, retrait le plus récent, mise en service la plus récente), puis le nom. Chaque entrée
      * donne `end`, la fin telle que les sources la connaissent. Liste complète, sans
      * pagination : une ligne compte au plus quelques dizaines de séries.
      *

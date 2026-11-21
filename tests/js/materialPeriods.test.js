@@ -21,6 +21,7 @@ const fr = {
     'materials.end.series_withdrawn': 'Série retirée',
     'materials.end.series_withdrawn_year': 'Série retirée en :year',
     'materials.end.unknown': 'Fin inconnue sur la ligne',
+    'materials.end.since': 'Sur la ligne à partir de :year',
     'materials.relations.notes.fuel': 'au biodiesel :fuel (:feedstock) depuis :since',
     'materials.relations.notes.reported': 'bilan publié en :date',
     'materials.relations.feedstock.rapeseed': 'colza',
@@ -153,6 +154,12 @@ describe('endText', () => {
         );
         expect(endText({ kind: 'unknown', year: null }, t)).toBe('Fin inconnue sur la ligne');
         expect(endText(undefined, t)).toBe('Fin inconnue sur la ligne');
+        expect(endText({ kind: 'series_in_service', year: null, since: 2014 }, t)).toBe(
+            'Sur la ligne à partir de 2014. Série encore en service',
+        );
+        expect(endText({ kind: 'line', year: 2015, since: null }, t)).toBe(
+            'Sur la ligne jusqu’en 2015',
+        );
     });
 });
 

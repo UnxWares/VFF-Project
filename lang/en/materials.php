@@ -134,6 +134,7 @@ return [
         'series_withdrawn' => 'Series withdrawn',
         'series_withdrawn_year' => 'Series withdrawn in :year',
         'unknown' => 'End on the line unknown',
+        'since' => 'On the line from :year',
         'source' => 'source',
     ],
     'relations' => [

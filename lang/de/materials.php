@@ -134,6 +134,7 @@ return [
         'series_withdrawn' => 'Baureihe ausgemustert',
         'series_withdrawn_year' => 'Baureihe :year ausgemustert',
         'unknown' => 'Ende auf der Strecke unbekannt',
+        'since' => 'Auf der Strecke ab :year',
         'source' => 'Quelle',
     ],
     'relations' => [

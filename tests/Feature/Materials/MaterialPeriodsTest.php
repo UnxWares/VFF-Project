@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Http;
 use Inertia\Testing\AssertableInertia as Assert;
 use Nuwave\Lighthouse\Testing\MakesGraphQLRequests;
 use Tests\Support\InMemorySourceCache;
+use Tests\Support\ReadsInertiaProps;
 use Tests\TestCase;
 
 /**
@@ -24,6 +25,7 @@ use Tests\TestCase;
 class MaterialPeriodsTest extends TestCase
 {
     use MakesGraphQLRequests;
+    use ReadsInertiaProps;
     use RefreshDatabase;
 
     private const LINE_TITLE = 'Ligne de Valence à Moirans';
@@ -97,6 +99,50 @@ class MaterialPeriodsTest extends TestCase
         $this->assertSame(['2009-09-06'], $this->link($this->x72500)->shownPeriods->map(fn ($p) => $p->end_date->toDateString())->all());
     }
 
+    public function test_an_itinerary_article_dates_the_series_on_each_of_its_lines(): void
+    {
+        $line = Line::factory()->create(['code' => '405000', 'slug' => 'rfn-405000', 'name' => 'Ligne d\'Argentan à Granville']);
+        $regiolis = Material::factory()->create(['slug' => 'regiolis', 'name' => 'Régiolis', 'wikipedia_fr' => 'Régiolis', 'wikidata_id' => 'Q4', 'in_service_from' => 2013, 'in_service_to' => null]);
+        foreach ([$this->x72500, $regiolis] as $m) {
+            LineMaterial::create(['line_id' => $line->id, 'material_id' => $m->id, 'source' => 'wikipedia', 'confidence' => 'medium', 'evidence' => [['kind' => 'wikipedia_material_article', 'quote' => 'Paris - Granville']]]);
+        }
+        $text = "== Desserte ==\nDe 1999 à 2015, le matériel utilisé est constitué de 15 rames [[X 72500]] tricaisses, complété par quatre rames acquises fin 2007. "
+            ."À partir du {{Date|16 juillet 2014}}, ces rames ont été remplacées par des rames [[Régiolis]] version B 84500.\n";
+        $this->cache->tables['wikipedia_itineraries'] = ['Ligne de Paris à Granville' => [
+            'title' => 'Ligne de Paris à Granville', 'revid' => 239953957,
+            'sections' => WikipediaMaterialSections::sections($text, WikipediaMaterialSections::LINE_SECTIONS),
+        ]];
+
+        $this->artisan('vff:import-material-periods', ['--offline' => true])->assertSuccessful();
+
+        $x = LineMaterial::query()->where('line_id', $line->id)->where('material_id', $this->x72500->id)->firstOrFail()->periods->first();
+        $this->assertSame(['1999-01-01', '2015-01-01', 'medium'], [$x->start_date->toDateString(), $x->end_date->toDateString(), $x->confidence]);
+        $this->assertSame('Paris-Montparnasse - Granville', $x->relation['label']);
+        $this->assertSame('https://fr.wikipedia.org/w/index.php?title=Ligne_de_Paris_%C3%A0_Granville&oldid=239953957', $x->source_url);
+        $r = LineMaterial::query()->where('line_id', $line->id)->where('material_id', $regiolis->id)->firstOrFail()->periods->first();
+        $this->assertSame(['2014-07-16', null, 'high'], [$r->start_date->toDateString(), $r->end_date, $r->confidence]);
+    }
+
+    public function test_the_series_own_article_outweighs_a_declared_retirement_and_the_sheet_says_so(): void
+    {
+        $this->cc72000->update(['in_service_to' => 1964, 'service_status' => null]);
+        $this->cache->tables['wikipedia_materials'] = ['CC 72000' => ['title' => 'CC 72000', 'revid' => 7, 'sections' => [
+            ['title' => 'Carrière et services', 'level' => 2, 'text' => 'La CC 72001 rejoint la [[Ligne de Valence à Moirans]] jusqu\'en 1977.'],
+        ]]];
+
+        $this->artisan('vff:import-material-periods', ['--offline' => true])->assertSuccessful();
+
+        $period = $this->link($this->cc72000)->periods()->where('origin', 'material_article')->firstOrFail();
+        $this->assertSame(['1977-01-01', 'medium'], [$period->end_date->toDateString(), $period->confidence],
+            'l\'article de la série contredit le retrait de 1964 : la phrase précise passe avant');
+        $this->get('/lines/rfn-908000')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('materials', function ($materials): bool {
+                $cc = $this->rows($materials)->firstWhere('slug', 'cc-72000');
+
+                return $cc['in_service_to'] === null && $cc['in_service_to_contradicted'] === 1964;
+            }));
+    }
+
     public function test_import_is_replayable_and_removes_what_the_sources_no_longer_say(): void
     {
         $this->artisan('vff:import-material-periods', ['--offline' => true])->assertSuccessful();
@@ -135,21 +181,22 @@ class MaterialPeriodsTest extends TestCase
     {
         $this->artisan('vff:import-material-periods', ['--offline' => true])->assertSuccessful();
 
-        // Le plus récent d'abord (LineMaterialEnd) : X 72500 jusqu'en 2009, CC 72000 jusqu'en 2001, puis le B 82500
-        // sans fin connue (ni sur la ligne, ni pour la série).
+        // Le plus récent d'abord (LineMaterialEnd) : le B 82500, sur la ligne à partir du 6 septembre 2009, et le
+        // X 72500 qu'il remplace ce jour-là (même année : le nom départage), puis les CC 72000 jusqu'en 2001.
         $this->get('/lines/rfn-908000')->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->where('materials.2.slug', 'b-82500')
-            ->where('materials.2.end.kind', 'unknown')
-            ->where('materials.2.periods', [[
+            ->where('materials.0.slug', 'b-82500')
+            ->where('materials.0.end.kind', 'unknown')
+            ->where('materials.0.end.since', 2009)
+            ->where('materials.0.periods', [[
                 'start_date' => '2009-09-06', 'start_precision' => 'day', 'end_date' => null, 'end_precision' => null,
                 'section_from' => null, 'section_to' => null, 'relation' => null, 'source' => 'wikipedia',
                 'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Valence_%C3%A0_Moirans&oldid=230000000',
             ]])
-            ->where('materials.1.slug', 'cc-72000')
-            ->has('materials.1.periods', 2)
-            ->where('materials.0.slug', 'x-72500')
-            ->where('materials.0.end', ['kind' => 'line', 'year' => 2009, 'source' => 'wikipedia', 'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Valence_%C3%A0_Moirans&oldid=230000000'])
-            ->has('materials.0.periods', 1));
+            ->where('materials.2.slug', 'cc-72000')
+            ->has('materials.2.periods', 2)
+            ->where('materials.1.slug', 'x-72500')
+            ->where('materials.1.end', ['kind' => 'line', 'year' => 2009, 'source' => 'wikipedia', 'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Valence_%C3%A0_Moirans&oldid=230000000', 'since' => null])
+            ->has('materials.1.periods', 1));
     }
 
     public function test_material_sheet_lists_the_periods_of_each_line(): void
@@ -192,7 +239,7 @@ class MaterialPeriodsTest extends TestCase
         );
         $this->graphQL('{ line(slug: "rfn-908000") { sheet { materials { slug periods { start_date end_date source source_url } } } } }')
             ->assertGraphQLErrorFree()
-            ->assertJsonPath('data.line.sheet.materials.2.periods.0.start_date', '2009-09-06');
+            ->assertJsonPath('data.line.sheet.materials.0.periods.0.start_date', '2009-09-06');
 
         $mcp = $this->withHeaders(['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-06-18'])
             ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'line_materials', 'arguments' => ['line' => '908000']]])

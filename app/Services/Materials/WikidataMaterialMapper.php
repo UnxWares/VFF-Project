@@ -6,6 +6,7 @@ use App\Enums\MaterialType;
 use App\Models\Material;
 use App\Models\Media;
 use App\Services\Media\CommonsMetadata;
+use App\Support\MaterialPhotoExclusions;
 
 /**
  * Traduit un élément Wikidata (réduit par WikidataMaterialSource::trimEntity) en fiche de
@@ -134,12 +135,12 @@ final readonly class WikidataMaterialMapper
 
         $wheel = self::firstString($claims['P2978'] ?? []);
         $fleet = array_values(array_filter(array_map(fn (array $c): ?string => is_string($c['v']) ? self::plain($c['v']) : null, $claims['P2802'] ?? [])));
-        $file = self::preferredString($claims['P18'] ?? []);
+        $file = self::imageFile($entity);
         $image = $file !== null && is_array($images[$file] ?? null) ? self::image($images[$file]) : null;
         $imageVia = "{$qid}#P18";
         if ($file === null) {
             foreach (self::imageCandidates($entity, $infobox, $categoryFiles, $name) as [$candidate, $via]) {
-                if (is_array($images[$candidate] ?? null) && self::isFreeImage($images[$candidate])) {
+                if (is_array($images[$candidate] ?? null) && self::isFreeImage($images[$candidate]) && ! MaterialPhotoExclusions::excludes($candidate)) {
                     [$image, $imageVia] = [self::image($images[$candidate]), $via];
                     break;
                 }
@@ -301,7 +302,7 @@ final readonly class WikidataMaterialMapper
      */
     public static function imageCandidates(array $entity, ?array $infobox, array $categoryFiles = [], ?string $name = null): array
     {
-        if (self::preferredString($entity['claims']['P18'] ?? []) !== null) {
+        if (self::imageFile($entity) !== null) {
             return [];
         }
         $out = [];
@@ -340,10 +341,15 @@ final readonly class WikidataMaterialMapper
         } && in_array($meta['mime'] ?? null, ['image/jpeg', 'image/png', 'image/tiff', 'image/webp'], true);
     }
 
-    /** Nom de l'image principale (P18 de rang préféré, sinon le premier). */
+    /**
+     * Nom de l'image principale (P18 de rang préféré, sinon le premier), null si elle a été écartée après
+     * relecture (MaterialPhotoExclusions) : la série prend alors une image de repli.
+     */
     public static function imageFile(array $entity): ?string
     {
-        return self::preferredString($entity['claims']['P18'] ?? []);
+        $file = self::preferredString($entity['claims']['P18'] ?? []);
+
+        return MaterialPhotoExclusions::excludes($file) ? null : $file;
     }
 
     /**

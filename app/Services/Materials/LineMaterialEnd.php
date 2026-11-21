@@ -20,14 +20,41 @@ use Illuminate\Support\Str;
  *   - `series_withdrawn` : pas de fin sur la ligne, mais la série est retirée (`in_service_to`, Wikidata
  *     P730, ou état « retirée ») : `year` est celle de la série (nulle si seul l'état est connu) ;
  *   - `unknown` : rien de connu.
+ *
+ * `since` : année de début de la période ouverte sur la ligne (début daté, sans fin connue : « à partir du
+ * 16 juillet 2014 » pour le Régiolis sur Paris - Granville), nulle sinon ; elle accompagne les trois derniers cas.
  */
 final class LineMaterialEnd
 {
     /**
      * @param  list<array{start_date: ?string, end_date: ?string, source?: ?string, source_url?: ?string}>  $periods  périodes montrées sur la ligne
-     * @return array{kind: string, year: ?int, source: ?string, source_url: ?string}
+     * @return array{kind: string, year: ?int, since: ?int, source: ?string, source_url: ?string}
      */
     public static function of(Material $material, array $periods): array
+    {
+        return self::series($material, $periods) + ['since' => self::openSince($periods)];
+    }
+
+    /**
+     * Année de début de la période ouverte sur la ligne : dernier début daté sans fin, postérieur à toute fin
+     * connue. Null sans période ouverte.
+     *
+     * @param  list<array<string, mixed>>  $periods
+     */
+    private static function openSince(array $periods): ?int
+    {
+        $lastEnd = max([null, ...array_filter(array_column($periods, 'end_date'))]);
+        $open = array_filter($periods, fn (array $p): bool => ($p['end_date'] ?? null) === null && ($p['start_date'] ?? null) !== null && ($lastEnd === null || $p['start_date'] > $lastEnd));
+        $starts = array_column($open, 'start_date');
+
+        return $starts === [] ? null : (int) substr((string) max($starts), 0, 4);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $periods
+     * @return array{kind: string, year: ?int, source: ?string, source_url: ?string}
+     */
+    private static function series(Material $material, array $periods): array
     {
         $lastEnd = null;
         $lastStart = null;
@@ -59,21 +86,52 @@ final class LineMaterialEnd
     }
 
     /**
-     * Ordre de la section « Matériel roulant » : d'abord les séries encore en service sans fin connue sur la
-     * ligne, puis la fin la plus récente (fin sur la ligne, sinon retrait de la série), puis le début le plus
-     * récent (première période sur la ligne, sinon mise en service de la série), puis le nom (ordre naturel,
-     * accents ignorés : « BB 9200 » avant « BB 15000 »). Une série sans
-     * aucune date vient en dernier.
+     * Ordre de la section « Matériel roulant », le plus récent d'abord. Ce qu'on sait de la présence SUR LA LIGNE
+     * passe avant l'état de la série : une série encore en service ailleurs mais remplacée ici par une plus
+     * récente ne passe pas devant (sur Paris - Granville : Régiolis à partir de 2014, puis X 72500 de 1999 à
+     * 2015, puis CC 80000 jusqu'en 1977).
      *
-     * @param  list<array<string, mixed>>  $materials  entrées avec `name`, `in_service_from`, `periods` et `end`
+     *   1. séries datées sur la ligne, par dernière année de présence décroissante : fin de la dernière période,
+     *      ou, pour une période ouverte (début sans fin), le retrait de la série s'il est connu, l'infini si la
+     *      série est encore en service, son année de début sinon ; à égalité, début le plus récent ;
+     *   2. puis les autres, par état de la série : encore en service, puis retrait le plus récent, puis mise en
+     *      service la plus récente ;
+     *   3. à égalité, le nom (ordre naturel, accents ignorés : « BB 9200 » avant « BB 15000 »).
+     *
+     * @param  list<array<string, mixed>>  $materials  entrées avec `name`, `in_service_from`, `in_service_to`, `periods` et `end`
      * @return list<array<string, mixed>>
      */
     public static function sort(array $materials): array
     {
-        usort($materials, fn (array $a, array $b): int => [self::running($b), self::endYear($b), self::startYear($b)] <=> [self::running($a), self::endYear($a), self::startYear($a)]
+        usort($materials, fn (array $a, array $b): int => self::key($b) <=> self::key($a)
             ?: strnatcasecmp(Str::ascii((string) $a['name']), Str::ascii((string) $b['name'])));
 
         return $materials;
+    }
+
+    /**
+     * Clé de tri (comparée en ordre décroissant), voir sort().
+     *
+     * @param  array<string, mixed>  $m
+     * @return array{0: int, 1: int, 2: int, 3: int}
+     */
+    private static function key(array $m): array
+    {
+        /** @var list<array<string, mixed>> $periods */
+        $periods = $m['periods'] ?? [];
+        $years = fn (string $field): array => array_map(fn ($d): int => (int) substr((string) $d, 0, 4), array_filter(array_column($periods, $field)));
+        [$starts, $ends] = [$years('start_date'), $years('end_date')];
+        if ($starts === [] && $ends === []) {
+            return [0, self::running($m), self::endYear($m), $m['in_service_from'] ?? PHP_INT_MIN];
+        }
+        $since = $m['end']['since'] ?? null;
+        $last = $since === null ? max($ends) : match (true) {
+            isset($m['in_service_to']) && (int) $m['in_service_to'] >= $since => (int) $m['in_service_to'],
+            ($m['end']['kind'] ?? null) === 'series_in_service' => PHP_INT_MAX,
+            default => $since,
+        };
+
+        return [1, $last, $starts === [] ? max($ends) : max($starts), 0];
     }
 
     /**
@@ -100,7 +158,7 @@ final class LineMaterialEnd
                 }
             }
             $material = $group[0]->material;
-            $keys[] = ['name' => $material->name, 'in_service_from' => $material->in_service_from, 'periods' => $periods,
+            $keys[] = ['name' => $material->name, 'in_service_from' => $material->in_service_from, 'in_service_to' => $material->in_service_to, 'periods' => $periods,
                 'end' => self::of($material, $periods), 'material_id' => $materialId];
         }
         $out = [];
@@ -123,14 +181,6 @@ final class LineMaterialEnd
     private static function endYear(array $m): int
     {
         return $m['end']['year'] ?? PHP_INT_MIN;
-    }
-
-    /** @param array<string, mixed> $m */
-    private static function startYear(array $m): int
-    {
-        $starts = array_filter(array_map(fn (array $p): ?string => $p['start_date'] ?? null, $m['periods']));
-
-        return $starts !== [] ? (int) substr((string) min($starts), 0, 4) : ($m['in_service_from'] ?? PHP_INT_MIN);
     }
 
     /**

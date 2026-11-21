@@ -186,12 +186,21 @@ export function relationNotes(relations, t, lang = 'fr') {
 /**
  * Fin de circulation d'une série sur la ligne (`end` de LineSheet, LineMaterialEnd), en texte court :
  * « Sur la ligne jusqu’en 2019 », « Série retirée en 2019 » (fin de la série, jamais présentée comme celle
- * de la ligne), « Série encore en service », « Fin inconnue sur la ligne ».
+ * de la ligne), « Série encore en service », « Fin inconnue sur la ligne ». Une période ouverte sur la
+ * ligne (`since`) précède l'état de la série : « Sur la ligne à partir de 2014. Série encore en service ».
  *
- * @param {{kind: string, year: ?number}} end
+ * @param {{kind: string, year: ?number, since?: ?number}} end
  * @param {(key: string, opts?: object) => string} t traduction
  */
 export function endText(end, t) {
+    const base = endBase(end, t);
+    // Période ouverte sur la ligne (début daté, sans fin) : dite avant l'état de la série, sans « depuis ».
+    return end?.since && end.kind !== 'line'
+        ? `${t('materials.end.since', { year: end.since })}. ${base}`
+        : base;
+}
+
+function endBase(end, t) {
     switch (end?.kind) {
         case 'line':
             return String(t('materials.end.line', { year: end.year }));

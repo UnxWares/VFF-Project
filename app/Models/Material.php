@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\MaterialType;
+use App\Support\MaterialPhotoExclusions;
 use Database\Factories\MaterialFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -141,6 +142,25 @@ class Material extends Model
     /** Largeur des vignettes servies avec les fiches de ligne (palier de miniatures de Commons). */
     public const THUMB_WIDTH = 330;
 
+    /** Original trop petit pour une vignette nette : moins de 300 px de large ou de 120 px de haut. */
+    public const MIN_PHOTO_WIDTH = 300;
+
+    public const MIN_PHOTO_HEIGHT = 120;
+
+    /**
+     * Au-delà de ce rapport largeur / hauteur (vue de profil d'une rame, d'une locomotive à vapeur), la vignette
+     * montre l'image entière (`fit` = `contain`) au lieu d'en couper le milieu : recadrée en 3:2, la CC 80001 de
+     * profil (583 × 199) ne montrait qu'un bout de caisse.
+     */
+    public const WIDE_PHOTO_RATIO = 2.0;
+
+    /**
+     * Fichier qui ne montre pas l'engin en service : plan, dessin, schéma, croquis, intérieur, cabine, plaque,
+     * logo, plan de réseau (« map »), image vectorielle. Pas « carte » : les cartes postales anciennes montrent
+     * souvent la machine.
+     */
+    private const NOT_A_PHOTO = '/(?<![\p{L}])(?:plans?|drawing|dessins?|sch[ée]mas?|skizze|typenskizze|croquis|diagram\w*|int[ée]rieur|interior|cabine|cab|plaques?|logos?|maps?)(?![\p{L}])|\.svg$/iu';
+
     /**
      * Vignette légère de l'image de la série (`image`, Commons) et son crédit, pour la section « Matériel
      * roulant » de la fiche ligne : miniature ramenée à THUMB_WIDTH px quand l'original est plus large (celles
@@ -148,12 +168,12 @@ class Material extends Model
      * sans image.
      *
      * @param  array<string, mixed>|null  $image
-     * @return array{url: string, width: int, height: int, file: ?string, author: ?string, license: ?string, license_url: ?string, rights_status: ?string, source_url: ?string, provider: string}|null
+     * @return array{url: string, width: int, height: int, file: ?string, author: ?string, license: ?string, license_url: ?string, rights_status: ?string, source_url: ?string, provider: string, fit: string}|null
      */
     public static function thumbnail(?array $image): ?array
     {
         $url = $image['thumb_url'] ?? null;
-        if (! is_string($url) || $url === '') {
+        if (! is_string($url) || $url === '' || ! self::isShowablePhoto($image)) {
             return null;
         }
         $width = isset($image['width']) ? (int) $image['width'] : 0;
@@ -174,6 +194,30 @@ class Material extends Model
             'rights_status' => $image['rights_status'] ?? null,
             'source_url' => $image['source_url'] ?? null,
             'provider' => (string) ($image['provider'] ?? 'commons'),
+            'fit' => $width > 0 && $height > 0 && $width / $height > self::WIDE_PHOTO_RATIO ? 'contain' : 'cover',
         ];
+    }
+
+    /**
+     * La photo de la série peut-elle servir de vignette sur une fiche de ligne ? Non si l'original est trop petit
+     * (MIN_PHOTO_WIDTH, MIN_PHOTO_HEIGHT) ou si son nom de fichier dit qu'il ne montre pas l'engin (plan, dessin,
+     * intérieur, plaque… : NOT_A_PHOTO) ou s'il a été écarté après relecture (MaterialPhotoExclusions). Une
+     * image très large n'est pas écartée : elle est montrée entière (`fit` = `contain`, WIDE_PHOTO_RATIO). Les
+     * règles de taille et de nom ne valent que pour la vignette : la fiche de la série garde son image (un plan
+     * y reste une illustration utile).
+     *
+     * @param  array<string, mixed>  $image
+     */
+    public static function isShowablePhoto(array $image): bool
+    {
+        $width = isset($image['width']) ? (int) $image['width'] : null;
+        $height = isset($image['height']) ? (int) $image['height'] : null;
+        if (($width !== null && $width < self::MIN_PHOTO_WIDTH) || ($height !== null && $height < self::MIN_PHOTO_HEIGHT)) {
+            return false;
+        }
+
+        $file = (string) preg_replace('/^File:/u', '', (string) ($image['file'] ?? ''));
+
+        return preg_match(self::NOT_A_PHOTO, $file) !== 1 && ! MaterialPhotoExclusions::excludes($file);
     }
 }

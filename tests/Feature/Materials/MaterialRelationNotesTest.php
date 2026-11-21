@@ -140,9 +140,21 @@ class MaterialRelationNotesTest extends TestCase
     {
         $this->assertNull(Material::thumbnail(null));
         $this->assertNull(Material::thumbnail(['thumb_url' => '']));
-        $small = Material::thumbnail(['thumb_url' => 'https://upload.wikimedia.org/a/200px-x.jpg', 'width' => 200, 'height' => 100]);
-        $this->assertSame(['https://upload.wikimedia.org/a/200px-x.jpg', 200, 100], [$small['url'], $small['width'], $small['height']]);
+        $small = Material::thumbnail(['thumb_url' => 'https://upload.wikimedia.org/a/320px-x.jpg', 'width' => 320, 'height' => 160]);
+        $this->assertSame(['https://upload.wikimedia.org/a/320px-x.jpg', 320, 160], [$small['url'], $small['width'], $small['height']]);
         $unknown = Material::thumbnail(['thumb_url' => 'https://upload.wikimedia.org/a/500px-x.jpg']);
         $this->assertSame([330, 220, null], [$unknown['width'], $unknown['height'], $unknown['author']], 'proportions 3:2 sans dimensions connues');
+
+        // Photo à écarter : trop petite, plan, dessin, vectorielle, relue et écartée ; vue de profil : entière.
+        $this->assertNull(Material::thumbnail(['thumb_url' => 'https://x/a.jpg', 'file' => 'File:SNCF CC 25000-drawing.jpg', 'width' => 300, 'height' => 106]));
+        $this->assertNull(Material::thumbnail(['thumb_url' => 'https://x/a.jpg', 'file' => 'File:X 5800-plan.jpg', 'width' => 833, 'height' => 304]));
+        $this->assertNull(Material::thumbnail(['thumb_url' => 'https://x/a.jpg', 'file' => 'File:P1190526 - Intérieur de la voiture.JPG', 'width' => 1920, 'height' => 2560]));
+        $this->assertNull(Material::thumbnail(['thumb_url' => 'https://x/a.jpg', 'file' => 'File:BB 1002.svg', 'width' => 1059, 'height' => 473]));
+        $this->assertNull(Material::thumbnail(['thumb_url' => 'https://x/a.jpg', 'file' => 'File:X 76500 Obernai.jpg', 'width' => 2000, 'height' => 1500]));
+        $this->assertNull(Material::thumbnail(['thumb_url' => 'https://x/a.jpg', 'file' => 'File:Petite.jpg', 'width' => 250, 'height' => 180]));
+        $wide = Material::thumbnail(['thumb_url' => 'https://x/500px-a.jpg', 'file' => 'File:SNCF CC 80001.jpg', 'width' => 583, 'height' => 199]);
+        $this->assertSame('contain', $wide['fit'], 'profil de la CC 80001 : montré entier, pas un bout de caisse');
+        $this->assertSame('cover', Material::thumbnail(['thumb_url' => 'https://x/500px-a.jpg', 'file' => 'File:Planche-à-voile BB 15000.jpg', 'width' => 1500, 'height' => 1000])['fit'],
+            '« Planche » n\'est pas « plan »');
     }
 }

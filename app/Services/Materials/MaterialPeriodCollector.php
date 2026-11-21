@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\DB;
  * ligne × matériel importés par `vff:import-materials` :
  *
  *   1. articles Wikipédia des LIGNES : phrases des sections « Matériel roulant », « Exploitation »… qui
- *      citent une série par un lien (MaterialPeriodExtractor) ;
+ *      citent une série par un lien (MaterialPeriodExtractor), et articles des ITINÉRAIRES qui enchaînent
+ *      plusieurs lignes (database/data/wikipedia_itineraries.php, « Ligne de Paris à Granville ») : la période
+ *      vaut pour chacune de leurs lignes, avec la relation de l'itinéraire ;
  *   2. articles Wikipédia des SÉRIES : phrases des sections « Utilisation », « Services »… qui citent une
  *      ligne par un lien ;
  *   3. relations et itinéraires cités par les articles des séries (MaterialRelations) : période lue dans la
@@ -29,6 +31,9 @@ use Illuminate\Support\Facades\DB;
  */
 final class MaterialPeriodCollector
 {
+    /** Cache des articles d'itinéraires (database/data/wikipedia_itineraries.php), rempli par vff:import-materials. */
+    public const ITINERARY_CACHE = 'wikipedia_itineraries';
+
     /** Titre de section qui nomme une portion (« Section de Saint-Just-en-Chaussée à Cambrai »). */
     private const SECTION_HEADING = '/^(?:section|tronçon|portion|partie)\s+(?:de\s+la\s+|de\s+l[’\']|du\s+|des\s+|de\s+|d[’\'])(.+?)\s+(?:à|au|aux)\s+(?:la\s+|l[’\'])?(.+)$|^(?:section|tronçon|portion|partie)\s+entre\s+(.+?)\s+et\s+(.+)$/iu';
 
@@ -102,6 +107,42 @@ final class MaterialPeriodCollector
                 foreach ($facts as $fact) {
                     foreach ($lineIds as $lineId) {
                         $candidates[] = ['line_id' => $lineId, 'material_id' => $fact['id'], 'origin' => MaterialPeriodExtractor::MODE_LINE_ARTICLE, 'page' => $page, 'heading' => $section['title']] + $fact;
+                    }
+                }
+            }
+        }
+
+        // 1 bis. Articles d'itinéraires (« Ligne de Paris à Granville ») : ils datent le matériel de la relation,
+        //    donc sur chacune des lignes qu'elle enchaîne (« De 1999 à 2015, … X 72500 », « À partir du 16 juillet
+        //    2014, … Régiolis »). La période porte la relation de l'itinéraire.
+        $itineraries = require database_path('data/wikipedia_itineraries.php');
+        $idsByCode = [];
+        foreach (DB::table('lines')->whereIn('code', array_merge(...array_column($itineraries, 'lines')))->get(['id', 'code']) as $row) {
+            $idsByCode[(string) $row->code][] = (int) $row->id;
+        }
+        foreach ($this->cache->load(self::ITINERARY_CACHE) as $requested => $page) {
+            $itinerary = $itineraries[(string) $requested] ?? null;
+            if (! is_array($page) || $itinerary === null) {
+                continue;
+            }
+            $lineIds = array_merge(...array_map(fn (string $code): array => $idsByCode[$code] ?? [], $itinerary['lines']));
+            [$first, $last] = [$itinerary['stops'][0], $itinerary['stops'][count($itinerary['stops']) - 1]];
+            $relation = ['label' => RelationRouter::readable($first).' - '.RelationRouter::readable($last), 'from' => ['id' => null, 'name' => $first], 'to' => ['id' => null, 'name' => $last]];
+            $stats['line_articles']++;
+            foreach ($page['sections'] ?? [] as $section) {
+                if (WikipediaMaterialSections::isDoubtfulSection($section['title'])) {
+                    continue;
+                }
+                $facts = $this->extractor->extract(
+                    $section['text'],
+                    fn (string $target): array => array_values(array_unique($materialsByTitle[$target] ?? [])),
+                    fn (string $target): bool => array_diff($linesByTitle[$target] ?? [], $lineIds) !== [],
+                    MaterialPeriodExtractor::MODE_LINE_ARTICLE,
+                    $today,
+                );
+                foreach ($facts as $fact) {
+                    foreach ($lineIds as $lineId) {
+                        $candidates[] = ['line_id' => $lineId, 'material_id' => $fact['id'], 'origin' => MaterialPeriodExtractor::MODE_LINE_ARTICLE, 'page' => $page, 'heading' => $section['title'], 'relation' => $relation] + $fact;
                     }
                 }
             }
@@ -254,8 +295,11 @@ final class MaterialPeriodCollector
             $confidence = 'low';
         }
         // Hors de la vie de la série : erreur de lecture probable (date d'une autre série, d'une autre action).
+        // Exception : l'article de la série elle-même qui la fait rouler après son retrait déclaré (« la CC 80001
+        // rejoint la ligne Paris - Argentan - Granville jusqu'en 1977 », retrait Wikidata 1964) contredit ce
+        // retrait ; la phrase précise passe avant la date de la fiche, que LineSheet ne montre plus sur la ligne.
         $from = $material?->in_service_from !== null ? (int) $material->in_service_from : null;
-        $to = $material?->in_service_to !== null ? (int) $material->in_service_to : null;
+        $to = $material?->in_service_to !== null && $c['origin'] !== MaterialPeriodExtractor::MODE_MATERIAL_ARTICLE ? (int) $material->in_service_to : null;
         $startYear = $c['from'] !== null ? (int) substr($c['from']['date'], 0, 4) : null;
         $endYear = $c['to'] !== null ? (int) substr($c['to']['date'], 0, 4) : null;
         if (($from !== null && $startYear !== null && $startYear < $from) || ($from !== null && $endYear !== null && $endYear < $from)

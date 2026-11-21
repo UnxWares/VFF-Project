@@ -45,25 +45,31 @@ class LineMaterialEndTest extends TestCase
 
         $this->assertSame('series_withdrawn', LineMaterialEnd::of(new Material(['service_status' => 'withdrawn']), [])['kind']);
         $this->assertNull(LineMaterialEnd::of(new Material(['service_status' => 'withdrawn']), [])['year']);
-        $this->assertSame(['kind' => 'unknown', 'year' => null, 'source' => null, 'source_url' => null], LineMaterialEnd::of(new Material, []));
+        $this->assertSame(['kind' => 'unknown', 'year' => null, 'source' => null, 'source_url' => null, 'since' => null], LineMaterialEnd::of(new Material, []));
     }
 
-    public function test_the_most_recent_comes_first(): void
+    public function test_presence_on_the_line_comes_before_the_state_of_the_series(): void
     {
-        $row = fn (string $name, string $kind, ?int $year, ?int $from = null, array $periods = []): array => [
-            'name' => $name, 'in_service_from' => $from, 'periods' => $periods, 'end' => ['kind' => $kind, 'year' => $year],
+        $row = fn (string $name, array $end, array $periods = [], ?int $from = null, ?int $to = null): array => [
+            'name' => $name, 'in_service_from' => $from, 'in_service_to' => $to, 'periods' => $periods, 'end' => $end + ['since' => null],
         ];
+        $running = ['kind' => 'series_in_service', 'year' => null];
         $sorted = LineMaterialEnd::sort([
-            $row('Inconnue', 'unknown', null),
-            $row('X 2800', 'line', 1990),
-            $row('A1AA1A 68000', 'series_withdrawn', 2010),
-            $row('Régiolis', 'series_in_service', null, 2013),
-            $row('X 72500', 'line', 2019),
-            $row('BB 67000', 'line', 2019, 1965, [self::period('1970-01-01', '2019-01-01')]),
-            $row('X 76500', 'series_in_service', null, 2004),
+            $row('Inconnue', ['kind' => 'unknown', 'year' => null]),
+            $row('X 76500', $running, [], 2004),
+            $row('X 72500', ['kind' => 'line', 'year' => 2015], [self::period('1999-01-01', '2015-01-01')], 1997),
+            $row('CC 80000', ['kind' => 'line', 'year' => 1977], [self::period(null, '1977-01-01')], null, 1964),
+            $row('Régiolis', ['kind' => 'series_in_service', 'year' => null, 'since' => 2014], [self::period('2014-07-16', null)], 2013),
+            $row('BB 67000', ['kind' => 'series_withdrawn', 'year' => 2010, 'since' => 1990], [self::period('1990-01-01', null)], 1963, 2010),
+            $row('A1AA1A 68000', ['kind' => 'series_withdrawn', 'year' => 2005]),
+            $row('Ancienne', ['kind' => 'series_withdrawn', 'year' => null, 'since' => 1950], [self::period('1950-01-01', null)]),
         ]);
 
-        $this->assertSame(['Régiolis', 'X 76500', 'BB 67000', 'X 72500', 'A1AA1A 68000', 'X 2800', 'Inconnue'], array_column($sorted, 'name'));
+        // Régiolis (sur la ligne à partir de 2014, encore en service) passe avant les X 72500 (1999-2015), même
+        // si ceux-ci roulent encore ailleurs ; les séries sans date sur la ligne viennent après toutes les autres.
+        $this->assertSame(['Régiolis', 'X 72500', 'BB 67000', 'CC 80000', 'Ancienne', 'X 76500', 'A1AA1A 68000', 'Inconnue'], array_column($sorted, 'name'));
+        $this->assertSame(2014, LineMaterialEnd::of(new Material(['service_status' => 'in_service']), [self::period('2014-07-16', null)])['since']);
+        $this->assertNull(LineMaterialEnd::of(new Material, [self::period('1999-01-01', '2015-01-01')])['since']);
     }
 
     public function test_the_same_order_and_end_are_served_by_the_page_and_the_apis(): void
@@ -82,29 +88,30 @@ class LineMaterialEndTest extends TestCase
                 ]);
             }
         }
-        $order = ['Régiolis', 'X 72500', 'X 2800'];
+        // Daté sur la ligne d'abord (X 72500 jusqu'en 2019), puis l'état de la série (Régiolis en service, X 2800 retiré).
+        $order = ['X 72500', 'Régiolis', 'X 2800'];
 
         $this->withCookie('locale', 'fr')->get('/lines/rfn-405000')->assertOk()
             ->assertInertia(fn ($page) => $page
-                ->where('materials.0.name', 'Régiolis')
-                ->where('materials.0.end.kind', 'series_in_service')
-                ->where('materials.1.end.year', 2019)
-                ->where('materials.1.end.kind', 'line')
+                ->where('materials.0.name', 'X 72500')
+                ->where('materials.0.end.year', 2019)
+                ->where('materials.0.end.kind', 'line')
+                ->where('materials.1.end.kind', 'series_in_service')
                 ->where('materials.2.end.kind', 'series_withdrawn')
                 ->where('materials.2.end.year', 1993)
                 ->etc());
         $this->assertSame($order, array_column($this->getJson('/api/v1/lines/rfn-405000')->assertOk()->json('data.materials'), 'name'));
         $rest = $this->getJson('/api/v1/lines/rfn-405000/materials')->assertOk()->json('data');
         $this->assertSame($order, array_column(array_column($rest, 'material'), 'name'));
-        $this->assertSame(['series_in_service', 'line', 'series_withdrawn'], array_column(array_column($rest, 'end'), 'kind'));
+        $this->assertSame(['line', 'series_in_service', 'series_withdrawn'], array_column(array_column($rest, 'end'), 'kind'));
         $graphql = $this->postJson('/graphql', ['query' => '{ line(slug: "rfn-405000") { sheet { materials { name end { kind year source_url } } } } }'])->assertOk()->json('data.line.sheet.materials');
         $this->assertSame($order, array_column($graphql, 'name'));
-        $this->assertSame('https://fr.wikipedia.org/w/index.php?title=X_72500&oldid=7', $graphql[1]['end']['source_url']);
+        $this->assertSame('https://fr.wikipedia.org/w/index.php?title=X_72500&oldid=7', $graphql[0]['end']['source_url']);
         $result = $this->withHeaders(['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-06-18'])
             ->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'line_materials', 'arguments' => ['line' => 'rfn-405000']]])
             ->assertOk()->json('result');
         $mcp = json_decode($result['content'][0]['text'], true)['materials'];
         $this->assertSame($order, array_column(array_column($mcp, 'material'), 'name'));
-        $this->assertSame([null, 2019, 1993], array_column(array_column($mcp, 'end'), 'year'));
+        $this->assertSame([2019, null, 1993], array_column(array_column($mcp, 'end'), 'year'));
     }
 }

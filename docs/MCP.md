@@ -600,7 +600,9 @@ Les séries viennent de la plus récente à la plus ancienne (encore en service 
 la plus récente, puis début), comme sur la fiche de la ligne et dans l'API REST. `end` donne la fin telle que les
 sources la connaissent : `line` (fin datée sur la ligne, `year`), `series_in_service`, `series_withdrawn` (retrait de
 la série, jamais présenté comme la fin sur la ligne ; `year` nulle si seul l'état est connu) ou `unknown`, avec
-`source` et `source_url`. `material.image` : vignette Commons (`url`, `width`, `height`) et son crédit (`author`,
+`source`, `source_url` et `since` (début de la période ouverte sur la ligne, nul sinon). L'ordre tient d'abord à la
+présence datée sur la ligne, puis seulement à l'état de la série : une série encore en service ailleurs mais
+remplacée ici ne passe pas devant (Paris - Granville : Régiolis à partir de 2014, X 72500 de 1999 à 2015). `material.image` : vignette Commons (`url`, `width`, `height`) et son crédit (`author`,
 `license`, `source_url`), nulle sans photo. Exemple réel : sur la ligne de Grenoble à Montmélian
 (`rfn-909000`), les CC 72000 ont une période du 20 août 1982 au 30 mai 1986 (`high`), les BB 67300 une fin au
 2 mai 2016 (`high`). Ligne inconnue : erreur `line_not_found` avec `suggestions`.

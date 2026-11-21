@@ -159,9 +159,10 @@ class LineMaterialLinkResource extends JsonResource
              * fin sur la ligne, la série est encore en service : on ne sait pas si elle roule encore ici),
              * `series_withdrawn` (pas de fin sur la ligne, la série est retirée : `year` est celle du retrait de
              * la série, nulle si seul l'état est connu) ou `unknown`. `source` (`wikipedia`, `wikidata`) et
-             * `source_url` (permalien) disent d'où vient l'année. Présent quand la série est chargée.
+             * `source_url` (permalien) disent d'où vient l'année. `since` : début de la période ouverte sur la
+             * ligne (début daté sans fin), nul sinon. Présent quand la série est chargée.
              *
-             * @var array{kind: string, year: int|null, source: string|null, source_url: string|null}|null
+             * @var array{kind: string, year: int|null, since: int|null, source: string|null, source_url: string|null}|null
              */
             'end' => $this->resource->relationLoaded('material') && $this->resource->relationLoaded('shownPeriods')
                 ? LineMaterialEnd::of($this->material, $this->shownPeriods->map(fn ($p): array => $p->toSheet())->values()->all())

@@ -340,7 +340,11 @@ final class LineSheet
                 'builder' => $m->builder,
                 'builders' => $m->builderNames(),
                 'in_service_from' => $m->in_service_from,
-                'in_service_to' => $m->in_service_to,
+                // Retrait de la série contredit par une période datée sur cette ligne (CC 80000 : retrait 1964 d'après
+                // Wikidata, « jusqu'en 1977 » sur Paris - Argentan - Granville d'après son article) : il n'est pas
+                // montré comme un fait, et reste lisible dans `in_service_to_contradicted`.
+                'in_service_to' => self::contradictedRetirement($m->in_service_to, $materialPeriods[$m->id] ?? []) ? null : $m->in_service_to,
+                'in_service_to_contradicted' => self::contradictedRetirement($m->in_service_to, $materialPeriods[$m->id] ?? []) ? $m->in_service_to : null,
                 'periods' => $materialPeriods[$m->id] ?? [],
                 'relations' => $materialRelations[$m->id] ?? [],
                 // Vignette de la photo de la série (Commons) et son crédit, null sans photo.
@@ -351,6 +355,27 @@ final class LineSheet
         ];
 
         return $forPage ? array_diff_key($sheet, array_flip(self::PAGE_OMITTED)) : $sheet;
+    }
+
+    /**
+     * Le retrait déclaré de la série précède-t-il une période datée sur la ligne (début ou fin plus d'un an après) ?
+     *
+     * @param  list<array<string, mixed>>  $periods
+     */
+    private static function contradictedRetirement(?int $retired, array $periods): bool
+    {
+        if ($retired === null) {
+            return false;
+        }
+        foreach ($periods as $p) {
+            foreach ([$p['start_date'] ?? null, $p['end_date'] ?? null] as $date) {
+                if ($date !== null && (int) substr((string) $date, 0, 4) > $retired + 1) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

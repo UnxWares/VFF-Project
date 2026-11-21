@@ -10,8 +10,8 @@
     /**
      * Section « Matériel roulant » de la fiche ligne (LineSheet::build, clé `materials`) : une tuile par
      * série, avec sa photo (vignette Commons de la fiche de la série, Material::thumbnail, crédit sous
-     * l'image), sa catégorie, son constructeur, ses années de service, ses années de circulation sur la
-     * ligne quand une source les date (regroupées, cf. lib/materialPeriods.js), les relations qu'elle
+     * l'image ; vue de profil très large montrée entière, `fit` = `contain`), sa catégorie, son
+     * constructeur, ses années de service, ses années de circulation sur la ligne quand une source les date (regroupées, cf. lib/materialPeriods.js), les relations qu'elle
      * assurait (datées ou non), les faits sourcés sur ces relations (carburant…) et la fin de circulation
      * telle que les sources la connaissent (`end`, LineMaterialEnd : sur la ligne, sinon retrait de la série,
      * sinon « fin inconnue »). Ordre du serveur : la plus récente d'abord. Montrée seulement s'il y a au
@@ -31,6 +31,9 @@
     let { materials } = $props();
 
     const t = (k, o) => String($i18n.t(k, o));
+    // Espaces entre un texte et un lien : Svelte retire ceux qui bordent un bloc {#if}.
+    const SPACE = ' ';
+    const LIST_SEPARATOR = ', ';
     const lang = $derived(formatLocale($i18n.language ?? 'fr'));
     const dated = $derived(materials.some((m) => m.periods?.length));
 
@@ -64,6 +67,7 @@
                     <span class={['photo', { empty: !m.image }]}>
                         {#if m.image}
                             <img
+                                class={{ contain: m.image.fit === 'contain' }}
                                 src={m.image.url}
                                 alt={altOf(m)}
                                 width={m.image.width}
@@ -101,7 +105,7 @@
                 {#if builders}<span class="meta">{builders}</span>{/if}
                 {#if service}<span class="meta">{service}</span>{/if}
                 {#if m.end}<span class="meta end"
-                        >{endText(m.end, t)}{#if m.end.source_url}{' '}(<a
+                        >{endText(m.end, t)}{#if m.end.source_url}{SPACE}(<a
                                 href={m.end.source_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -121,7 +125,7 @@
                         {t('materials.relations.notes.line', { label: n.label, text: n.text })}
                         {#if n.sources.length}<span class="sources"
                                 >({t('materials.relations.notes.sources')}
-                                {#each n.sources as s, j (s.url)}{#if j > 0}{', '}{/if}<a
+                                {#each n.sources as s, j (s.url)}{#if j > 0}{LIST_SEPARATOR}{/if}<a
                                         href={s.url}
                                         target="_blank"
                                         rel="noopener noreferrer">{s.publisher}{@render ext()}</a
@@ -176,6 +180,10 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+    }
+    /* Vue de profil très large (Material::WIDE_PHOTO_RATIO) : l'engin entier, sur le fond de la vignette. */
+    .photo img.contain {
+        object-fit: contain;
     }
     .photo.empty {
         display: grid;

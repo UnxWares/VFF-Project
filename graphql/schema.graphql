@@ -3485,8 +3485,11 @@ type LineSheetMaterial {
     "Année de mise en service."
     in_service_from: Int
 
-    "Année de retrait."
+    "Année de retrait de la série, nulle si inconnue ou contredite par une période datée sur cette ligne (voir `in_service_to_contradicted`)."
     in_service_to: Int
+
+    "Retrait déclaré de la série (Wikidata, infobox) que contredit une période datée sur cette ligne (CC 80000 : retrait 1964, « jusqu'en 1977 » sur Paris - Argentan - Granville), nul sinon."
+    in_service_to_contradicted: Int
 
     "Périodes de circulation sur cette ligne datées par une source (sûres seulement), les plus anciennes d'abord. Détail et fiabilité : `Line.material_links.periods`."
     periods: [LineSheetMaterialPeriod!]!
@@ -3494,7 +3497,7 @@ type LineSheetMaterial {
     "Relations que la série assurait sur la ligne, datées ou non, avec leurs faits sourcés (`notes`) : voir `LineMaterialLink.relations`."
     relations: [LineMaterialRelation!]!
 
-    "Vignette de la photo de la série (Commons, 330 px de large au plus) et son crédit, nulle sans photo. Image complète : `Material.image`."
+    "Vignette de la photo de la série (Commons, 330 px de large au plus) et son crédit, nulle sans photo ou quand la photo ne convient pas (original trop petit, plan, dessin, intérieur, ou écartée après relecture : `database/data/material_photo_exclusions.php`). Image complète : `Material.image`."
     image: LineSheetMaterialImage
 
     "Fin de circulation telle que les sources la connaissent (jamais déduite). Les séries de `LineSheet.materials` viennent de la plus récente à la plus ancienne : encore en service sans fin connue sur la ligne, puis fin la plus récente, puis début, puis nom."
@@ -3508,6 +3511,9 @@ type LineSheetMaterialEnd {
 
     "Année de fin (sur la ligne pour `line`, retrait de la série pour `series_withdrawn`), nulle si inconnue."
     year: Int
+
+    "Année de début de la période ouverte sur la ligne (début daté, sans fin connue), nulle sinon : « Sur la ligne à partir de 2014 »."
+    since: Int
 
     "Source de l'année : `wikipedia`, `wikidata` ou `contrib`."
     source: String
@@ -3547,6 +3553,9 @@ type LineSheetMaterialImage {
 
     "Fournisseur : `commons`."
     provider: String!
+
+    "Cadrage : `cover` (vignette remplie), ou `contain` pour une vue de profil plus de deux fois plus large que haute, montrée entière."
+    fit: String!
 }
 
 "Période de circulation d'une série sur la ligne (forme courte de `LineMaterialPeriod`)."
