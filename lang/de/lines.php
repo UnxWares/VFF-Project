@@ -379,6 +379,8 @@ return [
         'empty' => 'Dieser Strecke ist noch kein Bahnhof zugeordnet. Bahnhöfe werden über ihren Streckenkilometer (PK) oder ihre Lage am Streckenverlauf zugeordnet; wenn Sie die Bahnhöfe dieser Strecke kennen, können Sie mitwirken.',
         'intro' => 'Alle Bahnhöfe und Haltepunkte der Strecke in Streckenreihenfolge, auch geschlossene und solche an abgebauten Abschnitten. Die Kästchenreihe zeigt den Zustand jedes Bahnhofs Jahrzehnt für Jahrzehnt.',
         'opened' => 'eröffnet: :date',
+        // Date d'ouverture déduite de la ligne (provenance inferred:…), pas d'une source sur la gare.
+        'opened_inferred' => 'eröffnet: :date (Datum der Strecke)',
         'closed' => 'geschlossen: :date',
         'life' => 'Zustand des Bahnhofs in jedem Jahrzehnt',
         'status' => [
@@ -502,7 +504,9 @@ return [
         ],
         'stations' => [
             'legend_title' => 'So lesen Sie die Jahrzehntleiste',
-            'legend_text' => 'Unter jedem Bahnhof ein Feld pro Jahrzehnt, von :from bis heute.',
+            'legend_text' => 'Unter jedem Bahnhof ein Feld pro Jahrzehnt, von :from bis heute: der Zustand des Bahnhofs auf der Karte dieses Jahres, am 31. Dezember.',
+            'dots_text' => 'Punkt auf der Linie: Zustand des Bahnhofs heute; gefüllter Punkt: Endbahnhof.',
+            'dots_label' => 'Punkte auf der Linie',
             'life_label' => 'Zustand je Jahrzehnt: :text',
             'run' => ':from bis :to: :state',
             'single' => ':year: :state',

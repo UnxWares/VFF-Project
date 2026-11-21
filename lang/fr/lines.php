@@ -380,6 +380,8 @@ return [
         'empty' => 'Aucune gare n’est encore rattachée à cette ligne. Les gares sont rattachées par leur point kilométrique ou leur position sur le tracé ; si vous connaissez les gares de cette ligne, vous pouvez contribuer.',
         'intro' => 'Toutes les gares et haltes de la ligne, dans l’ordre du tracé, y compris celles qui ont fermé ou se trouvent sur une portion déposée. Le fil de cases montre l’état de chaque gare décennie par décennie.',
         'opened' => 'ouverte : :date',
+        // Date d'ouverture déduite de la ligne (provenance inferred:…), pas d'une source sur la gare.
+        'opened_inferred' => 'ouverte : :date (date de la ligne)',
         'closed' => 'fermée : :date',
         'life' => 'État de la gare à chaque décennie',
         'status' => [
@@ -503,7 +505,9 @@ return [
         ],
         'stations' => [
             'legend_title' => 'Lire le fil des décennies',
-            'legend_text' => 'Sous chaque gare, une case par décennie, de :from à aujourd’hui.',
+            'legend_text' => 'Sous chaque gare, une case par décennie, de :from à aujourd’hui : l’état de la gare sur la carte de cette année-là, au 31 décembre.',
+            'dots_text' => 'Rond sur le fil : état de la gare aujourd’hui ; rond plein : terminus.',
+            'dots_label' => 'Ronds sur le fil',
             'life_label' => 'État par décennie : :text',
             'run' => ':from à :to : :state',
             'single' => ':year : :state',

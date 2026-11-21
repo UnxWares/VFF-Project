@@ -62,26 +62,33 @@
         line-height: 1.35;
         color: var(--vff-text-muted);
     }
+    /* La valeur occupe toujours la hauteur d'un chiffre, calée en bas : une valeur en phrase
+       (« Non électrifiée ») se pose au niveau des chiffres voisins et son libellé sur la même
+       ligne que les leurs, au lieu de remonter en haut de la case. */
     dd {
+        --value-size: 30px;
         display: flex;
-        align-items: baseline;
+        align-items: flex-end;
         gap: 8px;
+        min-height: var(--value-size);
         margin: 0;
         color: var(--vff-text);
     }
     .value {
         font-family: var(--vff-font-display);
-        font-size: 30px;
+        font-size: var(--value-size);
         font-weight: 700;
         line-height: 1;
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
     }
+    /* Valeur en phrase : même police et même graisse que les chiffres, un peu plus petite pour
+       tenir dans la case. */
     .text {
-        font-family: var(--vff-font-heading);
-        font-size: var(--vff-fs-sm);
-        font-weight: 600;
-        line-height: 1.3;
+        font-family: var(--vff-font-display);
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.15;
     }
     .note {
         font-family: var(--vff-font-heading);
@@ -91,25 +98,24 @@
         text-underline-offset: 3px;
         cursor: help;
     }
+    /* Icône d'une valeur en phrase : de la taille et de la couleur du texte qu'elle précède. */
     dd i {
         font-size: 20px;
         line-height: 1;
-        align-self: center;
-        color: var(--vff-text-muted);
+        color: inherit;
     }
     .stat.accent dd i,
     .stat.accent .text {
         color: var(--vff-accent-ink);
     }
-    .stat.muted .text,
-    .stat.muted .value {
+    .stat.muted dd {
         color: var(--vff-text-muted);
     }
-    .sm .value {
-        font-size: 22px;
+    .sm dd {
+        --value-size: 22px;
     }
     .sm .text {
-        font-size: 14px;
+        font-size: 17px;
     }
     @media (max-width: 700px) {
         .stat-strip {
@@ -129,8 +135,11 @@
             padding-left: 16px;
             border-left: 1px solid var(--vff-border-strong);
         }
-        .value {
-            font-size: 24px;
+        dd {
+            --value-size: 24px;
+        }
+        .text {
+            font-size: 19px;
         }
     }
 </style>

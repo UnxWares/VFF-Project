@@ -512,6 +512,8 @@ final class LineSheet
             'service_end' => $s['service_end'] ?? null,
             'opened_at' => $s['opened_at'],
             'opened_precision' => $s['opened_precision'],
+            // « inferred:… » : date déduite de l'ouverture de la ligne, dite telle dans la liste des gares.
+            'opened_source' => $s['opened_source'] ?? null,
             'closed_at' => $s['closed_at'],
             'closed_precision' => $s['closed_precision'],
             'closed_after' => $s['closed_after'] ?? null,

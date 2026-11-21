@@ -43,6 +43,7 @@ final class LineStations
      * desserte par CETTE ligne, station_lines), served_until_kind (ServiceEnd :
      * year, upper_bound, undated), years_source, service_start / service_end
      * (date, précision et événement de ligne, StationServiceDates::bounds), opened_at / opened_precision,
+     * opened_source (provenance de la date d'ouverture, « inferred:… » si déduite des lignes),
      * closed_at / closed_precision / closed_after / closed_year (date retenue,
      * null si ouverte aujourd'hui), status_today (statut affiché à l'ère
      * courante, null : n'existe plus), eras : année → {status (active,
@@ -58,7 +59,8 @@ final class LineStations
             SELECT s.id, s.slug, s.name, s.type, s.city, s.department_code,
                    ST_X(s.geom) AS lng, ST_Y(s.geom) AS lat,
                    sl.pk_m, sl.method, sl.first_year, sl.last_year, sl.years_source, {$dates},
-                   s.opened_at, s.opened_precision, s.closed_at, s.closed_precision,
+                   s.opened_at, s.opened_precision, s.provenance->>'opened_at' AS opened_source,
+                   s.closed_at, s.closed_precision,
                    s.provenance->>'closed_after' AS closed_after, s.provenance->>'closed_at' AS closed_source,
                    s.provenance->>'kind' AS kind
             FROM station_lines sl JOIN stations s ON s.id = sl.station_id
@@ -129,6 +131,9 @@ final class LineStations
                 'service_end' => $bounds['end'],
                 'opened_at' => $r->opened_at,
                 'opened_precision' => $r->opened_precision,
+                // Provenance de la date d'ouverture (wikidata, inferred:line_event…) : une date déduite de
+                // la ligne (« inferred:… ») est signalée comme telle dans la liste des gares.
+                'opened_source' => $r->opened_source,
                 'closed_at' => $r->closed_at,
                 'closed_precision' => $r->closed_precision,
                 'closed_after' => is_numeric($r->closed_after) ? (int) $r->closed_after : null,

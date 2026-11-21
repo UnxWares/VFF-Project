@@ -622,16 +622,19 @@
         border-radius: 50%;
         background-color: var(--vff-accent);
     }
+    /* Date déduite : point creux gris (un contour en tirets, à 12 px, se lisait comme un cercle
+       cassé). */
     .timeline li.inferred::before {
         border-color: var(--vff-text-muted);
-        border-style: dashed;
         background-color: var(--vff-bg);
     }
+    /* Trait entre deux points, à 5 px de chacun (point de 12 px à 7 px du haut : il finit 2 px
+       sous le bas de l'élément, 5 px avant le point suivant). */
     .timeline li:not(:last-child)::after {
         content: '';
         position: absolute;
         top: 24px;
-        bottom: 2px;
+        bottom: -2px;
         left: 5px;
         width: 2px;
         background-color: var(--vff-border-strong);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { currentSection, revealScrollLeft } from '$lib/sheetToc.js';
+import { currentSection, hiddenEdges, revealScrollLeft } from '$lib/sheetToc.js';
 
 const sections = (...tops) => tops.map((top, i) => ({ id: `s${i}`, top }));
 const view = { line: 160, atEnd: false, viewportHeight: 800 };
@@ -31,5 +31,36 @@ describe('revealScrollLeft', () => {
         expect(
             revealScrollLeft({ left: 10, width: 80 }, { scrollLeft: 200, clientWidth: 300 }),
         ).toBe(0);
+    });
+});
+
+describe('hiddenEdges', () => {
+    it('rangée qui tient en entier : aucun fondu', () => {
+        expect(hiddenEdges({ scrollLeft: 0, scrollWidth: 300, clientWidth: 300 })).toEqual({
+            before: false,
+            after: false,
+        });
+    });
+    it('au début : arrêts cachés à droite seulement', () => {
+        expect(hiddenEdges({ scrollLeft: 0, scrollWidth: 900, clientWidth: 300 })).toEqual({
+            before: false,
+            after: true,
+        });
+    });
+    it('au milieu : des deux côtés ; au bout : à gauche seulement', () => {
+        expect(hiddenEdges({ scrollLeft: 200, scrollWidth: 900, clientWidth: 300 })).toEqual({
+            before: true,
+            after: true,
+        });
+        expect(hiddenEdges({ scrollLeft: 600, scrollWidth: 900, clientWidth: 300 })).toEqual({
+            before: true,
+            after: false,
+        });
+    });
+    it('tolère un pixel d’arrondi (zoom du navigateur)', () => {
+        expect(hiddenEdges({ scrollLeft: 599.5, scrollWidth: 900, clientWidth: 300 })).toEqual({
+            before: true,
+            after: false,
+        });
     });
 });

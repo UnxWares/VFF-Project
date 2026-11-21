@@ -66,6 +66,9 @@ return [
         'before' => 'vor :year',
         'range' => 'zwischen :from und :to',
         'range_upper' => 'spätestens :year',
+        // Borne haute = aujourd'hui : la fermeture n'est pas datée (stationDates.js).
+        'unknown' => 'Datum unbekannt',
+        'unknown_after' => 'Datum unbekannt, nach :year',
     ],
 
     'statuses' => [
