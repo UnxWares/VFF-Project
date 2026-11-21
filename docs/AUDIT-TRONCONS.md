@@ -77,6 +77,15 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
       pour le classement à l'ère courante. Une passe qui comprend l'ère courante l'audite en premier et lit son
       classement de la même passe ; une passe limitée aux ères passées (`--era=1990`) lit l'audit enregistré de
       l'ère courante.
+    - Train touristique (règle R1, règles `.6`) : une exploitation associative (`heritage_start`, train
+      touristique ou vélorail) n'est pas une première ouverture. Une source qui ne date, en fait d'ouvertures,
+      que le train touristique ne dit rien de la ligne commerciale avant son début : seules ses fins comptent,
+      comme pour une source sans ouverture. La source `heritage` ne contredit donc plus une ère antérieure
+      (Salbris - Le Blanc en 1930, Vertaizon - Billom en 1970).
+    - Fin des voyageurs (règle R3, règles `.6`) : une source qui attend une ligne fermée seulement à cause d'une
+      fin des voyageurs (sans elle, la ligne serait ouverte) est d'accord avec un tronçon en fret ; son avis porte
+      `passenger_end_only`. Une fermeture complète, une fin du fret ou un déclassement datés avant l'ère gardent la
+      contradiction, et un tronçon mixte reste contredit.
   - Placement : un point tous les 50 m (3 à 200 par tronçon), voie la plus proche à moins de 50 m d'une source
     différente de celle du tracé (BD TOPO, OSM, photographies aériennes anciennes de l'IGN) ; `good` si médiane et
     95e centile ≤ 5 m sur au moins 80 % des points, `poor` si médiane > 5 m ou tronçon en service aujourd'hui sans
@@ -95,6 +104,11 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
         source du tracé : la voie de l'autre ligne qui le confirme est alors un rattachement douteux), ou
         embranchement posé sur la voie de la ligne dont il part sans voie propre connue (la note d'avant les réglages, signalée pour la relecture). Une première version
         notait ces cas `fair` : 1 856 tronçons (830 km) en 2030, surtout des jonctions justes ; abandonnée.
+    - Référence lointaine (règle R4, règles `.6`, ères passées seulement) : un tracé OSM que la voie OSM rattachée à
+      la ligne suit sur tous les points (médiane de la voie propre et 95e centile à 1 m au plus) n'est plus
+      « faux » quand la seule référence retenue est la BD TOPO à plus de 15 m (`DISTANT_REFERENCE_M`) : note
+      `unknown`, raison `distant_reference_only`. La BD TOPO décrit la voie d'aujourd'hui (Bédarieux, Sarrebourg,
+      La Châtre au troisième contrôle à la main). L'ère courante garde « faux ».
     - Preuves : `references.<source>` donne la mesure retenue (sans les voies des autres lignes), `all` la même
       mesure sur toutes les voies et `own` l'écart aux seules voies de la ligne (jusqu'à 60 m).
   - Exactitude : `poor` pour un aller-retour (virage > 150° sur 40 m), un écart de jonction > 1 m (bout libre à
@@ -114,4 +128,7 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
     touristique ; `.4` (matin du 21/11, second contrôle à la main de 100 tronçons) voies d'une autre ligne, tracé
     confirmé par une source précise, observation seule, continuité aux ères passées ; `.5` (après-midi du 21/11)
     voie de la ligne vraiment d'abord pour l'état BD TOPO et OSM (`COALESCE` sur `attached`), et une voie libre
-    qui colle au tronçon n'est plus « la voie d'une autre ligne ».
+    qui colle au tronçon n'est plus « la voie d'une autre ligne ». ; `.6` (après-midi du 21/11, troisième contrôle à la main : 0 alerte
+    juste sur 13 aux ères passées) train touristique muet avant son début (R1), fin des voyageurs seule qui n'est pas
+    une fermeture (R3), référence BD TOPO lointaine d'un tracé OSM de la ligne (R4). L'élargissement de la
+    continuité (R2) n'est pas appliqué : voir `storage/app/reports/agents/aprem-2111/audit-eres-passees.md`.

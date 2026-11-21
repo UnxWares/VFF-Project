@@ -26,6 +26,10 @@ use App\Enums\AuditGrade;
  *   ère passée : un tronçon en service que seules des sources faibles confirment reste « sûr » quand
  *   la ligne n'a aucune fin datée (fermeture, déclassement, dépose) et que le même tronçon est en
  *   service et sûr à l'ère courante (règle continuous_service) ;
+ *   une exploitation associative (heritage_start) n'est pas une première ouverture : une source qui ne
+ *   date que le train touristique et des fins ne dit rien avant son début (règle R1) ; une fin des
+ *   voyageurs seule n'est pas une fermeture : la source est d'accord avec un tronçon en fret (règle R3,
+ *   avis `passenger_end_only`) ;
  *   un avis « contredit » est faible quand il change à ±NEAR_DATE_YEARS ans de la date de l'ère
  *   (la date d'un événement voisin suffit à l'expliquer), qu'il vient d'une source faible (WEAK_SOURCES)
  *   ou d'une observation qui n'est pas rattachée à la ligne (voie OSM d'une autre ligne, état
@@ -55,7 +59,9 @@ use App\Enums\AuditGrade;
  *   poor : médiane > TOLERANCE_M, ou tronçon en service à l'ère courante sans aucune voie de référence proche ;
  *   unknown : tronçon fermé ou déposé sans référence, tronçon hors de France (abroad), ou seule la
  *             source du tracé elle-même. Ère passée : la référence indépendante la plus proche est
- *             retenue (la voie a pu être déplacée depuis).
+ *             retenue (la voie a pu être déplacée depuis), et un tracé OSM rattaché à la ligne, qui le
+ *             suit sur tous les points, n'est pas « faux » quand seule la BD TOPO est à plus de
+ *             DISTANT_REFERENCE_M (distant_reference_only, règle R4).
  *
  * Exactitude (défauts de géométrie, gares) :
  *   poor : aller-retour (virage > HAIRPIN_DEG sur 40 m), écart de jonction > JUNCTION_POOR_M,
@@ -78,7 +84,7 @@ use App\Enums\AuditGrade;
 final class AuditGrader
 {
     /** Version des règles, recopiée dans chaque ligne d'audit (à changer avec les seuils). */
-    public const RULE_VERSION = '2026-11-21.5';
+    public const RULE_VERSION = '2026-11-21.6';
 
     /** Ancienneté (ans) d'une fermeture au-delà de laquelle une voie « en place » non observée est suspecte. */
     public const OLD_CLOSURE_YEARS = 50;
@@ -109,6 +115,12 @@ final class AuditGrader
     public const OWN_TRACK_MIN_M = 8.0;
 
     public const OWN_TRACK_MAX_M = 60.0;
+
+    /**
+     * Ère passée (R4) : écart au-delà duquel une référence BD TOPO seule ne prouve plus qu'un tracé OSM
+     * rattaché à la ligne est faux (voie déplacée, voie voisine, faisceau généralisé).
+     */
+    public const DISTANT_REFERENCE_M = 15.0;
 
     /** Part des points qu'une source précise indépendante doit suivre pour confirmer un tracé (T2). */
     public const CONFIRM_COVERAGE = 0.8;
@@ -298,7 +310,9 @@ final class AuditGrader
         }
         $other = self::onOtherLine($refs, $source);
         if ($other === null) {
-            return $result;
+            return $bestMatch && $result['grade'] === AuditGrade::Poor && self::ownOsmTraceFarFromBdtopo($refs, $source, $result)
+                ? ['grade' => AuditGrade::Unknown, 'reasons' => ['distant_reference_only']] + $result
+                : $result;
         }
         [$name, $all, $own] = $other;
         $points = $refs[$name]['points'];
@@ -353,6 +367,27 @@ final class AuditGrader
         }
 
         return null;
+    }
+
+    /**
+     * Ère passée (R4, règles `.6`) : le tracé vient d'une voie OSM rattachée à la ligne, qui le suit sur tous
+     * les points (voie propre à TARGET_M au plus en médiane, 95e centile des voies libres ou de la ligne à
+     * TARGET_M au plus), et la seule référence indépendante retenue est la BD TOPO, à plus de
+     * DISTANT_REFERENCE_M en médiane. La BD TOPO décrit la voie d'aujourd'hui : rien ne prouve que le tracé
+     * de l'époque est faux (contrôle à la main du 21/11 : Bédarieux, Sarrebourg, La Châtre).
+     *
+     * @param  array<string, array<string, mixed>>  $refs
+     * @param  array{reference: ?string, median_m: ?float}  $result
+     */
+    private static function ownOsmTraceFarFromBdtopo(array $refs, ?string $source, array $result): bool
+    {
+        $osm = $refs['osm'] ?? null;
+        $own = $osm['own'] ?? null;
+
+        return $source === 'osm' && $osm !== null && $own !== null && $osm['points'] > 0 && $own['found'] === $osm['points']
+            && $own['median_m'] !== null && $own['median_m'] <= self::TARGET_M
+            && $osm['p95_m'] !== null && $osm['p95_m'] <= self::TARGET_M
+            && $result['reference'] === 'bdtopo' && $result['median_m'] !== null && $result['median_m'] > self::DISTANT_REFERENCE_M;
     }
 
     /** Placement « sûr » sur une mesure : FULL_COVERAGE des points, médiane et 95e centile ≤ TOLERANCE_M. */

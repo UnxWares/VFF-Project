@@ -208,6 +208,7 @@ return [
         'median_over_tolerance' => 'The trace is more than 5 m from the real track.',
         'partial_coverage' => 'The reference track covers only part of the section.',
         'no_track_nearby' => 'Open section with no real track within 50 m.',
+        'distant_reference_only' => 'Past era: the trace follows the line’s OSM track, and only today’s BD TOPO track, more than 15 m away, could contradict it.',
         'no_reference' => 'No reference track within 50 m.',
         'abroad' => 'Outside France: no reference track.',
         'only_same_source' => 'Only the trace’s own source is available as a reference.',

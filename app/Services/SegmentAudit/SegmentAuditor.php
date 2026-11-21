@@ -413,6 +413,7 @@ final class SegmentAuditor
                 'events' => array_map(fn (array $e): array => ['id' => $e['id'], 'type' => $e['type'], 'date' => $e['date']],
                     array_slice($applicable, -4)),
                 'first_opening_year' => $judged['first_opening_year'],
+                'passenger_end_only' => $judged['passenger_end_only'],
             ];
         }
 
@@ -423,21 +424,30 @@ final class SegmentAuditor
      * Avis d'une liste d'événements d'une source, ou null si elle ne dit rien de cette date.
      *
      * @param  list<array<string, mixed>>  $list
-     * @return array{expected: array{class: string, traffic: ?string}, agrees: bool, why: ?string, near_date: bool, first_opening_year: ?int}|null
+     * @return array{expected: array{class: string, traffic: ?string}, agrees: bool, why: ?string, near_date: bool, first_opening_year: ?int, passenger_end_only: bool}|null
      */
     private function judge(object $s, array $list, int $year, bool $current, ?int $prevYear, string $limit, string $defaults, bool $passengerImpliesFreight): ?array
     {
         $openings = array_filter($list, fn (array $e): bool => (bool) preg_match('/^(re)?opening|^heritage_start/', $e['type']));
+        // R1 (règles .6) : une exploitation associative n'est pas une première ouverture. Une source qui ne
+        // date, en fait d'ouvertures, que le train touristique (ou le vélorail) ne dit rien de la ligne
+        // commerciale avant lui : seules ses fins comptent, comme pour une source sans ouverture.
+        $heritageStarts = array_filter($openings, fn (array $e): bool => $e['type'] === 'heritage_start');
+        if (count($heritageStarts) === count($openings) && $heritageStarts !== []
+            && min(array_column($heritageStarts, 'date')) > $limit) {
+            $openings = [];
+        }
         $firstOpening = $openings ? min(array_map(fn (array $e): int => (int) substr($e['date'], 0, 4), $openings)) : null;
         $speaks = array_filter($list, fn (array $e): bool => $e['date'] <= $limit) !== [] || ($firstOpening !== null && $firstOpening > $year);
         if (! $speaks) {
             return null;
         }
         // Source qui ne date que des fermetures : ouverture supposée, seules ses fins comptent.
-        $timeline = new EraTimeline($openings ? $list : [['type' => 'opening', 'date' => '1800-01-01', 'source' => 'assumed', 'whole' => true], ...$list],
-            $defaults, $passengerImpliesFreight);
-        $expect = function (int $y, bool $isCurrent, ?int $prev, ?string $asOf) use ($timeline, $firstOpening, $openings): array {
-            $expected = AuditGrader::expectedFromState($timeline->stateAt($y, $isCurrent, $prev, $asOf), $firstOpening, $y);
+        $timelineOf = fn (array $events): EraTimeline => new EraTimeline($openings ? $events
+            : [['type' => 'opening', 'date' => '1800-01-01', 'source' => 'assumed', 'whole' => true], ...$events], $defaults, $passengerImpliesFreight);
+        $timeline = $timelineOf($list);
+        $expect = function (int $y, bool $isCurrent, ?int $prev, ?string $asOf, ?EraTimeline $other = null) use ($timeline, $firstOpening, $openings): array {
+            $expected = AuditGrader::expectedFromState(($other ?? $timeline)->stateAt($y, $isCurrent, $prev, $asOf), $firstOpening, $y);
             if (! $openings) {
                 $expected['traffic'] = null;
             }
@@ -450,6 +460,21 @@ final class SegmentAuditor
             return null;
         }
         [$agrees, $why] = AuditGrader::compare($s->status, $s->traffic_type, $expected);
+        if (! $agrees && in_array($expected['class'], ['closed', 'gone'], true)
+            && AuditGrader::statusClass($s->status) === 'open' && $s->traffic_type === 'freight') {
+            // R3 (règles .6) : une fin des voyageurs seule n'est pas une fermeture. Quand la source ne date
+            // avant l'ère aucune autre fin (fermeture, fin du fret, déclassement, dépose, reconversion) et
+            // qu'elle attendrait sans ses fins des voyageurs une ligne ouverte, elle est d'accord avec un
+            // tronçon en fret.
+            $otherEnds = array_filter($list, fn (array $e): bool => $e['date'] <= $limit
+                && (bool) preg_match('/^closure(?!_passenger)|^declassification|^dismantling|^conversion/', $e['type']));
+            $withoutPassengerEnds = array_values(array_filter($list, fn (array $e): bool => $e['type'] !== 'closure_passenger'));
+            if ($otherEnds === [] && $withoutPassengerEnds !== $list
+                && $expect($year, $current, $prevYear, $current ? $limit : null, $timelineOf($withoutPassengerEnds))['class'] === 'open') {
+                return ['expected' => ['class' => 'open', 'traffic' => 'freight'], 'agrees' => true, 'why' => null, 'near_date' => false,
+                    'first_opening_year' => $firstOpening, 'passenger_end_only' => true];
+            }
+        }
         $knowsEnds = array_filter($list, fn (array $e): bool => (bool) preg_match('/^closure|^declassification|^dismantling|^conversion/', $e['type'])) !== [];
         if (! $agrees && ! $knowsEnds && $expected['class'] === 'open') {
             // Source qui ne date que des ouvertures : son silence sur la fermeture ne la contredit pas.
@@ -463,7 +488,8 @@ final class SegmentAuditor
             }
         }
 
-        return ['expected' => $expected, 'agrees' => $agrees, 'why' => $why, 'near_date' => $nearDate, 'first_opening_year' => $firstOpening];
+        return ['expected' => $expected, 'agrees' => $agrees, 'why' => $why, 'near_date' => $nearDate, 'first_opening_year' => $firstOpening,
+            'passenger_end_only' => false];
     }
 
     /**

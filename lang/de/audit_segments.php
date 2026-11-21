@@ -208,6 +208,7 @@ return [
         'median_over_tolerance' => 'Der Verlauf liegt mehr als 5 m vom tatsächlichen Gleis entfernt.',
         'partial_coverage' => 'Das Referenzgleis folgt nur einem Teil des Abschnitts.',
         'no_track_nearby' => 'Abschnitt in Betrieb ohne tatsächliches Gleis im Umkreis von 50 m.',
+        'distant_reference_only' => 'Frühere Epoche: Der Verlauf folgt dem OSM-Gleis der Strecke, und nur das heutige BD-TOPO-Gleis in mehr als 15 m Abstand könnte ihm widersprechen.',
         'no_reference' => 'Kein Referenzgleis im Umkreis von 50 m.',
         'abroad' => 'Außerhalb Frankreichs: kein Referenzgleis.',
         'only_same_source' => 'Als Referenz steht nur die Quelle des Verlaufs selbst zur Verfügung.',
