@@ -45,6 +45,8 @@ enum AuditAction: string
     case ApiTokenCreated = 'api_token_created';
     /** Jeton d'API révoqué par son titulaire (acteur). Contexte : `token_id`. */
     case ApiTokenRevoked = 'api_token_revoked';
+    /** Jeton d'API renouvelé par son titulaire (acteur) : un an de plus. Contexte : `token_id`. */
+    case ApiTokenRenewed = 'api_token_renewed';
     /**
      * Profil « partenaire » de l'API accordé en console (vff:api-partner). Contexte : `account_id`
      * (retiré à la suppression du compte, AccountDeletion).

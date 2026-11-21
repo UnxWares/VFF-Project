@@ -14,6 +14,7 @@ return [
         'closed_today' => 'Datierte Schließung auf die aktuelle Epoche angewandt',
         'served_today' => 'Heute bedient (veröffentlichte Fahrpläne, belegte Korrektur)',
         'not_served_today' => 'Nicht mehr bedient (belegte Korrektur)',
+        'tourist_today' => 'Heute nur von einer Museumsbahn bedient (belegte Korrektur)',
         'heritage_no_freight' => 'Zu dieser Zeit nur Museumsbahn: kein Güterverkehr mehr',
         'undated' => 'Undatierte Schließung',
         'undated_passenger' => 'Undatierte Einstellung des Personenverkehrs',
@@ -68,6 +69,7 @@ return [
         'heritage_end' => 'Ende des Museumsbahnbetriebs',
         'tourist_start' => 'Beginn des touristischen Betriebs',
         'public_utility' => 'Erklärung der Gemeinnützigkeit',
+        'future_warning' => 'Warnung zur Zukunft der Strecke',
     ],
     'event' => [
         'between' => 'von :from nach :to',

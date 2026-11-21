@@ -76,6 +76,15 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // Rapports de violation de la CSP (CspReportController) : sans donnée personnelle, 30 jours.
+        'csp' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/csp.log'),
+            'level' => 'warning',
+            'days' => 30,
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

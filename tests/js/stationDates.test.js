@@ -8,6 +8,8 @@ import { formatStationDate } from '../../resources/js/lib/stationDates.js';
 const fr = {
     'stations.dates.range': 'entre :from et :to',
     'stations.dates.range_upper': 'au plus tard en :year',
+    'stations.dates.unknown': 'date inconnue',
+    'stations.dates.unknown_after': 'date inconnue, après :year',
     'stations.dates.decade': 'années :decade',
     'stations.dates.after': 'après :year',
     'stations.dates.before': 'avant :year',
@@ -31,11 +33,24 @@ describe('formatStationDate', () => {
 
     it('intervalle borné par la frise', () => {
         expect(formatStationDate('1960-12-31', 'range', 1950, t)).toBe('entre 1951 et 1960');
-        expect(formatStationDate('2026-10-19', 'range', 1890, t)).toBe('entre 1891 et 2026');
+        expect(formatStationDate('2010-12-31', 'range', 1890, t, 'fr', 2026)).toBe(
+            'entre 1891 et 2010',
+        );
         // Bornes confondues : l'année seule.
         expect(formatStationDate('1980-12-31', 'range', 1979, t)).toBe('1980');
         // Sans borne basse : au plus tard.
         expect(formatStationDate('1960-12-31', 'range', null, t)).toBe('au plus tard en 1960');
+    });
+
+    it('borne haute = année en cours : fermeture non datée, pas « entre 1871 et 2026 »', () => {
+        expect(formatStationDate('2026-11-19', 'range', 1870, t, 'fr', 2026)).toBe(
+            'date inconnue, après 1870',
+        );
+        expect(formatStationDate('2026-11-19', 'range', null, t, 'fr', 2026)).toBe('date inconnue');
+        // L'année d'avant reste un intervalle borné.
+        expect(formatStationDate('2025-12-31', 'range', 1870, t, 'fr', 2026)).toBe(
+            'entre 1871 et 2025',
+        );
     });
 
     it('fermetures imprécises des sources', () => {

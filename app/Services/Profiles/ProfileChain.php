@@ -3,24 +3,39 @@
 namespace App\Services\Profiles;
 
 /**
- * Assemble les morceaux du tracé d'une ligne (sortie de ST_LineMerge : souvent plusieurs
- * morceaux, coupés aux bifurcations, aux raccordements et aux lacunes) en UN parcours de bout en
- * bout, celui que suit le profil en long.
+ * Assemble les morceaux du tracé de référence d'une ligne (sortie de ST_LineMerge : souvent
+ * plusieurs morceaux, coupés aux bifurcations, aux raccordements et aux trous) en UN parcours de
+ * bout en bout, celui que suit le profil en long.
  *
  * Méthode : graphe dont les nœuds sont les extrémités des morceaux (fusionnées à moins de
- * `SNAP_M`) et les arêtes les morceaux ; deux composantes séparées de moins de `MAX_GAP_M` sont
- * reliées par une arête « lacune » (ligne droite, pénalisée pour que le parcours préfère la voie).
+ * `SNAP_M`) et les arêtes les morceaux. Deux composantes séparées de moins de `NEAR_GAP_M` sont
+ * reliées par une arête « lacune » entre chaque paire de nœuds assez proches ; les composantes qui
+ * restent séparées sont ensuite reliées, quelle que soit la distance, par l'arête la plus courte
+ * entre elles (arbre couvrant de Kruskal sur les composantes) : aucun morceau du référentiel n'est
+ * laissé de côté parce qu'un trou le sépare du reste. Les lacunes sont des lignes droites,
+ * pénalisées pour que le parcours préfère la voie.
+ *
  * Le parcours retenu est le plus long des plus courts chemins (pseudo-diamètre : deux recherches
- * de Dijkstra), qui suit l'artère principale et laisse de côté épis, raccordements et boucles
- * de gare. Les lacunes empruntées sont rendues à part : aucune altitude n'y est mesurée.
+ * de Dijkstra), qui suit l'artère principale et laisse de côté épis, raccordements et boucles de
+ * gare, qui sont assemblés ensuite en embranchements (assemble, append). Les lacunes empruntées sont rendues à part :
+ * aucune altitude n'y est mesurée, la courbe s'y interrompt.
  */
 final class ProfileChain
 {
     /** Extrémités plus proches que cela : même nœud (voies d'une gare, arrondis des sources). */
     public const SNAP_M = 30.0;
 
-    /** Lacune au-delà de laquelle deux morceaux ne sont plus reliés. */
-    public const MAX_GAP_M = 5000.0;
+    /**
+     * Lacune sous laquelle toutes les paires de nœuds de deux composantes sont reliées (le parcours
+     * choisit le meilleur passage) ; au-delà, une seule arête par paire de composantes.
+     */
+    public const NEAR_GAP_M = 5000.0;
+
+    /** Longueur sous laquelle un reste du référentiel n'est pas ajouté en embranchement. */
+    public const MIN_BRANCH_M = 100.0;
+
+    /** Embranchements au plus par ligne (les réseaux miniers en comptent quelques dizaines). */
+    private const MAX_BRANCHES = 200;
 
     /** Pénalité d'une lacune dans la recherche du parcours (la voie réelle est préférée). */
     private const GAP_PENALTY = 3.0;
@@ -36,13 +51,106 @@ final class ProfileChain
      */
     public static function build(array $parts): ?ProfilePath
     {
-        return (new self)->assemble($parts);
+        return self::assemble($parts)['path'] ?? null;
+    }
+
+    /**
+     * Parcours principal, embranchements et longueur de ce qui reste hors parcours.
+     *
+     * Les morceaux que le parcours principal n'emprunte pas (épis, raccordements, réseaux en
+     * arbre comme les lignes minières) sont assemblés à leur tour, de la même façon, en
+     * embranchements : du plus long au plus court, tant qu'il en reste d'au moins MIN_BRANCH_M.
+     * Ce qui reste (bouts de moins de MIN_BRANCH_M) est compté dans `off_path_m`.
+     *
+     * @param  list<list<array{0: float, 1: float}>>  $parts  morceaux du tracé, sommets [lon, lat]
+     * @return array{path: ProfilePath, branches: list<ProfilePath>, off_path_m: float}|null
+     */
+    public static function assemble(array $parts): ?array
+    {
+        $main = (new self)->run($parts);
+        if ($main === null) {
+            return null;
+        }
+        $branches = [];
+        $rest = $main['rest'];
+        while ($rest !== [] && count($branches) < self::MAX_BRANCHES) {
+            // Embranchement : une seule composante connexe, sans trou (les trous entre
+            // embranchements sont posés par append).
+            $branch = (new self)->run($rest, link: false);
+            if ($branch === null || $branch['path']->length() < self::MIN_BRANCH_M) {
+                break;
+            }
+            $branches[] = $branch['path'];
+            $rest = $branch['rest'];
+        }
+        $offPath = (float) array_sum(array_map(fn (array $coords): float => (new ProfilePath($coords))->length(), $rest));
+
+        return ['path' => $main['path'], 'branches' => $branches, 'off_path_m' => $offPath];
+    }
+
+    /**
+     * Parcours principal suivi de ses embranchements, chacun après un trou : un embranchement
+     * part de son bout le plus proche de la fin de ce qui précède. Le trou qui précède un
+     * embranchement a une longueur conventionnelle (branchJump : 1 % de la ligne principale, 500 m
+     * au moins), pas la distance à vol d'oiseau, qui allongerait l'axe de centaines de kilomètres
+     * vides. Les trous et les bornes des embranchements tombent exactement sur les sommets
+     * (distances cumulées du parcours final).
+     *
+     * @param  list<ProfilePath>  $branches
+     * @return array{path: ProfilePath, branches: list<array{0: float, 1: float}>}
+     */
+    public static function append(ProfilePath $main, array $branches): array
+    {
+        if ($branches === []) {
+            return ['path' => $main, 'branches' => []];
+        }
+        $coords = $main->coords;
+        $jumps = $main->jumps;
+        // [indice du premier sommet, indice du dernier sommet] de chaque morceau ajouté.
+        $spans = [];
+        $innerGaps = [];
+        foreach ($branches as $branch) {
+            $last = $coords[count($coords) - 1];
+            if (ProfilePath::distance($last, $branch->coords[count($branch->coords) - 1]) < ProfilePath::distance($last, $branch->coords[0])) {
+                $branch = $branch->reversed();
+            }
+            $start = count($coords);
+            $jumps[$start] = self::branchJump($main->length());
+            foreach ($branch->jumps as $i => $m) {
+                $jumps[$start + $i] = $m;
+            }
+            array_push($coords, ...$branch->coords);
+            $spans[] = [$start, count($coords) - 1];
+            $innerGaps[] = [$start, $branch];
+        }
+        $probe = new ProfilePath($coords, [], $jumps);
+        $at = fn (int $i): float => $probe->cumulative[$i];
+        $gaps = $main->gaps;
+        $ranges = [];
+        foreach ($spans as $k => [$first, $last]) {
+            $gaps[] = [$at($first - 1), $at($first)];
+            [$start, $branch] = $innerGaps[$k];
+            // Trous propres à l'embranchement, décalés au début de celui-ci.
+            foreach ($branch->gaps as [$from, $to]) {
+                $gaps[] = [$at($start) + $from, $at($start) + $to];
+            }
+            $ranges[] = [$at($first), $at($last)];
+        }
+
+        return ['path' => new ProfilePath($coords, $gaps, $jumps), 'branches' => $ranges];
+    }
+
+    /** Longueur conventionnelle du trou qui précède un embranchement, en mètres. */
+    public static function branchJump(float $mainLength): float
+    {
+        return max(500.0, round($mainLength / 100));
     }
 
     /**
      * @param  list<list<array{0: float, 1: float}>>  $parts
+     * @return array{path: ProfilePath, rest: list<list<array{0: float, 1: float}>>}|null
      */
-    private function assemble(array $parts): ?ProfilePath
+    private function run(array $parts, bool $link = true): ?array
     {
         foreach ($parts as $coords) {
             if (count($coords) < 2) {
@@ -63,7 +171,9 @@ final class ProfileChain
         if ($this->edges === []) {
             return null;
         }
-        $this->linkComponents();
+        if ($link) {
+            $this->linkComponents();
+        }
 
         // Départ : une extrémité du plus long morceau (toujours dans l'artère principale).
         $longest = array_reduce($this->edges, fn (?array $best, array $e) => $best === null || $e['length'] > $best['length'] ? $e : $best);
@@ -72,7 +182,20 @@ final class ProfileChain
         [$dist, $prev] = $this->dijkstra($from);
         $to = $this->farthest($dist);
 
-        return $this->pathBetween($from, $to, $prev) ?? new ProfilePath($longest['coords']);
+        $used = [];
+        $path = $this->pathBetween($from, $to, $prev, $used);
+        if ($path === null) {
+            $path = new ProfilePath($longest['coords']);
+            $used = [array_search($longest, $this->edges, true) => true];
+        }
+        $rest = [];
+        foreach ($this->edges as $k => $e) {
+            if (! $e['gap'] && ! isset($used[$k])) {
+                $rest[] = $e['coords'];
+            }
+        }
+
+        return ['path' => $path, 'rest' => $rest];
     }
 
     /** @param array{0: float, 1: float} $point */
@@ -88,7 +211,11 @@ final class ProfileChain
         return count($this->nodes) - 1;
     }
 
-    /** Arêtes « lacune » entre nœuds de composantes différentes, à moins de MAX_GAP_M. */
+    /**
+     * Arêtes « lacune » : entre nœuds de composantes différentes à moins de NEAR_GAP_M, puis, tant
+     * que le graphe n'est pas connexe, la plus courte arête entre deux composantes encore séparées
+     * (Kruskal), si loin qu'elles soient.
+     */
     private function linkComponents(): void
     {
         $parent = array_keys($this->nodes);
@@ -105,17 +232,38 @@ final class ProfileChain
         }
 
         $n = count($this->nodes);
+        $candidates = [];
         for ($i = 0; $i < $n; $i++) {
             for ($j = $i + 1; $j < $n; $j++) {
                 if ($find($i) === $find($j)) {
                     continue;
                 }
                 $d = ProfilePath::distance($this->nodes[$i], $this->nodes[$j]);
-                if ($d <= self::MAX_GAP_M) {
-                    $this->edges[] = ['a' => $i, 'b' => $j, 'coords' => [$this->nodes[$i], $this->nodes[$j]], 'length' => $d, 'gap' => true];
+                if ($d <= self::NEAR_GAP_M) {
+                    $this->addGap($i, $j, $d);
                 }
+                $candidates[] = [$d, $i, $j];
             }
         }
+        // Kruskal : les arêtes ajoutées ci-dessus comptent déjà (deux composantes proches sont
+        // reliées), puis les plus courtes arêtes restantes jusqu'à ce que tout soit relié.
+        usort($candidates, fn (array $a, array $b): int => $a[0] <=> $b[0]);
+        foreach ($candidates as [$d, $i, $j]) {
+            $ri = $find($i);
+            $rj = $find($j);
+            if ($ri === $rj) {
+                continue;
+            }
+            $parent[$ri] = $rj;
+            if ($d > self::NEAR_GAP_M) {
+                $this->addGap($i, $j, $d);
+            }
+        }
+    }
+
+    private function addGap(int $i, int $j, float $d): void
+    {
+        $this->edges[] = ['a' => $i, 'b' => $j, 'coords' => [$this->nodes[$i], $this->nodes[$j]], 'length' => $d, 'gap' => true];
     }
 
     /**
@@ -170,8 +318,9 @@ final class ProfileChain
 
     /**
      * @param  array<int, array{node: int, edge: int}>  $prev
+     * @param  array<int, true>  $used  rempli avec les indices des arêtes empruntées
      */
-    private function pathBetween(int $from, int $to, array $prev): ?ProfilePath
+    private function pathBetween(int $from, int $to, array $prev, array &$used): ?ProfilePath
     {
         $steps = [];
         for ($v = $to; $v !== $from; $v = $prev[$v]['node']) {
@@ -188,6 +337,7 @@ final class ProfileChain
         $gaps = [];
         $length = 0.0;
         foreach (array_reverse($steps) as $step) {
+            $used[$step['edge']] = true;
             $e = $this->edges[$step['edge']];
             $part = $e['a'] === $step['from'] ? $e['coords'] : array_reverse($e['coords']);
             // Le premier sommet du morceau est le nœud d'arrivée du précédent (à SNAP_M près) : on

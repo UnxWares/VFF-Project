@@ -31,4 +31,26 @@ describe('loadMaplibre', () => {
         await expect(loadMaplibre(importer)).resolves.toBe(lib);
         expect(importer).toHaveBeenCalledTimes(2);
     });
+
+    it('enregistre le protocole pmtiles:// du fond de carte libre', async () => {
+        const lib = { Map: class {} };
+        const registerPmtilesProtocol = vi.fn(() => true);
+        await expect(
+            loadMaplibre(
+                async () => ({ default: lib }),
+                async () => ({ registerPmtilesProtocol }),
+            ),
+        ).resolves.toBe(lib);
+        expect(registerPmtilesProtocol).toHaveBeenCalledWith(lib);
+    });
+
+    it('rend MapLibre même si le protocole ne se charge pas', async () => {
+        const lib = { Map: class {} };
+        await expect(
+            loadMaplibre(
+                async () => ({ default: lib }),
+                async () => Promise.reject(new Error('réseau')),
+            ),
+        ).resolves.toBe(lib);
+    });
 });

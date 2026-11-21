@@ -10,6 +10,7 @@ use App\Models\LineMaterialPeriod;
 use App\Models\Material;
 use App\Services\Api\MaterialQuery;
 use App\Services\Api\MediaGallery;
+use App\Services\Materials\NotableUnits;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Inertia\Inertia;
@@ -102,7 +103,7 @@ class MaterialController extends Controller
      * lignes : slug, name, code) sont inchangées ; les autres sont des ajouts pour la fiche enrichie
      * (caractéristiques Wikidata, image Commons et ses droits, preuve de chaque lien).
      */
-    public function show(Material $material, MediaGallery $gallery): Response
+    public function show(Material $material, MediaGallery $gallery, NotableUnits $notableUnits): Response
     {
         $links = $material->lineLinks()
             ->with(['line:id,slug,code,name', 'shownPeriods'])
@@ -155,10 +156,14 @@ class MaterialController extends Controller
                     'source_title' => $link->evidence[0]['title'] ?? null,
                     // Périodes de circulation sur la ligne datées par une source (sûres seulement).
                     'periods' => $periods->map(fn (LineMaterialPeriod $p): array => $p->toSheet())->values()->all(),
+                    // Relations assurées sur la ligne (LineMaterial::relations), une par libellé, tous liens réunis.
+                    'relations' => array_values($group->flatMap(fn (LineMaterial $l): array => $l->relations($l->shownPeriods))->keyBy('label')->all()),
                 ];
             })->values(),
             // Nombre total de lignes parcourues (la liste est bornée à MAX_LINES).
             'lines_total' => $material->lineLinks()->distinct()->count('line_id'),
+            // Rames remarquables (database/data/material_notable_units.php), textes dans la langue de la page.
+            'notable_units' => $notableUnits->forMaterial($material->slug, app()->getLocale()),
             // Nombre d'images publiées : la galerie (chargée par l'API) n'est posée que s'il y en a.
             'media_count' => $gallery->count($material),
         ]);

@@ -167,10 +167,13 @@ class ProfileStatsTest extends TestCase
         $this->assertNotNull($stats);
         $this->assertSame(0.0, $stats['max_grade_permil']);
 
-        // Tunnel interpolé à 80 ‰ sur toute la fenêtre : écarté de la déclivité maximale.
+        // Tunnel interpolé à 80 ‰ sur toute la fenêtre : déclivité non publiée, motif `interpolated`.
         $tunnel = self::series(1000, fn (int $d): float => 300.0 + 0.08 * $d);
-        $all = array_fill(0, count($tunnel), true);
-        $this->assertSame(0.0, ProfileStats::summarize($tunnel, [], $all)['max_grade_permil'] ?? null);
+        $all = array_fill(0, count($tunnel), ['track' => true, 'tunnel' => false, 'interpolated' => true]);
+        $stats = ProfileStats::summarize($tunnel, [], $all);
+        $this->assertNotNull($stats);
+        $this->assertNull($stats['max_grade_permil']);
+        $this->assertSame('interpolated', $stats['max_grade_withheld'] ?? null);
     }
 
     public function test_slope_needs_three_known_points(): void
@@ -205,5 +208,142 @@ class ProfileStatsTest extends TestCase
         $this->assertContains([70000, null], $small);
         $this->assertContains([69900, 100.0], $small);
         $this->assertSame($points, LineProfiles::downsample($points, 5000));
+    }
+
+    public function test_steepest_grade_never_spans_a_gap_or_the_jump_to_a_branch(): void
+    {
+        // Ligne plate à 100 m, puis, après un trou (saut vers un embranchement), un morceau plat à
+        // 300 m : à travers le trou, la pente serait de 200 m sur 500 m (400 ‰).
+        $points = [];
+        for ($d = 0; $d <= 2000; $d += 100) {
+            $points[] = [(float) $d, 100.0];
+        }
+        for ($d = 2500; $d <= 4500; $d += 100) {
+            $points[] = [(float) $d, 300.0];
+        }
+
+        $stats = ProfileStats::summarize($points, [[2000.0, 2500.0]]);
+
+        $this->assertNotNull($stats);
+        $this->assertSame(0.0, $stats['max_grade_permil']);
+    }
+
+    public function test_steepest_grade_skips_windows_mostly_in_a_tunnel(): void
+    {
+        // 10 ‰ au sol, puis 50 ‰ sur le premier kilomètre d'un tunnel (altitude douteuse près de la tête).
+        $points = [];
+        $uncertain = [];
+        for ($d = 0; $d <= 4000; $d += 250) {
+            $z = $d <= 2000 ? 100 + $d * 0.01 : 120 - ($d - 2000) * 0.05;
+            $points[] = [(float) $d, $z];
+            $uncertain[] = ['track' => true, 'tunnel' => $d > 2000, 'interpolated' => false];
+        }
+
+        $stats = ProfileStats::summarize($points, [], $uncertain);
+
+        $this->assertNotNull($stats);
+        $this->assertLessThan(15.0, $stats['max_grade_permil']);
+    }
+
+    public function test_steepest_grade_ignores_an_implausible_window(): void
+    {
+        // 20 ‰ régulier, puis une marche de 200 m sur 1 km (200 ‰, artefact).
+        $points = [];
+        for ($d = 0; $d <= 6000; $d += 100) {
+            $z = 100 + $d * 0.02 + ($d >= 4000 && $d <= 5000 ? ($d - 4000) * 0.2 : ($d > 5000 ? 200 : 0));
+            $points[] = [(float) $d, $z];
+        }
+
+        $stats = ProfileStats::summarize($points);
+
+        $this->assertNotNull($stats);
+        $this->assertLessThanOrEqual(120.0, $stats['max_grade_permil']);
+    }
+
+    public function test_grade_is_withheld_when_only_the_terrain_is_known(): void
+    {
+        // Ligne déposée : altitudes du terrain seulement, 60 ‰ apparents.
+        $points = self::series(3000, fn (int $d): float => 200.0 + 0.06 * $d);
+        $terrain = array_fill(0, count($points), ['track' => false, 'tunnel' => false, 'interpolated' => false]);
+
+        $stats = ProfileStats::summarize($points, [], $terrain);
+
+        $this->assertNotNull($stats);
+        $this->assertNull($stats['max_grade_permil']);
+        $this->assertNull($stats['max_grade_from_m']);
+        $this->assertNull($stats['max_grade_direction']);
+        $this->assertSame('terrain_only', $stats['max_grade_withheld']);
+        // Les autres chiffres restent publiés.
+        $this->assertEqualsWithDelta(380.0, $stats['max_altitude_m'], 1.0);
+    }
+
+    public function test_grade_uses_only_windows_measured_on_the_track(): void
+    {
+        // 30 ‰ mesurés sur la voie, puis 90 ‰ sur le terrain seul : la valeur publiée vient des fenêtres
+        // aux trois quarts sur la voie (au plus un quart de terrain au raccord), loin des 90 ‰.
+        $points = [];
+        $flags = [];
+        for ($d = 0; $d <= 4000; $d += 100) {
+            $points[] = [(float) $d, $d <= 2000 ? 100 + $d * 0.03 : 160 + ($d - 2000) * 0.09];
+            $flags[] = ['track' => $d <= 2000, 'tunnel' => false, 'interpolated' => false];
+        }
+
+        $stats = ProfileStats::summarize($points, [], $flags);
+
+        $this->assertGreaterThanOrEqual(29.0, $stats['max_grade_permil']);
+        $this->assertLessThan(45.0, $stats['max_grade_permil']);
+        $this->assertNull($stats['max_grade_withheld']);
+    }
+
+    public function test_a_shortcut_through_a_spiral_tunnel_does_not_set_the_grade(): void
+    {
+        // 43 ‰ réels, puis 300 m de tunnel hélicoïdal coupé par le tracé : +29 m tous les 100 m.
+        $points = [];
+        $flags = [];
+        $z = 800.0;
+        for ($d = 0; $d <= 3000; $d += 100) {
+            $inTunnel = $d > 1500 && $d <= 1700;
+            $z += $d === 0 ? 0 : ($inTunnel ? 29.0 : 4.3);
+            $points[] = [(float) $d, $z];
+            $flags[] = ['track' => ! $inTunnel, 'tunnel' => $inTunnel, 'interpolated' => $inTunnel];
+        }
+
+        $stats = ProfileStats::summarize($points, [], $flags);
+
+        $this->assertNotNull($stats);
+        $this->assertEqualsWithDelta(43.0, $stats['max_grade_permil'], 1.0);
+    }
+
+    public function test_a_jump_at_a_tunnel_head_does_not_set_the_grade(): void
+    {
+        // Sortie de tunnel : 21 m de saut sur 250 m (86 ‰) entre le dernier point en tunnel et la
+        // voie, puis 33 ‰ réels.
+        $points = [];
+        $flags = [];
+        $z = 320.0;
+        for ($d = 0; $d <= 4000; $d += 250) {
+            $inTunnel = $d <= 1000;
+            $z -= $d === 0 || $inTunnel ? 0 : ($d === 1250 ? 21.5 : 8.3);
+            $points[] = [(float) $d, $z];
+            $flags[] = ['track' => true, 'tunnel' => $inTunnel, 'interpolated' => false];
+        }
+
+        $stats = ProfileStats::summarize($points, [], $flags);
+
+        $this->assertNotNull($stats);
+        $this->assertEqualsWithDelta(33.2, $stats['max_grade_permil'], 1.0);
+    }
+
+    public function test_grade_is_withheld_when_the_track_is_known_on_a_small_part_only(): void
+    {
+        // 1 km de voie en gare, puis 9 km de terrain : la fenêtre de la gare ne dit rien de la ligne.
+        $points = self::series(10000, fn (int $d): float => 10.0 + 0.004 * $d);
+        $flags = array_map(fn (array $p): array => ['track' => $p[0] <= 1000, 'tunnel' => false, 'interpolated' => false], $points);
+
+        $stats = ProfileStats::summarize($points, [], $flags);
+
+        $this->assertNotNull($stats);
+        $this->assertNull($stats['max_grade_permil']);
+        $this->assertSame('terrain_only', $stats['max_grade_withheld']);
     }
 }

@@ -10,15 +10,17 @@ use Clickbar\Magellan\Data\Geometries\LineString;
 use Clickbar\Magellan\Data\Geometries\Point;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\Support\DecodesMvt;
 use Tests\TestCase;
 
 /**
  * Tuiles vectorielles (revue de la PR #18, point 6) : servies jusqu'au zoom 14 seulement, comme la carte
- * du site le demande, et tracés simplifiés à la tolérance d'affichage du zoom à partir du zoom 10, comme
+ * du site le demande, et tracés simplifiés à une unité de la grille de la tuile à partir du zoom 10, comme
  * la documentation de l'API le dit (MapTiles).
  */
 class MapTilesTest extends TestCase
 {
+    use DecodesMvt;
     use RefreshDatabase;
 
     /** Point de départ du tracé témoin, près d'Altkirch (Haut-Rhin). */
@@ -35,8 +37,7 @@ class MapTilesTest extends TestCase
             'is_lgv' => false, 'network' => 'principal']);
 
         // Même tronçon aux deux ères : en zigzag de 20 m crête à crête en 1930 (30 m en Web Mercator),
-        // droit en 2030. Simplifié à la tolérance du zoom 10 (38 m), le zigzag devient la droite ; au
-        // zoom 14 (0,6 m), il reste.
+        // droit en 2030. Plus large que la tolérance du zoom 10 (9,6 m) et du zoom 14 (0,6 m), il reste.
         $mPerDegLng = 111_320 * cos(deg2rad(self::LAT));
         $zigzag = [];
         for ($i = 0; $i <= 200; $i++) {
@@ -69,15 +70,27 @@ class MapTilesTest extends TestCase
         return (string) $this->get("/api/v1/eras/{$year}/tiles/{$z}/{$x}/{$y}.mvt")->assertOk()->getContent();
     }
 
-    public function test_track_geometry_is_simplified_to_the_display_tolerance_of_the_zoom(): void
+    public function test_track_geometry_keeps_what_the_tile_grid_can_show(): void
     {
-        // Zoom 10 : le zigzag simplifié pèse comme le tracé droit, à quelques octets de propriétés près
-        // (sans simplification, la grille de la tuile, 9,6 m, garde le zigzag : environ 400 octets de plus).
+        // Zoom 10 : la tolérance (une unité de la grille, 9,6 m) garde le zigzag de 30 m (Web Mercator).
+        // Avec l'ancien demi-pixel (38 m), il devenait une droite et les courbes des cordes coudées.
         $this->assertNotSame('', $this->tile(1930, 10));
-        $this->assertLessThan(16, abs(strlen($this->tile(1930, 10)) - strlen($this->tile(2030, 10))));
+        $this->assertGreaterThan(strlen($this->tile(2030, 10)) + 100, strlen($this->tile(1930, 10)));
 
         // Zoom 14 : la tolérance (une unité de la grille, 0,6 m) garde le zigzag.
         $this->assertGreaterThan(strlen($this->tile(2030, 14)) + 200, strlen($this->tile(1930, 14)));
+    }
+
+    public function test_line_tiles_declare_the_fine_grid_at_zoom_14(): void
+    {
+        // Arcs des tracés (TrackRounding) visibles en agrandissant la tuile 14 : grille de 8 192 unités, écrite dans
+        // la couche pour que MapLibre la lise ; les zooms plus petits gardent 4 096.
+        foreach ([[14, 8192], [13, 4096]] as [$z, $extent]) {
+            [$x, $y] = self::tileOf($z);
+            $this->assertSame(['vff-lines' => $extent], $this->mvtExtents($this->tile(1930, $z)));
+            $this->assertSame(['vff-compare' => $extent], $this->mvtExtents((string) $this->get("/api/v1/eras/1930/compare/2030/tiles/{$z}/{$x}/{$y}.mvt")->getContent()));
+            $this->assertSame(['vff-stack' => $extent], $this->mvtExtents((string) $this->get("/api/v1/eras/stacked/tiles/{$z}/{$x}/{$y}.mvt")->getContent()));
+        }
     }
 
     /** @return array<string, array{0: string}> */
@@ -104,15 +117,21 @@ class MapTilesTest extends TestCase
         $this->get(sprintf($route, 22, $x * 256, $y * 256))->assertNotFound();
     }
 
-    public function test_the_tolerance_is_half_a_pixel_then_one_grid_unit(): void
+    public function test_the_tolerance_is_one_grid_unit_from_zoom_10(): void
     {
         // Sous le zoom 10, aucune simplification : le rendu de la France entière ne change pas.
         $this->assertNull(MapTiles::tolerance(6));
         $this->assertNull(MapTiles::tolerance(9));
         $this->assertSame('ST_Transform(ls.geom, 3857)', MapTiles::displaySql('ls.geom', 6));
-        $this->assertEqualsWithDelta(38.2, MapTiles::tolerance(10), 0.1);
-        $this->assertEqualsWithDelta(4.78, MapTiles::tolerance(13), 0.01);
+        $this->assertEqualsWithDelta(9.55, MapTiles::tolerance(10), 0.01);
+        $this->assertEqualsWithDelta(1.19, MapTiles::tolerance(13), 0.01);
         $this->assertEqualsWithDelta(0.597, MapTiles::tolerance(14), 0.001);
+        // Tracés de lignes au zoom 14 : grille fine (0,3 m), tolérance d'une de ses unités.
+        $this->assertSame(4096, MapTiles::extent(13));
+        $this->assertSame(8192, MapTiles::extent(14));
+        $this->assertEqualsWithDelta(0.299, MapTiles::tolerance(14, MapTiles::extent(14)), 0.001);
+        $this->assertStringContainsString('bounds.env_3857, 8192, 512, true', MapTiles::lineGeomSql('ls.geom', 14));
+        $this->assertStringContainsString('bounds.env_3857, 4096, 256, true', MapTiles::lineGeomSql('ls.geom', 13));
         $this->assertTrue(MapTiles::onGrid(14, 16383, 16383));
         $this->assertFalse(MapTiles::onGrid(15, 0, 0));
         $this->assertFalse(MapTiles::onGrid(8, 256, 0));

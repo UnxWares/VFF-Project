@@ -21,4 +21,11 @@ return [
     'filters' => 'Filters',
     'filters_active_one' => ':count active',
     'filters_active_other' => ':count active',
+    // Clin d'œil : taper « patrick » fait passer la rame TGV Sud-Est n° 01 (resources/js/lib/patrickTrain.js).
+    'patrick' => [
+        'label' => 'The “Patrick” TGV going by',
+        'bubble' => 'TGV 01 “Patrick”, the first TGV Sud-Est set (1978)',
+        'close' => 'Close',
+        'announce' => 'A small nod: TGV 01 “Patrick”, the first TGV Sud-Est set (1978). A link at the bottom of the screen leads to its page.',
+    ],
 ];

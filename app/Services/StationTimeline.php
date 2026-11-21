@@ -166,6 +166,8 @@ final class StationTimeline
 
     public const NOTE_NOT_SERVED_TODAY = 'Plus desservie aujourd\'hui (correction sourcée)';
 
+    public const NOTE_TOURIST_TODAY = 'Desservie aujourd\'hui par un train touristique seulement (correction sourcée)';
+
     public const NOTE_HERITAGE_NO_FREIGHT = 'Ligne seulement touristique à cette époque : plus de fret';
 
     /**
@@ -188,7 +190,12 @@ final class StationTimeline
      */
     public static function forcedCurrentStatus(string $status): array
     {
-        return $status === self::ACTIVE ? [self::ACTIVE, self::NOTE_SERVED_TODAY] : [self::CLOSED, self::NOTE_NOT_SERVED_TODAY];
+        return match ($status) {
+            self::ACTIVE => [self::ACTIVE, self::NOTE_SERVED_TODAY],
+            // Seul un train touristique s'y arrête (règle 5 de la desserte du jour) : jamais « voyageurs ».
+            self::TOURIST => [self::TOURIST, self::NOTE_TOURIST_TODAY],
+            default => [self::CLOSED, self::NOTE_NOT_SERVED_TODAY],
+        };
     }
 
     /**

@@ -61,7 +61,7 @@
         footer { padding: 20px 24px; font: 14px/1.4 Inter, 'Helvetica Neue', Arial, sans-serif; color: var(--muted); }
         footer a { color: var(--ink); }
     </style>
-    <script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
         (function () {
             var m = document.cookie.match(/(?:^|; )theme=(dark|light)(?:;|$)/);
             if (m) document.documentElement.setAttribute('data-theme', m[1]);

@@ -79,6 +79,9 @@ class RebuildHistory extends Command
         ['vff:build-line-references', []],
         ['vff:dates-from-trace-names', []],
         ['vff:ohm-events', []],
+        // Faits relus d'Argentan Web Ferroviaire (table de source, hors ligne) : événements et arrêts,
+        // avant les corrections sourcées qui peuvent en neutraliser.
+        ['vff:apply-argentanwebferro', []],
         // Corrections sourcées (database/data/line_event_corrections.php) : réappliquées après les
         // imports qui réécrivent leurs événements, avant la résolution des portions.
         ['vff:apply-event-corrections', []],
@@ -89,6 +92,7 @@ class RebuildHistory extends Command
         ['vff:resolve-event-sections', ['--all' => true, '--source' => 'wikipedia']],
         ['vff:resolve-event-sections', ['--all' => true, '--source' => 'wikidata']],
         ['vff:resolve-event-sections', ['--all' => true, '--source' => 'wikipedia-reseaux']],
+        ['vff:resolve-event-sections', ['--all' => true, '--source' => 'argentanwebferro']],
         ['vff:resolve-event-sections', ['--retry' => true]],
         ['vff:detect-present-states', []],
         ['vff:build-era-segments', []], // parallélisé, cf. runSharded()

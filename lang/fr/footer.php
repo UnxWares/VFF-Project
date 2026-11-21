@@ -9,7 +9,6 @@ return [
 
     'discord' => 'Discord',
     'instagram' => 'Instagram',
-    'twitter' => 'X (Twitter)',
     'github' => 'GitHub',
     'unxwares' => 'UnxWares',
     'uwosc' => 'UnxWares Open Source & Community (UWOSC)',

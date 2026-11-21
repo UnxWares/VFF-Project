@@ -34,3 +34,18 @@ export function revealScrollLeft(item, row, margin = 24) {
     if (start >= row.scrollLeft && end <= row.scrollLeft + row.clientWidth) return null;
     return Math.max(0, start);
 }
+
+/**
+ * Rangée qui défile : reste-t-il des arrêts cachés avant (à gauche) ou après (à droite) ? Sert aux
+ * fondus qui l'indiquent. Une tolérance d'un pixel absorbe les arrondis du zoom.
+ *
+ * @param {{ scrollLeft: number, scrollWidth: number, clientWidth: number }} row
+ * @returns {{ before: boolean, after: boolean }}
+ */
+export function hiddenEdges({ scrollLeft, scrollWidth, clientWidth }) {
+    const left = Math.abs(scrollLeft);
+    return {
+        before: left > 1,
+        after: left + clientWidth < scrollWidth - 1,
+    };
+}

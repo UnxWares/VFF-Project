@@ -9,6 +9,7 @@ use App\Http\Resources\AccidentDetailResource;
 use App\Http\Resources\AccidentResource;
 use App\Models\Accident;
 use App\Services\Accidents\AccidentMapFeatures;
+use App\Services\Accidents\Context\AccidentContextView;
 use App\Services\Api\AccidentQuery;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
@@ -101,6 +102,7 @@ class AccidentController extends Controller
             'lineLinks' => fn ($q) => $q->with(['line:id,slug,code,name', 'sectionFrom:id,slug,name', 'sectionTo:id,slug,name']),
             'sources',
             'nearestStation:id,slug,name',
+            ...AccidentContextView::RELATIONS,
         ]);
 
         return AccidentDetailResource::make($model)->response()->header('Cache-Control', 'public, max-age=600');

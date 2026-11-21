@@ -44,6 +44,18 @@
                     note: 'maplibre',
                 },
                 {
+                    name: 'PMTiles',
+                    url: 'https://github.com/protomaps/PMTiles',
+                    license: 'BSD-3-Clause',
+                    note: 'pmtiles',
+                },
+                {
+                    name: 'Protomaps Basemaps',
+                    url: 'https://github.com/protomaps/basemaps',
+                    license: 'BSD-3-Clause',
+                    note: 'protomaps',
+                },
+                {
                     name: 'i18next + svelte-i18next',
                     url: 'https://www.i18next.com',
                     license: 'MIT',
@@ -192,6 +204,12 @@
                     name: 'Montserrat',
                     url: 'https://fonts.google.com/specimen/Montserrat',
                     license: 'OFL',
+                },
+                {
+                    name: 'Noto Sans',
+                    url: 'https://notofonts.github.io',
+                    license: 'OFL',
+                    note: 'noto',
                 },
             ],
         },

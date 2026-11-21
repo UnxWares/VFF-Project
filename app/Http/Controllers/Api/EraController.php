@@ -42,7 +42,11 @@ class EraController extends Controller
     #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
     public function index(): JsonResponse
     {
-        $mapped = array_flip(DB::table('line_segments')->distinct()->pluck('era_id')->map(fn ($id) => (int) $id)->all());
+        // Ères qui ont au moins un tronçon : une recherche par index par ère (12 ms) au lieu d'un DISTINCT sur
+        // toute la table des tronçons (70 à 340 ms). Même ensemble d'ères.
+        $mapped = array_flip(array_map('intval', DB::table('eras')
+            ->whereExists(fn ($q) => $q->selectRaw('1')->from('line_segments')->whereColumn('line_segments.era_id', 'eras.id'))
+            ->pluck('id')->all()));
 
         return response()->json([
             'data' => Era::orderBy('year')->get()->map(fn (Era $era): array => $this->present($era, isset($mapped[$era->id])))->all(),

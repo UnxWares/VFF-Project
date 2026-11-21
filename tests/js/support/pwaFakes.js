@@ -44,10 +44,10 @@ export function fakeCacheStorage(initial = []) {
 /** Réponse « basic » 200 : `new Response` n'a ni type ni `redirected` modifiables, on les simule. */
 export function basicResponse(
     body = 'ok',
-    { status = 200, headers = {}, redirected = false } = {},
+    { status = 200, headers = {}, redirected = false, type = 'basic' } = {},
 ) {
     const response = new Response(body, { status, headers });
-    Object.defineProperty(response, 'type', { value: 'basic' });
+    Object.defineProperty(response, 'type', { value: type });
     Object.defineProperty(response, 'redirected', { value: redirected });
     return response;
 }

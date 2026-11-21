@@ -58,7 +58,7 @@ class MaterialImporterTest extends TestCase
     {
         $stats = (new MaterialImporter)->import([$this->record()]);
 
-        $this->assertSame(['created' => 1, 'updated' => 0, 'unchanged' => 0], $stats);
+        $this->assertSame(['created' => 1, 'updated' => 0, 'unchanged' => 0, 'fields' => []], $stats);
         $material = Material::firstOrFail();
         $this->assertSame('bb-15000', $material->slug);
         $this->assertSame('wikidata', $material->source);
@@ -72,7 +72,7 @@ class MaterialImporterTest extends TestCase
         $importer = new MaterialImporter;
         $importer->import([$this->record()]);
 
-        $this->assertSame(['created' => 0, 'updated' => 0, 'unchanged' => 1], $importer->import([$this->record()]));
+        $this->assertSame(['created' => 0, 'updated' => 0, 'unchanged' => 1, 'fields' => []], $importer->import([$this->record()]));
     }
 
     public function test_a_value_entered_in_vff_is_never_overwritten(): void
@@ -101,7 +101,10 @@ class MaterialImporterTest extends TestCase
 
         $record = $this->record(['units_built' => null]);
         unset($record['provenance']['units_built']);
-        $this->assertSame(['created' => 0, 'updated' => 1, 'unchanged' => 0], $importer->import([$record]));
+        $this->assertSame(['created' => 0, 'updated' => 1, 'unchanged' => 0, 'fields' => ['provenance' => 1, 'units_built' => 1]], $importer->import([$record], dryRun: true),
+            'à blanc : le bilan dit ce qui changerait');
+        $this->assertNotNull(Material::firstOrFail()->units_built, 'rien n\'est écrit à blanc');
+        $this->assertSame(['created' => 0, 'updated' => 1, 'unchanged' => 0, 'fields' => ['provenance' => 1, 'units_built' => 1]], $importer->import([$record]));
 
         $material = Material::firstOrFail();
         $this->assertNull($material->units_built);

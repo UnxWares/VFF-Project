@@ -3,7 +3,7 @@
     import { page } from '@inertiajs/svelte';
     import { i18n } from '$lib/i18n.js';
     import { formatOfflineCopyDate, offlineCopyDate } from '$lib/offlineCopy.js';
-    import { partialMaps } from '$lib/offlineMap.svelte.js';
+    import { partialMaps } from '$lib/partialMaps.svelte.js';
     import { formatLocale } from '$lib/typo.js';
 
     /**
@@ -12,7 +12,8 @@
      * pour une page venue du réseau. Au montage, le texte n'est posé qu'un instant après la zone (une zone
      * créée avec son texte n'est pas annoncée par les lecteurs d'écran) ; d'une page à l'autre du même
      * gabarit, la zone existe déjà et le texte change sur place. Quand la page montre une carte, celle-ci
-     * s'affiche sur un fond neutre (lib/offlineMap.svelte.js) : une phrase le dit.
+     * ne montre que ce qui a déjà été vu sur cet appareil (lib/offlineMap.svelte.js) : une phrase le dit,
+     * selon que le site sert un fond de carte libre (`basemap`) ou non.
      */
     const savedAt = $derived(offlineCopyDate(page.props));
     const message = $derived(
@@ -22,7 +23,11 @@
               })
             : '',
     );
-    const mapMessage = $derived(partialMaps.count > 0 ? $i18n.t('pwa.offline_map_partial') : '');
+    const mapMessage = $derived(
+        partialMaps.count > 0
+            ? $i18n.t(page.props.basemap ? 'pwa.offline_map_basemap' : 'pwa.offline_map_partial')
+            : '',
+    );
 
     let ready = $state(false);
 

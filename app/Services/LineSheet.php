@@ -3,7 +3,10 @@
 namespace App\Services;
 
 use App\Models\Line;
+use App\Models\LineMaterial;
 use App\Models\LineMaterialPeriod;
+use App\Models\Material;
+use App\Services\Materials\LineMaterialEnd;
 use App\Services\Signalling\SignallingRanges;
 use App\Support\Advocacy;
 use App\Support\FrenchGrammar;
@@ -60,15 +63,18 @@ final class LineSheet
     {
         // Médias (envois locaux, Commons…) servis paginés par GET /api/v1/lines/{slug}/media (SheetGallery).
         $line->load('materials');
-        $materialPeriods = LineMaterialPeriod::query()
-            ->with('link:id,material_id')
-            ->whereHas('link', fn ($q) => $q->where('line_id', $line->id))
-            ->whereIn('confidence', LineMaterialPeriod::SHOWN_CONFIDENCES)
-            ->orderByRaw('COALESCE(start_date, end_date)')
-            ->orderBy('end_date')
-            ->get()
-            ->groupBy(fn (LineMaterialPeriod $p): int => $p->link->material_id)
-            ->map(fn ($periods): array => $periods->map(fn (LineMaterialPeriod $p): array => $p->toSheet())->values()->all())
+        // Liens de la ligne et leurs périodes sûres, lus une fois : périodes de chaque série (toutes sources
+        // réunies, de la plus ancienne à la plus récente) et relations assurées (LineMaterial::relations), datées
+        // ou non : une relation sans date (« Argentan - Granville ») se montre aussi.
+        $materialLinks = LineMaterial::query()->where('line_id', $line->id)->with('shownPeriods')->get()->groupBy('material_id');
+        $materialPeriods = $materialLinks
+            ->map(fn ($links): array => $links->flatMap(fn (LineMaterial $l) => $l->shownPeriods)
+                ->sortBy(fn (LineMaterialPeriod $p): array => [($p->start_date ?? $p->end_date)?->toDateString() ?? '9999', $p->end_date?->toDateString() ?? '9999'])
+                ->map(fn (LineMaterialPeriod $p): array => $p->toSheet())->values()->all())
+            ->filter()
+            ->all();
+        $materialRelations = $materialLinks
+            ->map(fn ($links): array => array_values($links->flatMap(fn (LineMaterial $l): array => $l->relations($l->shownPeriods))->keyBy('label')->all()))
             ->all();
 
         // Trafic dominant d'une ère : un trafic connu passe avant « non renseigné », même plus court
@@ -320,10 +326,11 @@ final class LineSheet
             'events' => $events,
             // Exploitations associatives (trains touristiques, vélorails), cf. vff:import-heritage-lines.
             'heritage' => $this->heritageOperations($line->id),
-            // Par nom, dans l'ordre naturel (« BB 9200 » avant « BB 15000 », accents ignorés) ; périodes de
-            // circulation sur la ligne datées par une source (vff:import-material-periods), les plus anciennes d'abord.
+            // Le plus récent d'abord (LineMaterialEnd::sort : séries en service, puis fin la plus récente, puis
+            // début) ; périodes de circulation sur la ligne datées par une source (vff:import-material-periods),
+            // les plus anciennes d'abord.
             // Une série reliée par plusieurs sources (import et contribution validée) n'apparaît qu'une fois.
-            'materials' => $line->materials->unique('id')->sortBy(fn ($m): string => Str::ascii($m->name), SORT_NATURAL | SORT_FLAG_CASE)->values()->map(fn ($m) => [
+            'materials' => LineMaterialEnd::sort($line->materials->unique('id')->values()->map(fn ($m) => [
                 'slug' => $m->slug,
                 'name' => $m->name,
                 'type' => $m->type,
@@ -333,12 +340,42 @@ final class LineSheet
                 'builder' => $m->builder,
                 'builders' => $m->builderNames(),
                 'in_service_from' => $m->in_service_from,
-                'in_service_to' => $m->in_service_to,
+                // Retrait de la série contredit par une période datée sur cette ligne (CC 80000 : retrait 1964 d'après
+                // Wikidata, « jusqu'en 1977 » sur Paris - Argentan - Granville d'après son article) : il n'est pas
+                // montré comme un fait, et reste lisible dans `in_service_to_contradicted`.
+                'in_service_to' => self::contradictedRetirement($m->in_service_to, $materialPeriods[$m->id] ?? []) ? null : $m->in_service_to,
+                'in_service_to_contradicted' => self::contradictedRetirement($m->in_service_to, $materialPeriods[$m->id] ?? []) ? $m->in_service_to : null,
                 'periods' => $materialPeriods[$m->id] ?? [],
-            ]),
+                'relations' => $materialRelations[$m->id] ?? [],
+                // Vignette de la photo de la série (Commons) et son crédit, null sans photo.
+                'image' => Material::thumbnail($m->image),
+                // Fin de circulation sur la ligne, sinon de la série, sinon inconnue (LineMaterialEnd), avec sa source.
+                'end' => LineMaterialEnd::of($m, $materialPeriods[$m->id] ?? []),
+            ])->all()),
         ];
 
         return $forPage ? array_diff_key($sheet, array_flip(self::PAGE_OMITTED)) : $sheet;
+    }
+
+    /**
+     * Le retrait déclaré de la série précède-t-il une période datée sur la ligne (début ou fin plus d'un an après) ?
+     *
+     * @param  list<array<string, mixed>>  $periods
+     */
+    private static function contradictedRetirement(?int $retired, array $periods): bool
+    {
+        if ($retired === null) {
+            return false;
+        }
+        foreach ($periods as $p) {
+            foreach ([$p['start_date'] ?? null, $p['end_date'] ?? null] as $date) {
+                if ($date !== null && (int) substr((string) $date, 0, 4) > $retired + 1) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -512,6 +549,8 @@ final class LineSheet
             'service_end' => $s['service_end'] ?? null,
             'opened_at' => $s['opened_at'],
             'opened_precision' => $s['opened_precision'],
+            // « inferred:… » : date déduite de l'ouverture de la ligne, dite telle dans la liste des gares.
+            'opened_source' => $s['opened_source'] ?? null,
             'closed_at' => $s['closed_at'],
             'closed_precision' => $s['closed_precision'],
             'closed_after' => $s['closed_after'] ?? null,

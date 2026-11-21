@@ -102,7 +102,7 @@ return [
 
     'suspension' => [
         'title' => 'Suspension et suppression d’un compte',
-        'paragraph' => 'En cas de manquement aux CGU, UnxWares peut suspendre ou supprimer un compte, après un avertissement sauf urgence ou manquement grave. La décision est motivée et peut être contestée à <a href="mailto:contact@vff-project.org">contact@vff-project.org</a>.',
+        'paragraph' => 'En cas de manquement aux CGU, UnxWares peut suspendre ou supprimer un compte, après un avertissement sauf urgence ou manquement grave. La décision est motivée et peut être contestée à <a href="mailto:contact@vff-project.org">contact@vff-project.org</a>. UnxWares répond à la contestation dans les 15 jours suivant sa réception.',
     ],
 
     'changes' => [

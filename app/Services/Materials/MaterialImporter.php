@@ -33,26 +33,36 @@ final class MaterialImporter
     ];
 
     /**
+     * `$dryRun` : rien n'est écrit, le bilan dit ce qui changerait. `fields` : nombre de fiches existantes dont
+     * chaque champ changerait (provenance comprise).
+     *
      * @param  list<array<string, mixed>>  $records  attributs produits par WikidataMaterialMapper
-     * @return array{created: int, updated: int, unchanged: int}
+     * @return array{created: int, updated: int, unchanged: int, fields: array<string, int>}
      */
-    public function import(array $records): array
+    public function import(array $records, bool $dryRun = false): array
     {
-        $stats = ['created' => 0, 'updated' => 0, 'unchanged' => 0];
+        $stats = ['created' => 0, 'updated' => 0, 'unchanged' => 0, 'fields' => []];
 
-        DB::transaction(function () use ($records, &$stats): void {
+        DB::transaction(function () use ($records, $dryRun, &$stats): void {
             $existing = Material::query()->whereIn('wikidata_id', array_column($records, 'wikidata_id'))->get()->keyBy('wikidata_id');
             foreach ($records as $record) {
                 $material = $existing[$record['wikidata_id']] ?? null;
                 if ($material === null) {
-                    $this->create($record);
+                    if (! $dryRun) {
+                        $this->create($record);
+                    }
                     $stats['created']++;
 
                     continue;
                 }
-                $stats[$this->update($material, $record) ? 'updated' : 'unchanged']++;
+                $changed = $this->update($material, $record, $dryRun);
+                foreach ($changed as $field) {
+                    $stats['fields'][$field] = ($stats['fields'][$field] ?? 0) + 1;
+                }
+                $stats[$changed !== [] ? 'updated' : 'unchanged']++;
             }
         });
+        ksort($stats['fields']);
 
         return $stats;
     }
@@ -70,8 +80,11 @@ final class MaterialImporter
         ]);
     }
 
-    /** @param array<string, mixed> $record */
-    private function update(Material $material, array $record): bool
+    /**
+     * @param  array<string, mixed>  $record
+     * @return list<string> champs modifiés (rien n'est enregistré avec `$dryRun`)
+     */
+    private function update(Material $material, array $record, bool $dryRun = false): array
     {
         $original = $material->provenance ?? [];
         $provenance = $original;
@@ -101,11 +114,13 @@ final class MaterialImporter
             $material->provenance = $provenance;
         }
         $material->source ??= 'wikidata';
-        $dirty = $material->isDirty();
-        $material->fetched_at = now();
-        $material->save();
+        $changed = array_keys($material->getDirty());
+        if (! $dryRun) {
+            $material->fetched_at = now();
+            $material->save();
+        }
 
-        return $dirty;
+        return $changed;
     }
 
     private function uniqueSlug(string $name, string $qid): string

@@ -108,6 +108,17 @@ class TractionTest extends TestCase
         $this->assertSame(['electrified' => true, 'voltage_v' => 850, 'source' => 'curated', 'year' => 1910], $t->stateAt(1910));
     }
 
+    public function test_moulineaux_third_rail_from_1928_to_1993(): void
+    {
+        // Puteaux - Issy-Plaine : 650 V (1928), 750 V après 1933 (année du régime : 1934), plus rien après 1993.
+        $events = array_map(fn ($e) => $e + ['scope' => 'curated'], TractionCuration::electrification('972000')['events']);
+        $t = new ElectrificationTimeline($events, ['state' => false, 'voltage_v' => null, 'source' => 'sncf']);
+        $this->assertFalse($t->stateAt(1920)['electrified']);
+        $this->assertSame(650, $t->stateAt(1930)['voltage_v']);
+        $this->assertSame(['electrified' => true, 'voltage_v' => 750, 'source' => 'curated', 'year' => 1934], $t->stateAt(1980));
+        $this->assertFalse($t->stateAt(2000)['electrified']);
+    }
+
     public function test_midi_12kv_lines_are_converted_to_1500v_after_1923(): void
     {
         $t = new ElectrificationTimeline(

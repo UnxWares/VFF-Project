@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\ActsAsRoles;
+use Tests\Support\ReadsTranslations;
 use Tests\TestCase;
 
 /**
@@ -19,6 +20,7 @@ use Tests\TestCase;
 class LocaleResolutionTest extends TestCase
 {
     use ActsAsRoles;
+    use ReadsTranslations;
     use RefreshDatabase;
 
     /** @return array<string, array{0: ?string, 1: ?string, 2: string}> */
@@ -97,15 +99,19 @@ class LocaleResolutionTest extends TestCase
                 ->where('locale', $locale)
                 ->where('available_locales', ['fr', 'en', 'de'])
                 ->where('app.name', config('app.name'))
-                ->where('translations', fn ($t) => $t->get('nav.maps') === __('nav.maps', [], $locale)
-                    && $t->get('auth.failed') === __('auth.failed', [], $locale)
-                    && ! $t->has('nav')));
+                ->where('translations_url', function (string $u) use ($locale): bool {
+                    $t = $this->dictionary($u);
+
+                    return ($t['nav.maps'] ?? null) === __('nav.maps', [], $locale)
+                        && ($t['auth.failed'] ?? null) === __('auth.failed', [], $locale)
+                        && ! array_key_exists('nav', $t);
+                }));
     }
 
     public function test_translations_differ_between_locales(): void
     {
-        $fr = $this->withCookie('locale', 'fr')->get('/donate')->viewData('page')['props']['translations'];
-        $de = $this->withCookie('locale', 'de')->get('/donate')->viewData('page')['props']['translations'];
+        $fr = $this->dictionary($this->withCookie('locale', 'fr')->get('/donate')->viewData('page')['props']['translations_url']);
+        $de = $this->dictionary($this->withCookie('locale', 'de')->get('/donate')->viewData('page')['props']['translations_url']);
 
         $this->assertNotSame($fr['auth.failed'], $de['auth.failed']);
         $this->assertSame('Identifiants invalides.', $fr['auth.failed']);

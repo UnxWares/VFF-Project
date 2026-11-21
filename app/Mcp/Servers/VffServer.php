@@ -13,6 +13,7 @@ use App\Mcp\Tools\CompareErasTool;
 use App\Mcp\Tools\HistoricalRouteTool;
 use App\Mcp\Tools\LevelCrossingsTool;
 use App\Mcp\Tools\LineArchivesTool;
+use App\Mcp\Tools\LineAuditTool;
 use App\Mcp\Tools\LineEventsTool;
 use App\Mcp\Tools\LineGreenwaysTool;
 use App\Mcp\Tools\LineMaterialsTool;
@@ -84,6 +85,7 @@ class VffServer extends Server
         CompareErasTool::class,
         LevelCrossingsTool::class,
         LineProfileTool::class,
+        LineAuditTool::class,
         LineGreenwaysTool::class,
         LineArchivesTool::class,
         LineStoriesTool::class,

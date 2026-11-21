@@ -66,7 +66,18 @@ final class LineMaterialLinker
         private readonly ?MaterialGaugeRule $gauges = null,
         private readonly ?MaterialTractionRule $traction = null,
         private readonly ?LineMaterialExclusions $exclusions = null,
+        private readonly ?MaterialRelations $relations = null,
     ) {}
+
+    /**
+     * Bilan de lecture des relations et itinéraires (MaterialRelations), vide sans eux.
+     *
+     * @return array<string, int>
+     */
+    public function relationStats(): array
+    {
+        return $this->relations?->stats() ?? [];
+    }
 
     /**
      * Liens attestés, par couple « ligne:série ».
@@ -319,6 +330,7 @@ final class LineMaterialLinker
     private function fromMaterialArticles(callable $add, bool $refresh): void
     {
         $materials = DB::table('materials')->whereNotNull('wikipedia_fr')->pluck('id', 'wikipedia_fr')->all();
+        $this->fromRelations($add, $materials, $refresh);
         // Une série lente citée dans le contexte d'une LGV (« la mise en service de la LGV Est libère les
         // BB 16000 ») n'y a pas circulé : sur une LGV, seuls les engins de grande vitesse sont reliés.
         $fast = DB::table('materials')->where(fn ($q) => $q->where('type', 'rame_tgv')->orWhere('max_speed_kmh', '>=', self::LGV_MIN_SPEED_KMH))->pluck('id')->flip()->all();
@@ -335,6 +347,9 @@ final class LineMaterialLinker
                     continue;
                 }
                 foreach (WikipediaMaterialSections::links($section['text']) as $link) {
+                    if (! $this->speaksOf((string) $requested, $page, $link['quote'])) {
+                        continue;
+                    }
                     $lineIds = array_values(array_unique($linesByTitle[$link['target']] ?? []));
                     foreach ($lineIds as $lineId) {
                         if (isset($lgv[$lineId]) && ! isset($fast[(int) $materials[$requested]])) {
@@ -345,6 +360,83 @@ final class LineMaterialLinker
                 }
             }
         }
+    }
+
+    /** @var array<string, string>|null titre de l'article demandé → nom de la série */
+    private ?array $seriesNames = null;
+
+    /**
+     * La phrase vaut-elle pour la série dont l'article a été demandé ? Oui si l'article est le sien (titre
+     * demandé = titre final). Une série dont le titre renvoie vers l'article d'une autre (Coradia Liner vers
+     * Régiolis, Z 56500 vers Regio 2N) ne reçoit que les phrases qui la nomment (« Z 56500 ») : le reste de
+     * l'article décrit l'autre série. Règle partagée avec MaterialPeriodCollector.
+     *
+     * @param  array{title: string}  $page
+     */
+    private function speaksOf(string $requested, array $page, string $quote): bool
+    {
+        $this->seriesNames ??= DB::table('materials')->whereNotNull('wikipedia_fr')->pluck('name', 'wikipedia_fr')->map(fn ($n): string => (string) $n)->all();
+
+        return WikipediaMaterialSections::speaksOf($requested, $page['title'], $this->seriesNames[$requested] ?? $requested, $quote);
+    }
+
+    /**
+     * Relations et itinéraires cités par les articles des séries (MaterialRelations), quand ils sont fournis.
+     * Les articles dont aucune section ne répond à MATERIAL_SECTIONS sont relus pour leurs sections
+     * « Relations… » (RELATION_SECTIONS, cache à part).
+     *
+     * @param  callable(int, int, array<string, mixed>): void  $add
+     * @param  array<string, int|string>  $materials  titre de l'article → série
+     */
+    private function fromRelations(callable $add, array $materials, bool $refresh): void
+    {
+        if ($this->relations === null) {
+            return;
+        }
+        $titles = array_map('strval', array_keys($materials));
+        $pages = $this->wikipedia->sections('wikipedia_materials', $titles, WikipediaMaterialSections::MATERIAL_SECTIONS, $refresh);
+        $bare = array_values(array_filter($titles, fn (string $t): bool => ($pages[$t] ?? null) !== null && $pages[$t]['sections'] === []));
+        $more = $bare === [] ? [] : $this->wikipedia->sections('wikipedia_material_relations', $bare, WikipediaMaterialSections::RELATION_SECTIONS, $refresh);
+        $info = DB::table('materials')->whereIn('id', array_values($materials))->get(['id', 'type', 'max_speed_kmh', 'in_service_from', 'in_service_to', 'electrification'])->keyBy('id');
+        $lgv = DB::table('lines')->where('is_lgv', true)->pluck('id')->flip()->all();
+        foreach ([$pages, $more] as $set) {
+            foreach ($set as $requested => $page) {
+                $row = $info[(int) ($materials[$requested] ?? 0)] ?? null;
+                if ($page === null || $row === null) {
+                    continue;
+                }
+                $material = [
+                    'fast' => $row->type === 'rame_tgv' || (int) $row->max_speed_kmh >= self::LGV_MIN_SPEED_KMH,
+                    'from' => $row->in_service_from !== null ? (int) $row->in_service_from : null,
+                    'to' => $row->in_service_to !== null ? (int) $row->in_service_to : null,
+                    'electric' => self::isElectricOnly((string) $row->type, $row->electrification),
+                ];
+                foreach ($this->relations->links($page, $material) as $link) {
+                    if (! $this->speaksOf((string) $requested, $page, (string) ($link['evidence']['quote'] ?? ''))) {
+                        continue;
+                    }
+                    if (! isset($lgv[$link['line_id']]) || $material['fast']) {
+                        $add($link['line_id'], (int) $row->id, $link['evidence']);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Série qui ne roule que sous caténaire, pour le tracé des relations (RelationRouter) : rame TGV,
+     * locomotive électrique, ou automotrice dont Wikidata donne les systèmes d'alimentation (la catégorie
+     * « automotrice » range aussi des engins thermiques). Une bimode n'en est pas une.
+     */
+    public static function isElectricOnly(string $type, mixed $electrification): bool
+    {
+        $systems = is_string($electrification) ? json_decode($electrification, true) : $electrification;
+
+        return match ($type) {
+            'rame_tgv', 'locomotive_electrique' => true,
+            'automotrice' => is_array($systems) && $systems !== [],
+            default => false,
+        };
     }
 
     /**

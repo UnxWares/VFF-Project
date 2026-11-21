@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Materials\MaterialRelationNotes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -70,5 +71,55 @@ class LineMaterial extends Model
     public function shownPeriods(): HasMany
     {
         return $this->periods()->whereIn('confidence', LineMaterialPeriod::SHOWN_CONFIDENCES);
+    }
+
+    /**
+     * Relations assurées par la série sur la ligne, d'après les preuves qui citent une relation ou un
+     * itinéraire (`route`, MaterialRelations) : une entrée par libellé, avec les périodes montrées qui la
+     * datent. Les preuves qui portent un doute ne comptent pas. `notes` : faits sourcés sur la relation
+     * (database/data/material_relation_notes.php, MaterialRelationNotes), comme un carburant particulier.
+     *
+     * @param  iterable<LineMaterialPeriod>|null  $periods  périodes montrées déjà chargées (sinon lues)
+     * @return list<array{kind: string, label: string, from: ?array{id: ?int, name: string}, to: ?array{id: ?int, name: string}, service: ?string, title: ?string, periods: list<array{start_date: ?string, start_precision: ?string, end_date: ?string, end_precision: ?string}>, notes: list<array<string, mixed>>}>
+     */
+    public function relations(?iterable $periods = null): array
+    {
+        $out = [];
+        foreach ($this->evidence ?? [] as $evidence) {
+            $route = $evidence['route'] ?? null;
+            if (! is_array($route) || ! isset($route['label']) || isset($evidence['doubt'])) {
+                continue;
+            }
+            $out[$route['label']] ??= [
+                'kind' => (string) $route['kind'],
+                'label' => (string) $route['label'],
+                'from' => $route['from'] ?? null,
+                'to' => $route['to'] ?? null,
+                'service' => $route['service'] ?? null,
+                'title' => $route['title'] ?? null,
+                'periods' => [],
+                'notes' => [],
+            ];
+        }
+        if ($out === []) {
+            return [];
+        }
+        $notes = app(MaterialRelationNotes::class);
+        foreach ($out as $label => $relation) {
+            $out[$label]['notes'] = $notes->for((int) $this->line_id, (int) $this->material_id, $relation);
+        }
+        foreach ($periods ?? ($this->relationLoaded('shownPeriods') ? $this->shownPeriods : $this->shownPeriods()->get()) as $period) {
+            $label = $period->relation['label'] ?? null;
+            if (is_string($label) && isset($out[$label])) {
+                $out[$label]['periods'][] = [
+                    'start_date' => $period->start_date?->toDateString(),
+                    'start_precision' => $period->start_precision,
+                    'end_date' => $period->end_date?->toDateString(),
+                    'end_precision' => $period->end_precision,
+                ];
+            }
+        }
+
+        return array_values($out);
     }
 }

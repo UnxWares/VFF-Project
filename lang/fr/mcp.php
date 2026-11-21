@@ -32,6 +32,7 @@ return [
         'line_not_found' => 'Ligne introuvable : « :query ». Cherchez son identifiant avec l’outil search (suggestions jointes).',
         'no_geometry' => 'Le tracé de « :line » n’existe pas pour l’ère :year : pas de point kilométrique.',
         'profile_not_computed' => 'Le profil en long de « :line » n’est pas encore calculé.',
+        'audit_not_computed' => 'L’audit des tronçons de « :line » n’est pas encore calculé pour :year.',
         'station_not_found' => 'Gare introuvable : « :query ». Cherchez son identifiant avec l’outil search (suggestions jointes).',
         'material_not_found' => 'Série de matériel introuvable : « :query ». Cherchez son identifiant avec l’outil search ou materials (suggestions jointes).',
         'accident_not_found' => 'Accident introuvable : « :query ». Cherchez son identifiant avec l’outil accidents (filtre q).',

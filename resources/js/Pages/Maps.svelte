@@ -317,10 +317,11 @@
                                 type="button"
                                 class="vff-btn secondary embed-btn"
                                 aria-haspopup="dialog"
+                                title={$i18n.t('maps.embed.button')}
                                 onclick={() => (embedModalOpen = true)}
                             >
                                 <i class="bi bi-code-slash" aria-hidden="true"></i>
-                                {$i18n.t('maps.embed.button')}
+                                <span class="embed-label">{$i18n.t('maps.embed.button')}</span>
                             </button>
                         </div>
                     </div>
@@ -643,6 +644,7 @@
     /* Barre d'outils au-dessus de la carte : la recherche, le calque et « Intégrer » ne se
        superposent plus à la carte ni entre eux, à aucune largeur. */
     .map-toolbar {
+        container-type: inline-size;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
@@ -789,6 +791,28 @@
     @media (max-width: 1400px) {
         .toolbar-search {
             flex-basis: 240px;
+        }
+    }
+    /* Barre de moins de 1 010 px (écran de 1 024 px) : « Intégrer » ne garde que son icône, son nom
+       reste lu par les lecteurs d'écran et s'affiche au survol. La recherche cède 40 px. Les quatre
+       éléments restent sur une rangée au lieu de faire descendre les calques et « Intégrer ». */
+    @container (max-width: 1010px) {
+        .toolbar-search {
+            flex-basis: 200px;
+        }
+        .toolbar-tools .embed-btn {
+            width: 44px;
+            padding-inline: 0;
+            justify-content: center;
+        }
+        .toolbar-tools .embed-label {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
         }
     }
     @media (max-width: 900px) {

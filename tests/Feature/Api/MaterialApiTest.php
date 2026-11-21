@@ -214,11 +214,13 @@ class MaterialApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('line.slug', 'rfn-67000')
             ->assertJsonPath('meta.total', 2)
-            ->assertJsonPath('data.*.material.slug', ['bb-15000', 'x-73500'])
-            ->assertJsonPath('data.0.material.type_label', 'Locomotive électrique')
-            ->assertJsonPath('data.0.material.thumb_url', $this->bb15000->image['thumb_url'])
-            ->assertJsonPath('data.0.source_url', 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Lun%C3%A9ville_%C3%A0_Saint-Di%C3%A9&oldid=239088070')
-            ->assertJsonMissingPath('data.0.line');
+            // Le plus récent d'abord (LineMaterialEnd) : aucune fin connue, la mise en service la plus récente en tête.
+            ->assertJsonPath('data.*.material.slug', ['x-73500', 'bb-15000'])
+            ->assertJsonPath('data.*.end.kind', ['unknown', 'unknown'])
+            ->assertJsonPath('data.1.material.type_label', 'Locomotive électrique')
+            ->assertJsonPath('data.1.material.thumb_url', $this->bb15000->image['thumb_url'])
+            ->assertJsonPath('data.1.source_url', 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Lun%C3%A9ville_%C3%A0_Saint-Di%C3%A9&oldid=239088070')
+            ->assertJsonMissingPath('data.1.line');
 
         $this->getJson('/api/v1/lines/rfn-67000/materials?min_confidence=high')->assertOk()->assertJsonPath('data.*.material.slug', ['bb-15000']);
         $this->getJson('/api/v1/lines/rfn-67000/materials?type=autorail')->assertOk()->assertJsonPath('data.*.material.slug', ['x-73500']);

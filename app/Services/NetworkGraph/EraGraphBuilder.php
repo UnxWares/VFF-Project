@@ -28,7 +28,12 @@ use Illuminate\Support\Facades\DB;
  *      nœud par gare, les projections deviennent des coupures des portions ;
  *      les gares FERMÉES à l'ère sont projetées aussi, comme simples nœuds de
  *      passage (comptées dans skipped_count) ;
- *    - arêtes = morceaux de portions entre deux coupures consécutives.
+ *    - arêtes = morceaux de portions entre deux coupures consécutives ;
+ *    - arêtes de longueur nulle (coupures confondues) : leurs nœuds sont
+ *      fusionnés, l'arête disparaît (mergeZeroLengthPieces) ;
+ *    - extrémités recollées : chaque arête finit exactement au point de son
+ *      nœud quand l'écart est inférieur à `snap_m` (snapEndsToNodes) ; un
+ *      nœud en T est posé sur la voie qu'il coupe.
  * 2. GARE-À-GARE (station_edges) : App\Services\NetworkGraph\StationGraph.
  * 3. MESURES (network_graph_builds) : temps, volumes, composantes connexes,
  *    gares non reliées.
@@ -131,6 +136,19 @@ final class EraGraphBuilder
             WHERE NOT EXISTS (SELECT 1 FROM g_endc e WHERE e.seg_id = s.id AND e.cid = n.cid)
             SQL);
         DB::unprepared('CREATE INDEX ON g_cut (node_id); CREATE INDEX ON g_cut (seg_id); ANALYZE g_cut');
+        // Un nœud en T se pose sur la voie qu'il coupe (la plus proche), pas au barycentre des
+        // extrémités : la ligne traversante garde son tracé, seule la branche est prolongée
+        // jusqu'à elle (cf. snapEndsToNodes).
+        DB::statement(<<<'SQL'
+            UPDATE g_node n SET p = x.q
+            FROM (
+                SELECT DISTINCT ON (c.node_id) c.node_id, ST_LineInterpolatePoint(s.g, c.f) AS q
+                FROM g_cut c JOIN g_seg s ON s.id = c.seg_id JOIN g_node n2 ON n2.id = c.node_id
+                WHERE c.src = 't'
+                ORDER BY c.node_id, ST_Distance(s.g, n2.p), c.seg_id
+            ) x
+            WHERE n.id = x.node_id
+            SQL);
         $this->phase('t_junctions');
 
         // ── 4. Lacunes ────────────────────────────────────────────────────────
@@ -311,6 +329,11 @@ final class EraGraphBuilder
         $bridges = $this->bridgeComponents();
         $this->phase('bridges');
 
+        $merged = $this->mergeZeroLengthPieces();
+        $this->phase('zero_length');
+        $snapped = $this->snapEndsToNodes();
+        $this->phase('snap_ends');
+
         // ── 7. Gare-à-gare (PHP) ─────────────────────────────────────────────
         $stationNodes = [];
         $closedNodes = [];
@@ -440,9 +463,123 @@ final class EraGraphBuilder
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        DB::unprepared('DROP TABLE IF EXISTS g_seg, g_endc, g_node, g_cut, g_gap, g_st, g_stline, g_att, g_snode, g_merge, g_piece, g_se, g_bnode, g_tnode, g_nodecomp, g_pg, g_bridge');
+        DB::unprepared('DROP TABLE IF EXISTS g_seg, g_endc, g_node, g_cut, g_gap, g_st, g_stline, g_att, g_snode, g_merge, g_piece, g_se, g_bnode, g_tnode, g_nodecomp, g_pg, g_bridge, g_remap, g_npos');
 
-        return $stats + ['timings' => $this->timings];
+        return $stats + ['merged_zero_length' => $merged, 'snapped_ends' => $snapped, 'timings' => $this->timings];
+    }
+
+    /**
+     * Arêtes de longueur nulle (coupures confondues : bout d'un tronçon et raccord de lacune posé au
+     * même point, ST_LineSubstring rend un point, d'où une arête sans tracé) : leurs deux nœuds
+     * sont fusionnés et l'arête disparaît. Le nœud gardé est la gare (ouverte avant fermée), sinon
+     * le plus petit identifiant ; deux gares distinctes ne sont jamais fusionnées (l'arête reste).
+     * Le coût d'une telle arête est nul : aucune distance ni aucun itinéraire ne change.
+     *
+     * @return int arêtes retirées
+     */
+    private function mergeZeroLengthPieces(): int
+    {
+        $rank = [];
+        foreach (DB::select('SELECT id, is_open FROM g_snode') as $r) {
+            $rank[(int) $r->id] = $r->is_open ? 2 : 1;
+        }
+        $parent = [];
+        $find = function (int $x) use (&$parent): int {
+            $parent[$x] ??= $x;
+            while ($parent[$x] !== $x) {
+                $parent[$x] = $parent[$parent[$x]];
+                $x = $parent[$x];
+            }
+
+            return $x;
+        };
+        // Une gare est toujours la racine de son groupe : deux racines gares = deux gares.
+        foreach (DB::select('SELECT from_node, to_node FROM g_piece WHERE length_m <= 0 ORDER BY id') as $r) {
+            $a = $find((int) $r->from_node);
+            $b = $find((int) $r->to_node);
+            if ($a === $b || (isset($rank[$a]) && isset($rank[$b]))) {
+                continue;
+            }
+            [$keep, $drop] = [$rank[$a] ?? 0, -$a] >= [$rank[$b] ?? 0, -$b] ? [$a, $b] : [$b, $a];
+            $parent[$drop] = $keep;
+        }
+        $rows = [];
+        foreach (array_keys($parent) as $node) {
+            if (($root = $find($node)) !== $node) {
+                $rows[] = ['old_id' => $node, 'new_id' => $root];
+            }
+        }
+        if ($rows === []) {
+            return 0;
+        }
+        DB::unprepared('DROP TABLE IF EXISTS g_remap; CREATE TEMP TABLE g_remap (old_id bigint PRIMARY KEY, new_id bigint)');
+        foreach (array_chunk($rows, 2000) as $chunk) {
+            DB::table('g_remap')->insert($chunk);
+        }
+        DB::unprepared(<<<'SQL'
+            ANALYZE g_remap;
+            UPDATE g_piece p SET from_node = m.new_id FROM g_remap m WHERE p.from_node = m.old_id;
+            UPDATE g_piece p SET to_node = m.new_id FROM g_remap m WHERE p.to_node = m.old_id;
+            SQL);
+
+        return DB::affectingStatement('DELETE FROM g_piece WHERE from_node = to_node AND length_m <= 0');
+    }
+
+    /**
+     * Recolle les extrémités des arêtes sur leur nœud : le regroupement des extrémités à moins de
+     * `snap_m` place le nœud au barycentre (ou, en T, sur la voie coupée) sans toucher aux tracés,
+     * d'où des jonctions écartées de quelques mètres. Chaque extrémité à moins de `snap_m` du point
+     * de son nœud y est déplacée, au même point exactement pour toutes les arêtes du nœud. Pour une
+     * gare, le nœud est la gare elle-même, souvent à côté des voies : le point de jonction est
+     * l'extrémité d'arête la plus proche de la gare. Les écarts plus grands (gare rattachée à des
+     * voies parallèles de lignes différentes) restent : ils demandent de corriger les tracés.
+     *
+     * La longueur des arêtes (`length_m`) reste celle du morceau de voie d'origine : le recollage
+     * ne sert qu'au dessin. Recalculée, elle changerait de quelques mètres et suffirait à faire
+     * passer un itinéraire par une voie parallèle qui évite une gare (Chartres, Chalon-sur-Saône).
+     *
+     * @return int extrémités déplacées
+     */
+    private function snapEndsToNodes(): int
+    {
+        $tol = $this->params['snap_m'];
+        DB::unprepared(<<<'SQL'
+            DROP TABLE IF EXISTS g_npos;
+            CREATE TEMP TABLE g_npos AS
+                SELECT id, p FROM g_node
+                UNION ALL
+                SELECT gap_node, q FROM g_gap WHERE NOT EXISTS (SELECT 1 FROM g_snode sn WHERE sn.id = g_gap.gap_node)
+                UNION ALL
+                SELECT id, q FROM g_bnode;
+            INSERT INTO g_npos
+                SELECT DISTINCT ON (sn.id) sn.id, e.q
+                FROM g_snode sn
+                JOIN (
+                    SELECT from_node AS node, ST_Transform(ST_StartPoint(geom), 2154) AS q FROM g_piece WHERE geom IS NOT NULL
+                    UNION ALL
+                    SELECT to_node, ST_Transform(ST_EndPoint(geom), 2154) FROM g_piece WHERE geom IS NOT NULL
+                ) e ON e.node = sn.id
+                ORDER BY sn.id, ST_Distance(e.q, sn.p);
+            ALTER TABLE g_npos ADD COLUMN t geometry;
+            UPDATE g_npos SET t = ST_Transform(p, 4326);
+            CREATE INDEX ON g_npos (id); ANALYZE g_npos;
+            SQL);
+        $moved = DB::affectingStatement(<<<SQL
+            UPDATE g_piece pc SET geom = ST_SetPoint(pc.geom, 0, n.t)
+            FROM g_npos n
+            WHERE n.id = pc.from_node AND pc.geom IS NOT NULL
+              AND ST_DWithin(ST_Transform(ST_StartPoint(pc.geom), 2154), n.p, {$tol})
+              AND NOT ST_Equals(ST_StartPoint(pc.geom), n.t)
+            SQL);
+        $moved += DB::affectingStatement(<<<SQL
+            UPDATE g_piece pc SET geom = ST_SetPoint(pc.geom, ST_NPoints(pc.geom) - 1, n.t)
+            FROM g_npos n
+            WHERE n.id = pc.to_node AND pc.geom IS NOT NULL
+              AND ST_DWithin(ST_Transform(ST_EndPoint(pc.geom), 2154), n.p, {$tol})
+              AND NOT ST_Equals(ST_EndPoint(pc.geom), n.t)
+            SQL);
+
+        return $moved;
     }
 
     /**

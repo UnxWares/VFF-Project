@@ -102,7 +102,18 @@ export function searchGroups({ query, suggestions, results, searched, t, idPrefi
                 href: `/materials/${m.slug}`,
                 name: m.name,
                 icon: 'bi-train-front-fill',
-                detail: m.builder ?? null,
+                // Série trouvée par le surnom d'une rame remarquable : la rame plutôt que le constructeur.
+                detail: m.notable_unit
+                    ? t(
+                          m.notable_unit.nickname
+                              ? 'materials.notable.unit'
+                              : 'materials.notable.unit_plain',
+                          {
+                              number: m.notable_unit.number,
+                              nickname: m.notable_unit.nickname,
+                          },
+                      )
+                    : (m.builder ?? null),
             })),
         },
         {

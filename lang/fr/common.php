@@ -21,4 +21,11 @@ return [
     'filters' => 'Filtres',
     'filters_active_one' => ':count actif',
     'filters_active_other' => ':count actifs',
+    // Clin d'œil : taper « patrick » fait passer la rame TGV Sud-Est n° 01 (resources/js/lib/patrickTrain.js).
+    'patrick' => [
+        'label' => 'Passage du TGV « Patrick »',
+        'bubble' => 'TGV 01 « Patrick », première rame du TGV Sud-Est (1978)',
+        'close' => 'Fermer',
+        'announce' => 'Clin d\'œil : le TGV 01 « Patrick », première rame du TGV Sud-Est (1978). Un lien en bas de l\'écran mène à sa fiche.',
+    ],
 ];

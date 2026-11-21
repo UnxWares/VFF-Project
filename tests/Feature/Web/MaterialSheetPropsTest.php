@@ -67,6 +67,8 @@ class MaterialSheetPropsTest extends TestCase
                     ->whereType('quote', 'string')
                     // Titre de la source d'une contribution validée : nul pour un lien importé.
                     ->where('source_title', null)
-                    ->whereType('periods', 'array')));
+                    ->whereType('periods', 'array')
+                    // Relations assurées sur la ligne (MaterialRelations) : liste vide sans relation citée.
+                    ->whereType('relations', 'array')));
     }
 }

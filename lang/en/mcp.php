@@ -31,6 +31,7 @@ return [
         'line_not_found' => 'Line not found: “:query”. Look up its identifier with the search tool (suggestions attached).',
         'no_geometry' => 'The route of “:line” does not exist for the :year era: no kilometre point.',
         'profile_not_computed' => 'The longitudinal profile of “:line” has not been computed yet.',
+        'audit_not_computed' => 'The section audit of “:line” has not been computed for :year yet.',
         'station_not_found' => 'Station not found: “:query”. Look up its identifier with the search tool (suggestions attached).',
         'material_not_found' => 'Rolling stock class not found: “:query”. Look up its identifier with the search or materials tool (suggestions attached).',
         'accident_not_found' => 'Accident not found: “:query”. Look up its identifier with the accidents tool (q filter).',

@@ -751,4 +751,41 @@ return [
         ['Pellevoisin', '87576488', 1.420627, 46.9819771, 'n1960039507', 'latitude = 46.982004, longitude = 1.420452',
             'gare OSM « Pellevoisin » ; coordonnées et PK 268 de l\'article Gare de Pellevoisin (oldid 232043961) ; point SNCF à 485 m'],
     ]),
+
+    // ── 7. Desserte du jour : trains touristiques et vélorail (chantier « donnees-corrections », 21/11/2026) ─────
+    // Règles 5 et 6 de docs/METHODE-CLASSIFICATION.md (« Desserte du jour ») : une gare où seul un train
+    // touristique s'arrête est touristique ; une gare de vélorail seul est fermée. Aucune de ces gares n'a de
+    // train public dans les horaires GTFS de 2026 (rapport gares-desserte.md, groupe « passer en touristique »).
+    [
+        'station' => ['name' => 'Chamonix-Montenvers', 'wikidata' => 'Q105069647'],
+        'action' => 'current',
+        'status' => 'tourist',
+        'source_url' => $wp('Chemin de fer du Montenvers', 239685415),
+        'quote' => 'trafic = Touristique',
+        'reason' => 'gare basse du chemin de fer à crémaillère du Montenvers, à côté de la gare SNCF de Chamonix-Mont-Blanc : train touristique seulement',
+    ],
+    [
+        'station' => ['name' => 'Le Train des Mouettes - Saujon', 'osm' => 'n3887738106'],
+        'action' => 'current',
+        'status' => 'tourist',
+        'source_url' => $wp('Gare de Saujon', 222377940),
+        'quote' => 'À proximité de la gare de Saujon, se trouve la gare de départ du Train des mouettes',
+        'reason' => 'gare de départ du Train des Mouettes (Saujon - La Tremblade) ; les TER desservent la gare SNCF voisine, une autre fiche',
+    ],
+    [
+        'station' => ['name' => 'Troo', 'uic' => '87574772'],
+        'action' => 'current',
+        'status' => 'tourist',
+        'source_url' => 'https://petitescitesdecaractere.com/sites/default/files/pcc_cvl_depliant_visite_troo_vnc.pdf',
+        'quote' => 'La Gare de Trôo - train touristique',
+        'reason' => 'desservie par le Train touristique de la vallée du Loir, aucun train TER sur la section (horaires GTFS SNCF de 2026)',
+    ],
+    [
+        'station' => ['name' => 'Vélo-Rails Étretat Pays de Caux', 'osm' => 'w968921369'],
+        'action' => 'current',
+        'status' => 'declassified',
+        'source_url' => $wp('Ligne des Ifs à Étretat', 238125959),
+        'quote' => 'proposant une activité de vélo-rail combinée avec une circulation en draisine sur la portion de ligne comprise entre les gares des Loges-Vaucottes et d\'Étretat',
+        'reason' => 'gare de vélorail : un vélorail n\'est pas une circulation ferroviaire (règle 6), la gare d\'Étretat est fermée',
+    ],
 ];

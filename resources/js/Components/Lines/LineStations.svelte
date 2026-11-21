@@ -32,6 +32,23 @@
         const seen = new Set(stations.flatMap((s) => Object.values(s.eras ?? {})));
         return [...STATION_STYLES.map((s) => s.key).filter((k) => seen.has(k))];
     });
+    // « pas encore ouverte » est écrit pour le fil lu en clair ; dans la légende, comme les autres états.
+    const upperFirst = (text) => text.charAt(0).toLocaleUpperCase(lang) + text.slice(1);
+    const todayOf = (s) => s.status_today ?? s.era_status ?? 'declassified';
+    // États d'aujourd'hui présents (couleur des ronds sur le fil) et présence d'un terminus.
+    const dotKeys = $derived.by(() => {
+        const seen = new Set(stations.map(todayOf));
+        return STATION_STYLES.map((s) => s.key).filter((k) => seen.has(k));
+    });
+    const hasTerminal = $derived(stations.some((s) => s.is_terminal));
+
+    /** Ouverture : une date déduite des lignes (provenance « inferred:… ») est dite telle. */
+    function openedText(s) {
+        const date = dateOf(s.opened_at, s.opened_precision);
+        return String(s.opened_source ?? '').startsWith('inferred')
+            ? t('lines.stations.opened_inferred', { date })
+            : t('lines.stations.opened', { date });
+    }
 
     /** Même libellé que la fiche gare et la carte (précision, intervalle « entre … et … »). */
     function dateOf(iso, precision, after = null) {
@@ -76,17 +93,32 @@
                     )}
                 </li>
             {/each}
-            <li><span class="tick empty"></span>{t('lines.stations.status.none')}</li>
+            <li><span class="tick empty"></span>{upperFirst(t('lines.stations.status.none'))}</li>
+        </ul>
+        <p class="legend-text">{t('lines.sheet.stations.dots_text')}</p>
+        <ul aria-label={t('lines.sheet.stations.dots_label')}>
+            {#each dotKeys as k (k)}
+                <li>
+                    <span class="dot" style:--c={color(k)}></span>{t(`lines.stations.status.${k}`)}
+                </li>
+            {/each}
+            {#if hasTerminal}
+                <li>
+                    <span class="dot terminal" style:--c={color('active')}></span>{t(
+                        'lines.stops.terminus',
+                    )}
+                </li>
+            {/if}
         </ul>
     </div>
 {/if}
 
 <ol class={['stations', { cols: stations.length > 8 }]} id="stations-list">
     {#each shown as s (s.slug)}
-        {@const today = s.status_today ?? s.era_status ?? 'declassified'}
+        {@const today = todayOf(s)}
         <li class={{ closed: !OPEN.includes(today), terminal: s.is_terminal }}>
             <span class="pk">{s.pk_label ?? ''}</span>
-            <span class="dot" style:--c={color(today)}></span>
+            <span class={['dot', { terminal: s.is_terminal }]} style:--c={color(today)}></span>
             <div class="info">
                 <Link href="/stations/{s.slug}" class="name">{s.name}</Link>
                 {#if s.city && s.city !== s.name}<span class="city"
@@ -94,11 +126,7 @@
                     >{/if}
                 <span class="dates"
                     >{[
-                        s.opened_at
-                            ? t('lines.stations.opened', {
-                                  date: dateOf(s.opened_at, s.opened_precision),
-                              })
-                            : null,
+                        s.opened_at ? openedText(s) : null,
                         s.closed_at
                             ? t('lines.stations.closed', {
                                   date: dateOf(s.closed_at, s.closed_precision, s.closed_after),
@@ -198,6 +226,9 @@
     .legend .tick[data-status='declassified'] {
         height: 4px;
     }
+    .legend .dot {
+        margin: 0;
+    }
     .stations {
         margin: 0;
         padding: 0;
@@ -210,11 +241,20 @@
             column-gap: 48px;
         }
     }
+    /* Colonnes PK et fil : le trait se place par le calcul (milieu de la colonne du rond), il
+       reste centré sous le rond quelle que soit la largeur ou le zoom. Rond à 19 px du haut de la
+       gare (9 px de marge + 3 px + moitié du rond). */
+    .stations {
+        --pk-w: 64px;
+        --dot-col: 32px;
+        --col-gap: 8px;
+        --dot-y: 19px;
+    }
     .stations > li {
         position: relative;
         display: grid;
-        grid-template-columns: 64px 32px minmax(0, 1fr) auto;
-        gap: 0 8px;
+        grid-template-columns: var(--pk-w) var(--dot-col) minmax(0, 1fr) auto;
+        gap: 0 var(--col-gap);
         align-items: start;
         padding: 9px 0;
         break-inside: avoid;
@@ -226,15 +266,17 @@
         position: absolute;
         top: 0;
         bottom: 0;
-        left: 79px;
+        left: calc(var(--pk-w) + var(--col-gap) + var(--dot-col) / 2 - 1px);
         width: 2px;
         background: var(--vff-border-strong);
     }
+    /* Le fil commence au premier rond et finit au dernier (sur deux colonnes, il continue d'une
+       colonne à l'autre). */
     .stations > li:first-child::before {
-        top: 18px;
+        top: var(--dot-y);
     }
     .stations > li:last-child::before {
-        bottom: calc(100% - 18px);
+        bottom: calc(100% - var(--dot-y));
     }
     .pk {
         padding-top: 3px;
@@ -246,7 +288,9 @@
     }
     .dot {
         z-index: 1;
+        flex: none;
         justify-self: center;
+        box-sizing: border-box;
         width: 14px;
         height: 14px;
         margin-top: 3px;
@@ -254,7 +298,7 @@
         border-radius: 50%;
         background: var(--vff-bg);
     }
-    .stations > li.terminal .dot {
+    .dot.terminal {
         width: 18px;
         height: 18px;
         margin-top: 1px;
@@ -311,9 +355,10 @@
         border-radius: 1px;
         background: var(--c);
     }
+    /* Case vide : contour de commande (3:1 au moins, RGAA 3.3), pas un filet décoratif. */
     .tick.empty {
         background: transparent;
-        box-shadow: inset 0 0 0 1px var(--vff-border-strong);
+        box-shadow: inset 0 0 0 1px var(--vff-border-control);
     }
     /* La couleur ne porte pas seule l'état (RGAA 3.1) : ouverte = case pleine, fret seul = deux
        traits superposés, touristique = barres verticales, état non confirmé = case hachurée,
@@ -355,11 +400,12 @@
         margin-top: var(--vff-space-4);
     }
     @media (max-width: 600px) {
-        .stations > li {
-            grid-template-columns: 52px 28px minmax(0, 1fr);
+        .stations {
+            --pk-w: 52px;
+            --dot-col: 28px;
         }
-        .stations > li::before {
-            left: 65px;
+        .stations > li {
+            grid-template-columns: var(--pk-w) var(--dot-col) minmax(0, 1fr);
         }
         .badges {
             grid-column: 3;

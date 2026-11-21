@@ -26,6 +26,9 @@ class WikidataMaterialSource
 
     private const BATCH_API = 50;
 
+    /** Fichiers lus par catégorie Commons (categoryFiles) : les premiers suffisent pour choisir une image. */
+    private const CATEGORY_FILES = 20;
+
     /** Éléments testés par requête SPARQL pour `seriesAmong()` (les requêtes sont longues à évaluer). */
     private const BATCH_SERIES = 400;
 
@@ -237,6 +240,33 @@ class WikidataMaterialSource
                 if ($id !== null && isset($infos[$id])) {
                     $out[$file] = CommonsMetadata::normalize($infos[$id]);
                 }
+            }
+
+            return $out;
+        }, $refresh);
+    }
+
+    /**
+     * Premiers fichiers d'image (JPEG, PNG, TIFF, WebP) de catégories Commons, dans l'ordre de la catégorie :
+     * repli quand une série n'a pas d'image sur Wikidata (P18) ni dans l'infobox de son article. Une requête
+     * par catégorie (CATEGORY_FILES fichiers au plus), avec la pause entre deux appels ; cache `commons_category_files`.
+     *
+     * @param  list<string>  $categories  noms de catégories sans « Category: » (P373)
+     * @return array<string, list<string>|null> noms de fichiers sans « File: », par catégorie
+     */
+    public function categoryFiles(array $categories, bool $refresh = false): array
+    {
+        return $this->cache->fill('commons_category_files', $categories, 1, function (array $chunk): array {
+            $this->pause();
+            $out = [];
+            foreach ($chunk as $category) {
+                $files = [];
+                foreach ($this->client->categoryMembers('Category:'.$category, 'file', self::CATEGORY_FILES) as $member) {
+                    if (preg_match('/\.(?:jpe?g|png|tiff?|webp)$/iu', $member['title']) === 1) {
+                        $files[] = (string) preg_replace('/^File:/u', '', $member['title']);
+                    }
+                }
+                $out[$category] = $files;
             }
 
             return $out;

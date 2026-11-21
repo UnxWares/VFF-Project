@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\ReadsInertiaProps;
+use Tests\Support\ReadsTranslations;
 use Tests\TestCase;
 
 /**
@@ -26,6 +27,7 @@ use Tests\TestCase;
 class LineSheetPageTest extends TestCase
 {
     use ReadsInertiaProps;
+    use ReadsTranslations;
     use RefreshDatabase;
 
     private Line $line;
@@ -305,7 +307,7 @@ class LineSheetPageTest extends TestCase
             ->where('stats.length_greatest_km', null)
             ->where('stats.length_km', 14.6)
             ->where('stats.active_length_km', 0)
-            ->where('translations', fn ($t) => is_string($label = $this->rows($t)->get("lines.stats.today_{$state}")) && $label !== '')
+            ->where('translations_url', fn (string $u) => is_string($label = $this->dictionary($u)["lines.stats.today_{$state}"] ?? null) && $label !== '')
         );
     }
 
@@ -398,7 +400,7 @@ class LineSheetPageTest extends TestCase
             })
             // La source de l'étape est une note de la chronique (appel [n] sur la fiche).
             ->where('chronicle.events', fn ($e) => is_int($this->rows($e)->firstWhere('id', $opening)['note'] ?? null))
-            ->where('translations', fn ($t) => is_string($this->rows($t)->get('lines.sections.stages_title')))
+            ->where('translations_url', fn (string $u) => is_string($this->dictionary($u)['lines.sections.stages_title'] ?? null))
         );
         // API REST et GraphQL : même contenu.
         $this->getJson('/api/v1/lines/ligne-test-434000')->assertOk()
@@ -451,8 +453,8 @@ class LineSheetPageTest extends TestCase
     public function test_the_page_is_translated(string $locale, string $title, string $mixed): void
     {
         $this->withCookie('locale', $locale)->get('/lines/ligne-test-434000')->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->where('translations', function ($t) use ($title, $mixed) {
-                $t = $this->rows($t);
+            ->where('translations_url', function (string $u) use ($title, $mixed) {
+                $t = $this->dictionary($u);
                 $this->assertSame($title, $t['lines.phases.title']);
                 $this->assertSame($mixed, $t['lines.categories.mixed']);
                 foreach (['lines.chronicle.status.conflict', 'lines.changes.passenger_end', 'lines.decades.col_stations', 'lines.signalling.codes.BAPR-VB', 'lines.facts.roles.exploitant'] as $key) {

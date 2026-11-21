@@ -781,7 +781,7 @@ class BuildStationEras extends Command
         foreach (DB::select(<<<'SQL'
             SELECT s.id, s.name,
                    COALESCE(BOOL_OR((ss.source = 'sncf' AND (ss.passenger OR ss.freight)) OR ss.source = 'sncf_voyageurs'
-                       OR (ss.source IN ('osm', 'ohm', 'wikidata', 'lignes-oubliees', 'wikipedia_schema') AND ss.lifecycle <> 'planned')), FALSE)
+                       OR (ss.source IN ('osm', 'ohm', 'wikidata', 'lignes-oubliees', 'wikipedia_schema', 'argentanwebferro') AND ss.lifecycle <> 'planned')), FALSE)
                    OR EXISTS (SELECT 1 FROM station_events e WHERE e.station_id = s.id AND NOT e.is_inferred AND e.event_date <= ?) AS proof,
                    COALESCE(BOOL_OR(ss.lifecycle = 'planned'), FALSE) OR s.lifecycle = 'planned' AS planned,
                    COALESCE((SELECT BOOL_AND(l.is_lgv) FROM station_lines sl JOIN lines l ON l.id = sl.line_id WHERE sl.station_id = s.id), FALSE) AS lgv_only

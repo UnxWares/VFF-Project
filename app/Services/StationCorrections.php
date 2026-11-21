@@ -31,7 +31,8 @@ use Illuminate\Support\Facades\DB;
  *                  erronée) ou « projected » (gare annoncée, jamais ouverte) ;
  *   - tourist    : train d'attraction ou touristique sans ligne VFF : statut « touristique » ;
  *   - current    : état du jour (ère courante seulement), « status » active (desservie aujourd'hui
- *                  par des trains de voyageurs publics : horaires publiés) ou declassified (plus
+ *                  par des trains de voyageurs publics : horaires publiés), tourist (seul un train
+ *                  touristique s'y arrête : gare de départ d'un chemin de fer touristique) ou declassified (plus
  *                  desservie aujourd'hui) ; il remplace le statut des sources (drapeau fret seul de
  *                  la liste SNCF sur une section RATP, gare dite touristique d'une ligne à service
  *                  public quotidien, halte dont l'arrêt est supprimé), le plafond par les lignes
@@ -50,7 +51,7 @@ final class StationCorrections
     public const ACTIONS = ['add', 'neutralize', 'kind', 'tourist', 'current', 'position', 'pk'];
 
     /** États du jour admis par l'action « current ». */
-    public const CURRENT_STATUSES = [StationTimeline::ACTIVE, StationTimeline::CLOSED];
+    public const CURRENT_STATUSES = [StationTimeline::ACTIVE, StationTimeline::TOURIST, StationTimeline::CLOSED];
 
     public const EVENT_TYPES = ['opening', 'reopening', 'closure', 'closure_passenger', 'closure_freight', 'demolition'];
 
@@ -102,7 +103,7 @@ final class StationCorrections
             $errors[] = 'kind : excluded ou projected';
         }
         if ($action === 'current' && ! in_array($c['status'] ?? null, self::CURRENT_STATUSES, true)) {
-            $errors[] = 'current : status active ou declassified';
+            $errors[] = 'current : status active, tourist ou declassified';
         }
         if ($action === 'position' && (! is_numeric($c['lng'] ?? null) || ! is_numeric($c['lat'] ?? null))) {
             $errors[] = 'position : lng, lat';

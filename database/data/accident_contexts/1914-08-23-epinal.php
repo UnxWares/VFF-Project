@@ -1,0 +1,113 @@
+<?php
+
+// Contexte sourcé de l'accident de Saint-Laurent, près d'Épinal, du 23 août 1914 (recherche du 21/11/2026).
+return [
+    'slug' => '1914-08-23-epinal',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1914' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1914',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'entrée du 23 août 1914',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1914&oldid=239623136',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'L\'entrée s\'appuie sur un fil de forum et sur les Archives historiques de la SNCF, sans note précise.',
+        ],
+        'epinal-carnet-epitaphes' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'local_history',
+            'title' => 'Carnet de jeux : mémoire de guerres 7 (Épitaphes)',
+            'publisher' => 'Ville d\'Épinal',
+            'author' => null,
+            'published' => null,
+            'locator' => 'frise chronologique, 23 août 1914',
+            'url' => 'https://www.epinal.fr/wp-content/uploads/2022/09/carnet-de-jeux-epitaphes-7-bd-planche.pdf',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Document municipal pédagogique ; mention très brève.',
+        ],
+        'fnapog-centenaire' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'association',
+            'title' => 'Hommage pour le centenaire',
+            'publisher' => 'Fédération Nationale Autonome des Pupilles de la Nation, Orphelins de Guerre',
+            'author' => 'Henri Paturel',
+            'published' => '2018-08-21',
+            'locator' => null,
+            'url' => 'https://fnapog.fr/hommage-pour-le-centenaire/',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Extraits du carnet de guerre d\'un militaire territorial qui a dégagé les wagons ; témoignage indirect.',
+        ],
+        'sncf-archives-0018lm0035' => [
+            'provider' => 'sites-web',
+            'kind' => 'archive',
+            'reliability' => 'official',
+            'title' => 'Archives historiques de la SNCF, recensement des accidents (cote 0018LM0035-001)',
+            'publisher' => 'SNCF, Archives historiques',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'http://www.archives-historiques.sncf.fr/pdf/0018LM0035-001.pdf',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Document cité par Wikipédia ; le lien ne répond plus (redirection), à rechercher dans le catalogue des archives.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 23 août 1914, à la bifurcation de Saint-Laurent, près d\'Épinal (Vosges), un train de troupes et un train de munitions entrent en collision. Les faits se déroulent pendant la mobilisation et les combats des Vosges, dans les premières semaines de la guerre.',
+                'en' => 'On 23 August 1914, at the Saint-Laurent junction near Épinal (Vosges), a troop train and an ammunition train collided. The events took place during the mobilisation and the fighting in the Vosges, in the first weeks of the war.',
+                'de' => 'Am 23. August 1914 stießen an der Abzweigung Saint-Laurent bei Épinal (Vosges) ein Truppentransportzug und ein Munitionszug zusammen. Die Ereignisse fielen in die Mobilmachung und die Kämpfe in den Vogesen, in den ersten Wochen des Krieges.',
+                'sources' => ['wp-liste-1914', 'epinal-carnet-epitaphes'],
+            ],
+            [
+                'fr' => 'Un document pédagogique de la Ville d\'Épinal place la collision près d\'un passage à niveau de Saint-Laurent et mentionne 79 soldats du 179e régiment d\'infanterie alpine.',
+                'en' => 'An educational document from the City of Épinal places the collision near a level crossing at Saint-Laurent and mentions 79 soldiers of the 179th Alpine Infantry Regiment.',
+                'de' => 'Ein pädagogisches Dokument der Stadt Épinal verortet den Zusammenstoß nahe einem Bahnübergang in Saint-Laurent und nennt 79 Soldaten des 179. Alpen-Infanterieregiments.',
+                'sources' => ['epinal-carnet-epitaphes'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'La liste de Wikipédia retient 79 morts et de nombreux blessés. Le document municipal d\'Épinal indique qu\'une grange proche du passage à niveau a servi de chapelle ardente.',
+                'en' => 'The Wikipedia list gives 79 dead and many injured. The Épinal municipal document states that a barn near the level crossing served as a mortuary chapel.',
+                'de' => 'Die Wikipedia-Liste nennt 79 Tote und zahlreiche Verletzte. Das städtische Dokument aus Épinal gibt an, dass eine Scheune nahe dem Bahnübergang als Aufbahrungsraum diente.',
+                'sources' => ['wp-liste-1914', 'epinal-carnet-epitaphes'],
+            ],
+            [
+                'fr' => 'Les victimes étaient des militaires. Selon un carnet de guerre cité par une association de pupilles de la Nation, les soldats venaient de combattre près de Mulhouse.',
+                'en' => 'The victims were servicemen. According to a war diary quoted by an association of wards of the nation, the soldiers had just fought near Mulhouse.',
+                'de' => 'Die Opfer waren Soldaten. Nach einem Kriegstagebuch, das ein Verband der Kriegswaisen zitiert, hatten die Soldaten kurz zuvor bei Mülhausen gekämpft.',
+                'sources' => ['fnapog-centenaire'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'L\'accident n\'a pas été diffusé dans la presse de l\'époque, selon Wikipédia, qui le dit confirmé par les Archives historiques de la SNCF. Une compagnie militaire a été chargée de dégager les wagons enchevêtrés.',
+                'en' => 'The accident was not reported in the press at the time, according to Wikipedia, which says it is confirmed by the SNCF historical archives. A military company was ordered to clear the tangled wagons.',
+                'de' => 'Der Unfall wurde laut Wikipedia in der damaligen Presse nicht gemeldet; die Historischen Archive der SNCF bestätigen ihn demnach. Eine Militärkompanie erhielt den Auftrag, die ineinander verkeilten Wagen zu räumen.',
+                'sources' => ['wp-liste-1914', 'fnapog-centenaire'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le bilan diffère : 79 morts selon la liste de Wikipédia, 86 morts selon le carnet de guerre d\'un militaire cité par la FNAPOG. Ce carnet parle d\'un déraillement sur la ligne Épinal - Belfort, la liste d\'une collision entre deux trains. Aucun rapport d\'enquête n\'a été retrouvé.',
+                'en' => 'The toll differs: 79 dead according to the Wikipedia list, 86 dead according to a serviceman\'s war diary quoted by the FNAPOG. The diary speaks of a derailment on the Épinal - Belfort line, the list of a collision between two trains. No investigation report was found.',
+                'de' => 'Die Opferzahl weicht ab: 79 Tote laut Wikipedia-Liste, 86 Tote laut dem Kriegstagebuch eines Soldaten, das der FNAPOG zitiert. Das Tagebuch spricht von einer Entgleisung auf der Strecke Épinal - Belfort, die Liste von einem Zusammenstoß zweier Züge. Ein Untersuchungsbericht wurde nicht gefunden.',
+                'sources' => ['wp-liste-1914', 'fnapog-centenaire'],
+            ],
+        ],
+    ],
+    'corrections' => [],
+    'images' => [],
+];

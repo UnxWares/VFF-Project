@@ -6,6 +6,7 @@ use App\Support\Advocacy;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 /**
  * Attache à une ligne un message de soutien de VFF, affiché en bandeau sur la
@@ -15,7 +16,10 @@ use Illuminate\Support\Facades\DB;
  *
  *   php artisan vff:flag-threatened 878000 --title="…" --message="…" --url="https://…"
  *   php artisan vff:flag-threatened 610000 --kind=reopening --title="…" --cta="Soutenir …" --url="https://…"
+ *   php artisan vff:flag-threatened 405000 --title="…" --source="France 3 Normandie|2026-07-23|https://…"
  *   php artisan vff:flag-threatened 878000 --off          # retire le message
+ *
+ * Sources (--source, répétable) : « Libellé|AAAA-MM-JJ|https://… », listées sous le message de la fiche.
  *
  * Langues : le texte français (--title, --message, --cta) est la référence ; ses
  * traductions anglaise et allemande (--title-en, --message-de…) sont stockées à
@@ -40,6 +44,7 @@ class FlagThreatenedLine extends Command
         {--cta-en= : libellé du bouton en anglais}
         {--cta-de= : libellé du bouton en allemand}
         {--url= : URL d\'action (pétition, association…)}
+        {--source=* : source du message, « Libellé|AAAA-MM-JJ|https://… » (répétable)}
         {--off : retire le message de soutien}';
 
     protected $description = 'Affiche le soutien de VFF à une ligne menacée ou à une campagne de réouverture.';
@@ -73,7 +78,14 @@ class FlagThreatenedLine extends Command
         foreach (['title' => 'title', 'message' => 'message', 'cta_label' => 'cta'] as $field => $option) {
             $texts[$field] = ['fr' => $this->option($option), 'en' => $this->option($option.'-en'), 'de' => $this->option($option.'-de')];
         }
-        $advocacy = Advocacy::build($kind, $texts, $this->option('url') ?: null);
+        try {
+            $sources = array_map(Advocacy::parseSource(...), array_values((array) $this->option('source')));
+        } catch (InvalidArgumentException $e) {
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
+        $advocacy = Advocacy::build($kind, $texts, $this->option('url') ?: null, $sources);
 
         DB::table('lines')->where('id', $line->id)->update([
             // is_threatened reste réservé aux lignes menacées (halo rouge, filtres).

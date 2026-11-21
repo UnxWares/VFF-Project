@@ -107,6 +107,7 @@ return [
         'via' => 'via Wikimedia Commons',
         'file' => 'file page',
         'more' => 'More photos on Wikimedia Commons',
+        'alt' => 'Photo: :name',
     ],
     'about' => [
         'title' => 'Overview',
@@ -126,6 +127,28 @@ return [
         'label' => 'Running on the line',
         'source' => 'source',
         'note' => 'The years come from the Wikipedia articles on the line and on each class, or from Wikidata. A missing end date does not mean the class still runs here. The source of each period is on the class page.',
+    ],
+    'end' => [
+        'line' => 'On the line until :year',
+        'series_in_service' => 'Series still in service',
+        'series_withdrawn' => 'Series withdrawn',
+        'series_withdrawn_year' => 'Series withdrawn in :year',
+        'unknown' => 'End on the line unknown',
+        'since' => 'On the line from :year',
+        'source' => 'source',
+    ],
+    'relations' => [
+        'on_line' => 'Services run: :relations',
+        'label' => 'Services run on the line',
+        'notes' => [
+            'fuel' => 'running on :fuel biodiesel (:feedstock) since :since',
+            'reported' => 'report published in :date',
+            'sources' => 'Sources:',
+            'line' => ':label: :text',
+        ],
+        'feedstock' => [
+            'rapeseed' => 'rapeseed',
+        ],
     ],
     'section_lines' => [
         'intro' => 'Each line is backed by a source. The sentence is quoted as written, in French, with a link to the version of the article we read. When a source dates them, the years the class ran on the line are given.',
@@ -190,5 +213,18 @@ return [
         'wagon' => 'Wagon',
         'tramway' => 'Tram',
         'engin_service' => 'Departmental vehicle',
+    ],
+    // Rames remarquables d'une série (database/data/material_notable_units.php).
+    'notable' => [
+        'title' => 'Notable sets',
+        'intro' => 'Sets of this series with a story of their own. Each fact links to the page that reports it.',
+        'unit' => 'Set :number, “:nickname”',
+        'unit_plain' => 'Set :number',
+        'source' => 'Source: :publisher',
+        'reported' => ':publisher, citing :reported',
+        'range' => ':from to :to',
+        // Profil dessiné d'une rame (resources/js/lib/tgvSudEst.js).
+        'profile_alt' => 'Side view of set :number in the original orange livery: the long-nosed power car, then the first coach, with a dark grey band along the windows and a broad white stripe below it.',
+        'profile_caption' => 'Front of the set, drawn to scale from published dimensions.',
     ],
 ];

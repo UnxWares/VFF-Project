@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Line;
+use App\Models\Station;
 use App\Services\JunctionRepair;
 use App\Services\TraceConflation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -139,6 +140,31 @@ class JunctionRepairTest extends TestCase
         $this->assertContains($bridge, json_decode($added->source_trace_ids, true));
     }
 
+    public function test_long_hole_on_a_precise_track_the_route_cannot_follow_is_bridged_along_it(): void
+    {
+        // Trou de 150 m : les deux bouts sont à 4 m de la voie qui le traverse (au-delà de SNAP_M, l'étape 2 ne la prend pas).
+        $this->part('osm', [[[0, 0], [1000, 0]], [[1150, 8], [2000, 8]]]);
+        $this->trace(null, 'bdtopo', [[900, 4], [1300, 4]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['hole_filled']);
+        $this->assertSame(1, $stats['hole_smoothed']);
+        $this->assertSame([[0.0, 0.0], [2000.0, 8.0]], $this->freeEnds());
+        $this->assertLessThan(10, $this->maxKink());
+    }
+
+    public function test_long_hole_away_from_any_precise_track_stays_open(): void
+    {
+        $this->part('osm', [[[0, 0], [1000, 0]], [[1150, 8], [2000, 8]]]);
+        $this->trace(null, 'bdtopo', [[900, 40], [1300, 40]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['hole_smoothed']);
+        $this->assertCount(4, $this->freeEnds());
+    }
+
     public function test_hole_without_precise_track_is_left_open(): void
     {
         $this->part('bdtopo', [[[0, 0], [1000, 0]], [[1040, 0], [2000, 0]]]);
@@ -228,18 +254,25 @@ class JunctionRepairTest extends TestCase
         $this->assertEqualsWithDelta(1000 + 200 + hypot(120, 15) + 680, $this->totalLength(), 0.5);
     }
 
-    public function test_jog_without_real_crossover_is_kept(): void
+    public function test_jog_without_real_crossover_becomes_a_smoothed_track_change(): void
     {
         $this->jogNetwork(crossover: false);
-        $before = $this->totalLength();
 
         $stats = $this->repair();
 
+        // Aucune communication réelle : le saut est remis, puis la marche d'escalier devient un S tangent aux deux voies.
         $this->assertSame(0, $stats['jog_removed']);
         $this->assertSame(1, $stats['jog_restored']);
-        $this->assertEqualsWithDelta(15, $this->totalLength('connector'), 0.01);
-        $this->assertEqualsWithDelta($before, $this->totalLength(), 0.01);
+        $this->assertSame(1, $stats['jog_smoothed']);
+        $this->assertEqualsWithDelta(0, $this->totalLength('connector'), 0.01);
         $this->assertSame([[0.0, 0.0], [2000.0, 15.0]], $this->freeEnds());
+        $this->assertLessThan(10, $this->maxKink());
+        $curve = DB::table('line_reference_parts')->where('line_id', $this->line->id)->where('matched_source', JunctionRepair::SMOOTHED)->first();
+        $this->assertNotNull($curve);
+        // Recul de chaque côté : moitié de √(6 × 15 m × rayon minimal) ; rien n'est inventé au-delà.
+        $t = sqrt(6 * 15 * JunctionRepair::minRadius($this->line->network, 1435)) / 2;
+        $this->assertEqualsWithDelta(2 * (1000 - $t), $this->totalLength() - (float) DB::selectOne(
+            'SELECT ST_Length(ST_Transform(geom, 2154)) AS m FROM line_reference_parts WHERE id = ?', [$curve->id])->m, 0.5);
     }
 
     public function test_staircase_through_a_short_parallel_piece_becomes_a_straight_track(): void
@@ -271,9 +304,143 @@ class JunctionRepairTest extends TestCase
 
         $stats = $this->repair();
 
+        // Raccord en T vers la voie qui continue : la voie parallèle reste, son arrivée devient une courbe tangente.
         $this->assertSame(1, $stats['jog_restored']);
+        $this->assertSame(1, $stats['jog_smoothed']);
         $this->assertEqualsWithDelta(0, $stats['remnant_removed_m'], 0.01);
-        $this->assertEqualsWithDelta(3020, $this->totalLength(), 0.5);
+        $this->assertEqualsWithDelta(0, $this->totalLength('connector'), 0.01);
+        $this->assertEqualsWithDelta(2000, (float) DB::selectOne("SELECT SUM(ST_Length(ST_Transform(geom, 2154))) AS m FROM line_reference_parts WHERE line_id = ? AND source = 'bdtopo' AND matched_source IS NULL", [$this->line->id])->m, 0.5);
+        $this->assertLessThan(10, $this->maxKink());
+    }
+
+    public function test_tee_jog_onto_a_track_passing_it_by_a_short_dead_end_is_cut_like_an_end(): void
+    {
+        // Pré-en-Pail (3283), Lyon (3786) : la voie 2 commence 15 m avant le pied du saut ; gardée entière, ce bout et la voie
+        // jusqu'au point de raccord J doublaient la courbe en S (tronçons en double).
+        $this->part('bdtopo', [[[0, 0], [1000, 0]]]);
+        $this->part('osm', [[[985, 12], [2000, 12]]]);
+        $this->connector([[1000, 0], [1000, 12]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['jog_smoothed']);
+        $this->assertSame([[0.0, 0.0], [2000.0, 12.0]], $this->freeEnds());
+        $this->assertLessThan(10, $this->maxKink());
+        // Rien ne longe la courbe : hors de ses 5 premiers et derniers mètres, aucun autre morceau à moins de 5 m.
+        $this->assertSame(0, (int) DB::selectOne(<<<'SQL'
+            WITH c AS (SELECT ST_Transform(geom, 2154) AS g FROM line_reference_parts WHERE line_id = ? AND matched_source = ?),
+            inner_c AS (SELECT ST_LineSubstring(g, 5 / ST_Length(g), 1 - 5 / ST_Length(g)) AS g FROM c)
+            SELECT COUNT(*) AS n FROM line_reference_parts p, inner_c
+            WHERE p.line_id = ? AND p.matched_source IS DISTINCT FROM ? AND ST_Length(ST_Intersection(ST_Transform(p.geom, 2154), ST_Buffer(inner_c.g, 5))) > 1
+            SQL, [$this->line->id, JunctionRepair::SMOOTHED, $this->line->id, JunctionRepair::SMOOTHED])->n);
+    }
+
+    /** La voie 2 part-elle toujours de (985, 12) et va-t-elle jusqu'au bout (x > 1 900) ? */
+    private function secondTrackStartsAtTheStub(): bool
+    {
+        return (int) DB::selectOne(<<<'SQL'
+            SELECT COUNT(*) AS n FROM line_reference_parts p, LATERAL ST_Dump(ST_Transform(p.geom, 2154)) d
+            WHERE p.line_id = ? AND p.source = 'osm' AND ST_DWithin(ST_StartPoint(d.geom), ST_SetSRID(ST_MakePoint(?, ?), 2154), 0.5) AND ST_X(ST_EndPoint(d.geom)) > ?
+            SQL, [$this->line->id, self::X0 + 985, self::Y0 + 12, self::X0 + 1900])->n === 1;
+    }
+
+    public function test_tee_jog_onto_a_short_overshoot_that_holds_another_portion_keeps_the_through_track(): void
+    {
+        // Même saut, mais une autre portion de la ligne part du bout de la voie 2 : ce n'est pas un bout sans issue.
+        $this->part('bdtopo', [[[0, 0], [1000, 0]]]);
+        $this->part('osm', [[[985, 12], [2000, 12]]]);
+        $this->part('osm', [[[985, 12], [985, 400]]]);
+        $this->connector([[1000, 0], [1000, 12]]);
+
+        $this->repair();
+
+        $this->assertContains([985.0, 400.0], $this->freeEnds());
+        $this->assertNotContains([985.0, 12.0], $this->freeEnds());
+        $this->assertTrue($this->secondTrackStartsAtTheStub());
+    }
+
+    public function test_tee_jog_onto_a_short_overshoot_where_another_line_ends_keeps_the_through_track(): void
+    {
+        // Le bout de la voie 2 porte la jonction d'une autre ligne : le couper la laisserait en l'air.
+        $this->part('bdtopo', [[[0, 0], [1000, 0]]]);
+        $this->part('osm', [[[985, 12], [2000, 12]]]);
+        $this->connector([[1000, 0], [1000, 12]]);
+        $other = Line::factory()->create(['code' => '421000', 'gauge_mm_default' => 1435]);
+        $this->part('osm', [[[990, 12], [990, 600]]], [], null, $other);
+
+        $stats = $this->repair();
+
+        // Raccord en T : la courbe se pose sur la voie 2, gardée entière.
+        $this->assertSame(1, $stats['jog_smoothed']);
+        $this->assertTrue($this->secondTrackStartsAtTheStub());
+    }
+
+    // ─── Allers-retours ─────────────────────────────────────────────────
+
+    public function test_dead_end_spur_running_along_the_line_from_a_node_is_removed(): void
+    {
+        // La Ferté-Macé (434000) : la ligne est dessinée sur sa voie et, depuis l'aiguille, sur l'autre voie du faisceau
+        // qui s'en écarte doucement jusqu'à 25 m puis s'arrête : un aller-retour en V à l'écran.
+        $this->part('bdtopo', [[[0, 0], [1000, 0]], [[1000, 0], [2000, 0]]]);
+        $this->part('osm', [[[1000, 0], [1200, 15], [1400, 25]]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['spur_removed']);
+        $this->assertEqualsWithDelta(hypot(200, 15) + hypot(200, 10), $stats['spur_removed_m'], 0.5);
+        $this->assertEqualsWithDelta(2000, $this->totalLength(), 0.5);
+    }
+
+    public function test_parallel_dead_end_track_continuing_a_portion_past_a_fork_is_cut_at_the_fork(): void
+    {
+        // La voie est de La Ferté-Macé : la portion part de la gare (terminus), passe l'aiguille puis continue sur la voie
+        // de faisceau jusqu'à un butoir ; la voie de la ligne part de l'aiguille, raccordée au milieu de cette portion.
+        $this->part('osm', [[[0, 0], [200, 0], [400, 15], [650, 25]]]);
+        $this->part('osm', [[[200, 0], [2000, 0]]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['spur_removed']);
+        $this->assertEqualsWithDelta(hypot(200, 15) + hypot(250, 10), $stats['spur_removed_m'], 0.5);
+        $this->assertEqualsWithDelta(2000, $this->totalLength(), 0.5);
+        $this->assertSame([[0.0, 0.0], [2000.0, 0.0]], $this->freeEnds());
+    }
+
+    public function test_dead_end_branch_that_leaves_the_line_is_kept(): void
+    {
+        $this->part('bdtopo', [[[0, 0], [1000, 0]], [[1000, 0], [2000, 0]]]);
+        // 20° : à 30 m de la ligne dès 90 m, ce n'est pas une voie du même faisceau.
+        $this->part('osm', [[[1000, 0], [1400, 400 * tan(deg2rad(20))]]]);
+        // 40° : trop ouvert pour un éperon.
+        $this->part('osm', [[[500, 0], [700, 200 * tan(deg2rad(40))]]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['spur_removed']);
+    }
+
+    public function test_hairpin_coming_back_along_the_same_portion_is_cut(): void
+    {
+        // Le tracé dépasse la gare de 300 m puis revient 200 m en arrière à 10 m de lui-même et s'arrête.
+        $this->part('osm', [[[0, 0], [1300, 0], [1100, 10]]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['spur_removed']);
+        $this->assertEqualsWithDelta(1300, $this->totalLength(), 1.0);
+        $this->assertSame([[0.0, 0.0], [1300.0, 0.0]], $this->freeEnds());
+    }
+
+    public function test_real_reversal_whose_branches_part_is_kept(): void
+    {
+        // Rebroussement : la seconde branche repart à 153° et s'écarte de la première (gare en impasse).
+        $this->part('osm', [[[0, 0], [1000, 0], [700, 150]]]);
+        $before = $this->totalLength();
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['spur_removed']);
+        $this->assertEqualsWithDelta($before, $this->totalLength(), 0.01);
     }
 
     public function test_long_bubble_held_by_two_jogs_is_removed(): void
@@ -432,6 +599,145 @@ class JunctionRepairTest extends TestCase
         $this->assertSame($before, $sig());
     }
 
+    // ─── Longs trous sur les voies abandonnées ──────────────────────────
+
+    /** Ligne disparue dessinée de 0 à 1 000 m et de 4 000 à 5 000 m (y = 0) : trou de 3 km. */
+    private function longGap(): void
+    {
+        $this->part('archeoferroviaire', [[[0, 0], [1000, 0]], [[4000, 0], [5000, 0]]], [], 'osm');
+    }
+
+    /** Voie OSM abandonnée, rattachée à aucune ligne. */
+    private function abandoned(array $pts, string $layer = 'abandoned'): int
+    {
+        return $this->trace(null, 'osm', $pts, ['layer' => $layer]);
+    }
+
+    /** Gare de la ligne en ($x, $y), PK en m (source SNCF) ou sans PK. */
+    private function station(float $x, float $y, ?int $pk): void
+    {
+        $id = Station::factory()->create()->id;
+        DB::update('UPDATE stations SET geom = ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 2154), 4326) WHERE id = ?', [self::X0 + $x, self::Y0 + $y, $id]);
+        DB::table('station_lines')->insert(['station_id' => $id, 'line_id' => $this->line->id, 'method' => 'sncf_pk', 'pk_m' => $pk,
+            'pk_source' => $pk !== null ? 'sncf' : null, 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    public function test_long_gap_is_followed_on_the_abandoned_track(): void
+    {
+        $this->longGap();
+        $id = $this->abandoned([[1000, 0], [2000, 150], [3000, 150], [4000, 0]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['long_gap_filled']);
+        $this->assertSame(0, $stats['long_gap_partial']);
+        $this->assertSame([[0.0, 0.0], [5000.0, 0.0]], $this->freeEnds());
+        // Dessin de la voie abandonnée, définition de la portion prolongée.
+        $added = DB::table('line_reference_parts')->where('line_id', $this->line->id)->orderByDesc('id')->first();
+        $this->assertSame('archeoferroviaire', $added->source);
+        $this->assertSame('osm', $added->matched_source);
+        $this->assertSame([$id], json_decode($added->matched_trace_ids, true));
+    }
+
+    public function test_long_gap_path_stopping_short_leaves_the_last_stretch_visible(): void
+    {
+        // 371000 entre Gravigny et Hondouville : la voie abandonnée s'arrête 600 m avant l'autre bout.
+        $this->longGap();
+        $this->abandoned([[1000, 0], [2000, 100], [3000, 100], [3400, 0]], 'razed');
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['long_gap_filled']);
+        $this->assertSame(1, $stats['long_gap_partial']);
+        $this->assertEqualsWithDelta(600, $stats['long_gap_left_m'], 1);
+        $this->assertSame([[0.0, 0.0], [3400.0, 0.0], [4000.0, 0.0], [5000.0, 0.0]], $this->freeEnds());
+    }
+
+    public function test_long_gap_path_crossing_a_short_missing_piece_is_followed(): void
+    {
+        $this->longGap();
+        // Morceau rasé non dessiné de 20 m au milieu, puis BD TOPO « Sans objet » jusqu'au bout.
+        $this->abandoned([[1000, 0], [2500, 0]]);
+        $this->trace(null, 'bdtopo', [[2520, 0], [4000, 0]], ['layer' => 'Sans objet']);
+
+        $stats = $this->repair();
+
+        $this->assertSame(1, $stats['long_gap_filled']);
+        $this->assertSame([[0.0, 0.0], [5000.0, 0.0]], $this->freeEnds());
+    }
+
+    public function test_long_gap_path_stopping_too_far_is_refused(): void
+    {
+        $this->longGap();
+        $this->abandoned([[1000, 0], [2000, 0]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['long_gap_filled']);
+        $this->assertGreaterThanOrEqual(1, $stats['long_gap_refused']);
+        $this->assertCount(4, $this->freeEnds());
+    }
+
+    public function test_long_gap_path_on_another_line_is_refused(): void
+    {
+        $this->longGap();
+        $this->abandoned([[1000, 0], [2000, 150], [3000, 150], [4000, 0]]);
+        // Une autre ligne est déjà dessinée sur cette voie : ce sont ses rails, pas ceux de la ligne.
+        $other = Line::factory()->create(['code' => '421000']);
+        $this->part('osm', [[[1500, 75], [2000, 150], [3000, 150], [3500, 75]]], [], null, $other);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['long_gap_filled']);
+        $this->assertGreaterThanOrEqual(1, $stats['long_gap_refused']);
+    }
+
+    public function test_long_gap_path_missing_a_station_of_the_line_is_refused(): void
+    {
+        $this->longGap();
+        $this->abandoned([[1000, 0], [2000, 150], [3000, 150], [4000, 0]]);
+        // Gare de la ligne au milieu du trou, à 900 m de cette voie : la ligne passait ailleurs.
+        $this->station(2500, -750, null);
+
+        $this->assertSame(0, $this->repair()['long_gap_filled']);
+    }
+
+    public function test_long_gap_path_with_stations_in_the_wrong_order_is_refused(): void
+    {
+        $this->longGap();
+        $this->abandoned([[1000, 0], [2000, 150], [3000, 150], [4000, 0]]);
+        $this->station(900, 20, 10000);
+        $this->station(4100, 20, 13100);
+        // Le long de la voie, les PK reculent : ce n'est pas la ligne.
+        $this->station(2000, 170, 12500);
+        $this->station(3000, 170, 11200);
+
+        $this->assertSame(0, $this->repair()['long_gap_filled']);
+    }
+
+    public function test_long_gap_path_too_long_for_the_pk_gap_is_refused(): void
+    {
+        $this->longGap();
+        $this->abandoned([[1000, 0], [2000, 150], [3000, 150], [4000, 0]]);
+        // 3,1 km de voie pour 1,2 km entre les PK des deux bouts.
+        $this->station(900, 20, 10000);
+        $this->station(4100, 20, 11200);
+
+        $this->assertSame(0, $this->repair()['long_gap_filled']);
+    }
+
+    public function test_long_gap_path_with_stations_in_order_is_followed(): void
+    {
+        $this->longGap();
+        $this->abandoned([[1000, 0], [2000, 150], [3000, 150], [4000, 0]]);
+        $this->station(900, 20, 10000);
+        $this->station(4100, 20, 13300);
+        $this->station(2000, 170, 11300);
+        $this->station(3000, 170, 12300);
+
+        $this->assertSame(1, $this->repair()['long_gap_filled']);
+    }
+
     // ─── Embranchement arrêté avant la jonction ─────────────────────────
 
     /** Ligne B : voie BD TOPO est-ouest (y = 0) ; la ligne arrive du nord et s'arrête à 100 m. */
@@ -576,5 +882,142 @@ class JunctionRepairTest extends TestCase
         $this->artisan('vff:build-line-references', ['--line' => [(string) $this->line->id], '--no-junction-repair' => true])->assertSuccessful();
 
         $this->assertCount(4, $this->freeEnds());
+    }
+
+    // ─── Arrondi des sommets ────────────────────────────────────────────
+
+    /** Courbe OSM échantillonnée tous les 50 m, qui tourne de 8° à chaque sommet (voie de montagne). */
+    private function polygonalCurve(): array
+    {
+        $c = [[0.0, 0.0]];
+        $az = 0.0;
+        for ($i = 0; $i < 10; $i++) {
+            $c[] = [round(end($c)[0] + 50 * cos($az), 3), round(end($c)[1] + 50 * sin($az), 3)];
+            $az += deg2rad(8);
+        }
+
+        return $c;
+    }
+
+    /** Sommets du tracé de référence d'une ligne. */
+    private function vertexCount(Line $line): int
+    {
+        return (int) DB::selectOne('SELECT SUM(ST_NPoints(geom)) AS n FROM line_reference_parts WHERE line_id = ?', [$line->id])->n;
+    }
+
+    public function test_build_line_references_rounds_curve_vertices_but_not_where_another_line_joins(): void
+    {
+        $curve = $this->polygonalCurve();
+        $this->trace($this->line, 'osm', $curve);
+        // Une autre ligne se raccorde sur le 4e sommet : il ne bouge pas (jonction à 0 m).
+        $other = Line::factory()->create(['code' => '430000', 'gauge_mm_default' => 1435]);
+        $joint = $curve[4];
+        $this->part('osm', [[[$joint[0], $joint[1] - 500], $joint]], [], null, $other);
+
+        $this->artisan('vff:build-line-references', ['--line' => [(string) $this->line->id]])
+            ->expectsOutputToContain('arrondi des sommets : 8 sommets arrondis')
+            ->assertSuccessful();
+
+        $this->assertGreaterThan(count($curve), $this->vertexCount($this->line));
+        $this->assertSame([[0.0, 0.0], [round(end($curve)[0], 1), round(end($curve)[1], 1)]], $this->freeEnds());
+        $this->assertEqualsWithDelta(0.0, (float) DB::selectOne(
+            'SELECT MIN(ST_Distance(ST_Transform(d.geom, 2154), ST_SetSRID(ST_MakePoint(?, ?), 2154))) AS d FROM line_reference_parts p, LATERAL ST_DumpPoints(p.geom) d WHERE p.line_id = ?',
+            [self::X0 + $joint[0], self::Y0 + $joint[1], $this->line->id])->d, 0.01);
+        // Plus aucune cassure visible : 3° au plus entre deux segments (cordes de ± 10 m : quelques pas d'arc).
+        $this->assertLessThan(10, $this->maxKink());
+    }
+
+    public function test_build_line_references_without_rounding_keeps_the_source_vertices(): void
+    {
+        $curve = $this->polygonalCurve();
+        $this->trace($this->line, 'osm', $curve);
+
+        $this->artisan('vff:build-line-references', ['--line' => [(string) $this->line->id], '--no-rounding' => true])->assertSuccessful();
+
+        $this->assertSame(count($curve), $this->vertexCount($this->line));
+    }
+
+    // ─── Revue du 21/11/2026 : jonctions des autres lignes, longs trous ──
+
+    /** Distance (m) du point ($x, $y) au dessin de la ligne étudiée. */
+    private function distToDrawing(float $x, float $y): float
+    {
+        return (float) DB::selectOne(
+            'SELECT MIN(ST_Distance(ST_Transform(geom, 2154), ST_SetSRID(ST_MakePoint(?, ?), 2154))) AS d FROM line_reference_parts WHERE line_id = ?',
+            [self::X0 + $x, self::Y0 + $y, $this->line->id],
+        )->d;
+    }
+
+    public function test_s_curve_recoil_never_cuts_under_another_line_junction_on_a_dead_end_stub(): void
+    {
+        // La voie 1 dépasse le pied du saut de 15 m (bout sans issue) ; une autre ligne finit dessus 5 m avant le pied,
+        // dans la partie que la courbe en S retirerait : la jonction reste à 0 m, le saut reste un raccord droit.
+        $this->part('bdtopo', [[[0, 0], [1015, 0]]]);
+        $this->part('osm', [[[1000, 12], [2000, 12]]]);
+        $this->connector([[1000, 0], [1000, 12]]);
+        $other = Line::factory()->create(['code' => '421000', 'gauge_mm_default' => 1435]);
+        $this->part('osm', [[[995, 0], [995, -600]]], [], null, $other);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['jog_smoothed']);
+        $this->assertLessThanOrEqual(0.5, $this->distToDrawing(995, 0));
+    }
+
+    public function test_s_curve_recoil_never_cuts_under_another_line_junction_at_the_jog_foot(): void
+    {
+        $this->part('bdtopo', [[[0, 0], [1000, 0]]]);
+        $this->part('osm', [[[1000, 12], [2000, 12]]]);
+        $this->connector([[1000, 0], [1000, 12]]);
+        $other = Line::factory()->create(['code' => '421000', 'gauge_mm_default' => 1435]);
+        $this->part('osm', [[[1000, 0], [1000, -600]]], [], null, $other);
+
+        $this->repair();
+
+        $this->assertLessThanOrEqual(0.5, $this->distToDrawing(1000, 0));
+    }
+
+    public function test_long_gap_path_arriving_sideways_on_the_far_end_is_refused(): void
+    {
+        // Bout d'en face (3 000, 1 000) : début d'une portion qui monte vers le nord. La voie abandonnée y arrive par
+        // l'ouest : raccordée, elle ferait un coude à angle droit que rien ne lisse ensuite.
+        $this->part('archeoferroviaire', [[[0, 0], [1000, 0]], [[3000, 1000], [3000, 2000]]], [], 'osm');
+        $this->abandoned([[1000, 0], [2000, 0], [2500, 500], [2800, 1000], [3000, 1000]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['long_gap_filled']);
+        $this->assertGreaterThanOrEqual(1, $stats['long_gap_refused']);
+    }
+
+    public function test_long_gap_never_joins_two_ends_of_the_same_connected_drawing(): void
+    {
+        // Y déjà relié (tronc et deux branches) : une voie abandonnée entre les bouts des branches n'est pas un trou.
+        $this->part('osm', [[[0, 0], [1000, 0]], [[1000, 0], [3000, 1000]], [[1000, 0], [3000, -1000]]]);
+        $this->abandoned([[3000, 1000], [3400, 1200], [3700, 0], [3400, -1200], [3000, -1000]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['long_gap_filled']);
+    }
+
+    public function test_long_gap_closing_chord_never_strays_more_than_five_metres_from_the_track(): void
+    {
+        // La voie abandonnée s'arrête 25 m à côté du bout d'en face : la raccorder demanderait une corde de 200 m,
+        // étiquetée « osm », à 25 m de toute voie réelle. Le trou reste ouvert (ou visible) plutôt qu'inventé.
+        $this->longGap();
+        $this->abandoned([[1000, 0], [2500, 10], [4000, 25]]);
+
+        $stats = $this->repair();
+
+        if ($stats['long_gap_filled'] > 0) {
+            $dev = (float) DB::selectOne(<<<'SQL'
+                SELECT MAX((SELECT MIN(ST_Distance(ST_Transform(st.geom, 2154), v.geom)) FROM source_traces st WHERE st.line_id IS NULL)) AS dev
+                FROM line_reference_parts p, LATERAL ST_DumpPoints(ST_Transform(p.geom, 2154)) v
+                WHERE p.id = (SELECT MAX(id) FROM line_reference_parts WHERE line_id = ?)
+                SQL, [$this->line->id])->dev;
+            $this->assertLessThanOrEqual(5.0, $dev);
+        }
+        $this->assertSame(0, $stats['long_gap_filled'] - $stats['long_gap_partial'], 'aucun raccord complet au bout d\'en face');
     }
 }
