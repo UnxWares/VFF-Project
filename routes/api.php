@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\GeoController;
 use App\Http\Controllers\Api\GtfsController;
 use App\Http\Controllers\Api\LevelCrossingController;
 use App\Http\Controllers\Api\LineArchiveController;
+use App\Http\Controllers\Api\LineAuditController;
 use App\Http\Controllers\Api\LineController;
 use App\Http\Controllers\Api\LineEventController;
 use App\Http\Controllers\Api\LineGreenwayController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\Api\SchematicMapController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\SignallingMapController;
 use App\Http\Controllers\Api\SourceController;
+use App\Http\Controllers\Api\StationAuditController;
 use App\Http\Controllers\Api\StationController;
 use App\Http\Controllers\Api\StationEventController;
 use App\Http\Controllers\Api\StatsController;
@@ -92,6 +94,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/stations', [StationController::class, 'index'])->name('api.stations.index');
     Route::get('/v1/stations/{station:slug}', [StationController::class, 'show'])->name('api.stations.show');
     Route::get('/v1/stations/{station:slug}/media', [StationController::class, 'media'])->name('api.stations.media');
+    // Audit d'une gare (note de placement, notes des dates, dates candidates de Wikidata) : docs/AUDIT-GARES.md.
+    Route::get('/v1/stations/{station:slug}/audit', [StationAuditController::class, 'show'])->name('api.stations.audit');
     Route::get('/v1/sources', [SourceController::class, 'index'])->name('api.sources.index');
     Route::get('/v1/sources/{provider}', [SourceController::class, 'show'])->where('provider', '[a-z0-9_-]{1,64}')->name('api.sources.show');
     // Liste de référence des départements et des régions (valeurs des filtres department et region, INSEE).
@@ -110,6 +114,8 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/stories', [LineStoryController::class, 'index'])->name('api.lines.stories');
     Route::get('/v1/lines/{line:slug}/stories/{event}', [LineStoryController::class, 'show'])->where('event', '[0-9]{1,18}')->name('api.lines.stories.show');
     Route::get('/v1/lines/{line:slug}/profile', [LineProfileController::class, 'show'])->name('api.lines.profile');
+    // Audit des tronçons d'une ligne (notes de vff:audit-segments, docs/AUDIT-TRONCONS.md).
+    Route::get('/v1/lines/{line:slug}/audit', [LineAuditController::class, 'show'])->name('api.lines.audit');
     Route::get('/v1/lines/{line:slug}/media', [LineMediaController::class, 'index'])->name('api.lines.media');
     Route::get('/v1/route', [RouteController::class, 'route'])->name('api.route');
     Route::get('/v1/route/compare', [RouteController::class, 'compare'])->name('api.route.compare');

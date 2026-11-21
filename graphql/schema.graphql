@@ -221,6 +221,17 @@ type Line {
     ): LineProfile @field(resolver: "App\\GraphQL\\Resolvers\\LineProfileField")
 
     """
+    Audit des tronçons de la ligne à une ère (passe `vff:audit-segments`, docs/AUDIT-TRONCONS.md),
+    comme `GET /api/v1/lines/{line}/audit` : quatre notes par tronçon (classement, placement,
+    exactitude, tracé) avec leurs preuves. Nul tant que la ligne n'est pas auditée à cette ère ;
+    erreur de requête si l'ère n'existe pas.
+    """
+    audit(
+        "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante, 2030."
+        era: Int @rules(apply: ["nullable", "integer", "between:1830,2030"])
+    ): LineAudit @field(resolver: "App\\GraphQL\\Resolvers\\LineAuditField")
+
+    """
     Point kilométrique d'un lieu sur la ligne, comme `GET /api/v1/lines/{line}/pk` : le point est projeté
     sur le tracé de la ligne à l'ère choisie, puis la distance est mesurée le long du tracé depuis son
     origine. Ce PK peut différer du PK officiel de SNCF Réseau (origine, sauts de numérotation). Nul si
@@ -989,6 +1000,198 @@ type Station {
     présence par décennie, lignes desservies, sources, gares voisines.
     """
     sheet: StationSheet! @field(resolver: "App\\GraphQL\\Resolvers\\SheetResolver@station")
+
+    """
+    Audit de la gare (dernière passe de `vff:audit-stations`, docs/AUDIT-GARES.md) : note de
+    placement, notes des dates, services, contrôles croisés et dates candidates de Wikidata. Même
+    contenu que `GET /api/v1/stations/{station}/audit`. Nul tant que la gare n'a pas été auditée.
+    """
+    audit: StationAudit @field(resolver: "App\\GraphQL\\Resolvers\\StationAuditResolver")
+}
+
+"Audit d'une gare : rien n'y est corrigé, les sources sont comparées entre elles."
+type StationAudit {
+    "Placement : positions des sources comparées à la position retenue."
+    placement: StationPlacement!
+
+    "Notes des dates d'ouverture et de fermeture, et services voyageurs et fret."
+    dates: StationAuditDates!
+
+    "Contrôles croisés en échec (liste vide si tout concorde)."
+    checks: [StationAuditCheck!]!
+
+    "Dates de mise en service (P1619) et de fermeture (P3999) trouvées dans Wikidata, comparées à la date publiée par VFF, sans la remplacer."
+    date_candidates: [StationDateCandidate!]!
+
+    "Version des règles d'audit (date, `AAAA-MM-JJ`)."
+    rule_version: String!
+
+    "Date et heure de la passe d'audit (ISO 8601)."
+    audited_at: String!
+}
+
+"Note de placement d'une gare et positions comparées. Écarts en mètres."
+type StationPlacement {
+    """
+    `agree` : une source indépendante à moins de 20 m, aucune contradiction ; `close` : la plus proche
+    entre 20 et 100 m ; `isolated` : aucune source indépendante proche ; `disagree` : une source
+    précise à plus de 100 m, ou une source grossière (Wikidata, liste calée à plus de 50 m près) à
+    plus de 1 km ; `none` : aucune position de source.
+    """
+    grade: String!
+
+    "Nombre de familles de sources (SNCF, OSM, BD TOPO, Wikidata, OHM, listes par PK, correction), position retenue comprise."
+    families: Int!
+
+    "Écart à la source indépendante la plus proche."
+    nearest_agreeing_m: Int
+
+    "Écart à la source précise indépendante la plus éloignée."
+    farthest_precise_m: Int
+
+    "Écart entre la position retenue et la voie la plus proche des lignes de la gare."
+    track_offset_m: Int
+
+    "Une position par source."
+    positions: [StationAuditPosition!]!
+}
+
+"Position d'une gare selon une source."
+type StationAuditPosition {
+    "Source : `sncf`, `sncf_voyageurs`, `osm`, `bdtopo`, `wikidata`, `ohm`, `wikipedia_schema`, `lignes-oubliees`, `correction`."
+    source: String
+
+    "Famille de sources : `sncf`, `osm`, `bdtopo`, `wikidata`, `ohm`, `pk` (listes posées par PK), `correction`."
+    family: String
+
+    "Référence dans la source (identifiant OSM, élément Wikidata, cleabs de la BD TOPO…)."
+    ref: String
+
+    "Longitude WGS 84 ; nulle si la source n'est pas redistribuable (voir `provenance.license_status`)."
+    lon: Float
+
+    "Latitude WGS 84 ; nulle si la source n'est pas redistribuable."
+    lat: Float
+
+    "Écart à la position retenue (zone BD TOPO : jusqu'au contour, 0 dedans)."
+    distance_m: Int
+
+    "Écart à la voie la plus proche des lignes de la gare."
+    track_m: Int
+
+    "Précision annoncée par la source (listes posées par PK)."
+    precision_m: Int
+
+    "Source précise (SNCF, OSM, BD TOPO, OHM, liste calée à 50 m près au plus)."
+    precise: Boolean!
+
+    "Position de la même famille que la position retenue par VFF."
+    retained: Boolean!
+
+    "Fournisseur et licence de la position."
+    provenance: Provenance!
+}
+
+"Notes des dates d'une gare : `sourced` (relevée dans une source), `estimated` (déduite par VFF), `unknown`, `not_applicable` (gare encore ouverte)."
+type StationAuditDates {
+    "Note de la date d'ouverture."
+    opening_grade: String!
+
+    "Note de la date de fermeture."
+    closure_grade: String!
+
+    "Services voyageurs et fret."
+    services: StationAuditServices!
+}
+
+"Services d'une gare, séparés : une gare peut fermer aux voyageurs et garder le fret."
+type StationAuditServices {
+    "Voyageurs."
+    passenger: StationAuditService!
+
+    "Fret."
+    freight: StationAuditService!
+}
+
+"État d'un service aujourd'hui et date de sa fin."
+type StationAuditService {
+    "`open`, `closed` ou `unknown`."
+    state: String!
+
+    "Date de fin du service (`AAAA-MM-JJ`), à lire avec `closed_precision`."
+    closed_on: Date
+
+    "Précision : `day`, `month`, `year`, `decade`, `range` (intervalle des ères)."
+    closed_precision: String
+
+    "Source de la date de fin."
+    source: String
+
+    "Note de la date : `sourced`, `estimated`, `unknown`, `not_applicable`."
+    grade: String!
+}
+
+"Contrôle croisé en échec."
+type StationAuditCheck {
+    """
+    `closure_before_opening`, `opening_before_lines`, `open_after_lines`,
+    `freight_closed_before_opening`, `passenger_after_closure`, `wikidata_differs`, `far_from_track`.
+    """
+    code: String!
+
+    "Détail (dates ou écart comparés)."
+    detail: String!
+}
+
+"Date d'une gare trouvée dans une source, comparée à la date publiée par VFF."
+type StationDateCandidate {
+    "`opening`, `closure`, `closure_passenger`, `closure_freight`, `reopening`."
+    kind: String!
+
+    "Date (`AAAA-MM-JJ`), à lire avec `precision`."
+    date: Date!
+
+    "`day`, `month`, `year`, `decade`, `century`."
+    precision: String!
+
+    "Rang de la déclaration Wikidata : `preferred` ou `normal`."
+    rank: String!
+
+    "Qualificatifs : `applies_to` (P518), `circumstances` (P1480), `earliest` (P1319), `latest` (P1326), `subject` (P805)."
+    qualifiers: JSON
+
+    "Références : `stated_in` (P248), `url` (P854), `imported_from` (P143)."
+    references: JSON
+
+    "Date publiée par VFF pour le même type."
+    vff_date: Date
+
+    "Précision de la date de VFF."
+    vff_precision: String
+
+    "Source de la date de VFF."
+    vff_source: String
+
+    "`same`, `more_precise`, `less_precise`, `differs`, `new` (VFF n'a pas de date)."
+    comparison: String!
+
+    "Candidate moins VFF, en jours."
+    delta_days: Int
+
+    "La règle de rang proposée (texte officiel > Wikipédia et Wikidata > lignes-oubliées, OHM, OSM > estimation) la préférerait-elle ? Non appliquée."
+    would_replace: Boolean!
+
+    "Source (`wikidata`)."
+    source: String!
+
+    "Référence : élément, propriété et identifiant de la déclaration."
+    source_ref: String!
+
+    "Lien vers la déclaration."
+    source_url: String
+
+    "Fournisseur et licence."
+    provenance: Provenance!
 }
 
 """
@@ -2131,6 +2334,110 @@ type LevelCrossing {
 
     "Fournisseur et licence de la donnée (SNCF Réseau, ODbL)."
     provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LevelCrossingField@provenance")
+}
+
+"""
+Note d'un contrôle de l'audit des tronçons.
+"""
+enum AuditGrade {
+    "Sûr : les sources sont d'accord, l'écart est dans la tolérance."
+    GOOD @enum(value: "good")
+
+    "À revoir : accord partiel, écart au-delà de la cible, source peu précise."
+    FAIR @enum(value: "fair")
+
+    "Faux ou contredit : une source fiable dit autre chose, ou défaut de géométrie."
+    POOR @enum(value: "poor")
+
+    "Rien pour juger : aucune source, aucune voie de référence indépendante."
+    UNKNOWN @enum(value: "unknown")
+}
+
+"Les quatre notes d'un tronçon ou d'une ligne."
+type AuditGrades {
+    "Classement : état (en service, fret seul, fermé, déposé…) comparé aux sources datées."
+    classification: AuditGrade!
+
+    "Placement : écart du tracé à la voie réelle (cible 1 m, tolérance 5 m)."
+    placement: AuditGrade!
+
+    "Exactitude : jonctions, coudes, allers-retours, trous, gares le long de la ligne."
+    accuracy: AuditGrade!
+
+    "Tracé : précision connue de la source du dessin."
+    trace: AuditGrade!
+}
+
+"""
+Audit des tronçons d'une ligne à une ère. Méthode et seuils : docs/AUDIT-TRONCONS.md et la
+documentation de `GET /api/v1/lines/{line}/audit`.
+"""
+type LineAudit {
+    "Année de l'ère auditée."
+    era_year: Int!
+
+    "Date et heure de la passe d'audit (ISO 8601)."
+    audited_at: String!
+
+    "Version des règles de notation (`AAAA-MM-JJ.n`)."
+    rule_version: String!
+
+    "Notes de la ligne : la note d'un contrôle est `poor` dès que 10 % de la longueur est faux, `fair` dès que 10 % est faux ou à revoir."
+    grades: AuditGrades!
+
+    "La plus mauvaise des quatre notes."
+    worst_grade: AuditGrade!
+
+    "Score de 0 (tout sûr) à 100 (tout faux), pondéré par la longueur."
+    score: Int!
+
+    "Longueur auditée, en mètres."
+    length_m: Int!
+
+    "Part de la longueur par note pour chaque contrôle, ex. `{\"placement\": {\"good\": 0.98, \"fair\": 0.02}}`."
+    shares: JSON!
+
+    "Contrôles propres à la ligne : `length_ratio` (tracé de référence / longueur officielle), `station_order_inversions`, `reasons`."
+    line_checks: JSON!
+
+    "Tronçons audités, le plus mal noté d'abord."
+    segments(
+        "Ne garder que les tronçons dont la plus mauvaise note vaut celle-ci."
+        grade: AuditGrade
+    ): [SegmentAudit!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineAuditField@segments")
+}
+
+"Audit d'un tronçon : état audité, quatre notes et leurs preuves."
+type SegmentAudit {
+    "Identifiant du tronçon (`LineSegment.id`), tant que le moteur n'a pas recalculé la ligne."
+    segment_id: ID!
+
+    "État du tronçon audité : in_service, single_track, service_track, construction, abandoned, dismantled, razed."
+    status: String!
+
+    "Trafic du tronçon audité : passenger, freight, mixed, unknown."
+    traffic_type: String!
+
+    "Source du dessin (bdtopo, osm, ohm, sncf, archeoferroviaire…), nulle si inconnue."
+    trace_source: String
+
+    "Longueur du tronçon, en mètres."
+    length_m: Int!
+
+    grades: AuditGrades!
+
+    "La plus mauvaise des quatre notes."
+    worst_grade: AuditGrade!
+
+    "Score de 0 (tout sûr) à 100 (tout faux)."
+    score: Int!
+
+    """
+    Preuves de chaque note (`classification`, `placement`, `accuracy`, `trace`), chacune avec ses
+    codes `reasons` : avis de chaque source, distances à la voie réelle, défauts de géométrie,
+    précision de la source. Forme décrite dans `GET /api/v1/lines/{line}/audit`.
+    """
+    evidence: JSON!
 }
 
 """

@@ -139,6 +139,7 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `compare_eras` | Ce qui a changé sur le réseau entre deux ères : km ouverts, fermés, déposés, restés en service. |
 | `level_crossings` | Passages à niveau publiés par SNCF Réseau (classe, PK, commune), par ligne, groupe, commune ou emprise, paginés. |
 | `line_profile` | Profil en long d'une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte, altitude des gares (IGN). |
+| `line_audit` | Audit des tronçons d'une ligne à une époque : classement, placement, exactitude et tracé de chaque tronçon, avec leurs preuves. |
 | `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
 | `line_archives` | Documents numérisés dans Gallica (BnF) dont le titre désigne une ligne : titre, date et précision, type, auteurs, cote, lien vers Gallica, score de rattachement. |
 | `line_stories` | Histoire d'un événement d'une ligne : images de la ligne datées à 5 ans au plus et documents de Gallica de la période, chacun avec son écart en années. |
@@ -286,6 +287,15 @@ de lecture par VFF, `raw` = attributs bruts reçus de la source, de forme variab
 aussi `attribute_sources` (quelle source a fourni chaque attribut, recalage de la position compris)
 et `position` (`source`, `spread_m`, `flagged` = position à vérifier). `media_count` donne le nombre
 d'images publiées de la gare : l'outil `media` avec `station` les renvoie, avec leurs crédits.
+`audit` reprend `GET /api/v1/stations/{station}/audit` (nul tant que la gare n'a pas été auditée,
+voir docs/AUDIT-GARES.md) : `placement` (`grade` : `agree` une source indépendante à moins de
+20 m, `close` entre 20 et 100 m, `isolated` aucune source indépendante proche, `disagree` une
+source précise à plus de 100 m ou une grossière à plus de 1 km, `none` ; écarts en mètres et une
+position par source, coordonnées seulement si la source est redistribuable), `dates`
+(`opening_grade`, `closure_grade` : `sourced`, `estimated`, `unknown`, `not_applicable` ;
+`services.passenger` et `services.freight`), `checks` (contrôles croisés en échec) et
+`date_candidates` (dates de Wikidata P1619 et P3999 comparées à celles de VFF, sans les
+remplacer).
 
 Dates de desserte (`lines[].service_start` et `service_end` de `get_station`, `stations[]` de
 `get_line`) : la date de l'événement de ligne qui ouvre ou termine la desserte de la gare, avec
@@ -754,6 +764,30 @@ sont pas des PK. Attribution : IGN (BD TOPO, RGE ALTI), Licence Ouverte 2.0.
 
 ```json
 {"line": "rfn-896000", "max_points": 100}
+```
+
+### `line_audit` : audit des tronçons d'une ligne
+
+Même contenu que `GET /api/v1/lines/{line}/audit` (service `SegmentAudits`). Notes calculées à l'avance par
+`vff:audit-segments` (méthode et seuils : `docs/AUDIT-TRONCONS.md`) : une ligne pas encore auditée à l'époque demandée
+renvoie l'erreur `audit_not_computed`.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `era` | entier 1830 à 2030 | non | Année de l'ère (2030 par défaut, état du jour). |
+| `grade` | `good`, `fair`, `poor`, `unknown` | non | Ne garder que les tronçons dont la plus mauvaise note vaut celle-ci. |
+| `limit` | entier 1 à 200 | non | Nombre de tronçons au plus (50 par défaut), les plus mal notés d'abord. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `era_year`, `audited_at`, `rule_version`, `grades` (classement, placement, exactitude, tracé),
+`worst_grade`, `score` (0 à 100), `shares` (part de la longueur par note), `line_checks` (longueur comparée à la
+longueur officielle, ordre des gares), `segments_total` et `segments` (chacun avec ses notes et `evidence`, codes
+`reasons` stables) et `vff_url`. Attribution : SNCF Réseau et OpenStreetMap (ODbL), IGN (Licence Ouverte 2.0) pour
+les états observés cités dans les preuves.
+
+```json
+{"line": "rfn-405000", "era": 2030, "grade": "poor"}
 ```
 
 ### `line_greenways` : voies vertes d'une ancienne ligne

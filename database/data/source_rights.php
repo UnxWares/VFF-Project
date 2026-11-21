@@ -591,6 +591,17 @@ return [
             'communes' => 'communes', 'wikipedia_schema' => 'wikipedia', 'lignes-oubliees' => 'lignes-oubliees',
             'argentanwebferro' => 'argentanwebferro',
         ],
+        // Audit des gares (vff:audit-stations) : source de chaque position comparée (station_audits.positions),
+        // dont les zones de gare de la BD TOPO (WFS de la Géoplateforme, Licence Ouverte 2.0).
+        'station_audits' => [
+            'sncf' => 'sncf', 'sncf_voyageurs' => 'sncf', 'osm' => 'osm', 'ohm' => 'ohm', 'wikidata' => 'wikidata',
+            'bdtopo' => 'ign', 'wikipedia_schema' => 'wikipedia', 'lignes-oubliees' => 'lignes-oubliees',
+            'argentanwebferro' => 'argentanwebferro', 'correction' => 'vff',
+        ],
+        // Dates candidates des gares (vff:import-station-wikidata-dates), comparées aux dates de VFF sans les remplacer.
+        'station_date_candidates' => [
+            'wikidata' => 'wikidata',
+        ],
         'source_stations' => [
             'lignes-oubliees' => 'lignes-oubliees', 'wikipedia' => 'wikipedia',
             // Arrêts des articles d'Argentan Web Ferroviaire (nom et PK), connus de VFF ou confirmés par une autre source.

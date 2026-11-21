@@ -27,6 +27,8 @@ use App\Http\Controllers\NetworkGraphAdminController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\SegmentAuditAdminController;
+use App\Http\Controllers\StationAuditAdminController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\TraceEditorController;
 use App\Http\Controllers\WebhookSubscriptionController;
@@ -250,5 +252,18 @@ Route::middleware('auth')->group(function (): void {
         // Identifiant borné à 18 chiffres : au-delà, il ne tient plus dans un entier PHP (erreur 500).
         Route::get('/{year}/features/{kind}/{id}', 'feature')->where(['year' => '[0-9]{1,4}', 'id' => '[0-9]{1,18}'])
             ->whereIn('kind', GraphFeatureDetails::KINDS)->name('feature');
+    });
+    // Audit des tronçons (administrateurs, mêmes droits que le graphe ; notes calculées par
+    // vff:audit-segments, docs/AUDIT-TRONCONS.md ; lecture publique par l'API).
+    Route::prefix('validate/audit/segments')->name('validate.audit.segments.')->controller(SegmentAuditAdminController::class)->middleware('not.suspended')->group(function (): void {
+        Route::get('/', 'index')->name('index');
+        Route::get('/export.csv', 'export')->name('export');
+    });
+    // Audit des gares (administrateurs, mêmes droits que le graphe ; docs/AUDIT-GARES.md) : file de
+    // relecture, fiche d'une gare (JSON), export CSV. Lecture seule.
+    Route::prefix('validate/audit/stations')->name('validate.audit.stations.')->controller(StationAuditAdminController::class)->middleware('not.suspended')->group(function (): void {
+        Route::get('/', 'index')->name('index');
+        Route::get('/export.csv', 'export')->name('export');
+        Route::get('/{station}', 'show')->where('station', '[0-9]{1,18}')->name('show');
     });
 });
