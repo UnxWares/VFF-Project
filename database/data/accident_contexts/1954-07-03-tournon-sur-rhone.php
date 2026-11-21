@@ -110,7 +110,6 @@ return [
             ],
         ],
     ],
-    'corrections' => [],
     'images' => [],
     'corrections' => [
         [

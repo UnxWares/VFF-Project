@@ -33,7 +33,7 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Donne 20 morts et 41 blessés, d\'après Semmens (1994).',
         ],
-        'debats-1902' => [
+        'chambre-1902' => [
             'provider' => 'gallica',
             'kind' => 'parliament',
             'reliability' => 'official',

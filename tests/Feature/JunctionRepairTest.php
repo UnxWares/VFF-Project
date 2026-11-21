@@ -936,4 +936,88 @@ class JunctionRepairTest extends TestCase
 
         $this->assertSame(count($curve), $this->vertexCount($this->line));
     }
+
+    // ─── Revue du 21/11/2026 : jonctions des autres lignes, longs trous ──
+
+    /** Distance (m) du point ($x, $y) au dessin de la ligne étudiée. */
+    private function distToDrawing(float $x, float $y): float
+    {
+        return (float) DB::selectOne(
+            'SELECT MIN(ST_Distance(ST_Transform(geom, 2154), ST_SetSRID(ST_MakePoint(?, ?), 2154))) AS d FROM line_reference_parts WHERE line_id = ?',
+            [self::X0 + $x, self::Y0 + $y, $this->line->id],
+        )->d;
+    }
+
+    public function test_s_curve_recoil_never_cuts_under_another_line_junction_on_a_dead_end_stub(): void
+    {
+        // La voie 1 dépasse le pied du saut de 15 m (bout sans issue) ; une autre ligne finit dessus 5 m avant le pied,
+        // dans la partie que la courbe en S retirerait : la jonction reste à 0 m, le saut reste un raccord droit.
+        $this->part('bdtopo', [[[0, 0], [1015, 0]]]);
+        $this->part('osm', [[[1000, 12], [2000, 12]]]);
+        $this->connector([[1000, 0], [1000, 12]]);
+        $other = Line::factory()->create(['code' => '421000', 'gauge_mm_default' => 1435]);
+        $this->part('osm', [[[995, 0], [995, -600]]], [], null, $other);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['jog_smoothed']);
+        $this->assertLessThanOrEqual(0.5, $this->distToDrawing(995, 0));
+    }
+
+    public function test_s_curve_recoil_never_cuts_under_another_line_junction_at_the_jog_foot(): void
+    {
+        $this->part('bdtopo', [[[0, 0], [1000, 0]]]);
+        $this->part('osm', [[[1000, 12], [2000, 12]]]);
+        $this->connector([[1000, 0], [1000, 12]]);
+        $other = Line::factory()->create(['code' => '421000', 'gauge_mm_default' => 1435]);
+        $this->part('osm', [[[1000, 0], [1000, -600]]], [], null, $other);
+
+        $this->repair();
+
+        $this->assertLessThanOrEqual(0.5, $this->distToDrawing(1000, 0));
+    }
+
+    public function test_long_gap_path_arriving_sideways_on_the_far_end_is_refused(): void
+    {
+        // Bout d'en face (3 000, 1 000) : début d'une portion qui monte vers le nord. La voie abandonnée y arrive par
+        // l'ouest : raccordée, elle ferait un coude à angle droit que rien ne lisse ensuite.
+        $this->part('archeoferroviaire', [[[0, 0], [1000, 0]], [[3000, 1000], [3000, 2000]]], [], 'osm');
+        $this->abandoned([[1000, 0], [2000, 0], [2500, 500], [2800, 1000], [3000, 1000]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['long_gap_filled']);
+        $this->assertGreaterThanOrEqual(1, $stats['long_gap_refused']);
+    }
+
+    public function test_long_gap_never_joins_two_ends_of_the_same_connected_drawing(): void
+    {
+        // Y déjà relié (tronc et deux branches) : une voie abandonnée entre les bouts des branches n'est pas un trou.
+        $this->part('osm', [[[0, 0], [1000, 0]], [[1000, 0], [3000, 1000]], [[1000, 0], [3000, -1000]]]);
+        $this->abandoned([[3000, 1000], [3400, 1200], [3700, 0], [3400, -1200], [3000, -1000]]);
+
+        $stats = $this->repair();
+
+        $this->assertSame(0, $stats['long_gap_filled']);
+    }
+
+    public function test_long_gap_closing_chord_never_strays_more_than_five_metres_from_the_track(): void
+    {
+        // La voie abandonnée s'arrête 25 m à côté du bout d'en face : la raccorder demanderait une corde de 200 m,
+        // étiquetée « osm », à 25 m de toute voie réelle. Le trou reste ouvert (ou visible) plutôt qu'inventé.
+        $this->longGap();
+        $this->abandoned([[1000, 0], [2500, 10], [4000, 25]]);
+
+        $stats = $this->repair();
+
+        if ($stats['long_gap_filled'] > 0) {
+            $dev = (float) DB::selectOne(<<<'SQL'
+                SELECT MAX((SELECT MIN(ST_Distance(ST_Transform(st.geom, 2154), v.geom)) FROM source_traces st WHERE st.line_id IS NULL)) AS dev
+                FROM line_reference_parts p, LATERAL ST_DumpPoints(ST_Transform(p.geom, 2154)) v
+                WHERE p.id = (SELECT MAX(id) FROM line_reference_parts WHERE line_id = ?)
+                SQL, [$this->line->id])->dev;
+            $this->assertLessThanOrEqual(5.0, $dev);
+        }
+        $this->assertSame(0, $stats['long_gap_filled'] - $stats['long_gap_partial'], 'aucun raccord complet au bout d\'en face');
+    }
 }

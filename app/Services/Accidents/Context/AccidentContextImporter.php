@@ -94,7 +94,8 @@ final class AccidentContextImporter
                     $aliases[$alias['slug']] = ['keep' => $accident, 'alias' => $alias];
                 }
             }
-            $this->syncAliases($aliases, $only === [], $result);
+            // Un fichier en erreur n'écrit rien : ses alias restent tels quels.
+            $this->syncAliases($aliases, $only === [], $result, array_keys($result->invalid));
             if ($only === []) {
                 $this->removeOrphans(array_keys($files), $result);
             }
@@ -388,11 +389,13 @@ final class AccidentContextImporter
     /**
      * Doublons déclarés par les fichiers (`aliases`) : la fiche en double devient un alias de la fiche retenue
      * (alias_of_id, même mécanisme que vff:verify-accidents : gardée avec ses sources, jamais publiée). Passage
-     * complet : un alias que plus aucun fichier ne déclare redevient une fiche publiée.
+     * complet : un alias que plus aucun fichier ne déclare retrouve son état d'avant (`before` : fiche publiée,
+     * ou alias déjà posé par vff:verify-accidents), sauf si le fichier qui le déclarait est en erreur.
      *
      * @param  array<string, array{keep: Accident, alias: array<string, mixed>}>  $declared
+     * @param  list<string>  $invalid  slugs des fichiers en erreur (rien n'en est écrit ni retiré)
      */
-    private function syncAliases(array $declared, bool $complete, AccidentContextResult $result): void
+    private function syncAliases(array $declared, bool $complete, AccidentContextResult $result, array $invalid = []): void
     {
         foreach ($declared as $slug => $d) {
             $alias = Accident::withoutGlobalScopes()->where('slug', $slug)->sole();
@@ -400,7 +403,9 @@ final class AccidentContextImporter
             $previous = collect($alias->context_corrections ?? [])->firstWhere('field', 'alias_of');
             $entries[] = [
                 'field' => 'alias_of',
-                'before' => $previous['before'] ?? null,
+                // Première déclaration : la fiche dont elle était déjà l'alias (vff:verify-accidents), sinon nul.
+                'before' => $previous !== null ? ($previous['before'] ?? null)
+                    : ($alias->alias_of_id !== null ? Accident::withoutGlobalScopes()->whereKey($alias->alias_of_id)->value('slug') : null),
                 'value' => $d['keep']->slug,
                 'references' => array_values($d['alias']['sources']),
                 'reason' => ['fr' => self::typography($d['alias']['fr']), 'en' => self::typography($d['alias']['en']), 'de' => self::typography($d['alias']['de'])],
@@ -416,9 +421,16 @@ final class AccidentContextImporter
             return;
         }
         $stale = Accident::withoutGlobalScopes()->whereNotNull('context_corrections')->get()
-            ->filter(fn (Accident $a) => collect($a->context_corrections)->contains('field', 'alias_of') && ! isset($declared[$a->slug]));
+            ->filter(function (Accident $a) use ($declared, $invalid): bool {
+                $entry = collect($a->context_corrections)->firstWhere('field', 'alias_of');
+
+                return $entry !== null && ! isset($declared[$a->slug]) && ! in_array($entry['value'] ?? null, $invalid, true);
+            });
         foreach ($stale as $alias) {
-            $alias->alias_of_id = null;
+            $before = collect($alias->context_corrections)->firstWhere('field', 'alias_of')['before'] ?? null;
+            $alias->alias_of_id = is_string($before)
+                ? Accident::withoutGlobalScopes()->where('slug', $before)->whereKeyNot($alias->id)->value('id')
+                : null;
             $rest = array_values(array_filter($alias->context_corrections ?? [], fn (array $c) => $c['field'] !== 'alias_of'));
             $alias->context_corrections = $rest !== [] ? $rest : null;
             $alias->save();

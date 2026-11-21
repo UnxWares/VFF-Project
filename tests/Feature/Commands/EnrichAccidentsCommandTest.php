@@ -2,14 +2,19 @@
 
 namespace Tests\Feature\Commands;
 
+use App\Enums\AccidentLinkConfidence;
 use App\Models\Accident;
 use App\Models\AccidentContextEntry;
 use App\Models\AccidentImage;
+use App\Models\AccidentLine;
 use App\Models\AccidentReference;
+use App\Services\Accidents\AccidentCandidate;
+use App\Services\Accidents\AccidentLineMatcher;
 use App\Services\Accidents\Context\AccidentContextImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 use Tests\Support\CommandSandbox;
@@ -138,6 +143,72 @@ class EnrichAccidentsCommandTest extends TestCase
         $bretigny = Accident::query()->where('slug', '2013-07-12-bretigny-sur-orge')->sole();
         $this->assertSame(0, AccidentContextEntry::query()->where('accident_id', $bretigny->id)->count());
         $this->assertNull($bretigny->context_checked_on);
+    }
+
+    public function test_a_file_in_error_keeps_the_aliases_it_declares(): void
+    {
+        $this->artisan('vff:enrich-accidents', ['--dir' => self::FIXTURES.'/full'])->assertSuccessful();
+
+        // Le fichier de Brétigny devient illisible pour le contrôle (date de recherche invalide) : il n'écrit
+        // rien, donc le doublon qu'il déclare reste un alias.
+        $dir = $this->sandbox.'/contexts';
+        File::ensureDirectoryExists($dir);
+        File::copy(self::FIXTURES.'/full/1891-07-26-saint-mande.php', $dir.'/1891-07-26-saint-mande.php');
+        File::put($dir.'/2013-07-12-bretigny-sur-orge.php', str_replace(
+            "'checked_on' => '2026-11-20'", "'checked_on' => 'hier'",
+            File::get(self::FIXTURES.'/full/2013-07-12-bretigny-sur-orge.php'),
+        ));
+        $this->artisan('vff:enrich-accidents', ['--dir' => $dir])->assertFailed();
+
+        $bretigny = Accident::query()->where('slug', '2013-07-12-bretigny-sur-orge')->value('id');
+        $this->assertSame($bretigny, Accident::withoutGlobalScopes()->where('slug', '2013-07-12-doublon')->value('alias_of_id'));
+    }
+
+    public function test_an_alias_no_longer_declared_gets_back_its_previous_state(): void
+    {
+        // Doublon déjà repéré avant le fichier (vff:verify-accidents) : le fichier le redit, puis disparaît.
+        $bretigny = (int) Accident::query()->where('slug', '2013-07-12-bretigny-sur-orge')->value('id');
+        DB::table('accidents')->where('slug', '2013-07-12-doublon')->update(['alias_of_id' => $bretigny]);
+
+        $this->artisan('vff:enrich-accidents', ['--dir' => self::FIXTURES.'/full'])->assertSuccessful();
+        $this->artisan('vff:enrich-accidents', ['--dir' => self::FIXTURES.'/reduced'])->assertSuccessful();
+
+        $doublon = Accident::withoutGlobalScopes()->where('slug', '2013-07-12-doublon')->sole();
+        $this->assertSame($bretigny, $doublon->alias_of_id);
+        $this->assertNull($doublon->context_corrections);
+    }
+
+    public function test_a_removed_commune_correction_gives_back_the_line_links(): void
+    {
+        // Rattachement d'origine (import) : ligne citée par un article, méthode et PK de l'import.
+        AccidentLine::query()->create([
+            'accident_id' => $this->mande->id, 'line_id' => 101, 'is_primary' => true, 'era_year' => 1890,
+            'distance_m' => 12, 'pk_m' => 4200, 'method' => 'wikipedia+proximity', 'confidence' => AccidentLinkConfidence::High,
+            'score' => 0.95, 'cited_as' => 'Ligne de Vincennes', 'cited_url' => 'https://fr.wikipedia.org/w/index.php?oldid=1',
+        ]);
+        // Rattacheur qui trouve une autre ligne, quelle que soit la position.
+        $this->app->instance(AccidentLineMatcher::class, new class extends AccidentLineMatcher
+        {
+            public function match(AccidentCandidate $c): array
+            {
+                return [['line_id' => 202, 'is_primary' => true, 'era_year' => 1890, 'distance_m' => 80, 'pk_m' => null,
+                    'section_from_station_id' => null, 'section_to_station_id' => null, 'method' => 'proximity',
+                    'confidence' => AccidentLinkConfidence::Low, 'score' => 0.4]];
+            }
+
+            public function nearestStation(AccidentCandidate $c): ?array
+            {
+                return null;
+            }
+        });
+
+        $this->artisan('vff:enrich-accidents', ['--dir' => self::FIXTURES.'/full'])->assertSuccessful();
+        $this->assertSame([202], AccidentLine::query()->where('accident_id', $this->mande->id)->pluck('line_id')->all());
+
+        $this->artisan('vff:enrich-accidents', ['--dir' => self::FIXTURES.'/reduced'])->assertSuccessful();
+        $links = AccidentLine::query()->where('accident_id', $this->mande->id)->get();
+        $this->assertSame([101], $links->pluck('line_id')->all());
+        $this->assertSame(['wikipedia+proximity', 4200, 'Ligne de Vincennes'], [$links[0]->method, $links[0]->pk_m, $links[0]->cited_as]);
     }
 
     public function test_only_touches_the_named_record_and_dry_run_writes_nothing(): void

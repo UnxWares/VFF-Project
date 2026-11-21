@@ -81,7 +81,9 @@ use Illuminate\Support\Facades\DB;
  *      l'autre bout ; un chemin qui s'arrête à moins de LONG_GAP_LEFT_M de lui
  *      est accepté et le reste du trou reste visible (rien n'est inventé). Refusé
  *      en cas de doute : détour, voie d'une autre ligne, gares de la ligne dans
- *      le désordre ou manquées, longueur incompatible avec l'écart de PK.
+ *      le désordre ou manquées, longueur incompatible avec l'écart de PK, arrivée
+ *      de travers sur le bout d'en face. Deux bouts d'un même morceau du tracé
+ *      (branches d'un Y) ne bordent pas un trou.
  *
  * Graphe des voies : morceaux du pool (TraceConflation::preparePool, table
  * temporaire cf_pool) dans une fenêtre, nœuds aux intersections (ST_Node, une
@@ -212,11 +214,18 @@ class JunctionRepair
 
     public const LONG_GAP_LEFT_SHARE = 0.35;
 
-    /** Reste plus court (m) : le chemin est raccordé au bout d'en face. */
-    public const LONG_GAP_CLOSE_M = 30.0;
+    /**
+     * Reste plus court (m) : le chemin est raccordé au bout d'en face. Le raccord (easeInto) est une corde droite
+     * étiquetée comme la voie suivie : il ne s'en écarte pas de plus de la tolérance du projet (5 m). Avec 30 m, une
+     * corde de 240 m passait à 30 m de toute voie réelle (revue du 21/11/2026).
+     */
+    public const LONG_GAP_CLOSE_M = 5.0;
 
-    /** Départ : la voie abandonnée passe à moins de LONG_GAP_SNAP_M (m) du bout, dans son prolongement (START_DEG). */
-    public const LONG_GAP_SNAP_M = 10.0;
+    /**
+     * Départ : la voie abandonnée passe à moins de LONG_GAP_SNAP_M (m) du bout, dans son prolongement (START_DEG). Même
+     * tolérance que LONG_GAP_CLOSE_M pour la corde de départ.
+     */
+    public const LONG_GAP_SNAP_M = 5.0;
 
     /** Chemin admis : longueur + reste <= LONG_GAP_DETOUR × écart + LONG_GAP_DETOUR_ADD_M. */
     public const LONG_GAP_DETOUR = 1.6;
@@ -576,6 +585,15 @@ class JunctionRepair
             }
             $sD = $sA - $dA * $t;
             $sJ = $sB + $dB * $t;
+            // Partie coupée, recul compris (et pas seulement le bout qui dépasse le saut) : aucune autre ligne ne doit y
+            // finir, sa jonction resterait en l'air. Le saut reste alors un raccord droit.
+            $cutA = $endA === null ? null : ($dA > 0 ? $this->subLine($a, $sD + 1, $la) : $this->subLine($a, 0.0, $sD - 1));
+            $cutB = $endB === null ? null : ($dB > 0 ? $this->subLine($b, 0.0, $sJ - 1) : $this->subLine($b, $sJ + 1, $lb));
+            if (($cutA !== null && $this->holdsOtherLine($cutA)) || ($cutB !== null && $this->holdsOtherLine($cutB))) {
+                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'autre ligne sur la partie coupée'];
+
+                continue;
+            }
             $curve = $this->hermite(
                 $this->pointAlong($a, $sD), $this->unit($this->pointAlong($a, $sD - 5 * $dA), $this->pointAlong($a, $sD + 5 * $dA)),
                 $this->pointAlong($b, $sJ), $this->unit($this->pointAlong($b, $sJ - 5 * $dB), $this->pointAlong($b, $sJ + 5 * $dB)));
@@ -873,8 +891,21 @@ class JunctionRepair
         $stations = null;
         $used = [];
         $tried = 0;
+        // Morceaux connexes du tracé (portions qui se touchent à 0,5 m près) : deux bouts d'un même morceau ne bordent
+        // pas un trou (les deux branches d'un Y), les relier inventerait une boucle.
+        $comp = [];
+        if ($pairs !== []) {
+            foreach (DB::select('SELECT sid, ST_ClusterDBSCAN(g, 0.5, 1) OVER () AS c FROM jr_sub WHERE NOT removed') as $r) {
+                $comp[(int) $r->sid] = (int) $r->c;
+            }
+        }
         foreach ($pairs as [$d, $i, $j]) {
             if (isset($used[$i]) || isset($used[$j])) {
+                continue;
+            }
+            $ci = $comp[$ends[$i]['sid']] ?? -1 - $i;
+            $cj = $comp[$ends[$j]['sid']] ?? -1 - $j;
+            if ($ci === $cj) {
                 continue;
             }
             $leaves[$i] ??= $this->deadTrackLeaves($ends[$i]);
@@ -913,6 +944,10 @@ class JunctionRepair
             }
             $this->insertLongGap($best);
             $used[$i] = $used[$j] = true;
+            // Trou fermé : les deux morceaux n'en font plus qu'un.
+            if ($best['left'] <= 0) {
+                $comp = array_map(fn (int $c): int => $c === $cj ? $ci : $c, $comp);
+            }
             $stats['long_gap_filled']++;
             $stats['long_gap_filled_m'] += $best['len'];
             if ($best['left'] > 0) {
@@ -1212,6 +1247,10 @@ class JunctionRepair
             if ($this->angDiff($g, $f['az'] + M_PI) > deg2rad(60) || $this->angDiff($g, $p['endAz']) > deg2rad(60)) {
                 return 'reste de travers';
             }
+        } elseif ($this->angDiff($p['endAz'], $f['az'] + M_PI) > deg2rad(self::START_DEG)) {
+            // Chemin raccordé : il arrive sur le bout d'en face dans son prolongement (START_DEG, comme la règle 2) ;
+            // aucune règle ne lisse ensuite un coude à cet endroit.
+            return 'arrivée de travers';
         }
         // Hors de ses 50 premiers et derniers mètres (raccords aux bouts), le chemin ne longe aucune portion de la ligne,
         // pas même celles des deux bouts (un chemin qui revient le long de la portion d'en face la doublerait).

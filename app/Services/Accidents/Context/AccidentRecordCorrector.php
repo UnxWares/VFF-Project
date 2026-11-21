@@ -20,10 +20,17 @@ use RuntimeException;
  *   - lignes : rattachement refait au nouveau lieu (AccidentLineMatcher), les lignes déjà citées par une source
  *     (`cited_as`) gardées comme indices, et leur titre et permalien conservés.
  *
- * Les valeurs d'avant sont rendues par restore() quand la correction disparaît du fichier.
+ * Les valeurs d'avant sont rendues par restore() quand la correction disparaît du fichier, rattachement aux
+ * lignes compris : il est gardé tel quel dans l'instantané (snapshot), pas recalculé.
  */
 final class AccidentRecordCorrector
 {
+    /** Colonnes d'un rattachement aux lignes gardées par snapshot() et remises par restore(). */
+    private const LINK_FIELDS = [
+        'line_id', 'is_primary', 'era_year', 'distance_m', 'pk_m', 'section_from_station_id', 'section_to_station_id',
+        'method', 'confidence', 'score', 'cited_as', 'cited_url',
+    ];
+
     public function __construct(private readonly AccidentLineMatcher $matcher) {}
 
     /** @return array<string, mixed> valeurs d'avant (pour restore) */
@@ -40,6 +47,9 @@ final class AccidentRecordCorrector
             'lng' => $point?->lng !== null ? (float) $point->lng : null,
             'nearest_station_id' => $a->nearest_station_id,
             'nearest_station_distance_m' => $a->nearest_station_distance_m,
+            // Rattachement d'avant (import, lignes citées par une source) : remis tel quel par restore().
+            'lines' => DB::table('accident_lines')->where('accident_id', $a->id)->orderBy('id')->get(self::LINK_FIELDS)
+                ->map(fn (object $r): array => (array) $r)->all(),
         ];
     }
 
@@ -72,11 +82,33 @@ final class AccidentRecordCorrector
         $a->location_precision = isset($before['location_precision']) ? AccidentLocationPrecision::from($before['location_precision']) : null;
         $a->location_source = $before['location_source'] ?? null;
         $a->geom = isset($before['lat'], $before['lng']) ? Point::makeGeodetic((float) $before['lat'], (float) $before['lng']) : null;
-        if (isset($before['lat'], $before['lng'])) {
+        if (is_array($before['lines'] ?? null)) {
+            $this->restoreLinks($a, $before['lines']);
+        } elseif (isset($before['lat'], $before['lng'])) {
+            // Instantané écrit avant que le rattachement n'y soit gardé : refait au lieu d'avant.
             $this->relocate($a, (float) $before['lat'], (float) $before['lng']);
         }
         $a->nearest_station_id = $before['nearest_station_id'] ?? null;
         $a->nearest_station_distance_m = $before['nearest_station_distance_m'] ?? null;
+    }
+
+    /**
+     * Remet le rattachement aux lignes gardé par snapshot().
+     *
+     * @param  list<array<string, mixed>>  $links
+     */
+    private function restoreLinks(Accident $a, array $links): void
+    {
+        AccidentLine::query()->where('accident_id', $a->id)->delete();
+        $now = now();
+        foreach ($links as $link) {
+            DB::table('accident_lines')->insert([
+                ...array_intersect_key($link, array_flip(self::LINK_FIELDS)),
+                'accident_id' => $a->id,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
     }
 
     /** Gare la plus proche et lignes rattachées refaites pour la position donnée. */
