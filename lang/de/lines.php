@@ -345,6 +345,7 @@ return [
         'estimation-reseau' => 'Schätzung nach der Bahngesellschaft (unsicheres Datum)',
         'heritage' => 'Liste der Museumsbahnen in Frankreich',
         'archeoferroviaire' => 'archeoferroviaire',
+        'argentanwebferro' => 'Argentan Web Ferroviaire (argentanwebferro.fr)',
         'vff' => 'VFF (zusammengeführte Seiten)',
         'unknown' => 'Quelle nicht angegeben',
         'bdtopo' => 'IGN, BD TOPO',

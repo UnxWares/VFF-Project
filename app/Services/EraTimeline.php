@@ -50,6 +50,10 @@ class EraTimeline
         'contrib-web' => 4,
         // Articles Wikipédia des réseaux secondaires (une fiche par réseau, lignes en tableau).
         'wikipedia-reseaux' => 5,
+        // Argentan Web Ferroviaire (faits relus des articles des lignes de l'Orne, vff:apply-argentanwebferro) :
+        // après Wikipédia (dates surtout à l'année, sans source primaire citée fait par fait), avant
+        // OpenHistoricalMap (sections réelles, 88 % d'accord sur les dates comparables ; décision du 2026-11-20).
+        'argentanwebferro' => 5,
         'ohm' => 6,
         // Tableaux PDF de lignes-oubliees : DÉCISIONS administratives de fermeture ou de
         // déclassement, souvent bien après la fin réelle du trafic (ex. 436000 : décision

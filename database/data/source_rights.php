@@ -249,7 +249,8 @@ return [
                 .'Cartes postales anciennes, archives et photos créditées à d\'autres photographes exclues.',
             'remarques' => 'Décision de l\'utilisateur du 2026-11-19 : lecture de tout le site pour en tirer les faits. Risque résiduel : extraction systématique (droit des bases de données) '
                 .'et liens profonds (les mentions légales demandent d\'écrire avant d\'en poser) ; courriel de confirmation à l\'auteur proposé (storage/app/reports/agents/source-argentan.md). '
-                .'Faits en tables de source (argentanwebferro_*), non appliqués au moteur.',
+                .'Faits relus appliqués au moteur depuis le 2026-11-21 (décision de l\'utilisateur sur la question 19) : line_events et source_stations, source « argentanwebferro », '
+                .'rangée après Wikipédia et avant OpenHistoricalMap, avec le lien de l\'article et une phrase citée au plus (vff:apply-argentanwebferro).',
             'domaines' => ['argentanwebferro.fr'],
             'lu_le' => '2026-11-19',
         ],
@@ -562,6 +563,8 @@ return [
             'lignes-oubliees' => 'lignes-oubliees',
             // Années tirées du NOM des tracés archeo (« 14-18 », « 30-40 »…).
             'archeoferroviaire' => 'archeoferroviaire',
+            // Faits relus des articles d'Argentan Web Ferroviaire (vff:apply-argentanwebferro) : fait, lien, une phrase citée.
+            'argentanwebferro' => 'argentanwebferro',
         ],
         'source_traces' => [
             'osm' => 'osm',
@@ -586,9 +589,12 @@ return [
         'station_sources' => [
             'sncf' => 'sncf', 'sncf_voyageurs' => 'sncf', 'osm' => 'osm', 'ohm' => 'ohm', 'wikidata' => 'wikidata',
             'communes' => 'communes', 'wikipedia_schema' => 'wikipedia', 'lignes-oubliees' => 'lignes-oubliees',
+            'argentanwebferro' => 'argentanwebferro',
         ],
         'source_stations' => [
             'lignes-oubliees' => 'lignes-oubliees', 'wikipedia' => 'wikipedia',
+            // Arrêts des articles d'Argentan Web Ferroviaire (nom et PK), connus de VFF ou confirmés par une autre source.
+            'argentanwebferro' => 'argentanwebferro',
         ],
         'station_events' => [
             'wikidata' => 'wikidata', 'wikidata:qualifiers' => 'wikidata', 'wikipedia' => 'wikipedia', 'ohm' => 'ohm',

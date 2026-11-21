@@ -346,6 +346,7 @@ return [
         'estimation-reseau' => 'Estimation d’après la compagnie (date non sûre)',
         'heritage' => 'Liste des chemins de fer touristiques',
         'archeoferroviaire' => 'archeoferroviaire',
+        'argentanwebferro' => 'Argentan Web Ferroviaire (argentanwebferro.fr)',
         'vff' => 'VFF (fusion de fiches)',
         'unknown' => 'Source non précisée',
         'bdtopo' => 'IGN, BD TOPO',

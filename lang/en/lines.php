@@ -345,6 +345,7 @@ return [
         'estimation-reseau' => 'Estimate from the operating company (uncertain date)',
         'heritage' => 'List of heritage railways',
         'archeoferroviaire' => 'archeoferroviaire',
+        'argentanwebferro' => 'Argentan Web Ferroviaire (argentanwebferro.fr)',
         'vff' => 'VFF (merged pages)',
         'unknown' => 'Unspecified source',
         'bdtopo' => 'IGN, BD TOPO',

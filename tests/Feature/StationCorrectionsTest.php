@@ -192,7 +192,7 @@ class StationCorrectionsTest extends TestCase
      */
     public function test_current_corrections_set_today_status(): void
     {
-        $this->assertNotEmpty(StationCorrections::validate(['station' => ['name' => 'X', 'uic' => '1'], 'action' => 'current', 'status' => 'tourist',
+        $this->assertNotEmpty(StationCorrections::validate(['station' => ['name' => 'X', 'uic' => '1'], 'action' => 'current', 'status' => 'no_commercial',
             'source_url' => 'https://transport.data.gouv.fr/', 'reason' => 'r']));
         $rer = $this->station('Sucy-Bonneuil', 6.60, ['sncf' => ['active', false, true]], 'no_commercial', '87114413');
         $this->event($rer, 'opening', '1872-09-05', 'wikidata');
@@ -200,6 +200,8 @@ class StationCorrectionsTest extends TestCase
         $luchon = $this->station('Luchon', 6.80, ['sncf' => ['active', true, false], 'wikidata' => ['disused'], 'osm' => ['active']], 'active', '87611236');
         $this->event($luchon, 'opening', '1873-01-01', 'wikidata');
         $this->event($luchon, 'closure', '2014-12-19', 'wikidata');
+        // Gare de départ d'un chemin de fer touristique, notée ouverte par OSM (21/11/2026 : Montenvers, Saujon).
+        $mouettes = $this->station('Le Train des Mouettes - Saujon', 6.90, ['osm' => ['active']], 'active', '87000001');
         $this->lineEvent('opening', '1870-01-01');
         $this->lineEvent('reopening_passenger', '2022-08-29');
         $url = 'https://fr.wikipedia.org/w/index.php?oldid=1';
@@ -216,6 +218,8 @@ class StationCorrectionsTest extends TestCase
                 'source_url' => $url, 'reason' => 'suspension des trains'],
             ['station' => ['name' => 'Luchon', 'uic' => '87611236'], 'action' => 'add', 'type' => 'reopening', 'date' => '2025-06-22',
                 'source_url' => $url, 'reason' => 'réouverture de la ligne'],
+            ['station' => ['name' => 'Le Train des Mouettes - Saujon', 'uic' => '87000001'], 'action' => 'current', 'status' => 'tourist',
+                'source_url' => $url, 'reason' => 'gare de départ du train touristique, la gare SNCF est voisine'],
         ]);
 
         $this->artisan('vff:build-station-eras', ['--today' => '2026-11-19'])->assertSuccessful();
@@ -233,6 +237,8 @@ class StationCorrectionsTest extends TestCase
         // Luchon : fermée en 2020 (suspension), ouverte en 2030 (réouverture du 22/06/2025), sans date de fermeture.
         $this->assertSame([StationTimeline::CLOSED, 'active'], [$row($luchon, $this->past)?->status, $row($luchon, $this->current)?->status]);
         $this->assertNull($luchon->fresh()->closed_at);
+        // Train touristique seul : touristique aujourd'hui, jamais « voyageurs ».
+        $this->assertSame([StationTimeline::TOURIST, StationTimeline::NOTE_TOURIST_TODAY], [$row($mouettes, $this->current)?->status, $row($mouettes, $this->current)?->note]);
         $this->assertSame(['2014-11-18'], DB::table('station_events')->where('station_id', $luchon->id)->where('type', 'closure')->pluck('event_date')->all());
     }
 

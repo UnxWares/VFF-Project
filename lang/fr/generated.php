@@ -23,6 +23,7 @@ return [
         'closed_today' => 'Fermeture datée appliquée à l\'ère courante',
         'served_today' => 'Desservie aujourd\'hui (horaires publiés, correction sourcée)',
         'not_served_today' => 'Plus desservie aujourd\'hui (correction sourcée)',
+        'tourist_today' => 'Desservie aujourd\'hui par un train touristique seulement (correction sourcée)',
         'heritage_no_freight' => 'Ligne seulement touristique à cette époque : plus de fret',
         'undated' => 'Fermeture non datée',
         'undated_passenger' => 'Fermeture aux voyageurs non datée',

@@ -14,6 +14,7 @@ return [
         'closed_today' => 'Dated closure applied to the current era',
         'served_today' => 'Served today (published timetables, sourced correction)',
         'not_served_today' => 'No longer served (sourced correction)',
+        'tourist_today' => 'Served today by a heritage train only (sourced correction)',
         'heritage_no_freight' => 'Heritage line only at that time: no more freight',
         'undated' => 'Undated closure',
         'undated_passenger' => 'Undated closure to passengers',
