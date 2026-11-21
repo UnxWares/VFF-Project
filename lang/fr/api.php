@@ -122,7 +122,7 @@ return [
             'stops' => 'Gares d’une ligne dans l’ordre des points kilométriques, à une ère.',
             'signalling' => 'Tranches de points kilométriques homogènes en signalisation.',
             'signalling_history' => 'Mises en service de signalisation datées, relevées dans l’article Wikipédia de la ligne (système, date et sa précision, portion, source).',
-            'profile' => 'Profil en long : altitude le long du tracé de référence (toutes époques), gares placées dessus, dénivelés et déclivité la plus forte (IGN, Licence Ouverte 2.0).',
+            'profile' => 'Profil en long : altitude le long du tracé de référence (toutes époques), gares placées dessus, dénivelés et leur méthode de calcul, déclivité la plus forte (IGN, Licence Ouverte 2.0) ; pour une ligne à crémaillère, son type et la déclivité publiée par Wikipédia.',
             'profile_points' => 'Altitude point par point le long de la ligne : PK estimé, provenance de la mesure, interpolation, ouvrage et position, filtrable par PK.',
             'altitude' => 'Altitude d’une ligne à un point kilométrique.',
             'line_audit' => 'Audit des tronçons d’une ligne à une époque : classement, placement, exactitude et tracé de chaque tronçon, avec leurs preuves ; 50 tronçons par page (limit jusqu’à 200, offset), total dans segments_total.',

@@ -121,7 +121,7 @@ return [
             'stops' => 'Stations on a line in kilometre-point order, at an era.',
             'signalling' => 'Kilometre-point ranges with uniform signalling.',
             'signalling_history' => 'Dated commissioning of signalling systems, taken from the line’s Wikipedia article (system, date and its precision, section, source).',
-            'profile' => 'Gradient profile: height along the reference route (all periods) with the stations on it, total climb and descent, steepest gradient (IGN, Licence Ouverte 2.0).',
+            'profile' => 'Gradient profile: height along the reference route (all periods) with the stations on it, total climb and descent with how they are calculated, steepest gradient (IGN, Licence Ouverte 2.0); for a rack railway, its rack system and the gradient given by Wikipedia.',
             'profile_points' => 'Height point by point along the line: estimated kilometre point, source of the measurement, interpolation, structure and position, filterable by kilometre point.',
             'altitude' => 'Height of a line at a given kilometre point.',
             'line_audit' => 'Section audit of a line for a period: status, position, accuracy and trace of each section, with the evidence; 50 sections per page (limit up to 200, offset), total in segments_total.',

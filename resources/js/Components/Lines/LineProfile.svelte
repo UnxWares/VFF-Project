@@ -13,6 +13,7 @@
         linePath,
         nearestIndex,
         nearestStation,
+        rackSentence,
         ticks,
     } from '$lib/lineProfile.js';
 
@@ -28,7 +29,9 @@
      *   era_year: number|null, step_m: number, length_m: number,
      *   summary: { min_altitude_m: number, max_altitude_m: number, ascent_m: number, descent_m: number,
      *     max_grade_permil: number|null, max_grade_from_m: number|null, max_grade_to_m: number|null,
-     *     max_grade_direction: 'up'|'down'|null, max_grade_withheld?: 'terrain_only'|'tunnel'|'interpolated'|null },
+     *     max_grade_direction: 'up'|'down'|null, max_grade_withheld?: 'terrain_only'|'tunnel'|'interpolated'|'rack'|null },
+     *   rack?: { system: string, extent: 'full'|'partial'|null, max_grade_permil: number, braking_only: boolean,
+     *     source: { title: string, url: string } } | null,
      *   points: Array<[number, number|null, (number|null)?]>,
      *   structures: Array<{ from_m: number, to_m: number, kind: 'tunnel'|'bridge' }>,
      *   altitude_sources: { bdtopo: number, rge_alti: number, interpolated: number, missing: number },
@@ -60,6 +63,9 @@
     const closed = (st) => st.status === 'declassified';
 
     const s = $derived(profile.summary);
+    // Ligne à crémaillère : déclivité publiée par la source, la mesure du profil n'en dit rien.
+    const rack = $derived(profile.rack ?? null);
+    const rackText = $derived(rackSentence(rack));
     const branches = $derived(profile.branches ?? []);
     // Gares de la ligne principale (avant le premier embranchement) : départ et arrivée de l'intro.
     const mainStations = $derived(
@@ -80,10 +86,11 @@
         { value: metres(s.ascent_m), label: t('profile.ascent') },
         { value: metres(s.descent_m), label: t('profile.descent') },
         {
-            value:
-                s.max_grade_permil === null
-                    ? t('profile.grade_unpublished')
-                    : `${permil(s.max_grade_permil)}${NBSP}‰`,
+            value: rack
+                ? `${permil(rack.max_grade_permil)}${NBSP}‰`
+                : s.max_grade_permil === null
+                  ? t('profile.grade_unpublished')
+                  : `${permil(s.max_grade_permil)}${NBSP}‰`,
             label: t('profile.grade'),
         },
     ]);
@@ -190,7 +197,16 @@
 <SheetSection id="profile" title={t('profile.title')} {intro}>
     <div class="profile">
         <StatStrip items={statItems} label={t('profile.stats_label')} size="sm" />
-        {#if gradeWhere}
+        {#if rack && rackText}
+            <p class="grade-where">
+                {t(rackText.key, { system: rackText.system })}
+                {#if rack.braking_only}{t('profile.rack_braking')}{/if}
+                {t('profile.rack_not_measured')}
+                {t('profile.rack_source')}{colon(lang)}<a href={rack.source.url} rel="external"
+                    >{rack.source.title}</a
+                >.
+            </p>
+        {:else if gradeWhere}
             <p class="grade-where">{t('profile.grade')}{colon(lang)}{gradeWhere}</p>
         {:else}
             <p class="grade-where">

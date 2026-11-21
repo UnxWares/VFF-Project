@@ -243,3 +243,20 @@ export function nearestStation(stations, x, px, reach = 8) {
     }
     return best;
 }
+
+/** Noms des types de crémaillère (noms propres, identiques dans les trois langues). */
+const RACK_SYSTEMS = { strub: 'Strub', abt: 'Abt', riggenbach: 'Riggenbach' };
+
+/**
+ * Phrase et nom du système d'une ligne à crémaillère (`profile.rack`, null pour une ligne à
+ * adhérence) : clé de traduction selon l'étendue connue et nom propre du type de crémaillère.
+ * @param {{ system: string, extent: 'full'|'partial'|null } | null | undefined} rack
+ * @returns {{ key: string, system: string } | null}
+ */
+export function rackSentence(rack) {
+    if (!rack) return null;
+    return {
+        key: `profile.rack_${rack.extent ?? 'unknown'}`,
+        system: RACK_SYSTEMS[rack.system] ?? rack.system,
+    };
+}

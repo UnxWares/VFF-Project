@@ -142,6 +142,19 @@ function print() { __p += __j.call(arguments, '') }
 Requêtes publiques de l'API GraphQL de VFF : lecture seule, anonyme, limitée à 300 requêtes
 par minute et par adresse IP. Point d'accès : \`POST /graphql\`.
 
+Chaque requête a un coût, calculé avant son exécution, de 5 000 points au plus, et une profondeur de
+15 niveaux au plus sous la racine. Un champ vaut 1 point plus ses sous-champs. Une liste paginée
+multiplie ses sous-champs par \`first\` (sa valeur par défaut si vous ne le donnez pas), une liste sans
+pagination (\`events\`, \`materials\`, \`lines\` d'une série…) les compte pour 10 éléments. Les champs calculés
+(\`geojson\`, \`stops\`, \`signalling\`, \`pk\`, \`story\`, \`audit\` d'une gare, \`context\`, \`search\`, \`stats\`)
+valent 10 points de plus, les champs lourds (\`sheet\`, \`profile\`, \`audit\` d'une ligne, \`route\`,
+\`routeComparison\`, \`eraComparison\`) 250. Exemples : \`lines(first: 100) { data { slug name } }\` vaut
+301 points, la fiche, le profil et l'audit d'une ligne environ 770, mais la fiche de 100 lignes en une
+requête 25 301. Au-delà, la requête est refusée sans être exécutée : erreur \`query_too_complex\`
+(\`extensions.complexity\`, \`extensions.max_complexity\`) ou \`query_too_deep\` (\`extensions.depth\`,
+\`extensions.max_depth\`), avec un message en anglais, ou en français et en allemand selon l'en-tête
+\`Accept-Language\`. Demandez alors moins d'éléments par page ou découpez la requête.
+
 Données ouvertes : citez « VFF - Voies Ferrées de France » (https://vff-project.org) et
 respectez les licences des sources (SNCF Open Data et OpenStreetMap : ODbL ; IGN BD TOPO :
 Licence Ouverte 2.0 ; OpenHistoricalMap et Wikidata : CC0 ; Wikipédia : CC BY-SA).
@@ -2551,6 +2564,8 @@ type LineProfile {
   branches: [LineProfileGap!]!
   "Parties du parcours dont l'altitude est celle du terrain (RGE ALTI) et non celle de la voie."
   terrain_ranges: [LineProfileGap!]!
+  "Ligne à crémaillère (liste versionnée d'après Wikipédia) : type, étendue et déclivité publiée par la source. Nul pour une ligne à adhérence."
+  rack: LineProfileRack
   "Toutes les gares rattachées à la ligne (fermées comprises), projetées sur le parcours."
   stations: [LineProfileStation!]!
   "Date du calcul (ISO 8601)."
@@ -2566,9 +2581,9 @@ type LineProfileSummary {
   min_altitude_m: Float!
   "Altitude la plus haute du parcours, en mètres."
   max_altitude_m: Float!
-  "Dénivelé positif cumulé dans le sens du parcours, en mètres (variations de moins de 3 m ignorées)."
+  "Dénivelé positif cumulé dans le sens du parcours, en mètres : altitudes du terrain moyennées sur 1 km, puis variations de moins de 3 m ignorées (voir \`climb_method\`)."
   ascent_m: Float!
-  "Dénivelé négatif cumulé dans le sens du parcours, en mètres (variations de moins de 3 m ignorées)."
+  "Dénivelé négatif cumulé dans le sens du parcours, en mètres, calculé comme \`ascent_m\`."
   descent_m: Float!
   "Déclivité la plus forte, en ‰ (mètres par kilomètre) : pente moyenne par moindres carrés sur 1 km, mesurée sur la voie (BD TOPO) à l'intérieur d'un même morceau. Nulle si elle n'est pas publiée (voir \`max_grade_withheld\`)."
   max_grade_permil: Float
@@ -2578,8 +2593,49 @@ type LineProfileSummary {
   max_grade_to_m: Int
   "\`up\` : rampe dans le sens du parcours ; \`down\` : pente ; nul si non publiée."
   max_grade_direction: String
-  "Motif de non-publication de la déclivité : \`terrain_only\` (altitude du terrain seulement, voie absente de la BD TOPO), \`tunnel\` (fenêtres surtout en tunnel), \`interpolated\` (fenêtres surtout interpolées) ; nul quand elle est publiée."
+  "Motif de non-publication de la déclivité : \`terrain_only\` (altitude du terrain seulement, voie absente de la BD TOPO), \`tunnel\` (fenêtres surtout en tunnel), \`interpolated\` (fenêtres surtout interpolées), \`rack\` (ligne à crémaillère : voir \`LineProfile.rack\`) ; nul quand elle est publiée."
   max_grade_withheld: String
+  "Méthode de calcul de \`ascent_m\` et \`descent_m\`."
+  climb_method: LineProfileClimbMethod!
+}
+
+
+"Méthode des dénivelés cumulés d'un profil."
+type LineProfileClimbMethod {
+  "\`hysteresis\` : une variation n'est comptée qu'à partir de \`threshold_m\` d'écart avec la dernière altitude retenue."
+  method: String!
+  "Seuil de l'hystérésis, en mètres (3)."
+  threshold_m: Float!
+  "Largeur de la moyenne glissante appliquée d'abord aux seules altitudes du terrain (RGE ALTI), en mètres (1 000) ; les altitudes de la voie ne sont pas lissées."
+  terrain_smoothing_m: Float!
+}
+
+
+"Ligne à crémaillère, d'après l'article de Wikipédia de la ligne."
+type LineProfileRack {
+  "Type de crémaillère : \`strub\`, \`abt\` ou \`riggenbach\`."
+  system: String!
+  "\`full\` : crémaillère sur tout le parcours ; \`partial\` : sur une partie ; nul si la source ne le dit pas."
+  extent: String
+  "Déclivité la plus forte publiée par la source, en ‰."
+  max_grade_permil: Int!
+  "Vrai si la crémaillère ne servait qu'au freinage (tramway de Laon)."
+  braking_only: Boolean!
+  "Article lu : fournisseur (\`wikipedia\`), titre, permalien de la révision lue et licence (CC BY-SA 4.0)."
+  source: LineProfileRackSource!
+}
+
+
+"Source d'une fiche de crémaillère."
+type LineProfileRackSource {
+  "Clé du fournisseur (\`wikipedia\`)."
+  provider: String!
+  "Titre de l'article."
+  title: String!
+  "Permalien de la révision lue."
+  url: String!
+  "Licence du texte de l'article (les faits repris ne sont pas protégés)."
+  license: String!
 }
 
 

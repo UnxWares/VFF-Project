@@ -94,7 +94,12 @@ class ComputeLineProfiles extends Command
                 $had = LineProfile::query()->where('line_id', $line->id)->exists();
                 $profile = $builder->compute($line);
                 if ($profile === null) {
-                    $this->warn("{$label} : aucun tracé ou aucune altitude, profil non calculé"
+                    $why = match ($builder->skipReason()) {
+                        'no_trace' => 'aucun tracé',
+                        'outside_france' => 'tracé entièrement hors de France (aucune altitude de l\'IGN)',
+                        default => 'aucune altitude',
+                    };
+                    $this->warn("{$label} : {$why}, profil non calculé"
                         .($had ? ', ancien profil supprimé (il ne correspondait plus au tracé)' : ''));
 
                     continue;
