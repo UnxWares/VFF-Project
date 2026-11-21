@@ -15,5 +15,7 @@ final readonly class PlacementResult
         public ?int $farthestPreciseM,
         /** Au moins deux autres familles d'accord entre elles (à moins de 50 m) et loin (plus de 100 m) de la position retenue. */
         public bool $outvoted = false,
+        /** Seule source lointaine, écartée parce qu'une autre famille est à 50 m au plus de la position retenue. */
+        public ?SourcePosition $outlier = null,
     ) {}
 }

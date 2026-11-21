@@ -71,6 +71,8 @@ return [
         'era_passenger_mismatch' => 'Époque contraire aux voyageurs',
         'closed_without_date' => 'Fermée sans date',
         'freight_only_undated' => 'Fret seul sans fin des voyageurs datée',
+        'outlier_source' => 'Source isolée écartée',
+        'closure_sncf_referential' => 'Fermeture du référentiel SNCF',
     ],
     'checks_text' => [
         'retained_outvoted' => 'Au moins deux autres sources, d’accord entre elles, placent la gare à plus de :disagree m de la position retenue. À revoir en premier.',
@@ -85,6 +87,8 @@ return [
         'era_passenger_mismatch' => 'Le statut d’une époque contredit la fin des voyageurs donnée par une source (fret seul avant cette date, ou voyageurs après).',
         'closed_without_date' => 'La gare est fermée, mais aucune date de fermeture n’est connue.',
         'freight_only_undated' => 'La carte montre la gare en fret seul à une époque, mais aucune date de fin des voyageurs n’est connue.',
+        'outlier_source' => 'Une seule source place la gare loin, alors qu’une autre source est à moins de 50 m de la position retenue : elle est écartée de la note.',
+        'closure_sncf_referential' => 'La date de fermeture vient de Wikidata, qui ne cite que le référentiel SNCF des gares de voyageurs : elle est comptée comme estimée.',
     ],
 
     'sorts' => [

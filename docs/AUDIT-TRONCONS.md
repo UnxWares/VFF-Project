@@ -66,10 +66,33 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
     tardive, de Wikidata ou d'une observation non rattachée à la ligne. Une source qui ne date que des ouvertures
     ne contredit pas une fermeture ; une fermeture datée mais non localisée vaut accord faible pour un tronçon
     fermé. « Voyageurs seuls » hors LGV : `poor`.
+    - Observation seule (règles `.4`, ère courante) : une seule contradiction forte, venue de la BD TOPO ou d'un
+      statut SNCF « déclassée vendue », devient un avis faible quand deux observations actuelles fortes (SNCF,
+      BD TOPO, OSM rattachée) sont d'accord ; raison `observation_outvoted`. Une voie OSM « abandoned » ou
+      « razed » reste une vraie contradiction.
+    - Continuité (règles `.4`, ères passées) : un tronçon en service que seules des sources faibles datent reste
+      `good` (raison `continuous_service`) quand la ligne n'a aucune fin datée (fermeture, déclassement, dépose,
+      localisée ou non) et qu'un tronçon de la même ligne, à 30 m au plus de son milieu, est en service et `good`
+      pour le classement dans l'audit enregistré de l'ère courante. L'ère courante doit donc être auditée avant
+      les ères passées.
   - Placement : un point tous les 50 m (3 à 200 par tronçon), voie la plus proche à moins de 50 m d'une source
     différente de celle du tracé (BD TOPO, OSM, photographies aériennes anciennes de l'IGN) ; `good` si médiane et
     95e centile ≤ 5 m sur au moins 80 % des points, `poor` si médiane > 5 m ou tronçon en service aujourd'hui sans
     voie réelle à côté.
+    - Voies d'une autre ligne (règles `.4`) : une voie rattachée à une autre ligne (`source_traces.line_id`) ne sert
+      jamais de référence ; seules comptent les voies de la ligne et les voies non rattachées. Un tronçon qui ne
+      colle qu'à la voie d'une autre ligne (80 % des points, médiane et 95e centile ≤ 5 m) est noté à part :
+      - raison `on_other_line_track` quand une voie rattachée à sa propre ligne suit au moins la moitié des points
+        entre 8 et 60 m ; la médiane donnée est l'écart à cette voie propre. `poor` pour un tronçon fermé ou
+        déposé (voie-mère ou embranchement recalé sur la ligne voisine : Vitrolles, Saint-Amand, Kerpont), `fair`
+        pour un tronçon en service à l'ère courante (surtout de courts morceaux dans les faisceaux de gare et les
+        voies parallèles, où le rattachement des voies voisines est moins sûr) ;
+      - sinon `good`, raison `shared_track` : tronc commun, voie de la ligne elle-même à moins de 8 m (même dans la
+        source du tracé : la voie de l'autre ligne qui le confirme est alors un rattachement douteux), ou
+        embranchement posé sur la voie de la ligne dont il part sans voie propre connue (la note d'avant les réglages, signalée pour la relecture). Une première version
+        notait ces cas `fair` : 1 856 tronçons (830 km) en 2030, surtout des jonctions justes ; abandonnée.
+    - Preuves : `references.<source>` donne la mesure retenue (sans les voies des autres lignes), `all` la même
+      mesure sur toutes les voies et `own` l'écart aux seules voies de la ligne (jusqu'à 60 m).
   - Exactitude : `poor` pour un aller-retour (virage > 150° sur 40 m), un écart de jonction > 1 m (bout libre à
     0,05 à 10 m d'une autre ligne), un trou face à un autre bout de la ligne (0,5 à 500 m, milieu non couvert), une
     gare à plus de 500 m ; `fair` pour un coude (> 60°), un écart de jonction ≤ 1 m, une gare à 150 à 500 m. La
@@ -77,5 +100,12 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
     et l'ordre des gares le long des PK.
   - Tracé : `good` pour BD TOPO ou OSM, ou un tracé déjà calé sur la voie réelle ; `poor` pour une forme SNCF
     généralisée ou archeoferroviaire non recalé alors qu'une voie BD TOPO ou OSM suit le tronçon.
+    - Confirmation (règles `.4`) : un tracé de précision moyenne ou faible est `good` (raison
+    `confirmed_by_precise_source`) quand une voie BD TOPO ou OSM, autre que la source du tracé et jamais celle d'une
+    autre ligne, suit au moins 80 % des points avec une médiane ≤ 1 m et un 95e centile ≤ 5 m (le seuil du 95e
+    centile garde « faux » les tracés à coude).
   - Ligne : une note devient `poor` dès que 10 % de la longueur est `poor`, `fair` dès que 10 % est `poor` ou
     `fair`. Score de 0 (tout sûr) à 100 (tout faux), pondéré par la longueur.
+  - Versions des règles (`rule_version`) : `.3` (nuit du 21/11) dépose probable, voies rattachées d'abord, train
+    touristique ; `.4` (matin du 21/11, second contrôle à la main de 100 tronçons) voies d'une autre ligne, tracé
+    confirmé par une source précise, observation seule, continuité aux ères passées.

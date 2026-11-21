@@ -20,6 +20,12 @@ use App\Enums\AuditGrade;
  *   l'avis contraire d'une chronologie devient faible ; un tronçon « fermé, voie en place » sans
  *   aucune observation de voie, fermé depuis plus de OLD_CLOSURE_YEARS ans, est « à revoir »
  *   (règle track_unconfirmed : dépose probable).
+ *   ère courante : une seule contradiction forte, venue de la BD TOPO ou d'un statut SNCF « déclassée
+ *   vendue », devient faible quand deux observations actuelles fortes sont d'accord (règle
+ *   observation_outvoted ; OSM « abandoned » ou « razed » reste une vraie contradiction) ;
+ *   ère passée : un tronçon en service que seules des sources faibles confirment reste « sûr » quand
+ *   la ligne n'a aucune fin datée (fermeture, déclassement, dépose) et que le même tronçon est en
+ *   service et sûr à l'ère courante (règle continuous_service) ;
  *   un avis « contredit » est faible quand il change à ±NEAR_DATE_YEARS ans de la date de l'ère
  *   (la date d'un événement voisin suffit à l'expliquer), qu'il vient d'une source faible (WEAK_SOURCES)
  *   ou d'une observation qui n'est pas rattachée à la ligne (voie OSM d'une autre ligne, état
@@ -33,7 +39,16 @@ use App\Enums\AuditGrade;
  *
  * Placement (écart du tracé à la voie réelle, points tous les SAMPLE_STEP_M mètres) :
  *   voie de référence : BD TOPO, OSM ou tracé relevé sur les photographies aériennes de l'IGN, à
- *   moins de REFERENCE_RADIUS_M, en prenant une source DIFFÉRENTE de celle du tracé ;
+ *   moins de REFERENCE_RADIUS_M, en prenant une source DIFFÉRENTE de celle du tracé, et jamais une
+ *   voie rattachée à une autre ligne (elle passe souvent à quelques mètres d'une plate-forme propre) ;
+ *   tronçon posé sur la voie d'une autre ligne (il ne colle qu'à elle, à TOLERANCE_M près) :
+ *     on_other_line_track si une voie rattachée à sa propre ligne suit le tronçon entre OWN_TRACK_MIN_M
+ *          et OWN_TRACK_MAX_M : poor pour un tronçon fermé ou déposé (voie-mère ou embranchement recalé
+ *          sur la ligne voisine), fair pour un tronçon en service à l'ère courante (faisceaux de gare, voies
+ *          parallèles : le rattachement des voies voisines est moins sûr) ;
+ *     good (shared_track) sinon : tronc commun, voie de la ligne elle-même à moins de OWN_TRACK_MIN_M
+ *          (même dans la source du tracé), ou embranchement posé sur la voie de départ sans voie propre
+ *          connue (la note d'avant les réglages, mais signalée) ;
  *   good : médiane et 95e centile ≤ TOLERANCE_M (cible : médiane ≤ TARGET_M) sur au moins
  *          FULL_COVERAGE des points ; fair : médiane ≤ TOLERANCE_M, ou couverture partielle ;
  *   poor : médiane > TOLERANCE_M, ou tronçon en service à l'ère courante sans aucune voie de référence proche ;
@@ -50,7 +65,9 @@ use App\Enums\AuditGrade;
  *
  * Tracé (source retenue et précision connue) :
  *   good : source précise (BD TOPO 2,5 m, OSM environ 2 m), ou tracé d'une autre source déjà calé sur
- *          la voie réelle (placement « sûr ») ;
+ *          la voie réelle (placement « sûr »), ou confirmé par une voie BD TOPO ou OSM indépendante qui
+ *          n'est pas celle d'une autre ligne (CONFIRM_COVERAGE des points, médiane ≤ TARGET_M,
+ *          95e centile ≤ TOLERANCE_M : confirmed_by_precise_source) ;
  *   fair : précision moyenne (OHM, tracé déclaré ou contribué), ou source peu précise sans meilleure
  *          trace connue, ou trace inutilisée dans un trou voisin ;
  *   poor : source peu précise (formes SNCF généralisées, archeoferroviaire non recalé) alors qu'une voie
@@ -60,7 +77,7 @@ use App\Enums\AuditGrade;
 final class AuditGrader
 {
     /** Version des règles, recopiée dans chaque ligne d'audit (à changer avec les seuils). */
-    public const RULE_VERSION = '2026-11-21.3';
+    public const RULE_VERSION = '2026-11-21.4';
 
     /** Ancienneté (ans) d'une fermeture au-delà de laquelle une voie « en place » non observée est suspecte. */
     public const OLD_CLOSURE_YEARS = 50;
@@ -86,6 +103,14 @@ final class AuditGrader
     public const MIN_COVERAGE = 0.5;
 
     public const FULL_COVERAGE = 0.8;
+
+    /** Écarts entre lesquels une voie rattachée à la ligne compte comme « sa propre voie », à côté. */
+    public const OWN_TRACK_MIN_M = 8.0;
+
+    public const OWN_TRACK_MAX_M = 60.0;
+
+    /** Part des points qu'une source précise indépendante doit suivre pour confirmer un tracé (T2). */
+    public const CONFIRM_COVERAGE = 0.8;
 
     public const HAIRPIN_DEG = 150.0;
 
@@ -196,11 +221,12 @@ final class AuditGrader
     /**
      * Note de classement à partir des avis des sources et des règles métier.
      *
-     * @param  list<array{source: string, agrees: bool, weak?: bool, near_date?: bool, priority?: int}>  $verdicts
+     * @param  list<array{source: string, agrees: bool, weak?: bool, near_date?: bool, priority?: int, outvoted?: bool}>  $verdicts
      * @param  list<string>  $violatedRules
+     * @param  bool  $continuity  ère passée : ligne sans aucune fin datée, tronçon en service et sûr à l'ère courante
      * @return array{grade: AuditGrade, reasons: list<string>}
      */
-    public static function classification(array $verdicts, array $violatedRules = []): array
+    public static function classification(array $verdicts, array $violatedRules = [], bool $continuity = false): array
     {
         // « Dépose probable » n'est qu'un doute : à revoir, jamais faux à lui seul.
         $softRules = array_values(array_intersect($violatedRules, self::SOFT_RULES));
@@ -226,6 +252,11 @@ final class AuditGrader
         } elseif ($strongContra !== []) {
             $grade = AuditGrade::Fair;
             $reasons[] = 'sources_disagree';
+        } elseif ($strongAgree === [] && $softContra === [] && $continuity) {
+            // Ère passée : seules des sources faibles la datent, mais la ligne n'a jamais fermé et le
+            // même tronçon est sûr aujourd'hui.
+            $grade = AuditGrade::Good;
+            $reasons[] = 'continuous_service';
         } elseif ($strongAgree === []) {
             $grade = AuditGrade::Fair;
             $reasons[] = $softContra !== [] ? 'weak_contradiction' : 'weak_sources_only';
@@ -240,6 +271,9 @@ final class AuditGrader
         if ($softRules !== [] && $grade === AuditGrade::Good) {
             $grade = AuditGrade::Fair;
         }
+        if (array_filter($verdicts, fn (array $v): bool => $v['outvoted'] ?? false) !== []) {
+            $reasons[] = 'observation_outvoted';
+        }
 
         return ['grade' => $grade, 'reasons' => $reasons];
     }
@@ -247,10 +281,84 @@ final class AuditGrader
     /**
      * Note de placement.
      *
-     * @param  array<string, array{points: int, found: int, median_m: ?float, p95_m: ?float}>  $refs  par voie de référence
+     * `$refs` : par voie de référence, l'écart aux voies qui ne sont pas rattachées à une autre ligne
+     * (voies de la ligne et voies non rattachées). Clés facultatives, mesurées sur les mêmes points :
+     * `all` (toutes les voies, celles des autres lignes comprises) et `own` (voies rattachées à la
+     * ligne, à moins de OWN_TRACK_MAX_M).
+     *
+     * @param  array<string, array{points: int, found: int, median_m: ?float, p95_m: ?float, all?: array{found: int, median_m: ?float, p95_m: ?float}, own?: array{found: int, median_m: ?float}}>  $refs
      * @return array{grade: AuditGrade, reasons: list<string>, reference: ?string, same_source: bool, coverage: float, median_m: ?float, p95_m: ?float}
      */
     public static function placement(array $refs, ?string $source, bool $activeToday, bool $abroad = false, bool $bestMatch = false): array
+    {
+        $result = self::placementOn($refs, $source, $activeToday, $abroad, $bestMatch);
+        if ($result['grade'] === AuditGrade::Good) {
+            return $result;
+        }
+        $other = self::onOtherLine($refs, $source);
+        if ($other === null) {
+            return $result;
+        }
+        [$name, $all, $own] = $other;
+        $points = $refs[$name]['points'];
+        $measured = ['reference' => $name, 'same_source' => false, 'coverage' => round($all['found'] / max(1, $points), 3),
+            'median_m' => $all['median_m'], 'p95_m' => $all['p95_m']];
+        if ($own !== null) {
+            // Voie-mère ou embranchement recalé sur la ligne voisine, sa propre voie passe à côté.
+            return ['grade' => $activeToday ? AuditGrade::Fair : AuditGrade::Poor, 'reasons' => ['on_other_line_track'], 'median_m' => $own] + $measured;
+        }
+
+        return ['grade' => AuditGrade::Good, 'reasons' => ['shared_track']] + $measured;
+    }
+
+    /**
+     * Le tronçon ne colle qu'à la voie d'une autre ligne : référence (hors source du tracé) dont toutes
+     * les voies donnent un placement « sûr ». Rend [référence, mesure sur toutes les voies, médiane de
+     * l'écart à la propre voie de la ligne si elle suit le tronçon entre OWN_TRACK_MIN_M et OWN_TRACK_MAX_M].
+     *
+     * @param  array<string, array<string, mixed>>  $refs
+     * @return array{0: string, 1: array{found: int, median_m: ?float, p95_m: ?float}, 2: ?float}|null
+     */
+    private static function onOtherLine(array $refs, ?string $source): ?array
+    {
+        $own = null;
+        $onOwnTrack = false;
+        foreach (self::REFERENCES as $name) {
+            $o = $refs[$name]['own'] ?? null;
+            // Une voie de la ligne elle-même (même celle de la source du tracé) suit le tronçon : il est sur sa voie,
+            // et la voie de l'autre ligne qui le confirme est un rattachement douteux (voie partagée).
+            $onOwnTrack = $onOwnTrack || ($o !== null && $refs[$name]['points'] > 0 && $o['found'] / $refs[$name]['points'] >= self::MIN_COVERAGE
+                && $o['median_m'] !== null && $o['median_m'] < self::OWN_TRACK_MIN_M);
+        }
+        foreach (self::REFERENCES as $name) {
+            $o = $refs[$name]['own'] ?? null;
+            if ($name !== $source && $o !== null && $refs[$name]['points'] > 0 && $o['found'] / $refs[$name]['points'] >= self::MIN_COVERAGE
+                && $o['median_m'] !== null && $o['median_m'] >= self::OWN_TRACK_MIN_M && $o['median_m'] <= self::OWN_TRACK_MAX_M) {
+                $own = $own === null ? $o['median_m'] : min($own, $o['median_m']);
+            }
+        }
+        foreach (self::REFERENCES as $name) {
+            $r = $refs[$name] ?? null;
+            $all = $r['all'] ?? null;
+            if ($name === $source || $r === null || $all === null || $r['points'] <= 0) {
+                continue;
+            }
+            if ($all['found'] / $r['points'] >= self::FULL_COVERAGE && $all['median_m'] !== null && $all['p95_m'] !== null
+                && $all['median_m'] <= self::TOLERANCE_M && $all['p95_m'] <= self::TOLERANCE_M) {
+                return [$name, $all, $onOwnTrack ? null : $own];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Note de placement sur les voies qui ne sont pas rattachées à une autre ligne.
+     *
+     * @param  array<string, array{points: int, found: int, median_m: ?float, p95_m: ?float}>  $refs
+     * @return array{grade: AuditGrade, reasons: list<string>, reference: ?string, same_source: bool, coverage: float, median_m: ?float, p95_m: ?float}
+     */
+    private static function placementOn(array $refs, ?string $source, bool $activeToday, bool $abroad, bool $bestMatch): array
     {
         $pick = null;
         $sameSource = false;
@@ -358,17 +466,21 @@ final class AuditGrader
      * @param  float  $preciseCoverage  part des points suivis par une voie BD TOPO ou OSM (0 à 1)
      * @param  bool  $aligned  placement « sûr » sur une voie de référence indépendante
      * @param  bool  $unusedTraceInGap  une trace non rattachée passe dans un trou voisin
+     * @param  bool  $confirmed  une voie BD TOPO ou OSM indépendante, pas celle d'une autre ligne, suit le tracé
+     *                           à TARGET_M près (cf. confirmedBy)
      * @return array{grade: AuditGrade, reasons: list<string>, precision_m: ?float, precision_class: ?string}
      */
-    public static function trace(?string $source, float $preciseCoverage, bool $aligned = false, bool $unusedTraceInGap = false): array
+    public static function trace(?string $source, float $preciseCoverage, bool $aligned = false, bool $unusedTraceInGap = false, bool $confirmed = false): array
     {
         [$precision, $class] = self::TRACE_PRECISION[$source ?? ''] ?? [null, null];
         $reasons = [];
         // Source peu précise, mais tracé déjà calé sur la voie réelle (placement « sûr ») : recalé.
         $recalibrated = $class !== 'high' && $class !== null && $aligned;
+        // Source moyenne ou peu précise, mais une source précise indépendante la suit à 1 m près.
+        $confirmed = $class !== 'high' && $class !== null && ! $recalibrated && $confirmed;
         $available = $preciseCoverage >= self::MIN_COVERAGE;
         $grade = match (true) {
-            $class === 'high', $recalibrated => AuditGrade::Good,
+            $class === 'high', $recalibrated, $confirmed => AuditGrade::Good,
             $class === 'medium' => AuditGrade::Fair,
             $class === 'low' => $available ? AuditGrade::Poor : AuditGrade::Fair,
             default => AuditGrade::Unknown,
@@ -376,6 +488,7 @@ final class AuditGrader
         $reasons[] = match (true) {
             $class === 'high' => 'precise_source',
             $recalibrated => 'recalibrated',
+            $confirmed => 'confirmed_by_precise_source',
             $class === 'medium' => 'medium_source',
             $class === 'low' => $available ? 'precise_trace_available' : 'best_available',
             default => 'unknown_source',
@@ -388,6 +501,26 @@ final class AuditGrader
         }
 
         return ['grade' => $grade, 'reasons' => $reasons, 'precision_m' => $precision, 'precision_class' => $class];
+    }
+
+    /**
+     * Le tracé est-il confirmé par une source précise indépendante (T2) ? Une voie BD TOPO ou OSM,
+     * autre que la source du tracé et jamais celle d'une autre ligne (`$refs` les exclut déjà), suit au
+     * moins CONFIRM_COVERAGE des points avec une médiane ≤ TARGET_M et un 95e centile ≤ TOLERANCE_M.
+     *
+     * @param  array<string, array{points: int, found: int, median_m: ?float, p95_m: ?float}>  $refs
+     */
+    public static function confirmedBy(array $refs, ?string $source): bool
+    {
+        foreach (['bdtopo', 'osm'] as $name) {
+            $r = $refs[$name] ?? null;
+            if ($name !== $source && $r !== null && self::coverage($r) >= self::CONFIRM_COVERAGE
+                && $r['median_m'] !== null && $r['p95_m'] !== null && $r['median_m'] <= self::TARGET_M && $r['p95_m'] <= self::TOLERANCE_M) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

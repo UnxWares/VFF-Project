@@ -42,11 +42,20 @@ class PlacementGraderTest extends TestCase
         $this->assertSame(PlacementGrade::Close, PlacementGrader::grade([self::p('sncf', 0), self::p('osm', 45)], 'sncf')->grade);
     }
 
-    public function test_a_precise_source_beyond_100_m_disagrees_even_if_another_agrees(): void
+    public function test_a_lone_far_source_is_set_aside_when_another_family_is_within_50_m(): void
     {
+        // Règle A5 (21/11) : une seule famille lointaine ne fait plus « disagree » à elle seule.
         $r = PlacementGrader::grade([self::p('osm', 0), self::p('wikidata', 14), self::p('sncf', 101)], 'osm');
-        $this->assertSame(PlacementGrade::Disagree, $r->grade);
+        $this->assertSame(PlacementGrade::Agree, $r->grade);
         $this->assertSame(101, $r->farthestPreciseM);
+        $this->assertSame('sncf', $r->outlier?->source);
+    }
+
+    public function test_a_precise_source_beyond_100_m_disagrees_without_a_close_family(): void
+    {
+        $r = PlacementGrader::grade([self::p('osm', 0), self::p('wikidata', 51), self::p('sncf', 101)], 'osm');
+        $this->assertSame(PlacementGrade::Disagree, $r->grade);
+        $this->assertNull($r->outlier);
     }
 
     public function test_a_coarse_source_contradicts_only_beyond_one_kilometre(): void
