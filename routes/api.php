@@ -114,6 +114,9 @@ Route::middleware(['api.token', 'throttle:public-api'])->group(function (): void
     Route::get('/v1/lines/{line:slug}/stories', [LineStoryController::class, 'index'])->name('api.lines.stories');
     Route::get('/v1/lines/{line:slug}/stories/{event}', [LineStoryController::class, 'show'])->where('event', '[0-9]{1,18}')->name('api.lines.stories.show');
     Route::get('/v1/lines/{line:slug}/profile', [LineProfileController::class, 'show'])->name('api.lines.profile');
+    // Référentiel d'altitude point par point et altitude à un PK (table line_profile_points).
+    Route::get('/v1/lines/{line:slug}/profile/points', [LineProfileController::class, 'points'])->name('api.lines.profile.points');
+    Route::get('/v1/lines/{line:slug}/altitude', [LineProfileController::class, 'altitude'])->name('api.lines.altitude');
     // Audit des tronçons d'une ligne (notes de vff:audit-segments, docs/AUDIT-TRONCONS.md).
     Route::get('/v1/lines/{line:slug}/audit', [LineAuditController::class, 'show'])->name('api.lines.audit');
     Route::get('/v1/lines/{line:slug}/media', [LineMediaController::class, 'index'])->name('api.lines.media');

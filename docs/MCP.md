@@ -755,15 +755,24 @@ calculés à l'avance par `vff:compute-line-profiles` : une ligne sans profil re
 |---|---|---|---|
 | `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
 | `max_points` | entier 10 à 2 000 | non | Nombre de points au plus (200 par défaut) ; les bouts, le point le plus bas et le plus haut restent. |
+| `pk_m` | entier | non | PK en mètres : ajoute `altitude_at_pk`, l'altitude de la ligne à ce PK (null si elle est inconnue). |
 | `lang` | `fr`, `en`, `de` | non | Langue des messages. |
 
-Renvoie `line`, `profile` (`era_year`, `step_m`, `length_m`, `summary` avec altitudes extrêmes, dénivelés et
-déclivité la plus forte en ‰ sur 1 km, `points` = `[distance_m, altitude_m]` le long du parcours, `structures`,
-`gaps`, `stations` avec leur PK officiel, `altitude_sources`) et `vff_url` (section de la fiche). Les distances ne
-sont pas des PK. Attribution : IGN (BD TOPO, RGE ALTI), Licence Ouverte 2.0.
+Le profil suit le tracé de référence de la ligne entière, toutes époques (lignes fermées et déposées comprises) ;
+les morceaux séparés par un trou sont gardés, la courbe s'interrompt dans le trou (`gaps`), et les embranchements
+suivent bout à bout (`branches`). Renvoie `line`, `profile` (`basis`, `step_m`, `length_m`, `trace_length_m`,
+`covered_m`, `off_path_m`, `pk_anchors`, `summary` avec altitudes extrêmes, dénivelés et déclivité la plus forte en
+‰ sur 1 km mesurée sur la voie (nulle quand elle n'est pas publiée, motif dans `max_grade_withheld` : `terrain_only`,
+`tunnel`, `interpolated`), `terrain_ranges` (parties à l'altitude du terrain), `points` = `[distance_m, altitude_m, pk_m]` le long du parcours, `structures`, `gaps`, `branches`,
+`stations` (toutes les gares de la ligne, fermées comprises, avec leur PK officiel, leur statut et leur écart au
+parcours), `altitude_sources`, et `altitude_at_pk` si `pk_m` est donné, sans position quand le tracé à cet endroit n'est pas
+redistribuable : `position_withheld`) et `vff_url` (section de la fiche). Le PK
+de chaque point est estimé à partir des PK officiels des gares. Le détail point par point (provenance, position) est
+dans l'API REST `GET /api/v1/lines/{line}/profile/points`. Attribution : IGN (BD TOPO, RGE ALTI), Licence Ouverte 2.0.
 
 ```json
 {"line": "rfn-896000", "max_points": 100}
+{"line": "rfn-405000", "pk_m": 45764}
 ```
 
 ### `line_audit` : audit des tronçons d'une ligne

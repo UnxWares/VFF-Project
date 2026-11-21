@@ -62,6 +62,7 @@ class SourceRightsReport extends Command
         'accident_references' => 'SELECT DISTINCT provider AS v FROM accident_references',
         'accident_images' => "SELECT DISTINCT 'commons' AS v FROM accident_images",
         'line_profiles' => 'SELECT DISTINCT source AS v FROM line_profiles',
+        'line_profile_points' => 'SELECT DISTINCT source AS v FROM line_profile_points WHERE source IS NOT NULL',
         'line_greenways' => 'SELECT DISTINCT source AS v FROM line_greenways',
         'sncf_level_crossings' => "SELECT DISTINCT 'sncf' AS v FROM sncf_level_crossings",
         'line_signalling' => "SELECT DISTINCT 'sncf' AS v FROM line_signalling",

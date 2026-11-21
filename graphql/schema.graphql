@@ -211,9 +211,9 @@ type Line {
     ): [SignallingEvent!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@forLine")
 
     """
-    Profil en long de la ligne (altitude le long du tracé, gares placées dessus), comme
-    `GET /api/v1/lines/{line}/profile`. Altitudes de l'IGN (BD TOPO, à défaut RGE ALTI ; Licence
-    Ouverte 2.0). Nul tant que le profil de la ligne n'est pas calculé.
+    Profil en long de la ligne (altitude le long du tracé de référence, toutes époques, gares placées
+    dessus), comme `GET /api/v1/lines/{line}/profile`. Altitudes de l'IGN (BD TOPO, à défaut RGE ALTI ;
+    Licence Ouverte 2.0). Nul tant que le profil de la ligne n'est pas calculé.
     """
     profile(
         "Nombre de points au plus (10 à 5 000) : profil allégé qui garde les deux bouts, le point le plus bas et le plus haut. Par défaut : tous les points."
@@ -2441,13 +2441,19 @@ type SegmentAudit {
 }
 
 """
-Profil en long d'une ligne : altitude le long du parcours, de la première gare (plus petit PK)
-vers la dernière. Les distances sont mesurées le long du parcours depuis son origine, en mètres :
-ce ne sont pas des PK officiels (voir `LineProfileStation.pk_m`). Altitudes en mètres (NGF-IGN69).
+Profil en long d'une ligne : altitude le long du tracé de référence de la ligne entière (toutes
+époques, lignes fermées et déposées comprises), du plus petit PK officiel vers le plus grand. Les
+morceaux séparés par un trou du tracé sont tous gardés, la courbe s'interrompt dans le trou
+(`gaps`) ; les embranchements viennent ensuite, bout à bout (`branches`). Les distances sont
+mesurées le long du parcours depuis son origine, en mètres, trous compris ; le PK estimé de chaque
+point est dans `points.pk_m` et `samples.pk_m`. Altitudes en mètres (NGF-IGN69).
 """
 type LineProfile {
-    "Année de l'ère dont le tracé a été échantillonné (2030 = aujourd'hui)."
-    era_year: Int!
+    "`reference` : tracé de référence, toutes époques ; `era` : profil calculé avant le 21/11/2026 sur le tracé d'une seule ère."
+    basis: String!
+
+    "Année de l'ère dont le tracé a été échantillonné (2030 = aujourd'hui) ; nulle pour un profil du référentiel (`basis` = `reference`)."
+    era_year: Int
 
     "Pas d'échantillonnage le long du parcours, en mètres (100 à 250 selon la longueur)."
     step_m: Int!
@@ -2455,14 +2461,36 @@ type LineProfile {
     "Longueur du parcours profilé, lacunes comprises, en mètres."
     length_m: Int!
 
-    "Longueur totale du tracé de la ligne à cette ère, en mètres (épis et raccordements compris)."
+    "Longueur du tracé de référence de la ligne, toutes époques, en mètres (épis et raccordements compris)."
     trace_length_m: Int!
+
+    "Longueur du parcours hors trous, en mètres ; nulle pour un profil antérieur au 21/11/2026."
+    covered_m: Int
+
+    "Longueur des bouts du référentiel (moins de 100 m chacun) laissés hors du parcours, en mètres ; nulle pour un profil antérieur au 21/11/2026."
+    off_path_m: Int
+
+    "Nombre de gares dont le PK officiel sert à caler le PK des points (0 : aucun PK estimé)."
+    pk_anchors: Int!
 
     "Altitudes extrêmes, dénivelés cumulés et déclivité la plus forte."
     summary: LineProfileSummary!
 
-    "Points du profil dans l'ordre du parcours."
+    "Points du profil dans l'ordre du parcours (forme courte ; détail complet dans `samples`)."
     points: [LineProfilePoint!]!
+
+    "Référentiel d'altitude point par point, comme `GET /api/v1/lines/{line}/profile/points` : provenance, interpolation, ouvrage, morceau, embranchement et position de chaque point."
+    samples(
+        "PK de début en mètres (borne incluse) ; les points sans PK sont exclus dès qu'une borne est donnée."
+        pk_from_m: Int
+        "PK de fin en mètres (borne incluse)."
+        pk_to_m: Int
+        "Nombre de points au plus (10 à 5 000). Par défaut : tous."
+        max_points: Int @rules(apply: ["nullable", "integer", "between:10,5000"])
+    ): [LineProfileSample!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineProfileField@samples")
+
+    "Altitude au PK donné (en mètres), comme `GET /api/v1/lines/{line}/altitude` : interpolée entre les deux points qui l'encadrent. Nulle hors du profil, dans un trou ou sans PK calé."
+    altitude_at(pk_m: Int!): LineProfileAltitude @field(resolver: "App\\GraphQL\\Resolvers\\LineProfileField@altitudeAt")
 
     "Tunnels et ponts de la BD TOPO sous le parcours."
     structures: [LineProfileStructure!]!
@@ -2470,10 +2498,16 @@ type LineProfile {
     "Nombre de points de chaque origine d'altitude."
     altitude_sources: LineProfileAltitudeSources!
 
-    "Lacunes du tracé (aucune altitude entre leurs bornes)."
+    "Trous du tracé (aucune altitude entre leurs bornes)."
     gaps: [LineProfileGap!]!
 
-    "Gares de la ligne placées sur le profil (à moins de 500 m du parcours)."
+    "Embranchements (épis, raccordements, branches d'un réseau en arbre) mis bout à bout après la ligne principale, chacun après un trou de longueur conventionnelle."
+    branches: [LineProfileGap!]!
+
+    "Parties du parcours dont l'altitude est celle du terrain (RGE ALTI) et non celle de la voie."
+    terrain_ranges: [LineProfileGap!]!
+
+    "Toutes les gares rattachées à la ligne (fermées comprises), projetées sur le parcours."
     stations: [LineProfileStation!]!
 
     "Date du calcul (ISO 8601)."
@@ -2497,17 +2531,20 @@ type LineProfileSummary {
     "Dénivelé négatif cumulé dans le sens du parcours, en mètres (variations de moins de 3 m ignorées)."
     descent_m: Float!
 
-    "Déclivité la plus forte, en ‰ (mètres par kilomètre) : pente moyenne par moindres carrés sur 1 km."
-    max_grade_permil: Float!
+    "Déclivité la plus forte, en ‰ (mètres par kilomètre) : pente moyenne par moindres carrés sur 1 km, mesurée sur la voie (BD TOPO) à l'intérieur d'un même morceau. Nulle si elle n'est pas publiée (voir `max_grade_withheld`)."
+    max_grade_permil: Float
 
-    "Début de la fenêtre de la déclivité la plus forte, en mètres le long du parcours."
-    max_grade_from_m: Int!
+    "Début de la fenêtre de la déclivité la plus forte, en mètres le long du parcours ; nul si non publiée."
+    max_grade_from_m: Int
 
-    "Fin de la fenêtre de la déclivité la plus forte, en mètres le long du parcours."
-    max_grade_to_m: Int!
+    "Fin de la fenêtre de la déclivité la plus forte, en mètres le long du parcours ; nul si non publiée."
+    max_grade_to_m: Int
 
-    "`up` : rampe dans le sens du parcours ; `down` : pente."
-    max_grade_direction: String!
+    "`up` : rampe dans le sens du parcours ; `down` : pente ; nul si non publiée."
+    max_grade_direction: String
+
+    "Motif de non-publication de la déclivité : `terrain_only` (altitude du terrain seulement, voie absente de la BD TOPO), `tunnel` (fenêtres surtout en tunnel), `interpolated` (fenêtres surtout interpolées) ; nul quand elle est publiée."
+    max_grade_withheld: String
 }
 
 "Un point du profil."
@@ -2515,8 +2552,80 @@ type LineProfilePoint {
     "Distance le long du parcours depuis son origine, en mètres."
     distance_m: Int!
 
-    "Altitude en mètres, arrondie au décimètre ; nulle sans valeur (hors de France, lacune)."
+    "Altitude en mètres, arrondie au décimètre ; nulle sans valeur (hors de France, trou)."
     altitude_m: Float
+
+    "PK estimé en mètres, calé sur les PK officiels des gares ; nul sans gare de calage et sur un embranchement."
+    pk_m: Int
+}
+
+"Un point du référentiel d'altitude d'une ligne (table `line_profile_points`)."
+type LineProfileSample {
+    "Rang du point dans l'ordre du parcours, à partir de 0."
+    seq: Int!
+
+    "Distance le long du parcours depuis son origine, trous compris, en mètres."
+    distance_m: Int!
+
+    "PK estimé en mètres, calé sur les PK officiels des gares ; nul sans gare de calage et sur un embranchement."
+    pk_m: Int
+
+    "Altitude en mètres (NGF-IGN69), au décimètre ; nulle sans valeur."
+    altitude_m: Float
+
+    "Provenance de la mesure : `bdtopo` (altitude de la voie, BD TOPO 3D) ou `rge_alti` (terrain) ; nulle si l'altitude est interpolée, absente ou d'un profil antérieur au 21/11/2026."
+    source: String
+
+    "Vrai si l'altitude est interpolée entre deux mesures (tunnel, pont, point aberrant, petit trou)."
+    interpolated: Boolean!
+
+    "Ouvrage de la BD TOPO sous le point : `tunnel`, `bridge` ou nul."
+    structure: String
+
+    "Morceau continu du parcours (à partir de 0, un nouveau après chaque trou)."
+    piece: Int!
+
+    "Embranchement (1, 2…) ; nul sur la ligne principale."
+    branch: Int
+
+    "Latitude WGS 84 du point sur le tracé de référence ; nulle si la position est retenue (voir `position_withheld`)."
+    lat: Float
+
+    "Longitude WGS 84 du point sur le tracé de référence ; nulle si la position est retenue."
+    lng: Float
+
+    "Motif du retrait de la position, quand le tracé sous le point vient d'une source non redistribuable (règle des droits des tracés de l'API) : `licence_not_open` ou `unknown_source` ; nul quand la position est donnée."
+    position_withheld: String
+}
+
+"Altitude d'une ligne à un PK."
+type LineProfileAltitude {
+    "PK demandé, en mètres."
+    pk_m: Int!
+
+    "Altitude en mètres (NGF-IGN69), au décimètre."
+    altitude_m: Float!
+
+    "Distance correspondante le long du parcours, en mètres."
+    distance_m: Int!
+
+    "Vrai si l'un des deux points qui encadrent le PK a une altitude interpolée."
+    interpolated: Boolean!
+
+    "Provenance des deux mesures qui encadrent le PK (`bdtopo`, `rge_alti`)."
+    sources: [String!]!
+
+    "Ouvrage sous le point : `tunnel`, `bridge` ou nul."
+    structure: String
+
+    "Latitude WGS 84 ; nulle si la position est retenue (voir `position_withheld`)."
+    lat: Float
+
+    "Longitude WGS 84 ; nulle si la position est retenue."
+    lng: Float
+
+    "Motif du retrait de la position (tracé non redistribuable) : `licence_not_open` ou `unknown_source` ; nul quand elle est donnée."
+    position_withheld: String
 }
 
 "Un ouvrage d'art sous le parcours (BD TOPO)."
@@ -2546,7 +2655,7 @@ type LineProfileAltitudeSources {
     missing: Int!
 }
 
-"Une lacune du tracé dans un profil en long."
+"Un intervalle de distances d'un profil en long : trou du tracé, embranchement ou partie à l'altitude du terrain."
 type LineProfileGap {
     "Début, en mètres le long du parcours."
     from_m: Int!
@@ -2569,8 +2678,14 @@ type LineProfileStation {
     "Altitude du profil à la gare, en mètres ; nulle sans valeur."
     altitude_m: Float
 
-    "Point kilométrique officiel de la gare sur la ligne, en mètres ; nul s'il est inconnu."
+    "Point kilométrique officiel de la gare sur la ligne, en mètres ; nul s'il est inconnu ou seulement estimé."
     pk_m: Int
+
+    "Statut de la gare : `active`, `tourist`, `no_commercial` ou `declassified` (fermée)."
+    status: String
+
+    "Écart entre la gare et le parcours, en mètres (une gare éloignée se trouve sur un tracé que le profil n'emprunte pas)."
+    offset_m: Int
 }
 
 """

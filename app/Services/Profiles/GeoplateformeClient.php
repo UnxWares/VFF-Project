@@ -15,10 +15,17 @@ use RuntimeException;
  * - WFS de la BD TOPO (`BDTOPO_V3:troncon_de_voie_ferree`) : tronçons de voie d'une emprise,
  *   géométrie 3D (altitude de la voie elle-même) et position (au sol, en tunnel, sur pont).
  *
+ * Cache par grille fixe (depuis le 21/11/2026), pour qu'il reste valable quand les tracés de
+ * référence bougent de quelques mètres :
+ * - BD TOPO : une tuile de TILE_DEG degré de côté (environ 22 km sur 15 km) par fichier
+ *   `bdtopo-tuiles/<x>_<y>.json.gz`, tous les tronçons de la tuile, sous une forme compacte ;
+ * - RGE ALTI : chaque point est ramené au nœud le plus proche d'une grille de NODE_DEG degré
+ *   (6 m au plus d'écart en France, sans effet sensible sur l'altitude du terrain), et les
+ *   altitudes des nœuds sont gardées par tuile dans `rge-alti-noeuds/<x>_<y>.json.gz`.
+ *
  * Politesse : une requête à la fois, une pause après chaque appel réseau (une seconde par défaut,
  * bien sous la limite), User-Agent générique, nouvelles tentatives espacées sur 429 et 5xx.
- * Chaque réponse est gardée dans `storage/app/data/altimetrie/` (dossier marqué `.nobackup`) :
- * un nouveau calcul de la même ligne ne rappelle pas l'IGN.
+ * Le dossier `storage/app/data/altimetrie/` est marqué `.nobackup` (régénérable).
  */
 class GeoplateformeClient
 {
@@ -29,6 +36,12 @@ class GeoplateformeClient
     public const RESOURCE = 'ign_rge_alti_wld';
 
     public const USER_AGENT = 'VFF-Bot/1.0 (+https://vff-project.org)';
+
+    /** Côté d'une tuile du cache, en degrés. */
+    public const TILE_DEG = 0.2;
+
+    /** Pas de la grille des nœuds d'altitude du terrain, en degrés (environ 7 m sur 11 m). */
+    public const NODE_DEG = 0.0001;
 
     /** Points par requête d'altitude (limite du service : 5 000). */
     public const ELEVATION_BATCH = 2000;
@@ -43,6 +56,9 @@ class GeoplateformeClient
 
     private int $networkCalls = 0;
 
+    /** @var array<string, array<string, float|null>> altitudes des nœuds par tuile, chargées */
+    private array $nodes = [];
+
     public function __construct(private string $cacheDir = '', private readonly int $pauseMs = 1000)
     {
         $this->cacheDir = $cacheDir !== '' ? $cacheDir : storage_path('app/data/altimetrie');
@@ -54,24 +70,60 @@ class GeoplateformeClient
         return $this->networkCalls;
     }
 
+    /** Dossier du cache (taille surveillée par la commande). */
+    public function cacheDir(): string
+    {
+        return $this->cacheDir;
+    }
+
     /**
-     * Altitudes RGE ALTI des points, dans l'ordre ; null hors couverture (étranger, mer).
+     * Tuile qui contient le point.
+     *
+     * @return array{0: int, 1: int}
+     */
+    public static function tileOf(float $lon, float $lat): array
+    {
+        return [(int) floor($lon / self::TILE_DEG), (int) floor($lat / self::TILE_DEG)];
+    }
+
+    /** Vrai si les tronçons de la tuile sont déjà dans le cache. */
+    public function hasTile(int $x, int $y): bool
+    {
+        return is_file($this->tileFile('bdtopo-tuiles', $x, $y));
+    }
+
+    /**
+     * Altitudes RGE ALTI des points, dans l'ordre ; null hors couverture (étranger, mer). Chaque
+     * point prend l'altitude du nœud de grille le plus proche (NODE_DEG) ; seuls les nœuds absents
+     * du cache sont demandés.
      *
      * @param  list<array{0: float, 1: float}>  $points  [lon, lat]
      * @return list<float|null>
      */
     public function elevations(array $points): array
     {
-        $out = [];
-        foreach (array_chunk($points, self::ELEVATION_BATCH) as $chunk) {
+        $keys = [];
+        $missing = [];
+        foreach ($points as $i => $p) {
+            $node = [(int) round($p[0] / self::NODE_DEG), (int) round($p[1] / self::NODE_DEG)];
+            $tile = implode('_', self::tileOf($node[0] * self::NODE_DEG, $node[1] * self::NODE_DEG));
+            $key = $node[0].':'.$node[1];
+            $keys[$i] = [$tile, $key];
+            $this->loadNodes($tile);
+            if (! array_key_exists($key, $this->nodes[$tile])) {
+                $missing[$tile.'|'.$key] = $node;
+            }
+        }
+
+        foreach (array_chunk($missing, self::ELEVATION_BATCH, true) as $chunk) {
             $payload = [
-                'lon' => implode('|', array_map(fn (array $p): string => sprintf('%.6f', $p[0]), $chunk)),
-                'lat' => implode('|', array_map(fn (array $p): string => sprintf('%.6f', $p[1]), $chunk)),
+                'lon' => implode('|', array_map(fn (array $n): string => sprintf('%.4f', $n[0] * self::NODE_DEG), $chunk)),
+                'lat' => implode('|', array_map(fn (array $n): string => sprintf('%.4f', $n[1] * self::NODE_DEG), $chunk)),
                 'resource' => self::RESOURCE,
                 'delimiter' => '|',
                 'zonly' => 'true',
             ];
-            $json = $this->cached('rge-alti', $payload, fn () => Http::withUserAgent(self::USER_AGENT)
+            $json = $this->fetchWithRetries(fn () => Http::withUserAgent(self::USER_AGENT)
                 ->timeout(60)
                 ->acceptJson()
                 ->asJson()
@@ -80,25 +132,54 @@ class GeoplateformeClient
             if (! is_array($values) || count($values) !== count($chunk)) {
                 throw new RuntimeException('Réponse inattendue du service d\'altimétrie de l\'IGN.');
             }
-            foreach ($values as $z) {
-                $out[] = is_numeric($z) && (float) $z > self::NO_DATA + 1 ? (float) $z : null;
+            $touched = [];
+            foreach (array_keys($chunk) as $k => $id) {
+                [$tile, $key] = explode('|', $id);
+                $z = $values[$k];
+                $this->nodes[$tile][$key] = is_numeric($z) && (float) $z > self::NO_DATA + 1 ? round((float) $z, 2) : null;
+                $touched[$tile] = true;
+            }
+            foreach (array_keys($touched) as $tile) {
+                $this->writeGz('rge-alti-noeuds', $tile, $this->nodes[$tile]);
             }
         }
 
-        return $out;
+        return array_map(fn (array $k): ?float => $this->nodes[$k[0]][$k[1]], array_values($keys));
     }
 
     /**
-     * Tronçons de voie ferrée de la BD TOPO (hors tramway et métro) dans une emprise WGS 84, avec
+     * Tronçons de voie ferrée de la BD TOPO (hors tramway et métro) d'une tuile du cache, avec
      * leur position (`ground` au sol, `tunnel`, `bridge`) et l'altitude de chaque sommet : la
      * géométrie de la BD TOPO est en 3D, altitude de la voie (photogrammétrie, ou « Z corrigé »
      * sur les ouvrages). Sommet sans altitude (-1000 dans la source, souvent en tunnel) : null.
+     * Un tronçon qui déborde de la tuile est rendu en entier (et par ses voisines aussi).
      *
-     * @param  array{0: float, 1: float, 2: float, 3: float}  $bbox  ouest, sud, est, nord
      * @return list<array{kind: string, coords: list<array{0: float, 1: float}>, z: list<float|null>}>
      */
-    public function railTracks(array $bbox): array
+    public function railTracksInTile(int $x, int $y): array
     {
+        $cached = $this->readGz('bdtopo-tuiles', $x.'_'.$y);
+        if ($cached === null) {
+            $cached = $this->fetchTile($x, $y);
+            $this->writeGz('bdtopo-tuiles', $x.'_'.$y, $cached);
+        }
+
+        // Forme compacte : [position, [[lon, lat, z|null], …]].
+        return array_map(fn (array $t): array => [
+            'kind' => (string) $t[0],
+            'coords' => array_map(fn (array $c): array => [(float) $c[0], (float) $c[1]], $t[1]),
+            'z' => array_map(fn (array $c): ?float => $c[2] === null ? null : (float) $c[2], $t[1]),
+        ], $cached);
+    }
+
+    /**
+     * Tous les tronçons de la tuile, page par page (tri stable sur l'identifiant `cleabs`).
+     *
+     * @return list<array{0: string, 1: list<array{0: float, 1: float, 2: float|null}>}>
+     */
+    private function fetchTile(int $x, int $y): array
+    {
+        $bbox = [$x * self::TILE_DEG, $y * self::TILE_DEG, ($x + 1) * self::TILE_DEG, ($y + 1) * self::TILE_DEG];
         $out = [];
         for ($start = 0; ; $start += self::WFS_PAGE) {
             $query = [
@@ -110,14 +191,15 @@ class GeoplateformeClient
                 'PROPERTYNAME' => 'position_par_rapport_au_sol,geometrie',
                 'COUNT' => self::WFS_PAGE,
                 'STARTINDEX' => $start,
+                'SORTBY' => 'cleabs',
                 // Axe CRS84 (lon, lat) : avec EPSG:4326 le service attend lat, lon (cf. mémoire du projet).
                 'CQL_FILTER' => sprintf(
                     "nature NOT IN ('Tramway','Métro') AND BBOX(geometrie,%.6f,%.6f,%.6f,%.6f,'urn:ogc:def:crs:OGC:1.3:CRS84')",
                     ...$bbox,
                 ),
             ];
-            $json = $this->cached('bdtopo', $query, fn () => Http::withUserAgent(self::USER_AGENT)
-                ->timeout(60)
+            $json = $this->fetchWithRetries(fn () => Http::withUserAgent(self::USER_AGENT)
+                ->timeout(90)
                 ->get(self::WFS_URL, $query));
             $features = $json['features'] ?? [];
             foreach ($features as $f) {
@@ -128,7 +210,11 @@ class GeoplateformeClient
                     default => 'ground',
                 };
                 foreach (self::lineStrings($f['geometry'] ?? []) as $line) {
-                    $out[] = ['kind' => $kind, ...$line];
+                    $out[] = [$kind, array_map(
+                        fn (array $c, ?float $z): array => [round($c[0], 7), round($c[1], 7), $z === null ? null : round($z, 2)],
+                        $line['coords'],
+                        $line['z'],
+                    )];
                 }
             }
             if (count($features) < self::WFS_PAGE) {
@@ -137,6 +223,49 @@ class GeoplateformeClient
         }
 
         return $out;
+    }
+
+    private function loadNodes(string $tile): void
+    {
+        if (! isset($this->nodes[$tile])) {
+            $this->nodes[$tile] = $this->readGz('rge-alti-noeuds', $tile) ?? [];
+        }
+    }
+
+    private function tileFile(string $kind, int|string $x, ?int $y = null): string
+    {
+        return $this->cacheDir.'/'.$kind.'/'.($y === null ? $x : $x.'_'.$y).'.json.gz';
+    }
+
+    /** @return array<array-key, mixed>|null */
+    private function readGz(string $kind, string $name): ?array
+    {
+        $file = $this->tileFile($kind, $name);
+        if (! is_file($file)) {
+            return null;
+        }
+        $raw = gzdecode((string) file_get_contents($file));
+        $json = $raw === false ? null : json_decode($raw, true);
+
+        return is_array($json) ? $json : null;
+    }
+
+    /** @param array<array-key, mixed> $data */
+    private function writeGz(string $kind, string $name, array $data): void
+    {
+        $dir = $this->cacheDir.'/'.$kind;
+        if (! is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+        $marker = $this->cacheDir.'/.nobackup';
+        if (! is_file($marker)) {
+            file_put_contents($marker, "Réponses des services de l'IGN gardées en cache (régénérables).\n");
+        }
+        // Écriture atomique : un calcul interrompu ne laisse pas de tuile tronquée.
+        $file = $this->tileFile($kind, $name);
+        $tmp = $file.'.'.getmypid().'.tmp';
+        file_put_contents($tmp, gzencode((string) json_encode($data, JSON_PRESERVE_ZERO_FRACTION), 6));
+        rename($tmp, $file);
     }
 
     /**
@@ -155,37 +284,6 @@ class GeoplateformeClient
             'coords' => array_map(fn (array $c): array => [(float) $c[0], (float) $c[1]], $line),
             'z' => array_map(fn (array $c): ?float => isset($c[2]) && (float) $c[2] > self::NO_TRACK_Z ? (float) $c[2] : null, $line),
         ], $lines);
-    }
-
-    /**
-     * Réponse JSON gardée sur disque, sinon demandée (avec pause et nouvelles tentatives).
-     *
-     * @param  array<string, mixed>  $key
-     * @param  callable(): Response  $fetch
-     * @return array<string, mixed>
-     */
-    private function cached(string $kind, array $key, callable $fetch): array
-    {
-        $dir = $this->cacheDir.'/'.$kind;
-        $file = $dir.'/'.sha1((string) json_encode($key)).'.json';
-        if (is_file($file)) {
-            $json = json_decode((string) file_get_contents($file), true);
-            if (is_array($json)) {
-                return $json;
-            }
-        }
-
-        $json = $this->fetchWithRetries($fetch);
-        if (! is_dir($dir)) {
-            mkdir($dir, 0775, true);
-        }
-        $marker = $this->cacheDir.'/.nobackup';
-        if (! is_file($marker)) {
-            file_put_contents($marker, "Réponses des services de l'IGN gardées en cache (régénérables).\n");
-        }
-        file_put_contents($file, json_encode($json));
-
-        return $json;
     }
 
     /**

@@ -80,6 +80,11 @@
                 { path: '/api/v1/lines/{line}/signalling', key: 'signalling' },
                 { path: '/api/v1/lines/{line}/signalling-history', key: 'signalling_history' },
                 { path: '/api/v1/lines/{line}/profile', key: 'profile' },
+                {
+                    path: '/api/v1/lines/{line}/profile/points?pk_from_m={pk}&pk_to_m={pk}',
+                    key: 'profile_points',
+                },
+                { path: '/api/v1/lines/{line}/altitude?pk_m={pk}', key: 'altitude' },
                 { path: '/api/v1/lines/{line}/audit?era={year}', key: 'line_audit' },
                 { path: '/api/v1/lines/{line}/materials', key: 'line_materials' },
                 { path: '/api/v1/lines/{line}/media', key: 'media' },
