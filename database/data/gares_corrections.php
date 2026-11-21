@@ -1198,7 +1198,7 @@ return [
     // du Bourbonnais).
     // L'ouverture du même objet OHM est retirée aussi (gare homonyme) : Montereau et Souppes n'avaient qu'elle
     // (1888), leur ouverture vient alors de leurs lignes (1849, 1860).
-    ...array_merge(...array_map(fn (array $g) => array_values(array_filter([
+    ...array_merge(...array_map(fn (array $g) => array_filter([
         [
             'station' => ['name' => $g[0], $g[1] => $g[2]],
             'action' => 'neutralize',
@@ -1213,7 +1213,7 @@ return [
             'source_url' => 'https://www.openhistoricalmap.org/'.['n' => 'node', 'w' => 'way', 'r' => 'relation'][$g[4][0]].'/'.substr($g[4], 1),
             'reason' => 'ouverture de la même gare homonyme : '.$g[5],
         ] : null,
-    ])), [
+    ]), [
         // gare, clé, identifiant, date OHM retirée, objet OHM, raison, ouverture OHM retirée (gare homonyme)
         ['Sens', 'wikidata', 'Q2545246', '1948-03-31', 'n2181759785',
             'l\'objet OHM « Sens (CFD) » (1901 à 1948) est la gare des chemins de fer départementaux, pas la gare de la ligne de Paris à Marseille', '1901-11-10'],
