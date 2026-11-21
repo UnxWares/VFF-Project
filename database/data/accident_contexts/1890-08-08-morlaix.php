@@ -1,0 +1,95 @@
+<?php
+
+// Contexte sourcé du déraillement d'un train de marchandises venant de Morlaix peu avant la gare de Guingamp, ligne de Paris à Brest, d'août 1890 (recherche du 21/11/2026).
+return [
+    'slug' => '1890-08-08-morlaix',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1890' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1890',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1890',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1890&oldid=235357698#1890',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 8 août 1890, d\'après Le Matin du 9 août : sur la ligne de Paris à Brest, un train de marchandises venant de Morlaix déraille peu avant la gare de Guingamp ; la machine explose et blesse grièvement le mécanicien et le chauffeur ; le conducteur-chef est tué, écrasé dans son fourgon.',
+        ],
+        'ddb-1890-08-09-boersen' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 9. August. (C. T. C.)',
+            'publisher' => 'Berliner Börsen-Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1890-08-09',
+            'locator' => 'p. 1',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/3URCWYMZAFCF2D6O3ND4BJIULLUZGFR3?issuepage=1',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Paris du 9 août, d\'après les journaux : un train de marchandises a déraillé près de la gare de Guingamp ; un agent du train tué, le chauffeur et le mécanicien grièvement blessés.',
+        ],
+        'ddb-1890-08-10-volksblatt' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 9. August',
+            'publisher' => 'Berliner Volksblatt (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1890-08-10',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/LV6KUREU5TOGQVOUTWQ3QDGNJ22F3PPT?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche de Paris du 9 août : déraillement d\'un train de marchandises près de la gare de Guingamp, un agent du train tué, chauffeur et mécanicien grièvement blessés.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Le 8 août 1890, sur la ligne de Paris à Brest, un train de marchandises venant de Morlaix a déraillé peu avant la gare de Guingamp. Selon la liste de Wikipédia, la machine a explosé.',
+                'en' => 'On 8 August 1890, on the Paris to Brest line, a goods train from Morlaix derailed shortly before Guingamp station. According to the Wikipedia list the engine exploded.',
+                'de' => 'Am 8. August 1890 entgleiste an der Strecke Paris-Brest ein Güterzug aus Morlaix kurz vor dem Bahnhof Guingamp. Nach der Wikipedia-Liste explodierte die Lokomotive.',
+                'sources' => ['wp-liste-1890', 'ddb-1890-08-09-boersen'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le conducteur-chef, écrasé dans son fourgon, a été tué. Le mécanicien et le chauffeur ont été grièvement blessés.',
+                'en' => 'The chief conductor, crushed in his van, was killed. The driver and the stoker were seriously injured.',
+                'de' => 'Der Oberschaffner wurde in seinem Packwagen erdrückt und getötet. Lokführer und Heizer wurden schwer verletzt.',
+                'sources' => ['wp-liste-1890', 'ddb-1890-08-09-boersen', 'ddb-1890-08-10-volksblatt'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 1,
+            'sources' => ['wp-liste-1890', 'ddb-1890-08-09-boersen', 'ddb-1890-08-10-volksblatt'],
+            'fr' => 'Conducteur-chef tué selon la liste de Wikipédia (Le Matin du 9 août 1890) et la dépêche de Paris du 9 août ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'Chief conductor killed according to the Wikipedia list (Le Matin of 9 August 1890) and the Paris dispatch of 9 August; the record gave no number of deaths.',
+            'de' => 'Oberschaffner getötet nach der Wikipedia-Liste (Le Matin vom 9. August 1890) und der Pariser Depesche vom 9. August; der Eintrag nannte keine Zahl von Toten.',
+        ],
+        [
+            'field' => 'injuries',
+            'value' => 2,
+            'sources' => ['wp-liste-1890', 'ddb-1890-08-09-boersen', 'ddb-1890-08-10-volksblatt'],
+            'fr' => 'Mécanicien et chauffeur grièvement blessés selon la liste de Wikipédia et la dépêche de Paris du 9 août ; la fiche ne donnait pas de nombre de blessés.',
+            'en' => 'Driver and stoker seriously injured according to the Wikipedia list and the Paris dispatch of 9 August; the record gave no number of injured.',
+            'de' => 'Lokführer und Heizer schwer verletzt nach der Wikipedia-Liste und der Pariser Depesche vom 9. August; der Eintrag nannte keine Zahl von Verletzten.',
+        ],
+        [
+            'field' => 'commune_insee',
+            'value' => '22070',
+            'sources' => ['wp-liste-1890', 'ddb-1890-08-09-boersen'],
+            'fr' => 'Déraillement peu avant la gare de Guingamp selon la liste de Wikipédia et la dépêche de Paris ; la fiche le plaçait à Morlaix, d\'où venait le train.',
+            'en' => 'Derailment shortly before Guingamp station according to the Wikipedia list and the Paris dispatch; the record placed it at Morlaix, where the train came from.',
+            'de' => 'Entgleisung kurz vor dem Bahnhof Guingamp nach der Wikipedia-Liste und der Pariser Depesche; der Eintrag verortete sie in Morlaix, woher der Zug kam.',
+        ],
+    ],
+];

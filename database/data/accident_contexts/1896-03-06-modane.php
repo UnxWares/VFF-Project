@@ -1,0 +1,101 @@
+<?php
+
+// Contexte sourcé du déraillement d'un train de marchandises à la sortie du tunnel du Mont-Cenis, avant Modane, de mars 1896 (recherche du 21/11/2026).
+return [
+    'slug' => '1896-03-06-modane',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1890' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1890',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1896',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1890&oldid=235357698#1896',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 6 mars 1896, d\'après Le Figaro du 9 mars : à la sortie du tunnel du Mont-Cenis, avant Modane, un train de marchandises déraille ; le mécanicien et le chauffeur sont tués, deux conducteurs blessés.',
+        ],
+        'ddb-1896-03-09-rheinruhr' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahnzug zertrümmert. Modane, 8. März',
+            'publisher' => 'Rhein- und Ruhrzeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1896-03-09',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/IQXUUSMBZR7WKXSR2ZVEWEE7BPVNGZWV?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Modane du 8 mars (même texte dans de nombreux journaux du 9 au 12 mars) : un train chargé de marchandises et de bétail a déraillé à la sortie du tunnel du Mont-Cenis ; à l\'exception des trois derniers wagons, tout le train et la locomotive sont brisés ; le mécanicien et le chauffeur ont été tués.',
+        ],
+        'ddb-1896-03-10-giessen' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Modane, 8. März',
+            'publisher' => 'Gießener Anzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1896-03-10',
+            'locator' => 'p. 1',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/AAODTCLWEUK2IT54JHO7QAVGH4LSS2HJ?issuepage=1',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche de Modane du 8 mars, transmise par l\'agence Wolff.',
+        ],
+        'ddb-1896-03-10-dresden' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Ein mit Waaren und Vieh beladener Zug',
+            'publisher' => 'Dresdner Nachrichten (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1896-03-10',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/YBARZEU43A2MEENZXI573RHJQOSLOAHV?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même nouvelle : train de marchandises et de bétail déraillé à la sortie du tunnel du Mont-Cenis près de Modane, mécanicien et chauffeur tués.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Un train de marchandises, chargé aussi de bétail, a déraillé à la sortie du tunnel du Mont-Cenis, côté français, avant Modane. La locomotive et tout le train, à l\'exception des trois derniers wagons, ont été brisés.',
+                'en' => 'A goods train, also carrying livestock, derailed at the exit of the Mont-Cenis tunnel, on the French side, before Modane. The engine and the whole train except the last three wagons were smashed.',
+                'de' => 'Ein auch mit Vieh beladener Güterzug entgleiste am französischen Ausgang des Mont-Cenis-Tunnels vor Modane. Die Lokomotive und der ganze Zug bis auf die letzten drei Wagen wurden zertrümmert.',
+                'sources' => ['wp-liste-1890', 'ddb-1896-03-09-rheinruhr', 'ddb-1896-03-10-giessen'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le mécanicien et le chauffeur ont été tués. Selon la liste de Wikipédia, deux conducteurs ont été blessés.',
+                'en' => 'The driver and the stoker were killed. According to the Wikipedia list two conductors were injured.',
+                'de' => 'Lokführer und Heizer wurden getötet. Nach der Wikipedia-Liste wurden zwei Zugbegleiter verletzt.',
+                'sources' => ['wp-liste-1890', 'ddb-1896-03-09-rheinruhr', 'ddb-1896-03-10-dresden'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La liste de Wikipédia date l\'accident du 6 mars ; la dépêche reprise par la presse allemande est datée de Modane le 8 mars, sans dire le jour de l\'accident.',
+                'en' => 'The Wikipedia list dates the accident 6 March; the dispatch carried by the German press is dated Modane 8 March and does not give the day of the accident.',
+                'de' => 'Die Wikipedia-Liste datiert den Unfall auf den 6. März; die von der deutschen Presse übernommene Depesche ist aus Modane vom 8. März datiert und nennt den Unfalltag nicht.',
+                'sources' => ['wp-liste-1890', 'ddb-1896-03-09-rheinruhr'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 2,
+            'sources' => ['wp-liste-1890', 'ddb-1896-03-09-rheinruhr', 'ddb-1896-03-10-dresden'],
+            'fr' => 'Mécanicien et chauffeur tués selon la liste de Wikipédia (Le Figaro du 9 mars 1896) et la dépêche de Modane du 8 mars ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'Driver and stoker killed according to the Wikipedia list (Le Figaro of 9 March 1896) and the Modane dispatch of 8 March; the record gave no number of deaths.',
+            'de' => 'Lokführer und Heizer getötet nach der Wikipedia-Liste (Le Figaro vom 9. März 1896) und der Depesche aus Modane vom 8. März; der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];

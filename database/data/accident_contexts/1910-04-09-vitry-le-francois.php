@@ -1,0 +1,101 @@
+<?php
+
+// Contexte sourcé du déraillement de la machine de l'Orient-Express à l'entrée de la gare de Vitry-le-François, ligne de Paris à Strasbourg, d'avril 1910 (recherche du 21/11/2026).
+return [
+    'slug' => '1910-04-09-vitry-le-francois',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1910' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1910',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Avril',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1910&oldid=233727870#Avril',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 9 avril 1910, d\'après Le Matin et Le Temps du 10 avril : à l\'arrivée en gare de Vitry-le-François, vers 4 h, la machine de l\'Orient-Express allant vers Paris déraille et se renverse sur une portion de voie en réparation après des inondations ; le chauffeur est tué, le mécanicien blessé ; les dix voyageurs des sept voitures, restées sur le ballast après la rupture de l\'attelage, sont indemnes.',
+        ],
+        'ddb-1910-04-10-bnn' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Der Unfall des Pariser Orientexpreßzuges',
+            'publisher' => 'Berliner Neueste Nachrichten (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1910-04-10',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/EQCJG5THIG5ADNHMNOJPOGLGU23OVKVI?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche de Paris du 9 avril, d\'après Vitry : l\'Orient-Express a déraillé le samedi à 4 h 10 à l\'entrée de la gare ; il a franchi à pleine vitesse un pont où il devait ralentir ; la locomotive et le tender ont arraché les rails et roulé encore 150 mètres, l\'attelage s\'est rompu ; le chauffeur, grièvement blessé, est mort pendant son transport à l\'hôpital, le chef de train légèrement blessé ; la ligne est rétablie.',
+        ],
+        'ddb-1910-04-11-langenberg' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 9. April',
+            'publisher' => 'Langenberger Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1910-04-11',
+            'locator' => 'p. 6',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/SZDPNCM5XNVAJCKX4ZWL4C63WFEQKFMR?issuepage=6',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Première dépêche de Paris du 9 avril : l\'Orient-Express a déraillé à 4 h 10 à l\'entrée de la station de Vitry-le-François ; le mécanicien et le chauffeur sont blessés, les voyageurs et les autres agents indemnes et repartis vers Paris par un autre express après une heure d\'arrêt ; le signal de marche lente n\'aurait pas été observé.',
+        ],
+        'ddb-1910-04-11-ohligs' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Der Orient-Expreßzug entgleist',
+            'publisher' => 'Ohligser Anzeiger (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1910-04-11',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/PPTLGZPGZZHISV6TIMONDDWEXJULDFWM?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Reprend les deux dépêches : signal de ralentissement non observé, passage à pleine vitesse sur le pont, chauffeur mort pendant son transport à l\'hôpital, chef de train légèrement blessé.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Le samedi 9 avril 1910, vers 4 h 10, l\'Orient-Express allant vers Paris a déraillé à l\'entrée de la gare de Vitry-le-François, sur la ligne de Paris à Strasbourg. La locomotive et le tender ont arraché les rails et roulé encore environ 150 mètres ; l\'attelage s\'est rompu, le tender est tombé sur le talus et la locomotive s\'est couchée une vingtaine de mètres plus loin. Les voitures sont restées sur le ballast.',
+                'en' => 'On Saturday 9 April 1910, at about 4.10 am, the Paris-bound Orient Express derailed on entering Vitry-le-François station on the Paris to Strasbourg line. The engine and tender tore up the rails and ran on for about 150 metres; the coupling broke, the tender fell down the embankment and the engine turned over some twenty metres further on. The coaches stayed on the ballast.',
+                'de' => 'Am Samstag, dem 9. April 1910, gegen 4.10 Uhr entgleiste der Orient-Express nach Paris bei der Einfahrt in den Bahnhof Vitry-le-François an der Strecke Paris-Straßburg. Lokomotive und Tender rissen die Schienen heraus und liefen noch etwa 150 Meter weiter; die Kupplung riss, der Tender stürzte die Böschung hinab, die Lokomotive legte sich etwa zwanzig Meter weiter auf die Seite. Die Wagen blieben auf dem Schotter.',
+                'sources' => ['wp-liste-1910', 'ddb-1910-04-10-bnn', 'ddb-1910-04-11-ohligs'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le chauffeur, grièvement blessé, est mort pendant son transport à l\'hôpital. Le mécanicien a été blessé. Les voyageurs n\'ont pas été blessés et ont continué vers Paris par un autre express après une heure d\'arrêt.',
+                'en' => 'The stoker, badly injured, died on the way to hospital. The driver was injured. The passengers were unhurt and went on to Paris in another express after an hour\'s delay.',
+                'de' => 'Der schwer verletzte Heizer starb beim Transport ins Krankenhaus, der Lokomotivführer wurde verletzt. Die Reisenden blieben unverletzt und fuhren nach einer Stunde Aufenthalt mit einem anderen Schnellzug nach Paris weiter.',
+                'sources' => ['ddb-1910-04-10-bnn', 'ddb-1910-04-11-langenberg', 'wp-liste-1910'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La liste de Wikipédia attribue le déraillement à une portion de voie en réparation après des inondations. Selon les dépêches de Paris, le train a franchi à pleine vitesse un pont où il devait ralentir, sans observer le signal de marche lente. Les dépêches citent aussi le chef de train légèrement blessé, la liste le mécanicien.',
+                'en' => 'The Wikipedia list attributes the derailment to a stretch of track under repair after flooding. According to the Paris dispatches, the train crossed a bridge at full speed where it should have slowed down, ignoring the caution signal. The dispatches also mention the guard as slightly injured, the list the driver.',
+                'de' => 'Die Wikipedia-Liste führt die Entgleisung auf einen nach Überschwemmungen in Reparatur befindlichen Gleisabschnitt zurück. Nach den Pariser Depeschen fuhr der Zug mit voller Geschwindigkeit über eine Brücke, auf der er langsam fahren sollte, ohne das Langsamfahrsignal zu beachten. Die Depeschen nennen außerdem den Zugführer leicht verletzt, die Liste den Lokomotivführer.',
+                'sources' => ['wp-liste-1910', 'ddb-1910-04-10-bnn', 'ddb-1910-04-11-langenberg'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 1,
+            'sources' => ['wp-liste-1910', 'ddb-1910-04-10-bnn'],
+            'fr' => 'Chauffeur tué selon la liste de Wikipédia (Le Matin du 10 avril 1910) et mort pendant son transport à l\'hôpital selon la presse allemande ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'Stoker killed according to the Wikipedia list (Le Matin of 10 April 1910), died on the way to hospital according to the German press; the record gave no number of deaths.',
+            'de' => 'Heizer getötet nach der Wikipedia-Liste (Le Matin vom 10. April 1910), nach der deutschen Presse beim Transport ins Krankenhaus gestorben; der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];

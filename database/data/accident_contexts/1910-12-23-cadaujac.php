@@ -1,0 +1,101 @@
+<?php
+
+// Contexte sourcé de la collision de deux trains de marchandises dans le brouillard en gare de Cadaujac, ligne de Bordeaux à Sète, de décembre 1910 (recherche du 21/11/2026).
+return [
+    'slug' => '1910-12-23-cadaujac',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1910' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1910',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Décembre',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1910&oldid=233727870#D%C3%A9cembre',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 23 décembre 1910, d\'après Le Matin du 24 décembre : sur la ligne Bordeaux - Montauban, vers 20 h, deux trains de marchandises se prennent en écharpe dans le brouillard en gare de Cadaujac, une vingtaine de kilomètres avant Bordeaux ; un mécanicien est tué.',
+        ],
+        'ddb-1910-12-24-mannheim' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 24. Dezbr.',
+            'publisher' => 'General-Anzeiger der Stadt Mannheim und Umgebung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1910-12-24',
+            'locator' => 'p. 4',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/H4Z7CB67FW2M42ACAAVDYKYJIMEGHCIV?issuepage=4',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Dépêche sur la catastrophe d\'Arbanats, puis : sur la même ligne, une collision de deux trains de marchandises avait eu lieu auparavant près de Cadaujac à cause du brouillard ; un mécanicien y a été tué ; on dit que les perturbations qui ont suivi ont causé la catastrophe d\'Arbanats.',
+        ],
+        'ddb-1910-12-28-centralvolksblatt' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahnunglücke in Frankreich',
+            'publisher' => 'Central-Volksblatt für den Regierungsbezirk Arnsberg (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1910-12-28',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/GIT2NO2WYGPE7EC7SVLDGT3MRMFAGY33?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même texte : collision de deux trains de marchandises près de Cadaujac dans le brouillard, un mécanicien tué ; l\'accident d\'Arbanats serait dû aux perturbations qui ont suivi.',
+        ],
+        'ddb-1910-12-27-luedenscheid' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Eisenbahnunglücke in Frankreich',
+            'publisher' => 'Lüdenscheider Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1910-12-27',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/OCQQ6XML6LDQJ7Q2PG4T5GPYAPMRONK4?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même dépêche : collision de deux trains de marchandises près de Cadaujac dans le brouillard, un mécanicien tué.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Le 23 décembre 1910, vers 20 h, deux trains de marchandises se sont heurtés dans le brouillard en gare de Cadaujac, à une vingtaine de kilomètres de Bordeaux, sur la ligne de Bordeaux à Sète.',
+                'en' => 'On 23 December 1910, at about 8 pm, two goods trains collided in fog at Cadaujac station, some twenty kilometres from Bordeaux, on the Bordeaux to Sète line.',
+                'de' => 'Am 23. Dezember 1910 gegen 20 Uhr stießen im Nebel im Bahnhof Cadaujac, etwa zwanzig Kilometer vor Bordeaux an der Strecke Bordeaux-Sète, zwei Güterzüge zusammen.',
+                'sources' => ['wp-liste-1910', 'ddb-1910-12-24-mannheim', 'ddb-1910-12-28-centralvolksblatt'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Un mécanicien a été tué.',
+                'en' => 'A driver was killed.',
+                'de' => 'Ein Lokomotivführer kam ums Leben.',
+                'sources' => ['wp-liste-1910', 'ddb-1910-12-24-mannheim', 'ddb-1910-12-27-luedenscheid'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'La presse allemande rapporte que les perturbations causées par cette collision seraient à l\'origine, le même soir et sur la même ligne, de la catastrophe d\'Arbanats.',
+                'en' => 'The German press reports that the disruption caused by this collision was said to have led, the same evening and on the same line, to the Arbanats disaster.',
+                'de' => 'Die deutsche Presse berichtet, die durch diesen Zusammenstoß verursachten Betriebsstörungen hätten am selben Abend auf derselben Strecke zur Katastrophe von Arbanats geführt.',
+                'sources' => ['ddb-1910-12-24-mannheim', 'ddb-1910-12-28-centralvolksblatt'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 1,
+            'sources' => ['wp-liste-1910', 'ddb-1910-12-24-mannheim'],
+            'fr' => 'Un mécanicien tué selon la liste de Wikipédia (Le Matin du 24 décembre 1910) et la presse allemande ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'One driver killed according to the Wikipedia list (Le Matin of 24 December 1910) and the German press; the record gave no number of deaths.',
+            'de' => 'Ein Lokomotivführer getötet nach der Wikipedia-Liste (Le Matin vom 24. Dezember 1910) und der deutschen Presse; der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];
