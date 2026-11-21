@@ -1,0 +1,101 @@
+<?php
+
+// Contexte sourcé de l'explosion d'une locomotive sous pression près du pont de l'Europe, en gare Saint-Lazare, de juillet 1904 (recherche du 21/11/2026).
+return [
+    'slug' => '1904-07-04-paris',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1904' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1904',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Juillet',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1904&oldid=240831504#Juillet',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 4 juillet 1904, d\'après La Presse du 5 juillet : à 10 h 45, en gare Saint-Lazare, une locomotive sous pression stationnée près du pont de l\'Europe explose ; des pièces de chaudière de plus d\'une tonne sont projetées à des dizaines de mètres ; un blessé grave, le chauffeur, et une quinzaine de blessés légers, voyageurs d\'un train qui entrait en gare et riverains de la rue de Berne.',
+        ],
+        'ddb-1904-07-05-hannover' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Krachen der Kessel einer Lokomotive',
+            'publisher' => 'Hannoverscher Kurier (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1904-07-05',
+            'locator' => 'p. 7',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/UE65Z774MPUGBWGATKIDFHTNSQVPVQSA?issuepage=7',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Correspondance de Paris : la chaudière d\'une locomotive arrêtée sur une voie de manœuvre de la gare Saint-Lazare a explosé au moment où son chauffeur et son mécanicien revenaient de déjeuner ; aucune perte de vie humaine ; la chaudière s\'est rompue en cinq morceaux projetés en l\'air.',
+        ],
+        'ddb-1904-07-05-tageblatt' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Explosion auf einem Pariser Bahnhof',
+            'publisher' => 'Berliner Tageblatt und Handels-Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1904-07-05',
+            'locator' => 'p. 6',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/O4IRBEFMVT2SLGY2PY2TWPQJAHLFCG4J?issuepage=6',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Télégramme de Paris : la chaudière d\'une locomotive a explosé en gare Saint-Lazare ; de nombreuses personnes ont été assez grièvement blessées.',
+        ],
+        'ddb-1904-07-05-wald' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'In Paris explodierte der Kessel einer Lokomotive',
+            'publisher' => 'Walder Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1904-07-05',
+            'locator' => 'p. 7',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/723ZQWDURXYJCF7CGGE7SBURMBRYCTBJ?issuepage=7',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Brève : à Paris, la chaudière d\'une locomotive stationnée près de la gare Saint-Lazare a explosé ; six personnes grièvement blessées.',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Le 4 juillet 1904, vers 10 h 45, la chaudière d\'une locomotive sous pression, arrêtée sur une voie de manœuvre de la gare Saint-Lazare près du pont de l\'Europe, a explosé. Les morceaux de la chaudière, dont certains pesaient plus d\'une tonne, ont été projetés à des dizaines de mètres et ont causé de gros dégâts dans le quartier.',
+                'en' => 'On 4 July 1904, at about 10.45 am, the boiler of an engine in steam, standing on a shunting track at Saint-Lazare station near the Pont de l\'Europe, exploded. Pieces of the boiler, some weighing more than a tonne, were thrown dozens of metres and caused heavy damage in the neighbourhood.',
+                'de' => 'Am 4. Juli 1904 gegen 10.45 Uhr explodierte der Kessel einer unter Dampf stehenden Lokomotive, die auf einem Rangiergleis des Bahnhofs Saint-Lazare nahe dem Pont de l\'Europe stand. Kesselteile, manche über eine Tonne schwer, wurden Dutzende Meter weit geschleudert und richteten im Viertel große Schäden an.',
+                'sources' => ['wp-liste-1904', 'ddb-1904-07-05-hannover'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Personne n\'a été tué. Le chauffeur de la machine a été grièvement blessé ; des voyageurs d\'un train qui entrait en gare et des habitants de la rue de Berne ont été plus légèrement atteints.',
+                'en' => 'Nobody was killed. The engine\'s stoker was badly injured; passengers on a train entering the station and residents of the Rue de Berne were less seriously hurt.',
+                'de' => 'Getötet wurde niemand. Der Heizer der Lokomotive wurde schwer verletzt; Reisende eines einfahrenden Zugs und Anwohner der Rue de Berne kamen mit leichteren Verletzungen davon.',
+                'sources' => ['wp-liste-1904', 'ddb-1904-07-05-hannover'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La liste de Wikipédia compte un blessé grave et une quinzaine de blessés légers ; la Walder Zeitung annonce six blessés graves, le Berliner Tageblatt de nombreuses personnes assez grièvement blessées.',
+                'en' => 'The Wikipedia list counts one person badly injured and about fifteen slightly; the Walder Zeitung reports six seriously injured, the Berliner Tageblatt many people fairly badly hurt.',
+                'de' => 'Die Wikipedia-Liste zählt einen Schwerverletzten und etwa fünfzehn Leichtverletzte; die Walder Zeitung meldet sechs Schwerverletzte, das Berliner Tageblatt viele ziemlich schwer verletzte Personen.',
+                'sources' => ['wp-liste-1904', 'ddb-1904-07-05-wald', 'ddb-1904-07-05-tageblatt'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 0,
+            'sources' => ['wp-liste-1904', 'ddb-1904-07-05-hannover'],
+            'fr' => 'Aucun mort selon la liste de Wikipédia (La Presse du 5 juillet 1904) et le Hannoverscher Kurier ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'No deaths according to the Wikipedia list (La Presse of 5 July 1904) and the Hannoverscher Kurier; the record gave no number of deaths.',
+            'de' => 'Keine Toten nach der Wikipedia-Liste (La Presse vom 5. Juli 1904) und dem Hannoverschen Kurier; der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];
