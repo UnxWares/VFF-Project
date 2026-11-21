@@ -213,7 +213,7 @@
             <p class="grade-where">{t('profile.grade')}{colon(lang)}{gradeWhere}</p>
         {:else}
             <p class="grade-where">
-                {t(`profile.grade_withheld_${s.max_grade_withheld ?? 'terrain_only'}`)}
+                {t(`profile.grade_withheld_${s.max_grade_withheld ?? 'none'}`)}
             </p>
         {/if}
 

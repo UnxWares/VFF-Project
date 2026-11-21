@@ -276,8 +276,10 @@ final class ProfileStats
      * pas de valeur plutôt qu'une valeur fausse) : au moins les trois quarts des points pris dans la
      * BD TOPO, au plus un quart en tunnel (altitude reconstituée, fausse près des têtes) et au plus
      * un quart interpolés, et la moitié au moins des points de la ligne mesurés sur la voie ; jamais à travers une lacune ; jamais au-delà de MAX_PLAUSIBLE_GRADE.
-     * Sans fenêtre admise, `max_grade_permil` et ses bornes sont nuls et `max_grade_withheld` dit
-     * pourquoi : `terrain_only` (altitude du terrain seulement), `tunnel` ou `interpolated`. Sur une
+     * Sans fenêtre admise, `max_grade_permil` et ses bornes sont nuls (jamais 0 ‰ par défaut) et
+     * `max_grade_withheld` dit pourquoi : `terrain_only` (altitude du terrain seulement), `tunnel` ou
+     * `interpolated` ; sans drapeaux et sans fenêtre complète refusée (parcours trop court), le motif
+     * est nul aussi : rien n'est affirmé. Sur une
      * ligne à crémaillère (`$rack`, RackRailways), elle n'est jamais publiée (motif `rack`) : la
      * règle des 120 ‰ ne garde que les pentes d'une ligne à adhérence.
      *
@@ -299,19 +301,19 @@ final class ProfileStats
 
         [$ascent, $descent] = self::climbs(self::smoothTerrain($points, $gaps, $flags), $gaps);
         $grade = $rack
-            ? ['permil' => 0.0, 'from' => 0.0, 'to' => 0.0, 'withheld' => 'rack']
+            ? ['permil' => null, 'from' => 0.0, 'to' => 0.0, 'withheld' => 'rack']
             : self::maxGrade($points, $gaps, $flags);
-        $found = $grade['withheld'] === null;
+        $found = $grade['permil'] !== null;
 
         return [
             'min_altitude_m' => round(min($zs), 1),
             'max_altitude_m' => round(max($zs), 1),
             'ascent_m' => round($ascent),
             'descent_m' => round($descent),
-            'max_grade_permil' => $found ? round(abs($grade['permil']), 1) : null,
+            'max_grade_permil' => $found ? round(abs((float) $grade['permil']), 1) : null,
             'max_grade_from_m' => $found ? (int) round($grade['from']) : null,
             'max_grade_to_m' => $found ? (int) round($grade['to']) : null,
-            'max_grade_direction' => $found ? ($grade['permil'] >= 0 ? 'up' : 'down') : null,
+            'max_grade_direction' => $found ? ((float) $grade['permil'] >= 0 ? 'up' : 'down') : null,
             'max_grade_withheld' => $grade['withheld'],
         ];
     }
@@ -412,7 +414,7 @@ final class ProfileStats
      * @param  list<array{0: float, 1: float|null}>  $points
      * @param  list<array{0: float, 1: float}>  $gaps
      * @param  list<array{track: bool, tunnel: bool, interpolated: bool}>  $flags
-     * @return array{permil: float, from: float, to: float, withheld: string|null}
+     * @return array{permil: float|null, from: float, to: float, withheld: string|null}
      */
     private static function maxGrade(array $points, array $gaps, array $flags): array
     {
@@ -468,7 +470,7 @@ final class ProfileStats
             $known = array_filter($flags, fn (array $f, int $k): bool => $points[$k][1] !== null, ARRAY_FILTER_USE_BOTH);
             $track = count(array_filter($known, fn (array $f): bool => $f['track']));
             if ($track * 2 < count($known)) {
-                return ['permil' => 0.0, 'from' => $first, 'to' => $first, 'withheld' => 'terrain_only'];
+                return ['permil' => null, 'from' => $first, 'to' => $first, 'withheld' => 'terrain_only'];
             }
         }
         if ($best !== null) {
@@ -482,7 +484,9 @@ final class ProfileStats
             $reason = $track * 4 < count($flags) * 3 ? 'terrain_only' : 'interpolated';
         }
 
-        return ['permil' => 0.0, 'from' => $first, 'to' => $first, 'withheld' => ($flags === [] && max($refused) === 0) ? null : $reason];
+        // Sans drapeaux et sans fenêtre refusée (trois points sur moins de 750 m, pente écartée comme
+        // artefact...) : aucun motif à donner, mais aucune pente non plus (jamais 0 ‰ par défaut).
+        return ['permil' => null, 'from' => $first, 'to' => $first, 'withheld' => ($flags === [] && max($refused) === 0) ? null : $reason];
     }
 
     /**

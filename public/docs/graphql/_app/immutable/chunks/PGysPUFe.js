@@ -2854,7 +2854,7 @@ type LineProfileSummary {
   max_grade_to_m: Int
   "\`up\` : rampe dans le sens du parcours ; \`down\` : pente ; nul si non publiée."
   max_grade_direction: String
-  "Motif de non-publication de la déclivité : \`terrain_only\` (altitude du terrain seulement, voie absente de la BD TOPO), \`tunnel\` (fenêtres surtout en tunnel), \`interpolated\` (fenêtres surtout interpolées), \`rack\` (ligne à crémaillère : voir \`LineProfile.rack\`) ; nul quand elle est publiée."
+  "Motif de non-publication de la déclivité : \`terrain_only\` (altitude du terrain seulement, voie absente de la BD TOPO), \`tunnel\` (fenêtres surtout en tunnel), \`interpolated\` (fenêtres surtout interpolées), \`rack\` (ligne à crémaillère : voir \`LineProfile.rack\`) ; nul quand elle est publiée, et nul aussi quand aucune portion de 1 km n'est exploitable (parcours trop court : ni valeur ni motif)."
   max_grade_withheld: String
   "Méthode de calcul de \`ascent_m\` et \`descent_m\`."
   climb_method: LineProfileClimbMethod!
