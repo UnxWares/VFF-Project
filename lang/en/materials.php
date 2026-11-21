@@ -204,5 +204,8 @@ return [
         'source' => 'Source: :publisher',
         'reported' => ':publisher, citing :reported',
         'range' => ':from to :to',
+        // Profil dessiné d'une rame (resources/js/lib/tgvSudEst.js).
+        'profile_alt' => 'Side view of set :number in the original orange livery: the long-nosed power car, then the first coach, with a dark grey band along the windows and a broad white stripe below it.',
+        'profile_caption' => 'Front of the set, drawn to scale from published dimensions.',
     ],
 ];

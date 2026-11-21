@@ -204,5 +204,8 @@ return [
         'source' => 'Quelle: :publisher',
         'reported' => ':publisher, nach :reported',
         'range' => ':from bis :to',
+        // Profil dessiné d'une rame (resources/js/lib/tgvSudEst.js).
+        'profile_alt' => 'Seitenansicht des Triebzugs :number in der ursprünglichen orangen Lackierung: der Triebkopf mit langer Nase, dann der erste Wagen, mit einem dunkelgrauen Fensterband und einem breiten weißen Streifen darunter.',
+        'profile_caption' => 'Zugspitze, maßstäblich nach veröffentlichten Maßen gezeichnet.',
     ],
 ];

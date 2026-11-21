@@ -1,4 +1,5 @@
-// Rames remarquables d'une série (fiche matériel) : date d'un fait selon sa précision.
+// Rames remarquables d'une série (fiche matériel) : date d'un fait selon sa précision, profil dessiné.
+import { tgvSudEstSvg } from './tgvSudEst.js';
 import { firstOfMonth, formatLocale } from './typo.js';
 
 /** @type {Record<string, Intl.DateTimeFormatOptions>} */
@@ -42,4 +43,35 @@ export function notableFactDate(fact, t, lang = 'fr') {
     }
 
     return t('materials.notable.range', { from: start, to: end });
+}
+
+/**
+ * Profils dessinés pour VFF, par série puis numéro de rame : la tête de rame (motrice et première voiture,
+ * 47 m) dans la livrée orange d'origine, cadrée à gauche pour garder le nez visible à toutes les largeurs.
+ * @type {Record<string, Record<string, () => string>>}
+ */
+const PROFILES = {
+    'tgv-sud-est': {
+        '01': () =>
+            tgvSudEstSvg({
+                number: '01',
+                to: 470,
+                rail: true,
+                scale: 2,
+                className: 'notable-profile-svg',
+                fit: 'xMinYMax slice',
+                id: 'vff-notable-tgv-sud-est-01',
+            }),
+    },
+};
+
+/**
+ * Profil SVG (décoratif) d'une rame remarquable, ou null si aucun n'est dessiné.
+ * @param {string|null|undefined} series slug de la série
+ * @param {string} number numéro de la rame
+ */
+export function notableProfile(series, number) {
+    const units = series && Object.hasOwn(PROFILES, series) ? PROFILES[series] : null;
+
+    return units && Object.hasOwn(units, number) ? units[number]() : null;
 }

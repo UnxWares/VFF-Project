@@ -451,7 +451,7 @@
         </SheetSection>
 
         {#if notable_units.length}
-            <NotableUnits units={notable_units} />
+            <NotableUnits units={notable_units} series={material.slug} />
         {/if}
 
         <SheetSection

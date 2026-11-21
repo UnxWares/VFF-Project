@@ -1,7 +1,8 @@
 // Passage de la rame TGV Sud-Est n° 01 « Patrick » en bas de l'écran, importé par patrick.js au déclenchement.
-// Silhouette dessinée pour VFF (aucune image reprise) : motrices et voitures orange #ff6500, bandes blanches
-// de la livrée d'origine, bogies partagés entre voitures. Une bulle mène à la fiche de la série.
+// Profil à l'échelle dessiné pour VFF (tgvSudEst.js, aucune image reprise) : deux motrices, huit remorques sur
+// bogies Jacobs, livrée orange d'origine, pantographe de la motrice de queue levé. Une bulle mène à la fiche.
 // Mouvement réduit : pas de rame qui défile, la bulle seule. Le focus ne bouge pas ; Échap ou le bouton ferment.
+import { PROFILE_TOP, TRAIN_LENGTH, tgvSudEstSvg } from './tgvSudEst.js';
 
 /** Fiche de la série TGV Sud-Est. */
 export const PATRICK_HREF = '/materials/tgv-sud-est';
@@ -26,62 +27,22 @@ export function patrickPlan(reducedMotion) {
         : { animate: true, lifetimeMs: CROSSING_MS + BUBBLE_EXTRA_MS };
 }
 
-/** Bandes de la livrée d'origine : une claire sous les baies, une fine plus bas. */
-function stripes(x, width) {
-    return (
-        `<rect x="${x}" y="27" width="${width}" height="2.4" fill="#fff"/>` +
-        `<rect x="${x}" y="33" width="${width}" height="1.2" fill="#fff"/>`
-    );
-}
-
-/** Voiture remorque : caisse, bandeau de baies, bandes. */
-function coach(x) {
-    return (
-        `<rect x="${x}" y="12" width="92" height="26" rx="5" fill="#ff6500"/>` +
-        `<rect x="${x + 6}" y="17" width="80" height="6" rx="2" fill="#3a2e28"/>` +
-        stripes(x + 2, 88)
-    );
-}
-
-/** Motrice, nez profilé vers la gauche (sens de marche) ; `flip` la retourne pour l'arrière. */
-function powerCar(x, flip = false) {
-    const body =
-        '<path d="M2 38 L2 30 C2 22 12 14 30 12 L104 12 Q108 12 108 16 L108 38 Z" fill="#ff6500"/>' +
-        '<path d="M14 21 C18 17 24 15 32 15 L40 15 L40 22 L14 22 Z" fill="#3a2e28"/>' +
-        '<path d="M6 30 L106 30" stroke="#fff" stroke-width="2.4"/>' +
-        '<path d="M10 34.5 L106 34.5" stroke="#fff" stroke-width="1.2"/>' +
-        '<circle cx="30" cy="40" r="4.2" fill="#2b2622"/><circle cx="84" cy="40" r="4.2" fill="#2b2622"/>' +
-        '<path d="M70 12 L80 4 M80 4 L92 4" stroke="#3a2e28" stroke-width="1.4" fill="none"/>';
-    const transform = flip ? `translate(${x + 110} 0) scale(-1 1)` : `translate(${x} 0)`;
-
-    return `<g transform="${transform}">${body}</g>`;
-}
-
-/** Silhouette entière : motrice, quatre voitures sur bogies partagés, motrice arrière. */
+/** Rame entière, nez à gauche (sens de marche), à 1,2 px par décimètre : 2 402 × 64 px. */
 export function patrickSvg() {
-    const coaches = [116, 212, 308, 404];
-    const bogies = [114, 210, 306, 402, 498]
-        .map((x) => `<circle cx="${x}" cy="40" r="4.2" fill="#2b2622"/>`)
-        .join('');
-
-    return (
-        '<svg class="vff-patrick-train" viewBox="0 0 616 46" width="616" height="46" aria-hidden="true" focusable="false">' +
-        '<rect x="0" y="44" width="616" height="2" rx="1" fill="currentColor" opacity="0.35"/>' +
-        powerCar(0) +
-        coaches.map(coach).join('') +
-        bogies +
-        powerCar(502, true) +
-        '</svg>'
-    );
+    return tgvSudEstSvg({ number: '01', raised: true, scale: 1.2, className: 'vff-patrick-train' });
 }
 
 const STYLE = `
 #${ROOT_ID} { position: fixed; inset: auto 0 0 0; z-index: 70; pointer-events: none; color: var(--vff-text-muted, #57524a); }
-#${ROOT_ID} .vff-patrick-track { position: relative; height: 54px; overflow: hidden; }
-#${ROOT_ID} .vff-patrick-train { position: absolute; left: 0; bottom: 4px; width: 616px; max-width: none; height: auto;
-    animation: vff-patrick-run ${CROSSING_MS}ms linear forwards; }
-@keyframes vff-patrick-run { from { transform: translateX(100vw); } to { transform: translateX(-640px); } }
-#${ROOT_ID} .vff-patrick-bubble { pointer-events: auto; position: absolute; right: 16px; bottom: 64px; display: flex;
+#${ROOT_ID} .vff-patrick-track { position: relative; height: 76px; overflow: hidden; }
+#${ROOT_ID} .vff-patrick-track::after { content: ''; position: absolute; inset: auto 0 4px; height: 2px;
+    border-radius: 1px; background: currentColor; opacity: 0; animation: vff-patrick-rail ${CROSSING_MS}ms ease forwards; }
+#${ROOT_ID} .vff-patrick-train { position: absolute; left: 0; bottom: 6px; width: auto; max-width: none;
+    height: clamp(52px, 2vw + 46px, 66px); aspect-ratio: ${Math.round(TRAIN_LENGTH)} / ${PROFILE_TOP.raised};
+    will-change: transform; animation: vff-patrick-run ${CROSSING_MS}ms linear forwards; }
+@keyframes vff-patrick-run { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
+@keyframes vff-patrick-rail { 8%, 88% { opacity: 0.35; } }
+#${ROOT_ID} .vff-patrick-bubble { pointer-events: auto; position: absolute; right: 16px; bottom: 86px; display: flex;
     align-items: center; gap: 8px; max-width: min(420px, calc(100vw - 32px)); padding: 10px 8px 10px 16px;
     border-radius: 16px; background: var(--vff-bg-elevated, #fcfbf8); color: var(--vff-text, #25221e);
     border: 1px solid var(--vff-border-strong, #cfc8bb); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);

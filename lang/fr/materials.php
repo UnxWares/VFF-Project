@@ -205,5 +205,8 @@ return [
         'source' => 'Source : :publisher',
         'reported' => ':publisher, d’après :reported',
         'range' => ':from au :to',
+        // Profil dessiné d'une rame (resources/js/lib/tgvSudEst.js).
+        'profile_alt' => 'Profil de la rame :number dans la livrée orange d’origine : la motrice au long nez, puis la première voiture, avec un bandeau gris foncé le long des baies et une large bande blanche en dessous.',
+        'profile_caption' => 'Tête de rame dessinée à l’échelle d’après les cotes publiées.',
     ],
 ];

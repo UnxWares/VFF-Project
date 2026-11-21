@@ -1,18 +1,24 @@
 <script>
     /**
-     * Rames remarquables d'une série (fiche matériel) : pour chaque rame, ses faits datés dans l'ordre du
-     * récit, chacun avec le lien de la page qui le rapporte, puis ce que les sources ne disent pas.
-     * Données : prop `notable_units` de MaterialController::show (database/data/material_notable_units.php).
+     * Rames remarquables d'une série (fiche matériel) : pour chaque rame, son profil quand VFF l'a dessiné,
+     * ses faits datés dans l'ordre du récit, chacun avec le lien de la page qui le rapporte, puis ce que les
+     * sources ne disent pas.
+     * Données : prop `notable_units` de MaterialController::show (database/data/material_notable_units.php) ;
+     * `series` : slug de la série, qui choisit le profil (notableProfile, $lib/notableUnits.js).
      */
     import SheetSection from '$components/Sheet/SheetSection.svelte';
     import { i18n } from '$lib/i18n.js';
-    import { notableDate, notableFactDate } from '$lib/notableUnits.js';
+    import { notableDate, notableFactDate, notableProfile } from '$lib/notableUnits.js';
     import { colon, quoted } from '$lib/typo.js';
 
-    /** @type {{ units: Array<{ number: string, nickname: string|null, facts: Array<any>, unknown: string|null }> }} */
-    let { units } = $props();
+    /** @type {{ units: Array<{ number: string, nickname: string|null, facts: Array<any>, unknown: string|null }>, series?: string|null }} */
+    let { units, series = null } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
+    /** Profil SVG dessiné de chaque rame (numéro → balisage), null si la rame n'en a pas. */
+    const profiles = $derived(
+        Object.fromEntries(units.map((u) => [u.number, notableProfile(series, u.number)])),
+    );
     const t = (key, opts) => String($i18n.t(key, opts));
 
     /** Langue de la citation : celle de la page citée (Wikipédia en anglais, presse en français). */
@@ -55,6 +61,19 @@
                     ? t('materials.notable.unit', { number: unit.number, nickname: unit.nickname })
                     : t('materials.notable.unit_plain', { number: unit.number })}
             </h3>
+            {#if profiles[unit.number]}
+                <figure class="profile">
+                    <div
+                        class="drawing"
+                        role="img"
+                        aria-label={t('materials.notable.profile_alt', { number: unit.number })}
+                    >
+                        <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+                        {@html profiles[unit.number]}
+                    </div>
+                    <figcaption>{t('materials.notable.profile_caption')}</figcaption>
+                </figure>
+            {/if}
             {#if traitsOf(unit).length}
                 <ul class="facts traits">
                     {#each traitsOf(unit) as fact (fact.kind)}
@@ -90,6 +109,25 @@
         font-size: var(--vff-fs-h3);
         line-height: 1.3;
         color: var(--vff-text);
+    }
+    /* Profil à l'échelle : nez calé à gauche, la rame s'efface vers la droite. */
+    .profile {
+        margin: 0 0 var(--vff-space-5);
+    }
+    .drawing {
+        height: clamp(60px, 2vw + 54px, 76px);
+        color: var(--vff-text-muted);
+        mask-image: linear-gradient(to right, #000 82%, transparent);
+    }
+    .drawing :global(svg) {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+    figcaption {
+        margin-top: var(--vff-space-2);
+        color: var(--vff-text-muted);
+        font-size: var(--vff-fs-sm);
     }
     .facts {
         display: flex;
