@@ -183,7 +183,7 @@
         min-height: 44px;
         padding: 12px 0 22px;
         font-family: var(--vff-font-heading);
-        font-size: 0.9375rem;
+        font-size: var(--vff-fs-sm);
         line-height: 1.35;
         color: var(--vff-text-muted);
         white-space: nowrap;

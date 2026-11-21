@@ -113,7 +113,8 @@
     let width = $state(0);
     const narrow = $derived(width > 0 && width < 600);
     const height = $derived(narrow ? 240 : 300);
-    const pad = $derived({ top: 34, right: 12, bottom: 44, left: narrow ? 64 : 76 });
+    // Marges en px pour des textes de 17 px (altitudes à gauche, kilomètres et légende de l'axe en bas).
+    const pad = $derived({ top: 36, right: 12, bottom: 50, left: narrow ? 72 : 84 });
     const plotW = $derived(Math.max(10, width - pad.left - pad.right));
     const plotH = $derived(height - pad.top - pad.bottom);
     const baseY = $derived(pad.top + plotH);
@@ -125,18 +126,18 @@
     );
     const yTicks = $derived(ticks(domain[0], domain[1], narrow ? 3 : 4));
     const xTicks = $derived(
-        ticks(0, profile.length_m / 1000, Math.max(3, Math.floor(plotW / 64))).filter(
+        ticks(0, profile.length_m / 1000, Math.max(3, Math.floor(plotW / 72))).filter(
             (k) => k * 1000 <= profile.length_m,
         ),
     );
     const line = $derived(linePath(profile.points, x, y, profile.gaps));
     const area = $derived(areaPath(profile.points, x, y, baseY, profile.gaps));
-    // Largeur d'un nom en Inter 14 px : 7,6 px par caractère en moyenne (mesuré sur les noms de gares).
+    // Largeur d'un nom en Inter 17 px : 9,2 px par caractère en moyenne (7,6 px mesurés à 14 px).
     const named = $derived(
         labelledStations(profile.stations, x, {
             left: 0,
             right: width,
-            labelWidth: (name) => name.length * 7.6,
+            labelWidth: (name) => name.length * 9.2,
             principal: (st) => !closed(st),
         }),
     );
@@ -249,11 +250,11 @@
                             >
                         {/each}
                         {#each xTicks as k (k)}
-                            <text class="tick" x={x(k * 1000)} y={baseY + 22} text-anchor="middle"
+                            <text class="tick" x={x(k * 1000)} y={baseY + 24} text-anchor="middle"
                                 >{formatNumber(k, lang)}</text
                             >
                         {/each}
-                        <text class="axis" x={pad.left + plotW} y={height - 4} text-anchor="end"
+                        <text class="axis" x={pad.left + plotW} y={height - 6} text-anchor="end"
                             >{t('profile.axis_distance')}</text
                         >
 
@@ -529,7 +530,7 @@
     .tick,
     .axis {
         font-family: Inter, sans-serif;
-        font-size: 14px;
+        font-size: 17px;
         font-variant-numeric: tabular-nums;
         fill: var(--vff-text-muted);
     }
@@ -594,7 +595,7 @@
     }
     .station-name {
         font-family: Inter, sans-serif;
-        font-size: 14px;
+        font-size: 17px;
         fill: var(--vff-text);
     }
     .cursor {

@@ -282,13 +282,17 @@
     }
     .legend div {
         display: flex;
+        flex-wrap: wrap;
         align-items: baseline;
         gap: 8px;
     }
     .legend dt {
         flex-shrink: 0;
     }
+    /* Le texte passe sous l'étiquette quand la colonne est trop étroite (mots longs en allemand). */
     .legend dd {
+        flex: 1 1 10rem;
+        min-width: 0;
         margin: 0;
         color: var(--vff-text-muted);
     }
@@ -385,6 +389,8 @@
     }
     td.fact {
         line-height: 1.5;
+        /* Un mot trop long pour la colonne (allemand, 320 px) se coupe au lieu de déborder. */
+        overflow-wrap: break-word;
     }
     .desc {
         display: block;
