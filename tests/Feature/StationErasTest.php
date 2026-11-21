@@ -337,6 +337,42 @@ class StationErasTest extends TestCase
     }
 
     /**
+     * Orléans : Wikidata donne une « réouverture » en 2007 (nouveau bâtiment) sans fermeture avant. La fin des
+     * voyageurs d'une ligne voisine (Les Aubrais - Malesherbes, 1969) ne ferme pas la gare tant qu'une autre de
+     * ses lignes la dessert (Paris - Bordeaux) ; quand toutes ses lignes ont fermé avant la réouverture, la
+     * plus tardive de ces fermetures est la fermeture déduite (Nantes - Châteaubriant, rouverte en 2014).
+     */
+    public function test_reopened_station_is_closed_before_only_if_all_its_lines_were_closed(): void
+    {
+        $branch = $this->line('683000', 48.60, 'in_service', 'freight');
+        $main = $this->line('570000', 48.60, 'in_service', 'mixed');
+        $station = $this->station('Orléans', 48.60, 'active', $branch);
+        DB::table('station_lines')->insert(['station_id' => $station->id, 'line_id' => $main->id, 'method' => 'sncf_pk', 'pk_m' => 5000,
+            'pk_source' => 'sncf', 'distance_m' => 0, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('station_events')->insert(['station_id' => $station->id, 'type' => 'reopening', 'event_date' => '2007-01-01',
+            'date_precision' => 'year', 'source' => 'wikidata', 'is_inferred' => false, 'created_at' => now(), 'updated_at' => now()]);
+        $close = fn (Line $line, string $date) => DB::table('line_events')->insert(['line_id' => $line->id, 'type' => 'closure_passenger',
+            'event_date' => $date, 'date_precision' => 'day', 'description' => 'Fermeture aux voyageurs', 'section_resolution' => 'whole_line',
+            'created_at' => now(), 'updated_at' => now()]);
+        $close($branch, '1969-11-04');
+
+        $this->artisan('vff:build-station-eras')->assertSuccessful();
+        $this->assertNull($this->passengerClosureDate($station->id));
+
+        // Toutes ses lignes fermées aux voyageurs avant la réouverture : la plus tardive.
+        $close($main, '1980-05-31');
+        $this->artisan('vff:build-station-eras')->assertSuccessful();
+        $this->assertSame('1980-05-31', $this->passengerClosureDate($station->id));
+
+        // Une ligne rattachée par son seul terminus n'est pas exigée (même règle que la fermeture aux voyageurs).
+        $tram = $this->line('895200', 48.60, 'dismantled', 'unknown');
+        DB::table('station_lines')->insert(['station_id' => $station->id, 'line_id' => $tram->id, 'method' => 'terminus_name', 'pk_m' => 0,
+            'distance_m' => 200, 'source_ref' => 'name:orleans', 'created_at' => now(), 'updated_at' => now()]);
+        $this->artisan('vff:build-station-eras')->assertSuccessful();
+        $this->assertSame('1980-05-31', $this->passengerClosureDate($station->id));
+    }
+
+    /**
      * Date de fermeture aux voyageurs déduite pour une gare (relue en base à chaque appel).
      *
      * @phpstan-impure

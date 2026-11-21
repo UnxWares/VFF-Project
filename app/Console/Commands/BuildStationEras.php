@@ -704,7 +704,13 @@ class BuildStationEras extends Command
             ORDER BY x.station_id, x.event_date DESC, x.id
         SQL);
         // g. Gare rouverte (réouverture connue) sans fermeture antérieure connue :
-        //    dernière fermeture de ses lignes (aux voyageurs ou totale) avant la réouverture.
+        //    dernière fermeture de ses lignes (aux voyageurs ou totale) avant la réouverture,
+        //    seulement si TOUTES ses lignes sont fermées avant cette réouverture (même règle que e,
+        //    lignes rattachées par leur terminus mises à part). Une seule ligne fermée ne ferme pas
+        //    une gare de bifurcation : Orléans, « rouverte » en 2007 (nouveau bâtiment, Wikidata P1619),
+        //    était fermée de 1969 à 2007 par la fin des voyageurs des Aubrais - Malesherbes (683000)
+        //    alors que Paris - Bordeaux la dessert ; Bellegarde de même par La Cluse - Bellegarde (884000).
+        $coverG = str_replace(['le.', 'sl.pk_m'], ['lg.', 'slg.pk_m'], $cover);
         $g = DB::affectingStatement(<<<SQL
             INSERT INTO station_events (station_id, type, event_date, date_precision, source, source_ref, source_url, is_inferred, note, created_at, updated_at)
             SELECT DISTINCT ON (s.id) s.id, 'closure_passenger', le.event_date, le.date_precision, 'inferred:line_event', 'line_event:'||le.id,
@@ -717,6 +723,10 @@ class BuildStationEras extends Command
              AND le.event_date < r.event_date AND {$cover}
             WHERE NOT EXISTS (SELECT 1 FROM station_events x WHERE x.station_id = s.id
                               AND x.type IN ('closure', 'closure_passenger', 'demolition') AND x.event_date < r.event_date)
+              AND NOT EXISTS (SELECT 1 FROM station_lines slg WHERE slg.station_id = s.id
+                              AND slg.method NOT IN ('terminus_name', 'terminus_reviewed')
+                              AND NOT EXISTS (SELECT 1 FROM line_events lg WHERE lg.line_id = slg.line_id
+                                              AND lg.type IN ('closure_passenger', 'closure') AND lg.event_date < r.event_date AND {$coverG}))
             ORDER BY s.id, le.event_date DESC, {$sameDay}
             ON CONFLICT DO NOTHING
         SQL);
