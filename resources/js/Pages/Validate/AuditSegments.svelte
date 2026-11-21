@@ -264,7 +264,8 @@
                                                     {km(p?.length_m ?? 0)}
                                                     <span class="sub"
                                                         >{A('list.segments_count', {
-                                                            count: num(p?.segments ?? 0),
+                                                            count: p?.segments ?? 0,
+                                                            shown: num(p?.segments ?? 0),
                                                         })}</span
                                                     >
                                                 </td>
@@ -505,7 +506,10 @@
                                     <p class="card-meta">
                                         {A('list.score_inline', { score: num(item.score) })},
                                         {km(item.length_m)},
-                                        {A('list.segments_count', { count: num(item.segments) })}
+                                        {A('list.segments_count', {
+                                            count: item.segments ?? 0,
+                                            shown: num(item.segments),
+                                        })}
                                     </p>
                                     <dl class="grades">
                                         {#each checks as c (c)}
@@ -602,7 +606,8 @@
                                 {#if lineChecks.station_order_inversions > 0}
                                     <li>
                                         {A('line.inversions', {
-                                            count: num(lineChecks.station_order_inversions),
+                                            count: lineChecks.station_order_inversions,
+                                            shown: num(lineChecks.station_order_inversions),
                                         })}
                                     </li>
                                 {/if}

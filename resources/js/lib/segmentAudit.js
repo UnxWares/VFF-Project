@@ -377,8 +377,10 @@ export function evidenceText(check, evidence, ctx) {
         if (ev.max_turn_deg !== null && ev.max_turn_deg !== undefined) {
             facts.push(A('evidence.turn', { deg: num(ev.max_turn_deg, 1) }));
         }
-        if (ev.hairpins > 0) facts.push(A('evidence.hairpins', { count: num(ev.hairpins, 0) }));
-        if (ev.kinks > 0) facts.push(A('evidence.kinks', { count: num(ev.kinks, 0) }));
+        if (ev.hairpins > 0)
+            facts.push(A('evidence.hairpins', { count: ev.hairpins, shown: num(ev.hairpins, 0) }));
+        if (ev.kinks > 0)
+            facts.push(A('evidence.kinks', { count: ev.kinks, shown: num(ev.kinks, 0) }));
         for (const g of ev.junction_gaps ?? []) {
             facts.push(A('evidence.junction_gap', { m: num(g.m), line: g.other_line ?? '' }));
         }

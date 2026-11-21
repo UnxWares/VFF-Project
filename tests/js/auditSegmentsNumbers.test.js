@@ -27,13 +27,15 @@ const TRANSLATIONS = {
     'audit_segments.summary_lines': ':lines lignes et :segments tronçons audités, :km km au total.',
     'audit_segments.share_good': ':pct % sûrs',
     'audit_segments.list.total': ':total lignes',
-    'audit_segments.list.segments_count': ':count tronçons',
+    'audit_segments.list.segments_count_one': ':shown tronçon',
+    'audit_segments.list.segments_count_other': ':shown tronçons',
     'audit_segments.list.score_inline': 'score :score',
     'audit_segments.line.score': 'Score de la ligne : :score sur 100, sur :km.',
     'audit_segments.line.length_ratio':
         'Longueur : :ratio de la longueur officielle (:official km, :source).',
     'audit_segments.line.official_sources.lignes-oubliees-pk': 'PK de lignes-oubliées',
-    'audit_segments.line.inversions': ':count inversion(s) de l’ordre des gares.',
+    'audit_segments.line.inversions_one': ':shown inversion de l’ordre des gares.',
+    'audit_segments.line.inversions_other': ':shown inversions de l’ordre des gares.',
 };
 
 const PROPS = {
@@ -131,7 +133,7 @@ describe('AuditSegments : nombres au format du site', () => {
         expect(text).toContain(
             `Longueur : 102,3${NBSP}% de la longueur officielle (1${NBSP}206,3 km, PK de lignes-oubliées).`,
         );
-        expect(text).toContain(`1${NBSP}200 inversion(s)`);
+        expect(text).toContain(`1${NBSP}200 inversions`);
         expect(text).not.toContain(' ');
     });
 
