@@ -8,13 +8,13 @@ beforeEach(async () => {
 });
 
 describe('loadMaplibre', () => {
-    it("renvoie l'export par défaut du module", async () => {
+    it('renvoie MapLibre tel que le chargeur le donne', async () => {
         const lib = { Map: class {} };
-        await expect(loadMaplibre(async () => ({ default: lib }))).resolves.toBe(lib);
+        await expect(loadMaplibre(async () => lib)).resolves.toBe(lib);
     });
 
     it('ne télécharge le module qu’une fois pour toutes les cartes', async () => {
-        const importer = vi.fn(async () => ({ default: { Map: class {} } }));
+        const importer = vi.fn(async () => ({ Map: class {} }));
         const [a, b] = await Promise.all([loadMaplibre(importer), loadMaplibre(importer)]);
         await loadMaplibre(importer);
         expect(a).toBe(b);
@@ -26,9 +26,31 @@ describe('loadMaplibre', () => {
         const importer = vi
             .fn()
             .mockRejectedValueOnce(new Error('réseau'))
-            .mockResolvedValueOnce({ default: lib });
+            .mockResolvedValueOnce(lib);
         await expect(loadMaplibre(importer)).rejects.toThrow('réseau');
         await expect(loadMaplibre(importer)).resolves.toBe(lib);
         expect(importer).toHaveBeenCalledTimes(2);
+    });
+
+    it('enregistre le protocole pmtiles:// du fond de carte libre', async () => {
+        const lib = { Map: class {} };
+        const registerPmtilesProtocol = vi.fn(() => true);
+        await expect(
+            loadMaplibre(
+                async () => lib,
+                async () => ({ registerPmtilesProtocol }),
+            ),
+        ).resolves.toBe(lib);
+        expect(registerPmtilesProtocol).toHaveBeenCalledWith(lib);
+    });
+
+    it('rend MapLibre même si le protocole ne se charge pas', async () => {
+        const lib = { Map: class {} };
+        await expect(
+            loadMaplibre(
+                async () => lib,
+                async () => Promise.reject(new Error('réseau')),
+            ),
+        ).resolves.toBe(lib);
     });
 });

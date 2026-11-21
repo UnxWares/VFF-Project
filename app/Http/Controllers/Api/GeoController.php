@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Era;
 use App\Services\GeoExporter;
+use App\Services\MapDataCache;
 use App\Services\TraceExport\LineTraceExport;
 use App\Support\MapTiles;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -20,13 +21,13 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  *  - GET /api/v1/eras/{year}/stations.geojson   → FeatureCollection des gares
  *  - GET /api/v1/eras/{year}/tiles/{z}/{x}/{y}.mvt → tuile vectorielle MVT
  *
- * Les tuiles MVT sont produites à la volée par PostGIS (`ST_AsMVT`) et
- * caché 1 h via Cache-Control. Le GeoJSON est aussi caché côté CDN.
+ * Les tuiles MVT sont produites par PostGIS (`ST_AsMVT`). Tuiles et gares passent par
+ * MapDataCache : cache serveur jusqu'au prochain recalcul, ETag, gzip, Cache-Control.
  */
 #[Group('Cartographie par ère', "Le réseau tel qu'il était à la fin d'une décennie : tracés et gares en GeoJSON, tuiles vectorielles MVT pour MapLibre.", weight: 1)]
 class GeoController extends Controller
 {
-    public function __construct(protected GeoExporter $exporter) {}
+    public function __construct(protected GeoExporter $exporter, private readonly MapDataCache $cache) {}
 
     /**
      * Tracés du réseau à une ère (GeoJSON).
@@ -234,13 +235,11 @@ class GeoController extends Controller
         ]],
     ]])]
     #[ApiResponse(404, "Ère inconnue (année qui n'est pas une décennie entre 1830 et 2030).")]
-    public function stations(int $year): JsonResponse
+    public function stations(Request $request, int $year): Response
     {
-        $payload = $this->exporter->stationsAsGeoJson($year);
+        abort_unless(Era::where('year', $year)->exists(), 404);
 
-        return response()
-            ->json($payload)
-            ->header('Cache-Control', 'public, max-age=60');
+        return $this->cache->json($request, "stations:{$year}", fn (): array => $this->exporter->stationsAsGeoJson($year));
     }
 
     /**
@@ -254,7 +253,7 @@ class GeoController extends Controller
      * tiles: ["https://vff-project.org/api/v1/eras/1930/tiles/{z}/{x}/{y}.mvt"]
      * ```
      *
-     * **Couche** `lines` (LineString) : mêmes propriétés que l'endpoint GeoJSON
+     * **Couche** `vff-lines` (LineString) : mêmes propriétés que l'endpoint GeoJSON
      * des tracés (`status`, `traffic_type`, `electrified`, `is_lgv`…), plus,
      * pour les voies partagées entre plusieurs lignes, `draw_rank` (ordre de
      * dessin : la portion la plus active au-dessus) et `covered` (`true` :
@@ -266,12 +265,19 @@ class GeoController extends Controller
      * Au-delà, HTTP 404.
      *
      * **Géométrie pour l'écran** : chaque tracé est découpé dans la grille de la
-     * tuile (4 096 unités de côté, plus une marge de 256), qui arrondit ses
-     * coordonnées : 153 m au zoom 6, 9,6 m au zoom 10, 0,6 m au zoom 14 (mètres Web
-     * Mercator ; environ deux tiers sur le terrain en France). À partir du zoom 10,
-     * il est d'abord simplifié (Douglas-Peucker) : tolérance d'un demi-pixel d'écran
-     * aux zooms 10 à 13 (38 m au zoom 10, 4,8 m au zoom 13), d'une unité de la
-     * grille au zoom 14 (0,6 m Web Mercator, 0,4 m sur le terrain).
+     * tuile (4 096 unités de côté jusqu'au zoom 13, 8 192 au zoom 14, plus une marge
+     * d'un seizième), qui arrondit ses coordonnées : 153 m au zoom 6, 9,6 m au zoom 10,
+     * 0,3 m au zoom 14 (mètres Web Mercator ; environ deux tiers sur le terrain en
+     * France). La grille de chaque couche est écrite dans la tuile (champ `extent`),
+     * comme le prévoit la spécification MVT. À partir du zoom 10, le tracé est d'abord
+     * simplifié (Douglas-Peucker) à une unité de cette grille (9,6 m au zoom 10, 1,2 m
+     * au zoom 13, 0,3 m Web Mercator au zoom 14, soit 0,2 m sur le terrain).
+     *
+     * **Cache** : la réponse porte un `ETag` (requête conditionnelle `If-None-Match`
+     * → 304 tant que les données n'ont pas changé) et arrive compressée (gzip) si
+     * le client l'accepte. `Cache-Control` vaut un jour quand l'adresse porte un
+     * paramètre `v` (version des données, comme le fait la carte VFF), une minute
+     * sinon.
      *
      * **Affichage, pas export** : les tuiles servent à afficher la carte du site et
      * la carte intégrable (`/embed/maps`). Elles dessinent tous les tracés, y compris
@@ -291,20 +297,13 @@ class GeoController extends Controller
     #[PathParameter('y', 'Rangée de la tuile dans la grille XYZ (0 à 2^z - 1, origine en haut à gauche).', example: 88)]
     #[ApiResponse(200, 'Tuile Mapbox Vector Tile binaire (protobuf), éventuellement vide.', mediaType: 'application/x-protobuf', type: 'string', format: 'binary')]
     #[ApiResponse(404, 'Tuile hors de la grille XYZ (x ou y >= 2^z) ou zoom supérieur à 14.')]
-    public function tile(int $year, int $z, int $x, int $y): Response
+    public function tile(Request $request, int $year, int $z, int $x, int $y): Response
     {
         // Tuile hors de la grille XYZ (ou zoom > 14) : elle n'existe pas. Sans ce
         // contrôle, ST_TileEnvelope lève « Invalid tile x value » (HTTP 500).
         abort_unless(MapTiles::onGrid($z, $x, $y), 404);
+        abort_unless(Era::where('year', $year)->exists(), 404);
 
-        $tile = $this->exporter->linesAsMvt($year, $z, $x, $y);
-
-        return response($tile, 200, [
-            'Content-Type' => 'application/x-protobuf',
-            // Cache court tant que l'import OSM évolue. Sera relevé en prod
-            // une fois les données stabilisées + versionning par dataVersion.
-            'Cache-Control' => 'public, max-age=60',
-            'Access-Control-Allow-Origin' => '*',
-        ]);
+        return $this->cache->tile($request, "lines:{$year}:{$z}:{$x}:{$y}", $z, fn (): string => $this->exporter->linesAsMvt($year, $z, $x, $y));
     }
 }

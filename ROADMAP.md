@@ -36,7 +36,8 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 1. Préparer la mise en ligne (phase 12) : messagerie de vff-project.org, hébergement.
 2. Trancher les questions ouvertes (`storage/app/reports/agents/QUESTIONS.md`) : comptes et domaines, Argentan Web Ferroviaire, partenaires, consentement du cache hors ligne, formes GTFS.
 3. Jonctions : phase « escaliers » (coudes et crochets restants).
-4. Historique de la signalisation par époque (phase 13) : carte par ère branchée sur les dates des articles Wikipédia ; d'autres sources datées restent à trouver.
+4. Audit de chaque tronçon (classement, placement, exactitude, tracé) et de chaque gare (dates d'ouverture, de fermeture et de service trouvées ou estimées, placement), après la géométrie propre : méthodes dans [docs/AUDIT-TRONCONS.md](docs/AUDIT-TRONCONS.md) et [docs/AUDIT-GARES.md](docs/AUDIT-GARES.md).
+5. Historique de la signalisation par époque (phase 13) : carte par ère branchée sur les dates des articles Wikipédia ; d'autres sources datées restent à trouver.
 
 ---
 
@@ -180,7 +181,8 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] Accès libre sans clé, limité à 300 requêtes par minute et par adresse IP (davantage avec un jeton personnel)
 - [x] Exemples intégrés : curl, JavaScript (`fetch`) et Python (`requests`) sur la page `/api` et, pour les principaux points d'accès, dans la référence Scalar (`x-codeSamples`)
 - [x] Points d'accès des annuaires, fiches complètes, tronçons, époques, sources, événements, médias, matériel et accidents
-- [x] Jetons API (Sanctum, lecture seule, créés depuis le profil) et quotas par profil (anonyme 300, membre 1 200, partenaire 6 000 requêtes par minute, `config/api.php`), compteur commun à REST, GraphQL et MCP
+- [x] Jetons API (Sanctum, lecture seule, créés depuis le profil) et quotas par profil (anonyme 300, membre 1 200, partenaire 6 000 requêtes par minute, `config/api.php`), compteur commun à REST, GraphQL et MCP ; échéance à un an, rappel par courriel 30 jours avant et renouvellement d'un clic depuis le profil
+- [~] Politique de sécurité du contenu en observation (`Content-Security-Policy-Report-Only`, rapports sans donnée personnelle) ; reste à la rendre bloquante après deux semaines de rapports en production (`docs/SECURITE-CSP.md`)
 - [x] Webhooks pour notifier les changements : abonnement depuis le profil (adresse HTTPS, événements `contribution.applied`, `current_era.refreshed`, `accident.published`, `material.published`), messages JSON signés HMAC-SHA256 avec horodatage, envoi par la file avec essais espacés et désactivation après échecs répétés, protection SSRF à chaque envoi
 
 ---
@@ -231,6 +233,8 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [x] **Modèle neuronal d'extraction des voies** sur les photographies aériennes anciennes de l'IGN, publié sous licence MIT : [UnxWares/VFF-Rail-Extraction](https://github.com/UnxWares/VFF-Rail-Extraction) (version `ortho-v1`)
 - [x] Jonctions entre lignes : 0 m d'écart à chaque jonction sur les 21 époques, raccords en courbe
 - [~] Jonctions : réduire les coudes et crochets restants (phase « escaliers »)
+- [ ] Audit de chaque tronçon de VFF, à chaque époque : classement, placement, exactitude et tracé, notés avec leurs preuves, contrôle à la main sur un tirage stratifié, corrections rejouables (méthode : `docs/AUDIT-TRONCONS.md`)
+- [ ] Audit de chaque gare : dates d'ouverture, de fermeture, voyageurs et fret trouvées dans les sources ou, à défaut, estimées avec une précision honnête ; placement vérifié sur toutes les sources et les photographies anciennes, avec une file de relecture (méthode : `docs/AUDIT-GARES.md`)
 - [ ] Modèle : fusion de plusieurs dates de prises de vue (calcul GPU, sur accord), publication des poids complets
 - [~] Gallica (BnF) : 236 documents numérisés rattachés à 61 lignes par le titre de leur notice (score expliqué, seuil prudent ; trajets avec étape « en passant par » et listes « entre X, Y et Z » lus ; précision mesurée sur 40 documents tirés au hasard : 95 % après la relecture du 20/11, puis 36 justes, 4 douteux et aucun faux au second et au troisième tirage, après le retrait du projet Lyon - Marseille de 1837 donné à la ligne par Grenoble), section « Dans les archives » de la fiche ligne, `GET /api/v1/lines/{slug}/archives`, `Line.archives` en GraphQL et outil MCP `line_archives` ; seules les métadonnées de la BnF (Licence Ouverte) et le lien vers Gallica sont repris, aucune image. Reste : la presse, les documents des bibliothèques partenaires et l'API de Gallica elle-même (refusée à la machine de développement)
 - [ ] Fonds d'archives (SNCF, associations régionales)
@@ -246,12 +250,12 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [~] Partenariats : soutien à la campagne AngouLim (réouverture Angoulême - Limoges, lien d'intérêts déclaré)
 - [~] Page de dons : en place, plateforme finale (Patreon ou HelloAsso) selon le statut juridique de l'association ESS « UnxWares Opensource », à créer
 - [ ] Blog / journal de bord du projet (articles longs sur des lignes emblématiques)
-- [ ] Programme de partenariat avec les associations ferroviaires locales (CFTA, AAATV, MFCF…)
+- [ ] Programme de partenariat avec des associations ferroviaires locales (aucun partenariat à ce jour)
 - [ ] Présence dans les conférences open data / patrimoine
 - [x] Application installable (PWA), avec page hors ligne
 - [x] Mode hors ligne : pages publiques déjà consultées sans être connecté (HTML et Inertia, 60 au plus, 30 jours) et tuiles vectorielles de VFF déjà affichées (500 au plus, 7 jours), avec la date de la copie ; jamais les pages de compte, de contribution ni de validation, ni les tuiles OpenStreetMap
 - [x] Mode hors ligne, suite : données de la carte déjà affichées (gares d'une ère, accidents : 8 fichiers au plus, 7 jours) ; hors ligne, les cartes montrent les tracés de VFF sur un fond neutre et le signal de copie le dit (style écrit dans le code, noms de gares en police locale, aucune ressource tierce gardée)
-- [ ] Mode hors ligne, fin : fond de carte libre auto-hébergé (PMTiles), images déjà vues
+- [~] Mode hors ligne, fin : images des fiches déjà vues (vignettes de Commons, médias publiés : 300 au plus, 40 Mo, 30 jours, jamais pour une page de compte, de contribution ni de validation) ; fond de carte libre servi par VFF (PMTiles OpenStreetMap au schéma Protomaps, France et abords, zooms 0 à 15, 6,2 Go, style clair et sombre sans pictogramme, polices auto-hébergées), fond des cartes hors ligne sur les zones déjà vues (2 000 morceaux, 60 Mo, 30 jours). Reste : décider s'il devient le fond en ligne (`VFF_BASEMAP_ONLINE`, désactivé), le servir par nginx en production et le brancher sur les petites cartes des fiches (docs/FOND-DE-CARTE.md)
 
 ---
 

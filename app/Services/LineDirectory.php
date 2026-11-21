@@ -29,6 +29,13 @@ final class LineDirectory
 {
     use ReadsListFilters;
 
+    /**
+     * Compteurs par état déjà calculés pour une requête (stateCounts).
+     *
+     * @var array<string, array{total: int, open: int, closed: int, unknown: int}>
+     */
+    private array $stateCounts = [];
+
     /** Catégories de réseau (contrat `lines.network`). */
     public const NETWORKS = ['principal', 'secondaire', 'militaire', 'particulier'];
 
@@ -238,6 +245,19 @@ final class LineDirectory
      * @return array{total: int, open: int, closed: int, unknown: int}
      */
     private function stateCounts(Builder $builder, ?int $eraId): array
+    {
+        // Annuaire sans filtre : l'aperçu (overview) et les compteurs (facets) posent exactement la même
+        // requête. Elle n'est faite qu'une fois par objet (15 ms de moins sur /lines).
+        $memo = $builder->toSql().'|'.serialize($builder->getBindings()).'|'.$eraId;
+
+        return $this->stateCounts[$memo] ??= $this->countStates($builder, $eraId);
+    }
+
+    /**
+     * @param  Builder<Line>  $builder
+     * @return array{total: int, open: int, closed: int, unknown: int}
+     */
+    private function countStates(Builder $builder, ?int $eraId): array
     {
         $active = $this->activeSegments(DB::query(), $eraId);
         $traced = $this->segmentsAtEra(DB::query(), $eraId);

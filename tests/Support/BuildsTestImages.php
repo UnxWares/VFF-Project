@@ -5,9 +5,10 @@ namespace Tests\Support;
 use Illuminate\Http\UploadedFile;
 
 /**
- * Images de test construites octet par octet (pas de GD dans l'image PHP du projet) : JPEG, PNG et
+ * Images de test construites octet par octet (sans décoder de pixels) : JPEG, PNG et
  * WebP aux dimensions voulues, chargés de métadonnées à retirer (EXIF avec position GPS et
  * orientation, XMP avec GPS, commentaire, blocs de texte, données après la fin de l'image).
+ * realJpeg() dessine au contraire une vraie photo avec GD, pour les miniatures.
  *
  * uploaded() écrit un vrai fichier temporaire : son type est lu dans le contenu (finfo), comme pour
  * un envoi réel, et non déduit de son nom comme avec UploadedFile::fake(). Les fichiers créés sont
@@ -41,6 +42,30 @@ trait BuildsTestImages
             .self::jpegSegment(0xFE, 'Appareil de Jean, numéro 123456')
             .self::jpegBody($width, $height)
             .'MPF-GPSLatitude-apres-la-fin';
+    }
+
+    /**
+     * Vraie photo JPEG dessinée avec GD (décodable, pour les miniatures) : quart haut gauche rouge,
+     * reste bleu, avec un EXIF qui porte l'orientation et une position GPS.
+     */
+    protected function realJpeg(int $width = 1600, int $height = 1200, int $orientation = 1): string
+    {
+        $image = imagecreatetruecolor($width, $height);
+        imagefill($image, 0, 0, (int) imagecolorallocate($image, 0, 0, 255));
+        imagefilledrectangle($image, 0, 0, intdiv($width, 2) - 1, intdiv($height, 2) - 1, (int) imagecolorallocate($image, 255, 0, 0));
+        ob_start();
+        imagejpeg($image, null, 90);
+        $jpeg = (string) ob_get_clean();
+        $tiff = 'II'.pack('v', 42).pack('V', 8)
+            .pack('v', 2)
+            .pack('vvV', 0x0112, 3, 1).pack('v', $orientation)."\0\0"
+            .pack('vvV', 0x8825, 4, 1).pack('V', 38)
+            .pack('V', 0)
+            .pack('v', 1).pack('vvV', 0x0002, 5, 3).pack('V', 56)
+            .pack('V', 0)
+            .pack('VV', 45, 1).pack('VV', 30, 1).pack('VV', 0, 1);
+
+        return "\xFF\xD8".self::jpegSegment(0xE1, "Exif\0\0".$tiff).substr($jpeg, 2);
     }
 
     protected function cleanJpeg(int $width = 800, int $height = 600, int $paddingBytes = 0): string

@@ -6,13 +6,17 @@ import { decadeOf, formatLocale } from './typo.js';
  * Précisions : day | month | year ; fermetures imprécises des sources : decade | after | before ;
  * range = date de fermeture retenue inconnue, bornée par la frise
  * (StationTimeline::resolveClosure) : fermée après `after` (dernière année où la gare est
- * affirmée ouverte), au plus tard l'année de `iso` → « entre 1951 et 1960 ».
+ * affirmée ouverte), au plus tard l'année de `iso` → « entre 1951 et 1960 ». Une borne haute qui
+ * atteint l'année en cours ne date rien (la gare est fermée aujourd'hui, c'est tout ce qu'on sait) :
+ * « date inconnue, après 1870 » plutôt que « entre 1871 et 2026 », comme EventText::rangeDate côté
+ * serveur.
  *
  * @param {string|null} iso   date AAAA-MM-JJ
  * @param {string} [precision]
  * @param {number|null} [after]
  * @param {(key: string, opts?: object) => string} [t]  traduction (clés stations.dates.*)
  * @param {string} [lang]  langue ou locale de format (« en » est rendu en anglais britannique)
+ * @param {number} [currentYear]  année en cours (borne haute « aujourd'hui » d'un intervalle)
  * @returns {string|null}
  */
 export function formatStationDate(
@@ -21,10 +25,16 @@ export function formatStationDate(
     after = null,
     t = (key) => key,
     lang = 'fr',
+    currentYear = new Date().getFullYear(),
 ) {
     if (!iso) return null;
     const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
     if (precision === 'range') {
+        if (y >= currentYear) {
+            return after == null
+                ? t('stations.dates.unknown')
+                : t('stations.dates.unknown_after', { year: after });
+        }
         if (after == null) return t('stations.dates.range_upper', { year: y });
         return after + 1 < y ? t('stations.dates.range', { from: after + 1, to: y }) : String(y);
     }

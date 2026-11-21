@@ -152,8 +152,10 @@ class SheetGalleriesTest extends TestCase
         $this->assertSame($contribution->id, $item['contribution_id']);
         $this->assertNull($item['source_url']);
         // Fichier publié servi comme ceux de la fiche ligne (disque public, /storage/…), jamais la réserve privée.
-        $this->assertStringContainsString('/storage/'.MediaContributions::PUBLIC_DIR.'/'.$contribution->id.'-', (string) $item['thumb_url']);
-        $this->assertSame($item['thumb_url'], $item['display_url']);
+        // Miniatures de 320 et 1 280 px créées à la publication (ThumbnailGenerator).
+        $this->assertStringContainsString('/storage/'.MediaContributions::PUBLIC_DIR.'/thumbs/'.$contribution->id.'-', (string) $item['thumb_url']);
+        $this->assertStringEndsWith('-320.webp', (string) $item['thumb_url']);
+        $this->assertStringEndsWith('-1280.webp', (string) $item['display_url']);
         $this->assertStringNotContainsString('contributions/media', (string) $item['thumb_url']);
     }
 

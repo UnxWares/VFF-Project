@@ -82,10 +82,6 @@
             host: 'commons.wikimedia.org',
         },
         {
-            titleKey: 'credits.media.partners.assoc_title',
-            textKey: 'credits.media.partners.assoc_text',
-        },
-        {
             titleKey: 'credits.media.partners.contributors_title',
             textKey: 'credits.media.partners.contributors_text',
             internal: '/contribute',

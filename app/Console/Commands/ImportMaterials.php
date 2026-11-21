@@ -5,11 +5,14 @@ namespace App\Console\Commands;
 use App\Services\Materials\AttestedSeriesFinder;
 use App\Services\Materials\LineMaterialLinker;
 use App\Services\Materials\MaterialImporter;
+use App\Services\Materials\MaterialPeriodCollector;
+use App\Services\Materials\MaterialRelations;
 use App\Services\Materials\SourceCache;
 use App\Services\Materials\WikidataMaterialMapper;
 use App\Services\Materials\WikidataMaterialRules;
 use App\Services\Materials\WikidataMaterialSource;
 use App\Services\Materials\WikipediaArticleSource;
+use App\Services\Materials\WikipediaMaterialSections;
 use App\Services\Media\CommonsClient;
 use App\Services\WikimediaClient;
 use Illuminate\Console\Command;
@@ -61,7 +64,10 @@ class ImportMaterials extends Command
             $this->importMaterials($source, $wikipedia, $rules, $cache, $refresh, $dryRun);
         }
         if (! $this->option('no-links')) {
-            $linker = new LineMaterialLinker($source, $wikipedia);
+            $linker = new LineMaterialLinker($source, $wikipedia, relations: MaterialRelations::fromDatabase());
+            // Articles d'itinéraires (database/data/wikipedia_itineraries.php), mis en cache pour les périodes
+            // qu'ils datent sur leurs lignes (vff:import-material-periods, MaterialPeriodCollector).
+            $wikipedia->sections(MaterialPeriodCollector::ITINERARY_CACHE, array_keys(require database_path('data/wikipedia_itineraries.php')), WikipediaMaterialSections::LINE_SECTIONS, $refresh);
             $links = $linker->collect($refresh);
             $byKind = [];
             foreach ($links as $link) {
@@ -71,6 +77,9 @@ class ImportMaterials extends Command
             }
             $this->info(count($links).' lien(s) matériel ↔ ligne attesté(s).');
             $this->table(['preuve', 'liens'], collect($byKind)->map(fn (int $n, string $k): array => [$k, $n])->values()->all());
+            $relations = $linker->relationStats();
+            $this->line(sprintf('  Itinéraires cités : %d (%d écartés, arrêt intermédiaire nommé) ; paires de gares : %d (%d ambiguës, %d sans chemin), arrêts introuvables : %d.',
+                $relations['itineraries'], $relations['itineraries_partial'], $relations['pairs'], $relations['pairs_ambiguous'], $relations['pairs_without_path'], $relations['stops_unresolved']));
             $this->report($linker, $links);
             if ($dryRun) {
                 $this->warn('--dry-run : rien n\'est écrit.');
@@ -152,7 +161,6 @@ class ImportMaterials extends Command
         }
         $labels = $source->labels(array_values(array_unique($referenced)), $refresh);
         $widths = $source->gaugeWidths(array_values(array_unique($gauges)), $refresh);
-        $images = $source->commonsFiles(array_values(array_unique($files)), $refresh);
 
         // Séries que Wikidata ne range dans aucune classe : catégories de leur article Wikipédia.
         $unranked = [];
@@ -180,13 +188,32 @@ class ImportMaterials extends Command
             }
         }
 
+        // Images : P18, sinon repli sur l'infobox de l'article puis sur la catégorie Commons (P373), licence
+        // libre vérifiée sur Commons (WikidataMaterialMapper::imageCandidates, isFreeImage).
+        $categoryFiles = [];
+        foreach ($qids as $qid) {
+            $entity = $entities[$qid] ?? null;
+            $category = $entity['claims']['P373'][0]['v'] ?? null;
+            if ($entity !== null && WikidataMaterialMapper::imageFile($entity) === null && is_string($category)) {
+                $categoryFiles[] = trim($category);
+            }
+        }
+        $categoryFiles = $categoryFiles === [] ? [] : $source->categoryFiles(array_values(array_unique($categoryFiles)), $refresh);
+        foreach ($qids as $qid) {
+            if (($entity = $entities[$qid] ?? null) !== null) {
+                $infobox = isset($articles[$qid]) ? ($infoboxes[$articles[$qid]] ?? null) : null;
+                array_push($files, ...array_column(WikidataMaterialMapper::imageCandidates($entity, $infobox, $categoryFiles), 0));
+            }
+        }
+        $images = $source->commonsFiles(array_values(array_unique($files)), $refresh);
+
         $mapper = new WikidataMaterialMapper($rules);
         $records = [];
         $skipped = [];
         foreach ($qids as $qid) {
             $result = $mapper->map($qid, $entities[$qid] ?? null, $ancestors[$qid] ?? [], $labels, $widths, $images,
                 isset($unranked[$qid]) ? ($categories[$unranked[$qid]] ?? []) : [],
-                isset($articles[$qid]) ? ($infoboxes[$articles[$qid]] ?? null) : null, $attested[$qid] ?? null);
+                isset($articles[$qid]) ? ($infoboxes[$articles[$qid]] ?? null) : null, $attested[$qid] ?? null, $categoryFiles);
             if (is_string($result)) {
                 $skipped[$result][] = $qid.' '.($entities[$qid]['labels']['fr'] ?? $entities[$qid]['labels']['en'] ?? '');
 
@@ -201,9 +228,10 @@ class ImportMaterials extends Command
         $this->table(['motif d\'exclusion', 'séries'], collect($skipped)->map(fn (array $q, string $k): array => [$k, count($q)])->values()->all());
         $this->table(['catégorie', 'fiches'], collect($records)->countBy('type')->map(fn (int $n, string $t): array => [$t, $n])->values()->all());
 
-        if (! $dryRun) {
-            $stats = (new MaterialImporter)->import($records);
-            $this->info("Fiches : {$stats['created']} créée(s), {$stats['updated']} mise(s) à jour, {$stats['unchanged']} inchangée(s).");
+        $stats = (new MaterialImporter)->import($records, $dryRun);
+        $this->info(($dryRun ? 'Fiches (à blanc) : ' : 'Fiches : ')."{$stats['created']} créée(s), {$stats['updated']} mise(s) à jour, {$stats['unchanged']} inchangée(s).");
+        if ($stats['fields'] !== []) {
+            $this->line('  Champs modifiés : '.implode(', ', array_map(fn (string $f, int $n): string => "{$f} ({$n})", array_keys($stats['fields']), $stats['fields'])));
         }
     }
 }

@@ -21,4 +21,11 @@ return [
     'filters' => 'Filter',
     'filters_active_one' => ':count aktiv',
     'filters_active_other' => ':count aktiv',
+    // Clin d'œil : taper « patrick » fait passer la rame TGV Sud-Est n° 01 (resources/js/lib/patrickTrain.js).
+    'patrick' => [
+        'label' => 'Der TGV „Patrick“ fährt vorbei',
+        'bubble' => 'TGV 01 „Patrick“, der erste Triebzug des TGV Sud-Est (1978)',
+        'close' => 'Schließen',
+        'announce' => 'Eine kleine Überraschung: TGV 01 „Patrick“, der erste Triebzug des TGV Sud-Est (1978). Ein Link unten auf dem Bildschirm führt zu seiner Seite.',
+    ],
 ];

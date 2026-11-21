@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Corrections SOURCÉES des événements de lignes (database/data/line_event_corrections*.php :
  * line_event_corrections.php, puis les fichiers thématiques, ex. line_event_corrections_fins.php) :
- * ajout d'un événement manquant (source « manual »), neutralisation d'une fausse fermeture
+ * ajout d'un événement manquant (source « manual », libellé facultatif « label » pour un fait de
+ * type other, ex. line_event_corrections_actualite.php), neutralisation d'une fausse fermeture
  * (desserte réduite, trains saisonniers maintenus) ou portion corrigée.
  *
  * Pourquoi un fichier rejoué plutôt qu'un UPDATE ponctuel : les imports (lignes-oubliees,
@@ -137,7 +138,9 @@ class ApplyEventCorrections extends Command
             'type' => $c['type'],
             'event_date' => $c['date'],
             'date_precision' => $c['precision'] ?? 'day',
-            'description' => $this->text((WikipediaLineParser::TYPE_LABELS[$c['type']] ?? self::EXTRA_LABELS[$c['type']] ?? 'Événement').$where.' (correction sourcée : '.$c['reason'].')'),
+            // Libellé rédigé (« label ») pour un fait d'actualité de type other, traduit par
+            // lang/{fr,en,de}/generated.php (label.*) ; sinon celui du type.
+            'description' => $this->text(($c['label'] ?? WikipediaLineParser::TYPE_LABELS[$c['type']] ?? self::EXTRA_LABELS[$c['type']] ?? 'Événement').$where.' (correction sourcée : '.$c['reason'].')'),
             'source' => self::SOURCE,
             'source_url' => $c['source_url'],
             'source_quote' => $this->text(mb_strimwidth($c['quote'] ?? '', 0, 300, '…')),

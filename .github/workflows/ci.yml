@@ -1,8 +1,8 @@
 # VFF - Intégration continue
 #
-#   php   : Pint, contrôle i18n (vff:i18n-check), registre des sources (vff:source-rights --check), PHPStan + Larastan (niveau 6, baseline),
-#           contrôles statiques (tests/Unit/Static), PHPUnit sur PostgreSQL 18 + PostGIS 3.6
-#   front : pnpm install, Prettier, ESLint, vitest, svelte-check (baseline), build Vite
+#   php   : composer audit, Pint, contrôle i18n (vff:i18n-check), registre des sources (vff:source-rights --check), PHPStan + Larastan (niveau 6, baseline),
+#           contrôles statiques (tests/Unit/Static), PHPUnit sur PostgreSQL 18 + PostGIS 3.7
+#   front : pnpm install, pnpm audit, Prettier, ESLint, vitest, svelte-check (baseline), build Vite
 #
 # Analyse statique (PHPStan, svelte-check) : la dette existante est gelée dans
 # phpstan-baseline.neon et svelte-check-baseline.json ; toute NOUVELLE erreur bloque.
@@ -22,18 +22,20 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
+# Aucun droit par défaut : chaque tâche demande seulement ce dont elle a besoin.
+permissions: {}
 
 jobs:
   php:
     name: PHP 8.5 - Pint, i18n, PHPStan, PHPUnit
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
 
     services:
       postgres:
-        image: postgis/postgis:18-3.6
+        image: postgis/postgis:18-3.7
         env:
           POSTGRES_USER: vff
           POSTGRES_PASSWORD: vff
@@ -55,12 +57,13 @@ jobs:
       DB_PASSWORD: vff
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup PHP 8.5
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.5'
           extensions: pdo_pgsql, pgsql, intl, zip, bcmath, pcntl, mbstring
@@ -68,7 +71,7 @@ jobs:
           tools: composer:v2
 
       - name: Cache Composer
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/composer/files
           key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
@@ -76,6 +79,9 @@ jobs:
 
       - name: composer install
         run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Failles connues des dépendances PHP (composer audit)
+        run: composer audit --no-interaction --locked
 
       - name: Préparer .env
         run: |
@@ -98,7 +104,7 @@ jobs:
           php artisan vff:source-rights --check
 
       - name: Cache PHPStan
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: storage/framework/cache/phpstan
           key: phpstan-${{ runner.os }}-${{ hashFiles('composer.lock', 'phpstan.neon', 'phpstan-baseline.neon') }}-${{ github.sha }}
@@ -117,22 +123,29 @@ jobs:
     name: Front - Prettier, ESLint, svelte-check, build Vite
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       # Version de pnpm lue dans package.json (`packageManager`).
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
 
-      - uses: actions/setup-node@v5
+      # Version de Node lue dans .nvmrc (LTS active, la même que bin/pnpm et `engines`).
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: pnpm
 
       - name: pnpm install
         run: pnpm install --frozen-lockfile
+
+      - name: Failles connues des dépendances JS (pnpm audit)
+        run: pnpm audit
 
       - name: Prettier
         run: pnpm lint

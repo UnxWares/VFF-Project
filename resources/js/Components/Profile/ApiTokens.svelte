@@ -6,15 +6,15 @@
 
     /**
      * Section « Jetons d'accès à l'API » du profil (ApiTokenController, App\Services\Api\ApiTokens) :
-     * limite du compte, jetons (nom, création, dernière utilisation, révocation confirmée dans une
-     * fenêtre modale native) et création, avec la case facultative « Autoriser les contributions
+     * limite du compte, jetons (nom, création, dernière utilisation, échéance à un an, renouvellement
+     * d'un clic, révocation confirmée dans une fenêtre modale native) et création, avec la case facultative « Autoriser les contributions
      * par l'API » (capacité `contribute` des mutations GraphQL, décochée par défaut). Le secret d'un
      * jeton créé n'est montré qu'une fois (`access.new_token`, donnée flash de la session).
      *
      * @type {{ access: {
-     *   tokens: { id: number, name: string, contribute: boolean, created_at: string|null, last_used_at: string|null }[],
+     *   tokens: { id: number, name: string, contribute: boolean, created_at: string|null, last_used_at: string|null, expires_at: string|null, expired: boolean, expires_soon: boolean }[],
      *   profile: 'member'|'partner', per_minute: number, anonymous_per_minute: number,
-     *   max_tokens: number, can_create: boolean, suspended: boolean,
+     *   max_tokens: number, lifetime_days: number, can_create: boolean, suspended: boolean,
      *   new_token: { id: number, plain: string }|null
      * } }}
      */
@@ -26,6 +26,8 @@
     let toRevoke = $state(null);
     let revoking = $state(false);
     let copyStatus = $state('');
+    /** @type {number|null} */
+    let renewing = $state(null);
 
     const number = (n) => n.toLocaleString($i18n.language);
     const longDate = (iso) =>
@@ -74,6 +76,18 @@
                 revokeDialog.close();
             },
         });
+    }
+
+    function renew(token) {
+        router.post(
+            `/profile/api-tokens/${token.id}/renew`,
+            {},
+            {
+                preserveScroll: true,
+                onStart: () => (renewing = token.id),
+                onFinish: () => (renewing = null),
+            },
+        );
     }
 
     async function copy() {
@@ -131,6 +145,7 @@
             </div>
         </dl>
         <p class="note">{$i18n.t('api_tokens.quota_shared')}</p>
+        <p class="note">{$i18n.t('api_tokens.lifetime', { days: number(access.lifetime_days) })}</p>
 
         <div class="list-head">
             <h3 id="api-tokens-list">{$i18n.t('api_tokens.list_title')}</h3>
@@ -173,16 +188,52 @@
                                 {:else}
                                     <span>{$i18n.t('api_tokens.never_used')}</span>
                                 {/if}
+                                {#if token.expires_at}
+                                    <time datetime={token.expires_at}
+                                        >{$i18n.t(
+                                            token.expired
+                                                ? 'api_tokens.expired_on'
+                                                : 'api_tokens.expires_on',
+                                            { date: longDate(token.expires_at) },
+                                        )}</time
+                                    >
+                                {/if}
                             </span>
+                            {#if token.expired || token.expires_soon}
+                                <span class="vff-badge {token.expired ? 'danger' : 'warning'} scope"
+                                    >{$i18n.t(
+                                        token.expired
+                                            ? 'api_tokens.expired'
+                                            : 'api_tokens.expires_soon',
+                                    )}</span
+                                >
+                            {/if}
                         </div>
-                        <button
-                            type="button"
-                            class="vff-btn danger small"
-                            aria-label={$i18n.t('api_tokens.revoke_label', { name: token.name })}
-                            onclick={() => askRevoke(token)}
-                        >
-                            {$i18n.t('api_tokens.revoke')}
-                        </button>
+                        <div class="token-actions">
+                            {#if !access.suspended}
+                                <button
+                                    type="button"
+                                    class="vff-btn secondary small"
+                                    aria-label={$i18n.t('api_tokens.renew_label', {
+                                        name: token.name,
+                                    })}
+                                    disabled={renewing === token.id}
+                                    onclick={() => renew(token)}
+                                >
+                                    {$i18n.t('api_tokens.renew')}
+                                </button>
+                            {/if}
+                            <button
+                                type="button"
+                                class="vff-btn danger small"
+                                aria-label={$i18n.t('api_tokens.revoke_label', {
+                                    name: token.name,
+                                })}
+                                onclick={() => askRevoke(token)}
+                            >
+                                {$i18n.t('api_tokens.revoke')}
+                            </button>
+                        </div>
                     </li>
                 {/each}
             </ul>
@@ -395,6 +446,11 @@
     }
     .token-text .scope {
         align-self: flex-start;
+    }
+    .token-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--vff-space-2);
     }
     .meta {
         display: flex;

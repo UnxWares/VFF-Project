@@ -22,6 +22,13 @@ La source (nature, titre ou référence, adresse sauf pour un ouvrage papier, li
 numérisé) suit les mêmes règles pour les événements, le matériel et les séries
 (`SourceCitation`).
 
+## Plafond quotidien
+
+Chaque compte envoie au plus 30 propositions par jour civil, tous types confondus, site et API
+GraphQL ensemble (`ContributionLimits::DAILY`). Au-delà, le site affiche un message traduit
+(`proposals.errors.daily_limit`) et la mutation renvoie le code `daily_limit_reached`. Les
+validateurs et les administrateurs en sont exemptés.
+
 ## Événement daté (`line_event`)
 
 Saisie : ligne existante, type (tous ceux de `LineEventType` sauf `accident`, qui a sa propre fiche
@@ -32,10 +39,18 @@ adresse (sauf pour un ouvrage papier), licence pour un document numérisé.
 
 À la publication (`EventContributions::apply`), dans la transaction de l'approbation :
 
-- `line_events.source` = `contrib` (contributions validées ; registre des droits : fournisseur
-  `vff`), `fingerprint` = `contribution:<id>` (provenance ; rejouer la publication met à jour la
-  même ligne), `source_url`, `source_quote` (titre de la source et sa licence), `confidence` =
-  `high`, description en français terminée par « (contribution n° <id>) » ;
+- `line_events.source` = `contrib` (contributions validées), `fingerprint` = `contribution:<id>`
+  (provenance ; rejouer la publication met à jour la même ligne), `source_url`, `source_quote`
+  (titre de la source et sa licence), description en français terminée par « (contribution n° <id>) » ;
+- la confiance suit la source citée (décision du 20/11/2026), comme pour les corrections `manual` :
+    - registre des droits : `contrib` est une source composite, le fournisseur est celui du lien cité
+      (Wikipédia, lignes-oubliees, Gallica…), `vff` pour un ouvrage ou une archive papier ;
+    - `confidence` : `high` pour un ouvrage, une archive, un document numérisé ou le site d'une source
+      sûre hors des agrégateurs (Gallica, Légifrance…), `medium` pour Wikipédia, lignes-oubliees,
+      SNCF, OSM, OHM ou une page web inconnue, `low` pour Wikidata (`EraTimeline::citedConfidence`) ;
+    - rang dans le moteur (`EraTimeline::rankedSource`) : un lien vers une source que le moteur connaît
+      prend son rang (un contributeur qui cite Wikipédia pèse comme Wikipédia), une autre page web de
+      confiance moyenne devient `contrib-web` (rang de Wikipédia), le reste garde le rang de `contrib` ;
 - `section_from` / `section_to` ou `section_pk_start_m` / `section_pk_end_m`, et
   `section_resolution` = `pending`, `section_geom` vide.
 

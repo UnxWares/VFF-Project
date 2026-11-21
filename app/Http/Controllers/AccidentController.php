@@ -7,6 +7,7 @@ use App\Http\Controllers\Concerns\ReadsListFilters;
 use App\Http\Resources\AccidentDetailResource;
 use App\Models\Accident;
 use App\Models\AccidentLine;
+use App\Services\Accidents\Context\AccidentContextView;
 use App\Services\Api\AccidentQuery;
 use App\Support\FrenchDepartments;
 use Illuminate\Http\Request;
@@ -70,6 +71,7 @@ class AccidentController extends Controller
             'lineLinks' => fn ($q) => $q->with(['line:id,slug,code,name', 'sectionFrom:id,slug,name', 'sectionTo:id,slug,name']),
             'sources',
             'nearestStation:id,slug,name',
+            ...AccidentContextView::RELATIONS,
         ]);
 
         return Inertia::render('Accidents/Show', [

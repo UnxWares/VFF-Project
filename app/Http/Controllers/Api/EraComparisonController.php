@@ -5,18 +5,20 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Era;
 use App\Services\EraComparison;
+use App\Services\MapDataCache;
 use App\Services\NetworkErosion;
 use App\Support\MapTiles;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 #[Group('Cartographie par ère', "Le réseau tel qu'il était à la fin d'une décennie : tracés et gares en GeoJSON, tuiles vectorielles MVT pour MapLibre.", weight: 1)]
 class EraComparisonController extends Controller
 {
-    /** En-têtes des tuiles : mêmes règles que les tuiles d'une ère (cache court, CORS ouvert). */
+    /** En-têtes de la tuile des ères empilées (cache court, CORS ouvert). */
     private const TILE_HEADERS = [
         'Content-Type' => 'application/x-protobuf',
         'Cache-Control' => 'public, max-age=60',
@@ -26,6 +28,7 @@ class EraComparisonController extends Controller
     public function __construct(
         private readonly EraComparison $comparison,
         private readonly NetworkErosion $erosion,
+        private readonly MapDataCache $cache,
     ) {}
 
     /**
@@ -112,7 +115,7 @@ class EraComparisonController extends Controller
     #[ApiResponse(200, 'Tuile MVT (protobuf binaire).')]
     #[ApiResponse(404, 'Ère inconnue, ou tuile hors de la grille XYZ (zoom supérieur à 14 compris).', examples: [ErrorExamples::ERA_NOT_FOUND])]
     #[ApiResponse(422, 'Les deux années sont identiques.', examples: [['message' => 'Choose two different eras to compare.']])]
-    public function tile(int $year, int $other, int $z, int $x, int $y): Response|JsonResponse
+    public function tile(Request $request, int $year, int $other, int $z, int $x, int $y): Response|JsonResponse
     {
         abort_unless(MapTiles::onGrid($z, $x, $y), 404);
         $pair = $this->resolve($year, $other);
@@ -121,7 +124,13 @@ class EraComparisonController extends Controller
         }
         [$from, $to] = $pair;
 
-        return response($this->comparison->tile($from->id, $to->id, $z, $x, $y), 200, self::TILE_HEADERS);
+        // Cache serveur, ETag et gzip comme les tuiles d'une ère (MapDataCache).
+        return $this->cache->tile(
+            $request,
+            "compare:{$from->year}:{$to->year}:{$z}:{$x}:{$y}",
+            $z,
+            fn (): string => $this->comparison->tile($from->id, $to->id, $z, $x, $y),
+        );
     }
 
     /**

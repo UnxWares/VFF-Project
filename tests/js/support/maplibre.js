@@ -4,6 +4,10 @@ import { createExpression, featureFilter, latest } from '@maplibre/maplibre-gl-s
 
 const GLOBALS = { zoom: 8 };
 
+// Depuis la version 26, le moteur exige l'emplacement de l'expression dans le style (« rootKey »),
+// pour situer ses avertissements. Les tests évaluent des expressions isolées : un emplacement fictif.
+const ROOT_KEY = 'layers[0]';
+
 /** Spécification d'une propriété de style, ex. spec('paint_line', 'line-color'). */
 export function spec(group, property) {
     const s = latest[group]?.[property];
@@ -13,7 +17,7 @@ export function spec(group, property) {
 
 /** Compile l'expression pour la propriété donnée ; lève une erreur lisible si elle est invalide. */
 export function compile(expression, propertySpec) {
-    const parsed = createExpression(expression, propertySpec);
+    const parsed = createExpression(expression, ROOT_KEY, propertySpec);
     if (parsed.result !== 'success') {
         throw new Error(
             `Expression invalide : ${parsed.value.map((e) => `${e.key}: ${e.message}`).join(' ; ')}`,
@@ -43,5 +47,5 @@ export function toHex(color) {
 
 /** Filtre MapLibre (couche `filter`) appliqué à une feature linéaire. */
 export function matches(filter, properties) {
-    return featureFilter(filter).filter(GLOBALS, { type: 2, properties });
+    return featureFilter(filter, `${ROOT_KEY}.filter`).filter(GLOBALS, { type: 2, properties });
 }

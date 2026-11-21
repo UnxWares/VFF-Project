@@ -37,7 +37,7 @@ return [
             'title' => 'La suspension de votre compte est levée',
             'body' => 'Vous pouvez de nouveau proposer des contributions, relire si votre rôle le permet, et signaler des erreurs.',
         ],
-        'contest' => 'Pour contester cette décision, écrivez à contact@vff-project.org : elle sera réexaminée, autant que possible par une autre personne que celle qui l’a prise.',
+        'contest' => 'Pour contester cette décision, écrivez à contact@vff-project.org : elle sera réexaminée, autant que possible par une autre personne que celle qui l’a prise. Vous recevrez une réponse dans les 15 jours.',
     ],
     'mail' => [
         'action' => 'Ouvrir mon profil',
@@ -51,7 +51,7 @@ return [
         'since' => 'Elle a commencé le :date.',
         'reason' => 'Motif : :reason',
         'effect' => 'Vous ne pouvez plus proposer de contribution, relire ni signaler d’erreur. Vos données restent accessibles ci-dessous : vous pouvez les télécharger ou supprimer votre compte.',
-        'contest' => 'Pour contester cette décision, écrivez à contact@vff-project.org.',
+        'contest' => 'Pour contester cette décision, écrivez à contact@vff-project.org : vous recevrez une réponse dans les 15 jours.',
     ],
 
     // Fenêtre « Signaler une erreur » ouverte par un membre suspendu.

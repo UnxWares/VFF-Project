@@ -44,7 +44,7 @@ class LineArchivesTest extends TestCase
         $this->document('ark:/12148/btv1b90000002', 'Catastrophe de chemin de fer près de Rouen', 'image', 1926, 'year', ['shelfmark' => 'YE-54394']);
     }
 
-    /** @param array<string, mixed> $extra */
+    /** @param array<model-property<LineArchiveDocument>, mixed> $extra */
     private function document(string $ark, string $title, string $type, ?int $year, string $precision, array $extra = []): void
     {
         (new LineArchiveDocument)->forceFill([

@@ -282,4 +282,43 @@ class WikidataMaterialMapperTest extends TestCase
         $this->assertArrayNotHasKey('P9999', $trimmed['claims']);
         $this->assertArrayNotHasKey('P730', $trimmed['claims'], 'pas de valeur');
     }
+
+    public function test_a_series_without_p18_takes_its_infobox_image_then_a_named_category_file_with_a_free_licence(): void
+    {
+        $entity = $this->bb15000(['P18' => []]);
+        $meta = fn (string $file, string $status = 'open_license', ?string $author = 'Cramos', string $mime = 'image/jpeg'): array => [
+            'file_title' => 'File:'.$file, 'thumb_url' => 'https://upload.wikimedia.org/500px-x.jpg', 'display_url' => null,
+            'source_url' => 'https://commons.wikimedia.org/wiki/File:'.$file, 'width' => 1000, 'height' => 750, 'author' => $author,
+            'license' => 'CC BY-SA 4.0', 'license_url' => null, 'rights_status' => $status, 'mime' => $mime,
+            'commercial_ok' => true, 'share_alike' => true, 'attribution_required' => true, 'attribution' => null,
+        ];
+        $categories = ['SNCF Class BB 15000' => ['Gare de Lyon vue générale.jpg', 'BB 15000 accident 1980.jpg', 'BB 15000 n° 15012 à Reims.jpg']];
+        $images = [
+            'BB 15000 infobox.jpg' => $meta('BB 15000 infobox.jpg'),
+            'BB 15000 n° 15012 à Reims.jpg' => $meta('BB 15000 n° 15012 à Reims.jpg'),
+            'Gare de Lyon vue générale.jpg' => $meta('Gare de Lyon vue générale.jpg'),
+        ];
+
+        // Infobox d'abord, avec sa provenance.
+        $sheet = $this->mapper->map('Q746572', $entity, ['Q625151'], self::LABELS, [], $images, [], $this->infobox(['image' => 'Fichier:BB 15000 infobox.jpg']), null, $categories);
+        $this->assertSame('File:BB 15000 infobox.jpg', $sheet['image']['file']);
+        $this->assertSame('frwiki:BB 15000#infobox', $sheet['provenance']['image']['via']);
+
+        // Infobox d'un article partagé, ou image par défaut : la catégorie, en sautant la vue de gare et l'accident.
+        foreach ([$this->infobox(['image' => 'BB 15000 infobox.jpg'], shared: true), $this->infobox(['image' => 'Defaut.svg'])] as $infobox) {
+            $sheet = $this->mapper->map('Q746572', $entity, ['Q625151'], self::LABELS, [], $images, [], $infobox, null, $categories);
+            $this->assertSame('File:BB 15000 n° 15012 à Reims.jpg', $sheet['image']['file']);
+            $this->assertSame('commons:Category:SNCF Class BB 15000', $sheet['provenance']['image']['via']);
+        }
+
+        // Licence libre sans auteur, droits inconnus, dessin vectoriel : pas d'image.
+        foreach ([$meta('BB 15000 n° 15012 à Reims.jpg', author: null), $meta('BB 15000 n° 15012 à Reims.jpg', 'unknown'), $meta('BB 15000 n° 15012 à Reims.jpg', mime: 'image/svg+xml')] as $bad) {
+            $sheet = $this->mapper->map('Q746572', $entity, ['Q625151'], self::LABELS, [], ['BB 15000 n° 15012 à Reims.jpg' => $bad], [], null, null, $categories);
+            $this->assertNull($sheet['image']);
+        }
+        $this->assertTrue(WikidataMaterialMapper::isFreeImage($meta('x.jpg', 'public_domain', null)), 'domaine public : auteur facultatif');
+
+        // Une image Wikidata (P18) passe avant tout repli.
+        $this->assertSame([], WikidataMaterialMapper::imageCandidates($this->bb15000(), $this->infobox(['image' => 'BB 15000 infobox.jpg']), $categories));
+    }
 }

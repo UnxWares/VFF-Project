@@ -54,8 +54,12 @@ final class GraphDiagnostics
     /** Écart sous lequel deux extrémités sont confondues (bruit des reprojections), en mètres. */
     public const JUNCTION_TOLERANCE_M = 0.01;
 
-    /** Écart toléré entre la longueur enregistrée d'une arête et celle de son tracé : 5 m ou 1 %. */
-    public const LENGTH_TOLERANCE_M = 5;
+    /**
+     * Écart toléré entre la longueur enregistrée d'une arête et celle de son tracé : 30 m ou 1 %.
+     * Le constructeur recolle chaque extrémité sur son nœud (au plus `snap_m`, 15 m, à chaque bout)
+     * sans changer la longueur mesurée sur la voie d'origine : jusqu'à 30 m d'écart sont normaux.
+     */
+    public const LENGTH_TOLERANCE_M = 30;
 
     public const LENGTH_TOLERANCE_RATIO = 0.01;
 

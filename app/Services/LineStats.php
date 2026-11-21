@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Line;
+use App\Support\LineDataSignature;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -15,6 +17,48 @@ final class LineStats
 {
     /** Part électrifiée (%) sous laquelle une ligne n'est électrifiée qu'à la marge (voies d'une gare, raccordement). */
     public const MARGINAL_ELECTRIFIED_PCT = 5;
+
+    /** Durée de vie des longueurs gardées par forEra() (s) : la signature des tronçons les invalide avant. */
+    public const CACHE_TTL = 86_400;
+
+    /**
+     * Lectures géographiques de forEra() sur les tronçons d'une ligne à une ère, telles que PostgreSQL les
+     * renvoie (mêmes requêtes qu'avant leur mise en cache) : totaux, longueur par tension, longueur à la
+     * vitesse maximale.
+     *
+     * @return array{stats: array<string, mixed>, voltages: list<array{v: mixed, m: mixed}>, max_speed_m: mixed}
+     */
+    private static function segmentFigures(int $lineId, int $eraId): array
+    {
+        $stats = DB::selectOne(
+            <<<'SQL'
+            SELECT
+                SUM(ST_Length(geom::geography)) AS total_len_m,
+                SUM(CASE WHEN status IN ('in_service','single_track') THEN ST_Length(geom::geography) ELSE 0 END) AS active_len_m,
+                SUM(CASE WHEN electrified THEN ST_Length(geom::geography) ELSE 0 END) AS elec_len_m,
+                MAX(max_speed_kmh) AS max_speed,
+                BOOL_OR(electrified) AS electrified,
+                MODE() WITHIN GROUP (ORDER BY gauge_mm) AS gauge_mm,
+                MIN(dismantled_at) AS dismantled_at_min,
+                MAX(dismantled_at) AS dismantled_at_max
+            FROM line_segments
+            WHERE line_id = ? AND era_id = ?
+            SQL,
+            [$lineId, $eraId],
+        );
+        $voltages = array_map(fn ($r): array => ['v' => $r->v, 'm' => $r->m], DB::select(
+            'SELECT voltage_v AS v, SUM(ST_Length(geom::geography)) AS m FROM line_segments
+             WHERE line_id = ? AND era_id = ? AND electrified AND voltage_v IS NOT NULL
+             GROUP BY voltage_v ORDER BY m DESC',
+            [$lineId, $eraId],
+        ));
+        $maxSpeedM = $stats?->max_speed ? DB::selectOne(
+            'SELECT SUM(ST_Length(geom::geography)) AS m FROM line_segments WHERE line_id = ? AND era_id = ? AND max_speed_kmh = ?',
+            [$lineId, $eraId, $stats->max_speed],
+        )->m ?? null : null;
+
+        return ['stats' => (array) $stats, 'voltages' => $voltages, 'max_speed_m' => $maxSpeedM];
+    }
 
     /**
      * @param  list<int>  $segmentIds  tronçons de l'ère
@@ -33,22 +77,14 @@ final class LineStats
             ];
         }
 
-        $stats = DB::selectOne(
-            <<<'SQL'
-            SELECT
-                SUM(ST_Length(geom::geography)) AS total_len_m,
-                SUM(CASE WHEN status IN ('in_service','single_track') THEN ST_Length(geom::geography) ELSE 0 END) AS active_len_m,
-                SUM(CASE WHEN electrified THEN ST_Length(geom::geography) ELSE 0 END) AS elec_len_m,
-                MAX(max_speed_kmh) AS max_speed,
-                BOOL_OR(electrified) AS electrified,
-                MODE() WITHIN GROUP (ORDER BY gauge_mm) AS gauge_mm,
-                MIN(dismantled_at) AS dismantled_at_min,
-                MAX(dismantled_at) AS dismantled_at_max
-            FROM line_segments
-            WHERE line_id = ? AND era_id = ?
-            SQL,
-            [$line->id, $eraId],
+        // Longueurs géodésiques des tronçons de l'ère (60 à 90 ms sur une LGV) : gardées en cache tant que les
+        // tronçons de la ligne ne changent pas (LineDataSignature). Les autres lectures restent faites à chaque fois.
+        $geo = Cache::remember(
+            "line-stats:{$line->id}:{$eraId}:".LineDataSignature::segments((int) $line->id),
+            self::CACHE_TTL,
+            fn (): array => self::segmentFigures((int) $line->id, $eraId),
         );
+        $stats = (object) $geo['stats'];
 
         // Longueur de LIGNE (route-km) depuis la géométrie officielle SNCF
         // (centerline simple) plutôt que la somme des voies OSM (track-km, ~×2
@@ -106,17 +142,9 @@ final class LineStats
         // 1,5 kV jusqu'au Mans, 25 kV au-delà ; une seule tension « dominante » cachait l'autre).
         // state : none, marginal (moins de MARGINAL_ELECTRIFIED_PCT % : voies d'une gare, raccordement),
         // partial, full (95 % et plus).
-        $voltages = array_map(fn ($r) => ['voltage_v' => (int) $r->v, 'km' => round((float) $r->m / 1000, 1)], DB::select(
-            'SELECT voltage_v AS v, SUM(ST_Length(geom::geography)) AS m FROM line_segments
-             WHERE line_id = ? AND era_id = ? AND electrified AND voltage_v IS NOT NULL
-             GROUP BY voltage_v ORDER BY m DESC',
-            [$line->id, $eraId],
-        ));
+        $voltages = array_map(fn ($r) => ['voltage_v' => (int) $r['v'], 'km' => round((float) $r['m'] / 1000, 1)], $geo['voltages']);
         $elecKm = round((float) $stats->elec_len_m / 1000, 1);
-        $speedKm = $stats->max_speed ? round((float) (DB::selectOne(
-            'SELECT SUM(ST_Length(geom::geography)) AS m FROM line_segments WHERE line_id = ? AND era_id = ? AND max_speed_kmh = ?',
-            [$line->id, $eraId, $stats->max_speed],
-        )->m ?? 0) / 1000, 1) : null;
+        $speedKm = $stats->max_speed ? round((float) ($geo['max_speed_m'] ?? 0) / 1000, 1) : null;
 
         return [
             'signalling_coverage' => $signallingCoverage,

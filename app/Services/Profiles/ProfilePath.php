@@ -20,12 +20,14 @@ final readonly class ProfilePath
     /**
      * @param  list<array{0: float, 1: float}>  $coords  sommets [lon, lat] dans l'ordre du parcours
      * @param  list<array{0: float, 1: float}>  $gaps  lacunes [début, fin] en mètres le long du parcours
+     * @param  array<int, float>  $jumps  longueur imposée du segment qui ARRIVE au sommet d'indice
+     *                                    donné (saut vers un embranchement : longueur conventionnelle, pas la distance à vol d'oiseau)
      */
-    public function __construct(public array $coords, public array $gaps = [])
+    public function __construct(public array $coords, public array $gaps = [], public array $jumps = [])
     {
         $cum = [0.0];
         for ($i = 1, $n = count($coords); $i < $n; $i++) {
-            $cum[] = $cum[$i - 1] + self::distance($coords[$i - 1], $coords[$i]);
+            $cum[] = $cum[$i - 1] + ($jumps[$i] ?? self::distance($coords[$i - 1], $coords[$i]));
         }
         $this->cumulative = $cum;
     }
@@ -40,8 +42,14 @@ final readonly class ProfilePath
     {
         $length = $this->length();
         $gaps = array_map(fn (array $g): array => [$length - $g[1], $length - $g[0]], array_reverse($this->gaps));
+        $n = count($this->coords);
+        $jumps = [];
+        foreach ($this->jumps as $i => $m) {
+            // Le segment (i-1, i) devient (n-1-i, n-i) : il arrive au sommet n-i.
+            $jumps[$n - $i] = $m;
+        }
 
-        return new self(array_reverse($this->coords), $gaps);
+        return new self(array_reverse($this->coords), $gaps, $jumps);
     }
 
     /**

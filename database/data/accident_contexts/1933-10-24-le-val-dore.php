@@ -1,0 +1,153 @@
+<?php
+
+// Contexte sourcé de l'accident de Saint-Élier (La Croisille) du 24 octobre 1933 (recherche du 21/11/2026).
+return [
+    'slug' => '1933-10-24-le-val-dore',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-fr' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Accident ferroviaire de Saint-Élier',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Accident_ferroviaire_de_Saint-%C3%89lier&oldid=223825826',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article détaillé, appuyé sur la presse de l\'époque (Gallica) et des archives départementales ; les pages Gallica n\'ont pas été lues.',
+        ],
+        'lette' => [
+            'provider' => 'sites-web',
+            'kind' => 'web',
+            'reliability' => 'association',
+            'title' => 'Die Eisenbahnkatastrophe von St. Élier 1933',
+            'publisher' => 'Eisenbahnmuseum Alter Bahnhof Lette',
+            'author' => 'P. Dr. D. Hörnemann',
+            'published' => '2019-02',
+            'locator' => 'p. 2-13',
+            'url' => 'https://bahnhof-lette.de/fileadmin/files/Monatsgeschichte_Februar_2019/2019-02_Saint_Elier.pdf',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Étude d\'un musée allemand, qui reprend largement l\'article de Wikipédia et cite des journaux autrichiens et néerlandais de 1933.',
+        ],
+        'wp-de-conches' => [
+            'provider' => 'wikipedia-de',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Eisenbahnunfall von Conches-en-Ouche',
+            'publisher' => 'Wikipedia',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://de.wikipedia.org/wiki/Eisenbahnunfall_von_Conches-en-Ouche',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Même accident sous un autre nom : 36 morts, 68 blessés, d\'après Semmens (1996, p. 87).',
+        ],
+        'wikidata-conches' => [
+            'provider' => 'wikidata',
+            'kind' => 'data',
+            'reliability' => 'encyclopedia',
+            'title' => 'Eisenbahnunfall von Conches-en-Ouche (Q28000484)',
+            'publisher' => 'Wikidata',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://www.wikidata.org/wiki/Q28000484',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Notice doublon de Q22247907 (36 morts) ; non rouverte, déjà présente dans la base.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 24 octobre 1933, le train express n° 354 de Cherbourg à Paris-Saint-Lazare, de la Compagnie de l\'État, est parti de Cherbourg à 6 h 10 et était attendu à Paris à 11 h 26. À Caen, un fourgon et trois voitures ont été ajoutés en tête, et la locomotive 241-022 du dépôt des Batignolles a pris le train en charge.',
+                'en' => 'On 24 October 1933 express train no. 354 from Cherbourg to Paris-Saint-Lazare, run by the État railway, left Cherbourg at 6.10 am and was due in Paris at 11.26 am. At Caen a luggage van and three coaches were added at the head of the train, and locomotive 241-022 of the Batignolles depot took over.',
+                'de' => 'Am 24. Oktober 1933 verließ der Schnellzug Nr. 354 von Cherbourg nach Paris-Saint-Lazare der Staatsbahn Cherbourg um 6.10 Uhr und wurde um 11.26 Uhr in Paris erwartet. In Caen wurden ein Gepäckwagen und drei Wagen an der Spitze eingereiht, und die Lokomotive 241-022 des Depots Batignolles übernahm den Zug.',
+                'sources' => ['wp-fr', 'lette'],
+            ],
+            [
+                'fr' => 'Le déraillement se produit au point kilométrique 121,700 de la ligne de Mantes-la-Jolie à Cherbourg, à une quinzaine de kilomètres avant Évreux, sur le territoire de La Croisille, entre les gares de Conches-en-Ouche et de La Bonneville-sur-Iton, vers 9 h 50 à 9 h 54 selon les sources. Un chantier d\'entretien de la voie était en cours dans une courbe à gauche.',
+                'en' => 'The derailment occurred at kilometre point 121.700 of the Mantes-la-Jolie to Cherbourg line, some fifteen kilometres before Évreux, in the territory of La Croisille, between Conches-en-Ouche and La Bonneville-sur-Iton stations, at about 9.50 to 9.54 am depending on the source. Track maintenance was under way in a left-hand curve.',
+                'de' => 'Die Entgleisung ereignete sich bei Kilometer 121,700 der Strecke Mantes-la-Jolie-Cherbourg, etwa fünfzehn Kilometer vor Évreux auf dem Gebiet von La Croisille zwischen den Bahnhöfen Conches-en-Ouche und La Bonneville-sur-Iton, je nach Quelle gegen 9.50 bis 9.54 Uhr. In einer Linkskurve liefen Gleisunterhaltungsarbeiten.',
+                'sources' => ['wp-fr', 'lette'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'La locomotive se met à flotter, quitte les rails, roule environ 200 m sur le ballast, dévale le remblai et s\'arrête au pied du pont du Rouloir, tandis que le tender reste sur le talus. Les trois premières voitures, projetées en travers du remblai, sont disloquées ; les voitures de queue, déraillées, restent presque intactes.',
+                'en' => 'The locomotive began to sway, left the rails, ran about 200 m on the ballast, went down the embankment and came to rest at the foot of the Rouloir bridge, while the tender stayed on the bank. The first three coaches were thrown across the embankment and broken up; the rear coaches, derailed, remained almost intact.',
+                'de' => 'Die Lokomotive begann zu schlingern, verließ die Schienen, rollte etwa 200 m im Schotter weiter, stürzte den Damm hinab und kam am Fuß der Rouloir-Brücke zum Stehen, während der Tender auf der Böschung blieb. Die ersten drei Wagen wurden quer über den Damm geschleudert und zerlegt; die entgleisten hinteren Wagen blieben nahezu unbeschädigt.',
+                'sources' => ['wp-fr', 'lette'],
+            ],
+            [
+                'fr' => 'Les premiers secours sont assurés par des voyageurs indemnes, des cantonniers, des ouvriers agricoles et des habitants de La Croisille. Une infirmerie est installée dans le haras voisin. Un train de secours arrive d\'Évreux avec environ quatre-vingts hommes, dont des soldats, et des plongeurs de Rouen sondent le Rouloir.',
+                'en' => 'The first aid was given by uninjured passengers, track workers, farm workers and residents of La Croisille. An infirmary was set up in the neighbouring stud farm. A relief train came from Évreux with about eighty men, including soldiers, and divers from Rouen searched the Rouloir.',
+                'de' => 'Erste Hilfe leisteten unverletzte Reisende, Streckenarbeiter, Landarbeiter und Bewohner von La Croisille. Im benachbarten Gestüt wurde eine Krankenstation eingerichtet. Ein Hilfszug aus Évreux brachte etwa achtzig Mann, darunter Soldaten, und Taucher aus Rouen untersuchten den Rouloir.',
+                'sources' => ['wp-fr', 'lette'],
+            ],
+            [
+                'fr' => 'Les blessés sont évacués vers Conches et Bernay, les plus graves vers Évreux, et les corps sont conduits à la gare d\'Évreux. La circulation reprend sur une voie à minuit, les deux voies sont rouvertes deux jours plus tard et le trafic Caen-Paris passe entre-temps par Serquigny. La locomotive n\'est remise sur les rails que le 16 décembre 1933.',
+                'en' => 'The injured were taken to Conches and Bernay, the most seriously hurt to Évreux, and the bodies to Évreux station. Traffic resumed on one track at midnight, both tracks reopened two days later, and Caen-Paris traffic was meanwhile diverted via Serquigny. The locomotive was not put back on the rails until 16 December 1933.',
+                'de' => 'Die Verletzten wurden nach Conches und Bernay gebracht, die Schwerverletzten nach Évreux, die Leichen zum Bahnhof Évreux. Um Mitternacht wurde der Verkehr eingleisig wieder aufgenommen, zwei Tage später waren beide Gleise wieder offen, und der Verkehr Caen-Paris wurde in der Zwischenzeit über Serquigny umgeleitet. Die Lokomotive stand erst am 16. Dezember 1933 wieder auf den Schienen.',
+                'sources' => ['wp-fr', 'lette'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le bilan retenu est de 37 morts et environ 100 blessés, dont une soixantaine hospitalisés. Le mécanicien et le chauffeur sont tués sur le coup.',
+                'en' => 'The accepted toll is 37 dead and about 100 injured, some sixty of them hospitalised. The driver and the fireman were killed instantly.',
+                'de' => 'Als Bilanz gelten 37 Tote und etwa 100 Verletzte, davon rund sechzig im Krankenhaus. Lokführer und Heizer waren sofort tot.',
+                'sources' => ['wp-fr', 'lette'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Trois enquêtes ont lieu (judiciaire, administrative et interne au réseau) et les experts divergent sur les causes. Les travaux de soufflage de la voie, menés sur environ 200 m sans ralentissement des trains, ont pu fragiliser la voie ; des témoins disent que la machine s\'était mise à flotter dès le début du chantier.',
+                'en' => 'Three inquiries were held (judicial, administrative and internal to the railway) and the experts disagreed on the causes. The track-lifting work, carried out over about 200 m without slowing trains, may have weakened the track; witnesses said the locomotive had begun to sway at the start of the works.',
+                'de' => 'Es gab drei Untersuchungen (gerichtlich, behördlich und bahnintern), und die Gutachter waren uneins über die Ursachen. Die Gleislagearbeiten auf etwa 200 m ohne Langsamfahrt können das Gleis geschwächt haben; Zeugen sagten, die Lokomotive habe schon am Beginn der Baustelle zu schlingern begonnen.',
+                'sources' => ['wp-fr', 'lette'],
+            ],
+            [
+                'fr' => 'L\'autre piste concerne la machine : les locomotives de type Mountain, très lourdes, avaient un jeu latéral insuffisant et des vibrations à grande vitesse. L\'enregistreur de la 241-022 indiquait 112 km/h pour une vitesse autorisée de 120 km/h, et des secousses étaient ressenties depuis Serquigny.',
+                'en' => 'The other line of inquiry concerned the locomotive: the very heavy Mountain-type engines had insufficient lateral play and vibrated at high speed. The recorder of 241-022 showed 112 km/h against an authorised 120 km/h, and jolts had been felt since Serquigny.',
+                'de' => 'Die zweite Spur betraf die Maschine: Die sehr schweren Lokomotiven der Bauart Mountain hatten zu wenig Seitenspiel und vibrierten bei hoher Geschwindigkeit. Der Fahrtschreiber der 241-022 zeigte 112 km/h bei zulässigen 120 km/h, und seit Serquigny waren Erschütterungen zu spüren.',
+                'sources' => ['wp-fr', 'lette'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Trois cadres techniques du service de la voie sont inculpés d\'homicide par imprudence, mais l\'instruction est close sans renvoi devant un tribunal. Les locomotives Mountain de la même série sont limitées à 90 km/h à titre conservatoire.',
+                'en' => 'Three technical managers of the track department were charged with involuntary manslaughter, but the investigation was closed without referral to a court. Mountain locomotives of the same series were limited to 90 km/h as a precaution.',
+                'de' => 'Drei technische Führungskräfte des Streckendienstes wurden wegen fahrlässiger Tötung beschuldigt, doch das Verfahren wurde ohne Überweisung an ein Gericht eingestellt. Die Lokomotiven der Bauart Mountain derselben Serie wurden vorsorglich auf 90 km/h begrenzt.',
+                'sources' => ['wp-fr', 'lette'],
+            ],
+        ],
+        'memory' => [
+            [
+                'fr' => 'Une cérémonie d\'hommage a lieu à la cathédrale d\'Évreux le 27 octobre 1933. Un monument est inauguré à La Croisille le 5 juillet 1936.',
+                'en' => 'A memorial ceremony took place at Évreux cathedral on 27 October 1933. A monument was unveiled at La Croisille on 5 July 1936.',
+                'de' => 'Am 27. Oktober 1933 fand in der Kathedrale von Évreux eine Gedenkfeier statt. Am 5. Juli 1936 wurde in La Croisille ein Denkmal eingeweiht.',
+                'sources' => ['wp-fr'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le bilan varie : 37 morts et environ 100 blessés (Wikipédia en français, étude du musée de Lette) contre 36 morts et 68 blessés (Wikipédia en allemand, d\'après Semmens). L\'heure est donnée entre 9 h 50 et 9 h 54 selon les passages de l\'article français.',
+                'en' => 'The toll varies: 37 dead and about 100 injured (French Wikipedia, Lette museum study) against 36 dead and 68 injured (German Wikipedia, after Semmens). The time is given as between 9.50 and 9.54 am in different passages of the French article.',
+                'de' => 'Die Bilanz schwankt: 37 Tote und etwa 100 Verletzte (französische Wikipedia, Studie des Museums Lette) gegenüber 36 Toten und 68 Verletzten (deutsche Wikipedia nach Semmens). Die Uhrzeit wird in verschiedenen Passagen des französischen Artikels zwischen 9.50 und 9.54 Uhr angegeben.',
+                'sources' => ['wp-fr', 'lette', 'wp-de-conches'],
+            ],
+            [
+                'fr' => 'Des journaux de 1933 cités par l\'étude de Lette évoquaient d\'abord un affaissement du rail, puis une rupture d\'essieu de la locomotive ; l\'examen de la machine, levée le 8 décembre, a écarté la rupture d\'essieu du bogie avant.',
+                'en' => 'Newspapers of 1933 cited by the Lette study first suggested a sinking of the rail, then an axle break on the locomotive; the examination of the engine, lifted on 8 December, ruled out a break of the front bogie axle.',
+                'de' => 'In der Studie von Lette zitierte Zeitungen von 1933 vermuteten zunächst eine Gleissenkung, dann einen Achsbruch an der Lokomotive; die Untersuchung der am 8. Dezember angehobenen Maschine schloss einen Achsbruch am vorderen Drehgestell aus.',
+                'sources' => ['lette'],
+            ],
+        ],
+    ],
+];

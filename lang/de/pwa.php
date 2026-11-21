@@ -14,4 +14,5 @@ return [
     // Ohne Netz angezeigte Kopie einer Seite (Components/OfflineCopyNotice.svelte); :date = Datum und Uhrzeit der Kopie.
     'offline_copy' => 'Sie sind offline. Dies ist die am :date auf diesem Gerät gespeicherte Kopie der Seite; sie kann sich inzwischen geändert haben.',
     'offline_map_partial' => 'Die Karte hat keinen Hintergrund und zeigt nur die Strecken und Bahnhöfe, die auf diesem Gerät bereits angezeigt wurden.',
+    'offline_map_basemap' => 'Die Karte zeigt nur, was auf diesem Gerät bereits angezeigt wurde: die Strecken, die Bahnhöfe und den Hintergrund bereits angesehener Gebiete.',
 ];

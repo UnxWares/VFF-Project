@@ -290,8 +290,18 @@ class AccountSuspensionTest extends TestCase
         $this->assertSame(self::REASON, $data['reason']);
         $this->assertStringContainsString('24 décembre 2026 inclus', $data['body']);
         $this->assertStringContainsString('contact@vff-project.org', $data['body']);
+        // Délai de réponse annoncé à la contestation (décision du 20/11/2026), comme dans les CGU.
+        $this->assertStringContainsString('Vous recevrez une réponse dans les 15 jours.', $data['body']);
         $this->assertSame('/profile', $data['url']);
         $this->assertStringNotContainsString($admin->name, json_encode($data));
+    }
+
+    public function test_the_terms_of_use_announce_the_same_reply_time_in_every_language(): void
+    {
+        $this->assertStringContainsString('dans les 15 jours', __('use_conditions.suspension.paragraph', [], 'fr'));
+        $this->assertStringContainsString('within 15 days', __('use_conditions.suspension.paragraph', [], 'en'));
+        $this->assertStringContainsString('innerhalb von 15 Tagen', __('use_conditions.suspension.paragraph', [], 'de'));
+        $this->assertStringContainsString('15', __('moderation.profile.contest', [], 'de'));
     }
 
     public function test_the_notification_is_written_in_the_language_of_the_member(): void
@@ -315,6 +325,7 @@ class AccountSuspensionTest extends TestCase
 
         $this->assertSame('Votre compte est suspendu', $mail->subject);
         $this->assertStringContainsString(self::REASON, implode(' ', $mail->introLines));
+        $this->assertStringContainsString('dans les 15 jours', implode(' ', [...$mail->introLines, ...$mail->outroLines]));
         $this->assertSame(route('profile.show'), $mail->actionUrl);
         $this->assertSame(['database', 'mail'], (new AccountSuspended(self::REASON, null))->via($member));
     }

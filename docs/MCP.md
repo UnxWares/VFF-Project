@@ -135,10 +135,11 @@ Tous les outils sont annotés `readOnlyHint: true`, `idempotentHint: true`, `ope
 | `get_material` | Fiche d'une série de matériel, avec les lignes parcourues, leurs preuves et leurs périodes de circulation. |
 | `line_materials` | Matériel roulant d'une ligne, avec les périodes de circulation de chaque série (début, fin, précision). |
 | `accidents` | Accidents et événements graves du rail (ligne, période, nature, département, bilan), paginés. |
-| `get_accident` | Fiche d'un accident : lignes rattachées, sources lues et leur licence, points à vérifier. |
+| `get_accident` | Fiche d'un accident : lignes rattachées, sources lues et leur licence, points à vérifier, contexte sourcé (archives, enquêtes, presse). |
 | `compare_eras` | Ce qui a changé sur le réseau entre deux ères : km ouverts, fermés, déposés, restés en service. |
 | `level_crossings` | Passages à niveau publiés par SNCF Réseau (classe, PK, commune), par ligne, groupe, commune ou emprise, paginés. |
 | `line_profile` | Profil en long d'une ligne : altitudes le long du tracé, dénivelés, déclivité la plus forte, altitude des gares (IGN). |
+| `line_audit` | Audit des tronçons d'une ligne à une époque : classement, placement, exactitude et tracé de chaque tronçon, avec leurs preuves. |
 | `line_greenways` | Voies vertes OpenStreetMap sur l'ancienne emprise d'une ligne fermée ou disparue : longueur sur l'emprise, nom, année d'ouverture, source ODbL. |
 | `line_archives` | Documents numérisés dans Gallica (BnF) dont le titre désigne une ligne : titre, date et précision, type, auteurs, cote, lien vers Gallica, score de rattachement. |
 | `line_stories` | Histoire d'un événement d'une ligne : images de la ligne datées à 5 ans au plus et documents de Gallica de la période, chacun avec son écart en années. |
@@ -184,7 +185,8 @@ d'abord, accidents du plus ancien au plus récent.
 Renvoie `line` :
 
 - identité : `slug`, `code`, `name`, `network` (`principal`, `secondaire`, `militaire`,
-  `particulier`), `is_lgv` ;
+  `particulier`), `is_lgv`, `is_threatened` (ligne menacée de fermeture que VFF soutient ; le message
+  de soutien n'est pas publié) ;
 - `today` : `state` (`open` ou `closed_or_gone`) et `by_category_km` (km par catégorie, avec
   libellé : `lgv` grande vitesse ou voyageurs seuls, `mixed`, `freight`, `unknown`, `heritage`,
   `velorail`, `service_track`, `construction`, `closed` voie en place, `dismantled`, `razed`) ;
@@ -285,6 +287,15 @@ de lecture par VFF, `raw` = attributs bruts reçus de la source, de forme variab
 aussi `attribute_sources` (quelle source a fourni chaque attribut, recalage de la position compris)
 et `position` (`source`, `spread_m`, `flagged` = position à vérifier). `media_count` donne le nombre
 d'images publiées de la gare : l'outil `media` avec `station` les renvoie, avec leurs crédits.
+`audit` reprend `GET /api/v1/stations/{station}/audit` (nul tant que la gare n'a pas été auditée,
+voir docs/AUDIT-GARES.md) : `placement` (`grade` : `agree` une source indépendante à moins de
+20 m, `close` entre 20 et 100 m, `isolated` aucune source indépendante proche, `disagree` une
+source précise à plus de 100 m ou une grossière à plus de 1 km, `none` ; écarts en mètres et une
+position par source, coordonnées seulement si la source est redistribuable), `dates`
+(`opening_grade`, `closure_grade` : `sourced`, `estimated`, `unknown`, `not_applicable` ;
+`services.passenger` et `services.freight`), `checks` (contrôles croisés en échec) et
+`date_candidates` (dates de Wikidata P1619 et P3999 comparées à celles de VFF, sans les
+remplacer).
 
 Dates de desserte (`lines[].service_start` et `service_end` de `get_station`, `stations[]` de
 `get_line`) : la date de l'événement de ligne qui ouvre ou termine la desserte de la gare, avec
@@ -537,7 +548,15 @@ Renvoie `material` : la fiche de l'API REST `/api/v1/materials/{slug}`, avec `fi
 (provenance de chaque champ ; `contrib` pour une valeur corrigée par une contribution validée, référence
 `contribution:<id>`) et `lines` (lignes parcourues, une entrée par lien et par source, chaque lien avec sa `source`
 telle quelle (`wikidata`, `wikipedia` ou `contrib`), sa preuve `evidence` et sa fiabilité `confidence`, et `periods`,
-ses périodes de circulation datées : voir `line_materials`). `lines_count` compte les lignes, pas les liens.
+ses périodes de circulation datées : voir `line_materials`, et `relations`, les relations que la série assurait sur
+la ligne, décrites dans `line_materials`). `lines_count` compte les lignes, pas les liens.
+`notable_units` liste les rames ou engins remarquables de la série (par exemple la rame 01 « Patrick » du TGV
+Sud-Est ; liste vide pour la plupart des séries) : `number`, `nickname`, `facts` et `unknown`. Chaque fait donne
+`kind`, `date` et `date_to` (AAAA-MM-JJ, au 1er du mois ou de l'année selon `precision` : `day`, `month`, `year`, nulle
+sans date), `text` (le fait reformulé en français) et `source` (`publisher`, `reported_by` quand la page rapporte un
+autre média, `date` de publication, `url` à citer, `provider`, `license`, `license_status`). La citation courte que
+donne l'API REST (`quote`) n'est pas renvoyée. `unknown` dit ce que les sources ne disent pas : n'y suppléez pas.
+`search {"query": "Patrick"}` trouve la série, avec `notable_unit` (numéro et surnom de la rame).
 `media_count` donne le nombre d'images publiées de la série : l'outil `media` avec `material` les renvoie. Série
 inconnue : erreur `material_not_found` avec `suggestions`.
 
@@ -571,8 +590,30 @@ tous ses liens). Une période donne `start_date`
 et `end_date` (`AAAA-MM-JJ`, l'une peut être nulle) avec `start_precision` et `end_precision` (`day`, `month` : date au
 1er du mois, `year` : date au 1er janvier), `section` (portion nommée par le titre de section de l'article, sinon
 nulle), `confidence` (`high` : jour ou mois, `medium` : année), `origin` (`line_article`, `material_article`,
-`wikidata`, `contribution`), `source` (`title`, `revision`, `url`) et `provenance`. Seules les périodes sûres sont données ; une fin
-nulle ne veut pas dire que la série circule encore. Exemple réel : sur la ligne de Grenoble à Montmélian
+`wikidata`, `contribution`), `relation` (relation assurée pendant la période quand la phrase datée en cite une :
+`label` comme « Paris-Montparnasse - Granville », gares d'extrémité `from` et `to` avec leur `id` et leur `name` tels
+qu'en base, `service` comme `TER`, `Intercités`, `express`, `omnibus` ou `fret`, sinon nulle), `source` (`title`,
+`revision`, `url`) et `provenance`. Seules les périodes sûres sont données ; une fin
+nulle ne veut pas dire que la série circule encore.
+
+Chaque série porte aussi `relations` : les relations qu'elle assurait sur la ligne, lues dans l'article Wikipédia de
+la série. Une relation entre deux gares (« Relation Argentan - Granville ») est rattachée aux lignes du plus court
+chemin du graphe de l'époque, seulement s'il n'existe pas d'autre itinéraire raisonnable ; un lien vers un article
+d'itinéraire (« Ligne de Paris à Granville ») est rattaché aux lignes qu'il enchaîne
+(`database/data/wikipedia_itineraries.php`). Chaque entrée donne `kind` (`relation` ou `itinerary`), `label`,
+`from`, `to`, `service`, `title` (article de l'itinéraire), `periods` (début, fin et précision des périodes qui la
+datent) et `notes` (faits sourcés sur la relation, hors Wikipédia, tirés de `database/data/material_relation_notes.php` :
+`kind` `fuel`, `fuel`, `feedstock`, `since`, `reported` avec leur précision, et `sources` avec `title`, `publisher`,
+`date`, `url` et les droits du fournisseur ; exemple réel : le Régiolis sur Paris - Granville, `fuel` `B100`,
+`feedstock` `rapeseed`, depuis avril 2021, bilan du 17 janvier 2023). Liste vide si aucune relation n'est citée.
+Les séries viennent de la plus récente à la plus ancienne (encore en service sans fin connue sur la ligne, puis fin
+la plus récente, puis début), comme sur la fiche de la ligne et dans l'API REST. `end` donne la fin telle que les
+sources la connaissent : `line` (fin datée sur la ligne, `year`), `series_in_service`, `series_withdrawn` (retrait de
+la série, jamais présenté comme la fin sur la ligne ; `year` nulle si seul l'état est connu) ou `unknown`, avec
+`source`, `source_url` et `since` (début de la période ouverte sur la ligne, nul sinon). L'ordre tient d'abord à la
+présence datée sur la ligne, puis seulement à l'état de la série : une série encore en service ailleurs mais
+remplacée ici ne passe pas devant (Paris - Granville : Régiolis à partir de 2014, X 72500 de 1999 à 2015). `material.image` : vignette Commons (`url`, `width`, `height`) et son crédit (`author`,
+`license`, `source_url`), nulle sans photo. Exemple réel : sur la ligne de Grenoble à Montmélian
 (`rfn-909000`), les CC 72000 ont une période du 20 août 1982 au 30 mai 1986 (`high`), les BB 67300 une fin au
 2 mai 2016 (`high`). Ligne inconnue : erreur `line_not_found` avec `suggestions`.
 
@@ -640,6 +681,16 @@ plus `lines` (lignes rattachées, la principale d'abord : `line`, `is_primary`, 
 `notes` : `code`, `label` dans la langue demandée, `detail`) et `provenance` (fournisseur de chaque fait retenu),
 avec `review_note` si la fiche est « à vérifier ». Accident inconnu : erreur `accident_not_found`.
 
+`context` : contexte sourcé (`vff:enrich-accidents`), rédigé par VFF à partir de documents lus, dans la langue
+demandée. `checked_on` (date de la recherche) ; `sections` (`circumstances`, `course`, `victims`, `causes`,
+`aftermath`, `memory`, `disagreements`), chaque énoncé avec `text` et `references` (clés des documents) ;
+`references` (documents : `key`, `provider`, `kind`, `reliability`, `title`, `publisher`, `author`, `published`,
+`locator`, `url`, `access` = `open`, `paywall` ou `link_only`, `consulted_on`, `note`, `license`, `license_status`) ;
+`images` (Wikimedia Commons : `image_url`, `author`, `license`, `caption`, `attribution`) ; `corrections` (champ,
+valeur d'avant, valeur retenue, raison). Les courtes citations servies par l'API REST et GraphQL (`quote`) ne le sont
+pas ici (décision Q22). Listes vides si la fiche n'a pas de contexte. Les fournisseurs de ces documents s'ajoutent au
+bloc d'attribution.
+
 ```json
 {"accident": "2013-07-12-bretigny-sur-orge", "lang": "en"}
 ```
@@ -704,15 +755,48 @@ calculés à l'avance par `vff:compute-line-profiles` : une ligne sans profil re
 |---|---|---|---|
 | `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
 | `max_points` | entier 10 à 2 000 | non | Nombre de points au plus (200 par défaut) ; les bouts, le point le plus bas et le plus haut restent. |
+| `pk_m` | entier | non | PK en mètres : ajoute `altitude_at_pk`, l'altitude de la ligne à ce PK (null si elle est inconnue). |
 | `lang` | `fr`, `en`, `de` | non | Langue des messages. |
 
-Renvoie `line`, `profile` (`era_year`, `step_m`, `length_m`, `summary` avec altitudes extrêmes, dénivelés et
-déclivité la plus forte en ‰ sur 1 km, `points` = `[distance_m, altitude_m]` le long du parcours, `structures`,
-`gaps`, `stations` avec leur PK officiel, `altitude_sources`) et `vff_url` (section de la fiche). Les distances ne
-sont pas des PK. Attribution : IGN (BD TOPO, RGE ALTI), Licence Ouverte 2.0.
+Le profil suit le tracé de référence de la ligne entière, toutes époques (lignes fermées et déposées comprises) ;
+les morceaux séparés par un trou sont gardés, la courbe s'interrompt dans le trou (`gaps`), et les embranchements
+suivent bout à bout (`branches`). Renvoie `line`, `profile` (`basis`, `step_m`, `length_m`, `trace_length_m`,
+`covered_m`, `off_path_m`, `pk_anchors`, `summary` avec altitudes extrêmes, dénivelés et déclivité la plus forte en
+‰ sur 1 km mesurée sur la voie (nulle quand elle n'est pas publiée, motif dans `max_grade_withheld` : `terrain_only`,
+`tunnel`, `interpolated`), `terrain_ranges` (parties à l'altitude du terrain), `points` = `[distance_m, altitude_m, pk_m]` le long du parcours, `structures`, `gaps`, `branches`,
+`stations` (toutes les gares de la ligne, fermées comprises, avec leur PK officiel, leur statut et leur écart au
+parcours), `altitude_sources`, et `altitude_at_pk` si `pk_m` est donné, sans position quand le tracé à cet endroit n'est pas
+redistribuable : `position_withheld`) et `vff_url` (section de la fiche). Le PK
+de chaque point est estimé à partir des PK officiels des gares. Le détail point par point (provenance, position) est
+dans l'API REST `GET /api/v1/lines/{line}/profile/points`. Attribution : IGN (BD TOPO, RGE ALTI), Licence Ouverte 2.0.
 
 ```json
 {"line": "rfn-896000", "max_points": 100}
+{"line": "rfn-405000", "pk_m": 45764}
+```
+
+### `line_audit` : audit des tronçons d'une ligne
+
+Même contenu que `GET /api/v1/lines/{line}/audit` (service `SegmentAudits`) ; l'API REST pagine aussi les tronçons avec `limit` et `offset` (50 par défaut, 200 au plus), l'outil n'a que `limit`. Notes calculées à l'avance par
+`vff:audit-segments` (méthode et seuils : `docs/AUDIT-TRONCONS.md`) : une ligne pas encore auditée à l'époque demandée
+renvoie l'erreur `audit_not_computed`.
+
+| Paramètre | Type | Obligatoire | Description |
+|---|---|---|---|
+| `line` | slug ou code | oui | Ligne (slug renvoyé par `search`, ou code SNCF Réseau à 6 chiffres). |
+| `era` | entier 1830 à 2030 | non | Année de l'ère (2030 par défaut, état du jour). |
+| `grade` | `good`, `fair`, `poor`, `unknown` | non | Ne garder que les tronçons dont la plus mauvaise note vaut celle-ci. |
+| `limit` | entier 1 à 200 | non | Nombre de tronçons au plus (50 par défaut), les plus mal notés d'abord. |
+| `lang` | `fr`, `en`, `de` | non | Langue des messages. |
+
+Renvoie `line`, `era_year`, `audited_at`, `rule_version`, `grades` (classement, placement, exactitude, tracé),
+`worst_grade`, `score` (0 à 100), `shares` (part de la longueur par note), `line_checks` (longueur comparée à la
+longueur officielle, ordre des gares), `segments_total` et `segments` (chacun avec ses notes et `evidence`, codes
+`reasons` stables) et `vff_url`. Attribution : SNCF Réseau et OpenStreetMap (ODbL), IGN (Licence Ouverte 2.0) pour
+les états observés cités dans les preuves.
+
+```json
+{"line": "rfn-405000", "era": 2030, "grade": "poor"}
 ```
 
 ### `line_greenways` : voies vertes d'une ancienne ligne
@@ -983,8 +1067,10 @@ donnent l'erreur JSON-RPC `-32602`. Complétion : `lang`, `region` (codes et nom
 
 Le serveur s'utilise sans compte ni jeton. Un **jeton personnel** de l'API, facultatif, relève la
 limite de débit : un membre le crée depuis son profil (section « Jetons d'accès à l'API » de
-`/profile`). Il ne sert qu'à lire, comme l'accès anonyme, et n'est affiché qu'une fois. Le serveur
-MCP lit le même en-tête que l'API REST et GraphQL : `Authorization: Bearer <jeton>`.
+`/profile`). Il ne sert qu'à lire, comme l'accès anonyme, et n'est affiché qu'une fois. Il est
+valable un an : un courriel prévient son titulaire 30 jours avant l'échéance, et le profil le
+renouvelle d'un clic sans changer son secret. Le serveur MCP lit le même en-tête que l'API REST et
+GraphQL : `Authorization: Bearer <jeton>`.
 
 | Profil | Limite (valeurs par défaut) | Compteur |
 | --- | --- | --- |

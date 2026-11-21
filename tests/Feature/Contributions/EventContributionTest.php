@@ -10,6 +10,8 @@ use App\Models\Line;
 use App\Models\LineEvent;
 use App\Models\User;
 use App\Services\Contributions\EventContributions;
+use App\Services\EraTimeline;
+use App\Support\SourceRights;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -224,6 +226,38 @@ class EventContributionTest extends TestCase
         $this->assertStringEndsWith("(contribution n° {$contribution->id})", $event->description);
         $this->assertSame($segmentsBefore, DB::table('line_segments')->orderBy('id')->get()->toJson(), 'aucun tronçon recalculé');
         $this->assertTrue(AuditEvent::query()->where('action', AuditAction::ContributionApplied->value)->exists());
+    }
+
+    /** @return array<string, array{0: array<string, mixed>, 1: string, 2: string, 3: string}> */
+    public static function citedSources(): array
+    {
+        return [
+            'document de Gallica' => [[], 'high', 'contrib', 'gallica'],
+            'ouvrage papier' => [['source_kind' => 'print', 'source_url' => null, 'source_license' => null], 'high', 'contrib', 'vff'],
+            'Journal officiel' => [['source_kind' => 'web', 'source_url' => 'https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000000000001'], 'high', 'contrib', 'jorf'],
+            'article Wikipédia' => [['source_kind' => 'web', 'source_url' => 'https://fr.wikipedia.org/wiki/Ligne_de_Saint-Cloud'], 'medium', 'wikipedia', 'wikipedia'],
+            'fiche lignes-oubliees' => [['source_kind' => 'web', 'source_url' => 'https://www.lignes-oubliees.com/ligne-123'], 'medium', 'lignes-oubliees', 'lignes-oubliees'],
+            'Wikidata' => [['source_kind' => 'web', 'source_url' => 'https://www.wikidata.org/wiki/Q90'], 'low', 'wikidata', 'wikidata'],
+            'blog inconnu' => [['source_kind' => 'web', 'source_url' => 'https://trains-d-autrefois.example.net/saint-cloud'], 'medium', 'contrib-web', 'vff'],
+        ];
+    }
+
+    /**
+     * La confiance suit la source citée : la colonne `confidence`, le rang dans le moteur
+     * (EraTimeline::rankedSource) et le fournisseur annoncé par l'API (registre des droits, `contrib`
+     * composite comme `manual`).
+     *
+     * @param  array<string, mixed>  $source
+     */
+    #[DataProvider('citedSources')]
+    public function test_confidence_follows_the_cited_source(array $source, string $confidence, string $rankedAs, string $provider): void
+    {
+        $contribution = $this->submit($this->member(), $source);
+        $event = LineEvent::query()->findOrFail(app(EventContributions::class)->apply($contribution)['line_event_id']);
+
+        $this->assertSame([EventContributions::SOURCE, $confidence], [$event->source, $event->confidence]);
+        $this->assertSame($rankedAs, EraTimeline::rankedSource($event->source, $event->source_url, $event->confidence));
+        $this->assertSame($provider, app(SourceRights::class)->providerFor('line_events', $event->source, $event->source_url));
     }
 
     public function test_publishing_twice_keeps_a_single_event(): void

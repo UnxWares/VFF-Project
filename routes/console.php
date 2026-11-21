@@ -62,6 +62,15 @@ Schedule::command('vff:prune-inactive-accounts')
     ->environments(['production'])
     ->withoutOverlapping(60);
 
+// Jetons d'API : rappel par courriel 30 jours avant leur échéance (un an après leur création ou leur
+// dernier renouvellement), un courriel par compte.
+Schedule::command('vff:remind-expiring-api-tokens')
+    ->name('vff:remind-expiring-api-tokens')
+    ->dailyAt('05:30')
+    ->timezone('Europe/Paris')
+    ->environments(['production'])
+    ->withoutOverlapping(60);
+
 Schedule::command('model:prune', ['--model' => [AuditEvent::class]])
     ->name('vff:prune-audit-events')
     ->dailyAt('05:45')

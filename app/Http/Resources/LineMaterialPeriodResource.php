@@ -54,6 +54,15 @@ class LineMaterialPeriodResource extends JsonResource
              */
             'section' => $this->section_from !== null ? ['from' => $this->section_from, 'to' => $this->section_to] : null,
             /**
+             * Relation assurée pendant cette période, quand la phrase datée cite une relation ou un itinéraire :
+             * `label` (« Paris-Montparnasse - Granville »), `from` / `to` (gares d'extrémité, `id` et `name` tels
+             * qu'en base, `id` nul si la gare n'a pas été identifiée), `service` (type de service cité ou nul).
+             * Nulle sinon.
+             *
+             * @var array{label: string, from: array{id: int|null, name: string}|null, to: array{id: int|null, name: string}|null, service: string|null}|null
+             */
+            'relation' => $this->relation,
+            /**
              * Fiabilité : `high` (chaque date au jour ou au mois), `medium` (une date à l'année). Les périodes
              * `low` (date approximative ou phrase ambiguë) ne sont jamais servies.
              *

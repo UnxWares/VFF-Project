@@ -5,6 +5,7 @@ import {
     crossesGap,
     gradeAt,
     labelledStations,
+    nearestStation,
     linePath,
     nearestIndex,
     niceStep,
@@ -175,5 +176,33 @@ describe('noms des gares', () => {
                 stations[0],
             ),
         ).toBeUndefined();
+    });
+});
+
+describe('gares principales et gare la plus proche', () => {
+    const x = (d) => d / 100;
+    const frame = { left: 0, right: 1000, labelWidth: () => 60 };
+
+    it('nomme les gares ouvertes avant les gares fermées quand la place manque', () => {
+        const stations = [
+            { distance_m: 0, name: 'A', status: 'active' },
+            { distance_m: 40000, name: 'Fermée', status: 'declassified' },
+            { distance_m: 44000, name: 'Ouverte', status: 'active' },
+            { distance_m: 100000, name: 'B', status: 'active' },
+        ];
+        const named = labelledStations(stations, x, {
+            ...frame,
+            principal: (s) => s.status !== 'declassified',
+        });
+        expect(named.has(stations[2])).toBe(true);
+        expect(named.has(stations[1])).toBe(false);
+        // Sans priorité, l'ordre du parcours l'emporte : la gare fermée prend la place.
+        expect(labelledStations(stations, x, frame).has(stations[1])).toBe(true);
+    });
+
+    it('trouve la gare à 8 px du pointeur au plus', () => {
+        const stations = [{ distance_m: 1000 }, { distance_m: 5000 }];
+        expect(nearestStation(stations, x, 14)).toBe(stations[0]);
+        expect(nearestStation(stations, x, 30)).toBeNull();
     });
 });

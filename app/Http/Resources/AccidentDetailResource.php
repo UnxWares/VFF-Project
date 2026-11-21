@@ -6,6 +6,7 @@ use App\Models\Accident;
 use App\Models\AccidentLine;
 use App\Models\AccidentSource;
 use App\Models\Station;
+use App\Services\Accidents\Context\AccidentContextView;
 use App\Services\Api\Provenance;
 use Illuminate\Http\Request;
 
@@ -179,6 +180,38 @@ class AccidentDetailResource extends AccidentResource
              * @var array<string, string>
              */
             'provenance' => (object) ($this->provenance ?? []),
+            /**
+             * Contexte sourcé (vff:enrich-accidents), rédigé par VFF à partir de documents lus : `checked_on` (date de
+             * la recherche, nulle si la fiche n'a pas encore de contexte) ; `sections` dans l'ordre de lecture,
+             * chacune `{section, entries}` avec `section` parmi `circumstances` (trains, horaires, lieu exact), `course`
+             * (déroulement), `victims` (bilan et secours, aucune victime nommée), `causes` (causes établies par
+             * l'enquête), `aftermath` (procès, rapports, mesures de sécurité adoptées), `memory` (monuments,
+             * commémorations), `disagreements` (contradictions entre les sources) ; chaque énoncé : `text` par langue
+             * (`fr`, `en`, `de`), `references` (clés des documents de `references` qui l'appuient), `quote` (au plus une
+             * courte citation exacte par fiche, d'un document sous Licence Ouverte : `text`, `lang`, `reference`, sinon
+             * nul).
+             *
+             * `references` : documents consultés, chacun `key`, `provider` (registre des droits de VFF : `bea-tt`,
+             * `legifrance`, `assemblee-nationale`, `senat`, `gallica`, `retronews`, `persee`, `archives-departementales`,
+             * `presse`, `ouvrages`, `sites-web`, `wikipedia`…), `kind` (`report`, `official`, `parliament`, `press`, `book`,
+             * `scholarly`, `archive`, `memorial`, `web`, `forum`, `encyclopedia`, `data`, `video`), `reliability`
+             * (`official`, `scholarly`, `press`, `local_history`, `association`, `encyclopedia`, `forum`), `title`,
+             * `publisher`, `author`, `published` (date du document : `AAAA`, `AAAA-MM` ou `AAAA-MM-JJ`), `locator` (page,
+             * numéro, cote), `url`, `access` (`open` : lu ; `paywall` : payant, lien seulement ; `link_only` : repéré, non
+             * lu, aucun énoncé ne s'appuie dessus), `consulted_on`, `note`, `license` et `license_status` (registre).
+             *
+             * `images` : images de Wikimedia Commons du domaine public ou sous licence libre permettant l'usage
+             * commercial, auteur et licence relus sur Commons : `file`, `page_url`, `image_url`, `thumb_url`, `width`,
+             * `height`, `author`, `license`, `license_url`, `date` (date de l'image selon Commons, texte), `caption` par
+             * langue, `attribution` (ligne de crédit à reprendre), `retrieved_at`.
+             *
+             * `corrections` : valeurs de la fiche corrigées d'après ces documents : `field` (`occurred_on`,
+             * `occurred_at_time`, `deaths`, `injuries`), `before` (valeur d'avant), `value`, `references`, `reason` par
+             * langue. Listes vides si la fiche n'a pas de contexte.
+             *
+             * @var array{checked_on: string|null, sections: list<array{section: string, entries: list<array{text: array<string, string>, references: list<string>, quote: array{text: string, lang: string, reference: string}|null}>}>, references: list<array<string, mixed>>, images: list<array<string, mixed>>, corrections: list<array<string, mixed>>}
+             */
+            'context' => app(AccidentContextView::class)->for($this->resource),
             /** Date du dernier import de la fiche (ISO 8601). */
             'imported_at' => $this->imported_at->toIso8601String(),
         ];

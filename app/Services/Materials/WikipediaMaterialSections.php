@@ -41,8 +41,14 @@ final class WikipediaMaterialSections
     /** Sections d'un article de MATÉRIEL qui décrivent ses services et ses lignes. */
     public const MATERIAL_SECTIONS = '/^(?:utilisations?|services?|service\s+commercial|affectations?|lignes?\s+(?:parcourues|desservies|exploit[ée]es)|dessertes?|exploitation|carri[èe]res?|parcours|missions?|engagements?|en\s+service)\b/iu';
 
+    /**
+     * Sections d'un article de MATÉRIEL qui listent ses relations (« Relations assurées », « Relations
+     * effectuées ») : lues en plus, pour les seuls articles dont aucune section ne répond à MATERIAL_SECTIONS.
+     */
+    public const RELATION_SECTIONS = '/^(?:relations?|liaisons?)\b/iu';
+
     /** Longueur maximale d'une phrase citée comme preuve. */
-    private const QUOTE_WIDTH = 300;
+    public const QUOTE_WIDTH = 300;
 
     /**
      * Futur, conditionnel, projet ou négation de la circulation : la phrase ne crée aucun lien.
@@ -51,6 +57,12 @@ final class WikipediaMaterialSections
     public const DOUBT_WORDS = 'jamais|interdite?s?|incompatibles?|ne\s+(?:peu[tv]ent|pouvai(?:en)?t|pourr\w*)|devr(?:a|ont|ait|aient)|pourr(?:a|ont|ait|aient)|prévue?s?|envisag\w*|projet\w*|à\s+terme|seront|sera|serai(?:en)?t';
 
     private const DOUBTFUL = '/\b(?:'.self::DOUBT_WORDS.')\b/iu';
+
+    /** Futur simple de récit (« année où elles seront remplacées ») : seul mot de DOUBT_WORDS qu'admet isProspective(). */
+    private const NARRATIVE_FUTURE = '/^(?:sera|seront)$/iu';
+
+    /** Écart minimal, en années, entre la plus récente année citée et aujourd'hui pour lire un futur de récit. */
+    public const NARRATIVE_FUTURE_GAP = 15;
 
     /**
      * Familles de doute sur la nature de la circulation, lues dans la partie de phrase qui porte le lien
@@ -179,6 +191,23 @@ final class WikipediaMaterialSections
     }
 
     /**
+     * Une phrase de l'article `$finalTitle`, demandé sous `$requested` pour la série `$name`, vaut-elle pour
+     * cette série ? Toujours si l'article est le sien ; sinon (titre redirigé vers l'article d'une autre série,
+     * qui le partage), seulement si la phrase nomme la série, espaces entre lettres et chiffres facultatifs
+     * (« Z 56500 », « Z56500 »).
+     */
+    public static function speaksOf(string $requested, string $finalTitle, string $name, string $quote): bool
+    {
+        if (self::normalizeTitle($requested) === self::normalizeTitle($finalTitle)) {
+            return true;
+        }
+        $parts = preg_split('/\s+|(?<=\p{L})(?=\d)/u', trim($name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $pattern = implode('\s*', array_map(fn (string $p): string => preg_quote($p, '/'), $parts));
+
+        return preg_match('/(?<![\p{L}\d])'.$pattern.'(?![\p{L}\d])/iu', $quote) === 1;
+    }
+
+    /**
      * Section consacrée à des projets ou à l'avenir (« Dessertes réalisées ou prévues »,
      * « Projets ») : ses liens ne prouvent pas une circulation. Le titre inclut celui de la
      * section parente (« Parent > Sous-section »).
@@ -207,7 +236,7 @@ final class WikipediaMaterialSections
             }
             $quote = self::plain($unit['sentence']);
             // Phrase vide une fois les modèles retirés (« . ») : rien à citer.
-            if (! preg_match('/\p{L}/u', $quote) || preg_match(self::DOUBTFUL, $quote)) {
+            if (! preg_match('/\p{L}/u', $quote) || self::isProspective($quote)) {
                 continue;
             }
             $refersBack = preg_match(self::REFERS_BACK_REPLACEMENT, $quote) === 1;
@@ -243,6 +272,30 @@ final class WikipediaMaterialSections
         }
 
         return $out;
+    }
+
+    /**
+     * La phrase (en clair) parle-t-elle d'un projet, d'un futur, d'un conditionnel ou d'une négation de la
+     * circulation (DOUBT_WORDS) ? Exception, le futur de récit : « les Pacific État continueront de circuler
+     * sur Paris-Granville jusqu'en 1950, année où elles seront remplacées par des 141 P ». Quand les seuls mots
+     * de doute sont « sera » ou « seront » et que toutes les années citées ont au moins NARRATIVE_FUTURE_GAP
+     * ans, la phrase raconte le passé : elle n'est pas écartée. Sans année, le futur reste un doute.
+     */
+    public static function isProspective(string $quote, ?int $currentYear = null): bool
+    {
+        if (preg_match_all(self::DOUBTFUL, $quote, $words) < 1) {
+            return false;
+        }
+        foreach ($words[0] as $word) {
+            if (preg_match(self::NARRATIVE_FUTURE, $word) !== 1) {
+                return true;
+            }
+        }
+        if (preg_match_all('/(?<![\d\p{L}])(1[89]\d\d|20\d\d)(?![\d\p{L}])/u', $quote, $years) < 1) {
+            return true;
+        }
+
+        return max(array_map('intval', $years[1])) > ($currentYear ?? (int) date('Y')) - self::NARRATIVE_FUTURE_GAP;
     }
 
     /**
@@ -426,7 +479,7 @@ final class WikipediaMaterialSections
     }
 
     /** Commentaires, références, balises et galeries retirés (ils ne sont pas du texte lu). */
-    private static function stripNoise(string $text): string
+    public static function stripNoise(string $text): string
     {
         $text = (string) preg_replace('/<!--.*?-->/su', ' ', $text);
         $text = (string) preg_replace('/<ref[^>\/]*\/>|<ref[^>]*>.*?<\/ref>/su', ' ', $text);
@@ -441,7 +494,7 @@ final class WikipediaMaterialSections
      *
      * @return list<array{sentence: string, previous: ?string}>
      */
-    private static function units(string $text): array
+    public static function units(string $text): array
     {
         $out = [];
         foreach (preg_split('/\n+/u', $text) ?: [] as $line) {

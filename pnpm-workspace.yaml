@@ -1,0 +1,15 @@
+# Réglages de pnpm (depuis pnpm 11, ils ne se lisent plus dans .npmrc).
+
+# Aucun script d'installation n'est exécuté : chaque paquet qui en déclare un est listé ici.
+#   esbuild  : install.js vérifie seulement le binaire de la plateforme (fourni par une dépendance optionnelle)
+#   lefthook : postinstall lance `lefthook install` ; les crochets s'installent à la main (cf. README › Qualité)
+#   @scarf/scarf : télémétrie d'installation, refusée
+#   vue-demi : sélection Vue 2 / Vue 3 pour la référence Scalar, déjà réglée sur Vue 3 par défaut
+allowBuilds:
+  esbuild: false
+  lefthook: false
+  '@scarf/scarf': false
+  vue-demi: false
+
+# minimumReleaseAge garde sa valeur par défaut de pnpm 11 et suivants : un paquet publié depuis moins
+# d'un jour n'est pas résolu (protection contre les versions piégées).

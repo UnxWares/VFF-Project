@@ -245,7 +245,8 @@
         content: '';
         position: absolute;
         top: 24px;
-        bottom: calc(-1 * (var(--vff-space-5) + 7px));
+        /* 3 px avant le point suivant (posé à 7 px du haut), comme l'écart sous le point. */
+        bottom: calc(-1 * (var(--vff-space-5) + 4px));
         left: calc(50% - 1px);
         width: 2px;
         background-color: var(--vff-border-strong);
@@ -282,6 +283,7 @@
         }
         .rail::after {
             top: 25px;
+            bottom: calc(-1 * (var(--vff-space-5) + 5px));
         }
     }
 </style>

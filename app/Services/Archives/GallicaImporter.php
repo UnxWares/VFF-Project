@@ -57,7 +57,7 @@ final class GallicaImporter
      * @param  list<LinePlaces>  $lines  lignes traitées
      * @param  (callable(LinePlaces): void)|null  $onLine  appelé après chaque ligne (barre de progression)
      * @return array{
-     *     documents: array<int, list<array<string, mixed>>>,
+     *     documents: array<int, list<array<model-property<LineArchiveDocument>, mixed>>>,
      *     arks: list<string>,
      *     failed: array<string, int>,
      *     candidates: list<array<string, mixed>>,
@@ -152,7 +152,7 @@ final class GallicaImporter
      *     requête n'a plus trouvée sont aussi retirés ;
      *   - les lignes en erreur (`failed`) ne perdent ni ne reçoivent rien.
      *
-     * @param  array{documents: array<int, list<array<string, mixed>>>, arks: list<string>, failed: array<string, int>}  $result
+     * @param  array{documents: array<int, list<array<model-property<LineArchiveDocument>, mixed>>>, arks: list<string>, failed: array<string, int>}  $result
      * @return array{written: int, before: int, after: int} documents écrits ; documents de la source avant et après
      */
     public function store(array $result, bool $complete): array
@@ -186,7 +186,7 @@ final class GallicaImporter
         });
     }
 
-    /** @return array<string, mixed> colonnes de line_archive_documents (sans line_id) */
+    /** @return array<model-property<LineArchiveDocument>, mixed> colonnes de line_archive_documents (sans line_id) */
     private function row(ArchiveRecord $record, ArchiveMatch $match, ?int $fetchedAt): array
     {
         return [

@@ -1,0 +1,127 @@
+<?php
+
+// Contexte sourcé de l'accident de Saint-Denis du 1er février 1916 (recherche du 21/11/2026).
+return [
+    'slug' => '1916-02-01-saint-denis',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-liste-1916' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1916',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => null,
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1916&oldid=241348251#F%C3%A9vrier',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Entrée du 1er février 1916 ; elle renvoie à Le Figaro des 2 et 3 février 1916. Seule source de texte lisible sur cet accident.',
+        ],
+        'figaro-1916-02-02' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Figaro, 2 février 1916',
+            'publisher' => 'Gallica (BnF)',
+            'author' => null,
+            'published' => '1916-02-02',
+            'locator' => 'p. 2',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k290940q/f2.item.r=%22Saint%20Denis%22.zoom',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article de presse cité par Wikipédia ; non lisible depuis la machine de recherche, à consulter.',
+        ],
+        'figaro-1916-02-03' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Le Figaro, 3 février 1916',
+            'publisher' => 'Gallica (BnF)',
+            'author' => null,
+            'published' => '1916-02-03',
+            'locator' => 'p. 3',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k2909413/f3.item.r=%22Saint%20Denis%22.zoom',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article de presse cité par Wikipédia ; non lisible depuis la machine de recherche, à consulter.',
+        ],
+        'commons-rol-1916' => [
+            'provider' => 'commons',
+            'kind' => 'archive',
+            'reliability' => 'press',
+            'title' => 'Déraillement de Saint-Denis en février 1916.jpg',
+            'publisher' => 'Wikimedia Commons',
+            'author' => null,
+            'published' => '1916-02-01',
+            'locator' => null,
+            'url' => 'https://commons.wikimedia.org/wiki/File:D%C3%A9raillement_de_Saint-Denis_en_f%C3%A9vrier_1916.jpg',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Photographie de l\'agence Rol, domaine public : locomotive du train poste Boulogne-Paris.',
+        ],
+        'commons-rol-calais' => [
+            'provider' => 'commons',
+            'kind' => 'archive',
+            'reliability' => 'press',
+            'title' => 'Saint-Denis, déraillement de l\'express de Calais, 1-2-16',
+            'publisher' => 'Wikimedia Commons',
+            'author' => null,
+            'published' => '1916-02-01',
+            'locator' => null,
+            'url' => 'https://commons.wikimedia.org/wiki/File:Saint-Denis,_d%C3%A9raillement_de_l%27express_de_Calais_-_btv1b6945688x.jpg',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Notice d\'une photographie de l\'agence Rol, qui parle de l\'express de Calais.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le 1er février 1916 à 19 h 25, le train poste n° 502 de Boulogne à Paris déraille à environ 100 mètres de la gare de Saint-Denis (Seine-Saint-Denis).',
+                'en' => 'On 1 February 1916 at 7.25 p.m., mail train no. 502 from Boulogne to Paris derailed about 100 metres from Saint-Denis station (Seine-Saint-Denis).',
+                'de' => 'Am 1. Februar 1916 um 19.25 Uhr entgleiste der Postzug Nr. 502 von Boulogne nach Paris etwa 100 Meter vor dem Bahnhof Saint-Denis (Seine-Saint-Denis).',
+                'sources' => ['wp-liste-1916', 'commons-rol-1916'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Le train est entré en collision avec un wagon de marchandises parti à la dérive à la suite d\'une fausse manœuvre. L\'éclatement des réservoirs de gaz des voitures de troisième classe provoque un incendie.',
+                'en' => 'The train had collided with a goods wagon that had run away after a shunting error. The bursting of the gas tanks of the third-class coaches started a fire.',
+                'de' => 'Der Zug war mit einem Güterwagen zusammengestoßen, der nach einem Rangierfehler losgerollt war. Das Platzen der Gasbehälter der Wagen dritter Klasse löste einen Brand aus.',
+                'sources' => ['wp-liste-1916'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'L\'accident fait quatorze morts et une vingtaine de blessés.',
+                'en' => 'The accident killed fourteen people and injured about twenty.',
+                'de' => 'Bei dem Unfall starben vierzehn Menschen, etwa zwanzig wurden verletzt.',
+                'sources' => ['wp-liste-1916'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'La liste consultée attribue le départ à la dérive du wagon à une fausse manœuvre, sans en préciser l\'auteur ni les suites judiciaires.',
+                'en' => 'The list consulted attributes the wagon\'s runaway to a shunting error, without saying who was responsible or what legal consequences followed.',
+                'de' => 'Die eingesehene Liste führt das Losrollen des Wagens auf einen Rangierfehler zurück, ohne den Verursacher oder rechtliche Folgen zu nennen.',
+                'sources' => ['wp-liste-1916'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Les notices de plusieurs photographies de presse de l\'agence Rol parlent du déraillement de l\'express de Calais, alors que la liste de Wikipédia et la légende d\'une autre photographie parlent du train poste Boulogne-Paris.',
+                'en' => 'The catalogue entries of several Agence Rol press photographs speak of the derailment of the Calais express, whereas the Wikipedia list and the caption of another photograph speak of the Boulogne to Paris mail train.',
+                'de' => 'Die Katalogeinträge mehrerer Pressefotos der Agentur Rol sprechen von der Entgleisung des Schnellzugs aus Calais, während die Wikipedia-Liste und die Bildunterschrift eines anderen Fotos vom Postzug Boulogne-Paris sprechen.',
+                'sources' => ['commons-rol-calais', 'wp-liste-1916', 'commons-rol-1916'],
+            ],
+        ],
+    ],
+    'images' => [
+        [
+            'file' => 'File:Déraillement de Saint-Denis en février 1916.jpg',
+            'caption' => ['fr' => 'La locomotive du train poste Boulogne-Paris après le déraillement de Saint-Denis, le 1er février 1916 (agence Rol).', 'en' => 'The locomotive of the Boulogne to Paris mail train after the Saint-Denis derailment, 1 February 1916 (Agence Rol).', 'de' => 'Die Lokomotive des Postzugs Boulogne-Paris nach der Entgleisung von Saint-Denis am 1. Februar 1916 (Agentur Rol).'],
+        ],
+    ],
+];

@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ListLineMaterialsRequest;
 use App\Http\Resources\LineMaterialLinkResource;
 use App\Models\Line;
+use App\Services\Materials\LineMaterialEnd;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 
 #[Group('Matériel roulant', "Les séries de matériel roulant qui ont circulé en France (locomotives, automotrices, autorails, rames TGV, voitures, wagons, tramways), leurs caractéristiques sourcées et les lignes qu'elles ont parcourues.", weight: 6)]
@@ -18,9 +20,13 @@ class LineMaterialController extends Controller
     /**
      * Matériel roulant d'une ligne.
      *
-     * Les séries qui ont circulé (ou circulent) sur la ligne, d'après une source citée,
-     * triées par année de mise en service puis par nom (séries non datées en dernier). Liste
-     * complète, sans pagination : une ligne compte au plus quelques dizaines de séries.
+     * Les séries qui ont circulé (ou circulent) sur la ligne, d'après une source citée, la plus
+     * récente d'abord, comme sur la fiche de la ligne : d'abord les séries datées sur la ligne, par
+     * dernière année de présence (une période ouverte vaut jusqu'au retrait de la série, ou
+     * aujourd'hui si elle est encore en service), puis les autres d'après l'état de la série
+     * (en service, retrait le plus récent, mise en service la plus récente), puis le nom. Chaque entrée
+     * donne `end`, la fin telle que les sources la connaissent. Liste complète, sans
+     * pagination : une ligne compte au plus quelques dizaines de séries.
      *
      * **Ce que veut dire un lien** : une source relie la série à la ligne, jamais un nom
      * approchant. Wikidata (déclaration « véhicule habituellement utilisé », P3438), ou
@@ -80,10 +86,9 @@ class LineMaterialController extends Controller
             ->when($request->filled('type'), fn ($q) => $q->where('materials.type', $request->input('type')))
             ->when($request->filled('source'), fn ($q) => $q->where('line_materials.source', $request->input('source')))
             ->when($request->confidences() !== [], fn ($q) => $q->whereIn('line_materials.confidence', $request->confidences()))
-            ->orderByRaw('materials.in_service_from ASC NULLS LAST')
-            ->orderBy('materials.name')
             ->select('line_materials.*')
             ->get();
+        $links = new Collection(LineMaterialEnd::sortLinks($links));
 
         return response()->json([
             'line' => ['slug' => $line->slug, 'code' => $line->code, 'name' => $line->name],

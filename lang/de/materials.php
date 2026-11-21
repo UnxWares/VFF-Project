@@ -107,6 +107,7 @@ return [
         'via' => 'über Wikimedia Commons',
         'file' => 'Dateiseite',
         'more' => 'Weitere Fotos auf Wikimedia Commons',
+        'alt' => 'Foto: :name',
     ],
     'about' => [
         'title' => 'Überblick',
@@ -126,6 +127,28 @@ return [
         'label' => 'Einsatz auf der Strecke',
         'source' => 'Quelle',
         'note' => 'Die Jahre stammen aus den Wikipedia-Artikeln über die Strecke und die Baureihen oder aus Wikidata. Fehlt das Ende, heißt das nicht, dass die Baureihe hier noch fährt. Die Quelle jedes Zeitraums steht auf der Seite der Baureihe.',
+    ],
+    'end' => [
+        'line' => 'Auf der Strecke bis :year',
+        'series_in_service' => 'Baureihe noch im Einsatz',
+        'series_withdrawn' => 'Baureihe ausgemustert',
+        'series_withdrawn_year' => 'Baureihe :year ausgemustert',
+        'unknown' => 'Ende auf der Strecke unbekannt',
+        'since' => 'Auf der Strecke ab :year',
+        'source' => 'Quelle',
+    ],
+    'relations' => [
+        'on_line' => 'Verbindungen: :relations',
+        'label' => 'Gefahrene Verbindungen',
+        'notes' => [
+            'fuel' => 'mit :fuel-Biodiesel (:feedstock) seit :since',
+            'reported' => 'Bilanz veröffentlicht im :date',
+            'sources' => 'Quellen:',
+            'line' => ':label: :text',
+        ],
+        'feedstock' => [
+            'rapeseed' => 'Raps',
+        ],
     ],
     'section_lines' => [
         'intro' => 'Jede Strecke ist durch eine Quelle belegt. Der Satz wird unverändert auf Französisch zitiert, mit einem Link auf die gelesene Fassung des Artikels. Wenn eine Quelle sie datiert, sind die Jahre angegeben, in denen die Baureihe auf der Strecke fuhr.',
@@ -190,5 +213,18 @@ return [
         'wagon' => 'Güterwagen',
         'tramway' => 'Straßenbahn',
         'engin_service' => 'Dienstfahrzeug',
+    ],
+    // Rames remarquables d'une série (database/data/material_notable_units.php).
+    'notable' => [
+        'title' => 'Besondere Triebzüge',
+        'intro' => 'Triebzüge dieser Baureihe mit eigener Geschichte. Jede Angabe verweist auf die Seite, die sie berichtet.',
+        'unit' => 'Triebzug :number „:nickname“',
+        'unit_plain' => 'Triebzug :number',
+        'source' => 'Quelle: :publisher',
+        'reported' => ':publisher, nach :reported',
+        'range' => ':from bis :to',
+        // Profil dessiné d'une rame (resources/js/lib/tgvSudEst.js).
+        'profile_alt' => 'Seitenansicht des Triebzugs :number in der ursprünglichen orangen Lackierung: der Triebkopf mit langer Nase, dann der erste Wagen, mit einem dunkelgrauen Fensterband und einem breiten weißen Streifen darunter.',
+        'profile_caption' => 'Zugspitze, maßstäblich nach veröffentlichten Maßen gezeichnet.',
     ],
 ];

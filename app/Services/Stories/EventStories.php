@@ -218,7 +218,7 @@ final readonly class EventStories
      */
     private static function rank(array $e): array
     {
-        $source = $e['source'] === 'lignes-oubliees' && str_contains((string) $e['source_url'], '.pdf') ? 'lignes-oubliees-pdf' : (string) $e['source'];
+        $source = (string) EraTimeline::rankedSource($e['source'], $e['source_url'], $e['confidence'] ?? null);
 
         return [
             EraTimeline::SOURCE_PRIORITY[$source] ?? 10,

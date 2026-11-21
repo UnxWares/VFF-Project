@@ -19,6 +19,13 @@ return [
     'created_at' => 'Créé le :date',
     'last_used' => 'Dernière utilisation le :date',
     'never_used' => 'Jamais utilisé',
+    'expires_on' => 'Expire le :date',
+    'expired_on' => 'Expiré depuis le :date',
+    'expires_soon' => 'Expire bientôt',
+    'expired' => 'Expiré',
+    'lifetime' => 'Un jeton est valable :days jours. Un courriel vous prévient 30 jours avant son échéance, et le bouton « Renouveler » le prolonge d’un an sans changer son secret.',
+    'renew' => 'Renouveler',
+    'renew_label' => 'Renouveler le jeton « :name » pour un an',
     'revoke' => 'Révoquer',
     'revoke_label' => 'Révoquer le jeton « :name »',
     'revoke_confirm_title' => 'Révoquer le jeton « :name » ?',
@@ -53,5 +60,17 @@ return [
     'flash' => [
         'created' => 'Le jeton a été créé.',
         'revoked' => 'Le jeton a été révoqué.',
+        'renewed' => 'Le jeton a été renouvelé pour un an. Les programmes qui l’utilisent n’ont rien à changer.',
+    ],
+
+    'mail' => [
+        'subject_one' => 'Votre jeton d’API Voies Ferrées de France expire bientôt',
+        'subject_other' => 'Vos jetons d’API Voies Ferrées de France expirent bientôt',
+        'intro_one' => 'L’un de vos jetons d’accès à l’API expire dans :days jours ou moins :',
+        'intro_other' => 'Plusieurs de vos jetons d’accès à l’API expirent dans :days jours ou moins :',
+        'item' => '« :name » : expire le :date.',
+        'renew' => 'Pour continuer à vous en servir, ouvrez votre profil et cliquez sur « Renouveler » : le jeton reste le même et reste valable un an de plus. Après l’échéance, l’API le refuse (erreur 401), mais vous pouvez encore le renouveler depuis le profil.',
+        'action' => 'Ouvrir mon profil',
+        'ignore' => 'Si vous ne vous servez plus de ce jeton, vous pouvez ignorer ce message.',
     ],
 ];

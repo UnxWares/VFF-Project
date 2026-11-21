@@ -1,0 +1,167 @@
+<?php
+
+// Contexte sourcé du sabotage du train postal Paris-Tourcoing près d'Arras du 3 décembre 1947 (recherche du 21/11/2026).
+return [
+    'slug' => '1947-12-03-arras',
+    'checked_on' => '2026-11-21',
+    'sources' => [
+        'wp-arras' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Sabotage et déraillement du train postal Paris-Tourcoing le 3 décembre 1947 à Arras',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'article entier',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Sabotage_et_d%C3%A9raillement_du_train_postal_Paris-Tourcoing_le_3_d%C3%A9cembre_1947_%C3%A0_Arras&oldid=241026653',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Article détaillé (train, mode opératoire, enquête, procès civils, hypothèses) ; seule une partie du texte a pu être lue, les notes ne sont pas toutes visibles.',
+        ],
+        'wp-liste-1940' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1940',
+            'publisher' => 'Wikipédia',
+            'author' => null,
+            'published' => null,
+            'locator' => '1947',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1940&oldid=239153903#1947',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Situe l\'accident à Agny, donne 20 morts et une quarantaine de blessés, renvoie à La Voix du Nord (28 décembre 2012).',
+        ],
+        'wp-en-greves' => [
+            'provider' => 'wikipedia-en',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => '1947 strikes in France',
+            'publisher' => 'Wikipedia',
+            'author' => null,
+            'published' => null,
+            'locator' => 'passage sur le sabotage d\'Arras',
+            'url' => 'https://en.wikipedia.org/wiki/1947_strikes_in_France',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Attribue le sabotage à des militants de la CGT du Pas-de-Calais et donne 16 morts ; passage sans note de bas de page.',
+        ],
+        'cr-1947-12-05' => [
+            'provider' => 'senat',
+            'kind' => 'parliament',
+            'reliability' => 'official',
+            'title' => 'Conseil de la République, compte rendu in extenso de la séance du 5 décembre 1947',
+            'publisher' => 'Sénat (Journal officiel, débats du Conseil de la République)',
+            'author' => null,
+            'published' => '1947-12-06',
+            'locator' => 'p. 2275 à 2338, débat sur la protection de la liberté du travail',
+            'url' => 'http://www.senat.fr/comptes-rendus-seances/4eme/pdf/1947/12/S19471205_2275_2338.pdf',
+            'access' => 'open',
+            'consulted_on' => '2026-11-21',
+            'note' => 'Le débat sur le projet de loi relatif à la protection de la liberté du travail et à la défense de la République évoque le sabotage d\'Arras et ses 20 morts.',
+        ],
+    ],
+    'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le train postal Paris-Tourcoing, parti de Paris-Nord le 2 décembre 1947 à 22 h 55, comprend trois wagons postaux et cinq voitures de voyageurs. Il roule à environ 92 km/h.',
+                'en' => 'The Paris-Tourcoing mail train left Paris-Nord at 10.55 pm on 2 December 1947. It was made up of three mail vans and five passenger coaches and was travelling at about 92 km/h.',
+                'de' => 'Der Postzug Paris-Tourcoing verließ Paris-Nord am 2. Dezember 1947 um 22.55 Uhr. Er bestand aus drei Postwagen und fünf Reisezugwagen und fuhr mit etwa 92 km/h.',
+                'sources' => ['wp-arras'],
+            ],
+            [
+                'fr' => 'Le déraillement a lieu le 3 décembre 1947 à 2 h 35, dans une courbe encadrée de talus, à environ 2 km de la gare d\'Arras, du côté d\'Achicourt. La liste de Wikipédia le place à Agny, près d\'Arras.',
+                'en' => 'The derailment took place on 3 December 1947 at 2.35 am, in a curve between two embankments about 2 km from Arras station, on the Achicourt side. Wikipedia\'s list places it at Agny, near Arras.',
+                'de' => 'Die Entgleisung ereignete sich am 3. Dezember 1947 um 2.35 Uhr in einer von Böschungen eingefassten Kurve, etwa 2 km vom Bahnhof Arras entfernt, auf der Seite von Achicourt. Die Wikipedia-Liste nennt Agny bei Arras als Ort.',
+                'sources' => ['wp-arras', 'wp-liste-1940'],
+            ],
+            [
+                'fr' => 'L\'événement survient à la fin des grèves de l\'automne 1947, après d\'autres sabotages et déraillements sans victimes, dont celui d\'un train Lyon-Bourg le 1er décembre. Le 2 décembre, le trafic reprend à Arras, où 700 non-grévistes sont présents à la gare.',
+                'en' => 'It happened at the end of the autumn 1947 strikes, after other sabotage and derailments without casualties, including that of a Lyon-Bourg train on 1 December. On 2 December traffic resumed at Arras, where 700 non-strikers were present at the station.',
+                'de' => 'Das Ereignis fällt in das Ende der Streiks im Herbst 1947, nach weiteren Sabotageakten und Entgleisungen ohne Opfer, darunter dem eines Zuges Lyon-Bourg am 1. Dezember. Am 2. Dezember wurde der Verkehr in Arras wieder aufgenommen, wo sich 700 Nichtstreikende am Bahnhof befanden.',
+                'sources' => ['wp-arras'],
+            ],
+        ],
+        'course' => [
+            [
+                'fr' => 'Un rail a été déboulonné sur environ 25 mètres. Le train quitte la voie, les véhicules se télescopent et la locomotive reste bloquée entre les talus. La neige et l\'obscurité compliquent les secours.',
+                'en' => 'A rail had been unbolted over about 25 metres. The train left the track, the vehicles telescoped and the locomotive remained wedged between the embankments. Snow and darkness hampered the rescue.',
+                'de' => 'Eine Schiene war auf etwa 25 Meter losgeschraubt worden. Der Zug verließ das Gleis, die Fahrzeuge schoben sich ineinander und die Lokomotive blieb zwischen den Böschungen eingeklemmt. Schnee und Dunkelheit erschwerten die Rettung.',
+                'sources' => ['wp-arras'],
+            ],
+            [
+                'fr' => 'Un élève-mécanicien indemne rejoint à pied le poste d\'Agny pour prévenir la gare d\'Arras.',
+                'en' => 'An unhurt trainee driver walked to the Agny signal post to warn Arras station.',
+                'de' => 'Ein unverletzter Lokführeranwärter lief zum Posten Agny, um den Bahnhof Arras zu verständigen.',
+                'sources' => ['wp-arras'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Le bilan est d\'environ 20 morts et plusieurs dizaines de blessés ; la liste de Wikipédia indique une quarantaine de blessés. Lors du débat du Conseil de la République du 5 décembre 1947, un conseiller parle de la mort de 20 personnes.',
+                'en' => 'The toll is about 20 dead and several dozen injured; Wikipedia\'s list gives about forty injured. In the Conseil de la République debate of 5 December 1947, a councillor speaks of 20 deaths.',
+                'de' => 'Die Bilanz beträgt etwa 20 Tote und mehrere Dutzend Verletzte; die Wikipedia-Liste nennt rund vierzig Verletzte. In der Debatte des Conseil de la République am 5. Dezember 1947 spricht ein Mitglied von 20 Toten.',
+                'sources' => ['wp-arras', 'wp-liste-1940', 'cr-1947-12-05'],
+            ],
+        ],
+        'causes' => [
+            [
+                'fr' => 'Il s\'agit d\'un sabotage : les auteurs ont déboulonné le rail et coupé le signal électrique, de sorte que le conducteur ne pouvait pas savoir que la voie était coupée. Le choix d\'une courbe entre talus a aggravé le bilan.',
+                'en' => 'It was an act of sabotage: the perpetrators unbolted the rail and cut the electrical signal, so that the driver could not know the line was broken. The choice of a curve between embankments made the toll worse.',
+                'de' => 'Es handelte sich um Sabotage: Die Täter lösten die Schiene und unterbrachen das elektrische Signal, sodass der Lokführer nicht erkennen konnte, dass das Gleis unterbrochen war. Die Wahl einer Kurve zwischen Böschungen verschlimmerte die Bilanz.',
+                'sources' => ['wp-arras', 'wp-liste-1940'],
+            ],
+            [
+                'fr' => 'Les auteurs n\'ont jamais été identifiés selon l\'article détaillé de Wikipédia. Deux hypothèses circulent, toutes deux jugées non étayées par cet article : un sabotage visant un train de CRS, et un sabotage destiné à discréditer la grève.',
+                'en' => 'According to the detailed Wikipedia article, the perpetrators were never identified. Two hypotheses circulate, both judged unsupported by that article: sabotage aimed at a train of riot police (CRS), and sabotage intended to discredit the strike.',
+                'de' => 'Laut dem ausführlichen Wikipedia-Artikel wurden die Täter nie identifiziert. Es kursieren zwei Hypothesen, die der Artikel beide für nicht belegt hält: ein Anschlag auf einen Zug der CRS und eine Sabotage mit dem Ziel, den Streik zu diskreditieren.',
+                'sources' => ['wp-arras'],
+            ],
+        ],
+        'aftermath' => [
+            [
+                'fr' => 'Cinq syndicalistes ont été arrêtés pour des violences commises la veille à la gare d\'Arras, sans lien établi avec le sabotage selon le juge d\'instruction. Les 14 cheminots arrêtés après le déraillement ont été acquittés en février 1948.',
+                'en' => 'Five trade unionists were arrested for violence committed the day before at Arras station, with no link to the sabotage established according to the investigating judge. The 14 railwaymen arrested after the derailment were acquitted in February 1948.',
+                'de' => 'Fünf Gewerkschafter wurden wegen Gewalttaten am Vortag im Bahnhof Arras festgenommen, ohne dass nach Angaben des Untersuchungsrichters ein Zusammenhang mit der Sabotage feststand. Die 14 nach der Entgleisung festgenommenen Eisenbahner wurden im Februar 1948 freigesprochen.',
+                'sources' => ['wp-arras'],
+            ],
+            [
+                'fr' => 'Le 5 décembre 1947, le Conseil de la République débat du projet de loi relatif à la protection de la liberté du travail et à la défense de la République, qui définit le sabotage dans le code pénal ; l\'attentat d\'Arras est cité dans les échanges.',
+                'en' => 'On 5 December 1947 the Conseil de la République debated the bill on the protection of freedom to work and the defence of the Republic, which defines sabotage in the penal code; the Arras attack is cited in the exchanges.',
+                'de' => 'Am 5. Dezember 1947 debattierte der Conseil de la République den Gesetzentwurf zum Schutz der Arbeitsfreiheit und zur Verteidigung der Republik, der die Sabotage im Strafgesetzbuch definiert; der Anschlag von Arras wird in den Wortwechseln erwähnt.',
+                'sources' => ['cr-1947-12-05'],
+            ],
+            [
+                'fr' => 'Au civil, le tribunal de commerce d\'Arras juge la SNCF entièrement responsable en janvier 1953 et accorde un million de francs à une famille de victimes. La Cour de cassation confirme la responsabilité de la SNCF le 30 juin 1953 : elle aurait dû renforcer la surveillance des voies.',
+                'en' => 'In the civil proceedings, the Arras commercial court found the SNCF fully liable in January 1953 and awarded one million francs to a victim\'s family. The Court of Cassation confirmed the SNCF\'s liability on 30 June 1953: it should have reinforced track surveillance.',
+                'de' => 'Im Zivilverfahren erklärte das Handelsgericht Arras die SNCF im Januar 1953 für voll haftbar und sprach einer Opferfamilie eine Million Francs zu. Der Kassationshof bestätigte die Haftung der SNCF am 30. Juni 1953: Sie hätte die Überwachung der Gleise verstärken müssen.',
+                'sources' => ['wp-arras'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'L\'attribution diffère. L\'article détaillé de Wikipédia dit que les auteurs n\'ont jamais été identifiés. L\'article anglais sur les grèves de 1947 attribue le sabotage à des militants de la CGT du Pas-de-Calais et donne 16 morts et 50 blessés, sans note de bas de page. La liste de Wikipédia écrit que les auteurs auraient été identifiés mais jamais poursuivis.',
+                'en' => 'Attribution differs. The detailed French Wikipedia article says the perpetrators were never identified. The English article on the 1947 strikes attributes the sabotage to CGT activists in the Pas-de-Calais, with 16 dead and 50 injured, without a footnote. Wikipedia\'s list says the perpetrators were reportedly identified but never prosecuted.',
+                'de' => 'Die Zuschreibung weicht ab. Der ausführliche französische Wikipedia-Artikel sagt, die Täter seien nie identifiziert worden. Der englische Artikel über die Streiks von 1947 schreibt die Sabotage Aktivisten der CGT im Pas-de-Calais zu und nennt 16 Tote und 50 Verletzte, ohne Einzelnachweis. Die Wikipedia-Liste schreibt, die Täter seien angeblich identifiziert, aber nie verfolgt worden.',
+                'sources' => ['wp-arras', 'wp-en-greves', 'wp-liste-1940'],
+            ],
+            [
+                'fr' => 'Le lieu et l\'heure varient : Arras (courbe d\'Achicourt, 2 h 35) pour l\'article détaillé, Agny pour la liste de Wikipédia, « vers 3 heures près d\'Arras » pour l\'article anglais.',
+                'en' => 'Place and time vary: Arras (Achicourt curve, 2.35 am) in the detailed article, Agny in Wikipedia\'s list, and "around 3 am near Arras" in the English article.',
+                'de' => 'Ort und Uhrzeit variieren: Arras (Kurve von Achicourt, 2.35 Uhr) im ausführlichen Artikel, Agny in der Wikipedia-Liste und »gegen 3 Uhr bei Arras« im englischen Artikel.',
+                'sources' => ['wp-arras', 'wp-liste-1940', 'wp-en-greves'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'attack',
+            'sources' => ['cr-1947-12-05', 'wp-arras'],
+            'fr' => 'L\'événement est un sabotage volontaire de la voie, qualifié ainsi dans les débats du Conseil de la République du 5 décembre 1947 et dans l\'article détaillé.',
+            'en' => 'The event was a deliberate act of sabotage of the track, described as such in the Conseil de la République debates of 5 December 1947 and in the detailed article.',
+            'de' => 'Das Ereignis war eine vorsätzliche Sabotage des Gleises, so bezeichnet in den Debatten des Conseil de la République vom 5. Dezember 1947 und im ausführlichen Artikel.',
+        ],
+    ],
+];

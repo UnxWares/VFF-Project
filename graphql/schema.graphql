@@ -211,14 +211,25 @@ type Line {
     ): [SignallingEvent!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@forLine")
 
     """
-    Profil en long de la ligne (altitude le long du tracé, gares placées dessus), comme
-    `GET /api/v1/lines/{line}/profile`. Altitudes de l'IGN (BD TOPO, à défaut RGE ALTI ; Licence
-    Ouverte 2.0). Nul tant que le profil de la ligne n'est pas calculé.
+    Profil en long de la ligne (altitude le long du tracé de référence, toutes époques, gares placées
+    dessus), comme `GET /api/v1/lines/{line}/profile`. Altitudes de l'IGN (BD TOPO, à défaut RGE ALTI ;
+    Licence Ouverte 2.0). Nul tant que le profil de la ligne n'est pas calculé.
     """
     profile(
         "Nombre de points au plus (10 à 5 000) : profil allégé qui garde les deux bouts, le point le plus bas et le plus haut. Par défaut : tous les points."
         max_points: Int @rules(apply: ["nullable", "integer", "between:10,5000"])
     ): LineProfile @field(resolver: "App\\GraphQL\\Resolvers\\LineProfileField")
+
+    """
+    Audit des tronçons de la ligne à une ère (passe `vff:audit-segments`, docs/AUDIT-TRONCONS.md),
+    comme `GET /api/v1/lines/{line}/audit` : quatre notes par tronçon (classement, placement,
+    exactitude, tracé) avec leurs preuves. Nul tant que la ligne n'est pas auditée à cette ère ;
+    erreur de requête si l'ère n'existe pas.
+    """
+    audit(
+        "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante, 2030."
+        era: Int @rules(apply: ["nullable", "integer", "between:1830,2030"])
+    ): LineAudit @field(resolver: "App\\GraphQL\\Resolvers\\LineAuditField")
 
     """
     Point kilométrique d'un lieu sur la ligne, comme `GET /api/v1/lines/{line}/pk` : le point est projeté
@@ -989,6 +1000,198 @@ type Station {
     présence par décennie, lignes desservies, sources, gares voisines.
     """
     sheet: StationSheet! @field(resolver: "App\\GraphQL\\Resolvers\\SheetResolver@station")
+
+    """
+    Audit de la gare (dernière passe de `vff:audit-stations`, docs/AUDIT-GARES.md) : note de
+    placement, notes des dates, services, contrôles croisés et dates candidates de Wikidata. Même
+    contenu que `GET /api/v1/stations/{station}/audit`. Nul tant que la gare n'a pas été auditée.
+    """
+    audit: StationAudit @field(resolver: "App\\GraphQL\\Resolvers\\StationAuditResolver")
+}
+
+"Audit d'une gare : rien n'y est corrigé, les sources sont comparées entre elles."
+type StationAudit {
+    "Placement : positions des sources comparées à la position retenue."
+    placement: StationPlacement!
+
+    "Notes des dates d'ouverture et de fermeture, et services voyageurs et fret."
+    dates: StationAuditDates!
+
+    "Contrôles croisés en échec (liste vide si tout concorde)."
+    checks: [StationAuditCheck!]!
+
+    "Dates de mise en service (P1619) et de fermeture (P3999) trouvées dans Wikidata, comparées à la date publiée par VFF, sans la remplacer."
+    date_candidates: [StationDateCandidate!]!
+
+    "Version des règles d'audit (date, `AAAA-MM-JJ`)."
+    rule_version: String!
+
+    "Date et heure de la passe d'audit (ISO 8601)."
+    audited_at: String!
+}
+
+"Note de placement d'une gare et positions comparées. Écarts en mètres."
+type StationPlacement {
+    """
+    `agree` : une source indépendante à moins de 20 m, aucune contradiction ; `close` : la plus proche
+    entre 20 et 100 m ; `isolated` : aucune source indépendante proche ; `disagree` : une source
+    précise à plus de 100 m, ou une source grossière (Wikidata, liste calée à plus de 50 m près) à
+    plus de 1 km ; `none` : aucune position de source.
+    """
+    grade: String!
+
+    "Nombre de familles de sources (SNCF, OSM, BD TOPO, Wikidata, OHM, listes par PK, correction), position retenue comprise."
+    families: Int!
+
+    "Écart à la source indépendante la plus proche."
+    nearest_agreeing_m: Int
+
+    "Écart à la source précise indépendante la plus éloignée."
+    farthest_precise_m: Int
+
+    "Écart entre la position retenue et la voie la plus proche des lignes de la gare."
+    track_offset_m: Int
+
+    "Une position par source."
+    positions: [StationAuditPosition!]!
+}
+
+"Position d'une gare selon une source."
+type StationAuditPosition {
+    "Source : `sncf`, `sncf_voyageurs`, `osm`, `bdtopo`, `wikidata`, `ohm`, `wikipedia_schema`, `lignes-oubliees`, `correction`."
+    source: String
+
+    "Famille de sources : `sncf`, `osm`, `bdtopo`, `wikidata`, `ohm`, `pk` (listes posées par PK), `correction`."
+    family: String
+
+    "Référence dans la source (identifiant OSM, élément Wikidata, cleabs de la BD TOPO…)."
+    ref: String
+
+    "Longitude WGS 84 ; nulle si la source n'est pas redistribuable (voir `provenance.license_status`)."
+    lon: Float
+
+    "Latitude WGS 84 ; nulle si la source n'est pas redistribuable."
+    lat: Float
+
+    "Écart à la position retenue (zone BD TOPO : jusqu'au contour, 0 dedans)."
+    distance_m: Int
+
+    "Écart à la voie la plus proche des lignes de la gare."
+    track_m: Int
+
+    "Précision annoncée par la source (listes posées par PK)."
+    precision_m: Int
+
+    "Source précise (SNCF, OSM, BD TOPO, OHM, liste calée à 50 m près au plus)."
+    precise: Boolean!
+
+    "Position de la même famille que la position retenue par VFF."
+    retained: Boolean!
+
+    "Fournisseur et licence de la position."
+    provenance: Provenance!
+}
+
+"Notes des dates d'une gare : `sourced` (relevée dans une source), `estimated` (déduite par VFF), `unknown`, `not_applicable` (gare encore ouverte)."
+type StationAuditDates {
+    "Note de la date d'ouverture."
+    opening_grade: String!
+
+    "Note de la date de fermeture."
+    closure_grade: String!
+
+    "Services voyageurs et fret."
+    services: StationAuditServices!
+}
+
+"Services d'une gare, séparés : une gare peut fermer aux voyageurs et garder le fret."
+type StationAuditServices {
+    "Voyageurs."
+    passenger: StationAuditService!
+
+    "Fret."
+    freight: StationAuditService!
+}
+
+"État d'un service aujourd'hui et date de sa fin."
+type StationAuditService {
+    "`open`, `closed` ou `unknown`."
+    state: String!
+
+    "Date de fin du service (`AAAA-MM-JJ`), à lire avec `closed_precision`."
+    closed_on: Date
+
+    "Précision : `day`, `month`, `year`, `decade`, `range` (intervalle des ères)."
+    closed_precision: String
+
+    "Source de la date de fin."
+    source: String
+
+    "Note de la date : `sourced`, `estimated`, `unknown`, `not_applicable`."
+    grade: String!
+}
+
+"Contrôle croisé en échec."
+type StationAuditCheck {
+    """
+    `closure_before_opening`, `opening_before_lines`, `open_after_lines`,
+    `freight_closed_before_opening`, `passenger_after_closure`, `wikidata_differs`, `far_from_track`.
+    """
+    code: String!
+
+    "Détail (dates ou écart comparés)."
+    detail: String!
+}
+
+"Date d'une gare trouvée dans une source, comparée à la date publiée par VFF."
+type StationDateCandidate {
+    "`opening`, `closure`, `closure_passenger`, `closure_freight`, `reopening`."
+    kind: String!
+
+    "Date (`AAAA-MM-JJ`), à lire avec `precision`."
+    date: Date!
+
+    "`day`, `month`, `year`, `decade`, `century`."
+    precision: String!
+
+    "Rang de la déclaration Wikidata : `preferred` ou `normal`."
+    rank: String!
+
+    "Qualificatifs : `applies_to` (P518), `circumstances` (P1480), `earliest` (P1319), `latest` (P1326), `subject` (P805)."
+    qualifiers: JSON
+
+    "Références : `stated_in` (P248), `url` (P854), `imported_from` (P143)."
+    references: JSON
+
+    "Date publiée par VFF pour le même type."
+    vff_date: Date
+
+    "Précision de la date de VFF."
+    vff_precision: String
+
+    "Source de la date de VFF."
+    vff_source: String
+
+    "`same`, `more_precise`, `less_precise`, `differs`, `new` (VFF n'a pas de date)."
+    comparison: String!
+
+    "Candidate moins VFF, en jours."
+    delta_days: Int
+
+    "La règle de rang proposée (texte officiel > Wikipédia et Wikidata > lignes-oubliées, OHM, OSM > estimation) la préférerait-elle ? Non appliquée."
+    would_replace: Boolean!
+
+    "Source (`wikidata`)."
+    source: String!
+
+    "Référence : élément, propriété et identifiant de la déclaration."
+    source_ref: String!
+
+    "Lien vers la déclaration."
+    source_url: String
+
+    "Fournisseur et licence."
+    provenance: Provenance!
 }
 
 """
@@ -1124,6 +1327,16 @@ type Material {
     "Provenance de chaque champ renseigné : source, référence précise, adresse, licence."
     field_sources: [MaterialFieldSource!]! @field(resolver: "App\\GraphQL\\Resolvers\\MaterialField")
 
+    """
+    Rames ou engins remarquables de la série (ex. rame 01 « Patrick » du TGV Sud-Est), avec leurs faits datés,
+    chacun avec sa source et sa courte citation. Liste vide si aucun. Mêmes données que `notable_units` de
+    l'API REST `GET /api/v1/materials/{slug}`.
+    """
+    notable_units(
+        "Langue des textes : `fr` (par défaut), `en` ou `de`. Une autre valeur donne le français."
+        lang: String = "fr"
+    ): [MaterialNotableUnit!]! @field(resolver: "App\\GraphQL\\Resolvers\\MaterialField")
+
     "Lignes sur lesquelles ce matériel a circulé ou circule (sans la preuve : voir `line_links`)."
     lines: [Line!]! @belongsToMany
 
@@ -1136,6 +1349,72 @@ type Material {
     Chaque média porte ses droits. L'image principale de la fiche reste dans `image`.
     """
     media: [Media!]! @morphMany(type: CONNECTION, defaultCount: 20, maxCount: 100, scopes: ["redistributable"]) @builder(method: "App\\GraphQL\\Builders\\MediaBuilder@inOrder")
+}
+
+"Rame ou engin remarquable d'une série, relu à la main (database/data/material_notable_units.php)."
+type MaterialNotableUnit {
+    "Numéro de la rame ou de l'engin (ex. `01`)."
+    number: String!
+
+    "Surnom (ex. `Patrick`), nul s'il n'en a pas."
+    nickname: String
+
+    "Faits datés, dans l'ordre du récit."
+    facts: [MaterialNotableFact!]!
+
+    "Ce que les sources ne disent pas (ex. ce qu'est devenue la rame), nul si rien n'est signalé."
+    unknown: String
+}
+
+"Fait daté sur une rame remarquable, avec sa source."
+type MaterialNotableFact {
+    "Nature du fait : `nickname`, `first_of_series`, `built`, `service`, `livery`, `series_withdrawn`, `farewell_livery`, `farewell_paris`, `farewell_lyon`…"
+    kind: String!
+
+    "Date (AAAA-MM-JJ), au 1er du mois ou de l'année quand `precision` vaut `month` ou `year` ; nulle pour un fait sans date."
+    date: String
+
+    "Fin d'une période (AAAA-MM-JJ), nulle pour une date unique."
+    date_to: String
+
+    "Précision de la date : `day`, `month` ou `year` ; nulle sans date."
+    precision: String
+
+    "Le fait, reformulé dans la langue demandée."
+    text: String!
+
+    "Courte citation exacte de la source, dans sa langue ; nulle quand le fait est reformulé sans phrase à citer."
+    quote: String
+
+    "Page citée et ses droits."
+    source: MaterialNotableSource!
+}
+
+"Source d'un fait sur une rame remarquable."
+type MaterialNotableSource {
+    "Identifiant de la source dans le fichier de données (ex. `lyonmag-2020-02-27`)."
+    id: String!
+
+    "Média ou site qui publie la page (ex. `LyonMag`)."
+    publisher: String!
+
+    "Média dont la page rapporte les propos (ex. `France Bleu`), nul si la page parle d'elle-même."
+    reported_by: String
+
+    "Date de publication (AAAA-MM-JJ), nulle si inconnue."
+    date: String
+
+    "Adresse de la page à citer."
+    url: String!
+
+    "Fournisseur dans le registre des droits (`tiers-cites`, `wikipedia-en`)."
+    provider: String!
+
+    "Licence ou conditions de réutilisation de la source."
+    license: String
+
+    "Statut des droits : `verified`, `uncertain` ou `forbidden`."
+    license_status: String
 }
 
 """
@@ -1348,6 +1627,14 @@ type LineMaterialLink {
     "Note libre (liens saisis dans VFF)."
     notes: String
 
+    """
+    Relations que la série assurait sur la ligne, lues dans l'article Wikipédia de la série (relation entre
+    deux gares, ou itinéraire comme « Ligne de Paris à Granville »), une par libellé, avec les périodes qui
+    les datent. Liste vide quand aucune preuve ne cite de relation ; les preuves qui portent un doute ne
+    sont pas reprises.
+    """
+    relations: [LineMaterialRelation!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField")
+
     "Preuves du lien, les plus fortes d'abord (cinq au plus)."
     evidence: [LineMaterialEvidence!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField")
 
@@ -1380,6 +1667,9 @@ type LineMaterialPeriod {
     "Fin de la portion parcourue (voir `section_from`)."
     section_to: String
 
+    "Relation assurée pendant cette période, quand la phrase datée cite une relation ou un itinéraire (sans `kind`, `title` ni `periods`). Nulle sinon."
+    relation: LineMaterialRelation
+
     "Fiabilité : `high` (chaque date au jour ou au mois) ou `medium` (une date à l'année). Les périodes `low` ne sont jamais servies."
     confidence: String!
 
@@ -1400,6 +1690,115 @@ type LineMaterialPeriod {
 
     "Fournisseur et licence de la source."
     provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialPeriodField")
+}
+
+"""
+Relation assurée par une série sur une ligne (« Paris-Montparnasse - Granville »), lue dans l'article
+Wikipédia de la série : relation entre deux gares, rattachée aux lignes du plus court chemin du graphe de
+l'époque quand il est sans ambiguïté, ou lien vers un article d'itinéraire qui enchaîne plusieurs lignes.
+"""
+type LineMaterialRelation {
+    "`relation` (gares citées par la phrase) ou `itinerary` (article d'itinéraire, voir `title`). Nul dans `LineMaterialPeriod.relation`."
+    kind: String
+
+    "Libellé : gares d'extrémité (et arrêts cités) séparées par « - », noms tels qu'en base."
+    label: String!
+
+    "Gare de départ."
+    from: LineMaterialRelationStop
+
+    "Gare d'arrivée."
+    to: LineMaterialRelationStop
+
+    "Type de service cité par la phrase ou la section : `TER`, `Intercités`, `TGV`, `grandes lignes`, `express`, `omnibus`, `fret`, ou nul."
+    service: String
+
+    "Titre de l'article Wikipédia de l'itinéraire (`kind` = `itinerary`), nul pour une relation."
+    title: String
+
+    "Périodes montrées qui datent cette relation (dans `LineMaterialLink.relations` seulement)."
+    periods: [LineMaterialRelationPeriod!]
+
+    "Faits sourcés sur cette relation (carburant…), lus dans `database/data/material_relation_notes.php` ; liste vide sans fait connu. Nul dans `LineMaterialPeriod.relation`."
+    notes: [LineMaterialRelationNote!]
+}
+
+"""
+Fait sourcé sur une relation assurée par une série, hors Wikipédia : par exemple le Régiolis sur
+Paris - Granville, au biodiesel B100 (colza) depuis avril 2021, d'après un communiqué de janvier 2023.
+"""
+type LineMaterialRelationNote {
+    "Nature du fait : `fuel` (carburant de la série sur cette relation)."
+    kind: String!
+
+    "Carburant (`kind` = `fuel`), tel que la source le nomme : `B100` (biodiesel 100 % d'origine végétale)."
+    fuel: String
+
+    "Matière première du carburant : `rapeseed` (colza)."
+    feedstock: String
+
+    "Début (`AAAA-MM-JJ`, au 1er du mois pour une date au mois : lisez `since_precision`)."
+    since: String
+
+    "Précision du début : `day`, `month` ou `year`."
+    since_precision: String
+
+    "Date de la source la plus récente qui atteste le fait (un bilan, pas une fin) : sans source plus récente, on ne sait pas si c'est toujours le cas."
+    reported: String
+
+    "Précision de `reported` : `day`, `month` ou `year`."
+    reported_precision: String
+
+    "Sources citées, la plus récente d'abord."
+    sources: [LineMaterialRelationNoteSource!]!
+}
+
+"Source d'un fait sur une relation (communiqué, dépêche) : fait isolé repris avec lien."
+type LineMaterialRelationNoteSource {
+    "Titre de la page ou du document."
+    title: String!
+
+    "Éditeur (« Région Normandie, SNCF Voyageurs et Saipol (Oleo100), communiqué de presse »)."
+    publisher: String!
+
+    "Date de publication (`AAAA-MM-JJ`)."
+    date: String!
+
+    "Adresse de la source : à citer."
+    url: String!
+
+    "Fournisseur déclaré dans le registre des droits (`tiers-cites` : sites cités ponctuellement), nul s'il n'est pas déclaré."
+    provider: String
+
+    "Conditions de reprise du fournisseur, telles que le registre les décrit."
+    license: String
+
+    "Statut des droits du fournisseur : `sur`, `incertain` ou `interdit`."
+    license_status: String
+}
+
+"Gare d'extrémité d'une relation."
+type LineMaterialRelationStop {
+    "Identifiant de la gare dans VFF, nul si le nom n'a pas été identifié."
+    id: Int
+
+    "Nom de la gare tel qu'en base (ou tel qu'écrit par la source si `id` est nul)."
+    name: String!
+}
+
+"Période qui date une relation (forme courte de `LineMaterialPeriod`)."
+type LineMaterialRelationPeriod {
+    "Début (`AAAA-MM-JJ`), nul si seule la fin est connue."
+    start_date: String
+
+    "Précision du début : `day`, `month` ou `year`."
+    start_precision: String
+
+    "Fin (`AAAA-MM-JJ`), nulle si la source ne la donne pas."
+    end_date: String
+
+    "Précision de la fin : `day`, `month` ou `year`."
+    end_precision: String
 }
 
 """
@@ -1461,6 +1860,9 @@ type LineMaterialEvidence {
     (train de musée ou touristique), nul pour un service régulier.
     """
     doubt: String
+
+    "Relation ou itinéraire cité par l'article de la série qui a donné cette preuve (voir `LineMaterialLink.relations`), nul pour une preuve tirée d'un lien direct vers la ligne."
+    route: LineMaterialRelation
 
     "Permalien de la preuve."
     url: String
@@ -1588,6 +1990,183 @@ type Accident {
 
     "Sources consultées, avec leur licence et les faits lus dans chacune."
     sources: [AccidentSource!]! @hasMany
+
+    """
+    Contexte sourcé (circonstances, déroulement, victimes, causes, suites, mémoire, contradictions entre
+    sources), rédigé par VFF à partir de documents lus, avec ces documents, les images de Wikimedia Commons et
+    les corrections faites d'après eux. Listes vides si la fiche n'a pas encore de contexte. Même contenu que
+    `context` de `GET /api/v1/accidents/{slug}`.
+    """
+    context: AccidentContext! @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@context")
+}
+
+"Contexte sourcé d'un accident (vff:enrich-accidents)."
+type AccidentContext {
+    "Date de la recherche documentaire (nulle si la fiche n'a pas de contexte)."
+    checked_on: Date
+
+    "Sections dans l'ordre de lecture ; une section sans énoncé est omise."
+    sections: [AccidentContextSection!]!
+
+    "Documents consultés. Un énoncé cite leurs `key`."
+    references: [AccidentReference!]!
+
+    "Images du domaine public ou sous licence libre (usage commercial permis), auteur et licence relus sur Commons."
+    images: [AccidentImage!]!
+
+    "Valeurs de la fiche corrigées d'après ces documents."
+    corrections: [AccidentCorrection!]!
+}
+
+"Section du contexte d'un accident."
+type AccidentContextSection {
+    """
+    `circumstances` (trains, horaires, lieu exact), `course` (déroulement), `victims` (bilan et secours, aucune
+    victime nommée), `causes` (causes établies par l'enquête), `aftermath` (procès, rapports, mesures de sécurité
+    adoptées), `memory` (monuments, commémorations), `disagreements` (contradictions entre les sources).
+    """
+    section: String!
+
+    "Énoncés, dans l'ordre."
+    entries: [AccidentContextEntry!]!
+}
+
+"Énoncé du contexte, rédigé par VFF et appuyé sur au moins un document lu."
+type AccidentContextEntry {
+    "Texte de l'énoncé."
+    text(
+        "Langue : `fr` (par défaut), `en` ou `de`."
+        lang: String = "fr"
+    ): String! @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@localized")
+
+    "Clés des documents (`AccidentReference.key`) qui appuient l'énoncé."
+    references: [String!]!
+
+    "Courte citation exacte d'un document sous Licence Ouverte (rapport du BEA-TT, Journal officiel) ; une au plus par fiche, nulle sinon."
+    quote: AccidentQuote
+}
+
+"Courte citation exacte (200 caractères au plus)."
+type AccidentQuote {
+    "Texte cité, tel quel."
+    text: String!
+
+    "Langue du texte cité (`fr`, `en` ou `de`)."
+    lang: String!
+
+    "Clé du document cité (`AccidentReference.key`)."
+    reference: String!
+}
+
+"Document consulté pour le contexte d'un accident."
+type AccidentReference {
+    "Clé du document dans la fiche."
+    key: String!
+
+    "Fournisseur selon le registre des droits de VFF (`bea-tt`, `legifrance`, `assemblee-nationale`, `senat`, `gallica`, `retronews`, `persee`, `archives-departementales`, `presse`, `ouvrages`, `sites-web`, `wikipedia`…)."
+    provider: String!
+
+    "`report`, `official`, `parliament`, `press`, `book`, `scholarly`, `archive`, `memorial`, `web`, `forum`, `encyclopedia`, `data` ou `video`."
+    kind: String!
+
+    "Fiabilité : `official`, `scholarly`, `press`, `local_history`, `association`, `encyclopedia` ou `forum`."
+    reliability: String!
+
+    "Titre du document."
+    title: String!
+
+    "Journal, site ou éditeur."
+    publisher: String
+
+    "Auteur, s'il est indiqué."
+    author: String
+
+    "Date du document : `AAAA`, `AAAA-MM` ou `AAAA-MM-JJ`."
+    published: String
+
+    "Page, numéro, section ou cote."
+    locator: String
+
+    "Lien vers le document."
+    url: String!
+
+    "`open` (lu), `paywall` (payant : lien seulement) ou `link_only` (repéré, non lu : aucun énoncé ne s'appuie dessus)."
+    access: String!
+
+    "Date de consultation."
+    consulted_on: Date!
+
+    "Ce que le document apporte ou sa limite (en français)."
+    note: String
+
+    "Licence ou conditions du fournisseur, selon le registre des droits."
+    license: String
+
+    "`verified` : licence ouverte écrite et prouvée ; autre valeur : faits seulement, avec lien."
+    license_status: String
+}
+
+"Image de Wikimedia Commons liée à un accident (gravure, photo de l'époque, lieu, monument)."
+type AccidentImage {
+    "Nom du fichier sur Commons (`File:…`)."
+    file: String!
+
+    "Page du fichier sur Commons."
+    page_url: String!
+
+    "Image à afficher."
+    image_url: String!
+
+    "Miniature (500 px de large)."
+    thumb_url: String
+
+    "Largeur de l'original, en pixels."
+    width: Int
+
+    "Hauteur de l'original, en pixels."
+    height: Int
+
+    "Auteur selon Commons (« Auteur inconnu » s'il ne l'est pas)."
+    author: String!
+
+    "Licence selon Commons."
+    license: String!
+
+    "Lien de la licence."
+    license_url: String
+
+    "Date de l'image selon Commons (texte libre)."
+    date: String
+
+    "Légende rédigée par VFF."
+    caption(
+        "Langue : `fr` (par défaut), `en` ou `de`."
+        lang: String = "fr"
+    ): String! @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@localized")
+
+    "Ligne de crédit à reprendre (auteur, licence, via Wikimedia Commons)."
+    attribution: String!
+}
+
+"Valeur de la fiche corrigée d'après les documents du contexte."
+type AccidentCorrection {
+    "`occurred_on`, `occurred_at_time`, `deaths` ou `injuries`."
+    field: String!
+
+    "Valeur d'avant, en texte (date `AAAA-MM-JJ`, heure `HH:MM` ou nombre)."
+    before: String @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@correctionValue")
+
+    "Valeur retenue, en texte."
+    value: String @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@correctionValue")
+
+    "Clés des documents qui l'établissent."
+    references: [String!]!
+
+    "Raison de la correction."
+    reason(
+        "Langue : `fr` (par défaut), `en` ou `de`."
+        lang: String = "fr"
+    ): String! @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@localized")
 }
 
 "Rattachement d'un accident à une ligne VFF, sur le tracé de l'époque de l'accident."
@@ -1758,13 +2337,123 @@ type LevelCrossing {
 }
 
 """
-Profil en long d'une ligne : altitude le long du parcours, de la première gare (plus petit PK)
-vers la dernière. Les distances sont mesurées le long du parcours depuis son origine, en mètres :
-ce ne sont pas des PK officiels (voir `LineProfileStation.pk_m`). Altitudes en mètres (NGF-IGN69).
+Note d'un contrôle de l'audit des tronçons.
+"""
+enum AuditGrade {
+    "Sûr : les sources sont d'accord, l'écart est dans la tolérance."
+    GOOD @enum(value: "good")
+
+    "À revoir : accord partiel, écart au-delà de la cible, source peu précise."
+    FAIR @enum(value: "fair")
+
+    "Faux ou contredit : une source fiable dit autre chose, ou défaut de géométrie."
+    POOR @enum(value: "poor")
+
+    "Rien pour juger : aucune source, aucune voie de référence indépendante."
+    UNKNOWN @enum(value: "unknown")
+}
+
+"Les quatre notes d'un tronçon ou d'une ligne."
+type AuditGrades {
+    "Classement : état (en service, fret seul, fermé, déposé…) comparé aux sources datées."
+    classification: AuditGrade!
+
+    "Placement : écart du tracé à la voie réelle (cible 1 m, tolérance 5 m)."
+    placement: AuditGrade!
+
+    "Exactitude : jonctions, coudes, allers-retours, trous, gares le long de la ligne."
+    accuracy: AuditGrade!
+
+    "Tracé : précision connue de la source du dessin."
+    trace: AuditGrade!
+}
+
+"""
+Audit des tronçons d'une ligne à une ère. Méthode et seuils : docs/AUDIT-TRONCONS.md et la
+documentation de `GET /api/v1/lines/{line}/audit`.
+"""
+type LineAudit {
+    "Année de l'ère auditée."
+    era_year: Int!
+
+    "Date et heure de la passe d'audit (ISO 8601)."
+    audited_at: String!
+
+    "Version des règles de notation (`AAAA-MM-JJ.n`)."
+    rule_version: String!
+
+    "Notes de la ligne : la note d'un contrôle est `poor` dès que 10 % de la longueur est faux, `fair` dès que 10 % est faux ou à revoir."
+    grades: AuditGrades!
+
+    "La plus mauvaise des quatre notes."
+    worst_grade: AuditGrade!
+
+    "Score de 0 (tout sûr) à 100 (tout faux), pondéré par la longueur."
+    score: Int!
+
+    "Longueur auditée, en mètres."
+    length_m: Int!
+
+    "Part de la longueur par note pour chaque contrôle, ex. `{\"placement\": {\"good\": 0.98, \"fair\": 0.02}}`."
+    shares: JSON!
+
+    "Contrôles propres à la ligne : `length_ratio` (tracé de référence / longueur officielle), `station_order_inversions`, `reasons`."
+    line_checks: JSON!
+
+    "Tronçons audités, le plus mal noté d'abord."
+    segments(
+        "Ne garder que les tronçons dont la plus mauvaise note vaut celle-ci."
+        grade: AuditGrade
+    ): [SegmentAudit!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineAuditField@segments")
+}
+
+"Audit d'un tronçon : état audité, quatre notes et leurs preuves."
+type SegmentAudit {
+    "Identifiant du tronçon (`LineSegment.id`), tant que le moteur n'a pas recalculé la ligne."
+    segment_id: ID!
+
+    "État du tronçon audité : in_service, single_track, service_track, construction, abandoned, dismantled, razed."
+    status: String!
+
+    "Trafic du tronçon audité : passenger, freight, mixed, unknown."
+    traffic_type: String!
+
+    "Source du dessin (bdtopo, osm, ohm, sncf, archeoferroviaire…), nulle si inconnue."
+    trace_source: String
+
+    "Longueur du tronçon, en mètres."
+    length_m: Int!
+
+    grades: AuditGrades!
+
+    "La plus mauvaise des quatre notes."
+    worst_grade: AuditGrade!
+
+    "Score de 0 (tout sûr) à 100 (tout faux)."
+    score: Int!
+
+    """
+    Preuves de chaque note (`classification`, `placement`, `accuracy`, `trace`), chacune avec ses
+    codes `reasons` : avis de chaque source, distances à la voie réelle, défauts de géométrie,
+    précision de la source. Forme décrite dans `GET /api/v1/lines/{line}/audit`.
+    """
+    evidence: JSON!
+}
+
+"""
+Profil en long d'une ligne : altitude le long du tracé de référence de la ligne entière (toutes
+époques, lignes fermées et déposées comprises), du plus petit PK officiel vers le plus grand. Les
+morceaux séparés par un trou du tracé sont tous gardés, la courbe s'interrompt dans le trou
+(`gaps`) ; les embranchements viennent ensuite, bout à bout (`branches`). Les distances sont
+mesurées le long du parcours depuis son origine, en mètres, trous compris ; le PK estimé de chaque
+point est dans `points.pk_m` et `samples.pk_m`. Altitudes en mètres (NGF-IGN69).
 """
 type LineProfile {
-    "Année de l'ère dont le tracé a été échantillonné (2030 = aujourd'hui)."
-    era_year: Int!
+    "`reference` : tracé de référence, toutes époques ; `era` : profil calculé avant le 21/11/2026 sur le tracé d'une seule ère."
+    basis: String!
+
+    "Année de l'ère dont le tracé a été échantillonné (2030 = aujourd'hui) ; nulle pour un profil du référentiel (`basis` = `reference`)."
+    era_year: Int
 
     "Pas d'échantillonnage le long du parcours, en mètres (100 à 250 selon la longueur)."
     step_m: Int!
@@ -1772,14 +2461,36 @@ type LineProfile {
     "Longueur du parcours profilé, lacunes comprises, en mètres."
     length_m: Int!
 
-    "Longueur totale du tracé de la ligne à cette ère, en mètres (épis et raccordements compris)."
+    "Longueur du tracé de référence de la ligne, toutes époques, en mètres (épis et raccordements compris)."
     trace_length_m: Int!
+
+    "Longueur du parcours hors trous, en mètres ; nulle pour un profil antérieur au 21/11/2026."
+    covered_m: Int
+
+    "Longueur des bouts du référentiel (moins de 100 m chacun) laissés hors du parcours, en mètres ; nulle pour un profil antérieur au 21/11/2026."
+    off_path_m: Int
+
+    "Nombre de gares dont le PK officiel sert à caler le PK des points (0 : aucun PK estimé)."
+    pk_anchors: Int!
 
     "Altitudes extrêmes, dénivelés cumulés et déclivité la plus forte."
     summary: LineProfileSummary!
 
-    "Points du profil dans l'ordre du parcours."
+    "Points du profil dans l'ordre du parcours (forme courte ; détail complet dans `samples`)."
     points: [LineProfilePoint!]!
+
+    "Référentiel d'altitude point par point, comme `GET /api/v1/lines/{line}/profile/points` : provenance, interpolation, ouvrage, morceau, embranchement et position de chaque point."
+    samples(
+        "PK de début en mètres (borne incluse) ; les points sans PK sont exclus dès qu'une borne est donnée."
+        pk_from_m: Int
+        "PK de fin en mètres (borne incluse)."
+        pk_to_m: Int
+        "Nombre de points au plus (10 à 5 000). Par défaut : tous."
+        max_points: Int @rules(apply: ["nullable", "integer", "between:10,5000"])
+    ): [LineProfileSample!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineProfileField@samples")
+
+    "Altitude au PK donné (en mètres), comme `GET /api/v1/lines/{line}/altitude` : interpolée entre les deux points qui l'encadrent. Nulle hors du profil, dans un trou ou sans PK calé."
+    altitude_at(pk_m: Int!): LineProfileAltitude @field(resolver: "App\\GraphQL\\Resolvers\\LineProfileField@altitudeAt")
 
     "Tunnels et ponts de la BD TOPO sous le parcours."
     structures: [LineProfileStructure!]!
@@ -1787,10 +2498,16 @@ type LineProfile {
     "Nombre de points de chaque origine d'altitude."
     altitude_sources: LineProfileAltitudeSources!
 
-    "Lacunes du tracé (aucune altitude entre leurs bornes)."
+    "Trous du tracé (aucune altitude entre leurs bornes)."
     gaps: [LineProfileGap!]!
 
-    "Gares de la ligne placées sur le profil (à moins de 500 m du parcours)."
+    "Embranchements (épis, raccordements, branches d'un réseau en arbre) mis bout à bout après la ligne principale, chacun après un trou de longueur conventionnelle."
+    branches: [LineProfileGap!]!
+
+    "Parties du parcours dont l'altitude est celle du terrain (RGE ALTI) et non celle de la voie."
+    terrain_ranges: [LineProfileGap!]!
+
+    "Toutes les gares rattachées à la ligne (fermées comprises), projetées sur le parcours."
     stations: [LineProfileStation!]!
 
     "Date du calcul (ISO 8601)."
@@ -1814,17 +2531,20 @@ type LineProfileSummary {
     "Dénivelé négatif cumulé dans le sens du parcours, en mètres (variations de moins de 3 m ignorées)."
     descent_m: Float!
 
-    "Déclivité la plus forte, en ‰ (mètres par kilomètre) : pente moyenne par moindres carrés sur 1 km."
-    max_grade_permil: Float!
+    "Déclivité la plus forte, en ‰ (mètres par kilomètre) : pente moyenne par moindres carrés sur 1 km, mesurée sur la voie (BD TOPO) à l'intérieur d'un même morceau. Nulle si elle n'est pas publiée (voir `max_grade_withheld`)."
+    max_grade_permil: Float
 
-    "Début de la fenêtre de la déclivité la plus forte, en mètres le long du parcours."
-    max_grade_from_m: Int!
+    "Début de la fenêtre de la déclivité la plus forte, en mètres le long du parcours ; nul si non publiée."
+    max_grade_from_m: Int
 
-    "Fin de la fenêtre de la déclivité la plus forte, en mètres le long du parcours."
-    max_grade_to_m: Int!
+    "Fin de la fenêtre de la déclivité la plus forte, en mètres le long du parcours ; nul si non publiée."
+    max_grade_to_m: Int
 
-    "`up` : rampe dans le sens du parcours ; `down` : pente."
-    max_grade_direction: String!
+    "`up` : rampe dans le sens du parcours ; `down` : pente ; nul si non publiée."
+    max_grade_direction: String
+
+    "Motif de non-publication de la déclivité : `terrain_only` (altitude du terrain seulement, voie absente de la BD TOPO), `tunnel` (fenêtres surtout en tunnel), `interpolated` (fenêtres surtout interpolées) ; nul quand elle est publiée."
+    max_grade_withheld: String
 }
 
 "Un point du profil."
@@ -1832,8 +2552,80 @@ type LineProfilePoint {
     "Distance le long du parcours depuis son origine, en mètres."
     distance_m: Int!
 
-    "Altitude en mètres, arrondie au décimètre ; nulle sans valeur (hors de France, lacune)."
+    "Altitude en mètres, arrondie au décimètre ; nulle sans valeur (hors de France, trou)."
     altitude_m: Float
+
+    "PK estimé en mètres, calé sur les PK officiels des gares ; nul sans gare de calage et sur un embranchement."
+    pk_m: Int
+}
+
+"Un point du référentiel d'altitude d'une ligne (table `line_profile_points`)."
+type LineProfileSample {
+    "Rang du point dans l'ordre du parcours, à partir de 0."
+    seq: Int!
+
+    "Distance le long du parcours depuis son origine, trous compris, en mètres."
+    distance_m: Int!
+
+    "PK estimé en mètres, calé sur les PK officiels des gares ; nul sans gare de calage et sur un embranchement."
+    pk_m: Int
+
+    "Altitude en mètres (NGF-IGN69), au décimètre ; nulle sans valeur."
+    altitude_m: Float
+
+    "Provenance de la mesure : `bdtopo` (altitude de la voie, BD TOPO 3D) ou `rge_alti` (terrain) ; nulle si l'altitude est interpolée, absente ou d'un profil antérieur au 21/11/2026."
+    source: String
+
+    "Vrai si l'altitude est interpolée entre deux mesures (tunnel, pont, point aberrant, petit trou)."
+    interpolated: Boolean!
+
+    "Ouvrage de la BD TOPO sous le point : `tunnel`, `bridge` ou nul."
+    structure: String
+
+    "Morceau continu du parcours (à partir de 0, un nouveau après chaque trou)."
+    piece: Int!
+
+    "Embranchement (1, 2…) ; nul sur la ligne principale."
+    branch: Int
+
+    "Latitude WGS 84 du point sur le tracé de référence ; nulle si la position est retenue (voir `position_withheld`)."
+    lat: Float
+
+    "Longitude WGS 84 du point sur le tracé de référence ; nulle si la position est retenue."
+    lng: Float
+
+    "Motif du retrait de la position, quand le tracé sous le point vient d'une source non redistribuable (règle des droits des tracés de l'API) : `licence_not_open` ou `unknown_source` ; nul quand la position est donnée."
+    position_withheld: String
+}
+
+"Altitude d'une ligne à un PK."
+type LineProfileAltitude {
+    "PK demandé, en mètres."
+    pk_m: Int!
+
+    "Altitude en mètres (NGF-IGN69), au décimètre."
+    altitude_m: Float!
+
+    "Distance correspondante le long du parcours, en mètres."
+    distance_m: Int!
+
+    "Vrai si l'un des deux points qui encadrent le PK a une altitude interpolée."
+    interpolated: Boolean!
+
+    "Provenance des deux mesures qui encadrent le PK (`bdtopo`, `rge_alti`)."
+    sources: [String!]!
+
+    "Ouvrage sous le point : `tunnel`, `bridge` ou nul."
+    structure: String
+
+    "Latitude WGS 84 ; nulle si la position est retenue (voir `position_withheld`)."
+    lat: Float
+
+    "Longitude WGS 84 ; nulle si la position est retenue."
+    lng: Float
+
+    "Motif du retrait de la position (tracé non redistribuable) : `licence_not_open` ou `unknown_source` ; nul quand elle est donnée."
+    position_withheld: String
 }
 
 "Un ouvrage d'art sous le parcours (BD TOPO)."
@@ -1863,7 +2655,7 @@ type LineProfileAltitudeSources {
     missing: Int!
 }
 
-"Une lacune du tracé dans un profil en long."
+"Un intervalle de distances d'un profil en long : trou du tracé, embranchement ou partie à l'altitude du terrain."
 type LineProfileGap {
     "Début, en mètres le long du parcours."
     from_m: Int!
@@ -1886,8 +2678,14 @@ type LineProfileStation {
     "Altitude du profil à la gare, en mètres ; nulle sans valeur."
     altitude_m: Float
 
-    "Point kilométrique officiel de la gare sur la ligne, en mètres ; nul s'il est inconnu."
+    "Point kilométrique officiel de la gare sur la ligne, en mètres ; nul s'il est inconnu ou seulement estimé."
     pk_m: Int
+
+    "Statut de la gare : `active`, `tourist`, `no_commercial` ou `declassified` (fermée)."
+    status: String
+
+    "Écart entre la gare et le parcours, en mètres (une gare éloignée se trouve sur un tracé que le profil n'emprunte pas)."
+    offset_m: Int
 }
 
 """
@@ -3109,11 +3907,77 @@ type LineSheetMaterial {
     "Année de mise en service."
     in_service_from: Int
 
-    "Année de retrait."
+    "Année de retrait de la série, nulle si inconnue ou contredite par une période datée sur cette ligne (voir `in_service_to_contradicted`)."
     in_service_to: Int
+
+    "Retrait déclaré de la série (Wikidata, infobox) que contredit une période datée sur cette ligne (CC 80000 : retrait 1964, « jusqu'en 1977 » sur Paris - Argentan - Granville), nul sinon."
+    in_service_to_contradicted: Int
 
     "Périodes de circulation sur cette ligne datées par une source (sûres seulement), les plus anciennes d'abord. Détail et fiabilité : `Line.material_links.periods`."
     periods: [LineSheetMaterialPeriod!]!
+
+    "Relations que la série assurait sur la ligne, datées ou non, avec leurs faits sourcés (`notes`) : voir `LineMaterialLink.relations`."
+    relations: [LineMaterialRelation!]!
+
+    "Vignette de la photo de la série (Commons, 330 px de large au plus) et son crédit, nulle sans photo ou quand la photo ne convient pas (original trop petit, plan, dessin, intérieur, ou écartée après relecture : `database/data/material_photo_exclusions.php`). Image complète : `Material.image`."
+    image: LineSheetMaterialImage
+
+    "Fin de circulation telle que les sources la connaissent (jamais déduite). Les séries de `LineSheet.materials` viennent de la plus récente à la plus ancienne : encore en service sans fin connue sur la ligne, puis fin la plus récente, puis début, puis nom."
+    end: LineSheetMaterialEnd!
+}
+
+"Fin de circulation d'une série sur une ligne."
+type LineSheetMaterialEnd {
+    "`line` (fin datée sur la ligne par la dernière période, sans reprise après), `series_in_service` (pas de fin sur la ligne et série encore en service : on ne sait pas si elle roule encore ici), `series_withdrawn` (pas de fin sur la ligne, série retirée : l'année est celle de la série, pas de la ligne) ou `unknown`."
+    kind: String!
+
+    "Année de fin (sur la ligne pour `line`, retrait de la série pour `series_withdrawn`), nulle si inconnue."
+    year: Int
+
+    "Année de début de la période ouverte sur la ligne (début daté, sans fin connue), nulle sinon : « Sur la ligne à partir de 2014 »."
+    since: Int
+
+    "Source de l'année : `wikipedia`, `wikidata` ou `contrib`."
+    source: String
+
+    "Permalien de la source : à citer."
+    source_url: String
+}
+
+"Vignette de la photo d'une série dans la fiche d'une ligne, avec ce qu'il faut pour la créditer."
+type LineSheetMaterialImage {
+    "Adresse de la vignette."
+    url: String!
+
+    "Largeur affichée, en pixels (330 au plus)."
+    width: Int!
+
+    "Hauteur affichée, en pixels, aux proportions de l'original."
+    height: Int!
+
+    "Nom du fichier Commons (« File:… »)."
+    file: String
+
+    "Auteur, nul si inconnu ou anonyme."
+    author: String
+
+    "Licence telle que déclarée par Commons, nulle si inconnue."
+    license: String
+
+    "Lien vers le texte de la licence."
+    license_url: String
+
+    "Statut des droits : `public_domain`, `open_license` ou `unknown`."
+    rights_status: String
+
+    "Page du fichier sur Commons : à citer."
+    source_url: String
+
+    "Fournisseur : `commons`."
+    provider: String!
+
+    "Cadrage : `cover` (vignette remplie), ou `contain` pour une vue de profil plus de deux fois plus large que haute, montrée entière."
+    fit: String!
 }
 
 "Période de circulation d'une série sur la ligne (forme courte de `LineMaterialPeriod`)."
@@ -3135,6 +3999,9 @@ type LineSheetMaterialPeriod {
 
     "Fin de la portion parcourue."
     section_to: String
+
+    "Relation assurée pendant la période (`label`, `from`, `to`, `service`), nulle si la phrase datée n'en cite pas."
+    relation: LineMaterialRelation
 
     "Fournisseur de la source : `wikipedia` ou `wikidata`."
     source: String!
@@ -3822,7 +4689,7 @@ type SearchResults {
     "Gares dont le nom correspond."
     stations: [SearchStation!]!
 
-    "Matériels roulants dont le nom ou la désignation correspond."
+    "Matériels roulants dont le nom, ou le surnom d'une rame remarquable (`notable_unit`), correspond."
     materials: [SearchMaterial!]!
 
     "Accidents publiés dont le nom (dans l'une des trois langues), la commune ou la date correspond."
@@ -3875,6 +4742,18 @@ type SearchMaterial {
 
     "Constructeur, nul s'il n'est pas connu."
     builder: String
+
+    "Rame remarquable dont le surnom correspond à la recherche (« Patrick » : rame 01 du TGV Sud-Est), nulle sinon."
+    notable_unit: SearchNotableUnit
+}
+
+"Rame remarquable trouvée par son surnom ; détail dans `material(slug:) { notable_units }`."
+type SearchNotableUnit {
+    "Numéro de la rame (ex. `01`)."
+    number: String!
+
+    "Surnom (ex. `Patrick`)."
+    nickname: String
 }
 
 "Un accident trouvé par la recherche."
@@ -4110,6 +4989,8 @@ dans `extensions.code` (messages en anglais) :
 - `account_suspended` : compte suspendu (`extensions.suspended_until`, ISO 8601, nul si sans fin) ;
 - `too_many_requests` : limite de débit atteinte par les mutations de la requête
   (`extensions.retry_after` : secondes à attendre) ;
+- `daily_limit_reached` : le compte a déjà envoyé 30 propositions aujourd'hui (site et API ensemble ;
+  validateurs et administrateurs exemptés ; `extensions.limit` : 30), rien n'est enregistré ;
 - `forbidden` : relecture demandée par un compte qui n'est ni validateur ni administrateur ;
 - `not_found` : contribution inconnue, ou retirée par un administrateur ;
 - `own_contribution` : relecture de sa propre contribution ;

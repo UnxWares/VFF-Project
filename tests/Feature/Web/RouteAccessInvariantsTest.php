@@ -30,8 +30,11 @@ class RouteAccessInvariantsTest extends TestCase
     /** Routes d'écriture hors de la connexion : service MCP et GraphQL ont leur propre authentification. */
     private const OWN_AUTHENTICATION_PREFIXES = ['mcp', 'graphql'];
 
-    /** Formulaires publics voulus (signalement d'une erreur depuis une fiche) : limite de débit obligatoire. */
-    private const PUBLIC_THROTTLED_WRITES = ['POST /reports'];
+    /**
+     * Écritures publiques voulues, avec limite de débit obligatoire : signalement d'une erreur depuis une
+     * fiche, rapports de violation de la CSP envoyés par les navigateurs (CspReportController).
+     */
+    private const PUBLIC_THROTTLED_WRITES = ['POST /reports', 'POST /api/csp-report'];
 
     /** @return list<RouteDefinition> */
     private function routes(): array

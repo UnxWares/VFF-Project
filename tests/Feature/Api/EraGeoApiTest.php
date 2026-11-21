@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Era;
+use App\Services\MapDataCache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\BuildsRailNetwork;
@@ -118,6 +119,9 @@ class EraGeoApiTest extends TestCase
             'station_id' => $this->origin->id, 'era_id' => $this->pastEra->id, 'status' => 'active',
             'created_at' => now(), 'updated_at' => now(),
         ]);
+        // Les gares d'une ère sont gardées en cache jusqu'au changement de version des données, relue
+        // au plus une fois par minute (MapDataCache).
+        $this->travel(MapDataCache::VERSION_TTL + 1)->seconds();
 
         $this->getJson('/api/v1/eras/1960/stations.geojson')
             ->assertOk()

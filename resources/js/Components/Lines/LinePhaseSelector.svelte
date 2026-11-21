@@ -255,18 +255,31 @@
         overflow-y: auto;
         list-style: none;
     }
-    /* Fil de la chronologie, derrière les repères. */
-    .phases::before {
+    /* Fil de la chronologie : un tronçon par phase, du haut au bas de la phase, centré sous le
+       repère (colonne de 32 px, repère à 24 px du haut : 8 px de marge + moitié du repère). Il
+       commence au premier repère et finit au dernier, et défile avec la liste (un fil posé sur la
+       liste elle-même s'arrêtait au bas de la partie visible et dépassait sous le dernier repère).
+       Il passe au-dessus du fond de la phase survolée ou choisie, sous le repère. */
+    .phases li {
+        position: relative;
+        font-size: var(--vff-fs-sm);
+    }
+    .phases li::before {
         content: '';
         position: absolute;
-        top: 24px;
-        bottom: 24px;
+        z-index: 1;
+        top: 0;
+        bottom: 0;
         left: 15px;
         width: 2px;
-        background: var(--vff-border);
+        background: var(--vff-border-strong);
+        pointer-events: none;
     }
-    .phases li {
-        font-size: var(--vff-fs-sm);
+    .phases li:first-child::before {
+        top: 24px;
+    }
+    .phases li:last-child::before {
+        bottom: calc(100% - 24px);
     }
     .phase {
         position: relative;
@@ -289,7 +302,8 @@
         background: var(--vff-bg-accent);
     }
     .marker {
-        z-index: 1;
+        position: relative;
+        z-index: 2;
         display: grid;
         place-items: center;
         width: 32px;

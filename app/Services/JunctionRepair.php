@@ -19,6 +19,13 @@ use Illuminate\Support\Facades\DB;
  *      voie ne tourne jamais à angle droit) : il est retiré provisoirement, et
  *      les extrémités qu'il reliait sont reliées autrement (2 et 3) ; sinon il
  *      est remis (jamais de trou créé).
+ *   1 bis. Saut remis entre deux voies presque parallèles (caps à moins de
+ *      JOG_PARALLEL_DEG) : la marche d'escalier devient un changement de voie
+ *      en S, courbe lissée tangente aux deux voies (rayon plausible du réseau,
+ *      reculs d'au plus JOG_TRIM_MAX_M de chaque côté, sans passer une autre
+ *      jonction), marquée « raccord-lisse » (estimée). Une portion qui ne dépasse
+ *      le saut que d'un bout sans issue de moins de JOG_STUB_MAX_M est coupée
+ *      comme si elle s'y arrêtait (sinon ce bout double la courbe).
  *   2. Trous : deux extrémités libres de la ligne, face à face, à moins de
  *      HOLE_MAX_M (ponts, passages à niveau : morceaux BD TOPO courts non
  *      rattachés, résidu OSM trop court jeté) sont reliées par le chemin le
@@ -57,7 +64,26 @@ use Illuminate\Support\Facades\DB;
  *           AUTRE ligne et s'arrête à moins de END_GAP_M avant elle (cap vers
  *           elle, écartements et réseaux compatibles) : raccordé à cette voie ;
  *        d. trou de moins de HOLE_SMOOTH_MAX_M entre deux bouts de la ligne
- *           face à face (voie déposée, aucune voie précise) : comblé.
+ *           face à face (voie déposée, aucune voie précise) : comblé ; trou
+ *           de moins de HOLE_MAX_M sur une voie précise que l'étape 2 n'a pas
+ *           pu suivre : comblé si la courbe reste partout à moins de
+ *           HOLE_TRACK_M de cette voie (rayon d'au moins la moitié du minimum).
+ *   8. Allers-retours : le tracé dessiné ne revient jamais sur ses pas. Un
+ *      éperon sans issue d'au plus SPUR_MAX_M qui repart en arrière (virage de
+ *      plus de HAIRPIN_DEG au milieu d'une portion, ou départ à moins de
+ *      SPUR_DEG d'une autre portion de la ligne au même nœud) et longe la ligne
+ *      à moins de PARALLEL_M sur au moins SPUR_SHARE de sa longueur (autre voie
+ *      du faisceau, voie de gare) est retiré. Un vrai rebroussement, dont les
+ *      deux branches s'écartent, reste.
+ *   9. Longs trous (de HOLE_MAX_M à LONG_GAP_MAX_M) d'une ligne disparue : depuis
+ *      un bout libre, chemin sur les voies NON rattachées d'une voie abandonnée
+ *      (OSM abandoned, razed, disused, dismantled ; BD TOPO « Sans objet ») vers
+ *      l'autre bout ; un chemin qui s'arrête à moins de LONG_GAP_LEFT_M de lui
+ *      est accepté et le reste du trou reste visible (rien n'est inventé). Refusé
+ *      en cas de doute : détour, voie d'une autre ligne, gares de la ligne dans
+ *      le désordre ou manquées, longueur incompatible avec l'écart de PK, arrivée
+ *      de travers sur le bout d'en face. Deux bouts d'un même morceau du tracé
+ *      (branches d'un Y) ne bordent pas un trou.
  *
  * Graphe des voies : morceaux du pool (TraceConflation::preparePool, table
  * temporaire cf_pool) dans une fenêtre, nœuds aux intersections (ST_Node, une
@@ -157,6 +183,80 @@ class JunctionRepair
 
     public const HOLE_SMOOTH_MAX_M = 100.0;
 
+    /** Trou sur une voie précise comblé par une courbe : écart max (m) de la courbe à cette voie. */
+    public const HOLE_TRACK_M = 5.0;
+
+    /** Saut entre deux voies presque parallèles (écart de cap max, °) et recul max de chaque côté pour la courbe en S (m). */
+    public const JOG_PARALLEL_DEG = 30.0;
+
+    public const JOG_TRIM_MAX_M = 150.0;
+
+    /**
+     * Saut posé à moins de JOG_STUB_MAX_M d'un bout sans issue d'une portion (elle ne dépasse le saut que de ce bout) :
+     * la portion est traitée comme si elle s'arrêtait sur le saut (le bout serait doublé par la courbe en S).
+     */
+    public const JOG_STUB_MAX_M = 50.0;
+
+    /** Éperon (aller-retour) : longueur max (m), virage d'un aller-retour (°), écart de cap au nœud (°), part qui longe la ligne. */
+    public const SPUR_MAX_M = 600.0;
+
+    public const HAIRPIN_DEG = 150.0;
+
+    public const SPUR_DEG = 30.0;
+
+    public const SPUR_SHARE = 0.8;
+
+    /** Long trou (règle 9) : écart max entre les deux bouts (m) ; c'est aussi la longueur max du chemin. */
+    public const LONG_GAP_MAX_M = 20000.0;
+
+    /** Reste du trou laissé visible au bout d'un chemin incomplet : au plus LONG_GAP_LEFT_M et LONG_GAP_LEFT_SHARE de l'écart. */
+    public const LONG_GAP_LEFT_M = 1000.0;
+
+    public const LONG_GAP_LEFT_SHARE = 0.35;
+
+    /**
+     * Reste plus court (m) : le chemin est raccordé au bout d'en face. Le raccord (easeInto) est une corde droite
+     * étiquetée comme la voie suivie : il ne s'en écarte pas de plus de la tolérance du projet (5 m). Avec 30 m, une
+     * corde de 240 m passait à 30 m de toute voie réelle (revue du 21/11/2026).
+     */
+    public const LONG_GAP_CLOSE_M = 5.0;
+
+    /**
+     * Départ : la voie abandonnée passe à moins de LONG_GAP_SNAP_M (m) du bout, dans son prolongement (START_DEG). Même
+     * tolérance que LONG_GAP_CLOSE_M pour la corde de départ.
+     */
+    public const LONG_GAP_SNAP_M = 5.0;
+
+    /** Chemin admis : longueur + reste <= LONG_GAP_DETOUR × écart + LONG_GAP_DETOUR_ADD_M. */
+    public const LONG_GAP_DETOUR = 1.6;
+
+    public const LONG_GAP_DETOUR_ADD_M = 500.0;
+
+    /** Voie d'une autre ligne : chemin refusé si plus de LONG_GAP_OTHER_SHARE de sa longueur est à moins de LONG_GAP_OTHER_M (m) de son tracé. */
+    public const LONG_GAP_OTHER_M = 15.0;
+
+    public const LONG_GAP_OTHER_SHARE = 0.3;
+
+    /** Gare de la ligne desservie par le chemin (ou par le reste du trou) : à moins de LONG_GAP_STATION_M (m). */
+    public const LONG_GAP_STATION_M = 500.0;
+
+    /** PK : gare de PK sûr à moins de LONG_GAP_PK_NEAR_M (m) d'un bout ; tolérance LONG_GAP_PK_TOL × écart de PK, au moins LONG_GAP_PK_MIN_TOL_M. */
+    public const LONG_GAP_PK_NEAR_M = 3000.0;
+
+    public const LONG_GAP_PK_TOL = 0.2;
+
+    public const LONG_GAP_PK_MIN_TOL_M = 1000.0;
+
+    /** Morceaux d'une voie abandonnée séparés par un manque court (m), dans le prolongement l'un de l'autre : enchaînés. */
+    public const LONG_GAP_JUMP_M = 30.0;
+
+    /** Voies d'une ligne disparue (couches OSM du cycle de vie ; BD TOPO : nature « Sans objet »). */
+    public const DEAD_OSM_LAYERS = ['abandoned', 'razed', 'disused', 'dismantled', 'abandoned:railway', 'razed:railway', 'disused:railway',
+        'dismantled:railway', 'demolished:railway', 'removed:railway', 'was:railway'];
+
+    /** Sources de PK sûres (les PK projetés sur le dessin, faux dans un trou, sont ignorés). */
+    public const RELIABLE_PK_SOURCES = ['sncf', 'lignes-oubliees', 'wikipedia_schema', 'correction'];
+
     /** Géométrie lissée estimée (matched_source). */
     public const SMOOTHED = 'raccord-lisse';
 
@@ -166,6 +266,12 @@ class JunctionRepair
     private const LEG_J_STEPS = [0, 10, 25, 50, 80, 120, 160, 200, 250, 300];
 
     private const MAX_EXPANSIONS = 20000;
+
+    /** Chemin d'un long trou : états explorés au plus (fenêtre de 20 km de voies abandonnées). */
+    private const LONG_GAP_MAX_EXPANSIONS = 80000;
+
+    /** Paires de bouts examinées au plus par ligne (règle 9). */
+    private const LONG_GAP_MAX_PAIRS = 40;
 
     /** Diagnostic : décisions (rempli si $debug). */
     public bool $debug = false;
@@ -207,9 +313,10 @@ class JunctionRepair
     /**
      * Après « un seul axe » : répare le tracé de référence de la ligne (line_reference_parts réécrits).
      *
-     * @return array<string, float|int> jog_removed, jog_restored, hole_filled (+ _m), rerouted (+ _m), stub_trimmed_m,
+     * @return array<string, float|int> jog_removed, jog_restored, jog_smoothed (+ _m), hole_filled (+ _m), rerouted (+ _m), stub_trimmed_m,
      *                                  remnant_removed_m, extended (+ _m), overshoot_trimmed_m, leg_rerouted (+ _m), leg_smoothed (+ _m),
-     *                                  end_joined (+ _m), hole_smoothed (+ _m)
+     *                                  end_joined (+ _m), hole_smoothed (+ _m), spur_removed (+ _m), long_gap_filled (+ _m), long_gap_partial,
+     *                                  long_gap_left_m, long_gap_refused
      */
     public function repair(int $lineId): array
     {
@@ -217,10 +324,12 @@ class JunctionRepair
             return [];
         }
 
-        $stats = ['jog_removed' => 0, 'jog_restored' => 0, 'hole_filled' => 0, 'hole_filled_m' => 0.0, 'rerouted' => 0, 'rerouted_m' => 0.0,
+        $stats = ['jog_removed' => 0, 'jog_restored' => 0, 'jog_smoothed' => 0, 'jog_smoothed_m' => 0.0, 'hole_filled' => 0, 'hole_filled_m' => 0.0,
+            'rerouted' => 0, 'rerouted_m' => 0.0,
             'stub_trimmed_m' => 0.0, 'remnant_removed_m' => 0.0, 'extended' => 0, 'extended_m' => 0.0, 'overshoot_trimmed_m' => 0.0,
             'leg_rerouted' => 0, 'leg_rerouted_m' => 0.0, 'leg_smoothed' => 0, 'leg_smoothed_m' => 0.0,
-            'end_joined' => 0, 'end_joined_m' => 0.0, 'hole_smoothed' => 0, 'hole_smoothed_m' => 0.0];
+            'end_joined' => 0, 'end_joined_m' => 0.0, 'hole_smoothed' => 0, 'hole_smoothed_m' => 0.0, 'spur_removed' => 0, 'spur_removed_m' => 0.0,
+            'long_gap_filled' => 0, 'long_gap_filled_m' => 0.0, 'long_gap_partial' => 0, 'long_gap_left_m' => 0.0, 'long_gap_refused' => 0];
 
         $jogs = $this->removeJogs();
         $stats['jog_removed'] = count($jogs);
@@ -238,10 +347,13 @@ class JunctionRepair
         $this->removeRemnants($stats);
         $stats['jog_restored'] = $this->restoreJogs($jogs);
         $stats['jog_removed'] -= $stats['jog_restored'];
+        $this->smoothJogs($jogs, $stats);
         $this->extendToOtherLines($stats);
         $this->trimOvershoots($stats);
         $this->smoothLegs($stats);
         $this->smoothEnds($stats);
+        $this->removeSpurs($stats);
+        $this->fillLongGaps($stats);
 
         if (array_filter($stats)) {
             $this->write();
@@ -395,6 +507,885 @@ class JunctionRepair
         }
 
         return $n;
+    }
+
+    /**
+     * Règle 1 bis : saut remis (aucune voie réelle ne le remplace) entre deux portions presque parallèles : remplacé par
+     * un changement de voie en S, du point D de la portion A (en arrière du saut) au point J de la portion B (au-delà),
+     * tangent aux deux. Une portion qui s'arrête sur le saut est coupée à D (ou à J) ; une portion qui le dépasse (saut
+     * posé en son milieu) reste entière, la courbe s'y raccorde. Le recul de chaque
+     * côté est la moitié de la longueur qu'il faut pour décaler la ligne de l'écart y entre les deux voies au rayon
+     * minimal du réseau (S de Hermite : rayon ≈ L² / 6y), sans dépasser JOG_TRIM_MAX_M ni la jonction d'une autre portion.
+     * Un barreau entre deux voies qui continuent toutes les deux (aucune ne s'arrête sur le saut) reste tel quel.
+     * Une portion qui ne dépasse le saut que d'un bout sans issue court (jogEnd) est coupée comme si elle s'y arrêtait :
+     * sinon ce bout et la voie entre le saut et J doubleraient la courbe (tronçons en double, mesuré le 21/11 : 3283, 3786).
+     * Une portion qui continue vraiment au-delà du saut reste entière : la courbe s'y raccorde en Y, et ses derniers
+     * mètres longent cette voie (fusion de deux voies, comme un aiguillage).
+     */
+    private function smoothJogs(array $jogs, array &$stats): void
+    {
+        $net = DB::selectOne('SELECT network FROM lines WHERE id = ?', [$this->lineId])?->network;
+        $rmin = self::minRadius($net, $this->gauge);
+        foreach ($jogs as $j) {
+            [$e0, $e1] = $j['ends'];
+            $c = $this->subCoords($j['sid']);
+            $a = $this->subCoords($e0['sid']);
+            $b = $this->subCoords($e1['sid']);
+            if (! $c || ! $a || ! $b) {
+                continue;
+            }
+            $p = $c[0];
+            $q = end($c);
+            $la = $this->plen($a);
+            $lb = $this->plen($b);
+            if ($this->distToLine($a, $p) > 0.5 || $this->distToLine($b, $q) > 0.5 || $la < 20 || $lb < 20) {
+                continue;
+            }
+            [$sA0] = $this->projectOn($a, $p, [0.0, 1.0]);
+            [$sB0] = $this->projectOn($b, $q, [0.0, 1.0]);
+            $endA = $this->jogEnd($e0, $a, $sA0, [$j['sid'], $e1['sid']]);
+            $endB = $this->jogEnd($e1, $b, $sB0, [$j['sid'], $e0['sid']]);
+            // Barreau entre deux voies qui continuent toutes les deux : pas un changement de voie de la ligne.
+            if ($endA === null && $endB === null) {
+                continue;
+            }
+            // Sens de marche f : celui d'une portion qui s'arrête sur le saut (vers lui pour A, depuis lui pour B).
+            $f = $endA !== null
+                ? ($endA['k'] === 1 ? $this->unit($this->pointAlong($a, $sA0 - 15), $this->pointAlong($a, $sA0)) : $this->unit($this->pointAlong($a, $sA0 + 15), $this->pointAlong($a, $sA0)))
+                : ($endB['k'] === 0 ? $this->unit($this->pointAlong($b, $sB0), $this->pointAlong($b, $sB0 + 15)) : $this->unit($this->pointAlong($b, $sB0), $this->pointAlong($b, $sB0 - 15)));
+            [$sA, $dA] = $this->projectOn($a, $p, $f);
+            [$sB, $dB] = $this->projectOn($b, $q, $f);
+            // Le bout coupé doit être en aval de A et en amont de B dans le sens de marche (sinon la coupe emporterait le reste).
+            if (($endA !== null && ($endA['k'] === 1) !== ($dA > 0)) || ($endB !== null && ($endB['k'] === 0) !== ($dB > 0))) {
+                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'sens'];
+
+                continue;
+            }
+            $ga = $this->unit($this->pointAlong($a, $sA - 10 * $dA), $this->pointAlong($a, $sA));
+            $gb = $this->unit($this->pointAlong($b, $sB), $this->pointAlong($b, $sB + 10 * $dB));
+            if ($this->angDiff(atan2($ga[0], $ga[1]), atan2($gb[0], $gb[1])) > deg2rad(self::JOG_PARALLEL_DEG)) {
+                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'cap'];
+
+                continue;
+            }
+            $y = abs($f[0] * ($q[1] - $p[1]) - $f[1] * ($q[0] - $p[0]));
+            $t = min(sqrt(6 * max($y, 0.5) * $rmin) / 2, self::JOG_TRIM_MAX_M,
+                ($dA > 0 ? $sA : $la - $sA) - 5, ($dB > 0 ? $lb - $sB : $sB) - 5);
+            // On ne recule pas au-delà d'une autre jonction sur la partie coupée (bout sans issue compris).
+            if ($endA !== null) {
+                $t = min($t, $this->nextJunction($e0['sid'], $dA > 0 ? $a : array_reverse($a), [$j['sid'], $e1['sid']]) - $endA['stub'] - 5);
+            }
+            if ($endB !== null) {
+                $t = min($t, $this->nextJunction($e1['sid'], $dB > 0 ? array_reverse($b) : $b, [$j['sid'], $e0['sid']]) - $endB['stub'] - 5);
+            }
+            if ($t < 10) {
+                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'recul', 't' => round($t)];
+
+                continue;
+            }
+            $sD = $sA - $dA * $t;
+            $sJ = $sB + $dB * $t;
+            // Partie coupée, recul compris (et pas seulement le bout qui dépasse le saut) : aucune autre ligne ne doit y
+            // finir, sa jonction resterait en l'air. Le saut reste alors un raccord droit.
+            $cutA = $endA === null ? null : ($dA > 0 ? $this->subLine($a, $sD + 1, $la) : $this->subLine($a, 0.0, $sD - 1));
+            $cutB = $endB === null ? null : ($dB > 0 ? $this->subLine($b, 0.0, $sJ - 1) : $this->subLine($b, $sJ + 1, $lb));
+            if (($cutA !== null && $this->holdsOtherLine($cutA)) || ($cutB !== null && $this->holdsOtherLine($cutB))) {
+                $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'skip' => 'autre ligne sur la partie coupée'];
+
+                continue;
+            }
+            $curve = $this->hermite(
+                $this->pointAlong($a, $sD), $this->unit($this->pointAlong($a, $sD - 5 * $dA), $this->pointAlong($a, $sD + 5 * $dA)),
+                $this->pointAlong($b, $sJ), $this->unit($this->pointAlong($b, $sJ - 5 * $dB), $this->pointAlong($b, $sJ + 5 * $dB)));
+            $segA = $this->subLine($a, min($sA, $sD), max($sA, $sD));
+            $segB = $this->subLine($b, min($sB, $sJ), max($sB, $sJ));
+            $dev = max(array_map(fn ($pt) => min($this->distToLine($segA, $pt), $this->distToLine($c, $pt), $this->distToLine($segB, $pt)), $curve));
+            $this->debug && $this->log[] = ['jog_smooth' => $j['sid'], 'y' => round($y, 1), 't' => round($t), 'r' => round($this->minCurveRadius($curve)), 'dev' => round($dev, 1),
+                'stub' => [$endA['stub'] ?? null, $endB['stub'] ?? null]];
+            if ($this->minCurveRadius($curve) < 0.5 * $rmin || $dev > self::LEG_DEV_M) {
+                continue;
+            }
+            $path = ['coords' => $curve, 'len' => $this->plen($curve)];
+            if ($this->doubles($path, [$j['sid'], $e0['sid'], $e1['sid']])) {
+                continue;
+            }
+            if ($endA !== null) {
+                $dA > 0 ? $this->cutSub($e0['sid'], 0.0, $sD / $la) : $this->cutSub($e0['sid'], $sD / $la, 1.0);
+            }
+            if ($endB !== null) {
+                $dB > 0 ? $this->cutSub($e1['sid'], $sJ / $lb, 1.0) : $this->cutSub($e1['sid'], 0.0, $sJ / $lb);
+            }
+            DB::update('UPDATE jr_sub SET removed = TRUE WHERE sid = ?', [$j['sid']]);
+            $this->insertSmoothed($curve, $e0['sid']);
+            $stats['jog_smoothed']++;
+            $stats['jog_smoothed_m'] += $path['len'];
+        }
+    }
+
+    /**
+     * Distance (m) depuis le bout de $c (polyligne de la portion $sid, orientée vers ce bout) jusqu'au premier point où
+     * une autre portion de la ligne (hors $exclude) la touche : on ne recule pas au-delà d'une jonction.
+     */
+    private function nextJunction(int $sid, array $c, array $exclude): float
+    {
+        $len = $this->plen($c);
+        $best = INF;
+        foreach (DB::select(<<<'SQL'
+            SELECT ST_X(x.p) AS x, ST_Y(x.p) AS y
+            FROM jr_sub t, jr_sub o, LATERAL (VALUES (ST_StartPoint(o.g)), (ST_EndPoint(o.g))) x(p)
+            WHERE t.sid = :sid AND NOT o.removed AND o.sid <> :sid2 AND o.sid <> ALL(CAST(:ex AS int[])) AND ST_DWithin(t.g, x.p, 0.5)
+            SQL, ['sid' => $sid, 'sid2' => $sid, 'ex' => $this->ints($exclude)]) as $r) {
+            [$s] = $this->projectOn($c, [(float) $r->x, (float) $r->y], [0.0, 1.0]);
+            $best = min($best, $len - $s);
+        }
+
+        return $best;
+    }
+
+    /**
+     * Côté d'un saut (règle 1 bis) : extrémité k de la portion $e['sid'] (polyligne $c, pied du saut à l'abscisse $s0)
+     * qui s'arrête sur le saut, et longueur du bout qui le dépasse (0 si l'extrémité est posée dessus). Une portion
+     * qui passe le saut compte comme s'y arrêtant quand son bras le plus court est un bout sans issue d'au plus
+     * JOG_STUB_MAX_M : extrémité libre, aucune autre portion de la ligne (hors $exclude) ni extrémité d'une autre
+     * ligne posée dessus. Sinon null : la portion continue vraiment au-delà du saut.
+     *
+     * @param  array{sid: int, k: int, end: bool}  $e
+     * @param  list<array{0: float, 1: float}>  $c
+     * @param  list<int>  $exclude
+     * @return array{k: int, stub: float}|null
+     */
+    private function jogEnd(array $e, array $c, float $s0, array $exclude): ?array
+    {
+        $len = $this->plen($c);
+        if ($e['end']) {
+            return ['k' => $s0 > $len / 2 ? 1 : 0, 'stub' => 0.0];
+        }
+        $k = $s0 <= $len - $s0 ? 0 : 1;
+        $stub = $k === 0 ? $s0 : $len - $s0;
+        if ($stub > self::JOG_STUB_MAX_M || ! $this->isFreeEnd($e['sid'], $k)
+            || $this->nextJunction($e['sid'], $k === 1 ? $c : array_reverse($c), $exclude) < $stub + 1) {
+            return null;
+        }
+        $arm = $k === 0 ? $this->subLine($c, 0.0, $s0) : $this->subLine($c, $s0, $len);
+
+        return $this->holdsOtherLine($arm) ? null : ['k' => $k, 'stub' => $stub];
+    }
+
+    /** Une autre ligne finit-elle sur la polyligne (à 1 m près) ? La retirer laisserait sa jonction en l'air. */
+    private function holdsOtherLine(array $c): bool
+    {
+        return (bool) DB::selectOne(<<<'SQL'
+            WITH s AS (SELECT ST_GeomFromText(:wkt, 2154) AS g)
+            SELECT 1 AS x FROM line_reference_parts o, LATERAL ST_Dump(o.geom) d, s
+            WHERE o.line_id <> :line AND o.geom && ST_Transform(ST_Expand(s.g, 2), 4326)
+              AND (ST_DWithin(ST_Transform(ST_StartPoint(d.geom), 2154), s.g, 1) OR ST_DWithin(ST_Transform(ST_EndPoint(d.geom), 2154), s.g, 1))
+            LIMIT 1
+            SQL, ['wkt' => $this->wkt($c), 'line' => $this->lineId]);
+    }
+
+    // ─── 8. Allers-retours ─────────────────────────────────────────────
+
+    /**
+     * Règle 8 (cf. docblock) : éperons qui font faire un aller-retour au tracé. Deux formes :
+     *   a. virage de plus de HAIRPIN_DEG au milieu d'une portion : la branche la plus courte, sans issue, est retirée ;
+     *   b. bout sans issue qui part d'un nœud (autre bout de la portion, ou raccord d'une autre portion en son milieu) à
+     *      moins de SPUR_DEG d'une autre portion de la ligne : retiré jusqu'au nœud.
+     * Dans les deux cas l'éperon doit longer le reste de la ligne (PARALLEL_M, SPUR_SHARE de sa longueur), et aucune
+     * autre ligne ne doit finir dessus (sa jonction resterait en l'air).
+     */
+    private function removeSpurs(array &$stats): void
+    {
+        // a. Aller-retour à l'intérieur d'une portion.
+        foreach (DB::select('SELECT sid, ST_AsText(g) AS wkt FROM jr_sub WHERE NOT removed AND ST_Length(g) > 30 ORDER BY sid') as $r) {
+            $sid = (int) $r->sid;
+            $c = $this->parseWkt($r->wkt);
+            $s = $this->hairpin($c);
+            if ($s === null) {
+                continue;
+            }
+            $len = $this->plen($c);
+            // Branches depuis le sommet du virage : [polyligne, longueur, bout libre au loin, bout de la portion].
+            $legs = [
+                [array_reverse($this->subLine($c, 0, $s)), $s, $this->isFreeEnd($sid, 0), 0],
+                [$this->subLine($c, $s, $len), $len - $s, $this->isFreeEnd($sid, 1), 1],
+            ];
+            usort($legs, fn ($x, $y) => $x[1] <=> $y[1]);
+            [$leg, $legLen, $free, $k] = $legs[0];
+            if (! $free || $legLen > self::SPUR_MAX_M || $this->alongShare($leg, $sid, $legs[1][0]) < self::SPUR_SHARE
+                || ($legLen > 2 && $this->holdsOtherLine($this->subLine($leg, 2.0, $legLen)))) {
+                continue;
+            }
+            $k === 0 ? $this->cutSub($sid, $s / $len, 1.0) : $this->cutSub($sid, 0.0, $s / $len);
+            $stats['spur_removed']++;
+            $stats['spur_removed_m'] += $legLen;
+            $this->debug && $this->log[] = ['spur_hairpin' => $sid, 'm' => round($legLen)];
+        }
+
+        // b. Bout sans issue qui repart d'un nœud (autre bout de la portion, ou point où une autre portion s'y raccorde)
+        //    à moins de SPUR_DEG d'une autre portion de la ligne, et la longe.
+        foreach ($this->freeEnds() as $e) {
+            $full = $this->subCoords($e['sid']);
+            if (! $full) {
+                continue;
+            }
+            // Polyligne orientée vers le bout libre ; nœud le plus proche de ce bout.
+            $towardFree = $e['k'] === 1 ? $full : array_reverse($full);
+            $len = $this->plen($towardFree);
+            $j = $this->nextJunction($e['sid'], $towardFree, []);
+            if ($j < 1 || $j > self::SPUR_MAX_M) {
+                continue;
+            }
+            $spur = $this->subLine($towardFree, $len - $j, $len);
+            $n = $spur[0];
+            $u = $this->unit($n, $this->pointAlong($spur, min(15.0, $j)));
+            $parallel = false;
+            foreach (DB::select(<<<'SQL'
+                SELECT o.sid, ST_AsText(o.g) AS wkt FROM jr_sub o
+                WHERE NOT o.removed AND o.sid <> :sid AND ST_DWithin(o.g, ST_SetSRID(ST_MakePoint(:x, :y), 2154), 0.5)
+                SQL, ['sid' => $e['sid'], 'x' => $n[0], 'y' => $n[1]]) as $o) {
+                $oc = $this->parseWkt($o->wkt);
+                if (count($oc) < 2) {
+                    continue;
+                }
+                [$pos] = $this->projectOn($oc, $n, [0.0, 1.0]);
+                $olen = $this->plen($oc);
+                // L'autre portion part du nœud dans un sens ou dans l'autre (nœud en son milieu : les deux).
+                foreach ([min($olen, $pos + 15), max(0.0, $pos - 15)] as $to) {
+                    $v = $this->unit($n, $this->pointAlong($oc, $to));
+                    if (abs($to - $pos) > 1 && $this->angDiff(atan2($u[0], $u[1]), atan2($v[0], $v[1])) <= deg2rad(self::SPUR_DEG)) {
+                        $parallel = true;
+                    }
+                }
+            }
+            if (! $parallel || $this->alongShare($spur, $e['sid']) < self::SPUR_SHARE || ($j > 2 && $this->holdsOtherLine($this->subLine($spur, 2.0, $j)))) {
+                continue;
+            }
+            if ($j >= $len - 0.01) {
+                DB::update('UPDATE jr_sub SET removed = TRUE WHERE sid = ?', [$e['sid']]);
+            } else {
+                // Bout libre au début de la portion : on garde la fin, et inversement.
+                $e['k'] === 0 ? $this->cutSub($e['sid'], $j / $len, 1.0) : $this->cutSub($e['sid'], 0.0, 1 - $j / $len);
+            }
+            $stats['spur_removed']++;
+            $stats['spur_removed_m'] += $j;
+            $this->debug && $this->log[] = ['spur_node' => $e['sid'], 'm' => round($j)];
+        }
+    }
+
+    /**
+     * Abscisse (m) du sommet d'un aller-retour dans la polyligne : point où le tracé tourne de plus de HAIRPIN_DEG
+     * entre les cordes des 10 m qui précèdent et des 10 m qui suivent (le plus fort), ou null.
+     */
+    private function hairpin(array $c): ?float
+    {
+        $len = $this->plen($c);
+        $best = null;
+        $max = deg2rad(self::HAIRPIN_DEG);
+        $acc = 0.0;
+        for ($i = 1; $i < count($c) - 1; $i++) {
+            $acc += hypot($c[$i][0] - $c[$i - 1][0], $c[$i][1] - $c[$i - 1][1]);
+            if ($acc < 10 || $len - $acc < 10) {
+                continue;
+            }
+            $a = $this->pointAlong($c, $acc - 10);
+            $b = $this->pointAlong($c, $acc + 10);
+            $turn = $this->angDiff(atan2($c[$i][0] - $a[0], $c[$i][1] - $a[1]), atan2($b[0] - $c[$i][0], $b[1] - $c[$i][1]));
+            if ($turn > $max) {
+                $max = $turn;
+                $best = $acc;
+            }
+        }
+
+        return $best;
+    }
+
+    /**
+     * Part de la polyligne $c (points tous les 5 m, hors 10 premiers mètres) à moins de PARALLEL_M des autres portions
+     * de la ligne (hors $sid) ou de la polyligne $also.
+     */
+    private function alongShare(array $c, int $sid, array $also = []): float
+    {
+        $len = $this->plen($c);
+        if ($len <= 10) {
+            return 0.0;
+        }
+        $pts = [];
+        for ($s = 10.0; $s <= $len; $s += 5.0) {
+            $pts[] = $this->pointAlong($c, $s);
+        }
+        $near = array_fill(0, count($pts), false);
+        if (count($also) >= 2) {
+            foreach ($pts as $i => $p) {
+                $near[$i] = $this->distToLine($also, $p) <= self::PARALLEL_M;
+            }
+        }
+        $rows = DB::select(<<<'SQL'
+            SELECT x.path[1] AS i
+            FROM ST_DumpPoints(ST_GeomFromText(:mp, 2154)) x
+            WHERE EXISTS (SELECT 1 FROM jr_sub o WHERE NOT o.removed AND o.sid <> :sid AND ST_DWithin(o.g, x.geom, :par))
+            SQL, ['mp' => 'MULTIPOINT('.implode(',', array_map(fn ($p) => sprintf('(%.17G %.17G)', $p[0], $p[1]), $pts)).')',
+            'sid' => $sid, 'par' => self::PARALLEL_M]);
+        foreach ($rows as $r) {
+            $near[(int) $r->i - 1] = true;
+        }
+
+        return count(array_filter($near)) / count($pts);
+    }
+
+    /** La polyligne (un point tous les 5 m) reste-t-elle partout à moins de HOLE_TRACK_M d'une voie précise du pool ? */
+    private function onPreciseTrack(array $c): bool
+    {
+        $len = $this->plen($c);
+        $pts = [];
+        for ($s = 0.0; $s <= $len; $s += 5.0) {
+            $pts[] = $this->pointAlong($c, $s);
+        }
+        $pts[] = end($c);
+
+        return (int) DB::selectOne(<<<'SQL'
+            SELECT COUNT(*) AS n
+            FROM ST_DumpPoints(ST_GeomFromText(:mp, 2154)) x
+            WHERE NOT EXISTS (SELECT 1 FROM cf_pool p WHERE p.cand AND p.family IN ('contrib', 'bdtopo', 'osm') AND ST_DWithin(p.g, x.geom, :tol))
+            SQL, ['mp' => 'MULTIPOINT('.implode(',', array_map(fn ($p) => sprintf('(%.17G %.17G)', $p[0], $p[1]), $pts)).')',
+            'tol' => self::HOLE_TRACK_M])->n === 0;
+    }
+
+    /** Polyligne d'une portion gardée (null si retirée ou vide). */
+    private function subCoords(int $sid): ?array
+    {
+        $r = DB::selectOne('SELECT ST_AsText(g) AS wkt FROM jr_sub WHERE sid = ? AND NOT removed', [$sid]);
+        $c = $r ? $this->parseWkt($r->wkt) : [];
+
+        return count($c) >= 2 ? $c : null;
+    }
+
+    /** Vecteur unitaire de $from vers $to ([dx, dy]). */
+    private function unit(array $from, array $to): array
+    {
+        $l = hypot($to[0] - $from[0], $to[1] - $from[1]);
+
+        return $l > 0 ? [($to[0] - $from[0]) / $l, ($to[1] - $from[1]) / $l] : [0.0, 1.0];
+    }
+
+    // ─── 9. Longs trous sur les voies abandonnées ─────────────────────
+
+    /**
+     * Règle 9 (cf. docblock) : paires de bouts libres de la ligne (hors raccords) à plus de HOLE_MAX_M et au plus
+     * LONG_GAP_MAX_M, de la plus proche à la plus lointaine, chaque bout servant une fois. Le chemin est cherché depuis
+     * chaque bout d'où part une voie abandonnée ; le meilleur (plus petit reste) est gardé s'il passe tous les contrôles.
+     */
+    private function fillLongGaps(array &$stats): void
+    {
+        $ends = array_values(array_filter($this->freeEnds(), fn ($e) => ! $e['conn']));
+        $pairs = [];
+        foreach ($ends as $i => $a) {
+            foreach ($ends as $j => $b) {
+                $d = hypot($b['x'] - $a['x'], $b['y'] - $a['y']);
+                if ($j > $i && $a['sid'] !== $b['sid'] && $d > self::HOLE_MAX_M && $d <= self::LONG_GAP_MAX_M) {
+                    $pairs[] = [$d, $i, $j];
+                }
+            }
+        }
+        sort($pairs);
+        $leaves = [];
+        $stations = null;
+        $used = [];
+        $tried = 0;
+        // Morceaux connexes du tracé (portions qui se touchent à 0,5 m près) : deux bouts d'un même morceau ne bordent
+        // pas un trou (les deux branches d'un Y), les relier inventerait une boucle.
+        $comp = [];
+        if ($pairs !== []) {
+            foreach (DB::select('SELECT sid, ST_ClusterDBSCAN(g, 0.5, 1) OVER () AS c FROM jr_sub WHERE NOT removed') as $r) {
+                $comp[(int) $r->sid] = (int) $r->c;
+            }
+        }
+        foreach ($pairs as [$d, $i, $j]) {
+            if (isset($used[$i]) || isset($used[$j])) {
+                continue;
+            }
+            $ci = $comp[$ends[$i]['sid']] ?? -1 - $i;
+            $cj = $comp[$ends[$j]['sid']] ?? -1 - $j;
+            if ($ci === $cj) {
+                continue;
+            }
+            $leaves[$i] ??= $this->deadTrackLeaves($ends[$i]);
+            $leaves[$j] ??= $this->deadTrackLeaves($ends[$j]);
+            if (! $leaves[$i] && ! $leaves[$j]) {
+                continue;
+            }
+            if ($tried++ >= self::LONG_GAP_MAX_PAIRS) {
+                break;
+            }
+            $stations ??= $this->lineStations();
+            $best = null;
+            $why = [];
+            foreach ([[$i, $j], [$j, $i]] as [$from, $to]) {
+                if (! $leaves[$from]) {
+                    continue;
+                }
+                $path = $this->longGapRoute($ends[$from], $ends[$to], $d);
+                $reason = $path === null ? 'aucun chemin' : $this->longGapRefusal($path, $ends[$from], $ends[$to], $d, $stations);
+                if ($reason !== null) {
+                    $why[] = $reason;
+                    $this->debug && $path && $this->log[] = ['long_gap_try' => $ends[$from]['sid'], 'why' => $reason, 'len' => round($path['len']),
+                        'left' => round($path['left']), 'wkt' => $this->wkt($path['coords'])];
+                } elseif ($best === null || $path['left'] < $best['left']) {
+                    $best = $path + ['from' => $ends[$from]['sid']];
+                }
+            }
+            $this->debug && $this->log[] = ['long_gap' => [$ends[$i]['sid'], $ends[$j]['sid']], 'd' => round($d),
+                'ends' => [[round($ends[$i]['x']), round($ends[$i]['y'])], [round($ends[$j]['x']), round($ends[$j]['y'])]],
+                'len' => $best ? round($best['len']) : null, 'left' => $best ? round($best['left']) : null, 'why' => $why,
+                'wkt' => $best ? $this->wkt($best['coords']) : null];
+            if ($best === null) {
+                $stats['long_gap_refused']++;
+
+                continue;
+            }
+            $this->insertLongGap($best);
+            $used[$i] = $used[$j] = true;
+            // Trou fermé : les deux morceaux n'en font plus qu'un.
+            if ($best['left'] <= 0) {
+                $comp = array_map(fn (int $c): int => $c === $cj ? $ci : $c, $comp);
+            }
+            $stats['long_gap_filled']++;
+            $stats['long_gap_filled_m'] += $best['len'];
+            if ($best['left'] > 0) {
+                $stats['long_gap_partial']++;
+                $stats['long_gap_left_m'] += $best['left'];
+            }
+        }
+    }
+
+    /** Filtre SQL des voies d'une ligne disparue (cf_pool p, source_traces st). */
+    private function deadFilter(): string
+    {
+        return "((p.family = 'osm' AND st.layer IN ('".implode("', '", self::DEAD_OSM_LAYERS)."')) OR (p.family = 'bdtopo' AND st.layer = 'Sans objet'))";
+    }
+
+    /** Une voie abandonnée non rattachée passe-t-elle au bout $e et le prolonge-t-elle (encore là 30 m plus loin) ? */
+    private function deadTrackLeaves(array $e): bool
+    {
+        $dead = $this->deadFilter();
+
+        return (bool) DB::selectOne(<<<SQL
+            WITH e AS (SELECT ST_SetSRID(ST_MakePoint(:x, :y), 2154) AS p, ST_SetSRID(ST_MakePoint(:qx, :qy), 2154) AS q)
+            SELECT 1 AS x FROM e
+            WHERE EXISTS (SELECT 1 FROM cf_pool p JOIN source_traces st ON st.id = p.id WHERE p.cand AND p.line_id IS NULL AND {$dead} AND ST_DWithin(p.g, e.p, :snap))
+              AND EXISTS (SELECT 1 FROM cf_pool p JOIN source_traces st ON st.id = p.id WHERE p.cand AND p.line_id IS NULL AND {$dead} AND ST_DWithin(p.g, e.q, :snap2))
+            SQL, ['x' => $e['x'], 'y' => $e['y'], 'qx' => $e['x'] + 30 * sin($e['az']), 'qy' => $e['y'] + 30 * cos($e['az']),
+            'snap' => self::LONG_GAP_SNAP_M, 'snap2' => 2 * self::LONG_GAP_SNAP_M]);
+    }
+
+    /**
+     * Gares de la ligne : position, PK sûr (sources RELIABLE_PK_SOURCES, sinon null) et desserte par le tracé actuel
+     * (à moins de 300 m d'une portion gardée).
+     *
+     * @return list<array{x: float, y: float, pk: ?float, drawn: bool}>
+     */
+    private function lineStations(): array
+    {
+        return array_map(fn ($r) => ['x' => (float) $r->x, 'y' => (float) $r->y, 'pk' => $r->pk !== null ? (float) $r->pk : null, 'drawn' => (bool) $r->drawn],
+            DB::select(<<<'SQL'
+                SELECT ST_X(q.g) AS x, ST_Y(q.g) AS y, CASE WHEN sl.pk_source = ANY(CAST(:src AS text[])) THEN sl.pk_m END AS pk,
+                       EXISTS (SELECT 1 FROM jr_sub t WHERE NOT t.removed AND ST_DWithin(t.g, q.g, 300)) AS drawn
+                FROM station_lines sl JOIN stations s ON s.id = sl.station_id, LATERAL (SELECT ST_Transform(s.geom, 2154) AS g) q
+                WHERE sl.line_id = :line
+                ORDER BY sl.id
+                SQL, ['src' => '{'.implode(',', self::RELIABLE_PK_SOURCES).'}', 'line' => $this->lineId]));
+    }
+
+    /**
+     * Chemin le plus court (Dijkstra, déviation <= TURN_DEG à chaque nœud) depuis le bout $e sur les voies abandonnées
+     * non rattachées d'un couloir autour du trou, jusqu'au point le plus proche du bout $f ; null sans voie au départ.
+     *
+     * @return array{coords: list<array{0: float, 1: float}>, len: float, left: float, family: string, ids: list<int>, endAz: float}|null
+     */
+    private function longGapRoute(array $e, array $f, float $d): ?array
+    {
+        $edges = $this->deadGraph(sprintf('LINESTRING(%.3F %.3F,%.3F %.3F)', $e['x'], $e['y'], $f['x'], $f['y']), max(1000.0, 0.35 * $d));
+        $edges = array_merge($edges, $this->jumpEdges($edges));
+        $adj = [];
+        foreach ($edges as $i => $ed) {
+            $adj[$ed['k0']][] = [$i, 1];
+            $adj[$ed['k1']][] = [$i, -1];
+        }
+        $maxLen = min(self::LONG_GAP_MAX_M, self::LONG_GAP_DETOUR * $d + self::LONG_GAP_DETOUR_ADD_M);
+        $turn = deg2rad(self::TURN_DEG);
+        $pq = new \SplPriorityQueue;
+        $pq->setExtractFlags(\SplPriorityQueue::EXTR_DATA);
+        $dist = [];
+        $prev = [];
+        $seq = 0;
+        foreach ($edges as $i => $ed) {
+            [$s, $dd, $az] = $this->project($ed, $e['x'], $e['y']);
+            foreach ([1, -1] as $dir) {
+                $c = $dir > 0 ? $ed['len'] - $s : $s;
+                if ($dd > self::LONG_GAP_SNAP_M || $c < 1 || $this->angDiff($dir > 0 ? $az : $az + M_PI, $e['az']) > deg2rad(self::START_DEG)) {
+                    continue;
+                }
+                $state = "$i:$dir";
+                if (! isset($dist[$state]) || $c < $dist[$state]) {
+                    $dist[$state] = $c;
+                    $prev[$state] = ['from' => $s, 'to' => $dir > 0 ? $ed['len'] : 0.0];
+                    $pq->insert($state, [-$c, -$seq++]);
+                }
+            }
+        }
+        // Meilleur arrêt : [reste jusqu'à $f, longueur, état, abscisse d'arrêt].
+        $best = null;
+        $done = [];
+        $n = 0;
+        while (! $pq->isEmpty() && $n++ < self::LONG_GAP_MAX_EXPANSIONS) {
+            $state = $pq->extract();
+            if (isset($done[$state])) {
+                continue;
+            }
+            $done[$state] = true;
+            [$i, $dir] = array_map('intval', explode(':', $state));
+            $ed = $edges[$i];
+            ['from' => $from, 'to' => $to] = $prev[$state];
+            [$sF] = $this->project($ed, $f['x'], $f['y']);
+            $stop = max(min($from, $to), min(max($from, $to), $sF));
+            $pt = $this->pointAt($ed, $stop);
+            $left = hypot($pt[0] - $f['x'], $pt[1] - $f['y']);
+            $cost = $dist[$state] - abs($to - $stop);
+            if ($best === null || $left < $best[0] - 1e-6 || (abs($left - $best[0]) <= 1e-6 && $cost < $best[1])) {
+                $best = [$left, $cost, $state, $stop];
+            }
+            if ($left <= self::LONG_GAP_CLOSE_M) {
+                break;
+            }
+            $inAz = $dir > 0 ? $this->azEnd($ed) : $this->azStart($ed) + M_PI;
+            foreach ($adj[$dir > 0 ? $ed['k1'] : $ed['k0']] ?? [] as [$j, $jdir]) {
+                $g = $edges[$j];
+                $c = $dist[$state] + $g['len'];
+                $s2 = "$j:$jdir";
+                if ($j === $i || $c > $maxLen || (isset($dist[$s2]) && $c >= $dist[$s2])
+                    || $this->angDiff($inAz, $jdir > 0 ? $this->azStart($g) : $this->azEnd($g) + M_PI) > $turn) {
+                    continue;
+                }
+                $dist[$s2] = $c;
+                $prev[$s2] = ['state' => $state, 'from' => $jdir > 0 ? 0.0 : $g['len'], 'to' => $jdir > 0 ? $g['len'] : 0.0];
+                $pq->insert($s2, [-$c, -$seq++]);
+            }
+        }
+        if ($best === null) {
+            return null;
+        }
+        [$left, $cost, $state, $stop] = $best;
+        $prev[$state.':end'] = ['from' => $prev[$state]['from'], 'to' => $stop] + (isset($prev[$state]['state']) ? ['state' => $prev[$state]['state']] : []);
+        $path = $this->buildPath($edges, $prev, $state.':end', $cost);
+        // Famille du dessin : celle qui porte la plus grande longueur (les manques enjambés ne comptent pas).
+        $byFamily = [];
+        for ($cur = $state.':end'; $cur !== null; $cur = $prev[$cur]['state'] ?? null) {
+            $leg = $edges[(int) explode(':', $cur)[0]];
+            $byFamily[$leg['family']] = ($byFamily[$leg['family']] ?? 0) + abs($prev[$cur]['to'] - $prev[$cur]['from']);
+        }
+        unset($byFamily['jump']);
+        arsort($byFamily);
+        $coords = $this->easeInto($path['coords'], [$e['x'], $e['y']]);
+        if ($left <= self::LONG_GAP_CLOSE_M) {
+            $coords = array_reverse($this->easeInto(array_reverse($coords), [$f['x'], $f['y']]));
+            $left = 0.0;
+        }
+        if (count($coords) < 2 || ! $byFamily) {
+            return null;
+        }
+        $last = end($coords);
+        $before = $this->pointAlong($coords, max(0.0, $this->plen($coords) - 15));
+        $ids = array_values(array_unique($path['ids']));
+        sort($ids);
+
+        return ['coords' => $coords, 'len' => $this->plen($coords), 'left' => $left, 'family' => (string) array_key_first($byFamily), 'ids' => $ids,
+            'endAz' => atan2($last[0] - $before[0], $last[1] - $before[1])];
+    }
+
+    /**
+     * Raccord du point $p au début du chemin $c (posé à quelques mètres de lui) : en biais doux, vers un point du chemin
+     * pris assez loin (8 fois l'écart, au moins 30 m, au plus un tiers du chemin) pour qu'il n'y ait pas de coude.
+     *
+     * @param  list<array{0: float, 1: float}>  $c
+     * @return list<array{0: float, 1: float}>
+     */
+    private function easeInto(array $c, array $p): array
+    {
+        $off = hypot($c[0][0] - $p[0], $c[0][1] - $p[1]);
+        if ($off <= 1e-6) {
+            return $c;
+        }
+        $len = $this->plen($c);
+        $s = $off > 2 ? min($len / 3, max(30.0, 8 * $off)) : 0.0;
+
+        return array_merge([$p], $s > 0 ? $this->subLine($c, $s, $len) : $c);
+    }
+
+    /**
+     * Morceaux de voie abandonnée non rattachée dans un couloir de demi-largeur $w autour de $segWkt, coupés à leurs
+     * intersections (une famille à la fois), au format de graph().
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function deadGraph(string $segWkt, float $w): array
+    {
+        $dead = $this->deadFilter();
+        $rows = DB::select(<<<SQL
+            WITH w AS (SELECT ST_Buffer(ST_GeomFromText(:seg, 2154), :w, 8) AS w),
+            e AS (
+                SELECT p.id, p.family, d.geom AS g
+                FROM cf_pool p JOIN source_traces st ON st.id = p.id, w, LATERAL ST_Dump(ST_CollectionExtract(ST_Intersection(p.g, w.w), 2)) d
+                WHERE p.cand AND p.line_id IS NULL AND p.g && w.w AND ST_Intersects(p.g, w.w) AND {$dead} AND ST_Length(d.geom) > 0.05
+            ),
+            n AS (SELECT family, (ST_Dump(ST_Node(ST_Collect(g ORDER BY id)))).geom AS g FROM e GROUP BY family),
+            n2 AS (SELECT row_number() OVER (ORDER BY family, ST_XMin(g), ST_YMin(g), ST_XMax(g), ST_YMax(g), ST_Length(g)) AS i, family, g FROM n WHERE ST_Length(g) > 0.05)
+            SELECT n2.family, ST_AsText(n2.g) AS wkt,
+                   (SELECT jsonb_agg(DISTINCT e.id) FROM e WHERE e.family = n2.family AND ST_DWithin(e.g, ST_LineInterpolatePoint(n2.g, 0.5), 0.01)) AS orig
+            FROM n2 ORDER BY n2.i
+            SQL, ['seg' => $segWkt, 'w' => $w]);
+        $edges = [];
+        foreach ($rows as $r) {
+            $edge = $this->edge($this->parseWkt($r->wkt), $r->family, array_map('intval', json_decode($r->orig ?? '[]', true) ?: []));
+            if ($edge !== null) {
+                $edges[] = $edge;
+            }
+        }
+
+        return $edges;
+    }
+
+    /**
+     * Morceau du graphe des voies (format de graph() : polyligne, abscisses cumulées, clés des nœuds).
+     *
+     * @param  list<array{0: float, 1: float}>  $coords
+     * @param  list<int>  $ids
+     * @return array<string, mixed>|null
+     */
+    private function edge(array $coords, string $family, array $ids): ?array
+    {
+        if (count($coords) < 2) {
+            return null;
+        }
+        $cum = [0.0];
+        for ($i = 1; $i < count($coords); $i++) {
+            $cum[] = $cum[$i - 1] + hypot($coords[$i][0] - $coords[$i - 1][0], $coords[$i][1] - $coords[$i - 1][1]);
+        }
+
+        return ['family' => $family, 'coords' => $coords, 'cum' => $cum, 'len' => end($cum), 'k0' => $this->key($coords[0]), 'k1' => $this->key(end($coords)),
+            'ids' => $ids, 'lines' => [], 'own' => false, 'other' => false, 'tsid' => null, 'fa' => 0.0, 'fb' => 0.0];
+    }
+
+    /**
+     * Manques courts d'une voie abandonnée (morceau rasé non dessiné, passage d'une famille de sources à l'autre) :
+     * deux bouts pendants à moins de LONG_GAP_JUMP_M, dans le prolongement l'un de l'autre (TURN_DEG), reliés tout droit.
+     *
+     * @param  list<array<string, mixed>>  $edges
+     * @return list<array<string, mixed>>
+     */
+    private function jumpEdges(array $edges): array
+    {
+        $deg = [];
+        foreach ($edges as $ed) {
+            $deg[$ed['k0']] = ($deg[$ed['k0']] ?? 0) + 1;
+            $deg[$ed['k1']] = ($deg[$ed['k1']] ?? 0) + 1;
+        }
+        // Bouts pendants : point et cap sortant (au-delà du bout).
+        $dangling = [];
+        $grid = [];
+        foreach ($edges as $ed) {
+            foreach ([[$ed['k0'], $ed['coords'][0], $this->azStart($ed) + M_PI], [$ed['k1'], end($ed['coords']), $this->azEnd($ed)]] as [$k, $p, $az]) {
+                if ($deg[$k] === 1) {
+                    $n = count($dangling);
+                    $dangling[] = [$p, $az];
+                    $grid[(int) floor($p[0] / self::LONG_GAP_JUMP_M).':'.(int) floor($p[1] / self::LONG_GAP_JUMP_M)][] = $n;
+                }
+            }
+        }
+        $turn = deg2rad(self::TURN_DEG);
+        $out = [];
+        foreach ($dangling as $a => [$p, $az]) {
+            $gx = (int) floor($p[0] / self::LONG_GAP_JUMP_M);
+            $gy = (int) floor($p[1] / self::LONG_GAP_JUMP_M);
+            for ($dx = -1; $dx <= 1; $dx++) {
+                for ($dy = -1; $dy <= 1; $dy++) {
+                    foreach ($grid[($gx + $dx).':'.($gy + $dy)] ?? [] as $b) {
+                        [$q, $bz] = $dangling[$b];
+                        $l = hypot($q[0] - $p[0], $q[1] - $p[1]);
+                        if ($b <= $a || $l < 0.05 || $l > self::LONG_GAP_JUMP_M) {
+                            continue;
+                        }
+                        $v = atan2($q[0] - $p[0], $q[1] - $p[1]);
+                        // Le manque prolonge le morceau de $p et entre dans celui de $q (cap sortant de $q opposé au manque).
+                        if ($this->angDiff($v, $az) <= $turn && $this->angDiff($v, $bz + M_PI) <= $turn && ($edge = $this->edge([$p, $q], 'jump', [])) !== null) {
+                            $out[] = $edge;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Contrôles d'un chemin de long trou (règle 9) ; raison du refus, ou null s'il est accepté.
+     *
+     * @param  array{coords: list<array{0: float, 1: float}>, len: float, left: float, family: string, ids: list<int>, endAz: float}  $p
+     * @param  list<array{x: float, y: float, pk: ?float, drawn: bool}>  $stations
+     */
+    private function longGapRefusal(array $p, array $e, array $f, float $d, array $stations): ?string
+    {
+        if ($p['left'] > min(self::LONG_GAP_LEFT_M, self::LONG_GAP_LEFT_SHARE * $d)) {
+            return sprintf('reste de %d m', round($p['left']));
+        }
+        if (self::LONG_GAP_DETOUR * $d + self::LONG_GAP_DETOUR_ADD_M < $p['len'] + $p['left']) {
+            return 'détour';
+        }
+        $end = end($p['coords']);
+        if ($p['left'] > 0) {
+            // Le reste du trou prolonge le chemin et arrive de face sur le bout d'en face.
+            $g = atan2($f['x'] - $end[0], $f['y'] - $end[1]);
+            if ($this->angDiff($g, $f['az'] + M_PI) > deg2rad(60) || $this->angDiff($g, $p['endAz']) > deg2rad(60)) {
+                return 'reste de travers';
+            }
+        } elseif ($this->angDiff($p['endAz'], $f['az'] + M_PI) > deg2rad(self::START_DEG)) {
+            // Chemin raccordé : il arrive sur le bout d'en face dans son prolongement (START_DEG, comme la règle 2) ;
+            // aucune règle ne lisse ensuite un coude à cet endroit.
+            return 'arrivée de travers';
+        }
+        // Hors de ses 50 premiers et derniers mètres (raccords aux bouts), le chemin ne longe aucune portion de la ligne,
+        // pas même celles des deux bouts (un chemin qui revient le long de la portion d'en face la doublerait).
+        $inner = $this->subLine($p['coords'], 50.0, max(50.0, $p['len'] - 50));
+        if ($p['len'] > 150 && $this->doubles(['coords' => $inner, 'len' => $this->plen($inner)], [])) {
+            return 'double la ligne';
+        }
+        $onOther = $this->otherLineShare($p['coords']) > self::LONG_GAP_OTHER_SHARE;
+
+        // Gares : abscisse le long du chemin prolongé du reste du trou ; gares à LONG_GAP_STATION_M près.
+        $full = $p['left'] > 0 ? array_merge($p['coords'], [[$f['x'], $f['y']]]) : $p['coords'];
+        $pkE = $this->pkNear($e, $stations);
+        $pkF = $this->pkNear($f, $stations);
+        $sign = $pkE !== null && $pkF !== null && abs($pkF[0] - $pkE[0]) > 1 ? ($pkF[0] > $pkE[0] ? 1 : -1) : 0;
+        if ($sign !== 0) {
+            $expected = abs($pkF[0] - $pkE[0]);
+            $tol = max(self::LONG_GAP_PK_TOL * $expected, self::LONG_GAP_PK_MIN_TOL_M) + $pkE[1] + $pkF[1];
+            if (abs($p['len'] + $p['left'] - $expected) > $tol) {
+                return sprintf('écart de PK (%d m pour %d m)', round($p['len'] + $p['left']), round($expected));
+            }
+        }
+        $near = [];
+        $newlyServed = 0;
+        foreach ($stations as $s) {
+            $pt = [$s['x'], $s['y']];
+            $dist = $this->distToLine($full, $pt);
+            [$t, $off] = $this->alongSegment([$e['x'], $e['y']], [$f['x'], $f['y']], $pt);
+            if ($dist <= self::LONG_GAP_STATION_M) {
+                // Gare du trou que le tracé actuel ne dessert pas et que le chemin dessert : la ligne passait bien là.
+                $newlyServed += ! $s['drawn'] && $t > 0.05 && $t < 0.95 && $this->distToLine($p['coords'], $pt) <= self::LONG_GAP_STATION_M ? 1 : 0;
+                if ($s['pk'] === null) {
+                    continue;
+                }
+                // Gare de PK sûr desservie par le chemin : son PK doit tomber entre ceux des deux bouts.
+                if ($sign !== 0 && ($s['pk'] < min($pkE[0], $pkF[0]) - $pkE[1] - $pkF[1] - self::LONG_GAP_PK_MIN_TOL_M
+                    || $s['pk'] > max($pkE[0], $pkF[0]) + $pkE[1] + $pkF[1] + self::LONG_GAP_PK_MIN_TOL_M)) {
+                    return 'gare hors de l\'écart de PK';
+                }
+                [$abs] = $this->projectOn($full, $pt, [0.0, 1.0]);
+                $near[] = [$abs, $s['pk']];
+
+                continue;
+            }
+            // Gare de la ligne que le tracé actuel ne dessert pas, dans le trou (entre les deux bouts) : le chemin doit y passer.
+            if (! $s['drawn'] && $t > 0.05 && $t < 0.95 && $off <= min(2000.0, 0.35 * $d)) {
+                return 'gare manquée';
+            }
+            // Gare de PK sûr strictement entre les PK des deux bouts : le chemin doit y passer.
+            $margin = $sign !== 0 ? $pkE[1] + $pkF[1] + 500 : 0.0;
+            if ($sign !== 0 && $s['pk'] !== null && $s['pk'] > min($pkE[0], $pkF[0]) + $margin && $s['pk'] < max($pkE[0], $pkF[0]) - $margin) {
+                return 'gare manquée (PK)';
+            }
+        }
+        // Ordre des gares desservies : leurs PK vont dans un seul sens le long du chemin (celui des bouts s'il est connu).
+        usort($near, fn ($a, $b) => $a[0] <=> $b[0]);
+        $up = $down = 0;
+        for ($k = 1; $k < count($near); $k++) {
+            $step = $near[$k][1] - $near[$k - 1][1];
+            $up += $step > 300 ? 1 : 0;
+            $down += $step < -300 ? 1 : 0;
+        }
+        if (($up > 0 && $down > 0) || ($sign > 0 && $down > 0) || ($sign < 0 && $up > 0)) {
+            return 'gares dans le désordre';
+        }
+        // Voie déjà dessinée pour une autre ligne : ses rails, sauf si le chemin dessert une gare de la ligne restée dans
+        // le trou (section commune : 371000 et 3225 entre Gravigny et Amfreville).
+        if ($onOther && $newlyServed === 0) {
+            return 'voie d\'une autre ligne';
+        }
+
+        return null;
+    }
+
+    /**
+     * PK au bout $e : celui de la gare de PK sûr la plus proche, à LONG_GAP_PK_NEAR_M près ; [PK, distance] ou null.
+     *
+     * @param  list<array{x: float, y: float, pk: ?float, drawn: bool}>  $stations
+     * @return array{0: float, 1: float}|null
+     */
+    private function pkNear(array $e, array $stations): ?array
+    {
+        $best = null;
+        foreach ($stations as $s) {
+            $dist = hypot($s['x'] - $e['x'], $s['y'] - $e['y']);
+            if ($s['pk'] !== null && $dist <= self::LONG_GAP_PK_NEAR_M && ($best === null || $dist < $best[1])) {
+                $best = [$s['pk'], $dist];
+            }
+        }
+
+        return $best;
+    }
+
+    /**
+     * Position de $p par rapport au segment $a → $b : fraction de sa projection (non bornée) et distance au segment.
+     *
+     * @return array{0: float, 1: float}
+     */
+    private function alongSegment(array $a, array $b, array $p): array
+    {
+        $dx = $b[0] - $a[0];
+        $dy = $b[1] - $a[1];
+        $l2 = $dx * $dx + $dy * $dy;
+        $t = $l2 > 0 ? (($p[0] - $a[0]) * $dx + ($p[1] - $a[1]) * $dy) / $l2 : 0.0;
+
+        return [$t, $this->distToLine([$a, $b], $p)];
+    }
+
+    /** Part de la polyligne à moins de LONG_GAP_OTHER_M du tracé de référence d'une autre ligne. */
+    private function otherLineShare(array $c): float
+    {
+        return (float) DB::selectOne(<<<'SQL'
+            WITH p AS (SELECT ST_GeomFromText(:wkt, 2154) AS p)
+            SELECT COALESCE(ST_Length(ST_Intersection(p.p, ST_Union(ST_Buffer(ST_Transform(d.geom, 2154), :m)))) / NULLIF(ST_Length(p.p), 0), 0) AS s
+            FROM p, line_reference_parts o, LATERAL ST_Dump(o.geom) d
+            WHERE o.line_id <> :line AND o.geom && ST_Transform(ST_Expand(p.p, :m2), 4326) AND ST_DWithin(ST_Transform(d.geom, 2154), p.p, :m3)
+            GROUP BY p.p
+            SQL, ['wkt' => $this->wkt($c), 'm' => self::LONG_GAP_OTHER_M, 'm2' => self::LONG_GAP_OTHER_M, 'm3' => self::LONG_GAP_OTHER_M, 'line' => $this->lineId])?->s;
+    }
+
+    /**
+     * Ajoute le chemin d'un long trou : dessin de la voie abandonnée (matched_source = sa famille, ids de ses tracés),
+     * définition de la portion qu'il prolonge (source et ids de celle-ci).
+     */
+    private function insertLongGap(array $p): void
+    {
+        $from = DB::selectOne('SELECT p.source, p.source_trace_ids FROM jr_sub t JOIN line_reference_parts p ON p.id = t.part_id WHERE t.sid = ?', [$p['from']])
+            ?? DB::selectOne('SELECT added FROM jr_sub WHERE sid = ?', [$p['from']]);
+        if ($from && isset($from->added)) {
+            $m = json_decode($from->added, true);
+            $from = (object) ['source' => $m['source'], 'source_trace_ids' => json_encode($m['source_ids'])];
+        }
+        $meta = ['source' => $from->source ?? $p['family'], 'source_ids' => $from ? json_decode($from->source_trace_ids, true) : [],
+            'matched' => $p['family'], 'matched_ids' => $p['ids']];
+        DB::insert('INSERT INTO jr_sub (part_id, sub, conn, rank, added, g) VALUES (NULL, 0, FALSE, 3, ?, ST_GeomFromText(?, 2154))',
+            [json_encode($meta), $this->wkt($p['coords'])]);
     }
 
     // ─── 2. Trous ──────────────────────────────────────────────────────
@@ -799,7 +1790,7 @@ class JunctionRepair
         }
     }
 
-    /** Règle 7 c et d : bouts imprécis arrêtés avant la voie d'une autre ligne, trous sans voie précise. */
+    /** Règle 7 c et d : bouts imprécis arrêtés avant la voie d'une autre ligne, trous que la voie précise ne permet pas de combler. */
     private function smoothEnds(array &$stats): void
     {
         $net = DB::selectOne('SELECT network FROM lines WHERE id = ?', [$this->lineId])?->network;
@@ -807,7 +1798,9 @@ class JunctionRepair
         $narrow = in_array($net, TraceConflation::JUNCTION_NARROW_NETWORKS, true);
         $used = [];
 
-        // d. Trous face à face (les trous couverts par une voie précise ont été comblés à l'étape 2).
+        // d. Trous face à face : sans voie précise (jusqu'à HOLE_SMOOTH_MAX_M), ou sur une voie précise que l'étape 2 n'a pas
+        // pu suivre (changement de voie sans aiguillage, bout à plus de SNAP_M de la voie) : jusqu'à HOLE_MAX_M, la courbe
+        // doit alors rester à moins de HOLE_TRACK_M d'une voie précise sur toute sa longueur.
         $ends = $this->freeEnds();
         $pairs = [];
         foreach ($ends as $i => $a) {
@@ -817,7 +1810,7 @@ class JunctionRepair
                 }
                 $d = hypot($b['x'] - $a['x'], $b['y'] - $a['y']);
                 $ab = atan2($b['x'] - $a['x'], $b['y'] - $a['y']);
-                if ($d <= 0.5 || $d > self::HOLE_SMOOTH_MAX_M
+                if ($d <= 0.5 || $d > self::HOLE_MAX_M
                     || $this->angDiff($ab, $a['az']) > deg2rad(self::FACE_DEG) || $this->angDiff($ab + M_PI, $b['az']) > deg2rad(self::FACE_DEG)) {
                     continue;
                 }
@@ -832,8 +1825,11 @@ class JunctionRepair
             $a = $ends[$i];
             $b = $ends[$j];
             $pts = $this->hermite([$a['x'], $a['y']], [sin($a['az']), cos($a['az'])], [$b['x'], $b['y']], [-sin($b['az']), -cos($b['az'])]);
-            if ($this->minCurveRadius($pts) < $rmin || max(array_map(fn ($p) => $this->distToLine([[$a['x'], $a['y']], [$b['x'], $b['y']]], $p), $pts)) > self::LEG_DEV_M) {
-                $this->debug && $this->log[] = ['hole_smooth' => [$a['sid'], $b['sid']], 'd' => round($d, 1), 'fit' => null];
+            $radius = $this->minCurveRadius($pts);
+            $free = $d <= self::HOLE_SMOOTH_MAX_M && $radius >= $rmin
+                && max(array_map(fn ($p) => $this->distToLine([[$a['x'], $a['y']], [$b['x'], $b['y']]], $p), $pts)) <= self::LEG_DEV_M;
+            if (! $free && ($radius < 0.5 * $rmin || ! $this->onPreciseTrack($pts))) {
+                $this->debug && $this->log[] = ['hole_smooth' => [$a['sid'], $b['sid']], 'd' => round($d, 1), 'r' => round($radius), 'fit' => null];
 
                 continue;
             }
