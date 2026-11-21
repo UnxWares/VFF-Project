@@ -44,9 +44,11 @@ Règles ajoutées le 21/11 (`ecca8ad`) :
 
 Lit la fin du service voyageurs dans le champ « fermeture » de l'infobox de l'article Wikipédia de la gare
 (« 27 septembre 1969 (voyageurs) ») et l'écrit dans `station_events` (type `closure_passenger`, source `wikipedia`,
-permalien de la révision, citation courte du champ). 342 dates lues au 21/11. Seul ce qui est explicite est repris :
-une date qualifiée « voyageurs », au jour, au mois, à l'année ou à la décennie ; ni fin du fret, ni date incertaine, ni
-« avant 1950 ».
+permalien de la révision, citation courte du champ). La fin du service marchandises du même champ, quand elle est
+explicite (« 30 novembre 1990 (marchandises) », « aux frets », « fret »), est écrite à côté (type `closure_freight`).
+342 fins des voyageurs et 150 fins du fret lues au 21/11. Seul ce qui est explicite est repris : une date qualifiée
+« voyageurs » ou « marchandises », au jour, au mois, à l'année ou à la décennie ; ni date sans qualificatif ou « à tout
+trafic », ni date incertaine, ni « avant 1950 ».
 
 | Option | Effet |
 |:-|:-|
@@ -58,11 +60,14 @@ une date qualifiée « voyageurs », au jour, au mois, à l'année ou à la déc
 
 Les articles sont rattachés par lien (élément Wikidata de la gare, sinon tag OSM `wikipedia=fr:…`), jamais par le nom ;
 seules les gares fermées, disparues ou fret seul aujourd'hui sont retenues. Sont écartés et comptés : un article lié à
-plusieurs gares, plusieurs fins différentes pour une gare, une date antérieure à l'ouverture. La commande ne remplace
-que ses propres lignes (`source_ref` en `#infobox-voyageurs`). `vff:build-station-eras` la lit au prochain calcul : plus
-de voyageurs à partir de l'ère de la date, et une fermeture Wikidata de la même année sur une gare fret seul devient
-la fin des voyageurs. Les fermetures totales de Wikidata ou d'OHM qui dataient en fait la fin des voyageurs d'une gare
-restée au fret (80 gares) sont corrigées par des fins du fret lues dans les infobox, dans `database/data/gares_corrections.php`.
+plusieurs gares, plusieurs fins des voyageurs (ou du fret) différentes pour une gare, une date antérieure à l'ouverture.
+La commande ne remplace que ses propres lignes (`source_ref` en `#infobox-voyageurs` et `#infobox-fret`).
+`vff:build-station-eras` la lit au prochain calcul : plus de voyageurs à partir de l'ère de la date ; une fermeture
+Wikidata (ou OSM) de la même année devient la fin des voyageurs sur une gare fret seul, et une fermeture Wikidata, OSM
+ou OHM (ou une « démolition » Wikidata) de la même année aussi sur une gare fermée ou disparue dont une source plus sûre
+date la fin du fret une année postérieure (Livarot : voyageurs 1938, marchandises 1990). Après la fin du fret et celle
+des voyageurs, la gare est fermée, et une gare disparue sort de la carte. Les 80 gares de la section 9 de
+`database/data/gares_corrections.php` étaient corrigées à la main pour ce cas ; la règle en couvre 66.
 
 ### `vff:import-station-wikidata-dates`
 

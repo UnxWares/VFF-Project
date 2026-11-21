@@ -53,6 +53,86 @@ class StationRelectureRulesTest extends TestCase
         $this->assertSame('closure', StationTimeline::massClosureAsPassenger($inferred, true)[0]['type']);
     }
 
+    // ── Gare fermée ou disparue : fermeture en masse = fin des voyageurs si le fret a continué ──
+
+    public function test_mass_closure_of_a_closed_station_is_the_passenger_end_when_freight_ended_later(): void
+    {
+        // Livarot : infobox « 5 mai 1938 (voyageurs), 30 septembre 1990 (marchandises) », Wikidata « fermée en 1938 ».
+        $events = [$this->ev('opening', '1873-01-01', 'wikidata'), $this->ev('closure', '1938-01-01', 'wikidata'),
+            $this->ev('closure_passenger', '1938-05-05', 'wikipedia', 'day'), $this->ev('closure_freight', '1990-09-30', 'wikipedia', 'day')];
+        $out = StationTimeline::massClosureAsPassenger($events, false);
+        $this->assertSame(['opening', 'closure_passenger', 'closure_passenger', 'closure_freight'], array_column($out, 'type'));
+        $timeline = StationTimeline::forTimeline(StationTimeline::dedupeClosures($out));
+        foreach ([true, false] as $existsToday) {
+            $this->assertSame(StationTimeline::ACTIVE, StationTimeline::statusFromEvents($timeline, 1930, $existsToday));
+            $this->assertSame(StationTimeline::FREIGHT, StationTimeline::statusFromEvents($timeline, 1940, $existsToday));
+            $this->assertSame(StationTimeline::FREIGHT, StationTimeline::statusFromEvents($timeline, 1980, $existsToday));
+        }
+        // Après la fin du fret : fermée si la gare est encore debout, absente de la carte si elle a disparu.
+        $this->assertSame(StationTimeline::CLOSED, StationTimeline::statusFromEvents($timeline, 2000, true));
+        $this->assertNull(StationTimeline::statusFromEvents($timeline, 2000, false));
+        // Sans la règle, la fermeture Wikidata fermait tout en 1938.
+        $this->assertNull(StationTimeline::statusFromEvents(StationTimeline::forTimeline(StationTimeline::dedupeClosures($events)), 1940, false));
+    }
+
+    public function test_freight_later_rule_covers_ohm_ends_wikidata_demolitions_and_a_better_total_closure(): void
+    {
+        // Pouilly-sous-Charlieu : fin de l'objet OHM le 20/05/1940, fret jusqu'en mai 2005.
+        $ohm = [$this->ev('closure', '1940-05-20', 'ohm', 'day'), $this->ev('closure_passenger', '1940-05-20', 'wikipedia', 'day'),
+            $this->ev('closure_freight', '2005-05-01', 'wikipedia', 'month')];
+        $this->assertSame('closure_passenger', StationTimeline::massClosureAsPassenger($ohm, false)[0]['type']);
+        // Le Lion-d'Or : « démolition » Wikidata (P576) à la date de la fin des voyageurs.
+        $p576 = [$this->ev('demolition', '1938-03-01', 'wikidata', 'day'), $this->ev('closure_passenger', '1938-03-01', 'wikipedia', 'day'),
+            $this->ev('closure_freight', '1969-11-03', 'wikipedia', 'day')];
+        $this->assertSame('closure_passenger', StationTimeline::massClosureAsPassenger($p576, false)[0]['type']);
+        // Fermeture totale plus tardive d'une source plus sûre (correction) : vaut aussi fin du fret.
+        $total = [$this->ev('closure', '1970-01-01', 'wikidata'), $this->ev('closure_passenger', '1970-01-01', 'wikipedia'),
+            $this->ev('closure', '1988-01-24', StationTimeline::CORRECTION, 'day')];
+        $this->assertSame('closure_passenger', StationTimeline::massClosureAsPassenger($total, false)[0]['type']);
+    }
+
+    public function test_freight_later_rule_needs_a_better_passenger_end_of_the_same_year_and_a_later_better_freight_end(): void
+    {
+        $retyped = fn (array $events) => StationTimeline::massClosureAsPassenger($events, false)[0]['type'];
+        // Plombières : la fermeture Wikidata (01/10/1978) est la fin du fret elle-même, la même année : gardée.
+        $this->assertSame('closure', $retyped([$this->ev('closure', '1978-10-01', 'wikidata', 'day'),
+            $this->ev('closure_passenger', '1977-01-01', 'wikipedia'), $this->ev('closure_freight', '1978-10-01', 'wikipedia', 'day')]));
+        // Fin du fret seulement : pas de fin des voyageurs de la même année, rien à retyper.
+        $this->assertSame('closure', $retyped([$this->ev('closure', '1938-01-01', 'wikidata'), $this->ev('closure_freight', '1990-01-01', 'wikipedia')]));
+        // Fin des voyageurs trop éloignée (deux faits distincts).
+        $this->assertSame('closure', $retyped([$this->ev('closure', '1945-01-01', 'wikidata'),
+            $this->ev('closure_passenger', '1938-01-01', 'wikipedia'), $this->ev('closure_freight', '1990-01-01', 'wikipedia')]));
+        // Fin du fret d'une source qui n'est pas mieux classée (lignes-oubliées, même rang qu'OHM ; Wikidata).
+        $this->assertSame('closure', $retyped([$this->ev('closure', '1940-01-01', 'ohm'),
+            $this->ev('closure_passenger', '1940-01-01', 'wikipedia'), $this->ev('closure_freight', '1990-01-01', 'lignes-oubliees')]));
+        $this->assertSame('closure', $retyped([$this->ev('closure', '1940-01-01', 'wikidata'),
+            $this->ev('closure_passenger', '1940-01-01', 'wikipedia'), $this->ev('closure_freight', '1990-01-01', 'wikidata')]));
+        // Fermeture totale d'une source plus sûre la même année : la gare a bien fermé.
+        $this->assertSame('closure', $retyped([$this->ev('closure', '1940-01-01', 'wikidata'), $this->ev('closure_passenger', '1940-01-01', 'wikipedia'),
+            $this->ev('closure', '1940-06-01', 'wikipedia', 'month'), $this->ev('closure_freight', '1990-01-01', 'wikipedia')]));
+        // Fin du fret déduite d'une ligne : ne compte pas.
+        $this->assertSame('closure', $retyped([$this->ev('closure', '1940-01-01', 'wikidata'), $this->ev('closure_passenger', '1940-01-01', 'wikipedia'),
+            $this->ev('closure_freight', '1990-01-01', 'inferred:line_event', 'year', true)]));
+        $line = $this->ev('closure_freight', '1990-01-01', 'wikipedia') + ['line' => true];
+        $this->assertSame('closure', $retyped([$this->ev('closure', '1940-01-01', 'wikidata'), $this->ev('closure_passenger', '1940-01-01', 'wikipedia'), $line]));
+        // Démolition OHM ou OSM : jamais retypée (seule la P576 Wikidata est une date de masse sans portée).
+        $this->assertSame('demolition', $retyped([$this->ev('demolition', '1940-01-01', 'osm'),
+            $this->ev('closure_passenger', '1940-01-01', 'wikipedia'), $this->ev('closure_freight', '1990-01-01', 'wikipedia')]));
+    }
+
+    public function test_freight_end_before_the_passenger_end_closes_the_station_at_the_passenger_end(): void
+    {
+        // Aigues : fret fermé le 02/11/2009, voyageurs en décembre 2011.
+        $events = [$this->ev('opening', '1900-01-01', 'wikidata'), $this->ev('closure_freight', '2009-11-02', 'wikipedia', 'day'),
+            $this->ev('closure_passenger', '2011-12-01', 'wikipedia', 'month')];
+        $this->assertSame(StationTimeline::ACTIVE, StationTimeline::statusFromEvents($events, 2010, false));
+        $this->assertNull(StationTimeline::statusFromEvents($events, 2020, false));
+        $this->assertSame(StationTimeline::CLOSED, StationTimeline::statusFromEvents($events, 2020, true));
+        // Gare rouverte ensuite : présente à la réouverture.
+        $reopened = [...$events, $this->ev('reopening', '2024-01-01', 'wikidata')];
+        $this->assertSame(StationTimeline::CLOSED, StationTimeline::statusFromEvents($reopened, 2020, false));
+    }
+
     // ── Fermeture contredite par la desserte actuelle ───────────────────────────
 
     public function test_mass_closure_contradicted_by_the_current_passenger_list_is_dropped(): void

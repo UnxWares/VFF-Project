@@ -81,11 +81,15 @@ class ImportStationPassengerEndsTest extends TestCase
 
         $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true])->assertSuccessful();
 
-        $this->assertSame(['closure_passenger 1969-09-27 day wikipedia gare:Gare de Quittebeuf#infobox-voyageurs'], $this->events($day));
-        $this->assertSame(['closure_passenger 1939-01-01 year wikipedia gare:Gare de Blain#infobox-voyageurs'], $this->events($year));
-        $this->assertSame(["closure_passenger 1970-01-01 year wikipedia gare:Gare d'Angoville#infobox-voyageurs"], $this->events($before));
+        $this->assertSame(['closure_passenger 1969-09-27 day wikipedia gare:Gare de Quittebeuf#infobox-voyageurs',
+            'closure_freight 1990-11-30 day wikipedia gare:Gare de Quittebeuf#infobox-fret'], $this->events($day));
+        $this->assertSame(['closure_passenger 1939-01-01 year wikipedia gare:Gare de Blain#infobox-voyageurs',
+            'closure_freight 1952-01-01 year wikipedia gare:Gare de Blain#infobox-fret'], $this->events($year));
+        $this->assertSame(["closure_passenger 1970-01-01 year wikipedia gare:Gare d'Angoville#infobox-voyageurs",
+            "closure_freight 1988-01-24 day wikipedia gare:Gare d'Angoville#infobox-fret"], $this->events($before));
         $this->assertSame(['closure_passenger 1970-01-01 decade wikipedia gare:Gare de Réhon#infobox-voyageurs'], $this->events($decade));
-        $this->assertSame(["closure_passenger 2011-12-01 month wikipedia gare:Gare d'Aigues#infobox-voyageurs"], $this->events($month));
+        $this->assertSame(["closure_freight 2009-11-02 day wikipedia gare:Gare d'Aigues#infobox-fret",
+            "closure_passenger 2011-12-01 month wikipedia gare:Gare d'Aigues#infobox-voyageurs"], $this->events($month));
         $this->assertSame(["closure_passenger 1939-05-15 day wikipedia gare:Gare d'Anderny#infobox-voyageurs"], $this->events($line));
 
         $row = DB::table('station_events')->where('station_id', $day)->first();
@@ -98,8 +102,6 @@ class ImportStationPassengerEndsTest extends TestCase
     {
         $absent = $this->closedStation('sans-date', 'Gare sans date');
         $this->cachePage('Gare sans date', ' | mise en service = 1872');
-        $freight = $this->closedStation('fret', 'Gare du fret');
-        $this->cachePage('Gare du fret', ' | fermeture = 2007 (marchandises)');
         $plain = $this->closedStation('tout', 'Gare tout trafic');
         $this->cachePage('Gare tout trafic', ' | fermeture = {{date|6 mars 1972}}');
         $hedged = $this->closedStation('incertaine', 'Gare incertaine');
@@ -113,9 +115,64 @@ class ImportStationPassengerEndsTest extends TestCase
 
         $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true])->assertSuccessful();
 
-        foreach ([$absent, $freight, $plain, $hedged, $notStation, $twoDates] as $sid) {
+        foreach ([$absent, $plain, $hedged, $notStation, $twoDates] as $sid) {
             $this->assertSame([], $this->events($sid));
         }
+    }
+
+    /**
+     * Fin du fret du même champ : après, avant ou le même jour que les voyageurs, seule, à divers formats ;
+     * deux fins du fret différentes ou une fin du fret avant l'ouverture ne sont pas écrites.
+     */
+    public function test_freight_end_of_the_same_infobox_field_is_written_as_a_sourced_freight_end(): void
+    {
+        $after = $this->closedStation('livarot', 'Gare de Livarot', 'declassified');
+        $this->cachePage('Gare de Livarot', ' | fermeture = 5 mai 1938 (voyageurs)<br />30 septembre 1990 (marchandises)', revid: 7001);
+        $sameDay = $this->closedStation('airvault', 'Gare d\'Airvault-Gare');
+        $this->cachePage('Gare d\'Airvault-Gare', ' | fermeture = décembre 2015 (voyageurs)<br />décembre 2015 (fret)');
+        $only = $this->closedStation('fontenay', 'Gare de Fontenay-le-Comte', 'gone');
+        $this->cachePage('Gare de Fontenay-le-Comte', ' | fermeture = 2007 (marchandises)');
+        $plural = $this->closedStation('aubignas', 'Gare d\'Aubignas - Alba', 'gone');
+        $this->cachePage('Gare d\'Aubignas - Alba', ' | fermeture = 9 mars 1969 aux voyageurs 1 décembre 1971 aux frets');
+        $colon = $this->closedStation('cornimont', 'Gare de Cornimont');
+        $this->cachePage('Gare de Cornimont', ' | fermeture = 28 mai 1989 voyageurs 27 septembre 1992 marchandises');
+        $decade = $this->closedStation('clermont', 'Gare de Clermont-l\'Hérault', 'declassified');
+        $this->cachePage('Gare de Clermont-l\'Hérault', ' | fermeture = 15 mai 1939 (voyageurs) Années 1990 (marchandises)');
+        $two = $this->closedStation('deux-frets', 'Gare aux deux frets');
+        $this->cachePage('Gare aux deux frets', ' | fermeture = 1950 (voyageurs)<br />1960 (marchandises)<br />1965 (marchandises)');
+        $early = $this->closedStation('precoce', 'Gare précoce', 'declassified');
+        DB::table('station_events')->insert(['station_id' => $early, 'type' => 'opening', 'event_date' => '1900-01-01', 'date_precision' => 'year',
+            'source' => 'wikidata', 'is_inferred' => false, 'created_at' => now(), 'updated_at' => now()]);
+        $this->cachePage('Gare précoce', ' | fermeture = 1880 (marchandises)');
+
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true])->assertSuccessful();
+
+        $this->assertSame(['closure_passenger 1938-05-05 day wikipedia gare:Gare de Livarot#infobox-voyageurs',
+            'closure_freight 1990-09-30 day wikipedia gare:Gare de Livarot#infobox-fret'], $this->events($after));
+        $row = DB::table('station_events')->where('station_id', $after)->where('type', 'closure_freight')->first();
+        $this->assertFalse((bool) $row->is_inferred);
+        $this->assertSame('https://fr.wikipedia.org/w/index.php?title=Gare_de_Livarot&oldid=7001', $row->source_url);
+        $this->assertStringContainsString('30 septembre 1990 (marchandises)', $row->note);
+        $this->assertSame(["closure_passenger 2015-12-01 month wikipedia gare:Gare d'Airvault-Gare#infobox-voyageurs",
+            "closure_freight 2015-12-01 month wikipedia gare:Gare d'Airvault-Gare#infobox-fret"], $this->events($sameDay));
+        $this->assertSame(['closure_freight 2007-01-01 year wikipedia gare:Gare de Fontenay-le-Comte#infobox-fret'], $this->events($only));
+        $this->assertSame(["closure_passenger 1969-03-09 day wikipedia gare:Gare d'Aubignas - Alba#infobox-voyageurs",
+            "closure_freight 1971-12-01 day wikipedia gare:Gare d'Aubignas - Alba#infobox-fret"], $this->events($plural));
+        $this->assertSame(['closure_passenger 1989-05-28 day wikipedia gare:Gare de Cornimont#infobox-voyageurs',
+            'closure_freight 1992-09-27 day wikipedia gare:Gare de Cornimont#infobox-fret'], $this->events($colon));
+        $this->assertSame(["closure_passenger 1939-05-15 day wikipedia gare:Gare de Clermont-l'Hérault#infobox-voyageurs",
+            "closure_freight 1990-01-01 decade wikipedia gare:Gare de Clermont-l'Hérault#infobox-fret"], $this->events($decade));
+        // Deux fins du fret : relecture à la main, la fin des voyageurs reste écrite.
+        $this->assertSame(['closure_passenger 1950-01-01 year wikipedia gare:Gare aux deux frets#infobox-voyageurs'], $this->events($two));
+        $this->assertSame(['opening 1900-01-01 year wikidata '], $this->events($early));
+
+        // Rejeu : la fin du fret disparue de l'article est retirée, la ligne d'une autre commande reste.
+        DB::table('station_events')->insert(['station_id' => $after, 'type' => 'closure_freight', 'event_date' => '1991-01-01', 'date_precision' => 'year',
+            'source' => 'wikipedia', 'source_ref' => 'gare:Gare de Livarot#texte', 'is_inferred' => false, 'created_at' => now(), 'updated_at' => now()]);
+        $this->cachePage('Gare de Livarot', ' | fermeture = 5 mai 1938 (voyageurs)', revid: 7002);
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true])->assertSuccessful();
+        $this->assertSame(['closure_passenger 1938-05-05 day wikipedia gare:Gare de Livarot#infobox-voyageurs',
+            'closure_freight 1991-01-01 year wikipedia gare:Gare de Livarot#texte'], $this->events($after));
     }
 
     public function test_link_decides_never_the_name_and_open_stations_are_left_alone(): void
@@ -143,7 +200,8 @@ class ImportStationPassengerEndsTest extends TestCase
 
         $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true])->assertSuccessful();
 
-        $this->assertSame(['closure_passenger 1939-05-15 day wikipedia gare:Gare de Bry-sur-Marne (SNCF)#infobox-voyageurs'], $this->events($old));
+        $this->assertSame(['closure_passenger 1939-05-15 day wikipedia gare:Gare de Bry-sur-Marne (SNCF)#infobox-voyageurs',
+            'closure_freight 2009-10-13 day wikipedia gare:Gare de Bry-sur-Marne (SNCF)#infobox-fret'], $this->events($old));
         $this->assertSame(1, DB::table('station_events')->where('source', 'wikipedia')->where('event_date', '1939-05-15')->count());
         $this->assertSame(['closure_passenger 1946-01-01 year wikipedia gare:Gare de Lencloître#infobox-voyageurs'], $this->events($main));
         $this->assertSame([], $this->events($other));
@@ -210,5 +268,52 @@ class ImportStationPassengerEndsTest extends TestCase
         $this->assertSame('', $byName['Quintin']['passenger_eras_after']);
         $this->assertSame('2000', $byName['Quintin']['uncertain_eras_before']);
         $this->assertSame('conflit : autre fin des voyageurs', $byName['Chatillon']['verdict']);
+    }
+
+    public function test_csv_cells_that_look_like_formulas_are_neutralised(): void
+    {
+        $this->closedStation('=piege', 'Gare piégée');
+        $this->cachePage('Gare piégée', ' | fermeture = 2006 (voyageurs)');
+        $csv = storage_path('app/data/gares-infobox/bilan-formule.csv');
+
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true, '--dry-run' => true, '--csv' => $csv])->assertSuccessful();
+
+        $rows = array_map(fn ($l) => str_getcsv($l, escape: ''), file($csv, FILE_IGNORE_NEW_LINES));
+        $head = array_shift($rows);
+        $names = array_column(array_map(fn ($r) => array_combine($head, $r), $rows), 'name');
+        $this->assertSame(["'=piege"], $names);
+        foreach ($rows as $row) {
+            foreach ($row as $cell) {
+                $this->assertDoesNotMatchRegularExpression('/^[=+\-@\t\r]/', $cell);
+            }
+        }
+    }
+
+    public function test_csv_tells_when_a_later_freight_end_makes_the_mass_closure_a_passenger_end(): void
+    {
+        $sid = $this->closedStation('lion-d-or', 'Gare du Lion-d\'Or', 'gone');
+        $this->cachePage('Gare du Lion-d\'Or', ' | fermeture = 1 mars 1938 (voyageurs) 3 novembre 1969 (marchandises)');
+        DB::table('station_events')->insert(['station_id' => $sid, 'type' => 'demolition', 'event_date' => '1938-03-01', 'date_precision' => 'day',
+            'source' => 'wikidata', 'source_ref' => 'Q3#P576', 'is_inferred' => false, 'created_at' => now(), 'updated_at' => now()]);
+        $kept = $this->closedStation('marcenais', 'Gare de Marcenais', 'declassified');
+        $this->cachePage('Gare de Marcenais', ' | fermeture = 1938 (voyageurs)');
+        DB::table('station_events')->insert(['station_id' => $kept, 'type' => 'closure', 'event_date' => '1938-01-01', 'date_precision' => 'year',
+            'source' => 'wikidata', 'source_ref' => 'Q4#P3999', 'is_inferred' => false, 'created_at' => now(), 'updated_at' => now()]);
+        $csv = storage_path('app/data/gares-infobox/bilan-fret.csv');
+
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true, '--dry-run' => true, '--csv' => $csv])->assertSuccessful();
+
+        $rows = array_map(fn ($l) => str_getcsv($l, escape: ''), file($csv, FILE_IGNORE_NEW_LINES));
+        $head = array_shift($rows);
+        $verdicts = [];
+        foreach ($rows as $r) {
+            $r = array_combine($head, $r);
+            $verdicts[$r['name'].' '.$r['type']] = $r['verdict'];
+        }
+        $this->assertEquals([
+            'Lion-d-or closure_passenger' => 'fermeture de la même année, retypée en fin des voyageurs (fret plus tardif)',
+            'Lion-d-or closure_freight' => 'nouvelle fin du fret',
+            'Marcenais closure_passenger' => 'fermeture totale de la même année, gardée',
+        ], $verdicts);
     }
 }

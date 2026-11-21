@@ -538,7 +538,8 @@ class BuildStationEras extends Command
     private function canonicalEvents(array $evs, array $hints = []): array
     {
         // Fermetures des sources en masse contredites par la desserte actuelle, puis « fermeture »
-        // Wikidata d'une gare fret seul = fin des voyageurs (StationTimeline, règles du 2026-10-20).
+        // Wikidata d'une gare fret seul, ou d'une gare dont le fret a continué plus tard, = fin des voyageurs
+        // (StationTimeline, règles du 2026-10-20 et du 2026-11-21).
         $evs = StationTimeline::dropContradictedClosures($evs, $hints['served_seen'] ?? null);
         $evs = StationTimeline::massClosureAsPassenger($evs, (bool) ($hints['freight_today'] ?? false));
         $explicit = array_values(array_filter($evs, fn ($e) => ! $e['inferred']));
@@ -917,7 +918,8 @@ class BuildStationEras extends Command
         $stations = DB::table('stations')->get(['id', 'closed_at', 'closed_precision', DB::raw("provenance->>'kind' AS kind"),
             DB::raw("provenance->>'closed_at' AS src"), DB::raw("provenance->>'closed_after' AS after"), 'source_status', 'status']);
         // Mêmes règles que la chronologie (canonicalEvents) : fermeture en masse contredite par la desserte
-        // actuelle, « fermeture » Wikidata d'une gare fret seul = fin des voyageurs (Layrac 1970).
+        // actuelle, « fermeture » Wikidata d'une gare fret seul = fin des voyageurs (Layrac 1970), de même
+        // quand une source plus sûre date le fret plus tard (Livarot 1938 / 1990).
         $evidence = $this->currentEvidence();
         $manual = fn ($st) => $st->closed_at !== null && ($st->src === null || in_array($st->src, ['manual', 'contribution'], true));
         foreach ($stations as $st) {
