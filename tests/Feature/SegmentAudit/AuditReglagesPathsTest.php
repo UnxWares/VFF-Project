@@ -403,15 +403,51 @@ class AuditReglagesPathsTest extends TestCase
     }
 
     #[DataProvider('endsThatBreakContinuity')]
-    public function test_t4_any_dated_end_breaks_continuity(string $type, string $resolution): void
+    public function test_t4_a_dated_end_before_the_era_breaks_continuity(string $type, string $resolution): void
     {
         $this->auditEvent($this->audited, 'opening', '1900-01-01', 'wikidata');
-        // Après l'ère : la fin ne parle pas de 2000, mais la ligne n'est plus « jamais fermée ».
-        $this->auditEvent($this->audited, $type, '2015-01-01', 'wikidata', $resolution);
+        $this->auditEvent($this->audited, $type, '1990-01-01', 'wikidata', $resolution);
         $segment = $this->auditSegment($this->audited, $this->past, self::TRACK, 'in_service', 'mixed', 'osm');
         $this->recordedAudit($this->current, $this->audited, self::TRACK);
 
         $this->assertNotContains('continuous_service', $this->audit($segment, $this->past)['evidence']['classification']['reasons']);
+    }
+
+    #[DataProvider('endsThatBreakContinuity')]
+    public function test_r2_an_end_after_the_era_keeps_continuity(string $type, string $resolution): void
+    {
+        $this->auditEvent($this->audited, 'opening', '1900-01-01', 'wikidata');
+        // Après l'ère : la fin ne parle pas de 2000 (règle R2, règles `.8`).
+        $this->auditEvent($this->audited, $type, '2015-01-01', 'wikidata', $resolution);
+        $segment = $this->auditSegment($this->audited, $this->past, self::TRACK, 'in_service', 'mixed', 'osm');
+        $this->recordedAudit($this->current, $this->audited, self::TRACK);
+
+        $this->assertSame(['good', ['continuous_service']], self::grade($this->audit($segment, $this->past), 'classification'));
+    }
+
+    public function test_r2_an_end_located_elsewhere_keeps_continuity_but_not_on_its_section(): void
+    {
+        $this->auditEvent($this->audited, 'opening', '1900-01-01', 'wikidata');
+        // Fermeture de 1970 localisée à 1 km au nord du tronçon.
+        $this->auditEvent($this->audited, 'closure', '1970-01-01', 'wikipedia', 'pk', 'LINESTRING(2.0 48.01, 2.01 48.01)');
+        $segment = $this->auditSegment($this->audited, $this->past, self::TRACK, 'in_service', 'mixed', 'osm');
+        $this->recordedAudit($this->current, $this->audited, self::TRACK);
+        $this->assertSame(['good', ['continuous_service']], self::grade($this->audit($segment, $this->past), 'classification'));
+
+        // La même fin localisée sur le tronçon coupe la continuité.
+        $this->auditEvent($this->audited, 'closure', '1970-01-01', 'wikipedia', 'pk', self::TRACK);
+        $this->assertNotContains('continuous_service', $this->audit($segment, $this->past)['evidence']['classification']['reasons']);
+    }
+
+    public function test_r2_an_end_followed_by_a_reopening_before_the_era_keeps_continuity(): void
+    {
+        $this->auditEvent($this->audited, 'opening', '1900-01-01', 'wikidata');
+        $this->auditEvent($this->audited, 'closure', '1970-01-01', 'wikidata');
+        $this->auditEvent($this->audited, 'reopening', '1985-01-01', 'wikidata');
+        $segment = $this->auditSegment($this->audited, $this->past, self::TRACK, 'in_service', 'mixed', 'osm');
+        $this->recordedAudit($this->current, $this->audited, self::TRACK);
+
+        $this->assertSame(['good', ['continuous_service']], self::grade($this->audit($segment, $this->past), 'classification'));
     }
 
     public function test_t4_a_reopening_does_not_break_continuity(): void

@@ -189,7 +189,7 @@ return [
         'sources_disagree' => 'Les sources ne sont pas d’accord entre elles.',
         'weak_contradiction' => 'Un avis faible ou proche de la date dit autre chose.',
         'weak_sources_only' => 'Seules des sources faibles sont d’accord.',
-        'continuous_service' => 'Seules des sources faibles la datent, mais la ligne n’a jamais fermé et ce tronçon est sûr aujourd’hui.',
+        'continuous_service' => 'Seules des sources faibles la datent, mais aucune fermeture datée ne le touche à cette époque et ce tronçon est sûr aujourd’hui.',
         'observation_outvoted' => 'Une seule observation actuelle dit autre chose ; deux autres sont d’accord.',
         'no_source' => 'Aucune source ne parle de ce tronçon à cette date.',
         'rule_passenger_only_off_lgv' => '« Voyageurs seuls » hors LGV : une ligne ouverte aux voyageurs est mixte.',

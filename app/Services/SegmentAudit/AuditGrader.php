@@ -24,8 +24,10 @@ use App\Enums\AuditGrade;
  *   vendue », devient faible quand deux observations actuelles fortes sont d'accord (règle
  *   observation_outvoted ; OSM « abandoned » ou « razed » reste une vraie contradiction) ;
  *   ère passée : un tronçon en service que seules des sources faibles confirment reste « sûr » quand
- *   la ligne n'a aucune fin datée (fermeture, déclassement, dépose) et que le même tronçon est en
- *   service et sûr à l'ère courante (règle continuous_service) ;
+ *   aucune fin datée (fermeture, déclassement, dépose) ne le touche à cette ère et que le même tronçon
+ *   est en service et sûr à l'ère courante (règle continuous_service ; règle R2, règles `.8` : une fin
+ *   datée après l'ère, ou localisée ailleurs sur la ligne, ne compte plus, ni une fin suivie d'une
+ *   réouverture avant l'ère, SegmentAuditor::blocksContinuity) ;
  *   une exploitation associative (heritage_start) n'est pas une première ouverture : une source qui ne
  *   date que le train touristique et des fins ne dit rien avant son début (règle R1) ; une fin des
  *   voyageurs seule n'est pas une fermeture : la source est d'accord avec un tronçon en fret (règle R3,
@@ -87,7 +89,7 @@ use App\Enums\AuditGrade;
 final class AuditGrader
 {
     /** Version des règles, recopiée dans chaque ligne d'audit (à changer avec les seuils). */
-    public const RULE_VERSION = '2026-11-21.7';
+    public const RULE_VERSION = '2026-11-21.8';
 
     /** Ancienneté (ans) d'une fermeture au-delà de laquelle une voie « en place » non observée est suspecte. */
     public const OLD_CLOSURE_YEARS = 50;
@@ -239,7 +241,7 @@ final class AuditGrader
      *
      * @param  list<array{source: string, agrees: bool, weak?: bool, near_date?: bool, priority?: int, outvoted?: bool}>  $verdicts
      * @param  list<string>  $violatedRules
-     * @param  bool  $continuity  ère passée : ligne sans aucune fin datée, tronçon en service et sûr à l'ère courante
+     * @param  bool  $continuity  ère passée : aucune fin datée ne touche le tronçon à cette ère, tronçon en service et sûr à l'ère courante
      * @return array{grade: AuditGrade, reasons: list<string>}
      */
     public static function classification(array $verdicts, array $violatedRules = [], bool $continuity = false): array
@@ -269,8 +271,8 @@ final class AuditGrader
             $grade = AuditGrade::Fair;
             $reasons[] = 'sources_disagree';
         } elseif ($strongAgree === [] && $softContra === [] && $continuity) {
-            // Ère passée : seules des sources faibles la datent, mais la ligne n'a jamais fermé et le
-            // même tronçon est sûr aujourd'hui.
+            // Ère passée : seules des sources faibles la datent, mais aucune fin datée ne le touche à cette
+            // ère et le même tronçon est sûr aujourd'hui.
             $grade = AuditGrade::Good;
             $reasons[] = 'continuous_service';
         } elseif ($strongAgree === []) {

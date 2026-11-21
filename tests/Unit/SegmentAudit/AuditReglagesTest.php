@@ -183,11 +183,45 @@ class AuditReglagesTest extends TestCase
         $this->assertSame(AuditGrade::Poor, AuditGrader::classification($weak, ['passenger_only_off_lgv'], true)['grade']);
     }
 
-    public function test_t4_any_dated_end_breaks_continuity(): void
+    /** Événement au format de SegmentAuditor::events. */
+    private static function ev(string $type, string $date, bool $whole = true, bool $unlocated = false): array
     {
-        $this->assertFalse(SegmentAuditor::hasEnd([['type' => 'opening'], ['type' => 'electrification']]));
+        return ['type' => $type, 'date' => $date, 'whole' => $whole, 'unlocated' => $unlocated];
+    }
+
+    public function test_r2_only_an_end_dated_before_the_era_breaks_continuity(): void
+    {
+        $this->assertFalse(SegmentAuditor::blocksContinuity([1 => self::ev('opening', '1880-01-01'), 2 => self::ev('electrification', '1960-01-01')], [], '2000-12-31'));
         foreach (['closure', 'closure_passenger', 'closure_freight', 'declassification', 'dismantling'] as $type) {
-            $this->assertTrue(SegmentAuditor::hasEnd([['type' => 'opening'], ['type' => $type]]), $type);
+            $this->assertTrue(SegmentAuditor::blocksContinuity([1 => self::ev('opening', '1880-01-01'), 2 => self::ev($type, '1990-01-01')], [], '2000-12-31'), $type);
+            // Après l'ère, la fin ne dit rien de cette ère.
+            $this->assertFalse(SegmentAuditor::blocksContinuity([1 => self::ev('opening', '1880-01-01'), 2 => self::ev($type, '2015-01-01')], [], '2000-12-31'), $type);
         }
+        // Le dernier jour de l'ère compte, le lendemain non.
+        $this->assertTrue(SegmentAuditor::blocksContinuity([2 => self::ev('closure', '2000-12-31')], [], '2000-12-31'));
+        $this->assertFalse(SegmentAuditor::blocksContinuity([2 => self::ev('closure', '2001-01-01')], [], '2000-12-31'));
+    }
+
+    public function test_r2_a_localized_end_counts_only_on_its_own_section(): void
+    {
+        $events = [7 => self::ev('closure', '1970-01-01', whole: false)];
+        $this->assertFalse(SegmentAuditor::blocksContinuity($events, [], '2000-12-31'));
+        $this->assertFalse(SegmentAuditor::blocksContinuity($events, [8], '2000-12-31'));
+        $this->assertTrue(SegmentAuditor::blocksContinuity($events, [7], '2000-12-31'));
+        // Non localisée : on ne sait pas où, elle compte partout.
+        $this->assertTrue(SegmentAuditor::blocksContinuity([7 => self::ev('closure', '1970-01-01', whole: false, unlocated: true)], [], '2000-12-31'));
+    }
+
+    public function test_r2_a_reopening_before_the_era_lifts_the_end(): void
+    {
+        $end = [1 => self::ev('closure', '1970-01-01')];
+        $this->assertFalse(SegmentAuditor::blocksContinuity($end + [2 => self::ev('reopening', '1985-01-01')], [], '2000-12-31'));
+        $this->assertFalse(SegmentAuditor::blocksContinuity($end + [2 => self::ev('opening', '1985-01-01')], [], '2000-12-31'));
+        // Réouverture après l'ère, ou localisée ailleurs : la fin tient.
+        $this->assertTrue(SegmentAuditor::blocksContinuity($end + [2 => self::ev('reopening', '2010-01-01')], [], '2000-12-31'));
+        $this->assertTrue(SegmentAuditor::blocksContinuity($end + [2 => self::ev('reopening', '1985-01-01', whole: false)], [], '2000-12-31'));
+        $this->assertFalse(SegmentAuditor::blocksContinuity($end + [2 => self::ev('reopening', '1985-01-01', whole: false)], [2], '2000-12-31'));
+        // Une réouverture plus ancienne que la fin ne la lève pas.
+        $this->assertTrue(SegmentAuditor::blocksContinuity([2 => self::ev('reopening', '1960-01-01')] + $end, [], '2000-12-31'));
     }
 }
