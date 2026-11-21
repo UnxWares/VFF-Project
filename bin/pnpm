@@ -1,13 +1,25 @@
 #!/usr/bin/env bash
-# Lance pnpm (version figée par package.json/packageManager, via corepack) dans node:24,
+# Lance pnpm (version figée par package.json/packageManager) dans node:26 (LTS active),
 # pour les machines sans Node sur l'hôte. Réseau hôte : Vite sert sur localhost:5173.
 #   bin/pnpm install
 #   bin/pnpm dev
+#
+# Node 25 et suivants ne livrent plus corepack : pnpm est lancé par `npx`, à la version
+# exacte de `packageManager`, vérifiée par npm (somme d'intégrité du registre). Le cache
+# npm est gardé sur l'hôte (~/.cache/vff-npm) pour ne pas retélécharger pnpm à chaque appel.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENGINE="${CONTAINER_ENGINE:-$(command -v podman || command -v docker)}"
-IMAGE="${VFF_NODE_IMAGE:-docker.io/library/node:24-slim}"
+IMAGE="${VFF_NODE_IMAGE:-docker.io/library/node:26-slim}"
+NPM_CACHE="${VFF_NPM_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/vff-npm}"
+
+PNPM_SPEC="$(sed -n 's/^ *"packageManager": *"\(pnpm@[^"+]*\).*/\1/p' "$ROOT/package.json")"
+if [ -z "$PNPM_SPEC" ]; then
+    echo "bin/pnpm : champ packageManager (pnpm@<version>) introuvable dans package.json" >&2
+    exit 1
+fi
+mkdir -p "$NPM_CACHE"
 
 if [[ "$ENGINE" == *podman ]]; then
     USER_OPTS=(--userns=keep-id --security-opt label=disable)
@@ -18,5 +30,5 @@ TTY_OPTS=(-i)
 [ -t 0 ] && [ -t 1 ] && TTY_OPTS+=(-t)
 
 exec "$ENGINE" run --rm "${TTY_OPTS[@]}" "${USER_OPTS[@]}" --network host \
-    -v "$ROOT":/app -w /app -e HOME=/tmp -e COREPACK_HOME=/tmp/corepack \
-    -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 "$IMAGE" corepack pnpm "$@"
+    -v "$ROOT":/app -v "$NPM_CACHE":/tmp/.npm -w /app -e HOME=/tmp \
+    -e npm_config_update_notifier=false "$IMAGE" npx --yes "$PNPM_SPEC" "$@"

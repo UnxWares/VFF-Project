@@ -18,8 +18,5 @@ export default defineConfig({
     test: {
         environment: 'node',
         include: ['tests/js/**/*.test.js'],
-        // svelte-i18next importe « ./i18n » sans extension : Node seul ne le résout pas,
-        // Vite si (comme dans le navigateur).
-        server: { deps: { inline: ['svelte-i18next'] } },
     },
 });

@@ -7,26 +7,25 @@
 //
 // Erreur = bloquant (CI). Avertissement = signalé, à traiter au fil de l'eau.
 import js from '@eslint/js';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import svelte from 'eslint-plugin-svelte';
 import globals from 'globals';
 
-export default [
-    {
-        ignores: [
-            'public/**',
-            'vendor/**',
-            'storage/**',
-            'bootstrap/**',
-            'ml/**',
-            '.pnpm-store/**',
-            '.claude/**',
-            // Copie égarée d'un vendor/ Composer (ne fait pas partie du front).
-            'resources/images/vendor/**',
-        ],
-    },
+export default defineConfig([
+    globalIgnores([
+        'public/**',
+        'vendor/**',
+        'storage/**',
+        'bootstrap/**',
+        'ml/**',
+        '.pnpm-store/**',
+        '.claude/**',
+        // Copie égarée d'un vendor/ Composer (ne fait pas partie du front).
+        'resources/images/vendor/**',
+    ]),
 
     js.configs.recommended,
-    ...svelte.configs['flat/recommended'],
+    svelte.configs.recommended,
 
     {
         linterOptions: { reportUnusedDisableDirectives: 'warn' },
@@ -84,4 +83,4 @@ export default [
             'svelte/no-unused-props': 'warn',
         },
     },
-];
+]);
