@@ -119,7 +119,7 @@ class GeoExporterTest extends TestCase
         $freight = $this->station('Gare Delta', 'no_commercial');
         $tourist = $this->station('Gare Echo', 'tourist');
 
-        $props = collect(app(GeoExporter::class)->stationsAsGeoJson(2030)['features'])->keyBy('properties.name')->map->properties;
+        $props = collect(app(GeoExporter::class)->stationsAsGeoJson(2030)['features'])->keyBy('properties.name')->map(fn (array $f) => $f['properties']);
 
         $this->assertSame(['active', 'passenger'], [$props['Gare Alpha']['status'], $props['Gare Alpha']['service']]);
         $this->assertSame(['uncertain', 'active', 'uncertain'],

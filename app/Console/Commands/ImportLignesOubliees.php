@@ -920,7 +920,7 @@ class ImportLignesOubliees extends Command
      * dans la ligne du code corrigé (App\Services\LineMerger : événements,
      * tracés, références ; mémoire dans alt_names.merged).
      *
-     * @param  array<string, int>  $lineIds  code → line_id
+     * @param  array<int|string, int>  $lineIds  code → line_id
      */
     public function applyCodeCorrections(array $lineIds): void
     {

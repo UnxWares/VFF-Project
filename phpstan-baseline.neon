@@ -1,12 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Method App\\Console\\Commands\\ApplyEventCorrections\:\:matching\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Console/Commands/ApplyEventCorrections.php
-
-		-
 			message: '#^Comparison operation "\>" between int\<100, max\> and 0 is always true\.$#'
 			identifier: greater.alwaysTrue
 			count: 1
@@ -103,30 +97,6 @@ parameters:
 			path: app/Console/Commands/BuildLineReferences.php
 
 		-
-			message: '#^Illuminate\\Support\\Collection\<mixed, \(int\|string\)\> does not accept true\.$#'
-			identifier: offsetAssign.valueType
-			count: 1
-			path: app/Console/Commands/CanonicalizeStationSlugs.php
-
-		-
-			message: '#^Offset ''portions'' on array\{lines\: int, passenger\: int, freight\: int, mixed\: int, unknown\: int, raccordements\: int, lgv\: int, report\: array\<int, array\<string, mixed\>\>, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Console/Commands/ClassifyLines.php
-
-		-
-			message: '#^Offset ''report'' on array\{lines\: int, passenger\: int, freight\: int, mixed\: int, unknown\: int, raccordements\: int, lgv\: int, report\: array\<int, array\<string, mixed\>\>, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Console/Commands/ClassifyLines.php
-
-		-
-			message: '#^Unable to resolve the template type T in call to function array_values$#'
-			identifier: argument.templateType
-			count: 1
-			path: app/Console/Commands/ConsolidateStations.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 1
@@ -175,18 +145,6 @@ parameters:
 			path: app/Console/Commands/ImportBdtopoRail.php
 
 		-
-			message: '#^Method App\\Console\\Commands\\ImportCommonsMedia\:\:addWikidata\(\) never assigns null to &\$entry so it can be removed from the by\-ref type\.$#'
-			identifier: parameterByRef.unusedType
-			count: 1
-			path: app/Console/Commands/ImportCommonsMedia.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between non\-empty\-list\<string\|null\> and false will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: app/Console/Commands/ImportGtfsVoyageurs.php
-
-		-
 			message: '#^If condition is always true\.$#'
 			identifier: if.alwaysTrue
 			count: 1
@@ -195,12 +153,6 @@ parameters:
 		-
 			message: '#^Negated boolean expression is always false\.$#'
 			identifier: booleanNot.alwaysFalse
-			count: 1
-			path: app/Console/Commands/ImportHeritageLines.php
-
-		-
-			message: '#^Property App\\Console\\Commands\\ImportHeritageLines\:\:\$lineTitlesAvailable \(array\<string, true\>\) does not accept array\<\(int\|string\)\>\.$#'
-			identifier: assign.propertyType
 			count: 1
 			path: app/Console/Commands/ImportHeritageLines.php
 
@@ -269,24 +221,6 @@ parameters:
 			identifier: arrayValues.list
 			count: 1
 			path: app/Console/Commands/ImportOsmGreenways.php
-
-		-
-			message: '#^Offset ''elements'' on array\{elements\: array\<int, array\<string, mixed\>\>\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 2
-			path: app/Console/Commands/ImportOsmRegion.php
-
-		-
-			message: '#^Constant App\\Console\\Commands\\ImportSecondaryNetworkDates\:\:ON_LINE_M is unused\.$#'
-			identifier: classConstant.unused
-			count: 1
-			path: app/Console/Commands/ImportSecondaryNetworkDates.php
-
-		-
-			message: '#^Offset ''features'' on non\-empty\-array on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Console/Commands/ImportSncfOpenData.php
 
 		-
 			message: '#^Match expression does not handle remaining values\: string\|null$#'
@@ -367,102 +301,6 @@ parameters:
 			path: app/Console/Commands/OhmEvents.php
 
 		-
-			message: '#^Method App\\GraphQL\\Resolvers\\RouteResolver\:\:__invoke\(\) has parameter \$_ with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: app/GraphQL/Resolvers/RouteResolver.php
-
-		-
-			message: '#^Access to an undefined property App\\Models\\Media\:\:\$lat\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Api/LineMediaController.php
-
-		-
-			message: '#^Access to an undefined property App\\Models\\Media\:\:\$lng\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Api/LineMediaController.php
-
-		-
-			message: '#^Using nullsafe property access on non\-nullable type App\\Enums\\MediaType\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/Api/LineMediaController.php
-
-		-
-			message: '#^Call to function is_float\(\) with \(array\|null\) will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: app/Http/Controllers/Concerns/ReadsListFilters.php
-
-		-
-			message: '#^Call to function is_int\(\) with \(array\|null\) will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: app/Http/Controllers/Concerns/ReadsListFilters.php
-
-		-
-			message: '#^Access to an undefined property App\\Models\\Media\:\:\$count\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Http/Controllers/CreditsController.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Media\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 2
-			path: app/Http/Controllers/CreditsController.php
-
-		-
-			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Media\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: method.unresolvableReturnType
-			count: 2
-			path: app/Http/Controllers/CreditsController.php
-
-		-
-			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:all\(\) contains unresolvable type\.$#'
-			identifier: method.unresolvableReturnType
-			count: 2
-			path: app/Http/Controllers/CreditsController.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: app/Http/Controllers/LineController.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: app/Http/Controllers/LineController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>any_kvb" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/LineController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>km" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/LineController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\MapController\:\:mapProps\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
-			identifier: missingType.generics
-			count: 1
-			path: app/Http/Controllers/MapController.php
-
-		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 1
-			path: app/Http/Controllers/StationController.php
-
-		-
 			message: '#^Comparison operation "\>" between 3000\|9500\|17000\|19000\|20000\|24000\|28000\|30000\|32000\|33000\|34000\|36000\|38000\|40000\|40500\|41500\|42500 and 0 is always true\.$#'
 			identifier: greater.alwaysTrue
 			count: 1
@@ -517,24 +355,6 @@ parameters:
 			path: app/Services/EraTimeline.php
 
 		-
-			message: '#^Method App\\Services\\GeoExporter\:\:stationEraJoin\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: app/Services/GeoExporter.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>tile" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/GeoExporter.php
-
-		-
-			message: '#^Property App\\Services\\GeoJsonXDecoder\:\:\$index \(array\<string, int\>\) does not accept array\<int\|string, int\>\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: app/Services/GeoJsonXDecoder.php
-
-		-
 			message: '#^Anonymous function has an unused use \$headers\.$#'
 			identifier: closure.unusedUse
 			count: 1
@@ -569,12 +389,6 @@ parameters:
 			identifier: deadCode.unreachable
 			count: 1
 			path: app/Services/HeritageText.php
-
-		-
-			message: '#^Constant App\\Services\\LineClassifier\:\:ACTIVE is unused\.$#'
-			identifier: classConstant.unused
-			count: 1
-			path: app/Services/LineClassifier.php
 
 		-
 			message: '#^Offset ''year_to'' on array\{year\: int, precision\: string, date\: string\|null\}\|null on left side of \?\? does not exist\.$#'
@@ -635,12 +449,6 @@ parameters:
 			identifier: arrayValues.list
 			count: 1
 			path: app/Services/PathfindingService.php
-
-		-
-			message: '#^Unable to resolve the template type T in call to function array_values$#'
-			identifier: argument.templateType
-			count: 1
-			path: app/Services/PlaceNames.php
 
 		-
 			message: '#^Anonymous function has an unused use \$carry\.$#'
@@ -775,12 +583,6 @@ parameters:
 			path: app/Services/Traction/ElectrificationTimeline.php
 
 		-
-			message: '#^Offset ''source'' on array\{mm\: int\|null, class\: string\|null, source\: string\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Services/Traction/Gauge.php
-
-		-
 			message: '#^PHPDoc tag @var for constant App\\Services\\Traction\\TractionCuration\:\:GAUGE_CONVERSIONS with type array\<string, array\{year\: int, from_mm\: int, to_mm\: int, note\: string\}\> is incompatible with value array\{485000\: array\{year\: 1967, from_mm\: 1000, to_mm\: 1435, note\: ''Wikipédia, Réseau…''\}, 486000\: array\{year\: 1924, from_mm\: 1000, to_mm\: 1435, note\: ''Wikipédia, Ligne de…''\}\}\.$#'
 			identifier: classConstant.phpDocType
 			count: 1
@@ -847,28 +649,10 @@ parameters:
 			path: database/migrations/2026_05_12_100000_create_network_graph_tables.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: database/seeders/AdvocacySeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: database/seeders/HistoricalErasSeeder.php
-
-		-
 			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, int given\.$#'
 			identifier: argument.type
 			count: 1
 			path: database/seeders/LineMaterialsSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: database/seeders/LineSectionsSeeder.php
 
 		-
 			message: '#^Access to an undefined property GraphQL\\Type\\Definition\\NamedType&GraphQL\\Type\\Definition\\Type\:\:\$description\.$#'
@@ -881,90 +665,6 @@ parameters:
 			identifier: method.notFound
 			count: 1
 			path: tests/Feature/Api/ApiDocsTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: tests/Feature/Api/EraGeoContractTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: tests/Feature/Api/EraGeoContractTest.php
-
-		-
-			message: '#^Access to an undefined property App\\Models\\Line\:\:\$lat\.$#'
-			identifier: property.notFound
-			count: 1
-			path: tests/Feature/BuildEraSegmentsTest.php
-
-		-
-			message: '#^Offset decimal\-int\-string does not exist on array\<string, string\>\.$#'
-			identifier: offsetAccess.notFound
-			count: 2
-			path: tests/Feature/CheckConsistencyCommandTest.php
-
-		-
-			message: '#^Parameter \#3 \$statusByEra of method Tests\\Feature\\CheckConsistencyCommandTest\:\:station\(\) expects array\<string, string\>, array\<int, string\> given\.$#'
-			identifier: argument.type
-			count: 5
-			path: tests/Feature/CheckConsistencyCommandTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 3
-			path: tests/Feature/CheckConsistencyCommandTest.php
-
-		-
-			message: '#^Unable to resolve the template type TNewKey in call to method Illuminate\\Support\\Collection\<\(int\|string\),mixed\>\:\:keyBy\(\)$#'
-			identifier: argument.templateType
-			count: 1
-			path: tests/Feature/CheckConsistencyCommandTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 3
-			path: tests/Feature/CheckConsistencyCommandTest.php
-
-		-
-			message: '#^Access to an undefined property App\\Models\\Line\:\:\$lat\.$#'
-			identifier: property.notFound
-			count: 33
-			path: tests/Feature/CheckInvariantsCommandTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: tests/Feature/CheckInvariantsCommandTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: tests/Feature/CheckInvariantsCommandTest.php
-
-		-
-			message: '#^Offset int\<0, max\> does not exist on array\<string, array\<string, string\>\>\.$#'
-			identifier: offsetAccess.notFound
-			count: 3
-			path: tests/Feature/Commands/AuditCoverageCommandTest.php
-
-		-
-			message: '#^Cannot access property \$advocacy on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 3
-			path: tests/Feature/Commands/CurationCommandsTest.php
-
-		-
-			message: '#^Cannot access property \$is_threatened on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 3
-			path: tests/Feature/Commands/CurationCommandsTest.php
 
 		-
 			message: '#^Call to function in_array\(\) with arguments string, array\{\} and true will always evaluate to false\.$#'
@@ -991,106 +691,16 @@ parameters:
 			path: tests/Feature/Commands/DryRunCommandsTest.php
 
 		-
-			message: '#^Result of method Tests\\Feature\\Commands\\EnrichEraSegmentsCommandTest\:\:trace\(\) \(void\) is used\.$#'
-			identifier: method.void
-			count: 9
-			path: tests/Feature/Commands/EnrichEraSegmentsCommandTest.php
-
-		-
-			message: '#^Cannot access property \$description on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/EventCorrectionsCommandTest.php
-
-		-
-			message: '#^Cannot access property \$section_from on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/EventCorrectionsCommandTest.php
-
-		-
-			message: '#^Cannot access property \$section_length_m on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/EventCorrectionsCommandTest.php
-
-		-
-			message: '#^Cannot access property \$section_pk_end_m on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/EventCorrectionsCommandTest.php
-
-		-
-			message: '#^Cannot access property \$section_pk_start_m on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/EventCorrectionsCommandTest.php
-
-		-
-			message: '#^Cannot access property \$section_resolution on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/EventCorrectionsCommandTest.php
-
-		-
-			message: '#^Cannot access property \$section_resolution_note on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/EventCorrectionsCommandTest.php
-
-		-
-			message: '#^Cannot access property \$section_to on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/EventCorrectionsCommandTest.php
-
-		-
-			message: '#^Cannot access property \$source_quote on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/EventCorrectionsCommandTest.php
-
-		-
-			message: '#^Cannot access property \$type on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/EventCorrectionsCommandTest.php
-
-		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
 			identifier: method.alreadyNarrowedType
 			count: 1
 			path: tests/Feature/Commands/HeritageCatalogCommandTest.php
 
 		-
-			message: '#^Cannot access property \$section_pk_start_m on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/LignesOublieesCommandTest.php
-
-		-
-			message: '#^Cannot access property \$section_resolution on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/LignesOublieesCommandTest.php
-
-		-
 			message: '#^Negated boolean expression is always false\.$#'
 			identifier: booleanNot.alwaysFalse
 			count: 1
 			path: tests/Feature/Commands/LineSheetCommandsTest.php
-
-		-
-			message: '#^PHPDoc tag @return with type array\<string, mixed\> is incompatible with native type int\.$#'
-			identifier: return.phpDocType
-			count: 1
-			path: tests/Feature/Commands/MergeSplitLinesCommandTest.php
-
-		-
-			message: '#^Offset ''100000'' does not exist on array\<string, array\{string, string\|null\}\>\.$#'
-			identifier: offsetAccess.notFound
-			count: 2
-			path: tests/Feature/Commands/NamingAndTrafficCommandsTest.php
 
 		-
 			message: '#^Static method Illuminate\\Http\\Client\\Factory\:\:assertSentCount\(\) invoked with 2 parameters, 1 required\.$#'
@@ -1105,100 +715,10 @@ parameters:
 			path: tests/Feature/Commands/SourceImportCommandsTest.php
 
 		-
-			message: '#^Offset ''87474007'' does not exist on array\<string, array\<string, mixed\>\>\.$#'
-			identifier: offsetAccess.notFound
-			count: 7
-			path: tests/Feature/Commands/StationSourcesCommandTest.php
-
-		-
-			message: '#^Offset ''87999999'' does not exist on array\<string, array\<string, mixed\>\>\.$#'
-			identifier: offsetAccess.notFound
-			count: 2
-			path: tests/Feature/Commands/StationSourcesCommandTest.php
-
-		-
 			message: '#^Parameter \#2 \$value of static method Tests\\Feature\\Commands\\WikidataLinesCommandTest\:\:statement\(\) expects array\<string, mixed\>, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: tests/Feature/Commands/WikidataLinesCommandTest.php
-
-		-
-			message: '#^Cannot access property \$concession_year on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/WikipediaCommandsTest.php
-
-		-
-			message: '#^Cannot access property \$gauge_mm_default on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/WikipediaCommandsTest.php
-
-		-
-			message: '#^Cannot access property \$historical_operators on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/WikipediaCommandsTest.php
-
-		-
-			message: '#^Cannot access property \$length_official_m on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/WikipediaCommandsTest.php
-
-		-
-			message: '#^Cannot access property \$max_speed_kmh_official on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/WikipediaCommandsTest.php
-
-		-
-			message: '#^Cannot access property \$nb_voies_default on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/WikipediaCommandsTest.php
-
-		-
-			message: '#^Cannot access property \$regions on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/WikipediaCommandsTest.php
-
-		-
-			message: '#^Cannot access property \$type on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/WikipediaCommandsTest.php
-
-		-
-			message: '#^Cannot access property \$wikipedia_title on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Commands/WikipediaCommandsTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: tests/Feature/GeoExporterTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: tests/Feature/GeoExporterTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: tests/Feature/GraphQL/GraphQLQueriesTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: tests/Feature/GraphQL/GraphQLQueriesTest.php
 
 		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertSame\(\) with 0 and 0 will always evaluate to true\.$#'
@@ -1211,24 +731,6 @@ parameters:
 			identifier: method.alreadyNarrowedType
 			count: 1
 			path: tests/Feature/JunctionTrunkTest.php
-
-		-
-			message: '#^Parameter \#1 \$lineIds of method App\\Console\\Commands\\ImportLignesOubliees\:\:applyCodeCorrections\(\) expects array\<string, int\>, array\<int, int\<0, max\>\> given\.$#'
-			identifier: argument.type
-			count: 2
-			path: tests/Feature/LignesOublieesCodeFixTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: tests/Feature/LineEraSummaryTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: tests/Feature/LineEraSummaryTest.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -1249,104 +751,14 @@ parameters:
 			path: tests/Feature/Models/ModelsTest.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Relations\\Pivot\:\:\$created_at\.$#'
-			identifier: property.notFound
-			count: 1
-			path: tests/Feature/Models/ModelsTest.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Relations\\Pivot\:\:\$distance_m\.$#'
-			identifier: property.notFound
-			count: 1
-			path: tests/Feature/Models/ModelsTest.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Relations\\Pivot\:\:\$era_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: tests/Feature/Models/ModelsTest.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Relations\\Pivot\:\:\$first_year\.$#'
-			identifier: property.notFound
-			count: 1
-			path: tests/Feature/Models/ModelsTest.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Relations\\Pivot\:\:\$from_date\.$#'
-			identifier: property.notFound
-			count: 1
-			path: tests/Feature/Models/ModelsTest.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Relations\\Pivot\:\:\$method\.$#'
-			identifier: property.notFound
-			count: 1
-			path: tests/Feature/Models/ModelsTest.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Relations\\Pivot\:\:\$notes\.$#'
-			identifier: property.notFound
-			count: 1
-			path: tests/Feature/Models/ModelsTest.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Relations\\Pivot\:\:\$updated_at\.$#'
-			identifier: property.notFound
-			count: 1
-			path: tests/Feature/Models/ModelsTest.php
-
-		-
 			message: '#^Property App\\Models\\LineSegment\:\:\$status \(App\\Enums\\SegmentStatus\) does not accept string\.$#'
 			identifier: assign.propertyType
 			count: 1
 			path: tests/Feature/Models/ModelsTest.php
 
 		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: tests/Feature/Services/GeoExporterContractTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: tests/Feature/Services/GeoExporterContractTest.php
-
-		-
-			message: '#^Cannot access property \$fingerprint on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Services/LineMergerTest.php
-
-		-
-			message: '#^Cannot access property \$line_id on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Services/LineMergerTest.php
-
-		-
-			message: '#^Cannot access property \$section_resolution on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Services/LineMergerTest.php
-
-		-
-			message: '#^Cannot access property \$section_resolution_note on array\<mixed\>\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: tests/Feature/Services/LineMergerTest.php
-
-		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertSame\(\) with array\{''Ligne A'', ''Ligne B''\} and array\{''Ligne A'', ''Ligne B''\} will always evaluate to true\.$#'
 			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Feature/Services/WikimediaClientTest.php
-
-		-
-			message: '#^PHPDoc tag @param references unknown parameter\: \$page$#'
-			identifier: parameter.notFound
 			count: 1
 			path: tests/Feature/Services/WikimediaClientTest.php
 
@@ -1366,36 +778,12 @@ parameters:
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 2
-			path: tests/Feature/StationCurrentEraTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: tests/Feature/StationCurrentEraTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: tests/Feature/StationErasTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: tests/Feature/StationErasTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 3
 			path: tests/Feature/StationKindsTest.php
 
 		-
 			message: '#^Unable to resolve the template type TValue in call to function collect$#'
 			identifier: argument.templateType
-			count: 3
+			count: 2
 			path: tests/Feature/StationKindsTest.php
 
 		-
@@ -1403,18 +791,6 @@ parameters:
 			identifier: method.alreadyNarrowedType
 			count: 1
 			path: tests/Feature/StationServiceYearsTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: tests/Feature/StationWitnessesTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: tests/Feature/StationWitnessesTest.php
 
 		-
 			message: '#^Method Tests\\Feature\\Web\\CatalogPagesTest\:\:parseInertiaHtml\(\) has parameter \$response with generic class Illuminate\\Testing\\TestResponse but does not specify its types\: TResponse$#'

@@ -108,7 +108,9 @@ class StationKindsTest extends TestCase
         $this->assertSame([1, 0, 0, []], [$counts[2030]['open'], $counts[2030]['closed'], $counts[2030]['uncertain'], $counts[2030]['closures']]);
 
         // Carte : ni le poste ni la gare projetée.
-        $names = collect($this->getJson('/api/v1/eras/2030/stations.geojson')->assertOk()->json('features'))->pluck('properties.name')->all();
+        /** @var list<array<string, mixed>> $rawFeatures */
+        $rawFeatures = $this->getJson('/api/v1/eras/2030/stations.geojson')->assertOk()->json('features');
+        $names = collect($rawFeatures)->pluck('properties.name')->all();
         $this->assertContains('Mâcon-Loché-TGV', $names);
         $this->assertNotContains('Tonnerre-TGV', $names);
         $this->assertNotContains('Vandières TGV', $names);

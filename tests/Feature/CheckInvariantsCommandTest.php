@@ -142,8 +142,10 @@ class CheckInvariantsCommandTest extends TestCase
             ->expectsOutputToContain('Gare Foxtrot')
             ->assertFailed();
 
-        $results = collect(json_decode(file_get_contents($json), true)['invariants'])->keyBy('key');
-        $counts = $results->map->count->all();
+        /** @var array{invariants: list<array<string, mixed>>} $report */
+        $report = json_decode(file_get_contents($json), true);
+        $results = collect($report['invariants'])->keyBy('key');
+        $counts = $results->map(fn (array $r) => $r['count'])->all();
 
         $this->assertSame([
             'eras.current' => 0,
@@ -510,11 +512,16 @@ class CheckInvariantsCommandTest extends TestCase
         }
     }
 
+    /**
+     * @param  array<int, array{string, string}>  $states
+     * @return Line&object{lat: float} ligne portant la latitude de son axe (attribut de test)
+     */
     private function line(string $name, array $states, ?string $code = null): Line
     {
         $this->lat += 0.02;
+        /** @var Line&object{lat: float} $line */
         $line = Line::factory()->create(['name' => $name, 'code' => $code, 'network' => null, 'is_lgv' => false, 'description' => null]);
-        $line->lat = $this->lat;
+        $line->setAttribute('lat', $this->lat);
         foreach ($states as $year => [$status, $traffic]) {
             $this->segment($line, $year, $status, $traffic, lat: $this->lat);
         }

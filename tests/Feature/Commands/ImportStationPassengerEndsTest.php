@@ -316,4 +316,96 @@ class ImportStationPassengerEndsTest extends TestCase
             'Marcenais closure_passenger' => 'fermeture totale de la même année, gardée',
         ], $verdicts);
     }
+
+    private function dropCache(string $title): void
+    {
+        File::delete(storage_path('app/sources/stations/wikipedia/'.sha1($title).'.json'));
+    }
+
+    /**
+     * Lit la base à chaque appel : deux appels de suite peuvent rendre des lignes différentes.
+     *
+     * @phpstan-impure
+     *
+     * @return list<string>
+     */
+    private function allOwnEvents(): array
+    {
+        return DB::table('station_events')->where('source', 'wikipedia')->orderBy('source_ref')->orderBy('station_id')
+            ->get(['station_id', 'type', 'event_date', 'source_ref'])->map(fn ($e) => "{$e->station_id} {$e->type} {$e->event_date} {$e->source_ref}")->all();
+    }
+
+    public function test_a_partial_cache_keeps_the_rows_of_the_stations_whose_article_was_not_read(): void
+    {
+        $read = $this->closedStation('lu', 'Gare lue');
+        $this->cachePage('Gare lue', ' | fermeture = 1 mars 1950 (voyageurs)');
+        $absent = $this->closedStation('absent', 'Gare absente');
+        $this->cachePage('Gare absente', ' | fermeture = 2 mars 1951 (voyageurs)<br>1980 (marchandises)');
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true])->assertSuccessful();
+        $this->assertCount(2, $this->events($absent));
+
+        // L'article lu change, l'autre manque au cache : seule la gare lue est remplacée.
+        $this->cachePage('Gare lue', ' | fermeture = 5 mars 1950 (voyageurs)', revid: 9);
+        $this->dropCache('Gare absente');
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true])
+            ->expectsOutputToContain('1 gares dont l\'article a été lu (leurs lignes sont remplacées) ; 1 gares dont l\'article n\'a pas été lu')
+            ->assertSuccessful();
+
+        $this->assertSame(['closure_passenger 1950-03-05 day wikipedia gare:Gare lue#infobox-voyageurs'], $this->events($read));
+        $this->assertSame(['closure_passenger 1951-03-02 day wikipedia gare:Gare absente#infobox-voyageurs',
+            'closure_freight 1980-01-01 year wikipedia gare:Gare absente#infobox-fret'], $this->events($absent));
+    }
+
+    public function test_a_complete_cache_still_removes_the_rows_of_an_article_that_lost_its_date(): void
+    {
+        $sid = $this->closedStation('perdue', 'Gare perdue');
+        $this->cachePage('Gare perdue', ' | fermeture = 1950 (voyageurs)');
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true])->assertSuccessful();
+        $this->assertCount(1, $this->events($sid));
+
+        $this->cachePage('Gare perdue', ' | mise en service = 1900', revid: 10);
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true])->assertSuccessful();
+
+        $this->assertSame([], $this->events($sid));
+    }
+
+    public function test_prune_removes_the_rows_of_stations_without_article_but_never_those_of_an_unread_article(): void
+    {
+        $gone = $this->closedStation('rouverte', 'Gare rouverte');
+        $this->cachePage('Gare rouverte', ' | fermeture = 1950 (voyageurs)');
+        $absent = $this->closedStation('manquante', 'Gare manquante');
+        $this->cachePage('Gare manquante', ' | fermeture = 1951 (voyageurs)');
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true])->assertSuccessful();
+
+        // La gare rouverte n'est plus fermée ni fret seul : plus d'article retenu. L'autre manque au cache.
+        DB::table('stations')->where('id', $gone)->update(['status' => 'active', 'source_status' => 'active']);
+        $this->dropCache('Gare manquante');
+
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true])->assertSuccessful();
+        $this->assertCount(1, $this->events($gone), 'sans --prune, une gare sans article lié garde ses lignes');
+
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true, '--prune' => true])
+            ->expectsOutputToContain('1 retirées (gares sans article lié)')->assertSuccessful();
+        $this->assertSame([], $this->events($gone));
+        $this->assertCount(1, $this->events($absent), '--prune ne touche pas une gare dont l\'article est seulement absent du cache');
+    }
+
+    public function test_two_passes_in_a_row_give_the_same_rows_with_or_without_prune(): void
+    {
+        $this->closedStation('un', 'Gare un');
+        $this->cachePage('Gare un', ' | fermeture = 1950 (voyageurs)<br>1990 (marchandises)');
+        $this->closedStation('deux', 'Gare deux');
+        $this->cachePage('Gare deux', ' | fermeture = 1960 (voyageurs)');
+        $this->closedStation('trois', 'Gare trois');
+
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true])->assertSuccessful();
+        $first = $this->allOwnEvents();
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true])->assertSuccessful();
+        $this->assertSame($first, $this->allOwnEvents());
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true, '--prune' => true])->assertSuccessful();
+        $this->assertSame($first, $this->allOwnEvents());
+        $this->artisan('vff:import-station-passenger-ends', ['--from-cache' => true, '--prune' => true])->assertSuccessful();
+        $this->assertCount(3, $first);
+        $this->assertSame($first, $this->allOwnEvents());
+    }
 }

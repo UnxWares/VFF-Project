@@ -22,7 +22,7 @@ class CreditsController extends Controller
             ->groupBy('license')
             ->orderByDesc('count')
             ->get()
-            ->map(fn ($r) => ['license' => $r->license, 'count' => $r->count])
+            ->map(fn (Media $r): array => ['license' => $r->license, 'count' => $r->getAttribute('count')])
             ->all();
 
         $byAuthor = Media::query()
@@ -32,7 +32,7 @@ class CreditsController extends Controller
             ->orderByDesc('count')
             ->limit(30)
             ->get()
-            ->map(fn ($r) => ['author' => $r->author, 'count' => $r->count])
+            ->map(fn (Media $r): array => ['author' => $r->author, 'count' => $r->getAttribute('count')])
             ->all();
 
         return Inertia::render('Credits/Media', [

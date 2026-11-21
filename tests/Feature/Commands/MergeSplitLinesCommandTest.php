@@ -81,7 +81,7 @@ class MergeSplitLinesCommandTest extends TestCase
             [$insee, $name, PlaceNames::normalize($name), $lng, $lat]);
     }
 
-    /** @return array<string, mixed> */
+    /** @param  array<string, mixed>  $attributes */
     private function event(Line $line, string $source, string $url, array $attributes = []): int
     {
         return (int) DB::table('line_events')->insertGetId($attributes + [

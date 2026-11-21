@@ -115,7 +115,7 @@
     let {
         era = 2030,
         height = '640px',
-        center = [2.5, 47.0], // Centre approximatif France métropolitaine
+        center = /** @type {[number, number]} */ ([2.5, 47.0]), // Centre approximatif France métropolitaine
         zoom = 5.5,
         showVanished = false,
         showHeritage = true,

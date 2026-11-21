@@ -17,6 +17,7 @@ trait ReadsListFilters
     /** Valeur texte d'un paramètre de requête, '' s'il est absent ou non scalaire. */
     protected function filterString(Request $request, string $key, bool $trim = false): string
     {
+        /** @var mixed $value Laravel type query() trop étroitement (array|string|null). */
         $value = $request->query($key);
         if (! is_string($value) && ! is_int($value) && ! is_float($value)) {
             return '';

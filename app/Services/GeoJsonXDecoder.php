@@ -24,7 +24,7 @@ class GeoJsonXDecoder
 
     private const EARTH_RADIUS = 6378137.0;
 
-    /** @var array<string, int> */
+    /** @var array<int|string, int> */
     private array $index;
 
     private int $size;
