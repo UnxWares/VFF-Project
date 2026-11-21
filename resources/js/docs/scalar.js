@@ -27,7 +27,7 @@ const reference = createApiReference(root, {
     localization: { locale: ['fr', 'en', 'de'].includes(locale) ? locale : 'en' },
     theme: 'default',
     layout: 'modern',
-    defaultOpenAllTags: true,
+    defaultOpenAllTags: false,
     hideModelNames: false,
     documentDownloadType: 'json',
     defaultHttpClient: { targetKey: 'shell', clientKey: 'curl' },

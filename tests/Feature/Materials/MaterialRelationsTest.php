@@ -68,13 +68,13 @@ class MaterialRelationsTest extends TestCase
 
     private function relations(): MaterialRelations
     {
-        return MaterialRelations::fromDatabase([
+        return MaterialRelations::fromDatabase(data: [
             'Ligne de Paris à Granville' => [
                 'stops' => ['Paris-Montparnasse', 'Dreux', 'Surdon', 'Argentan', 'Folligny', 'Granville'],
                 'lines' => ['395000', '430000', '405000'],
                 'source' => 'https://fr.wikipedia.org/wiki/Ligne_de_Paris_%C3%A0_Granville',
             ],
-        ]);
+        ], ambiguous: []);
     }
 
     /**
@@ -159,6 +159,19 @@ class MaterialRelationsTest extends TestCase
         $this->assertSame('ambiguous', $route['status']);
         $this->assertSame([$this->lines['379000']->id], $route['lines'], 'par Lisieux ou par la ligne directe, toujours Mézidon - Trouville');
         $this->assertSame([], $this->links($this->relations(), "* Caen - Trouville\n"));
+    }
+
+    /** Note de relation (database/data/material_relation_lines.php) : une relation ambiguë rattache les lignes de la note, dans les deux sens, et elle seule. */
+    public function test_a_noted_ambiguous_relation_links_the_lines_of_its_note(): void
+    {
+        $relations = MaterialRelations::fromDatabase([], [
+            ['relation' => ['Caen', 'Mézidon'], 'lines' => ['L1'], 'source' => 'https://example.org', 'reason' => 'essai'],
+        ]);
+
+        $this->assertSame(['L1'], $this->codes($this->links($relations, "* Caen - Mézidon\n")));
+        $this->assertSame(['L1'], $this->codes($this->links($relations, "* Mézidon - Caen\n")));
+        $this->assertSame(2, $relations->stats()['pairs_ambiguous']);
+        $this->assertSame([], $this->links(MaterialRelations::fromDatabase([], []), "* Caen - Mézidon\n"));
     }
 
     /**
