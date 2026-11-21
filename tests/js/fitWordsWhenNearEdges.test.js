@@ -65,7 +65,13 @@ describe('whenNear : cas limites', () => {
     }
 
     it('liste les cinq interactions qui démarrent la carte', () => {
-        expect(INTERACTION_EVENTS).toEqual(['scroll', 'wheel', 'pointerdown', 'touchstart', 'keydown']);
+        expect(INTERACTION_EVENTS).toEqual([
+            'scroll',
+            'wheel',
+            'pointerdown',
+            'touchstart',
+            'keydown',
+        ]);
     });
 
     it('transmet la marge demandée à l’observateur, 0 px par défaut', () => {
@@ -81,7 +87,10 @@ describe('whenNear : cas limites', () => {
             addEventListener: (name, fn, options) => calls.push(['add', name, options]),
             removeEventListener: (name, fn, options) => calls.push(['remove', name, options]),
         };
-        const { cancel } = whenNear({}, { Observer: FakeObserver, target, events: ['scroll', 'keydown'] });
+        const { cancel } = whenNear(
+            {},
+            { Observer: FakeObserver, target, events: ['scroll', 'keydown'] },
+        );
         expect(calls).toEqual([
             ['add', 'scroll', { capture: true, passive: true }],
             ['add', 'keydown', { capture: true, passive: true }],

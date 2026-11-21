@@ -322,7 +322,13 @@ class ImportStationPassengerEndsTest extends TestCase
         File::delete(storage_path('app/sources/stations/wikipedia/'.sha1($title).'.json'));
     }
 
-    /** @return list<string> */
+    /**
+     * Lit la base à chaque appel : deux appels de suite peuvent rendre des lignes différentes.
+     *
+     * @phpstan-impure
+     *
+     * @return list<string>
+     */
     private function allOwnEvents(): array
     {
         return DB::table('station_events')->where('source', 'wikipedia')->orderBy('source_ref')->orderBy('station_id')
