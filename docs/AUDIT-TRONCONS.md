@@ -109,6 +109,12 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
         source du tracé : la voie de l'autre ligne qui le confirme est alors un rattachement douteux), ou
         embranchement posé sur la voie de la ligne dont il part sans voie propre connue (la note d'avant les réglages, signalée pour la relecture). Une première version
         notait ces cas `fair` : 1 856 tronçons (830 km) en 2030, surtout des jonctions justes ; abandonnée.
+    - Autre référence qui colle (règles `.7`, ère courante) : quand la BD TOPO, première référence retenue, ne colle
+      pas, une voie OSM indépendante qui colle sur ses voies libres ou de la ligne (80 % des points, médiane et 95e
+      centile ≤ 5 m) donne un placement `good` sur l'OSM, sauf si une voie rattachée à la ligne passe à 8 à 60 m
+      (cas T1b, non tranché). Les règles `.5` avaient laissé ces tronçons `poor` ou `fair` sur une BD TOPO lointaine
+      ou à coude, alors que les règles `.4` les notaient `good` (`shared_track`) : 43 tronçons de 2030 mesurés, dont
+      les cas 33 et 34 du troisième contrôle à la main, jugés justes en `good`.
     - Référence lointaine (règle R4, règles `.6`, ères passées seulement) : un tracé OSM que la voie OSM rattachée à
       la ligne suit sur tous les points (médiane de la voie propre et 95e centile à 1 m au plus) n'est plus
       « faux » quand la seule référence retenue est la BD TOPO à plus de 15 m (`DISTANT_REFERENCE_M`) : note
@@ -136,13 +142,16 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
     qui colle au tronçon n'est plus « la voie d'une autre ligne ». ; `.6` (après-midi du 21/11, troisième contrôle à la main : 0 alerte
     juste sur 13 aux ères passées) train touristique muet avant son début (R1), fin des voyageurs seule qui n'est pas
     une fermeture (R3), référence BD TOPO lointaine d'un tracé OSM de la ligne (R4). L'élargissement de la
-    continuité (R2) n'est pas appliqué : voir `storage/app/reports/agents/aprem-2111/audit-eres-passees.md`.
+    continuité (R2) n'est pas appliqué : voir `storage/app/reports/agents/aprem-2111/audit-eres-passees.md` ; `.7`
+    (fin d'après-midi du 21/11) tronçon en service posé sur la voie d'une autre ligne noté « sûr » avec la raison
+    `on_other_line_track` (T1d), et voie OSM qui colle préférée à une BD TOPO lointaine à l'ère courante
+    (`storage/app/reports/agents/aprem-2111/audit-t1d.md`).
 
 ## État des mesures (21/11/2026, fin d'après-midi)
 
 - Passe de la nuit sur `vff` : 381 731 tronçons sur 21 ères, 19 201 synthèses de ligne. En 2030, 81,6 % des kilomètres
   sont « sûrs » sur les quatre notes ; la ligne 405000 est sûre de bout en bout. Après les réglages `.4` du matin :
-  83,4 %. Les règles `.5` et `.6` ne sont pas encore passées sur `vff`.
+  83,4 %. Les règles `.5`, `.6` et `.7` ne sont pas encore passées sur `vff`.
 - Trois contrôles à la main, chacun suivi d'un réglage des règles (rapports `matin-2111/controle-main.md`,
   `aprem-2111/controle-main-3.md`) :
   1. nuit, 100 tronçons : 93 % des classements « sûr » justes ;
@@ -151,9 +160,9 @@ Chaque tronçon, à chaque époque, reçoit quatre notes, chacune avec ses preuv
      98 % (exactitude) et 91 % (tracé) en 2030 ; le placement reste le point faible (« sûr » juste 30 fois sur 34).
      Aux ères passées, « sûr » juste à 90 %, et aucune des 13 alertes de classement et de placement jugées n'était
      fondée, d'où les règles `.6` (R1, R3, R4).
-- Réglage proposé et pas encore appliqué : T1d, garder la note d'un tronçon en service posé sur la voie d'une autre
-  ligne avec sa raison au lieu de « à revoir » (4 sur 12 seulement étaient justes), T1b et T1c pour les voies propres
-  non rattachées, et R2 (continuité élargie aux ères passées).
+- T1d est appliqué dans le code (règles `.7`) : effet sur `vff` avec la prochaine passe de 2030. Réglages proposés et
+  pas encore appliqués : T1b et T1c pour les voies propres non rattachées (un seul cas vérifié chacun), et R2
+  (continuité élargie aux ères passées).
 - Tests : couverture de `SegmentAuditor` de 91 à 99,5 %, mutation de `AuditGrader` de 92 à 97 % et de
   `DateComparison` de 66 à 84 %.
 - À lancer sur `vff` quand le moteur sera rejoué : `vff:audit-segments --era=2030` (6 minutes environ), puis les ères
