@@ -178,6 +178,7 @@ return [
         'text' => 'For richer queries, a single GraphQL endpoint, POST /graphql, returns a line with its segments and events in one go. Read the schema in the reference, or try your queries in GraphiQL.',
         'links' => 'GraphQL documentation',
         'example_comment' => 'A line with its events',
+        'limits' => 'Each query has a cost, worked out before it runs: 5,000 points and 15 levels of nesting at most. A field is worth 1 point, a paginated list multiplies its sub-fields by first, a list without pagination counts them for 10 items, and a sheet, a profile, a line audit or a route is worth 250 points. A hundred lines with their names fit in one query (301 points), a hundred line sheets do not (25,301). A query that costs too much is refused before it runs, with the code query_too_complex (or query_too_deep) and a message saying what to change. The full scale is in the GraphQL reference, on the Query type.',
     ],
 
     // Mutations GraphQL de contribution (graphql/schema.graphql, type Mutation).

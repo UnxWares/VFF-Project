@@ -1,10 +1,10 @@
 <?php
 
 declare(strict_types=1);
+use App\GraphQL\Support\QueryLimitErrorHandler;
 use App\Http\Middleware\StartGraphQLSession;
 use GraphQL\Error\DebugFlag;
 use GraphQL\Validator\Rules\DisableIntrospection;
-use GraphQL\Validator\Rules\QueryComplexity;
 use Nuwave\Lighthouse\Execution\AuthenticationErrorHandler;
 use Nuwave\Lighthouse\Execution\AuthorizationErrorHandler;
 use Nuwave\Lighthouse\Execution\ReportingErrorHandler;
@@ -254,10 +254,13 @@ return [
     */
 
     'security' => [
-        'max_query_complexity' => QueryComplexity::DISABLED,
+        // Coût d'une requête calculé avant son exécution (barème dans App\GraphQL\Complexity\QueryCost) :
+        // mesuré le 21/11/2026, la plus coûteuse des requêtes des tests et des exemples de la doc vaut
+        // 3 401 (lignes vertes de 100 lignes) ; 100 fiches de ligne valent 25 301, 100 profils et audits 53 301.
+        'max_query_complexity' => (int) env('LIGHTHOUSE_SECURITY_MAX_QUERY_COMPLEXITY', 5000),
         // API publique sans authentification, relations cycliques (material →
-        // lines → materials → …) : profondeur bornée. 15 laisse passer la requête
-        // d'introspection complète de GraphiQL (≈ 13 niveaux).
+        // lines → materials → …) : profondeur bornée. Comptée sous la racine, elle vaut 5 au plus
+        // dans les requêtes des tests et de la doc, 11 pour l'introspection complète de GraphiQL.
         'max_query_depth' => (int) env('LIGHTHOUSE_SECURITY_MAX_QUERY_DEPTH', 15),
         'disable_introspection' => (bool) env('LIGHTHOUSE_SECURITY_DISABLE_INTROSPECTION', false)
             ? DisableIntrospection::ENABLED
@@ -330,6 +333,8 @@ return [
     */
 
     'error_handlers' => [
+        // Refus de complexité ou de profondeur : message qui dit quoi changer, code stable.
+        QueryLimitErrorHandler::class,
         AuthenticationErrorHandler::class,
         AuthorizationErrorHandler::class,
         ValidationErrorHandler::class,

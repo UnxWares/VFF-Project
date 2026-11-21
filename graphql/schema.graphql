@@ -59,7 +59,7 @@ type Era {
     has_data: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\EraField@hasData")
 
     "État du réseau à cette ère (longueurs, lignes actives, gares par statut), comme `GET /api/v1/eras/{year}`."
-    stats: EraStats! @field(resolver: "App\\GraphQL\\Resolvers\\EraField@stats")
+    stats: EraStats! @field(resolver: "App\\GraphQL\\Resolvers\\EraField@stats") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 }
 
 """
@@ -114,29 +114,29 @@ type Line {
     segments(
         "Année de l'ère (décennie de 1830 à 2030). Par défaut : toutes les ères."
         era: Int @builder(method: "App\\GraphQL\\Builders\\LineSegmentBuilder@era")
-    ): [LineSegment!]! @hasMany
+    ): [LineSegment!]! @hasMany @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     "Chronologie de la ligne : ouvertures, fermetures, électrifications, déposes… (ordre non garanti : triez sur `event_date`)."
-    events: [LineEvent!]! @hasMany
+    events: [LineEvent!]! @hasMany @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
     Médias (photos, cartes postales, plans…) rattachés à la ligne, page par page (20 par défaut,
     100 au plus), dans l'ordre de leurs identifiants. Chaque média porte ses droits.
     """
-    media: [Media!]! @morphMany(type: CONNECTION, defaultCount: 20, maxCount: 100, scopes: ["redistributable"]) @builder(method: "App\\GraphQL\\Builders\\MediaBuilder@inOrder")
+    media: [Media!]! @morphMany(type: CONNECTION, defaultCount: 20, maxCount: 100, scopes: ["redistributable"]) @builder(method: "App\\GraphQL\\Builders\\MediaBuilder@inOrder") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@paginated")
 
     "Matériels roulants associés à la ligne (ayant circulé ou circulant dessus), sans la preuve : voir `material_links`."
-    materials: [Material!]! @belongsToMany
+    materials: [Material!]! @belongsToMany @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     "Matériel roulant de la ligne, avec la preuve de chaque lien (source, citation, fiabilité)."
-    material_links: [LineMaterialLink!]! @hasMany(relation: "materialLinks")
+    material_links: [LineMaterialLink!]! @hasMany(relation: "materialLinks") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
     Accidents et événements graves rattachés à la ligne (lieu sur son tracé de l'époque, ou ligne
     citée par une source), rattachement principal ou secondaire : le détail est dans
     `Accident.lines`. Ordre non garanti : triez sur `date`.
     """
-    accidents: [Accident!]! @belongsToMany
+    accidents: [Accident!]! @belongsToMany @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
     Gares de la ligne à une ère, dans l'ordre des points kilométriques, sur le modèle de
@@ -146,7 +146,7 @@ type Line {
     stops(
         "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante, 2030, c'est-à-dire aujourd'hui."
         era: Int
-    ): [LineStop!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineStopsResolver")
+    ): [LineStop!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineStopsResolver") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 
     """
     Signalisation de la ligne, par tranches de points kilométriques homogènes. Données
@@ -156,14 +156,14 @@ type Line {
     signalling(
         "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante, 2030."
         era: Int
-    ): [LineSignallingRange!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingResolver")
+    ): [LineSignallingRange!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingResolver") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 
     """
     Passages à niveau de la ligne aujourd'hui (SNCF Réseau, ODbL), dans l'ordre des points
     kilométriques, PK inconnus en dernier. Rattachement par le code de ligne : liste vide pour une
     ligne sans code SNCF Réseau.
     """
-    level_crossings: [LevelCrossing!]! @field(resolver: "App\\GraphQL\\Resolvers\\LevelCrossingField@forLine")
+    level_crossings: [LevelCrossing!]! @field(resolver: "App\\GraphQL\\Resolvers\\LevelCrossingField@forLine") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     "Nombre de passages à niveau de la ligne par groupe (`LevelCrossing.group`), groupes absents omis."
     level_crossing_summary: [LevelCrossingCount!]! @field(resolver: "App\\GraphQL\\Resolvers\\LevelCrossingField@summary")
@@ -176,7 +176,7 @@ type Line {
     Liste vide si la ligne n'en a pas. Données © contributeurs OpenStreetMap (ODbL 1.0) : reprenez la
     mention de `LineGreenway.attribution`.
     """
-    greenways: [LineGreenway!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineGreenwayField@forLine")
+    greenways: [LineGreenway!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineGreenwayField@forLine") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     "Longueur totale, en mètres, des voies vertes qui suivent l'ancienne emprise de la ligne (0 s'il n'y en a pas)."
     greenway_length_m: Int! @field(resolver: "App\\GraphQL\\Resolvers\\LineGreenwayField@length")
@@ -193,7 +193,7 @@ type Line {
     archives(
         "Ne garder qu'un type de document. Par défaut : tous."
         type: ArchiveDocumentType @where(key: "doc_type")
-    ): [LineArchiveDocument!]! @hasMany(relation: "archiveDocuments")
+    ): [LineArchiveDocument!]! @hasMany(relation: "archiveDocuments") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
     Mises en service de signalisation datées (BAL, BAPR, block manuel, cantonnement téléphonique, TVM,
@@ -208,7 +208,7 @@ type Line {
     signalling_history(
         "Année d'une ère (décennie de 1830 à 2030) : seulement les faits en vigueur au 31 décembre de cette année (aujourd'hui pour 2030). Un fait plus récent du même groupe (cantonnement, TVM, ETCS, KVB) qui porte sur toute la ligne ou recouvre sa portion le remplace. Ère inconnue : liste vide."
         era: Int
-    ): [SignallingEvent!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@forLine")
+    ): [SignallingEvent!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@forLine") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
     Profil en long de la ligne (altitude le long du tracé de référence, toutes époques, gares placées
@@ -218,7 +218,7 @@ type Line {
     profile(
         "Nombre de points au plus (10 à 5 000) : profil allégé qui garde les deux bouts, le point le plus bas et le plus haut. Par défaut : tous les points."
         max_points: Int @rules(apply: ["nullable", "integer", "between:10,5000"])
-    ): LineProfile @field(resolver: "App\\GraphQL\\Resolvers\\LineProfileField")
+    ): LineProfile @field(resolver: "App\\GraphQL\\Resolvers\\LineProfileField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@heavy")
 
     """
     Audit des tronçons de la ligne à une ère (passe `vff:audit-segments`, docs/AUDIT-TRONCONS.md),
@@ -229,7 +229,7 @@ type Line {
     audit(
         "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante, 2030."
         era: Int @rules(apply: ["nullable", "integer", "between:1830,2030"])
-    ): LineAudit @field(resolver: "App\\GraphQL\\Resolvers\\LineAuditField")
+    ): LineAudit @field(resolver: "App\\GraphQL\\Resolvers\\LineAuditField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@heavy")
 
     """
     Point kilométrique d'un lieu sur la ligne, comme `GET /api/v1/lines/{line}/pk` : le point est projeté
@@ -246,7 +246,7 @@ type Line {
         lng: Float! @rules(apply: ["numeric", "between:-180,180"])
         "Année de l'ère (décennie de 1830 à 2030). Par défaut : l'ère courante, le réseau d'aujourd'hui."
         era: Int
-    ): LinePk @field(resolver: "App\\GraphQL\\Resolvers\\LinePkField")
+    ): LinePk @field(resolver: "App\\GraphQL\\Resolvers\\LinePkField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 
     """
     Fiche complète de la ligne, comme la page `/lines/{slug}` et `GET /api/v1/lines/{line}` :
@@ -256,7 +256,7 @@ type Line {
     sheet(
         "Joindre le tracé GeoJSON de chaque portion des phases (`portions[].geometry`). Nul pour une portion dont une source n'autorise pas la redistribution (`geometry_withheld`, `geometry_withheld_reason`)."
         geometry: Boolean = false
-    ): LineSheet! @field(resolver: "App\\GraphQL\\Resolvers\\SheetResolver@line")
+    ): LineSheet! @field(resolver: "App\\GraphQL\\Resolvers\\SheetResolver@line") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@heavy")
 
     "Date de création de la fiche dans VFF (pas une date historique)."
     created_at: DateTime!
@@ -424,7 +424,7 @@ type LineSegment {
     registre des droits : voir `source`). Les tuiles vectorielles de la carte servent à l'affichage
     et ne sont pas un export de données.
     """
-    geojson: String @field(resolver: "App\\GraphQL\\Resolvers\\LineSegmentResolver@geojson")
+    geojson: String @field(resolver: "App\\GraphQL\\Resolvers\\LineSegmentResolver@geojson") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 
     "Longueur du tronçon, en mètres."
     length_m: Int @rename(attribute: "length_meters")
@@ -543,7 +543,7 @@ type LineEvent {
     publiées après validation d'une contribution, page par page (20 par défaut, 100 au plus), dans
     l'ordre de leurs identifiants. Chaque média porte ses droits. Liste vide le plus souvent.
     """
-    media: [Media!]! @morphMany(type: CONNECTION, defaultCount: 20, maxCount: 100, scopes: ["redistributable"]) @builder(method: "App\\GraphQL\\Builders\\MediaBuilder@inOrder")
+    media: [Media!]! @morphMany(type: CONNECTION, defaultCount: 20, maxCount: 100, scopes: ["redistributable"]) @builder(method: "App\\GraphQL\\Builders\\MediaBuilder@inOrder") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@paginated")
 
     """
     Histoire de l'événement, comme `GET /api/v1/lines/{line}/stories/{event}` et la page
@@ -561,7 +561,7 @@ type LineEvent {
     le champ vaut null avec une erreur. Pour toutes les histoires d'une ligne, utilisez
     `GET /api/v1/lines/{line}/stories`.
     """
-    story: LineEventStory @field(resolver: "App\\GraphQL\\Resolvers\\LineEventStoryField")
+    story: LineEventStory @field(resolver: "App\\GraphQL\\Resolvers\\LineEventStoryField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 }
 
 """
@@ -987,26 +987,26 @@ type Station {
     lng: Float @field(resolver: "App\\GraphQL\\Resolvers\\StationResolver@lng")
 
     "Chronologie de la gare : ouverture, fermeture, démolition…, du plus ancien au plus récent, avec la source de chaque événement."
-    events: [StationEvent!]! @hasMany @builder(method: "App\\GraphQL\\Builders\\StationEventBuilder@chronological")
+    events: [StationEvent!]! @hasMany @builder(method: "App\\GraphQL\\Builders\\StationEventBuilder@chronological") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
     Médias (photos, cartes postales, plans…) rattachés à la gare, page par page (20 par défaut,
     100 au plus), dans l'ordre de leurs identifiants. Chaque média porte ses droits.
     """
-    media: [Media!]! @morphMany(type: CONNECTION, defaultCount: 20, maxCount: 100, scopes: ["redistributable"]) @builder(method: "App\\GraphQL\\Builders\\MediaBuilder@inOrder")
+    media: [Media!]! @morphMany(type: CONNECTION, defaultCount: 20, maxCount: 100, scopes: ["redistributable"]) @builder(method: "App\\GraphQL\\Builders\\MediaBuilder@inOrder") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@paginated")
 
     """
     Fiche complète de la gare, comme la page `/stations/{slug}` et `GET /api/v1/stations/{station}` :
     présence par décennie, lignes desservies, sources, gares voisines.
     """
-    sheet: StationSheet! @field(resolver: "App\\GraphQL\\Resolvers\\SheetResolver@station")
+    sheet: StationSheet! @field(resolver: "App\\GraphQL\\Resolvers\\SheetResolver@station") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@heavy")
 
     """
     Audit de la gare (dernière passe de `vff:audit-stations`, docs/AUDIT-GARES.md) : note de
     placement, notes des dates, services, contrôles croisés et dates candidates de Wikidata. Même
     contenu que `GET /api/v1/stations/{station}/audit`. Nul tant que la gare n'a pas été auditée.
     """
-    audit: StationAudit @field(resolver: "App\\GraphQL\\Resolvers\\StationAuditResolver")
+    audit: StationAudit @field(resolver: "App\\GraphQL\\Resolvers\\StationAuditResolver") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 }
 
 "Audit d'une gare : rien n'y est corrigé, les sources sont comparées entre elles."
@@ -1335,20 +1335,20 @@ type Material {
     notable_units(
         "Langue des textes : `fr` (par défaut), `en` ou `de`. Une autre valeur donne le français."
         lang: String = "fr"
-    ): [MaterialNotableUnit!]! @field(resolver: "App\\GraphQL\\Resolvers\\MaterialField")
+    ): [MaterialNotableUnit!]! @field(resolver: "App\\GraphQL\\Resolvers\\MaterialField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 
     "Lignes sur lesquelles ce matériel a circulé ou circule (sans la preuve : voir `line_links`)."
-    lines: [Line!]! @belongsToMany
+    lines: [Line!]! @belongsToMany @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     "Lignes parcourues, avec la preuve de chaque lien (source, citation, fiabilité)."
-    line_links: [LineMaterialLink!]! @hasMany(relation: "lineLinks")
+    line_links: [LineMaterialLink!]! @hasMany(relation: "lineLinks") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
     Médias (photos, plans, documents) rattachés à la série, publiés après validation d'une
     contribution, page par page (20 par défaut, 100 au plus), dans l'ordre de leurs identifiants.
     Chaque média porte ses droits. L'image principale de la fiche reste dans `image`.
     """
-    media: [Media!]! @morphMany(type: CONNECTION, defaultCount: 20, maxCount: 100, scopes: ["redistributable"]) @builder(method: "App\\GraphQL\\Builders\\MediaBuilder@inOrder")
+    media: [Media!]! @morphMany(type: CONNECTION, defaultCount: 20, maxCount: 100, scopes: ["redistributable"]) @builder(method: "App\\GraphQL\\Builders\\MediaBuilder@inOrder") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@paginated")
 }
 
 "Rame ou engin remarquable d'une série, relu à la main (database/data/material_notable_units.php)."
@@ -1622,7 +1622,7 @@ type LineMaterialLink {
     plus récente. Seules les périodes sûres (`high`, `medium`) sont servies ; liste vide quand aucune
     source ne date la circulation.
     """
-    periods: [LineMaterialPeriod!]! @hasMany(relation: "shownPeriods")
+    periods: [LineMaterialPeriod!]! @hasMany(relation: "shownPeriods") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     "Note libre (liens saisis dans VFF)."
     notes: String
@@ -1633,10 +1633,10 @@ type LineMaterialLink {
     les datent. Liste vide quand aucune preuve ne cite de relation ; les preuves qui portent un doute ne
     sont pas reprises.
     """
-    relations: [LineMaterialRelation!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField")
+    relations: [LineMaterialRelation!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     "Preuves du lien, les plus fortes d'abord (cinq au plus)."
-    evidence: [LineMaterialEvidence!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField")
+    evidence: [LineMaterialEvidence!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     "Fournisseur et licence de la source du lien."
     provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineMaterialLinkField")
@@ -1980,7 +1980,7 @@ type Accident {
     trains: [AccidentTrain!]! @field(resolver: "App\\GraphQL\\Resolvers\\AccidentField@trains")
 
     "Lignes rattachées, avec la portion, le PK estimé, la méthode et la confiance (ordre non garanti : la principale a `is_primary`)."
-    lines: [AccidentLineLink!]! @hasMany(relation: "lineLinks")
+    lines: [AccidentLineLink!]! @hasMany(relation: "lineLinks") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     "Gare VFF la plus proche du lieu, ouverte à la date quand ses dates sont connues (10 km au plus)."
     nearest_station: Station @belongsTo(relation: "nearestStation")
@@ -1989,7 +1989,7 @@ type Accident {
     nearest_station_distance_m: Int
 
     "Sources consultées, avec leur licence et les faits lus dans chacune."
-    sources: [AccidentSource!]! @hasMany
+    sources: [AccidentSource!]! @hasMany @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
     Contexte sourcé (circonstances, déroulement, victimes, causes, suites, mémoire, contradictions entre
@@ -1997,7 +1997,7 @@ type Accident {
     les corrections faites d'après eux. Listes vides si la fiche n'a pas encore de contexte. Même contenu que
     `context` de `GET /api/v1/accidents/{slug}`.
     """
-    context: AccidentContext! @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@context")
+    context: AccidentContext! @field(resolver: "App\\GraphQL\\Resolvers\\AccidentContextField@context") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 }
 
 "Contexte sourcé d'un accident (vff:enrich-accidents)."
@@ -2404,7 +2404,7 @@ type LineAudit {
     segments(
         "Ne garder que les tronçons dont la plus mauvaise note vaut celle-ci."
         grade: AuditGrade
-    ): [SegmentAudit!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineAuditField@segments")
+    ): [SegmentAudit!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineAuditField@segments") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 }
 
 "Audit d'un tronçon : état audité, quatre notes et leurs preuves."
@@ -2477,7 +2477,7 @@ type LineProfile {
     summary: LineProfileSummary!
 
     "Points du profil dans l'ordre du parcours (forme courte ; détail complet dans `samples`)."
-    points: [LineProfilePoint!]!
+    points: [LineProfilePoint!]! @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     "Référentiel d'altitude point par point, comme `GET /api/v1/lines/{line}/profile/points` : provenance, interpolation, ouvrage, morceau, embranchement et position de chaque point."
     samples(
@@ -2487,7 +2487,7 @@ type LineProfile {
         pk_to_m: Int
         "Nombre de points au plus (10 à 5 000). Par défaut : tous."
         max_points: Int @rules(apply: ["nullable", "integer", "between:10,5000"])
-    ): [LineProfileSample!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineProfileField@samples")
+    ): [LineProfileSample!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineProfileField@samples") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     "Altitude au PK donné (en mètres), comme `GET /api/v1/lines/{line}/altitude` : interpolée entre les deux points qui l'encadrent. Nulle hors du profil, dans un trou ou sans PK calé."
     altitude_at(pk_m: Int!): LineProfileAltitude @field(resolver: "App\\GraphQL\\Resolvers\\LineProfileField@altitudeAt")
@@ -3198,13 +3198,26 @@ type RouteComparison {
 Requêtes publiques de l'API GraphQL de VFF : lecture seule, anonyme, limitée à 300 requêtes
 par minute et par adresse IP. Point d'accès : `POST /graphql`.
 
+Chaque requête a un coût, calculé avant son exécution, de 5 000 points au plus, et une profondeur de
+15 niveaux au plus sous la racine. Un champ vaut 1 point plus ses sous-champs. Une liste paginée
+multiplie ses sous-champs par `first` (sa valeur par défaut si vous ne le donnez pas), une liste sans
+pagination (`events`, `materials`, `lines` d'une série…) les compte pour 10 éléments. Les champs calculés
+(`geojson`, `stops`, `signalling`, `pk`, `story`, `audit` d'une gare, `context`, `search`, `stats`)
+valent 10 points de plus, les champs lourds (`sheet`, `profile`, `audit` d'une ligne, `route`,
+`routeComparison`, `eraComparison`) 250. Exemples : `lines(first: 100) { data { slug name } }` vaut
+301 points, la fiche, le profil et l'audit d'une ligne environ 770, mais la fiche de 100 lignes en une
+requête 25 301. Au-delà, la requête est refusée sans être exécutée : erreur `query_too_complex`
+(`extensions.complexity`, `extensions.max_complexity`) ou `query_too_deep` (`extensions.depth`,
+`extensions.max_depth`), avec un message en anglais, ou en français et en allemand selon l'en-tête
+`Accept-Language`. Demandez alors moins d'éléments par page ou découpez la requête.
+
 Données ouvertes : citez « VFF - Voies Ferrées de France » (https://vff-project.org) et
 respectez les licences des sources (SNCF Open Data et OpenStreetMap : ODbL ; IGN BD TOPO :
 Licence Ouverte 2.0 ; OpenHistoricalMap et Wikidata : CC0 ; Wikipédia : CC BY-SA).
 """
 type Query {
     "Toutes les ères disponibles, de 1830 à 2030 (ordre non garanti : triez sur `year`)."
-    eras: [Era!]! @all
+    eras: [Era!]! @all @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     "Une ère, par son année."
     era(
@@ -3224,14 +3237,14 @@ type Query {
         query: String!
         "Résultats par catégorie, de 1 à 20 (8 par défaut)."
         limit: Int = 8 @rules(apply: ["integer", "between:1,20"])
-    ): SearchResults! @field(resolver: "App\\GraphQL\\Resolvers\\SearchField")
+    ): SearchResults! @field(resolver: "App\\GraphQL\\Resolvers\\SearchField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 
     """
     Chiffres d'ensemble du site : lignes, gares, matériels, ères cartographiées, kilomètres exploités
     aujourd'hui et profil du réseau à chaque ère. Mêmes valeurs que la page d'accueil et que l'API
     REST `GET /api/v1/stats`, mêmes noms de champs.
     """
-    stats: SiteStats! @field(resolver: "App\\GraphQL\\Resolvers\\SiteStatsResolver")
+    stats: SiteStats! @field(resolver: "App\\GraphQL\\Resolvers\\SiteStatsResolver") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
 
     """
     Ce qui a changé sur le réseau entre deux ères de la carte : kilomètres et nombre de lignes
@@ -3245,7 +3258,7 @@ type Query {
         from: Int!
         "Seconde année comparée : une autre décennie de 1830 à 2030 (ex. `1980`)."
         to: Int!
-    ): EraComparison! @field(resolver: "App\\GraphQL\\Resolvers\\EraComparisonResolver")
+    ): EraComparison! @field(resolver: "App\\GraphQL\\Resolvers\\EraComparisonResolver") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@heavy")
 
     """
     Lignes, page par page (20 par défaut, 100 au plus), filtrables par nom, code et trafic.
@@ -3349,7 +3362,7 @@ type Query {
         (1937 donne l'ère 1930). À partir de l'année en cours, et par défaut : réseau actuel.
         """
         era: Int
-    ): Route @field(resolver: "App\\GraphQL\\Resolvers\\RouteResolver")
+    ): Route @field(resolver: "App\\GraphQL\\Resolvers\\RouteResolver") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@heavy")
 
     """
     Un même trajet à deux époques (ex. Angoulême - Limoges en 1930 et aujourd'hui) : l'itinéraire
@@ -3367,7 +3380,7 @@ type Query {
         era: Int
         "Seconde année, mêmes règles ; elle doit désigner une autre ère que `era`."
         compare: Int!
-    ): RouteComparison @field(resolver: "App\\GraphQL\\Resolvers\\RouteComparisonResolver")
+    ): RouteComparison @field(resolver: "App\\GraphQL\\Resolvers\\RouteComparisonResolver") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@heavy")
 
     """
     Événements datés de toutes les lignes (ouvertures, fermetures, électrifications, déposes…),
@@ -4841,7 +4854,7 @@ extend type Query {
         first: Int = 25
         "Curseur `next_cursor` de la page précédente."
         after: String
-    ): LineDirectoryPage! @field(resolver: "App\\GraphQL\\Resolvers\\DirectoryResolver@lines")
+    ): LineDirectoryPage! @field(resolver: "App\\GraphQL\\Resolvers\\DirectoryResolver@lines") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@paginated")
 
     """
     Annuaire des gares (filtres de la page `/stations`), trié et paginé par curseur, comme
@@ -4854,7 +4867,7 @@ extend type Query {
         first: Int = 25
         "Curseur `next_cursor` de la page précédente."
         after: String
-    ): StationDirectoryPage! @field(resolver: "App\\GraphQL\\Resolvers\\DirectoryResolver@stations")
+    ): StationDirectoryPage! @field(resolver: "App\\GraphQL\\Resolvers\\DirectoryResolver@stations") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@paginated")
 
     "Registre des fournisseurs de données et de leurs licences, comme `GET /api/v1/sources`."
     sources: [SourceProvider!]! @field(resolver: "App\\GraphQL\\Resolvers\\SourceField@all")
@@ -4873,7 +4886,7 @@ extend type Query {
     departments(
         "Code INSEE d'une région : seulement ses départements. Code inconnu : erreur de validation."
         region: String
-    ): [Department!]! @field(resolver: "App\\GraphQL\\Resolvers\\TerritoryResolver@departments")
+    ): [Department!]! @field(resolver: "App\\GraphQL\\Resolvers\\TerritoryResolver@departments") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     "Un département, par son code INSEE (`29`, `2A`, `971` ; minuscules acceptées) ; nul s'il est inconnu."
     department(

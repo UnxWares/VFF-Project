@@ -35,7 +35,7 @@ class AccidentFactory extends Factory
             'name' => ['fr' => "Accident de {$commune}", 'en' => "{$commune} rail accident", 'de' => "Eisenbahnunfall von {$commune}"],
             'commune_insee' => fake()->numerify('#####'),
             'commune_name' => $commune,
-            'department_code' => fake()->numerify('##'),
+            'department_code' => fake()->randomElement(StationFactory::RESERVED_DEPARTMENTS),
             'geom' => Point::makeGeodetic(fake()->randomFloat(4, 43.0, 50.5), fake()->randomFloat(4, -1.5, 7.0)),
             'location_precision' => AccidentLocationPrecision::Exact->value,
             'location_source' => 'wikidata',
