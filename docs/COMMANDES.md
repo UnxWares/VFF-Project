@@ -55,13 +55,18 @@ trafic », ni date incertaine, ni « avant 1950 ».
 | `--from-cache` | Rejoue les articles déjà téléchargés, sans requête réseau. |
 | `--refresh` | Re-télécharge les articles en cache. |
 | `--station=` | Une seule gare (identifiant ou slug). |
+| `--prune` | Retire aussi les lignes des gares qui n'ont plus d'article lié (gare rouverte, lien disparu). Jamais celles d'une gare dont l'article est seulement absent du cache. |
 | `--csv=` | Écrit le bilan de relecture (une ligne par date, avec les dates déjà connues et la frise actuelle). |
 | `--dry-run` | Lit et compare sans écrire. |
 
 Les articles sont rattachés par lien (élément Wikidata de la gare, sinon tag OSM `wikipedia=fr:…`), jamais par le nom ;
 seules les gares fermées, disparues ou fret seul aujourd'hui sont retenues. Sont écartés et comptés : un article lié à
 plusieurs gares, plusieurs fins des voyageurs (ou du fret) différentes pour une gare, une date antérieure à l'ouverture.
-La commande ne remplace que ses propres lignes (`source_ref` en `#infobox-voyageurs` et `#infobox-fret`).
+La commande ne remplace que ses propres lignes (`source_ref` en `#infobox-voyageurs` et `#infobox-fret`), et
+seulement pour les gares dont l'article a été lu dans la passe (cache ou réseau) : avec `--from-cache` et un cache
+incomplet, les gares dont l'article manque gardent leurs lignes (le résumé annonce « N gares dont l'article n'a pas été
+lu »). `--prune` retire en plus les lignes des gares sans article lié, et l'annonce (« M retirées »). Deux passes de suite
+donnent le même résultat.
 `vff:build-station-eras` la lit au prochain calcul : plus de voyageurs à partir de l'ère de la date ; une fermeture
 Wikidata (ou OSM) de la même année devient la fin des voyageurs sur une gare fret seul, et une fermeture Wikidata, OSM
 ou OHM (ou une « démolition » Wikidata) de la même année aussi sur une gare fermée ou disparue dont une source plus sûre

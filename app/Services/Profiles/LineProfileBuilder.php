@@ -504,7 +504,7 @@ final class LineProfileBuilder
         $reverse = ProfileOrientation::shouldReverse($official);
         if ($reverse === null && count($placed) >= 2) {
             usort($placed, fn (array $x, array $y): int => $x[0] <=> $y[0]);
-            $reverse = ProfileOrientation::reverseByName($lineName, $placed[0][1], $placed[count($placed) - 1][1]);
+            $reverse = ProfileOrientation::reverseByName($lineName, $placed[0][1], $placed[count($placed) - 1][1], array_column($placed, 1));
         }
 
         return $reverse === true ? $path->reversed() : $path;

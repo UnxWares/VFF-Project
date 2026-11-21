@@ -84,9 +84,9 @@ class ProfileOrientationBoundariesTest extends TestCase
         $this->assertTrue(ProfileOrientation::reverseByName('Lyon - Zulu', 'ZULU', 'LYON'));
     }
 
-    public function test_line_ends_split_on_the_first_separator_only(): void
+    public function test_line_ends_are_not_guessed_when_the_name_has_several_dashes(): void
     {
-        $this->assertSame(['Paris', 'Lyon - Marseille'], ProfileOrientation::lineEnds('Paris - Lyon - Marseille'));
+        $this->assertNull(ProfileOrientation::lineEnds('Paris - Lyon - Marseille'));
         $this->assertSame(['Paris', 'Lyon'], ProfileOrientation::lineEnds('Paris – Lyon'));
     }
 
