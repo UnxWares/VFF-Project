@@ -154,9 +154,13 @@ class LineController extends Controller
      */
     public function show(Line $line, LineSheet $sheet, LineAccidents $accidents, LineLevelCrossings $crossings, LineGreenways $greenways, LineSignallingHistory $signallingHistory, LineProfiles $profiles, LineTraceExport $traceExport, LineArchives $archives, EventStories $stories): Response
     {
+        $page = $sheet->build($line, forPage: true);
+
         return Inertia::render('Lines/Show', [
-            // Sans ce que la page n'affiche pas (LineSheet::PAGE_OMITTED, données complètes dans l'API).
-            ...$sheet->build($line, forPage: true),
+            // Sans ce que la page n'affiche pas ou lit à part (LineSheet::PAGE_OMITTED, données complètes dans l'API).
+            ...$page,
+            // Géométrie de la carte, lue par la page quand la carte s'affiche (LinePortionsController).
+            'portions_url' => LinePortionsController::url($line->slug, $page['portions_version']),
             'accidents' => $accidents->forLine($line, app()->getLocale()),
             'level_crossings' => $crossings->forSheet($line),
             'greenways' => $greenways->forSheet($line),

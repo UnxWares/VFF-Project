@@ -56,7 +56,7 @@
      *   line: Record<string, any>, stats: Record<string, any>, segments: Array<any>, stations: Array<any>,
      *   events: Array<any>, materials: Array<any>, signalling?: Array<any>, sections?: Array<any>,
      *   era_summary?: Array<any>, heritage?: Array<any>, sources?: Array<any>,
-     *   portions?: Array<{ length_m: number, geometry: any }>, phases?: Array<any>, best_phase?: number|null,
+     *   portions_count?: number, portions_url?: string|null, phases?: Array<any>, best_phase?: number|null,
      *   phases_unexplained?: Array<{ from: string, to: string, portions: Array<number>, length_m: number }>,
      *   decades?: Array<any>, chronicle?: { events: Array<any>, groups: Array<any>, notes: Array<any>, conflicts: Array<any> },
      *   accidents?: Array<any>,
@@ -76,7 +76,10 @@
         sections = [],
         heritage = [],
         sources = [],
-        portions = [],
+        // Portions de la carte : leur nombre ici, leur géométrie lue à part quand la carte s'affiche
+        // (App\Http\Controllers\LinePortionsController, lib/linePortions.js).
+        portions_count = 0,
+        portions_url = null,
         phases = [],
         phases_unexplained = [],
         best_phase = null,
@@ -580,11 +583,11 @@
             intro={t('lines.phases.intro')}
             bind:sectionEl={mapSection}
         >
-            {#if phases.length && portions.length}
+            {#if phases.length && portions_count && portions_url}
                 <div class="phases-grid">
                     <div class="map-col">
                         <LinePhaseMap
-                            {portions}
+                            portionsUrl={portions_url}
                             {phase}
                             {stations}
                             name={line.name}
@@ -621,7 +624,7 @@
                 slug={line.slug}
                 eras={trace_export_eras}
                 currentYear={todayDecade?.year ?? null}
-                known={portions.length > 0}
+                known={portions_count > 0}
             />
         </SheetSection>
 

@@ -12,7 +12,8 @@
 @import url('@fontsource/montserrat/400.css');
 @import url('@fontsource/montserrat/600.css');
 @import url('@fontsource/montserrat/700.css');
-@import url('bootstrap-icons/font/bootstrap-icons.min.css');
+/* Icônes : seulement celles du site (scripts/bootstrap-icons/subset.sh), pas les 2 078 de la police complète. */
+@import url('./bootstrap-icons-subset.css');
 @import url('./header/header.css');
 @import url('./footer/footer.css');
 

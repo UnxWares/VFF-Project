@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BasemapArchiveController;
+use App\Http\Controllers\LinePortionsController;
 use App\Http\Controllers\TranslationsController;
 use App\Http\Middleware\AllowIframeEmbed;
 use App\Http\Middleware\ApiLocale;
@@ -41,6 +42,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/basemap/{archive}', BasemapArchiveController::class)
                 ->where('archive', BasemapArchive::NAME_PATTERN)
                 ->name('basemap.archive');
+            // Tracé de la carte d'une fiche de ligne, lu par la page quand la carte s'affiche, sans session ni
+            // cookie et gardé en cache par le navigateur (App\Http\Controllers\LinePortionsController).
+            Route::get('/lines/{slug}/portions/{version}.json', LinePortionsController::class)
+                ->where(['slug' => '[a-z0-9-]{1,100}', 'version' => LinePortionsController::VERSION_PATTERN])
+                ->name('lines.portions');
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

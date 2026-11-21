@@ -3,13 +3,14 @@
 //
 // Règles (rules.js) : cache d'abord pour les fichiers versionnés ; réseau d'abord pour les pages, avec une
 // copie des pages publiques déjà consultées ; réseau d'abord pour les tuiles et les données GeoJSON de la
-// carte déjà affichées, pour les morceaux du fond de carte libre (PMTiles) et pour les images des fiches
+// carte déjà affichées, pour les tracés des cartes des fiches de ligne, pour les morceaux du fond de carte libre (PMTiles) et pour les images des fiches
 // déjà vues ; rien pour le reste de l'API, les écritures, les pages privées ni les autres serveurs.
 import {
     basemap,
     cacheFirst,
     image,
     inertia,
+    lineData,
     mapData,
     navigation,
     pruneExpired,
@@ -21,6 +22,7 @@ import {
     BASEMAP_MAX_AGE_MS,
     IMAGES_CACHE,
     IMAGE_MAX_AGE_MS,
+    LINE_DATA_MAX_AGE_MS,
     MAP_DATA_MAX_AGE_MS,
     MAX_BASEMAP_BYTES,
     MAX_IMAGE_BYTES,
@@ -28,6 +30,7 @@ import {
     PRECACHE,
     TILE_MAX_AGE_MS,
     classify,
+    lineDataCacheName,
     mapDataCacheName,
     pagesCacheName,
     staleCacheNames,
@@ -62,6 +65,7 @@ const CACHE = staticCacheName(VERSION);
 const PAGES = pagesCacheName(VERSION);
 const TILES = tilesCacheName(VERSION);
 const MAP_DATA = mapDataCacheName(VERSION);
+const LINE_DATA = lineDataCacheName(VERSION);
 
 sw.addEventListener('install', (/** @type {SwExtendableEvent} */ event) => {
     // Pas de skipWaiting automatique : la page propose le rechargement (message « Nouvelle version disponible »).
@@ -80,6 +84,7 @@ sw.addEventListener('activate', (/** @type {SwExtendableEvent} */ event) => {
                 [PAGES, PAGE_MAX_AGE_MS],
                 [TILES, TILE_MAX_AGE_MS],
                 [MAP_DATA, MAP_DATA_MAX_AGE_MS],
+                [LINE_DATA, LINE_DATA_MAX_AGE_MS],
                 [IMAGES_CACHE, IMAGE_MAX_AGE_MS],
                 [BASEMAP_CACHE, BASEMAP_MAX_AGE_MS],
             ];
@@ -115,6 +120,7 @@ sw.addEventListener('fetch', (/** @type {SwFetchEvent} */ event) => {
         pagesCache: PAGES,
         tilesCache: TILES,
         mapDataCache: MAP_DATA,
+        lineDataCache: LINE_DATA,
         imagesCache: IMAGES_CACHE,
         basemapCache: BASEMAP_CACHE,
         origin: sw.location.origin,
@@ -135,6 +141,9 @@ sw.addEventListener('fetch', (/** @type {SwFetchEvent} */ event) => {
             break;
         case 'mapdata':
             event.respondWith(mapData(request, deps));
+            break;
+        case 'linedata':
+            event.respondWith(lineData(request, deps));
             break;
         case 'basemap':
             event.respondWith(basemap(request, deps));
