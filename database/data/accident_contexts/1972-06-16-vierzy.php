@@ -100,7 +100,7 @@ return [
         'course' => [
             [
                 'fr' => 'Le 16 juin 1972, une locomotive haut-le-pied franchit le tunnel vers 20 h 21. Peu après, la voûte cède partiellement et environ 700 m3 de matériaux tombent sur la voie.',
-                'en' => 'On 16 June 1972 a light locomotive passed through the tunnel at about 8.21 pm. Shortly afterwards the vault partly gave way and about 700 m3 of material fell onto the track.',
+                'en' => 'On 16 June 1972 a light engine passed through the tunnel at about 8.21 pm. Shortly afterwards the vault partly gave way and about 700 m3 of material fell onto the track.',
                 'de' => 'Am 16. Juni 1972 durchfuhr gegen 20.21 Uhr eine Lokomotive ohne Wagen den Tunnel. Kurz danach brach das Gewölbe teilweise ein, und etwa 700 m3 Material fielen auf das Gleis.',
                 'sources' => ['wp-fr', 'wp-en'],
             ],

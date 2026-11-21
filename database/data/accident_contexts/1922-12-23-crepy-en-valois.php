@@ -66,8 +66,8 @@ return [
         'circumstances' => [
             [
                 'fr' => 'Le 23 décembre 1922, vers 19 heures, dans la banlieue de Paris-Nord, sur la ligne de Paris à Soissons, près de la gare de La Plaine Saint-Denis, un train à destination de Crépy-en-Valois a heurté de front, sur le pont de Soissons, une machine haut-le-pied non couverte par un signal. Les dépêches néerlandaises sont datées de Saint-Denis.',
-                'en' => 'On 23 December 1922, at about 7 pm, in the Paris-Nord suburbs, on the Paris to Soissons line, near La Plaine Saint-Denis station, a train bound for Crépy-en-Valois collided head-on, on the Soissons bridge, with a light locomotive not protected by a signal. The Dutch reports are datelined Saint-Denis.',
-                'de' => 'Am 23. Dezember 1922 gegen 19 Uhr stieß in den Pariser Nordvororten auf der Strecke von Paris nach Soissons, nahe dem Bahnhof La Plaine Saint-Denis, ein Zug nach Crépy-en-Valois auf der Soissons-Brücke frontal mit einer nicht durch ein Signal gedeckten Leerfahrt-Lokomotive zusammen. Die niederländischen Meldungen sind aus Saint-Denis datiert.',
+                'en' => 'On 23 December 1922, at about 7 pm, in the Paris-Nord suburbs, on the Paris to Soissons line, near La Plaine Saint-Denis station, a train bound for Crépy-en-Valois collided head-on, on the Soissons bridge, with a light engine not protected by a signal. The Dutch reports are datelined Saint-Denis.',
+                'de' => 'Am 23. Dezember 1922 gegen 19 Uhr stieß in den Pariser Nordvororten auf der Strecke von Paris nach Soissons, nahe dem Bahnhof La Plaine Saint-Denis, ein Zug nach Crépy-en-Valois auf der Soissons-Brücke frontal mit einer nicht durch ein Signal gedeckten allein fahrenden Lokomotive zusammen. Die niederländischen Meldungen sind aus Saint-Denis datiert.',
                 'sources' => ['wp-liste-1922', 'delpher-1922-12-27a', 'delpher-1922-12-27b'],
             ],
         ],
@@ -110,8 +110,8 @@ return [
             'value' => 'collision',
             'sources' => ['wp-liste-1922', 'delpher-1922-12-27a'],
             'fr' => 'La liste décrit un choc frontal entre un train de voyageurs et une machine haut-le-pied, et la dépêche du 27 décembre 1922 une collision entre un train de voyageurs et une locomotive ; la fiche indiquait un déraillement.',
-            'en' => 'The list describes a head-on impact between a passenger train and a light locomotive, and the report of 27 December 1922 a collision between a passenger train and a locomotive; the entry said derailment.',
-            'de' => 'Die Liste beschreibt einen Frontalzusammenstoß zwischen einem Reisezug und einer Leerfahrt-Lokomotive, die Meldung vom 27. Dezember 1922 eine Kollision zwischen einem Reisezug und einer Lokomotive; der Eintrag nannte eine Entgleisung.',
+            'en' => 'The list describes a head-on impact between a passenger train and a light engine, and the report of 27 December 1922 a collision between a passenger train and a locomotive; the entry said derailment.',
+            'de' => 'Die Liste beschreibt einen Frontalzusammenstoß zwischen einem Reisezug und einer allein fahrenden Lokomotive, die Meldung vom 27. Dezember 1922 eine Kollision zwischen einem Reisezug und einer Lokomotive; der Eintrag nannte eine Entgleisung.',
         ],
     ],
 ];

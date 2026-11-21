@@ -128,7 +128,7 @@ return [
             ],
             [
                 'fr' => 'Le soir du vendredi 18 février 1949 (le 19 selon une source), un express Nancy-Dijon entre en collision avec une locomotive haut-le-pied près de la gare de Port-d\'Atelier-Amance, dans le hameau de Port d\'Atelier (Haute-Saône), sur la ligne de Paris-Est à Mulhouse-Ville.',
-                'en' => 'On the evening of Friday 18 February 1949 (the 19th according to one source), a Nancy-Dijon express collided with a light locomotive near Port-d\'Atelier-Amance station, in the hamlet of Port d\'Atelier (Haute-Saône), on the Paris-Est to Mulhouse-Ville line.',
+                'en' => 'On the evening of Friday 18 February 1949 (the 19th according to one source), a Nancy-Dijon express collided with a light engine near Port-d\'Atelier-Amance station, in the hamlet of Port d\'Atelier (Haute-Saône), on the Paris-Est to Mulhouse-Ville line.',
                 'de' => 'Am Abend des Freitags, 18. Februar 1949 (nach einer Quelle der 19.), stieß ein Schnellzug Nancy-Dijon nahe dem Bahnhof Port-d\'Atelier-Amance im Weiler Port d\'Atelier (Haute-Saône) auf der Strecke Paris-Est-Mulhouse-Ville mit einer Lokomotive im Lokzug zusammen.',
                 'sources' => ['liste-1940', 'gare-port-atelier', 'wp-de'],
             ],

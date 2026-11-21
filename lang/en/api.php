@@ -256,7 +256,7 @@ return [
             'get_accident' => 'Entry for an accident: attached lines, sources read with their licence, and points to check.',
             'compare_eras' => 'Kilometres opened, closed, lifted or kept in service between two map eras.',
             'level_crossings' => 'Level crossings published by SNCF Réseau, by line, type, municipality or bounding box, with their class and kilometre post.',
-            'line_profile' => 'Gradient profile of a line: heights along the route, total climb and descent, steepest gradient and station heights; between two chainages, the point-by-point reference.',
+            'line_profile' => 'Gradient profile of a line: heights along the route, total climb and descent, steepest gradient and station heights; between two kilometre points, the point-by-point reference.',
             'line_audit' => 'Section audit of a line for a period: status, position, accuracy and trace of each section, with the evidence, 50 sections per page (200 at most, offset for the next page).',
             'line_greenways' => 'Greenways from OpenStreetMap on the former trackbed of a closed or removed line, with the length measured on the trackbed and the source.',
             'line_archives' => 'Documents digitised in Gallica whose title refers to a line, with the Gallica link, the date, the type and the match score.',

@@ -75,7 +75,7 @@ return [
             [
                 'fr' => 'La liste de Wikipédia précise que la locomotive était une machine haut-le-pied qui brûlait les signaux fermés ; elle a écrasé le fourgon et broyé cinq voitures. La plupart des voyageurs étant descendus pendant le long stationnement en gare, le bilan est resté limité.',
                 'en' => 'The Wikipedia list adds that the locomotive was a light engine running through closed signals; it crushed the van and smashed five carriages. Most passengers having got off during the long halt at the station, the toll stayed limited.',
-                'de' => 'Die Wikipedia-Liste fügt hinzu, die Lokomotive sei eine Leerfahrt-Maschine gewesen, die geschlossene Signale überfuhr; sie zerdrückte den Gepäckwagen und zertrümmerte fünf Wagen. Da die meisten Reisenden während des langen Aufenthalts im Bahnhof ausgestiegen waren, blieb die Bilanz begrenzt.',
+                'de' => 'Die Wikipedia-Liste fügt hinzu, die Lokomotive sei eine allein fahrende Maschine gewesen, die geschlossene Signale überfuhr; sie zerdrückte den Gepäckwagen und zertrümmerte fünf Wagen. Da die meisten Reisenden während des langen Aufenthalts im Bahnhof ausgestiegen waren, blieb die Bilanz begrenzt.',
                 'sources' => ['wp-liste-1901'],
             ],
         ],
