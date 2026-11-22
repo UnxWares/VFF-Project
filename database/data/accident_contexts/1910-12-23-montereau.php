@@ -118,5 +118,14 @@ return [
             ],
         ],
     ],
-    'corrections' => [],
+    'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '77305',
+            'sources' => ['wp-liste-1910'],
+            'fr' => 'La liste de Wikipédia place l\'accident en gare de Montereau, sur la ligne de Paris à Dijon, à la bifurcation de la ligne de Melun par Héricy : c\'est Montereau-Fault-Yonne (Seine-et-Marne), pas Montereau (Loiret), où l\'import avait placé la fiche.',
+            'en' => 'The Wikipedia list places the accident at Montereau station, on the Paris to Dijon line, at the junction with the line to Melun via Héricy: this is Montereau-Fault-Yonne (Seine-et-Marne), not Montereau (Loiret), where the import had placed the record.',
+            'de' => 'Die Wikipedia-Liste verortet den Unfall im Bahnhof Montereau an der Strecke Paris - Dijon, an der Abzweigung der Strecke nach Melun über Héricy: Das ist Montereau-Fault-Yonne (Seine-et-Marne), nicht Montereau (Loiret), wohin der Import den Datensatz gesetzt hatte.',
+        ],
+    ],
 ];

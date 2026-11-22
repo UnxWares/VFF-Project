@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Console\Commands\AttachStations;
 use App\Console\Commands\BuildSharedTrack;
+use App\Enums\AccidentKind;
+use App\Services\Accidents\AccidentImporter;
 use App\Services\Materials\MaterialGaugeRule;
 use App\Services\Materials\MaterialTractionRule;
 use App\Support\Lgv;
@@ -43,7 +45,8 @@ use Illuminate\Support\Facades\DB;
  *   - patrimoine : train touristique / musée en service, vélorail fermé ;
  *   - pas de tiret long (U+2014) ni de double tiret dans les textes affichés ;
  *   - ère courante : pas de tronçon patrimoine sur une gare voyageurs desservie ;
- *   - pas de lien ligne × matériel dont l'écartement contredit celui de la ligne, sauf source explicite.
+ *   - pas de lien ligne × matériel dont l'écartement contredit celui de la ligne, sauf source explicite ;
+ *   - pas de doublon d'accident : deux fiches publiées du même jour et de même nature proches l'une de l'autre.
  */
 class DataInvariants
 {
@@ -210,6 +213,9 @@ class DataInvariants
         // Ajout « materiel-electrification » (2026-11-19), isolé en fin de liste : BB 9300 et BB 7200 (1 500 V
         // continu) reliées à Valence - Moirans (25 kV) par une phrase sur un changement de machine à Toulouse.
         'line_materials.traction_conflict' => 'Lien ligne × série électrique dont aucun système ne couvre '.(MaterialTractionRule::MIN_SHARE * 100).' % de la longueur de la ligne à une ère au moins de son service, sans phrase qui nomme la tension ni exception relue (liens)',
+        // Ajout « accidents-doublons » (2026-11-22), isolé en fin de liste : la liste de Wikipédia nommait parfois une gare
+        // du parcours du train (Caen pour Cléon, Marseille pour Saint-Raphaël) et créait une seconde fiche.
+        'accidents.same_day_nearby' => 'Deux fiches d\'accident publiées du même jour (date au jour), de même nature, à moins de '.(AccidentImporter::ROUTE_MAX_M / 1000).' km, sans alias ni couple relu dans database/data/accident_distinct_pairs.php (paires)',
     ];
 
     /** @param  list<string>|null  $only  clés (ou préfixes, ex. « segments ») à vérifier */
@@ -1247,6 +1253,38 @@ class DataInvariants
             fn (array $c): string => sprintf('%s × %s (lien %d) : %s', $c['line'], $c['material'], $c['id'], $c['reason']),
             array_slice($conflicts, 0, self::EXAMPLES),
         )];
+    }
+
+    /**
+     * Doublons d'accident probables : deux fiches publiées (hors alias, nature publiable) du même jour, dates au jour,
+     * de même nature, à moins de AccidentImporter::ROUTE_MAX_M. Les couples relus et jugés distincts sont listés dans
+     * database/data/accident_distinct_pairs.php. Une fiche en double se déclare alias de l'autre (`aliases` de son
+     * fichier de contexte), ce qui garde son adresse en redirection 301.
+     *
+     * @return array{count: int, examples: list<string>}
+     */
+    private function accidentsSameDayNearby(): array
+    {
+        $distinct = [];
+        foreach (require database_path('data/accident_distinct_pairs.php') as [$x, $y]) {
+            array_push($distinct, "{$x}|{$y}", "{$y}|{$x}");
+        }
+        $published = fn (string $t): string => AccidentKind::publishableSql($t);
+
+        return $this->violations(<<<SQL
+            SELECT ST_Distance(a.geom::geography, b.geom::geography) AS sort, a.slug AS a_slug, b.slug AS b_slug, a.kind,
+                   ST_Distance(a.geom::geography, b.geom::geography) / 1000 AS km
+            FROM accidents a
+            JOIN accidents b ON b.id > a.id AND b.occurred_on = a.occurred_on AND b.kind = a.kind
+            WHERE a.alias_of_id IS NULL AND b.alias_of_id IS NULL
+              AND a.date_precision = 'day' AND b.date_precision = 'day'
+              AND a.geom IS NOT NULL AND b.geom IS NOT NULL
+              AND ST_DWithin(a.geom::geography, b.geom::geography, :max)
+              AND {$published('a')} AND {$published('b')}
+              AND NOT (a.slug || '|' || b.slug = ANY (CAST(:distinct AS text[])))
+            SQL, fn ($r) => sprintf('%s et %s (%s, %s km)', $r->a_slug, $r->b_slug, $r->kind, $this->km($r->km)),
+            ['max' => AccidentImporter::ROUTE_MAX_M, 'distinct' => '{'.implode(',', array_map(fn (string $p): string => '"'.$p.'"', $distinct)).'}'],
+            order: 'sort');
     }
 
     // ─── Outils ──────────────────────────────────────────────────────────

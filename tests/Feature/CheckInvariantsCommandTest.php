@@ -184,6 +184,8 @@ class CheckInvariantsCommandTest extends TestCase
             'line_materials.doubtful_confidence' => 0,
             // Électrification des liens ligne × matériel (MaterialTractionInvariantTest) : aucun lien ici.
             'line_materials.traction_conflict' => 0,
+            // Doublons d'accident (AccidentRouteDuplicatesTest) : aucune fiche ici.
+            'accidents.same_day_nearby' => 0,
         ], $counts);
 
         $this->assertStringContainsString('200000 Ligne de Bravo à Charlie', $results['segments.current_freight_on_passenger_code']['examples'][0]);

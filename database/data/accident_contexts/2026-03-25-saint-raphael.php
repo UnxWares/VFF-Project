@@ -19,6 +19,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Fiche de trois pages établie à l\'ouverture de l\'enquête, sur les premiers éléments recueillis ; le rapport d\'enquête n\'est pas publié.',
         ],
+        'wp-liste-2020' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 2020',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '25 mars 2026',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_2020&oldid=241585500',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Entrée du 25 mars 2026 : TER Marseille - Nice contre un convoi exceptionnel sur un passage à niveau près de la gare du Dramont ; cite France Bleu (ICI).',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -55,4 +69,13 @@ return [
         ],
     ],
     'corrections' => [],
+    'aliases' => [
+        [
+            'slug' => '2026-03-25-marseille',
+            'sources' => ['wp-liste-2020'],
+            'fr' => 'La fiche « collision à un passage à niveau à Marseille » du 25 mars 2026 venait de la liste de Wikipédia, qui nomme la relation du train (Marseille - Nice-Ville) : l\'entrée décrit le TER qui a heurté un convoi exceptionnel sur un passage à niveau près de la gare du Dramont, à Saint-Raphaël. Marseille et Nice sont les deux bouts de la relation, pas le lieu de l\'accident.',
+            'en' => 'The "level crossing collision at Marseille" record of 25 March 2026 came from the Wikipedia list, which names the train\'s service (Marseille to Nice-Ville): the entry describes the TER that struck an abnormal road load on a level crossing near Le Dramont station, in Saint-Raphaël. Marseille and Nice are the two ends of the service, not the accident site.',
+            'de' => 'Der Datensatz „Zusammenstoß an einem Bahnübergang in Marseille“ vom 25. März 2026 stammte aus der Wikipedia-Liste, die die Zugverbindung nennt (Marseille - Nice-Ville): Der Eintrag beschreibt den TER, der an einem Bahnübergang nahe dem Bahnhof Le Dramont in Saint-Raphaël einen Schwertransport rammte. Marseille und Nizza sind die beiden Enden der Verbindung, nicht der Unfallort.',
+        ],
+    ],
 ];

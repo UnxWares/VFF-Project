@@ -167,4 +167,13 @@ return [
         ],
     ],
     'corrections' => [],
+    'aliases' => [
+        [
+            'slug' => '1922-05-30-bourg-en-bresse',
+            'sources' => ['wp-liste-1922'],
+            'fr' => 'La fiche « collision à Bourg-en-Bresse » du 30 mai 1922 venait de la liste de Wikipédia, dont le lieu (gare de Nurieux) n\'avait pas été reconnu et dont seule la ligne de Bourg-en-Bresse à Bellegarde avait été lue : l\'entrée décrit la collision du tunnel de Mornay, entre Cize-Bolozon et Nurieux, et renvoie à son article détaillé.',
+            'en' => 'The "collision at Bourg-en-Bresse" record of 30 May 1922 came from the Wikipedia list, whose place (Nurieux station) had not been recognised and of which only the Bourg-en-Bresse to Bellegarde line had been read: the entry describes the Mornay tunnel collision, between Cize-Bolozon and Nurieux, and links to its detailed article.',
+            'de' => 'Der Datensatz „Zusammenstoß in Bourg-en-Bresse“ vom 30. Mai 1922 stammte aus der Wikipedia-Liste, deren Ortsangabe (Bahnhof Nurieux) nicht erkannt und von der nur die Strecke Bourg-en-Bresse - Bellegarde gelesen wurde: Der Eintrag beschreibt den Zusammenstoß im Mornay-Tunnel zwischen Cize-Bolozon und Nurieux und verweist auf den ausführlichen Artikel.',
+        ],
+    ],
 ];

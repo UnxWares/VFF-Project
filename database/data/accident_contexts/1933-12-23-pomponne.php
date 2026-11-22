@@ -117,6 +117,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Lien relevé dans les références de l\'article de Wikipédia ; Gallica non lisible depuis cette machine. Les débats des 19 et 26 janvier 1934 sont aux mêmes références.',
         ],
+        'wp-liste-1933' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France en 1933',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '23 décembre 1933',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_en_1933&oldid=241584446',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Entrée « Lagny-Pomponne » qui renvoie à l\'article détaillé ; cite Le Petit Parisien et Le Petit Journal du 25 décembre 1933 (Gallica).',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -246,6 +260,15 @@ return [
                 'de' => 'Der deutsche Artikel nennt 19.31 Uhr für den Nancy-Zug und zwei Minuten später für den Schnellzug; der französische Artikel nennt 19.22 Uhr für Zug 55 und neun Minuten Abstand.',
                 'sources' => ['wp-fr', 'wp-de'],
             ],
+        ],
+    ],
+    'aliases' => [
+        [
+            'slug' => '1933-12-23-lagny',
+            'sources' => ['wp-liste-1933'],
+            'fr' => 'La fiche « collision à Lagny » du 23 décembre 1933 venait de la liste de Wikipédia et de la liste en allemand, dont le lieu « Lagny » avait été pris pour Lagny (Oise), à plus de 80 km : les deux entrées décrivent la catastrophe de Lagny-Pomponne (Seine-et-Marne), express pour Strasbourg contre le train supplémentaire pour Nancy.',
+            'en' => 'The "collision at Lagny" record of 23 December 1933 came from the French and German Wikipedia lists, whose place "Lagny" had been read as Lagny (Oise), more than 80 km away: both entries describe the Lagny-Pomponne disaster (Seine-et-Marne), the Strasbourg express running into the relief train for Nancy.',
+            'de' => 'Der Datensatz „Zusammenstoß in Lagny“ vom 23. Dezember 1933 stammte aus der französischen und der deutschen Wikipedia-Liste, deren Ortsangabe „Lagny“ als Lagny (Oise) gelesen wurde, mehr als 80 km entfernt: Beide Einträge beschreiben das Unglück von Lagny-Pomponne (Seine-et-Marne), den Schnellzug nach Straßburg, der auf den Entlastungszug nach Nancy auffuhr.',
         ],
     ],
 ];
