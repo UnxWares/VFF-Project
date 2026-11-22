@@ -1,0 +1,101 @@
+<?php
+
+// Contexte sourcé de l'accident mortel d'un ouvrier près de la station de Givors, ligne de Saint-Étienne à Lyon, 11 octobre 1836 (recherche du 22/11/2026).
+return [
+    'slug' => '1836-10-11-givors',
+    'checked_on' => '2026-11-22',
+    'sources' => [
+        'wp-liste-1830' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Liste d\'accidents ferroviaires en France dans les années 1830',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => '1836',
+            'url' => 'https://fr.wikipedia.org/w/index.php?title=Liste_d%27accidents_ferroviaires_en_France_dans_les_ann%C3%A9es_1830&oldid=235638465#1836',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Entrée du 11 octobre 1836, d\'après La Presse du 17 octobre 1836, p. 3 : près de la station de Givors, un ouvrier qui dégageait la voie pour un convoi glisse sur le rail et est décapité par les wagons.',
+        ],
+        'wp-en-before-1880' => [
+            'provider' => 'wikipedia-en',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'List of rail accidents (before 1880)',
+            'publisher' => 'Wikipedia en anglais',
+            'author' => null,
+            'published' => null,
+            'locator' => '1836',
+            'url' => 'https://en.wikipedia.org/w/index.php?title=List_of_rail_accidents_(before_1880)&oldid=1381931919#1836',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Entrée du 11 octobre 1836 pour la France : un employé de la ligne de Saint-Étienne à Lyon tombe sur la voie et est décapité par un train ; l\'entrée le dit premier accident de train en France et cite le même numéro de La Presse (17 octobre 1836).',
+        ],
+        'haye-1836-10-20' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'France, Paris, 17 octobre',
+            'publisher' => 'Journal de La Haye',
+            'author' => null,
+            'published' => '1836-10-20',
+            'locator' => null,
+            'url' => 'https://resolver.kb.nl/resolve?urn=ddd:010096131:mpeg21:a0004',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Presse néerlandaise numérisée par la Koninklijke Bibliotheek (Delpher) ; journal en français. Correspondance de Paris du 17 octobre, reprise du Messager : même accident, à la station de Givors, un ouvrier tué par les wagons ; le corps est porté à l\'hôpital de Givors.',
+        ],
+        'gallica-presse-1836-10-17' => [
+            'provider' => 'gallica',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Rhône - Givors - accident de train, La Presse du 17 octobre 1836, page 3',
+            'publisher' => 'La Presse (numérisé sur Gallica)',
+            'author' => null,
+            'published' => '1836-10-17',
+            'locator' => 'p. 3',
+            'url' => 'https://gallica.bnf.fr/ark:/12148/bpt6k4268161/f3',
+            'access' => 'link_only',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Source commune des deux listes ; non lue (Gallica n\'est pas lisible par programme).',
+        ],
+    ],
+    'sections' => [
+        'course' => [
+            [
+                'fr' => 'Le 11 octobre 1836, sur le chemin de fer de Saint-Étienne à Lyon, près de la station de Givors, un ouvrier occupé à dégager la voie pour le passage d\'un convoi a glissé sur le rail. Les wagons lui sont passés sur le corps et l\'ont décapité.',
+                'en' => 'On 11 October 1836, on the Saint-Étienne to Lyon railway near Givors station, a workman clearing the track for a passing train slipped on the rail. The wagons ran over him and decapitated him.',
+                'de' => 'Am 11. Oktober 1836 rutschte auf der Eisenbahn von Saint-Étienne nach Lyon nahe der Station Givors ein Arbeiter, der die Strecke für einen durchfahrenden Zug freimachte, auf der Schiene aus. Die Wagen überrollten ihn und trennten ihm den Kopf ab.',
+                'sources' => ['wp-liste-1830', 'wp-en-before-1880', 'haye-1836-10-20'],
+            ],
+        ],
+        'victims' => [
+            [
+                'fr' => 'Les deux listes ne parlent que de cet ouvrier, tué ; aucun autre blessé ni mort n\'y figure. Le Journal de La Haye décrit le même accident, un seul mort dont le corps est porté à l\'hôpital de Givors.',
+                'en' => 'Both lists mention only this workman, who was killed; no other injured or dead person appears in them. The Journal de La Haye describes the same accident, a single death, the body being taken to the hospital at Givors.',
+                'de' => 'Beide Listen nennen nur diesen Arbeiter, der getötet wurde; weitere Verletzte oder Tote erscheinen darin nicht. Das Journal de La Haye beschreibt denselben Unfall, einen einzigen Toten, dessen Leiche ins Krankenhaus von Givors gebracht wurde.',
+                'sources' => ['wp-liste-1830', 'wp-en-before-1880', 'haye-1836-10-20'],
+            ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'La liste anglaise présente cet accident comme le premier accident de train de France. La liste française recense des accidents antérieurs sur la ligne d\'Andrézieux à Roanne, dont un déraillement mortel le 24 novembre 1833 près de Neulise.',
+                'en' => 'The English list presents this accident as the first train accident in France. The French list records earlier accidents on the Andrézieux to Roanne line, including a fatal derailment near Neulise on 24 November 1833.',
+                'de' => 'Die englische Liste nennt diesen Unfall den ersten Zugunfall Frankreichs. Die französische Liste verzeichnet frühere Unfälle auf der Strecke von Andrézieux nach Roanne, darunter eine tödliche Entgleisung am 24. November 1833 bei Neulise.',
+                'sources' => ['wp-en-before-1880', 'wp-liste-1830'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 1,
+            'sources' => ['haye-1836-10-20', 'wp-liste-1830'],
+            'fr' => 'Un ouvrier tué selon la liste de Wikipédia (La Presse du 17 octobre 1836) et le Journal de La Haye (d\'après le Messager) ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'One workman killed according to the Wikipedia list (La Presse of 17 October 1836) and the Journal de La Haye (after the Messager); the record gave no number of deaths.',
+            'de' => 'Ein Arbeiter getötet nach der Wikipedia-Liste (La Presse vom 17. Oktober 1836) und dem Journal de La Haye (nach dem Messager); der Eintrag nannte keine Zahl von Toten.',
+        ],
+    ],
+];
