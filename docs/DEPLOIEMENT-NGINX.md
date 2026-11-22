@@ -186,3 +186,6 @@ curl -sI https://vff-project.org/up/details                     # 401 sans jeton
 curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'Content-Type: application/json' \
   --data-binary @gros-fichier.json https://vff-project.org/graphql   # 413 au-delà de 2 Mio
 ```
+
+Planificateur : poser `schedule:run` chaque minute (cron ou minuteur systemd, `docs/PLANIFICATION.md`), puis
+vérifier que `checks.scheduler.status` de `/up/details` (avec le jeton) passe à `ok`.

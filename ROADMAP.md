@@ -275,7 +275,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [x] Pages légales complètes (2026-10-21) : mentions légales, politique de confidentialité, conditions générales d'utilisation, déclaration d'accessibilité
 - [ ] Messagerie de `vff-project.org` : aucun enregistrement MX à ce jour, `contact@` et `privacy@` ne reçoivent rien
 - [ ] Hébergement sur l'infrastructure d'UnxWares (le domaine pointe aujourd'hui sur un serveur Hetzner Cloud à Helsinki)
-- [ ] Planificateur Laravel en production (recalcul quotidien de l'époque 2030)
+- [~] Planificateur Laravel en production (recalcul quotidien de l'époque 2030) : code prêt (tâches, verrous, journal, signalement d'échec, battement vers `/up/details`, entretien, tests, `docs/PLANIFICATION.md`) ; reste à poser `schedule:run` sur le serveur d'UnxWares
 - [x] Engagements des pages légales : journaux conservés 12 mois au plus, suppression des comptes inactifs depuis 3 ans (avec avertissement), suppression de compte (phase 5), information des membres avant un changement des CGU
 - [x] Correction des défauts de l'audit de l'interface (interface unifiée, contrastes, cibles, clavier : novembre 2026)
 - [x] Audit de conformité RGAA interne complet (100 % après la correction de Swagger UI et Magidoc le soir du 19/11, totalement conforme), taux publié dans la déclaration

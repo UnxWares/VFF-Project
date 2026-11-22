@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Era;
+use App\Support\Scheduling\SchedulerStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -41,6 +42,7 @@ class HealthController extends Controller
             'queue' => $this->queue(),
             'disk' => $this->disk(),
             'era' => $this->era(),
+            'scheduler' => $this->scheduler(),
         ];
 
         $statuses = array_column($checks, 'status');
@@ -158,6 +160,35 @@ class HealthController extends Controller
         return [
             'status' => $age > (int) config('monitoring.era_max_age_hours') ? 'degraded' : 'ok',
             'age_hours' => $age,
+        ];
+    }
+
+    /**
+     * Planificateur (docs/PLANIFICATION.md) : battement de cinq minutes et passage de la nuit du recalcul
+     * de l'ère courante. Contrôlé seulement là où le planificateur est attendu (HEALTH_SCHEDULER_EXPECTED,
+     * vrai en production) : sur un poste de développement, aucun planificateur ne tourne.
+     *
+     * @return array<string, mixed>
+     */
+    private function scheduler(): array
+    {
+        if (! config('monitoring.scheduler_expected')) {
+            return ['status' => 'ok', 'expected' => false];
+        }
+        try {
+            $beat = SchedulerStatus::beatAgeMinutes();
+        } catch (Throwable) {
+            return ['status' => 'degraded', 'expected' => true];
+        }
+        $lag = SchedulerStatus::refreshLagDays();
+        $stale = $beat === null || $beat > (int) config('monitoring.scheduler_max_age_minutes')
+            || $lag === null || $lag > (int) config('monitoring.refresh_max_lag_days');
+
+        return [
+            'status' => $stale ? 'degraded' : 'ok',
+            'expected' => true,
+            'beat_age_minutes' => $beat,
+            'refresh_lag_days' => $lag,
         ];
     }
 }

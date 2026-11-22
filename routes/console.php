@@ -3,6 +3,8 @@
 use App\Models\AuditEvent;
 use App\Models\DatabaseNotification;
 use App\Models\ErrorReport;
+use App\Support\Scheduling\SchedulerStatus;
+use Illuminate\Console\Scheduling\CallbackEvent;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -90,3 +92,55 @@ Schedule::command('model:prune', ['--model' => [ErrorReport::class]])
     ->dailyAt('05:55')
     ->timezone('Europe/Paris')
     ->environments(['production']);
+
+/*
+| Battement et entretien général (production seulement, sauf le battement).
+|
+| Battement : toutes les cinq minutes, il prouve que `schedule:run` tourne ; le contrôle `scheduler` de
+| /up/details (HealthController) passe à `degraded` s'il s'arrête ou si le recalcul de l'ère courante a
+| manqué une nuit (config/monitoring.php, docs/PLANIFICATION.md).
+|
+| Entretien : jetons d'API (Sanctum) expirés depuis plus d'un jour (ils expirent un an après leur création
+| ou leur renouvellement), jetons de réinitialisation de mot de passe périmés, travaux échoués de plus de
+| 30 jours. Les sessions sont dans Valkey (SESSION_DRIVER=redis) et expirent seules ; les livraisons de
+| webhooks sont élaguées à chaque envoi (WebhookSubscriptions::pruneLog) ; les erreurs JavaScript du
+| navigateur vont dans un journal tournant, pas dans une table.
+*/
+
+Schedule::call(SchedulerStatus::beat(...))
+    ->name('vff:scheduler-heartbeat')
+    ->everyFiveMinutes();
+
+Schedule::command('sanctum:prune-expired', ['--hours' => 24])
+    ->name('sanctum:prune-expired')
+    ->dailyAt('04:05')
+    ->timezone('Europe/Paris')
+    ->environments(['production']);
+
+Schedule::command('auth:clear-resets')
+    ->name('auth:clear-resets')
+    ->dailyAt('04:10')
+    ->timezone('Europe/Paris')
+    ->environments(['production']);
+
+Schedule::command('queue:prune-failed', ['--hours' => 720])
+    ->name('queue:prune-failed')
+    ->dailyAt('04:15')
+    ->timezone('Europe/Paris')
+    ->environments(['production']);
+
+/*
+| Toutes les tâches de commande : une seule exécution à la fois sur l'ensemble des serveurs (cache
+| partagé, Valkey), sortie ajoutée à storage/logs/schedule.log, échec signalé (journal puis
+| exception rapportée, donc GlitchTip ou Bugsink si configuré). Le battement, une tâche de rappel,
+| tourne sur chaque serveur.
+*/
+foreach (Schedule::events() as $event) {
+    if ($event instanceof CallbackEvent) {
+        continue;
+    }
+    $task = (string) ($event->description ?? $event->command);
+    $event->onOneServer()
+        ->appendOutputTo(storage_path('logs/schedule.log'))
+        ->onFailure(SchedulerStatus::failureReporter($task));
+}
