@@ -12,8 +12,8 @@ use Tests\Support\CommandSandbox;
 use Tests\TestCase;
 
 /**
- * vff:merge-split-lines : les cinq passes (sections, même article,
- * couverture, orphelines, homonymes), chacune sur un cas accepté et sur ses
+ * vff:merge-split-lines : les six passes (sections, même article,
+ * couverture, orphelines, homonymes, couloir), chacune sur un cas accepté et sur ses
  * cas refusés, plus --dry-run, --only et la réutilisation dans un même
  * processus (vff:rebuild-history).
  *
@@ -144,6 +144,7 @@ class MergeSplitLinesCommandTest extends TestCase
             ->expectsOutputToContain('→ 3. Lignes créées contenant le tracé connu d\'une ligne à code incomplète : 0')
             ->expectsOutputToContain('→ 4. Lignes à code sans aucun tracé : 0')
             ->expectsOutputToContain('→ 5. Événements Wikipédia d\'un article homonyme : 0 sur 0 ligne(s)')
+            ->expectsOutputToContain('→ 6. Lignes créées dessinées dans le couloir d\'une ligne à code : 0')
             ->doesntExpectOutputToContain('Relancer vff:build-line-references')
             ->assertSuccessful();
         $this->assertSame([], $this->csv());
@@ -802,6 +803,124 @@ class MergeSplitLinesCommandTest extends TestCase
         $row = $this->rowFor($holder->id, dry: true);
         $this->assertSame(['à déplacer', (string) $owner->id], [$row['decision'], $row['target_id']]);
         $this->assertSame('1 événement(s) de « Ligne de Nantes à Pornic » : article de Ligne de Nantes à Pornic (515000)', $row['detail']);
+    }
+
+    // ─── 6. couloir ──────────────────────────────────────────────────────
+
+    /**
+     * Extraits réels de vff (22/11/2026, tracés de référence simplifiés à 5 m) : 578 « Évreux-Embranchement à
+     * Acquigny » (371000) et la ligne créée 3225 « Gravigny à Amfreville », la même voie dessinée deux fois.
+     */
+    private const EVREUX_ACQUIGNY = 'MULTILINESTRING((1.131993 49.139829,1.126344 49.135746,1.125442 49.134989,1.124131 49.133701,1.118229 49.125758,1.116317 49.123107,1.11592 49.122384,1.115663 49.121511,1.115627 49.120755,1.115667 49.120389,1.11595 49.119676,1.116606 49.118878,1.118885 49.11702,1.119981 49.11587,1.120496 49.114705,1.120604 49.113996,1.120597 49.113391,1.120215 49.11215,1.119046 49.110299,1.1175 49.108239,1.115265 49.105593,1.114588 49.104557,1.113586 49.102028,1.11352 49.101422,1.113599 49.100886,1.114023 49.100114,1.114643 49.099497,1.115732 49.098862,1.116708 49.09856,1.117886 49.098384,1.132469 49.097432,1.133548 49.097172,1.134213 49.09692,1.135232 49.096378,1.1361 49.095697,1.13663 49.094999,1.136921 49.094393,1.1394 49.08395,1.139644 49.083269,1.140028 49.082718,1.140839 49.082061,1.148195 49.07809,1.154363 49.073257,1.154998 49.072839,1.156713 49.071937,1.157634 49.071297,1.158453 49.070565,1.168112 49.060509,1.16905 49.059266,1.16946 49.058385,1.169751 49.056903,1.169613 49.055817,1.169345 49.054931,1.169055 49.054346,1.164752 49.047309),(1.140989 49.144922,1.142512 49.145616,1.143874 49.146099,1.158425 49.15355,1.178143 49.161718,1.179278 49.162368,1.180325 49.163251,1.181004 49.164165,1.181429 49.16524,1.181512 49.166306,1.181325 49.167223,1.179585 49.171864,1.178204 49.175138,1.17787 49.175734,1.175395 49.178907),(1.148975 49.018412,1.153294 49.018953,1.154733 49.019282,1.155601 49.019576,1.155715 49.019688),(1.157344 49.020353,1.155715 49.019687),(1.157344 49.020353,1.157547 49.02037),(1.157547 49.02037,1.158025 49.020622),(1.161056 49.030523,1.157878 49.02668),(1.158088 49.02075,1.158025 49.020622),(1.162828 49.028692,1.162712 49.027996,1.161012 49.023535,1.160607 49.022936,1.159968 49.022264,1.159027 49.02142,1.158088 49.02075),(1.163649 49.033309,1.161056 49.030523),(1.162587 49.030064,1.162655 49.029837),(1.163649 49.033309,1.162722 49.031981,1.162443 49.031352,1.162405 49.030822,1.162587 49.030064),(1.162655 49.029837,1.162827 49.028894),(1.162828 49.028693,1.162827 49.028894),(1.16451 49.046856,1.164258 49.046071,1.16421 49.045369,1.164674 49.040247,1.164472 49.036859,1.1645 49.035325,1.164248 49.034356,1.163649 49.033309),(1.16451 49.046856,1.164752 49.047309))';
+
+    private const GRAVIGNY_AMFREVILLE = 'MULTILINESTRING((1.16421 49.045395,1.164258 49.046071,1.16451 49.046856,1.169055 49.054346,1.169472 49.055291,1.169703 49.056257,1.169727 49.057235,1.16946 49.058385,1.16905 49.059266,1.168112 49.060509,1.158453 49.070565,1.157634 49.071297,1.156713 49.071937,1.154998 49.072839,1.154363 49.073257,1.148195 49.07809,1.140839 49.082061,1.140028 49.082718,1.139644 49.083269,1.1394 49.08395,1.136921 49.094393,1.13663 49.094999,1.136208 49.095578,1.135692 49.096061,1.134793 49.096639,1.133673 49.097134,1.132469 49.097432,1.117886 49.098384,1.116708 49.09856,1.115732 49.098862,1.114643 49.099497,1.114023 49.100114,1.113599 49.100886,1.11352 49.101422,1.113586 49.102028,1.114588 49.104557,1.115265 49.105593,1.1175 49.108239,1.119046 49.110299,1.120215 49.11215,1.120597 49.113391,1.120604 49.113996,1.120496 49.114705,1.119981 49.11587,1.118885 49.11702,1.116606 49.118878,1.11595 49.119676,1.115667 49.120389,1.115627 49.120755,1.115663 49.121511,1.11592 49.122384,1.116317 49.123107,1.118229 49.125758,1.124131 49.133701,1.125442 49.134989,1.126344 49.135746,1.131993 49.139829),(1.131993 49.13983,1.132946 49.140437),(1.132946 49.140437,1.136451 49.142265,1.138051 49.143221,1.139557 49.143843),(1.139557 49.143843,1.140507 49.144331,1.140933 49.1449),(1.140933 49.1449,1.144368 49.146346))';
+
+    /** Extraits réels : 196 « Paulhan à Montpellier » (694000) autour de la ligne secondaire 4211 « Montbazin-Gigean à Poussan ». */
+    private const PAULHAN_MONTPELLIER = 'MULTILINESTRING((3.672837 43.515229,3.684866 43.512558,3.686511 43.512017,3.688659 43.51107),(3.683005 43.512871,3.682747 43.511819),(3.682837 43.50889,3.683063 43.509523,3.683504 43.510176,3.684218 43.510742,3.684854 43.511069,3.685734 43.51131,3.686655 43.51138,3.687726 43.51128,3.688659 43.51107),(3.688659 43.51107,3.693416 43.508957),(3.696533 43.508288,3.694981 43.508454,3.693416 43.508957),(3.696533 43.508288,3.697634 43.508352),(3.697269 43.507007,3.69795 43.507727,3.699385 43.508751))';
+
+    private const MONTBAZIN_POUSSAN = 'MULTILINESTRING((3.689385 43.510748,3.688659 43.51107,3.687376 43.511327,3.686339 43.511374,3.685378 43.511229,3.684468 43.510894,3.683578 43.510249,3.683142 43.509673,3.682837 43.50889))';
+
+    /** Ligne à code 578 avec ses gares SNCF ; Amfreville-sur-Iton près de la ligne, Amfreville (Calvados) loin. */
+    private function evreuxAcquigny(): Line
+    {
+        $coded = $this->line('Ligne d\'Évreux-Embranchement à Acquigny', '371000');
+        $this->reference($coded, self::EVREUX_ACQUIGNY);
+        $this->trace('sncf', 's-371', self::EVREUX_ACQUIGNY, $coded->id);
+        $this->gare('371000', 'Gravigny', 1.1665, 49.0498, 3719);
+        $this->gare('371000', 'Acquigny', 1.1798, 49.1709, 22100);
+        $this->commune('27015', 'Amfreville-sur-Iton', 1.1446, 49.1549);
+        $this->commune('14009', 'Amfreville', -0.2405, 49.2508);
+
+        return $coded;
+    }
+
+    /** @param  array<string, mixed>  $attributes */
+    private function createdWithReference(string $name, string $wkt, array $attributes = []): Line
+    {
+        $line = $this->created($name, $wkt, $attributes);
+        $this->reference($line, $wkt);
+
+        return $line;
+    }
+
+    public function test_corridor_merges_a_created_line_drawn_along_its_coded_line(): void
+    {
+        $coded = $this->evreuxAcquigny();
+        $created = $this->createdWithReference('Ligne de Gravigny à Amfreville', self::GRAVIGNY_AMFREVILLE);
+        $event = $this->event($created, 'ohm', 'https://www.openhistoricalmap.org/relation/1', ['type' => 'closed', 'event_date' => '1950-01-01']);
+
+        $this->artisan('vff:merge-split-lines', ['--only' => 'couloir'])
+            ->expectsOutputToContain('→ 6. Lignes créées dessinées dans le couloir d\'une ligne à code : 1')
+            ->assertSuccessful();
+
+        $this->assertDatabaseMissing('lines', ['id' => $created->id]);
+        $this->assertSame($coded->id, (int) DB::table('line_events')->where('id', $event)->value('line_id'));
+        $alt = json_decode(DB::table('lines')->where('id', $coded->id)->value('alt_names'), true);
+        $this->assertSame('Ligne de Gravigny à Amfreville', $alt['merged'][0]['name']);
+        $row = $this->rowFor($created->id, 'couloir');
+        $this->assertSame(['fusionné', (string) $coded->id], [$row['decision'], $row['target_id']]);
+        $this->assertStringStartsWith('même voie dessinée deux fois : 94 % de son tracé (14.4 km) à 40 m au plus de la ligne, 94 % de lignes à code, '
+            .'« Amfreville » à 3 km au plus de son tracé', $row['detail']);
+    }
+
+    public function test_corridor_dry_run_writes_nothing(): void
+    {
+        $this->evreuxAcquigny();
+        $created = $this->createdWithReference('Ligne de Gravigny à Amfreville', self::GRAVIGNY_AMFREVILLE);
+
+        $this->artisan('vff:merge-split-lines', ['--only' => 'couloir', '--dry-run' => true])->assertSuccessful();
+
+        $this->assertDatabaseHas('lines', ['id' => $created->id]);
+        $this->assertSame('à fusionner', $this->rowFor($created->id, 'couloir', dry: true)['decision']);
+    }
+
+    public function test_corridor_never_merges_another_line(): void
+    {
+        $coded = $this->evreuxAcquigny();
+        // Autre gare d'arrivée, inconnue de la ligne et loin de son tracé.
+        $foreign = $this->createdWithReference('Ligne de Gravigny à Nulle-Part', self::GRAVIGNY_AMFREVILLE);
+        // Aucun toponyme de la ligne.
+        $unnamed = $this->createdWithReference('Ligne de Bernay à Nulle-Part', self::GRAVIGNY_AMFREVILLE);
+        // Couloir partiel : la même voie, puis 5,8 km hors de toute ligne à code.
+        $partial = $this->createdWithReference('Ligne de Gravigny à Acquigny',
+            str_replace('MULTILINESTRING(', 'MULTILINESTRING((1.2 49.2,1.28 49.2),', self::GRAVIGNY_AMFREVILLE));
+        // Ligne secondaire le long d'une ligne du réseau principal (extraits réels).
+        $paulhan = $this->line('Ligne de Paulhan à Montpellier', '694000');
+        $this->reference($paulhan, self::PAULHAN_MONTPELLIER);
+        $this->gare('694000', 'Montbazin-Gigean', 3.7073, 43.5122, 500293);
+        // Ligne à code dans le couloir d'une autre : jamais candidate.
+        $twin = $this->line('Raccordement de Montbazin-Gigean à Poussan', '694306');
+        $this->reference($twin, self::MONTBAZIN_POUSSAN);
+        $secondary = $this->createdWithReference('Raccordement de Montbazin-Gigean à Poussan', self::MONTBAZIN_POUSSAN, ['network' => 'secondaire']);
+
+        $this->artisan('vff:merge-split-lines', ['--only' => 'couloir'])->assertSuccessful();
+
+        foreach ([$foreign, $unnamed, $partial, $twin, $secondary, $coded, $paulhan] as $line) {
+            $this->assertDatabaseHas('lines', ['id' => $line->id]);
+        }
+        $this->assertStringStartsWith('« Nulle-Part » n\'est pas un lieu de la ligne ni à 3 km de son tracé ; 94 %',
+            $this->rowFor($foreign->id, 'couloir')['detail']);
+        $this->assertStringStartsWith('aucun toponyme n\'est un lieu de la ligne ; 94 %', $this->rowFor($unnamed->id, 'couloir')['detail']);
+        $this->assertStringStartsWith('couloir partiel : ', $this->rowFor($partial->id, 'couloir')['detail']);
+        $this->assertStringStartsWith('catégorie secondaire ≠ principal : autre ligne le long de la ligne à code ; 100 %',
+            $this->rowFor($secondary->id, 'couloir')['detail']);
+        $this->assertSame([], array_values(array_filter($this->csv(), fn (array $r) => $r['line_id'] === (string) $twin->id)));
+        $this->assertSame(['rejeté'], array_values(array_unique(array_column($this->csv(), 'decision'))));
+    }
+
+    public function test_corridor_leaves_a_line_drawn_along_two_coded_lines_to_review(): void
+    {
+        $this->evreuxAcquigny();
+        $double = $this->line('Ligne de Gravigny à Acquigny', '371999');
+        $this->reference($double, self::EVREUX_ACQUIGNY);
+        $created = $this->createdWithReference('Ligne de Gravigny à Amfreville', self::GRAVIGNY_AMFREVILLE);
+
+        $this->artisan('vff:merge-split-lines', ['--only' => 'couloir'])->assertSuccessful();
+
+        $this->assertDatabaseHas('lines', ['id' => $created->id]);
+        $rows = array_values(array_filter($this->csv(), fn (array $r) => $r['line_id'] === (string) $created->id));
+        $this->assertSame(['à relire', 'à relire'], array_column($rows, 'decision'));
+        $this->assertStringStartsWith('plusieurs lignes à code dans le couloir : même voie dessinée deux fois', $rows[0]['detail']);
     }
 
     // ─── réutilisation ───────────────────────────────────────────────────

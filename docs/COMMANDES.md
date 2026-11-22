@@ -310,8 +310,8 @@ quand la part de ses tronçons en service électrifiés atteint le seuil de la f
 
 ### `vff:merge-split-lines`
 
-Fusionne les lignes en double et recolle les événements rattachés à la mauvaise ligne, en cinq passes rejouables : `sections`,
-`article`, `couverture`, `orphelines`, `homonymes`. Écrit dans les tables du moteur ; `vff:rebuild-history` l'enchaîne,
+Fusionne les lignes en double et recolle les événements rattachés à la mauvaise ligne, en six passes rejouables : `sections`,
+`article`, `couverture`, `orphelines`, `homonymes`, `couloir`. Écrit dans les tables du moteur ; `vff:rebuild-history` l'enchaîne,
 et il faut relancer ensuite `vff:build-line-references` sur les lignes touchées. Rapport CSV de relecture dans
 `storage/app/reports/merge-split-lines[-dry-run].csv`.
 
@@ -330,6 +330,15 @@ Règles de la passe `sections` ajoutées les 21 et 22/11 (fusion des lignes de s
   au bout qui prolonge le tracé, ou trois gares sourcées de la ligne l'appuient. Une seule ligne à code doit tout remplir,
   sinon le cas reste « à relire ». Une ligne qui part d'une gare de la ligne ou aboutit à son tracé est refusée.
 - Mesure du 22/11 sur la copie : 12 tracés complétés (470 km de plus), `lines.junction_gap` à 0.
+
+Passe `couloir` (22/11) : une ligne créée par `vff:link-traces` (sans code) dont le tracé de référence court dans le
+couloir d'une ligne à code est cette ligne dessinée une seconde fois. Elle y est fusionnée si au moins 60 % de son tracé
+est à 40 m au plus du tracé de la ligne à code (et 80 % à 40 m de lignes à code), si les deux lignes sont de la même
+catégorie et si ses deux toponymes sont des lieux de la ligne, ou l'un d'eux et l'autre une commune ou une gare à 3 km au
+plus de son tracé. Une ligne secondaire, militaire ou industrielle qui longe une ligne du réseau principal est refusée,
+une ligne à code n'est jamais fusionnée, et un tracé dans le couloir de deux lignes à code reste « à relire ». Passe à
+blanc du 22/11 sur `vff` : 4 fusions (Aire-sur-la-Lys à Isbergues, Avesnes à Flaumont, Gravigny à Amfreville, Louviers à
+Caudebec-lès-Elbeuf), 7 refus.
 
 ### Règles du moteur ajoutées à `vff:build-line-references`
 
