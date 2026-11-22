@@ -113,3 +113,21 @@ Tirés du second contrôle à la main de 100 gares (`storage/app/reports/agents/
 - Corrections sourcées des contrôles (`database/data/gares_corrections.php`, section 8) : 27 gares (3 exclusions, dates, fins des voyageurs ou du fret, 6 positions). Elles sont lues au prochain calcul des
   gares, avec les règles ci-dessus : `vff:consolidate-stations` puis `vff:stations-pipeline --from-attach --from-cache`.
 - Commandes et options : [COMMANDES.md](COMMANDES.md).
+
+## Invariant `stations.opened_before_lines` (règles du 22/11/2026)
+
+Signale une gare ouverte (date au jour, sourcée, non déduite des lignes) avant l'ouverture au jour de toutes ses
+lignes. Trois règles écartent les faux positifs relevés par les agents `gares-avant-lignes` et
+`gares-avant-lignes-2` (43 cas avant, 34 après sur `vff`) :
+
+- la gare n'est comparée qu'aux événements d'ouverture dont la section est résolue (`section_resolution` = `trace`
+  ou `places`) et qui la couvrent ; « whole_line », « unresolved » et « pending » ne disent pas quelle portion ils
+  visent ;
+- les rattachements `terminus_name` et ceux dont le PK est projeté (`pk_source` = `projected_raw`) ne comptent pas :
+  une gare ancienne, terminus d'une ligne secondaire plus tardive (Dormans, Plancoët), n'est pas ouverte « avant sa
+  ligne » ;
+- un écart de 3 jours au plus (`DataInvariants::STATION_OPENED_TOLERANCE_DAYS`) est toléré : inauguration la veille
+  de l'ouverture au public.
+
+Un cas qui reste est une contradiction à trancher (date de gare, date de ligne ou rattachement). Tests :
+`tests/Feature/StationServiceYearsTest.php`.

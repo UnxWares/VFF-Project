@@ -50,6 +50,9 @@ class DataInvariants
     /** Exemples affichés par invariant violé. */
     public const EXAMPLES = 5;
 
+    /** Écart toléré (jours) entre l'ouverture d'une gare et celle de sa ligne : inauguration la veille de l'ouverture au public. */
+    public const STATION_OPENED_TOLERANCE_DAYS = 3;
+
     /** Rayon (m) autour d'une gare « active » où une voie en service est attendue. */
     public const STATION_TRACK_RADIUS_M = 150;
 
@@ -171,7 +174,7 @@ class DataInvariants
         // Ajout « fiche-contenus » (2026-10-20), isolé en fin de liste : fiche gare et fiche ligne ne se
         // contredisent pas (« desservie de … à … », dates de la gare, arrêts de la carte).
         'stations.line_service_outside_station_life' => 'Ligne « desservie » avant l\'ouverture ou après la fermeture retenue de la gare, fin avant début, ou arrêt de la carte hors de cette période (gare × ligne)',
-        'stations.opened_before_lines' => 'Gare ouverte (date au jour, sourcée) avant l\'ouverture datée au jour de toutes ses lignes à son PK (gares)',
+        'stations.opened_before_lines' => 'Gare ouverte (date au jour, sourcée) plus de '.self::STATION_OPENED_TOLERANCE_DAYS.' jours avant l\'ouverture au jour de toutes ses lignes à son PK (section résolue, hors terminus nommé et PK projeté) (gares)',
         // Ajout « trafic-2030 » (2026-10-20), isolé en fin de liste : gare voyageurs rattachée à un autre
         // code dans liste-des-gares (944000 Cannes-la Bocca - Grasse, « fret » en 2030).
         'segments.current_freight_on_reopened_or_station' => 'Ère courante : tronçon « fret » rouvert aux voyageurs (événement daté, sans fermeture après) ou portant une gare de voyageurs SNCF desservie à moins de '.PassengerPortions::ADOPT_M.' m, quel que soit son code (lignes)',
@@ -942,22 +945,35 @@ class DataInvariants
      * Gare ouverte avant toutes ses lignes (Mâcon-Loché-TGV « ouverte le 19 septembre 1981 », la LGV
      * Sud-Est le 27/09/1981) : date de gare à revoir (inauguration, essais, autre source).
      *
+     * Trois règles contre les faux positifs (agents gares-avant-lignes, 2026-11-22) :
+     *  1. la gare n'est comparée qu'aux événements de ligne dont la section est résolue
+     *     (section_resolution = trace ou places) ; « whole_line » et « unresolved » ignorés ;
+     *  2. les rattachements par nom de terminus (terminus_name) ou par PK projeté sans PK officiel
+     *     (pk_source = projected_raw) ne comptent pas : Dormans et Plancoët, terminus de lignes secondaires
+     *     plus tardives, sont des gares plus anciennes ;
+     *  3. un écart de STATION_OPENED_TOLERANCE_DAYS jours au plus (dates au jour des deux côtés) est toléré :
+     *     inauguration la veille de l'ouverture au public.
+     *
      * @return array{count: int, examples: list<string>}
      */
     private function stationsOpenedBeforeLines(): array
     {
         $cover = AttachStations::EVENT_COVERS_STATION;
+        $days = self::STATION_OPENED_TOLERANCE_DAYS;
+        $counted = "sl.method <> 'terminus_name' AND COALESCE(sl.pk_source, '') <> 'projected_raw'";
 
         return $this->violations(<<<SQL
             SELECT s.id, s.name, s.opened_at, MIN(le.event_date) AS line_opening, s.id AS sort
             FROM stations s
-            JOIN station_lines sl ON sl.station_id = s.id
-            JOIN line_events le ON le.line_id = sl.line_id AND le.type IN ('opening', 'opening_passenger') AND le.date_precision = 'day' AND {$cover}
+            JOIN station_lines sl ON sl.station_id = s.id AND {$counted}
+            JOIN line_events le ON le.line_id = sl.line_id AND le.type IN ('opening', 'opening_passenger') AND le.date_precision = 'day'
+                 AND le.section_resolution IN ('trace', 'places') AND {$cover}
             WHERE s.opened_at IS NOT NULL AND s.opened_precision = 'day' AND COALESCE(s.provenance->>'opened_at', '') NOT LIKE 'inferred:%'
               AND COALESCE(s.provenance->>'kind', '') = ''
             GROUP BY s.id
-            HAVING s.opened_at < MIN(le.event_date)
-               AND COUNT(DISTINCT sl.line_id) = (SELECT COUNT(*) FROM station_lines a WHERE a.station_id = s.id)
+            HAVING MIN(le.event_date) - s.opened_at > {$days}
+               AND COUNT(DISTINCT sl.line_id) = (SELECT COUNT(*) FROM station_lines a WHERE a.station_id = s.id
+                                                 AND a.method <> 'terminus_name' AND COALESCE(a.pk_source, '') <> 'projected_raw')
             SQL, fn ($r) => sprintf('%s (gare #%d) : ouverte le %s, ses lignes le %s au plus tôt', $r->name, $r->id, $r->opened_at, $r->line_opening), order: 'sort');
     }
 
