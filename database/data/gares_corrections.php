@@ -1939,4 +1939,87 @@ return [
                 '2012 : arrêt du trafic marchandise sur la totalité de la ligne',
                 'fret de la section Saint-Brieuc - Loudéac jusqu\'en 2012 (article de la ligne ; l\'infobox de la gare la dit encore desservie par Fret SNCF)']],
     ])),
+
+    // ── Gares ouvertes avant leurs lignes (invariant stations.opened_before_lines, 22/11/2026,
+    // rapport storage/app/reports/agents/aprem-2111/gares-avant-lignes.md) ────────────────────────
+
+    // Haussmann - Saint-Lazare : le 12/07/1999 est l'inauguration de la ligne E par le Premier ministre ;
+    // la mise en service commerciale, donc l'ouverture au public de la gare, est le 14/07/1999 (article,
+    // OSM et chronologie de la ligne E). La date Wikidata du 12 est celle de la cérémonie.
+    [
+        'station' => ['name' => 'Haussmann-St-Lazare', 'wikidata' => 'Q800898'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1999-07-14',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Haussmann - Saint-Lazare', 137149820),
+        'quote' => 'mise en service le 14 juillet 1999',
+        'reason' => 'ouverture au public le 14/07/1999 ; le 12/07/1999 est l\'inauguration de la ligne E (Éole) par le Premier ministre',
+    ],
+
+    // Enghien-les-Bains : la ligne Paris - Lille ouvre le 20/06/1846 ; la gare est ouverte « moins d'un mois
+    // plus tard, le 11 juillet 1846 ». Le 14/06/1846 de Wikidata précède l'ouverture de la ligne.
+    [
+        'station' => ['name' => 'Enghien-les-Bains', 'wikidata' => 'Q3095740'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1846-07-11',
+        'precision' => 'day',
+        'source_url' => $wp('Gare d\'Enghien-les-Bains', 237632630),
+        'quote' => 'La gare d\'Enghien-les-Bains est ouverte moins d\'un mois plus tard, le 11 juillet 1846',
+        'reason' => 'gare ouverte après la ligne du Nord (20/06/1846), desservie « depuis le 11 juillet 1846 » ; le 14/06/1846 de Wikidata est antérieur à la ligne',
+    ],
+
+    // Dormans : section Meaux - Épernay ouverte le 26/08/1849 (gare d'Épernay, chronologie de 1849 de
+    // Wikipédia, notice Mérimée pour l'inauguration du 02/09/1849). Le 21/08/1849 vient de l'article de
+    // Meaux et de celui de Dormans, en contradiction avec ces trois sources.
+    [
+        'station' => ['name' => 'Dormans', 'wikidata' => 'Q1985272'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1849-08-26',
+        'precision' => 'day',
+        'source_url' => $wp('1849 dans les chemins de fer', 240921379),
+        'quote' => 'section de Meaux à Épernay',
+        'reason' => 'section Meaux - Épernay mise en service le 26/08/1849 (chronologie de 1849 et gare d\'Épernay, oldid 241441584) ; inauguration officielle le 02/09/1849 ; le 21/08 de Wikidata n\'est confirmé par aucune source indépendante',
+    ],
+
+    // Caudiès-de-Fenouillèdes : le 14/07/1901 est l'ouverture de Saint-Paul-de-Fenouillet à Rivesaltes ;
+    // Caudiès est sur le tronçon Quillan - Saint-Paul-de-Fenouillet, ouvert le 22/05/1904 (article de la
+    // gare et événement de la ligne).
+    [
+        'station' => ['name' => 'Caudiès', 'wikidata' => 'Q80921437'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1904-05-22',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Caudiès-de-Fenouillèdes', 166070156),
+        'quote' => 'Cette gare a été mise en service le 22 mai 1904 lors de l\'ouverture du tronçon entre Quillan et Saint-Paul-de-Fenouillet.',
+        'reason' => 'gare du tronçon Quillan - Saint-Paul-de-Fenouillet (22/05/1904) ; le 14/07/1901 est l\'ouverture du tronçon Saint-Paul - Rivesaltes',
+    ],
+
+    // Saint-Hilaire (Indre) : la section La Trimouille - Le Blanc ouvre le 12/08/1888 (article de la ligne,
+    // qui cite le Journal officiel du 19/07/1889) ; l'article de la gare donne le 13/06/1888 sur une seule
+    // référence (Connaissance du rail), sans recoupement.
+    [
+        'station' => ['name' => 'St-Hilaire (Indre)', 'wikidata' => 'Q15948845'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1888-08-12',
+        'precision' => 'day',
+        'source_url' => $wp('Ligne de Montmorillon à Saint-Aigny - Le Blanc', 239210121),
+        'quote' => 'La section de La Trimouille au Blanc, longue de 18 kilomètres, est mise en service le 12 août 1888.',
+        'reason' => 'gare de la section La Trimouille - Le Blanc (12/08/1888 selon la ligne, appuyée sur le Journal officiel) ; le 13/06/1888 de la gare n\'a qu\'une référence',
+    ],
+
+    // Chailvet-Urcel : la date OSM du 02/06/1862 est impossible, la section Soissons - Laon ouvre le
+    // 03/01/1866 (événement de la ligne, tableau des lignes de Laon en 1914). La date d'ouverture de la
+    // halte est inconnue : elle est retirée plutôt que remplacée.
+    [
+        'station' => ['name' => 'Chailvet-Urcel', 'osm' => 'n13648417951'],
+        'action' => 'neutralize',
+        'match' => ['source' => 'osm', 'type' => 'opening', 'date' => '1862-06-02'],
+        'source_url' => 'https://www.rail4402.fr/PAGES/L_34/L34_02_LAO_01.htm',
+        'reason' => 'la section Soissons - Laon, qui porte la gare, ouvre le 03/01/1866 : une ouverture en 1862 est impossible',
+    ],
 ];

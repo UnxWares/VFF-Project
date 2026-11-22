@@ -986,4 +986,108 @@ return [
         'quote' => 'La Roche-sur-Yon - La Noue (33 km) 1901-1939 ;',
         'reason' => 'fermeture de toute la ligne (FACS, Vendée : 1939 pour les deux sections)',
     ],
+
+    // Gares ouvertes avant leurs lignes (rapport aprem-2111/gares-avant-lignes.md, 22/11/2026).
+
+    // 660000 Bayonne - Saint-Jean-Pied-de-Port : les trois sections manquaient (seul figurait un 26/06/1898
+    // Ossès - Saint-Étienne-de-Baïgorry, qui est l'embranchement 661000, déjà daté de son côté).
+    [
+        'line' => '660000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'wikipedia', 'type' => 'opening', 'date' => '1898-06-26'],
+        'label' => 'Ouverture de l\'embranchement de Saint-Étienne-de-Baïgorry (ligne 661000)',
+        'source_url' => $wp('Ligne de Bayonne à Saint-Jean-Pied-de-Port', 238754007),
+        'quote' => 'Ossès à Saint-Jean-Pied-de-Port : 11 décembre 1898',
+        'reason' => 'embranchement de Saint-Étienne-de-Baïgorry (ligne 661000), pas une section de Bayonne - Saint-Jean-Pied-de-Port',
+    ],
+    [
+        'line' => '660000',
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1891-01-19',
+        'precision' => 'day',
+        'from' => 'Bayonne',
+        'to' => 'Cambo-les-Bains',
+        'source_url' => $wp('Ligne de Bayonne à Saint-Jean-Pied-de-Port', 238754007),
+        'quote' => 'Bayonne (bif de Mousserolles) à Cambo-les-Bains : 19 janvier 1891',
+        'reason' => 'première section de la ligne',
+    ],
+    [
+        'line' => '660000',
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1892-08-20',
+        'precision' => 'day',
+        'from' => 'Cambo-les-Bains',
+        'to' => 'Ossès',
+        'source_url' => $wp('Ligne de Bayonne à Saint-Jean-Pied-de-Port', 238754007),
+        'quote' => 'Cambo-les-Bains à Ossès : 20 août 1892',
+        'reason' => 'deuxième section de la ligne',
+    ],
+    [
+        'line' => '660000',
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1898-12-11',
+        'precision' => 'day',
+        'from' => 'Ossès',
+        'to' => 'Saint-Jean-Pied-de-Port',
+        'source_url' => $wp('Ligne de Bayonne à Saint-Jean-Pied-de-Port', 238754007),
+        'quote' => 'Ossès à Saint-Jean-Pied-de-Port : 11 décembre 1898',
+        'reason' => 'dernière section de la ligne',
+    ],
+
+    // 538000 Saint-Benoît - La Rochelle-Ville : la section Poitiers (Saint-Benoît) - Niort, où est
+    // Coulombiers, ouvre le 07/07/1856 ; l'événement OHM du 07/09/1857 est celui de Niort - La Rochelle.
+    [
+        'line' => '538000',
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1856-07-07',
+        'precision' => 'day',
+        'from' => 'St-Benoît',
+        'to' => 'Niort',
+        'source_url' => $wp('Gare de Coulombiers', 235031480),
+        'quote' => 'La gare de Coulombiers est mise en service le 7 juillet 1856',
+        'reason' => 'section Poitiers (Saint-Benoît) - Niort de la Compagnie du Paris-Orléans (Journal des chemins de fer du 12/07/1856 et Palau, cités par l\'article de la gare)',
+    ],
+
+    // 415000 Lison - Lamballe : la section Dol-de-Bretagne - Lamballe ouvre le 29/12/1879 ; l'événement OHM
+    // « 1979-12-29 » en est une faute de frappe.
+    [
+        'line' => '415000',
+        'action' => 'neutralize',
+        'match' => ['source' => 'ohm', 'type' => 'opening', 'date' => '1979-12-29'],
+        'label' => 'Faute de frappe sur l\'année (1979 pour 1879)',
+        'source_url' => $wp('Gare de Plancoët', 228547460),
+        'quote' => 'est mise en service le 29 décembre 1879',
+        'reason' => 'la section Dol-de-Bretagne - Lamballe est mise en service le 29/12/1879',
+    ],
+    [
+        'line' => '415000',
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1879-12-29',
+        'precision' => 'day',
+        'from' => 'Dol-de-Bretagne',
+        'to' => 'Lamballe',
+        'source_url' => $wp('Gare de Plancoët', 228547460),
+        'quote' => 'La section à voie unique de la gare de Dol-de-Bretagne à la gare de Lamballe, sur laquelle se situe la gare de Plancoët, est mise en service le 29 décembre 1879',
+        'reason' => 'ouverture de Dol-de-Bretagne à Lamballe (article de la gare, Compagnie de l\'Ouest)',
+    ],
+
+    // 884000 Bourg-en-Bresse - Bellegarde : le premier tronçon, de Bourg à Simandre-sur-Suran (cinq gares dont
+    // Sénissiat-Revonnas), ouvre le 10/03/1876 ; Bourg - La Cluse le 29/03/1877.
+    [
+        'line' => '884000',
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1876-03-10',
+        'precision' => 'day',
+        'from' => 'Bourg-en-Bresse',
+        'to' => 'Simandre-sur-Suran',
+        'source_url' => 'https://fr.wikipedia.org/w/index.php?title=Ligne_de_Bourg-en-Bresse_%C3%A0_Bellegarde&oldid=240169436',
+        'quote' => 'L\'ouverture du premier tronçon a eu lieu le 10 mars 1876',
+        'reason' => 'premier tronçon de Bourg-en-Bresse à Simandre-sur-Suran, qui porte Sénissiat-Revonnas',
+    ],
 ];
