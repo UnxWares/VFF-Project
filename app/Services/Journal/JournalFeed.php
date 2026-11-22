@@ -125,19 +125,6 @@ final class JournalFeed
         return $x->outputMemory();
     }
 
-    public function sitemapIndex(string $origin): string
-    {
-        $x = self::writer();
-        $x->startElement('sitemapindex');
-        $x->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
-        $x->startElement('sitemap');
-        $x->writeElement('loc', StructuredData::absoluteUrl($origin, '/journal/sitemap.xml'));
-        $x->endElement();
-        $x->endElement();
-
-        return $x->outputMemory();
-    }
-
     private static function writer(): XMLWriter
     {
         $x = new XMLWriter;

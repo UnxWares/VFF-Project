@@ -29,6 +29,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\SegmentAuditAdminController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\StationAuditAdminController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\TraceEditorController;
@@ -95,7 +96,10 @@ Route::get('/journal/atom.xml', [JournalController::class, 'atom'])->name('journ
 Route::get('/journal/rss.xml', [JournalController::class, 'rss'])->name('journal.rss');
 Route::get('/journal/sitemap.xml', [JournalController::class, 'sitemap'])->name('journal.sitemap');
 Route::get('/journal/{slug}', [JournalController::class, 'show'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')->name('journal.show');
-Route::get('/sitemap.xml', [JournalController::class, 'sitemapIndex'])->name('sitemap');
+// Plans du site : index et un plan par famille de pages (fiches, annuaires, pages éditoriales), pages de 50 000 adresses.
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap-{family}-{page}.xml', [SitemapController::class, 'family'])
+    ->where(['family' => '[a-z]+', 'page' => '[0-9]{1,4}'])->name('sitemap.family');
 
 Route::get('/legal', fn () => Inertia::render('Legal'))->name('legal');
 // Date de la version en vigueur (config/legal.php), affichée en haut de la page.

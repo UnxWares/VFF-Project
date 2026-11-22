@@ -87,12 +87,6 @@ class JournalController extends Controller
         return $this->xml($feed->sitemap($request->getSchemeAndHttpHost()), 'application/xml');
     }
 
-    /** Index du plan du site (`/sitemap.xml`) : un plan par rubrique, aujourd'hui celui du journal. */
-    public function sitemapIndex(Request $request, JournalFeed $feed): HttpResponse
-    {
-        return $this->xml($feed->sitemapIndex($request->getSchemeAndHttpHost()), 'application/xml');
-    }
-
     private function feedLocale(Request $request): string
     {
         $lang = $request->query('lang');
