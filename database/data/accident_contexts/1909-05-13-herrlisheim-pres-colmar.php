@@ -3,7 +3,7 @@
 // Contexte sourcé de la catastrophe du rapide Bâle - Cologne près de la gare de Herrlisheim, ligne de Strasbourg à Bâle, de mai 1909 (recherche du 21/11/2026).
 return [
     'slug' => '1909-05-13-herrlisheim-pres-colmar',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1909' => [
             'provider' => 'wikipedia',
@@ -61,6 +61,34 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Communiqué officiel de Herrlisheim du 14 mai : le rapide 161 a heurté le train de marchandises déraillé et brûlé ; le mécanicien et le chauffeur du rapide, un agent des postes et le chauffeur du train de marchandises tués ; quatre voyageurs assez grièvement, quatre légèrement blessés, conduits à Colmar par un train spécial.',
         ],
+        'karlsruher-1909-05-16' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Das Eisenbahnunglück bei Herlisheim im Elsaß',
+            'publisher' => 'Karlsruher Zeitung, no 133 (numérisée par la Badische Landesbibliothek)',
+            'author' => null,
+            'published' => '1909-05-16',
+            'locator' => 'Verschiedenes',
+            'url' => 'https://digital.blb-karlsruhe.de/download/pdf/1889070.pdf',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Berlin, 15 mai : selon un nouveau communiqué officiel, un voyageur, un agent des postes et trois agents de locomotive ont été tués, une douzaine de voyageurs et trois agents de train blessés ; les voyageurs s\'étant dispersés, le nombre des blessés n\'était pas encore établi ; l\'Office impérial des chemins de fer a envoyé un commissaire enquêter.',
+        ],
+        'wp-de-herrlisheim' => [
+            'provider' => 'wikipedia-de',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Eisenbahnunfall von Herrlisheim',
+            'publisher' => 'Wikipédia en allemand',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Article',
+            'url' => 'https://de.wikipedia.org/wiki/Eisenbahnunfall_von_Herrlisheim',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Article d\'après Jean-Georges Trouillet, Les Chemins de fer impériaux d\'Alsace-Lorraine (2018) : six morts, dont cinq agents (les équipes des deux locomotives et un agent des postes) et un seul voyageur ; explosion de la chaudière du train de marchandises dont l\'eau était trop basse, le niveau d\'eau étant bouché.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -89,10 +117,10 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Le bilan varie : quatre morts dans le communiqué officiel, cinq corps retirés selon un télégramme de Francfort, six morts dans la liste de Wikipédia. Le nombre de blessés aussi : huit selon le communiqué, quatorze blessés graves selon Francfort. La liste nomme le rapide Bâle - Amsterdam.',
-                'en' => 'The toll varies: four dead in the official statement, five bodies recovered according to a Frankfurt telegram, six dead in the Wikipedia list. So does the number of injured: eight according to the statement, fourteen seriously injured according to Frankfurt. The list names the train as the Basel to Amsterdam express.',
-                'de' => 'Die Bilanz schwankt: vier Tote in der amtlichen Meldung, fünf geborgene Tote nach einem Frankfurter Telegramm, sechs Tote in der Wikipedia-Liste. Ebenso die Zahl der Verletzten: acht nach der Meldung, vierzehn Schwerverletzte nach Frankfurt. Die Liste nennt den Zug Basel-Amsterdam.',
-                'sources' => ['ddb-1909-05-14-westdeutsche', 'ddb-1909-05-15-niederrhein', 'wp-liste-1909'],
+                'fr' => 'Le bilan a grandi d\'un communiqué à l\'autre : quatre agents tués dans le communiqué officiel du 14 mai, cinq morts (un voyageur, un agent des postes, trois agents de locomotive) dans celui du 15, six dans la liste de Wikipédia et l\'article allemand, qui compte cinq agents et un voyageur. Le nombre de blessés varie aussi : huit selon le premier communiqué, une douzaine de voyageurs et trois agents selon le second, quatorze blessés graves selon un télégramme de Francfort. La liste nomme le rapide Bâle - Amsterdam.',
+                'en' => 'The toll grew from one statement to the next: four railwaymen killed in the official statement of 14 May, five dead (a passenger, a postal worker, three engine crew) in that of the 15th, six in the Wikipedia list and the German article, which counts five railwaymen and one passenger. The number of injured also varies: eight according to the first statement, about twelve passengers and three railwaymen according to the second, fourteen badly hurt according to a telegram from Frankfurt. The list names the Basel to Amsterdam express.',
+                'de' => 'Die Opferzahl stieg von Meldung zu Meldung: vier getötete Bedienstete in der amtlichen Meldung vom 14. Mai, fünf Tote (ein Reisender, ein Postbeamter, drei Lokomotivbeamte) in der vom 15., sechs in der Wikipedia-Liste und im deutschen Artikel, der fünf Bedienstete und einen Reisenden zählt. Auch die Zahl der Verletzten schwankt: acht nach der ersten Meldung, etwa zwölf Reisende und drei Zugbeamte nach der zweiten, vierzehn Schwerverletzte nach einem Telegramm aus Frankfurt. Die Liste nennt den Schnellzug Basel-Amsterdam.',
+                'sources' => ['ddb-1909-05-14-westdeutsche', 'karlsruher-1909-05-16', 'wp-liste-1909', 'wp-de-herrlisheim'],
             ],
         ],
     ],

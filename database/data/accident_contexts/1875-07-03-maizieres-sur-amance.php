@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement du train de Paris à Belfort du 3 juillet 1875 (recherche du 21/11/2026).
 return [
     'slug' => '1875-07-03-maizieres-sur-amance',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1870' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Même nouvelle de Mulhouse : déraillement à 50 m avant la station de Vaivre, deux Anglaises tuées en sautant de la voiture, plusieurs blessés, un directeur de la Compagnie de l\'Est dans le train.',
         ],
+        'ddb-1875-07-08-schwaebischer-merkur' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Im Industriel alsacien finden wir folgenden Bericht über einen Eisenbahnunfall',
+            'publisher' => 'Schwäbischer Merkur (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1875-07-08',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/TYS6KLXQC6TNWCTDCSBUM5XXD7NJQDM7?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Récit tiré de l\'Industriel alsacien (Mulhouse) : le samedi, sur la ligne de Paris à Mulhouse, trois voitures du train-poste ont déraillé à 3 h 30 du matin près de la station de Charmoy ; deux Anglaises, mère et fille, qui s\'étaient jetées hors de la voiture, ont été retrouvées mortes.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -75,10 +89,10 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Le lieu diffère : près de Maizières-sur-Amance (Haute-Marne), peu après la gare de Charmoy-Fayl-Billot, selon la liste de Wikipédia ; à 50 m avant la station de Vaivre, après Vesoul (Haute-Saône), selon la nouvelle de Mulhouse reprise par la presse allemande. Le nombre de blessés diffère aussi : un selon la liste, plusieurs selon la presse.',
-                'en' => 'The location differs: near Maizières-sur-Amance (Haute-Marne), shortly after Charmoy-Fayl-Billot station, according to the Wikipedia list; 50 m before Vaivre station, beyond Vesoul (Haute-Saône), according to the report from Mulhouse carried by the German press. The number of injured differs too: one according to the list, several according to the press.',
-                'de' => 'Der Ort weicht ab: bei Maizières-sur-Amance (Haute-Marne), kurz hinter dem Bahnhof Charmoy-Fayl-Billot, nach der Wikipedia-Liste; 50 m vor der Station Vaivre hinter Vesoul (Haute-Saône) nach der von der deutschen Presse übernommenen Meldung aus Mülhausen. Auch die Zahl der Verletzten weicht ab: einer nach der Liste, mehrere nach der Presse.',
-                'sources' => ['wp-liste-1870', 'ddb-1875-07-07-allgemeine', 'ddb-1875-07-11-erzgebirgischer'],
+                'fr' => 'La nouvelle de Mulhouse reprise par la presse allemande place le déraillement à 50 m avant la station de Vaivre, après Vesoul (Haute-Saône). Le Temps et Le Figaro, cités par la liste de Wikipédia, et le récit de l\'Industriel alsacien le placent près de Charmoy, en Haute-Marne, à 3 h 30 du matin ; la fiche suit ces trois journaux. Le nombre de blessés diffère aussi : un selon la liste, plusieurs selon la presse allemande.',
+                'en' => 'The Mulhouse report carried by the German press places the derailment 50 m before Vaivre station, beyond Vesoul (Haute-Saône). Le Temps and Le Figaro, cited by the Wikipedia list, and the account in the Industriel alsacien place it near Charmoy, in Haute-Marne, at 3.30 am; the record follows these three papers. The number of injured also differs: one according to the list, several according to the German press.',
+                'de' => 'Die von der deutschen Presse übernommene Meldung aus Mülhausen verlegt die Entgleisung 50 m vor die Station Vaivre hinter Vesoul (Haute-Saône). Le Temps und Le Figaro, die die Wikipedia-Liste zitiert, sowie der Bericht des Industriel alsacien verlegen sie in die Nähe von Charmoy in der Haute-Marne, um 3.30 Uhr früh; der Eintrag folgt diesen drei Blättern. Auch die Zahl der Verletzten weicht ab: einer nach der Liste, mehrere nach der deutschen Presse.',
+                'sources' => ['ddb-1875-07-07-allgemeine', 'wp-liste-1870', 'ddb-1875-07-08-schwaebischer-merkur'],
             ],
         ],
     ],

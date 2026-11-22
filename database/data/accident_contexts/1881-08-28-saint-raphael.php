@@ -2,8 +2,8 @@
 
 // Contexte sourcé du déraillement près du Trayas, ligne de Toulon à Nice, d'août 1881 (recherche du 21/11/2026).
 return [
-    'slug' => '1881-08-27-saint-raphael',
-    'checked_on' => '2026-11-21',
+    'slug' => '1881-08-28-saint-raphael',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1880' => [
             'provider' => 'wikipedia',
@@ -97,6 +97,14 @@ return [
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'occurred_on',
+            'value' => '1881-08-28',
+            'sources' => ['ddb-1881-08-30-koelnische', 'ddb-1881-08-30-berliner', 'ddb-1881-08-31-westfaelische'],
+            'fr' => 'Le dimanche 28 août 1881 : les dépêches du 29 août placent le déraillement la veille et un troisième journal allemand le dit survenu le dimanche ; la fiche donnait le 27 août, d\'après la liste de Wikipédia, dont la source (Le Figaro du 30 août) ne contredit pas cette date.',
+            'en' => 'Sunday 28 August 1881: the dispatches of 29 August place the derailment the day before and a third German paper says it happened on the Sunday; the record gave 27 August, after the Wikipedia list, whose source (Le Figaro of 30 August) does not contradict this date.',
+            'de' => 'Sonntag, 28. August 1881: Die Depeschen vom 29. August legen die Entgleisung auf den Vortag, und eine dritte deutsche Zeitung meldet sie vom Sonntag; der Eintrag nannte nach der Wikipedia-Liste den 27. August, deren Quelle (Le Figaro vom 30. August) diesem Datum nicht widerspricht.',
+        ],
         [
             'field' => 'deaths',
             'value' => 2,

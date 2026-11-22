@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement d'une voiture d'un train militaire en gare de Labenne, ligne de Bordeaux à Bayonne, d'octobre 1897 (recherche du 21/11/2026).
 return [
     'slug' => '1897-10-30-labenne',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1890' => [
             'provider' => 'wikipedia',
@@ -64,6 +64,24 @@ return [
                 'de' => 'Die Wikipedia-Liste zählt einen getöteten Reservisten und acht Verletzte; die niederländische Presse spricht von zwei Toten und etwa zwanzig Verletzten, einige davon schwer.',
                 'sources' => ['wp-liste-1890', 'delpher-1897-11-02-haarlem', 'delpher-1897-11-03-arnhem'],
             ],
+        ],
+        'disagreements' => [
+            [
+                'fr' => 'Le bilan diffère : un réserviste tué et huit blessés selon la liste de Wikipédia, deux morts et une vingtaine de blessés dans la brève reprise par plusieurs journaux néerlandais. Faute d\'autre source, la fiche suit la liste.',
+                'en' => 'The toll differs: one reservist killed and eight injured according to the Wikipedia list, two dead and about twenty injured in the brief note carried by several Dutch papers. With no other source, the record follows the list.',
+                'de' => 'Die Opferzahl weicht ab: ein getöteter Reservist und acht Verletzte nach der Wikipedia-Liste, zwei Tote und etwa zwanzig Verletzte in der von mehreren niederländischen Zeitungen übernommenen Kurzmeldung. Mangels weiterer Quelle folgt der Eintrag der Liste.',
+                'sources' => ['wp-liste-1890', 'delpher-1897-11-02-haarlem', 'delpher-1897-11-03-arnhem'],
+            ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 1,
+            'sources' => ['wp-liste-1890'],
+            'fr' => 'Un réserviste tué selon la liste de Wikipédia ; la brève néerlandaise parle de deux morts ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'One reservist killed according to the Wikipedia list; the Dutch note speaks of two dead; the record gave no number of deaths.',
+            'de' => 'Ein Reservist getötet nach der Wikipedia-Liste; die niederländische Kurzmeldung spricht von zwei Toten; der Eintrag nannte keine Zahl von Toten.',
         ],
     ],
 ];

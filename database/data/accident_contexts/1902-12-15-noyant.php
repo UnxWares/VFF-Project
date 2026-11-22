@@ -2,8 +2,8 @@
 
 // Contexte sourcé du déraillement d'un train du Petit Anjou à la sortie de la gare de Cornillé - Bauné, ligne à voie métrique d'Angers à Noyant - Méon, de décembre 1902 (recherche du 21/11/2026).
 return [
-    'slug' => '1902-12-16-noyant',
-    'checked_on' => '2026-11-21',
+    'slug' => '1902-12-15-noyant',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1902' => [
             'provider' => 'wikipedia',
@@ -89,6 +89,14 @@ return [
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'occurred_on',
+            'value' => '1902-12-15',
+            'sources' => ['ddb-1902-12-16-saale', 'ddb-1902-12-16-bnn', 'wp-liste-1902'],
+            'fr' => 'Le 15 décembre 1902 : la dépêche d\'Angers du 16, parue le jour même dans deux journaux allemands, place le déraillement la veille au soir, et la liste de Wikipédia cite Le Matin du 16 décembre, qui ne pouvait pas rapporter un accident du 16 à 15 h 30 ; la fiche donnait le 16, d\'après la liste.',
+            'en' => '15 December 1902: the Angers dispatch of the 16th, printed the same day in two German papers, places the derailment the evening before, and the Wikipedia list cites Le Matin of 16 December, which could not have reported an accident at 3.30 pm on the 16th; the record gave the 16th, after the list.',
+            'de' => '15. Dezember 1902: Die Depesche aus Angers vom 16., am selben Tag in zwei deutschen Zeitungen erschienen, legt die Entgleisung auf den Vorabend, und die Wikipedia-Liste zitiert Le Matin vom 16. Dezember, der einen Unfall vom 16. um 15.30 Uhr nicht hätte melden können; der Eintrag nannte nach der Liste den 16.',
+        ],
         [
             'field' => 'deaths',
             'value' => 2,

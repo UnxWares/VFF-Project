@@ -2,8 +2,8 @@
 
 // Contexte sourcé du déraillement d'un train tombé dans la Cère près de Laval-de-Cère, ligne d'Aurillac à Saint-Denis-près-Martel, de novembre 1894 (recherche du 21/11/2026).
 return [
-    'slug' => '1894-11-12-cere',
-    'checked_on' => '2026-11-21',
+    'slug' => '1894-11-10-laval-de-cere',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1890' => [
             'provider' => 'wikipedia',
@@ -81,14 +81,22 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Les dépêches de Paris et de Tulle, datées du 11 novembre et publiées dès le 12, placent l\'accident la veille au soir, soit le 10 novembre ; la liste de Wikipédia le date du 12 novembre.',
-                'en' => 'The Paris and Tulle dispatches, dated 11 November and printed from the 12th, place the accident on the previous evening, 10 November; the Wikipedia list dates it 12 November.',
-                'de' => 'Die Depeschen aus Paris und Tulle vom 11. November, ab dem 12. gedruckt, setzen den Unfall auf den Vorabend, also den 10. November; die Wikipedia-Liste datiert ihn auf den 12. November.',
-                'sources' => ['ddb-1894-11-12-westdeutsche', 'ddb-1894-11-12-merkur', 'wp-liste-1890'],
+                'fr' => 'La liste de Wikipédia date l\'accident du 12 novembre 1894, d\'après La Presse du 16. Des journaux allemands parus le 12 novembre publient déjà la dépêche de Paris du 11, qui le place la veille au soir, et la dépêche de Tulle porte aussi la date du 11. L\'accident a donc eu lieu le samedi 10 novembre au soir.',
+                'en' => 'The Wikipedia list dates the accident 12 November 1894, after La Presse of the 16th. German papers printed on 12 November already carry the Paris dispatch of the 11th, which places it the evening before, and the Tulle dispatch is also dated the 11th. The accident therefore happened on the evening of Saturday 10 November.',
+                'de' => 'Die Wikipedia-Liste datiert den Unfall nach La Presse vom 16. auf den 12. November 1894. Deutsche Zeitungen vom 12. November bringen aber schon die Pariser Depesche vom 11., die ihn auf den Vorabend legt, und auch die Depesche aus Tulle trägt das Datum des 11. Der Unfall ereignete sich also am Abend des 10. November, eines Samstags.',
+                'sources' => ['wp-liste-1890', 'ddb-1894-11-12-westdeutsche', 'ddb-1894-11-12-merkur', 'ddb-1894-11-14-badische'],
             ],
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'occurred_on',
+            'value' => '1894-11-10',
+            'sources' => ['ddb-1894-11-12-westdeutsche', 'ddb-1894-11-12-merkur', 'ddb-1894-11-14-badische'],
+            'fr' => 'Le 10 novembre 1894 au soir : deux journaux allemands parus le 12 novembre reprennent la dépêche de Paris du 11 qui place le déraillement « hier soir », et la dépêche de Tulle est datée du 11 ; la fiche donnait le 12 novembre, d\'après la liste de Wikipédia.',
+            'en' => 'Evening of 10 November 1894: two German papers printed on 12 November carry the Paris dispatch of the 11th that places the derailment "last night", and the Tulle dispatch is dated the 11th; the record gave 12 November, after the Wikipedia list.',
+            'de' => 'Abend des 10. November 1894: Zwei deutsche Zeitungen vom 12. November bringen die Pariser Depesche vom 11., die die Entgleisung auf „gestern Abend“ legt, und die Depesche aus Tulle ist vom 11. datiert; der Eintrag nannte nach der Wikipedia-Liste den 12. November.',
+        ],
         [
             'field' => 'deaths',
             'value' => 2,

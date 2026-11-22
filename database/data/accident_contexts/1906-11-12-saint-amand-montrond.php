@@ -2,8 +2,8 @@
 
 // Contexte sourcé de la collision d'un train du réseau du Cher avec un train Montluçon - Paris en gare de Saint-Amand-Montrond, de novembre 1906 (recherche du 21/11/2026).
 return [
-    'slug' => '1906-11-13-saint-amand-montrond',
-    'checked_on' => '2026-11-21',
+    'slug' => '1906-11-12-saint-amand-montrond',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1906' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Même nouvelle : collision près de la gare de Saint-Amand, en France, d\'un train de voyageurs et d\'un train d\'intérêt local dans un épais brouillard ; locomotive du train d\'intérêt local brisée, mécanicien et chauffeur tués sur le coup.',
         ],
+        'ddb-1906-11-14-allgemeine' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Saint Amand, 13. Nov.',
+            'publisher' => 'Allgemeine Zeitung, Munich (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1906-11-14',
+            'locator' => 'p. 13',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/JYP6WNXGNHEEEVSYHJJMT6WHH6WRKPRF?issuepage=13',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Dépêche de Saint-Amand datée du 13 novembre : hier soir, près de la gare, un train de voyageurs a heurté un train d\'un chemin de fer secondaire par un brouillard épais ; la locomotive de ce dernier a été détruite, le mécanicien et le chauffeur tués sur le coup, plusieurs voyageurs blessés.',
+        ],
     ],
     'sections' => [
         'course' => [
@@ -67,14 +81,22 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'La liste de Wikipédia attribue la collision à une panne de frein, la presse allemande à un épais brouillard. La liste date l\'accident du mardi 13 novembre 1906 ; la Hallesche Zeitung du 14 le place le lundi soir, soit le 12.',
-                'en' => 'The Wikipedia list attributes the collision to a brake failure, the German press to thick fog. The list dates the accident to Tuesday 13 November 1906; the Hallesche Zeitung of the 14th places it on Monday evening, the 12th.',
-                'de' => 'Die Wikipedia-Liste führt den Zusammenstoß auf ein Versagen der Bremse zurück, die deutsche Presse auf dichten Nebel. Die Liste datiert den Unfall auf Dienstag, den 13. November 1906; die Hallesche Zeitung vom 14. legt ihn auf Montagabend, also den 12.',
-                'sources' => ['wp-liste-1906', 'ddb-1906-11-14-halle', 'ddb-1906-11-14-morgenpost'],
+                'fr' => 'La liste de Wikipédia attribue la collision à une panne de frein, la presse allemande à un épais brouillard. La liste date l\'accident du mardi 13 novembre 1906, d\'après Le Figaro du 14 ; la dépêche de Saint-Amand, datée du 13, le place « hier soir », et la Hallesche Zeitung le lundi soir : l\'accident a donc eu lieu le lundi 12 novembre au soir.',
+                'en' => 'The Wikipedia list attributes the collision to a brake failure, the German press to thick fog. The list dates the accident Tuesday 13 November 1906, after Le Figaro of the 14th; the Saint-Amand dispatch, dated the 13th, places it "last night", and the Hallesche Zeitung on Monday evening: the accident therefore happened on the evening of Monday 12 November.',
+                'de' => 'Die Wikipedia-Liste führt den Zusammenstoß auf ein Versagen der Bremse zurück, die deutsche Presse auf dichten Nebel. Die Liste datiert den Unfall nach Le Figaro vom 14. auf Dienstag, den 13. November 1906; die vom 13. datierte Depesche aus Saint-Amand legt ihn auf „gestern abend“, die Hallesche Zeitung auf Montagabend: Der Unfall ereignete sich also am Abend des 12. November, eines Montags.',
+                'sources' => ['wp-liste-1906', 'ddb-1906-11-14-allgemeine', 'ddb-1906-11-14-halle', 'ddb-1906-11-14-morgenpost'],
             ],
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'occurred_on',
+            'value' => '1906-11-12',
+            'sources' => ['ddb-1906-11-14-allgemeine', 'ddb-1906-11-14-halle'],
+            'fr' => 'Le lundi 12 novembre 1906 au soir : la dépêche de Saint-Amand datée du 13 place la collision « hier soir » et la Hallesche Zeitung du 14 le lundi soir ; la fiche donnait le 13, d\'après la liste de Wikipédia.',
+            'en' => 'Evening of Monday 12 November 1906: the Saint-Amand dispatch dated the 13th places the collision "last night" and the Hallesche Zeitung of the 14th on Monday evening; the record gave the 13th, after the Wikipedia list.',
+            'de' => 'Abend des 12. November 1906, eines Montags: Die vom 13. datierte Depesche aus Saint-Amand legt den Zusammenstoß auf „gestern abend“, die Hallesche Zeitung vom 14. auf Montagabend; der Eintrag nannte nach der Wikipedia-Liste den 13.',
+        ],
         [
             'field' => 'deaths',
             'value' => 2,

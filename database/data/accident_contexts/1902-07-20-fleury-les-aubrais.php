@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement de l'express Paris - Toulouse à l'entrée de la gare des Aubrais, ligne de Paris à Bordeaux, de juillet 1902 (recherche du 21/11/2026).
 return [
     'slug' => '1902-07-20-fleury-les-aubrais',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1902' => [
             'provider' => 'wikipedia',
@@ -94,6 +94,16 @@ return [
                 'de' => 'Die Bilanz schwankt: ein Toter in der Wikipedia-Liste, zwei in der Halleschen Zeitung (der Heizer und eine im Krankenhaus gestorbene Reisende), drei im Hamburgischen Correspondenten. Die Badische Presse nennt den Lokführer tot. Die Zahl der Schwerverletzten liegt je nach Meldung zwischen vier und acht.',
                 'sources' => ['wp-liste-1902', 'ddb-1902-07-23-halle', 'ddb-1902-07-23-hamburg', 'ddb-1902-07-23-badische'],
             ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 1,
+            'sources' => ['wp-liste-1902'],
+            'fr' => 'Le chauffeur tué selon la liste de Wikipédia ; la presse allemande parle aussi d\'une voyageuse morte à l\'hôpital et compte jusqu\'à trois morts ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'The stoker killed according to the Wikipedia list; the German press also speaks of a woman passenger who died in hospital and counts up to three dead; the record gave no number of deaths.',
+            'de' => 'Der Heizer getötet nach der Wikipedia-Liste; die deutsche Presse spricht auch von einer im Krankenhaus gestorbenen Reisenden und zählt bis zu drei Tote; der Eintrag nannte keine Zahl von Toten.',
         ],
     ],
 ];

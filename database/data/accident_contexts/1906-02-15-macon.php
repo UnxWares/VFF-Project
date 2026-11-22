@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement près de la gare de Mâcon, ligne de Paris à Marseille, de février 1906 (recherche du 21/11/2026).
 return [
     'slug' => '1906-02-15-macon',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1906' => [
             'provider' => 'wikipedia',
@@ -78,6 +78,16 @@ return [
                 'de' => 'Die Quellen stimmen weder über den Zug noch über die Bilanz überein. Die Wikipedia-Liste beschreibt einen Güterzug und einen einzigen Toten, den Zugführer, der in seinem Packwagen ums Leben kam. Die von der deutschen Presse übernommene Lyoner Meldung vom 16. Februar spricht vom Lyoner Schnellzug, vom Tod des Zugführers und des Lokomotivführers und von mehreren schwer verletzten Reisenden (in der Allgemeinen Zeitung nur einer).',
                 'sources' => ['wp-liste-1906', 'ddb-1906-02-16-bielefeld', 'ddb-1906-02-16-tagwacht', 'ddb-1906-02-17-allgemeine'],
             ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'deaths',
+            'value' => 1,
+            'sources' => ['wp-liste-1906'],
+            'fr' => 'Un mort, le conducteur chef du train de marchandises, selon la liste de Wikipédia ; la dépêche de Lyon du 16 février 1906 en compte deux ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'One dead, the head guard of the goods train, according to the Wikipedia list; the Lyon dispatch of 16 February 1906 counts two; the record gave no number of deaths.',
+            'de' => 'Ein Toter, der Zugführer des Güterzuges, nach der Wikipedia-Liste; die Depesche aus Lyon vom 16. Februar 1906 zählt zwei; der Eintrag nannte keine Zahl von Toten.',
         ],
     ],
 ];

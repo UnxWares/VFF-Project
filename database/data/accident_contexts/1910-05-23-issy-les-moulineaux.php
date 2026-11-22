@@ -2,8 +2,8 @@
 
 // Contexte sourcé du déraillement d'un train des Invalides à Suresnes près de la gare des Moulineaux-Billancourt, ligne des Moulineaux, de mai 1910 (recherche du 21/11/2026).
 return [
-    'slug' => '1910-05-23-suresnes',
-    'checked_on' => '2026-11-21',
+    'slug' => '1910-05-23-issy-les-moulineaux',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1910' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Télégramme privé : la veille au soir, le train des Invalides à Suresnes a déraillé entre Javel et les Moulineaux ; le chef de train et le chauffeur ont péri dans les flammes sorties de la locomotive renversée ; seize personnes et quelques conducteurs plus ou moins grièvement blessés ; cause encore inconnue.',
         ],
+        'wp-gare-moulineaux' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Gare des Moulineaux - Billancourt',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Introduction',
+            'url' => 'https://fr.wikipedia.org/wiki/Gare_des_Moulineaux_-_Billancourt',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Ancienne gare de la ligne des Moulineaux (ligne de Puteaux à Issy-Plaine), aujourd\'hui station de la ligne de tramway T2, sur le territoire de la commune d\'Issy-les-Moulineaux, près de Boulogne-Billancourt.',
+        ],
     ],
     'sections' => [
         'course' => [
@@ -75,6 +89,14 @@ return [
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '92040',
+            'sources' => ['wp-liste-1910', 'ddb-1910-05-24-koeln', 'ddb-1910-05-25-dresden', 'wp-gare-moulineaux'],
+            'fr' => 'Le déraillement a eu lieu près de la gare des Moulineaux-Billancourt, entre Javel et cette gare, sur la commune d\'Issy-les-Moulineaux, selon la liste de Wikipédia et la presse allemande ; la fiche le plaçait à Suresnes, terminus du train.',
+            'en' => 'The derailment happened near Les Moulineaux-Billancourt station, between Javel and that station, in the commune of Issy-les-Moulineaux, according to the Wikipedia list and the German press; the record placed it at Suresnes, where the train was going.',
+            'de' => 'Die Entgleisung ereignete sich nach der Wikipedia-Liste und der deutschen Presse nahe dem Bahnhof Les Moulineaux-Billancourt, zwischen Javel und diesem Bahnhof, auf dem Gebiet von Issy-les-Moulineaux; der Eintrag verlegte sie nach Suresnes, dem Ziel des Zuges.',
+        ],
         [
             'field' => 'deaths',
             'value' => 2,

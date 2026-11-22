@@ -2,8 +2,8 @@
 
 // Contexte sourcé de la collision d'un train de voyageurs pour Lille avec un train de marchandises en manœuvre près de la gare de Leforest, ligne de Paris à Lille, de décembre 1909 (recherche du 21/11/2026).
 return [
-    'slug' => '1909-12-23-leforest',
-    'checked_on' => '2026-11-21',
+    'slug' => '1909-12-22-leforest',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1909' => [
             'provider' => 'wikipedia',
@@ -53,14 +53,22 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'La presse allemande place la collision près de la station de Douai ; la liste de Wikipédia près de la gare de Leforest, sur la même ligne. La brève parue le 23 décembre dit l\'accident survenu la veille au soir ; la liste le date du 23, d\'après Le Temps du 24.',
-                'en' => 'The German press places the collision near Douai station, the Wikipedia list near Leforest station on the same line. The brief published on 23 December says it happened the evening before; the list dates it to the 23rd, after Le Temps of the 24th.',
-                'de' => 'Die deutsche Presse verortet den Zusammenstoß beim Bahnhof Douai, die Wikipedia-Liste beim Bahnhof Leforest an derselben Strecke. Die am 23. Dezember erschienene Meldung spricht vom Vorabend; die Liste datiert den Unfall nach Le Temps vom 24. auf den 23.',
-                'sources' => ['ddb-1909-12-23-tagwacht', 'wp-liste-1909'],
+                'fr' => 'La presse allemande place la collision près de la station de Douai ; la liste de Wikipédia près de la gare de Leforest, sur la même ligne. La liste la date du 23 décembre vers 18 h 30, d\'après Le Temps du 24 ; or la Schwäbische Tagwacht, parue le 23 décembre, la dit survenue la veille au soir, soit le 22.',
+                'en' => 'The German press places the collision near Douai station, the Wikipedia list near Leforest station, on the same line. The list dates it 23 December at about 6.30 pm, after Le Temps of the 24th; but the Schwäbische Tagwacht, printed on 23 December, says it happened the evening before, the 22nd.',
+                'de' => 'Die deutsche Presse verlegt den Zusammenstoß in die Nähe der Station Douai, die Wikipedia-Liste in die Nähe des Bahnhofs Leforest an derselben Strecke. Die Liste datiert ihn nach Le Temps vom 24. auf den 23. Dezember gegen 18.30 Uhr; die am 23. Dezember erschienene Schwäbische Tagwacht meldet ihn aber vom Vorabend, also vom 22.',
+                'sources' => ['wp-liste-1909', 'ddb-1909-12-23-tagwacht'],
             ],
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'occurred_on',
+            'value' => '1909-12-22',
+            'sources' => ['ddb-1909-12-23-tagwacht', 'wp-liste-1909'],
+            'fr' => 'Le 22 décembre 1909 au soir : la Schwäbische Tagwacht, parue le 23 décembre, rapporte la collision de « hier soir » ; la fiche donnait le 23, d\'après la liste de Wikipédia (Le Temps du 24 décembre).',
+            'en' => 'Evening of 22 December 1909: the Schwäbische Tagwacht, printed on 23 December, reports the collision as "last night"; the record gave the 23rd, after the Wikipedia list (Le Temps of 24 December).',
+            'de' => 'Abend des 22. Dezember 1909: Die am 23. Dezember erschienene Schwäbische Tagwacht meldet den Zusammenstoß von „gestern abend“; der Eintrag nannte nach der Wikipedia-Liste (Le Temps vom 24. Dezember) den 23.',
+        ],
         [
             'field' => 'deaths',
             'value' => 1,

@@ -2,8 +2,8 @@
 
 // Contexte sourcé du déraillement d'un train de l'Aber-Wrac'h à Brest près de Plabennec, chemins de fer départementaux du Finistère, d'août 1900 (recherche du 21/11/2026).
 return [
-    'slug' => '1900-08-14-brest',
-    'checked_on' => '2026-11-21',
+    'slug' => '1900-08-14-plabennec',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1900' => [
             'provider' => 'wikipedia',
@@ -67,6 +67,22 @@ return [
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'derailment',
+            'sources' => ['wp-liste-1900', 'dagblad-zuidholland-1900-08-17', 'utrechtsche-courant-1900-08-18'],
+            'fr' => 'La voie a cédé sous le train, dont la locomotive a été rejetée sur le côté et trois wagons sont sortis des rails : un déraillement, selon la liste de Wikipédia et la presse néerlandaise ; la fiche ne donnait pas de nature précise.',
+            'en' => 'The track gave way under the train, whose engine was thrown aside while three wagons left the rails: a derailment, according to the Wikipedia list and the Dutch press; the record gave no precise type.',
+            'de' => 'Das Gleis gab unter dem Zug nach, die Lokomotive wurde zur Seite geworfen und drei Wagen sprangen aus den Schienen: eine Entgleisung nach der Wikipedia-Liste und der niederländischen Presse; der Eintrag nannte keine genaue Art.',
+        ],
+        [
+            'field' => 'commune_insee',
+            'value' => '29160',
+            'sources' => ['dagblad-zuidholland-1900-08-17', 'wp-liste-1900'],
+            'fr' => 'Le déraillement a eu lieu à 400 m de la gare de Plabennec, sur la ligne de l\'Aber-Wrac\'h à Brest, selon le Dagblad van Zuidholland du 17 août 1900 ; la liste de Wikipédia ne précise pas le lieu et la fiche portait Brest, terminus du train.',
+            'en' => 'The derailment happened 400 m from Plabennec station, on the Aber-Wrac\'h to Brest line, according to the Dagblad van Zuidholland of 17 August 1900; the Wikipedia list gives no exact place and the record gave Brest, where the train was going.',
+            'de' => 'Die Entgleisung ereignete sich nach dem Dagblad van Zuidholland vom 17. August 1900 400 m vom Bahnhof Plabennec entfernt, an der Strecke Aber-Wrac\'h-Brest; die Wikipedia-Liste nennt keinen genauen Ort, der Eintrag nannte Brest, das Ziel des Zuges.',
+        ],
         [
             'field' => 'deaths',
             'value' => 1,

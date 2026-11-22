@@ -3,7 +3,7 @@
 // Contexte sourcé du tamponnement d'un omnibus par le rapide Belfort - Paris à Chamarandes-Choignes, ligne de Paris à Mulhouse, de janvier 1909 (recherche du 21/11/2026).
 return [
     'slug' => '1909-01-01-chamarandes-choignes',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1909' => [
             'provider' => 'wikipedia',
@@ -47,6 +47,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Même dépêche de Chaumont, où le train heurté est un train de marchandises : trois voyageurs et deux agents du chemin de fer tués.',
         ],
+        'ddb-1909-01-02-bonner' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Paris, 2. Jan. (Telegr.)',
+            'publisher' => 'Bonner Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1909-01-02',
+            'locator' => 'p. 2',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/L4KL7IV3GOFQB5AUZHKYZUZPDSXD7JTP?issuepage=2',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Télégramme de Paris du 2 janvier : entre Lezy et Chaumont, le rapide de Paris à Bâle a heurté un train de voyageurs ; deux hommes du personnel tués, trois voyageurs blessés.',
+        ],
     ],
     'sections' => [
         'course' => [
@@ -59,11 +73,29 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Les bilans divergent. La liste de Wikipédia compte deux garde-freins tués et trois voyageurs blessés. La dépêche de Chaumont du 2 janvier, reprise par la presse allemande, annonce deux agents et trois voyageurs tués. Le Neckar-Bote fait du train heurté un train de marchandises.',
-                'en' => 'The tolls differ. The Wikipedia list counts two brakesmen killed and three passengers injured. The Chaumont dispatch of 2 January, carried by the German press, reports two railwaymen and three passengers killed. The Neckar-Bote makes the train that was struck a goods train.',
-                'de' => 'Die Bilanzen weichen ab. Die Wikipedia-Liste zählt zwei getötete Bremser und drei verletzte Reisende. Die von der deutschen Presse übernommene Meldung aus Chaumont vom 2. Januar spricht von zwei getöteten Eisenbahnern und drei getöteten Reisenden. Im Neckar-Boten ist der getroffene Zug ein Güterzug.',
-                'sources' => ['wp-liste-1909', 'ddb-1909-01-03-reichsbote', 'ddb-1909-01-05-neckarbote'],
+                'fr' => 'La liste de Wikipédia compte deux garde-freins tués et trois voyageurs blessés, comme le télégramme de Paris du 2 janvier paru le jour même dans la Bonner Zeitung. Une autre version de la dépêche, reprise par une partie de la presse allemande, annonce deux agents et trois voyageurs tués. Le Neckar-Bote fait du train heurté un train de marchandises.',
+                'en' => 'The Wikipedia list counts two brakesmen killed and three passengers injured, as does the Paris telegram of 2 January printed the same day in the Bonner Zeitung. Another version of the dispatch, carried by part of the German press, reports two railwaymen and three passengers killed. The Neckar-Bote makes the train that was hit a goods train.',
+                'de' => 'Die Wikipedia-Liste zählt zwei getötete Bremser und drei verletzte Reisende, ebenso das am selben Tag in der Bonner Zeitung erschienene Pariser Telegramm vom 2. Januar. Eine andere Fassung der Depesche, die ein Teil der deutschen Presse übernahm, meldet zwei Bedienstete und drei Reisende getötet. Der Neckar-Bote macht aus dem angefahrenen Zug einen Güterzug.',
+                'sources' => ['wp-liste-1909', 'ddb-1909-01-02-bonner', 'ddb-1909-01-03-reichsbote', 'ddb-1909-01-05-neckarbote'],
             ],
+        ],
+    ],
+    'corrections' => [
+        [
+            'field' => 'injuries',
+            'value' => 3,
+            'sources' => ['wp-liste-1909', 'ddb-1909-01-02-bonner'],
+            'fr' => 'Trois voyageurs blessés selon la liste de Wikipédia et le télégramme de Paris du 2 janvier 1909 ; la fiche ne donnait pas de nombre de blessés.',
+            'en' => 'Three passengers injured according to the Wikipedia list and the Paris telegram of 2 January 1909; the record gave no number of injured.',
+            'de' => 'Drei Reisende verletzt nach der Wikipedia-Liste und dem Pariser Telegramm vom 2. Januar 1909; der Eintrag nannte keine Zahl von Verletzten.',
+        ],
+        [
+            'field' => 'deaths',
+            'value' => 2,
+            'sources' => ['wp-liste-1909', 'ddb-1909-01-02-bonner'],
+            'fr' => 'Deux agents tués selon la liste de Wikipédia et le télégramme de Paris du 2 janvier 1909 ; une autre version de la dépêche en compte cinq ; la fiche ne donnait pas de nombre de morts.',
+            'en' => 'Two railwaymen killed according to the Wikipedia list and the Paris telegram of 2 January 1909; another version of the dispatch counts five; the record gave no number of deaths.',
+            'de' => 'Zwei Bedienstete getötet nach der Wikipedia-Liste und dem Pariser Telegramm vom 2. Januar 1909; eine andere Fassung der Depesche zählt fünf; der Eintrag nannte keine Zahl von Toten.',
         ],
     ],
 ];

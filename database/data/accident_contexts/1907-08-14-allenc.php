@@ -2,8 +2,8 @@
 
 // Contexte sourcé de la dérive d'un train de minerai sur le viaduc du Beyrac, ligne de Mende à La Bastide, d'août 1907 (recherche du 21/11/2026).
 return [
-    'slug' => '1907-08-14-chadenet',
-    'checked_on' => '2026-11-21',
+    'slug' => '1907-08-14-allenc',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1907' => [
             'provider' => 'wikipedia',
@@ -47,8 +47,44 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Même récit, plus complet : le personnel grièvement blessé a attendu des heures un médecin, avec l\'aide de quelques moissonneurs ; la femme du garde-voie a averti à temps un train venant de Mende, qui aurait sinon heurté les deux wagons en dérive.',
         ],
+        'wp-schema-ligne-monastier' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Schéma de la ligne du Monastier à La Bastide-Saint-Laurent-les-Bains',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'PK 658,928 à 662,611',
+            'url' => 'https://fr.wikipedia.org/wiki/Sch%C3%A9ma_de_la_ligne_du_Monastier_%C3%A0_La_Bastide-Saint-Laurent-les-Bains',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Schéma de la ligne : gare de Bagnols - Chadenet au PK 658,928, viaduc du Beyrac (64 m) au PK 660,498, gare d\'Allenc au PK 662,611.',
+        ],
+        'osm-pont-beyrac' => [
+            'provider' => 'sites-web',
+            'kind' => 'data',
+            'reliability' => 'association',
+            'title' => 'Pont de la ligne du Monastier à La Bastide-Saint-Laurent-les-Bains sur le ruisseau de Beyrac (way 85522709)',
+            'publisher' => 'OpenStreetMap',
+            'author' => null,
+            'published' => null,
+            'locator' => '44,5397 N, 3,6395 E',
+            'url' => 'https://www.openstreetmap.org/way/85522709',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Le pont ferroviaire de la ligne sur le ruisseau de Beyrac, entre Bagnols - Chadenet et Allenc, se trouve sur le territoire de la commune d\'Allenc (Lozère, code INSEE 48003).',
+        ],
     ],
     'sections' => [
+        'circumstances' => [
+            [
+                'fr' => 'Le viaduc du Beyrac, long de 64 m, porte la ligne de Mende à La Bastide au-dessus du ruisseau de Beyrac, entre les gares de Bagnols - Chadenet et d\'Allenc. Il se trouve sur la commune d\'Allenc.',
+                'en' => 'The Beyrac viaduct, 64 m long, carries the Mende to La Bastide line over the Beyrac stream, between Bagnols - Chadenet and Allenc stations. It lies in the commune of Allenc.',
+                'de' => 'Der 64 m lange Viadukt von Beyrac führt die Strecke Mende-La Bastide zwischen den Bahnhöfen Bagnols-Chadenet und Allenc über den Bach von Beyrac. Er liegt auf dem Gebiet der Gemeinde Allenc.',
+                'sources' => ['wp-schema-ligne-monastier', 'osm-pont-beyrac'],
+            ],
+        ],
         'course' => [
             [
                 'fr' => 'Un train de cinq wagons chargés de minerai de plomb des mines de Bleymard, la locomotive en queue, est parti en arrière sur la pente entre Bagnols et Badaroux, sur la ligne de Mende à La Bastide. Il a passé la gare d\'Allenc puis la courbe du viaduc du Beyrac, où le troisième wagon a déraillé. La locomotive et les deux derniers wagons se sont écrasés contre lui.',
@@ -95,6 +131,14 @@ return [
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '48003',
+            'sources' => ['wp-liste-1907', 'ddb-1907-08-17-hamburg', 'wp-schema-ligne-monastier', 'osm-pont-beyrac'],
+            'fr' => 'Le déraillement a eu lieu sur le viaduc du Beyrac, entre Bagnols - Chadenet et Allenc, sur la commune d\'Allenc (Lozère) ; la fiche le plaçait à Chadenet, commune de la gare voisine.',
+            'en' => 'The derailment happened on the Beyrac viaduct, between Bagnols - Chadenet and Allenc, in the commune of Allenc (Lozère); the record placed it at Chadenet, the commune of the nearby station.',
+            'de' => 'Die Entgleisung ereignete sich auf dem Viadukt von Beyrac zwischen Bagnols-Chadenet und Allenc, auf dem Gebiet der Gemeinde Allenc (Lozère); der Eintrag verlegte sie nach Chadenet, der Gemeinde des benachbarten Bahnhofs.',
+        ],
         [
             'field' => 'deaths',
             'value' => 2,

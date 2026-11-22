@@ -2,8 +2,8 @@
 
 // Contexte sourcé de l'accident du passage à niveau de la forêt de Saint-Germain, ligne de la Grande Ceinture, de novembre 1908 (recherche du 21/11/2026).
 return [
-    'slug' => '1908-11-30-maisons-laffitte',
-    'checked_on' => '2026-11-21',
+    'slug' => '1908-11-30-saint-germain-en-laye',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1908' => [
             'provider' => 'wikipedia',
@@ -61,6 +61,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Même récit, daté du lundi après-midi : brouillard épais, cinq voitures de noce, une voiture broyée avec ses cinq occupants.',
         ],
+        'osm-vente-aux-dames' => [
+            'provider' => 'sites-web',
+            'kind' => 'data',
+            'reliability' => 'association',
+            'title' => 'Vente aux Dames (lieu-dit, node 12749317271)',
+            'publisher' => 'OpenStreetMap',
+            'author' => null,
+            'published' => null,
+            'locator' => '48,9425 N, 2,0732 E',
+            'url' => 'https://www.openstreetmap.org/node/12749317271',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Lieu-dit de la forêt de Saint-Germain, avec la maison forestière de la Vente aux Dames, sur le territoire de la commune de Saint-Germain-en-Laye (Yvelines, code INSEE 78551, voie FANTOIR 78551B048).',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -69,6 +83,12 @@ return [
                 'en' => 'On Monday 30 November 1908, at about 3 pm, thick fog lay over the Paris area. At the level crossing of the Poissy to Maisons-Laffitte road, in the forest of Saint-Germain on the Grande Ceinture line, five carriages of a wedding party were waiting for a passenger train bound for Poissy to pass.',
                 'de' => 'Am Montag, dem 30. November 1908, gegen 15 Uhr lag dichter Nebel über dem Pariser Raum. Am Bahnübergang der Straße von Poissy nach Maisons-Laffitte im Wald von Saint-Germain an der Großen Pariser Gürtelbahn warteten fünf Wagen einer Hochzeitsgesellschaft, bis ein Personenzug nach Poissy vorbeigefahren war.',
                 'sources' => ['wp-liste-1908', 'ddb-1908-12-01-ohligs', 'ddb-1908-12-03-echo'],
+            ],
+            [
+                'fr' => 'Selon la liste de Wikipédia, le passage à niveau est celui de la Vente aux Dames, en forêt de Saint-Germain. Ce lieu-dit se trouve sur la commune de Saint-Germain-en-Laye.',
+                'en' => 'According to the Wikipedia list, the crossing was the one at La Vente aux Dames, in the Saint-Germain forest. This place lies in the commune of Saint-Germain-en-Laye.',
+                'de' => 'Nach der Wikipedia-Liste handelt es sich um den Bahnübergang an der Vente aux Dames im Wald von Saint-Germain. Diese Flur liegt auf dem Gebiet der Gemeinde Saint-Germain-en-Laye.',
+                'sources' => ['wp-liste-1908', 'osm-vente-aux-dames'],
             ],
         ],
         'course' => [
@@ -89,6 +109,14 @@ return [
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '78551',
+            'sources' => ['wp-liste-1908', 'osm-vente-aux-dames'],
+            'fr' => 'Le passage à niveau de la Vente aux Dames, en forêt de Saint-Germain, est sur la commune de Saint-Germain-en-Laye ; la fiche portait Maisons-Laffitte, où menait la route.',
+            'en' => 'The Vente aux Dames level crossing, in the Saint-Germain forest, is in the commune of Saint-Germain-en-Laye; the record gave Maisons-Laffitte, where the road led.',
+            'de' => 'Der Bahnübergang an der Vente aux Dames im Wald von Saint-Germain liegt auf dem Gebiet von Saint-Germain-en-Laye; der Eintrag nannte Maisons-Laffitte, wohin die Straße führte.',
+        ],
         [
             'field' => 'deaths',
             'value' => 5,

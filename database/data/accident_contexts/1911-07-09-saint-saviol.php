@@ -2,8 +2,8 @@
 
 // Contexte sourcé du déraillement du Sud-Express après une collision avec une machine haut-le-pied à l'entrée de la gare de Saint-Saviol, ligne de Paris à Bordeaux, de juillet 1911 (recherche du 21/11/2026).
 return [
-    'slug' => '1911-07-11-saint-saviol',
-    'checked_on' => '2026-11-21',
+    'slug' => '1911-07-09-saint-saviol',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1911' => [
             'provider' => 'wikipedia',
@@ -67,14 +67,22 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Selon la liste de Wikipédia, le mort est le mécanicien de la machine haut-le-pied ; selon les dépêches de Paris, c\'est le mécanicien du Sud-Express, resté sous sa locomotive. Les dépêches du 10 juillet placent l\'accident la veille au soir, soit le 9 juillet ; la fiche le date du 11, d\'après la liste.',
-                'en' => 'According to the Wikipedia list the dead man was the driver of the light engine; according to the Paris dispatches it was the Sud Express driver, trapped under his engine. The dispatches of 10 July place the accident the evening before, on 9 July; the record dates it to the 11th, after the list.',
-                'de' => 'Nach der Wikipedia-Liste war der Tote der Führer der Leerlokomotive, nach den Pariser Meldungen der unter seiner Lokomotive eingeklemmte Führer des Südexpress. Die Meldungen vom 10. Juli legen den Unfall auf den Vorabend, den 9. Juli; der Eintrag datiert ihn nach der Liste auf den 11.',
+                'fr' => 'Selon la liste de Wikipédia, le mort est le mécanicien de la machine haut-le-pied ; selon les dépêches de Paris, c\'est le mécanicien du Sud-Express, resté sous sa locomotive. La liste date l\'accident du 11 juillet 1911, d\'après Le Temps du 11, mais deux journaux allemands parus le 11 juillet publient deux dépêches de Paris du 10 qui le placent la veille au soir, le dimanche 9 juillet.',
+                'en' => 'According to the Wikipedia list, the dead man was the driver of the light engine; according to the Paris dispatches, it was the driver of the Sud-Express, trapped under his engine. The list dates the accident 11 July 1911, after Le Temps of the 11th, but two German papers printed on 11 July carry two Paris dispatches of the 10th that place it the evening before, Sunday 9 July.',
+                'de' => 'Nach der Wikipedia-Liste war der Tote der Führer der Leerfahrtlokomotive, nach den Pariser Depeschen der Lokomotivführer des Südexpress, der unter seiner Maschine lag. Die Liste datiert den Unfall nach Le Temps vom 11. auf den 11. Juli 1911, doch zwei deutsche Zeitungen vom 11. Juli bringen zwei Pariser Depeschen vom 10., die ihn auf den Vorabend legen, Sonntag, den 9. Juli.',
                 'sources' => ['wp-liste-1911', 'ddb-1911-07-11-fremdenblatt', 'ddb-1911-07-11-reichsbote'],
             ],
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'occurred_on',
+            'value' => '1911-07-09',
+            'sources' => ['ddb-1911-07-11-fremdenblatt', 'ddb-1911-07-11-reichsbote'],
+            'fr' => 'Le 9 juillet 1911 au soir : deux dépêches de Paris du 10 juillet, de textes différents et parues le 11 dans deux journaux allemands, placent le déraillement la veille ; la fiche donnait le 11 juillet, date du numéro du Temps cité par la liste de Wikipédia.',
+            'en' => 'Evening of 9 July 1911: two Paris dispatches of 10 July, with different wording and printed on the 11th in two German papers, place the derailment the day before; the record gave 11 July, the date of the issue of Le Temps cited by the Wikipedia list.',
+            'de' => 'Abend des 9. Juli 1911: Zwei Pariser Depeschen vom 10. Juli mit verschiedenem Wortlaut, am 11. in zwei deutschen Zeitungen erschienen, legen die Entgleisung auf den Vortag; der Eintrag nannte den 11. Juli, das Datum der von der Wikipedia-Liste zitierten Ausgabe von Le Temps.',
+        ],
         [
             'field' => 'deaths',
             'value' => 1,
