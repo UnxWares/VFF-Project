@@ -1047,16 +1047,20 @@ return [
             'type' => 'closure',
             'date' => $g[6],
             'precision' => $g[7],
-            'source_url' => $wp($g[2], $g[3]),
-            'quote' => $g[8],
-            'reason' => $g[7] === 'before'
+            'source_url' => ($g[10] ?? [])['source_url'] ?? $wp($g[2], $g[3]),
+            'quote' => ($g[10] ?? [])['quote'] ?? $g[8],
+            'reason' => ($g[10] ?? [])['reason'] ?? ($g[7] === 'before'
                 ? 'fermeture de la ligne selon l\'infobox : fin du fret de la gare au plus tard à cette date'
-                : 'fin du fret, donc de toute desserte, selon l\'infobox de l\'article de la gare',
+                : 'fin du fret, donc de toute desserte, selon l\'infobox de l\'article de la gare'),
         ],
     ], [
         // gare, Wikidata, article, révision, fin des voyageurs, précision, fin du fret, précision, champ cité,
         // fermetures retirées [source, type, date]
-        ['Angoville-sur-Ay', 'Q3095636', 'Gare d\'Angoville-sur-Ay', 237264528, '1970-01-01', 'year', '1988-01-24', 'day', 'Fermeture : voyageurs : 1970 marchandises : 24 janvier 1988', [['wikidata', 'closure', '1970-01-01']]],
+        ['Angoville-sur-Ay', 'Q3095636', 'Gare d\'Angoville-sur-Ay', 237264528, '1970-01-01', 'year', '1973-05-14', 'day', 'Fermeture : voyageurs : 1970 marchandises : 24 janvier 1988', [['wikidata', 'closure', '1970-01-01']], [
+            'source_url' => $wp('Ligne de Coutances à Sottevast', 240949203),
+            'quote' => 'La ligne est fermée au service marchandises : [...] section de Lessay à La Haye-du-Puits, le 14 mai 1973',
+            'reason' => 'la gare est entre Lessay et La Haye-du-Puits : le fret y cesse le 14/05/1973 (article de la ligne) ; le 24/01/1988 de l\'infobox de la gare est la fin des sections Coutances - Périers et La Haye-du-Puits - Sottevast',
+        ]],
         ['Anould', 'Q2175387', 'Gare d\'Anould', 195862206, '1939-01-08', 'day', '2010-02-01', 'day', 'Fermeture : 8 janvier 1939 (voyageurs) 1er février 2010 (fret)', [['wikidata', 'closure', '1939-01-01']]],
         ['Maison des Associations d\'Aubenas', 'Q2529671', 'Gare d\'Aubenas', 235981496, '1969-03-09', 'day', '1988-04-01', 'day', 'Fermeture : 9 mars 1969 (voyageurs) 1er avril 1988 (fret)', [['wikidata', 'closure', '1969-03-09']]],
         ['Aubignas-Alba', 'Q125889075', 'Gare d\'Aubignas - Alba', 237570555, '1969-03-09', 'day', '1971-12-01', 'day', 'Fermeture : 9 mars 1969 aux voyageurs 1 décembre 1971 aux frets', [['wikidata', 'closure', '1969-03-09']]],
@@ -1079,7 +1083,11 @@ return [
         ['La Chapelle-Gauthier', 'Q111828277', 'Gare de La Chapelle-Gauthier', 235032405, '1934-01-19', 'day', '1956-09-30', 'day', 'Fermeture : 19 janvier 1934 (voyageurs) 30 septembre 1956 (marchandises)', [['wikidata', 'demolition', '1934-01-19']]],
         ['La Chapelle-Yvon', 'Q111902817', 'Gare de La Chapelle-Yvon', 235032406, '1934-01-19', 'day', '1956-07-01', 'day', 'Fermeture : 19 janvier 1934 (voyageurs) 1 juillet 1956 (marchandises)', [['wikidata', 'demolition', '1934-01-19']]],
         ['Lessay', 'Q1966097', 'Gare de Lessay', 231943184, '1970-01-01', 'year', '1988-01-24', 'day', 'Fermeture : voyageurs : 1970 marchandises : 24 janvier 1988', [['wikidata', 'closure', '1970-01-01']]],
-        ['Lincel - Saint-Martin', 'Q3096890', 'Gare de Lincel - Saint-Martin', 206958157, '1934-01-15', 'day', '1956-01-01', 'year', 'Fermeture : 15 janvier 1934 (voyageurs) 1956 (marchandises)', [['wikidata', 'closure', '1934-01-01']]],
+        ['Lincel - Saint-Martin', 'Q3096890', 'Gare de Lincel - Saint-Martin', 206958157, '1934-01-15', 'day', '1941-05-05', 'day', 'Fermeture : 15 janvier 1934 (voyageurs) 1956 (marchandises)', [['wikidata', 'closure', '1934-01-01']], [
+            'source_url' => 'https://www.lignes-oubliees.com/index.php?page=stmaime',
+            'quote' => 'Fermeture aux marchandises : Saignon - Biabaux : 05/05/1941',
+            'reason' => 'la gare (PK 62,9) est sur Saignon - Biabaux, déclassée le 30/11/1941 (loi, article de la ligne, oldid 241491046) ; le 1956 de l\'infobox est la fin du fret de Biabaux - Saint-Maime',
+        ]],
         ['Livarot', 'Q28496166', 'Gare de Livarot', 241104408, '1938-05-05', 'day', '1990-09-30', 'day', 'Fermeture : 5 mai 1938 (voyageurs) 30 septembre 1990 (marchandises)', [['wikidata', 'closure', '1938-01-01']]],
         ['Luxey', 'Q21980009', 'Gare de Luxey', 209217400, '1955-01-01', 'year', '1970-12-31', 'day', 'Fermeture : 1955 (voyageurs) 31 décembre 1970 (fermeture totale de la gare)', [['wikidata', 'closure', '1955-01-01']]],
         ['Lyon-Croix-Rousse', 'Q19406999', 'Gare de Lyon-Croix-Rousse', 235032836, '1953-01-01', 'year', '1975-01-01', 'year', 'Fermeture : 1953 (voyageurs) 1975 (marchandises)', [['wikidata', 'closure', '1953-01-01']]],
@@ -1697,13 +1705,23 @@ return [
             'ouverture estimée à 1840 par la ligne, antérieure à la section Bordeaux - Libourne (1852) ; Q675874 est bien la gare ; date de ligne, précision année'],
         ['Les Clairières-de-Verneuil', 'uic', '87386664', '1974-05-01', 'month', 'Q3098151', 'date de mise en service (P1619) : mai 1974',
             'ouverture estimée à 1843 par la ligne ; halte mise en service en mai 1974 (Wikidata, et infobox de l\'article Gare des Clairières de Verneuil, oldid 236348200)'],
-        ['Montauban-de-Bretagne', 'uic', '87471086', '1863-01-01', 'year', 'Q2270053', 'date de mise en service (P1619) : 1863',
-            'ouverture estimée à 1840 par la ligne ; 1863, ouverture de la section Rennes - Guingamp (l\'article Gare de Montauban-de-Bretagne, oldid 238688642, donne le 07/09/1863)'],
         ['Raedersheim', 'uic', '87182717', '1841-01-01', 'year', 'Q631405', 'date de mise en service (P1619) : 1841',
             'ouverture estimée à 1840 par la ligne, antérieure à la ligne de Strasbourg à Bâle (1841) ; Q631405 est bien la gare'],
         ['Gare embarcadère de Sceaux', 'wikidata', 'Q96605529', '1846-01-01', 'year', 'Q3097699', 'date de mise en service (P1619) : 1846',
             'aucune ouverture dans VFF ; mise en service en 1846 (Wikidata Q3097699, et infobox de l\'article Gare de Sceaux (ancienne), oldid 241389426)'],
     ]),
+    // Montauban-de-Bretagne : mise en service le 07/09/1863, jour de l'ouverture de Rennes - Guingamp (Wikidata P1619
+    // ne donne que l'année ; recherche-lignes-2, 22/11/2026).
+    [
+        'station' => ['name' => 'Montauban-de-Bretagne', 'uic' => '87471086'],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1863-09-07',
+        'precision' => 'day',
+        'source_url' => $wp('Gare de Montauban-de-Bretagne', 238688642),
+        'quote' => 'La station de Montauban-de-Bretagne est mise en service le 7 septembre 1863 par la Compagnie des chemins de fer de l\'Ouest',
+        'reason' => 'ouverture estimée à 1840 par la ligne ; le jour est celui de l\'ouverture de la section Rennes - Guingamp (article de la gare, d\'accord avec Wikidata P1619 pour l\'année 1863)',
+    ],
 
     // 11 e. Liens Wikidata faux (G2) : l'objet OHM de la gare porte le Q-id d'une autre gare (tag wikidata), la
     // fiche le prenait. Défaits au rattachement des sources (vff:consolidate-stations, action « unlink ») ; les
