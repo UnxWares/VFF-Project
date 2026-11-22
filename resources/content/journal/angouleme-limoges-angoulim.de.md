@@ -26,13 +26,13 @@ image:
   source_url: https://commons.wikimedia.org/wiki/File:Voie_Limoges-Angoul%C3%AAme_avec_des_mauvaises_herbes_sur_les_rails.jpg
 ---
 
-Am 13. März 2018 fahren zwischen [Angoulême](gare:angouleme) und [Saillat-Chassenon](gare:saillat-chassenon) auf der [Strecke von Limoges-Bénédictins nach Angoulême](ligne:610000) keine Züge mehr[^france3-2018]. Das Gleis weist Lagefehler auf, die ein sicheres Befahren nicht mehr erlauben. Am Tag darauf kündigt die SNCF eine vorübergehende Sperrung von drei Wochen an, wie eine Abgeordnete der Charente 2023 in einer Anfrage an die Regierung in Erinnerung ruft[^qe8999]. Mehr als acht Jahre später ist der Abschnitt nicht wieder eröffnet. Busse fahren die Strecke, und die Züge aus Limoges enden in Saillat.
+Am 13. März 2018 fahren zwischen [Angoulême](gare:angouleme) und [Saillat-Chassenon](gare:saillat-chassenon) auf der [Strecke von Limoges-Bénédictins nach Angoulême](ligne:610000) keine Züge mehr[^france3-2018]. Das Gleis weist Gleislagefehler auf, die ein sicheres Befahren nicht mehr erlauben. Am Tag darauf kündigt die SNCF eine vorübergehende Sperrung von drei Wochen an, wie eine Abgeordnete der Charente 2023 in einer Anfrage an die Regierung in Erinnerung ruft[^qe8999]. Mehr als acht Jahre später ist der Abschnitt nicht wieder eröffnet. Busse fahren die Strecke, und die Züge aus Limoges enden in Saillat.
 
 Der Verein AngouLim fordert die Wiedereröffnung der gesamten Strecke. Zum 22. November 2026 liegt die Vorstudie vor, aber die Finanzierung der Wiedereröffnungsarbeiten ist nicht beschlossen.
 
 ## Eine Strecke der Compagnie des Charentes
 
-Die Strecke geht auf eine Konzession zurück, die der Staat der Compagnie des chemins de fer des Charentes erteilte: Der Vertrag wird am 18. Juli 1868 unterzeichnet, die Gemeinnützigkeit am 26. Juli erklärt[^wikipedia]. Die gewählte Trasse führt über [La Rochefoucauld](gare:la-rochefoucauld) und folgt dann dem Tal der Vienne über [Chabanais](gare:chabanais), [Saint-Junien](gare:st-junien) und [Aixe-sur-Vienne](gare:aixe-sur-vienne). Die Strecke wird am 26. April 1875 eröffnet; der Anschluss an den Bahnhof [Limoges-Bénédictins](gare:limoges-benedictins) folgt ein Jahr später[^wikipedia].
+Die Strecke geht auf eine Konzession zurück, die der Staat der Compagnie des chemins de fer des Charentes erteilte: Der Vertrag wird am 18. Juli 1868 unterzeichnet, das öffentliche Interesse am Bau am 26. Juli erklärt[^wikipedia]. Die gewählte Trasse führt über [La Rochefoucauld](gare:la-rochefoucauld) und folgt dann dem Tal der Vienne über [Chabanais](gare:chabanais), [Saint-Junien](gare:st-junien) und [Aixe-sur-Vienne](gare:aixe-sur-vienne). Die Strecke wird am 26. April 1875 eröffnet; der Anschluss an den Bahnhof [Limoges-Bénédictins](gare:limoges-benedictins) folgt ein Jahr später[^wikipedia].
 
 Die Gesellschaft der Charentes behielt ihre Strecke nicht lange. Der Staat kaufte sie zurück (Vertrag vom 31. März 1877, Gesetz vom 18. Mai 1878), und die Strecke ging an die staatliche Eisenbahnverwaltung. Ein Vertrag von 1883 übertrug sie an die Compagnie du Paris-Orléans, die sie bis zur Gründung der SNCF 1938 betrieb[^wikipedia].
 
@@ -40,7 +40,7 @@ Die Strecke ist 117 Kilometer lang, eingleisig und nicht elektrifiziert; ihre St
 
 ## Die Jahre des Verschleißes
 
-Vor der Sperrung verkehrten auf der Strecke täglich 21 TER und jährlich etwa 80 000 Fahrgäste, laut der Antwort des Ministeriums auf eine schriftliche Anfrage von 2024[^qe15914]. Mehrere Bahnhöfe des Abschnitts in der Charente, etwa Fontafie, Taponnat oder Magnac-Touvre, waren schon geschlossen[^wikipedia]. Im Sommer 2016 müssen dringend 5 000 Schwellen ausgetauscht werden[^wikipedia]; Ende 2017 kosten weitere Notarbeiten 3,12 Millionen Euro, davon 1,06 Millionen vom Staat[^qe15914].
+Vor der Sperrung verkehrten auf der Strecke täglich 21 TER und jährlich etwa 80.000 Fahrgäste, laut der Antwort des Ministeriums auf eine schriftliche Anfrage von 2024[^qe15914]. Mehrere Bahnhöfe des Abschnitts in der Charente, etwa Fontafie, Taponnat oder Magnac-Touvre, waren schon geschlossen[^wikipedia]. Im Sommer 2016 müssen dringend 5.000 Schwellen ausgetauscht werden[^wikipedia]; Ende 2017 kosten weitere Sofortmaßnahmen 3,12 Millionen Euro, davon 1,06 Millionen vom Staat[^qe15914].
 
 Diese Arbeiten verhindern den Stillstand vom März 2018 nicht. Ersatzbusse übernehmen den Verkehr; seit dem 15. Dezember 2019 brauchen sie für die Fahrt etwa zwei Stunden[^wikipedia]. Der Güterverkehr war nach Angaben des Abgeordneten René Pilato schon in den 2010er Jahren verschwunden; er zählte 2024 noch etwa zehn private Anschlussgleise entlang der Strecke[^qe15914].
 
@@ -54,7 +54,7 @@ Die Kostenschätzungen haben sich in sieben Jahren stark verändert. Im März 20
 
 Die Vorstudie von SNCF Réseau, Ende Juni 2025 vorgelegt, ändert die Größenordnung: 360 Millionen Euro für die Wiedereröffnung der gesamten Strecke, davon 260 Millionen für den gesperrten Abschnitt und 100 Millionen, um Limoges - Saillat auf den neuesten Stand zu bringen[^qo433][^france3-2025]. Diese 360 Millionen schließen den noch befahrenen Abschnitt ein, den die 242 Millionen von 2023 nicht enthielten: Die beiden Beträge lassen sich nicht unmittelbar vergleichen.
 
-Zur Finanzierung: Der Staat-Region-Plan 2015-2022 sah 6,4 Millionen Euro vom Staat für Notarbeiten und Studien vor. Der Plan 2023-2027 reserviert 34 Millionen Euro für Studien und die Erneuerung der Strecke, davon 13,6 Millionen vom Staat[^qo433].
+Zur Finanzierung: Der Staat-Region-Plan 2015-2022 sah 6,4 Millionen Euro vom Staat für dringende Arbeiten und Studien vor. Der Plan 2023-2027 reserviert 34 Millionen Euro für Studien und die Erneuerung der Strecke, davon 13,6 Millionen vom Staat[^qo433].
 
 ## AngouLim und die Mobilisierung
 
@@ -62,7 +62,7 @@ Im Dezember 2018 demonstrieren etwa hundert Mandatsträger und Eisenbahner in de
 
 Am 5. September 2025 versammeln sich nach Angaben des Vereins etwa hundert Menschen vor der Unterpräfektur in Rochechouart. Sie verlangen die öffentliche Vorstellung der Studie, eine Finanzierungsvereinbarung zwischen Staat und Region mit jährlichen Raten, den Unterhalt des Abschnitts in der Haute-Vienne und einen Begleitausschuss, der vierteljährlich tagt[^ici-2025-09].
 
-Ende November 2025 erklärt der Präsident der Region Nouvelle-Aquitaine, Alain Rousset, die Region könne die Wiedereröffnung nicht finanzieren, jedenfalls nicht in den nächsten vier oder fünf Jahren[^france3-2025]. Am 5. Dezember 2025 trifft AngouLim den Regionspräsidenten und den Präfekten der Charente: Die Vorstudie soll dem Verein und den Mandatsträgern übermittelt werden, bei der Finanzierung aber geht nichts voran[^ici-2025-12]. Der Verein schlägt vor, das Geld anderswo zu suchen, über eine Abgabe auf die Gewinne der Autobahnen, auf Flugbenzin oder auf den Schwerlastverkehr im Transit, deren Ertrag er auf 20 bis 40 Millionen Euro im Jahr schätzt[^ici-2025-12].
+Ende November 2025 erklärt der Präsident der Region Nouvelle-Aquitaine, Alain Rousset, die Region könne die Wiedereröffnung nicht finanzieren, jedenfalls nicht in den nächsten vier oder fünf Jahren[^france3-2025]. Am 5. Dezember 2025 trifft AngouLim den Regionspräsidenten und den Präfekten der Charente: Die Vorstudie soll dem Verein und den Mandatsträgern übermittelt werden, bei der Finanzierung aber geht nichts voran[^ici-2025-12]. Der Verein schlägt vor, das Geld anderswo zu suchen, über eine Abgabe auf die Gewinne der Autobahnbetreiber, auf Flugbenzin oder auf den Schwerlastverkehr im Transit, deren Ertrag er auf 20 bis 40 Millionen Euro im Jahr schätzt[^ici-2025-12].
 
 ## Wo das Vorhaben steht
 
