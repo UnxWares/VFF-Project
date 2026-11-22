@@ -2822,6 +2822,12 @@ type LineProfile {
     "Parties du parcours dont l'altitude est celle du terrain (RGE ALTI) et non celle de la voie."
     terrain_ranges: [LineProfileGap!]!
 
+    "Parties du parcours dont l'altitude est celle de la voie estimée d'après le terrain (`rge_track` : plateforme repérée sur une coupe en travers du RGE ALTI, lissée le long de la ligne)."
+    track_estimate_ranges: [LineProfileGap!]!
+
+    "Méthode et erreur mesurée de l'altitude de la voie estimée d'après le terrain ; nulle si le profil n'a aucun point `rge_track`."
+    track_estimate: LineProfileTrackEstimate
+
     "Ligne à crémaillère (liste versionnée d'après Wikipédia) : type, étendue et déclivité publiée par la source. Nul pour une ligne à adhérence."
     rack: LineProfileRack
 
@@ -2957,7 +2963,7 @@ type LineProfileSample {
     "Altitude en mètres (NGF-IGN69), au décimètre ; nulle sans valeur."
     altitude_m: Float
 
-    "Provenance de la mesure : `bdtopo` (altitude de la voie, BD TOPO 3D) ou `rge_alti` (terrain) ; nulle si l'altitude est interpolée, absente ou d'un profil antérieur au 21/11/2026."
+    "Provenance de la mesure : `bdtopo` (altitude de la voie, BD TOPO 3D), `rge_alti` (terrain) ou `rge_track` (voie estimée d'après le terrain, erreur dans `LineProfile.track_estimate`) ; nulle si l'altitude est interpolée, absente ou d'un profil antérieur au 21/11/2026."
     source: String
 
     "Vrai si l'altitude est interpolée entre deux mesures (tunnel, pont, point aberrant, petit trou)."
@@ -2996,7 +3002,7 @@ type LineProfileAltitude {
     "Vrai si l'un des deux points qui encadrent le PK a une altitude interpolée."
     interpolated: Boolean!
 
-    "Provenance des deux mesures qui encadrent le PK (`bdtopo`, `rge_alti`)."
+    "Provenance des deux mesures qui encadrent le PK (`bdtopo`, `rge_alti`, `rge_track`)."
     sources: [String!]!
 
     "Ouvrage sous le point : `tunnel`, `bridge` ou nul."
@@ -3024,6 +3030,69 @@ type LineProfileStructure {
     kind: String!
 }
 
+"Méthode et erreur mesurée de l'altitude de la voie estimée d'après le terrain (étalonnage contre le MNT LiDAR HD de l'IGN)."
+type LineProfileTrackEstimate {
+    "`platform_cross_section` : bande plate de 4 à 14 m la plus proche du tracé sur une coupe de ±15 m tous les 1 m, puis lissage robuste le long de la ligne et interpolation sur les ponts et les tunnels."
+    method: String!
+
+    "Date de l'étalonnage (AAAA-MM-JJ)."
+    calibrated_on: String!
+
+    "Référence de l'étalonnage : `lidar_hd_mnt` (MNT LiDAR HD de l'IGN, pas de 50 cm, pris sous la voie)."
+    reference: String!
+
+    "Pas des points de l'étalonnage, en mètres (celui des profils de moins de 200 km)."
+    step_m: Int!
+
+    "Erreur selon l'écart entre le tracé et la voie (5, 10 et 20 m), hors ouvrages et leurs abords."
+    accuracy: [LineProfileTrackAccuracy!]!
+
+    "Ponts encadrés de voie au sol, interpolés entre les culées, comparés à l'altitude de la voie de la BD TOPO."
+    bridges: LineProfileTrackBridges!
+}
+
+"Erreur mesurée de l'altitude de la voie estimée pour un écart donné entre le tracé et la voie."
+type LineProfileTrackAccuracy {
+    "Écart entre le tracé et la voie, en mètres (5 : tracé précis ; 10 et 20 : tracés anciens)."
+    trace_offset_m: Int!
+
+    "Points de l'étalonnage."
+    points: Int!
+
+    "Écart d'altitude médian, en mètres."
+    median_m: Float!
+
+    "90e centile de l'écart d'altitude, en mètres."
+    p90_m: Float!
+
+    "99e centile de l'écart d'altitude, en mètres."
+    p99_m: Float!
+
+    "Part des points à moins de 1 m (0 à 1)."
+    under_1m_share: Float!
+
+    "Part des points à moins de 2 m (0 à 1)."
+    under_2m_share: Float!
+
+    "90e centile de l'écart de pente moyenne sur 1 km, en ‰."
+    grade_1km_p90_permil: Float!
+
+    "Part des pentes sur 1 km justes à 1 ‰ près (0 à 1)."
+    grade_1km_within_1_permil_share: Float!
+}
+
+"Erreur mesurée sur les ponts interpolés entre les culées."
+type LineProfileTrackBridges {
+    "Points de l'étalonnage."
+    points: Int!
+
+    "Écart d'altitude médian, en mètres."
+    median_m: Float!
+
+    "90e centile de l'écart d'altitude, en mètres."
+    p90_m: Float!
+}
+
 "Origine des altitudes d'un profil, en nombre de points."
 type LineProfileAltitudeSources {
     "Altitude de la voie dans la BD TOPO (géométrie 3D)."
@@ -3031,6 +3100,9 @@ type LineProfileAltitudeSources {
 
     "Altitude du terrain (RGE ALTI), faute de voie dans la BD TOPO."
     rge_alti: Int!
+
+    "Altitude de la voie estimée d'après le terrain (RGE ALTI), faute de voie dans la BD TOPO ; 0 pour un profil calculé sans cette estimation."
+    rge_track: Int!
 
     "Interpolée (tunnel ou pont sans altitude, point aberrant, petit trou)."
     interpolated: Int!

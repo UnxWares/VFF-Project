@@ -20,8 +20,11 @@ use RuntimeException;
  * - BD TOPO : une tuile de TILE_DEG degré de côté (environ 22 km sur 15 km) par fichier
  *   `bdtopo-tuiles/<x>_<y>.json.gz`, tous les tronçons de la tuile, sous une forme compacte ;
  * - RGE ALTI : chaque point est ramené au nœud le plus proche d'une grille de NODE_DEG degré
- *   (6 m au plus d'écart en France, sans effet sensible sur l'altitude du terrain), et les
- *   altitudes des nœuds sont gardées par tuile dans `rge-alti-noeuds/<x>_<y>.json.gz`.
+ *   (6 m au plus d'écart en France), et les altitudes des nœuds sont gardées par tuile dans
+ *   `rge-alti-noeuds/<x>_<y>.json.gz`. Mesure du 22/11/2026 (rapport `voie-depuis-terrain`) :
+ *   un écart de 5 m fait passer la part des points à moins de 1 m de l'altitude de la voie de
+ *   94 % à 83 % ; les coupes en travers de l'altitude de la voie estimée
+ *   passent donc par une grille fine (FINE_NODE_DEG, `rge-alti-1m/`).
  *
  * Politesse : une requête à la fois, une pause après chaque appel réseau (une seconde par défaut,
  * bien sous la limite), User-Agent générique, nouvelles tentatives espacées sur 429 et 5xx.
@@ -46,6 +49,18 @@ class GeoplateformeClient
     /** Points par requête d'altitude (limite du service : 5 000). */
     public const ELEVATION_BATCH = 2000;
 
+    /** Pas de la grille fine des coupes en travers (TrackFromTerrain), en degrés (environ 0,7 m sur 1,1 m). */
+    public const FINE_NODE_DEG = 0.00001;
+
+    /** Dossier du cache des nœuds de la grille fine. */
+    public const FINE_NODES_DIR = 'rge-alti-1m';
+
+    /** Points par requête pour les coupes (4 000 sans erreur lors de l'étalonnage du 22/11/2026). */
+    public const FINE_ELEVATION_BATCH = 4000;
+
+    /** Tuiles de nœuds gardées en mémoire : la grille fine en compte des centaines de milliers par tuile. */
+    private const NODE_TILES_IN_MEMORY = 24;
+
     /** Valeur renvoyée par le service pour un point hors couverture. */
     private const NO_DATA = -99999.0;
 
@@ -56,7 +71,7 @@ class GeoplateformeClient
 
     private int $networkCalls = 0;
 
-    /** @var array<string, array<string, float|null>> altitudes des nœuds par tuile, chargées */
+    /** @var array<string, array<string, float|null>> altitudes des nœuds par tuile (`<dossier>/<x>_<y>`), chargées */
     private array $nodes = [];
 
     public function __construct(private string $cacheDir = '', private readonly int $pauseMs = 1000)
@@ -102,49 +117,82 @@ class GeoplateformeClient
      */
     public function elevations(array $points): array
     {
-        $keys = [];
+        return $this->elevationsOnGrid($points, self::NODE_DEG, 'rge-alti-noeuds', self::ELEVATION_BATCH);
+    }
+
+    /**
+     * Altitudes RGE ALTI des points sur la grille fine (FINE_NODE_DEG, environ 1 m : 0,55 m au plus
+     * d'écart), pour les coupes en travers de l'altitude de la voie estimée (TrackFromTerrain) : la
+     * grille de NODE_DEG déplacerait chaque point de la coupe de plusieurs mètres. Cache à part,
+     * `rge-alti-1m/<x>_<y>.json.gz`.
+     *
+     * @param  list<array{0: float, 1: float}>  $points  [lon, lat]
+     * @return list<float|null>
+     */
+    public function fineElevations(array $points): array
+    {
+        return $this->elevationsOnGrid($points, self::FINE_NODE_DEG, self::FINE_NODES_DIR, self::FINE_ELEVATION_BATCH);
+    }
+
+    /**
+     * @param  list<array{0: float, 1: float}>  $points
+     * @return list<float|null>
+     */
+    private function elevationsOnGrid(array $points, float $nodeDeg, string $kind, int $batch): array
+    {
+        $decimals = (int) round(-log10($nodeDeg));
+        $values = [];
         $missing = [];
+        $waiting = [];
         foreach ($points as $i => $p) {
-            $node = [(int) round($p[0] / self::NODE_DEG), (int) round($p[1] / self::NODE_DEG)];
-            $tile = implode('_', self::tileOf($node[0] * self::NODE_DEG, $node[1] * self::NODE_DEG));
+            $node = [(int) round($p[0] / $nodeDeg), (int) round($p[1] / $nodeDeg)];
+            $tile = $kind.'/'.implode('_', self::tileOf($node[0] * $nodeDeg, $node[1] * $nodeDeg));
             $key = $node[0].':'.$node[1];
-            $keys[$i] = [$tile, $key];
             $this->loadNodes($tile);
-            if (! array_key_exists($key, $this->nodes[$tile])) {
+            if (array_key_exists($key, $this->nodes[$tile])) {
+                $values[$i] = $this->nodes[$tile][$key];
+            } else {
                 $missing[$tile.'|'.$key] = $node;
+                $waiting[$tile.'|'.$key][] = $i;
             }
         }
 
-        foreach (array_chunk($missing, self::ELEVATION_BATCH, true) as $chunk) {
+        foreach (array_chunk($missing, $batch, true) as $chunk) {
             $payload = [
-                'lon' => implode('|', array_map(fn (array $n): string => sprintf('%.4f', $n[0] * self::NODE_DEG), $chunk)),
-                'lat' => implode('|', array_map(fn (array $n): string => sprintf('%.4f', $n[1] * self::NODE_DEG), $chunk)),
+                'lon' => implode('|', array_map(fn (array $n): string => sprintf('%.'.$decimals.'f', $n[0] * $nodeDeg), $chunk)),
+                'lat' => implode('|', array_map(fn (array $n): string => sprintf('%.'.$decimals.'f', $n[1] * $nodeDeg), $chunk)),
                 'resource' => self::RESOURCE,
                 'delimiter' => '|',
                 'zonly' => 'true',
             ];
             $json = $this->fetchWithRetries(fn () => Http::withUserAgent(self::USER_AGENT)
-                ->timeout(60)
+                ->timeout(120)
                 ->acceptJson()
                 ->asJson()
                 ->post(self::ELEVATION_URL, $payload));
-            $values = $json['elevations'] ?? null;
-            if (! is_array($values) || count($values) !== count($chunk)) {
+            $answers = $json['elevations'] ?? null;
+            if (! is_array($answers) || count($answers) !== count($chunk)) {
                 throw new RuntimeException('Réponse inattendue du service d\'altimétrie de l\'IGN.');
             }
-            $touched = [];
+            $byTile = [];
             foreach (array_keys($chunk) as $k => $id) {
+                $z = $answers[$k];
+                $z = is_numeric($z) && (float) $z > self::NO_DATA + 1 ? round((float) $z, 2) : null;
                 [$tile, $key] = explode('|', $id);
-                $z = $values[$k];
-                $this->nodes[$tile][$key] = is_numeric($z) && (float) $z > self::NO_DATA + 1 ? round((float) $z, 2) : null;
-                $touched[$tile] = true;
+                $byTile[$tile][$key] = $z;
+                foreach ($waiting[$id] as $i) {
+                    $values[$i] = $z;
+                }
             }
-            foreach (array_keys($touched) as $tile) {
-                $this->writeGz('rge-alti-noeuds', $tile, $this->nodes[$tile]);
+            foreach ($byTile as $tile => $nodes) {
+                $this->loadNodes($tile);
+                $this->nodes[$tile] = $nodes + $this->nodes[$tile];
+                $this->writeGz(dirname($tile), basename($tile), $this->nodes[$tile]);
             }
         }
+        ksort($values);
 
-        return array_map(fn (array $k): ?float => $this->nodes[$k[0]][$k[1]], array_values($keys));
+        return array_values($values);
     }
 
     /**
@@ -225,11 +273,17 @@ class GeoplateformeClient
         return $out;
     }
 
+    /** Tuile de nœuds (`<dossier>/<x>_<y>`) chargée depuis le cache ; NODE_TILES_IN_MEMORY au plus. */
     private function loadNodes(string $tile): void
     {
-        if (! isset($this->nodes[$tile])) {
-            $this->nodes[$tile] = $this->readGz('rge-alti-noeuds', $tile) ?? [];
+        if (isset($this->nodes[$tile])) {
+            return;
         }
+        if (count($this->nodes) >= self::NODE_TILES_IN_MEMORY) {
+            // Chaque tuile est écrite à chaque paquet reçu : l'oublier ne perd rien.
+            unset($this->nodes[array_key_first($this->nodes)]);
+        }
+        $this->nodes[$tile] = $this->readGz(dirname($tile), basename($tile)) ?? [];
     }
 
     private function tileFile(string $kind, int|string $x, ?int $y = null): string

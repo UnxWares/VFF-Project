@@ -42,6 +42,8 @@ return [
     'sourced_grade_wikipedia' => 'The profile does not measure this gradient here. Figure taken from the Wikipedia article',
     'sourced_grade_sncf' => 'The profile does not measure this gradient here. Steepest figure among the track sections published by SNCF Réseau, which cover :share of the line (ODbL licence)',
     'terrain_legend' => 'Ground height (RGE ALTI), not the track height',
+    'track_estimate_legend' => 'Track height estimated from the terrain (RGE ALTI)',
+    'track_estimate_note' => 'Where BD TOPO gives no track height, it is estimated from RGE ALTI: the trackbed is located across the route (top of an embankment, floor of a cutting), then smoothed along the line. Where the route lies within 5 m of the track, 93% of points are within 1 m of the height measured by IGN lidar. On an old route 20 m off, the error can reach several metres.',
     'show_table' => 'Station heights (:count)',
     'table_caption' => 'Station heights on the gradient profile',
     'station' => 'Station',

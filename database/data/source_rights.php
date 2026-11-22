@@ -750,8 +750,9 @@ return [
         'line_signalling_events' => ['wikipedia' => 'wikipedia'],
         // Profils en long (vff:compute-line-profiles) : altitude de la voie BD TOPO, à défaut RGE ALTI (line_profiles.source).
         'line_profiles' => ['bdtopo-rge-alti' => 'ign'],
-        // Points du profil (line_profile_points.source) : altitude de la voie (BD TOPO) ou du terrain (RGE ALTI).
-        'line_profile_points' => ['bdtopo' => 'ign', 'rge_alti' => 'ign'],
+        // Points du profil (line_profile_points.source) : altitude de la voie (BD TOPO), du terrain (RGE ALTI) ou de la voie
+        // estimée d'après le terrain (RGE ALTI, option --estimate-track).
+        'line_profile_points' => ['bdtopo' => 'ign', 'rge_alti' => 'ign', 'rge_track' => 'ign'],
         // Documents d'archives de Gallica rattachés aux lignes (vff:import-gallica) : métadonnées des notices de la BnF
         // (Licence Ouverte) et lien vers Gallica, jamais l'image ni le texte numérisés.
         'line_archive_documents' => ['gallica' => 'gallica'],

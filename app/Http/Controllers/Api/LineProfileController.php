@@ -36,10 +36,12 @@ class LineProfileController extends Controller
         'sourced_grade' => null,
         'points' => [[0, 578.9, -145], [100, 578.3, -45], [5200, 756.2, 5111], [10500, 958.6, 10425]],
         'structures' => [['from_m' => 700, 'to_m' => 900, 'kind' => 'bridge']],
-        'altitude_sources' => ['bdtopo' => 339, 'rge_alti' => 5, 'interpolated' => 24, 'missing' => 0],
+        'altitude_sources' => ['bdtopo' => 339, 'rge_alti' => 5, 'rge_track' => 0, 'interpolated' => 24, 'missing' => 0],
         'gaps' => [],
         'branches' => [],
         'terrain_ranges' => [['from_m' => 25900, 'to_m' => 26300]],
+        'track_estimate_ranges' => [],
+        'track_estimate' => null,
         'stations' => [
             ['slug' => 'st-gervais-les-bains-le-fayet', 'name' => 'St-Gervais-les-Bains-Le Fayet', 'distance_m' => 145, 'altitude_m' => 578.4, 'pk_m' => 0, 'status' => 'active', 'offset_m' => 17],
             ['slug' => 'chamonix-montenvers', 'name' => 'Chamonix-Montenvers', 'distance_m' => 19160, 'altitude_m' => 1037.1, 'pk_m' => null, 'status' => 'tourist', 'offset_m' => 68],
@@ -83,7 +85,20 @@ class LineProfileController extends Controller
      * sur un pont sans altitude, interpolation linéaire entre les deux têtes de l'ouvrage ;
      * rien hors de France. Les points qui s'écartent de plus de 20 m de leurs voisins sont
      * interpolés. `altitude_sources` compte les points de chaque origine (`bdtopo`, `rge_alti`,
-     * `interpolated`, `missing`).
+     * `rge_track`, `interpolated`, `missing`).
+     *
+     * **Voie estimée d'après le terrain** (`rge_track`, profils calculés avec cette option) : là où
+     * la BD TOPO ne donne pas l'altitude de la voie, la plateforme est repérée sur une coupe en
+     * travers du RGE ALTI (bande plate de 4 à 14 m la plus proche du tracé, sur ±15 m : crête de
+     * remblai ou fond de tranchée), puis lissée le long de la ligne. `track_estimate_ranges` donne
+     * ces parties, `track_estimate` la méthode et l'erreur mesurée (null sans point estimé) :
+     * `accuracy` = écarts avec le MNT LiDAR HD de l'IGN sous la voie (2 642 points de voies en
+     * service, au pas de 100 m, hors ouvrages) selon l'écart entre le tracé et la voie
+     * (`trace_offset_m` = 5, 10 ou 20 m) : médiane, 90e et 99e centiles en mètres, parts sous 1 m
+     * et 2 m (0 à 1), 90e centile de l'écart de pente sur 1 km en ‰ et part à moins de 1 ‰ ;
+     * `bridges` = ponts interpolés entre les culées, comparés à la BD TOPO. Un tracé ancien peut
+     * s'écarter de la voie de 10 à 30 m : l'erreur est alors celle des lignes 10 et 20 m. La
+     * déclivité la plus forte n'est pas publiée sur ces points, comme sur le terrain.
      *
      * **Chiffres** (`summary`) : `ascent_m` et `descent_m` = dénivelés positif et négatif cumulés
      * dans le sens du parcours. Méthode (`climb_method`) : les altitudes du terrain (RGE ALTI) sont
@@ -133,7 +148,8 @@ class LineProfileController extends Controller
      *
      * **Autres listes** : `structures` = tunnels (`tunnel`) et ponts (`bridge`) de la BD TOPO sous
      * le parcours, en distances ; `gaps` = trous du tracé, sans altitude ; `terrain_ranges` = parties
-     * dont l'altitude est celle du terrain (RGE ALTI) et non de la voie ; `stations` = toutes les
+     * dont l'altitude est celle du terrain (RGE ALTI) et non de la voie ; `track_estimate_ranges` =
+     * parties à l'altitude de la voie estimée d'après le terrain ; `stations` = toutes les
      * gares rattachées à la ligne (fermées comprises : `status` = `declassified`), projetées sur le
      * parcours, avec leur distance, leur altitude (null dans un trou), leur PK officiel (`pk_m`,
      * en mètres, null s'il est inconnu ou seulement estimé) et leur écart au parcours (`offset_m`).
@@ -154,10 +170,15 @@ class LineProfileController extends Controller
      *     sourced_grade: array{max_grade_permil: float, covered_share: float|null, source: array{provider: string, title: string, url: string, license: string, attribution: string}}|null,
      *     points: array<array{0: int, 1: float|null, 2: int|null}>,
      *     structures: array<array{from_m: int, to_m: int, kind: string}>,
-     *     altitude_sources: array{bdtopo: int, rge_alti: int, interpolated: int, missing: int},
+     *     altitude_sources: array{bdtopo: int, rge_alti: int, rge_track: int, interpolated: int, missing: int},
      *     gaps: array<array{from_m: int, to_m: int}>,
      *     branches: array<array{from_m: int, to_m: int}>,
      *     terrain_ranges: array<array{from_m: int, to_m: int}>,
+     *     track_estimate_ranges: array<array{from_m: int, to_m: int}>,
+     *     track_estimate: array{method: string, calibrated_on: string, reference: string, step_m: int,
+     *         accuracy: array<array{trace_offset_m: int, points: int, median_m: float, p90_m: float, p99_m: float,
+     *             under_1m_share: float, under_2m_share: float, grade_1km_p90_permil: float, grade_1km_within_1_permil_share: float}>,
+     *         bridges: array{points: int, median_m: float, p90_m: float}}|null,
      *     stations: array<array{slug: string, name: string, distance_m: int, altitude_m: float|null, pk_m: int|null, status: string, offset_m: int}>,
      *     computed_at: string,
      *     provenance: array{provider: ?string, name: ?string, license: ?string, license_status: ?string}
@@ -205,7 +226,8 @@ class LineProfileController extends Controller
      * (`seq`), sa distance le long du parcours (`distance_m`, trous compris), son PK estimé
      * (`pk_m`, calé sur les PK officiels des gares, null sans calage ou sur un embranchement),
      * son altitude (`altitude_m`, mètres NGF-IGN69, null sans valeur), la provenance de la mesure
-     * (`source` : `bdtopo` = altitude de la voie dans la BD TOPO, `rge_alti` = altitude du terrain ;
+     * (`source` : `bdtopo` = altitude de la voie dans la BD TOPO, `rge_alti` = altitude du terrain,
+     * `rge_track` = altitude de la voie estimée d'après le terrain, erreur dans `track_estimate` du profil ;
      * null si l'altitude est interpolée, absente, ou d'un profil calculé avant le 21/11/2026),
      * `interpolated` (altitude interpolée entre deux mesures : tunnel, pont, point aberrant, petit
      * trou), l'ouvrage sous le point (`structure` : `tunnel`, `bridge` ou null), le morceau continu

@@ -42,6 +42,8 @@ return [
     'sourced_grade_wikipedia' => 'Das Profil misst diese Neigung hier nicht. Wert aus dem Wikipedia-Artikel',
     'sourced_grade_sncf' => 'Das Profil misst diese Neigung hier nicht. Höchster Wert der von SNCF Réseau veröffentlichten Gleisabschnitte, die :share der Strecke abdecken (Lizenz ODbL)',
     'terrain_legend' => 'Geländehöhe (RGE ALTI), nicht die Gleishöhe',
+    'track_estimate_legend' => 'Gleishöhe, aus dem Gelände geschätzt (RGE ALTI)',
+    'track_estimate_note' => 'Wo die BD TOPO keine Gleishöhe angibt, wird sie aus dem RGE ALTI geschätzt: Der Bahnkörper wird quer zur Trasse gesucht (Dammkrone, Einschnittsohle) und dann entlang der Strecke geglättet. Liegt die Trasse höchstens 5 m neben dem Gleis, weichen 93 % der Punkte weniger als 1 m von der LiDAR-Messung des IGN ab. Bei einer alten Trasse mit 20 m Versatz kann der Fehler mehrere Meter betragen.',
     'show_table' => 'Höhe der Bahnhöfe (:count)',
     'table_caption' => 'Höhe der Bahnhöfe im Höhenprofil',
     'station' => 'Bahnhof',

@@ -23,6 +23,10 @@ Aucun champ n'a été retiré ni renommé depuis le 21/11. Les changements qui p
 - `signalling-history` : `origin` peut valoir `document`, et `source.provider` peut valoir `manual`.
 - `sourced_grade.source.provider` du profil en long peut valoir `sncf` (SNCF Réseau, licence `ODbL 1.0`) en plus de `wikipedia` : la valeur
   vient alors d'une partie seulement de la ligne (`covered_share`), et l'attribution « SNCF Réseau » doit l'accompagner.
+- Profil en long : `source` d'un point (REST `profile/points`, GraphQL `LineProfileSample.source`, `sources` de l'altitude à un PK) peut valoir
+  `rge_track` (altitude de la voie estimée d'après le terrain) sur les profils calculés avec cette estimation. `altitude_sources.rge_track`
+  compte ces points (0 sinon). Nouveaux champs : `track_estimate_ranges` (parties concernées) et `track_estimate` (méthode et erreur mesurée
+  contre le MNT LiDAR HD de l'IGN, nul sans point estimé), en REST, en GraphQL (`LineProfileTrackEstimate`) et dans l'outil MCP `line_profile`.
 - Export GTFS (`/eras/{year}/gtfs.zip`) : `shape_dist_traveled` de `stop_times.txt` est la distance de la gare le long du tracé (même unité que
   `shapes.txt`), plus le point kilométrique ; les tracés sont orientés dans le sens du trajet ; un trajet exige au moins deux gares desservies ;
   les heures sont calculées à 60 km/h ; le flux contient en plus `attributions.txt` et un contact dans `feed_info.txt`.

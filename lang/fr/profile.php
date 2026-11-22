@@ -42,6 +42,8 @@ return [
     'sourced_grade_wikipedia' => 'Le profil ne mesure pas cette déclivité ici. Valeur tirée de l’article de Wikipédia',
     'sourced_grade_sncf' => 'Le profil ne mesure pas cette déclivité ici. Valeur la plus forte des segments de voie publiés par SNCF Réseau, qui couvrent :share de la ligne (licence ODbL)',
     'terrain_legend' => 'Altitude du terrain (RGE ALTI), pas celle de la voie',
+    'track_estimate_legend' => 'Altitude de la voie estimée d’après le terrain (RGE ALTI)',
+    'track_estimate_note' => 'Hors BD TOPO, l’altitude de la voie est estimée sur le RGE ALTI : la plateforme est repérée en travers du tracé (crête de remblai, fond de tranchée), puis lissée le long de la ligne. Sur un tracé à moins de 5 m de la voie, 93 % des points sont à moins de 1 m de l’altitude mesurée par le LiDAR de l’IGN. Sur un tracé ancien décalé de 20 m, l’écart peut atteindre plusieurs mètres.',
     'show_table' => 'Altitude des gares (:count)',
     'table_caption' => 'Altitude des gares sur le profil en long',
     'station' => 'Gare',

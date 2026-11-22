@@ -38,10 +38,11 @@
      *     source: { provider: 'wikipedia'|'sncf', title: string, url: string, license: string } } | null,
      *   points: Array<[number, number|null, (number|null)?]>,
      *   structures: Array<{ from_m: number, to_m: number, kind: 'tunnel'|'bridge' }>,
-     *   altitude_sources: { bdtopo: number, rge_alti: number, interpolated: number, missing: number },
+     *   altitude_sources: { bdtopo: number, rge_alti: number, rge_track?: number, interpolated: number, missing: number },
      *   gaps: Array<{ from_m: number, to_m: number }>,
      *   branches?: Array<{ from_m: number, to_m: number }>,
      *   terrain_ranges?: Array<{ from_m: number, to_m: number }>,
+     *   track_estimate_ranges?: Array<{ from_m: number, to_m: number }>,
      *   stations: Array<{ slug: string, name: string, distance_m: number, altitude_m: number|null, pk_m: number|null,
      *     status?: string }>,
      *   computed_at: string,
@@ -127,6 +128,8 @@
               }),
     );
     const terrain = $derived(profile.terrain_ranges ?? []);
+    // Parties à l'altitude de la voie estimée d'après le terrain (source rge_track, servie par l'API).
+    const estimated = $derived(profile.track_estimate_ranges ?? []);
     const tunnels = $derived(profile.structures.filter((x) => x.kind === 'tunnel'));
     const hasBreaks = $derived(profile.altitude_sources.missing > 0 || profile.gaps.length > 0);
     const hasClosed = $derived(profile.stations.some(closed));
@@ -364,6 +367,16 @@
                                 y2={baseY - 3}
                             />
                         {/each}
+                        <!-- Voie estimée d'après le terrain : tirets longs au pied de la courbe. -->
+                        {#each estimated as r (r.from_m)}
+                            <line
+                                class="estimated"
+                                x1={x(r.from_m)}
+                                x2={Math.max(x(r.from_m) + 3, x(r.to_m))}
+                                y1={baseY - 3}
+                                y2={baseY - 3}
+                            />
+                        {/each}
 
                         {#if reading}
                             <line
@@ -452,7 +465,7 @@
                     {/if}
                 {/if}
             </div>
-            {#if tunnels.length || profile.gaps.length || hasClosed || branches.length || terrain.length}
+            {#if tunnels.length || profile.gaps.length || hasClosed || branches.length || terrain.length || estimated.length}
                 <figcaption>
                     {#if tunnels.length}
                         <span class="legend-item"
@@ -472,6 +485,13 @@
                         <span class="legend-item"
                             ><span class="legend-terrain" aria-hidden="true"></span>{t(
                                 'profile.terrain_legend',
+                            )}</span
+                        >
+                    {/if}
+                    {#if estimated.length}
+                        <span class="legend-item"
+                            ><span class="legend-estimated" aria-hidden="true"></span>{t(
+                                'profile.track_estimate_legend',
                             )}</span
                         >
                     {/if}
@@ -536,6 +556,9 @@
         {/if}
 
         <p class="source">{t('profile.source', { date: computedOn })}</p>
+        {#if estimated.length}
+            <p class="source">{t('profile.track_estimate_note')}</p>
+        {/if}
     </div>
 </SheetSection>
 
@@ -642,6 +665,16 @@
     .legend-terrain {
         width: 24px;
         border-top: 2px dotted var(--vff-text-muted);
+    }
+    .estimated {
+        stroke: var(--vff-text-muted);
+        stroke-width: 2;
+        stroke-dasharray: 8 4;
+        stroke-linecap: round;
+    }
+    .legend-estimated {
+        width: 24px;
+        border-top: 2px dashed var(--vff-text-muted);
     }
     .gap-hatch {
         stroke: var(--vff-border);

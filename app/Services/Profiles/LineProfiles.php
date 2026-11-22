@@ -60,10 +60,15 @@ final readonly class LineProfiles
      *     sourced_grade: array{max_grade_permil: float, covered_share: float|null, source: array{provider: string, title: string, url: string, license: string, attribution: string}}|null,
      *     points: list<array{0: int, 1: float|null, 2: int|null}>,
      *     structures: list<array{from_m: int, to_m: int, kind: string}>,
-     *     altitude_sources: array{bdtopo: int, rge_alti: int, interpolated: int, missing: int},
+     *     altitude_sources: array{bdtopo: int, rge_alti: int, rge_track: int, interpolated: int, missing: int},
      *     gaps: list<array{from_m: int, to_m: int}>,
      *     branches: list<array{from_m: int, to_m: int}>,
      *     terrain_ranges: list<array{from_m: int, to_m: int}>,
+     *     track_estimate_ranges: list<array{from_m: int, to_m: int}>,
+     *     track_estimate: array{method: string, calibrated_on: string, reference: string, step_m: int,
+     *         accuracy: list<array{trace_offset_m: int, points: int, median_m: float, p90_m: float, p99_m: float,
+     *             under_1m_share: float, under_2m_share: float, grade_1km_p90_permil: float, grade_1km_within_1_permil_share: float}>,
+     *         bridges: array{points: int, median_m: float, p90_m: float}}|null,
      *     stations: list<array{slug: string, name: string, distance_m: int, altitude_m: float|null, pk_m: int|null, status?: string, offset_m?: int}>,
      *     computed_at: string,
      *     provenance: array{provider: ?string, name: ?string, license: ?string, license_status: ?string}
@@ -88,10 +93,15 @@ final readonly class LineProfiles
      *     sourced_grade: array{max_grade_permil: float, covered_share: float|null, source: array{provider: string, title: string, url: string, license: string, attribution: string}}|null,
      *     points: list<array{0: int, 1: float|null, 2: int|null}>,
      *     structures: list<array{from_m: int, to_m: int, kind: string}>,
-     *     altitude_sources: array{bdtopo: int, rge_alti: int, interpolated: int, missing: int},
+     *     altitude_sources: array{bdtopo: int, rge_alti: int, rge_track: int, interpolated: int, missing: int},
      *     gaps: list<array{from_m: int, to_m: int}>,
      *     branches: list<array{from_m: int, to_m: int}>,
      *     terrain_ranges: list<array{from_m: int, to_m: int}>,
+     *     track_estimate_ranges: list<array{from_m: int, to_m: int}>,
+     *     track_estimate: array{method: string, calibrated_on: string, reference: string, step_m: int,
+     *         accuracy: list<array{trace_offset_m: int, points: int, median_m: float, p90_m: float, p99_m: float,
+     *             under_1m_share: float, under_2m_share: float, grade_1km_p90_permil: float, grade_1km_within_1_permil_share: float}>,
+     *         bridges: array{points: int, median_m: float, p90_m: float}}|null,
      *     stations: list<array{slug: string, name: string, distance_m: int, altitude_m: float|null, pk_m: int|null, status?: string, offset_m?: int}>,
      *     computed_at: string,
      *     provenance: array{provider: ?string, name: ?string, license: ?string, license_status: ?string}
@@ -100,6 +110,17 @@ final readonly class LineProfiles
     public function present(LineProfile $profile, ?int $maxPoints = null): array
     {
         $points = self::compactPoints($profile);
+        // Profils calculés sans l'estimation de la voie : `rge_track` vaut 0, même forme partout.
+        // Profil enregistré à la main (essais, imports) : une origine absente compte pour 0.
+        /** @var array<string, int> $stored */
+        $stored = $profile->altitude_sources;
+        $sources = [
+            'bdtopo' => $stored['bdtopo'] ?? 0,
+            'rge_alti' => $stored['rge_alti'] ?? 0,
+            TrackFromTerrain::SOURCE => $stored[TrackFromTerrain::SOURCE] ?? 0,
+            'interpolated' => $stored['interpolated'] ?? 0,
+            'missing' => $stored['missing'] ?? 0,
+        ];
 
         return [
             'basis' => $profile->era_id === null ? 'reference' : 'era',
@@ -127,10 +148,13 @@ final readonly class LineProfiles
             'sourced_grade' => SourcedGrades::present($profile->line->slug, $profile->max_grade_withheld),
             'points' => $maxPoints === null ? $points : self::downsample($points, $maxPoints, $profile->gaps),
             'structures' => $profile->structures,
-            'altitude_sources' => $profile->altitude_sources,
+            'altitude_sources' => $sources,
             'gaps' => $profile->gaps,
             'branches' => $profile->branches ?? [],
             'terrain_ranges' => $this->terrainRanges($profile),
+            'track_estimate_ranges' => $sources[TrackFromTerrain::SOURCE] > 0 ? $this->terrainRanges($profile, TrackFromTerrain::SOURCE) : [],
+            // Méthode et erreur mesurée de l'altitude de la voie estimée, quand le profil en a.
+            'track_estimate' => $sources[TrackFromTerrain::SOURCE] > 0 ? TrackFromTerrain::method() : null,
             'stations' => $profile->stations,
             'computed_at' => $profile->computed_at->toIso8601String(),
             'provenance' => $this->provenance->for('line_profiles', $profile->source),
@@ -215,11 +239,12 @@ final readonly class LineProfiles
 
     /**
      * Parties du parcours dont l'altitude vient du terrain (RGE ALTI) et non de la voie : suites de
-     * points consécutifs `rge_alti` dans le même morceau, en distances.
+     * points consécutifs `rge_alti` dans le même morceau, en distances. Avec `$source` =
+     * `rge_track` : parties à l'altitude de la voie estimée d'après le terrain.
      *
      * @return list<array{from_m: int, to_m: int}>
      */
-    public function terrainRanges(LineProfile $profile): array
+    public function terrainRanges(LineProfile $profile, string $source = 'rge_alti'): array
     {
         $rows = DB::select(
             'SELECT distance_m, source, piece FROM line_profile_points WHERE line_profile_id = ? ORDER BY seq',
@@ -229,7 +254,7 @@ final readonly class LineProfiles
         $open = null;
         $prev = null;
         foreach ($rows as $r) {
-            $terrain = $r->source === 'rge_alti';
+            $terrain = $r->source === $source;
             if ($open !== null && (! $terrain || $r->piece !== $prev->piece)) {
                 $ranges[] = ['from_m' => $open, 'to_m' => (int) $prev->distance_m];
                 $open = null;
