@@ -118,6 +118,40 @@ class ImportSncfTrackRegimeTest extends TestCase
         $this->assertSame(1, DB::table('line_sources')->where('source_type', 'sncf-regime')->count());
     }
 
+    public function test_a_value_rewritten_by_another_source_is_neither_refreshed_nor_cleared(): void
+    {
+        $this->lines();
+        $this->serve();
+        $this->artisan('vff:import-sncf-track-regime')->assertSuccessful();
+        $this->assertSame(2, (int) DB::table('lines')->where('code', '300000')->value('nb_voies_default'));
+
+        // Une autre source (vff:import-lignes-oubliees, Wikipédia) réécrit ensuite le champ : la trace
+        // « sncf-regime » reste, mais la valeur n'est plus celle de SNCF Réseau.
+        DB::table('lines')->where('code', '300000')->update(['nb_voies_default' => 1]);
+
+        $this->artisan('vff:import-sncf-track-regime')
+            ->expectsOutputToContain('contradictions (autre source, nombre différent, jamais remplacé) : 2')
+            ->assertSuccessful();
+        $this->assertSame(1, (int) DB::table('lines')->where('code', '300000')->value('nb_voies_default'), 'jamais rafraîchie par-dessus une autre source');
+        $lineId = DB::table('lines')->where('code', '300000')->value('id');
+        $this->assertSame(['line_track_portions'], json_decode((string) DB::table('line_sources')->where('source_type', 'sncf-regime')
+            ->where('line_id', $lineId)->value('fields_provided'), true), 'la valeur n\'est plus attribuée à SNCF Réseau');
+    }
+
+    public function test_a_value_rewritten_by_another_source_is_not_cleared_when_the_line_leaves_the_dataset(): void
+    {
+        $this->lines();
+        $this->serve();
+        $this->artisan('vff:import-sncf-track-regime')->assertSuccessful();
+        DB::table('lines')->where('code', '300000')->update(['nb_voies_default' => 1]);
+
+        // Le jeu ne cite plus la ligne : la valeur de l'autre source reste.
+        file_put_contents(storage_path('app/sources/sncf-regime/regime-dexploitation-des-lignes.json'), json_encode(['license' => 'Open Database License (ODbL)',
+            'modified' => '2026-01-01', 'records' => [['code_ligne' => '100000', 'lib_ligne' => 'A', 'exploitati' => 'Double voie', 'rg_troncon' => 1, 'pkd' => '000+000', 'pkf' => '050+000']]]));
+        $this->artisan('vff:import-sncf-track-regime')->assertSuccessful();
+        $this->assertSame(1, (int) DB::table('lines')->where('code', '300000')->value('nb_voies_default'), 'jamais effacée');
+    }
+
     public function test_it_stops_on_an_unexpected_licence(): void
     {
         $this->serve(['license' => 'Licence propriétaire']);

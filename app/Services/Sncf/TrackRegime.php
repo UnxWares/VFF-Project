@@ -64,6 +64,9 @@ final class TrackRegime
     /**
      * Regroupe les enregistrements par code de ligne et retient le nombre de voies dominant (en longueur).
      * Un enregistrement dont le PK est illisible pèse 1 km : il compte sans dominer une vraie longueur.
+     * La part du nombre dominant se mesure sur toute la longueur décrite, portions banalisées et « _Autre »
+     * comprises : une ligne à 6 km de voie unique et 72 km de voie banalisée n'est pas « à voie unique ».
+     * Un code sans aucune portion au nombre établi n'a pas de résumé.
      *
      * @param  iterable<array<string, mixed>>  $records
      * @return array<array-key, array{tracks: int, share: float, uniform: bool, regimes: list<string>, km: float, name: string, records: int}>
@@ -71,15 +74,21 @@ final class TrackRegime
     public static function summarize(iterable $records): array
     {
         $byCode = [];
+        $unknownKm = [];
         foreach ($records as $r) {
             $code = trim((string) ($r['code_ligne'] ?? ''));
-            $n = self::tracks($r['exploitati'] ?? null);
-            if ($code === '' || $n === null) {
+            if ($code === '' || trim((string) ($r['exploitati'] ?? '')) === '') {
                 continue;
             }
+            $n = self::tracks($r['exploitati']);
             $from = self::pkKm($r['pkd'] ?? null);
             $to = self::pkKm($r['pkf'] ?? null);
             $km = $from !== null && $to !== null ? abs($to - $from) : 1.0;
+            if ($n === null) {
+                $unknownKm[$code] = ($unknownKm[$code] ?? 0.0) + $km;
+
+                continue;
+            }
             $byCode[$code]['name'] ??= (string) ($r['lib_ligne'] ?? '');
             $byCode[$code]['records'] = ($byCode[$code]['records'] ?? 0) + 1;
             $byCode[$code]['km'][$n] = ($byCode[$code]['km'][$n] ?? 0.0) + $km;
@@ -88,7 +97,7 @@ final class TrackRegime
 
         $out = [];
         foreach ($byCode as $code => $d) {
-            $total = array_sum($d['km']);
+            $total = array_sum($d['km']) + ($unknownKm[$code] ?? 0.0);
             arsort($d['km']);
             $tracks = (int) array_key_first($d['km']);
             $share = $total > 0 ? $d['km'][$tracks] / $total : 1.0;

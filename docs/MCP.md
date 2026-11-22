@@ -278,7 +278,9 @@ seul, `declassified` fermée, `gone` disparue, `planned` projetée, `technical`,
 date, précision et `when`, la date rédigée à sa seule précision ; une fermeture de précision `range`
 n'est connue que par un intervalle : `date` vaut `null`, `from_year` et `to_year` donnent les bornes en
 années, `to_year` est nul quand la date est inconnue, et `when` dit « entre 1980 et 1989 » ou « date
-inconnue, après 1870 », jamais un jour), `eras` (statut à chaque décennie ; `uncertain` = non confirmé par les
+inconnue, après 1870 », jamais un jour ; une ouverture `range` (ouverture déduite des lignes et bornée par
+la carte) se lit de même, avec `to_year` toujours donné et `when` « entre 1847 et 1860 » ; `opened_after`
+vaut alors l'année après laquelle la gare a ouvert, et `null` pour toute autre précision), `eras` (statut à chaque décennie ; `uncertain` = non confirmé par les
 voies de l'époque), `events` (chronologie : `type`, `label`, date, `source`, `source_url`,
 `inferred` = date déduite des lignes et non d'une source sur la gare, `note`), `lines` (`slug`,
 `name`, `code`, `first_year`, `last_year`, `last_year_kind`, `years_source`, `pk_km`, `served_today` ;
@@ -518,7 +520,7 @@ Renvoie `era_year` et `lines` : `slug`, `code`, `name`, `network`, `historical_o
 | `cursor` | chaîne opaque | non | Page suivante. |
 
 Chaque gare : `slug`, `name`, `type`, `status`, `city`, `department_code`, `uic_code`,
-`wikidata_id`, `opened_at`/`closed_at` et leur précision, `closed_after`, `lat`, `lng`,
+`wikidata_id`, `opened_at`/`closed_at` et leur précision, `opened_after` (ouverte après cette année, précision `range`), `closed_after`, `lat`, `lng`,
 `position_flagged`, `sources_count`, `lines` (10 au plus) et `lines_more`, `vff_url`.
 
 ```json
@@ -887,7 +889,7 @@ portion de points kilométriques, d'après deux jeux de SNCF Réseau (ODbL) impo
 
 Renvoie `line`, `tracks` et `radio`, `provenance` (avec `mention`) et `vff_url`. `tracks.summary` (nul sans portion au
 nombre établi) donne le nombre de voies dominant en longueur (`tracks` : 1 voie unique ou navette, 2 double voie),
-`uniform` (90 % de la longueur ou plus), `dominant_share`, `dominant_length_m`, `length_m_by_tracks` et
+`uniform` (90 % de la longueur décrite ou plus, voie banalisée comprise dans le total), `dominant_share`, `dominant_length_m`, `length_m_by_tracks` et
 `banalised_length_m` ; `tracks.portions` donne `pk_start_label`, `pk_end_label`, `length_m`, `tracks`, `regime` (libellé
 SNCF tel quel) et `banalised`. La voie banalisée ne dit pas le nombre de voies (`tracks` nul) : ne pas en déduire une
 double voie. `radio.systems` donne la longueur par système (`gsm-r`, `gsm-gfu`, `rst-data`, `rst-id`, `rst`), `gsm_r` et

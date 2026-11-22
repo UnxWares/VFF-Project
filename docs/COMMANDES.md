@@ -222,11 +222,13 @@ relancer la commande sur les mêmes données donne le même fichier.
 Importe le jeu SNCF Open Data « Régime d'exploitation des lignes » (SNCF Réseau, ODbL) : nombre de voies principales par
 portion de PK. Chaque tronçon rattaché à une ligne de VFF par son code va dans `line_track_portions`, libellé SNCF tel quel
 (toutes les portions `sncf` sont remplacées d'un coup). « Voie banalisée » et « _Autre » ne disent pas le nombre de voies :
-leurs portions sont gardées avec un nombre nul et ne comptent pas. Le nombre de voies de la fiche (`lines.nb_voies_default`)
-n'est écrit que pour une ligne au régime uniforme (90 % de sa longueur ou plus) et seulement si le champ est vide ou vient
-déjà de cette commande (`line_sources` « sncf-regime ») : une valeur d'une autre source n'est jamais remplacée, un nombre
-différent est listé comme contradiction. Une ligne qui mêle voie unique et double voie garde un champ vide ; sa fiche dit le
-nombre dominant et sa longueur. Le jeu décrit le réseau actuel (aucune ère) ; il est gardé dans
+leurs portions sont gardées avec un nombre nul et comptent seulement dans la longueur de la ligne. Le nombre de voies de la
+fiche (`lines.nb_voies_default`) n'est écrit que pour une ligne au régime uniforme (90 % de sa longueur ou plus, voie
+banalisée comprise dans le total) et seulement si le champ est vide ou vient encore de cette commande (`line_sources`
+« sncf-regime », et valeur égale à celle du passage précédent) : une valeur d'une autre source n'est jamais remplacée ni
+effacée, même écrite après un passage de la commande, et un nombre différent est listé comme contradiction. Une ligne qui
+mêle voie unique et double voie, ou dont plus de 10 % est banalisée, garde un champ vide ; sa fiche dit le nombre dominant
+et sa longueur. Le jeu décrit le réseau actuel (aucune ère) ; il est gardé dans
 `storage/app/sources/sncf-regime/` (dossier `.nobackup`), licence et éditeur vérifiés au téléchargement. Servi par
 `GET /api/v1/lines/{line}/infrastructure`, `Line.infrastructure` et l'outil MCP `line_infrastructure`.
 

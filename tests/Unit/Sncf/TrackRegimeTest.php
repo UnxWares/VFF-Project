@@ -55,6 +55,24 @@ class TrackRegimeTest extends TestCase
         $this->assertSame(['Double voie', 'Voie unique'], $summary[100000]['regimes']);
     }
 
+    public function test_banalised_and_other_portions_count_in_the_length_of_the_line(): void
+    {
+        // Ligne 604000 du jeu : 6,1 km de voie unique, 72,3 km de voie banalisée au nombre de voies non établi.
+        // La voie unique ne vaut que pour 8 % de la ligne : ni uniforme, ni « 1 voie » pour toute la ligne.
+        $summary = TrackRegime::summarize([
+            ['code_ligne' => '604000', 'lib_ligne' => 'F', 'exploitati' => 'Voie unique', 'pkd' => '000+000', 'pkf' => '006+100'],
+            ['code_ligne' => '604000', 'lib_ligne' => 'F', 'exploitati' => 'Voie banalisée', 'pkd' => '006+100', 'pkf' => '078+400'],
+            ['code_ligne' => '700000', 'lib_ligne' => 'G', 'exploitati' => 'Double voie', 'pkd' => '000+000', 'pkf' => '080+000'],
+            ['code_ligne' => '700000', 'lib_ligne' => 'G', 'exploitati' => '_Autre', 'pkd' => '080+000', 'pkf' => '100+000'],
+        ]);
+
+        $this->assertSame(1, $summary['604000']['tracks']);
+        $this->assertFalse($summary['604000']['uniform']);
+        $this->assertEqualsWithDelta(0.078, $summary['604000']['share'], 0.001);
+        $this->assertEqualsWithDelta(78.4, $summary['604000']['km'], 0.01);
+        $this->assertFalse($summary['700000']['uniform'], '80 % en double voie, 20 % au régime « _Autre »');
+    }
+
     public function test_verdicts(): void
     {
         $uniform = ['tracks' => 2, 'uniform' => true];

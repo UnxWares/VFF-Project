@@ -43,9 +43,11 @@ final class LineInfrastructure
         $ready = (bool) DB::scalar("SELECT to_regclass('line_track_portions') IS NOT NULL AND to_regclass('line_radio_portions') IS NOT NULL");
         if ($ready) {
             Cache::put(self::READY_CACHE, true, now()->addDay());
+            self::$ready = true;
         }
 
-        return self::$ready = $ready;
+        // Constat négatif jamais retenu dans le processus (file d'attente, serveur MCP) : revu à l'appel suivant.
+        return $ready;
     }
 
     /**
@@ -120,14 +122,19 @@ final class LineInfrastructure
     {
         $byTracks = [];
         $banalised = 0;
+        $unknown = 0;
         $portions = [];
         foreach ($rows as $r) {
             $length = self::length($r);
             $tracks = $r->tracks !== null ? (int) $r->tracks : null;
             if ($tracks !== null) {
                 $byTracks[$tracks] = ($byTracks[$tracks] ?? 0) + $length;
-            } elseif (TrackRegime::isBanalised($r->regime)) {
-                $banalised += $length;
+            } else {
+                // Voie banalisée ou « _Autre » : nombre de voies non établi, mais longueur de la ligne (TrackRegime::summarize).
+                $unknown += $length;
+                if (TrackRegime::isBanalised($r->regime)) {
+                    $banalised += $length;
+                }
             }
             $portions[] = self::pk($r) + ['tracks' => $tracks, 'regime' => (string) $r->regime, 'banalised' => TrackRegime::isBanalised($r->regime)];
         }
@@ -135,7 +142,7 @@ final class LineInfrastructure
         if ($byTracks !== []) {
             arsort($byTracks);
             $dominant = (int) array_key_first($byTracks);
-            $total = array_sum($byTracks);
+            $total = array_sum($byTracks) + $unknown;
             $share = $total > 0 ? $byTracks[$dominant] / $total : 1.0;
             ksort($byTracks);
             $summary = [
