@@ -1,0 +1,21 @@
+// Tests de mutation (Infection) du code récent : nettoyage des erreurs, électrification, sitemap, journal, signalisation, pentes, accidents.
+//   bin/php vendor/bin/infection -c tests/Mutation/Aprem/infection.wikipedia.json5 --threads=2 --only-covering-test-cases --git-diff-lines --git-diff-base=d08f3318^  (fonctions de WikipediaLineParser ajoutées par d08f3318, cda02020, b7e9ef70)
+// 2 threads maximum, sous flock /tmp/claude-1000/vff-check.lock. Base : VFF_TEST_DB=vff_n2211_mutation_aprem_test.
+// Rapports : storage/app/reports/infection/aprem/.
+{
+    "source": {
+        "directories": ["../../../app"],
+        "excludes": ["#^(?!(Services/WikipediaLineParser)\\.php$)#"]
+    },
+    "phpUnit": {"configDir": "."},
+    "initialTestsPhpOptions": "-d pcov.enabled=1",
+    "threads": 2,
+    "timeout": 60,
+    "tmpDir": "../../../storage/app/reports/infection/aprem/tmp",
+    "logs": {
+        "text": "../../../storage/app/reports/infection/aprem/infection.log",
+        "json": "../../../storage/app/reports/infection/aprem/infection.json",
+        "summary": "../../../storage/app/reports/infection/aprem/summary.log"
+    },
+    "mutators": {"@default": true, "ProtectedVisibility": false}
+}

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Configuration PHPUnit des tests de mutation de l'après-midi (sécurité temps réel, contrat d'API, gares manuelles, pentes SNCF, origine du site, analyse Wikipédia) (Infection, cf. infection.json5).
+    Chaque thread Infection reçoit TEST_TOKEN=<n> : Laravel migre « <base>_test_<n> ».
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../../../vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="../../../vendor/autoload.php"
+         colors="false"
+>
+    <testsuites>
+        <testsuite name="Mutation">
+            <file>../../Feature/RealtimeTest.php</file>
+            <file>../../Feature/RealtimeSecurityTest.php</file>
+            <file>../../Feature/Api/ApiContractTest.php</file>
+            <file>../../Unit/ManualStationsTest.php</file>
+            <file>../../Feature/Commands/ImportManualStationsTest.php</file>
+            <file>../../Unit/Profiles/SncfGradesTest.php</file>
+            <file>../../Feature/Profiles/ImportSncfGradesTest.php</file>
+            <file>../../Feature/SubscriptionContextSerializerMutationTest.php</file>
+            <file>../../Unit/Realtime/RequirePrivateBroadcastChannelMutationTest.php</file>
+            <file>../../Unit/Realtime/RealtimeRevocationMutationTest.php</file>
+            <file>../../Unit/SiteOriginMutationTest.php</file>
+            <file>../../Unit/Profiles/SncfGradesMutationTest.php</file>
+            <file>../../Unit/ManualStationsMutationTest.php</file>
+            <file>../../Unit/ApiContractMutationTest.php</file>
+            <file>../../Unit/WikipediaLineParserMutationTest.php</file>
+            <file>../../Unit/WikipediaLineDateTemplateTest.php</file>
+            <file>../../Unit/WikipediaLineStagedChronologyTest.php</file>
+            <file>../../Unit/WikipediaLineParserTest.php</file>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>../../../app/Services</directory>
+            <directory>../../../app/Support</directory>
+            <directory>../../../app/GraphQL</directory>
+            <directory>../../../app/Http/Middleware</directory>
+        </include>
+    </source>
+    <php>
+        <server name="LARAVEL_PARALLEL_TESTING" value="1"/>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="DB_DATABASE" value="vff_test" force="true"/>
+        <env name="LIGHTHOUSE_SCHEMA_CACHE_ENABLE" value="false"/>
+        <env name="INERTIA_SSR_ENABLED" value="false"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+    </php>
+
+</phpunit>
