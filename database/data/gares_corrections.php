@@ -2185,4 +2185,19 @@ return [
         'quote' => '11 juillet 1887 : de Messimy à Mornant (12,2 km).',
         'reason' => 'section Messimy - Mornant ouverte le 11/07/1887 (Wikipédia et forum des cheminots) ; le 19/04/1886 d\'OHM est celui de la section Lyon - Vaugneray',
     ],
+
+    // Sections-dates (storage/app/reports/agents/aprem-2111/sections-dates.md) : Coussey (Vosges, ligne 026000 Bologne -
+    // Pagny-sur-Meuse, PK 55,146). La gare était datée de 1867 (année déduite de la ligne) ; elle se trouve sur la
+    // section Neufchâteau - Vaucouleurs, ouverte le 14/04/1873 (Bologne - Neufchâteau : 14/08/1867). Elle apparaissait
+    // en service en 1870 sans voie dessinée.
+    [
+        'station' => ['name' => 'Coussey', 'near' => [5.6876, 48.4013, 0.3]],
+        'action' => 'add',
+        'type' => 'opening',
+        'date' => '1873-04-14',
+        'precision' => 'day',
+        'source_url' => $wp('Liste des gares des Vosges', 240638671),
+        'quote' => 'Coussey | Gare | 026 : 55,146 | 14 avril 1873',
+        'reason' => 'gare de la section Neufchâteau - Vaucouleurs ouverte le 14/04/1873 (liste des gares des Vosges ; article Ligne de Bologne à Pagny-sur-Meuse : « de Neufchâteau à Vaucouleurs, le 14 avril 1873 »)',
+    ],
 ];
