@@ -20,9 +20,11 @@ use Illuminate\Support\Facades\DB;
  * événements posés sur un tracé (source_trace_id : OHM, noms archeo…) gardent
  * leur géométrie, qui suit le tracé.
  *
- * Les tables dérivées (tronçons par ère, tracé de référence, arrêts, arêtes…)
- * partent avec la ligne supprimée (ON DELETE CASCADE) et sont reconstruites
- * pour la ligne cible par la chaîne (build-line-references, build-era-segments…).
+ * Les voies vertes rattachées (line_greenways) suivent, sauf celles que la
+ * ligne cible a déjà. Les tables dérivées (tronçons par ère, tracé de référence,
+ * arrêts, arêtes…) partent avec la ligne supprimée (ON DELETE CASCADE) et sont
+ * reconstruites pour la ligne cible par la chaîne (build-line-references,
+ * build-era-segments…).
  */
 class LineMerger
 {
@@ -64,6 +66,10 @@ class LineMerger
             AND NOT EXISTS (SELECT 1 FROM media o WHERE o.mediable_type = m.mediable_type AND o.mediable_id = ?
                             AND o.provider = m.provider AND o.external_id = m.external_id)', [$into, $type, $from, $into]);
         DB::delete('DELETE FROM media WHERE mediable_type = ? AND mediable_id = ?', [$type, $from]);
+        // Voies vertes qui reprennent l'emprise (vff:link-greenways) : la même emprise, donc la ligne cible. Sans cela,
+        // elles partaient avec la ligne supprimée (88 voies sur les trois sections de la nuit du 22/11/2026).
+        DB::update('UPDATE line_greenways g SET line_id = ?, updated_at = NOW() WHERE line_id = ?
+            AND NOT EXISTS (SELECT 1 FROM line_greenways o WHERE o.line_id = ? AND o.osm_way_id = g.osm_way_id)', [$into, $from, $into]);
 
         // Mémoire de la fusion (nom, slug, raison) : alias de recherche et redirection éventuelle.
         DB::update(

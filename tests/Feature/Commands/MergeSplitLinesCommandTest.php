@@ -273,6 +273,60 @@ class MergeSplitLinesCommandTest extends TestCase
         $this->assertSame('origine « Tours » étrangère à la ligne (même terminus seulement)', $this->rowFor($tours->id)['detail']);
     }
 
+    public function test_sections_named_with_a_contraction_or_the_other_way_round_are_merged(): void
+    {
+        // « au » : « Port-de-Piles au Blanc » (archeo) est la première section de 598000, dont le tracé connu
+        // ne va que du Blanc à Argenton (relevé du 22/11/2026 : 41,7 km sur 102,2).
+        $argenton = $this->line('Ligne de Port-de-Piles à Argenton-sur-Creuse', '598000', ['length_official_m' => 15500]);
+        $this->reference($argenton, 'LINESTRING(2.1 46.0, 2.2 46.0)');
+        $this->gare('598000', 'Le Blanc');
+        $blanc = $this->line('Ligne de Port-de-Piles au Blanc', null, ['slug' => 'archeo-ligne-de-port-de-piles-au-blanc']);
+        $this->reference($blanc, 'LINESTRING(2.0 46.0, 2.1 46.0)');
+        $t = $this->trace('archeoferroviaire', 'a-ppb', 'LINESTRING(2.0 46.0, 2.1 46.0)', $blanc->id, 'Port-de-Piles Le Blanc', 'created');
+        // Part du même terminus, mais La Châtre n'est pas un lieu de la ligne : autre ligne.
+        $chatre = $this->line('Ligne d\'Argenton-sur-Creuse à La Châtre', null, ['slug' => 'archeo-argenton-la-chatre']);
+        $this->reference($chatre, 'LINESTRING(2.2 46.0, 2.3 46.0)');
+
+        // Autre sens, origine de la section = arrivée de la ligne : « Abbeville à Saint-Pol », section de 289000.
+        $fives = $this->line('Ligne de Fives à Abbeville', '289000', ['length_official_m' => 15500]);
+        $this->reference($fives, 'LINESTRING(2.0 46.5, 2.1 46.5)');
+        $this->gare('289000', 'St-Pol-sur-Ternoise');
+        $pol = $this->line('Ligne d\'Abbeville à Saint-Pol', null, ['slug' => 'archeo-abbeville-saint-pol']);
+        $this->reference($pol, 'LINESTRING(2.1 46.5, 2.2 46.5)');
+
+        // Autre sens, arrivée de la section = origine de la ligne.
+        $neuville = $this->line('Ligne de Neuville-de-Poitou à Bressuire', '524000', ['length_official_m' => 15500]);
+        $this->reference($neuville, 'LINESTRING(2.0 47.0, 2.1 47.0)');
+        $this->gare('524000', 'Parthenay');
+        $parthenay = $this->line('Ligne de Parthenay à Neuville-de-Poitou', null, ['slug' => 'archeo-parthenay-neuville']);
+        $this->reference($parthenay, 'LINESTRING(2.1 47.0, 2.2 47.0)');
+
+        // « au » dans les deux noms, terminus partagé.
+        $laon = $this->line('Ligne de Laon au Cateau', '236000', ['length_official_m' => 15500]);
+        $this->reference($laon, 'LINESTRING(2.0 47.5, 2.1 47.5)');
+        $this->gare('236000', 'Wassigny');
+        $wassigny = $this->line('Ligne de Wassigny au Cateau', null, ['slug' => 'archeo-wassigny-le-cateau']);
+        $this->reference($wassigny, 'LINESTRING(2.1 47.5, 2.2 47.5)');
+
+        $this->artisan('vff:merge-split-lines', ['--only' => 'sections'])
+            ->expectsOutputToContain('→ 1. Sections créées à part : 5')
+            ->expectsOutputToContain('✓ Ligne de Port-de-Piles au Blanc → Ligne de Port-de-Piles à Argenton-sur-Creuse : section 7.7 km + tracé 7.7 km ≈ 15.5 km officiels')
+            ->expectsTable(['Passe : décision', 'Lignes'], [['sections : fusionné', '4'], ['sections : rejeté', '1']])
+            ->assertSuccessful();
+
+        $this->assertDatabaseHas('source_traces', ['id' => $t, 'line_id' => $argenton->id, 'match_method' => 'merged_section']);
+        foreach ([[$blanc, $argenton], [$pol, $fives], [$parthenay, $neuville], [$wassigny, $laon]] as [$section, $target]) {
+            $this->assertDatabaseMissing('lines', ['id' => $section->id]);
+            $this->assertSame((string) $target->id, $this->rowFor($section->id)['target_id'], $section->name);
+            $alt = json_decode(DB::table('lines')->where('id', $target->id)->value('alt_names'), true);
+            $this->assertSame([$section->name], $alt['sections']);
+        }
+        $this->assertDatabaseHas('lines', ['id' => $chatre->id]);
+        $rejected = $this->rowFor($chatre->id);
+        $this->assertSame(['rejeté', (string) $argenton->id, 'destination « La Châtre » étrangère à la ligne (part du terminus seulement)'],
+            [$rejected['decision'], $rejected['target_id'], $rejected['detail']]);
+    }
+
     // ─── 2. même article ─────────────────────────────────────────────────
 
     public function test_same_article_merges_only_proven_duplicates(): void
