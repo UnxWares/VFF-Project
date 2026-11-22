@@ -266,6 +266,23 @@ class LineClassifierTest extends TestCase
         $this->assertSame('freight', DB::table('line_segments')->where('line_id', $line->id)->where('era_id', $past->id)->value('traffic_type'));
     }
 
+    public function test_classifying_a_past_era_keeps_the_electrification_of_today(): void
+    {
+        // lines.electrified dit l'état d'aujourd'hui : classer une ère passée (--era=1950) ne doit pas le
+        // recalculer d'après les tronçons de 1950, où la ligne n'était pas encore électrifiée.
+        $past = Era::factory()->create(['year' => 1950]);
+        $line = $this->line('Ligne de Alpha à Bravo', '100000', 47.10, traffic: 'mixed');
+        $line->forceFill(['electrified' => true, 'voltage_v' => 25000])->save();
+        DB::table('line_segments')->where('line_id', $line->id)->update(['electrified' => true, 'voltage_v' => 25000, 'electrification_source' => 'sncf']);
+        $this->segment($line, 47.10, 'in_service', 'mixed', era: $past);
+        DB::table('line_segments')->where('line_id', $line->id)->where('era_id', $past->id)->update(['electrified' => false, 'electrification_source' => 'sncf']);
+
+        app(LineClassifier::class)->classifyEra($past->id);
+
+        $this->assertTrue((bool) $line->fresh()->electrified);
+        $this->assertSame(25000, $line->fresh()->voltage_v);
+    }
+
     // ─── Trafic par portion ──────────────────────────────────────────────
 
     public function test_mixed_up_to_the_last_passenger_station_then_freight_beyond(): void

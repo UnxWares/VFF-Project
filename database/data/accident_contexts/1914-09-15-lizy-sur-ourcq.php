@@ -128,5 +128,14 @@ return [
             ],
         ],
     ],
-    'corrections' => [],
+    'corrections' => [
+        [
+            'field' => 'kind',
+            'value' => 'war_action',
+            'sources' => ['rail4402', 'lette-2014'],
+            'fr' => "Le train sanitaire est tombé d'un pont détruit par les combats : c'est un fait de guerre, pas un déraillement ordinaire.",
+            'en' => 'The hospital train fell from a bridge destroyed in the fighting: this is an act of war, not an ordinary derailment.',
+            'de' => 'Der Lazarettzug stürzte von einer im Kampf zerstörten Brücke: Es handelt sich um eine Kriegseinwirkung, nicht um eine gewöhnliche Entgleisung.',
+        ],
+    ],
 ];

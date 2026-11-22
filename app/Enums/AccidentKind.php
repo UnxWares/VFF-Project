@@ -35,6 +35,9 @@ enum AccidentKind: string
 
     case Attack = 'attack';
 
+    /** Dommage causé par une action militaire : bombardement, mitraillage, ouvrage détruit par une armée. Les sabotages de la Résistance restent des attentats. */
+    case WarAction = 'war_action';
+
     /** Personnes heurtées par un train hors passage à niveau (voyageurs, agents, piétons). */
     case PersonStruck = 'person_struck';
 

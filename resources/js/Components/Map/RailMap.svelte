@@ -996,15 +996,15 @@
 
     onMount(() => {
         afterPaint()
-            .then(() => (destroyed ? null : loadMaplibre()))
+            // Échec du téléchargement : la place de la carte reste réservée (fond uni), comme hors ligne
+            // sans tuiles ; le reste de la page fonctionne. Seul ce téléchargement est avalé : une erreur
+            // à la création de la carte (WebGL absent...) reste une rejection non gérée, que lib/clientErrors.js remonte.
+            .then(() => (destroyed ? null : loadMaplibre().catch(() => null)))
             .then((loaded) => {
                 if (!loaded || destroyed) return;
                 maplibregl = loaded;
                 createMap();
-            })
-            // Échec du téléchargement : la place de la carte reste réservée (fond uni), comme hors ligne
-            // sans tuiles ; le reste de la page fonctionne.
-            .catch(() => {});
+            });
     });
 
     function createMap() {

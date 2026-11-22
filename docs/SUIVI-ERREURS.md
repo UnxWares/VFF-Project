@@ -67,18 +67,21 @@ lisible par n'importe quel collecteur de journaux auto-hébergé (Loki, Vector).
 `POST /api/client-errors`. Cinq envois au plus par page chargée, chaque erreur une seule fois, échantillonnage par
 `VITE_CLIENT_ERRORS_SAMPLE_RATE` (défaut 1). Côté serveur : corps de 8 Ko au plus, 10 envois par minute et par adresse IP,
 réponse toujours vide (204, ou 429 au-delà du débit). Le contrôleur ne garde que le type, le message (300 caractères,
-adresses électroniques et longs jetons remplacés), l'adresse de la page et du script sans requête, la ligne, la colonne,
-dix lignes de pile et la version. Les lignes se lisent dans `storage/logs/client-errors-AAAA-MM-JJ.log`. Si un jour le SDK
+adresses électroniques et longs jetons remplacés), l'adresse de la page et du script sans requête (un segment de chemin
+de 32 caractères ou plus, comme le jeton de `/reset-password/…`, devient `[token]`), la ligne, la colonne (entiers positifs,
+sinon vides), dix lignes de pile et la version. Les lignes se lisent dans `storage/logs/client-errors-AAAA-MM-JJ.log`. Si un jour le SDK
 navigateur de l'outil est préféré, il suffit de le charger à la place de ce petit guetteur, avec les mêmes règles.
 
 ## Ce qui est envoyé, ce qui ne l'est jamais
 
 Envoyé à l'outil de suivi (seulement si l'adresse DSN est renseignée) : type, message et pile de l'erreur, méthode et
-chemin de la page (sans paramètres), version, environnement. Les messages d'erreur de base de données sont coupés avant la
+chemin de la page (sans paramètres, jeton du chemin remplacé par `[token]`), version, environnement. Les messages d'erreur de base de données sont coupés avant la
 requête SQL et ses valeurs.
 
 Jamais envoyé, retiré par `App\Support\Monitoring\SentryScrubber` en plus de `send_default_pii = false` : adresse IP,
-compte, cookies, en-têtes, corps et paramètres de la requête, nom de la machine, contexte du système, étiquettes,
+compte, cookies, en-têtes, corps et paramètres de la requête, arguments des fonctions de la pile d'appels (un mot de
+passe passé à une fonction y figurerait quand `zend.exception_ignore_args` est désactivé), nom de la machine, contexte
+du système, étiquettes,
 fil d'actions (requêtes SQL, journaux, cache, appels sortants), traces de performance, profils. Les exceptions de routine
 (page introuvable, validation, authentification, trop de requêtes) ne sont pas envoyées.
 

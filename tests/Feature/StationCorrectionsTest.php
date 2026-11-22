@@ -212,7 +212,7 @@ class StationCorrectionsTest extends TestCase
      */
     public function test_current_corrections_set_today_status(): void
     {
-        $this->assertNotEmpty(StationCorrections::validate(['station' => ['name' => 'X', 'uic' => '1'], 'action' => 'current', 'status' => 'no_commercial',
+        $this->assertNotEmpty(StationCorrections::validate(['station' => ['name' => 'X', 'uic' => '1'], 'action' => 'current', 'status' => 'closed',
             'source_url' => 'https://transport.data.gouv.fr/', 'reason' => 'r']));
         $rer = $this->station('Sucy-Bonneuil', 6.60, ['sncf' => ['active', false, true]], 'no_commercial', '87114413');
         $this->event($rer, 'opening', '1872-09-05', 'wikidata');
@@ -222,6 +222,8 @@ class StationCorrectionsTest extends TestCase
         $this->event($luchon, 'closure', '2014-12-19', 'wikidata');
         // Gare de départ d'un chemin de fer touristique, notée ouverte par OSM (21/11/2026 : Montenvers, Saujon).
         $mouettes = $this->station('Le Train des Mouettes - Saujon', 6.90, ['osm' => ['active']], 'active', '87000001');
+        // Gare fermée aux voyageurs, embranchement encore desservi par le fret (Onnaing).
+        $onnaing = $this->station('Onnaing', 7.00, ['osm' => ['disused']], 'declassified', '87000002');
         $this->lineEvent('opening', '1870-01-01');
         $this->lineEvent('reopening_passenger', '2022-08-29');
         $url = 'https://fr.wikipedia.org/w/index.php?oldid=1';
@@ -240,6 +242,8 @@ class StationCorrectionsTest extends TestCase
                 'source_url' => $url, 'reason' => 'réouverture de la ligne'],
             ['station' => ['name' => 'Le Train des Mouettes - Saujon', 'uic' => '87000001'], 'action' => 'current', 'status' => 'tourist',
                 'source_url' => $url, 'reason' => 'gare de départ du train touristique, la gare SNCF est voisine'],
+            ['station' => ['name' => 'Onnaing', 'uic' => '87000002'], 'action' => 'current', 'status' => 'no_commercial',
+                'source_url' => $url, 'reason' => 'embranchement fret encore desservi'],
         ]);
 
         $this->artisan('vff:build-station-eras', ['--today' => '2026-11-19'])->assertSuccessful();
@@ -259,6 +263,8 @@ class StationCorrectionsTest extends TestCase
         $this->assertNull($luchon->fresh()->closed_at);
         // Train touristique seul : touristique aujourd'hui, jamais « voyageurs ».
         $this->assertSame([StationTimeline::TOURIST, StationTimeline::NOTE_TOURIST_TODAY], [$row($mouettes, $this->current)?->status, $row($mouettes, $this->current)?->note]);
+        // Fermée aux voyageurs, fret seul aujourd'hui : jamais « fermée ».
+        $this->assertSame([StationTimeline::FREIGHT, StationTimeline::NOTE_FREIGHT_TODAY], [$row($onnaing, $this->current)?->status, $row($onnaing, $this->current)?->note]);
         $this->assertSame(['2014-11-18'], DB::table('station_events')->where('station_id', $luchon->id)->where('type', 'closure')->pluck('event_date')->all());
     }
 

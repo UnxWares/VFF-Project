@@ -226,6 +226,15 @@ type Line {
     ): [SignallingEvent!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@forLine") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
 
     """
+    Faits de signalisation relevés (Wikipédia ou autres documents) que des documents contredisent, du plus ancien
+    au plus récent. Ils ne sont jamais dans `signalling_history` : chaque correction dit lequel (`system`, `date`,
+    `section`, `original`), ce qui en est fait (`action`), pourquoi (`reason`), une citation (`quote`) et les
+    documents qui le contredisent (`sources`). Liste vide s'il n'y en a aucune. Même contenu que la clé
+    `corrections` de `GET /api/v1/lines/{line}/signalling-history` et de l'outil MCP `signalling_history`.
+    """
+    signalling_corrections: [SignallingCorrection!]! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@corrections") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@list")
+
+    """
     Profil en long de la ligne (altitude le long du tracé de référence, toutes époques, gares placées
     dessus), comme `GET /api/v1/lines/{line}/profile`. Altitudes de l'IGN (BD TOPO, à défaut RGE ALTI ;
     Licence Ouverte 2.0). Nul tant que le profil de la ligne n'est pas calculé.
@@ -1959,7 +1968,7 @@ type Accident {
     Nature : `collision` (entre trains ou avec un obstacle sur la voie), `derailment`
     (déraillement), `level_crossing` (collision à un passage à niveau), `fire` (incendie),
     `explosion`, `structure_failure` (rupture d'ouvrage : pont, tunnel, mur, rail), `attack`
-    (attentat), `person_struck` (personnes heurtées hors passage à niveau), `runaway` (dérive),
+    (attentat), `war_action` (fait de guerre : bombardement, ouvrage détruit par une armée), `person_struck` (personnes heurtées hors passage à niveau), `runaway` (dérive),
     `incident` (incident grave sans accident : quasi-collision, dépassement de vitesse,
     immobilisation), `other`.
     """
@@ -3269,6 +3278,60 @@ type SignallingEvent {
 
     "Fournisseur et licence de la donnée (Wikipédia)."
     provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineSignallingHistoryField@provenance")
+}
+
+"""
+Correction d'un fait de signalisation que des documents contredisent. Le fait d'origine n'est jamais publié dans
+`Line.signalling_history` ; la correction reste consultable.
+"""
+type SignallingCorrection {
+    "Système du fait contredit (`BAL`, `BAPR`, `BM`, `CT`, `TVM-300`, `TVM-430`, `TVM`, `ETCS_L1`, `ETCS_L2`, `ETCS` ou `KVB`)."
+    system: String!
+
+    "Date du fait contredit."
+    date: Date!
+
+    "Précision de `date` : `day`, `month` ou `year`."
+    date_precision: String!
+
+    "Portion du fait contredit, nulle quand il porte sur toute la ligne ou n'est pas précisé."
+    section: SignallingCorrectionSection
+
+    "Source du fait contredit."
+    original: SignallingCorrectionOriginal!
+
+    "Ce que VFF fait du fait : `neutralize` (écarté) ou `replace` (remplacé par un fait daté par des documents)."
+    action: String!
+
+    "Pourquoi le fait est contredit."
+    reason: String!
+
+    "Citation d'un document qui contredit le fait."
+    quote: String!
+
+    "Documents qui contredisent le fait."
+    sources: [SignallingEventDocument!]!
+}
+
+"Portion d'un fait contredit, telle que la source la donne."
+type SignallingCorrectionSection {
+    "Lieu de départ, nul s'il n'est pas cité."
+    from: String
+
+    "Lieu d'arrivée, nul s'il n'est pas cité."
+    to: String
+}
+
+"Source du fait contredit."
+type SignallingCorrectionOriginal {
+    "Fournisseur : `wikipedia` ou `manual`."
+    provider: String!
+
+    "Titre de l'article ou du document."
+    title: String!
+
+    "Adresse de la révision lue ou du document."
+    url: String!
 }
 
 "Portion d'une mise en service de signalisation, telle que l'article la donne, et sa place sur la ligne quand elle est connue."

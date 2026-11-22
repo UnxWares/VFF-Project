@@ -33,6 +33,14 @@ class ImportStationClosuresTest extends TestCase
         File::put($dir.'/'.sha1($title).'.json', json_encode(['title' => $title, 'revid' => $revid, 'content' => $content, 'requested' => $title]));
     }
 
+    /** Cache Wikidata des gares (un lot d'entités sans déclaration) : sans lui, --from-cache refuse d'écrire. */
+    private function cacheWikidata(array $qids): void
+    {
+        $dir = storage_path('app/sources/stations/wikidata');
+        File::ensureDirectoryExists($dir);
+        File::put($dir.'/entities-'.md5(implode('|', $qids)).'.json', json_encode(['entities' => array_fill_keys($qids, ['claims' => []])]));
+    }
+
     private function sourceRow(int $stationId, string $source, string $ref, array $props): void
     {
         DB::table('station_sources')->insert([
@@ -58,6 +66,7 @@ class ImportStationClosuresTest extends TestCase
         // Infobox erronée : fermeture antérieure à l'ouverture, écartée.
         $this->cachePage('Gare de Morsalines', "{{Infobox Gare\n | fermeture = {{date|8 février 1848}}\n}}\nLa '''gare de Morsalines''' est une gare fermée.");
         $this->sourceRow($quittebeuf, 'wikidata', 'Q1', ['frwiki' => 'Gare de Quittebeuf']);
+        $this->cacheWikidata(['Q1', 'Q3']);
         $this->sourceRow($open, 'wikidata', 'Q2', ['frwiki' => 'Gare ouverte']);
         $this->sourceRow($fenouillet, 'osm', 'n42', ['description' => 'Gare non desservie depuis 2016 mais toujours répertoriée par la SNCF.']);
         $this->cachePage('Gare de Quittebeuf', "{{Infobox Gare\n | fermeture = {{date|27 septembre 1969}} <small>(voyageurs)</small>"

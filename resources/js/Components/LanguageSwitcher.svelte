@@ -16,7 +16,7 @@
     let triggerEl = $state();
 
     const current = $derived(LOCALES.find((l) => l.code === $i18n.language) ?? LOCALES[0]);
-    const label = $derived(`${$i18n.t('nav.lang_switch')} (${current.code.toUpperCase()})`);
+    const label = $derived(`${current.code.toUpperCase()}, ${$i18n.t('nav.lang_switch')}`);
 
     function onkeydown(event) {
         if (event.key === 'Escape' && open) {

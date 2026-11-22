@@ -31,6 +31,7 @@
         <env name="APP_ENV" value="testing" force="true"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="LOG_CSP_FILE" value="logs/testing/csp.log" force="true"/>
+        <env name="LOG_CLIENT_ERRORS_FILE" value="logs/testing/client-errors.log" force="true"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>

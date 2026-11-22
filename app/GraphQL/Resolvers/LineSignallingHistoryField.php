@@ -29,7 +29,7 @@ final class LineSignallingHistoryField
     public function forLine(Line $line, array $args, GraphQLContext $context, ResolveInfo $info): SyncPromise
     {
         /** @var SignallingHistoryBatch $batch */
-        $batch = BatchLoaderRegistry::instance($info->path, fn (): SignallingHistoryBatch => new SignallingHistoryBatch($this->history));
+        $batch = BatchLoaderRegistry::instance($info->path, fn (): SignallingHistoryBatch => new SignallingHistoryBatch($this->history->publicFactsOfLines(...)));
         $until = null;
         if (isset($args['era'])) {
             $era = Era::where('year', (int) $args['era'])->first();
@@ -40,6 +40,18 @@ final class LineSignallingHistoryField
         }
 
         return $batch->load($line)->then(fn (array $facts): array => $until === null ? $facts : SignallingHistoryState::inForce($facts, $until));
+    }
+
+    /**
+     * `Line.signalling_corrections` : faits que des documents contredisent, mêmes valeurs que la clé
+     * `corrections` de l'API REST et de l'outil MCP `signalling_history`.
+     */
+    public function corrections(Line $line, array $args, GraphQLContext $context, ResolveInfo $info): SyncPromise
+    {
+        /** @var SignallingHistoryBatch $batch */
+        $batch = BatchLoaderRegistry::instance($info->path, fn (): SignallingHistoryBatch => new SignallingHistoryBatch($this->history->correctionsOfLines(...)));
+
+        return $batch->load($line);
     }
 
     public function attribution(): string

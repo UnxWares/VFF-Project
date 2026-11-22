@@ -20,7 +20,8 @@ class ListLevelCrossingsRequest extends FormRequest
     {
         return LevelCrossingQuery::rules() + [
             'per_page' => ['nullable', 'integer', 'min:1', 'max:200'],
-            'page' => ['nullable', 'integer', 'min:1'],
+            // Borne haute : au-delà, (page - 1) × per_page ne tient plus dans un entier (erreur 500).
+            'page' => ['nullable', 'integer', 'min:1', 'max:1000000'],
         ];
     }
 

@@ -19,6 +19,22 @@ describe('formatJournalDate', () => {
 });
 
 describe('isSiteLink', () => {
+    it('laisse le navigateur ouvrir les adresses qui ne sont pas des pages du site', () => {
+        const click = { button: 0 };
+        for (const href of [
+            '/journal/atom.xml',
+            '/journal/rss.xml?lang=fr',
+            '/docs/api#x',
+            '/api/v1/stats',
+            '/graphiql',
+            '/storage/a.pdf',
+            '/api',
+        ])
+            expect(isSiteLink({ href }, click), href).toBe(false);
+        expect(isSiteLink({ href: '/journal/mon-article#note' }, click)).toBe(true);
+        expect(isSiteLink({ href: '/documents-x' }, click)).toBe(true);
+    });
+
     const click = { button: 0 };
 
     it('garde la navigation du site pour une page interne', () => {

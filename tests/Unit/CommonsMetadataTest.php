@@ -140,4 +140,16 @@ class CommonsMetadataTest extends TestCase
         // La page du fichier est refaite à partir de son nom.
         $this->assertSame('https://commons.wikimedia.org/wiki/File%3AGare.jpg', $meta['source_url']);
     }
+
+    public function test_a_date_range_keeps_its_last_year(): void
+    {
+        // « 1900-1910 » : parseDate donne year_to, que normalize laissait tomber depuis le nettoyage PHPStan du 22/11
+        // (la clé manquait au type de retour, l'analyse la croyait toujours absente).
+        $meta = CommonsMetadata::normalize(['title' => 'File:Gare de Morez.jpg', 'info' => [
+            'mime' => 'image/jpeg', 'width' => 800, 'height' => 600,
+            'extmetadata' => ['DateTimeOriginal' => ['value' => '1900-1910'], 'LicenseShortName' => ['value' => 'Public domain']],
+        ]]);
+
+        $this->assertSame([1900, 1910, 'range'], [$meta['depicted_year'], $meta['depicted_year_to'], $meta['date_precision']]);
+    }
 }

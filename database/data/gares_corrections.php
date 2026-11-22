@@ -2581,4 +2581,19 @@ return [
         'source_url' => $wp('Gare de Saint-Étienne-Carnot', 241233261),
         'reason' => 'date de 1905 contredite par l\'article de la gare (mise en service le 28/09/1980) et par Wikidata (1980)',
     ],
+
+    // ── 17. État du jour « fret seul » (chantier « gare-fret-actuel », 22/11/2026).
+    // Rapport : storage/app/reports/agents/aprem-2111/gare-fret-actuel.md.
+    // Onnaing : fermée aux voyageurs en 1954 (section 13), mais l'article de la gare la dit « ouverte au service de fret »
+    // pour deux installations terminales embranchées (annexe du Document de référence du réseau de SNCF Réseau citée par
+    // l'article) ; les travaux de continuité de desserte des industriels embranchés de Valenciennes - Blanc-Misseron
+    // (2021) comptent Toyota à Onnaing parmi les trois industriels desservis (presse, non relue en détail).
+    [
+        'station' => ['name' => 'Onnaing', 'wikidata' => 'Q18761653'],
+        'action' => 'current',
+        'status' => 'no_commercial',
+        'source_url' => $wp('Gare d\'Onnaing', 232234616),
+        'quote' => 'La gare est ouverte au service de fret',
+        'reason' => 'gare fermée aux voyageurs en 1954 et encore desservie par le fret aujourd\'hui (deux installations terminales embranchées)',
+    ],
 ];

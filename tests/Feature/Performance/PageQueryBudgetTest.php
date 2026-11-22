@@ -150,8 +150,12 @@ class PageQueryBudgetTest extends TestCase
         $this->assertSame('LineString', $full['segments'][0]['features'][0]['geometry']['type']);
         $this->assertSame('LineString', $full['portions'][0]['geometry']['type']);
         // La page reçoit, à la place des portions, leur nombre et leur version (LineSheet::PAGE_ADDED).
-        $this->assertSame(json_encode(array_diff_key($full, array_flip(LineSheet::PAGE_OMITTED))),
-            json_encode(array_diff_key($page, array_flip(LineSheet::PAGE_ADDED))));
+        // Et sans les champs de gare que la page ne lit pas (LineSheet::PAGE_STATION_OMITTED).
+        $expected = array_diff_key($full, array_flip(LineSheet::PAGE_OMITTED));
+        $expected['stations'] = $expected['stations']->map(
+            fn (array $s): array => array_diff_key($s, array_flip(LineSheet::PAGE_STATION_OMITTED)),
+        )->values();
+        $this->assertSame(json_encode($expected), json_encode(array_diff_key($page, array_flip(LineSheet::PAGE_ADDED))));
         $this->assertSame(count($full['portions']), $page['portions_count']);
         $this->assertMatchesRegularExpression('/^[0-9a-f]{12}$/', $page['portions_version']);
         $this->getJson('/api/v1/lines/'.$this->line->slug)->assertOk()->assertJsonPath('data.era_summary.0.year', 1960);

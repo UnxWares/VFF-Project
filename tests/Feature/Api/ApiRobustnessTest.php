@@ -163,6 +163,24 @@ class ApiRobustnessTest extends TestCase
         $this->get("/api/v1/eras/1955/{$suffix}")->assertNotFound();
     }
 
+    /** @return array<string, array{string}> */
+    public static function pagedLists(): array
+    {
+        return [
+            'journal' => ['/api/v1/journal'],
+            'accidents' => ['/api/v1/accidents'],
+            'passages à niveau' => ['/api/v1/level-crossings'],
+        ];
+    }
+
+    #[DataProvider('pagedLists')]
+    public function test_huge_page_number_is_422_not_500(string $uri): void
+    {
+        // (page - 1) × per_page ne tient plus dans un entier : array_slice ou l'OFFSET SQL levaient une erreur 500.
+        $this->getJson("{$uri}?page=9223372036854775807")->assertUnprocessable()->assertJsonValidationErrors('page');
+        $this->getJson("{$uri}?page=1000000")->assertOk();
+    }
+
     // ─── PK depuis un point ──────────────────────────────────────────────
 
     public function test_pk_validates_coordinates_with_messages(): void

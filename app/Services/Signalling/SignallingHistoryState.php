@@ -47,7 +47,8 @@ final class SignallingHistoryState
     /**
      * Retire les faits de Wikipédia qu'un fait daté par des documents (`source.provider = manual`) redit : même
      * groupe (SignallingHistoryState::group), même année, et même portion (le document porte sur toute la ligne,
-     * l'article ne dit pas la portion, ou les deux citent les mêmes lieux). Le fait des documents est gardé : sa
+     * l'article ne dit pas la portion, ou les deux citent les mêmes lieux ; un fait de l'article sur toute la ligne
+     * n'est pas redit par un document sur une seule portion). Le fait des documents est gardé : sa
      * date est souvent plus précise (« 2007 » dans l'article, « 10 juin 2007 » dans le communiqué). Logique pure.
      *
      * @param  list<array<string, mixed>>  $facts  faits d'une ligne (LineSignallingHistory), dans leur ordre
@@ -67,7 +68,7 @@ final class SignallingHistoryState
             }
             foreach ($manual as $m) {
                 if (self::group($m) === self::group($f) && substr((string) $m['date'], 0, 4) === substr((string) $f['date'], 0, 4)
-                    && ($m['scope'] === 'whole_line' || $f['scope'] !== 'section' || $places($m) === $places($f))) {
+                    && ($m['scope'] === 'whole_line' || $f['scope'] === 'unspecified' || ($f['scope'] === 'section' && $places($m) === $places($f)))) {
                     return false;
                 }
             }

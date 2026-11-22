@@ -3,6 +3,7 @@
 namespace Tests\Unit\Enums;
 
 use App\Enums\TileFields;
+use App\Http\Controllers\Api\GeoController;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -55,5 +56,17 @@ class TileFieldsTest extends TestCase
         $this->assertSame('', TileFields::All->cacheSuffix());
         $this->assertSame(':map', TileFields::Map->cacheSuffix());
         $this->assertSame(TileFields::Map, TileFields::from('map'));
+    }
+
+    public function test_the_api_documentation_lists_every_public_property_of_the_light_tile(): void
+    {
+        $doc = (string) (new \ReflectionMethod(GeoController::class, 'tile'))->getDocComment();
+        $light = substr($doc, (int) strpos($doc, '**Tuile allégée**'), 800);
+
+        // `advocacy_kind` (halo de réouverture) n'est volontairement pas décrit dans la doc publique
+        // (AdvocacyNotPublishedTest) : il reste dans la tuile sans être annoncé.
+        foreach (array_diff(TileFields::MAP_PROPERTIES, ['advocacy_kind']) as $property) {
+            $this->assertStringContainsString("`{$property}`", $light, "propriété {$property} absente de la documentation de fields=map");
+        }
     }
 }

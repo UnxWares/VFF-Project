@@ -35,6 +35,12 @@ final class LineSheet
     public const PAGE_OMITTED = ['segments', 'events', 'era_summary', 'portions'];
 
     /**
+     * Champs de chaque gare que la page web ne lit pas (aucun composant Svelte ne les utilise) ; l'API REST et
+     * GraphQL les donnent toujours.
+     */
+    public const PAGE_STATION_OMITTED = ['effective_status', 'link_method'];
+
+    /**
      * Clés que seule la page web reçoit, à la place de `portions` : leur nombre (`portions_count`) et
      * l'empreinte de leur version (`portions_version`, LinePhases::forLine), qui entre dans l'adresse du
      * tracé (LinePortionsController::url).
@@ -329,7 +335,7 @@ final class LineSheet
             'phases_unexplained' => $phases['unexplained'],
             'decades' => $decades,
             'chronicle' => $chronicle,
-            'stations' => $stations,
+            'stations' => $forPage ? $stations->map(fn (array $s): array => array_diff_key($s, array_flip(self::PAGE_STATION_OMITTED)))->values() : $stations,
             'signalling' => $signallingRanges,
             'sections' => $sections,
             'events' => $events,

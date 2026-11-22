@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Signalling;
 
+use App\Mcp\Servers\VffServer;
+use App\Mcp\Tools\SignallingHistoryTool;
 use App\Models\Era;
 use App\Models\Line;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -9,6 +11,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\PendingCommand;
+use Nuwave\Lighthouse\Testing\MakesGraphQLRequests;
 use Tests\TestCase;
 
 /**
@@ -18,6 +21,7 @@ use Tests\TestCase;
  */
 class SignallingCorrectionsTest extends TestCase
 {
+    use MakesGraphQLRequests;
     use RefreshDatabase;
 
     private const ARTICLE = <<<'WIKI'
@@ -126,6 +130,28 @@ WIKI;
         $this->assertSame(['Presse A', 'Presse B'], array_column($c['sources'], 'publisher'));
         $this->assertSame('2024-11-13', $c['sources'][0]['published']);
         $this->assertNull($c['sources'][1]['published']);
+    }
+
+    public function test_the_mcp_tool_gives_the_same_corrections_as_the_rest_api(): void
+    {
+        $this->importWikipedia($this->writeCorrections([$this->correction()]))->assertSuccessful();
+
+        VffServer::tool(SignallingHistoryTool::class, ['line' => 'rfn-974000'])->assertOk()
+            ->assertSee('"corrections"')->assertSee('le KVB est de 1991, pas de 1989')->assertSee('Presse B');
+    }
+
+    public function test_graphql_gives_the_same_corrections_as_the_rest_api_and_keeps_the_fact_out_of_the_history(): void
+    {
+        $this->importWikipedia($this->writeCorrections([$this->correction()]))->assertSuccessful();
+
+        $rest = $this->getJson('/api/v1/lines/rfn-974000/signalling-history')->assertOk()->json('corrections');
+        $data = $this->graphQL('{ line(slug: "rfn-974000") { slug signalling_history { system } signalling_corrections {
+            system date date_precision section { from to } original { provider title url } action reason quote sources { publisher title url published } } } }')
+            ->assertGraphQLErrorFree()->json('data.line');
+
+        $this->assertSame(['BAL'], array_column($data['signalling_history'], 'system'));
+        $this->assertCount(1, $data['signalling_corrections']);
+        $this->assertEquals($rest, $data['signalling_corrections']);
     }
 
     public function test_without_a_correction_the_fact_comes_back_on_the_next_import(): void

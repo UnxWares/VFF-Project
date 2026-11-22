@@ -56,7 +56,7 @@ class ImportStationClosures extends Command
 {
     protected $signature = 'vff:import-station-closures
         {--source=* : wikidata | wikipedia-stations | wikipedia-lines | osm (défaut : toutes)}
-        {--from-cache : Rejoue les articles déjà téléchargés, sans requête réseau}
+        {--from-cache : Rejoue les articles déjà téléchargés, sans requête réseau (écriture refusée si le cache est vide ou très incomplet)}
         {--refresh : Re-télécharge les articles en cache}
         {--station= : Une gare (id ou slug), pour vérifier}
         {--dry-run : Affiche les événements sans écrire}';
@@ -68,8 +68,14 @@ class ImportStationClosures extends Command
 
     private const ALL = ['wikidata', 'wikipedia-stations', 'wikipedia-lines', 'osm'];
 
+    /** Part maximale d'éléments absents du cache tolérée par --from-cache avant d'écrire. */
+    public const MAX_MISSING_RATIO = 0.05;
+
     /** @var array<string, int> */
     private array $stats = [];
+
+    /** @var list<string> */
+    private array $cacheShortfalls = [];  // remis à zéro à chaque instance : une exécution par instance
 
     /** @var list<array<string, mixed>> */
     private array $unmatched = [];
@@ -110,6 +116,20 @@ class ImportStationClosures extends Command
             };
             $this->line(sprintf('  %d événements', count($found)));
             array_push($events, ...$found);
+        }
+
+        // Garde-fou : une relecture « depuis le cache » remplace les événements de la base par ce qui a été lu.
+        // Avec un cache vide ou très incomplet (21/11 : 1 729 événements effacés, 4 réécrits), elle les détruirait.
+        if ($this->option('from-cache') && $this->cacheShortfalls !== []) {
+            foreach ($this->cacheShortfalls as $line) {
+                $this->error($line);
+            }
+            if (! $this->option('dry-run')) {
+                $this->error('--from-cache refusé : aucun événement n\'a été touché. Remplis le cache (vff:import-station-sources --source=wikidata --cache-only, ou relance sans --from-cache) puis recommence.');
+
+                return self::FAILURE;
+            }
+            $this->warn('Simulation seulement : une exécution réelle serait refusée.');
         }
 
         // Gares fermées aujourd'hui (ou réduites au fret) seulement : une fermeture sans
@@ -233,12 +253,14 @@ class ImportStationClosures extends Command
             return [];
         }
         $out = [];
+        $seen = [];
         foreach (glob(storage_path('app/sources/stations/wikidata/entities-*.json')) ?: [] as $file) {
             $data = json_decode((string) file_get_contents($file), true);
             foreach ($data['entities'] ?? [] as $qid => $ent) {
                 if (! isset($members[$qid])) {
                     continue;
                 }
+                $seen[$qid] = true;
                 foreach ($members[$qid] as $m) {
                     // Élément secondaire de la gare : vff:consolidate-stations ne garde pas ses
                     // P3999 / P576, on les relit ici.
@@ -249,6 +271,7 @@ class ImportStationClosures extends Command
                 }
             }
         }
+        $this->checkCache('wikidata (storage/app/sources/stations/wikidata)', $members->count(), $members->count() - count($seen));
 
         return $out;
     }
@@ -273,7 +296,7 @@ class ImportStationClosures extends Command
             WHERE COALESCE(s.source_status, s.status) IN ('declassified', 'no_commercial', 'gone')
               AND (CAST(:only AS bigint) IS NULL OR s.id = CAST(:only AS bigint))
         SQL, ['only' => $only]);
-        $pages = $this->pages(array_values(array_unique(array_column($rows, 'title'))));
+        $pages = $this->pages(array_values(array_unique(array_column($rows, 'title'))), 'articles de gare');
         $out = [];
         foreach ($rows as $r) {
             $page = $pages[$r->title] ?? null;
@@ -320,7 +343,7 @@ class ImportStationClosures extends Command
                 }
             }
         }
-        $pages = $this->pages(array_keys($byTitle));
+        $pages = $this->pages(array_keys($byTitle), 'articles de ligne');
         $out = [];
         foreach ($byTitle as $title => $index) {
             $page = $pages[$title] ?? null;
@@ -445,17 +468,29 @@ class ImportStationClosures extends Command
      * @param  list<string>  $titles
      * @return array<string, array{title: string, revid: int, content: string}>
      */
-    private function pages(array $titles): array
+    private function pages(array $titles, string $label): array
     {
         $res = $this->articles->pages($titles, (bool) $this->option('from-cache'), (bool) $this->option('refresh'));
         if ($res['uncached'] > 0) {
             $this->warn("  {$res['uncached']} articles absents du cache (--from-cache)");
+        }
+        if ($this->option('from-cache')) {
+            $this->checkCache($label, count(array_unique($titles)), $res['uncached']);
         }
         if ($res['fetched'] > 0) {
             $this->line("  {$res['fetched']} articles téléchargés");
         }
 
         return $res['pages'];
+    }
+
+    /** Note un cache vide ou trop incomplet (plus de MAX_MISSING_RATIO d'éléments absents) pour une source. */
+    private function checkCache(string $label, int $expected, int $missing): void
+    {
+        if ($expected > 0 && $missing / $expected > self::MAX_MISSING_RATIO) {
+            $this->cacheShortfalls[] = sprintf('Cache incomplet pour %s : %d éléments absents sur %d attendus (%d %% ; maximum toléré %d %%).',
+                $label, $missing, $expected, (int) round(100 * $missing / $expected), (int) round(100 * self::MAX_MISSING_RATIO));
+        }
     }
 
     /** @param list<array<string, mixed>> $rows */

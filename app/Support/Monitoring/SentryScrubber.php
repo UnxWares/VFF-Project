@@ -4,12 +4,16 @@ namespace App\Support\Monitoring;
 
 use Sentry\Event;
 use Sentry\EventHint;
+use Sentry\Stacktrace;
 
 /**
  * Retire d'un événement d'erreur tout ce qui pourrait désigner un visiteur avant l'envoi à l'outil
  * de suivi : compte, adresse IP, cookies, en-têtes, corps et paramètres de la requête, nom de la
- * machine, contexte. Restent le type de l'erreur, son message, la pile d'appels, la méthode et le
- * chemin de la page (sans requête), la version et l'environnement.
+ * machine, contexte, arguments des fonctions de la pile d'appels (un mot de passe passé à
+ * `Auth::attempt()` y figurerait en clair quand `zend.exception_ignore_args` est désactivé) et jetons
+ * dans le chemin (RedactedUrl). Restent le type de l'erreur, son message, la pile d'appels (fichiers,
+ * lignes, fonctions, code source), la méthode et le chemin de la page (sans requête), la version et
+ * l'environnement.
  */
 final class SentryScrubber
 {
@@ -22,10 +26,9 @@ final class SentryScrubber
         $event->setTags([]);
 
         $request = $event->getRequest();
-        $url = is_string($request['url'] ?? null) ? parse_url($request['url']) : false;
         $event->setRequest(array_filter([
             'method' => $request['method'] ?? null,
-            'url' => is_array($url) && isset($url['scheme'], $url['host']) ? $url['scheme'].'://'.$url['host'].($url['path'] ?? '') : null,
+            'url' => is_string($request['url'] ?? null) ? RedactedUrl::of($request['url']) : null,
         ]));
 
         // Le contexte d'exécution (machine, système) n'a pas d'intérêt pour retrouver une erreur.
@@ -36,9 +39,19 @@ final class SentryScrubber
         // (adresse électronique, jeton) : on ne garde que le début, avant la requête.
         foreach ($event->getExceptions() as $exception) {
             $exception->setValue(self::message($exception->getValue()));
+            self::withoutArguments($exception->getStacktrace());
         }
+        self::withoutArguments($event->getStacktrace());
 
         return $event;
+    }
+
+    /** Arguments des fonctions de la pile (`vars` de chaque cadre) retirés : ils peuvent porter un mot de passe, une adresse. */
+    private static function withoutArguments(?Stacktrace $stacktrace): void
+    {
+        foreach ($stacktrace?->getFrames() ?? [] as $frame) {
+            $frame->setVars([]);
+        }
     }
 
     /** Message sans la requête SQL ni les valeurs liées, borné à 500 caractères. */

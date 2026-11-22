@@ -1,8 +1,8 @@
 <?php
 
-// Contexte sourcé du déraillement du train de Paris à Saint-Malo entre Vitré et Châteaubourg, du 12 juillet 1878 (recherche du 21/11/2026).
+// Contexte sourcé du déraillement du train de Paris à Saint-Malo aux Lacs (Saint-Aubin-des-Landes), entre Vitré et Châteaubourg, du 12 juillet 1878 (recherche du 21/11/2026, lieu précisé le 22/11/2026).
 return [
-    'slug' => '1878-07-12-saint-malo',
+    'slug' => '1878-07-12-saint-aubin-des-landes',
     'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1870' => [
@@ -18,6 +18,34 @@ return [
             'access' => 'open',
             'consulted_on' => '2026-11-21',
             'note' => 'Entrée de la liste, d\'après Le Figaro du 15 juillet 1878 : le train parti le matin de Paris-Saint-Lazare pour Saint-Malo déraille vers 18 h entre Vitré et Châteaubourg ; le chauffeur et le conducteur sont tués, ainsi que 6 des 25 voyageurs, et 12 personnes sont blessées.',
+        ],
+        'wp-saint-aubin-des-landes' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Saint-Aubin-des-Landes',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Histoire, XIXe siècle',
+            'url' => 'https://fr.wikipedia.org/wiki/Saint-Aubin-des-Landes',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'L\'article place le déraillement du train express de Paris à Saint-Malo au kilomètre 346, au lieu-dit les Lacs, entre Vitré et Châteaubourg, d\'après Le Figaro du 15 juillet 1878 (numéro 196), et le dit commune traversée dans sa partie nord par la ligne de Paris à Brest.',
+        ],
+        'wp-gare-des-lacs' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Gare des Lacs',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Situation ferroviaire, Histoire',
+            'url' => 'https://fr.wikipedia.org/wiki/Gare_des_Lacs',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'La halte des Lacs se trouve au lieu-dit les Lacs, sur la commune de Saint-Aubin-des-Landes, au point kilométrique 345,837 de la ligne de Paris-Montparnasse à Brest, entre les gares de Vitré et de Châteaubourg ; elle a été créée à la suite d\'un accident de chemin de fer de juillet 1878 (l\'article le date du 13 juillet et parle de six morts et d\'une trentaine de blessés).',
         ],
         'ddb-1878-07-16-hamburger' => [
             'provider' => 'presse',
@@ -70,6 +98,12 @@ return [
                 'de' => 'Am 12. Juli 1878 fuhr der am Vormittag in Paris abgefahrene Personenzug nach Saint-Malo auf der Bretagne-Linie der Compagnie de l\'Ouest zwischen Vitré und Châteaubourg (Ille-et-Vilaine).',
                 'sources' => ['wp-liste-1870', 'ddb-1878-07-16-hamburger', 'ddb-1878-07-18-boersen'],
             ],
+            [
+                'fr' => 'Le déraillement a eu lieu au kilomètre 346, au lieu-dit les Lacs, sur la commune de Saint-Aubin-des-Landes. La halte des Lacs, au point kilométrique 345,837 de la même ligne, a été créée à la suite de cet accident.',
+                'en' => 'The derailment took place at kilometre 346, at the place called Les Lacs, in the commune of Saint-Aubin-des-Landes. The Les Lacs halt, at kilometre point 345.837 of the same line, was set up after the accident.',
+                'de' => 'Die Entgleisung ereignete sich bei Kilometer 346 am Ort Les Lacs auf dem Gebiet der Gemeinde Saint-Aubin-des-Landes. Der Haltepunkt Les Lacs bei Kilometerpunkt 345,837 derselben Strecke wurde nach dem Unfall eingerichtet.',
+                'sources' => ['wp-saint-aubin-des-landes', 'wp-gare-des-lacs'],
+            ],
         ],
         'course' => [
             [
@@ -89,6 +123,12 @@ return [
         ],
         'disagreements' => [
             [
+                'fr' => 'Lieu : la liste de Wikipédia et la presse allemande disent seulement « entre Vitré et Châteaubourg » ; les articles de Wikipédia sur Saint-Aubin-des-Landes et sur la gare des Lacs précisent le kilomètre 346, au lieu-dit les Lacs. Ils donnent aussi cinq morts (Saint-Aubin-des-Landes) ou six (gare des Lacs) et le 13 juillet pour la gare des Lacs, des chiffres qui ne reprennent pas ceux de la liste ; la date du 12 juillet reste celle de la liste.',
+                'en' => 'Place: the Wikipedia list and the German press say only "between Vitré and Châteaubourg"; the Wikipedia articles on Saint-Aubin-des-Landes and on Les Lacs station give kilometre 346, at the place called Les Lacs. They also give five dead (Saint-Aubin-des-Landes) or six (Les Lacs station) and 13 July for Les Lacs station, figures that do not match the list; the date of 12 July stays that of the list.',
+                'de' => 'Ort: Die Wikipedia-Liste und die deutsche Presse sagen nur „zwischen Vitré und Châteaubourg“; die Wikipedia-Artikel zu Saint-Aubin-des-Landes und zum Bahnhof Les Lacs nennen Kilometer 346 am Ort Les Lacs. Sie geben außerdem fünf Tote (Saint-Aubin-des-Landes) oder sechs (Bahnhof Les Lacs) und für den Bahnhof Les Lacs den 13. Juli an, Angaben, die nicht mit der Liste übereinstimmen; das Datum 12. Juli bleibt das der Liste.',
+                'sources' => ['wp-liste-1870', 'ddb-1878-07-18-boersen', 'wp-saint-aubin-des-landes', 'wp-gare-des-lacs'],
+            ],
+            [
                 'fr' => 'Le bilan varie selon la date de la source : cinq morts et neuf ou dix blessés dans les dépêches des 13 et 16 juillet, huit morts et douze blessés dans le récit du 23 juillet et dans la liste de Wikipédia.',
                 'en' => 'The toll varies with the date of the source: five dead and nine or ten injured in the dispatches of 13 and 16 July, eight dead and twelve injured in the account of 23 July and in the Wikipedia list.',
                 'de' => 'Die Bilanz hängt vom Datum der Quelle ab: fünf Tote und neun oder zehn Verletzte in den Depeschen vom 13. und 16. Juli, acht Tote und zwölf Verletzte im Bericht vom 23. Juli und in der Wikipedia-Liste.',
@@ -97,6 +137,14 @@ return [
         ],
     ],
     'corrections' => [
+        [
+            'field' => 'commune_insee',
+            'value' => '35252',
+            'sources' => ['wp-saint-aubin-des-landes', 'wp-gare-des-lacs', 'ddb-1878-07-18-boersen'],
+            'fr' => 'Le déraillement a eu lieu au kilomètre 346, au lieu-dit les Lacs, sur la commune de Saint-Aubin-des-Landes (Ille-et-Vilaine), entre Vitré et Châteaubourg ; la fiche le plaçait à Saint-Malo, destination du train.',
+            'en' => 'The derailment happened at kilometre 346, at the place called Les Lacs, in the commune of Saint-Aubin-des-Landes (Ille-et-Vilaine), between Vitré and Châteaubourg; the record placed it at Saint-Malo, the train\'s destination.',
+            'de' => 'Die Entgleisung ereignete sich bei Kilometer 346 am Ort Les Lacs auf dem Gebiet der Gemeinde Saint-Aubin-des-Landes (Ille-et-Vilaine) zwischen Vitré und Châteaubourg; der Eintrag verlegte sie nach Saint-Malo, dem Ziel des Zuges.',
+        ],
         [
             'field' => 'deaths',
             'value' => 8,

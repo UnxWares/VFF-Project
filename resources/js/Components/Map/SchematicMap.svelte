@@ -189,13 +189,15 @@
     }
 
     onMount(() => {
+        // Seul l'échec du téléchargement est avalé ; une erreur de création du plan reste une rejection
+        // non gérée, que lib/clientErrors.js remonte.
         loadMaplibre()
+            .catch(() => null)
             .then((loaded) => {
-                if (destroyed) return;
+                if (!loaded || destroyed) return;
                 maplibregl = loaded;
                 createMap();
-            })
-            .catch(() => {});
+            });
     });
 
     function createMap() {

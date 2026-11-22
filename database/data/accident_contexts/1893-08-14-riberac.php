@@ -33,6 +33,20 @@ return [
             'consulted_on' => '2026-11-22',
             'note' => 'Dépêche de Paris : la veille, un train de la compagnie d\'Orléans a déraillé entre les stations de Périgueux et de Ribérac ; le chauffeur a été tué, plusieurs voyageurs grièvement blessés.',
         ],
+        'wp-ligne-la-cave-riberac' => [
+            'provider' => 'wikipedia',
+            'kind' => 'encyclopedia',
+            'reliability' => 'encyclopedia',
+            'title' => 'Ligne de La Cave à Ribérac',
+            'publisher' => 'Wikipédia en français',
+            'author' => null,
+            'published' => null,
+            'locator' => 'Schéma de la ligne',
+            'url' => 'https://fr.wikipedia.org/wiki/Ligne_de_La_Cave_%C3%A0_Rib%C3%A9rac',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'La ligne de Périgueux à Ribérac, ouverte en 1881, compte une gare de Lisle entre Mensignac-la-Chapelle et Tocane-Saint-Apre ; l\'article ne mentionne aucun accident de 1893.',
+        ],
     ],
     'sections' => [
         'course' => [
@@ -57,6 +71,12 @@ return [
                 'en' => 'Place: the Wikipedia list names Lisle station, the dispatch only says "between Périgueux and Ribérac". The commune on the record (Ribérac) is not corrected.',
                 'de' => 'Ort: Die Wikipedia-Liste nennt den Bahnhof Lisle, die Meldung sagt nur „zwischen Périgueux und Ribérac“. Die Gemeinde des Eintrags (Ribérac) wird nicht berichtigt.',
                 'sources' => ['wp-liste-1890', 'anno-1893-08-16-nfp'],
+            ],
+            [
+                'fr' => 'La gare de Lisle appartient bien à la ligne de Périgueux à Ribérac, entre Mensignac-la-Chapelle et Tocane-Saint-Apre : la précision de la liste est donc cohérente avec la ligne, mais elle ne repose que sur Le Figaro du 15 août 1893, que cette recherche n\'a pas pu relire, et aucune autre source ne localise le déraillement. La commune de Lisle (Dordogne, 24243) est la plus probable ; la fiche reste à Ribérac, destination du train, tant qu\'un second document ne la confirme pas.',
+                'en' => 'Lisle station is indeed on the Périgueux to Ribérac line, between Mensignac-la-Chapelle and Tocane-Saint-Apre, so the list\'s detail fits the line, but it rests only on Le Figaro of 15 August 1893, which this research could not reread, and no other source places the derailment. The commune of Lisle (Dordogne, 24243) is the most likely one; the record stays at Ribérac, the train\'s destination, until a second document confirms it.',
+                'de' => 'Der Bahnhof Lisle liegt tatsächlich an der Strecke von Périgueux nach Ribérac, zwischen Mensignac-la-Chapelle und Tocane-Saint-Apre; die Angabe der Liste passt also zur Strecke, beruht aber allein auf Le Figaro vom 15. August 1893, den diese Recherche nicht erneut lesen konnte, und keine andere Quelle verortet die Entgleisung. Die Gemeinde Lisle (Dordogne, 24243) ist die wahrscheinlichste; der Eintrag bleibt bei Ribérac, dem Ziel des Zuges, bis ein zweites Dokument sie bestätigt.',
+                'sources' => ['wp-liste-1890', 'wp-ligne-la-cave-riberac', 'anno-1893-08-16-nfp'],
             ],
         ],
     ],

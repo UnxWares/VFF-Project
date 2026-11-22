@@ -52,6 +52,7 @@ sur `/docs/api.json` : elle est calculée à chaque requête, rien à régénér
 | Matériel d'une ligne, photo, fin de circulation, relations | `GET /lines/{line}/materials` (`image`, `end`, `relations`) | `Line.material_links` (`end`, `relations`), `LineSheet.materials` | `line_materials` |
 | Rames remarquables (TGV 01 « Patrick ») | `notable_units` de `GET /materials/{material}` | `Material.notable_units` | `notable_units` de `get_material`, `notable_unit` de `search` |
 | Images mises en avant (accueil) et compteurs | `GET /media?featured&facets` | `media(filter: {featured})`, `mediaFacets` | `media` (`featured`, `facets`) |
+| Faits de signalisation que des documents contredisent (correction, raison, citation, documents) | `corrections` de `GET /lines/{line}/signalling-history` | `Line.signalling_corrections` | `corrections` de `signalling_history` |
 | Gares d'une ligne dans l'ordre des PK | `GET /lines/{line}/stops` (`pk_label`) | `Line.stops` (`pk_label`) | `get_line` (gares) |
 
 Différences voulues :

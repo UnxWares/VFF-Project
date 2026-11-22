@@ -640,7 +640,7 @@ Mêmes filtres, mêmes tris et mêmes données que `GET /api/v1/accidents` (serv
 | `department` | code INSEE en majuscules | non | Département actuel du lieu (`91`, `2A`, `974`). |
 | `region` | code INSEE de la région | non | Lieu dans l'un de ses départements (`11`). Codes et noms : `list_departments`. |
 | `station` | slug | non | Accidents dont cette gare est la gare la plus proche du lieu (10 km au plus) ; gare inconnue : erreur. |
-| `kind` | nature | non | `collision`, `derailment`, `level_crossing`, `fire`, `explosion`, `structure_failure`, `attack`, `person_struck`, `runaway`, `incident`, `other`. |
+| `kind` | nature | non | `collision`, `derailment`, `level_crossing`, `fire`, `explosion`, `structure_failure`, `attack`, `war_action`, `person_struck`, `runaway`, `incident`, `other`. |
 | `review` | `ok`, `to_review` | non | Fiches dont la date et le lieu sont confirmés (BEA-TT ou deux sources indépendantes), ou « à vérifier ». |
 | `min_deaths` | entier, 0 ou plus | non | Bilan connu d'au moins ce nombre de morts (exclut les bilans inconnus). |
 | `has_line` | booléen | non | `true` : rattachés à une ligne VFF ; `false` : sans ligne (lieu inconnu). |
@@ -1096,7 +1096,9 @@ phrase de l'article n'est renvoyée (décision Q22) : le permalien de la révisi
 | `year` | entier 1800 à 2100 | non | Année ramenée à l'ère de la carte : ajoute `era` (`year`, `is_current`) et `in_force`. |
 | `lang` | `fr`, `en`, `de` | non | Langue des messages. |
 
-Renvoie `line`, `history` (tous les faits sûrs, du plus ancien au plus récent), avec `year` : `era` et `in_force`, les
+Renvoie `line`, `history` (tous les faits sûrs, du plus ancien au plus récent), `corrections` (faits relevés que des
+documents contredisent, jamais dans `history` ni `in_force` : `system`, `date`, `date_precision`, `section`, `original`,
+`action`, `reason`, `quote`, `sources`, comme la clé `corrections` de l'API REST ; liste vide sinon), avec `year` : `era` et `in_force`, les
 faits encore en vigueur au 31 décembre de l'année de l'ère (aujourd'hui pour l'ère courante), ceux que dessine le calque
 « Signalisation » de la carte à cette époque. Un fait plus récent du même groupe (cantonnement, TVM, ETCS, KVB) qui
 porte sur toute la ligne ou recouvre sa portion placée le remplace ; un fait sans portion connue ne remplace rien, et un
