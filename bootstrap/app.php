@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BasemapArchiveController;
+use App\Http\Controllers\CommonsImageController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\LinePortionsController;
@@ -74,6 +75,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
             Route::get('/sitemap-{family}-{page}.xml', [SitemapController::class, 'family'])
                 ->where(['family' => '[a-z]+', 'page' => '[0-9]{1,4}'])->name('sitemap.family');
+            // Relais des vignettes de Wikimedia Commons (config commons_proxy, désactivé par défaut : 404), sans
+            // session ni cookie. Le chemin est relu brut et filtré par App\Support\Media\CommonsImagePath.
+            Route::get('/media/commons/{path}', CommonsImageController::class)
+                ->where('path', '.+')
+                ->name('media.commons');
         },
     )
     // Temps réel (config/realtime.php) : autorisation des canaux privés par /broadcasting/auth, pour un

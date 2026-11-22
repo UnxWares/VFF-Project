@@ -1,5 +1,6 @@
 <script>
     import { Link, router } from '@inertiajs/svelte';
+    import { commonsSrc } from '$lib/commonsImage.js';
     import Layout from '$components/Layout.svelte';
     import PageHero from '$components/PageHero.svelte';
     import Pagination from '$components/Directory/Pagination.svelte';
@@ -228,7 +229,7 @@
                                 <div class="thumb">
                                     {#if m.thumb}
                                         <img
-                                            src={m.thumb.url}
+                                            src={commonsSrc(m.thumb.url)}
                                             alt=""
                                             width="240"
                                             height="160"

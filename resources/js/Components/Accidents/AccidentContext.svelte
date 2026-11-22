@@ -5,6 +5,7 @@
      * licence), puis la liste numérotée des documents et archives. Rien n'est affiché sans contexte.
      */
     import SheetSection from '$components/Sheet/SheetSection.svelte';
+    import { commonsSrc } from '$lib/commonsImage.js';
     import Notice from '$components/ui/Notice.svelte';
     import { i18n } from '$lib/i18n.js';
     import { documentDate, correctionValue, referenceLang } from '$lib/accidentContext.js';
@@ -119,7 +120,7 @@
                         <figure>
                             <a href={img.page_url} target="_blank" rel="noopener noreferrer">
                                 <img
-                                    src={img.thumb_url ?? img.image_url}
+                                    src={commonsSrc(img.thumb_url ?? img.image_url)}
                                     alt={pick(img.caption)}
                                     width={img.width && img.height ? 500 : undefined}
                                     height={img.width && img.height

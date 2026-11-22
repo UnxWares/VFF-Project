@@ -1,5 +1,6 @@
 <script>
     import { tick } from 'svelte';
+    import { commonsSrc } from '$lib/commonsImage.js';
     import { i18n } from '$lib/i18n.js';
     import {
         mediaHeading,
@@ -89,7 +90,7 @@
                 rel="noopener noreferrer"
             >
                 <img
-                    src={active.display_url}
+                    src={commonsSrc(active.display_url)}
                     alt={conciseAlt(mediaHeading(active))}
                     loading="lazy"
                     decoding="async"
@@ -162,7 +163,7 @@
                             onclick={() => (index = i)}
                         >
                             <img
-                                src={m.thumb_url}
+                                src={commonsSrc(m.thumb_url)}
                                 alt=""
                                 loading="lazy"
                                 decoding="async"

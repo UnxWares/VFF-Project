@@ -1,5 +1,6 @@
 <script>
     import { Link } from '@inertiajs/svelte';
+    import { commonsSrc } from '$lib/commonsImage.js';
     import { i18n } from '$lib/i18n.js';
     import { buildersText, servicePeriodText } from '$lib/materialFacts.js';
     import { mediaLicenseHref, mediaLicenseLabel, mediaSourceHref } from '$lib/mediaCredits.js';
@@ -68,7 +69,7 @@
                         {#if m.image}
                             <img
                                 class={{ contain: m.image.fit === 'contain' }}
-                                src={m.image.url}
+                                src={commonsSrc(m.image.url)}
                                 alt={altOf(m)}
                                 width={m.image.width}
                                 height={m.image.height}

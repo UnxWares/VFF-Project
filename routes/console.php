@@ -93,6 +93,15 @@ Schedule::command('model:prune', ['--model' => [ErrorReport::class]])
     ->timezone('Europe/Paris')
     ->environments(['production']);
 
+// Cache disque du relais des vignettes de Commons (config commons_proxy) : vignettes périmées et taille
+// maximale, toutes les heures, seulement quand le relais est activé.
+Schedule::command('vff:commons-cache-prune')
+    ->name('vff:commons-cache-prune')
+    ->hourlyAt(20)
+    ->environments(['production'])
+    ->when(fn (): bool => (bool) config('commons_proxy.enabled'))
+    ->withoutOverlapping(30);
+
 /*
 | Battement et entretien général (production seulement, sauf le battement).
 |

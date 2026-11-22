@@ -13,6 +13,7 @@
      * l'affichage de la page, le serveur refuse de juger (409) et la page propose une nouvelle série.
      */
     import { Link } from '@inertiajs/svelte';
+    import { commonsSrc } from '$lib/commonsImage.js';
     import { tick } from 'svelte';
     import { i18n } from '$lib/i18n.js';
     import { mediaLicenseHref, mediaLicenseLabel, mediaSourceHref } from '$lib/mediaCredits.js';
@@ -276,7 +277,7 @@
                             : null}
                         <figure class="vff-figure photo" style:--ratio="3 / 2">
                             <img
-                                src={photo.url}
+                                src={commonsSrc(photo.url)}
                                 alt={t('quiz.play.photo_alt')}
                                 aria-describedby={hintsId}
                                 width={photo.width ?? 1280}

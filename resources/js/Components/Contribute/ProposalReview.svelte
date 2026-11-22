@@ -12,6 +12,7 @@
      * Props : `contribution` (élément de ContributionController::validateList).
      */
     import { i18n } from '$lib/i18n.js';
+    import { commonsSrc } from '$lib/commonsImage.js';
     import Notice from '$components/ui/Notice.svelte';
     import { formatStationDate } from '$lib/stationDates.js';
     import { periodText } from '$lib/materialPeriods.js';
@@ -136,7 +137,7 @@
             <!-- Pas d'élément figure : le lien qui suit n'est pas une légende de l'image (RGAA 1.9). -->
             <div class="image">
                 <img
-                    src={imageSrc}
+                    src={commonsSrc(imageSrc)}
                     alt={$i18n.t('proposals.review.image_alt', {
                         title: conciseAlt(imageTitle, 100),
                     })}
