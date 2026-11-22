@@ -815,6 +815,12 @@ type Media {
     "Vrai si le partage dans les mêmes conditions est exigé."
     share_alike: Boolean
 
+    """
+    Vrai si la licence permet de modifier l'image, faux si elle l'interdit (clause ND : l'image se montre
+    réduite et entière, jamais recadrée), nul si inconnu.
+    """
+    derivatives_ok: Boolean
+
     "Vrai si la mention de l'auteur est obligatoire, nul si inconnu."
     attribution_required: Boolean @field(resolver: "App\\GraphQL\\Resolvers\\MediaField")
 

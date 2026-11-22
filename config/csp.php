@@ -44,6 +44,11 @@ return [
             'https://thumb.wikimedia.org',
             'https://commons.wikimedia.org',
             'https://gallica.bnf.fr',
+            // Photos de rue Panoramax des fiches de gare (vff:import-panoramax-media) : instances IGN et
+            // OpenStreetMap France, et le stockage de l'instance IGN.
+            'https://panoramax.ign.fr',
+            'https://panoramax-storage-public-fast.s3.gra.perf.cloud.ovh.net',
+            'https://panoramax.openstreetmap.fr',
         ],
     ],
 ];

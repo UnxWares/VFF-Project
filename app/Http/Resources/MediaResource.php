@@ -29,6 +29,7 @@ class MediaResource extends JsonResource
         'wikidata' => 'Wikidata',
         'gallica' => 'Gallica (BnF)',
         'argentanwebferro' => 'Argentan Web Ferroviaire',
+        'panoramax' => 'Panoramax',
         'upload' => 'VFF',
     ];
 
@@ -66,7 +67,7 @@ class MediaResource extends JsonResource
             'height' => $this->height,
             'depicted_year' => $this->depicted_year,
             'depicted_year_to' => $meta['year_to'] ?? null,
-            'date_precision' => $meta['date_precision'] ?? ($this->depicted_year ? 'year' : null),
+            'date_precision' => $this->date_precision ?? $meta['date_precision'] ?? ($this->depicted_year ? 'year' : null),
             'captured_at' => $this->captured_at?->toDateString(),
             'author' => $this->author,
             'attribution' => $this->attribution,
@@ -75,6 +76,7 @@ class MediaResource extends JsonResource
             'rights_status' => $this->rights_status,
             'commercial_ok' => $this->commercial_ok,
             'share_alike' => $this->share_alike,
+            'derivatives_ok' => $this->derivatives_ok,
             'attribution_required' => $meta['attribution_required'] ?? null,
             'featured' => $this->is_featured,
             // Contribution validée qui a publié le média (Commons ou fichier déposé), nulle pour un import.

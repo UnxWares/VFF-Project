@@ -163,7 +163,8 @@ class HomeArchives
                AND m.thumb_url IS NOT NULL AND m.source_url IS NOT NULL
                AND m.caption IS NOT NULL AND m.license IS NOT NULL
                AND m.width >= 1200 AND m.width > m.height
-             ORDER BY m.id",
+               AND ".Media::displayableSql('m').'
+             ORDER BY m.id',
             [Line::class, HomeImageSelector::FLAG, Media::PROVIDER_COMMONS],
         );
 

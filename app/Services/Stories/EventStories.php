@@ -389,6 +389,7 @@ final readonly class EventStories
                 SELECT * FROM (
                     SELECT provider, external_id, {$interval} FROM media
                     WHERE mediable_type = ? AND mediable_id = ? AND depicted_year IS NOT NULL AND rights_status IN ({$rights})
+                      AND ".Media::displayableSql('media')."
                       AND COALESCE(provider_meta->>'date_precision', 'year') IN ({$mediaPrec})
                 ) i WHERE lo IS NOT NULL AND hi IS NOT NULL
              ), d AS (
@@ -398,7 +399,7 @@ final readonly class EventStories
                 SELECT am.mediable_id AS id,
                     json_agg(DISTINCT am.provider || ':' || COALESCE(NULLIF(am.external_id, ''), '#' || am.id::text)) AS files
                 FROM media am JOIN e ON e.id = am.mediable_id
-                WHERE am.mediable_type = ? AND am.rights_status IN ({$rights})
+                WHERE am.mediable_type = ? AND am.rights_status IN ({$rights}) AND ".Media::displayableSql('am')."
                   AND NOT EXISTS (SELECT 1 FROM m WHERE m.provider = am.provider AND m.external_id = am.external_id
                       AND m.lo >= e.y - {$w} AND m.hi <= e.y + {$w})
                 GROUP BY am.mediable_id
@@ -497,7 +498,7 @@ final readonly class EventStories
     private function published(Builder $query, int $year, bool $attached, array $rights): array
     {
         $out = [];
-        foreach ($query->whereIn('rights_status', $rights)->orderBy('id')->get() as $m) {
+        foreach ($query->whereIn('rights_status', $rights)->displayable()->orderBy('id')->get() as $m) {
             $meta = is_array($m->provider_meta) ? $m->provider_meta : [];
             $precision = isset($meta['date_precision']) ? (string) $meta['date_precision'] : null;
             $span = self::imageInterval($m->depicted_year === null ? null : (int) $m->depicted_year, $precision, $meta['year_to'] ?? null);

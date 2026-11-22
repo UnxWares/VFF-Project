@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AerialImageController;
 use App\Http\Controllers\BasemapArchiveController;
 use App\Http\Controllers\CommonsImageController;
 use App\Http\Controllers\HealthController;
@@ -80,6 +81,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/media/commons/{path}', CommonsImageController::class)
                 ->where('path', '.+')
                 ->name('media.commons');
+            // Vues aériennes historiques des gares (IGN, Licence Ouverte 2.0), sans session ni cookie : emprise tirée
+            // de la seule position de la gare en base (App\Services\Media\Aerial\AerialImages).
+            Route::get('/media/aerial/{station}/{period}.jpg', AerialImageController::class)
+                ->where(['station' => '[a-z0-9-]{1,120}', 'period' => '\d{4}-\d{4}'])
+                ->name('media.aerial');
         },
     )
     // Temps réel (config/realtime.php) : autorisation des canaux privés par /broadcasting/auth, pour un

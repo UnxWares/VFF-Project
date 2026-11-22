@@ -1,0 +1,81 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Models\Station;
+use App\Services\Media\Panoramax\PanoramaxClient;
+use App\Services\Media\Panoramax\PanoramaxStationSource;
+use App\Services\Media\Sources\MediaWriter;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Photos de rue Panoramax des gares (instances IGN et OpenStreetMap France) : au plus 3 par gare, à moins de 60 m,
+ * tournées vers la gare. Une requête par gare au catalogue fédéré, 2 s d'écart, réponses gardées en cache
+ * (`storage/app/data/panoramax/`) : toutes les gares prennent environ 5 h 15 la première fois.
+ *
+ *   vff:import-panoramax-media --dry-run --sample=300 --seed=2211   mesure sur 300 gares tirées au hasard
+ *   vff:import-panoramax-media --dry-run --cache-only               relit le cache sans réseau
+ *   vff:import-panoramax-media                                      toutes les gares
+ */
+class ImportPanoramaxMedia extends Command
+{
+    protected $signature = 'vff:import-panoramax-media
+        {--dry-run : N\'écrit rien en base : compte les gares et les photos}
+        {--station= : Une seule gare (slug)}
+        {--sample=0 : Nombre de gares tirées au hasard (mesure)}
+        {--seed=1 : Graine du tirage}
+        {--limit= : Nombre maximal de gares lues}
+        {--cache-only : Aucune requête réseau : seules les gares déjà en cache sont lues}
+        {--csv= : Fichier CSV où écrire les photos retenues}';
+
+    protected $description = 'Photos Panoramax (IGN, OpenStreetMap France) des gares : au plus 3 par gare, à moins de 60 m, tournées vers la gare';
+
+    public function handle(MediaWriter $writer): int
+    {
+        $ids = null;
+        if ($this->option('station') !== null) {
+            $ids = DB::table('stations')->where('slug', (string) $this->option('station'))->pluck('id')->map(fn ($id): int => (int) $id)->all();
+            if ($ids === []) {
+                $this->error('Gare inconnue.');
+
+                return self::FAILURE;
+            }
+        } elseif ((int) $this->option('sample') > 0) {
+            // Tirage reproductible : ordre pseudo-aléatoire fixé par la graine, sans dépendre de random() de PostgreSQL.
+            $all = DB::table('stations')->orderBy('id')->pluck('id')->map(fn ($id): int => (int) $id)->all();
+            mt_srand((int) $this->option('seed'));
+            shuffle($all);
+            $ids = array_slice($all, 0, (int) $this->option('sample'));
+        }
+
+        $source = new PanoramaxStationSource(app(PanoramaxClient::class), $ids, (bool) $this->option('cache-only'));
+        $limit = $this->option('limit') !== null ? max(1, (int) $this->option('limit')) : null;
+        $report = $writer->write($source->records($limit), (bool) $this->option('dry-run'));
+
+        $this->info(($this->option('dry-run') ? '[à blanc] ' : '').sprintf(
+            '%d gares lues (%d hors cache, %d en erreur) ; %d photos (%d nouvelles) sur %d gares, dont %d sans aucun média avant',
+            $source->stationsRead, $source->stationsSkipped, $source->stationsFailed,
+            $report->inserted + $report->updated, $report->inserted,
+            $report->touchedCount(Station::class), $report->gainedCount(Station::class),
+        ));
+        $licenses = array_count_values(array_map(fn (array $a): string => (string) $a['license'], $source->accepted));
+        $this->table(['Licence', 'Photos'], collect($licenses)->map(fn (int $n, string $l): array => [$l, $n])->values()->all());
+        if ($source->rejected !== []) {
+            arsort($source->rejected);
+            $this->table(['Photo écartée', 'Nombre'], collect($source->rejected)->map(fn (int $n, string $r): array => [$r, $n])->values()->all());
+        }
+        if ($this->option('csv') !== null) {
+            $h = fopen((string) $this->option('csv'), 'wb');
+            if ($h !== false) {
+                fputcsv($h, ['slug', 'station', 'id', 'distance_m', 'angle', 'license', 'date', 'thumb', 'page'], escape: '\\');
+                foreach ($source->accepted as $a) {
+                    fputcsv($h, [$a['slug'], $a['station'], $a['id'], $a['distance_m'], $a['angle'], $a['license'], $a['date'], $a['thumb'], $a['page']], escape: '\\');
+                }
+                fclose($h);
+            }
+        }
+
+        return $source->stationsFailed > 0 && $source->stationsRead === 0 ? self::FAILURE : self::SUCCESS;
+    }
+}

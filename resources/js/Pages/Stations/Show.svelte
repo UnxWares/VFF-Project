@@ -10,6 +10,7 @@
     import StatStrip from '$components/Sheet/StatStrip.svelte';
     import SheetToc from '$components/Sheet/SheetToc.svelte';
     import SheetGallery from '$components/Sheet/SheetGallery.svelte';
+    import StationAerialViews from '$components/Stations/StationAerialViews.svelte';
     import Notice from '$components/ui/Notice.svelte';
     import EmptyState from '$components/ui/EmptyState.svelte';
     import SeoHead from '$components/SeoHead.svelte';
@@ -29,13 +30,14 @@
         sources = [],
         neighbors = [],
         media_count = 0,
+        aerial_views = [],
     } = $props();
 
     const lang = $derived($i18n.language ?? 'fr');
     const t = (key, opts) => String($i18n.t(key, opts));
 
     // Sommaire collant : SheetToc n'affiche que les sections présentes.
-    const TOC = ['about', 'eras', 'history', 'lines', 'location', 'gallery', 'sources'];
+    const TOC = ['about', 'eras', 'history', 'lines', 'location', 'gallery', 'aerial', 'sources'];
     const tocItems = $derived(TOC.map((id) => ({ id, label: t(`stations.toc.${id}`) })));
     /** Espace insécable entre un nombre et son unité (« 5,2 km », « à 74 m ») et après « PK ». */
     const nb = (s) => s.replace(/(\d) (?=(?:km|m)(?![\p{L}]))/gu, '$1 ').replace(/^PK /, 'PK ');
@@ -433,6 +435,8 @@
                 count={media_count}
             />
         {/if}
+
+        <StationAerialViews views={aerial_views} name={station.name} />
 
         <SheetSection
             title={$i18n.t('stations.sections.sources')}

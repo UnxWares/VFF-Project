@@ -290,6 +290,13 @@ return [
     ],
 
     // Sticky contents of the sheet (short section labels).
+    'aerial' => [
+        'title' => 'From the air',
+        'intro' => 'IGN aerial photographs around the station, one per period, 500 m across.',
+        'alt' => 'Aerial photograph of :name station between :from and :to',
+        'credit' => 'IGN, aerial photographs :from-:to',
+        'compare' => 'compare with today',
+    ],
     'toc' => [
         'label' => 'Contents of this page',
         'about' => 'About',
@@ -299,5 +306,6 @@ return [
         'location' => 'Location',
         'sources' => 'Sources',
         'gallery' => 'Photos',
+        'aerial' => 'From the air',
     ],
 ];

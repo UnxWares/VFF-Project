@@ -73,6 +73,12 @@ class SourceRightsTest extends TestCase
             // Pages de réutilisation des éditions anglaise et allemande de Wikipédia : leur licence est celle de chaque édition.
             'wikipedia-en' => ['https://en.wikipedia.org/wiki/Wikipedia:Reusing_Wikipedia_content'],
             'wikipedia-de' => ['https://de.wikipedia.org/wiki/Wikipedia:Weiternutzung'],
+            // Conditions de l'Assemblée nationale (documents cités par le contexte des accidents) : le domaine
+            // assemblee-nationale.fr reste à tiers-cites pour les corrections de lignes déjà sourcées.
+            'assemblee-nationale' => [
+                'https://data.assemblee-nationale.fr/licence-ouverte-open-licence',
+                'https://www.assemblee-nationale.fr/dyn/langues/welcome-to-the-english-website-of-the-french-national-assembly/contact',
+            ],
         ];
         $portals = ['transport.data.gouv.fr'];
         foreach (self::registry()['providers'] as $key => $p) {

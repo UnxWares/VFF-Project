@@ -714,6 +714,21 @@ return [
             'domaines' => ['data.grandlyon.com'],
             'lu_le' => '2026-11-22',
         ],
+        'panoramax' => [
+            'nom' => 'Panoramax (photos de rue, instances IGN et OpenStreetMap France)',
+            'statut' => 'sur',
+            'licence' => 'Par photo, lue sur l\'élément (`properties.license`) : instance IGN, Licence Ouverte 2.0 (etalab-2.0) ; instance OpenStreetMap France, CC BY-SA 4.0',
+            'accord' => null,
+            'preuve' => [
+                'https://panoramax.openstreetmap.fr/api/pages/terms-of-service/fr',
+                'https://api.panoramax.xyz/api/instances',
+            ],
+            'citation' => 'IGN : « La licence de publication des photos ainsi que des métadonnées et tags sémantiques est la Licence Ouverte 2.0. » ; « Ces données personnelles sont automatiquement floutées lors de l\'envoi et préalablement à leur diffusion. » OpenStreetMap France : « sous licence Creative Commons CC-BY-SA 4.0 pour toute diffusion des photos originales ou de photos dérivées ».',
+            'obligations' => 'Crédit « Photo : <contributeur>, Panoramax (IGN ou OpenStreetMap France), <licence> » et lien vers la photo sur son instance ; partage à l\'identique pour les photos CC BY-SA. Les fichiers restent chez Panoramax (lien direct vers thumb.jpg et sd.jpg).',
+            'remarques' => 'Conditions de l\'instance IGN : panoramax.ign.fr/api/pages/terms-of-service/fr (domaine de l\'IGN, citée ci-dessus). Catalogue fédéré api.panoramax.xyz (API STAC sans clé ; robots.txt : deux robots nommés refusés). Seules les instances IGN et OpenStreetMap France sont retenues (floutage des visages et des plaques à l\'envoi). Conditions de l\'instance OpenStreetMap France lues par l\'agent sources-images le 22/11 (son robots.txt refuse une longue liste de robots nommés : pas de relecture automatique).',
+            'domaines' => ['panoramax.ign.fr', 'panoramax.openstreetmap.fr', 'api.panoramax.xyz'],
+            'lu_le' => '2026-11-22',
+        ],
     ],
 
     'sources' => [
@@ -812,6 +827,8 @@ return [
             'evry-cp' => 'evry-courcouronnes',
             'sevres-cp' => 'sevres',
             'gadagne-cp' => 'gadagne',
+            // Photos de rue des gares (vff:import-panoramax-media), lien direct vers l'instance d'origine.
+            'panoramax' => 'panoramax',
         ],
         // Passages à niveau (vff:import-sncf-level-crossings) et signalisation par PK (vff:import-sncf-signalling) :
         // tables sans colonne de provenance, une seule source (SNCF Réseau, ODbL), citée par l'API.

@@ -107,8 +107,8 @@ final readonly class MediaGallery
 
         $rows = DB::select(
             "SELECT type, {$periodSql} AS period, rights_status, provider, COUNT(*) AS n
-             FROM media WHERE mediable_type = ? AND mediable_id = ?
-             GROUP BY 1, 2, 3, 4",
+             FROM media WHERE mediable_type = ? AND mediable_id = ? AND ".Media::displayableSql('media').'
+             GROUP BY 1, 2, 3, 4',
             [$subject::class, $subject->getKey()],
         );
 

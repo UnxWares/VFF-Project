@@ -96,7 +96,7 @@ final class MediaQuery
     /**
      * Applique des filtres déjà validés ; ordre des identifiants (curseur stable, la date représentée
      * étant souvent absente). Ajoute la position `lat` / `lng` du média. Jamais de média que l'API ne diffuse
-     * pas (Media::scopeRedistributable).
+     * pas (Media::scopeRedistributable), ni de média masqué par le réglage `vff.media.show_non_commercial`.
      *
      * @param  Builder<Media>  $query
      * @param  array<string, mixed>  $filters
@@ -104,7 +104,8 @@ final class MediaQuery
      */
     public function apply(Builder $query, array $filters): Builder
     {
-        $query->select('media.*')->selectRaw(self::POSITION)->whereNotIn('media.rights_status', Media::RIGHTS_NOT_REDISTRIBUTED);
+        $query->select('media.*')->selectRaw(self::POSITION)->whereNotIn('media.rights_status', Media::RIGHTS_NOT_REDISTRIBUTED)
+            ->displayable();
 
         if (filled($filters['line'] ?? null)) {
             $query->where('media.mediable_type', Line::class)
@@ -188,7 +189,8 @@ final class MediaQuery
     {
         return Media::query()
             ->where('mediable_type', Line::class)
-            ->where('mediable_id', $lineId);
+            ->where('mediable_id', $lineId)
+            ->displayable();
     }
 
     /**
@@ -201,7 +203,8 @@ final class MediaQuery
     {
         return Media::query()
             ->where('mediable_type', $subject::class)
-            ->where('mediable_id', $subject->getKey());
+            ->where('mediable_id', $subject->getKey())
+            ->displayable();
     }
 
     /**

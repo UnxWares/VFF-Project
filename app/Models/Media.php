@@ -24,6 +24,10 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * réécrite ; NULL = inconnue (pas de licence présumée). `attribution` est la
  * ligne de crédit à afficher avec l'image.
  *
+ * `commercial_ok = false` (licence NC) : montré seulement si le réglage `vff.media.show_non_commercial` est vrai
+ * (portée displayable(), à poser partout où un média est servi). `derivatives_ok = false` (licence ND) : image
+ * réduite, jamais recadrée (isCroppable()).
+ *
  * Adresses (`source_url`, `license_url`, `thumb_url`, `display_url`) : venues de la source, elles sont
  * rendues en lien ou en image ; seules les adresses http(s) sont lues et écrites (WebUrl), une autre
  * devient nulle.
@@ -67,6 +71,7 @@ class Media extends Model
         'depicted_year' => 'integer',
         'commercial_ok' => 'boolean',
         'share_alike' => 'boolean',
+        'derivatives_ok' => 'boolean',
         'is_featured' => 'boolean',
     ];
 
@@ -117,13 +122,49 @@ class Media extends Model
         $query->where('provider', '<>', self::PROVIDER_UPLOAD);
     }
 
+    /** Vrai si les médias sous licence non commerciale sont montrés (réglage `vff.media.show_non_commercial`). */
+    public static function showsNonCommercial(): bool
+    {
+        return (bool) config('vff.media.show_non_commercial', true);
+    }
+
     /**
-     * Médias que l'API peut diffuser (sans RIGHTS_NOT_REDISTRIBUTED).
+     * Condition SQL des médias montrables, à poser dans une requête brute : `TRUE` quand le réglage montre
+     * les médias non commerciaux, sinon `<alias>.commercial_ok IS DISTINCT FROM FALSE` (inconnu reste montré).
+     */
+    public static function displayableSql(string $alias = 'media'): string
+    {
+        return self::showsNonCommercial() ? 'TRUE' : "{$alias}.commercial_ok IS DISTINCT FROM FALSE";
+    }
+
+    /**
+     * Médias montrables selon le réglage `vff.media.show_non_commercial` : sans effet quand il est vrai, sinon
+     * écarte les médias `commercial_ok = false` (NC). Un droit inconnu (null) reste montré.
+     *
+     * @param  Builder<Media>  $query
+     */
+    public function scopeDisplayable(Builder $query): void
+    {
+        if (! self::showsNonCommercial()) {
+            $query->where(fn (Builder $q) => $q->whereNull($query->qualifyColumn('commercial_ok'))
+                ->orWhere($query->qualifyColumn('commercial_ok'), true));
+        }
+    }
+
+    /** Faux pour une image sous clause ND : réduite seulement, jamais recadrée (vignette entière). */
+    public function isCroppable(): bool
+    {
+        return $this->derivatives_ok !== false;
+    }
+
+    /**
+     * Médias que l'API peut diffuser : sans RIGHTS_NOT_REDISTRIBUTED, et montrables (scopeDisplayable).
      *
      * @param  Builder<Media>  $query
      */
     public function scopeRedistributable(Builder $query): void
     {
         $query->whereNotIn($query->qualifyColumn('rights_status'), self::RIGHTS_NOT_REDISTRIBUTED);
+        $this->scopeDisplayable($query);
     }
 }

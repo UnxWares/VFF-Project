@@ -10,12 +10,14 @@ use App\Models\Station;
 use App\Services\Api\MediaGallery;
 use App\Services\Api\SortedCursor;
 use App\Services\Api\StationDirectoryQuery;
+use App\Services\Media\Aerial\AerialImages;
 use App\Services\StationSheet;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 #[Group('Gares', "L'annuaire des gares, haltes et points d'arrêt, actuels et disparus, et la fiche complète de chaque gare : dates, présence par décennie, lignes desservies, sources.", weight: 2)]
 class StationController extends Controller
@@ -265,5 +267,37 @@ class StationController extends Controller
             'station' => ['slug' => $station->slug, 'name' => $station->name],
             ...$gallery->page($station, $request->validated()),
         ])->header('Cache-Control', 'public, max-age=300');
+    }
+
+    /**
+     * Vues aériennes historiques d'une gare.
+     *
+     * Une vue par période de la BD ORTHO historique de l'IGN (1950-1965, 1965-1980, 1980-1995), centrée sur la
+     * gare : 500 m sur 300 m, 640 x 384 px, JPEG servi par VFF (`url`, relative au site). Une période qui ne
+     * couvre pas la gare répond 404 à son adresse : la liste donne les trois périodes sans savoir d'avance
+     * lesquelles existent. Licence Ouverte 2.0 : affichez `attribution` avec l'image. `source_url` ouvre le
+     * même lieu dans « Remonter le temps » de l'IGN. Liste vide si les vues sont désactivées sur l'instance.
+     */
+    #[PathParameter('station', 'Identifiant (slug) de la gare, tel que renvoyé par l\'annuaire ou la recherche.', example: 'brest')]
+    #[ApiResponse(200, 'Les vues proposées, une par période.', examples: [[
+        'station' => ['slug' => 'brest', 'name' => 'Brest'],
+        'data' => [[
+            'period' => '1950-1965', 'from' => 1950, 'to' => 1965, 'url' => '/media/aerial/brest/1950-1965.jpg',
+            'layer' => 'ORTHOIMAGERY.ORTHOPHOTOS.1950-1965', 'attribution' => 'IGN, photographies aériennes 1950-1965, Licence Ouverte 2.0',
+            'license' => 'Licence Ouverte 2.0', 'license_url' => 'https://www.etalab.gouv.fr/licence-ouverte-open-licence/',
+            'source_url' => 'https://remonterletemps.ign.fr/comparer?lon=-4.47920&lat=48.38799&z=17',
+            'commercial_ok' => true, 'derivatives_ok' => true,
+        ]],
+    ]])]
+    #[ApiResponse(404, 'Gare inconnue.', examples: [ErrorExamples::STATION_NOT_FOUND])]
+    #[ApiResponse(429, ErrorExamples::TOO_MANY_REQUESTS, examples: [ErrorExamples::TOO_MANY_REQUESTS_BODY])]
+    public function aerial(Station $station): JsonResponse
+    {
+        $pos = DB::selectOne('SELECT ST_Y(geom) AS lat, ST_X(geom) AS lng FROM stations WHERE id = ?', [$station->id]);
+
+        return response()->json([
+            'station' => ['slug' => $station->slug, 'name' => $station->name],
+            'data' => AerialImages::views($station->slug, (float) $pos->lat, (float) $pos->lng),
+        ])->header('Cache-Control', 'public, max-age=3600');
     }
 }

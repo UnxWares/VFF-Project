@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Media;
 
+use App\Models\Media;
 use App\Support\Media\CommonsImagePath;
 use Illuminate\Cache\RedisStore;
 use Illuminate\Support\Facades\Cache;
@@ -165,7 +166,10 @@ final class CommonsAllowlist
     {
         $like = 'https://%.wikimedia.org/wikipedia/commons/%';
         $columns = fn (string $table, string ...$cols): array => array_merge(...array_map(
-            fn (string $c): array => DB::table($table)->where($c, 'like', $like)->distinct()->pluck($c)->all(),
+            fn (string $c): array => DB::table($table)->where($c, 'like', $like)
+                // Médias masqués par le réglage vff.media.show_non_commercial : jamais relayés.
+                ->when($table === 'media', fn ($q) => $q->whereRaw(Media::displayableSql('media')))
+                ->distinct()->pluck($c)->all(),
             $cols,
         ));
         $materials = [];

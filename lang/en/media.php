@@ -61,6 +61,7 @@ return [
     'author_unknown' => 'Unknown author',
     'view_source' => 'View file on :provider',
     'via' => 'via :provider',
+    'street_view' => 'Street-level photo (:provider)',
     'share_alike' => 'Share-alike',
     'no_commercial' => 'Non-commercial',
     'hosted_notice' => 'Images hosted by :provider and hotlinked: VFF does not copy them. Each image keeps its own licence; reuse is possible provided you credit the author, licence and link shown.',

@@ -290,6 +290,13 @@ return [
     ],
 
     // Mitlaufendes Inhaltsverzeichnis des Steckbriefs (kurze Abschnittsnamen).
+    'aerial' => [
+        'title' => 'Luftbilder',
+        'intro' => 'Luftbilder des IGN rund um den Bahnhof, eines je Zeitraum, 500 m breit.',
+        'alt' => 'Luftbild des Bahnhofs :name zwischen :from und :to',
+        'credit' => 'IGN, Luftbilder :from-:to',
+        'compare' => 'mit heute vergleichen',
+    ],
     'toc' => [
         'label' => 'Inhaltsverzeichnis der Seite',
         'about' => 'Überblick',
@@ -299,5 +306,6 @@ return [
         'location' => 'Lage',
         'sources' => 'Quellen',
         'gallery' => 'Fotos',
+        'aerial' => 'Luftbilder',
     ],
 ];

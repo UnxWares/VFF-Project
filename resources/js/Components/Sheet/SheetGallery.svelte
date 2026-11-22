@@ -164,7 +164,9 @@
     }
 
     // Titre, licence et lien de la licence : règles communes (lib/mediaCredits.js).
-    const heading = mediaHeading;
+    // Photo de rue sans titre (Panoramax) : intitulé générique traduit, pour le texte de remplacement.
+    const heading = (m) =>
+        mediaHeading(m) || t('media.street_view', { provider: m?.provider_label ?? '' });
     const licenseLabel = (m) => mediaLicenseLabel(m, t);
     const licenseHref = mediaLicenseHref;
     const rightsLabel = (m) => t(`media.rights.${m.rights_status ?? 'unknown'}`);
@@ -321,6 +323,7 @@
                             <img
                                 src={commonsSrc(m.thumb_url)}
                                 alt=""
+                                class:whole={m.derivatives_ok === false}
                                 loading="lazy"
                                 decoding="async"
                                 width={m.width && m.width < 500 ? m.width : 500}
@@ -598,6 +601,10 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+    }
+    /* Licence sans modification (ND) : l'image entière, réduite, jamais recadrée. */
+    .thumb img.whole {
+        object-fit: contain;
     }
     .thumb:hover img {
         filter: brightness(0.92);

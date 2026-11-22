@@ -290,6 +290,13 @@ return [
     ],
 
     // Sommaire collant de la fiche (libellés courts des sections).
+    'aerial' => [
+        'title' => 'Vue du ciel',
+        'intro' => 'Photographies aériennes de l’IGN autour de la gare, une par période, sur 500 m de large.',
+        'alt' => 'Photographie aérienne de la gare de :name entre :from et :to',
+        'credit' => 'IGN, photographies aériennes :from-:to',
+        'compare' => 'comparer avec aujourd’hui',
+    ],
     'toc' => [
         'label' => 'Sommaire de la fiche',
         'about' => 'À propos',
@@ -299,5 +306,6 @@ return [
         'location' => 'Situation',
         'sources' => 'Sources',
         'gallery' => 'Photos',
+        'aerial' => 'Vue du ciel',
     ],
 ];
