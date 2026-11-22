@@ -344,4 +344,19 @@ return [
         'quote' => 'En 1998, fermeture et neutralisation de la partie française entre Saint-Gingolph et Évian.',
         'reason' => 'fin du Rive Bleue Express et neutralisation de la section (infobox de la ligne de Longeray-Léaz au Bouveret : fermeture 1998)',
     ],
+    // 598000 : la fin des voyageurs de Port-de-Piles au Blanc (27/06/1940) est dans la même phrase que celle du Blanc
+    // à Argenton (« suivi par celui de … ») et n'avait pas été lue ; visible depuis que le tracé de la partie nord est
+    // rattaché (chantier « traces-manquantes », 22/11/2026).
+    [
+        'line' => '598000',
+        'action' => 'add',
+        'type' => 'closure_passenger',
+        'date' => '1940-06-27',
+        'precision' => 'day',
+        'from' => 'Port-de-Piles',
+        'to' => 'Le Blanc',
+        'source_url' => $wp('Ligne de Port-de-Piles à Argenton-sur-Creuse', 224232794),
+        'quote' => 'Le tronçon du Blanc à Argenton-sur-Creuse a été fermé au service des voyageurs, le 22 juin 1940, suivi par celui de Port-de-Piles au Blanc, le 27 juin 1940.',
+        'reason' => 'fin des voyageurs de la partie nord, seconde moitié de la phrase',
+    ],
 ];
