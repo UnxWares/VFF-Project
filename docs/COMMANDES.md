@@ -71,7 +71,8 @@ donnent le même résultat.
 Wikidata (ou OSM) de la même année devient la fin des voyageurs sur une gare fret seul, et une fermeture Wikidata, OSM
 ou OHM (ou une « démolition » Wikidata) de la même année aussi sur une gare fermée ou disparue dont une source plus sûre
 date la fin du fret une année postérieure (Livarot : voyageurs 1938, marchandises 1990). Après la fin du fret et celle
-des voyageurs, la gare est fermée, et une gare disparue sort de la carte. Les 80 gares de la section 9 de
+des voyageurs, la gare est fermée : montrée fermée à l'ère de la fin du fret, puis absente de la carte, qu'elle soit
+debout ou disparue (règle du 22/11). Les 80 gares de la section 9 de
 `database/data/gares_corrections.php` étaient corrigées à la main pour ce cas ; la règle en couvre 66.
 
 ### `vff:import-station-wikidata-dates`
@@ -105,7 +106,10 @@ contrôles croisés, dans `station_audits` (une ligne par gare). Méthode et rè
 ### `vff:build-station-eras`
 
 Gares par décennie (`station_eras`, statut plafonné par l'état des lignes de l'ère) et `line_stops`. Une gare rouverte
-n'est dite fermée avant sa réouverture que si toutes ses lignes l'étaient (règle du 21/11).
+n'est dite fermée avant sa réouverture que si toutes ses lignes l'étaient (règle du 21/11). Une gare fermée l'est à la
+seule ère de sa fermeture, puis disparaît des ères suivantes (debout, démolie ou réutilisée) jusqu'à une réouverture
+(règle du 22/11, voir [METHODE-CLASSIFICATION.md](METHODE-CLASSIFICATION.md)) : cette dernière étape relit toutes les
+ères, il faut donc relancer toutes les ères après un `--era=` sur une ère passée.
 
 | Option | Effet |
 |:-|:-|

@@ -173,7 +173,11 @@ class StationCurrentEraTest extends TestCase
         $this->assertSame('declassified', $c['eras'][2020]['status']);
 
         $atToday = (new LineStations)->atEra($this->line->id, 2030);
-        $this->assertSame(['active', 'declassified'], array_column($atToday, 'era_status'));
+        // Fermée en 2011 : fermée à l'ère 2020, absente de l'ère courante (règle du 22/11/2026) ; la liste complète
+        // de la ligne (forLine, ci-dessus) la garde.
+        $this->assertSame(['Gare ouverte'], array_column($atToday, 'name'));
+        $this->assertSame(['active'], array_column($atToday, 'era_status'));
+        $this->assertNull($c['eras'][2030]['status']);
 
         $byEra = collect((new LineStations)->byEra($this->line->id))->keyBy('year');
         $this->assertSame(['11/12/2011'], array_column($byEra[2020]['closures'], 'label'));

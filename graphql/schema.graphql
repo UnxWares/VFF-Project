@@ -4189,7 +4189,7 @@ type LineSheetStation {
     "Année de fermeture retenue."
     closed_year: Int
 
-    "Statut aujourd'hui (`active`, `tourist`, `no_commercial`, `declassified`) ; nul si la gare a disparu."
+    "Statut aujourd'hui (`active`, `tourist`, `no_commercial`, `declassified`) ; nul si la gare n'est pas sur la carte d'aujourd'hui (fermée avant la décennie en cours, ou disparue : date dans `closed_at`)."
     status_today: String
 
     "Statut à chaque décennie : objet `{ \"1930\": \"active\", … }`."
