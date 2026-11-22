@@ -24,9 +24,14 @@ export function formatJournalDate(iso, lang) {
     return firstOfMonth(text, lang);
 }
 
+// Adresses du site qui ne sont pas des pages Inertia (documentations, API, flux, fichiers servis tels
+// quels) : Inertia les afficherait dans une fenêtre d'erreur au lieu de les ouvrir.
+const NOT_INERTIA =
+    /^\/(?:api|docs|graphiql|storage|locale|up)(?:[/?#]|$)|\.(?:xml|json|geojson|zip|gpx|kml|pdf|png|jpe?g|webp|svg|mvt)(?:[?#]|$)/i;
+
 /**
  * Faut-il ouvrir ce lien du texte d'un article par la navigation du site (Inertia) plutôt que par
- * un chargement complet ? Oui pour une page du site (`/lines/…`, `/stations/…`) cliquée sans touche
+ * un chargement complet ? Oui pour une page du site (`/lines/…`, `/stations/…`), hors documentation, API, flux et fichiers, cliquée sans touche
  * de modification ; non pour une ancre de la page (notes, sommaire), un lien externe, un nouvel
  * onglet demandé ou un clic autre que le gauche.
  *
@@ -39,7 +44,8 @@ export function isSiteLink(link, event) {
     if (event.defaultPrevented || event.button !== 0) return false;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
     if (link.target && link.target !== '_self') return false;
-    return href.startsWith('/') && !href.startsWith('//');
+    if (!href.startsWith('/') || href.startsWith('//')) return false;
+    return !NOT_INERTIA.test(href);
 }
 
 /**
