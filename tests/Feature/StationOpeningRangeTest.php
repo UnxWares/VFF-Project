@@ -112,6 +112,22 @@ class StationOpeningRangeTest extends TestCase
         $this->assertNull($rows[$this->sourced->slug]['opened_after']);
     }
 
+    public function test_the_web_directory_serves_the_interval_and_sorts_by_the_upper_bound(): void
+    {
+        $this->activateG3();
+
+        $this->get('/stations?sort=opened')->assertOk()->assertInertia(function (Assert $page) {
+            $rows = array_column((array) $page->toArray()['props']['stations']['data'], null, 'slug');
+            $this->assertSame([1970, 'range', 1954], [$rows[$this->bounded->slug]['opened_year'], $rows[$this->bounded->slug]['opened_precision'], $rows[$this->bounded->slug]['opened_after']]);
+            $this->assertNull($rows[$this->sourced->slug]['opened_after']);
+            // Tri par date d'ouverture : la borne haute (opened_at), jamais la borne basse.
+            $years = array_column(array_values((array) $page->toArray()['props']['stations']['data']), 'opened_year');
+            $sorted = $years;
+            sort($sorted);
+            $this->assertSame($sorted, $years);
+        });
+    }
+
     public function test_the_line_station_list_serves_opened_after_to_the_api_and_the_page(): void
     {
         $this->activateG3();

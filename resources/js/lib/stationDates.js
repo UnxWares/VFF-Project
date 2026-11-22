@@ -93,3 +93,25 @@ export function formatStationOpening(
     }
     return formatStationDate(iso, precision, after, t, lang, currentYear);
 }
+
+/**
+ * Ouverture d'une ligne de l'annuaire des gares : l'année seule (`opened_year`), sauf pour une
+ * ouverture encadrée (`opened_precision` = range avec `opened_after`) : « entre 1955 et 1970 ».
+ * Le tri de l'annuaire reste celui de `opened_at`, la borne haute.
+ *
+ * @param {{opened_year?: number|null, opened_precision?: string|null, opened_after?: number|null}} row
+ * @param {(key: string, opts?: object) => string} [t]
+ * @param {string} [lang]
+ * @returns {string}
+ */
+export function directoryOpening(row, t = (key) => key, lang = 'fr') {
+    const year = row.opened_year;
+    if (!year) return '';
+    if (row.opened_precision === 'range' && row.opened_after != null) {
+        return (
+            formatStationOpening(`${year}-12-31`, 'range', row.opened_after, t, lang) ??
+            String(year)
+        );
+    }
+    return String(year);
+}

@@ -3,7 +3,11 @@
 // (StationTimeline::resolveClosure).
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { formatStationDate, formatStationOpening } from '../../resources/js/lib/stationDates.js';
+import {
+    directoryOpening,
+    formatStationDate,
+    formatStationOpening,
+} from '../../resources/js/lib/stationDates.js';
 
 const fr = {
     'stations.dates.range': 'entre :from et :to',
@@ -107,21 +111,18 @@ describe('formatStationDate', () => {
     });
 });
 
-describe('formatStationOpening', () => {
-    /** Traduction tirée de lang/{fr,en,de}/stations.php (clés stations.dates.*), pas d'une copie. */
-    const translator = (lang) => {
-        const php = readFileSync(
-            new URL(`../../lang/${lang}/stations.php`, import.meta.url),
-            'utf8',
-        );
-        const dates = php.slice(php.indexOf("'dates' => ["));
-        return (key, opts = {}) => {
-            const name = key.replace('stations.dates.', '');
-            const raw = new RegExp(`'${name}' => '([^']*)'`).exec(dates)?.[1] ?? key;
-            return raw.replace(/:(\w+)/g, (_, k) => String(opts[k] ?? `:${k}`));
-        };
+/** Traduction tirée de lang/{fr,en,de}/stations.php (clés stations.dates.*), pas d'une copie. */
+const translator = (lang) => {
+    const php = readFileSync(new URL(`../../lang/${lang}/stations.php`, import.meta.url), 'utf8');
+    const dates = php.slice(php.indexOf("'dates' => ["));
+    return (key, opts = {}) => {
+        const name = key.replace('stations.dates.', '');
+        const raw = new RegExp(`'${name}' => '([^']*)'`).exec(dates)?.[1] ?? key;
+        return raw.replace(/:(\w+)/g, (_, k) => String(opts[k] ?? `:${k}`));
     };
+};
 
+describe('formatStationOpening', () => {
     it('ouverture encadrée : « entre A et B » dans les trois langues', () => {
         // opened_after = 1954 : ouverte entre 1955 (année de la ligne) et 1970 (première ère desservie).
         expect(
@@ -177,5 +178,30 @@ describe('formatStationOpening', () => {
     it('sans date', () => {
         expect(formatStationOpening(null, 'range', 1954)).toBeNull();
         expect(formatStationOpening('')).toBeNull();
+    });
+});
+
+describe('directoryOpening (annuaire des gares)', () => {
+    it('écrit « entre A et B » pour une ouverture encadrée, dans les trois langues', () => {
+        const row = { opened_year: 1970, opened_precision: 'range', opened_after: 1954 };
+        expect(directoryOpening(row, translator('fr'), 'fr')).toBe('entre 1955 et 1970');
+        expect(directoryOpening(row, translator('en'), 'en')).toBe('between 1955 and 1970');
+        expect(directoryOpening(row, translator('de'), 'de')).toBe('zwischen 1955 und 1970');
+    });
+
+    it('garde l année seule sans intervalle, sans borne basse ou avec des bornes confondues', () => {
+        const t = translator('fr');
+        expect(directoryOpening({ opened_year: 1970, opened_precision: 'day' }, t)).toBe('1970');
+        expect(directoryOpening({ opened_year: 1970, opened_precision: 'range' }, t)).toBe('1970');
+        expect(
+            directoryOpening(
+                { opened_year: 1970, opened_precision: 'range', opened_after: 1969 },
+                t,
+            ),
+        ).toBe('1970');
+    });
+
+    it('rend une chaîne vide sans année', () => {
+        expect(directoryOpening({ opened_year: null })).toBe('');
     });
 });
