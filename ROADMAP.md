@@ -8,28 +8,28 @@ Ce document détaille les phases de développement de VFF. Les phases sont **ind
 
 ---
 
-## 📍 Où en est-on ? (2026-11-21)
+## 📍 Où en est-on ? (2026-11-22)
 
 | Phase | État |
 |:-|:-|
-| 0 - Fondations | ✅ faite, reste le suivi des erreurs |
+| 0 - Fondations | ✅ faite, reste l'installation des outils de suivi des erreurs sur l'hébergement |
 | 1 - Modèle de données | ✅ faite, jalon atteint |
 | 2 - Carte interactive | ✅ faite, géolocalisation comprise |
 | 3 - Sélecteur temporel | ✅ faite (21 époques de 1830 à 2030), comparaison de deux époques et vue empilée comprises |
-| 4 - Fiches détaillées | 🟡 lignes, gares, matériel, accidents, JSON-LD, profil en long (2 645 lignes, 99,3 % des kilomètres), matériel sur les fiches de ligne avec photos, contexte sourcé de 359 accidents, audit automatique des tronçons et des gares faits ; profils des lignes restantes et relecture des audits à faire |
+| 4 - Fiches détaillées | 🟡 lignes, gares, matériel, accidents, JSON-LD, profil en long (2 645 lignes, 99,3 % des kilomètres), matériel sur les fiches de ligne avec photos, contexte sourcé de 359 accidents, audit automatique des tronçons et des gares, déclivité sourcée de l'infobox Wikipédia (213 lignes), journal de bord faits ; profils des lignes restantes et relecture des audits à faire |
 | 5 - Contribution | 🟡 comptes, éditeur de tracé, validation à deux, notifications, réputation, modération, signalements, suppression et export du compte faits ; formulaires d'événement et de média à faire |
-| 6 - API REST | ✅ API publique documentée, jetons et quotas, webhooks, exemples curl, JavaScript et Python, départements et régions ; tracés retenus quand leur licence ne permet pas la redistribution ; audits, profil par point et altitude, pagination commune aux trois API |
+| 6 - API REST | ✅ API publique documentée, jetons et quotas, webhooks, exemples curl, JavaScript et Python, départements et régions ; tracés retenus quand leur licence ne permet pas la redistribution ; audits, profil par point et altitude, pagination commune aux trois API ; GTFS validé par MobilityData, tuiles légères `fields=map`, en-têtes de sécurité et limites |
 | 7 - GraphQL | 🟡 lecture publique et mutations de contribution faites, limite de complexité (5 000 points, 15 niveaux) ; subscriptions à faire |
 | 8 - Graphe & itinéraires | 🟡 itinéraires historiques faits sur un graphe PostgreSQL ; Apache AGE pas activé |
 | 9 - Reconstitutions 3D 🧪 | ⬜ pas commencée |
 | 10 - Extension historique | ✅ couverture 1830-2030 ; modèle d'extraction des voies publié |
-| 11 - Communauté | 🟡 trilingue, carte intégrable, application installable, lisible hors ligne avec images et fond de carte libre ; dons et blog à faire |
-| 12 - Mise en production | 🟡 pages légales, engagements RGPD et audit RGAA (100 %, totalement conforme) faits ; messagerie et hébergement final à faire |
+| 11 - Communauté | 🟡 trilingue, carte intégrable, application installable, lisible hors ligne avec images et fond de carte libre, journal de bord (`/journal`) et plans du site faits ; dons à faire |
+| 12 - Mise en production | 🟡 pages légales, engagements RGPD, audit RGAA (100 %, totalement conforme), configuration nginx de référence et part application du suivi des erreurs faits ; messagerie, hébergement final et outils de suivi à faire |
 | 13 - Nouveaux domaines | 🟡 matériel roulant, accidents, serveur MCP, signalisation et passages à niveau (carte, fiches, API) faits ; historique de la signalisation fait, relevé partiel à compléter |
 
 **En base (développement)** : 2 705 lignes, 9 389 gares, 15 525 événements datés, 71 438 médias, 21 époques, 727 séries de matériel roulant (2 586 liens avec les lignes, 126 périodes de circulation datées), 928 fiches d'accidents publiées dont 359 avec un contexte sourcé, 735 980 points de profil en long, 9 138 rattachements de voies vertes, 76 mises en service de signalisation datées montrées.
 
-**Qualité** : plus de 6 600 tests PHPUnit et plus de 1 000 tests vitest, Larastan sans erreur, contrôle des invariants de données (`vff:check-invariants`), des traductions (`vff:i18n-check`) et des droits des sources (`vff:source-rights`), le tout en CI ; contrôles avant commit Lefthook (à installer) ; audit RGAA 4.1.2 interne : 100 % (totalement conforme, 32 pages).
+**Qualité** : plus de 7 600 tests PHPUnit, plus de 1 200 tests vitest et une suite Playwright de fumée (54 tests, tâche de CI), Larastan sans erreur, contrôle des invariants de données (`vff:check-invariants`), des traductions (`vff:i18n-check`) et des droits des sources (`vff:source-rights`), le tout en CI ; contrôles avant commit Lefthook (installés) ; audit RGAA 4.1.2 interne : 100 % (totalement conforme, 32 pages).
 
 **Priorités du moment** :
 
@@ -57,9 +57,10 @@ Base technique propre, sur laquelle tout le reste repose.
 - [x] i18n FR (langue de référence), EN et DE - `lang/*` + middleware SetLocale + i18next côté front + LanguageSwitcher ; clés vérifiées par `vff:i18n-check`
 - [x] Dark mode fonctionnel (toggle persisté en cookie)
 - [x] Perf : hero background PNG 2.7 MB → WebP 179 KB desktop / 117 KB tablet / 63 KB mobile (-93 %)
-- [x] CI GitHub Actions : Pint, traductions, PHPStan + Larastan, contrôles statiques (tirets, clés i18n, palette carte, routes), PHPUnit, Prettier, ESLint, svelte-check, build Vite
+- [x] CI GitHub Actions : Pint, traductions, PHPStan + Larastan, contrôles statiques (tirets, clés i18n, palette carte, routes), PHPUnit, Prettier, ESLint, svelte-check, build Vite, suite Playwright de fumée sur un jeu de données minimal (`E2eSeeder`)
 - [x] Suites de tests parallèles, une base par suite (`VFF_TEST_DB=vff_xxx_test`)
 - [x] Tests de mutation : services purs (`make mutation`) et règles métier critiques (`make mutation-critical` : moteur de la carte historique, desserte des gares, validation à deux, dates partielles, énumérations, matériel, images), 93 % des mutants tués, seuil de 92 % qui bloque les régressions ; hors CI bloquante (un quart d'heure)
+- [x] Suite Playwright de fumée avec axe-core (54 tests : pages principales, deux largeurs d'écran, français et anglais), en local et en CI (`docs/TESTS-E2E.md`)
 - [x] Mise au format de tout le dépôt : Pint (PHP) et Prettier (front, tests JS, scripts, configuration JS) contrôlent tout le dépôt et bloquent en CI
 - [x] Suivi des erreurs et de la disponibilité, part application : page de santé `/up/details` (base, Valkey, file, disque, âge du calcul de l'ère, version), erreurs du serveur vers GlitchTip ou Bugsink si une adresse DSN est configurée (sans donnée personnelle), erreurs JavaScript du navigateur journalisées, `docs/SUIVI-ERREURS.md`
 - [ ] Suivi des erreurs et de la disponibilité, part hébergement : installer Uptime Kuma et GlitchTip ou Bugsink sur l'infrastructure d'UnxWares, poser `HEALTH_TOKEN`, `SENTRY_LARAVEL_DSN` et `APP_VERSION`, configurer moniteurs et alertes
@@ -92,7 +93,7 @@ Définir et implémenter le cœur du domaine ferroviaire.
 
 - [x] Modèles Eloquent avec types spatiaux (Magellan)
 - [x] Services de requêtes géo (résolution des sections, PK d'un point, axes uniques, portions voyageurs…)
-- [x] Service `OsmImporter` et importeurs pour chaque source (plus de 50 commandes `vff:import-*`)
+- [x] Service `OsmImporter` et importeurs pour chaque source (plus de 40 commandes `vff:import-*`)
 - [x] Service `GeoExporter` (GeoJSON, tuiles MVT, GTFS)
 - [x] Factories pour chaque modèle
 - [x] Pipeline de reconstruction de la carte historique (`vff:rebuild-history`) : segments par époque, classification du trafic, voies partagées, graphe, contrôles de cohérence
@@ -109,12 +110,12 @@ Définir et implémenter le cœur du domaine ferroviaire.
 - [x] Fournisseur de tuiles : fond OpenStreetMap par défaut, MapTiler en option (clé facultative)
 - [x] Endpoint `GET /api/v1/eras/{year}/lines.geojson` (et `stations.geojson`)
 - [x] Style cartographique custom : rails en orange `#ff6500`, gares en pastilles, statuts et trafics différenciés
-- [x] Calques facultatifs OpenRailwayMap et Carto Tchoo
+- [x] Calque facultatif OpenRailwayMap (le calque Carto Tchoo a été retiré)
 - [x] Calques superposés (bouton « Calques ») : accidents, passages à niveau et signalisation cochés ensemble, un fond OpenRailwayMap au plus, état gardé dans l'adresse (`?layer=…&layer=…`)
 - [x] Clic sur une ligne → panneau latéral (`LineDrawer`) avec fiche minimale
 - [x] Recherche par nom de ligne / gare (`/api/v1/search`, autocomplétion)
 - [x] Légende dynamique (`MapLegend`)
-- [x] Tuiles vectorielles MVT (`/api/v1/eras/{year}/tiles/{z}/{x}/{y}.mvt`)
+- [x] Tuiles vectorielles MVT (`/api/v1/eras/{year}/tiles/{z}/{x}/{y}.mvt`), avec `?fields=map` pour la carte du site : seulement les propriétés dont elle a besoin, environ 60 % d'octets de moins (réponse par défaut inchangée)
 - [x] Géolocalisation de l'utilisateur (sur demande, position jamais envoyée)
 
 🎯 **Jalon "Map MVP"** : atteint.
@@ -147,8 +148,8 @@ Chaque ligne devient une vraie page d'encyclopédie.
   - [x] Sources et notes de sources
   - [x] Matériel roulant historique : 2 586 liens ligne × série attestés (relations Intercités et TER routées par les gares et les extrémités nommées, trois règles de routage écrites, aucun lien réimporté sans relecture), avec les années de circulation quand une source les date (`vff:import-material-periods`) ; séries les plus récentes d'abord, avec photo et année de fin de circulation sur la fiche de ligne (243 séries reliées sur 266 ont une image)
   - [x] Dénivelé : profil en long (altitudes IGN BD TOPO et RGE ALTI, `vff:compute-line-profiles`, section de la fiche, `GET /api/v1/lines/{line}/profile`, GraphQL `Line.profile`, outil MCP `line_profile`)
-  - [x] Profil suivi sur le tracé de référence de la ligne entière, toutes époques : 2 645 lignes (99,3 % des 79 525 km) au lieu de 1 522 ; 735 980 points rangés dans `line_profile_points` avec leur PK estimé (284 787 sur la voie en BD TOPO, 440 148 sur le terrain en RGE ALTI) ; `GET /api/v1/lines/{line}/profile/points` et `/altitude?pk_m=` ; sens des PK officiels, sinon du nom de la ligne ; déclivité maximale publiée seulement si mesurée sur la voie (751 lignes) ; 11 lignes à crémaillère avec leur déclivité sourcée ; positions de tracés non redistribuables retenues (`position_withheld`)
-  - [ ] Profil : les lignes sans tracé de référence continu, et les 1 894 déclivités maximales non mesurées sur la voie
+  - [x] Profil suivi sur le tracé de référence de la ligne entière, toutes époques : 2 645 lignes (99,3 % des 79 525 km) au lieu de 1 522 ; 735 980 points rangés dans `line_profile_points` avec leur PK estimé (284 787 sur la voie en BD TOPO, 440 148 sur le terrain en RGE ALTI) ; `GET /api/v1/lines/{line}/profile/points` et `/altitude?pk_m=` ; sens des PK officiels, sinon du nom de la ligne ; déclivité maximale publiée seulement si mesurée sur la voie (751 lignes) ; 11 lignes à crémaillère avec leur déclivité sourcée ; 213 lignes de plus avec la déclivité de l'infobox de Wikipédia et son permalien (`database/data/sourced_grades.php`) ; positions de tracés non redistribuables retenues (`position_withheld`)
+  - [ ] Profil : les lignes sans tracé de référence continu, et les 1 681 déclivités maximales ni mesurées sur la voie ni sourcées
 - [x] Page `/stations/{slug}` (ouverture, fermeture, lignes desservies, frise par époque, mini-carte)
 - [x] Pages `/materials` et `/materials/{slug}` avec 687 séries (voir phase 13)
 - [x] Schéma JSON-LD pour le référencement (WebSite, Place, BreadcrumbList, ImageObject, TrainStation) ; à rendre côté serveur pour les aperçus de partage
@@ -186,6 +187,8 @@ Ouvrir l'édition aux passionnés extérieurs.
 - [x] Points d'accès des annuaires, fiches complètes, tronçons, époques, sources, événements, médias, matériel et accidents
 - [x] Jetons API (Sanctum, lecture seule, créés depuis le profil) et quotas par profil (anonyme 300, membre 1 200, partenaire 6 000 requêtes par minute, `config/api.php`), compteur commun à REST, GraphQL et MCP ; échéance à un an, rappel par courriel 30 jours avant et renouvellement d'un clic depuis le profil
 - [~] Politique de sécurité du contenu en observation (`Content-Security-Policy-Report-Only`, rapports sans donnée personnelle) ; reste à la rendre bloquante après deux semaines de rapports en production (`docs/SECURITE-CSP.md`)
+- [x] Export GTFS valide au validateur de MobilityData 8.0.1 (0 erreur en 1930, 1980 et 2030) : distances d'arrêts le long de la forme, trajets de deux arrêts au moins, horaires synthétiques à 60 km/h (fictifs), contact du flux et `attributions.txt` (ODbL)
+- [x] En-têtes de sécurité sur toutes les réponses (HSTS, `nosniff`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`), limites GraphQL (400 requêtes par lot, 2 Mio de corps, erreur 413) et limites par IP sur les formulaires d'authentification, cookie de session sécurisé par défaut (`docs/API.md`, `docs/DEPLOIEMENT-NGINX.md`)
 - [x] Webhooks pour notifier les changements : abonnement depuis le profil (adresse HTTPS, événements `contribution.applied`, `current_era.refreshed`, `accident.published`, `material.published`), messages JSON signés HMAC-SHA256 avec horodatage, envoi par la file avec essais espacés et désactivation après échecs répétés, protection SSRF à chaque envoi
 
 ---
@@ -235,7 +238,8 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [x] Sources historiques croisées : lignes-oubliées (dates et PK), Wikidata, Wikipédia, OpenHistoricalMap, IGN (BD TOPO, cartes et photographies aériennes anciennes), SNCF Open Data ; licences et conditions dans `database/data/source_rights.php`
 - [x] **Modèle neuronal d'extraction des voies** sur les photographies aériennes anciennes de l'IGN, publié sous licence MIT : [UnxWares/VFF-Rail-Extraction](https://github.com/UnxWares/VFF-Rail-Extraction) (version `ortho-v1`)
 - [x] Jonctions entre lignes : 0 m d'écart à chaque jonction sur les 21 époques, raccords en courbe
-- [~] Jonctions : réduire les coudes et crochets restants (phase « escaliers »)
+- [~] Jonctions : réduire les coudes et crochets restants (phase « escaliers »). Règles du moteur écrites et testées le 22/11, à appliquer au réseau par les scripts de `storage/app/reports/agents/aprem-2111/` : bout posé sur la voie d'une autre ligne (5 bis), raccord coudé qui ferme une boucle (8 bis), fragments isolés de moins de 60 m retirés
+- [x] Lignes de section fusionnées dans leur ligne à code incomplète, même sans extrémité partagée (`vff:merge-split-lines`, passe `sections` : 12 tracés complétés, 470 km de plus mesurés sur la copie ; application au réseau en attente du script de reprise)
 - [~] Audit de chaque tronçon de VFF, à chaque époque : classement, placement, exactitude et tracé, notés avec leurs preuves, contrôle à la main sur un tirage stratifié, corrections rejouables (méthode : `docs/AUDIT-TRONCONS.md`). Fait : `vff:audit-segments` (381 731 tronçons, 21 ères, 19 201 synthèses de ligne), page `/validate/audit/segments`, API, GraphQL, MCP, trois contrôles à la main (100, 200 puis 13 cas), 81,6 % puis 83,4 % des km sûrs en 2030. Reste : repasser les ères passées sur `vff` avec les règles `.6`, élargir la continuité (R2), un invariant par note
 - [~] Audit de chaque gare : dates d'ouverture, de fermeture, voyageurs et fret trouvées dans les sources ou, à défaut, estimées avec une précision honnête ; placement vérifié sur toutes les sources et les photographies anciennes, avec une file de relecture (méthode : `docs/AUDIT-GARES.md`). Fait : `vff:audit-stations` (9 389 gares), `vff:import-station-wikidata-dates` (3 750 dates comparées), `vff:import-station-passenger-ends` (342 fins des voyageurs lues dans les infobox), page `/validate/audit/stations`, API, GraphQL, MCP, deux contrôles à la main de 100 gares ; gares en désaccord 342 puis 217. Reste : recalcul des gares (`vff:consolidate-stations`, `vff:build-station-eras`) pour lire les corrections, mesure du placement le long de la voie
 - [ ] Modèle : fusion de plusieurs dates de prises de vue (calcul GPU, sur accord), publication des poids complets
@@ -255,6 +259,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 - [x] Blog / journal de bord du projet (articles longs sur des lignes emblématiques) : `/journal`, articles Markdown versionnés (`resources/content/journal`, format dans `docs/REDACTION.md`), flux Atom et RSS, plan du site, API REST, GraphQL et MCP ; deux premiers articles (les Hirondelles, Angoulême - Limoges) ; traductions des articles à venir
 - [ ] Programme de partenariat avec des associations ferroviaires locales (aucun partenariat à ce jour)
 - [ ] Présence dans les conférences open data / patrimoine
+- [x] Plans du site : `/sitemap.xml` (index) et un plan par famille de pages (lignes, gares, matériel, accidents, pages éditoriales, journal), 50 000 adresses au plus par fichier, publié seulement (`App\Services\Seo\SitemapBuilder`)
 - [x] Application installable (PWA), avec page hors ligne
 - [x] Mode hors ligne : pages publiques déjà consultées sans être connecté (HTML et Inertia, 60 au plus, 30 jours) et tuiles vectorielles de VFF déjà affichées (500 au plus, 7 jours), avec la date de la copie ; jamais les pages de compte, de contribution ni de validation, ni les tuiles OpenStreetMap
 - [x] Mode hors ligne, suite : données de la carte déjà affichées (gares d'une ère, accidents : 8 fichiers au plus, 7 jours) ; hors ligne, les cartes montrent les tracés de VFF sur un fond neutre et le signal de copie le dit (style écrit dans le code, noms de gares en police locale, aucune ressource tierce gardée)
@@ -265,6 +270,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 ## 🚀 Phase 12 - Mise en production (en cours)
 
 - [x] Domaine officiel `vff-project.org`
+- [x] Configuration nginx de référence pour la production : en-têtes de sécurité, cache, plages PMTiles, journaux anonymisés (`deploy/nginx/`, `docs/DEPLOIEMENT-NGINX.md`)
 - [x] Pages légales complètes (2026-10-21) : mentions légales, politique de confidentialité, conditions générales d'utilisation, déclaration d'accessibilité
 - [ ] Messagerie de `vff-project.org` : aucun enregistrement MX à ce jour, `contact@` et `privacy@` ne reçoivent rien
 - [ ] Hébergement sur l'infrastructure d'UnxWares (le domaine pointe aujourd'hui sur un serveur Hetzner Cloud à Helsinki)
@@ -284,7 +290,7 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
   - [ ] Historique par époque : relevé à poursuivre sur les lignes classiques (BAL et BAPR des années 1950 à 2020 : peu de documents datés en accès libre), et placer les portions des LGV nommées par des bifurcations (15 faits non placés)
 - [x] **Passages à niveau** : 16 801 PN de SNCF Réseau (ODbL), calque « Passages à niveau » sur `/maps` (à partir du zoom 9), section de la fiche ligne (nombre par type, liste repliable), API REST (`/api/v1/level-crossings`, `/api/v1/lines/{slug}/level-crossings`, tuiles), GraphQL (`Line.level_crossings`, `levelCrossings`) et outil MCP `level_crossings`
 - [x] **Matériel roulant** : 687 séries importées de Wikidata (CC0) avec leur image Commons et la provenance de chaque champ (`vff:import-materials`), 969 liens ligne × matériel attestés par Wikidata ou par les articles Wikipédia (phrase citée, permalien, fiabilité), API REST (`/api/v1/materials`, `/api/v1/lines/{slug}/materials`) et GraphQL ; fiches enrichies sur le site ; périodes de circulation datées (`vff:import-material-periods`, table `line_material_periods` : 126 périodes sûres sur 62 lignes et 69 séries, lues dans les articles Wikipédia des lignes et des séries, permalien de la révision, fiabilité ; jamais de phrase sur le site ni dans le MCP), sur les fiches ligne et série, en REST, GraphQL (`LineMaterialLink.periods`) et MCP (`line_materials`) ; à faire : lire les tableaux des articles, rattacher les périodes aux portions du tracé, dates Wikidata quand les lignes auront des déclarations P3438 datées
-- [x] **Accidents** : 928 fiches (Wikidata, Wikipédia, BEA-TT), pages, API, calque de carte ; contexte sourcé pour 359 fiches (`vff:enrich-accidents`, fichiers de `database/data/accident_contexts`) : archives, enquêtes et presse de l'époque en français, anglais et allemand, documents cités (Gallica en lien seulement), images de Commons, corrections sourcées des lieux, dates, natures et bilans, doublons gardés en alias ; sections « Contexte » et « Documents et archives » en REST, GraphQL et MCP. Reste : 38 fiches qui ne reposent que sur la liste de Wikipédia (Gallica et Chronicling America refusent la machine), sources à valider (Victimes du rail, Delpher)
+- [x] **Accidents** : 928 fiches (Wikidata, Wikipédia, BEA-TT), pages, API, calque de carte ; contexte sourcé pour 359 fiches (`vff:enrich-accidents`, fichiers de `database/data/accident_contexts`) : archives, enquêtes et presse de l'époque en français, anglais et allemand, documents cités (Gallica en lien seulement), images de Commons, corrections sourcées des lieux, dates, natures et bilans, doublons gardés en alias ; noms de fiche durables (`database/data/accident_slugs.php`) et fiches rédigées à la main pour un accident que seule la presse décrit (`vff:import-accidents --only=manual`) ; sections « Contexte » et « Documents et archives » en REST, GraphQL et MCP. Reste : 38 fiches qui ne reposent que sur la liste de Wikipédia (Gallica et Chronicling America refusent la machine), sources à valider (Victimes du rail, Delpher)
 - [x] **Rames remarquables** : la rame TGV Sud-Est 01 « Patrick » (fiche de la série, section « Rames remarquables » en REST, GraphQL et MCP, recherche du site) et son clin d'œil sur toutes les pages (taper « patrick » hors d'un champ de saisie ; mouvement réduit respecté, rien envoyé ni stocké), redessinée en SVG à l'échelle
 - [x] **Serveur MCP** pour que les assistants IA interrogent l'encyclopédie avec ses sources (23 outils dont accidents, comparaison d'ères, passages à niveau, historique de la signalisation et matériel par ligne, 3 invites, lecture seule, `docs/MCP.md`)
 
@@ -306,4 +312,4 @@ L'objectif initial (1900 → 1980) est dépassé : la carte couvre **1830 → 20
 
 *Cette roadmap est un document vivant. Toute proposition est bienvenue : ouvre une [issue](https://github.com/UnxWares/VFF-Project/issues) avec le label `roadmap`.*
 
-*À jour : 2026-11-21.*
+*À jour : 2026-11-22.*
