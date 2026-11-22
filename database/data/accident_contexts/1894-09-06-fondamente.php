@@ -3,7 +3,7 @@
 // Contexte sourcé du tamponnement d'un train de voyageurs en détresse par un train de marchandises entre Montpaon et Fondamente, ligne de Béziers à Neussargues, de septembre 1894 (recherche du 21/11/2026).
 return [
     'slug' => '1894-09-06-fondamente',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1890' => [
             'provider' => 'wikipedia',
@@ -45,7 +45,7 @@ return [
             'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/FZYUJKJGDDTBPTNX2MCIWCTGYOH4L24N?issuepage=14',
             'access' => 'open',
             'consulted_on' => '2026-11-21',
-            'note' => 'Brève : sur la ligne de Béziers à Neussargues, deux trains se sont heurtés, quatre wagons brisés.',
+            'note' => 'Brève datée de Lille, 7 septembre : sur la ligne de Béziers à Neussargues, deux trains se sont heurtés ; quatre wagons brisés, un mécanicien tué, six personnes blessées.',
         ],
     ],
     'sections' => [
@@ -59,9 +59,9 @@ return [
         ],
         'victims' => [
             [
-                'fr' => 'Le conducteur du train de marchandises a été tué en sautant du fourgon de tête. Des voyageurs ont été légèrement blessés : huit selon la liste de Wikipédia, six personnes selon le télégramme de Rodez.',
-                'en' => 'The conductor of the goods train was killed jumping from the leading van. Some passengers were slightly injured: eight according to the Wikipedia list, six people according to the Rodez telegram.',
-                'de' => 'Der Zugbegleiter des Güterzugs kam beim Absprung aus dem vorderen Packwagen ums Leben. Reisende wurden leicht verletzt: acht nach der Wikipedia-Liste, sechs Personen nach dem Telegramm aus Rodez.',
+                'fr' => 'Le conducteur du train de marchandises a été tué en sautant du fourgon de tête. Huit voyageurs ont été blessés selon la liste de Wikipédia ; le télégramme de Rodez compte six personnes légèrement blessées.',
+                'en' => 'The conductor of the goods train was killed jumping from the leading van. Eight passengers were injured according to the Wikipedia list; the Rodez telegram counts six people slightly injured.',
+                'de' => 'Der Zugbegleiter des Güterzugs kam beim Absprung aus dem vorderen Packwagen ums Leben. Nach der Wikipedia-Liste wurden acht Reisende verletzt; das Telegramm aus Rodez zählt sechs leicht verletzte Personen.',
                 'sources' => ['wp-liste-1890', 'ddb-1894-09-09-echo'],
             ],
         ],
@@ -71,6 +71,12 @@ return [
                 'en' => 'The Rodez telegram, dated 8 September, places the collision "yesterday", that is 7 September; the Wikipedia list dates it 6 September.',
                 'de' => 'Das Telegramm aus Rodez vom 8. September setzt den Zusammenstoß auf „gestern“, also den 7. September; die Wikipedia-Liste datiert ihn auf den 6. September.',
                 'sources' => ['ddb-1894-09-09-echo', 'wp-liste-1890'],
+            ],
+            [
+                'fr' => 'Une brève datée de Lille le 7 septembre, parue dans le Hamburger Fremdenblatt, rapporte déjà la collision et dit un mécanicien tué ; la liste de Wikipédia et le télégramme de Rodez parlent d\'un conducteur.',
+                'en' => 'A brief item datelined Lille, 7 September, printed in the Hamburger Fremdenblatt, already reports the collision and says a driver was killed; the Wikipedia list and the Rodez telegram speak of a conductor.',
+                'de' => 'Eine im Hamburger Fremdenblatt gedruckte Kurzmeldung aus Lille vom 7. September berichtet bereits über den Zusammenstoß und nennt einen getöteten Maschinisten; die Wikipedia-Liste und das Telegramm aus Rodez sprechen von einem Zugbegleiter.',
+                'sources' => ['ddb-1894-09-10-fremdenblatt', 'ddb-1894-09-09-echo', 'wp-liste-1890'],
             ],
         ],
     ],

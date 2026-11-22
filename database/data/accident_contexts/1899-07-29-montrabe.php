@@ -3,7 +3,7 @@
 // Contexte sourcé du déraillement d'un express près de la gare de Montrabé, ligne de Toulouse à Capdenac, de juillet 1899 (recherche du 21/11/2026).
 return [
     'slug' => '1899-07-29-montrabe',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1890' => [
             'provider' => 'wikipedia',
@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Haagsche courant du 1er août 1899',
+            'title' => 'Gemengd nieuws',
             'publisher' => 'Haagsche courant',
             'author' => null,
             'published' => '1899-08-01',
@@ -37,7 +37,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Rotterdamsch nieuwsblad du 31 juillet 1899',
+            'title' => 'Frankrijk',
             'publisher' => 'Rotterdamsch nieuwsblad',
             'author' => null,
             'published' => '1899-07-31',
@@ -73,9 +73,9 @@ return [
                 'sources' => ['wp-liste-1890', 'haagsche-courant-1899-08-01'],
             ],
             [
-                'fr' => 'Sens du train : un express pour Paris selon la liste, l\'express de Paris à Capdenac selon la Haagsche courant. Le Rotterdamsch nieuwsblad du 31 juillet parle d\'un déraillement « cette nuit ».',
-                'en' => 'Direction: an express for Paris according to the list, the Paris to Capdenac express according to the Haagsche courant. The Rotterdamsch nieuwsblad of 31 July speaks of a derailment "last night".',
-                'de' => 'Fahrtrichtung: ein Schnellzug nach Paris nach der Liste, der Schnellzug Paris-Capdenac nach der Haagsche courant. Das Rotterdamsch nieuwsblad vom 31. Juli spricht von einer Entgleisung „in der Nacht“.',
+                'fr' => 'Sens du train : un express pour Paris selon la liste, l\'express de Paris à Capdenac selon la Haagsche courant. Date et heure : vers 13 h 30 le 29 juillet selon la liste ; « hier après-midi » dans la Haagsche courant du 1er août, « cette nuit » dans le Rotterdamsch nieuwsblad du 31 juillet.',
+                'en' => 'Direction: an express for Paris according to the list, the Paris to Capdenac express according to the Haagsche courant. Date and time: about 1.30 pm on 29 July according to the list; "yesterday afternoon" in the Haagsche courant of 1 August, "last night" in the Rotterdamsch nieuwsblad of 31 July.',
+                'de' => 'Fahrtrichtung: ein Schnellzug nach Paris nach der Liste, der Schnellzug Paris-Capdenac nach der Haagsche courant. Datum und Uhrzeit: nach der Liste der 29. Juli gegen 13.30 Uhr; „gestern Nachmittag“ in der Haagsche courant vom 1. August, „in der Nacht“ im Rotterdamsch nieuwsblad vom 31. Juli.',
                 'sources' => ['wp-liste-1890', 'haagsche-courant-1899-08-01', 'rotterdamsch-nieuwsblad-1899-07-31'],
             ],
         ],

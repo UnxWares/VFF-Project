@@ -3,7 +3,7 @@
 // Contexte sourcé de la collision d'un train de voyageurs pour Pontoise et d'un train de matériel vide au Landy, à Saint-Denis, ligne de Paris-Nord, de février 1892 (recherche du 21/11/2026).
 return [
     'slug' => '1892-02-22-saint-denis',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1890' => [
             'provider' => 'wikipedia',
@@ -51,7 +51,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Paris',
+            'title' => 'Paris, 25. Februar',
             'publisher' => 'Die Reform (presse allemande numérisée, Deutsches Zeitungsportal)',
             'author' => null,
             'published' => '1892-02-27',

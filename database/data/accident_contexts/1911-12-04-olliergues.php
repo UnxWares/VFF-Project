@@ -3,7 +3,7 @@
 // Contexte sourcé de la collision dans un tunnel près d'Olliergues, ligne de Saint-Germain-des-Fossés à Darsac, de décembre 1911 (recherche du 21/11/2026).
 return [
     'slug' => '1911-12-04-olliergues',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1911' => [
             'provider' => 'wikipedia',
@@ -89,9 +89,9 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Le bilan diffère : dix blessés graves dans la presse allemande, sept blessés dans la liste de Wikipédia. Si le blessé mort peu après, que mentionne la liste, est compté, l\'accident a fait trois morts au lieu de deux.',
-                'en' => 'The toll differs: ten seriously injured in the German press, seven injured in the Wikipedia list. Counting the injured person who, according to the list, died shortly afterwards, the accident killed three people rather than two.',
-                'de' => 'Die Bilanz weicht ab: zehn Schwerverletzte in der deutschen Presse, sieben Verletzte in der Wikipedia-Liste. Rechnet man den Verletzten hinzu, der nach der Liste kurz darauf starb, forderte der Unfall drei statt zwei Tote.',
+                'fr' => 'Le bilan diffère : dix blessés graves dans la presse allemande, sept blessés dans la liste de Wikipédia. La presse allemande compte deux morts ; la liste en ajoute un troisième, un blessé mort peu après.',
+                'en' => 'The toll differs: ten seriously injured in the German press, seven injured in the Wikipedia list. The German press counts two dead; the list adds a third, an injured person who died shortly afterwards.',
+                'de' => 'Die Bilanz weicht ab: zehn Schwerverletzte in der deutschen Presse, sieben Verletzte in der Wikipedia-Liste. Die deutsche Presse zählt zwei Tote; die Liste nennt einen dritten, einen Verletzten, der kurz darauf starb.',
                 'sources' => ['ddb-1911-12-05-vorwaerts', 'wp-liste-1911'],
             ],
         ],

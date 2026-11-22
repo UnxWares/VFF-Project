@@ -3,7 +3,7 @@
 // Contexte sourcé de l'effondrement du sol sous un train de Mornant à Lyon près de Craponne, ligne à voie métrique de l'Ouest-Lyonnais, d'octobre 1891 (recherche du 21/11/2026).
 return [
     'slug' => '1891-10-21-craponne',
-    'checked_on' => '2026-11-21',
+    'checked_on' => '2026-11-22',
     'sources' => [
         'wp-liste-1890' => [
             'provider' => 'wikipedia',
@@ -37,7 +37,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Eisenbahnunglück bei Craponne',
+            'title' => 'Paris, 22. Oct.',
             'publisher' => 'Kölnische Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
             'author' => null,
             'published' => '1891-10-24',
