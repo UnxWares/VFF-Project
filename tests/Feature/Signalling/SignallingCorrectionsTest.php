@@ -32,7 +32,6 @@ WIKI;
 
     private string $dir;
 
-
     protected function setUp(): void
     {
         parent::setUp();
