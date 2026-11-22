@@ -259,8 +259,9 @@ class BuildLineReferences extends Command
                 $j['end_joined'] ?? 0, $this->km($j['end_joined_m'] ?? 0), $j['hole_smoothed'] ?? 0, $this->km($j['hole_smoothed_m'] ?? 0)));
             $this->line(sprintf('  bouts posés sur la voie d\'une autre ligne dessinée à côté : %d raccordés à son dessin par une courbe estimée (%s km)',
                 $j['drawing_joined'] ?? 0, $this->km($j['drawing_joined_m'] ?? 0)));
-            $this->line(sprintf('  escaliers et allers-retours : %d sauts remis lissés en changement de voie (%s km, courbes estimées), %d éperons en aller-retour retirés (%s km)',
-                $j['jog_smoothed'] ?? 0, $this->km($j['jog_smoothed_m'] ?? 0), $j['spur_removed'] ?? 0, $this->km($j['spur_removed_m'] ?? 0)));
+            $this->line(sprintf('  escaliers et allers-retours : %d sauts remis lissés en changement de voie (%s km, courbes estimées), %d raccords coudés qui fermaient une boucle retirés (%s km), %d éperons en aller-retour retirés (%s km)',
+                $j['jog_smoothed'] ?? 0, $this->km($j['jog_smoothed_m'] ?? 0), $j['loop_jog_removed'] ?? 0, $this->km($j['loop_jog_removed_m'] ?? 0),
+                $j['spur_removed'] ?? 0, $this->km($j['spur_removed_m'] ?? 0)));
             $this->line(sprintf('  longs trous : %d suivis sur une voie abandonnée (%s km), dont %d incomplets (%s km laissés visibles) ; %d refusés',
                 $j['long_gap_filled'] ?? 0, $this->km($j['long_gap_filled_m'] ?? 0), $j['long_gap_partial'] ?? 0, $this->km($j['long_gap_left_m'] ?? 0),
                 $j['long_gap_refused'] ?? 0));
