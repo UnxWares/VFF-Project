@@ -26,6 +26,7 @@ return [
     ['key' => 'wikipedia:fr:1872-07-20-alsace-lorraine-11df6cfb', 'from' => '1872-07-20-maubeuge', 'slug' => '1872-07-20-dannemarie', 'reason' => 'commune corrigée d\'après les documents du contexte'],
     ['key' => 'wikipedia:fr:1873-07-22-bressuire-9d3bab97', 'from' => '1873-07-22-bressuire', 'slug' => '1873-07-22-chinon', 'reason' => 'commune corrigée d\'après les documents du contexte'],
     ['key' => 'wikipedia:fr:1874-04-04-dijon-7c92b1c5', 'from' => '1874-04-04-dijon', 'slug' => '1874-04-04-perrigny-les-dijon', 'reason' => 'commune corrigée d\'après les documents du contexte'],
+    ['key' => 'wikipedia:fr:1878-07-12-saint-malo-c981df86', 'from' => '1878-07-12-saint-malo', 'slug' => '1878-07-12-saint-aubin-des-landes', 'reason' => 'commune corrigée d\'après les documents du contexte'],
     ['key' => 'wikipedia:fr:1879-12-05-avricourt-93e8eb31', 'from' => '1879-12-05-avricourt', 'slug' => '1879-12-05-bondy', 'reason' => 'commune corrigée d\'après les documents du contexte'],
     ['key' => 'wikipedia:fr:1881-01-09-mezy-e6ecf929', 'from' => '1881-01-09-epernay', 'slug' => '1881-01-09-mezy-moulins', 'reason' => 'commune corrigée d\'après les documents du contexte'],
     ['key' => 'wikipedia:fr:1881-08-27-trayas-9afb5ad1', 'from' => '1881-08-27-saint-raphael', 'slug' => '1881-08-28-saint-raphael', 'reason' => 'date corrigée d\'après les documents du contexte'],

@@ -72,6 +72,12 @@ return [
                 'de' => 'Die Wikipedia-Liste datiert den Zusammenstoß nach Le Figaro vom 2. November auf Mittwoch, den 1. November. De Telegraaf vom 3. November setzt ihn auf „gestern Abend“, die Zeitung aus ’s-Hertogenbosch vom 7. auf „Donnerstagabend“, was den 2. November ergäbe.',
                 'sources' => ['wp-liste-1890', 'delpher-1893-11-03-telegraaf', 'delpher-1893-11-07-noordbrabantsche'],
             ],
+            [
+                'fr' => 'Le Figaro est un journal du matin : le numéro du 2 novembre cité par la liste ne peut rapporter qu\'une collision de la veille au soir, alors que les deux journaux néerlandais parlent de « hier soir » (3 novembre) et de « jeudi soir » (2 novembre). Les deux dates ne se concilient pas sans relire le texte du Figaro, qui n\'a pas pu l\'être ici ; la date de la liste est gardée.',
+                'en' => 'Le Figaro is a morning paper: the issue of 2 November cited by the list can only report a collision of the evening before, whereas the two Dutch papers say "last night" (3 November) and "Thursday evening" (2 November). The two dates cannot be reconciled without rereading the text of Le Figaro, which could not be done here; the date of the list is kept.',
+                'de' => 'Le Figaro ist eine Morgenzeitung: Die von der Liste zitierte Ausgabe vom 2. November kann nur einen Zusammenstoß vom Vorabend melden, während die beiden niederländischen Zeitungen „gestern Abend“ (3. November) und „Donnerstagabend“ (2. November) schreiben. Die beiden Daten lassen sich ohne erneutes Lesen des Figaro-Textes nicht in Einklang bringen, was hier nicht möglich war; das Datum der Liste bleibt.',
+                'sources' => ['wp-liste-1890', 'delpher-1893-11-03-telegraaf', 'delpher-1893-11-07-noordbrabantsche'],
+            ],
         ],
     ],
     'corrections' => [

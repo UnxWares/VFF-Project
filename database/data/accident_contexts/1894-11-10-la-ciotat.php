@@ -47,6 +47,20 @@ return [
             'consulted_on' => '2026-11-21',
             'note' => 'Autre version de la dépêche de Toulon du 11 novembre : collision de deux trains de marchandises près de La Ciotat ; les mécaniciens et les chefs de train des deux trains tués, 15 agents grièvement blessés.',
         ],
+        'ddb-1894-11-12-berliner-tageblatt' => [
+            'provider' => 'presse',
+            'kind' => 'press',
+            'reliability' => 'press',
+            'title' => 'Toulon, 11. November (W. T. B.)',
+            'publisher' => 'Berliner Tageblatt und Handels-Zeitung (presse allemande numérisée, Deutsches Zeitungsportal)',
+            'author' => null,
+            'published' => '1894-11-12',
+            'locator' => 'p. 3',
+            'url' => 'https://www.deutsche-digitale-bibliothek.de/newspaper/item/4QOEPGCVOPRROYDWYQ3NURVPP4C257LI?issuepage=3',
+            'access' => 'open',
+            'consulted_on' => '2026-11-22',
+            'note' => 'Dépêche de l\'agence Wolff datée de Toulon le 11 novembre : collision entre deux trains de marchandises sur la ligne entre La Ciotat et Saint-Cyr, mécaniciens et chefs de train des deux trains tués, quinze agents grièvement blessés, dégâts matériels importants.',
+        ],
     ],
     'sections' => [
         'circumstances' => [
@@ -79,6 +93,12 @@ return [
                 'en' => 'Another version of the Toulon dispatch, printed in the Schwäbischer Merkur and the Merseburger Kreisblatt, says the drivers and guards of both trains were killed, which makes four dead, and counts 15 seriously injured.',
                 'de' => 'Eine andere Fassung der Depesche aus Toulon im Schwäbischen Merkur und im Merseburger Kreisblatt meldet Lokführer und Zugführer beider Züge als getötet, also vier Tote, und zählt 15 Schwerverletzte.',
                 'sources' => ['ddb-1894-11-12-merkur', 'ddb-1894-11-13-velbert'],
+            ],
+            [
+                'fr' => 'Le texte « mécaniciens et chefs de train des deux trains tués » est celui d\'une seule dépêche de l\'agence Wolff, datée de Toulon le 11 novembre et reprise mot pour mot par une dizaine de journaux allemands du 12 au 16 novembre ; il n\'y a donc pas de deuxième témoin pour quatre morts. La liste de Wikipédia cite un numéro du Petit Journal daté du « 11 décembre 1894 », sans doute une faute pour le 11 novembre, lendemain de l\'accident. Les deux versions s\'accordent sur le lieu, entre La Ciotat et Saint-Cyr.',
+                'en' => 'The wording "drivers and guards of both trains killed" comes from a single Wolff agency dispatch, dated Toulon 11 November and reprinted word for word by about ten German papers from 12 to 16 November; there is no second witness for four dead. The Wikipedia list cites an issue of Le Petit Journal dated "11 December 1894", probably a slip for 11 November, the day after the accident. Both versions agree on the place, between La Ciotat and Saint-Cyr.',
+                'de' => 'Der Wortlaut „Lokomotiv- und Zugführer beider Züge getötet“ stammt aus einer einzigen Depesche der Agentur Wolff aus Toulon vom 11. November, die etwa zehn deutsche Zeitungen vom 12. bis 16. November Wort für Wort abdruckten; für vier Tote gibt es also keinen zweiten Zeugen. Die Wikipedia-Liste zitiert eine Ausgabe des Petit Journal vom „11. Dezember 1894“, wohl ein Versehen für den 11. November, den Tag nach dem Unfall. Beide Fassungen stimmen im Ort überein, zwischen La Ciotat und Saint-Cyr.',
+                'sources' => ['wp-liste-1890', 'ddb-1894-11-12-berliner-tageblatt', 'ddb-1894-11-13-velbert', 'ddb-1894-11-12-merkur'],
             ],
         ],
     ],

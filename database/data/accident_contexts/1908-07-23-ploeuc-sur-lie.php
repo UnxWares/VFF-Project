@@ -128,6 +128,12 @@ return [
                 'de' => 'Die Zahl der Toten weicht ab: zwei Bedienstete (Pariser Meldung) gegenüber drei Toten in der Wikipedia-Liste; die Zahl der Verletzten beträgt fünfzehn (Liste und Meldung) oder zwölf (eine Zeitung).',
                 'sources' => ['wp-liste-1908', 'ddb-1908-07-24-hannoverscher-kurier', 'ddb-1908-07-25-volksblatt-halle'],
             ],
+            [
+                'fr' => 'Toutes les dépêches allemandes lues reprennent un seul télégramme de Paris daté du 23 juillet, de quelques lignes ; elles ne sont donc pas des témoins indépendants du chiffre de deux. La liste de Wikipédia s\'appuie sur Le Matin du 24 juillet, plus tardif. Le troisième mort pourrait être un blessé décédé après le télégramme, mais aucun document lu ne le dit.',
+                'en' => 'All the German dispatches read repeat one short telegram from Paris dated 23 July, so they are not independent witnesses of the figure of two. The Wikipedia list relies on Le Matin of 24 July, which is later. The third death could be an injured person who died after the telegram, but no document read says so.',
+                'de' => 'Alle gelesenen deutschen Meldungen geben ein einziges kurzes Telegramm aus Paris vom 23. Juli wieder, sie sind also keine unabhängigen Zeugen für die Zahl von zwei. Die Wikipedia-Liste stützt sich auf Le Matin vom 24. Juli, der später erschien. Der dritte Tote könnte ein nach dem Telegramm gestorbener Verletzter sein, doch kein gelesenes Dokument sagt das.',
+                'sources' => ['wp-liste-1908', 'ddb-1908-07-24-hannoverscher-kurier', 'ddb-1908-07-25-volksblatt-halle', 'ddb-1908-07-24-bielefelder-general-anzeiger'],
+            ],
         ],
     ],
 ];

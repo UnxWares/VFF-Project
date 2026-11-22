@@ -120,6 +120,12 @@ return [
                 'de' => 'Die deutsche Presse verlegt die Explosion an den Bahnhof Briey und zählt acht Verletzte, davon fünf in Lebensgefahr, ohne einen Toten zu erwähnen; die Wikipedia-Liste verortet sie im Netz der Grube in Homécourt, mit vier Toten und vier Schwerverletzten.',
                 'sources' => ['wp-liste-1912', 'ddb-1912-05-07-niederrheinisches-tageblatt'],
             ],
+            [
+                'fr' => 'Les deux bilans pourraient se recouper : la dépêche allemande du 6 mai compte huit blessés dont cinq en danger de mort, et la liste de Wikipédia quatre morts et quatre blessés graves, soit huit victimes en tout. Aucun texte lu ne le dit, c\'est un simple rapprochement des chiffres. Aucune dépêche allemande des 7 au 14 mai ne parle de morts.',
+                'en' => 'The two tolls may overlap: the German dispatch of 6 May counts eight injured, five of them in danger of death, and the Wikipedia list four dead and four seriously injured, eight victims in all. No text read says so; it is only a comparison of the figures. No German dispatch from 7 to 14 May mentions any death.',
+                'de' => 'Die beiden Bilanzen könnten sich decken: Die deutsche Meldung vom 6. Mai zählt acht Verletzte, davon fünf in Lebensgefahr, die Wikipedia-Liste vier Tote und vier Schwerverletzte, zusammen acht Opfer. Kein gelesener Text sagt das, es ist nur ein Vergleich der Zahlen. Keine deutsche Meldung vom 7. bis 14. Mai erwähnt Tote.',
+                'sources' => ['wp-liste-1912', 'ddb-1912-05-07-niederrheinisches-tageblatt'],
+            ],
         ],
     ],
 ];

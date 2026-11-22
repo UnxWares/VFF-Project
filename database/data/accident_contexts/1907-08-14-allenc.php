@@ -117,9 +117,9 @@ return [
         ],
         'disagreements' => [
             [
-                'fr' => 'Date : la liste de Wikipédia donne le 14 août 1907 ; la dépêche de Paris du 16 août situe l\'accident « le jeudi », soit le 15 août.',
-                'en' => 'Date: the Wikipedia list gives 14 August 1907; the Paris dispatch of 16 August places the accident "on Thursday", which was 15 August.',
-                'de' => 'Datum: Die Wikipedia-Liste nennt den 14. August 1907; die Pariser Meldung vom 16. August legt den Unfall auf „Donnerstag“, also den 15. August.',
+                'fr' => 'Date : la liste de Wikipédia donne le 14 août 1907 d\'après Le Temps du 16, numéro du soir paru dès le 15 ; la dépêche de Paris du 16 août situe l\'accident « hier jeudi » (Hamburger Fremdenblatt) ou « jeudi » (quatre autres journaux allemands, du 17 au 21 août), soit le 15 août. Toutes ces reprises viennent de la même dépêche, il n\'y a donc pas de second témoin indépendant ; la date de la liste est gardée.',
+                'en' => 'Date: the Wikipedia list gives 14 August 1907 from Le Temps of the 16th, an evening paper that came out on the 15th; the Paris dispatch of 16 August places the accident "yesterday, Thursday" (Hamburger Fremdenblatt) or "on Thursday" (four other German papers, 17 to 21 August), which was 15 August. All these reprints come from the same dispatch, so there is no independent second witness; the date of the list is kept.',
+                'de' => 'Datum: Die Wikipedia-Liste nennt den 14. August 1907 nach Le Temps vom 16., einer Abendzeitung, die schon am 15. erschien; die Pariser Meldung vom 16. August legt den Unfall auf „gestern, Donnerstag“ (Hamburger Fremdenblatt) oder „Donnerstag“ (vier weitere deutsche Zeitungen vom 17. bis 21. August), also den 15. August. Alle diese Abdrucke stammen aus derselben Meldung, einen unabhängigen zweiten Zeugen gibt es daher nicht; das Datum der Liste bleibt.',
                 'sources' => ['wp-liste-1907', 'ddb-1907-08-17-hamburg'],
             ],
             [
