@@ -235,7 +235,8 @@ class LineController extends Controller
      *
      * **Gares** (`stations`) : toutes les gares de la ligne, toutes ères, dans
      * l'ordre du tracé : `pk_m`/`pk_label`, dates (`opened_at`, `closed_at` et
-     * leur précision, `closed_after` : fermée après cette année),
+     * leur précision, `opened_after` : ouverte après cette année quand l'ouverture, déduite des lignes
+     * et bornée par la carte, est en précision `range`, `closed_after` : fermée après cette année),
      * `served_from`/`served_until` (années de desserte par cette ligne),
      * `served_until_kind` (`year` : année tirée d'une date ; `upper_bound` :
      * desservie au plus tard cette année, fermeture de la gare connue

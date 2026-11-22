@@ -106,4 +106,35 @@ class ImportSncfPlatformsTest extends TestCase
         $this->assertSame($rest['items'], $mcp['platforms']['items']);
         $this->assertSame($rest['longest_m'], $mcp['platforms']['longest_m']);
     }
+
+    public function test_platforms_labelled_with_the_name_of_a_closed_station_follow_the_open_station_of_the_same_site(): void
+    {
+        // « Grasse » : quais de Marseille-St-Charles (mêmes lignes, PK recoupés, 100 m) rattachés par erreur à une fiche fermée
+        // qui porte le code UIC de Grasse (Alpes-Maritimes).
+        Station::factory()->create(['slug' => 'marseille-st-charles', 'name' => 'Marseille-St-Charles', 'uic_code' => '87751008', 'status' => 'active',
+            'geom' => Point::makeGeodetic(43.3030, 5.3811)]);
+        Station::factory()->create(['slug' => 'grasse', 'name' => 'Grasse', 'uic_code' => '87757724', 'status' => 'declassified',
+            'geom' => Point::makeGeodetic(43.3028, 5.3806)]);
+        DB::table('sncf_gares')->insert([
+            ['code_uic' => '87751008', 'code_ligne' => '830000', 'libelle' => 'Marseille-St-Charles', 'voyageurs' => true, 'fret' => false, 'lat' => 43.303, 'lon' => 5.381],
+            ['code_uic' => '87757724', 'code_ligne' => '830000', 'libelle' => 'Grasse', 'voyageurs' => true, 'fret' => false, 'lat' => 43.3028, 'lon' => 5.3806],
+            ['code_uic' => '87295063', 'code_ligne' => '212000', 'libelle' => 'Hirson', 'voyageurs' => true, 'fret' => false, 'lat' => 49.9145, 'lon' => 4.0846],
+        ]);
+        Station::factory()->create(['slug' => 'hirson', 'name' => 'Hirson', 'uic_code' => '87295063', 'status' => 'active',
+            'geom' => Point::makeGeodetic(49.9145, 4.0846)]);
+
+        $this->artisan('vff:import-sncf-platforms', ['--cache-dir' => 'tests/Fixtures/SncfSite'])
+            ->expectsOutputToContain('Rattachés au même site qu\'une gare ouverte')
+            ->expectsOutputToContain('1 PK, 1 coordonnées')
+            ->assertSuccessful();
+
+        $id = fn (string $slug) => DB::table('stations')->where('slug', $slug)->value('id');
+        $this->assertSame(0, DB::table('station_platforms')->where('station_id', $id('grasse'))->count());
+        $this->assertSame(['site'], DB::table('station_platforms')->where('sncf_station_name', 'Grasse')->pluck('match_method')->all());
+        $this->assertSame($id('marseille-st-charles'), (int) DB::table('station_platforms')->where('sncf_station_name', 'Grasse')->value('station_id'));
+        // Hirson : le « Quai 2 » de PK 000-126 à 010+299 garde sa longueur, mais plus de PK ni de bout à 8 km.
+        $quai2 = DB::table('station_platforms')->where('sncf_station_name', 'Hirson')->where('label', 'Quai 2')->first();
+        $this->assertSame([425, null, null], [(int) $quai2->length_m, $quai2->pk_start_m, $quai2->pk_end_m]);
+        $this->assertSame('uic', $quai2->match_method);
+    }
 }

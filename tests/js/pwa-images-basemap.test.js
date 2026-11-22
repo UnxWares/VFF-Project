@@ -98,6 +98,11 @@ describe('règles : images des fiches', () => {
         expect(isOfflineImageUrl(COMMONS, ORIGIN)).toBe(true);
         expect(isOfflineImageUrl(`${ORIGIN}/storage/mediatheque/a.jpg`, ORIGIN)).toBe(false);
         expect(isOfflineImageUrl('http://upload.wikimedia.org/a.jpg', ORIGIN)).toBe(false);
+        // Vignette servie par le relais de VFF (VFF_COMMONS_PROXY=true).
+        expect(isOfflineImageUrl(`${ORIGIN}/media/commons/7/79/CFA-Morlaix.jpg`, ORIGIN)).toBe(
+            true,
+        );
+        expect(isOfflineImageUrl(`${ORIGIN}/media/autre/a.jpg`, ORIGIN)).toBe(false);
     });
 
     it('n autorise une copie que pour une page publique du site', () => {

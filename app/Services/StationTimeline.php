@@ -918,4 +918,115 @@ final class StationTimeline
             default => self::NOTE_UNDATED,
         };
     }
+
+    // ── Règles G3 et G6 de l'audit des gares (désactivées par défaut) ────────
+    //
+    // Décisions recommandées par l'audit des gares (QUESTIONS.md, matinée du
+    // 21/11/2026 ; rapport aprem-2111/audit-gares-suite.md, « Décisions à
+    // prendre » n° 5). vff:build-station-eras ne les applique qu'avec
+    // --rules=g3,g6 ou la clé stations.era_rules (config/stations.php).
+
+    /** Règle G3 : ouverture déduite bornée par la carte. */
+    public const RULE_OPENING_BY_MAP = 'g3';
+
+    /** Règle G6 : fermeture tirée de la fin des voyageurs de la ligne, rattachée à la section par PK. */
+    public const RULE_CLOSURE_BY_LINE = 'g6';
+
+    public const ERA_RULES = [self::RULE_OPENING_BY_MAP, self::RULE_CLOSURE_BY_LINE];
+
+    /**
+     * G3 : nombre d'ères au plus entre l'ouverture déduite et la première ère desservie. Au-delà, c'est la carte
+     * qui a un trou (Cubzac-les-Ponts : ligne de 1874, gare montrée en 2020 seulement) et non la date : la règle
+     * ne s'applique pas. Les retards relevés par l'audit sur des dates sourcées vont d'une à trois ères.
+     */
+    public const OPENING_BY_MAP_MAX_ERAS = 3;
+
+    /**
+     * G3. Ouverture DÉDUITE des lignes (provenance inferred:…, jamais une date sourcée) antérieure d'au moins
+     * une ère à la première ère où la carte montre la gare desservie : la ligne n'est pas tracée en service
+     * près de la gare aux ères intermédiaires. La carte se trompe parfois (trou de tracé), la date de la
+     * ligne aussi (date de la première section d'une ligne ouverte par sections). L'intervalle retenu
+     * contient la vraie date dans les deux cas : « entre l'année de la ligne et la première ère desservie »
+     * (Messei : 1866 à 1880). Même convention que les fermetures en intervalle (resolveClosure) : la date est
+     * la borne haute (31/12 de l'ère, ou aujourd'hui pour l'ère courante), `after` l'année qui précède la
+     * borne basse. La carte n'est pas crue quand elle a un trou de plus de OPENING_BY_MAP_MAX_ERAS ères, ni
+     * quand la gare a une fin de service (voyageurs, totale, démolition) datée au plus tard l'année de la
+     * première ère desservie : la gare était alors déjà ouverte (Breuilpont : ligne de 1872, voyageurs fermés
+     * en 1969, gare montrée fret seul en 2000 seulement).
+     *
+     * @param  string  $openedAt  ouverture déduite (AAAA-MM-JJ)
+     * @param  array<int, ?string>  $eras  année de l'ère → statut de la gare (absente : null ou clé manquante)
+     * @param  list<int>  $eraYears  années de toutes les ères historiques (hors ère courante)
+     * @param  ?string  $firstEnd  première fin de service connue de la gare (AAAA-MM-JJ, source ou déduite)
+     * @return array{date: string, precision: string, after: int, first_open: int}|null null : la carte ne contredit pas la date
+     */
+    public static function openingBoundedByMap(string $openedAt, array $eras, array $eraYears, int $currentYear, string $today,
+        ?string $firstEnd = null): ?array
+    {
+        $open = array_keys(array_filter($eras, fn (?string $s): bool => in_array($s, self::OPEN_STATUSES, true)));
+        if ($open === []) {
+            return null;
+        }
+        $first = min($open);
+        $year = (int) substr($openedAt, 0, 4);
+        // Une ère (état au 31/12 de son année) postérieure à l'ouverture où la gare n'est pas desservie.
+        $gap = array_filter($eraYears, fn (int $y): bool => $y >= $year && $y < $first && $y !== $currentYear);
+        if ($gap === [] || count($gap) > self::OPENING_BY_MAP_MAX_ERAS
+            || ($firstEnd !== null && (int) substr($firstEnd, 0, 4) <= $first)) {
+            return null;
+        }
+
+        return ['date' => $first >= $currentYear ? $today : sprintf('%04d-12-31', $first), 'precision' => self::RANGE,
+            'after' => $year - 1, 'first_open' => $first];
+    }
+
+    /**
+     * G6. Fermeture d'une gare fermée sans date (intervalle des ères jusqu'à aujourd'hui) tirée de la fin des
+     * voyageurs de ses lignes, seulement quand CHAQUE ligne rattachée (hors terminus nommé ou relu) a une fin
+     * des voyageurs dont la section est donnée par PK et couvre la gare, sans réouverture de la ligne après.
+     * Un événement « toute la ligne » ou rattaché par la seule géométrie ne date rien (Brison-Saint-Innocent
+     * recevait 1871, date d'un événement mal rattaché à toute la 900000, ouverte). Une ligne qui ferme ensuite au
+     * fret ou à tout trafic à la gare (événement daté après la fin des voyageurs, quel que soit son rattachement)
+     * ne date rien non plus : le fret a continué, la fin des voyageurs n'est pas la fermeture de la gare (Talmay,
+     * voyageurs 1938, fret jusqu'en 1971 ; Chemin-Peseux, 1969 et 1993). La date retenue est la plus
+     * tardive des lignes ; elle doit tomber après la dernière ère où la gare est montrée desservie de façon sûre
+     * (une ère est l'état au 31/12 de son année : Pont-de-Roide, fin de 1938 mais sûre en 2020, est écartée), au
+     * plus tard à la borne haute des ères ($upperDate) et aujourd'hui, et après toute réouverture de la gare.
+     *
+     * @param  array<int, array{status: string, uncertain?: bool}|null>  $eras  année → état de la gare
+     * @param  list<array{date: ?string, precision: ?string, freight_after?: bool}>  $lineEnds  une entrée par ligne exigée : sa fin des voyageurs
+     *                                                                                          par PK (null : aucune), suivie ou non d'une fermeture au fret ou à tout trafic
+     * @param  ?string  $reopenedAt  dernière réouverture connue de la gare (AAAA-MM-JJ)
+     * @return array{date: string, precision: string}|null
+     */
+    public static function closureFromLinePassengerEnds(array $eras, int $currentYear, string $upperDate, string $today,
+        array $lineEnds, ?string $reopenedAt = null): ?array
+    {
+        if ($lineEnds === []) {
+            return null;
+        }
+        $best = null;
+        foreach ($lineEnds as $end) {
+            if (($end['date'] ?? null) === null || ($end['freight_after'] ?? false)) {
+                return null;
+            }
+            $date = substr((string) $end['date'], 0, 10);
+            if ($best === null || $date > $best['date']) {
+                $best = ['date' => $date, 'precision' => in_array($end['precision'] ?? null, ['day', 'month', 'year'], true) ? (string) $end['precision'] : 'day'];
+            }
+        }
+        $lastSure = null;
+        foreach ($eras as $year => $s) {
+            if ($year !== $currentYear && is_array($s) && in_array($s['status'], self::OPEN_STATUSES, true) && ! ($s['uncertain'] ?? false)) {
+                $lastSure = max($lastSure ?? $year, $year);
+            }
+        }
+        $year = (int) substr($best['date'], 0, 4);
+        if (($lastSure !== null && $year <= $lastSure) || $best['date'] > $upperDate || $best['date'] > $today
+            || ($reopenedAt !== null && $reopenedAt >= $best['date'])) {
+            return null;
+        }
+
+        return $best;
+    }
 }

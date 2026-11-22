@@ -5,9 +5,11 @@ namespace Tests\Feature\Api;
 use App\Models\Era;
 use App\Models\Line;
 use App\Services\LineFacts;
+use App\Services\Sncf\LineInfrastructure;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
@@ -101,6 +103,22 @@ class LineInfrastructureApiTest extends TestCase
         $this->assertStringContainsString('SNCF Réseau', $mcp['provenance']['mention']);
     }
 
+    public function test_missing_tables_are_checked_again_once_the_migration_has_run(): void
+    {
+        $reset = fn () => (new \ReflectionProperty(LineInfrastructure::class, 'ready'))->setValue(null, null);
+        $reset();
+        Cache::flush();
+
+        // Savepoint : la table disparaît le temps du constat, puis revient (migration appliquée entre deux appels).
+        DB::beginTransaction();
+        Schema::drop('line_radio_portions');
+        $this->assertFalse(LineInfrastructure::ready());
+        DB::rollBack();
+
+        $this->assertTrue(LineInfrastructure::ready(), 'un constat négatif ne reste pas en mémoire du processus');
+        $reset();
+    }
+
     public function test_the_sheet_fact_comes_from_the_regime_and_never_hides_another_source(): void
     {
         $fact = fn (Line $line) => collect(LineFacts::build($line, DB::table('lines')->where('id', $line->id)->first(), [], 2030, true))
@@ -114,6 +132,16 @@ class LineInfrastructureApiTest extends TestCase
         $this->track(0, 10000, 'Voie unique', 1, $mixed);
         $this->track(10000, 25000, 'Double voie', 2, $mixed);
         $this->assertSame(['n' => 2, 'km' => 15.0], array_intersect_key($fact($mixed), array_flip(['n', 'km'])));
+
+        // 10 km de double voie et 30 km de voie banalisée (nombre non établi) : la double voie ne vaut pas pour toute la ligne.
+        $banalised = Line::factory()->create(['slug' => 'rfn-232000', 'code' => '232000', 'name' => 'Ligne surtout banalisée']);
+        $this->track(0, 10000, 'Double voie', 2, $banalised);
+        $this->track(10000, 40000, 'Voie banalisée', null, $banalised);
+        $this->assertSame(['n' => 2, 'km' => 10.0], array_intersect_key($fact($banalised), array_flip(['n', 'km'])));
+        $summary = $this->getJson('/api/v1/lines/rfn-232000/infrastructure')->assertOk()->json('tracks.summary');
+        $this->assertFalse($summary['uniform']);
+        $this->assertSame(0.25, $summary['dominant_share']);
+        $this->assertSame(30000, $summary['banalised_length_m']);
 
         $other = Line::factory()->create(['slug' => 'rfn-600000', 'code' => '600000', 'name' => 'Ligne Wikidata', 'nb_voies_default' => 2]);
         $this->track(0, 10000, 'Voie unique', 1, $other);

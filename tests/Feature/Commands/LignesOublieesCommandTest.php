@@ -235,6 +235,25 @@ class LignesOublieesCommandTest extends TestCase
             'pk_approx' => false, 'source_url' => self::BASE.'index.php?page=concarneau'], json_decode($stations[1]->properties, true));
     }
 
+    public function test_reimport_keeps_a_track_count_set_by_the_sncf_regime(): void
+    {
+        $this->writeCache();
+        $this->artisan('vff:import-lignes-oubliees', ['--from-cache' => true, '--no-pdf' => true])->assertSuccessful();
+        $volvic = $this->lineBySlug('lo-709000');
+        $laval = $this->lineBySlug('lo-462000');
+        $this->assertSame(1, (int) $volvic->nb_voies_default, 'la fiche dit voie unique');
+        DB::table('lines')->whereIn('id', [$volvic->id, $laval->id])->update(['nb_voies_default' => 2]);
+        // Seule la ligne 709000 est posée par la source datée du réseau actuel.
+        DB::table('line_sources')->insert(['line_id' => $volvic->id, 'source_type' => 'sncf-regime',
+            'source_url' => 'https://example.org/s', 'fetched_at' => now(), 'fields_provided' => json_encode(['line_track_portions', 'nb_voies_default']), 'created_at' => now(), 'updated_at' => now()]);
+
+        $this->artisan('vff:import-lignes-oubliees', ['--from-cache' => true, '--no-pdf' => true])->assertSuccessful();
+
+        $this->assertSame(2, (int) $this->lineBySlug('lo-709000')->nb_voies_default, 'source datée du réseau actuel : jamais remplacée');
+        $this->assertSame(1435, (int) $this->lineBySlug('lo-709000')->gauge_mm_default, 'les autres champs restent rafraîchis');
+        $this->assertNotSame(2, (int) $this->lineBySlug('lo-462000')->nb_voies_default, 'sans trace SNCF, la fiche historique réécrit le champ comme avant');
+    }
+
     public function test_reimport_is_stable_keeps_resolved_sections_and_drops_what_the_fiche_no_longer_says(): void
     {
         $this->writeCache();

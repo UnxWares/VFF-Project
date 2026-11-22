@@ -21,6 +21,7 @@ final class StationSheetExample
             'department_code' => '29',
             'opened_at' => '1865-04-26',
             'opened_precision' => 'day',
+            'opened_after' => null,
             'closed_at' => null,
             'closed_precision' => null,
             'closed_after' => null,

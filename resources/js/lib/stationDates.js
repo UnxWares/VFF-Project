@@ -61,3 +61,57 @@ export function formatStationDate(
 
     return text;
 }
+
+/**
+ * Date d'ouverture d'une gare : comme formatStationDate, sauf pour une ouverture encadrée
+ * (précision `range`, règle G3 des ères de gares : ouverture déduite des lignes, bornée par la
+ * carte). `after` est alors l'année qui précède la borne basse (`provenance.opened_after`) : la gare a
+ * ouvert entre `after` + 1 et l'année de `iso`, « entre 1847 et 1860 », jamais « au plus tard en 1860 ».
+ * Contrairement à une fermeture, la borne haute peut être l'année en cours (gare desservie à l'ère
+ * courante) : « entre 1847 et 2026 », et non « date inconnue ». Sans `after`, ou pour toute autre
+ * précision, le libellé est celui de formatStationDate.
+ *
+ * @param {string|null} iso   date AAAA-MM-JJ
+ * @param {string} [precision]
+ * @param {number|null} [after]  année qui précède la borne basse (`opened_after`)
+ * @param {(key: string, opts?: object) => string} [t]  traduction (clés stations.dates.*)
+ * @param {string} [lang]
+ * @param {number} [currentYear]
+ * @returns {string|null}
+ */
+export function formatStationOpening(
+    iso,
+    precision = 'day',
+    after = null,
+    t = (key) => key,
+    lang = 'fr',
+    currentYear = new Date().getFullYear(),
+) {
+    if (iso && precision === 'range' && after != null) {
+        const to = Number(iso.slice(0, 4));
+        return after + 1 < to ? t('stations.dates.range', { from: after + 1, to }) : String(to);
+    }
+    return formatStationDate(iso, precision, after, t, lang, currentYear);
+}
+
+/**
+ * Ouverture d'une ligne de l'annuaire des gares : l'année seule (`opened_year`), sauf pour une
+ * ouverture encadrée (`opened_precision` = range avec `opened_after`) : « entre 1955 et 1970 ».
+ * Le tri de l'annuaire reste celui de `opened_at`, la borne haute.
+ *
+ * @param {{opened_year?: number|null, opened_precision?: string|null, opened_after?: number|null}} row
+ * @param {(key: string, opts?: object) => string} [t]
+ * @param {string} [lang]
+ * @returns {string}
+ */
+export function directoryOpening(row, t = (key) => key, lang = 'fr') {
+    const year = row.opened_year;
+    if (!year) return '';
+    if (row.opened_precision === 'range' && row.opened_after != null) {
+        return (
+            formatStationOpening(`${year}-12-31`, 'range', row.opened_after, t, lang) ??
+            String(year)
+        );
+    }
+    return String(year);
+}

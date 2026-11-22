@@ -1,5 +1,5 @@
 <script>
-    import { formatStationDate } from '$lib/stationDates.js';
+    import { formatStationDate, formatStationOpening } from '$lib/stationDates.js';
     import { servicePeriodText } from '$lib/servicePeriod.js';
     import Layout from '$components/Layout.svelte';
     import StationEraStrip from '$components/Stations/StationEraStrip.svelte';
@@ -43,6 +43,11 @@
     /** Date selon sa précision (jour, mois, année, décennie, après / avant, intervalle « entre 1951 et 1960 »). */
     function formatDate(iso, precision = 'day', after = null) {
         return formatStationDate(iso, precision, after, t, lang);
+    }
+
+    /** Date d'ouverture : une ouverture encadrée (précision range) se lit « entre 1847 et 1860 ». */
+    function formatOpening(iso, precision = 'day', after = null) {
+        return formatStationOpening(iso, precision, after, t, lang);
     }
 
     /** PK en kilomètres, décimales selon la langue : « 402,659 » (fr), « 402.659 » (en). */
@@ -110,7 +115,11 @@
         if (station.opened_at)
             items.push(
                 entry(
-                    formatDate(station.opened_at, station.opened_precision),
+                    formatOpening(
+                        station.opened_at,
+                        station.opened_precision,
+                        station.opened_after,
+                    ),
                     t('stations.stats.opened'),
                     {
                         note: openedInferred ? `(${t('stations.inferred_short')})` : undefined,
@@ -154,6 +163,21 @@
             ].includes(k),
         ),
     );
+    /**
+     * Ouverture déduite des lignes et bornée par la carte (précision range de la fiche) : l'événement
+     * « ouverture » déduit porte l'année de la ligne, qui n'est que la borne basse de l'intervalle.
+     */
+    const isBoundedOpening = (e) =>
+        e.type === 'opening' &&
+        e.inferred &&
+        station.opened_precision === 'range' &&
+        station.opened_after != null &&
+        Number(String(e.date ?? '').slice(0, 4)) === station.opened_after + 1;
+    const eventDate = (e) =>
+        isBoundedOpening(e)
+            ? formatOpening(station.opened_at, 'range', station.opened_after)
+            : formatDate(e.date, e.precision);
+
     const hasInferredEvent = $derived(events.some((e) => e.inferred));
 
     /** Coordonnées lisibles (la mini-carte n'est pas lisible sans la vue) : « 45,8344° N », « 1,2630° E ». */
@@ -263,7 +287,9 @@
                         <li class={{ inferred: e.inferred }}>
                             <p class="when">
                                 {#if e.date}
-                                    <time datetime={e.date}>{formatDate(e.date, e.precision)}</time>
+                                    <time datetime={isBoundedOpening(e) ? undefined : e.date}
+                                        >{eventDate(e)}</time
+                                    >
                                 {/if}
                             </p>
                             <div class="what">

@@ -1,5 +1,6 @@
 <script>
     import { i18n } from '$lib/i18n.js';
+    import { commonsSrc } from '$lib/commonsImage.js';
     import { formatEventDate } from '$lib/linePhases.js';
     import { firstOfMonth, formatLocale, formatNumber, tieUnits } from '$lib/typo.js';
     import {
@@ -99,7 +100,7 @@
                     target="_blank"
                     rel="noopener noreferrer"
                     ><img
-                        src={m.thumb_url}
+                        src={commonsSrc(m.thumb_url)}
                         alt={t('media.event_open', { title: conciseAlt(mediaHeading(m), 100) })}
                         loading="lazy"
                         decoding="async"

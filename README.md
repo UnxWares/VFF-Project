@@ -61,6 +61,7 @@ Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commen
 | [COMMANDES.md](docs/COMMANDES.md) | Options et ordre d'emploi des commandes `vff:*` de données. |
 | [API.md](docs/API.md) | Les trois interfaces de données (REST, GraphQL, MCP) : parité, pagination, limites, temps réel. |
 | [MCP.md](docs/MCP.md) | Serveur MCP : outils, invites, exemples. |
+| [API-CHANGELOG.md](docs/API-CHANGELOG.md) | Changements de l'API par date, contrat versionné (`vff:api-contract`) et règle de dépréciation. |
 | [CONTRIBUTIONS.md](docs/CONTRIBUTIONS.md) | Types de contribution, relecture à deux, publication. |
 | [REDACTION.md](docs/REDACTION.md) | Rédaction des textes, relecture, format des articles du journal. |
 | [METHODE-CLASSIFICATION.md](docs/METHODE-CLASSIFICATION.md) | Règles de classement du trafic et du statut des tronçons. |
@@ -71,7 +72,7 @@ Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commen
 | [FOND-DE-CARTE.md](docs/FOND-DE-CARTE.md) | Fond de carte libre auto-hébergé (PMTiles). |
 | [ARCHIVES.md](docs/ARCHIVES.md) | Fonds d'archives rattachés aux lignes. |
 | [AUTORISATIONS-SOURCES.md](docs/AUTORISATIONS-SOURCES.md) | Autorisations d'usage des sources tierces. |
-| [PLANIFICATION.md](docs/PLANIFICATION.md) | Tâches planifiées. |
+| [PLANIFICATION.md](docs/PLANIFICATION.md) | Tâches planifiées, battement et entretien, mise en place de `schedule:run`. |
 | [DEPLOIEMENT-NGINX.md](docs/DEPLOIEMENT-NGINX.md) | Configuration nginx de référence pour la production. |
 | [SECURITE-CSP.md](docs/SECURITE-CSP.md) | Politique de sécurité du contenu. |
 | [SUIVI-ERREURS.md](docs/SUIVI-ERREURS.md) | Page de santé, erreurs du serveur et du navigateur. |
@@ -98,11 +99,12 @@ Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commen
 
 - Lignes (`/lines/{slug}`) : tracé par période, chronologie datée, frise par décennie, gares par époque, longueur,
   électrification (ligne dite électrifiée quand la majorité de ses tronçons en service l'est), vitesses, signalisation
-  par PK, profil en long de toute la ligne (altitudes de l'IGN, déclivité maximale mesurée sur la voie ou, à défaut,
-  reprise de l'infobox de Wikipédia avec son lien, crémaillères), matériel roulant avec photos, passages à niveau, voies
+  par PK, nombre de voies et liaison radio sol-train (GSM-R) par portion de PK (SNCF Réseau, ODbL), profil en long de toute
+  la ligne (altitudes de l'IGN, déclivité maximale mesurée sur la voie ou, à défaut, reprise de l'infobox de Wikipédia ou
+  de SNCF Réseau avec la source et la part de ligne couverte, crémaillères), matériel roulant avec photos, passages à niveau, voies
   vertes, archives de Gallica et des Archives SNCF (titre, classement et lien, jamais l'image), galerie de médias
   crédités, sources, et « histoires » d'archives sur un événement.
-- Gares (`/stations/{slug}`) : ouverture, fermeture, lignes desservies et années de desserte, frise, mini-carte ;
+- Gares (`/stations/{slug}`) : ouverture, fermeture, lignes desservies et années de desserte, quais (longueur et PK, SNCF Réseau), frise, mini-carte ;
   une date déduite de la ligne ou connue à la décennie seulement est dite telle quelle. Une gare fermée aux voyageurs
   mais encore desservie par le fret (Onnaing) est dite « fret seul » ; sur la carte d'une époque, une gare fermée
   n'apparaît fermée qu'à l'époque de sa fermeture, puis disparaît.
@@ -145,6 +147,12 @@ Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commen
   sur `/docs/graphql` et GraphiQL sur `/graphiql`.
 - Serveur MCP en lecture seule (`POST /mcp`, ou `php artisan mcp:start vff` en local) pour que les assistants IA
   interrogent l'encyclopédie avec ses sources et ses licences ([docs/MCP.md](docs/MCP.md)).
+- Le nombre de voies et la liaison radio d'une ligne sont servis par `GET /api/v1/lines/{line}/infrastructure`,
+  `Line.infrastructure` et l'outil `line_infrastructure`, les quais par la fiche d'une gare. Un instantané versionné
+  du contrat de l'API fait échouer un test si un champ disparaît sans avoir été annoncé dans
+  [docs/API-CHANGELOG.md](docs/API-CHANGELOG.md).
+- Temps réel préparé et désactivé par défaut (`REALTIME_ENABLED`) : Laravel Reverb, canaux privés, abonnements GraphQL
+  aux contributions ; les connexions sont coupées quand un compte est suspendu ou supprimé ([docs/API.md](docs/API.md)).
 - Une réponse de l'API donne la provenance et la licence de chaque donnée ; un tracé dont la licence interdit la
   redistribution n'est pas exporté, et le profil en long ne publie pas non plus ses positions.
 - Les audits (notes des tronçons et des gares avec leurs preuves), le profil en long point par point et l'altitude à
@@ -163,7 +171,9 @@ Le dossier `docs/` contient une note par sujet. Pour reprendre le projet, commen
   réponses ([docs/SECURITE-CSP.md](docs/SECURITE-CSP.md)), `/up` et `/up/details` pour la disponibilité, erreurs du
   serveur et du navigateur journalisées ou envoyées à GlitchTip ou Bugsink sans donnée personnelle
   ([docs/SUIVI-ERREURS.md](docs/SUIVI-ERREURS.md)), configuration nginx de référence
-  ([docs/DEPLOIEMENT-NGINX.md](docs/DEPLOIEMENT-NGINX.md)).
+  ([docs/DEPLOIEMENT-NGINX.md](docs/DEPLOIEMENT-NGINX.md)), tâches planifiées avec un battement lu par `/up/details`
+  ([docs/PLANIFICATION.md](docs/PLANIFICATION.md)). Les flux du journal et les plans du site sont servis sans session ni
+  cookie.
 
 ### En cours et prévu
 
@@ -174,7 +184,8 @@ Le détail est dans [ROADMAP.md](ROADMAP.md).
   ([docs/AUDIT-TRONCONS.md](docs/AUDIT-TRONCONS.md), [docs/AUDIT-GARES.md](docs/AUDIT-GARES.md)) ; reste à repasser
   les ères passées et les gares sur la base complète.
 - Matériel : les relations ambiguës dont aucun itinéraire proche ne tranche, et le retrait de deux liens de Z 20500 jugés faux à la relecture.
-- Subscriptions GraphQL (temps réel) ; décision sur le fond de carte libre en ligne (`VFF_BASEMAP_ONLINE`).
+- Temps réel en production (lancer Reverb et le proxy WebSocket, code prêt) ; relais des vignettes de Wikimedia Commons
+  (`VFF_COMMONS_PROXY`, code prêt, désactivé) ; décision sur le fond de carte libre en ligne (`VFF_BASEMAP_ONLINE`).
 - Mise en production : messagerie de `vff-project.org`, hébergement sur l'infrastructure d'UnxWares, installation des
   outils de suivi des erreurs et de la disponibilité (la part application est faite).
 - Reconstitutions 3D de lieux disparus à partir de photos d'archives (recherche, pas commencée).

@@ -31,7 +31,8 @@ class LineInfrastructureController extends Controller
      *   Vallorcine est à voie unique, Saint-André-le-Gaz - Chambéry à double voie) et pour « _Autre » ;
      *   `banalised` vrai pour une portion banalisée. Un PK illisible dans le jeu donne des PK nuls.
      * - `summary` (nul sans portion au nombre établi) : `tracks`, nombre dominant en longueur ; `uniform`,
-     *   vrai quand il couvre 90 % de la longueur ou plus ; `dominant_share` (0 à 1) et `dominant_length_m` ;
+     *   vrai quand il couvre 90 % de la longueur décrite ou plus, portions banalisées et « _Autre »
+     *   comprises dans le total ; `dominant_share` (0 à 1, même total) et `dominant_length_m` ;
      *   `length_m_by_tracks` (longueur par nombre de voies) ; `banalised_length_m`. Une portion au PK illisible
      *   pèse 1 000 m dans ces sommes.
      *
@@ -65,7 +66,7 @@ class LineInfrastructureController extends Controller
      *         dataset_modified: ?string
      *     },
      *     attribution: string,
-     *     provenance: array{provider: ?string, name: mixed, license: mixed, license_status: ?string}
+     *     provenance: array{provider: ?string, name: ?string, license: ?string, license_status: ?string}
      * }
      */
     #[PathParameter('line', 'Identifiant (slug) de la ligne, tel que renvoyé par la recherche ou par les GeoJSON (`line_slug`). Les lignes du réseau ferré national sont nommées `rfn-` suivi de leur code à 6 chiffres.', example: 'rfn-579000')]

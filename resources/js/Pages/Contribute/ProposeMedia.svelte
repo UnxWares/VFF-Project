@@ -6,6 +6,7 @@
      * garde privé jusqu'à sa publication (MediaContributionController).
      */
     import { Link, useForm } from '@inertiajs/svelte';
+    import { commonsSrc } from '$lib/commonsImage.js';
     import { untrack } from 'svelte';
     import Layout from '$components/Layout.svelte';
     import PageHero from '$components/PageHero.svelte';
@@ -473,7 +474,7 @@
                             >
                                 {#if commonsFile.thumb_url}
                                     <img
-                                        src={commonsFile.thumb_url}
+                                        src={commonsSrc(commonsFile.thumb_url)}
                                         alt={commonsFile.title ?? ''}
                                     />
                                 {/if}

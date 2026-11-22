@@ -62,6 +62,7 @@ la commande l'affiche et recommande `vff:rebuild-history --from=build-era-segmen
 | `vff:prune-notifications`        | 5 h 50                | production       | notifications lues depuis plus de 12 mois                                             |
 | `vff:prune-error-reports`        | 5 h 55                | production       | signalements traités depuis plus de 12 mois                                           |
 | `vff:commons-cache-prune`        | chaque heure, minute 20 | production, relais activé | cache disque des vignettes de Commons                                   |
+| `vff:commons-allowlist`          | toutes les dix minutes | production, relais activé | liste des fichiers de Commons cités, seuls servis par le relais        |
 
 Garde-fous communs (fin de `routes/console.php`) : chaque tâche de commande est en `onOneServer()` (verrou
 dans le cache partagé, Valkey), ajoute sa sortie à `storage/logs/schedule.log` et, en cas d'échec,

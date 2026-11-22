@@ -20,6 +20,10 @@ use InvalidArgumentException;
  * `station_date_candidates` : AUCUNE date du moteur n'est modifiée. Le bilan donne, avec la règle de
  * rang proposée (SourceRank), le nombre de gares dont la date changerait.
  *
+ * Ouverture encadrée (précision `range`, règle G3) : la borne basse est `provenance.opened_after` + 1 an
+ * (sinon le début de l'ère décennale) ; une date Wikidata dans l'intervalle est concordante, hors
+ * intervalle elle est « close » (à moins d'un an) ou « differs ».
+ *
  * Date de VFF comparée : opening → stations.opened_at ; closure → stations.closed_at ;
  * closure_passenger → événement closure_passenger (sourcé d'abord), sinon stations.closed_at ;
  * closure_freight, reopening → événement de même type. Gare fret seul : closure se compare à la fin des
@@ -89,7 +93,7 @@ class ImportStationWikidataDates extends Command
                 // une fermeture d'un bâtiment ou une erreur ; elle ne date rien (comparaison `station_open`).
                 $cmp = str_starts_with($c['kind'], 'closure') && in_array($vff[$pair['station_id']]['status'] ?? null, self::OPEN, true)
                     ? ['comparison' => 'station_open', 'delta_days' => null]
-                    : DateComparison::compare($c['date'], $c['precision'], $current['date'] ?? null, $current['precision'] ?? null);
+                    : DateComparison::compare($c['date'], $c['precision'], $current['date'] ?? null, $current['precision'] ?? null, $current['from'] ?? null);
                 $rows[$pair['station_id'].'|'.$c['kind'].'|'.$c['source_ref']] = [
                     'station_id' => $pair['station_id'],
                     'kind' => $c['kind'],
@@ -176,12 +180,15 @@ class ImportStationWikidataDates extends Command
             $in = '{'.implode(',', $chunk).'}';
             foreach (DB::select(<<<'SQL'
                 SELECT id, status, opened_at::text AS opened_at, opened_precision, provenance->>'opened_at' AS opened_source,
+                       (provenance->>'opened_after')::int AS opened_after,
                        closed_at::text AS closed_at, closed_precision, provenance->>'closed_at' AS closed_source
                 FROM stations WHERE id = ANY(?::bigint[])
                 SQL, [$in]) as $s) {
                 $out[(int) $s->id]['status'] = $s->status;
                 if ($s->opened_at !== null) {
-                    $out[(int) $s->id]['opening'] = ['date' => $s->opened_at, 'precision' => $s->opened_precision, 'source' => $s->opened_source];
+                    $out[(int) $s->id]['opening'] = ['date' => $s->opened_at, 'precision' => $s->opened_precision, 'source' => $s->opened_source,
+                        // Ouverture encadrée (G3) : borne basse = lendemain de `opened_after`, pas le début de l'ère.
+                        'from' => $s->opened_precision === 'range' && $s->opened_after !== null ? sprintf('%04d-01-01', (int) $s->opened_after + 1) : null];
                 }
                 if ($s->closed_at !== null) {
                     $out[(int) $s->id]['closure'] = ['date' => $s->closed_at, 'precision' => $s->closed_precision, 'source' => $s->closed_source];

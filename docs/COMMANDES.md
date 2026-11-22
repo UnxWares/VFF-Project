@@ -154,6 +154,7 @@ seule ère de sa fermeture, puis disparaît des ères suivantes (debout, démoli
 | `--parallel=1` | Processus parallèles, une ère par processus (4 au plus conseillé). |
 | `--today=` | Date du jour (AAAA-MM-JJ) de l'ère courante, aujourd'hui par défaut. |
 | `--skip-infer` | Interne : dates déduites déjà recalculées par le processus parent. |
+| `--rules=` | Règles facultatives de l'audit des gares, séparées par des virgules : `g3` (ouverture déduite bornée par la carte), `g6` (fermeture tirée de la fin des voyageurs de la ligne rattachée par PK) ; `none` : aucune. Défaut : clé `stations.era_rules` (`VFF_STATION_ERA_RULES`, vide). Voir [AUDIT-GARES.md](AUDIT-GARES.md). |
 
 ## Lignes, tracés et audits
 
@@ -212,20 +213,23 @@ relancer la commande sur les mêmes données donne le même fichier.
 | `--dry-run` | Rapport seulement, aucun fichier écrit. |
 | `--refresh` | Télécharge de nouveau le jeu au lieu du cache local. |
 | `--min-coverage=0.1` | Part de la ligne (0 à 1) que les segments du jeu doivent couvrir. |
+| `--min-steep-m=500` | Longueur minimale (m) de la portion la plus raide pour que la valeur SNCF remplace celle de Wikipédia (0 : pas de contrôle). |
 | `--cache-dir=` | Dossier du cache. |
 | `--output=` | Fichier de données écrit (obligatoire pendant les tests). |
-| `--csv=` | Rapport détaillé par ligne (code, slug, résultat, valeurs SNCF, Wikipédia et mesurée, part couverte). |
+| `--csv=` | Rapport détaillé par ligne (code, slug, résultat, valeurs SNCF, Wikipédia et mesurée, part couverte, longueur de la portion la plus raide). |
 
 ### `vff:import-sncf-track-regime`
 
 Importe le jeu SNCF Open Data « Régime d'exploitation des lignes » (SNCF Réseau, ODbL) : nombre de voies principales par
 portion de PK. Chaque tronçon rattaché à une ligne de VFF par son code va dans `line_track_portions`, libellé SNCF tel quel
 (toutes les portions `sncf` sont remplacées d'un coup). « Voie banalisée » et « _Autre » ne disent pas le nombre de voies :
-leurs portions sont gardées avec un nombre nul et ne comptent pas. Le nombre de voies de la fiche (`lines.nb_voies_default`)
-n'est écrit que pour une ligne au régime uniforme (90 % de sa longueur ou plus) et seulement si le champ est vide ou vient
-déjà de cette commande (`line_sources` « sncf-regime ») : une valeur d'une autre source n'est jamais remplacée, un nombre
-différent est listé comme contradiction. Une ligne qui mêle voie unique et double voie garde un champ vide ; sa fiche dit le
-nombre dominant et sa longueur. Le jeu décrit le réseau actuel (aucune ère) ; il est gardé dans
+leurs portions sont gardées avec un nombre nul et comptent seulement dans la longueur de la ligne. Le nombre de voies de la
+fiche (`lines.nb_voies_default`) n'est écrit que pour une ligne au régime uniforme (90 % de sa longueur ou plus, voie
+banalisée comprise dans le total) et seulement si le champ est vide ou vient encore de cette commande (`line_sources`
+« sncf-regime », et valeur égale à celle du passage précédent) : une valeur d'une autre source n'est jamais remplacée ni
+effacée, même écrite après un passage de la commande, et un nombre différent est listé comme contradiction. Une ligne qui
+mêle voie unique et double voie, ou dont plus de 10 % est banalisée, garde un champ vide ; sa fiche dit le nombre dominant
+et sa longueur. Le jeu décrit le réseau actuel (aucune ère) ; il est gardé dans
 `storage/app/sources/sncf-regime/` (dossier `.nobackup`), licence et éditeur vérifiés au téléchargement. Servi par
 `GET /api/v1/lines/{line}/infrastructure`, `Line.infrastructure` et l'outil MCP `line_infrastructure`.
 
@@ -471,6 +475,12 @@ source. Méthode et précision mesurée : [ARCHIVES.md](ARCHIVES.md).
 | `--dry-run` | Calcule tout sans écrire. |
 | `--report=` | Fichier CSV de toutes les notices jugées, retenues ou non, avec leur score et ses raisons. |
 
+### `vff:import-materials`
+
+Séries de matériel roulant et liens ligne x série. Option ajoutée le 22/11 : `--no-planned` ne lit pas les liens directs
+vers des lignes des sections « Dessertes réalisées ou prévues » des articles (lus par défaut, après des contrôles de phrase).
+Autres options : `--refresh`, `--links-only`, `--no-links`, `--no-attested`, `--dry-run`.
+
 ### `vff:media-thumbnails`
 
 Crée les miniatures (320 et 1 280 px) des images déposées par les contributeurs ; `--force` refait aussi celles qui en
@@ -480,6 +490,22 @@ ont déjà. Demande GD (JPEG, PNG, WebP) dans l'image PHP.
 
 Plans schématiques de la vue ferroviaire, par ère, gardés en cache ([VUE-FERROVIAIRE.md](VUE-FERROVIAIRE.md)).
 Options : `--era=` (année ou liste « 1930,1980 »), `--output=` (fichier du plan GeoJSON, une seule ère).
+
+### `vff:commons-cache-prune`
+
+Entretien du cache disque du relais des vignettes de Wikimedia Commons (`VFF_COMMONS_PROXY`, désactivé par défaut) : retire les
+vignettes plus vieilles que `VFF_COMMONS_PROXY_TTL_DAYS` (30 jours), puis les plus anciennes jusqu'à revenir à 90 % de
+`VFF_COMMONS_PROXY_CACHE_MB` (2 048 Mo), et les fichiers temporaires de plus d'une heure. Aucune option. Planifiée chaque heure en production quand le relais est activé
+([PLANIFICATION.md](PLANIFICATION.md)) ; réglages et nginx dans [DEPLOIEMENT-NGINX.md](DEPLOIEMENT-NGINX.md).
+
+### `vff:commons-allowlist`
+
+Liste des fichiers de Wikimedia Commons que VFF cite, les seuls que le relais des vignettes sert (`VFF_COMMONS_PROXY`).
+Sans option : état de la liste (nombre de fichiers, date, adresses retenues par source). `--refresh` la reconstruit depuis `media`,
+`accident_images`, `materials.image`, le journal et les propositions en attente (lecture seule de la base ; ensemble Valkey remplacé d'un
+coup ; une liste vide ne remplace jamais l'existante). `--dry-run` compte sans rien écrire. À lancer une fois avant d'activer le relais ;
+planifiée toutes les dix minutes en production quand le relais est activé ([PLANIFICATION.md](PLANIFICATION.md)) ; fonctionnement dans
+[DEPLOIEMENT-NGINX.md](DEPLOIEMENT-NGINX.md).
 
 ### `vff:remind-expiring-api-tokens`
 
@@ -514,6 +540,12 @@ documents échoue sans rien écrire. Une correction d'une ligne absente de la ba
 au prochain import si sa correction est retirée du fichier. Première correction : l'ETCS du 12/11/2024 de la LGV
 Sud-Est (752000), qui date du basculement des postes et du centre de commande de Lyon, pas de l'ETCS (visé pour 2026).
 
+### `vff:api-contract`
+
+Met à jour l'instantané du contrat de l'API publique (`tests/Fixtures/api-contract.json` : REST, GraphQL, MCP). Les ajouts y
+entrent seuls ; `--accept-removals` accepte aussi un retrait ou un changement de type, à annoncer dans
+[API-CHANGELOG.md](API-CHANGELOG.md) (le test `ApiContractTest` échoue sinon).
+
 ## Contrôles
 
 ### `vff:check-invariants`
@@ -530,7 +562,8 @@ exemples par invariant violé. Options : `--only=` (clés ou familles séparées
 
 ## Hors commandes
 
-Autres changements du 21 au 22/11, décrits dans leur document : tuiles `?fields=map` de l'API, limites GraphQL et corrections
+Le battement du planificateur (`vff:scheduler-heartbeat`) est une tâche planifiée, pas une commande artisan : voir
+[PLANIFICATION.md](PLANIFICATION.md). Autres changements du 21 au 22/11, décrits dans leur document : tuiles `?fields=map` de l'API, limites GraphQL et corrections
 de signalisation en GraphQL ([API.md](API.md)), suite Playwright et tâche de CI ([TESTS-E2E.md](TESTS-E2E.md)), configuration
 nginx ([DEPLOIEMENT-NGINX.md](DEPLOIEMENT-NGINX.md)), page de santé et erreurs ([SUIVI-ERREURS.md](SUIVI-ERREURS.md)),
 journal de bord ([REDACTION.md](REDACTION.md)), plans du site (`/sitemap.xml`, `App\Services\Seo\SitemapBuilder`).

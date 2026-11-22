@@ -1,5 +1,6 @@
 <script>
     import { onMount, tick } from 'svelte';
+    import { commonsSrc } from '$lib/commonsImage.js';
     import { i18n } from '$lib/i18n.js';
     import { firstOfMonth, formatLocale } from '$lib/typo.js';
     import {
@@ -318,7 +319,7 @@
                             <span class="vff-sr-only">{t('media.open', { title: heading(m) })}</span
                             >
                             <img
-                                src={m.thumb_url}
+                                src={commonsSrc(m.thumb_url)}
                                 alt=""
                                 loading="lazy"
                                 decoding="async"
@@ -436,7 +437,7 @@
                     title={t('media.lightbox.open_original')}
                 >
                     <!-- Alternative courte (RGAA 1.3.9) : le titre complet est juste dessous (#lb-title). -->
-                    <img src={active.display_url} alt={conciseAlt(heading(active))} />
+                    <img src={commonsSrc(active.display_url)} alt={conciseAlt(heading(active))} />
                     <span class="vff-sr-only">
                         {t('media.lightbox.open_original')} ({t('common.new_tab')})</span
                     >

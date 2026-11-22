@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\TrackCountPriority;
 use App\Services\WikipediaLineParser;
 use App\Support\Lgv;
 use Illuminate\Console\Command;
@@ -142,6 +143,8 @@ class EnrichLineFromWikipedia extends Command
             }
         }
 
+        // Un nombre de voies posé par la source datée du réseau actuel n'est pas remplacé (règle commune).
+        $update = TrackCountPriority::filterUpdate((int) $line->id, $update);
         DB::table('lines')->where('id', $line->id)->update($update);
 
         // === Trafic Wikipedia → affine UNIQUEMENT les segments restés 'unknown' ===

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\CommonsImageController;
 use App\Support\Basemap\BasemapArchive;
 use App\Support\Translations;
 use Illuminate\Http\Request;
@@ -34,6 +35,9 @@ class HandleInertiaRequests extends Middleware
             'translations_url' => fn () => Translations::url($locale),
             // Fond de carte libre auto-hébergé (archive PMTiles), ou null : adresse, emploi en ligne, crédit.
             'basemap' => fn () => BasemapArchive::fromConfig()->clientConfig(),
+            // Relais des vignettes de Commons (config commons_proxy) : préfixe des adresses servies par VFF
+            // (`/media/commons/`), ou null quand il est désactivé. Lu par resources/js/lib/commonsImage.js.
+            'commons_proxy' => config('commons_proxy.enabled') ? CommonsImageController::PREFIX : null,
             'auth' => [
                 // Whitelist explicite : on n'expose JAMAIS le hash password ni
                 // remember_token au front. role est sérialisé en string (enum).

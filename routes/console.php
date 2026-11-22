@@ -93,6 +93,24 @@ Schedule::command('model:prune', ['--model' => [ErrorReport::class]])
     ->timezone('Europe/Paris')
     ->environments(['production']);
 
+// Cache disque du relais des vignettes de Commons (config commons_proxy) : vignettes périmées et taille
+// maximale, toutes les heures, seulement quand le relais est activé.
+Schedule::command('vff:commons-cache-prune')
+    ->name('vff:commons-cache-prune')
+    ->hourlyAt(20)
+    ->environments(['production'])
+    ->when(fn (): bool => (bool) config('commons_proxy.enabled'))
+    ->withoutOverlapping(30);
+
+// Liste des fichiers de Commons cités par VFF, seuls servis par le relais (CommonsAllowlist) : reconstruite
+// toutes les dix minutes (lecture seule de la base), pour qu'une image ajoutée soit servie sans attendre.
+Schedule::command('vff:commons-allowlist --refresh')
+    ->name('vff:commons-allowlist')
+    ->everyTenMinutes()
+    ->environments(['production'])
+    ->when(fn (): bool => (bool) config('commons_proxy.enabled'))
+    ->withoutOverlapping(15);
+
 /*
 | Battement et entretien général (production seulement, sauf le battement).
 |

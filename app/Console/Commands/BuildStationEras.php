@@ -63,6 +63,14 @@ use Symfony\Component\Process\Process;
  *    « fermée » à la seule ère de sa fermeture, puis retirée des ères
  *    suivantes (debout, démolie ou réutilisée) jusqu'à une réouverture ; elle
  *    reste dans la section des gares et dans la liste des gares de sa ligne.
+ * 7. Règles facultatives de l'audit des gares (--rules=g3,g6, ou clé
+ *    stations.era_rules de config/stations.php ; désactivées par défaut) :
+ *    G3 (boundOpeningsByMap) borne une ouverture DÉDUITE des lignes par la
+ *    première ère où la carte montre la gare desservie, et retire les ères
+ *    « fermée » qui la précèdent ; G6 (resolveClosures) date la fermeture
+ *    d'une gare fermée sans date par la fin des voyageurs de ses lignes,
+ *    seulement si chaque fin est rattachée à la section de la gare par PK
+ *    (StationTimeline::openingBoundedByMap, closureFromLinePassengerEnds).
  *
  * --parallel=N : les dates déduites sont calculées une fois, puis chaque ère
  * (station_eras + line_stops) est traitée par un processus enfant
@@ -75,7 +83,8 @@ class BuildStationEras extends Command
         {--no-stops : Ne reconstruit pas line_stops}
         {--parallel=1 : Processus parallèles, une ère par processus (4 au plus conseillé)}
         {--today= : Date du jour (AAAA-MM-JJ) de l\'ère courante, défaut : aujourd\'hui}
-        {--skip-infer : (interne) dates déduites déjà recalculées par le processus parent}';
+        {--skip-infer : (interne) dates déduites déjà recalculées par le processus parent}
+        {--rules= : Règles facultatives de l\'audit des gares, séparées par des virgules (g3, g6 ; none : aucune), défaut : stations.era_rules}';
 
     protected $description = 'Gares par décennie (station_eras) + statut plafonné par l\'état des lignes de l\'ère + line_stops';
 
@@ -85,6 +94,12 @@ class BuildStationEras extends Command
     public function handle(): int
     {
         ini_set('memory_limit', '1G');
+        $unknown = array_diff($this->requestedRules(), StationTimeline::ERA_RULES);
+        if ($unknown !== []) {
+            $this->error('Règle inconnue : '.implode(', ', $unknown).' (règles : '.implode(', ', StationTimeline::ERA_RULES).', ou none)');
+
+            return self::FAILURE;
+        }
         $corrections = app(StationCorrections::class);
         if (! $this->option('skip-infer')) {
             // Corrections sourcées (database/data/gares_corrections.php), réappliquées à chaque passage.
@@ -326,13 +341,116 @@ class BuildStationEras extends Command
             if ($stops !== null) {
                 $this->info("line_stops : {$stops} arrêts");
             }
-            $this->resolveClosures();
-            $this->alignErasWithClosure();
-            $this->reconcileServiceYears();
-            $this->keepClosedOnlyAtClosingEra();
+            $this->finish();
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Étapes qui relisent toutes les ères, une fois celles-ci écrites (processus parent seulement) : date de
+     * fermeture retenue (avec G6), frise alignée sur cette date, ouverture bornée par la carte (G3), années de
+     * desserte des lignes, gare fermée montrée à la seule ère de sa fermeture.
+     */
+    private function finish(): void
+    {
+        $rules = $this->requestedRules();
+        if ($rules !== []) {
+            $this->line('Règles facultatives de l\'audit des gares : '.implode(', ', $rules));
+        }
+        $this->resolveClosures(in_array(StationTimeline::RULE_CLOSURE_BY_LINE, $rules, true));
+        $this->alignErasWithClosure();
+        if (in_array(StationTimeline::RULE_OPENING_BY_MAP, $rules, true)) {
+            $this->boundOpeningsByMap();
+        }
+        $this->reconcileServiceYears();
+        $this->keepClosedOnlyAtClosingEra();
+    }
+
+    /**
+     * Règles facultatives demandées : --rules= (« none » : aucune), sinon la clé stations.era_rules.
+     *
+     * @return list<string>
+     */
+    private function requestedRules(): array
+    {
+        $option = $this->option('rules');
+        $raw = is_string($option) && $option !== '' ? explode(',', $option) : (array) config('stations.era_rules', []);
+        $rules = array_map(fn ($r) => strtolower(trim((string) $r)), $raw);
+
+        return array_values(array_unique(array_filter($rules, fn (string $r) => $r !== '' && $r !== 'none')));
+    }
+
+    /**
+     * Règle G3 (StationTimeline::openingBoundedByMap) : une ouverture DÉDUITE des lignes (provenance
+     * inferred:…), antérieure d'au moins une ère à la première ère où la carte montre la gare desservie,
+     * devient l'intervalle « entre l'année de la ligne et cette ère » (précision range, provenance
+     * opened_after = l'année qui précède la borne basse, opened_rule = g3). Les ères qui précèdent la première
+     * ère desservie (« fermée » faute de ligne en service : Balsièges-Bourg en 1890 et 1900, ligne datée de
+     * 1884) sont retirées avec leurs arrêts de ligne : la gare n'y était pas encore ouverte, ou la carte n'en
+     * sait rien. Jamais pour une date sourcée (Wikidata, article, correction), une gare rouverte, un point
+     * qui n'est pas une gare, un trou de carte de plus de trois ères ni une gare dont une fin de service tombe
+     * avant la première ère desservie. Rejouable : vff:build-station-eras repart de la date déduite (inferEvents).
+     */
+    private function boundOpeningsByMap(): void
+    {
+        $current = DB::table('eras')->where('is_current', true)->value('year');
+        if ($current === null) {
+            return;
+        }
+        $eraYears = DB::table('eras')->where('is_current', false)->pluck('year')->map(fn ($y) => (int) $y)->all();
+        $today = $this->today();
+        $eras = [];
+        foreach (DB::table('station_eras as se')->join('eras as e', 'e.id', '=', 'se.era_id')
+            ->join('stations as s', 's.id', '=', 'se.station_id')
+            ->where('s.provenance->opened_at', 'like', 'inferred:%')
+            ->get(['se.station_id', 'e.year', 'se.status']) as $r) {
+            $eras[(int) $r->station_id][(int) $r->year] = (string) $r->status;
+        }
+        $rows = [];
+        foreach (DB::select(<<<'SQL'
+            SELECT s.id, s.opened_at::text AS opened_at,
+                   (SELECT MIN(x.event_date)::text FROM station_events x WHERE x.station_id = s.id
+                    AND x.type IN ('closure', 'closure_passenger', 'demolition') AND x.date_precision IN ('day', 'month', 'year')) AS first_end
+            FROM stations s
+            WHERE s.opened_at IS NOT NULL AND s.opened_precision IN ('day', 'month', 'year')
+              AND s.provenance->>'opened_at' LIKE 'inferred:%' AND s.provenance->>'kind' IS NULL
+              AND NOT EXISTS (SELECT 1 FROM station_events r WHERE r.station_id = s.id AND r.type = 'reopening')
+        SQL) as $s) {
+            $b = StationTimeline::openingBoundedByMap((string) $s->opened_at, $eras[(int) $s->id] ?? [], $eraYears, (int) $current, $today,
+                $s->first_end);
+            if ($b !== null) {
+                $rows[] = [(int) $s->id, $b['date'], (int) $b['first_open'], json_encode(['opened_after' => $b['after'], 'opened_rule' => StationTimeline::RULE_OPENING_BY_MAP])];
+            }
+        }
+        [$eraRows, $stops] = DB::transaction(function () use ($rows): array {
+            $eraRows = 0;
+            $stops = 0;
+            foreach (array_chunk($rows, 500) as $chunk) {
+                $values = implode(', ', array_fill(0, count($chunk), '(?::bigint, ?::date, ?::int, ?::jsonb)'));
+                $bindings = array_merge(...$chunk);
+                DB::update(<<<SQL
+                    UPDATE stations s SET opened_at = v.d, opened_precision = 'range', provenance = COALESCE(s.provenance, '{}'::jsonb) || v.prov
+                    FROM (VALUES {$values}) AS v(id, d, first_open, prov)
+                    WHERE s.id = v.id
+                SQL, $bindings);
+                $stops += DB::affectingStatement(<<<SQL
+                    DELETE FROM line_stops ls USING eras e, (VALUES {$values}) AS v(id, d, first_open, prov)
+                    WHERE ls.station_id = v.id AND e.id = ls.era_id AND e.year < v.first_open
+                SQL, $bindings);
+                $eraRows += DB::affectingStatement(<<<SQL
+                    DELETE FROM station_eras se USING eras e, (VALUES {$values}) AS v(id, d, first_open, prov)
+                    WHERE se.station_id = v.id AND e.id = se.era_id AND e.year < v.first_open
+                SQL, $bindings);
+            }
+            if ($stops > 0) {
+                $this->renumberLineStops();
+            }
+
+            return [$eraRows, $stops];
+        });
+        $this->info(sprintf('G3, ouverture déduite bornée par la carte : %d gares, %d couples gare × ère « fermée » avant la première ère desservie retirés, %d arrêts de ligne avec',
+            count($rows), $eraRows, $stops));
     }
 
     /**
@@ -397,10 +515,7 @@ class BuildStationEras extends Command
             $this->info("line_stops : {$stops} arrêts (toutes ères)");
         }
         if ($failed === []) {
-            $this->resolveClosures();
-            $this->alignErasWithClosure();
-            $this->reconcileServiceYears();
-            $this->keepClosedOnlyAtClosingEra();
+            $this->finish();
         }
 
         return $failed === [] ? self::SUCCESS : self::FAILURE;
@@ -815,7 +930,9 @@ class BuildStationEras extends Command
         SQL);
         $this->line("Dates déduites : ouverture ligne {$a}, ouverture tracé {$b}, fermeture lignes {$c}, fermeture tracé {$d}, fermeture voyageurs {$e}, fermeture avant réouverture {$g}, réouverture {$f}");
 
-        // Dates retenues sur la fiche quand la gare n'en a pas de propre.
+        // Dates retenues sur la fiche quand la gare n'en a pas de propre. L'intervalle de la règle G3
+        // (boundOpeningsByMap) est recalculé à chaque passage, à partir de la date déduite.
+        DB::statement("UPDATE stations SET provenance = provenance - 'opened_after' - 'opened_rule' WHERE jsonb_exists_any(provenance, ARRAY['opened_after', 'opened_rule'])");
         DB::statement(<<<'SQL'
             UPDATE stations s SET opened_at = e.event_date, opened_precision = e.date_precision,
                    provenance = COALESCE(s.provenance, '{}'::jsonb) || jsonb_build_object('opened_at', e.source)
@@ -920,8 +1037,12 @@ class BuildStationEras extends Command
      * dans l'intervalle où station_eras place la fermeture
      * (StationTimeline::resolveClosure) ; toutes les ères sont relues en base
      * (après un --era seul aussi, ex. vff:refresh-current-era).
+     *
+     * Règle G6 ($closureByLine, StationTimeline::closureFromLinePassengerEnds) : une gare fermée sans date
+     * (intervalle des ères, aucun candidat) prend la fin des voyageurs de ses lignes quand chacune est
+     * rattachée à sa section par PK (provenance closed_rule = g6).
      */
-    private function resolveClosures(): void
+    private function resolveClosures(bool $closureByLine = false): void
     {
         $current = DB::table('eras')->where('is_current', true)->value('year');
         if ($current === null) {
@@ -971,7 +1092,9 @@ class BuildStationEras extends Command
             $servedUntil[(int) $r->station_id] = (int) $r->y;
         }
         $stations = DB::table('stations')->get(['id', 'closed_at', 'closed_precision', DB::raw("provenance->>'kind' AS kind"),
-            DB::raw("provenance->>'closed_at' AS src"), DB::raw("provenance->>'closed_after' AS after"), 'source_status', 'status']);
+            DB::raw("provenance->>'closed_at' AS src"), DB::raw("provenance->>'closed_after' AS after"),
+            DB::raw("provenance->>'closed_rule' AS rule"), 'source_status', 'status']);
+        [$lineEnds, $reopened] = $closureByLine ? $this->linePassengerEndsByPk($today) : [[], []];
         // Mêmes règles que la chronologie (canonicalEvents) : fermeture en masse contredite par la desserte
         // actuelle, « fermeture » Wikidata d'une gare fret seul = fin des voyageurs (Layrac 1970), de même
         // quand une source plus sûre date le fret plus tard (Livarot 1938 / 1990).
@@ -986,6 +1109,9 @@ class BuildStationEras extends Command
 
         $rows = [];
         $stats = ['fermées' => 0, 'date de la gare' => 0, 'fin de desserte des lignes' => 0, 'intervalle' => 0, 'conflits' => 0, 'modifiées' => 0];
+        if ($closureByLine) {
+            $stats = ['G6 (fin des voyageurs des lignes par PK)' => 0] + $stats;
+        }
         foreach ($stations as $st) {
             $sid = (int) $st->id;
             if ($st->kind !== null) {
@@ -1005,6 +1131,15 @@ class BuildStationEras extends Command
             $c = StationTimeline::dropLineClosuresBeforeService($c, $servedUntil[$sid] ?? null);
             $c = StationTimeline::roundYearAsDecade($c);
             $r = StationTimeline::resolveClosure($eras[$sid], (int) $current, $today, $c);
+            if ($closureByLine && $r !== null && $r['precision'] === StationTimeline::RANGE && $r['source'] === 'vff:eras') {
+                $g6 = StationTimeline::closureFromLinePassengerEnds($eras[$sid], (int) $current, $r['date'], $today,
+                    $lineEnds[$sid] ?? [], $reopened[$sid] ?? null);
+                if ($g6 !== null) {
+                    $r = ['date' => $g6['date'], 'precision' => $g6['precision'], 'source' => 'inferred:line_event', 'after' => null,
+                        'conflict' => $r['conflict'], 'rule' => StationTimeline::RULE_CLOSURE_BY_LINE];
+                    $stats['G6 (fin des voyageurs des lignes par PK)']++;
+                }
+            }
             if ($r === null) {
                 // Ouverte aujourd'hui : pas de date de fermeture, sauf une fermeture à venir ou saisie à la main.
                 if ($st->closed_at !== null && $st->closed_at <= $today && ! $manual($st)) {
@@ -1023,9 +1158,9 @@ class BuildStationEras extends Command
             if ($r['conflict'] !== null) {
                 $stats['conflits']++;
             }
-            $prov = ['closed_at' => $r['source'], 'closed_after' => $r['after'], 'closed_conflict' => $r['conflict']];
+            $prov = ['closed_at' => $r['source'], 'closed_after' => $r['after'], 'closed_conflict' => $r['conflict'], 'closed_rule' => $r['rule'] ?? null];
             if ($st->closed_at === $r['date'] && $st->closed_precision === $r['precision'] && $st->src === $r['source']
-                && (string) $st->after === (string) $r['after'] && $r['conflict'] === null) {
+                && (string) $st->after === (string) $r['after'] && $r['conflict'] === null && (string) $st->rule === (string) ($r['rule'] ?? '')) {
                 continue;
             }
             $rows[] = [$sid, $r['date'], $r['precision'], json_encode($prov)];
@@ -1036,7 +1171,7 @@ class BuildStationEras extends Command
                 $values = implode(', ', array_fill(0, count($chunk), '(?::bigint, ?::date, ?::varchar, ?::jsonb)'));
                 DB::update(<<<SQL
                     UPDATE stations s SET closed_at = v.d, closed_precision = v.p,
-                           provenance = jsonb_strip_nulls((COALESCE(s.provenance, '{}'::jsonb) - 'closed_at' - 'closed_after' - 'closed_conflict') || v.prov)
+                           provenance = jsonb_strip_nulls((COALESCE(s.provenance, '{}'::jsonb) - 'closed_at' - 'closed_after' - 'closed_conflict' - 'closed_rule') || v.prov)
                     FROM (VALUES {$values}) AS v(id, d, p, prov)
                     WHERE s.id = v.id
                 SQL, array_merge(...$chunk));
@@ -1044,6 +1179,52 @@ class BuildStationEras extends Command
         });
         $this->line('Dates de fermeture retenues (carte, fiche gare, fiche ligne) : '
             .collect($stats)->map(fn ($n, $k) => "{$k} {$n}")->implode(', '));
+    }
+
+    /**
+     * Règle G6 : pour chaque gare, une entrée par ligne exigée (rattachements hors terminus nommé ou relu,
+     * comme la fermeture aux voyageurs déduite, inferEvents e) : la dernière fin des voyageurs de la ligne
+     * (au plus tard aujourd'hui) dont la section est donnée par PK et couvre le PK de la gare (même marge que
+     * AttachStations::EVENT_COVERS_STATION), sans réouverture de la ligne à la gare après elle ; null sinon.
+     * Un événement « toute la ligne » ou rattaché par la seule géométrie ne compte pas. freight_after : la
+     * ligne ferme ensuite au fret ou à tout trafic à la gare (tout rattachement). Avec, la dernière réouverture
+     * connue de chaque gare.
+     *
+     * @return array{0: array<int, list<array{date: ?string, precision: ?string, freight_after: bool}>>, 1: array<int, string>}
+     */
+    private function linePassengerEndsByPk(string $today): array
+    {
+        $reopeningCovers = AttachStations::eventCovers('r');
+        $freightCovers = AttachStations::eventCovers('f');
+        $ends = [];
+        foreach (DB::select(<<<SQL
+            SELECT sl.station_id, x.event_date::text AS event_date, x.date_precision, COALESCE(x.freight_after, FALSE) AS freight_after
+            FROM station_lines sl
+            JOIN stations s ON s.id = sl.station_id
+            LEFT JOIN LATERAL (
+                SELECT le.event_date, le.date_precision,
+                       EXISTS (SELECT 1 FROM line_events f WHERE f.line_id = sl.line_id AND f.type IN ('closure', 'closure_freight')
+                               AND f.event_date > le.event_date AND {$freightCovers}) AS freight_after
+                FROM line_events le
+                WHERE le.line_id = sl.line_id AND le.type = 'closure_passenger' AND le.event_date <= ?::date
+                  AND le.section_pk_start_m IS NOT NULL AND le.section_pk_end_m IS NOT NULL AND sl.pk_m IS NOT NULL
+                  AND sl.pk_m BETWEEN LEAST(le.section_pk_start_m, le.section_pk_end_m) - 500
+                                  AND GREATEST(le.section_pk_start_m, le.section_pk_end_m) + 500
+                  AND NOT EXISTS (SELECT 1 FROM line_events r WHERE r.line_id = sl.line_id
+                                  AND r.type IN ('reopening', 'reopening_passenger') AND r.event_date > le.event_date AND {$reopeningCovers})
+                ORDER BY le.event_date DESC, le.id LIMIT 1
+            ) x ON TRUE
+            WHERE sl.method NOT IN ('terminus_name', 'terminus_reviewed')
+        SQL, [$today]) as $r) {
+            $ends[(int) $r->station_id][] = ['date' => $r->event_date, 'precision' => $r->date_precision, 'freight_after' => (bool) $r->freight_after];
+        }
+        $reopened = [];
+        foreach (DB::table('station_events')->where('type', 'reopening')->groupBy('station_id')
+            ->selectRaw('station_id, MAX(event_date)::text AS d')->get() as $r) {
+            $reopened[(int) $r->station_id] = (string) $r->d;
+        }
+
+        return [$ends, $reopened];
     }
 
     /**

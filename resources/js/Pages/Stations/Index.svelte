@@ -9,6 +9,7 @@
     import { STATION_STATUS_COLOR } from '$components/Stations/stationStatus.js';
     import { i18n } from '$lib/i18n.js';
     import { decadeOf } from '$lib/typo.js';
+    import { directoryOpening } from '$lib/stationDates.js';
 
     let { stations, filters, counts = {}, eras = [], departments = [], overall = 0 } = $props();
 
@@ -99,6 +100,10 @@
         const type = $i18n.t(`stations.types.${s.type}`);
         return place ? `${place}, ${type}` : type;
     }
+
+    /** Ouverture de l'annuaire : « entre A et B » pour un intervalle, sinon l'année. */
+    const openedText = (s) =>
+        directoryOpening(s, (key, opts) => String($i18n.t(key, opts)), $i18n.language ?? 'fr');
 
     /** Fermeture : date, « non datée » (seulement encadrée par l'état des lignes) ou rien. */
     function closedText(s) {
@@ -292,11 +297,13 @@
                                     </span>
                                 </td>
                                 <td
-                                    class={['num', { blank: !s.opened_year }]}
+                                    class={['num', 'opened', { blank: !s.opened_year }]}
                                     data-label={$i18n.t('stations.col_opened')}
                                 >
                                     {#if s.opened_year}
-                                        {s.opened_year}{#if s.opened_source?.startsWith('inferred')}<span
+                                        {openedText(
+                                            s,
+                                        )}{#if s.opened_source?.startsWith('inferred')}<span
                                                 class="inferred"
                                                 >({$i18n.t('stations.date_inferred')})</span
                                             >{/if}
@@ -457,6 +464,7 @@
         border-style: dotted;
         border-color: var(--vff-text-muted);
     }
+    td.opened,
     td.closed {
         white-space: normal;
     }

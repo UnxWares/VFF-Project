@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Sncf\LineInfrastructure;
 use App\Services\Sncf\SncfOpenDataCache;
 use App\Services\Sncf\TrackRegime;
 use Illuminate\Console\Command;
@@ -17,8 +18,9 @@ use Illuminate\Support\Facades\DB;
  *   et nombre de voies qu'il établit (null pour « voie banalisée » et « _Autre », qui ne le disent pas) ;
  *   toutes les portions `sncf` sont remplacées d'un coup, dans une transaction ;
  * - `lines.nb_voies_default`, là où VFF garde déjà le nombre de voies d'une ligne, seulement pour une ligne au
- *   régime uniforme (90 % de sa longueur ou plus) et seulement si le champ est vide ou a été écrit par cette
- *   commande (`line_sources` « sncf-regime », `fields_provided` contient `nb_voies_default`). Une valeur venue
+ *   régime uniforme (90 % de sa longueur ou plus, portions banalisées comprises) et seulement si le champ est
+ *   vide ou vient encore de cette commande (`line_sources` « sncf-regime », `fields_provided` contient
+ *   `nb_voies_default`, ET la valeur est celle du passage précédent : sinon une autre source l'a réécrite). Une valeur venue
  *   d'une autre source (Wikidata, lignes-oubliees, Wikipédia) n'est jamais remplacée : un nombre différent est
  *   compté et listé comme contradiction. Une ligne au régime partagé (voie unique et double voie) garde un champ
  *   vide ; ses portions disent le détail ;
@@ -47,7 +49,7 @@ class ImportSncfTrackRegime extends Command
 
     private const FIELDS = ['code_ligne', 'lib_ligne', 'exploitati', 'rg_troncon', 'pkd', 'pkf'];
 
-    public function handle(SncfOpenDataCache $cache): int
+    public function handle(SncfOpenDataCache $cache, LineInfrastructure $infrastructure): int
     {
         $dry = (bool) $this->option('dry-run');
         try {
@@ -73,6 +75,18 @@ class ImportSncfTrackRegime extends Command
         $owned = DB::table('line_sources')->where('source_type', self::SOURCE_TYPE)->get(['line_id', 'fields_provided'])
             ->filter(fn ($s) => in_array('nb_voies_default', (array) json_decode((string) $s->fields_provided, true), true))
             ->pluck('line_id')->flip();
+        // La trace ne suffit pas : une autre source (vff:import-lignes-oubliees, Wikipédia) a pu réécrire le champ
+        // depuis. La valeur n'est à cette commande que si elle vaut encore ce que le jeu précédent établissait
+        // (portions en base avant ce passage) ; sinon elle appartient à l'autre source, qui n'est jamais remplacée.
+        $previous = $owned->isEmpty() ? [] : $infrastructure->forLines(array_map('intval', $owned->keys()->all()), withRadio: false);
+        $current = DB::table('lines')->whereIn('id', $owned->keys()->all())->pluck('nb_voies_default', 'id');
+        $mine = [];
+        foreach ($previous as $id => $block) {
+            $s = $block['tracks']['summary'];
+            if ($s !== null && $s['uniform'] && ($current[$id] ?? null) !== null && (int) $current[$id] === $s['tracks']) {
+                $mine[$id] = true;
+            }
+        }
         $wikidata = DB::table('wikidata_lines')->whereNotNull('line_id')->whereRaw("jsonb_typeof(facts->'tracks') = 'number'")
             ->selectRaw("line_id, (facts->>'tracks')::numeric::int as tracks")->pluck('tracks', 'line_id');
 
@@ -86,7 +100,7 @@ class ImportSncfTrackRegime extends Command
             $s = $summary[$code] ?? null;
             foreach ($group as $line) {
                 $known = $line->nb_voies_default !== null ? (int) $line->nb_voies_default : null;
-                $ours = isset($owned[$line->id]);
+                $ours = isset($mine[(int) $line->id]);
                 $action = match (true) {
                     $s === null => $ours && $known !== null ? 'clear' : 'banalised',
                     ! $s['uniform'] => $ours && $known !== null ? 'clear' : 'mixed',
@@ -119,7 +133,7 @@ class ImportSncfTrackRegime extends Command
         }
         // Lignes dont cette commande avait écrit le nombre de voies et que le jeu ne cite plus : valeur effacée.
         $touched = $lines->flatten()->pluck('id')->map(fn ($id) => (int) $id)->all();
-        $gone = array_values(array_diff(array_map('intval', $owned->keys()->all()), $touched));
+        $gone = array_values(array_diff(array_map('intval', array_keys($mine)), $touched));
         foreach ($gone as $id) {
             $plan[$id] = null;
             $count['clear']++;
@@ -144,7 +158,7 @@ class ImportSncfTrackRegime extends Command
         }
         $this->line(sprintf('Contrôle croisé avec Wikidata : %d accords, %d contradictions, %d régimes partagés', $wdCount['agree'], $wdCount['contradiction'], $wdCount['mixed']));
         $this->line(sprintf('Gares rattachées aux lignes touchées : %d', $stations));
-        $this->line(sprintf('Lignes à régime partagé (voie unique et double voie) : %d', count(array_filter($summary, fn ($s) => ! $s['uniform']))));
+        $this->line(sprintf('Lignes à régime partagé (voie unique et double voie, ou plus de 10 %% de voie banalisée) : %d', count(array_filter($summary, fn ($s) => ! $s['uniform']))));
         $this->line(sprintf('Lignes au seul régime « voie banalisée » (nombre de voies non établi, écartées) : %d', count($banalisedOnly)));
 
         if ($csv = $this->option('csv')) {
@@ -163,7 +177,7 @@ class ImportSncfTrackRegime extends Command
             return self::SUCCESS;
         }
 
-        $this->write($portions, $plan, $touched, $data);
+        $this->write($portions, $plan, $touched, array_keys($mine), $data);
         $this->info('Écrit : '.count($portions).' portions, '.count($plan).' nombres de voies modifiés.');
 
         return self::SUCCESS;
@@ -206,12 +220,13 @@ class ImportSncfTrackRegime extends Command
      * @param  list<array<string, mixed>>  $portions
      * @param  array<int, ?int>  $plan
      * @param  list<int>  $touched
+     * @param  list<int>  $mine  lignes dont le nombre de voies vient encore de cette commande
      * @param  array{modified: ?string, fetched_at: ?string}  $data
      */
-    private function write(array $portions, array $plan, array $touched, array $data): void
+    private function write(array $portions, array $plan, array $touched, array $mine, array $data): void
     {
         $now = now();
-        DB::transaction(function () use ($portions, $plan, $touched, $data, $now) {
+        DB::transaction(function () use ($portions, $plan, $touched, $mine, $data, $now) {
             DB::table('line_track_portions')->where('source', 'sncf')->delete();
             foreach (array_chunk($portions, 500) as $chunk) {
                 DB::table('line_track_portions')->insert($chunk);
@@ -221,9 +236,8 @@ class ImportSncfTrackRegime extends Command
             }
             // Trace de provenance : nb_voies_default seulement là où la valeur vient de cette commande.
             $ownedAfter = array_keys(array_filter($plan, fn ($t) => $t !== null));
-            $kept = DB::table('line_sources')->where('source_type', self::SOURCE_TYPE)->whereIn('line_id', $touched)->get(['line_id', 'fields_provided'])
-                ->filter(fn ($s) => in_array('nb_voies_default', (array) json_decode((string) $s->fields_provided, true), true) && ! array_key_exists((int) $s->line_id, $plan))
-                ->pluck('line_id')->map(fn ($id) => (int) $id)->all();
+            // Valeur de cette commande confirmée telle quelle (même nombre) : toujours la sienne.
+            $kept = array_values(array_filter($mine, fn (int $id) => ! array_key_exists($id, $plan)));
             DB::table('line_sources')->where('source_type', self::SOURCE_TYPE)->whereNotIn('line_id', $touched ?: [0])->delete();
             foreach ($touched as $lineId) {
                 $fields = in_array($lineId, $ownedAfter, true) || in_array($lineId, $kept, true)

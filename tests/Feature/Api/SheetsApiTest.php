@@ -146,7 +146,7 @@ class SheetsApiTest extends TestCase
             ->assertJsonPath('data.sources.0.provenance.license_status', 'verified')
             ->assertJsonCount(0, 'data.neighbors')
             ->assertJsonStructure(['data' => ['slug', 'name', 'alt_names', 'type', 'status', 'city', 'department_code',
-                'opened_at', 'opened_precision', 'closed_at', 'closed_precision', 'closed_after', 'uic_code', 'wikidata_id',
+                'opened_at', 'opened_precision', 'opened_after', 'closed_at', 'closed_precision', 'closed_after', 'uic_code', 'wikidata_id',
                 'lat', 'lng', 'position' => ['source', 'spread_m', 'flagged'], 'attribute_sources', 'eras', 'events', 'lines',
                 'sources', 'neighbors', 'links' => ['web', 'events', 'media']]]);
 

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\TrackCountPriority;
 use App\Support\CsvSafe;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -1403,9 +1404,10 @@ class ImportWikidataLines extends Command
         $current = DB::table('lines')->whereIn('id', array_keys($lineIds))
             ->get(['id', 'alt_names', 'length_official_m', 'gauge_mm_default', 'nb_voies_default', 'max_speed_kmh_official',
                 'historical_operators', 'regions', 'departements', 'wikipedia_title', 'electrified', 'voltage_v'])->keyBy('id');
+        $sncfLocked = TrackCountPriority::lockedLineIds(array_map('intval', array_keys($lineIds)));
         $withSegments = array_fill_keys(DB::table('line_segments')->whereIn('line_id', array_keys($lineIds))->distinct()->pluck('line_id')->all(), true);
 
-        DB::transaction(function () use ($items, $linked, $current, $withSegments, $prevWritten, $now, &$fp, &$written, &$evCount, &$mine) {
+        DB::transaction(function () use ($items, $linked, $current, $sncfLocked, $withSegments, $prevWritten, $now, &$fp, &$written, &$evCount, &$mine) {
             foreach ($linked as $qid => $l) {
                 $f = $items[$qid];
                 $full = in_array($l['method'], self::FULL_METHODS, true);
@@ -1438,6 +1440,9 @@ class ImportWikidataLines extends Command
                     }
                     if (isset($withSegments[$lid])) {
                         unset($candidates['electrified'], $candidates['voltage_v']); // agrégat LineClassifier
+                    }
+                    if (isset($sncfLocked[$lid])) {
+                        unset($candidates[TrackCountPriority::FIELD]); // règle commune : la source datée du réseau actuel prime
                     }
                     foreach ($candidates as $col => $val) {
                         if ($val === null) {

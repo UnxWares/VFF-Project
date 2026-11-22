@@ -25,7 +25,9 @@ Quand une page charge une ressource que la politique n'autorise pas, il envoie u
 - Exceptions :
     - carte : tuiles OpenStreetMap, style MapTiler (si une clé est configurée), glyphes OpenFreeMap,
       cartes historiques de l'IGN (`connect-src` et `img-src`), workers de MapLibre en `blob:` ;
-    - images de Wikimedia Commons et de Gallica (`img-src`) ;
+    - images de Wikimedia Commons et de Gallica (`img-src`) ; avec le relais des vignettes
+      (`VFF_COMMONS_PROXY=true`, docs/DEPLOIEMENT-NGINX.md), `upload.wikimedia.org` et `thumb.wikimedia.org`
+      sortent de `img-src` : VFF sert ces images lui-même ;
     - Scalar (`/docs/api`) et Swagger UI (`/docs/swagger`) sont servis par Vite : rien de plus que les
       styles en ligne ;
     - Magidoc (`/docs/graphql`) : pages statiques générées, sans nonce possible. Plus aucun

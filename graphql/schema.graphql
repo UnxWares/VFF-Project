@@ -1042,6 +1042,12 @@ type Station {
     "Date d'ouverture (`AAAA-MM-JJ`) ; quand seule l'année est connue, jour et mois valent 01."
     opened_at: Date
 
+    "Précision de `opened_at` : `day`, `month`, `year`, `range` (ouverture déduite des lignes et bornée par la carte : `opened_at` n'est alors que la borne haute, jamais un jour sûr)."
+    opened_precision: String
+
+    "Gare ouverte après cette année (précision `range` : entre `opened_after` + 1 et l'année de `opened_at`), nulle sinon."
+    opened_after: Int @field(resolver: "App\\GraphQL\\Resolvers\\StationResolver@openedAfter")
+
     "Date de fermeture (`AAAA-MM-JJ`), nulle si la gare est ouverte ou la date inconnue ; quand seule l'année est connue, jour et mois valent 01."
     closed_at: Date
 
@@ -3102,10 +3108,10 @@ type LineTrackSummary {
     "Nombre de voies principales sur la plus grande longueur : 1 (voie unique, navette) ou 2 (double voie)."
     tracks: Int!
 
-    "Vrai quand ce nombre couvre 90 % de la longueur ou plus ; faux pour une ligne qui mêle voie unique et double voie."
+    "Vrai quand ce nombre couvre 90 % de la longueur décrite ou plus, portions banalisées et « _Autre » comprises ; faux pour une ligne qui mêle voie unique et double voie, ou dont une part notable est banalisée."
     uniform: Boolean!
 
-    "Part de la longueur (0 à 1) où vaut le nombre dominant, portions banalisées et « _Autre » exclues."
+    "Part de la longueur décrite (0 à 1) où vaut le nombre dominant, portions banalisées et « _Autre » comprises dans le total."
     dominant_share: Float!
 
     "Longueur, en mètres, où vaut le nombre dominant."
@@ -4607,6 +4613,9 @@ type LineSheetStation {
     "Précision de `opened_at` : `day`, `month`, `year`."
     opened_precision: String
 
+    "Gare ouverte après cette année (précision `range` de l'ouverture : entre `opened_after` + 1 et l'année de `opened_at`), nulle sinon."
+    opened_after: Int
+
     "Date de fermeture (`AAAA-MM-JJ`)."
     closed_at: String
 
@@ -5132,8 +5141,11 @@ type StationSheet {
     "Autres noms."
     alt_names: JSON
 
-    "Précision de la date d'ouverture : `day`, `month`, `year`."
+    "Précision de la date d'ouverture : `day`, `month`, `year`, `range` (ouverture déduite des lignes, bornée par la carte)."
     opened_precision: String
+
+    "Ouverte après cette année (précision `range` de l'ouverture : entre `opened_after` + 1 et l'année de `opened_at`), nulle sinon."
+    opened_after: Int
 
     "Précision de la date de fermeture."
     closed_precision: String
@@ -5277,8 +5289,11 @@ type StationDirectoryItem {
     "Date d'ouverture (`AAAA-MM-JJ`)."
     opened_at: String
 
-    "Précision de la date d'ouverture : `day`, `month`, `year`."
+    "Précision de la date d'ouverture : `day`, `month`, `year`, `range` (ouverture déduite des lignes, bornée par la carte)."
     opened_precision: String
+
+    "Ouverte après cette année (précision `range` de l'ouverture : entre `opened_after` + 1 et l'année de `opened_at`), nulle sinon."
+    opened_after: Int
 
     "Date de fermeture (`AAAA-MM-JJ`)."
     closed_at: String

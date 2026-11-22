@@ -1,5 +1,6 @@
 <script>
     import { Link } from '@inertiajs/svelte';
+    import { commonsSrc } from '$lib/commonsImage.js';
     import Layout from '$components/Layout.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetSection from '$components/Sheet/SheetSection.svelte';
@@ -355,7 +356,7 @@
                     {#if image}
                         <figure class="vff-figure photo" style:--ratio="3 / 2">
                             <img
-                                src={image.display_url ?? image.thumb_url}
+                                src={commonsSrc(image.display_url ?? image.thumb_url)}
                                 alt={altOf(image)}
                                 width={image.width ?? 1280}
                                 height={image.height ?? 853}

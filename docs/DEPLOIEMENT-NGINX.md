@@ -35,6 +35,10 @@ puis `nginx -t` et rechargement. Le fichier contient des directives du contexte 
 7. **Résolveur DNS** de `vff-tls.conf` (agrafage OCSP) : mettre celui du serveur.
 8. **Derrière un répartiteur ou un CDN** : `$remote_addr` serait celle du relais. Ajouter `set_real_ip_from`
    et `real_ip_header` (module realip), et déclarer le relais comme proxy de confiance dans Laravel.
+9. **Vignettes de Commons** : `VFF_COMMONS_PROXY=true` et `VFF_COMMONS_PROXY_ACCEL_REDIRECT=/_commons/`, et
+   l'`alias` de `/_commons/` égal au dossier `VFF_COMMONS_PROXY_CACHE_PATH`, et **construire la liste des
+   fichiers cités avant d'activer** : `php artisan vff:commons-allowlist --refresh` (voir la section « Relais
+   des vignettes de Commons »).
 
 ## Bloc par bloc
 
@@ -93,6 +97,10 @@ pas activé (UDP 443 à ouvrir et `listen 443 quic` à ajouter si souhaité).
   viennent de Laravel, conservés lors de la redirection ; les en-têtes de sécurité sont ceux du snippet.
   Les lignes CORS sont en commentaire : à activer seulement si un autre site lit l'archive. Une requête
   directe vers `/_basemap/` renvoie 404 (`internal`).
+- **`/media/commons/`** : vignettes de Wikimedia Commons relayées par VFF. La requête passe par Laravel, qui
+  répond `X-Accel-Redirect: /_commons/<fichier>` ; la location interne `/_commons/` envoie le fichier du
+  cache avec `Content-Security-Policy: default-src 'none'; sandbox` et `Cross-Origin-Resource-Policy:
+  same-origin`. Une requête directe vers `/_commons/` renvoie 404 (`internal`).
 - **`/storage/`** : fichiers déposés par des membres. En plus des en-têtes communs, `Content-Security-Policy:
   default-src 'none'; sandbox` : ouverts directement, ils ne peuvent rien exécuter.
 - **`/docs/graphql`** : pages statiques de Magidoc, envoyées sans Laravel. nginx y pose donc la politique
@@ -113,6 +121,73 @@ qui envoie un fichier inclut donc `vff-security-headers.conf` (HSTS un an sans `
 qu'ils figurent aussi sur les 304. Si `SecurityHeaders::HSTS` ou `PERMISSIONS_POLICY` change, mettre ce
 fichier à jour. Contrôle : `curl -sI https://vff-project.org/robots.txt` et
 `curl -sI https://vff-project.org/` doivent montrer les mêmes cinq en-têtes, chacun une seule fois.
+
+## Relais des vignettes de Commons
+
+Sans relais, les fiches, le journal et les galeries chargent leurs images sur `upload.wikimedia.org` et
+`thumb.wikimedia.org`. Le navigateur reçoit alors les cookies tiers de Wikimedia (`WMF-Uniq`,
+`NetworkProbeLimit`) et Lighthouse retire environ 20 points en « bonnes pratiques ». Avec
+`VFF_COMMONS_PROXY=true`, ces images sont servies par VFF à `/media/commons/<chemin>`
+(`CommonsImageController`, `config/commons_proxy.php`) : le serveur les lit sur `upload.wikimedia.org` et les
+garde sur disque. L'auteur, la licence et le lien vers la page Commons restent affichés.
+
+Ce qui passe : seulement les vignettes aux largeurs utilisées par VFF (250, 330, 500, 568, 960 et 1 280 px)
+et les originaux JPEG, PNG, GIF et WebP, avec un chemin dont les dossiers correspondent à l'empreinte MD5 du
+nom du fichier, comme sur Commons. L'hôte lu est toujours `upload.wikimedia.org` en HTTPS, aucune adresse ne
+vient de la requête et aucune redirection hors de la liste n'est suivie. Le type est vérifié sur l'en-tête et
+sur le contenu : celui de l'extension, ou WebP pour une vignette (Commons convertit certaines vignettes JPEG
+en WebP, plus légères). Un SVG n'est jamais servi (Commons en donne des vignettes PNG). Pas de session ni de
+cookie sur ces réponses.
+
+**Seuls les fichiers cités par VFF sont servis.** Une forme valable ne suffit pas (le MD5 d'un nom se calcule) :
+le nom du fichier doit figurer dans la liste des fichiers que VFF cite, sinon le relais répond 404 (gardé 5
+minutes par le navigateur) sans lire le cache ni appeler Commons. La liste est un ensemble précalculé dans
+Valkey (clé `commons-allowlist:files` du cache, un `SISMEMBER` par image : aucune requête SQL ni lecture de
+fichier au moment de servir). Elle est construite par `php artisan vff:commons-allowlist --refresh` à partir
+de `media` (`thumb_url`, `display_url`), `accident_images`, `materials.image`, des articles du journal
+(`resources/content/journal/*.md`) et des propositions de contribution en attente ; la clé est le nom du fichier,
+quelle que soit la largeur demandée. La tâche planifiée `vff:commons-allowlist` la reconstruit toutes les dix
+minutes en production (relais activé, lecture seule de la base, environ 2 secondes pour 56 000 fichiers) ; la
+nouvelle liste remplace l'ancienne d'un coup (`RENAME`), et une liste vide ne la remplace jamais. Une image
+ajoutée est donc servie au plus tard dix minutes après son entrée en base ; un fichier proposé par un
+contributeur est autorisé aussitôt pour l'aperçu. Liste jamais construite (ou cache Valkey vidé) : le relais
+répond 503 avec `Retry-After` (pas de 404 que le navigateur garderait) jusqu'au prochain rafraîchissement.
+`php artisan vff:commons-allowlist` affiche l'état (nombre, date, adresses retenues par source), avec
+`--dry-run` il compte sans rien écrire. Mesure du 22/11/2026 : 56 197 fichiers (112 634 adresses lues), ensemble
+de 2,9 Mo dans Valkey, réponse du contrôleur à 0,95 ms au lieu de 0,8 ms (cache chaud, médiane de 1 000).
+
+Réglages (`.env`) :
+
+| Variable                                  | Défaut                     | Rôle                                                      |
+| ----------------------------------------- | -------------------------- | --------------------------------------------------------- |
+| `VFF_COMMONS_PROXY`                       | `false`                    | Active le relais ; désactivé, `/media/commons/` répond 404 |
+| `VFF_COMMONS_PROXY_CACHE_PATH`            | `storage/app/cache/commons` | Dossier du cache (un `.nobackup` y est posé)              |
+| `VFF_COMMONS_PROXY_CACHE_MB`              | `2048`                     | Taille maximale du cache                                  |
+| `VFF_COMMONS_PROXY_TTL_DAYS`              | `30`                       | Durée de vie d'une vignette, et durée du cache navigateur |
+| `VFF_COMMONS_PROXY_REQUESTS_PER_MINUTE`   | `600`                      | Requêtes par minute et par adresse IP                     |
+| `VFF_COMMONS_PROXY_UPSTREAM_PER_MINUTE`   | `300`                      | Lectures sur Commons par minute pour tout le serveur      |
+| `VFF_COMMONS_PROXY_UPSTREAM_PER_CLIENT`   | `120`                      | Les mêmes lectures, par adresse IP du visiteur            |
+| `VFF_COMMONS_PROXY_MAX_BYTES`             | `8388608`                  | Poids maximal d'une image                                 |
+| `VFF_COMMONS_PROXY_ACCEL_REDIRECT`        | vide                       | `/_commons/` en production : nginx envoie le fichier      |
+
+Place disque : une vignette de 500 px pèse 65 Ko en moyenne et une de 1 280 px environ 330 Ko (échantillons
+de 25 et 9 images, 22/11/2026). Le site affiche environ 71 000 vignettes de 500 px, soit 4,6 Go si toutes
+étaient vues, et la visionneuse en ouvre en 1 280 px à la demande. 2 Go suffisent pour les pages les plus
+lues ; prévoir 6 Go pour garder presque toutes les galeries.
+
+Limite de Commons : Wikimedia refuse (429) une partie des vignettes absentes de son propre cache quand on
+les demande vite (16 refus sur 25 vignettes de 1 280 px lues à 2,5 par seconde, le 22/11/2026 ; aucun sur
+25 vignettes de 500 px, déjà calculées). Le relais s'arrête alors de lire Commons pendant le délai demandé
+(`Retry-After`, 30 s par défaut, 5 min au plus), sert les copies qu'il a, même périmées, et répond 429 pour
+les autres. Tous les visiteurs passent par la même adresse du serveur : surveiller ces 429 les premiers
+jours, et baisser `VFF_COMMONS_PROXY_UPSTREAM_PER_MINUTE` s'ils sont fréquents. La tâche planifiée `vff:commons-cache-prune` (toutes les
+heures, en production, relais activé) retire les vignettes périmées puis les plus anciennes au-delà de la
+taille maximale, jusqu'à revenir à 90 %. Le relais fait aussi ce nettoyage, de temps en temps, après une
+réponse. Le cache se reconstruit seul : il n'a pas besoin de sauvegarde.
+
+Le dossier du cache doit être accessible en écriture par PHP-FPM et en lecture par nginx. Après
+activation, la politique de sécurité du contenu (`img-src`) ne cite plus `upload.wikimedia.org` ni
+`thumb.wikimedia.org` (`ContentSecurityPolicy::imageSources`).
 
 ## Temps réel (Laravel Reverb)
 
@@ -183,6 +258,9 @@ curl -sI https://vff-project.org/build/assets/<un fichier>.js   # immutable + 5 
 curl -sI https://vff-project.org/sw.js                          # no-cache
 curl -s -o /dev/null -w '%{http_code}\n' -r 0-16383 https://vff-project.org/basemap/<archive>.pmtiles   # 206
 curl -sI https://vff-project.org/up/details                     # 401 sans jeton
+curl -sI https://vff-project.org/media/commons/thumb/3/31/Parking_a%C3%A9rien_de_la_gare_st-Jean_%C3%A0_Bordeaux.jpg/500px-Parking_a%C3%A9rien_de_la_gare_st-Jean_%C3%A0_Bordeaux.jpg   # fichier cité : 200 image/jpeg, sandbox, sans Set-Cookie
+curl -s -o /dev/null -w '%{http_code}\n' https://vff-project.org/media/commons/7/79/CFA-Morlaix.jpg   # bonne forme mais non cité : 404
+curl -s -o /dev/null -w '%{http_code}\n' https://vff-project.org/_commons/x  # 404 (location interne)
 curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'Content-Type: application/json' \
   --data-binary @gros-fichier.json https://vff-project.org/graphql   # 413 au-delà de 2 Mio
 ```

@@ -5,6 +5,7 @@
      * Sert à la galerie et à l'image de la Genèse.
      */
     import { Link } from '@inertiajs/svelte';
+    import { commonsSrc } from '$lib/commonsImage.js';
     import { i18n } from '$lib/i18n.js';
     import { decadeOf } from '$lib/typo.js';
     import { conciseAlt, figureLabel } from '$lib/altText.js';
@@ -36,9 +37,9 @@
 
 <figure class="vff-figure archive" role="group" aria-label={legend}>
     <img
-        src={media.thumb_url}
+        src={commonsSrc(media.thumb_url)}
         srcset={media.display_url
-            ? `${media.thumb_url} 500w, ${media.display_url} 1280w`
+            ? `${commonsSrc(media.thumb_url)} 500w, ${commonsSrc(media.display_url)} 1280w`
             : undefined}
         {sizes}
         alt={conciseAlt(media.caption)}

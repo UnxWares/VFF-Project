@@ -1,5 +1,6 @@
 <script>
     import { Link, router } from '@inertiajs/svelte';
+    import { commonsSrc } from '$lib/commonsImage.js';
     import Layout from '$components/Layout.svelte';
     import PageHero from '$components/PageHero.svelte';
     import SeoHead from '$components/SeoHead.svelte';
@@ -98,7 +99,7 @@
                                 {#if a.image}
                                     <img
                                         class="thumb"
-                                        src={a.image.src}
+                                        src={commonsSrc(a.image.src)}
                                         alt=""
                                         width={a.image.width}
                                         height={a.image.height}

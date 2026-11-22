@@ -1,5 +1,6 @@
 <script>
     import { Link, router } from '@inertiajs/svelte';
+    import { commonsSrc } from '$lib/commonsImage.js';
     import Layout from '$components/Layout.svelte';
     import SheetHero from '$components/Sheet/SheetHero.svelte';
     import SheetToc from '$components/Sheet/SheetToc.svelte';
@@ -122,7 +123,7 @@
                         style:--ratio="{image.width} / {image.height}"
                     >
                         <img
-                            src={image.src}
+                            src={commonsSrc(image.src)}
                             alt={image.alt}
                             width={image.width}
                             height={image.height}

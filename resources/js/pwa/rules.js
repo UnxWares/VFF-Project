@@ -134,10 +134,12 @@ const BYTE_RANGE = /^bytes=(\d{1,15})-(\d{1,15})$/;
 
 /**
  * Images gardées hors ligne : médias publiés par VFF (`/storage/media/…`, galeries, contributions
- * validées) et vignettes de Wikimedia Commons. Ni les avatars ni les fichiers privés (hors de
+ * validées) et vignettes de Wikimedia Commons, chargées chez Wikimedia ou par le relais de VFF
+ * (`/media/commons/…`, App\Http\Controllers\CommonsImageController). Ni les avatars ni les fichiers privés (hors de
  * `/storage/media`), ni Gallica (réutilisation encadrée par la BnF), ni les tuiles d'un autre serveur.
  */
 export const IMAGE_PATH_PREFIX = '/storage/media/';
+export const COMMONS_RELAY_PREFIX = '/media/commons/';
 // Commons sert ses vignettes depuis thumb.wikimedia.org (adresses récentes) et upload.wikimedia.org.
 export const IMAGE_ORIGINS = ['https://thumb.wikimedia.org', 'https://upload.wikimedia.org'];
 
@@ -254,7 +256,8 @@ export function parseByteRange(header) {
 /** Image d'une fiche que le service worker peut garder : média publié par VFF ou vignette de Commons. */
 export function isOfflineImageUrl(url, origin) {
     const { origin: from, pathname } = new URL(url);
-    if (from === origin) return pathname.startsWith(IMAGE_PATH_PREFIX);
+    if (from === origin)
+        return pathname.startsWith(IMAGE_PATH_PREFIX) || pathname.startsWith(COMMONS_RELAY_PREFIX);
     return IMAGE_ORIGINS.includes(from);
 }
 

@@ -60,11 +60,11 @@ class WikidataLinesCommandTest extends TestCase
         ];
     }
 
-    private function writeCache(bool $withClosure = true): void
+    private function writeCache(bool $withClosure = true, bool $singleTrack = false): void
     {
         $dir = storage_path('app/sources/wikidata');
         File::ensureDirectoryExists($dir);
-        File::put($dir.'/items.json', json_encode(['fetched_at' => '2026-10-15 10:00:00', 'items' => [self::QID => ['Q728937']]]));
+        File::put($dir.'/items.json', json_encode(['fetched_at' => '2026-10-15 10:00:00', 'items' => [self::QID => $singleTrack ? ['Q728937', 'Q1326900'] : ['Q728937']]]));
         File::put($dir.'/entities.json', json_encode([self::QID => $this->entity($withClosure)]));
         File::put($dir.'/refs.json', json_encode([]));
         File::put($dir.'/stations.json', json_encode([self::QID => []]));
@@ -102,6 +102,20 @@ class WikidataLinesCommandTest extends TestCase
         }
         $this->assertStringContainsString('Titre saisi à la main', File::get(storage_path('app/reports/wikidata-conflits.csv')), 'écart signalé, pas écrasé');
         Http::assertNothingSent();
+    }
+
+    public function test_item_never_fills_a_track_count_claimed_by_the_sncf_regime(): void
+    {
+        $this->writeCache(singleTrack: true);
+        $this->artisan('vff:import-wikidata-lines', ['--from-cache' => true])->assertSuccessful();
+        $this->assertSame(1, (int) $this->line->fresh()->nb_voies_default, 'voie unique : champ vide complété');
+
+        DB::table('lines')->where('id', $this->line->id)->update(['nb_voies_default' => null]);
+        DB::table('line_sources')->insert(['line_id' => $this->line->id, 'source_type' => 'sncf-regime',
+            'source_url' => 'https://example.org/s', 'fetched_at' => now(), 'fields_provided' => json_encode(['line_track_portions', 'nb_voies_default']), 'created_at' => now(), 'updated_at' => now()]);
+        $this->artisan('vff:import-wikidata-lines', ['--from-cache' => true])->assertSuccessful();
+
+        $this->assertNull($this->line->fresh()->nb_voies_default, 'champ posé par SNCF Réseau : Wikidata n\'y touche pas');
     }
 
     public function test_import_is_replayable_and_drops_events_no_longer_produced(): void

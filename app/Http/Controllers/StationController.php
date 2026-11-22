@@ -44,7 +44,8 @@ class StationController extends Controller
             ->selectRaw(<<<SQL
                 s.id, s.slug, s.name, s.type, s.city, s.department_code, s.uic_code, s.sources_count, s.position_flagged,
                 {$statusExpr} AS status,
-                EXTRACT(YEAR FROM s.opened_at)::int AS opened_year, EXTRACT(YEAR FROM s.closed_at)::int AS closed_year,
+                EXTRACT(YEAR FROM s.opened_at)::int AS opened_year, s.opened_precision,
+                (s.provenance->>'opened_after')::int AS opened_after, EXTRACT(YEAR FROM s.closed_at)::int AS closed_year,
                 s.provenance->>'opened_at' AS opened_source, s.provenance->>'closed_at' AS closed_source,
                 (s.provenance->>'closed_after')::int AS closed_after
             SQL)

@@ -1,0 +1,6 @@
+{"dataset":"liste-des-quais","fetched_at":"2026-11-22 15:47:00","license":"Open Database License (ODbL)","modified":"2020-05-26","records":[
+{"code_ligne":"830000","code_voie":"830000-1-A","pkd":"861+648","pkf":"862+104","libelle":"Quai D/E","longueur":452.0,"rg_troncon":1,"lib_gare":"Marseille-St-Charles","x_d_wgs84":5.3830,"y_d_wgs84":43.3050,"x_f_wgs84":5.3800,"y_f_wgs84":43.3033},
+{"code_ligne":"830000","code_voie":"830000-1-K","pkd":"861+764","pkf":"862+112","libelle":"Quai J/K","longueur":340.0,"rg_troncon":1,"lib_gare":"Grasse","x_d_wgs84":5.3836,"y_d_wgs84":43.3049,"x_f_wgs84":5.3803,"y_f_wgs84":43.3033},
+{"code_ligne":"212000","code_voie":"212000-1-2","pkd":"000-126","pkf":"010+299","libelle":"Quai 2","longueur":425.0,"rg_troncon":1,"lib_gare":"Hirson","x_d_wgs84":4.0846,"y_d_wgs84":49.9145,"x_f_wgs84":4.1499,"y_f_wgs84":49.8492},
+{"code_ligne":"212000","code_voie":"212000-1-3","pkd":"000+000","pkf":"000+316","libelle":"Quai 3","longueur":316.0,"rg_troncon":1,"lib_gare":"Hirson","x_d_wgs84":4.0846,"y_d_wgs84":49.9145,"x_f_wgs84":4.0815,"y_f_wgs84":49.9124}
+]}

@@ -2,6 +2,7 @@
 
 namespace App\Support\Security;
 
+use App\Support\Media\CommonsImagePath;
 use App\Support\Realtime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Vite;
@@ -18,7 +19,9 @@ use Illuminate\Support\Facades\Vite;
  *     admis par empreinte (style-src-attr 'unsafe-hashes', liste de
  *     resources/docs/graphql/csp-style-hashes.json) ;
  *   - images et connexions : le site, plus les origines de config/csp.php (fond de carte,
- *     Wikimedia Commons, Gallica) ; `data:` et `blob:` pour les images générées par la carte ;
+ *     Wikimedia Commons, Gallica) ; `data:` et `blob:` pour les images générées par la carte. Relais des
+ *     vignettes de Commons activé (config commons_proxy) : upload.wikimedia.org et thumb.wikimedia.org
+ *     sortent des images, VFF les sert lui-même ;
  *   - temps réel activé (App\Support\Realtime) : le serveur WebSocket public admis en connexion ;
  *   - MapLibre crée ses workers depuis un `blob:` ;
  *   - aucune intégration d'objet, formulaires et <base> limités au site, pages intégrables
@@ -51,7 +54,7 @@ final class ContentSecurityPolicy
             'script-src' => ["'self'", ...($magidoc ? [] : ["'nonce-{$nonce}'"]), ...$dev],
             'style-src' => ["'self'", ...($magidoc ? [] : ["'unsafe-inline'"]), ...$dev],
             ...($magidoc ? ['style-src-attr' => ["'unsafe-hashes'", ...self::magidocStyleHashes()]] : []),
-            'img-src' => ["'self'", 'data:', 'blob:', ...($sources['img-src'] ?? [])],
+            'img-src' => ["'self'", 'data:', 'blob:', ...self::imageSources((array) ($sources['img-src'] ?? []))],
             'font-src' => ["'self'", 'data:'],
             'connect-src' => ["'self'", ...($sources['connect-src'] ?? []), ...$dev, ...self::websockets($dev), ...array_filter([Realtime::websocketOrigin()])],
             'worker-src' => ["'self'", 'blob:'],
@@ -72,6 +75,20 @@ final class ContentSecurityPolicy
             array_keys($directives),
             $directives,
         ));
+    }
+
+    /**
+     * @param  array<int, string>  $sources  origines d'images de config/csp.php
+     * @return list<string> les mêmes, sans les hôtes de Wikimedia que le relais remplace quand il est activé
+     */
+    public static function imageSources(array $sources): array
+    {
+        if (! config('commons_proxy.enabled')) {
+            return array_values($sources);
+        }
+        $relayed = array_map(fn (string $host): string => 'https://'.$host, CommonsImagePath::HOSTS);
+
+        return array_values(array_diff($sources, $relayed));
     }
 
     /** @return list<string> empreintes `'sha256-…'` des attributs `style` des pages Magidoc (fichier écrit par postbuild.mjs) */
