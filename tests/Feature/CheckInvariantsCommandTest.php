@@ -171,6 +171,9 @@ class CheckInvariantsCommandTest extends TestCase
             // Fiche gare contre fiche ligne (StationServiceYearsTest) : aucun rattachement daté ici.
             'stations.line_service_outside_station_life' => 0,
             'stations.opened_before_lines' => 0,
+            // Dates OHM de la loi (OhmLawDateInvariantsTest) : aucune gare ici.
+            'stations.ohm_opened_before_lines' => 0,
+            'stations.ohm_opened_shared_date' => 0,
             // Fret rouvert aux voyageurs ou sur une gare de voyageurs SNCF (PassengerStationOnTrackTest) : aucun ici.
             'segments.current_freight_on_reopened_or_station' => 0,
             // Écartement des liens ligne × matériel (MaterialGaugeInvariantTest) : aucun lien ici.
@@ -348,7 +351,7 @@ class CheckInvariantsCommandTest extends TestCase
 
         $this->assertSame(['texts.long_dash'], $keys(['texts.long_dash']));
         $this->assertSame(['stations.active_without_track', 'stations.closed_at_outside_eras', 'stations.line_service_outside_station_life',
-            'stations.opened_before_lines'], $keys(['stations']));
+            'stations.opened_before_lines', 'stations.ohm_opened_before_lines', 'stations.ohm_opened_shared_date'], $keys(['stations']));
         $this->assertContains('segments.duplicates', $keys(['segments']));
         $this->assertNotContains('texts.long_dash', $keys(['segments']));
 

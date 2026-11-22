@@ -131,3 +131,24 @@ lignes. Trois règles écartent les faux positifs relevés par les agents `gares
 
 Un cas qui reste est une contradiction à trancher (date de gare, date de ligne ou rattachement). Tests :
 `tests/Feature/StationServiceYearsTest.php`.
+
+## Invariants `stations.ohm_opened_before_lines` et `stations.ohm_opened_shared_date` (22/11/2026)
+
+Détection seule, sans correction automatique : une date d'ouverture de gare venue d'OpenHistoricalMap (provenance
+`opened_at` = `ohm`, précision au jour) est parfois la date de la loi qui déclare la ligne d'utilité publique (Lens -
+Frévent : 08/08/1890 pour une mise en service le 01/12/1895), ou la date de la première section recopiée sur toute la
+ligne. Les deux règles sont des listes de travail pour la recherche de sources, ligne par ligne.
+
+- `stations.ohm_opened_before_lines` : gare dont l'ouverture OHM précède de plus de 6 mois
+  (`DataInvariants::STATION_OHM_LAW_GAP_MONTHS`) toute ouverture de section résolue (`trace` ou `places`) de ses lignes
+  à son PK. Mêmes rattachements que `stations.opened_before_lines` : ni `terminus_name`, ni PK projeté
+  (`projected_raw`) ; une ligne plus ancienne que la gare l'absout. Écartés : autre origine que OHM, date au mois ou à
+  l'année, sections `whole_line`, `unresolved` ou `pending`.
+- `stations.ohm_opened_shared_date` : ligne dont au moins 3 gares (`STATION_OHM_SHARED_MIN`) portent exactement la même
+  date OHM au jour alors que ses ouvertures de section résolues tombent à au moins deux dates. Une ligne ouverte d'un
+  seul tenant, deux gares seulement, ou des gares d'une autre source ne sont pas signalées.
+
+Mesure sur `vff` (22/11/2026) : 5 gares pour la première règle (Andrézieux et St-Just-sur-Loire 1827, Aurec, Clermain,
+Etoile d'Alaï) ; 11 lignes pour la seconde (Lyon-St-Paul - Montbrison 17 gares au 17/01/1876, Paray-le-Monial -
+Givors-Canal, Montereau - Château-Landon, Firminy - St-Rambert-d'Albon, St-Germain-des-Fossés - Darsac...). Tests :
+`tests/Feature/OhmLawDateInvariantsTest.php`.
