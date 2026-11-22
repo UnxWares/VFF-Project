@@ -293,12 +293,9 @@ class WikipediaLineParserMutationTest extends TestCase
                     'electrification 1971-06-01 Pleure>Bletterans | Les sections de Châtillon à Pleure et de Pleure à Bletterans sont électrifiées respectivement en mars 1969 et juin 1971.',
                 ],
             ],
-            'respectivement : portion de trop après les dates' => [
+            'respectivement : portion de trop après les dates, appariement refusé et aucune date attribuée' => [
                 'Les sections de Châtillon à Pleure et de Pleure à Bletterans sont fermées respectivement le 1 mars 1969 et le 2 juin 1971 entre Gray et Bar.',
-                [
-                    'closure 1969-03-01 Pleure>Bletterans | de Pleure à Bletterans sont fermées respectivement le 1 mars 1969',
-                    'closure 1971-06-02 Gray>Bar | Les sections de Châtillon à Pleure et de Pleure à Bletterans sont fermées respectivement le 1 mars 1969 et le 2 juin 1971 entre Gray et Bar.',
-                ],
+                [],
             ],
             'respectivement : mois accentués' => [
                 'Les sections de Châtillon à Pleure et de Pleure à Bletterans sont fermées respectivement le 1 décembre 1969 et le 2 février 1971.',
@@ -475,11 +472,8 @@ class WikipediaLineParserMutationTest extends TestCase
 
     public function test_a_date_in_the_lead_in_refuses_the_respective_pairing(): void
     {
-        $events = $this->events('En 1950, les sections de Châtillon à Pleure et de Pleure à Bletterans sont fermées respectivement le 1 mars 1969 et le 2 juin 1971.');
-
-        $this->assertNotContains('closure 1969-03-01 Châtillon>Pleure | Les sections de Châtillon à Pleure et de Pleure à Bletterans sont fermées respectivement le 1 mars 1969 et le 2 juin 1971.', $events);
-        $this->assertCount(1, $events);
-        $this->assertStringStartsWith('closure 1969-03-01 Pleure>Bletterans', $events[0]);
+        // Appariement refusé : aucune date plutôt qu'une fausse (avant, la lecture de secours donnait la première date à la deuxième portion).
+        $this->assertSame([], $this->events('En 1950, les sections de Châtillon à Pleure et de Pleure à Bletterans sont fermées respectivement le 1 mars 1969 et le 2 juin 1971.'));
     }
 
     public function test_only_the_first_clause_of_a_respective_reading_hides_the_infobox(): void

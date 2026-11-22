@@ -66,6 +66,54 @@ class WikipediaLineStagedChronologyTest extends TestCase
         ], $events);
     }
 
+    public function test_date_shared_by_three_between_sections(): void
+    {
+        // Stations de l'article de Troyes - Gray : « entre A et B, entre B et C et entre C et D le D » donne la date aux trois portions.
+        $events = $this->events(self::TROYES_GRAY, 'Le trafic marchandises cesse entre Villars et Poinson, entre Poinson et Mirebeau-sur-Bèze '
+            .'et entre Mirebeau-sur-Bèze et Champagne-sur-Vingeanne le 30 mai 1975.');
+
+        $this->assertSame([
+            'closure_freight 1975-05-30 Villars>Poinson',
+            'closure_freight 1975-05-30 Poinson>Mirebeau-sur-Bèze',
+            'closure_freight 1975-05-30 Mirebeau-sur-Bèze>Champagne-sur-Vingeanne',
+        ], $events);
+        $this->assertSame([
+            'closure_freight 1975-05-30 Villars>Poinson',
+            'closure_freight 1975-05-30 Poinson>Mirebeau-sur-Bèze',
+            'closure_freight 1975-05-30 Mirebeau-sur-Bèze>Champagne-sur-Vingeanne',
+            'closure_freight 1975-05-30 Champagne-sur-Vingeanne>Gray',
+        ], $this->events(self::TROYES_GRAY, 'Le trafic marchandises cesse entre Villars et Poinson, et entre Poinson et Mirebeau-sur-Bèze '
+            .'et entre Mirebeau-sur-Bèze et Champagne-sur-Vingeanne et entre Champagne-sur-Vingeanne et Gray le 30 mai 1975.'));
+    }
+
+    public function test_refused_respectively_attributes_no_date(): void
+    {
+        // Phrase d'introduction datée : l'appariement est refusé, la deuxième portion ne reçoit pas la première date.
+        $this->assertSame([], $this->events('Ligne de Chaugey à Lons-le-Saunier', 'En 1950, les sections de Chaussin à Pleure et de Pleure à '
+            .'Bletterans sont fermées respectivement le 1 mars 1969 et le 2 juin 1971.'));
+        // Forme de l'article réel (portions après « respectivement », dates entre parenthèses) : aucune fermeture de portion inventée.
+        $this->assertSame([], $this->events('Ligne de Chaugey à Lons-le-Saunier', 'Les différentes sections de la ligne ferment une à une '
+            .'entre 1969 et 1995 (respectivement de Chaussin à Pleure en 1969, de Pleure à Bletterans en 1971, de Chemin - Peseux à Chaussin '
+            .'en 1989, et de Bletterans à Lons-le-Saunier en 1995).'));
+    }
+
+    public function test_parenthesis_after_the_first_stage_date_is_ignored(): void
+    {
+        $expected = [
+            'opening 1862-03-01 Troyes>Bar-sur-Seine',
+            'opening 1870-05-02 Bar-sur-Seine>Gray',
+        ];
+
+        // « (déclarée d'utilité publique) » : avant, la première étape disparaissait.
+        $this->assertSame($expected, $this->events(self::TROYES_GRAY, 'La ligne est mise en service en plusieurs étapes : Troyes - Bar-sur-Seine '
+            .'le 1 mars 1862 (déclarée d\'utilité publique), Bar-sur-Seine - Gray le 2 mai 1870.'));
+        // « (loi du …) » : la date de la loi comptait comme une troisième date et l'énumération restait entière.
+        $this->assertSame($expected, $this->events(self::TROYES_GRAY, 'La ligne est mise en service entre Troyes et Bar-sur-Seine le 1 mars 1862 '
+            .'(loi du 5 mai 1860), entre Bar-sur-Seine et Gray le 2 mai 1870.'));
+        $this->assertSame($expected, $this->events(self::TROYES_GRAY, 'La ligne est mise en service par étapes : Troyes - Bar-sur-Seine le 1 mars 1862 '
+            .'(déclarée d\'utilité publique le 5 mai 1860), Bar-sur-Seine - Gray le 2 mai 1870.'));
+    }
+
     public function test_date_then_section_enumeration_keeps_the_traffic(): void
     {
         $events = $this->events('Ligne de Breuil-Barret à Velluire', 'Elle a été fermée au service des marchandises le 24 septembre 1989 '
