@@ -304,7 +304,9 @@ class ImportStationSources extends Command
     /**
      * Gares de database/data/gares_manuelles.php (App\Services\ManualStations) : absentes des autres sources,
      * situées et datées par une source citée. Lecture locale, sans réseau ; une entrée mal formée est signalée
-     * et ignorée ; les gares retirées du fichier disparaissent de la source.
+     * et ignorée ; les gares retirées du fichier disparaissent de la source. Tant qu'une entrée est mal formée,
+     * rien ne disparaît : l'objet déjà importé d'une entrée devenue fautive reste (sinon vff:consolidate-stations
+     * supprimerait la gare comme orpheline, avec ses événements).
      */
     private function importManual(): void
     {
@@ -312,7 +314,7 @@ class ImportStationSources extends Command
         foreach ($errors as $ref => $list) {
             $this->warn("  gare manuelle « {$ref} » ignorée : ".implode(', ', $list));
         }
-        $this->upsertSource(ManualStations::SOURCE, $records, true);
+        $this->upsertSource(ManualStations::SOURCE, $records, $errors === []);
     }
 
     // ── OpenHistoricalMap ───────────────────────────────────────────────────
