@@ -40,4 +40,7 @@ Aucun champ n'a été retiré ni renommé depuis le 21/11. Les changements qui p
 - REST, GraphQL et MCP : `sourced_grade` du profil en long ajoute `covered_share` (part de la ligne décrite par la source, `null` pour
   Wikipédia) et `source.attribution` (`Wikipédia` ou `SNCF Réseau`) ; GraphQL : `LineProfileSourcedGrade.covered_share`,
   `LineProfileRackSource.attribution` (nul pour une fiche de crémaillère).
+- REST : `GET /lines/{line}/infrastructure` (nombre de voies par portion de PK, régime d'exploitation de SNCF Réseau, et liaison radio
+  sol-train : `gsm-r`, `gsm-gfu`, `rst`, `rst-data`, `rst-id` ; ODbL) ; GraphQL : `Line.infrastructure` ; MCP : outil `line_infrastructure`.
+  Le fait `tracks` de la fiche (`facts`) peut maintenant avoir `source: sncf`, `as_of: today` et `km` (régime partagé).
 - MCP : outils `journal` et `line_archive_records` ; `line_profile` et `signalling_history` renvoient les nouveaux champs ci-dessus.

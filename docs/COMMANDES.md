@@ -216,20 +216,64 @@ relancer la commande sur les mêmes données donne le même fichier.
 | `--output=` | Fichier de données écrit (obligatoire pendant les tests). |
 | `--csv=` | Rapport détaillé par ligne (code, slug, résultat, valeurs SNCF, Wikipédia et mesurée, part couverte). |
 
-### `vff:measure-sncf-track-regime`
+### `vff:import-sncf-track-regime`
 
-Passe à blanc du jeu SNCF Open Data « Régime d'exploitation des lignes » (SNCF Réseau, ODbL). Elle compte ce que le jeu
-apporterait au nombre de voies des lignes : faits nouveaux, accords avec la fiche et avec Wikidata, contradictions, lignes
-à régime partagé, gares rattachées. Seules des lectures en base ; le jeu est gardé dans `storage/app/sources/sncf-regime/`
-(dossier `.nobackup`), licence vérifiée au téléchargement. « Voie banalisée » ne dit pas le nombre de voies : ces lignes
-sont écartées. Sans `--dry-run`, la commande refuse de tourner.
+Importe le jeu SNCF Open Data « Régime d'exploitation des lignes » (SNCF Réseau, ODbL) : nombre de voies principales par
+portion de PK. Chaque tronçon rattaché à une ligne de VFF par son code va dans `line_track_portions`, libellé SNCF tel quel
+(toutes les portions `sncf` sont remplacées d'un coup). « Voie banalisée » et « _Autre » ne disent pas le nombre de voies :
+leurs portions sont gardées avec un nombre nul et ne comptent pas. Le nombre de voies de la fiche (`lines.nb_voies_default`)
+n'est écrit que pour une ligne au régime uniforme (90 % de sa longueur ou plus) et seulement si le champ est vide ou vient
+déjà de cette commande (`line_sources` « sncf-regime ») : une valeur d'une autre source n'est jamais remplacée, un nombre
+différent est listé comme contradiction. Une ligne qui mêle voie unique et double voie garde un champ vide ; sa fiche dit le
+nombre dominant et sa longueur. Le jeu décrit le réseau actuel (aucune ère) ; il est gardé dans
+`storage/app/sources/sncf-regime/` (dossier `.nobackup`), licence et éditeur vérifiés au téléchargement. Servi par
+`GET /api/v1/lines/{line}/infrastructure`, `Line.infrastructure` et l'outil MCP `line_infrastructure`.
 
 | Option | Effet |
 |:-|:-|
-| `--dry-run` | Obligatoire : rapport seulement. |
+| `--dry-run` | Rapport seulement : lignes touchées, portions, nombres écrits, confirmés, contradictions, régimes partagés, contrôle Wikidata. |
 | `--refresh` | Télécharge de nouveau le jeu au lieu du cache local. |
 | `--cache-dir=` | Dossier du cache. |
-| `--csv=` | Rapport détaillé par ligne. |
+| `--csv=` | Rapport détaillé par ligne (action prévue pour chacune). |
+
+### `vff:import-sncf-radio`
+
+Importe le jeu SNCF Open Data « Lignes équipées de liaison radio sol-train » (SNCF Réseau, ODbL) dans `line_radio_portions` :
+système par portion de PK (`gsm-r` GSM-R, `gsm-gfu` GSM d'opérateur public en groupe fermé d'utilisateurs, `rst` radio
+sol-train analogique sans données, `rst-data` avec données, `rst-id` avec identification), libellé SNCF tel quel. Un libellé
+inconnu est écarté et signalé. Toutes les portions `sncf` sont remplacées d'un coup ; aucune autre table n'est écrite. Cache
+`storage/app/sources/sncf-radio/` (dossier `.nobackup`), licence et éditeur vérifiés au téléchargement. Mêmes points d'accès
+que le régime d'exploitation.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Rapport seulement : lignes touchées, portions, lignes au GSM-R, longueur par système. |
+| `--refresh` | Télécharge de nouveau le jeu au lieu du cache local. |
+| `--cache-dir=` | Dossier du cache. |
+| `--csv=` | Rapport par ligne (km par système). |
+
+### `vff:import-sncf-platforms`
+
+Importe les quais des gares de voyageurs du jeu SNCF Open Data « Liste des quais » (SNCF Réseau, ODbL) dans
+`station_platforms` : un enregistrement par voie bordée, avec sa longueur et ses PK. Le jeu n'a pas de code UIC : la gare
+est cherchée par son nom et sa ligne dans le référentiel des gares SNCF (`sncf_gares`), puis par son seul nom, pour le code
+UIC qui la relie à `stations` ; à défaut, la gare de VFF de même nom la plus proche du milieu des quais, à 1,5 km au plus.
+Un enregistrement sans gare est gardé, `station_id` nul. L'import remplace toutes les lignes `source = 'sncf'` de la table
+dans une transaction et ne touche aucune autre table. Les quais sont servis par `GET /api/v1/stations/{station}`
+(`platforms`), `Station.platforms` en GraphQL et `get_station` en MCP. Le jeu est gardé dans `storage/app/sources/sncf-quais/`
+(dossier `.nobackup`), licence et éditeur revérifiés à chaque téléchargement.
+
+La passe à blanc compte les rattachements (code UIC, nom), les gares non rattachées, les gares de VFF ouvertes aux voyageurs
+sans quai connu, et les contradictions : gare de VFF fermée, disparue ou projetée qui a des quais dans le jeu, gare rattachée
+par son code UIC à plus de 2 km de ses quais, quai dont la longueur s'écarte de l'étendue de ses PK, nom SNCF rattaché à
+plusieurs gares.
+
+| Option | Effet |
+|:-|:-|
+| `--dry-run` | Rapport seulement, aucune écriture en base. |
+| `--refresh` | Télécharge de nouveau le jeu au lieu du cache local. |
+| `--cache-dir=` | Dossier du cache (défaut : `storage/app/sources/sncf-quais`). |
+| `--csv=` | Rapport détaillé par gare SNCF et ligne (quais, plus long, gare de VFF, rattachement, distance, note). |
 
 ### `vff:build-line-references`
 

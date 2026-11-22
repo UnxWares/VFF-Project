@@ -44,6 +44,8 @@ du contrat avec `bin/php artisan vff:api-contract` (le test `ApiContractTest` é
 |---|---|---|---|
 | Audit des tronçons d'une ligne (4 notes, preuves) | `GET /lines/{line}/audit?era&grade&limit&offset` | `Line.audit(era)` : `segments(grade, limit, offset)`, `segments_total(grade)` | `line_audit` (`era`, `grade`, `limit`, `offset`) |
 | Audit d'une gare (placement, dates, services) | `GET /stations/{station}/audit` | `Station.audit` | clé `audit` de `get_station` |
+| Nombre de voies et radio sol-train (GSM-R) d'une ligne par portion de PK, aujourd'hui (SNCF Réseau, ODbL) | `GET /lines/{line}/infrastructure` | `Line.infrastructure` | `line_infrastructure` |
+| Quais d'une gare (nombre, longueurs, PK ; SNCF Réseau, ODbL) | clé `platforms` de `GET /stations/{station}` | `Station.platforms` | clé `platforms` de `get_station` |
 | Audit des tronçons de tout le réseau (liste, filtres, tri, total) | `GET /audits/segments?era&grade&check&reason&status&department&region&line&q&sort&limit&offset` | `segmentAudits(...)` : `total`, `items` | `segment_audits` (mêmes paramètres) |
 | Audit des gares de tout le réseau (liste, filtres, tri, total) | `GET /audits/stations?grade&check&opening&closure&department&region&line&q&sort&limit&offset` | `stationAudits(...)` : `total`, `items` | `station_audits` (mêmes paramètres) |
 | Profil en long | `GET /lines/{line}/profile?max_points` | `Line.profile(max_points)` | `line_profile` (`max_points`) |

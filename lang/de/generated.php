@@ -217,6 +217,7 @@ return [
         'label_item' => ':label (:item)',
         'note_item' => 'laut Wikidata, nur für diesen Teil der Strecke',
         'note_sncf_today' => 'heute, laut SNCF Réseau (Nenngeschwindigkeit)',
+        'note_sncf_tracks' => 'heute, laut SNCF Réseau (Betriebsweise)',
         'note_sncf_era' => ':year, laut SNCF Réseau (Nenngeschwindigkeit)',
         'note_sncf_today_part' => 'heute, nur auf :km km der Strecke, laut SNCF Réseau',
         'note_sncf_era_part' => ':year, nur auf :km km der Strecke, laut SNCF Réseau',

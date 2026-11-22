@@ -182,6 +182,14 @@ type Line {
     greenway_length_m: Int! @field(resolver: "App\\GraphQL\\Resolvers\\LineGreenwayField@length")
 
     """
+    Voies (régime d'exploitation) et liaison radio sol-train (GSM-R…) de la ligne aujourd'hui, par portion de
+    points kilométriques, d'après SNCF Réseau (ODbL 1.0) : même contenu que l'API REST
+    `GET /api/v1/lines/{line}/infrastructure`. Listes vides et résumé nul si les jeux ne couvrent pas la ligne.
+    Reprenez la mention de `LineInfrastructure.attribution`.
+    """
+    infrastructure: LineInfrastructure! @field(resolver: "App\\GraphQL\\Resolvers\\LineInfrastructureField@forLine")
+
+    """
     Documents d'archives numérisés dans Gallica (Bibliothèque nationale de France) dont le titre parle
     de la ligne, du plus ancien au plus récent (sans date en dernier), comme
     `GET /api/v1/lines/{line}/archives` : projets, plans et cartes du tracé, mémoires, guides,
@@ -1067,6 +1075,56 @@ type Station {
     contenu que `GET /api/v1/stations/{station}/audit`. Nul tant que la gare n'a pas été auditée.
     """
     audit: StationAudit @field(resolver: "App\\GraphQL\\Resolvers\\StationAuditResolver") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+
+    """
+    Quais de la gare d'après le jeu « Liste des quais » de SNCF Réseau (ODbL, `vff:import-sncf-platforms`) :
+    nombre, longueurs et PK, état actuel du réseau. Même bloc que `platforms` de
+    `GET /api/v1/stations/{station}`. Nul quand le jeu ne donne aucun quai pour la gare (gare fermée,
+    halte absente du jeu) : ce n'est pas « aucun quai ». Mention à reproduire : `attribution`.
+    """
+    platforms: StationPlatforms @field(resolver: "App\\GraphQL\\Resolvers\\StationPlatformField") @complexity(resolver: "App\\GraphQL\\Complexity\\QueryCost@computed")
+}
+
+"Quais d'une gare (SNCF Réseau, ODbL)."
+type StationPlatforms {
+    "Nombre de quais distincts : un quai central qui borde deux voies compte une fois."
+    count: Int!
+
+    "Longueur du plus long quai, en mètres. Nulle si le jeu ne donne aucune longueur."
+    longest_m: Int
+
+    "Longueurs de tous les quais additionnées, en mètres."
+    total_length_m: Int!
+
+    "Les quais, par ligne puis par PK croissant."
+    items: [StationPlatform!]!
+
+    "Date de mise à jour du jeu SNCF (`AAAA-MM-JJ`), d'après ses métadonnées."
+    dataset_modified: String
+
+    "Mention de la source à reproduire avec les données (SNCF Réseau, ODbL 1.0)."
+    attribution: String!
+
+    "Fournisseur et licence (registre des droits de VFF)."
+    provenance: Provenance!
+}
+
+"Un quai d'une gare, d'après SNCF Réseau."
+type StationPlatform {
+    "Libellé SNCF du quai, tel quel (« Quai 1 », « Quai A », « Quai 20/ 21 »)."
+    label: String!
+
+    "Code SNCF Réseau (6 chiffres) de la ligne qui porte la voie bordée par le quai."
+    code_ligne: String!
+
+    "Longueur du quai en mètres (champ `longueur` du jeu). Nulle si le jeu ne la donne pas."
+    length_m: Int
+
+    "PK de début du quai sur la ligne `code_ligne`, en mètres. Nul si le jeu l'écrit autrement."
+    pk_start_m: Int
+
+    "PK de fin du quai, en mètres."
+    pk_end_m: Int
 }
 
 "Audit d'une gare : rien n'y est corrigé, les sources sont comparées entre elles."
@@ -3006,6 +3064,149 @@ type LineProfileStation {
 
     "Écart entre la gare et le parcours, en mètres (une gare éloignée se trouve sur un tracé que le profil n'emprunte pas)."
     offset_m: Int
+}
+
+"""
+Infrastructure actuelle d'une ligne d'après deux jeux de SNCF Réseau Open Data (ODbL 1.0) : régime
+d'exploitation (nombre de voies) et liaison radio sol-train, par portion de points kilométriques. Réseau
+d'aujourd'hui, sans ère ni date de mise en service.
+"""
+type LineInfrastructure {
+    "Nombre de voies par portion (jeu `regime-dexploitation-des-lignes`)."
+    tracks: LineTracks!
+
+    "Liaison radio sol-train par portion (jeu `lignes-equipees-de-liaison-radio-sol-train`)."
+    radio: LineRadio!
+
+    "Mention à reproduire : données SNCF Réseau, ODbL 1.0, partage à l'identique des bases dérivées diffusées."
+    attribution: String! @field(resolver: "App\\GraphQL\\Resolvers\\LineInfrastructureField@attribution")
+
+    "Fournisseur et licence (SNCF Open Data, ODbL)."
+    provenance: Provenance! @field(resolver: "App\\GraphQL\\Resolvers\\LineInfrastructureField@provenance")
+}
+
+"Régime d'exploitation d'une ligne : nombre de voies principales par portion."
+type LineTracks {
+    "Résumé : nombre de voies dominant en longueur. Nul sans portion au nombre établi (ligne absente du jeu, ou seulement en voie banalisée)."
+    summary: LineTrackSummary
+
+    "Portions dans l'ordre des PK."
+    portions: [LineTrackPortion!]!
+
+    "Date de modification du jeu SNCF (AAAA-MM-JJ), nulle sans portion."
+    dataset_modified: String
+}
+
+"Nombre de voies dominant d'une ligne, en longueur."
+type LineTrackSummary {
+    "Nombre de voies principales sur la plus grande longueur : 1 (voie unique, navette) ou 2 (double voie)."
+    tracks: Int!
+
+    "Vrai quand ce nombre couvre 90 % de la longueur ou plus ; faux pour une ligne qui mêle voie unique et double voie."
+    uniform: Boolean!
+
+    "Part de la longueur (0 à 1) où vaut le nombre dominant, portions banalisées et « _Autre » exclues."
+    dominant_share: Float!
+
+    "Longueur, en mètres, où vaut le nombre dominant."
+    dominant_length_m: Int!
+
+    "Longueur par nombre de voies, du plus petit nombre au plus grand."
+    length_m_by_tracks: [LineTrackLength!]!
+
+    "Longueur en voie banalisée (nombre de voies non établi), en mètres."
+    banalised_length_m: Int!
+}
+
+"Longueur d'une ligne à un nombre de voies donné."
+type LineTrackLength {
+    "Nombre de voies principales (1 ou 2)."
+    tracks: Int!
+
+    "Longueur, en mètres (une portion au PK illisible compte 1 000 m)."
+    length_m: Int!
+}
+
+"Portion d'une ligne au même régime d'exploitation."
+type LineTrackPortion {
+    "PK de début, en mètres, numérotation de SNCF Réseau ; nul si le jeu l'écrit autrement."
+    pk_start_m: Int
+
+    "PK de fin, en mètres ; nul si le jeu l'écrit autrement."
+    pk_end_m: Int
+
+    "PK de début en notation `km+mmm`."
+    pk_start_label: String
+
+    "PK de fin en notation `km+mmm`."
+    pk_end_label: String
+
+    "Longueur, en mètres ; nulle si un PK est illisible."
+    length_m: Int
+
+    "Nombre de voies principales établi par le régime : 2 (double voie), 1 (voie unique et variantes, navette) ; nul pour la voie banalisée et « _Autre »."
+    tracks: Int
+
+    "Libellé de SNCF Réseau tel quel (« Double voie », « Voie unique à signalisation simplifiée », « Voie banalisée »…)."
+    regime: String!
+
+    "Vrai pour une voie banalisée (chaque voie parcourue dans les deux sens, nombre de voies non établi)."
+    banalised: Boolean!
+}
+
+"Liaison radio sol-train d'une ligne."
+type LineRadio {
+    "Longueur par système, du plus récent au plus ancien."
+    systems: [LineRadioLength!]!
+
+    "Vrai si une partie au moins de la ligne est équipée du GSM-R."
+    gsm_r: Boolean!
+
+    "Longueur équipée du GSM-R, en mètres (0 sans GSM-R)."
+    gsm_r_length_m: Int!
+
+    "Portions dans l'ordre des PK."
+    portions: [LineRadioPortion!]!
+
+    "Date de modification du jeu SNCF (AAAA-MM-JJ), nulle sans portion."
+    dataset_modified: String
+}
+
+"Longueur d'une ligne équipée d'un système radio."
+type LineRadioLength {
+    "Système : `gsm-r`, `gsm-gfu`, `rst-data`, `rst-id` ou `rst` (voir `LineRadioPortion.system`)."
+    system: String!
+
+    "Longueur, en mètres (une portion au PK illisible compte 1 000 m)."
+    length_m: Int!
+}
+
+"Portion d'une ligne équipée d'un même système radio sol-train."
+type LineRadioPortion {
+    "PK de début, en mètres, numérotation de SNCF Réseau ; nul si le jeu l'écrit autrement."
+    pk_start_m: Int
+
+    "PK de fin, en mètres ; nul si le jeu l'écrit autrement."
+    pk_end_m: Int
+
+    "PK de début en notation `km+mmm`."
+    pk_start_label: String
+
+    "PK de fin en notation `km+mmm`."
+    pk_end_label: String
+
+    "Longueur, en mètres ; nulle si un PK est illisible."
+    length_m: Int
+
+    """
+    Système : `gsm-r` (GSM-R, réseau GSM ferroviaire), `gsm-gfu` (GSM d'un opérateur public en groupe fermé
+    d'utilisateurs), `rst` (radio sol-train analogique sans transmission de données), `rst-data` (analogique avec
+    transmission de données), `rst-id` (analogique sans données, avec identification).
+    """
+    system: String!
+
+    "Libellé de SNCF Réseau tel quel, fautes comprises."
+    label: String!
 }
 
 """

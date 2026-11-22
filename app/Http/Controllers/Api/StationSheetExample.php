@@ -133,6 +133,23 @@ final class StationSheetExample
                     'links' => ['web' => 'https://vff-project.org/stations/le-rody', 'api' => 'https://vff-project.org/api/v1/stations/le-rody'],
                 ],
             ],
+            'platforms' => [
+                'count' => 2,
+                'longest_m' => 387,
+                'total_length_m' => 699,
+                'items' => [
+                    ['label' => 'Quai E/F', 'code_ligne' => '420000', 'length_m' => 387, 'pk_start_m' => 622017, 'pk_end_m' => 622404],
+                    ['label' => 'Quai A/B', 'code_ligne' => '420000', 'length_m' => 312, 'pk_start_m' => 622096, 'pk_end_m' => 622408],
+                ],
+                'dataset_modified' => '2020-05-26',
+                'attribution' => 'Quais : SNCF Réseau, jeu « Liste des quais » (SNCF Open Data), licence ODbL 1.0.',
+                'provenance' => [
+                    'provider' => 'sncf',
+                    'name' => 'SNCF Open Data (SNCF Réseau, Gares & Connexions, GTFS voyageurs)',
+                    'license' => 'ODbL 1.0 (chaque jeu utilisé : champ metas.default.license de l\'API)',
+                    'license_status' => 'verified',
+                ],
+            ],
             'links' => [
                 'web' => 'https://vff-project.org/stations/brest',
                 'events' => 'https://vff-project.org/api/v1/stations/brest/events',

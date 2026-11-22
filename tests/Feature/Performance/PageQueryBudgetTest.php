@@ -77,7 +77,9 @@ class PageQueryBudgetTest extends TestCase
         // 57 : une lecture de plus après les chantiers de la nuit du 21/11 (matériel, profil en long, contexte des
         // accidents) ; aucune requête par élément, la seconde visite reste plus courte.
         // 58 : les notices des Archives SNCF le 22/11 (LineArchives::recordsForSheet, une seule lecture).
-        $this->assertLessThanOrEqual(58, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
+        // 60 : le nombre de voies du régime SNCF le 22/11 (LineInfrastructure::trackFact : une lecture, et le constat
+        // que la table existe, gardé en cache ensuite).
+        $this->assertLessThanOrEqual(60, count($queries), count($queries)." requêtes\n".implode("\n", $queries));
         $warm = $this->queriesOf('/lines/'.$this->line->slug);
         $this->assertLessThan(count($queries), count($warm), 'seconde visite : calculs lus dans le cache');
         $this->assertEmpty(array_filter($warm, fn (string $sql): bool => str_contains($sql, 'CREATE TEMP TABLE')));

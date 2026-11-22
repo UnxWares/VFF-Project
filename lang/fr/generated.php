@@ -231,6 +231,7 @@ return [
         'label_item' => ':label (:item)',
         'note_item' => 'd’après Wikidata, pour cette partie de la ligne seulement',
         'note_sncf_today' => 'aujourd’hui, d’après SNCF Réseau (vitesse nominale)',
+        'note_sncf_tracks' => 'aujourd’hui, d’après SNCF Réseau (régime d’exploitation)',
         'note_sncf_era' => 'en :year, d’après SNCF Réseau (vitesse nominale)',
         'note_sncf_today_part' => 'aujourd’hui, sur :km km de la ligne seulement, d’après SNCF Réseau',
         'note_sncf_era_part' => 'en :year, sur :km km de la ligne seulement, d’après SNCF Réseau',

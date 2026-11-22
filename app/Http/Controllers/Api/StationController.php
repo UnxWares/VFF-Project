@@ -184,6 +184,19 @@ class StationController extends Controller
      *   et la licence ;
      * - `neighbors` : gares à moins de 10 km (12 au plus), de la plus proche
      *   à la plus lointaine ;
+     * - `platforms` : quais de la gare d'après le jeu « Liste des quais » de
+     *   SNCF Réseau (ODbL, état actuel du réseau, jeu mis à jour le
+     *   `dataset_modified`) : `count` (quais distincts ; un quai central qui
+     *   borde deux voies compte une fois), `longest_m` (plus long quai, en
+     *   mètres), `total_length_m` (longueurs additionnées), `items` (chaque
+     *   quai : `label` SNCF tel quel, `code_ligne` de la voie bordée,
+     *   `length_m`, `pk_start_m` et `pk_end_m` en mètres, nuls si le jeu
+     *   les écrit autrement), `attribution` (mention à reproduire) et
+     *   `provenance`. Le jeu n'a pas de code UIC : la gare est retrouvée par
+     *   son nom et sa ligne dans le référentiel des gares SNCF, puis par son
+     *   code UIC (à défaut, même nom à 1,5 km au plus). `null` quand le jeu ne
+     *   donne aucun quai pour la gare, ce qui ne veut pas dire qu'elle n'en a
+     *   pas (gare fermée, halte absente du jeu) ;
      * - `links` : page web (`web`) et points d'accès liés : chronologie
      *   paginée (`events`), médias (`media`), accidents survenus près de la
      *   gare (`accidents` : ceux dont elle est la gare la plus proche du

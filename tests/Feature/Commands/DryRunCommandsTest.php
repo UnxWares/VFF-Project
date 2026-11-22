@@ -35,9 +35,9 @@ class DryRunCommandsTest extends TestCase
         'vff:aggregate-line-electrification', 'vff:apply-argentanwebferro', 'vff:apply-event-corrections', 'vff:attach-stations', 'vff:audit-and-fix-lines', 'vff:audit-segments', 'vff:audit-stations', 'vff:canonicalize-station-slugs', 'vff:classify-lines', 'vff:compute-line-profiles',
         'vff:consolidate-stations', 'vff:dates-from-trace-names', 'vff:detect-present-states', 'vff:enrich-accidents', 'vff:fill-missing-geometry',
         'vff:import-accidents', 'vff:import-argentanwebferro', 'vff:import-commons-media', 'vff:import-gallica', 'vff:import-heritage-lines', 'vff:import-lignes-oubliees',
-        'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-material-periods', 'vff:import-materials', 'vff:import-secondary-network-dates', 'vff:import-signalling-history', 'vff:import-signalling-sources', 'vff:import-sncf-archives', 'vff:import-sncf-grades',
+        'vff:import-line-descriptions', 'vff:import-line-names', 'vff:import-material-periods', 'vff:import-materials', 'vff:import-secondary-network-dates', 'vff:import-signalling-history', 'vff:import-signalling-sources', 'vff:import-sncf-archives', 'vff:import-sncf-grades', 'vff:import-sncf-platforms', 'vff:import-sncf-radio', 'vff:import-sncf-track-regime',
         'vff:import-station-closures', 'vff:import-station-passenger-ends', 'vff:import-station-sources', 'vff:import-station-wikidata-dates', 'vff:import-wikidata-lines', 'vff:import-wikipedia-chronology',
-        'vff:import-wikipedia-line', 'vff:link-greenways', 'vff:link-traces', 'vff:match-current-network', 'vff:measure-sncf-track-regime', 'vff:merge-split-lines', 'vff:ohm-events',
+        'vff:import-wikipedia-line', 'vff:link-greenways', 'vff:link-traces', 'vff:match-current-network', 'vff:merge-split-lines', 'vff:ohm-events',
         'vff:place-listed-stations', 'vff:prune-inactive-accounts', 'vff:recalculate-reputation', 'vff:reclassify-status', 'vff:refresh-current-era', 'vff:remind-expiring-api-tokens',
         'vff:resolve-event-sections', 'vff:seed-off-network-lines', 'vff:select-home-images', 'vff:snap-stations', 'vff:verify-accidents',
     ];
@@ -63,6 +63,9 @@ class DryRunCommandsTest extends TestCase
         'vff:import-gallica' => ['--offline' => true],
         'vff:import-sncf-archives' => ['--file' => 'tests/Fixtures/Sncf/archives-sncf-sardo-extrait.json'],
         'vff:import-sncf-grades' => ['--cache-dir' => 'tests/Fixtures/Sncf'],
+        'vff:import-sncf-platforms' => ['--cache-dir' => 'tests/Fixtures/Sncf'],
+        'vff:import-sncf-radio' => ['--cache-dir' => 'tests/Fixtures/Sncf'],
+        'vff:import-sncf-track-regime' => ['--cache-dir' => 'tests/Fixtures/Sncf'],
         'vff:audit-stations' => ['--no-bdtopo' => true],
         'vff:import-station-wikidata-dates' => ['--from-cache' => true],
     ];
@@ -71,7 +74,7 @@ class DryRunCommandsTest extends TestCase
     private const OTHER_TABLES = [
         'users', 'contributions', 'contribution_approvals', 'audit_events', 'materials', 'line_materials', 'line_material_periods', 'line_greenways', 'line_signalling_events', 'line_signalling_history_map', 'accidents', 'accident_lines', 'accident_sources', 'accident_references', 'accident_context_entries', 'accident_images',
         'argentanwebferro_articles', 'argentanwebferro_facts', 'argentanwebferro_photos', 'line_archive_documents', 'line_archive_records',
-        'station_audits', 'station_date_candidates', 'segment_audits',
+        'station_audits', 'station_date_candidates', 'segment_audits', 'station_platforms', 'line_track_portions', 'line_radio_portions',
     ];
 
     private Era $past;
@@ -152,6 +155,9 @@ class DryRunCommandsTest extends TestCase
         yield 'dédoublonnage des gares' => ['vff:consolidate-stations', [], ['stations', 'station_sources']];
         yield 'rattachement des gares' => ['vff:attach-stations', [], ['station_lines']];
         yield 'audit des gares' => ['vff:audit-stations', ['--no-bdtopo' => true], ['station_audits']];
+        yield 'quais SNCF' => ['vff:import-sncf-platforms', ['--cache-dir' => 'tests/Fixtures/Sncf'], ['station_platforms']];
+        yield 'radio sol-train SNCF' => ['vff:import-sncf-radio', ['--cache-dir' => 'tests/Fixtures/Sncf'], ['line_radio_portions']];
+        yield 'régime d\'exploitation SNCF' => ['vff:import-sncf-track-regime', ['--cache-dir' => 'tests/Fixtures/Sncf'], ['line_track_portions', 'lines', 'line_sources']];
         yield 'comptes inutilisés' => ['vff:prune-inactive-accounts', [], ['users', 'audit_events']];
         yield 'réputation des comptes' => ['vff:recalculate-reputation', [], ['users']];
     }

@@ -187,7 +187,11 @@ class LineController extends Controller
      * (`source` : `wikidata`, `sncf`, `vff`), sa portée (`scope` : `line`
      * ligne entière, ou `part` : élément Wikidata qui n'en décrit qu'une
      * partie, `item`) et, s'il y a lieu, sa date (`as_of`). `label` et `note`
-     * sont en français.
+     * sont en français. Le nombre de voies (`tracks`, champ `n`) vient du régime
+     * d'exploitation de SNCF Réseau (`source` `sncf`, `as_of` `today`) quand ce
+     * jeu l'établit, avec `km` (longueur où ce nombre vaut) si la ligne mêle voie
+     * unique et double voie ; sinon de la fiche (`nb_voies_default`). Détail par
+     * portion : `GET /lines/{line}/infrastructure`.
      *
      * **Phases** (`phases`) : les changements datés de la ligne, tirés des
      * événements (`date` ISO et `precision` : `day`, `month`, `year`, ou

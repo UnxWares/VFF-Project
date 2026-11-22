@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Services\Api\Provenance;
+use App\Services\Sncf\StationPlatforms;
 use App\Support\FrenchDepartments;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -11,7 +12,7 @@ use Illuminate\Support\Collection;
 /**
  * Fiche complète d'une gare pour l'API publique, tirée de la construction de la page web
  * (App\Services\StationSheet::page) : identité, dates, position, présence par décennie,
- * chronologie, lignes desservies, sources et gares voisines. Chaque événement et chaque source
+ * chronologie, lignes desservies, sources, gares voisines et quais (SNCF Réseau). Chaque événement et chaque source
  * porte le bloc `provenance` (fournisseur, licence) du registre des droits.
  *
  * @property array<string, mixed> $resource
@@ -62,6 +63,8 @@ class StationSheetResource extends JsonResource
             'neighbors' => array_map(fn (array $n): array => $n + ['links' => [
                 'web' => url('/stations/'.$n['slug']), 'api' => route('api.stations.show', $n['slug']),
             ]], self::items($page['neighbors'])),
+            // Quais (SNCF Réseau, ODbL) : null quand le jeu « Liste des quais » n'en donne aucun pour la gare.
+            'platforms' => app(StationPlatforms::class)->forStation((int) $station['id']),
             'links' => [
                 'web' => url('/stations/'.$station['slug']),
                 'events' => route('api.stations.events', $station['slug']),

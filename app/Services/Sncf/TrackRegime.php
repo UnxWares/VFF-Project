@@ -7,7 +7,7 @@ namespace App\Services\Sncf;
  * (SNCF Réseau, ODbL) : double voie, voie banalisée, voie unique et ses variantes. Le jeu ne dit rien
  * du trafic (voyageurs, fret) ni de l'ouverture : seulement le nombre de voies principales et leur
  * mode d'exploitation. Analyse pure (aucun accès réseau ni base), utilisée par
- * vff:measure-sncf-track-regime.
+ * vff:import-sncf-track-regime et App\Services\Sncf\LineInfrastructure.
  */
 final class TrackRegime
 {
@@ -51,6 +51,14 @@ final class TrackRegime
         }
 
         return (int) $m[1] + ($m[2] === '-' ? -1 : 1) * ((int) $m[3]) / 1000;
+    }
+
+    /** PK SNCF en mètres entiers, null s'il est illisible. */
+    public static function pkMeters(?string $pk): ?int
+    {
+        $km = self::pkKm($pk);
+
+        return $km === null ? null : (int) round($km * 1000);
     }
 
     /**
