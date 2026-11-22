@@ -126,6 +126,12 @@ return [
                 'de' => 'Britische Darstellungen der Zeit machten die zurückweichenden Deutschen für die Zerstörung der Brücke verantwortlich; das deutsche Museum gibt an, die Brücke sei von den Franzosen zerstört worden, um den deutschen Vormarsch zu verzögern, und es habe sich um eine Fehlleitung gehandelt, nicht um eine gezielte Tat gegen den Zug.',
                 'sources' => ['lette-2014'],
             ],
+            [
+                'fr' => 'Une autre fiche de la base, « accident ferroviaire de Sarry » (17 septembre 1914), décrit un accident voisin : train sanitaire de nuit, pont de la Marne détruit par l\'armée française sans avertir le personnel, environ 57 morts, sur la ligne de Châlons-en-Champagne à Reims. Elle repose sur un seul article allemand (Stockert, 1920) et aucune source ne relie les deux accidents ; ils restent donc deux fiches, sans que l\'on puisse exclure qu\'il s\'agisse du même événement.',
+                'en' => 'Another record in the database, "Sarry rail accident" (17 September 1914), describes a similar accident: a night hospital train, a Marne bridge destroyed by the French army without warning the staff, about 57 dead, on the Châlons-en-Champagne to Reims line. It rests on a single German article (Stockert, 1920) and no source links the two accidents; they therefore remain two records, although it cannot be ruled out that they are the same event.',
+                'de' => 'Ein anderer Datensatz, „Eisenbahnunfall von Sarry“ (17. September 1914), beschreibt einen ähnlichen Unfall: nächtlicher Lazarettzug, von der französischen Armee ohne Warnung des Personals zerstörte Marnebrücke, etwa 57 Tote, auf der Strecke Châlons-en-Champagne-Reims. Er stützt sich auf einen einzigen deutschen Artikel (Stockert, 1920), und keine Quelle verbindet die beiden Unfälle; sie bleiben daher zwei Datensätze, auch wenn sich nicht ausschließen lässt, dass es dasselbe Ereignis ist.',
+                'sources' => ['lette-2014'],
+            ],
         ],
     ],
     'corrections' => [
