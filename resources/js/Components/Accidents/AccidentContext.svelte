@@ -76,12 +76,12 @@
                                 {c.before == null
                                     ? $i18n.t('accidents.context.correction_new', {
                                           field: $i18n.t(`accidents.context.fields.${c.field}`),
-                                          value: correctionValue(c.field, c.value, lang),
+                                          value: correctionValue(c.field, c.value, lang, $i18n.t),
                                       })
                                     : $i18n.t('accidents.context.correction', {
                                           field: $i18n.t(`accidents.context.fields.${c.field}`),
-                                          before: correctionValue(c.field, c.before, lang),
-                                          value: correctionValue(c.field, c.value, lang),
+                                          before: correctionValue(c.field, c.before, lang, $i18n.t),
+                                          value: correctionValue(c.field, c.value, lang, $i18n.t),
                                       })}
                                 {pick(c.reason)}
                                 {@render calls(c.references)}

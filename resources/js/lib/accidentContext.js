@@ -16,14 +16,18 @@ export function documentDate(published, lang = 'fr') {
 
 /**
  * Valeur d'avant ou valeur retenue d'une correction, mise en forme selon le champ.
- * @param {string} field occurred_on, occurred_at_time, deaths ou injuries
+ * @param {string} field occurred_on, occurred_at_time, deaths, injuries, kind ou commune_insee
  * @param {string|number|null} value
  * @param {string} [lang]
+ * @param {((key: string) => string)|null} [t] traduction, pour la nature
  */
-export function correctionValue(field, value, lang = 'fr') {
+export function correctionValue(field, value, lang = 'fr', t = null) {
     if (value === null || value === undefined || value === '') return null;
     if (field === 'occurred_on') return accidentDate(String(value), 'day', lang);
     if (field === 'occurred_at_time') return timeText(String(value), lang);
+    // Nature : libellé traduit ; code INSEE de la commune : tel quel (jamais mis en forme comme un nombre).
+    if (field === 'kind') return t ? t(`accidents.kinds.${value}`) : String(value);
+    if (field === 'commune_insee') return String(value);
     return formatNumber(Number(value), lang);
 }
 

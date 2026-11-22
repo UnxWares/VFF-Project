@@ -299,6 +299,8 @@ return [
             'occurred_at_time' => 'Uhrzeit',
             'deaths' => 'Tote',
             'injuries' => 'Verletzte',
+            'kind' => 'Art',
+            'commune_insee' => 'Gemeinde (INSEE-Code)',
         ],
         'images_title' => 'Bilder',
         'via_commons' => 'über Wikimedia Commons',

@@ -299,6 +299,8 @@ return [
             'occurred_at_time' => 'Time',
             'deaths' => 'Deaths',
             'injuries' => 'Injured',
+            'kind' => 'Type',
+            'commune_insee' => 'Municipality (INSEE code)',
         ],
         'images_title' => 'Images',
         'via_commons' => 'via Wikimedia Commons',
