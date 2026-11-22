@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\Traction\LineElectrificationAggregate;
 use App\Support\Lgv;
 use Illuminate\Support\Facades\DB;
 
@@ -100,8 +101,6 @@ class LineClassifier
         $lines = DB::select(
             'SELECT l.id, l.code, l.name,
                     MAX(ls.max_speed_kmh) AS vmax,
-                    BOOL_OR(ls.electrified) AS elec,
-                    MODE() WITHIN GROUP (ORDER BY ls.voltage_v) FILTER (WHERE ls.electrified AND ls.voltage_v IS NOT NULL) AS volt,
                     COALESCE(BOOL_AND(ls.is_heritage) FILTER (WHERE ls.status IN (\'in_service\', \'single_track\')), false) AS heritage_only
              FROM lines l JOIN line_segments ls ON ls.line_id = l.id AND ls.era_id = ?
              GROUP BY l.id, l.code, l.name',
@@ -151,7 +150,7 @@ class LineClassifier
             }
         }
 
-        $aggAssign = [];   // line_id => [vmax, elec, volt]
+        $aggAssign = [];   // line_id => [vmax]
         $assign = [];          // line_id => traffic_type final (ligne entière)
         $lineTypeAssign = [];   // line_id => lines.type (passengers|freight|mixed|null)
         $lgvAssign = [];        // line_id => bool is_lgv
@@ -187,7 +186,7 @@ class LineClassifier
                 $stats['lgv']++;
             }
             $lgvAssign[$l->id] = $isLgv;
-            $aggAssign[$l->id] = [$l->vmax, (bool) $l->elec, $l->volt];
+            $aggAssign[$l->id] = [$l->vmax];
             $stale = $this->portions->staleStations($code);
             $extra = $stale ? ['stale_stations' => array_slice($stale, 0, 20)] : [];
 
@@ -287,14 +286,12 @@ class LineClassifier
                 DB::update('UPDATE lines SET type = NULL WHERE id = ANY(?::bigint[])', ['{'.implode(',', $heritageOnly).'}']);
             }
 
-            // Drapeau LGV + agrégats ligne (vitesse/électrification/tension).
-            // Les agrégats ne remplacent une valeur existante (Wikidata, saisie…)
-            // que si les segments en apportent une : segments muets ≠ « non électrifiée ».
+            // Drapeau LGV + vitesse de la ligne. L'électrification de la ligne (part des tronçons en
+            // service électrifiés, pas un seul tronçon) est décidée plus bas par LineElectrificationAggregate.
             foreach ($lgvAssign as $lineId => $isLgv) {
-                [$vmax, $elec, $volt] = $aggAssign[$lineId] ?? [null, false, null];
-                DB::update('UPDATE lines SET is_lgv=?, max_speed_kmh=COALESCE(?, max_speed_kmh),
-                                   electrified=(electrified OR ?), voltage_v=COALESCE(?, voltage_v) WHERE id=?',
-                    [$isLgv, $vmax, $elec, $volt, $lineId]);
+                [$vmax] = $aggAssign[$lineId] ?? [null];
+                DB::update('UPDATE lines SET is_lgv=?, max_speed_kmh=COALESCE(?, max_speed_kmh) WHERE id=?',
+                    [$isLgv, $vmax, $lineId]);
             }
 
             // Audit : source 'sncf-classification' + confiance par ligne (curation).
@@ -368,6 +365,8 @@ class LineClassifier
             }
         });
         $stats['portions']['split'] = $split;
+
+        (new LineElectrificationAggregate)->apply($eraId);
 
         // Passe 2 : héritage des raccordements depuis les voisins déjà classés (<60 m)
         $rstats = $this->resolveRaccordements($eraId, array_keys($deferred), array_keys(array_filter($lgvAssign)), $voieMere);
