@@ -23,6 +23,12 @@ return [
     // sortent de nouveau. Les tuiles vectorielles de la carte (affichage) ne sont pas concernées.
     'withhold_unlicensed_geometry' => (bool) env('API_WITHHOLD_UNLICENSED_GEOMETRY', true),
 
+    // Taille maximale du corps d'une requête GraphQL ou MCP (octets) : au-delà, 413 avant tout traitement.
+    'max_body_bytes' => (int) env('API_MAX_BODY_BYTES', 2 * 1024 * 1024),
+
+    // Opérations d'un lot GraphQL (liste de requêtes dans un seul POST) : au-delà, 400.
+    'graphql_max_batch' => (int) env('API_GRAPHQL_MAX_BATCH', 5),
+
     'tokens' => [
         // Jetons actifs par compte au plus.
         'max_per_account' => (int) env('API_TOKENS_MAX_PER_ACCOUNT', 10),

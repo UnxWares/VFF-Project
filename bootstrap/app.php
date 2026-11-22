@@ -59,9 +59,10 @@ return Application::configure(basePath: dirname(__DIR__))
             // Pages publiques qu'un visiteur non connecté peut relire hors ligne (service worker).
             MarkOfflineReadable::class,
         ]);
-        // X-Frame-Options (sauf /embed/*), nosniff, Referrer-Policy. En tête du
-        // groupe web pour couvrir aussi les 404 de liaison de modèle et les 419.
-        $middleware->web(prepend: [SecurityHeaders::class]);
+        // X-Frame-Options (sauf /embed/*), nosniff, Referrer-Policy, Permissions-Policy, HSTS. Dans la pile
+        // globale pour couvrir toutes les familles de réponses (web, API, GraphQL, MCP, dictionnaires, fond
+        // de carte, tracés) et aussi les 404 de liaison de modèle, les 419 et les 429 du limiteur.
+        $middleware->prepend(SecurityHeaders::class);
 
         // API publique : erreurs de validation en anglais (pas de langue de page).
         $middleware->api(prepend: [ApiLocale::class]);

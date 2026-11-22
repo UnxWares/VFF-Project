@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 use App\GraphQL\Support\QueryLimitErrorHandler;
+use App\Http\Middleware\LimitApiRequest;
 use App\Http\Middleware\StartGraphQLSession;
 use GraphQL\Error\DebugFlag;
 use GraphQL\Validator\Rules\DisableIntrospection;
@@ -59,6 +60,9 @@ return [
             // Même jeton facultatif et même limiteur que l'API REST v1 (routes/api.php, config/api.php).
             'api.token',
             'throttle:public-api',
+
+            // Corps de 2 Mio au plus, pas de lot de requêtes (une seule opération par appel).
+            LimitApiRequest::class,
 
             // Session du site, seulement si son cookie est présent et sans jeton : mutations de
             // contribution envoyées depuis le site (contrôle CSRF dans ContributionApiAccess).

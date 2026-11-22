@@ -150,16 +150,16 @@ Route::middleware('iframe.embed')->prefix('embed')->name('embed.')->group(functi
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth-login-ip');
 
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth-register-ip');
 
     Route::get('/forgot-password', [PasswordResetController::class, 'showForgot'])->name('password.request');
-    Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->name('password.email');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->middleware('throttle:auth-password-ip')->name('password.email');
 
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'showReset'])->name('password.reset');
-    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
+    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:auth-password-ip')->name('password.update');
 });
 
 Route::middleware('auth')->group(function (): void {

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\LimitApiRequest;
 use App\Mcp\Servers\VffServer;
 use Laravel\Mcp\Facades\Mcp;
 
@@ -8,7 +9,7 @@ use Laravel\Mcp\Facades\Mcp;
 // limiteur que l'API publique (compteur commun, limite par profil : config/api.php). Fichier chargé
 // par le paquet laravel/mcp, hors du groupe « web » (ni session ni CSRF).
 Mcp::web('/mcp', VffServer::class)
-    ->middleware(['api.token', 'throttle:public-api'])
+    ->middleware(['api.token', 'throttle:public-api', LimitApiRequest::class])
     ->name('mcp');
 
 // stdio, pour un client MCP local : php artisan mcp:start vff

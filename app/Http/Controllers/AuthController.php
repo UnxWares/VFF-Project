@@ -47,8 +47,8 @@ class AuthController extends Controller
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
+            'email' => ['required', 'email', 'max:254'],
+            'password' => ['required', 'string', 'max:1000'],
         ]);
 
         $remember = (bool) $request->boolean('remember');

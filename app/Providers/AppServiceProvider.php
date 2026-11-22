@@ -109,6 +109,13 @@ class AppServiceProvider extends ServiceProvider
         // Propositions qui font appeler Wikidata (série, vérification d'identifiant) : site et GraphQL.
         ContributionLimits::register();
 
+        // Formulaires d'authentification, par adresse IP (en plus des limites par adresse e-mail des
+        // contrôleurs) : sans elles, une seule IP essayait autant d'adresses qu'elle voulait (bourrage
+        // d'identifiants), créait des comptes sans fin ou faisait envoyer des courriels à n'importe qui.
+        RateLimiter::for('auth-login-ip', fn (Request $request): Limit => Limit::perMinute(20)->by('login-ip:'.$request->ip()));
+        RateLimiter::for('auth-register-ip', fn (Request $request): Limit => Limit::perHour(10)->by('register-ip:'.$request->ip()));
+        RateLimiter::for('auth-password-ip', fn (Request $request): Limit => Limit::perHour(20)->by('password-ip:'.$request->ip()));
+
         // Rapports de violation de la CSP (CspReportController), envoyés par les navigateurs : par adresse IP.
         RateLimiter::for('csp-reports', fn (Request $request): Limit => Limit::perMinute(max(1, (int) config('csp.reports_per_minute', 30)))
             ->by('ip:'.$request->ip())
