@@ -1,4 +1,5 @@
 <script>
+    import { sectionHeight } from '$lib/actions/sectionHeight.js';
     /**
      * Section d'une fiche (ligne, gare, matériel) : titre de niveau 2, compteur facultatif,
      * chapeau (`intro`), puis le contenu. Même largeur, mêmes marges et même échelle typographique
@@ -23,6 +24,7 @@
     class="sheet-section"
     {id}
     bind:this={sectionEl}
+    use:sectionHeight
     aria-labelledby={title ? headingId : undefined}
     aria-label={title ? undefined : label}
 >

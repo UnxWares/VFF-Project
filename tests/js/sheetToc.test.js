@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { currentSection, hiddenEdges, revealScrollLeft } from '$lib/sheetToc.js';
+import { currentSection, hiddenEdges, revealScrollLeft, settleOnSection } from '$lib/sheetToc.js';
 
 const sections = (...tops) => tops.map((top, i) => ({ id: `s${i}`, top }));
 const view = { line: 160, atEnd: false, viewportHeight: 800 };
@@ -62,5 +62,81 @@ describe('hiddenEdges', () => {
             before: true,
             after: false,
         });
+    });
+});
+
+describe('settleOnSection', () => {
+    function fakeWindow({ top, margin = 80 }) {
+        let scrollY = 1000;
+        let currentTop = top;
+        const listeners = {};
+        const frames = [];
+        let now = 0;
+        const env = {
+            performance: { now: () => now },
+            get scrollY() {
+                return scrollY;
+            },
+            document: {
+                getElementById: (id) =>
+                    id === 'x' ? { getBoundingClientRect: () => ({ top: currentTop }) } : null,
+            },
+            getComputedStyle: () => ({ scrollMarginTop: `${margin}px` }),
+            scrollBy: ({ top: dy }) => {
+                scrollY += dy;
+                currentTop -= dy;
+            },
+            requestAnimationFrame: (cb) => frames.push(cb),
+            cancelAnimationFrame: () => {},
+            addEventListener: (name, fn) => (listeners[name] = fn),
+            removeEventListener: (name) => delete listeners[name],
+        };
+        return {
+            env,
+            listeners,
+            frames,
+            tick: (ms = 16) => {
+                now += ms;
+                frames.shift()?.();
+            },
+            top: () => currentTop,
+        };
+    }
+
+    it('corrige la position de la section jusqu a sa marge de défilement', () => {
+        const w = fakeWindow({ top: 25 });
+        settleOnSection('x', w.env);
+        w.tick();
+        expect(w.top()).toBe(80);
+    });
+
+    it('ne fait rien quand la section est déjà en place et s arrête après 10 images stables', () => {
+        const w = fakeWindow({ top: 80 });
+        settleOnSection('x', w.env);
+        for (let i = 0; i < 30; i++) w.tick();
+        expect(w.top()).toBe(80);
+        expect(w.frames.length).toBe(0);
+        expect(Object.keys(w.listeners)).toEqual([]);
+    });
+
+    it('s arrête sur un geste de l utilisateur', () => {
+        const w = fakeWindow({ top: 25 });
+        settleOnSection('x', w.env);
+        w.listeners.wheel();
+        expect(Object.keys(w.listeners)).toEqual([]);
+    });
+
+    it('s arrête si la section n existe pas, et au bout d une seconde', () => {
+        const none = fakeWindow({ top: 25 });
+        settleOnSection('absente', none.env);
+        none.tick();
+        expect(none.frames.length).toBe(0);
+
+        const slow = fakeWindow({ top: 25 });
+        slow.env.scrollBy = () => {};
+        settleOnSection('x', slow.env);
+        slow.tick(600);
+        slow.tick(600);
+        expect(slow.frames.length).toBe(0);
     });
 });

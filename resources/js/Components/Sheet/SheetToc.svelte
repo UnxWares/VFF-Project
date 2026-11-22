@@ -1,6 +1,11 @@
 <script>
     import { onMount } from 'svelte';
-    import { currentSection, hiddenEdges, revealScrollLeft } from '$lib/sheetToc.js';
+    import {
+        currentSection,
+        hiddenEdges,
+        revealScrollLeft,
+        settleOnSection,
+    } from '$lib/sheetToc.js';
 
     /**
      * Sommaire collant d'une fiche (ligne, gare), posé sous SheetHero : une rangée d'ancres dessinée
@@ -91,8 +96,28 @@
         });
     }
 
+    // Saut d'ancre : les sections hors écran ont une hauteur estimée (content-visibility), la cible est
+    // remise à sa place quand les voisines prennent leur vraie hauteur.
+    let stopSettling = () => {};
+    function settle(id) {
+        stopSettling();
+        stopSettling = settleOnSection(id);
+    }
+    function onNavClick(event) {
+        const link = event.target instanceof Element ? event.target.closest('a[href^="#"]') : null;
+        if (link) settle(link.getAttribute('href').slice(1));
+    }
+
     onMount(() => {
         schedule();
+        navEl?.addEventListener('click', onNavClick);
+        if (location.hash.length > 1) {
+            try {
+                settle(decodeURIComponent(location.hash.slice(1)));
+            } catch {
+                // fragment mal formé : le navigateur gère seul
+            }
+        }
         // Sections ajoutées ou retirées après coup (galerie chargée par l'API, repli d'une liste).
         const observer = new MutationObserver(schedule);
         observer.observe(navEl?.closest('main') ?? document.body, {
@@ -101,6 +126,8 @@
         });
         return () => {
             cancelAnimationFrame(frame);
+            stopSettling();
+            navEl?.removeEventListener('click', onNavClick);
             observer.disconnect();
         };
     });
