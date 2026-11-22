@@ -136,12 +136,16 @@ production n'a pas de serveur temps réel. Pour l'activer :
      (connexion `REDIS_*`).
 3. **nginx** : décommenter `include /etc/nginx/snippets/vff-reverb.conf;` dans le bloc `vff-project.org`.
    Seul `/app/` (la connexion WebSocket) est transmis à Reverb ; son API HTTP (`/apps/…`) reste locale.
+   Une adresse IP garde au plus 20 connexions WebSocket ouvertes (`limit_conn vff_websocket`, zone déclarée
+   en tête du site) : Reverb n'a qu'un plafond global (`REVERB_APP_MAX_CONNECTIONS`, vide = sans plafond).
 4. `php artisan config:cache`, puis rechargement de PHP-FPM et de nginx.
 
 Contrôle : `curl --http1.1 -s -o /dev/null -w '%{http_code}\n' -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H
 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' -H 'Origin: https://vff-project.org'
-https://vff-project.org/app/<REVERB_APP_KEY>` doit répondre `101`. Sur `/validate`, la liste se met à jour
-quand un autre validateur approuve une contribution.
+https://vff-project.org/app/<REVERB_APP_KEY>` doit répondre `101`. Reverb répond aussi `101` à une origine
+étrangère, puis envoie `pusher:error` (code 4009, `Origin not allowed`) et ferme : le refus se lit dans le premier
+message, pas dans le code HTTP. Sur `/validate`, la liste se met à jour quand un autre validateur approuve une
+contribution.
 
 ## Contrôle de la syntaxe
 

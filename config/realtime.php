@@ -22,4 +22,13 @@ return [
         'port' => (int) env('REALTIME_CLIENT_PORT', 443),
         'scheme' => env('REALTIME_CLIENT_SCHEME', 'https'),
     ],
+
+    /*
+    | Abonnements GraphQL : chacun reste un jour dans Valkey et chaque diffusion passe par tous les
+    | abonnés du sujet. Un compte (ou une adresse IP sans compte) en ouvre au plus ce nombre par jour
+    | (App\GraphQL\Subscriptions\ContributionSubscription).
+    */
+    'subscriptions' => [
+        'max_per_day' => (int) env('REALTIME_SUBSCRIPTIONS_PER_DAY', 100),
+    ],
 ];

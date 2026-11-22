@@ -13,9 +13,9 @@ final class MyContributionChanged extends ContributionSubscription
 {
     private const TOPIC = 'MY_CONTRIBUTION_CHANGED';
 
-    public function can(Subscriber $subscriber): bool
+    protected function permits(Subscriber $subscriber): bool
     {
-        return parent::can($subscriber) && $this->account($subscriber) !== null;
+        return $this->account($subscriber) !== null;
     }
 
     public function encodeTopic(Subscriber $subscriber, string $fieldName): string
