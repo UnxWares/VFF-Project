@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Era;
+use App\Support\DatabaseGuard;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -16,7 +17,8 @@ use Illuminate\Support\Facades\DB;
  * personnelle, aucun compte. L'article du journal vient des fichiers versionnés `resources/content/journal`.
  *
  * Idempotent : relancer le seeder ne duplique rien (clés naturelles : slug, ère + ligne + gare).
- * Garde-fou : refuse toute base dont le nom ne finit pas par `_test` (jamais la base de développement `vff`).
+ * Garde-fou : refuse toute base dont le nom ne finit pas par `_test` ou `_test_<n>` (processus d'une suite en
+ * parallèle) : jamais la base de développement `vff` (App\Support\DatabaseGuard).
  */
 class E2eSeeder extends Seeder
 {
@@ -32,8 +34,10 @@ class E2eSeeder extends Seeder
     public function run(): void
     {
         $database = (string) DB::connection()->getDatabaseName();
-        if (! str_ends_with($database, '_test')) {
-            throw new \RuntimeException("E2eSeeder refuse la base « {$database} » : seule une base dont le nom finit par _test est acceptée.");
+        // Même règle que les tests et les commandes qui vident la base : `_test`, ou `_test_<n>` d'un processus
+        // de la suite en parallèle (sinon E2eSeederTest échouait sous --parallel).
+        if (! DatabaseGuard::isDisposable($database)) {
+            throw new \RuntimeException("E2eSeeder refuse la base « {$database} » : seule une base dont le nom finit par _test (ou _test_<n>) est acceptée.");
         }
 
         $this->call([EraSeeder::class, HistoricalErasSeeder::class]);

@@ -1317,6 +1317,11 @@
         padding-bottom: var(--vff-section-space);
         background-color: var(--vff-bg);
     }
+    /* Une commande amenée dans la vue (clavier, lecteur d'écran, audit) ne finit pas sous la barre fixe
+       de l'en-tête ni sous le sommaire collant de la fiche (WCAG 2.4.11, 2.5.8). Aucun effet visuel. */
+    main :global(:is(a, button, summary, input, select, textarea)) {
+        scroll-margin-block-start: calc(var(--vff-header-h) + 72px);
+    }
     /* Sections sous la carte (gares, profil, chronique…) : mises en page seulement quand elles approchent
        de l'écran. Le rendu ne change pas ; la première mise en page de la fiche, qui couvrait ses 3 000
        éléments, ne porte plus que le haut de la page. `auto` garde la hauteur réelle une fois vue. La marge
@@ -1354,7 +1359,7 @@
 
     /* En-tête (SheetHero) : noms, exploitant, rail de la ligne aujourd'hui */
     .alt-names {
-        max-width: 80ch;
+        max-width: 46.4em; /* 80ch de Lato 400 (« 0 » = 0,58 em), en em : indépendant de la police de repli */
         margin: 4px 0 0;
         font-family: var(--vff-font-body);
         font-size: var(--vff-fs-md);

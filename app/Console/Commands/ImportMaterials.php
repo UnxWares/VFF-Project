@@ -34,6 +34,7 @@ use Illuminate\Support\Facades\DB;
  *   vff:import-materials                 # fiches puis liens
  *   vff:import-materials --refresh       # redemande tout aux sources
  *   vff:import-materials --links-only    # liens seulement (fiches déjà importées)
+ *   vff:import-materials --no-planned    # sans les liens directs des sections « Dessertes réalisées ou prévues »
  *   vff:import-materials --no-attested   # sans les séries non rattachées à la France
  *   vff:import-materials --dry-run       # lit et compte, sans écrire en base (liens à créer et à retirer)
  */
@@ -43,6 +44,7 @@ class ImportMaterials extends Command
         {--refresh : Ignore le cache local et redemande tout aux sources}
         {--links-only : Ne recalcule que les liens matériel ↔ ligne}
         {--no-links : N\'importe que les fiches}
+        {--no-planned : Ne lit pas les liens directs vers des lignes des sections « Dessertes réalisées ou prévues »}
         {--no-attested : N\'ajoute pas les séries que Wikidata ne rattache pas à la France}
         {--dry-run : Lit les sources et compte, sans écrire en base}';
 
@@ -64,7 +66,7 @@ class ImportMaterials extends Command
             $this->importMaterials($source, $wikipedia, $rules, $cache, $refresh, $dryRun);
         }
         if (! $this->option('no-links')) {
-            $linker = new LineMaterialLinker($source, $wikipedia, relations: MaterialRelations::fromDatabase());
+            $linker = new LineMaterialLinker($source, $wikipedia, relations: MaterialRelations::fromDatabase(), plannedSections: ! $this->option('no-planned'));
             // Articles d'itinéraires (database/data/wikipedia_itineraries.php), mis en cache pour les périodes
             // qu'ils datent sur leurs lignes (vff:import-material-periods, MaterialPeriodCollector).
             $wikipedia->sections(MaterialPeriodCollector::ITINERARY_CACHE, array_keys(require database_path('data/wikipedia_itineraries.php')), WikipediaMaterialSections::LINE_SECTIONS, $refresh);

@@ -128,7 +128,7 @@ return [
             ],
             [
                 'fr' => 'Heure : vers 15 h 30 selon la liste, vers 16 h selon l\'exposé du ministre.',
-                'en' => 'Time: about 3.30 p.m. according to the list, about 4 p.m. according to the minister\'s statement.',
+                'en' => 'Time: about 3.30 pm according to the list, about 4 pm according to the minister\'s statement.',
                 'de' => 'Uhrzeit: gegen 15.30 Uhr nach der Liste, gegen 16 Uhr nach der Darstellung des Ministers.',
                 'sources' => ['wp-liste-1840', 'ddb-1846-03-15-eisenbahn-zeitung'],
             ],

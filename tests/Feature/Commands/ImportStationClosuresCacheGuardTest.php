@@ -105,6 +105,29 @@ class ImportStationClosuresCacheGuardTest extends TestCase
         $this->artisan('vff:import-station-closures', ['--source' => ['wikidata']])->assertSuccessful();
     }
 
+    /**
+     * Sans --from-cache, la source wikidata lit quand même le cache disque (jamais de requête ici) : un cache
+     * vide ne doit pas effacer les fermetures Wikidata déjà en base (21/11 : 54 perdues), ni bloquer la relecture
+     * complète en ligne de vff:stations-pipeline (R8), dont les autres sources sont bien remplacées.
+     */
+    public function test_without_from_cache_an_empty_wikidata_cache_keeps_the_wikidata_events_and_replaces_the_others(): void
+    {
+        $id = $this->closedStationWithWikidata('alpha', 'Q1');
+        DB::table('station_events')->insert(['station_id' => $id, 'type' => 'closure', 'event_date' => '1980-01-01', 'date_precision' => 'year',
+            'source' => 'wikidata:qualifiers', 'source_ref' => 'Q1#P3999', 'is_inferred' => false, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('station_events')->insert(['station_id' => $id, 'type' => 'closure', 'event_date' => '1975-01-01', 'date_precision' => 'year',
+            'source' => 'osm:note', 'source_ref' => 'n1', 'is_inferred' => false, 'created_at' => now(), 'updated_at' => now()]);
+
+        $this->artisan('vff:import-station-closures', ['--source' => ['wikidata', 'osm']])
+            ->expectsOutputToContain('Cache incomplet pour wikidata')
+            ->expectsOutputToContain('fermetures Wikidata déjà en base gardées')
+            ->assertSuccessful();
+
+        $this->assertSame(1, DB::table('station_events')->where('source', 'wikidata:qualifiers')->count());
+        // osm:note relue (aucun objet OSM ici) : l'ancienne ligne est bien remplacée.
+        $this->assertSame(0, DB::table('station_events')->where('source', 'osm:note')->count());
+    }
+
     public function test_cache_only_fills_the_wikidata_cache_without_writing_to_the_database(): void
     {
         Sleep::fake();

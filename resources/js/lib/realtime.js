@@ -14,21 +14,35 @@ export const CONTRIBUTION_EVENTS = [
 
 let echoPromise = null;
 
+/**
+ * Crée Echo et identifie la connexion auprès du serveur (`/broadcasting/user-auth`) : le serveur peut
+ * alors la couper quand le compte est suspendu ou change de rôle (App\Services\Realtime\RealtimeRevocation).
+ * Pusher se reconnecte seul et redemande ses canaux, que le site refuse alors.
+ */
+function openEcho(Echo, Pusher, config) {
+    const echo = new Echo({
+        broadcaster: 'reverb',
+        key: config.key,
+        wsHost: config.host,
+        wsPort: config.port,
+        wssPort: config.port,
+        forceTLS: config.scheme === 'https',
+        enabledTransports: ['ws', 'wss'],
+        authEndpoint: config.auth_endpoint,
+        Pusher,
+    });
+    try {
+        echo.connector?.signin?.();
+    } catch {
+        // Sans identification, seule la coupure immédiate manque : l'accès se redemande à la reconnexion.
+    }
+    return echo;
+}
+
 /** Instance Echo partagée par la page, créée au premier abonnement. */
 function connect(config) {
     echoPromise ??= Promise.all([import('laravel-echo'), import('pusher-js')]).then(
-        ([{ default: Echo }, { default: Pusher }]) =>
-            new Echo({
-                broadcaster: 'reverb',
-                key: config.key,
-                wsHost: config.host,
-                wsPort: config.port,
-                wssPort: config.port,
-                forceTLS: config.scheme === 'https',
-                enabledTransports: ['ws', 'wss'],
-                authEndpoint: config.auth_endpoint,
-                Pusher,
-            }),
+        ([{ default: Echo }, { default: Pusher }]) => openEcho(Echo, Pusher, config),
     );
     return echoPromise;
 }

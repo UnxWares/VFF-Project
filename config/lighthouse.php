@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\GraphQL\Subscriptions\SubscriptionRoutes;
 use App\GraphQL\Support\QueryLimitErrorHandler;
 use App\Http\Middleware\LimitApiRequest;
 use App\Http\Middleware\StartGraphQLSession;
@@ -19,7 +20,6 @@ use Nuwave\Lighthouse\Schema\Directives\SanitizeDirective;
 use Nuwave\Lighthouse\Schema\Directives\SpreadDirective;
 use Nuwave\Lighthouse\Schema\Directives\TransformArgsDirective;
 use Nuwave\Lighthouse\Schema\Directives\TrimDirective;
-use Nuwave\Lighthouse\Subscriptions\SubscriptionRouter;
 use Nuwave\Lighthouse\Tracing\ApolloTracing\ApolloTracing;
 use Nuwave\Lighthouse\Validation\ValidateDirective;
 
@@ -499,6 +499,8 @@ return [
         /*
          * Subscription broadcasting drivers with config options.
          */
+        // VFF : routes d'App\GraphQL\Subscriptions\SubscriptionRoutes (404 tant que le temps réel est désactivé,
+        // limiteur de l'API publique, pas de webhook sans signature) à la place de celles de Lighthouse.
         'broadcasters' => [
             'log' => [
                 'driver' => 'log',
@@ -506,17 +508,17 @@ return [
             'echo' => [
                 'driver' => 'echo',
                 'connection' => env('LIGHTHOUSE_SUBSCRIPTION_REDIS_CONNECTION', 'default'),
-                'routes' => SubscriptionRouter::class.'@echoRoutes',
+                'routes' => SubscriptionRoutes::class.'@reverb',
             ],
             'pusher' => [
                 'driver' => 'pusher',
                 'connection' => 'pusher',
-                'routes' => SubscriptionRouter::class.'@pusher',
+                'routes' => SubscriptionRoutes::class.'@pusher',
             ],
             'reverb' => [
                 'driver' => 'pusher',
                 'connection' => 'reverb',
-                'routes' => SubscriptionRouter::class.'@reverb',
+                'routes' => SubscriptionRoutes::class.'@reverb',
             ],
         ],
 

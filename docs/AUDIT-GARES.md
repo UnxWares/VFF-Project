@@ -156,3 +156,26 @@ ligne. Les deux règles sont des listes de travail pour la recherche de sources,
 Mesure sur `vff` (22/11/2026) : 5 gares pour la première règle (Andrézieux et St-Just-sur-Loire 1827, Aurec, Clermain,
 Etoile d'Alaï) ; l'ancienne règle `ohm_opened_shared_date` donnait 11 lignes, la nouvelle 25 gares (liste dans
 `storage/app/reports/agents/aprem-2111/invariant-section-gare.md`). Tests : `tests/Feature/OhmLawDateInvariantsTest.php`.
+
+## Dates des gares lues dans les articles de gare (22/11/2026)
+
+Les ouvertures déduites de la ligne (`inferred:line_event`, 5 503 gares au départ) ou connues à l'année seulement viennent
+surtout de lignes dont les mises en service par section n'ont pas été lues (gabarit `{{Date-|20/7/1862}}` de l'article de la
+ligne 838000, par exemple : aucun événement d'ouverture, donc aucune gare datée). Une passe rejouable lit l'article de chaque
+gare liée à Wikidata et pose des corrections sourcées, sans toucher au calcul des ères (`StationTimeline`, `BuildStationEras`) :
+
+- `database/data/gares_dates_articles.php` (1 756 ouvertures, incluses à la fin de `gares_corrections.php`) : date de
+  l'infobox « mise en service » ou d'une phrase « la gare est mise en service le … ». Même année que la date VFF : le jour
+  précise l'année (1 641 gares). Année différente : seulement quand VFF a déduit l'année de la ligne, que la date est avant 1940
+  et que la phrase parle de la gare elle-même (112 gares, par exemple Mars 1853 au lieu de 1827). Jamais de date qui contredit
+  Wikidata ou OpenHistoricalMap, une réouverture, une gare récente, une section ou une ligne entière : ces cas sont listés dans
+  `storage/app/reports/agents/aprem-2111/audit-gares-suite/*.csv` pour décision.
+- `gares_corrections.php`, sections 18 à 21 et 23 : ouvertures et fins de service par section de la ligne 838000 (Troyes - Gray,
+  dates de l'article de la ligne), gares prévues jamais ouvertes (transcévenole 791000 et Cahors - Moissac 633000 : « projetées »),
+  ouvertures par section de la ligne 405000, fins des voyageurs et du fret dites pour la gare elle-même dans le texte des articles.
+- Test `tests/Unit/StationCorrectionsConsistencyTest.php` : une gare n'a qu'une date par type d'événement dans le fichier de
+  corrections et aucune fermeture n'est antérieure à son ouverture.
+
+Reste hors de cette passe : les gares sans élément Wikidata (3 998 gares aux ouvertures estimées), les lignes dont les sections
+ne sont pas lues (cause racine côté import des événements de ligne), les fermetures de 8 haltes de la ligne 405000 (aucun
+article de gare ni de ligne ne les date).

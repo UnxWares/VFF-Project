@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Buitenlandsch nieuws',
+            'title' => 'Vierde blad. Buitenlandsch nieuws',
             'publisher' => 'Het nieuws van den dag',
             'author' => null,
             'published' => '1903-02-17',

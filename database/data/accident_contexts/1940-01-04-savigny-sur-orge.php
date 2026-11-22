@@ -52,7 +52,7 @@ return [
         'course' => [
             [
                 'fr' => 'Le 4 janvier 1940, un train de voyageurs de Paris à Orléans, parti à 17 h de la gare d\'Austerlitz, s\'est arrêté sur une avarie de sa machine à environ 200 m de la gare de Savigny-sur-Orge. La locomotive envoyée pour le dépanner l\'a heurté par l\'arrière : le fourgon de queue et les trois dernières voitures se sont télescopés.',
-                'en' => 'On 4 January 1940, a passenger train from Paris to Orléans, which had left Austerlitz station at 5 p.m., came to a halt with an engine failure about 200 m from Savigny-sur-Orge station. The engine sent to rescue it ran into its rear: the rear van and the last three carriages telescoped.',
+                'en' => 'On 4 January 1940, a passenger train from Paris to Orléans, which had left Austerlitz station at 5 pm, came to a halt with an engine failure about 200 m from Savigny-sur-Orge station. The engine sent to rescue it ran into its rear: the rear van and the last three carriages telescoped.',
                 'de' => 'Am 4. Januar 1940 blieb ein Personenzug Paris-Orléans, der um 17 Uhr den Bahnhof Austerlitz verlassen hatte, wegen eines Maschinenschadens etwa 200 m vor dem Bahnhof Savigny-sur-Orge liegen. Die zur Hilfe geschickte Lokomotive fuhr auf ihn auf: Der hintere Packwagen und die drei letzten Wagen schoben sich ineinander.',
                 'sources' => ['wp-liste-1940', 'elux-1940-01-06-luxemburger-zeitung', 'elux-1940-01-08-landwirth'],
             ],

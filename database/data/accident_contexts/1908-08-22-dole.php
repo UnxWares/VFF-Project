@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Brève de France',
+            'title' => 'Korte Berichten',
             'publisher' => 'Franeker Courant (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1908-08-27',

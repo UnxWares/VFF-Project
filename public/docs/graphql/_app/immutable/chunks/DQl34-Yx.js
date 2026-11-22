@@ -637,7 +637,8 @@ Marche à suivre (détail et exemples dans \`docs/API.md\`, section « Temps ré
 3. chaque événement arrive sous le nom \`lighthouse-subscription\`, avec \`result.data.<champ>\`.
 
 Les abonnements comptent dans la limite de débit de l'API comme une requête. Un abonnement oublié par
-le client expire au bout d'un jour. Aucune donnée personnelle n'est diffusée : ni auteur, ni
+le client expire au bout d'un jour. Un compte, ou une adresse IP sans compte, en ouvre au plus 100 par
+jour : au-delà, l'erreur porte \`extensions.code\` = \`too_many_subscriptions\`. Aucune donnée personnelle n'est diffusée : ni auteur, ni
 validateur, ni motif de refus, ni contenu de la proposition (lisez-le ensuite par la requête qui
 convient, avec vos droits).
 """
@@ -2292,7 +2293,7 @@ type Accident {
   Nature : \`collision\` (entre trains ou avec un obstacle sur la voie), \`derailment\`
   (déraillement), \`level_crossing\` (collision à un passage à niveau), \`fire\` (incendie),
   \`explosion\`, \`structure_failure\` (rupture d'ouvrage : pont, tunnel, mur, rail), \`attack\`
-  (attentat), \`person_struck\` (personnes heurtées hors passage à niveau), \`runaway\` (dérive),
+  (attentat), \`war_action\` (fait de guerre : bombardement, ouvrage détruit par une armée), \`person_struck\` (personnes heurtées hors passage à niveau), \`runaway\` (dérive),
   \`incident\` (incident grave sans accident : quasi-collision, dépassement de vitesse,
   immobilisation), \`other\`.
   """

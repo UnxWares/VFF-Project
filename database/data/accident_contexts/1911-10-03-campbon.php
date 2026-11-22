@@ -37,7 +37,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Buitenland. De Oorlog (brève « Treinbotsing »)',
+            'title' => 'Buitenland. De Oorlog',
             'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
             'author' => null,
             'published' => '1911-10-05',

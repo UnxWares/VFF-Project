@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Telegrammen. Spoorwegongelukken',
+            'title' => 'Telegrammen',
             'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
             'author' => null,
             'published' => '1917-02-16',

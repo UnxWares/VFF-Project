@@ -36,4 +36,30 @@ class E2eSeederTest extends TestCase
         $this->assertSame($first, $counts());
         $this->assertSame(1, DB::table('lines')->where('slug', E2eSeeder::LINE)->count());
     }
+
+    /**
+     * Garde-fou : une base dont le nom ne finit pas par `_test` (ou `_test_<n>`, processus de la suite en parallèle)
+     * est refusée avant toute écriture. Seul le nom porté par la connexion change ici (elle reste branchée sur la
+     * base de test) : rien ne peut atteindre `vff`.
+     */
+    public function test_seeder_refuses_a_database_whose_name_does_not_end_with_test(): void
+    {
+        $connection = DB::connection();
+        $real = (string) $connection->getDatabaseName();
+        $this->assertMatchesRegularExpression('/_test(_\d+)?$/', $real);
+        $counts = fn () => [DB::table('eras')->count(), DB::table('lines')->count(), DB::table('stations')->count()];
+        $before = $counts();
+        foreach (['vff', 'vff_test_copy', 'vff_testing'] as $name) {
+            $connection->setDatabaseName($name);
+            try {
+                (new E2eSeeder)->run();
+                $this->fail("base « {$name} » acceptée");
+            } catch (\RuntimeException $e) {
+                $this->assertStringContainsString("refuse la base « {$name} »", $e->getMessage());
+            } finally {
+                $connection->setDatabaseName($real);
+            }
+        }
+        $this->assertSame($before, $counts());
+    }
 }

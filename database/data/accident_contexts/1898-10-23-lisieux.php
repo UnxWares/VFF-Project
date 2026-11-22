@@ -38,7 +38,7 @@ return [
         'course' => [
             [
                 'fr' => 'Le 23 octobre 1898 vers 11 h, au kilomètre 204 de la ligne de Paris à Cherbourg, entre Lisieux et Mesnil-Mauger, le train de marchandises n° 2409 a tamponné le train de marchandises n° 5919. Six wagons ont été brisés. Les voies ont été dégagées dans la soirée.',
-                'en' => 'On 23 October 1898 at about 11 a.m., at kilometre 204 of the Paris to Cherbourg line, between Lisieux and Mesnil-Mauger, goods train no. 2409 ran into goods train no. 5919. Six wagons were wrecked. The tracks were cleared in the evening.',
+                'en' => 'On 23 October 1898 at about 11 am, at kilometre 204 of the Paris to Cherbourg line, between Lisieux and Mesnil-Mauger, goods train no. 2409 ran into goods train no. 5919. Six wagons were wrecked. The tracks were cleared in the evening.',
                 'de' => 'Am 23. Oktober 1898 gegen 11 Uhr fuhr bei Kilometer 204 der Strecke Paris-Cherbourg, zwischen Lisieux und Mesnil-Mauger, der Güterzug Nr. 2409 auf den Güterzug Nr. 5919 auf. Sechs Wagen wurden zertrümmert. Am Abend waren die Gleise wieder frei.',
                 'sources' => ['wp-liste-1890', 'elux-1898-10-25-independance'],
             ],

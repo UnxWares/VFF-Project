@@ -38,7 +38,7 @@ return [
         'course' => [
             [
                 'fr' => 'Le train de voyageurs parti de Marseille à 10 h pour Lyon s\'est engagé à grande vitesse dans une courbe très prononcée, le long d\'un talus de huit mètres, aux approches de Mondragon. La locomotive a déraillé et a dévalé le talus avec son tender et le fourgon à bagages. Les voitures de voyageurs sont restées sur la voie.',
-                'en' => 'The passenger train that had left Marseille at 10 a.m. for Lyon entered a very sharp curve at high speed, along an eight-metre embankment, on the approach to Mondragon. The engine derailed and rolled down the embankment with its tender and the luggage van. The passenger carriages stayed on the track.',
+                'en' => 'The passenger train that had left Marseille at 10 am for Lyon entered a very sharp curve at high speed, along an eight-metre embankment, on the approach to Mondragon. The engine derailed and rolled down the embankment with its tender and the luggage van. The passenger carriages stayed on the track.',
                 'de' => 'Der um 10 Uhr in Marseille nach Lyon abgefahrene Personenzug fuhr vor Mondragon mit hoher Geschwindigkeit in eine sehr enge Kurve entlang einer acht Meter hohen Böschung. Die Lokomotive entgleiste und stürzte mit Tender und Gepäckwagen die Böschung hinab. Die Personenwagen blieben auf dem Gleis.',
                 'sources' => ['wp-liste-1860', 'elux-1862-04-30-courrier'],
             ],

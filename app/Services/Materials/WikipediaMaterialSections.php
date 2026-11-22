@@ -217,6 +217,49 @@ final class WikipediaMaterialSections
         return preg_match(self::DOUBTFUL_SECTION, $title) === 1;
     }
 
+    /** Mot « réalisé(e)(s) » dans un titre de section (« Dessertes réalisées ou prévues »). */
+    private const REALISED_TITLE = '/\bréalis/iu';
+
+    /** Verbes et noms de service : la phrase dit que la série circule, dessert ou assure quelque chose. */
+    private const SERVICE_WORDS = '/\b(?:desserv\w*|assur\w*|circul\w*|opèr\w*|exploit\w*|relations?|services?|parcour\w*|livr\w*|affect\w*|engag\w*|roul\w*|utilis\w*|mis(?:e|es)?\s+en\s+service|(?:à|a)\s+destination)\b/iu';
+
+    /** Travaux, fermetures, remplacements et circulations occasionnelles : la phrase ne dit pas une desserte. */
+    private const NOT_A_SERVICE = '/\b(?:quais?|travaux|électrifi\w*|caténaires?|modernis\w*|rénov\w*|fermetures?|fermée?s?|suspend\w*|suppri\w*|remplac\w*|occasionnellement|ponctuellement|en\s+cas\s+d[’\'])/iu';
+
+    /**
+     * Section « Dessertes réalisées ou prévues » : un titre de projet qui dit aussi « réalisé ». Ses phrases
+     * au futur sont déjà écartées (links() / isProspective()) ; les autres sections de projets (« Projets »,
+     * « Dessertes prévues et commandes ») restent fermées.
+     */
+    public static function isRealisedSection(string $title): bool
+    {
+        return self::isDoubtfulSection($title) && preg_match(self::REALISED_TITLE, $title) === 1;
+    }
+
+    /**
+     * Un lien direct lu dans une section de dessertes réalisées ou prévues prouve-t-il une desserte ? Oui si
+     * la mention ne porte aucun doute (commande, essai, exception, note…), ne reprend pas un sujet antérieur,
+     * dit un service (SERVICE_WORDS) sans parler de travaux, de remplacement ou de circulation occasionnelle,
+     * et ne cite aucune année postérieure à l'année en cours (« à partir de décembre 2027 »).
+     *
+     * @param  array{quote: string, refers_back: bool, doubt: ?string}  $link
+     */
+    public static function isPlannedSectionService(array $link, ?int $currentYear = null): bool
+    {
+        if ($link['doubt'] !== null || $link['refers_back']) {
+            return false;
+        }
+        $quote = $link['quote'];
+        if (preg_match(self::SERVICE_WORDS, $quote) !== 1 || preg_match(self::NOT_A_SERVICE, $quote) === 1) {
+            return false;
+        }
+        if (preg_match_all('/(?<![\d\p{L}])(20\d\d)(?![\d\p{L}])/u', $quote, $years) > 0 && max(array_map('intval', $years[1])) > ($currentYear ?? (int) date('Y'))) {
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Liens internes d'un texte, avec la phrase (ou la ligne de liste ou de tableau) qui les porte.
      * Les liens vers des fichiers, catégories ou autres espaces de noms sont ignorés.

@@ -12,6 +12,9 @@ mêmes noms de champs ; ce document dit où trouver chaque donnée et ce qui cha
 Régénérer la référence GraphQL après un changement du schéma : `make docs-graphql`. La spécification OpenAPI se lit
 sur `/docs/api.json` : elle est calculée à chaque requête, rien à régénérer.
 
+Les changements qui touchent les utilisateurs de l'API sont datés dans `docs/API-CHANGELOG.md`. Après un ajout public, mettre à jour l'instantané
+du contrat avec `bin/php artisan vff:api-contract` (le test `ApiContractTest` échoue si un champ disparaît sans avoir été déprécié).
+
 ## Limites communes
 
 - Débit : 300 requêtes par minute sans jeton, 1 200 avec un jeton personnel (`config/api.php`).
@@ -73,8 +76,8 @@ Différences voulues :
 
 Les changements d'état des contributions peuvent être suivis en direct, par WebSocket (protocole Pusher, serveur
 Laravel Reverb auto-hébergé). **C'est désactivé tant que la production n'a pas de serveur temps réel**
-(`REALTIME_ENABLED=false`) : aucun événement ne part, `/broadcasting/auth` répond 404 et les abonnements GraphQL
-reçoivent l'erreur `Unauthorized subscription request`. En attendant, le webhook `contribution.applied` (`/docs/api`,
+(`REALTIME_ENABLED=false`) : aucun événement ne part, `/broadcasting/auth` et `/graphql/subscriptions/auth`
+répondent 404 et les abonnements GraphQL reçoivent l'erreur `Unauthorized subscription request`. En attendant, le webhook `contribution.applied` (`/docs/api`,
 section « Webhooks ») annonce chaque publication. Mise en service : `docs/DEPLOIEMENT-NGINX.md`, section « Temps réel ».
 
 Quatre événements, émis quel que soit le chemin (site, GraphQL, éditeur de tracé), une fois la transaction validée :
@@ -113,7 +116,10 @@ Les canaux privés s'autorisent par `POST /broadcasting/auth` avec la session du
 Echo, le nom d'un événement prend un point devant : `.listen('.contribution.applied', …)`. La page `/validate` s'en
 sert : la liste se recharge seule (`router.reload`, seulement la liste) quand une contribution est proposée ou
 relue, et attend qu'un refus en cours de saisie soit envoyé ou annulé. Laravel Echo et `pusher-js` ne sont
-téléchargés que si le temps réel est activé.
+téléchargés que si le temps réel est activé. Seuls les canaux `private-…` du tableau sont autorisés (`presence-…` et
+`private-encrypted-…` répondent 403). Une suspension, un changement de rôle ou la suppression d'un compte coupe ses
+connexions WebSocket (API de Reverb `terminate_connections`, après identification par `/broadcasting/user-auth`) :
+le navigateur se reconnecte et le canal de la file lui est alors refusé.
 
 **Abonnements GraphQL** (type `Subscription` de `graphql/schema.graphql`, classes de `app/GraphQL/Subscriptions/`) :
 
@@ -132,11 +138,17 @@ téléchargés que si le temps réel est activé.
    d'énumération sont celles du schéma (`APPLIED`, `LINE_SEGMENT`).
 
 Un abonnement compte pour une requête dans la limite de débit ; un abonné qui ne se manifeste plus est oublié au
-bout d'un jour (`LIGHTHOUSE_SUBSCRIPTION_STORAGE_TTL`). Les abonnés sont gardés dans Valkey. Le serveur MCP ne
+bout d'un jour (`LIGHTHOUSE_SUBSCRIPTION_STORAGE_TTL`). Un compte, ou une adresse IP sans compte, ouvre au plus
+100 abonnements par jour (`REALTIME_SUBSCRIPTIONS_PER_DAY`) : au-delà, l'erreur porte
+`extensions.code = too_many_subscriptions` et `extensions.retry_after` (secondes) ; gardez un abonnement ouvert
+plutôt que d'en ouvrir un par page. `POST /graphql/subscriptions/auth` suit la limite de débit de l'API. Le droit à
+`reviewQueueChanged` est revérifié à chaque événement : un compte suspendu ou qui n'est plus validateur ne reçoit
+plus rien. Les abonnés sont gardés dans Valkey avec le seul numéro du compte (ni cookie, ni adresse IP, ni en-tête). Le serveur MCP ne
 diffuse rien en direct : un client MCP relit les contributions par ses outils, ou s'abonne au webhook.
 
 Tests : `tests/Feature/RealtimeTest.php` (diffusion, absence de données personnelles, autorisation des canaux,
-abonnements GraphQL) et `tests/js/realtime.test.js` (Echo chargé à la demande, rafraîchissement regroupé).
+abonnements GraphQL), `tests/Feature/RealtimeSecurityTest.php` (revue de sécurité : routes fermées, canaux mal
+formés, quota, limites de requête, contexte des abonnés, configuration de Reverb et de nginx) et `tests/js/realtime.test.js` (Echo chargé à la demande, rafraîchissement regroupé).
 
 ## Ajouter une donnée
 

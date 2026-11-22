@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Nagekomen nieuws. Reizen in Frankrijk',
+            'title' => 'Nagekomen nieuws',
             'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
             'author' => null,
             'published' => '1925-08-24',

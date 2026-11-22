@@ -51,7 +51,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Légende de photographie sur le déraillement près de Marcheprime',
+            'title' => 'De nachtsneltrein van Hendaye aan de Spaansche grens naar Parijs is nabij Marcheprime',
             'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
             'author' => null,
             'published' => '1935-04-17',

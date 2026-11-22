@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Spoorwegongeluk',
+            'title' => 'Gemengde berichten',
             'publisher' => 'De Amstelbode (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1913-12-04',

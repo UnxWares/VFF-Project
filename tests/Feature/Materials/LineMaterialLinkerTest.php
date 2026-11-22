@@ -50,7 +50,7 @@ class LineMaterialLinkerTest extends TestCase
         DB::table('wikidata_lines')->insert(['qid' => 'Q3240003', 'category' => 'line', 'line_id' => $this->luneville->id, 'fetched_at' => now()]);
     }
 
-    private function linker(?LineMaterialExclusions $exclusions = null): LineMaterialLinker
+    private function linker(?LineMaterialExclusions $exclusions = null, bool $planned = true): LineMaterialLinker
     {
         $cache = new InMemorySourceCache;
         $wikidata = new class(new CommonsClient(0), $cache, WikidataMaterialRules::default(), 0) extends WikidataMaterialSource
@@ -72,6 +72,8 @@ class LineMaterialLinkerTest extends TestCase
                     'wikipedia_materials' => [
                         'BB 15000' => ['title' => 'BB 15000', 'revid' => 2, 'wikitext' => "== Services effectués ==\nLa mise en service de la [[LGV Est européenne]] libère les BB 15000.\nElles circulent sur la [[ligne de Lunéville à Saint-Dié]]."],
                         // Sous-série dont le titre renvoie vers l'article d'une autre (comme Z 56500 vers Regio 2N).
+                        'Z 31500' => ['title' => 'Z 31500', 'revid' => 3, 'wikitext' => "== Dessertes réalisées ou prévues ==\n=== Normandie ===\nCes rames assurent la desserte de la [[ligne de Paris à Strasbourg]].\nElles circuleront aussi sur la [[ligne de Lunéville à Saint-Dié]] à partir de 2031.\nLes quais de la [[ligne d'Épinal à Bussang]] ont été mis aux normes.\nElles desservent la [[gare de Lunéville]].\nUn train circule sur le [[Réseau express régional d'Île-de-France|RER]].\nLa ligne [[LGV Est européenne]] est citée en passant.\n=== Autre ===\nLes rames commandées par la région assurent la desserte de la [[ligne de Lyon à Genève]]."],
+                        'Z 99900' => ['title' => 'Z 99900', 'revid' => 4, 'wikitext' => "== Dessertes prévues et commandes ==\nCes rames assurent la desserte de la [[ligne de Paris à Strasbourg]]."],
                         'BB 15055' => ['title' => 'BB 15000', 'revid' => 2, 'wikitext' => "== Services effectués ==\nElles circulent sur la [[ligne de Lunéville à Saint-Dié]].\nLa BB15055 roule sur la [[ligne de Paris à Strasbourg]]."],
                     ],
                 ][$cacheName];
@@ -90,7 +92,7 @@ class LineMaterialLinkerTest extends TestCase
             }
         };
 
-        return new LineMaterialLinker($wikidata, $wikipedia, exclusions: $exclusions);
+        return new LineMaterialLinker($wikidata, $wikipedia, exclusions: $exclusions, plannedSections: $planned);
     }
 
     public function test_links_come_only_from_sources_with_their_evidence(): void
@@ -254,6 +256,36 @@ class LineMaterialLinkerTest extends TestCase
         $this->assertArrayHasKey("{$this->luneville->id}:{$this->bb15000->id}", $links, 'l\'article est celui de la BB 15000 : toutes ses phrases valent pour elle');
         $this->assertArrayNotHasKey("{$this->luneville->id}:{$bb15055->id}", $links, 'phrase qui ne nomme pas la BB 15055');
         $this->assertArrayHasKey("{$strasbourg->id}:{$bb15055->id}", $links, 'phrase qui nomme la BB 15055 (« BB15055 »)');
+    }
+
+    public function test_direct_line_links_of_a_realised_or_planned_section_are_read_with_caution(): void
+    {
+        $strasbourg = Line::factory()->create(['slug' => 'rfn-70000', 'name' => 'Ligne de Paris à Strasbourg', 'wikipedia_title' => 'Ligne de Paris à Strasbourg']);
+        $epinal = Line::factory()->create(['slug' => 'rfn-60000', 'name' => "Ligne d'Épinal à Bussang", 'wikipedia_title' => "Ligne d'Épinal à Bussang"]);
+        $lyon = Line::factory()->create(['slug' => 'rfn-90000', 'name' => 'Ligne de Lyon à Genève', 'wikipedia_title' => 'Ligne de Lyon à Genève']);
+        $z31500 = Material::factory()->create(['slug' => 'z-31500', 'name' => 'Z 31500', 'type' => 'automotrice', 'wikidata_id' => 'Q3', 'wikipedia_fr' => 'Z 31500', 'max_speed_kmh' => 160]);
+        $z99900 = Material::factory()->create(['slug' => 'z-99900', 'name' => 'Z 99900', 'type' => 'automotrice', 'wikidata_id' => 'Q4', 'wikipedia_fr' => 'Z 99900', 'max_speed_kmh' => 160]);
+
+        $links = $this->linker()->collect();
+
+        $this->assertArrayHasKey("{$strasbourg->id}:{$z31500->id}", $links, 'phrase de desserte au présent : le lien est gardé');
+        $evidence = $links["{$strasbourg->id}:{$z31500->id}"]['evidence'][0];
+        $this->assertSame('Dessertes réalisées ou prévues > Normandie', $evidence['section']);
+        $this->assertSame('Ces rames assurent la desserte de la ligne de Paris à Strasbourg.', $evidence['quote']);
+        $this->assertArrayNotHasKey("{$this->luneville->id}:{$z31500->id}", $links, 'futur (« circuleront », 2031) : écarté');
+        $this->assertArrayNotHasKey("{$epinal->id}:{$z31500->id}", $links, 'ligne citée pour ses quais, pas une desserte');
+        $this->assertArrayNotHasKey("{$this->lgvEst->id}:{$z31500->id}", $links, 'ligne citée en passant, sans service');
+        $this->assertArrayNotHasKey("{$lyon->id}:{$z31500->id}", $links, 'rames commandées : doute, pas de lien');
+        $this->assertSame(1, LineMaterial::count() + count(array_filter(array_keys($links), fn (string $k): bool => str_ends_with($k, ":{$z31500->id}"))), 'seul Paris - Strasbourg pour la Z 31500');
+        $this->assertArrayNotHasKey("{$strasbourg->id}:{$z99900->id}", $links, 'section « Dessertes prévues et commandes » : fermée');
+    }
+
+    public function test_the_planned_sections_can_be_turned_off(): void
+    {
+        $strasbourg = Line::factory()->create(['slug' => 'rfn-70000', 'name' => 'Ligne de Paris à Strasbourg', 'wikipedia_title' => 'Ligne de Paris à Strasbourg']);
+        $z31500 = Material::factory()->create(['slug' => 'z-31500', 'name' => 'Z 31500', 'type' => 'automotrice', 'wikidata_id' => 'Q3', 'wikipedia_fr' => 'Z 31500', 'max_speed_kmh' => 160]);
+
+        $this->assertArrayNotHasKey("{$strasbourg->id}:{$z31500->id}", $this->linker(planned: false)->collect());
     }
 
     public function test_diff_lists_what_writing_would_change_without_writing(): void

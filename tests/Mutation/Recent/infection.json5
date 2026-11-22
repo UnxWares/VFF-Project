@@ -1,0 +1,21 @@
+// Tests de mutation (Infection) du code récent : nettoyage des erreurs, électrification, sitemap, journal, signalisation, pentes, accidents.
+//   bin/php vendor/bin/infection -c tests/Mutation/Recent/infection.json5 --threads=2 --only-covering-test-cases --filter=Support/Monitoring/SentryScrubber.php
+// 2 threads maximum, sous flock /tmp/claude-1000/vff-check.lock. Base : VFF_TEST_DB=vff_n2211_mutation_recente_test.
+// Rapports : storage/app/reports/infection/recent/.
+{
+    "source": {
+        "directories": ["../../../app"],
+        "excludes": ["#^(?!(Support/Monitoring/(SentryScrubber|RedactedUrl)|Services/Traction/LineElectrificationAggregate|Services/Seo/SitemapBuilder|Services/Journal/(JournalRenderer|JournalFrontMatter)|Services/Signalling/SignallingCorrectionsFile|Services/Profiles/SourcedGrades|Services/Accidents/AccidentSlugTable)\\.php$)#"]
+    },
+    "phpUnit": {"configDir": "."},
+    "initialTestsPhpOptions": "-d pcov.enabled=1",
+    "threads": 2,
+    "timeout": 60,
+    "tmpDir": "../../../storage/app/reports/infection/recent/tmp",
+    "logs": {
+        "text": "../../../storage/app/reports/infection/recent/infection.log",
+        "json": "../../../storage/app/reports/infection/recent/infection.json",
+        "summary": "../../../storage/app/reports/infection/recent/summary.log"
+    },
+    "mutators": {"@default": true, "ProtectedVisibility": false}
+}

@@ -218,4 +218,18 @@ class ShareTagsTest extends TestCase
         $this->assertStringNotContainsString('data-vff-seo', (string) $response->getContent());
         $this->assertNull($this->meta($doc, 'og:title'));
     }
+
+    public function test_share_urls_ignore_the_host_header(): void
+    {
+        config(['app.url' => 'https://vff.example']);
+        Line::factory()->create(['slug' => 'rfn-610000', 'code' => '610000', 'name' => 'Ligne de test']);
+
+        foreach (['/', '/lines/rfn-610000'] as $path) {
+            $response = $this->withServerVariables(['HTTP_HOST' => 'evil.test'])->get($path)->assertOk();
+            $doc = $this->document($response);
+            $this->assertStringStartsWith('https://vff.example', (string) $this->meta($doc, 'og:url'), $path);
+            $this->assertStringStartsWith('https://vff.example', (string) $doc->querySelector('head link[rel="canonical"]')?->getAttribute('href'), $path);
+            $this->assertStringNotContainsString('evil.test', (string) $response->getContent(), $path);
+        }
+    }
 }

@@ -80,7 +80,7 @@ return [
         'course' => [
             [
                 'fr' => 'Le 21 mars 1846 vers 8 h, un train spécial parti de Paris emmenait vers Rouen et Le Havre des députés de la commission chargée des fortifications du Havre. À la sortie du tunnel de Rolleboise, il n\'a pas pu s\'arrêter aux signaux de la gare de Bonnières.',
-                'en' => 'On 21 March 1846 at about 8 a.m., a special train from Paris was taking members of the parliamentary commission on the Le Havre fortifications towards Rouen and Le Havre. Coming out of the Rolleboise tunnel, it could not stop at the signals of Bonnières station.',
+                'en' => 'On 21 March 1846 at about 8 am, a special train from Paris was taking members of the parliamentary commission on the Le Havre fortifications towards Rouen and Le Havre. Coming out of the Rolleboise tunnel, it could not stop at the signals of Bonnières station.',
                 'de' => 'Am 21. März 1846 gegen 8 Uhr brachte ein Sonderzug aus Paris Abgeordnete der Kommission für die Befestigung von Le Havre nach Rouen und Le Havre. Nach der Ausfahrt aus dem Tunnel von Rolleboise konnte er an den Haltesignalen des Bahnhofs Bonnières nicht mehr anhalten.',
                 'sources' => ['wp-liste-1840', 'ddb-1846-03-29-passavia', 'elux-1846-03-25-courrier'],
             ],

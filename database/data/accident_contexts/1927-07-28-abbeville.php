@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Een spoorwegongeluk. Een doode, dertien gewonden',
+            'title' => 'Een spoorwegongeluk',
             'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
             'author' => null,
             'published' => '1927-07-29',

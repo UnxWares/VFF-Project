@@ -97,7 +97,7 @@ return [
         'victims' => [
             [
                 'fr' => 'Un voyageur du train heurté a été tué : il a été projeté hors de la portière, alors que le personnel avait interdit de descendre. Les blessés sont quatre selon la presse allemande, dont un grave, et six selon la liste de Wikipédia.',
-                'en' => 'One passenger of the struck train was killed: he was thrown out through the door, although the staff had forbidden passengers to get off. The press counts four injured, one seriously, and the Wikipedia list six.',
+                'en' => 'One passenger of the struck train was killed: he was thrown out through the door, although the staff had forbidden passengers to get off. The German press counts four injured, one seriously, and the Wikipedia list six.',
                 'de' => 'Ein Reisender des aufgefahrenen Zuges wurde getötet: Er wurde aus der Wagentür geschleudert, obwohl das Personal das Aussteigen verboten hatte. Die deutsche Presse zählt vier Verletzte, darunter einen schwer, die Wikipedia-Liste sechs.',
                 'sources' => ['ddb-1881-09-03-stuttgart', 'ddb-1881-08-29-reichsanzeiger', 'ddb-1881-08-30-hannoverscher', 'wp-liste-1880'],
             ],

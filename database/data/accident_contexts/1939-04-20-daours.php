@@ -51,7 +51,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Brand in den Diesel Rijssel-Parijs (légende de photographie)',
+            'title' => 'Brand in den Diesel Rijssel-Parijs',
             'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
             'author' => null,
             'published' => '1939-04-29',

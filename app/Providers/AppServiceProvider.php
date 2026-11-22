@@ -33,6 +33,7 @@ use Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\FormRequestPar
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
@@ -42,6 +43,12 @@ use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
+    /**
+     * Plus grand numéro de page des listes paginées (`?page=`) : au-delà, (page - 1) × taille de page ne tient
+     * plus dans un entier et le décalage SQL levait une erreur 500. Même borne que l'API REST (`page` 1 à 1 000 000).
+     */
+    public const MAX_PAGE = 1_000_000;
+
     public function register(): void
     {
         // Registre des droits des sources : lu une fois par processus (fournisseurs et licences de l'API).
@@ -53,6 +60,13 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Page courante de paginate() : entier de 1 à MAX_PAGE (comme le résolveur de Laravel, borné en haut).
+        Paginator::currentPageResolver(function (string $pageName = 'page'): int {
+            $page = filter_var($this->app['request']->input($pageName), FILTER_VALIDATE_INT);
+
+            return is_int($page) && $page >= 1 ? min($page, self::MAX_PAGE) : 1;
+        });
+
         // Les commandes qui vident la base ne tournent que sur une base de test (voir DatabaseGuard).
         $connection = config('database.default');
         DB::prohibitDestructiveCommands(! DatabaseGuard::isDisposable(config("database.connections.{$connection}.database")));

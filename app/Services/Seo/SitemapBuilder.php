@@ -100,7 +100,8 @@ final class SitemapBuilder
     private function rows(string $family, int $page): iterable
     {
         if ($family === 'pages') {
-            foreach (self::PAGES as $name) {
+            // Découpées comme les autres familles : sans cela, chaque page du plan redonnait les 19 pages éditoriales.
+            foreach (array_slice(self::PAGES, ($page - 1) * $this->pageSize, $this->pageSize) as $name) {
                 yield [route($name, [], false), null];
             }
 

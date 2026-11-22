@@ -37,7 +37,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Frankrijk. Spoorwegongeluk met een buurttrein bij Parijs. Twee dooden',
+            'title' => 'Frankrijk. Spoorwegongeluk met een buurttrein bij Parijs',
             'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
             'author' => null,
             'published' => '1924-03-03',

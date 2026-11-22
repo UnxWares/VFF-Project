@@ -287,6 +287,19 @@
         gap: var(--vff-space-1) var(--vff-space-4);
         margin-top: var(--vff-space-3);
     }
+    /* Téléphone : liens de proposition de 44 px de haut, espacés, au lieu de lignes serrées de 24 px
+       (WCAG 2.5.8). Sur ordinateur, la présentation reste celle d'origine. */
+    @media (max-width: 640px) {
+        .report-error .propose {
+            align-items: center;
+            gap: 0 var(--vff-space-4);
+        }
+        .report-error .propose :global(a) {
+            display: inline-flex;
+            align-items: center;
+            min-block-size: 44px;
+        }
+    }
 
     .report-dialog {
         width: min(600px, calc(100vw - 32px));

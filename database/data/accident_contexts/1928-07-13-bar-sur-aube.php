@@ -65,7 +65,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Spoorwegongelukken (rubrique de faits divers)',
+            'title' => 'Spoorwegongelukken',
             'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
             'author' => null,
             'published' => '1928-07-16',

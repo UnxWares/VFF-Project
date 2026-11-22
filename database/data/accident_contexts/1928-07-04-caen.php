@@ -51,7 +51,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Frankrijk. Treinbotsing. Een doode',
+            'title' => 'Frankrijk. Treinbotsing',
             'publisher' => 'Presse néerlandaise numérisée (Delpher, Bibliothèque royale des Pays-Bas)',
             'author' => null,
             'published' => '1928-07-05',

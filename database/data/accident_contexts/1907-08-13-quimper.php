@@ -23,7 +23,7 @@ return [
             'provider' => 'presse',
             'kind' => 'press',
             'reliability' => 'press',
-            'title' => 'Spoorwegongeluk in Frankrijk',
+            'title' => 'Gemengde Berichten',
             'publisher' => 'De Courant (Delpher, Koninklijke Bibliotheek)',
             'author' => null,
             'published' => '1907-08-15',

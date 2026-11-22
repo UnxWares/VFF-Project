@@ -77,6 +77,9 @@ class ImportStationClosures extends Command
     /** @var list<string> */
     private array $cacheShortfalls = [];  // remis à zéro à chaque instance : une exécution par instance
 
+    /** Cache Wikidata vide ou très incomplet (la source wikidata ne lit que lui, même sans --from-cache). */
+    private bool $wikidataCacheShort = false;
+
     /** @var list<array<string, mixed>> */
     private array $unmatched = [];
 
@@ -130,6 +133,16 @@ class ImportStationClosures extends Command
                 return self::FAILURE;
             }
             $this->warn('Simulation seulement : une exécution réelle serait refusée.');
+        }
+        // Sans --from-cache, la source wikidata lit tout de même le cache disque de vff:import-station-sources
+        // (jamais le réseau) : avec un cache vide ou très incomplet, ses fermetures déjà en base sont gardées
+        // (non remplacées) au lieu d'être effacées, et la relecture continue pour les autres sources.
+        $keepWikidata = ! $this->option('from-cache') && $this->wikidataCacheShort;
+        if ($keepWikidata) {
+            foreach ($this->cacheShortfalls as $line) {
+                $this->warn($line);
+            }
+            $this->warn('  fermetures Wikidata déjà en base gardées (vff:import-station-sources --source=wikidata --cache-only remplit le cache)');
         }
 
         // Gares fermées aujourd'hui (ou réduites au fret) seulement : une fermeture sans
@@ -193,6 +206,10 @@ class ImportStationClosures extends Command
         $sourceNames = array_map(fn ($s) => match ($s) {
             'wikidata' => 'wikidata:qualifiers', 'osm' => 'osm:note', default => 'wikipedia',
         }, $sources);
+        if ($keepWikidata) {
+            // Les événements lus malgré tout s'ajoutent (insertOrIgnore) sans rien effacer de cette source.
+            $sourceNames = array_values(array_diff($sourceNames, ['wikidata:qualifiers']));
+        }
         DB::transaction(function () use ($rows, $sourceNames, $sources, $only) {
             $del = DB::table('station_events')->where('is_inferred', false)
                 ->when($only, fn ($q) => $q->where('station_id', $only));
@@ -271,7 +288,7 @@ class ImportStationClosures extends Command
                 }
             }
         }
-        $this->checkCache('wikidata (storage/app/sources/stations/wikidata)', $members->count(), $members->count() - count($seen));
+        $this->wikidataCacheShort = $this->checkCache('wikidata (storage/app/sources/stations/wikidata)', $members->count(), $members->count() - count($seen));
 
         return $out;
     }
@@ -484,13 +501,17 @@ class ImportStationClosures extends Command
         return $res['pages'];
     }
 
-    /** Note un cache vide ou trop incomplet (plus de MAX_MISSING_RATIO d'éléments absents) pour une source. */
-    private function checkCache(string $label, int $expected, int $missing): void
+    /** Note un cache vide ou trop incomplet (plus de MAX_MISSING_RATIO d'éléments absents) pour une source ; true dans ce cas. */
+    private function checkCache(string $label, int $expected, int $missing): bool
     {
         if ($expected > 0 && $missing / $expected > self::MAX_MISSING_RATIO) {
             $this->cacheShortfalls[] = sprintf('Cache incomplet pour %s : %d éléments absents sur %d attendus (%d %% ; maximum toléré %d %%).',
                 $label, $missing, $expected, (int) round(100 * $missing / $expected), (int) round(100 * self::MAX_MISSING_RATIO));
+
+            return true;
         }
+
+        return false;
     }
 
     /** @param list<array<string, mixed>> $rows */

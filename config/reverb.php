@@ -72,7 +72,9 @@ return [
                 ))),
                 'ping_interval' => env('REVERB_APP_PING_INTERVAL', 60),
                 'activity_timeout' => env('REVERB_APP_ACTIVITY_TIMEOUT', 30),
-                'max_connections' => env('REVERB_APP_MAX_CONNECTIONS'),
+                // Plafond de connexions simultanées de tout le serveur (un seul serveur Reverb derrière nginx, qui
+                // garde déjà 20 connexions par adresse IP) : 1000 par défaut, jamais illimité.
+                'max_connections' => max(1, (int) (env('REVERB_APP_MAX_CONNECTIONS') ?: 1000)),
                 'max_message_size' => env('REVERB_APP_MAX_MESSAGE_SIZE', 10_000),
                 'max_channels_per_connection' => env('REVERB_APP_MAX_CHANNELS_PER_CONNECTION', 100),
                 // Le site ne fait qu'émettre : aucun message d'un navigateur à un autre (`none`).

@@ -38,7 +38,7 @@ final class AttestedSeriesFinder
 
         // 1. Liens posés dans les articles des lignes.
         $linesByTitle = [];
-        foreach (DB::table('lines')->whereNotNull('wikipedia_title')->pluck('wikipedia_title') as $title) {
+        foreach (DB::table('lines')->whereNotNull('wikipedia_title')->orderBy('id')->pluck('wikipedia_title') as $title) {
             $linesByTitle[WikipediaMaterialSections::normalizeTitle((string) $title)] = true;
         }
         $pages = $this->wikipedia->sections('wikipedia_lines', array_keys($linesByTitle), WikipediaMaterialSections::LINE_SECTIONS, $refresh);

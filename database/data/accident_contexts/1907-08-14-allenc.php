@@ -81,7 +81,7 @@ return [
             [
                 'fr' => 'Le viaduc du Beyrac, long de 64 m, porte la ligne de Mende à La Bastide au-dessus du ruisseau de Beyrac, entre les gares de Bagnols - Chadenet et d\'Allenc. Il se trouve sur la commune d\'Allenc.',
                 'en' => 'The Beyrac viaduct, 64 m long, carries the Mende to La Bastide line over the Beyrac stream, between Bagnols - Chadenet and Allenc stations. It lies in the commune of Allenc.',
-                'de' => 'Der 64 m lange Viadukt von Beyrac führt die Strecke Mende-La Bastide zwischen den Bahnhöfen Bagnols-Chadenet und Allenc über den Bach von Beyrac. Er liegt auf dem Gebiet der Gemeinde Allenc.',
+                'de' => 'Das 64 m lange Viadukt von Beyrac führt die Strecke Mende-La Bastide zwischen den Bahnhöfen Bagnols-Chadenet und Allenc über den Bach von Beyrac. Es liegt auf dem Gebiet der Gemeinde Allenc.',
                 'sources' => ['wp-schema-ligne-monastier', 'osm-pont-beyrac'],
             ],
         ],
