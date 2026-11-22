@@ -104,7 +104,8 @@
      * Composant carte interactive du réseau ferré VFF.
      *
      * Consomme les endpoints :
-     *   GET /api/v1/eras/{era}/tiles/{z}/{x}/{y}.mvt   → tracés (couche `vff-lines`)
+     *   GET /api/v1/eras/{era}/tiles/{z}/{x}/{y}.mvt?fields=map → tracés (couche `vff-lines`, seulement
+     *                                                     les propriétés lues ici et dans $lib/railStyle.js)
      *   GET /api/v1/eras/{era}/stations.geojson        → gares (couche `vff-stations`,
      *                                                     chargée à l'approche du zoom 7, $lib/mapStations.js)
      *
@@ -474,8 +475,11 @@
         return dataVersion ? `?v=${dataVersion}` : '';
     }
 
+    // Tuiles allégées (`fields=map`) : seulement les propriétés que lisent les couches, les filtres de la
+    // légende et le clic ci-dessous (App\Enums\TileFields::MAP_PROPERTIES). Une propriété lue ici doit y figurer.
     function tilesUrlForEra(year) {
-        return `${window.location.origin}${TILES_BASE}/${year}/tiles/{z}/{x}/{y}.mvt${bustParam()}`;
+        const version = dataVersion ? `&v=${dataVersion}` : '';
+        return `${window.location.origin}${TILES_BASE}/${year}/tiles/{z}/{x}/{y}.mvt?fields=map${version}`;
     }
 
     function compareTilesUrl(from, to) {

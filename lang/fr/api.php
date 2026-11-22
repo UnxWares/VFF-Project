@@ -113,7 +113,7 @@ return [
             'lines_geojson' => 'Tracés du réseau à une ère, en GeoJSON (FeatureCollection de tronçons). Un tronçon dont la source n’autorise pas la redistribution garde ses propriétés, sans géométrie.',
             'stations_geojson' => 'Gares à une ère, en GeoJSON. Les gares fermées y figurent tant qu’une voie existe à proximité, avec leur statut.',
             'schematic' => 'Plan schématique d’une ère (la vue ferroviaire de la carte), en GeoJSON : axes à 0, 45 ou 90 degrés, gares et lignes. Les positions ne sont pas réelles.',
-            'tiles' => 'Tuile vectorielle (MVT) d’une ère, pour une source MapLibre ou OpenLayers. Elle sert à l’affichage de la carte, ce n’est pas un export de données.',
+            'tiles' => 'Tuile vectorielle (MVT) d’une ère, pour une source MapLibre ou OpenLayers. Elle sert à l’affichage de la carte, ce n’est pas un export de données. Avec ?fields=map, elle ne garde que les propriétés lues par la carte du site et pèse environ 60 % de moins.',
             'gtfs' => 'Réseau d’une ère au format GTFS Static (archive ZIP), avec les formes des seules lignes dont tout le tracé est redistribuable.',
             'lines' => 'Annuaire des lignes, actuelles et disparues, avec les mêmes filtres que la page Lignes.',
             'line' => 'Fiche complète d’une ligne, comme sur le site : chiffres clés, phases datées, chronique sourcée, gares et sources.',

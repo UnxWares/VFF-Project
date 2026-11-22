@@ -50,6 +50,12 @@ Différences voulues :
 - Le serveur MCP raccourcit les réponses trop longues (`truncated`) et retire les citations des textes de Wikipédia et
   des documents sous droits ; les listes de l'audit, du profil et des médias se continuent par `offset` ou `cursor`.
 - Les tuiles vectorielles, les exports GPX, KML et GTFS ne sont qu'en REST.
+- Les tuiles des ères (`GET /eras/{year}/tiles/{z}/{x}/{y}.mvt`) acceptent `fields=map` : seulement les propriétés que
+  lit la carte du site (`App\Enums\TileFields::MAP_PROPERTIES`), booléens écrits seulement quand ils sont vrais, tracés
+  aux propriétés identiques réunis en une entité. La carte de `/maps` les demande ainsi : 60 % d'octets en moins sur
+  la tuile de vue d'ensemble. Sans le paramètre, la réponse garde toutes ses propriétés ; une autre valeur que `all`
+  ou `map` renvoie 422. Liste des propriétés gardées : docblock de `GeoController::tile`, vérifiée contre le code de
+  la carte par `tests/Unit/Enums/TileFieldsTest.php`.
 
 ## Ajouter une donnée
 

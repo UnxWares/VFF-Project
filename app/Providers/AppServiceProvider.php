@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Requests\Api\AccidentMapRequest;
+use App\Http\Requests\Api\EraTileRequest;
 use App\Http\Requests\Api\ListAccidentsRequest;
 use App\Http\Requests\Api\ListLevelCrossingsRequest;
 use App\Http\Requests\Api\ListLineEventsRequest;
@@ -75,7 +76,7 @@ class AppServiceProvider extends ServiceProvider
             ListMaterialsRequest::class, ListLineMaterialsRequest::class, MaterialQuery::class,
             ListLinesRequest::class, ListStationsRequest::class, LineDirectoryQuery::class, StationDirectoryQuery::class,
             ListAccidentsRequest::class, AccidentQuery::class, AccidentMapRequest::class,
-            ListLevelCrossingsRequest::class,
+            ListLevelCrossingsRequest::class, EraTileRequest::class,
         ]);
 
         // Exemples JavaScript et Python des principaux points d'accès (extension x-codeSamples lue par Scalar).

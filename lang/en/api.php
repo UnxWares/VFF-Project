@@ -112,7 +112,7 @@ return [
             'lines_geojson' => 'Network routes at an era, as GeoJSON (a FeatureCollection of sections). A section whose source does not allow redistribution keeps its properties, without geometry.',
             'stations_geojson' => 'Stations at an era, as GeoJSON. Closed stations are included as long as a track remains nearby, with their status.',
             'schematic' => 'Schematic diagram of an era (the railway view of the map), as GeoJSON: axes at 0, 45 or 90 degrees, stations and lines. Positions are not real ones.',
-            'tiles' => 'Vector tile (MVT) for an era, for a MapLibre or OpenLayers source. It is for displaying the map, not a data export.',
+            'tiles' => 'Vector tile (MVT) for an era, for a MapLibre or OpenLayers source. It is for displaying the map, not a data export. With ?fields=map, it keeps only the properties the site map reads and is about 60% smaller.',
             'gtfs' => 'Network of an era in GTFS Static format (ZIP archive), with shapes only for lines whose whole route may be redistributed.',
             'lines' => 'Directory of lines, current and closed, with the same filters as the Lines page.',
             'line' => 'Full entry for a line, as on the site: key figures, dated phases, sourced chronicle, stations and sources.',
